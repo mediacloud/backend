@@ -15,15 +15,17 @@
 --
 
 alter table controversies rename to topics;
-alter table topics rename controvesies_id to topics_id;
+alter table topics rename controversies_id to topics_id;
 alter table topics rename controversy_tag_sets_id to topic_tag_sets_id;
 
 alter index controversies_name rename to topics_name;
 alter index controversies_tag_set rename to topics_tag_set;
 alter index controversies_media_type_tag_set rename to topics_media_type_tag_set;
 
-alter function insert_controversy_tag_set rename to insert_topic_tag_set;
-create or replace function insert_topic_tag_set() returns trigger as $insert_topic_tag_set$
+drop trigger topic_tag_set;
+drop function insert_controversy_tag_set();
+
+create function insert_topic_tag_set() returns trigger as $insert_topic_tag_set$
     begin
         insert into tag_sets ( name, label, description )
             select 'topic_'||NEW.name, NEW.name||' topic', 'Tag set for stories within the '||NEW.name||' topic.';
@@ -34,14 +36,15 @@ create or replace function insert_topic_tag_set() returns trigger as $insert_top
     END;
 $insert_topic_tag_set$ LANGUAGE plpgsql;
 
-alter trigger controversy_tag_set on table topics rename to topic_tag_set;
+create trigger topic_tag_set before insert on topics
+    for each row execute procedure insert_topic_tag_set();
 
 alter table controversy_dates rename to topic_dates;
 
-alter table topics_dates rename controversy_dates_id to topic_dates_id;
+alter table topic_dates rename controversy_dates_id to topic_dates_id;
 alter table topic_dates rename controversies_id to topics_id;
 
-alter view controversies_with_dates rename to topics_with_dates;
+drop view controversies_with_dates;
 
 create or replace view topics_with_dates as
     select c.*,
@@ -85,8 +88,9 @@ alter index controversy_links_scr rename to topic_links_scr;
 alter index controversy_links_controversy rename to topic_links_topic;
 alter index controversy_links_ref_story rename to topic_links_ref_story;
 
-alter view controversy_links_cross_media rename to topic_links_cross_media;
-create or replace view CREATE VIEW topic_links_cross_media AS
+drop view controversy_links_cross_media;
+
+create or replace view topic_links_cross_media AS
     SELECT s.stories_id,
            sm.name AS media_name,
            r.stories_id AS ref_stories_id,
@@ -130,8 +134,6 @@ alter table foci rename controversy_query_slices_id to foci_id;
 alter table foci rename controversies_id to topics_id;
 alter table foci rename all_time_slices to all_timespans;
 
-alter index controversy_query_slices_controversy rename to foci_topic;
-
 alter table controversy_dumps rename to snapshots;
 
 alter table snapshots rename controversy_dumps_id to snapshots_id;
@@ -157,11 +159,9 @@ alter index cdts_files_cdts rename to timespan_files_timespan;
 
 alter table cd_files rename controversy_dumps_id to snapshots_id;
 
-alter table cd.stories rename controversy_dumps_id to snapshots_id;
+drop function num_controversy_stories_without_bitly_statistics(param_topics_id INT);
 
-alter function num_controversy_stories_without_bitly_statistics rename to num_topic_stories_without_bitly_statistics;
-
-create or replace num_topic_stories_without_bitly_statistics (param_topics_id INT) RETURNS INT AS
+create or replace function num_topic_stories_without_bitly_statistics (param_topics_id INT) RETURNS INT AS
 $$
 DECLARE
     topic_exists BOOL;
@@ -193,51 +193,67 @@ END;
 $$
 LANGUAGE plpgsql;
 
-alter table cd.controversy_stories rename to cd.topic_stories;
+alter table cd.controversy_stories rename to topic_stories;
 alter table cd.topic_stories rename controversy_dumps_id to snapshots_id;
-alter table cd.topic_stories rename controversy_stories_id topic_stories_id;
+alter table cd.topic_stories rename controversy_stories_id to topic_stories_id;
 alter table cd.topic_stories rename controversies_id to topics_id;
 
-alter index controversy_stories_id rename to topic_stories_id;
+alter index cd.controversy_stories_id rename to topic_stories_id;
 
-alter table cd.controversy_links_cross_media rename to cd.topic_links_cross_media;
+alter table cd.controversy_links_cross_media rename to topic_links_cross_media;
 alter table cd.topic_links_cross_media rename controversy_dumps_id to snapshots_id;
 alter table cd.topic_links_cross_media rename controversy_links_id to topic_links_id;
 alter table cd.topic_links_cross_media rename controversies_id to topics_id;
 
-alter index controversy_links_story rename to topic_links_story;
-alter index controversy_links_ref rename to topic_links_ref;
+alter index cd.controversy_links_story rename to topic_links_story;
+alter index cd.controversy_links_ref rename to topic_links_ref;
 
-alter table cd.controversy_media_codes rename to cd.topic_media_codes;
+alter table cd.controversy_media_codes rename to topic_media_codes;
 alter table cd.topic_media_codes rename controversy_dumps_id to snapshots_id;
 alter table cd.topic_media_codes rename controversies_id to topics_id;
 
-alter index controversy_media_codes_medium rename to topic_media_codes_medium;
+alter index cd.controversy_media_codes_medium rename to topic_media_codes_medium;
 
 alter table cd.media rename controversy_dumps_id to snapshots_id;
 alter table cd.media_tags_map rename controversy_dumps_id to snapshots_id;
 alter table cd.stories rename controversy_dumps_id to snapshots_id;
+alter table cd.stories_tags_map rename controversy_dumps_id to snapshots_id;
 alter table cd.tags rename controversy_dumps_id to snapshots_id;
 alter table cd.tag_sets rename controversy_dumps_id to snapshots_id;
+alter table cd.daily_date_counts rename controversy_dumps_id to snapshots_id;
+alter table cd.weekly_date_counts rename controversy_dumps_id to snapshots_id;
 
 alter table cd.story_links rename controversy_dump_time_slices_id to timespans_id;
 alter table cd.story_link_counts rename controversy_dump_time_slices_id to timespans_id;
 alter table cd.medium_link_counts rename controversy_dump_time_slices_id to timespans_id;
 alter table cd.medium_links rename controversy_dump_time_slices_id to timespans_id;
-alter table cd.daily_date_counts rename controversy_dump_time_slices_id to timespans_id;
-alter table cd.weekly_date_counts rename controversy_dump_time_slices_id to timespans_id;
 
 alter table cd.live_stories rename controversies_id to topics_id;
 alter table cd.live_stories rename controversy_stories_id to topic_stories_id;
 
-alter index live_story_controversy rename to live_story_topic;
+alter index cd.live_story_controversy rename to live_story_topic;
 
 drop table cd.word_counts;
+
+alter trigger controversy_stories_insert_live_story on topic_stories rename to topic_stories_insert_live_story;
+
+drop table if exists controversy_query_story_searches_imported_stories_map;
+
+update auth_roles set role = 'tm', description = 'Topic mapper; includes media and story editing' where role = 'cm';
+update auth_roles set role = 'tm-readonly', description = 'Topic mapper; excludes media and story editing' where role = 'cm-readonly';
+
+alter type cd_period_type rename to snap_period_type;
+
+alter table cd_files rename to snap_files;
+
+alter table snap_files rename cd_files_id to snap_files_id;
+
+alter schema cd rename to snap;
 
 create or replace function insert_live_story() returns trigger as $insert_live_story$
     begin
 
-        insert into cd.live_stories
+        insert into snap.live_stories
             ( topics_id, topic_stories_id, stories_id, media_id, url, guid, title, description,
                 publish_date, collect_date, full_text_rss, language,
                 db_row_last_updated )
@@ -254,12 +270,30 @@ create or replace function insert_live_story() returns trigger as $insert_live_s
     END;
 $insert_live_story$ LANGUAGE plpgsql;
 
-alter trigger controversy_stories_insert_live_story rename to topic_stories_insert_live_story;
+create or replace function update_live_story() returns trigger as $update_live_story$
+    begin
 
-drop table if exists controversy_query_story_searches_imported_stories_map;
+        update snap.live_stories set
+                media_id = NEW.media_id,
+                url = NEW.url,
+                guid = NEW.guid,
+                title = NEW.title,
+                description = NEW.description,
+                publish_date = NEW.publish_date,
+                collect_date = NEW.collect_date,
+                full_text_rss = NEW.full_text_rss,
+                language = NEW.language,
+                db_row_last_updated = NEW.db_row_last_updated
+            where
+                stories_id = NEW.stories_id;
 
-update auth_roles set role = 'tm', description = 'Topic mapper; includes media and story editing' where role = 'cm';
-update auth_roles set role = 'tm-readonly', description = 'Topic mapper; excludes media and story editing' where role = 'cm-readonly';
+        return NEW;
+    END;
+$update_live_story$ LANGUAGE plpgsql;
+
+update feeds set name = 'Spider Feed' where name = 'Controversy Spider Feed';
+
+alter table topics drop column has_been_dumped;
 
 --
 -- 2 of 2. Reset the database version.
