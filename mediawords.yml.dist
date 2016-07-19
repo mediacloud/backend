@@ -139,6 +139,7 @@ database:
         #zookeeper
 
         # Solr cluster: Solr shards
+        # (Don't set "numprocs" here, adjust "cluster_shard_count" instead.)
         #solr_shard
 
 ### Solr server, when running as a Supervisor service
