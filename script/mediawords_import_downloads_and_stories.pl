@@ -149,9 +149,9 @@ sub import_downloads
 
         my $child_stories_element = $child_stories_list[ 0 ];
 
-        # say "Dumping child stories list";
+        # say "child stories list";
         # say Dumper ( [ @child_stories_list ] );
-        # say "Dumping child stories element";
+        # say "child stories element";
         # say Dumper ( $child_stories_element );
 
         my $story_elements = [ $child_stories_element->getElementsByTagName( "story" ) ];
@@ -219,7 +219,8 @@ sub import_downloads
             confess "Story not created for object " . Dumper( $story_hash ) unless defined( $db_story ) and $db_story;
 
             confess "db_story object: " .
-		Dumper( $db_story ) . "does not have a stories_id." . "object created from " . Dumper( $story_hash ) unless $db_story->{ stories_id };
+              Dumper( $db_story ) . "does not have a stories_id." . "object created from " . Dumper( $story_hash )
+              unless $db_story->{ stories_id };
 
             my @story_downloads_list = $story_element->getElementsByTagName( "story_downloads" );
 

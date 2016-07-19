@@ -1063,7 +1063,7 @@ sub url_and_data_after_redirects($;$$)
 }
 
 # for a given set of stories, get all the stories that are source or target merged stories
-# in controversy_merged_stories_map.  repeat recursively up to 10 times, or until no new stories are found.
+# in topic_merged_stories_map.  repeat recursively up to 10 times, or until no new stories are found.
 sub _get_merged_stories_ids
 {
     my ( $db, $stories_ids, $n ) = @_;
@@ -1074,7 +1074,7 @@ sub _get_merged_stories_ids
 
     my $merged_stories_ids = $db->query( <<END )->flat;
 select distinct target_stories_id, source_stories_id
-    from controversy_merged_stories_map
+    from topic_merged_stories_map
     where target_stories_id in ( $stories_ids_list ) or source_stories_id in ( $stories_ids_list )
 END
 
@@ -1091,8 +1091,8 @@ END
     }
 }
 
-# get any alternative urls for the given url from controversy_merged_stories or controversy_links
-sub get_controversy_url_variants
+# get any alternative urls for the given url from topic_merged_stories or topic_links
+sub get_topic_url_variants
 {
     my ( $db, $urls ) = @_;
 
@@ -1106,9 +1106,9 @@ sub get_controversy_url_variants
 
     my $all_urls = $db->query( <<END )->flat;
 select distinct url from (
-    select redirect_url url from controversy_links where stories_id in ( $all_stories_ids_list )
+    select redirect_url url from topic_links where stories_id in ( $all_stories_ids_list )
     union
-    select url from controversy_links where stories_id in( $all_stories_ids_list )
+    select url from topic_links where stories_id in( $all_stories_ids_list )
     union
     select url from stories where stories_id in ( $all_stories_ids_list )
 ) q
@@ -1124,7 +1124,7 @@ END
 # 3) Canonical URL (after removing #fragments, session IDs, tracking parameters, etc.)
 # 4) Canonical URL after redirects (do the redirect check first, then strip the tracking parameters from the URL)
 # 5) URL from <link rel="canonical" /> (if any)
-# 6) Any alternative URLs from controversy_merged_stories or controversy_links
+# 6) Any alternative URLs from topic_merged_stories or topic_links
 sub all_url_variants($$)
 {
     my ( $db, $url ) = @_;
@@ -1190,7 +1190,7 @@ sub all_url_variants($$)
 
     my $distinct_urls = [ List::MoreUtils::distinct( values( %urls ) ) ];
 
-    my $all_urls = get_controversy_url_variants( $db, $distinct_urls );
+    my $all_urls = get_topic_url_variants( $db, $distinct_urls );
 
     # Remove URLs that can't be variants of the initial URL
     foreach my $invalid_url_variant_regex ( @INVALID_URL_VARIANT_REGEXES )

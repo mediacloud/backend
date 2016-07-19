@@ -143,8 +143,8 @@ programs = rabbitmq
 %]
 
 [% INCLUDE program_config
-    program='cm_mine_controversy'
-    worker_module='CM/MineControversy.pm'
+    program='topic_mine'
+    worker_module='TM/MineTopic.pm'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
@@ -153,8 +153,8 @@ programs = rabbitmq
 %]
 
 [% INCLUDE program_config
-    program='cm_dump_controversy'
-    worker_module='CM/DumpControversy.pm'
+    program='topic_snapshot'
+    worker_module='TM/SnapshotTopic.pm'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'

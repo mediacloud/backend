@@ -31,6 +31,10 @@ sub main
 
     Readonly my $CHUNK_SIZE => 10_000;
 
+    # Wait a little between adding each chunk in order to not fill up job
+    # broker's queue too quickly
+    Readonly my $DELAY_BETWEEN_CHUNKS => 30;
+
     DEBUG "Adding stories to reextractor queue...";
     my $stories_to_reextract;
     do
@@ -98,6 +102,9 @@ SQL
         }
 
         $db->commit;
+
+        INFO "Waiting $DELAY_BETWEEN_CHUNKS s...";
+        sleep( $DELAY_BETWEEN_CHUNKS );
 
     } until ( scalar( @{ $stories_to_reextract } ) == 0 );
 

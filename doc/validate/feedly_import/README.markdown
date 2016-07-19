@@ -14,7 +14,7 @@ The main problem to solve with the feedly import is that we have to merge feedly
 for a given medium.  If we just add all stories from feedly to the media sources, some of those stories may already
 exist within the media source, so we will often end up with duplicate stories.  The feedly import module therefore
 tries to detect duplicate stories based on url and title using the story duplication detection code used by our
-controversy spider.
+topic spider.
 
 Metric
 ------

@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-# test that inserts and updates on stories in controversy_stories are correctly mirrored to cd.live_stories
+# test that inserts and updates on stories in topic_stories are correctly mirrored to snap.live_stories
 
 BEGIN
 {
@@ -23,24 +23,23 @@ BEGIN
     use_ok( 'MediaWords::DB' );
 }
 
-sub add_controversy_story
+sub add_topic_story
 {
-    my ( $db, $controversy, $story ) = @_;
+    my ( $db, $topic, $story ) = @_;
 
-    $db->create( 'controversy_stories',
-        { stories_id => $story->{ stories_id }, controversies_id => $controversy->{ controversies_id } } );
+    $db->create( 'topic_stories', { stories_id => $story->{ stories_id }, topics_id => $topic->{ topics_id } } );
 }
 
 sub test_live_story_matches
 {
-    my ( $db, $controversy, $story, $test_label ) = @_;
+    my ( $db, $topic, $story, $test_label ) = @_;
 
-    my $live_story = $db->query( <<END, $controversy->{ controversies_id }, $story->{ stories_id } )->hash;
-select * from cd.live_stories where controversies_id = ? and stories_id = ?
+    my $live_story = $db->query( <<END, $topic->{ topics_id }, $story->{ stories_id } )->hash;
+select * from snap.live_stories where topics_id = ? and stories_id = ?
 END
 
-    delete( $live_story->{ controversies_id } );
-    delete( $live_story->{ controversy_stories_id } );
+    delete( $live_story->{ topics_id } );
+    delete( $live_story->{ topic_stories_id } );
     delete( $live_story->{ disable_triggers } );
     delete( $story->{ disable_triggers } );
 
@@ -49,17 +48,17 @@ END
     $story->{ publish_date } =~ s/T/ /g;
     $story->{ collect_date } =~ s/T/ /g;
 
-    cmp_deeply( $live_story, $story, "$test_label: $story->{ title } should be in $controversy->{ name } and match story" );
+    cmp_deeply( $live_story, $story, "$test_label: $story->{ title } should be in $topic->{ name } and match story" );
 }
 
 sub test_live_story_absent
 {
-    my ( $db, $controversy, $story, $test_label ) = @_;
+    my ( $db, $topic, $story, $test_label ) = @_;
 
-    my $live_story = $db->query( <<END, $controversy->{ controversies_id }, $story->{ stories_id } )->hash;
-select * from cd.live_stories where controversies_id = ? and stories_id = ?
+    my $live_story = $db->query( <<END, $topic->{ topics_id }, $story->{ stories_id } )->hash;
+select * from snap.live_stories where topics_id = ? and stories_id = ?
 END
-    is( $live_story, undef, "$test_label: \$story->{ title } should be absent from \$controversy->{ title }" );
+    is( $live_story, undef, "$test_label: \$story->{ title } should be absent from \$topic->{ title }" );
 }
 
 sub update_story
@@ -89,23 +88,23 @@ sub test_live_stories
     };
     $medium = $db->create( 'media', $medium );
 
-    my $controversy_a = {
-        name                => 'controversy a',
+    my $topic_a = {
+        name                => 'topic a',
         pattern             => '',
         solr_seed_query     => '',
         solr_seed_query_run => 'f',
-        description         => 'Controversy A'
+        description         => 'topic A'
     };
-    $controversy_a = $db->create( 'controversies', $controversy_a );
+    $topic_a = $db->create( 'topics', $topic_a );
 
-    my $controversy_b = {
-        name                => 'controversy b',
+    my $topic_b = {
+        name                => 'topic b',
         pattern             => '',
         solr_seed_query     => '',
         solr_seed_query_run => 'f',
-        description         => 'Controversy B'
+        description         => 'topic B'
     };
-    $controversy_b = $db->create( 'controversies', $controversy_b );
+    $topic_b = $db->create( 'topics', $topic_b );
 
     my $story_a = {
         media_id      => $medium->{ media_id },
@@ -143,35 +142,35 @@ sub test_live_stories
     };
     $story_c = $db->create( 'stories', $story_c );
 
-    my $live_story = $db->query( "select * from cd.live_stories" )->hash;
+    my $live_story = $db->query( "select * from snap.live_stories" )->hash;
     is( $live_story, undef, "live stories empty before cs insert" );
 
-    add_controversy_story( $db, $controversy_a, $story_a );
-    add_controversy_story( $db, $controversy_b, $story_b );
-    add_controversy_story( $db, $controversy_a, $story_c );
-    add_controversy_story( $db, $controversy_b, $story_c );
+    add_topic_story( $db, $topic_a, $story_a );
+    add_topic_story( $db, $topic_b, $story_b );
+    add_topic_story( $db, $topic_a, $story_c );
+    add_topic_story( $db, $topic_b, $story_c );
 
-    test_live_story_matches( $db, $controversy_a, $story_a, "after insert" );
-    test_live_story_absent( $db, $controversy_b, $story_a, "after insert" );
+    test_live_story_matches( $db, $topic_a, $story_a, "after insert" );
+    test_live_story_absent( $db, $topic_b, $story_a, "after insert" );
 
-    test_live_story_matches( $db, $controversy_b, $story_b, "after insert" );
-    test_live_story_absent( $db, $controversy_a, $story_b, "after insert" );
+    test_live_story_matches( $db, $topic_b, $story_b, "after insert" );
+    test_live_story_absent( $db, $topic_a, $story_b, "after insert" );
 
-    test_live_story_matches( $db, $controversy_a, $story_c, "after insert" );
-    test_live_story_matches( $db, $controversy_b, $story_c, "after insert" );
+    test_live_story_matches( $db, $topic_a, $story_c, "after insert" );
+    test_live_story_matches( $db, $topic_b, $story_c, "after insert" );
 
     $story_a = update_story( $db, $story_a );
     $story_b = update_story( $db, $story_b );
     $story_c = update_story( $db, $story_c );
 
-    test_live_story_matches( $db, $controversy_a, $story_a, "after update" );
-    test_live_story_absent( $db, $controversy_b, $story_a, "after update" );
+    test_live_story_matches( $db, $topic_a, $story_a, "after update" );
+    test_live_story_absent( $db, $topic_b, $story_a, "after update" );
 
-    test_live_story_matches( $db, $controversy_b, $story_b, "after update" );
-    test_live_story_absent( $db, $controversy_a, $story_b, "after update" );
+    test_live_story_matches( $db, $topic_b, $story_b, "after update" );
+    test_live_story_absent( $db, $topic_a, $story_b, "after update" );
 
-    test_live_story_matches( $db, $controversy_a, $story_c, "after update" );
-    test_live_story_matches( $db, $controversy_b, $story_c, "after update" );
+    test_live_story_matches( $db, $topic_a, $story_c, "after update" );
+    test_live_story_matches( $db, $topic_b, $story_c, "after update" );
 }
 
 sub main

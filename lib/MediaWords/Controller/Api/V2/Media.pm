@@ -12,7 +12,7 @@ use namespace::autoclean;
 use List::Compare;
 use Carp;
 use MediaWords::Solr;
-use MediaWords::CM::Dump;
+use MediaWords::TM::Snapshot;
 
 =head1 NAME
 
@@ -71,7 +71,7 @@ sub default_output_fields
 
     my $fields = [ qw ( name url media_id ) ];
 
-    push( @{ $fields }, qw ( inlink_count outlink_count story_count ) ) if ( $self->{ controversy_media } );
+    push( @{ $fields }, qw ( inlink_count outlink_count story_count ) ) if ( $self->{ topic_media } );
 
     return $fields;
 }
@@ -85,44 +85,44 @@ sub order_by_clause
 {
     my ( $self ) = @_;
 
-    return $self->{ controversy_media } ? 'inlink_count desc' : 'media_id asc';
+    return $self->{ topic_media } ? 'inlink_count desc' : 'media_id asc';
 }
 
-# if controversy_time_slices_id is specified, create a temporary
+# if topic_timespans_id is specified, create a temporary
 # table with the media name that supercedes the normal media table
-# but includes only media in the given controversy time slice and
-# has the controversy metric data
-sub _create_controversy_media_table
+# but includes only media in the given topic timespan and
+# has the topic metric data
+sub _create_topic_media_table
 {
     my ( $self, $c ) = @_;
 
-    my $cdts_id = $c->req->params->{ controversy_dump_time_slices_id };
-    my $cdts_mode = $c->req->params->{ controversy_mode } || '';
+    my $timespans_id = $c->req->params->{ timespans_id };
+    my $timespan_mode = $c->req->params->{ topic_mode } || '';
 
-    return unless ( $cdts_id );
+    return unless ( $timespans_id );
 
-    $self->{ controversy_media } = 1;
+    $self->{ topic_media } = 1;
 
-    my $live = $cdts_mode eq 'live' ? 1 : 0;
+    my $live = $timespan_mode eq 'live' ? 1 : 0;
 
     my $db = $c->dbis;
 
-    my $cdts = $db->find_by_id( 'controversy_dump_time_slices', $cdts_id )
-      || die( "Unable to find controversy_dump_time_slice with id '$cdts_id'" );
+    my $timespan = $db->find_by_id( 'timespans', $timespans_id )
+      || die( "Unable to find timespan with id '$timespans_id'" );
 
-    my $controversy = $db->query( <<END, $cdts->{ controversy_dumps_id } )->hash;
-select * from controversies where controversies_id in (
-    select controversies_id from controversy_dumps where controversy_dumps_id = ? )
+    my $topic = $db->query( <<END, $timespan->{ snapshots_id } )->hash;
+select * from topics where topics_id in (
+    select topics_id from snapshots where snapshots_id = ? )
 END
 
     $db->begin;
 
-    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
+    MediaWords::TM::Snapshot::setup_temporary_snapshot_tables( $db, $timespan, $topic, $live );
 
     $db->query( <<END );
 create temporary table media as
     select m.name, m.url, mlc.*
-        from media m join dump_medium_link_counts mlc on ( m.media_id = mlc.media_id )
+        from media m join snapshot_medium_link_counts mlc on ( m.media_id = mlc.media_id )
 END
 
     $db->commit;
@@ -159,7 +159,7 @@ sub list_GET : Local
 {
     my ( $self, $c ) = @_;
 
-    $self->_create_controversy_media_table( $c );
+    $self->_create_topic_media_table( $c );
 
     return $self->SUPER::list_GET( $c );
 }

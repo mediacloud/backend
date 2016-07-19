@@ -13,7 +13,7 @@ use Text::CSV;
 
 # return an encoded csv file representing a list of hashes.
 # if $fields is specified, use it as a list of field names and
-# dump the fields in the specified order.  otherwise, just
+# snapshot the fields in the specified order.  otherwise, just
 # get the field names from the hash in the first row (with
 # semi-random order)
 sub get_hashes_as_encoded_csv

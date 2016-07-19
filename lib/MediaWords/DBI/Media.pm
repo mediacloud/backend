@@ -341,16 +341,16 @@ sub get_medium_domain
     return MediaWords::Util::URL::get_url_domain( $medium->{ url } );
 }
 
-=head2 get_media_type_tags( $db, $controversies_id )
+=head2 get_media_type_tags( $db, $topics_id )
 
-Get all of the media_type: tags. append the tags from the controversies.media_type_tags_sets_id if $controversies_id is
+Get all of the media_type: tags. append the tags from the topics.media_type_tags_sets_id if $topics_id is
 specified.
 
 =cut
 
 sub get_media_type_tags
 {
-    my ( $db, $controversies_id ) = @_;
+    my ( $db, $topics_id ) = @_;
 
     my $media_types = $db->query( <<END )->hashes;
 select t.*
@@ -361,20 +361,20 @@ select t.*
     order by t.label = 'Not Typed' desc, t.label = 'Other', t.label
 END
 
-    if ( $controversies_id )
+    if ( $topics_id )
     {
-        my $controversy_media_types = $db->query( <<END, $controversies_id )->hashes;
+        my $topic_media_types = $db->query( <<END, $topics_id )->hashes;
 select t.*
     from
         tags t
-        join controversies c on ( t.tag_sets_id = c.media_type_tag_sets_id )
+        join topics c on ( t.tag_sets_id = c.media_type_tag_sets_id )
     where
-        c.controversies_id = ? and
+        c.topics_id = ? and
         t.label <> 'Not Typed'
     order by t.label
 END
 
-        push( @{ $media_types }, @{ $controversy_media_types } );
+        push( @{ $media_types }, @{ $topic_media_types } );
     }
 
     return $media_types;

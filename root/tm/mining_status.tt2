@@ -1,0 +1,16 @@
+[% INCLUDE tm/header.tt2 title = "TM: Bit.ly Processing Status" %]
+
+<div class="boxtitle">
+    Spidering Status: [% topic.state %]
+    <a class="boxcommand" href="[% c.uri_for( '/admin/tm/mine/' _ topic.topics_id ) %]">spider</a>
+</div>
+
+<table class="even_rows_grey" >
+    <tr><th>iteration</th><th>stories</th></tr>
+    [% FOREACH iteration IN mining_status.stories_by_iteration %]
+        <tr><td>[% iteration.iteration %]</td><td>[% iteration.count %]</td></th>
+    [% END %]
+    <tr><td colspan=2>[% mining_status.queued_urls %] urls queued</td></tr>
+</table>
+
+[% INCLUDE include/footer.tt2 %]

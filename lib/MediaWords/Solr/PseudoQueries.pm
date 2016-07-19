@@ -16,7 +16,7 @@ Transform pseudo query clauses in solr queries.
 Pseudo queries allow us to effectively perform joins with postgres queries directly through the api with queries that
 look like:
 
-sentence:obama and {~ controversy_dump_time_slice:1234 }
+sentence:obama and {~ timespan:1234 }
 
 which would be processed and replaced before sending to solr with something that looks like:
 
@@ -42,43 +42,43 @@ use MediaWords::DB;
 # the function referenced below is called on the given query, and a hash
 # with at least a stories_id key is returned.  The field functions are called
 # in the order listed below, and subsequent calls have access to the records
-# returned by previous calls, so for example the controversy_link_community
-# call has access to the controversy_dump_time_slice return value to determine
-# which controversy time slice to mine for link community.
+# returned by previous calls, so for example the topic_link_community
+# call has access to the timespan return value to determine
+# which topic timespan to mine for link community.
 #
 # if you add a new psuedo query field, update the pseudo query documentation in
 # in the api documentation referenced in the DESCRIPTION above.
 Readonly my $FIELD_FUNCTIONS => [
-    [ 'controversy',                 \&_transform_controversy_field,                 1 ],
-    [ 'controversy_dump_time_slice', \&_transform_controversy_dump_time_slice_field, 1 ],
-    [ 'link_from_tag',               \&_transform_link_from_tag_field,               1 ],
-    [ 'link_to_story',               \&_transform_link_to_story_field,               1 ],
-    [ 'link_from_story',             \&_transform_link_from_story_field,             1 ],
-    [ 'link_to_medium',              \&_transform_link_to_medium_field,              1 ],
-    [ 'link_from_medium',            \&_transform_link_from_medium_field,            1 ],
+    [ 'topic',            \&_transform_topic_field,            1 ],
+    [ 'timespan',         \&_transform_timespan_field,         1 ],
+    [ 'link_from_tag',    \&_transform_link_from_tag_field,    1 ],
+    [ 'link_to_story',    \&_transform_link_to_story_field,    1 ],
+    [ 'link_from_story',  \&_transform_link_from_story_field,  1 ],
+    [ 'link_to_medium',   \&_transform_link_to_medium_field,   1 ],
+    [ 'link_from_medium', \&_transform_link_from_medium_field, 1 ],
 ];
 
-# die with an error for the given field if there is no controversy_dump_time_slice
+# die with an error for the given field if there is no timespan
 # field in the same query
-sub _require_cdts
+sub _require_timespan
 {
     my ( $return_data, $field ) = @_;
 
-    die( "pseudo query error: '$field' field requires a controversy_dump_time_slice field in the same pseudo query clause" )
-      unless ( $return_data->{ controversy_dump_time_slice } );
+    die( "pseudo query error: '$field' field requires a timespan field in the same pseudo query clause" )
+      unless ( $return_data->{ timespan } );
 }
 
-# transform link_to_story:1234 into list of stories within time slice that link
+# transform link_to_story:1234 into list of stories within timespan that link
 # to the given story
 sub _transform_link_to_story_field
 {
     my ( $db, $return_data, $to_stories_id ) = @_;
 
-    _require_cdts( $return_data, 'link_to_story' );
+    _require_timespan( $return_data, 'link_to_story' );
 
     my $stories_ids = $db->query( <<END, $to_stories_id )->flat;
 select source_stories_id
-    from dump_story_links
+    from snapshot_story_links
     where
         ref_stories_id = ?
 END
@@ -86,36 +86,36 @@ END
     return { stories_ids => $stories_ids };
 }
 
-# transform link_from_story:1234 into list of stories within time slice that are
+# transform link_from_story:1234 into list of stories within timespan that are
 # linked from the given story
 sub _transform_link_from_story_field
 {
     my ( $db, $return_data, $from_stories_id ) = @_;
 
-    _require_cdts( $return_data, 'link_from_story' );
+    _require_timespan( $return_data, 'link_from_story' );
 
     my $stories_ids = $db->query( <<END, $from_stories_id )->flat;
 select ref_stories_id
-    from dump_story_links
+    from snapshot_story_links
     where source_stories_id = ?
 END
 
     return { stories_ids => $stories_ids };
 }
 
-# transform link_to_medium:1234 into list of stories within time slice that link
+# transform link_to_medium:1234 into list of stories within timespan that link
 # to the given medium
 sub _transform_link_to_medium_field
 {
     my ( $db, $return_data, $to_media_id ) = @_;
 
-    _require_cdts( $return_data, 'link_from_medium' );
+    _require_timespan( $return_data, 'link_from_medium' );
 
     my $stories_ids = $db->query( <<END, $to_media_id )->flat;
 select distinct sl.source_stories_id
     from
-        dump_story_links sl
-        join dump_stories s
+        snapshot_story_links sl
+        join snapshot_stories s
             on ( sl.ref_stories_id = s.stories_id )
     where
         s.media_id = \$1
@@ -124,19 +124,19 @@ END
     return { stories_ids => $stories_ids };
 }
 
-# transform link_from_medium:1234 into list of stories within time slice that are linked
+# transform link_from_medium:1234 into list of stories within timespan that are linked
 # from the given medium
 sub _transform_link_from_medium_field
 {
     my ( $db, $return_data, $from_media_id ) = @_;
 
-    _require_cdts( $return_data, 'link_from_medium' );
+    _require_timespan( $return_data, 'link_from_medium' );
 
     my $stories_ids = $db->query( <<END, $from_media_id )->flat;
 select distinct sl.ref_stories_id
     from
-        dump_story_links sl
-        join dump_stories s
+        snapshot_story_links sl
+        join snapshot_stories s
             on ( sl.source_stories_id = s.stories_id )
     where
         s.media_id = \$1
@@ -145,41 +145,41 @@ END
     return { stories_ids => $stories_ids };
 }
 
-# accept controversy:1234 clause and return a controversy id and a list of
-# stories in the live controversy
-sub _transform_controversy_field
+# accept topic:1234 clause and return a topic id and a list of
+# stories in the live topic
+sub _transform_topic_field
 {
-    my ( $db, $return_data, $controversies_id ) = @_;
+    my ( $db, $return_data, $topics_id ) = @_;
 
-    my $stories_ids = $db->query( <<END, $controversies_id )->flat;
-select stories_id from controversy_stories where controversies_id = ?
+    my $stories_ids = $db->query( <<END, $topics_id )->flat;
+select stories_id from topic_stories where topics_id = ?
 END
 
-    return { controversies_id => $controversies_id, stories_ids => $stories_ids };
+    return { topics_id => $topics_id, stories_ids => $stories_ids };
 }
 
-# accept controversy_dump_time_slice:1234 clause and return a cdts id and a list of
+# accept timespan:1234 clause and return a timespan id and a list of
 # stories_ids
-sub _transform_controversy_dump_time_slice_field
+sub _transform_timespan_field
 {
-    my ( $db, $return_data, $cdts_id, $live ) = @_;
+    my ( $db, $return_data, $timespans_id, $live ) = @_;
 
-    my $cdts = $db->find_by_id( 'controversy_dump_time_slices', $cdts_id )
-      || die( "Unable to find controversy_dump_time_slice with id '$cdts_id'" );
-    my $controversy = $db->query( <<END, $cdts->{ controversy_dumps_id } )->hash;
+    my $timespan = $db->find_by_id( 'timespans', $timespans_id )
+      || die( "Unable to find timespan with id '$timespans_id'" );
+    my $topic = $db->query( <<END, $timespan->{ snapshots_id } )->hash;
 select distinct c.*
     from
-        controversies c
-        join controversy_dumps cd on ( c.controversies_id = cd.controversies_id )
+        topics c
+        join snapshots snap on ( c.topics_id = snap.topics_id )
     where
-        cd.controversy_dumps_id = ?
+        snap.snapshots_id = ?
 END
 
-    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
+    MediaWords::TM::Snapshot::setup_temporary_snapshot_tables( $db, $timespan, $topic, $live );
 
-    my $stories_ids = $db->query( "select stories_id from dump_story_link_counts" )->flat;
+    my $stories_ids = $db->query( "select stories_id from snapshot_story_link_counts" )->flat;
 
-    return { controversy_dump_time_slices_id => $cdts_id, stories_ids => $stories_ids, live => $live };
+    return { timespans_id => $timespans_id, stories_ids => $stories_ids, live => $live };
 }
 
 # accept link_from_tag:1234[-5678] clause and return a list of stories_ids where
@@ -194,7 +194,7 @@ sub _transform_link_from_tag_field
     $from_tags_id += 0;
     $to_tags_id   += 0;
 
-    _require_cdts( $return_data, 'link_from_tag' );
+    _require_timespan( $return_data, 'link_from_tag' );
 
     my $to_tags_id_clause = '';
     if ( $to_tags_id )
@@ -220,14 +220,14 @@ END
 
     my $stories_ids = $db->query( <<END )->flat;
 with tagged_stories as (
-    select stm.stories_id, stm.tags_id from dump_stories_tags_map stm
+    select stm.stories_id, stm.tags_id from snapshot_stories_tags_map stm
     union
-    select s.stories_id, mtm.tags_id from dump_stories s join media_tags_map mtm on ( s.media_id = mtm.media_id )
+    select s.stories_id, mtm.tags_id from snapshot_stories s join media_tags_map mtm on ( s.media_id = mtm.media_id )
 )
 
 select sl.ref_stories_id
     from
-        dump_story_links sl
+        snapshot_story_links sl
     where
         ( sl.source_stories_id in ( select stories_id from tagged_stories ts where ts.tags_id = $from_tags_id ) )
         $to_tags_id_clause
