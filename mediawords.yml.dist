@@ -165,8 +165,8 @@ database:
         ### Solr shards
         #shards:
 
-            # Number of shards to initialize + start
-            #shard_count: 2
+            # Total number of shards across the cluster ("numShards")
+            #cluster_shard_count: 2
 
             # JVM heap size for a single shard (-Xmx)
             #jvm_heap_size: "256m"

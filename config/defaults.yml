@@ -41,7 +41,7 @@ supervisor_solr:
             listen: "0.0.0.0"
             port: 9983
         shards:
-            shard_count: 2
+            cluster_shard_count: 2
             jvm_heap_size: "256m"
             zookeeper_host: "localhost"
             zookeeper_port: 9983

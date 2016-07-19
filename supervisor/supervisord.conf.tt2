@@ -241,7 +241,7 @@ programs=zookeeper, solr_shard
 %]
 
 [%- solr_cluster_shards_jvm_heap_size = supervisor_solr.cluster.shards.jvm_heap_size || "256m" %]
-[%- solr_cluster_shards_shard_count = supervisor_solr.cluster.shards.shard_count || 2 %]
+[%- solr_cluster_shards_shard_count = supervisor_solr.cluster.shards.cluster_shard_count || 2 %]
 [%- solr_cluster_shards_zookeeper_host = supervisor_solr.cluster.shards.zookeeper_host || "localhost" %]
 [%- solr_cluster_shards_zookeeper_port = supervisor_solr.cluster.shards.zookeeper_port || 9983 %]
 [% INCLUDE program_config
