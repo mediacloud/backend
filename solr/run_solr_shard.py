@@ -8,15 +8,8 @@ from mc_solr.solr import run_solr_shard
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Install Solr and start a shard.",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-
-    shard_group = parser.add_mutually_exclusive_group(required=True)
-
-    # Shard number for humans (1, 2, 3, ...)
-    shard_group.add_argument("-n", "--shard_num", type=int, help="Shard number (starts with 1).")
-
-    # Shard index for Supervisor (0, 1, 2, ...)
-    shard_group.add_argument("-i", "--shard_index", type=int, help="Shard index (starts with 0).")
-
+    parser.add_argument("-n", "--shard_num", type=int, required=True,
+                        help="Shard to start.")
     parser.add_argument("-c", "--shard_count", type=int, required=True,
                         help="Number of shards across the whole cluster.")
     parser.add_argument("-zh", "--zookeeper_host", type=str, required=False, default=MC_SOLR_CLUSTER_ZOOKEEPER_HOST,
@@ -28,11 +21,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    shard_num = args.shard_num
-    if shard_num is None:
-        shard_num = args.shard_index + 1
-
-    run_solr_shard(shard_num=shard_num,
+    run_solr_shard(shard_num=args.shard_num,
                    shard_count=args.shard_count,
                    zookeeper_host=args.zookeeper_host,
                    zookeeper_port=args.zookeeper_port,
