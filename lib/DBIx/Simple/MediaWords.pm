@@ -365,6 +365,18 @@ sub find_by_id
     return $self->query( "select * from $table where $id_col = ?", $id )->hash;
 }
 
+# find_by_id or die if not found
+sub require_by_id
+{
+    my ( $self, $table, $id ) = @_;
+
+    my $row = $self->find_by_id( $table, $id );
+
+    die( "Unable to find id '$id' in table '$table'" ) unless ( $row );
+
+    return $row;
+}
+
 # update the row in the table with the given id
 # ignore any fields that start with '_'
 sub update_by_id($$$$)

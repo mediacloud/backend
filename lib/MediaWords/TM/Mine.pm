@@ -2571,9 +2571,9 @@ sub import_solr_seed_query
 
     my $max_stories = MediaWords::Util::Config::get_config->{ mediawords }->{ max_solr_seed_query_stories } || 250000;
 
-    INFO( sub { "executing solr query: $controversy->{ solr_seed_query }" } );
+    INFO( sub { "executing solr query: $topic->{ solr_seed_query }" } );
     my $stories =
-      MediaWords::Solr::search_for_stories( $db, { q => $controversy->{ solr_seed_query }, rows => $max_stories } );
+      MediaWords::Solr::search_for_stories( $db, { q => $topic->{ solr_seed_query }, rows => $max_stories } );
 
     INFO( sub { "adding " . scalar( @{ $stories } ) . " stories to topic_seed_urls" } );
 
@@ -2669,7 +2669,7 @@ sub fetch_social_media_data ($$)
 #   import_only - only run import_seed_urls and import_solr_seed and exit
 #   cache_broken_downloads - speed up fixing broken downloads, but add time if there are no broken downloads
 #   skip_outgoing_foreign_rss_links - skip slow process of adding links from foreign_rss_links media
-#   skip_post_processing - skip social media fetching and snapshoting
+#   skip_post_processing - skip social media fetching and snapshotting
 sub do_mine_topic ($$;$)
 {
     my ( $db, $topic, $options ) = @_;
@@ -2741,7 +2741,7 @@ sub do_mine_topic ($$;$)
             update_topic_state( $db, $topic, "fetching social media data" );
             fetch_social_media_data( $db, $topic );
 
-            update_topic_state( $db, $topic, "snapshoting" );
+            update_topic_state( $db, $topic, "snapshotting" );
             MediaWords::TM::Snapshot::snapshot_topic( $db, $topic->{ topics_id } );
         }
     }
