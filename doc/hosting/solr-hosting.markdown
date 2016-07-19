@@ -215,15 +215,3 @@ receiving each import request does a dispropotionate amount of work, so the abov
 #### Firewall
 
 Check *ufw* settings to make sure that the firewall allows all connections between all `mcquery*` hosts.
-
-#### `solrconfig.xml`
-
-Check for the following settings in `solr/mediacloud/collections/_base_collection/conf/solrconfig.xml` to make sure we are allocating
-enough resources to the indexing process:
-
-	<maxIndexingThreads>24</maxIndexingThreads>
-	<ramBufferSizeMB>5000</ramBufferSizeMB>
-	<maxBufferedDocs>500000</maxBufferedDocs>
-
-Also, make sure that the various caches are not too large.  Each cache entry is an entire resultset, and some searches
-on our data can return millions or billions of document IDs, which can quickly eat up even our large heap.
