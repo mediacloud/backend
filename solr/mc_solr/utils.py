@@ -129,6 +129,14 @@ def extract_zip_to_directory(archive_file, dest_directory):
     subprocess.check_call(args)
 
 
+def fqdn():
+    """Return Fully Qualified Domain Name (hostname -f), e.g. mcquery2.media.mit.edu."""
+    hostname = socket.getfqdn()
+    if hostname is None or len(hostname) == 0:
+        raise Exception("Unable to determine FQDN.")
+    return hostname.lower()
+
+
 def process_with_pid_is_running(pid):
     """Return true if process with PID is still running."""
     try:

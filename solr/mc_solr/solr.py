@@ -566,9 +566,12 @@ def run_solr_shard(shard_num,
                               retries=MC_SOLR_CLUSTER_ZOOKEEPER_CONNECT_RETRIES)
     logger.info("ZooKeeper is up!")
 
-    logger.info("Starting Solr shard '%s' on port %d..." % (shard_name, shard_port))
+    # Must be resolveable by other shards
+    hostname = fqdn()
+
+    logger.info("Starting Solr shard '%s' on host %s, port %d..." % (shard_name, hostname, shard_port))
     shard_args = [
-        "-Dhost=%s" % shard_name,
+        "-Dhost=%s" % hostname,
         "-DzkHost=%s:%d" % (zookeeper_host, zookeeper_port),
         "-DnumShards=%d" % shard_count,
     ]
