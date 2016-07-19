@@ -235,13 +235,13 @@ programs=extractor_python_readability_server
 
 
 [group:solr_cluster]
-programs=zookeeper, solr_shard
+programs=zookeeper[% FOREACH shard_num IN supervisor_solr.cluster.shards.local %], solr_shard_[% shard_num %][% END %]
 
-[%- solr_cluster_zookeeper_listen = supervisor_solr.cluster.zookeeper.listen || "0.0.0.0" %]
-[%- solr_cluster_zookeeper_port = supervisor_solr.cluster.zookeeper.port || 9983 %]
+[%- zookeeper_listen = supervisor_solr.cluster.zookeeper.listen || "0.0.0.0" %]
+[%- zookeeper_port = supervisor_solr.cluster.zookeeper.port || 9983 %]
 [% INCLUDE program_config
     program='zookeeper'
-    command="python ./solr/run_zookeeper.py --listen $solr_cluster_zookeeper_listen --port $solr_cluster_zookeeper_port"
+    command="python ./solr/run_zookeeper.py --listen $zookeeper_listen --port $zookeeper_port"
     default_stopasgroup='true'
     default_killasgroup='true'
     default_autorestart='true'
@@ -259,24 +259,25 @@ programs=zookeeper, solr_shard
 [%- solr_cluster_shards_shard_count = supervisor_solr.cluster.shards.cluster_shard_count || 2 %]
 [%- solr_cluster_shards_zookeeper_host = supervisor_solr.cluster.shards.zookeeper_host || "localhost" %]
 [%- solr_cluster_shards_zookeeper_port = supervisor_solr.cluster.shards.zookeeper_port || 9983 %]
-[% INCLUDE program_config
-    program='solr_shard'
-    command="python ./solr/run_solr_shard.py --shard_index %(process_num)d --shard_count $solr_cluster_shards_shard_count --zookeeper_host $solr_cluster_shards_zookeeper_host --zookeeper_port $solr_cluster_shards_zookeeper_port --jvm_heap_size $solr_cluster_shards_jvm_heap_size"
-    default_stopasgroup='true'
-    default_killasgroup='true'
-    default_autorestart='true'
-    default_autostart='false'
-    stopsignal='INT'
 
-    # wait for Solr shard to attempt a more graceful shutdown
-    stopwaitsecs=100
+[% FOREACH shard_num IN supervisor_solr.cluster.shards.local %]
 
-    numprocs = $solr_cluster_shards_shard_count
+[program:solr_shard_[% shard_num %]]
+command = python ./solr/run_solr_shard.py --shard_num [% shard_num %] --shard_count [% solr_cluster_shards_shard_count %] --zookeeper_host [% solr_cluster_shards_zookeeper_host %] --zookeeper_port [% solr_cluster_shards_zookeeper_port %] --jvm_heap_size [% solr_cluster_shards_jvm_heap_size %]
+directory = %(here)s/../
+autorestart = [% supervisor.solr_shard.$program.autorestart_b|| 'true'  %]
+autostart = [% supervisor.programs.solr_shard.autostart_b || 'false'  %]
+stopasgroup = true
+killasgroup = true
+priority = 20
 
-    default_nice=0
-    redirect_stderr='true'
-%]
+; wait for Solr shard to attempt a more graceful shutdown
+stopwaitsecs = 100
 
+stopsignal = INT
+redirect_stderr = true
+
+[% END %]
 
 ; Include custom user's configuration
 [include]

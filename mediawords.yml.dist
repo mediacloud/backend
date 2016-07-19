@@ -165,6 +165,11 @@ database:
         ### Solr shards
         #shards:
 
+            # Shard numbers to be run on this machine
+            #local:
+                #- 1
+                #- 2
+
             # Total number of shards across the cluster ("numShards")
             #cluster_shard_count: 2
 
