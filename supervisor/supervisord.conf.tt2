@@ -218,14 +218,10 @@ programs = rabbitmq
     skip_numprocs=1
 %]
 
-
-[group:solr_cluster]
-programs=zookeeper, solr_shard
-
 [%- solr_cluster_zookeeper_listen = supervisor_solr.cluster.zookeeper.listen || "0.0.0.0" %]
 [%- solr_cluster_zookeeper_port = supervisor_solr.cluster.zookeeper.port || 9983 %]
 [% INCLUDE program_config
-    program='zookeeper'
+    program='solr_cluster_zookeeper'
     command="python ./solr/run_zookeeper.py --listen $solr_cluster_zookeeper_listen --port $solr_cluster_zookeeper_port"
     default_stopasgroup='true'
     default_killasgroup='true'
@@ -239,6 +235,9 @@ programs=zookeeper, solr_shard
     default_nice=0
     redirect_stderr='true'
 %]
+
+[group:solr_cluster]
+programs=solr_shard
 
 [%- solr_cluster_shards_jvm_heap_size = supervisor_solr.cluster.shards.jvm_heap_size %]
 [%- solr_cluster_shards_shard_count = supervisor_solr.cluster.shards.cluster_shard_count %]
