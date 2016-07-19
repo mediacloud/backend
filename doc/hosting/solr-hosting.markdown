@@ -1,93 +1,101 @@
-Solr Hosting
-============
+# Solr Hosting
 
-Generic Information
--------------------
+## Generic Information
 
 We are currently running on Solr 4.6.  All of the below applies to that specific version of Solr.
 
 SolrCloud requires a fair amount of hand holding to get all of the shards (individual cluster server instances) running
-together happily.  The basic idea is that you run one shard as the leader of the cluster, telling it the total
-number of members of the clsuter.  That instance runs zookeeper, the apache system for managing server distribution
-(configuration, synchronization, etc).  Then  you individually start each other member of the cluster and just point
-each one at the leader.  There is no single Solr command to create or start an entire cluster of shards.
+together happily.  The basic idea is that you run a single instance of ZooKeeper which manages all the Solr shards, and then make Solr shards attach to said ZooKeeper instance.  There is no single Solr command to create or start an entire cluster of shards.
 
 To simplify cluster creation, startup, and configuration reloads, we have some local scripts that manage these tasks.
-All of these scripts live in `solr/scripts/` and must be run under carton, i.e.:
+All of these scripts live under `solr/` and support `-h` parameter to provide some rudimentary help.
 
-	script/run_with_carton.sh solr/scripts/create_solr_shards.pl ...
+## Standalone Instance
 
-### Cluster Creation
-
-**`create_solr_shards.pl` -  create local Solr shard directories.**
+**`run_solr_standalone.py` - run standalone Solr instance.**
 
 Usage:
 
-	create_solr_shards.pl \
-	    --local_shards <num local shards> \
-	    [ --total_shards <num total shards> ]
+	./run_solr_standalone.py
 
-Every shard is just a Solr server instance that lives in its own directory.  This command creates
-`solr/mediacloud-shard-<N>` directories to host the individual shards (`solr/mediacloud-shard-1`, ...) by copying
-`solr/mediacloud` into each shared directory.  You must specify the number of local shards to create.  If the total
-number of shards is specified, the script sets up one of the clusters as the Zookeeper / leader of the cluster
-(which requires briefly starting up the Java instance).
+Sets up and starts a standalone Solr instance on 8983 port, e.g. to be used for development or testing. Instance's data is stored under `data/solr/mediacloud-standalone/`.
 
-So to create a new cluster, run the below command first on the server that will host the cluster leader with
-the number of local and total shards specified and then on each follower server with only the number of local shards
-specified.
+It is possible to start / stop standalone Solr instance using Supervisor.
 
-### Cluster Startup
+## Cluster
 
-**`start_solr_shards.pl` - start up all of the local shards.**
+### Start ZooKeeper
+
+**`run_zookeeper.py` - start ZooKeeper instance to manage Solr shards.**
 
 Usage:
 
-	start_solr_shards.pl \
-		--memory <gigs of memory for java heap> \
-		--host <local hostname> \
-		--zk_host <zk host in host:port format>
+	./run_zookeeper.py
 
-Starting the Solr cluster requires running a complex Java command line for each shard running on each server in the
-server.  This script simplifies cluster startup by starting all of the shards on the given server with the correct
-java command line.
+Sets up and starts a ZooKeeper instance on 9983 port. (Re)uploads Solr configuration on every startup.
 
-The startup script knows how many shards it should run on the current server, so you need only specify the
-amount of java heap memory to use for each shard, the host of the local machine running those shards, and the
-host name of the cluster leader.
+It is advisable to start / stop ZooKeeper using Supervisor.
 
-The `--zk_host` option should specify the name of the Zookeeper host,
-followed by `:9983`, for example `mcquery2:9983`.
+### Start Shard(s)
 
-### Cluster Shutdown
-
-To shut down a cluster, just kill the individual shard processes.  Some shards will occasionally fail to shutdown,
-in which case `kill -9` them after a waiting for a minute.
-
-### Cluster Configuration
-
-**`reload_solr_shards.pl` - load new configuration onto all cluster members.**
+**`run_solr_shard.py` -- start a specified Solr shard.**
 
 Usage:
 
-	reload_solr_shards.pl \
-		--num_shards < total number of shards > \
-		--zk_host < zookeeper host > \
-		[ --host < host > ... ]
+	./run_solr_shard.py \
+		--shard_num 1 \
+		--shard_count 8 \
+		[--zookeeper_host localhost] \
+		[--zookeeper_port 9983]
+	
+	./run_solr_shard.py \
+		--shard_num 2 \
+		--shard_count 8 \
+		...
 
-Once the Solr cluster has been created, the shards read their configuration information from the ZooKeeper rather
-than from their local configuration files.  This script loads configuration information from the local directory of
-the zookeeper shard (which is `mediacloud-shard-1` on the leader host) into ZooKeeper and then tells each shard
-individually to reload its configuration data from the leader.  This should be run on the ZooKeeper host.
+	./run_solr_shard.py \
+		--shard_num 3 \
+		--shard_count 8 \
+		...
+	
+	...
 
-Note that the leader does not know the identity of the other hosts, so you have to specify the name of each server
-hosting shards other than the zookeeper host using the `--host` options.
+Sets up and starts a Solr shard on port starting with 7981 (i.e. shard 1 will start on port 7981, shard 2 will start on port 7981, etc.) Instance's data is stored under `data/solr/mediacloud-mediacloud-cluster-shard-[shard_num]/`. You must also specify the total number of shards across the cluster that you intend to run.
 
-After running reload, you can connect to the individual shards (for instance <http://localhost:8983/solr/>) and load
+It is advisable to configure a number of shards in `mediawords.yml` and start / stop Solr shards using Supervisor.
+
+### Update Solr's configuration
+
+**`update_zookeeper_config.py` - upload Solr configuration to ZooKeeper instance.**
+
+Usage:
+
+	./update_zookeeper_config.py \
+		[--zookeeper_host localhost] \
+		[--zookeeper_port 9983]
+
+Updates current Solr configuration on ZooKeeper (this is also done every time ZooKeeper is started). Does not reload Solr shards itself (`reload_solr_shards.py` does that).
+
+### Reload Solr shards
+
+**`reload_solr_shards.py` - reload Solr shard(s) after updating configuration on ZooKeeper.**
+
+Usage:
+
+	./reload_solr_shards.py \
+		--shard_count 8 \
+		[--host host_with_solr_shards_1] \
+		[--host host_with_solr_shards_2] \
+		[--host host_with_solr_shards_3] \
+		...
+
+After configuration update on ZooKeeper, reloads all Solr shards with the new configuration on specified host(s) running those shards. Does not upload Solr configuration to ZooKeeper itself (`update_zookeeper_config.py` does that).
+
+After reloading the configuration, you can connect to the individual shards (for instance <http://localhost:7981/solr/>) and load
 the configuration page to verify that a given configuration change has made it into the running shard.
 
-MIT Specific Instructions
--------------------------
+
+## MIT Specific Instructions
 
 The Solr installation consists of four machines -- `mcquery[1234]`.  We run the Solr cluster on three of those machines
 and keep the fourth machine as a cold spare.  Each of the machines is a nearly identical Dell rack server with 16 cores
@@ -101,7 +109,7 @@ of all of our cores.
 We are currently running our cluster in `mcquery[124]`.  `mcquery3` corrupted some data during the last full import, and we need to do a diagnosis to figure out if there's something goofy before using
 the machine again.
 
-`mcquery2` runs the leader shard.  `mcquery2` is also the machine that runs the hourly import script, even though we
+`mcquery2` runs the ZooKeeper instance.  `mcquery2` is also the machine that runs the hourly import script, even though we
 could run the import on any of the shards.
 
 The Media Cloud installation on each of these machines is under `/data/mediacloud`.  Solr is in `/data/mediacloud/solr`.
@@ -111,23 +119,6 @@ port.  There should be an SSH process tunneling 6001 to PostgreSQL on the produc
 The only thing the Media Cloud install is used for on these machines (other than the Solr installation) is the import
 process.  `mcquery2` runs the hourly import script.  The other cluster machines only need to run an import when doing
 a full import (just to speed up the process).
-
-We currently use the following command to start the shards under the mediacloud account on each of the machines,
-replacing the `--host` option with the name of the local host.  From `/data/mediacloud`:
-
-	script/run_with_carton.sh solr/scripts/start_solr_shards.pl \
-		--memory 20 \
-		--host mcquery2 \
-		--zk_host mcquery2:9983
-
-We keep our ZooKeeper configuration master in `mcquery2:/data/mediacloud/solr/mediacloud-shard-1`.  To change a config
-file for the cluster, change that file under that directory and then run reload.  From `/data/mediacloud`:
-
-	script/run_with_carton.sh solr/scripts/reload_solr_shards.pl \
-		--num_shards 24 \
-		--zk_host localhost \
-		--host mcquery1 \
-		--host mcquery4
 
 ### Import
 
@@ -209,6 +200,8 @@ To make imports on the `mcquery*` machines use all servers equally, add the foll
 on each server:
 
 	solr_url:
+	    - http://localhost:7981/solr
+	    - http://localhost:7982/solr
 	    - http://localhost:7983/solr
 	    - http://localhost:7984/solr
 	    - http://localhost:7985/solr
