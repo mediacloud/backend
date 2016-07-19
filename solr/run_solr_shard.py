@@ -17,7 +17,8 @@ if __name__ == "__main__":
     # Shard index for Supervisor (0, 1, 2, ...)
     shard_group.add_argument("-i", "--shard_index", type=int, help="Shard index (starts with 0).")
 
-    parser.add_argument("-c", "--shard_count", type=int, required=True, help="Number of shards.")
+    parser.add_argument("-c", "--shard_count", type=int, required=True,
+                        help="Number of shards across the whole cluster.")
     parser.add_argument("-zh", "--zookeeper_host", type=str, required=False, default=MC_SOLR_CLUSTER_ZOOKEEPER_HOST,
                         help="ZooKeeper host to connect to.")
     parser.add_argument("-zp", "--zookeeper_port", type=int, required=False, default=MC_SOLR_CLUSTER_ZOOKEEPER_PORT,
