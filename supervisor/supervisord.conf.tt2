@@ -202,21 +202,6 @@ programs = rabbitmq
     default_nice=10
 %]
 
-
-[group:thrift]
-programs=extractor_python_readability_server
-
-[% INCLUDE program_config
-    program='extractor_python_readability_server'
-    command='python python_scripts/extractor_python_readability_server.py'
-    default_stopasgroup='true'
-    default_killasgroup='true'
-    default_autorestart='true'
-    default_autostart='true'
-    default_nice=12
-%]
-
-
 [%- solr_standalone_jvm_heap_size = supervisor_solr.standalone.jvm_heap_size || "256m" %]
 [% INCLUDE program_config
     program='solr_standalone'
@@ -275,6 +260,20 @@ programs=zookeeper, solr_shard
 
     default_nice=0
     redirect_stderr='true'
+%]
+
+
+[group:thrift]
+programs=extractor_python_readability_server
+
+[% INCLUDE program_config
+    program='extractor_python_readability_server'
+    command='python python_scripts/extractor_python_readability_server.py'
+    default_stopasgroup='true'
+    default_killasgroup='true'
+    default_autorestart='true'
+    default_autostart='true'
+    default_nice=12
 %]
 
 
