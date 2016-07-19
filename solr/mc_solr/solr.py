@@ -1,7 +1,10 @@
 import atexit
+import glob
 import urllib2
 
 import sys
+
+import re
 
 from mc_solr.constants import *
 from mc_solr.utils import *
@@ -170,6 +173,76 @@ def __shard_data_dir(shard_num, base_data_dir=MC_SOLR_BASE_DATA_DIR):
         raise Exception("Solr data directory '%s' does not exist." % base_data_dir)
     shard_name = __shard_name(shard_num=shard_num)
     return os.path.join(base_data_dir, shard_name)
+
+
+def __raise_if_old_shards_exist():
+    """Raise exception with migration instructions if old shard directories exist already."""
+
+    pwd = resolve_absolute_path(".")
+    old_shards = glob.glob(pwd + "/mediacloud-shard-*")
+
+    if len(old_shards) == 0:
+        # No old shards to migrate
+        return
+
+    num_shards = 0
+    for old_shard_path in old_shards:
+        old_shard_dir = os.path.basename(old_shard_path)
+
+        old_shard_num = re.search(r'^mediacloud-shard-(\d+?)$', old_shard_dir)
+        if old_shard_num is None:
+            raise Exception("Unable to parse shard number for old shard directory '%s'" % old_shard_dir)
+        old_shard_num = int(old_shard_num.group(1))
+
+        num_shards = max(num_shards, old_shard_num)
+
+    exc_message = "Old shards were found at paths:\n\n"
+    for old_shard_path in old_shards:
+        exc_message += "* %s\n" % old_shard_path
+
+    exc_message += "\n"
+    exc_message += "Please migrate them by running:\n"
+    exc_message += "\n"
+    exc_message += "cd %s\n" % pwd
+    exc_message += "\n"
+    exc_message += "# Create empty new shard directory structure for each shard:\n"
+    for shard_num in range(1, num_shards + 1):
+        exc_message += ("./run_solr_shard.py --shard_num %(shard_num)d --shard_count %(shard_count)d " +
+                        "|| echo \"It's fine to fail at this point.\"\n") % {
+                           "shard_num": shard_num,
+                           "shard_count": num_shards,
+                       }
+
+    exc_message += "\n"
+    exc_message += "# Move data from old shards to new ones\n"
+    for shard_num in range(1, num_shards + 1):
+        shard_solr_path = "mediacloud-shard-%d/solr/" % shard_num
+        shard_collection_paths = glob.glob(shard_solr_path + "/collection*")
+        if len(shard_collection_paths) == 0:
+            raise Exception("No collections found in shard '%d'" % shard_num)
+        for collection_path in shard_collection_paths:
+            collection_name = os.path.basename(collection_path)
+
+            src_collection_data_path = os.path.join(shard_solr_path, collection_name, "data")
+            if not os.path.isdir(src_collection_data_path):
+                raise Exception("Source data directory '%s' does not exist." % src_collection_data_path)
+
+            dst_shard_data_dir = __shard_data_dir(shard_num=shard_num)
+            dst_collection_data_path = os.path.join(dst_shard_data_dir, collection_name, "data")
+            if os.path.isdir(dst_collection_data_path):
+                raise Exception("Destination data directory '%s' already exists." % dst_collection_data_path)
+
+            exc_message += "mv %(src_collection_data_dir)s %(dst_collection_data_dir)s\n" % {
+                "src_collection_data_dir": src_collection_data_path,
+                "dst_collection_data_dir": dst_collection_data_path,
+            }
+        exc_message += "\n"
+
+    exc_message += "# Remove old shards\n"
+    for shard_num in range(1, num_shards + 1):
+        exc_message += "rm -rf mediacloud-shard-%d/\n" % shard_num
+
+    raise Exception(exc_message)
 
 
 def __run_solr_zkcli(args,
@@ -386,6 +459,8 @@ instanceDir=%(instance_dir)s
 
     if tcp_port_is_open(port=port):
         raise Exception("Port %d is already open on this machine." % port)
+
+    __raise_if_old_shards_exist()
 
     logger.info("Starting Solr instance on port %d..." % port)
 
