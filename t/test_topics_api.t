@@ -22,7 +22,7 @@ use Modern::Perl "2015";
 
 use MediaWords;
 
-use MediaWords::CM::Dump;
+use MediaWords::TM::Snapshot;
 
 use MediaWords::CommonLibs;
 
@@ -50,18 +50,18 @@ Readonly my $DEFAULT_STORY_LIMIT => 10;
 # A constant used to generate consistent orderings in test sorts
 Readonly my $TEST_MODULO => 6;
 
-sub add_controversy_link
+sub add_topic_link
 {
-    my ( $db, $controversy, $story, $ref_story ) = @_;
+    my ( $db, $topic, $story, $ref_story ) = @_;
 
     $db->create(
-        'controversy_links',
+        'topic_links',
         {
-            controversies_id => $controversy->{ controversies_id },
-            stories_id       => $story,
-            url              => 'http://foo',
-            redirect_url     => 'http://foo',
-            ref_stories_id   => $ref_story,
+            topics_id      => $topic->{ topics_id },
+            stories_id     => $story,
+            url            => 'http://foo',
+            redirect_url   => 'http://foo',
+            ref_stories_id => $ref_story,
         }
     );
 
@@ -73,12 +73,11 @@ sub add_bitly_count
     $db->query( "insert into bitly_clicks_total values ( \$1,\$2,\$3 )", $id, $story->{ stories_id }, $click_count );
 }
 
-sub add_controversy_story
+sub add_topic_story
 {
-    my ( $db, $controversy, $story ) = @_;
+    my ( $db, $topic, $story ) = @_;
 
-    $db->create( 'controversy_stories',
-        { stories_id => $story->{ stories_id }, controversies_id => $controversy->{ controversies_id } } );
+    $db->create( 'topic_stories', { stories_id => $story->{ stories_id }, topics_id => $topic->{ topics_id } } );
 }
 
 sub _api_request_url($;$)
@@ -102,7 +101,7 @@ sub _api_request_url($;$)
 
 sub create_stories
 {
-    my ( $db, $stories, $controversies ) = @_;
+    my ( $db, $stories, $topics ) = @_;
 
     my $media = MediaWords::Test::DB::create_test_story_stack( $db, $stories );
 
@@ -111,39 +110,39 @@ sub create_stories
 sub create_test_data
 {
 
-    my ( $test_db, $controversy_media_sources ) = @_;
+    my ( $test_db, $topic_media_sources ) = @_;
 
     my $NUM_LINKS_PER_PAGE = 10;
 
     srand( 3 );
 
-    # populate controversies table
-    my $controversy = $test_db->create(
-        'controversies',
+    # populate topics table
+    my $topic = $test_db->create(
+        'topics',
         {
             name                => 'foo',
             solr_seed_query     => '',
             solr_seed_query_run => 'f',
             pattern             => '',
-            description         => 'test controversy'
+            description         => 'test topic'
         }
     );
 
-    my $controversy_dates = $test_db->create(
-        'controversy_dates',
+    my $topic_dates = $test_db->create(
+        'topic_dates',
         {
-            controversies_id => $controversy->{ controversies_id },
-            start_date       => '2014-04-01',
-            end_date         => '2014-06-01'
+            topics_id  => $topic->{ topics_id },
+            start_date => '2014-04-01',
+            end_date   => '2014-06-01'
         }
     );
 
-    # populate controversies_stories table
+    # populate topics_stories table
     # only include stories with id not multiples of $TEST_MODULO
-    my $all_stories         = {};
-    my $controversy_stories = [];
+    my $all_stories   = {};
+    my $topic_stories = [];
 
-    for my $m ( values( %{ $controversy_media_sources } ) )
+    for my $m ( values( %{ $topic_media_sources } ) )
     {
         for my $f ( values( %{ $m->{ feeds } } ) )
         {
@@ -151,12 +150,12 @@ sub create_test_data
             {
                 if ( $num % $TEST_MODULO )
                 {
-                    my $cs = add_controversy_story( $test_db, $controversy, $story );
-                    push @{ $controversy_stories }, $story->{ stories_id };
+                    my $cs = add_topic_story( $test_db, $topic, $story );
+                    push @{ $topic_stories }, $story->{ stories_id };
                 }
                 $all_stories->{ int( $num ) } = $story->{ stories_id };
 
-                # modding by a different number than stories included in controversies
+                # modding by a different number than stories included in topics
                 # so that we will have bitly counts of 0
 
                 add_bitly_count( $test_db, $num, $story, $num % ( $TEST_MODULO - 1 ) );
@@ -164,7 +163,7 @@ sub create_test_data
         }
     }
 
-    # populate controversies_links table
+    # populate topics_links table
     while ( my ( $num, $story_id ) = each %{ $all_stories } )
     {
         my @factors = Math::Prime::Util::factor( $num );
@@ -172,12 +171,12 @@ sub create_test_data
         {
             if ( $factor != $num )
             {
-                add_controversy_link( $test_db, $controversy, $all_stories->{ $factor }, $story_id );
+                add_topic_link( $test_db, $topic, $all_stories->{ $factor }, $story_id );
             }
         }
     }
 
-    MediaWords::CM::Dump::dump_controversy( $test_db, $controversy->{ controversies_id } );
+    MediaWords::TM::Snapshot::snapshot_topic( $test_db, $topic->{ topics_id } );
 
 }
 
@@ -215,7 +214,7 @@ sub test_media_list
 
     # Check that we have right number of inlink counts for each media source
 
-    my $controversy_stories = _get_story_link_counts( $data );
+    my $topic_stories = _get_story_link_counts( $data );
 
     my $inlink_counts = { F => 4, D => 2, A => 0 };
 
@@ -228,7 +227,7 @@ sub test_media_list
 sub test_story_count
 {
 
-    # The number of stories returned in stories/list matches the count in cdts
+    # The number of stories returned in stories/list matches the count in timespan
 
     my $base_url = { path => '/api/v2/topics/1/stories/list' };
 
@@ -360,9 +359,9 @@ sub main
                 }
             };
 
-            my $controversy_media = create_stories( $db, $stories );
+            my $topic_media = create_stories( $db, $stories );
 
-            create_test_data( $db, $controversy_media );
+            create_test_data( $db, $topic_media );
             $TEST_API_KEY = MediaWords::Test::DB::create_test_user( $db );
             test_story_count();
             test_default_sort( $stories );

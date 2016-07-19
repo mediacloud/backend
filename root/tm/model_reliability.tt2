@@ -1,0 +1,8 @@
+[% IF timespan.model_r2_mean %]
+    [% timespan.model_reliability %] 
+    [% IF model_reliability_include_numbers %]
+        (r2 m=[% timespan.model_r2_mean %] sd=[% timespan.model_r2_stddev %])
+    [% END %]
+[% ELSE %]
+    (not enough data)
+[% END %]

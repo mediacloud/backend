@@ -12,8 +12,8 @@ use namespace::autoclean;
 use List::Compare;
 use Carp;
 use MediaWords::Solr;
-use MediaWords::CM::Dump;
-use MediaWords::CM;
+use MediaWords::TM::Snapshot;
+use MediaWords::TM;
 use MediaWords::Controller::Api::V2::Sentences;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
@@ -42,23 +42,23 @@ sub count_GET
 
     my $db = $c->dbis;
 
-    my $cdts = MediaWords::CM::require_time_slice_for_controversy(
+    my $timespan = MediaWords::TM::require_timespan_for_topic(
         $c->dbis,
         $c->stash->{ topic_id },
-        $c->req->params->{ timeslice },
+        $c->req->params->{ timespan },
         $c->req->params->{ snapshot }
     );
 
     my $q = $c->req->params->{ q };
 
-    my $cdts_clause = "{~ controversy_dump_time_slice:$cdts->{ controversy_dump_time_slices_id } ~}";
+    my $timespan_clause = "{~ timespan:$timespan->{ timespans_id } ~}";
 
-    $q = $q ? "$cdts_clause and ( $q )" : $cdts_clause;
+    $q = $q ? "$timespan_clause and ( $q )" : $timespan_clause;
 
     $c->req->params->{ q } = $q;
 
-    $c->req->params->{ split_start_date } ||= substr( $cdts->{ start_date }, 0, 12 );
-    $c->req->params->{ split_end_date }   ||= substr( $cdts->{ end_date },   0, 12 );
+    $c->req->params->{ split_start_date } ||= substr( $timespan->{ start_date }, 0, 12 );
+    $c->req->params->{ split_end_date }   ||= substr( $timespan->{ end_date },   0, 12 );
 
     return $c->controller( 'Api::V2::Sentences' )->count_GET( $c );
 }

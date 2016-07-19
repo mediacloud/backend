@@ -1,0 +1,26 @@
+[% PROCESS tm/header.tt2 title="Merge Stories" %]
+   
+<div id="wholecolumn">
+
+    <div id="warning_box">
+        <p>
+            This page allows you to merge the story '[% story.title | html %] [ id: [% story.stories_id %] ]' 
+            into some other story within the current topic.
+        </p>
+        <p>
+            After merging the stories, the source story will be removed from the topic and the links
+            to and from the stories will be merged.
+        </p>
+        
+    </div>
+
+    <div class="boxtitle">
+        Merge into Destination Story
+    </div>
+    <fieldset>
+        [% form.render %]
+    </fieldset>
+</div>
+
+
+[% INCLUDE include/footer.tt2 %]

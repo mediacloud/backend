@@ -1,0 +1,7 @@
+[% INCLUDE tm/header.tt2 title = "TM: Edit topic ${ topic.name }" %]
+
+<fieldset>
+[% form.render %]
+</fieldset>
+
+[% INCLUDE include/footer.tt2 %]

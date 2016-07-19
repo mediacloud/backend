@@ -1,0 +1,52 @@
+[% IF display_media_title %]
+    <div class="boxtitle">
+    [% display_media_title %]
+    [% IF timespan_date_range %]
+        in [% timespan_date_range %] timespan
+    [% END %]
+    </div>
+[% END %]
+
+[% SET self_url = c.uri_for( '/admin/tm/search_media', { 
+    timespan = timespan.timespans_id,
+    l = live,
+    q = q } )%]
+
+<table class="even_rows_grey">
+    <tr>
+        <th>Rank</th>
+        <th>Media_id</th>
+        <th>Name</th>
+        <th>Media Type</th>
+        <th>Stories</th>
+        <th><a href="[% self_url  | html %]">Inlinks</a></th>
+        <th>Outlinks</th>
+        <th><a href="[% self_url _ '&order=bitly_click_count' | html %]">Clicks</a></th>
+    </tr>
+
+[% IF display_media %]
+    [% FOREACH m IN display_media %]
+        [% medium_url = c.uri_for( '/admin/tm/medium/' _ m.media_id, 
+                                   { timespan => timespan.timespans_id, 
+                                     c => topics_id, 
+                                     l => live } ) %]
+
+    <tr>
+        <td>[% loop.count %]</td>
+        <td><a href="[% medium_url | html %]">[% m.media_id | html %]</a></td>
+        <td><a href="[% m.url | html %]">[% m.name | truncate( 36 ) | html %]</a></td>
+        <td>[% m.media_type | html %]</td>
+        <td>[% m.story_count | html %]</td>
+        <td>[% m.inlink_count | html %]</td>
+        <td>[% m.outlink_count | html %]</td>
+        <td>[% m.bitly_click_count | html %]</td>
+    </tr>
+
+    [% END %]
+[% ELSE %]
+
+<tr><td colspan=9>(no media found)</td></tr>
+
+[% END %]
+
+</table>

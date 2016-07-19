@@ -1,0 +1,28 @@
+auto_fieldset:
+
+elements:
+  - type: Text
+    name: name
+    id: name
+    label: Name
+    comment: Name for the focus
+    constraints:
+        - Required
+
+  - type: Text
+    name: query
+    id: query
+    label: Query
+    comment: Solr query to run against the topic
+    constraints:
+        - Required
+
+  - type: Checkbox
+    name: all_timespans
+    label: All Timespans
+    comment: generate the foci for all timespans?
+    value: 1
+    default_empty_value: true
+
+  - type: Submit
+    value: Go

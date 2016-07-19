@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# given a csv file of seed urls for a given controversy that also contains media types,
+# given a csv file of seed urls for a given topic that also contains media types,
 # import those media types as story tags
 
 # usage: $0 <csv file> <tag set name > [ <category map csv> ]
@@ -83,7 +83,7 @@ sub add_url_type_as_story_tag
 
     return if ( !$media_type || ( $media_type eq 'ignore' ) );
 
-    my $seed_url = $db->query( "select * from controversy_seed_urls where url = ?", $url )->hash;
+    my $seed_url = $db->query( "select * from topic_seed_urls where url = ?", $url )->hash;
     if ( !$seed_url )
     {
         warn( "No seed url found for '$url'" );

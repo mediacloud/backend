@@ -34,37 +34,37 @@ use if $] >= 5.014, feature => 'switch';
 
 Readonly my $ROWS_PER_PAGE => 25;
 
-# if called with a controversies_id param, add the controversy specific media
+# if called with a topics_id param, add the topic specific media
 # types to the form
-sub _add_controversy_media_type_to_form
+sub _add_topic_media_type_to_form
 {
     my ( $c, $form ) = @_;
 
-    my $controversies_id = $c->req->params->{ controversies_id };
-    return unless ( $controversies_id );
+    my $topics_id = $c->req->params->{ topics_id };
+    return unless ( $topics_id );
 
     my $db = $c->dbis;
 
-    my $media_types = $db->query( <<END, $controversies_id )->hashes;
+    my $media_types = $db->query( <<END, $topics_id )->hashes;
 select t.*
     from tags t
-        join controversies c on ( c.media_type_tag_sets_id = t.tag_sets_id )
+        join topics c on ( c.media_type_tag_sets_id = t.tag_sets_id )
     where
-        c.controversies_id = ?
+        c.topics_id = ?
     order by t.label = 'Not Typed' desc, t.tag
 END
 
     return unless ( @{ $media_types } );
 
-    my $controversy = $db->find_by_id( 'controversies', $controversies_id );
+    my $topic = $db->find_by_id( 'topics', $topics_id );
 
     my $media_type_options = [ map { [ $_->{ tags_id }, $_->{ label } ] } @{ $media_types } ];
 
     my $cmt_element = $form->element(
         {
-            name    => 'controversy_media_type_tags_id',
-            label   => "Controversy Specific Media Type",
-            comment => 'type of media source, applies only to the specific ' . $controversy->{ name } . ' controversy',
+            name    => 'topic_media_type_tags_id',
+            label   => "Topic Specific Media Type",
+            comment => 'type of media source, applies only to the specific ' . $topic->{ name } . ' topic',
             type    => 'Select',
             options => $media_type_options
         }
@@ -97,7 +97,7 @@ sub _make_edit_form
 
     $form->get_element( { name => 'media_type_tags_id' } )->options( $media_type_options );
 
-    _add_controversy_media_type_to_form( $c, $form );
+    _add_topic_media_type_to_form( $c, $form );
 
     return $form;
 }
@@ -215,28 +215,28 @@ END
     }
 }
 
-# add controversy_media_type_tags_id field to the medium if $c->req->params->{ controversies_id } is
-# specified and if there is a controversy media type for the medium / controversy
-sub _add_controversy_media_type
+# add topic_media_type_tags_id field to the medium if $c->req->params->{ topics_id } is
+# specified and if there is a topic media type for the medium / topic
+sub _add_topic_media_type
 {
     my ( $c, $medium ) = @_;
 
-    my $controversies_id = $c->req->params->{ controversies_id };
-    return unless ( $controversies_id );
+    my $topics_id = $c->req->params->{ topics_id };
+    return unless ( $topics_id );
 
     my $db = $c->dbis;
 
-    my ( $tags_id ) = $db->query( <<END, $medium->{ media_id }, $controversies_id )->flat;
+    my ( $tags_id ) = $db->query( <<END, $medium->{ media_id }, $topics_id )->flat;
 select t.tags_id
     from media_tags_map mtm
         join tags t on ( mtm.tags_id = t.tags_id )
-        join controversies c on ( t.tag_sets_id = c.media_type_tag_sets_id )
+        join topics c on ( t.tag_sets_id = c.media_type_tag_sets_id )
     where
         mtm.media_id = ? and
-        c.controversies_id = ?
+        c.topics_id = ?
 END
 
-    $medium->{ controversy_media_type_tags_id } = $tags_id;
+    $medium->{ topic_media_type_tags_id } = $tags_id;
 }
 
 # display edit form or save edit update
@@ -252,7 +252,7 @@ sub edit_do : Local
     my $medium = $db->query( "select * from media_with_media_types where media_id = ?", $id )->hash
       || die( "unknown medium: $id" );
 
-    _add_controversy_media_type( $c, $medium );
+    _add_topic_media_type( $c, $medium );
 
     $form->default_values( $medium );
 
@@ -281,9 +281,9 @@ sub edit_do : Local
         $form_params->{ foreign_rss_links } ||= 0;
 
         MediaWords::DBI::Media::update_media_type( $db, $medium, $c->req->params->{ media_type_tags_id } );
-        MediaWords::DBI::Media::update_media_type( $db, $medium, $c->req->params->{ controversy_media_type_tags_id } );
+        MediaWords::DBI::Media::update_media_type( $db, $medium, $c->req->params->{ topic_media_type_tags_id } );
         delete( $form_params->{ media_type_tags_id } );
-        delete( $form_params->{ controversy_media_type_tags_id } );
+        delete( $form_params->{ topic_media_type_tags_id } );
 
         $db->update_by_id( 'media', $id, $form_params );
 

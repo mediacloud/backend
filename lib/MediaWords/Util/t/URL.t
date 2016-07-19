@@ -940,7 +940,7 @@ sub test_all_url_variants_invalid_variants($)
     );
 }
 
-sub test_get_controversy_url_variants
+sub test_get_topic_url_variants
 {
     my ( $db ) = @_;
 
@@ -959,73 +959,73 @@ sub test_get_controversy_url_variants
     my $story_3 = $media->{ A }->{ feeds }->{ B }->{ stories }->{ 3 };
 
     $db->query( <<END, $story_2->{ stories_id }, $story_1->{ stories_id } );
-insert into controversy_merged_stories_map ( source_stories_id, target_stories_id ) values( ?, ? )
+insert into topic_merged_stories_map ( source_stories_id, target_stories_id ) values( ?, ? )
 END
     $db->query( <<END, $story_3->{ stories_id }, $story_2->{ stories_id } );
-insert into controversy_merged_stories_map ( source_stories_id, target_stories_id ) values( ?, ? )
+insert into topic_merged_stories_map ( source_stories_id, target_stories_id ) values( ?, ? )
 END
 
     my $tag_set = $db->create( 'tag_sets', { name => 'foo' } );
 
-    my $controversy = {
-        name                    => 'foo',
-        pattern                 => 'foo',
-        solr_seed_query         => 'foo',
-        description             => 'foo',
-        controversy_tag_sets_id => $tag_set->{ tag_sets_id }
+    my $topic = {
+        name              => 'foo',
+        pattern           => 'foo',
+        solr_seed_query   => 'foo',
+        description       => 'foo',
+        topic_tag_sets_id => $tag_set->{ tag_sets_id }
     };
-    $controversy = $db->create( 'controversies', $controversy );
+    $topic = $db->create( 'topics', $topic );
 
     $db->create(
-        'controversy_stories',
+        'topic_stories',
         {
-            controversies_id => $controversy->{ controversies_id },
-            stories_id       => $story_1->{ stories_id }
+            topics_id  => $topic->{ topics_id },
+            stories_id => $story_1->{ stories_id }
         }
     );
 
     $db->create(
-        'controversy_links',
+        'topic_links',
         {
-            controversies_id => $controversy->{ controversies_id },
-            stories_id       => $story_1->{ stories_id },
-            url              => $story_1->{ url },
-            redirect_url     => $story_1->{ url } . "/redirect_url"
+            topics_id    => $topic->{ topics_id },
+            stories_id   => $story_1->{ stories_id },
+            url          => $story_1->{ url },
+            redirect_url => $story_1->{ url } . "/redirect_url"
         }
     );
 
     $db->create(
-        'controversy_stories',
+        'topic_stories',
         {
-            controversies_id => $controversy->{ controversies_id },
-            stories_id       => $story_2->{ stories_id }
+            topics_id  => $topic->{ topics_id },
+            stories_id => $story_2->{ stories_id }
         }
     );
 
     $db->create(
-        'controversy_links',
+        'topic_links',
         {
-            controversies_id => $controversy->{ controversies_id },
-            stories_id       => $story_2->{ stories_id },
-            url              => $story_2->{ url },
-            redirect_url     => $story_2->{ url } . "/redirect_url"
+            topics_id    => $topic->{ topics_id },
+            stories_id   => $story_2->{ stories_id },
+            url          => $story_2->{ url },
+            redirect_url => $story_2->{ url } . "/redirect_url"
         }
     );
 
     $db->create(
-        'controversy_stories',
+        'topic_stories',
         {
-            controversies_id => $controversy->{ controversies_id },
-            stories_id       => $story_3->{ stories_id }
+            topics_id  => $topic->{ topics_id },
+            stories_id => $story_3->{ stories_id }
         }
     );
 
     $db->create(
-        'controversy_links',
+        'topic_links',
         {
-            controversies_id => $controversy->{ controversies_id },
-            stories_id       => $story_3->{ stories_id },
-            url              => $story_3->{ url } . '/alternate',
+            topics_id  => $topic->{ topics_id },
+            stories_id => $story_3->{ stories_id },
+            url        => $story_3->{ url } . '/alternate',
         }
     );
 
@@ -1038,20 +1038,16 @@ END
         $story_3->{ url } . "/alternate"
     ];
 
-    my $url_variants = MediaWords::Util::URL::get_controversy_url_variants( $db, $story_1->{ url } );
+    my $url_variants = MediaWords::Util::URL::get_topic_url_variants( $db, $story_1->{ url } );
 
     $url_variants  = [ sort { $a cmp $b } @{ $url_variants } ];
     $expected_urls = [ sort { $a cmp $b } @{ $expected_urls } ];
 
-    is(
-        scalar( @{ $url_variants } ),
-        scalar( @{ $expected_urls } ),
-        'test_get_controversy_url_variants: same number variants'
-    );
+    is( scalar( @{ $url_variants } ), scalar( @{ $expected_urls } ), 'test_get_topic_url_variants: same number variants' );
 
     for ( my $i = 0 ; $i < @{ $expected_urls } ; $i++ )
     {
-        is( $url_variants->[ $i ], $expected_urls->[ $i ], 'test_get_controversy_url_variants: url variant match $i' );
+        is( $url_variants->[ $i ], $expected_urls->[ $i ], 'test_get_topic_url_variants: url variant match $i' );
     }
 }
 
@@ -1099,7 +1095,7 @@ sub main()
         sub {
             my ( $db ) = @_;
 
-            test_get_controversy_url_variants( $db );
+            test_get_topic_url_variants( $db );
         }
     );
 
