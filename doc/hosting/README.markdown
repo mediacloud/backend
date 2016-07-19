@@ -9,7 +9,7 @@ of a media cloud installation.
 The core machines of the media cloud hosting infrastructure are:
 
 * mcdb1 - runs core mc installation and postgres database
-* mcdb2 - will run replicant postgres database and one off processing jobs like controversies (in development)
+* mcdb2 - will run replicant postgres database and one off processing jobs like topics (in development)
 * mcquery[1234] - run solr cluster that backs mc searches
 * mcnlp - runs a web service version of stanford corenlp, through which we generate corenlp annotations
 

@@ -12,7 +12,7 @@ use namespace::autoclean;
 use List::Compare;
 use Carp;
 use MediaWords::Solr;
-use MediaWords::CM::Dump;
+use MediaWords::TM::Snapshot;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
@@ -34,40 +34,40 @@ sub list : Chained('media') : Args(0) : ActionClass('MC_REST')
 
 }
 
-# if controversy_time_slices_id is specified, create a temporary
+# if topic_timespans_id is specified, create a temporary
 # table with the media name that supercedes the normal media table
-# but includes only media in the given controversy time slice and
-# has the controversy metric data
-sub _create_controversy_media_table
+# but includes only media in the given topic timespan and
+# has the topic metric data
+sub _create_topic_media_table
 {
-    my ( $self, $c, $cdts_id ) = @_;
+    my ( $self, $c, $timespans_id ) = @_;
 
-    # my $cdts_mode = $c->req->params->{ controversy_mode } || '';
+    # my $timespan_mode = $c->req->params->{ topic_mode } || '';
 
-    return unless ( $cdts_id );
+    return unless ( $timespans_id );
 
-    $self->{ controversy_media } = 1;
+    $self->{ topic_media } = 1;
 
-    # my $live = $cdts_mode eq 'live' ? 1 : 0;
+    # my $live = $timespan_mode eq 'live' ? 1 : 0;
 
     my $db = $c->dbis;
 
-    my $cdts = $db->find_by_id( 'controversy_dump_time_slices', $cdts_id )
-      || die( "Unable to find controversy_dump_time_slice with id '$cdts_id'" );
+    my $timespan = $db->find_by_id( 'timespans', $timespans_id )
+      || die( "Unable to find timespan with id '$timespans_id'" );
 
-    my $controversy = $db->query( <<END, $cdts->{ controversy_dumps_id } )->hash;
-select * from controversies where controversies_id in (
-    select controversies_id from controversy_dumps where controversy_dumps_id = ? )
+    my $topic = $db->query( <<END, $timespan->{ snapshots_id } )->hash;
+select * from topics where topics_id in (
+    select topics_id from snapshots where snapshots_id = ? )
 END
 
     $db->begin;
 
-    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, 0 );
+    MediaWords::TM::Snapshot::setup_temporary_snapshot_tables( $db, $timespan, $topic, 0 );
 
     $db->query( <<END );
 create temporary table media as
     select m.name, m.url, mlc.*
-        from dump_media m join dump_medium_link_counts mlc on ( m.media_id = mlc.media_id )
+        from snapshot_media m join snapshot_medium_link_counts mlc on ( m.media_id = mlc.media_id )
 END
 
     $db->commit;
@@ -77,11 +77,11 @@ sub list_GET : Local
 {
     my ( $self, $c ) = @_;
 
-    my $db   = $c->dbis;
-    my $cdts = MediaWords::CM::require_time_slice_for_controversy(
+    my $db       = $c->dbis;
+    my $timespan = MediaWords::TM::require_timespan_for_topic(
         $c->dbis,
         $c->stash->{ topic_id },
-        $c->req->params->{ timeslice },
+        $c->req->params->{ timespan },
         $c->req->params->{ snapshot }
     );
 
@@ -93,19 +93,19 @@ sub list_GET : Local
       ? 'mlc.bitly_click_count desc nulls last, md5( m.media_id::text )'
       : 'mlc.inlink_count desc, md5( m.media_id::text )';
 
-    my $cdts_id = $cdts->{ controversy_dump_time_slices_id };
-    my $cd_id   = $cdts->{ controversy_dumps_id };
+    my $timespans_id = $timespan->{ timespans_id };
+    my $snap_id      = $timespan->{ snapshots_id };
 
-    my ( $media, $continuation_id ) = $self->do_continuation_query( $c, <<SQL, [ $cdts_id, $cd_id ] );
+    my ( $media, $continuation_id ) = $self->do_continuation_query( $c, <<SQL, [ $timespans_id, $snap_id ] );
 select *
-    from cd.medium_link_counts mlc
-        join cd.media m on mlc.media_id = m.media_id
-    where mlc.controversy_dump_time_slices_id = \$1 and
-        m.controversy_dumps_id = \$2
+    from snap.medium_link_counts mlc
+        join snap.media m on mlc.media_id = m.media_id
+    where mlc.timespans_id = \$1 and
+        m.snapshots_id = \$2
     order by $sort_clause
 SQL
 
-    my $entity = { media => $media, timeslice => $cdts, continuation_id => $continuation_id };
+    my $entity = { media => $media, timespan => $timespan, continuation_id => $continuation_id };
 
     $self->status_ok( $c, entity => $entity );
 }

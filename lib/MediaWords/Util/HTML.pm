@@ -16,7 +16,6 @@ our @EXPORT = qw(html_strip);
 # various functions for editing feed and medium tags
 
 use HTML::Entities qw( decode_entities  );
-use Devel::Peek qw(Dump);
 use Encode;
 use List::Util qw(min);
 use Memoize;

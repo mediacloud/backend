@@ -1,0 +1,8 @@
+[% title = "TM: Add Media Type for $topic.name" %]
+[% INCLUDE include/header.tt2 %]
+
+<fieldset>
+[% form.render %]
+</fieldset>
+
+[% INCLUDE include/footer.tt2 %]

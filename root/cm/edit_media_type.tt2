@@ -1,8 +1,0 @@
-[% title = "CM: Edit Media Type for $controversy.name" %]
-[% INCLUDE include/header.tt2 %]
-
-<fieldset>
-[% form.render %]
-</fieldset>
-
-[% INCLUDE include/footer.tt2 %]

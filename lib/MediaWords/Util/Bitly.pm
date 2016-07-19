@@ -368,16 +368,16 @@ sub read_story_stats($$)
     return $json_hashref;
 }
 
-# Return the number of controversy's stories that don't yet have aggregated Bit.ly statistics
-sub num_controversy_stories_without_bitly_statistics($$)
+# Return the number of topic's stories that don't yet have aggregated Bit.ly statistics
+sub num_topic_stories_without_bitly_statistics($$)
 {
-    my ( $db, $controversies_id ) = @_;
+    my ( $db, $topics_id ) = @_;
 
-    my ( $num_controversy_stories_without_bitly_statistics ) = $db->query( <<SQL, $controversies_id )->flat;
+    my ( $num_topic_stories_without_bitly_statistics ) = $db->query( <<SQL, $topics_id )->flat;
 select count(*)
-    from controversy_stories cs
+    from topic_stories cs
         left join bitly_clicks_total b on ( cs.stories_id = b.stories_id )
-    where cs.controversies_id = ?
+    where cs.topics_id = ?
 
       -- Don't touch "click_count" column so that the match could be made using
       -- the index only.
@@ -388,12 +388,12 @@ select count(*)
       and b.stories_id is null
 SQL
 
-    unless ( defined $num_controversy_stories_without_bitly_statistics )
+    unless ( defined $num_topic_stories_without_bitly_statistics )
     {
-        die "'num_controversy_stories_without_bitly_statistics' is undefined.";
+        die "'num_topic_stories_without_bitly_statistics' is undefined.";
     }
 
-    return $num_controversy_stories_without_bitly_statistics;
+    return $num_topic_stories_without_bitly_statistics;
 }
 
 # Returns MediaWords::Util::Bitly::StoryStats object with story statistics

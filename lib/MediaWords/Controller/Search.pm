@@ -7,7 +7,7 @@ use strict;
 use warnings;
 use base 'Catalyst::Controller';
 
-use MediaWords::CM::Mine;
+use MediaWords::TM::Mine;
 use MediaWords::Solr;
 use MediaWords::Solr::WordCounts;
 use MediaWords::Util::CSV;
@@ -170,11 +170,10 @@ sub _match_stories_to_pattern
 
     $db->begin;
 
-    my $controversy = { name => '_preview', description => '_preview', solr_seed_query => '_preview', pattern => $pattern };
-    $controversy = $db->create( 'controversies', $controversy );
+    my $topic = { name => '_preview', description => '_preview', solr_seed_query => '_preview', pattern => $pattern };
+    $topic = $db->create( 'topics', $topic );
 
-    map { $_->{ matches_pattern } = MediaWords::CM::Mine::story_matches_controversy_pattern( $db, $controversy, $_ ) }
-      @{ $stories };
+    map { $_->{ matches_pattern } = MediaWords::TM::Mine::story_matches_topic_pattern( $db, $topic, $_ ) } @{ $stories };
 
     $db->rollback;
 

@@ -1,0 +1,61 @@
+[% PROCESS tm/header.tt2 title="Un-Redirect Medium" %]
+   
+<div id="wholecolumn">
+
+    <div id="warning_box">
+        <p>
+            This page allows you to reprocess the medium '[% medium.name | html %] [ id: [% medium.media_id %] ]' 
+            by changing all of its story urls back to their original urls.  By default, the topic mapper
+            uses the redirected url for the authoritative url of each story, but in some cases (for instance domain
+            resellers for sites that expired before we started spidering) using the redirected url distorts
+            the topic mapper data.
+        </p>
+        <p>
+            Confirming the un-redirect action for this medium will cause the all of the below stories to be reprocessed
+            by the topic mapper with their original urls instead of the redirect urls.  The stories will be added
+            to new or existing media as needed depending on the domain of each original url and whether the original url
+            matches an existing url in the database.
+        </p>
+        <p>
+            Note that this action will effect these stories in all topics for which they are relevant.
+        </p>
+    </div>
+
+    <fieldset>
+        <form action="[% c.uri_for( '/admin/tm/unredirect_medium/' _ medium.media_id ) | html %]" method="post">
+            <input type="hidden" name="timespan" value="[% timespan.timespans_id | html %]" />
+            <ul>
+                [% FOREACH story IN stories %]
+                    <li>Story: [% story.title | html %] / [% story.url | html %]
+            
+                        <ul>
+                            [% FOREACH url IN story.original_urls %]
+                                [% url_tag = story.stories_id _ '_' _ url.topics_id _ '_' _ url.url %]
+                    
+                                <li>
+                                    [% url.topic_name _ ': ' _ url.url | html %]
+                                    <ul>
+                                        <li>
+                                            <input type="hidden" name="[% "include_url_" _ url_tag %]" value="1" />
+                                            assume story matches topic: 
+                                            <input type="checkbox" checked name="[% "assume_match_" _ url_tag | html %]" />
+                                        </li>
+                                        <li>
+                                            assign manual redirect: 
+                                            <input type="text" width="80" name="[% "manual_redirect_" _ url_tag | html %]" />
+                                        </li>
+                                    </ul>
+                                </li>
+                            [% END %]
+                        </ul>
+                    </li>
+                [% END %]
+            </ul>
+            
+            <input type="submit" name="submit" value="Submit" />
+        </form>
+    </fieldset>
+
+</div>
+
+[% INCLUDE include/footer.tt2 %]

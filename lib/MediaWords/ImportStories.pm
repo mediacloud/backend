@@ -29,7 +29,7 @@ use List::MoreUtils;
 use Parallel::ForkManager;
 use URI::Split;
 
-use MediaWords::CM::GuessDate;
+use MediaWords::TM::GuessDate;
 use MediaWords::CommonLibs;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories;
@@ -129,8 +129,8 @@ sub generate_story
         content      => $content
     };
 
-    my $date_guess = MediaWords::CM::GuessDate::guess_date( $db, $story, $content, 1 );
-    if ( $date_guess->{ result } eq $MediaWords::CM::GuessDate::Result::FOUND )
+    my $date_guess = MediaWords::TM::GuessDate::guess_date( $db, $story, $content, 1 );
+    if ( $date_guess->{ result } eq $MediaWords::TM::GuessDate::Result::FOUND )
     {
         $story->{ publish_date } = $date_guess->{ date };
     }

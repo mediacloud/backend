@@ -6,7 +6,7 @@
 -- 4556, and you would like to upgrade both the Media Cloud and the
 -- database to be at version 4557, import this SQL file:
 --
---     psql mediacloud < mediawords-4556-4557.sql
+--     psql mediacloud < medimawords-4556-4557.sql
 --
 -- You might need to import some additional schema diff files to reach the desired version.
 --
@@ -50,4 +50,3 @@ LANGUAGE 'plpgsql';
 -- 2 of 2. Reset the database version.
 --
 SELECT set_database_schema_version();
-
