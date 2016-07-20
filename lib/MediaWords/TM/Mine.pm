@@ -1008,7 +1008,7 @@ sub potential_story_matches_topic_pattern
 
     my $re = translate_pattern_to_perl( $topic->{ pattern } );
 
-    my $match = ( safe_regex_match( $redirect_url, $re ) || safe_regex_match( $url, $re ) );
+    my $match = ( postgres_regex_match( $db, $redirect_url, $re ) || postgres_regex_match( $db, $url, $re ) );
 
     return 1 if $match;
 
@@ -1020,7 +1020,7 @@ sub potential_story_matches_topic_pattern
 
     for my $sentence ( @{ $sentences } )
     {
-        if ( safe_regex_match( $sentence, $re ) )
+        if ( postgres_regex_match( $db, $sentence, $re ) )
         {
             $match = 1;
             last;
@@ -1063,29 +1063,16 @@ sub add_missing_story_sentences
     $_story_sentences_added->{ $story->{ stories_id } } = 1;
 }
 
-# return true if the given value matches the given regex.  set a timeout return false if the regex does not
-# return within the timeout period.  this is necessary because very occasionally the wrong combination of text
-# and complex boolean regex will cause perl to hang.
-sub safe_regex_match
+# run the regex through the postgres engine.return true if the given value matches the given regex.
+# this is necessary because very occasionally the wrong combination of text and complex boolean regex will
+# cause perl to hang.
+sub postgres_regex_match
 {
-    my ( $string, $re ) = @_;
+    my ( $db, $string, $re ) = @_;
 
     return undef unless ( defined( $string ) );
 
-    my $timeout_message = 'regex timeout';
-
-    my $match;
-    eval {
-        local $SIG{ ALRM } = sub { die $timeout_message };
-        alarm $REGEX_TIMEOUT;
-        $match = 1 if ( $string =~ /$re/isx );
-        alarm 0;
-    };
-    if ( $@ )
-    {
-        die( $@ ) unless ( index( $@, $timeout_message ) >= 0 );
-        DEBUG( "regex timed out" );
-    }
+    my $match = $db->query( "select 1 where \$1 ~ ( '(?isx)' || \$2 )", $string, $re )->hash;
 
     return $match;
 }
@@ -1098,14 +1085,22 @@ sub story_matches_topic_pattern
 
     return 'sentence' if ( !$metadata_only && ( story_sentence_matches_pattern( $db, $story, $topic ) ) );
 
-    my $perl_re = translate_pattern_to_perl( $topic->{ pattern } );
+    my $meta_values = [ map { $story->{ $_ } } qw/title description url redirect_url/ ];
 
-    map { return $_ if ( safe_regex_match( $story->{ $_ }, $perl_re ) ) } qw/title description url redirect_url/;
+    my $match = $db->query( <<SQL, $topic->{ topics_id }, @{ $meta_values } )->hash;
+select 1
+    from topics t
+    where
+        t.topics_id = \$1 and
+        (
+            ( \$2 ~ ( '(?isx)' || t.pattern ) ) or
+            ( \$3 ~ ( '(?isx)' || t.pattern ) ) or
+            ( \$4 ~ ( '(?isx)' || t.pattern ) ) or
+            ( \$5 ~ ( '(?isx)' || t.pattern ) )
+        )
+SQL
 
-    for my $field ( qw/title description url redirect_url/ )
-    {
-        return $field if ( safe_regex_match( $story->{ $field }, $perl_re ) );
-    }
+    return 'meta' if $match;
 
     return 0;
 }
