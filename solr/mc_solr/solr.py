@@ -90,13 +90,16 @@ def __install_solr(dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION):
                                  dest_directory=solr_path,
                                  strip_root=True)
 
-    # Solr 4 needs its .war extracted first before ZkCLI is usable
-    solr_war_path = os.path.join(solr_path, "example", "webapps", "solr.war")
-    if os.path.isfile(solr_war_path):
-        solr_war_dest_dir = os.path.join(solr_path, "example", "solr-webapp", "webapp")
-        logger.info("Extracting solr.war at '%s' to '%s'..." % (solr_war_path, solr_war_dest_dir))
-        mkdir_p(solr_war_dest_dir)
-        extract_zip_to_directory(archive_file=solr_war_path, dest_directory=solr_war_dest_dir)
+    # Solr needs its .war extracted first before ZkCLI is usable
+    jetty_home_path = __jetty_home_path(dist_directory=dist_directory, solr_version=solr_version)
+    solr_war_path = os.path.join(jetty_home_path, "webapps", "solr.war")
+    if not os.path.isfile(solr_war_path):
+        raise Exception("Solr's .war file does not exist at path %s" % solr_war_path)
+
+    solr_war_dest_dir = os.path.join(jetty_home_path, "solr-webapp", "webapp")
+    logger.info("Extracting solr.war at '%s' to '%s'..." % (solr_war_path, solr_war_dest_dir))
+    mkdir_p(solr_war_dest_dir)
+    extract_zip_to_directory(archive_file=solr_war_path, dest_directory=solr_war_dest_dir)
 
     logger.info("Creating 'installed' file...")
     installed_file_path = __solr_installed_file_path(dist_directory=dist_directory, solr_version=solr_version)
@@ -113,6 +116,28 @@ def __solr_home_path(solr_home_dir=MC_SOLR_HOME_DIR):
     """Return path to Solr home (with collection subdirectories)."""
     solr_home_path = resolve_absolute_path(name=solr_home_dir, must_exist=True)
     return solr_home_path
+
+
+def __jetty_home_path(dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION):
+    solr_path = __solr_path(dist_directory=dist_directory, solr_version=solr_version)
+
+    jetty_home_path = None
+    jetty_home_dir_candidates = [
+        # Solr 4
+        "example",
+
+        # Solr 5+
+        "server",
+    ]
+    for candidate_dir in jetty_home_dir_candidates:
+        candidate_path = os.path.join(solr_path, candidate_dir)
+        if os.path.exists(os.path.join(candidate_path, "start.jar")):
+            logger.debug("jetty.home found: %s" % candidate_path)
+            jetty_home_path = candidate_path
+    if jetty_home_path is None:
+        raise Exception("Unable to locate jetty.home among candidates: %s" % str(jetty_home_dir_candidates))
+
+    return jetty_home_path
 
 
 def __collections_path(solr_home_dir=MC_SOLR_HOME_DIR):
@@ -253,17 +278,15 @@ def __run_solr_zkcli(zkcli_args,
     """Run Solr's zkcli.sh helper script."""
     solr_path = __solr_path(dist_directory=dist_directory, solr_version=solr_version)
 
-    # Solr 4
+    jetty_home_path = __jetty_home_path(dist_directory=dist_directory, solr_version=solr_version)
+
     log4j_properties_path = None
     log4j_properties_expected_paths = [
         # Solr 4.6
-        os.path.join(solr_path, "example", "cloud-scripts", "log4j.properties"),
+        os.path.join(jetty_home_path, "cloud-scripts", "log4j.properties"),
 
-        # Solr 4.10
-        os.path.join(solr_path, "example", "scripts", "cloud-scripts", "log4j.properties"),
-
-        # Solr 5+
-        os.path.join(solr_path, "server", "scripts", "cloud-scripts", "log4j.properties"),
+        # Solr 4.10+
+        os.path.join(jetty_home_path, "scripts", "cloud-scripts", "log4j.properties"),
     ]
 
     for expected_path in log4j_properties_expected_paths:
@@ -278,13 +301,15 @@ def __run_solr_zkcli(zkcli_args,
     if not tcp_port_is_open(hostname=zookeeper_host, port=zookeeper_port):
         raise Exception("ZooKeeper is not running at %s:%d." % (zookeeper_host, zookeeper_port))
 
+    jetty_home_path = __jetty_home_path(dist_directory=dist_directory, solr_version=solr_version)
+
     zkhost = "%s:%d" % (zookeeper_host, zookeeper_port)
 
     java_classpath_dirs = [
         # Solr 4
         os.path.join(solr_path, "dist", "*"),
-        os.path.join(solr_path, "example", "solr-webapp", "webapp", "WEB-INF", "lib", "*"),
-        os.path.join(solr_path, "example", "lib", "ext", "*"),
+        os.path.join(jetty_home_path, "solr-webapp", "webapp", "WEB-INF", "lib", "*"),
+        os.path.join(jetty_home_path, "lib", "ext", "*"),
     ]
 
     args = ["java",
@@ -437,6 +462,8 @@ instanceDir=%(instance_dir)s
         logger.info("Symlinking '%s' to '%s'..." % (config_item_src_path, config_item_dst_path))
         relative_symlink(config_item_src_path, config_item_dst_path)
 
+    jetty_home_path = __jetty_home_path(dist_directory=dist_directory, solr_version=solr_version)
+
     logger.info("Symlinking libraries and JARs...")
     library_items_to_symlink = [
         "lib",
@@ -445,7 +472,7 @@ instanceDir=%(instance_dir)s
         "webapps",
     ]
     for library_item in library_items_to_symlink:
-        library_item_src_path = os.path.join(solr_path, "example", library_item)
+        library_item_src_path = os.path.join(jetty_home_path, library_item)
         if not os.path.exists(library_item_src_path):
             raise Exception("Expected library item '%s' does not exist" % library_item_src_path)
 
@@ -459,19 +486,15 @@ instanceDir=%(instance_dir)s
         logger.info("Symlinking '%s' to '%s'..." % (library_item_src_path, library_item_dst_path))
         relative_symlink(library_item_src_path, library_item_dst_path)
 
-    jetty_home_dir = os.path.join(solr_path, "example")
-    if not os.path.isdir(jetty_home_dir):
-        raise Exception("Jetty home directory '%s' does not exist." % jetty_home_dir)
-
     log4j_properties_path = os.path.join(solr_home_dir, "resources", "log4j.properties")
     if not os.path.isfile(log4j_properties_path):
         raise Exception("log4j.properties at '%s' was not found.")
 
-    start_jar_path = os.path.join(solr_path, "example", "start.jar")
+    start_jar_path = os.path.join(jetty_home_path, "start.jar")
     if not os.path.isfile(start_jar_path):
         raise Exception("start.jar at '%s' was not found." % start_jar_path)
 
-    solr_webapp_path = os.path.abspath(os.path.join(solr_path, "example", "solr-webapp"))
+    solr_webapp_path = os.path.abspath(os.path.join(jetty_home_path, "solr-webapp"))
     if not os.path.isdir(solr_webapp_path):
         raise Exception("Solr webapp dir at '%s' was not found." % solr_webapp_path)
 
