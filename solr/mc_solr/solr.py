@@ -245,7 +245,7 @@ def __raise_if_old_shards_exist():
     raise Exception(exc_message)
 
 
-def __run_solr_zkcli(args,
+def __run_solr_zkcli(zkcli_args,
                      zookeeper_host=MC_SOLR_CLUSTER_ZOOKEEPER_HOST,
                      zookeeper_port=MC_SOLR_CLUSTER_ZOOKEEPER_PORT,
                      dist_directory=MC_DIST_DIR,
@@ -271,11 +271,16 @@ def __run_solr_zkcli(args,
         os.path.join(solr_path, "example", "solr-webapp", "webapp", "WEB-INF", "lib", "*"),
         os.path.join(solr_path, "example", "lib", "ext", "*"),
     ]
-    subprocess.check_call(["java",
-                           "-classpath", ":".join(java_classpath_dirs),
-                           "-Dlog4j.configuration=file://" + os.path.abspath(log4j_properties_path),
-                           "org.apache.solr.cloud.ZkCLI",
-                           "-zkhost", zkhost] + args)
+
+    args = ["java",
+            "-classpath", ":".join(java_classpath_dirs),
+            "-Dlog4j.configuration=file://" + os.path.abspath(log4j_properties_path),
+            "org.apache.solr.cloud.ZkCLI",
+            "-zkhost", zkhost] + zkcli_args
+
+    logger.debug("Running command: %s" % ' '.join(args))
+
+    subprocess.check_call(args)
 
 
 def update_zookeeper_solr_configuration(zookeeper_host=MC_SOLR_CLUSTER_ZOOKEEPER_HOST,
@@ -298,18 +303,18 @@ def update_zookeeper_solr_configuration(zookeeper_host=MC_SOLR_CLUSTER_ZOOKEEPER
         collection_conf_path = os.path.join(collection_path, "conf")
 
         logger.info("Uploading collection's '%s' configuration at '%s'..." % (collection_name, collection_conf_path))
-        __run_solr_zkcli(args=["-cmd", "upconfig",
-                               "-confdir", collection_conf_path,
-                               "-confname", collection_name],
+        __run_solr_zkcli(zkcli_args=["-cmd", "upconfig",
+                                     "-confdir", collection_conf_path,
+                                     "-confname", collection_name],
                          zookeeper_host=zookeeper_host,
                          zookeeper_port=zookeeper_port,
                          dist_directory=dist_directory,
                          solr_version=solr_version)
 
         logger.info("Linking collection's '%s' configuration..." % collection_name)
-        __run_solr_zkcli(args=["-cmd", "linkconfig",
-                               "-collection", collection_name,
-                               "-confname", collection_name],
+        __run_solr_zkcli(zkcli_args=["-cmd", "linkconfig",
+                                     "-collection", collection_name,
+                                     "-confname", collection_name],
                          zookeeper_host=zookeeper_host,
                          zookeeper_port=zookeeper_port,
                          dist_directory=dist_directory,
