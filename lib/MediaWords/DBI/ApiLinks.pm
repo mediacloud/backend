@@ -120,8 +120,12 @@ SQL
 
         my $link_params = decode_json( $link->{ params_json } );
 
+        my $key = $c->req->params->{ key };
+
         map { delete( $c->req->params->{ $_ } ) } keys( %{ $c->req->params } );
         map { $c->req->params->{ $_ } = $link_params->{ $_ } } keys( %{ $link_params } );
+
+        $c->req->params->{ key } = $key;
     }
     else
     {
