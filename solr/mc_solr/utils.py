@@ -169,7 +169,7 @@ def gracefully_kill_child_process(child_pid, sigkill_timeout=60):
         raise Exception("Child PID is unset.")
 
     if not process_with_pid_is_running(pid=child_pid):
-        logger.warn("Child process with PID %d is not running, maybe it's dead already?")
+        logger.warn("Child process with PID %d is not running, maybe it's dead already?" % child_pid)
     else:
         logger.info("Sending SIGKILL to child process with PID %d..." % child_pid)
 
