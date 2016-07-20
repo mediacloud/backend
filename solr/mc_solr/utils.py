@@ -79,7 +79,7 @@ def download_file(source_url, target_path):
             "--retry-delay", "5",
             "--output", target_path,
             source_url]
-    subprocess.check_call(args)
+    run_command_in_foreground(args)
 
 
 def download_file_to_temp_path(source_url):
@@ -113,7 +113,7 @@ def extract_tarball_to_directory(archive_file, dest_directory, strip_root=False)
     if strip_root:
         args.extend(("--strip", "1"))
 
-    subprocess.check_call(args)
+    run_command_in_foreground(args)
 
 
 def extract_zip_to_directory(archive_file, dest_directory):
@@ -127,7 +127,7 @@ def extract_zip_to_directory(archive_file, dest_directory):
             archive_file,
             "-d", dest_directory]
 
-    subprocess.check_call(args)
+    run_command_in_foreground(args)
 
 
 def fqdn():
@@ -232,3 +232,18 @@ def resolve_absolute_path(name, must_exist=False):
         if not os.path.isdir(dist_path):
             raise Exception("Object '%s' at path '%s' does not exist." % (name, resolve_absolute_path))
     return os.path.abspath(dist_path)
+
+
+def run_command_in_foreground(command):
+    """Run command waiting for it to complete, return exit code. Pipe STDOUT/STDERR correctly without any deadlocks."""
+    logger.debug("Running command: %s" % ' '.join(command))
+
+    line_buffered = 1
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=line_buffered)
+    while True:
+        output = process.stdout.readline()
+        if len(output) == 0 and process.poll() is not None:
+            break
+        logger.info(output.strip())
+    rc = process.poll()
+    return rc
