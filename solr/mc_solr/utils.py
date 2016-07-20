@@ -75,6 +75,7 @@ def unlock_file(path):
 def download_file(source_url, target_path):
     """Download URL to path."""
     args = ["curl",
+            "--progress-bar",
             "--retry", "3",
             "--retry-delay", "5",
             "--output", target_path,
