@@ -78,7 +78,7 @@
   <lib dir="${mediacloud.solr_dist_dir}/contrib/analysis-extras/lib/" regex=".*\.jar" />
   <lib dir="${mediacloud.solr_dist_dir}/contrib/analysis-extras/lucene-libs/" regex=".*\.jar" />
   <lib dir="${mediacloud.solr_dist_dir}/contrib/clustering/lib/" regex=".*\.jar" />
-  <lib dir="${mediacloud.solr_dist_dir}/contrib/dataimporthandler/lib/" regex=".*\.jar" />
+  <lib dir="${mediacloud.solr_dist_dir}/contrib/dataimporthandler-extras/lib/" regex=".*\.jar" />
   <lib dir="${mediacloud.solr_dist_dir}/contrib/extraction/lib/" regex=".*\.jar" />
   <lib dir="${mediacloud.solr_dist_dir}/contrib/langid/lib/" regex=".*\.jar" />
   <lib dir="${mediacloud.solr_dist_dir}/contrib/uima/lib/" regex=".*\.jar" />
