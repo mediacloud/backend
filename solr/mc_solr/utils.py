@@ -74,11 +74,12 @@ def unlock_file(path):
 
 def download_file(source_url, target_path):
     """Download URL to path."""
-    subprocess.check_call(["curl",
-                           "--retry", "3",
-                           "--retry-delay", "5",
-                           "--output", target_path,
-                           source_url])
+    args = ["curl",
+            "--retry", "3",
+            "--retry-delay", "5",
+            "--output", target_path,
+            source_url]
+    subprocess.check_call(args)
 
 
 def download_file_to_temp_path(source_url):
