@@ -236,7 +236,7 @@ def resolve_absolute_path(name, must_exist=False):
 
 
 def run_command_in_foreground(command):
-    """Run command waiting for it to complete, return exit code. Pipe STDOUT/STDERR correctly without any deadlocks."""
+    """Run command in foreground, pipe STDOUT/STDERR correctly without any deadlocks."""
     logger.debug("Running command: %s" % ' '.join(command))
 
     line_buffered = 1
@@ -247,4 +247,5 @@ def run_command_in_foreground(command):
             break
         logger.info(output.strip())
     rc = process.poll()
-    return rc
+    if rc > 0:
+        raise Exception("Process returned non-zero exit code %d" % rc)
