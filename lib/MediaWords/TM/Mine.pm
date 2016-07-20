@@ -42,9 +42,11 @@ use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::Job::Bitly::FetchStoryStats;
 use MediaWords::Job::Facebook::FetchStoryStats;
+use MediaWords::Languages::Language;
 use MediaWords::Solr;
 use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
+use MediaWords::Util::IdentifyLanguage;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
@@ -980,6 +982,22 @@ sub translate_pattern_to_perl
     return $s;
 }
 
+sub _get_sentences_from_story_text
+{
+    my ( $story_text, $story_lang ) = @_;
+
+    # Tokenize into sentences
+    my $lang = MediaWords::Languages::Language::language_for_code( $story_lang );
+    if ( !$lang )
+    {
+        $lang = MediaWords::Languages::Language::default_language();
+    }
+
+    my $sentences = $lang->get_sentences( $story_text );
+
+    return $sentences;
+}
+
 # test whether the url or content of a potential story matches the topic pattern
 sub potential_story_matches_topic_pattern
 {
@@ -993,11 +1011,24 @@ sub potential_story_matches_topic_pattern
 
     my $text_content = html_strip( $content, 1 );
 
-    # shockingly, this is much faster than native perl regexes for the kind of complex, boolean-converted
-    # regexes we often use for topics
-    $match = $db->query( <<SQL, $topic->{ topics_id }, $text_content )->hash;
-select 1 from topics where topics_id = ? and ? ~ ( '(?isx)' || pattern )
-SQL
+    my $story_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $text_content, '' );
+
+    my $sentences = _get_sentences_from_story_text( $text_content, $story_lang );
+
+    for my $sentence ( @{ $sentences } )
+    {
+        if ( $sentence =~ /$re/isx )
+        {
+            $match = 1;
+            last;
+        }
+    }
+
+    #     # shockingly, this is much faster than native perl regexes for the kind of complex, boolean-converted
+    #     # regexes we often use for topics
+    #     $match = $db->query( <<SQL, $topic->{ topics_id }, $text_content )->hash;
+    # select 1 from topics where topics_id = ? and ? ~ ( '(?isx)' || pattern )
+    # SQL
 
     if ( !$match )
     {
