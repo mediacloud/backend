@@ -65,6 +65,9 @@ Readonly my $MAX_NULL_BITLY_STORIES => 500;
 # make regex matches fail if they take longer than this many seconds
 Readonly my $REGEX_TIMEOUT => 3;
 
+# add new links in chunks of this size
+Readonly my $ADD_NEW_LINKS_CHUNK_SIZE => 1000;
+
 # ignore links that match this pattern
 my $_ignore_link_pattern =
   '(www.addtoany.com)|(novostimira.com)|(ads\.pheedo)|(www.dailykos.com\/user)|' .
@@ -1632,7 +1635,7 @@ sub extract_stories
 # each hash within new_links can either be a topic_links hash or simply a hash with a { url } field.  if
 # the link is a topic_links hash, the topic_link will be updated in the database to point ref_stories_id
 # to the new link story.  For each link, set the { story } field to the story found or created for the link.
-sub add_new_links
+sub add_new_links_chunk($$$$)
 {
     my ( $db, $topic, $iteration, $new_links ) = @_;
 
@@ -1675,6 +1678,18 @@ END
         }
     }
     $db->commit unless $db->dbh->{ AutoCommit };
+}
+
+# call add_new_links in chunks of $ADD_NEW_LINKS_CHUNK_SIZE so we don't lose too much work when we restart the spider
+sub add_new_links($$$$)
+{
+    my ( $db, $topic, $iteration, $new_links ) = @_;
+
+    for ( my $i = 0 ; $i < scalar( @{ $new_links } ) ; $i += $ADD_NEW_LINKS_CHUNK_SIZE )
+    {
+        my $end = List::Util::min( $i + $ADD_NEW_LINKS_CHUNK_SIZE - 1, $#{ $new_links } );
+        add_new_links_chunk( $db, $topic, $iteration, [ @{ $new_links }[ $i .. $end ] ] );
+    }
 }
 
 # build a lookup table of aliases for a url based on url and redirect_url fields in the topic_links
@@ -1807,14 +1822,7 @@ select distinct cs.iteration, cl.* from topic_links cl, topic_stories cs
         cl.topics_id = \$2
 END
 
-    # do this in chunks so that we don't have recheck lots of links for matches when we
-    # restart the mining process in the middle
-    my $chunk_size = 2000;
-    for ( my $i = 0 ; $i < scalar( @{ $new_links } ) ; $i += $chunk_size )
-    {
-        my $end = List::Util::min( $i + $chunk_size - 1, $#{ $new_links } );
-        add_new_links( $db, $topic, $iteration, [ @{ $new_links }[ $i .. $end ] ] );
-    }
+    add_new_links( $db, $topic, $iteration, $new_links );
 }
 
 # get short text description of spidering progress
