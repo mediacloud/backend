@@ -567,8 +567,10 @@ The stories list call returns stories in the topic.
 | q                    | null    | if specified, return only stories that match the given solr query |
 | sort                 | inlink  | sort field for returned stories; possible values: `inlink`, `social` |
 | stories_id           | null    | return only stories matching these stories_ids |
-| link_to_stories_id   | null    | return only stories from other media that link to the given stories_ids |
-| link_from_stories_id | null    | return only stories from other media that are linked from the given stories_ids |
+| link_to_stories_id   | null    | return only stories from other media that link to the given stories_id |
+| link_from_stories_id | null    | return only stories from other media that are linked from the given stories_id |
+| link_to_media_id     | null    | return only stories that link to stories in the given media |
+| link_from_media_id   | null    | return only stories that are linked from stories in the given media_id |
 | media_id             | null    | return only stories belonging to the given media_ids |
 | limit                | 20      | return the given number of stories       |
 | link_id              | null    | return stories using the paging link     |
