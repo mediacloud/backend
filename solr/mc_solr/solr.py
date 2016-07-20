@@ -278,9 +278,7 @@ def __run_solr_zkcli(zkcli_args,
             "org.apache.solr.cloud.ZkCLI",
             "-zkhost", zkhost] + zkcli_args
 
-    logger.debug("Running command: %s" % ' '.join(args))
-
-    subprocess.check_call(args)
+    run_command_in_foreground(args)
 
 
 def update_zookeeper_solr_configuration(zookeeper_host=MC_SOLR_CLUSTER_ZOOKEEPER_HOST,
