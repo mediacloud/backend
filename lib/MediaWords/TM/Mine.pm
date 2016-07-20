@@ -167,13 +167,29 @@ sub get_cached_medium_by_id
 {
     my ( $db, $media_id ) = @_;
 
-    if ( !$_media_cache )
+    if ( my $medium = $_media_cache->{ $media_id } )
     {
-        my $all_media = $db->query( "select * from media" )->hashes;
-        map { $_media_cache->{ $_->{ media_id } } = $_ } @{ $all_media };
+        TRACE "MEDIA CACHE HIT";
+        return $medium;
     }
 
-    $_media_cache->{ $media_id } ||= $db->find_by_id( 'media', $media_id );
+    # if ( !$_media_cache || !scalar( keys( %{ $_media_cache } ) ) )
+    # {
+    #     DEBUG "MEDIA CACHE FETCH";
+    #     my $all_media = $db->query( "select * from media" )->hashes;
+    #     map { $_media_cache->{ $_->{ media_id } } = $_ } @{ $all_media };
+    # }
+
+    if ( !$_media_cache->{ $media_id } )
+    {
+        TRACE "MEDIA CACHE MISS";
+        $_media_cache->{ $media_id } = $db->query( <<SQL, $media_id )->hash;
+select *,
+        exists ( select 1 from media d where d.dup_media_id = m.media_id ) is_dup_target
+    from media m
+    where m.media_id = ?
+SQL
+    }
 
     return $_media_cache->{ $media_id };
 }
@@ -1153,16 +1169,22 @@ sub get_preferred_story
 {
     my ( $db, $url, $redirect_url, $stories ) = @_;
 
+    my $stories_lookup = {};
+    map { $stories_lookup->{ $_->{ stories_id } } = $_ } @{ $stories };
+    $stories = [ values( %{ $stories_lookup } ) ];
+
+    return $stories->[ 0 ] if ( scalar( @{ $stories } ) == 1 );
+
+    TRACE "get_preferred_story: " . scalar( @{ $stories } );
+
     my $media_lookup = {};
     for my $story ( @{ $stories } )
     {
         next if ( $media_lookup->{ $story->{ media_id } } );
 
-        my $medium = $db->find_by_id( 'media', $story->{ media_id } );
-        $medium->{ story } = $story;
-        $medium->{ dup_target } =
-          $db->query( "select 1 from media where dup_media_id = ?", $story->{ media_id } )->hash ? 1 : 0;
-        $medium->{ dup_source } = $medium->{ dup_media_id } ? 1 : 0;
+        my $medium = get_cached_medium_by_id( $db, $story->{ media_id } );
+        $medium->{ story }          = $story;
+        $medium->{ is_dup_source }  = $medium->{ dup_media_id } ? 1 : 0;
         $medium->{ matches_domain } = _story_domain_matches_medium( $db, $medium, $url, $redirect_url );
 
         $media_lookup->{ $medium->{ media_id } } = $medium;
@@ -1172,13 +1194,15 @@ sub get_preferred_story
 
     sub _compare_media
     {
-             ( $b->{ dup_target } <=> $a->{ dup_target } )
-          || ( $b->{ dup_source } <=> $a->{ dup_source } )
+             ( $b->{ is_dup_target } <=> $a->{ is_dup_target } )
+          || ( $b->{ is_dup_source } <=> $a->{ is_dup_source } )
           || ( $b->{ matches_domain } <=> $a->{ matches_domain } )
           || ( $a->{ media_id } <=> $b->{ media_id } );
     }
 
     my $sorted_media = [ sort _compare_media @{ $media } ];
+
+    TRACE "get_preferred_story done";
 
     return $sorted_media->[ 0 ]->{ story };
 }
@@ -1216,7 +1240,7 @@ sub get_matching_story_from_db ($$;$)
 
     # look for matching stories, ignore those in foreign_rss_links media
     my $stories = $db->query( <<END )->hashes;
-select s.* from stories s
+select distinct( s.* ) from stories s
         join media m on s.media_id = m.media_id
     where ( s.url in ( $quoted_url_list ) or s.guid in ( $quoted_url_list ) ) and
         m.foreign_rss_links = false
@@ -1225,7 +1249,7 @@ END
     # we have to do a separate query here b/c postgres was not coming
     # up with a sane query plan for the combined query
     my $seed_stories = $db->query( <<END )->hashes;
-select s.* from stories s
+select distinct( s.* ) from stories s
         join media m on s.media_id = m.media_id
         join topic_seed_urls csu on s.stories_id = csu.stories_id
     where ( csu.url in ( $quoted_url_list ) ) and
