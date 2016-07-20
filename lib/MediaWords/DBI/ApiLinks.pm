@@ -15,7 +15,7 @@ use warnings;
 use JSON;
 use Readonly;
 
-Readonly my $DEFAULT_PAGING_LIMIT => 100;
+Readonly my $DEFAULT_PAGING_LIMIT => 20;
 
 =head1 FUNCTIONS
 
