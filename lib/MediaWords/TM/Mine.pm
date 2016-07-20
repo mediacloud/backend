@@ -62,6 +62,9 @@ Readonly my $MAX_SOCIAL_MEDIA_FETCH_TIME => ( 60 * 60 * 3 );
 # max number of stories with no bitly metrics
 Readonly my $MAX_NULL_BITLY_STORIES => 500;
 
+# make regex matches fail if they take longer than this many seconds
+Readonly my $REGEX_TIMEOUT => 3;
+
 # ignore links that match this pattern
 my $_ignore_link_pattern =
   '(www.addtoany.com)|(novostimira.com)|(ads\.pheedo)|(www.dailykos.com\/user)|' .
@@ -1005,7 +1008,7 @@ sub potential_story_matches_topic_pattern
 
     my $re = translate_pattern_to_perl( $topic->{ pattern } );
 
-    my $match = ( ( $redirect_url =~ /$re/isx ) || ( $url =~ /$re/isx ) );
+    my $match = ( safe_regex_match( $redirect_url, $re ) || safe_regex_match( $url, $re ) );
 
     return 1 if $match;
 
@@ -1017,7 +1020,7 @@ sub potential_story_matches_topic_pattern
 
     for my $sentence ( @{ $sentences } )
     {
-        if ( $sentence =~ /$re/isx )
+        if ( safe_regex_match( $sentence, $re ) )
         {
             $match = 1;
             last;
@@ -1060,29 +1063,51 @@ sub add_missing_story_sentences
     $_story_sentences_added->{ $story->{ stories_id } } = 1;
 }
 
+# return true if the given value matches the given regex.  set a timeout return false if the regex does not
+# return within the timeout period.  this is necessary because very occasionally the wrong combination of text
+# and complex boolean regex will cause perl to hang.
+sub safe_regex_match
+{
+    my ( $string, $re ) = @_;
+
+    return undef unless ( defined( $string ) );
+
+    my $timeout_message = 'regex timeout';
+
+    my $match;
+    eval {
+        local $SIG{ ALRM } = sub { die $timeout_message };
+        alarm $REGEX_TIMEOUT;
+        $match = 1 if ( $string =~ /$re/isx );
+        alarm 0;
+    };
+    if ( $@ )
+    {
+        die( $@ ) unless ( index( $@, $timeout_message ) >= 0 );
+        DEBUG( "regex timed out" );
+    }
+
+    return $match;
+}
+
 # return the type of match if the story title, url, description, or sentences match topic search pattern.
 # return undef if no match is found.
 sub story_matches_topic_pattern
 {
     my ( $db, $topic, $story, $metadata_only ) = @_;
 
+    return 'sentence' if ( !$metadata_only && ( story_sentence_matches_pattern( $db, $story, $topic ) ) );
+
     my $perl_re = translate_pattern_to_perl( $topic->{ pattern } );
+
+    map { return $_ if ( safe_regex_match( $story->{ $_ }, $perl_re ) ) } qw/title description url redirect_url/;
 
     for my $field ( qw/title description url redirect_url/ )
     {
-        if ( $story->{ $field } && ( $story->{ $field } =~ /$perl_re/isx ) )
-        {
-            return $field;
-        }
+        return $field if ( safe_regex_match( $story->{ $field }, $perl_re ) );
     }
 
-    return 0 if ( $metadata_only );
-
-    # # check for download_texts match first because some stories don't have
-    # # story_sentences, and it is expensive to generate the missing story_sentences
-    # return 0 unless ( story_download_text_matches_pattern( $db, $story, $topic ) );
-
-    return story_sentence_matches_pattern( $db, $story, $topic ) ? 'sentence' : 0;
+    return 0;
 }
 
 # add to topic_stories table
