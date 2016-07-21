@@ -508,9 +508,12 @@ instanceDir=%(instance_dir)s
 
     __raise_if_old_shards_exist()
 
-    logger.info("Starting Solr instance on port %d..." % port)
+    # Must be resolveable by other shards
+    hostname = fqdn()
 
     args = ["java"]
+    logger.info("Starting Solr instance on %s, port %d..." % (hostname, port))
+
     if jvm_heap_size is not None:
         args += ["-Xmx%s" % jvm_heap_size]
     args += jvm_opts
@@ -521,6 +524,7 @@ instanceDir=%(instance_dir)s
         "-Djetty.port=%d" % port,
         "-Dsolr.solr.home=%s" % instance_data_dir,
         "-Dsolr.data.dir=%s" % instance_data_dir,
+        "-Dhost=%s" % hostname,
         "-Dmediacloud.luceneMatchVersion=%s" % MC_SOLR_LUCENEMATCHVERSION,
 
         # needed for resolving paths to JARs in solrconfig.xml
@@ -612,12 +616,8 @@ def run_solr_shard(shard_num,
                               retries=MC_SOLR_CLUSTER_ZOOKEEPER_CONNECT_RETRIES)
     logger.info("ZooKeeper is up!")
 
-    # Must be resolveable by other shards
-    hostname = fqdn()
-
-    logger.info("Starting Solr shard '%s' on host %s, port %d..." % (shard_name, hostname, shard_port))
+    logger.info("Starting Solr shard '%s', port %d..." % (shard_name, shard_port))
     shard_args = [
-        "-Dhost=%s" % hostname,
         "-DzkHost=%s:%d" % (zookeeper_host, zookeeper_port),
         "-DnumShards=%d" % shard_count,
         "-Dsolr.clustering.enabled=true",
