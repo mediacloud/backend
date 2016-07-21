@@ -378,18 +378,17 @@ def __kill_solr_process(signum=None, frame=None):
 
 def __run_solr(port,
                instance_data_dir,
+               solr_args=None,
                jvm_heap_size=None,
-               start_jar_args=None,
                jvm_opts=None,
                connect_timeout=120,
                dist_directory=MC_DIST_DIR,
                solr_version=MC_SOLR_VERSION):
     """Run Solr instance."""
+    if solr_args is None:
+        solr_args = []
     if jvm_opts is None:
         jvm_opts = MC_SOLR_STANDALONE_JVM_OPTS
-
-    if start_jar_args is None:
-        start_jar_args = []
 
     if not __solr_is_installed():
         logger.info("Solr is not installed, installing...")
@@ -448,6 +447,7 @@ instanceDir=%(instance_dir)s
     config_items_to_symlink = [
         "contexts",
         "etc",
+        "modules",
         "resources",
         "solr.xml",
     ]
@@ -499,6 +499,10 @@ instanceDir=%(instance_dir)s
     if not os.path.isfile(start_jar_path):
         raise Exception("start.jar at '%s' was not found." % start_jar_path)
 
+    solr_bin_path = os.path.join(solr_path, "bin", "solr")
+    if not os.path.isfile(solr_bin_path):
+        raise Exception("bin/solr at '%s' was not found." % solr_bin_path)
+
     solr_webapp_path = os.path.abspath(os.path.join(jetty_home_path, "solr-webapp"))
     if not os.path.isdir(solr_webapp_path):
         raise Exception("Solr webapp dir at '%s' was not found." % solr_webapp_path)
@@ -511,29 +515,36 @@ instanceDir=%(instance_dir)s
     # Must be resolveable by other shards
     hostname = fqdn()
 
-    args = ["java"]
     logger.info("Starting Solr instance on %s, port %d..." % (hostname, port))
 
+    args = [
+        solr_bin_path, "start",
+        "-f",
+        "-h", hostname,
+        "-p", str(port),
+        "-d", instance_data_dir,
+        "-s", instance_data_dir,
+        "-V",
+    ]
+
+    args += solr_args  # e.g. SolrCloud options
+
+    if len(jvm_opts) > 0:
+        args += [
+            "-a", " ".join(jvm_opts),
+        ]
+
     if jvm_heap_size is not None:
-        args += ["-Xmx%s" % jvm_heap_size]
-    args += jvm_opts
-    args = args + [
-        "-server",
+        args += ["-m", jvm_heap_size]
+
+    args += [
         "-Djava.util.logging.config.file=file://" + os.path.abspath(log4j_properties_path),
-        "-Djetty.home=%s" % instance_data_dir,
-        "-Djetty.port=%d" % port,
-        "-Dsolr.solr.home=%s" % instance_data_dir,
         "-Dsolr.data.dir=%s" % instance_data_dir,
-        "-Dhost=%s" % hostname,
         "-Dmediacloud.luceneMatchVersion=%s" % MC_SOLR_LUCENEMATCHVERSION,
 
         # needed for resolving paths to JARs in solrconfig.xml
         "-Dmediacloud.solr_dist_dir=%s" % solr_path,
         "-Dmediacloud.solr_webapp_dir=%s" % solr_webapp_path,
-    ]
-    args = args + start_jar_args
-    args = args + [
-        "-jar", start_jar_path,
     ]
 
     logger.debug("Running command: %s" % ' '.join(args))
@@ -616,17 +627,22 @@ def run_solr_shard(shard_num,
                               retries=MC_SOLR_CLUSTER_ZOOKEEPER_CONNECT_RETRIES)
     logger.info("ZooKeeper is up!")
 
-    logger.info("Starting Solr shard '%s', port %d..." % (shard_name, shard_port))
-    shard_args = [
-        "-DzkHost=%s:%d" % (zookeeper_host, zookeeper_port),
+    solr_args = [
+        "-cloud",
+
+        "-z",
+        "%s:%d" % (zookeeper_host, zookeeper_port),
+
         "-DnumShards=%d" % shard_count,
         "-Dsolr.clustering.enabled=true",
     ]
+
+    logger.info("Starting Solr shard '%s', port %d..." % (shard_name, shard_port))
     __run_solr(port=shard_port,
                instance_data_dir=shard_data_dir,
+               solr_args=solr_args,
                jvm_heap_size=jvm_heap_size,
                jvm_opts=MC_SOLR_CLUSTER_JVM_OPTS,
-               start_jar_args=shard_args,
                connect_timeout=MC_SOLR_CLUSTER_CONNECT_RETRIES,
                dist_directory=dist_directory,
                solr_version=solr_version)
