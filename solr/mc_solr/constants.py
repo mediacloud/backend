@@ -52,16 +52,6 @@ MC_SOLR_CLUSTER_JVM_HEAP_SIZE = "256m"
 
 # Other JVM options to pass to each Solr shard in a cluster
 MC_SOLR_CLUSTER_JVM_OPTS = [
-    "-XX:+PrintGC",
-    "-XX:+UsePerfData",
-    "-XX:+UseG1GC",
-    "-XX:+PerfDisableSharedMem",
-    "-XX:+ParallelRefProcEnabled",
-    "-XX:G1HeapRegionSize=12m",
-    "-XX:MaxGCPauseMillis=250",
-    "-XX:InitiatingHeapOccupancyPercent=75",
-    "-XX:+UseLargePages",
-    "-XX:+AggressiveOpts",
 ]
 
 # ---
