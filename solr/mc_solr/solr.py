@@ -92,14 +92,18 @@ def __install_solr(dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION):
 
     # Solr needs its .war extracted first before ZkCLI is usable
     jetty_home_path = __jetty_home_path(dist_directory=dist_directory, solr_version=solr_version)
-    solr_war_path = os.path.join(jetty_home_path, "webapps", "solr.war")
-    if not os.path.isfile(solr_war_path):
-        raise Exception("Solr's .war file does not exist at path %s" % solr_war_path)
-
     solr_war_dest_dir = os.path.join(jetty_home_path, "solr-webapp", "webapp")
-    logger.info("Extracting solr.war at '%s' to '%s'..." % (solr_war_path, solr_war_dest_dir))
-    mkdir_p(solr_war_dest_dir)
-    extract_zip_to_directory(archive_file=solr_war_path, dest_directory=solr_war_dest_dir)
+
+    # Solr 5.5.2+ already has the .war extracted
+    if not os.path.exists(os.path.join(solr_war_dest_dir, "index.html")):
+        solr_war_path = os.path.join(jetty_home_path, "webapps", "solr.war")
+        if not os.path.isfile(solr_war_path):
+            raise Exception("Solr's .war file does not exist at path %s" % solr_war_path)
+
+        solr_war_dest_dir = os.path.join(jetty_home_path, "solr-webapp", "webapp")
+        logger.info("Extracting solr.war at '%s' to '%s'..." % (solr_war_path, solr_war_dest_dir))
+        mkdir_p(solr_war_dest_dir)
+        extract_zip_to_directory(archive_file=solr_war_path, dest_directory=solr_war_dest_dir)
 
     logger.info("Creating 'installed' file...")
     installed_file_path = __solr_installed_file_path(dist_directory=dist_directory, solr_version=solr_version)
@@ -469,7 +473,8 @@ instanceDir=%(instance_dir)s
         "lib",
         "solr-webapp",
         "start.jar",
-        "webapps",
+        "solr",
+        "solr-webapp",
     ]
     for library_item in library_items_to_symlink:
         library_item_src_path = os.path.join(jetty_home_path, library_item)
