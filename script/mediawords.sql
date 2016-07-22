@@ -20,7 +20,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4566;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4567;
 
 BEGIN
 
@@ -1489,6 +1489,19 @@ CREATE TABLE bitly_clicks_total (
     click_count       INT       NOT NULL
 );
 
+--
+-- Bit.ly daily story click counts
+--
+
+-- "Master" table (no indexes, no foreign keys as they'll be ineffective)
+CREATE TABLE bitly_clicks_daily (
+    bitly_clicks_id   BIGSERIAL NOT NULL,
+    stories_id        INT       NOT NULL,
+
+    day               DATE      NOT NULL,
+    click_count       INT       NOT NULL
+);
+
 CREATE OR REPLACE FUNCTION bitly_partition_chunk_size()
 RETURNS integer AS $$
 BEGIN
@@ -1507,11 +1520,9 @@ declare
 
 begin
     select stories_id / bitly_partition_chunk_size() INTO stories_id_chunk_number;
-    raise notice 'stories_id: %', stories_id;
+
     select table_name || '_' || trim(leading ' ' from to_char(stories_id_chunk_number, to_char_format))
         into target_table_name;
-
-    raise notice 'table name: %', target_table_name;
 
     return target_table_name;
 END;
@@ -1587,10 +1598,6 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER bitly_clicks_total_partition_by_stories_id_insert_trigger
-    BEFORE INSERT ON bitly_clicks_total
-    FOR EACH ROW EXECUTE PROCEDURE bitly_clicks_total_partition_by_stories_id_insert_trigger();
-
 -- Helper to INSERT / UPDATE story's Bit.ly statistics
 CREATE OR REPLACE FUNCTION upsert_bitly_clicks_total (
     param_stories_id INT,
@@ -1599,6 +1606,7 @@ CREATE OR REPLACE FUNCTION upsert_bitly_clicks_total (
 $$
 DECLARE
     partition_name text;
+    update_count int;
 BEGIN
 
     select bitly_get_partition_name( param_stories_id, 'bitly_clicks_total' ) into partition_name;
@@ -1606,16 +1614,16 @@ BEGIN
     LOOP
         EXECUTE '
             UPDATE ' || partition_name || '
-                SET click_count = param_click_count
-                WHERE stories_id = param_stories_id
-                  AND day = param_day';
-        IF FOUND THEN RETURN; END IF;
+                SET click_count = ' || param_click_count || '
+                WHERE stories_id = ' || param_stories_id;
+        get diagnostics update_count = ROW_COUNT;
+        IF update_count > 0 THEN RETURN; END IF;
 
         -- Nothing to UPDATE, try to INSERT a new record
         BEGIN
             EXECUTE '
                 INSERT INTO ' || partition_name || ' (stories_id, click_count)
-                VALUES (param_stories_id, param_click_count)';
+                VALUES (' || param_stories_id || ', ' || param_click_count || ')';
             RETURN;
         EXCEPTION WHEN UNIQUE_VIOLATION THEN
             -- If someone else INSERTs the same key concurrently,
@@ -1628,20 +1636,7 @@ END;
 $$
 LANGUAGE plpgsql;
 
---
--- Bit.ly daily story click counts
---
 
--- "Master" table (no indexes, no foreign keys as they'll be ineffective)
-CREATE TABLE bitly_clicks_daily (
-    bitly_clicks_id   BIGSERIAL NOT NULL,
-    stories_id        INT       NOT NULL,
-
-    day               DATE      NOT NULL,
-    click_count       INT       NOT NULL
-);
-
--- Automatic Bit.ly daily click count partitioning to stories_id chunks of 1m rows
 CREATE OR REPLACE FUNCTION bitly_clicks_daily_partition_by_stories_id_insert_trigger()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -1710,37 +1705,34 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER bitly_clicks_daily_partition_by_stories_id_insert_trigger
-    BEFORE INSERT ON bitly_clicks_daily
-    FOR EACH ROW EXECUTE PROCEDURE bitly_clicks_daily_partition_by_stories_id_insert_trigger();
-
-
 -- Helper to INSERT / UPDATE story's Bit.ly statistics
--- Helper to INSERT / UPDATE story's Bit.ly statistics
-CREATE OR REPLACE FUNCTION upsert_bitly_clicks_total (
+CREATE OR REPLACE FUNCTION upsert_bitly_clicks_daily (
     param_stories_id INT,
+    param_day DATE,
     param_click_count INT
 ) RETURNS VOID AS
 $$
 DECLARE
     partition_name text;
+    update_count int;
 BEGIN
 
-    select bitly_get_partition_name( param_stories_id, 'bitly_clicks_total' ) into partition_name;
+    select bitly_get_partition_name( param_stories_id, 'bitly_clicks_daily' ) into partition_name;
 
     LOOP
         EXECUTE '
             UPDATE ' || partition_name || '
-                SET click_count = param_click_count
-                WHERE stories_id = param_stories_id
-                  AND day = param_day';
-        IF FOUND THEN RETURN; END IF;
+                SET click_count = ' || param_click_count || '
+                WHERE stories_id = ' || param_stories_id || '
+                  AND day = ''' || param_day || '''';
+          get diagnostics update_count = ROW_COUNT;
+          IF update_count > 0 THEN RETURN; END IF;
 
         -- Nothing to UPDATE, try to INSERT a new record
         BEGIN
             EXECUTE '
-                INSERT INTO ' || partition_name || ' (stories_id, click_count)
-                VALUES (param_stories_id, param_click_count)';
+                INSERT INTO ' || partition_name || ' (stories_id, day, click_count)
+                VALUES ( ' || param_stories_id || ', ''' || param_day || ''', ' || param_click_count || ')';
             RETURN;
         EXCEPTION WHEN UNIQUE_VIOLATION THEN
             -- If someone else INSERTs the same key concurrently,
@@ -1748,10 +1740,17 @@ BEGIN
             -- nothing and loop to try the UPDATE again.
         END;
     END LOOP;
-
 END;
 $$
 LANGUAGE plpgsql;
+
+CREATE TRIGGER bitly_clicks_total_partition_by_stories_id_insert_trigger
+    BEFORE INSERT ON bitly_clicks_total
+    FOR EACH ROW EXECUTE PROCEDURE bitly_clicks_total_partition_by_stories_id_insert_trigger();
+
+CREATE TRIGGER bitly_clicks_daily_partition_by_stories_id_insert_trigger
+    BEFORE INSERT ON bitly_clicks_daily
+    FOR EACH ROW EXECUTE PROCEDURE bitly_clicks_daily_partition_by_stories_id_insert_trigger();
 
 
 --
