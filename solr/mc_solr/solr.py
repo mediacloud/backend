@@ -345,7 +345,12 @@ def update_zookeeper_solr_configuration(zookeeper_host=MC_SOLR_CLUSTER_ZOOKEEPER
     for collection_name, collection_path in sorted(collections.items()):
         collection_conf_path = os.path.join(collection_path, "conf")
 
-        logger.info("Uploading collection's '%s' configuration at '%s'..." % (collection_name, collection_conf_path))
+        # Copy configuration because ZooKeeper's uploader doesn't like symlinks
+        logger.info("Copying collection's '%s' configuration to a temporary directory..." % collection_name)
+        collection_conf_temp_dir = os.path.join(tempfile.mkdtemp(), collection_name)
+        shutil.copytree(collection_conf_path, collection_conf_temp_dir)
+
+        logger.info("Uploading collection's '%s' configuration at '%s'..." % (collection_name, collection_conf_temp_dir))
         __run_solr_zkcli(zkcli_args=["-cmd", "upconfig",
                                      "-confdir", collection_conf_path,
                                      "-confname", collection_name],
