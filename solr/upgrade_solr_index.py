@@ -2,8 +2,7 @@
 
 import argparse
 
-from mc_solr.constants import *
-from mc_solr.solr import update_zookeeper_solr_configuration, upgrade_solr_standalone_index, upgrade_solr_shards_indexes
+from mc_solr.solr import upgrade_solr_standalone_index, upgrade_solr_shards_indexes
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Upgrade Solr (Lucene) index using IndexUpgrader utility.",
