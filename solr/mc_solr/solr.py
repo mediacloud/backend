@@ -176,13 +176,6 @@ def __standalone_data_dir(base_data_dir=MC_SOLR_BASE_DATA_DIR):
     return os.path.join(base_data_dir, "mediacloud-standalone")
 
 
-def __shard_name(shard_num):
-    """Return shard name."""
-    if shard_num < 1:
-        raise Exception("Shard number must be 1 or greater.")
-    return "mediacloud-cluster-shard-%d" % shard_num
-
-
 def __shard_port(shard_num, starting_port=MC_SOLR_CLUSTER_STARTING_PORT):
     """Return port on which a shard should listen to."""
     if shard_num < 1:
@@ -196,8 +189,9 @@ def __shard_data_dir(shard_num, base_data_dir=MC_SOLR_BASE_DATA_DIR):
         raise Exception("Shard number must be 1 or greater.")
     if not os.path.isdir(base_data_dir):
         raise Exception("Solr data directory '%s' does not exist." % base_data_dir)
-    shard_name = __shard_name(shard_num=shard_num)
-    return os.path.join(base_data_dir, shard_name)
+
+    shard_subdir = "mediacloud-cluster-shard-%d" % shard_num
+    return os.path.join(base_data_dir, shard_subdir)
 
 
 def __raise_if_old_shards_exist():
@@ -597,7 +591,6 @@ def run_solr_shard(shard_num,
 
     base_data_dir = resolve_absolute_path(name=base_data_dir, must_exist=True)
 
-    shard_name = __shard_name(shard_num=shard_num)
     shard_port = __shard_port(shard_num=shard_num, starting_port=starting_port)
     shard_data_dir = __shard_data_dir(shard_num=shard_num, base_data_dir=base_data_dir)
 
@@ -610,7 +603,7 @@ def run_solr_shard(shard_num,
     # Must be resolveable by other shards
     hostname = fqdn()
 
-    logger.info("Starting Solr shard '%s' on host %s, port %d..." % (shard_name, hostname, shard_port))
+    logger.info("Starting Solr shard %d on host %s, port %d..." % (shard_num, hostname, shard_port))
     shard_args = [
         "-Dhost=%s" % hostname,
         "-DzkHost=%s:%d" % (zookeeper_host, zookeeper_port),
