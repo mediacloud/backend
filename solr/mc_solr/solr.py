@@ -729,6 +729,10 @@ def __upgrade_solr_index(instance_data_dir,
                          dist_directory=MC_DIST_DIR,
                          solr_version=MC_SOLR_VERSION):
     """Upgrade Solr (Lucene) index using the IndexUpgrader tool in a given instance directory."""
+    if not __solr_is_installed(dist_directory=dist_directory, solr_version=solr_version):
+        logger.info("Solr is not installed, installing...")
+        __install_solr(dist_directory=dist_directory, solr_version=solr_version)
+
     if not os.path.isdir(instance_data_dir):
         raise Exception("Instance data directory '%s' does not exist." % instance_data_dir)
 
@@ -773,6 +777,9 @@ def upgrade_solr_standalone_index(base_data_dir=MC_SOLR_BASE_DATA_DIR,
                                   dist_directory=MC_DIST_DIR,
                                   solr_version=MC_SOLR_VERSION):
     """Upgrade Solr (Lucene) index using the IndexUpgrader tool to standalone instance."""
+    if not __solr_is_installed(dist_directory=dist_directory, solr_version=solr_version):
+        logger.info("Solr is not installed, installing...")
+        __install_solr(dist_directory=dist_directory, solr_version=solr_version)
 
     base_data_dir = resolve_absolute_path(name=base_data_dir, must_exist=True)
 
@@ -794,6 +801,9 @@ def upgrade_solr_shards_indexes(base_data_dir=MC_SOLR_BASE_DATA_DIR,
                                 dist_directory=MC_DIST_DIR,
                                 solr_version=MC_SOLR_VERSION):
     """Upgrade Solr (Lucene) indexes using the IndexUpgrader tool to all shards."""
+    if not __solr_is_installed(dist_directory=dist_directory, solr_version=solr_version):
+        logger.info("Solr is not installed, installing...")
+        __install_solr(dist_directory=dist_directory, solr_version=solr_version)
 
     base_data_dir = resolve_absolute_path(name=base_data_dir, must_exist=True)
 
