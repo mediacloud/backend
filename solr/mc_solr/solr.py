@@ -347,7 +347,7 @@ def update_zookeeper_solr_configuration(zookeeper_host=MC_SOLR_CLUSTER_ZOOKEEPER
         logger.info("Uploading collection's '%s' configuration at '%s'..." % (
             collection_name, collection_conf_temp_dir))
         __run_solr_zkcli(zkcli_args=["-cmd", "upconfig",
-                                     "-confdir", collection_conf_path,
+                                     "-confdir", collection_conf_temp_dir,
                                      "-confname", collection_name],
                          zookeeper_host=zookeeper_host,
                          zookeeper_port=zookeeper_port,
