@@ -72,8 +72,6 @@ before_script:
 script:
     # Start Readability service for testing "PythonReadability" extractor method on t/test_extractor.t
     - "python python_scripts/extractor_python_readability_server.py &"
-    # Set JAVA_HOME because it's required by Solr
-    - source ./script/set_java_home.sh
     # Run Media Cloud's test suite, report test coverage to https://coveralls.io/r/berkmancenter/mediacloud
     - ./script/run_test_suite_for_devel_cover.sh coveralls --destroy-solr
 after_failure:
