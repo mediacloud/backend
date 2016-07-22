@@ -176,13 +176,6 @@ def __standalone_data_dir(base_data_dir=MC_SOLR_BASE_DATA_DIR):
     return os.path.join(base_data_dir, "mediacloud-standalone")
 
 
-def __shard_port(shard_num, starting_port=MC_SOLR_CLUSTER_STARTING_PORT):
-    """Return port on which a shard should listen to."""
-    if shard_num < 1:
-        raise Exception("Shard number must be 1 or greater.")
-    return starting_port + shard_num - 1
-
-
 def __shard_data_dir(shard_num, base_data_dir=MC_SOLR_BASE_DATA_DIR):
     """Return data directory for a shard."""
     if shard_num < 1:
@@ -192,6 +185,13 @@ def __shard_data_dir(shard_num, base_data_dir=MC_SOLR_BASE_DATA_DIR):
 
     shard_subdir = "mediacloud-cluster-shard-%d" % shard_num
     return os.path.join(base_data_dir, shard_subdir)
+
+
+def __shard_port(shard_num, starting_port=MC_SOLR_CLUSTER_STARTING_PORT):
+    """Return port on which a shard should listen to."""
+    if shard_num < 1:
+        raise Exception("Shard number must be 1 or greater.")
+    return starting_port + shard_num - 1
 
 
 def __raise_if_old_shards_exist():
