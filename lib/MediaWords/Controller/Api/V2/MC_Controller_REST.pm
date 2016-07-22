@@ -63,8 +63,8 @@ sub serialize : ActionClass('Serialize')
     # Just calls parent
 }
 
-# Catch Catalyst exceptions (controller actions that have died); report them in
-# JSON back to the client
+# catch Catalyst exceptions (controller actions that have died); report them in JSON back to the client.
+# also add link data to entity, including finding or creating a next_link_id for the current
 sub end : Private
 {
     my ( $self, $c ) = @_;
@@ -99,22 +99,8 @@ sub end : Private
     }
     else
     {
-
-        # Continue towards serializing JSON results
-        # (http://search.cpan.org/~frew/Catalyst-Action-REST-1.15/lib/Catalyst/Controller/REST.pm#IMPLEMENTATION_DETAILS)
         $c->forward( 'serialize' );
-
     }
-}
-
-sub do_continuation_query ($$$$)
-{
-    my ( $self, $c, $query, $params ) = @_;
-
-    my $limit = $c->req->params->{ limit } || 10;
-    my $continuation_id = $c->req->params->{ continuation_id };
-
-    return $c->dbis->query_or_continuation( $query, $params, $limit, $continuation_id );
 }
 
 =head1 AUTHOR

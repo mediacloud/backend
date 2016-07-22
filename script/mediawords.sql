@@ -20,7 +20,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4564;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4565;
 
 BEGIN
 
@@ -2796,3 +2796,14 @@ CREATE INDEX stories_without_readability_tag_stories_id
 --     -- No Readability tag
 --     WHERE stories_tags_map.tags_id IS NULL
 --     ;
+
+-- implements link_id as documented in the topics api spec
+create table api_links (
+    api_links_id        bigserial primary key,
+    path                text not null,
+    params_json         text not null,
+    next_link_id        bigint null references api_links on delete set null deferrable,
+    previous_link_id    bigint null references api_links on delete set null deferrable
+);
+
+create unique index api_links_params on api_links ( path, md5( params_json ) );
