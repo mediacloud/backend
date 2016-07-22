@@ -156,7 +156,6 @@ else
         sudo apt-get -y install python-software-properties
         sudo add-apt-repository -y ppa:openjdk-r/ppa
         sudo apt-get update
-        sudo apt-get -y install openjdk-8-jdk
     fi
 
     # Install the rest of the packages
