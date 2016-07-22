@@ -152,9 +152,11 @@ else
 
     # OpenJDK version to install
     if verlt "$DISTRIB_RELEASE" "16.04"; then
-        OPENJDK_PACKAGE=openjdk-7-jdk
-    else
-        OPENJDK_PACKAGE=openjdk-8-jdk
+        # Solr 6+ requires Java 8 which is unavailable before 16.04
+        sudo apt-get -y install python-software-properties
+        sudo add-apt-repository -y ppa:openjdk-r/ppa
+        sudo apt-get update
+        sudo apt-get -y install openjdk-8-jdk
     fi
 
     # Install the rest of the packages
@@ -166,7 +168,7 @@ else
         liblist-allutils-perl liblist-moreutils-perl libreadonly-perl \
         libreadonly-xs-perl curl python2.7 python2.7-dev python-pip \
         libxml2-dev libxslt1-dev libxslt1-dbg libxslt1.1 build-essential make gcc g++ \
-        cpanminus perl-doc liblocale-maketext-lexicon-perl $OPENJDK_PACKAGE \
+        cpanminus perl-doc liblocale-maketext-lexicon-perl openjdk-8-jdk \
         pandoc netcat rabbitmq-server libyaml-dev unzip
 
     # Install / upgrade Setuptools before installing Python dependencies
