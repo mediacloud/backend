@@ -266,9 +266,9 @@ def java_version():
     java_version_output = subprocess.Popen(["java", "-version"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     java_version_output = java_version_output.stdout.read()
 
-    java_version_string = re.search(r'java version "(.+?)"', java_version_output)
+    java_version_string = re.search(r'(java|openjdk) version "(.+?)"', java_version_output)
     if java_version_string is None:
         raise Exception("Unable to determine Java version from string: %s" % java_version_output)
-    java_version_string = java_version_string.group(1)
+    java_version_string = java_version_string.group(2)
 
     return java_version_string
