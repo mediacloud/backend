@@ -94,6 +94,9 @@ After configuration update on ZooKeeper, reloads all Solr shards with the new co
 After reloading the configuration, you can connect to the individual shards (for instance <http://localhost:7981/solr/>) and load
 the configuration page to verify that a given configuration change has made it into the running shard.
 
+
+## Tools
+
 ### Optimize indexes
 
 **`optimize_solr_index.py` - optimize Solr indexes of one, multiple or all collections.**
