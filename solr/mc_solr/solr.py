@@ -794,7 +794,7 @@ def upgrade_solr_shards_indexes(base_data_dir=MC_SOLR_BASE_DATA_DIR,
     logger.info("Found %d shards." % shard_count)
 
     logger.info("Making sure shards aren't running...")
-    for shard_num in range(1, shard_num):
+    for shard_num in range(1, shard_count+1):
         shard_port = __shard_port(shard_num=shard_num, starting_port=MC_SOLR_CLUSTER_STARTING_PORT)
 
         if tcp_port_is_open(port=shard_port):
@@ -802,7 +802,7 @@ def upgrade_solr_shards_indexes(base_data_dir=MC_SOLR_BASE_DATA_DIR,
     logger.info("Made sure shards aren't running.")
 
     logger.info("Upgrading shard indexes...")
-    for shard_num in range(1, shard_num):
+    for shard_num in range(1, shard_count+1):
         shard_data_dir = __shard_data_dir(shard_num=shard_num, base_data_dir=base_data_dir)
         __upgrade_solr_index(instance_data_dir=shard_data_dir,
                              dist_directory=dist_directory,
