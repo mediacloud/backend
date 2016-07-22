@@ -1,5 +1,6 @@
 import atexit
 import glob
+import shutil
 import urllib2
 
 import sys
