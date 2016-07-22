@@ -118,7 +118,7 @@ sub get_timespan_for_topic($$$$)
     $timespans_id ||= '';
     $snapshots_id ||= '';
 
-    DEBUG( sub { "get_timespan_for_topic: topics_id-$topics_id timespans_id-$timespans_id snapshots_id-$snapshots_id" } );
+    TRACE( sub { "get_timespan_for_topic: topics_id-$topics_id timespans_id-$timespans_id snapshots_id-$snapshots_id" } );
 
     my $timespan = $timespans_id && _get_timespan( $db, $timespans_id );
 

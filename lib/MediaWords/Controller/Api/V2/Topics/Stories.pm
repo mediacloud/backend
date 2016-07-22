@@ -142,7 +142,7 @@ SQL
 
     if ( my $q = $c->req->params->{ q } )
     {
-        $q = "{ topic-timespan:$timespans_id } and ( $q )";
+        $q = "{~ topic-timespan:$timespans_id } and ( $q )";
         my $solr_stories_id = MediaWords::Solr::search_for_stories_ids( $c->dbis, { q => $q } );
 
         my $ids_table = $c->dbis->get_temporary_ids_table( $solr_stories_id );
