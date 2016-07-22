@@ -633,7 +633,6 @@ def run_solr_shard(shard_num,
     shard_args = [
         "-DzkHost=%s:%d" % (zookeeper_host, zookeeper_port),
         "-DnumShards=%d" % shard_count,
-        "-Dsolr.clustering.enabled=true",
     ]
     __run_solr(port=shard_port,
                instance_data_dir=shard_data_dir,
