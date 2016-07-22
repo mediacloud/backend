@@ -704,3 +704,107 @@ def optimize_solr_index(host="localhost",
                 collection_name, host, port, e.reason))
 
     logger.info("Optimized indexes on %s:%d." % (host, port))
+
+
+def __upgrade_solr_index(instance_data_dir,
+                         dist_directory=MC_DIST_DIR,
+                         solr_version=MC_SOLR_VERSION):
+    """Upgrade Solr (Lucene) index using the IndexUpgrader tool in a given instance directory."""
+    if not os.path.isdir(instance_data_dir):
+        raise Exception("Instance data directory '%s' does not exist." % instance_data_dir)
+
+    solr_path = __solr_path(dist_directory=dist_directory, solr_version=solr_version)
+
+    lucene_lib_path = os.path.join(solr_path, "server", "solr-webapp", "webapp", "WEB-INF", "lib")
+    if not os.path.isdir(lucene_lib_path):
+        raise Exception("Lucene library directory '%s' does not exist.")
+
+    lucene_core_jar = glob.glob(lucene_lib_path + "/lucene-core-*.jar")
+    if len(lucene_core_jar) != 1:
+        raise Exception("lucene-core JAR was not found in '%s'." % lucene_lib_path)
+    lucene_core_jar = lucene_core_jar[0]
+
+    lucene_backward_codecs_jar = glob.glob(lucene_lib_path + "/lucene-backward-codecs-*.jar")
+    if len(lucene_backward_codecs_jar) != 1:
+        raise Exception("lucene-backward-codecs JAR was not found in '%s'." % lucene_lib_path)
+    lucene_backward_codecs_jar = lucene_backward_codecs_jar[0]
+
+    collections = __collections().keys()
+    for collection_name in collections:
+        collection_path = os.path.join(instance_data_dir, collection_name)
+        if not os.path.isdir(collection_path):
+            raise Exception("Collection data directory '%s' does not exist." % collection_path)
+        index_path = os.path.join(collection_path, "data", "index")
+        if not os.path.isdir(index_path):
+            raise Exception("Index directory '%s' does not exist." % index_path)
+
+        logger.info("Upgrading index at path '%s'..." % index_path)
+        args = [
+            "java",
+            "-cp", ":".join([lucene_core_jar, lucene_backward_codecs_jar]),
+            "org.apache.lucene.index.IndexUpgrader",
+            "-verbose",
+            index_path,
+        ]
+        run_command_in_foreground(args)
+        logger.info("Upgraded index at path '%s'." % index_path)
+
+
+def upgrade_solr_standalone_index(base_data_dir=MC_SOLR_BASE_DATA_DIR,
+                                  dist_directory=MC_DIST_DIR,
+                                  solr_version=MC_SOLR_VERSION):
+    """Upgrade Solr (Lucene) index using the IndexUpgrader tool to standalone instance."""
+
+    base_data_dir = resolve_absolute_path(name=base_data_dir, must_exist=True)
+
+    logger.info("Making sure standalone instance isn't running...")
+    port = MC_SOLR_STANDALONE_PORT
+    if tcp_port_is_open(port=port):
+        raise Exception("Solr standalone instance is running on port %d." % port)
+    logger.info("Made sure standalone instance isn't running.")
+
+    logger.info("Upgrading standalone instance indexes...")
+    standalone_data_dir = __standalone_data_dir(base_data_dir=base_data_dir)
+    __upgrade_solr_index(instance_data_dir=standalone_data_dir,
+                         dist_directory=dist_directory,
+                         solr_version=solr_version)
+    logger.info("Upgraded standalone instance indexes...")
+
+
+def upgrade_solr_shards_indexes(base_data_dir=MC_SOLR_BASE_DATA_DIR,
+                                dist_directory=MC_DIST_DIR,
+                                solr_version=MC_SOLR_VERSION):
+    """Upgrade Solr (Lucene) indexes using the IndexUpgrader tool to all shards."""
+
+    base_data_dir = resolve_absolute_path(name=base_data_dir, must_exist=True)
+
+    # Try to guess shard count from how many shards are in data directory
+    logger.info("Looking for shards...")
+    shard_num = 0
+    shard_count = 0
+    while True:
+        shard_num += 1
+        shard_data_dir = __shard_data_dir(shard_num=shard_num, base_data_dir=base_data_dir)
+        if os.path.isdir(shard_data_dir):
+            shard_count += 1
+        else:
+            break
+    if shard_count < 2:
+        raise Exception("Found less than 2 shards.")
+    logger.info("Found %d shards." % shard_count)
+
+    logger.info("Making sure shards aren't running...")
+    for shard_num in range(1, shard_num):
+        shard_port = __shard_port(shard_num=shard_num, starting_port=MC_SOLR_CLUSTER_STARTING_PORT)
+
+        if tcp_port_is_open(port=shard_port):
+            raise Exception("Solr shard %d is running on port %d." % (shard_num, shard_port))
+    logger.info("Made sure shards aren't running.")
+
+    logger.info("Upgrading shard indexes...")
+    for shard_num in range(1, shard_num):
+        shard_data_dir = __shard_data_dir(shard_num=shard_num, base_data_dir=base_data_dir)
+        __upgrade_solr_index(instance_data_dir=shard_data_dir,
+                             dist_directory=dist_directory,
+                             solr_version=solr_version)
+    logger.info("Upgraded shard indexes.")
