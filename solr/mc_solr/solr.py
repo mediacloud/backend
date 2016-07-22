@@ -651,3 +651,40 @@ def reload_all_solr_shards(shard_count,
     for shard_num in range(1, shard_count + 1):
         reload_solr_shard(shard_num=shard_num, host=host, starting_port=starting_port)
     logger.info("Reloaded %d shards on %s." % (shard_count, host))
+
+
+def optimize_solr_index(host="localhost",
+                        port=MC_SOLR_STANDALONE_PORT,
+                        collections=None):
+    """Optimize collection indexes.
+
+    In SolrCloud cluster, optimization command run on one of the shards will trigger optimization on all of them."""
+
+    if collections is None:
+        collections = __collections().keys()
+
+    logger.debug("Solr collections to reindex: %s" % ', '.join(collections))
+
+    if not tcp_port_is_open(hostname=host, port=port):
+        raise Exception("Solr is not running on %s:%d." % (host, port))
+
+    logger.info("Optimizing indexes on %s:%d..." % (host, port))
+
+    for collection_name in sorted(collections):
+        logger.info("Optimizing collection's '%s' index on %s:%d..." % (
+            collection_name, host, port))
+
+        url = "http://%(host)s:%(port)d/solr/%(collection_name)s/update?optimize=true" % {
+            "host": host,
+            "port": port,
+            "collection_name": collection_name,
+        }
+        logger.debug("Requesting URL %s..." % url)
+
+        try:
+            urllib2.urlopen(url)
+        except urllib2.URLError as e:
+            raise Exception("Unable to optimize collection '%s' index on %s:%d: %s" % (
+                collection_name, host, port, e.reason))
+
+    logger.info("Optimized indexes on %s:%d." % (host, port))
