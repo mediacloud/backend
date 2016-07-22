@@ -3,10 +3,10 @@
 import argparse
 
 from mc_solr.constants import *
-from mc_solr.solr import update_zookeeper_solr_configuration, upgrade_solr_standalone_index, upgrade_solr_shards_indexes
+from mc_solr.solr import update_zookeeper_solr_configuration, upgrade_lucene_standalone_index, upgrade_lucene_shards_indexes
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Upgrade Solr (Lucene) index using IndexUpgrader utility.",
+    parser = argparse.ArgumentParser(description="Upgrade Lucene index using IndexUpgrader utility.",
                                      epilog="Upgrade is needed when moving between major Solr versions (e.g. 4 to 5).",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
@@ -18,6 +18,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.standalone:
-        upgrade_solr_standalone_index()
+        upgrade_lucene_standalone_index()
     else:
-        upgrade_solr_shards_indexes()
+        upgrade_lucene_shards_indexes()

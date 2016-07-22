@@ -724,9 +724,9 @@ def optimize_solr_index(host="localhost",
     logger.info("Optimized indexes on %s:%d." % (host, port))
 
 
-def __upgrade_solr_index(instance_data_dir,
-                         dist_directory=MC_DIST_DIR,
-                         solr_version=MC_SOLR_VERSION):
+def __upgrade_lucene_index(instance_data_dir,
+                           dist_directory=MC_DIST_DIR,
+                           solr_version=MC_SOLR_VERSION):
     """Upgrade Solr (Lucene) index using the IndexUpgrader tool in a given instance directory."""
     if not os.path.isdir(instance_data_dir):
         raise Exception("Instance data directory '%s' does not exist." % instance_data_dir)
@@ -768,10 +768,10 @@ def __upgrade_solr_index(instance_data_dir,
         logger.info("Upgraded index at path '%s'." % index_path)
 
 
-def upgrade_solr_standalone_index(base_data_dir=MC_SOLR_BASE_DATA_DIR,
-                                  dist_directory=MC_DIST_DIR,
-                                  solr_version=MC_SOLR_VERSION):
-    """Upgrade Solr (Lucene) index using the IndexUpgrader tool to standalone instance."""
+def upgrade_lucene_standalone_index(base_data_dir=MC_SOLR_BASE_DATA_DIR,
+                                    dist_directory=MC_DIST_DIR,
+                                    solr_version=MC_SOLR_VERSION):
+    """Upgrade Lucene index using the IndexUpgrader tool to standalone instance."""
 
     base_data_dir = resolve_absolute_path(name=base_data_dir, must_exist=True)
 
@@ -783,16 +783,16 @@ def upgrade_solr_standalone_index(base_data_dir=MC_SOLR_BASE_DATA_DIR,
 
     logger.info("Upgrading standalone instance indexes...")
     standalone_data_dir = __standalone_data_dir(base_data_dir=base_data_dir)
-    __upgrade_solr_index(instance_data_dir=standalone_data_dir,
-                         dist_directory=dist_directory,
-                         solr_version=solr_version)
+    __upgrade_lucene_index(instance_data_dir=standalone_data_dir,
+                           dist_directory=dist_directory,
+                           solr_version=solr_version)
     logger.info("Upgraded standalone instance indexes...")
 
 
-def upgrade_solr_shards_indexes(base_data_dir=MC_SOLR_BASE_DATA_DIR,
-                                dist_directory=MC_DIST_DIR,
-                                solr_version=MC_SOLR_VERSION):
-    """Upgrade Solr (Lucene) indexes using the IndexUpgrader tool to all shards."""
+def upgrade_lucene_shards_indexes(base_data_dir=MC_SOLR_BASE_DATA_DIR,
+                                  dist_directory=MC_DIST_DIR,
+                                  solr_version=MC_SOLR_VERSION):
+    """Upgrade Lucene indexes using the IndexUpgrader tool to all shards."""
 
     base_data_dir = resolve_absolute_path(name=base_data_dir, must_exist=True)
 
@@ -812,7 +812,7 @@ def upgrade_solr_shards_indexes(base_data_dir=MC_SOLR_BASE_DATA_DIR,
     logger.info("Found %d shards." % shard_count)
 
     logger.info("Making sure shards aren't running...")
-    for shard_num in range(1, shard_count+1):
+    for shard_num in range(1, shard_count + 1):
         shard_port = __shard_port(shard_num=shard_num, starting_port=MC_SOLR_CLUSTER_STARTING_PORT)
 
         if tcp_port_is_open(port=shard_port):
@@ -820,9 +820,9 @@ def upgrade_solr_shards_indexes(base_data_dir=MC_SOLR_BASE_DATA_DIR,
     logger.info("Made sure shards aren't running.")
 
     logger.info("Upgrading shard indexes...")
-    for shard_num in range(1, shard_count+1):
+    for shard_num in range(1, shard_count + 1):
         shard_data_dir = __shard_data_dir(shard_num=shard_num, base_data_dir=base_data_dir)
-        __upgrade_solr_index(instance_data_dir=shard_data_dir,
-                             dist_directory=dist_directory,
-                             solr_version=solr_version)
+        __upgrade_lucene_index(instance_data_dir=shard_data_dir,
+                               dist_directory=dist_directory,
+                               solr_version=solr_version)
     logger.info("Upgraded shard indexes.")
