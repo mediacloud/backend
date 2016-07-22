@@ -416,24 +416,28 @@ def __run_solr(port,
     for collection_name, collection_path in sorted(collections.items()):
         logger.info("Updating collection '%s'..." % collection_name)
 
-        conf_symlink_src_dir = os.path.join(collection_path, "conf")
-        if not os.path.isdir(conf_symlink_src_dir):
+        collection_conf_src_dir = os.path.join(collection_path, "conf")
+        if not os.path.isdir(collection_conf_src_dir):
             raise Exception("Configuration for collection '%s' at %s does not exist" % (
-                collection_name, conf_symlink_src_dir
+                collection_name, collection_conf_src_dir
             ))
 
         collection_dst_dir = os.path.join(instance_data_dir, collection_name)
         mkdir_p(collection_dst_dir)
 
-        # Recreate symlink just in case
-        conf_symlink_dst_dir = os.path.join(collection_dst_dir, "conf")
-        if os.path.lexists(conf_symlink_dst_dir):
-            if not os.path.islink(conf_symlink_dst_dir):
-                raise Exception("Collection configuration '%s' exists but is not a symlink." % conf_symlink_dst_dir)
-            os.unlink(conf_symlink_dst_dir)
+        # Remove and copy configuration in case it has changed
+        # (don't symlink because Solr 5.5+ doesn't like those)
+        collection_conf_dst_dir = os.path.join(collection_dst_dir, "conf")
+        if os.path.lexists(collection_conf_dst_dir):
+            logger.debug("Removing old collection configuration in '%s'..." % collection_conf_dst_dir)
+            if os.path.islink(collection_conf_dst_dir):
+                # Might still be a link from older Solr versions
+                os.unlink(collection_conf_dst_dir)
+            else:
+                shutil.rmtree(collection_conf_dst_dir)
 
-        logger.info("Symlinking '%s' to '%s'..." % (conf_symlink_src_dir, conf_symlink_dst_dir))
-        relative_symlink(conf_symlink_src_dir, conf_symlink_dst_dir)
+        logger.info("Copying '%s' to '%s'..." % (collection_conf_src_dir, collection_conf_dst_dir))
+        shutil.copytree(collection_conf_src_dir, collection_conf_dst_dir, symlinks=False)
 
         logger.info("Updating core.properties for collection '%s'..." % collection_name)
         core_properties_path = os.path.join(collection_dst_dir, "core.properties")
