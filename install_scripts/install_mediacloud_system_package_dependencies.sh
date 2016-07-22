@@ -170,6 +170,9 @@ else
         cpanminus perl-doc liblocale-maketext-lexicon-perl openjdk-8-jdk \
         pandoc netcat rabbitmq-server libyaml-dev unzip
 
+    # Choose to use OpenJDK 8 by default
+    sudo update-java-alternatives -s `update-java-alternatives --list | grep java-1.8 | awk '{ print $3 }'`
+
     # Install / upgrade Setuptools before installing Python dependencies
     # (latest version of Setuptools is 20.10.1 but it's not available on pypi.python.org yet)
     SETUPTOOLS_VERSION=20.9.0
