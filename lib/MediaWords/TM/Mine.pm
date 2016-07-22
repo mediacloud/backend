@@ -176,23 +176,13 @@ sub get_cached_medium_by_id
         return $medium;
     }
 
-    # if ( !$_media_cache || !scalar( keys( %{ $_media_cache } ) ) )
-    # {
-    #     DEBUG "MEDIA CACHE FETCH";
-    #     my $all_media = $db->query( "select * from media" )->hashes;
-    #     map { $_media_cache->{ $_->{ media_id } } = $_ } @{ $all_media };
-    # }
-
-    if ( !$_media_cache->{ $media_id } )
-    {
-        TRACE "MEDIA CACHE MISS";
-        $_media_cache->{ $media_id } = $db->query( <<SQL, $media_id )->hash;
+    TRACE "MEDIA CACHE MISS";
+    $_media_cache->{ $media_id } = $db->query( <<SQL, $media_id )->hash;
 select *,
         exists ( select 1 from media d where d.dup_media_id = m.media_id ) is_dup_target
     from media m
     where m.media_id = ?
 SQL
-    }
 
     return $_media_cache->{ $media_id };
 }
@@ -1917,14 +1907,14 @@ sub update_topic_tags
     my $all_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "$tagset_name:all" )
       || die( "Can't find or create all_tag" );
 
-    $db->query( <<SQL, $all_tag->{ tags_id }, $topic->{ topics_id } );
+    $db->query_with_large_work_mem( <<SQL, $all_tag->{ tags_id }, $topic->{ topics_id } );
 delete from stories_tags_map stm
     where stm.tags_id = ? and
         not exists ( select 1 from topic_stories cs
                          where cs.topics_id = ? and cs.stories_id = stm.stories_id )
 SQL
 
-    $db->query( <<SQL, $topic->{ topics_id }, $all_tag->{ tags_id } );
+    $db->query_with_large_work_mem( <<SQL, $topic->{ topics_id }, $all_tag->{ tags_id } );
 insert into stories_tags_map ( stories_id, tags_id )
     select distinct cs.stories_id, \$2
         from topic_stories cs
