@@ -448,6 +448,7 @@ instanceDir=%(instance_dir)s
     config_items_to_symlink = [
         "contexts",
         "etc",
+        "modules",
         "resources",
         "solr.xml",
     ]
@@ -520,6 +521,7 @@ instanceDir=%(instance_dir)s
     args = args + [
         "-server",
         "-Djava.util.logging.config.file=file://" + os.path.abspath(log4j_properties_path),
+        "-Djetty.base=%s" % instance_data_dir,
         "-Djetty.home=%s" % instance_data_dir,
         "-Djetty.port=%d" % port,
         "-Dsolr.solr.home=%s" % instance_data_dir,
@@ -534,6 +536,7 @@ instanceDir=%(instance_dir)s
     args = args + start_jar_args
     args = args + [
         "-jar", start_jar_path,
+        "--module=http",
     ]
 
     logger.debug("Running command: %s" % ' '.join(args))
