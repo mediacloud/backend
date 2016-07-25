@@ -80,8 +80,12 @@
             <a class="boxcommand" href="[% c.uri_for( '/admin/tm/edit_foci/' _ topic.topics_id ) | html %]">edit</a>
         </div>
         <table><tr><td bgcolor="#ffffff">
-                [% FOREACH fd IN focus_definitions %]
-                    [% fd.name | html %]<br />
+                [% IF focus_definitions.size %]
+                    [% FOREACH fd IN focus_definitions %]
+                        [% fd.name | html %]<br />
+                    [% END %]
+                [% ELSE %]
+                    (no foci created)
                 [% END %]
         </td></tr></table>
 

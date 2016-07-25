@@ -1681,8 +1681,8 @@ SQL
     for my $fsd ( @{ $fsds } )
     {
         my $focal_set = $db->query( <<SQL, $fsd->{ focal_set_definitions_id }, $snapshot->{ snapshots_id } )->hash;
-insert into focal_sets ( name, focal_technique, snapshots_id )
-    select name, focal_technique, \$2 from focal_set_definitions where focal_set_definitions_id = \$1
+insert into focal_sets ( name, description, focal_technique, snapshots_id )
+    select name, description, focal_technique, \$2 from focal_set_definitions where focal_set_definitions_id = \$1
     returning *
 SQL
 
@@ -1693,8 +1693,8 @@ SQL
         for my $fd ( @{ $fds } )
         {
             my $focus = $db->query( <<SQL, $fd->{ focus_definitions_id }, $focal_set->{ focal_sets_id } )->hash;
-insert into foci ( name, arguments, focal_sets_id )
-    select name, arguments, \$2 from focus_definitions where focus_definitions_id = \$1
+insert into foci ( name, description, arguments, focal_sets_id )
+    select name, description, arguments, \$2 from focus_definitions where focus_definitions_id = \$1
     returning *
 SQL
             map { generate_period_snapshot( $db, $snapshot, $_, $focus ) } @{ $periods };

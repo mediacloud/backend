@@ -1373,15 +1373,17 @@ create table focal_set_definitions (
     focal_set_definitions_id    serial primary key,
     topics_id                   int not null references topics on delete cascade,
     name                        text not null,
+    description                 text null,
     focal_technique             focal_technique_type not null
 );
 
-create unique index focal_set_definitions_topic_name on focal_set_definitions ( topics_id );
+create unique index focal_set_definitions_topic_name on focal_set_definitions ( topics_id, name );
 
 create table focus_definitions (
     focus_definitions_id        serial primary key,
     focal_set_definitions_id    int not null references focal_set_definitions on delete cascade,
     name                        text not null,
+    description                 text null,
     arguments                   json not null
 );
 
@@ -1391,6 +1393,7 @@ create table focal_sets (
     focal_sets_id               serial primary key,
     snapshots_id                int not null references snapshots,
     name                        text not null,
+    description                 text null,
     focal_technique             focal_technique_type not null
 );
 
@@ -1400,6 +1403,7 @@ create table foci (
     foci_id                     serial primary key,
     focal_sets_id               int not null references focal_sets on delete cascade,
     name                        text not null,
+    description                 text null,
     arguments                   json not null
 );
 

@@ -103,6 +103,37 @@ sub end : Private
     }
 }
 
+# throw an error if the given fields are not in the given data hash
+sub require_fields ($$)
+{
+    my ( $self, $c, $fields ) = @_;
+
+    my $data = $c->req->data;
+
+    map { die( "Required field '$_' is required but not present" ) unless ( defined( $data->{ $_ } ) ) } @{ $fields };
+}
+
+# update the given fields in the given table at the given id, pulling the update table from $c->req->data
+sub update_table ($$$$$)
+{
+    my ( $self, $c, $table, $id, $fields ) = @_;
+
+    my $db = $c->dbis;
+
+    my $object = $db->require_by_id( $table, $id );
+
+    my $data = {};
+    for my $field ( @{ $fields } )
+    {
+        $data->{ $field } = $c->req->data->{ $field };
+        $data->{ $field } //= $object->{ $field };
+    }
+
+    $db->update_by_id( $table, $id, $data );
+
+    return $db->find_by_id( $table, $id );
+}
+
 =head1 AUTHOR
 
 David Larochelle
