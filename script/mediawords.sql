@@ -20,7 +20,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4570;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4571;
 
 BEGIN
 
@@ -1508,14 +1508,15 @@ CREATE TABLE bitly_clicks_total (
 CREATE OR REPLACE FUNCTION bitly_partition_chunk_size()
 RETURNS integer AS $$
 BEGIN
-    RETURN 1000000;
+    RETURN 100 * 1000 * 1000;   -- 100m rows in each partition
 END; $$
 LANGUAGE plpgsql IMMUTABLE;
 
 CREATE OR REPLACE FUNCTION bitly_get_partition_name(stories_id INT, table_name TEXT)
 RETURNS TEXT AS $$
 DECLARE
-    to_char_format CONSTANT TEXT := '000000';     -- Up to 1m of chunks, suffixed as "_000001", ..., "_999999"
+    to_char_format CONSTANT TEXT := '00';     -- Up to 100 partitions, suffixed as "_00", "_01" ..., "_99"
+                                              -- (having more of them is not feasible)
     stories_id_chunk_number INT;
 
     target_table_name TEXT;       -- partition table name (e.g. "bitly_clicks_total_000001")
