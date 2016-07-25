@@ -41,12 +41,10 @@ sub apibase : Chained('/') : PathPart('api/v2/topics') : CaptureArgs(1)
 
 sub stories : Chained('apibase') : PathPart('stories') : CaptureArgs(0)
 {
-
 }
 
 sub list : Chained('stories') : Args(0) : ActionClass('MC_REST')
 {
-
 }
 
 # get any where clauses for media_id, link_to_stories_id, link_from_stories_id, stories_id params
@@ -154,7 +152,7 @@ SQL
     return 'and ' . join( ' and ', map { "( $_ ) " } @{ $clauses } );
 }
 
-sub list_GET
+sub list_GET : Local
 {
     my ( $self, $c ) = @_;
 
@@ -197,6 +195,34 @@ SQL
 
     $self->status_ok( $c, entity => $entity );
 
+}
+
+sub count : Chained('stories') : Args(0) : ActionClass('MC_REST')
+{
+}
+
+sub count_GET : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $timespan     = MediaWords::TM::set_timespans_id_param( $c );
+    my $timespans_id = $timespan->{ timespans_id };
+
+    my $db = $c->dbis;
+
+    my $q = $c->req->params->{ q };
+
+    if ( $q )
+    {
+        $c->req->params->{ q } = "{~ timespan:$timespans_id } and ( $q )";
+        return $c->controller( 'Api::V2::Stories_Public' )->count_GET( $c );
+    }
+    else
+    {
+        my ( $n ) =
+          $db->query( "select count(*) from snap.story_link_counts where timespans_id = \$1", $timespans_id )->flat;
+        $self->status_ok( $c, entity => { count => $n } );
+    }
 }
 
 1;
