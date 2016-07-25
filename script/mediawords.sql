@@ -1497,22 +1497,20 @@ BEGIN
 END; $$
 LANGUAGE plpgsql IMMUTABLE;
 
-create or replace function bitly_get_partition_name( stories_id int, table_name text )
-returns text as $$
-declare
+CREATE OR REPLACE FUNCTION bitly_get_partition_name(stories_id INT, table_name TEXT)
+RETURNS TEXT AS $$
+DECLARE
     to_char_format CONSTANT TEXT := '000000';     -- Up to 1m of chunks, suffixed as "_000001", ..., "_999999"
-
-    stories_id_chunk_number int;
+    stories_id_chunk_number INT;
 
     target_table_name TEXT;       -- partition table name (e.g. "bitly_clicks_total_000001")
+BEGIN
+    SELECT stories_id / bitly_partition_chunk_size() INTO stories_id_chunk_number;
 
-begin
-    select stories_id / bitly_partition_chunk_size() INTO stories_id_chunk_number;
+    SELECT table_name || '_' || trim(leading ' ' FROM to_char(stories_id_chunk_number, to_char_format))
+        INTO target_table_name;
 
-    select table_name || '_' || trim(leading ' ' from to_char(stories_id_chunk_number, to_char_format))
-        into target_table_name;
-
-    return target_table_name;
+    RETURN target_table_name;
 END;
 $$
 LANGUAGE plpgsql;
