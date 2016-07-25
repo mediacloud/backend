@@ -69,23 +69,23 @@
    - [api/v2/tag_sets/list/](#apiv2tag_setslist)   
       - [Query Parameters](#query-parameters-14)   
       - [Example](#example-15)   
-- [Controversies](#controversies)   
-   - [api/v2/controversies/single/](#apiv2controversiessingle)   
+- [Topics](#topics)
+   - [api/v2/topics/single/](#apiv2topicssingle)   
       - [Query Parameters](#query-parameters-15)   
       - [Example](#example-16)   
-   - [api/v2/controversies/list/](#apiv2controversieslist)   
+   - [api/v2/topics/list/](#apiv2topicslist)   
       - [Query Parameters](#query-parameters-16)   
       - [Example](#example-17)   
-   - [api/v2/controversy_dumps/single/](#apiv2controversy_dumpssingle)   
+   - [api/v2/topic_snapshots/single/](#apiv2topic_snapshotssingle)   
       - [Query Parameters](#query-parameters-17)   
       - [Example](#example-18)   
-   - [api/v2/controversy_dumps/list/](#apiv2controversy_dumpslist)   
+   - [api/v2/topic_snapshots/list/](#apiv2topic_snapshotslist)   
       - [Query Parameters](#query-parameters-18)   
       - [Example](#example-19)   
-   - [api/v2/controversy_dump_time_slices/single/](#apiv2controversy_dump_time_slicessingle)   
+   - [api/v2/timespans/single/](#apiv2timespanssingle)   
       - [Query Parameters](#query-parameters-19)   
       - [Example](#example-20)   
-   - [api/v2/controversy_dump_time_slices/list/](#apiv2controversy_dump_time_sliceslist)   
+   - [api/v2/timespans/list/](#apiv2timespanslist)   
       - [Query Parameters](#query-parameters-20)   
       - [Example](#example-21)   
 - [Extended Examples](#extended-examples)   
@@ -306,23 +306,23 @@ Response:
 
 ### Query Parameters
 
-| Parameter                         | Default | Notes
-| --------------------------------- | ------- | -----------------------------------------------------------------
-| `last_media_id`                   | 0       | Return media sources with a `media_id` greater than this value
-| `rows`                            | 20      | Number of media sources to return. Cannot be larger than 100
-| `name`                            | none    | Name of media source for which to search
-| `controversy_dump_time_slices_id` | null    | Return media within the given controversy time slice
-| `controversy_mode`                | null    | If set to 'live', return media from live controversies
-| `tags_id`                         | null    | Return media associate with the given tag
-| `q`                               | null    | Return media with at least one sentence that matches the solr query
+| Parameter          | Default | Notes
+| ------------------ | ------- | -----------------------------------------------------------------
+| `last_media_id`    | 0       | Return media sources with a `media_id` greater than this value
+| `rows`             | 20      | Number of media sources to return. Cannot be larger than 100
+| `name`             | none    | Name of media source for which to search
+| `timespans_id`     | null    | Return media within the given timespan
+| `topic_mode`       | null    | If set to 'live', return media from live topics
+| `tags_id`          | null    | Return media associate with the given tag
+| `q`                | null    | Return media with at least one sentence that matches the solr query
 
 
 If the name parameter is specified, the call returns only media sources that match a case insensitive search
 specified value.  If the specified value is less than 3 characters long, the call returns an empty list.
 
-If the controversy_dump_time_slices_id parameter is specified, return media within the given time slice,
-sorted by descending inlink_count within the controversy time slice.  If controversy_mode is set to
-'live', return media from the live controversy stories rather than from the frozen controversy dump.
+If the `timespans_id` parameter is specified, return media within the given time slice,
+sorted by descending inlink_count within the timespan.  If `topic_mode` is set to
+'live', return media from the live topic stories rather than from the frozen snapshot.
 
 If the 'q' parameter is specified, return only media that include at least on sentence that matches the given
 solr query.  For a description of the solr query format, see the stories\_public/list call.
@@ -480,14 +480,14 @@ the stories that include at least one sentence returned by the specified query.
 The `q` and `fq` parameters are passed directly through to Solr.  Documentation of the format of the `q` and `fq` parameters is [here](http://lucene.apache.org/core/4_6_1/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#package_description).  Below are the fields that may be used as solr query parameters, for example 'sentence:obama AND media_id:1':
 
 | Field                        | Description
-| ---------------------------- | -----------------------------------------------------
-| sentence                     | the text of the sentence
-| stories_id                   | a story ID
-| media_id                     | the Media Cloud media source ID of a story
-| publish_date                 | the publish date of a story
-| tags_id_story                | the ID of a tag associated with a story
-| tags_id_media                | the ID of a tag associated with a media source
-| processed_stories_id         | the processed_stories_id as returned by stories_public/list
+| -------------------- | -----------------------------------------------------
+| sentence             | the text of the sentence
+| stories_id           | a story ID
+| media_id             | the Media Cloud media source ID of a story
+| publish_date         | the publish date of a story
+| tags_id_story        | the ID of a tag associated with a story
+| tags_id_media        | the ID of a tag associated with a media source
+| processed_stories_id | the processed_stories_id as returned by stories_public/list
 
 Be aware that ':' is usually replaced with '%3A' in programmatically generated URLs.
 
@@ -495,34 +495,34 @@ In addition, there following fields may be entered as pseudo queries within the 
 
 | Pseudo Query Field                        | Description
 | ---------------------------- | -----------------------------------------------------
-| controversy                  | a controversy id
-| controversy_dump_time_slice  | a controversy dump time slice id
-| link_from_tag                | a tag id, returns stories linked from stories associated with the tag
-| link_to_story                | a story id, returns stories that link to the story
-| link_from_story              | a story id, returns stories that are linked from the story
-| link_to_medium               | a medium id, returns stories that link to stories within the medium
-| link_from_medium             | link_from_medium, returns stories that are linked from stories within the medium
+| topic            | a topic id
+| timespan         | a timespan id
+| link_from_tag    | a tag id, returns stories linked from stories associated with the tag
+| link_to_story    | a story id, returns stories that link to the story
+| link_from_story  | a story id, returns stories that are linked from the story
+| link_to_medium   | a medium id, returns stories that link to stories within the medium
+| link_from_medium | link_from_medium, returns stories that are linked from stories within the medium
 
 To include one of these fields in a larger solr query, delineate with {~ }, for example:
 
-{~ controversy:1 } and media_id:1
+{~ topic:1 } and media_id:1
 
 The api will translate the given pseudo query into a stories_id: clause in the larger solr query.  So the above query
-will be translated into the following, including controversy 1 consists of stories with ids 1, 2, 3, and 4.
+will be translated into the following, including topic 1 consists of stories with ids 1, 2, 3, and 4.
 
 stories_id:( 1 2 3 4 ) and media_id:1
 
-If '-1' is appended to the controversy_dump_time_slice query field value, the pseudo query will match stories
-from the live controversy matching the given time slice rather than from the dump.  For example, the following will
-live stories from controversy_dump_time_slice 1234:
+If '-1' is appended to the timespan query field value, the pseudo query will match stories
+from the live topic matching the given time slice rather than from the dump.  For example, the following will
+live stories from timespan 1234:
 
-{~ controversy_dump_time_slice:1234-1 }
+{~ timespan:1234-1 }
 
-The link_* pseudo query fields all must be within the same {~ } clause as a controversy_dump_time_slice query and
-return links from the associated controversy_dump_time_slice.  For example, the following returns stories that
+The link_* pseudo query fields all must be within the same {~ } clause as a timespan query and
+return links from the associated timespan.  For example, the following returns stories that
 link to story 5678 within the specified time slice:
 
-{~ controversy_dump_time_slice:1234-1 link_to_story:5678 }
+{~ timespan:1234-1 link_to_story:5678 }
 
 ### Example
 
@@ -1080,32 +1080,30 @@ None.
 
 URL: https://api.mediacloud.org/api/v2/tag_sets/list
 
-# Controversies
+# Topics
 
-Controversies are collections of stories within some date range that match some pattern
-indicating that they belong to some topic.  Controversies both stories matched from
+Topics are collections of stories within some date range that match some pattern
+indicating that they belong to some topic.  Topics both stories matched from
 crawled Media Cloud content and stories discovered by spidering out from the links of
-those matched stories. For more information about controversies and how they are generated,
+those matched stories. For more information about topics and how they are generated,
 see:
 
 http://cyber.law.harvard.edu/publications/2013/social_mobilization_and_the_networked_public_sphere
 
-A single controversy is the umbrella object that represents the whole controversy.  A controversy dump
-is a frozen version of the data within a controversy that keeps a consistent view of a controversy
-for researchers and also includes analytical results like link counts.  A controversy time slice
-represents the set of stories active in a controversy within a given date range.  Every controversy time
-slice belongs to a controversy dump.
+A single topic is the umbrella object that represents the whole topic.  A snapshot
+is a frozen version of the data within a topic that keeps a consistent view of a topic
+for researchers and also includes analytical results like link counts.  A timespan
+represents the set of stories active in a topic within a given date range.  Every timespan belongs to a snapshot.
 
-Controversy data can be used to search stories and media sources as well.  Use the
-controversy_dump_time_slices_id param to list the media sources within a given controversy
-time slice.  See the documentation for solr pseudo queries for documentation of how to
-query for stories within a controversy.
+Topic data can be used to search stories and media sources as well.  Use the
+timespans_id param to list the media sources within a given timespan.  See the documentation for solr pseudo queries for documentation of how to
+query for stories within a topic.
 
-## api/v2/controversies/single/
+## api/v2/topics/single/
 
-| URL                                                | Function
-| -------------------------------------------------- | -------------------------------------------------------------
-| `api/v2/controversies/single/<controversies_id>`   | Return a single controversy
+| URL                                | Function
+| ---------------------------------- | ----------------------
+| `api/v2/topics/single/<topics_id>` | Return a single topic
 
 ### Query Parameters
 
@@ -1113,17 +1111,17 @@ None.
 
 ### Example
 
-Fetching information on controversy 6.
+Fetching information on topic 6.
 
-URL: https://api.mediacloud.org/api/v2/controversies/single/6
+URL: https://api.mediacloud.org/api/v2/topics/single/6
 
 Response:
 
 ```json
 [
   {
-    "controversies_id": 6,
-    "controversy_tag_sets_id": 14,
+    "topics_id": 6,
+    "topic_tag_sets_id": 14,
     "description": "obama",
     "name": "obama",
     "media_type_tag_sets_id": 18
@@ -1134,27 +1132,27 @@ Response:
 ]
 ```
 
-## api/v2/controversies/list/
+## api/v2/topics/list/
 
-| URL                          | Function
-| ---------------------------- | -----------------------------
-| `api/v2/controversies/list`  | Return controversies
+| URL                  | Function
+| -------------------- | --------------
+| `api/v2/topics/list` | Return topics
 
 ### Query Parameters
 
 | Parameter       | Default    | Notes
-| --------------- | ---------- | -----------------------------------------------------------------
-| `name`          | null       | Search for controversies with names including the given text
+| --------------- | ---------- | ------------------------------------------------------
+| `name`          | null       | Search for topics with names including the given text
 
 ### Example
 
-URL: https://api.mediacloud.org/api/v2/controversies/list
+URL: https://api.mediacloud.org/api/v2/topics/list
 
-## api/v2/controversy_dumps/single/
+## api/v2/snapshots/single/
 
-| URL                                      | Function
-| ---------------------------------------- | -------------------------------------------------------------
-| `api/v2/controversy_dumps/single/<id>`   | Return a single controversy dump
+| URL                              | Function
+| -------------------------------- | -------------------------
+| `api/v2/snapshots/single/<id>`   | Return a single snapshot
 
 ### Query Parameters
 
@@ -1162,17 +1160,17 @@ None.
 
 ### Example
 
-Fetching information on the controversy dump 5.
+Fetching information on the snapshot 5.
 
-URL: https://api.mediacloud.org/api/v2/controversy_dumps/single/5
+URL: https://api.mediacloud.org/api/v2/snapshots/single/5
 
 Response:
 
 ```json
 [
   {
-    "controversies_id": 6,
-    "controversy_dumps_id": 5,
+    "topics_id": 6,
+    "snapshots_id": 5,
     "dump_date": "2014-07-30 16:32:15.479964",
     "end_date": "2015-01-01 00:00:00",
     "note": null
@@ -1181,27 +1179,27 @@ Response:
 ]
 ```
 
-## api/v2/controversy_dumps/list/
+## api/v2/snapshots/list/
 
-| URL                              | Function
-| -------------------------------- | ---------------------------------------------------
-| `api/v2/controversy_dumps/list`  | Return controversy dumps sorted by descending date
+| URL                      | Function
+| ------------------------ | -------------------------------------------
+| `api/v2/snapshots/list`  | Return snapshots sorted by descending date
 
 ### Query Parameters
 
-| Parameter          | Default    | Notes
-| ------------------ | ---------- | -----------------------------------------------------------------
-| `controversies_id` | null       | Return dumps within the given controversy
+| Parameter   | Default    | Notes
+| ----------- | ---------- | ------------------------------------
+| `topics_id` | null       | Return dumps within the given topic
 
 ### Example
 
-URL: https://api.mediacloud.org/api/v2/controversy_dumps/list?controversies_id=6
+URL: https://api.mediacloud.org/api/v2/snapshots/list?topics_id=6
 
-## api/v2/controversy_dump_time_slices/single/
+## api/v2/timespans/single/
 
-| URL                                                 | Function
-| --------------------------------------------------- | -------------------------------------------------------------
-| `api/v2/controversy_dump_time_slices/single/<id>`   | Return a single controversy dump time slice
+| URL                            | Function
+| ------------------------------ | -------------------------
+| `api/v2/timespans/single/<id>` | Return a single timespan
 
 ### Query Parameters
 
@@ -1209,17 +1207,17 @@ None.
 
 ### Example
 
-Fetching information on the controversy dump 5.
+Fetching information on the timespan 5.
 
-URL: https://api.mediacloud.org/api/v2/controversy_dumps/single/5
+URL: https://api.mediacloud.org/api/v2/timespans/single/5
 
 Response:
 
 ```json
 [
   {
-    "controversy_dumps_id": 5,
-    "controversy_dump_time_slices_id": 145,
+    "snapshots_id": 5,
+    "timespans_id": 145,
     "end_date": "2015-01-01 00:00:00",
     "include_undateable_stories": 0,
     "medium_count": 236,
@@ -1236,25 +1234,25 @@ Response:
 ]
 ```
 
-## api/v2/controversy_dump_time_slices/list/
+## api/v2/timespans/list/
 
-| URL                                         | Function
-| ------------------------------------------- | ---------------------------------------------------
-| `api/v2/controversy_dump_time_slices/list`  | Return controversy dump time slices
+| URL                     | Function
+| ----------------------- | -----------------
+| `api/v2/timespans/list` | Return timespans
 
 ### Query Parameters
 
-| Parameter              | Default | Notes
-| ---------------------- | ------- | -----------------------------------------------------------------
-| `controversy_dumps_id` | null    | Return time slices within the dump
-| `tags_id`              | null    | Return time slices associated with the tag
-| `period`               | null    | Return time slices with the given period ('weekly', 'monthly', 'overall', or 'custom'
-| `start_date`           | null    | Return time slices that start on the given date (YYYY-MM-DD)
-| `end_date`             | null    | Return time slices that end on the given date (YYYY-MM-DD)
+| Parameter      | Default | Notes
+| -------------- | ------- | -----------------------------------------------------------------
+| `snapshots_id` | null    | Return timespans within the dump
+| `tags_id`      | null    | Return timespans associated with the tag
+| `period`       | null    | Return timespans with the given period ('weekly', 'monthly', 'overall', or 'custom'
+| `start_date`   | null    | Return timespans that start on the given date (YYYY-MM-DD)
+| `end_date`     | null    | Return timespans that end on the given date (YYYY-MM-DD)
 
 ### Example
 
-URL: https://api.mediacloud.org/api/v2/controversy_dump_time_slices/list?controversies_dumps_id=5
+URL: https://api.mediacloud.org/api/v2/timespans/list?snapshots_id=5
 
 # Extended Examples
 
