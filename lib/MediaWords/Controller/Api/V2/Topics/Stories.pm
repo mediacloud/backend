@@ -199,4 +199,33 @@ SQL
 
 }
 
+sub count : Chained('stories') : Args(0) : ActionClass('MC_REST')
+{
+
+}
+
+sub count_GET
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $timespan = MediaWords::TM::require_timespan_for_topic(
+        $c->dbis,
+        $c->stash->{ topics_id },
+        $c->req->params->{ timespans_id },
+        $c->req->params->{ snapshots_id }
+    );
+
+    my $q = $c->req->params->{ q };
+
+    my $timespan_clause = "{~ timespan:$timespan->{ timespans_id } ~}";
+
+    $q = $q ? "$timespan_clause and ( $q )" : $timespan_clause;
+
+    $c->req->params->{ q } = $q;
+
+    return $c->controller( 'Api::V2::Stories' )->count_GET( $c );
+}
+
 1;
