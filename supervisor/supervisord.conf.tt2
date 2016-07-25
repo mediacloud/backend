@@ -102,6 +102,17 @@ programs = crawler
     default_nice=12
 %]
 
+[% INCLUDE program_config
+    program='create_missing_partitions'
+    command="bash ./script/run_with_carton.sh ./script/create_missing_partitions.pl"
+    default_stopasgroup='true'
+    default_killasgroup='true'
+    default_autorestart='false'
+    default_autostart='true'
+    priority=5
+    default_nice=12
+%]
+
 ; Job brokers
 [group:job_broker]
 programs = rabbitmq
