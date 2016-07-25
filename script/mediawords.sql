@@ -20,7 +20,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4567;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4568;
 
 BEGIN
 
@@ -1489,18 +1489,6 @@ CREATE TABLE bitly_clicks_total (
     click_count       INT       NOT NULL
 );
 
---
--- Bit.ly daily story click counts
---
-
--- "Master" table (no indexes, no foreign keys as they'll be ineffective)
-CREATE TABLE bitly_clicks_daily (
-    bitly_clicks_id   BIGSERIAL NOT NULL,
-    stories_id        INT       NOT NULL,
-
-    day               DATE      NOT NULL,
-    click_count       INT       NOT NULL
-);
 
 CREATE OR REPLACE FUNCTION bitly_partition_chunk_size()
 RETURNS integer AS $$
@@ -1516,7 +1504,7 @@ declare
 
     stories_id_chunk_number int;
 
-    target_table_name TEXT;       -- partition table name (e.g. "bitly_clicks_daily_000001")
+    target_table_name TEXT;       -- partition table name (e.g. "bitly_clicks_total_000001")
 
 begin
     select stories_id / bitly_partition_chunk_size() INTO stories_id_chunk_number;
@@ -1637,120 +1625,9 @@ $$
 LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE FUNCTION bitly_clicks_daily_partition_by_stories_id_insert_trigger()
-RETURNS TRIGGER AS $$
-DECLARE
-    target_table_name TEXT;       -- partition table name (e.g. "bitly_clicks_daily_000001")
-    target_table_owner TEXT;      -- partition table owner (e.g. "mediaclouduser")
-
-    stories_id_start INT;         -- stories_id chunk lower limit, inclusive (e.g. 30,000,000)
-    stories_id_end INT;           -- stories_id chunk upper limit, exclusive (e.g. 31,000,000)
-BEGIN
-
-    select bitly_get_partition_name( NEW.stories_id, 'bitly_clicks_daily' ) into target_table_name;
-
-    IF NOT EXISTS (
-        SELECT 1
-        FROM information_schema.tables
-        WHERE table_schema = current_schema()
-          AND table_name = target_table_name
-    ) THEN
-
-        SELECT (NEW.stories_id / bitly_partition_chunk_size() ) * bitly_partition_chunk_size() INTO stories_id_start;
-        SELECT ((NEW.stories_id / bitly_partition_chunk_size() ) + 1) * bitly_partition_chunk_size() INTO stories_id_end;
-
-        EXECUTE '
-            CREATE TABLE ' || target_table_name || ' (
-
-                -- Primary key
-                CONSTRAINT ' || target_table_name || '_pkey
-                    PRIMARY KEY (bitly_clicks_id),
-
-                -- Partition by stories_id
-                CONSTRAINT ' || target_table_name || '_stories_id CHECK (
-                    stories_id >= ''' || stories_id_start || '''
-                AND stories_id <  ''' || stories_id_end   || '''),
-
-                -- Foreign key to stories.stories_id
-                CONSTRAINT ' || target_table_name || '_stories_id_fkey
-                    FOREIGN KEY (stories_id) REFERENCES stories (stories_id) MATCH FULL,
-
-                -- Unique duplets
-                CONSTRAINT ' || target_table_name || '_stories_id_day_unique
-                    UNIQUE (stories_id, day)
-
-            ) INHERITS (bitly_clicks_daily);
-        ';
-
-        -- Update owner
-        SELECT u.usename AS owner
-        FROM information_schema.tables AS t
-            JOIN pg_catalog.pg_class AS c ON t.table_name = c.relname
-            JOIN pg_catalog.pg_user AS u ON c.relowner = u.usesysid
-        WHERE t.table_name = 'bitly_clicks_daily'
-          AND t.table_schema = 'public'
-        INTO target_table_owner;
-
-        EXECUTE 'ALTER TABLE ' || target_table_name || ' OWNER TO ' || target_table_owner || ';';
-
-    END IF;
-
-    EXECUTE '
-        INSERT INTO ' || target_table_name || '
-            SELECT $1.*;
-    ' USING NEW;
-
-    RETURN NULL;
-END;
-$$
-LANGUAGE plpgsql;
-
--- Helper to INSERT / UPDATE story's Bit.ly statistics
-CREATE OR REPLACE FUNCTION upsert_bitly_clicks_daily (
-    param_stories_id INT,
-    param_day DATE,
-    param_click_count INT
-) RETURNS VOID AS
-$$
-DECLARE
-    partition_name text;
-    update_count int;
-BEGIN
-
-    select bitly_get_partition_name( param_stories_id, 'bitly_clicks_daily' ) into partition_name;
-
-    LOOP
-        EXECUTE '
-            UPDATE ' || partition_name || '
-                SET click_count = ' || param_click_count || '
-                WHERE stories_id = ' || param_stories_id || '
-                  AND day = ''' || param_day || '''';
-          get diagnostics update_count = ROW_COUNT;
-          IF update_count > 0 THEN RETURN; END IF;
-
-        -- Nothing to UPDATE, try to INSERT a new record
-        BEGIN
-            EXECUTE '
-                INSERT INTO ' || partition_name || ' (stories_id, day, click_count)
-                VALUES ( ' || param_stories_id || ', ''' || param_day || ''', ' || param_click_count || ')';
-            RETURN;
-        EXCEPTION WHEN UNIQUE_VIOLATION THEN
-            -- If someone else INSERTs the same key concurrently,
-            -- we will get a unique-key failure. In that case, do
-            -- nothing and loop to try the UPDATE again.
-        END;
-    END LOOP;
-END;
-$$
-LANGUAGE plpgsql;
-
 CREATE TRIGGER bitly_clicks_total_partition_by_stories_id_insert_trigger
     BEFORE INSERT ON bitly_clicks_total
     FOR EACH ROW EXECUTE PROCEDURE bitly_clicks_total_partition_by_stories_id_insert_trigger();
-
-CREATE TRIGGER bitly_clicks_daily_partition_by_stories_id_insert_trigger
-    BEFORE INSERT ON bitly_clicks_daily
-    FOR EACH ROW EXECUTE PROCEDURE bitly_clicks_daily_partition_by_stories_id_insert_trigger();
 
 
 --
