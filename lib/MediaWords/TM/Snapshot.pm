@@ -235,7 +235,7 @@ sub restrict_period_stories_to_focus
 
     return unless ( $timespan->{ foci_id } );
 
-    my $qs = $db->find_by_id( 'foci', $timespan->{ foci_id } );
+    my $qs = $db->query( "select *, arguments->>'query' query from foci where foci_id = ?", $timespan->{ foci_id } )->hash;
 
     my $snapshot_period_stories_ids = $db->query( "select stories_id from snapshot_period_stories" )->flat;
 
@@ -1351,10 +1351,6 @@ sub generate_period_snapshot ($$$$)
     {
         generate_timespan( $db, $cd, $start_date, $end_date, $period, $focus );
     }
-    elsif ( $focus && !$focus->{ all_timespans } )
-    {
-        return;
-    }
     elsif ( $period eq 'weekly' )
     {
         my $w_start_date = truncate_to_monday( $start_date );
@@ -1673,6 +1669,39 @@ sub get_periods ($)
     return ( $period eq 'all' ) ? $all_periods : [ $period ];
 }
 
+# generate period spanshots for each period / focus / timespan combination
+sub generate_period_focus_snapshots ( $$$ )
+{
+    my ( $db, $snapshot, $periods ) = @_;
+
+    my $fsds = $db->query( <<SQL, $snapshot->{ topics_id } )->hashes;
+select * from focal_set_definitions where topics_id = ? and focal_technique = 'Boolean Query'
+SQL
+
+    for my $fsd ( @{ $fsds } )
+    {
+        my $focal_set = $db->query( <<SQL, $fsd->{ focal_set_definitions_id }, $snapshot->{ snapshots_id } )->hash;
+insert into focal_sets ( name, focal_technique, snapshots_id )
+    select name, focal_technique, \$2 from focal_set_definitions where focal_set_definitions_id = \$1
+    returning *
+SQL
+
+        my $fds = $db->query( <<SQL, $fsd->{ focal_set_definitions_id } )->hashes;
+select * from focus_definitions where focal_set_definitions_id = \$1
+SQL
+
+        for my $fd ( @{ $fds } )
+        {
+            my $focus = $db->query( <<SQL, $fd->{ focus_definitions_id }, $focal_set->{ focal_sets_id } )->hash;
+insert into foci ( name, arguments, focal_sets_id )
+    select name, arguments, \$2 from focus_definitions where focus_definitions_id = \$1
+    returning *
+SQL
+            map { generate_period_snapshot( $db, $snapshot, $_, $focus ) } @{ $periods };
+        }
+    }
+}
+
 =head2 snapshot_topic( $db, $topics_id )
 
 Create a snapshot for the given topic.
@@ -1699,10 +1728,6 @@ sub snapshot_topic ($$)
 
     my ( $start_date, $end_date ) = get_default_dates( $db, $topic );
 
-    my $foci = $db->query( <<SQL, $topic->{ topics_id } )->hashes;
-select * from foci where topics_id = ?
-SQL
-
     my $cd = create_snapshot_row( $db, $topic, $start_date, $end_date );
 
     eval {
@@ -1712,13 +1737,10 @@ SQL
 
         generate_snapshots_from_temporary_snapshot_tables( $db, $cd );
 
-        for my $qs ( undef, @{ $foci } )
-        {
-            for my $p ( @{ $periods } )
-            {
-                generate_period_snapshot( $db, $cd, $p, $qs );
-            }
-        }
+        # generate null focus timespan snapshots
+        map { generate_period_snapshot( $db, $cd, $_, undef ) } ( @{ $periods } );
+
+        generate_period_focus_snapshots( $db, $cd, $periods );
 
         _update_snapshot_state( $db, $cd, "finalizing snapshot" );
 

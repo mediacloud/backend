@@ -80,12 +80,9 @@
             <a class="boxcommand" href="[% c.uri_for( '/admin/tm/edit_foci/' _ topic.topics_id ) | html %]">edit</a>
         </div>
         <table><tr><td bgcolor="#ffffff">
-            [% IF foci.size > 0 %]
-                [% FOREACH qs IN foci %]
-                    <a href="[% c.uri_for( '/admin/tm/view/' _ topic.topics_id, { qs => qs.foci_id } ) | html %]">[% qs.name | html %]</a><br />
+                [% FOREACH fd IN focus_definitions %]
+                    [% fd.name | html %]<br />
                 [% END %]
-            [% END %]
-            <a href="[% c.uri_for( '/admin/tm/view/' _ topic.topics_id ) | html %]">(all stories)</a><br />
         </td></tr></table>
 
         <div class="boxtitle">

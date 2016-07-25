@@ -268,12 +268,9 @@ sub get_latest_full_snapshot_with_timespans
 {
     my ( $db, $snapshots, $topic, $qs_id ) = @_;
 
-    # refetch topic snapshots allowing for shell only snapshots, because we are using this
-    # function to return the latest snapshot to return a list of timespans to use as
-    # live timespans
     if ( !@{ $snapshots } )
     {
-        $snapshots = _get_snapshots_with_periods( $db, $topic, $qs_id, 1 );
+        $snapshots = _get_snapshots_with_periods( $db, $topic, $qs_id );
     }
 
     my $latest_full_snapshot;
@@ -322,19 +319,18 @@ END
 
 # get the topic snapshots associated with the given topic and optional focus.  attach
 # periods label to each snapshot.
-sub _get_snapshots_with_periods
+sub _get_snapshots_with_periods ($$$)
 {
-    my ( $db, $topic, $foci_id, $allow_shell ) = @_;
+    my ( $db, $topic, $foci_id ) = @_;
 
     my $focus_clause = '';
     if ( $foci_id )
     {
-        my $shell_clause = $allow_shell ? '' : 'and not timespan.is_shell';
         $focus_clause = <<SQL
 and exists (
     select 1 from timespans timespan
     where timespan.foci_id = $foci_id and
-        timespan.snapshots_id = snap.snapshots_id $shell_clause
+        timespan.snapshots_id = snap.snapshots_id
 )
 SQL
     }
@@ -407,16 +403,13 @@ sub view : Local
 
     my $latest_activities = _get_latest_activities( $db, $topics_id );
 
-    my $foci = $db->query( <<SQL, $topics_id )->hashes;
-select * from foci where topics_id = ? order by name
-SQL
+    my $focus_definitions = _get_focus_definitions( $db, $topic );
 
     $c->stash->{ topic }                = $topic;
     $c->stash->{ snapshots }            = $snapshots;
     $c->stash->{ latest_full_snapshot } = $latest_full_snapshot;
     $c->stash->{ latest_activities }    = $latest_activities;
-    $c->stash->{ foci_id }              = $foci_id;
-    $c->stash->{ foci }                 = $foci;
+    $c->stash->{ focus_definitions }    = $focus_definitions;
     $c->stash->{ template }             = 'tm/view.tt2';
 }
 
@@ -435,6 +428,24 @@ sub _add_media_and_story_counts_to_timespan
     ( $timespan->{ num_medium_links } ) = $db->query( "select count(*) from snapshot_medium_links" )->flat;
 }
 
+# get all foci in the 'Queries' focus set of the given snapshot
+sub _get_snapshot_foci
+{
+    my ( $db, $snapshot ) = @_;
+
+    my $foci = $db->query( <<SQL, $snapshot->{ snapshots_id } )->hashes;
+select f.*
+    from foci f
+        join focal_sets fs using ( focal_sets_id )
+    where
+        fs.snapshots_id = \$1 and
+        fs.name = 'Queries'
+    order by f.name
+SQL
+
+    return $foci;
+}
+
 # view a topic snapshot, with a list of its timespans
 sub view_snapshot : Local
 {
@@ -444,9 +455,7 @@ sub view_snapshot : Local
 
     my $db = $c->dbis;
 
-    my $snapshot = $db->query( <<END, $snapshots_id )->hash;
-select * from snapshots where snapshots_id = ?
-END
+    my $snapshot = $db->require_by_id( 'snapshots', $snapshots_id );
 
     my $topic = _get_topic_with_focus( $db, $snapshot->{ topics_id }, $foci_id );
 
@@ -454,9 +463,12 @@ END
 
     map { _add_timespan_model_reliability( $db, $_ ) } @{ $timespans };
 
+    my $foci = _get_snapshot_foci( $db, $snapshot );
+
     $c->stash->{ snapshot }  = $snapshot;
     $c->stash->{ topic }     = $topic;
     $c->stash->{ timespans } = $timespans;
+    $c->stash->{ foci }      = $foci;
     $c->stash->{ template }  = 'tm/view_snapshot.tt2';
 }
 
@@ -3024,44 +3036,28 @@ sub story_stats : Local
     $c->stash->{ template }         = 'tm/story_stats.tt2';
 }
 
-# create a controersy_focus and associated shell timespans
-# for the focus in the latest snapshot
-sub _create_focus
+# create a new focus definition within the 'Queries' focal set definition
+sub _create_focus_definition
 {
     my ( $db, $topic, $p ) = @_;
 
-    my $focus = {
-        topics_id     => $topic->{ topics_id },
-        name          => $p->{ name },
-        query         => $p->{ query },
-        all_timespans => $p->{ all_timespans } || 0
-    };
+    my $fsd = $db->query( <<SQL, $topic->{ topics_id } )->hash;
+select * from focal_set_definitions where topics_id = ? and name = 'Queries'
+SQL
 
-    my $cqs = $db->create( 'foci', $focus );
-
-    my $snapshots = $db->query( <<END, $topic->{ topics_id } )->hashes;
-select * from snapshots where topics_id = ?
-    order by snapshots_id desc
-END
-
-    map { add_periods_to_snapshot( $db, $_ ) } @{ $snapshots };
-
-    my $latest_full_snapshot = get_latest_full_snapshot_with_timespans( $db, $snapshots, $topic );
-
-    my $timespans = $latest_full_snapshot->{ timespans };
-    $timespans = [ $timespans->[ 0 ] ] unless ( $cqs->{ all_timespans } );
-
-    for my $timespan ( @{ $timespans } )
+    if ( !$fsd )
     {
-        my $qs_timespan = {};
-        map { $qs_timespan->{ $_ } = $timespan->{ $_ } } qw(snapshots_id start_date end_date period);
-        map { $qs_timespan->{ $_ } = -1 } qw(story_count story_link_count medium_count medium_link_count);
-
-        $qs_timespan->{ foci_id }  = $cqs->{ foci_id };
-        $qs_timespan->{ is_shell } = 1;
-
-        $db->create( 'timespans', $qs_timespan );
+        $fsd = { topics_id => $topic->{ topics_id }, name => 'Queries', focal_technique => 'Boolean Query' };
+        $fsd = $db->create( 'focal_set_definitions', $fsd );
     }
+
+    my $fd = $db->query( <<SQL, $fsd->{ focal_set_definitions_id }, $p->{ name }, $p->{ query } )->hash;
+insert into focus_definitions ( focal_set_definitions_id, name, arguments )
+    values( \$1, \$2, ( '{ "query": ' || to_json( \$3::text ) || ' }' )::json )
+    returning *
+SQL
+
+    return $fd;
 }
 
 # add a new focus
@@ -3087,15 +3083,18 @@ sub add_focus : Local
     my $redirect_url = "/admin/tm/edit_foci/$topic->{ topics_id }";
 
     my $focus = $db->query( <<SQL, $topics_id, $p->{ name } )->hash;
-select * from foci where topics_id = ? and lower( name ) = lower( ? )
+select *
+    from focus_definitions fd
+        join focal_set_definitions fsd using ( focal_set_definitions_id )
+    where fsd.topics_id = ? and lower( fd.name ) = lower( ? )
 SQL
 
     if ( $focus )
     {
-        return $c->res->redirect( $redirect_url, { error_msg => "Slice with the name '$p->{ name }' already exists." } );
+        return $c->res->redirect( $redirect_url, { error_msg => "Focus with the name '$p->{ name }' already exists." } );
     }
 
-    _create_focus( $db, $topic, $p );
+    _create_focus_definition( $db, $topic, $p );
 
     $c->res->redirect( $c->uri_for( $redirect_url, { status_msg => "Focus has been created." } ) );
 }
@@ -3103,26 +3102,39 @@ SQL
 # delete a single media type
 sub delete_focus : Local
 {
-    my ( $self, $c, $foci_id ) = @_;
+    my ( $self, $c, $focus_definitions_id ) = @_;
 
     my $db = $c->dbis;
 
-    my $cqs = $db->find_by_id( 'foci', $foci_id ) || die( "Slice not found" );
+    my $fd  = $db->require_by_id( 'focus_definitions',     $focus_definitions_id );
+    my $fsd = $db->require_by_id( 'focal_set_definitions', $fd->{ focal_set_definitions_id } );
 
     $db->begin;
 
-    # try to delete all empty shell timespans before deleting the query timespans
-    $db->query( <<SQL, $foci_id );
-delete from timespans where foci_id = ? and is_shell
-SQL
-
     # this will fail and generate an error if there are any non empty timespans, which
     # is fine because the ui shouldn't allow the user to call on a query that has any non-empty timespans
-    $db->delete_by_id( "foci", $foci_id );
+    $db->delete_by_id( "focus_definitions", $focus_definitions_id );
     $db->commit;
 
-    my $status_msg = "focus has been deleted.";
-    $c->res->redirect( $c->uri_for( "/admin/tm/edit_foci/$cqs->{ topics_id }", { status_msg => $status_msg } ) );
+    my $status_msg = "Focus has been deleted.";
+    $c->res->redirect( $c->uri_for( "/admin/tm/edit_foci/$fsd->{ topics_id }", { status_msg => $status_msg } ) );
+}
+
+# get the focus definitions within the 'Queries' focus set definitions for the given topic
+sub _get_focus_definitions ($$)
+{
+    my ( $db, $topic ) = @_;
+
+    my $focus_definitions = $db->query( <<SQL, $topic->{ topics_id } )->hashes;
+select fd.*
+    from focus_definitions fd
+        join focal_set_definitions fsd using ( focal_set_definitions_id )
+    where fsd.topics_id = ? and
+        fsd.name = 'Queries'
+    order by name
+SQL
+
+    return $focus_definitions;
 }
 
 # edit list of topic specific media types
@@ -3132,25 +3144,13 @@ sub edit_foci : Local
 
     my $db = $c->dbis;
 
-    my $topic = $db->find_by_id( 'topics', $topics_id ) || die( "Unable to find topic" );
+    my $topic = $db->require_by_id( 'topics', $topics_id );
 
-    my $foci = $db->query( <<SQL, $topics_id )->hashes;
-select cqs.*,
-    exists (
-        select 1
-        from timespans timespan
-        where
-            timespan.foci_id = cqs.foci_id and
-            not( timespan.is_shell )
-    ) has_non_shell_timespan
-from foci cqs
-where topics_id = ?
-order by name
-SQL
+    my $focus_definitions = _get_focus_definitions( $db, $topic );
 
-    $c->stash->{ topic }    = $topic;
-    $c->stash->{ foci }     = $foci;
-    $c->stash->{ template } = 'tm/edit_foci.tt2';
+    $c->stash->{ topic }             = $topic;
+    $c->stash->{ focus_definitions } = $focus_definitions;
+    $c->stash->{ template }          = 'tm/edit_foci.tt2';
 }
 
 # enqueue a mining job

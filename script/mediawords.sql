@@ -20,7 +20,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4567;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4568;
 
 BEGIN
 
@@ -1352,16 +1352,6 @@ create table topic_ignore_redirects (
 
 create index topic_ignore_redirects_url on topic_ignore_redirects ( url );
 
-create table foci (
-    foci_id     serial primary key,
-    topics_id                int not null references topics on delete cascade,
-    name                            varchar ( 1024 ) not null,
-    query                           text not null,
-    all_timespans                 boolean not null
-);
-
-create index foci_topic on foci ( topics_id );
-
 create table snapshots (
     snapshots_id            serial primary key,
     topics_id                int not null references topics on delete cascade,
@@ -1377,11 +1367,50 @@ create index snapshots_topic on snapshots ( topics_id );
 
 create type snap_period_type AS ENUM ( 'overall', 'weekly', 'monthly', 'custom' );
 
+create type focal_technique_type as enum ( 'Boolean Query' );
+
+create table focal_set_definitions (
+    focal_set_definitions_id    serial primary key,
+    topics_id                   int not null references topics on delete cascade,
+    name                        text not null,
+    focal_technique             focal_technique_type not null
+);
+
+create unique index focal_set_definitions_topic_name on focal_set_definitions ( topics_id );
+
+create table focus_definitions (
+    focus_definitions_id        serial primary key,
+    focal_set_definitions_id    int not null references focal_set_definitions on delete cascade,
+    name                        text not null,
+    arguments                   json not null
+);
+
+create unique index focus_definition_set_name on focus_definitions ( focal_set_definitions_id, name );
+
+create table focal_sets (
+    focal_sets_id               serial primary key,
+    snapshots_id                int not null references snapshots,
+    name                        text not null,
+    focal_technique             focal_technique_type not null
+);
+
+create unique index focal_set_snapshot on focal_sets ( snapshots_id, name );
+
+create table foci (
+    foci_id                     serial primary key,
+    focal_sets_id               int not null references focal_sets on delete cascade,
+    name                        text not null,
+    arguments                   json not null
+);
+
+create unique index foci_set_name on foci ( focal_sets_id, name );
+
+
 -- individual timespans within a snapshot
 create table timespans (
     timespans_id serial primary key,
     snapshots_id            int not null references snapshots on delete cascade,
-    foci_id     int null references foci on delete set null,
+    foci_id     int null references foci,
     start_date                      timestamp not null,
     end_date                        timestamp not null,
     period                          snap_period_type not null,
@@ -1393,9 +1422,6 @@ create table timespans (
     medium_count                    int not null,
     medium_link_count               int not null,
 
-    -- is this just a shell timespan with no data actual snapshoted into it?
-    -- we use shell timespans to display foci on live data with having to make a real snapshot first
-    is_shell                        boolean not null default false,
     tags_id                         int references tags -- keep on cascade to avoid accidental deletion
 );
 
