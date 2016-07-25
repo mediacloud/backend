@@ -125,8 +125,8 @@ database:
         # other configurable supervisor programs
         #rabbitmq
         #rescrape_media
-        #cm_mine_controversy
-        #cm_dump_controversy
+        #topic_mine
+        #topic_snapshot
         #solr
         #annotate_with_corenlp
         #bitly_fetch_story_stats
@@ -188,7 +188,7 @@ database:
     #story_processing:
 
         ### Enable Bit.ly processing for all stories (not just the ones that
-        ### belong to controversies enabled for Bit.ly processing)
+        ### belong to topics enabled for Bit.ly processing)
         #enabled: "no"
 
         ### Delay for which to postpone story processing since its
