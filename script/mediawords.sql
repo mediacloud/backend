@@ -20,7 +20,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4569;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4570;
 
 BEGIN
 
@@ -2746,3 +2746,16 @@ create table api_links (
 );
 
 create unique index api_links_params on api_links ( path, md5( params_json ) );
+
+
+-- Create missing partitions for partitioned tables
+CREATE OR REPLACE FUNCTION create_missing_partitions()
+RETURNS VOID AS
+$$
+BEGIN
+    -- "bitly_clicks_total" table
+    RAISE NOTICE 'Creating partitions in "bitly_clicks_total" table...';
+    PERFORM bitly_clicks_total_create_partitions();
+END;
+$$
+LANGUAGE plpgsql;
