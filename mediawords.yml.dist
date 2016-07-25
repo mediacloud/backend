@@ -129,7 +129,6 @@ database:
         #cm_dump_controversy
         #solr
         #annotate_with_corenlp
-        #bitly_process_all_controversy_stories
         #bitly_fetch_story_stats
         #bitly_aggregate_story_stats
 
