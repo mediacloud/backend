@@ -1567,7 +1567,7 @@ BEGIN
     SELECT bitly_partition_chunk_size() INTO chunk_size;
 
     -- Create +1 partition for future insertions
-    SELECT MAX(stories_id) + chunk_size FROM stories INTO max_stories_id;
+    SELECT COALESCE(MAX(stories_id), 0) + chunk_size FROM stories INTO max_stories_id;
 
     FOR partition_stories_id IN 1..max_stories_id BY chunk_size LOOP
         SELECT bitly_get_partition_name( partition_stories_id, 'bitly_clicks_total' ) INTO target_table_name;
