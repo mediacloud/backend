@@ -1586,6 +1586,11 @@ END;
 $$
 LANGUAGE plpgsql;
 
+CREATE TRIGGER bitly_clicks_total_partition_by_stories_id_insert_trigger
+    BEFORE INSERT ON bitly_clicks_total
+    FOR EACH ROW EXECUTE PROCEDURE bitly_clicks_total_partition_by_stories_id_insert_trigger();
+
+
 -- Helper to INSERT / UPDATE story's Bit.ly statistics
 CREATE OR REPLACE FUNCTION upsert_bitly_clicks_total (
     param_stories_id INT,
@@ -1623,11 +1628,6 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql;
-
-
-CREATE TRIGGER bitly_clicks_total_partition_by_stories_id_insert_trigger
-    BEFORE INSERT ON bitly_clicks_total
-    FOR EACH ROW EXECUTE PROCEDURE bitly_clicks_total_partition_by_stories_id_insert_trigger();
 
 
 --
