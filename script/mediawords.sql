@@ -20,7 +20,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4571;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4572;
 
 BEGIN
 
@@ -1631,26 +1631,18 @@ CREATE OR REPLACE FUNCTION upsert_bitly_clicks_total (
     param_click_count INT
 ) RETURNS VOID AS
 $$
-DECLARE
-    partition_name text;
-    update_count int;
 BEGIN
-
-    select bitly_get_partition_name( param_stories_id, 'bitly_clicks_total' ) into partition_name;
-
     LOOP
-        EXECUTE '
-            UPDATE ' || partition_name || '
-                SET click_count = ' || param_click_count || '
-                WHERE stories_id = ' || param_stories_id;
-        get diagnostics update_count = ROW_COUNT;
-        IF update_count > 0 THEN RETURN; END IF;
+        -- Try UPDATing
+        UPDATE bitly_clicks_total
+            SET click_count = param_click_count
+            WHERE stories_id = param_stories_id;
+        IF FOUND THEN RETURN; END IF;
 
         -- Nothing to UPDATE, try to INSERT a new record
         BEGIN
-            EXECUTE '
-                INSERT INTO ' || partition_name || ' (stories_id, click_count)
-                VALUES (' || param_stories_id || ', ' || param_click_count || ')';
+            INSERT INTO bitly_clicks_total (stories_id, click_count)
+            VALUES (param_stories_id, param_click_count);
             RETURN;
         EXCEPTION WHEN UNIQUE_VIOLATION THEN
             -- If someone else INSERTs the same key concurrently,
@@ -1658,7 +1650,6 @@ BEGIN
             -- nothing and loop to try the UPDATE again.
         END;
     END LOOP;
-
 END;
 $$
 LANGUAGE plpgsql;
