@@ -360,8 +360,5 @@ mediawords:
     # increment wc_cache_version to invalidate existing cache
     # wc_cache_version: 1
 
-    # max number of iterations by the the spider in MediaWords::CM::Mine
-    # mc_spider_iterations: 15
-
     # if set to 1, do all extractions in process rather than queueing to job manager
     # extract_in_process: 0
