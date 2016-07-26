@@ -1,12 +1,12 @@
 --
 -- This is a Media Cloud PostgreSQL schema difference file (a "diff") between schema
--- versions 4567 and 4568.
+-- versions 4572 and 4573.
 --
 -- If you are running Media Cloud with a database that was set up with a schema version
--- 4567, and you would like to upgrade both the Media Cloud and the
--- database to be at version 4568, import this SQL file:
+-- 4572, and you would like to upgrade both the Media Cloud and the
+-- database to be at version 4573, import this SQL file:
 --
---     psql mediacloud < mediawords-4567-4568.sql
+--     psql mediacloud < mediawords-4572-4573.sql
 --
 -- You might need to import some additional schema diff files to reach the desired version.
 --
@@ -23,7 +23,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4568;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4573;
 
 BEGIN
 
@@ -50,7 +50,7 @@ create table focal_set_definitions (
 );
 
 create unique index focal_set_definitions_topic_name on focal_set_definitions ( topics_id, name );
-    
+
 create table focus_definitions (
     focus_definitions_id        serial primary key,
     focal_set_definitions_id    int not null references focal_set_definitions on delete cascade,
