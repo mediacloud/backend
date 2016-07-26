@@ -10,10 +10,10 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-our @ISA    = qw(Exporter);
-our @EXPORT = qw(gmt_datetime_from_timestamp gmt_date_string_from_timestamp);
-
 use DateTime;
+
+use Date::Parse;
+use Time::Local;
 
 # Cached because slow
 my $_local_tz = undef;
@@ -50,6 +50,32 @@ sub gmt_date_string_from_timestamp($)
     my $timestamp = shift;
 
     return gmt_datetime_from_timestamp( $timestamp )->datetime();
+}
+
+# Proxy to Date::Parse's str2time() which treats "61" as 2061, not 1961
+sub str2time_21st_century($;$)
+{
+    my ( $date, $timezone ) = @_;
+
+    $date =~ s/^\s+|\s+$//g;
+
+    my $timestamp;
+
+    # str2time() doesn't handle YYYY-mm-dd dates correctly
+    if ( $date =~ m/^([12]\d\d\d)-(\d\d)-(\d\d)$/ )
+    {
+        my $year  = $1;
+        my $month = $2;
+        my $day   = $3;
+
+        $timestamp = timelocal( 0, 0, 0, $day, $month - 1, $year );
+    }
+    else
+    {
+        $timestamp = str2time( $date, $timezone );
+    }
+
+    return $timestamp;
 }
 
 1;
