@@ -17,8 +17,8 @@ use List::MoreUtils qw(any);
 
 use MediaWords::CommonLibs;
 use MediaWords::DB;
-use MediaWords::Util::DateParse;
 use MediaWords::Util::SQL;
+use MediaWords::Util::DateTime;
 use Readonly;
 
 # threshold of number of days a guess date can be before the source link
@@ -137,7 +137,7 @@ sub _validate_date_parts
 
     return 0 if ( ( $year < 2000 ) || ( $year > 2020 ) );
 
-    return MediaWords::Util::DateParse::str2time( "$year-$month-$day 12:00 PM", 'GMT' );
+    return MediaWords::Util::DateTime::str2time_21st_century( "$year-$month-$day 12:00 PM", 'GMT' );
 }
 
 # if the date is exactly midnight, round it to noon because noon is a better guess of the publication time
@@ -446,10 +446,11 @@ sub _results_from_matching_date_patterns($$)
             $d_hour += 12 if ( lc( $d_am_pm ) eq 'pm' and $d_hour != 12 );
         }
 
-        # Create a date parseable by MediaWords::Util::DateParse correctly, e.g. 2013-05-13 23:52:00 GMT
+        # Create a date parseable by Date::Parse correctly, e.g. 2013-05-13 23:52:00 GMT
         my $date_string = sprintf( '%04d-%02d-%02d %02d:%02d:%02d %s',
             $d_year, $d_month, $d_day, $d_hour, $d_minute, $d_second, $d_timezone );
-        my $time = str2time( $date_string ) || str2time( $whole_date );
+        my $time = MediaWords::Util::DateTime::str2time_21st_century( $date_string )
+          || MediaWords::Util::DateTime::str2time_21st_century( $whole_date );
 
         if ( $time )
         {
@@ -761,7 +762,7 @@ sub _make_unix_timestamp
 
     return $date if ( $date =~ /^\d+$/ );
 
-    my $timestamp = MediaWords::Util::DateParse::str2time( $date, 'GMT' );
+    my $timestamp = MediaWords::Util::DateTime::str2time_21st_century( $date, 'GMT' );
 
     return undef unless ( $timestamp );
 
