@@ -407,7 +407,7 @@ sub test_topic_links
 
     my $cl = $db->query( "select * from topic_links" )->hashes;
 
-    # say STDERR "topic links: " . Dumper( $cl );
+    TRACE "topic links: " . Dumper( $cl );
 
     my $all_pages = [];
     map { push( @{ $all_pages }, @{ $_->{ pages } } ) } @{ $sites };

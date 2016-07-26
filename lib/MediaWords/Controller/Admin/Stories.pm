@@ -553,7 +553,7 @@ sub stories_query_json : Local
 {
     my ( $self, $c ) = @_;
 
-    say STDERR "starting stories_query_json";
+    DEBUG "starting stories_query_json";
 
     my $last_stories_id = $c->req->param( 'last_stories_id' );
 
@@ -579,13 +579,13 @@ sub stories_query_json : Local
         $last_stories_id--;
     }
 
-    say STDERR "Last_stories_id is $last_stories_id";
+    DEBUG "Last_stories_id is $last_stories_id";
 
     Readonly my $stories_to_return => min( $c->req->param( 'story_count' ) // 25, 1000 );
 
     my $query = " SELECT * FROM stories WHERE stories_id > ? ORDER by stories_id asc LIMIT ? ";
 
-    # say STDERR "Running query '$query' with $last_stories_id, $stories_to_return ";
+    # TRACE "Running query '$query' with $last_stories_id, $stories_to_return ";
 
     my $stories = $c->dbis->query( $query, $last_stories_id, $stories_to_return )->hashes;
 
@@ -614,7 +614,7 @@ sub stories_query_json : Local
             else
             {
 
-                #say STDERR "got content_ref $$content_ref";
+                #TRACE "got content_ref $$content_ref";
 
                 $story->{ first_raw_download_file } = $$content_ref;
             }
@@ -628,7 +628,7 @@ sub stories_query_json : Local
         $story->{ story_sentences } = $story_sentences;
     }
 
-    say STDERR "finished stories_query_json";
+    DEBUG "finished stories_query_json";
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
     return $c->res->body( encode_json( $stories ) );

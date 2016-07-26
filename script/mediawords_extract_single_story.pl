@@ -11,6 +11,9 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Data::Dumper;
 
 use MediaWords::DB;
@@ -28,10 +31,10 @@ sub get_extractor_results_for_story
     my $download_results = {};
     for my $download ( @{ $downloads } )
     {
-        say STDERR "extracting \n" . Dumper( $download );
+        INFO "extracting: " . Dumper( $download );
         my $res = MediaWords::DBI::Downloads::extract( $db, $download );
 
-        say STDERR "extractor result\n" . Dumper( $res );
+        INFO "extractor result: " . Dumper( $res );
 
     }
 }

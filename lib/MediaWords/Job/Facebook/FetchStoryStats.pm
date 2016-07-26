@@ -58,7 +58,7 @@ sub run($;$)
         die "Story ID $stories_id was not found.";
     }
 
-    say STDERR "Fetching story stats for story $stories_id...";
+    INFO "Fetching story stats for story $stories_id...";
     eval {
 
         my $stories_url = $story->{ url };
@@ -66,10 +66,10 @@ sub run($;$)
         {
             die "Story URL for story ID $stories_id is empty.";
         }
-        say STDERR "Story URL: $stories_url";
+        DEBUG "Story URL: $stories_url";
 
         my ( $share_count, $comment_count ) = MediaWords::Util::Facebook::get_and_store_share_comment_counts( $db, $story );
-        say STDERR "share count: $share_count, comment count: $comment_count";
+        DEBUG "share count: $share_count, comment count: $comment_count";
     };
     if ( $@ )
     {
@@ -77,7 +77,7 @@ sub run($;$)
     }
     else
     {
-        say STDERR "Done fetching story stats for story $stories_id.";
+        INFO "Done fetching story stats for story $stories_id.";
     }
 }
 

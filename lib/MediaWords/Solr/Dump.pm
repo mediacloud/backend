@@ -78,6 +78,9 @@ swap the production and staging databases.
 use strict;
 use warnings;
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use CHI;
 use Data::Dumper;
 use Digest::MD5;
@@ -174,7 +177,7 @@ SQL
 SQL
         )->flat;
 
-        say STDERR "added $num_queued_stories out of about $total_queued_stories queued stories to the import";
+        INFO "added $num_queued_stories out of about $total_queued_stories queued stories to the import";
     }
 
 }
@@ -786,7 +789,7 @@ sub _print_file_errors
 
     my $errors = _get_all_file_errors( $file );
 
-    say STDERR "errors for file '$file':\n" . Dumper( $errors ) if ( @{ $errors } );
+    WARN "errors for file '$file':\n" . Dumper( $errors ) if ( @{ $errors } );
 
 }
 
@@ -800,7 +803,7 @@ sub _reprocess_file_errors
 
     my $errors = _get_all_file_errors( $file );
 
-    say STDERR "reprocessing all errors for $file ...";
+    INFO "reprocessing all errors for $file ...";
 
     for my $error ( @{ $errors } )
     {
@@ -885,7 +888,7 @@ sub _import_csv_single_file
 
     if ( _last_sentence_in_solr( $file, $staging ) )
     {
-        say STDERR "skipping $file, last sentence already in solr";
+        INFO "skipping $file, last sentence already in solr";
 
         _reprocess_file_errors( $pm, $file, $staging );
         _print_file_errors( $file );
@@ -920,7 +923,7 @@ sub _import_csv_single_file
 
         my $base_file = basename( $file );
 
-        say STDERR
+        INFO
 "importing $base_file position $data->{ pos } [ chunk $chunk_num, delta $chunk_delta, ${progress}%, $remaining_time secs left ] ...";
 
         if ( $chunk_delta < 0 )

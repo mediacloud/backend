@@ -9,9 +9,10 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use MediaWords::DB;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
+
+use MediaWords::DB;
 
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
@@ -67,7 +68,7 @@ sub export_downloads
             $max_downloads_id_message = " max overall downloads_id $max_downloads_id";
         }
 
-        say STDERR "$batch_information Downloads_id $cur_downloads_id (end: $end_downloads_id) $max_downloads_id_message";
+        INFO "$batch_information Downloads_id $cur_downloads_id (end: $end_downloads_id) $max_downloads_id_message";
 
         my $download = $db->query(
 " SELECT * from downloads where downloads_id >= ?  and type = 'feed' and state = 'success' order by downloads_id asc limit 1 ",

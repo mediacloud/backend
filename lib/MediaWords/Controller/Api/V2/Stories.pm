@@ -84,7 +84,7 @@ sub put_tags_PUT : Local
         $story_tags = [ $story_tag ];
     }
 
-    # say STDERR Dumper( $story_tags );
+    # TRACE Dumper( $story_tags );
 
     $self->_add_tags( $c, $story_tags );
 

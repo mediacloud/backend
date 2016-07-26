@@ -12,9 +12,10 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use Encode;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
+
+use Encode;
 use MediaWords::DB;
 use MediaWords::DBI::Stories;
 
@@ -67,14 +68,14 @@ SQL
     my $stories_queue = [];
     for my $story ( @{ $stories } )
     {
-        say STDERR "checking $story->{ stories_id } ...";
+        INFO "checking $story->{ stories_id } ...";
         if ( !( $story->{ download_text } =~ /\(ap\)/i ) )
         {
             my $content = get_story_content( $db, $story );
             next if ( !( $content =~ /associated press/i ) );
         }
 
-        say STDERR "AP MATCH";
+        INFO "AP MATCH";
 
         push( @{ $stories_queue }, $story );
         if ( !( @{ $stories_queue } % 100 ) )

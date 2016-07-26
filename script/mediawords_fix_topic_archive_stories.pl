@@ -49,7 +49,7 @@ sub main
 
         for my $media_id ( @{ $archive_media } )
         {
-            say STDERR "media_id $media_id";
+            INFO "media_id $media_id";
 
             my $archive_stories =
               $db->query( "SELECT * from snap.live_stories where media_id in ( ? ) order by stories_id", $media_id )
@@ -66,7 +66,7 @@ sub main
 
                 if ( !$original_url )
                 {
-                    say STDERR "could not get original URL for $archive_story->{ url } SKIPPING";
+                    WARN "could not get original URL for $archive_story->{ url } SKIPPING";
                     next;
                 }
                 say "Archive: $archive_story->{ url }, Original $original_url ";
@@ -76,7 +76,7 @@ sub main
 
                 $i++;
 
-                say STDERR "setting media_id for story $archive_story->{ stories_id } to $medium->{ media_id } ";
+                INFO "setting media_id for story $archive_story->{ stories_id } to $medium->{ media_id } ";
 
                 $db->query(
                     " UPDATE snap.live_stories set media_id = ? where stories_id = ? ",

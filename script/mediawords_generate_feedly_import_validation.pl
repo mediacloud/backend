@@ -71,7 +71,7 @@ SQL
         my $feeds = $db->query( "select * from feeds where media_id = ?", $medium->{ media_id } )->hashes;
         my $feed_urls = [ map { $_->{ url } } @{ $feeds } ];
 
-        say STDERR "medium: " . scalar( @{ $scraped_media } ) . " / $num_media";
+        INFO "medium: " . scalar( @{ $scraped_media } ) . " / $num_media";
 
         my $import = MediaWords::ImportStories::Feedly->new(
             db       => $db,
@@ -100,7 +100,7 @@ SQL
 
         my ( $start_date, $end_date ) = get_date_range( $new_stories );
 
-        say STDERR "date range: $start_date - $end_date";
+        INFO "date range: $start_date - $end_date";
         $overall_start_date = ( $start_date lt $overall_start_date ) ? $start_date : $overall_start_date;
 
         splice( @{ $new_stories }, 10 );
@@ -131,10 +131,10 @@ SQL
     print( MediaWords::Util::CSV::get_hashes_as_encoded_csv( $validate_stories ) );
     print( MediaWords::Util::CSV::get_hashes_as_encoded_csv( $scraped_media ) );
 
-    say STDERR "total media tried: $total_num_media";
-    say STDERR "num media with feedly stories: " . scalar( @{ $scraped_media } );
-    say STDERR "num imported stories: $total_imported_stories";
-    say STDERR "earliest story: $overall_start_date";
+    INFO "total media tried: $total_num_media";
+    INFO "num media with feedly stories: " . scalar( @{ $scraped_media } );
+    INFO "num imported stories: $total_imported_stories";
+    INFO "earliest story: $overall_start_date";
 }
 
 main();

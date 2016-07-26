@@ -1,5 +1,8 @@
 package MediaWords::Util::Web;
 
+use strict;
+use warnings;
+
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
@@ -10,8 +13,6 @@ use MediaWords::CommonLibs;
 Various functions to make downloading web pages easier and faster, including parallel and cached fetching.
 
 =cut
-
-use strict;
 
 use File::Temp;
 use FindBin;

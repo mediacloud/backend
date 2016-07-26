@@ -18,7 +18,7 @@ sub BUILD($$)
 {
     my ( $self, $args ) = @_;
 
-    # say STDERR "New database inline storage.";
+    # DEBUG "New database inline storage.";
 }
 
 # Moose method
@@ -67,7 +67,7 @@ sub content_exists($$$$)
 
     unless ( defined $object_path )
     {
-        say STDERR "Object path for object ID $object_id is undefined.";
+        ERROR "Object path for object ID $object_id is undefined.";
         return 0;
     }
 

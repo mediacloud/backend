@@ -187,7 +187,7 @@ EOF
         my $user_role_id = MediaWords::DBI::Auth::role_id_for_role( $db, $user_role );
         if ( !$user_role_id )
         {
-            say STDERR "Role '$user_role' was not found.";
+            ERROR "Role '$user_role' was not found.";
             return 1;
         }
 
@@ -223,11 +223,11 @@ EOF
     );
     if ( $add_user_error_message )
     {
-        say STDERR "Error while trying to add user: $add_user_error_message";
+        ERROR "Error while trying to add user: $add_user_error_message";
         return 1;
     }
 
-    say STDERR "User with email address '$user_email' was successfully added.";
+    INFO "User with email address '$user_email' was successfully added.";
 
     return 0;
 }
@@ -284,7 +284,7 @@ EOF
 
     unless ( $db_user and $db_user_roles )
     {
-        say STDERR "Unable to find user '$user_email' in the database.";
+        ERROR "Unable to find user '$user_email' in the database.";
         return 1;
     }
 
@@ -301,7 +301,7 @@ EOF
         or defined $user_weekly_requests_limit
         or defined $user_weekly_requested_items_limit )
     {
-        say STDERR "Nothing has to be changed.";
+        ERROR "Nothing has to be changed.";
         die "$user_modify_usage\n";
     }
 
@@ -348,7 +348,7 @@ EOF
         my $user_role_id = MediaWords::DBI::Auth::role_id_for_role( $db, $user_role );
         if ( !$user_role_id )
         {
-            say STDERR "Role '$user_role' was not found.";
+            ERROR "Role '$user_role' was not found.";
             return 1;
         }
 
@@ -393,11 +393,11 @@ EOF
     );
     if ( $update_user_error_message )
     {
-        say STDERR "Error while trying to modify user: $update_user_error_message";
+        ERROR "Error while trying to modify user: $update_user_error_message";
         return 1;
     }
 
-    say STDERR "User with email address '$user_email' was successfully modified.";
+    INFO "User with email address '$user_email' was successfully modified.";
 
     return 0;
 }
@@ -419,11 +419,11 @@ sub user_delete($)
     my $delete_user_error_message = MediaWords::DBI::Auth::delete_user_or_return_error_message( $db, $user_email );
     if ( $delete_user_error_message )
     {
-        say STDERR "Error while trying to delete user: $delete_user_error_message";
+        ERROR "Error while trying to delete user: $delete_user_error_message";
         return 1;
     }
 
-    say STDERR "User with email address '$user_email' was deleted successfully.";
+    INFO "User with email address '$user_email' was deleted successfully.";
 
     return 0;
 }
@@ -442,7 +442,7 @@ sub users_list($)
 
     unless ( $users )
     {
-        say STDERR "Unable to fetch a list of users from the database.";
+        ERROR "Unable to fetch a list of users from the database.";
         return 1;
     }
 
@@ -472,7 +472,7 @@ sub user_show($)
 
     unless ( $db_user and $db_user_roles )
     {
-        say STDERR "Unable to find user '$user_email' in the database.";
+        ERROR "Unable to find user '$user_email' in the database.";
         return 1;
     }
 
@@ -504,7 +504,7 @@ sub user_roles($)
 
     unless ( $roles )
     {
-        say STDERR "Unable to fetch a list of user roles from the database.";
+        ERROR "Unable to fetch a list of user roles from the database.";
         return 1;
     }
 

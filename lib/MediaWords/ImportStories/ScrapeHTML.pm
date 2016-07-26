@@ -12,6 +12,10 @@ package MediaWords::ImportStories::ScrapeHTML;
 # story_url_pattern and adds each as a story candidate.
 
 use strict;
+use warnings;
+
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
 
 use Moose;
 with 'MediaWords::ImportStories';
@@ -77,7 +81,7 @@ sub _fetch_url
     my $url           = $original_url;
     while ( !$content )
     {
-        say STDERR "fetch_url: $url" if ( $self->debug );
+        DEBUG "fetch_url: $url" if ( $self->debug );
         my $response = $ua->get( $url );
 
         if ( !$response->is_success )
@@ -167,9 +171,9 @@ sub _parse_urls_from_content
         push( @{ $page_urls },  $nu ) if ( $nu =~ /$page_url_pattern/i );
     }
 
-    say STDERR "page_urls: " . Dumper( $page_urls )                          if ( $self->debug );
-    say STDERR "story_urls: " . Dumper( $story_urls )                        if ( $self->debug );
-    say STDERR scalar( @{ $story_urls } ) . " story_urls found before dedup" if ( $self->debug );
+    DEBUG "page_urls: " . Dumper( $page_urls )                          if ( $self->debug );
+    DEBUG "story_urls: " . Dumper( $story_urls )                        if ( $self->debug );
+    DEBUG scalar( @{ $story_urls } ) . " story_urls found before dedup" if ( $self->debug );
 
     return ( $story_urls, $page_urls );
 }
@@ -195,7 +199,7 @@ sub get_new_stories
 
         last if ( $i++ > $self->max_pages );
 
-        say STDERR "page_url: $page_url" if ( $self->debug );
+        DEBUG "page_url: $page_url" if ( $self->debug );
 
         my $content = $self->_fetch_url( $page_url );
         my ( $new_story_urls, $new_page_urls ) = $self->_parse_urls_from_content( $page_url, $content );

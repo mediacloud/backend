@@ -154,7 +154,7 @@ sub _initialize_s3_or_die($)
         ? $self->_conf_bucket_name . '/' . $self->_conf_directory_name
         : $self->_conf_bucket_name
     );
-    say STDERR "AmazonS3: Initialized Amazon S3 storage at '$path' for PID $$.";
+    DEBUG "AmazonS3: Initialized Amazon S3 storage at '$path' for PID $$.";
 }
 
 sub _object_for_object_id($$)
@@ -223,7 +223,7 @@ sub store_content($$$$)
     {
         if ( $self->content_exists( $db, $object_id ) )
         {
-            say STDERR "AmazonS3: object ID $object_id already exists, " .
+            DEBUG "AmazonS3: object ID $object_id already exists, " .
               "will store a new version or overwrite (depending on whether or not versioning is enabled).";
         }
     }
@@ -244,7 +244,7 @@ sub store_content($$$$)
     {
         if ( $retry > 0 )
         {
-            say STDERR "Retrying ($retry)...";
+            WARN "Retrying ($retry)...";
         }
 
         eval {
@@ -258,7 +258,7 @@ sub store_content($$$$)
 
         if ( $@ )
         {
-            say STDERR "Attempt to write object ID $object_id didn't succeed because: $@";
+            ERROR "Attempt to write object ID $object_id didn't succeed because: $@";
         }
         else
         {
@@ -297,7 +297,7 @@ sub fetch_content($$$;$)
     {
         if ( $retry > 0 )
         {
-            say STDERR "Retrying ($retry)...";
+            WARN "Retrying ($retry)...";
         }
 
         eval {
@@ -310,7 +310,7 @@ sub fetch_content($$$;$)
 
         if ( $@ )
         {
-            say STDERR "Attempt to read object ID $object_id didn't succeed because: $@";
+            ERROR "Attempt to read object ID $object_id didn't succeed because: $@";
         }
         else
         {

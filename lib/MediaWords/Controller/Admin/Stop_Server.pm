@@ -16,7 +16,7 @@ sub index : Path : Args(0)
 
     if ( exists $ENV{ MEDIACLOUD_ENABLE_SHUTDOWN_URL } && $ENV{ MEDIACLOUD_ENABLE_SHUTDOWN_URL } )
     {
-        say STDERR "quitting server";
+        INFO "quitting server";
 
         $c->response->body( "Shutting down server\n" );
         quit();

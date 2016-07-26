@@ -96,15 +96,15 @@ sub find_or_create_media_from_urls
 {
     my ( $dbis, $urls_string, $global_tags_string ) = @_;
 
-    say STDERR "find media from urls";
+    DEBUG "find media from urls";
 
     my $url_media = _find_media_from_urls( $dbis, $urls_string );
 
-    say STDERR "add missing media";
+    DEBUG "add missing media";
 
     _add_missing_media_from_urls( $dbis, $url_media );
 
-    say STDERR "add tags and feeds";
+    DEBUG "add tags and feeds";
 
     _add_media_tags_and_feeds_from_strings( $dbis, $url_media, $global_tags_string );
 
@@ -188,13 +188,13 @@ sub _add_missing_media_from_urls
 
         my $medium = _find_medium_by_response( $dbis, $response );
 
-        say STDERR "found medium 1: $medium->{ url }" if ( $medium );
+        DEBUG "found medium 1: $medium->{ url }" if ( $medium );
 
         if ( !$medium )
         {
             if ( $medium = $dbis->query( "select * from media where name = ?", $title )->hash )
             {
-                say STDERR "found medium 2: $medium->{ url }";
+                DEBUG "found medium 2: $medium->{ url }";
 
                 $url_media->[ $url_media_index ]->{ message } =
                   "using existing medium with duplicate title '$title' already in database for '$url'";
@@ -205,7 +205,7 @@ sub _add_missing_media_from_urls
 
                 MediaWords::DBI::Media::Rescrape::add_to_rescrape_media_queue( $medium );
 
-                say STDERR "added missing medium: $medium->{ url }";
+                DEBUG "added missing medium: $medium->{ url }";
             }
         }
 
@@ -267,12 +267,12 @@ sub _add_media_tags_and_feeds_from_strings
             {
                 if ( $item =~ /^https?\:/i )
                 {
-                    say STDERR "add feed: $item";
+                    DEBUG "add feed: $item";
                     _add_feed_url_to_medium( $dbis, $url_medium->{ medium }, $item );
                 }
                 else
                 {
-                    say STDERR "add tag: $item";
+                    DEBUG "add tag: $item";
                     my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $dbis, lc( $item ) );
                     next unless ( $tag );
 

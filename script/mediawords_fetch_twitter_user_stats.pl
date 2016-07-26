@@ -13,10 +13,10 @@ BEGIN
 }
 
 use Modern::Perl "2015";
+use MediaWords::CommonLibs;
 
 use Net::Twitter;
 
-use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::Util::Config;
 
@@ -44,8 +44,7 @@ sub print_user_engagement
         elsif ( $@ =~ /^Rate limit exceeded/ )
         {
             # my $limit = $twitter->rate_limit_status;
-            # say STDERR Dumper( $limit );
-            say STDERR "rate limit execeeded.  sleeping for 90 seconds ...";
+            WARN "rate limit execeeded.  sleeping for 90 seconds ...";
             sleep( 90 );
             print_user_engagement( $twitter, $user );
             return;

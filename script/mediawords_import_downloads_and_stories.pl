@@ -31,10 +31,10 @@ sub hash_from_element
 {
     my ( $element, $excluded_keys ) = @_;
 
-    #say "start hash_from_element ";
-    #say Dumper( $element );
+    TRACE "start hash_from_element ";
+    TRACE Dumper( $element );
 
-    #say 'starting hash_from_element for ' . $element->nodeName();
+    TRACE 'starting hash_from_element for ' . $element->nodeName();
 
     my @childNodes = $element->childNodes();
 
@@ -44,15 +44,14 @@ sub hash_from_element
 
     $ret = { map { $_->nodeName() => $_->textContent() } @childNodes };
 
-    ## Fix for extra white space on forrest.
+    # Fix for extra white space on forrest
     foreach my $key ( keys %{ $ret } )
     {
         $ret->{ $key } = trim( $ret->{ $key } );
     }
 
-    #say Dumper ( $ret );
-
-    #say 'hash_from_element returning ' . Dumper ( $ret );
+    TRACE Dumper( $ret );
+    TRACE 'hash_from_element returning ' . Dumper( $ret );
 
     if ( $excluded_keys )
     {
@@ -82,13 +81,12 @@ sub import_downloads
 {
     my ( $xml_file_name ) = @_;
 
-    say "processing file $xml_file_name";
+    INFO "processing file $xml_file_name";
 
-    open my $fh, $xml_file_name || die "Error opening file:$xml_file_name $@";
+    open my $fh, $xml_file_name || die "Error opening file: $xml_file_name $@";
 
     my $parser = XML::LibXML->new;
 
-    #my $doc = $parser->parse_fh( $fh, { no_blanks => 1 } );
     my $doc = XML::LibXML->load_xml(
         {
             IO        => $fh,
@@ -112,17 +110,17 @@ sub import_downloads
     {
         $feed_downloads_processed++;
 
-        say "Processing $xml_file_name: download $feed_downloads_processed out of " . scalar( @root_child_nodes );
+        INFO "Processing $xml_file_name: download $feed_downloads_processed out of " . scalar( @root_child_nodes );
 
-        #say STDERR "child_node: " . $child_node->nodeName();
+        TRACE "child_node: " . $child_node->nodeName();
 
         my $download = hash_from_element( $child_node, [ qw ( child_stories ) ] );
 
-        #say STDERR $root->toString( 2);
-        #say STDERR Dumper( $child_node );
+        TRACE $root->toString( 2 );
+        TRACE Dumper( $child_node );
 
-        #say STDERR $child_node->toString( 2 );
-        #say STDERR Dumper( $download );
+        TRACE $child_node->toString( 2 );
+        TRACE Dumper( $download );
 
         my $old_downloads_id = $download->{ downloads_id };
         delete( $download->{ downloads_id } );
@@ -131,7 +129,7 @@ sub import_downloads
           && decode_base64( $download->{ encoded_download_content_base_64 } );
         delete( $download->{ encoded_download_content_base_64 } );
 
-        #say STDERR Dumper( $download );
+        TRACE Dumper( $download );
 
         next if ( '(redundant feed)' eq $decoded_content );    # The download contains no content so don't add it.
 
@@ -149,10 +147,10 @@ sub import_downloads
 
         my $child_stories_element = $child_stories_list[ 0 ];
 
-        # say "child stories list";
-        # say Dumper ( [ @child_stories_list ] );
-        # say "child stories element";
-        # say Dumper ( $child_stories_element );
+        TRACE "child stories list";
+        TRACE Dumper( [ @child_stories_list ] );
+        TRACE "child stories element";
+        TRACE Dumper( $child_stories_element );
 
         my $story_elements = [ $child_stories_element->getElementsByTagName( "story" ) ];
 
@@ -161,30 +159,29 @@ sub import_downloads
         foreach my $story_element ( @{ $story_elements } )
         {
 
-            #say Dumper ( $story_elements );
+            TRACE Dumper( $story_elements );
             my $story = hash_from_element( $story_element, [ qw ( story_downloads ) ] );
 
             if ( MediaWords::DBI::Stories::is_new( $db, $story ) )
             {
-
-                #say 'new story:';
-                #say Dumper( $story );
+                TRACE 'new story:';
+                TRACE Dumper( $story );
 
                 push @{ $new_stories }, $story_element;
             }
         }
 
-        #say 'got new stories';
-        #say Dumper ( $new_stories );
+        TRACE 'got new stories';
+        TRACE Dumper( $new_stories );
 
         if ( scalar( @{ $new_stories } ) == 0 )
         {
-            say "No new stories for download $feed_downloads_processed out of " . scalar( @root_child_nodes ) .
+            INFO "No new stories for download $feed_downloads_processed out of " . scalar( @root_child_nodes ) .
               " in $xml_file_name";
             next;
         }
 
-        say "Creating new downloads for $feed_downloads_processed";
+        INFO "Creating new downloads for $feed_downloads_processed";
 
         my $db_download = $db->create( 'downloads', $download );
 
@@ -192,9 +189,7 @@ sub import_downloads
 
         foreach my $story_element ( @$new_stories )
         {
-
             # dump stories and downloads.
-
             my $story_hash;
 
             try
@@ -276,7 +271,7 @@ sub import_downloads
         }
     }
 
-    say "$new_story_count new stories for $xml_file_name";
+    INFO "$new_story_count new stories for $xml_file_name";
 }
 
 # fork of $num_processes

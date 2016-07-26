@@ -15,6 +15,7 @@ BEGIN
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
+
 use MediaWords::DB;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories::AP;
@@ -140,7 +141,7 @@ sub save_features_queue
 
     return unless scalar( @{ $_features_queue } );
 
-    say STDERR "save features ...";
+    INFO "save features ...";
 
     my $values = [];
     for my $feature ( @{ $_features_queue } )
@@ -254,7 +255,7 @@ sub add_features_to_story
 {
     my ( $db, $story ) = @_;
 
-    say STDERR "add features to $story->{ stories_id } ...";
+    INFO "add features to $story->{ stories_id } ...";
 
     my $sentence_lengths;
 
@@ -479,13 +480,13 @@ sub get_trained_ai_nn
 
     my $train = AI::FANN::TrainData->new( @{ $vector } );
 
-    say STDERR "running training ...";
+    INFO "running training ...";
 
     $ann->train_on_data( $train, 5000, 1000, 0.001 );
 
     my $file = "ap_nn_machines/" . time() . "-$$.ann";
 
-    say STDERR "saving machine to $file";
+    INFO "saving machine to $file";
 
     $ann->save( $file );
 
@@ -549,7 +550,7 @@ sub get_trained_ai_dt
 
     $ai->train;
 
-    say STDERR Dumper( $ai->rule_tree );
+    DEBUG Dumper( $ai->rule_tree );
 
     # my $gv = $ai->as_graphviz;
     #
@@ -786,10 +787,10 @@ sub main
         {
             if ( !defined( $story->{ ai_ap_detected } ) )
             {
-                print STDERR "detecting $story->{ stories_id } ...";
+                INFO "detecting $story->{ stories_id } ...";
                 $story->{ ai_ap_detected } = MediaWords::DBI::Stories::AP::is_syndicated( $db, $story, 1 );
                 my $result = $story->{ ai_ap_detected } ? 'AP' : 'NOT';
-                say STDERR $result;
+                INFO $result;
 
                 insert_detected_stories( $db, [ $story ], $method );
                 $story->{ features } = $story->{ ap_features };

@@ -403,7 +403,7 @@ sub _results_from_matching_date_patterns($$)
     {
         my $whole_date = $& || next;
 
-        # say STDERR "Matched string: '$whole_date'";
+        TRACE "Matched string: '$whole_date'";
 
         # Might get overriden later
         my %result = %+;
@@ -459,7 +459,7 @@ sub _results_from_matching_date_patterns($$)
             if ( $time < time() )
             {
 
-                # say STDERR "Adding that one";
+                TRACE "Adding that one";
                 push( @matched_timestamps, $time );
             }
         }

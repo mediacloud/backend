@@ -58,12 +58,12 @@ sub run($;$)
     my $now = time();
     unless ( $start_timestamp )
     {
-        say STDERR "Start timestamp is not set, so I will use current timestamp $now as start date.";
+        WARN "Start timestamp is not set, so I will use current timestamp $now as start date.";
         $start_timestamp = $now;
     }
     unless ( $end_timestamp )
     {
-        say STDERR "End timestamp is not set, so I will use current timestamp $now as end date.";
+        WARN "End timestamp is not set, so I will use current timestamp $now as end date.";
         $end_timestamp = $now;
     }
 
@@ -72,7 +72,7 @@ sub run($;$)
     my $error_message;
     do
     {
-        say STDERR "Fetching story stats for story $stories_id" . ( $retry ? " (retry $retry)" : '' ) . "...";
+        INFO "Fetching story stats for story $stories_id" . ( $retry ? " (retry $retry)" : '' ) . "...";
         eval {
             $stats = MediaWords::Util::Bitly::fetch_stats_for_story( $db, $stories_id, $start_timestamp, $end_timestamp );
         };
@@ -83,8 +83,8 @@ sub run($;$)
             if ( MediaWords::Util::Bitly::API::error_is_rate_limit_exceeded( $error_message ) )
             {
 
-                say STDERR "Rate limit exceeded while collecting story stats for story $stories_id";
-                say STDERR "Sleeping for $BITLY_RATE_LIMIT_SECONDS_TO_WAIT before retrying";
+                WARN "Rate limit exceeded while collecting story stats for story $stories_id";
+                WARN "Sleeping for $BITLY_RATE_LIMIT_SECONDS_TO_WAIT before retrying";
 
                 sleep( $BITLY_RATE_LIMIT_SECONDS_TO_WAIT + 0 );
 
@@ -109,18 +109,18 @@ sub run($;$)
         # No point die()ing and continuing with other jobs (something wrong with fetch_stats_for_story())
         fatal_error( "Stats for story ID $stories_id is not a hashref." );
     }
-    say STDERR "Done fetching story stats for story $stories_id.";
+    INFO "Done fetching story stats for story $stories_id.";
 
-    # say STDERR "Stats: " . Dumper( $stats );
+    # DEBUG "Stats: " . Dumper( $stats );
 
-    say STDERR "Storing story stats for story $stories_id...";
+    INFO "Storing story stats for story $stories_id...";
     eval { MediaWords::Util::Bitly::write_story_stats( $db, $stories_id, $stats ); };
     if ( $@ )
     {
         # No point die()ing and continuing with other jobs (something wrong with the storage mechanism)
         fatal_error( "Error while storing story stats for story $stories_id: $@" );
     }
-    say STDERR "Done storing story stats for story $stories_id.";
+    INFO "Done storing story stats for story $stories_id.";
 
     # Add job for Bit.ly stats aggregation
     MediaWords::Job::Bitly::AggregateStoryStats->add_to_queue( { stories_id => $stories_id } );

@@ -61,7 +61,7 @@ sub find_user
     }
     else
     {
-        say STDERR "User '$username' not found or inactive";
+        WARN "User '$username' not found or inactive";
         return 0;
     }
 

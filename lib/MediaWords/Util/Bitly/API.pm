@@ -120,11 +120,11 @@ sub _unit_reference_ts_and_units_from_start_end_timestamps($$$)
 
         my $delta      = $end_date->delta_days( $start_date );
         my $delta_days = $delta->delta_days;
-        say STDERR "Delta days between $start_timestamp and $end_timestamp: $delta_days";
+        DEBUG "Delta days between $start_timestamp and $end_timestamp: $delta_days";
 
         if ( $delta_days == 0 )
         {
-            say STDERR "Delta days between $start_timestamp and $end_timestamp is 0, so setting it to 1";
+            DEBUG "Delta days between $start_timestamp and $end_timestamp is 0, so setting it to 1";
             $delta_days = 1;
         }
 
@@ -778,13 +778,13 @@ sub fetch_stats_for_url($$$$)
         die "Unable to lookup URL $url: $@";
     }
 
-    say STDERR "Link lookup: " . Dumper( $link_lookup );
+    DEBUG "Link lookup: " . Dumper( $link_lookup );
 
     # Fetch link information for all Bit.ly links at once
     my $bitly_info = {};
     my $bitly_ids = [ grep { defined $_ } values %{ $link_lookup } ];
 
-    say STDERR "Fetching info for Bit.ly IDs " . join( ', ', @{ $bitly_ids } ) . "...";
+    INFO "Fetching info for Bit.ly IDs " . join( ', ', @{ $bitly_ids } ) . "...";
     if ( scalar( @{ $bitly_ids } ) )
     {
         eval { $bitly_info = bitly_info_hashref( $bitly_ids ); };
@@ -794,7 +794,7 @@ sub fetch_stats_for_url($$$$)
         }
     }
 
-    # say STDERR "Link info: " . Dumper( $bitly_info );
+    TRACE "Link info: " . Dumper( $bitly_info );
 
     my $link_stats = {};
 
@@ -831,9 +831,7 @@ sub fetch_stats_for_url($$$$)
         }
         $link_stats->{ 'data' }->{ $bitly_id }->{ 'info' } = $bitly_info->{ $bitly_id };
 
-        say STDERR "Fetching stats for Bit.ly ID $bitly_id...";
-
-        say STDERR "Fetching clicks for Bit.ly ID $bitly_id for date range $string_start_date - $string_end_date...";
+        INFO "Fetching clicks for Bit.ly ID $bitly_id for date range $string_start_date - $string_end_date...";
         $link_stats->{ 'data' }->{ $bitly_id }->{ 'clicks' } = [
 
             # array because one might want to make multiple requests with various dates

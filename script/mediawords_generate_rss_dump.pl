@@ -14,6 +14,9 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Encode;
 use XML::FeedPP;
 
@@ -46,7 +49,7 @@ SQL
         $feed->add_item( $url );
     }
 
-    say STDERR "exporting " . scalar( @urls ) . " urls";
+    INFO "exporting " . scalar( @urls ) . " urls";
 
     print encode( 'utf8', $feed->to_string( indent => 4 ) );
 }

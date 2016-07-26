@@ -251,7 +251,7 @@ sub run_block_with_large_work_mem( &$ )
     my $block = shift;
     my $db    = shift;
 
-    #say STDERR "starting run_block_with_large_work_mem ";
+    #DEBUG "starting run_block_with_large_work_mem ";
 
     #say Dumper( $db );
 
@@ -278,7 +278,7 @@ sub run_block_with_large_work_mem( &$ )
 
     $db->_set_work_mem( $old_work_mem );
 
-    #say STDERR "exiting run_block_with_large_work_mem ";
+    #DEBUG "exiting run_block_with_large_work_mem ";
 }
 
 sub _set_work_mem
@@ -296,7 +296,7 @@ sub query_with_large_work_mem
 
     my $ret;
 
-    #say STDERR "starting query_with_large_work_mem";
+    #DEBUG "starting query_with_large_work_mem";
 
     #say Dumper ( [ @_ ] );
 
@@ -430,7 +430,7 @@ sub update_by_id_and_log($$$$$$$$)
                 if ( $new_hash->{ $field_name } ne $old_hash->{ $field_name } )
                 {
 
-                    # say STDERR "Field '$field_name' was changed from: " . $old_hash->{$field_name} .
+                    # INFO "Field '$field_name' was changed from: " . $old_hash->{$field_name} .
                     #     "; to: " . $new_hash->{$field_name};
 
                     my $change = {

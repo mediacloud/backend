@@ -61,7 +61,7 @@ my $_corenlp_annotator_url = lazy
     {
         fatal_error( "CoreNLP annotator is enabled, but annotator URL is not set." );
     }
-    say STDERR "CoreNLP annotator URL: $corenlp_annotator_url";
+    DEBUG "CoreNLP annotator URL: $corenlp_annotator_url";
 
     return $corenlp_annotator_url;
 };
@@ -83,7 +83,7 @@ my $_corenlp_annotator_timeout = lazy
     {
         die "Unable to determine CoreNLP annotator timeout to set.";
     }
-    say STDERR "CoreNLP annotator timeout: $corenlp_annotator_timeout s";
+    DEBUG "CoreNLP annotator timeout: $corenlp_annotator_timeout s";
 
     return $corenlp_annotator_timeout;
 };
@@ -106,7 +106,7 @@ my $_corenlp_annotator_level = lazy
         die "Unable to determine CoreNLP annotator level to use.";
     }
 
-    say STDERR "CoreNLP annotator level: $corenlp_annotator_level";
+    DEBUG "CoreNLP annotator level: $corenlp_annotator_level";
 
     return $corenlp_annotator_level;
 };
@@ -128,7 +128,7 @@ my $_postgresql_store = lazy
 
     # PostgreSQL storage
     my $postgresql_store = MediaWords::KeyValueStore::PostgreSQL->new( { table => $CORENLP_POSTGRESQL_KVS_TABLE_NAME } );
-    say STDERR "Will read / write CoreNLP annotator results to PostgreSQL table: $CORENLP_POSTGRESQL_KVS_TABLE_NAME";
+    DEBUG "Will read / write CoreNLP annotator results to PostgreSQL table: $CORENLP_POSTGRESQL_KVS_TABLE_NAME";
 
     return $postgresql_store;
 };
@@ -198,7 +198,7 @@ sub _annotate_text($)
         my $text_length = length( $text );
         if ( $text_length > $CORENLP_REQUEST_TEXT_LENGTH_LIMIT )
         {
-            say STDERR "Text length ($text_length) has exceeded the request text " .
+            WARN "Text length ($text_length) has exceeded the request text " .
               "length limit ($CORENLP_REQUEST_TEXT_LENGTH_LIMIT) so I will truncate it.";
             $text = substr( $text, 0, $CORENLP_REQUEST_TEXT_LENGTH_LIMIT );
         }
@@ -539,7 +539,7 @@ EOF
 
     my %annotations;
 
-    say STDERR "Annotating sentences and story text for story $stories_id...";
+    INFO "Annotating sentences and story text for story $stories_id...";
 
     # Annotate each sentence separately, index by story_sentences_id
     foreach my $sentence ( @{ $story_sentences } )
@@ -548,7 +548,7 @@ EOF
         my $sentence_number = $sentence->{ sentence_number } + 0;
         my $sentence_text   = $sentence->{ sentence };
 
-        say STDERR "Annotating story's $stories_id sentence " . ( $sentence_number + 1 ) . " / " .
+        INFO "Annotating story's $stories_id sentence " . ( $sentence_number + 1 ) . " / " .
           scalar( @{ $story_sentences } ) . "...";
         $annotations{ $sentence_id } = _annotate_text( $sentence_text );
         unless ( defined $annotations{ $sentence_id } )
@@ -560,7 +560,7 @@ EOF
     # Annotate concatenation of all sentences, index as '_'
     my $sentences_concat_text = join( ' ', map { $_->{ sentence } } @{ $story_sentences } );
 
-    say STDERR "Annotating story's $stories_id concatenated sentences...";
+    INFO "Annotating story's $stories_id concatenated sentences...";
     my $concat_index = sentences_concatenation_index() . '';
     $annotations{ $concat_index } = _annotate_text( $sentences_concat_text );
     unless ( $annotations{ $concat_index } )
@@ -577,10 +577,10 @@ EOF
         return 0;
     }
 
-    say STDERR "Done annotating sentences and story text for story $stories_id.";
-    say STDERR 'JSON length: ' . length( $json_annotation );
+    INFO "Done annotating sentences and story text for story $stories_id.";
+    DEBUG 'JSON length: ' . length( $json_annotation );
 
-    say STDERR "Storing annotation results for story $stories_id...";
+    INFO "Storing annotation results for story $stories_id...";
 
     # Write to PostgreSQL, index by stories_id
     eval {
@@ -595,7 +595,7 @@ EOF
         fatal_error( "Unable to store CoreNLP annotation result: $@" );
         return 0;
     }
-    say STDERR "Done storing annotation results for story $stories_id.";
+    INFO "Done storing annotation results for story $stories_id.";
 
     return 1;
 }

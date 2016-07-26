@@ -28,9 +28,10 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use MediaWords::DB;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
+
+use MediaWords::DB;
 use MediaWords::Util::Config;
 use MediaWords::Util::CoreNLP;
 use Getopt::Long;
@@ -60,12 +61,6 @@ sub _resume_stories_id_from_log($)
     return $resume_stories_id;
 }
 
-# Returns true if verbose output should be used
-sub _verbose
-{
-    return ( exists $ENV{ 'VERBOSE' } and $ENV{ 'VERBOSE' } eq '1' );
-}
-
 # Writes the story ID to the skipped stories log
 sub _write_skipped_stories_log($$)
 {
@@ -84,7 +79,7 @@ sub _write_stories_id_resume_log($$)
 {
     my ( $resume_stories_id_log, $current_stories_id ) = @_;
 
-    # say STDERR "\tWriting $current_stories_id to resume log.";
+    TRACE "\tWriting $current_stories_id to resume log.";
 
     return unless ( $resume_stories_id_log );
 
@@ -93,7 +88,7 @@ sub _write_stories_id_resume_log($$)
     print $fh $current_stories_id;
     close $fh;
 
-    # say STDERR "\tDone writing $current_stories_id to resume log.";
+    TRACE "\tDone writing $current_stories_id to resume log.";
 }
 
 {
@@ -114,16 +109,16 @@ sub _write_stories_id_resume_log($$)
         # Write the offset
         _write_stories_id_resume_log( $global_resume_stories_id_log, $global_resume_stories_id );
 
-        say STDERR "Total rows analyzed: $row";
+        INFO "Total rows analyzed: $row";
         if ( $global_resume_stories_id )
         {
-            say STDERR "Rows analyzed since resuming: $rows_analyzed_since_resuming";
+            INFO "Rows analyzed since resuming: $rows_analyzed_since_resuming";
         }
-        say STDERR "Stories found: $stories_found (including duplicates)";
-        say STDERR "Stories added: $stories_added";
+        INFO "Stories found: $stories_found (including duplicates)";
+        INFO "Stories added: $stories_added";
         if ( $global_resume_stories_id_log and ( !$successfully ) )
         {
-            say STDERR "Will resume at story ID: $global_resume_stories_id";
+            INFO "Will resume at story ID: $global_resume_stories_id";
         }
     }
 
@@ -133,7 +128,7 @@ sub _write_stories_id_resume_log($$)
         # Assume that the last story is unfinished
         --$global_resume_stories_id;
 
-        say STDERR "^C";
+        INFO "^C";
 
         finish( 0 );
         exit( 1 );
@@ -227,7 +222,7 @@ sub _write_stories_id_resume_log($$)
         while ( scalar( @{ $stories } ) > 0 )    # while there are no more stories
         {
             # Fetch a new chunk of stories
-            say STDERR "Fetching chunk of stories..." if ( _verbose() );
+            INFO "Fetching chunk of stories...";
 
             $stories = $db->query(
                 <<"EOF"
@@ -241,9 +236,9 @@ sub _write_stories_id_resume_log($$)
                 LIMIT $chunk_size
 EOF
             )->hashes;
-            say STDERR "Done fetching a chunk of stories." if ( _verbose() );
+            INFO "Done fetching a chunk of stories.";
 
-            say STDERR "Number of results: " . scalar( @{ $stories } ) if ( _verbose() );
+            INFO "Number of results: " . scalar( @{ $stories } );
 
             last unless ( scalar( @{ $stories } ) > 0 );    # no more stories
 
@@ -273,14 +268,14 @@ EOF
                     }
                 }
 
-                say STDERR "Will attempt to add story " . $stories_id if ( _verbose() );
+                INFO "Will attempt to add story " . $stories_id;
 
                 ++$stories_found;
 
                 # Duplicate story IDs will be merged into a single job
                 MediaWords::Job::AnnotateWithCoreNLP->add_to_queue( { stories_id => $stories_id } );
 
-                say STDERR "Done adding story " . $stories_id if ( _verbose() );
+                INFO "Done adding story " . $stories_id;
 
                 ++$stories_added;
             }
@@ -292,7 +287,7 @@ EOF
         # Remove the resume log
         if ( $resume_stories_id_log )
         {
-            say STDERR "Removing resume log...";
+            INFO "Removing resume log...";
             unlink $resume_stories_id_log;
         }
     }
@@ -345,50 +340,49 @@ EOF
         stories_tags_id => $stories_tags_id ? [ split( /,/, $stories_tags_id ) ] : undef,
     };
 
-    say STDERR "starting --  " . localtime();
+    INFO "starting --  " . localtime();
 
     my $resume_stories_id = 0;
     if ( $resume_stories_id_log )
     {
-        say STDERR "Will use resume log '$resume_stories_id_log'.";
+        INFO "Will use resume log '$resume_stories_id_log'.";
 
         # Read resume offset (next story's ID that has to be imported)
         $resume_stories_id = _resume_stories_id_from_log( $resume_stories_id_log );
     }
     if ( $resume_stories_id )
     {
-        say STDERR "Will resume from story ID " . $resume_stories_id . ".";
+        INFO "Will resume from story ID " . $resume_stories_id . ".";
     }
     else
     {
-        say STDERR "Will start from beginning.";
+        INFO "Will start from beginning.";
     }
 
     if ( $overwrite )
     {
-        say STDERR "Will overwrite existing annotations.";
+        INFO "Will overwrite existing annotations.";
     }
     else
     {
-        say STDERR "Will *not* overwrite existing annotations.";
+        INFO "Will *not* overwrite existing annotations.";
     }
 
     for my $limit_by_key ( keys %{ $limit_by } )
     {
         if ( $limit_by->{ $limit_by_key } )
         {
-            say STDERR "Will add only stories with $limit_by_key IN (" .
-              join( ', ', @{ $limit_by->{ $limit_by_key } } ) . ').';
+            INFO "Will add only stories with $limit_by_key IN (" . join( ', ', @{ $limit_by->{ $limit_by_key } } ) . ').';
         }
         else
         {
-            say STDERR "Will not limit stories by $limit_by_key.";
+            INFO "Will not limit stories by $limit_by_key.";
         }
     }
 
     add_stories_to_corenlp_queue( $resume_stories_id_log, $resume_stories_id, $limit_by, $overwrite );
 
-    say STDERR "finished --  " . localtime();
+    INFO "finished --  " . localtime();
 }
 
 main();

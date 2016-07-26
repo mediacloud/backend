@@ -13,9 +13,11 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Getopt::Long;
 
-use MediaWords::CommonLibs;
 use MediaWords::TM;
 use MediaWords::Job::TM::MineTopic;
 
@@ -52,7 +54,7 @@ sub main
     for my $topic ( @{ $topics } )
     {
         my $topics_id = $topic->{ topics_id };
-        say STDERR "Processing topic $topics_id...";
+        INFO "Processing topic $topics_id...";
 
         if ( $direct_job )
         {
@@ -75,10 +77,10 @@ sub main
             };
 
             my $job_id = MediaWords::Job::TM::MineTopic->add_to_queue( $args );
-            say STDERR "Added job with ID: $job_id";
+            INFO "Added job with ID: $job_id";
         }
 
-        say STDERR "Done processing topic $topics_id.";
+        INFO "Done processing topic $topics_id.";
     }
 }
 

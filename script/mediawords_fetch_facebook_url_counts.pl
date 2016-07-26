@@ -59,7 +59,7 @@ END
 
         unless ( scalar @{ $stories } )
         {
-            say STDERR "No stories found for topic '$topic->{ name }' ('$topic_opt')";
+            WARN "No stories found for topic '$topic->{ name }' ('$topic_opt')";
         }
 
         for my $ss ( @{ $stories } )
@@ -75,16 +75,16 @@ END
             {
                 if ( $direct_job )
                 {
-                    say STDERR "Running local job for story $stories_id...";
+                    INFO "Running local job for story $stories_id...";
                     eval { MediaWords::Job::Facebook::FetchStoryStats->run_locally( $args ); };
                     if ( $@ )
                     {
-                        say STDERR "Worker died while fetching and storing statistics: $@";
+                        ERROR "Worker died while fetching and storing statistics: $@";
                     }
                 }
                 else
                 {
-                    say STDERR "Adding job for story $stories_id...";
+                    INFO "Adding job for story $stories_id...";
                     MediaWords::Job::Facebook::FetchStoryStats->add_to_queue( $args );
                 }
             }

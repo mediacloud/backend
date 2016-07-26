@@ -9,9 +9,10 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use MediaWords::DB;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
+
+use MediaWords::DB;
 
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
@@ -34,8 +35,8 @@ sub get_story_downloads
     my $story_downloads =
       $db->query( " SELECT * FROM downloads where stories_id = ? order by sequence asc ", $story->{ stories_id } )->hashes;
 
-    #say STDERR "Got story downloads ";
-    #say STDERR Dumper( $story_downloads);
+    TRACE "Got story downloads ";
+    TRACE Dumper( $story_downloads );
 
     return $story_downloads;
 }
@@ -66,18 +67,17 @@ sub process_feed_download
 {
     my ( $db, $download ) = @_;
 
-    #say STDERR Dumper ( $download );
+    TRACE Dumper( $download );
 
     my $story_children = get_story_children_for_feed_download( $db, $download );
 
     my $story_child_count = scalar( @{ $story_children } );
 
-    #say STDERR "$story_child_count stories for downloads";
+    TRACE "$story_child_count stories for downloads";
 
     if ( $story_child_count > 0 )
     {
-
-        #say Dumper( $download );
+        TRACE Dumper( $download );
     }
     else
     {
@@ -96,7 +96,7 @@ sub process_feed_download
     {
         my $story_xml = xml_tree_from_hash( $story_child, 'story' );
 
-        #say STDERR Dumper ( $child_story );
+        TRACE Dumper( $story_child );
         my $story_downloads = get_story_downloads( $db, $story_child );
 
         # SKIP stories with incomplete downloads
@@ -180,11 +180,10 @@ sub export_downloads
         $max_downloads_id_message = " max overall downloads_id $max_downloads_id";
     }
 
-    say STDERR "$batch_information Downloads_id $cur_downloads_id (end: $end_downloads_id) $max_downloads_id_message";
+    INFO "$batch_information Downloads_id $cur_downloads_id (end: $end_downloads_id) $max_downloads_id_message";
 
     while ( $cur_downloads_id <= $end_downloads_id )
     {
-
         my $download = $db->query(
 " SELECT * from downloads where downloads_id >= ?  and downloads_id <= ? and type = 'feed' and state = 'success' order by downloads_id asc limit 1 ",
             $cur_downloads_id, $end_downloads_id

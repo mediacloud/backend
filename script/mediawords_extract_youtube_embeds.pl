@@ -15,9 +15,9 @@ BEGIN
 }
 
 use Modern::Perl "2015";
+use MediaWords::CommonLibs;
 
 use Encode;
-use MediaWords::CommonLibs;
 
 use MediaWords::DB;
 use MediaWords::TM::Mine;
@@ -34,7 +34,7 @@ sub extract_links_for_story
         return;
     }
 
-    say STDERR "\n[ $story->{ stories_id } ] $story->{ url }";
+    INFO "\n[ $story->{ stories_id } ] $story->{ url }";
     for my $link ( @{ $youtube_links } )
     {
         next if ( $link->{ url } eq $story->{ url } );
@@ -87,7 +87,7 @@ END
 
     if ( !@{ $stories } )
     {
-        say STDERR "No stories found for topic '$topic->{ name }'";
+        ERROR "No stories found for topic '$topic->{ name }'";
     }
 
     map { extract_links_for_story( $db, $_, $topic ) } @{ $stories };

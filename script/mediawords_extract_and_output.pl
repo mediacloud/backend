@@ -3,6 +3,7 @@
 # extract and output download / file
 
 use strict;
+use warnings;
 
 BEGIN
 {
@@ -10,12 +11,13 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Getopt::Long;
 use HTML::Strip;
 use DBIx::Simple::MediaWords;
 use MediaWords::DB;
-use Modern::Perl "2015";
-use MediaWords::CommonLibs;
 
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::DownloadTexts;
@@ -39,24 +41,24 @@ sub store_preprocessed_result
 {
     my ( $download, $preprocessed_lines, $extract_results, $content_ref, $story ) = @_;
 
-    say STDERR "starting store_preprocessed_result";
-    say STDERR "downloads_id: " . $download->{ downloads_id };
-    say STDERR "STORY GUID $story->{ guid }";
-    say STDERR "STORY GUID $story->{ title }";
+    INFO "starting store_preprocessed_result";
+    INFO "downloads_id: " . $download->{ downloads_id };
+    INFO "STORY GUID $story->{ guid }";
+    INFO "STORY GUID $story->{ title }";
     my $lines_concated = join "", map { $_ . "\n" } @{ $preprocessed_lines };
 
-    say STDERR "Preprocessed_lines:\n";
+    INFO "Preprocessed_lines:";
 
     #MediaWords::DBI::DownloadTexts::update_extractor_results_with_text_and_html( $extract_results );
 
-    say STDERR "EXTRACTED HTML $extract_results->{ extracted_html }";
-    say STDERR "EXTRACTED TEXT $extract_results->{ extracted_text }";
+    INFO "EXTRACTED HTML $extract_results->{ extracted_html }";
+    INFO "EXTRACTED TEXT $extract_results->{ extracted_text }";
 
-    say STDERR "Starting get_sentences ";
+    INFO "Starting get_sentences ";
     my $lang = MediaWords::Languages::en->new();
     my $sentences = $lang->get_sentences( $extract_results->{ extracted_text } ) || return;
 
-    say STDERR "Finished get_sentences ";
+    INFO "Finished get_sentences ";
 
     say Dumper( $sentences );
 
@@ -70,7 +72,7 @@ sub store_downloads
 
     my @downloads = @{ $downloads };
 
-    say STDERR "Starting store_downloads";
+    INFO "Starting store_downloads";
 
     @downloads = sort { $a->{ downloads_id } <=> $b->{ downloads_id } } @downloads;
 
@@ -85,7 +87,7 @@ sub store_downloads
         my $preprocessed_lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $dbs, $download );
         my $extract_results = MediaWords::DBI::Downloads::extract( $dbs, $download );
 
-        say STDERR "Got extract_results:\n " . Dumper( $extract_results );
+        INFO "Got extract_results:\n " . Dumper( $extract_results );
 
         my $content_ref = MediaWords::DBI::Downloads::fetch_content( $dbs, $download );
 
@@ -118,7 +120,7 @@ sub main
 
     my $downloads;
 
-    say STDERR @download_ids;
+    INFO join( ' ', @download_ids );
 
     if ( @download_ids )
     {
@@ -135,11 +137,11 @@ sub main
         die "must specify file or downloads id";
     }
 
-    say STDERR Dumper( $downloads );
+    INFO Dumper( $downloads );
 
     die 'no downloads found ' unless scalar( @$downloads );
 
-    say STDERR scalar( @$downloads ) . ' downloads';
+    INFO scalar( @$downloads ) . ' downloads';
     store_downloads( $downloads );
 }
 

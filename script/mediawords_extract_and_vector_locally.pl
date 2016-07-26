@@ -45,8 +45,7 @@ sub extract_text($$$$)
 
     while ( 1 )
     {
-
-        say STDERR "[$process_num, $job_process_num] find new downloads...";
+        INFO "[$process_num, $job_process_num] find new downloads...";
 
         my $downloads = $db->query(
             <<EOF,
@@ -81,7 +80,7 @@ EOF
                 # Probably the download was not found (job will
                 # take care of writing an error message to the database, so we
                 # only output an error here)
-                say STDERR "Extractor died while processing download " . $download->{ downloads_id } . ": $@\n";
+                ERROR "Extractor died while processing download " . $download->{ downloads_id } . ": $@\n";
 
             }
 
@@ -89,7 +88,7 @@ EOF
 
         if ( !$at_least_one_download_found )
         {
-            say STDERR "[$process_num] no downloads found. sleeping ...";
+            INFO "[$process_num] no downloads found. sleeping ...";
             sleep 60;
         }
 
@@ -130,13 +129,13 @@ sub main
         while ( 1 )
         {
             eval {
-                say STDERR "[$mod] START";
+                INFO "[$mod] START";
                 extract_text( $mod, $num_total_processes, $num_total_jobs, $job_number );
             };
             if ( $@ )
             {
-                say STDERR "[$mod] extract_text failed with error: $@";
-                say STDERR "[$mod] sleeping before restart ...";
+                INFO "[$mod] extract_text failed with error: $@";
+                INFO "[$mod] sleeping before restart ...";
                 sleep 60;
             }
         }

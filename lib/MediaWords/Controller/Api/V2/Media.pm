@@ -49,7 +49,7 @@ sub _add_nested_data
 
     foreach my $media_source ( @{ $media } )
     {
-        # say STDERR "adding media_source tags ";
+        # TRACE "adding media_source tags ";
         $media_source->{ media_source_tags } = $db->query( <<END, $media_source->{ media_id } )->hashes;
 select t.tags_id, t.tag, t.label, t.description, ts.tag_sets_id, ts.name as tag_set,
         ( t.show_on_media or ts.show_on_media ) show_on_media,

@@ -1,9 +1,7 @@
-#!/bin/sh
-#! -*-perl-*-
-eval 'exec perl -x -wS $0 ${1+"$@"}'
-  if 0;
+#!/usr/bin/env perl
 
 use strict;
+use warnings;
 
 BEGIN
 {
@@ -11,13 +9,13 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use strict;
-use warnings;
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
+use MediaWords::Util::Paths;
 
 use Data::Dumper;
-
 use Perl::Tidy 20160302;
-use MediaWords::Util::Paths;
 
 # Perl::Tidy doesn't test syntax in all cases, so this subroutine does it in a
 # way similar to Test::Strict
@@ -27,10 +25,9 @@ sub _test_syntax($)
 
     foreach my $file ( @{ $files } )
     {
-
         unless ( -f $file and -r $file )
         {
-            die "File $file not found or not readable";
+            die "File '$file' not found or not readable";
         }
 
         # Set the environment to compile the script or module
@@ -69,7 +66,7 @@ sub _tidy_with_perl_tidy($)
     my $perltidy_config_file = MediaWords::Util::Paths::mc_script_path() . '/mediawords_perltidy_config_file';
     my $stderr_string;
 
-    #say STDERR "Using $perltidy_config_file";
+    TRACE "Using $perltidy_config_file";
 
     # Remove test files so that newlines aren't changed
     my $files = [ grep { !m|^t/data/| } @{ $orig_files } ];
@@ -80,7 +77,7 @@ sub _tidy_with_perl_tidy($)
 
     unless ( scalar @{ $files } )
     {
-        say STDERR "No files (nothing to do).";
+        ERROR "No files (nothing to do).";
         exit( 0 );
     }
 

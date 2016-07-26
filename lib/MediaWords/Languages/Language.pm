@@ -454,7 +454,7 @@ sub _tokenize_text_with_lingua_sentence
 
     unless ( $text )
     {
-        say STDERR "Text is empty after processing it.";
+        WARN "Text is empty after processing it.";
         return [];
     }
 

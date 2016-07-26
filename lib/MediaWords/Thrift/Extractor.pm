@@ -71,7 +71,7 @@ sub extract_html
             if ( ( time() - $start_time ) < 60 )
             {
                 sleep 1;
-                say STDERR "Retrying connecting to thrift server";
+                WARN "Retrying connecting to thrift server";
                 next;
             }
 
