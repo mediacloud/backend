@@ -16,6 +16,8 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 __PACKAGE__->config(
     action => {
         list_GET   => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        create_GET => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        update_PUT => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         delete_PUT => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
     }
 );
