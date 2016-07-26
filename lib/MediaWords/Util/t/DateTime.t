@@ -7,6 +7,7 @@ use Test::More tests => 292;
 
 use MediaWords::Util::DateTime;
 use DateTime;
+use Time::Local;
 
 BEGIN
 {
@@ -83,8 +84,8 @@ sub test_gmt_date_string_from_timestamp()
 
 sub test_str2time_21st_century()
 {
-    is( MediaWords::Util::DateTime::str2time_21st_century( '1961-01-01' ), -284007600, 'Year 1961' );
-    is( MediaWords::Util::DateTime::str2time_21st_century( '2061-01-01' ), 2871756000, 'Year 2061' );
+    is( MediaWords::Util::DateTime::str2time_21st_century( '1961-01-01' ), timelocal( 0, 0, 0, 1, 0, 1961 ), 'Year 1961' );
+    is( MediaWords::Util::DateTime::str2time_21st_century( '2061-01-01' ), timelocal( 0, 0, 0, 1, 0, 2061 ), 'Year 2061' );
 
     my $str_dates_in_2061 = qq!2061-01-24
         2061-01-24T09:08:17.1823213
@@ -227,8 +228,8 @@ sub test_str2time_21st_century()
         61-02-01!;
     my @dates_in_2061 = split( /\n/, $str_dates_in_2061 );
 
-    my $start_of_year = 2871763200;    # Sat, 01 Jan 2061 00:00:00 GMT
-    my $end_of_year   = 2903299199;    # Sat, 31 Dec 2061 23:59:59 GMT
+    my $start_of_year = timelocal( 0,  0,  0,  1,  0,  2061 );
+    my $end_of_year   = timelocal( 59, 59, 23, 31, 11, 2061 );
 
     foreach my $date_in_2061 ( @dates_in_2061 )
     {
