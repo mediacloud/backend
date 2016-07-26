@@ -22,8 +22,8 @@ __PACKAGE__->config( action => { count_GET => { Does => [ qw( ~NonPublicApiKeyAu
 
 sub apibase : Chained('/') : PathPart('api/v2/topics') : CaptureArgs(1)
 {
-    my ( $self, $c, $topic_id ) = @_;
-    $c->stash->{ topic_id } = $topic_id;
+    my ( $self, $c, $topics_id ) = @_;
+    $c->stash->{ topics_id } = $topics_id;
 }
 
 sub sentences : Chained('apibase') : PathPart('sentences') : CaptureArgs(0)
@@ -44,9 +44,9 @@ sub count_GET
 
     my $timespan = MediaWords::TM::require_timespan_for_topic(
         $c->dbis,
-        $c->stash->{ topic_id },
-        $c->req->params->{ timespan },
-        $c->req->params->{ snapshot }
+        $c->stash->{ topics_id },
+        $c->req->params->{ timespans_id },
+        $c->req->params->{ snapshots_id }
     );
 
     my $q = $c->req->params->{ q };
