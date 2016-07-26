@@ -56,8 +56,6 @@ select foci_id, name, description, arguments->>'query' query, focal_sets_id
     where focal_sets_id in ( select id from $ids_table )
 SQL
 
-    DEBUG( "foci: " . Dumper( $foci ) );
-
     my $foci_lookup = {};
     map { push( @{ $foci_lookup->{ $_->{ focal_sets_id } } }, $_ ) } @{ $foci };
 

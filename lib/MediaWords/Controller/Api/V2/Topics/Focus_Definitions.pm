@@ -38,7 +38,7 @@ sub focus_definitions : Chained('apibase') : PathPart('focus_definitions') : Cap
     $c->stash->{ path_id } = $v;
 }
 
-sub list : Chained('focus_definitions') : Args(0) : ActionClass('MC_REST')
+sub list : Chained('apibase') : PathPart( 'focus_definitions/list' ) : Args(0) : ActionClass('MC_REST')
 {
 }
 
@@ -48,8 +48,10 @@ sub list_GET : Local
 
     my $db = $c->dbis;
 
-    my $focal_set_definitions_id = $c->stash->{ path_id };
-    my $topics_id                = $c->stash->{ topics_id };
+    my $topics_id = $c->stash->{ topics_id };
+
+    my $focal_set_definitions_id = $c->req->params->{ focal_set_definitions_id }
+      || die( "missing required param focal_set_definitions_id" );
 
     my $fds = $db->query( <<SQL, $focal_set_definitions_id )->hashes;
 select $SQL_FIELD_LIST
@@ -62,7 +64,7 @@ SQL
     $self->status_ok( $c, entity => { focus_definitions => $fds } );
 }
 
-sub create : Chained('focus_definitions') : Args(0) : ActionClass('MC_REST')
+sub create : Chained('apibase') : PathPart( 'focus_definitions/create' ) : Args(0) : ActionClass('MC_REST')
 {
 }
 
@@ -72,13 +74,13 @@ sub create_GET : Local
 
     my $db = $c->dbis;
 
-    my $topics_id                = $c->stash->{ topics_id };
-    my $focal_set_definitions_id = $c->stash->{ path_id };
-    my $data                     = $c->req->data;
+    my $topics_id = $c->stash->{ topics_id };
+    my $data      = $c->req->data;
 
-    $self->require_fields( $c, [ qw/name description query/ ] );
+    $self->require_fields( $c, [ qw/name description query focal_set_definitions_id/ ] );
 
-    my $fd = $db->query( <<SQL, $data->{ name }, $data->{ description }, $data->{ query }, $focal_set_definitions_id )->hash;
+    my $fd = $db->query(
+        <<SQL, $data->{ name }, $data->{ description }, $data->{ query }, $data->{ focal_set_definitions_id } )->hash;
 insert into focus_definitions ( name, description, arguments, focal_set_definitions_id )
     select \$1, \$2, ( '{ "query": ' || to_json( \$3::text ) || ' }' )::json, \$4
     returning $SQL_FIELD_LIST
