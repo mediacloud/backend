@@ -553,7 +553,7 @@ Response:
 ```
 <!-- TODO - do we want to add the user that created/requested this to the output? -->
 
-<!-- RB - what about topics/single?  I need that.  it is currently implemented as controversies/single, but I'd like the spider status added to those results -->
+<!-- RB - what about topics/single?  I need that.  it is currently implemented as topics/single, but I'd like the spider status added to those results -->
 <!-- HR -  I really hate having multiple end points that do the same thing.  is it really that much easier to call topics/single/123 rather than topics/list?topics_id=123 ? -->
 
 # Stories
@@ -752,7 +752,7 @@ Response:
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/merge`
 
-Merge one story into another story within this controversy.
+Merge one story into another story within this topic.
 
 ### Query Parameters
 
@@ -765,7 +765,7 @@ Merge one story into another story within this controversy.
 | from_stories_id | id of the story to merge into to_stories_id; required |
 | to_stories_id   | id of the story into which from_stories_id will be merge; required |
 
-Merging from_stories_id into to_stories_id removes from_stories_id from the controversy and merges the outlinks and inlinks of from_stories_id into to_stories_id.
+Merging from_stories_id into to_stories_id removes from_stories_id from the topic and merges the outlinks and inlinks of from_stories_id into to_stories_id.
 
 ### Output Description
 
@@ -880,7 +880,7 @@ Response:
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/media/~media_id~/edit`
 
-Edit and return the given media source.  Media source edits apply to that media source for all controversies.
+Edit and return the given media source.  Media source edits apply to that media source for all topics.
 
 ### Query Parameters
 

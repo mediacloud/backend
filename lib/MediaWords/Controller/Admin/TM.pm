@@ -1167,7 +1167,7 @@ END
     MediaWords::DBI::Stories::GuessDate::add_undateable_to_stories( $db, $medium->{ stories } );
 
     $db->query( <<SQL, $medium->{ media_id } );
-create temporary table cm_medium_stories_ids as select stories_id from snapshot_stories where media_id = ?
+create temporary table tm_medium_stories_ids as select stories_id from snapshot_stories where media_id = ?
 SQL
 
     $medium->{ inlink_stories } = $db->query(
@@ -1185,7 +1185,7 @@ SQL
         WHERE s.stories_id = sslc.stories_id
           AND s.media_id = sm.media_id
           AND s.stories_id = cl.stories_id
-          AND cl.ref_stories_id in ( select stories_id from cm_medium_stories_ids )
+          AND cl.ref_stories_id in ( select stories_id from tm_medium_stories_ids )
         ORDER BY sslc.inlink_count DESC
         limit 50
 END
@@ -1209,7 +1209,7 @@ END
         WHERE r.stories_id = rslc.stories_id
           AND r.media_id = rm.media_id
           AND r.stories_id = cl.ref_stories_id
-          AND cl.stories_id in ( select stories_id from cm_medium_stories_ids )
+          AND cl.stories_id in ( select stories_id from tm_medium_stories_ids )
         ORDER BY rslc.inlink_count DESC
         limit 50
 END
@@ -1856,7 +1856,7 @@ sub _remove_story_from_topic($$$$$)
         my $change = { 'stories_id' => $stories_id + 0 };
         unless (
             MediaWords::DBI::Activities::log_activity(
-                $db, 'cm_remove_story_from_topic', $user, $topics_id, $reason, $change
+                $db, 'tm_remove_story_from_topic', $user, $topics_id, $reason, $change
             )
           )
         {
@@ -1952,7 +1952,7 @@ sub merge_media : Local : FormConfig
     };
     unless (
         MediaWords::DBI::Activities::log_activity(
-            $db, 'cm_media_merge', $c->user->username, $topic->{ topics_id } + 0,
+            $db, 'tm_media_merge', $c->user->username, $topic->{ topics_id } + 0,
             $reason, $change
         )
       )
@@ -1997,7 +1997,7 @@ sub _merge_stories
     # Log the activity
     my $change = { stories_id => $story->{ stories_id }, to_stories_id => $to_story->{ stories_id } };
 
-    my $logged = MediaWords::DBI::Activities::log_activity( $db, 'cm_story_merge', $c->user->username, $topic->{ topics_id },
+    my $logged = MediaWords::DBI::Activities::log_activity( $db, 'tm_story_merge', $c->user->username, $topic->{ topics_id },
         $reason, $change );
 
     if ( !$logged )

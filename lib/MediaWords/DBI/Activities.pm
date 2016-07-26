@@ -102,7 +102,7 @@ to what the object ID refers to and parameters.
 All activities that are logged *must* be added to this hash.
 
 To add a new activity, add a sub-entry to this hash using the example of
-"cm_remove_story_from_topic".
+"tm_remove_story_from_topic".
 
 Also see "media_edit" and "story_edit" activities below for an example of how
 the activity can be referenced by a foreign key.
@@ -112,7 +112,7 @@ the activity can be referenced by a foreign key.
 Readonly::Hash my %ACTIVITIES => {
 
     # Activity name that identifies the activity:
-    'cm_remove_story_from_topic' => {
+    'tm_remove_story_from_topic' => {
 
         # Human-readable description of the activity that is going to be
         # presented in the web UI
@@ -150,7 +150,7 @@ Readonly::Hash my %ACTIVITIES => {
         }
     },
 
-    'cm_media_merge' => {
+    'tm_media_merge' => {
         description => 'Merge medium into another medium',
         object_id   => {
             description => 'Topic ID in which the media merge was made',
@@ -172,7 +172,7 @@ Readonly::Hash my %ACTIVITIES => {
         }
     },
 
-    'cm_story_merge' => {
+    'tm_story_merge' => {
         description => 'Merge story into another story',
         object_id   => {
             description => 'Topic ID in which the story merge was made',
@@ -190,7 +190,7 @@ Readonly::Hash my %ACTIVITIES => {
         }
     },
 
-    'cm_snapshot_topic' => {
+    'tm_snapshot_topic' => {
         description => 'Snapshot topic',
         object_id   => {
             description => 'Topic ID for which the snapshot was made',
@@ -199,7 +199,7 @@ Readonly::Hash my %ACTIVITIES => {
         parameters => {}
     },
 
-    'cm_mine_topic' => {
+    'tm_mine_topic' => {
         description => 'Mine topic',
         object_id   => {
             description => 'Topic ID that was mined',
@@ -214,7 +214,7 @@ Readonly::Hash my %ACTIVITIES => {
         }
     },
 
-    'cm_search_tag_run' => {
+    'tm_search_tag_run' => {
         description => 'Run the "search and tag topic stories" script',
         object_id   => {
             description => 'Topic ID for which the stories were re-tagged',
@@ -228,7 +228,7 @@ Readonly::Hash my %ACTIVITIES => {
         }
     },
 
-    'cm_search_tag_change' => {
+    'tm_search_tag_change' => {
         description => 'Change the tag while running the "search and tag topic stories" script',
         object_id   => {
             description => 'Topic ID for which the stories were re-tagged',
@@ -336,7 +336,7 @@ Parameters:
 =item * C<$db> - Reference to the database object.
 
 =item * C<$activity_name> - Activity name from the C<%ACTIVITIES> hash, e.g.
-C<cm_mine_topic>.
+C<tm_mine_topic>.
 
 =item * C<$user> - User that initiated the activity, either: a) user's email,
 e.g. C<jdoe@cyber.law.harvard.edu>, or b) system username if the activity was
@@ -503,7 +503,7 @@ Parameters:
 =over 4
 
 =item * C<$activity_name> - Activity name from the C<%ACTIVITIES> hash, e.g.
-C<cm_mine_topic>.
+C<tm_mine_topic>.
 
 =item * C<$description_hash> - hashref of miscellaneous parameters that
 describe the activity.
@@ -560,7 +560,7 @@ Parameters:
 =over 4
 
 =item * C<$activity_name> - Activity name from the C<%ACTIVITIES> hash, e.g.
-C<cm_mine_topic>.
+C<tm_mine_topic>.
 
 =item * C<$description_json> - (JSON-encoded) string activity description.
 
@@ -676,7 +676,7 @@ Return a SQL query that, when executed, would return:
 =over 4
 
 =item * activities that can be directly referenced by their object ID, e.g.
-C<cm_mine_topic> for column name C<topics.topics_id>, and
+C<tm_mine_topic> for column name C<topics.topics_id>, and
 
 =item * activities that can be indirectly referenced by a foreign key using a
 SQL subquery, e.g. C<story_edit> for a column name

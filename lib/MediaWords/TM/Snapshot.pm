@@ -1721,9 +1721,9 @@ sub snapshot_topic ($$)
 
     # Log activity that's about to start
     my $changes = {};
-    unless ( MediaWords::DBI::Activities::log_system_activity( $db, 'cm_snapshot_topic', $topics_id + 0, $changes ) )
+    unless ( MediaWords::DBI::Activities::log_system_activity( $db, 'tm_snapshot_topic', $topics_id + 0, $changes ) )
     {
-        die "Unable to log the 'cm_snapshot_topic' activity.";
+        die "Unable to log the 'tm_snapshot_topic' activity.";
     }
 
     my ( $start_date, $end_date ) = get_default_dates( $db, $topic );

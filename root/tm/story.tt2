@@ -16,7 +16,7 @@ $(document).ready(function () {
         if ( hrefAttribute.indexOf('?') == -1 ) {
           alert("I have expected the target URL to have some query parameters at this point.");
         }
-        hrefAttribute = hrefAttribute + "&reason=" + encodeURIComponent($("#cm_remove_story_from_topic_reason").val());
+        hrefAttribute = hrefAttribute + "&reason=" + encodeURIComponent($("#tm_remove_story_from_topic_reason").val());
         window.location.href = hrefAttribute;
       },
       "Cancel": function () { $(this).dialog("close"); }
@@ -35,9 +35,9 @@ $(document).ready(function () {
         or new snapshots of the topic.
     </p>
     <p>
-        <label for="cm_remove_story_from_topic_reason">Reason:</label>
+        <label for="tm_remove_story_from_topic_reason">Reason:</label>
         <input type="text"
-               id="cm_remove_story_from_topic_reason"
+               id="tm_remove_story_from_topic_reason"
                size="24"
                placeholder="reason for the modification that you are making" />
     </p>
