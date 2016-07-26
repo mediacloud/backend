@@ -2748,8 +2748,8 @@ sub do_mine_topic ($$;$)
     my ( $db, $topic, $options ) = @_;
 
     # Log activity that's about to start
-    MediaWords::DBI::Activities::log_system_activity( $db, 'cm_mine_topic', $topic->{ topics_id }, $options )
-      || die( "Unable to log the 'cm_mine_topic' activity." );
+    MediaWords::DBI::Activities::log_system_activity( $db, 'tm_mine_topic', $topic->{ topics_id }, $options )
+      || die( "Unable to log the 'tm_mine_topic' activity." );
 
     update_topic_state( $db, $topic, "importing solr seed query" );
     import_solr_seed_query( $db, $topic );

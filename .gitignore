@@ -51,7 +51,7 @@ solr/mediacloud-shard-*/
 solr/logs
 solr/mediacloud/velocity.log
 
-# MediaWords::CM::Dump output
+# MediaWords::TM::Dump output
 /dump_layout_*
 
 # Cloned API client repo
