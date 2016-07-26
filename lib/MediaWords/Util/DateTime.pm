@@ -11,6 +11,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use DateTime;
+use MediaWords::Util::DateParse;
 
 # Cached because slow
 my $_local_tz = undef;
@@ -47,6 +48,18 @@ sub gmt_date_string_from_timestamp($)
     my $timestamp = shift;
 
     return gmt_datetime_from_timestamp( $timestamp )->datetime();
+}
+
+# Proxy to Date::Parse's str2time() which treats "61" as 2061, not 1961
+sub str2time_21st_century
+{
+    return MediaWords::Util::DateParse::str2time( @_ );
+}
+
+# Proxy to Date::Parse's strptime() which treats "61" as 2061, not 1961
+sub strptime_21st_century
+{
+    return MediaWords::Util::DateParse::strptime( @_ );
 }
 
 1;
