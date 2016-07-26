@@ -5,6 +5,7 @@ use utf8;
 use Test::NoWarnings;
 use Test::More tests => 12;
 
+use MediaWords::Util::DateTime;
 use DateTime;
 
 BEGIN
@@ -29,7 +30,7 @@ sub test_gmt_datetime_from_timestamp()
 
     # Start of epoch
     $timestamp = 0;
-    $datetime  = gmt_datetime_from_timestamp( $timestamp );
+    $datetime  = MediaWords::Util::DateTime::gmt_datetime_from_timestamp( $timestamp );
     isa_ok( $datetime, 'DateTime' );
     is( DateTime->compare( $datetime, DateTime->from_epoch( epoch => 0 ) ), 0 );
 
@@ -44,7 +45,7 @@ sub test_gmt_datetime_from_timestamp()
         time_zone => 'UTC'
     );
     $timestamp = $datetime_2->epoch;
-    $datetime  = gmt_datetime_from_timestamp( $timestamp );
+    $datetime  = MediaWords::Util::DateTime::gmt_datetime_from_timestamp( $timestamp );
     isa_ok( $datetime, 'DateTime' );
     is( DateTime->compare( $datetime, $datetime_2 ), 0 );
 
@@ -68,16 +69,16 @@ sub test_gmt_datetime_from_timestamp()
         second    => 0,
         time_zone => 'GMT'
     );
-    $datetime = gmt_datetime_from_timestamp( $timestamp );
+    $datetime = MediaWords::Util::DateTime::gmt_datetime_from_timestamp( $timestamp );
     isa_ok( $datetime, 'DateTime' );
     is( DateTime->compare( $datetime, $datetime_2 ), 0 );
 }
 
 sub test_gmt_date_string_from_timestamp()
 {
-    is( gmt_date_string_from_timestamp( 0 ),         '1970-01-01T00:00:00' );
-    is( gmt_date_string_from_timestamp( -13849765 ), '1969-07-24T16:50:35' );
-    is( gmt_date_string_from_timestamp( 637146000 ), '1990-03-11T09:00:00' );
+    is( MediaWords::Util::DateTime::gmt_date_string_from_timestamp( 0 ),         '1970-01-01T00:00:00' );
+    is( MediaWords::Util::DateTime::gmt_date_string_from_timestamp( -13849765 ), '1969-07-24T16:50:35' );
+    is( MediaWords::Util::DateTime::gmt_date_string_from_timestamp( 637146000 ), '1990-03-11T09:00:00' );
 }
 
 sub main()

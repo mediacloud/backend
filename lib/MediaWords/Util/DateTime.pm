@@ -10,9 +10,6 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-our @ISA    = qw(Exporter);
-our @EXPORT = qw(gmt_datetime_from_timestamp gmt_date_string_from_timestamp);
-
 use DateTime;
 
 # Cached because slow
