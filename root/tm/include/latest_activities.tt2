@@ -1,5 +1,5 @@
 <div class="boxtitle">Latest [% activities.size %] activities</div>
-<table class="cm_latest_activities even_rows_grey">
+<table class="tm_latest_activities even_rows_grey">
 
     <tr>
         <th>Activity</th>
