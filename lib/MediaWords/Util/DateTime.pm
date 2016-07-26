@@ -56,10 +56,4 @@ sub str2time_21st_century
     return MediaWords::Util::DateParse::str2time( @_ );
 }
 
-# Proxy to Date::Parse's strptime() which treats "61" as 2061, not 1961
-sub strptime_21st_century
-{
-    return MediaWords::Util::DateParse::strptime( @_ );
-}
-
 1;
