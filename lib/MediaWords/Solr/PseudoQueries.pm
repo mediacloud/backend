@@ -49,13 +49,15 @@ use MediaWords::DB;
 # if you add a new psuedo query field, update the pseudo query documentation in
 # in the api documentation referenced in the DESCRIPTION above.
 Readonly my $FIELD_FUNCTIONS => [
-    [ 'topic',            \&_transform_topic_field,            1 ],
-    [ 'timespan',         \&_transform_timespan_field,         1 ],
-    [ 'link_from_tag',    \&_transform_link_from_tag_field,    1 ],
-    [ 'link_to_story',    \&_transform_link_to_story_field,    1 ],
-    [ 'link_from_story',  \&_transform_link_from_story_field,  1 ],
-    [ 'link_to_medium',   \&_transform_link_to_medium_field,   1 ],
-    [ 'link_from_medium', \&_transform_link_from_medium_field, 1 ],
+    [ 'controversy',                 \&_transform_topic_field,            1 ],
+    [ 'topic',                       \&_transform_topic_field,            1 ],
+    [ 'timespan',                    \&_transform_timespan_field,         1 ],
+    [ 'controversy_dump_time_slice', \&_transform_timespan_field,         1 ],
+    [ 'link_from_tag',               \&_transform_link_from_tag_field,    1 ],
+    [ 'link_to_story',               \&_transform_link_to_story_field,    1 ],
+    [ 'link_from_story',             \&_transform_link_from_story_field,  1 ],
+    [ 'link_to_medium',              \&_transform_link_to_medium_field,   1 ],
+    [ 'link_from_medium',            \&_transform_link_from_medium_field, 1 ],
 ];
 
 # die with an error for the given field if there is no timespan
