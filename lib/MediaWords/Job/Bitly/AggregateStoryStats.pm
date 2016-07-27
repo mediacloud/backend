@@ -47,6 +47,7 @@ sub run($;$)
     say STDERR "Aggregating story stats for story $stories_id...";
 
     my $story = $db->find_by_id( 'stories', $stories_id );
+
     unless ( $story )
     {
         die "Unable to find story $stories_id.";

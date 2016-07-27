@@ -599,6 +599,8 @@ sub process_extracted_story($$$)
     {
         DEBUG "Won't process story $stories_id with Bit.ly because it's set to be skipped";
     }
+
+    DEBUG "process_extracted_story done";
 }
 
 =head2 restore_download_content( $db, $download, $story_content )

@@ -125,10 +125,9 @@ database:
         # other configurable supervisor programs
         #rabbitmq
         #rescrape_media
-        #cm_mine_controversy
-        #cm_dump_controversy
+        #topic_mine
+        #topic_snapshot
         #annotate_with_corenlp
-        #bitly_process_all_controversy_stories
         #bitly_fetch_story_stats
         #bitly_aggregate_story_stats
 
@@ -231,7 +230,7 @@ database:
     #story_processing:
 
         ### Enable Bit.ly processing for all stories (not just the ones that
-        ### belong to controversies enabled for Bit.ly processing)
+        ### belong to topics enabled for Bit.ly processing)
         #enabled: "no"
 
         ### Delay for which to postpone story processing since its
@@ -379,9 +378,6 @@ mediawords:
     # tablespace in which to create temporary tables -- defaults to the postgres default
     # temporary_table_tablespace: temporary_tablespace
 
-    # number of times to run each controversy_dump_time_slice model in MediaWords::CM::Model
-    # controversy_model_reps: 25
-
     # url for solr word counting url.  if this is set, fetch word counts from a remote server
     # using this url; otherwise, generate word counts locally
     # solr_wc_url: http://localhost/api/v2/wc
@@ -405,9 +401,6 @@ mediawords:
 
     # increment wc_cache_version to invalidate existing cache
     # wc_cache_version: 1
-
-    # max number of iterations by the the spider in MediaWords::CM::Mine
-    # mc_spider_iterations: 15
 
     # if set to 1, do all extractions in process rather than queueing to job manager
     # extract_in_process: 0
