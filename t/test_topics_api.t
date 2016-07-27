@@ -45,7 +45,7 @@ Readonly my $TEST_HTTP_SERVER_PORT => '3000';
 Readonly my $TEST_HTTP_SERVER_URL => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
 
 # This should match the DEFAULT_STORY_LIMIT in Stories.pm
-Readonly my $DEFAULT_STORY_LIMIT => 10;
+Readonly my $DEFAULT_STORY_LIMIT => 20;
 
 # A constant used to generate consistent orderings in test sorts
 Readonly my $TEST_MODULO => 6;
@@ -95,6 +95,8 @@ sub _api_request_url($;$)
             $uri->query_param( $key => $params->{ $key } );
         }
     }
+
+    DEBUG( "uri: " . $uri->as_string );
 
     return $uri->as_string;
 }
@@ -182,7 +184,6 @@ sub create_test_data
 
 sub _get_test_response
 {
-
     my $base_url = shift;
 
     my $url = _api_request_url( $base_url->{ path }, $base_url->{ params } );
@@ -229,7 +230,9 @@ sub test_story_count
 
     # The number of stories returned in stories/list matches the count in timespan
 
-    my $base_url = { path => '/api/v2/topics/1/stories/list' };
+    my $story_limit = 10;
+
+    my $base_url = { path => '/api/v2/topics/1/stories/list', params => { limit => $story_limit } };
 
     my $response = _get_test_response( $base_url );
 
@@ -237,7 +240,7 @@ sub test_story_count
 
     my $actual_response = JSON::decode_json( $response->decoded_content() );
 
-    Test::More::ok( scalar @{ $actual_response->{ stories } } == $DEFAULT_STORY_LIMIT );
+    is( scalar @{ $actual_response->{ stories } }, $story_limit, "story limit" );
 
 }
 

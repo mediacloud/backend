@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-package t::test_cm_mine;
+package t::test_tm_mine;
 
 use strict;
 use warnings;
