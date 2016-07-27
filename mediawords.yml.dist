@@ -127,11 +127,53 @@ database:
         #rescrape_media
         #topic_mine
         #topic_snapshot
-        #solr
         #annotate_with_corenlp
         #bitly_fetch_story_stats
         #bitly_aggregate_story_stats
 
+        # Standalone Solr instance
+        #solr_standalone
+
+        # Solr cluster: ZooKeeper instance
+        #solr_cluster_zookeeper
+
+        # Solr cluster: Solr shards
+        # (Don't set "numprocs" here, adjust "cluster_shard_count" instead.)
+        #solr_shard
+
+### Solr server, when running as a Supervisor service
+#supervisor_solr:
+
+    ### Standalone Solr instance
+    #standalone:
+
+        # JVM heap size (-Xmx)
+        #jvm_heap_size: "256m"
+
+    ### Solr cluster
+    #cluster:
+
+        ### ZooKeeper instance
+        #zookeeper:
+
+            ### Address to bind to
+            #listen: "0.0.0.0"
+
+            ### Port to listen to
+            #port: 9983
+
+        ### Solr shards
+        #shards:
+
+            # Total number of shards across the cluster ("numShards")
+            #cluster_shard_count: 2
+
+            # JVM heap size for a single shard (-Xmx)
+            #jvm_heap_size: "256m"
+
+            # ZooKeeper host + port to connect shards to
+            #zookeeper_host: "localhost"
+            #zookeeper_port: 9983
 
 ### CoreNLP annotator
 #corenlp:
