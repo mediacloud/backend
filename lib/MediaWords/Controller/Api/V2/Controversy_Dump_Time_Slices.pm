@@ -1,4 +1,4 @@
-package MediaWords::Controller::Api::V2::Controversies;
+package MediaWords::Controller::Api::V2::Controversy_Dump_Time_Slices;
 
 use strict;
 use warnings;
@@ -11,7 +11,7 @@ use namespace::autoclean;
 
 =head1 NAME
 
-MediaWords::Controller::Controversies - Catalyst Controller
+MediaWords::Controller::Controversy_Dump_Time_Slices - Catalyst Controller
 
 =head1 DESCRIPTION
 
@@ -21,7 +21,7 @@ Catalyst Controller.
 
 =cut
 
-=head2 index
+=head2 index 
 
 =cut
 
@@ -29,12 +29,17 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
 sub get_table_name
 {
-    return "controversies";
+    return "controversy_dump_time_slices";
 }
 
-sub list_name_search_field
+sub list_optional_query_filter_field
 {
-    return 'name';
+    return [ qw(controversy_dumps_id tags_id period start_date end_date) ];
+}
+
+sub order_by_clause
+{
+    return "controversy_dumps_id, tags_id desc, period, start_date, end_date";
 }
 
 =head1 AUTHOR

@@ -181,7 +181,7 @@ sub process_due_schedule_chunk($;$)
 
     $chunk_size ||= 1000;
 
-    DEBUG "Fetching chunk of up to $chunk_size stories to add to Bit.ly fetch queue...";
+    INFO "Fetching chunk of up to $chunk_size stories to add to Bit.ly fetch queue...";
 
     $db->begin_work;
 
@@ -198,27 +198,29 @@ EOF
 
     if ( scalar( @{ $stories_to_process } ) == 0 )
     {
-        DEBUG "No more stories left to process.";
+        INFO "No more stories left to process.";
         return 0;
     }
 
-    DEBUG "Processing " . scalar( @{ $stories_to_process } ) . " stories...";
+    INFO "Processing " . scalar( @{ $stories_to_process } ) . " stories...";
 
     foreach my $story_to_process ( @{ $stories_to_process } )
     {
         my $stories_id = $story_to_process->{ stories_id };
 
+        DEBUG "Fetching story $stories_id...";
         my $story = $db->find_by_id( 'stories', $stories_id );
         unless ( $story )
         {
             die "Story ID $stories_id was not found.";
         }
 
+        DEBUG "Calculating timestamps for story $stories_id...";
         my $story_timestamp = _story_timestamp( $story );
         my $start_timestamp = _story_start_timestamp( $story_timestamp );
         my $end_timestamp   = _story_end_timestamp( $story_timestamp );
 
-        DEBUG "Adding story $stories_id to Bit.ly fetch queue...";
+        INFO "Adding story $stories_id to Bit.ly fetch queue...";
         MediaWords::Job::Bitly::FetchStoryStats->add_to_queue(
             {
                 stories_id      => $stories_id,
@@ -227,6 +229,7 @@ EOF
             }
         );
 
+        DEBUG "Removing story $stories_id from Bit.ly processing schedule...";
         $db->query(
             <<EOF,
             DELETE FROM bitly_processing_schedule
@@ -235,12 +238,14 @@ EOF
 EOF
             $stories_id
         );
+
+        DEBUG "Done processing story $stories_id.";
     }
 
     $db->commit;
 
     my $stories_processed = scalar( @{ $stories_to_process } );
-    DEBUG "Done processing $stories_processed stories.";
+    INFO "Done processing $stories_processed stories.";
 
     return $stories_processed;
 }

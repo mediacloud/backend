@@ -42,9 +42,11 @@ use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::Job::Bitly::FetchStoryStats;
 use MediaWords::Job::Facebook::FetchStoryStats;
+use MediaWords::Languages::Language;
 use MediaWords::Solr;
 use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
+use MediaWords::Util::IdentifyLanguage;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
@@ -59,6 +61,12 @@ Readonly my $MAX_SOCIAL_MEDIA_FETCH_TIME => ( 60 * 60 * 3 );
 
 # max number of stories with no bitly metrics
 Readonly my $MAX_NULL_BITLY_STORIES => 500;
+
+# make regex matches fail if they take longer than this many seconds
+Readonly my $REGEX_TIMEOUT => 3;
+
+# add new links in chunks of this size
+Readonly my $ADD_NEW_LINKS_CHUNK_SIZE => 1000;
 
 # ignore links that match this pattern
 my $_ignore_link_pattern =
@@ -162,13 +170,19 @@ sub get_cached_medium_by_id
 {
     my ( $db, $media_id ) = @_;
 
-    if ( !$_media_cache )
+    if ( my $medium = $_media_cache->{ $media_id } )
     {
-        my $all_media = $db->query( "select * from media" )->hashes;
-        map { $_media_cache->{ $_->{ media_id } } = $_ } @{ $all_media };
+        TRACE "MEDIA CACHE HIT";
+        return $medium;
     }
 
-    $_media_cache->{ $media_id } ||= $db->find_by_id( 'media', $media_id );
+    TRACE "MEDIA CACHE MISS";
+    $_media_cache->{ $media_id } = $db->query( <<SQL, $media_id )->hash;
+select *,
+        exists ( select 1 from media d where d.dup_media_id = m.media_id ) is_dup_target
+    from media m
+    where m.media_id = ?
+SQL
 
     return $_media_cache->{ $media_id };
 }
@@ -980,6 +994,22 @@ sub translate_pattern_to_perl
     return $s;
 }
 
+sub _get_sentences_from_story_text
+{
+    my ( $story_text, $story_lang ) = @_;
+
+    # Tokenize into sentences
+    my $lang = MediaWords::Languages::Language::language_for_code( $story_lang );
+    if ( !$lang )
+    {
+        $lang = MediaWords::Languages::Language::default_language();
+    }
+
+    my $sentences = $lang->get_sentences( $story_text );
+
+    return $sentences;
+}
+
 # test whether the url or content of a potential story matches the topic pattern
 sub potential_story_matches_topic_pattern
 {
@@ -987,17 +1017,30 @@ sub potential_story_matches_topic_pattern
 
     my $re = translate_pattern_to_perl( $topic->{ pattern } );
 
-    my $match = ( ( $redirect_url =~ /$re/isx ) || ( $url =~ /$re/isx ) );
+    my $match = ( postgres_regex_match( $db, $redirect_url, $re ) || postgres_regex_match( $db, $url, $re ) );
 
     return 1 if $match;
 
     my $text_content = html_strip( $content, 1 );
 
-    # shockingly, this is much faster than native perl regexes for the kind of complex, boolean-converted
-    # regexes we often use for topics
-    $match = $db->query( <<SQL, $topic->{ topics_id }, $text_content )->hash;
-select 1 from topics where topics_id = ? and ? ~ ( '(?isx)' || pattern )
-SQL
+    my $story_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $text_content, '' );
+
+    my $sentences = _get_sentences_from_story_text( $text_content, $story_lang );
+
+    for my $sentence ( @{ $sentences } )
+    {
+        if ( postgres_regex_match( $db, $sentence, $re ) )
+        {
+            $match = 1;
+            last;
+        }
+    }
+
+    #     # shockingly, this is much faster than native perl regexes for the kind of complex, boolean-converted
+    #     # regexes we often use for topics
+    #     $match = $db->query( <<SQL, $topic->{ topics_id }, $text_content )->hash;
+    # select 1 from topics where topics_id = ? and ? ~ ( '(?isx)' || pattern )
+    # SQL
 
     if ( !$match )
     {
@@ -1029,29 +1072,46 @@ sub add_missing_story_sentences
     $_story_sentences_added->{ $story->{ stories_id } } = 1;
 }
 
+# run the regex through the postgres engine.return true if the given value matches the given regex.
+# this is necessary because very occasionally the wrong combination of text and complex boolean regex will
+# cause perl to hang.
+sub postgres_regex_match
+{
+    my ( $db, $string, $re ) = @_;
+
+    return undef unless ( defined( $string ) );
+
+    my $match = $db->query( "select 1 where \$1 ~ ( '(?isx)' || \$2 )", $string, $re )->hash;
+
+    return $match;
+}
+
 # return the type of match if the story title, url, description, or sentences match topic search pattern.
 # return undef if no match is found.
 sub story_matches_topic_pattern
 {
     my ( $db, $topic, $story, $metadata_only ) = @_;
 
-    my $perl_re = translate_pattern_to_perl( $topic->{ pattern } );
+    return 'sentence' if ( !$metadata_only && ( story_sentence_matches_pattern( $db, $story, $topic ) ) );
 
-    for my $field ( qw/title description url redirect_url/ )
-    {
-        if ( $story->{ $field } && ( $story->{ $field } =~ /$perl_re/isx ) )
-        {
-            return $field;
-        }
-    }
+    my $meta_values = [ map { $story->{ $_ } } qw/title description url redirect_url/ ];
 
-    return 0 if ( $metadata_only );
+    my $match = $db->query( <<SQL, $topic->{ topics_id }, @{ $meta_values } )->hash;
+select 1
+    from topics t
+    where
+        t.topics_id = \$1 and
+        (
+            ( \$2 ~ ( '(?isx)' || t.pattern ) ) or
+            ( \$3 ~ ( '(?isx)' || t.pattern ) ) or
+            ( \$4 ~ ( '(?isx)' || t.pattern ) ) or
+            ( \$5 ~ ( '(?isx)' || t.pattern ) )
+        )
+SQL
 
-    # # check for download_texts match first because some stories don't have
-    # # story_sentences, and it is expensive to generate the missing story_sentences
-    # return 0 unless ( story_download_text_matches_pattern( $db, $story, $topic ) );
+    return 'meta' if $match;
 
-    return story_sentence_matches_pattern( $db, $story, $topic ) ? 'sentence' : 0;
+    return 0;
 }
 
 # add to topic_stories table
@@ -1102,16 +1162,22 @@ sub get_preferred_story
 {
     my ( $db, $url, $redirect_url, $stories ) = @_;
 
+    my $stories_lookup = {};
+    map { $stories_lookup->{ $_->{ stories_id } } = $_ } @{ $stories };
+    $stories = [ values( %{ $stories_lookup } ) ];
+
+    return $stories->[ 0 ] if ( scalar( @{ $stories } ) == 1 );
+
+    TRACE "get_preferred_story: " . scalar( @{ $stories } );
+
     my $media_lookup = {};
     for my $story ( @{ $stories } )
     {
         next if ( $media_lookup->{ $story->{ media_id } } );
 
-        my $medium = $db->find_by_id( 'media', $story->{ media_id } );
-        $medium->{ story } = $story;
-        $medium->{ dup_target } =
-          $db->query( "select 1 from media where dup_media_id = ?", $story->{ media_id } )->hash ? 1 : 0;
-        $medium->{ dup_source } = $medium->{ dup_media_id } ? 1 : 0;
+        my $medium = get_cached_medium_by_id( $db, $story->{ media_id } );
+        $medium->{ story }          = $story;
+        $medium->{ is_dup_source }  = $medium->{ dup_media_id } ? 1 : 0;
         $medium->{ matches_domain } = _story_domain_matches_medium( $db, $medium, $url, $redirect_url );
 
         $media_lookup->{ $medium->{ media_id } } = $medium;
@@ -1121,13 +1187,15 @@ sub get_preferred_story
 
     sub _compare_media
     {
-             ( $b->{ dup_target } <=> $a->{ dup_target } )
-          || ( $b->{ dup_source } <=> $a->{ dup_source } )
+             ( $b->{ is_dup_target } <=> $a->{ is_dup_target } )
+          || ( $b->{ is_dup_source } <=> $a->{ is_dup_source } )
           || ( $b->{ matches_domain } <=> $a->{ matches_domain } )
           || ( $a->{ media_id } <=> $b->{ media_id } );
     }
 
     my $sorted_media = [ sort _compare_media @{ $media } ];
+
+    TRACE "get_preferred_story done";
 
     return $sorted_media->[ 0 ]->{ story };
 }
@@ -1165,7 +1233,7 @@ sub get_matching_story_from_db ($$;$)
 
     # look for matching stories, ignore those in foreign_rss_links media
     my $stories = $db->query( <<END )->hashes;
-select s.* from stories s
+select distinct( s.* ) from stories s
         join media m on s.media_id = m.media_id
     where ( s.url in ( $quoted_url_list ) or s.guid in ( $quoted_url_list ) ) and
         m.foreign_rss_links = false
@@ -1174,7 +1242,7 @@ END
     # we have to do a separate query here b/c postgres was not coming
     # up with a sane query plan for the combined query
     my $seed_stories = $db->query( <<END )->hashes;
-select s.* from stories s
+select distinct( s.* ) from stories s
         join media m on s.media_id = m.media_id
         join topic_seed_urls csu on s.stories_id = csu.stories_id
     where ( csu.url in ( $quoted_url_list ) ) and
@@ -1557,7 +1625,7 @@ sub extract_stories
 # each hash within new_links can either be a topic_links hash or simply a hash with a { url } field.  if
 # the link is a topic_links hash, the topic_link will be updated in the database to point ref_stories_id
 # to the new link story.  For each link, set the { story } field to the story found or created for the link.
-sub add_new_links
+sub add_new_links_chunk($$$$)
 {
     my ( $db, $topic, $iteration, $new_links ) = @_;
 
@@ -1600,6 +1668,18 @@ END
         }
     }
     $db->commit unless $db->dbh->{ AutoCommit };
+}
+
+# call add_new_links in chunks of $ADD_NEW_LINKS_CHUNK_SIZE so we don't lose too much work when we restart the spider
+sub add_new_links($$$$)
+{
+    my ( $db, $topic, $iteration, $new_links ) = @_;
+
+    for ( my $i = 0 ; $i < scalar( @{ $new_links } ) ; $i += $ADD_NEW_LINKS_CHUNK_SIZE )
+    {
+        my $end = List::Util::min( $i + $ADD_NEW_LINKS_CHUNK_SIZE - 1, $#{ $new_links } );
+        add_new_links_chunk( $db, $topic, $iteration, [ @{ $new_links }[ $i .. $end ] ] );
+    }
 }
 
 # build a lookup table of aliases for a url based on url and redirect_url fields in the topic_links
@@ -1732,14 +1812,7 @@ select distinct cs.iteration, cl.* from topic_links cl, topic_stories cs
         cl.topics_id = \$2
 END
 
-    # do this in chunks so that we don't have recheck lots of links for matches when we
-    # restart the mining process in the middle
-    my $chunk_size = 2000;
-    for ( my $i = 0 ; $i < scalar( @{ $new_links } ) ; $i += $chunk_size )
-    {
-        my $end = List::Util::min( $i + $chunk_size - 1, $#{ $new_links } );
-        add_new_links( $db, $topic, $iteration, [ @{ $new_links }[ $i .. $end ] ] );
-    }
+    add_new_links( $db, $topic, $iteration, $new_links );
 }
 
 # get short text description of spidering progress
@@ -1834,14 +1907,14 @@ sub update_topic_tags
     my $all_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "$tagset_name:all" )
       || die( "Can't find or create all_tag" );
 
-    $db->query( <<SQL, $all_tag->{ tags_id }, $topic->{ topics_id } );
+    $db->query_with_large_work_mem( <<SQL, $all_tag->{ tags_id }, $topic->{ topics_id } );
 delete from stories_tags_map stm
     where stm.tags_id = ? and
         not exists ( select 1 from topic_stories cs
                          where cs.topics_id = ? and cs.stories_id = stm.stories_id )
 SQL
 
-    $db->query( <<SQL, $topic->{ topics_id }, $all_tag->{ tags_id } );
+    $db->query_with_large_work_mem( <<SQL, $topic->{ topics_id }, $all_tag->{ tags_id } );
 insert into stories_tags_map ( stories_id, tags_id )
     select distinct cs.stories_id, \$2
         from topic_stories cs
@@ -2675,8 +2748,8 @@ sub do_mine_topic ($$;$)
     my ( $db, $topic, $options ) = @_;
 
     # Log activity that's about to start
-    MediaWords::DBI::Activities::log_system_activity( $db, 'cm_mine_topic', $topic->{ topics_id }, $options )
-      || die( "Unable to log the 'cm_mine_topic' activity." );
+    MediaWords::DBI::Activities::log_system_activity( $db, 'tm_mine_topic', $topic->{ topics_id }, $options )
+      || die( "Unable to log the 'tm_mine_topic' activity." );
 
     update_topic_state( $db, $topic, "importing solr seed query" );
     import_solr_seed_query( $db, $topic );

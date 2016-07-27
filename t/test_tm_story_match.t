@@ -155,8 +155,8 @@ sub test_story_matches
     $story_url = 'http://story/media_id';
     $db->query( "update media set dup_media_id = null" );
     $db->query( "update stories set url = ?", $story_url );
+    MediaWords::TM::Mine::init_static_variables();
     test_match( $db, $story_url, undef, $story_media_id, 'media_id' );
-
 }
 
 sub main
