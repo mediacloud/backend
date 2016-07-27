@@ -46,11 +46,6 @@ script/vagrant/temp-vagrant-mediacloud
 # run_test_suite.sh log
 data/run_test_suite.log
 
-# solr logs and shards
-solr/mediacloud-shard-*/
-solr/logs
-solr/mediacloud/velocity.log
-
 # MediaWords::TM::Dump output
 /dump_layout_*
 

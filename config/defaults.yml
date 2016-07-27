@@ -31,6 +31,18 @@ mediawords:
     user_agent: mediawords bot (http://cyber.law.harvard.edu)
 supervisor:
     childlogdir: data/supervisor_logs/
+supervisor_solr:
+    standalone:
+        jvm_heap_size: "256m"
+    cluster:
+        zookeeper:
+            listen: "0.0.0.0"
+            port: 9983
+        shards:
+            cluster_shard_count: 2
+            jvm_heap_size: "256m"
+            zookeeper_host: "localhost"
+            zookeeper_port: 9983
 corenlp:
     enabled: no
     annotator_url: ''
