@@ -122,16 +122,6 @@ my $_import_date;
 
 =cut
 
-# get get config setting for max stories to import at once
-sub _get_max_queued_stories
-{
-    my $config = MediaWords::Util::Config::get_config;
-
-    my $max_queued_stories = $config->{ mediawords }->{ solr_import }->{ max_queued_stories } || 100_000;
-
-    return $max_queued_stories;
-}
-
 # run a postgres query and generate a table that lookups on the first column by the second column.
 # assign that lookup to $data_lookup->{ $name }.
 sub _set_lookup
@@ -154,6 +144,10 @@ sub _set_lookup
 sub _add_extra_stories_to_import
 {
     my ( $db, $import_date, $num_delta_stories, $num_proc, $proc ) = @_;
+
+    my $config = MediaWords::Util::Config::get_config;
+
+    my $max_queued_stories = $config->{ mediawords }->{ solr_import }->{ max_queued_stories };
 
     my $max_processed_stories = int( _get_max_queued_stories() / $num_proc );
 
