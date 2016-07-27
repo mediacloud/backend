@@ -393,11 +393,22 @@ mediawords:
     # mc api key for appending to sol_wc_url for fetching remote word counts
     # solr_wc_key: FOO
 
-    # urls for solr queries, include multiple to make mc choose a random url from
-    # the list for each solr query
+    # URLs for Solr queries; include multiple to make Media Cloud choose a random URL from
+    # the list for each Solr query
     # solr_url:
-    #    - http://localhost:8983/solr
-    #    - http://127.0.0.1:8983/solr
+
+        # Standalone Solr instance...
+        #- http://localhost:8983/solr
+
+        # ...or SolrCloud shards
+        #- http://127.0.0.1:7981/solr
+        #- http://127.0.0.1:7982/solr
+        #- http://127.0.0.1:7983/solr
+        #- http://127.0.0.1:7984/solr
+        #- http://127.0.0.1:7985/solr
+        #- http://127.0.0.1:7986/solr
+        #- http://127.0.0.1:7987/solr
+        #- http://127.0.0.1:7988/solr
 
     # Solr importer configuration
     #solr_import:
