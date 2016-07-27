@@ -123,6 +123,11 @@ database:
             #autorestart: 'true'
 
         # other configurable supervisor programs
+        #create_missing_partitions
+        #facebook_fetch_story_stats
+        #process_bitly_schedule
+        #reextract_stories_without_readability_tag
+        #extractor_python_readability_server
         #rabbitmq
         #rescrape_media
         #topic_mine
@@ -138,7 +143,7 @@ database:
         #solr_cluster_zookeeper
 
         # Solr cluster: Solr shards
-        # (Don't set "numprocs" here, adjust "cluster_shard_count" instead.)
+        # (Don't set "numprocs" here, adjust "cluster_shard_count" / "local_shard_count" instead.)
         #solr_shard
 
 ### Solr server, when running as a Supervisor service
@@ -164,6 +169,9 @@ database:
 
         ### Solr shards
         #shards:
+
+            # Total number of local shards
+            #local_shard_count: 2
 
             # Total number of shards across the cluster ("numShards")
             #cluster_shard_count: 2
@@ -390,6 +398,11 @@ mediawords:
     # solr_url:
     #    - http://localhost:8983/solr
     #    - http://127.0.0.1:8983/solr
+
+    # Solr importer configuration
+    #solr_import:
+        # Stories to import into Solr on a single run
+        #max_queued_stories: 100000
 
     # By default API requests require a invalid 'key' param.
     # comment to allow api requests without a key.

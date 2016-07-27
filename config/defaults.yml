@@ -28,6 +28,8 @@ mediawords:
     recaptcha_public_key: 6LfEVt0SAAAAAFwQI0pOZ1bTHgDTpQcMeQY6VLd_
     solr_url:
         - "http://localhost:8983/solr"
+    solr_import:
+        max_queued_stories: 100000
     user_agent: mediawords bot (http://cyber.law.harvard.edu)
 supervisor:
     childlogdir: data/supervisor_logs/
@@ -39,6 +41,7 @@ supervisor_solr:
             listen: "0.0.0.0"
             port: 9983
         shards:
+            local_shard_count: 2
             cluster_shard_count: 2
             jvm_heap_size: "256m"
             zookeeper_host: "localhost"
