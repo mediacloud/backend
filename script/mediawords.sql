@@ -20,7 +20,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4573;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4574;
 
 BEGIN
 
@@ -2769,7 +2769,6 @@ create table api_links (
 
 create unique index api_links_params on api_links ( path, md5( params_json ) );
 
-
 -- Create missing partitions for partitioned tables
 CREATE OR REPLACE FUNCTION create_missing_partitions()
 RETURNS VOID AS
@@ -2781,3 +2780,10 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql;
+
+create view controversies as select topics_id controversies_id, * from topics;
+create view controversy_dumps as
+    select snapshots_id controversy_dumps_id, topics_id controversies_id, snapshot_date dump_date, * from snapshots;
+create view controversy_dump_time_slices as
+    select timespans_id controversy_dump_time_slices_id, snapshots_id controversy_dumps_id, foci_id controversy_query_slices_id, *
+        from timespans;
