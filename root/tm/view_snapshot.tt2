@@ -6,11 +6,20 @@
         [% INCLUDE tm/timespans_table.tt2 %]
     </div>
     <div id="narrowcolumn">
+        <div class="boxtitle">Foci</div>
+        <fieldset>
+            [% FOREACH f IN foci %]
+                <a href="[% c.uri_for( '/admin/tm/view_snapshot/' _ snapshot.snapshots_id, { qs => f.foci_id } ) %]">[% f.name | html %]</a><br />
+            [% END %]
+            <a href="[% c.uri_for( '/admin/tm/view_snapshot/' _ snapshot.snapshots_id ) %]">(all stories)</a><br />
+        </fieldset>
+
         <div class="boxtitle">Stats</div>
         <fieldset>
             <p><a href="[% c.uri_for( '/admin/tm/snapshot_daily_counts/' _ snapshot.snapshots_id ) %]">Daily Counts CSV</a></p>
             <p><a href="[% c.uri_for( '/admin/tm/snapshot_weekly_counts/' _ snapshot.snapshots_id ) %]">Weekly Counts CSV</a></p>
         </fieldset>
+
         <div class="boxtitle">Tools</div>
         <fieldset>
             <p><a href="[% c.uri_for( '/admin/tm/mot/' _ snapshot.snapshots_id ) %]">Media Over Time</a></p>
@@ -19,4 +28,3 @@
 <div>
 
 [% INCLUDE include/footer.tt2 %]
-

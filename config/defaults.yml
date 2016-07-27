@@ -15,7 +15,6 @@ mail:
     from_address: noreply@mediacloud.org
 mediawords:
     always_show_stack_traces: no
-    controversy_model_reps: 25
     default_home_page: admin/media/list
     extractor_method: InlinePythonReadability
     language: en_US_and_ru_RU
@@ -30,7 +29,6 @@ mediawords:
     solr_url:
         - "http://localhost:8983/solr"
     user_agent: mediawords bot (http://cyber.law.harvard.edu)
-    cm_spider_iterations: 15
 supervisor:
     childlogdir: data/supervisor_logs/
 supervisor_solr:

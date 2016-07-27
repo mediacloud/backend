@@ -111,8 +111,8 @@ sub _unit_reference_ts_and_units_from_start_end_timestamps($$$)
     if ( defined $start_timestamp and defined $end_timestamp )
     {
 
-        my $start_date = gmt_datetime_from_timestamp( $start_timestamp );
-        my $end_date   = gmt_datetime_from_timestamp( $end_timestamp );
+        my $start_date = MediaWords::Util::DateTime::gmt_datetime_from_timestamp( $start_timestamp );
+        my $end_date   = MediaWords::Util::DateTime::gmt_datetime_from_timestamp( $end_timestamp );
 
         # Round timestamps to the nearest day
         $start_date->set( hour => 0, minute => 0, second => 0 );
@@ -223,7 +223,8 @@ sub _request($$)
             if ( defined $params->{ unit_reference_ts } )
             {
                 $error_message .= $params->{ unit_reference_ts };
-                $error_message .= ' (' . gmt_date_string_from_timestamp( $params->{ unit_reference_ts } ) . ')';
+                $error_message .=
+                  ' (' . MediaWords::Util::DateTime::gmt_date_string_from_timestamp( $params->{ unit_reference_ts } ) . ')';
             }
             else
             {
@@ -767,8 +768,8 @@ sub fetch_stats_for_url($$$$)
         die "Bit.ly processing is not enabled.";
     }
 
-    my $string_start_date = gmt_date_string_from_timestamp( $start_timestamp );
-    my $string_end_date   = gmt_date_string_from_timestamp( $end_timestamp );
+    my $string_start_date = MediaWords::Util::DateTime::gmt_date_string_from_timestamp( $start_timestamp );
+    my $string_end_date   = MediaWords::Util::DateTime::gmt_date_string_from_timestamp( $end_timestamp );
 
     my $link_lookup;
     eval { $link_lookup = bitly_link_lookup_hashref_all_variants( $db, $url ); };

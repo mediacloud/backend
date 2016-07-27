@@ -63,8 +63,8 @@ sub serialize : ActionClass('Serialize')
     # Just calls parent
 }
 
-# Catch Catalyst exceptions (controller actions that have died); report them in
-# JSON back to the client
+# catch Catalyst exceptions (controller actions that have died); report them in JSON back to the client.
+# also add link data to entity, including finding or creating a next_link_id for the current
 sub end : Private
 {
     my ( $self, $c ) = @_;
@@ -99,22 +99,39 @@ sub end : Private
     }
     else
     {
-
-        # Continue towards serializing JSON results
-        # (http://search.cpan.org/~frew/Catalyst-Action-REST-1.15/lib/Catalyst/Controller/REST.pm#IMPLEMENTATION_DETAILS)
         $c->forward( 'serialize' );
-
     }
 }
 
-sub do_continuation_query ($$$$)
+# throw an error if the given fields are not in the given data hash
+sub require_fields ($$)
 {
-    my ( $self, $c, $query, $params ) = @_;
+    my ( $self, $c, $fields ) = @_;
 
-    my $limit = $c->req->params->{ limit } || 10;
-    my $continuation_id = $c->req->params->{ continuation_id };
+    my $data = $c->req->data;
 
-    return $c->dbis->query_or_continuation( $query, $params, $limit, $continuation_id );
+    map { die( "Required field '$_' is required but not present" ) unless ( defined( $data->{ $_ } ) ) } @{ $fields };
+}
+
+# update the given fields in the given table at the given id, pulling the update table from $c->req->data
+sub update_table ($$$$$)
+{
+    my ( $self, $c, $table, $id, $fields ) = @_;
+
+    my $db = $c->dbis;
+
+    my $object = $db->require_by_id( $table, $id );
+
+    my $data = {};
+    for my $field ( @{ $fields } )
+    {
+        $data->{ $field } = $c->req->data->{ $field };
+        $data->{ $field } //= $object->{ $field };
+    }
+
+    $db->update_by_id( $table, $id, $data );
+
+    return $db->find_by_id( $table, $id );
 }
 
 =head1 AUTHOR
