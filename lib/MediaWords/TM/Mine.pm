@@ -2642,7 +2642,7 @@ sub import_solr_seed_query
 
     return if ( $topic->{ solr_seed_query_run } );
 
-    my $max_stories = MediaWords::Util::Config::get_config->{ mediawords }->{ max_solr_seed_query_stories } || 250000;
+    my $max_stories = MediaWords::Util::Config::get_config->{ mediawords }->{ max_solr_seed_query_stories };
 
     INFO( sub { "executing solr query: $topic->{ solr_seed_query }" } );
     my $stories =

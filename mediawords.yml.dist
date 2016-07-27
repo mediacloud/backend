@@ -415,5 +415,8 @@ mediawords:
     # increment wc_cache_version to invalidate existing cache
     # wc_cache_version: 1
 
+    # No idea what this is really.
+    #max_solr_seed_query_stories: 250000
+
     # if set to 1, do all extractions in process rather than queueing to job manager
     # extract_in_process: 0

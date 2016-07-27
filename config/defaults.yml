@@ -30,6 +30,7 @@ mediawords:
         - "http://localhost:8983/solr"
     solr_import:
         max_queued_stories: 100000
+    max_solr_seed_query_stories: 250000
     user_agent: mediawords bot (http://cyber.law.harvard.edu)
 supervisor:
     childlogdir: data/supervisor_logs/
