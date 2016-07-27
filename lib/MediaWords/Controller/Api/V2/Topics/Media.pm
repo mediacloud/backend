@@ -11,17 +11,19 @@ use Moose;
 use namespace::autoclean;
 use List::Compare;
 use Carp;
+
+use MediaWords::DBI::ApiLinks;
 use MediaWords::Solr;
 use MediaWords::TM::Snapshot;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
-__PACKAGE__->config( action => { list_GET => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] }, } );
+__PACKAGE__->config( action => { list_GET => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] }, } );
 
 sub apibase : Chained('/') : PathPart('api/v2/topics') : CaptureArgs(1)
 {
-    my ( $self, $c, $topic_id ) = @_;
-    $c->stash->{ topic_id } = $topic_id;
+    my ( $self, $c, $topics_id ) = @_;
+    $c->stash->{ topics_id } = $topics_id;
 }
 
 sub media : Chained('apibase') : PathPart('media') : CaptureArgs(0)
@@ -73,17 +75,46 @@ END
     $db->commit;
 }
 
+# get any where clauses for media_id, link_to_stories_id, link_from_stories_id, stories_id params
+sub _get_extra_where_clause($$)
+{
+    my ( $c, $timespans_id ) = @_;
+
+    my $clauses = [];
+
+    if ( my $media_id = $c->req->params->{ media_id } )
+    {
+        $media_id += 0;
+        push( @{ $clauses }, "m.media_id = $media_id" );
+    }
+
+    if ( my $name = $c->req->params->{ name } )
+    {
+        if ( length( $name ) < 3 )
+        {
+            push( @{ $clauses }, "false" );
+        }
+        else
+        {
+            my $q_name_val = $c->dbis->dbh->quote( $name );
+            push( @{ $clauses }, "m.name ilike '%' || $q_name_val || '%'" );
+        }
+    }
+
+    return '' unless ( @{ $clauses } );
+
+    return 'and ' . join( ' and ', map { "( $_ ) " } @{ $clauses } );
+}
+
 sub list_GET : Local
 {
     my ( $self, $c ) = @_;
 
-    my $db       = $c->dbis;
-    my $timespan = MediaWords::TM::require_timespan_for_topic(
-        $c->dbis,
-        $c->stash->{ topic_id },
-        $c->req->params->{ timespan },
-        $c->req->params->{ snapshot }
-    );
+    my $timespan = MediaWords::TM::set_timespans_id_param( $c );
+
+    MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
+
+    my $db = $c->dbis;
 
     my $sort_param = $c->req->params->{ sort } || 'inlink';
 
@@ -94,18 +125,28 @@ sub list_GET : Local
       : 'mlc.inlink_count desc, md5( m.media_id::text )';
 
     my $timespans_id = $timespan->{ timespans_id };
-    my $snap_id      = $timespan->{ snapshots_id };
+    my $snapshots_id = $timespan->{ snapshots_id };
 
-    my ( $media, $continuation_id ) = $self->do_continuation_query( $c, <<SQL, [ $timespans_id, $snap_id ] );
+    my $limit  = $c->req->params->{ limit };
+    my $offset = $c->req->params->{ offset };
+
+    my $extra_clause = _get_extra_where_clause( $c, $timespans_id );
+
+    my $media = $db->query( <<SQL, $timespans_id, $snapshots_id, $limit, $offset )->hashes;
 select *
     from snap.medium_link_counts mlc
         join snap.media m on mlc.media_id = m.media_id
     where mlc.timespans_id = \$1 and
         m.snapshots_id = \$2
+        $extra_clause
     order by $sort_clause
+    limit \$3 offset \$4
+
 SQL
 
-    my $entity = { media => $media, timespan => $timespan, continuation_id => $continuation_id };
+    my $entity = { media => $media };
+
+    MediaWords::DBI::ApiLinks::add_links_to_entity( $c, $entity, 'media' );
 
     $self->status_ok( $c, entity => $entity );
 }

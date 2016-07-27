@@ -96,8 +96,8 @@ sub _create_topic_media_table
 {
     my ( $self, $c ) = @_;
 
-    my $timespans_id = $c->req->params->{ timespans_id };
-    my $timespan_mode = $c->req->params->{ topic_mode } || '';
+    my $timespans_id = $c->req->params->{ timespans_id } || $c->req->params->{ controversy_dump_time_slices_id };
+    my $timespan_mode = $c->req->params->{ topic_mode } || $c->req->params->{ controversy_mode } || '';
 
     return unless ( $timespans_id );
 

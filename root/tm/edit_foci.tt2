@@ -21,15 +21,13 @@
         <tr>
             <th>Name</th>
             <th>Query</th>
-            <th>All Timespans</th>
             <th>Delete</th>
         </tr>
-        [% FOREACH qs IN foci %]
-            [% SET delete_url = c.uri_for( "/admin/tm/delete_focus/$qs.foci_id" ) %]
+        [% FOREACH fd IN focus_definitions %]
+            [% SET delete_url = c.uri_for( "/admin/tm/delete_focus/$fd.focus_definitions_id" ) %]
             <tr>
-                <td>[% qs.name | html %]</td>
-                <td>[% qs.query | html %]</td>
-                <td>[% qs.all_timespans | html %]</td>
+                <td>[% fd.name | html %]</td>
+                <td>[% fd.query | html %]</td>
                 <td><a href="[% delete_url | html %]">delete</a></td>
             </tr>
         [% END %]
