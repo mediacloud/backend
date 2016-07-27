@@ -391,6 +391,11 @@ mediawords:
     #    - http://localhost:8983/solr
     #    - http://127.0.0.1:8983/solr
 
+    # Solr importer configuration
+    #solr_import:
+        # Stories to import into Solr on a single run
+        #max_queued_stories: 100000
+
     # By default API requests require a invalid 'key' param.
     # comment to allow api requests without a key.
     # WARNING DO NOT enable on a production or Internet connected instance
