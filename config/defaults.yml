@@ -28,6 +28,8 @@ mediawords:
     recaptcha_public_key: 6LfEVt0SAAAAAFwQI0pOZ1bTHgDTpQcMeQY6VLd_
     solr_url:
         - "http://localhost:8983/solr"
+    solr_import:
+        max_queued_stories: 100000
     user_agent: mediawords bot (http://cyber.law.harvard.edu)
 supervisor:
     childlogdir: data/supervisor_logs/
