@@ -39,7 +39,7 @@
   - for best index size and searching performance, set "index" to false
     for all general text fields, use copyField to copy them to the
     catchall "text" field, and use that for searching.
-  - For maximum indexing performance, use the StreamingUpdateSolrServer
+  - For maximum indexing performance, use the ConcurrentUpdateSolrServer
     java client.
   - Remember to run the JVM in server mode, and use a higher logging level
     that avoids logging every request
@@ -63,7 +63,7 @@
             (int, float, boolean, string...)
      -->
 
- <fields>
+
    <!-- Valid attributes for fields:
      name: mandatory - the name for the field
      type: mandatory - the name of a field type from the 
@@ -106,18 +106,18 @@
       trailing underscores (e.g. _version_) are reserved.
    -->
         
-   <field name="solr_id" type="string" indexed="true" stored="true" required="true" multiValued="false" /> 
+   <field name="solr_id" type="string" indexed="true" stored="true" required="true" multiValued="false" />
    
-   <field name="story_sentences_id" type="string" indexed="true" stored="true" required="true" multiValued="false" /> 
-   <field name="media_id" type="int" indexed="true" stored="false" required="true" multiValued="false" /> 
+   <field name="story_sentences_id" type="string" indexed="true" stored="true" required="true" multiValued="false" />
+   <field name="media_id" type="int" indexed="true" stored="false" required="true" multiValued="false" />
 
-   <field name="stories_id" type="int" indexed="true" stored="true" required="true" multiValued="false" /> 
-   <field name="sentence_number" type="int" indexed="true" stored="false" required="true" multiValued="false" /> 
+   <field name="stories_id" type="int" indexed="true" stored="true" required="true" multiValued="false" />
+   <field name="sentence_number" type="int" indexed="true" stored="false" required="true" multiValued="false" />
 
-   <field name="processed_stories_id" type="tlong" indexed="true" stored="true" required="true" multiValued="false" docValues="true" /> 
+   <field name="processed_stories_id" type="tlong" indexed="true" stored="true" required="true" multiValued="false" docValues="true" />
 
-   <field name="sentence"  type="text_general" indexed="true" stored="true" /> 
-   <field name="title"  type="text_general" indexed="true" stored="true" /> 
+   <field name="sentence"  type="text_general" indexed="true" stored="true" />
+   <field name="title"  type="text_general" indexed="true" stored="true" />
 
    <field name="publish_date" type="tdate" indexed="true" stored="false"/>
    <field name="publish_day" type="tdate" indexed="true" stored="false"/>
@@ -137,7 +137,7 @@
 
    <dynamicField name="random_*" type="random" />
    
- </fields>
+
 
 
  <!-- Field to use to determine and enforce document uniqueness. 
@@ -145,7 +145,7 @@
    -->
  <uniqueKey>solr_id</uniqueKey>
  
-  <types>
+  
     <!-- field type definitions. The "name" attribute is
        just a label to be used by field definitions.  The "class"
        attribute and any other attributes determine the real
@@ -240,16 +240,20 @@
       Note:
       These should only be used for compatibility with existing indexes (created with lucene or older Solr versions).
       Use Trie based fields instead. As of Solr 3.5 and 4.x, Trie based fields support sortMissingFirst/Last
-      
+
       Plain numeric field types that store and index the text
       value verbatim (and hence don't correctly support range queries, since the
       lexicographic ordering isn't equal to the numeric ordering)
+
+      NOTE: These field types are deprecated will be completely removed in Solr 5.0!
     -->
+    <!--
     <fieldType name="pint" class="solr.IntField"/>
     <fieldType name="plong" class="solr.LongField"/>
     <fieldType name="pfloat" class="solr.FloatField"/>
     <fieldType name="pdouble" class="solr.DoubleField"/>
     <fieldType name="pdate" class="solr.DateField" sortMissingLast="true"/>
+    -->
 
     <!-- The "RandomSortField" is not used to store or search any
          data.  You can declare fields of this type it in your schema
@@ -313,14 +317,14 @@
       </analyzer>
     </fieldType>
 
-    <fieldType name="str_general" class="solr.StrField" sortMissingLast="true" omitNorms="true"> 
-   <!--   <analyzer type="index"> 
-	<tokenizer class="solr.KeywordTokenizerFactory"/>	
-	<filter class="solr.LowerCaseFilterFactory" /> 
+    <fieldType name="str_general" class="solr.StrField" sortMissingLast="true" omitNorms="true">
+   <!--   <analyzer type="index">
+	<tokenizer class="solr.KeywordTokenizerFactory"/>
+	<filter class="solr.LowerCaseFilterFactory" />
       </analyzer>  -->
-<!--      <analyzer type="query"> 
-	<tokenizer class="solr.KeywordTokenizerFactory"/> 
-	<filter class="solr.LowerCaseFilterFactory" /> 
+<!--      <analyzer type="query">
+	<tokenizer class="solr.KeywordTokenizerFactory"/>
+	<filter class="solr.LowerCaseFilterFactory" />
       </analyzer>  -->
     </fieldType>
 
@@ -476,7 +480,7 @@
              See the Java Regular Expression documentation for more
              information on pattern and replacement string syntax.
              
-             http://java.sun.com/j2se/1.6.0/docs/api/java/util/regex/package-summary.html
+             http://docs.oracle.com/javase/7/docs/api/java/util/regex/package-summary.html
           -->
         <filter class="solr.PatternReplaceFilterFactory"
                 pattern="([^a-z])" replacement="" replace="all"
@@ -630,6 +634,18 @@
         <!-- for any non-CJK -->
         <filter class="solr.LowerCaseFilterFactory"/>
         <filter class="solr.CJKBigramFilterFactory"/>
+      </analyzer>
+    </fieldType>
+
+    <!-- Kurdish -->
+    <fieldType name="text_ckb" class="solr.TextField" positionIncrementGap="100">
+      <analyzer>
+        <tokenizer class="solr.StandardTokenizerFactory"/>
+        <filter class="solr.SoraniNormalizationFilterFactory"/>
+        <!-- for any latin text -->
+        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_ckb.txt"/>
+        <filter class="solr.SoraniStemFilterFactory"/>
       </analyzer>
     </fieldType>
 
@@ -955,9 +971,8 @@
     <!-- Thai -->
     <fieldType name="text_th" class="solr.TextField" positionIncrementGap="100">
       <analyzer> 
-        <tokenizer class="solr.StandardTokenizerFactory"/>
+        <tokenizer class="solr.ThaiTokenizerFactory"/>
         <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.ThaiWordFilterFactory"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_th.txt" />
       </analyzer>
     </fieldType>
@@ -966,13 +981,12 @@
     <fieldType name="text_tr" class="solr.TextField" positionIncrementGap="100">
       <analyzer> 
         <tokenizer class="solr.StandardTokenizerFactory"/>
+        <filter class="solr.ApostropheFilterFactory"/>
         <filter class="solr.TurkishLowerCaseFilterFactory"/>
         <filter class="solr.StopFilterFactory" ignoreCase="false" words="lang/stopwords_tr.txt" />
         <filter class="solr.SnowballPorterFilterFactory" language="Turkish"/>
       </analyzer>
     </fieldType>
-
- </types>
   
   <!-- Similarity is the scoring routine for each document vs. a query.
        A custom Similarity or SimilarityFactory may be specified here, but 

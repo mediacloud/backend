@@ -254,11 +254,26 @@ def __run_solr_zkcli(zkcli_args,
     solr_path = __solr_path(dist_directory=dist_directory, solr_version=solr_version)
 
     # Solr 4
-    log4j_properties_path = os.path.join(solr_path, "example", "cloud-scripts", "log4j.properties")
-    if not os.path.isfile(log4j_properties_path):
-        log4j_properties_path = os.path.join(solr_path, "server", "scripts", "cloud-scripts", "log4j.properties")
-        if not os.path.isfile(log4j_properties_path):
-            raise Exception("Unable to find log4j.properties file for zkcli.sh script")
+    log4j_properties_path = None
+    log4j_properties_expected_paths = [
+        # Solr 4.6
+        os.path.join(solr_path, "example", "cloud-scripts", "log4j.properties"),
+
+        # Solr 4.10
+        os.path.join(solr_path, "example", "scripts", "cloud-scripts", "log4j.properties"),
+
+        # Solr 5+
+        os.path.join(solr_path, "server", "scripts", "cloud-scripts", "log4j.properties"),
+    ]
+
+    for expected_path in log4j_properties_expected_paths:
+        if os.path.isfile(expected_path):
+            log4j_properties_path = expected_path
+            break
+
+    if log4j_properties_path is None:
+        raise Exception("Unable to find log4j.properties file for zkcli.sh script in paths: %s" %
+                        str(log4j_properties_expected_paths))
 
     if not tcp_port_is_open(hostname=zookeeper_host, port=zookeeper_port):
         raise Exception("ZooKeeper is not running at %s:%d." % (zookeeper_host, zookeeper_port))
@@ -577,6 +592,7 @@ def run_solr_shard(shard_num,
         "-Dhost=%s" % hostname,
         "-DzkHost=%s:%d" % (zookeeper_host, zookeeper_port),
         "-DnumShards=%d" % shard_count,
+        "-Dsolr.clustering.enabled=true",
     ]
     __run_solr(port=shard_port,
                instance_data_dir=shard_data_dir,
