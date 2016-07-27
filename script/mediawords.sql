@@ -20,7 +20,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4564;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4574;
 
 BEGIN
 
@@ -62,6 +62,21 @@ LANGUAGE 'plpgsql' IMMUTABLE
 CREATE OR REPLACE FUNCTION half_md5(string TEXT) RETURNS bytea AS $$
     SELECT SUBSTRING(digest(string, 'md5'::text), 0, 9);
 $$ LANGUAGE SQL;
+
+
+-- Returns true if table exists (and user has access to it)
+CREATE OR REPLACE FUNCTION table_exists(target_table_name VARCHAR)
+RETURNS BOOLEAN AS $$
+BEGIN
+    RETURN EXISTS (
+        SELECT 1
+        FROM information_schema.tables
+        WHERE table_schema = CURRENT_SCHEMA()
+          AND table_name = target_table_name
+    );
+END;
+$$
+LANGUAGE plpgsql;
 
 
  -- Returns true if the date is greater than the latest import date in solr_imports
@@ -1352,16 +1367,6 @@ create table topic_ignore_redirects (
 
 create index topic_ignore_redirects_url on topic_ignore_redirects ( url );
 
-create table foci (
-    foci_id     serial primary key,
-    topics_id                int not null references topics on delete cascade,
-    name                            varchar ( 1024 ) not null,
-    query                           text not null,
-    all_timespans                 boolean not null
-);
-
-create index foci_topic on foci ( topics_id );
-
 create table snapshots (
     snapshots_id            serial primary key,
     topics_id                int not null references topics on delete cascade,
@@ -1377,11 +1382,54 @@ create index snapshots_topic on snapshots ( topics_id );
 
 create type snap_period_type AS ENUM ( 'overall', 'weekly', 'monthly', 'custom' );
 
+create type focal_technique_type as enum ( 'Boolean Query' );
+
+create table focal_set_definitions (
+    focal_set_definitions_id    serial primary key,
+    topics_id                   int not null references topics on delete cascade,
+    name                        text not null,
+    description                 text null,
+    focal_technique             focal_technique_type not null
+);
+
+create unique index focal_set_definitions_topic_name on focal_set_definitions ( topics_id, name );
+
+create table focus_definitions (
+    focus_definitions_id        serial primary key,
+    focal_set_definitions_id    int not null references focal_set_definitions on delete cascade,
+    name                        text not null,
+    description                 text null,
+    arguments                   json not null
+);
+
+create unique index focus_definition_set_name on focus_definitions ( focal_set_definitions_id, name );
+
+create table focal_sets (
+    focal_sets_id               serial primary key,
+    snapshots_id                int not null references snapshots,
+    name                        text not null,
+    description                 text null,
+    focal_technique             focal_technique_type not null
+);
+
+create unique index focal_set_snapshot on focal_sets ( snapshots_id, name );
+
+create table foci (
+    foci_id                     serial primary key,
+    focal_sets_id               int not null references focal_sets on delete cascade,
+    name                        text not null,
+    description                 text null,
+    arguments                   json not null
+);
+
+create unique index foci_set_name on foci ( focal_sets_id, name );
+
+
 -- individual timespans within a snapshot
 create table timespans (
     timespans_id serial primary key,
     snapshots_id            int not null references snapshots on delete cascade,
-    foci_id     int null references foci on delete set null,
+    foci_id     int null references foci,
     start_date                      timestamp not null,
     end_date                        timestamp not null,
     period                          snap_period_type not null,
@@ -1393,9 +1441,6 @@ create table timespans (
     medium_count                    int not null,
     medium_link_count               int not null,
 
-    -- is this just a shell timespan with no data actual snapshoted into it?
-    -- we use shell timespans to display foci on live data with having to make a real snapshot first
-    is_shell                        boolean not null default false,
     tags_id                         int references tags -- keep on cascade to avoid accidental deletion
 );
 
@@ -1489,76 +1534,41 @@ CREATE TABLE bitly_clicks_total (
     click_count       INT       NOT NULL
 );
 
--- Automatic Bit.ly total click count partitioning to stories_id chunks of 1m rows
+
+CREATE OR REPLACE FUNCTION bitly_partition_chunk_size()
+RETURNS integer AS $$
+BEGIN
+    RETURN 100 * 1000 * 1000;   -- 100m rows in each partition
+END; $$
+LANGUAGE plpgsql IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION bitly_get_partition_name(stories_id INT, table_name TEXT)
+RETURNS TEXT AS $$
+DECLARE
+    to_char_format CONSTANT TEXT := '00';     -- Up to 100 partitions, suffixed as "_00", "_01" ..., "_99"
+                                              -- (having more of them is not feasible)
+    stories_id_chunk_number INT;
+
+    target_table_name TEXT;       -- partition table name (e.g. "bitly_clicks_total_000001")
+BEGIN
+    SELECT stories_id / bitly_partition_chunk_size() INTO stories_id_chunk_number;
+
+    SELECT table_name || '_' || trim(leading ' ' FROM to_char(stories_id_chunk_number, to_char_format))
+        INTO target_table_name;
+
+    RETURN target_table_name;
+END;
+$$
+LANGUAGE plpgsql;
+
+-- Insert row into correct partition
 CREATE OR REPLACE FUNCTION bitly_clicks_total_partition_by_stories_id_insert_trigger()
 RETURNS TRIGGER AS $$
 DECLARE
     target_table_name TEXT;       -- partition table name (e.g. "bitly_clicks_total_000001")
-    target_table_owner TEXT;      -- partition table owner (e.g. "mediaclouduser")
-
-    chunk_size CONSTANT INT := 1000000;           -- 1m stories in a chunk
-    to_char_format CONSTANT TEXT := '000000';     -- Up to 1m of chunks, suffixed as "_000001", ..., "_999999"
-
-    stories_id_chunk_number INT;  -- millions part of stories_id (e.g. 30 for stories_id = 30,000,000)
-    stories_id_start INT;         -- stories_id chunk lower limit, inclusive (e.g. 30,000,000)
-    stories_id_end INT;           -- stories_id chunk upper limit, exclusive (e.g. 31,000,000)
 BEGIN
-
-    SELECT NEW.stories_id / chunk_size INTO stories_id_chunk_number;
-    SELECT 'bitly_clicks_total_' || trim(leading ' ' from to_char(stories_id_chunk_number, to_char_format))
-        INTO target_table_name;
-
-    IF NOT EXISTS (
-        SELECT 1
-        FROM information_schema.tables
-        WHERE table_schema = current_schema()
-          AND table_name = target_table_name
-    ) THEN
-
-        SELECT (NEW.stories_id / chunk_size) * chunk_size INTO stories_id_start;
-        SELECT ((NEW.stories_id / chunk_size) + 1) * chunk_size INTO stories_id_end;
-
-        EXECUTE '
-            CREATE TABLE ' || target_table_name || ' (
-
-                -- Primary key
-                CONSTRAINT ' || target_table_name || '_pkey
-                    PRIMARY KEY (bitly_clicks_id),
-
-                -- Partition by stories_id
-                CONSTRAINT ' || target_table_name || '_stories_id CHECK (
-                    stories_id >= ''' || stories_id_start || '''
-                AND stories_id <  ''' || stories_id_end   || '''),
-
-                -- Foreign key to stories.stories_id
-                CONSTRAINT ' || target_table_name || '_stories_id_fkey
-                    FOREIGN KEY (stories_id) REFERENCES stories (stories_id) MATCH FULL,
-
-                -- Unique duplets
-                CONSTRAINT ' || target_table_name || '_stories_id_unique
-                    UNIQUE (stories_id)
-
-            ) INHERITS (bitly_clicks_total);
-        ';
-
-        -- Update owner
-        SELECT u.usename AS owner
-        FROM information_schema.tables AS t
-            JOIN pg_catalog.pg_class AS c ON t.table_name = c.relname
-            JOIN pg_catalog.pg_user AS u ON c.relowner = u.usesysid
-        WHERE t.table_name = 'bitly_clicks_total'
-          AND t.table_schema = 'public'
-        INTO target_table_owner;
-
-        EXECUTE 'ALTER TABLE ' || target_table_name || ' OWNER TO ' || target_table_owner || ';';
-
-    END IF;
-
-    EXECUTE '
-        INSERT INTO ' || target_table_name || '
-            SELECT $1.*;
-    ' USING NEW;
-
+    SELECT bitly_get_partition_name( NEW.stories_id, 'bitly_clicks_total' ) INTO target_table_name;
+    EXECUTE 'INSERT INTO ' || target_table_name || ' SELECT $1.*;' USING NEW;
     RETURN NULL;
 END;
 $$
@@ -1567,6 +1577,82 @@ LANGUAGE plpgsql;
 CREATE TRIGGER bitly_clicks_total_partition_by_stories_id_insert_trigger
     BEFORE INSERT ON bitly_clicks_total
     FOR EACH ROW EXECUTE PROCEDURE bitly_clicks_total_partition_by_stories_id_insert_trigger();
+
+
+-- Create missing Bit.ly partitions
+CREATE OR REPLACE FUNCTION bitly_clicks_total_create_partitions()
+RETURNS VOID AS
+$$
+DECLARE
+    chunk_size INT;
+    max_stories_id BIGINT;
+    partition_stories_id BIGINT;
+
+    target_table_name TEXT;       -- partition table name (e.g. "bitly_clicks_total_000001")
+    target_table_owner TEXT;      -- partition table owner (e.g. "mediaclouduser")
+
+    stories_id_start INT;         -- stories_id chunk lower limit, inclusive (e.g. 30,000,000)
+    stories_id_end INT;           -- stories_id chunk upper limit, exclusive (e.g. 31,000,000)
+BEGIN
+
+    SELECT bitly_partition_chunk_size() INTO chunk_size;
+
+    -- Create +1 partition for future insertions
+    SELECT COALESCE(MAX(stories_id), 0) + chunk_size FROM stories INTO max_stories_id;
+
+    FOR partition_stories_id IN 1..max_stories_id BY chunk_size LOOP
+        SELECT bitly_get_partition_name( partition_stories_id, 'bitly_clicks_total' ) INTO target_table_name;
+        IF table_exists(target_table_name) THEN
+            RAISE NOTICE 'Partition "%" for story ID % already exists.', target_table_name, partition_stories_id;
+        ELSE
+            RAISE NOTICE 'Creating partition "%" for story ID %', target_table_name, partition_stories_id;
+
+            SELECT (partition_stories_id / chunk_size) * chunk_size INTO stories_id_start;
+            SELECT ((partition_stories_id / chunk_size) + 1) * chunk_size INTO stories_id_end;
+
+            EXECUTE '
+                CREATE TABLE ' || target_table_name || ' (
+
+                    -- Primary key
+                    CONSTRAINT ' || target_table_name || '_pkey
+                        PRIMARY KEY (bitly_clicks_id),
+
+                    -- Partition by stories_id
+                    CONSTRAINT ' || target_table_name || '_stories_id CHECK (
+                        stories_id >= ''' || stories_id_start || '''
+                    AND stories_id <  ''' || stories_id_end   || '''),
+
+                    -- Foreign key to stories.stories_id
+                    CONSTRAINT ' || target_table_name || '_stories_id_fkey
+                        FOREIGN KEY (stories_id) REFERENCES stories (stories_id) MATCH FULL,
+
+                    -- Unique duplets
+                    CONSTRAINT ' || target_table_name || '_stories_id_unique
+                        UNIQUE (stories_id)
+
+                ) INHERITS (bitly_clicks_total);
+            ';
+
+            -- Update owner
+            SELECT u.usename AS owner
+            FROM information_schema.tables AS t
+                JOIN pg_catalog.pg_class AS c ON t.table_name = c.relname
+                JOIN pg_catalog.pg_user AS u ON c.relowner = u.usesysid
+            WHERE t.table_name = 'bitly_clicks_total'
+              AND t.table_schema = 'public'
+            INTO target_table_owner;
+
+            EXECUTE 'ALTER TABLE ' || target_table_name || ' OWNER TO ' || target_table_owner || ';';
+
+        END IF;
+    END LOOP;
+
+END;
+$$
+LANGUAGE plpgsql;
+
+-- Create initial partitions for empty database
+SELECT bitly_clicks_total_create_partitions();
 
 
 -- Helper to INSERT / UPDATE story's Bit.ly statistics
@@ -1587,131 +1673,6 @@ BEGIN
         BEGIN
             INSERT INTO bitly_clicks_total (stories_id, click_count)
             VALUES (param_stories_id, param_click_count);
-            RETURN;
-        EXCEPTION WHEN UNIQUE_VIOLATION THEN
-            -- If someone else INSERTs the same key concurrently,
-            -- we will get a unique-key failure. In that case, do
-            -- nothing and loop to try the UPDATE again.
-        END;
-    END LOOP;
-END;
-$$
-LANGUAGE plpgsql;
-
-
---
--- Bit.ly daily story click counts
---
-
--- "Master" table (no indexes, no foreign keys as they'll be ineffective)
-CREATE TABLE bitly_clicks_daily (
-    bitly_clicks_id   BIGSERIAL NOT NULL,
-    stories_id        INT       NOT NULL,
-
-    day               DATE      NOT NULL,
-    click_count       INT       NOT NULL
-);
-
--- Automatic Bit.ly daily click count partitioning to stories_id chunks of 1m rows
-CREATE OR REPLACE FUNCTION bitly_clicks_daily_partition_by_stories_id_insert_trigger()
-RETURNS TRIGGER AS $$
-DECLARE
-    target_table_name TEXT;       -- partition table name (e.g. "bitly_clicks_daily_000001")
-    target_table_owner TEXT;      -- partition table owner (e.g. "mediaclouduser")
-
-    chunk_size CONSTANT INT := 1000000;           -- 1m stories in a chunk
-    to_char_format CONSTANT TEXT := '000000';     -- Up to 1m of chunks, suffixed as "_000001", ..., "_999999"
-
-    stories_id_chunk_number INT;  -- millions part of stories_id (e.g. 30 for stories_id = 30,000,000)
-    stories_id_start INT;         -- stories_id chunk lower limit, inclusive (e.g. 30,000,000)
-    stories_id_end INT;           -- stories_id chunk upper limit, exclusive (e.g. 31,000,000)
-BEGIN
-
-    SELECT NEW.stories_id / chunk_size INTO stories_id_chunk_number;
-    SELECT 'bitly_clicks_daily_' || trim(leading ' ' from to_char(stories_id_chunk_number, to_char_format))
-        INTO target_table_name;
-
-    IF NOT EXISTS (
-        SELECT 1
-        FROM information_schema.tables
-        WHERE table_schema = current_schema()
-          AND table_name = target_table_name
-    ) THEN
-
-        SELECT (NEW.stories_id / chunk_size) * chunk_size INTO stories_id_start;
-        SELECT ((NEW.stories_id / chunk_size) + 1) * chunk_size INTO stories_id_end;
-
-        EXECUTE '
-            CREATE TABLE ' || target_table_name || ' (
-
-                -- Primary key
-                CONSTRAINT ' || target_table_name || '_pkey
-                    PRIMARY KEY (bitly_clicks_id),
-
-                -- Partition by stories_id
-                CONSTRAINT ' || target_table_name || '_stories_id CHECK (
-                    stories_id >= ''' || stories_id_start || '''
-                AND stories_id <  ''' || stories_id_end   || '''),
-
-                -- Foreign key to stories.stories_id
-                CONSTRAINT ' || target_table_name || '_stories_id_fkey
-                    FOREIGN KEY (stories_id) REFERENCES stories (stories_id) MATCH FULL,
-
-                -- Unique duplets
-                CONSTRAINT ' || target_table_name || '_stories_id_day_unique
-                    UNIQUE (stories_id, day)
-
-            ) INHERITS (bitly_clicks_daily);
-        ';
-
-        -- Update owner
-        SELECT u.usename AS owner
-        FROM information_schema.tables AS t
-            JOIN pg_catalog.pg_class AS c ON t.table_name = c.relname
-            JOIN pg_catalog.pg_user AS u ON c.relowner = u.usesysid
-        WHERE t.table_name = 'bitly_clicks_daily'
-          AND t.table_schema = 'public'
-        INTO target_table_owner;
-
-        EXECUTE 'ALTER TABLE ' || target_table_name || ' OWNER TO ' || target_table_owner || ';';
-
-    END IF;
-
-    EXECUTE '
-        INSERT INTO ' || target_table_name || '
-            SELECT $1.*;
-    ' USING NEW;
-
-    RETURN NULL;
-END;
-$$
-LANGUAGE plpgsql;
-
-CREATE TRIGGER bitly_clicks_daily_partition_by_stories_id_insert_trigger
-    BEFORE INSERT ON bitly_clicks_daily
-    FOR EACH ROW EXECUTE PROCEDURE bitly_clicks_daily_partition_by_stories_id_insert_trigger();
-
-
--- Helper to INSERT / UPDATE story's Bit.ly statistics
-CREATE OR REPLACE FUNCTION upsert_bitly_clicks_daily (
-    param_stories_id INT,
-    param_day DATE,
-    param_click_count INT
-) RETURNS VOID AS
-$$
-BEGIN
-    LOOP
-        -- Try UPDATing
-        UPDATE bitly_clicks_daily
-            SET click_count = param_click_count
-            WHERE stories_id = param_stories_id
-              AND day = param_day;
-        IF FOUND THEN RETURN; END IF;
-
-        -- Nothing to UPDATE, try to INSERT a new record
-        BEGIN
-            INSERT INTO bitly_clicks_daily (stories_id, day, click_count)
-            VALUES (param_stories_id, param_day, param_click_count);
             RETURN;
         EXCEPTION WHEN UNIQUE_VIOLATION THEN
             -- If someone else INSERTs the same key concurrently,
@@ -2796,3 +2757,33 @@ CREATE INDEX stories_without_readability_tag_stories_id
 --     -- No Readability tag
 --     WHERE stories_tags_map.tags_id IS NULL
 --     ;
+
+-- implements link_id as documented in the topics api spec
+create table api_links (
+    api_links_id        bigserial primary key,
+    path                text not null,
+    params_json         text not null,
+    next_link_id        bigint null references api_links on delete set null deferrable,
+    previous_link_id    bigint null references api_links on delete set null deferrable
+);
+
+create unique index api_links_params on api_links ( path, md5( params_json ) );
+
+-- Create missing partitions for partitioned tables
+CREATE OR REPLACE FUNCTION create_missing_partitions()
+RETURNS VOID AS
+$$
+BEGIN
+    -- "bitly_clicks_total" table
+    RAISE NOTICE 'Creating partitions in "bitly_clicks_total" table...';
+    PERFORM bitly_clicks_total_create_partitions();
+END;
+$$
+LANGUAGE plpgsql;
+
+create view controversies as select topics_id controversies_id, * from topics;
+create view controversy_dumps as
+    select snapshots_id controversy_dumps_id, topics_id controversies_id, snapshot_date dump_date, * from snapshots;
+create view controversy_dump_time_slices as
+    select timespans_id controversy_dump_time_slices_id, snapshots_id controversy_dumps_id, foci_id controversy_query_slices_id, *
+        from timespans;

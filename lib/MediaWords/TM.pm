@@ -111,15 +111,20 @@ SQL
 # * timespan if timespan specified
 # * latest timespan of snapshot is specified
 # * latest overall timespan
-sub get_timespan_for_topic
+sub get_timespan_for_topic($$$$)
 {
-    my ( $db, $topics_id, $timespans_id, $snapshot ) = @_;
+    my ( $db, $topics_id, $timespans_id, $snapshots_id ) = @_;
+
+    $timespans_id ||= '';
+    $snapshots_id ||= '';
+
+    TRACE( sub { "get_timespan_for_topic: topics_id-$topics_id timespans_id-$timespans_id snapshots_id-$snapshots_id" } );
 
     my $timespan = $timespans_id && _get_timespan( $db, $timespans_id );
 
     return $timespan if ( $timespan );
 
-    $timespan = $snapshot && _get_overall_timespan_from_snapshot( $db, $snapshot );
+    $timespan = $snapshots_id && _get_overall_timespan_from_snapshot( $db, $snapshots_id );
 
     return $timespan if ( $timespan );
 
@@ -129,13 +134,31 @@ sub get_timespan_for_topic
 }
 
 # call a get_timespan_for_contoversy; die if no timespan can be found.
-sub require_timespan_for_topic
+sub require_timespan_for_topic($$$$)
 {
-    my ( $db, $topics_id, $timespans_id, $snapshot ) = @_;
+    my ( $db, $topics_id, $timespans_id, $snapshots_id ) = @_;
 
-    my $timespan = get_timespan_for_topic( $db, $topics_id, $timespans_id, $snapshot );
+    my $timespan = get_timespan_for_topic( $db, $topics_id, $timespans_id, $snapshots_id );
 
     die( "Unable to find timespan for topic, timespan, or snapshot" ) unless ( $timespan );
+
+    return $timespan;
+}
+
+# given a topics api request, call require_timespan_for_topic using the request topics_id, timespans_id, and
+# snapshots_id, set the timespans_id parameter, and return the timespan
+sub set_timespans_id_param($)
+{
+    my ( $c ) = @_;
+
+    my $timespan = MediaWords::TM::require_timespan_for_topic(
+        $c->dbis,
+        $c->stash->{ topics_id },
+        $c->req->params->{ timespans_id },
+        $c->req->params->{ snapshots_id }
+    );
+
+    $c->req->params->{ timespans_id } = $timespan->{ timespans_id };
 
     return $timespan;
 }

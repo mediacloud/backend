@@ -17,12 +17,5 @@ elements:
     constraints:
         - Required
 
-  - type: Checkbox
-    name: all_timespans
-    label: All Timespans
-    comment: generate the foci for all timespans?
-    value: 1
-    default_empty_value: true
-
   - type: Submit
     value: Go

@@ -46,7 +46,7 @@ script/vagrant/temp-vagrant-mediacloud
 # run_test_suite.sh log
 data/run_test_suite.log
 
-# MediaWords::CM::Dump output
+# MediaWords::TM::Dump output
 /dump_layout_*
 
 # Cloned API client repo

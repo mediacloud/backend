@@ -8,139 +8,143 @@
    - [Paging](#paging)   
    - [Examples](#examples)   
 - [Topics](#topics)   
-   - [topics/create (POST)](#topicscreate-post)   
+   - [topics/create (POST) - TODO](#topicscreate-post-todo)   
       - [Query Parameters](#query-parameters)   
       - [Input Description](#input-description)   
       - [Example](#example)   
-   - [topics/~topics_id~/edit (PUT)](#topicstopics_idedit-put)   
+   - [topics/~topics_id~/edit (PUT) - TODO](#topicstopics_idedit-put-todo)   
       - [Query Parameters](#query-parameters-1)   
       - [Input Description](#input-description-1)   
       - [Example](#example-1)   
-   - [topics/~topics_id~/spider](#topicstopics_idspider)   
+   - [topics/~topics_id~/spider - TODO](#topicstopics_idspider-todo)   
       - [Query Parameters](#query-parameters-2)   
       - [Output Description](#output-description)   
       - [Example](#example-2)   
-   - [topics/~topics_id~/iterations/list](#topicstopics_iditerationslist)   
+   - [topics/~topics_id~/iterations/list - TODO](#topicstopics_iditerationslist-todo)   
       - [Query Parameters](#query-parameters-3)   
       - [Output Description](#output-description-1)   
       - [Example](#example-3)   
-   - [topics/list](#topicslist)   
+   - [topics/list - DONE](#topicslist-done)   
       - [Query Parameters](#query-parameters-4)   
       - [Output Description](#output-description-2)   
       - [Example](#example-4)   
 - [Stories](#stories)   
-   - [stories/list](#storieslist)   
+   - [stories/list - DONE](#storieslist-done)   
       - [Query Parameters](#query-parameters-5)   
       - [Output Description](#output-description-3)   
       - [Example](#example-5)   
-   - [stories/count](#storiescount)   
+   - [stories/count - DONE](#storiescount-done)   
       - [Query Parameters](#query-parameters-6)   
       - [Output Description](#output-description-4)   
       - [Example](#example-6)   
-   - [stories/~stories_id~/edit (PUT)](#storiesstories_idedit-put)   
+   - [stories/~stories_id~/edit (PUT) - TODO](#storiesstories_idedit-put-todo)   
       - [Query Parameters](#query-parameters-7)   
       - [Input Description](#input-description-2)   
       - [Output Description](#output-description-5)   
       - [Example](#example-7)   
-   - [stories/~stories_id~/remove (PUT)](#storiesstories_idremove-put)   
+   - [stories/~stories_id~/remove (PUT) - TODO](#storiesstories_idremove-put-todo)   
       - [Query Parameters](#query-parameters-8)   
       - [Output Description](#output-description-6)   
       - [Example](#example-8)   
-   - [stories/merge (PUT)](#storiesmerge-put)   
+   - [stories/merge (PUT) - TODO](#storiesmerge-put-todo)   
       - [Query Parameters](#query-parameters-9)   
       - [Input Description](#input-description-3)   
       - [Output Description](#output-description-7)   
       - [Example](#example-9)   
 - [Sentences](#sentences)   
-   - [sentences/count](#sentencescount)   
+   - [sentences/count - DONE](#sentencescount-done)   
 - [Media](#media)   
-   - [media/list](#medialist)   
+   - [media/list - DONE](#medialist-done)   
       - [Query Parameters](#query-parameters-10)   
       - [Output Description](#output-description-8)   
       - [Example](#example-10)   
-   - [media/~media_id~/edit (PUT)](#mediamedia_idedit-put)   
+   - [media/~media_id~/edit (PUT) - TODO](#mediamedia_idedit-put-todo)   
       - [Query Parameters](#query-parameters-11)   
       - [Input Description](#input-description-4)   
       - [Example](#example-11)   
-   - [media/~media_id~/remove (PUT)](#mediamedia_idremove-put)   
+   - [media/~media_id~/remove (PUT) - TODO](#mediamedia_idremove-put-todo)   
       - [Query Parameters](#query-parameters-12)   
       - [Output Description](#output-description-9)   
       - [Example](#example-12)   
-   - [media/merge (PUT)](#mediamerge-put)   
+   - [media/merge (PUT) - TODO](#mediamerge-put-todo)   
       - [Query Parameters](#query-parameters-13)   
       - [Input Description](#input-description-5)   
       - [Output Description](#output-description-10)   
       - [Example](#example-13)   
 - [Word Counts](#word-counts)   
-   - [wc/list](#wclist)   
+   - [wc/list - DONE](#wclist-done)   
 - [Foci](#foci)   
    - [Focal Techniques](#focal-techniques)   
       - [Focal Technique: Boolean Query](#focal-technique-boolean-query)   
-   - [focal_set_definitions/create (POST)](#focal_set_definitionscreate-post)   
+   - [focal_set_definitions/create (POST) - DONE](#focal_set_definitionscreate-post-done)   
       - [Query Parameters](#query-parameters-14)   
       - [Input Description](#input-description-6)   
       - [Example](#example-14)   
-   - [focal_set_definitions/~focal_set_definitions_id~/update (PUT)](#focal_set_definitionsfocal_set_definitions_idupdate-put)   
+   - [focal_set_definitions/~focal_set_definitions_id~/update (PUT) - DONE](#focal_set_definitionsfocal_set_definitions_idupdate-put-done)   
       - [Query Parameters](#query-parameters-15)   
       - [Input Parameters](#input-parameters)   
       - [Example](#example-15)   
-   - [focal_set_definitions/~focal_set_definitions_id~/delete (PUT)](#focal_set_definitionsfocal_set_definitions_iddelete-put)   
+   - [focal_set_definitions/~focal_set_definitions_id~/delete (PUT) - DONE](#focal_set_definitionsfocal_set_definitions_iddelete-put-done)   
       - [Query Parameters](#query-parameters-16)   
       - [Output Description](#output-description-11)   
       - [Example](#example-16)   
-   - [focal_set_definitions/list](#focal_set_definitionslist)   
+   - [focal_set_definitions/list - DONE](#focal_set_definitionslist-done)   
       - [Query Parameters](#query-parameters-17)   
       - [Output Description](#output-description-12)   
       - [Example](#example-17)   
-   - [focal_sets/list](#focal_setslist)   
+   - [focal_sets/list - DONE](#focal_setslist-done)   
       - [Query Parameters](#query-parameters-18)   
       - [Output Description](#output-description-13)   
       - [Example](#example-18)   
-   - [focus_definitions/~focal_set_definitions_id~/create (POST)](#focus_definitionsfocal_set_definitions_idcreate-post)   
+   - [focus_definitions/create (POST) - DONE](#focus_definitionscreate-post-done)   
       - [Query Parameters](#query-parameters-19)   
       - [Input Description](#input-description-7)   
       - [Example](#example-19)   
-   - [focus_definitions/~focus_definitions_id~/update (PUT)](#focus_definitionsfocus_definitions_idupdate-put)   
+   - [focus_definitions/~focus_definitions_id~/update (PUT) - DONE](#focus_definitionsfocus_definitions_idupdate-put-done)   
       - [Query Parameters](#query-parameters-20)   
       - [Input Description](#input-description-8)   
       - [Example](#example-20)   
-   - [focus_definitions/list](#focus_definitionslist)   
+   - [focus_definitions/~focus_definitions_id~/delete (PUT) - DONE](#focus_definitionsfocus_definitions_iddelete-put-done)   
       - [Query Parameters](#query-parameters-21)   
       - [Output Description](#output-description-14)   
       - [Example](#example-21)   
-   - [foci/list](#focilist)   
+   - [focus_definitions/list - DONE](#focus_definitionslist-done)   
       - [Query Parameters](#query-parameters-22)   
-      - [Ouput Description](#ouput-description)   
-      - [Example](#example-22)   
-- [Snapshots](#snapshots)   
-   - [snapshots/generate (POST)](#snapshotsgenerate-post)   
-      - [Query Parameters](#query-parameters-23)   
-      - [Input Description](#input-description-9)   
       - [Output Description](#output-description-15)   
+      - [Example](#example-22)   
+   - [foci/list - DONE](#focilist-done)   
+      - [Query Parameters](#query-parameters-23)   
+      - [Ouput Description](#ouput-description)   
       - [Example](#example-23)   
-      - [snapshots/list](#snapshotslist)   
-      - [Query Paramaters](#query-paramaters)   
+- [Snapshots](#snapshots)   
+   - [snapshots/generate (POST) - DONE](#snapshotsgenerate-post-done)   
+      - [Query Parameters](#query-parameters-24)   
+      - [Input Description](#input-description-9)   
       - [Output Description](#output-description-16)   
       - [Example](#example-24)   
-   - [snapshots/~snapshots_id~/edit (PUT)](#snapshotssnapshots_idedit-put)   
-      - [Query Parameters](#query-parameters-24)   
-      - [Input Description](#input-description-10)   
+      - [snapshots/list - DONE](#snapshotslist-done)   
+      - [Query Paramaters](#query-paramaters)   
       - [Output Description](#output-description-17)   
       - [Example](#example-25)   
-- [Timespans](#timespans)   
-   - [timespans/list](#timespanslist)   
+   - [snapshots/~snapshots_id~/edit (PUT) - TODO](#snapshotssnapshots_idedit-put-todo)   
       - [Query Parameters](#query-parameters-25)   
+      - [Input Description](#input-description-10)   
       - [Output Description](#output-description-18)   
       - [Example](#example-26)   
-   - [timespans/add_dates (PUT)](#timespansadd_dates-put)   
+- [Timespans](#timespans)   
+   - [timespans/list - DONE](#timespanslist-done)   
       - [Query Parameters](#query-parameters-26)   
-      - [Input Description](#input-description-11)   
       - [Output Description](#output-description-19)   
       - [Example](#example-27)   
-   - [timespans/list_dates](#timespanslist_dates)   
+   - [timespans/add_dates (PUT) - TODO](#timespansadd_dates-put-todo)   
       - [Query Parameters](#query-parameters-27)   
+      - [Input Description](#input-description-11)   
       - [Output Description](#output-description-20)   
       - [Example](#example-28)   
+   - [timespans/list_dates - TODO](#timespanslist_dates-todo)   
+      - [Query Parameters](#query-parameters-28)   
+      - [Output Description](#output-description-21)   
+      - [Example](#example-29)   
 - [TODO](#todo)   
 
 <!-- /MDTOC -->
@@ -286,11 +290,11 @@ The section for each end point includes an example call and response for that en
 
 # Topics
 
-## topics/create (POST)
+## topics/create (POST) - TODO
 
 `https://api.mediacloud.org/api/v2/topics/create`
 
-Create and return a new *topic*..
+Create and return a new *topic*.
 
 ### Query Parameters
 
@@ -350,7 +354,7 @@ to have saner errors for? -->
 
 <!-- TODO - RB - do we need a public flag? or is that something we'll figure out with the permissions stuff separately -->
 
-## topics/~topics_id~/edit (PUT)
+## topics/~topics_id~/edit (PUT) - TODO
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/edit`
 
@@ -403,7 +407,7 @@ Response:
 }
 ```
 
-## topics/~topics_id~/spider
+## topics/~topics_id~/spider - TODO
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/spider`
 
@@ -439,7 +443,7 @@ Response:
 { "success": 1 }
 ```
 
-## topics/~topics_id~/iterations/list
+## topics/~topics_id~/iterations/list - TODO
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/iterations/list`
 
@@ -484,7 +488,7 @@ Response:
 }
 ```
 
-## topics/list
+## topics/list - DONE
 
 `https://api.mediacloud.org/api/v2/topics/list`
 
@@ -549,12 +553,12 @@ Response:
 ```
 <!-- TODO - do we want to add the user that created/requested this to the output? -->
 
-<!-- RB - what about topics/single?  I need that.  it is currently implemented as controversies/single, but I'd like the spider status added to those results -->
+<!-- RB - what about topics/single?  I need that.  it is currently implemented as topics/single, but I'd like the spider status added to those results -->
 <!-- HR -  I really hate having multiple end points that do the same thing.  is it really that much easier to call topics/single/123 rather than topics/list?topics_id=123 ? -->
 
 # Stories
 
-## stories/list
+## stories/list - DONE
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/list`
 
@@ -567,8 +571,10 @@ The stories list call returns stories in the topic.
 | q                    | null    | if specified, return only stories that match the given solr query |
 | sort                 | inlink  | sort field for returned stories; possible values: `inlink`, `social` |
 | stories_id           | null    | return only stories matching these stories_ids |
-| link_to_stories_id   | null    | return only stories from other media that link to the given stories_ids |
-| link_from_stories_id | null    | return only stories from other media that are linked from the given stories_ids |
+| link_to_stories_id   | null    | return only stories from other media that link to the given stories_id |
+| link_from_stories_id | null    | return only stories from other media that are linked from the given stories_id |
+| link_to_media_id     | null    | return only stories that link to stories in the given media |
+| link_from_media_id   | null    | return only stories that are linked from stories in the given media_id |
 | media_id             | null    | return only stories belonging to the given media_ids |
 | limit                | 20      | return the given number of stories       |
 | link_id              | null    | return stories using the paging link     |
@@ -635,7 +641,7 @@ Response:
 }
 ```
 
-## stories/count
+## stories/count - DONE
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/count`
 
@@ -672,7 +678,7 @@ Response:
 { "count": 123 }
 ```
 
-## stories/~stories_id~/edit (PUT)
+## stories/~stories_id~/edit (PUT) - TODO
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/~stories_id~/edit`
 
@@ -714,7 +720,7 @@ Response:
 
 (see stories/list)
 
-## stories/~stories_id~/remove (PUT)
+## stories/~stories_id~/remove (PUT) - TODO
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/~stories_id~/remove`
 
@@ -742,11 +748,11 @@ Response:
 { "success": 1 }
 ```
 
-## stories/merge (PUT)
+## stories/merge (PUT) - TODO
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/merge`
 
-Merge one story into another story within this controversy.
+Merge one story into another story within this topic.
 
 ### Query Parameters
 
@@ -759,7 +765,7 @@ Merge one story into another story within this controversy.
 | from_stories_id | id of the story to merge into to_stories_id; required |
 | to_stories_id   | id of the story into which from_stories_id will be merge; required |
 
-Merging from_stories_id into to_stories_id removes from_stories_id from the controversy and merges the outlinks and inlinks of from_stories_id into to_stories_id.
+Merging from_stories_id into to_stories_id removes from_stories_id from the topic and merges the outlinks and inlinks of from_stories_id into to_stories_id.
 
 ### Output Description
 
@@ -790,7 +796,7 @@ Response:
 
 # Sentences
 
-## sentences/count
+## sentences/count - DONE
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/sentences/count`
 
@@ -805,7 +811,7 @@ For details about this end point, including parameters, output, and examples, se
 
 # Media
 
-## media/list
+## media/list - DONE
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/media/list`
 
@@ -870,11 +876,11 @@ Response:
     }
 }
 ```
-## media/~media_id~/edit (PUT)
+## media/~media_id~/edit (PUT) - TODO
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/media/~media_id~/edit`
 
-Edit and return the given media source.  Media source edits apply to that media source for all controversies.
+Edit and return the given media source.  Media source edits apply to that media source for all topics.
 
 ### Query Parameters
 
@@ -908,7 +914,7 @@ Output:
 
 (see media/list)
 
-## media/~media_id~/remove (PUT)
+## media/~media_id~/remove (PUT) - TODO
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/media/~media_id~/remove`
 
@@ -936,7 +942,7 @@ Response:
 { "success": 1 }
 ```
 
-## media/merge (PUT)
+## media/merge (PUT) - TODO
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/media/merge`
 
@@ -984,7 +990,7 @@ Response:
 
 # Word Counts
 
-## wc/list
+## wc/list - DONE
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/wc/list`
 
@@ -1009,14 +1015,12 @@ A *focus* is a set of stories identified through some *focal technique*.  *focal
 
 A specific *focus* exists within a specific *snapshot*.  A single topic might have many 'clinton' *foci*, one for each *snapshot*.  Each *topic* has a number of *focus definion*, each of which tells the system which *foci* to create each time a new *snapshot* is created.  *foci* for new *focus definitions* will be only be created for *snapshots* created after the creation of the *focus definition*.
 
-The relationship of these objects is show"below":
+The relationship of these objects is shown below:
 
-*                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             topic
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          *       focal set definition
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          *       focus definition (+ focal technique)
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          *       snapshot
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            *     focal set
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              *     focus (+ focal technique)
+* topic
+    * snapshot
+        * focus
+            * timespan
 
 ## Focal Techniques
 
@@ -1030,9 +1034,9 @@ Details about each focal technique are below.  Among other properties, each foca
 
 The Boolean Query focal technique associates a focus with a story by matching that story with a solr boolean query.  *focal sets* generated by the Boolean Query method are not exclusive.
 
-## focal_set_definitions/create (POST)
+## focal_set_definitions/create (POST) - DONE
 
-`https://api.mediacloud.org/api/topics/~topics_id~/focal_sets/create`
+`https://api.mediacloud.org/api/topics/~topics_id~/focal_set_definitions/create`
 
 Create and return a new *focal set definiition*  within the given *topic*.
 
@@ -1050,9 +1054,9 @@ Create and return a new *focal set definiition*  within the given *topic*.
 
 ### Example
 
-Create a 'Candidates' focal set definiition in the 'U.S. 2016 Election' topic:
+Create a 'Candidates' focal set definition in the 'U.S. 2016 Election' topic:
 
-`https://api.mediacloud.org/api/v2/topics/1344/focal_set_definitions_create`
+`https://api.mediacloud.org/api/v2/topics/1344/focal_set_definitions/create`
 
 Input:
 
@@ -1081,7 +1085,7 @@ Response:
 }
 ```
 
-## focal_set_definitions/~focal_set_definitions_id~/update (PUT)
+## focal_set_definitions/~focal_set_definitions_id~/update (PUT) - DONE
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/focal_set_definitions/~focal_set_definitions_id~/update/`
 
@@ -1128,7 +1132,7 @@ Response:
 }
 ```
 
-## focal_set_definitions/~focal_set_definitions_id~/delete (PUT)
+## focal_set_definitions/~focal_set_definitions_id~/delete (PUT) - DONE
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/focal_set_definitions/~focal_set_definitions_id~/delete`
 
@@ -1156,7 +1160,7 @@ Response:
 { "success": 1 }
 ```
 
-## focal_set_definitions/list
+## focal_set_definitions/list - DONE
 
 <!-- RB - who needs to consume this end point? I don't think I ever do... If the core engine is the only one that ever needs this engine then should it exist? -->
 <!-- HR - I think you misunderstand the architecture I'm proposing.  
@@ -1216,17 +1220,17 @@ Response:
 }
 ```
 
-## focal_sets/list
+## focal_sets/list - DONE
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/focal_sets/list`
 
-List all *focal sets* belonging to the current *snapshot* in the given *topic*.
+List all *focal sets* belonging to the specified *snapshot* in the given *topic*.
 
 ### Query Parameters
 
-Standard parameters accepted: snapshots_id.
+Standard parameters accepted: snapshots_id, frames_id, timespans_id.
 
-If no snapshots_id is specified, the latest snapshot will be used.
+If no snapshots_id is specified, the latest snapshot will be used.  If foci_id or timespans_id is specified, the snapshot containining that focus or timespan will be used.
 
 ### Output Description
 
@@ -1273,11 +1277,11 @@ Response:
 ```
 
 
-## focus_definitions/~focal_set_definitions_id~/create (POST)
+## focus_definitions/create (POST) - DONE
 
-`https://api.mediacloud.org/api/topics/~topics_id~/focal_sets/~focal_set_definitions_id~/create/`
+`https://api.mediacloud.org/api/topics/~topics_id~/focal_sets/create`
 
-Create and return a new *focus definiition*  within the given *topic* and *focal set definition*.
+Create and return a new *focus definition*  within the given *topic* and *focal set definition*.
 
 ### Query Parameters
 
@@ -1285,11 +1289,12 @@ Create and return a new *focus definiition*  within the given *topic* and *focal
 
 ### Input Description
 
-| Field       | Description                              |
-| ----------- | ---------------------------------------- |
-| name        | short human readable label for foci generated by this definition |
-| description | human readable description for foci generated by this definition |
-| query       | Boolean Query: query used to generate foci generated by this definition |
+| Field                    | Description                              |
+| ------------------------ | ---------------------------------------- |
+| name                     | short human readable label for foci generated by this definition |
+| description              | human readable description for foci generated by this definition |
+| query                    | Boolean Query: query used to generate foci generated by this definition |
+| focus_set_definitions_id | id of parent focus set definition        |
 
 The input for the *focus definition* depends on the focal technique of the parent *focal set definition*.  The focal technique specific input fields are listed last in the table above and are prefixed with the name of applicable focal technique.
 
@@ -1327,7 +1332,7 @@ Response:
 ```
 
 
-## focus_definitions/~focus_definitions_id~/update (PUT)
+## focus_definitions/~focus_definitions_id~/update (PUT) - DONE
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/focus_definitions/~focus_definitions_id~/update`
 
@@ -1369,11 +1374,11 @@ Response:
 }
 ```
 
-## focus_definitions/list
+## focus_definitions/~focus_definitions_id~/delete (PUT) - DONE
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/focus_definitions/~focal_set_definitions_id~/list`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/focus_definitions/~focus_definitions_id~/delete`
 
-List all *focus definitions* belonging to the given *focal set definition*.
+Delete a focus definition.
 
 ### Query Parameters
 
@@ -1381,11 +1386,42 @@ List all *focus definitions* belonging to the given *focal set definition*.
 
 ### Output Description
 
-| Field       | Description                              |
-| ----------- | ---------------------------------------- |
-| name        | short human readable label for foci generated by this definition |
-| description | human readable description for foci generated by this definition |
-| query       | Boolean Query: query used to generate foci generated by this definition |
+| Field   | Description                              |
+| ------- | ---------------------------------------- |
+| success | boolean indicating that the focus definition was deleted. |
+
+### Example
+
+Delete focus_definitions_id 123:
+
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/focus_definitions/123/delete`
+
+Response:
+
+```json
+{ "success": 1 }
+```
+
+## focus_definitions/list - DONE
+
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/focus_definitions/~focal_set_definitions_id~/list`
+
+List all *focus definitions* belonging to the given *focal set definition*.
+
+### Query Parameters
+
+| Parameter               | Default | Notes                                    |
+| ----------------------- | ------- | ---------------------------------------- |
+| focal_set_defintions_id | none    | id of parent focal set definition - required |
+
+### Output Description
+
+| Field                | Description                              |
+| -------------------- | ---------------------------------------- |
+| focus_definitions_id | focus definition id                      |
+| name                 | short human readable label for foci generated by this definition |
+| description          | human readable description for foci generated by this definition |
+| query                | Boolean Query: query used to generate foci generated by this definition |
 
 The output for *focus definition* depends on the focal technique of the parent *focal set definition*.  The framing
 method specific fields are listed last in the table above and are prefixed with the name of applicable focal technique.
@@ -1412,15 +1448,17 @@ Response:
 }
 ```
 
-## foci/list
+## foci/list - DONE
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/focal_sets/~focal_sets_id~/foci/list`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/foci/list`
 
 Return a list of the *foci* belonging to the given *focal set*.
 
 ### Query Parameters
 
-(no parameters)
+| Parameter     | Default | Notes                                 |
+| ------------- | ------- | ------------------------------------- |
+| focal_sets_id | none    | id of the parent focal set - required |
 
 ### Ouput Description
 
@@ -1437,7 +1475,7 @@ The output for *focus* depends on the focal technique of the parent *focus defin
 
 Get a list of *foci* wihin the 'Candiates' *focal set* of the 'U.S. 2016 Election' *topic*:
 
-`https://api.mediacloud.org/api/v2/topics/1344/focal_sets/34567/foci/list`
+`https://api.mediacloud.org/api/v2/topics/1344/foci/list?focal_sets_id=234`
 
 Response:
 
@@ -1449,8 +1487,7 @@ Response:
             "foci_id": 234,
             "name": "Clinton",
             "description": "stories that mention Hillary Clinton",
-            "query": "clinton and ( hillary or -bill )",
-            "focal_technique": "Boolean Query"
+            "query": "clinton and ( hillary or -bill )"
         }
     ]
 }
@@ -1460,13 +1497,13 @@ Response:
 
 Each *snapshot* contains a static copy of all data within a topic at the time the *snapshot* was made.  All data viewable by the Topics API must be viewed through a *snapshot*.
 
-## snapshots/generate (POST)
+## snapshots/generate (POST) - DONE
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/snapshots/generate`
 
-Generate and return a new *snapshot* for the given topic.
+Generate a new *snapshot* for the given topic.
 
-This is an asynchronous call.  The *snapshot* process will run in the background, and the new *snapshot* will only become visible to the API once the generation is complete.  Only one *snapshot* generation job can run at a time.
+This is an asynchronous call.  The *snapshot* process will run in the background, and the new *snapshot* will only become visible to the API once the generation is complete.
 
 <!-- RB - what happens if two people are working on separate focus definitions, but one finishes and presses the button that calls snapshots/generate?  will the other person's half-finished focal set be included in the new snapshot?  I guess I need to queue up all the focus definitions while someone is working on them until they press the big "generate" button, and then make a bunch of create calls before the snapshots/generate call. -->
 <!-- HR - I think you are overengineering this.  I think it will be rare to edit foci over the life of a topic,
@@ -1485,7 +1522,9 @@ the foci for a topic concurrently. If we get complaints, we can start worrying a
 
 ### Output Description
 
-(see snapshots/list)
+| Field   | Description                              |
+| ------- | ---------------------------------------- |
+| success | boolean indicating whether the spidering job was successfully queued. |
 
 ### Example
 
@@ -1495,9 +1534,11 @@ Start a new *snapshot* generation job for the 'U.S. 2016 Election' *topic*:
 
 Response:
 
-(see snapshots/list)
+```json
+{ "success": 1 }
+```
 
-### snapshots/list
+### snapshots/list - DONE
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/snapshots/list`
 
@@ -1509,12 +1550,12 @@ Return a list of all completed *snapshots* in the given *topic*.
 
 ### Output Description
 
-| Field         | Description                           |
-| ------------- | ------------------------------------- |
-| snapshots_id  | snapshot id                           |
+| Field         | Description                            |
+| ------------- | -------------------------------------- |
+| snapshots_id  | snapshot id                            |
 | snapshot_date | date on which the snapshot was created |
-| note        | short text note about the snapshot   |
-| state | state of the snapshotting process |
+| note          | short text note about the snapshot     |
+| state         | state of the snapshotting process      |
 
 The state indicates the state of the current snapshot process, including but not limmited to 'completed' for a snapshot
 whose process has successfully completed and 'snapshot failed' for a snapshot that failed for some reason.
@@ -1542,7 +1583,7 @@ Response:
 ```
 <!-- TODO - I bet it will be useful to include the username here that generated it -->
 
-## snapshots/~snapshots_id~/edit (PUT)
+## snapshots/~snapshots_id~/edit (PUT) - TODO
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/snapshots/~snapshots_id~/edit`
 
@@ -1554,10 +1595,10 @@ Edit and return the snapshot.
 
 ### Input Description
 
-| Field        | Description                         |
-| ------------ | ----------------------------------- |
-| snapshots_id | snapshot id; required               |
-| note       | short text note about the snapshot |
+| Field        | Description                        |
+| ------------ | ---------------------------------- |
+| snapshots_id | snapshot id; required              |
+| note         | short text note about the snapshot |
 
 ### Output Description
 
@@ -1588,7 +1629,7 @@ Each *timespan* is a view of the *topic* that presents the topic as if it consis
 
 A *story* is included within a *timespan* if the publish_date of the story is within the *timespan* date range or if the *story* is linked to by a *story* that whose publish_date is within date range of the *timespan*.
 
-## timespans/list
+## timespans/list - DONE
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/timespans/list`
 
@@ -1614,8 +1655,8 @@ you'll be on a page for a given focus and need the list of timespans that belong
 | medium_count      | number of distinct media associated with stories in timespan |
 | medium_link_count | number of cros media media links in timespan |
 | model_r2_mean     | timespan modeling r2 mean                |
-| model_r2_stddev       | timespan modeling r2 standard deviation  |
-| model_num_media         | number of media include in modeled top media list |
+| model_r2_stddev   | timespan modeling r2 standard deviation  |
+| model_num_media   | number of media include in modeled top media list |
 | foci_id           | id of focus to which the timespan belongs |
 | snapshots_id      | id of snapshot to which the timespan belongs |
 
@@ -1662,7 +1703,7 @@ Response:
 <!-- HR - there should be a timespans/list_dates call -->
 
 
-## timespans/add_dates (PUT)
+## timespans/add_dates (PUT) - TODO
 <!-- RB - for consistency, do we want to call this a timespan_definition?  and have the url end with /timespan_definitions/create -->
 <!-- HR - I'm note sure.  the dates are simpler, so I thought I could get away with not making them first class
 objects with ids.  We don't need to delete them. That seems simpler to me, but if consistency is more important
@@ -1685,7 +1726,9 @@ Add a date range for which to generate *timespans* for future *spanshots*.
 
 ### Output Description
 
-The output of this command is identical to a call to stories/list with the given stories_id.
+| Field   | Description                              |
+| ------- | ---------------------------------------- |
+| success | boolean indicating whether the spidering job was successfully queued. |
 
 ### Example
 
@@ -1708,7 +1751,7 @@ Response:
 { "success": 1 }
 ```
 
-## timespans/list_dates
+## timespans/list_dates - TODO
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/timespans/list_dates`
 
