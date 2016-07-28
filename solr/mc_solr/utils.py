@@ -76,7 +76,8 @@ def unlock_file(path):
 def download_file(source_url, target_path):
     """Download URL to path."""
     args = ["curl",
-            "--progress-bar",
+            "--silent",
+            "--show-error",
             "--retry", "3",
             "--retry-delay", "5",
             "--output", target_path,
@@ -237,23 +238,14 @@ def resolve_absolute_path(name, must_exist=False):
 
 
 def run_command_in_foreground(command):
-    """Run command in foreground, pipe STDOUT/STDERR correctly without any deadlocks."""
+    """Run command in foreground, raise exception if it fails."""
     logger.debug("Running command: %s" % ' '.join(command))
-
-    line_buffered = 1
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=line_buffered)
-    while True:
-        output = process.stdout.readline()
-        if len(output) == 0 and process.poll() is not None:
-            break
-        logger.info(output.strip())
-    rc = process.poll()
-    if rc > 0:
-        raise Exception("Process returned non-zero exit code %d" % rc)
+    subprocess.check_call(command)
 
 
 def compare_versions(version1, version2):
     """Compare two version strings. Return 0 if equal, -1 if version1 < version2, 1 if version1 > version2."""
+
     def normalize(v):
         v = v.replace("_", ".")
         return [int(x) for x in re.sub(r'(\.0+)*$', '', v).split(".")]
