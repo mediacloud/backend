@@ -147,9 +147,9 @@ sub _add_extra_stories_to_import
 
     my $config = MediaWords::Util::Config::get_config;
 
-    my $max_queued_stories = $config->{ mediawords }->{ solr_import }->{ max_queued_stories };
+    my $conf_max_queued_stories = $config->{ mediawords }->{ solr_import }->{ max_queued_stories };
 
-    my $max_processed_stories = int( $max_queued_stories / $num_proc );
+    my $max_processed_stories = int( $conf_max_queued_stories / $num_proc );
 
     my $max_queued_stories = List::Util::max( 0, $max_processed_stories - $num_delta_stories );
 
