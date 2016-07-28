@@ -457,10 +457,10 @@
            autowarmCount - the number of entries to prepopulate from
                and old cache.  
       -->
-    <!-- <filterCache class="solr.FastLRUCache"
+    <filterCache class="solr.FastLRUCache"
                  size="512"
                  initialSize="512"
-                 autowarmCount="0"/> -->
+                 autowarmCount="0"/>
 
     <!-- Query Result Cache
 
@@ -470,10 +470,11 @@
            maxRamMB - the maximum amount of RAM (in MB) that this cache is allowed
                       to occupy
      -->
-    <!-- <queryResultCache class="solr.LRUCache"
+    <queryResultCache class="solr.LRUCache"
                      size="8192"
+                     maxRamMB="1024"
                      initialSize="8192"
-                     autowarmCount="0"/> -->
+                     autowarmCount="0"/>
    
     <!-- Document Cache
 
@@ -484,7 +485,6 @@
     <documentCache class="solr.LRUCache"
                    size="32678"
                    initialSize="8192"
-                   maxRamMB="1024"
                    autowarmCount="0"/>
     
     <!-- custom cache currently used by block join --> 
@@ -501,12 +501,11 @@
          by document id.  The fieldValueCache is created by default
          even if not configured here.
       -->
-    <!--
-       <fieldValueCache class="solr.FastLRUCache"
-                        size="512000"
-                        autowarmCount="12800"
-                        showItems="32" />
-      -->
+    <fieldValueCache class="solr.FastLRUCache"
+                      size="512000"
+                      autowarmCount="12800"
+                      showItems="32" />
+    
 
     <!-- Custom Cache
 
