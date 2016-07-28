@@ -481,10 +481,10 @@
          document).  Since Lucene internal document ids are transient,
          this cache will not be autowarmed.  
       -->
-    <!-- <documentCache class="solr.LRUCache"
+    <documentCache class="solr.LRUCache"
                    size="32678"
                    initialSize="8192"
-                   autowarmCount="0"/> -->
+                   autowarmCount="0"/>
     
     <!-- custom cache currently used by block join --> 
     <!-- <cache name="perSegFilter"
