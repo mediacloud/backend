@@ -1,0 +1,7 @@
+{
+  "initArgs":{
+    "ignoreCase":true,
+    "format":"solr"
+  },
+  "managedMap":{}
+}
