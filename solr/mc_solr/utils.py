@@ -2,6 +2,7 @@ import logging
 
 import errno
 import os
+import re
 import tempfile
 
 import socket
@@ -240,3 +241,26 @@ def run_command_in_foreground(command):
     """Run command in foreground, raise exception if it fails."""
     logger.debug("Running command: %s" % ' '.join(command))
     subprocess.check_call(command)
+
+
+def compare_versions(version1, version2):
+    """Compare two version strings. Return 0 if equal, -1 if version1 < version2, 1 if version1 > version2."""
+
+    def normalize(v):
+        v = v.replace("_", ".")
+        return [int(x) for x in re.sub(r'(\.0+)*$', '', v).split(".")]
+
+    return cmp(normalize(version1), normalize(version2))
+
+
+def java_version():
+    """Return Java version, e.g. "1.8.0_66"."""
+    java_version_output = subprocess.Popen(["java", "-version"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    java_version_output = java_version_output.stdout.read()
+
+    java_version_string = re.search(r'(java|openjdk) version "(.+?)"', java_version_output)
+    if java_version_string is None:
+        raise Exception("Unable to determine Java version from string: %s" % java_version_output)
+    java_version_string = java_version_string.group(2)
+
+    return java_version_string
