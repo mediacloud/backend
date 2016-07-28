@@ -501,11 +501,12 @@
          by document id.  The fieldValueCache is created by default
          even if not configured here.
       -->
-    <fieldValueCache class="solr.FastLRUCache"
-                      size="512000"
-                      autowarmCount="12800"
-                      showItems="32" />
-    
+    <!--
+       <fieldValueCache class="solr.FastLRUCache"
+                        size="512000"
+                        autowarmCount="12800"
+                        showItems="32" />
+      -->
 
     <!-- Custom Cache
 
