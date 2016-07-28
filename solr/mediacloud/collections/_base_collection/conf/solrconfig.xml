@@ -457,10 +457,10 @@
            autowarmCount - the number of entries to prepopulate from
                and old cache.  
       -->
-    <filterCache class="solr.FastLRUCache"
+    <!-- <filterCache class="solr.FastLRUCache"
                  size="512"
                  initialSize="512"
-                 autowarmCount="0"/>
+                 autowarmCount="0"/> -->
 
     <!-- Query Result Cache
 
@@ -470,10 +470,10 @@
            maxRamMB - the maximum amount of RAM (in MB) that this cache is allowed
                       to occupy
      -->
-    <queryResultCache class="solr.LRUCache"
+    <!-- <queryResultCache class="solr.LRUCache"
                      size="8192"
                      initialSize="8192"
-                     autowarmCount="0"/>
+                     autowarmCount="0"/> -->
    
     <!-- Document Cache
 
@@ -481,18 +481,18 @@
          document).  Since Lucene internal document ids are transient,
          this cache will not be autowarmed.  
       -->
-    <documentCache class="solr.LRUCache"
+    <!-- <documentCache class="solr.LRUCache"
                    size="32678"
                    initialSize="8192"
-                   autowarmCount="0"/>
+                   autowarmCount="0"/> -->
     
     <!-- custom cache currently used by block join --> 
-    <cache name="perSegFilter"
+    <!-- <cache name="perSegFilter"
       class="solr.search.LRUCache"
       size="10"
       initialSize="0"
       autowarmCount="10"
-      regenerator="solr.NoOpRegenerator" />
+      regenerator="solr.NoOpRegenerator" /> -->
 
     <!-- Field Value Cache
          
