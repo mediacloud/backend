@@ -1,6 +1,5 @@
 import atexit
 import glob
-import shutil
 import urllib2
 
 import sys
@@ -93,18 +92,14 @@ def __install_solr(dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION):
 
     # Solr needs its .war extracted first before ZkCLI is usable
     jetty_home_path = __jetty_home_path(dist_directory=dist_directory, solr_version=solr_version)
+    solr_war_path = os.path.join(jetty_home_path, "webapps", "solr.war")
+    if not os.path.isfile(solr_war_path):
+        raise Exception("Solr's .war file does not exist at path %s" % solr_war_path)
+
     solr_war_dest_dir = os.path.join(jetty_home_path, "solr-webapp", "webapp")
-
-    # Solr 5.5.2+ already has the .war extracted
-    if not os.path.exists(os.path.join(solr_war_dest_dir, "index.html")):
-        solr_war_path = os.path.join(jetty_home_path, "webapps", "solr.war")
-        if not os.path.isfile(solr_war_path):
-            raise Exception("Solr's .war file does not exist at path %s" % solr_war_path)
-
-        solr_war_dest_dir = os.path.join(jetty_home_path, "solr-webapp", "webapp")
-        logger.info("Extracting solr.war at '%s' to '%s'..." % (solr_war_path, solr_war_dest_dir))
-        mkdir_p(solr_war_dest_dir)
-        extract_zip_to_directory(archive_file=solr_war_path, dest_directory=solr_war_dest_dir)
+    logger.info("Extracting solr.war at '%s' to '%s'..." % (solr_war_path, solr_war_dest_dir))
+    mkdir_p(solr_war_dest_dir)
+    extract_zip_to_directory(archive_file=solr_war_path, dest_directory=solr_war_dest_dir)
 
     logger.info("Creating 'installed' file...")
     installed_file_path = __solr_installed_file_path(dist_directory=dist_directory, solr_version=solr_version)
@@ -339,15 +334,9 @@ def update_zookeeper_solr_configuration(zookeeper_host=MC_SOLR_CLUSTER_ZOOKEEPER
     for collection_name, collection_path in sorted(collections.items()):
         collection_conf_path = os.path.join(collection_path, "conf")
 
-        # Copy configuration because ZooKeeper's uploader doesn't like symlinks
-        logger.info("Copying collection's '%s' configuration to a temporary directory..." % collection_name)
-        collection_conf_temp_dir = os.path.join(tempfile.mkdtemp(), collection_name)
-        shutil.copytree(collection_conf_path, collection_conf_temp_dir)
-
-        logger.info("Uploading collection's '%s' configuration at '%s'..." % (
-            collection_name, collection_conf_temp_dir))
+        logger.info("Uploading collection's '%s' configuration at '%s'..." % (collection_name, collection_conf_path))
         __run_solr_zkcli(zkcli_args=["-cmd", "upconfig",
-                                     "-confdir", collection_conf_temp_dir,
+                                     "-confdir", collection_conf_path,
                                      "-confname", collection_name],
                          zookeeper_host=zookeeper_host,
                          zookeeper_port=zookeeper_port,
@@ -411,28 +400,24 @@ def __run_solr(port,
     for collection_name, collection_path in sorted(collections.items()):
         logger.info("Updating collection '%s'..." % collection_name)
 
-        collection_conf_src_dir = os.path.join(collection_path, "conf")
-        if not os.path.isdir(collection_conf_src_dir):
+        conf_symlink_src_dir = os.path.join(collection_path, "conf")
+        if not os.path.isdir(conf_symlink_src_dir):
             raise Exception("Configuration for collection '%s' at %s does not exist" % (
-                collection_name, collection_conf_src_dir
+                collection_name, conf_symlink_src_dir
             ))
 
         collection_dst_dir = os.path.join(instance_data_dir, collection_name)
         mkdir_p(collection_dst_dir)
 
-        # Remove and copy configuration in case it has changed
-        # (don't symlink because Solr 5.5+ doesn't like those)
-        collection_conf_dst_dir = os.path.join(collection_dst_dir, "conf")
-        if os.path.lexists(collection_conf_dst_dir):
-            logger.debug("Removing old collection configuration in '%s'..." % collection_conf_dst_dir)
-            if os.path.islink(collection_conf_dst_dir):
-                # Might still be a link from older Solr versions
-                os.unlink(collection_conf_dst_dir)
-            else:
-                shutil.rmtree(collection_conf_dst_dir)
+        # Recreate symlink just in case
+        conf_symlink_dst_dir = os.path.join(collection_dst_dir, "conf")
+        if os.path.lexists(conf_symlink_dst_dir):
+            if not os.path.islink(conf_symlink_dst_dir):
+                raise Exception("Collection configuration '%s' exists but is not a symlink." % conf_symlink_dst_dir)
+            os.unlink(conf_symlink_dst_dir)
 
-        logger.info("Copying '%s' to '%s'..." % (collection_conf_src_dir, collection_conf_dst_dir))
-        shutil.copytree(collection_conf_src_dir, collection_conf_dst_dir, symlinks=False)
+        logger.info("Symlinking '%s' to '%s'..." % (conf_symlink_src_dir, conf_symlink_dst_dir))
+        relative_symlink(conf_symlink_src_dir, conf_symlink_dst_dir)
 
         logger.info("Updating core.properties for collection '%s'..." % collection_name)
         core_properties_path = os.path.join(collection_dst_dir, "core.properties")
@@ -453,7 +438,6 @@ instanceDir=%(instance_dir)s
     config_items_to_symlink = [
         "contexts",
         "etc",
-        "modules",
         "resources",
         "solr.xml",
     ]
@@ -479,8 +463,7 @@ instanceDir=%(instance_dir)s
         "lib",
         "solr-webapp",
         "start.jar",
-        "solr",
-        "solr-webapp",
+        "webapps",
     ]
     for library_item in library_items_to_symlink:
         library_item_src_path = os.path.join(jetty_home_path, library_item)
@@ -514,24 +497,19 @@ instanceDir=%(instance_dir)s
 
     __raise_if_old_shards_exist()
 
-    # Must be resolveable by other shards
-    hostname = fqdn()
+    logger.info("Starting Solr instance on port %d..." % port)
 
     args = ["java"]
-    logger.info("Starting Solr instance on %s, port %d..." % (hostname, port))
-
     if jvm_heap_size is not None:
         args += ["-Xmx%s" % jvm_heap_size]
     args += jvm_opts
     args = args + [
         "-server",
         "-Djava.util.logging.config.file=file://" + os.path.abspath(log4j_properties_path),
-        "-Djetty.base=%s" % instance_data_dir,
         "-Djetty.home=%s" % instance_data_dir,
         "-Djetty.port=%d" % port,
         "-Dsolr.solr.home=%s" % instance_data_dir,
         "-Dsolr.data.dir=%s" % instance_data_dir,
-        "-Dhost=%s" % hostname,
         "-Dmediacloud.luceneMatchVersion=%s" % MC_SOLR_LUCENEMATCHVERSION,
 
         # needed for resolving paths to JARs in solrconfig.xml
@@ -541,7 +519,6 @@ instanceDir=%(instance_dir)s
     args = args + start_jar_args
     args = args + [
         "-jar", start_jar_path,
-        "--module=http",
     ]
 
     logger.debug("Running command: %s" % ' '.join(args))
@@ -623,10 +600,15 @@ def run_solr_shard(shard_num,
                               retries=MC_SOLR_CLUSTER_ZOOKEEPER_CONNECT_RETRIES)
     logger.info("ZooKeeper is up!")
 
-    logger.info("Starting Solr shard %d on port %d..." % (shard_num, shard_port))
+    # Must be resolveable by other shards
+    hostname = fqdn()
+
+    logger.info("Starting Solr shard %d on host %s, port %d..." % (shard_num, hostname, shard_port))
     shard_args = [
+        "-Dhost=%s" % hostname,
         "-DzkHost=%s:%d" % (zookeeper_host, zookeeper_port),
         "-DnumShards=%d" % shard_count,
+        "-Dsolr.clustering.enabled=true",
     ]
     __run_solr(port=shard_port,
                instance_data_dir=shard_data_dir,

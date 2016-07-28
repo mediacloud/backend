@@ -67,10 +67,6 @@ else
     exit 1
 fi
 
-# Otherwise one might get "SolrCore is loading,code=503"
-echo "Waiting for Solr to finish loading its cores..."
-sleep 10
-
 TEST_RETURN_STATUS=0
 
 if [ -z ${MEDIACLOUD_ENABLE_PYTHON_API_TESTS+x} ]; then
