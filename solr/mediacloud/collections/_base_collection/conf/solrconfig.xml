@@ -484,6 +484,7 @@
     <documentCache class="solr.LRUCache"
                    size="32678"
                    initialSize="8192"
+                   maxRamMB="1024"
                    autowarmCount="0"/>
     
     <!-- custom cache currently used by block join --> 
