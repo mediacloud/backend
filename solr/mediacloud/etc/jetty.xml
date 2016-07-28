@@ -75,7 +75,7 @@
   </New>
 
     <!-- =========================================================== -->
-    <!-- RewriteHandle to redirect root to Solr                      -->
+    <!-- Set handler Collection Structure                            --> 
     <!-- =========================================================== -->
      <New id="RewriteHandler" class="org.eclipse.jetty.rewrite.handler.RewriteHandler">
       <Set name="rewriteRequestURI">true</Set>
@@ -156,10 +156,6 @@
           <Set name="contexts">
             <Ref refid="Contexts" />
           </Set>
-          <Call name="setContextAttribute">
-            <Arg>org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern</Arg>
-            <Arg>.*/servlet-api-[^/]*\.jar$</Arg>
-          </Call>
 
           <Call name="addAppProvider">
             <Arg>

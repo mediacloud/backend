@@ -7,7 +7,8 @@ if [ `uname` == 'Darwin' ]; then
 
     # Mac OS X
     declare -a POSSIBLE_JDK_PATHS=(
-        /Library/Java/Home/                 # must auto-magically point to correct Java
+        /System/Library/Frameworks/JavaVM.framework/                        # OS X 10.8
+        /Library/Java/JavaVirtualMachines/1.6.0_51-b11-457.jdk/Contents/    # OS X 10.9
     )
 
     for path in ${POSSIBLE_JDK_PATHS[@]}; do
@@ -34,6 +35,8 @@ else
     declare -a POSSIBLE_JDK_PATHS=(
         /usr/lib/jvm/java-8-openjdk-amd64/  # even newer Ubuntu
         /usr/lib/jvm/java-8-oracle/         # Oracle Java 8
+        /usr/lib/jvm/java-7-openjdk-amd64/  # newer Ubuntu
+        /usr/lib/jvm/java-6-sun             # older Ubuntu
     )
 
     for path in ${POSSIBLE_JDK_PATHS[@]}; do
@@ -50,6 +53,8 @@ else
         echo "Proper Java deployment was not found anywhere."
         echo "Please download and install Java for OS X Developer Package by running:"
         echo "    apt-get install openjdk-8-jdk"
+        echo "or"
+        echo "    apt-get install openjdk-7-jdk"
         exit 1
     fi
 

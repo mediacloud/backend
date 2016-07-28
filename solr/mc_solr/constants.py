@@ -1,8 +1,8 @@
 # Solr version to install and use
-MC_SOLR_VERSION = "6.0.0"
+MC_SOLR_VERSION = "5.5.2"
 
 # <luceneMatchVersion> value
-MC_SOLR_LUCENEMATCHVERSION = "6.0.0"
+MC_SOLR_LUCENEMATCHVERSION = "5.5.2"
 
 # Solr home directory (solr.home; relative to solr/; must already exist)
 MC_SOLR_HOME_DIR = "mediacloud/"
@@ -26,9 +26,6 @@ MC_SOLR_STANDALONE_JVM_HEAP_SIZE = "256m"
 # Other JVM options to pass to Solr when running a standalone instance
 MC_SOLR_STANDALONE_JVM_OPTS = [
 ]
-
-# Min. Java version required to run Solr
-MC_SOLR_MIN_JAVA_VERSION = "1.8"    # Solr 6 requires Java 8
 
 # Solr starting port for shards, e.g.:
 # * shard #1 will start on port MC_SOLR_CLUSTER_STARTING_PORT
