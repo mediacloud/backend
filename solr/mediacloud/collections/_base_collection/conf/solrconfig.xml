@@ -167,8 +167,8 @@
          If both ramBufferSizeMB and maxBufferedDocs is set, then
          Lucene will flush based on whichever limit is hit first.
          The default is 100 MB.  -->
-    <!-- <ramBufferSizeMB>5000</ramBufferSizeMB> -->
-    <!-- <maxBufferedDocs>500000</maxBufferedDocs> -->
+    <ramBufferSizeMB>5000</ramBufferSizeMB>
+    <maxBufferedDocs>500000</maxBufferedDocs>
 
     <!-- Expert: Merge Policy 
          The Merge Policy in Lucene controls how merging of segments is done.
