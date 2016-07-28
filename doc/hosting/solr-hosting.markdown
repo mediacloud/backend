@@ -94,22 +94,6 @@ After configuration update on ZooKeeper, reloads all Solr shards with the new co
 After reloading the configuration, you can connect to the individual shards (for instance <http://localhost:7981/solr/>) and load
 the configuration page to verify that a given configuration change has made it into the running shard.
 
-
-## Tools
-
-### Upgrade Lucene indexes
-
-**`upgrade_lucene_index.py` - upgrade Lucene index before moving between major Solr versions**
-
-Usage:
-
-	./upgrade_lucene_index.py --standalone
-	# or
-	./upgrade_lucene_index.py --cluster
-
-After upgrading between major Solr versions (e.g. Solr 4 to Solr 5), you must run [`IndexUpgrader` tool](https://cwiki.apache.org/confluence/display/solr/IndexUpgrader+Tool) to upgrade Lucene indexes too. This tool will run the index upgrade to either a standalone Solr instance or all Solr shards residing in the data directory.
-
-
 ### Optimize indexes
 
 **`optimize_solr_index.py` - optimize Solr indexes of one, multiple or all collections.**
