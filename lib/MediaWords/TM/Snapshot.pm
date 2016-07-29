@@ -36,11 +36,11 @@ For detailed explanation of the snapshot process, see doc/snapshots.markdown.
 # This module was converted from a script, and the functions were never refactored to prefix private methods with '_'.
 # Consider any method without a perldoc head to be private.
 
-use Modern::Perl "2015";
-use MediaWords::CommonLibs;
-
 use strict;
 use warnings;
+
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
 
 use Data::Dumper;
 use Date::Format;

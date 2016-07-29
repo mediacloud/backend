@@ -12,7 +12,7 @@ use MediaWords::CommonLibs;
     my $results = MediaWords::Solr::query( $db, { q => 'obama' } );
 
     my $sentences = $results->{ response }->{ docs };
-    map { print "found sentence: $_->{ sentence }\n" } @{ $sentencs };
+    map { say "found sentence: $_->{ sentence }" } @{ $sentencs };
 
 =head1 DESCRIPTION
 

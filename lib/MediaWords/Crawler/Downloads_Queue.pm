@@ -52,7 +52,7 @@ sub _get_download_queue_file_name
 
     File::Path::mkpath( $queue_dir );
     my $ret = "$queue_dir/$media_id";
-    print "_get_download_queue_file_name returning: $ret\n";
+    INFO "_get_download_queue_file_name returning: $ret";
 
     return $ret;
 }
@@ -159,7 +159,7 @@ sub _get_queued_downloads_count
 {
     my ( $self, $media_id, $quiet ) = @_;
 
-    unless ( defined( $quiet ) ) { print "_get_queued_downloads_count media='$media_id'\n"; }
+    unless ( defined( $quiet ) ) { INFO "_get_queued_downloads_count media='$media_id'"; }
 
     my $ret;
 
@@ -176,7 +176,7 @@ sub _get_queued_downloads_count
         $ret = scalar( @{ $self->{ downloads }->{ $media_id }->{ queued } } );
     }
 
-    unless ( defined( $quiet ) ) { print "_get_queued_downloads_count media='$media_id' returning '$ret'\n"; }
+    unless ( defined( $quiet ) ) { INFO "_get_queued_downloads_count media='$media_id' returning '$ret'"; }
 
     return $ret;
 }

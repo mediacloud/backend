@@ -29,11 +29,9 @@ sub main
     my $medium = $db->find_by_id( 'media', $media_id ) || die( "invalid media_id '$media_id'" );
     $medium->{ feeds } = $db->query( "select * from feeds where media_id = ?", $media_id )->hashes;
 
-    print "Are you sure you want to delete this medium?\n";
-
-    print Dumper( $medium );
-
-    print "y/n: ";
+    INFO "Are you sure you want to delete this medium?";
+    INFO Dumper( $medium );
+    INFO "y/n: ";
 
     my $answer = <STDIN>;
     chomp( $answer );

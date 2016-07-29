@@ -17,6 +17,9 @@ The topic mining process is described in doc/topic_mining.markdown.
 use strict;
 use warnings;
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Carp;
 use Data::Dumper;
 use DateTime;
@@ -2562,11 +2565,8 @@ END
 
     my $keep_story = shift( @{ $stories } );
 
-    print "duplicates:\n";
-    print "\t$keep_story->{ title } [$keep_story->{ url } $keep_story->{ stories_id }]\n";
-    map { print "\t$_->{ title } [$_->{ url } $_->{ stories_id }]\n" } @{ $stories };
-
-    print "\n";
+    INFO "duplicates: $keep_story->{ title } [$keep_story->{ url } $keep_story->{ stories_id }]";
+    map { INFO "\t$_->{ title } [$_->{ url } $_->{ stories_id }]"; } @{ $stories };
 
     map { merge_dup_story( $db, $topic, $_, $keep_story ) } @{ $stories };
 

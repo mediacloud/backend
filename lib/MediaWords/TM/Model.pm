@@ -6,6 +6,9 @@ package MediaWords::TM::Model;
 use strict;
 use warnings;
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use List::Util;
 use POSIX;
 use Statistics::Basic;
@@ -63,7 +66,7 @@ sub tweak_dateable_story
 {
     my ( $db, $timespan, $story ) = @_;
 
-    # print "tweak_dateable_story: $story->{ stories_id }\n";
+    TRACE "tweak_dateable_story: $story->{ stories_id }";
 
     my $undateable_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'date_invalid:undateable' );
 
@@ -123,7 +126,7 @@ sub tweak_undateable_story
 {
     my ( $db, $timespan, $story ) = @_;
 
-    # print "tweak_undateable_story: $story->{ stories_id }\n";
+    TRACE "tweak_undateable_story: $story->{ stories_id }";
 
     $db->query( <<END, $story->{ stories_id } );
 delete from snapshot_stories_tags_map stm
@@ -213,7 +216,7 @@ sub tweak_story_date
 
     my $new_date = get_tweaked_story_date( $story->{ publish_date } );
 
-    # print "tweak story: $story->{ stories_id } $story->{ publish_date } -> $new_date\n";
+    TRACE "tweak story: $story->{ stories_id } $story->{ publish_date } -> $new_date";
 
     $db->query( <<END, $new_date, $story->{ stories_id } );
 update snapshot_stories set publish_date = ? where stories_id = ?
@@ -361,7 +364,7 @@ sub print_model_matches
     my $clean_top_media = get_top_media_link_counts( $db, $timespan );
     my $clean_medium_ranks = get_medium_count_ranks( $clean_top_media );
 
-    print "evaluating models ...\n";
+    INFO "evaluating models ...";
 
     my $num_model_matches = 0;
     for my $model_top_media ( @{ $all_models_top_media } )
@@ -373,17 +376,15 @@ sub print_model_matches
             my $model_rank = $model_medium_ranks->{ $clean_media_id };
             if ( model_rank_within_error_interval( $clean_rank, $model_rank ) )
             {
-                print "+";
+                INFO "+";
             }
             else
             {
                 my $model_rank_display = defined( $model_rank ) ? $model_rank : 'NA';
-                print "-";
-                print "[ $clean_media_id: $clean_rank / $model_rank_display ]";
+                INFO "- [ $clean_media_id: $clean_rank / $model_rank_display ]";
                 $match = 0;
             }
         }
-        print "\n";
 
         $num_model_matches++ if ( $match );
     }
@@ -429,9 +430,6 @@ sub get_all_models_top_media ($$)
     {
         return undef;
     }
-
-    # print "copying temporary tables ...\n";
-    # MediaWords::TM::Snapshot::copy_temporary_tables( $db );
 
     create_snapshot_indexes( $db );
 

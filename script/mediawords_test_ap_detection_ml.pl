@@ -682,7 +682,7 @@ sub print_story_results_with_features
 
     $story->{ ai_ap_raw } = $story->{ ai_ap_detected } unless ( defined( $story->{ ai_ap_raw } ) );
 
-    print <<END;
+    INFO <<END;
 $story->{ stories_id } [$story->{ media_id }] coded: $story->{ ap_coded } detected: $story->{ ai_ap_detected } ($story->{ ai_ap_raw })
 $features_dump
 END
@@ -713,7 +713,7 @@ sub print_results
             push( @{ $fn }, $story );
         }
 
-        # print "$story->{ stories_id } coded: $story->{ ap_coded } detected: $story->{ ai_ap_detected }\n";
+        # INFO "$story->{ stories_id } coded: $story->{ ap_coded } detected: $story->{ ai_ap_detected }";
     }
 
     my $num_correct        = scalar( @{ $correct } );
@@ -722,23 +722,22 @@ sub print_results
 
     if ( !$num_correct )
     {
-        print "NONE CORRECT\n";
+        INFO "NONE CORRECT";
         return;
     }
 
     my $p_false_positive = $num_false_positive / ( $num_correct + $num_false_positive );
     my $p_false_negative = $num_false_negative / ( $num_correct + $num_false_negative );
 
-    print "FALSE POSITIVES:\n";
+    INFO "FALSE POSITIVES:";
     map { print_story_results_with_features( $_ ) } sort { $a->{ media_id } <=> $b->{ media_id } } @{ $fp };
-    print "FALSE NEGATIVES:\n";
+    INFO "FALSE NEGATIVES:";
     map { print_story_results_with_features( $_ ) } sort { $a->{ media_id } <=> $b->{ media_id } } @{ $fn };
 
-    print <<END;
+    INFO <<END;
 correct: $num_correct
 false_positive: $num_false_positive ($p_false_positive)
 false_negative: $num_false_negative ($p_false_negative)
-
 END
 
 }

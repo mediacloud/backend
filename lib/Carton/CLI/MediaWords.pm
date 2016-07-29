@@ -15,7 +15,7 @@ sub cmd_exec
 {
     my ( $self, @args ) = @_;
 
-    #print "cmd_exec override\n";
+    TRACE "cmd_exec override";
 
     my $env = Carton::Environment->build;
     $env->snapshot->load;
@@ -50,7 +50,7 @@ sub cmd_exec
 
     my $carton_extra_perl5opt = $ENV{ CARTON_EXTRA_PERL5OPT } // '';
 
-    #print "Extra $carton_extra_perl5opt\n";
+    TRACE "Extra PERL5OPT: $carton_extra_perl5opt";
 
     local $ENV{ PERL5OPT } = "-Mlib::core::only -Mlib=$lib $carton_extra_perl5opt";
     local $ENV{ PATH }     = "$path/bin:$ENV{PATH}";

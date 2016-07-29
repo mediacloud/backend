@@ -73,7 +73,6 @@ sub _parse_config_file
 
     -r $config_file or croak "Can't read from $config_file";
 
-    #print "config:file: $config_file\n";
     my $ret = Config::Any->load_files( { files => [ $config_file ], use_ext => 1 } )->[ 0 ]->{ $config_file };
 
     return $ret;
@@ -86,7 +85,6 @@ sub set_config_file
 
     -r $config_file or croak "Can't read from $config_file";
 
-    #print "config:file: $config_file\n";
     set_config( _parse_config_file( $config_file ) );
 }
 
