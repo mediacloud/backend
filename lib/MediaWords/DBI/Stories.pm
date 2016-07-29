@@ -201,7 +201,7 @@ sub get_content_for_first_download($$)
 
     if ( $first_download->{ state } ne 'success' )
     {
-        DEBUG( sub { "First download's state is not 'success' for story " . $story->{ stories_id } } );
+        DEBUG "First download's state is not 'success' for story " . $story->{ stories_id };
         return;
     }
 
@@ -722,7 +722,7 @@ sub add_missing_story_sentences
 
     return if ( $ss );
 
-    INFO( sub { "ADD SENTENCES [$story->{ stories_id }]" } );
+    INFO "ADD SENTENCES [$story->{ stories_id }]";
 
     MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story );
 }
@@ -829,8 +829,8 @@ sub attach_story_data_to_stories
         return;
     }
 
-    TRACE( sub { "stories size: " . scalar( @{ $stories } ) } );
-    TRACE( sub { "story_data size: " . scalar( @{ $story_data } ) } );
+    TRACE "stories size: " . scalar( @{ $stories } );
+    TRACE "story_data size: " . scalar( @{ $story_data } );
 
     my $story_data_lookup = {};
     for my $sd ( @{ $story_data } )
@@ -851,7 +851,7 @@ sub attach_story_data_to_stories
         if ( my $sd = $story_data_lookup->{ $story->{ stories_id } } )
         {
             map { $story->{ $_ } = $sd->{ $_ } } keys( %{ $sd } );
-            TRACE( sub { "story matched: " . Dumper( $story ) } );
+            TRACE "story matched: " . Dumper( $story );
         }
     }
 }

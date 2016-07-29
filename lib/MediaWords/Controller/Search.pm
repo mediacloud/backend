@@ -321,7 +321,7 @@ select ids.id stories_id, coalesce( click_count::text, 'NA' ) bitly_clicks
         left join bitly_clicks_total b on ( ids.id = b.stories_id )
 SQL
 
-    TRACE( sub { "bitly_clicks: " . Dumper( $bitly_clicks ) } );
+    TRACE "bitly_clicks: " . Dumper( $bitly_clicks );
 
     MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $bitly_clicks );
 

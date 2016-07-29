@@ -980,7 +980,7 @@ sub prune_links_to_top_nodes
         push( @{ $pruned_edges }, $edge ) unless ( $prune_lookup->{ $edge->{ target } } );
     }
 
-    DEBUG( sub { "pruned edges: " . ( scalar( @{ $edges } ) - scalar( @{ $pruned_edges } ) ) } );
+    DEBUG "pruned edges: " . ( scalar( @{ $edges } ) - scalar( @{ $pruned_edges } ) );
 
     return $pruned_edges;
 }
@@ -1001,7 +1001,7 @@ sub prune_links_to_min_size
         push( @{ $pruned_edges }, $edge ) if ( $min_size_nodes->{ $edge->{ target } } );
     }
 
-    DEBUG( sub { "pruned edges: " . ( scalar( @{ $edges } ) - scalar( @{ $pruned_edges } ) ) } );
+    DEBUG "pruned edges: " . ( scalar( @{ $edges } ) - scalar( @{ $pruned_edges } ) );
 
     return $pruned_edges;
 }

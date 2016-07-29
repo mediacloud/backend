@@ -316,7 +316,7 @@ sub get_links_from_story
 {
     my ( $db, $story ) = @_;
 
-    INFO( sub { "mining $story->{ title } [$story->{ url }] ..." } );
+    INFO "mining $story->{ title } [$story->{ url }] ...";
 
     my $extracted_html = get_extracted_html( $db, $story );
 
@@ -389,7 +389,7 @@ sub generate_topic_links
 {
     my ( $db, $topic, $stories ) = @_;
 
-    INFO( sub { "GENERATE TOPIC LINKS: " . scalar( @{ $stories } ) } );
+    INFO "GENERATE TOPIC LINKS: " . scalar( @{ $stories } );
 
     my $topic_links = [];
 
@@ -410,7 +410,7 @@ sub generate_topic_links
                 topics_id  => $topic->{ topics_id }
             };
 
-            INFO( sub { "LINK: $link->{ url }" } );
+            INFO "LINK: $link->{ url }";
         }
 
         push( @{ $topic_links }, values( %{ $link_lookup } ) );
@@ -591,7 +591,7 @@ END
 
     $medium = $db->create( 'media', $medium );
 
-    INFO( sub { "add medium: $medium_name / $medium_url / $medium->{ media_id }" } );
+    INFO "add medium: $medium_name / $medium_url / $medium->{ media_id }";
 
     my $spidered_tag = get_spidered_tag( $db );
 
@@ -789,7 +789,7 @@ sub generate_new_story_hash
     {
         my ( $date_guess_method, $publish_date ) = get_new_story_date( $db, $story, $story_content, $old_story, $link );
 
-        DEBUG( sub { "date guess: $date_guess_method: $publish_date" } );
+        DEBUG "date guess: $date_guess_method: $publish_date";
 
         $story->{ publish_date } = $publish_date;
         return ( $story, $date_guess_method );
@@ -893,7 +893,7 @@ sub add_new_story
         $story_content = ${ MediaWords::DBI::Stories::fetch_content( $db, $old_story ) };
     }
 
-    INFO( sub { "add_new_story: $old_story->{ url }" } );
+    INFO "add_new_story: $old_story->{ url }";
 
     # if neither the url nor the content match the pattern, it cannot be a match so return and don't add the story
     if ( $check_pattern
@@ -919,7 +919,7 @@ sub add_new_story
 
     MediaWords::DBI::Stories::GuessDate::assign_date_guess_method( $db, $story, $date_guess_method, 1 );
 
-    INFO( sub { "add story: $story->{ title } / $story->{ url } / $story->{ publish_date } / $story->{ stories_id }" } );
+    INFO "add story: $story->{ title } / $story->{ url } / $story->{ publish_date } / $story->{ stories_id }";
 
     $db->create( 'feeds_stories_map', { feeds_id => $feed->{ feeds_id }, stories_id => $story->{ stories_id } } );
 
@@ -1285,7 +1285,7 @@ sub story_is_topic_story
         $topic->{ topics_id }
     )->flat;
 
-    INFO( sub { "EXISTING TOPIC STORY: $story->{ url }" } ) if ( $is_old );
+    INFO "EXISTING TOPIC STORY: $story->{ url }" if ( $is_old );
 
     return $is_old;
 }
@@ -1434,7 +1434,7 @@ END
 
     if ( $num_self_linked_stories > $MAX_SELF_LINKED_STORIES )
     {
-        INFO( sub { "SKIP SELF LINKED STORY: $story->{ url } [$num_self_linked_stories]" } );
+        INFO "SKIP SELF LINKED STORY: $story->{ url } [$num_self_linked_stories]";
 
         my $medium_domain = MediaWords::Util::URL::get_url_domain( $link->{ url } );
         $_skip_self_linked_domain->{ $medium_domain } = 1;
@@ -1456,7 +1456,7 @@ sub add_to_topic_stories_and_links_if_match
 
     if ( $link->{ assume_match } || story_matches_topic_pattern( $db, $topic, $story ) )
     {
-        INFO( sub { "TOPIC MATCH: $link->{ url }" } );
+        INFO "TOPIC MATCH: $link->{ url }";
         $link->{ iteration } ||= 0;
         add_to_topic_stories_and_links( $db, $topic, $story, $link->{ iteration } + 1 );
     }
@@ -1485,7 +1485,7 @@ sub _skip_self_linked_domain
 
     if ( $source_domain eq $domain )
     {
-        INFO( sub { "SKIP SELF LINKED DOMAIN: $domain" } );
+        INFO "SKIP SELF LINKED DOMAIN: $domain";
         return 1;
     }
 
@@ -1507,7 +1507,7 @@ sub add_links_with_matching_stories
     for my $link ( @{ $new_links } )
     {
         $i++;
-        INFO( sub { "spidering [$i/$total_links] $link->{ url } ..." } );
+        INFO "spidering [$i/$total_links] $link->{ url } ...";
 
         next if ( $link->{ ref_stories_id } );
 
@@ -1608,15 +1608,15 @@ sub extract_stories
 {
     my ( $db, $stories ) = @_;
 
-    INFO( sub { "POSSIBLE EXTRACT STORIES: " . scalar( @{ $stories } ) } );
+    INFO "POSSIBLE EXTRACT STORIES: " . scalar( @{ $stories } );
 
     $stories = filter_and_attach_downloads_to_extract_stories( $db, $stories );
 
-    INFO( sub { "EXTRACT STORIES: " . scalar( @{ $stories } ) } );
+    INFO "EXTRACT STORIES: " . scalar( @{ $stories } );
 
     for my $story ( @{ $stories } )
     {
-        INFO( sub { "EXTRACT STORY: " . $story->{ url } } );
+        INFO "EXTRACT STORY: " . $story->{ url };
         extract_download( $db, $story->{ download }, $story );
     }
 }
@@ -1638,7 +1638,7 @@ sub add_new_links_chunk($$$$)
           || url_failed_potential_match( $link->{ redirect_url } );
         if ( $skip_link )
         {
-            INFO( sub { "ALREADY SKIPPED LINK: $link->{ url }" } );
+            INFO "ALREADY SKIPPED LINK: $link->{ url }";
         }
         else
         {
@@ -2131,7 +2131,7 @@ sub merge_archive_is_story
         return;
     }
 
-    INFO( sub { "Archive: $story->{ url }, Original $original_url" } );
+    INFO "Archive: $story->{ url }, Original $original_url";
     my $link_medium = get_spider_medium( $db, $original_url );
 
     my $new_story = $db->query(
@@ -2164,7 +2164,7 @@ SELECT distinct s.*
 
 END
 
-    INFO( sub { "merging " . scalar( @{ $archive_is_stories } ) . " archive.is stories" } )
+    INFO "merging " . scalar( @{ $archive_is_stories } ) . " archive.is stories"
       if ( scalar( @{ $archive_is_stories } ) );
 
     map { merge_archive_is_story( $db, $topic, $_ ) } @{ $archive_is_stories };
@@ -2242,7 +2242,7 @@ SELECT distinct s.*
         cs.topics_id = ?
 END
 
-    INFO( sub { "merging " . scalar( @{ $dup_media_stories } ) . " stories" } ) if ( scalar( @{ $dup_media_stories } ) );
+    INFO "merging " . scalar( @{ $dup_media_stories } ) . " stories" if ( scalar( @{ $dup_media_stories } ) );
 
     map { merge_dup_media_story( $db, $topic, $_ ) } @{ $dup_media_stories };
 }
@@ -2396,7 +2396,7 @@ sub add_to_topic_stories_if_match
 {
     my ( $db, $topic, $story, $link, $assume_match ) = @_;
 
-    DEBUG( sub { "add story if match: $story->{ url }" } );
+    DEBUG "add story if match: $story->{ url }";
 
     set_topic_link_ref_story( $db, $story, $link ) if ( $link->{ topic_links_id } );
 
@@ -2404,7 +2404,7 @@ sub add_to_topic_stories_if_match
 
     if ( $assume_match || $link->{ assume_match } || story_matches_topic_pattern( $db, $topic, $story ) )
     {
-        INFO( sub { "TOPIC MATCH: $link->{ url }" } );
+        INFO "TOPIC MATCH: $link->{ url }";
         $link->{ iteration } ||= 0;
         add_to_topic_stories( $db, $topic, $story, $link->{ iteration } + 1, 0 );
     }
@@ -2462,7 +2462,7 @@ sub unredirect_story_url
 
     for my $row ( @{ $lookup->{ $nu } } )
     {
-        INFO( sub { "unredirect url: $row->{ url }, $table, $story->{ stories_id }" } );
+        INFO "unredirect url: $row->{ url }, $table, $story->{ stories_id }";
         $db->query( <<END, $story->{ stories_id }, $row->{ "${ table }_id" } );
 update ${ table } set ${ story_field } = ? where ${ table }_id = ?
 END
@@ -2616,7 +2616,7 @@ sub insert_topic_seed_urls
 {
     my ( $db, $topic_seed_urls ) = @_;
 
-    INFO( sub { "inserting " . scalar( @{ $topic_seed_urls } ) . " topic seed urls ..." } );
+    INFO "inserting " . scalar( @{ $topic_seed_urls } ) . " topic seed urls ...";
 
     $db->dbh->do( <<SQL );
 COPY topic_seed_urls ( stories_id, url, topics_id, assume_match ) FROM STDIN WITH CSV
@@ -2644,11 +2644,11 @@ sub import_solr_seed_query
 
     my $max_stories = MediaWords::Util::Config::get_config->{ mediawords }->{ max_solr_seed_query_stories };
 
-    INFO( sub { "executing solr query: $topic->{ solr_seed_query }" } );
+    INFO "executing solr query: $topic->{ solr_seed_query }";
     my $stories =
       MediaWords::Solr::search_for_stories( $db, { q => $topic->{ solr_seed_query }, rows => $max_stories } );
 
-    INFO( sub { "adding " . scalar( @{ $stories } ) . " stories to topic_seed_urls" } );
+    INFO "adding " . scalar( @{ $stories } ) . " stories to topic_seed_urls";
 
     $db->begin;
 

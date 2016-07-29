@@ -93,7 +93,7 @@ my $_store_amazon_s3 = lazy
 
     unless ( $config->{ amazon_s3 } )
     {
-        INFO( sub { "Amazon S3 download store is not configured." } );
+        INFO "Amazon S3 download store is not configured.";
         return undef;
     }
 
@@ -481,7 +481,7 @@ sub _get_inline_extracted_html
 
     my $extracted_html = join( ' ', extract_with_python_readability( $content ) );
 
-    TRACE( sub { "inline extractor: " . length( $content ) . " -> " . length( $extracted_html ) } );
+    TRACE "inline extractor: " . length( $content ) . " -> " . length( $extracted_html );
 
     return $extracted_html;
 }
@@ -593,7 +593,7 @@ sub process_download_for_extractor($$;$)
 
     my $stories_id = $download->{ stories_id };
 
-    INFO( sub { "extract: $download->{ downloads_id } $stories_id $download->{ url }" } );
+    INFO "extract: $download->{ downloads_id } $stories_id $download->{ url }";
     my $download_text = MediaWords::DBI::Downloads::extract_and_create_download_text( $db, $download, $extractor_args );
 
     my $has_remaining_download = $db->query( <<SQL, $stories_id )->hash;
@@ -608,7 +608,7 @@ SQL
     }
     elsif ( !( $extractor_args->no_vector() ) )
     {
-        DEBUG( sub { "pending more downloads ..." } );
+        DEBUG "pending more downloads ...";
     }
 }
 
@@ -628,7 +628,7 @@ sub process_download_for_extractor_and_record_error($$$)
     {
         my $downloads_id = $download->{ downloads_id };
 
-        DEBUG( sub { "extractor error processing download $downloads_id: $@" } );
+        DEBUG "extractor error processing download $downloads_id: $@";
 
         $db->rollback;
 

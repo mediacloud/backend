@@ -117,7 +117,7 @@ sub UserAgentDetermined
             my $request = $lwp_args->[ 0 ];
             my $url     = $request->uri;
 
-            TRACE( sub { "user_agent_determined trying $url ..." } );
+            TRACE "user_agent_determined trying $url ...";
         }
     );
     $ua->after_determined_callback(

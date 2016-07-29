@@ -105,7 +105,7 @@ sub start(;$)
 {
     my ( $self, $sleep ) = @_;
 
-    DEBUG( sub { "Starting server on port $self->{ port }" } );
+    DEBUG "Starting server on port $self->{ port }";
 
     $self->{ pid } = $self->background();
 
@@ -121,7 +121,7 @@ sub stop
 {
     my ( $self ) = @_;
 
-    DEBUG( sub { "Stopping server with PID " . $self->{ pid } . " from PID $$" } );
+    DEBUG "Stopping server with PID " . $self->{ pid } . " from PID $$";
 
     kill( 'KILL', $self->{ pid } );
 }
@@ -201,7 +201,7 @@ sub handle_request
 {
     my ( $self, $cgi ) = @_;
 
-    TRACE( sub { "received request: " . $cgi->path_info } );
+    TRACE "received request: " . $cgi->path_info;
 
     my $path = $cgi->path_info();
 

@@ -101,9 +101,9 @@ SQL
         eval {
             my $url = $download->{ url };
 
-            DEBUG( sub { "download $download->{ downloads_id } [ story $download->{ stories_id } ]" } );
+            DEBUG "download $download->{ downloads_id } [ story $download->{ stories_id } ]";
 
-            DEBUG( sub { "broken url:\n\t$url" } );
+            DEBUG "broken url:\n\t$url";
 
             if ( $url =~ /express0C0J/ )
             {
@@ -123,7 +123,7 @@ SQL
 
             $url = "http://www.washingtonpost.com/$url";
 
-            DEBUG( sub { "fixed url:\n\t$url" } );
+            DEBUG "fixed url:\n\t$url";
 
             $download->{ fixed_url } = $url;
 

@@ -236,7 +236,7 @@ sub _prune_dup_stories($$)
     my $pruned_stories = [];
     map { push( @{ $pruned_stories }, $_ ) unless ( $remove_stories_lookup->{ $_->{ guid } } ) } @{ $stories };
 
-    DEBUG( sub { "pruned to " . scalar( @{ $pruned_stories } ) . " / " . scalar( @{ $stories } . " stories" ) } );
+    DEBUG "pruned to " . scalar( @{ $pruned_stories } ) . " / " . scalar( @{ $stories } ) . " stories";
 
     return $pruned_stories;
 }
@@ -323,7 +323,7 @@ SQL
 insert into feeds ( media_id, url, name, feed_status ) values ( ?, ?, ?, 'inactive' ) returning *
 SQL
 
-    DEBUG( sub { "scrape feed: $feed->{ name } [$feed->{ feeds_id }]" } );
+    DEBUG "scrape feed: $feed->{ name } [$feed->{ feeds_id }]";
 
     $self->scrape_feed( $feed );
 

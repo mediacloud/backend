@@ -81,7 +81,7 @@ sub _fetch_and_handle_download
         LOGDIE( "fetch " . $self->fetcher_number . ": Unable to find download_id: $download->{downloads_id}" );
     }
 
-    DEBUG( sub { "fetch " . $self->fetcher_number . ": $download->{downloads_id} $url ..." } );
+    DEBUG "fetch " . $self->fetcher_number . ": $download->{downloads_id} $url ...";
 
     my $start_fetch_time = [ Time::HiRes::gettimeofday ];
     my $response         = $fetcher->fetch_download( $download );
@@ -98,7 +98,7 @@ sub _fetch_and_handle_download
         LOGDIE( "Error in handle_response() for downloads_id $download->{downloads_id} $url : $@" );
     }
 
-    DEBUG( sub { "fetch " . $self->fetcher_number . ": $download->{downloads_id} $url done [$fetch_time/$handle_time]" } );
+    DEBUG "fetch " . $self->fetcher_number . ": $download->{downloads_id} $url done [$fetch_time/$handle_time]";
 
     return;
 }
@@ -129,7 +129,7 @@ sub _run_fetcher
 {
     my ( $self ) = @_;
 
-    DEBUG( sub { "fetch " . $self->fetcher_number . " crawl loop" } );
+    DEBUG "fetch " . $self->fetcher_number . " crawl loop";
 
     $self->reconnect_db();
 
@@ -168,7 +168,7 @@ sub _run_fetcher
                 $download = $self->dbs->find_by_id( 'downloads', $downloads_id );
 
                 my $idle_time = Time::HiRes::tv_interval( $start_idle_time, [ Time::HiRes::gettimeofday ] );
-                DEBUG( sub { "fetch " . $self->fetcher_number . " idle time $idle_time" } );
+                DEBUG "fetch " . $self->fetcher_number . " idle time $idle_time";
 
                 $self->_fetch_and_handle_download( $download, $fetcher, $handler );
 
@@ -179,7 +179,7 @@ sub _run_fetcher
             }
             else
             {
-                TRACE( sub { "fetch " . $self->fetcher_number . " _run_fetcher sleeping ..." } );
+                TRACE "fetch " . $self->fetcher_number . " _run_fetcher sleeping ...";
                 sleep( 1 );
             }
         };

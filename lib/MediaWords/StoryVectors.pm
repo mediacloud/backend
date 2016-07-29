@@ -288,7 +288,7 @@ sub update_story_sentences_and_language($$;$)
 
     unless ( scalar @{ $sentences } )
     {
-        DEBUG( sub { "Story $stories_id doesn't have any sentences." } );
+        DEBUG "Story $stories_id doesn't have any sentences.";
         return;
     }
 

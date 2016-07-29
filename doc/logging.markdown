@@ -50,11 +50,13 @@ To see more info from specific categories, add lines like the following to the l
 log4perl.logger.MediaWords.CM.Mine = DEBUG, STDERR
 ```
 
-Keep in mind that perl will evaluate any expression passed as argument to a logging call.  But log4perl supports
-passing subs as arguments, so for calls that use anything other than a constant string, you should use a sub:
+Keep in mind that perl will evaluate any expression passed as argument to a logging call.  If you anticipate that a logging call might be slow and will be called often (e.g. `TRACE()` call that uses `Dumper()` to print a huge hashref), consider using `LOGGING_CALL( sub { ... } )` syntax:
 
 ```
-INFO( sub { "merging " . scalar( @{ $archive_is_stories } ) . " archive.is stories" } )
+TRACE( sub {
+    "Huge hashref that won't usually get logged anyway: "
+        . Dumper( $huge_hashref )
+} )
 ```
 
 To set the category of a script or test to something other than `main`, use a `package` statement in the script.

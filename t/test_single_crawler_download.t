@@ -234,7 +234,7 @@ sub main
 
             $crawler->crawl_single_download( $feed_download->{ downloads_id } );
 
-            DEBUG( sub { "download id: $feed_download->{ downloads_id }" } );
+            DEBUG "download id: $feed_download->{ downloads_id }";
             my $content_downloads =
               $db->query( "SELECT * from downloads where  type = 'content' and state <> 'success' and downloads_id > ? ",
                 $feed_download->{ downloads_id } )->hashes;
