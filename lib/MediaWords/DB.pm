@@ -172,7 +172,10 @@ sub print_shell_env_commands_for_psql
 
     foreach my $psql_env_var ( @{ $psql_env_vars } )
     {
-        say "export $psql_env_var=" . $ENV{ $psql_env_var };
+        if ( $ENV{ $psql_env_var } )
+        {
+            say "export $psql_env_var=" . $ENV{ $psql_env_var };
+        }
     }
 }
 
