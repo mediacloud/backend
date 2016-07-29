@@ -1,13 +1,9 @@
 Logging
 ==============================
 
-We are transitioning to using Log4perl for all logging.  The code still has lots of 'say STDERR' statements, but these
-should be gradually replaced with the below logging calls.  New code should use the log4perl logging.
+We are using [`Log::Log4perl`](https://mschilli.github.io/log4perl/) (Log4perl) for all logging. The basic idea of Log4perl is to send every log message with a category and priority and to associate those categories / priorities to appenders in a configuration file.
 
-The basic idea of log4perl is to send every log message with a category and priority and to associate those
-categories / priorities to appenders in a configuration file.
-
-The mc log4perl configuration file is in log4perl.conf, and the default just logs all messages of WARN or above
+The Log4perl configuration file is in `log4perl.conf`, and the default just logs all messages of WARN or above
 to STDERR:
 
 ```
