@@ -74,13 +74,13 @@ sub _link_is_next_page
 
             $regex_match_count++;
 
-            # say "Slow regex matched. match_count $regex_match_count / $regex_tried_count. text length: " . length( $text );
+            TRACE "Slow regex matched. match_count $regex_match_count / $regex_tried_count. text length: " . length( $text );
 
             if ( $stripped_text !~ /\w/ )
             {
                 $text = $alt;
 
-                #print "alt text: $text\n";
+                TRACE "alt text: $text";
             }
         }
     }

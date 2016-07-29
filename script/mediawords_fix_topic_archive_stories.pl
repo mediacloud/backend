@@ -43,9 +43,9 @@ sub main
     {
         $db->disconnect;
         $db = MediaWords::DB::connect_to_db;
-        print "topic $topic->{ name } \n";
+        INFO "topic $topic->{ name }";
 
-        #say Dumper ( $topic );
+        TRACE Dumper( $topic );
 
         for my $media_id ( @{ $archive_media } )
         {
@@ -55,7 +55,7 @@ sub main
               $db->query( "SELECT * from snap.live_stories where media_id in ( ? ) order by stories_id", $media_id )
               ->hashes();
 
-            #say Dumper( $archive_stories );
+            TRACE Dumper( $archive_stories );
 
             my $i = 0;
             for my $archive_story ( @$archive_stories )
@@ -69,10 +69,10 @@ sub main
                     WARN "could not get original URL for $archive_story->{ url } SKIPPING";
                     next;
                 }
-                say "Archive: $archive_story->{ url }, Original $original_url ";
+                INFO "Archive: $archive_story->{ url }, Original $original_url ";
                 my $medium = MediaWords::TM::Mine::get_spider_medium( $db, $original_url );
 
-                #say Dumper ( $medium );
+                TRACE Dumper( $medium );
 
                 $i++;
 
@@ -83,8 +83,6 @@ sub main
                     $medium->{ media_id },
                     $archive_story->{ stories_id }
                 );
-
-                #last if $i > 3;
             }
 
         }

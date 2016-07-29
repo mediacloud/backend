@@ -257,7 +257,7 @@ sub export_all_downloads
         #exit;
     }
 
-    say "Waiting for children";
+    INFO "Waiting for children";
 
     $pm->wait_all_children;
 

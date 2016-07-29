@@ -175,11 +175,11 @@ sub get_crawler_data_directory
         use FindBin;
 
         my $bin = $FindBin::Bin;
-        say "Bin = '$bin' ";
+        INFO "Bin = '$bin' ";
         $crawler_data_location = "$FindBin::Bin/data/crawler";
     }
 
-    print "crawler data '$crawler_data_location'\n";
+    INFO "crawler data '$crawler_data_location'";
 
     return $crawler_data_location;
 }

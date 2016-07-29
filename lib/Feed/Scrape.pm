@@ -217,7 +217,8 @@ sub _fix_atom_content_element_encoding
 
     my $ret = $doc->toString;
 
-    #say "Returning :'$ret'";
+    TRACE "Returning :'$ret'";
+
     return $ret;
 }
 

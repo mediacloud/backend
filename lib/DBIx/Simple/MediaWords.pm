@@ -248,19 +248,13 @@ sub run_block_with_large_work_mem( &$ )
     my $block = shift;
     my $db    = shift;
 
-    #DEBUG "starting run_block_with_large_work_mem ";
-
-    #say Dumper( $db );
+    TRACE "starting run_block_with_large_work_mem";
 
     my $large_work_mem = $db->_get_large_work_mem();
 
     my $old_work_mem = $db->get_current_work_mem();
 
     $db->_set_work_mem( $large_work_mem );
-
-    #say "try";
-
-    #say Dumper( $block );
 
     try
     {
@@ -275,7 +269,7 @@ sub run_block_with_large_work_mem( &$ )
 
     $db->_set_work_mem( $old_work_mem );
 
-    #DEBUG "exiting run_block_with_large_work_mem ";
+    TRACE "exiting run_block_with_large_work_mem";
 }
 
 sub _set_work_mem

@@ -82,7 +82,7 @@ sub store_downloads
 
     for my $download ( @downloads )
     {
-        say "Processing download $download->{downloads_id}";
+        INFO "Processing download $download->{downloads_id}";
 
         my $preprocessed_lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $dbs, $download );
         my $extract_results = MediaWords::DBI::Downloads::extract( $dbs, $download );

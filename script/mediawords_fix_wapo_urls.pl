@@ -153,9 +153,9 @@ SQL
 
     $db->commit;
 
-    say "skipped downloads: " . Dumper( map { $_->{ url } } @{ $skipped_downloads } );
+    INFO "skipped downloads: " . Dumper( map { $_->{ url } } @{ $skipped_downloads } );
 
-    # say "failed downloads: " .
+    # INFO "failed downloads: " .
     #     Dumper( map { { url => $_->{ url }, fixed_url => $_->{ fixed_url } } } @{ $failed_downloads } );
 }
 

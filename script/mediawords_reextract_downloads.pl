@@ -53,7 +53,7 @@ sub reextract_downloads
         die "Non-content type download: $download->{ downloads_id } $download->{ type } "
           unless $download->{ type } eq 'content';
 
-        say "Processing download $download->{downloads_id}";
+        INFO "Processing download $download->{downloads_id}";
 
         MediaWords::DBI::Downloads::process_download_for_extractor( $dbs, $download );
     }

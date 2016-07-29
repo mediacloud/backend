@@ -83,9 +83,9 @@ package MediaWords::KeyValueStore;
 #
 #     # Some storage methods might not support checking whether the data exists
 #     if ($store->content_exists( $db, 'Mister Bigglesworth' )) {
-#         say "Yes it does";
+#         INFO "Yes it does";
 #     } else {
-#         say "No it doesn't";
+#         INFO "No it doesn't";
 #     }
 #
 # For a live example of how the MediaWords::KeyValueStore subpackages are being

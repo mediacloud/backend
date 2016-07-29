@@ -212,7 +212,7 @@ sub load_sql_file
 
         chomp( $line );
 
-        # say "Got line: '$line'";
+        TRACE "Got line: '$line'";
 
         # Die on unexpected SQL (e.g. DROP TABLE)
         unless ( postgresql_response_line_is_expected( $line ) )
