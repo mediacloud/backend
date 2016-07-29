@@ -13,6 +13,9 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use MediaWords::DB;
 use MediaWords::Util::CSV;
 use MediaWords::DBI::Media;
@@ -44,7 +47,7 @@ END
 
         my $foreign_rss_links = ( $num_domains > $MAX_DIFFERENT_DOMAINS ) ? 't' : 'f';
 
-        print STDERR "$medium->{ name } [ $medium->{ media_id } ]: $num_domains - $foreign_rss_links\n";
+        INFO "$medium->{ name } [ $medium->{ media_id } ]: $num_domains - $foreign_rss_links";
 
         $db->query( "update media set foreign_rss_links = ? where media_id = ?", $foreign_rss_links, $medium->{ media_id } );
 

@@ -11,19 +11,20 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use MediaWords::DB;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use DBIx::Simple::MediaWords;
-use XML::LibXML;
-use Getopt::Long;
-use Readonly;
-use Carp;
+use MediaWords::DB;
 use MediaWords::DBI::Downloads;
+
+use Carp;
 use Data::Dumper;
+use DBIx::Simple::MediaWords;
 use Encode;
+use Getopt::Long;
 use MIME::Base64;
+use Readonly;
+use XML::LibXML;
 
 sub addDownloadChild
 {
@@ -37,15 +38,15 @@ sub addDownloadChild
     $download->appendTextChild( 'url',  $row->{ download_url } );
     $download->appendTextChild( 'host', $row->{ host } );
 
-    print STDERR "Starting fetch_content\n";
+    INFO "Starting fetch_content";
     my $download_content = MediaWords::DBI::Downloads::fetch_content( $db, $row );
 
     my $data_section = XML::LibXML::CDATASection->new( encode_base64( encode( "utf8", $$download_content ) ) );
 
-    my $download_content = XML::LibXML::Element->new( 'download_content' );
-    $download_content->appendChild( $data_section );
+    my $xml_download_content = XML::LibXML::Element->new( 'download_content' );
+    $xml_download_content->appendChild( $data_section );
 
-    $download->appendChild( $download_content );
+    $download->appendChild( $xml_download_content );
 
     $story->appendChild( $download );
 }
@@ -101,7 +102,7 @@ sub get_matching_articles_within_date_range
         # $start_date, $end_date
     );
 
-    print STDERR "finished  -- search query " . localtime() . "\n";
+    INFO "finished  -- search query " . localtime();
 
     return $matching_articles;
 }
@@ -158,7 +159,7 @@ sub create_media_element
 {
     ( my $db, my $media_id ) = @_;
 
-    print STDERR "creating XML node for media_id $media_id\n";
+    INFO "creating XML node for media_id $media_id";
 
     my $media_element = XML::LibXML::Element->new( 'medium' );
     $media_element->setAttribute( 'media_id', $media_id );
@@ -195,14 +196,14 @@ sub main
     die "$usage\n"
       if ( ( $start_date or $end_date ) and ( !( $start_date and $end_date ) ) );
 
-    print STDERR "starting --  " . localtime() . "\n";
+    INFO "starting --  " . localtime();
 
     $start_date = '2008-01-01';
     $end_date   = '2011-01-01';
 
     my $db = MediaWords::DB::connect_to_db;
 
-    print STDERR "starting -- search query " . localtime() . "\n";
+    INFO "starting -- search query " . localtime();
 
     my $matching_articles;
 
@@ -245,7 +246,7 @@ sub main
 
     print $doc->toFile( $output_file, 1 );
 
-    print STDERR "finished --  " . localtime() . "\n";
+    INFO "finished --  " . localtime();
 }
 
 main();

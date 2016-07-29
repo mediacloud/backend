@@ -30,11 +30,11 @@ sub extract_links_for_story
 
     if ( !@{ $youtube_links } )
     {
-        print STDERR '.';
+        INFO '.';
         return;
     }
 
-    INFO "\n[ $story->{ stories_id } ] $story->{ url }";
+    INFO "[ $story->{ stories_id } ] $story->{ url }:";
     for my $link ( @{ $youtube_links } )
     {
         next if ( $link->{ url } eq $story->{ url } );
@@ -48,11 +48,11 @@ sub extract_links_for_story
 
         if ( $link_exists )
         {
-            print STDERR "    -> dup: $link->{ url }\n";
+            INFO "\t-> dup: $link->{ url }";
         }
         else
         {
-            print STDERR "    -> new: $link->{ url }\n";
+            INFO "\t-> new: $link->{ url }";
             $db->create(
                 "topic_links",
                 {

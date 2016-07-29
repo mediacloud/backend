@@ -84,22 +84,22 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use MediaWords::DB;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use Getopt::Long qw(:config pass_through);
-use Term::Prompt;
+use MediaWords::DB;
 use MediaWords::DBI::Auth;
 use MediaWords::Util::Config;
-use Term::ReadKey;
+
 use Data::Dumper;
+use Getopt::Long qw(:config pass_through);
+use Term::Prompt;
+use Term::ReadKey;
 
 # Helper to read passwords from CLI without showing them
 # (http://stackoverflow.com/a/701234/200603 plus http://search.cpan.org/dist/TermReadKey/ReadKey.pm)
 sub _read_password
 {
-
     # Start reading the keys
     my $password = '';
 
@@ -108,11 +108,9 @@ sub _read_password
     # This will continue until the Enter key is pressed (decimal value of 10)
     while ( ord( my $key = ReadKey( 0 ) ) != 10 )
     {
-
         # For all value of ord($key) see http://www.asciitable.com/
         if ( ord( $key ) == 127 || ord( $key ) == 8 )
         {
-
             # Delete / Backspace was pressed
             # 1. Delete the last char from the password
             chop( $password );
@@ -122,7 +120,6 @@ sub _read_password
         }
         elsif ( ord( $key ) < 32 )
         {
-
             # Do nothing with control characters
         }
         else
@@ -133,7 +130,7 @@ sub _read_password
 
     ReadMode( 0 );    # reset the terminal once we are done
 
-    print STDERR "\n";
+    print "\n";
 
     return $password;
 }

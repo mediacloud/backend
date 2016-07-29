@@ -296,7 +296,7 @@ sub _print_csv_to_file_from_csr
             $imported_stories_ids->{ $stories_id } = 1;
         }
 
-        print STDERR time . " " . ( ++$i * $FETCH_BLOCK_SIZE ) . "\n";    # unless ( ++$i % 10 );
+        INFO time() . " " . ( ++$i * $FETCH_BLOCK_SIZE );    # unless ( ++$i % 10 );
     }
 
     $db->dbh->do( "close csr" );
@@ -316,7 +316,7 @@ sub _create_delta_import_stories
 
     $import_date //= '2000-01-01';
 
-    print STDERR "importing delta from $import_date...\n";
+    INFO "importing delta from $import_date...";
 
     $db->query( <<END, $import_date );
 create temporary table delta_import_stories as
@@ -326,7 +326,7 @@ where ss.db_row_last_updated > \$1 and ( stories_id % $num_proc ) = ( $proc - 1 
 
 END
     my ( $num_delta_stories ) = $db->query( "select count(*) from delta_import_stories" )->flat;
-    print STDERR "found $num_delta_stories stories for import ...\n";
+    INFO "found $num_delta_stories stories for import ...";
 
     _add_extra_stories_to_import( $db, $import_date, $num_delta_stories, $num_proc, $proc );
 }
@@ -416,11 +416,11 @@ sub _print_csv_to_file_single_job
 
     $db->begin;
 
-    print STDERR "exporting sentences ...\n";
+    INFO "exporting sentences ...";
     _declare_sentences_cursor( $db, $delta, $num_proc, $proc );
     my $sentence_stories_ids = _print_csv_to_file_from_csr( $db, $fh, $data_lookup, 1 );
 
-    print STDERR "exporting titles ...\n";
+    INFO "exporting titles ...";
     _declare_titles_cursor( $db, $delta, $num_proc, $proc );
     my $title_stories_ids = _print_csv_to_file_from_csr( $db, $fh, $data_lookup, 0 );
 
@@ -535,8 +535,6 @@ sub _solr_request($$$;$$)
 {
     my ( $path, $params, $staging, $content, $content_type ) = @_;
 
-    # print STDERR "requesting url: $url ...\n";
-
     my $solr_url = MediaWords::Solr::get_solr_url;
     $params //= {};
 
@@ -556,6 +554,8 @@ sub _solr_request($$$;$$)
     my $req;
 
     my $timeout = 600;
+
+    TRACE "Requesting URL: $abs_url...";
 
     if ( $content )
     {
@@ -813,7 +813,7 @@ sub _reprocess_file_errors
 
         next unless ( $data->{ csv } );
 
-        print STDERR "reprocessing $file position $data->{ pos } ...\n";
+        INFO "reprocessing $file position $data->{ pos } ...";
 
         $pm->start and next;
 
@@ -1082,7 +1082,7 @@ sub delete_stories
 
     return 1 unless ( $stories_ids && scalar @{ $stories_ids } );
 
-    print STDERR "deleting " . scalar( @{ $stories_ids } ) . " stories ...\n";
+    INFO "deleting " . scalar( @{ $stories_ids } ) . " stories ...";
 
     $stories_ids = [ sort { $a <=> $b } @{ $stories_ids } ];
 
@@ -1094,7 +1094,7 @@ sub delete_stories
         my $chunk_size = List::Util::min( $max_chunk_size, scalar( @{ $stories_ids } ) );
         map { push( @{ $chunk_ids }, shift( @{ $stories_ids } ) ) } ( 1 .. $chunk_size );
 
-        print STDERR "deleting chunk: " . scalar( @{ $chunk_ids } ) . " stories ...\n";
+        INFO "deleting chunk: " . scalar( @{ $chunk_ids } ) . " stories ...";
 
         my $stories_id_query = _get_stories_id_solr_query( $chunk_ids );
 
@@ -1117,7 +1117,7 @@ sub delete_all_sentences
 {
     my ( $staging ) = @_;
 
-    print STDERR "deleting all sentences ...\n";
+    INFO "deleting all sentences ...";
 
     my $url_params = { 'commit' => 'true', 'stream.body' => '<delete><query>*:*</query></delete>', };
     eval { _solr_request( 'update', $url_params, $staging ); };
@@ -1227,7 +1227,7 @@ sub generate_and_import_data
 
         _mark_import_date( $db );
 
-        print STDERR "generating dump ...\n";
+        INFO "generating dump ...";
         my $dump = print_csv_to_file( $db, $dump_file, $jobs, $delta ) || die( "dump failed." );
 
         my $stories_ids = $dump->{ stories_ids };
@@ -1235,18 +1235,18 @@ sub generate_and_import_data
 
         if ( $delta )
         {
-            print STDERR "deleting updated stories ...\n";
+            INFO "deleting updated stories ...";
             delete_stories( $stories_ids, $staging ) || die( "delete stories failed." );
         }
         elsif ( $delete )
         {
-            print STDERR "deleting all stories ...\n";
+            INFO "deleting all stories ...";
             delete_all_sentences( $staging ) || die( "delete all sentences failed." );
         }
 
         _solr_request( 'update', { 'commit' => 'true' }, $staging );
 
-        print STDERR "importing dump ...\n";
+        INFO "importing dump ...";
         import_csv_files( $dump_files, $staging, $jobs ) || die( "import failed." );
 
         # have to reconnect becaue import_csv_files may have forked, ruining existing db handles

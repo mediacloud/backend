@@ -49,7 +49,7 @@ sub _test_syntax($)
             my $number_of_lines = () = $eval =~ /\n/g;
             if ( $number_of_lines > 1 )
             {
-                print STDERR "$eval\n";
+                INFO "$eval";
             }
         }
         else

@@ -1,5 +1,4 @@
 package MediaWords::DBI::Media;
-use Modern::Perl "2015";
 
 =head1 NAME
 
@@ -10,16 +9,18 @@ MediaWords::DBI::Media - various helper functions relating to media.
 use strict;
 use warnings;
 
-use Encode;
-use Regexp::Common qw /URI/;
-use Text::Trim;
-use XML::FeedPP;
-
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
+
 use MediaWords::DBI::Media::Lookup;
 use MediaWords::DBI::Media::Rescrape;
 use MediaWords::Util::HTML;
 use MediaWords::Util::URL;
+
+use Encode;
+use Regexp::Common qw /URI/;
+use Text::Trim;
+use XML::FeedPP;
 
 =head1 FUNCTIONS
 
@@ -127,8 +128,7 @@ sub _get_url_medium_index_from_url
 
     for ( my $i = 0 ; $i < @{ $url_media } ; $i++ )
     {
-
-        #print STDERR "'$url_media->[ $i ]->{ url }' eq '$url'\n";
+        TRACE "'$url_media->[ $i ]->{ url }' eq '$url'";
         if ( URI->new( $url_media->[ $i ]->{ url } ) eq URI->new( $url ) )
         {
             return $i;

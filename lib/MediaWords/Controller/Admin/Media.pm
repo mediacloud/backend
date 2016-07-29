@@ -1,32 +1,31 @@
 package MediaWords::Controller::Admin::Media;
+
+use strict;
+use warnings;
+
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use Encode;
-use strict;
-use warnings;
 use base 'Catalyst::Controller';
 
-use Regexp::Common qw /URI/;
-
-#use YAML::Syck;
-use Text::Trim;
-use URI::Split;
+use Data::Dumper;
+use Encode;
+use JSON;
 use List::MoreUtils qw(any all none notall true false firstidx first_index
   lastidx last_index insert_after insert_after_string
   apply after after_incl before before_incl indexes
   firstval first_value lastval last_value each_array
   each_arrayref pairwise natatime mesh zip uniq minmax);
-
-use Data::Dumper;
-use MediaWords::Util::Tags;
-use MediaWords::Util::Web;
-use MediaWords::Util::HTML;
 use MediaWords::DBI::Feeds;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
-use JSON;
+use MediaWords::Util::HTML;
+use MediaWords::Util::Tags;
+use MediaWords::Util::Web;
 use Readonly;
+use Regexp::Common qw /URI/;
+use Text::Trim;
+use URI::Split;
 use URI;
 
 use if $] < 5.014, Switch => 'Perl6';
@@ -359,7 +358,7 @@ sub delete : Local
             $status_msg = 'Media source marked for deletion.';
         }
 
-        #print STDERR "moderated: $medium->{ moderated }\n";
+        TRACE "moderated: $medium->{ moderated }";
 
         if ( $medium->{ moderated } )
         {

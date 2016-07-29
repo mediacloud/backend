@@ -6,6 +6,9 @@ our @EXPORT = qw (execute_query);
 use strict;
 use warnings;
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use MediaWords::DB;
 use URI;
 use URI::Split;
@@ -85,11 +88,11 @@ sub execute_query
 
     my $dbh = get_database_handle();
 
-    print STDERR "Starting to execute query: \"$query\"  -- " . localtime() . "\n";
+    INFO "Starting to execute query: \"$query\"  -- " . localtime();
 
     $dbh->query( $query );
 
-    print STDERR "Finished executing query: \"$query\"  -- " . localtime() . "\n";
+    INFO "Finished executing query: \"$query\"  -- " . localtime();
 }
 
 sub list_contains
