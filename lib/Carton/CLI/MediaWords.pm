@@ -2,6 +2,10 @@ package Carton::CLI::MediaWords;
 
 use strict;
 use warnings;
+
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Carton::Environment;
 use parent( 'Carton::CLI' );
 
@@ -23,7 +27,7 @@ sub cmd_exec
     {
         if ( $args[ 0 ] eq '-I' )
         {
-            warn "exec -Ilib is deprecated. You might want to run: carton exec perl -Ilib ...\n";
+            WARN "exec -Ilib is deprecated. You might want to run: carton exec perl -Ilib ...";
             splice( @args, 0, 2 );
         }
         else

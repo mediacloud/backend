@@ -56,7 +56,7 @@ sub _get_ip_token_for_user
 
     if ( !$ip_address )
     {
-        warn( "Unable to find ip address for request" );
+        WARN "Unable to find ip address for request";
         return 0;
     }
 

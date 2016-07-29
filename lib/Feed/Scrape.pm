@@ -5,35 +5,33 @@ package Feed::Scrape;
 use strict;
 use warnings;
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
+use MediaWords::Util::URL;
+use MediaWords::Util::Web;
+
+use Carp;
+use Data::Dumper;
+use Domain::PublicSuffix;
 use Encode;
 use Feed::Find;
 use HTML::Entities;
-use List::Util;
-use URI::URL;
-use URI::Escape;
-use Modern::Perl "2015";
-use MediaWords::CommonLibs;
-use MediaWords::Util::URL;
-use Domain::PublicSuffix;
-use Carp;
-use HTML::LinkExtractor;
 use HTML::Entities;
-use Readonly;
-
-Readonly my $MAX_DEFAULT_FEEDS => 4;
-
-#use XML::FeedPP;
-use XML::LibXML;
+use HTML::LinkExtractor;
 use List::MoreUtils qw(any all none notall true false firstidx first_index
   lastidx last_index insert_after insert_after_string
   apply after after_incl before before_incl indexes
   firstval first_value lastval last_value each_array
   each_arrayref pairwise natatime mesh zip distinct uniq minmax);
-
-use MediaWords::Util::Web;
-
-use Data::Dumper;
+use List::Util;
+use Readonly;
+use URI::Escape;
+use URI::URL;
 use XML::FeedPP::MediaWords;
+use XML::LibXML;
+
+Readonly my $MAX_DEFAULT_FEEDS => 4;
 
 # max urls that get_valid_feeds_from_index_url will fetch
 Readonly my $MAX_INDEX_URLS => 1000;
@@ -237,14 +235,14 @@ sub parse_feed
     if ( $chunk =~ /<html/i )
     {
 
-        # warn "Feed not parsed -- contains '<html'";
+        TRACE "Feed not parsed -- contains '<html'";
         return undef;
     }
 
     if ( $chunk !~ /<(?:rss|feed|rdf)/i )
     {
 
-        # warn "Feed not parsed -- missing feed tag in first 1024 characters";
+        TRACE "Feed not parsed -- missing feed tag in first 1024 characters";
         return undef;
     }
 

@@ -3,30 +3,27 @@ package DBIx::Simple::MediaWords;
 # local subclass of DBIx::Simple with some modification for use in media cloud code
 
 use strict;
-
-use Carp;
-use IPC::Run3;
+use warnings;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use base qw(DBIx::Simple);
+
+use MediaWords::DB;
 use MediaWords::Util::Config;
 use MediaWords::Util::SchemaVersion;
-use MediaWords::DB;
 
-use CHI;
 use Carp;
+use CHI;
+use Data::Dumper;
 use Data::Page;
 use DBD::Pg qw(:pg_types);
+use Encode;
+use IPC::Run3;
 use JSON;
 use Math::Random::Secure;
-
-use Encode;
-
-use Data::Dumper;
 use Try::Tiny;
-
-use base qw(DBIx::Simple);
 
 # Environment variable which, when set, will make us ignore the schema version
 Readonly my $IGNORE_SCHEMA_VERSION_ENV_VARIABLE => 'MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION';
@@ -331,7 +328,7 @@ sub query_only_warn_on_error
 
     my $ret = $self->SUPER::query( @_ );
 
-    warn "Problem executing DBIx::simple->query(" . scalar( join ",", @_ ) . ") :" . $self->error
+    WARN "Problem executing DBIx::simple->query(" . scalar( join ",", @_ ) . ") :" . $self->error
       unless $ret;
     return $ret;
 }

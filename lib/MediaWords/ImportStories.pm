@@ -20,6 +20,12 @@ for deduplication and date restriction by this super class.
 
 =cut
 
+use strict;
+use warnings;
+
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Moose::Role;
 
 use Carp;
@@ -352,7 +358,7 @@ sub _get_story_content
     }
     else
     {
-        warn( "Unable to fetch content for story '$url'" );
+        WARN "Unable to fetch content for story '$url'";
         return '';
     }
 
@@ -386,7 +392,7 @@ sub _add_story_download
 
         eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download ); };
 
-        warn "extract error processing download $download->{ downloads_id }: $@" if ( $@ );
+        WARN "extract error processing download $download->{ downloads_id }: $@" if ( $@ );
     }
     else
     {

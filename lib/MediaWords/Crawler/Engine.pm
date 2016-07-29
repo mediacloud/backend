@@ -186,7 +186,7 @@ sub _run_fetcher
 
         if ( $@ )
         {
-            WARN( sub { "ERROR: fetcher " . $self->fetcher_number . ":\n****\n$@\n****" } );
+            WARN "ERROR: fetcher " . $self->fetcher_number . ":\n****\n$@\n****";
             if ( $download && ( !grep { $_ eq $download->{ state } } ( 'fetching', 'queued' ) ) )
             {
                 $download->{ state }         = 'error';

@@ -62,7 +62,7 @@ sub add_url_type_as_story_tag
     my $url = $url_type->{ url };
     if ( !$url )
     {
-        warn( "no url" );
+        WARN "no url";
         return;
     }
 
@@ -79,7 +79,7 @@ sub add_url_type_as_story_tag
     if ( $media_type_map )
     {
         my $mapped_media_type = $media_type_map->{ $media_type }
-          || warn( "media type '$media_type' not found in media type map" );
+          || WARN "media type '$media_type' not found in media type map";
 
         $media_type = $mapped_media_type;
     }
@@ -89,14 +89,14 @@ sub add_url_type_as_story_tag
     my $seed_url = $db->query( "select * from topic_seed_urls where url = ?", $url )->hash;
     if ( !$seed_url )
     {
-        warn( "No seed url found for '$url'" );
+        WARN "No seed url found for '$url'";
         return;
     }
 
     my $stories_id = $seed_url->{ stories_id };
     if ( !$stories_id )
     {
-        warn( "No stories_id in seed url '$url'" );
+        WARN "No stories_id in seed url '$url'";
         return;
     }
 

@@ -86,7 +86,7 @@ sub _fetch_url
 
         if ( !$response->is_success )
         {
-            warn( "Unable to fetch url '$url': " . $response->status_line );
+            WARN "Unable to fetch url '$url': " . $response->status_line;
             return '';
         }
 

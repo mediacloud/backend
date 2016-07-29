@@ -83,7 +83,7 @@ SQL
         my $import_stories;
 
         eval { $import_stories = $import->scrape_stories(); };
-        warn( $@ ) if ( $@ );
+        WARN $@ if ( $@ );
 
         $total_imported_stories += scalar( @{ $import_stories } );
 

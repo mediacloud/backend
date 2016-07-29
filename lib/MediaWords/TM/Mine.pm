@@ -214,13 +214,13 @@ sub get_boingboing_links
 
     if ( !( $content =~ s/((<div class="previously2">)|(class="sharePost")).*//ms ) )
     {
-        warn( "Unable to find end pattern" );
+        WARN "Unable to find end pattern";
         return [];
     }
 
     if ( !( $content =~ s/.*<a href[^>]*>[^<]*<\/a> at\s+\d+\://ms ) )
     {
-        warn( "Unable to find begin pattern" );
+        WARN "Unable to find begin pattern";
         return [];
     }
 
@@ -244,7 +244,7 @@ END
         MediaWords::DBI::Stories::fix_story_downloads_if_needed( $db, $story );
         $download = $db->find_by_id( 'downloads', $download->{ downloads_id } );
         eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download ); };
-        warn( "error refetching content: $@" ) if ( $@ );
+        WARN "Error refetching content: $@" if ( $@ );
     }
 
     return $content_ref ? $$content_ref : '';
@@ -488,7 +488,7 @@ sub generate_medium_url_and_name_from_url
 
     if ( !( $normalized_url =~ m~(http.?://([^/]+))~i ) )
     {
-        warn( "Unable to find host name in url: $normalized_url ($story_url)" );
+        WARN "Unable to find host name in url: $normalized_url ($story_url)";
         return ( $story_url, $story_url );
     }
 
@@ -666,7 +666,7 @@ sub extract_download($$$)
             $error = $thrift_error ? "$error->{ code } $error->{ message }" : $error . '';
         }
 
-        warn "extract error processing download $download->{ downloads_id }: $error";
+        WARN "extract error processing download $download->{ downloads_id }: $error";
     }
     else
     {
@@ -2127,7 +2127,7 @@ sub merge_archive_is_story
 
     if ( !$original_url )
     {
-        WARN( sub { "could not get original URL for $story->{ url } SKIPPING" } );
+        WARN "Could not get original URL for $story->{ url } SKIPPING";
         return;
     }
 
@@ -2179,7 +2179,7 @@ sub merge_dup_media_story
     # foreign_rss_links stories should have been added by add_outgoing_foreign_rss_links
     my $dup_medium = get_dup_medium( $db, $story->{ media_id }, 1 );
 
-    WARN( "no dup medium found" ) unless ( $dup_medium );
+    WARN "No dup medium found" unless ( $dup_medium );
 
     return unless ( $dup_medium );
 

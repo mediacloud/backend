@@ -98,7 +98,7 @@ sub _try_storing_object_in_cache($$$)
     if ( $@ )
     {
         # Don't die() if we were unable to cache the object
-        warn "Caching object $object_id failed: $@";
+        WARN "Caching object $object_id failed: $@";
     }
 }
 
@@ -124,7 +124,7 @@ sub _try_retrieving_object_from_cache($$)
     if ( $@ )
     {
         # Don't die() if we were unable to restore object from cache
-        warn "Restoring object $object_id from cache failed: $@";
+        WARN "Restoring object $object_id from cache failed: $@";
     }
 
     if ( defined $cached_content )
@@ -167,7 +167,7 @@ sub remove_content($$$;$)
     if ( $@ )
     {
         # Don't die() if we were unable to remove object from cache
-        warn "Removing object $object_id from cache failed: $@";
+        WARN "Removing object $object_id from cache failed: $@";
     }
 
     return $self->SUPER::remove_content( $db, $object_id, $object_path );

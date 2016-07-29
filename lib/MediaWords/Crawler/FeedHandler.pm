@@ -137,7 +137,7 @@ sub _get_stories_from_feed_contents_impl
             catch
             {
                 $publish_date = $download_time;
-                warn "Error getting date from item pubDate ('" . $item->pubDate() . "') just using download time:$_";
+                WARN "Error getting date from item pubDate ('" . $item->pubDate() . "') just using download time: $_";
             }
         }
         else
@@ -182,7 +182,7 @@ sub _add_story_using_parent_download
 
         if ( $@ =~ /unique constraint \"stories_guid/ )
         {
-            warn "failed to add story for '." . $story->{ url } . "' to guid conflict ( guid =  '" . $story->{ guid } . "')";
+            WARN "Failed to add story for '." . $story->{ url } . "' to guid conflict ( guid =  '" . $story->{ guid } . "')";
 
             return;
         }

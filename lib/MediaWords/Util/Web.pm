@@ -225,7 +225,7 @@ sub ParallelGet
 
     if ( !open( CMD, '|-', $cmd ) )
     {
-        warn( "Unable to start $cmd: $!" );
+        WARN "Unable to start $cmd: $!";
         return;
     }
 
@@ -358,7 +358,7 @@ sub get_cached_link_download
         my $response_link_nums = [ map { $_->{ _link_num } } @{ $url_lookup->{ $original_url } } ];
         if ( !@{ $response_link_nums } )
         {
-            warn( "NO LINK_NUM FOUND FOR URL '$original_url' " );
+            WARN "NO LINK_NUM FOUND FOR URL '$original_url' ";
         }
 
         for my $response_link_num ( @{ $response_link_nums } )
@@ -369,14 +369,14 @@ sub get_cached_link_download
             }
             else
             {
-                my $msg = "error retrieving content for $original_url: " . $response->status_line;
-                warn( $msg );
+                my $msg = "Error retrieving content for $original_url: " . $response->status_line;
+                WARN $msg;
                 $_link_downloads_cache->{ $response_link_num } = '';
             }
         }
     }
 
-    warn( "Unable to find cached download for '$link->{ url }'" ) if ( !defined( $_link_downloads_cache->{ $link_num } ) );
+    WARN "Unable to find cached download for '$link->{ url }'" if ( !defined( $_link_downloads_cache->{ $link_num } ) );
 
     my $response = $_link_downloads_cache->{ $link_num };
     return ( ref( $response ) ? $response->decoded_content : ( $response || '' ) );

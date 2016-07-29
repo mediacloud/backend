@@ -136,10 +136,10 @@ sub handler
 
     if ( $@ )
     {
-        WARN( "handler error: $@" );
+        WARN "Handler error: $@";
         if ( substr( $@, 0, length( $DIE_REQUEST_MESSAGE ) ) eq $DIE_REQUEST_MESSAGE )
         {
-            LOGDIE( "handler error: $@" );
+            LOGDIE "Handler error: $@";
         }
     }
 }
@@ -178,7 +178,7 @@ sub request_failed_authentication
 
     if ( !( $client_auth =~ /Basic (.*)$/ ) )
     {
-        WARN( sub { "unable to parse Authorization header: $client_auth" } );
+        WARN "Unable to parse Authorization header: $client_auth";
         print $fail_authentication_page;
         return 1;
     }

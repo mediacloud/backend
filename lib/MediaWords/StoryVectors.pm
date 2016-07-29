@@ -92,7 +92,7 @@ sub _insert_story_sentences($$$;$)
 
     unless ( scalar( @{ $sentences } ) )
     {
-        WARN( "Story sentences are empty for story $stories_id" );
+        WARN "Story sentences are empty for story $stories_id";
         return;
     }
 

@@ -380,7 +380,7 @@ sub _fetch_raw_annotation_for_story($$)
 
     unless ( story_is_annotated( $db, $stories_id ) )
     {
-        warn "Story $stories_id is not annotated with CoreNLP.";
+        WARN "Story $stories_id is not annotated with CoreNLP.";
         return undef;
     }
 
@@ -514,12 +514,12 @@ sub store_annotation_for_story($$)
 
     if ( story_is_annotated( $db, $stories_id ) )
     {
-        warn "Story $stories_id is already annotated with CoreNLP, so I will overwrite it.";
+        WARN "Story $stories_id is already annotated with CoreNLP, so I will overwrite it.";
     }
 
     unless ( story_is_annotatable( $db, $stories_id ) )
     {
-        warn "Story $stories_id is not annotatable.";
+        WARN "Story $stories_id is not annotatable.";
         return 0;
     }
 
@@ -614,7 +614,7 @@ sub fetch_annotation_json_for_story($$)
 
     unless ( story_is_annotated( $db, $stories_id ) )
     {
-        warn "Story $stories_id is not annotated with CoreNLP.";
+        WARN "Story $stories_id is not annotated with CoreNLP.";
         return undef;
     }
 
@@ -672,7 +672,7 @@ sub fetch_annotation_json_for_story_sentence($$)
 
     unless ( story_is_annotated( $db, $stories_id ) )
     {
-        warn "Story $stories_id is not annotated with CoreNLP.";
+        WARN "Story $stories_id is not annotated with CoreNLP.";
         return undef;
     }
 
@@ -735,7 +735,7 @@ sub fetch_annotation_json_for_story_and_all_sentences($$)
 
     unless ( story_is_annotated( $db, $stories_id ) )
     {
-        warn "Story $stories_id is not annotated with CoreNLP.";
+        WARN "Story $stories_id is not annotated with CoreNLP.";
         return undef;
     }
 

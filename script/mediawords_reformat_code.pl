@@ -72,7 +72,7 @@ sub _tidy_with_perl_tidy($)
     my $files = [ grep { !m|^t/data/| } @{ $orig_files } ];
     if ( scalar @{ $orig_files } > scalar @{ $files } )
     {
-        warn "Some input files will be skipped because they seem to be test data files.";
+        WARN "Some input files will be skipped because they seem to be test data files.";
     }
 
     unless ( scalar @{ $files } )

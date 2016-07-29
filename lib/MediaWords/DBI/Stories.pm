@@ -1,6 +1,4 @@
 package MediaWords::DBI::Stories;
-use Modern::Perl "2015";
-use MediaWords::CommonLibs;
 
 =head1 NAME
 
@@ -17,6 +15,9 @@ This module includes various helper function for dealing with stories.
 
 use strict;
 use warnings;
+
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
 
 use Carp;
 use Encode;
@@ -456,7 +457,7 @@ sub _reextract_download
 
     if ( $download->{ url } =~ /jpg|pdf|doc|mp3|mp4$/i )
     {
-        warn "Won't reextract download " .
+        WARN "Won't reextract download " .
           $download->{ downloads_id } . " because the URL doesn't look like it could contain text.";
         return;
     }
@@ -472,7 +473,7 @@ sub _reextract_download
     };
     if ( $@ )
     {
-        warn "extract error processing download $download->{ downloads_id }: $@";
+        WARN "extract error processing download $download->{ downloads_id }: $@";
     }
 }
 
@@ -748,12 +749,12 @@ sub get_all_sentences
     my $text = get_text( $db, $story );
     unless ( defined $text )
     {
-        warn "Text for story " . $story->{ stories_id } . " is undefined.";
+        WARN "Text for story " . $story->{ stories_id } . " is undefined.";
         return;
     }
     unless ( length( $text ) )
     {
-        warn "Story " . $story->{ stories_id } . " text is an empty string.";
+        WARN "Story " . $story->{ stories_id } . " text is an empty string.";
         return;
     }
 
@@ -764,7 +765,7 @@ sub get_all_sentences
     }
     unless ( scalar @{ $raw_sentences } )
     {
-        warn "Story " . $story->{ stories_id } . " doesn't have any sentences.";
+        WARN "Story " . $story->{ stories_id } . " doesn't have any sentences.";
         return;
     }
 
@@ -797,7 +798,7 @@ sub mark_as_processed($$)
     };
     if ( $@ )
     {
-        warn "Unable to insert story ID $stories_id into 'processed_stories': $@";
+        WARN "Unable to insert story ID $stories_id into 'processed_stories': $@";
         return 0;
     }
     else
@@ -986,7 +987,7 @@ sub get_medium_dup_stories_by_title
             {
                 my $dup_title = ( values( %{ $t->{ stories } } ) )[ 0 ]->{ title };
 
-                # warn( "cowardly refusing to mark $num_stories stories as dups [$dup_title]" );
+                TRACE "Cowardly refusing to mark $num_stories stories as dups [$dup_title]";
             }
         }
     }
@@ -1011,7 +1012,7 @@ sub get_medium_dup_stories_by_url
     {
         if ( !$story->{ url } )
         {
-            warn( "no url in story: " . Dumper( $story ) );
+            WARN "No URL in story: " . Dumper( $story );
             next;
         }
 

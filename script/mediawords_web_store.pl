@@ -115,7 +115,7 @@ sub main
         }
         else
         {
-            warn( "Unable to parse line: $line" );
+            WARN "Unable to parse line: $line";
         }
 
     }

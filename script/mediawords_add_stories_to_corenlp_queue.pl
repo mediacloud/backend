@@ -259,11 +259,11 @@ EOF
                 {
                     if ( $overwrite )
                     {
-                        warn "Story $stories_id is already annotated with CoreNLP, will overwrite.";
+                        WARN "Story $stories_id is already annotated with CoreNLP, will overwrite.";
                     }
                     else
                     {
-                        warn "Story $stories_id is already annotated with CoreNLP, skipping.";
+                        WARN "Story $stories_id is already annotated with CoreNLP, skipping.";
                         next;
                     }
                 }

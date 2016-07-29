@@ -135,7 +135,7 @@ sub _get_url_medium_index_from_url
         }
     }
 
-    warn( "Unable to find url '" . $url . "' in url_media list" );
+    WARN "Unable to find url '$url' in url_media list";
     return undef;
 }
 

@@ -67,7 +67,7 @@ sub recursively_encode_to_utf8
     }
     else
     {
-        warn 'Unable to encode to UTF-8: ' . Dumper( $input );
+        WARN 'Unable to encode to UTF-8: ' . Dumper( $input );
         $output = $input;
     }
 

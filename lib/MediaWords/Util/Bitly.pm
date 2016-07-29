@@ -333,7 +333,7 @@ sub read_story_stats($$)
     # Check if something is already stored
     unless ( story_stats_are_fetched( $db, $stories_id ) )
     {
-        warn "Story $stories_id is not processed with Bit.ly.";
+        WARN "Story $stories_id is not processed with Bit.ly.";
         return undef;
     }
 

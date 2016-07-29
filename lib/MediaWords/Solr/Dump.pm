@@ -86,6 +86,7 @@ use Data::Dumper;
 use Digest::MD5;
 use Encode;
 use File::Basename;
+use File::ReadBackwards;
 use FileHandle;
 use HTTP::Request;
 use JSON;
@@ -95,14 +96,12 @@ use Parallel::ForkManager;
 use Readonly;
 use Text::CSV_XS;
 use URI;
-use File::ReadBackwards;
 
 require bytes;    # do not override length() and such
 
 use MediaWords::DB;
 use MediaWords::Util::Config;
 use MediaWords::Util::Web;
-
 use MediaWords::Solr;
 
 my $_solr_select_url;
@@ -515,7 +514,7 @@ sub _sentence_exists_in_solr($$)
     if ( $@ )
     {
         my $error_message = $@;
-        warn "Unable to query Solr for story_sentences_id $story_sentences_id: $error_message";
+        WARN "Unable to query Solr for story_sentences_id $story_sentences_id: $error_message";
         return 0;
     }
 
@@ -1104,7 +1103,7 @@ sub delete_stories
         if ( $@ )
         {
             my $error = $@;
-            warn "Error while deleting stories: $error";
+            WARN "Error while deleting stories: $error";
             return 0;
         }
     }
@@ -1124,7 +1123,7 @@ sub delete_all_sentences
     if ( $@ )
     {
         my $error = $@;
-        warn "Error while deleting all sentences: $error";
+        WARN "Error while deleting all sentences: $error";
         return 0;
     }
 

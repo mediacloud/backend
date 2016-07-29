@@ -32,7 +32,7 @@ sub get_story_content
     eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $story->{ download } ) };
     if ( $@ || !$content_ref )
     {
-        warn( "error fetching content: $@" );
+        WARN "error fetching content: $@";
         return 0;
     }
 

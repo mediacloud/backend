@@ -28,7 +28,7 @@ sub get_story_content
     eval { $content_ref = MediaWords::DBI::Stories::get_content_for_first_download( $db, $story ) };
     if ( $@ || !$content_ref )
     {
-        warn( "error fetching content: $@" );
+        WARN "Error fetching content: $@";
         return 0;
     }
 

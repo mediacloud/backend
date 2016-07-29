@@ -357,7 +357,7 @@ sub set_language_objects
 
     if ( !@{ $language_objects } )
     {
-        WARN( "set_langage_objects: falling back to english" );
+        WARN "set_langage_objects: falling back to english";
         push( @{ $language_objects }, MediaWords::Languages::Language::language_for_code( 'en' ) );
     }
 
@@ -421,7 +421,7 @@ sub get_words_from_solr_server
 
         if ( !$self->is_valid_utf8( $w->[ 0 ] ) || !$self->is_valid_utf8( $max_term ) )
         {
-            WARN( "invalid utf8: $w->[ 0 ] / $max_term" );
+            WARN "invalid utf8: $w->[ 0 ] / $max_term";
             next;
         }
 
