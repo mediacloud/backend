@@ -37,6 +37,29 @@ CREATE TRIGGER bitly_clicks_total_partition_by_stories_id_insert_trigger
     FOR EACH ROW EXECUTE PROCEDURE bitly_clicks_total_partition_by_stories_id_insert_trigger();
 
 
+-- Move data that errorneously got into the master table to partitions
+CREATE TEMPORARY TABLE temp_bitly_clicks_total_master_table (
+    stories_id BIGINT NOT NULL,
+    click_count INT NOT NULL
+);
+INSERT INTO temp_bitly_clicks_total_master_table (stories_id, click_count)
+    SELECT stories_id, click_count
+    FROM ONLY bitly_clicks_total;   -- ONLY the master table, not partitions
+TRUNCATE ONLY bitly_clicks_total;   -- ONLY the master table, not partitions
+VACUUM FULL ANALYZE bitly_clicks_total; -- Free up used space
+
+-- In case some click counts are to be UPDATEd
+DELETE FROM bitly_clicks_total WHERE stories_id IN (
+    SELECT stories_id
+    FROM temp_bitly_clicks_total_master_table
+);
+
+INSERT INTO bitly_clicks_total (stories_id, click_count)
+    SELECT DISTINCT stories_id, click_count
+    FROM temp_bitly_clicks_total_master_table;
+
+DROP TABLE temp_bitly_clicks_total_master_table;
+
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
 
