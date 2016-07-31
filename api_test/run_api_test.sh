@@ -35,7 +35,7 @@ fi
 
 echo "testing for runnning solr"
 
-if ps aux | grep java | grep runSolr > /dev/null; then
+if ps aux | grep java | grep 8983 > /dev/null; then
     echo "Solr is already running (it shouldn't)."
     exit 1
 fi
