@@ -46,7 +46,7 @@ INSERT INTO temp_bitly_clicks_total_master_table (stories_id, click_count)
     SELECT stories_id, click_count
     FROM ONLY bitly_clicks_total;   -- ONLY the master table, not partitions
 TRUNCATE ONLY bitly_clicks_total;   -- ONLY the master table, not partitions
-VACUUM FULL ANALYZE bitly_clicks_total; -- Free up used space
+-- VACUUM FULL ANALYZE bitly_clicks_total; -- Free up used space
 
 -- In case some click counts are to be UPDATEd
 DELETE FROM bitly_clicks_total WHERE stories_id IN (
