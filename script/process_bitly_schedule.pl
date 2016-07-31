@@ -34,7 +34,7 @@ sub main
 
     # Wait a little between adding each chunk in order to not fill up job
     # broker's queue too quickly
-    Readonly my $DELAY_BETWEEN_CHUNKS => 0;
+    Readonly my $DELAY_BETWEEN_CHUNKS => 20;
 
     # Wait when queue is empty
     Readonly my $DELAY_WHEN_QUEUE_IS_EMPTY => 60;
