@@ -138,7 +138,19 @@ def fqdn():
     hostname = socket.getfqdn()
     if hostname is None or len(hostname) == 0:
         raise Exception("Unable to determine FQDN.")
-    return hostname.lower()
+    hostname = hostname.lower()
+    if not hostname_resolves(hostname):
+        raise Exception("Hostname '%s' does not resolve." % hostname)
+    return hostname
+
+
+def hostname_resolves(hostname):
+    """Return true if hostname resolves to IP."""
+    try:
+        socket.gethostbyname(hostname)
+        return True
+    except socket.error:
+        return False
 
 
 def process_with_pid_is_running(pid):

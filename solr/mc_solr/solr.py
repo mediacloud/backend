@@ -380,6 +380,7 @@ def __kill_solr_process(signum=None, frame=None):
 
 def __run_solr(port,
                instance_data_dir,
+               hostname=fqdn(),
                jvm_heap_size=None,
                start_jar_args=None,
                jvm_opts=None,
@@ -510,13 +511,13 @@ instanceDir=%(instance_dir)s
     if not os.path.isdir(solr_webapp_path):
         raise Exception("Solr webapp dir at '%s' was not found." % solr_webapp_path)
 
+    if not hostname_resolves(hostname):
+        raise Exception("Hostname '%s' does not resolve." % hostname)
+
     if tcp_port_is_open(port=port):
         raise Exception("Port %d is already open on this machine." % port)
 
     __raise_if_old_shards_exist()
-
-    # Must be resolveable by other shards
-    hostname = fqdn()
 
     args = ["java"]
     logger.info("Starting Solr instance on %s, port %d..." % (hostname, port))
@@ -568,7 +569,8 @@ instanceDir=%(instance_dir)s
         time.sleep(1)
 
 
-def run_solr_standalone(port=MC_SOLR_STANDALONE_PORT,
+def run_solr_standalone(hostname=fqdn(),
+                        port=MC_SOLR_STANDALONE_PORT,
                         base_data_dir=MC_SOLR_BASE_DATA_DIR,
                         dist_directory=MC_DIST_DIR,
                         solr_version=MC_SOLR_VERSION,
@@ -585,7 +587,8 @@ def run_solr_standalone(port=MC_SOLR_STANDALONE_PORT,
         raise Exception("Port %d is already open on this machine." % port)
 
     logger.info("Starting standalone Solr instance on port %d..." % port)
-    __run_solr(port=port,
+    __run_solr(hostname=hostname,
+               port=port,
                instance_data_dir=standalone_data_dir,
                jvm_heap_size=jvm_heap_size,
                jvm_opts=MC_SOLR_STANDALONE_JVM_OPTS,
@@ -596,6 +599,7 @@ def run_solr_standalone(port=MC_SOLR_STANDALONE_PORT,
 
 def run_solr_shard(shard_num,
                    shard_count,
+                   hostname=fqdn(),
                    starting_port=MC_SOLR_CLUSTER_STARTING_PORT,
                    base_data_dir=MC_SOLR_BASE_DATA_DIR,
                    dist_directory=MC_DIST_DIR,
@@ -629,7 +633,8 @@ def run_solr_shard(shard_num,
         "-DzkHost=%s:%d" % (zookeeper_host, zookeeper_port),
         "-DnumShards=%d" % shard_count,
     ]
-    __run_solr(port=shard_port,
+    __run_solr(hostname=hostname,
+               port=shard_port,
                instance_data_dir=shard_data_dir,
                jvm_heap_size=jvm_heap_size,
                jvm_opts=MC_SOLR_CLUSTER_JVM_OPTS,
@@ -798,7 +803,7 @@ def upgrade_lucene_shards_indexes(base_data_dir=MC_SOLR_BASE_DATA_DIR,
                                   dist_directory=MC_DIST_DIR,
                                   solr_version=MC_SOLR_VERSION):
     """Upgrade Lucene indexes using the IndexUpgrader tool to all shards."""
-    
+
     base_data_dir = resolve_absolute_path(name=base_data_dir, must_exist=True)
 
     # Try to guess shard count from how many shards are in data directory
