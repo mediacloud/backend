@@ -327,7 +327,19 @@ sub _guess_by_datetime_pubdate
 
     if ( my $node = _find_first_node( $html_tree, '//time[@datetime and @pubdate]' ) )
     {
-        return $node->attr( 'datetime' );
+        my $contents = $node->as_text || '';
+        $contents =~ s/^\s+|\s+$//g;
+
+        if ( length( $contents ) > 0 )
+        {
+            # <time datetime="2012-01-17" pubdate>Jan 17, 2012 12:00 pm EST</time>
+            return $contents;
+        }
+        else
+        {
+            # <time datetime="2012-01-17" pubdate />
+            return $node->attr( 'datetime' ) . ' 12:00:00';
+        }
     }
 }
 

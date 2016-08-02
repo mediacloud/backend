@@ -8,7 +8,7 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
-use Test::More tests => 43;
+use Test::More tests => 44;
 use Test::NoWarnings;
 use Test::Deep;
 
@@ -117,10 +117,9 @@ sub test_dates($)
     is( _gt( $db, '<span class="date" data-time="1326819600">Jan 17, 2012 12:00 pm EST</span>' ),
         $TIMESTAMP_12_00_EST, 'guess_by_datatime' );
 
-    # FIXME _guess_by_datetime_pubdate() ignores contents, uses @datetime instead;
-    # and @datetime assumes that the timezone is GMT.
+    is( _gt( $db, '<time datetime="2012-01-17" pubdate></time>' ), $TIMESTAMP_12_00_GMT, 'guess_by_datetime_pubdate' );
     is( _gt( $db, '<time datetime="2012-01-17" pubdate>Jan 17, 2012 12:00 pm EST</time>' ),
-        $TIMESTAMP_12_00_GMT, 'guess_by_datetime_pubdate' );
+        $TIMESTAMP_12_00_EST, 'guess_by_datetime_pubdate' );
 
     is( _gt( $db, '<p>Hello!</p>', 'http://www.example.com/news/2012/01/17/hello.html' ),
         $TIMESTAMP_12_00_GMT, 'guess_by_url' );
