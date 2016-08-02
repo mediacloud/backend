@@ -487,12 +487,12 @@
                    autowarmCount="0"/>
     
     <!-- custom cache currently used by block join --> 
-    <cache name="perSegFilter"
+    <!-- <cache name="perSegFilter"
       class="solr.search.LRUCache"
       size="10"
       initialSize="0"
       autowarmCount="10"
-      regenerator="solr.NoOpRegenerator" />
+      regenerator="solr.NoOpRegenerator" /> -->
 
     <!-- Field Value Cache
          
