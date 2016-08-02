@@ -139,6 +139,8 @@ def fqdn():
     if hostname is None or len(hostname) == 0:
         raise Exception("Unable to determine FQDN.")
     hostname = hostname.lower()
+    if hostname == 'localhost':
+        logger.warn("FQDN is 'localhost', are you sure that /etc/hosts is set up properly?")
     if not hostname_resolves(hostname):
         raise Exception("Hostname '%s' does not resolve." % hostname)
     return hostname
