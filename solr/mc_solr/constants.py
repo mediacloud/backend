@@ -1,8 +1,8 @@
 # Solr version to install and use
-MC_SOLR_VERSION = "5.0.0"
+MC_SOLR_VERSION = "5.5.2"
 
 # <luceneMatchVersion> value
-MC_SOLR_LUCENEMATCHVERSION = "5.0.0"
+MC_SOLR_LUCENEMATCHVERSION = "5.5.2"
 
 # Solr home directory (solr.home; relative to solr/; must already exist)
 MC_SOLR_HOME_DIR = "mediacloud/"
@@ -52,16 +52,33 @@ MC_SOLR_CLUSTER_JVM_HEAP_SIZE = "256m"
 
 # Other JVM options to pass to each Solr shard in a cluster
 MC_SOLR_CLUSTER_JVM_OPTS = [
-    "-XX:+PrintGC",
-    "-XX:+UsePerfData",
-    "-XX:+UseG1GC",
-    "-XX:+PerfDisableSharedMem",
+
+    # copied from bin/solr's GC_TUNE
+    "-XX:NewRatio=3",
+    "-XX:SurvivorRatio=4",
+    "-XX:TargetSurvivorRatio=90",
+    "-XX:MaxTenuringThreshold=8",
+    "-XX:+UseConcMarkSweepGC",
+    "-XX:+UseParNewGC",
+    "-XX:ConcGCThreads=4",
+    "-XX:ParallelGCThreads=4",
+    "-XX:+CMSScavengeBeforeRemark",
+    "-XX:PretenureSizeThreshold=64m",
+    "-XX:+UseCMSInitiatingOccupancyOnly",
+    "-XX:CMSInitiatingOccupancyFraction=50",
+    "-XX:CMSMaxAbortablePrecleanTime=6000",
+    "-XX:+CMSParallelRemarkEnabled",
     "-XX:+ParallelRefProcEnabled",
-    "-XX:G1HeapRegionSize=12m",
-    "-XX:MaxGCPauseMillis=250",
-    "-XX:InitiatingHeapOccupancyPercent=75",
-    "-XX:+UseLargePages",
-    "-XX:+AggressiveOpts",
+
+    # copied from bin/solr's GC_LOG_OPTS
+    "-verbose:gc",
+    "-XX:+PrintHeapAtGC",
+    "-XX:+PrintGCDetails",
+    "-XX:+PrintGCDateStamps",
+    "-XX:+PrintGCTimeStamps",
+    "-XX:+PrintTenuringDistribution",
+    "-XX:+PrintGCApplicationStoppedTime",
+    
 ]
 
 # ---
