@@ -789,6 +789,9 @@ sub normalize_url_lossy($)
 s/^(https?:\/\/)(m|beta|media|data|image|www?|cdn|topic|article|news|archive|blog|video|search|preview|shop|sports?|act|donate|press|web|photos?|\d+?).?\.(.*\.)/$1$3/i;
     }
 
+    # collapse the vast array of http://pronkraymond83483.podomatic.com/ urls into http://pronkpops.podomatic.com/
+    $url =~ s~http://.*pronk.*\.podomatic\.com~http://pronkpops.podomatic.com~;
+
     # get rid of anchor text
     $url =~ s/\#.*//;
 
