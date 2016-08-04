@@ -396,17 +396,6 @@
       </analyzer>
     </fieldType>
 
-    <fieldType name="str_general" class="solr.StrField" sortMissingLast="true" omitNorms="true"> 
-   <!--   <analyzer type="index"> 
-	<tokenizer class="solr.KeywordTokenizerFactory"/>	
-	<filter class="solr.LowerCaseFilterFactory" /> 
-      </analyzer>  -->
-<!--      <analyzer type="query"> 
-	<tokenizer class="solr.KeywordTokenizerFactory"/> 
-	<filter class="solr.LowerCaseFilterFactory" /> 
-      </analyzer>  -->
-    </fieldType>
-
     <!-- A text field with defaults appropriate for English: it
          tokenizes with StandardTokenizer, removes English stop words
          (lang/stopwords_en.txt), down cases, protects words from protwords.txt, and
