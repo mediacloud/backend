@@ -35,6 +35,7 @@ use MediaWords::StoryVectors;
 use MediaWords::Util::Bitly::Schedule;
 use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
+use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
@@ -924,7 +925,7 @@ sub _get_story_date_range
 {
     my ( $stories ) = @_;
 
-    my $epoch_dates = [ map { get_epoch_from_sql_date( $_->{ publish_date } ) } @{ $stories } ];
+    my $epoch_dates = [ map { MediaWords::Util::SQL::get_epoch_from_sql_date( $_->{ publish_date } ) } @{ $stories } ];
 
     return List::Util::max( @{ $epoch_dates } ) - List::Util::min( @{ $epoch_dates } );
 }

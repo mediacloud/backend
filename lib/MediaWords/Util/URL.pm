@@ -790,7 +790,7 @@ s/^(https?:\/\/)(m|beta|media|data|image|www?|cdn|topic|article|news|archive|blo
     }
 
     # collapse the vast array of http://pronkraymond83483.podomatic.com/ urls into http://pronkpops.podomatic.com/
-    $url =~ s~http://.*pronk.*\.podomatic\.com~http://pronkpops.podomatic.com~;
+    $url =~ s~http://.*pron.*\.podomatic\.com~http://pronkpops.podomatic.com~;
 
     # get rid of anchor text
     $url =~ s/\#.*//;
