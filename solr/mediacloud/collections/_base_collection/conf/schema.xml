@@ -236,21 +236,6 @@
     <!--Binary data type. The data should be sent/retrieved in as Base64 encoded Strings -->
     <fieldtype name="binary" class="solr.BinaryField"/>
 
-    <!--
-      Note:
-      These should only be used for compatibility with existing indexes (created with lucene or older Solr versions).
-      Use Trie based fields instead. As of Solr 3.5 and 4.x, Trie based fields support sortMissingFirst/Last
-      
-      Plain numeric field types that store and index the text
-      value verbatim (and hence don't correctly support range queries, since the
-      lexicographic ordering isn't equal to the numeric ordering)
-    -->
-    <fieldType name="pint" class="solr.IntField"/>
-    <fieldType name="plong" class="solr.LongField"/>
-    <fieldType name="pfloat" class="solr.FloatField"/>
-    <fieldType name="pdouble" class="solr.DoubleField"/>
-    <fieldType name="pdate" class="solr.DateField" sortMissingLast="true"/>
-
     <!-- The "RandomSortField" is not used to store or search any
          data.  You can declare fields of this type it in your schema
          to generate pseudo-random orderings of your docs for sorting 
@@ -561,13 +546,6 @@
 
     <!-- A specialized field for geospatial search. If indexed, this fieldType must not be multivalued. -->
     <fieldType name="location" class="solr.LatLonType" subFieldSuffix="_coordinate"/>
-
-    <!-- An alternative geospatial field type new to Solr 4.  It supports multiValued and polygon shapes.
-      For more information about this and other Spatial fields new to Solr 4, see:
-      http://wiki.apache.org/solr/SolrAdaptersForLuceneSpatial4
-    -->
-    <fieldType name="location_rpt" class="solr.SpatialRecursivePrefixTreeFieldType"
-        geo="true" distErrPct="0.025" maxDistErr="0.000009" units="degrees" />
 
    <!-- Money/currency field type. See http://wiki.apache.org/solr/MoneyFieldType
         Parameters:
@@ -951,17 +929,7 @@
         <!-- less aggressive: <filter class="solr.SwedishLightStemFilterFactory"/> -->
       </analyzer>
     </fieldType>
-    
-    <!-- Thai -->
-    <fieldType name="text_th" class="solr.TextField" positionIncrementGap="100">
-      <analyzer> 
-        <tokenizer class="solr.StandardTokenizerFactory"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.ThaiWordFilterFactory"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_th.txt" />
-      </analyzer>
-    </fieldType>
-    
+        
     <!-- Turkish -->
     <fieldType name="text_tr" class="solr.TextField" positionIncrementGap="100">
       <analyzer> 
