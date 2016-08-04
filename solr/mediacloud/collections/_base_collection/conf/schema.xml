@@ -205,7 +205,45 @@
       Unless this field is marked with required="false", it will be a required field
    -->
  <uniqueKey>solr_id</uniqueKey>
+
+  <!-- copyField commands copy one field to another at the time a document
+        is added to the index.  It's used either to index the same field differently,
+        or to add multiple fields to the same field for easier/faster searching.  -->
+
+   <!-- <copyField source="cat" dest="text"/> -->
+   <!-- <copyField source="name" dest="text"/> -->
+   <!-- <copyField source="manu" dest="text"/> -->
+   <!-- <copyField source="features" dest="text"/> -->
+   <!-- <copyField source="includes" dest="text"/> -->
+   <!-- <copyField source="manu" dest="manu_exact"/> -->
+
+   <!-- Copy the price into a currency enabled field (default USD) -->
+   <!-- <copyField source="price" dest="price_c"/> -->
+
+   <!-- Text fields from SolrCell to search by default in our catch-all field -->
+   <!-- <copyField source="title" dest="text"/> -->
+   <!-- <copyField source="author" dest="text"/> -->
+   <!-- <copyField source="description" dest="text"/> -->
+   <!-- <copyField source="keywords" dest="text"/> -->
+   <!-- <copyField source="content" dest="text"/> -->
+   <!-- <copyField source="content_type" dest="text"/> -->
+   <!-- <copyField source="resourcename" dest="text"/> -->
+   <!-- <copyField source="url" dest="text"/> -->
+
+   <!-- Create a string version of author for faceting -->
+   <!-- <copyField source="author" dest="author_s"/> -->
+
+   <!-- Above, multiple source fields are copied to the [text] field.
+    Another way to map multiple source fields to the same
+    destination field is to use the dynamic field syntax.
+    copyField also supports a maxChars to copy setting.  -->
+
+   <!-- <copyField source="*_t" dest="text" maxChars="3000"/> -->
+
+   <!-- copy name to alphaNameSort, a field designed for sorting by name -->
+   <!-- <copyField source="name" dest="alphaNameSort"/> -->
  
+
     <!-- field type definitions. The "name" attribute is
        just a label to be used by field definitions.  The "class"
        attribute and any other attributes determine the real
