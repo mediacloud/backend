@@ -24,6 +24,7 @@ use File::Temp;
 use FileHandle;
 use HTML::Entities;
 use List::Compare;
+use List::Util;
 
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories::ExtractorVersion;
@@ -918,6 +919,16 @@ sub _get_title_parts
     return $title_parts;
 }
 
+# get the difference in seconds between the newest and oldest story in the list
+sub _get_story_date_range
+{
+    my ( $stories ) = @_;
+
+    my $epoch_dates = [ map { get_epoch_from_sql_date( $_->{ publish_date } ) } @{ $stories } ];
+
+    return List::Util::max( @{ $epoch_dates } ) - List::Util::min( @{ $epoch_dates } );
+}
+
 =head2 get_medium_dup_stories_by_title( $db, $stories, $assume_no_home_pages )
 
 Get duplicate stories within the set of stories by breaking the title of each story into parts by [-:|] and looking for
@@ -978,9 +989,10 @@ sub get_medium_dup_stories_by_title
         my $num_stories = scalar( keys( %{ $t->{ stories } } ) );
         if ( $num_stories > 1 )
         {
-            if ( $num_stories < 26 )
+            my $dup_stories = [ values( %{ $t->{ stories } } ) ];
+            if ( ( $num_stories < 26 ) || ( _get_story_date_range( $dup_stories ) < ( 7 * 86400 ) ) )
             {
-                push( @{ $duplicate_stories }, [ values( %{ $t->{ stories } } ) ] );
+                push( @{ $duplicate_stories }, $dup_stories );
             }
             else
             {
