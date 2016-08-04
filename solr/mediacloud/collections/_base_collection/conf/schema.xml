@@ -39,7 +39,7 @@
   - for best index size and searching performance, set "index" to false
     for all general text fields, use copyField to copy them to the
     catchall "text" field, and use that for searching.
-  - For maximum indexing performance, use the StreamingUpdateSolrServer
+  - For maximum indexing performance, use the ConcurrentUpdateSolrServer
     java client.
   - Remember to run the JVM in server mode, and use a higher logging level
     that avoids logging every request
@@ -61,13 +61,14 @@
             to off for version >= 1.4
        1.5: omitNorms defaults to true for primitive field types 
             (int, float, boolean, string...)
+       1.6: useDocValuesAsStored defaults to true.
      -->
 
- <fields>
+
    <!-- Valid attributes for fields:
      name: mandatory - the name for the field
      type: mandatory - the name of a field type from the 
-       <types> fieldType section
+       fieldTypes
      indexed: true if this field should be indexed (searchable or sortable)
      stored: true if this field should be retrievable
      docValues: true if this field should have doc values. Doc values are
@@ -137,7 +138,7 @@
 
    <dynamicField name="random_*" type="random" />
    
- </fields>
+
 
 
  <!-- Field to use to determine and enforce document uniqueness. 
@@ -145,7 +146,6 @@
    -->
  <uniqueKey>solr_id</uniqueKey>
  
-  <types>
     <!-- field type definitions. The "name" attribute is
        just a label to be used by field definitions.  The "class"
        attribute and any other attributes determine the real
@@ -166,8 +166,8 @@
     <!-- sortMissingLast and sortMissingFirst attributes are optional attributes are
          currently supported on types that are sorted internally as strings
          and on numeric types.
-	     This includes "string","boolean", and, as of 3.5 (and 4.x),
-	     int, float, long, date, double, including the "Trie" variants.
+       This includes "string","boolean", and, as of 3.5 (and 4.x),
+       int, float, long, date, double, including the "Trie" variants.
        - If sortMissingLast="true", then a sort on this field will cause documents
          without the field to come after documents with the field,
          regardless of the requested sort order (asc or desc).
@@ -223,7 +223,7 @@
                   ... 6 months and 3 days in the future from the start of
                       the current day
                       
-         Consult the DateField javadocs for more information.
+         Consult the TrieDateField javadocs for more information.
 
          Note: For faster range queries, consider the tdate type
       -->
@@ -234,7 +234,7 @@
 
 
     <!--Binary data type. The data should be sent/retrieved in as Base64 encoded Strings -->
-    <fieldtype name="binary" class="solr.BinaryField"/>
+    <fieldType name="binary" class="solr.BinaryField"/>
 
     <!-- The "RandomSortField" is not used to store or search any
          data.  You can declare fields of this type it in your schema
@@ -278,9 +278,9 @@
 
     <!-- A general text field that has reasonable, generic
          cross-language defaults: it tokenizes with StandardTokenizer,
-	 removes stop words from case-insensitive "stopwords.txt"
-	 (empty by default), and down cases.  At query time only, it
-	 also applies synonyms. -->
+   removes stop words from case-insensitive "stopwords.txt"
+   (empty by default), and down cases.  At query time only, it
+   also applies synonyms. -->
     <fieldType name="text_general" class="solr.TextField" positionIncrementGap="100">
       <analyzer type="index">
         <tokenizer class="solr.StandardTokenizerFactory"/>
@@ -327,11 +327,11 @@
                 words="lang/stopwords_en.txt"
                 />
         <filter class="solr.LowerCaseFilterFactory"/>
-	<filter class="solr.EnglishPossessiveFilterFactory"/>
+  <filter class="solr.EnglishPossessiveFilterFactory"/>
         <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
-	<!-- Optionally you may want to use this less aggressive stemmer instead of PorterStemFilterFactory:
+  <!-- Optionally you may want to use this less aggressive stemmer instead of PorterStemFilterFactory:
         <filter class="solr.EnglishMinimalStemFilterFactory"/>
-	-->
+  -->
         <filter class="solr.PorterStemFilterFactory"/>
       </analyzer>
       <analyzer type="query">
@@ -342,23 +342,23 @@
                 words="lang/stopwords_en.txt"
                 />
         <filter class="solr.LowerCaseFilterFactory"/>
-	<filter class="solr.EnglishPossessiveFilterFactory"/>
+  <filter class="solr.EnglishPossessiveFilterFactory"/>
         <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
-	<!-- Optionally you may want to use this less aggressive stemmer instead of PorterStemFilterFactory:
+  <!-- Optionally you may want to use this less aggressive stemmer instead of PorterStemFilterFactory:
         <filter class="solr.EnglishMinimalStemFilterFactory"/>
-	-->
+  -->
         <filter class="solr.PorterStemFilterFactory"/>
       </analyzer>
     </fieldType>
 
     <!-- A text field with defaults appropriate for English, plus
-	 aggressive word-splitting and autophrase features enabled.
-	 This field is just like text_en, except it adds
-	 WordDelimiterFilter to enable splitting and matching of
-	 words on case-change, alpha numeric boundaries, and
-	 non-alphanumeric chars.  This means certain compound word
-	 cases will work, for example query "wi fi" will match
-	 document "WiFi" or "wi-fi".
+   aggressive word-splitting and autophrase features enabled.
+   This field is just like text_en, except it adds
+   WordDelimiterFilter to enable splitting and matching of
+   words on case-change, alpha numeric boundaries, and
+   non-alphanumeric chars.  This means certain compound word
+   cases will work, for example query "wi fi" will match
+   document "WiFi" or "wi-fi".
         -->
     <fieldType name="text_en_splitting" class="solr.TextField" positionIncrementGap="100" autoGeneratePhraseQueries="true">
       <analyzer type="index">
@@ -409,7 +409,7 @@
     </fieldType>
 
     <!-- Just like text_general except it reverses the characters of
-	 each token, to enable more efficient leading wildcard queries. -->
+   each token, to enable more efficient leading wildcard queries. -->
     <fieldType name="text_general_rev" class="solr.TextField" positionIncrementGap="100">
       <analyzer type="index">
         <tokenizer class="solr.StandardTokenizerFactory"/>
@@ -461,7 +461,7 @@
              See the Java Regular Expression documentation for more
              information on pattern and replacement string syntax.
              
-             http://java.sun.com/j2se/1.6.0/docs/api/java/util/regex/package-summary.html
+             http://docs.oracle.com/javase/8/docs/api/java/util/regex/package-summary.html
           -->
         <filter class="solr.PatternReplaceFilterFactory"
                 pattern="([^a-z])" replacement="" replace="all"
@@ -469,14 +469,14 @@
       </analyzer>
     </fieldType>
     
-    <fieldtype name="phonetic" stored="false" indexed="true" class="solr.TextField" >
+    <fieldType name="phonetic" stored="false" indexed="true" class="solr.TextField" >
       <analyzer>
         <tokenizer class="solr.StandardTokenizerFactory"/>
         <filter class="solr.DoubleMetaphoneFilterFactory" inject="false"/>
       </analyzer>
-    </fieldtype>
+    </fieldType>
 
-    <fieldtype name="payloads" stored="false" indexed="true" class="solr.TextField" >
+    <fieldType name="payloads" stored="false" indexed="true" class="solr.TextField" >
       <analyzer>
         <tokenizer class="solr.WhitespaceTokenizerFactory"/>
         <!--
@@ -484,15 +484,15 @@
         a token of "foo|1.4"  would be indexed as "foo" with a payload of 1.4f
         Attributes of the DelimitedPayloadTokenFilterFactory : 
          "delimiter" - a one character delimiter. Default is | (pipe)
-	 "encoder" - how to encode the following value into a playload
-	    float -> org.apache.lucene.analysis.payloads.FloatEncoder,
-	    integer -> o.a.l.a.p.IntegerEncoder
-	    identity -> o.a.l.a.p.IdentityEncoder
+   "encoder" - how to encode the following value into a playload
+      float -> org.apache.lucene.analysis.payloads.FloatEncoder,
+      integer -> o.a.l.a.p.IntegerEncoder
+      identity -> o.a.l.a.p.IdentityEncoder
             Fully Qualified class name implementing PayloadEncoder, Encoder must have a no arg constructor.
          -->
         <filter class="solr.DelimitedPayloadTokenFilterFactory" encoder="float"/>
       </analyzer>
-    </fieldtype>
+    </fieldType>
 
     <!-- lowercases the entire field value, keeping it as a single token.  -->
     <fieldType name="lowercase" class="solr.TextField" positionIncrementGap="100">
@@ -508,10 +508,10 @@
     -->
     <fieldType name="descendent_path" class="solr.TextField">
       <analyzer type="index">
-	<tokenizer class="solr.PathHierarchyTokenizerFactory" delimiter="/" />
+  <tokenizer class="solr.PathHierarchyTokenizerFactory" delimiter="/" />
       </analyzer>
       <analyzer type="query">
-	<tokenizer class="solr.KeywordTokenizerFactory" />
+  <tokenizer class="solr.KeywordTokenizerFactory" />
       </analyzer>
     </fieldType>
     <!-- 
@@ -520,16 +520,16 @@
     -->
     <fieldType name="ancestor_path" class="solr.TextField">
       <analyzer type="index">
-	<tokenizer class="solr.KeywordTokenizerFactory" />
+  <tokenizer class="solr.KeywordTokenizerFactory" />
       </analyzer>
       <analyzer type="query">
-	<tokenizer class="solr.PathHierarchyTokenizerFactory" delimiter="/" />
+  <tokenizer class="solr.PathHierarchyTokenizerFactory" delimiter="/" />
       </analyzer>
     </fieldType>
 
     <!-- since fields of this type are by default not stored or indexed,
          any data added to them will be ignored outright.  --> 
-    <fieldtype name="ignored" stored="false" indexed="false" multiValued="true" class="solr.StrField" />
+    <fieldType name="ignored" stored="false" indexed="false" multiValued="true" class="solr.StrField" />
 
     <!-- This point type indexes the coordinates as separate fields (subFields)
       If subFieldType is defined, it references a type, and a dynamic field
@@ -608,6 +608,18 @@
         <!-- for any non-CJK -->
         <filter class="solr.LowerCaseFilterFactory"/>
         <filter class="solr.CJKBigramFilterFactory"/>
+      </analyzer>
+    </fieldType>
+
+    <!-- Kurdish -->
+    <fieldType name="text_ckb" class="solr.TextField" positionIncrementGap="100">
+      <analyzer>
+        <tokenizer class="solr.StandardTokenizerFactory"/>
+        <filter class="solr.SoraniNormalizationFilterFactory"/>
+        <!-- for any latin text -->
+        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_ckb.txt"/>
+        <filter class="solr.SoraniStemFilterFactory"/>
       </analyzer>
     </fieldType>
 
@@ -929,18 +941,26 @@
         <!-- less aggressive: <filter class="solr.SwedishLightStemFilterFactory"/> -->
       </analyzer>
     </fieldType>
-        
+
+    <!-- Thai -->
+    <fieldType name="text_th" class="solr.TextField" positionIncrementGap="100">
+      <analyzer>
+        <tokenizer class="solr.ThaiTokenizerFactory"/>
+        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_th.txt" />
+      </analyzer>
+    </fieldType>
+
     <!-- Turkish -->
     <fieldType name="text_tr" class="solr.TextField" positionIncrementGap="100">
       <analyzer> 
         <tokenizer class="solr.StandardTokenizerFactory"/>
+        <filter class="solr.ApostropheFilterFactory"/>
         <filter class="solr.TurkishLowerCaseFilterFactory"/>
         <filter class="solr.StopFilterFactory" ignoreCase="false" words="lang/stopwords_tr.txt" />
         <filter class="solr.SnowballPorterFilterFactory" language="Turkish"/>
       </analyzer>
     </fieldType>
-
- </types>
   
   <!-- Similarity is the scoring routine for each document vs. a query.
        A custom Similarity or SimilarityFactory may be specified here, but 
