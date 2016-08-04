@@ -61,7 +61,7 @@
             to off for version >= 1.4
        1.5: omitNorms defaults to true for primitive field types 
             (int, float, boolean, string...)
-       1.6: useDocValuesAsStored defaults to true.
+       1.6: useDocValuesAsStored defaults to true.            
      -->
 
 
@@ -123,16 +123,16 @@
    -->
    <field name="solr_id" type="string" indexed="true" stored="true" required="true" multiValued="false" />
    
-   <field name="story_sentences_id" type="string" indexed="true" stored="true" required="true" multiValued="false" /> 
-   <field name="media_id" type="int" indexed="true" stored="false" required="true" multiValued="false" /> 
+   <field name="story_sentences_id" type="string" indexed="true" stored="true" required="true" multiValued="false" />
+   <field name="media_id" type="int" indexed="true" stored="false" required="true" multiValued="false" />
 
-   <field name="stories_id" type="int" indexed="true" stored="true" required="true" multiValued="false" /> 
-   <field name="sentence_number" type="int" indexed="true" stored="false" required="true" multiValued="false" /> 
+   <field name="stories_id" type="int" indexed="true" stored="true" required="true" multiValued="false" />
+   <field name="sentence_number" type="int" indexed="true" stored="false" required="true" multiValued="false" />
 
-   <field name="processed_stories_id" type="tlong" indexed="true" stored="true" required="true" multiValued="false" docValues="true" /> 
+   <field name="processed_stories_id" type="tlong" indexed="true" stored="true" required="true" multiValued="false" docValues="true" />
 
-   <field name="sentence"  type="text_general" indexed="true" stored="true" /> 
-   <field name="title"  type="text_general" indexed="true" stored="true" /> 
+   <field name="sentence"  type="text_general" indexed="true" stored="true" />
+   <field name="title"  type="text_general" indexed="true" stored="true" />
 
    <field name="publish_date" type="tdate" indexed="true" stored="false"/>
    <field name="publish_day" type="tdate" indexed="true" stored="false"/>
@@ -150,11 +150,11 @@
 
 
    <!-- Dynamic field definitions allow using convention over configuration
-       for fields via the specification of patterns to match field names.
+       for fields via the specification of patterns to match field names. 
        EXAMPLE:  name="*_i" will match any field ending in _i (like myid_i, z_i)
        RESTRICTION: the glob-like pattern in the name attribute must have
        a "*" only at the start or the end.  -->
-
+   
    <dynamicField name="*_i"  type="int"    indexed="true"  stored="true"/>
    <dynamicField name="*_is" type="int"    indexed="true"  stored="true"  multiValued="true"/>
    <dynamicField name="*_s"  type="string"  indexed="true"  stored="true" />
@@ -192,10 +192,10 @@
 
    <dynamicField name="random_*" type="random" />
 
-   <!-- uncomment the following to ignore any fields that don't already match an existing
-        field name or dynamic field, rather than reporting them as an error.
-        alternately, change the type="ignored" to some other type e.g. "text" if you want
-        unknown fields indexed and/or stored by default -->
+   <!-- uncomment the following to ignore any fields that don't already match an existing 
+        field name or dynamic field, rather than reporting them as an error. 
+        alternately, change the type="ignored" to some other type e.g. "text" if you want 
+        unknown fields indexed and/or stored by default --> 
    <!--dynamicField name="*" type="ignored" multiValued="true" /-->
    
 
@@ -232,18 +232,18 @@
 
    <!-- Create a string version of author for faceting -->
    <!-- <copyField source="author" dest="author_s"/> -->
-
-   <!-- Above, multiple source fields are copied to the [text] field.
-    Another way to map multiple source fields to the same
-    destination field is to use the dynamic field syntax.
+  
+   <!-- Above, multiple source fields are copied to the [text] field. 
+    Another way to map multiple source fields to the same 
+    destination field is to use the dynamic field syntax. 
     copyField also supports a maxChars to copy setting.  -->
-
+     
    <!-- <copyField source="*_t" dest="text" maxChars="3000"/> -->
 
    <!-- copy name to alphaNameSort, a field designed for sorting by name -->
    <!-- <copyField source="name" dest="alphaNameSort"/> -->
  
-
+  
     <!-- field type definitions. The "name" attribute is
        just a label to be used by field definitions.  The "class"
        attribute and any other attributes determine the real
@@ -1035,16 +1035,16 @@
         <!-- less aggressive: <filter class="solr.SwedishLightStemFilterFactory"/> -->
       </analyzer>
     </fieldType>
-
+    
     <!-- Thai -->
     <fieldType name="text_th" class="solr.TextField" positionIncrementGap="100">
-      <analyzer>
+      <analyzer> 
         <tokenizer class="solr.ThaiTokenizerFactory"/>
         <filter class="solr.LowerCaseFilterFactory"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_th.txt" />
       </analyzer>
     </fieldType>
-
+    
     <!-- Turkish -->
     <fieldType name="text_tr" class="solr.TextField" positionIncrementGap="100">
       <analyzer> 
