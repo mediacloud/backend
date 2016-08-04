@@ -117,8 +117,11 @@
    -->
    <!--<field name="_root_" type="string" indexed="true" stored="false"/>-->
 
-        
-   <field name="solr_id" type="string" indexed="true" stored="true" required="true" multiValued="false" /> 
+   <!-- Only remove the "id" (renamed to "solr_id" in Media Cloud) field if you have a very good reason to. While not strictly
+     required, it is highly recommended. A <uniqueKey> is present in almost all Solr
+     installations. See the <uniqueKey> declaration below where <uniqueKey> is set to "id".
+   -->
+   <field name="solr_id" type="string" indexed="true" stored="true" required="true" multiValued="false" />
    
    <field name="story_sentences_id" type="string" indexed="true" stored="true" required="true" multiValued="false" /> 
    <field name="media_id" type="int" indexed="true" stored="false" required="true" multiValued="false" /> 
