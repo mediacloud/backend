@@ -45,7 +45,7 @@
     that avoids logging every request
 -->
 
-<schema name="media cloud story text" version="1.5">
+<schema name="media cloud story text" version="1.6">
   <!-- attribute "name" is the name of this schema and is only used for display purposes.
        version="x.y" is Solr's version number for the schema syntax and 
        semantics.  It should not normally be changed by applications.
