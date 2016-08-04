@@ -123,29 +123,60 @@
    -->
    <field name="solr_id" type="string" indexed="true" stored="true" required="true" multiValued="false" />
    
+   <!-- We need this as a stored value so that we can lookup returned sentences; we don't ever actually
+   query this in practice, so we could stop indexing it, but I can imagine cases in which it would be
+   useful to query -->
    <field name="story_sentences_id" type="string" indexed="true" stored="true" required="true" multiValued="false" />
+
+   <!-- Query by media_id is a core function -->
    <field name="media_id" type="int" indexed="true" stored="false" required="true" multiValued="false" />
 
+   <!-- Query by stories_id is a core function; we need to store this so that we can quickly process
+   queries grouped by stories_id, otherwise we would have to get the ss_id back and then query the ss
+   table for the stories_id values, which would slow things down a lot -->
    <field name="stories_id" type="int" indexed="true" stored="true" required="true" multiValued="false" />
+
+   <!-- I can imagine wanting to query this, but I don't think we actually ever have, so I think we
+   could drop it -->
    <field name="sentence_number" type="int" indexed="true" stored="false" required="true" multiValued="false" />
 
+   <!-- we need this indexed and stored to be able to implement the query streaming features in the api
+   (last_processed_stories_id=) -->
    <field name="processed_stories_id" type="tlong" indexed="true" stored="true" required="true" multiValued="false" docValues="true" />
 
+   <!-- Query by sentence is a core function, but we could rewrite the perl Solr.pm module to query
+   sentences from the ss table instead using sentences returned by solr; we will need to do this to have
+   room to fit the story_text: field into the index -->
    <field name="sentence"  type="text_general" indexed="true" stored="true" />
-   <field name="title"  type="text_general" indexed="true" stored="true" />
 
+   <!-- (see sentence) -->
+   <field name="title" type="text_general" indexed="true" stored="true" />
+
+   <!-- Query by date is a core function -->
    <field name="publish_date" type="tdate" indexed="true" stored="false"/>
+
+   <!-- Faster version of publish_date for querying by day -->
    <field name="publish_day" type="tdate" indexed="true" stored="false"/>
 
-   <!-- language field from the story_sentences table - 2 letter code -->
+   <!-- Language field from the story_sentences table - 2 letter code; query by language is a core function -->
    <field name="language" type="string" indexed="true" stored="false"/>
 
-   <!-- Bit.ly total click count (null if not known yet) -->
+   <!-- Bit.ly total click count (null if not known yet); we need this to be able to sort by bitly clicks,
+   which we need if we ever want to display influential stories list on the dashboard; I don't think we
+   need to store this, though -->
    <field name="bitly_click_count" type="int" indexed="true" stored="true" required="false" multiValued="false" />
 
+   <!-- Obsolete; we should get rid of it, but we don't actually write this to the db any more so it won't
+   save any space -->
    <field name="media_sets_id" type="int" indexed="true" stored="false" multiValued="true" />
+
+   <!-- Core query -->
    <field name="tags_id_stories" type="int" indexed="true" stored="false" multiValued="true" />
+
+   <!-- Core query -->
    <field name="tags_id_media" type="int" indexed="true" stored="false" multiValued="true" />
+
+   <!-- Core query; I think we need these stored values to implement sentences/field_counts -->
    <field name="tags_id_story_sentences" type="int" indexed="true" stored="false" multiValued="true" />
 
 
