@@ -634,6 +634,13 @@
     <!-- A specialized field for geospatial search. If indexed, this fieldType must not be multivalued. -->
     <fieldType name="location" class="solr.LatLonType" subFieldSuffix="_coordinate"/>
 
+    <!-- An alternative geospatial field type new to Solr 4.  It supports multiValued and polygon shapes.
+      For more information about this and other Spatial fields new to Solr 4, see:
+      http://wiki.apache.org/solr/SolrAdaptersForLuceneSpatial4
+    -->
+    <fieldType name="location_rpt" class="solr.SpatialRecursivePrefixTreeFieldType"
+        geo="true" distErrPct="0.025" maxDistErr="0.001" distanceUnits="kilometers" />
+
    <!-- Money/currency field type. See http://wiki.apache.org/solr/MoneyFieldType
         Parameters:
           defaultCurrency: Specifies the default currency if none specified. Defaults to "USD"
