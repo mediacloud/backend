@@ -1279,7 +1279,7 @@ Response:
 
 ## focus_definitions/create (POST) - DONE
 
-`https://api.mediacloud.org/api/topics/~topics_id~/focal_sets/create`
+`https://api.mediacloud.org/api/topics/~topics_id~/focus_definitions/create`
 
 Create and return a new *focus definition*  within the given *topic* and *focal set definition*.
 
@@ -1302,7 +1302,7 @@ The input for the *focus definition* depends on the focal technique of the paren
 
 Create the 'Clinton' *focus definition* within the 'Candidates' *focal set definition* and the 'U.S. 2016 Election' *topic*:
 
-`https://api.mediacloud.org/api/v2/topics/1344/focus_definitions/789/create`
+`https://api.mediacloud.org/api/v2/topics/1344/focus_definitions/create`
 
 Input:
 
@@ -1310,7 +1310,8 @@ Input:
 {
     "name": "Clinton",
     "description": "stories that mention Hillary Clinton",
-    "query": "clinton"
+    "query": "clinton",
+    "focal_set_definitions_id": 789
 }
 ```
 
