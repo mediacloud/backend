@@ -670,7 +670,7 @@ Standard parameters accepted : snapshots_id, foci_id, timespans_id, limit.
 
 Return the number of stories that mention 'immigration' in the 'US Election' topic:
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories_count?q=immigration`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/count?q=immigration`
 
 Response:
 
