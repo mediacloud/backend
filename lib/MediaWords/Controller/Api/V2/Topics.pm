@@ -26,12 +26,16 @@ sub list_GET : Local
 
     my $db = $c->dbis;
 
-    my $topics = $db->query( <<END )->hashes;
+    my $limit  = $c->req->params->{ limit };
+    my $offset = $c->req->params->{ offset };
+
+    my $topics = $db->query( <<END, $limit, $offset )->hashes;
 select c.*
     from topics c
         left join snapshots snap on ( c.topics_id = snap.topics_id )
     group by c.topics_id
     order by c.state = 'ready', c.state,  max( coalesce( snap.snapshot_date, '2000-01-01'::date ) ) desc
+    limit \$1 offset \$2
 END
 
     my $entity = { topics => $topics };
