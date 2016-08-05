@@ -45,4 +45,19 @@ END
     $self->status_ok( $c, entity => $entity );
 }
 
+sub single : Local : ActionClass('MC_REST')
+{
+}
+
+sub single_GET : Local
+{
+    my ( $self, $c, $topics_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my $topic = $db->require_by_id( 'topics', $topics_id );
+
+    $self->status_ok( $c, entity => { topics => [ $topic ] } );
+}
+
 1;
