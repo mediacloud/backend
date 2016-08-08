@@ -20,11 +20,11 @@ sub _create_connect_info_from_settings
 
     unless ( defined $settings )
     {
-        confess "Settings is undefined";
+        LOGCONFESS "Settings is undefined";
     }
     unless ( $settings->{ db } and $settings->{ host } )
     {
-        confess "Settings is uncomplete ('db' and 'host' must both be set)";
+        LOGCONFESS "Settings is uncomplete ('db' and 'host' must both be set)";
     }
 
     my $data_source = 'dbi:Pg:dbname=' . $settings->{ db } . ';host=' . $settings->{ host };

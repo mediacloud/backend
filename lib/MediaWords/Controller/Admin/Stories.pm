@@ -211,27 +211,27 @@ sub corenlp_json : Local
 
     unless ( $stories_id )
     {
-        confess "No stories_id";
+        LOGCONFESS "No stories_id";
     }
 
     unless ( $c->dbis->find_by_id( 'stories', $stories_id ) )
     {
-        confess "Story $stories_id does not exist.";
+        LOGCONFESS "Story $stories_id does not exist.";
     }
 
     unless ( MediaWords::Util::CoreNLP::annotator_is_enabled() )
     {
-        confess "CoreNLP annotator is not enabled in the configuration.";
+        LOGCONFESS "CoreNLP annotator is not enabled in the configuration.";
     }
 
     unless ( MediaWords::Util::CoreNLP::story_is_annotatable( $c->dbis, $stories_id ) )
     {
-        confess "Story $stories_id is not annotatable (either it's not in English or has no sentences).";
+        LOGCONFESS "Story $stories_id is not annotatable (either it's not in English or has no sentences).";
     }
 
     unless ( MediaWords::Util::CoreNLP::story_is_annotated( $c->dbis, $stories_id ) )
     {
-        confess "Story $stories_id is not annotated.";
+        LOGCONFESS "Story $stories_id is not annotated.";
     }
 
     my $corenlp_json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story_and_all_sentences( $c->dbis, $stories_id );
@@ -247,28 +247,28 @@ sub bitly_json : Local
 
     unless ( $stories_id )
     {
-        confess "No stories_id";
+        LOGCONFESS "No stories_id";
     }
 
     unless ( $c->dbis->find_by_id( 'stories', $stories_id ) )
     {
-        confess "Story $stories_id does not exist.";
+        LOGCONFESS "Story $stories_id does not exist.";
     }
 
     unless ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
     {
-        confess "Bit.ly processing is not enabled in the configuration.";
+        LOGCONFESS "Bit.ly processing is not enabled in the configuration.";
     }
 
     unless ( MediaWords::Util::Bitly::story_stats_are_fetched( $c->dbis, $stories_id ) )
     {
-        confess "Story's $stories_id Bit.ly stats are not fetched.";
+        LOGCONFESS "Story's $stories_id Bit.ly stats are not fetched.";
     }
 
     my $bitly_stats_hashref = MediaWords::Util::Bitly::read_story_stats( $c->dbis, $stories_id );
     unless ( $bitly_stats_hashref )
     {
-        confess "Story's $stories_id Bit.ly stats are undefined.";
+        LOGCONFESS "Story's $stories_id Bit.ly stats are undefined.";
     }
 
     Readonly my $json_pretty => 1;

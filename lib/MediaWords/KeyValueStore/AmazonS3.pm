@@ -69,17 +69,17 @@ sub BUILD($$)
     # Get arguments
     unless ( $access_key_id and $secret_access_key and $bucket_name )
     {
-        confess "Access Key ID, Secret Access Key and bucket name should be provided.";
+        LOGCONFESS "Access Key ID, Secret Access Key and bucket name should be provided.";
     }
 
     # Validate constants
     if ( $AMAZON_S3_READ_ATTEMPTS < 1 )
     {
-        confess "AMAZON_S3_READ_ATTEMPTS must be >= 1";
+        LOGCONFESS "AMAZON_S3_READ_ATTEMPTS must be >= 1";
     }
     if ( $AMAZON_S3_WRITE_ATTEMPTS < 1 )
     {
-        confess "AMAZON_S3_WRITE_ATTEMPTS must be >= 1";
+        LOGCONFESS "AMAZON_S3_WRITE_ATTEMPTS must be >= 1";
     }
 
     # Add slash to the end of the directory name (if it doesn't exist yet)
@@ -113,7 +113,7 @@ sub _initialize_s3_or_die($)
     my $request_timeout = floor( ( $AMAZON_S3_TIMEOUT / $AMAZON_S3_READ_ATTEMPTS ) - 1 );
     if ( $request_timeout < 10 )
     {
-        confess "Amazon S3 request timeout ($request_timeout) too small.";
+        LOGCONFESS "Amazon S3 request timeout ($request_timeout) too small.";
     }
 
     # Initialize
@@ -128,7 +128,7 @@ sub _initialize_s3_or_die($)
     );
     unless ( $self->_s3 )
     {
-        confess "AmazonS3: Unable to initialize Net::Amazon::S3 instance.";
+        LOGCONFESS "AmazonS3: Unable to initialize Net::Amazon::S3 instance.";
     }
     $self->_s3_client( Net::Amazon::S3::Client->new( s3 => $self->_s3 ) );
 
@@ -143,7 +143,7 @@ sub _initialize_s3_or_die($)
     }
     unless ( $self->_s3_bucket )
     {
-        confess "AmazonS3: Unable to get bucket '" . $self->_conf_bucket_name . "'.";
+        LOGCONFESS "AmazonS3: Unable to get bucket '" . $self->_conf_bucket_name . "'.";
     }
 
     # Save PID
@@ -163,7 +163,7 @@ sub _object_for_object_id($$)
 
     unless ( defined $object_id )
     {
-        confess "Object ID is undefined.";
+        LOGCONFESS "Object ID is undefined.";
     }
 
     my $filename = $self->_conf_directory_name . $object_id;
@@ -201,7 +201,7 @@ sub remove_content($$$;$)
     {
         unless ( $self->content_exists( $db, $object_id, $object_path ) )
         {
-            confess "AmazonS3: object with ID " . $object_id . " does not exist.";
+            LOGCONFESS "AmazonS3: object with ID " . $object_id . " does not exist.";
         }
     }
 
@@ -233,7 +233,7 @@ sub store_content($$$$)
     eval { $content_to_store = MediaWords::Util::Compress::encode_and_gzip( $$content_ref ); };
     if ( $@ or ( !defined $content_to_store ) )
     {
-        confess "Unable to compress object ID $object_id: $@";
+        LOGCONFESS "Unable to compress object ID $object_id: $@";
     }
 
     my $write_was_successful = 0;
@@ -268,7 +268,7 @@ sub store_content($$$$)
 
     unless ( $write_was_successful )
     {
-        confess "Unable to write object ID $object_id to Amazon S3 after $AMAZON_S3_WRITE_ATTEMPTS retries.";
+        LOGCONFESS "Unable to write object ID $object_id to Amazon S3 after $AMAZON_S3_WRITE_ATTEMPTS retries.";
     }
 
     return 's3:' . $object->key;
@@ -285,7 +285,7 @@ sub fetch_content($$$;$)
     {
         unless ( $self->content_exists( $db, $object_id, $object_path ) )
         {
-            confess "AmazonS3: object ID $object_id does not exist.";
+            LOGCONFESS "AmazonS3: object ID $object_id does not exist.";
         }
     }
 
@@ -320,7 +320,7 @@ sub fetch_content($$$;$)
 
     unless ( defined $gzipped_content )
     {
-        confess "Unable to read object ID $object_id from Amazon S3 after $AMAZON_S3_READ_ATTEMPTS retries.";
+        LOGCONFESS "Unable to read object ID $object_id from Amazon S3 after $AMAZON_S3_READ_ATTEMPTS retries.";
     }
 
     # Gunzip + decode
@@ -328,7 +328,7 @@ sub fetch_content($$$;$)
     eval { $decoded_content = MediaWords::Util::Compress::gunzip_and_decode( $gzipped_content ); };
     if ( $@ or ( !defined $decoded_content ) )
     {
-        confess "Unable to uncompress object ID $object_id: $@";
+        LOGCONFESS "Unable to uncompress object ID $object_id: $@";
     }
 
     return \$decoded_content;

@@ -58,7 +58,7 @@ sub _story_timestamp($)
     my $publish_date = $story->{ publish_date };
     unless ( $publish_date )
     {
-        confess "Publish date is unset for story $stories_id: " . Dumper( $story );
+        LOGCONFESS "Publish date is unset for story $stories_id: " . Dumper( $story );
     }
 
     my $story_timestamp = MediaWords::Util::SQL::get_epoch_from_sql_date( $publish_date );

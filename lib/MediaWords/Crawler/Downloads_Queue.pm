@@ -16,7 +16,7 @@ use MediaWords::Util::Config;
 use Readonly;
 
 #use Tie::File;
-use Carp qw( croak confess );
+use Carp qw/croak/;
 
 Readonly my $DEBUG_MODE => 0;
 
@@ -64,7 +64,7 @@ sub _get_media_download_queue
     my @array;
 
     #my $file_name = $self->_get_download_queue_file_name($media_id);
-    #tie @array, 'Tie::File', $file_name , mode => O_RDWR | O_CREAT | O_TRUNC || confess "error tying array: $!";
+    #tie @array, 'Tie::File', $file_name , mode => O_RDWR | O_CREAT | O_TRUNC || LOGCONFESS "error tying array: $!";
     my $ret = \@array;
 
     return $ret;
@@ -77,7 +77,7 @@ sub get_download_site_from_hostname
     # to improve speed, we just throttle by host name now.
     return $host_name;
 
-    confess unless defined( $host_name );
+    LOGCONFESS 'Hostname is undefined.' unless defined( $host_name );
     $host_name =~ s/.*\.([^.]*\.[^.]*)/$1/;
 
     return $host_name;

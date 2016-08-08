@@ -37,7 +37,7 @@ sub fetch_content($$$$)
 
     unless ( defined $object_path )
     {
-        confess "Object path for object ID $object_id is undefined.";
+        LOGCONFESS "Object path for object ID $object_id is undefined.";
     }
 
     my $content = $object_path;
@@ -52,10 +52,10 @@ sub remove_content($$$$)
 
     unless ( defined $object_path )
     {
-        confess "Object path for object ID $object_id is undefined.";
+        LOGCONFESS "Object path for object ID $object_id is undefined.";
     }
 
-    confess "Not sure how to remove inline content for object ID $object_id.";
+    LOGCONFESS "Not sure how to remove inline content for object ID $object_id.";
 
     return 0;
 }

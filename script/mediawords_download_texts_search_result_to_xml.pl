@@ -105,7 +105,7 @@ sub add_downloads_to_story
 
     my $matching_downloads_for_story = get_matching_downloads_for_story( $db, $full_ts_query, $story_id );
 
-    confess if ( scalar( keys %{ $matching_downloads_for_story } ) == 0 );
+    LOGCONFESS "Matching downloads is 0." if ( scalar( keys %{ $matching_downloads_for_story } ) == 0 );
 
     while ( my $row = $downloads_for_story->hash() )
     {

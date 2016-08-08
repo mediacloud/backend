@@ -211,7 +211,7 @@ sub query
     eval { $ret = $self->_query_impl( @_ ) };
     if ( $@ )
     {
-        Carp::confess( "query error: $@" );
+        LOGCONFESS( "query error: $@" );
     }
 
     return $ret;
@@ -273,7 +273,7 @@ sub run_block_with_large_work_mem( &$ )
     {
         $db->_set_work_mem( $old_work_mem );
 
-        confess $_;
+        LOGCONFESS $_;
     };
 
     $db->_set_work_mem( $old_work_mem );
@@ -360,7 +360,7 @@ sub find_by_id
 
     my $id_col = $self->primary_key_column( $table );
 
-    confess "undefined primary key column for table '$table'" unless defined( $id_col );
+    LOGCONFESS "undefined primary key column for table '$table'" unless defined( $id_col );
 
     return $self->query( "select * from $table where $id_col = ?", $id )->hash;
 }
@@ -504,7 +504,7 @@ sub create
     {
         my $query_error = $@;
 
-        confess "error inserting into table '$table' with object:\n" . Dumper( $hash ) . "\n$query_error";
+        LOGCONFESS "error inserting into table '$table' with object:\n" . Dumper( $hash ) . "\n$query_error";
     }
 
     my $id;
@@ -512,14 +512,14 @@ sub create
     eval {
         $id = $self->last_insert_id( undef, undef, $table, undef );
 
-        confess "Could not get last id inserted" if ( !defined( $id ) );
+        LOGCONFESS "Could not get last id inserted" if ( !defined( $id ) );
     };
 
-    confess "Error getting last_insert_id $@" if ( $@ );
+    LOGCONFESS "Error getting last_insert_id $@" if ( $@ );
 
     my $ret = $self->find_by_id( $table, $id );
 
-    confess "could not find new id '$id' in table '$table' " unless ( $ret );
+    LOGCONFESS "could not find new id '$id' in table '$table' " unless ( $ret );
 
     return $ret;
 }
@@ -776,7 +776,7 @@ sub begin_work
     eval { $self->SUPER::begin_work; };
     if ( $@ )
     {
-        Carp::confess( $@ );
+        LOGCONFESS( $@ );
     }
 }
 

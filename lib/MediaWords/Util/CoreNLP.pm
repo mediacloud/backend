@@ -16,7 +16,7 @@ use HTTP::Request;
 use HTTP::Status qw(:constants);
 use Encode;
 use URI;
-use Carp qw/confess cluck/;
+use Carp qw/cluck/;
 use Scalar::Defer;
 use Readonly;
 use Data::Dumper;
@@ -375,7 +375,7 @@ sub _fetch_raw_annotation_for_story($$)
 
     unless ( annotator_is_enabled() )
     {
-        confess "CoreNLP annotator is not enabled in the configuration.";
+        LOGCONFESS "CoreNLP annotator is not enabled in the configuration.";
     }
 
     unless ( story_is_annotated( $db, $stories_id ) )
@@ -609,7 +609,7 @@ sub fetch_annotation_json_for_story($$)
 
     unless ( annotator_is_enabled() )
     {
-        confess "CoreNLP annotator is not enabled in the configuration.";
+        LOGCONFESS "CoreNLP annotator is not enabled in the configuration.";
     }
 
     unless ( story_is_annotated( $db, $stories_id ) )
@@ -659,7 +659,7 @@ sub fetch_annotation_json_for_story_sentence($$)
 
     unless ( annotator_is_enabled() )
     {
-        confess "CoreNLP annotator is not enabled in the configuration.";
+        LOGCONFESS "CoreNLP annotator is not enabled in the configuration.";
     }
 
     my $story_sentence = $db->find_by_id( 'story_sentences', $story_sentences_id );
@@ -730,7 +730,7 @@ sub fetch_annotation_json_for_story_and_all_sentences($$)
 
     unless ( annotator_is_enabled() )
     {
-        confess "CoreNLP annotator is not enabled in the configuration.";
+        LOGCONFESS "CoreNLP annotator is not enabled in the configuration.";
     }
 
     unless ( story_is_annotated( $db, $stories_id ) )

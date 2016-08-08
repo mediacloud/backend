@@ -26,11 +26,11 @@ sub BUILD($$)
 
     unless ( $stores_for_reading or $stores_for_writing )
     {
-        confess "At least one list of stores should be defined.";
+        LOGCONFESS "At least one list of stores should be defined.";
     }
     unless ( ref( $stores_for_reading ) eq ref( [] ) or ref( $stores_for_writing ) eq ref( [] ) )
     {
-        confess "At least one list of stores stores should be an arrayref.";
+        LOGCONFESS "At least one list of stores stores should be an arrayref.";
     }
 
     my @all_stores;
@@ -45,7 +45,7 @@ sub BUILD($$)
 
     if ( scalar( @all_stores ) == 0 )
     {
-        confess "At least one store for reading / writing should be present.";
+        LOGCONFESS "At least one store for reading / writing should be present.";
     }
 
     foreach my $store ( @all_stores )
@@ -53,7 +53,7 @@ sub BUILD($$)
         # $store->isa() doesn't seem to work for whatever reason
         unless ( ref( $store ) =~ /^MediaWords::KeyValueStore/ )
         {
-            confess 'Store ' . ref( $store ) . ' is not of key-value store type.';
+            LOGCONFESS 'Store ' . ref( $store ) . ' is not of key-value store type.';
         }
     }
 
@@ -71,7 +71,7 @@ sub store_content($$$$)
 
     unless ( $self->_stores_for_writing and scalar( @{ $self->_stores_for_writing } ) > 0 )
     {
-        confess "List of stores for writing object $object_id is empty.";
+        LOGCONFESS "List of stores for writing object $object_id is empty.";
     }
 
     foreach my $store ( @{ $self->_stores_for_writing } )
@@ -80,19 +80,19 @@ sub store_content($$$$)
             $last_store_path = $store->store_content( $db, $object_id, $content_ref );
             unless ( $last_store_path )
             {
-                confess "Storing object $object_id to " . ref( $store ) . " succeeded, but the returned path is empty.";
+                LOGCONFESS "Storing object $object_id to " . ref( $store ) . " succeeded, but the returned path is empty.";
             }
         };
         if ( $@ )
         {
             my $store_error_message = $@;
-            confess "Error while saving object $object_id to store " . ref( $store ) . ": $@";
+            LOGCONFESS "Error while saving object $object_id to store " . ref( $store ) . ": $@";
         }
     }
 
     unless ( $last_store_path )
     {
-        confess "Storing object $object_id to all stores succeeded, but the returned path is empty.";
+        LOGCONFESS "Storing object $object_id to all stores succeeded, but the returned path is empty.";
     }
 
     return $last_store_path;
@@ -110,7 +110,7 @@ sub fetch_content($$$$)
 
     unless ( $self->_stores_for_reading and scalar( @{ $self->_stores_for_reading } ) > 0 )
     {
-        confess "List of stores for reading object $object_id is empty.";
+        LOGCONFESS "List of stores for reading object $object_id is empty.";
     }
 
     foreach my $store ( @{ $self->_stores_for_reading } )
@@ -119,7 +119,7 @@ sub fetch_content($$$$)
             $content_ref = $store->fetch_content( $db, $object_id, $object_path );
             unless ( $content_ref )
             {
-                confess "Fetching object $object_id from " .
+                LOGCONFESS "Fetching object $object_id from " .
                   ref( $store ) . " succeeded, but the returned content ref is empty.";
             }
         };
@@ -136,7 +136,7 @@ sub fetch_content($$$$)
 
     unless ( $content_ref )
     {
-        confess "All stores failed while fetching object $object_id; errors: " . join( "\n", @errors );
+        LOGCONFESS "All stores failed while fetching object $object_id; errors: " . join( "\n", @errors );
     }
 
     return $content_ref;
@@ -150,7 +150,7 @@ sub remove_content($$$$)
 
     unless ( $self->_stores_for_writing and scalar( @{ $self->_stores_for_writing } ) > 0 )
     {
-        confess "List of stores for writing object $object_id is empty.";
+        LOGCONFESS "List of stores for writing object $object_id is empty.";
     }
 
     foreach my $store ( @{ $self->_stores_for_writing } )
@@ -159,13 +159,14 @@ sub remove_content($$$$)
             my $removal_succeeded = $store->remove_content( $db, $object_id, $object_path );
             unless ( $removal_succeeded )
             {
-                confess "Removing object $object_id to " . ref( $store ) . " succeeded, but the store didn't return true.";
+                LOGCONFESS "Removing object $object_id to " .
+                  ref( $store ) . " succeeded, but the store didn't return true.";
             }
         };
         if ( $@ )
         {
             my $store_error_message = $@;
-            confess "Error while removing object $object_id from store " . ref( $store ) . ": $@";
+            LOGCONFESS "Error while removing object $object_id from store " . ref( $store ) . ": $@";
         }
     }
 
@@ -180,7 +181,7 @@ sub content_exists($$$$)
 
     unless ( $self->_stores_for_reading and scalar( @{ $self->_stores_for_reading } ) > 0 )
     {
-        confess "List of stores for reading object $object_id is empty.";
+        LOGCONFESS "List of stores for reading object $object_id is empty.";
     }
 
     my $exists = 0;
@@ -189,7 +190,7 @@ sub content_exists($$$$)
         eval { $exists = $store->content_exists( $db, $object_id, $object_path ); };
         if ( $@ )
         {
-            confess "Error while testing whether object $object_id exists in store " . ref( $store ) . ": $@";
+            LOGCONFESS "Error while testing whether object $object_id exists in store " . ref( $store ) . ": $@";
         }
         if ( $exists )
         {

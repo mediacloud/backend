@@ -195,14 +195,14 @@ sub import_downloads
             try
             {
                 $story_hash = hash_from_element( $story_element, [ qw ( story_downloads ) ] );
-                confess 'null story_hash ' unless $story_hash;
+                LOGCONFESS 'null story_hash ' unless $story_hash;
             }
             catch
             {
-                confess STDERR "error in hash_from_element: $_";
+                LOGCONFESS STDERR "error in hash_from_element: $_";
             };
 
-            confess 'null story_hash ' unless $story_hash;
+            LOGCONFESS 'null story_hash ' unless $story_hash;
 
             my $old_stories_id = $story_hash->{ stories_id };
 
@@ -211,9 +211,9 @@ sub import_downloads
             my $db_story =
               MediaWords::Crawler::FeedHandler::_add_story_using_parent_download( $db, $story_hash, $db_download );
 
-            confess "Story not created for object " . Dumper( $story_hash ) unless defined( $db_story ) and $db_story;
+            LOGCONFESS "Story not created for object " . Dumper( $story_hash ) unless defined( $db_story ) and $db_story;
 
-            confess "db_story object: " .
+            LOGCONFESS "db_story object: " .
               Dumper( $db_story ) . "does not have a stories_id." . "object created from " . Dumper( $story_hash )
               unless $db_story->{ stories_id };
 
@@ -242,7 +242,7 @@ sub import_downloads
                 $download_hash->{ extracted }  = 'f';
                 $download_hash->{ path }       = '';
 
-                confess unless $download_hash->{ stories_id };
+                LOGCONFESS unless $download_hash->{ stories_id };
 
                 delete( $download_hash->{ downloads_id } );
 

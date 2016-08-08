@@ -12,7 +12,6 @@ use strict;
 use warnings;
 
 use IPC::Run3;
-use Carp qw/ confess /;
 use File::Slurp;
 use FindBin;
 
@@ -217,7 +216,7 @@ sub load_sql_file
         # Die on unexpected SQL (e.g. DROP TABLE)
         unless ( postgresql_response_line_is_expected( $line ) )
         {
-            confess "Unexpected PostgreSQL response line: '$line'";
+            LOGCONFESS "Unexpected PostgreSQL response line: '$line'";
         }
 
         return "$line\n";

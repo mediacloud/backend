@@ -9,7 +9,7 @@ use MediaWords::CommonLibs;
 use Moose;
 
 use Data::Dumper;
-use Carp qw/confess cluck/;
+use Carp qw/cluck/;
 
 my $child_pids = [];
 

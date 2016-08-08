@@ -32,7 +32,7 @@ sub BUILD($$)
 
     unless ( $args->{ cache_root_dir } )
     {
-        confess "Please provide 'cache_root_dir' argument.";
+        LOGCONFESS "Please provide 'cache_root_dir' argument.";
     }
     my $cache_root_dir = $args->{ cache_root_dir };
 
@@ -40,7 +40,7 @@ sub BUILD($$)
     {
         unless ( mkdir( $cache_root_dir ) )
         {
-            confess "Unable to create cache directory '$cache_root_dir': $!";
+            LOGCONFESS "Unable to create cache directory '$cache_root_dir': $!";
         }
     }
 
@@ -90,7 +90,7 @@ sub _try_storing_object_in_cache($$$)
         eval { $content_to_store = MediaWords::Util::Compress::encode_and_gzip( $$content_ref ); };
         if ( $@ or ( !defined $content_to_store ) )
         {
-            confess "Unable to compress cached object ID $object_id: $@";
+            LOGCONFESS "Unable to compress cached object ID $object_id: $@";
         }
 
         $self->_chi->set( $object_id, $content_to_store );
@@ -117,7 +117,7 @@ sub _try_retrieving_object_from_cache($$)
             eval { $cached_content = MediaWords::Util::Compress::gunzip_and_decode( $cached_gzipped_content ); };
             if ( $@ or ( !defined $cached_content ) )
             {
-                confess "Unable to uncompress cached object ID $object_id: $@";
+                LOGCONFESS "Unable to uncompress cached object ID $object_id: $@";
             }
         }
     };

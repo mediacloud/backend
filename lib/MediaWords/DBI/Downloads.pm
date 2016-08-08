@@ -311,7 +311,7 @@ sub fetch_content($$)
 
     unless ( download_successful( $download ) )
     {
-        confess "attempt to fetch content for unsuccessful download $download->{ downloads_id }  / $download->{ state }";
+        LOGCONFESS "attempt to fetch content for unsuccessful download $download->{ downloads_id }  / $download->{ state }";
     }
 
     my $store = _download_store_for_reading( $download );
