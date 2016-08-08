@@ -20,7 +20,7 @@ sub encode_to_utf8($)
 {
     my $data = shift;
 
-    # Will croak on error
+    # Will die() on error
     return Encode::encode( 'utf-8', $data );
 }
 
@@ -79,7 +79,7 @@ sub decode_from_utf8($)
 {
     my $data = shift;
 
-    # Will croak on error
+    # Will die() on error
     return Encode::decode( 'utf-8', $data );
 }
 

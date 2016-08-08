@@ -111,13 +111,13 @@ sub connect_settings
 
     my $all_settings = MediaWords::Util::Config::get_config->{ database };
 
-    defined( $all_settings ) or croak( "No database connections configured" );
+    defined( $all_settings ) or LOGCROAK( "No database connections configured" );
 
     my $connect_settings;
     if ( defined( $label ) )
     {
         $connect_settings = first { $_->{ label } eq $label } @{ $all_settings }
-          or croak "No database connection settings labeled '$label'";
+          or LOGCROAK "No database connection settings labeled '$label'";
     }
 
     unless ( defined( $connect_settings ) )
@@ -132,7 +132,7 @@ sub get_db_labels
 {
     my $all_settings = MediaWords::Util::Config::get_config->{ database };
 
-    defined( $all_settings ) or croak( "No database connections configured" );
+    defined( $all_settings ) or LOGCROAK( "No database connections configured" );
 
     my @labels = map { $_->{ label } } @{ $all_settings };
 

@@ -135,7 +135,7 @@ my $_store_postgresql = lazy
         my $amazon_s3_store = force $_store_amazon_s3;
         unless ( defined $amazon_s3_store )
         {
-            croak "'fallback_postgresql_downloads_to_s3' is enabled, but Amazon S3 download storage is not set up.";
+            LOGCROAK "'fallback_postgresql_downloads_to_s3' is enabled, but Amazon S3 download storage is not set up.";
         }
 
         my $postgresql_then_s3_store = MediaWords::KeyValueStore::MultipleStores->new(
@@ -165,7 +165,7 @@ my $_store_for_writing_non_inline_downloads = lazy
     my $download_storage_locations = $config->{ mediawords }->{ download_storage_locations };
     if ( scalar( @{ $download_storage_locations } ) == 0 )
     {
-        croak "No download stores are configured.";
+        LOGCROAK "No download stores are configured.";
     }
 
     foreach my $location ( @{ $download_storage_locations } )
@@ -175,7 +175,7 @@ my $_store_for_writing_non_inline_downloads = lazy
 
         if ( $location eq 'databaseinline' )
         {
-            croak "$location is not valid for storage";
+            LOGCROAK "$location is not valid for storage";
 
         }
         elsif ( $location eq 'postgresql' )
@@ -190,13 +190,13 @@ my $_store_for_writing_non_inline_downloads = lazy
         }
         else
         {
-            croak "Store location '$location' is not valid.";
+            LOGCROAK "Store location '$location' is not valid.";
 
         }
 
         unless ( defined $store )
         {
-            croak "Store for location '$location' is not configured.";
+            LOGCROAK "Store for location '$location' is not configured.";
         }
 
         push( @stores_for_writing, $store );
@@ -230,7 +230,7 @@ sub _download_store_for_reading($)
     my $path = $download->{ path };
     unless ( $path )
     {
-        croak "Download path is not set for download $download->{ downloads_id }";
+        LOGCROAK "Download path is not set for download $download->{ downloads_id }";
     }
 
     if ( $path =~ /^([\w]+):/ )
@@ -260,7 +260,7 @@ sub _download_store_for_reading($)
 
         else
         {
-            croak "Download location '$location' is unknown for download $download->{ downloads_id }";
+            LOGCROAK "Download location '$location' is unknown for download $download->{ downloads_id }";
         }
     }
     else
@@ -274,7 +274,7 @@ sub _download_store_for_reading($)
 
     unless ( defined $download_store )
     {
-        croak "Download store is undefined for download " . $download->{ downloads_id };
+        LOGCROAK "Download store is undefined for download " . $download->{ downloads_id };
     }
 
     my $config = MediaWords::Util::Config::get_config;
@@ -288,7 +288,7 @@ sub _download_store_for_reading($)
 
     unless ( $download_store )
     {
-        croak "Download store is not configured for download " . $download->{ downloads_id };
+        LOGCROAK "Download store is not configured for download " . $download->{ downloads_id };
     }
 
     return $download_store;
@@ -306,7 +306,7 @@ sub fetch_content($$)
 
     unless ( exists $download->{ downloads_id } )
     {
-        croak "fetch_content called with invalid download";
+        LOGCROAK "fetch_content called with invalid download";
     }
 
     unless ( download_successful( $download ) )
@@ -317,14 +317,14 @@ sub fetch_content($$)
     my $store = _download_store_for_reading( $download );
     unless ( $store )
     {
-        croak "No store for reading download " . $download->{ downloads_id };
+        LOGCROAK "No store for reading download " . $download->{ downloads_id };
     }
 
     # Fetch content
     my $content_ref = $store->fetch_content( $db, $download->{ downloads_id }, $download->{ path } );
     unless ( $content_ref and ref( $content_ref ) eq 'SCALAR' )
     {
-        croak "Unable to fetch content for download " . $download->{ downloads_id } . "; tried store: " . ref( $store );
+        LOGCROAK "Unable to fetch content for download " . $download->{ downloads_id } . "; tried store: " . ref( $store );
     }
 
     # horrible hack to fix old content that is not stored in unicode
@@ -360,14 +360,14 @@ sub store_content($$$)
         my $store = _download_store_for_writing( $content_ref );
         unless ( defined $store )
         {
-            croak "No download store to write to.";
+            LOGCROAK "No download store to write to.";
         }
 
         $path = $store->store_content( $db, $download->{ downloads_id }, $content_ref );
     };
     if ( $@ )
     {
-        croak "Error while trying to store download ID " . $download->{ downloads_id } . ':' . $@;
+        LOGCROAK "Error while trying to store download ID " . $download->{ downloads_id } . ':' . $@;
         $new_state = 'error';
         $download->{ error_message } = $@;
     }

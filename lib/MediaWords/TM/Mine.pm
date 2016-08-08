@@ -466,7 +466,7 @@ sub lookup_medium_by_url
 
             $medium = $dup_medium ? $dup_medium : $medium;
 
-            croak( "foreign rss medium $medium->{ media_id }" ) if ( $medium->{ foreign_rss_links } );
+            LOGCROAK( "foreign rss medium $medium->{ media_id }" ) if ( $medium->{ foreign_rss_links } );
             $_media_url_lookup->{ MediaWords::Util::URL::normalize_url_lossy( $medium->{ url } ) } = $medium;
         }
     }
@@ -734,7 +734,7 @@ sub get_dup_medium
 {
     my ( $db, $media_id, $allow_foreign_rss_links, $count ) = @_;
 
-    croak( "loop detected in duplicate media graph" ) if ( $count && ( $count > 10 ) );
+    LOGCROAK( "loop detected in duplicate media graph" ) if ( $count && ( $count > 10 ) );
 
     return undef unless ( $media_id );
 

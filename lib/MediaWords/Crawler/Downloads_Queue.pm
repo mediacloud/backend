@@ -15,9 +15,6 @@ use MediaWords::DB;
 use MediaWords::Util::Config;
 use Readonly;
 
-#use Tie::File;
-use Carp qw/croak/;
-
 Readonly my $DEBUG_MODE => 0;
 
 sub new
