@@ -185,6 +185,15 @@ sub run_block_with_large_work_mem( &$ )
     my $block = shift;
     my $db    = shift;
 
+    unless ( $block and ref( $block ) eq 'CODE' )
+    {
+        LOGCONFESS "Block is undefined or is not a subref.";
+    }
+    unless ( $db and ref( $db ) eq 'DBIx::Simple::MediaWords' )
+    {
+        LOGCONFESS "Database handler is undefined or is not a database instance.";
+    }
+
     DBIx::Simple::MediaWords::run_block_with_large_work_mem { $block->() } $db;
 }
 
