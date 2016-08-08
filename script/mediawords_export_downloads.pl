@@ -9,9 +9,10 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use MediaWords::DB;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
+
+use MediaWords::DB;
 
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
@@ -30,8 +31,7 @@ sub xml_tree_from_hash
 
     foreach my $key ( sort keys %{ $hash } )
     {
-
-        #say STDERR "appending '$key'  $hash->{ $key } ";
+        TRACE "appending '$key'  $hash->{ $key } ";
         $node->appendTextChild( $key, $hash->{ $key } );
     }
 
@@ -55,8 +55,7 @@ sub export_downloads
 
     while ( $cur_downloads_id <= $end_downloads_id )
     {
-
-        say STDERR "Downloads_id $cur_downloads_id (end: $end_downloads_id)";
+        INFO "downloads_id $cur_downloads_id (end: $end_downloads_id)";
 
         my $download =
           $db->query( " SELECT * from downloads where downloads_id >= ?  and type = 'feed' and state = 'success' limit 1 ",

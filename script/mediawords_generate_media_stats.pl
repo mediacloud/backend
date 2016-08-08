@@ -12,6 +12,9 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Getopt::Long;
 
 use MediaWords::DB;
@@ -50,7 +53,7 @@ sub _generate_media_stats
 {
     my ( $db, $date ) = @_;
 
-    print STDERR "generating date: $date...\n";
+    INFO "generating date: $date...";
 
     $db->query( "delete from media_stats where stat_date = ?", $date );
 
@@ -83,7 +86,7 @@ select
     order by m.media_id;
 END
 
-    print STDERR "done\n";
+    INFO "done";
 }
 
 sub main
@@ -99,7 +102,7 @@ sub main
     $start_date ||= _get_default_start_date( $db );
     $end_date ||= substr( MediaWords::Util::SQL::get_sql_date_from_epoch( time() - 86400 ), 0, 10 );
 
-    print STDERR "generating media_stats_stories_all for $start_date - $end_date ...\n";
+    INFO "generating media_stats_stories_all for $start_date - $end_date ...";
     $db->query( <<'END', $start_date, $end_date );
 create temporary table media_stats_stories_all as 
     select s.stories_id, s.media_id, s.publish_date

@@ -29,6 +29,9 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Data::Dumper;
 use Getopt::Long;
 
@@ -69,7 +72,7 @@ sub import_seed_url
 {
     my ( $db, $default_topic, $default_source, $csv_url ) = @_;
 
-    # print STDERR "$csv_url->{ url }...\n";
+    TRACE "$csv_url->{ url }...";
 
     $csv_url->{ assume_match } ||= 0;
 

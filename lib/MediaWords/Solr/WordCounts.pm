@@ -250,7 +250,7 @@ sub get_stop_stems_in_all_languages
     for my $language ( @{ $self->language_objects } )
     {
         my $stopwords = $language->get_long_stop_words;
-        TRACE( sub { "get stop words " . $language->get_language_code . " " . scalar( keys( %{ $stopwords } ) ) } );
+        TRACE "get stop words " . $language->get_language_code . " " . scalar( keys( %{ $stopwords } ) );
         push( @{ $all_stopwords }, keys( %{ $stopwords } ) );
     }
 
@@ -259,7 +259,7 @@ sub get_stop_stems_in_all_languages
     my $stopstems = {};
     map { $stopstems->{ $_ } = 1 } @{ $all_stopstems };
 
-    TRACE( sub { "stop stems size: " . scalar( keys( %{ $stopstems } ) ) } );
+    TRACE "stop stems size: " . scalar( keys( %{ $stopstems } ) );
 
     return $stopstems;
 }
@@ -332,7 +332,7 @@ sub set_default_languages($$)
 
     my $languages = [ keys( %{ $language_lookup } ) ];
 
-    DEBUG( sub { "default_languages: " . join( ', ', @{ $languages } ) } );
+    DEBUG "default_languages: " . join( ', ', @{ $languages } );
 
     $self->languages( $languages );
 }
@@ -345,7 +345,7 @@ sub set_language_objects
 
     return if ( $self->language_objects );
 
-    DEBUG( sub { "set_language_objects all: " . join( ', ', @{ $self->languages } ) } );
+    DEBUG "set_language_objects all: " . join( ', ', @{ $self->languages } );
 
     my $language_objects = [];
     for my $language_code ( @{ $self->languages } )
@@ -357,7 +357,7 @@ sub set_language_objects
 
     if ( !@{ $language_objects } )
     {
-        WARN( "set_langage_objects: falling back to english" );
+        WARN "set_langage_objects: falling back to english";
         push( @{ $language_objects }, MediaWords::Languages::Language::language_for_code( 'en' ) );
     }
 
@@ -386,7 +386,7 @@ sub get_words_from_solr_server
     };
 
     DEBUG( "executing solr query ..." );
-    DEBUG( sub { Dumper( $solr_params ) } );
+    DEBUG Dumper( $solr_params );
     my $data = MediaWords::Solr::query( $self->db, $solr_params );
 
     my $sentences_found = $data->{ response }->{ numFound };
@@ -421,7 +421,7 @@ sub get_words_from_solr_server
 
         if ( !$self->is_valid_utf8( $w->[ 0 ] ) || !$self->is_valid_utf8( $max_term ) )
         {
-            WARN( "invalid utf8: $w->[ 0 ] / $max_term" );
+            WARN "invalid utf8: $w->[ 0 ] / $max_term";
             next;
         }
 

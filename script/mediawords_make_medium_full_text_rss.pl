@@ -17,10 +17,10 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use MediaWords::DB;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use MediaWords::DB;
 use MediaWords::StoryVectors;
 
 sub main
@@ -47,7 +47,7 @@ sub main
 
         MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story );
 
-        print STDERR ++$i . " / " . scalar( @{ $stories } ) . "\n";
+        INFO ++$i . " / " . scalar( @{ $stories } );
 
         $db->commit if ( !( $i % 100 ) );
     }

@@ -2,6 +2,9 @@ use strict;
 use warnings;
 use utf8;
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 BEGIN { $ENV{ DIFF_OUTPUT_UNICODE } = 1 }
 
 use Test::More tests => 26;
@@ -117,9 +120,9 @@ sub test_media
             $response = request( _api_request_url( '/api/v2/feeds/list', { media_id => $media_id } ) );
             ok( $response->is_success, 'Request should succeed' );
 
-            if ( !$response->is_success )
+            unless ( $response->is_success )
             {
-                say STDERR Dumper( $response->decoded_content() );
+                ERROR Dumper( $response->decoded_content() );
             }
 
             my $expected_feed = [
@@ -196,15 +199,15 @@ sub test_stories_public
         }
     );
 
-    say STDERR $url;
+    INFO $url;
 
     my $response = request( $url );
 
     ok( $response->is_success, 'Request should succeed' );
 
-    if ( !$response->is_success )
+    unless ( $response->is_success )
     {
-        say STDERR $response->decoded_content();
+        ERROR $response->decoded_content();
     }
 
     my $actual_response = decode_json( $response->decoded_content() );
@@ -246,15 +249,15 @@ sub test_stories_non_public
         }
     );
 
-    say STDERR $url;
+    INFO $url;
 
     my $response = request( $url );
 
     ok( $response->is_success, 'Request should succeed' );
 
-    if ( !$response->is_success )
+    unless ( $response->is_success )
     {
-        say STDERR $response->decoded_content();
+        ERROR $response->decoded_content();
     }
 
     my $actual_response = decode_json( $response->decoded_content() );
@@ -439,7 +442,7 @@ sub test_stories_utf8()
             }
         );
 
-        say STDERR $url;
+        INFO $url;
 
         my $response = request( $url );
 

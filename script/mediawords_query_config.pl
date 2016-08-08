@@ -30,6 +30,8 @@ BEGIN
 }
 
 use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use MediaWords::Util::Config;
 use Data::Dumper;
 use XML::Simple qw(:strict);
@@ -108,7 +110,7 @@ sub _match_xpath($$)
     my $xml_data = XML::LibXML->load_xml( string => $xml );
     unless ( $xml_data )
     {
-        say STDERR "Unable to parse XML: $xml_data";
+        ERROR "Unable to parse XML: $xml_data";
         return undef;
     }
 
@@ -141,7 +143,7 @@ sub main
 
     my $config = MediaWords::Util::Config::get_config();
 
-    # say STDERR Dumper($config);
+    TRACE Dumper( $config );
 
     # Convert the configuration hash to an XML object so that we can use XPath
     # queries against it
@@ -151,7 +153,7 @@ sub main
         die "Unable to convert the configuration to XML.\n";
     }
 
-    # say STDERR $xml;
+    TRACE $xml;
 
     # Match XPath
     my $results = _match_xpath( $xml, $query );

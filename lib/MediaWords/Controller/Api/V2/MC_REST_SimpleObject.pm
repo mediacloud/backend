@@ -12,7 +12,6 @@ use Moose;
 use namespace::autoclean;
 use List::Compare;
 use Readonly;
-use Carp;
 
 =head1 NAME
 
@@ -307,7 +306,7 @@ sub list_GET : Local
 {
     my ( $self, $c ) = @_;
 
-    # say STDERR "starting list_GET";
+    # TRACE "starting list_GET";
 
     my $table_name = $self->get_table_name();
 
@@ -318,7 +317,7 @@ sub list_GET : Local
     my $last_id = $c->req->param( $last_id_param_name );
     $last_id //= 0;
 
-    # say STDERR "last_id: $last_id";
+    # TRACE "last_id: $last_id";
 
     my $all_fields = $c->req->param( 'all_fields' );
     $all_fields //= 0;
@@ -326,7 +325,7 @@ sub list_GET : Local
     my $rows = $c->req->param( 'rows' );
     $rows //= $ROWS_PER_PAGE;
 
-    # say STDERR "rows $rows";
+    # TRACE "rows $rows";
 
     my $list = $self->_fetch_list( $c, $last_id, $table_name, $id_field, $rows );
 
@@ -344,7 +343,7 @@ sub _die_unless_tag_set_matches_user_email
 
     my $hashes = $c->dbis->query( $query, $tags_id )->hashes();
 
-    #say STDERR "Hashes:\n" . Dumper( $hashes );
+    #TRACE "Hashes:\n" . Dumper( $hashes );
 
     my $tag_set = $hashes->[ 0 ]->{ name };
 
@@ -377,7 +376,7 @@ sub _die_unless_user_can_apply_tag_set_tags
 
     my $permissions = _get_user_tag_set_permissions( $c->stash->{ api_auth }, $tag_set, $c->dbis );
 
-    #say STDERR Dumper( $permissions );
+    #TRACE Dumper( $permissions );
 
     die "user does not have apply tag set tags permissions" unless defined( $permissions ) && $permissions->{ apply_tags };
 }
@@ -390,7 +389,7 @@ sub _die_unless_user_can_create_tag_set_tags
 
     my $permissions = _get_user_tag_set_permissions( $c->stash->{ api_auth }, $tag_set, $c->dbis );
 
-    #say STDERR Dumper( $permissions );
+    #TRACE Dumper( $permissions );
 
     die "user does not have create tag permissions for tag set"
       unless defined( $permissions ) && $permissions->{ create_tags };
@@ -404,7 +403,7 @@ sub die_unless_user_can_edit_tag_set_descriptors
 
     my $permissions = _get_user_tag_set_permissions( $c->stash->{ api_auth }, $tag_set, $c->dbis );
 
-    #say STDERR Dumper( $permissions );
+    #TRACE Dumper( $permissions );
 
     die "User " . $c->stash->{ api_auth }->{ email } .
       " doesn't have permission to edit tag set descriptors for tag set id " . $tag_set->{ tag_sets_id }
@@ -419,7 +418,7 @@ sub die_unless_user_can_edit_tag_set_tag_descriptors
 
     my $permissions = _get_user_tag_set_permissions( $c->stash->{ api_auth }, $tag_set, $c->dbis );
 
-    #say STDERR Dumper( $permissions );
+    #TRACE Dumper( $permissions );
 
     die "User " . $c->stash->{ api_auth }->{ email } .
       " doesn't have permission to edit tag descriptors in tag set id " . $tag_set->{ tag_sets_id }
@@ -432,16 +431,16 @@ sub _get_tags_id
 
     if ( $tag_string =~ /^\d+/ )
     {
-        # say STDERR "returning int: $tag_string";
+        # TRACE "returning int: $tag_string";
         return $tag_string;
     }
     elsif ( $tag_string =~ /^.+:.+$/ )
     {
-        # say STDERR "processing tag_sets:tag_name";
+        # TRACE "processing tag_sets:tag_name";
 
         my ( $tag_set_name, $tag_name ) = split ':', $tag_string;
 
-        #say STDERR Dumper( $c->stash );
+        #TRACE Dumper( $c->stash );
         my $user_email = $c->stash->{ api_auth }->{ email };
 
         my $tag_sets = $c->dbis->query( "SELECT * from tag_sets where name = ?", $tag_set_name )->hashes;
@@ -458,8 +457,8 @@ sub _get_tags_id
 
         die "invalid tag set " unless scalar( @$tag_sets ) > 0;
 
-        # say STDERR "tag_sets";
-        # say STDERR Dumper( $tag_sets );
+        # TRACE "tag_sets";
+        # TRACE Dumper( $tag_sets );
 
         my $tag_set     = $tag_sets->[ 0 ];
         my $tag_sets_id = $tag_set->{ tag_sets_id };
@@ -469,7 +468,7 @@ sub _get_tags_id
         my $tags =
           $c->dbis->query( "SELECT * from tags where tag_sets_id = ? and tag = ? ", $tag_sets_id, $tag_name )->hashes;
 
-        # say STDERR Dumper( $tags );
+        # TRACE Dumper( $tags );
 
         my $tag;
 
@@ -552,7 +551,7 @@ sub _add_tags
 
     foreach my $story_tag ( @$story_tags )
     {
-        # say STDERR "story_tag $story_tag";
+        # TRACE "story_tag $story_tag";
 
         my ( $id, $tag ) = split ',', $story_tag;
 
@@ -564,7 +563,7 @@ sub _add_tags
 
         $self->_die_unless_user_can_apply_tag_set_tags( $c, $tag_set );
 
-        # say STDERR "$id, $tags_id";
+        # TRACE "$id, $tags_id";
 
         my $disable_triggers_query = <<END;
 UPDATE $table_name set disable_triggers = \$1
@@ -585,7 +584,7 @@ INSERT INTO $tags_map_table ( $table_id_name, tags_id)
         )
 END
 
-        # say STDERR $query;
+        # TRACE $query;
 
         $c->dbis->query( $query, $id, $tags_id );
 

@@ -44,7 +44,7 @@ sub main
 {
     if ( too_many_stories() )
     {
-        say "Refusing to drop database with at least $MAX_STORIES stories";
+        INFO "Refusing to drop database with at least $MAX_STORIES stories";
         return 1;
     }
 
@@ -73,17 +73,11 @@ EOF
 
     if ( $result )
     {
-        say '';
-        say "Warning:";
-        say "Error creating database";
+        ERROR "Unable to create database";
     }
     else
     {
-        say '';
-        say '';
-        say '';
-        say "Database creation successful.";
-        say '';
+        INFO "Database created.";
     }
 }
 

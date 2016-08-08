@@ -16,6 +16,9 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use MediaWords::DB;
 
 sub main
@@ -29,7 +32,7 @@ sub main
     my $n = 1000000;
     for ( my $i = 0 ; $i < $max_ssc_id ; $i += $n )
     {
-        print STDERR "$i ...\n";
+        INFO "$i ...";
         $db->query( <<SQL, $i, $i + $n );
 with ssc as (
     select first_stories_id, first_sentence_number

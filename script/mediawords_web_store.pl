@@ -115,7 +115,7 @@ sub main
         }
         else
         {
-            warn( "Unable to parse line: $line" );
+            WARN "Unable to parse line: $line";
         }
 
     }
@@ -134,7 +134,7 @@ sub main
     $timeout            = $DEFAULT_TIMEOUT            unless ( defined( $timeout ) );
     $per_domain_timeout = $DEFAULT_PER_DOMAIN_TIMEOUT unless ( defined( $per_domain_timeout ) );
 
-    DEBUG( sub { "per_domain_timeout: $per_domain_timeout" } );
+    DEBUG "per_domain_timeout: $per_domain_timeout";
 
     my $pm = new Parallel::ForkManager( $num_parallel );
 
@@ -174,13 +174,13 @@ sub main
             alarm( $timeout );
 
             $i++;
-            INFO( sub { "fetch [$i/$block_size/$total] : $request->{ url }" } );
+            INFO "fetch [$i/$block_size/$total] : $request->{ url }";
 
             my $response = $ua->get( $request->{ url } );
 
             $response = MediaWords::Util::Web::get_meta_refresh_response( $response, $request );
 
-            INFO( sub { "got [$i/$block_size/$total]: $request->{ url }" } );
+            INFO "got [$i/$block_size/$total]: $request->{ url }";
 
             Storable::store( $response, $request->{ file } );
 

@@ -423,8 +423,8 @@ sub update_tag_set_permissions_json : Local
 
     my $tag_set_permissions = $c->req->body_data;
 
-    # say STDERR Dumper( $data );
-    # say STDERR Dumper( $c->req );
+    # TRACE Dumper( $data );
+    # TRACE Dumper( $c->req );
 
     $c->dbis->query(
         "DELETE from auth_users_tag_sets_permissions where auth_users_id = ?",
@@ -433,7 +433,7 @@ sub update_tag_set_permissions_json : Local
 
     foreach my $tag_set_permission ( @{ $tag_set_permissions } )
     {
-        say STDERR Dumper( $tag_set_permission );
+        DEBUG Dumper( $tag_set_permission );
 
         $c->dbis->query(
 "INSERT INTO auth_users_tag_sets_permissions( auth_users_id, tag_sets_id, apply_tags, create_tags, edit_tag_descriptors, edit_tag_set_descriptors) "
@@ -579,7 +579,7 @@ sub usage_json : Local
 
         my $query = $c->request->param( 'query' ) // '';
 
-        say STDERR "query=$query";
+        DEBUG "query=$query";
 
         my $emails = [];
 

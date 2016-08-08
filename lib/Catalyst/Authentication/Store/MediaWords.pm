@@ -38,7 +38,7 @@ sub find_user
     # again too fast
     if ( MediaWords::DBI::Auth::user_is_trying_to_login_too_soon( $c->dbis, $username ) )
     {
-        print STDERR "User '$username' is trying to log in too soon after the last unsuccessful attempt.\n";
+        WARN "User '$username' is trying to log in too soon after the last unsuccessful attempt.";
         return 0;
     }
 
@@ -61,7 +61,7 @@ sub find_user
     }
     else
     {
-        say STDERR "User '$username' not found or inactive";
+        WARN "User '$username' not found or inactive";
         return 0;
     }
 

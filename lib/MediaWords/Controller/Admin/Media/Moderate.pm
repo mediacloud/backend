@@ -108,7 +108,7 @@ sub media : Local
         my $media_id = $c->request->param( 'media_id' ) + 0;
         unless ( $media_id )
         {
-            say STDERR "media_id is unset.";
+            die "media_id is unset.";
         }
 
         my $media = $db->find_by_id( 'media', $media_id );

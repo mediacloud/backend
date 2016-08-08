@@ -146,7 +146,7 @@ sub _timeout_stale_downloads
 
         $dbs->update_by_id( "downloads", $download->{ downloads_id }, $download );
 
-        DEBUG( sub { "timed out stale download " . $download->{ downloads_id } . "  " . $download->{ url } } );
+        DEBUG "timed out stale download " . $download->{ downloads_id } . "  " . $download->{ url };
     }
 
 }
@@ -251,7 +251,7 @@ sub _queue_download_list_with_per_site_limit
     # hard coding site limit to about the max we can handle per $DEFAULT_PENDING_CHECK_INTERVAL
     $site_limit = 25 * $DEFAULT_PENDING_CHECK_INTERVAL;
 
-    DEBUG( sub { "queue " . scalar( @{ $downloads } ) . " downloads (site limit $site_limit)" } );
+    DEBUG "queue " . scalar( @{ $downloads } ) . " downloads (site limit $site_limit)";
 
     my $queued_downloads = [];
 
@@ -268,7 +268,7 @@ sub _queue_download_list_with_per_site_limit
         $self->{ downloads }->_queue_download( $download );
     }
 
-    DEBUG( sub { "queued " . scalar( @{ $queued_downloads } ) . " downloads" } );
+    DEBUG "queued " . scalar( @{ $queued_downloads } ) . " downloads";
 
     return;
 }
@@ -379,7 +379,7 @@ sub provide_downloads
         }
     }
 
-    DEBUG( sub { "provide downloads: " . scalar( @downloads ) . " downloads" } );
+    DEBUG "provide downloads: " . scalar( @downloads ) . " downloads";
 
     if ( !@downloads )
     {

@@ -1,10 +1,11 @@
 package MediaWords::Controller::Search;
 
+use strict;
+use warnings;
+
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use strict;
-use warnings;
 use base 'Catalyst::Controller';
 
 use MediaWords::TM::Mine;
@@ -220,7 +221,7 @@ sub _return_recognized_query_error
     }
     elsif ( $error =~ /throttled/i )
     {
-        warn( $error );
+        WARN $error;
         $c->stash->{ status_msg } = <<END;
 You have exceeded your quota of requests or stories.  See your profile page at https://core.mediacloud.org/admin/profile
 for your current usage and limits.  Contact info\@mediacloud.org with quota questions.
@@ -228,7 +229,7 @@ END
     }
     else
     {
-        warn( $@ );
+        WARN $@;
         $c->stash->{ status_msg } = 'Unknown error.  Please report to info@mediacloud.org.';
     }
 
@@ -320,7 +321,7 @@ select ids.id stories_id, coalesce( click_count::text, 'NA' ) bitly_clicks
         left join bitly_clicks_total b on ( ids.id = b.stories_id )
 SQL
 
-    TRACE( sub { "bitly_clicks: " . Dumper( $bitly_clicks ) } );
+    TRACE "bitly_clicks: " . Dumper( $bitly_clicks );
 
     MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $bitly_clicks );
 

@@ -1,7 +1,10 @@
 use strict;
 use warnings;
-
 use utf8;
+
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Test::NoWarnings;
 use Test::Deep;
 use Test::More tests => 132;
@@ -720,7 +723,7 @@ sub test_url_and_data_after_redirects_cookies()
                 if ( $received_cookie and $received_cookie eq $COOKIE_VALUE )
                 {
 
-                    # say STDERR "Cookie was set previously, showing page";
+                    TRACE "Cookie was set previously, showing page";
 
                     print "HTTP/1.0 200 OK\r\n";
                     print "$DEFAULT_HEADER\r\n";
@@ -731,7 +734,7 @@ sub test_url_and_data_after_redirects_cookies()
                 else
                 {
 
-                    # say STDERR "Setting cookie, redirecting to /check_cookie";
+                    TRACE "Setting cookie, redirecting to /check_cookie";
 
                     print "HTTP/1.0 302 Moved Temporarily\r\n";
                     print "$DEFAULT_HEADER\r\n";
@@ -753,7 +756,7 @@ sub test_url_and_data_after_redirects_cookies()
                 if ( $received_cookie and $received_cookie eq $COOKIE_VALUE )
                 {
 
-                    # say STDERR "Cookie was set previously, redirecting back to the initial page";
+                    TRACE "Cookie was set previously, redirecting back to the initial page";
 
                     print "HTTP/1.0 302 Moved Temporarily\r\n";
                     print "$DEFAULT_HEADER\r\n";
@@ -765,7 +768,7 @@ sub test_url_and_data_after_redirects_cookies()
                 else
                 {
 
-                    # say STDERR 'Cookie wasn\'t found, redirecting you to the /no_cookies page...';
+                    TRACE "Cookie wasn't found, redirecting you to the /no_cookies page...";
 
                     print "HTTP/1.0 302 Moved Temporarily\r\n";
                     print "$DEFAULT_HEADER\r\n";

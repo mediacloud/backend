@@ -1,4 +1,8 @@
 package MediaWords::Crawler::Pager;
+
+use strict;
+use warnings;
+
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
@@ -16,8 +20,6 @@ This module parses an html page and returns the first link that looks like a 'ne
 story.  It tries to ignore links that lead to a next comment, a next category, or some other next thing.
 
 =cut
-
-use strict;
 
 use HTML::Entities;
 use URI::Split;
@@ -38,7 +40,7 @@ sub _get_url_base
         return $url;
     }
 
-    #print "url_base: $1\n";
+    TRACE "url_base: $1";
 
     return $1;
 }
@@ -74,13 +76,13 @@ sub _link_is_next_page
 
             $regex_match_count++;
 
-            # say "Slow regex matched. match_count $regex_match_count / $regex_tried_count. text length: " . length( $text );
+            TRACE "Slow regex matched. match_count $regex_match_count / $regex_tried_count. text length: " . length( $text );
 
             if ( $stripped_text !~ /\w/ )
             {
                 $text = $alt;
 
-                #print "alt text: $text\n";
+                TRACE "alt text: $text";
             }
         }
     }
@@ -126,7 +128,7 @@ sub get_next_page_url
         return;
     }
 
-    #print "content: $_[2]\n";
+    TRACE "content: $_[2]";
 
     my $url;
 

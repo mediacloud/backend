@@ -44,7 +44,7 @@ sub run($;$)
 
     my $stories_id = $args->{ stories_id } or die "'stories_id' is not set.";
 
-    say STDERR "Aggregating story stats for story $stories_id...";
+    INFO "Aggregating story stats for story $stories_id...";
 
     my $story = $db->find_by_id( 'stories', $stories_id );
 
@@ -66,7 +66,7 @@ sub run($;$)
     my $agg_stats = MediaWords::Util::Bitly::aggregate_story_stats( $stories_id, $story->{ url }, $stats );
 
     my $total_click_count = $agg_stats->total_click_count();
-    say STDERR "Story's $stories_id total click count: $total_click_count";
+    INFO "Story's $stories_id total click count: $total_click_count";
 
     $db->query(
         <<EOF,
@@ -75,7 +75,7 @@ EOF
         $stories_id, $total_click_count
     );
 
-    # say STDERR "Adding story $stories_id to Solr (re)import queue...";
+    INFO "Adding story $stories_id to Solr (re)import queue...";
     $db->query(
         <<EOF,
         INSERT INTO solr_import_extra_stories (stories_id)
@@ -84,7 +84,7 @@ EOF
         $stories_id
     );
 
-    say STDERR "Done aggregating story stats for story $stories_id.";
+    INFO "Done aggregating story stats for story $stories_id.";
 }
 
 no Moose;    # gets rid of scaffolding

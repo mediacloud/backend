@@ -22,10 +22,11 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Getopt::Long;
-
 use MediaWords::Solr::Dump;
-
 use Data::Dumper;
 
 sub main
@@ -48,7 +49,7 @@ sub main
     {
         if ( $delete_all )
         {
-            print STDERR "deleting all stories ...\n";
+            INFO "deleting all stories ...";
             MediaWords::Solr::Dump::delete_all_sentences( $staging ) || die( "delete all sentences failed." );
         }
         MediaWords::Solr::Dump::import_csv_files( [ @ARGV ], $staging, $jobs );

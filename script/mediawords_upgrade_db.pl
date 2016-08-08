@@ -48,7 +48,7 @@ sub main
 
     GetOptions( 'import' => \$import, 'db_label=s' => \$db_label ) or die "$usage\n";
 
-    DEBUG( sub { $import ? 'Upgrading...' : 'Printing SQL statements for upgrade to STDOUT...' } );
+    DEBUG $import ? 'Upgrading...' : 'Printing SQL statements for upgrade to STDOUT...';
     eval { MediaWords::Pg::Schema::upgrade_db( $db_label, ( !$import ) ); };
     if ( $@ )
     {

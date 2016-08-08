@@ -134,7 +134,7 @@ sub stop($)
 
     unless ( $self->{ daemon } )
     {
-        warn "HTTP server is not started.";
+        WARN "HTTP server is not started.";
         return;
     }
 

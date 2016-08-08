@@ -1,12 +1,15 @@
 package MediaWords::Controller::Root;
-use Modern::Perl "2015";
-use MediaWords::CommonLibs;
 
 use strict;
 use warnings;
+
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use base 'Catalyst::Controller';
-use Data::Dumper;
+
 use MediaWords::Util::Config;
+use Data::Dumper;
 
 #
 # Sets the actions in this controller to be registered with no prefix
@@ -69,8 +72,7 @@ sub end : ActionClass('RenderView')
     {
         $c->stash->{ errors } = [ map { $_ } @{ $c->error } ];
 
-        print STDERR "Handling error:\n";
-        print STDERR Dumper( $c->stash->{ errors } );
+        ERROR "Handling error: " . Dumper( $c->stash->{ errors } );
 
         map { $_ =~ s/at \/.*// } @{ $c->stash->{ errors } };
 

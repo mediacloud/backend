@@ -1,6 +1,4 @@
 package MediaWords::DBI::Stories;
-use Modern::Perl "2015";
-use MediaWords::CommonLibs;
 
 =head1 NAME
 
@@ -18,7 +16,9 @@ This module includes various helper function for dealing with stories.
 use strict;
 use warnings;
 
-use Carp;
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Encode;
 use File::Temp;
 use FileHandle;
@@ -202,7 +202,7 @@ sub get_content_for_first_download($$)
 
     if ( $first_download->{ state } ne 'success' )
     {
-        DEBUG( sub { "First download's state is not 'success' for story " . $story->{ stories_id } } );
+        DEBUG "First download's state is not 'success' for story " . $story->{ stories_id };
         return;
     }
 
@@ -458,7 +458,7 @@ sub _reextract_download
 
     if ( $download->{ url } =~ /jpg|pdf|doc|mp3|mp4$/i )
     {
-        warn "Won't reextract download " .
+        WARN "Won't reextract download " .
           $download->{ downloads_id } . " because the URL doesn't look like it could contain text.";
         return;
     }
@@ -474,7 +474,7 @@ sub _reextract_download
     };
     if ( $@ )
     {
-        warn "extract error processing download $download->{ downloads_id }: $@";
+        WARN "extract error processing download $download->{ downloads_id }: $@";
     }
 }
 
@@ -531,6 +531,10 @@ sub process_extracted_story($$$)
 {
     my ( $db, $story, $extractor_args ) = @_;
 
+    my $stories_id = $story->{ stories_id };
+
+    DEBUG "Processing extracted story $stories_id...";
+
     unless ( $extractor_args->no_vector() )
     {
         MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story, $extractor_args );
@@ -539,8 +543,6 @@ sub process_extracted_story($$$)
     _update_story_disable_triggers( $db, $story );
 
     MediaWords::DBI::Stories::ExtractorVersion::update_extractor_version_tag( $db, $story, $extractor_args );
-
-    my $stories_id = $story->{ stories_id };
 
     my $mark_story_as_processed = 0;
     if ( $extractor_args->skip_corenlp_annotation() )
@@ -723,7 +725,7 @@ sub add_missing_story_sentences
 
     return if ( $ss );
 
-    INFO( sub { "ADD SENTENCES [$story->{ stories_id }]" } );
+    INFO "ADD SENTENCES [$story->{ stories_id }]";
 
     MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story );
 }
@@ -750,12 +752,12 @@ sub get_all_sentences
     my $text = get_text( $db, $story );
     unless ( defined $text )
     {
-        warn "Text for story " . $story->{ stories_id } . " is undefined.";
+        WARN "Text for story " . $story->{ stories_id } . " is undefined.";
         return;
     }
     unless ( length( $text ) )
     {
-        warn "Story " . $story->{ stories_id } . " text is an empty string.";
+        WARN "Story " . $story->{ stories_id } . " text is an empty string.";
         return;
     }
 
@@ -766,7 +768,7 @@ sub get_all_sentences
     }
     unless ( scalar @{ $raw_sentences } )
     {
-        warn "Story " . $story->{ stories_id } . " doesn't have any sentences.";
+        WARN "Story " . $story->{ stories_id } . " doesn't have any sentences.";
         return;
     }
 
@@ -799,7 +801,7 @@ sub mark_as_processed($$)
     };
     if ( $@ )
     {
-        warn "Unable to insert story ID $stories_id into 'processed_stories': $@";
+        WARN "Unable to insert story ID $stories_id into 'processed_stories': $@";
         return 0;
     }
     else
@@ -830,8 +832,8 @@ sub attach_story_data_to_stories
         return;
     }
 
-    TRACE( sub { "stories size: " . scalar( @{ $stories } ) } );
-    TRACE( sub { "story_data size: " . scalar( @{ $story_data } ) } );
+    TRACE "stories size: " . scalar( @{ $stories } );
+    TRACE "story_data size: " . scalar( @{ $story_data } );
 
     my $story_data_lookup = {};
     for my $sd ( @{ $story_data } )
@@ -852,7 +854,7 @@ sub attach_story_data_to_stories
         if ( my $sd = $story_data_lookup->{ $story->{ stories_id } } )
         {
             map { $story->{ $_ } = $sd->{ $_ } } keys( %{ $sd } );
-            TRACE( sub { "story matched: " . Dumper( $story ) } );
+            TRACE "story matched: " . Dumper( $story );
         }
     }
 }
@@ -999,7 +1001,7 @@ sub get_medium_dup_stories_by_title
             {
                 my $dup_title = ( values( %{ $t->{ stories } } ) )[ 0 ]->{ title };
 
-                # warn( "cowardly refusing to mark $num_stories stories as dups [$dup_title]" );
+                TRACE "Cowardly refusing to mark $num_stories stories as dups [$dup_title]";
             }
         }
     }
@@ -1024,7 +1026,7 @@ sub get_medium_dup_stories_by_url
     {
         if ( !$story->{ url } )
         {
-            warn( "no url in story: " . Dumper( $story ) );
+            WARN "No URL in story: " . Dumper( $story );
             next;
         }
 

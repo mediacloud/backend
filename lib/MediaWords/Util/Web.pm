@@ -1,5 +1,8 @@
 package MediaWords::Util::Web;
 
+use strict;
+use warnings;
+
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
@@ -11,8 +14,7 @@ Various functions to make downloading web pages easier and faster, including par
 
 =cut
 
-use strict;
-
+use Carp;
 use Fcntl ':flock';
 use File::Temp;
 use FileHandle;
@@ -23,10 +25,9 @@ use HTTP::Status qw(:constants);
 use Storable;
 use Readonly;
 
-use MediaWords::CommonLibs;
 use MediaWords::Util::Config;
-use MediaWords::Util::SQL;
 use MediaWords::Util::Paths;
+use MediaWords::Util::SQL;
 
 Readonly my $MAX_DOWNLOAD_SIZE => 1024 * 1024;
 Readonly my $TIMEOUT           => 20;
@@ -151,7 +152,7 @@ sub UserAgentDetermined
             my $request = $lwp_args->[ 0 ];
             my $url     = $request->uri;
 
-            TRACE( sub { "user_agent_determined trying $url ..." } );
+            TRACE "user_agent_determined trying $url ...";
         }
     );
     $ua->after_determined_callback(
@@ -259,7 +260,7 @@ sub ParallelGet
 
     if ( !open( CMD, '|-', $cmd ) )
     {
-        warn( "Unable to start $cmd: $!" );
+        WARN "Unable to start $cmd: $!";
         return;
     }
 
@@ -392,7 +393,7 @@ sub get_cached_link_download
         my $response_link_nums = [ map { $_->{ _link_num } } @{ $url_lookup->{ $original_url } } ];
         if ( !@{ $response_link_nums } )
         {
-            warn( "NO LINK_NUM FOUND FOR URL '$original_url' " );
+            WARN "NO LINK_NUM FOUND FOR URL '$original_url' ";
         }
 
         for my $response_link_num ( @{ $response_link_nums } )
@@ -403,14 +404,14 @@ sub get_cached_link_download
             }
             else
             {
-                my $msg = "error retrieving content for $original_url: " . $response->status_line;
-                warn( $msg );
+                my $msg = "Error retrieving content for $original_url: " . $response->status_line;
+                WARN $msg;
                 $_link_downloads_cache->{ $response_link_num } = '';
             }
         }
     }
 
-    warn( "Unable to find cached download for '$link->{ url }'" ) if ( !defined( $_link_downloads_cache->{ $link_num } ) );
+    WARN "Unable to find cached download for '$link->{ url }'" if ( !defined( $_link_downloads_cache->{ $link_num } ) );
 
     my $response = $_link_downloads_cache->{ $link_num };
     return ( ref( $response ) ? $response->decoded_content : ( $response || '' ) );

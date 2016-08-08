@@ -20,9 +20,14 @@ for deduplication and date restriction by this super class.
 
 =cut
 
+use strict;
+use warnings;
+
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Moose::Role;
 
-use Carp;
 use Data::Dumper;
 use Encode;
 use List::MoreUtils;
@@ -230,7 +235,7 @@ sub _prune_dup_stories($$)
     my $pruned_stories = [];
     map { push( @{ $pruned_stories }, $_ ) unless ( $remove_stories_lookup->{ $_->{ guid } } ) } @{ $stories };
 
-    DEBUG( sub { "pruned to " . scalar( @{ $pruned_stories } ) . " / " . scalar( @{ $stories } . " stories" ) } );
+    DEBUG "pruned to " . scalar( @{ $pruned_stories } ) . " / " . scalar( @{ $stories } ) . " stories";
 
     return $pruned_stories;
 }
@@ -317,7 +322,7 @@ SQL
 insert into feeds ( media_id, url, name, feed_status ) values ( ?, ?, ?, 'inactive' ) returning *
 SQL
 
-    DEBUG( sub { "scrape feed: $feed->{ name } [$feed->{ feeds_id }]" } );
+    DEBUG "scrape feed: $feed->{ name } [$feed->{ feeds_id }]";
 
     $self->scrape_feed( $feed );
 
@@ -352,7 +357,7 @@ sub _get_story_content
     }
     else
     {
-        warn( "Unable to fetch content for story '$url'" );
+        WARN "Unable to fetch content for story '$url'";
         return '';
     }
 
@@ -386,7 +391,7 @@ sub _add_story_download
 
         eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download ); };
 
-        warn "extract error processing download $download->{ downloads_id }: $@" if ( $@ );
+        WARN "extract error processing download $download->{ downloads_id }: $@" if ( $@ );
     }
     else
     {
@@ -450,7 +455,7 @@ sub _add_new_stories
             }
             else
             {
-                carp( $@ . " - " . Dumper( $story ) );
+                LOGCARP( $@ . " - " . Dumper( $story ) );
             }
 
             $self->db->rollback;

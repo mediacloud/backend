@@ -12,7 +12,6 @@ use strict;
 use warnings;
 
 use IPC::Run3;
-use Carp qw/ confess /;
 use File::Slurp;
 use FindBin;
 
@@ -212,12 +211,12 @@ sub load_sql_file
 
         chomp( $line );
 
-        # say "Got line: '$line'";
+        TRACE "Got line: '$line'";
 
         # Die on unexpected SQL (e.g. DROP TABLE)
         unless ( postgresql_response_line_is_expected( $line ) )
         {
-            confess "Unexpected PostgreSQL response line: '$line'";
+            LOGCONFESS "Unexpected PostgreSQL response line: '$line'";
         }
 
         return "$line\n";
@@ -239,7 +238,7 @@ sub load_sql_file
 
     # stdout and stderr go to this script's channels. password is passed on stdin
     # so it doesn't appear in the process table
-    # say STDERR "loadsql: $script_dir/loadsql.$db_type.sh";
+    # INFO "loadsql: $script_dir/loadsql.$db_type.sh";
     run3( [ "$script_dir/loadsql.$db_type.sh", $sql_file, $host, $database, $username, $port ],
         \$password, \&parse_line, \&parse_line );
 
@@ -285,7 +284,7 @@ sub upgrade_db($;$)
 
     my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
 
-    DEBUG( sub { "script_dir: $script_dir" } );
+    DEBUG "script_dir: $script_dir";
     my $db;
     {
 
@@ -307,7 +306,7 @@ EOF
         LOGDIE "Invalid current schema version.";
     }
 
-    INFO( sub { "Current schema version: $current_schema_version" } );
+    INFO "Current schema version: $current_schema_version";
 
     # Target schema version
     open SQLFILE, "$script_dir/mediawords.sql" or LOGDIE $!;
@@ -319,11 +318,11 @@ EOF
         LOGDIE( "Invalid target schema version." );
     }
 
-    INFO( sub { "Target schema version: $target_schema_version" } );
+    INFO "Target schema version: $target_schema_version";
 
     if ( $current_schema_version == $target_schema_version )
     {
-        INFO( sub { "Schema is up-to-date, nothing to upgrade." } );
+        INFO "Schema is up-to-date, nothing to upgrade.";
         return;
     }
     if ( $current_schema_version > $target_schema_version )
