@@ -9,7 +9,6 @@ use MediaWords::CommonLibs;
 use Moose;
 
 use Data::Dumper;
-use Carp qw/cluck/;
 
 my $child_pids = [];
 
@@ -73,7 +72,7 @@ sub fatal_error($)
 {
     my $error_message = shift;
 
-    cluck $error_message;
+    LOGCLUCK $error_message;
     exit 1;
 }
 

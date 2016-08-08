@@ -16,7 +16,6 @@ use HTTP::Request;
 use HTTP::Status qw(:constants);
 use Encode;
 use URI;
-use Carp qw/cluck/;
 use Scalar::Defer;
 use Readonly;
 use Data::Dumper;
