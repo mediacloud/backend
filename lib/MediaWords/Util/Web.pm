@@ -13,7 +13,9 @@ Various functions to make downloading web pages easier and faster, including par
 
 use strict;
 
+use Fcntl ':flock';
 use File::Temp;
+use FileHandle;
 use FindBin;
 use LWP::UserAgent;
 use LWP::UserAgent::Determined;
@@ -21,8 +23,10 @@ use HTTP::Status qw(:constants);
 use Storable;
 use Readonly;
 
-use MediaWords::Util::Paths;
+use MediaWords::CommonLibs;
 use MediaWords::Util::Config;
+use MediaWords::Util::SQL;
+use MediaWords::Util::Paths;
 
 Readonly my $MAX_DOWNLOAD_SIZE => 1024 * 1024;
 Readonly my $TIMEOUT           => 20;
@@ -56,6 +60,35 @@ my $_link_downloads_cache;
 
 =cut
 
+sub _lwp_request_callback($)
+{
+    my ( $request, $ua, $h ) = @_;
+
+    my $config = MediaWords::Util::Config::get_config;
+
+    my $blacklist_url_pattern = $config->{ mediawords }->{ blacklist_url_pattern };
+
+    my $url = $request->uri->as_string;
+
+    my $logfile = "$config->{ mediawords }->{ data_dir }/logs/http_request.log";
+
+    my $fh = FileHandle->new;
+
+    $fh->open( ">$logfile" ) || die( "Unable to open file '$logfile': $!" );
+
+    flock( $fh, LOCK_EX );
+
+    $fh->print( MediaWords::Util::SQL::sql_now . " $url\n" );
+
+    if ( $blacklist_url_pattern && ( $url =~ $blacklist_url_pattern ) )
+    {
+        $request->uri( "http://blacklistedsite.localhost/$url" );
+        $fh->print( "invalidating blacklist url.  stack: " . Carp::longmess . "\n" );
+    }
+
+    $fh->close;
+}
+
 # set default Media Cloud properties for LWP::UserAgent objects
 sub _set_lwp_useragent_properties($)
 {
@@ -72,6 +105,8 @@ sub _set_lwp_useragent_properties($)
     $ua->env_proxy;
     $ua->cookie_jar( {} );    # temporary cookie jar for an object
     $ua->default_header( 'Accept-Charset' => 'utf-8' );
+
+    $ua->add_handler( request_prepare => \&_lwp_request_callback );
 
     return $ua;
 }
