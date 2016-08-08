@@ -314,7 +314,7 @@ CREATE FUNCTION bitly_clicks_total_partition_by_stories_id_insert_trigger() RETU
     LANGUAGE plpgsql
     AS $_$
 DECLARE
-    target_table_name TEXT;       -- partition table name (e.g. "bitly_clicks_total_000001")
+    target_table_name TEXT;
 BEGIN
     SELECT bitly_get_partition_name( NEW.stories_id, 'bitly_clicks_total' ) INTO target_table_name;
     EXECUTE 'INSERT INTO ' || target_table_name || ' SELECT $1.*;' USING NEW;
@@ -1049,7 +1049,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4573;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4575;
 
 BEGIN
 
@@ -2311,6 +2311,28 @@ CREATE TABLE topics (
 
 
 --
+-- Name: controversies; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW controversies AS
+ SELECT topics.topics_id AS controversies_id,
+    topics.topics_id,
+    topics.name,
+    topics.pattern,
+    topics.solr_seed_query,
+    topics.solr_seed_query_run,
+    topics.description,
+    topics.topic_tag_sets_id,
+    topics.media_type_tag_sets_id,
+    topics.max_iterations,
+    topics.has_been_spidered,
+    topics.has_been_dumped,
+    topics.state,
+    topics.error_message
+   FROM topics;
+
+
+--
 -- Name: controversies_controversies_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -2415,6 +2437,31 @@ CREATE TABLE timespans (
 
 
 --
+-- Name: controversy_dump_time_slices; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW controversy_dump_time_slices AS
+ SELECT timespans.timespans_id AS controversy_dump_time_slices_id,
+    timespans.snapshots_id AS controversy_dumps_id,
+    timespans.foci_id AS controversy_query_slices_id,
+    timespans.timespans_id,
+    timespans.snapshots_id,
+    timespans.start_date,
+    timespans.end_date,
+    timespans.period,
+    timespans.model_r2_mean,
+    timespans.model_r2_stddev,
+    timespans.model_num_media,
+    timespans.story_count,
+    timespans.story_link_count,
+    timespans.medium_count,
+    timespans.medium_link_count,
+    timespans.tags_id,
+    timespans.foci_id
+   FROM timespans;
+
+
+--
 -- Name: controversy_dump_time_slices_controversy_dump_time_slices_i_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -2447,6 +2494,25 @@ CREATE TABLE snapshots (
     state text DEFAULT 'queued'::text NOT NULL,
     error_message text
 );
+
+
+--
+-- Name: controversy_dumps; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW controversy_dumps AS
+ SELECT snapshots.snapshots_id AS controversy_dumps_id,
+    snapshots.topics_id AS controversies_id,
+    snapshots.snapshot_date AS dump_date,
+    snapshots.snapshots_id,
+    snapshots.topics_id,
+    snapshots.snapshot_date,
+    snapshots.start_date,
+    snapshots.end_date,
+    snapshots.note,
+    snapshots.state,
+    snapshots.error_message
+   FROM snapshots;
 
 
 --
@@ -5350,7 +5416,7 @@ SELECT pg_catalog.setval('corenlp_annotations_corenlp_annotations_id_seq', 1, fa
 --
 
 COPY database_variables (database_variables_id, name, value) FROM stdin;
-117	database-schema-version	4573
+119	database-schema-version	4575
 \.
 
 
@@ -5358,7 +5424,7 @@ COPY database_variables (database_variables_id, name, value) FROM stdin;
 -- Name: database_variables_database_variables_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('database_variables_database_variables_id_seq', 117, true);
+SELECT pg_catalog.setval('database_variables_database_variables_id_seq', 119, true);
 
 
 --
@@ -9232,6 +9298,13 @@ CREATE TRIGGER auth_user_requests_update_daily_counts AFTER INSERT ON auth_user_
 --
 
 CREATE TRIGGER auth_users_set_default_limits AFTER INSERT ON auth_users FOR EACH ROW EXECUTE PROCEDURE auth_users_set_default_limits();
+
+
+--
+-- Name: bitly_clicks_total_partition_by_stories_id_insert_trigger; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER bitly_clicks_total_partition_by_stories_id_insert_trigger BEFORE INSERT ON bitly_clicks_total FOR EACH ROW EXECUTE PROCEDURE bitly_clicks_total_partition_by_stories_id_insert_trigger();
 
 
 --
