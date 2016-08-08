@@ -28,123 +28,127 @@
       - [Query Parameters](#query-parameters-4)   
       - [Output Description](#output-description-2)   
       - [Example](#example-4)   
-- [Stories](#stories)   
-   - [stories/list - DONE](#storieslist-done)   
+   - [topics/single/~topics_id~ - DONE](#topicssingletopics_id-done)   
       - [Query Parameters](#query-parameters-5)   
       - [Output Description](#output-description-3)   
       - [Example](#example-5)   
-   - [stories/count - DONE](#storiescount-done)   
+- [Stories](#stories)   
+   - [stories/list - DONE](#storieslist-done)   
       - [Query Parameters](#query-parameters-6)   
       - [Output Description](#output-description-4)   
       - [Example](#example-6)   
-   - [stories/~stories_id~/edit (PUT) - TODO](#storiesstories_idedit-put-todo)   
+   - [stories/count - DONE](#storiescount-done)   
       - [Query Parameters](#query-parameters-7)   
-      - [Input Description](#input-description-2)   
       - [Output Description](#output-description-5)   
       - [Example](#example-7)   
-   - [stories/~stories_id~/remove (PUT) - TODO](#storiesstories_idremove-put-todo)   
+   - [stories/~stories_id~/edit (PUT) - TODO](#storiesstories_idedit-put-todo)   
       - [Query Parameters](#query-parameters-8)   
+      - [Input Description](#input-description-2)   
       - [Output Description](#output-description-6)   
       - [Example](#example-8)   
-   - [stories/merge (PUT) - TODO](#storiesmerge-put-todo)   
+   - [stories/~stories_id~/remove (PUT) - TODO](#storiesstories_idremove-put-todo)   
       - [Query Parameters](#query-parameters-9)   
-      - [Input Description](#input-description-3)   
       - [Output Description](#output-description-7)   
       - [Example](#example-9)   
+   - [stories/merge (PUT) - TODO](#storiesmerge-put-todo)   
+      - [Query Parameters](#query-parameters-10)   
+      - [Input Description](#input-description-3)   
+      - [Output Description](#output-description-8)   
+      - [Example](#example-10)   
 - [Sentences](#sentences)   
    - [sentences/count - DONE](#sentencescount-done)   
 - [Media](#media)   
    - [media/list - DONE](#medialist-done)   
-      - [Query Parameters](#query-parameters-10)   
-      - [Output Description](#output-description-8)   
-      - [Example](#example-10)   
-   - [media/~media_id~/edit (PUT) - TODO](#mediamedia_idedit-put-todo)   
       - [Query Parameters](#query-parameters-11)   
-      - [Input Description](#input-description-4)   
-      - [Example](#example-11)   
-   - [media/~media_id~/remove (PUT) - TODO](#mediamedia_idremove-put-todo)   
-      - [Query Parameters](#query-parameters-12)   
       - [Output Description](#output-description-9)   
+      - [Example](#example-11)   
+   - [media/~media_id~/edit (PUT) - TODO](#mediamedia_idedit-put-todo)   
+      - [Query Parameters](#query-parameters-12)   
+      - [Input Description](#input-description-4)   
       - [Example](#example-12)   
-   - [media/merge (PUT) - TODO](#mediamerge-put-todo)   
+   - [media/~media_id~/remove (PUT) - TODO](#mediamedia_idremove-put-todo)   
       - [Query Parameters](#query-parameters-13)   
-      - [Input Description](#input-description-5)   
       - [Output Description](#output-description-10)   
       - [Example](#example-13)   
+   - [media/merge (PUT) - TODO](#mediamerge-put-todo)   
+      - [Query Parameters](#query-parameters-14)   
+      - [Input Description](#input-description-5)   
+      - [Output Description](#output-description-11)   
+      - [Example](#example-14)   
 - [Word Counts](#word-counts)   
    - [wc/list - DONE](#wclist-done)   
 - [Foci](#foci)   
    - [Focal Techniques](#focal-techniques)   
       - [Focal Technique: Boolean Query](#focal-technique-boolean-query)   
    - [focal_set_definitions/create (POST) - DONE](#focal_set_definitionscreate-post-done)   
-      - [Query Parameters](#query-parameters-14)   
-      - [Input Description](#input-description-6)   
-      - [Example](#example-14)   
-   - [focal_set_definitions/~focal_set_definitions_id~/update (PUT) - DONE](#focal_set_definitionsfocal_set_definitions_idupdate-put-done)   
       - [Query Parameters](#query-parameters-15)   
-      - [Input Parameters](#input-parameters)   
+      - [Input Description](#input-description-6)   
       - [Example](#example-15)   
-   - [focal_set_definitions/~focal_set_definitions_id~/delete (PUT) - DONE](#focal_set_definitionsfocal_set_definitions_iddelete-put-done)   
+   - [focal_set_definitions/~focal_set_definitions_id~/update (PUT) - DONE](#focal_set_definitionsfocal_set_definitions_idupdate-put-done)   
       - [Query Parameters](#query-parameters-16)   
-      - [Output Description](#output-description-11)   
+      - [Input Parameters](#input-parameters)   
       - [Example](#example-16)   
-   - [focal_set_definitions/list - DONE](#focal_set_definitionslist-done)   
+   - [focal_set_definitions/~focal_set_definitions_id~/delete (PUT) - DONE](#focal_set_definitionsfocal_set_definitions_iddelete-put-done)   
       - [Query Parameters](#query-parameters-17)   
       - [Output Description](#output-description-12)   
       - [Example](#example-17)   
-   - [focal_sets/list - DONE](#focal_setslist-done)   
+   - [focal_set_definitions/list - DONE](#focal_set_definitionslist-done)   
       - [Query Parameters](#query-parameters-18)   
       - [Output Description](#output-description-13)   
       - [Example](#example-18)   
-   - [focus_definitions/create (POST) - DONE](#focus_definitionscreate-post-done)   
+   - [focal_sets/list - DONE](#focal_setslist-done)   
       - [Query Parameters](#query-parameters-19)   
-      - [Input Description](#input-description-7)   
-      - [Example](#example-19)   
-   - [focus_definitions/~focus_definitions_id~/update (PUT) - DONE](#focus_definitionsfocus_definitions_idupdate-put-done)   
-      - [Query Parameters](#query-parameters-20)   
-      - [Input Description](#input-description-8)   
-      - [Example](#example-20)   
-   - [focus_definitions/~focus_definitions_id~/delete (PUT) - DONE](#focus_definitionsfocus_definitions_iddelete-put-done)   
-      - [Query Parameters](#query-parameters-21)   
       - [Output Description](#output-description-14)   
+      - [Example](#example-19)   
+   - [focus_definitions/create (POST) - DONE](#focus_definitionscreate-post-done)   
+      - [Query Parameters](#query-parameters-20)   
+      - [Input Description](#input-description-7)   
+      - [Example](#example-20)   
+   - [focus_definitions/~focus_definitions_id~/update (PUT) - DONE](#focus_definitionsfocus_definitions_idupdate-put-done)   
+      - [Query Parameters](#query-parameters-21)   
+      - [Input Description](#input-description-8)   
       - [Example](#example-21)   
-   - [focus_definitions/list - DONE](#focus_definitionslist-done)   
+   - [focus_definitions/~focus_definitions_id~/delete (PUT) - DONE](#focus_definitionsfocus_definitions_iddelete-put-done)   
       - [Query Parameters](#query-parameters-22)   
       - [Output Description](#output-description-15)   
       - [Example](#example-22)   
-   - [foci/list - DONE](#focilist-done)   
+   - [focus_definitions/list - DONE](#focus_definitionslist-done)   
       - [Query Parameters](#query-parameters-23)   
-      - [Ouput Description](#ouput-description)   
+      - [Output Description](#output-description-16)   
       - [Example](#example-23)   
+   - [foci/list - DONE](#focilist-done)   
+      - [Query Parameters](#query-parameters-24)   
+      - [Ouput Description](#ouput-description)   
+      - [Example](#example-24)   
 - [Snapshots](#snapshots)   
    - [snapshots/generate (POST) - DONE](#snapshotsgenerate-post-done)   
-      - [Query Parameters](#query-parameters-24)   
+      - [Query Parameters](#query-parameters-25)   
       - [Input Description](#input-description-9)   
-      - [Output Description](#output-description-16)   
-      - [Example](#example-24)   
-      - [snapshots/list - DONE](#snapshotslist-done)   
-      - [Query Paramaters](#query-paramaters)   
       - [Output Description](#output-description-17)   
       - [Example](#example-25)   
-   - [snapshots/~snapshots_id~/edit (PUT) - TODO](#snapshotssnapshots_idedit-put-todo)   
-      - [Query Parameters](#query-parameters-25)   
-      - [Input Description](#input-description-10)   
+      - [snapshots/list - DONE](#snapshotslist-done)   
+      - [Query Paramaters](#query-paramaters)   
       - [Output Description](#output-description-18)   
       - [Example](#example-26)   
-- [Timespans](#timespans)   
-   - [timespans/list - DONE](#timespanslist-done)   
+   - [snapshots/~snapshots_id~/edit (PUT) - TODO](#snapshotssnapshots_idedit-put-todo)   
       - [Query Parameters](#query-parameters-26)   
+      - [Input Description](#input-description-10)   
       - [Output Description](#output-description-19)   
       - [Example](#example-27)   
-   - [timespans/add_dates (PUT) - TODO](#timespansadd_dates-put-todo)   
+- [Timespans](#timespans)   
+   - [timespans/list - DONE](#timespanslist-done)   
       - [Query Parameters](#query-parameters-27)   
-      - [Input Description](#input-description-11)   
       - [Output Description](#output-description-20)   
       - [Example](#example-28)   
-   - [timespans/list_dates - TODO](#timespanslist_dates-todo)   
+   - [timespans/add_dates (PUT) - TODO](#timespansadd_dates-put-todo)   
       - [Query Parameters](#query-parameters-28)   
+      - [Input Description](#input-description-11)   
       - [Output Description](#output-description-21)   
       - [Example](#example-29)   
+   - [timespans/list_dates - TODO](#timespanslist_dates-todo)   
+      - [Query Parameters](#query-parameters-29)   
+      - [Output Description](#output-description-22)   
+      - [Example](#example-30)   
 - [TODO](#todo)   
 
 <!-- /MDTOC -->
@@ -556,6 +560,49 @@ Response:
 <!-- RB - what about topics/single?  I need that.  it is currently implemented as topics/single, but I'd like the spider status added to those results -->
 <!-- HR -  I really hate having multiple end points that do the same thing.  is it really that much easier to call topics/single/123 rather than topics/list?topics_id=123 ? -->
 
+## topics/single/~topics_id~ - DONE
+
+`https://api.mediacloud.org/api/v2/topics/single/~topics_id~`
+
+The topics/single call returns a single topic.
+
+### Query Parameters
+
+(no parameters)
+
+### Output Description
+
+(see topics/list)
+
+### Example
+
+Fetch a single topic:
+
+`https://api.mediacloud.org/api/v2/topics/single/672`
+
+Response:
+
+```json
+{
+    "topics":
+    [
+        {
+            "topics_id": 672,
+            "name": "network neutrality",
+            "patern": "[[:<:]]net.*neutrality",
+            "solr_seed_query": "net* and neutrality and +tags_id_media:(8875456 8875460 8875107 8875110 8875109 8875111 8875108 8875028 8875027 8875114 8875113 8875115 8875029 129 2453107 8875031 8875033 8875034 8875471 8876474 8876987 8877928 8878292 8878293 8878294 8878332) AND +publish_date:[2013-12-01T00:00:00Z TO 2015-04-24T00:00:00Z]",
+            "solr_seed_query_run": 1,
+            "description": "network neutrality",
+            "max_iterations": 15,
+            "start_date": "2013-12-01",
+            "end_date": "2015-04-24",
+            "state": "ready",
+            "error_message": ""
+        }
+    ]
+}
+```
+
 # Stories
 
 ## stories/list - DONE
@@ -670,7 +717,7 @@ Standard parameters accepted : snapshots_id, foci_id, timespans_id, limit.
 
 Return the number of stories that mention 'immigration' in the 'US Election' topic:
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories_count?q=immigration`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/count?q=immigration`
 
 Response:
 
@@ -1279,7 +1326,7 @@ Response:
 
 ## focus_definitions/create (POST) - DONE
 
-`https://api.mediacloud.org/api/topics/~topics_id~/focal_sets/create`
+`https://api.mediacloud.org/api/topics/~topics_id~/focus_definitions/create`
 
 Create and return a new *focus definition*  within the given *topic* and *focal set definition*.
 
@@ -1302,7 +1349,7 @@ The input for the *focus definition* depends on the focal technique of the paren
 
 Create the 'Clinton' *focus definition* within the 'Candidates' *focal set definition* and the 'U.S. 2016 Election' *topic*:
 
-`https://api.mediacloud.org/api/v2/topics/1344/focus_definitions/789/create`
+`https://api.mediacloud.org/api/v2/topics/1344/focus_definitions/create`
 
 Input:
 
@@ -1310,7 +1357,8 @@ Input:
 {
     "name": "Clinton",
     "description": "stories that mention Hillary Clinton",
-    "query": "clinton"
+    "query": "clinton",
+    "focal_set_definitions_id": 789
 }
 ```
 

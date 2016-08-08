@@ -445,7 +445,7 @@ select distinct s.stories_id, s.title, s.url,
                 join tags t on ( stm.tags_id = t.tags_id  and t.tag = 'undateable' )
                 join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id and ts.name = 'date_invalid' ) )
             on ( stm.stories_id = s.stories_id )
-	order by slc.inlink_count
+	order by slc.inlink_count desc
 END
 
     return $csv;

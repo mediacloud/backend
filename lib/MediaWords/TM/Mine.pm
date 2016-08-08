@@ -734,7 +734,7 @@ sub get_dup_medium
 {
     my ( $db, $media_id, $allow_foreign_rss_links, $count ) = @_;
 
-    croak( "loop detected" ) if ( $count && ( $count > 10 ) );
+    croak( "loop detected in duplicate media graph" ) if ( $count && ( $count > 10 ) );
 
     return undef unless ( $media_id );
 
