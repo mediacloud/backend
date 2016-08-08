@@ -531,6 +531,10 @@ sub process_extracted_story($$$)
 {
     my ( $db, $story, $extractor_args ) = @_;
 
+    my $stories_id = $story->{ stories_id };
+
+    DEBUG "Processing extracted story $stories_id...";
+
     unless ( $extractor_args->no_vector() )
     {
         MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story, $extractor_args );
@@ -539,8 +543,6 @@ sub process_extracted_story($$$)
     _update_story_disable_triggers( $db, $story );
 
     MediaWords::DBI::Stories::ExtractorVersion::update_extractor_version_tag( $db, $story, $extractor_args );
-
-    my $stories_id = $story->{ stories_id };
 
     my $mark_story_as_processed = 0;
     if ( $extractor_args->skip_corenlp_annotation() )

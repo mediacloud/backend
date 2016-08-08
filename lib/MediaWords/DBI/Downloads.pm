@@ -570,8 +570,11 @@ sub extract_and_create_download_text($$$)
 {
     my ( $db, $download, $extractor_args ) = @_;
 
-    my $extract = extract( $db, $download, $extractor_args );
+    my $downloads_id = $download->{ downloads_id };
 
+    DEBUG "Extracting download $downloads_id...";
+
+    my $extract = extract( $db, $download, $extractor_args );
     my $download_text = MediaWords::DBI::DownloadTexts::create( $db, $download, $extract );
 
     return $download_text;
