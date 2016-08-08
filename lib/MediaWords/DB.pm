@@ -194,7 +194,7 @@ sub run_block_with_large_work_mem( &$ )
         LOGCONFESS "Database handler is undefined or is not a database instance.";
     }
 
-    DBIx::Simple::MediaWords::run_block_with_large_work_mem { $block->() } $db;
+    DBIx::Simple::MediaWords::run_block_with_large_work_mem( sub { $block->() }, $db );
 }
 
 my $_disable_story_triggers = 0;

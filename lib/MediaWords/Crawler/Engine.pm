@@ -371,58 +371,58 @@ sub crawl
 
     DEBUG "starting Crawler::Engine::crawl";
 
-    MediaWords::DB::run_block_with_large_work_mem
-    {
+    MediaWords::DB::run_block_with_large_work_mem(
+        sub {
 
-      MAINLOOP: while ( 1 )
-        {
-            if ( $self->timeout && ( ( time - $start_time ) > $self->timeout ) )
+          MAINLOOP: while ( 1 )
             {
-                TRACE "crawler timed out";
-                last MAINLOOP;
-            }
-
-            for my $s ( $socket_select->can_read() )
-            {
-                my $fetcher_number = $s->getline();
-
-                if ( !defined( $fetcher_number ) )
+                if ( $self->timeout && ( ( time - $start_time ) > $self->timeout ) )
                 {
-                    DEBUG "skipping fetcher for which we couldn't read the fetcher number";
-                    $socket_select->remove( $s );
-                    next;
+                    TRACE "crawler timed out";
+                    last MAINLOOP;
                 }
 
-                chomp( $fetcher_number );
-
-                if ( scalar( @{ $queued_downloads } ) == 0 )
+                for my $s ( $socket_select->can_read() )
                 {
-                    DEBUG "refill queued downloads ...";
-                    $queued_downloads = $provider->provide_downloads();
+                    my $fetcher_number = $s->getline();
 
-                    if ( !@{ $queued_downloads } && $self->test_mode )
+                    if ( !defined( $fetcher_number ) )
                     {
-                        INFO "exiting after 30 second wait because crawler is in test mode and queue is empty";
-                        sleep 30;
-                        INFO "exiting now.\n";
-                        last MAINLOOP;
+                        DEBUG "skipping fetcher for which we couldn't read the fetcher number";
+                        $socket_select->remove( $s );
+                        next;
+                    }
+
+                    chomp( $fetcher_number );
+
+                    if ( scalar( @{ $queued_downloads } ) == 0 )
+                    {
+                        DEBUG "refill queued downloads ...";
+                        $queued_downloads = $provider->provide_downloads();
+
+                        if ( !@{ $queued_downloads } && $self->test_mode )
+                        {
+                            INFO "exiting after 30 second wait because crawler is in test mode and queue is empty";
+                            sleep 30;
+                            INFO "exiting now.";
+                            last MAINLOOP;
+                        }
+                    }
+
+                    if ( my $queued_download = shift( @{ $queued_downloads } ) )
+                    {
+                        $s->printflush( $queued_download->{ downloads_id } . "\n" );
+                    }
+                    else
+                    {
+                        $s->printflush( "none\n" );
+                        last;
                     }
                 }
-
-                if ( my $queued_download = shift( @{ $queued_downloads } ) )
-                {
-                    $s->printflush( $queued_download->{ downloads_id } . "\n" );
-                }
-                else
-                {
-                    $s->printflush( "none\n" );
-                    last;
-                }
             }
-        }
-    }
-
-    $self->dbs;
+        },
+        $self->dbs
+    );
 
     kill( 15, map { $_->{ pid } } @{ $self->{ fetchers } } );
     INFO "waiting 5 seconds for children to exit ...";
