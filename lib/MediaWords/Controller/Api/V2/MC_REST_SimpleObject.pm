@@ -12,7 +12,6 @@ use Moose;
 use namespace::autoclean;
 use List::Compare;
 use Readonly;
-use Carp;
 
 =head1 NAME
 

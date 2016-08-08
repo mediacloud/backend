@@ -14,6 +14,7 @@ Various functions to make downloading web pages easier and faster, including par
 
 =cut
 
+use Carp;
 use Fcntl ':flock';
 use File::Temp;
 use FileHandle;

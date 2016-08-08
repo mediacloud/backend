@@ -6,7 +6,6 @@ use strict;
 use warnings;
 use base 'Catalyst::Controller';
 
-use Carp;
 use Date::Calc;
 use JSON;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);

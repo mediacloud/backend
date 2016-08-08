@@ -17,7 +17,6 @@ use MediaWords::Util::Config;
 use MediaWords::Util::SQL;
 use Readonly;
 use DateTime;
-use Carp;
 
 # Don't fetch data for stories older than this date
 sub _story_timestamp_lower_bound()

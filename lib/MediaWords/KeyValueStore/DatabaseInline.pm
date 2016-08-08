@@ -11,7 +11,6 @@ with 'MediaWords::KeyValueStore';
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
-use Carp;
 
 # Constructor
 sub BUILD($$)

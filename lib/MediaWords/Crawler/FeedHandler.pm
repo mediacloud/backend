@@ -23,7 +23,6 @@ feed content and also avoids the considerable processing time required to check 
 use strict;
 use warnings;
 
-use Carp;
 use Data::Dumper;
 use Date::Parse;
 use DateTime;

@@ -10,7 +10,6 @@ with 'MediaWords::KeyValueStore';
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
-use Carp;
 
 # Stores to try reading from / writing to
 has '_stores_for_reading' => ( is => 'rw' );

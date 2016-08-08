@@ -16,7 +16,6 @@ use MediaWords::CommonLibs;
 # function to set the returned config object to the already generated
 # config object for the app.
 
-use Carp;
 use Config::Any;
 use Dir::Self;
 use Exporter 'import';
@@ -139,7 +138,7 @@ sub set_config
 
     if ( $_config )
     {
-        carp( "config object already cached" );
+        LOGCARP( "config object already cached" );
     }
 
     _set_dynamic_defaults( $config );

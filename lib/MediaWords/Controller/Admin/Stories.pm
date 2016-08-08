@@ -11,7 +11,6 @@ use Readonly;
 use URI;
 use URI::Escape;
 use URI::QueryParam;
-use Carp;
 use Encode;
 
 use MediaWords::DBI::Stories;

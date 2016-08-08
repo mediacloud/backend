@@ -16,7 +16,6 @@ use MediaWords::CommonLibs;
 
 use MediaWords::DB;
 
-use Carp;
 use DBIx::Simple::MediaWords;
 use Getopt::Long;
 use Readonly;

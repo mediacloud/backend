@@ -13,7 +13,6 @@ use MediaWords::CommonLibs;
 
 use MediaWords::Util::Config;
 use CHI;
-use Carp;
 use Readonly;
 
 # Configuration

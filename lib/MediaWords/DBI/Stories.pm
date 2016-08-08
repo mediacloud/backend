@@ -19,7 +19,6 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use Carp;
 use Encode;
 use File::Temp;
 use FileHandle;

@@ -14,7 +14,6 @@ use MediaWords::DB;
 use MediaWords::CommonLibs;
 use MediaWords::Util::Compress;
 use DBD::Pg qw(:pg_types);
-use Carp;
 
 # Configuration
 has '_conf_table' => ( is => 'rw' );

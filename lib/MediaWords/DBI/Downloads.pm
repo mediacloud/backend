@@ -33,7 +33,6 @@ This module also includes extract and related functions to handle download extra
 use strict;
 use warnings;
 
-use Carp;
 use CHI;
 use Scalar::Defer;
 use Readonly;

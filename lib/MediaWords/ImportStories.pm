@@ -28,7 +28,6 @@ use MediaWords::CommonLibs;
 
 use Moose::Role;
 
-use Carp;
 use Data::Dumper;
 use Encode;
 use List::MoreUtils;
@@ -456,7 +455,7 @@ sub _add_new_stories
             }
             else
             {
-                carp( $@ . " - " . Dumper( $story ) );
+                LOGCARP( $@ . " - " . Dumper( $story ) );
             }
 
             $self->db->rollback;

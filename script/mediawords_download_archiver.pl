@@ -17,7 +17,6 @@ use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::DBI::Downloads;
 
-use Carp;
 use Data::Dumper;
 use DBIx::Simple::MediaWords;
 use Encode;

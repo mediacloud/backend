@@ -11,7 +11,6 @@ use MediaWords::CommonLibs;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 
-use Carp;
 use Data::Dumper;
 use Domain::PublicSuffix;
 use Encode;
@@ -508,7 +507,7 @@ sub _recurse_get_valid_feeds_from_index_url($$$$$$)
 {
     my ( $class, $urls, $db, $ignore_patterns, $recurse_urls_to_skip, $recurse_levels_left ) = @_;
 
-    carp '$urls must be a reference ' unless ref( $urls );
+    LOGCARP '$urls must be a reference ' unless ref( $urls );
 
     $#{ $urls } = List::Util::min( $#{ $urls }, $MAX_INDEX_URLS - 1 );
 

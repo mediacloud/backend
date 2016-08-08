@@ -14,7 +14,6 @@ use MediaWords::DB;
 use MediaWords::Util::Config;
 use MediaWords::Util::SchemaVersion;
 
-use Carp;
 use CHI;
 use Data::Dumper;
 use Data::Page;

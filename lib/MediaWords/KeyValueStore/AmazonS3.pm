@@ -16,7 +16,6 @@ use Net::Amazon::S3;
 use Net::Amazon::S3::Client;
 use Net::Amazon::S3::Client::Bucket;
 use POSIX qw(floor);
-use Carp;
 use Readonly;
 
 # Should the Amazon S3 module use secure (SSL-encrypted) connections?

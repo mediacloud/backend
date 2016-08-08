@@ -20,7 +20,6 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use Carp;
 use Data::Dumper;
 use DateTime;
 use Encode;
@@ -805,7 +804,7 @@ sub safely_create_story
     my ( $db, $story ) = @_;
 
     eval { $story = $db->create( 'stories', $story ) };
-    carp( $@ . " - " . Dumper( $story ) ) if ( $@ );
+    LOGCARP( $@ . " - " . Dumper( $story ) ) if ( $@ );
 
     return $story;
 }

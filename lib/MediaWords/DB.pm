@@ -5,7 +5,6 @@ use MediaWords::CommonLibs;
 use strict;
 use warnings;
 
-use Carp;
 use List::Util qw( first );
 
 use DBIx::Simple::MediaWords;
