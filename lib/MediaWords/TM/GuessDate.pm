@@ -6,20 +6,21 @@ package MediaWords::TM::GuessDate;
 use strict;
 use warnings;
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
+use MediaWords::DB;
 use MediaWords::TM::GuessDate::Result;
+use MediaWords::Util::DateTime;
+use MediaWords::Util::SQL;
 
 use DateTime;
 use HTML::TreeBuilder::LibXML;
-use LWP::Simple;
-use Regexp::Common qw(time);
-use List::Util qw(max min);
 use List::MoreUtils qw(any);
-
-use MediaWords::CommonLibs;
-use MediaWords::DB;
-use MediaWords::Util::SQL;
-use MediaWords::Util::DateTime;
+use List::Util qw(max min);
+use LWP::Simple;
 use Readonly;
+use Regexp::Common qw(time);
 
 # threshold of number of days a guess date can be before the source link
 # story date without dropping the guess
@@ -415,7 +416,7 @@ sub _results_from_matching_date_patterns($$)
     {
         my $whole_date = $& || next;
 
-        # say STDERR "Matched string: '$whole_date'";
+        TRACE "Matched string: '$whole_date'";
 
         # Might get overriden later
         my %result = %+;
@@ -471,7 +472,7 @@ sub _results_from_matching_date_patterns($$)
             if ( $time < time() )
             {
 
-                # say STDERR "Adding that one";
+                TRACE "Adding that one";
                 push( @matched_timestamps, $time );
             }
         }
@@ -930,7 +931,7 @@ sub guess_date_impl
     if ( $story_timestamp )
     {
 
-        # print STDERR "SOURCE LINK\n";
+        TRACE "SOURCE LINK";
         $result->{ result }       = $MediaWords::TM::GuessDate::Result::FOUND;
         $result->{ guess_method } = 'source_link';
         $result->{ timestamp }    = $story_timestamp;

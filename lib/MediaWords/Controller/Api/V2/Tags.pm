@@ -122,19 +122,19 @@ sub update_PUT : Local
 
     if ( defined( $tag_name ) )
     {
-        say STDERR "updating tag name to '$tag_name'";
+        DEBUG "updating tag name to '$tag_name'";
         $c->dbis->query( "UPDATE tags set tag = ? where tags_id = ? ", $tag_name, $id );
     }
 
     if ( defined( $label ) )
     {
-        say STDERR "updating label to '$label'";
+        DEBUG "updating label to '$label'";
         $c->dbis->query( "UPDATE tags set label = ? where tags_id = ? ", $label, $id );
     }
 
     if ( defined( $description ) )
     {
-        say STDERR "updating description to '$description'";
+        DEBUG "updating description to '$description'";
         $c->dbis->query( "UPDATE tags set description = ? where tags_id = ? ", $description, $id );
     }
 

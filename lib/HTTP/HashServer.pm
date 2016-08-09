@@ -105,7 +105,7 @@ sub start(;$)
 {
     my ( $self, $sleep ) = @_;
 
-    DEBUG( sub { "Starting server on port $self->{ port }" } );
+    DEBUG "Starting server on port $self->{ port }";
 
     $self->{ pid } = $self->background();
 
@@ -121,7 +121,7 @@ sub stop
 {
     my ( $self ) = @_;
 
-    DEBUG( sub { "Stopping server with PID " . $self->{ pid } . " from PID $$" } );
+    DEBUG "Stopping server with PID " . $self->{ pid } . " from PID $$";
 
     kill( 'KILL', $self->{ pid } );
 }
@@ -136,10 +136,10 @@ sub handler
 
     if ( $@ )
     {
-        WARN( "handler error: $@" );
+        WARN "Handler error: $@";
         if ( substr( $@, 0, length( $DIE_REQUEST_MESSAGE ) ) eq $DIE_REQUEST_MESSAGE )
         {
-            LOGDIE( "handler error: $@" );
+            LOGDIE "Handler error: $@";
         }
     }
 }
@@ -178,7 +178,7 @@ sub request_failed_authentication
 
     if ( !( $client_auth =~ /Basic (.*)$/ ) )
     {
-        WARN( sub { "unable to parse Authorization header: $client_auth" } );
+        WARN "Unable to parse Authorization header: $client_auth";
         print $fail_authentication_page;
         return 1;
     }
@@ -201,7 +201,7 @@ sub handle_request
 {
     my ( $self, $cgi ) = @_;
 
-    TRACE( sub { "received request: " . $cgi->path_info } );
+    TRACE "received request: " . $cgi->path_info;
 
     my $path = $cgi->path_info();
 

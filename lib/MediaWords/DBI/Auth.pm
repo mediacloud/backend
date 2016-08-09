@@ -39,7 +39,7 @@ sub password_hash_is_valid($$)
     my $salt_len = $config->{ 'Plugin::Authentication' }->{ 'users' }->{ 'credential' }->{ 'password_salt_len' };
     if ( !$salt_len )
     {
-        say STDERR "Salt length is 0";
+        WARN "Salt length is 0";
         $salt_len = 0;
     }
 
@@ -65,14 +65,14 @@ sub generate_secure_hash($)
     my $salt_len = $config->{ 'Plugin::Authentication' }->{ 'users' }->{ 'credential' }->{ 'password_salt_len' };
     if ( !$salt_len )
     {
-        say STDERR "Salt length is 0";
+        WARN "Salt length is 0";
         $salt_len = 0;
     }
 
     my $hash_type = $config->{ 'Plugin::Authentication' }->{ 'users' }->{ 'credential' }->{ 'password_hash_type' };
     if ( !$hash_type )
     {
-        say STDERR "Unable to determine the password hashing algorithm";
+        ERROR "Unable to determine the password hashing algorithm";
         return '';
     }
 
@@ -87,7 +87,7 @@ sub generate_secure_hash($)
     }
     if ( !password_hash_is_valid( $secret_hash, $secret ) )
     {
-        say STDERR "Secret hash has been generated, but it does not validate.";
+        ERROR "Secret hash has been generated, but it does not validate.";
         return '';
     }
 
@@ -119,7 +119,7 @@ sub role_id_for_role($$)
 
     if ( !$role )
     {
-        say STDERR "Role is empty.";
+        ERROR "Role is empty.";
         return 0;
     }
 
@@ -357,8 +357,7 @@ sub post_unsuccessful_login($$)
 {
     my ( $db, $email ) = @_;
 
-    say STDERR
-      "Login failed for $email, will delay any successive login attempt for $POST_UNSUCCESSFUL_LOGIN_DELAY seconds.";
+    INFO "Login failed for $email, will delay any successive login attempt for $POST_UNSUCCESSFUL_LOGIN_DELAY seconds.";
 
     # Set the unsuccessful login timestamp
     # (TIMESTAMP 'now' returns "current transaction's start time", so using LOCALTIMESTAMP instead)
@@ -388,7 +387,7 @@ sub validate_password_reset_token($$$)
 
     if ( !( $email && $password_reset_token ) )
     {
-        say STDERR "Email and / or password reset token is empty.";
+        ERROR "Email and / or password reset token is empty.";
         return 0;
     }
 
@@ -406,7 +405,7 @@ EOF
     )->hash;
     if ( !( ref( $password_reset_token_hash ) eq 'HASH' and $password_reset_token_hash->{ auth_users_id } ) )
     {
-        say STDERR 'Unable to find user ' . $email . ' in the database.';
+        ERROR 'Unable to find user ' . $email . ' in the database.';
         return 0;
     }
 
@@ -706,8 +705,7 @@ sub add_user_or_return_error_message($$$$$$$$$;$$)
         $weekly_requests_limit, $weekly_requested_items_limit )
       = @_;
 
-    say STDERR "Creating user with email: $email, full name: $full_name, notes: $notes, role IDs: " .
-      Dumper( $role_ids ) .
+    INFO "Creating user with email: $email, full name: $full_name, notes: $notes, role IDs: " . Dumper( $role_ids ) .
       ", is active: $is_active, non_public_api_access: $non_public_api_access, weekly_requests_limit: " .
       ( defined $weekly_requests_limit ? $weekly_requests_limit : 'default' ) . ', weekly requested items limit: ' .
       ( defined $weekly_requested_items_limit ? $weekly_requested_items_limit : 'default' );
@@ -832,7 +830,7 @@ EOF
         $full_name, $notes, ( $non_public_api_access ? 'true' : 'false' ), ( $is_active ? 'true' : 'false' ), $email
     );
 
-# say STDERR Dumper( [ $full_name, $notes, ( $non_public_api_access ? 'true' : 'false' ), ( $is_active ? 'true' : 'false' ), $email ] );
+# TRACE Dumper( [ $full_name, $notes, ( $non_public_api_access ? 'true' : 'false' ), ( $is_active ? 'true' : 'false' ), $email ] );
 
     if ( $password )
     {
@@ -1057,7 +1055,7 @@ EOF
 
     $password_reset_link =
       $password_reset_link . '?email=' . uri_escape( $email ) . '&token=' . uri_escape( $password_reset_token );
-    say STDERR "Full password reset link: $password_reset_link";
+    INFO "Full password reset link: $password_reset_link";
 
     return $new_user
       ? _send_new_user_email( $email, $password_reset_link )

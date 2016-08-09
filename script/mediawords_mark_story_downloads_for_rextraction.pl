@@ -8,12 +8,13 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Getopt::Long;
 use HTML::Strip;
 use DBIx::Simple::MediaWords;
 use MediaWords::DB;
-use Modern::Perl "2015";
-use MediaWords::CommonLibs;
 
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::DownloadTexts;
@@ -56,7 +57,7 @@ sub main
         open( STORIES_ID_FILE, $file ) || die( "Could not open file: $file" );
         @stories_ids = <STORIES_ID_FILE>;
 
-        #say Dumper ( [ @stories_ids ] );
+        TRACE Dumper( [ @stories_ids ] );
     }
     else
     {
@@ -65,13 +66,13 @@ sub main
 
     @stories_ids = map { chomp( $_ ); $_ } @stories_ids;
 
-    #say Dumper ( [ @stories_ids ] );
+    TRACE Dumper( [ @stories_ids ] );
 
     my $dbs = MediaWords::DB::connect_to_db;
 
     foreach my $stories_id ( @stories_ids )
     {
-        say STDERR "'$stories_id'";
+        INFO "'$stories_id'";
         $dbs->query( "UPDATE downloads SET extracted = 't' where stories_id = ? and type='content'", $stories_id );
     }
 }

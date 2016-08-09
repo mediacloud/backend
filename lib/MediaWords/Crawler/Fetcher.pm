@@ -1,4 +1,8 @@
 package MediaWords::Crawler::Fetcher;
+
+use strict;
+use warnings;
+
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
@@ -28,12 +32,10 @@ MediaWords::Crawler::Handle::handle_response().
 
 =cut
 
-use strict;
-
 use LWP::UserAgent;
+use DBIx::Simple::MediaWords;
 
 use MediaWords::DB;
-use DBIx::Simple::MediaWords;
 use MediaWords::Util::Config;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Web;
@@ -81,7 +83,7 @@ sub _fix_alarabiya_response
     }
     else
     {
-        warn( "Unable to parse cookie from alarabiya: " . $response->content );
+        WARN "Unable to parse cookie from alarabiya: " . $response->content;
         return $response;
     }
 }

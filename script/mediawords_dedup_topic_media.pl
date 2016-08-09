@@ -20,6 +20,9 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Getopt::Long;
 use URI;
 
@@ -36,17 +39,17 @@ sub mark_medium_as_dup
 
     if ( $target_medium->{ dup_media_id } )
     {
-        print( "target medium has dup_media_id set. skipping ...\n" );
+        INFO "target medium has dup_media_id set. skipping ...";
         return;
     }
 
     if ( $target_medium->{ foreign_rss_links } )
     {
-        print( "target medium has foreign_rss_links = true. skipping ...\n" );
+        INFO "target medium has foreign_rss_links = true. skipping ...";
         return;
     }
 
-    print "$source_medium->{ name } -> $target_medium->{ name }\n";
+    INFO "$source_medium->{ name } -> $target_medium->{ name }";
 
     $source_medium->{ dup_media_id } = $target_medium->{ media_id };
     $source_medium->{ hide }         = 1;
@@ -155,20 +158,27 @@ sub prompt_for_dup_media
 
     while ( 1 )
     {
-        print "\nDOMAIN: $domain\n";
+        INFO "DOMAIN: $domain";
         for ( my $i = 0 ; $i < @{ $ordered_media } ; $i++ )
         {
             my $m = $ordered_media->[ $i ];
             if ( !$m->{ hide } )
             {
-                print( <<END );
-$i: $m->{ name } [ id-$m->{ media_id } links-$m->{ inlink_count } $m->{ url } $m->{ foreign_rss_links }$m->{ spidered_label}$m->{ not_dup_label }]
-END
+                INFO "$i:";
+                INFO "\t$m->{ name } [";
+                INFO "\t\tmedia_id: $m->{ media_id }";
+                INFO "\t\tinlink_count: $m->{ inlink_count }";
+                INFO "\t\turl: $m->{ url }";
+                INFO "\t\tforeign_rss_links: $m->{ foreign_rss_links }";
+                INFO "\t\tspidered_label: $m->{ spidered_label }";
+                INFO "\t\tnot_dup_label: $m->{ not_dup_label }";
+                INFO "]";
+
+                END;
             }
         }
-        print "\n";
 
-        print "Action (h for help):\n";
+        INFO "Action (h for help):";
 
         my $line = <STDIN>;
         chomp( $line );
@@ -187,7 +197,7 @@ END
 
         if ( $command->[ 0 ] eq 'h' )
         {
-            print( $help );
+            INFO( $help );
         }
         elsif ( $command->[ 0 ] eq 'n' )
         {
@@ -208,8 +218,8 @@ END
             }
         }
 
-        print( "Invalid command.\n" );
-        print( $help );
+        ERROR "Invalid command.";
+        INFO $help;
     }
 }
 
@@ -323,7 +333,7 @@ END
     my $i = 1;
     while ( my ( $domain, $domain_media ) = each( %{ $media_domain_lookup } ) )
     {
-        print( "\n" . $i++ . "/ $num_domains\n" );
+        INFO $i++ . "/ $num_domains";
 
         # try to auto-dedup via various methods
         mark_dups_of_existing_dup( $db, $domain, $domain_media );

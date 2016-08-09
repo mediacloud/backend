@@ -3,6 +3,7 @@
 # manually download and handle the given feed.   useful for debugging feed handling issues.
 
 use strict;
+use warnings;
 
 BEGIN
 {
@@ -10,8 +11,10 @@ BEGIN
     use lib "$FindBin::Bin/../lib", "$FindBin::Bin";
 }
 
-use Data::Dumper;
 use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
+use Data::Dumper;
 
 use MediaWords::Crawler::Fetcher;
 use MediaWords::Crawler::FeedHandler;
@@ -51,7 +54,7 @@ sub main
 
     die( "Unable to find feed '$feeds_id'" ) unless ( $feed );
 
-    say STDERR "FEED STATE PRE: " . Dumper( $feed );
+    DEBUG "FEED STATE PRE: " . Dumper( $feed );
 
     my $download = create_feed_download( $db, $feed );
 
@@ -74,11 +77,11 @@ select s.*
         d.parent = ?
 SQL
 
-    say STDERR "FEED STATE POST: " . Dumper( $feed );
+    DEBUG "FEED STATE POST: " . Dumper( $feed );
 
-    say STDERR "ADDED " . scalar( @{ $stories } ) . " STORIES:";
+    DEBUG "ADDED " . scalar( @{ $stories } ) . " STORIES:";
 
-    map { say STDERR "$_->{ title } [$_->{ stories_id }]" } @{ $stories };
+    map { DEBUG "$_->{ title } [$_->{ stories_id }]" } @{ $stories };
 }
 
 main();

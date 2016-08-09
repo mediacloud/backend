@@ -12,7 +12,7 @@ use MediaWords::CommonLibs;
     my $results = MediaWords::Solr::query( $db, { q => 'obama' } );
 
     my $sentences = $results->{ response }->{ docs };
-    map { print "found sentence: $_->{ sentence }\n" } @{ $sentencs };
+    map { say "found sentence: $_->{ sentence }" } @{ $sentencs };
 
 =head1 DESCRIPTION
 
@@ -167,7 +167,7 @@ sub _set_last_num_found
         $_last_num_found = undef;
     }
 
-    print STDERR ( $_last_num_found ? $_last_num_found : 'undef' ) . " matches found.\n" if ( $ENV{ MC_SOLR_TRACE } );
+    DEBUG( $_last_num_found ? $_last_num_found : 'undef' ) . " matches found.";
 
 }
 
@@ -243,11 +243,8 @@ sub query_encoded_json($$;$)
     $ua->timeout( 300 );
     $ua->max_size( undef );
 
-    if ( $ENV{ MC_SOLR_TRACE } )
-    {
-        say STDERR "Executing Solr query on $url ...";
-        say STDERR 'Encoded parameters: ' . Dumper( $encoded_params );
-    }
+    TRACE "Executing Solr query on $url ...";
+    TRACE 'Encoded parameters: ' . Dumper( $encoded_params );
 
     my $t0 = [ gettimeofday ];
 
@@ -256,10 +253,7 @@ sub query_encoded_json($$;$)
 
     my $res = $ua->request( $request );
 
-    if ( $ENV{ MC_SOLR_TRACE } )
-    {
-        say STDERR "query returned in " . tv_interval( $t0, [ gettimeofday ] ) . "s.";
-    }
+    TRACE "query returned in " . tv_interval( $t0, [ gettimeofday ] ) . "s.";
 
     unless ( $res->is_success )
     {
@@ -536,7 +530,7 @@ sub search_for_stories_ids ($$)
         $_last_sentences_per_story = 0;
     }
 
-    print STDERR "last_sentences_per_story: $_last_sentences_per_story\n" if ( $ENV{ MC_SOLR_TRACE } );
+    DEBUG "last_sentences_per_story: $_last_sentences_per_story";
 
     return $stories_ids;
 }

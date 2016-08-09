@@ -1,6 +1,9 @@
 use strict;
 use warnings;
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use utf8;
 use Test::NoWarnings;
 use Test::More tests => 292;
@@ -239,7 +242,7 @@ sub test_str2time_21st_century()
         }
         $date_in_2061 =~ s/^\s+|\s+$//g;
 
-        say STDERR "Testing date '$date_in_2061'...";
+        DEBUG "Testing date '$date_in_2061'...";
 
         my $timestamp = MediaWords::Util::DateTime::str2time_21st_century( $date_in_2061 );
         ok( $timestamp, "Date '$date_in_2061' is defined" );

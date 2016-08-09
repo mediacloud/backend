@@ -6,7 +6,6 @@ use strict;
 use warnings;
 use base 'Catalyst::Controller';
 
-use Carp;
 use Date::Calc;
 use JSON;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
@@ -52,7 +51,7 @@ sub get_table_name
 
 sub list : Local : ActionClass('MC_REST')
 {
-    #say STDERR "starting Sentences/list";
+    #TRACE "starting Sentences/list";
 }
 
 # fill stories_ids temporary table with stories_ids from the given sentences
@@ -139,7 +138,7 @@ sub list_GET : Local
 {
     my ( $self, $c ) = @_;
 
-    # say STDERR "starting list_GET";
+    # TRACE "starting list_GET";
 
     my $params = {};
 
@@ -164,7 +163,7 @@ sub list_GET : Local
 
     my $list = MediaWords::Solr::query( $c->dbis, $params, $c );
 
-    #say STDERR "Got List:\n" . Dumper( $list );
+    #TRACE "Got List:\n" . Dumper( $list );
 
     my $sentences = $list->{ response }->{ docs };
 
@@ -243,7 +242,7 @@ sub count_GET : Local
 {
     my ( $self, $c ) = @_;
 
-    # say STDERR "starting list_GET";
+    # TRACE "starting list_GET";
 
     my $params = {};
 
@@ -288,7 +287,7 @@ sub put_tags_PUT : Local
         $story_tags = [ $story_tag ];
     }
 
-    say STDERR Dumper( $story_tags );
+    DEBUG Dumper( $story_tags );
 
     $self->_add_tags( $c, $story_tags );
 

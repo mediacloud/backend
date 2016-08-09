@@ -13,8 +13,8 @@ BEGIN
 }
 
 use Modern::Perl "2015";
-
 use MediaWords::CommonLibs;
+
 use MediaWords::DB;
 use MediaWords::StoryVectors;
 
@@ -60,7 +60,7 @@ END
 
         $num_stories_vectored += @{ $stories_ids };
 
-        print STDERR "stories revectored: $num_stories_vectored / $num_stories\n";
+        INFO "stories revectored: $num_stories_vectored / $num_stories";
     }
 }
 

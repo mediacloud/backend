@@ -36,7 +36,7 @@ sub unconfirm_date
 
     unless ( date_is_confirmed( $db, $story ) )
     {
-        say STDERR "Date for story " . $story->{ stories_id } . " is not confirmed, so not unconfirming.";
+        WARN "Date for story " . $story->{ stories_id } . " is not confirmed, so not unconfirming.";
         return;
     }
 

@@ -1,13 +1,15 @@
 package MediaWords::Util::CSV;
+
+use strict;
+use warnings;
+
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use strict;
-
 use Encode;
 use JSON;
-use Text::CSV_XS;
 use Text::CSV;
+use Text::CSV_XS;
 
 # various functions for outputting csv
 
@@ -125,7 +127,7 @@ sub stream_json_to_csv
 
     my $first_line = <$in_fh>;
 
-    print STDERR "first_line: $first_line\n";
+    INFO "first_line: $first_line";
 
     return unless ( $first_line );
 
@@ -145,13 +147,12 @@ sub stream_json_to_csv
     my $i = 0;
     while ( my $line = <$in_fh> )
     {
-        print STDERR "$i\n" unless ( $i++ % 1000 );
+        INFO "$i" unless ( $i++ % 1000 );
         my $json_object;
         eval { $json_object = $json->decode( $line ) };
         if ( $@ )
         {
-            warn( $@ );
-            print STDERR $line;
+            WARN "Unable to decode line '$line': $@";
         }
         else
         {
@@ -160,7 +161,7 @@ sub stream_json_to_csv
         }
     }
 
-    print STDERR "FOO!\n";
+    TRACE "FOO!";
 }
 
 1;

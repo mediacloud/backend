@@ -10,12 +10,14 @@ BEGIN
     use lib "$FindBin::Bin/../lib", "$FindBin::Bin";
 }
 
-use Data::Dumper;
 use Modern::Perl "2015";
+use MediaWords::CommonLibs;
 
 use MediaWords::Crawler::FeedHandler;
 use MediaWords::DB;
 use MediaWords::Util::Config qw(get_config);
+
+use Data::Dumper;
 
 sub main
 {
@@ -43,7 +45,7 @@ END
     {
         eval {
             my $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download );
-            print STDERR Dumper( $download );
+            DEBUG Dumper( $download );
 
             if ( length( $$content_ref ) > 32 )
             {
@@ -53,7 +55,7 @@ END
         };
         if ( $@ )
         {
-            print STDERR "Error rehandling download: $download->{ downloads_id }: $@\n";
+            ERROR "Error rehandling download: $download->{ downloads_id }: $@";
             $db = MediaWords::DB::connect_to_db;
         }
 

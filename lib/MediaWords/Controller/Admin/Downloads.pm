@@ -136,7 +136,7 @@ sub redownload : Local
 {
     my ( $self, $c, $download_id ) = @_;
 
-    say STDERR "starting redownload";
+    INFO "starting redownload";
     my ( $download );
 
     if ( $download_id )
@@ -150,7 +150,7 @@ sub redownload : Local
         $handler->handle_response( $download, $response );
     }
 
-    say STDERR "Finished download";
+    INFO "Finished download";
 
 }
 

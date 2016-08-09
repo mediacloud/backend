@@ -62,7 +62,7 @@ SQL
         push( @{ $feeds }, $media_feeds ) if ( $media_feeds );
     }
 
-    say STDERR "no feeds found for args: " . Dumper( $args ) unless ( @{ $feeds } );
+    WARN "no feeds found for args: " . Dumper( $args ) unless ( @{ $feeds } );
 
     my $feed_urls = [ map { $_->{ url } } @{ $feeds } ];
     my $media_id = $feeds->[ 0 ]->{ media_id };
@@ -76,7 +76,7 @@ SQL
     my $num_module_stories = scalar( @{ $import->module_stories } );
     my $num_import_stories = scalar( @{ $import_stories } );
 
-    say STDERR "feedly import results: $num_module_stories feedly stories, $num_import_stories stories imported";
+    INFO "feedly import results: $num_module_stories feedly stories, $num_import_stories stories imported";
 }
 
 no Moose;    # gets rid of scaffolding

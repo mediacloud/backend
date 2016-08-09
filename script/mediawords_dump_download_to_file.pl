@@ -3,6 +3,7 @@
 # snapshot download to file
 
 use strict;
+use warnings;
 
 BEGIN
 {
@@ -10,12 +11,13 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Getopt::Long;
 use HTML::Strip;
 use DBIx::Simple::MediaWords;
 use MediaWords::DB;
-use Modern::Perl "2015";
-use MediaWords::CommonLibs;
 
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::DownloadTexts;
@@ -54,7 +56,7 @@ sub dump_downloads_to_file
 
         close( $out );
 
-        say STDERR "saved in file $filename";
+        INFO "saved in file $filename";
 
     }
 }
@@ -92,10 +94,10 @@ sub main
 
     die 'no downloads found ' unless scalar( @$downloads );
 
-    say STDERR scalar( @$downloads ) . ' downloads';
+    INFO scalar( @$downloads ) . ' downloads';
 
     dump_downloads_to_file( $downloads );
-    say STDERR "completed dumpings";
+    INFO "completed dumpings";
 }
 
 main();

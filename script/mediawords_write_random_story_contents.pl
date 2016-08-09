@@ -11,11 +11,13 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use Encode;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
+
 use MediaWords::DB;
 use MediaWords::DBI::Stories;
+
+use Encode;
 
 sub get_story_content
 {
@@ -26,7 +28,7 @@ sub get_story_content
     eval { $content_ref = MediaWords::DBI::Stories::get_content_for_first_download( $db, $story ) };
     if ( $@ || !$content_ref )
     {
-        warn( "error fetching content: $@" );
+        WARN "error fetching content: $@";
         return 0;
     }
 
@@ -43,7 +45,7 @@ sub main
 
     my ( $max_stories_id ) = $db->query( "select max( stories_id ) from stories" )->flat;
 
-    say STDERR "max: $max_stories_id ";
+    INFO "max: $max_stories_id ";
 
     for ( my $i = 0 ; $i < $num_stories ; $i++ )
     {
@@ -55,7 +57,7 @@ SQL
 
         my $content = get_story_content( $db, $story );
 
-        say STDERR "writing $story->{ stories_id } ...";
+        INFO "writing $story->{ stories_id } ...";
 
         open( FILE, ">story_content/$story->{ stories_id }" )
           || die( "Unable to open file for $story->{ stories_id }: $!" );

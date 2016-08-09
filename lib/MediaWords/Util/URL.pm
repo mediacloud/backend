@@ -502,13 +502,13 @@ sub is_http_url($)
 
     unless ( $url )
     {
-        # say STDERR "URL is undefined";
+        TRACE "URL is undefined";
         return 0;
     }
 
     unless ( $url =~ /$RE{URI}{HTTP}{-scheme => '(?:http|https)'}/i )
     {
-        # say STDERR "URL does not match URL's regexp";
+        TRACE "URL does not match URL's regexp";
         return 0;
     }
 
@@ -516,12 +516,12 @@ sub is_http_url($)
 
     unless ( $uri->scheme )
     {
-        # say STDERR "Scheme is undefined for URL $url";
+        TRACE "Scheme is undefined for URL $url";
         return 0;
     }
     unless ( $uri->scheme eq 'http' or $uri->scheme eq 'https' )
     {
-        # say STDERR "Scheme is not HTTP(s) for URL $url";
+        TRACE "Scheme is not HTTP(s) for URL $url";
         return 0;
     }
 
@@ -536,13 +536,13 @@ sub is_homepage_url($)
 
     unless ( $url )
     {
-        # say STDERR "URL is empty or undefined.";
+        TRACE "URL is empty or undefined.";
         return 0;
     }
 
     unless ( is_http_url( $url ) )
     {
-        # say STDERR "URL is not valid";
+        TRACE "URL is not valid";
         return 0;
     }
 
@@ -550,7 +550,7 @@ sub is_homepage_url($)
     eval { $url = normalize_url( $url ); };
     if ( $@ )
     {
-        # say STDERR "Unable to normalize URL '$url' before checking if it's a homepage: $@";
+        TRACE "Unable to normalize URL '$url' before checking if it's a homepage: $@";
         return 0;
     }
 
@@ -588,13 +588,13 @@ sub is_shortened_url($)
 
     unless ( $url )
     {
-        # say STDERR "URL is empty or undefined.";
+        TRACE "URL is empty or undefined.";
         return 0;
     }
 
     unless ( is_http_url( $url ) )
     {
-        # say STDERR "URL is not valid";
+        TRACE "URL is not valid";
         return 0;
     }
 
@@ -789,6 +789,9 @@ sub normalize_url_lossy($)
 s/^(https?:\/\/)(m|beta|media|data|image|www?|cdn|topic|article|news|archive|blog|video|search|preview|shop|sports?|act|donate|press|web|photos?|\d+?).?\.(.*\.)/$1$3/i;
     }
 
+    # collapse the vast array of http://pronkraymond83483.podomatic.com/ urls into http://pronkpops.podomatic.com/
+    $url =~ s~http://.*pron.*\.podomatic\.com~http://pronkpops.podomatic.com~;
+
     # get rid of anchor text
     $url =~ s/\#.*//;
 
@@ -922,8 +925,7 @@ sub link_canonical_url_from_html($;$)
                         }
                         else
                         {
-                            # say STDERR
-                            #   "HTML <link rel=\"canonical\"/> found, but the new URL ($url) doesn't seem to be valid.";
+                            TRACE "HTML <link rel=\"canonical\"/> found, but the new URL ($url) doesn't seem to be valid.";
                         }
                     }
                     else
@@ -990,7 +992,7 @@ sub url_and_data_after_redirects($;$$)
                     $error_message .= "to: " . $redirect->header( 'Location' ) . "\n";
                 }
 
-                # say STDERR $error_message;
+                TRACE $error_message;
 
                 # Return the original URL (unless we find a URL being a substring of another URL, see below)
                 $uri = URI->new( $orig_url )->canonical;
@@ -1004,9 +1006,8 @@ sub url_and_data_after_redirects($;$$)
 
                     if ( my ( $matched_url ) = grep /$encoded_url_redirected_to/, @urls_redirected_to )
                     {
-
-#                         say STDERR
-# "Encoded URL $encoded_url_redirected_to is a substring of another URL $matched_url, so I'll assume that $url_redirected_to is the correct one.";
+                        TRACE
+"Encoded URL $encoded_url_redirected_to is a substring of another URL $matched_url, so I'll assume that $url_redirected_to is the correct one.";
                         $uri = URI->new( $url_redirected_to )->canonical;
                         last;
 
@@ -1016,7 +1017,7 @@ sub url_and_data_after_redirects($;$$)
             }
             else
             {
-                # say STDERR "Request to " . $uri->as_string . " was unsuccessful: " . $response->status_line;
+                TRACE "Request to " . $uri->as_string . " was unsuccessful: " . $response->status_line;
 
                 # Return the original URL and give up
                 $uri = URI->new( $orig_url )->canonical;
@@ -1028,7 +1029,7 @@ sub url_and_data_after_redirects($;$$)
         my $new_uri = $response->request()->uri()->canonical;
         unless ( $uri->eq( $new_uri ) )
         {
-            # say STDERR "New URI: " . $new_uri->as_string;
+            TRACE "New URI: " . $new_uri->as_string;
             $uri = $new_uri;
         }
 
@@ -1046,7 +1047,7 @@ sub url_and_data_after_redirects($;$$)
         my $url_after_meta_redirect = meta_refresh_url_from_html( $html, $base_uri->as_string );
         if ( $url_after_meta_redirect and $uri->as_string ne $url_after_meta_redirect )
         {
-            # say STDERR "URL after <meta /> refresh: $url_after_meta_redirect";
+            TRACE "URL after <meta /> refresh: $url_after_meta_redirect";
             $uri = URI->new( $url_after_meta_redirect )->canonical;
 
             # ...and repeat the HTTP redirect cycle here
@@ -1166,8 +1167,8 @@ sub all_url_variants($$)
         my $url_link_rel_canonical = link_canonical_url_from_html( $data_after_redirects, $url_after_redirects );
         if ( $url_link_rel_canonical )
         {
-            # say STDERR "Found <link rel=\"canonical\" /> for URL $url_after_redirects " .
-            #   "(original URL: $url): $url_link_rel_canonical";
+            TRACE "Found <link rel=\"canonical\" /> for URL $url_after_redirects " .
+              "(original URL: $url): $url_link_rel_canonical";
 
             $urls{ 'after_redirects_canonical' } = $url_link_rel_canonical;
         }
@@ -1182,7 +1183,7 @@ sub all_url_variants($$)
         {
             if ( is_homepage_url( $urls{ $key } ) )
             {
-                say STDERR "URL $url got redirected to $urls{$key} which looks like a homepage, so I'm skipping that.";
+                TRACE "URL $url got redirected to $urls{$key} which looks like a homepage, so I'm skipping that.";
                 delete $urls{ $key };
             }
         }

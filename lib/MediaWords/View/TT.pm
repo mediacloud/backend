@@ -1,8 +1,11 @@
 package MediaWords::View::TT;
+
+use strict;
+use warnings;
+
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use strict;
 use base 'Catalyst::View::TT';
 use MediaWords::Util::HTML;
 use Data::Dumper;
@@ -22,39 +25,16 @@ sub new
 
     $self->{ template }->context->define_filter(
         html_strip => sub {
-
-            #$Data::Dumper::Purity = 1;
-            #$Data::Dumper::Useperl = 1;
             my $nr = shift;
-
-            #say STDERR "Stripping: '$nr'"  if (length($nr) > 0 );
-            ##say STDERR Dumper($nr)  if (length($nr) > 0 );
             $nr = html_strip( $nr );
-            ##say STDERR Dumper($nr)  if (length($nr) > 0 );
-            #say STDERR "Striped '$nr'"  if (length($nr) > 0 );
-            #$nr;
         }
     );
 
     $self->{ template }->context->define_filter(
         url_encode => sub {
-
-            #$Data::Dumper::Purity = 1;
-            #$Data::Dumper::Useperl = 1;
             my $nr = shift;
-
-            # say STDERR "encoding: '$nr'" if ( length( $nr ) > 0 );
-
             $nr =~ s/&/&amp;/g;
-
-            # say STDERR "returning: '$nr'" if ( length( $nr ) > 0 );
-
             return $nr;
-            ##say STDERR Dumper($nr)  if (length($nr) > 0 );
-            #$nr = html_strip( $nr );
-            ##say STDERR Dumper($nr)  if (length($nr) > 0 );
-            #say STDERR "Striped '$nr'"  if (length($nr) > 0 );
-            #$nr;
         }
     );
 

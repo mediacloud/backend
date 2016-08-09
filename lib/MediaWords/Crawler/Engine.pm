@@ -81,7 +81,7 @@ sub _fetch_and_handle_download
         LOGDIE( "fetch " . $self->fetcher_number . ": Unable to find download_id: $download->{downloads_id}" );
     }
 
-    DEBUG( sub { "fetch " . $self->fetcher_number . ": $download->{downloads_id} $url ..." } );
+    DEBUG "fetch " . $self->fetcher_number . ": $download->{downloads_id} $url ...";
 
     my $start_fetch_time = [ Time::HiRes::gettimeofday ];
     my $response         = $fetcher->fetch_download( $download );
@@ -98,7 +98,7 @@ sub _fetch_and_handle_download
         LOGDIE( "Error in handle_response() for downloads_id $download->{downloads_id} $url : $@" );
     }
 
-    DEBUG( sub { "fetch " . $self->fetcher_number . ": $download->{downloads_id} $url done [$fetch_time/$handle_time]" } );
+    DEBUG "fetch " . $self->fetcher_number . ": $download->{downloads_id} $url done [$fetch_time/$handle_time]";
 
     return;
 }
@@ -129,7 +129,7 @@ sub _run_fetcher
 {
     my ( $self ) = @_;
 
-    DEBUG( sub { "fetch " . $self->fetcher_number . " crawl loop" } );
+    DEBUG "fetch " . $self->fetcher_number . " crawl loop";
 
     $self->reconnect_db();
 
@@ -168,7 +168,7 @@ sub _run_fetcher
                 $download = $self->dbs->find_by_id( 'downloads', $downloads_id );
 
                 my $idle_time = Time::HiRes::tv_interval( $start_idle_time, [ Time::HiRes::gettimeofday ] );
-                DEBUG( sub { "fetch " . $self->fetcher_number . " idle time $idle_time" } );
+                DEBUG "fetch " . $self->fetcher_number . " idle time $idle_time";
 
                 $self->_fetch_and_handle_download( $download, $fetcher, $handler );
 
@@ -179,14 +179,14 @@ sub _run_fetcher
             }
             else
             {
-                TRACE( sub { "fetch " . $self->fetcher_number . " _run_fetcher sleeping ..." } );
+                TRACE "fetch " . $self->fetcher_number . " _run_fetcher sleeping ...";
                 sleep( 1 );
             }
         };
 
         if ( $@ )
         {
-            WARN( sub { "ERROR: fetcher " . $self->fetcher_number . ":\n****\n$@\n****" } );
+            WARN "ERROR: fetcher " . $self->fetcher_number . ":\n****\n$@\n****";
             if ( $download && ( !grep { $_ eq $download->{ state } } ( 'fetching', 'queued' ) ) )
             {
                 $download->{ state }         = 'error';
@@ -371,58 +371,58 @@ sub crawl
 
     DEBUG "starting Crawler::Engine::crawl";
 
-    MediaWords::DB::run_block_with_large_work_mem
-    {
+    MediaWords::DB::run_block_with_large_work_mem(
+        sub {
 
-      MAINLOOP: while ( 1 )
-        {
-            if ( $self->timeout && ( ( time - $start_time ) > $self->timeout ) )
+          MAINLOOP: while ( 1 )
             {
-                TRACE "crawler timed out";
-                last MAINLOOP;
-            }
-
-            for my $s ( $socket_select->can_read() )
-            {
-                my $fetcher_number = $s->getline();
-
-                if ( !defined( $fetcher_number ) )
+                if ( $self->timeout && ( ( time - $start_time ) > $self->timeout ) )
                 {
-                    DEBUG "skipping fetcher for which we couldn't read the fetcher number";
-                    $socket_select->remove( $s );
-                    next;
+                    TRACE "crawler timed out";
+                    last MAINLOOP;
                 }
 
-                chomp( $fetcher_number );
-
-                if ( scalar( @{ $queued_downloads } ) == 0 )
+                for my $s ( $socket_select->can_read() )
                 {
-                    DEBUG "refill queued downloads ...";
-                    $queued_downloads = $provider->provide_downloads();
+                    my $fetcher_number = $s->getline();
 
-                    if ( !@{ $queued_downloads } && $self->test_mode )
+                    if ( !defined( $fetcher_number ) )
                     {
-                        INFO "exiting after 30 second wait because crawler is in test mode and queue is empty";
-                        sleep 30;
-                        INFO "exiting now.\n";
-                        last MAINLOOP;
+                        DEBUG "skipping fetcher for which we couldn't read the fetcher number";
+                        $socket_select->remove( $s );
+                        next;
+                    }
+
+                    chomp( $fetcher_number );
+
+                    if ( scalar( @{ $queued_downloads } ) == 0 )
+                    {
+                        DEBUG "refill queued downloads ...";
+                        $queued_downloads = $provider->provide_downloads();
+
+                        if ( !@{ $queued_downloads } && $self->test_mode )
+                        {
+                            INFO "exiting after 30 second wait because crawler is in test mode and queue is empty";
+                            sleep 30;
+                            INFO "exiting now.";
+                            last MAINLOOP;
+                        }
+                    }
+
+                    if ( my $queued_download = shift( @{ $queued_downloads } ) )
+                    {
+                        $s->printflush( $queued_download->{ downloads_id } . "\n" );
+                    }
+                    else
+                    {
+                        $s->printflush( "none\n" );
+                        last;
                     }
                 }
-
-                if ( my $queued_download = shift( @{ $queued_downloads } ) )
-                {
-                    $s->printflush( $queued_download->{ downloads_id } . "\n" );
-                }
-                else
-                {
-                    $s->printflush( "none\n" );
-                    last;
-                }
             }
-        }
-    }
-
-    $self->dbs;
+        },
+        $self->dbs
+    );
 
     kill( 15, map { $_->{ pid } } @{ $self->{ fetchers } } );
     INFO "waiting 5 seconds for children to exit ...";

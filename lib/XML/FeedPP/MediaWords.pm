@@ -11,6 +11,9 @@ package XML::FeedPP::MediaWords;
 use strict;
 use warnings;
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Data::Dumper;
 use XML::FeedPP;
 
@@ -42,9 +45,7 @@ use Class::Std;
 
             close OUTFILE;
 
-            # say STDERR Dumper ( { content -> $content,
-            # 		      type -> $type,
-            # 		      } );
+            TRACE Dumper( { content->$content, type->$type } );
         }
 
         eval { $fp = XML::FeedPP->new( $content, -type => $type ); };

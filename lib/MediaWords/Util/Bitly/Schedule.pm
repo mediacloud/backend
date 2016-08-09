@@ -17,7 +17,6 @@ use MediaWords::Util::Config;
 use MediaWords::Util::SQL;
 use Readonly;
 use DateTime;
-use Carp;
 
 # Don't fetch data for stories older than this date
 sub _story_timestamp_lower_bound()
@@ -58,13 +57,13 @@ sub _story_timestamp($)
     my $publish_date = $story->{ publish_date };
     unless ( $publish_date )
     {
-        confess "Publish date is unset for story $stories_id: " . Dumper( $story );
+        LOGCONFESS "Publish date is unset for story $stories_id: " . Dumper( $story );
     }
 
     my $story_timestamp = MediaWords::Util::SQL::get_epoch_from_sql_date( $publish_date );
     if ( $story_timestamp <= _story_timestamp_lower_bound() or $story_timestamp >= _story_timestamp_upper_bound() )
     {
-        DEBUG( sub { "Publish timestamp is lower than lower bound for story $stories_id, using collect_date" } );
+        DEBUG "Publish timestamp is lower than lower bound for story $stories_id, using collect_date";
 
         my $collect_date = $story->{ collect_date };
         unless ( $collect_date )

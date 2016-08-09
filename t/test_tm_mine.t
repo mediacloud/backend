@@ -237,7 +237,7 @@ sub start_hash_servers
 
         my $hs = HTTP::HashServer->new( $site->{ port }, $site_hash );
 
-        DEBUG( sub { "starting hash server $site->{ id }" } );
+        DEBUG "starting hash server $site->{ id }";
 
         $hs->start( 0 );
 
@@ -275,7 +275,7 @@ sub test_pages
 
     for my $site ( @{ $sites } )
     {
-        DEBUG( sub { "testing pages for site $site->{ id }" } );
+        DEBUG "testing pages for site $site->{ id }";
         test_page( "site $site->{ id }", $site->{ url }, $site->{ content } );
 
         map { test_page( "page $site->{ id } $_->{ id }", $_->{ url }, $_->{ content } ) } @{ $site->{ pages } };
@@ -376,11 +376,11 @@ SQL
     my $all_pages = [];
     map { push( @{ $all_pages }, @{ $_->{ pages } } ) } @{ $sites };
 
-    DEBUG( sub { "ALL PAGES: " . scalar( @{ $all_pages } ) } );
+    DEBUG "ALL PAGES: " . scalar( @{ $all_pages } );
 
     my $topic_pages = [ grep { $_->{ matches_topic } } @{ $all_pages } ];
 
-    DEBUG( sub { "TOPIC PAGES: " . scalar( @{ $topic_pages } ) } );
+    DEBUG "TOPIC PAGES: " . scalar( @{ $topic_pages } );
 
     my $topic_pages_lookup = {};
     map { $topic_pages_lookup->{ $_->{ url } } = $_ } @{ $topic_stories };
@@ -407,7 +407,7 @@ sub test_topic_links
 
     my $cl = $db->query( "select * from topic_links" )->hashes;
 
-    # say STDERR "topic links: " . Dumper( $cl );
+    TRACE "topic links: " . Dumper( $cl );
 
     my $all_pages = [];
     map { push( @{ $all_pages }, @{ $_->{ pages } } ) } @{ $sites };
@@ -478,7 +478,7 @@ sub test_spider
 
     my $sites = get_test_sites();
 
-    # DEBUG( sub { "SITE STRUCTURE" . Dumper( get_site_structure( $sites ) ) } );
+    TRACE "SITE STRUCTURE " . Dumper( get_site_structure( $sites ) );
 
     add_site_media( $db, $sites );
 
@@ -488,8 +488,12 @@ sub test_spider
 
     my $topic = create_topic( $db, $sites );
 
-    my $mine_options =
-      { skip_post_processing => 1, cache_broken_downloads => 0, import_only => 0, skip_outgoing_foreign_rss_links => 0 };
+    my $mine_options = {
+        skip_post_processing            => 1,    #
+        cache_broken_downloads          => 0,    #
+        import_only                     => 0,    #
+        skip_outgoing_foreign_rss_links => 0,    #
+    };
 
     MediaWords::TM::Mine::mine_topic( $db, $topic, $mine_options );
 

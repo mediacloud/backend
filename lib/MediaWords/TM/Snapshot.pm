@@ -36,11 +36,11 @@ For detailed explanation of the snapshot process, see doc/snapshots.markdown.
 # This module was converted from a script, and the functions were never refactored to prefix private methods with '_'.
 # Consider any method without a perldoc head to be private.
 
-use Modern::Perl "2015";
-use MediaWords::CommonLibs;
-
 use strict;
 use warnings;
+
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
 
 use Data::Dumper;
 use Date::Format;
@@ -445,7 +445,7 @@ select distinct s.stories_id, s.title, s.url,
                 join tags t on ( stm.tags_id = t.tags_id  and t.tag = 'undateable' )
                 join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id and ts.name = 'date_invalid' ) )
             on ( stm.stories_id = s.stories_id )
-	order by slc.inlink_count
+	order by slc.inlink_count desc
 END
 
     return $csv;
@@ -980,7 +980,7 @@ sub prune_links_to_top_nodes
         push( @{ $pruned_edges }, $edge ) unless ( $prune_lookup->{ $edge->{ target } } );
     }
 
-    DEBUG( sub { "pruned edges: " . ( scalar( @{ $edges } ) - scalar( @{ $pruned_edges } ) ) } );
+    DEBUG "pruned edges: " . ( scalar( @{ $edges } ) - scalar( @{ $pruned_edges } ) );
 
     return $pruned_edges;
 }
@@ -1001,7 +1001,7 @@ sub prune_links_to_min_size
         push( @{ $pruned_edges }, $edge ) if ( $min_size_nodes->{ $edge->{ target } } );
     }
 
-    DEBUG( sub { "pruned edges: " . ( scalar( @{ $edges } ) - scalar( @{ $pruned_edges } ) ) } );
+    DEBUG "pruned edges: " . ( scalar( @{ $edges } ) - scalar( @{ $pruned_edges } ) );
 
     return $pruned_edges;
 }

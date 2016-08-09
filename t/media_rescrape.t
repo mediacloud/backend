@@ -8,12 +8,13 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Test::More tests => 96;
 use Test::NoWarnings;
 use Test::Deep;
 
-use Modern::Perl "2015";
-use MediaWords::CommonLibs;
 use MediaWords::Test::DB;
 use MediaWords::DBI::Media;
 
@@ -178,12 +179,12 @@ sub test_media_no_feeds($)
 
         $medium = $db->find_by_id( 'media', $media_id );
 
-        # say STDERR 'Medium: ' . Dumper( $medium );
+        TRACE 'Medium: ' . Dumper( $medium );
         ok( $medium->{ moderated }, 'Media must be moderated after rescraping' );
 
         my $feeds = $db->query( 'SELECT * FROM feeds WHERE media_id = ?', $media_id )->hashes;
 
-        # say STDERR 'Feeds: ' . Dumper( $feeds );
+        TRACE 'Feeds: ' . Dumper( $feeds );
         is( scalar( @{ $feeds } ), 1, 'Only a single feed must have been added' );
         my $webpage_feed = $feeds->[ 0 ];
         is( $webpage_feed->{ feed_type }, 'web_page',            "Single feed's type must be 'web_page'" );
@@ -192,7 +193,7 @@ sub test_media_no_feeds($)
         my $feeds_after_rescraping =
           $db->query( 'SELECT * FROM feeds_after_rescraping WHERE media_id = ?', $media_id )->hashes;
 
-        # say STDERR 'Feeds after rescraping: ' . Dumper( $feeds_after_rescraping );
+        TRACE 'Feeds after rescraping: ' . Dumper( $feeds_after_rescraping );
         is( scalar( @{ $feeds_after_rescraping } ), 0, "'feeds_after_rescraping' table must be empty after rescraping" );
 
     }
@@ -226,13 +227,13 @@ sub test_media_single_feed($)
 
         $medium = $db->find_by_id( 'media', $media_id );
 
-        # say STDERR 'Medium: ' . Dumper( $medium );
+        TRACE 'Medium: ' . Dumper( $medium );
         ok( $medium->{ moderated },
             "Media must be moderated after rescraping (because there was only a single feed added)" );
 
         my $feeds = $db->query( 'SELECT * FROM feeds WHERE media_id = ?', $media_id )->hashes;
 
-        # say STDERR 'Feeds: ' . Dumper( $feeds );
+        TRACE 'Feeds: ' . Dumper( $feeds );
         is( scalar( @{ $feeds } ), 1, 'Only a single feed must have been added' );
         my $rss_feed = $feeds->[ 0 ];
         is( $rss_feed->{ feed_type }, 'syndicated',           "Single feed's type must be 'syndicated'" );
@@ -241,7 +242,7 @@ sub test_media_single_feed($)
         my $feeds_after_rescraping =
           $db->query( 'SELECT * FROM feeds_after_rescraping WHERE media_id = ?', $media_id )->hashes;
 
-        # say STDERR 'Feeds after rescraping: ' . Dumper( $feeds_after_rescraping );
+        TRACE 'Feeds after rescraping: ' . Dumper( $feeds_after_rescraping );
         is( scalar( @{ $feeds_after_rescraping } ), 0, "'feeds_after_rescraping' table must be empty after rescraping" );
     }
 
@@ -274,12 +275,12 @@ sub test_media_no_feeds_then_single_feed($)
 
     $medium = $db->find_by_id( 'media', $media_id );
 
-    # say STDERR 'Medium: ' . Dumper( $medium );
+    TRACE 'Medium: ' . Dumper( $medium );
     ok( $medium->{ moderated }, 'Media must be moderated after rescraping' );
 
     my $feeds = $db->query( 'SELECT * FROM feeds WHERE media_id = ?', $media_id )->hashes;
 
-    # say STDERR 'Feeds: ' . Dumper( $feeds );
+    TRACE 'Feeds: ' . Dumper( $feeds );
     is( scalar( @{ $feeds } ), 1, 'Only a single feed must have been added' );
     my $webpage_feed = $feeds->[ 0 ];
     is( $webpage_feed->{ feed_type }, 'web_page',            "Single feed's type must be 'web_page'" );
@@ -287,7 +288,7 @@ sub test_media_no_feeds_then_single_feed($)
 
     my $feeds_after_rescraping = $db->query( 'SELECT * FROM feeds_after_rescraping WHERE media_id = ?', $media_id )->hashes;
 
-    # say STDERR 'Feeds after rescraping: ' . Dumper( $feeds_after_rescraping );
+    TRACE 'Feeds after rescraping: ' . Dumper( $feeds_after_rescraping );
     is( scalar( @{ $feeds_after_rescraping } ), 0, "'feeds_after_rescraping' table must be empty after rescraping" );
 
     #
@@ -300,12 +301,12 @@ sub test_media_no_feeds_then_single_feed($)
 
     $medium = $db->find_by_id( 'media', $media_id );
 
-    # say STDERR 'Medium: ' . Dumper( $medium );
+    TRACE 'Medium: ' . Dumper( $medium );
     ok( $medium->{ moderated }, 'Media must be (still) moderated after rescraping' );
 
     $feeds = $db->query( 'SELECT * FROM feeds WHERE media_id = ? ORDER BY feeds_id', $media_id )->hashes;
 
-    # say STDERR 'Feeds: ' . Dumper( $feeds );
+    TRACE 'Feeds: ' . Dumper( $feeds );
     is( scalar( @{ $feeds } ),
         2, 'Two feeds must be present (one for "web_page" feed created previously, another one just added)' );
     $webpage_feed = $feeds->[ 0 ];
@@ -319,7 +320,7 @@ sub test_media_no_feeds_then_single_feed($)
 
     $feeds_after_rescraping = $db->query( 'SELECT * FROM feeds_after_rescraping WHERE media_id = ?', $media_id )->hashes;
 
-    # say STDERR 'Feeds after rescraping: ' . Dumper( $feeds_after_rescraping );
+    TRACE 'Feeds after rescraping: ' . Dumper( $feeds_after_rescraping );
     is( scalar( @{ $feeds_after_rescraping } ), 0, "'feeds_after_rescraping' table must be empty after rescraping" );
 }
 
@@ -351,12 +352,12 @@ sub test_media_single_feed_then_no_feeds_then_single_feed_then_no_feeds_again($)
 
     $medium = $db->find_by_id( 'media', $media_id );
 
-    # say STDERR 'Medium: ' . Dumper( $medium );
+    TRACE 'Medium: ' . Dumper( $medium );
     ok( $medium->{ moderated }, "Media must be moderated after rescraping (because there was only a single feed added)" );
 
     my $feeds = $db->query( 'SELECT * FROM feeds WHERE media_id = ?', $media_id )->hashes;
 
-    # say STDERR 'Feeds: ' . Dumper( $feeds );
+    TRACE 'Feeds: ' . Dumper( $feeds );
     is( scalar( @{ $feeds } ), 1, 'Only a single feed must have been added' );
     my $rss_feed = $feeds->[ 0 ];
     is( $rss_feed->{ feed_type }, 'syndicated',           "Single feed's type must be 'syndicated'" );
@@ -364,7 +365,7 @@ sub test_media_single_feed_then_no_feeds_then_single_feed_then_no_feeds_again($)
 
     my $feeds_after_rescraping = $db->query( 'SELECT * FROM feeds_after_rescraping WHERE media_id = ?', $media_id )->hashes;
 
-    # say STDERR 'Feeds after rescraping: ' . Dumper( $feeds_after_rescraping );
+    TRACE 'Feeds after rescraping: ' . Dumper( $feeds_after_rescraping );
     is( scalar( @{ $feeds_after_rescraping } ), 0, "'feeds_after_rescraping' table must be empty after rescraping" );
 
     #
@@ -378,12 +379,12 @@ sub test_media_single_feed_then_no_feeds_then_single_feed_then_no_feeds_again($)
 
     $medium = $db->find_by_id( 'media', $media_id );
 
-    # say STDERR 'Medium: ' . Dumper( $medium );
+    TRACE 'Medium: ' . Dumper( $medium );
     ok( $medium->{ moderated }, 'Media must be moderated after rescraping' );
 
     $feeds = $db->query( 'SELECT * FROM feeds WHERE media_id = ? ORDER BY feeds_id', $media_id )->hashes;
 
-    # say STDERR 'Feeds: ' . Dumper( $feeds );
+    TRACE 'Feeds: ' . Dumper( $feeds );
     is( scalar( @{ $feeds } ),
         2, 'Two feeds must be present (one for "syndicated" feed created previously, another one ("web_page") just added)' );
 
@@ -399,7 +400,7 @@ sub test_media_single_feed_then_no_feeds_then_single_feed_then_no_feeds_again($)
 
     $feeds_after_rescraping = $db->query( 'SELECT * FROM feeds_after_rescraping WHERE media_id = ?', $media_id )->hashes;
 
-    # say STDERR 'Feeds after rescraping: ' . Dumper( $feeds_after_rescraping );
+    TRACE 'Feeds after rescraping: ' . Dumper( $feeds_after_rescraping );
     is( scalar( @{ $feeds_after_rescraping } ), 0, "'feeds_after_rescraping' table must be empty after rescraping" );
 
     #
@@ -412,12 +413,12 @@ sub test_media_single_feed_then_no_feeds_then_single_feed_then_no_feeds_again($)
 
     $medium = $db->find_by_id( 'media', $media_id );
 
-    # say STDERR 'Medium: ' . Dumper( $medium );
+    TRACE 'Medium: ' . Dumper( $medium );
     ok( $medium->{ moderated }, "Media must be moderated after rescraping (because there was only a single feed added)" );
 
     $feeds = $db->query( 'SELECT * FROM feeds WHERE media_id = ? ORDER BY feeds_id', $media_id )->hashes;
 
-    # say STDERR 'Feeds: ' . Dumper( $feeds );
+    TRACE 'Feeds: ' . Dumper( $feeds );
     is( scalar( @{ $feeds } ),
         2, 'Two feeds must be present (one for "syndicated" feed created previously, another one ("web_page") just added)' );
 
@@ -433,7 +434,7 @@ sub test_media_single_feed_then_no_feeds_then_single_feed_then_no_feeds_again($)
 
     $feeds_after_rescraping = $db->query( 'SELECT * FROM feeds_after_rescraping WHERE media_id = ?', $media_id )->hashes;
 
-    # say STDERR 'Feeds after rescraping: ' . Dumper( $feeds_after_rescraping );
+    TRACE 'Feeds after rescraping: ' . Dumper( $feeds_after_rescraping );
     is( scalar( @{ $feeds_after_rescraping } ), 0, "'feeds_after_rescraping' table must be empty after rescraping" );
 
     #
@@ -449,7 +450,7 @@ sub test_media_single_feed_then_no_feeds_then_single_feed_then_no_feeds_again($)
 
     $feeds = $db->query( 'SELECT * FROM feeds WHERE media_id = ? ORDER BY feeds_id', $media_id )->hashes;
 
-    # say STDERR 'Feeds: ' . Dumper( $feeds );
+    TRACE 'Feeds: ' . Dumper( $feeds );
     is( scalar( @{ $feeds } ), 2, 'Two feeds must be present (like in the previous rescraping)' );
 }
 
