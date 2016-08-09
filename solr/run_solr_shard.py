@@ -4,6 +4,7 @@ import argparse
 
 from mc_solr.constants import *
 from mc_solr.solr import run_solr_shard
+from mc_solr.utils import fqdn
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Install Solr and start a shard.",
@@ -18,6 +19,8 @@ if __name__ == "__main__":
 
     parser.add_argument("-c", "--shard_count", type=int, required=True,
                         help="Number of shards across the whole cluster.")
+    parser.add_argument("-hn", "--hostname", type=str, required=False, default=fqdn(),
+                        help="Server hostname (must be resolveable by other shards).")
     parser.add_argument("-zh", "--zookeeper_host", type=str, required=False, default=MC_SOLR_CLUSTER_ZOOKEEPER_HOST,
                         help="ZooKeeper host to connect to.")
     parser.add_argument("-zp", "--zookeeper_port", type=int, required=False, default=MC_SOLR_CLUSTER_ZOOKEEPER_PORT,
@@ -33,6 +36,7 @@ if __name__ == "__main__":
 
     run_solr_shard(shard_num=shard_num,
                    shard_count=args.shard_count,
+                   hostname=args.hostname,
                    zookeeper_host=args.zookeeper_host,
                    zookeeper_port=args.zookeeper_port,
                    jvm_heap_size=args.jvm_heap_size)

@@ -207,20 +207,35 @@ sub _get_count_with_split
     else                   { $facet_date_gap = '+7DAYS' }
 
     my $params;
-    $params->{ q }                  = $q;
-    $params->{ fq }                 = $fq;
-    $params->{ facet }              = 'true';
-    $params->{ 'facet.date' }       = 'publish_day';
-    $params->{ 'facet.date.gap' }   = $facet_date_gap;
-    $params->{ 'facet.date.start' } = "${ start_date }T00:00:00Z";
-    $params->{ 'facet.date.end' }   = "${ end_date }T00:00:00Z";
+    $params->{ q }                   = $q;
+    $params->{ fq }                  = $fq;
+    $params->{ facet }               = 'true';
+    $params->{ 'facet.range' }       = 'publish_day';
+    $params->{ 'facet.range.gap' }   = $facet_date_gap;
+    $params->{ 'facet.range.start' } = "${ start_date }T00:00:00Z";
+    $params->{ 'facet.range.end' }   = "${ end_date }T00:00:00Z";
 
     my $solr_response = MediaWords::Solr::query( $c->dbis, $params, $c );
 
-    return {
-        count => $solr_response->{ response }->{ numFound },
-        split => $solr_response->{ facet_counts }->{ facet_dates }->{ publish_day },
-    };
+    my $count        = $solr_response->{ response }->{ numFound } + 0;
+    my $facet_counts = $solr_response->{ facet_counts }->{ facet_ranges }->{ publish_day };
+
+    unless ( scalar( @{ $facet_counts->{ 'counts' } } ) % 2 == 0 )
+    {
+        die "Number of elements in 'counts' is not even.";
+    }
+
+    my %split = (
+        'start' => $facet_counts->{ 'start' },
+        'end'   => $facet_counts->{ 'end' },
+        'gap'   => $facet_counts->{ 'gap' },
+    );
+
+    # Remake array into date => count hashref
+    my %hash_counts = @{ $facet_counts->{ 'counts' } };
+    %split = ( %split, %hash_counts );
+
+    return { count => $count, split => \%split };
 }
 
 sub count_GET : Local

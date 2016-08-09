@@ -158,7 +158,9 @@ clientPortAddress=%(listen)s
 clientPort=%(port)d
 dataDir=%(data_dir)s
 
-tickTime=2000
+# Must be between zkClientTimeout / 2 and zkClientTimeout / 20
+tickTime=10000
+
 initLimit=10
 syncLimit=5
             """ % {
