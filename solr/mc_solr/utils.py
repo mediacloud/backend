@@ -2,6 +2,7 @@ import logging
 
 import errno
 import os
+import re
 import tempfile
 
 import socket
@@ -10,6 +11,8 @@ import subprocess
 import time
 
 import signal
+
+import sys
 
 
 def create_logger(name):
@@ -137,7 +140,21 @@ def fqdn():
     hostname = socket.getfqdn()
     if hostname is None or len(hostname) == 0:
         raise Exception("Unable to determine FQDN.")
-    return hostname.lower()
+    hostname = hostname.lower()
+    if hostname == 'localhost':
+        logger.warn("FQDN is 'localhost', are you sure that /etc/hosts is set up properly?")
+    if not hostname_resolves(hostname):
+        raise Exception("Hostname '%s' does not resolve." % hostname)
+    return hostname
+
+
+def hostname_resolves(hostname):
+    """Return true if hostname resolves to IP."""
+    try:
+        socket.gethostbyname(hostname)
+        return True
+    except socket.error:
+        return False
 
 
 def process_with_pid_is_running(pid):
@@ -239,4 +256,42 @@ def resolve_absolute_path(name, must_exist=False):
 def run_command_in_foreground(command):
     """Run command in foreground, raise exception if it fails."""
     logger.debug("Running command: %s" % ' '.join(command))
-    subprocess.check_call(command)
+
+    if sys.platform.lower() == 'darwin':
+        # OS X -- requires some crazy STDOUT / STDERR buffering
+        line_buffered = 1
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=line_buffered)
+        while True:
+            output = process.stdout.readline()
+            if len(output) == 0 and process.poll() is not None:
+                break
+            logger.info(output.strip())
+        rc = process.poll()
+        if rc > 0:
+            raise Exception("Process returned non-zero exit code %d" % rc)
+    else:
+        # assume Ubuntu
+        subprocess.check_call(command)
+
+
+def compare_versions(version1, version2):
+    """Compare two version strings. Return 0 if equal, -1 if version1 < version2, 1 if version1 > version2."""
+
+    def normalize(v):
+        v = v.replace("_", ".")
+        return [int(x) for x in re.sub(r'(\.0+)*$', '', v).split(".")]
+
+    return cmp(normalize(version1), normalize(version2))
+
+
+def java_version():
+    """Return Java version, e.g. "1.8.0_66"."""
+    java_version_output = subprocess.Popen(["java", "-version"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    java_version_output = java_version_output.stdout.read()
+
+    java_version_string = re.search(r'(java|openjdk) version "(.+?)"', java_version_output)
+    if java_version_string is None:
+        raise Exception("Unable to determine Java version from string: %s" % java_version_output)
+    java_version_string = java_version_string.group(2)
+
+    return java_version_string
