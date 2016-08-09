@@ -163,6 +163,9 @@ sub list_GET : Local
 
     my $list = MediaWords::Solr::query( $c->dbis, $params, $c );
 
+    # quick hack to get rid of field that causes the json encoder to fail - hal
+    delete( $list->{ responseHeader }->{ zkConnected } );
+
     #TRACE "Got List:\n" . Dumper( $list );
 
     my $sentences = $list->{ response }->{ docs };
