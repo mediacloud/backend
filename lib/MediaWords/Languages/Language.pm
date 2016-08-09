@@ -10,10 +10,10 @@ package MediaWords::Languages::Language;
 
 use strict;
 use warnings;
+use utf8;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
-use utf8;
 
 use Moose::Role;
 use Lingua::Stem::Snowball;
@@ -412,7 +412,7 @@ sub _tokenize_text_with_lingua_sentence
 
     unless ( defined $text )
     {
-        warn "Text is undefined.";
+        WARN "Text is undefined.";
         return undef;
     }
 
@@ -454,7 +454,7 @@ sub _tokenize_text_with_lingua_sentence
 
     unless ( $text )
     {
-        say STDERR "Text is empty after processing it.";
+        WARN "Text is empty after processing it.";
         return [];
     }
 

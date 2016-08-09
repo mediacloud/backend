@@ -44,19 +44,19 @@ sub update_PUT : Local
 
     if ( defined( $name ) )
     {
-        say STDERR "updating name to '$name'";
+        DEBUG "updating name to '$name'";
         $c->dbis->query( "UPDATE tag_sets set name = ? where tag_sets_id = ? ", $name, $id );
     }
 
     if ( defined( $label ) )
     {
-        say STDERR "updating label to '$label'";
+        DEBUG "updating label to '$label'";
         $c->dbis->query( "UPDATE tag_sets set label = ? where tag_sets_id = ? ", $label, $id );
     }
 
     if ( defined( $description ) )
     {
-        say STDERR "updating description to '$description'";
+        DEBUG "updating description to '$description'";
         $c->dbis->query( "UPDATE tag_sets set description = ? where tag_sets_id = ? ", $description, $id );
     }
 

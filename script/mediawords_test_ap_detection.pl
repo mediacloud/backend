@@ -16,6 +16,7 @@ BEGIN
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
+
 use MediaWords::DB;
 use MediaWords::DBI::Downloads;
 use MediaWords::Controller::Api::V2::StoriesBase;
@@ -31,7 +32,7 @@ sub get_story_content
     eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $story->{ download } ) };
     if ( $@ || !$content_ref )
     {
-        warn( "error fetching content: $@" );
+        WARN "error fetching content: $@";
         return 0;
     }
 
@@ -231,7 +232,7 @@ SQL
         $i++;
         if ( !( $i % 100 ) )
         {
-            print STDERR "[$i] ...\n";
+            INFO "[$i] ...";
             insert_detected_stories( $db, $insert_queue, $method );
             $insert_queue = [];
         }

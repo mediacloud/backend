@@ -40,7 +40,7 @@ sub feedly_import
 {
     my ( $db, $options ) = @_;
 
-    DEBUG( sub { "feedly_import: " . Dumper( $options ) } );
+    DEBUG "feedly_import: " . Dumper( $options );
 
     my $import = MediaWords::ImportStories::Feedly->new( { db => $db, %{ $options } } );
 

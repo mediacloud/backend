@@ -34,15 +34,9 @@ sub main()
 
     my $feed_text = read_file( "$current_dir/business_reduced.xml" );
 
-    #my $feed_text = read_file("$current_dir/empty_item_reduced.xml");
+    my $feed = Feed::Scrape::MediaWords->parse_feed( $feed_text );
 
-    my $feed;
-
-    $feed = Feed::Scrape::MediaWords->parse_feed( $feed_text );
-
-    #$feed = XML::FeedPP::->new( $feed_text, -type => 'string' );
-
-    die( "Unable to parse feed " ) unless $feed;
+    die "Unable to parse feed " unless $feed;
 
     my $items = [ $feed->get_item ];
 
@@ -60,15 +54,9 @@ sub main()
 
         if ( $guid && ref( $guid ) )
         {
-
-            #print STDERR Dumper ($item);
-
-            #print "guid: $guid\n";
-            #print Dumper( [ $url, $guid ] );
-            #die "invalid guid "
+            ERROR Dumper( $item );
         }
     }
-
 }
 
 main();

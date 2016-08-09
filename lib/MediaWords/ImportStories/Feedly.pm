@@ -94,7 +94,7 @@ sub _push_stories_from_json_data($$$)
         push( @{ $stories }, $story );
     }
 
-    DEBUG( sub { "latest_publish_date: $latest_publish_date" } );
+    DEBUG "latest_publish_date: $latest_publish_date";
 
     return $stories;
 }
@@ -127,7 +127,7 @@ sub _get_feedly_json_data_deteremined($$)
 
         return $json_data if ( $json_data );
 
-        DEBUG( sub { "get_feedly_json_data: retrying after $backoff seconds for error: $@" } );
+        DEBUG "get_feedly_json_data: retrying after $backoff seconds for error: $@";
 
         sleep( $backoff );
     }
@@ -154,14 +154,14 @@ sub _get_stories_from_feedly($$;$$)
 {
     my ( $self, $feed_url, $continuation_id, $all_stories ) = @_;
 
-    DEBUG( sub { "get_stories_from_feedly " . ( $continuation_id || 'START' ) } );
+    DEBUG "get_stories_from_feedly " . ( $continuation_id || 'START' );
 
     if ( !$continuation_id )
     {
         my $cached_stories = $self->_get_cache->get( $feed_url );
         if ( $cached_stories )
         {
-            DEBUG( sub { "cached: " . scalar( @{ $cached_stories } ) . " stories " } );
+            DEBUG "cached: " . scalar( @{ $cached_stories } ) . " stories ";
             return $cached_stories;
         }
     }
@@ -178,13 +178,13 @@ sub _get_stories_from_feedly($$;$$)
 
     if ( !$json_data->{ title } )
     {
-        DEBUG( sub { "No feedly feed found for feed_url '$feed_url'" } );
+        DEBUG "No feedly feed found for feed_url '$feed_url'";
         return [];
     }
 
     $all_stories = $self->_push_stories_from_json_data( $all_stories, $json_data );
 
-    DEBUG( sub { "_get_new_stories_from_feedly chunk: " . scalar( @{ $all_stories } ) . " total stories found" } );
+    DEBUG "_get_new_stories_from_feedly chunk: " . scalar( @{ $all_stories } ) . " total stories found";
 
     if ( my $new_continuation_id = $json_data->{ continuation } )
     {
@@ -215,18 +215,18 @@ sub get_new_stories($)
     if ( $self->feed_url )
     {
         $feed_urls = ref( $self->feed_url ) ? $self->feed_url : [ $self->feed_url ];
-        DEBUG( sub { "get_new_stories: feed_url " . join( ",", @{ $feed_urls } ) } );
+        DEBUG "get_new_stories: feed_url " . join( ",", @{ $feed_urls } );
     }
     elsif ( my $feeds_id = $self->feeds_id )
     {
-        DEBUG( sub { "get_new_stories feeds_id: $feeds_id" } );
+        DEBUG "get_new_stories feeds_id: $feeds_id";
         $feeds = $self->db->query( <<SQL, $feeds_id )->hashes;
 select * from feedly_unscraped_feeds where feeds_id = ?
 SQL
     }
     elsif ( my $media_id = $self->media_id )
     {
-        DEBUG( sub { "get_new_stories media_id: $media_id" } );
+        DEBUG "get_new_stories media_id: $media_id";
         $feeds = $self->db->query( <<SQL, $media_id )->hashes;
 select * from feedly_unscraped_feeds where media_id = ?
 SQL
@@ -248,7 +248,7 @@ SQL
     my $num_feeds = scalar( @{ $feed_urls } );
     for my $feed_url ( @{ $feed_urls } )
     {
-        DEBUG( sub { "get feedly stories for feed '$feed_url' [" . ++$i . "/$num_feeds]" } );
+        DEBUG "get feedly stories for feed '$feed_url' [" . ++$i . "/$num_feeds]";
         my $stories = $self->_get_stories_from_feedly( $feed_url );
         push( @{ $all_stories }, @{ $stories } );
     }

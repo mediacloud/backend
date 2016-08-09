@@ -40,7 +40,7 @@ sub create_user
 
     if ( user_exists( $db, $email ) )
     {
-        say STDERR "user already exists for email: '$email'";
+        WARN "User already exists for email: '$email'";
         return;
     }
 
@@ -59,7 +59,7 @@ sub create_user
     my $user_password                     = MediaWords::Util::Text::random_string( 64 );
     my $user_password_repeat              = $user_password;
 
-    say STDERR "adding user: " .
+    INFO "Adding user: " .
       Dumper( $mc_url, $user_email, $user_full_name, $user_notes, $user_roles, $user_is_active,
         $user_password, $user_password_repeat, $user_non_public_api_access,
         $user_weekly_requests_limit, $user_weekly_requested_items_limit );

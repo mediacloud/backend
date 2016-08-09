@@ -12,6 +12,9 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use File::Basename;
 use Data::Dumper;
 use MediaWords::Util::SQL;
@@ -105,7 +108,7 @@ sub store_test_data_to_individual_files($$)
     my $glob_path_to_old_data_files = get_path_to_data_files( $basename ) . '/*' . _get_data_file_extension();
     my @old_data_files              = glob( $glob_path_to_old_data_files );
 
-    # say STDERR "Will remove old data files at path '$glob_path_to_old_data_files': " . Dumper(\@old_data_files);
+    DEBUG "Will remove old data files at path '$glob_path_to_old_data_files': " . Dumper( \@old_data_files );
     if ( scalar @old_data_files )
     {
         unlink @old_data_files
@@ -114,7 +117,7 @@ sub store_test_data_to_individual_files($$)
     }
     else
     {
-        say STDERR "Won't remove old data files because there aren't any at path $glob_path_to_old_data_files.";
+        WARN "Won't remove old data files because there aren't any at path $glob_path_to_old_data_files.";
     }
 
     # Write hashref to files

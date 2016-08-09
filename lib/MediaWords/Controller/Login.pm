@@ -1,4 +1,11 @@
 package MediaWords::Controller::Login;
+
+use strict;
+use warnings;
+
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Moose;
 use namespace::autoclean;
 use MediaWords::Util::Config;
@@ -275,7 +282,7 @@ sub activate : Local
     #Check if the user has already been activated
     if ( $user_info && $user_info->{ active } )
     {
-        say STDERR "User $email has already been activated";
+        WARN "User $email has already been activated";
         $c->stash->{ template } = 'auth/welcome.tt2';
         return;
     }
@@ -305,11 +312,11 @@ sub activate : Local
         $c->stash->{ c } = $c;
         $c->stash( template  => 'auth/reset.tt2' );
         $c->stash( error_msg => $error_message );
-        say STDERR "Error activating user $email";
+        ERROR "Error activating user $email";
     }
     else
     {
-        say STDERR "Activated user $email";
+        INFO "Activated user $email";
         $c->stash->{ template } = 'auth/welcome.tt2';
 
         #$c->response->redirect( $c->uri_for( '/login/welcome', { status_msg => "Your account has been activated." } ) );
@@ -387,7 +394,7 @@ sub register : Local
         }
         else
         {
-            say STDERR "email sent to $user_email";
+            INFO "email sent to $user_email";
 
             $c->stash->{ c } = $c;
 

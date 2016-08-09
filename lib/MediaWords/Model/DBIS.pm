@@ -1,16 +1,17 @@
 package MediaWords::Model::DBIS;
-use Modern::Perl "2015";
-use MediaWords::CommonLibs;
 
 # custom DBIx::Simple::MediaWords based model for mediawords
 
 use strict;
+use warnings;
 
-use DBIx::Simple::MediaWords;
-
-use MediaWords::DB;
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
 
 use base qw(Catalyst::Model);
+
+use DBIx::Simple::MediaWords;
+use MediaWords::DB;
 
 sub new
 {
@@ -46,8 +47,7 @@ sub dbis
     };
     if ( $@ )
     {
-        print STDERR "db error: $@\n";
-        die( $@ );
+        LOGDIE "Database error: $@";
     }
 
     return $db;

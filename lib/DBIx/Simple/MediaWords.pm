@@ -3,30 +3,26 @@ package DBIx::Simple::MediaWords;
 # local subclass of DBIx::Simple with some modification for use in media cloud code
 
 use strict;
-
-use Carp;
-use IPC::Run3;
+use warnings;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use base qw(DBIx::Simple);
+
+use MediaWords::DB;
 use MediaWords::Util::Config;
 use MediaWords::Util::SchemaVersion;
-use MediaWords::DB;
 
 use CHI;
-use Carp;
+use Data::Dumper;
 use Data::Page;
 use DBD::Pg qw(:pg_types);
+use Encode;
+use IPC::Run3;
 use JSON;
 use Math::Random::Secure;
-
-use Encode;
-
-use Data::Dumper;
 use Try::Tiny;
-
-use base qw(DBIx::Simple);
 
 # Environment variable which, when set, will make us ignore the schema version
 Readonly my $IGNORE_SCHEMA_VERSION_ENV_VARIABLE => 'MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION';
@@ -214,7 +210,7 @@ sub query
     eval { $ret = $self->_query_impl( @_ ) };
     if ( $@ )
     {
-        Carp::confess( "query error: $@" );
+        LOGCONFESS( "query error: $@" );
     }
 
     return $ret;
@@ -251,19 +247,22 @@ sub run_block_with_large_work_mem( &$ )
     my $block = shift;
     my $db    = shift;
 
-    #say STDERR "starting run_block_with_large_work_mem ";
+    unless ( $block and ref( $block ) eq 'CODE' )
+    {
+        LOGCONFESS "Block is undefined or is not a subref.";
+    }
+    unless ( $db and ref( $db ) eq 'DBIx::Simple::MediaWords' )
+    {
+        LOGCONFESS "Database handler is undefined or is not a database instance.";
+    }
 
-    #say Dumper( $db );
+    TRACE "starting run_block_with_large_work_mem";
 
     my $large_work_mem = $db->_get_large_work_mem();
 
     my $old_work_mem = $db->get_current_work_mem();
 
     $db->_set_work_mem( $large_work_mem );
-
-    #say "try";
-
-    #say Dumper( $block );
 
     try
     {
@@ -273,12 +272,12 @@ sub run_block_with_large_work_mem( &$ )
     {
         $db->_set_work_mem( $old_work_mem );
 
-        confess $_;
+        LOGCONFESS $_;
     };
 
     $db->_set_work_mem( $old_work_mem );
 
-    #say STDERR "exiting run_block_with_large_work_mem ";
+    TRACE "exiting run_block_with_large_work_mem";
 }
 
 sub _set_work_mem
@@ -296,7 +295,7 @@ sub query_with_large_work_mem
 
     my $ret;
 
-    #say STDERR "starting query_with_large_work_mem";
+    #DEBUG "starting query_with_large_work_mem";
 
     #say Dumper ( [ @_ ] );
 
@@ -331,7 +330,7 @@ sub query_only_warn_on_error
 
     my $ret = $self->SUPER::query( @_ );
 
-    warn "Problem executing DBIx::simple->query(" . scalar( join ",", @_ ) . ") :" . $self->error
+    WARN "Problem executing DBIx::simple->query(" . scalar( join ",", @_ ) . ") :" . $self->error
       unless $ret;
     return $ret;
 }
@@ -360,7 +359,7 @@ sub find_by_id
 
     my $id_col = $self->primary_key_column( $table );
 
-    confess "undefined primary key column for table '$table'" unless defined( $id_col );
+    LOGCONFESS "undefined primary key column for table '$table'" unless defined( $id_col );
 
     return $self->query( "select * from $table where $id_col = ?", $id )->hash;
 }
@@ -430,7 +429,7 @@ sub update_by_id_and_log($$$$$$$$)
                 if ( $new_hash->{ $field_name } ne $old_hash->{ $field_name } )
                 {
 
-                    # say STDERR "Field '$field_name' was changed from: " . $old_hash->{$field_name} .
+                    # INFO "Field '$field_name' was changed from: " . $old_hash->{$field_name} .
                     #     "; to: " . $new_hash->{$field_name};
 
                     my $change = {
@@ -504,7 +503,7 @@ sub create
     {
         my $query_error = $@;
 
-        confess "error inserting into table '$table' with object:\n" . Dumper( $hash ) . "\n$query_error";
+        LOGCONFESS "error inserting into table '$table' with object:\n" . Dumper( $hash ) . "\n$query_error";
     }
 
     my $id;
@@ -512,14 +511,14 @@ sub create
     eval {
         $id = $self->last_insert_id( undef, undef, $table, undef );
 
-        confess "Could not get last id inserted" if ( !defined( $id ) );
+        LOGCONFESS "Could not get last id inserted" if ( !defined( $id ) );
     };
 
-    confess "Error getting last_insert_id $@" if ( $@ );
+    LOGCONFESS "Error getting last_insert_id $@" if ( $@ );
 
     my $ret = $self->find_by_id( $table, $id );
 
-    confess "could not find new id '$id' in table '$table' " unless ( $ret );
+    LOGCONFESS "could not find new id '$id' in table '$table' " unless ( $ret );
 
     return $ret;
 }
@@ -776,7 +775,7 @@ sub begin_work
     eval { $self->SUPER::begin_work; };
     if ( $@ )
     {
-        Carp::confess( $@ );
+        LOGCONFESS( $@ );
     }
 }
 

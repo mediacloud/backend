@@ -54,7 +54,7 @@ sub set_media_ids_to_full_text_rss
 {
     my ( $dbs, $media_ids_to_update, $reason ) = @_;
 
-    say "Updating " . scalar( @$media_ids_to_update ) . " media based on $reason";
+    INFO "Updating " . scalar( @$media_ids_to_update ) . " media based on $reason";
 
     if ( scalar( @$media_ids_to_update ) > 0 )
     {
@@ -79,13 +79,13 @@ sub main
 
     my $dbs = MediaWords::DB::connect_to_db;
 
-    say "Finding media ids to update by similarity and length";
+    INFO "Finding media ids to update by similarity and length";
 
     my $media_ids_to_update = get_media_ids_to_update_by_rss_length_and_similarity( $dbs );
 
-    say "initially updating " . scalar( @{ $media_ids_to_update } ) . " media ids:";
+    INFO "initially updating " . scalar( @{ $media_ids_to_update } ) . " media ids:";
 
-    say join ",", @{ $media_ids_to_update };
+    INFO join ",", @{ $media_ids_to_update };
 
     if ( scalar( @{ $media_ids_to_update } ) > 0 )
     {
@@ -97,7 +97,7 @@ sub main
 'select media_id from (select media_id, avg_rss_length, avg_extracted_length, (abs(avg_rss_length-avg_extracted_length)/avg_rss_length) as length_proportion  from media_rss_full_text_detection_data where avg_rss_length > 400 ) as foo where length_proportion < 0.03'
     )->flat;
 
-    say
+    INFO
 "Running: update media set full_text_rss = true where full_text_rss is null and url like '\%livejournal\%' and media_id in (??)";
     $dbs->query(
 "update media set full_text_rss = true where full_text_rss is null and url like '\%livejournal\%' and media_id in (??)",

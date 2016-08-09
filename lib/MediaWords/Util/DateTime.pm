@@ -27,7 +27,7 @@ sub local_timezone
         if ( $_local_tz->is_utc )
         {
             # Ubuntu 16.04 doesn't set timezone properly
-            say STDERR "Local timezone is set to UTC, you probably need to edit /etc/timezone";
+            ERROR "Local timezone is set to UTC, you probably need to edit /etc/timezone";
         }
     }
 

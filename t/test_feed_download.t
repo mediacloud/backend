@@ -2,8 +2,6 @@
 
 use strict;
 use warnings;
-use Data::Dumper;
-use Modern::Perl "2015";
 
 #
 # Basic sanity test of crawler functionality
@@ -26,23 +24,28 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Test::More tests => 93;
 use Test::Differences;
 use Test::Deep;
+
 require Test::NoWarnings;
 
 use MediaWords::Crawler::Engine;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
-use MediaWords::Util::DateTime;
-use MediaWords::Test::DB;
 use MediaWords::Test::Data;
+use MediaWords::Test::DB;
 use MediaWords::Test::LocalServer;
-use DBIx::Simple::MediaWords;
-use MediaWords::StoryVectors;
-use LWP::UserAgent;
+use MediaWords::Util::DateTime;
 
+use Data::Dumper;
 use Data::Sorting qw( :basics :arrays :extras );
+use DBIx::Simple::MediaWords;
+use LWP::UserAgent;
+use MediaWords::StoryVectors;
 use Readonly;
 
 # add a test media source and feed to the database
@@ -172,11 +175,11 @@ sub get_crawler_data_directory
         use FindBin;
 
         my $bin = $FindBin::Bin;
-        say "Bin = '$bin' ";
+        INFO "Bin = '$bin' ";
         $crawler_data_location = "$FindBin::Bin/data/crawler";
     }
 
-    print "crawler data '$crawler_data_location'\n";
+    INFO "crawler data '$crawler_data_location'";
 
     return $crawler_data_location;
 }
@@ -203,7 +206,7 @@ sub main
 
             my $crawler = MediaWords::Crawler::Engine::create_fetcher_engine_for_testing( 1 );
 
-            say STDERR "starting fetch_and_handle_single_download";
+            INFO "starting fetch_and_handle_single_download";
 
             $crawler->fetch_and_handle_single_download( $download );
 
@@ -218,7 +221,7 @@ sub main
 
             test_stories( $db, $feed );
 
-            say STDERR "Killing server";
+            INFO "Killing server";
             $test_http_server->stop();
 
             Test::NoWarnings::had_no_warnings();

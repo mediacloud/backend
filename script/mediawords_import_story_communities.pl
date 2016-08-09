@@ -11,6 +11,9 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use MediaWords::DB;
 use MediaWords::Util::CSV;
 use MediaWords::Util::Tags;
@@ -52,7 +55,7 @@ sub main
     my $i      = 1;
     for my $mc ( @{ $media_communities } )
     {
-        say STDERR $i++ . " / $num_mc";
+        INFO $i++ . " / $num_mc";
         add_community_tag_to_stories( $db, $topics_id, $mc->{ id }, $mc->{ modularity_class } );
     }
 }

@@ -10,7 +10,6 @@ use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
 use namespace::autoclean;
 use List::Compare;
-use Carp;
 use HTTP::Status qw(:constants);
 use Readonly;
 use Encode;
@@ -84,7 +83,7 @@ sub put_tags_PUT : Local
         $story_tags = [ $story_tag ];
     }
 
-    # say STDERR Dumper( $story_tags );
+    # TRACE Dumper( $story_tags );
 
     $self->_add_tags( $c, $story_tags );
 

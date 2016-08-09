@@ -8,12 +8,13 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Getopt::Long;
 use HTML::Strip;
 use DBIx::Simple::MediaWords;
 use MediaWords::DB;
-use Modern::Perl "2015";
-use MediaWords::CommonLibs;
 
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::DownloadTexts;
@@ -39,7 +40,7 @@ sub reextract_downloads
 
     my @downloads = @{ $downloads };
 
-    say STDERR "Starting reextract_downloads";
+    INFO "Starting reextract_downloads";
 
     @downloads = sort { $a->{ downloads_id } <=> $b->{ downloads_id } } @downloads;
 
@@ -52,7 +53,7 @@ sub reextract_downloads
         die "Non-content type download: $download->{ downloads_id } $download->{ type } "
           unless $download->{ type } eq 'content';
 
-        say "Processing download $download->{downloads_id}";
+        INFO "Processing download $download->{downloads_id}";
 
         MediaWords::DBI::Downloads::process_download_for_extractor( $dbs, $download );
     }
@@ -80,7 +81,7 @@ sub main
 
     my $downloads;
 
-    say STDERR @download_ids;
+    DEBUG join( ', ', @download_ids );
 
     if ( @download_ids )
     {
@@ -97,15 +98,15 @@ sub main
         die "must specify file or downloads id";
     }
 
-    say STDERR Dumper( $downloads );
+    DEBUG Dumper( $downloads );
 
     die 'no downloads found ' unless scalar( @$downloads );
 
-    say STDERR scalar( @$downloads ) . ' downloads';
+    DEBUG scalar( @$downloads ) . ' downloads';
 
     reextract_downloads( $downloads );
 
-    say STDERR "completed extraction";
+    INFO "completed extraction";
 }
 
 main();

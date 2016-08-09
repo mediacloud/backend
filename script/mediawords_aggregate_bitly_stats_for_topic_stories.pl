@@ -51,7 +51,7 @@ EOF
 
         if ( MediaWords::Util::Bitly::num_topic_stories_without_bitly_statistics( $db, $topics_id ) == 0 )
         {
-            say STDERR "All topic's $topics_id stories are processed against Bit.ly, skipping.";
+            INFO "All topic's $topics_id stories are processed against Bit.ly, skipping.";
             next;
         }
 
@@ -75,11 +75,11 @@ EOF
 
             unless ( MediaWords::Util::Bitly::story_stats_are_fetched( $db, $stories_id ) )
             {
-                say STDERR "Story $stories_id has not been fetched yet.";
+                INFO "Story $stories_id has not been fetched yet.";
                 next;
             }
 
-            say STDERR "Addin story $stories_id...";
+            INFO "Adding story $stories_id...";
             MediaWords::Job::Bitly::AggregateStoryStats->add_to_queue( { stories_id => $stories_id } );
         }
     }

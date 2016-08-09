@@ -18,7 +18,7 @@ sub mc_root_path
 {
     my $root_path = "$_dirname_full/../../../";
 
-    #say STDERR "Root path is $root_path";
+    TRACE "Root path is $root_path";
 
     return $root_path;
 }
@@ -29,7 +29,7 @@ sub mc_script_path
 
     my $script_path = "$root_path/script";
 
-    #say STDERR "script path is $script_path";
+    TRACE "script path is $script_path";
 
     return $script_path;
 }

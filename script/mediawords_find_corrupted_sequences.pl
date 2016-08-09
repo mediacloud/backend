@@ -25,7 +25,7 @@ sub main
     {
         foreach my $sequence ( @{ $corrupted_sequences } )
         {
-            say STDERR 'Corrupted sequence: ' . Dumper( $sequence );
+            INFO 'Corrupted sequence: ' . Dumper( $sequence );
         }
         exit 1;
     }

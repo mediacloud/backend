@@ -5,7 +5,6 @@ use MediaWords::CommonLibs;
 use strict;
 use warnings;
 
-use Carp;
 use List::Util qw( first );
 
 use DBIx::Simple::MediaWords;
@@ -20,11 +19,11 @@ sub _create_connect_info_from_settings
 
     unless ( defined $settings )
     {
-        confess "Settings is undefined";
+        LOGCONFESS "Settings is undefined";
     }
     unless ( $settings->{ db } and $settings->{ host } )
     {
-        confess "Settings is uncomplete ('db' and 'host' must both be set)";
+        LOGCONFESS "Settings is uncomplete ('db' and 'host' must both be set)";
     }
 
     my $data_source = 'dbi:Pg:dbname=' . $settings->{ db } . ';host=' . $settings->{ host };
@@ -111,13 +110,13 @@ sub connect_settings
 
     my $all_settings = MediaWords::Util::Config::get_config->{ database };
 
-    defined( $all_settings ) or croak( "No database connections configured" );
+    defined( $all_settings ) or LOGCROAK( "No database connections configured" );
 
     my $connect_settings;
     if ( defined( $label ) )
     {
         $connect_settings = first { $_->{ label } eq $label } @{ $all_settings }
-          or croak "No database connection settings labeled '$label'";
+          or LOGCROAK "No database connection settings labeled '$label'";
     }
 
     unless ( defined( $connect_settings ) )
@@ -132,7 +131,7 @@ sub get_db_labels
 {
     my $all_settings = MediaWords::Util::Config::get_config->{ database };
 
-    defined( $all_settings ) or croak( "No database connections configured" );
+    defined( $all_settings ) or LOGCROAK( "No database connections configured" );
 
     my @labels = map { $_->{ label } } @{ $all_settings };
 
@@ -172,7 +171,10 @@ sub print_shell_env_commands_for_psql
 
     foreach my $psql_env_var ( @{ $psql_env_vars } )
     {
-        say "export $psql_env_var=" . $ENV{ $psql_env_var };
+        if ( $ENV{ $psql_env_var } )
+        {
+            say "export $psql_env_var=" . $ENV{ $psql_env_var };
+        }
     }
 }
 
@@ -182,7 +184,16 @@ sub run_block_with_large_work_mem( &$ )
     my $block = shift;
     my $db    = shift;
 
-    DBIx::Simple::MediaWords::run_block_with_large_work_mem { $block->() } $db;
+    unless ( $block and ref( $block ) eq 'CODE' )
+    {
+        LOGCONFESS "Block is undefined or is not a subref.";
+    }
+    unless ( $db and ref( $db ) eq 'DBIx::Simple::MediaWords' )
+    {
+        LOGCONFESS "Database handler is undefined or is not a database instance.";
+    }
+
+    DBIx::Simple::MediaWords::run_block_with_large_work_mem( sub { $block->() }, $db );
 }
 
 my $_disable_story_triggers = 0;

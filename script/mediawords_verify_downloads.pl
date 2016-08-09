@@ -12,12 +12,15 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use Data::Dumper;
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
 
 use MediaWords::DB;
 use MediaWords::DBI::Downloads;
 use MediaWords::KeyValueStore::AmazonS3;
 use MediaWords::Util::Config qw(get_config);
+
+use Data::Dumper;
 
 my $_s3_store;
 
@@ -25,7 +28,7 @@ sub test_download
 {
     my ( $db, $download ) = @_;
 
-    say STDERR "testing $download->{ downloads_id }";
+    INFO "testing $download->{ downloads_id }";
 
     my $store = ref( MediaWords::DBI::Downloads::_download_store_for_reading( $download ) );
 
@@ -35,7 +38,7 @@ sub test_download
     eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download ); };
     if ( $@ || !$content_ref )
     {
-        say STDERR "STORE ERROR: [$store] $@";
+        ERROR "STORE ERROR: [$store] $@";
         $store_error = 1;
         $ret->{ $store } = 1;
     }
@@ -53,7 +56,7 @@ sub test_download
         eval { $content_ref = $_s3_store->fetch_content( $db, $download->{ downloads_id }, $download->{ path } ); };
         if ( $@ || !$content_ref )
         {
-            say STDERR "S3 ERROR: $@";
+            ERROR "S3 ERROR: $@";
             $ret->{ s3_backup } = 1;
         }
     }
@@ -76,7 +79,7 @@ sub main
     while ( $num_tested_downloads < $num_tests )
     {
         my $downloads_id = int( rand() * $max_downloads_id - 1_000_000 );
-        say STDERR "rand id $num_tested_downloads: $downloads_id";
+        INFO "rand id $num_tested_downloads: $downloads_id";
 
         my $download = $db->query( <<SQL, $downloads_id )->hash;
             select *

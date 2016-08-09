@@ -1,35 +1,33 @@
 package MediaWords::Controller::Admin::TM;
-use Modern::Perl "2015";
-use MediaWords::CommonLibs;
 
 use strict;
 use warnings;
+use utf8;
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
+use MediaWords::DBI::Activities;
+use MediaWords::DBI::Media;
+use MediaWords::DBI::Stories::GuessDate;
+use MediaWords::DBI::Stories;
+use MediaWords::Job::TM::MineTopic;
+use MediaWords::Solr::WordCounts;
+use MediaWords::Solr;
+use MediaWords::TM::Mine;
+use MediaWords::TM::Snapshot;
+use MediaWords::TM;
+use MediaWords::Util::Bitly;
+
+use Data::Dumper;
 use Digest::MD5;
 use JSON;
 use List::Compare;
-use Data::Dumper;
 use Readonly;
-
-use MediaWords::TM;
-use MediaWords::TM::Snapshot;
-use MediaWords::TM::Mine;
-use MediaWords::DBI::Activities;
-use MediaWords::DBI::Media;
-use MediaWords::DBI::Stories;
-use MediaWords::DBI::Stories::GuessDate;
-use MediaWords::Job::TM::MineTopic;
-use MediaWords::Solr;
-use MediaWords::Solr::WordCounts;
-use MediaWords::Util::Bitly;
 
 Readonly my $ROWS_PER_PAGE => 25;
 
-use utf8;
-
 use base 'Catalyst::Controller::HTML::FormFu';
-
-#use Catalyst qw( ConfigLoader Static::Simple Unicode );
 
 sub index : Path : Args(0)
 {
@@ -1990,7 +1988,7 @@ sub _merge_stories
     {
         $db->rollback;
 
-        print STDERR "Unable to merge stories: $@\n";
+        ERROR "Unable to merge stories: $@";
         return 0;
     }
 
@@ -2004,7 +2002,7 @@ sub _merge_stories
     {
         $db->rollback;
 
-        print STDERR "Unable to log the activity of merging stories.\n";
+        ERROR "Unable to log the activity of merging stories.";
         return 0;
     }
 

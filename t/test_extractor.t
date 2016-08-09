@@ -16,6 +16,9 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Test::More;
 use Test::NoWarnings;
 
@@ -25,8 +28,8 @@ use MediaWords::Test::Text;
 use MediaWords::Util::Text;
 
 use Data::Dumper;
-use Readonly;
 use File::Slurp;
+use Readonly;
 
 sub extract_and_compare($$$$)
 {
@@ -87,7 +90,7 @@ sub main
 
     foreach my $extractor_method ( @extractor_methods_to_test )
     {
-        say STDERR "Testing extractor '$extractor_method'...";
+        INFO "Testing extractor '$extractor_method'...";
         extract_and_compare( 'gv', 'index.html.1', 'Brazil: Amplified conversations to fight the Digital Crimes Bill',
             $extractor_method );
     }

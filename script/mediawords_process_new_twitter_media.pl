@@ -10,10 +10,10 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use MediaWords::DB;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use MediaWords::DB;
 use MediaWords::StoryVectors;
 
 sub main
@@ -27,7 +27,7 @@ sub main
 
     for my $twitter_media_source ( @{ $twitter_media_without_feeds } )
     {
-        say STDERR Dumper( $twitter_media_source );
+        DEBUG Dumper( $twitter_media_source );
 
         my $media_source_url = $twitter_media_source->{ url };
 
@@ -35,7 +35,7 @@ sub main
 
         my $twitter_user_name = $1;
 
-        say STDERR $twitter_user_name;
+        DEBUG $twitter_user_name;
 
         my $feed_url = "https://api.twitter.com/1/statuses/user_timeline.rss?screen_name=$twitter_user_name";
 

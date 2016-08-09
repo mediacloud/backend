@@ -11,14 +11,13 @@ with 'MediaWords::KeyValueStore';
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
-use Carp;
 
 # Constructor
 sub BUILD($$)
 {
     my ( $self, $args ) = @_;
 
-    # say STDERR "New database inline storage.";
+    # DEBUG "New database inline storage.";
 }
 
 # Moose method
@@ -37,7 +36,7 @@ sub fetch_content($$$$)
 
     unless ( defined $object_path )
     {
-        confess "Object path for object ID $object_id is undefined.";
+        LOGCONFESS "Object path for object ID $object_id is undefined.";
     }
 
     my $content = $object_path;
@@ -52,10 +51,10 @@ sub remove_content($$$$)
 
     unless ( defined $object_path )
     {
-        confess "Object path for object ID $object_id is undefined.";
+        LOGCONFESS "Object path for object ID $object_id is undefined.";
     }
 
-    confess "Not sure how to remove inline content for object ID $object_id.";
+    LOGCONFESS "Not sure how to remove inline content for object ID $object_id.";
 
     return 0;
 }
@@ -67,7 +66,7 @@ sub content_exists($$$$)
 
     unless ( defined $object_path )
     {
-        say STDERR "Object path for object ID $object_id is undefined.";
+        ERROR "Object path for object ID $object_id is undefined.";
         return 0;
     }
 

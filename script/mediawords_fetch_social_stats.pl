@@ -39,20 +39,20 @@ sub fetch_stats
 
         if ( $direct_job )
         {
-            say STDERR "Running local job for story $stories_id...";
+            INFO "Running local job for story $stories_id...";
             eval( "MediaWords::Job::${ type }::FetchStoryStats->run_locally( \$args );" );
             if ( $@ )
             {
-                say STDERR "Worker died while fetching and storing $stories_id: $@";
+                ERROR "Worker died while fetching and storing $stories_id: $@";
             }
         }
         else
         {
-            say STDERR "Adding job for story $stories_id...";
+            INFO "Adding job for story $stories_id...";
             eval( "MediaWords::Job::${ type }::FetchStoryStats->add_to_queue( \$args )" );
             if ( $@ )
             {
-                say STDERR "error queueing story $stories_id: $@";
+                ERROR "error queueing story $stories_id: $@";
             }
         }
     }
@@ -101,7 +101,7 @@ END
 
         unless ( scalar @{ $stories } )
         {
-            say STDERR "No unprocessed stories found for topic '$topic->{ name }' ('$topic_opt')";
+            WARN "No unprocessed stories found for topic '$topic->{ name }' ('$topic_opt')";
         }
 
         for my $story ( @{ $stories } )

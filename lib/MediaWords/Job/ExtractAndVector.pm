@@ -143,7 +143,7 @@ sub extract_for_crawler($$$)
 
             if ( $@ )
             {
-                warn( "extractor job queue failed.  sleeping and trying again in 5 seconds: $@" );
+                WARN "Extractor job queue failed. Sleeping and trying again in 5 seconds: $@";
                 sleep 5;
             }
             else

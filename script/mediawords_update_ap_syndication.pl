@@ -16,8 +16,8 @@ BEGIN
 }
 
 use Modern::Perl "2015";
-
 use MediaWords::CommonLibs;
+
 use MediaWords::DBI::Stories::AP;
 
 sub attach_downloads_to_stories
@@ -87,12 +87,12 @@ sub update_ap_syndication
     my $stories_processed = 0;
     while ( my $stories = get_stories_from_queue( $db, $num_proc, $proc, $block_size ) )
     {
-        say STDERR "updating block:" . ( ++$stories_processed * $block_size );
+        INFO "updating block:" . ( ++$stories_processed * $block_size );
 
         my $updates = [];
         for my $story ( @{ $stories } )
         {
-            say STDERR "$story->{ stories_id } ...";
+            INFO "$story->{ stories_id } ...";
             my $ap_syndicated = MediaWords::DBI::Stories::AP::is_syndicated( $db, $story );
 
             push( @{ $updates }, { stories_id => $story->{ stories_id }, ap_syndicated => $ap_syndicated } );
