@@ -78,11 +78,15 @@ swap the production and staging databases.
 use strict;
 use warnings;
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use CHI;
 use Data::Dumper;
 use Digest::MD5;
 use Encode;
 use File::Basename;
+use File::ReadBackwards;
 use FileHandle;
 use HTTP::Request;
 use JSON;
@@ -92,14 +96,12 @@ use Parallel::ForkManager;
 use Readonly;
 use Text::CSV_XS;
 use URI;
-use File::ReadBackwards;
 
 require bytes;    # do not override length() and such
 
 use MediaWords::DB;
 use MediaWords::Util::Config;
 use MediaWords::Util::Web;
-
 use MediaWords::Solr;
 
 my $_solr_select_url;
@@ -174,7 +176,7 @@ SQL
 SQL
         )->flat;
 
-        say STDERR "added $num_queued_stories out of about $total_queued_stories queued stories to the import";
+        INFO "added $num_queued_stories out of about $total_queued_stories queued stories to the import";
     }
 
 }
@@ -293,7 +295,7 @@ sub _print_csv_to_file_from_csr
             $imported_stories_ids->{ $stories_id } = 1;
         }
 
-        print STDERR time . " " . ( ++$i * $FETCH_BLOCK_SIZE ) . "\n";    # unless ( ++$i % 10 );
+        INFO time() . " " . ( ++$i * $FETCH_BLOCK_SIZE );    # unless ( ++$i % 10 );
     }
 
     $db->dbh->do( "close csr" );
@@ -313,7 +315,7 @@ sub _create_delta_import_stories
 
     $import_date //= '2000-01-01';
 
-    print STDERR "importing delta from $import_date...\n";
+    INFO "importing delta from $import_date...";
 
     $db->query( <<END, $import_date );
 create temporary table delta_import_stories as
@@ -323,7 +325,7 @@ where ss.db_row_last_updated > \$1 and ( stories_id % $num_proc ) = ( $proc - 1 
 
 END
     my ( $num_delta_stories ) = $db->query( "select count(*) from delta_import_stories" )->flat;
-    print STDERR "found $num_delta_stories stories for import ...\n";
+    INFO "found $num_delta_stories stories for import ...";
 
     _add_extra_stories_to_import( $db, $import_date, $num_delta_stories, $num_proc, $proc );
 }
@@ -413,11 +415,11 @@ sub _print_csv_to_file_single_job
 
     $db->begin;
 
-    print STDERR "exporting sentences ...\n";
+    INFO "exporting sentences ...";
     _declare_sentences_cursor( $db, $delta, $num_proc, $proc );
     my $sentence_stories_ids = _print_csv_to_file_from_csr( $db, $fh, $data_lookup, 1 );
 
-    print STDERR "exporting titles ...\n";
+    INFO "exporting titles ...";
     _declare_titles_cursor( $db, $delta, $num_proc, $proc );
     my $title_stories_ids = _print_csv_to_file_from_csr( $db, $fh, $data_lookup, 0 );
 
@@ -512,7 +514,7 @@ sub _sentence_exists_in_solr($$)
     if ( $@ )
     {
         my $error_message = $@;
-        warn "Unable to query Solr for story_sentences_id $story_sentences_id: $error_message";
+        WARN "Unable to query Solr for story_sentences_id $story_sentences_id: $error_message";
         return 0;
     }
 
@@ -531,8 +533,6 @@ sub _sentence_exists_in_solr($$)
 sub _solr_request($$$;$$)
 {
     my ( $path, $params, $staging, $content, $content_type ) = @_;
-
-    # print STDERR "requesting url: $url ...\n";
 
     my $solr_url = MediaWords::Solr::get_solr_url;
     $params //= {};
@@ -553,6 +553,8 @@ sub _solr_request($$$;$$)
     my $req;
 
     my $timeout = 600;
+
+    TRACE "Requesting URL: $abs_url...";
 
     if ( $content )
     {
@@ -786,7 +788,7 @@ sub _print_file_errors
 
     my $errors = _get_all_file_errors( $file );
 
-    say STDERR "errors for file '$file':\n" . Dumper( $errors ) if ( @{ $errors } );
+    WARN "errors for file '$file':\n" . Dumper( $errors ) if ( @{ $errors } );
 
 }
 
@@ -800,7 +802,7 @@ sub _reprocess_file_errors
 
     my $errors = _get_all_file_errors( $file );
 
-    say STDERR "reprocessing all errors for $file ...";
+    INFO "reprocessing all errors for $file ...";
 
     for my $error ( @{ $errors } )
     {
@@ -810,7 +812,7 @@ sub _reprocess_file_errors
 
         next unless ( $data->{ csv } );
 
-        print STDERR "reprocessing $file position $data->{ pos } ...\n";
+        INFO "reprocessing $file position $data->{ pos } ...";
 
         $pm->start and next;
 
@@ -885,7 +887,7 @@ sub _import_csv_single_file
 
     if ( _last_sentence_in_solr( $file, $staging ) )
     {
-        say STDERR "skipping $file, last sentence already in solr";
+        INFO "skipping $file, last sentence already in solr";
 
         _reprocess_file_errors( $pm, $file, $staging );
         _print_file_errors( $file );
@@ -920,7 +922,7 @@ sub _import_csv_single_file
 
         my $base_file = basename( $file );
 
-        say STDERR
+        INFO
 "importing $base_file position $data->{ pos } [ chunk $chunk_num, delta $chunk_delta, ${progress}%, $remaining_time secs left ] ...";
 
         if ( $chunk_delta < 0 )
@@ -1079,7 +1081,7 @@ sub delete_stories
 
     return 1 unless ( $stories_ids && scalar @{ $stories_ids } );
 
-    print STDERR "deleting " . scalar( @{ $stories_ids } ) . " stories ...\n";
+    INFO "deleting " . scalar( @{ $stories_ids } ) . " stories ...";
 
     $stories_ids = [ sort { $a <=> $b } @{ $stories_ids } ];
 
@@ -1091,7 +1093,7 @@ sub delete_stories
         my $chunk_size = List::Util::min( $max_chunk_size, scalar( @{ $stories_ids } ) );
         map { push( @{ $chunk_ids }, shift( @{ $stories_ids } ) ) } ( 1 .. $chunk_size );
 
-        print STDERR "deleting chunk: " . scalar( @{ $chunk_ids } ) . " stories ...\n";
+        INFO "deleting chunk: " . scalar( @{ $chunk_ids } ) . " stories ...";
 
         my $stories_id_query = _get_stories_id_solr_query( $chunk_ids );
 
@@ -1101,7 +1103,7 @@ sub delete_stories
         if ( $@ )
         {
             my $error = $@;
-            warn "Error while deleting stories: $error";
+            WARN "Error while deleting stories: $error";
             return 0;
         }
     }
@@ -1114,14 +1116,14 @@ sub delete_all_sentences
 {
     my ( $staging ) = @_;
 
-    print STDERR "deleting all sentences ...\n";
+    INFO "deleting all sentences ...";
 
     my $url_params = { 'commit' => 'true', 'stream.body' => '<delete><query>*:*</query></delete>', };
     eval { _solr_request( 'update', $url_params, $staging ); };
     if ( $@ )
     {
         my $error = $@;
-        warn "Error while deleting all sentences: $error";
+        WARN "Error while deleting all sentences: $error";
         return 0;
     }
 
@@ -1224,7 +1226,7 @@ sub generate_and_import_data
 
         _mark_import_date( $db );
 
-        print STDERR "generating dump ...\n";
+        INFO "generating dump ...";
         my $dump = print_csv_to_file( $db, $dump_file, $jobs, $delta ) || die( "dump failed." );
 
         my $stories_ids = $dump->{ stories_ids };
@@ -1232,18 +1234,18 @@ sub generate_and_import_data
 
         if ( $delta )
         {
-            print STDERR "deleting updated stories ...\n";
+            INFO "deleting updated stories ...";
             delete_stories( $stories_ids, $staging ) || die( "delete stories failed." );
         }
         elsif ( $delete )
         {
-            print STDERR "deleting all stories ...\n";
+            INFO "deleting all stories ...";
             delete_all_sentences( $staging ) || die( "delete all sentences failed." );
         }
 
         _solr_request( 'update', { 'commit' => 'true' }, $staging );
 
-        print STDERR "importing dump ...\n";
+        INFO "importing dump ...";
         import_csv_files( $dump_files, $staging, $jobs ) || die( "import failed." );
 
         # have to reconnect becaue import_csv_files may have forked, ruining existing db handles

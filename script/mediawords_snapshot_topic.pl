@@ -13,9 +13,11 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Getopt::Long;
 
-use MediaWords::CommonLibs;
 use MediaWords::TM::Snapshot;
 use MediaWords::DB;
 use MediaWords::TM;
@@ -55,7 +57,7 @@ sub main
 
         my $args = { topics_id => $topics_id };
         my $job_id = MediaWords::Job::TM::SnapshotTopic->add_to_queue( $args );
-        say STDERR "Added topic ID $topics_id ('$topic->{ name }') with job ID: $job_id";
+        INFO "Added topic ID $topics_id ('$topic->{ name }') with job ID: $job_id";
     }
 
 }

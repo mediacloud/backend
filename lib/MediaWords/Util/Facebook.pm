@@ -115,7 +115,7 @@ sub api_request($$)
     my ( $decoded_content, $data );
     for ( my $retry = 1 ; $retry <= $FACEBOOK_GRAPH_API_RETRY_COUNT ; ++$retry )
     {
-        DEBUG( sub { 'Retrying #' . $retry . '...' } ) if ( $retry > 1 );
+        DEBUG 'Retrying #' . $retry . '...' if ( $retry > 1 );
 
         my $ua = MediaWords::Util::Web::UserAgentDetermined();
         $ua->timeout( $config->{ facebook }->{ timeout } );
@@ -165,7 +165,7 @@ sub api_request($$)
             my $error_type    = $data->{ error }->{ type };
             my $error_code    = $data->{ error }->{ code } + 0;
 
-            DEBUG( sub { "api error: ($error_code $error_type) $error_message" } );
+            DEBUG "API error: ($error_code $error_type) $error_message";
 
             # for some reason, facebook consistently returns errors for some urls, so just return a 0 count for a
             # given url until we have run into $MAX_CONSECUTIVE_ERRORS in a row
@@ -174,7 +174,7 @@ sub api_request($$)
                 LOGDIE( "more than $MAX_CONSECUTIVE_ERRORS consecutive errors: ($error_type $error_message)" );
             }
 
-            DEBUG( sub { "return 0 count" } );
+            DEBUG "Return 0 count";
 
             return { zero => 1 };
         }
@@ -257,7 +257,7 @@ sub get_url_share_comment_counts
     my $share_count   = $data->{ share }->{ share_count }   // 0;
     my $comment_count = $data->{ share }->{ comment_count } // 0;
 
-    DEBUG( sub { "* Share count: $share_count, comment count: $comment_count" } );
+    DEBUG "* Share count: $share_count, comment count: $comment_count";
 
     return ( $share_count, $comment_count );
 }
@@ -293,7 +293,7 @@ sub get_and_store_share_comment_counts
     };
     my $error = $@ ? $@ : undef;
 
-    ERROR( sub { "Error while fetching Facebook counts for story $story->{ stories_id }: $error" } ) if ( $error );
+    ERROR "Error while fetching Facebook counts for story $story->{ stories_id }: $error" if ( $error );
 
     $share_count   ||= 0;
     $comment_count ||= 0;

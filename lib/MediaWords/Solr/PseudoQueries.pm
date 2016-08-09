@@ -1,6 +1,7 @@
 package MediaWords::Solr::PseudoQueries;
 
 use strict;
+use warnings;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
@@ -334,7 +335,7 @@ sub transform_query
 
     $t =~ s/(\{\~[^\}]*\})/_transform_clause( $1 )/eg;
 
-    #print STDERR "transformed solr query: '$q' -> '$t'\n" unless ( $t eq $q );
+    TRACE "transformed solr query: '$q' -> '$t'\n" unless ( $t eq $q );
 
     return $t;
 }

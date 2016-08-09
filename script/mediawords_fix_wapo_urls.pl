@@ -22,15 +22,13 @@ use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::Util::Web;
 
-my $_decode_feed_map =
-{
+my $_decode_feed_map = {
     '0A' => '0',
     '0B' => '.',
     '0C' => '/',
     '0E' => '-',
     '0I' => '_',
 };
-
 
 sub decode_feed
 {
@@ -51,7 +49,7 @@ sub transform_url
         return 1;
     }
 
-    WARN( "transform url $_[ 2 ]: FAIL for\n\t$_[ 0 ]" );
+    WARN "transform url $_[ 2 ]: FAIL for\n\t$_[ 0 ]";
     return 0;
 }
 
@@ -91,7 +89,7 @@ select d.*
 
 SQL
 
-    my $failed_downloads = [];
+    my $failed_downloads  = [];
     my $skipped_downloads = [];
 
     my $i = 0;
@@ -100,13 +98,12 @@ SQL
 
     for my $download ( @{ $downloads } )
     {
-        eval
-        {
+        eval {
             my $url = $download->{ url };
 
-            DEBUG( sub { "download $download->{ downloads_id } [ story $download->{ stories_id } ]" } );
+            DEBUG "download $download->{ downloads_id } [ story $download->{ stories_id } ]";
 
-            DEBUG( sub { "broken url:\n\t$url" } ) ;
+            DEBUG "broken url:\n\t$url";
 
             if ( $url =~ /express0C0J/ )
             {
@@ -115,18 +112,18 @@ SQL
                 next;
             }
 
-            next unless (
-                transform_url( $url, sub { $_[0] =~ s/.*washingtonpost0N0C// } , "wp prefix" ) ||
-                transform_url( $url, sub { $_[0] =~ s/.*posteverything0Bwashpost0N0C/posteverything0C/ } , "pe prefix" )
-            );
+            next
+              unless ( transform_url( $url, sub { $_[ 0 ] =~ s/.*washingtonpost0N0C// }, "wp prefix" )
+                || transform_url( $url, sub { $_[ 0 ] =~ s/.*posteverything0Bwashpost0N0C/posteverything0C/ }, "pe prefix" )
+              );
 
-            next unless ( transform_url( $url, sub { $_[0] =~ s/(0Dwprss0Frss0I.*)?\/story01.htm// } , "story suffix" ) );
+            next unless ( transform_url( $url, sub { $_[ 0 ] =~ s/(0Dwprss0Frss0I.*)?\/story01.htm// }, "story suffix" ) );
 
-            next unless ( transform_url( $url, sub { $_[0] =~ s/(0.)/decode_feed( $1 )/eg }, "decode" ) );
+            next unless ( transform_url( $url, sub { $_[ 0 ] =~ s/(0.)/decode_feed( $1 )/eg }, "decode" ) );
 
             $url = "http://www.washingtonpost.com/$url";
 
-            DEBUG( sub { "fixed url:\n\t$url" } );
+            DEBUG "fixed url:\n\t$url";
 
             $download->{ fixed_url } = $url;
 
@@ -144,7 +141,7 @@ SQL
         if ( $@ )
         {
             push( @{ $failed_downloads }, $download );
-            WARN( "error processing download: $@\n" . Dumper( $download ) );
+            WARN "error processing download: $@" . Dumper( $download );
         }
 
         if ( !( ++$i % 100 ) )
@@ -156,8 +153,9 @@ SQL
 
     $db->commit;
 
-    say "skipped downloads: " . Dumper( map { $_->{ url } } @{ $skipped_downloads } );
-    # say "failed downloads: " .
+    INFO "skipped downloads: " . Dumper( map { $_->{ url } } @{ $skipped_downloads } );
+
+    # INFO "failed downloads: " .
     #     Dumper( map { { url => $_->{ url }, fixed_url => $_->{ fixed_url } } } @{ $failed_downloads } );
 }
 

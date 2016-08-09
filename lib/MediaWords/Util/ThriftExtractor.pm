@@ -8,7 +8,6 @@ use MediaWords::CommonLibs;
 use strict;
 use warnings;
 
-use Carp;
 use Scalar::Defer;
 use Readonly;
 use MediaWords::Thrift::Extractor;

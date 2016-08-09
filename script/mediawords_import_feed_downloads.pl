@@ -9,9 +9,10 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use MediaWords::DB;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
+
+use MediaWords::DB;
 
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
@@ -32,8 +33,7 @@ sub xml_tree_from_hash
 
     foreach my $key ( sort keys %{ $hash } )
     {
-
-        #say STDERR "appending '$key'  $hash->{ $key } ";
+        TRACE "appending '$key'  $hash->{ $key } ";
         $node->appendTextChild( $key, $hash->{ $key } );
     }
 
@@ -59,8 +59,7 @@ sub import_downloads
 
     foreach my $child_node ( $root->childNodes() )
     {
-
-        #say STDERR "child_node: " . $child_node->nodeName();
+        TRACE "child_node: " . $child_node->nodeName();
         my $download = { map { $_->nodeName() => $_->textContent() } $child_node->childNodes() };
 
         my $old_downloads_id = $download->{ downloads_id };
@@ -69,7 +68,7 @@ sub import_downloads
         my $decoded_content = decode_base64( $download->{ encoded_download_content_base_64 } );
         delete( $download->{ encoded_download_content_base_64 } );
 
-        #say STDERR Dumper( $download );
+        TRACE Dumper( $download );
 
         foreach my $key ( sort keys %{ $download } )
         {
@@ -82,18 +81,15 @@ sub import_downloads
                     next;
                 }
 
-                #$DB::single = 2 if $download->{ download_time } eq '2010-08-25 05:12:48.617132';
-
                 if ( $download->{ $key } eq '' )
                 {
-
-                    #say STDERR "Deleting '$key' ";
+                    TRACE "Deleting '$key' ";
                     delete( $download->{ $key } );
                 }
             }
         }
 
-        #say STDERR Dumper( $download );
+        TRACE Dumper( $download );
 
         next if ( '(redundant feed)' eq $decoded_content );    # The download contains no content so don't add it.
 
@@ -103,19 +99,16 @@ sub import_downloads
             MediaWords::Crawler::FeedHandler::handle_feed_content( $db, $db_download, $decoded_content );
             $downloads_processed++;
 
-            say STDERR "Processed $downloads_processed downloads";
-
-            #say STDERR Dumper( $db_download );
+            INFO "Processed $downloads_processed downloads";
+            TRACE Dumper( $db_download );
         };
 
         if ( $@ )
         {
-            warn $@;
+            WARN $@;
 
-            #say "'$decoded_content'";
-            say $old_downloads_id;
-
-            #exit;
+            TRACE "'$decoded_content'";
+            INFO $old_downloads_id;
         }
     }
 }

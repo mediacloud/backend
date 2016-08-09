@@ -2,8 +2,6 @@
 
 use strict;
 use warnings;
-use Data::Dumper;
-use Modern::Perl "2015";
 
 #
 # Basic sanity test of crawler functionality
@@ -30,23 +28,27 @@ use Test::More tests => 233;
 use Test::Differences;
 use Test::Deep;
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Test::NoWarnings;
 
 use MediaWords::Crawler::Engine;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
-use MediaWords::Test::DB;
+use MediaWords::StoryVectors;
 use MediaWords::Test::Data;
+use MediaWords::Test::DB;
 use MediaWords::Test::LocalServer;
 use MediaWords::Test::Text;
 use MediaWords::Util::Config;
 use MediaWords::Util::DateTime;
-use DBIx::Simple::MediaWords;
-use MediaWords::StoryVectors;
-use LWP::UserAgent;
-use Encode;
 
+use Data::Dumper;
 use Data::Sorting qw( :basics :arrays :extras );
+use DBIx::Simple::MediaWords;
+use Encode;
+use LWP::UserAgent;
 use Readonly;
 
 # add a test media source and feed to the database
@@ -356,7 +358,7 @@ sub _test_crawler($$$$)
 
             _test_stories( $db, $test_name, $test_prefix, $stories_count, $extractor_method );
 
-            say STDERR "Killing server";
+            INFO "Killing server";
             $test_http_server->stop();
         }
     );

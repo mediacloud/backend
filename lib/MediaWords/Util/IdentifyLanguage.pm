@@ -218,7 +218,7 @@ sub language_code_for_text($;$$)
 
     unless ( exists( $language_names_to_codes{ $language_name } ) )
     {
-        say STDERR "Language '$language_name' was identified but is not mapped, please add this language " .
+        ERROR "Language '$language_name' was identified but is not mapped, please add this language " .
           "to %language_names_to_codes hashmap.";
         return '';
     }

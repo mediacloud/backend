@@ -1,6 +1,4 @@
 package MediaWords::Util::Mail;
-use Modern::Perl "2015";
-use MediaWords::CommonLibs;
 
 #
 # Email sending helper
@@ -8,6 +6,9 @@ use MediaWords::CommonLibs;
 
 use strict;
 use warnings;
+
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
 
 use MediaWords::Util::Config;
 use Email::MIME;
@@ -53,7 +54,7 @@ EOF
     }
     else
     {
-        say STDERR "Unable to send email to $to_email";
+        ERROR "Unable to send email to $to_email";
         return 0;
     }
 }

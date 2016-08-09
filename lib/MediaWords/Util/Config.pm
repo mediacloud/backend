@@ -16,7 +16,6 @@ use MediaWords::CommonLibs;
 # function to set the returned config object to the already generated
 # config object for the app.
 
-use Carp;
 use Config::Any;
 use Dir::Self;
 use Exporter 'import';
@@ -71,9 +70,8 @@ sub _parse_config_file
 {
     my $config_file = shift;
 
-    -r $config_file or croak "Can't read from $config_file";
+    -r $config_file or MediaWords::CommonLibs::LOGCROAK( "Can't read from $config_file" );
 
-    #print "config:file: $config_file\n";
     my $ret = Config::Any->load_files( { files => [ $config_file ], use_ext => 1 } )->[ 0 ]->{ $config_file };
 
     return $ret;
@@ -84,9 +82,8 @@ sub set_config_file
 {
     my $config_file = shift;
 
-    -r $config_file or croak "Can't read from $config_file";
+    -r $config_file or MediaWords::CommonLibs::LOGCROAK( "Can't read from $config_file" );
 
-    #print "config:file: $config_file\n";
     set_config( _parse_config_file( $config_file ) );
 }
 
@@ -141,7 +138,7 @@ sub set_config
 
     if ( $_config )
     {
-        carp( "config object already cached" );
+        LOGCARP( "config object already cached" );
     }
 
     _set_dynamic_defaults( $config );
@@ -166,7 +163,7 @@ sub verify_settings
 {
     my ( $config ) = @_;
 
-    defined( $config->{ database } ) or croak "No database connections configured";
+    defined( $config->{ database } ) or MediaWords::CommonLibs::LOGCROAK( "No database connections configured" );
 
     # Warn if there's a foreign database set for storing raw downloads
     if ( grep { $_->{ label } eq 'raw_downloads' } @{ $config->{ database } } )

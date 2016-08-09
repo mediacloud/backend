@@ -16,8 +16,8 @@ BEGIN
 }
 
 use Modern::Perl "2015";
-
 use MediaWords::CommonLibs;
+
 use MediaWords::DB;
 use MediaWords::Util::SQL;
 use Readonly;
@@ -43,7 +43,7 @@ sub recreate_index
 {
     my ( $db, $name, $table, $fields, $predicate ) = @_;
 
-    say STDERR "recreating $name ...";
+    INFO "recreating $name ...";
 
     die( "only indexes ending in _recent are allowed" ) unless ( $name =~ /_recent$/ );
 
@@ -53,7 +53,7 @@ sub recreate_index
 
     my $query = "create index concurrently $name on $table ( $fields ) where $predicate";
 
-    say STDERR $query;
+    DEBUG $query;
 
     $db->query( $query );
 }

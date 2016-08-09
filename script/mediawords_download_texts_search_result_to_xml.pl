@@ -11,15 +11,15 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use MediaWords::DB;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use MediaWords::DB;
+
 use DBIx::Simple::MediaWords;
-use XML::LibXML;
 use Getopt::Long;
 use Readonly;
-use Carp;
+use XML::LibXML;
 
 Readonly my $download_text_wild_card_query_search => q{ to_tsvector('english', download_text) @@ to_tsquery('english', ?) };
 
@@ -62,8 +62,15 @@ sub get_matching_downloads_for_story
     ( my $db, my $search_query, my $story_id ) = @_;
 
     my $matching_downloads_for_story = $db->query(
-"select downloads.downloads_id from downloads, download_texts where $download_text_wild_card_query_search and downloads.downloads_id=download_texts.downloads_id and downloads.stories_id = ? "
-          . ' order by sequence',
+        <<"SQL",
+        SELECT downloads.downloads_id
+        FROM downloads,
+             download_texts
+        WHERE $download_text_wild_card_query_search
+          AND downloads.downloads_id = download_texts.downloads_id
+          AND downloads.stories_id = ?
+        ORDER BY sequence
+SQL
         $search_query, $story_id
     )->map_hashes( 'downloads_id' );
 
@@ -74,7 +81,15 @@ sub get_downloads_for_story
 {
     ( my $db, my $story_id ) = @_;
     my $downloads_for_story = $db->query(
-"select *, url as download_url from  downloads, download_texts where stories_id = ? and downloads.downloads_id=download_texts.downloads_id order by sequence",
+        <<"SQL",
+        SELECT *,
+               url AS download_url
+        FROM downloads,
+             download_texts
+        WHERE stories_id = ?
+          AND downloads.downloads_id = download_texts.downloads_id
+        ORDER BY sequence
+SQL
         $story_id
     );
     return $downloads_for_story;
@@ -89,7 +104,7 @@ sub add_downloads_to_story
 
     my $matching_downloads_for_story = get_matching_downloads_for_story( $db, $full_ts_query, $story_id );
 
-    confess if ( scalar( keys %{ $matching_downloads_for_story } ) == 0 );
+    LOGCONFESS "Matching downloads is 0." if ( scalar( keys %{ $matching_downloads_for_story } ) == 0 );
 
     while ( my $row = $downloads_for_story->hash() )
     {
@@ -116,12 +131,22 @@ sub get_matching_articles
 {
     ( my $db, my $search_query ) = @_;
     my $matching_articles = $db->query(
-"select stories.*, stories.url as story_url from download_texts, downloads, stories where $download_text_wild_card_query_search and downloads.downloads_id=download_texts.downloads_id and downloads.stories_id=stories.stories_id "
-          . ' order by media_id, stories.stories_id',
+        <<"SQL",
+        SELECT stories.*,
+               stories.url AS story_url
+        FROM download_texts,
+             downloads,
+             stories
+        WHERE $download_text_wild_card_query_search
+          AND downloads.downloads_id = download_texts.downloads_id
+          AND downloads.stories_id = stories.stories_id
+        ORDER BY media_id,
+                 stories.stories_id
+SQL
         $search_query,
     );
 
-    print STDERR "finished  -- search query " . localtime() . "\n";
+    INFO "finished  -- search query " . localtime();
 
     return $matching_articles;
 }
@@ -130,12 +155,24 @@ sub get_matching_articles_within_date_range
 {
     ( my $db, my $search_query, my $start_date, my $end_date ) = @_;
     my $matching_articles = $db->query(
-"select stories.*, stories.url as story_url from download_texts, downloads, stories where $download_text_wild_card_query_search and downloads.downloads_id=download_texts.downloads_id and downloads.stories_id=stories.stories_id "
-          . ' and publish_date >= ?  and publish_date <= ? '
-          . ' order by media_id, stories.stories_id',
-        $search_query, $start_date, $end_date );
+        <<"SQL",
+        SELECT stories.*,
+               stories.url AS story_url
+        FROM download_texts,
+             downloads,
+             stories
+        WHERE $download_text_wild_card_query_search
+          AND downloads.downloads_id = download_texts.downloads_id
+          AND downloads.stories_id = stories.stories_id
+          AND publish_date >= ?
+          AND publish_date <= ?
+        ORDER BY media_id,
+                 stories.stories_id
+SQL
+        $search_query, $start_date, $end_date
+    );
 
-    print STDERR "finished  -- search query " . localtime() . "\n";
+    INFO "finished  -- search query " . localtime();
 
     return $matching_articles;
 }
@@ -204,7 +241,15 @@ sub create_calais_tags_element
     Readonly my $calais_tag_sets_id => 13;
 
     my $story_tag_rows = $db->query(
-"SELECT tags.tags_id, tags.tag FROM stories_tags_map, tags WHERE stories_tags_map.tags_id=tags.tags_id and stories_tags_map.stories_id = ? and tags.tag_sets_id = ? ",
+        <<"SQL",
+        SELECT tags.tags_id,
+               tags.tag
+        FROM stories_tags_map,
+             tags
+        WHERE stories_tags_map.tags_id = tags.tags_id
+          AND stories_tags_map.stories_id = ?
+          AND tags.tag_sets_id = ?
+SQL
         $story_id, $calais_tag_sets_id
     );
 
@@ -229,7 +274,7 @@ sub create_media_element
 {
     ( my $db, my $media_id ) = @_;
 
-    print STDERR "creating XML node for media_id $media_id\n";
+    INFO "creating XML node for media_id $media_id";
 
     my $media_element = XML::LibXML::Element->new( 'medium' );
     $media_element->setAttribute( 'media_id', $media_id );
@@ -281,12 +326,12 @@ sub main
     die "$usage\n"
       if ( ( $start_date or $end_date ) and ( !( $start_date and $end_date ) ) );
 
-    print STDERR "starting --  " . localtime() . "\n";
+    INFO "starting --  " . localtime();
 
     my $db = MediaWords::DB::connect_to_db()
       || die DBIx::Simple::MediaWords->error;
 
-    print STDERR "starting -- search query " . localtime() . "\n";
+    INFO "starting -- search query " . localtime();
 
     Readonly my $full_ts_query_string => get_ts_or_query_from_list( \@or_query );
 
@@ -340,7 +385,7 @@ sub main
 
     print $doc->toFile( $output_file, 1 );
 
-    print STDERR "finished --  " . localtime() . "\n";
+    INFO "finished --  " . localtime();
 }
 
 main();

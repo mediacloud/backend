@@ -11,7 +11,6 @@ use Readonly;
 use URI;
 use URI::Escape;
 use URI::QueryParam;
-use Carp;
 use Encode;
 
 use MediaWords::DBI::Stories;
@@ -211,27 +210,27 @@ sub corenlp_json : Local
 
     unless ( $stories_id )
     {
-        confess "No stories_id";
+        LOGCONFESS "No stories_id";
     }
 
     unless ( $c->dbis->find_by_id( 'stories', $stories_id ) )
     {
-        confess "Story $stories_id does not exist.";
+        LOGCONFESS "Story $stories_id does not exist.";
     }
 
     unless ( MediaWords::Util::CoreNLP::annotator_is_enabled() )
     {
-        confess "CoreNLP annotator is not enabled in the configuration.";
+        LOGCONFESS "CoreNLP annotator is not enabled in the configuration.";
     }
 
     unless ( MediaWords::Util::CoreNLP::story_is_annotatable( $c->dbis, $stories_id ) )
     {
-        confess "Story $stories_id is not annotatable (either it's not in English or has no sentences).";
+        LOGCONFESS "Story $stories_id is not annotatable (either it's not in English or has no sentences).";
     }
 
     unless ( MediaWords::Util::CoreNLP::story_is_annotated( $c->dbis, $stories_id ) )
     {
-        confess "Story $stories_id is not annotated.";
+        LOGCONFESS "Story $stories_id is not annotated.";
     }
 
     my $corenlp_json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story_and_all_sentences( $c->dbis, $stories_id );
@@ -247,28 +246,28 @@ sub bitly_json : Local
 
     unless ( $stories_id )
     {
-        confess "No stories_id";
+        LOGCONFESS "No stories_id";
     }
 
     unless ( $c->dbis->find_by_id( 'stories', $stories_id ) )
     {
-        confess "Story $stories_id does not exist.";
+        LOGCONFESS "Story $stories_id does not exist.";
     }
 
     unless ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
     {
-        confess "Bit.ly processing is not enabled in the configuration.";
+        LOGCONFESS "Bit.ly processing is not enabled in the configuration.";
     }
 
     unless ( MediaWords::Util::Bitly::story_stats_are_fetched( $c->dbis, $stories_id ) )
     {
-        confess "Story's $stories_id Bit.ly stats are not fetched.";
+        LOGCONFESS "Story's $stories_id Bit.ly stats are not fetched.";
     }
 
     my $bitly_stats_hashref = MediaWords::Util::Bitly::read_story_stats( $c->dbis, $stories_id );
     unless ( $bitly_stats_hashref )
     {
-        confess "Story's $stories_id Bit.ly stats are undefined.";
+        LOGCONFESS "Story's $stories_id Bit.ly stats are undefined.";
     }
 
     Readonly my $json_pretty => 1;
@@ -553,7 +552,7 @@ sub stories_query_json : Local
 {
     my ( $self, $c ) = @_;
 
-    say STDERR "starting stories_query_json";
+    DEBUG "starting stories_query_json";
 
     my $last_stories_id = $c->req->param( 'last_stories_id' );
 
@@ -579,13 +578,13 @@ sub stories_query_json : Local
         $last_stories_id--;
     }
 
-    say STDERR "Last_stories_id is $last_stories_id";
+    DEBUG "Last_stories_id is $last_stories_id";
 
     Readonly my $stories_to_return => min( $c->req->param( 'story_count' ) // 25, 1000 );
 
     my $query = " SELECT * FROM stories WHERE stories_id > ? ORDER by stories_id asc LIMIT ? ";
 
-    # say STDERR "Running query '$query' with $last_stories_id, $stories_to_return ";
+    # TRACE "Running query '$query' with $last_stories_id, $stories_to_return ";
 
     my $stories = $c->dbis->query( $query, $last_stories_id, $stories_to_return )->hashes;
 
@@ -614,7 +613,7 @@ sub stories_query_json : Local
             else
             {
 
-                #say STDERR "got content_ref $$content_ref";
+                #TRACE "got content_ref $$content_ref";
 
                 $story->{ first_raw_download_file } = $$content_ref;
             }
@@ -628,7 +627,7 @@ sub stories_query_json : Local
         $story->{ story_sentences } = $story_sentences;
     }
 
-    say STDERR "finished stories_query_json";
+    DEBUG "finished stories_query_json";
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
     return $c->res->body( encode_json( $stories ) );

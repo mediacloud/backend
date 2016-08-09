@@ -1685,10 +1685,7 @@ Return a list of timespans in the current snapshot.
 
 ### Query Parameters
 
-Standard parameters accepted: snapshots_id, foci_id.
-<!-- RB - why does this accept foci_id? -->
-<!-- HR - remember the hierarchy!  timespan belongs to focus belongs to snapshot.  to implement alexis' slider,
-you'll be on a page for a given focus and need the list of timespans that belong to that focus -->
+Standard parameters accepted: snapshots_id, foci_id, timespans_id.
 
 ### Output Description
 

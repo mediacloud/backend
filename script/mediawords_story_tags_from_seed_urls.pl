@@ -21,6 +21,9 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Data::Dumper;
 use Text::CSV_XS;
 
@@ -59,7 +62,7 @@ sub add_url_type_as_story_tag
     my $url = $url_type->{ url };
     if ( !$url )
     {
-        warn( "no url" );
+        WARN "no url";
         return;
     }
 
@@ -76,7 +79,7 @@ sub add_url_type_as_story_tag
     if ( $media_type_map )
     {
         my $mapped_media_type = $media_type_map->{ $media_type }
-          || warn( "media type '$media_type' not found in media type map" );
+          || WARN "media type '$media_type' not found in media type map";
 
         $media_type = $mapped_media_type;
     }
@@ -86,20 +89,20 @@ sub add_url_type_as_story_tag
     my $seed_url = $db->query( "select * from topic_seed_urls where url = ?", $url )->hash;
     if ( !$seed_url )
     {
-        warn( "No seed url found for '$url'" );
+        WARN "No seed url found for '$url'";
         return;
     }
 
     my $stories_id = $seed_url->{ stories_id };
     if ( !$stories_id )
     {
-        warn( "No stories_id in seed url '$url'" );
+        WARN "No stories_id in seed url '$url'";
         return;
     }
 
     my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "$tag_set_name:$media_type" );
 
-    print STDERR "$media_type: $url\n";
+    INFO "$media_type: $url";
 
     my $tag_exists = $db->query( <<END, $stories_id, $tag->{ tags_id } )->hash;
 select * from stories_tags_map where stories_id = ? and tags_id = ?
@@ -118,7 +121,7 @@ sub main
 
     die( "usage: $0 <csv file> <tag set name > [ <category map csv> ]" ) unless ( $file && $tag_set_name );
 
-    print STDERR "$0: $file\n";
+    INFO "$0: $file";
 
     my $db = MediaWords::DB::connect_to_db;
 
@@ -127,7 +130,7 @@ sub main
     my $media_type_map = get_media_type_map( $media_type_map_csv );
 
     my $i = 0;
-    map { print STDERR $i++ . "\n"; add_url_type_as_story_tag( $db, $tag_set_name, $_, $media_type_map ) } @{ $url_types };
+    map { INFO $i++ . ''; add_url_type_as_story_tag( $db, $tag_set_name, $_, $media_type_map ) } @{ $url_types };
 }
 
 main();

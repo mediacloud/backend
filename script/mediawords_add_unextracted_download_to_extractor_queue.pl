@@ -27,7 +27,7 @@ sub main
 {
     my $db = MediaWords::DB::connect_to_db;
 
-    say STDERR "Fetching a list of unextracted downloads...";
+    INFO "Fetching a list of unextracted downloads...";
     my $downloads = $db->query(
         <<EOF
 
@@ -45,7 +45,7 @@ EOF
     for my $download ( @{ $downloads } )
     {
 
-        say STDERR 'Adding download ID ' . $download->{ downloads_id } . '...';
+        INFO 'Adding download ID ' . $download->{ downloads_id } . '...';
         MediaWords::Job::ExtractAndVector->add_to_queue( { downloads_id => $download->{ downloads_id } } );
 
         # throttle to 100 connections a second to prevent running the

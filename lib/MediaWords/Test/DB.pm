@@ -5,6 +5,9 @@ package MediaWords::Test::DB;
 use strict;
 use warnings;
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use File::Path;
 
 use DBIx::Simple::MediaWords;
@@ -20,7 +23,7 @@ sub _create_test_database
 
     my $test_db_name = 'mediacloud_test_' . time() . '_' . $$;
 
-    # print "creating database $test_db_name ...\n";
+    DEBUG "creating database $test_db_name ...";
     $base_db->query( "create database $test_db_name" );
 
     $base_db->disconnect();
@@ -28,7 +31,7 @@ sub _create_test_database
     my $test_connect_info = [ MediaWords::DB::connect_info ];
     $test_connect_info->[ 0 ] =~ s/dbname=[a-z0-9_]*/dbname=$test_db_name/i;
 
-    # print "connecting to test database: $test_connect_info->[0] ...\n";
+    DEBUG "connecting to test database: $test_connect_info->[0] ...";
     my $test_db = DBIx::Simple::MediaWords->connect( @{ $test_connect_info } );
 
     if ( !open( FILE, "$FindBin::Bin/../script/mediawords.sql" ) )

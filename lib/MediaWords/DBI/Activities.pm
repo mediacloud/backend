@@ -72,7 +72,7 @@ that the caller of might have initiated.
             die "Unable to log the 'something_important' activity.";
         }
 
-        say STDERR "All good.";
+        DEBUG "All good.";
     }
 
     main();
@@ -414,7 +414,7 @@ EOF
     if ( $@ )
     {
         # Writing the change failed
-        say STDERR "Writing activity failed: $@";
+        ERROR "Writing activity failed: $@";
         return 0;
     }
 

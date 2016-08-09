@@ -11,6 +11,9 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Data::Dumper;
 
 use MediaWords::DB;
@@ -126,7 +129,7 @@ sub insert_topic_stories
     #     valid_foreign_rss_story         boolean default false
     # );
 
-    say STDERR "STORIES " . scalar( @{ $stories_ids } );
+    INFO "STORIES " . scalar( @{ $stories_ids } );
 
     for my $stories_id ( @{ $stories_ids } )
     {
@@ -154,7 +157,7 @@ sub insert_topic_links
 
     my $cid = $topic->{ topics_id };
 
-    say STDERR "MATCHES " . scalar( @{ $story_sentence_matches } );
+    INFO "MATCHES " . scalar( @{ $story_sentence_matches } );
 
     for my $ssm ( @{ $story_sentence_matches } )
     {
@@ -184,7 +187,7 @@ SQL
         $db->create( 'topic_links', $cl );
     }
 
-    say STDERR "";
+    INFO "";
 }
 
 # generate alternative form of story_sentence_matches in which each source_stories_id that are associated
@@ -231,21 +234,21 @@ sub main
 
     my $topic = get_topic( $db );
 
-    say STDERR "INSERT STORIES";
+    INFO "INSERT STORIES";
 
     insert_topic_stories( $db, $topic, $story_sentence_matches );
 
-    say STDERR "INSERT LINKS";
+    INFO "INSERT LINKS";
 
     insert_topic_links( $db, $topic, $story_sentence_matches );
 
     my $peer_matches = get_peer_matches( $story_sentence_matches );
 
-    say STDERR "INSERT PEER LINKS";
+    INFO "INSERT PEER LINKS";
 
     insert_topic_links( $db, $topic, $peer_matches );
 
-    say STDERR "DONE";
+    INFO "DONE";
 }
 
 main();

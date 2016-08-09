@@ -120,7 +120,7 @@ sub _links_in_facebook_post($)
 
     if ( scalar @links )
     {
-        say STDERR "Links in post: " . Dumper( \@links );
+        DEBUG "Links in post: " . Dumper( \@links );
     }
 
     return \@links;
@@ -132,16 +132,16 @@ sub fetch_facebook_page_links($$)
 
     my $sth;
 
-    say STDERR "Fetching stats for Facebook page URL $facebook_page_url";
+    INFO "Fetching stats for Facebook page URL $facebook_page_url";
 
     $facebook_page_url = MediaWords::Util::URL::normalize_url( $facebook_page_url );
-    say STDERR "\tNormalized page URL: $facebook_page_url";
+    DEBUG "Normalized page URL: $facebook_page_url";
 
-    say STDERR "\tFetching Open Graph object...";
+    INFO "Fetching Open Graph object...";
     my $og_object = MediaWords::Util::Facebook::api_request( '', [ { key => 'id', value => $facebook_page_url } ] );
     unless ( _is_facebook_page( $og_object ) )
     {
-        warn "URL $facebook_page_url is not a Facebook page\n";
+        WARN "URL $facebook_page_url is not a Facebook page\n";
         return;
     }
 
@@ -164,7 +164,7 @@ EOF
         die "Object ID for URL $facebook_page_url does not look like a number.";
     }
     $og_object_id = $og_object_id + 0;
-    say STDERR "\tOpen Graph object ID: $og_object_id";
+    DEBUG "Open Graph object ID: $og_object_id";
 
     my $posts_processed = 0;
     my $posts;
@@ -199,7 +199,7 @@ EOF
         }
 
         ++$page_being_fetched;
-        say STDERR "\tFetching page's $og_object_id feed (page $page_being_fetched)...";
+        INFO "Fetching page's $og_object_id feed (page $page_being_fetched)...";
 
         my $feed = MediaWords::Util::Facebook::api_request( $og_object_id . '/feed', $api_request_params );
         unless ( defined( $feed->{ data } ) and ref( $feed->{ data } ) eq ref( [] ) )
@@ -278,7 +278,7 @@ EOF
         and scalar( @{ $posts } ) > 0
       );
 
-    say STDERR "\tProcessed $posts_processed posts.";
+    INFO "Processed $posts_processed posts.";
 }
 
 sub main
@@ -301,7 +301,7 @@ EOF
 
     my @page_urls = split( /\r?\n/, read_file( $pages_file ) );
 
-    say STDERR "Initializing output database '$output_database'...";
+    INFO "Initializing output database '$output_database'...";
     my $sqlite3_dbh = DBI->connect( "dbi:SQLite:dbname=$output_database", "", "" );
     $sqlite3_dbh->do( 'PRAGMA foreign_keys = ON' );
     $sqlite3_dbh->do(

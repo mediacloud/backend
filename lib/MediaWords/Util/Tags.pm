@@ -1,13 +1,14 @@
 package MediaWords::Util::Tags;
-use Modern::Perl "2015";
-use MediaWords::CommonLibs;
-
-#TODO replace YAML::Syck with another module
-use YAML::Syck;
 
 # various functions for editing feed and medium tags
 
 use strict;
+use warnings;
+
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
+use YAML::Syck;
 
 # return a hash with keys of each tag id associated with the object
 sub get_tags_lookup
@@ -177,7 +178,7 @@ sub lookup_tag
 
     if ( $tag_name !~ /^([^:]*):(.*)$/ )
     {
-        warn( "Unable to parse tag name '$tag_name'" );
+        WARN "Unable to parse tag name '$tag_name'";
         return undef;
     }
 
@@ -195,7 +196,7 @@ sub lookup_or_create_tag
 
     if ( $tag_name !~ /^([^:]*):(.*)$/ )
     {
-        warn( "Unable to parse tag name '$tag_name'" );
+        WARN "Unable to parse tag name '$tag_name'";
         return undef;
     }
 
@@ -239,7 +240,7 @@ sub lookup_tag_name
 
     if ( !$tag_set_name )
     {
-        warn( "Unable to find tag '$tags_id'" );
+        WARN "Unable to find tag '$tags_id'";
         return '';
     }
 

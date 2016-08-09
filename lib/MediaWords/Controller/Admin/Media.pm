@@ -1,32 +1,31 @@
 package MediaWords::Controller::Admin::Media;
+
+use strict;
+use warnings;
+
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use Encode;
-use strict;
-use warnings;
 use base 'Catalyst::Controller';
 
-use Regexp::Common qw /URI/;
-
-#use YAML::Syck;
-use Text::Trim;
-use URI::Split;
+use Data::Dumper;
+use Encode;
+use JSON;
 use List::MoreUtils qw(any all none notall true false firstidx first_index
   lastidx last_index insert_after insert_after_string
   apply after after_incl before before_incl indexes
   firstval first_value lastval last_value each_array
   each_arrayref pairwise natatime mesh zip uniq minmax);
-
-use Data::Dumper;
-use MediaWords::Util::Tags;
-use MediaWords::Util::Web;
-use MediaWords::Util::HTML;
 use MediaWords::DBI::Feeds;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
-use JSON;
+use MediaWords::Util::HTML;
+use MediaWords::Util::Tags;
+use MediaWords::Util::Web;
 use Readonly;
+use Regexp::Common qw /URI/;
+use Text::Trim;
+use URI::Split;
 use URI;
 
 use if $] < 5.014, Switch => 'Perl6';
@@ -117,7 +116,7 @@ sub media_tags_search_json : Local
 
     my $term = $c->req->param( 'term' ) || 0;
 
-    say STDERR "$term";
+    DEBUG "$term";
 
     $term = $term . '%';
 
@@ -143,8 +142,8 @@ sub media_tags_search_json : Local
         )->flat;
     }
 
-    #say STDERR Dumper( $terms );
-    #say STDERR encode_json($terms);
+    #TRACE Dumper( $terms );
+    #TRACE encode_json($terms);
 
     $c->res->body( encode_json( $terms ) );
 
@@ -359,7 +358,7 @@ sub delete : Local
             $status_msg = 'Media source marked for deletion.';
         }
 
-        #print STDERR "moderated: $medium->{ moderated }\n";
+        TRACE "moderated: $medium->{ moderated }";
 
         if ( $medium->{ moderated } )
         {
@@ -554,15 +553,14 @@ sub _rate_full_text_rss_likely_hood
         abs( $medium->{ avg_extracted_length } - $medium->{ avg_rss_length } ) /
           ( $medium->{ avg_extracted_length } != 0.0 ? $medium->{ avg_extracted_length } : 0.01 ) );
 
-    #say STDERR "_rate_full_text_rss_likely_hood returning '$ret'";
+    #TRACE "_rate_full_text_rss_likely_hood returning '$ret'";
 
     if ( $ret eq 'nan' )
     {
-        say STDERR 5 *
+        DEBUG 5 *
           ( abs( $medium->{ avg_extracted_length } - $medium->{ avg_rss_length } ) / $medium->{ avg_extracted_length } );
-        say STDERR ( $medium->{ avg_similarity } || 0 );
-        print STDERR Dumper( $medium );
-        print Dumper( $medium );
+        DEBUG( $medium->{ avg_similarity } || 0 );
+        DEBUG Dumper( $medium );
         die "Error calculating full_text_rss_likely_hood for media id " . $medium->{ media_id };
     }
     return $ret;
@@ -618,7 +616,7 @@ sub do_find_likely_full_text_rss : Local
 
     #$status_msg = 'UPDATED media_ids: ' . ( join ',', @{ $media_ids } );
 
-    #say STDERR $status_msg;
+    #DEBUG $status_msg;
 
     $c->response->redirect( $c->uri_for( '/admin/media/find_likely_full_text_rss/', { status_msg => $status_msg } ) );
 }
@@ -733,7 +731,7 @@ EOF
 
     $medium->{ full_text_rss_rating } = _rate_full_text_rss_likely_hood( $medium );
 
-    #say STDERR Dumper( $medium );
+    #DEBUG Dumper( $medium );
 
     my $action = $c->uri_for( '/admin/media/do_eval_rss_full_text/' ) . $media_id;
 
@@ -757,7 +755,7 @@ EOF
 
     my $next_media_id = $self->_get_next_media_id( $c, $media_id );
 
-    # say STDERR Dumper( $recent_stories );
+    # DEBUG Dumper( $recent_stories );
 
     $c->stash->{ next_media_id } = $next_media_id;
 
@@ -780,7 +778,7 @@ sub do_eval_rss_full_text : Local
 
     die "New RSS full text value undefined " if !defined( $full_text_state );
 
-    #say STDERR Dumper( $full_text_state );
+    #DEBUG Dumper( $full_text_state );
 
     if ( $full_text_state ne '' )
     {
@@ -795,7 +793,7 @@ sub do_eval_rss_full_text : Local
 
     my $status_msg = "UPDATED media: $id - Here's the next source";
 
-    #say STDERR $status_msg;
+    #DEBUG $status_msg;
 
     $c->response->redirect(
         $c->uri_for( '/admin/media/eval_rss_full_text/' . $next_media_id, { status_msg => $status_msg } ) );

@@ -47,7 +47,7 @@ END
 
     unless ( $media_has_active_syndicated_feeds )
     {
-        say STDERR "Adding media " . $medium->{ media_id } . " to rescraping queue";
+        INFO "Adding media " . $medium->{ media_id } . " to rescraping queue";
         add_to_rescrape_media_queue( $medium );
     }
 }
@@ -108,13 +108,13 @@ EOF
     )->hash;
     if ( $existing_feed )
     {
-        say STDERR "Feed already exists as feed ID " .
+        INFO "Feed already exists as feed ID " .
           $existing_feed->{ feeds_id } . " so updating instead of creating a new one; feed: " . dump_terse( $feed );
         $db->update_by_id( 'feeds', $existing_feed->{ feeds_id }, $feed );
     }
     else
     {
-        say STDERR "Feed does not exist so creating a new one; feed: " . dump_terse( $feed );
+        INFO "Feed does not exist so creating a new one; feed: " . dump_terse( $feed );
         $db->create( 'feeds', $feed );
     }
 
@@ -135,7 +135,7 @@ EOF
         )->hashes;
         foreach my $active_webpage_feed ( @{ $active_webpage_feeds } )
         {
-            say STDERR "Disabling 'web_page' feed ID " .
+            INFO "Disabling 'web_page' feed ID " .
               $active_webpage_feed->{ feeds_id } . " because syndicated feeds were found";
             MediaWords::DBI::Feeds::disable_feed( $db, $active_webpage_feed->{ feeds_id } );
         }
@@ -188,7 +188,7 @@ EOF
             feed_type => $feed_link->{ feed_type } || 'syndicated',
         };
 
-        say STDERR "Creating rescraped feed " . dump_terse( $feed );
+        INFO "Creating rescraped feed " . dump_terse( $feed );
         $db->create( 'feeds_after_rescraping', $feed );
     }
 
@@ -223,7 +223,7 @@ EOF
         $media_id
     )->hashes;
 
-    say STDERR "Media ID: " .
+    INFO "Media ID: " .
       $media_id . "; moderated: " . $medium->{ moderated } . "; need to moderate: " . $need_to_moderate .
       "; rescraped_feeds feeds: " . dump_terse( $rescraped_feeds ) . "; live feeds: " . dump_terse( $live_feeds );
 
@@ -231,7 +231,7 @@ EOF
     {
         if ( $medium->{ moderated } and dump_terse( $rescraped_feeds ) eq dump_terse( $live_feeds ) )
         {
-            say STDERR "Media $media_id would need rescraping but we have " .
+            INFO "Media $media_id would need rescraping but we have " .
               "moderated the very same feeds previously so disabling moderation";
 
             $db->query(
@@ -245,7 +245,7 @@ EOF
         else
         {
             # (Re)set moderated = 'f' so that the media shows up in the moderation page
-            say STDERR "Unmoderating media ID $media_id because rescraped feeds require moderation";
+            INFO "Unmoderating media ID $media_id because rescraped feeds require moderation";
             make_media_unmoderated( $db, $media_id );
         }
     }
@@ -262,14 +262,14 @@ EOF
         )->hashes;
         foreach my $rescraped_feed ( @{ $feeds_after_rescraping } )
         {
-            say STDERR "Moving rescraped feed from media ID $media_id to 'feeds' table; rescraped feed: " .
+            INFO "Moving rescraped feed from media ID $media_id to 'feeds' table; rescraped feed: " .
               dump_terse( $rescraped_feed );
             _move_rescraped_feed_to_feeds_table( $db, $rescraped_feed );
         }
 
         # Set moderated = 't' because maybe this is a new media item that
         # didn't have any feeds previously
-        say STDERR "Making media $media_id moderated after moving all rescraped feeds to 'feeds' table";
+        INFO "Making media $media_id moderated after moving all rescraped feeds to 'feeds' table";
         make_media_moderated( $db, $media_id );
     }
 
@@ -516,7 +516,7 @@ EOF
         @{ $rescraped_feeds }
     );
 
-    # say STDERR "Existing and rescraped feeds: " . dump_terse( \@existing_and_rescraped_feeds );
+    # DEBUG "Existing and rescraped feeds: " . dump_terse( \@existing_and_rescraped_feeds );
     foreach my $feed ( @existing_and_rescraped_feeds )
     {
         my $feed_hash = _feed_hash( $feed );

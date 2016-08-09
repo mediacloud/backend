@@ -48,7 +48,7 @@ sub main
 
     my @indexes = map { $_->{ relname } } @$index_hashes;
 
-    #say STDERR Dumper([@indexes]);
+    TRACE Dumper( [ @indexes ] );
 
     my $non_reindexed_prefixes = [ qw ( downloads_ stories_ ) ];
 
@@ -57,8 +57,7 @@ sub main
         @indexes = grep { !string_starts_with( $_, $non_reindexed_prefix ) } @indexes;
     }
 
-    #say STDERR Dumper([@indexes]);
-    #exit;
+    TRACE Dumper( [ @indexes ] );
 
     foreach my $index ( @indexes )
     {

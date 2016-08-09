@@ -13,6 +13,9 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use MediaWords::DB;
 
 sub main
@@ -27,7 +30,7 @@ sub main
 
     if ( !$last_import_date )
     {
-        say STDERR "no value found for $dv_name. setting to now";
+        ERROR "no value found for $dv_name. setting to now";
         $db->create( 'database_variables', { name => $dv_name, value => $import_date } );
         return;
     }

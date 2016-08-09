@@ -12,6 +12,9 @@ BEGIN
     use lib "$FindBin::Bin/.";
 }
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Data::Dumper;
 use Getopt::Long;
 
@@ -42,7 +45,7 @@ END
         # skip redundant feeds
         next if ( length( $$content_ref ) < 32 );
 
-        print STDERR "importing download $download->{ downloads_id } $download->{ download_time }\n";
+        INFO "importing download $download->{ downloads_id } $download->{ download_time }";
 
         MediaWords::Crawler::FeedHandler::import_external_feed( $db, $media_id, $$content_ref );
     }

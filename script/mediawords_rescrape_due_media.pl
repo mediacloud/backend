@@ -84,8 +84,8 @@ EOF
 EOF
     )->hashes;
 
-    say STDERR 'Will rescrape media: ' . ( $tag ? 'with tag "' . $tag . '"' : 'all' );
-    say STDERR "Media count to be rescraped: " . scalar( @{ $due_media } );
+    INFO 'Will rescrape media: ' . ( $tag ? 'with tag "' . $tag . '"' : 'all' );
+    INFO "Media count to be rescraped: " . scalar( @{ $due_media } );
     foreach my $media ( @{ $due_media } )
     {
         MediaWords::Job::RescrapeMedia->add_to_queue( { media_id => $media->{ media_id } } );

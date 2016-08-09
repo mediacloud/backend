@@ -1,13 +1,14 @@
 package MediaWords::Util::Process;
+
+use strict;
+use warnings;
+
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Moose;
-use strict;
-use warnings;
 
 use Data::Dumper;
-use Carp qw/confess cluck/;
 
 my $child_pids = [];
 
@@ -37,31 +38,25 @@ sub mc_fork
     return $pid;
 }
 
-sub snapshot_child_pids
-{
-    say STDERR "Child PIDS";
-    say STDERR join "\n", @$child_pids;
-}
-
 sub _handle_sig
 {
-    say STDERR "caught sig";
+    INFO "caught sig";
     foreach my $pid ( @$child_pids )
     {
-        say STDERR "killing $pid";
+        INFO "killing $pid";
         kill( "TERM", $pid );
     }
 
     if ( scalar( @$child_pids ) > 0 )
     {
-        say STDERR "waiting for children";
+        INFO "waiting for children";
         while ( wait > -1 )
         {
 
         }
     }
 
-    say STDERR "exiting";
+    INFO "exiting";
     exit;
 }
 
@@ -77,7 +72,7 @@ sub fatal_error($)
 {
     my $error_message = shift;
 
-    cluck $error_message;
+    LOGCLUCK $error_message;
     exit 1;
 }
 

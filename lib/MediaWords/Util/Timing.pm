@@ -1,8 +1,11 @@
 package MediaWords::Util::Timing;
+
+use strict;
+use warnings;
+
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use strict;
 use Time::HiRes qw( gettimeofday tv_interval );
 
 require Exporter;
@@ -14,7 +17,7 @@ our @EXPORT = qw( start_time stop_time );
 sub start_time
 {
     my ( $name ) = @_;
-    print STDERR "Begin $name ...\n";
+    DEBUG "Begin $name ...";
     return [ gettimeofday ];
 }
 
@@ -23,7 +26,7 @@ sub stop_time
 {
     my ( $name, $t0 ) = @_;
     my $time_diff = tv_interval $t0, [ gettimeofday ];
-    print STDERR "Finished $name in $time_diff seconds\n\n";
+    DEBUG "Finished $name in $time_diff seconds";
     return $time_diff;
 }
 

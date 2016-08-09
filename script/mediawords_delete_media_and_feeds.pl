@@ -12,11 +12,11 @@ BEGIN
     use lib "$FindBin::Bin/.";
 }
 
-use DBIx::Simple::MediaWords;
-
-use MediaWords::DB;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
+
+use MediaWords::DB;
+use DBIx::Simple::MediaWords;
 
 sub main
 {
@@ -29,7 +29,7 @@ sub main
       $db->query( "select tags_id from tags t, tag_sets ts where t.tag_sets_id = ts.tag_sets_id and " .
           "t.tag = 'deleteme' and ts.name = 'workflow'" )->flat;
 
-    print STDERR "find shared media stories ...\n";
+    INFO "find shared media stories ...";
     my $update_stories =
       $db->query( "select s.stories_id, s.media_id as from_media_id, f.media_id as to_media_id " .
           "  from stories s, feeds_stories_map fsm, feeds f, media_tags_map mtm_s " .
@@ -39,7 +39,7 @@ sub main
 
     for my $story ( @{ $update_stories } )
     {
-        print STDERR "update story $story->{stories_id} set media $story->{from_media_id} -> $story->{to_media_id}\n";
+        INFO "update story $story->{stories_id} set media $story->{from_media_id} -> $story->{to_media_id}";
         $db->query(
             "update stories set media_id = ? where stories_id = ? and guid <> ?",
             $story->{ to_media_id },
@@ -48,30 +48,31 @@ sub main
         );
     }
 
-    print STDERR "find media stories to delete ...\n";
+    INFO "find media stories to delete ...";
     my $delete_stories = $db->query(
         "select s.stories_id, s.media_id from stories s, media_tags_map mtm " .
           "  where s.media_id = mtm.media_id and mtm.tags_id = ?",
         $delete_tags_id
     )->hashes;
-    print STDERR "found " . @{ $delete_stories } . " stories to delete\n";
+
+    INFO "found " . @{ $delete_stories } . " stories to delete";
     my $delete_count = 0;
     for my $story ( @{ $delete_stories } )
     {
-        print STDERR "delete story $story->{stories_id} from media $story->{media_id} [" . ++$delete_count . "]\n";
+        INFO "delete story $story->{stories_id} from media $story->{media_id} [" . ++$delete_count . "]";
         $db->query( "delete from stories where stories_id = ?", $story->{ stories_id } );
     }
 
-    print STDERR "delete media sources ...\n";
+    INFO "delete media sources ...";
     $db->query( "delete from media where media_id in (select media_id from media_tags_map mtm where tags_id = ?)",
         $delete_tags_id );
 
-    print STDERR "find shared feed downlaods ...\n";
+    INFO "find shared feed downlaods ...";
     my $feed_ids = $db->query( "select feeds_id from feeds_tags_map where tags_id = ?", $delete_tags_id )->flat;
 
     for my $feed_id ( @{ $feed_ids } )
     {
-        print STDERR "process feed $feed_id deletion ...\n";
+        INFO "process feed $feed_id deletion ...";
 
         my $downloads = $db->query(
             "select d.downloads_id, d.feeds_id as from_feeds_id, min(fsm.feeds_id) as to_feeds_id " .
@@ -82,8 +83,8 @@ sub main
         )->hashes;
         for my $download ( @{ $downloads } )
         {
-            print STDERR "update download $download->{downloads_id} " .
-              "set feed $download->{from_feeds_id} -> $download->{to_feeds_id}\n";
+            INFO "update download $download->{downloads_id} " .
+              "set feed $download->{from_feeds_id} -> $download->{to_feeds_id}";
             $db->query(
                 "update downloads set feeds_id = ? where downloads_id = ?",
                 $download->{ to_feeds_id },
@@ -91,7 +92,7 @@ sub main
             );
         }
 
-        print STDERR "find downloads to delete from feed\n";
+        INFO "find downloads to delete from feed";
 
         # order by parent so that delete the downloads with parents first to avoid fk constraint
         my $downloads =
@@ -99,12 +100,12 @@ sub main
           ->hashes;
         for my $download ( @{ $downloads } )
         {
-            print STDERR "delete download $download->{downloads_id} from feed $feed_id\n";
+            INFO "delete download $download->{downloads_id} from feed $feed_id";
             $db->query( "delete from download_texts where downloads_id = ?", $download->{ downloads_id } );
             $db->query( "delete from downloads where downloads_id = ?",      $download->{ downloads_id } );
         }
 
-        print STDERR "find stories to delete from feed\n";
+        INFO "find stories to delete from feed";
         my $stories =
           $db->query( "select s.stories_id, fsma.feeds_id from stories s, feeds_stories_map fsma " .
               "  where s.stories_id = fsma.stories_id and fsma.feeds_id = $feed_id and " .
@@ -112,11 +113,11 @@ sub main
               "        where s.stories_id = fsmb.stories_id and fsmb.feeds_id <> $feed_id)" )->hashes;
         for my $story ( @{ $stories } )
         {
-            print STDERR "delete story $story->{stories_id} from feed $feed_id\n";
+            INFO "delete story $story->{stories_id} from feed $feed_id";
             $db->query( "delete from stories where stories_id = ?", $story->{ stories_id } );
         }
 
-        print STDERR "delete feed $feed_id\n";
+        INFO "delete feed $feed_id";
         $db->query( "delete from feeds where feeds_id = ?", $feed_id );
     }
 
