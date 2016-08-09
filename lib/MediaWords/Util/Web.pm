@@ -75,7 +75,7 @@ sub _lwp_request_callback($)
 
     my $fh = FileHandle->new;
 
-    $fh->open( ">>$logfile" ) || die( "Unable to open file '$logfile': $!" );
+    $fh->open( ">$logfile" ) || die( "Unable to open file '$logfile': $!" );
 
     flock( $fh, LOCK_EX );
 
