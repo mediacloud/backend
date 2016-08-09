@@ -134,6 +134,36 @@ sub _get_sort_param
     }
 }
 
+# given the raw data structure returned by the solr query to sentences/list, return the entity that should be passed
+# back to the client for the sentences/list end point.  this is mostly just mirroring the solr data structure, but
+# we include it so that we don't pass extra fields that may pop up in the solr query over time as we change sorl versions
+# and schemas.
+sub _get_sentences_entity_from_json_data
+{
+    my ( $data ) = @_;
+
+    my $entity = {};
+
+    map { $entity->{ responseHeader }->{ params }->{ $_ } = $data->{ responseHeader }->{ params }->{ $_ } }
+      qw/sort df wt q fq rows start/;
+
+    map { $entity->{ responseHeader }->{ $_ } = $data->{ responseHeader }->{ $_ } } qw/status QTime/;
+
+    $entity->{ response }->{ numFound } = $data->{ response }->{ numFound };
+
+    for my $data_doc ( @{ $data->{ response }->{ docs } } )
+    {
+        my $entity_doc = {};
+
+        map { $entity_doc->{ $_ } = $data_doc->{ $_ } }
+          qw/sentence media_id publish_date sentence_number stories_id story_sentences_id _version_/;
+
+        push( @{ $entity->{ response }->{ docs } }, $entity_doc );
+    }
+
+    return $entity;
+}
+
 sub list_GET : Local
 {
     my ( $self, $c ) = @_;
@@ -163,16 +193,13 @@ sub list_GET : Local
 
     my $list = MediaWords::Solr::query( $c->dbis, $params, $c );
 
-    # quick hack to get rid of field that causes the json encoder to fail - hal
-    delete( $list->{ responseHeader }->{ zkConnected } );
+    my $entity = _get_sentences_entity_from_json_data( $list );
 
-    #TRACE "Got List:\n" . Dumper( $list );
-
-    my $sentences = $list->{ response }->{ docs };
+    my $sentences = $entity->{ response }->{ docs };
 
     _attach_data_to_sentences( $c->dbis, $sentences );
 
-    $self->status_ok( $c, entity => $list );
+    $self->status_ok( $c, entity => $entity );
 }
 
 sub count : Local : ActionClass('MC_REST')
