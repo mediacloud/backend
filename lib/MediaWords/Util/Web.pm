@@ -61,9 +61,6 @@ my $_link_downloads_cache;
 
 =cut
 
-# handler callback assigned to perpare_request as part of the standard _set_lwp_useragent_properties.
-# this handler logs all http requests to a file and also invalidates any requests that match the regex in
-# mediawords.yml->mediawords->blacklist_url_pattern.
 sub _lwp_request_callback($)
 {
     my ( $request, $ua, $h ) = @_;
@@ -91,8 +88,6 @@ sub _lwp_request_callback($)
     }
 
     $fh->close;
-
-    chmod( '0770', $logfile );
 }
 
 # set default Media Cloud properties for LWP::UserAgent objects
