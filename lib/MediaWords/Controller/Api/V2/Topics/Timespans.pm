@@ -39,22 +39,25 @@ sub list_GET : Local
 
     my $snapshots_id = $c->req->params->{ snapshots_id };
     my $foci_id      = $c->req->params->{ foci_id };
+    my $timespans_id = $c->req->params->{ timespans_id };
 
     my $snapshot = $db->require_by_id( 'snapshots', $snapshots_id ) if ( $snapshots_id );
     my $focus    = $db->require_by_id( 'foci',      $foci_id )      if ( $foci_id );
+    my $timespan = $db->require_by_id( 'timespans', $timespans_id ) if ( $timespans_id );
 
-    if ( !$snapshot )
+    if ( !$snapshot && !$timespan )
     {
         $snapshot = $db->query( <<SQL, $topics_id )->hash;
 select * from snapshots where topics_id = \$1 and state = 'completed' order by snapshot_date desc limit 1
 SQL
+        die( "Unable to find valid spanshot" ) unless ( $snapshot );
     }
 
-    die( "Unable to find valid snapshot" ) unless ( $snapshot );
+    my $snapshot_clause = $snapshot ? "and snapshots_id = $snapshot->{ snapshots_id }" : "";
+    my $focus_clause    = $focus    ? "and foci_id = $focus->{ foci_id }"              : "and foci_id is null";
+    my $timespan_clause = $timespan ? "and timespans_id = $timespan->{ timespans_id }" : "";
 
-    my $focus_clause = $focus ? "foci_id = $focus->{ foci_id }" : "foci_id is null";
-
-    my $timespans = $db->query( <<SQL, $snapshot->{ snapshots_id } )->hashes;
+    my $timespans = $db->query( <<SQL )->hashes;
 select
             timespans_id,
             period,
@@ -71,8 +74,10 @@ select
             snapshots_id
         from timespans t
         where
-            t.snapshots_id = \$1 and
+            true
+            $snapshot_clause
             $focus_clause
+            $timespan_clause
         order by period, start_date, end_date
 SQL
 
