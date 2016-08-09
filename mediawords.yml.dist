@@ -275,7 +275,7 @@ database:
 #    consumer_key: ""
 #    consumer_secret: ""
 #    access_token: ""
-#    access_token_secret: ""
+#    access_token_secret: ""    
 
 #mail:
     # Email address to receive bug report emails; leave empty for no bug reports via email
@@ -431,6 +431,3 @@ mediawords:
 
     # if set to 1, do all extractions in process rather than queueing to job manager
     # extract_in_process: 0
-
-    # blacklist all requests through MediaWords::Util::Web::UserAgent with a url that match this pattern
-    # blacklist_url_pattern: "black.listed.host"
