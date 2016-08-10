@@ -135,6 +135,7 @@ page, and changes made since the snapshot will not be visible.
 <div class="boxtitle">
     Collected Story Text
     <a class="boxcommand" href="[% c.uri_for( '/admin/stories/view/' _ story.stories_id ) | html %]">full story details</a>
+    <a class="boxcommand" href="[% c.uri_for( '/admin/downloads/view/' _ download.downloads_id ) | html %]">view cached page</a>
 </div>
 <table>
     <tr>

@@ -104,7 +104,7 @@ sub view : Local
 
     my $encoded_content = Encode::encode( 'utf-8', $$content_ref );
 
-    $c->response->content_type( 'text/plain; charset=UTF-8' );
+    $c->response->content_type( 'text/html; charset=UTF-8' );
     $c->response->content_length( bytes::length( $encoded_content ) );
     $c->response->body( $encoded_content );
 }

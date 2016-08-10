@@ -1506,10 +1506,13 @@ sub story : Local
 
     my $confirm_remove = $c->req->params->{ confirm_remove };
 
+    my $download = $db->query( "select * from downloads where stories_id = ?", $stories_id )->hash;
+
     $c->stash->{ timespan }       = $timespan;
     $c->stash->{ snapshot }       = $cd;
     $c->stash->{ topic }          = $topic;
     $c->stash->{ story }          = $story;
+    $c->stash->{ download }       = $download;
     $c->stash->{ live }           = $live;
     $c->stash->{ confirm_remove } = $confirm_remove;
     $c->stash->{ template }       = 'tm/story.tt2';
