@@ -536,6 +536,10 @@ instanceDir=%(instance_dir)s
         "-Dhost=%s" % hostname,
         "-Dmediacloud.luceneMatchVersion=%s" % MC_SOLR_LUCENEMATCHVERSION,
 
+        # write heap dump to data directory on OOM errors
+        "-XX:+HeapDumpOnOutOfMemoryError",
+        "-XX:HeapDumpPath=%s" % instance_data_dir,
+
         # needed for resolving paths to JARs in solrconfig.xml
         "-Dmediacloud.solr_dist_dir=%s" % solr_path,
         "-Dmediacloud.solr_webapp_dir=%s" % solr_webapp_path,
