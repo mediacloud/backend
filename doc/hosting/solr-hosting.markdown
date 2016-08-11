@@ -119,7 +119,7 @@ Usage:
 	./optimize_solr_index.py \
 		[--host localhost ] \
 		[--port 7931] \
-		[--collection collection1 --collection collection2 ...]
+		[--collection collection1 collection2 ...]
 
 It is recommended to recreate indexes after upgrading Solr to make use of new (potentially optimized) indexing algorithm.
 
