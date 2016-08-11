@@ -7,13 +7,13 @@ MediaWords::Solr::Dump - import story_sentences from postgres into solr
 =head1 SYNOPSIS
 
     # generate dumped csv files and then import those csvs into solr
-    MediaWords::Solr::Dump::generate_and_import_data( $delta, $delete_all, $staging, $jobs );
+    MediaWords::Solr::Dump::generate_and_import_data( $delta, $delete_all, $jobs );
 
     # dump solr data from postgres into csvs
     MediaWords::Solr::Dump::print_csv_to_file( $db, $file_spec, $jobs, $delta, $min_proc, $max_proc );
 
     # import already dumped csv files
-    MediaWords::Solr::Dump::import_csv_files( $files, $delta, $staging, $jobs );
+    MediaWords::Solr::Dump::import_csv_files( $files, $jobs );
 
 =head1 DESCRIPTION
 
@@ -498,14 +498,14 @@ sub print_csv_to_file
 }
 
 # query solr for the given story_sentences_id and return true if the story_sentences_id already exists in solr
-sub _sentence_exists_in_solr($$)
+sub _sentence_exists_in_solr($)
 {
-    my ( $story_sentences_id, $staging ) = @_;
+    my ( $story_sentences_id ) = @_;
 
     my $json;
     eval {
         my $params = { q => "story_sentences_id:$story_sentences_id", rows => 0, wt => 'json' };
-        $json = _solr_request( 'select', $params, $staging );
+        $json = _solr_request( 'select', $params );
     };
     if ( $@ )
     {
@@ -524,11 +524,10 @@ sub _sentence_exists_in_solr($$)
     return $data->{ response }->{ numFound } ? 1 : 0;
 }
 
-# Send a request to MediaWords::Solr::get_solr_url. Return content on success, die() on error. If $staging is true, use
-# the staging collection; otherwise use the live collection.
-sub _solr_request($$$;$$)
+# Send a request to MediaWords::Solr::get_solr_url. Return content on success, die() on error.
+sub _solr_request($$;$$)
 {
-    my ( $path, $params, $staging, $content, $content_type ) = @_;
+    my ( $path, $params, $content, $content_type ) = @_;
 
     my $solr_url = MediaWords::Solr::get_solr_url;
     $params //= {};
@@ -788,9 +787,9 @@ sub _print_file_errors
 }
 
 # find all error chunks saved for this file in the _file_errors_cache, and reprocess every error chunk
-sub _reprocess_file_errors
+sub _reprocess_file_errors($$)
 {
-    my ( $pm, $file, $staging ) = @_;
+    my ( $pm, $file ) = @_;
 
     my $delta = 1;
     my ( $import_url, $import_params ) = _get_import_url_params( $delta );
@@ -811,7 +810,7 @@ sub _reprocess_file_errors
 
         $pm->start and next;
 
-        eval { _solr_request( $import_url, $import_params, $staging, $data->{ csv } ); };
+        eval { _solr_request( $import_url, $import_params, $data->{ csv } ); };
         if ( $@ )
         {
             my $error = $@;
@@ -832,18 +831,18 @@ sub _reprocess_file_errors
 # * if first ssid is not in solr, delta = 0 (run import with overwrite = false)
 # * if the first ssid is in solr but the last is not, delta = 1 (run import with overwrite = true)
 # * if the first ssid is in solr and the last ssid is in solr, delta = -1 (do not run import)
-sub _get_chunk_delta($$$)
+sub _get_chunk_delta($$)
 {
-    my ( $chunk, $last_chunk_delta, $staging ) = @_;
+    my ( $chunk, $last_chunk_delta ) = @_;
 
     return 0 if ( defined( $last_chunk_delta ) && ( $last_chunk_delta == 0 ) );
 
-    unless ( _sentence_exists_in_solr( $chunk->{ first_story_sentences_id }, $staging ) )
+    unless ( _sentence_exists_in_solr( $chunk->{ first_story_sentences_id } ) )
     {
         return 0;
     }
 
-    unless ( _sentence_exists_in_solr( $chunk->{ last_story_sentences_id }, $staging ) )
+    unless ( _sentence_exists_in_solr( $chunk->{ last_story_sentences_id } ) )
     {
         return 1;
     }
@@ -852,9 +851,9 @@ sub _get_chunk_delta($$$)
 }
 
 # return true if the last sentence in the file is already present in solr, so we can skip this file
-sub _last_sentence_in_solr($$)
+sub _last_sentence_in_solr($)
 {
-    my ( $file, $staging ) = @_;
+    my ( $file ) = @_;
 
     my $bfh = File::ReadBackwards->new( $file ) || die( "Unable to open file '$file': $!" );
 
@@ -870,21 +869,21 @@ sub _last_sentence_in_solr($$)
 
     return 0 unless ( $last_story_sentences_id );
 
-    return _sentence_exists_in_solr( $last_story_sentences_id, $staging );
+    return _sentence_exists_in_solr( $last_story_sentences_id );
 }
 
 # import a single csv dump file into solr using blocks
-sub _import_csv_single_file
+sub _import_csv_single_file($$)
 {
-    my ( $file, $staging, $jobs ) = @_;
+    my ( $file, $jobs ) = @_;
 
     my $pm = Parallel::ForkManager->new( $jobs );
 
-    if ( _last_sentence_in_solr( $file, $staging ) )
+    if ( _last_sentence_in_solr( $file ) )
     {
         INFO "skipping $file, last sentence already in solr";
 
-        _reprocess_file_errors( $pm, $file, $staging );
+        _reprocess_file_errors( $pm, $file );
         _print_file_errors( $file );
 
         return;
@@ -912,7 +911,7 @@ sub _import_csv_single_file
         my $remaining_time = int( $elapsed_time * ( 1 / $partial_progress ) ) - $elapsed_time;
         $remaining_time = '??' if ( $chunk_num < $jobs );
 
-        my $chunk_delta = _get_chunk_delta( $data, $last_chunk_delta, $staging );
+        my $chunk_delta = _get_chunk_delta( $data, $last_chunk_delta );
         $last_chunk_delta = $chunk_delta;
 
         my $base_file = basename( $file );
@@ -930,7 +929,7 @@ sub _import_csv_single_file
 
         my ( $import_url, $import_params ) = _get_import_url_params( $chunk_delta );
 
-        eval { _solr_request( $import_url, $import_params, $staging, $data->{ csv } ); };
+        eval { _solr_request( $import_url, $import_params, $data->{ csv } ); };
         my $error = $@;
 
         _remove_file_error( $file, { pos => $data->{ pos } } );
@@ -944,14 +943,14 @@ sub _import_csv_single_file
 
     $pm->wait_all_children;
 
-    _reprocess_file_errors( $pm, $file, $staging );
+    _reprocess_file_errors( $pm, $file );
 
     _print_file_errors( $file );
 
     return 1;
 }
 
-=head2 import_csv_files( $files, $staging, $jobs )
+=head2 import_csv_files( $files, $jobs )
 
 Import existing csv files into solr.  Run $jobs processes in parallel to import each file (so $jobs processes to import
 file 1, then $jobs processes to import file 2, etc).
@@ -974,15 +973,15 @@ this function (generate_and_import_data() below takes care to do this correctly)
 
 =cut
 
-sub import_csv_files($$$)
+sub import_csv_files($$)
 {
-    my ( $files, $staging, $jobs ) = @_;
+    my ( $files, $jobs ) = @_;
 
     $jobs ||= 1;
 
     for my $file ( @{ $files } )
     {
-        _import_csv_single_file( $file, $staging, $jobs );
+        _import_csv_single_file( $file, $jobs );
     }
 
     for my $file ( @{ $files } )
@@ -1070,9 +1069,9 @@ sub _get_stories_id_solr_query
 }
 
 # delete the given stories from solr
-sub delete_stories
+sub _delete_stories($)
 {
-    my ( $stories_ids, $staging, $jobs ) = @_;
+    my ( $stories_ids ) = @_;
 
     return 1 unless ( $stories_ids && scalar @{ $stories_ids } );
 
@@ -1094,7 +1093,7 @@ sub delete_stories
 
         my $delete_query = "<delete><query>$stories_id_query</query></delete>";
 
-        eval { _solr_request( 'update', undef, $staging, $delete_query, 'application/xml' ); };
+        eval { _solr_request( 'update', undef, $delete_query, 'application/xml' ); };
         if ( $@ )
         {
             my $error = $@;
@@ -1107,14 +1106,12 @@ sub delete_stories
 }
 
 # delete all stories from solr
-sub delete_all_sentences
+sub delete_all_sentences()
 {
-    my ( $staging ) = @_;
-
     INFO "deleting all sentences ...";
 
     my $url_params = { 'commit' => 'true', 'stream.body' => '<delete><query>*:*</query></delete>', };
-    eval { _solr_request( 'update', $url_params, $staging ); };
+    eval { _solr_request( 'update', $url_params ); };
     if ( $@ )
     {
         my $error = $@;
@@ -1188,7 +1185,7 @@ sub _stories_queue_is_small
     return $exist ? 0 : 1;
 }
 
-=head2 generate_and_import_data( $delta, $delete, $staging, $jobs )
+=head2 generate_and_import_data( $delta, $delete, $jobs )
 
 Generate and import dump.  If $delta is true, generate delta dump since beginning of last full or delta dump.  If $delta
 is true, delete all solr data after generating dump and before importing.
@@ -1202,7 +1199,7 @@ Run $jobs parallel jobs for the csv dump and for the solr import.
 
 sub generate_and_import_data
 {
-    my ( $delta, $delete, $staging, $jobs ) = @_;
+    my ( $delta, $delete, $jobs ) = @_;
 
     $jobs ||= 1;
 
@@ -1230,18 +1227,18 @@ sub generate_and_import_data
         if ( $delta )
         {
             INFO "deleting updated stories ...";
-            delete_stories( $stories_ids, $staging ) || die( "delete stories failed." );
+            _delete_stories( $stories_ids ) || die( "delete stories failed." );
         }
         elsif ( $delete )
         {
             INFO "deleting all stories ...";
-            delete_all_sentences( $staging ) || die( "delete all sentences failed." );
+            delete_all_sentences() || die( "delete all sentences failed." );
         }
 
-        _solr_request( 'update', { 'commit' => 'true' }, $staging );
+        _solr_request( 'update', { 'commit' => 'true' } );
 
         INFO "importing dump ...";
-        import_csv_files( $dump_files, $staging, $jobs ) || die( "import failed." );
+        import_csv_files( $dump_files, $jobs ) || die( "import failed." );
 
         # have to reconnect becaue import_csv_files may have forked, ruining existing db handles
         $db = MediaWords::DB::connect_to_db;
@@ -1252,10 +1249,10 @@ sub generate_and_import_data
         # if we're doing a full import, do a delta to catchup with the data since the start of the import
         if ( !$delta )
         {
-            generate_and_import_data( 1, 0, $staging );
+            generate_and_import_data( 1, 0 );
         }
 
-        _solr_request( 'update', { 'commit' => 'true' }, $staging );
+        _solr_request( 'update', { 'commit' => 'true' } );
 
         map { unlink( $_ ) } @{ $dump_files };
 

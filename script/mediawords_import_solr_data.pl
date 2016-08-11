@@ -31,7 +31,7 @@ use Data::Dumper;
 
 sub main
 {
-    my ( $delta, $file, $delete_all, $staging, $jobs );
+    my ( $delta, $file, $delete_all, $jobs );
 
     $| = 1;
 
@@ -39,7 +39,6 @@ sub main
         "delta!"      => \$delta,
         "file!"       => \$file,
         "delete_all!" => \$delete_all,
-        "staging!"    => \$staging,
         "jobs=i"      => \$jobs
     ) || return;
 
@@ -50,13 +49,13 @@ sub main
         if ( $delete_all )
         {
             INFO "deleting all stories ...";
-            MediaWords::Solr::Dump::delete_all_sentences( $staging ) || die( "delete all sentences failed." );
+            MediaWords::Solr::Dump::delete_all_sentences() || die( "delete all sentences failed." );
         }
-        MediaWords::Solr::Dump::import_csv_files( [ @ARGV ], $staging, $jobs );
+        MediaWords::Solr::Dump::import_csv_files( [ @ARGV ], $jobs );
     }
     else
     {
-        MediaWords::Solr::Dump::generate_and_import_data( $delta, $delete_all, $staging, $jobs );
+        MediaWords::Solr::Dump::generate_and_import_data( $delta, $delete_all, $jobs );
     }
 }
 
