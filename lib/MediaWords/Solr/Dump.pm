@@ -65,10 +65,6 @@ We track which parts of which csv files have already been imported so that we ca
 or had an error in some part.  This is because production import of our entire database can take a few days, so it is
 important to be recover from an error without having to restart the whole process.
 
-The import functions in this module accept a $staging parameter.  If this parameter is set to true, the data is imported
-into the staging database rather than that production database.  MediaWords::Solr::swap_live_collection is used to
-swap the production and staging databases.
-
 =back
 
 =cut
@@ -539,8 +535,7 @@ sub _solr_request($$$;$$)
 
     my $db = MediaWords::DB::connect_to_db;
 
-    my $collection =
-      $staging ? MediaWords::Solr::get_staging_collection( $db ) : MediaWords::Solr::get_live_collection( $db );
+    my $collection = 'collection1';
 
     my $abs_uri = URI->new( "$solr_url/$collection/$path" );
     $abs_uri->query_form( $params );

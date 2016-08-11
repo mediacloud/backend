@@ -64,20 +64,6 @@ sub get_solr_url
     return $url;
 }
 
-sub get_live_collection
-{
-    return 'collection1';
-}
-
-sub get_staging_collection
-{
-    return 'collection2';
-}
-
-sub swap_live_collection
-{
-}
-
 =head2 get_last_num_found
 
 Get the number of sentences found from the last solr query run in this process.  This function does not perform a solr
@@ -192,7 +178,7 @@ sub query_encoded_json($$;$)
 
     my $url_action = $params->{ 'clustering.engine' } ? 'clustering' : 'select';
 
-    my $url = sprintf( '%s/%s/%s', get_solr_url(), get_live_collection( $db ), $url_action );
+    my $url = sprintf( '%s/%s/%s', get_solr_url(), 'collection1', $url_action );
 
     my $ua = MediaWords::Util::Web::UserAgent;
 
