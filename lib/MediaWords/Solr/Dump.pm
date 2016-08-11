@@ -303,6 +303,32 @@ sub _print_csv_to_file_from_csr
     return [ keys %{ $imported_stories_ids } ];
 }
 
+# limit delta_import_stories to max_queued_stories stories;  put excess stories in solr_extra_import_stories
+sub _restrict_delta_import_stories_size ($$)
+{
+    my ( $db, $num_delta_stories ) = @_;
+
+    my $max_queued_stories = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_import }->{ max_queued_stories };
+
+    return if ( $num_delta_stories <= $max_queued_stories );
+
+    DEBUG( "cutting delta import stories from $num_delta_stories to $max_queued_stories stories" );
+
+    $db->query( <<SQL, $max_queued_stories );
+create temporary table keep_ids as
+    select * from delta_import_stories order by stories_id limit ?
+SQL
+
+    $db->query( "delete from delta_import_stories where stories_id in ( select stories_id from keep_ids )" );
+
+    $db->query( "insert into solr_import_extra_stories ( stories_id ) select stories_id from delta_import_stories" );
+
+    $db->query( "drop table delta_import_stories" );
+
+    $db->query( "alter table keep_ids rename to delta_import_stories" );
+
+}
+
 # get the delta clause that restricts the import of all subsequent queries to just the delta stories.  uses
 # a temporary table called delta_import_stories to list which stories should be imported.  we do this instead
 # of trying to query the date direclty because we need to restrict by this list in stand alone queries to various
@@ -327,7 +353,10 @@ END
     my ( $num_delta_stories ) = $db->query( "select count(*) from delta_import_stories" )->flat;
     INFO "found $num_delta_stories stories for import ...";
 
+    _restrict_delta_import_stories_size( $db, $num_delta_stories );
+
     _add_extra_stories_to_import( $db, $import_date, $num_delta_stories, $num_proc, $proc );
+
 }
 
 # Get the $data_lookup hash that has lookup tables for values to include for each of the processed_stories, media_tags,
