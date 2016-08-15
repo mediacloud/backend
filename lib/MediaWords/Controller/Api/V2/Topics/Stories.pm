@@ -178,9 +178,10 @@ sub list_GET : Local
     my $offset = $c->req->params->{ offset };
 
     my $stories = $db->query( <<SQL, $timespans_id, $snapshots_id, $limit, $offset )->hashes;
-select *
+select s.*, slc.*, m.name media_name
     from snap.story_link_counts slc
         join snap.stories s on slc.stories_id = s.stories_id
+        join snap.media m on s.media_id = m.media_id
     where slc.timespans_id = \$1
         and s.snapshots_id = \$2
         $extra_clause
