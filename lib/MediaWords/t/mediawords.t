@@ -34,10 +34,7 @@ MediaWords::Test::DB::test_on_test_database(
         isa_ok( $db, "DBIx::Simple::MediaWords" );
 
         # clear the DB
-        MediaWords::Pg::Schema::reset_all_schemas( $db );
-
-        my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir };
-        MediaWords::Pg::Schema::load_sql_file( 'test', "$script_dir/mediawords.sql" );
+        MediaWords::Pg::Schema::recreate_db( 'test' );
 
         # transaction success
         $db->transaction(
