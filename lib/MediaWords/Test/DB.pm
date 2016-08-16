@@ -21,9 +21,7 @@ sub test_on_test_database
 {
     my ( $sub ) = @_;
 
-    my $result = MediaWords::Pg::Schema::recreate_db( 'test' );
-
-    die "Error recreating the test db" unless $result == 0;
+    MediaWords::Pg::Schema::recreate_db( 'test' );
 
     my $db = MediaWords::DB::connect_to_db( 'test' );
 

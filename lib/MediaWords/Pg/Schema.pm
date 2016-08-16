@@ -14,6 +14,7 @@ use warnings;
 use IPC::Run3;
 use File::Slurp;
 use FindBin;
+use Data::Dumper;
 
 # Path to where the "pgcrypto.sql" is located (on 8.4 and 9.0)
 sub _path_to_pgcrypto_sql_file_84_90()
@@ -239,13 +240,19 @@ sub load_sql_file
     # stdout and stderr go to this script's channels. password is passed on stdin
     # so it doesn't appear in the process table
     # INFO "loadsql: $script_dir/loadsql.$db_type.sh";
-    run3( [ "$script_dir/loadsql.$db_type.sh", $sql_file, $host, $database, $username, $port ],
-        \$password, \&parse_line, \&parse_line );
+    my $command = [ "$script_dir/loadsql.$db_type.sh", $sql_file, $host, $database, $username, $port ];
+    run3( $command, \$password, \&parse_line, \&parse_line );
 
     my $ret = $?;
-    return $ret;
+    if ( $ret != 0 )
+    {
+        die "Unable to load schema with command: " . Dumper( $command );
+    }
+
+    return 1;
 }
 
+# (Re)create database schema; die() on error
 sub recreate_db
 {
     my ( $label ) = @_;
@@ -253,7 +260,7 @@ sub recreate_db
     my $do_not_check_schema_version = 1;
     my $db = MediaWords::DB::connect_to_db( $label, $do_not_check_schema_version );
 
-    DEBUG( 'reset schema ...' );
+    DEBUG( 'Resetting schema...' );
     my $data_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ data_dir };
     if ( $data_dir )
     {
@@ -263,17 +270,16 @@ sub recreate_db
 
     reset_all_schemas( $db );
 
-    my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
-
-    DEBUG( "script_dir: $script_dir" );
-
     DEBUG( "Adding 'pgcrypto' extension..." );
     _add_pgcrypto_extension( $db );
 
-    DEBUG( "add mediacloud schema ..." );
-    my $load_sql_file_result = load_sql_file( $label, "$script_dir/mediawords.sql" );
+    my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
+    TRACE( "script_dir: $script_dir" );
 
-    return $load_sql_file_result;
+    DEBUG( "Importing schema..." );
+    load_sql_file( $label, "$script_dir/mediawords.sql" );
+
+    return 1;
 }
 
 # Upgrade database schema to the latest version
