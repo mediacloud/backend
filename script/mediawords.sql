@@ -20,7 +20,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4575;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4576;
 
 BEGIN
 
@@ -1639,7 +1639,7 @@ BEGIN
                 JOIN pg_catalog.pg_class AS c ON t.table_name = c.relname
                 JOIN pg_catalog.pg_user AS u ON c.relowner = u.usesysid
             WHERE t.table_name = 'bitly_clicks_total'
-              AND t.table_schema = 'public'
+              AND t.table_schema = CURRENT_SCHEMA()
             INTO target_table_owner;
 
             EXECUTE 'ALTER TABLE ' || target_table_name || ' OWNER TO ' || target_table_owner || ';';
@@ -2463,7 +2463,7 @@ BEGIN
                 WHERE i.indisprimary
             ) AS pkey ON pkey.indrelid = t.relname::regclass
         WHERE conname LIKE '%_pkey'
-          AND nsp.nspname = 'public'
+          AND nsp.nspname = CURRENT_SCHEMA()
           AND t.relname NOT IN (
             'story_similarities_100_short',
             'url_discovery_counts'
