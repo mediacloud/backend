@@ -206,7 +206,7 @@ sub _exit()
     exit();
 }
 
-=head2 spawn_fetchers
+=head2 _spawn_fetchers()
 
 Fork off $self->process number of fetching processes.  For each forked fetching process, create socket between the
 parent and child process.  In each child process, take care to reconnect to db and then enter an infinite
@@ -230,7 +230,7 @@ calls $handler->handle_repsonse( $download, $response ) on the fetcher response 
 
 =cut
 
-sub spawn_fetchers
+sub _spawn_fetchers
 {
     my ( $self ) = @_;
 
@@ -330,7 +330,7 @@ sub create_fetcher_engine_for_testing
 
 =head2 crawl
 
-Start crawling by cralling $self->spawn_fetchers and then entering a loop that:
+Start crawling by cralling $self->_spawn_fetchers() and then entering a loop that:
 
 =over
 
@@ -354,7 +354,7 @@ sub crawl
 {
     my ( $self ) = @_;
 
-    $self->spawn_fetchers();
+    $self->_spawn_fetchers();
 
     my $socket_select = IO::Select->new();
 
