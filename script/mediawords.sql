@@ -2,6 +2,10 @@
 -- Schema for MediaWords database
 --
 
+-- main schema
+CREATE SCHEMA IF NOT EXISTS public;
+
+
 CREATE OR REPLACE LANGUAGE plpgsql;
 
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
@@ -1464,8 +1468,16 @@ create table snap_files (
 
 create index snap_files_cd on snap_files ( snapshots_id );
 
+
 -- schema to hold the various snapshot snapshot tables
-create schema snap;
+CREATE SCHEMA snap;
+
+
+CREATE OR REPLACE LANGUAGE plpgsql;
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 
 -- create a table for each of these tables to hold a snapshot of stories relevant
 -- to a topic for each snapshot for that topic

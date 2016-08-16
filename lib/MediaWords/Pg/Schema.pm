@@ -16,39 +16,24 @@ use File::Slurp;
 use FindBin;
 use Data::Dumper;
 
-# removes all relations belonging to a given schema
-# default schema is 'public'
-sub reset_schema($;$)
-{
-    my ( $db, $schema ) = @_;
-
-    $schema ||= 'public';
-
-    my $old_warn = $db->dbh->{ Warn };
-    $db->dbh->{ Warn } = 0;
-
-    $db->query( "DROP SCHEMA IF EXISTS $schema CASCADE" );
-
-    # these schemas will be created later so don't recreate it here
-    if ( ( $schema ne 'enum' ) && ( $schema ne 'snap' ) )
-    {
-        $db->query( "CREATE SCHEMA $schema" );
-    }
-
-    $db->dbh->{ Warn } = $old_warn;
-
-    return undef;
-}
-
 # recreates all schemas
-sub reset_all_schemas($)
+sub _reset_all_schemas($)
 {
     my ( $db ) = @_;
 
-    reset_schema( $db, 'public' );
-
-    # schema to hold all of the topic snapshot snapshot tables
-    reset_schema( $db, 'snap' );
+    my $schemas = $db->query(
+        <<SQL
+        SELECT schema_name
+        FROM information_schema.schemata
+        WHERE schema_name NOT LIKE 'pg_%'
+          AND schema_name != 'information_schema'
+        ORDER BY schema_name
+SQL
+    )->flat;
+    foreach my $schema ( @{ $schemas } )
+    {
+        $db->query( "DROP SCHEMA IF EXISTS $schema CASCADE" );
+    }
 }
 
 # Given the PostgreSQL response line (notice) returned while importing schema,
@@ -97,7 +82,7 @@ sub postgresql_response_line_is_expected($)
 }
 
 # loads and runs a given SQL file
-# useful for rebuilding the database schema after a call to reset_schema
+# useful for rebuilding the database schema after a call to _reset_schema()
 sub load_sql_file
 {
     my ( $label, $sql_file ) = @_;
@@ -157,7 +142,7 @@ sub recreate_db
     my $db = MediaWords::DB::connect_to_db( $label, $do_not_check_schema_version );
 
     DEBUG( 'Resetting schema...' );
-    reset_all_schemas( $db );
+    _reset_all_schemas( $db );
 
     my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
     TRACE( "script_dir: $script_dir" );
