@@ -56,6 +56,7 @@ cd `dirname $0`/../
 
 echo "Starting unit tests..."
 TEST_FILES=`find lib script t -name '*.t'`
-./script/run_carton.sh exec prove -Ilib/ $* $TEST_FILES {
+./script/run_carton.sh exec prove -Ilib/ $* $TEST_FILES || {
     echo "One or more unit tests have failed with error code $?."
+    exit 1
 }
