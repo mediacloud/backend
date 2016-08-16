@@ -261,13 +261,6 @@ sub recreate_db
     my $db = MediaWords::DB::connect_to_db( $label, $do_not_check_schema_version );
 
     DEBUG( 'Resetting schema...' );
-    my $data_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ data_dir };
-    if ( $data_dir )
-    {
-        my $cache_dir = "$data_dir/cache";
-        File::Path::remove_tree( $cache_dir, { keep_root => 1 } );
-    }
-
     reset_all_schemas( $db );
 
     DEBUG( "Adding 'pgcrypto' extension..." );
