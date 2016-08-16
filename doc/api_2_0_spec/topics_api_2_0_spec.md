@@ -1242,6 +1242,7 @@ Return a list of all focal set definitions belonging to the given topic.
 | description              | human readable description of the focal set definition |
 | focal_technique          | focal technique used for foci in this set |
 | is_exclusive             | boolean that indicates whether a given story can only belong to one focus, based on the focal technique |
+| focus_defitions          | list of focus definitions belonging to this focal set definition |
 
 ### Example
 
@@ -1262,6 +1263,16 @@ Response:
             "description": "Stories relevant to each major party candidate.",
             "focal_technique": "Boolean Query",
             "is_exclusive": 0
+            "focus_definitions":
+            [
+                {
+                    "focus_definitions_id": 234,
+                    "name": "Clinton",
+                    "description": "stories that mention Hillary Clinton",
+                    "query": "clinton and ( hillary or -bill )"
+                }
+            ]
+
         }
     ]
 }

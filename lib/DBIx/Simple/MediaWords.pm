@@ -810,4 +810,33 @@ sub quote_timestamp
     return $self->quote_varchar( $value ) . '::timestamp';
 }
 
+# for each row in $data, attach all results in the child query that match a join with the $id_column field in each
+# row of $data.  attach to $row->{ $child_field } for each row in $data
+sub attach_child_query ($$$$$)
+{
+    my ( $db, $data, $child_query, $child_field, $id_column ) = @_;
+
+    my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ $id_column } } @{ $data } ] );
+
+    my $children = $db->query( <<SQL )->hashes;
+select q.* from ( $child_query ) q join $ids_table ids on ( q.$id_column = ids.id )
+SQL
+
+    my $parent_lookup = {};
+
+    for my $parent ( @{ $data } )
+    {
+        $parent_lookup->{ $parent->{ $id_column } } = $parent;
+        $parent->{ $child_field } = [];
+    }
+
+    for my $child ( @{ $children } )
+    {
+        my $parent = $parent_lookup->{ $child->{ $id_column } };
+        push( @{ $parent->{ $child_field } }, $child );
+    }
+
+    return $data;
+}
+
 1;
