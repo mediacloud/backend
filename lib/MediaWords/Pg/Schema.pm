@@ -1,4 +1,10 @@
 package MediaWords::Pg::Schema;
+
+# import functions into server schema
+
+use strict;
+use warnings;
+
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
@@ -6,12 +12,6 @@ use MediaWords::Languages::Language;
 use MediaWords::Util::Config;
 use MediaWords::Util::SchemaVersion;
 
-# import functions into server schema
-
-use strict;
-use warnings;
-
-use IPC::Run3;
 use File::Slurp;
 use FindBin;
 use Data::Dumper;
@@ -81,58 +81,6 @@ sub _postgresql_response_line_is_expected($)
     }
 }
 
-# loads and runs a given SQL file
-# useful for rebuilding the database schema after a call to _reset_schema()
-sub _load_sql_file
-{
-    my ( $label, $sql_file ) = @_;
-
-    sub _parse_line
-    {
-        my ( $line ) = @_;
-
-        chomp( $line );
-
-        TRACE "Got line: '$line'";
-
-        # Die on unexpected SQL (e.g. DROP TABLE)
-        unless ( _postgresql_response_line_is_expected( $line ) )
-        {
-            LOGCONFESS "Unexpected PostgreSQL response line: '$line'";
-        }
-
-        return "$line\n";
-    }
-
-    my $db_settings = MediaWords::DB::connect_settings( $label );
-    my $script_dir  = MediaWords::Util::Config::get_config()->{ mediawords }->{ script_dir };
-    my $db_type     = $db_settings->{ type };
-    my $host        = $db_settings->{ host };
-    my $database    = $db_settings->{ db };
-    my $username    = $db_settings->{ user };
-    my $port        = $db_settings->{ port };
-    my $password    = $db_settings->{ pass } . "\n";
-
-    # TODO: potentially brittle, $? should be checked after run3
-    # common shell script interface gives indirection to database with no
-    # modification of this code.
-    # if there is a way to do this without popping out to a shell, please use it
-
-    # stdout and stderr go to this script's channels. password is passed on stdin
-    # so it doesn't appear in the process table
-    # INFO "loadsql: $script_dir/loadsql.$db_type.sh";
-    my $command = [ "$script_dir/loadsql.$db_type.sh", $sql_file, $host, $database, $username, $port ];
-    run3( $command, \$password, \&_parse_line, \&_parse_line );
-
-    my $ret = $?;
-    if ( $ret != 0 )
-    {
-        die "Unable to load schema with command: " . Dumper( $command );
-    }
-
-    return 1;
-}
-
 # (Re)create database schema; die() on error
 sub recreate_db
 {
@@ -141,14 +89,35 @@ sub recreate_db
     my $do_not_check_schema_version = 1;
     my $db = MediaWords::DB::connect_to_db( $label, $do_not_check_schema_version );
 
-    DEBUG( 'Resetting schema...' );
+    DEBUG( 'Resetting all schemas...' );
     _reset_all_schemas( $db );
 
     my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
     TRACE( "script_dir: $script_dir" );
 
-    DEBUG( "Importing schema..." );
-    _load_sql_file( $label, "$script_dir/mediawords.sql" );
+    my $mediawords_sql_path = $script_dir . '/mediawords.sql';
+    my $mediawords_sql      = read_file( $mediawords_sql_path );
+
+    $db->dbh->{ RaiseError }         = 1;
+    $db->dbh->{ PrintError }         = 1;
+    $db->dbh->{ ShowErrorStatement } = 1;
+
+    local $SIG{ __WARN__ } = sub {
+        my $message = shift;
+        if ( _postgresql_response_line_is_expected( $message ) )
+        {
+            say STDERR "PostgreSQL warning: $message";
+        }
+        else
+        {
+            die "PostgreSQL error: $message";
+        }
+    };
+
+    DEBUG( "Importing from $mediawords_sql_path..." );
+    $db->query( $mediawords_sql );
+
+    local $SIG{ __WARN__ } = undef;
 
     return 1;
 }
