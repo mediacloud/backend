@@ -50,7 +50,7 @@ sub get_top_media_link_counts
     $num_top_media *= $size_factor if ( $size_factor );
 
     my $top_media = $db->query( <<END, $num_top_media + 1 )->hashes;
-select * from snapshot_medium_link_counts order by inlink_count desc limit ?
+select * from snapshot_medium_link_counts order by media_inlink_count desc limit ?
 END
 
     # the last medium included must have more inlinks than the first medium not included

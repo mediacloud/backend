@@ -167,7 +167,7 @@ sub list_GET : Local
     my $sort_clause =
       ( $sort_param eq 'social' )
       ? 'slc.bitly_click_count desc nulls last, md5( s.stories_id::text )'
-      : 'slc.inlink_count desc, md5( s.stories_id::text )';
+      : 'slc.media_inlink_count desc, md5( s.stories_id::text )';
 
     my $timespans_id = $timespan->{ timespans_id };
     my $snapshots_id = $timespan->{ snapshots_id };
@@ -184,6 +184,7 @@ select s.*, slc.*, m.name media_name
         join snap.media m on s.media_id = m.media_id
     where slc.timespans_id = \$1
         and s.snapshots_id = \$2
+        and m.snapshots_id = \$2
         $extra_clause
     order by $sort_clause
     limit \$3 offset \$4

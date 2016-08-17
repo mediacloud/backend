@@ -445,7 +445,7 @@ select distinct s.stories_id, s.title, s.url,
                 join tags t on ( stm.tags_id = t.tags_id  and t.tag = 'undateable' )
                 join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id and ts.name = 'date_invalid' ) )
             on ( stm.stories_id = s.stories_id )
-	order by slc.inlink_count desc
+	order by slc.media_inlink_count desc
 END
 
     return $csv;
@@ -641,7 +641,7 @@ sub get_media_csv
 select m.name, m.url, mlc.*
     from snapshot_media m, snapshot_medium_link_counts mlc
     where m.media_id = mlc.media_id
-    order by mlc.inlink_count desc;
+    order by mlc.media_inlink_count desc;
 END
 
     my $fields = $res->columns;
@@ -813,7 +813,7 @@ sub get_weighted_edges
 
     my $media_links = $db->query( <<END, $max_media )->hashes;
 with top_media as (
-    select media_id from snapshot_medium_link_counts order by inlink_count desc limit ?
+    select media_id from snapshot_medium_link_counts order by media_inlink_count desc limit ?
 )
 
 select *
@@ -1104,7 +1104,7 @@ sub get_gexf_snapshot
 select distinct *
     from snapshot_media_with_types m, snapshot_medium_link_counts mlc
     where m.media_id = mlc.media_id
-    order by mlc.inlink_count desc
+    order by mlc.media_inlink_count desc
     limit ?
 END
 
