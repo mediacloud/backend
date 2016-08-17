@@ -121,7 +121,7 @@ sub list_GET : Local
     my $sort_clause =
       ( $sort_param eq 'social' )
       ? 'mlc.bitly_click_count desc nulls last, md5( m.media_id::text )'
-      : 'mlc.inlink_count desc, md5( m.media_id::text )';
+      : 'mlc.media_inlink_count desc, md5( m.media_id::text )';
 
     my $timespans_id = $timespan->{ timespans_id };
     my $snapshots_id = $timespan->{ snapshots_id };
