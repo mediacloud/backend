@@ -39,7 +39,7 @@ SQL
 # Given the PostgreSQL response line (notice) returned while importing schema,
 # return 1 if the response line is something that is likely to be in the
 # initial schema and 0 otherwise
-sub postgresql_response_line_is_expected($)
+sub _postgresql_response_line_is_expected($)
 {
     my $line = shift;
 
@@ -83,11 +83,11 @@ sub postgresql_response_line_is_expected($)
 
 # loads and runs a given SQL file
 # useful for rebuilding the database schema after a call to _reset_schema()
-sub load_sql_file
+sub _load_sql_file
 {
     my ( $label, $sql_file ) = @_;
 
-    sub parse_line
+    sub _parse_line
     {
         my ( $line ) = @_;
 
@@ -96,7 +96,7 @@ sub load_sql_file
         TRACE "Got line: '$line'";
 
         # Die on unexpected SQL (e.g. DROP TABLE)
-        unless ( postgresql_response_line_is_expected( $line ) )
+        unless ( _postgresql_response_line_is_expected( $line ) )
         {
             LOGCONFESS "Unexpected PostgreSQL response line: '$line'";
         }
@@ -122,7 +122,7 @@ sub load_sql_file
     # so it doesn't appear in the process table
     # INFO "loadsql: $script_dir/loadsql.$db_type.sh";
     my $command = [ "$script_dir/loadsql.$db_type.sh", $sql_file, $host, $database, $username, $port ];
-    run3( $command, \$password, \&parse_line, \&parse_line );
+    run3( $command, \$password, \&_parse_line, \&_parse_line );
 
     my $ret = $?;
     if ( $ret != 0 )
@@ -148,7 +148,7 @@ sub recreate_db
     TRACE( "script_dir: $script_dir" );
 
     DEBUG( "Importing schema..." );
-    load_sql_file( $label, "$script_dir/mediawords.sql" );
+    _load_sql_file( $label, "$script_dir/mediawords.sql" );
 
     return 1;
 }
