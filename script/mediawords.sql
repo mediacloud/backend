@@ -20,7 +20,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4576;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4577;
 
 BEGIN
 
@@ -2788,3 +2788,11 @@ create view controversy_dumps as
 create view controversy_dump_time_slices as
     select timespans_id controversy_dump_time_slices_id, snapshots_id controversy_dumps_id, foci_id controversy_query_slices_id, *
         from timespans;
+
+-- cached extractor results for extraction jobs with use_cache set to true
+create table cached_extractor_results(
+    cached_extractor_results_id         bigserial primary key,
+    extracted_html                      text,
+    extracted_text                      text,
+    downloads_id                        bigint
+);
