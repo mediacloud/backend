@@ -426,7 +426,7 @@ sub _set_cached_extractor_results($$$)
 delete from cached_extractor_results
     where cached_extractor_results_id in (
             select cached_extractor_results_id from cached_extractor_results
-                order by cached_extractor_results_id asc offset $max_cache_entries )
+                order by cached_extractor_results_id desc offset $max_cache_entries )
 SQL
     }
 
