@@ -433,7 +433,7 @@ SQL
     my $cache = {
         extracted_html => $results->{ extracted_html },
         extracted_text => $results->{ extracted_text },
-        downloads_id   => $results->{ downloads_id }
+        downloads_id   => $download->{ downloads_id }
     };
 
     $db->create( 'cached_extractor_results', $cache );
