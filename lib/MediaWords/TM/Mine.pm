@@ -2776,6 +2776,8 @@ sub do_mine_topic ($$;$)
 {
     my ( $db, $topic, $options ) = @_;
 
+    $options->{ test_mode } ||= 0;
+
     # Log activity that's about to start
     MediaWords::DBI::Activities::log_system_activity( $db, 'tm_mine_topic', $topic->{ topics_id }, $options )
       || die( "Unable to log the 'tm_mine_topic' activity." );
