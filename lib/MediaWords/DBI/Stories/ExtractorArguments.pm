@@ -34,6 +34,7 @@ sub new($;$)
     $self->{ _skip_bitly_processing }   = $args ? $args->{ skip_bitly_processing }   : 0;
     $self->{ _skip_corenlp_annotation } = $args ? $args->{ skip_corenlp_annotation } : 0;
     $self->{ _extractor_method }        = $args ? $args->{ extractor_method }        : undef;
+    $self->{ _use_cache }               = $args ? $args->{ use_cache }               : undef;
 
     return $self;
 }
@@ -66,6 +67,12 @@ sub skip_corenlp_annotation($)
 {
     my $self = shift;
     return $self->{ _skip_corenlp_annotation };
+}
+
+sub use_cache($)
+{
+    my $self = shift;
+    return $self->{ _use_cache };
 }
 
 # Falls back to default extractor method in configuration

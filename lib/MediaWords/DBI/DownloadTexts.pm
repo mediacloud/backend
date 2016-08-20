@@ -18,6 +18,7 @@ use Data::Dumper;
 use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
 use MediaWords::DBI::Downloads;
+use MediaWords::DBI::Stories::ExtractorArguments;
 use Try::Tiny;
 
 =head1 FUNCTIONS
@@ -34,7 +35,9 @@ sub get_extracted_html_from_db
 
     my $download = $db->find_by_id( 'downloads', $download_text->{ downloads_id } );
 
-    my $extract = MediaWords::DBI::Downloads::extract( $db, $download );
+    my $args = MediaWords::DBI::Stories::ExtractorArguments->new( { use_cache => 1 } );
+
+    my $extract = MediaWords::DBI::Downloads::extract( $db, $download, $args );
 
     return $extract->{ extracted_html };
 }

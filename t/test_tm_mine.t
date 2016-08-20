@@ -34,7 +34,7 @@ use MediaWords::Util::Web;
 
 Readonly my $BASE_PORT => 8890;
 
-Readonly my $NUM_SITES          => 10;
+Readonly my $NUM_SITES          => 20;
 Readonly my $NUM_PAGES_PER_SITE => 20;
 Readonly my $NUM_LINKS_PER_PAGE => 5;
 
@@ -493,6 +493,7 @@ sub test_spider
         cache_broken_downloads          => 0,    #
         import_only                     => 0,    #
         skip_outgoing_foreign_rss_links => 0,    #
+        test_mode                       => 1
     };
 
     MediaWords::TM::Mine::mine_topic( $db, $topic, $mine_options );

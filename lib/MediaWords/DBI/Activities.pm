@@ -210,7 +210,8 @@ Readonly::Hash my %ACTIVITIES => {
             'import_only'          => { description => 'only run import_seed_urls and import_query_story_search and exit' },
             'cache_broken_downloads' => { description => 'speed up fixing broken downloads' },
             'skip_outgoing_foreign_rss_links' =>
-              { description => 'skip slow process of adding links from foreign_rss_links media' }
+              { description => 'skip slow process of adding links from foreign_rss_links media' },
+            'test_mode' => { description => 'run in test mode -- do not try to queue extractions' }
         }
     },
 
