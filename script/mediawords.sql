@@ -20,7 +20,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4577;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4578;
 
 BEGIN
 
@@ -2794,5 +2794,8 @@ create table cached_extractor_results(
     cached_extractor_results_id         bigserial primary key,
     extracted_html                      text,
     extracted_text                      text,
-    downloads_id                        bigint
+    downloads_id                        bigint not null
 );
+
+-- it's better to have a few duplicates than deal with locking issues, so we don't try to make this unique
+create index cached_extractor_results_downloads_id on cached_extractor_results( downloads_id );
