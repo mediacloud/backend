@@ -1,0 +1,99 @@
+use strict;
+use warnings;
+
+# test the use_pager logic in Handler.pm that reads and sets the use_pager
+# flag that determines whether to use the pager for a given media source
+
+BEGIN
+{
+    use FindBin;
+    use lib "$FindBin::Bin/../lib";
+    use lib $FindBin::Bin;
+}
+
+use Test::More;
+
+use Data::Dumper;
+use URI::Split;
+
+use MediaWords::DBI::Downloads;
+use MediaWords::DBI::Stories::ExtractorArguments;
+use MediaWords::Test::DB;
+
+sub add_download_to_story
+{
+    my ( $db, $feed, $story ) = @_;
+
+    my $download = {
+        feeds_id   => $feed->{ feeds_id },
+        stories_id => $story->{ stories_id },
+        url        => $story->{ url },
+        host       => lc( ( URI::Split::uri_split( $story->{ url } ) )[ 1 ] ),
+        type       => 'content',
+        sequence   => 1,
+        state      => 'success',
+        path       => 'content:pending',
+        priority   => 1,
+        extracted  => 't'
+    };
+
+    $download = $db->create( 'downloads', $download );
+
+    my $story_content = "$story->{ title }\n\n$story->{ description }";
+
+    $story->{ content }  = $story_content;
+    $story->{ download } = $download;
+
+    MediaWords::DBI::Downloads::store_content( $db, $download, \$story_content );
+}
+
+sub get_cache_for_story
+{
+    my ( $db, $story ) = @_;
+
+    my $downloads_id = $story->{ download }->{ downloads_id };
+
+    my $c = $db->query( "select * from cached_extractor_results where downloads_id = ?", $downloads_id )->hash;
+
+    return $c;
+}
+
+sub test_extractor_cache
+{
+    my ( $db ) = @_;
+
+    my $data =
+      MediaWords::Test::DB::create_test_story_stack( $db, { medium => { feed => [ qw/story_1 story_2 story_3/ ] } } );
+
+    my $medium  = $data->{ medium };
+    my $feed    = $medium->{ feeds }->{ feed };
+    my $story_1 = $feed->{ stories }->{ story_1 };
+    my $story_2 = $feed->{ stories }->{ story_1 };
+    my $story_3 = $feed->{ stories }->{ story_1 };
+
+    map { add_download_to_story( $db, $feed, $_ ) } ( $story_1, $story_2, $story_3 );
+
+    my $xargs_nocache  = MediaWords::DBI::Stories::ExtractorArguments->new( { use_cache => 0 } );
+    my $xargs_usecache = MediaWords::DBI::Stories::ExtractorArguments->new( { use_cache => 1 } );
+
+    my $res = MediaWords::DBI::Downloads::extract( $db, $story_1->{ download }, $xargs_nocache );
+    is( $res->{ extracted_html }, $story_1->{ content }, "uncached extraction - extractor result" );
+
+    my $c = get_cache_for_story( $db, $story_1 );
+    ok( !$c, "uncached extraction - no cache entry" );
+}
+
+sub main
+{
+    MediaWords::Test::DB::test_on_test_database(
+        sub {
+            my $db = shift;
+
+            test_extractor_cache( $db );
+        }
+    );
+
+    done_testing;
+}
+
+main();
