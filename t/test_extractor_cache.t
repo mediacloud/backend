@@ -81,6 +81,30 @@ sub test_extractor_cache
 
     my $c = get_cache_for_story( $db, $story_1 );
     ok( !$c, "uncached extraction - no cache entry" );
+
+    $res = MediaWords::DBI::Downloads::extract( $db, $story_1->{ download }, $xargs_usecache );
+    is( $res->{ extracted_html }, $story_1->{ content }, "cached extraction 1 - extractor result" );
+
+    $c = get_cache_for_story( $db, $story_1 );
+    ok( $c, "cached extraction 1 - cache entry exits" );
+    is( $c->{ extracted_html }, $story_1->{ content }, "cached extract 1 - cache result" );
+
+    my $new_story_1_content = 'foo bar';
+    MediaWords::DBI::Downloads::store_content( $db, $story_1->{ download }, \$new_story_1_content );
+
+    $res = MediaWords::DBI::Downloads::extract( $db, $story_1->{ download }, $xargs_usecache );
+    is( $res->{ extracted_html }, $story_1->{ content }, "cached extraction 2 - extractor result" );
+
+    $res = MediaWords::DBI::Downloads::extract( $db, $story_1->{ download }, $xargs_nocache );
+    is( $res->{ extracted_html }, $new_story_1_content, "uncached extraction 2 - extractor result" );
+
+    $res = MediaWords::DBI::Downloads::extract( $db, $story_2->{ download }, $xargs_usecache );
+    is( $res->{ extracted_html }, $story_2->{ content }, "cached extraction 3 - extractor result" );
+
+    $c = get_cache_for_story( $db, $story_2 );
+    ok( $c, "cached extraction 3 - cache entry exits" );
+    is( $c->{ extracted_html }, $story_2->{ content }, "cached extract 3 - cache result" );
+
 }
 
 sub main
