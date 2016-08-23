@@ -71,6 +71,7 @@ sub run($$)
 
             skip_bitly_processing   => $args->{ skip_bitly_processing },
             skip_corenlp_annotation => $args->{ skip_corenlp_annotation },
+            use_cache               => $args->{ use_cache }
         }
     );
 
