@@ -1721,6 +1721,9 @@ sub add_new_links($$$$)
 
     for ( my $i = 0 ; $i < scalar( @{ $shuffled_links } ) ; $i += $ADD_NEW_LINKS_CHUNK_SIZE )
     {
+        my $status = get_spider_progress_description( $db, $topic, $iteration, $i, scalar( @{ $shuffled_links } ) );
+        update_topic_state( $db, $topic, $status );
+
         my $end = List::Util::min( $i + $ADD_NEW_LINKS_CHUNK_SIZE - 1, $#{ $shuffled_links } );
         add_new_links_chunk( $db, $topic, $iteration, [ @{ $shuffled_links }[ $i .. $end ] ] );
     }
@@ -1862,7 +1865,7 @@ END
 # get short text description of spidering progress
 sub get_spider_progress_description
 {
-    my ( $db, $topic, $iteration ) = @_;
+    my ( $db, $topic, $iteration, $link_num, $total_links ) = @_;
 
     my $cid = $topic->{ topics_id };
 
@@ -1879,7 +1882,7 @@ select count(*) from topic_links where topics_id = ? and ref_stories_id is null
 SQL
 
     return <<END;
-spidering iteration: $iteration; stories total / last iteration: $total_stories / $stories_last_iteration; links queued: $queued_links
+spidering iteration: $iteration; stories last / total iteration: $stories_last_iteration/ $total_stories; links queued: $queued_links; iteration links: $link_num / $total_links
 END
 
 }
@@ -1893,8 +1896,6 @@ sub run_spider
 
     for my $i ( 1 .. $num_iterations )
     {
-        my $status = get_spider_progress_description( $db, $topic, $i );
-        update_topic_state( $db, $topic, $status );
         spider_new_links( $db, $topic, $i );
     }
 }
