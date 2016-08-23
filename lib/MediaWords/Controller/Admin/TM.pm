@@ -293,7 +293,7 @@ sub get_latest_full_snapshot_with_timespans
 }
 
 # if there are pending topic_links, return a hash describing the status
-# of the mining process with the following fields: stories_by_iteration, queued_urls
+# of the mining process with the following fields: stories_by_iteration, queued_urls, recent_topic_spider_metrics
 sub _get_mining_status
 {
     my ( $db, $topic ) = @_;
@@ -312,7 +312,15 @@ select iteration, count(*) count
     order by iteration asc
 END
 
-    return { queued_urls => $queued_urls, stories_by_iteration => $stories_by_iteration };
+    my $recent_topic_spider_metrics = $db->query( <<SQL, $cid )->hashes;
+select * from topic_spider_metrics where topics_id = ? order by topic_spider_metrics desc limit 25
+SQL
+
+    return {
+        queued_urls                 => $queued_urls,
+        stories_by_iteration        => $stories_by_iteration,
+        recent_topic_spider_metrics => $recent_topic_spider_metrics
+    };
 }
 
 # get the topic snapshots associated with the given topic and optional focus.  attach

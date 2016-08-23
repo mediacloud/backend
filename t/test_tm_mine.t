@@ -433,6 +433,13 @@ SQL
             is( scalar( @{ $topic_links } ), 1, "number of topic_links for $page->{ url } -> $link->{ url }" );
         }
     }
+
+    my $topic_spider_metric = $db->query( <<SQL, $topic->{ topics_id } )->hash;
+select sum( links_processed ) links_processed from topic_spider_metrics where topics_id = ?
+SQL
+
+    ok( $topic_spider_metric,                                           "topic spider metrics exist" );
+    ok( $topic_spider_metric->{ links_processed } > scalar( @{ $cl } ), "metrics links_processed greater than topic_links" );
 }
 
 sub test_spider_results
