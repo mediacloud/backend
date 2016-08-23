@@ -1712,8 +1712,12 @@ sub add_new_links($$$$)
     # (which has per medium locking) to distribute urls from the same media source randomly among the list of links. the
     # link mining and solr seeding routines that feed most links to this function tend to naturally group links
     # from the same media source together.
-    my $shuffled_links =
-      [ sort { Digest::MD5::md5_hex( $a->{ url } ) cmp Digest::MD5::md5_hex( $b->{ url } ) } @{ $new_links } ];
+    my $shuffled_links = [
+        sort {
+            Digest::MD5::md5_hex( encode( 'utf-8', $a->{ url } ) )
+              cmp Digest::MD5::md5_hex( encode( 'utf-8', $b->{ url } ) )
+        } @{ $new_links }
+    ];
 
     for ( my $i = 0 ; $i < scalar( @{ $shuffled_links } ) ; $i += $ADD_NEW_LINKS_CHUNK_SIZE )
     {
