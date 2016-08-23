@@ -1703,6 +1703,21 @@ END
     $db->commit unless $db->dbh->{ AutoCommit };
 }
 
+# save a row in the topic_spider_metrics table to track performance of spider
+sub save_metrics($$$$$)
+{
+    my ( $db, $topic, $iteration, $num_links, $elapsed_time ) = @_;
+
+    my $topic_spider_metric = {
+        topics_id       => $topic->{ topics_id },
+        iteration       => $iteration,
+        links_processed => $num_links,
+        elapsed_time    => $elapsed_time
+    };
+
+    $db->create( 'topic_spider_metrics', $topic_spider_metric );
+}
+
 # call add_new_links in chunks of $ADD_NEW_LINKS_CHUNK_SIZE so we don't lose too much work when we restart the spider
 sub add_new_links($$$$)
 {
@@ -1713,19 +1728,27 @@ sub add_new_links($$$$)
     # link mining and solr seeding routines that feed most links to this function tend to naturally group links
     # from the same media source together.
     my $shuffled_links = [
+
+        # a link is only required to have a url field, but it usually has a controversy_links_id; better to sort by
+        # id if possible so that identical urls do not get grouped
         sort {
-            Digest::MD5::md5_hex( encode( 'utf-8', $a->{ url } ) )
-              cmp Digest::MD5::md5_hex( encode( 'utf-8', $b->{ url } ) )
+            Digest::MD5::md5_hex( encode( 'utf-8', $a->{ controversy_links_id } || $a->{ url } ) )
+              cmp Digest::MD5::md5_hex( encode( 'utf-8', $b->{ controversy_links_id } || $b->{ url } ) )
         } @{ $new_links }
     ];
 
     for ( my $i = 0 ; $i < scalar( @{ $shuffled_links } ) ; $i += $ADD_NEW_LINKS_CHUNK_SIZE )
     {
+        my $start_time = time;
+
         my $status = get_spider_progress_description( $db, $topic, $iteration, $i, scalar( @{ $shuffled_links } ) );
         update_topic_state( $db, $topic, $status );
 
         my $end = List::Util::min( $i + $ADD_NEW_LINKS_CHUNK_SIZE - 1, $#{ $shuffled_links } );
         add_new_links_chunk( $db, $topic, $iteration, [ @{ $shuffled_links }[ $i .. $end ] ] );
+
+        my $elapsed_time = time - $start_time;
+        save_metrics( $db, $topic, $iteration, $end - $i, $elapsed_time );
     }
 }
 
