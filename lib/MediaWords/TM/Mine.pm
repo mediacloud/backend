@@ -22,6 +22,7 @@ use MediaWords::CommonLibs;
 
 use Data::Dumper;
 use DateTime;
+use Digest::MD5;
 use Encode;
 use Getopt::Long;
 use HTML::LinkExtractor;
@@ -857,7 +858,7 @@ sub log_dead_link
 # step later in add_new_links_chunk process.
 sub queue_extraction($$)
 {
-    my ( $db, $download, $story ) = @_;
+    my ( $db, $story ) = @_;
 
     return if ( $_test_mode );
 
@@ -1707,10 +1708,17 @@ sub add_new_links($$$$)
 {
     my ( $db, $topic, $iteration, $new_links ) = @_;
 
-    for ( my $i = 0 ; $i < scalar( @{ $new_links } ) ; $i += $ADD_NEW_LINKS_CHUNK_SIZE )
+    # randomly shuffle the links because it is better for downloading (which has per medium throttling) and extraction
+    # (which has per medium locking) to distribute urls from the same media source randomly among the list of links. the
+    # link mining and solr seeding routines that feed most links to this function tend to naturally group links
+    # from the same media source together.
+    my $shuffled_links =
+      [ sort { Digest::MD5::md5_hex( $a->{ url } ) cmp Digest::MD5::md5_hex( $b->{ url } ) } @{ $new_links } ];
+
+    for ( my $i = 0 ; $i < scalar( @{ $shuffled_links } ) ; $i += $ADD_NEW_LINKS_CHUNK_SIZE )
     {
-        my $end = List::Util::min( $i + $ADD_NEW_LINKS_CHUNK_SIZE - 1, $#{ $new_links } );
-        add_new_links_chunk( $db, $topic, $iteration, [ @{ $new_links }[ $i .. $end ] ] );
+        my $end = List::Util::min( $i + $ADD_NEW_LINKS_CHUNK_SIZE - 1, $#{ $shuffled_links } );
+        add_new_links_chunk( $db, $topic, $iteration, [ @{ $shuffled_links }[ $i .. $end ] ] );
     }
 }
 
