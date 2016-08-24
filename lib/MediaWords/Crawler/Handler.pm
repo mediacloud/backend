@@ -344,7 +344,7 @@ END
         {
             MediaWords::DBI::Downloads::store_content( $dbs, $download, \$response->decoded_content );
             WARN "DO NOT PROCESS FEEDS";
-            $self->engine->dbs->update_by_id(
+            $db->update_by_id(
                 'downloads',
                 $download->{ downloads_id },
                 { state => 'feed_error', error_message => 'do_not_process_feeds' }
