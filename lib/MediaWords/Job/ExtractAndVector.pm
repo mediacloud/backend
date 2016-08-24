@@ -125,37 +125,6 @@ sub run($$)
     return 1;
 }
 
-# run extraction for the crawler. run in process of mediawords.extract_in_process is configured.
-# keep retrying on error.
-sub extract_for_crawler($$$)
-{
-    my ( $self, $db, $args ) = @_;
-
-    if ( MediaWords::Util::Config::get_config->{ mediawords }->{ extract_in_process } )
-    {
-        DEBUG "extracting in process...";
-        MediaWords::Job::ExtractAndVector->run( $args );
-    }
-    else
-    {
-        while ( 1 )
-        {
-            eval { MediaWords::Job::ExtractAndVector->add_to_queue( $args ); };
-
-            if ( $@ )
-            {
-                WARN "Extractor job queue failed. Sleeping and trying again in 5 seconds: $@";
-                sleep 5;
-            }
-            else
-            {
-                last;
-            }
-        }
-        DEBUG "queued extraction";
-    }
-}
-
 no Moose;    # gets rid of scaffolding
 
 # Return package name instead of 1 or otherwise worker.pl won't know the name of the package it's loading

@@ -383,11 +383,13 @@ feeds, create new stories for any new story urls in the feed content.  More deta
 
 Also store the content of the feed for the download and set the feed.last_successful_download_time to now.
 
+If $extract_in_process is true, extract web_page feeds in the process instead of sending them to the job broker.
+
 =cut
 
-sub handle_feed_content
+sub handle_feed_content($$$;$)
 {
-    my ( $dbs, $download, $decoded_content ) = @_;
+    my ( $dbs, $download, $decoded_content, $extract_in_process ) = @_;
 
     my $content_ref = \$decoded_content;
 
@@ -432,7 +434,18 @@ sub handle_feed_content
 
     if ( $feed_type eq 'web_page' )
     {
-        MediaWords::Job::ExtractAndVector->extract_for_crawler( $dbs, { downloads_id => $download->{ downloads_id } } );
+        my $args = { downloads_id => $download->{ downloads_id } };
+
+        if ( $extract_in_process )
+        {
+            TRACE "Extracting web page in process...";
+            MediaWords::Job::ExtractAndVector->run( $args );
+        }
+        else
+        {
+            TRACE "Adding web page to extraction queue...";
+            MediaWords::Job::ExtractAndVector->add_to_queue( $args );
+        }
     }
 }
 

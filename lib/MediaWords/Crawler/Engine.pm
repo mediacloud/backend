@@ -65,6 +65,7 @@ sub new
     $self->reconnect_db();
     $self->children_exit_on_kill( 0 );
     $self->test_mode( 0 );
+    $self->extract_in_process( 0 );
 
     return $self;
 }
@@ -602,10 +603,27 @@ sub test_mode
             $self->processes( 1 );
             $self->throttle( 1 );
             $self->sleep_interval( 1 );
+            $self->extract_in_process( 1 );
         }
     }
 
     return $self->{ test_mode };
+}
+
+=head2 extract_in_process
+
+getset extract_in_process - whether extract downloads in crawler's process instead of sending them to the job broker
+
+=cut
+
+sub extract_in_process
+{
+    if ( defined( $_[ 1 ] ) )
+    {
+        $_[ 0 ]->{ extract_in_process } = $_[ 1 ];
+    }
+
+    return $_[ 0 ]->{ extract_in_process };
 }
 
 =head2 dbs

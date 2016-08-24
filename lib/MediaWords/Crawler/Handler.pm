@@ -214,12 +214,23 @@ sub _queue_story_extraction($$)
 {
     my ( $self, $download ) = @_;
 
-    my $db             = $self->engine->dbs;
-    my $fetcher_number = $self->engine->fetcher_number;
+    my $db                 = $self->engine->dbs;
+    my $fetcher_number     = $self->engine->fetcher_number;
+    my $extract_in_process = $self->engine->extract_in_process;
 
     DEBUG "fetcher $fetcher_number starting extraction for download " . $download->{ downloads_id };
 
-    MediaWords::Job::ExtractAndVector->extract_for_crawler( $db, { stories_id => $download->{ stories_id } } );
+    my $args = { stories_id => $download->{ stories_id } };
+    if ( $extract_in_process )
+    {
+        TRACE "Extracting in process...";
+        MediaWords::Job::ExtractAndVector->run( $args );
+    }
+    else
+    {
+        TRACE "Adding to extraction queue...";
+        MediaWords::Job::ExtractAndVector->add_to_queue( $args );
+    }
 }
 
 # call the pager module on the download and queue the story for extraction if this are no other pages for the story
@@ -341,7 +352,11 @@ END
         }
         else
         {
-            MediaWords::Crawler::FeedHandler::handle_feed_content( $dbs, $download, $response->decoded_content );
+            MediaWords::Crawler::FeedHandler::handle_feed_content(
+                $dbs, $download,
+                $response->decoded_content,
+                $self->engine->extract_in_process
+            );
         }
 
     }
