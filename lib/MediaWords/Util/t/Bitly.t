@@ -8,7 +8,6 @@ use Test::Deep;
 
 use Data::Dumper;
 
-use MediaWords::Test::DB;
 use MediaWords::Util::Bitly;
 
 BEGIN

@@ -206,7 +206,7 @@ sub _exit()
     exit();
 }
 
-=head2 spawn_fetchers
+=head2 _spawn_fetchers()
 
 Fork off $self->process number of fetching processes.  For each forked fetching process, create socket between the
 parent and child process.  In each child process, take care to reconnect to db and then enter an infinite
@@ -230,7 +230,7 @@ calls $handler->handle_repsonse( $download, $response ) on the fetcher response 
 
 =cut
 
-sub spawn_fetchers
+sub _spawn_fetchers
 {
     my ( $self ) = @_;
 
@@ -330,7 +330,7 @@ sub create_fetcher_engine_for_testing
 
 =head2 crawl
 
-Start crawling by cralling $self->spawn_fetchers and then entering a loop that:
+Start crawling by cralling $self->_spawn_fetchers() and then entering a loop that:
 
 =over
 
@@ -354,7 +354,7 @@ sub crawl
 {
     my ( $self ) = @_;
 
-    $self->spawn_fetchers();
+    $self->_spawn_fetchers();
 
     my $socket_select = IO::Select->new();
 
@@ -430,79 +430,6 @@ sub crawl
 
     INFO "using kill 9 to make sure children stop";
     kill( 9, map { $_->{ pid } } @{ $self->{ fetchers } } );
-}
-
-=head2 crawl_single_download
-
-Enter the crawl loop but crawl only a single download.  Used for testing in place of crawl().
-
-=cut
-
-sub crawl_single_download
-{
-    my ( $self, $downloads_id ) = @_;
-
-    $self->spawn_fetchers();
-
-    my $socket_select = IO::Select->new();
-
-    for my $fetcher ( @{ $self->fetchers } )
-    {
-        $socket_select->add( $fetcher->{ socket } );
-    }
-
-    my $start_time = time;
-
-    my $download = $self->dbs->find_by_id( 'downloads', $downloads_id );
-    my $queued_downloads = [ $download ];
-
-    $self->dbs->begin;
-
-  OUTER_LOOP:
-    while ( 1 )
-    {
-        for my $s ( $socket_select->can_read() )
-        {
-            my $fetcher_number = $s->getline();
-
-            if ( !defined( $fetcher_number ) )
-            {
-                DEBUG "skipping fetcher in which we couldn't read the fetcher number";
-                $socket_select->remove( $s );
-                next;
-            }
-
-            chomp( $fetcher_number );
-
-            if ( my $queued_download = shift( @{ $queued_downloads } ) )
-            {
-                $s->printflush( $queued_download->{ downloads_id } . "\n" );
-            }
-            else
-            {
-                $s->printflush( "exit\n" );
-
-                my @fetchers = @{ $self->{ fetchers } };
-
-                my $fetcher = $fetchers[ $fetcher_number ];
-
-                my $fetcher_pid = $fetcher->{ pid };
-
-                sleep( 3 );
-                DEBUG "waiting for fetcher $fetcher_number ( pid  $fetcher_pid ) ";
-
-                DEBUG "exiting loop after wait";
-                last OUTER_LOOP;
-            }
-        }
-
-    }
-    $self->dbs->commit;
-
-    sleep( 5 );
-
-    INFO "waiting 5 seconds for children to exit ...";
-    sleep( 5 );
 }
 
 =head2 processes

@@ -14,7 +14,7 @@ use Data::Dumper;
 use MediaWords::Pg::Schema;
 
 use Test::NoWarnings;
-use Test::More tests => 13;
+use Test::More tests => 12;
 
 BEGIN
 {
@@ -34,11 +34,7 @@ MediaWords::Test::DB::test_on_test_database(
         isa_ok( $db, "DBIx::Simple::MediaWords" );
 
         # clear the DB
-        MediaWords::Pg::Schema::reset_all_schemas( $db );
-
-        my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir };
-        my $load_sql_file_result = MediaWords::Pg::Schema::load_sql_file( 'test', "$script_dir/mediawords.sql" );
-        ok( $load_sql_file_result == 0, "load sql file result" );
+        MediaWords::Pg::Schema::recreate_db( 'test' );
 
         # transaction success
         $db->transaction(
