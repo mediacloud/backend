@@ -30,10 +30,14 @@ sub _reset_all_schemas($)
         ORDER BY schema_name
 SQL
     )->flat;
+
+    # When dropping schemas, PostgreSQL spits out a lot of notices which break "no warnings" unit test
+    $db->query( 'SET client_min_messages=WARNING' );
     foreach my $schema ( @{ $schemas } )
     {
         $db->query( "DROP SCHEMA IF EXISTS $schema CASCADE" );
     }
+    $db->query( 'SET client_min_messages=NOTICE' );
 }
 
 # Given the PostgreSQL response line (notice) returned while importing schema,
