@@ -1732,8 +1732,8 @@ sub add_new_links($$$$)
         # a link is only required to have a url field, but it usually has a controversy_links_id; better to sort by
         # id if possible so that identical urls do not get grouped
         sort {
-            Digest::MD5::md5_hex( encode( 'utf-8', $a->{ controversy_links_id } || $a->{ url } ) )
-              cmp Digest::MD5::md5_hex( encode( 'utf-8', $b->{ controversy_links_id } || $b->{ url } ) )
+            Digest::MD5::md5_hex( encode( 'utf-8', $a->{ topic_links_id } || $a->{ url } ) )
+              cmp Digest::MD5::md5_hex( encode( 'utf-8', $b->{ topic_links_id } || $b->{ url } ) )
         } @{ $new_links }
     ];
 
