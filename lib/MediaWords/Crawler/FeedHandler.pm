@@ -51,23 +51,6 @@ Readonly my $EXTERNAL_FEED_NAME => 'EXTERNAL FEED';
 
 =cut
 
-sub _get_stories_from_feed_contents
-{
-    my ( $dbs, $download, $decoded_content ) = @_;
-
-    my $media_id = MediaWords::DBI::Downloads::get_media_id( $dbs, $download );
-    my $download_time = $download->{ download_time };
-
-    my $stories;
-    eval { $stories = _get_stories_from_feed_contents_impl( $decoded_content, $media_id, $download_time ); };
-    if ( $@ )
-    {
-        die "Error processing feed for $download->{ url }: $@";
-    }
-
-    return $stories;
-}
-
 # if $v is a scalar, return $v, else return undef.
 # we need to do this to make sure we don't get a ref back from a feed object field
 sub _no_ref
@@ -95,7 +78,7 @@ sub _sanitize_guid
 }
 
 # parse the feed.  return a (non-db-backed) story hash for each story found in the feed.
-sub _get_stories_from_feed_contents_impl
+sub _get_stories_from_feed_contents
 {
     my ( $decoded_content, $media_id, $download_time ) = @_;
 
@@ -272,7 +255,15 @@ sub _add_feed_stories_and_downloads
 {
     my ( $dbs, $download, $decoded_content ) = @_;
 
-    my $stories = _get_stories_from_feed_contents( $dbs, $download, $decoded_content );
+    my $media_id = MediaWords::DBI::Downloads::get_media_id( $dbs, $download );
+    my $download_time = $download->{ download_time };
+
+    my $stories;
+    eval { $stories = _get_stories_from_feed_contents( $decoded_content, $media_id, $download_time ); };
+    if ( $@ )
+    {
+        die "Error processing feed for $download->{ url }: $@";
+    }
 
     return 0 if ( _stories_checksum_matches_feed( $dbs, $download->{ feeds_id }, $stories ) );
 

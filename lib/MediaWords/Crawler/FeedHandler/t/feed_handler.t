@@ -183,7 +183,7 @@ __END_TEST_CASE__
     {
         my $feed_input = $test_case->{ feed_input };
 
-        my $stories = MediaWords::Crawler::FeedHandler::_get_stories_from_feed_contents_impl(
+        my $stories = MediaWords::Crawler::FeedHandler::_get_stories_from_feed_contents(
             $feed_input,
             $test_case->{ media_id },
             $test_case->{ publish_date }
