@@ -385,8 +385,6 @@ sub handle_feed_content($$$;$)
 {
     my ( $dbs, $download, $decoded_content, $extract_in_process ) = @_;
 
-    my $content_ref = \$decoded_content;
-
     my $feed = $dbs->find_by_id( 'feeds', $download->{ feeds_id } );
     my $feed_type = $feed->{ feed_type };
 
@@ -437,10 +435,10 @@ SQL
     }
     else
     {
-        $content_ref = \'(redundant feed)';
+        $decoded_content = '(redundant feed)';
     }
 
-    MediaWords::DBI::Downloads::store_content( $dbs, $download, $content_ref );
+    MediaWords::DBI::Downloads::store_content( $dbs, $download, \$decoded_content );
 
     if ( $feed_type eq 'web_page' )
     {
