@@ -31,8 +31,6 @@ use FindBin;
 use Readonly;
 use URI::Split;
 
-use List::Util qw (max maxstr);
-
 use Feed::Scrape::MediaWords;
 use MediaWords::Crawler::Pager;
 use MediaWords::Job::ExtractAndVector;
