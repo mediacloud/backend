@@ -231,13 +231,13 @@ sub _process_content
 
     my $next_page = $self->_call_pager( $dbs, $download, $response->decoded_content );
 
-    if ( !$next_page )
+    if ( $next_page )
     {
-        $self->_queue_story_extraction( $download );
+        DEBUG "fetcher skipping extraction download " . $download->{ downloads_id } . " until all pages are available";
     }
     else
     {
-        DEBUG "fetcher skipping extraction download " . $download->{ downloads_id } . " until all pages are available";
+        $self->_queue_story_extraction( $download );
     }
 
     DEBUG "fetcher " . $self->engine->fetcher_number . " finished _process_content for  " . $download->{ downloads_id };
