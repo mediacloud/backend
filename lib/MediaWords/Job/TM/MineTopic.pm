@@ -41,20 +41,12 @@ use MediaWords::CommonLibs;
 use MediaWords::TM::Mine;
 use MediaWords::DB;
 
-# Having a global database object should be safe because
-# job workers don't fork()
-my $db = undef;
-
 # Run job
 sub run($;$)
 {
     my ( $self, $args ) = @_;
 
-    unless ( $db )
-    {
-        # Postpone connecting to the database so that compile test doesn't do that
-        $db = MediaWords::DB::connect_to_db();
-    }
+    my $db = MediaWords::DB::connect_to_db();
 
     my $topics_id                       = $args->{ topics_id };
     my $import_only                     = $args->{ import_only } // 0;
