@@ -420,13 +420,15 @@ sub handle_feed_content($$$;$)
         ERROR $error_message;
         $download->{ error_message } = $error_message;
     }
-
-    if ( $download->{ state } ne 'feed_error' )
+    else
     {
         $dbs->query(
-"UPDATE feeds SET last_successful_download_time = greatest( last_successful_download_time, ? ) WHERE feeds_id = ?",
-            $download->{ download_time },
-            $download->{ feeds_id }
+            <<SQL,
+            UPDATE feeds
+            SET last_successful_download_time = greatest( last_successful_download_time, ? )
+            WHERE feeds_id = ?
+SQL
+            $download->{ download_time }, $download->{ feeds_id }
         );
     }
 
