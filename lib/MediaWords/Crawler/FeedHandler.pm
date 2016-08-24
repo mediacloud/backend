@@ -32,7 +32,6 @@ use Readonly;
 use URI::Split;
 
 use List::Util qw (max maxstr);
-use Try::Tiny;
 
 use Feed::Scrape::MediaWords;
 use MediaWords::Crawler::Pager;
@@ -52,7 +51,6 @@ Readonly my $EXTERNAL_FEED_NAME => 'EXTERNAL FEED';
 
 =cut
 
-# try/catch wrapper for _get_stories_from_feed_content_impl
 sub _get_stories_from_feed_contents
 {
     my ( $dbs, $download, $decoded_content ) = @_;
@@ -60,14 +58,14 @@ sub _get_stories_from_feed_contents
     my $media_id = MediaWords::DBI::Downloads::get_media_id( $dbs, $download );
     my $download_time = $download->{ download_time };
 
-    return try
+    my $stories;
+    eval { $stories = _get_stories_from_feed_contents_impl( $decoded_content, $media_id, $download_time ); };
+    if ( $@ )
     {
-        return _get_stories_from_feed_contents_impl( $decoded_content, $media_id, $download_time );
+        die "Error processing feed for $download->{ url }: $@";
     }
-    catch
-    {
-        die( "Error processing feed for $download->{ url }: $_ " );
-    };
+
+    return $stories;
 }
 
 # if $v is a scalar, return $v, else return undef.
@@ -129,14 +127,12 @@ sub _get_stories_from_feed_contents_impl
         if ( my $date_string = _no_ref( $item->pubDate() ) )
         {
             # Date::Parse is more robust at parsing date than postgres
-            try
-            {
-                $publish_date = MediaWords::Util::SQL::get_sql_date_from_epoch( Date::Parse::str2time( $date_string ) );
-            }
-            catch
+            eval {
+                $publish_date = MediaWords::Util::SQL::get_sql_date_from_epoch( Date::Parse::str2time( $date_string ) ); };
+            if ( $@ )
             {
                 $publish_date = $download_time;
-                WARN "Error getting date from item pubDate ('" . $item->pubDate() . "') just using download time: $_";
+                WARN "Error getting date from item pubDate ('" . $item->pubDate() . "') just using download time: $@";
             }
         }
         else
@@ -409,8 +405,7 @@ sub handle_feed_content
     my $feed = $dbs->find_by_id( 'feeds', $download->{ feeds_id } );
     my $feed_type = $feed->{ feed_type };
 
-    try
-    {
+    eval {
         if ( $feed_type eq 'syndicated' )
         {
             $content_ref = _handle_syndicated_content( $dbs, $download, $decoded_content );
@@ -426,35 +421,30 @@ sub handle_feed_content
             die( "Unknown feed type '$feed_type'" );
 
         }
-
-    }
-    catch
+    };
+    if ( $@ )
     {
         $download->{ state } = 'feed_error';
-        my $error_message = "Error processing feed: $_";
+        my $error_message = "Error processing feed: $@";
         ERROR $error_message;
         $download->{ error_message } = $error_message;
     }
-    finally
+
+    if ( $download->{ state } ne 'feed_error' )
     {
-        if ( $download->{ state } ne 'feed_error' )
-        {
-            $dbs->query(
+        $dbs->query(
 "UPDATE feeds SET last_successful_download_time = greatest( last_successful_download_time, ? ) WHERE feeds_id = ?",
-                $download->{ download_time },
-                $download->{ feeds_id }
-            );
-        }
+            $download->{ download_time },
+            $download->{ feeds_id }
+        );
+    }
 
-        MediaWords::DBI::Downloads::store_content( $dbs, $download, $content_ref );
+    MediaWords::DBI::Downloads::store_content( $dbs, $download, $content_ref );
 
-        if ( $feed_type eq 'web_page' )
-        {
-            MediaWords::Job::ExtractAndVector->extract_for_crawler( $dbs, { downloads_id => $download->{ downloads_id } } );
-        }
-    };
-
-    return;
+    if ( $feed_type eq 'web_page' )
+    {
+        MediaWords::Job::ExtractAndVector->extract_for_crawler( $dbs, { downloads_id => $download->{ downloads_id } } );
+    }
 }
 
 1;
