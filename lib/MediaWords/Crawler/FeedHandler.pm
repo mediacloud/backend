@@ -246,37 +246,6 @@ END
     return 0;
 }
 
-# parse the feed content; create a story hash for each parsed story; check for a new url since the last
-# feed download; if there is a new url, check whether each story is new, and if so add it to the database and
-# ad a pending download for it.  return the number of new stories added.
-sub _add_feed_stories_and_downloads
-{
-    my ( $dbs, $download, $decoded_content ) = @_;
-
-    my $media_id = MediaWords::DBI::Downloads::get_media_id( $dbs, $download );
-    my $download_time = $download->{ download_time };
-
-    my $stories;
-    eval { $stories = _get_stories_from_feed_contents( $decoded_content, $media_id, $download_time ); };
-    if ( $@ )
-    {
-        die "Error processing feed for $download->{ url }: $@";
-    }
-
-    return 0 if ( _stories_checksum_matches_feed( $dbs, $download->{ feeds_id }, $stories ) );
-
-    my $new_stories = [ grep { MediaWords::DBI::Stories::is_new( $dbs, $_ ) } @{ $stories } ];
-
-    foreach my $story ( @$new_stories )
-    {
-        _add_story_and_content_download( $dbs, $story, $download );
-    }
-
-    my $num_new_stories = scalar( @{ $new_stories } );
-
-    return $num_new_stories;
-}
-
 # handle feeds of type 'web_page' by just creating a story to associate with the content.  web page feeds are feeds
 # that consist of a web page that we download once a week and add as a story.
 # Return number of new stories found (always >0).
@@ -362,12 +331,35 @@ sub import_external_feed
     _handle_syndicated_content( $db, $download, $feed_content );
 }
 
-# Handle feeds of type 'syndicated', which are rss / atom / rdf feeds; return number of stories added
+# parse the feed content; create a story hash for each parsed story; check for a new url since the last
+# feed download; if there is a new url, check whether each story is new, and if so add it to the database and
+# ad a pending download for it.  return the number of new stories added.
 sub _handle_syndicated_content
 {
     my ( $dbs, $download, $decoded_content ) = @_;
 
-    return _add_feed_stories_and_downloads( $dbs, $download, $decoded_content );
+    my $media_id = MediaWords::DBI::Downloads::get_media_id( $dbs, $download );
+    my $download_time = $download->{ download_time };
+
+    my $stories;
+    eval { $stories = _get_stories_from_feed_contents( $decoded_content, $media_id, $download_time ); };
+    if ( $@ )
+    {
+        die "Error processing feed for $download->{ url }: $@";
+    }
+
+    return 0 if ( _stories_checksum_matches_feed( $dbs, $download->{ feeds_id }, $stories ) );
+
+    my $new_stories = [ grep { MediaWords::DBI::Stories::is_new( $dbs, $_ ) } @{ $stories } ];
+
+    foreach my $story ( @$new_stories )
+    {
+        _add_story_and_content_download( $dbs, $story, $download );
+    }
+
+    my $num_new_stories = scalar( @{ $new_stories } );
+
+    return $num_new_stories;
 }
 
 =head2 handle_feed_content( $db, $download, $decoded_content )
