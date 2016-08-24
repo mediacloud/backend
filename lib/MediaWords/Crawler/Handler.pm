@@ -177,7 +177,8 @@ sub handle_response
 
     if ( $self->handle_error( $download, $response ) )
     {
-        DEBUG "Download $downloads_id errored.";
+        DEBUG "Download $downloads_id errored: " . $response->decoded_content;
+        return;
     }
 
     $self->_restrict_content_type( $response );
