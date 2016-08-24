@@ -2,6 +2,10 @@
 -- Schema for MediaWords database
 --
 
+-- main schema
+CREATE SCHEMA IF NOT EXISTS public;
+
+
 CREATE OR REPLACE LANGUAGE plpgsql;
 
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
@@ -20,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4579;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4580;
 
 BEGIN
 
@@ -1465,8 +1469,16 @@ create table snap_files (
 
 create index snap_files_cd on snap_files ( snapshots_id );
 
+
 -- schema to hold the various snapshot snapshot tables
-create schema snap;
+CREATE SCHEMA snap;
+
+
+CREATE OR REPLACE LANGUAGE plpgsql;
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 
 -- create a table for each of these tables to hold a snapshot of stories relevant
 -- to a topic for each snapshot for that topic
@@ -1640,7 +1652,7 @@ BEGIN
                 JOIN pg_catalog.pg_class AS c ON t.table_name = c.relname
                 JOIN pg_catalog.pg_user AS u ON c.relowner = u.usesysid
             WHERE t.table_name = 'bitly_clicks_total'
-              AND t.table_schema = 'public'
+              AND t.table_schema = CURRENT_SCHEMA()
             INTO target_table_owner;
 
             EXECUTE 'ALTER TABLE ' || target_table_name || ' OWNER TO ' || target_table_owner || ';';
@@ -2464,7 +2476,7 @@ BEGIN
                 WHERE i.indisprimary
             ) AS pkey ON pkey.indrelid = t.relname::regclass
         WHERE conname LIKE '%_pkey'
-          AND nsp.nspname = 'public'
+          AND nsp.nspname = CURRENT_SCHEMA()
           AND t.relname NOT IN (
             'story_similarities_100_short',
             'url_discovery_counts'

@@ -69,16 +69,9 @@ EOF
 
     exit if !$continue_and_reset_db;
 
-    my $result = MediaWords::Pg::Schema::recreate_db();
+    MediaWords::Pg::Schema::recreate_db();
 
-    if ( $result )
-    {
-        ERROR "Unable to create database";
-    }
-    else
-    {
-        INFO "Database created.";
-    }
+    INFO "Database created.";
 }
 
 main();
