@@ -1666,8 +1666,6 @@ sub add_new_links_chunk($$$$)
 {
     my ( $db, $topic, $iteration, $new_links ) = @_;
 
-    $db->begin;
-
     my $trimmed_links = [];
     for my $link ( @{ $new_links } )
     {
@@ -1693,14 +1691,14 @@ sub add_new_links_chunk($$$$)
 
     mine_topic_stories( $db, $topic );
 
+    $db->begin;
     for my $link ( @{ $new_links } )
     {
         $db->query( <<END, $link->{ topic_links_id } ) if ( $link->{ topic_links_id } );
 delete from topic_links where topic_links_id = ? and ref_stories_id is null
 END
     }
-
-    $db->commit unless $db->dbh->{ AutoCommit };
+    $db->commit;
 }
 
 # save a row in the topic_spider_metrics table to track performance of spider
