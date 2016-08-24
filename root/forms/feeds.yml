@@ -18,6 +18,7 @@ elements:
     options:
         - [ 'syndicated', 'Syndicated' ]
         - [ 'web_page', 'Web Page' ]
+        - [ 'univision', 'Univision' ]
 
   - type: Submit
     name: submit
