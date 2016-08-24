@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4580;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4581;
 
 BEGIN
 
@@ -433,7 +433,18 @@ LANGUAGE 'plpgsql';
 
 create index media_stats_medium on media_stats( media_id );
 
-create type feed_feed_type AS ENUM ( 'syndicated', 'web_page' );
+create type feed_feed_type AS ENUM (
+
+    -- Syndicated feed, e.g. RSS or Atom
+    'syndicated',
+
+    -- Web page feed, used when no syndicated feed was found
+    'web_page',
+
+    -- Univision.com XML feed
+    'univision'
+
+);
 
 -- Feed statuses that determine whether the feed will be fetched
 -- or skipped

@@ -245,6 +245,30 @@ EOF
         $db->query( $upgrade_sql );
     }
 
+    # Add 'univision' option to "feed_feed_type" enum
+    # (adding new enum values don't work in transactions or multi-line queries
+    # thus a migration wouldn't have worked)
+    my ( $feed_type_has_univision_value ) = $db->query(
+        <<SQL
+        SELECT 1
+        FROM pg_type AS t
+            JOIN pg_enum AS e ON t.oid = e.enumtypid  
+            JOIN pg_catalog.pg_namespace AS n ON n.oid = t.typnamespace
+        WHERE n.nspname = CURRENT_SCHEMA()
+          AND t.typname = 'feed_feed_type'
+          AND e.enumlabel = 'univision'
+SQL
+    )->flat;
+    unless ( $feed_type_has_univision_value )
+    {
+        DEBUG( "Adding 'univision' value to 'feed_feed_type' enum..." );
+        $db->query( "ALTER TYPE feed_feed_type ADD VALUE 'univision'" );
+    }
+    else
+    {
+        DEBUG( "'feed_feed_type' already has 'univision' value" );
+    }
+
     $db->disconnect;
 }
 
