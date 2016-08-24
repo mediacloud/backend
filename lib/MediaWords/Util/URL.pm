@@ -492,6 +492,9 @@ sub fix_common_url_mistakes($)
     # replace backslashes with forward
     $url =~ s/\\/\//g;
 
+    # http://newsmachete.com?page=2 -> http://newsmachete.com/?page=2
+    $url =~ s~(https?://[^/]+)\?~$1/\?~;
+
     return $url;
 }
 

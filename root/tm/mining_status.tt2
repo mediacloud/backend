@@ -5,12 +5,35 @@
     <a class="boxcommand" href="[% c.uri_for( '/admin/tm/mine/' _ topic.topics_id ) %]">spider</a>
 </div>
 
+
 <table class="even_rows_grey" >
     <tr><th>iteration</th><th>stories</th></tr>
     [% FOREACH iteration IN mining_status.stories_by_iteration %]
-        <tr><td>[% iteration.iteration %]</td><td>[% iteration.count %]</td></th>
+        <tr><td>[% iteration.iteration %]</td><td>[% iteration.count %]</td></tr>
     [% END %]
     <tr><td colspan=2>[% mining_status.queued_urls %] urls queued</td></tr>
+</table>
+
+
+<div class="boxtitle">
+    Spidering Performance: most recent metrics
+</div>
+
+<table class="even_rows_grey" >
+    <tr>
+        <th>iteration</th>
+        <th>num links processed</th>
+        <th>elapsed time</th>
+        <th>date</th>
+    </tr>
+    [% FOREACH metric IN mining_status.recent_topic_spider_metrics %]
+        <tr>
+            <td>[% metric.iteration %]</td>
+            <td>[% metric.links_processed %]</td>
+            <td>[% metric.elapsed_time %]</td>
+            <td>[% metric.processed_date %]</td>
+        </tr>
+    [% END %]
 </table>
 
 [% INCLUDE include/footer.tt2 %]

@@ -104,7 +104,7 @@ $(document).ready(function () {
         <th>Title</th>
         <th>Publish Date</th>
         <th>Medium</th>
-        <th><a href="[% self_url | html %]">Inlinks</a></th>
+        <th><a href="[% self_url | html %]">Media Inlinks</a></th>
         <th>Outlinks</th>
         <th><a href="[% self_url _ '&order=bitly_click_count' | html %]">Clicks</th>
     </tr>
@@ -136,7 +136,7 @@ $(document).ready(function () {
             </td>
         [% END %]
         <td><a href="[% medium_url | html %]">[% s.medium_name | truncate( 32 ) | html %]</a></td>
-        <td>[% s.inlink_count %]</td>
+        <td>[% s.media_inlink_count %]</td>
         <td>[% s.outlink_count %]</td>
         <td>[% s.bitly_click_count %]</td>
     </tr>

@@ -22,6 +22,7 @@ use MediaWords::CommonLibs;
 
 use Data::Dumper;
 use DateTime;
+use Digest::MD5;
 use Encode;
 use Getopt::Long;
 use HTML::LinkExtractor;
@@ -43,7 +44,9 @@ use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::Job::Bitly::FetchStoryStats;
+use MediaWords::Job::ExtractAndVector;
 use MediaWords::Job::Facebook::FetchStoryStats;
+use MediaCloud::JobManager::Job;
 use MediaWords::Languages::Language;
 use MediaWords::Solr;
 use MediaWords::Util::Config;
@@ -69,6 +72,9 @@ Readonly my $REGEX_TIMEOUT => 3;
 
 # add new links in chunks of this size
 Readonly my $ADD_NEW_LINKS_CHUNK_SIZE => 1000;
+
+# if mine_topic is run with the test_mode option, set this true and do not try to queue extractions
+my $_test_mode;
 
 # ignore links that match this pattern
 my $_ignore_link_pattern =
@@ -286,6 +292,7 @@ sub get_extracted_html
     eval { $extracted_html = MediaWords::DBI::Stories::get_extracted_html_from_db( $db, $story ); };
     if ( $@ )
     {
+        WARN( "extractor error: $@" );
         MediaWords::DBI::Stories::fix_story_downloads_if_needed( $db, $story );
         eval { $extracted_html = MediaWords::DBI::Stories::get_extracted_html_from_db( $db, $story ); };
     }
@@ -654,6 +661,7 @@ sub extract_download($$$)
         {
             no_dedup_sentences => 0,
             no_vector          => 1,
+            use_cache          => 1,
         }
     );
 
@@ -846,6 +854,26 @@ sub log_dead_link
     $db->create( 'topic_dead_links', $dead_link );
 }
 
+# send story to the extraction queue in the hope that it will already be extracted by the time we get to the extraction
+# step later in add_new_links_chunk process.
+sub queue_extraction($$)
+{
+    my ( $db, $story ) = @_;
+
+    return if ( $_test_mode );
+
+    my $args = {
+        stories_id              => $story->{ stories_id },
+        skip_bitly_processing   => 1,
+        skip_corenlp_annotation => 1,
+        use_cache               => 1
+    };
+
+    my $priority = $MediaCloud::JobManager::Job::MJM_JOB_PRIORITY_HIGH;
+    eval { MediaWords::Job::ExtractAndVector->add_to_queue( $args, $priority ) };
+    ERROR( "error queueing extraction: $@" ) if ( $@ );
+}
+
 # add a new story and download corresponding to the given link or existing story
 sub add_new_story
 {
@@ -929,7 +957,7 @@ sub add_new_story
 
     MediaWords::DBI::Downloads::store_content( $db, $download, \$story_content );
 
-    extract_download( $db, $download, $story ) unless ( $skip_extraction );
+    $skip_extraction ? queue_extraction( $db, $story ) : extract_download( $db, $download, $story );
 
     return $story;
 }
@@ -1029,14 +1057,7 @@ sub potential_story_matches_topic_pattern
 
     my $sentences = _get_sentences_from_story_text( $text_content, $story_lang );
 
-    for my $sentence ( @{ $sentences } )
-    {
-        if ( postgres_regex_match( $db, $sentence, $re ) )
-        {
-            $match = 1;
-            last;
-        }
-    }
+    $match = postgres_regex_match( $db, $sentences, $re );
 
     #     # shockingly, this is much faster than native perl regexes for the kind of complex, boolean-converted
     #     # regexes we often use for topics
@@ -1076,14 +1097,25 @@ sub add_missing_story_sentences
 
 # run the regex through the postgres engine.return true if the given value matches the given regex.
 # this is necessary because very occasionally the wrong combination of text and complex boolean regex will
-# cause perl to hang.
-sub postgres_regex_match
+# cause perl to hang.  of $string is a ref, check for a match against any of the strings in the list.
+sub postgres_regex_match($$$)
 {
     my ( $db, $string, $re ) = @_;
 
     return undef unless ( defined( $string ) );
 
-    my $match = $db->query( "select 1 where \$1 ~ ( '(?isx)' || \$2 )", $string, $re )->hash;
+    my $strings = ref( $string ) ? $string : [ $string ];
+
+    return undef unless ( @{ $strings } );
+
+    my $quoted_strings = join( ',', map { "(" . $db->dbh->quote( $_ ) . ")" } @{ $strings } );
+
+    # combine all the strings together to avoid overhead of lots of indivdiual queries
+    my $match = $db->query( <<SQL, $re )->hash;
+with strings ( s ) as ( values $quoted_strings )
+
+select 1 from strings where s ~ ( '(?isx)' || \$1 )
+SQL
 
     return $match;
 }
@@ -1231,27 +1263,26 @@ sub get_matching_story_from_db ($$;$)
 
     my $url_lookup = {};
     map { $url_lookup->{ $_ } = 1 } ( $u, $ru, $nu, $nru );
-    my $quoted_url_list = join( ',', map { $db->dbh->quote( $_ ) } keys( %{ $url_lookup } ) );
+    my $quoted_url_list = join( ',', map { "(" . $db->dbh->quote( $_ ) . ")" } keys( %{ $url_lookup } ) );
+
+    # TODO - only query stories_id and media_id initially
 
     # look for matching stories, ignore those in foreign_rss_links media
     my $stories = $db->query( <<END )->hashes;
 select distinct( s.* ) from stories s
         join media m on s.media_id = m.media_id
-    where ( s.url in ( $quoted_url_list ) or s.guid in ( $quoted_url_list ) ) and
-        m.foreign_rss_links = false
-END
+    where ( s.url = any( array( values $quoted_url_list ) ) or s.guid = any( array( values $quoted_url_list ) ) )
 
-    # we have to do a separate query here b/c postgres was not coming
-    # up with a sane query plan for the combined query
-    my $seed_stories = $db->query( <<END )->hashes;
+union
+
 select distinct( s.* ) from stories s
         join media m on s.media_id = m.media_id
         join topic_seed_urls csu on s.stories_id = csu.stories_id
-    where ( csu.url in ( $quoted_url_list ) ) and
+    where ( csu.url  = any( array( values $quoted_url_list ) ) ) and
         m.foreign_rss_links = false
 END
 
-    my $story = get_preferred_story( $db, $u, $ru, [ @{ $stories }, @{ $seed_stories } ] );
+    my $story = get_preferred_story( $db, $u, $ru, $stories );
 
     if ( $story )
     {
@@ -1388,7 +1419,11 @@ END
 
     my $cid = $topic->{ topics_id };
 
-    # this query is much quicker than the below one, so do it first
+    # these queries can be very slow, so we only try them every once in a while randomly, if they hit true
+    # once the result gets cached.  it's okay to get up to 100 too many stories from one source -- we're just
+    # trying to make sure we don't get many thousands of stories from the same source
+    return 0 if ( rand( 100 ) > 1 );
+
     my ( $num_stories ) = $db->query( <<END, $cid, $story->{ media_id }, $spidered_tag->{ tags_id } )->flat;
 select count(*)
     from snap.live_stories s
@@ -1400,10 +1435,6 @@ select count(*)
 END
 
     return 0 if ( $num_stories <= $MAX_SELF_LINKED_STORIES );
-
-    # these queries can be very slow, so we only try them every once in a while randomly, if they hit true
-    # once the result gets cached
-    return 0 if ( rand( 25 ) > 1 );
 
     my ( $num_cross_linked_stories ) = $db->query( <<END, $cid, $story->{ media_id }, $spidered_tag->{ tags_id } )->flat;
 select count( distinct rs.stories_id )
@@ -1520,6 +1551,10 @@ sub add_links_with_matching_stories
             push( @{ $extract_stories }, $story );
             $link->{ story } = $story;
             $story->{ link } = $link;
+
+            # we probably don't need the extraction here, but this will cache the content download, which will make
+            # the link mining below much faster
+            queue_extraction( $db, $story );
         }
         else
         {
@@ -1648,7 +1683,7 @@ sub add_new_links_chunk($$$$)
         }
     }
 
-    my $fetch_links = add_links_with_matching_stories( $db, $topic, $new_links );
+    my $fetch_links = add_links_with_matching_stories( $db, $topic, $trimmed_links );
 
     my $extract_stories = get_stories_to_extract( $db, $topic, $fetch_links );
 
@@ -1658,18 +1693,29 @@ sub add_new_links_chunk($$$$)
 
     mine_topic_stories( $db, $topic );
 
-    # delete any links that were skipped for whatever reason
     for my $link ( @{ $new_links } )
     {
-        if ( !$link->{ ref_stories_id } && $link->{ topic_links_id } )
-        {
-            # ref_stories_id is null to make sure we don't delete a valid link
-            $db->query( <<END, $link->{ topic_links_id } );
+        $db->query( <<END, $link->{ topic_links_id } ) if ( $link->{ topic_links_id } );
 delete from topic_links where topic_links_id = ? and ref_stories_id is null
 END
-        }
     }
+
     $db->commit unless $db->dbh->{ AutoCommit };
+}
+
+# save a row in the topic_spider_metrics table to track performance of spider
+sub save_metrics($$$$$)
+{
+    my ( $db, $topic, $iteration, $num_links, $elapsed_time ) = @_;
+
+    my $topic_spider_metric = {
+        topics_id       => $topic->{ topics_id },
+        iteration       => $iteration,
+        links_processed => $num_links,
+        elapsed_time    => $elapsed_time
+    };
+
+    $db->create( 'topic_spider_metrics', $topic_spider_metric );
 }
 
 # call add_new_links in chunks of $ADD_NEW_LINKS_CHUNK_SIZE so we don't lose too much work when we restart the spider
@@ -1677,10 +1723,32 @@ sub add_new_links($$$$)
 {
     my ( $db, $topic, $iteration, $new_links ) = @_;
 
-    for ( my $i = 0 ; $i < scalar( @{ $new_links } ) ; $i += $ADD_NEW_LINKS_CHUNK_SIZE )
+    # randomly shuffle the links because it is better for downloading (which has per medium throttling) and extraction
+    # (which has per medium locking) to distribute urls from the same media source randomly among the list of links. the
+    # link mining and solr seeding routines that feed most links to this function tend to naturally group links
+    # from the same media source together.
+    my $shuffled_links = [
+
+        # a link is only required to have a url field, but it usually has a controversy_links_id; better to sort by
+        # id if possible so that identical urls do not get grouped
+        sort {
+            Digest::MD5::md5_hex( encode( 'utf-8', $a->{ controversy_links_id } || $a->{ url } ) )
+              cmp Digest::MD5::md5_hex( encode( 'utf-8', $b->{ controversy_links_id } || $b->{ url } ) )
+        } @{ $new_links }
+    ];
+
+    for ( my $i = 0 ; $i < scalar( @{ $shuffled_links } ) ; $i += $ADD_NEW_LINKS_CHUNK_SIZE )
     {
-        my $end = List::Util::min( $i + $ADD_NEW_LINKS_CHUNK_SIZE - 1, $#{ $new_links } );
-        add_new_links_chunk( $db, $topic, $iteration, [ @{ $new_links }[ $i .. $end ] ] );
+        my $start_time = time;
+
+        my $status = get_spider_progress_description( $db, $topic, $iteration, $i, scalar( @{ $shuffled_links } ) );
+        update_topic_state( $db, $topic, $status );
+
+        my $end = List::Util::min( $i + $ADD_NEW_LINKS_CHUNK_SIZE - 1, $#{ $shuffled_links } );
+        add_new_links_chunk( $db, $topic, $iteration, [ @{ $shuffled_links }[ $i .. $end ] ] );
+
+        my $elapsed_time = time - $start_time;
+        save_metrics( $db, $topic, $iteration, $end - $i, $elapsed_time );
     }
 }
 
@@ -1820,7 +1888,7 @@ END
 # get short text description of spidering progress
 sub get_spider_progress_description
 {
-    my ( $db, $topic, $iteration ) = @_;
+    my ( $db, $topic, $iteration, $link_num, $total_links ) = @_;
 
     my $cid = $topic->{ topics_id };
 
@@ -1837,7 +1905,7 @@ select count(*) from topic_links where topics_id = ? and ref_stories_id is null
 SQL
 
     return <<END;
-spidering iteration: $iteration; stories total / last iteration: $total_stories / $stories_last_iteration; links queued: $queued_links
+spidering iteration: $iteration; stories last / total iteration: $stories_last_iteration/ $total_stories; links queued: $queued_links; iteration links: $link_num / $total_links
 END
 
 }
@@ -1851,8 +1919,6 @@ sub run_spider
 
     for my $i ( 1 .. $num_iterations )
     {
-        my $status = get_spider_progress_description( $db, $topic, $i );
-        update_topic_state( $db, $topic, $status );
         spider_new_links( $db, $topic, $i );
     }
 }
@@ -2746,6 +2812,8 @@ sub do_mine_topic ($$;$)
 {
     my ( $db, $topic, $options ) = @_;
 
+    $options->{ test_mode } ||= 0;
+
     # Log activity that's about to start
     MediaWords::DBI::Activities::log_system_activity( $db, 'tm_mine_topic', $topic->{ topics_id }, $options )
       || die( "Unable to log the 'tm_mine_topic' activity." );
@@ -2827,6 +2895,8 @@ sub mine_topic ($$;$)
     my ( $db, $topic, $options ) = @_;
 
     init_static_variables();
+
+    $_test_mode = 1 if ( $options->{ test_mode } );
 
     eval { do_mine_topic( $db, $topic, $options ); };
     if ( $@ )

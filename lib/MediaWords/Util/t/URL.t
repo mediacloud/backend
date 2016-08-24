@@ -7,7 +7,7 @@ use MediaWords::CommonLibs;
 
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 132;
+use Test::More tests => 134;
 
 use Readonly;
 use HTTP::HashServer;
@@ -37,6 +37,9 @@ sub test_fix_common_url_mistakes()
         # With only one slash ("http:/www.")
         'http:/www.theinquirer.net/inquirer/news/2322928/net-neutrality-rules-lie-in-tatters-as-fcc-overruled' =>
           'http://www.theinquirer.net/inquirer/news/2322928/net-neutrality-rules-lie-in-tatters-as-fcc-overruled',
+
+        # missing / before ?
+        'http://foo.bar?baz=bat' => 'http://foo.bar/?baz=bat'
     );
 
     foreach my $orig_url ( keys %urls )

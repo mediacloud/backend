@@ -293,7 +293,7 @@ sub get_latest_full_snapshot_with_timespans
 }
 
 # if there are pending topic_links, return a hash describing the status
-# of the mining process with the following fields: stories_by_iteration, queued_urls
+# of the mining process with the following fields: stories_by_iteration, queued_urls, recent_topic_spider_metrics
 sub _get_mining_status
 {
     my ( $db, $topic ) = @_;
@@ -312,7 +312,15 @@ select iteration, count(*) count
     order by iteration asc
 END
 
-    return { queued_urls => $queued_urls, stories_by_iteration => $stories_by_iteration };
+    my $recent_topic_spider_metrics = $db->query( <<SQL, $cid )->hashes;
+select * from topic_spider_metrics where topics_id = ? order by topic_spider_metrics desc limit 25
+SQL
+
+    return {
+        queued_urls                 => $queued_urls,
+        stories_by_iteration        => $stories_by_iteration,
+        recent_topic_spider_metrics => $recent_topic_spider_metrics
+    };
 }
 
 # get the topic snapshots associated with the given topic and optional focus.  attach
@@ -476,7 +484,7 @@ sub _get_media_with_timespan_counts
     my ( $db, $cd ) = @_;
 
     # do this in one big complex quey because it's much faster than doing one for each timespan.
-    # sort by inlink_count with each topic and keep only the 10 lowest ranked
+    # sort by media_inlink_count with each topic and keep only the 10 lowest ranked
     # media for each timespan.
     my $top_media = $db->query( <<END, $cd->{ snapshots_id } )->hashes;
 with ranked_media as (
@@ -486,9 +494,9 @@ with ranked_media as (
             mlc.timespans_id,
             timespan.model_num_media,
             timespan.start_date,
-            mlc.inlink_count,
-            rank() over w as inlink_count_rank,
-            row_number() over w as inlink_count_row_number
+            mlc.media_inlink_count,
+            rank() over w as media_inlink_count_rank,
+            row_number() over w as media_inlink_count_row_number
         from timespans timespan
             join snapshots snap on ( timespan.snapshots_id = snap.snapshots_id )
             join snap.medium_link_counts mlc on ( timespan.timespans_id = mlc.timespans_id )
@@ -496,20 +504,20 @@ with ranked_media as (
         where
             snap.snapshots_id = \$1 and
             timespan.period = 'weekly' and
-            mlc.inlink_count > 1
+            mlc.media_inlink_count > 1
         window w as (
             partition by mlc.timespans_id
-                order by mlc.inlink_count desc )
+                order by mlc.media_inlink_count desc )
 )
 
 select *
     from
         ranked_media
     where
-        inlink_count_row_number <= 10 and
-        inlink_count_row_number <= model_num_media
+        media_inlink_count_row_number <= 10 and
+        media_inlink_count_row_number <= model_num_media
 
-    order by start_date asc, inlink_count_rank asc, media_id asc
+    order by start_date asc, media_inlink_count_rank asc, media_id asc
 END
 
     my $top_media_lookup = {};
@@ -522,11 +530,11 @@ END
         my $m = $top_media_lookup->{ $top_medium->{ media_id } } ||= $top_medium;
 
         $m->{ first_date } ||= $d;
-        $m->{ first_rank } ||= $top_medium->{ inlink_count_rank };
+        $m->{ first_rank } ||= $top_medium->{ media_inlink_count_rank };
 
         $m->{ count_lookup }->{ $d } =
-          [ $top_medium->{ inlink_count_rank }, $top_medium->{ timespans_id } ];
-        $m->{ total_weight } += 100 / $top_medium->{ inlink_count_rank };
+          [ $top_medium->{ media_inlink_count_rank }, $top_medium->{ timespans_id } ];
+        $m->{ total_weight } += 100 / $top_medium->{ media_inlink_count_rank };
     }
 
     my $sorted_media =
@@ -706,14 +714,15 @@ sub _get_top_media_for_timespan
     my $top_media = $db->query(
         <<END,
         SELECT m.*,
-               mlc.inlink_count,
+              mlc.media_inlink_count,
+              mlc.inlink_count,
                mlc.outlink_count,
                mlc.story_count,
                mlc.bitly_click_count
         FROM snapshot_media_with_types AS m,
              snapshot_medium_link_counts AS mlc
         WHERE m.media_id = mlc.media_id
-        ORDER BY mlc.inlink_count DESC
+        ORDER BY mlc.media_inlink_count DESC
         LIMIT ?
 END
         $num_media
@@ -730,6 +739,7 @@ sub _get_top_stories_for_timespan
     my $top_stories = $db->query(
         <<END,
         SELECT s.*,
+               slc.media_inlink_count,
                slc.inlink_count,
                slc.outlink_count,
                slc.bitly_click_count,
@@ -740,7 +750,7 @@ sub _get_top_stories_for_timespan
              snapshot_media_with_types AS m
         WHERE s.stories_id = slc.stories_id
           AND s.media_id = m.media_id
-        ORDER BY slc.inlink_count DESC
+        ORDER BY slc.media_inlink_count DESC
         LIMIT ?
 END
         20
@@ -844,7 +854,7 @@ with media_type_stats as (
     select
             s.media_type,
             count(*) num_stories,
-            sum( inlink_count ) link_weight
+            sum( media_inlink_count ) link_weight
         from
             snapshot_stories_with_types s
             join snapshot_story_link_counts slc on ( s.stories_id = slc.stories_id )
@@ -1147,6 +1157,7 @@ sub _get_medium_and_stories_from_snapshot_tables
                m.name AS medium_name,
                m.media_type,
                slc.inlink_count,
+               slc.media_inlink_count,
                slc.outlink_count,
                slc.bitly_click_count
         FROM snapshot_stories AS s,
@@ -1155,7 +1166,7 @@ sub _get_medium_and_stories_from_snapshot_tables
         WHERE s.stories_id = slc.stories_id
           AND s.media_id = m.media_id
           AND s.media_id = ?
-        ORDER BY slc.inlink_count DESC
+        ORDER BY slc.media_inlink_count DESC
         limit 50
 END
         $media_id
@@ -1173,6 +1184,7 @@ SQL
         SELECT DISTINCT s.*,
                         sm.name AS medium_name,
                         sm.media_type,
+                        sslc.media_inlink_count,
                         sslc.inlink_count,
                         sslc.outlink_count,
                         sslc.bitly_click_count
@@ -1184,7 +1196,7 @@ SQL
           AND s.media_id = sm.media_id
           AND s.stories_id = cl.stories_id
           AND cl.ref_stories_id in ( select stories_id from tm_medium_stories_ids )
-        ORDER BY sslc.inlink_count DESC
+        ORDER BY sslc.media_inlink_count DESC
         limit 50
 END
     )->hashes;
@@ -1197,6 +1209,7 @@ END
         SELECT DISTINCT r.*,
                         rm.name AS medium_name,
                         rm.media_type,
+                        rslc.media_inlink_count,
                         rslc.inlink_count,
                         rslc.outlink_count,
                         rslc.bitly_click_count
@@ -1208,7 +1221,7 @@ END
           AND r.media_id = rm.media_id
           AND r.stories_id = cl.ref_stories_id
           AND cl.stories_id in ( select stories_id from tm_medium_stories_ids )
-        ORDER BY rslc.inlink_count DESC
+        ORDER BY rslc.media_inlink_count DESC
         limit 50
 END
     )->hashes;
@@ -1353,7 +1366,9 @@ sub _get_story_and_links_from_snapshot_tables
     # disable server side prepares
     $db->dbh->{ pg_server_prepare } = 0;
 
-    my $story = $db->query( "select * from snapshot_stories where stories_id = ?", $stories_id )->hash;
+    my $story = $db->query( <<SQL, $stories_id )->hash;
+select * from snapshot_stories s join snapshot_story_link_counts slc using ( stories_id ) where s.stories_id = ?
+SQL
 
     return unless ( $story );
 
@@ -1369,6 +1384,7 @@ sub _get_story_and_links_from_snapshot_tables
                         sm.name AS medium_name,
                         sm.media_type,
                         sslc.inlink_count,
+                        sslc.media_inlink_count,
                         sslc.outlink_count,
                         sslc.bitly_click_count
         FROM snapshot_stories AS s,
@@ -1379,7 +1395,7 @@ sub _get_story_and_links_from_snapshot_tables
           AND s.media_id = sm.media_id
           AND s.stories_id = cl.stories_id
           AND cl.ref_stories_id = ?
-        ORDER BY sslc.inlink_count DESC
+        ORDER BY sslc.media_inlink_count DESC
         limit 50
 END
         $stories_id
@@ -1394,6 +1410,7 @@ END
                         rm.name AS medium_name,
                         rm.media_type,
                         rslc.inlink_count,
+                        rslc.media_inlink_count,
                         rslc.outlink_count,
                         rslc.bitly_click_count
         FROM snapshot_stories AS r,
@@ -1404,14 +1421,11 @@ END
           AND r.media_id = rm.media_id
           AND r.stories_id = cl.ref_stories_id
           AND cl.stories_id = ?
-        ORDER BY rslc.inlink_count DESC
+        ORDER BY rslc.media_inlink_count DESC
         limit 50
 END
         $stories_id
     )->hashes;
-
-    $story->{ inlink_count }  = scalar( @{ $story->{ inlink_stories } } );
-    $story->{ outlink_count } = scalar( @{ $story->{ outlink_stories } } );
 
     MediaWords::DBI::Stories::GuessDate::add_date_is_reliable_to_stories( $db, $story->{ outlink_stories } );
     MediaWords::DBI::Stories::GuessDate::add_undateable_to_stories( $db, $story->{ outlink_stories } );
@@ -1676,7 +1690,7 @@ sub search_stories : Local
     my $search_query = _get_stories_id_search_query( $db, $query );
 
     my $order = $c->req->params->{ order } || '';
-    my $order_clause = $order eq 'bitly_click_count' ? 'slc.bitly_click_count desc' : 'slc.inlink_count desc';
+    my $order_clause = $order eq 'bitly_click_count' ? 'slc.bitly_click_count desc' : 'slc.media_inlink_count desc';
 
     my $stories = $db->query(
         <<"END"
@@ -1684,6 +1698,7 @@ sub search_stories : Local
                m.name AS medium_name,
                m.media_type,
                slc.inlink_count,
+               slc.media_inlink_count,
                slc.outlink_count,
                slc.bitly_click_count
         FROM snapshot_stories AS s,
@@ -1750,36 +1765,6 @@ END
     $c->stash->{ template } = 'tm/stories.tt2';
 }
 
-# if the search query is a number and returns a medium in the topic,
-# add the medium to the beginning of the search results
-sub _add_id_medium_to_search_results ($$$)
-{
-    my ( $db, $media, $query ) = @_;
-
-    return unless ( $query =~ /^[0-9]+$/ );
-
-    my $id_medium = $db->query(
-        <<END,
-        SELECT DISTINCT m.*,
-                        mlc.inlink_count,
-                        mlc.outlink_count,
-                        mlc.bitly_click_count,
-                        mlc.story_count
-        FROM snapshot_story_link_counts AS slc
-            JOIN stories AS s ON ( slc.stories_id = s.stories_id )
-            JOIN snapshot_media_with_types AS m ON ( s.media_id = m.media_id )
-            JOIN snapshot_medium_link_counts AS mlc ON ( m.media_id = mlc.media_id )
-        WHERE s.media_id = ?
-END
-        $query
-    )->hash;
-
-    if ( $id_medium )
-    {
-        unshift( @{ $media }, $id_medium );
-    }
-}
-
 # do a basic media search based on the story sentences, title, url, media name, and media url
 sub search_media : Local
 {
@@ -1810,12 +1795,13 @@ sub search_media : Local
     }
 
     my $order = $c->req->params->{ order } || '';
-    my $order_clause = $order eq 'bitly_click_count' ? 'mlc.bitly_click_count desc' : 'mlc.inlink_count desc';
+    my $order_clause = $order eq 'bitly_click_count' ? 'mlc.bitly_click_count desc' : 'mlc.media_inlink_count desc';
 
     my $media = $db->query(
         <<"END"
         SELECT DISTINCT m.*,
                         mlc.inlink_count,
+                        mlc.media_inlink_count,
                         mlc.outlink_count,
                         mlc.bitly_click_count,
                         mlc.story_count
@@ -2626,10 +2612,11 @@ sub _get_media_for_typing : Local
     my $media = $db->query( <<END, $retype_media_type )->hashes;
 with ranked_media as (
     select m.*,
+            mlc.media_inlink_count,
             mlc.inlink_count,
             mlc.outlink_count,
             mlc.story_count,
-            rank() over ( order by mlc.inlink_count desc, m.media_id desc ) r
+            rank() over ( order by mlc.media_inlink_count desc, m.media_id desc ) r
         from
             snapshot_media_with_types m,
             snapshot_medium_link_counts mlc

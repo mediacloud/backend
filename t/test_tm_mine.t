@@ -34,7 +34,7 @@ use MediaWords::Util::Web;
 
 Readonly my $BASE_PORT => 8890;
 
-Readonly my $NUM_SITES          => 10;
+Readonly my $NUM_SITES          => 20;
 Readonly my $NUM_PAGES_PER_SITE => 20;
 Readonly my $NUM_LINKS_PER_PAGE => 5;
 
@@ -433,6 +433,13 @@ SQL
             is( scalar( @{ $topic_links } ), 1, "number of topic_links for $page->{ url } -> $link->{ url }" );
         }
     }
+
+    my $topic_spider_metric = $db->query( <<SQL, $topic->{ topics_id } )->hash;
+select sum( links_processed ) links_processed from topic_spider_metrics where topics_id = ?
+SQL
+
+    ok( $topic_spider_metric,                                           "topic spider metrics exist" );
+    ok( $topic_spider_metric->{ links_processed } > scalar( @{ $cl } ), "metrics links_processed greater than topic_links" );
 }
 
 sub test_spider_results
@@ -493,6 +500,7 @@ sub test_spider
         cache_broken_downloads          => 0,    #
         import_only                     => 0,    #
         skip_outgoing_foreign_rss_links => 0,    #
+        test_mode                       => 1
     };
 
     MediaWords::TM::Mine::mine_topic( $db, $topic, $mine_options );

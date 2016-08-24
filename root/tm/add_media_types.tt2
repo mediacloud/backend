@@ -9,7 +9,7 @@
             <input type="hidden" name="l" value="[% live | html %]" />
             <input type="hidden" name="last_media_id" value="[% last_media_id | html %]" />
             <input type="hidden" name="retype_media_type" value="[% retype_media_type | html %]" />
-        
+
             <table class="even_rows_grey">
                 <tr>
                     <th>Media_id</th>
@@ -17,13 +17,13 @@
                     <th>Url</th>
                     <th>Media Type</th>
                     <th># Stories</th>
-                    <th># Inlinks</th>
+                    <th># Media Inlinks</th>
                     <th># Outlinks</th>
                 </tr>
                 [% FOREACH m IN media %]
-                    [% medium_url = c.uri_for( '/admin/tm/medium/' _ m.media_id, 
-                                               { timespan => timespan.timespans_id, 
-                                                 c => topics_id, 
+                    [% medium_url = c.uri_for( '/admin/tm/medium/' _ m.media_id,
+                                               { timespan => timespan.timespans_id,
+                                                 c => topics_id,
                                                  l => live } ) %]
 
                     <tr>
@@ -35,15 +35,15 @@
                                 [% FOREACH media_type IN media_types %]
                                     <option value="[% media_type.tags_id %]" [% IF media_type.label == retype_media_type %]selected[% END %]>[% media_type.label | html %]</option>
                                 [% END %]
-                            </select>                                
+                            </select>
                         </td>
                         <td>[% m.story_count | html %]</td>
-                        <td>[% m.inlink_count | html %]</td>
+                        <td>[% m.media_inlink_count | html %]</td>
                         <td>[% m.outlink_count | html %]</td>
                     </tr>
                 [% END %]
             </table>
-            
+
             <input type="submit" value="Go" />
         </form>
     [% END %]

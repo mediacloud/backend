@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4576;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4580;
 
 BEGIN
 
@@ -563,6 +563,7 @@ create table tags (
 
 create index tags_tag_sets_id ON tags (tag_sets_id);
 create unique index tags_tag on tags (tag, tag_sets_id);
+create index tags_label on tags (label);
 create index tags_tag_1 on tags (split_part(tag, ' ', 1));
 create index tags_tag_2 on tags (split_part(tag, ' ', 2));
 create index tags_tag_3 on tags (split_part(tag, ' ', 3));
@@ -2799,3 +2800,27 @@ create view controversy_dumps as
 create view controversy_dump_time_slices as
     select timespans_id controversy_dump_time_slices_id, snapshots_id controversy_dumps_id, foci_id controversy_query_slices_id, *
         from timespans;
+
+-- cached extractor results for extraction jobs with use_cache set to true
+create table cached_extractor_results(
+    cached_extractor_results_id         bigserial primary key,
+    extracted_html                      text,
+    extracted_text                      text,
+    downloads_id                        bigint not null
+);
+
+-- it's better to have a few duplicates than deal with locking issues, so we don't try to make this unique
+create index cached_extractor_results_downloads_id on cached_extractor_results( downloads_id );
+
+-- keep track of performance of the topic spider
+create table topic_spider_metrics (
+    topic_spider_metrics_id         serial primary key,
+    topics_id                       int references topics on delete cascade,
+    iteration                       int not null,
+    links_processed                 int not null,
+    elapsed_time                    int not null,
+    processed_date                  timestamp not null default now()
+);
+
+create index topic_spider_metrics_topic on topic_spider_metrics( topics_id );
+create index topic_spider_metrics_dat on topic_spider_metrics( processed_date );

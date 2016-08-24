@@ -398,6 +398,47 @@ EOF
     return $download;
 }
 
+# get extractor results from cache
+sub _get_cached_extractor_results($$)
+{
+    my ( $db, $download ) = @_;
+
+    my $r = $db->query( <<SQL, $download->{ downloads_id } )->hash;
+select extracted_html, extracted_text from cached_extractor_results where downloads_id = ?
+SQL
+
+    DEBUG( $r ? "EXTRACTOR CACHE HIT" : "EXTRACTOR CACHE MISS" );
+
+    return $r;
+}
+
+# store results in extractor cache and manage size of cache
+sub _set_cached_extractor_results($$$)
+{
+    my ( $db, $download, $results ) = @_;
+
+    my $max_cache_entries = 1_000_000;
+
+    # occasionally delete too old entries in the cache
+    if ( rand( $max_cache_entries / 10 ) < 1 )
+    {
+        $db->query( <<SQL );
+delete from cached_extractor_results
+    where cached_extractor_results_id in (
+            select cached_extractor_results_id from cached_extractor_results
+                order by cached_extractor_results_id desc offset $max_cache_entries )
+SQL
+    }
+
+    my $cache = {
+        extracted_html => $results->{ extracted_html },
+        extracted_text => $results->{ extracted_text },
+        downloads_id   => $download->{ downloads_id }
+    };
+
+    $db->create( 'cached_extractor_results', $cache );
+}
+
 =head2 extract( $db, $download, $extractor_args )
 
 Run the extractor against the download content and return a hash in the form of:
@@ -417,10 +458,19 @@ sub extract($$;$)
 
     $extractor_args //= MediaWords::DBI::Stories::ExtractorArguments->new();
 
+    my $extractor_method = $extractor_args->extractor_method();
+
+    my $results;
+    if ( $extractor_args->use_cache && ( $results = _get_cached_extractor_results( $db, $download ) ) )
+    {
+        return $results;
+    }
+
     my $content_ref = fetch_content( $db, $download );
 
-    my $extractor_method = $extractor_args->extractor_method();
-    my $results = extract_content_ref( $content_ref, $extractor_method );
+    $results = extract_content_ref( $content_ref, $extractor_method );
+
+    _set_cached_extractor_results( $db, $download, $results ) if ( $extractor_args->use_cache );
 
     return $results;
 }

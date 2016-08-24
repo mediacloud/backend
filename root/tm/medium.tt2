@@ -38,6 +38,7 @@ page, and changes made since the snapshot will not be visible.
     </tr>
     <tr><td>Media Type</td><td>[% medium.media_type | html %]</td></tr>
     <tr><td># Stories</td><td>[% medium.story_count %]</td></tr>
+    <tr><td># Incoming Media Links</td><td>[% medium.media_inlink_count %]</td></tr>
     <tr><td># Incoming Story Links</td><td>[% medium.inlink_count %]</td></tr>
     <tr><td># Outgoing Story Links</td><td>[% medium.outlink_count %]</td></tr>
 

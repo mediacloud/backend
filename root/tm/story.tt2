@@ -106,6 +106,9 @@ page, and changes made since the snapshot will not be visible.
         <td>Media Type</td><td>[% story.medium.media_type | html %]</td>
     </tr>
     <tr>
+        <td># Incoming Media Links</td><td>[% story.media_inlink_count %] </td>
+    </tr>
+    <tr>
         <td># Incoming Story Links</td><td>[% story.inlink_count %] </td>
     </tr>
     <tr>
