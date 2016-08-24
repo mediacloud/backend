@@ -279,6 +279,7 @@ sub _add_feed_stories_and_downloads
 
 # handle feeds of type 'web_page' by just creating a story to associate with the content.  web page feeds are feeds
 # that consist of a web page that we download once a week and add as a story.
+# Return number of new stories found (always >0).
 sub _handle_web_page_content
 {
     my ( $dbs, $download, $decoded_content, $feed ) = @_;
@@ -311,7 +312,8 @@ sub _handle_web_page_content
 
     $download->{ stories_id } = $story->{ stories_id };
 
-    return \$decoded_content;
+    my $num_new_stories = 1;    # always assume that we've found a new story
+    return $num_new_stories;
 }
 
 =head2 import_external_feed( $db, $media_id, $feed_content )
@@ -360,20 +362,12 @@ sub import_external_feed
     _handle_syndicated_content( $db, $download, $feed_content );
 }
 
-# handle feeds of type 'syndicated', which are rss / atom / rdf feeds
+# Handle feeds of type 'syndicated', which are rss / atom / rdf feeds; return number of stories added
 sub _handle_syndicated_content
 {
     my ( $dbs, $download, $decoded_content ) = @_;
 
-    my $num_new_stories = _add_feed_stories_and_downloads( $dbs, $download, $decoded_content );
-
-    if ( $num_new_stories > 0 )
-    {
-        $dbs->query( "UPDATE feeds set last_new_story_time = last_attempted_download_time where feeds_id = ? ",
-            $download->{ feeds_id } );
-    }
-
-    return ( $num_new_stories > 0 ) ? \$decoded_content : \"(redundant feed)";
+    return _add_feed_stories_and_downloads( $dbs, $download, $decoded_content );
 }
 
 =head2 handle_feed_content( $db, $download, $decoded_content )
@@ -396,21 +390,19 @@ sub handle_feed_content($$$;$)
     my $feed = $dbs->find_by_id( 'feeds', $download->{ feeds_id } );
     my $feed_type = $feed->{ feed_type };
 
+    my $num_new_stories = 0;
     eval {
         if ( $feed_type eq 'syndicated' )
         {
-            $content_ref = _handle_syndicated_content( $dbs, $download, $decoded_content );
-
+            $num_new_stories = _handle_syndicated_content( $dbs, $download, $decoded_content );
         }
         elsif ( $feed_type eq 'web_page' )
         {
-            $content_ref = _handle_web_page_content( $dbs, $download, $decoded_content, $feed );
-
+            $num_new_stories = _handle_web_page_content( $dbs, $download, $decoded_content, $feed );
         }
         else
         {
-            die( "Unknown feed type '$feed_type'" );
-
+            die "Unknown feed type '$feed_type'";
         }
     };
     if ( $@ )
@@ -430,6 +422,22 @@ sub handle_feed_content($$$;$)
 SQL
             $download->{ download_time }, $download->{ feeds_id }
         );
+    }
+
+    if ( $num_new_stories > 0 )
+    {
+        $dbs->query(
+            <<SQL,
+            UPDATE feeds
+            SET last_new_story_time = last_attempted_download_time
+            WHERE feeds_id = ?
+SQL
+            $download->{ feeds_id }
+        );
+    }
+    else
+    {
+        $content_ref = \'(redundant feed)';
     }
 
     MediaWords::DBI::Downloads::store_content( $dbs, $download, $content_ref );
