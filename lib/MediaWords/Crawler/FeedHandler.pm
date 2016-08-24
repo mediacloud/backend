@@ -434,7 +434,8 @@ SQL
 
     if ( $feed_type eq 'web_page' )
     {
-        my $args = { downloads_id => $download->{ downloads_id } };
+        # stories_id is set in _handle_web_page_content() by reference to $download
+        my $args = { stories_id => $download->{ stories_id } };
 
         if ( $extract_in_process )
         {
