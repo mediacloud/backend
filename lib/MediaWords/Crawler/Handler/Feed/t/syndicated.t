@@ -1,12 +1,12 @@
 #!/usr/bin/perl
 
-# test MediaWords::Crawler::FeedHandler against manually extracted downloads
+# test MediaWords::Crawler::Handler::Feed::Syndicated against manually extracted downloads
 
 use strict;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
-use MediaWords::Crawler::FeedHandler;
+use MediaWords::Crawler::Handler::Feed::Syndicated;
 
 BEGIN
 {
@@ -22,7 +22,7 @@ use Test::Deep;
 
 use MediaWords::DB;
 
-sub convert_to_local_time_zone
+sub _convert_to_local_time_zone
 {
     my ( $db, $sql_date ) = @_;
 
@@ -31,15 +31,15 @@ sub convert_to_local_time_zone
     return $local_sql_date;
 }
 
-sub main
+sub test_get_stories_from_feed_contents($)
 {
-    my $db = MediaWords::DB::connect_to_db || die( "can't connect to db" );
+    my $db = shift;
 
     my $test_cases = [
         {
             test_name    => 'standard_single_item',
             media_id     => 1,
-            publish_date => convert_to_local_time_zone( $db, '2012-01-09 06:20:10-0' ),
+            publish_date => _convert_to_local_time_zone( $db, '2012-01-09 06:20:10-0' ),
             feed_input   => <<'__END_TEST_CASE__',
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"
@@ -89,7 +89,7 @@ __END_TEST_CASE__
                 {
                     'collect_date' => '2012-01-10T20:03:48',
                     'media_id'     => 1,
-                    'publish_date' => convert_to_local_time_zone( $db, '2012-01-09 06:20:10-0' ),
+                    'publish_date' => _convert_to_local_time_zone( $db, '2012-01-09 06:20:10-0' ),
                     'url' =>
                       'https://blogs.law.harvard.edu/dlarochelle/2012/01/09/why-life-is-too-short-for-spiral-notebooks/',
                     'title' => 'Why Life is Too Short for Spiral Notebooks',
@@ -102,7 +102,7 @@ __END_TEST_CASE__
         {
             test_name    => 'no title or time',
             media_id     => 1,
-            publish_date => convert_to_local_time_zone( $db, '2012-01-09 06:20:10-0' ),
+            publish_date => _convert_to_local_time_zone( $db, '2012-01-09 06:20:10-0' ),
             feed_input   => <<'__END_TEST_CASE__',
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"
@@ -164,7 +164,7 @@ __END_TEST_CASE__
                 {
                     'collect_date' => '2012-01-10T20:03:48',
                     'media_id'     => 1,
-                    'publish_date' => convert_to_local_time_zone( $db, '2012-01-09 06:20:10-0' ),
+                    'publish_date' => _convert_to_local_time_zone( $db, '2012-01-09 06:20:10-0' ),
                     'url' =>
                       'https://blogs.law.harvard.edu/dlarochelle/2012/01/09/why-life-is-too-short-for-spiral-notebooks/',
                     'title' => '(no title)',
@@ -183,7 +183,7 @@ __END_TEST_CASE__
     {
         my $feed_input = $test_case->{ feed_input };
 
-        my $stories = MediaWords::Crawler::FeedHandler::_get_stories_from_feed_contents(
+        my $stories = MediaWords::Crawler::Handler::Feed::Syndicated::_get_stories_from_feed_contents(
             $feed_input,
             $test_case->{ media_id },
             $test_case->{ publish_date }
@@ -205,6 +205,13 @@ __END_TEST_CASE__
         cmp_deeply( $stories, $test_case->{ test_output } );
 
     }
+}
+
+sub main()
+{
+    my $db = MediaWords::DB::connect_to_db || die( "can't connect to db" );
+
+    test_get_stories_from_feed_contents( $db );
 }
 
 main();

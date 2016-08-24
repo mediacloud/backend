@@ -14,7 +14,7 @@ use Moose;
 use namespace::autoclean;
 use List::Compare;
 use MediaWords::DBI::Downloads;
-use MediaWords::Crawler::FeedHandler;
+use MediaWords::Crawler::Handler::Feed;
 
 =head1 NAME
 
@@ -61,7 +61,8 @@ sub add_feed_download_PUT : Local
 
     $download = $c->dbis->create( 'downloads', $download );
 
-    MediaWords::Crawler::FeedHandler::handle_feed_content( $c->dbis, $download, $decoded_content );
+    my $feed_handler = MediaWords::Crawler::Handler::Feed->new();
+    $feed_handler->handle_download( $c->dbis, $download, $decoded_content );
 
     $self->status_ok( $c, entity => $download );
 }

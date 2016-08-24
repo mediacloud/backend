@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-# test MediaWords::Crawler::FeedHandler::import_external_feed
+# test MediaWords::Crawler::Handler::Feed::Syndicated::import_external_feed
 
 BEGIN
 {
@@ -21,7 +21,7 @@ BEGIN
 {
     use_ok( 'MediaWords::DB' );
     use_ok( 'MediaWords::Test::DB' );
-    use_ok( 'MediaWords::Crawler::FeedHandler' );
+    use_ok( 'MediaWords::Crawler::Handler::Feed::Syndicated' );
 }
 
 sub test_import
@@ -59,7 +59,7 @@ END
 
     my $import_medium = $media->{ A };
 
-    MediaWords::Crawler::FeedHandler::import_external_feed( $db, $import_medium->{ media_id }, $test_feed );
+    MediaWords::Crawler::Handler::Feed::Syndicated::import_external_feed( $db, $import_medium->{ media_id }, $test_feed );
 
     my $story_import_1 =
       $db->query( "select * from stories where title = 'import 1 title' and media_id = ?", $import_medium->{ media_id } )

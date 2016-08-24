@@ -1,53 +1,32 @@
-package MediaWords::Crawler::FeedHandler;
-use Modern::Perl "2015";
-use MediaWords::CommonLibs;
+package MediaWords::Crawler::Handler::Feed::Syndicated;
 
-=head1 NAME
-
-Mediawords::Crawler::FeedHandler - implementation details of the feed handling called from MediaWords::Crawler::Handler
-
-=head1 DESCRIPTION
-
-The feed handler parses the feed and looks for the urls of any new stories.  A story is considered new if the url or
-guid is not already in the database for the given media source and if the story title is unique for the media source for
-the calendar week.  If the story is new, a story is added to the stories table and a download with a type of 'pending'
-is added to the downloads table.
-
-After parsing the feed but before checking for new stories, we generate a checksum of the sorted urls of the feed.  We
-check that checksum against the last_checksum value of the feed, and if the value is the same, we store '(redundant
-feed)' as the content of the feed and do not check for new stories.  This check prevents frequent storage of redundant
-feed content and also avoids the considerable processing time required to check individual urls for new stories.
-
-=cut
+#
+# Handler for 'syndicated' feed downloads
+#
 
 use strict;
 use warnings;
 
-use Data::Dumper;
-use Date::Parse;
-use DateTime;
-use Encode;
-use FindBin;
-use Readonly;
-use URI::Split;
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
 
-use Feed::Scrape::MediaWords;
-use MediaWords::Crawler::Pager;
-use MediaWords::Job::ExtractAndVector;
+use Moose;
+with 'MediaWords::Crawler::Handler::Feed::AbstractFeedHandler';
+
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories;
-use MediaWords::Util::Config;
-use MediaWords::Util::HTML;
 use MediaWords::Util::SQL;
 
-# CONSTANTS
+use Data::Dumper;
+use Date::Parse;
+use Encode;
+use Feed::Scrape::MediaWords;
+use Readonly;
+use URI::Split;
 
 Readonly my $EXTERNAL_FEED_URL  => 'http://external/feed/url';
 Readonly my $EXTERNAL_FEED_NAME => 'EXTERNAL FEED';
 
-=head1 METHODS
-
-=cut
 
 # if $v is a scalar, return $v, else return undef.
 # we need to do this to make sure we don't get a ref back from a feed object field
@@ -139,22 +118,22 @@ sub _get_stories_from_feed_contents
 # if the story is new, add story to the database with the feed of the download as story feed
 sub _add_story_using_parent_download
 {
-    my ( $dbs, $story, $parent_download ) = @_;
+    my ( $db, $story, $parent_download ) = @_;
 
-    $dbs->begin;
-    $dbs->query( "lock table stories in row exclusive mode" );
-    if ( !MediaWords::DBI::Stories::is_new( $dbs, $story ) )
+    $db->begin;
+    $db->query( "lock table stories in row exclusive mode" );
+    if ( !MediaWords::DBI::Stories::is_new( $db, $story ) )
     {
-        $dbs->commit;
+        $db->commit;
         return;
     }
 
-    eval { $story = $dbs->create( "stories", $story ); };
+    eval { $story = $db->create( "stories", $story ); };
 
     if ( $@ )
     {
 
-        $dbs->rollback;
+        $db->rollback;
 
         if ( $@ =~ /unique constraint \"stories_guid/ )
         {
@@ -168,9 +147,9 @@ sub _add_story_using_parent_download
         }
     }
 
-    MediaWords::DBI::Stories::update_rss_full_text_field( $dbs, $story );
+    MediaWords::DBI::Stories::update_rss_full_text_field( $db, $story );
 
-    $dbs->find_or_create(
+    $db->find_or_create(
         'feeds_stories_map',
         {
             stories_id => $story->{ stories_id },
@@ -178,7 +157,7 @@ sub _add_story_using_parent_download
         }
     );
 
-    $dbs->commit;
+    $db->commit;
 
     return $story;
 }
@@ -186,7 +165,7 @@ sub _add_story_using_parent_download
 # create a pending download for the story's url
 sub _create_child_download_for_story
 {
-    my ( $dbs, $story, $parent_download ) = @_;
+    my ( $db, $story, $parent_download ) = @_;
 
     my $download = {
         feeds_id   => $parent_download->{ feeds_id },
@@ -201,7 +180,7 @@ sub _create_child_download_for_story
         extracted  => 'f'
     };
 
-    my ( $content_delay ) = $dbs->query( "select content_delay from media where media_id = ?", $story->{ media_id } )->flat;
+    my ( $content_delay ) = $db->query( "select content_delay from media where media_id = ?", $story->{ media_id } )->flat;
     if ( $content_delay )
     {
         # delay download of content this many hours.  this is useful for sources that are likely to
@@ -209,19 +188,19 @@ sub _create_child_download_for_story
         $download->{ download_time } = \"now() + interval '$content_delay hours'";
     }
 
-    $dbs->create( 'downloads', $download );
+    $db->create( 'downloads', $download );
 }
 
 # if the story is new, add it to the database and also add a pending download for the story content
 sub _add_story_and_content_download
 {
-    my ( $dbs, $story, $parent_download ) = @_;
+    my ( $db, $story, $parent_download ) = @_;
 
-    $story = _add_story_using_parent_download( $dbs, $story, $parent_download );
+    $story = _add_story_using_parent_download( $db, $story, $parent_download );
 
     if ( defined( $story ) )
     {
-        _create_child_download_for_story( $dbs, $story, $parent_download );
+        _create_child_download_for_story( $db, $story, $parent_download );
     }
 }
 
@@ -246,44 +225,6 @@ END
     return 0;
 }
 
-# handle feeds of type 'web_page' by just creating a story to associate with the content.  web page feeds are feeds
-# that consist of a web page that we download once a week and add as a story.
-# Return number of new stories found (always >0).
-sub _handle_web_page_content
-{
-    my ( $dbs, $download, $decoded_content, $feed ) = @_;
-
-    my $title = MediaWords::Util::HTML::html_title( $decoded_content, '(no title)' );
-    my $guid = substr( time . ":" . $download->{ url }, 0, 1024 );
-
-    my $story = $dbs->create(
-        'stories',
-        {
-            url          => $download->{ url },
-            guid         => $guid,
-            media_id     => $feed->{ media_id },
-            publish_date => MediaWords::Util::SQL::sql_now,
-            title        => $title
-        }
-    );
-
-    $dbs->query(
-        "insert into feeds_stories_map ( feeds_id, stories_id ) values ( ?, ? )",
-        $feed->{ feeds_id },
-        $story->{ stories_id }
-    );
-
-    $dbs->query(
-        "update downloads set stories_id = ?, type = 'content' where downloads_id = ?",
-        $story->{ stories_id },
-        $download->{ downloads_id }
-    );
-
-    $download->{ stories_id } = $story->{ stories_id };
-
-    my $num_new_stories = 1;    # always assume that we've found a new story
-    return $num_new_stories;
-}
 
 =head2 import_external_feed( $db, $media_id, $feed_content )
 
@@ -328,17 +269,19 @@ sub import_external_feed
 
     MediaWords::DBI::Downloads::store_content( $db, $download, \$feed_content );
 
-    _handle_syndicated_content( $db, $download, $feed_content );
+    my $feed_handler = MediaWords::Crawler::Handler::Feed::Syndicated->new();
+    $feed_handler->add_new_stories( $db, $download, $feed_content );
 }
 
 # parse the feed content; create a story hash for each parsed story; check for a new url since the last
 # feed download; if there is a new url, check whether each story is new, and if so add it to the database and
-# ad a pending download for it.  return the number of new stories added.
-sub _handle_syndicated_content
+# ad a pending download for it.
+# return stories to extract (empty hashref because syndicated feed itself doesn't have any stories).
+sub add_new_stories($$$$;$)
 {
-    my ( $dbs, $download, $decoded_content ) = @_;
+	my ( $self, $db, $download, $decoded_content, $feed ) = @_;
 
-    my $media_id = MediaWords::DBI::Downloads::get_media_id( $dbs, $download );
+    my $media_id = MediaWords::DBI::Downloads::get_media_id( $db, $download );
     my $download_time = $download->{ download_time };
 
     my $stories;
@@ -348,106 +291,19 @@ sub _handle_syndicated_content
         die "Error processing feed for $download->{ url }: $@";
     }
 
-    return 0 if ( _stories_checksum_matches_feed( $dbs, $download->{ feeds_id }, $stories ) );
+    return [] if ( _stories_checksum_matches_feed( $db, $download->{ feeds_id }, $stories ) );
 
-    my $new_stories = [ grep { MediaWords::DBI::Stories::is_new( $dbs, $_ ) } @{ $stories } ];
+    my $new_stories = [ grep { MediaWords::DBI::Stories::is_new( $db, $_ ) } @{ $stories } ];
 
     foreach my $story ( @$new_stories )
     {
-        _add_story_and_content_download( $dbs, $story, $download );
+        _add_story_and_content_download( $db, $story, $download );
     }
 
-    my $num_new_stories = scalar( @{ $new_stories } );
-
-    return $num_new_stories;
-}
-
-=head2 handle_feed_content( $db, $download, $decoded_content )
-
-For web page feeds, just store the downloaded content as a story and queue the story for extraction.  For syndicated
-feeds, create new stories for any new story urls in the feed content.  More details in the DESCRIPTION above.
-
-Also store the content of the feed for the download and set the feed.last_successful_download_time to now.
-
-If $extract_in_process is true, extract web_page feeds in the process instead of sending them to the job broker.
-
-=cut
-
-sub handle_feed_content($$$;$)
-{
-    my ( $dbs, $download, $decoded_content, $extract_in_process ) = @_;
-
-    my $feed = $dbs->find_by_id( 'feeds', $download->{ feeds_id } );
-    my $feed_type = $feed->{ feed_type };
-
-    my $num_new_stories = 0;
-    eval {
-        if ( $feed_type eq 'syndicated' )
-        {
-            $num_new_stories = _handle_syndicated_content( $dbs, $download, $decoded_content );
-        }
-        elsif ( $feed_type eq 'web_page' )
-        {
-            $num_new_stories = _handle_web_page_content( $dbs, $download, $decoded_content, $feed );
-        }
-        else
-        {
-            die "Unknown feed type '$feed_type'";
-        }
-    };
-    if ( $@ )
-    {
-        $download->{ state } = 'feed_error';
-        my $error_message = "Error processing feed: $@";
-        ERROR $error_message;
-        $download->{ error_message } = $error_message;
-    }
-    else
-    {
-        $dbs->query(
-            <<SQL,
-            UPDATE feeds
-            SET last_successful_download_time = greatest( last_successful_download_time, ? )
-            WHERE feeds_id = ?
-SQL
-            $download->{ download_time }, $download->{ feeds_id }
-        );
-    }
-
-    if ( $num_new_stories > 0 )
-    {
-        $dbs->query(
-            <<SQL,
-            UPDATE feeds
-            SET last_new_story_time = last_attempted_download_time
-            WHERE feeds_id = ?
-SQL
-            $download->{ feeds_id }
-        );
-    }
-    else
-    {
-        $decoded_content = '(redundant feed)';
-    }
-
-    MediaWords::DBI::Downloads::store_content( $dbs, $download, \$decoded_content );
-
-    if ( $feed_type eq 'web_page' )
-    {
-        # stories_id is set in _handle_web_page_content() by reference to $download
-        my $args = { stories_id => $download->{ stories_id } };
-
-        if ( $extract_in_process )
-        {
-            TRACE "Extracting web page in process...";
-            MediaWords::Job::ExtractAndVector->run( $args );
-        }
-        else
-        {
-            TRACE "Adding web page to extraction queue...";
-            MediaWords::Job::ExtractAndVector->add_to_queue( $args );
-        }
-    }
+    # Syndicated feed itself is not a story of any sort, so nothing to extract
+    # (stories from this feed will be extracted as 'content' downloads)
+    my $stories_to_extract = [];
+    return $stories_to_extract;
 }
 
 1;

@@ -23,7 +23,7 @@ use XML::LibXML;
 use MIME::Base64;
 use Encode;
 use Data::Dumper;
-use MediaWords::Crawler::Handler;
+use MediaWords::Crawler::Handler::Feed;
 
 sub xml_tree_from_hash
 {
@@ -96,7 +96,9 @@ sub import_downloads
         my $db_download = $db->create( 'downloads', $download );
 
         eval {
-            MediaWords::Crawler::FeedHandler::handle_feed_content( $db, $db_download, $decoded_content );
+            my $feed_handler = MediaWords::Crawler::Handler::Feed->new();
+            $feed_handler->handle_download( $db, $db_download, $decoded_content );
+
             $downloads_processed++;
 
             INFO "Processed $downloads_processed downloads";

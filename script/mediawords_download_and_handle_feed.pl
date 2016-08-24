@@ -17,7 +17,7 @@ use MediaWords::CommonLibs;
 use Data::Dumper;
 
 use MediaWords::Crawler::Fetcher;
-use MediaWords::Crawler::FeedHandler;
+use MediaWords::Crawler::Handler::Feed;
 use MediaWords::DB;
 use MediaWords::Util::Config qw(get_config);
 
@@ -66,7 +66,9 @@ sub main
         die( "error fetching download: " . $response->as_string );
     }
 
-    MediaWords::Crawler::FeedHandler::handle_feed_content( $db, $download, $response->decoded_content );
+    my $feed_handler = MediaWords::Crawler::Handler::Feed->new();
+    $feed_handler->handle_download( $db, $download, $response->decoded_content );
+
     $db->query( "update downloads set state = 'success' where downloads_id = ?", $download->{ downloads_id } );
 
     my $stories = $db->query( <<SQL, $download->{ downloads_id } )->hashes;

@@ -1,4 +1,4 @@
-package MediaWords::Crawler::Pager;
+package MediaWords::Crawler::Handler::Content::Pager;
 
 use strict;
 use warnings;

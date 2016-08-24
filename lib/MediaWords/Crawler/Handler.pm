@@ -56,27 +56,15 @@ use warnings;
 use Data::Dumper;
 use Date::Parse;
 use Encode;
-use FindBin;
 use Readonly;
-use URI::Split;
-use if $] < 5.014, Switch => 'Perl6';
-use if $] >= 5.014, feature => 'switch';
 
 use List::Util qw (max maxstr);
 
 use Feed::Scrape::MediaWords;
-use MediaWords::Crawler::FeedHandler;
-use MediaWords::Crawler::Pager;
-use MediaWords::DBI::Downloads;
-use MediaWords::DBI::Stories;
-use MediaWords::Job::ExtractAndVector;
-use MediaWords::Util::Config;
-use MediaWords::Util::SQL;
+use MediaWords::Crawler::Handler::Content;
+use MediaWords::Crawler::Handler::Feed;
 
 # CONSTANTS
-
-# max number of pages the handler will download for a single story
-Readonly my $MAX_PAGES => 10;
 
 # max number of times to try a page after a 5xx error
 Readonly my $MAX_5XX_RETRIES => 10;
@@ -112,146 +100,6 @@ sub _restrict_content_type
     }
 
     $response->content( '(unsupported content type)' );
-}
-
-# return 1 if medium->{ use_pager } is null or true and 0 otherwise
-sub _use_pager
-{
-    my ( $medium ) = @_;
-
-    return 1 if ( !defined( $medium->{ use_pager } ) || $medium->{ use_pager } );
-
-    return 0;
-}
-
-# we keep track of a use_pager field in media to determine whether we should try paging stories within a given media
-# souce.  We assume that we don't need to keep trying paging stories if we have tried but failed to find  next pages in
-# 100 stories in that media source in a row.
-#
-# If use_pager is already set, do nothing.  Otherwise, if next_page_url is true, set use_pager to true.  Otherwise, if
-# there are less than 100 unpaged_stories, increment unpaged_stories.  If there are at least 100 unpaged_stories, set
-# use_pager to false.
-sub _set_use_pager
-{
-    my ( $dbs, $medium, $next_page_url ) = @_;
-
-    return if ( defined( $medium->{ use_pager } ) );
-
-    if ( $next_page_url )
-    {
-        $dbs->query( "update media set use_pager = 't' where media_id = ?", $medium->{ media_id } );
-    }
-    elsif ( !defined( $medium->{ unpaged_stories } ) )
-    {
-        $dbs->query( "update media set unpaged_stories = 1 where media_id = ?", $medium->{ media_id } );
-    }
-    elsif ( $medium->{ unpaged_stories } < 100 )
-    {
-        $dbs->query( "update media set unpaged_stories = unpaged_stories + 1 where media_id = ?", $medium->{ media_id } );
-    }
-    else
-    {
-        $dbs->query( "update media set use_pager = 'f' where media_id = ?", $medium->{ media_id } );
-    }
-}
-
-# if _use_pager( $medium ) returns true, call MediaWords::Crawler::Pager::get_next_page_url on the download
-sub _call_pager
-{
-    my ( $self, $dbs, $download ) = @_;
-    my $content = \$_[ 3 ];
-
-    my $medium = $dbs->query( <<END, $download->{ feeds_id } )->hash;
-select * from media m where media_id in ( select media_id from feeds where feeds_id = ? );
-END
-
-    return unless ( _use_pager( $medium ) );
-
-    if ( $download->{ sequence } > $MAX_PAGES )
-    {
-        DEBUG "reached max pages ($MAX_PAGES) for url '$download->{ url }'";
-        return;
-    }
-
-    if ( $dbs->query( "SELECT * from downloads where parent = ? ", $download->{ downloads_id } )->hash )
-    {
-        return;
-    }
-
-    my $ret;
-
-    my $validate_url = sub { !$dbs->query( "select 1 from downloads where url = ?", $_[ 0 ] ) };
-
-    my $next_page_url = MediaWords::Crawler::Pager::get_next_page_url( $validate_url, $download->{ url }, $content );
-
-    if ( $next_page_url )
-    {
-        DEBUG "next page: $next_page_url\nprev page: $download->{ url }";
-
-        $ret = $dbs->create(
-            'downloads',
-            {
-                feeds_id   => $download->{ feeds_id },
-                stories_id => $download->{ stories_id },
-                parent     => $download->{ downloads_id },
-                url        => $next_page_url,
-                host       => lc( ( URI::Split::uri_split( $next_page_url ) )[ 1 ] ),
-                type       => 'content',
-                sequence   => $download->{ sequence } + 1,
-                state      => 'pending',
-                priority   => $download->{ priority } + 1,
-                extracted  => 'f'
-            }
-        );
-    }
-
-    _set_use_pager( $dbs, $medium, $next_page_url );
-    return $ret;
-}
-
-# queue an extraction job for the story
-sub _queue_story_extraction($$)
-{
-    my ( $self, $download ) = @_;
-
-    my $db                 = $self->engine->dbs;
-    my $fetcher_number     = $self->engine->fetcher_number;
-    my $extract_in_process = $self->engine->extract_in_process;
-
-    DEBUG "fetcher $fetcher_number starting extraction for download " . $download->{ downloads_id };
-
-    my $args = { stories_id => $download->{ stories_id } };
-    if ( $extract_in_process )
-    {
-        TRACE "Extracting in process...";
-        MediaWords::Job::ExtractAndVector->run( $args );
-    }
-    else
-    {
-        TRACE "Adding to extraction queue...";
-        MediaWords::Job::ExtractAndVector->add_to_queue( $args );
-    }
-}
-
-# call the pager module on the download and queue the story for extraction if this are no other pages for the story
-sub _process_content
-{
-    my ( $self, $dbs, $download, $response ) = @_;
-
-    DEBUG "fetcher " . $self->engine->fetcher_number . " starting _process_content for  " . $download->{ downloads_id };
-
-    my $next_page = $self->_call_pager( $dbs, $download, $response->decoded_content );
-
-    if ( $next_page )
-    {
-        DEBUG "fetcher skipping extraction download " . $download->{ downloads_id } . " until all pages are available";
-    }
-    else
-    {
-        $self->_queue_story_extraction( $download );
-    }
-
-    DEBUG "fetcher " . $self->engine->fetcher_number . " finished _process_content for  " . $download->{ downloads_id };
 }
 
 =head2 handle_error( $download, $response )
@@ -311,7 +159,7 @@ the MediaWords::DBI::Downloads content store, associated with the download. If t
 for new stories, add those stories to the db, and queue a download for each. If the download is a content download,
 queue extraction of the story.
 
-More details in the DESCRIPTION above and in MediaWords::Crawler::FeedHandler, which handles the feed downloads.
+More details in the DESCRIPTION above and in MediaWords::Crawler::Handler::Feed, which handles the feed downloads.
 
 =cut
 
@@ -319,63 +167,68 @@ sub handle_response
 {
     my ( $self, $download, $response ) = @_;
 
-    if ( defined( $self->engine->fetcher_number ) )
+    my $db = $self->engine->dbs;
+
+    my $downloads_id  = $download->{ downloads_id };
+    my $download_url  = $download->{ url };
+    my $download_type = $download->{ type };
+
+    DEBUG "Handling download $downloads_id ($download_url)...";
+
+    if ( $self->handle_error( $download, $response ) )
     {
-        DEBUG "fetcher " . $self->engine->fetcher_number . " starting handle response: " . $download->{ url };
+        DEBUG "Download $downloads_id errored.";
     }
-
-    my $dbs = $self->engine->dbs;
-
-    return if ( $self->handle_error( $download, $response ) );
 
     $self->_restrict_content_type( $response );
 
-    $dbs->query( <<END, $download->{ url }, $download->{ downloads_id } );
+    $db->query( <<END, $download->{ url }, $download->{ downloads_id } );
 update downloads set url = ? where downloads_id = ?
 END
 
-    my $download_type = $download->{ type };
-
+    my $download_handler;
     if ( $download_type eq 'feed' )
     {
-        my $config = MediaWords::Util::Config::get_config;
-        if (   ( $config->{ mediawords }->{ do_not_process_feeds } )
-            && ( $config->{ mediawords }->{ do_not_process_feeds } eq 'yes' ) )
-        {
-            MediaWords::DBI::Downloads::store_content( $dbs, $download, \$response->decoded_content );
-            WARN "DO NOT PROCESS FEEDS";
-            $db->update_by_id(
-                'downloads',
-                $download->{ downloads_id },
-                { state => 'feed_error', error_message => 'do_not_process_feeds' }
-            );
-        }
-        else
-        {
-            MediaWords::Crawler::FeedHandler::handle_feed_content(
-                $dbs, $download,
-                $response->decoded_content,
-                $self->engine->extract_in_process
-            );
-        }
-
+        $download_handler = MediaWords::Crawler::Handler::Feed->new();
     }
     elsif ( $download_type eq 'content' )
     {
-        MediaWords::DBI::Downloads::store_content( $dbs, $download, \$response->decoded_content );
-        $self->_process_content( $dbs, $download, $response );
-
+        $download_handler = MediaWords::Crawler::Handler::Content->new();
     }
     else
     {
-        die "Unknown download type " . $download->{ type }, "\n";
-
+        die "Unknown download type '$download_type' of download $downloads_id\n";
     }
 
-    if ( defined( $self->engine->fetcher_number ) )
+    my $story_ids_to_extract;
+    eval { $story_ids_to_extract = $download_handler->handle_download( $db, $download, $response->decoded_content ); };
+    if ( $@ )
     {
-        DEBUG "fetcher " . $self->engine->fetcher_number . " completed handle response: " . $download->{ url };
+        die "Unable to handle download $downloads_id: $@\n";
     }
+
+    unless ( ref( $story_ids_to_extract ) eq ref( [] ) )
+    {
+        die "Stories to extract should be a hashref (at least an empty one).\n";
+    }
+
+    foreach my $stories_id ( @{ $story_ids_to_extract } )
+    {
+        my $args = { stories_id => $stories_id };
+
+        if ( $self->engine->extract_in_process )
+        {
+            DEBUG "Extracting story $stories_id for download $downloads_id in process...";
+            MediaWords::Job::ExtractAndVector->run( $args );
+        }
+        else
+        {
+            TRACE "Adding story $stories_id for download $downloads_id to extraction queue...";
+            MediaWords::Job::ExtractAndVector->add_to_queue( $args );
+        }
+    }
+
+    DEBUG "Handled download $downloads_id ($download_url).";
 }
 
 =head2 engine
