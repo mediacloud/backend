@@ -664,41 +664,6 @@ SQL
     }
 }
 
-=head2 process_download_for_extractor_and_record_error( $db, $download, $extractor_args )
-
-Call process_download_for_extractor.  Catch any error in an eval{} and store the error message in the "downloads" table.
-
-=cut
-
-sub process_download_for_extractor_and_record_error($$$)
-{
-    my ( $db, $download, $extractor_args ) = @_;
-
-    eval { process_download_for_extractor( $db, $download, $extractor_args ); };
-
-    if ( $@ )
-    {
-        my $downloads_id = $download->{ downloads_id };
-
-        DEBUG "extractor error processing download $downloads_id: $@";
-
-        $db->rollback;
-
-        $db->query( <<SQL, "extractor error: $@", $downloads_id );
-UPDATE downloads SET state = 'extractor_error', error_message = ? WHERE downloads_id = ?
-SQL
-
-        $db->commit;
-
-        return 0;
-    }
-
-    # Extraction succeeded
-    $db->commit;
-
-    return 1;
-}
-
 =head2 download_successful( $download )
 
 Return true if the download was downloaded successfully.
