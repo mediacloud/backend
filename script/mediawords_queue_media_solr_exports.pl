@@ -26,38 +26,31 @@ sub main
 
     my ( $import_date ) = $db->query( "SELECT NOW()" )->flat;
 
-    my ( $last_import_date ) = $db->query( 'SELECT value FROM database_variables WHERE name = ?', $dv_name )->flat;
+    my $media =
+      $db->query( "select * from media where db_row_last_updated > last_solr_import_date order by media_id" )->hashes;
 
-    if ( !$last_import_date )
+    my $total_media = scalar( @{ $media } );
+
+    my $i = 0;
+    for my $medium ( @{ $media } )
     {
-        ERROR "no value found for $dv_name. setting to now";
-        $db->create( 'database_variables', { name => $dv_name, value => $import_date } );
-        return;
-    }
+        $i++;
+        DEBUG( "$i / $total_media: updating $medium->{ name } [$medium->{ media_id}]" );
 
-    $db->query(
-        <<SQL,
-        CREATE TEMPORARY TABLE media_import_stories AS
-            SELECT stories_id
-            FROM stories s
-                JOIN media m
-                    ON s.media_id = m.media_id
-            WHERE m.db_row_last_updated > \$1 AND
-                  s.stories_id NOT IN (
-                    SELECT stories_id
-                    FROM solr_import_extra_stories
-                  )
+        my ( $import_date ) = $db->query( "SELECT NOW()" )->flat;
+        $db->query( <<SQL, $medium->{ media_id } );
+CREATE TEMPORARY TABLE media_import_stories AS select stories_id from stories where media_id = ?
 SQL
-        $last_import_date
-    );
 
-    # we do the big query above to a temporary table first because it can be a long running query and we don't
-    # want to lock solr_import_extra_stories for long
-    $db->begin;
-    $db->query( 'INSERT INTO solr_import_extra_stories SELECT stories_id FROM media_import_stories' );
-    $db->query( "DELETE FROM database_variables WHERE name = ?", $dv_name );
-    $db->create( 'database_variables', { name => $dv_name, value => $import_date } );
-    $db->commit;
+        # we do the big query above to a temporary table first because it can be a long running query and we don't
+        # want to lock solr_import_extra_stories for long
+        $db->begin;
+        $db->query( "update media set last_solr_import_date = ? where media_id = ?", $import_date, $medium->{ media_id } );
+        $db->query( 'INSERT INTO solr_import_extra_stories SELECT stories_id FROM media_import_stories' );
+        $db->commit;
+
+        $db->query( "discard temp" );
+    }
 
 }
 
