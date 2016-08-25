@@ -30,6 +30,10 @@ sub _reset_all_schemas($)
         ORDER BY schema_name
 SQL
     )->flat;
+
+    # notices cause perl warnings, which cause NoWawrning tests to fail
+    $db->query( "SET client_min_messages TO WARNING" );
+
     foreach my $schema ( @{ $schemas } )
     {
         $db->query( "DROP SCHEMA IF EXISTS $schema CASCADE" );

@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4580;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4581;
 
 BEGIN
 
@@ -329,6 +329,8 @@ create table media (
     content_delay       int             null,
 
     db_row_last_updated         timestamp with time zone,
+
+    last_solr_import_date       timestamp with time zone not null default now(),
 
     CONSTRAINT media_name_not_empty CHECK ( ( (name)::text <> ''::text ) ),
     CONSTRAINT media_self_dup CHECK ( dup_media_id IS NULL OR dup_media_id <> media_id )

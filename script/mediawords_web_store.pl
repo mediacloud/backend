@@ -159,7 +159,7 @@ sub main
     {
         $pm->start and next;
 
-        my $block_size = scalar( @{ $request_block } );
+        my $block_size = $request_block ? scalar( @{ $request_block } ) : 0;
 
         for my $request ( @{ $request_block } )
         {
