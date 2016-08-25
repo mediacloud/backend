@@ -31,12 +31,6 @@ of each job.
 # this is a daily script that generates health analytics for media sources in media_health
 32 2 * * * /space/mediacloud/mediacloud/script/run_with_carton.sh /space/mediacloud/mediacloud/script/mediawords_generate_media_health.pl
 
-# when we add or remove a tag to a media source, we have to reimport every story in that source to solr.  that process
-# can take days and block the hourly updates, so we use this separate script to write all effected stories to the
-# solr_import_extra_stories queue, and the import script (mediawords_import_solr_data.pl) pulls 100k chunks from that
-# table until it is empty
-11 */4 * * * /space/mediacloud/mediacloud/script/run_with_carton.sh /space/mediacloud/mediacloud/script/mediawords_queue_media_solr_exports.pl
-
 # we use munin to monitor the process of our various system.
 */5 * * * * /space/mediacloud/munin/mediacloud-munin/munin-cron.sh &> /dev/null
 
