@@ -1271,7 +1271,8 @@ sub get_matching_story_from_db ($$;$)
     my $stories = $db->query( <<END )->hashes;
 select distinct( s.* ) from stories s
         join media m on s.media_id = m.media_id
-    where ( s.url = any( array( values $quoted_url_list ) ) or s.guid = any( array( values $quoted_url_list ) ) )
+    where ( s.url = any( array( values $quoted_url_list ) ) or s.guid = any( array( values $quoted_url_list ) ) ) and
+        m.foreign_rss_links = false
 
 union
 
