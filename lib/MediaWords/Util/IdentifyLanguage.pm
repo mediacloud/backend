@@ -7,12 +7,6 @@ use utf8;
 #
 # Utility module to identify a language for a particular text.
 #
-# How to use:
-#  1) Download compact-language-detector_0.1-1_amd64.deb from:
-#         http://code.google.com/p/chromium-compact-language-detector/downloads/list
-#  2) dpkg -i compact-language-detector_0.1-1_amd64.deb
-#  3) ./script/run_carton.sh install Lingua::Identify::CLD
-#
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
