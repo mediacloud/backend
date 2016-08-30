@@ -4,7 +4,6 @@ set -u
 set -o errexit
 
 
-CLD_URL_DEBIAN="http://chromium-compact-language-detector.googlecode.com/files/compact-language-detector_0.1-1_amd64.deb"
 VAGRANT_URL_DEBIAN="https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.1_x86_64.deb"
 ERLANG_APT_GPG_KEY_URL="http://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc"
 ERLANG_APT_REPOSITORY_URL="http://packages.erlang-solutions.com/ubuntu"
@@ -19,21 +18,6 @@ RABBITMQ_PACKAGECLOUD_SCRIPT="https://packagecloud.io/install/repositories/rabbi
 #
 ERLANG_OLD_UBUNTU_APT_VERSION="1:17.5.3"
 
-
-function echo_cld_instructions {
-    cat <<EOF
-You have to manually download, build and install Chromium Compact Language
-Detector library from:
-
-http://code.google.com/p/chromium-compact-language-detector/
-
-When you have done that, make sure that you have libcld.dylib somewhere
-(e.g. in /usr/local/lib/libcld.dylib) and run this script again with the
-environment variable SKIP_CLD_TEST being set as such:
-
-SKIP_CLD_TEST=1 $0
-EOF
-}
 
 function echo_vagrant_instructions {
     cat <<EOF
@@ -111,11 +95,6 @@ EOF
         fi
     fi
 
-    if [ ! "${SKIP_CLD_TEST:+x}" ]; then
-        echo_cld_instructions
-        exit 1
-    fi
-
 else
 
     # assume Ubuntu
@@ -182,41 +161,6 @@ else
     sudo update-rc.d rabbitmq-server disable
     sudo service rabbitmq-server stop
     
-    # Install CLD separately
-    if [ ! "${SKIP_CLD_TEST:+x}" ]; then     # Not installed manually?
-        if [ ! -f /usr/lib/libcld.so ]; then        # Library is not installed yet?
-
-            echo "Installing CLD library..."
-
-            # Try to download and install
-            CLD_TEMP_DIR=`mktemp -d -t cldXXXXX`
-            CLD_TEMP_FILE="$CLD_TEMP_DIR/cld.deb"
-
-            wget --quiet -O "$CLD_TEMP_FILE" "$CLD_URL_DEBIAN" || {
-                echo "Unable to fetch CLD library from $CLD_TEMP_FILE; maybe the URL is outdated?"
-                echo
-                echo_cld_instructions
-                exit 1
-            }
-
-            sudo dpkg -i "$CLD_TEMP_FILE" || {
-                echo "Unable to install CLD library from $CLD_TEMP_FILE."
-                echo
-                echo_cld_instructions
-                exit 1
-            }
-
-            rm -rf "$CLD_TEMP_DIR"
-
-            if [ ! -f /usr/lib/libcld.so ]; then    # Installed?
-                echo "I have tried to install CLD library manually but failed."
-                echo
-                echo_cld_instructions
-                exit 1
-            fi
-        fi
-    fi
-
     # Install an up-to-date version of Vagrant
     if [ ! "${SKIP_VAGRANT_TEST:+x}" ]; then
         if [ ! -x /usr/bin/vagrant ]; then
