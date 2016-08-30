@@ -457,9 +457,11 @@
            autowarmCount - the number of entries to prepopulate from
                and old cache.  
       -->
+    <!-- Media Cloud: reduced to 256 from the default 512 because filter cache
+    grows uncontrollably and exceeds -Xmx -->
     <filterCache class="solr.FastLRUCache"
-                 size="512"
-                 initialSize="512"
+                 size="256"
+                 initialSize="256"
                  autowarmCount="0"/>
 
     <!-- Query Result Cache
