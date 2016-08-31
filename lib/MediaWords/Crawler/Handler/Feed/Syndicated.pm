@@ -11,7 +11,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Moose;
-with 'MediaWords::Crawler::Handler::Feed::AbstractFeedHandler';
+with 'MediaWords::Crawler::Handler::AbstractHandler';
 
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories;
@@ -26,7 +26,6 @@ use URI::Split;
 
 Readonly my $EXTERNAL_FEED_URL  => 'http://external/feed/url';
 Readonly my $EXTERNAL_FEED_NAME => 'EXTERNAL FEED';
-
 
 # if $v is a scalar, return $v, else return undef.
 # we need to do this to make sure we don't get a ref back from a feed object field
@@ -225,7 +224,6 @@ END
     return 0;
 }
 
-
 =head2 import_external_feed( $db, $media_id, $feed_content )
 
 Given the content of some feed, import all new stories from that content as if we had downloaded the content.
@@ -270,16 +268,16 @@ sub import_external_feed
     MediaWords::DBI::Downloads::store_content( $db, $download, \$feed_content );
 
     my $feed_handler = MediaWords::Crawler::Handler::Feed::Syndicated->new();
-    $feed_handler->add_new_stories( $db, $download, $feed_content );
+    $feed_handler->handle_download( $db, $download, $feed_content );
 }
 
 # parse the feed content; create a story hash for each parsed story; check for a new url since the last
 # feed download; if there is a new url, check whether each story is new, and if so add it to the database and
 # ad a pending download for it.
 # return stories to extract (empty hashref because syndicated feed itself doesn't have any stories).
-sub add_new_stories($$$$;$)
+sub handle_download($$$$)
 {
-	my ( $self, $db, $download, $decoded_content, $feed ) = @_;
+    my ( $self, $db, $download, $decoded_content ) = @_;
 
     my $media_id = MediaWords::DBI::Downloads::get_media_id( $db, $download );
     my $download_time = $download->{ download_time };

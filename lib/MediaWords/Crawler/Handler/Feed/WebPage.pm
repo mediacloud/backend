@@ -11,7 +11,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Moose;
-with 'MediaWords::Crawler::Handler::Feed::AbstractFeedHandler';
+with 'MediaWords::Crawler::Handler::AbstractHandler';
 
 use MediaWords::Util::HTML;
 use MediaWords::Util::SQL;
@@ -20,9 +20,11 @@ use Readonly;
 
 # handle feeds of type 'web_page' by just creating a story to associate with the content.  web page feeds are feeds
 # that consist of a web page that we download once a week and add as a story.
-sub add_new_stories($$$$$)
+sub handle_download($$$$)
 {
-    my ( $self, $db, $download, $decoded_content, $feed ) = @_;
+    my ( $self, $db, $download, $decoded_content ) = @_;
+
+    my $feed = $db->find_by_id( 'feeds', $download->{ feeds_id } );
 
     my $title = MediaWords::Util::HTML::html_title( $decoded_content, '(no title)' );
     my $guid = substr( time . ":" . $download->{ url }, 0, 1024 );

@@ -76,7 +76,7 @@ sub _handle_feed_content($$$$)
             die "Unknown feed type '$feed_type'";
         }
 
-        $story_ids_to_extract = $feed_handler->add_new_stories( $dbs, $download, $decoded_content, $feed );
+        $story_ids_to_extract = $feed_handler->handle_download( $dbs, $download, $decoded_content );
     };
     if ( $@ )
     {
