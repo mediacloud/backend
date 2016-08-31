@@ -1,33 +1,35 @@
 --
 -- This is a Media Cloud PostgreSQL schema difference file (a "diff") between schema
--- versions 4580 and 4581.
+-- versions 4581 and 4582.
 --
 -- If you are running Media Cloud with a database that was set up with a schema version
--- 4580, and you would like to upgrade both the Media Cloud and the
--- database to be at version 4581, import this SQL file:
+-- 4581, and you would like to upgrade both the Media Cloud and the
+-- database to be at version 4582, import this SQL file:
 --
---     psql mediacloud < mediawords-4580-4581.sql
+--     psql mediacloud < mediawords-4581-4582.sql
 --
 -- You might need to import some additional schema diff files to reach the desired version.
 --
+
 --
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
-alter table media add last_solr_import_date timestamp with time zone not null default now();
+SET search_path = public, pg_catalog;
 
-update media set last_solr_import_date = dv.value::timestamp from database_variables dv where dv.name = 'last_media_solr_import';
 
---
--- 2 of 2. Reset the database version.
---
+-- ALTER TYPE ... ADD VALUE doesn't work in a transaction or a multi-line
+-- query, so the new enum value gets added in Schema.pm manually.
+
+--ALTER TYPE feed_feed_type ADD VALUE 'univision';
+
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4581;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4582;
 
 BEGIN
 
@@ -41,4 +43,7 @@ END;
 $$
 LANGUAGE 'plpgsql';
 
+--
+-- 2 of 2. Reset the database version.
+--
 SELECT set_database_schema_version();

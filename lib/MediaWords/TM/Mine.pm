@@ -1271,7 +1271,8 @@ sub get_matching_story_from_db ($$;$)
     my $stories = $db->query( <<END )->hashes;
 select distinct( s.* ) from stories s
         join media m on s.media_id = m.media_id
-    where ( s.url = any( array( values $quoted_url_list ) ) or s.guid = any( array( values $quoted_url_list ) ) )
+    where ( s.url = any( array( values $quoted_url_list ) ) or s.guid = any( array( values $quoted_url_list ) ) ) and
+        m.foreign_rss_links = false
 
 union
 
@@ -1666,8 +1667,6 @@ sub add_new_links_chunk($$$$)
 {
     my ( $db, $topic, $iteration, $new_links ) = @_;
 
-    $db->begin;
-
     my $trimmed_links = [];
     for my $link ( @{ $new_links } )
     {
@@ -1693,14 +1692,14 @@ sub add_new_links_chunk($$$$)
 
     mine_topic_stories( $db, $topic );
 
+    $db->begin;
     for my $link ( @{ $new_links } )
     {
         $db->query( <<END, $link->{ topic_links_id } ) if ( $link->{ topic_links_id } );
 delete from topic_links where topic_links_id = ? and ref_stories_id is null
 END
     }
-
-    $db->commit unless $db->dbh->{ AutoCommit };
+    $db->commit;
 }
 
 # save a row in the topic_spider_metrics table to track performance of spider
@@ -1732,8 +1731,8 @@ sub add_new_links($$$$)
         # a link is only required to have a url field, but it usually has a controversy_links_id; better to sort by
         # id if possible so that identical urls do not get grouped
         sort {
-            Digest::MD5::md5_hex( encode( 'utf-8', $a->{ controversy_links_id } || $a->{ url } ) )
-              cmp Digest::MD5::md5_hex( encode( 'utf-8', $b->{ controversy_links_id } || $b->{ url } ) )
+            Digest::MD5::md5_hex( encode( 'utf-8', $a->{ topic_links_id } || $a->{ url } ) )
+              cmp Digest::MD5::md5_hex( encode( 'utf-8', $b->{ topic_links_id } || $b->{ url } ) )
         } @{ $new_links }
     ];
 
