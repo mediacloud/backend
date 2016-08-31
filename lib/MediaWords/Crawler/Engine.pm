@@ -4,7 +4,7 @@ use MediaWords::CommonLibs;
 
 =head1 NAME
 
-Mediawords::Crawler::Engine - controls and coordinates the work of the crawler provider, fetchers, and handlers
+MediaWords::Crawler::Engine - controls and coordinates the work of the crawler provider, fetchers, and handlers
 
 =head1 SYNOPSIS
 
