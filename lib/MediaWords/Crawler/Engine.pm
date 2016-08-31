@@ -302,31 +302,6 @@ sub _spawn_fetchers
     }
 }
 
-=head2 create_fetcher_engine_for_testing
-
-create a simple engine that consists of only a single fetcher process that can be manually passed a download to
-test the fetcher / handle process.
-
-=cut
-
-sub create_fetcher_engine_for_testing
-{
-    my ( $fetcher_number ) = @_;
-
-    my $crawler = MediaWords::Crawler::Engine->new();
-
-    #$crawler->processes( 1 );
-    #$crawler->throttle( 1 );
-    #$crawler->sleep_interval( 1 );
-
-    #$crawler->timeout( $crawler_timeout );
-    #$crawler->pending_check_interval( 1 );
-
-    $crawler->fetcher_number( $fetcher_number );
-
-    return $crawler;
-}
-
 =head2 crawl
 
 Start crawling by cralling $self->_spawn_fetchers() and then entering a loop that:
