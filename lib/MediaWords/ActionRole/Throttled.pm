@@ -32,12 +32,6 @@ around execute => sub {
             die 'Invalid API key or authentication cookie.';
         }
 
-        my $request_path = $c->req->path;
-        unless ( $request_path )
-        {
-            die 'request_path is undef';
-        }
-
         # Admin users are effectively unlimited
         my $roles_exempt_from_user_limits   = MediaWords::DBI::Auth::roles_exempt_from_user_limits();
         my $user_is_exempt_from_user_limits = 0;

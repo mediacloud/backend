@@ -36,25 +36,7 @@ around execute => sub {
             die 'Invalid API key or authentication cookie. Access denied.';
         }
 
-        my $request_path = $c->req->path;
-        unless ( $request_path )
-        {
-            die 'request_path is undef';
-        }
-
         my $requested_items_count = $c->stash->{ $NUMBER_OF_REQUESTED_ITEMS_KEY } // 1;
-
-        # Log the request
-        my $db = $c->dbis;
-
-        $db->query(
-            <<EOF,
-            INSERT INTO auth_user_requests (email, request_path, requested_items_count)
-            VALUES (?, ?, ?)
-EOF
-            $user_email, $request_path, $requested_items_count
-        );
-
     };
 
     if ( $@ )
