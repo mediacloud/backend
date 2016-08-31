@@ -527,7 +527,10 @@ sub query_paged_hashes
 {
     my ( $self, $query, $query_params, $page, $rows_per_page ) = @_;
 
-    $page ||= 1;
+    if ( $page < 1 )
+    {
+        die 'Page must be 1 or bigger.';
+    }
 
     my $offset = ( $page - 1 ) * $rows_per_page;
 
