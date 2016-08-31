@@ -229,24 +229,6 @@ sub get_original_url_from_momento_archive_url
     return $original_url;
 }
 
-=head2 get_decoded_content( $url )
-
-Simple get for a url using the UserAgent above. Return the decoded content if the response is successful and undef if
-not.
-
-=cut
-
-sub get_decoded_content
-{
-    my ( $url ) = @_;
-
-    my $ua = UserAgent();
-
-    my $res = $ua->get( $url );
-
-    return $res->is_success ? $res->decoded_content : undef;
-}
-
 =head2 ParallelGet( $urls )
 
 Get urls in parallel by using an external, forking script.  Returns a list of HTTP::Response objects resulting
