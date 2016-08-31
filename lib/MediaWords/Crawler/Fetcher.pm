@@ -61,6 +61,22 @@ sub new
     return $self;
 }
 
+=head2 engine
+
+getset engine - parent crawler engine object
+
+=cut
+
+sub engine
+{
+    if ( $_[ 1 ] )
+    {
+        $_[ 0 ]->{ engine } = $_[ 1 ];
+    }
+
+    return $_[ 0 ]->{ engine };
+}
+
 # alarabiya uses an interstitial that requires javascript.  if the download url
 # matches alarabiya and returns the 'requires JavaScript' page, manually parse
 # out the necessary cookie and add it to the $ua so that the request will work
@@ -123,41 +139,7 @@ sub _add_http_auth
 
 =head2 fetch_download( $download )
 
-Call do_fetch on the given $download
-
-=cut
-
-sub fetch_download
-{
-    my ( $self, $download ) = @_;
-
-    my $db = $self->engine->db;
-
-    return do_fetch( $db, $download );
-}
-
-=head2 engine
-
-getset engine - parent crawler engine object
-
-=cut
-
-sub engine
-{
-    if ( $_[ 1 ] )
-    {
-        $_[ 0 ]->{ engine } = $_[ 1 ];
-    }
-
-    return $_[ 0 ]->{ engine };
-}
-
-=head1 FUNCTIONS
-
-=head2 do_fetch( $db, $download )
-
-With relying on the object state, request the $download and return the HTTP::Response.  This method may be called
-as a stand alone function.
+With relying on the object state, request the $download and return the HTTP::Response.
 
 In addition to the basic HTTP request with the UserAgent options supplied by MediaWords::Util::Web::UserAgent, this
 method:
@@ -184,9 +166,11 @@ implements a very limited amount of site specific fixes
 
 =cut
 
-sub do_fetch
+sub fetch_download
 {
-    my ( $db, $download ) = @_;
+    my ( $self, $download ) = @_;
+
+    my $db = $self->engine->db;
 
     $download->{ download_time } = MediaWords::Util::SQL::sql_now;
     $download->{ state }         = 'fetching';

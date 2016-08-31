@@ -141,12 +141,14 @@ sub redownload : Local
 
     if ( $download_id )
     {
-        my $crawler_engine = MediaWords::Crawler::Engine->new();
+        my $engine = MediaWords::Crawler::Engine->new();
 
         $download = $c->dbis->find_by_id( 'downloads', $download_id );
-        my $response = MediaWords::Crawler::Fetcher::do_fetch( $c->dbis, $download );
-        my $handler = MediaWords::Crawler::Handler->new( $crawler_engine );
 
+        my $fetcher = MediaWords::Crawler::Fetcher->new( $engine );
+        my $handler = MediaWords::Crawler::Handler->new( $engine );
+
+        my $response = $fetcher->fetch_download( $download );
         $handler->handle_response( $download, $response );
     }
 
