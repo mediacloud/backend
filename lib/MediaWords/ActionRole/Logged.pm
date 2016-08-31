@@ -37,6 +37,10 @@ around execute => sub {
         }
 
         my $requested_items_count = $c->stash->{ $NUMBER_OF_REQUESTED_ITEMS_KEY } // 1;
+
+        # Log the request
+        my $db = $c->dbis;
+        $db->query( 'SELECT upsert_auth_user_request_daily_counts(?, ?)', $user_email, $requested_items_count );
     };
 
     if ( $@ )
