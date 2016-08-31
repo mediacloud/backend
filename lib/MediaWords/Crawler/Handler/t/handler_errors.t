@@ -26,7 +26,7 @@ use MediaWords::Util::SQL;
 use MediaWords::Util::Web;
 
 # call the fetcher and handler on the given url.  return the download passed to the fetcher and handler.
-sub fetch_and_handle_response
+sub _fetch_and_handle_response
 {
     my ( $db, $port, $feed, $path, $downloads_id ) = @_;
 
@@ -64,7 +64,7 @@ sub fetch_and_handle_response
 }
 
 # verify that the given sql date is in the future
-sub is_date_in_future
+sub _is_date_in_future
 {
     my ( $date, $label ) = @_;
 
@@ -93,28 +93,26 @@ sub test_errors
     my $media = MediaWords::Test::DB::create_test_story_stack( $db, { A => { B => [ 1 ] } } );
     my $feed = $media->{ A }->{ feeds }->{ B };
 
-    my $download_foo = fetch_and_handle_response( $db, $port, $feed, '/foo' );
-
+    my $download_foo = _fetch_and_handle_response( $db, $port, $feed, '/foo' );
     is( $download_foo->{ state }, 'success', 'foo download state' );
 
-    my $download_404 = fetch_and_handle_response( $db, $port, $feed, '/404' );
-
+    my $download_404 = _fetch_and_handle_response( $db, $port, $feed, '/404' );
     is( $download_404->{ state }, 'error', '404 download state' );
 
-    my $download_503 = fetch_and_handle_response( $db, $port, $feed, '/503' );
+    my $download_503 = _fetch_and_handle_response( $db, $port, $feed, '/503' );
     is( $download_503->{ state }, 'pending', '503 download 1 state' );
-    is_date_in_future( $download_503->{ download_time }, "503 / 1" );
+    _is_date_in_future( $download_503->{ download_time }, "503 / 1" );
 
     for my $i ( 2 .. 10 )
     {
-        $download_503 = fetch_and_handle_response( $db, $port, $feed, '/503', $download_503->{ downloads_id } );
+        $download_503 = _fetch_and_handle_response( $db, $port, $feed, '/503', $download_503->{ downloads_id } );
         is( $download_503->{ state }, 'pending', '503 download $i state' );
-        is_date_in_future( $download_503->{ download_time }, "503 / $i" );
+        _is_date_in_future( $download_503->{ download_time }, "503 / $i" );
 
         ok( $download_503->{ error_message } =~ /\[error_num: $i\]$/, "503 download $i error message includes error num" );
     }
 
-    $download_503 = fetch_and_handle_response( $db, $port, $feed, '/503', $download_503->{ downloads_id } );
+    $download_503 = _fetch_and_handle_response( $db, $port, $feed, '/503', $download_503->{ downloads_id } );
     is( $download_503->{ state }, 'error', '503 final download state' );
 
     $hs->stop;
