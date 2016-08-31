@@ -73,6 +73,8 @@ sub run_dashboard_queries
 
     test_url( '/api/v2/wc/list', { q => $query }, sub { $_[0]->[0]->{ count } > 0 } );
 
+    test_url( '/api/v2/sentences/field_count', { q => $query }, sub { $_[0]->[0]->{ count } > 0 } );
+
     DEBUG( "elapsed time for '$query': " . ( time - $start_time ) );
 }
 

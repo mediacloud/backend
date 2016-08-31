@@ -229,7 +229,7 @@ sub query_encoded_json($$;$)
         $all_q = [ $all_q ] unless ( ref( $all_q ) );
         push( @{ $all_q }, $params->{ q } ) if ( $params->{ q } && ( $params->{ q } !~ /\:\*$/ ) );
 
-        $params->{ q } = join( " AND ", map { "( $_ )" } @{ $all_q } );
+        $params->{ q } = join( " AND ", map { "( $_ )" } grep { /[^[:space:]]/ } @{ $all_q } );
 
         $params->{ fq } = undef;
     }
