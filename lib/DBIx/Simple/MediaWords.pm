@@ -315,26 +315,6 @@ sub query_with_large_work_mem
     return $ret;
 }
 
-sub query_continue_on_error
-{
-    my $self = shift @_;
-
-    my $ret = $self->SUPER::query( @_ );
-
-    return $ret;
-}
-
-sub query_only_warn_on_error
-{
-    my $self = shift @_;
-
-    my $ret = $self->SUPER::query( @_ );
-
-    WARN "Problem executing DBIx::simple->query(" . scalar( join ",", @_ ) . ") :" . $self->error
-      unless $ret;
-    return $ret;
-}
-
 # get the primary key column for the table
 sub primary_key_column
 {
@@ -523,20 +503,6 @@ sub create
     return $ret;
 }
 
-# run create for the given table, retrieving the given fields from the request object
-sub create_from_request
-{
-    my ( $self, $table, $request, $fields ) = @_;
-
-    my $hash;
-    for my $field ( @{ $fields } )
-    {
-        $hash->{ $field } = $request->param( $field );
-    }
-
-    return $self->create( $table, $hash );
-}
-
 # select a single row from the database matching the hash or insert
 # a row with the hash values and return the inserted row as a hash
 sub find_or_create
@@ -589,108 +555,6 @@ sub query_paged_hashes
 
 }
 
-# get CHI cache object for query continuations
-sub _get_continuation_cache
-{
-    my ( $self ) = @_;
-
-    my $mediacloud_data_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ data_dir };
-
-    return CHI->new(
-        driver           => 'File',
-        expires_in       => '1 day',
-        expires_variance => '0.1',
-        root_dir         => "${ mediacloud_data_dir }/cache/continuations",
-        depth            => 4
-    );
-}
-
-# return a new continuation_id that is associated with the given continuation hash
-sub _get_new_continuation_id ($$$$$)
-{
-    my ( $self, $query, $params, $rows_per_page, $offset ) = @_;
-
-    my $continuation = {
-        query         => $query,
-        params        => $params,
-        rows_per_page => $rows_per_page,
-        offset        => $offset
-    };
-
-    my $cache = $self->_get_continuation_cache();
-
-    my $continuation_id;
-    while ( !$continuation_id || $cache->get( $continuation_id ) )
-    {
-        $continuation_id = Math::Random::Secure::irand( 2**48 );
-    }
-
-    $cache->set( $continuation_id, $continuation );
-
-    return $continuation_id;
-}
-
-# Query with continuation_id that allows paging through results.  Execute the query, cache the query text and args
-# with a new continuation_id, and return that continuation_id.
-sub query_and_create_continuation_id ($$$$)
-{
-    my ( $self, $query, $params, $rows_per_page ) = @_;
-
-    die( "$rows_per_page must be a number greater than 0" ) unless ( $rows_per_page > 0 );
-
-    my $continuation_id = $self->_get_new_continuation_id( $query, $params, $rows_per_page, $rows_per_page );
-
-    my $rows = $self->query( "select * from ( $query ) q limit $rows_per_page", @{ $params } )->hashes;
-
-    return ( $rows, $continuation_id );
-}
-
-# lookup the continuation data for a given continuation_id; return undef if no such continuation_id exists
-sub _get_continuation ($$)
-{
-    my ( $self, $continuation_id ) = @_;
-
-    return $self->_get_continuation_cache->get( $continuation_id );
-}
-
-# Given a continuation_id that has been returned by this function or by query_and_create_continuation_id, teturn the
-# next page of results for the query saved with the given continuation_id, create a new continuation_id, and
-# return the new continuation_id.  If no rows are returned by the query, return an empty result list and an
-#undef continuation_id.
-sub query_continuation ($$)
-{
-    my ( $self, $continuation_id ) = @_;
-
-    my $continuation = $self->_get_continuation( $continuation_id );
-
-    die( "Unknown continuation id: $continuation_id" ) unless ( $continuation );
-
-    my $query         = $continuation->{ query };
-    my $params        = $continuation->{ params };
-    my $rows_per_page = $continuation->{ rows_per_page };
-    my $offset        = $continuation->{ offset };
-
-    my $rows = $self->query( "select * from ( $query ) q limit $rows_per_page offset $offset", @{ $params } )->hashes;
-
-    return ( [], undef ) unless ( @{ $rows } );
-
-    $offset += $rows_per_page;
-    my $new_continuation_id = $self->_get_new_continuation_id( $query, $params, $rows_per_page, $offset );
-
-    return ( $rows, $new_continuation_id );
-}
-
-# if a continuation_id is passed, query the continuation, otherwise execute the given query.  in either case, return
-# a new continuation_id
-sub query_or_continuation ($$$$$)
-{
-    my ( $self, $query, $params, $rows_per_page, $continuation_id ) = @_;
-
-    return $self->query_continuation( $continuation_id ) if ( $continuation_id );
-
-    return $self->query_and_create_continuation_id( $query, $params, $rows_per_page, $continuation_id );
-}
-
 # executes the supplied subroutine inside a transaction
 sub transaction
 {
@@ -717,26 +581,6 @@ sub transaction
         # See <http://stackoverflow.com/questions/971273/perl-sigdie-eval-and-stack-trace>
         die $x;
     }
-}
-
-sub query_csv_dump
-{
-    my ( $self, $output_file, $query, $params, $with_header ) = @_;
-
-    my $copy_statement = "COPY ($query) TO STDOUT WITH CSV ";
-
-    if ( $with_header )
-    {
-        $copy_statement .= " HEADER";
-    }
-
-    my $line;
-    $self->dbh->do( $copy_statement, {}, @$params );
-    while ( $self->dbh->pg_getcopydata( $line ) >= 0 )
-    {
-        print $output_file encode( 'utf8', $line );
-    }
-
 }
 
 # get the name of a temporary table that contains all of the ids in $ids as an 'id bigint' field.
