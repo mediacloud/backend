@@ -170,7 +170,7 @@ sub fetch_download
 {
     my ( $self, $download ) = @_;
 
-    my $db = $self->engine->db;
+    my $db = $self->engine->dbs;
 
     $download->{ download_time } = MediaWords::Util::SQL::sql_now;
     $download->{ state }         = 'fetching';
