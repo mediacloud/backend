@@ -36,12 +36,12 @@ use Fcntl;
 use IO::Select;
 use IO::Socket;
 use Data::Dumper;
-use Time::HiRes;
 
 use MediaWords::Crawler::Fetcher;
 use MediaWords::Crawler::Handler;
 use MediaWords::Crawler::Provider;
 use MediaWords::Util::Process;
+use MediaWords::Util::Timing;
 
 =head1 METHODS
 
@@ -84,22 +84,20 @@ sub _fetch_and_handle_download
 
     DEBUG "fetch " . $self->fetcher_number . ": $download->{downloads_id} $url ...";
 
-    my $start_fetch_time = [ Time::HiRes::gettimeofday ];
+    my $start_fetch_time = MediaWords::Util::Timing::start_time( 'fetch' );
     my $response         = $fetcher->fetch_download( $download );
-    my $end_fetch_time   = [ Time::HiRes::gettimeofday ];
+    MediaWords::Util::Timing::stop_time( 'fetch', $start_fetch_time );
 
+    my $start_handle_time = MediaWords::Util::Timing::start_time( 'handle' );
     $DB::single = 1;
     eval { $handler->handle_response( $download, $response ); };
-
-    my $fetch_time = Time::HiRes::tv_interval( $start_fetch_time, $end_fetch_time );
-    my $handle_time = Time::HiRes::tv_interval( $end_fetch_time );
-
     if ( $@ )
     {
         LOGDIE( "Error in handle_response() for downloads_id $download->{downloads_id} $url : $@" );
     }
+    MediaWords::Util::Timing::stop_time( 'handle', $start_handle_time );
 
-    DEBUG "fetch " . $self->fetcher_number . ": $download->{downloads_id} $url done [$fetch_time/$handle_time]";
+    DEBUG "Fetcher " . $self->fetcher_number . ": $download->{downloads_id} $url done";
 
     return;
 }
@@ -141,7 +139,7 @@ sub _run_fetcher
 
     $self->socket->blocking( 0 );
 
-    my $start_idle_time = [ Time::HiRes::gettimeofday ];
+    my $start_idle_time = MediaWords::Util::Timing::start_time( 'idle' );
 
     while ( 1 )
     {
@@ -168,12 +166,11 @@ sub _run_fetcher
             {
                 $download = $self->dbs->find_by_id( 'downloads', $downloads_id );
 
-                my $idle_time = Time::HiRes::tv_interval( $start_idle_time, [ Time::HiRes::gettimeofday ] );
-                DEBUG "fetch " . $self->fetcher_number . " idle time $idle_time";
+                MediaWords::Util::Timing::stop_time( 'idle', $start_idle_time );
 
                 $self->_fetch_and_handle_download( $download, $fetcher, $handler );
 
-                $start_idle_time = [ Time::HiRes::gettimeofday ];
+                $start_idle_time = MediaWords::Util::Timing::start_time( 'idle' );
             }
             elsif ( $downloads_id && ( $downloads_id eq 'exit' ) )
             {
