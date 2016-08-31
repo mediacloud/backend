@@ -18,8 +18,8 @@
 SET search_path = public, pg_catalog;
 
 
-DROP FUNCTION auth_user_requests_update_daily_counts();
 DROP TABLE auth_user_requests;
+DROP FUNCTION auth_user_requests_update_daily_counts();
 
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
