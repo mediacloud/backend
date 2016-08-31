@@ -58,7 +58,7 @@ sub main
 
     my $download = create_feed_download( $db, $feed );
 
-    my $response = MediaWords::Crawler::Fetcher::do_fetch( $download, $db );
+    my $response = MediaWords::Crawler::Fetcher::do_fetch( $db, $download );
 
     if ( !$response->is_success )
     {

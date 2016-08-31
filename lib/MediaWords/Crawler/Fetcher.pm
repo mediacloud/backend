@@ -131,9 +131,9 @@ sub fetch_download
 {
     my ( $self, $download ) = @_;
 
-    my $dbs = $self->engine->dbs;
+    my $db = $self->engine->db;
 
-    return do_fetch( $download, $dbs );
+    return do_fetch( $db, $download );
 }
 
 =head2 engine
@@ -154,7 +154,7 @@ sub engine
 
 =head1 FUNCTIONS
 
-=head2 do_fetch( $download, $db )
+=head2 do_fetch( $db, $download )
 
 With relying on the object state, request the $download and return the HTTP::Response.  This method may be called
 as a stand alone function.
@@ -186,12 +186,12 @@ implements a very limited amount of site specific fixes
 
 sub do_fetch
 {
-    my ( $download, $dbs ) = @_;
+    my ( $db, $download ) = @_;
 
     $download->{ download_time } = MediaWords::Util::SQL::sql_now;
     $download->{ state }         = 'fetching';
 
-    $dbs->update_by_id( "downloads", $download->{ downloads_id }, $download );
+    $db->update_by_id( "downloads", $download->{ downloads_id }, $download );
 
     my $ua = MediaWords::Util::Web::UserAgent;
 
