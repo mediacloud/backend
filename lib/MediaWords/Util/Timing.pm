@@ -8,11 +8,6 @@ use MediaWords::CommonLibs;
 
 use Time::HiRes qw( gettimeofday tv_interval );
 
-require Exporter;
-
-our @ISA    = qw( Exporter );
-our @EXPORT = qw( start_time stop_time );
-
 # Print out the name given; return a reference to the time of day
 sub start_time
 {
