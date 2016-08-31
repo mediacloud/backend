@@ -58,11 +58,12 @@ sub new
     my $self = {};
     bless( $self, $class );
 
+    $self->reconnect_db();
+
     $self->processes( 1 );
     $self->sleep_interval( 60 );
     $self->throttle( 30 );
     $self->fetchers( [] );
-    $self->reconnect_db();
     $self->children_exit_on_kill( 0 );
     $self->test_mode( 0 );
     $self->extract_in_process( 0 );
@@ -149,7 +150,7 @@ sub _run_fetcher
 
             $download = 0;
 
-            $self->reconnect_db;
+            $self->reconnect_db();
 
             # tell the parent provider we're ready for another download
             # and then read the download id from the socket
@@ -254,10 +255,10 @@ sub _spawn_fetchers
             $self->fetchers->[ $i ] = { pid => $pid, socket => $parent_socket };
 
             TRACE "in parent after spawning fetcher $i db reconnect starting";
-            eval { $self->reconnect_db; };
+            eval { $self->reconnect_db(); };
             if ( $@ )
             {
-                LOGDIE "Error in reconnect_db in paranet after spawning fetcher $i";
+                LOGDIE "Error in reconnect_db() in paranet after spawning fetcher $i";
             }
             TRACE "in parent after spawning fetcher $i db reconnect done";
         }
@@ -268,7 +269,7 @@ sub _spawn_fetchers
             $in_parent = 0;
             $self->fetcher_number( $i );
             $self->socket( $child_socket );
-            $self->reconnect_db;
+            $self->reconnect_db();
 
             if ( $self->children_exit_on_kill() )
             {
@@ -635,7 +636,7 @@ sub dbs
 
     if ( $dbs )
     {
-        LOGDIE( "use $self->reconnect_db to connect to db" );
+        LOGDIE( "use $self->reconnect_db() to connect to db" );
     }
 
     defined( $self->{ dbs } ) || LOGDIE "no database";
@@ -657,7 +658,7 @@ sub _close_db_connection
     return;
 }
 
-=head2 reconnect_db
+=head2 reconnect_db()
 
 Close the existing $self->dbs and create a new connection.
 
