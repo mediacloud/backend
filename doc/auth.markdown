@@ -60,5 +60,4 @@ api requests:
 
 * auth_users - list of users
 * auth_roles - list of auth roles
-* auth_user_requests - tracks api requests
 * auth_users_tag_set_permissions - tracks which users are allowed to edit which tag sets

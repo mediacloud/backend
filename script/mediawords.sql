@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4581;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4583;
 
 BEGIN
 
@@ -2173,36 +2173,6 @@ INSERT INTO auth_roles (role, description) VALUES
     ('stories-api', 'Access to the stories api'),
     ('search', 'Access to the /search pages');
 
---
--- User requests (the ones that are configured to be logged)
---
-CREATE TABLE auth_user_requests (
-
-    auth_user_requests_id   SERIAL          PRIMARY KEY,
-
-    -- User's email (does *not* reference auth_users.email because the user
-    -- might be deleted)
-    email                   TEXT            NOT NULL,
-
-    -- Request path (e.g. "api/v2/stories/list")
-    request_path            TEXT            NOT NULL,
-
-    -- When did the request happen?
-    request_timestamp       TIMESTAMP       NOT NULL DEFAULT LOCALTIMESTAMP,
-
-    -- Number of "items" requested in a request
-    -- For example:
-    -- * a single request to "/api/v2/stories/list" would count as one item;
-    -- * a single request to "/search" would count as a single request plus the
-    --   number of stories if "csv=1" is specified, or just as a single request
-    --   if "csv=1" is not specified
-    requested_items_count   INTEGER         NOT NULL DEFAULT 1
-
-);
-
-CREATE INDEX auth_user_requests_email ON auth_user_requests (email);
-CREATE INDEX auth_user_requests_request_path ON auth_user_requests (request_path);
-
 
 --
 -- User request daily counts
@@ -2226,50 +2196,47 @@ CREATE TABLE auth_user_request_daily_counts (
 
 );
 
-CREATE INDEX auth_user_request_daily_counts_email ON auth_user_request_daily_counts (email);
-CREATE INDEX auth_user_request_daily_counts_day ON auth_user_request_daily_counts (day);
+-- Single index to enforce upsert uniqueness
+CREATE UNIQUE INDEX auth_user_request_daily_counts_email_day ON auth_user_request_daily_counts (email, day);
 
 
--- On each logged request, update "auth_user_request_daily_counts" table
-CREATE OR REPLACE FUNCTION auth_user_requests_update_daily_counts() RETURNS trigger AS
+-- Helper to INSERT / UPDATE user's request daily counts
+CREATE OR REPLACE FUNCTION upsert_auth_user_request_daily_counts (
+    param_email TEXT,
+    param_requested_items_count INT
+) RETURNS VOID AS
 $$
-
 DECLARE
     request_date DATE;
-
 BEGIN
+    request_date := DATE_TRUNC('day', LOCALTIMESTAMP)::DATE;
 
-    -- Try to prevent deadlocks
-    LOCK TABLE auth_user_request_daily_counts IN SHARE ROW EXCLUSIVE MODE;
-
-    request_date := DATE_TRUNC('day', NEW.request_timestamp)::DATE;
-
-    WITH upsert AS (
-        -- Try to UPDATE a previously INSERTed day
+    LOOP
+        -- Try UPDATing
         UPDATE auth_user_request_daily_counts
-        SET requests_count = requests_count + 1,
-            requested_items_count = requested_items_count + NEW.requested_items_count
-        WHERE email = NEW.email
-          AND day = request_date
-        RETURNING *
-    )
-    INSERT INTO auth_user_request_daily_counts (email, day, requests_count, requested_items_count)
-        SELECT NEW.email, request_date, 1, NEW.requested_items_count
-        WHERE NOT EXISTS (
-            SELECT *
-            FROM upsert
-        );
+           SET requests_count = requests_count + 1,
+               requested_items_count = requested_items_count + param_requested_items_count
+         WHERE email = param_email
+           AND day = request_date;
 
-    RETURN NULL;
+        IF FOUND THEN RETURN; END IF;
 
+        -- Nothing to UPDATE, try to INSERT a new record
+        BEGIN
+            INSERT INTO auth_user_request_daily_counts (email, day, requests_count, requested_items_count)
+            VALUES (param_email, request_date, 1, param_requested_items_count);
+            RETURN;
+        EXCEPTION WHEN UNIQUE_VIOLATION THEN
+            -- If someone else INSERTs the same key concurrently,
+            -- we will get a unique-key failure. In that case, do
+            -- nothing and loop to try the UPDATE again.
+        END;
+    END LOOP;
 END;
 $$
-LANGUAGE 'plpgsql';
+LANGUAGE plpgsql;
 
 
-CREATE TRIGGER auth_user_requests_update_daily_counts
-    AFTER INSERT ON auth_user_requests
-    FOR EACH ROW EXECUTE PROCEDURE auth_user_requests_update_daily_counts();
 
 -- User limits for logged + throttled controller actions
 CREATE TABLE auth_user_limits (
