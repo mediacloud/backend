@@ -8,7 +8,8 @@ VAGRANTFILE_API_VERSION = "2"
 #
 
 # AMI (see https://cloud-images.ubuntu.com/locator/ec2/)
-AWS_AMI           = ENV['AWS_AMI']            || "ami-f652979b"
+# ("us-east-1 xenial 16.04 LTS amd64 hvm:ebs-ssd")
+AWS_AMI           = ENV['AWS_AMI']            || "ami-4f680658"
 AWS_REGION        = ENV['AWS_REGION']         || "us-east-1"
 AWS_INSTANCE_NAME = ENV['AWS_INSTANCE_NAME']  || "Media Cloud Vagrant test box"
 
