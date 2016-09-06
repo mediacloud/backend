@@ -7,6 +7,7 @@
    - [Snapshots, Timespans, and Foci](#snapshots-timespans-and-foci)   
    - [Paging](#paging)   
    - [Examples](#examples)   
+   - [Permissions](#permissions)   
 - [Topics](#topics)   
    - [topics/create (POST) - TODO](#topicscreate-post-todo)   
       - [Query Parameters](#query-parameters)   
@@ -32,123 +33,137 @@
       - [Query Parameters](#query-parameters-5)   
       - [Output Description](#output-description-3)   
       - [Example](#example-5)   
-- [Stories](#stories)   
-   - [stories/list - DONE](#storieslist-done)   
+- [Permissions](#permissions-1)   
+   - [permissions/user/list](#permissionsuserlist)   
       - [Query Parameters](#query-parameters-6)   
       - [Output Description](#output-description-4)   
       - [Example](#example-6)   
-   - [stories/count - DONE](#storiescount-done)   
+   - [permissions/list](#permissionslist)   
       - [Query Parameters](#query-parameters-7)   
       - [Output Description](#output-description-5)   
       - [Example](#example-7)   
-   - [stories/~stories_id~/edit (PUT) - TODO](#storiesstories_idedit-put-todo)   
+   - [permissions/update (PUT)](#permissionsupdate-put)   
       - [Query Parameters](#query-parameters-8)   
       - [Input Description](#input-description-2)   
       - [Output Description](#output-description-6)   
       - [Example](#example-8)   
-   - [stories/~stories_id~/remove (PUT) - TODO](#storiesstories_idremove-put-todo)   
+- [Stories](#stories)   
+   - [stories/list - DONE](#storieslist-done)   
       - [Query Parameters](#query-parameters-9)   
       - [Output Description](#output-description-7)   
       - [Example](#example-9)   
-   - [stories/merge (PUT) - TODO](#storiesmerge-put-todo)   
+   - [stories/count - DONE](#storiescount-done)   
       - [Query Parameters](#query-parameters-10)   
-      - [Input Description](#input-description-3)   
       - [Output Description](#output-description-8)   
       - [Example](#example-10)   
+   - [stories/~stories_id~/edit (PUT) - TODO](#storiesstories_idedit-put-todo)   
+      - [Query Parameters](#query-parameters-11)   
+      - [Input Description](#input-description-3)   
+      - [Output Description](#output-description-9)   
+      - [Example](#example-11)   
+   - [stories/~stories_id~/remove (PUT) - TODO](#storiesstories_idremove-put-todo)   
+      - [Query Parameters](#query-parameters-12)   
+      - [Output Description](#output-description-10)   
+      - [Example](#example-12)   
+   - [stories/merge (PUT) - TODO](#storiesmerge-put-todo)   
+      - [Query Parameters](#query-parameters-13)   
+      - [Input Description](#input-description-4)   
+      - [Output Description](#output-description-11)   
+      - [Example](#example-13)   
 - [Sentences](#sentences)   
    - [sentences/count - DONE](#sentencescount-done)   
 - [Media](#media)   
    - [media/list - DONE](#medialist-done)   
-      - [Query Parameters](#query-parameters-11)   
-      - [Output Description](#output-description-9)   
-      - [Example](#example-11)   
-   - [media/~media_id~/edit (PUT) - TODO](#mediamedia_idedit-put-todo)   
-      - [Query Parameters](#query-parameters-12)   
-      - [Input Description](#input-description-4)   
-      - [Example](#example-12)   
-   - [media/~media_id~/remove (PUT) - TODO](#mediamedia_idremove-put-todo)   
-      - [Query Parameters](#query-parameters-13)   
-      - [Output Description](#output-description-10)   
-      - [Example](#example-13)   
-   - [media/merge (PUT) - TODO](#mediamerge-put-todo)   
       - [Query Parameters](#query-parameters-14)   
-      - [Input Description](#input-description-5)   
-      - [Output Description](#output-description-11)   
+      - [Output Description](#output-description-12)   
       - [Example](#example-14)   
+   - [media/~media_id~/edit (PUT) - TODO](#mediamedia_idedit-put-todo)   
+      - [Query Parameters](#query-parameters-15)   
+      - [Input Description](#input-description-5)   
+      - [Example](#example-15)   
+   - [media/~media_id~/remove (PUT) - TODO](#mediamedia_idremove-put-todo)   
+      - [Query Parameters](#query-parameters-16)   
+      - [Output Description](#output-description-13)   
+      - [Example](#example-16)   
+   - [media/merge (PUT) - TODO](#mediamerge-put-todo)   
+      - [Query Parameters](#query-parameters-17)   
+      - [Input Description](#input-description-6)   
+      - [Output Description](#output-description-14)   
+      - [Example](#example-17)   
 - [Word Counts](#word-counts)   
    - [wc/list - DONE](#wclist-done)   
 - [Foci](#foci)   
    - [Focal Techniques](#focal-techniques)   
       - [Focal Technique: Boolean Query](#focal-technique-boolean-query)   
    - [focal_set_definitions/create (POST) - DONE](#focal_set_definitionscreate-post-done)   
-      - [Query Parameters](#query-parameters-15)   
-      - [Input Description](#input-description-6)   
-      - [Example](#example-15)   
-   - [focal_set_definitions/~focal_set_definitions_id~/update (PUT) - DONE](#focal_set_definitionsfocal_set_definitions_idupdate-put-done)   
-      - [Query Parameters](#query-parameters-16)   
-      - [Input Parameters](#input-parameters)   
-      - [Example](#example-16)   
-   - [focal_set_definitions/~focal_set_definitions_id~/delete (PUT) - DONE](#focal_set_definitionsfocal_set_definitions_iddelete-put-done)   
-      - [Query Parameters](#query-parameters-17)   
-      - [Output Description](#output-description-12)   
-      - [Example](#example-17)   
-   - [focal_set_definitions/list - DONE](#focal_set_definitionslist-done)   
       - [Query Parameters](#query-parameters-18)   
-      - [Output Description](#output-description-13)   
-      - [Example](#example-18)   
-   - [focal_sets/list - DONE](#focal_setslist-done)   
-      - [Query Parameters](#query-parameters-19)   
-      - [Output Description](#output-description-14)   
-      - [Example](#example-19)   
-   - [focus_definitions/create (POST) - DONE](#focus_definitionscreate-post-done)   
-      - [Query Parameters](#query-parameters-20)   
       - [Input Description](#input-description-7)   
-      - [Example](#example-20)   
-   - [focus_definitions/~focus_definitions_id~/update (PUT) - DONE](#focus_definitionsfocus_definitions_idupdate-put-done)   
-      - [Query Parameters](#query-parameters-21)   
-      - [Input Description](#input-description-8)   
-      - [Example](#example-21)   
-   - [focus_definitions/~focus_definitions_id~/delete (PUT) - DONE](#focus_definitionsfocus_definitions_iddelete-put-done)   
-      - [Query Parameters](#query-parameters-22)   
+      - [Example](#example-18)   
+   - [focal_set_definitions/~focal_set_definitions_id~/update (PUT) - DONE](#focal_set_definitionsfocal_set_definitions_idupdate-put-done)   
+      - [Query Parameters](#query-parameters-19)   
+      - [Input Parameters](#input-parameters)   
+      - [Example](#example-19)   
+   - [focal_set_definitions/~focal_set_definitions_id~/delete (PUT) - DONE](#focal_set_definitionsfocal_set_definitions_iddelete-put-done)   
+      - [Query Parameters](#query-parameters-20)   
       - [Output Description](#output-description-15)   
-      - [Example](#example-22)   
-   - [focus_definitions/list - DONE](#focus_definitionslist-done)   
-      - [Query Parameters](#query-parameters-23)   
+      - [Example](#example-20)   
+   - [focal_set_definitions/list - DONE](#focal_set_definitionslist-done)   
+      - [Query Parameters](#query-parameters-21)   
       - [Output Description](#output-description-16)   
+      - [Example](#example-21)   
+   - [focal_sets/list - DONE](#focal_setslist-done)   
+      - [Query Parameters](#query-parameters-22)   
+      - [Output Description](#output-description-17)   
+      - [Example](#example-22)   
+   - [focus_definitions/create (POST) - DONE](#focus_definitionscreate-post-done)   
+      - [Query Parameters](#query-parameters-23)   
+      - [Input Description](#input-description-8)   
       - [Example](#example-23)   
-   - [foci/list - DONE](#focilist-done)   
+   - [focus_definitions/~focus_definitions_id~/update (PUT) - DONE](#focus_definitionsfocus_definitions_idupdate-put-done)   
       - [Query Parameters](#query-parameters-24)   
-      - [Ouput Description](#ouput-description)   
+      - [Input Description](#input-description-9)   
       - [Example](#example-24)   
+   - [focus_definitions/~focus_definitions_id~/delete (PUT) - DONE](#focus_definitionsfocus_definitions_iddelete-put-done)   
+      - [Query Parameters](#query-parameters-25)   
+      - [Output Description](#output-description-18)   
+      - [Example](#example-25)   
+   - [focus_definitions/list - DONE](#focus_definitionslist-done)   
+      - [Query Parameters](#query-parameters-26)   
+      - [Output Description](#output-description-19)   
+      - [Example](#example-26)   
+   - [foci/list - DONE](#focilist-done)   
+      - [Query Parameters](#query-parameters-27)   
+      - [Ouput Description](#ouput-description)   
+      - [Example](#example-27)   
 - [Snapshots](#snapshots)   
    - [snapshots/generate (POST) - DONE](#snapshotsgenerate-post-done)   
-      - [Query Parameters](#query-parameters-25)   
-      - [Input Description](#input-description-9)   
-      - [Output Description](#output-description-17)   
-      - [Example](#example-25)   
-      - [snapshots/list - DONE](#snapshotslist-done)   
-      - [Query Paramaters](#query-paramaters)   
-      - [Output Description](#output-description-18)   
-      - [Example](#example-26)   
-   - [snapshots/~snapshots_id~/edit (PUT) - TODO](#snapshotssnapshots_idedit-put-todo)   
-      - [Query Parameters](#query-parameters-26)   
+      - [Query Parameters](#query-parameters-28)   
       - [Input Description](#input-description-10)   
-      - [Output Description](#output-description-19)   
-      - [Example](#example-27)   
-- [Timespans](#timespans)   
-   - [timespans/list - DONE](#timespanslist-done)   
-      - [Query Parameters](#query-parameters-27)   
       - [Output Description](#output-description-20)   
       - [Example](#example-28)   
-   - [timespans/add_dates (PUT) - TODO](#timespansadd_dates-put-todo)   
-      - [Query Parameters](#query-parameters-28)   
-      - [Input Description](#input-description-11)   
+      - [snapshots/list - DONE](#snapshotslist-done)   
+      - [Query Paramaters](#query-paramaters)   
       - [Output Description](#output-description-21)   
       - [Example](#example-29)   
-   - [timespans/list_dates - TODO](#timespanslist_dates-todo)   
+   - [snapshots/~snapshots_id~/edit (PUT) - TODO](#snapshotssnapshots_idedit-put-todo)   
       - [Query Parameters](#query-parameters-29)   
+      - [Input Description](#input-description-11)   
       - [Output Description](#output-description-22)   
       - [Example](#example-30)   
+- [Timespans](#timespans)   
+   - [timespans/list - DONE](#timespanslist-done)   
+      - [Query Parameters](#query-parameters-30)   
+      - [Output Description](#output-description-23)   
+      - [Example](#example-31)   
+   - [timespans/add_dates (PUT) - TODO](#timespansadd_dates-put-todo)   
+      - [Query Parameters](#query-parameters-31)   
+      - [Input Description](#input-description-12)   
+      - [Output Description](#output-description-24)   
+      - [Example](#example-32)   
+   - [timespans/list_dates - TODO](#timespanslist_dates-todo)   
+      - [Query Parameters](#query-parameters-32)   
+      - [Output Description](#output-description-25)   
+      - [Example](#example-33)   
 - [TODO](#todo)   
 
 <!-- /MDTOC -->
@@ -623,11 +638,11 @@ Response:
 
 # Permissions
 
-## permissions/list_user
+## permissions/user/list
 
-`https://api.mediacloud.org/api/v2/permissions/list_user`
+`https://api.mediacloud.org/api/v2/topics/~topics_id/permissions/user/list`
 
-List all permissions assigned to the authenticated user.  This list includes only permissions granted specifically to this user.  Topics available for reading through the 'public' flag are not included in this list.
+List all permissions assigned to the authenticated user for all topics.  This list includes only permissions granted specifically to this user.  Topics available for reading through the 'public' flag are not included in this list.
 
 ### Query Parameters
 
@@ -638,14 +653,14 @@ List all permissions assigned to the authenticated user.  This list includes onl
 | Field      | Description                              |
 | ---------- | :--------------------------------------- |
 | email      | email of user granted permission         |
-| topics_id  | id of topic to which permission is grant |
+| topics_id  | id of topic to which permission is granted |
 | permission | 'read', 'write', or 'admin'              |
 
 ### Example
 
 List all permissions belonging to the authenticated user:
 
-`https://api.mediacloud.org/api/v2/permissions/list_user`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/permissions/user/list`
 
 Response:
 
@@ -662,9 +677,9 @@ Response:
 }
 ```
 
-## permissions/list_topic
+## permissions/list
 
-`https://api.mediacloud.org/api/v2/permissions/list_topic/~topics_id~`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/permissions/list`
 
 List all permissions for the given topic.
 
@@ -680,7 +695,7 @@ List all permissions for the given topic.
 
 List all permissions belonging to the given topic:
 
-`https://api.mediacloud.org/api/v2/permissions/list_topic/1394`
+`https://api.mediacloud.org/api/v2/topics/1394/permissions/list`
 
 Response:
 
@@ -703,11 +718,11 @@ Response:
 }
 ```
 
-## permissions/update
+## permissions/update (PUT)
 
-`https://api.mediacloud.org/api/v2/permissions/update`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/permissions/update`
 
-Update permissions for a given user to a given topic. 
+Update permissions for a given user to a given topic.
 
 ### Query Parameters
 
@@ -718,7 +733,6 @@ Update permissions for a given user to a given topic.
 | Field      | Description                              |
 | ---------- | ---------------------------------------- |
 | email      | email of user whose permission is to be updated |
-| topics_id  | id of the topic being permitted          |
 | permission | 'read', 'write', 'admin', or 'none'      |
 
  Only one permission can exist for a given topic for a given user.  Specify 'none' to remove all permissions for the given topic for the given user.
@@ -731,14 +745,13 @@ On success, the new permission is returned in the same format as the permissions
 
 Update the permissions for a given user for a given topic:
 
-`https://api.mediacloud.org/api/v2/permissions/update`
+`https://api.mediacloud.org/api/v2/topics/~topics_id/permissions/update`
 
 Input:
 
 ```json
 {
   "email": "foo@foo.bar",
-  "topics_id": 1390,
   "permission": "read"
 }
 ```
