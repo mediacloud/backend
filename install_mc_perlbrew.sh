@@ -7,6 +7,9 @@ cd $working_dir
 set -e
 set -o  errexit
 
+# Perl version to install
+PERL_INSTALL_VERSION="5.22.1"
+
 # Works on both Ubuntu and OS X
 CPU_CORE_COUNT=`getconf _NPROCESSORS_ONLN`
 
@@ -31,7 +34,7 @@ echo "Running 'perlbrew install'..."
 nice perlbrew install \
 	-j $CPU_CORE_COUNT \
 	--verbose `# Perlbrew output should be chatty so that Vagrant provision script does not timeout` \
-	perl-5.22.1 \
+	"perl-${PERL_INSTALL_VERSION}" \
 	-Duseithreads \
 	-Dusemultiplicity \
 	-Duse64bitint \
@@ -42,7 +45,7 @@ nice perlbrew install \
 	-Dccflags=-DDEBIAN
 
 echo "Switching to installed Perl..."
-perlbrew switch perl-5.22.1
+perlbrew switch "perl-${PERL_INSTALL_VERSION}"
 
 echo "Installing cpanm..."
 perlbrew install-cpanm
@@ -51,7 +54,7 @@ echo "Creating 'mediacloud' library..."
 perlbrew lib create mediacloud
 
 echo "Switching to 'mediacloud' library..."
-perlbrew switch perl-5.22.1@mediacloud
+perlbrew switch "perl-${PERL_INSTALL_VERSION}@mediacloud"
 
 echo "Done installing Perl with Perlbrew."
 
