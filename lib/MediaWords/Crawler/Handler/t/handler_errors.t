@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-# test Handler::handle_error
+# test Handler::_handle_error()
 
 BEGIN
 {
@@ -73,7 +73,7 @@ sub _is_date_in_future
     ok( $epoch_date > time(), "date '$date' from $label should be in the future" );
 }
 
-# test that Handler::handle_error deals correctly with various types of responses
+# test that Handler::_handle_error() deals correctly with various types of responses
 sub test_errors
 {
     my ( $db ) = @_;

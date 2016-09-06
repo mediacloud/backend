@@ -102,7 +102,7 @@ sub _restrict_content_type
     $response->content( '(unsupported content type)' );
 }
 
-=head2 handle_error( $download, $response )
+=head2 _handle_error( $download, $response )
 
 Deal with any errors returned by the fetcher response.  If the error status looks like something that the site
 could recover from (503, 500 timeout), queue another time out using back off timing.  If we don't recognize the
@@ -111,7 +111,7 @@ to 'error' and set the 'error_messsage' to describe the error.
 
 =cut
 
-sub handle_error
+sub _handle_error
 {
     my ( $self, $download, $response ) = @_;
 
@@ -154,7 +154,7 @@ END
 
 =head2 handle_response( $response )
 
-If the response is an error, call handle_error to handle the error and return. Otherwise, store the $response content in
+If the response is an error, call _handle_error() to handle the error and return. Otherwise, store the $response content in
 the MediaWords::DBI::Downloads content store, associated with the download. If the download is a feed, parse the feed
 for new stories, add those stories to the db, and queue a download for each. If the download is a content download,
 queue extraction of the story.
@@ -175,7 +175,7 @@ sub handle_response
 
     DEBUG "Handling download $downloads_id ($download_url)...";
 
-    if ( $self->handle_error( $download, $response ) )
+    if ( $self->_handle_error( $download, $response ) )
     {
         DEBUG "Download $downloads_id errored: " . $response->decoded_content;
         return;

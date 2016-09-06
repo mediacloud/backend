@@ -48,7 +48,7 @@ sub fetch_response
     return $fetcher->fetch_download( $db, $download );
 }
 
-# test that Handler::handle_error deals correctly with various types of responses
+# test that Handler::_handle_error() deals correctly with various types of responses
 sub test_auth
 {
     my ( $db ) = @_;
