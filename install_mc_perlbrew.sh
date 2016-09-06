@@ -7,6 +7,9 @@ cd $working_dir
 set -e
 set -o  errexit
 
+# Works on both Ubuntu and OS X
+CPU_CORE_COUNT=`getconf _NPROCESSORS_ONLN`
+
 # Apparently Perlbrew's scripts contain a lot of uninitialized variables
 set +u
 
@@ -25,7 +28,7 @@ echo "Running 'perlbrew init'..."
 perlbrew init
 
 echo "Running 'perlbrew install'..."
-nice perlbrew install -j 8 perl-5.22.1 -Duseithreads -Dusemultiplicity -Duse64bitint -Duse64bitall -Duseposix -Dusethreads -Duselargefiles -Dccflags=-DDEBIAN
+nice perlbrew install -j $CPU_CORE_COUNT perl-5.22.1 -Duseithreads -Dusemultiplicity -Duse64bitint -Duse64bitall -Duseposix -Dusethreads -Duselargefiles -Dccflags=-DDEBIAN
 
 echo "Switching to installed Perl..."
 perlbrew switch perl-5.22.1
