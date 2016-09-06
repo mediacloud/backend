@@ -30,6 +30,7 @@ perlbrew init
 echo "Running 'perlbrew install'..."
 nice perlbrew install \
 	-j $CPU_CORE_COUNT \
+	--verbose `# Perlbrew output should be chatty so that Vagrant provision script does not timeout` \
 	perl-5.22.1 \
 	-Duseithreads \
 	-Dusemultiplicity \
