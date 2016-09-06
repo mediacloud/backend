@@ -53,9 +53,9 @@ Also store the content of the feed for the download and set the feed.last_succes
 
 sub _handle_feed_content($$$$)
 {
-    my ( $self, $dbs, $download, $decoded_content ) = @_;
+    my ( $self, $db, $download, $decoded_content ) = @_;
 
-    my $feed = $dbs->find_by_id( 'feeds', $download->{ feeds_id } );
+    my $feed = $db->find_by_id( 'feeds', $download->{ feeds_id } );
     my $feed_type = $feed->{ feed_type };
 
     my $story_ids_to_extract = [];
@@ -76,7 +76,7 @@ sub _handle_feed_content($$$$)
             die "Unknown feed type '$feed_type'";
         }
 
-        $story_ids_to_extract = $feed_handler->handle_download( $dbs, $download, $decoded_content );
+        $story_ids_to_extract = $feed_handler->handle_download( $db, $download, $decoded_content );
     };
     if ( $@ )
     {
@@ -87,7 +87,7 @@ sub _handle_feed_content($$$$)
     }
     else
     {
-        $dbs->query(
+        $db->query(
             <<SQL,
             UPDATE feeds
             SET last_successful_download_time = greatest( last_successful_download_time, ? )
@@ -99,7 +99,7 @@ SQL
 
     if ( scalar( @{ $story_ids_to_extract } ) > 0 )
     {
-        $dbs->query(
+        $db->query(
             <<SQL,
             UPDATE feeds
             SET last_new_story_time = last_attempted_download_time
@@ -113,7 +113,7 @@ SQL
         $decoded_content = '(redundant feed)';
     }
 
-    MediaWords::DBI::Downloads::store_content( $dbs, $download, \$decoded_content );
+    MediaWords::DBI::Downloads::store_content( $db, $download, \$decoded_content );
 
     return $story_ids_to_extract;
 }
