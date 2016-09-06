@@ -10,16 +10,12 @@ Mediawords::Crawler::Handler - process the http response from the fetcher - pars
 
     # this is a simplified version of the code used in the crawler to invoke the handler
 
-    my $crawler = MediaWords::Crawler::Engine->new();
-
-    my $fetcher = MediaWords::Crawler::Fetcher->new();
-
     # get pending $download from somewhere
-
+    my $fetcher = MediaWords::Crawler::Fetcher->new();
     my $response = $fetcher->fetch_download( $db, $download );
 
-    my $handler = MediaWords::Crawler->Handler->new( $engine );
-
+    # handle $download
+    my $handler = MediaWords::Crawler->Handler->new();
     $handler->handler_response( $response );
 
 =head1 DESCRIPTION
@@ -71,20 +67,20 @@ Readonly my $MAX_5XX_RETRIES => 10;
 
 =head1 METHODS
 
-=head2 new( $engine )
+=head2 new()
 
-Create new handler object
+Create new download handler object
 
 =cut
 
-sub new
+sub new($;$)
 {
-    my ( $class, $engine ) = @_;
+    my ( $class, $args ) = @_;
 
     my $self = {};
     bless( $self, $class );
 
-    $self->engine( $engine );
+    $self->{ extract_in_process } = $args->{ extract_in_process } // 0;
 
     return $self;
 }
@@ -102,7 +98,7 @@ sub _restrict_content_type
     $response->content( '(unsupported content type)' );
 }
 
-=head2 _handle_error( $download, $response )
+=head2 _handle_error( $db, $download, $response )
 
 Deal with any errors returned by the fetcher response.  If the error status looks like something that the site
 could recover from (503, 500 timeout), queue another time out using back off timing.  If we don't recognize the
@@ -111,13 +107,11 @@ to 'error' and set the 'error_messsage' to describe the error.
 
 =cut
 
-sub _handle_error
+sub _handle_error($$$$)
 {
-    my ( $self, $download, $response ) = @_;
+    my ( $self, $db, $download, $response ) = @_;
 
     return 0 if ( $response->is_success );
-
-    my $dbs = $self->engine->dbs;
 
     my $error_num = 1;
     if ( my $error = $download->{ error_message } )
@@ -131,7 +125,7 @@ sub _handle_error
     {
         my $interval = "$error_num hours";
 
-        $dbs->query( <<END, $interval, $enc_error_message, $download->{ downloads_id }, );
+        $db->query( <<END, $interval, $enc_error_message, $download->{ downloads_id }, );
 update downloads set
         state = 'pending',
         download_time = now() + \$1::interval ,
@@ -141,7 +135,7 @@ END
     }
     else
     {
-        $dbs->query( <<END, $enc_error_message, $download->{ downloads_id } );
+        $db->query( <<END, $enc_error_message, $download->{ downloads_id } );
 UPDATE downloads
 SET state = 'error',
     error_message = ?
@@ -152,7 +146,7 @@ END
     return 1;
 }
 
-=head2 handle_response( $response )
+=head2 handle_response( $db, $download, $response )
 
 If the response is an error, call _handle_error() to handle the error and return. Otherwise, store the $response content in
 the MediaWords::DBI::Downloads content store, associated with the download. If the download is a feed, parse the feed
@@ -163,11 +157,9 @@ More details in the DESCRIPTION above and in MediaWords::Crawler::Handler::Feed,
 
 =cut
 
-sub handle_response
+sub handle_response($$$$)
 {
-    my ( $self, $download, $response ) = @_;
-
-    my $db = $self->engine->dbs;
+    my ( $self, $db, $download, $response ) = @_;
 
     my $downloads_id  = $download->{ downloads_id };
     my $download_url  = $download->{ url };
@@ -175,7 +167,7 @@ sub handle_response
 
     DEBUG "Handling download $downloads_id ($download_url)...";
 
-    if ( $self->_handle_error( $download, $response ) )
+    if ( $self->_handle_error( $db, $download, $response ) )
     {
         DEBUG "Download $downloads_id errored: " . $response->decoded_content;
         return;
@@ -217,7 +209,7 @@ END
     {
         my $args = { stories_id => $stories_id };
 
-        if ( $self->engine->extract_in_process )
+        if ( $self->{ extract_in_process } )
         {
             DEBUG "Extracting story $stories_id for download $downloads_id in process...";
             MediaWords::Job::ExtractAndVector->run( $args );
@@ -230,22 +222,6 @@ END
     }
 
     DEBUG "Handled download $downloads_id ($download_url).";
-}
-
-=head2 engine
-
-getset engine - calling crawler engine
-
-=cut
-
-sub engine
-{
-    if ( $_[ 1 ] )
-    {
-        $_[ 0 ]->{ engine } = $_[ 1 ];
-    }
-
-    return $_[ 0 ]->{ engine };
 }
 
 1;

@@ -58,9 +58,6 @@ sub main
 
     my $download = create_feed_download( $db, $feed );
 
-    my $engine = MediaWords::Crawler::Engine->new();
-    $engine->{ dbs } = $db;
-
     my $fetcher = MediaWords::Crawler::Fetcher->new();
     my $response = $fetcher->fetch_download( $db, $download );
 

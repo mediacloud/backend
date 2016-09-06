@@ -16,7 +16,6 @@ use LWP::Simple;
 use HTTP::HashServer;
 use Test::More tests => 6;
 
-use MediaWords::Crawler::Engine;
 use MediaWords::Crawler::Fetcher;
 use MediaWords::Test::DB;
 use MediaWords::Util::Config;
@@ -38,13 +37,7 @@ sub fetch_response
 
     $download = $db->create( 'downloads', $download );
 
-    my $engine = MediaWords::Crawler::Engine->new();
-
-    $engine->{ dbs } = $db;
-    $engine->fetcher_number( 1 );
-
     my $fetcher = MediaWords::Crawler::Fetcher->new();
-
     return $fetcher->fetch_download( $db, $download );
 }
 

@@ -73,7 +73,6 @@ sub new
 
 sub _fetch_and_handle_download
 {
-
     my ( $self, $download, $fetcher, $handler ) = @_;
 
     my $url = $download->{ url };
@@ -85,13 +84,15 @@ sub _fetch_and_handle_download
 
     DEBUG "fetch " . $self->fetcher_number . ": $download->{downloads_id} $url ...";
 
+    my $db = $self->dbs;
+
     my $start_fetch_time = MediaWords::Util::Timing::start_time( 'fetch' );
-    my $response = $fetcher->fetch_download( $self->dbs, $download );
+    my $response = $fetcher->fetch_download( $db, $download );
     MediaWords::Util::Timing::stop_time( 'fetch', $start_fetch_time );
 
     my $start_handle_time = MediaWords::Util::Timing::start_time( 'handle' );
     $DB::single = 1;
-    eval { $handler->handle_response( $download, $response ); };
+    eval { $handler->handle_response( $db, $download, $response ); };
     if ( $@ )
     {
         LOGDIE( "Error in handle_response() for downloads_id $download->{downloads_id} $url : $@" );
@@ -117,7 +118,7 @@ sub fetch_and_handle_single_download
     $self->reconnect_db();
 
     my $fetcher = MediaWords::Crawler::Fetcher->new();
-    my $handler = MediaWords::Crawler::Handler->new( $self );
+    my $handler = MediaWords::Crawler::Handler->new( { extract_in_process => $self->extract_in_process } );
 
     $self->_fetch_and_handle_download( $download, $fetcher, $handler );
 
@@ -134,7 +135,7 @@ sub _run_fetcher
     $self->reconnect_db();
 
     my $fetcher = MediaWords::Crawler::Fetcher->new();
-    my $handler = MediaWords::Crawler::Handler->new( $self );
+    my $handler = MediaWords::Crawler::Handler->new( { extract_in_process => $self->extract_in_process } );
 
     my $download;
 

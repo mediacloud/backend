@@ -13,7 +13,6 @@ use Encode;
 use HTML::Entities;
 use Readonly;
 
-use MediaWords::Crawler::Engine;
 use MediaWords::Crawler::Provider;
 use MediaWords::Crawler::Handler;
 use MediaWords::DBI::Downloads;
@@ -136,20 +135,20 @@ sub redownload : Local
 {
     my ( $self, $c, $download_id ) = @_;
 
+    my $db = $c->dbis;
+
     INFO "starting redownload";
     my ( $download );
 
     if ( $download_id )
     {
-        my $engine = MediaWords::Crawler::Engine->new();
-
-        $download = $c->dbis->find_by_id( 'downloads', $download_id );
+        $download = $db->find_by_id( 'downloads', $download_id );
 
         my $fetcher = MediaWords::Crawler::Fetcher->new();
-        my $handler = MediaWords::Crawler::Handler->new( $engine );
+        my $response = $fetcher->fetch_download( $db, $download );
 
-        my $response = $fetcher->fetch_download( $c->dbis, $download );
-        $handler->handle_response( $download, $response );
+        my $handler = MediaWords::Crawler::Handler->new();
+        $handler->handle_response( $db, $download, $response );
     }
 
     INFO "Finished download";

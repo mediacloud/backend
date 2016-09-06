@@ -17,7 +17,6 @@ use Test::More tests => 32;
 
 use HTTP::HashServer;
 
-use MediaWords::Crawler::Engine;
 use MediaWords::Crawler::Fetcher;
 use MediaWords::Crawler::Handler;
 
@@ -50,15 +49,11 @@ sub _fetch_and_handle_response
         $download = $db->find_by_id( 'downloads', $downloads_id );
     }
 
-    my $engine = MediaWords::Crawler::Engine->new();
-
-    $engine->{ dbs } = $db;
-
     my $fetcher = MediaWords::Crawler::Fetcher->new();
-    my $handler = MediaWords::Crawler::Handler->new( $engine );
-
     my $response = $fetcher->fetch_download( $db, $download );
-    $handler->handle_response( $download, $response );
+
+    my $handler = MediaWords::Crawler::Handler->new();
+    $handler->handle_response( $db, $download, $response );
 
     return $db->find_by_id( 'downloads', $download->{ downloads_id } );
 }

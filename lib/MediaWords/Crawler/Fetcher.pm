@@ -14,12 +14,8 @@ Mediawords::Crawler::Fetcher - controls and coordinates the work of the crawler 
 
     # this is a simplified version of the code used crawler to interact with the fetcher
 
-    my $crawler = MediaWords::Crawler::Engine->new();
-
-    my $fetcher = MediaWords::Crawler::Fetcher->new();
-
     # get pending $download from somewhere
-
+    my $fetcher = MediaWords::Crawler::Fetcher->new();
     my $response = $fetcher->fetch_download( $db, $download );
 
 =head1 DESCRIPTION
