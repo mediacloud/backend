@@ -54,10 +54,10 @@ sub _fetch_and_handle_response
 
     $engine->{ dbs } = $db;
 
-    my $fetcher = MediaWords::Crawler::Fetcher->new( $engine );
+    my $fetcher = MediaWords::Crawler::Fetcher->new();
     my $handler = MediaWords::Crawler::Handler->new( $engine );
 
-    my $response = $fetcher->fetch_download( $download );
+    my $response = $fetcher->fetch_download( $db, $download );
     $handler->handle_response( $download, $response );
 
     return $db->find_by_id( 'downloads', $download->{ downloads_id } );

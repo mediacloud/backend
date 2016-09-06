@@ -43,9 +43,9 @@ sub fetch_response
     $engine->{ dbs } = $db;
     $engine->fetcher_number( 1 );
 
-    my $fetcher = MediaWords::Crawler::Fetcher->new( $engine );
+    my $fetcher = MediaWords::Crawler::Fetcher->new();
 
-    return $fetcher->fetch_download( $download );
+    return $fetcher->fetch_download( $db, $download );
 }
 
 # test that Handler::handle_error deals correctly with various types of responses

@@ -145,10 +145,10 @@ sub redownload : Local
 
         $download = $c->dbis->find_by_id( 'downloads', $download_id );
 
-        my $fetcher = MediaWords::Crawler::Fetcher->new( $engine );
+        my $fetcher = MediaWords::Crawler::Fetcher->new();
         my $handler = MediaWords::Crawler::Handler->new( $engine );
 
-        my $response = $fetcher->fetch_download( $download );
+        my $response = $fetcher->fetch_download( $c->dbis, $download );
         $handler->handle_response( $download, $response );
     }
 

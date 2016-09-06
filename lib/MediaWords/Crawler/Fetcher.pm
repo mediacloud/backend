@@ -16,11 +16,11 @@ Mediawords::Crawler::Fetcher - controls and coordinates the work of the crawler 
 
     my $crawler = MediaWords::Crawler::Engine->new();
 
-    my $fetcher = MediaWords::Crawler::Fetcher->new( $crawler );
+    my $fetcher = MediaWords::Crawler::Fetcher->new();
 
     # get pending $download from somewhere
 
-    my $response = $fetcher->fetch_download( $download );
+    my $response = $fetcher->fetch_download( $db, $download );
 
 =head1 DESCRIPTION
 
@@ -43,38 +43,20 @@ use MediaWords::Util::URL;
 
 =head1 METHODS
 
-=head2 new( $engine )
+=head2 new( )
 
-Create a new fetcher object.  Must include the parent MediaWords::Crawler::Engine object.
+Create a new fetcher object.
 
 =cut
 
 sub new
 {
-    my ( $class, $engine ) = @_;
+    my ( $class ) = @_;
 
     my $self = {};
     bless( $self, $class );
 
-    $self->engine( $engine );
-
     return $self;
-}
-
-=head2 engine
-
-getset engine - parent crawler engine object
-
-=cut
-
-sub engine
-{
-    if ( $_[ 1 ] )
-    {
-        $_[ 0 ]->{ engine } = $_[ 1 ];
-    }
-
-    return $_[ 0 ]->{ engine };
 }
 
 # alarabiya uses an interstitial that requires javascript.  if the download url
@@ -137,7 +119,7 @@ sub _add_http_auth
     }
 }
 
-=head2 fetch_download( $download )
+=head2 fetch_download( $db, $download )
 
 With relying on the object state, request the $download and return the HTTP::Response.
 
@@ -166,11 +148,9 @@ implements a very limited amount of site specific fixes
 
 =cut
 
-sub fetch_download
+sub fetch_download($$$)
 {
-    my ( $self, $download ) = @_;
-
-    my $db = $self->engine->dbs;
+    my ( $self, $db, $download ) = @_;
 
     $download->{ download_time } = MediaWords::Util::SQL::sql_now;
     $download->{ state }         = 'fetching';

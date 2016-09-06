@@ -86,7 +86,7 @@ sub _fetch_and_handle_download
     DEBUG "fetch " . $self->fetcher_number . ": $download->{downloads_id} $url ...";
 
     my $start_fetch_time = MediaWords::Util::Timing::start_time( 'fetch' );
-    my $response         = $fetcher->fetch_download( $download );
+    my $response = $fetcher->fetch_download( $self->dbs, $download );
     MediaWords::Util::Timing::stop_time( 'fetch', $start_fetch_time );
 
     my $start_handle_time = MediaWords::Util::Timing::start_time( 'handle' );
@@ -116,7 +116,7 @@ sub fetch_and_handle_single_download
 
     $self->reconnect_db();
 
-    my $fetcher = MediaWords::Crawler::Fetcher->new( $self );
+    my $fetcher = MediaWords::Crawler::Fetcher->new();
     my $handler = MediaWords::Crawler::Handler->new( $self );
 
     $self->_fetch_and_handle_download( $download, $fetcher, $handler );
@@ -133,7 +133,7 @@ sub _run_fetcher
 
     $self->reconnect_db();
 
-    my $fetcher = MediaWords::Crawler::Fetcher->new( $self );
+    my $fetcher = MediaWords::Crawler::Fetcher->new();
     my $handler = MediaWords::Crawler::Handler->new( $self );
 
     my $download;

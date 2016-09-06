@@ -61,8 +61,8 @@ sub main
     my $engine = MediaWords::Crawler::Engine->new();
     $engine->{ dbs } = $db;
 
-    my $fetcher  = MediaWords::Crawler::Fetcher->new( $engine );
-    my $response = $fetcher->fetch_download( $download );
+    my $fetcher = MediaWords::Crawler::Fetcher->new();
+    my $response = $fetcher->fetch_download( $db, $download );
 
     if ( !$response->is_success )
     {

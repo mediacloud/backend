@@ -12,11 +12,11 @@ Mediawords::Crawler::Handler - process the http response from the fetcher - pars
 
     my $crawler = MediaWords::Crawler::Engine->new();
 
-    my $fetcher = MediaWords::Crawler::Fetcher->new( $crawler );
+    my $fetcher = MediaWords::Crawler::Fetcher->new();
 
     # get pending $download from somewhere
 
-    my $response = $fetcher->fetch_download( $download );
+    my $response = $fetcher->fetch_download( $db, $download );
 
     my $handler = MediaWords::Crawler->Handler->new( $engine );
 
