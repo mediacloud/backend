@@ -100,6 +100,9 @@ See doc/README.vagrant.markdown for instructions on how to set those variables.
     # Wait for more than the default (120 seconds) for the instance to start
     aws.instance_ready_timeout = 360
 
+    # Fix https://github.com/mitchellh/vagrant-aws/issues/331
+    override.nfs.functional = false
+
     aws.security_groups = [ ENV["AWS_SECURITY_GROUP"] ]
 
   end
