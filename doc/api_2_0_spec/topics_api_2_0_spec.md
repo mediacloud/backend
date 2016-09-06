@@ -34,15 +34,15 @@
       - [Output Description](#output-description-3)   
       - [Example](#example-5)   
 - [Permissions](#permissions-1)   
-   - [permissions/user/list](#permissionsuserlist)   
+   - [permissions/user/list TODO](#permissionsuserlist-todo)   
       - [Query Parameters](#query-parameters-6)   
       - [Output Description](#output-description-4)   
       - [Example](#example-6)   
-   - [permissions/list](#permissionslist)   
+   - [permissions/list TODO](#permissionslist-todo)   
       - [Query Parameters](#query-parameters-7)   
       - [Output Description](#output-description-5)   
       - [Example](#example-7)   
-   - [permissions/update (PUT)](#permissionsupdate-put)   
+   - [permissions/update (PUT) TODO](#permissionsupdate-put-todo)   
       - [Query Parameters](#query-parameters-8)   
       - [Input Description](#input-description-2)   
       - [Output Description](#output-description-6)   
@@ -638,7 +638,7 @@ Response:
 
 # Permissions
 
-## permissions/user/list
+## permissions/user/list TODO
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id/permissions/user/list`
 
@@ -677,7 +677,7 @@ Response:
 }
 ```
 
-## permissions/list
+## permissions/list TODO
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/permissions/list`
 
@@ -689,7 +689,7 @@ List all permissions for the given topic.
 
 ### Output Description
 
-(see permissions/list_users)
+(see permissions/user/list)
 
 ### Example
 
@@ -718,7 +718,7 @@ Response:
 }
 ```
 
-## permissions/update (PUT)
+## permissions/update (PUT) TODO
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/permissions/update`
 
