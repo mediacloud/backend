@@ -28,7 +28,17 @@ echo "Running 'perlbrew init'..."
 perlbrew init
 
 echo "Running 'perlbrew install'..."
-nice perlbrew install -j $CPU_CORE_COUNT perl-5.22.1 -Duseithreads -Dusemultiplicity -Duse64bitint -Duse64bitall -Duseposix -Dusethreads -Duselargefiles -Dccflags=-DDEBIAN
+nice perlbrew install \
+	-j $CPU_CORE_COUNT \
+	perl-5.22.1 \
+	-Duseithreads \
+	-Dusemultiplicity \
+	-Duse64bitint \
+	-Duse64bitall \
+	-Duseposix \
+	-Dusethreads \
+	-Duselargefiles \
+	-Dccflags=-DDEBIAN
 
 echo "Switching to installed Perl..."
 perlbrew switch perl-5.22.1
