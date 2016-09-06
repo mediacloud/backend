@@ -58,7 +58,7 @@ sub new
     my $self = {};
     bless( $self, $class );
 
-    $self->reconnect_db();
+    $self->_reconnect_db();
 
     $self->processes( 1 );
     $self->sleep_interval( 60 );
@@ -115,7 +115,7 @@ sub fetch_and_handle_single_download
 
     my ( $self, $download ) = @_;
 
-    $self->reconnect_db();
+    $self->_reconnect_db();
 
     my $fetcher = MediaWords::Crawler::Fetcher->new();
     my $handler = MediaWords::Crawler::Handler->new( { extract_in_process => $self->extract_in_process } );
@@ -132,7 +132,7 @@ sub _run_fetcher
 
     DEBUG "fetch " . $self->fetcher_number . " crawl loop";
 
-    $self->reconnect_db();
+    $self->_reconnect_db();
 
     my $fetcher = MediaWords::Crawler::Fetcher->new();
     my $handler = MediaWords::Crawler::Handler->new( { extract_in_process => $self->extract_in_process } );
@@ -151,7 +151,7 @@ sub _run_fetcher
 
             $download = 0;
 
-            $self->reconnect_db();
+            $self->_reconnect_db();
 
             # tell the parent provider we're ready for another download
             # and then read the download id from the socket
@@ -256,10 +256,10 @@ sub _spawn_fetchers
             $self->fetchers->[ $i ] = { pid => $pid, socket => $parent_socket };
 
             TRACE "in parent after spawning fetcher $i db reconnect starting";
-            eval { $self->reconnect_db(); };
+            eval { $self->_reconnect_db(); };
             if ( $@ )
             {
-                LOGDIE "Error in reconnect_db() in paranet after spawning fetcher $i";
+                LOGDIE "Error in _reconnect_db() in paranet after spawning fetcher $i";
             }
             TRACE "in parent after spawning fetcher $i db reconnect done";
         }
@@ -270,7 +270,7 @@ sub _spawn_fetchers
             $in_parent = 0;
             $self->fetcher_number( $i );
             $self->socket( $child_socket );
-            $self->reconnect_db();
+            $self->_reconnect_db();
 
             if ( $self->children_exit_on_kill() )
             {
@@ -612,7 +612,7 @@ sub dbs
 
     if ( $dbs )
     {
-        LOGDIE( "use $self->reconnect_db() to connect to db" );
+        LOGDIE( "use $self->_reconnect_db() to connect to db" );
     }
 
     defined( $self->{ dbs } ) || LOGDIE "no database";
@@ -634,13 +634,13 @@ sub _close_db_connection
     return;
 }
 
-=head2 reconnect_db()
+=head2 _reconnect_db()
 
 Close the existing $self->dbs and create a new connection.
 
 =cut
 
-sub reconnect_db
+sub _reconnect_db
 {
     my ( $self ) = @_;
 
