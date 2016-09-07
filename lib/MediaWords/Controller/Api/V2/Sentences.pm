@@ -83,7 +83,7 @@ sub _attach_data_to_sentences
 {
     my ( $db, $sentences ) = @_;
 
-    return unless ( @{ $sentences } );
+    return unless ( $sentences && @{ $sentences } );
 
     my $temp_stories_ids = _get_stories_ids_temporary_table( $db, $sentences );
 
