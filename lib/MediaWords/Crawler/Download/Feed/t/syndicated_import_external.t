@@ -14,13 +14,14 @@ BEGIN
 
 use English '-no_match_vars';
 
-use Test::More tests => 7;
+use Test::More tests => 8;
 use Test::Deep;
 
 BEGIN
 {
     use_ok( 'MediaWords::DB' );
     use_ok( 'MediaWords::Test::DB' );
+    use_ok( 'MediaWords::Crawler::Engine' );
     use_ok( 'MediaWords::Crawler::Download::Feed::Syndicated' );
 }
 
