@@ -1,12 +1,12 @@
 #!/usr/bin/perl
 
-# test MediaWords::Crawler::Handler::Feed::Syndicated against manually extracted downloads
+# test MediaWords::Crawler::Download::Feed::Syndicated against manually extracted downloads
 
 use strict;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
-use MediaWords::Crawler::Handler::Feed::Syndicated;
+use MediaWords::Crawler::Download::Feed::Syndicated;
 
 BEGIN
 {
@@ -183,7 +183,7 @@ __END_TEST_CASE__
     {
         my $feed_input = $test_case->{ feed_input };
 
-        my $stories = MediaWords::Crawler::Handler::Feed::Syndicated::_get_stories_from_feed_contents(
+        my $stories = MediaWords::Crawler::Download::Feed::Syndicated::_get_stories_from_feed_contents(
             $feed_input,
             $test_case->{ media_id },
             $test_case->{ publish_date }

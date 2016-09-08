@@ -13,8 +13,7 @@ use Encode;
 use HTML::Entities;
 use Readonly;
 
-use MediaWords::Crawler::Provider;
-use MediaWords::Crawler::Handler;
+use MediaWords::Crawler::Engine;
 use MediaWords::DBI::Downloads;
 
 # CONSTANTS
@@ -133,26 +132,25 @@ sub view_extracted : Local
 
 sub redownload : Local
 {
-    my ( $self, $c, $download_id ) = @_;
+    my ( $self, $c, $downloads_id ) = @_;
+
+    unless ( $downloads_id )
+    {
+        die "downloads_id is unset.";
+    }
 
     my $db = $c->dbis;
 
-    INFO "starting redownload";
-    my ( $download );
+    INFO "Starting redownload of download $downloads_id...";
 
-    if ( $download_id )
-    {
-        $download = $db->find_by_id( 'downloads', $download_id );
+    my $download = $db->find_by_id( 'downloads', $downloads_id );
 
-        my $fetcher = MediaWords::Crawler::Fetcher->new();
-        my $response = $fetcher->fetch_download( $db, $download );
+    my $handler = MediaWords::Crawler::Engine::handler_for_download( $db, $download );
 
-        my $handler = MediaWords::Crawler::Handler->new();
-        $handler->handle_response( $db, $download, $response );
-    }
+    my $response = $handler->fetch_download( $db, $download );
+    $handler->handle_response( $db, $download, $response );
 
-    INFO "Finished download";
-
+    INFO "Finished redownload of download $downloads_id.";
 }
 
 1;

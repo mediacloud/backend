@@ -13,7 +13,6 @@ BEGIN
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use MediaWords::Crawler::Handler::Feed;
 use MediaWords::DB;
 use MediaWords::Util::Config qw(get_config);
 
@@ -51,8 +50,8 @@ END
             {
                 $download->{ state } = 'error';
 
-                my $feed_handler = MediaWords::Crawler::Handler::Feed->new();
-                $feed_handler->handle_download( $db, $download, $$content_ref );
+                my $handler = MediaWords::Crawler::Engine::handler_for_download( $db, $download );
+                $handler->handle_download( $db, $download, $$content_ref );
             }
         };
         if ( $@ )

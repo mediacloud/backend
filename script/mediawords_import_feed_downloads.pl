@@ -16,6 +16,7 @@ use MediaWords::DB;
 
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
+use MediaWords::Crawler::Engine;
 use MediaWords::StoryVectors;
 use MediaWords::Util::Process;
 
@@ -23,7 +24,6 @@ use XML::LibXML;
 use MIME::Base64;
 use Encode;
 use Data::Dumper;
-use MediaWords::Crawler::Handler::Feed;
 
 sub xml_tree_from_hash
 {
@@ -96,8 +96,8 @@ sub import_downloads
         my $db_download = $db->create( 'downloads', $download );
 
         eval {
-            my $feed_handler = MediaWords::Crawler::Handler::Feed->new();
-            $feed_handler->handle_download( $db, $db_download, $decoded_content );
+            my $handler = MediaWords::Crawler::Engine::handler_for_download( $db, $db_download );
+            $handler->handle_download( $db, $db_download, $decoded_content );
 
             $downloads_processed++;
 

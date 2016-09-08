@@ -1,4 +1,4 @@
-package MediaWords::Crawler::Handler::Feed::WebPage;
+package MediaWords::Crawler::Download::Feed::WebPage;
 
 #
 # Handler for 'web_page' feed downloads
@@ -11,7 +11,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Moose;
-with 'MediaWords::Crawler::Handler::AbstractHandler';
+with 'MediaWords::Crawler::DefaultFetcher', 'MediaWords::Crawler::Download::FeedHandler';
 
 use MediaWords::Util::HTML;
 use MediaWords::Util::SQL;
@@ -20,7 +20,7 @@ use Readonly;
 
 # handle feeds of type 'web_page' by just creating a story to associate with the content.  web page feeds are feeds
 # that consist of a web page that we download once a week and add as a story.
-sub handle_download($$$$)
+sub add_stories_from_feed($$$$)
 {
     my ( $self, $db, $download, $decoded_content ) = @_;
 
@@ -41,18 +41,36 @@ sub handle_download($$$$)
     );
 
     $db->query(
-        "insert into feeds_stories_map ( feeds_id, stories_id ) values ( ?, ? )",
-        $feed->{ feeds_id },
-        $story->{ stories_id }
+        <<SQL,
+        INSERT INTO feeds_stories_map (feeds_id, stories_id)
+        VALUES (?, ?)
+SQL
+        $feed->{ feeds_id }, $story->{ stories_id }
     );
 
     $db->query(
-        "update downloads set stories_id = ?, type = 'content' where downloads_id = ?",
+        <<SQL,
+        UPDATE downloads
+        SET stories_id = ?,
+            type = 'content'
+        WHERE downloads_id = ?
+SQL
         $story->{ stories_id },
         $download->{ downloads_id }
     );
 
-    $download->{ stories_id } = $story->{ stories_id };
+    # A webpage that was just fetched is also a story
+    my $story_ids = [ $download->{ stories_id } ];
+    return $story_ids;
+}
+
+# Extract the web_page feed (story) that was just downloaded
+sub return_stories_to_be_extracted_from_feed($$$$)
+{
+    my ( $self, $db, $download, $decoded_content ) = @_;
+
+    # Download row might have been changed by add_stories_from_feed()
+    $download = $db->find_by_id( 'downloads', $download->{ downloads_id } );
 
     # Extract web page download that was just fetched
     my $stories_to_extract = [ $download->{ stories_id } ];

@@ -1,4 +1,4 @@
-package MediaWords::Crawler::Handler::Feed::Syndicated;
+package MediaWords::Crawler::Download::Feed::Syndicated;
 
 #
 # Handler for 'syndicated' feed downloads
@@ -11,7 +11,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Moose;
-with 'MediaWords::Crawler::Handler::AbstractHandler';
+with 'MediaWords::Crawler::DefaultFetcher', 'MediaWords::Crawler::Download::FeedHandler';
 
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories;
@@ -265,17 +265,15 @@ sub import_external_feed
         }
     );
 
-    MediaWords::DBI::Downloads::store_content( $db, $download, \$feed_content );
-
-    my $feed_handler = MediaWords::Crawler::Handler::Feed::Syndicated->new();
-    $feed_handler->handle_download( $db, $download, $feed_content );
+    my $handler = MediaWords::Crawler::Engine::handler_for_download( $db, $download );
+    $handler->handle_download( $db, $download, $feed_content );
 }
 
 # parse the feed content; create a story hash for each parsed story; check for a new url since the last
 # feed download; if there is a new url, check whether each story is new, and if so add it to the database and
 # ad a pending download for it.
-# return stories to extract (empty hashref because syndicated feed itself doesn't have any stories).
-sub handle_download($$$$)
+# return new stories that were found in the feed.
+sub add_stories_from_feed($$$$)
 {
     my ( $self, $db, $download, $decoded_content ) = @_;
 
@@ -289,19 +287,30 @@ sub handle_download($$$$)
         die "Error processing feed for $download->{ url }: $@";
     }
 
-    return [] if ( _stories_checksum_matches_feed( $db, $download->{ feeds_id }, $stories ) );
+    if ( _stories_checksum_matches_feed( $db, $download->{ feeds_id }, $stories ) )
+    {
+        return [];
+    }
 
     my $new_stories = [ grep { MediaWords::DBI::Stories::is_new( $db, $_ ) } @{ $stories } ];
 
-    foreach my $story ( @$new_stories )
+    my $story_ids = [];
+    foreach my $story ( @{ $new_stories } )
     {
         _add_story_and_content_download( $db, $story, $download );
+        push( @{ $story_ids }, $story->{ stories_id } );
     }
+
+    return $story_ids;
+}
+
+sub return_stories_to_be_extracted_from_feed($$$$)
+{
+    my ( $self, $db, $download, $decoded_content ) = @_;
 
     # Syndicated feed itself is not a story of any sort, so nothing to extract
     # (stories from this feed will be extracted as 'content' downloads)
-    my $stories_to_extract = [];
-    return $stories_to_extract;
+    return [];
 }
 
 1;

@@ -413,11 +413,13 @@ END
 
 =head2 is_new( $db, $story )
 
-Return true if this story should be considered new for the given media source.  This is used by ::Handler::Feed::Syndicated to determine
-whether to add a new story for a feed item url.
+Return true if this story should be considered new for the given media source.
+This is used by ::Handler::Feed::Syndicated to determine whether to add a new
+story for a feed item url.
 
-A story is new if no story with the same url or guid exists in the same media source and if no story exists with the
-same title in the same media source in the same calendar day.
+A story is new if no story with the same url or guid exists in the same media
+source and if no story exists with the same title in the same media source in
+the same calendar day.
 
 =cut
 

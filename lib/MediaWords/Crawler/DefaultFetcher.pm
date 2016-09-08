@@ -1,4 +1,16 @@
-package MediaWords::Crawler::Fetcher;
+package MediaWords::Crawler::DefaultFetcher;
+
+#
+# Default fetcher implementation
+#
+# In addition to the basic HTTP request with the UserAgent options supplied by
+# MediaWords::Util::Web::UserAgent, the default fetcher:
+#
+# * fixes common url mistakes like doubling http: (http://http://google.com).
+# * follows meta refresh redirects in the response content
+# * adds domain specific http auth specified in mediawords.yml
+# * implements a very limited amount of site specific fixes
+#
 
 use strict;
 use warnings;
@@ -6,30 +18,10 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-=head1 NAME
-
-Mediawords::Crawler::Fetcher - controls and coordinates the work of the crawler provider, fetchers, and handlers
-
-=head1 SYNOPSIS
-
-    # this is a simplified version of the code used crawler to interact with the fetcher
-
-    # get pending $download from somewhere
-    my $fetcher = MediaWords::Crawler::Fetcher->new();
-    my $response = $fetcher->fetch_download( $db, $download );
-
-=head1 DESCRIPTION
-
-The fetcher is the simplest part of the crawler.  It merely uses LWP to download a url and passes the resulting
-HTTP::Response to the Handler.  The fetcher has logic to follow meta refresh redirects and to allow http authentication
-according to settings in mediawords.yml.  The fetcher does not retry failed urls (failed downloads may be requeued by
-the handler).  The fetcher passes the download response to the handler by calling
-MediaWords::Crawler::Handle::handle_response().
-
-=cut
+use Moose::Role;
+with 'MediaWords::Crawler::FetcherRole';
 
 use LWP::UserAgent;
-use DBIx::Simple::MediaWords;
 
 use MediaWords::DB;
 use MediaWords::Util::Config;
@@ -37,23 +29,6 @@ use MediaWords::Util::SQL;
 use MediaWords::Util::Web;
 use MediaWords::Util::URL;
 
-=head1 METHODS
-
-=head2 new( )
-
-Create a new fetcher object.
-
-=cut
-
-sub new
-{
-    my ( $class ) = @_;
-
-    my $self = {};
-    bless( $self, $class );
-
-    return $self;
-}
 
 # alarabiya uses an interstitial that requires javascript.  if the download url
 # matches alarabiya and returns the 'requires JavaScript' page, manually parse
@@ -114,35 +89,6 @@ sub _add_http_auth
         $request->authorization_basic( $auth->{ user }, $auth->{ password } );
     }
 }
-
-=head2 fetch_download( $db, $download )
-
-With relying on the object state, request the $download and return the HTTP::Response.
-
-In addition to the basic HTTP request with the UserAgent options supplied by MediaWords::Util::Web::UserAgent, this
-method:
-
-=over
-
-=item *
-
-fixes common url mistakes like doubling http: (http://http://google.com).
-
-=item *
-
-follows meta refresh redirects in the response content
-
-=item *
-
-adds domain specific http auth specified in mediawords.yml
-
-=item *
-
-implements a very limited amount of site specific fixes
-
-=back
-
-=cut
 
 sub fetch_download($$$)
 {

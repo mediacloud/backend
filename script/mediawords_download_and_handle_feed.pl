@@ -16,8 +16,7 @@ use MediaWords::CommonLibs;
 
 use Data::Dumper;
 
-use MediaWords::Crawler::Fetcher;
-use MediaWords::Crawler::Handler::Feed;
+use MediaWords::Crawler::Engine;
 use MediaWords::DB;
 use MediaWords::Util::Config qw(get_config);
 
@@ -58,8 +57,9 @@ sub main
 
     my $download = create_feed_download( $db, $feed );
 
-    my $fetcher = MediaWords::Crawler::Fetcher->new();
-    my $response = $fetcher->fetch_download( $db, $download );
+    my $handler = MediaWords::Crawler::Engine::handler_for_download( $db, $download );
+
+    my $response = $handler->fetch_download( $db, $download );
 
     if ( !$response->is_success )
     {
@@ -67,8 +67,7 @@ sub main
         die( "error fetching download: " . $response->as_string );
     }
 
-    my $feed_handler = MediaWords::Crawler::Handler::Feed->new();
-    $feed_handler->handle_download( $db, $download, $response->decoded_content );
+    $handler->handle_download( $db, $download, $response->decoded_content );
 
     $db->query( "update downloads set state = 'success' where downloads_id = ?", $download->{ downloads_id } );
 

@@ -1,4 +1,4 @@
-package MediaWords::Crawler::Handler::Content;
+package MediaWords::Crawler::Download::Content;
 
 #
 # Handler for 'content' downloads
@@ -11,9 +11,9 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Moose;
-with 'MediaWords::Crawler::Handler::AbstractHandler';
+with 'MediaWords::Crawler::DefaultFetcher', 'MediaWords::Crawler::DefaultHandler';
 
-use MediaWords::Crawler::Handler::Content::Pager;
+use MediaWords::Crawler::Download::Content::Pager;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories;
 use MediaWords::Job::ExtractAndVector;
@@ -66,7 +66,7 @@ sub _set_use_pager
     }
 }
 
-# if _use_pager( $medium ) returns true, call MediaWords::Crawler::Handler::Content::Pager::get_next_page_url on the download
+# if _use_pager( $medium ) returns true, call MediaWords::Crawler::Download::Content::Pager::get_next_page_url on the download
 sub _call_pager
 {
     my ( $self, $db, $download ) = @_;
@@ -94,7 +94,7 @@ END
     my $validate_url = sub { !$db->query( "select 1 from downloads where url = ?", $_[ 0 ] ) };
 
     my $next_page_url =
-      MediaWords::Crawler::Handler::Content::Pager::get_next_page_url( $validate_url, $download->{ url }, $content );
+      MediaWords::Crawler::Download::Content::Pager::get_next_page_url( $validate_url, $download->{ url }, $content );
 
     if ( $next_page_url )
     {
@@ -140,10 +140,7 @@ sub handle_download($$$$)
 
     DEBUG "Processing content download $downloads_id (story $stories_id)...";
 
-    MediaWords::DBI::Downloads::store_content( $db, $download, \$decoded_content );
-
     my $story_ids_to_extract;
-
     my $next_page = $self->_call_pager( $db, $download, $decoded_content );
     if ( $next_page )
     {
@@ -154,6 +151,8 @@ sub handle_download($$$$)
     {
         $story_ids_to_extract = [ $download->{ stories_id } ];
     }
+
+    MediaWords::DBI::Downloads::store_content( $db, $download, \$decoded_content );
 
     DEBUG "Done processing content download $downloads_id (story $stories_id)";
 

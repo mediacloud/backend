@@ -18,7 +18,7 @@ use MediaWords::CommonLibs;
 use Data::Dumper;
 use Getopt::Long;
 
-use MediaWords::Crawler::Handler::Feed::Syndicated;
+use MediaWords::Crawler::Download::Feed::Syndicated;
 use MediaWords::DB;
 use MediaWords::DBI::Downloads;
 
@@ -47,7 +47,7 @@ END
 
         INFO "importing download $download->{ downloads_id } $download->{ download_time }";
 
-        MediaWords::Crawler::Handler::Feed::Syndicated::import_external_feed( $db, $media_id, $$content_ref );
+        MediaWords::Crawler::Download::Feed::Syndicated::import_external_feed( $db, $media_id, $$content_ref );
     }
 
 }
@@ -61,7 +61,7 @@ sub import_file_feed
     my $content = join( '', <FILE> );
     close( FILE );
 
-    MediaWords::Crawler::Handler::Feed::Syndicated::import_external_feed( $db, $media_id, $content );
+    MediaWords::Crawler::Download::Feed::Syndicated::import_external_feed( $db, $media_id, $content );
 }
 
 sub main
