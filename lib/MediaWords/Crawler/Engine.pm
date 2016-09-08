@@ -164,7 +164,7 @@ sub fetch_and_handle_single_download
     my $db = $self->dbs;
 
     my $handler = handler_for_download( $db, $download, { extract_in_process => $self->extract_in_process } );
-    $self->_fetch_and_handle_download( $download, $$handler );
+    $self->_fetch_and_handle_download( $download, $handler );
 
     return;
 }
