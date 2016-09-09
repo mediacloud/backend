@@ -66,44 +66,48 @@ sub handle_download($$$$)
 
     DEBUG "Processing feed download $downloads_id...";
 
-    my $story_ids_to_extract = [];
+    my ( $added_story_ids, $story_ids_to_extract );
 
-    if ( $self->_feed_processing_is_disabled() )
+    eval {
+
+        if ( $self->_feed_processing_is_disabled() )
+        {
+            die "Feed processing is disabled in mediawords.yml ('do_not_process_feeds').";
+        }
+
+        $added_story_ids = $self->add_stories_from_feed( $db, $download, $decoded_content );
+        $story_ids_to_extract = $self->return_stories_to_be_extracted_from_feed( $db, $download, $decoded_content );
+    };
+    if ( $@ )
     {
-        WARN "DO NOT PROCESS FEEDS";
-        $db->update_by_id(
-            'downloads',
-            $download->{ downloads_id },
-            { state => 'feed_error', error_message => 'do_not_process_feeds' }
+        my $error_message = "Error processing feed for download $downloads_id: $@";
+        ERROR $error_message;
+
+        $db->query(
+            <<SQL,
+            UPDATE downloads
+            SET state = 'feed_error',
+                error_message = ?
+            WHERE downloads_id = ?
+SQL
+            $error_message, $downloads_id
         );
 
+        $added_story_ids      = [];
         $story_ids_to_extract = [];
     }
     else
     {
-        my $added_story_ids = [];
-        eval {
-            $added_story_ids = $self->add_stories_from_feed( $db, $download, $decoded_content );
-            $story_ids_to_extract = $self->return_stories_to_be_extracted_from_feed( $db, $download, $decoded_content );
-        };
-        if ( $@ )
-        {
-            $download->{ state } = 'feed_error';
-            my $error_message = "Error processing feed: $@";
-            ERROR $error_message;
-            $download->{ error_message } = $error_message;
-        }
-        else
-        {
-            $db->query(
-                <<SQL,
-                UPDATE feeds
-                SET last_successful_download_time = greatest( last_successful_download_time, ? )
-                WHERE feeds_id = ?
+        my $feeds_id = $download->{ feeds_id };
+
+        $db->query(
+            <<SQL,
+            UPDATE feeds
+            SET last_successful_download_time = greatest( last_successful_download_time, ? )
+            WHERE feeds_id = ?
 SQL
-                $download->{ download_time }, $download->{ feeds_id }
-            );
-        }
+            $download->{ download_time }, $feeds_id
+        );
 
         if ( scalar( @{ $added_story_ids } ) > 0 )
         {
@@ -113,7 +117,7 @@ SQL
                 SET last_new_story_time = last_attempted_download_time
                 WHERE feeds_id = ?
 SQL
-                $download->{ feeds_id }
+                $feeds_id
             );
         }
         else
@@ -127,6 +131,10 @@ SQL
         }
     }
 
+    # Reread the possibly updated download
+    $download = $db->find_by_id( 'downloads', $downloads_id );
+
+    # Store the feed in any case
     MediaWords::DBI::Downloads::store_content( $db, $download, \$decoded_content );
 
     DEBUG "Done processing feed download $downloads_id";
