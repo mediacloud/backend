@@ -14,10 +14,10 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Name: cd; Type: SCHEMA; Schema: -; Owner: -
+-- Name: snap; Type: SCHEMA; Schema: -; Owner: -
 --
 
-CREATE SCHEMA cd;
+CREATE SCHEMA snap;
 
 
 --
@@ -1009,7 +1009,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4583;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4584;
 
 BEGIN
 
@@ -1476,247 +1476,9 @@ END;
 $$;
 
 
-SET search_path = cd, pg_catalog;
-
 SET default_tablespace = '';
 
 SET default_with_oids = false;
-
---
--- Name: daily_date_counts; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE daily_date_counts (
-    snapshots_id integer NOT NULL,
-    publish_date date NOT NULL,
-    story_count integer NOT NULL,
-    tags_id integer
-);
-
-
---
--- Name: live_stories; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE live_stories (
-    topics_id integer NOT NULL,
-    topic_stories_id integer NOT NULL,
-    stories_id integer NOT NULL,
-    media_id integer NOT NULL,
-    url character varying(1024) NOT NULL,
-    guid character varying(1024) NOT NULL,
-    title text NOT NULL,
-    description text,
-    publish_date timestamp without time zone NOT NULL,
-    collect_date timestamp without time zone NOT NULL,
-    full_text_rss boolean DEFAULT false NOT NULL,
-    language character varying(3),
-    db_row_last_updated timestamp with time zone
-);
-
-
---
--- Name: media; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE media (
-    snapshots_id integer NOT NULL,
-    media_id integer,
-    url character varying(1024) NOT NULL,
-    name character varying(128) NOT NULL,
-    moderated boolean NOT NULL,
-    moderation_notes text,
-    full_text_rss boolean,
-    extract_author boolean DEFAULT false,
-    foreign_rss_links boolean DEFAULT false NOT NULL,
-    dup_media_id integer,
-    is_not_dup boolean,
-    use_pager boolean,
-    unpaged_stories integer DEFAULT 0 NOT NULL
-);
-
-
---
--- Name: media_tags_map; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE media_tags_map (
-    snapshots_id integer NOT NULL,
-    media_tags_map_id integer,
-    media_id integer NOT NULL,
-    tags_id integer NOT NULL
-);
-
-
---
--- Name: medium_link_counts; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE medium_link_counts (
-    timespans_id integer NOT NULL,
-    media_id integer NOT NULL,
-    inlink_count integer NOT NULL,
-    outlink_count integer NOT NULL,
-    story_count integer NOT NULL,
-    bitly_click_count integer,
-    media_inlink_count integer NOT NULL,
-    sum_media_inlink_count integer NOT NULL
-);
-
-
---
--- Name: medium_links; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE medium_links (
-    timespans_id integer NOT NULL,
-    source_media_id integer NOT NULL,
-    ref_media_id integer NOT NULL,
-    link_count integer NOT NULL
-);
-
-
---
--- Name: stories; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE stories (
-    snapshots_id integer NOT NULL,
-    stories_id integer,
-    media_id integer NOT NULL,
-    url character varying(1024) NOT NULL,
-    guid character varying(1024) NOT NULL,
-    title text NOT NULL,
-    publish_date timestamp without time zone NOT NULL,
-    collect_date timestamp without time zone NOT NULL,
-    full_text_rss boolean DEFAULT false NOT NULL,
-    language character varying(3),
-    ap_syndicated boolean
-);
-
-
---
--- Name: stories_tags_map; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE stories_tags_map (
-    controversy_dumps_id integer NOT NULL,
-    stories_tags_map_id integer,
-    stories_id integer,
-    tags_id integer
-);
-
-
---
--- Name: story_link_counts; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE story_link_counts (
-    timespans_id integer NOT NULL,
-    stories_id integer NOT NULL,
-    inlink_count integer NOT NULL,
-    outlink_count integer NOT NULL,
-    bitly_click_count integer,
-    facebook_share_count integer,
-    media_inlink_count integer NOT NULL
-);
-
-
---
--- Name: story_links; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE story_links (
-    timespans_id integer NOT NULL,
-    source_stories_id integer NOT NULL,
-    ref_stories_id integer NOT NULL
-);
-
-
---
--- Name: tag_sets; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE tag_sets (
-    snapshots_id integer NOT NULL,
-    tag_sets_id integer,
-    name character varying(512),
-    label text,
-    description text
-);
-
-
---
--- Name: tags; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE tags (
-    snapshots_id integer NOT NULL,
-    tags_id integer,
-    tag_sets_id integer,
-    tag character varying(512),
-    label text,
-    description text
-);
-
-
---
--- Name: topic_links_cross_media; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE topic_links_cross_media (
-    snapshots_id integer NOT NULL,
-    topic_links_id integer,
-    topics_id integer NOT NULL,
-    stories_id integer NOT NULL,
-    url text NOT NULL,
-    ref_stories_id integer
-);
-
-
---
--- Name: topic_media_codes; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE topic_media_codes (
-    snapshots_id integer NOT NULL,
-    topics_id integer NOT NULL,
-    media_id integer NOT NULL,
-    code_type text,
-    code text
-);
-
-
---
--- Name: topic_stories; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE topic_stories (
-    snapshots_id integer NOT NULL,
-    topic_stories_id integer,
-    topics_id integer NOT NULL,
-    stories_id integer NOT NULL,
-    link_mined boolean,
-    iteration integer,
-    link_weight real,
-    redirect_url text,
-    valid_foreign_rss_story boolean
-);
-
-
---
--- Name: weekly_date_counts; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE weekly_date_counts (
-    snapshots_id integer NOT NULL,
-    publish_date date NOT NULL,
-    story_count integer NOT NULL,
-    tags_id integer
-);
-
-
-SET search_path = public, pg_catalog;
 
 --
 -- Name: activities; Type: TABLE; Schema: public; Owner: -
@@ -4098,6 +3860,244 @@ CREATE VIEW topics_with_dates AS
   WHERE cd.boundary;
 
 
+SET search_path = snap, pg_catalog;
+
+--
+-- Name: daily_date_counts; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE daily_date_counts (
+    snapshots_id integer NOT NULL,
+    publish_date date NOT NULL,
+    story_count integer NOT NULL,
+    tags_id integer
+);
+
+
+--
+-- Name: live_stories; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE live_stories (
+    topics_id integer NOT NULL,
+    topic_stories_id integer NOT NULL,
+    stories_id integer NOT NULL,
+    media_id integer NOT NULL,
+    url character varying(1024) NOT NULL,
+    guid character varying(1024) NOT NULL,
+    title text NOT NULL,
+    description text,
+    publish_date timestamp without time zone NOT NULL,
+    collect_date timestamp without time zone NOT NULL,
+    full_text_rss boolean DEFAULT false NOT NULL,
+    language character varying(3),
+    db_row_last_updated timestamp with time zone
+);
+
+
+--
+-- Name: media; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE media (
+    snapshots_id integer NOT NULL,
+    media_id integer,
+    url character varying(1024) NOT NULL,
+    name character varying(128) NOT NULL,
+    moderated boolean NOT NULL,
+    moderation_notes text,
+    full_text_rss boolean,
+    extract_author boolean DEFAULT false,
+    foreign_rss_links boolean DEFAULT false NOT NULL,
+    dup_media_id integer,
+    is_not_dup boolean,
+    use_pager boolean,
+    unpaged_stories integer DEFAULT 0 NOT NULL
+);
+
+
+--
+-- Name: media_tags_map; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE media_tags_map (
+    snapshots_id integer NOT NULL,
+    media_tags_map_id integer,
+    media_id integer NOT NULL,
+    tags_id integer NOT NULL
+);
+
+
+--
+-- Name: medium_link_counts; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE medium_link_counts (
+    timespans_id integer NOT NULL,
+    media_id integer NOT NULL,
+    inlink_count integer NOT NULL,
+    outlink_count integer NOT NULL,
+    story_count integer NOT NULL,
+    bitly_click_count integer,
+    media_inlink_count integer NOT NULL,
+    sum_media_inlink_count integer NOT NULL
+);
+
+
+--
+-- Name: medium_links; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE medium_links (
+    timespans_id integer NOT NULL,
+    source_media_id integer NOT NULL,
+    ref_media_id integer NOT NULL,
+    link_count integer NOT NULL
+);
+
+
+--
+-- Name: stories; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE stories (
+    snapshots_id integer NOT NULL,
+    stories_id integer,
+    media_id integer NOT NULL,
+    url character varying(1024) NOT NULL,
+    guid character varying(1024) NOT NULL,
+    title text NOT NULL,
+    publish_date timestamp without time zone NOT NULL,
+    collect_date timestamp without time zone NOT NULL,
+    full_text_rss boolean DEFAULT false NOT NULL,
+    language character varying(3),
+    ap_syndicated boolean
+);
+
+
+--
+-- Name: stories_tags_map; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE stories_tags_map (
+    controversy_dumps_id integer NOT NULL,
+    stories_tags_map_id integer,
+    stories_id integer,
+    tags_id integer
+);
+
+
+--
+-- Name: story_link_counts; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE story_link_counts (
+    timespans_id integer NOT NULL,
+    stories_id integer NOT NULL,
+    inlink_count integer NOT NULL,
+    outlink_count integer NOT NULL,
+    bitly_click_count integer,
+    facebook_share_count integer,
+    media_inlink_count integer NOT NULL
+);
+
+
+--
+-- Name: story_links; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE story_links (
+    timespans_id integer NOT NULL,
+    source_stories_id integer NOT NULL,
+    ref_stories_id integer NOT NULL
+);
+
+
+--
+-- Name: tag_sets; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE tag_sets (
+    snapshots_id integer NOT NULL,
+    tag_sets_id integer,
+    name character varying(512),
+    label text,
+    description text
+);
+
+
+--
+-- Name: tags; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE tags (
+    snapshots_id integer NOT NULL,
+    tags_id integer,
+    tag_sets_id integer,
+    tag character varying(512),
+    label text,
+    description text
+);
+
+
+--
+-- Name: topic_links_cross_media; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE topic_links_cross_media (
+    snapshots_id integer NOT NULL,
+    topic_links_id integer,
+    topics_id integer NOT NULL,
+    stories_id integer NOT NULL,
+    url text NOT NULL,
+    ref_stories_id integer
+);
+
+
+--
+-- Name: topic_media_codes; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE topic_media_codes (
+    snapshots_id integer NOT NULL,
+    topics_id integer NOT NULL,
+    media_id integer NOT NULL,
+    code_type text,
+    code text
+);
+
+
+--
+-- Name: topic_stories; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE topic_stories (
+    snapshots_id integer NOT NULL,
+    topic_stories_id integer,
+    topics_id integer NOT NULL,
+    stories_id integer NOT NULL,
+    link_mined boolean,
+    iteration integer,
+    link_weight real,
+    redirect_url text,
+    valid_foreign_rss_story boolean
+);
+
+
+--
+-- Name: weekly_date_counts; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE weekly_date_counts (
+    snapshots_id integer NOT NULL,
+    publish_date date NOT NULL,
+    story_count integer NOT NULL,
+    tags_id integer
+);
+
+
+SET search_path = public, pg_catalog;
+
 --
 -- Name: activities_id; Type: DEFAULT; Schema: public; Owner: -
 --
@@ -4511,138 +4511,6 @@ ALTER TABLE ONLY topic_stories ALTER COLUMN topic_stories_id SET DEFAULT nextval
 ALTER TABLE ONLY topics ALTER COLUMN topics_id SET DEFAULT nextval('controversies_controversies_id_seq'::regclass);
 
 
-SET search_path = cd, pg_catalog;
-
---
--- Data for Name: daily_date_counts; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY daily_date_counts (snapshots_id, publish_date, story_count, tags_id) FROM stdin;
-\.
-
-
---
--- Data for Name: live_stories; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY live_stories (topics_id, topic_stories_id, stories_id, media_id, url, guid, title, description, publish_date, collect_date, full_text_rss, language, db_row_last_updated) FROM stdin;
-\.
-
-
---
--- Data for Name: media; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY media (snapshots_id, media_id, url, name, moderated, moderation_notes, full_text_rss, extract_author, foreign_rss_links, dup_media_id, is_not_dup, use_pager, unpaged_stories) FROM stdin;
-\.
-
-
---
--- Data for Name: media_tags_map; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY media_tags_map (snapshots_id, media_tags_map_id, media_id, tags_id) FROM stdin;
-\.
-
-
---
--- Data for Name: medium_link_counts; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY medium_link_counts (timespans_id, media_id, inlink_count, outlink_count, story_count, bitly_click_count, media_inlink_count, sum_media_inlink_count) FROM stdin;
-\.
-
-
---
--- Data for Name: medium_links; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY medium_links (timespans_id, source_media_id, ref_media_id, link_count) FROM stdin;
-\.
-
-
---
--- Data for Name: stories; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY stories (snapshots_id, stories_id, media_id, url, guid, title, publish_date, collect_date, full_text_rss, language, ap_syndicated) FROM stdin;
-\.
-
-
---
--- Data for Name: stories_tags_map; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY stories_tags_map (controversy_dumps_id, stories_tags_map_id, stories_id, tags_id) FROM stdin;
-\.
-
-
---
--- Data for Name: story_link_counts; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY story_link_counts (timespans_id, stories_id, inlink_count, outlink_count, bitly_click_count, facebook_share_count, media_inlink_count) FROM stdin;
-\.
-
-
---
--- Data for Name: story_links; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY story_links (timespans_id, source_stories_id, ref_stories_id) FROM stdin;
-\.
-
-
---
--- Data for Name: tag_sets; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY tag_sets (snapshots_id, tag_sets_id, name, label, description) FROM stdin;
-\.
-
-
---
--- Data for Name: tags; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY tags (snapshots_id, tags_id, tag_sets_id, tag, label, description) FROM stdin;
-\.
-
-
---
--- Data for Name: topic_links_cross_media; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY topic_links_cross_media (snapshots_id, topic_links_id, topics_id, stories_id, url, ref_stories_id) FROM stdin;
-\.
-
-
---
--- Data for Name: topic_media_codes; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY topic_media_codes (snapshots_id, topics_id, media_id, code_type, code) FROM stdin;
-\.
-
-
---
--- Data for Name: topic_stories; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY topic_stories (snapshots_id, topic_stories_id, topics_id, stories_id, link_mined, iteration, link_weight, redirect_url, valid_foreign_rss_story) FROM stdin;
-\.
-
-
---
--- Data for Name: weekly_date_counts; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY weekly_date_counts (snapshots_id, publish_date, story_count, tags_id) FROM stdin;
-\.
-
-
-SET search_path = public, pg_catalog;
-
 --
 -- Data for Name: activities; Type: TABLE DATA; Schema: public; Owner: -
 --
@@ -5014,7 +4882,7 @@ SELECT pg_catalog.setval('corenlp_annotations_corenlp_annotations_id_seq', 1, fa
 --
 
 COPY database_variables (database_variables_id, name, value) FROM stdin;
-127	database-schema-version	4583
+128	database-schema-version	4584
 \.
 
 
@@ -5022,7 +4890,7 @@ COPY database_variables (database_variables_id, name, value) FROM stdin;
 -- Name: database_variables_database_variables_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('database_variables_database_variables_id_seq', 127, true);
+SELECT pg_catalog.setval('database_variables_database_variables_id_seq', 128, true);
 
 
 --
@@ -7298,6 +7166,138 @@ COPY topics (topics_id, name, pattern, solr_seed_query, solr_seed_query_run, des
 \.
 
 
+SET search_path = snap, pg_catalog;
+
+--
+-- Data for Name: daily_date_counts; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY daily_date_counts (snapshots_id, publish_date, story_count, tags_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: live_stories; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY live_stories (topics_id, topic_stories_id, stories_id, media_id, url, guid, title, description, publish_date, collect_date, full_text_rss, language, db_row_last_updated) FROM stdin;
+\.
+
+
+--
+-- Data for Name: media; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY media (snapshots_id, media_id, url, name, moderated, moderation_notes, full_text_rss, extract_author, foreign_rss_links, dup_media_id, is_not_dup, use_pager, unpaged_stories) FROM stdin;
+\.
+
+
+--
+-- Data for Name: media_tags_map; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY media_tags_map (snapshots_id, media_tags_map_id, media_id, tags_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: medium_link_counts; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY medium_link_counts (timespans_id, media_id, inlink_count, outlink_count, story_count, bitly_click_count, media_inlink_count, sum_media_inlink_count) FROM stdin;
+\.
+
+
+--
+-- Data for Name: medium_links; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY medium_links (timespans_id, source_media_id, ref_media_id, link_count) FROM stdin;
+\.
+
+
+--
+-- Data for Name: stories; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY stories (snapshots_id, stories_id, media_id, url, guid, title, publish_date, collect_date, full_text_rss, language, ap_syndicated) FROM stdin;
+\.
+
+
+--
+-- Data for Name: stories_tags_map; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY stories_tags_map (controversy_dumps_id, stories_tags_map_id, stories_id, tags_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: story_link_counts; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY story_link_counts (timespans_id, stories_id, inlink_count, outlink_count, bitly_click_count, facebook_share_count, media_inlink_count) FROM stdin;
+\.
+
+
+--
+-- Data for Name: story_links; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY story_links (timespans_id, source_stories_id, ref_stories_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: tag_sets; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY tag_sets (snapshots_id, tag_sets_id, name, label, description) FROM stdin;
+\.
+
+
+--
+-- Data for Name: tags; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY tags (snapshots_id, tags_id, tag_sets_id, tag, label, description) FROM stdin;
+\.
+
+
+--
+-- Data for Name: topic_links_cross_media; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY topic_links_cross_media (snapshots_id, topic_links_id, topics_id, stories_id, url, ref_stories_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: topic_media_codes; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY topic_media_codes (snapshots_id, topics_id, media_id, code_type, code) FROM stdin;
+\.
+
+
+--
+-- Data for Name: topic_stories; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY topic_stories (snapshots_id, topic_stories_id, topics_id, stories_id, link_mined, iteration, link_weight, redirect_url, valid_foreign_rss_story) FROM stdin;
+\.
+
+
+--
+-- Data for Name: weekly_date_counts; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY weekly_date_counts (snapshots_id, publish_date, story_count, tags_id) FROM stdin;
+\.
+
+
+SET search_path = public, pg_catalog;
+
 --
 -- Name: activities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
@@ -7817,185 +7817,6 @@ ALTER TABLE ONLY tags
 ALTER TABLE ONLY topic_spider_metrics
     ADD CONSTRAINT topic_spider_metrics_pkey PRIMARY KEY (topic_spider_metrics_id);
 
-
-SET search_path = cd, pg_catalog;
-
---
--- Name: daily_date_counts_date; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX daily_date_counts_date ON daily_date_counts USING btree (snapshots_id, publish_date);
-
-
---
--- Name: daily_date_counts_tag; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX daily_date_counts_tag ON daily_date_counts USING btree (snapshots_id, tags_id);
-
-
---
--- Name: live_stories_story; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE UNIQUE INDEX live_stories_story ON live_stories USING btree (topics_id, stories_id);
-
-
---
--- Name: live_stories_story_solo; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX live_stories_story_solo ON live_stories USING btree (stories_id);
-
-
---
--- Name: live_story_topic; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX live_story_topic ON live_stories USING btree (topics_id);
-
-
---
--- Name: media_id; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX media_id ON media USING btree (snapshots_id, media_id);
-
-
---
--- Name: media_tags_map_medium; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX media_tags_map_medium ON media_tags_map USING btree (snapshots_id, media_id);
-
-
---
--- Name: media_tags_map_tag; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX media_tags_map_tag ON media_tags_map USING btree (snapshots_id, tags_id);
-
-
---
--- Name: medium_link_counts_medium; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX medium_link_counts_medium ON medium_link_counts USING btree (timespans_id, media_id);
-
-
---
--- Name: medium_links_ref; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX medium_links_ref ON medium_links USING btree (timespans_id, ref_media_id);
-
-
---
--- Name: medium_links_source; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX medium_links_source ON medium_links USING btree (timespans_id, source_media_id);
-
-
---
--- Name: stories_id; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX stories_id ON stories USING btree (snapshots_id, stories_id);
-
-
---
--- Name: stories_tags_map_story; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX stories_tags_map_story ON stories_tags_map USING btree (controversy_dumps_id, stories_id);
-
-
---
--- Name: stories_tags_map_tag; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX stories_tags_map_tag ON stories_tags_map USING btree (controversy_dumps_id, tags_id);
-
-
---
--- Name: story_link_counts_story; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX story_link_counts_story ON story_link_counts USING btree (timespans_id, stories_id);
-
-
---
--- Name: story_links_ref; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX story_links_ref ON story_links USING btree (timespans_id, ref_stories_id);
-
-
---
--- Name: story_links_source; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX story_links_source ON story_links USING btree (timespans_id, source_stories_id);
-
-
---
--- Name: tag_sets_id; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX tag_sets_id ON tag_sets USING btree (snapshots_id, tag_sets_id);
-
-
---
--- Name: tags_id; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX tags_id ON tags USING btree (snapshots_id, tags_id);
-
-
---
--- Name: topic_links_ref; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX topic_links_ref ON topic_links_cross_media USING btree (snapshots_id, ref_stories_id);
-
-
---
--- Name: topic_links_story; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX topic_links_story ON topic_links_cross_media USING btree (snapshots_id, stories_id);
-
-
---
--- Name: topic_media_codes_medium; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX topic_media_codes_medium ON topic_media_codes USING btree (snapshots_id, media_id);
-
-
---
--- Name: topic_stories_id; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX topic_stories_id ON topic_stories USING btree (snapshots_id, stories_id);
-
-
---
--- Name: weekly_date_counts_date; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX weekly_date_counts_date ON weekly_date_counts USING btree (snapshots_id, publish_date);
-
-
---
--- Name: weekly_date_counts_tag; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX weekly_date_counts_tag ON weekly_date_counts USING btree (snapshots_id, tags_id);
-
-
-SET search_path = public, pg_catalog;
 
 --
 -- Name: activities_creation_date; Type: INDEX; Schema: public; Owner: -
@@ -8914,6 +8735,185 @@ CREATE UNIQUE INDEX topics_name ON topics USING btree (name);
 CREATE UNIQUE INDEX topics_tag_set ON topics USING btree (topic_tag_sets_id);
 
 
+SET search_path = snap, pg_catalog;
+
+--
+-- Name: daily_date_counts_date; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX daily_date_counts_date ON daily_date_counts USING btree (snapshots_id, publish_date);
+
+
+--
+-- Name: daily_date_counts_tag; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX daily_date_counts_tag ON daily_date_counts USING btree (snapshots_id, tags_id);
+
+
+--
+-- Name: live_stories_story; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE UNIQUE INDEX live_stories_story ON live_stories USING btree (topics_id, stories_id);
+
+
+--
+-- Name: live_stories_story_solo; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX live_stories_story_solo ON live_stories USING btree (stories_id);
+
+
+--
+-- Name: live_story_topic; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX live_story_topic ON live_stories USING btree (topics_id);
+
+
+--
+-- Name: media_id; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX media_id ON media USING btree (snapshots_id, media_id);
+
+
+--
+-- Name: media_tags_map_medium; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX media_tags_map_medium ON media_tags_map USING btree (snapshots_id, media_id);
+
+
+--
+-- Name: media_tags_map_tag; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX media_tags_map_tag ON media_tags_map USING btree (snapshots_id, tags_id);
+
+
+--
+-- Name: medium_link_counts_medium; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX medium_link_counts_medium ON medium_link_counts USING btree (timespans_id, media_id);
+
+
+--
+-- Name: medium_links_ref; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX medium_links_ref ON medium_links USING btree (timespans_id, ref_media_id);
+
+
+--
+-- Name: medium_links_source; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX medium_links_source ON medium_links USING btree (timespans_id, source_media_id);
+
+
+--
+-- Name: stories_id; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX stories_id ON stories USING btree (snapshots_id, stories_id);
+
+
+--
+-- Name: stories_tags_map_story; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX stories_tags_map_story ON stories_tags_map USING btree (controversy_dumps_id, stories_id);
+
+
+--
+-- Name: stories_tags_map_tag; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX stories_tags_map_tag ON stories_tags_map USING btree (controversy_dumps_id, tags_id);
+
+
+--
+-- Name: story_link_counts_story; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX story_link_counts_story ON story_link_counts USING btree (timespans_id, stories_id);
+
+
+--
+-- Name: story_links_ref; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX story_links_ref ON story_links USING btree (timespans_id, ref_stories_id);
+
+
+--
+-- Name: story_links_source; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX story_links_source ON story_links USING btree (timespans_id, source_stories_id);
+
+
+--
+-- Name: tag_sets_id; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX tag_sets_id ON tag_sets USING btree (snapshots_id, tag_sets_id);
+
+
+--
+-- Name: tags_id; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX tags_id ON tags USING btree (snapshots_id, tags_id);
+
+
+--
+-- Name: topic_links_ref; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX topic_links_ref ON topic_links_cross_media USING btree (snapshots_id, ref_stories_id);
+
+
+--
+-- Name: topic_links_story; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX topic_links_story ON topic_links_cross_media USING btree (snapshots_id, stories_id);
+
+
+--
+-- Name: topic_media_codes_medium; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX topic_media_codes_medium ON topic_media_codes USING btree (snapshots_id, media_id);
+
+
+--
+-- Name: topic_stories_id; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX topic_stories_id ON topic_stories USING btree (snapshots_id, stories_id);
+
+
+--
+-- Name: weekly_date_counts_date; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX weekly_date_counts_date ON weekly_date_counts USING btree (snapshots_id, publish_date);
+
+
+--
+-- Name: weekly_date_counts_tag; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX weekly_date_counts_tag ON weekly_date_counts USING btree (snapshots_id, tags_id);
+
+
+SET search_path = public, pg_catalog;
+
 --
 -- Name: auth_users_set_default_limits; Type: TRIGGER; Schema: public; Owner: -
 --
@@ -9060,154 +9060,6 @@ CREATE TRIGGER topic_stories_insert_live_story AFTER INSERT ON topic_stories FOR
 
 CREATE TRIGGER topic_tag_set BEFORE INSERT ON topics FOR EACH ROW EXECUTE PROCEDURE insert_topic_tag_set();
 
-
-SET search_path = cd, pg_catalog;
-
---
--- Name: controversy_links_cross_media_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY topic_links_cross_media
-    ADD CONSTRAINT controversy_links_cross_media_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
-
-
---
--- Name: controversy_media_codes_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY topic_media_codes
-    ADD CONSTRAINT controversy_media_codes_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
-
-
---
--- Name: controversy_stories_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY topic_stories
-    ADD CONSTRAINT controversy_stories_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
-
-
---
--- Name: daily_date_counts_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY daily_date_counts
-    ADD CONSTRAINT daily_date_counts_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
-
-
---
--- Name: live_stories_controversies_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY live_stories
-    ADD CONSTRAINT live_stories_controversies_id_fkey FOREIGN KEY (topics_id) REFERENCES public.topics(topics_id) ON DELETE CASCADE;
-
-
---
--- Name: live_stories_controversy_stories_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY live_stories
-    ADD CONSTRAINT live_stories_controversy_stories_id_fkey FOREIGN KEY (topic_stories_id) REFERENCES public.topic_stories(topic_stories_id) ON DELETE CASCADE;
-
-
---
--- Name: live_stories_stories_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY live_stories
-    ADD CONSTRAINT live_stories_stories_id_fkey FOREIGN KEY (stories_id) REFERENCES public.stories(stories_id) ON DELETE CASCADE;
-
-
---
--- Name: media_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY media
-    ADD CONSTRAINT media_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
-
-
---
--- Name: media_tags_map_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY media_tags_map
-    ADD CONSTRAINT media_tags_map_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
-
-
---
--- Name: medium_link_counts_controversy_dump_time_slices_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY medium_link_counts
-    ADD CONSTRAINT medium_link_counts_controversy_dump_time_slices_id_fkey FOREIGN KEY (timespans_id) REFERENCES public.timespans(timespans_id) ON DELETE CASCADE;
-
-
---
--- Name: medium_links_controversy_dump_time_slices_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY medium_links
-    ADD CONSTRAINT medium_links_controversy_dump_time_slices_id_fkey FOREIGN KEY (timespans_id) REFERENCES public.timespans(timespans_id) ON DELETE CASCADE;
-
-
---
--- Name: stories_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY stories
-    ADD CONSTRAINT stories_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
-
-
---
--- Name: stories_tags_map_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY stories_tags_map
-    ADD CONSTRAINT stories_tags_map_controversy_dumps_id_fkey FOREIGN KEY (controversy_dumps_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
-
-
---
--- Name: story_link_counts_controversy_dump_time_slices_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY story_link_counts
-    ADD CONSTRAINT story_link_counts_controversy_dump_time_slices_id_fkey FOREIGN KEY (timespans_id) REFERENCES public.timespans(timespans_id) ON DELETE CASCADE;
-
-
---
--- Name: story_links_controversy_dump_time_slices_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY story_links
-    ADD CONSTRAINT story_links_controversy_dump_time_slices_id_fkey FOREIGN KEY (timespans_id) REFERENCES public.timespans(timespans_id) ON DELETE CASCADE;
-
-
---
--- Name: tag_sets_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY tag_sets
-    ADD CONSTRAINT tag_sets_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
-
-
---
--- Name: tags_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY tags
-    ADD CONSTRAINT tags_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
-
-
---
--- Name: weekly_date_counts_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY weekly_date_counts
-    ADD CONSTRAINT weekly_date_counts_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
-
-
-SET search_path = public, pg_catalog;
 
 --
 -- Name: api_links_next_link_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
@@ -9783,6 +9635,152 @@ ALTER TABLE ONLY topic_links
 
 ALTER TABLE ONLY topic_spider_metrics
     ADD CONSTRAINT topic_spider_metrics_topics_id_fkey FOREIGN KEY (topics_id) REFERENCES topics(topics_id) ON DELETE CASCADE;
+
+
+SET search_path = snap, pg_catalog;
+
+--
+-- Name: controversy_links_cross_media_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY topic_links_cross_media
+    ADD CONSTRAINT controversy_links_cross_media_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
+
+
+--
+-- Name: controversy_media_codes_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY topic_media_codes
+    ADD CONSTRAINT controversy_media_codes_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
+
+
+--
+-- Name: controversy_stories_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY topic_stories
+    ADD CONSTRAINT controversy_stories_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
+
+
+--
+-- Name: daily_date_counts_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY daily_date_counts
+    ADD CONSTRAINT daily_date_counts_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
+
+
+--
+-- Name: live_stories_controversies_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY live_stories
+    ADD CONSTRAINT live_stories_controversies_id_fkey FOREIGN KEY (topics_id) REFERENCES public.topics(topics_id) ON DELETE CASCADE;
+
+
+--
+-- Name: live_stories_controversy_stories_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY live_stories
+    ADD CONSTRAINT live_stories_controversy_stories_id_fkey FOREIGN KEY (topic_stories_id) REFERENCES public.topic_stories(topic_stories_id) ON DELETE CASCADE;
+
+
+--
+-- Name: live_stories_stories_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY live_stories
+    ADD CONSTRAINT live_stories_stories_id_fkey FOREIGN KEY (stories_id) REFERENCES public.stories(stories_id) ON DELETE CASCADE;
+
+
+--
+-- Name: media_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY media
+    ADD CONSTRAINT media_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
+
+
+--
+-- Name: media_tags_map_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY media_tags_map
+    ADD CONSTRAINT media_tags_map_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
+
+
+--
+-- Name: medium_link_counts_controversy_dump_time_slices_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY medium_link_counts
+    ADD CONSTRAINT medium_link_counts_controversy_dump_time_slices_id_fkey FOREIGN KEY (timespans_id) REFERENCES public.timespans(timespans_id) ON DELETE CASCADE;
+
+
+--
+-- Name: medium_links_controversy_dump_time_slices_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY medium_links
+    ADD CONSTRAINT medium_links_controversy_dump_time_slices_id_fkey FOREIGN KEY (timespans_id) REFERENCES public.timespans(timespans_id) ON DELETE CASCADE;
+
+
+--
+-- Name: stories_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY stories
+    ADD CONSTRAINT stories_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
+
+
+--
+-- Name: stories_tags_map_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY stories_tags_map
+    ADD CONSTRAINT stories_tags_map_controversy_dumps_id_fkey FOREIGN KEY (controversy_dumps_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
+
+
+--
+-- Name: story_link_counts_controversy_dump_time_slices_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY story_link_counts
+    ADD CONSTRAINT story_link_counts_controversy_dump_time_slices_id_fkey FOREIGN KEY (timespans_id) REFERENCES public.timespans(timespans_id) ON DELETE CASCADE;
+
+
+--
+-- Name: story_links_controversy_dump_time_slices_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY story_links
+    ADD CONSTRAINT story_links_controversy_dump_time_slices_id_fkey FOREIGN KEY (timespans_id) REFERENCES public.timespans(timespans_id) ON DELETE CASCADE;
+
+
+--
+-- Name: tag_sets_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY tag_sets
+    ADD CONSTRAINT tag_sets_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
+
+
+--
+-- Name: tags_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY tags
+    ADD CONSTRAINT tags_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
+
+
+--
+-- Name: weekly_date_counts_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY weekly_date_counts
+    ADD CONSTRAINT weekly_date_counts_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
 
 
 --
