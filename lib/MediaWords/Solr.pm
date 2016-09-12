@@ -167,7 +167,7 @@ sub _set_last_num_found
         $_last_num_found = undef;
     }
 
-    DEBUG( $_last_num_found ? $_last_num_found : 'undef' ) . " matches found.";
+    DEBUG( ( $_last_num_found ? $_last_num_found : 0 ) . " matches found." );
 
 }
 
@@ -223,13 +223,24 @@ sub query_encoded_json($$;$)
     $params->{ rows } //= 1000;
     $params->{ df }   //= 'sentence';
 
+    # convert fq: parameters into ANDed q: clauses because fq: clauses can cause our solr cluster to oom
+    if ( my $all_q = $params->{ fq } )
+    {
+        $all_q = [ $all_q ] unless ( ref( $all_q ) );
+        push( @{ $all_q }, $params->{ q } ) if ( $params->{ q } && ( $params->{ q } !~ /\:\*$/ ) );
+
+        $params->{ q } = join( " AND ", map { "( $_ )" } grep { /[^[:space:]]/ } @{ $all_q } );
+
+        $params->{ fq } = undef;
+    }
+
     $params->{ rows } = List::Util::min( $params->{ rows }, 1000000 );
 
     _uppercase_boolean_operators( $params->{ q } );
-    _uppercase_boolean_operators( $params->{ fq } );
+    # _uppercase_boolean_operators( $params->{ fq } );
 
     $params->{ q }  = MediaWords::Solr::PseudoQueries::transform_query( $params->{ q } );
-    $params->{ fq } = MediaWords::Solr::PseudoQueries::transform_query( $params->{ fq } );
+    # $params->{ fq } = MediaWords::Solr::PseudoQueries::transform_query( $params->{ fq } );
 
     # Ensure that only UTF-8 strings get passed to Solr
     my $encoded_params = MediaWords::Util::Text::recursively_encode_to_utf8( $params );
