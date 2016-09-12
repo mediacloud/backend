@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4585;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4586;
 
 BEGIN
 
@@ -321,8 +321,6 @@ create table media (
     foreign_rss_links   boolean         not null default( false ),
     dup_media_id        int             null references media on delete set null deferrable,
     is_not_dup          boolean         null,
-    use_pager           boolean         null,
-    unpaged_stories     int             not null default 0,
 
     -- Delay content downloads for this media source this many hours
     content_delay       int             null,
@@ -1802,9 +1800,7 @@ create table snap.media (
     full_text_rss           boolean,
     foreign_rss_links       boolean         not null default( false ),
     dup_media_id            int             null,
-    is_not_dup              boolean         null,
-    use_pager               boolean         null,
-    unpaged_stories         int             not null default 0
+    is_not_dup              boolean         null
 );
 create index media_id on snap.media ( snapshots_id, media_id );
 

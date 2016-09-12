@@ -33,6 +33,8 @@ requires 'handle_download';
 use Encode;
 use Readonly;
 
+use MediaWords::Job::ExtractAndVector;
+
 # CONSTANTS
 
 # max number of times to try a page after a 5xx error
