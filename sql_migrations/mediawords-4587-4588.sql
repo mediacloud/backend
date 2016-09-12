@@ -40,6 +40,8 @@ ALTER TABLE media
     DROP COLUMN extract_author;
 
 
+SET search_path = public, pg_catalog;
+
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
 
