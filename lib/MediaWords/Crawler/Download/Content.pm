@@ -137,8 +137,17 @@ sub handle_download($$$$)
     {
         die "stories_id is empty";
     }
+    unless ( defined $decoded_content )
+    {
+        die "Content for download $downloads_id, story $stories_id is undefined";
+    }
 
     DEBUG "Processing content download $downloads_id (story $stories_id)...";
+
+    if ( length( $decoded_content ) == 0 )
+    {
+        WARN "Content for download $downloads_id, story $stories_id is empty";
+    }
 
     my $story_ids_to_extract;
     my $next_page = $self->_call_pager( $db, $download, $decoded_content );
