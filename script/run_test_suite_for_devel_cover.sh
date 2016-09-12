@@ -44,11 +44,11 @@ rm -rf cover_db/
 if [ "$DESTROY_SOLR" =  "1" ] 
 then
    echo "running api test"
-   HARNESS_PERL_SWITCHES='-MDevel::Cover=+ignore,local/,+ignore,^foreign_modules/,+ignore,\.t$' ./api_test/run_api_test.sh
+   HARNESS_PERL_SWITCHES='-MDevel::Cover=+ignore,local/,+ignore,^foreign_modules/,+ignore,t/,+ignore,\.t$' ./api_test/run_api_test.sh
 fi
 
 echo "Running full test suite..." 1>&2
-HARNESS_PERL_SWITCHES='-MDevel::Cover=+ignore,local/,+ignore,^foreign_modules/,+ignore,\.t$' ./script/run_test_suite.sh
+HARNESS_PERL_SWITCHES='-MDevel::Cover=+ignore,local/,+ignore,^foreign_modules/,+ignore,t/,+ignore,\.t$' ./script/run_test_suite.sh
 
 
 echo "Generating '$REPORT' report..." 1>&2
