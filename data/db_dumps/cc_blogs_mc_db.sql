@@ -14,10 +14,10 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Name: cd; Type: SCHEMA; Schema: -; Owner: -
+-- Name: snap; Type: SCHEMA; Schema: -; Owner: -
 --
 
-CREATE SCHEMA cd;
+CREATE SCHEMA snap;
 
 
 --
@@ -162,46 +162,6 @@ $_$;
 
 
 --
--- Name: auth_user_requests_update_daily_counts(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION auth_user_requests_update_daily_counts() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-
-DECLARE
-    request_date DATE;
-
-BEGIN
-
-    -- Try to prevent deadlocks
-    LOCK TABLE auth_user_request_daily_counts IN SHARE ROW EXCLUSIVE MODE;
-
-    request_date := DATE_TRUNC('day', NEW.request_timestamp)::DATE;
-
-    WITH upsert AS (
-        -- Try to UPDATE a previously INSERTed day
-        UPDATE auth_user_request_daily_counts
-        SET requests_count = requests_count + 1,
-            requested_items_count = requested_items_count + NEW.requested_items_count
-        WHERE email = NEW.email
-          AND day = request_date
-        RETURNING *
-    )
-    INSERT INTO auth_user_request_daily_counts (email, day, requests_count, requested_items_count)
-        SELECT NEW.email, request_date, 1, NEW.requested_items_count
-        WHERE NOT EXISTS (
-            SELECT *
-            FROM upsert
-        );
-
-    RETURN NULL;
-
-END;
-$$;
-
-
---
 -- Name: auth_users_set_default_limits(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -294,7 +254,7 @@ BEGIN
                 JOIN pg_catalog.pg_class AS c ON t.table_name = c.relname
                 JOIN pg_catalog.pg_user AS u ON c.relowner = u.usesysid
             WHERE t.table_name = 'bitly_clicks_total'
-              AND t.table_schema = 'public'
+              AND t.table_schema = CURRENT_SCHEMA()
             INTO target_table_owner;
 
             EXECUTE 'ALTER TABLE ' || target_table_name || ' OWNER TO ' || target_table_owner || ';';
@@ -518,7 +478,7 @@ BEGIN
                 WHERE i.indisprimary
             ) AS pkey ON pkey.indrelid = t.relname::regclass
         WHERE conname LIKE '%_pkey'
-          AND nsp.nspname = 'public'
+          AND nsp.nspname = CURRENT_SCHEMA()
           AND t.relname NOT IN (
             'story_similarities_100_short',
             'url_discovery_counts'
@@ -588,7 +548,7 @@ CREATE FUNCTION insert_live_story() RETURNS trigger
     AS $$
     begin
 
-        insert into cd.live_stories
+        insert into snap.live_stories
             ( topics_id, topic_stories_id, stories_id, media_id, url, guid, title, description,
                 publish_date, collect_date, full_text_rss, language,
                 db_row_last_updated )
@@ -1049,7 +1009,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4575;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4585;
 
 BEGIN
 
@@ -1171,7 +1131,7 @@ CREATE FUNCTION update_live_story() RETURNS trigger
     AS $$
     begin
 
-        update cd.live_stories set
+        update snap.live_stories set
                 media_id = NEW.media_id,
                 url = NEW.url,
                 guid = NEW.guid,
@@ -1434,6 +1394,43 @@ $$;
 
 
 --
+-- Name: upsert_auth_user_request_daily_counts(text, integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION upsert_auth_user_request_daily_counts(param_email text, param_requested_items_count integer) RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    request_date DATE;
+BEGIN
+    request_date := DATE_TRUNC('day', LOCALTIMESTAMP)::DATE;
+
+    LOOP
+        -- Try UPDATing
+        UPDATE auth_user_request_daily_counts
+           SET requests_count = requests_count + 1,
+               requested_items_count = requested_items_count + param_requested_items_count
+         WHERE email = param_email
+           AND day = request_date;
+
+        IF FOUND THEN RETURN; END IF;
+
+        -- Nothing to UPDATE, try to INSERT a new record
+        BEGIN
+            INSERT INTO auth_user_request_daily_counts (email, day, requests_count, requested_items_count)
+            VALUES (param_email, request_date, 1, param_requested_items_count);
+            RETURN;
+        EXCEPTION WHEN UNIQUE_VIOLATION THEN
+            -- If someone else INSERTs the same key concurrently,
+            -- we will get a unique-key failure. In that case, do
+            -- nothing and loop to try the UPDATE again.
+        END;
+    END LOOP;
+END;
+$$;
+
+
+--
 -- Name: upsert_bitly_clicks_total(integer, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -1479,247 +1476,9 @@ END;
 $$;
 
 
-SET search_path = cd, pg_catalog;
-
 SET default_tablespace = '';
 
 SET default_with_oids = false;
-
---
--- Name: daily_date_counts; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE daily_date_counts (
-    snapshots_id integer NOT NULL,
-    publish_date date NOT NULL,
-    story_count integer NOT NULL,
-    tags_id integer
-);
-
-
---
--- Name: live_stories; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE live_stories (
-    topics_id integer NOT NULL,
-    topic_stories_id integer NOT NULL,
-    stories_id integer NOT NULL,
-    media_id integer NOT NULL,
-    url character varying(1024) NOT NULL,
-    guid character varying(1024) NOT NULL,
-    title text NOT NULL,
-    description text,
-    publish_date timestamp without time zone NOT NULL,
-    collect_date timestamp without time zone NOT NULL,
-    full_text_rss boolean DEFAULT false NOT NULL,
-    language character varying(3),
-    db_row_last_updated timestamp with time zone
-);
-
-
---
--- Name: media; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE media (
-    snapshots_id integer NOT NULL,
-    media_id integer,
-    url character varying(1024) NOT NULL,
-    name character varying(128) NOT NULL,
-    moderated boolean NOT NULL,
-    moderation_notes text,
-    full_text_rss boolean,
-    extract_author boolean DEFAULT false,
-    foreign_rss_links boolean DEFAULT false NOT NULL,
-    dup_media_id integer,
-    is_not_dup boolean,
-    use_pager boolean,
-    unpaged_stories integer DEFAULT 0 NOT NULL
-);
-
-
---
--- Name: media_tags_map; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE media_tags_map (
-    snapshots_id integer NOT NULL,
-    media_tags_map_id integer,
-    media_id integer NOT NULL,
-    tags_id integer NOT NULL
-);
-
-
---
--- Name: medium_link_counts; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE medium_link_counts (
-    timespans_id integer NOT NULL,
-    media_id integer NOT NULL,
-    inlink_count integer NOT NULL,
-    outlink_count integer NOT NULL,
-    story_count integer NOT NULL,
-    bitly_click_count integer,
-    media_inlink_count integer NOT NULL,
-    sum_media_inlink_count integer NOT NULL
-);
-
-
---
--- Name: medium_links; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE medium_links (
-    timespans_id integer NOT NULL,
-    source_media_id integer NOT NULL,
-    ref_media_id integer NOT NULL,
-    link_count integer NOT NULL
-);
-
-
---
--- Name: stories; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE stories (
-    snapshots_id integer NOT NULL,
-    stories_id integer,
-    media_id integer NOT NULL,
-    url character varying(1024) NOT NULL,
-    guid character varying(1024) NOT NULL,
-    title text NOT NULL,
-    publish_date timestamp without time zone NOT NULL,
-    collect_date timestamp without time zone NOT NULL,
-    full_text_rss boolean DEFAULT false NOT NULL,
-    language character varying(3),
-    ap_syndicated boolean
-);
-
-
---
--- Name: stories_tags_map; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE stories_tags_map (
-    controversy_dumps_id integer NOT NULL,
-    stories_tags_map_id integer,
-    stories_id integer,
-    tags_id integer
-);
-
-
---
--- Name: story_link_counts; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE story_link_counts (
-    timespans_id integer NOT NULL,
-    stories_id integer NOT NULL,
-    inlink_count integer NOT NULL,
-    outlink_count integer NOT NULL,
-    bitly_click_count integer,
-    facebook_share_count integer,
-    media_inlink_count integer NOT NULL
-);
-
-
---
--- Name: story_links; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE story_links (
-    timespans_id integer NOT NULL,
-    source_stories_id integer NOT NULL,
-    ref_stories_id integer NOT NULL
-);
-
-
---
--- Name: tag_sets; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE tag_sets (
-    snapshots_id integer NOT NULL,
-    tag_sets_id integer,
-    name character varying(512),
-    label text,
-    description text
-);
-
-
---
--- Name: tags; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE tags (
-    snapshots_id integer NOT NULL,
-    tags_id integer,
-    tag_sets_id integer,
-    tag character varying(512),
-    label text,
-    description text
-);
-
-
---
--- Name: topic_links_cross_media; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE topic_links_cross_media (
-    snapshots_id integer NOT NULL,
-    topic_links_id integer,
-    topics_id integer NOT NULL,
-    stories_id integer NOT NULL,
-    url text NOT NULL,
-    ref_stories_id integer
-);
-
-
---
--- Name: topic_media_codes; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE topic_media_codes (
-    snapshots_id integer NOT NULL,
-    topics_id integer NOT NULL,
-    media_id integer NOT NULL,
-    code_type text,
-    code text
-);
-
-
---
--- Name: topic_stories; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE topic_stories (
-    snapshots_id integer NOT NULL,
-    topic_stories_id integer,
-    topics_id integer NOT NULL,
-    stories_id integer NOT NULL,
-    link_mined boolean,
-    iteration integer,
-    link_weight real,
-    redirect_url text,
-    valid_foreign_rss_story boolean
-);
-
-
---
--- Name: weekly_date_counts; Type: TABLE; Schema: cd; Owner: -
---
-
-CREATE TABLE weekly_date_counts (
-    snapshots_id integer NOT NULL,
-    publish_date date NOT NULL,
-    story_count integer NOT NULL,
-    tags_id integer
-);
-
-
-SET search_path = public, pg_catalog;
 
 --
 -- Name: activities; Type: TABLE; Schema: public; Owner: -
@@ -1948,38 +1707,6 @@ ALTER SEQUENCE auth_user_request_daily_count_auth_user_request_daily_count_seq O
 
 
 --
--- Name: auth_user_requests; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE auth_user_requests (
-    auth_user_requests_id integer NOT NULL,
-    email text NOT NULL,
-    request_path text NOT NULL,
-    request_timestamp timestamp without time zone DEFAULT ('now'::text)::timestamp without time zone NOT NULL,
-    requested_items_count integer DEFAULT 1 NOT NULL
-);
-
-
---
--- Name: auth_user_requests_auth_user_requests_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE auth_user_requests_auth_user_requests_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: auth_user_requests_auth_user_requests_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE auth_user_requests_auth_user_requests_id_seq OWNED BY auth_user_requests.auth_user_requests_id;
-
-
---
 -- Name: auth_users; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2194,6 +1921,37 @@ CREATE SEQUENCE bitly_processing_schedule_bitly_processing_schedule_id_seq
 --
 
 ALTER SEQUENCE bitly_processing_schedule_bitly_processing_schedule_id_seq OWNED BY bitly_processing_schedule.bitly_processing_schedule_id;
+
+
+--
+-- Name: cached_extractor_results; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE cached_extractor_results (
+    cached_extractor_results_id bigint NOT NULL,
+    extracted_html text,
+    extracted_text text,
+    downloads_id bigint NOT NULL
+);
+
+
+--
+-- Name: cached_extractor_results_cached_extractor_results_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE cached_extractor_results_cached_extractor_results_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cached_extractor_results_cached_extractor_results_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE cached_extractor_results_cached_extractor_results_id_seq OWNED BY cached_extractor_results.cached_extractor_results_id;
 
 
 --
@@ -3350,6 +3108,7 @@ CREATE TABLE media (
     unpaged_stories integer DEFAULT 0 NOT NULL,
     db_row_last_updated timestamp with time zone,
     content_delay integer,
+    last_solr_import_date timestamp with time zone DEFAULT now() NOT NULL,
     CONSTRAINT media_name_not_empty CHECK (((name)::text <> ''::text)),
     CONSTRAINT media_self_dup CHECK (((dup_media_id IS NULL) OR (dup_media_id <> media_id)))
 );
@@ -4044,6 +3803,39 @@ CREATE TABLE topic_merged_stories_map (
 
 
 --
+-- Name: topic_spider_metrics; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE topic_spider_metrics (
+    topic_spider_metrics_id integer NOT NULL,
+    topics_id integer,
+    iteration integer NOT NULL,
+    links_processed integer NOT NULL,
+    elapsed_time integer NOT NULL,
+    processed_date timestamp without time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: topic_spider_metrics_topic_spider_metrics_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE topic_spider_metrics_topic_spider_metrics_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: topic_spider_metrics_topic_spider_metrics_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE topic_spider_metrics_topic_spider_metrics_id_seq OWNED BY topic_spider_metrics.topic_spider_metrics_id;
+
+
+--
 -- Name: topics_with_dates; Type: VIEW; Schema: public; Owner: -
 --
 
@@ -4061,12 +3853,250 @@ CREATE VIEW topics_with_dates AS
     c.has_been_dumped,
     c.state,
     c.error_message,
-    to_char((cd.start_date)::timestamp with time zone, 'YYYY-MM-DD'::text) AS start_date,
-    to_char((cd.end_date)::timestamp with time zone, 'YYYY-MM-DD'::text) AS end_date
+    to_char((td.start_date)::timestamp with time zone, 'YYYY-MM-DD'::text) AS start_date,
+    to_char((td.end_date)::timestamp with time zone, 'YYYY-MM-DD'::text) AS end_date
    FROM (topics c
-     JOIN topic_dates cd ON ((c.topics_id = cd.topics_id)))
-  WHERE cd.boundary;
+     JOIN topic_dates td ON ((c.topics_id = td.topics_id)))
+  WHERE td.boundary;
 
+
+SET search_path = snap, pg_catalog;
+
+--
+-- Name: daily_date_counts; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE daily_date_counts (
+    snapshots_id integer NOT NULL,
+    publish_date date NOT NULL,
+    story_count integer NOT NULL,
+    tags_id integer
+);
+
+
+--
+-- Name: live_stories; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE live_stories (
+    topics_id integer NOT NULL,
+    topic_stories_id integer NOT NULL,
+    stories_id integer NOT NULL,
+    media_id integer NOT NULL,
+    url character varying(1024) NOT NULL,
+    guid character varying(1024) NOT NULL,
+    title text NOT NULL,
+    description text,
+    publish_date timestamp without time zone NOT NULL,
+    collect_date timestamp without time zone NOT NULL,
+    full_text_rss boolean DEFAULT false NOT NULL,
+    language character varying(3),
+    db_row_last_updated timestamp with time zone
+);
+
+
+--
+-- Name: media; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE media (
+    snapshots_id integer NOT NULL,
+    media_id integer,
+    url character varying(1024) NOT NULL,
+    name character varying(128) NOT NULL,
+    moderated boolean NOT NULL,
+    moderation_notes text,
+    full_text_rss boolean,
+    extract_author boolean DEFAULT false,
+    foreign_rss_links boolean DEFAULT false NOT NULL,
+    dup_media_id integer,
+    is_not_dup boolean,
+    use_pager boolean,
+    unpaged_stories integer DEFAULT 0 NOT NULL
+);
+
+
+--
+-- Name: media_tags_map; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE media_tags_map (
+    snapshots_id integer NOT NULL,
+    media_tags_map_id integer,
+    media_id integer NOT NULL,
+    tags_id integer NOT NULL
+);
+
+
+--
+-- Name: medium_link_counts; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE medium_link_counts (
+    timespans_id integer NOT NULL,
+    media_id integer NOT NULL,
+    inlink_count integer NOT NULL,
+    outlink_count integer NOT NULL,
+    story_count integer NOT NULL,
+    bitly_click_count integer,
+    media_inlink_count integer NOT NULL,
+    sum_media_inlink_count integer NOT NULL
+);
+
+
+--
+-- Name: medium_links; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE medium_links (
+    timespans_id integer NOT NULL,
+    source_media_id integer NOT NULL,
+    ref_media_id integer NOT NULL,
+    link_count integer NOT NULL
+);
+
+
+--
+-- Name: stories; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE stories (
+    snapshots_id integer NOT NULL,
+    stories_id integer,
+    media_id integer NOT NULL,
+    url character varying(1024) NOT NULL,
+    guid character varying(1024) NOT NULL,
+    title text NOT NULL,
+    publish_date timestamp without time zone NOT NULL,
+    collect_date timestamp without time zone NOT NULL,
+    full_text_rss boolean DEFAULT false NOT NULL,
+    language character varying(3),
+    ap_syndicated boolean
+);
+
+
+--
+-- Name: stories_tags_map; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE stories_tags_map (
+    controversy_dumps_id integer NOT NULL,
+    stories_tags_map_id integer,
+    stories_id integer,
+    tags_id integer
+);
+
+
+--
+-- Name: story_link_counts; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE story_link_counts (
+    timespans_id integer NOT NULL,
+    stories_id integer NOT NULL,
+    inlink_count integer NOT NULL,
+    outlink_count integer NOT NULL,
+    bitly_click_count integer,
+    facebook_share_count integer,
+    media_inlink_count integer NOT NULL
+);
+
+
+--
+-- Name: story_links; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE story_links (
+    timespans_id integer NOT NULL,
+    source_stories_id integer NOT NULL,
+    ref_stories_id integer NOT NULL
+);
+
+
+--
+-- Name: tag_sets; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE tag_sets (
+    snapshots_id integer NOT NULL,
+    tag_sets_id integer,
+    name character varying(512),
+    label text,
+    description text
+);
+
+
+--
+-- Name: tags; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE tags (
+    snapshots_id integer NOT NULL,
+    tags_id integer,
+    tag_sets_id integer,
+    tag character varying(512),
+    label text,
+    description text
+);
+
+
+--
+-- Name: topic_links_cross_media; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE topic_links_cross_media (
+    snapshots_id integer NOT NULL,
+    topic_links_id integer,
+    topics_id integer NOT NULL,
+    stories_id integer NOT NULL,
+    url text NOT NULL,
+    ref_stories_id integer
+);
+
+
+--
+-- Name: topic_media_codes; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE topic_media_codes (
+    snapshots_id integer NOT NULL,
+    topics_id integer NOT NULL,
+    media_id integer NOT NULL,
+    code_type text,
+    code text
+);
+
+
+--
+-- Name: topic_stories; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE topic_stories (
+    snapshots_id integer NOT NULL,
+    topic_stories_id integer,
+    topics_id integer NOT NULL,
+    stories_id integer NOT NULL,
+    link_mined boolean,
+    iteration integer,
+    link_weight real,
+    redirect_url text,
+    valid_foreign_rss_story boolean
+);
+
+
+--
+-- Name: weekly_date_counts; Type: TABLE; Schema: snap; Owner: -
+--
+
+CREATE TABLE weekly_date_counts (
+    snapshots_id integer NOT NULL,
+    publish_date date NOT NULL,
+    story_count integer NOT NULL,
+    tags_id integer
+);
+
+
+SET search_path = public, pg_catalog;
 
 --
 -- Name: activities_id; Type: DEFAULT; Schema: public; Owner: -
@@ -4115,13 +4145,6 @@ ALTER TABLE ONLY auth_user_limits ALTER COLUMN auth_user_limits_id SET DEFAULT n
 --
 
 ALTER TABLE ONLY auth_user_request_daily_counts ALTER COLUMN auth_user_request_daily_counts_id SET DEFAULT nextval('auth_user_request_daily_count_auth_user_request_daily_count_seq'::regclass);
-
-
---
--- Name: auth_user_requests_id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY auth_user_requests ALTER COLUMN auth_user_requests_id SET DEFAULT nextval('auth_user_requests_auth_user_requests_id_seq'::regclass);
 
 
 --
@@ -4178,6 +4201,13 @@ ALTER TABLE ONLY bitly_processing_results ALTER COLUMN bitly_processing_results_
 --
 
 ALTER TABLE ONLY bitly_processing_schedule ALTER COLUMN bitly_processing_schedule_id SET DEFAULT nextval('bitly_processing_schedule_bitly_processing_schedule_id_seq'::regclass);
+
+
+--
+-- Name: cached_extractor_results_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY cached_extractor_results ALTER COLUMN cached_extractor_results_id SET DEFAULT nextval('cached_extractor_results_cached_extractor_results_id_seq'::regclass);
 
 
 --
@@ -4461,6 +4491,13 @@ ALTER TABLE ONLY topic_seed_urls ALTER COLUMN topic_seed_urls_id SET DEFAULT nex
 
 
 --
+-- Name: topic_spider_metrics_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY topic_spider_metrics ALTER COLUMN topic_spider_metrics_id SET DEFAULT nextval('topic_spider_metrics_topic_spider_metrics_id_seq'::regclass);
+
+
+--
 -- Name: topic_stories_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4473,138 +4510,6 @@ ALTER TABLE ONLY topic_stories ALTER COLUMN topic_stories_id SET DEFAULT nextval
 
 ALTER TABLE ONLY topics ALTER COLUMN topics_id SET DEFAULT nextval('controversies_controversies_id_seq'::regclass);
 
-
-SET search_path = cd, pg_catalog;
-
---
--- Data for Name: daily_date_counts; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY daily_date_counts (snapshots_id, publish_date, story_count, tags_id) FROM stdin;
-\.
-
-
---
--- Data for Name: live_stories; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY live_stories (topics_id, topic_stories_id, stories_id, media_id, url, guid, title, description, publish_date, collect_date, full_text_rss, language, db_row_last_updated) FROM stdin;
-\.
-
-
---
--- Data for Name: media; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY media (snapshots_id, media_id, url, name, moderated, moderation_notes, full_text_rss, extract_author, foreign_rss_links, dup_media_id, is_not_dup, use_pager, unpaged_stories) FROM stdin;
-\.
-
-
---
--- Data for Name: media_tags_map; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY media_tags_map (snapshots_id, media_tags_map_id, media_id, tags_id) FROM stdin;
-\.
-
-
---
--- Data for Name: medium_link_counts; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY medium_link_counts (timespans_id, media_id, inlink_count, outlink_count, story_count, bitly_click_count, media_inlink_count, sum_media_inlink_count) FROM stdin;
-\.
-
-
---
--- Data for Name: medium_links; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY medium_links (timespans_id, source_media_id, ref_media_id, link_count) FROM stdin;
-\.
-
-
---
--- Data for Name: stories; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY stories (snapshots_id, stories_id, media_id, url, guid, title, publish_date, collect_date, full_text_rss, language, ap_syndicated) FROM stdin;
-\.
-
-
---
--- Data for Name: stories_tags_map; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY stories_tags_map (controversy_dumps_id, stories_tags_map_id, stories_id, tags_id) FROM stdin;
-\.
-
-
---
--- Data for Name: story_link_counts; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY story_link_counts (timespans_id, stories_id, inlink_count, outlink_count, bitly_click_count, facebook_share_count, media_inlink_count) FROM stdin;
-\.
-
-
---
--- Data for Name: story_links; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY story_links (timespans_id, source_stories_id, ref_stories_id) FROM stdin;
-\.
-
-
---
--- Data for Name: tag_sets; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY tag_sets (snapshots_id, tag_sets_id, name, label, description) FROM stdin;
-\.
-
-
---
--- Data for Name: tags; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY tags (snapshots_id, tags_id, tag_sets_id, tag, label, description) FROM stdin;
-\.
-
-
---
--- Data for Name: topic_links_cross_media; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY topic_links_cross_media (snapshots_id, topic_links_id, topics_id, stories_id, url, ref_stories_id) FROM stdin;
-\.
-
-
---
--- Data for Name: topic_media_codes; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY topic_media_codes (snapshots_id, topics_id, media_id, code_type, code) FROM stdin;
-\.
-
-
---
--- Data for Name: topic_stories; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY topic_stories (snapshots_id, topic_stories_id, topics_id, stories_id, link_mined, iteration, link_weight, redirect_url, valid_foreign_rss_story) FROM stdin;
-\.
-
-
---
--- Data for Name: weekly_date_counts; Type: TABLE DATA; Schema: cd; Owner: -
---
-
-COPY weekly_date_counts (snapshots_id, publish_date, story_count, tags_id) FROM stdin;
-\.
-
-
-SET search_path = public, pg_catalog;
 
 --
 -- Data for Name: activities; Type: TABLE DATA; Schema: public; Owner: -
@@ -4723,460 +4628,6 @@ COPY auth_user_request_daily_counts (auth_user_request_daily_counts_id, email, d
 
 
 --
--- Data for Name: auth_user_requests; Type: TABLE DATA; Schema: public; Owner: -
---
-
-COPY auth_user_requests (auth_user_requests_id, email, request_path, request_timestamp, requested_items_count) FROM stdin;
-1	jdoe@cyber.law.harvard.edu	api/v2/stories_public/list/	2014-09-17 16:55:18.995497	1
-2	jdoe@cyber.law.harvard.edu	api/v2/stories/list/	2014-09-17 16:55:19.145358	1
-3	jdoe@cyber.law.harvard.edu	api/v2/tags/single/4	2014-09-17 16:55:19.184994	1
-4	jdoe@cyber.law.harvard.edu	api/v2/tags/list/	2014-09-17 16:55:19.229786	1
-5	jdoe@cyber.law.harvard.edu	api/v2/tags/list	2014-09-17 16:55:19.312453	1
-6	jdoe@cyber.law.harvard.edu	api/v2/media/single/1	2014-09-17 16:55:19.350283	1
-7	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 16:55:19.396541	1
-8	jdoe@cyber.law.harvard.edu	api/v2/media/list/	2014-09-17 16:55:19.459199	1
-9	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 16:55:19.500438	1
-10	jdoe@cyber.law.harvard.edu	api/v2/stories_public/list/	2014-09-17 16:59:41.587098	1
-11	jdoe@cyber.law.harvard.edu	api/v2/stories/list/	2014-09-17 16:59:41.681627	1
-12	jdoe@cyber.law.harvard.edu	api/v2/tags/single/4	2014-09-17 16:59:41.720277	1
-13	jdoe@cyber.law.harvard.edu	api/v2/tags/list/	2014-09-17 16:59:41.773846	1
-14	jdoe@cyber.law.harvard.edu	api/v2/tags/list	2014-09-17 16:59:41.81741	1
-15	jdoe@cyber.law.harvard.edu	api/v2/media/single/1	2014-09-17 16:59:41.865503	1
-16	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 16:59:41.919995	1
-17	jdoe@cyber.law.harvard.edu	api/v2/media/list/	2014-09-17 16:59:41.973647	1
-18	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 16:59:42.007379	1
-19	jdoe@cyber.law.harvard.edu	api/v2/stories_public/list/	2014-09-17 17:01:11.377554	1
-20	jdoe@cyber.law.harvard.edu	api/v2/stories/list/	2014-09-17 17:01:11.452723	1
-21	jdoe@cyber.law.harvard.edu	api/v2/tags/single/4	2014-09-17 17:01:11.489852	1
-22	jdoe@cyber.law.harvard.edu	api/v2/tags/list/	2014-09-17 17:01:11.528532	1
-23	jdoe@cyber.law.harvard.edu	api/v2/tags/list	2014-09-17 17:01:11.571328	1
-24	jdoe@cyber.law.harvard.edu	api/v2/media/single/1	2014-09-17 17:01:11.600464	1
-25	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 17:01:11.634663	1
-26	jdoe@cyber.law.harvard.edu	api/v2/media/list/	2014-09-17 17:01:11.668561	1
-27	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 17:01:11.700775	1
-28	jdoe@cyber.law.harvard.edu	api/v2/media/single/1	2014-09-17 17:02:42.770964	1
-29	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:02:42.838371	1
-30	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:02:42.869355	1
-31	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:02:42.905203	1
-32	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:02:42.95226	1
-33	jdoe@cyber.law.harvard.edu	api/v2/feeds/single/1	2014-09-17 17:02:42.984779	1
-34	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 17:02:43.020866	1
-35	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 17:02:43.051074	1
-36	jdoe@cyber.law.harvard.edu	api/v2/tags/list	2014-09-17 17:02:43.089755	1
-37	jdoe@cyber.law.harvard.edu	api/v2/tags/single/1	2014-09-17 17:02:43.148239	1
-38	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:02:43.240081	1
-39	jdoe@cyber.law.harvard.edu	api/v2/stories/list	2014-09-17 17:02:43.373387	1
-40	jdoe@cyber.law.harvard.edu	api/v2/stories_public/single/57	2014-09-17 17:02:43.415088	1
-41	jdoe@cyber.law.harvard.edu	api/v2/stories/list	2014-09-17 17:02:43.482002	1
-42	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:02:43.542056	1
-43	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:02:43.607015	1
-44	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:02:43.688767	1
-45	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:02:43.731665	1
-46	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:02:43.777432	1
-47	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:02:43.848276	1
-48	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:02:43.906732	1
-49	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:02:43.940385	1
-50	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:02:43.989979	1
-51	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:02:44.039927	1
-52	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:02:44.089877	1
-53	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:02:44.123037	1
-54	jdoe@cyber.law.harvard.edu	api/v2/media/single/1	2014-09-17 17:02:44.170719	1
-55	jdoe@cyber.law.harvard.edu	api/v2/auth/single/	2014-09-17 17:02:44.205265	1
-56	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:02:44.256551	1
-57	jdoe@cyber.law.harvard.edu	api/v2/sentences/put_tags	2014-09-17 17:02:44.431984	1
-58	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:02:44.473612	1
-59	jdoe@cyber.law.harvard.edu	api/v2/sentences/put_tags	2014-09-17 17:02:44.540511	1
-60	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:02:44.607212	1
-61	jdoe@cyber.law.harvard.edu	api/v2/stories/put_tags	2014-09-17 17:02:44.673968	1
-62	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:02:44.715638	1
-63	jdoe@cyber.law.harvard.edu	api/v2/stories/put_tags	2014-09-17 17:02:44.765874	1
-64	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:02:44.824331	1
-65	jdoe@cyber.law.harvard.edu	api/v2/media/single/1	2014-09-17 17:05:55.8859	1
-66	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:05:55.936085	1
-67	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:05:55.967309	1
-68	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:05:56.00187	1
-69	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:05:56.034341	1
-70	jdoe@cyber.law.harvard.edu	api/v2/feeds/single/1	2014-09-17 17:05:56.065166	1
-71	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 17:05:56.097424	1
-72	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 17:05:56.123356	1
-73	jdoe@cyber.law.harvard.edu	api/v2/tags/list	2014-09-17 17:05:56.170132	1
-74	jdoe@cyber.law.harvard.edu	api/v2/tags/single/1	2014-09-17 17:05:56.201225	1
-75	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:05:56.420319	1
-76	jdoe@cyber.law.harvard.edu	api/v2/stories/list	2014-09-17 17:05:56.486986	1
-77	jdoe@cyber.law.harvard.edu	api/v2/stories_public/single/57	2014-09-17 17:05:56.537303	1
-78	jdoe@cyber.law.harvard.edu	api/v2/stories/list	2014-09-17 17:05:56.595531	1
-79	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:05:56.631446	1
-80	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:05:56.666952	1
-81	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:05:56.709882	1
-82	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:05:56.751552	1
-83	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:05:56.79447	1
-84	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:05:56.878692	1
-85	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:05:56.937105	1
-86	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:05:56.971029	1
-87	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:05:57.020311	1
-88	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:05:57.07035	1
-89	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:05:57.120261	1
-90	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:05:57.156494	1
-91	jdoe@cyber.law.harvard.edu	api/v2/media/single/1	2014-09-17 17:05:57.219148	1
-92	jdoe@cyber.law.harvard.edu	api/v2/auth/single/	2014-09-17 17:05:57.25302	1
-93	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:05:57.303556	1
-94	jdoe@cyber.law.harvard.edu	api/v2/sentences/put_tags	2014-09-17 17:05:57.338842	1
-95	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:05:57.395089	1
-96	jdoe@cyber.law.harvard.edu	api/v2/stories/put_tags	2014-09-17 17:05:57.437679	1
-97	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:05:57.479443	1
-98	jdoe@cyber.law.harvard.edu	api/v2/stories/put_tags	2014-09-17 17:05:57.520995	1
-99	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:05:57.562825	1
-100	jdoe@cyber.law.harvard.edu	api/v2/media/single/1	2014-09-17 17:08:56.20354	1
-101	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:08:56.261023	1
-102	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:08:56.338455	1
-103	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:08:56.380113	1
-104	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:08:56.424055	1
-105	jdoe@cyber.law.harvard.edu	api/v2/feeds/single/1	2014-09-17 17:08:56.459678	1
-106	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 17:08:56.500766	1
-107	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 17:08:56.542309	1
-108	jdoe@cyber.law.harvard.edu	api/v2/tags/list	2014-09-17 17:08:56.599018	1
-109	jdoe@cyber.law.harvard.edu	api/v2/tags/single/17	2014-09-17 17:08:56.626761	1
-110	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:08:56.680576	1
-111	jdoe@cyber.law.harvard.edu	api/v2/stories/list	2014-09-17 17:08:56.755821	1
-112	jdoe@cyber.law.harvard.edu	api/v2/stories_public/single/57	2014-09-17 17:08:56.79736	1
-113	jdoe@cyber.law.harvard.edu	api/v2/stories/list	2014-09-17 17:08:56.855894	1
-114	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:08:56.891549	1
-115	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:08:56.926555	1
-116	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:08:56.95855	1
-117	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:08:56.993718	1
-118	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:08:57.036115	1
-119	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:08:57.097315	1
-120	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:08:57.155738	1
-121	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:08:57.18985	1
-122	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:08:57.238954	1
-123	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:08:57.289005	1
-124	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:08:57.338969	1
-125	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:08:57.37266	1
-126	jdoe@cyber.law.harvard.edu	api/v2/media/single/1	2014-09-17 17:08:57.40373	1
-127	jdoe@cyber.law.harvard.edu	api/v2/auth/single/	2014-09-17 17:08:57.494271	1
-128	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:08:57.538876	1
-129	jdoe@cyber.law.harvard.edu	api/v2/sentences/put_tags	2014-09-17 17:08:57.575021	1
-130	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:08:57.613627	1
-131	jdoe@cyber.law.harvard.edu	api/v2/stories/put_tags	2014-09-17 17:08:57.655345	1
-132	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:08:57.705467	1
-133	jdoe@cyber.law.harvard.edu	api/v2/stories/put_tags	2014-09-17 17:08:57.747135	1
-134	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:08:57.797224	1
-135	jdoe@cyber.law.harvard.edu	api/v2/media/single/1	2014-09-17 17:09:54.385981	1
-136	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:09:54.429735	1
-137	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:09:54.460371	1
-138	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:09:54.496027	1
-139	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:09:54.529045	1
-140	jdoe@cyber.law.harvard.edu	api/v2/feeds/single/1	2014-09-17 17:09:54.559114	1
-141	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 17:09:54.593159	1
-142	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 17:09:54.624532	1
-143	jdoe@cyber.law.harvard.edu	api/v2/tags/list	2014-09-17 17:09:54.656426	1
-144	jdoe@cyber.law.harvard.edu	api/v2/tags/single/17	2014-09-17 17:09:54.684524	1
-145	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:09:54.730535	1
-146	jdoe@cyber.law.harvard.edu	api/v2/stories/list	2014-09-17 17:09:54.79739	1
-147	jdoe@cyber.law.harvard.edu	api/v2/stories_public/single/57	2014-09-17 17:09:54.83925	1
-148	jdoe@cyber.law.harvard.edu	api/v2/stories/list	2014-09-17 17:09:54.905961	1
-149	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:09:54.943044	1
-150	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:09:54.978048	1
-151	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:09:55.016997	1
-152	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:09:55.05067	1
-153	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:09:55.088158	1
-154	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:09:55.147482	1
-155	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:09:55.205863	1
-156	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:09:55.240305	1
-157	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:09:55.297542	1
-158	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:09:55.3558	1
-159	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:09:55.414287	1
-160	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:09:55.455667	1
-161	jdoe@cyber.law.harvard.edu	api/v2/media/single/1	2014-09-17 17:09:55.495373	1
-162	jdoe@cyber.law.harvard.edu	api/v2/auth/single/	2014-09-17 17:09:55.534098	1
-163	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:09:55.5723	1
-164	jdoe@cyber.law.harvard.edu	api/v2/sentences/put_tags	2014-09-17 17:09:55.605284	1
-165	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:09:55.663967	1
-166	jdoe@cyber.law.harvard.edu	api/v2/stories/put_tags	2014-09-17 17:09:55.714948	1
-167	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:09:55.756612	1
-168	jdoe@cyber.law.harvard.edu	api/v2/stories/put_tags	2014-09-17 17:09:55.831832	1
-169	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:09:55.873388	1
-170	jdoe@cyber.law.harvard.edu	api/v2/media/single/1	2014-09-17 17:10:40.411523	1
-171	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:10:40.463983	1
-172	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:10:40.501321	1
-173	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:10:40.536462	1
-174	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:10:40.568095	1
-175	jdoe@cyber.law.harvard.edu	api/v2/feeds/single/1	2014-09-17 17:10:40.598049	1
-176	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 17:10:40.630682	1
-177	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 17:10:40.662773	1
-178	jdoe@cyber.law.harvard.edu	api/v2/tags/list	2014-09-17 17:10:40.701778	1
-179	jdoe@cyber.law.harvard.edu	api/v2/tags/single/17	2014-09-17 17:10:40.732667	1
-180	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:10:40.775945	1
-181	jdoe@cyber.law.harvard.edu	api/v2/stories/list	2014-09-17 17:10:40.842579	1
-182	jdoe@cyber.law.harvard.edu	api/v2/stories_public/single/57	2014-09-17 17:10:40.900854	1
-183	jdoe@cyber.law.harvard.edu	api/v2/stories/list	2014-09-17 17:10:40.967644	1
-184	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:10:41.003845	1
-185	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:10:41.04616	1
-186	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:10:41.081898	1
-187	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:10:41.123921	1
-188	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:10:41.167076	1
-189	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:10:41.225869	1
-190	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:10:41.292437	1
-191	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:10:41.327112	1
-192	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:10:41.375689	1
-193	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:10:41.425667	1
-194	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:10:41.484252	1
-195	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:10:41.517937	1
-196	jdoe@cyber.law.harvard.edu	api/v2/media/single/1	2014-09-17 17:10:41.548874	1
-197	jdoe@cyber.law.harvard.edu	api/v2/auth/single/	2014-09-17 17:10:41.580553	1
-198	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:10:41.625792	1
-199	jdoe@cyber.law.harvard.edu	api/v2/sentences/put_tags	2014-09-17 17:10:41.659975	1
-200	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:10:41.710259	1
-201	jdoe@cyber.law.harvard.edu	api/v2/stories/put_tags	2014-09-17 17:10:41.802045	1
-202	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:10:41.860235	1
-203	jdoe@cyber.law.harvard.edu	api/v2/stories/put_tags	2014-09-17 17:10:41.901888	1
-204	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:10:41.943558	1
-205	jdoe@cyber.law.harvard.edu	api/v2/media/single/1	2014-09-17 17:11:40.208659	1
-206	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:11:40.262624	1
-207	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:11:40.299353	1
-208	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:11:40.332172	1
-209	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:11:40.362583	1
-210	jdoe@cyber.law.harvard.edu	api/v2/feeds/single/1	2014-09-17 17:11:40.392683	1
-211	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 17:11:40.421047	1
-212	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 17:11:40.45312	1
-213	jdoe@cyber.law.harvard.edu	api/v2/tags/list	2014-09-17 17:11:40.490058	1
-214	jdoe@cyber.law.harvard.edu	api/v2/tags/single/17	2014-09-17 17:11:40.518541	1
-215	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:11:40.572664	1
-216	jdoe@cyber.law.harvard.edu	api/v2/stories/list	2014-09-17 17:11:40.639568	1
-217	jdoe@cyber.law.harvard.edu	api/v2/stories_public/single/57	2014-09-17 17:11:40.681211	1
-218	jdoe@cyber.law.harvard.edu	api/v2/stories/list	2014-09-17 17:11:40.74798	1
-219	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:11:40.784516	1
-220	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:11:40.821346	1
-221	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:11:40.861263	1
-222	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:11:40.900111	1
-223	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:11:40.936388	1
-224	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:11:40.997809	1
-225	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:11:41.056079	1
-226	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:11:41.089872	1
-227	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:11:41.139349	1
-228	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:11:41.189258	1
-229	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:11:41.239274	1
-230	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:11:41.288375	1
-231	jdoe@cyber.law.harvard.edu	api/v2/media/single/1	2014-09-17 17:11:41.319452	1
-232	jdoe@cyber.law.harvard.edu	api/v2/auth/single/	2014-09-17 17:11:41.356879	1
-233	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:11:41.405907	1
-234	jdoe@cyber.law.harvard.edu	api/v2/sentences/put_tags	2014-09-17 17:11:41.439897	1
-235	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:11:41.480959	1
-236	jdoe@cyber.law.harvard.edu	api/v2/stories/put_tags	2014-09-17 17:11:41.522685	1
-237	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:11:41.572625	1
-238	jdoe@cyber.law.harvard.edu	api/v2/stories/put_tags	2014-09-17 17:11:41.647889	1
-239	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:11:41.68939	1
-240	jdoe@cyber.law.harvard.edu	api/v2/media/single/1	2014-09-17 17:12:26.591692	1
-241	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:12:26.633183	1
-242	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:12:26.664974	1
-243	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:12:26.700791	1
-244	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:12:26.731616	1
-245	jdoe@cyber.law.harvard.edu	api/v2/feeds/single/1	2014-09-17 17:12:26.762276	1
-246	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 17:12:26.795195	1
-247	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 17:12:26.819724	1
-248	jdoe@cyber.law.harvard.edu	api/v2/tags/list	2014-09-17 17:12:26.866126	1
-249	jdoe@cyber.law.harvard.edu	api/v2/tags/list	2014-09-17 17:12:26.909002	1
-250	jdoe@cyber.law.harvard.edu	api/v2/tags/single/17	2014-09-17 17:12:26.938504	1
-251	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:12:26.999343	1
-252	jdoe@cyber.law.harvard.edu	api/v2/stories/list	2014-09-17 17:12:27.066261	1
-253	jdoe@cyber.law.harvard.edu	api/v2/stories_public/single/57	2014-09-17 17:12:27.107763	1
-254	jdoe@cyber.law.harvard.edu	api/v2/stories/list	2014-09-17 17:12:27.174533	1
-255	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:12:27.209826	1
-256	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:12:27.247237	1
-257	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:12:27.288182	1
-258	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:12:27.328935	1
-259	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:12:27.374214	1
-260	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:12:27.432691	1
-261	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:12:27.490934	1
-262	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:12:27.524038	1
-263	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:12:27.574185	1
-264	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:12:27.624142	1
-265	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:12:27.674234	1
-266	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:12:27.708582	1
-267	jdoe@cyber.law.harvard.edu	api/v2/media/single/1	2014-09-17 17:12:27.739883	1
-268	jdoe@cyber.law.harvard.edu	api/v2/auth/single/	2014-09-17 17:12:27.77041	1
-269	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:12:27.80744	1
-270	jdoe@cyber.law.harvard.edu	api/v2/sentences/put_tags	2014-09-17 17:12:27.842391	1
-271	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:12:27.899362	1
-272	jdoe@cyber.law.harvard.edu	api/v2/stories/put_tags	2014-09-17 17:12:27.940769	1
-273	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:12:27.982434	1
-274	jdoe@cyber.law.harvard.edu	api/v2/stories/put_tags	2014-09-17 17:12:28.040846	1
-275	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:12:28.082493	1
-276	jdoe@cyber.law.harvard.edu	api/v2/media/single/1	2014-09-17 17:12:58.336429	1
-277	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:12:58.380303	1
-278	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:12:58.418656	1
-279	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:12:58.452503	1
-280	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:12:58.484106	1
-281	jdoe@cyber.law.harvard.edu	api/v2/feeds/single/1	2014-09-17 17:12:58.523361	1
-282	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 17:12:58.556167	1
-283	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 17:12:58.589778	1
-284	jdoe@cyber.law.harvard.edu	api/v2/tags/list	2014-09-17 17:12:58.635327	1
-285	jdoe@cyber.law.harvard.edu	api/v2/tags/list	2014-09-17 17:12:58.676803	1
-286	jdoe@cyber.law.harvard.edu	api/v2/tags/list	2014-09-17 17:12:58.718859	1
-287	jdoe@cyber.law.harvard.edu	api/v2/tags/single/17	2014-09-17 17:12:58.748214	1
-288	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:12:58.800972	1
-289	jdoe@cyber.law.harvard.edu	api/v2/stories/list	2014-09-17 17:12:58.867608	1
-290	jdoe@cyber.law.harvard.edu	api/v2/stories_public/single/57	2014-09-17 17:12:58.909256	1
-291	jdoe@cyber.law.harvard.edu	api/v2/stories/list	2014-09-17 17:12:58.976176	1
-292	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:12:59.014932	1
-293	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:12:59.057093	1
-294	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:12:59.208495	1
-295	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:12:59.263856	1
-296	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:12:59.306452	1
-297	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:12:59.484033	1
-298	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:12:59.542403	1
-299	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:12:59.577351	1
-300	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:12:59.625535	1
-301	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:12:59.67562	1
-302	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:12:59.725545	1
-303	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:12:59.760429	1
-304	jdoe@cyber.law.harvard.edu	api/v2/media/single/1	2014-09-17 17:12:59.790492	1
-305	jdoe@cyber.law.harvard.edu	api/v2/auth/single/	2014-09-17 17:12:59.822177	1
-306	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:12:59.867207	1
-307	jdoe@cyber.law.harvard.edu	api/v2/sentences/put_tags	2014-09-17 17:12:59.902322	1
-308	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:12:59.950435	1
-309	jdoe@cyber.law.harvard.edu	api/v2/stories/put_tags	2014-09-17 17:12:59.992135	1
-310	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:13:00.033716	1
-311	jdoe@cyber.law.harvard.edu	api/v2/stories/put_tags	2014-09-17 17:13:00.075437	1
-312	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:13:00.117141	1
-313	jdoe@cyber.law.harvard.edu	api/v2/media/single/1	2014-09-17 17:13:30.64448	1
-314	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:13:30.720036	1
-315	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:13:30.750991	1
-316	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:13:30.785584	1
-317	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:13:30.829732	1
-318	jdoe@cyber.law.harvard.edu	api/v2/feeds/single/1	2014-09-17 17:13:30.863751	1
-319	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 17:13:30.896541	1
-320	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 17:13:30.921969	1
-321	jdoe@cyber.law.harvard.edu	api/v2/tags/list	2014-09-17 17:13:30.9686	1
-322	jdoe@cyber.law.harvard.edu	api/v2/tags/list	2014-09-17 17:13:31.010544	1
-323	jdoe@cyber.law.harvard.edu	api/v2/tags/list	2014-09-17 17:13:31.052383	1
-324	jdoe@cyber.law.harvard.edu	api/v2/tags/list	2014-09-17 17:13:31.094279	1
-325	jdoe@cyber.law.harvard.edu	api/v2/tags/single/17	2014-09-17 17:13:31.122337	1
-326	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:13:31.167617	1
-327	jdoe@cyber.law.harvard.edu	api/v2/stories/list	2014-09-17 17:13:31.23436	1
-328	jdoe@cyber.law.harvard.edu	api/v2/stories_public/single/57	2014-09-17 17:13:31.284604	1
-329	jdoe@cyber.law.harvard.edu	api/v2/stories/list	2014-09-17 17:13:31.351234	1
-330	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:13:31.390078	1
-331	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:13:31.429591	1
-332	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:13:31.463447	1
-333	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:13:31.496068	1
-334	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:13:31.534451	1
-335	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:13:31.59282	1
-336	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:13:31.651073	1
-337	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:13:31.692954	1
-338	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:13:31.742569	1
-339	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:13:31.800942	1
-340	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:13:31.850877	1
-341	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:13:31.885154	1
-342	jdoe@cyber.law.harvard.edu	api/v2/media/single/1	2014-09-17 17:13:31.914851	1
-343	jdoe@cyber.law.harvard.edu	api/v2/auth/single/	2014-09-17 17:13:31.949211	1
-344	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:13:32.000801	1
-345	jdoe@cyber.law.harvard.edu	api/v2/sentences/put_tags	2014-09-17 17:13:32.034873	1
-346	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:13:32.075911	1
-347	jdoe@cyber.law.harvard.edu	api/v2/stories/put_tags	2014-09-17 17:13:32.125853	1
-348	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:13:32.175871	1
-349	jdoe@cyber.law.harvard.edu	api/v2/stories/put_tags	2014-09-17 17:13:32.21741	1
-350	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:13:32.267631	1
-351	jdoe@cyber.law.harvard.edu	api/v2/media/single/1	2014-09-17 17:13:49.323828	1
-352	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:13:49.373617	1
-353	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:13:49.403499	1
-354	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:13:49.437866	1
-355	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:13:49.471199	1
-356	jdoe@cyber.law.harvard.edu	api/v2/feeds/single/1	2014-09-17 17:13:49.501991	1
-357	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 17:13:49.535866	1
-358	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 17:13:49.568863	1
-359	jdoe@cyber.law.harvard.edu	api/v2/tags/list	2014-09-17 17:13:49.622617	1
-360	jdoe@cyber.law.harvard.edu	api/v2/tags/list	2014-09-17 17:13:49.665491	1
-361	jdoe@cyber.law.harvard.edu	api/v2/tags/list	2014-09-17 17:13:49.715627	1
-362	jdoe@cyber.law.harvard.edu	api/v2/tags/list	2014-09-17 17:13:49.765793	1
-363	jdoe@cyber.law.harvard.edu	api/v2/tags/single/17	2014-09-17 17:13:49.795221	1
-364	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:13:49.864925	1
-365	jdoe@cyber.law.harvard.ed	api/v2/stories/list	2014-09-17 17:13:49.93195	1
-366	jdoe@cyber.law.harvard.edu	api/v2/stories_public/single/57	2014-09-17 17:13:49.973796	1
-367	jdoe@cyber.law.harvard.edu	api/v2/stories/list	2014-09-17 17:13:50.040578	1
-368	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:13:50.07735	1
-369	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:13:50.11304	1
-370	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:13:50.155045	1
-371	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:13:50.192551	1
-372	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:13:50.229785	1
-373	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:13:50.290517	1
-374	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:13:50.34871	1
-375	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:13:50.382796	1
-376	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:13:50.432036	1
-377	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:13:50.481922	1
-378	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:13:50.531928	1
-379	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:13:50.56648	1
-380	jdoe@cyber.law.harvard.edu	api/v2/media/single/1	2014-09-17 17:13:50.596145	1
-381	jdoe@cyber.law.harvard.edu	api/v2/auth/single/	2014-09-17 17:13:50.629136	1
-382	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:13:50.67348	1
-383	jdoe@cyber.law.harvard.edu	api/v2/sentences/put_tags	2014-09-17 17:13:50.705944	1
-384	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:13:50.756856	1
-385	jdoe@cyber.law.harvard.edu	api/v2/stories/put_tags	2014-09-17 17:13:50.798567	1
-386	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:13:50.84854	1
-387	jdoe@cyber.law.harvard.edu	api/v2/stories/put_tags	2014-09-17 17:13:50.890072	1
-388	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:13:50.93184	1
-389	jdoe@cyber.law.harvard.edu	api/v2/media/single/1	2014-09-17 17:15:43.144177	1
-390	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:15:43.18951	1
-391	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:15:43.221314	1
-392	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:15:43.258865	1
-393	jdoe@cyber.law.harvard.edu	api/v2/media/list	2014-09-17 17:15:43.288505	1
-394	jdoe@cyber.law.harvard.edu	api/v2/feeds/single/1	2014-09-17 17:15:43.32173	1
-395	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 17:15:43.350629	1
-396	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 17:15:43.375937	1
-397	jdoe@cyber.law.harvard.edu	api/v2/tags/list	2014-09-17 17:15:43.415956	1
-398	jdoe@cyber.law.harvard.edu	api/v2/tags/list	2014-09-17 17:15:43.457624	1
-399	jdoe@cyber.law.harvard.edu	api/v2/tags/list	2014-09-17 17:15:43.499295	1
-400	jdoe@cyber.law.harvard.edu	api/v2/tags/list	2014-09-17 17:15:43.540927	1
-401	jdoe@cyber.law.harvard.edu	api/v2/tags/single/17	2014-09-17 17:15:43.569803	1
-402	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:15:43.623888	1
-403	jdoe@cyber.law.harvard.edu	api/v2/stories/list	2014-09-17 17:15:43.69051	1
-404	jdoe@cyber.law.harvard.edu	api/v2/stories_public/single/57	2014-09-17 17:15:43.732235	1
-405	jdoe@cyber.law.harvard.edu	api/v2/stories/list	2014-09-17 17:15:43.79928	1
-406	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:15:43.83609	1
-407	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:15:43.871804	1
-408	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:15:43.910331	1
-409	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:15:43.943575	1
-410	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:15:43.979256	1
-411	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:15:44.040701	1
-412	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:15:44.09895	1
-413	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:15:44.132213	1
-414	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:15:44.18224	1
-415	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:15:44.240585	1
-416	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:15:44.290697	1
-417	jdoe@cyber.law.harvard.edu	api/v2/sentences/list	2014-09-17 17:15:44.323844	1
-418	jdoe@cyber.law.harvard.edu	api/v2/media/single/1	2014-09-17 17:15:44.35589	1
-419	jdoe@cyber.law.harvard.edu	api/v2/auth/single/	2014-09-17 17:15:44.387358	1
-420	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:15:44.432222	1
-421	jdoe@cyber.law.harvard.edu	api/v2/sentences/put_tags	2014-09-17 17:15:44.466083	1
-422	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:15:44.507307	1
-423	jdoe@cyber.law.harvard.edu	api/v2/sentences/put_tags	2014-09-17 17:15:44.542227	1
-424	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:15:44.582394	1
-425	jdoe@cyber.law.harvard.edu	api/v2/sentences/put_tags	2014-09-17 17:15:44.632978	1
-426	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:15:44.682713	1
-427	jdoe@cyber.law.harvard.edu	api/v2/stories/put_tags	2014-09-17 17:15:44.725062	1
-428	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:15:44.766568	1
-429	jdoe@cyber.law.harvard.edu	api/v2/stories/put_tags	2014-09-17 17:15:44.808334	1
-430	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:15:44.850019	1
-431	jdoe@cyber.law.harvard.edu	api/v2/stories_public/list/	2014-09-17 17:23:54.99587	1
-432	jdoe@cyber.law.harvard.edu	api/v2/stories/list/	2014-09-17 17:23:55.129131	1
-433	jdoe@cyber.law.harvard.edu	api/v2/tags/single/4	2014-09-17 17:23:55.170046	1
-434	jdoe@cyber.law.harvard.edu	api/v2/tags/list/	2014-09-17 17:23:55.214013	1
-435	jdoe@cyber.law.harvard.edu	api/v2/tags/list	2014-09-17 17:23:55.262757	1
-436	jdoe@cyber.law.harvard.edu	api/v2/media/single/1	2014-09-17 17:23:55.29312	1
-437	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 17:23:55.328618	1
-438	jdoe@cyber.law.harvard.edu	api/v2/media/list/	2014-09-17 17:23:55.361778	1
-439	jdoe@cyber.law.harvard.edu	api/v2/feeds/list	2014-09-17 17:23:55.392572	1
-\.
-
-
---
--- Name: auth_user_requests_auth_user_requests_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
---
-
-SELECT pg_catalog.setval('auth_user_requests_auth_user_requests_id_seq', 439, true);
-
-
---
 -- Data for Name: auth_users; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -5284,6 +4735,21 @@ COPY bitly_processing_schedule (bitly_processing_schedule_id, stories_id, fetch_
 --
 
 SELECT pg_catalog.setval('bitly_processing_schedule_bitly_processing_schedule_id_seq', 1, false);
+
+
+--
+-- Data for Name: cached_extractor_results; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY cached_extractor_results (cached_extractor_results_id, extracted_html, extracted_text, downloads_id) FROM stdin;
+\.
+
+
+--
+-- Name: cached_extractor_results_cached_extractor_results_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('cached_extractor_results_cached_extractor_results_id_seq', 1, false);
 
 
 --
@@ -5416,7 +4882,7 @@ SELECT pg_catalog.setval('corenlp_annotations_corenlp_annotations_id_seq', 1, fa
 --
 
 COPY database_variables (database_variables_id, name, value) FROM stdin;
-119	database-schema-version	4575
+129	database-schema-version	4585
 \.
 
 
@@ -5424,7 +4890,7 @@ COPY database_variables (database_variables_id, name, value) FROM stdin;
 -- Name: database_variables_database_variables_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('database_variables_database_variables_id_seq', 119, true);
+SELECT pg_catalog.setval('database_variables_database_variables_id_seq', 129, true);
 
 
 --
@@ -5851,11 +5317,11 @@ SELECT pg_catalog.setval('focus_definitions_focus_definitions_id_seq', 1, false)
 -- Data for Name: media; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY media (media_id, url, name, moderated, moderation_notes, full_text_rss, extract_author, foreign_rss_links, dup_media_id, is_not_dup, use_pager, unpaged_stories, db_row_last_updated, content_delay) FROM stdin;
-2	http://boingboing.net/	Boing Boing	t	\N	\N	f	f	\N	\N	\N	36	2014-09-18 00:26:38.688291+03	\N
-3	http://globalvoicesonline.org/	Global Voices · Citizen media stories from around the world	t	\N	\N	f	f	\N	\N	\N	15	2014-09-18 00:59:51.942048+03	\N
-1	http://en.wikinews.org/wiki/Main_Page	Wikinews, the free news source	t	\N	\N	f	f	\N	\N	\N	4	2014-09-18 00:59:51.942048+03	\N
-4	http://es.wikinews.org/wiki/Portada	Wikinoticias	t	\N	\N	f	f	\N	\N	\N	30	2014-09-18 01:00:36.946458+03	\N
+COPY media (media_id, url, name, moderated, moderation_notes, full_text_rss, extract_author, foreign_rss_links, dup_media_id, is_not_dup, use_pager, unpaged_stories, db_row_last_updated, content_delay, last_solr_import_date) FROM stdin;
+2	http://boingboing.net/	Boing Boing	t	\N	\N	f	f	\N	\N	\N	36	2014-09-18 00:26:38.688291+03	\N	2016-09-12 19:06:03.16953+03
+3	http://globalvoicesonline.org/	Global Voices · Citizen media stories from around the world	t	\N	\N	f	f	\N	\N	\N	15	2014-09-18 00:59:51.942048+03	\N	2016-09-12 19:06:03.16953+03
+1	http://en.wikinews.org/wiki/Main_Page	Wikinews, the free news source	t	\N	\N	f	f	\N	\N	\N	4	2014-09-18 00:59:51.942048+03	\N	2016-09-12 19:06:03.16953+03
+4	http://es.wikinews.org/wiki/Portada	Wikinoticias	t	\N	\N	f	f	\N	\N	\N	30	2014-09-18 01:00:36.946458+03	\N	2016-09-12 19:06:03.16953+03
 \.
 
 
@@ -7670,6 +7136,21 @@ COPY topic_seed_urls (topic_seed_urls_id, topics_id, url, source, stories_id, pr
 
 
 --
+-- Data for Name: topic_spider_metrics; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY topic_spider_metrics (topic_spider_metrics_id, topics_id, iteration, links_processed, elapsed_time, processed_date) FROM stdin;
+\.
+
+
+--
+-- Name: topic_spider_metrics_topic_spider_metrics_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('topic_spider_metrics_topic_spider_metrics_id_seq', 1, false);
+
+
+--
 -- Data for Name: topic_stories; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -7684,6 +7165,138 @@ COPY topic_stories (topic_stories_id, topics_id, stories_id, link_mined, iterati
 COPY topics (topics_id, name, pattern, solr_seed_query, solr_seed_query_run, description, topic_tag_sets_id, media_type_tag_sets_id, max_iterations, has_been_spidered, has_been_dumped, state, error_message) FROM stdin;
 \.
 
+
+SET search_path = snap, pg_catalog;
+
+--
+-- Data for Name: daily_date_counts; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY daily_date_counts (snapshots_id, publish_date, story_count, tags_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: live_stories; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY live_stories (topics_id, topic_stories_id, stories_id, media_id, url, guid, title, description, publish_date, collect_date, full_text_rss, language, db_row_last_updated) FROM stdin;
+\.
+
+
+--
+-- Data for Name: media; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY media (snapshots_id, media_id, url, name, moderated, moderation_notes, full_text_rss, extract_author, foreign_rss_links, dup_media_id, is_not_dup, use_pager, unpaged_stories) FROM stdin;
+\.
+
+
+--
+-- Data for Name: media_tags_map; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY media_tags_map (snapshots_id, media_tags_map_id, media_id, tags_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: medium_link_counts; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY medium_link_counts (timespans_id, media_id, inlink_count, outlink_count, story_count, bitly_click_count, media_inlink_count, sum_media_inlink_count) FROM stdin;
+\.
+
+
+--
+-- Data for Name: medium_links; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY medium_links (timespans_id, source_media_id, ref_media_id, link_count) FROM stdin;
+\.
+
+
+--
+-- Data for Name: stories; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY stories (snapshots_id, stories_id, media_id, url, guid, title, publish_date, collect_date, full_text_rss, language, ap_syndicated) FROM stdin;
+\.
+
+
+--
+-- Data for Name: stories_tags_map; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY stories_tags_map (controversy_dumps_id, stories_tags_map_id, stories_id, tags_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: story_link_counts; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY story_link_counts (timespans_id, stories_id, inlink_count, outlink_count, bitly_click_count, facebook_share_count, media_inlink_count) FROM stdin;
+\.
+
+
+--
+-- Data for Name: story_links; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY story_links (timespans_id, source_stories_id, ref_stories_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: tag_sets; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY tag_sets (snapshots_id, tag_sets_id, name, label, description) FROM stdin;
+\.
+
+
+--
+-- Data for Name: tags; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY tags (snapshots_id, tags_id, tag_sets_id, tag, label, description) FROM stdin;
+\.
+
+
+--
+-- Data for Name: topic_links_cross_media; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY topic_links_cross_media (snapshots_id, topic_links_id, topics_id, stories_id, url, ref_stories_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: topic_media_codes; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY topic_media_codes (snapshots_id, topics_id, media_id, code_type, code) FROM stdin;
+\.
+
+
+--
+-- Data for Name: topic_stories; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY topic_stories (snapshots_id, topic_stories_id, topics_id, stories_id, link_mined, iteration, link_weight, redirect_url, valid_foreign_rss_story) FROM stdin;
+\.
+
+
+--
+-- Data for Name: weekly_date_counts; Type: TABLE DATA; Schema: snap; Owner: -
+--
+
+COPY weekly_date_counts (snapshots_id, publish_date, story_count, tags_id) FROM stdin;
+\.
+
+
+SET search_path = public, pg_catalog;
 
 --
 -- Name: activities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
@@ -7758,14 +7371,6 @@ ALTER TABLE ONLY auth_user_request_daily_counts
 
 
 --
--- Name: auth_user_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY auth_user_requests
-    ADD CONSTRAINT auth_user_requests_pkey PRIMARY KEY (auth_user_requests_id);
-
-
---
 -- Name: auth_users_api_token_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7835,6 +7440,14 @@ ALTER TABLE ONLY bitly_clicks_total_01
 
 ALTER TABLE ONLY bitly_processing_results
     ADD CONSTRAINT bitly_processing_results_pkey PRIMARY KEY (bitly_processing_results_id);
+
+
+--
+-- Name: cached_extractor_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY cached_extractor_results
+    ADD CONSTRAINT cached_extractor_results_pkey PRIMARY KEY (cached_extractor_results_id);
 
 
 --
@@ -8197,184 +7810,13 @@ ALTER TABLE ONLY tags
     ADD CONSTRAINT tags_pkey PRIMARY KEY (tags_id);
 
 
-SET search_path = cd, pg_catalog;
-
 --
--- Name: daily_date_counts_date; Type: INDEX; Schema: cd; Owner: -
+-- Name: topic_spider_metrics_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-CREATE INDEX daily_date_counts_date ON daily_date_counts USING btree (snapshots_id, publish_date);
+ALTER TABLE ONLY topic_spider_metrics
+    ADD CONSTRAINT topic_spider_metrics_pkey PRIMARY KEY (topic_spider_metrics_id);
 
-
---
--- Name: daily_date_counts_tag; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX daily_date_counts_tag ON daily_date_counts USING btree (snapshots_id, tags_id);
-
-
---
--- Name: live_stories_story; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE UNIQUE INDEX live_stories_story ON live_stories USING btree (topics_id, stories_id);
-
-
---
--- Name: live_stories_story_solo; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX live_stories_story_solo ON live_stories USING btree (stories_id);
-
-
---
--- Name: live_story_topic; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX live_story_topic ON live_stories USING btree (topics_id);
-
-
---
--- Name: media_id; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX media_id ON media USING btree (snapshots_id, media_id);
-
-
---
--- Name: media_tags_map_medium; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX media_tags_map_medium ON media_tags_map USING btree (snapshots_id, media_id);
-
-
---
--- Name: media_tags_map_tag; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX media_tags_map_tag ON media_tags_map USING btree (snapshots_id, tags_id);
-
-
---
--- Name: medium_link_counts_medium; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX medium_link_counts_medium ON medium_link_counts USING btree (timespans_id, media_id);
-
-
---
--- Name: medium_links_ref; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX medium_links_ref ON medium_links USING btree (timespans_id, ref_media_id);
-
-
---
--- Name: medium_links_source; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX medium_links_source ON medium_links USING btree (timespans_id, source_media_id);
-
-
---
--- Name: stories_id; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX stories_id ON stories USING btree (snapshots_id, stories_id);
-
-
---
--- Name: stories_tags_map_story; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX stories_tags_map_story ON stories_tags_map USING btree (controversy_dumps_id, stories_id);
-
-
---
--- Name: stories_tags_map_tag; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX stories_tags_map_tag ON stories_tags_map USING btree (controversy_dumps_id, tags_id);
-
-
---
--- Name: story_link_counts_story; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX story_link_counts_story ON story_link_counts USING btree (timespans_id, stories_id);
-
-
---
--- Name: story_links_ref; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX story_links_ref ON story_links USING btree (timespans_id, ref_stories_id);
-
-
---
--- Name: story_links_source; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX story_links_source ON story_links USING btree (timespans_id, source_stories_id);
-
-
---
--- Name: tag_sets_id; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX tag_sets_id ON tag_sets USING btree (snapshots_id, tag_sets_id);
-
-
---
--- Name: tags_id; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX tags_id ON tags USING btree (snapshots_id, tags_id);
-
-
---
--- Name: topic_links_ref; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX topic_links_ref ON topic_links_cross_media USING btree (snapshots_id, ref_stories_id);
-
-
---
--- Name: topic_links_story; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX topic_links_story ON topic_links_cross_media USING btree (snapshots_id, stories_id);
-
-
---
--- Name: topic_media_codes_medium; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX topic_media_codes_medium ON topic_media_codes USING btree (snapshots_id, media_id);
-
-
---
--- Name: topic_stories_id; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX topic_stories_id ON topic_stories USING btree (snapshots_id, stories_id);
-
-
---
--- Name: weekly_date_counts_date; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX weekly_date_counts_date ON weekly_date_counts USING btree (snapshots_id, publish_date);
-
-
---
--- Name: weekly_date_counts_tag; Type: INDEX; Schema: cd; Owner: -
---
-
-CREATE INDEX weekly_date_counts_tag ON weekly_date_counts USING btree (snapshots_id, tags_id);
-
-
-SET search_path = public, pg_catalog;
 
 --
 -- Name: activities_creation_date; Type: INDEX; Schema: public; Owner: -
@@ -8426,31 +7868,10 @@ CREATE UNIQUE INDEX auth_user_limits_auth_users_id ON auth_user_limits USING btr
 
 
 --
--- Name: auth_user_request_daily_counts_day; Type: INDEX; Schema: public; Owner: -
+-- Name: auth_user_request_daily_counts_email_day; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX auth_user_request_daily_counts_day ON auth_user_request_daily_counts USING btree (day);
-
-
---
--- Name: auth_user_request_daily_counts_email; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX auth_user_request_daily_counts_email ON auth_user_request_daily_counts USING btree (email);
-
-
---
--- Name: auth_user_requests_email; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX auth_user_requests_email ON auth_user_requests USING btree (email);
-
-
---
--- Name: auth_user_requests_request_path; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX auth_user_requests_request_path ON auth_user_requests USING btree (request_path);
+CREATE UNIQUE INDEX auth_user_request_daily_counts_email_day ON auth_user_request_daily_counts USING btree (email, day);
 
 
 --
@@ -8528,6 +7949,13 @@ CREATE INDEX bitly_processing_schedule_fetch_at ON bitly_processing_schedule USI
 --
 
 CREATE INDEX bitly_processing_schedule_stories_id ON bitly_processing_schedule USING btree (stories_id);
+
+
+--
+-- Name: cached_extractor_results_downloads_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX cached_extractor_results_downloads_id ON cached_extractor_results USING btree (downloads_id);
 
 
 --
@@ -9140,6 +8568,13 @@ CREATE UNIQUE INDEX tag_sets_name ON tag_sets USING btree (name);
 
 
 --
+-- Name: tags_label; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX tags_label ON tags USING btree (label);
+
+
+--
 -- Name: tags_tag; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -9252,6 +8687,20 @@ CREATE INDEX topic_seed_urls_url ON topic_seed_urls USING btree (url);
 
 
 --
+-- Name: topic_spider_metrics_dat; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX topic_spider_metrics_dat ON topic_spider_metrics USING btree (processed_date);
+
+
+--
+-- Name: topic_spider_metrics_topic; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX topic_spider_metrics_topic ON topic_spider_metrics USING btree (topics_id);
+
+
+--
 -- Name: topic_stories_sc; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -9286,12 +8735,184 @@ CREATE UNIQUE INDEX topics_name ON topics USING btree (name);
 CREATE UNIQUE INDEX topics_tag_set ON topics USING btree (topic_tag_sets_id);
 
 
+SET search_path = snap, pg_catalog;
+
 --
--- Name: auth_user_requests_update_daily_counts; Type: TRIGGER; Schema: public; Owner: -
+-- Name: daily_date_counts_date; Type: INDEX; Schema: snap; Owner: -
 --
 
-CREATE TRIGGER auth_user_requests_update_daily_counts AFTER INSERT ON auth_user_requests FOR EACH ROW EXECUTE PROCEDURE auth_user_requests_update_daily_counts();
+CREATE INDEX daily_date_counts_date ON daily_date_counts USING btree (snapshots_id, publish_date);
 
+
+--
+-- Name: daily_date_counts_tag; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX daily_date_counts_tag ON daily_date_counts USING btree (snapshots_id, tags_id);
+
+
+--
+-- Name: live_stories_story; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE UNIQUE INDEX live_stories_story ON live_stories USING btree (topics_id, stories_id);
+
+
+--
+-- Name: live_stories_story_solo; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX live_stories_story_solo ON live_stories USING btree (stories_id);
+
+
+--
+-- Name: live_story_topic; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX live_story_topic ON live_stories USING btree (topics_id);
+
+
+--
+-- Name: media_id; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX media_id ON media USING btree (snapshots_id, media_id);
+
+
+--
+-- Name: media_tags_map_medium; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX media_tags_map_medium ON media_tags_map USING btree (snapshots_id, media_id);
+
+
+--
+-- Name: media_tags_map_tag; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX media_tags_map_tag ON media_tags_map USING btree (snapshots_id, tags_id);
+
+
+--
+-- Name: medium_link_counts_medium; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX medium_link_counts_medium ON medium_link_counts USING btree (timespans_id, media_id);
+
+
+--
+-- Name: medium_links_ref; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX medium_links_ref ON medium_links USING btree (timespans_id, ref_media_id);
+
+
+--
+-- Name: medium_links_source; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX medium_links_source ON medium_links USING btree (timespans_id, source_media_id);
+
+
+--
+-- Name: stories_id; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX stories_id ON stories USING btree (snapshots_id, stories_id);
+
+
+--
+-- Name: stories_tags_map_story; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX stories_tags_map_story ON stories_tags_map USING btree (controversy_dumps_id, stories_id);
+
+
+--
+-- Name: stories_tags_map_tag; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX stories_tags_map_tag ON stories_tags_map USING btree (controversy_dumps_id, tags_id);
+
+
+--
+-- Name: story_link_counts_story; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX story_link_counts_story ON story_link_counts USING btree (timespans_id, stories_id);
+
+
+--
+-- Name: story_links_ref; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX story_links_ref ON story_links USING btree (timespans_id, ref_stories_id);
+
+
+--
+-- Name: story_links_source; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX story_links_source ON story_links USING btree (timespans_id, source_stories_id);
+
+
+--
+-- Name: tag_sets_id; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX tag_sets_id ON tag_sets USING btree (snapshots_id, tag_sets_id);
+
+
+--
+-- Name: tags_id; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX tags_id ON tags USING btree (snapshots_id, tags_id);
+
+
+--
+-- Name: topic_links_ref; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX topic_links_ref ON topic_links_cross_media USING btree (snapshots_id, ref_stories_id);
+
+
+--
+-- Name: topic_links_story; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX topic_links_story ON topic_links_cross_media USING btree (snapshots_id, stories_id);
+
+
+--
+-- Name: topic_media_codes_medium; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX topic_media_codes_medium ON topic_media_codes USING btree (snapshots_id, media_id);
+
+
+--
+-- Name: topic_stories_id; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX topic_stories_id ON topic_stories USING btree (snapshots_id, stories_id);
+
+
+--
+-- Name: weekly_date_counts_date; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX weekly_date_counts_date ON weekly_date_counts USING btree (snapshots_id, publish_date);
+
+
+--
+-- Name: weekly_date_counts_tag; Type: INDEX; Schema: snap; Owner: -
+--
+
+CREATE INDEX weekly_date_counts_tag ON weekly_date_counts USING btree (snapshots_id, tags_id);
+
+
+SET search_path = public, pg_catalog;
 
 --
 -- Name: auth_users_set_default_limits; Type: TRIGGER; Schema: public; Owner: -
@@ -9439,154 +9060,6 @@ CREATE TRIGGER topic_stories_insert_live_story AFTER INSERT ON topic_stories FOR
 
 CREATE TRIGGER topic_tag_set BEFORE INSERT ON topics FOR EACH ROW EXECUTE PROCEDURE insert_topic_tag_set();
 
-
-SET search_path = cd, pg_catalog;
-
---
--- Name: controversy_links_cross_media_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY topic_links_cross_media
-    ADD CONSTRAINT controversy_links_cross_media_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
-
-
---
--- Name: controversy_media_codes_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY topic_media_codes
-    ADD CONSTRAINT controversy_media_codes_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
-
-
---
--- Name: controversy_stories_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY topic_stories
-    ADD CONSTRAINT controversy_stories_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
-
-
---
--- Name: daily_date_counts_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY daily_date_counts
-    ADD CONSTRAINT daily_date_counts_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
-
-
---
--- Name: live_stories_controversies_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY live_stories
-    ADD CONSTRAINT live_stories_controversies_id_fkey FOREIGN KEY (topics_id) REFERENCES public.topics(topics_id) ON DELETE CASCADE;
-
-
---
--- Name: live_stories_controversy_stories_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY live_stories
-    ADD CONSTRAINT live_stories_controversy_stories_id_fkey FOREIGN KEY (topic_stories_id) REFERENCES public.topic_stories(topic_stories_id) ON DELETE CASCADE;
-
-
---
--- Name: live_stories_stories_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY live_stories
-    ADD CONSTRAINT live_stories_stories_id_fkey FOREIGN KEY (stories_id) REFERENCES public.stories(stories_id) ON DELETE CASCADE;
-
-
---
--- Name: media_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY media
-    ADD CONSTRAINT media_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
-
-
---
--- Name: media_tags_map_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY media_tags_map
-    ADD CONSTRAINT media_tags_map_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
-
-
---
--- Name: medium_link_counts_controversy_dump_time_slices_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY medium_link_counts
-    ADD CONSTRAINT medium_link_counts_controversy_dump_time_slices_id_fkey FOREIGN KEY (timespans_id) REFERENCES public.timespans(timespans_id) ON DELETE CASCADE;
-
-
---
--- Name: medium_links_controversy_dump_time_slices_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY medium_links
-    ADD CONSTRAINT medium_links_controversy_dump_time_slices_id_fkey FOREIGN KEY (timespans_id) REFERENCES public.timespans(timespans_id) ON DELETE CASCADE;
-
-
---
--- Name: stories_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY stories
-    ADD CONSTRAINT stories_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
-
-
---
--- Name: stories_tags_map_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY stories_tags_map
-    ADD CONSTRAINT stories_tags_map_controversy_dumps_id_fkey FOREIGN KEY (controversy_dumps_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
-
-
---
--- Name: story_link_counts_controversy_dump_time_slices_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY story_link_counts
-    ADD CONSTRAINT story_link_counts_controversy_dump_time_slices_id_fkey FOREIGN KEY (timespans_id) REFERENCES public.timespans(timespans_id) ON DELETE CASCADE;
-
-
---
--- Name: story_links_controversy_dump_time_slices_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY story_links
-    ADD CONSTRAINT story_links_controversy_dump_time_slices_id_fkey FOREIGN KEY (timespans_id) REFERENCES public.timespans(timespans_id) ON DELETE CASCADE;
-
-
---
--- Name: tag_sets_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY tag_sets
-    ADD CONSTRAINT tag_sets_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
-
-
---
--- Name: tags_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY tags
-    ADD CONSTRAINT tags_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
-
-
---
--- Name: weekly_date_counts_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: cd; Owner: -
---
-
-ALTER TABLE ONLY weekly_date_counts
-    ADD CONSTRAINT weekly_date_counts_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
-
-
-SET search_path = public, pg_catalog;
 
 --
 -- Name: api_links_next_link_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
@@ -10154,6 +9627,160 @@ ALTER TABLE ONLY timespans
 
 ALTER TABLE ONLY topic_links
     ADD CONSTRAINT topic_links_topic_story_stories_id FOREIGN KEY (stories_id, topics_id) REFERENCES topic_stories(stories_id, topics_id) ON DELETE CASCADE;
+
+
+--
+-- Name: topic_spider_metrics_topics_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY topic_spider_metrics
+    ADD CONSTRAINT topic_spider_metrics_topics_id_fkey FOREIGN KEY (topics_id) REFERENCES topics(topics_id) ON DELETE CASCADE;
+
+
+SET search_path = snap, pg_catalog;
+
+--
+-- Name: controversy_links_cross_media_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY topic_links_cross_media
+    ADD CONSTRAINT controversy_links_cross_media_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
+
+
+--
+-- Name: controversy_media_codes_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY topic_media_codes
+    ADD CONSTRAINT controversy_media_codes_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
+
+
+--
+-- Name: controversy_stories_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY topic_stories
+    ADD CONSTRAINT controversy_stories_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
+
+
+--
+-- Name: daily_date_counts_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY daily_date_counts
+    ADD CONSTRAINT daily_date_counts_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
+
+
+--
+-- Name: live_stories_controversies_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY live_stories
+    ADD CONSTRAINT live_stories_controversies_id_fkey FOREIGN KEY (topics_id) REFERENCES public.topics(topics_id) ON DELETE CASCADE;
+
+
+--
+-- Name: live_stories_controversy_stories_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY live_stories
+    ADD CONSTRAINT live_stories_controversy_stories_id_fkey FOREIGN KEY (topic_stories_id) REFERENCES public.topic_stories(topic_stories_id) ON DELETE CASCADE;
+
+
+--
+-- Name: live_stories_stories_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY live_stories
+    ADD CONSTRAINT live_stories_stories_id_fkey FOREIGN KEY (stories_id) REFERENCES public.stories(stories_id) ON DELETE CASCADE;
+
+
+--
+-- Name: media_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY media
+    ADD CONSTRAINT media_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
+
+
+--
+-- Name: media_tags_map_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY media_tags_map
+    ADD CONSTRAINT media_tags_map_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
+
+
+--
+-- Name: medium_link_counts_controversy_dump_time_slices_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY medium_link_counts
+    ADD CONSTRAINT medium_link_counts_controversy_dump_time_slices_id_fkey FOREIGN KEY (timespans_id) REFERENCES public.timespans(timespans_id) ON DELETE CASCADE;
+
+
+--
+-- Name: medium_links_controversy_dump_time_slices_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY medium_links
+    ADD CONSTRAINT medium_links_controversy_dump_time_slices_id_fkey FOREIGN KEY (timespans_id) REFERENCES public.timespans(timespans_id) ON DELETE CASCADE;
+
+
+--
+-- Name: stories_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY stories
+    ADD CONSTRAINT stories_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
+
+
+--
+-- Name: stories_tags_map_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY stories_tags_map
+    ADD CONSTRAINT stories_tags_map_controversy_dumps_id_fkey FOREIGN KEY (controversy_dumps_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
+
+
+--
+-- Name: story_link_counts_controversy_dump_time_slices_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY story_link_counts
+    ADD CONSTRAINT story_link_counts_controversy_dump_time_slices_id_fkey FOREIGN KEY (timespans_id) REFERENCES public.timespans(timespans_id) ON DELETE CASCADE;
+
+
+--
+-- Name: story_links_controversy_dump_time_slices_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY story_links
+    ADD CONSTRAINT story_links_controversy_dump_time_slices_id_fkey FOREIGN KEY (timespans_id) REFERENCES public.timespans(timespans_id) ON DELETE CASCADE;
+
+
+--
+-- Name: tag_sets_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY tag_sets
+    ADD CONSTRAINT tag_sets_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
+
+
+--
+-- Name: tags_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY tags
+    ADD CONSTRAINT tags_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
+
+
+--
+-- Name: weekly_date_counts_controversy_dumps_id_fkey; Type: FK CONSTRAINT; Schema: snap; Owner: -
+--
+
+ALTER TABLE ONLY weekly_date_counts
+    ADD CONSTRAINT weekly_date_counts_controversy_dumps_id_fkey FOREIGN KEY (snapshots_id) REFERENCES public.snapshots(snapshots_id) ON DELETE CASCADE;
 
 
 --
