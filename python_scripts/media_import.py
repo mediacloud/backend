@@ -97,7 +97,7 @@ def add_media_to_database( conn, all_media ):
     for medium in all_media:
         medium = non_list_pairs( medium)
         #del medium['dup_media_id']
-        cast_fields_to_bool( medium, [ 'extract_author', "full_text_rss", "foreign_rss_links",
+        cast_fields_to_bool( medium, [ "full_text_rss", "foreign_rss_links",
             "moderated", "use_pager", "is_not_dup"])
         insert_into_table( cursor, 'media', medium )
         

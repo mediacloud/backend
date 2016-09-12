@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4584;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4585;
 
 BEGIN
 
@@ -313,7 +313,6 @@ create table media (
     moderated           boolean         not null,
     moderation_notes    text            null,
     full_text_rss       boolean,
-    extract_author      boolean         default(false),
 
     -- It indicates that the media source includes a substantial number of
     -- links in its feeds that are not its own. These media sources cause
@@ -1801,7 +1800,6 @@ create table snap.media (
     moderated               boolean         not null,
     moderation_notes        text            null,
     full_text_rss           boolean,
-    extract_author          boolean         default(false),
     foreign_rss_links       boolean         not null default( false ),
     dup_media_id            int             null,
     is_not_dup              boolean         null,
