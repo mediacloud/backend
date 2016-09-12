@@ -548,7 +548,7 @@ CREATE FUNCTION insert_live_story() RETURNS trigger
     AS $$
     begin
 
-        insert into cd.live_stories
+        insert into snap.live_stories
             ( topics_id, topic_stories_id, stories_id, media_id, url, guid, title, description,
                 publish_date, collect_date, full_text_rss, language,
                 db_row_last_updated )
@@ -1009,7 +1009,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4584;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4585;
 
 BEGIN
 
@@ -1131,7 +1131,7 @@ CREATE FUNCTION update_live_story() RETURNS trigger
     AS $$
     begin
 
-        update cd.live_stories set
+        update snap.live_stories set
                 media_id = NEW.media_id,
                 url = NEW.url,
                 guid = NEW.guid,
@@ -3853,11 +3853,11 @@ CREATE VIEW topics_with_dates AS
     c.has_been_dumped,
     c.state,
     c.error_message,
-    to_char((cd.start_date)::timestamp with time zone, 'YYYY-MM-DD'::text) AS start_date,
-    to_char((cd.end_date)::timestamp with time zone, 'YYYY-MM-DD'::text) AS end_date
+    to_char((td.start_date)::timestamp with time zone, 'YYYY-MM-DD'::text) AS start_date,
+    to_char((td.end_date)::timestamp with time zone, 'YYYY-MM-DD'::text) AS end_date
    FROM (topics c
-     JOIN topic_dates cd ON ((c.topics_id = cd.topics_id)))
-  WHERE cd.boundary;
+     JOIN topic_dates td ON ((c.topics_id = td.topics_id)))
+  WHERE td.boundary;
 
 
 SET search_path = snap, pg_catalog;
@@ -4882,7 +4882,7 @@ SELECT pg_catalog.setval('corenlp_annotations_corenlp_annotations_id_seq', 1, fa
 --
 
 COPY database_variables (database_variables_id, name, value) FROM stdin;
-128	database-schema-version	4584
+129	database-schema-version	4585
 \.
 
 
@@ -4890,7 +4890,7 @@ COPY database_variables (database_variables_id, name, value) FROM stdin;
 -- Name: database_variables_database_variables_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('database_variables_database_variables_id_seq', 128, true);
+SELECT pg_catalog.setval('database_variables_database_variables_id_seq', 129, true);
 
 
 --
