@@ -151,6 +151,11 @@ sub get_extra_where_clause
         push( @{ $clauses }, "and media_id in ( select id from $ids_table )" );
     }
 
+    if ( $c->req->params->{ name } && !$c->req->params->{ include_dups } )
+    {
+        push( @{ $clauses }, "and dup_media_id is null" );
+    }
+
     return @{ $clauses } ? join( "  ", @{ $clauses } ) : '';
 }
 

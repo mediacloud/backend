@@ -160,8 +160,6 @@ sub stream_json_to_csv
             $out_fh->print( encode( 'utf-8', $csv->string . "\n" ) );
         }
     }
-
-    TRACE "FOO!";
 }
 
 1;
