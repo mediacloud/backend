@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4585;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4586;
 
 BEGIN
 
@@ -1223,7 +1223,8 @@ create table topics (
     state                   text not null default 'created but not queued',
     has_been_spidered       boolean not null default false,
     has_been_dumped         boolean not null default false,
-    error_message           text null
+    error_message           text null,
+    is_public               boolean not null default false
 );
 
 create unique index topics_name on topics( name );
@@ -2793,3 +2794,16 @@ create table topic_spider_metrics (
 
 create index topic_spider_metrics_topic on topic_spider_metrics( topics_id );
 create index topic_spider_metrics_dat on topic_spider_metrics( processed_date );
+
+create type topic_permission AS ENUM ( 'read', 'write', 'admin' );
+
+-- per user permissions for topics
+create table topic_permissions (
+    topic_permissions_id    serial primary key,
+    topics_id               int not null references topics on delete cascade,
+    auth_users_id           int not null references auth_users on delete cascade,
+    permission              topic_permission not null
+);
+
+create index topic_permissions_topic on topic_permissions( topics_id );
+create unique index topic_permissions_user on topic_permissions( auth_users_id, topics_id );

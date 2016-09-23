@@ -13,10 +13,12 @@ use List::Compare;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
-__PACKAGE__->config( action => {
-    user_list_GET => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-    list_GET => { Does => [ qw( ~TopicsAuthenticated ~Throttled ~Logged ) ] },
- } );
+__PACKAGE__->config(
+    action => {
+        user_list_GET => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        list_GET      => { Does => [ qw( ~TopicsAuthenticated ~Throttled ~Logged ) ] },
+    }
+);
 
 sub user_list : Chained( '/') : PathPart( 'api/v2/topics/permissions/user/list' ) : Args(0) : ActionClass( 'MC_REST')
 {
@@ -36,16 +38,16 @@ sub apibase : Chained('/') : PathPart('api/v2/topics/') : CaptureArgs(1)
     $c->stash->{ topics_id } = $topics_id;
 }
 
-sub list : Chained('apibase') :PathPart( 'permissions/list' ) : Args(0): ActionClass('MC_REST')
+sub list : Chained('apibase') : PathPart( 'permissions/list' ) : Args(0) : ActionClass('MC_REST')
 {
 
 }
 
-sub list_GET: Local
+sub list_GET : Local
 {
     my ( $self, $c ) = @_;
 
-    $self->status_ok( $c, entity => { topic =>  'list!' } );
+    $self->status_ok( $c, entity => { topic => 'list!' } );
 
 }
 

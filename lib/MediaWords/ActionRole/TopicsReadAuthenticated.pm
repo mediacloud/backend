@@ -21,9 +21,7 @@ around execute => sub {
 
     my ( $orig, $self, $controller, $c ) = @_;
 
-    eval {
-        $self->_authenticate_topic( $c, 'read' );
-    };
+    eval { $self->_authenticate_topic( $c, 'read' ); };
     if ( $@ )
     {
         my $message = $@;

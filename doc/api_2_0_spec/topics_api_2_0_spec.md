@@ -638,9 +638,9 @@ Response:
 
 # Permissions
 
-## permissions/user/list TODO
+## topics/permissions/user/list TODO
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id/permissions/user/list`
+`https://api.mediacloud.org/api/v2/topics/permissions/user/list`
 
 List all permissions assigned to the authenticated user for all topics.  This list includes only permissions granted specifically to this user.  Topics available for reading through the 'public' flag are not included in this list.
 
@@ -660,7 +660,7 @@ List all permissions assigned to the authenticated user for all topics.  This li
 
 List all permissions belonging to the authenticated user:
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/permissions/user/list`
+`https://api.mediacloud.org/api/v2/topics/permissions/user/list`
 
 Response:
 
@@ -677,7 +677,7 @@ Response:
 }
 ```
 
-## permissions/list TODO
+## topics/~topics_id~/permissions/list TODO
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/permissions/list`
 
@@ -718,7 +718,7 @@ Response:
 }
 ```
 
-## permissions/update (PUT) TODO
+## topics/~topics_id~/permissions/update (PUT) TODO
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/permissions/update`
 
@@ -745,7 +745,7 @@ On success, the new permission is returned in the same format as the permissions
 
 Update the permissions for a given user for a given topic:
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id/permissions/update`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/permissions/update`
 
 Input:
 
