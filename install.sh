@@ -22,7 +22,7 @@ fi
 ./install_mc_perlbrew_and_modules.sh
 
 # Install Python dependencies
-sudo pip install --updade pip # make sure pip is latest version to avoid errors
+sudo pip install --upgrade pip # make sure pip is latest version to avoid errors
 sudo pip install --upgrade -r python_scripts/requirements.txt || {
     # Sometimes fails with some sort of Setuptools error
     echo "'pip install' failed the first time, retrying..."
