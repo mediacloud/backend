@@ -835,9 +835,12 @@ sub get_url_domain($)
 
     $url = fix_common_url_mistakes( $url );
 
-    $url =~ m~https?://([^/#]*)~ || return $url;
-
-    my $host = $1;
+    my $host;
+    eval { $host = get_url_host( $url ) };
+    unless ( $host )
+    {
+        return $url;
+    }
 
     my $name_parts = [ split( /\./, $host ) ];
 
