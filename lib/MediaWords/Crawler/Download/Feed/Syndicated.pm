@@ -53,7 +53,7 @@ sub _sanitize_guid
 }
 
 # parse the feed.  return a (non-db-backed) story hash for each story found in the feed.
-sub _get_stories_from_feed_contents
+sub _get_stories_from_syndicated_feed($$$)
 {
     my ( $decoded_content, $media_id, $download_time ) = @_;
 
@@ -191,7 +191,7 @@ sub add_stories_from_feed($$$$)
     my $download_time = $download->{ download_time };
 
     my $stories;
-    eval { $stories = _get_stories_from_feed_contents( $decoded_content, $media_id, $download_time ); };
+    eval { $stories = _get_stories_from_syndicated_feed( $decoded_content, $media_id, $download_time ); };
     if ( $@ )
     {
         die "Error processing feed for $download->{ url }: $@";

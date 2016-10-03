@@ -31,7 +31,7 @@ sub _convert_to_local_time_zone
     return $local_sql_date;
 }
 
-sub test_get_stories_from_feed_contents($)
+sub test_get_stories_from_syndicated_feed($)
 {
     my $db = shift;
 
@@ -183,7 +183,7 @@ __END_TEST_CASE__
     {
         my $feed_input = $test_case->{ feed_input };
 
-        my $stories = MediaWords::Crawler::Download::Feed::Syndicated::_get_stories_from_feed_contents(
+        my $stories = MediaWords::Crawler::Download::Feed::Syndicated::_get_stories_from_syndicated_feed(
             $feed_input,
             $test_case->{ media_id },
             $test_case->{ publish_date }
@@ -211,7 +211,7 @@ sub main()
 {
     my $db = MediaWords::DB::connect_to_db || die( "can't connect to db" );
 
-    test_get_stories_from_feed_contents( $db );
+    test_get_stories_from_syndicated_feed( $db );
 }
 
 main();
