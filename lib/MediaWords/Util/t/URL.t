@@ -7,7 +7,7 @@ use MediaWords::CommonLibs;
 
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 134;
+use Test::More tests => 137;
 
 use Readonly;
 use HTTP::HashServer;
@@ -300,6 +300,15 @@ sub test_normalize_url_lossy()
     {
         is( MediaWords::Util::URL::normalize_url_lossy( $test->[ 0 ] ), $test->[ 1 ], "$test->[ 0 ] -> $test->[ 1 ]" );
     }
+}
+
+sub test_get_url_host()
+{
+    eval { MediaWords::Util::URL::get_url_host( undef ) };
+    ok( $@, 'Undefined parameter' );
+    is( MediaWords::Util::URL::get_url_host( 'http://www.nytimes.com/' ), 'www.nytimes.com', 'www.nytimes.com' );
+    is( MediaWords::Util::URL::get_url_host( 'http://obama:barack1@WHITEHOUSE.GOV/michelle.html' ),
+        'whitehouse.gov', 'whitehouse.gov with auth' );
 }
 
 sub test_get_url_domain()
@@ -1070,6 +1079,7 @@ sub main()
     test_is_shortened_url();
     test_normalize_url();
     test_normalize_url_lossy();
+    test_get_url_host();
     test_get_url_domain();
     test_meta_refresh_url_from_html();
     test_link_canonical_url_from_html();

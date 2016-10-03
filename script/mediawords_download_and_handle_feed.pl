@@ -19,6 +19,7 @@ use Data::Dumper;
 use MediaWords::Crawler::Engine;
 use MediaWords::DB;
 use MediaWords::Util::Config qw(get_config);
+use MediaWords::Util::URL;
 
 sub create_feed_download
 {
@@ -27,7 +28,7 @@ sub create_feed_download
     my $download = {
         feeds_id  => $feed->{ feeds_id },
         url       => $feed->{ url },
-        host      => lc( ( URI::Split::uri_split( $feed->{ url } ) )[ 1 ] ),
+        host      => MediaWords::Util::URL::get_url_host( $feed->{ url } ),
         type      => 'feed',
         sequence  => 1,
         state     => 'fetching',

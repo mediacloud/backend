@@ -15,10 +15,10 @@ use MediaWords::Util::Log;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Feeds;
 use MediaWords::Job::RescrapeMedia;
+use MediaWords::Util::URL;
 use Feed::Scrape::MediaWords;
 
 use URI;
-use URI::Split;
 use Digest::SHA qw(sha256_hex);
 
 # add default feeds for a single medium
@@ -326,7 +326,7 @@ sub get_potential_merge_media($$)
 {
     my ( $db, $medium ) = @_;
 
-    my $host = lc( ( URI::Split::uri_split( $medium->{ url } ) )[ 1 ] );
+    my $host = MediaWords::Util::URL::get_url_host( $medium->{ url } );
 
     my @name_parts = split( /\./, $host );
 

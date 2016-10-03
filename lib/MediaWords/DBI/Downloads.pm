@@ -36,7 +36,6 @@ use warnings;
 use CHI;
 use Scalar::Defer;
 use Readonly;
-use URI::Split;
 
 use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
@@ -48,6 +47,7 @@ use MediaWords::StoryVectors;
 use MediaWords::Util::Paths;
 use MediaWords::Job::AnnotateWithCoreNLP;
 use MediaWords::Util::ThriftExtractor;
+use MediaWords::Util::URL;
 
 # FCGI might be running from an unwritable path so we need to set a custom
 # path for Inline::Python to keep its "_Inline/".
@@ -720,7 +720,7 @@ sub create_child_download_for_story
         stories_id => $story->{ stories_id },
         parent     => $parent_download->{ downloads_id },
         url        => $story->{ url },
-        host       => lc( ( URI::Split::uri_split( $story->{ url } ) )[ 1 ] ),
+        host       => MediaWords::Util::URL::get_url_host( $story->{ url } ),
         type       => 'content',
         sequence   => 1,
         state      => 'pending',

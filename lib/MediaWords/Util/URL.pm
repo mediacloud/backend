@@ -811,6 +811,23 @@ s/^(https?:\/\/)(m|beta|media|data|image|www?|cdn|topic|article|news|archive|blo
     return $url;
 }
 
+# Return hostname of an URL
+sub get_url_host($)
+{
+    my $url = shift;
+
+    unless ( $url )
+    {
+        die "URL is empty or undefined.";
+    }
+
+    $url = fix_common_url_mistakes( $url );
+
+    # URI::Split returns auth info together with host so parsing with URI here
+    my $uri = URI->new( $url )->canonical;
+    return $uri->host;
+}
+
 # get the domain of the given URL (sans "www." and ".edu"; see t/URL.t for output examples)
 sub get_url_domain($)
 {

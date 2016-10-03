@@ -30,7 +30,6 @@ use List::Util;
 use Parallel::ForkManager;
 use Readonly;
 use URI;
-use URI::Split;
 use URI::Escape;
 
 use MediaWords::CommonLibs;
@@ -826,7 +825,7 @@ sub create_download_for_new_story
         feeds_id   => $feed->{ feeds_id },
         stories_id => $story->{ stories_id },
         url        => $story->{ url },
-        host       => lc( ( URI::Split::uri_split( $story->{ url } ) )[ 1 ] ),
+        host       => MediaWords::Util::URL::get_url_host( $story->{ url } ),
         type       => 'content',
         sequence   => 1,
         state      => 'success',
