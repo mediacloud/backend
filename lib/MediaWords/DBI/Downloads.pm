@@ -36,6 +36,7 @@ use warnings;
 use CHI;
 use Scalar::Defer;
 use Readonly;
+use URI::Split;
 
 use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
@@ -707,6 +708,35 @@ sub get_medium($$)
     return $db->query( <<SQL, $download->{ feeds_id } )->hash;
 select m.* from feeds f join media m on ( f.media_id = m.media_id ) where feeds_id = ?
 SQL
+}
+
+# create a pending download for the story's url
+sub create_child_download_for_story
+{
+    my ( $db, $story, $parent_download ) = @_;
+
+    my $download = {
+        feeds_id   => $parent_download->{ feeds_id },
+        stories_id => $story->{ stories_id },
+        parent     => $parent_download->{ downloads_id },
+        url        => $story->{ url },
+        host       => lc( ( URI::Split::uri_split( $story->{ url } ) )[ 1 ] ),
+        type       => 'content',
+        sequence   => 1,
+        state      => 'pending',
+        priority   => $parent_download->{ priority },
+        extracted  => 'f'
+    };
+
+    my ( $content_delay ) = $db->query( "select content_delay from media where media_id = ?", $story->{ media_id } )->flat;
+    if ( $content_delay )
+    {
+        # delay download of content this many hours.  this is useful for sources that are likely to
+        # significantly change content in the hours after it is first published.
+        $download->{ download_time } = \"now() + interval '$content_delay hours'";
+    }
+
+    $db->create( 'downloads', $download );
 }
 
 1;

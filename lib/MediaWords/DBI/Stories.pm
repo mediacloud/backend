@@ -1235,4 +1235,64 @@ sub get_story_word_matrix($$;$$)
     return ( $word_matrix, $word_list );
 }
 
+# if the story is new, add story to the database with the feed of the download as story feed
+sub _add_story_using_parent_download
+{
+    my ( $db, $story, $parent_download ) = @_;
+
+    $db->begin;
+    $db->query( "lock table stories in row exclusive mode" );
+    if ( !MediaWords::DBI::Stories::is_new( $db, $story ) )
+    {
+        $db->commit;
+        return;
+    }
+
+    eval { $story = $db->create( "stories", $story ); };
+
+    if ( $@ )
+    {
+
+        $db->rollback;
+
+        if ( $@ =~ /unique constraint \"stories_guid/ )
+        {
+            WARN "Failed to add story for '." . $story->{ url } . "' to guid conflict ( guid =  '" . $story->{ guid } . "')";
+
+            return;
+        }
+        else
+        {
+            die( "error adding story: $@\n" . Dumper( $story ) );
+        }
+    }
+
+    MediaWords::DBI::Stories::update_rss_full_text_field( $db, $story );
+
+    $db->find_or_create(
+        'feeds_stories_map',
+        {
+            stories_id => $story->{ stories_id },
+            feeds_id   => $parent_download->{ feeds_id }
+        }
+    );
+
+    $db->commit;
+
+    return $story;
+}
+
+# if the story is new, add it to the database and also add a pending download for the story content
+sub add_story_and_content_download
+{
+    my ( $db, $story, $parent_download ) = @_;
+
+    $story = _add_story_using_parent_download( $db, $story, $parent_download );
+
+    if ( defined( $story ) )
+    {
+        MediaWords::DBI::Downloads::create_child_download_for_story( $db, $story, $parent_download );
+    }
+}
+
 1;

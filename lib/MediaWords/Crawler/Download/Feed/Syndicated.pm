@@ -22,7 +22,6 @@ use Date::Parse;
 use Encode;
 use Feed::Scrape::MediaWords;
 use Readonly;
-use URI::Split;
 
 Readonly my $EXTERNAL_FEED_URL  => 'http://external/feed/url';
 Readonly my $EXTERNAL_FEED_NAME => 'EXTERNAL FEED';
@@ -112,95 +111,6 @@ sub _get_stories_from_feed_contents
     }
 
     return $ret;
-}
-
-# if the story is new, add story to the database with the feed of the download as story feed
-sub _add_story_using_parent_download
-{
-    my ( $db, $story, $parent_download ) = @_;
-
-    $db->begin;
-    $db->query( "lock table stories in row exclusive mode" );
-    if ( !MediaWords::DBI::Stories::is_new( $db, $story ) )
-    {
-        $db->commit;
-        return;
-    }
-
-    eval { $story = $db->create( "stories", $story ); };
-
-    if ( $@ )
-    {
-
-        $db->rollback;
-
-        if ( $@ =~ /unique constraint \"stories_guid/ )
-        {
-            WARN "Failed to add story for '." . $story->{ url } . "' to guid conflict ( guid =  '" . $story->{ guid } . "')";
-
-            return;
-        }
-        else
-        {
-            die( "error adding story: $@\n" . Dumper( $story ) );
-        }
-    }
-
-    MediaWords::DBI::Stories::update_rss_full_text_field( $db, $story );
-
-    $db->find_or_create(
-        'feeds_stories_map',
-        {
-            stories_id => $story->{ stories_id },
-            feeds_id   => $parent_download->{ feeds_id }
-        }
-    );
-
-    $db->commit;
-
-    return $story;
-}
-
-# create a pending download for the story's url
-sub _create_child_download_for_story
-{
-    my ( $db, $story, $parent_download ) = @_;
-
-    my $download = {
-        feeds_id   => $parent_download->{ feeds_id },
-        stories_id => $story->{ stories_id },
-        parent     => $parent_download->{ downloads_id },
-        url        => $story->{ url },
-        host       => lc( ( URI::Split::uri_split( $story->{ url } ) )[ 1 ] ),
-        type       => 'content',
-        sequence   => 1,
-        state      => 'pending',
-        priority   => $parent_download->{ priority },
-        extracted  => 'f'
-    };
-
-    my ( $content_delay ) = $db->query( "select content_delay from media where media_id = ?", $story->{ media_id } )->flat;
-    if ( $content_delay )
-    {
-        # delay download of content this many hours.  this is useful for sources that are likely to
-        # significantly change content in the hours after it is first published.
-        $download->{ download_time } = \"now() + interval '$content_delay hours'";
-    }
-
-    $db->create( 'downloads', $download );
-}
-
-# if the story is new, add it to the database and also add a pending download for the story content
-sub _add_story_and_content_download
-{
-    my ( $db, $story, $parent_download ) = @_;
-
-    $story = _add_story_using_parent_download( $db, $story, $parent_download );
-
-    if ( defined( $story ) )
-    {
-        _create_child_download_for_story( $db, $story, $parent_download );
-    }
 }
 
 # check whether the checksum of the concatenated urls of the stories in the feed matches the last such checksum for this
@@ -297,7 +207,7 @@ sub add_stories_from_feed($$$$)
     my $story_ids = [];
     foreach my $story ( @{ $new_stories } )
     {
-        _add_story_and_content_download( $db, $story, $download );
+        MediaWords::DBI::Stories::add_story_and_content_download( $db, $story, $download );
         push( @{ $story_ids }, $story->{ stories_id } );
     }
 
