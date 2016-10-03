@@ -330,7 +330,7 @@ sub _find_media_from_urls
 
 =head2 get_medium_domain( $medium )
 
-Return MediaWords::Util::URL::get_url_domain on the $medium->{ url }
+Return MediaWords::Util::URL::get_url_distinctive_domain on the $medium->{ url }
 
 =cut
 
@@ -338,7 +338,7 @@ sub get_medium_domain
 {
     my ( $medium ) = @_;
 
-    return MediaWords::Util::URL::get_url_domain( $medium->{ url } );
+    return MediaWords::Util::URL::get_url_distinctive_domain( $medium->{ url } );
 }
 
 =head2 get_media_type_tags( $db, $topics_id )

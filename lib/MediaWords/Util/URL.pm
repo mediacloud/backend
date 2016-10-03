@@ -828,8 +828,14 @@ sub get_url_host($)
     return $uri->host;
 }
 
-# get the domain of the given URL (sans "www." and ".edu"; see t/URL.t for output examples)
-sub get_url_domain($)
+# Return a truncated form of URL's host (domain) that distinguishes it from others, e.g.:
+#
+# * www.whitehouse.gov => whitehouse.gov
+# * www.blogspot.com => blogspot.com
+# * kardashian.blogspot.com => kardashian.blogspot.com
+#
+# Return original URL if unable to process the URL;
+sub get_url_distinctive_domain($)
 {
     my $url = shift;
 

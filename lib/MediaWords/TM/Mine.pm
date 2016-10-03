@@ -1177,9 +1177,9 @@ sub _story_domain_matches_medium
 {
     my ( $db, $medium, $url, $redirect_url ) = @_;
 
-    my $medium_domain = MediaWords::Util::URL::get_url_domain( $medium->{ url } );
+    my $medium_domain = MediaWords::Util::URL::get_url_distinctive_domain( $medium->{ url } );
 
-    my $story_domains = [ map { MediaWords::Util::URL::get_url_domain( $_ ) } ( $url, $redirect_url ) ];
+    my $story_domains = [ map { MediaWords::Util::URL::get_url_distinctive_domain( $_ ) } ( $url, $redirect_url ) ];
 
     return ( grep { $medium_domain eq $_ } @{ $story_domains } ) ? 1 : 0;
 }
@@ -1469,7 +1469,7 @@ END
     {
         INFO "SKIP SELF LINKED STORY: $story->{ url } [$num_self_linked_stories]";
 
-        my $medium_domain = MediaWords::Util::URL::get_url_domain( $link->{ url } );
+        my $medium_domain = MediaWords::Util::URL::get_url_distinctive_domain( $link->{ url } );
         $_skip_self_linked_domain->{ $medium_domain } = 1;
 
         return 1;
@@ -1503,7 +1503,7 @@ sub _skip_self_linked_domain
 {
     my ( $db, $link ) = @_;
 
-    my $domain = MediaWords::Util::URL::get_url_domain( $link->{ url } );
+    my $domain = MediaWords::Util::URL::get_url_distinctive_domain( $link->{ url } );
 
     return 0 unless ( $_skip_self_linked_domain->{ $domain } || ( $link->{ url } =~ /\/(tag|category|author|search)/ ) );
 
@@ -1514,7 +1514,7 @@ sub _skip_self_linked_domain
     # expensive to do so.  so we just compare the url domain as a proxy for media source instead.
     my $source_story = $db->find_by_id( 'stories', $link->{ stories_id } );
 
-    my $source_domain = MediaWords::Util::URL::get_url_domain( $source_story->{ url } );
+    my $source_domain = MediaWords::Util::URL::get_url_distinctive_domain( $source_story->{ url } );
 
     if ( $source_domain eq $domain )
     {

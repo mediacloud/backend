@@ -311,32 +311,34 @@ sub test_get_url_host()
         'whitehouse.gov', 'whitehouse.gov with auth' );
 }
 
-sub test_get_url_domain()
+sub test_get_url_distinctive_domain()
 {
     # FIXME - some resulting domains look funny, not sure if I can change them easily though
-    is( MediaWords::Util::URL::get_url_domain( 'http://www.nytimes.com/' ), 'nytimes.com',
-        'get_url_domain() - nytimes.com' );
-    is( MediaWords::Util::URL::get_url_domain( 'http://cyber.law.harvard.edu/' ),
-        'law.harvard', 'get_url_domain() - cyber.law.harvard.edu' );
-    is( MediaWords::Util::URL::get_url_domain( 'http://www.gazeta.ru/' ), 'gazeta.ru', 'get_url_domain() - gazeta.ru' );
-    is( MediaWords::Util::URL::get_url_domain( 'http://www.whitehouse.gov/' ),
-        'www.whitehouse', 'get_url_domain() - www.whitehouse' );
-    is( MediaWords::Util::URL::get_url_domain( 'http://info.info/' ), 'info.info', 'get_url_domain() - info.info' );
-    is( MediaWords::Util::URL::get_url_domain( 'http://blog.yesmeck.com/jquery-jsonview/' ),
-        'yesmeck.com', 'get_url_domain() - yesmeck.com' );
-    is( MediaWords::Util::URL::get_url_domain( 'http://status.livejournal.org/' ),
-        'livejournal.org', 'get_url_domain() - livejournal.org' );
+    is( MediaWords::Util::URL::get_url_distinctive_domain( 'http://www.nytimes.com/' ),
+        'nytimes.com', 'get_url_distinctive_domain() - nytimes.com' );
+    is( MediaWords::Util::URL::get_url_distinctive_domain( 'http://cyber.law.harvard.edu/' ),
+        'law.harvard', 'get_url_distinctive_domain() - cyber.law.harvard.edu' );
+    is( MediaWords::Util::URL::get_url_distinctive_domain( 'http://www.gazeta.ru/' ),
+        'gazeta.ru', 'get_url_distinctive_domain() - gazeta.ru' );
+    is( MediaWords::Util::URL::get_url_distinctive_domain( 'http://www.whitehouse.gov/' ),
+        'www.whitehouse', 'get_url_distinctive_domain() - www.whitehouse' );
+    is( MediaWords::Util::URL::get_url_distinctive_domain( 'http://info.info/' ),
+        'info.info', 'get_url_distinctive_domain() - info.info' );
+    is( MediaWords::Util::URL::get_url_distinctive_domain( 'http://blog.yesmeck.com/jquery-jsonview/' ),
+        'yesmeck.com', 'get_url_distinctive_domain() - yesmeck.com' );
+    is( MediaWords::Util::URL::get_url_distinctive_domain( 'http://status.livejournal.org/' ),
+        'livejournal.org', 'get_url_distinctive_domain() - livejournal.org' );
 
     # ".(gov|org|com).XX" exception
-    is( MediaWords::Util::URL::get_url_domain( 'http://www.stat.gov.lt/' ),
-        'stat.gov.lt', 'get_url_domain() - www.stat.gov.lt' );
+    is( MediaWords::Util::URL::get_url_distinctive_domain( 'http://www.stat.gov.lt/' ),
+        'stat.gov.lt', 'get_url_distinctive_domain() - www.stat.gov.lt' );
 
     # "wordpress.com|blogspot|livejournal.com|privet.ru|wikia.com|feedburner.com|24open.ru|patch.com|tumblr.com" exception
-    is( MediaWords::Util::URL::get_url_domain( 'https://en.blog.wordpress.com/' ),
-        'en.blog.wordpress.com', 'get_url_domain() - en.blog.wordpress.com' );
+    is( MediaWords::Util::URL::get_url_distinctive_domain( 'https://en.blog.wordpress.com/' ),
+        'en.blog.wordpress.com', 'get_url_distinctive_domain() - en.blog.wordpress.com' );
 
-  # FIXME - invalid URL
-  # is(MediaWords::Util::URL::get_url_domain('http:///www.facebook.com/'), undef, 'get_url_domain() - invalid facebook.com');
+# FIXME - invalid URL
+# is(MediaWords::Util::URL::get_url_distinctive_domain('http:///www.facebook.com/'), undef, 'get_url_distinctive_domain() - invalid facebook.com');
 }
 
 sub test_meta_refresh_url_from_html()
@@ -1080,7 +1082,7 @@ sub main()
     test_normalize_url();
     test_normalize_url_lossy();
     test_get_url_host();
-    test_get_url_domain();
+    test_get_url_distinctive_domain();
     test_meta_refresh_url_from_html();
     test_link_canonical_url_from_html();
     test_url_and_data_after_redirects_nonexistent();

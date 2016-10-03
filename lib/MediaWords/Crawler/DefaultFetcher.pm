@@ -29,7 +29,6 @@ use MediaWords::Util::SQL;
 use MediaWords::Util::Web;
 use MediaWords::Util::URL;
 
-
 # alarabiya uses an interstitial that requires javascript.  if the download url
 # matches alarabiya and returns the 'requires JavaScript' page, manually parse
 # out the necessary cookie and add it to the $ua so that the request will work
@@ -82,7 +81,7 @@ sub _add_http_auth
 
     my $auth_lookup ||= _get_domain_http_auth_lookup();
 
-    my $domain = MediaWords::Util::URL::get_url_domain( $download->{ url } );
+    my $domain = MediaWords::Util::URL::get_url_distinctive_domain( $download->{ url } );
 
     if ( my $auth = $auth_lookup->{ lc( $domain ) } )
     {
