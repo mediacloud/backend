@@ -39,17 +39,17 @@ sub mark_medium_as_dup
 
     if ( $target_medium->{ dup_media_id } )
     {
-        INFO "target medium has dup_media_id set. skipping ...";
+        say "target medium has dup_media_id set. skipping ...";
         return;
     }
 
     if ( $target_medium->{ foreign_rss_links } )
     {
-        INFO "target medium has foreign_rss_links = true. skipping ...";
+        say "target medium has foreign_rss_links = true. skipping ...";
         return;
     }
 
-    INFO "$source_medium->{ name } -> $target_medium->{ name }";
+    say "$source_medium->{ name } -> $target_medium->{ name }";
 
     $source_medium->{ dup_media_id } = $target_medium->{ media_id };
     $source_medium->{ hide }         = 1;
@@ -69,15 +69,19 @@ sub mark_medium_is_not_dup
     $db->query( "update media set is_not_dup = true where media_id = ?", $medium->{ media_id } );
 }
 
-# if one medium has the root domain as the url, mark everything as the dup of that medium
+# if one medium has the root domain as the url and is a public set, mark everything as the dup of that medium.
+# require the parent medium to be a public_set medium if there are any public_set media among $media
 sub mark_dups_of_root_domain
 {
     my ( $db, $domain, $media ) = @_;
 
     return if ( @{ $media } > 5 );
 
+    my $require_public_set = scalar( grep { $_->{ public_set } } @{ $media } );
+
     for my $a ( @{ $media } )
     {
+        next if ( $require_public_set && !$a->{ public_set } );
         if ( !$a->{ dup_media_id } && ( $a->{ url_c } =~ m~^https?://(www\.)?$domain/?~ ) )
         {
             for my $b ( @{ $media } )
@@ -144,41 +148,29 @@ sub prompt_for_dup_media
 {
     my ( $db, $domain, $media ) = @_;
 
-    my $original_media = [ grep { !$_->{ is_spidered } } @{ $media } ];
-    my $spidered_media = [ grep { $_->{ is_spidered } } @{ $media } ];
-
-    my $ordered_media = [ @{ $original_media }, @{ $spidered_media } ];
-
-    for my $medium ( @{ $media } )
-    {
-        $medium->{ not_dup_label }     = $medium->{ is_not_dup }        ? 'NOT_DUP '     : '';
-        $medium->{ spidered_label }    = $medium->{ is_spidered }       ? 'SPIDERED '    : '';
-        $medium->{ foreign_rss_links } = $medium->{ foreign_rss_links } ? 'FOREIGN_RSS ' : '';
-    }
+    my $ordered_media = [ sort { $b->{ num_stories } <=> $a->{ num_stories } } @{ $media } ];
 
     while ( 1 )
     {
-        INFO "DOMAIN: $domain";
+        say "DOMAIN: $domain";
         for ( my $i = 0 ; $i < @{ $ordered_media } ; $i++ )
         {
             my $m = $ordered_media->[ $i ];
+
+            my $labels =
+              join( ' ', map { uc( $_ ) } grep { $m->{ $_ } } qw(public_set is_not_dup is_spidered foreign_rss_links) );
+
             if ( !$m->{ hide } )
             {
-                INFO "$i:";
-                INFO "\t$m->{ name } [";
-                INFO "\t\tmedia_id: $m->{ media_id }";
-                INFO "\t\tinlink_count: $m->{ inlink_count }";
-                INFO "\t\turl: $m->{ url }";
-                INFO "\t\tforeign_rss_links: $m->{ foreign_rss_links }";
-                INFO "\t\tspidered_label: $m->{ spidered_label }";
-                INFO "\t\tnot_dup_label: $m->{ not_dup_label }";
-                INFO "]";
-
-                END;
+                say "$i: $m->{ name }";
+                say "\tmedia_id: $m->{ media_id }";
+                say "\tnum_stories: $m->{ num_stories }";
+                say "\turl: $m->{ url }";
+                say "\tlabels: $labels\n";
             }
         }
 
-        INFO "Action (h for help):";
+        say "Action (h for help):";
 
         my $line = <STDIN>;
         chomp( $line );
@@ -197,7 +189,7 @@ END
 
         if ( $command->[ 0 ] eq 'h' )
         {
-            INFO( $help );
+            say( $help );
         }
         elsif ( $command->[ 0 ] eq 'n' )
         {
@@ -219,7 +211,7 @@ END
         }
 
         ERROR "Invalid command.";
-        INFO $help;
+        say $help;
     }
 }
 
@@ -257,9 +249,8 @@ sub dedup_media
 }
 
 # return true if we should ignore this domain.  ignore the domain if
-# the domain is blank, the number media is less than 2, the domain matches
-# one of a few patterns, there are more than 5 not_dup media already in the domain,
-# or no media in the domain have more at least 10 cross media links
+# the domain is blank, the number of media is less than 2, the domain matches
+# one of a few patterns, or there are more than 5 not_dup media already in the domain
 sub ignore_domain
 {
     my ( $domain, $domain_media ) = @_;
@@ -268,9 +259,8 @@ sub ignore_domain
 
     return 1 if ( $domain =~ /(\.edu|\.us|\.blogspot\..*)$/ );
 
-    my $min_link_count = 0;
-    map { $min_link_count = 1 if ( $_->{ inlink_count } >= 10 ) } @{ $domain_media };
-    return 1 unless ( $min_link_count );
+    my $media_with_stories = [ grep { $_->{ num_stories } > 0 } @{ $domain_media } ];
+    return 1 if ( scalar( @{ $media_with_stories } ) < 1 );
 
     my $unprocessed_media = get_unprocessed_media( $domain_media );
     return 1 if ( scalar( @{ $unprocessed_media } ) < 2 );
@@ -291,33 +281,42 @@ sub main
     my $spidered_tag = MediaWords::Util::Tags::lookup_tag( $db, 'spidered:spidered' )
       || die( "Unable to find spidered:spidered tag" );
 
+    # do this goofy temp table before the bit query below to get the pg query planner not to a slow nested index lookup
+    $db->query( <<SQL );
+create temporary table public_set_media as
+
+with public_tags as ( select * from tags where show_on_media )
+
+select media_id, 1 public_set from media m
+  where m.media_id in (
+      select media_id
+          from media_tags_map mtm
+              join public_tags t using ( tags_id )
+      )
+SQL
+
     # only dedup media that are either not spidered or are associated with topic stories
     # (this eliminates spidered media not actually associated with any topic story)
-    my $media = $db->query( <<END, $spidered_tag->{ tags_id } )->hashes;
-with media_link_counts as (
-    select r.media_id, count(*) inlink_count
-        from snap.live_stories s
-        join topic_links cl
-            on ( s.stories_id = cl.stories_id and s.topics_id = cl.topics_id )
-        join snap.live_stories r
-            on ( r.stories_id = cl.ref_stories_id and s.topics_id = cl.topics_id )
-        where r.media_id <> s.media_id
-        group by r.media_id
-)
+    my $media = $db->query( <<SQL, $spidered_tag->{ tags_id } )->hashes;
+with
+    spidered_media as ( select distinct media_id from media_tags_map mtm where mtm.tags_id = ? ),
+    topic_media as ( select distinct media_id from snap.live_stories )
 
-select m.*,
-        coalesce( mtm.tags_id, 0 ) is_spidered,
-        coalesce( mlc.inlink_count, 0 ) inlink_count
+select distinct m.*,
+        coalesce( sm.media_id, 0 ) is_spidered,
+        coalesce( mh.num_stories_y, 0 ) num_stories,
+        coalesce( psm.public_set, 0 ) public_set
     from
         media m
-        left join media_tags_map mtm on ( m.media_id = mtm.media_id and mtm.tags_id = ? )
-        left join media_link_counts mlc on ( m.media_id = mlc.media_id )
+        left join spidered_media sm on ( m.media_id = sm.media_id )
+        left join media_health mh on ( m.media_id = mh.media_id )
+        left join public_set_media psm on ( m.media_id = psm.media_id )
+        left join topic_media tm on ( m.media_id = tm.media_id )
     where
         m.dup_media_id is null and
-        ( ( mtm.tags_id is null ) or
-            m.media_id in ( select distinct( cs.media_id ) from snap.live_stories cs ) )
-  order by m.media_id
-END
+        ( ( sm.media_id is null ) or ( tm.media_id is not null ) )
+  order by public_set desc, num_stories desc, media_id
+SQL
 
     my $media_domain_lookup = {};
     map { push( @{ $media_domain_lookup->{ MediaWords::Util::URL::get_url_distinctive_domain( $_->{ url } ) } }, $_ ) }
@@ -334,7 +333,7 @@ END
     my $i = 1;
     while ( my ( $domain, $domain_media ) = each( %{ $media_domain_lookup } ) )
     {
-        INFO $i++ . "/ $num_domains";
+        say $i++ . "/ $num_domains";
 
         # try to auto-dedup via various methods
         mark_dups_of_existing_dup( $db, $domain, $domain_media );

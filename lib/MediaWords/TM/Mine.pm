@@ -2041,7 +2041,11 @@ sub merge_dup_story
 dup $keep_story->{ title } [ $keep_story->{ stories_id } ] <- $delete_story->{ title } [ $delete_story->{ stories_id } ]
 END
 
-    die( "refusing to merge identical story" ) if ( $delete_story->{ stories_id } == $keep_story->{ stories_id } );
+    if ( $delete_story->{ stories_id } == $keep_story->{ stories_id } )
+    {
+        INFO( "refusing to merge identical story" );
+        return;
+    }
 
     my $topics_id = $topic->{ topics_id };
 
@@ -2632,7 +2636,6 @@ END
     map { INFO "\t$_->{ title } [$_->{ url } $_->{ stories_id }]"; } @{ $stories };
 
     map { merge_dup_story( $db, $topic, $_, $keep_story ) } @{ $stories };
-
 }
 
 # return hash of { $media_id => $stories } for the topic

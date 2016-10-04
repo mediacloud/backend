@@ -315,10 +315,17 @@ Response:
 | `topic_mode`       | null    | If set to 'live', return media from live topics
 | `tags_id`          | null    | Return media associate with the given tag
 | `q`                | null    | Return media with at least one sentence that matches the solr query
+| `include_dups`     | 0       | Include duplicate media among the results
 
 
 If the name parameter is specified, the call returns only media sources that match a case insensitive search
 specified value.  If the specified value is less than 3 characters long, the call returns an empty list.
+
+By default, calls that specify a name parameter will only return media that are not duplicates of
+some other media source.  Media Cloud has many media sources that are either subsets of other media sources or are
+just holders for spidered media from a given media source, both of which are marked as duplicate media and are not
+included in the default results.  If the 'include_dups' parameter is set to 1, those duplicate sources will be
+included in the results.
 
 If the `timespans_id` parameter is specified, return media within the given time slice,
 sorted by descending inlink_count within the timespan.  If `topic_mode` is set to
@@ -326,6 +333,7 @@ sorted by descending inlink_count within the timespan.  If `topic_mode` is set t
 
 If the 'q' parameter is specified, return only media that include at least on sentence that matches the given
 solr query.  For a description of the solr query format, see the stories\_public/list call.
+
 
 ### Example
 
