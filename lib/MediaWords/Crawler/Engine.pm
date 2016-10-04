@@ -40,6 +40,7 @@ use Data::Dumper;
 use MediaWords::Crawler::Download::Content;
 use MediaWords::Crawler::Download::Feed::Syndicated;
 use MediaWords::Crawler::Download::Feed::WebPage;
+use MediaWords::Crawler::Download::Feed::Univision;
 use MediaWords::Crawler::Provider;
 use MediaWords::Util::Process;
 use MediaWords::Util::Timing;
@@ -96,6 +97,10 @@ sub handler_for_download($$;$)
         elsif ( $feed_type eq 'web_page' )
         {
             $handler = MediaWords::Crawler::Download::Feed::WebPage->new( $handler_args );
+        }
+        elsif ( $feed_type eq 'univision' )
+        {
+            $handler = MediaWords::Crawler::Download::Feed::Univision->new( $handler_args );
         }
         else
         {

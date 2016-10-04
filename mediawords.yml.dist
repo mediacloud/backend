@@ -275,7 +275,15 @@ database:
 #    consumer_key: ""
 #    consumer_secret: ""
 #    access_token: ""
-#    access_token_secret: ""    
+#    access_token_secret: ""  
+
+### Univision.com feed credentials
+#univision:
+    ### Client ID
+    #client_id: 83db02e1cba58c43d01116c50014913b47fa473b
+
+    ### Client Secret (Secret Key)
+    #client_secret: 7187037755de2dd77451f491d46b103b86fbcf79
 
 #mail:
     # Email address to receive bug report emails; leave empty for no bug reports via email
