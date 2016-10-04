@@ -320,7 +320,8 @@ select m.*,
 END
 
     my $media_domain_lookup = {};
-    map { push( @{ $media_domain_lookup->{ MediaWords::DBI::Media::get_medium_domain( $_ ) } }, $_ ) } @{ $media };
+    map { push( @{ $media_domain_lookup->{ MediaWords::Util::URL::get_url_distinctive_domain( $_->{ url } ) } }, $_ ) }
+      @{ $media };
 
     # find just the domains that have more than one unprocessed media source
     while ( my ( $domain, $domain_media ) = each( %{ $media_domain_lookup } ) )

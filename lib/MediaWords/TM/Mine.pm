@@ -1808,7 +1808,7 @@ sub medium_domain_matches_url
 
     my $source_medium = $db->query( "select url from media where media_id = ?", $source_story->{ media_id } )->hash;
 
-    my $domain = MediaWords::DBI::Media::get_medium_domain( $source_medium );
+    my $domain = MediaWords::Util::URL::get_url_distinctive_domain( $source_medium->{ url } );
 
     return 1 if ( index( lc( $target_story->{ url } ), lc( $domain ) ) >= 0 );
 
@@ -2101,7 +2101,7 @@ sub merge_foreign_rss_story
 
     my $medium = get_cached_medium_by_id( $db, $story->{ media_id } );
 
-    my $medium_domain = MediaWords::DBI::Media::get_medium_domain( $medium );
+    my $medium_domain = MediaWords::Util::URL::get_url_distinctive_domain( $medium->{ url } );
 
     # for stories in ycombinator.com, allow stories with a http://yombinator.com/.* url
     return if ( index( lc( $story->{ url } ), lc( $medium_domain ) ) >= 0 );

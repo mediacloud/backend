@@ -328,19 +328,6 @@ sub _find_media_from_urls
     return $url_media;
 }
 
-=head2 get_medium_domain( $medium )
-
-Return MediaWords::Util::URL::get_url_distinctive_domain on the $medium->{ url }
-
-=cut
-
-sub get_medium_domain
-{
-    my ( $medium ) = @_;
-
-    return MediaWords::Util::URL::get_url_distinctive_domain( $medium->{ url } );
-}
-
 =head2 get_media_type_tags( $db, $topics_id )
 
 Get all of the media_type: tags. append the tags from the topics.media_type_tags_sets_id if $topics_id is
