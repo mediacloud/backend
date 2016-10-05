@@ -28,9 +28,6 @@ use MediaWords::Crawler::Engine;
 use MediaWords::Util::JSON;
 use HTTP::HashServer;
 
-my Readonly $TEST_HTTP_SERVER_PORT = 9998;
-my Readonly $TEST_HTTP_SERVER_URL  = 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
-
 sub test_api_request_signature()
 {
     # Invalid input
@@ -188,10 +185,27 @@ sub main()
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
-    plan tests => 17;
+    Readonly my $TEST_HTTP_SERVER_PORT => 9998;
+    Readonly my $TEST_HTTP_SERVER_URL  => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
 
-    say STDERR "Testing with local Univision handler...";
+    my $local_univision_url           = $TEST_HTTP_SERVER_URL . '/feed';
+    my $local_univision_client_id     = 'foo';
+    my $local_univision_client_secret = 'bar';
 
+    my $remote_univision_url           = $ENV{ MC_UNIVISION_TEST_URL };
+    my $remote_univision_client_id     = $ENV{ MC_UNIVISION_TEST_CLIENT_ID };
+    my $remote_univision_client_secret = $ENV{ MC_UNIVISION_TEST_CLIENT_SECRET };
+
+    if ( $remote_univision_url and $remote_univision_client_id and $remote_univision_client_secret )
+    {
+        plan tests => 33;
+    }
+    else
+    {
+        plan tests => 17;
+    }
+
+    say STDERR "Testing against local Univision test HTTP server...";
     my $pages = {
 
         '/feed' => MediaWords::Util::JSON::encode_json(
@@ -234,17 +248,18 @@ EOF
 EOF
     };
 
-    my $univision_url           = $TEST_HTTP_SERVER_URL . '/feed';
-    my $univision_client_id     = 'foo';
-    my $univision_client_secret = 'bar';
-
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
-
     $hs->start();
 
-    test_univision( $univision_url, $univision_client_id, $univision_client_secret );
+    test_univision( $local_univision_url, $local_univision_client_id, $local_univision_client_secret );
 
     $hs->stop();
+
+    if ( $remote_univision_url and $remote_univision_client_id and $remote_univision_client_secret )
+    {
+        say STDERR "Testing against remote (live) Univision HTTP server...";
+        test_univision( $remote_univision_url, $remote_univision_client_id, $remote_univision_client_secret );
+    }
 }
 
 main();
