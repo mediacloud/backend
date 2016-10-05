@@ -26,6 +26,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;
+use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::ExtractorArguments;
 
 # Extract, vector and process a story; LOGDIE() and / or return
