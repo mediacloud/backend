@@ -7,7 +7,7 @@ use MediaWords::CommonLibs;
 
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 137;
+use Test::More tests => 140;
 
 use Readonly;
 use HTTP::HashServer;
@@ -328,6 +328,11 @@ sub test_get_url_distinctive_domain()
         'yesmeck.com', 'get_url_distinctive_domain() - yesmeck.com' );
     is( MediaWords::Util::URL::get_url_distinctive_domain( 'http://status.livejournal.org/' ),
         'livejournal.org', 'get_url_distinctive_domain() - livejournal.org' );
+
+    # Make sure subroutine works with ap.org
+    is( MediaWords::Util::URL::get_url_distinctive_domain( 'http://ap.org/' ),                   'ap.org', 'ap.org #1' );
+    is( MediaWords::Util::URL::get_url_distinctive_domain( 'http://ap.org' ),                    'ap.org', 'ap.org #2' );
+    is( MediaWords::Util::URL::get_url_distinctive_domain( 'http://hosted.ap.org/foo/bar/baz' ), 'ap.org', 'ap.org #3' );
 
     # ".(gov|org|com).XX" exception
     is( MediaWords::Util::URL::get_url_distinctive_domain( 'http://www.stat.gov.lt/' ),
