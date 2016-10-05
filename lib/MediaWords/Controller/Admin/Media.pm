@@ -25,7 +25,6 @@ use MediaWords::Util::Web;
 use Readonly;
 use Regexp::Common qw /URI/;
 use Text::Trim;
-use URI::Split;
 use URI;
 
 use if $] < 5.014, Switch => 'Perl6';

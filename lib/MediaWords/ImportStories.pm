@@ -32,7 +32,6 @@ use Data::Dumper;
 use Encode;
 use List::MoreUtils;
 use Parallel::ForkManager;
-use URI::Split;
 
 use MediaWords::TM::GuessDate;
 use MediaWords::CommonLibs;
@@ -41,6 +40,7 @@ use MediaWords::DBI::Stories;
 use MediaWords::Util::HTML;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
+use MediaWords::Util::URL;
 
 =head1 ATTRIBUTES
 
@@ -376,7 +376,7 @@ sub _add_story_download
             feeds_id   => $self->_get_scrape_feed->{ feeds_id },
             stories_id => $story->{ stories_id },
             url        => $story->{ url },
-            host       => lc( ( URI::Split::uri_split( $story->{ url } ) )[ 1 ] ),
+            host       => MediaWords::Util::URL::get_url_host( $story->{ url } ),
             type       => 'content',
             sequence   => 1,
             state      => 'success',
@@ -399,7 +399,7 @@ sub _add_story_download
             feeds_id   => $self->_get_scrape_feed->{ feeds_id },
             stories_id => $story->{ stories_id },
             url        => $story->{ url },
-            host       => lc( ( URI::Split::uri_split( $story->{ url } ) )[ 1 ] ),
+            host       => MediaWords::Util::URL::get_url_host( $story->{ url } ),
             type       => 'content',
             sequence   => 1,
             state      => 'pending',

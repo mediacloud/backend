@@ -4,7 +4,7 @@ use MediaWords::CommonLibs;
 
 =head1 NAME
 
-Mediawords::Crawler::Engine - controls and coordinates the work of the crawler provider, fetchers, and handlers
+MediaWords::Crawler::Engine - controls and coordinates the work of the crawler provider, fetchers, and handlers
 
 =head1 SYNOPSIS
 
@@ -36,12 +36,14 @@ use Fcntl;
 use IO::Select;
 use IO::Socket;
 use Data::Dumper;
-use Time::HiRes;
 
-use MediaWords::Crawler::Fetcher;
-use MediaWords::Crawler::Handler;
+use MediaWords::Crawler::Download::Content;
+use MediaWords::Crawler::Download::Feed::Syndicated;
+use MediaWords::Crawler::Download::Feed::WebPage;
+use MediaWords::Crawler::Download::Feed::Univision;
 use MediaWords::Crawler::Provider;
 use MediaWords::Util::Process;
+use MediaWords::Util::Timing;
 
 =head1 METHODS
 
@@ -58,21 +60,69 @@ sub new
     my $self = {};
     bless( $self, $class );
 
+    $self->_reconnect_db();
+
     $self->processes( 1 );
     $self->sleep_interval( 60 );
     $self->throttle( 30 );
     $self->fetchers( [] );
-    $self->reconnect_db();
     $self->children_exit_on_kill( 0 );
     $self->test_mode( 0 );
+    $self->extract_in_process( 0 );
 
     return $self;
 }
 
-sub _fetch_and_handle_download
+# (static) Returns correct handler for download
+sub handler_for_download($$;$)
 {
+    my ( $db, $download, $handler_args ) = @_;
 
-    my ( $self, $download, $fetcher, $handler ) = @_;
+    $handler_args //= {};
+
+    my $downloads_id  = $download->{ downloads_id };
+    my $download_type = $download->{ type };
+
+    my $handler;
+    if ( $download_type eq 'feed' )
+    {
+        my $feeds_id  = $download->{ feeds_id };
+        my $feed      = $db->find_by_id( 'feeds', $feeds_id );
+        my $feed_type = $feed->{ feed_type };
+
+        if ( $feed_type eq 'syndicated' )
+        {
+            $handler = MediaWords::Crawler::Download::Feed::Syndicated->new( $handler_args );
+        }
+        elsif ( $feed_type eq 'web_page' )
+        {
+            $handler = MediaWords::Crawler::Download::Feed::WebPage->new( $handler_args );
+        }
+        elsif ( $feed_type eq 'univision' )
+        {
+            $handler = MediaWords::Crawler::Download::Feed::Univision->new( $handler_args );
+        }
+        else
+        {
+            LOGCONFESS "Unknown feed type '$feed_type' for feed $feeds_id, download $downloads_id";
+        }
+
+    }
+    elsif ( $download_type eq 'content' )
+    {
+        $handler = MediaWords::Crawler::Download::Content->new( $handler_args );
+    }
+    else
+    {
+        LOGCONFESS "Unknown download type '$download_type' for download $downloads_id";
+    }
+
+    return $handler;
+}
+
+sub _fetch_and_handle_download($$$)
+{
+    my ( $self, $download, $handler ) = @_;
 
     my $url = $download->{ url };
 
@@ -83,22 +133,22 @@ sub _fetch_and_handle_download
 
     DEBUG "fetch " . $self->fetcher_number . ": $download->{downloads_id} $url ...";
 
-    my $start_fetch_time = [ Time::HiRes::gettimeofday ];
-    my $response         = $fetcher->fetch_download( $download );
-    my $end_fetch_time   = [ Time::HiRes::gettimeofday ];
+    my $db = $self->dbs;
 
+    my $start_fetch_time = MediaWords::Util::Timing::start_time( 'fetch' );
+    my $response = $handler->fetch_download( $db, $download );
+    MediaWords::Util::Timing::stop_time( 'fetch', $start_fetch_time );
+
+    my $start_handle_time = MediaWords::Util::Timing::start_time( 'handle' );
     $DB::single = 1;
-    eval { $handler->handle_response( $download, $response ); };
-
-    my $fetch_time = Time::HiRes::tv_interval( $start_fetch_time, $end_fetch_time );
-    my $handle_time = Time::HiRes::tv_interval( $end_fetch_time );
-
+    eval { $handler->handle_response( $db, $download, $response ); };
     if ( $@ )
     {
         LOGDIE( "Error in handle_response() for downloads_id $download->{downloads_id} $url : $@" );
     }
+    MediaWords::Util::Timing::stop_time( 'handle', $start_handle_time );
 
-    DEBUG "fetch " . $self->fetcher_number . ": $download->{downloads_id} $url done [$fetch_time/$handle_time]";
+    DEBUG "Fetcher " . $self->fetcher_number . ": $download->{downloads_id} $url done";
 
     return;
 }
@@ -114,12 +164,12 @@ sub fetch_and_handle_single_download
 
     my ( $self, $download ) = @_;
 
-    $self->reconnect_db();
+    $self->_reconnect_db();
 
-    my $fetcher = MediaWords::Crawler::Fetcher->new( $self );
-    my $handler = MediaWords::Crawler::Handler->new( $self );
+    my $db = $self->dbs;
 
-    $self->_fetch_and_handle_download( $download, $fetcher, $handler );
+    my $handler = handler_for_download( $db, $download, { extract_in_process => $self->extract_in_process } );
+    $self->_fetch_and_handle_download( $download, $handler );
 
     return;
 }
@@ -131,16 +181,11 @@ sub _run_fetcher
 
     DEBUG "fetch " . $self->fetcher_number . " crawl loop";
 
-    $self->reconnect_db();
-
-    my $fetcher = MediaWords::Crawler::Fetcher->new( $self );
-    my $handler = MediaWords::Crawler::Handler->new( $self );
-
-    my $download;
+    $self->_reconnect_db();
 
     $self->socket->blocking( 0 );
 
-    my $start_idle_time = [ Time::HiRes::gettimeofday ];
+    my $start_idle_time = MediaWords::Util::Timing::start_time( 'idle' );
 
     while ( 1 )
     {
@@ -150,7 +195,9 @@ sub _run_fetcher
 
             $download = 0;
 
-            $self->reconnect_db;
+            $self->_reconnect_db();
+
+            my $db = $self->dbs;
 
             # tell the parent provider we're ready for another download
             # and then read the download id from the socket
@@ -165,14 +212,15 @@ sub _run_fetcher
 
             if ( $downloads_id && ( $downloads_id ne 'none' ) && ( $downloads_id ne 'exit' ) )
             {
-                $download = $self->dbs->find_by_id( 'downloads', $downloads_id );
+                $download = $db->find_by_id( 'downloads', $downloads_id );
 
-                my $idle_time = Time::HiRes::tv_interval( $start_idle_time, [ Time::HiRes::gettimeofday ] );
-                DEBUG "fetch " . $self->fetcher_number . " idle time $idle_time";
+                MediaWords::Util::Timing::stop_time( 'idle', $start_idle_time );
 
-                $self->_fetch_and_handle_download( $download, $fetcher, $handler );
+                my $handler = handler_for_download( $db, $download, { extract_in_process => $self->extract_in_process } );
 
-                $start_idle_time = [ Time::HiRes::gettimeofday ];
+                $self->_fetch_and_handle_download( $download, $handler );
+
+                $start_idle_time = MediaWords::Util::Timing::start_time( 'idle' );
             }
             elsif ( $downloads_id && ( $downloads_id eq 'exit' ) )
             {
@@ -220,7 +268,7 @@ requests a new download id from the engine parent process via the parent/child s
 
 =item *
 
-calls $fetcher->fetch_download to get an http response for a download;
+calls $handler->fetch_download to get an http response for a download;
 
 =item *
 
@@ -256,10 +304,10 @@ sub _spawn_fetchers
             $self->fetchers->[ $i ] = { pid => $pid, socket => $parent_socket };
 
             TRACE "in parent after spawning fetcher $i db reconnect starting";
-            eval { $self->reconnect_db; };
+            eval { $self->_reconnect_db(); };
             if ( $@ )
             {
-                LOGDIE "Error in reconnect_db in paranet after spawning fetcher $i";
+                LOGDIE "Error in _reconnect_db() in paranet after spawning fetcher $i";
             }
             TRACE "in parent after spawning fetcher $i db reconnect done";
         }
@@ -270,7 +318,7 @@ sub _spawn_fetchers
             $in_parent = 0;
             $self->fetcher_number( $i );
             $self->socket( $child_socket );
-            $self->reconnect_db;
+            $self->_reconnect_db();
 
             if ( $self->children_exit_on_kill() )
             {
@@ -301,31 +349,6 @@ sub _spawn_fetchers
         TRACE "continuing in parent";
 
     }
-}
-
-=head2 create_fetcher_engine_for_testing
-
-create a simple engine that consists of only a single fetcher process that can be manually passed a download to
-test the fetcher / handle process.
-
-=cut
-
-sub create_fetcher_engine_for_testing
-{
-    my ( $fetcher_number ) = @_;
-
-    my $crawler = MediaWords::Crawler::Engine->new();
-
-    #$crawler->processes( 1 );
-    #$crawler->throttle( 1 );
-    #$crawler->sleep_interval( 1 );
-
-    #$crawler->timeout( $crawler_timeout );
-    #$crawler->pending_check_interval( 1 );
-
-    $crawler->fetcher_number( $fetcher_number );
-
-    return $crawler;
 }
 
 =head2 crawl
@@ -602,10 +625,27 @@ sub test_mode
             $self->processes( 1 );
             $self->throttle( 1 );
             $self->sleep_interval( 1 );
+            $self->extract_in_process( 1 );
         }
     }
 
     return $self->{ test_mode };
+}
+
+=head2 extract_in_process
+
+getset extract_in_process - whether extract downloads in crawler's process instead of sending them to the job broker
+
+=cut
+
+sub extract_in_process
+{
+    if ( defined( $_[ 1 ] ) )
+    {
+        $_[ 0 ]->{ extract_in_process } = $_[ 1 ];
+    }
+
+    return $_[ 0 ]->{ extract_in_process };
 }
 
 =head2 dbs
@@ -620,7 +660,7 @@ sub dbs
 
     if ( $dbs )
     {
-        LOGDIE( "use $self->reconnect_db to connect to db" );
+        LOGDIE( "use $self->_reconnect_db() to connect to db" );
     }
 
     defined( $self->{ dbs } ) || LOGDIE "no database";
@@ -642,13 +682,13 @@ sub _close_db_connection
     return;
 }
 
-=head2 reconnect_db
+=head2 _reconnect_db()
 
 Close the existing $self->dbs and create a new connection.
 
 =cut
 
-sub reconnect_db
+sub _reconnect_db
 {
     my ( $self ) = @_;
 

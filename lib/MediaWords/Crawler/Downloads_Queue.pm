@@ -7,7 +7,6 @@ use MediaWords::CommonLibs;
 use strict;
 use warnings;
 
-use URI::Split;
 use Fcntl qw (O_RDWR O_CREAT O_TRUNC);
 use File::Path;
 use Data::Dumper;
