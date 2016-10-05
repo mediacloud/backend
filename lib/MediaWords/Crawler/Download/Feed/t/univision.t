@@ -98,7 +98,8 @@ sub test_api_request($$$)
     ok( $json_string, 'JSON response is not empty' );
 
     my $json;
-    eval { $json = MediaWords::Util::JSON::decode_json( $json_string ) };
+    Readonly my $json_utf8 => 1;
+    eval { $json = MediaWords::Util::JSON::decode_json( $json_string, $json_utf8 ) };
     ok( ( !$@ ), "JSON recoding of JSON succeeded: $json_string" );
 
     is( $json->{ 'status' }, 'success', "JSON response was successful: $json_string" );
@@ -206,7 +207,7 @@ sub main()
                             'url'         => $TEST_HTTP_SERVER_URL . '/first_article',
                             'publishDate' => '2016-08-23T23:32:11-04:00',
                             'updateDate'  => '2016-08-24T10:09:26-04:00',
-                            'title'       => 'First article',
+                            'title'       => 'First article: 🍕',                           # UTF-8 in the title
                             'description' => 'This is the first Univision sample article.',
                         },
                         {
@@ -215,7 +216,7 @@ sub main()
                             'url'         => $TEST_HTTP_SERVER_URL . '/second_article',
                             'publishDate' => '2016-08-23T23:20:13-04:00',
                             'updateDate'  => '2016-08-24T09:55:40-04:00',
-                            'title'       => 'Second article',
+                            'title'       => 'Second article: 🍔',                           # UTF-8 in the title
                             'description' => 'This is the second Univision sample article.',
                         },
                     ]
