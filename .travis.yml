@@ -29,6 +29,13 @@ env:
         - secure: "ONqZb6dPH8uNcCVkLH722JPhP4Zua8QjbYcj24ob27LVrjh9UbSAUVMu+3XVczY0dERsGGcqH2bhaG3WYINAs0wnbyPfbAokHtRSrIcDfSfVkDfCzJkYl7jc1Dhc/lV/pe6ygqtGZQG+Whx/dKf6DpCJmpEekeHavwVDxzC1D+4="
         - secure: "Y3poZS6KCMfAyXmAG4hvHhCtaUHLl3UwB2CYjDLp2ki86tDtG7JfEJp2Q/8C610nzBw6WlA8bdljM9dxNHR6aEGHPxLz1NsGMLw8xYZFoMrw6RMpRq6BLcraylAmVZAFC2GTClqzHMWfW6mCQ5a5OznUWsJ6n4tP0aoPLjRpUgw="
         - secure: "GHU56Kl7zaE00MZeaPqie3e8xoxLaGnh3A03xZbG8/707tPtBsPLfPDaCSQf9PSstajVjPik+tUNuOTgyz9AD5ma3dwPdJ6VhpFNS/DD8+CDlojmgEfuvaVD7Bi3sLFuop/PWrNoi0pND45lv8O8shQ1WruHEWPgYxW10vd3Q7Y="
+        # Univision API test credentials:
+        # * MC_UNIVISION_TEST_URL
+        # * MC_UNIVISION_TEST_CLIENT_ID
+        # * MC_UNIVISION_TEST_CLIENT_SECRET
+        - secure: "OJQnQvZNiusSPuHDndQfPjuNW5Gp3MlzfC/d91YIdh4ftyCso8Jy1LInetml2yNhSnTVe86sCarZ4v4f3/5wfkCuJc5Y7ph0Ij6LfqXdPhVSe+HsxQoAA60EbmcH0Ho/K3Y7LZOV+dqvWcvkrfdYPUQB9Qid2tHJYv4+JndycNM="
+        - secure: "U4UiJwK5fsezvZOGsgW0v6hPiqXGor0Er6DAtlb7AE/qBx5j4goHYi4SsjMGX21pzFxlo+MmT6oGFj1rDf4uoF6TXW5UZn2fLsCYXrHRaQ7hJXog+tSw7CpAoR6mlXfxti6I83ln53GIgqhpzoZXscdS21r0q/vv8aFRT7dD8Ec="
+        - secure: "Fw42BMs0PDUn3ouHbeDwps28BolRQuLcHtvax25sbFd6novSIpns/01c31pZy8LkOYSb0fDqnrx3zTYh468CctJks4cDRPTn8xjPMGP5mnrOxdQbVHLFD5nqo/bpOzvdUmBWj8t7r96C8x6PNqxfsQqeinzHi1e2wMbDyxGdFHQ="
         # Do not ask for confirmation when running ./script/mediawords_create_db.pl
         - MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1
         # Enable Python API tests in ./script/run_test_suite_for_devel_cover.sh
