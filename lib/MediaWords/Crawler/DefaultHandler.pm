@@ -119,7 +119,7 @@ sub handle_response($$$$)
     }
 
     my $content;
-    if ( $response->content_type =~ m~text|html|xml|rss|atom~i )
+    if ( $response->content_type =~ m~text|html|xml|rss|atom|application/json~i )
     {
         $content = $response->decoded_content;
     }
