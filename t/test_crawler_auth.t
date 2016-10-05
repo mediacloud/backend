@@ -17,7 +17,6 @@ use HTTP::HashServer;
 use Test::More tests => 6;
 
 use MediaWords::Crawler::Engine;
-use MediaWords::Crawler::Fetcher;
 use MediaWords::Test::DB;
 use MediaWords::Util::Config;
 
@@ -38,17 +37,11 @@ sub fetch_response
 
     $download = $db->create( 'downloads', $download );
 
-    my $engine = MediaWords::Crawler::Engine->new();
-
-    $engine->{ dbs } = $db;
-    $engine->fetcher_number( 1 );
-
-    my $fetcher = MediaWords::Crawler::Fetcher->new( $engine );
-
-    return $fetcher->fetch_download( $download );
+    my $handler = MediaWords::Crawler::Engine::handler_for_download( $db, $download );
+    return $handler->fetch_download( $db, $download );
 }
 
-# test that Handler::handle_error deals correctly with various types of responses
+# test that Handler::_handle_error() deals correctly with various types of responses
 sub test_auth
 {
     my ( $db ) = @_;
@@ -68,7 +61,7 @@ sub test_auth
     my $config = MediaWords::Util::Config::get_config;
 
     $config->{ mediawords }->{ crawler_authenticated_domains } =
-      [ { domain => "localhost:$port.localhost:$port", user => 'foo', password => 'bar' } ];
+      [ { domain => 'localhost.localhost', user => 'foo', password => 'bar' } ];
 
     my $noauth_response = fetch_response( $db, $feed, "http://127.0.01:$port/auth" );
     my $auth_response   = fetch_response( $db, $feed, "http://localhost:$port/auth" );

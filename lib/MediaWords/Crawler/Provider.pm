@@ -49,7 +49,6 @@ use Data::Dumper;
 use List::MoreUtils;
 use Math::Random;
 use Readonly;
-use URI::Split;
 
 use MediaWords::DB;
 use MediaWords::Crawler::Downloads_Queue;

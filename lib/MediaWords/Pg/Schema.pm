@@ -31,13 +31,13 @@ sub _reset_all_schemas($)
 SQL
     )->flat;
 
-    # notices cause perl warnings, which cause NoWawrning tests to fail
-    $db->query( "SET client_min_messages TO WARNING" );
-
+    # When dropping schemas, PostgreSQL spits out a lot of notices which break "no warnings" unit test
+    $db->query( 'SET client_min_messages=WARNING' );
     foreach my $schema ( @{ $schemas } )
     {
         $db->query( "DROP SCHEMA IF EXISTS $schema CASCADE" );
     }
+    $db->query( 'SET client_min_messages=NOTICE' );
 }
 
 # Given the PostgreSQL response line (notice) returned while importing schema,
@@ -243,6 +243,30 @@ EOF
     else
     {
         $db->query( $upgrade_sql );
+    }
+
+    # Add 'univision' option to "feed_feed_type" enum
+    # (adding new enum values don't work in transactions or multi-line queries
+    # thus a migration wouldn't have worked)
+    my ( $feed_type_has_univision_value ) = $db->query(
+        <<SQL
+        SELECT 1
+        FROM pg_type AS t
+            JOIN pg_enum AS e ON t.oid = e.enumtypid  
+            JOIN pg_catalog.pg_namespace AS n ON n.oid = t.typnamespace
+        WHERE n.nspname = CURRENT_SCHEMA()
+          AND t.typname = 'feed_feed_type'
+          AND e.enumlabel = 'univision'
+SQL
+    )->flat;
+    unless ( $feed_type_has_univision_value )
+    {
+        DEBUG( "Adding 'univision' value to 'feed_feed_type' enum..." );
+        $db->query( "ALTER TYPE feed_feed_type ADD VALUE 'univision'" );
+    }
+    else
+    {
+        DEBUG( "'feed_feed_type' already has 'univision' value" );
     }
 
     $db->disconnect;

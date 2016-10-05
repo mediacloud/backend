@@ -95,11 +95,9 @@ Readonly my $crawler_timeout => MediaWords::Util::Config::get_config->{ mediawor
 # the stories from the test feed and test-extract them
 sub _run_crawler()
 {
-    MediaWords::Util::Config->get_config->{ mediawords }->{ extract_in_process } = 1;
-
     my $crawler = MediaWords::Crawler::Engine->new();
 
-    $crawler->test_mode( 1 );
+    $crawler->test_mode( 1 );    # will set extract_in_process() too
 
     #$crawler->children_exit_on_kill( 1 );
 

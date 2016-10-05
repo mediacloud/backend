@@ -36,6 +36,9 @@ if [[ $# == 1 && -n "$1" ]]; then
 	REPORT="$1";
 fi
 
+# Devel::Cover options
+HARNESS_PERL_SWITCHES='-MDevel::Cover=+ignore,local/,+ignore,^foreign_modules/,+ignore,t/,+ignore,\.t$'
+
 echo "Will generate test coverage report: $REPORT"
 
 echo "Removing old test coverage database..." 1>&2
@@ -44,11 +47,11 @@ rm -rf cover_db/
 if [ "$DESTROY_SOLR" =  "1" ] 
 then
    echo "running api test"
-   HARNESS_PERL_SWITCHES='-MDevel::Cover=+ignore,local/,+ignore,^foreign_modules/,+ignore,\.t$' ./api_test/run_api_test.sh
+   HARNESS_PERL_SWITCHES="$HARNESS_PERL_SWITCHES" ./api_test/run_api_test.sh
 fi
 
 echo "Running full test suite..." 1>&2
-HARNESS_PERL_SWITCHES='-MDevel::Cover=+ignore,local/,+ignore,^foreign_modules/,+ignore,\.t$' ./script/run_test_suite.sh
+HARNESS_PERL_SWITCHES="$HARNESS_PERL_SWITCHES" ./script/run_test_suite.sh
 
 
 echo "Generating '$REPORT' report..." 1>&2

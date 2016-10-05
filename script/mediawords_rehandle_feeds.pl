@@ -13,7 +13,6 @@ BEGIN
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use MediaWords::Crawler::FeedHandler;
 use MediaWords::DB;
 use MediaWords::Util::Config qw(get_config);
 
@@ -50,7 +49,9 @@ END
             if ( length( $$content_ref ) > 32 )
             {
                 $download->{ state } = 'error';
-                MediaWords::Crawler::FeedHandler::handle_feed_content( $db, $download, $$content_ref );
+
+                my $handler = MediaWords::Crawler::Engine::handler_for_download( $db, $download );
+                $handler->handle_download( $db, $download, $$content_ref );
             }
         };
         if ( $@ )
