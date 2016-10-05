@@ -92,7 +92,15 @@ sub test_str2time_21st_century()
 
     is(
         MediaWords::Util::DateTime::str2time_21st_century( '2016-08-23T23:32:11-04:00' ),
-        timelocal( 11, 32, 6, 24, 7, 2016 ),
+        DateTime->new(
+            year      => 2016,
+            month     => 8,
+            day       => 23,
+            hour      => 23,
+            minute    => 32,
+            second    => 11,
+            time_zone => 'America/New_York'
+          )->epoch(),
         'Univision test date'
     );
 
