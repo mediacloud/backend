@@ -52,6 +52,11 @@ sub get_mc_root_dir
     return $MC_ROOT_DIR;
 }
 
+sub get_mc_python_dir()
+{
+    return get_mc_root_dir() . '/mediacloud/';
+}
+
 sub get_config
 {
 
