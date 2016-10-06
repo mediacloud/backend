@@ -19,17 +19,11 @@ use HTTP::Status qw(:constants);
 
 around execute => sub {
 
-    my ( $orig, $self, $controller, $c ) = @_;
+    my $orig = shift;
+    my $self = shift;
+    my ( $controller, $c ) = @_;
 
-    eval { $self->_authenticate_topic( $c, 'read' ); };
-    if ( $@ )
-    {
-        my $message = $@;
-
-        $c->error( 'Authentication error: ' . $@ );
-        $c->detach();
-        return undef;
-    }
+    $self->_authenticate_topic( $c, 'read' );
 
     return $self->$orig( @_ );
 };

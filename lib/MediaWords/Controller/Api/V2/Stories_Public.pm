@@ -19,13 +19,12 @@ BEGIN
     extends 'MediaWords::Controller::Api::V2::StoriesBase'    # private
 }
 
-__PACKAGE__->config(                                          #
-    action => {                                               #
-        single_GET => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
-        list_GET   => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
-        count_GET  => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
-      }    #
-);         #
+__PACKAGE__->config(
+    action => {
+        single => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        list   => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+    }
+);
 
 sub has_extra_data
 {

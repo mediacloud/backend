@@ -20,7 +20,7 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
 __PACKAGE__->config(    #
     action => {         #
-        single_GET => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
+        single => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
       }    #
 );         #
 
@@ -82,7 +82,7 @@ sub _login_and_get_ip_token_for_user
     return _get_ip_token_for_user( $c, $user );
 }
 
-sub single_GET : Local : PathPrefix( '/api' )
+sub single_GET : PathPrefix( '/api' )
 {
     my ( $self, $c ) = @_;
 

@@ -15,8 +15,8 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
 __PACKAGE__->config(
     action => {
-        list_GET     => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        generate_GET => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        list     => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
+        generate => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
@@ -35,7 +35,7 @@ sub list : Chained('snapshots') : Args(0) : ActionClass('MC_REST')
 
 }
 
-sub list_GET : Local
+sub list_GET
 {
     my ( $self, $c ) = @_;
 
@@ -54,7 +54,7 @@ sub generate : Chained('snapshots') : Args(0) : ActionClass('MC_REST')
 {
 }
 
-sub generate_GET : Local
+sub generate_GET
 {
     my ( $self, $c ) = @_;
 

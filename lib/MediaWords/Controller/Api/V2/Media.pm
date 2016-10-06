@@ -159,7 +159,7 @@ sub get_extra_where_clause
     return @{ $clauses } ? join( "  ", @{ $clauses } ) : '';
 }
 
-sub list_GET : Local
+sub list_GET
 {
     my ( $self, $c ) = @_;
 

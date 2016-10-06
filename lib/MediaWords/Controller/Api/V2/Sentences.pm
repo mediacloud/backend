@@ -36,11 +36,11 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
 __PACKAGE__->config(
     action => {
-        single_GET      => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        list_GET        => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        put_tags_PUT    => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        count_GET       => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        field_count_GET => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        single      => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        list        => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        put_tags    => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        count       => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        field_count => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
@@ -164,7 +164,7 @@ sub _get_sentences_entity_from_json_data
     return $entity;
 }
 
-sub list_GET : Local
+sub list_GET
 {
     my ( $self, $c ) = @_;
 
@@ -268,7 +268,7 @@ sub _get_count_with_split
     return { count => $count, split => \%split };
 }
 
-sub count_GET : Local
+sub count_GET
 {
     my ( $self, $c ) = @_;
 
@@ -299,7 +299,7 @@ sub put_tags : Local : ActionClass('MC_REST')
 {
 }
 
-sub put_tags_PUT : Local
+sub put_tags_PUT
 {
     my ( $self, $c ) = @_;
     my $subset = $c->req->data;
@@ -330,7 +330,7 @@ sub field_count : Local : ActionClass('MC_REST')
 {
 }
 
-sub field_count_GET : Local
+sub field_count_GET
 {
     my ( $self, $c ) = @_;
 

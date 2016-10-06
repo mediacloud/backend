@@ -47,7 +47,7 @@ around execute => sub {
     {
         my $message = $@;
 
-        $c->error( $message );
+        push( @{ $c->stash->{ auth_errors } }, $message );
         $c->detach();
         return undef;
     }

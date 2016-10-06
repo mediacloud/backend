@@ -12,13 +12,18 @@ use namespace::autoclean;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
-__PACKAGE__->config( action => { list_GET => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] }, } );
+__PACKAGE__->config(
+    action => {
+        list   => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        single => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+    }
+);
 
 sub list : Local : ActionClass('MC_REST')
 {
 }
 
-sub list_GET : Local
+sub list_GET
 {
     my ( $self, $c ) = @_;
 
@@ -49,7 +54,7 @@ sub single : Local : ActionClass('MC_REST')
 {
 }
 
-sub single_GET : Local
+sub single_GET
 {
     my ( $self, $c, $topics_id ) = @_;
 

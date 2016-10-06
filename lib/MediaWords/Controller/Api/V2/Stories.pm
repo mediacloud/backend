@@ -40,15 +40,16 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::StoriesBase' }
 
 __PACKAGE__->config(
     action => {
-        single_GET         => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        list_GET           => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        put_tags_PUT       => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        single             => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        list               => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        put_tags           => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         fetch_bitly_clicks => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         cluster_stories    => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        corenlp            => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
-sub single_GET : Local
+sub single_GET
 {
     my ( $self, $c, $id ) = @_;
 
@@ -64,7 +65,7 @@ sub put_tags : Local : ActionClass('MC_REST')
 {
 }
 
-sub put_tags_PUT : Local
+sub put_tags_PUT
 {
     my ( $self, $c ) = @_;
 
@@ -255,7 +256,7 @@ sub cluster_stories : Local : ActionClass('MC_REST')
 
 }
 
-sub cluster_stories_GET : Local
+sub cluster_stories_GET
 {
     my ( $self, $c ) = @_;
 

@@ -5,18 +5,22 @@ use MediaWords::CommonLibs;
 use strict;
 use warnings;
 use base 'Catalyst::Controller';
+
+use HTTP::Status qw(:constants);
 use JSON;
+use List::Compare;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
+
 use Moose;
 use namespace::autoclean;
-use List::Compare;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
 __PACKAGE__->config(
     action => {
-        user_list_GET => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        list_GET      => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
+        user_list => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        list      => { Does => [ qw( ~TopicsAdminAuthenticated ~Throttled ~Logged ) ] },
+        update    => { Does => [ qw( ~TopicsAdminAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
@@ -25,11 +29,17 @@ sub user_list : Chained( '/') : PathPart( 'api/v2/topics/permissions/user/list' 
 
 }
 
-sub user_list_GET : Local
+sub user_list_GET
 {
     my ( $self, $c ) = @_;
 
-    $self->status_ok( $c, entity => { user => 'list!' } );
+    my $permissions = $c->dbis->query( <<SQL, $c->stash->{ api_auth }->{ auth_users_id } )->hashes;
+select u.email, tp.topics_id, tp.permission
+    from topic_permissions tp join auth_users u using ( auth_users_id )
+    where u.auth_users_id = ?
+SQL
+
+    $self->status_ok( $c, entity => { permissions => $permissions } );
 }
 
 sub apibase : Chained('/') : PathPart('api/v2/topics/') : CaptureArgs(1)
@@ -38,62 +48,74 @@ sub apibase : Chained('/') : PathPart('api/v2/topics/') : CaptureArgs(1)
     $c->stash->{ topics_id } = $topics_id;
 }
 
-sub list : Chained('apibase') : PathPart( 'permissions/list' ) : Args(0) : ActionClass('MC_REST')
+sub permissions : Chained('apibase') : PathPart('permissions') : CaptureArgs(0)
 {
 
 }
 
-sub list_GET : Local
+sub list : Chained('permissions') : Args(0) : ActionClass('MC_REST')
+{
+
+}
+
+sub list_GET
 {
     my ( $self, $c ) = @_;
 
-    $self->status_ok( $c, entity => { topic => 'list!' } );
+    my $permissions = $c->dbis->query( <<SQL, $c->stash->{ topics_id } )->hashes;
+select u.email, tp.topics_id, tp.permission
+    from topic_permissions tp join auth_users u using ( auth_users_id )
+    where tp.topics_id= ?
+SQL
+
+    $self->status_ok( $c, entity => { permissions => $permissions } );
+}
+
+sub update : Chained('permissions') : Args(0) : ActionClass('MC_REST')
+{
 
 }
 
-# sub media_list_GET : Local
-# {
-#     my ( $self, $c ) = @_;
-#
-#     my $timespan = MediaWords::TM::set_timespans_id_param( $c );
-#
-#     MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
-#
-#     my $db = $c->dbis;
-#
-#     my $sort_param = $c->req->params->{ sort } || 'inlink';
-#
-#     # md5 hashing is to make tie breaks random but consistent
-#     my $sort_clause =
-#       ( $sort_param eq 'social' )
-#       ? 'mlc.bitly_click_count desc nulls last, md5( m.media_id::text )'
-#       : 'mlc.media_inlink_count desc, md5( m.media_id::text )';
-#
-#     my $timespans_id = $timespan->{ timespans_id };
-#     my $snapshots_id = $timespan->{ snapshots_id };
-#
-#     my $limit  = $c->req->params->{ limit };
-#     my $offset = $c->req->params->{ offset };
-#
-#     my $extra_clause = _get_extra_where_clause( $c, $timespans_id );
-#
-#     my $media = $db->query( <<SQL, $timespans_id, $snapshots_id, $limit, $offset )->hashes;
-# select *
-#     from snap.medium_link_counts mlc
-#         join snap.media m on mlc.media_id = m.media_id
-#     where mlc.timespans_id = \$1 and
-#         m.snapshots_id = \$2
-#         $extra_clause
-#     order by $sort_clause
-#     limit \$3 offset \$4
-#
-# SQL
-#
-#     my $entity = { media => $media };
-#
-#     MediaWords::DBI::ApiLinks::add_links_to_entity( $c, $entity, 'media' );
-#
-#     $self->status_ok( $c, entity => $entity );
-# }
+sub update_PUT
+{
+    my ( $self, $c ) = @_;
+
+    my $topics_id = $c->stash->{ topics_id };
+    my $data      = $c->req->data;
+
+    $self->require_fields( $c, [ qw/email permission/ ] );
+
+    my $permission = lc( $data->{ permission } );
+    my $email      = lc( $data->{ email } );
+
+    my $db = $c->dbis;
+
+    if ( !grep { $_ eq $permission } qw(write read admin none) )
+    {
+        $c->response->status( HTTP_BAD_REQUEST );
+        die( "Unknown permission '$permission'" );
+    }
+
+    my $auth_user = $db->query( "select * from auth_users where lower( email ) = \$1", $email )->hash;
+    if ( !$auth_user )
+    {
+        $c->response->status( HTTP_BAD_REQUEST );
+        die( "Unknown email '$email'" );
+    }
+
+    $db->query( <<SQL, $auth_user->{ auth_users_id }, $topics_id );
+delete from topic_permissions tp where tp.topics_id = \$2 and tp.auth_users_id = \$1
+SQL
+
+    my $permissions = [];
+    if ( grep { $permission eq $_ } qw(read write admin) )
+    {
+        my $tp = { permission => $permission, auth_users_id => $auth_user->{ auth_users_id }, topics_id => $topics_id };
+        $db->create( 'topic_permissions', $tp );
+        $permissions = [ $tp ];
+    }
+
+    $self->status_ok( $c, entity => { permissions => $permissions } );
+}
 
 1;
