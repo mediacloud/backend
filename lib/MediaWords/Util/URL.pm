@@ -6,6 +6,9 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use MediaWords::Util::Config;
+use Inline Python => MediaWords::Util::Config::get_mc_python_dir() . '/mediawords/util/url.py';
+
 use Readonly;
 use URI;
 use URI::QueryParam;
