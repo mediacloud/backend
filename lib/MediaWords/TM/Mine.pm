@@ -30,7 +30,6 @@ use List::Util;
 use Parallel::ForkManager;
 use Readonly;
 use URI;
-use URI::Split;
 use URI::Escape;
 
 use MediaWords::CommonLibs;
@@ -826,7 +825,7 @@ sub create_download_for_new_story
         feeds_id   => $feed->{ feeds_id },
         stories_id => $story->{ stories_id },
         url        => $story->{ url },
-        host       => lc( ( URI::Split::uri_split( $story->{ url } ) )[ 1 ] ),
+        host       => MediaWords::Util::URL::get_url_host( $story->{ url } ),
         type       => 'content',
         sequence   => 1,
         state      => 'success',
@@ -1178,9 +1177,9 @@ sub _story_domain_matches_medium
 {
     my ( $db, $medium, $url, $redirect_url ) = @_;
 
-    my $medium_domain = MediaWords::Util::URL::get_url_domain( $medium->{ url } );
+    my $medium_domain = MediaWords::Util::URL::get_url_distinctive_domain( $medium->{ url } );
 
-    my $story_domains = [ map { MediaWords::Util::URL::get_url_domain( $_ ) } ( $url, $redirect_url ) ];
+    my $story_domains = [ map { MediaWords::Util::URL::get_url_distinctive_domain( $_ ) } ( $url, $redirect_url ) ];
 
     return ( grep { $medium_domain eq $_ } @{ $story_domains } ) ? 1 : 0;
 }
@@ -1470,7 +1469,7 @@ END
     {
         INFO "SKIP SELF LINKED STORY: $story->{ url } [$num_self_linked_stories]";
 
-        my $medium_domain = MediaWords::Util::URL::get_url_domain( $link->{ url } );
+        my $medium_domain = MediaWords::Util::URL::get_url_distinctive_domain( $link->{ url } );
         $_skip_self_linked_domain->{ $medium_domain } = 1;
 
         return 1;
@@ -1504,7 +1503,7 @@ sub _skip_self_linked_domain
 {
     my ( $db, $link ) = @_;
 
-    my $domain = MediaWords::Util::URL::get_url_domain( $link->{ url } );
+    my $domain = MediaWords::Util::URL::get_url_distinctive_domain( $link->{ url } );
 
     return 0 unless ( $_skip_self_linked_domain->{ $domain } || ( $link->{ url } =~ /\/(tag|category|author|search)/ ) );
 
@@ -1515,7 +1514,7 @@ sub _skip_self_linked_domain
     # expensive to do so.  so we just compare the url domain as a proxy for media source instead.
     my $source_story = $db->find_by_id( 'stories', $link->{ stories_id } );
 
-    my $source_domain = MediaWords::Util::URL::get_url_domain( $source_story->{ url } );
+    my $source_domain = MediaWords::Util::URL::get_url_distinctive_domain( $source_story->{ url } );
 
     if ( $source_domain eq $domain )
     {
@@ -1809,7 +1808,7 @@ sub medium_domain_matches_url
 
     my $source_medium = $db->query( "select url from media where media_id = ?", $source_story->{ media_id } )->hash;
 
-    my $domain = MediaWords::DBI::Media::get_medium_domain( $source_medium );
+    my $domain = MediaWords::Util::URL::get_url_distinctive_domain( $source_medium->{ url } );
 
     return 1 if ( index( lc( $target_story->{ url } ), lc( $domain ) ) >= 0 );
 
@@ -2042,7 +2041,11 @@ sub merge_dup_story
 dup $keep_story->{ title } [ $keep_story->{ stories_id } ] <- $delete_story->{ title } [ $delete_story->{ stories_id } ]
 END
 
-    die( "refusing to merge identical story" ) if ( $delete_story->{ stories_id } == $keep_story->{ stories_id } );
+    if ( $delete_story->{ stories_id } == $keep_story->{ stories_id } )
+    {
+        INFO( "refusing to merge identical story" );
+        return;
+    }
 
     my $topics_id = $topic->{ topics_id };
 
@@ -2102,7 +2105,7 @@ sub merge_foreign_rss_story
 
     my $medium = get_cached_medium_by_id( $db, $story->{ media_id } );
 
-    my $medium_domain = MediaWords::DBI::Media::get_medium_domain( $medium );
+    my $medium_domain = MediaWords::Util::URL::get_url_distinctive_domain( $medium->{ url } );
 
     # for stories in ycombinator.com, allow stories with a http://yombinator.com/.* url
     return if ( index( lc( $story->{ url } ), lc( $medium_domain ) ) >= 0 );
@@ -2633,7 +2636,6 @@ END
     map { INFO "\t$_->{ title } [$_->{ url } $_->{ stories_id }]"; } @{ $stories };
 
     map { merge_dup_story( $db, $topic, $_, $keep_story ) } @{ $stories };
-
 }
 
 # return hash of { $media_id => $stories } for the topic

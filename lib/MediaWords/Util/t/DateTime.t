@@ -6,7 +6,7 @@ use MediaWords::CommonLibs;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 292;
+use Test::More tests => 293;
 
 use MediaWords::Util::DateTime;
 use DateTime;
@@ -89,6 +89,20 @@ sub test_str2time_21st_century()
 {
     is( MediaWords::Util::DateTime::str2time_21st_century( '1961-01-01' ), timelocal( 0, 0, 0, 1, 0, 1961 ), 'Year 1961' );
     is( MediaWords::Util::DateTime::str2time_21st_century( '2061-01-01' ), timelocal( 0, 0, 0, 1, 0, 2061 ), 'Year 2061' );
+
+    is(
+        MediaWords::Util::DateTime::str2time_21st_century( '2016-08-23T23:32:11-04:00' ),
+        DateTime->new(
+            year      => 2016,
+            month     => 8,
+            day       => 23,
+            hour      => 23,
+            minute    => 32,
+            second    => 11,
+            time_zone => 'America/New_York'
+          )->epoch(),
+        'Univision test date'
+    );
 
     my $str_dates_in_2061 = qq!2061-01-24
         2061-01-24T09:08:17.1823213

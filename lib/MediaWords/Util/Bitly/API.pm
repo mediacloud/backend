@@ -269,7 +269,6 @@ sub _request($$)
 #                 "hash": "1RmnUT",
 #                 "title": null,
 #                 "created_at": 1212926400,
-#                 "created_by": "bitly",
 #                 "global_hash": "1RmnUT",
 #                 "user_hash": "1RmnUT"
 #             },
@@ -323,8 +322,9 @@ sub bitly_info($)
 
     foreach my $info_item ( @{ $result->{ info } } )
     {
-        # Note that "short_url" is not being returned (although it's in the API spec)
-        @expected_keys = qw/ created_at created_by global_hash title user_hash /;
+        # Note that "short_url" is not being returned (although it's in the API spec);
+        # created_by is present in some but not all responses
+        @expected_keys = qw/ created_at global_hash title user_hash /;
 
         foreach my $expected_key ( @expected_keys )
         {
@@ -351,7 +351,6 @@ sub bitly_info($)
 #             "hash": "1RmnUT",
 #             "title": null,
 #             "created_at": 1212926400,
-#             "created_by": "bitly",
 #             "global_hash": "1RmnUT",
 #             "user_hash": "1RmnUT"
 #         },

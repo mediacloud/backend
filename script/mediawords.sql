@@ -24,7 +24,11 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
+<<<<<<< HEAD
     MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4589;
+=======
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4588;
+>>>>>>> master
 
 BEGIN
 
@@ -313,7 +317,6 @@ create table media (
     moderated           boolean         not null,
     moderation_notes    text            null,
     full_text_rss       boolean,
-    extract_author      boolean         default(false),
 
     -- It indicates that the media source includes a substantial number of
     -- links in its feeds that are not its own. These media sources cause
@@ -322,8 +325,6 @@ create table media (
     foreign_rss_links   boolean         not null default( false ),
     dup_media_id        int             null references media on delete set null deferrable,
     is_not_dup          boolean         null,
-    use_pager           boolean         null,
-    unpaged_stories     int             not null default 0,
 
     -- Delay content downloads for this media source this many hours
     content_delay       int             null,
@@ -435,7 +436,18 @@ LANGUAGE 'plpgsql';
 
 create index media_stats_medium on media_stats( media_id );
 
-create type feed_feed_type AS ENUM ( 'syndicated', 'web_page' );
+create type feed_feed_type AS ENUM (
+
+    -- Syndicated feed, e.g. RSS or Atom
+    'syndicated',
+
+    -- Web page feed, used when no syndicated feed was found
+    'web_page',
+
+    -- Univision.com XML feed
+    'univision'
+
+);
 
 -- Feed statuses that determine whether the feed will be fetched
 -- or skipped
@@ -1791,12 +1803,9 @@ create table snap.media (
     moderated               boolean         not null,
     moderation_notes        text            null,
     full_text_rss           boolean,
-    extract_author          boolean         default(false),
     foreign_rss_links       boolean         not null default( false ),
     dup_media_id            int             null,
-    is_not_dup              boolean         null,
-    use_pager               boolean         null,
-    unpaged_stories         int             not null default 0
+    is_not_dup              boolean         null
 );
 create index media_id on snap.media ( snapshots_id, media_id );
 

@@ -1,9 +1,6 @@
 use strict;
 use warnings;
 
-# test the use_pager logic in Handler.pm that reads and sets the use_pager
-# flag that determines whether to use the pager for a given media source
-
 BEGIN
 {
     use FindBin;
@@ -14,11 +11,11 @@ BEGIN
 use Test::More;
 
 use Data::Dumper;
-use URI::Split;
 
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories::ExtractorArguments;
 use MediaWords::Test::DB;
+use MediaWords::Util::URL;
 
 sub add_download_to_story
 {
@@ -28,7 +25,7 @@ sub add_download_to_story
         feeds_id   => $feed->{ feeds_id },
         stories_id => $story->{ stories_id },
         url        => $story->{ url },
-        host       => lc( ( URI::Split::uri_split( $story->{ url } ) )[ 1 ] ),
+        host       => MediaWords::Util::URL::get_url_host( $story->{ url } ),
         type       => 'content',
         sequence   => 1,
         state      => 'success',

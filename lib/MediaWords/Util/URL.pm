@@ -811,16 +811,42 @@ s/^(https?:\/\/)(m|beta|media|data|image|www?|cdn|topic|article|news|archive|blo
     return $url;
 }
 
-# get the domain of the given URL (sans "www." and ".edu"; see t/URL.t for output examples)
-sub get_url_domain($)
+# Return hostname of an URL
+sub get_url_host($)
+{
+    my $url = shift;
+
+    unless ( $url )
+    {
+        die "URL is empty or undefined.";
+    }
+
+    $url = fix_common_url_mistakes( $url );
+
+    # URI::Split returns auth info together with host so parsing with URI here
+    my $uri = URI->new( $url )->canonical;
+    return $uri->host;
+}
+
+# Return a truncated form of URL's host (domain) that distinguishes it from others, e.g.:
+#
+# * www.whitehouse.gov => whitehouse.gov
+# * www.blogspot.com => blogspot.com
+# * kardashian.blogspot.com => kardashian.blogspot.com
+#
+# Return original URL if unable to process the URL;
+sub get_url_distinctive_domain($)
 {
     my $url = shift;
 
     $url = fix_common_url_mistakes( $url );
 
-    $url =~ m~https?://([^/#]*)~ || return $url;
-
-    my $host = $1;
+    my $host;
+    eval { $host = get_url_host( $url ) };
+    unless ( $host )
+    {
+        return $url;
+    }
 
     my $name_parts = [ split( /\./, $host ) ];
 

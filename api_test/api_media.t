@@ -29,7 +29,6 @@ require Test::NoWarnings;
 
 use Data::Dumper;
 
-use MediaWords::Crawler::Engine;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
 use MediaWords::Test::Data;

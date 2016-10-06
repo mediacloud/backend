@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-# test MediaWords::Crawler::FeedHandler::import_external_feed
+# test MediaWords::Crawler::Download::Feed::Syndicated::import_external_feed
 
 BEGIN
 {
@@ -14,14 +14,15 @@ BEGIN
 
 use English '-no_match_vars';
 
-use Test::More tests => 7;
+use Test::More tests => 8;
 use Test::Deep;
 
 BEGIN
 {
     use_ok( 'MediaWords::DB' );
     use_ok( 'MediaWords::Test::DB' );
-    use_ok( 'MediaWords::Crawler::FeedHandler' );
+    use_ok( 'MediaWords::Crawler::Engine' );
+    use_ok( 'MediaWords::Crawler::Download::Feed::Syndicated' );
 }
 
 sub test_import
@@ -59,7 +60,7 @@ END
 
     my $import_medium = $media->{ A };
 
-    MediaWords::Crawler::FeedHandler::import_external_feed( $db, $import_medium->{ media_id }, $test_feed );
+    MediaWords::Crawler::Download::Feed::Syndicated::import_external_feed( $db, $import_medium->{ media_id }, $test_feed );
 
     my $story_import_1 =
       $db->query( "select * from stories where title = 'import 1 title' and media_id = ?", $import_medium->{ media_id } )

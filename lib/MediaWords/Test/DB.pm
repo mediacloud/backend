@@ -15,6 +15,7 @@ use MediaWords::DB;
 use MediaWords::DBI::Auth;
 use MediaWords::Pg::Schema;
 use MediaWords::Util::Config;
+use MediaWords::Util::URL;
 
 # run the given function on a temporary, clean database
 sub test_on_test_database
@@ -53,7 +54,7 @@ sub create_download_for_feed
         $priority = 10;
     }
 
-    my $host = lc( ( URI::Split::uri_split( $feed->{ url } ) )[ 1 ] );
+    my $host     = MediaWords::Util::URL::get_url_host( $feed->{ url } );
     my $download = $dbs->create(
         'downloads',
         {

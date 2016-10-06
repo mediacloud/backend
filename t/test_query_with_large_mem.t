@@ -20,7 +20,6 @@ use Test::Deep;
 
 require Test::NoWarnings;
 
-use MediaWords::Crawler::Engine;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
 use MediaWords::Test::DB;

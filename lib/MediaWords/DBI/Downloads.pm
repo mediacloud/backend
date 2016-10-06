@@ -47,6 +47,7 @@ use MediaWords::StoryVectors;
 use MediaWords::Util::Paths;
 use MediaWords::Job::AnnotateWithCoreNLP;
 use MediaWords::Util::ThriftExtractor;
+use MediaWords::Util::URL;
 
 # FCGI might be running from an unwritable path so we need to set a custom
 # path for Inline::Python to keep its "_Inline/".
@@ -664,41 +665,6 @@ SQL
     }
 }
 
-=head2 process_download_for_extractor_and_record_error( $db, $download, $extractor_args )
-
-Call process_download_for_extractor.  Catch any error in an eval{} and store the error message in the "downloads" table.
-
-=cut
-
-sub process_download_for_extractor_and_record_error($$$)
-{
-    my ( $db, $download, $extractor_args ) = @_;
-
-    eval { process_download_for_extractor( $db, $download, $extractor_args ); };
-
-    if ( $@ )
-    {
-        my $downloads_id = $download->{ downloads_id };
-
-        DEBUG "extractor error processing download $downloads_id: $@";
-
-        $db->rollback;
-
-        $db->query( <<SQL, "extractor error: $@", $downloads_id );
-UPDATE downloads SET state = 'extractor_error', error_message = ? WHERE downloads_id = ?
-SQL
-
-        $db->commit;
-
-        return 0;
-    }
-
-    # Extraction succeeded
-    $db->commit;
-
-    return 1;
-}
-
 =head2 download_successful( $download )
 
 Return true if the download was downloaded successfully.
@@ -742,6 +708,35 @@ sub get_medium($$)
     return $db->query( <<SQL, $download->{ feeds_id } )->hash;
 select m.* from feeds f join media m on ( f.media_id = m.media_id ) where feeds_id = ?
 SQL
+}
+
+# create a pending download for the story's url
+sub create_child_download_for_story
+{
+    my ( $db, $story, $parent_download ) = @_;
+
+    my $download = {
+        feeds_id   => $parent_download->{ feeds_id },
+        stories_id => $story->{ stories_id },
+        parent     => $parent_download->{ downloads_id },
+        url        => $story->{ url },
+        host       => MediaWords::Util::URL::get_url_host( $story->{ url } ),
+        type       => 'content',
+        sequence   => 1,
+        state      => 'pending',
+        priority   => $parent_download->{ priority },
+        extracted  => 'f'
+    };
+
+    my ( $content_delay ) = $db->query( "select content_delay from media where media_id = ?", $story->{ media_id } )->flat;
+    if ( $content_delay )
+    {
+        # delay download of content this many hours.  this is useful for sources that are likely to
+        # significantly change content in the hours after it is first published.
+        $download->{ download_time } = \"now() + interval '$content_delay hours'";
+    }
+
+    $db->create( 'downloads', $download );
 }
 
 1;

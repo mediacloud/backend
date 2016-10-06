@@ -204,7 +204,8 @@ sub main
 
             my $download = MediaWords::Test::DB::create_download_for_feed( $feed, $db );
 
-            my $crawler = MediaWords::Crawler::Engine::create_fetcher_engine_for_testing( 1 );
+            my $crawler = MediaWords::Crawler::Engine->new();
+            $crawler->fetcher_number( 1 );
 
             INFO "starting fetch_and_handle_single_download";
 

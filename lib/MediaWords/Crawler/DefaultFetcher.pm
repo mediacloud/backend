@@ -1,4 +1,16 @@
-package MediaWords::Crawler::Fetcher;
+package MediaWords::Crawler::DefaultFetcher;
+
+#
+# Default fetcher implementation
+#
+# In addition to the basic HTTP request with the UserAgent options supplied by
+# MediaWords::Util::Web::UserAgent, the default fetcher:
+#
+# * fixes common url mistakes like doubling http: (http://http://google.com).
+# * follows meta refresh redirects in the response content
+# * adds domain specific http auth specified in mediawords.yml
+# * implements a very limited amount of site specific fixes
+#
 
 use strict;
 use warnings;
@@ -6,60 +18,16 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-=head1 NAME
-
-Mediawords::Crawler::Fetcher - controls and coordinates the work of the crawler provider, fetchers, and handlers
-
-=head1 SYNOPSIS
-
-    # this is a simplified version of the code used crawler to interact with the fetcher
-
-    my $crawler = MediaWords::Crawler::Engine->new();
-
-    my $fetcher = MediaWords::Crawler::Fetcher->new( $crawler );
-
-    # get pending $download from somewhere
-
-    my $response = $fetcher->fetch_download( $download );
-
-=head1 DESCRIPTION
-
-The fetcher is the simplest part of the crawler.  It merely uses LWP to download a url and passes the resulting
-HTTP::Response to the Handler.  The fetcher has logic to follow meta refresh redirects and to allow http authentication
-according to settings in mediawords.yml.  The fetcher does not retry failed urls (failed downloads may be requeued by
-the handler).  The fetcher passes the download response to the handler by calling
-MediaWords::Crawler::Handle::handle_response().
-
-=cut
+use Moose::Role;
+with 'MediaWords::Crawler::FetcherRole';
 
 use LWP::UserAgent;
-use DBIx::Simple::MediaWords;
 
 use MediaWords::DB;
 use MediaWords::Util::Config;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Web;
 use MediaWords::Util::URL;
-
-=head1 METHODS
-
-=head2 new( $engine )
-
-Create a new fetcher object.  Must include the parent MediaWords::Crawler::Engine object.
-
-=cut
-
-sub new
-{
-    my ( $class, $engine ) = @_;
-
-    my $self = {};
-    bless( $self, $class );
-
-    $self->engine( $engine );
-
-    return $self;
-}
 
 # alarabiya uses an interstitial that requires javascript.  if the download url
 # matches alarabiya and returns the 'requires JavaScript' page, manually parse
@@ -113,7 +81,7 @@ sub _add_http_auth
 
     my $auth_lookup ||= _get_domain_http_auth_lookup();
 
-    my $domain = MediaWords::Util::URL::get_url_domain( $download->{ url } );
+    my $domain = MediaWords::Util::URL::get_url_distinctive_domain( $download->{ url } );
 
     if ( my $auth = $auth_lookup->{ lc( $domain ) } )
     {
@@ -121,77 +89,14 @@ sub _add_http_auth
     }
 }
 
-=head2 fetch_download( $download )
-
-Call do_fetch on the given $download
-
-=cut
-
-sub fetch_download
+sub fetch_download($$$)
 {
-    my ( $self, $download ) = @_;
-
-    my $dbs = $self->engine->dbs;
-
-    return do_fetch( $download, $dbs );
-}
-
-=head2 engine
-
-getset engine - parent crawler engine object
-
-=cut
-
-sub engine
-{
-    if ( $_[ 1 ] )
-    {
-        $_[ 0 ]->{ engine } = $_[ 1 ];
-    }
-
-    return $_[ 0 ]->{ engine };
-}
-
-=head1 FUNCTIONS
-
-=head2 do_fetch( $download, $db )
-
-With relying on the object state, request the $download and return the HTTP::Response.  This method may be called
-as a stand alone function.
-
-In addition to the basic HTTP request with the UserAgent options supplied by MediaWords::Util::Web::UserAgent, this
-method:
-
-=over
-
-=item *
-
-fixes common url mistakes like doubling http: (http://http://google.com).
-
-=item *
-
-follows meta refresh redirects in the response content
-
-=item *
-
-adds domain specific http auth specified in mediawords.yml
-
-=item *
-
-implements a very limited amount of site specific fixes
-
-=back
-
-=cut
-
-sub do_fetch
-{
-    my ( $download, $dbs ) = @_;
+    my ( $self, $db, $download ) = @_;
 
     $download->{ download_time } = MediaWords::Util::SQL::sql_now;
     $download->{ state }         = 'fetching';
 
-    $dbs->update_by_id( "downloads", $download->{ downloads_id }, $download );
+    $db->update_by_id( "downloads", $download->{ downloads_id }, $download );
 
     my $ua = MediaWords::Util::Web::UserAgent;
 
