@@ -30,13 +30,13 @@ Catalyst Controller.
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
-__PACKAGE__->config( action => { list_GET => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] }, } );
+__PACKAGE__->config( action => { list => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] }, } );
 
 sub list : Local : ActionClass('MC_REST')
 {
 }
 
-sub list_GET : Local : PathPrefix( '/api' )
+sub list_GET : PathPrefix( '/api' )
 {
     my ( $self, $c ) = @_;
 

@@ -36,6 +36,13 @@ Catalyst Controller.
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
+__PACKAGE__->config(
+    action => {
+        count       => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        word_matrix => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+    }
+);
+
 sub has_extra_data
 {
     return 1;
@@ -360,7 +367,7 @@ sub count : Local : ActionClass('MC_REST')
 
 }
 
-sub count_GET : Local
+sub count_GET
 {
     my ( $self, $c ) = @_;
 
@@ -380,7 +387,7 @@ sub word_matrix : Local : ActionClass('MC_REST')
 
 }
 
-sub word_matrix_GET : Local
+sub word_matrix_GET
 {
     my ( $self, $c ) = @_;
 

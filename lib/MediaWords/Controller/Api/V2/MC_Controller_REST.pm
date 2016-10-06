@@ -68,14 +68,15 @@ sub end : Private
 {
     my ( $self, $c ) = @_;
 
-    if ( scalar @{ $c->error } )
-    {
-        $c->stash->{ errors } = $c->error;
+    map { $c->log->error( $_ ) } @{ $c->error } if ( $c->error );
 
-        for my $error ( @{ $c->error } )
-        {
-            $c->log->error( $error );
-        }
+    my $errors = [];
+    push( @{ $errors }, @{ $c->error } ) if ( $c->error );
+    push( @{ $errors }, @{ $c->stash->{ auth_errors } } ) if ( $c->stash->{ auth_errors } );
+
+    if ( scalar( @{ $errors } ) )
+    {
+        $c->stash->{ errors } = $errors;
 
         map { $_ =~ s/Caught exception.*"(.*)at \/.*/$1/ } @{ $c->stash->{ errors } };
 
@@ -94,7 +95,15 @@ sub end : Private
 
         $c->clear_errors;
         $c->detach();
+    }
+    elsif ( $c->stash->{ quit_after_auth } )
+    {
+        my $body = JSON->new->utf8->encode( { 'success' => 1 } );
 
+        $c->response->content_type( 'application/json; charset=UTF-8' );
+        $c->response->body( $body );
+
+        $c->detach();
     }
     else
     {
@@ -109,7 +118,14 @@ sub require_fields ($$)
 
     my $data = $c->req->data;
 
-    map { die( "Required field '$_' is required but not present" ) unless ( defined( $data->{ $_ } ) ) } @{ $fields };
+    for my $field ( @{ $fields } )
+    {
+        if ( !defined( $data->{ $field } ) )
+        {
+            $c->response->status( HTTP_BAD_REQUEST );
+            die( "Required field '$field' is required but not present" );
+        }
+    }
 }
 
 # update the given fields in the given table at the given id, pulling the update table from $c->req->data

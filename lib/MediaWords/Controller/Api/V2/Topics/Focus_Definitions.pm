@@ -18,10 +18,10 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
 __PACKAGE__->config(
     action => {
-        list_GET   => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        create_GET => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        update_PUT => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        delete_PUT => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        list   => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
+        create => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
+        update => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
+        delete => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
@@ -42,7 +42,7 @@ sub list : Chained('apibase') : PathPart( 'focus_definitions/list' ) : Args(0) :
 {
 }
 
-sub list_GET : Local
+sub list_GET
 {
     my ( $self, $c ) = @_;
 
@@ -68,7 +68,7 @@ sub create : Chained('apibase') : PathPart( 'focus_definitions/create' ) : Args(
 {
 }
 
-sub create_GET : Local
+sub create_GET
 {
     my ( $self, $c ) = @_;
 
@@ -93,7 +93,7 @@ sub delete : Chained('focus_definitions') : Args(0) : ActionClass('MC_REST')
 {
 }
 
-sub delete_PUT : Local
+sub delete_PUT
 {
     my ( $self, $c ) = @_;
 
@@ -111,7 +111,7 @@ sub update : Chained('focus_definitions') : Args(0) : ActionClass('MC_REST')
 {
 }
 
-sub update_PUT : Local
+sub update_PUT
 {
     my ( $self, $c ) = @_;
 

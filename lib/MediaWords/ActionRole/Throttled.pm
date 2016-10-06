@@ -68,10 +68,8 @@ around execute => sub {
 EOF
                 $user_email
             )->hash;
-            unless ( ref( $limits ) eq ref( {} ) )
-            {
-                die 'Returned limits is not a hashref.';
-            }
+
+            die( "no limits found for user" ) unless ( $limits );
 
             my $weekly_requests_limit        = ( $limits->{ weekly_requests_limit }        // 0 ) + 0;
             my $weekly_requested_items_limit = ( $limits->{ weekly_requested_items_limit } // 0 ) + 0;
@@ -80,8 +78,8 @@ EOF
 
             my $profile_url       = $c->uri_for( '/admin/profile' );
             my $throttled_message = <<END;
-You have exceeded your quota of requests or stories.  See your profile page 
-at $profile_url for your current usage and limits.  
+You have exceeded your quota of requests or stories.  See your profile page
+at $profile_url for your current usage and limits.
 Contact info\@mediacloud.org with quota questions.
 END
 
@@ -110,7 +108,7 @@ END
     {
         my $message = $@;
 
-        $c->error( $message );
+        push( @{ $c->stash->{ auth_errors } }, $message );
         $c->detach();
         return undef;
     }
