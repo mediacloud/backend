@@ -1,5 +1,9 @@
 import re
 
+from mediawords.util.log import create_logger
+
+l = create_logger(__name__)
+
 
 def fix_common_url_mistakes(url):
     """Fixes common URL mistakes (mistypes, etc.)."""
