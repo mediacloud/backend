@@ -7,6 +7,8 @@ use strict;
 use warnings;
 use base 'Catalyst::Controller';
 
+use HTTP::Status qw(:constants);
+
 use Moose;
 use namespace::autoclean;
 
@@ -34,13 +36,17 @@ sub list_GET
     my $limit  = $c->req->params->{ limit };
     my $offset = $c->req->params->{ offset };
 
-    my $topics = $db->query( <<END, $limit, $offset )->hashes;
-select c.*
-    from topics c
-        left join snapshots snap on ( c.topics_id = snap.topics_id )
-    group by c.topics_id
-    order by c.state = 'ready', c.state,  max( coalesce( snap.snapshot_date, '2000-01-01'::date ) ) desc
-    limit \$1 offset \$2
+    my $auth_users_id = $c->stash->{ api_auth }->{ auth_users_id };
+
+    my $topics = $db->query( <<END, $auth_users_id, $limit, $offset )->hashes;
+select t.*, min( p.auth_users_id ) auth_users_id, min( p.user_permission ) user_permission
+    from topics  t
+        join topics_with_user_permission p using ( topics_id )
+        left join snapshots snap on ( t.topics_id = snap.topics_id )
+    where p.auth_users_id= \$1
+    group by t.topics_id
+    order by t.state = 'ready', t.state,  max( coalesce( snap.snapshot_date, '2000-01-01'::date ) ) desc
+    limit \$2 offset \$3
 END
 
     my $entity = { topics => $topics };
@@ -58,9 +64,19 @@ sub single_GET
 {
     my ( $self, $c, $topics_id ) = @_;
 
+    my $auth_users_id = $c->stash->{ api_auth }->{ auth_users_id };
+
     my $db = $c->dbis;
 
-    my $topic = $db->require_by_id( 'topics', $topics_id );
+    my $topic = $db->query( <<SQL, $topics_id, $auth_users_id )->hash;
+select * from topics_with_user_permission where topics_id = \$1 and auth_users_id = \$2
+SQL
+
+    if ( !$topic )
+    {
+        $c->response->status( HTTP_BAD_REQUEST );
+        die( "Unknown topic '$topics_id'" );
+    }
 
     $self->status_ok( $c, entity => { topics => [ $topic ] } );
 }

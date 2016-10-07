@@ -65,7 +65,7 @@ sub list_GET
     my $permissions = $c->dbis->query( <<SQL, $c->stash->{ topics_id } )->hashes;
 select u.email, tp.topics_id, tp.permission
     from topic_permissions tp join auth_users u using ( auth_users_id )
-    where tp.topics_id= ?
+    where tp.topics_id = ?
 SQL
 
     $self->status_ok( $c, entity => { permissions => $permissions } );

@@ -18,6 +18,8 @@ use HTTP::Status qw(:constants);
 
 use MediaWords::DBI::Auth;
 
+# test whether the authenticated user has $permission_type access to the topic in the path of the currently requested
+# url.   Queries the topics_with_user_permission view to determine the permissions for the current user.
 sub _test_for_topic_permission
 {
     my ( $self, $c, $permission_type ) = @_;
@@ -35,30 +37,31 @@ sub _test_for_topic_permission
         die 'Invalid API key or authentication cookie. Access denied.';
     }
 
-    # admin users can read or write everything; admin-readonly users can read everything
-    return if ( grep { $_ eq $MediaWords::DBI::Auth::Roles::ADMIN } @{ $user_roles } );
-    return
-      if ( ( $permission_type eq 'read' ) && grep { $_ eq $MediaWords::DBI::Auth::Roles::ADMIN_READONLY } @{ $user_roles } );
-
-    my $permission_clauses = {
-        read  => 'and ( ( tp.permission is not null ) or t.is_public )',
-        write => "and tp.permission in ( 'write', 'admin' )",
-        admin => "and tp.permission in ( 'admin' )"
-    };
-    my $permission_clause = $permission_clauses->{ $permission_type }
-      || die( "Unknown permission type '$permission_type'" );
-
-    my $permission = $c->dbis->query( <<SQL, $user_email, $topics_id )->hash;
-select 1
-    from auth_users u
-        join topics t on ( t.topics_id = \$2 )
-        left join topic_permissions tp on ( u.auth_users_id = tp.auth_users_id and tp.topics_id = t.topics_id )
+    my $topic = $c->dbis->query( <<SQL, $topics_id, $user_email )->hash;
+select t.*
+    from topics_with_user_permission t
+        join auth_users u using ( auth_users_id )
     where
-        u.email = \$1
-        $permission_clause
+        t.topics_id = \$1 and
+        u.email = \$2
 SQL
 
-    die( "User lacks $permission_type permission for the requested topic" ) unless ( $permission );
+    my $user_permission = $topic->{ user_permission };
+
+    my $allowed_permissions_lookup = {
+        read  => [ qw/read write admin/ ],
+        write => [ qw/write admin/ ],
+        admin => [ qw/admin/ ]
+    };
+
+    my $allowed_permissions = $allowed_permissions_lookup->{ $permission_type };
+    die( "Unknown permission type '$permission_type'" ) unless ( $allowed_permissions );
+
+    if ( !( grep { $_ eq $user_permission } @{ $allowed_permissions } ) )
+    {
+        $c->response->status( HTTP_FORBIDDEN );
+        die( "User lacks $permission_type permission for the requested topic" );
+    }
 }
 
 sub _authenticate_topic

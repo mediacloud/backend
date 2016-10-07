@@ -1,12 +1,12 @@
 --
 -- This is a Media Cloud PostgreSQL schema difference file (a "diff") between schema
--- versions 4585 and 4586.
+-- versions 4588 and 4589.
 --
 -- If you are running Media Cloud with a database that was set up with a schema version
--- 4585, and you would like to upgrade both the Media Cloud and the
--- database to be at version 4586, import this SQL file:
+-- 4588, and you would like to upgrade both the Media Cloud and the
+-- database to be at version 4589, import this SQL file:
 --
---     psql mediacloud < mediawords-4585-4586.sql
+--     psql mediacloud < mediawords-4588-4589.sql
 --
 -- You might need to import some additional schema diff files to reach the desired version.
 --
@@ -38,7 +38,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4586;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4589;
 
 BEGIN
 
