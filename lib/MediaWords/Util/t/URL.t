@@ -27,35 +27,6 @@ BEGIN
     use_ok( 'MediaWords::Util::URL' );
 }
 
-sub test_fix_common_url_mistakes()
-{
-    my %urls = (
-
-        # "http://http://"
-        'http://http://www.al-monitor.com/pulse' => 'http://www.al-monitor.com/pulse',
-
-        # With only one slash ("http:/www.")
-        'http:/www.theinquirer.net/inquirer/news/2322928/net-neutrality-rules-lie-in-tatters-as-fcc-overruled' =>
-          'http://www.theinquirer.net/inquirer/news/2322928/net-neutrality-rules-lie-in-tatters-as-fcc-overruled',
-
-        # missing / before ?
-        'http://foo.bar?baz=bat' => 'http://foo.bar/?baz=bat'
-    );
-
-    foreach my $orig_url ( keys %urls )
-    {
-        my $fixed_url = $urls{ $orig_url };
-
-        # Fix once
-        is( MediaWords::Util::URL::fix_common_url_mistakes( $orig_url ),
-            $fixed_url, "fix_common_url_mistakes() - $orig_url" );
-
-        # Try fixing the same URL twice, see what happens
-        is( MediaWords::Util::URL::fix_common_url_mistakes( MediaWords::Util::URL::fix_common_url_mistakes( $orig_url ) ),
-            $fixed_url, "fix_common_url_mistakes() - $orig_url" );
-    }
-}
-
 sub test_is_http_url()
 {
     ok( !MediaWords::Util::URL::is_http_url( undef ), 'is_http_url() - undef' );

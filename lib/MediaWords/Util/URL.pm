@@ -479,28 +479,6 @@ Readonly my @URL_SHORTENER_HOSTNAMES => qw/
   ➽.ws
   /;
 
-# Fixes common URL mistakes (mistypes, etc.)
-sub fix_common_url_mistakes($)
-{
-    my $url = shift;
-
-    return undef unless ( defined( $url ) );
-
-    # Fix broken URLs that look like this: http://http://www.al-monitor.com/pulse
-    $url =~ s~(https?://)https?:?//~$1~i;
-
-    # Fix URLs with only one slash after "http" ("http:/www.")
-    $url =~ s~(https?:/)(www)~$1/$2~i;
-
-    # replace backslashes with forward
-    $url =~ s/\\/\//g;
-
-    # http://newsmachete.com?page=2 -> http://newsmachete.com/?page=2
-    $url =~ s~(https?://[^/]+)\?~$1/\?~;
-
-    return $url;
-}
-
 # Returns true if URL is in the "http" ("https") scheme
 sub is_http_url($)
 {
