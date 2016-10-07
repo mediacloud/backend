@@ -55,7 +55,7 @@ fi
 cd `dirname $0`/../
 
 echo "Running Python unit tests..."
-nosetests --where=mediacloud/
+nosetests-2.7 --where=mediacloud/
 
 echo "Running Perl unit tests..."
 TEST_FILES=`find lib script t -name '*.t'`
