@@ -79,7 +79,7 @@ EOF
     brew install \
         graphviz --with-bindings \
         coreutils curl homebrew/dupes/tidy libyaml gawk cpanminus \
-        netcat openssl rabbitmq libyaml python3 supervisor
+        netcat openssl rabbitmq libyaml python3
 
     sudo cpanm \
         XML::Parser XML::SAX::Expat XML::LibXML XML::LibXML::Simple \
@@ -151,28 +151,6 @@ else
 
     # Choose to use OpenJDK 8 by default
     sudo update-java-alternatives -s `update-java-alternatives --list | grep java-1.8 | awk '{ print $3 }'`
-
-    # Install / upgrade Setuptools (easy_install) to both Python versions before installing dependencies
-    wget https://bootstrap.pypa.io/ez_setup.py -O - | sudo python2.7 -
-    wget https://bootstrap.pypa.io/ez_setup.py -O - | sudo python3 -
-
-    # Install / upgrade Pip to both Python versions before installing dependencies
-    sudo easy_install-2.7 pip
-    if verlt "$DISTRIB_RELEASE" "16.04"; then
-        # 8.0.0+ doesn't support Python 3.2 on Ubuntu 12.04
-        sudo easy_install3 pip==7.1.2
-    else
-        sudo easy_install3 pip
-    fi
-
-    # Install (upgrade) Supervisor:
-    # * change dir, otherwise the installer might think we're trying to install from the supervisor/ directory
-    # * also, Supervisor only supports Python 2.7 at the moment
-    ( cd /tmp; sudo pip2.7 install --upgrade supervisor )
-
-    # Install (upgrade Virtualenv)
-    pip2 install --upgrade virtualenv
-    pip3 install --upgrade virtualenv
 
     # Disable system-wide RabbitMQ server (we will start and use our very own instance)
     sudo update-rc.d rabbitmq-server disable
