@@ -15,6 +15,6 @@ pysolr
 pyyaml
 requests
 thrift
-readability-lxml=0.6.2
+readability-lxml==0.6.2
 lxml
 cssselect
