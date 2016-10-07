@@ -152,10 +152,18 @@ else
     # Choose to use OpenJDK 8 by default
     sudo update-java-alternatives -s `update-java-alternatives --list | grep java-1.8 | awk '{ print $3 }'`
 
-    # Install / upgrade Setuptools before installing Python dependencies
-    # (latest version of Setuptools is 20.10.1 but it's not available on pypi.python.org yet)
-    SETUPTOOLS_VERSION=20.9.0
-    wget https://bootstrap.pypa.io/ez_setup.py -O - | sudo python2.7 - --version=$SETUPTOOLS_VERSION
+    # Install / upgrade Setuptools (easy_install) to both Python versions before installing dependencies
+    wget https://bootstrap.pypa.io/ez_setup.py -O - | sudo python2.7 -
+    wget https://bootstrap.pypa.io/ez_setup.py -O - | sudo python3 -
+
+    # Install / upgrade Pip to both Python versions before installing dependencies
+    sudo easy_install-2.7 pip
+    if verlt "$DISTRIB_RELEASE" "16.04"; then
+        # 8.0.0+ doesn't support Python 3.2 on Ubuntu 12.04
+        sudo easy_install3 pip==7.1.2
+    else
+        sudo easy_install3 pip
+    fi
 
     # Disable system-wide RabbitMQ server (we will start and use our very own instance)
     sudo update-rc.d rabbitmq-server disable
@@ -205,7 +213,7 @@ fi
 # (change dir, otherwise the installer might think we're trying to install
 # from the supervisor/ directory)
 if [ `uname` == 'Darwin' ]; then
-    ( cd /tmp; pip install --upgrade supervisor )
+    ( cd /tmp; pip2.7 install --upgrade supervisor )
 else
-    ( cd /tmp; sudo pip install --upgrade supervisor )
+    ( cd /tmp; sudo pip2.7 install --upgrade supervisor )
 fi
