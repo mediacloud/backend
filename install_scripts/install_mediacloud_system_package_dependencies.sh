@@ -79,7 +79,7 @@ EOF
     brew install \
         graphviz --with-bindings \
         coreutils curl homebrew/dupes/tidy libyaml gawk cpanminus \
-        netcat openssl rabbitmq libyaml
+        netcat openssl rabbitmq libyaml python3
 
     sudo cpanm \
         XML::Parser XML::SAX::Expat XML::LibXML XML::LibXML::Simple \
@@ -147,7 +147,7 @@ else
         libreadonly-xs-perl curl python2.7 python2.7-dev python-pip \
         libxml2-dev libxslt1-dev libxslt1-dbg libxslt1.1 build-essential make gcc g++ \
         cpanminus perl-doc liblocale-maketext-lexicon-perl openjdk-8-jdk \
-        pandoc netcat rabbitmq-server libyaml-dev unzip
+        pandoc netcat rabbitmq-server libyaml-dev unzip python3 python3-setuptools
 
     # Choose to use OpenJDK 8 by default
     sudo update-java-alternatives -s `update-java-alternatives --list | grep java-1.8 | awk '{ print $3 }'`
