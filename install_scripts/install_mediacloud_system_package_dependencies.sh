@@ -170,6 +170,10 @@ else
     # * also, Supervisor only supports Python 2.7 at the moment
     ( cd /tmp; sudo pip2.7 install --upgrade supervisor )
 
+    # Install (upgrade Virtualenv)
+    pip2 install --upgrade virtualenv
+    pip3 install --upgrade virtualenv
+
     # Disable system-wide RabbitMQ server (we will start and use our very own instance)
     sudo update-rc.d rabbitmq-server disable
     sudo service rabbitmq-server stop
