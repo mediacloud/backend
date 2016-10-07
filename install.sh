@@ -28,6 +28,11 @@ sudo pip install --upgrade -r python_scripts/requirements.txt || {
     echo "'pip install' failed the first time, retrying..."
     sudo pip install --upgrade -r python_scripts/requirements.txt
 }
+sudo pip install --upgrade -r mediacloud/requirements.txt || {
+    # Sometimes fails with some sort of Setuptools error
+    echo "'pip install' failed the first time, retrying..."
+    sudo pip install --upgrade -r mediacloud/requirements.txt
+}
 
 echo "install complete"
 echo "running compile test"

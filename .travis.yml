@@ -55,6 +55,7 @@ before_install:
     # Install Python dependencies
     - travis_retry pip install --upgrade pip setuptools
     - travis_retry pip install --upgrade -r python_scripts/requirements.txt
+    - travis_retry pip install --upgrade -r mediacloud/requirements.txt
     # Install Media Cloud testing variant of the Python Client
     - travis_retry git clone https://github.com/berkmancenter/mediacloud-api-testing-client.git MediaCloud-API-Client/
     - cd MediaCloud-API-Client/; git checkout v2.25.0-api-testing-cleanup; cd ../
