@@ -16,6 +16,6 @@ pyyaml
 requests
 supervisor
 thrift
-readability-lxml=0.3.0.5
+readability-lxml=0.6.2
 lxml
 cssselect
