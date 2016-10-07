@@ -1,5 +1,5 @@
 import re
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 from mediawords.util.log import create_logger
 
