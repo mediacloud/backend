@@ -27,30 +27,6 @@ BEGIN
     use_ok( 'MediaWords::Util::URL' );
 }
 
-sub test_is_http_url()
-{
-    ok( !MediaWords::Util::URL::is_http_url( undef ), 'is_http_url() - undef' );
-    ok( !MediaWords::Util::URL::is_http_url( 0 ),     'is_http_url() - 0' );
-    ok( !MediaWords::Util::URL::is_http_url( '' ),    'is_http_url() - empty string' );
-
-    ok( !MediaWords::Util::URL::is_http_url( 'abc' ), 'is_http_url() - no scheme' );
-
-    ok( !MediaWords::Util::URL::is_http_url( 'gopher://gopher.floodgap.com/0/v2/vstat' ), 'is_http_url() - Gopher URL' );
-    ok( !MediaWords::Util::URL::is_http_url( 'ftp://ftp.freebsd.org/pub/FreeBSD/' ),      'is_http_url() - FTP URL' );
-
-    ok( MediaWords::Util::URL::is_http_url( 'http://cyber.law.harvard.edu/about' ),          'is_http_url() - HTTP URL' );
-    ok( MediaWords::Util::URL::is_http_url( 'https://github.com/berkmancenter/mediacloud' ), 'is_http_url() - HTTPS URL' );
-
-# URLs with mistakes fixable by fix_common_url_mistakes()
-#ok( !MediaWords::Util::URL::is_http_url( 'http://http://www.al-monitor.com/pulse' ), 'is_http_url() - URL with http://http://' );
-    ok(
-        !MediaWords::Util::URL::is_http_url(
-            'http:/www.theinquirer.net/inquirer/news/2322928/net-neutrality-rules-lie-in-tatters-as-fcc-overruled'
-        ),
-        'is_http_url() - URL with only one slash'
-    );
-}
-
 sub test_is_homepage_url()
 {
     ok( !MediaWords::Util::URL::is_homepage_url( undef ), 'is_homepage_url() - undef' );
@@ -1051,8 +1027,6 @@ sub main()
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
-    test_fix_common_url_mistakes();
-    test_is_http_url();
     test_is_homepage_url();
     test_is_shortened_url();
     test_normalize_url();

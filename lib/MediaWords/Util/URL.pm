@@ -479,39 +479,6 @@ Readonly my @URL_SHORTENER_HOSTNAMES => qw/
   ➽.ws
   /;
 
-# Returns true if URL is in the "http" ("https") scheme
-sub is_http_url($)
-{
-    my $url = shift;
-
-    unless ( $url )
-    {
-        TRACE "URL is undefined";
-        return 0;
-    }
-
-    unless ( $url =~ /$RE{URI}{HTTP}{-scheme => '(?:http|https)'}/i )
-    {
-        TRACE "URL does not match URL's regexp";
-        return 0;
-    }
-
-    my $uri = URI->new( $url )->canonical;
-
-    unless ( $uri->scheme )
-    {
-        TRACE "Scheme is undefined for URL $url";
-        return 0;
-    }
-    unless ( $uri->scheme eq 'http' or $uri->scheme eq 'https' )
-    {
-        TRACE "Scheme is not HTTP(s) for URL $url";
-        return 0;
-    }
-
-    return 1;
-}
-
 # Returns true if URL is homepage (e.g. http://www.wired.com/) and not a child
 # page (e.g. http://m.wired.com/threatlevel/2011/12/sopa-watered-down-amendment/)
 sub is_homepage_url($)

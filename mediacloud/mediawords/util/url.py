@@ -1,8 +1,19 @@
 import re
+from urlparse import urlparse
 
 from mediawords.util.log import create_logger
 
 l = create_logger(__name__)
+
+
+# URL regex (http://stackoverflow.com/a/7160778/200603)
+__URL_REGEX = re.compile(
+    r'^(?:http|ftp)s?://'  # http:// or https://
+    r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
+    r'localhost|'  # localhost...
+    r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
+    r'(?::\d+)?'  # optional port
+    r'(?:/?|[/?]\S+)$', re.IGNORECASE)
 
 
 def fix_common_url_mistakes(url):
@@ -23,3 +34,27 @@ def fix_common_url_mistakes(url):
     url = re.sub(r'(https?://[^/]+)\?', r"\1/?", url)
 
     return url
+
+
+def is_http_url(url):
+    """Returns true if URL is in the "http" ("https") scheme."""
+    if url is None:
+        l.debug("URL is None")
+        return False
+    if len(url) == 0:
+        l.debug("URL is empty")
+        return False
+    if not re.search(__URL_REGEX, url):
+        l.debug("URL '%s' does not match URL's regexp" % url)
+        return False
+
+    uri = urlparse(url)
+
+    if not uri.scheme:
+        l.debug("Scheme is undefined for URL %s" % url)
+        return False
+    if not uri.scheme.lower() in ['http', 'https']:
+        l.debug("Scheme is not HTTP(s) for URL %s" % url)
+        return False
+
+    return True
