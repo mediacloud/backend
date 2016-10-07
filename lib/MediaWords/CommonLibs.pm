@@ -16,6 +16,10 @@ use Readonly;
 eval {
     require MediaWords::Util::Config;
     MediaWords::Util::Config->import();
+
+    # Search for Python modules under "mediacloud/"
+    $ENV{ PYTHONPATH } = MediaWords::Util::Config::get_mc_python_dir();
+
     1;
 } or do
 {
