@@ -79,7 +79,7 @@ EOF
     brew install \
         graphviz --with-bindings \
         coreutils curl homebrew/dupes/tidy libyaml gawk cpanminus \
-        netcat openssl rabbitmq libyaml python3
+        netcat openssl rabbitmq libyaml python3 supervisor
 
     sudo cpanm \
         XML::Parser XML::SAX::Expat XML::LibXML XML::LibXML::Simple \
@@ -165,6 +165,11 @@ else
         sudo easy_install3 pip
     fi
 
+    # Install (upgrade) Supervisor:
+    # * change dir, otherwise the installer might think we're trying to install from the supervisor/ directory
+    # * also, Supervisor only supports Python 2.7 at the moment
+    ( cd /tmp; sudo pip2.7 install --upgrade supervisor )
+
     # Disable system-wide RabbitMQ server (we will start and use our very own instance)
     sudo update-rc.d rabbitmq-server disable
     sudo service rabbitmq-server stop
@@ -207,13 +212,4 @@ else
         fi
     fi
 
-fi
-
-# Install (upgrade) Supervisor
-# (change dir, otherwise the installer might think we're trying to install
-# from the supervisor/ directory)
-if [ `uname` == 'Darwin' ]; then
-    ( cd /tmp; pip2.7 install --upgrade supervisor )
-else
-    ( cd /tmp; sudo pip2.7 install --upgrade supervisor )
 fi
