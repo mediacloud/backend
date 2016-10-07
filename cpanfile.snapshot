@@ -4690,14 +4690,14 @@ DISTRIBUTIONS
       MIME::Base64 0
       Test 1.13
       perl 5.008
-  Inline-Python-0.49
-    pathname: N/NI/NINE/Inline-Python-0.49.tar.gz
+  Inline-Python-0.50
+    pathname: N/NI/NINE/Inline-Python-0.50.tar.gz
     provides:
-      Inline::Python 0.49
-      Inline::Python::Boolean 0.49
-      Inline::Python::Function 0.49
-      Inline::Python::Object 0.49
-      Inline::Python::Object::Data 0.49
+      Inline::Python 0.50
+      Inline::Python::Boolean 0.50
+      Inline::Python::Function 0.50
+      Inline::Python::Object 0.50
+      Inline::Python::Object::Data 0.50
     requirements:
       Data::Dumper 0
       Digest::MD5 2.5

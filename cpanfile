@@ -79,7 +79,7 @@ requires 'HTML::TreeBuilder::LibXML';
 requires 'HTTP::Message', '6.11';
 requires 'Inline';
 requires 'Inline::Java';
-requires 'Inline::Python';
+requires 'Inline::Python', '0.50';
 requires 'IO::Compress::Bzip2';
 requires 'IO::Compress::Gzip';
 requires 'IPC::Cmd', '>= 0.94';
