@@ -3,6 +3,15 @@
 set -e
 # no "set -u" because installation scripts address various undefined variables
 
+# Version comparison functions
+function verlte() {
+    [  "$1" = "`echo -e "$1\n$2" | sort -V | head -n1`" ]
+}
+
+function verlt() {
+    [ "$1" = "$2" ] && return 1 || verlte "$1" "$2"
+}
+
 # Install / upgrade Setuptools (easy_install) to both Python versions before installing dependencies
 wget https://bootstrap.pypa.io/ez_setup.py -O - | sudo python2 -
 wget https://bootstrap.pypa.io/ez_setup.py -O - | sudo python3 -
