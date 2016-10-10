@@ -789,3 +789,20 @@ def is_homepage_url(url):
 
     return False
 
+
+class GetURLHostException(Exception):
+    pass
+
+
+def get_url_host(url):
+    """Return hostname of an URL."""
+    url = decode_string_from_bytes_if_needed(url)
+    if url is None:
+        raise GetURLHostException("URL is None")
+    if len(url) == 0:
+        raise GetURLHostException("URL is empty")
+
+    url = fix_common_url_mistakes(url)
+
+    uri = urlparse(url)
+    return uri.hostname

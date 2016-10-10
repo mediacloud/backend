@@ -41,23 +41,6 @@ sub _normalize_url_octets
     return $url;
 }
 
-# Return hostname of an URL
-sub get_url_host($)
-{
-    my $url = shift;
-
-    unless ( $url )
-    {
-        die "URL is empty or undefined.";
-    }
-
-    $url = fix_common_url_mistakes( $url );
-
-    # URI::Split returns auth info together with host so parsing with URI here
-    my $uri = URI->new( $url )->canonical;
-    return $uri->host;
-}
-
 # Return a truncated form of URL's host (domain) that distinguishes it from others, e.g.:
 #
 # * www.whitehouse.gov => whitehouse.gov

@@ -203,3 +203,9 @@ def test_is_homepage_url():
     assert is_homepage_url('http://www.google.com/trends/explore#q=Ebola')
     assert is_homepage_url('http://www.nytimes.com/pages/todayspaper/')
     assert is_homepage_url('http://www.politico.com/playbook/')
+
+
+def test_get_url_host():
+    assert_raises(GetURLHostException, get_url_host, None)
+    assert get_url_host('http://www.nytimes.com/') == 'www.nytimes.com'
+    assert get_url_host('http://obama:barack1@WHITEHOUSE.GOV/michelle.html') == 'whitehouse.gov'

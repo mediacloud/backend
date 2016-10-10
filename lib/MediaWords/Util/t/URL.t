@@ -27,15 +27,6 @@ BEGIN
     use_ok( 'MediaWords::Util::URL' );
 }
 
-sub test_get_url_host()
-{
-    eval { MediaWords::Util::URL::get_url_host( undef ) };
-    ok( $@, 'Undefined parameter' );
-    is( MediaWords::Util::URL::get_url_host( 'http://www.nytimes.com/' ), 'www.nytimes.com', 'www.nytimes.com' );
-    is( MediaWords::Util::URL::get_url_host( 'http://obama:barack1@WHITEHOUSE.GOV/michelle.html' ),
-        'whitehouse.gov', 'whitehouse.gov with auth' );
-}
-
 sub test_get_url_distinctive_domain()
 {
     # FIXME - some resulting domains look funny, not sure if I can change them easily though
