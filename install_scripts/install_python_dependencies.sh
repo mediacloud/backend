@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 # no "set -u" because installation scripts address various undefined variables
