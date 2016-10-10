@@ -18,11 +18,16 @@ wget https://bootstrap.pypa.io/ez_setup.py -O - | sudo python3 -
 
 # Install / upgrade Pip to both Python versions before installing dependencies
 sudo easy_install-2.7 pip
-if verlt "$DISTRIB_RELEASE" "16.04"; then
-    # 8.0.0+ doesn't support Python 3.2 on Ubuntu 12.04
-    sudo easy_install3 pip==7.1.2
-else
+if [ `uname` == 'Darwin' ]; then
     sudo easy_install3 pip
+else
+    source /etc/lsb-release
+    if verlt "$DISTRIB_RELEASE" "16.04"; then
+        # 8.0.0+ doesn't support Python 3.2 on Ubuntu 12.04
+        sudo easy_install3 pip==7.1.2
+    else
+        sudo easy_install3 pip
+    fi
 fi
 
 # Make sure Pip is latest version to avoid errors
