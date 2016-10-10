@@ -394,3 +394,33 @@ def test_link_canonical_url_from_html():
     assert link_canonical_url_from_html(html="""
         <link rel="canonical" href="/first/second/third/" />
     """) is None
+
+
+def test_http_urls_in_string():
+    # Basic test
+    assert http_urls_in_string("""
+        These are my favourite websites:
+        * http://www.mediacloud.org/
+        * http://cyber.law.harvard.edu/
+        * about:blank
+    """) == {'http://www.mediacloud.org/', 'http://cyber.law.harvard.edu/'}
+
+    # Duplicate URLs
+    assert http_urls_in_string("""
+        These are my favourite (duplicate) websites:
+        * http://www.mediacloud.org/
+        * http://www.mediacloud.org/
+        * http://cyber.law.harvard.edu/
+        * http://cyber.law.harvard.edu/
+        * http://www.mediacloud.org/
+        * http://www.mediacloud.org/
+    """) == {'http://www.mediacloud.org/', 'http://cyber.law.harvard.edu/'}
+
+    # No http:// URLs
+    assert http_urls_in_string("""
+        This test text doesn't have any http:// URLs, only a ftp:// one:
+        ftp://ftp.ubuntu.com/ubuntu/
+    """) == set()
+
+    # Erroneous input
+    assert_raises(HTTPURLsInStringException, http_urls_in_string, None)

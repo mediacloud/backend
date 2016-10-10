@@ -913,3 +913,29 @@ def link_canonical_url_from_html(html, base_url=None):
                     # Looks like URL, so return it
                     return url
     return None
+
+
+class HTTPURLsInStringException(Exception):
+    pass
+
+
+def http_urls_in_string(string):
+    """Extract http(s):// URLs from a string.
+
+    Returns a set of unique URLs in a string, raises HTTPURLsInStringException on error."""
+    string = decode_string_from_bytes_if_needed(string)
+    if string is None:
+        raise HTTPURLsInStringException("String is None")
+    if len(string) == 0:
+        raise HTTPURLsInStringException("String is empty")
+
+    urls = re.findall(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', string, re.I)
+    http_urls = []
+    for url in urls:
+        if is_http_url(url):
+            http_urls.append(url)
+
+    # Unique URLs
+    http_urls = set(http_urls)
+
+    return http_urls
