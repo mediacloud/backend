@@ -16,6 +16,31 @@ __URL_REGEX = re.compile(
     r'(?::\d+)?'  # optional port
     r'(?:/?|[/?]\S+)$', re.IGNORECASE)
 
+# Regular expressions for URL's path that, when matched, mean that the URL is a homepage URL
+__HOMEPAGE_URL_PATH_REGEXES = [
+
+    # Empty path (e.g. http://www.nytimes.com)
+    re.compile(r'^$', re.I),
+
+    # One or more slash (e.g. http://www.nytimes.com/, http://m.wired.com///)
+    re.compile(r'^/+$', re.I),
+
+    # Limited number of either all-lowercase or all-uppercase (but not both)
+    # characters and no numbers, e.g.:
+    #
+    # * /en/,
+    # * /US
+    # * /global/,
+    # * /trends/explore
+    #
+    # but not:
+    #
+    # * /oKyFAMiZMbU
+    # * /1uSjCJp
+    re.compile(r'^[a-z/\-_]{1,18}/?$'),
+    re.compile(r'^[A-Z/\-_]{1,18}/?$'),
+]
+
 # URL shortener hostnames
 #
 # Sources:
@@ -723,3 +748,44 @@ def normalize_url_lossy(url):
         url += '/'
 
     return url
+
+
+def is_homepage_url(url):
+    """Returns true if URL is homepage (e.g. http://www.wired.com/) and not a child page
+    (e.g. http://m.wired.com/threatlevel/2011/12/sopa-watered-down-amendment/)."""
+    url = decode_string_from_bytes_if_needed(url)
+    if url is None:
+        l.debug("URL is None.")
+        return False
+    if len(url) == 0:
+        l.debug("URL is empty.")
+        return False
+
+    if not is_http_url(url):
+        l.debug("URL '%s' is invalid." % url)
+        return False
+
+    # Remove cruft from the URL first
+    try:
+        url = normalize_url(url)
+    except NormalizeURLException as ex:
+        l.debug("Unable to normalize URL '%s' before checking if it's a homepage: %s" % (url, ex))
+        return False
+
+    # The shortened URL may lead to a homepage URL, but the shortened URL
+    # itself is not a homepage URL
+    if is_shortened_url(url):
+        return False
+
+    # If we still have something for a query of the URL after the
+    # normalization, always assume that the URL is *not* a homepage
+    scheme, netloc, uri_path, query_string, fragment = urlsplit(url)
+    if len(query_string) > 0:
+        return False
+
+    for homepage_url_path_regex in __HOMEPAGE_URL_PATH_REGEXES:
+        if re.search(homepage_url_path_regex, uri_path):
+            return True
+
+    return False
+

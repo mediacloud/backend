@@ -145,3 +145,57 @@ def test_normalize_url_lossy():
     for test in tests:
         input_url, expected_output_url = test
         assert normalize_url_lossy(input_url) == expected_output_url
+
+
+def test_is_homepage_url():
+    # Bad input
+    assert not is_homepage_url(None)
+    assert not is_homepage_url('')
+
+    # No scheme
+    assert not is_homepage_url('abc')
+
+    # True positives
+    assert is_homepage_url('http://www.wired.com')
+    assert is_homepage_url('http://www.wired.com/')
+    assert is_homepage_url('http://m.wired.com/#abc')
+
+    # False negatives
+    assert not is_homepage_url('http://m.wired.com/threatlevel/2011/12/sopa-watered-down-amendment/')
+
+    # DELFI article (article identifier as query parameter)
+    assert not is_homepage_url(
+            'http://www.delfi.lt/news/daily/world/prancuzijoje-tukstanciai-pareigunu-sukuoja-apylinkes-blokuojami-'
+            + 'keliai.d?id=66850094'
+        )
+
+    # Bash.org quote (empty path, article identifier as query parameter)
+    assert not is_homepage_url('http://bash.org/?244321')
+
+    # YouTube shortened URL (path consists of letters with varying cases)
+    assert not is_homepage_url('http://youtu.be/oKyFAMiZMbU')
+
+    # Bit.ly shortened URL (path has a number)
+    assert not is_homepage_url('https://bit.ly/1uSjCJp')
+
+    # Bit.ly shortened URL (path does not have a number, but the host is in the URL shorteners list)
+    assert not is_homepage_url('https://bit.ly/defghi')
+
+    # Link to JPG
+    assert not is_homepage_url('https://i.imgur.com/gbu5YNM.jpg')
+
+    # Technically, server is not required to normalize "///" path into "/", but most of them do anyway
+    assert is_homepage_url('http://www.wired.com///')
+    assert is_homepage_url('http://m.wired.com///')
+
+    # Smarter homepage identification ("/en/", "/news/", ...)
+    assert is_homepage_url('http://www.latimes.com/entertainment/')
+    assert is_homepage_url('http://www.scidev.net/global/')
+    assert is_homepage_url('http://abcnews.go.com/US')
+    assert is_homepage_url('http://www.example.com/news/')
+    assert is_homepage_url('http://www.france24.com/en/')
+    assert is_homepage_url('http://www.france24.com/en/?altcast_code=0adb03a8a4')
+    assert is_homepage_url('http://www.google.com/trends/explore')
+    assert is_homepage_url('http://www.google.com/trends/explore#q=Ebola')
+    assert is_homepage_url('http://www.nytimes.com/pages/todayspaper/')
+    assert is_homepage_url('http://www.politico.com/playbook/')
