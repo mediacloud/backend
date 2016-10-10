@@ -4667,29 +4667,6 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       File::Spec 0.8
       perl 5.008001
-  Inline-C-0.76
-    pathname: I/IN/INGY/Inline-C-0.76.tar.gz
-    provides:
-      Inline::C 0.76
-    requirements:
-      ExtUtils::MakeMaker 7.00
-      File::ShareDir::Install 0.06
-      File::Spec 0.8
-      Inline 0.79
-      Parse::RecDescent 1.967009
-      Pegex 0.58
-      perl 5.008001
-  Inline-Java-0.58
-    pathname: E/ET/ETJ/Inline-Java-0.58.tar.gz
-    provides:
-      Inline::Java 0.58
-    requirements:
-      ExtUtils::MakeMaker 0
-      Inline 0.68
-      Inline::C 0.62
-      MIME::Base64 0
-      Test 1.13
-      perl 5.008
   Inline-Python-0.50
     pathname: N/NI/NINE/Inline-Python-0.50.tar.gz
     provides:
@@ -6833,31 +6810,6 @@ DISTRIBUTIONS
       overload 0
       strict 0
       warnings 0
-  Pegex-0.60
-    pathname: I/IN/INGY/Pegex-0.60.tar.gz
-    provides:
-      Pegex 0.60
-      Pegex::Base undef
-      Pegex::Bootstrap undef
-      Pegex::Compiler undef
-      Pegex::Constant undef
-      Pegex::Grammar undef
-      Pegex::Grammar::Atoms undef
-      Pegex::Input undef
-      Pegex::Module undef
-      Pegex::Optimizer undef
-      Pegex::Parser undef
-      Pegex::Parser::Indent undef
-      Pegex::Pegex::AST undef
-      Pegex::Pegex::Grammar undef
-      Pegex::Receiver undef
-      Pegex::Regex undef
-      Pegex::Tree undef
-      Pegex::Tree::Wrap undef
-    requirements:
-      ExtUtils::MakeMaker 0
-      File::ShareDir::Install 0.06
-      perl 5.008001
   Perl-Tidy-20160302
     pathname: S/SH/SHANCOCK/Perl-Tidy-20160302.tar.gz
     provides:

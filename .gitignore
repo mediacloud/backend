@@ -26,7 +26,7 @@ Session.vim
 # OS X
 .DS_Store
 
-# Inline::Java
+# Inline::* bytecode
 _Inline/
 
 # Devel::NYTProf output
