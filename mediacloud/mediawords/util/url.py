@@ -470,7 +470,7 @@ __URL_SHORTENER_HOSTNAMES = [
 ]
 
 
-def fix_common_url_mistakes(url):
+def fix_common_url_mistakes(url: str) -> str:
     """Fixes common URL mistakes (mistypes, etc.)."""
     url = decode_string_from_bytes_if_needed(url)
 
@@ -492,7 +492,7 @@ def fix_common_url_mistakes(url):
     return url
 
 
-def is_http_url(url):
+def is_http_url(url: str) -> bool:
     """Returns true if URL is in the "http" ("https") scheme."""
     url = decode_string_from_bytes_if_needed(url)
     if url is None:
@@ -517,7 +517,7 @@ def is_http_url(url):
     return True
 
 
-def is_shortened_url(url):
+def is_shortened_url(url: str) -> bool:
     """Returns true if URL is a shortened URL (e.g. with Bit.ly)."""
     url = decode_string_from_bytes_if_needed(url)
     if url is None:
@@ -545,7 +545,7 @@ def is_shortened_url(url):
     return False
 
 
-def __canonical_url(url):
+def __canonical_url(url: str) -> str:
     """Make URL canonical (lowercase scheme and host, remove default port, etc.)"""
     return url_normalize.url_normalize(url)
 
@@ -554,7 +554,7 @@ class NormalizeURLException(Exception):
     pass
 
 
-def normalize_url(url):
+def normalize_url(url: str) -> str:
     """Normalize URL
 
     * Fix common mistypes, e.g. "http://http://..."
@@ -710,7 +710,7 @@ def normalize_url(url):
     return url
 
 
-def normalize_url_lossy(url):
+def normalize_url_lossy(url: str) -> str:
     """Do some simple transformations on a URL to make it match other equivalent URLs as well as possible; normalization
     is "lossy" (makes the whole URL lowercase, removes subdomain parts "m.", "data.", "news.", ... in some cases)"""
     url = decode_string_from_bytes_if_needed(url)
@@ -750,7 +750,7 @@ def normalize_url_lossy(url):
     return url
 
 
-def is_homepage_url(url):
+def is_homepage_url(url: str) -> bool:
     """Returns true if URL is homepage (e.g. http://www.wired.com/) and not a child page
     (e.g. http://m.wired.com/threatlevel/2011/12/sopa-watered-down-amendment/)."""
     url = decode_string_from_bytes_if_needed(url)
@@ -794,7 +794,7 @@ class GetURLHostException(Exception):
     pass
 
 
-def get_url_host(url):
+def get_url_host(url: str) -> str:
     """Return hostname of an URL."""
     url = decode_string_from_bytes_if_needed(url)
     if url is None:
@@ -808,7 +808,7 @@ def get_url_host(url):
     return uri.hostname
 
 
-def get_url_distinctive_domain(url):
+def get_url_distinctive_domain(url: str) -> str:
     """Return a truncated form of URL's host (domain) that distinguishes it from others, e.g.:
 
     * www.whitehouse.gov => whitehouse.gov
@@ -845,7 +845,7 @@ def get_url_distinctive_domain(url):
     return domain.lower()
 
 
-def meta_refresh_url_from_html(html, base_url=None):
+def meta_refresh_url_from_html(html: str, base_url: str = None) -> str:
     """From the provided HTML, determine the <meta http-equiv="refresh" /> URL (if any)."""
 
     def __get_meta_refresh_url_from_tag(inner_tag: str, inner_base_url=None) -> str:
@@ -891,7 +891,7 @@ def meta_refresh_url_from_html(html, base_url=None):
     return None
 
 
-def link_canonical_url_from_html(html, base_url=None):
+def link_canonical_url_from_html(html: str, base_url: str = None) -> str:
     """From the provided HTML, determine the <link rel="canonical" /> URL (if any)."""
     html = decode_string_from_bytes_if_needed(html)
     base_url = decode_string_from_bytes_if_needed(base_url)
@@ -919,7 +919,7 @@ class HTTPURLsInStringException(Exception):
     pass
 
 
-def http_urls_in_string(string):
+def http_urls_in_string(string: str) -> set:
     """Extract http(s):// URLs from a string.
 
     Returns a set of unique URLs in a string, raises HTTPURLsInStringException on error."""
@@ -941,7 +941,7 @@ def http_urls_in_string(string):
     return http_urls
 
 
-def get_url_path_fast(url):
+def get_url_path_fast(url: str) -> str:
     """Return URLs path."""
     url = decode_string_from_bytes_if_needed(url)
 
