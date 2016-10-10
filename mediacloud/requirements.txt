@@ -1,3 +1,6 @@
+# Configuration file
+pyyaml
+
 # Unit tests
 nose
 
