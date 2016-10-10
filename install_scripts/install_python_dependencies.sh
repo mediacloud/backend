@@ -30,10 +30,6 @@ else
     fi
 fi
 
-# Make sure Pip is latest version to avoid errors
-sudo pip2 install --upgrade pip
-sudo pip3 install --upgrade pip
-
 # Install (upgrade) Supervisor:
 # * change dir, otherwise the installer might think we're trying to install from the supervisor/ directory
 # * also, Supervisor only supports Python 2.7 at the moment
