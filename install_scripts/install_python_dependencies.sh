@@ -30,14 +30,20 @@ sudo pip3 install --upgrade pip
 sudo pip2 install --upgrade virtualenv
 sudo pip3 install --upgrade virtualenv
 
-# Install Python dependencies
+# Install Python 2 dependencies
 sudo pip install --upgrade -r python_scripts/requirements.txt || {
     # Sometimes fails with some sort of Setuptools error
     echo "'pip install' failed the first time, retrying..."
     sudo pip install --upgrade -r python_scripts/requirements.txt
 }
-sudo pip install --upgrade -r mediacloud/requirements.txt || {
+
+# Create virtualenv and activate it
+virtualenv --python=python3 mc-venv
+source mc-venv/bin/activate
+
+# Install Python 3 dependencies (no sudo because we're in virtualenv)
+pip3 install --upgrade -r mediacloud/requirements.txt || {
     # Sometimes fails with some sort of Setuptools error
     echo "'pip install' failed the first time, retrying..."
-    sudo pip install --upgrade -r mediacloud/requirements.txt
+    pip3 install --upgrade -r mediacloud/requirements.txt
 }
