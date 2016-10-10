@@ -6303,10 +6303,10 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Test 0
       perl 5.006
-  Net-AMQP-RabbitMQ-2.100001
-    pathname: M/MA/MARKELLIS/Net-AMQP-RabbitMQ-2.100001.tar.gz
+  Net-AMQP-RabbitMQ-2.200001
+    pathname: M/MA/MARKELLIS/Net-AMQP-RabbitMQ-2.200001.tar.gz
     provides:
-      Net::AMQP::RabbitMQ 2.100001
+      Net::AMQP::RabbitMQ 2.200001
     requirements:
       ExtUtils::MakeMaker 0
       Math::Int64 0.34
