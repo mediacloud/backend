@@ -285,17 +285,4 @@ sub all_url_variants($$)
     return @{ $all_urls };
 }
 
-# use a regex to get the url path much faster than URI->new()->path
-sub get_url_path_fast
-{
-    my ( $url ) = @_;
-
-    if ( $url =~ m~^[a-z]://[^/]+(/.*)~ )
-    {
-        return $1;
-    }
-
-    return '';
-}
-
 1;

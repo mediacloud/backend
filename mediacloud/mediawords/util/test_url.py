@@ -424,3 +424,8 @@ def test_http_urls_in_string():
 
     # Erroneous input
     assert_raises(HTTPURLsInStringException, http_urls_in_string, None)
+
+
+def test_get_url_path_fast():
+    assert get_url_path_fast('http://www.example.com/a/b/c') == '/a/b/c'
+    assert get_url_path_fast('not_an_url') == ''

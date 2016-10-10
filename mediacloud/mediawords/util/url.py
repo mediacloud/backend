@@ -939,3 +939,15 @@ def http_urls_in_string(string):
     http_urls = set(http_urls)
 
     return http_urls
+
+
+def get_url_path_fast(url):
+    """Return URLs path."""
+    url = decode_string_from_bytes_if_needed(url)
+
+    if not is_http_url(url):
+        return ''
+
+    # Don't bother with the regex (Perl's version didn't work anyway)
+    uri = urlparse(url)
+    return uri.path
