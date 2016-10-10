@@ -1,5 +1,5 @@
 import re
-from urllib.parse import urlparse, parse_qs, urlsplit, urlunsplit, urlencode
+from urllib.parse import urlparse, parse_qs, urlsplit, urlunsplit, urlencode, urljoin
 import url_normalize
 
 from mediawords.util.log import create_logger
@@ -843,3 +843,49 @@ def get_url_distinctive_domain(url):
         domain = '.'.join(parts)
 
     return domain.lower()
+
+
+def meta_refresh_url_from_html(html, base_url=None):
+    """From the provided HTML, determine the <meta http-equiv="refresh" /> URL (if any)."""
+
+    def __get_meta_refresh_url_from_tag(inner_tag: str, inner_base_url=None) -> str:
+        """Given a <meta ...> tag, return the url from the content="url=XXX" attribute.  return undef if no such url is
+        found."""
+        if not re.search(r'http-equiv\s*?=\s*?["\']\s*?refresh\s*?["\']', inner_tag, re.I):
+            return None
+
+        # content="url='http://foo.bar'"
+        inner_url = None
+
+        match = re.search(r'content\s*?=\s*?"\d*?\s*?;?\s*?URL\s*?=\s*?\'(.+?)\'', inner_tag, re.I)
+        if match:
+            inner_url = match.group(1)
+        else:
+            # content="url='http://foo.bar'"
+            match = re.search(r'content\s*?=\s*?\'\d*?\s*?;?\s*?URL\s*?=\s*?"(.+?)"', inner_tag, re.I)
+            if match:
+                inner_url = match.group(1)
+            else:
+                # Fallback
+                match = re.search(r'content\s*?=\s*?["\']\d*?\s*?;?\s*?URL\s*?=\s*?(.+?)["\']', inner_tag, re.I)
+                if match:
+                    inner_url = match.group(1)
+
+        if is_http_url(inner_url):
+            return inner_url
+
+        if inner_base_url is not None:
+            return urljoin(base=inner_base_url, url=inner_url)
+
+        return None
+
+    html = decode_string_from_bytes_if_needed(html)
+    base_url = decode_string_from_bytes_if_needed(base_url)
+
+    tags = re.findall(r'(<\s*meta[^>]+>)', html, re.I)
+    for tag in tags:
+        url = __get_meta_refresh_url_from_tag(tag, base_url)
+        if url is not None:
+            return url
+
+    return None

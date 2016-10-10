@@ -41,57 +41,6 @@ sub _normalize_url_octets
     return $url;
 }
 
-# given a <meta ...> tag, return the url from the content="url=XXX" attribute.  return undef
-# if no such url is found.
-sub _get_meta_refresh_url_from_tag
-{
-    my ( $tag, $base_url ) = @_;
-
-    return undef unless ( $tag =~ m~http-equiv\s*?=\s*?["']\s*?refresh\s*?["']~i );
-
-    my $url;
-
-    if ( $tag =~ m~content\s*?=\s*?"\d*?\s*?;?\s*?URL\s*?=\s*?'(.+?)'~i )
-    {
-        # content="url='http://foo.bar'"
-        $url = $1;
-    }
-    elsif ( $tag =~ m~content\s*?=\s*?'\d*?\s*?;?\s*?URL\s*?=\s*?"(.+?)"~i )
-    {
-        # content="url='http://foo.bar'"
-        $url = $1;
-    }
-    elsif ( $tag =~ m~content\s*?=\s*?["']\d*?\s*?;?\s*?URL\s*?=\s*?(.+?)["']~i )
-    {
-        $url = $1;
-    }
-
-    return undef unless ( $url );
-
-    return $url if ( is_http_url( $url ) );
-
-    return URI->new_abs( $url, $base_url )->as_string if ( $base_url );
-
-    return undef;
-}
-
-# From the provided HTML, determine the <meta http-equiv="refresh" /> URL (if any)
-sub meta_refresh_url_from_html($;$)
-{
-    my ( $html, $base_url ) = @_;
-
-    while ( $html =~ m~(<\s*meta[^>]+>)~gi )
-    {
-        my $tag = $1;
-
-        my $url = _get_meta_refresh_url_from_tag( $tag, $base_url );
-
-        return $url if ( $url );
-    }
-
-    return undef;
-}
-
 # From the provided HTML, determine the <link rel="canonical" /> URL (if any)
 sub link_canonical_url_from_html($;$)
 {
