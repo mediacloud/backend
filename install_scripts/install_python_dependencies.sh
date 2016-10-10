@@ -1,8 +1,7 @@
 #!/bin/sh
 
-set -u
-set -o errexit
-
+set -e
+# no "set -u" because installation scripts address various undefined variables
 
 # Install / upgrade Setuptools (easy_install) to both Python versions before installing dependencies
 wget https://bootstrap.pypa.io/ez_setup.py -O - | sudo python2 -
@@ -38,10 +37,8 @@ sudo pip install --upgrade -r python_scripts/requirements.txt || {
 }
 
 # Create virtualenv and activate it
-set +u
 virtualenv --python=python3 mc-venv
 source mc-venv/bin/activate
-set -u
 
 # Install Python 3 dependencies (no sudo because we're in virtualenv)
 pip3 install --upgrade -r mediacloud/requirements.txt || {
