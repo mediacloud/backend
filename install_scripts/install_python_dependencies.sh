@@ -38,8 +38,10 @@ sudo pip install --upgrade -r python_scripts/requirements.txt || {
 }
 
 # Create virtualenv and activate it
+set +u
 virtualenv --python=python3 mc-venv
 source mc-venv/bin/activate
+set -u
 
 # Install Python 3 dependencies (no sudo because we're in virtualenv)
 pip3 install --upgrade -r mediacloud/requirements.txt || {
