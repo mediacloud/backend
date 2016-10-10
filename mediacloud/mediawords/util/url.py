@@ -2,6 +2,7 @@ import re
 from urllib.parse import urlparse
 
 from mediawords.util.log import create_logger
+from mediawords.util.perl import decode_string_from_bytes_if_needed
 
 l = create_logger(__name__)
 
@@ -18,6 +19,8 @@ __URL_REGEX = re.compile(
 
 def fix_common_url_mistakes(url):
     """Fixes common URL mistakes (mistypes, etc.)."""
+    url = decode_string_from_bytes_if_needed(url)
+
     if url is None:
         return None
 
@@ -38,6 +41,7 @@ def fix_common_url_mistakes(url):
 
 def is_http_url(url):
     """Returns true if URL is in the "http" ("https") scheme."""
+    url = decode_string_from_bytes_if_needed(url)
     if url is None:
         l.debug("URL is None")
         return False
