@@ -7,7 +7,7 @@ use MediaWords::CommonLibs;
 
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 140;
+use Test::More tests => 14;
 
 use Readonly;
 use HTTP::HashServer;
@@ -479,21 +479,12 @@ sub main()
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
-    test_is_homepage_url();
-    test_is_shortened_url();
-    test_normalize_url();
-    test_normalize_url_lossy();
-    test_get_url_host();
-    test_get_url_distinctive_domain();
-    test_meta_refresh_url_from_html();
-    test_link_canonical_url_from_html();
     test_url_and_data_after_redirects_nonexistent();
     test_url_and_data_after_redirects_http();
     test_url_and_data_after_redirects_html();
     test_url_and_data_after_redirects_http_loop();
     test_url_and_data_after_redirects_html_loop();
     test_url_and_data_after_redirects_cookies();
-    test_http_urls_in_string();
 
     MediaWords::Test::DB::test_on_test_database(
         sub {
