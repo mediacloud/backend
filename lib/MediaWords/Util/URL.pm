@@ -24,23 +24,6 @@ Readonly my @INVALID_URL_VARIANT_REGEXES => (
     qr#^https?://twitter.com/account/suspended#i,
 );
 
-# unescaping octets that can be better represented as plain characters. stolen from URI::canonical to avoid very
-# expensive URI->new( $url )->canonical() call
-sub _normalize_url_octets
-{
-    my ( $url ) = @_;
-
-    my $mark       = q(-_.!~*'());
-    my $unreserved = "A-Za-z0-9\Q$mark\E";
-
-    $url =~ s{%([0-9a-fA-F]{2})}
-                { my $a = chr(hex($1));
-                      $a =~ /^[$unreserved]\z/o ? $a : "%\U$1"
-                    }ge;
-
-    return $url;
-}
-
 # Fetch the URL, evaluate HTTP / HTML redirects; return URL and data after all
 # those redirects; die() on error
 sub url_and_data_after_redirects($;$$)
