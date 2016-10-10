@@ -683,3 +683,43 @@ def normalize_url(url):
     url = re.sub(r'=$', '', url)
 
     return url
+
+
+def normalize_url_lossy(url):
+    """Do some simple transformations on a URL to make it match other equivalent URLs as well as possible; normalization
+    is "lossy" (makes the whole URL lowercase, removes subdomain parts "m.", "data.", "news.", ... in some cases)"""
+    url = decode_string_from_bytes_if_needed(url)
+    if url is None:
+        return None
+    if len(url) == 0:
+        return None
+
+    url = fix_common_url_mistakes(url)
+
+    url = url.lower()
+
+    # r2.ly redirects through the hostname, ala http://543.r2.ly
+    if 'r2.ly' not in url:
+        url = re.sub(
+            r'^(https?://)(m|beta|media|data|image|www?|cdn|topic|article|news|archive|blog|video|search|preview|'
+            + 'shop|sports?|act|donate|press|web|photos?|\d+?).?\.(.*\.)',
+            r"\1\3", url, re.I)
+
+    # collapse the vast array of http://pronkraymond83483.podomatic.com/ urls into http://pronkpops.podomatic.com/
+    url = re.sub(r'http://.*pron.*\.podomatic\.com', 'http://pronkpops.podomatic.com', url)
+
+    # get rid of anchor text
+    url = re.sub(r'#.*', '', url)
+
+    # get rid of multiple slashes in a row
+    url = re.sub(r'(//.*/)/+', r"\1", url)
+
+    url = re.sub(r'^https:', 'http:', url)
+
+    url = __canonical_url(url)
+
+    # add trailing slash
+    if re.search(r'https?://[^/]*$', url):
+        url += '/'
+
+    return url

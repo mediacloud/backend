@@ -121,45 +121,6 @@ sub _normalize_url_octets
     return $url;
 }
 
-# do some simple transformations on a URL to make it match other equivalent
-# URLs as well as possible; normalization is "lossy" (makes the whole URL
-# lowercase, removes subdomain parts "m.", "data.", "news.", ... in some cases)
-sub normalize_url_lossy($)
-{
-    my $url = shift;
-
-    return undef unless ( $url );
-
-    $url = fix_common_url_mistakes( $url );
-
-    $url = lc( $url );
-
-    # r2.ly redirects through the hostname, ala http://543.r2.ly
-    if ( $url !~ /r2\.ly/ )
-    {
-        $url =~
-s/^(https?:\/\/)(m|beta|media|data|image|www?|cdn|topic|article|news|archive|blog|video|search|preview|shop|sports?|act|donate|press|web|photos?|\d+?).?\.(.*\.)/$1$3/i;
-    }
-
-    # collapse the vast array of http://pronkraymond83483.podomatic.com/ urls into http://pronkpops.podomatic.com/
-    $url =~ s~http://.*pron.*\.podomatic\.com~http://pronkpops.podomatic.com~;
-
-    # get rid of anchor text
-    $url =~ s/\#.*//;
-
-    # get rid of multiple slashes in a row
-    $url =~ s/(\/\/.*\/)\/+/$1/;
-
-    $url =~ s/^https:/http:/;
-
-    $url = _normalize_url_octets( $url );
-
-    # add trailing slash
-    $url .= '/' if ( $url =~ m~https?://[^/]*$~ );
-
-    return $url;
-}
-
 # Return hostname of an URL
 sub get_url_host($)
 {

@@ -87,54 +87,6 @@ sub test_is_homepage_url()
         'is_homepage_url() - Politico bulletin board' );
 }
 
-sub test_normalize_url_lossy()
-{
-    # FIXME - some resulting URLs look funny, not sure if I can change them easily though
-    is(
-        MediaWords::Util::URL::normalize_url_lossy( 'HTTP://WWW.nytimes.COM/ARTICLE/12345/?ab=cd#def#ghi/' ),
-        'http://nytimes.com/article/12345/?ab=cd',
-        'normalize_url_lossy() - nytimes.com'
-    );
-    is(
-        MediaWords::Util::URL::normalize_url_lossy( 'http://HTTP://WWW.nytimes.COM/ARTICLE/12345/?ab=cd#def#ghi/' ),
-        'http://nytimes.com/article/12345/?ab=cd',
-        'normalize_url_lossy() - nytimes.com'
-    );
-    is( MediaWords::Util::URL::normalize_url_lossy( 'http://http://www.al-monitor.com/pulse' ),
-        'http://al-monitor.com/pulse', 'normalize_url_lossy() - www.al-monitor.com' );
-    is( MediaWords::Util::URL::normalize_url_lossy( 'http://m.delfi.lt/foo' ),
-        'http://delfi.lt/foo', 'normalize_url_lossy() - m.delfi.lt' );
-    is(
-        MediaWords::Util::URL::normalize_url_lossy( 'http://blog.yesmeck.com/jquery-jsonview/' ),
-        'http://yesmeck.com/jquery-jsonview/',
-        'normalize_url_lossy() - blog.yesmeck.com'
-    );
-    is(
-        MediaWords::Util::URL::normalize_url_lossy( 'http://cdn.com.do/noticias/nacionales' ),
-        'http://com.do/noticias/nacionales',
-        'normalize_url_lossy() - cdn.com.do'
-    );
-    is( MediaWords::Util::URL::normalize_url_lossy( 'http://543.r2.ly' ),
-        'http://543.r2.ly/', 'normalize_url_lossy() - r2.ly' );
-
-    my $tests = [
-        [ 'http://nytimes.com',          'http://nytimes.com/' ],
-        [ 'http://http://nytimes.com',   'http://nytimes.com/' ],
-        [ 'HTTP://nytimes.COM',          'http://nytimes.com/' ],
-        [ 'http://beta.foo.com/bar',     'http://foo.com/bar' ],
-        [ 'http://archive.org/bar',      'http://archive.org/bar' ],
-        [ 'http://m.archive.org/bar',    'http://archive.org/bar' ],
-        [ 'http://archive.foo.com/bar',  'http://foo.com/bar' ],
-        [ 'http://foo.com/bar#baz',      'http://foo.com/bar' ],
-        [ 'http://foo.com/bar/baz//foo', 'http://foo.com/bar/baz/foo' ],
-    ];
-
-    for my $test ( @{ $tests } )
-    {
-        is( MediaWords::Util::URL::normalize_url_lossy( $test->[ 0 ] ), $test->[ 1 ], "$test->[ 0 ] -> $test->[ 1 ]" );
-    }
-}
-
 sub test_get_url_host()
 {
     eval { MediaWords::Util::URL::get_url_host( undef ) };
