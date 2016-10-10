@@ -1,5 +1,6 @@
 import re
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs, urlsplit, urlunsplit, urlencode
+import url_normalize
 
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_string_from_bytes_if_needed
@@ -517,3 +518,168 @@ def is_shortened_url(url):
         return True
 
     return False
+
+
+def __canonical_url(url):
+    """Make URL canonical (lowercase scheme and host, remove default port, etc.)"""
+    return url_normalize.url_normalize(url)
+
+
+class NormalizeURLException(Exception):
+    pass
+
+
+def normalize_url(url):
+    """Normalize URL
+
+    * Fix common mistypes, e.g. "http://http://..."
+    * Run URL through normalization, i.e. standardize URL's scheme and hostname case, remove default port, uppercase
+      all escape sequences, unescape octets that can be represented as plain characters, remove whitespace before /
+      after the URL string)
+    * Remove #fragment
+    * Remove various ad tracking query parameters, e.g. "utm_source", "utm_medium", "PHPSESSID", etc.
+
+    Return normalized URL on success; raise on error"""
+    url = decode_string_from_bytes_if_needed(url)
+    if url is None:
+        raise NormalizeURLException("URL is None")
+    if len(url) == 0:
+        raise NormalizeURLException("URL is empty")
+
+    url = fix_common_url_mistakes(url)
+    url = __canonical_url(url)
+
+    if not is_http_url(url):
+        raise NormalizeURLException("URL is not valid")
+
+    scheme, netloc, path, query_string, fragment = urlsplit(url)
+    query = parse_qs(query_string, keep_blank_values=True)
+
+    # Remove #fragment
+    fragment = ''
+
+    parameters_to_remove = []
+
+    # Facebook parameters (https://developers.facebook.com/docs/games/canvas/referral-tracking)
+    parameters_to_remove += [
+        'fb_action_ids',
+        'fb_action_types',
+        'fb_source',
+        'fb_ref',
+        'action_object_map',
+        'action_type_map',
+        'action_ref_map',
+        'fsrc_fb_noscript',
+    ]
+
+    # metrika.yandex.ru parameters
+    parameters_to_remove += [
+        'yclid',
+        '_openstat',
+    ]
+
+    if 'facebook.com' in netloc.lower():
+        # Additional parameters specifically for the facebook.com host
+        parameters_to_remove += [
+            'ref',
+            'fref',
+            'hc_location',
+        ]
+
+    if 'nytimes.com' in netloc.lower():
+        # Additional parameters specifically for the nytimes.com host
+        parameters_to_remove += [
+            'emc',
+            'partner',
+            '_r',
+            'hp',
+            'inline',
+            'smid',
+            'WT.z_sma',
+            'bicmp',
+            'bicmlukp',
+            'bicmst',
+            'bicmet',
+            'abt',
+            'abg',
+        ]
+
+    if 'livejournal.com' in netloc.lower():
+        # Additional parameters specifically for the livejournal.com host
+        parameters_to_remove += [
+            'thread',
+            'nojs',
+        ]
+
+    if 'google.' in netloc.lower():
+        # Additional parameters specifically for the google.[com,lt,...] host
+        parameters_to_remove += [
+            'gws_rd',
+            'ei',
+        ]
+
+    # Some other parameters (common for tracking session IDs, advertising, etc.)
+    parameters_to_remove += [
+        'PHPSESSID',
+        'PHPSESSIONID',
+        'cid',
+        's_cid',
+        'sid',
+        'ncid',
+        'ir',
+        'ref',
+        'oref',
+        'eref',
+        'ns_mchannel',
+        'ns_campaign',
+        'ITO',
+        'wprss',
+        'custom_click',
+        'source',
+        'feedName',
+        'feedType',
+        'skipmobile',
+        'skip_mobile',
+        'altcast_code',
+    ]
+
+    # Make the sorting default (e.g. on Reddit)
+    # Some other parameters (common for tracking session IDs, advertising, etc.)
+    parameters_to_remove += ['sort']
+
+    # Some Australian websites append the "nk" parameter with a tracking hash
+    if 'nk' in query:
+        for nk_value in query['nk']:
+            if re.search(r'^[0-9a-fA-F]+$', nk_value, re.I):
+                parameters_to_remove += ['nk']
+                break
+
+    # Delete the "empty" parameter (e.g. in http://www-nc.nytimes.com/2011/06/29/us/politics/29marriage.html?=_r%3D6)
+    parameters_to_remove += ['']
+
+    # Remove cruft parameters
+    for parameter in parameters_to_remove:
+        if ' ' in parameter:
+            l.warn('Invalid cruft parameter "%s"' % parameter)
+        query.pop(parameter, None)
+
+    for name in list(query.keys()):  # copy of list to be able to delete
+
+        # Remove parameters that start with '_' (e.g. '_cid') because they're
+        # more likely to be the tracking codes
+        if name.startswith('_'):
+            query.pop(name)
+
+        # Remove GA parameters, current and future (e.g. "utm_source",
+        # "utm_medium", "ga_source", "ga_medium")
+        # (https://support.google.com/analytics/answer/1033867?hl=en)
+        if name.startswith('ga_') or name.startswith('utm_'):
+            query.pop(name)
+
+    url = urlunsplit((scheme, netloc, path, urlencode(query, doseq=True), fragment))
+
+    # Remove empty values in query string, e.g. http://bash.org/?244321=
+    url = url.replace('=&', '&')
+    url = re.sub(r'=$', '', url)
+
+    return url
