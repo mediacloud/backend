@@ -209,3 +209,20 @@ def test_get_url_host():
     assert_raises(GetURLHostException, get_url_host, None)
     assert get_url_host('http://www.nytimes.com/') == 'www.nytimes.com'
     assert get_url_host('http://obama:barack1@WHITEHOUSE.GOV/michelle.html') == 'whitehouse.gov'
+
+
+def test_get_url_distinctive_domain():
+    # FIXME - some resulting domains look funny, not sure if I can change them easily though
+    assert get_url_distinctive_domain('http://www.nytimes.com/') == 'nytimes.com'
+    assert get_url_distinctive_domain('http://cyber.law.harvard.edu/') == 'law.harvard'
+    assert get_url_distinctive_domain('http://www.gazeta.ru/') == 'gazeta.ru'
+    assert get_url_distinctive_domain('http://www.whitehouse.gov/'), 'www.whitehouse'
+    assert get_url_distinctive_domain('http://info.info/') == 'info.info'
+    assert get_url_distinctive_domain('http://blog.yesmeck.com/jquery-jsonview/') == 'yesmeck.com'
+    assert get_url_distinctive_domain('http://status.livejournal.org/') == 'livejournal.org'
+
+    # ".(gov|org|com).XX" exception
+    assert get_url_distinctive_domain('http://www.stat.gov.lt/') == 'stat.gov.lt'
+
+    # "wordpress.com|blogspot|..." exception
+    assert get_url_distinctive_domain('https://en.blog.wordpress.com/') == 'en.blog.wordpress.com'

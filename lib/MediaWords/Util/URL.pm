@@ -41,54 +41,6 @@ sub _normalize_url_octets
     return $url;
 }
 
-# Return a truncated form of URL's host (domain) that distinguishes it from others, e.g.:
-#
-# * www.whitehouse.gov => whitehouse.gov
-# * www.blogspot.com => blogspot.com
-# * kardashian.blogspot.com => kardashian.blogspot.com
-#
-# Return original URL if unable to process the URL;
-sub get_url_distinctive_domain($)
-{
-    my $url = shift;
-
-    $url = fix_common_url_mistakes( $url );
-
-    my $host;
-    eval { $host = get_url_host( $url ) };
-    unless ( $host )
-    {
-        return $url;
-    }
-
-    my $name_parts = [ split( /\./, $host ) ];
-
-    my $n = @{ $name_parts } - 1;
-
-    my $domain;
-    if ( $host =~ /\.(gov|org|com?)\...$/i )
-    {
-        # foo.co.uk -> foo.co.uk instead of co.uk
-        $domain = join( ".", ( $name_parts->[ $n - 2 ], $name_parts->[ $n - 1 ], $name_parts->[ $n ] ) );
-    }
-    elsif ( $host =~ /\.(edu|gov)$/i )
-    {
-        $domain = join( ".", ( $name_parts->[ $n - 2 ], $name_parts->[ $n - 1 ] ) );
-    }
-    elsif ( $host =~
-        /go.com|wordpress.com|blogspot|livejournal.com|privet.ru|wikia.com|feedburner.com|24open.ru|patch.com|tumblr.com/i )
-    {
-        # identify sites in these domains as the whole host name (abcnews.go.com instead of go.com)
-        $domain = $host;
-    }
-    else
-    {
-        $domain = join( ".", $name_parts->[ $n - 1 ] || '', $name_parts->[ $n ] || '' );
-    }
-
-    return lc( $domain );
-}
-
 # given a <meta ...> tag, return the url from the content="url=XXX" attribute.  return undef
 # if no such url is found.
 sub _get_meta_refresh_url_from_tag

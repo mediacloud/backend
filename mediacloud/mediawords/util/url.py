@@ -806,3 +806,40 @@ def get_url_host(url):
 
     uri = urlparse(url)
     return uri.hostname
+
+
+def get_url_distinctive_domain(url):
+    """Return a truncated form of URL's host (domain) that distinguishes it from others, e.g.:
+
+    * www.whitehouse.gov => whitehouse.gov
+    * www.blogspot.com => blogspot.com
+    * kardashian.blogspot.com => kardashian.blogspot.com
+
+    Return original URL if unable to process the URL."""
+    url = decode_string_from_bytes_if_needed(url)
+
+    url = fix_common_url_mistakes(url)
+
+    host = get_url_host(url)
+    if host is None:
+        return url
+
+    name_parts = host.split('.')
+    n = len(name_parts) - 1
+
+    if re.search(r'\.(gov|org|com?)\...$', host, re.I):
+        # foo.co.uk -> foo.co.uk instead of co.uk
+        parts = [str(name_parts[n - 2]), str(name_parts[n - 1]), str(name_parts[n])]
+        domain = '.'.join(parts)
+    elif re.search(r'\.(edu|gov)$', host, re.I):
+        parts = [str(name_parts[n - 2]), str(name_parts[n - 1])]
+        domain = '.'.join(parts)
+    elif re.search(r'go.com|wordpress.com|blogspot|livejournal.com|privet.ru|wikia.com|feedburner.com'
+                           + '|24open.ru|patch.com|tumblr.com', host, re.I):
+        # identify sites in these domains as the whole host name (abcnews.go.com instead of go.com)
+        domain = host
+    else:
+        parts = [str(name_parts[n - 1] or ''), str(name_parts[n] or '')]
+        domain = '.'.join(parts)
+
+    return domain.lower()
