@@ -122,8 +122,12 @@ def test_normalize_url():
 
 def test_normalize_url_lossy():
     # FIXME - some resulting URLs look funny, not sure if I can change them easily though
-    assert normalize_url_lossy('HTTP://WWW.nytimes.COM/ARTICLE/12345/?ab=cd#def#ghi/') == 'http://nytimes.com/article/12345/?ab=cd'
-    assert normalize_url_lossy('http://HTTP://WWW.nytimes.COM/ARTICLE/12345/?ab=cd#def#ghi/') == 'http://nytimes.com/article/12345/?ab=cd'
+    assert normalize_url_lossy(
+        'HTTP://WWW.nytimes.COM/ARTICLE/12345/?ab=cd#def#ghi/'
+    ) == 'http://nytimes.com/article/12345/?ab=cd'
+    assert normalize_url_lossy(
+        'http://HTTP://WWW.nytimes.COM/ARTICLE/12345/?ab=cd#def#ghi/'
+    ) == 'http://nytimes.com/article/12345/?ab=cd'
     assert normalize_url_lossy('http://http://www.al-monitor.com/pulse') == 'http://al-monitor.com/pulse'
     assert normalize_url_lossy('http://m.delfi.lt/foo') == 'http://delfi.lt/foo'
     assert normalize_url_lossy('http://blog.yesmeck.com/jquery-jsonview/') == 'http://yesmeck.com/jquery-jsonview/'
@@ -165,9 +169,9 @@ def test_is_homepage_url():
 
     # DELFI article (article identifier as query parameter)
     assert not is_homepage_url(
-            'http://www.delfi.lt/news/daily/world/prancuzijoje-tukstanciai-pareigunu-sukuoja-apylinkes-blokuojami-'
-            + 'keliai.d?id=66850094'
-        )
+        'http://www.delfi.lt/news/daily/world/prancuzijoje-tukstanciai-pareigunu-sukuoja-apylinkes-blokuojami-'
+        + 'keliai.d?id=66850094'
+    )
 
     # Bash.org quote (empty path, article identifier as query parameter)
     assert not is_homepage_url('http://bash.org/?244321')
