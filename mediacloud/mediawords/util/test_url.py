@@ -38,3 +38,11 @@ def test_is_http_url():
     assert not is_http_url(
         'http:/www.theinquirer.net/inquirer/news/2322928/net-neutrality-rules-lie-in-tatters-as-fcc-overruled'
     )
+
+
+def test_is_shortened_url():
+    assert not is_shortened_url(None)
+    assert not is_shortened_url('http://bit.ly')
+    assert not is_shortened_url('http://bit.ly/')
+
+    assert is_shortened_url('http://bit.ly/abc')

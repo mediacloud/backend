@@ -193,14 +193,6 @@ sub test_normalize_url()
     );
 }
 
-sub test_is_shortened_url()
-{
-    ok( !MediaWords::Util::URL::is_shortened_url( undef ),              'is_shortened_url() - undef' );
-    ok( !MediaWords::Util::URL::is_shortened_url( 'http://bit.ly' ),    'is_shortened_url() - homepage without slash' );
-    ok( !MediaWords::Util::URL::is_shortened_url( 'http://bit.ly/' ),   'is_shortened_url() - homepage with slash' );
-    ok( MediaWords::Util::URL::is_shortened_url( 'http://bit.ly/abc' ), 'is_shortened_url() - shortened URL' );
-}
-
 sub test_normalize_url_lossy()
 {
     # FIXME - some resulting URLs look funny, not sure if I can change them easily though
