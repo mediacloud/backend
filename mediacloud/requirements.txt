@@ -1,8 +1,8 @@
-# Configuration file
-pyyaml
-
 # Unit tests
 nose
+
+# Configuration file
+pyyaml
 
 # Normalizing URLs
 url_normalize
