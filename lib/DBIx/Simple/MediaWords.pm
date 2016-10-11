@@ -733,4 +733,15 @@ sub set_print_warn($)
     $self->{ dbh }->{ PrintWarn } = $print_warn;
 }
 
+sub prepare_on_server_side()
+{
+    return $self->dbh->{ pg_server_prepare };
+}
+
+sub set_prepare_on_server_side($)
+{
+    my $prepare_on_server_side = shift;
+    $self->dbh->{ pg_server_prepare } = $prepare_on_server_side;
+}
+
 1;

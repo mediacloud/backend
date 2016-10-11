@@ -1364,7 +1364,7 @@ sub _get_story_and_links_from_snapshot_tables
     # if the below query returns nothing, the return type of the server prepared statement
     # may differ from the first call, which throws a postgres error, so we need to
     # disable server side prepares
-    $db->dbh->{ pg_server_prepare } = 0;
+    $db->set_prepare_on_server_side( 0 );
 
     my $story = $db->query( <<SQL, $stories_id )->hash;
 select * from snapshot_stories s join snapshot_story_link_counts slc using ( stories_id ) where s.stories_id = ?
