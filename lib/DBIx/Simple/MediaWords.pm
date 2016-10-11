@@ -700,4 +700,15 @@ SQL
     return $data;
 }
 
+sub autocommit()
+{
+    return $self->{ dbh }->{ AutoCommit };
+}
+
+sub set_autocommit($)
+{
+    my $autocommit = shift;
+    $self->{ dbh }->{ AutoCommit } = $autocommit;
+}
+
 1;
