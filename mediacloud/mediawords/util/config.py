@@ -115,9 +115,11 @@ def __set_dynamic_defaults(config):
         raise Exception('Configuration does not have "mediawords" key')
 
     if 'script_dir' not in config['mediawords']:
-        config['mediawords']['script_dir'] = os.path.join(__base_dir, 'script') # FIXME use mc_script_dir()
+        # FIXME use mc_script_dir()
+        config['mediawords']['script_dir'] = os.path.join(__base_dir, 'script')
     if 'data_dir' not in config['mediawords']:
-        config['mediawords']['data_dir'] = os.path.join(__base_dir, 'data') # FIXME create a helper in 'paths'
+        # FIXME create a helper in 'paths'
+        config['mediawords']['data_dir'] = os.path.join(__base_dir, 'data')
 
     # FIXME probably not needed
     if 'session' not in config:
