@@ -48,7 +48,7 @@ function verlt() {
 }
 
 
-echo "installing media cloud system dependencies"
+echo "Installing Media Cloud system dependencies..."
 echo
 
 if [ `uname` == 'Darwin' ]; then
@@ -76,11 +76,13 @@ EOF
         exit 1
     fi
 
+    echo "Installing Media Cloud dependencies with Homebrew..."
     brew install \
         graphviz --with-bindings \
         coreutils curl homebrew/dupes/tidy libyaml gawk cpanminus \
         netcat openssl rabbitmq libyaml python3
 
+    echo "Installing Media Cloud dependencies with cpanm..."
     sudo cpanm \
         XML::Parser XML::SAX::Expat XML::LibXML XML::LibXML::Simple \
         Test::WWW::Mechanize OpenGL DBD::Pg Perl::Tidy HTML::Parser YAML \
@@ -99,6 +101,8 @@ else
 
     # assume Ubuntu
     source /etc/lsb-release
+
+    echo "Installing curl..."
     sudo apt-get -y install curl
 
     # Apt's versions of Supervisor, Vagrant, RabbitMQ are too old
@@ -113,31 +117,35 @@ else
     # Ubuntu < 14.04 APT's version of Erlang is too old (needed by RabbitMQ)
     if verlt "$DISTRIB_RELEASE" "14.04"; then
 
-         # Ubuntu 12.04 APT's version of Erlang is too old
+        echo "Removing system package Erlang on Ubuntu 12.04 because it's too old..."
         sudo apt-get -y remove erlang*
+
+        # Install and hold specific version of Erlang
+        echo "Installing Erlang from Erlang Solutions..."
         curl "$ERLANG_APT_GPG_KEY_URL" | sudo apt-key add -
         echo "deb $ERLANG_APT_REPOSITORY_URL precise contrib" | \
             sudo tee -a /etc/apt/sources.list.d/erlang-solutions.list
         sudo apt-get -y update
-
-        # Install and hold specific version of Erlang
         sudo apt-get -y install esl-erlang="$ERLANG_OLD_UBUNTU_APT_VERSION" erlang-mode="$ERLANG_OLD_UBUNTU_APT_VERSION"
         sudo apt-mark hold erlang-mode esl-erlang
     fi
 
     # Ubuntu (all versions) APT's version of RabbitMQ is too old
     # (we need 3.6.0+ to support priorities and lazy queues)
+    echo "Adding RabbitMQ GPG key for Apt..."
     curl -s "$RABBITMQ_PACKAGECLOUD_SCRIPT" | sudo bash
 
     # OpenJDK version to install
     if verlt "$DISTRIB_RELEASE" "16.04"; then
         # Solr 6+ requires Java 8 which is unavailable before 16.04
+        echo "Adding Java 8 PPA repository to Ubuntu 12.04..."
         sudo apt-get -y install python-software-properties
         sudo add-apt-repository -y ppa:openjdk-r/ppa
         sudo apt-get update
     fi
 
     # Install the rest of the packages
+    echo "Installing Media Cloud dependencies with APT..."
     sudo apt-get --assume-yes install \
         expat libexpat1-dev libxml2-dev gawk postgresql-server-dev-all \
         libdb-dev libtest-www-mechanize-perl libtidy-dev \
@@ -150,9 +158,11 @@ else
         pandoc netcat rabbitmq-server libyaml-dev unzip python3 python3-setuptools
 
     # Choose to use OpenJDK 8 by default
+    echo "Selecting Java 8..."
     sudo update-java-alternatives -s `update-java-alternatives --list | grep java-1.8 | awk '{ print $3 }'`
 
     # Disable system-wide RabbitMQ server (we will start and use our very own instance)
+    echo "Stopping and disabling system's RabbitMQ instance..."
     sudo update-rc.d rabbitmq-server disable
     sudo service rabbitmq-server stop
     
