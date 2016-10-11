@@ -266,7 +266,7 @@ sub _print_csv_to_file_from_csr
     my $i                    = 0;
     while ( 1 )
     {
-        my $sth = $db->dbh->prepare( "fetch $FETCH_BLOCK_SIZE from csr" );
+        my $sth = $db->prepare( "fetch $FETCH_BLOCK_SIZE from csr" );
 
         $sth->execute;
 
