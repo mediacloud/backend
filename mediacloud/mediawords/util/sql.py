@@ -1,0 +1,30 @@
+import time
+import datetime
+
+# noinspection PyPackageRequirements
+import dateutil.parser
+
+
+def get_sql_date_from_epoch(epoch: int) -> str:
+    # Returns local date by default, no need to set timezone
+    return datetime.datetime.fromtimestamp(int(epoch)).strftime('%Y-%m-%d %H:%M:%S')
+
+
+def sql_now() -> str:
+    return get_sql_date_from_epoch(int(time.time()))
+
+
+def get_epoch_from_sql_date(date: str) -> int:
+    """Given a date in the sql format 'YYYY-MM-DD', return the epoch time."""
+    parsed_date = dateutil.parser.parse(date)
+    return int(parsed_date.timestamp())
+
+
+def increment_day(date: str, days: int = 1) -> str:
+    """Given a date in the sql format 'YYYY-MM-DD', increment it by $days days."""
+    if days == 0:
+        return date
+    epoch_date = get_epoch_from_sql_date(date) + (((days * 24) + 12) * 60 * 60)
+    return datetime.datetime.fromtimestamp(int(epoch_date)).strftime('%Y-%m-%d')
+
+

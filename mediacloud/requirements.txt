@@ -4,5 +4,8 @@ nose
 # Configuration file
 pyyaml
 
+# Date parsing
+python-dateutil
+
 # Normalizing URLs
 url_normalize
