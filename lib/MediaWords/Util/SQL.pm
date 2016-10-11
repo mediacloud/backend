@@ -59,17 +59,4 @@ sub increment_day
     return sprintf( '%04d-%02d-%02d', $year + 1900, $month + 1, $day );
 }
 
-# given a date in sql format 'YYYY-MM-DD', increment it to the current or next monday
-sub increment_to_monday
-{
-    my ( $date ) = @_;
-
-    while ( ( localtime( get_epoch_from_sql_date( $date ) ) )[ 6 ] != 1 )
-    {
-        $date = increment_day( $date, 1 );
-    }
-
-    return $date;
-}
-
 1;
