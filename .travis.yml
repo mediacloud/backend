@@ -53,7 +53,7 @@ before_install:
     # Install Media Cloud testing variant of the Python Client
     - travis_retry git clone https://github.com/berkmancenter/mediacloud-api-testing-client.git MediaCloud-API-Client/
     - cd MediaCloud-API-Client/; git checkout v2.25.0-api-testing-cleanup; cd ../
-    - travis_retry sudo pip-2.7 install --editable MediaCloud-API-Client/
+    - travis_retry sudo pip2 install --editable MediaCloud-API-Client/
     # Create + switch to the Media Cloud's Perlbrew library
     - perlbrew lib create mediacloud
     - perlbrew switch @mediacloud
