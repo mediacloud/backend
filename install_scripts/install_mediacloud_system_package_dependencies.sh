@@ -144,6 +144,15 @@ else
         sudo apt-get update
     fi
 
+    # Python version to install
+    if verlt "$DISTRIB_RELEASE" "16.04"; then
+        # We require at least Python 3.5 (12.04 only has 3.2 which doesn't work with newest Pip)
+        echo "Adding Python 3.5 PPA repository to Ubuntu 12.04..."
+        sudo apt-get -y install python-software-properties
+        sudo add-apt-repository -y ppa:fkrull/deadsnakes
+        sudo apt-get update
+    fi
+
     # Install the rest of the packages
     echo "Installing Media Cloud dependencies with APT..."
     sudo apt-get --assume-yes install \
@@ -155,7 +164,7 @@ else
         libreadonly-xs-perl curl python2.7 python2.7-dev python-pip \
         libxml2-dev libxslt1-dev libxslt1-dbg libxslt1.1 build-essential make gcc g++ \
         cpanminus perl-doc liblocale-maketext-lexicon-perl openjdk-8-jdk \
-        pandoc netcat rabbitmq-server libyaml-dev unzip python3 python3-setuptools
+        pandoc netcat rabbitmq-server libyaml-dev unzip python3.5
 
     # Choose to use OpenJDK 8 by default
     echo "Selecting Java 8..."
