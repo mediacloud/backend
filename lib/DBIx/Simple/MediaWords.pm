@@ -700,54 +700,58 @@ SQL
     return $data;
 }
 
-sub autocommit()
+sub autocommit($)
 {
+    my $self = shift;
     return $self->{ dbh }->{ AutoCommit };
 }
 
-sub set_autocommit($)
+sub set_autocommit($$)
 {
-    my $autocommit = shift;
+    my ( $self, $autocommit ) = @_;
     $self->{ dbh }->{ AutoCommit } = $autocommit;
 }
 
-sub show_error_statement()
+sub show_error_statement($)
 {
+    my $self = shift;
     return $self->{ dbh }->{ ShowErrorStatement };
 }
 
-sub set_show_error_statement($)
+sub set_show_error_statement($$)
 {
-    my $show_error_statement = shift;
+    my ( $self, $show_error_statement ) = @_;
     $self->{ dbh }->{ ShowErrorStatement } = $show_error_statement;
 }
 
-sub print_warn()
+sub print_warn($)
 {
+    my $self = shift;
     return $self->{ dbh }->{ PrintWarn };
 }
 
-sub set_print_warn($)
+sub set_print_warn($$)
 {
-    my $print_warn = shift;
+    my ( $self, $print_warn ) = @_;
     $self->{ dbh }->{ PrintWarn } = $print_warn;
 }
 
-sub prepare_on_server_side()
+sub prepare_on_server_side($)
 {
+    my $self = shift;
     return $self->dbh->{ pg_server_prepare };
 }
 
-sub set_prepare_on_server_side($)
+sub set_prepare_on_server_side($$)
 {
-    my $prepare_on_server_side = shift;
+    my ( $self, $prepare_on_server_side ) = @_;
     $self->dbh->{ pg_server_prepare } = $prepare_on_server_side;
 }
 
 # COPY FROM helpers
-sub copy_from_start($;)
+sub copy_from_start($$;$)
 {
-    my ( $table, $columns ) = @_;
+    my ( $self, $table, $columns ) = @_;
 
     my $query;
     if ( $columns ) {
@@ -762,13 +766,13 @@ sub copy_from_start($;)
     eval { $self->dbh->do( $query ) };
     if ( $@ )
     {
-        die "Error on 'COPY $table_name' FROM STDIN: $@";
+        die "Error on 'COPY $table' FROM STDIN: $@";
     }
 }
 
-sub copy_from_put_line($$)
+sub copy_from_put_line($$$)
 {
-    my ( $table, $line ) = @_;
+    my ( $self, $table, $line ) = @_;
 
     chomp $line;
 
@@ -779,9 +783,9 @@ sub copy_from_put_line($$)
     }
 }
 
-sub copy_from_end($)
+sub copy_from_end($$)
 {
-    my ( $table ) = @_;
+    my ( $self, $table ) = @_;
 
     eval { $self->dbh->pg_putcopyend(); };
     if ( $@ )
