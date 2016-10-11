@@ -657,6 +657,13 @@ sub quote_timestamp
     return $self->quote_varchar( $value ) . '::timestamp';
 }
 
+# Alias for DBD::Pg's prepare_cached()
+sub prepare_cached
+{
+    my $self = shift;
+    return $self->dbh->prepare_cached( @_ );
+}
+
 # for each row in $data, attach all results in the child query that match a join with the $id_column field in each
 # row of $data.  attach to $row->{ $child_field } for each row in $data
 sub attach_child_query ($$$$$)
