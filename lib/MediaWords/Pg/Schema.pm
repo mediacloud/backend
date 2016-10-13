@@ -157,10 +157,8 @@ EOF
     INFO "Current schema version: $current_schema_version";
 
     # Target schema version
-    open SQLFILE, "$script_dir/mediawords.sql" or LOGDIE $!;
-    my @sql = <SQLFILE>;
-    close SQLFILE;
-    my $target_schema_version = MediaWords::Util::SchemaVersion::schema_version_from_lines( @sql );
+    my $sql = read_file( "$script_dir/mediawords.sql" );
+    my $target_schema_version = MediaWords::Util::SchemaVersion::schema_version_from_lines( $sql );
     unless ( $target_schema_version )
     {
         LOGDIE( "Invalid target schema version." );

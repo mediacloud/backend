@@ -7,7 +7,7 @@ class SchemaVersionFromLinesException(Exception):
     pass
 
 
-def schema_version_from_lines(sql):
+def schema_version_from_lines(sql: str) -> int:
     """Utility function to determine a database schema version from a bunch of SQL commands."""
     sql = decode_string_from_bytes_if_needed(sql)
     matches = re.search(r'[+\-]*\s*MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := (\d+?);', sql)

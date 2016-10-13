@@ -19,6 +19,7 @@ use Data::Dumper;
 use Data::Page;
 use DBD::Pg qw(:pg_types);
 use Encode;
+use File::Slurp;
 use IPC::Run3;
 use JSON;
 use Math::Random::Secure;
@@ -171,10 +172,8 @@ sub schema_is_up_to_date
     die "Invalid current schema version.\n" unless ( $current_schema_version );
 
     # Target schema version
-    open SQLFILE, "$script_dir/mediawords.sql" or die $!;
-    my @sql = <SQLFILE>;
-    close SQLFILE;
-    my $target_schema_version = MediaWords::Util::SchemaVersion::schema_version_from_lines( @sql );
+    my $sql = read_file( "$script_dir/mediawords.sql" );
+    my $target_schema_version = MediaWords::Util::SchemaVersion::schema_version_from_lines( $sql );
     die "Invalid target schema version.\n" unless ( $target_schema_version );
 
     # Check if the current schema is up-to-date
