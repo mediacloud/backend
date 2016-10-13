@@ -96,7 +96,7 @@ sub recreate_db
     DEBUG( 'Resetting all schemas...' );
     _reset_all_schemas( $db );
 
-    my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
+    my $script_dir = MediaWords::Util::Config::get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
     TRACE( "script_dir: $script_dir" );
 
     my $mediawords_sql_path = $script_dir . '/mediawords.sql';
@@ -130,7 +130,7 @@ sub upgrade_db($;$)
 {
     my ( $label, $echo_instead_of_executing ) = @_;
 
-    my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
+    my $script_dir = MediaWords::Util::Config::get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
 
     DEBUG "script_dir: $script_dir";
     my $db;

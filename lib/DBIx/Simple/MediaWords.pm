@@ -103,7 +103,7 @@ sub _should_continue_with_outdated_schema($$$)
     my ( $current_schema_version, $target_schema_version, $IGNORE_SCHEMA_VERSION_ENV_VARIABLE ) = @_;
 
     my $config_ignore_schema_version =
-      MediaWords::Util::Config->get_config()->{ mediawords }->{ ignore_schema_version } || '';
+      MediaWords::Util::Config::get_config()->{ mediawords }->{ ignore_schema_version } || '';
 
     if ( ( $config_ignore_schema_version eq 'yes' ) || exists $ENV{ $IGNORE_SCHEMA_VERSION_ENV_VARIABLE } )
     {
@@ -150,7 +150,7 @@ sub schema_is_up_to_date
 {
     my $self = shift @_;
 
-    my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
+    my $script_dir = MediaWords::Util::Config::get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
 
     # Check if the database is empty
     my $db_vars_table_exists_query =
