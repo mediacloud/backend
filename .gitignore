@@ -12,6 +12,9 @@ cache/translate
 # all caches
 data/cache/
 
+# Media Cloud virtualenv
+mc-venv/
+
 # Python bytecode files
 *.py[cod]
 
