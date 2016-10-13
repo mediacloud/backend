@@ -8,7 +8,7 @@ set -u
 set -o  errexit
 
 # Make sure Inline::Python uses correct virtualenv
-set +u; cd "$working_dir/../"; source mc-venv/bin/activate; cd "$working_dir"; set -u
+set +u; cd "$working_dir/../"; source mc-venv/bin/activate; set -u
 
 # Check if Carton is of version v1.0.0+
 #
