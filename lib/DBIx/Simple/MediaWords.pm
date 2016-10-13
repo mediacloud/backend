@@ -783,4 +783,28 @@ sub copy_from_end($)
     }
 }
 
+# COPY TO helpers
+sub copy_to_start($$)
+{
+    my ( $self, $sql ) = @_;
+
+    eval { $self->dbh->do( $sql ) };
+    if ( $@ )
+    {
+        die "Error while running '$sql': $@";
+    }
+}
+
+sub copy_to_get_line($)
+{
+    my ( $self ) = @_;
+
+    my $line      = '';
+    if ( $self->dbh->pg_getcopydata( $line ) > -1 ) {
+        return $line;
+    } else {
+        return undef;
+    }
+}
+
 1;
