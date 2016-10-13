@@ -834,8 +834,10 @@ def get_url_distinctive_domain(url: str) -> str:
     elif re.search(r'\.(edu|gov)$', host, re.I):
         parts = [str(name_parts[n - 2]), str(name_parts[n - 1])]
         domain = '.'.join(parts)
-    elif re.search(r'go.com|wordpress.com|blogspot|livejournal.com|privet.ru|wikia.com|feedburner.com'
-                           + '|24open.ru|patch.com|tumblr.com', host, re.I):
+    elif re.search(
+                    r'go.com|wordpress.com|blogspot|livejournal.com|privet.ru|wikia.com|feedburner.com'
+                    + '|24open.ru|patch.com|tumblr.com', host, re.I
+    ):
         # identify sites in these domains as the whole host name (abcnews.go.com instead of go.com)
         domain = host
     else:
