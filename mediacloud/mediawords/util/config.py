@@ -4,6 +4,7 @@ import os
 import yaml
 
 from mediawords.util.paths import mc_root_path
+from mediawords.util.perl import decode_dictionary_from_bytes_if_needed
 
 try:
     # noinspection PyPackageRequirements
@@ -91,11 +92,14 @@ def set_config(config):
     if __CONFIG is not None:
         l.warn("config object already cached")
 
-    __set_dynamic_defaults(config)
+    # FIXME MC_REWRITE_TO_PYTHON: Catalyst::Test might want to set a couple of values which end up as being "binary"
+    config = decode_dictionary_from_bytes_if_needed(config)
 
     static_defaults = __read_static_defaults()
 
     __CONFIG = __merge_configs(config, static_defaults)
+
+    __set_dynamic_defaults(__CONFIG)
 
     verify_settings(__CONFIG)
 
@@ -107,7 +111,7 @@ def __read_static_defaults():
 
 
 def verify_settings(config):
-    if not config["database"]:
+    if 'database' not in config:
         raise Exception("No database connections configured")
 
     # Warn if there's a foreign database set for storing raw downloads
