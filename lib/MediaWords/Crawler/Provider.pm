@@ -174,46 +174,53 @@ sub _add_stale_feeds
 
     my $dbs = $self->engine->dbs;
 
-    my $last_new_story_time_clause =
-" ( now() > last_attempted_download_time + ( last_attempted_download_time - last_new_story_time ) + interval '5 minutes' ) ";
-
-    my $constraint = "((last_attempted_download_time IS NULL " . "OR (last_attempted_download_time < (NOW() - interval ' " .
-      $stale_feed_interval . " seconds')) OR $last_new_story_time_clause ) " . "AND url ~ 'https?://')";
+    my $constraint = <<"SQL";
+SQL
 
     # If the table doesn't exist, PostgreSQL sends a NOTICE which breaks the "no warnings" unit test
     $dbs->query( 'SET client_min_messages=WARNING' );
     $dbs->query( 'DROP TABLE IF EXISTS feeds_to_queue' );
     $dbs->query( 'SET client_min_messages=NOTICE' );
 
-    $dbs->query( <<END );
-create temporary table feeds_to_queue as
-    select feeds_id, url from feeds
-        where $constraint and
-            feed_status = 'active' and
-            lower( url ) like 'http%'
-END
+    $dbs->query( <<"SQL" );
+        CREATE TEMPORARY TABLE feeds_to_queue AS
+        SELECT feeds_id,
+               url
+        FROM feeds
+        WHERE feed_status = 'active'
+          AND url ~ 'https?://'
+          AND (
+            -- Never attempted
+            last_attempted_download_time IS NULL
 
-    $dbs->query( <<END );
-UPDATE feeds SET last_attempted_download_time = now()
-    WHERE feeds_id in ( select feeds_id from feeds_to_queue )
-END
+            -- Feed was downloaded more than $stale_feed_interval seconds ago
+            OR (last_attempted_download_time < (NOW() - interval '$stale_feed_interval seconds'))
 
-    my $downloads = $dbs->query( <<END )->hashes;
-insert into downloads
-    ( feeds_id, url, host, type, sequence, state, priority, download_time, extracted )
-    select
-            feeds_id,
-            url,
-            lower( substring( url from '.*://([^/]*)' ) ),
-            'feed',
-            1,
-            'pending',
-            0,
-            now(),
-            false
-        from feeds_to_queue
-    returning *
-END
+            -- (Probably) if a new story comes in every "n" seconds, refetch feed every "n" + 5 minutes
+            OR (NOW() > last_attempted_download_time + ( last_attempted_download_time - last_new_story_time ) + interval '5 minutes')
+          )
+SQL
+
+    $dbs->query( <<"SQL" );
+        UPDATE feeds
+        SET last_attempted_download_time = NOW()
+        WHERE feeds_id IN (SELECT feeds_id FROM feeds_to_queue)
+SQL
+
+    my $downloads = $dbs->query( <<"SQL" )->hashes;
+        INSERT INTO downloads (feeds_id, url, host, type, sequence, state, priority, download_time, extracted)
+        SELECT feeds_id,
+               url,
+               LOWER(SUBSTRING(url from '.*://([^/]*)' )),
+               'feed',
+               1,
+               'pending',
+               0,
+               NOW(),
+               false
+        FROM feeds_to_queue
+        RETURNING *
+SQL
 
     for my $download ( @{ $downloads } )
     {
