@@ -197,7 +197,15 @@ SQL
             OR (last_attempted_download_time < (NOW() - interval '$stale_feed_interval seconds'))
 
             -- (Probably) if a new story comes in every "n" seconds, refetch feed every "n" + 5 minutes
-            OR (NOW() > last_attempted_download_time + ( last_attempted_download_time - last_new_story_time ) + interval '5 minutes')
+            OR (
+                (NOW() > last_attempted_download_time + ( last_attempted_download_time - last_new_story_time ) + interval '5 minutes')
+
+                -- "web_page" feeds are to be downloaded only once a week,
+                -- independently from when the last new story comes in from the
+                -- feed (because every "web_page" feed download provides a
+                -- single story)
+                AND feed_type != 'web_page'
+            )
           )
 SQL
 
