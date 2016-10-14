@@ -921,7 +921,8 @@ class HTTPURLsInStringException(Exception):
     pass
 
 
-def http_urls_in_string(string: str) -> set:
+# FIXME MC_REWRITE_TO_PYTHON: Perl doesn't support sets, but this method should return a set
+def http_urls_in_string(string: str) -> list:
     """Extract http(s):// URLs from a string.
 
     Returns a set of unique URLs in a string, raises HTTPURLsInStringException on error."""
@@ -938,7 +939,7 @@ def http_urls_in_string(string: str) -> set:
             http_urls.append(url)
 
     # Unique URLs
-    http_urls = set(http_urls)
+    http_urls = list(set(http_urls))
 
     return http_urls
 
