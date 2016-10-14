@@ -43,7 +43,6 @@ sub dbis
         $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
           || die DBIx::Simple::MediaWords->error;
 
-        $db->dbh->{ RaiseError } = 1;
         $self->{ dbis } = $db;
     };
     if ( $@ )
