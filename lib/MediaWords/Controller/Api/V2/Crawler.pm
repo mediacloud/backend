@@ -26,7 +26,7 @@ MediaWords::Controller::Api::V2::Crawler - Catalyst Controller
 
 =cut
 
-=head2 index 
+=head2 index
 
 =cut
 
@@ -35,7 +35,7 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 # Default authentication action roles
 __PACKAGE__->config(    #
     action => {         #
-        add_feed_download_PUT => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
+        add_feed_download => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
       }    #
 );         #
 
@@ -43,7 +43,7 @@ sub add_feed_download : Local : ActionClass('MC_REST')
 {
 }
 
-sub add_feed_download_PUT : Local
+sub add_feed_download_PUT
 {
     my ( $self, $c ) = @_;
 

@@ -41,7 +41,13 @@ around execute => sub {
     {
         my $message = $@;
 
-        $c->error( 'Authentication error: ' . $@ );
+        push( @{ $c->stash->{ auth_errors } }, $message );
+        $c->detach();
+        return undef;
+    }
+    elsif ( $c->req->params->{ quit_after_auth } )
+    {
+        $c->stash->{ quit_after_auth } = 1;
         $c->detach();
         return undef;
     }

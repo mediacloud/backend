@@ -20,7 +20,12 @@ Readonly my $DEFAULT_STORY_LIMIT => 10;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
-__PACKAGE__->config( action => { list_GET => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] }, } );
+__PACKAGE__->config(
+    action => {
+        list  => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
+        count => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
+    }
+);
 
 sub link_paging_key { return 'stories'; }
 
@@ -151,7 +156,7 @@ SQL
     return 'and ' . join( ' and ', map { "( $_ ) " } @{ $clauses } );
 }
 
-sub list_GET : Local
+sub list_GET
 {
     my ( $self, $c ) = @_;
 
@@ -202,7 +207,7 @@ sub count : Chained('stories') : Args(0) : ActionClass('MC_REST')
 {
 }
 
-sub count_GET : Local
+sub count_GET
 {
     my ( $self, $c ) = @_;
 

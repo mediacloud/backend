@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4588;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4590;
 
 BEGIN
 
@@ -1231,7 +1231,8 @@ create table topics (
     state                   text not null default 'created but not queued',
     has_been_spidered       boolean not null default false,
     has_been_dumped         boolean not null default false,
-    error_message           text null
+    error_message           text null,
+    is_public               boolean not null default false
 );
 
 create unique index topics_name on topics( name );
@@ -2798,3 +2799,52 @@ create table topic_spider_metrics (
 
 create index topic_spider_metrics_topic on topic_spider_metrics( topics_id );
 create index topic_spider_metrics_dat on topic_spider_metrics( processed_date );
+
+create type topic_permission AS ENUM ( 'read', 'write', 'admin' );
+
+-- per user permissions for topics
+create table topic_permissions (
+    topic_permissions_id    serial primary key,
+    topics_id               int not null references topics on delete cascade,
+    auth_users_id           int not null references auth_users on delete cascade,
+    permission              topic_permission not null
+);
+
+create index topic_permissions_topic on topic_permissions( topics_id );
+create unique index topic_permissions_user on topic_permissions( auth_users_id, topics_id );
+
+-- topics table with auth_users_id and user_permission fields that indicate the permission level for
+-- the user for the topic.  permissions in decreasing order are admin, write, read, none.  users with
+-- the admin role have admin permission for every topic. users with admin-readonly role have at least
+-- read access to every topic.  all users have read access to every is_public topic.  otherwise, the
+-- topic_permissions tableis used, with 'none' for no topic_permission.
+create or replace view topics_with_user_permission as
+    with admin_users as (
+        select m.auth_users_id
+            from auth_roles r
+                join auth_users_roles_map m using ( auth_roles_id )
+            where
+                r.role = 'admin'
+    ),
+
+    read_admin_users as (
+        select m.auth_users_id
+            from auth_roles r
+                join auth_users_roles_map m using ( auth_roles_id )
+            where
+                r.role = 'admin-readonly'
+    )
+
+    select
+            t.*,
+            u.auth_users_id,
+            case
+                when ( exists ( select 1 from admin_users a where a.auth_users_id = u.auth_users_id ) ) then 'admin'
+                when ( tp.permission is not null ) then tp.permission::text
+                when ( t.is_public ) then 'read'
+                when ( exists ( select 1 from read_admin_users a where a.auth_users_id = u.auth_users_id ) ) then 'read'
+                else 'none' end
+                as user_permission
+        from topics t
+            join auth_users u on ( true )
+            left join topic_permissions tp using ( topics_id, auth_users_id );

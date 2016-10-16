@@ -50,7 +50,7 @@ sub _add_nested_data
     return $media;
 }
 
-sub list_GET : Local
+sub list_GET
 {
     my ( $self, $c ) = @_;
 

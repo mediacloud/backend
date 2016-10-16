@@ -34,8 +34,8 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 # Default authentication action roles
 __PACKAGE__->config(    #
     action => {         #
-        single_GET => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
-        list_GET   => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
+        single => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
+        list   => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
       }    #
 );         #
 
@@ -150,7 +150,7 @@ sub single : Local : ActionClass('MC_REST')    # action roles are to be set for 
 {
 }
 
-sub single_GET : Local
+sub single_GET
 {
     my ( $self, $c, $id ) = @_;
 
@@ -302,7 +302,7 @@ sub list : Local : ActionClass('MC_REST')    # action roles are to be set for ea
 {
 }
 
-sub list_GET : Local
+sub list_GET
 {
     my ( $self, $c ) = @_;
 

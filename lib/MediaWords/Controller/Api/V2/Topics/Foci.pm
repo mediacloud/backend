@@ -13,7 +13,7 @@ use MediaWords::Job::TM::SnapshotTopic;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
-__PACKAGE__->config( action => { list_GET => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] }, } );
+__PACKAGE__->config( action => { list => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] }, } );
 
 sub apibase : Chained('/') : PathPart('api/v2/topics') : CaptureArgs(1)
 {
@@ -30,15 +30,15 @@ sub list : Chained('foci') : Args(0) : ActionClass('MC_REST')
 
 }
 
-sub list_GET : Local
+sub list_GET
 {
     my ( $self, $c ) = @_;
 
     my $db = $c->dbis;
 
     my $topics_id     = $c->stash->{ topics_id };
-    my $focal_sets_id = $c->req->params->{ focal_sets_id } ||
-        die( 'missing required param foci_id' );
+    my $focal_sets_id = $c->req->params->{ focal_sets_id }
+      || die( 'missing required param foci_id' );
 
     my $foci = $db->query( <<SQL, $focal_sets_id )->hashes;
 select foci_id, name, description, arguments->>'query' query

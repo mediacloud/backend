@@ -17,7 +17,7 @@ use MediaWords::Controller::Api::V2::Sentences;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
-__PACKAGE__->config( action => { count_GET => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] }, } );
+__PACKAGE__->config( action => { count => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] }, } );
 
 sub apibase : Chained('/') : PathPart('api/v2/topics') : CaptureArgs(1)
 {
