@@ -111,6 +111,7 @@ requires 'Module::Install';
 requires 'Module::Pluggable::Object';
 requires 'Moo', '2.000001';
 requires 'Moose';
+requires 'Mouse', '2.4.5';
 requires 'namespace::autoclean';
 requires 'Net::Amazon::S3';
 requires 'Net::Calais';
