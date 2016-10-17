@@ -1,6 +1,6 @@
 #<<<
 $VAR1 = {
-          'collect_date' => '2016-05-08 20:44:01.277654',
+          'collect_date' => '2016-10-17 12:33:11.456685',
           'content' => '<!DOCTYPE html>
 <html>
 <head>
@@ -41,7 +41,7 @@ $VAR1 = {
 </body>
 </html>
 ',
-          'db_row_last_updated' => '2016-05-08 20:44:03.051332-05',
+          'db_row_last_updated' => '2016-10-17 12:33:17.284742+03',
           'description' => '*yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC',
           'disable_triggers' => undef,
           'extracted_text' => '*yZ>)32{3&&<? :9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC
@@ -97,16 +97,16 @@ $VAR1 = {
           'guid' => 'http://www.example.com/multilanguage/not_a_language.html',
           'language' => 'hr',
           'media_id' => 1,
-          'publish_date' => '2009-06-11 05:57:00',
+          'publish_date' => '2009-06-11 18:57:00',
           'stories_id' => 4,
           'story_sentences' => [
                                  {
-                                   'db_row_last_updated' => '2016-05-08 20:44:03.051332-05',
+                                   'db_row_last_updated' => '2016-10-17 12:33:17.284742+03',
                                    'disable_triggers' => 0,
                                    'is_dup' => undef,
                                    'language' => 'hr',
                                    'media_id' => 1,
-                                   'publish_date' => '2009-06-11 05:57:00',
+                                   'publish_date' => '2009-06-11 18:57:00',
                                    'sentence' => '*yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC *yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC *yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC *yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC *yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC *yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC *yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC *yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC *yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC *yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC *yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC *yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC *yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC *yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC *yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC *yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC *yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC *yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC *yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC *yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC *yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC *yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC *yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC *yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC *yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC *yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC *yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC *yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC *yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC',
                                    'sentence_number' => 0,
                                    'stories_id' => 4,
@@ -114,8 +114,8 @@ $VAR1 = {
                                  }
                                ],
           'tags' => [],
-          'timezone' => 'America/Chicago',
+          'timezone' => 'Asia/Kuala_Lumpur',
           'title' => '*yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC',
-          'url' => 'http://raven.local:54332/multilanguage/not_a_language.html'
+          'url' => 'http://tundra.local:59959/multilanguage/not_a_language.html'
         };
 #>>>
