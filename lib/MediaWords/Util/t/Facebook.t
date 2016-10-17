@@ -119,6 +119,10 @@ sub main()
         {
             my $new_config = dclone( $config );
 
+            unless ( $new_config->{ facebook } )
+            {
+                $new_config->{ facebook } = {};
+            }
             $new_config->{ facebook }->{ enabled }    = 'yes';
             $new_config->{ facebook }->{ app_id }     = $ENV{ 'MC_FACEBOOK_APP_ID' };
             $new_config->{ facebook }->{ app_secret } = $ENV{ 'MC_FACEBOOK_APP_SECRET' };
