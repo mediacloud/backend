@@ -567,27 +567,27 @@ sub transaction
 # the database connection must be within a transaction.  the temporary table is setup to be dropped
 # at the end of the current transaction. row insertion order is maintained.
 # if $ordered is true, include an ${ids_table}_id serial primary key field in the table.
-sub get_temporary_ids_table ($;$)
+sub get_temporary_ids_table($;$$)
 {
-    my ( $db, $ids, $ordered ) = @_;
+    my ( $self, $ids, $ordered ) = @_;
 
     my $table = "_tmp_ids_" . Math::Random::Secure::irand( 2**64 );
     TRACE( "temporary ids table: $table" );
 
     my $pk = $ordered ? " ${table}_pkey   SERIAL  PRIMARY KEY," : "";
 
-    $db->query( "create temporary table $table ( $pk id bigint )" );
+    $self->query( "create temporary table $table ( $pk id bigint )" );
 
-    $db->dbh->do( "COPY $table (id) FROM STDIN" );
+    $self->dbh->do( "COPY $table (id) FROM STDIN" );
 
     for my $id ( @{ $ids } )
     {
-        $db->dbh->pg_putcopydata( "$id\n" );
+        $self->dbh->pg_putcopydata( "$id\n" );
     }
 
-    $db->dbh->pg_putcopyend();
+    $self->dbh->pg_putcopyend();
 
-    $db->query( "ANALYZE $table" );
+    $self->query( "ANALYZE $table" );
 
     return $table;
 }
@@ -721,13 +721,13 @@ sub prepare($$)
 
 # for each row in $data, attach all results in the child query that match a join with the $id_column field in each
 # row of $data.  attach to $row->{ $child_field } for each row in $data
-sub attach_child_query ($$$$$)
+sub attach_child_query($$$$$)
 {
-    my ( $db, $data, $child_query, $child_field, $id_column ) = @_;
+    my ( $self, $data, $child_query, $child_field, $id_column ) = @_;
 
-    my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ $id_column } } @{ $data } ] );
+    my $ids_table = $self->get_temporary_ids_table( [ map { $_->{ $id_column } } @{ $data } ] );
 
-    my $children = $db->query( <<SQL )->hashes;
+    my $children = $self->query( <<SQL )->hashes;
 select q.* from ( $child_query ) q join $ids_table ids on ( q.$id_column = ids.id )
 SQL
 
