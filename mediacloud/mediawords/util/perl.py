@@ -19,7 +19,7 @@ def decode_dictionary_from_bytes_if_needed(dictionary):
     for k, v in dictionary.items():
         k = decode_string_from_bytes_if_needed(k)
         if isinstance(v, dict):
-            new_dictionary[k] = decode_string_from_bytes_if_needed(v)
+            new_dictionary[k] = decode_dictionary_from_bytes_if_needed(v)
         else:
             new_dictionary[k] = decode_string_from_bytes_if_needed(v)
     return new_dictionary
