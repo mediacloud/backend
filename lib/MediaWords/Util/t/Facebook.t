@@ -17,6 +17,7 @@ use MediaWords::Test::DB;
 use MediaWords::Util::Facebook;
 
 use Data::Dumper;
+use Storable qw(dclone);
 
 # URLs that might fail
 sub test_bogus_urls($)
@@ -116,12 +117,13 @@ sub main()
         # variables set by the automated testing environment
         if ( defined $ENV{ 'MC_FACEBOOK_APP_ID' } and defined $ENV{ 'MC_FACEBOOK_APP_SECRET' } )
         {
-            $config->{ facebook }->{ enabled }    = 'yes';
-            $config->{ facebook }->{ app_id }     = $ENV{ 'MC_FACEBOOK_APP_ID' };
-            $config->{ facebook }->{ app_secret } = $ENV{ 'MC_FACEBOOK_APP_SECRET' };
+            my $new_config = dclone( $config );
 
-            # FIXME Awful trick to modify config's cache
-            $MediaWords::Util::Config::_config = $config;
+            $new_config->{ facebook }->{ enabled }    = 'yes';
+            $new_config->{ facebook }->{ app_id }     = $ENV{ 'MC_FACEBOOK_APP_ID' };
+            $new_config->{ facebook }->{ app_secret } = $ENV{ 'MC_FACEBOOK_APP_SECRET' };
+
+            MediaWords::Util::Config::set_config( $new_config );
         }
         else
         {
