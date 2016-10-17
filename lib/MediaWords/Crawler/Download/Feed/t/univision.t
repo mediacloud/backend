@@ -166,10 +166,7 @@ sub test_univision($$$)
             my $new_config = dclone( $config );
 
             # Inject Univision credentials into configuration
-            unless ( $new_config->{ univision } )
-            {
-                $new_config->{ univision } = {};
-            }
+            $new_config->{ univision } = {};
             my $old_univision_client_id     = $config->{ univision }->{ client_id };
             my $old_univision_client_secret = $config->{ univision }->{ client_secret };
             $new_config->{ univision }->{ client_id }     = $univision_client_id;
