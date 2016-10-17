@@ -167,6 +167,7 @@ sub test_univision($$$)
             my $old_univision_client_secret = $config->{ univision }->{ client_secret };
             $config->{ univision }->{ client_id }     = $univision_client_id;
             $config->{ univision }->{ client_secret } = $univision_client_secret;
+            MediaWords::Util::Config::set_config( $config );
 
             test_fetch_handle_download( $db, $univision_url );
             Test::NoWarnings::had_no_warnings();
@@ -174,6 +175,7 @@ sub test_univision($$$)
             # Reset configuration
             $config->{ univision }->{ client_id }     = $old_univision_client_id;
             $config->{ univision }->{ client_secret } = $old_univision_client_secret;
+            MediaWords::Util::Config::set_config( $config );
         }
     );
 }

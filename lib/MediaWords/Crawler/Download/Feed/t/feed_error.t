@@ -88,6 +88,7 @@ sub test_do_not_process_feeds($)
     my $config                    = MediaWords::Util::Config::get_config;
     my $orig_do_not_process_feeds = $config->{ mediawords }->{ do_not_process_feeds };
     $config->{ mediawords }->{ do_not_process_feeds } = 'yes';
+    MediaWords::Util::Config::set_config( $config );
 
     my $pages = { '/foo' => '<rss version="2.0"><channel /></rss>', };
 
@@ -106,6 +107,7 @@ sub test_do_not_process_feeds($)
     $hs->stop;
 
     $config->{ mediawords }->{ do_not_process_feeds } = $orig_do_not_process_feeds;
+    MediaWords::Util::Config::set_config( $config );
 }
 
 sub main

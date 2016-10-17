@@ -14,6 +14,7 @@ BEGIN
 }
 
 use Modern::Perl "2015";
+use MediaWords::CommonLibs;
 
 use Data::Dumper;
 
@@ -34,6 +35,7 @@ sub main
     # confuses the template processing
     $config->{ supervisor }->{ programs } ||= {};
     my $boolean_fields = [ 'autostart', 'autorestart', 'killasgroup', 'stopasgroup' ];
+    MediaWords::Util::Config::set_config( $config );
 
     for my $b ( @{ $boolean_fields } )
     {

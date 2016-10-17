@@ -62,6 +62,7 @@ sub test_auth
 
     $config->{ mediawords }->{ crawler_authenticated_domains } =
       [ { domain => 'localhost.localhost', user => 'foo', password => 'bar' } ];
+    MediaWords::Util::Config::set_config( $config );
 
     my $noauth_response = fetch_response( $db, $feed, "http://127.0.01:$port/auth" );
     my $auth_response   = fetch_response( $db, $feed, "http://localhost:$port/auth" );
