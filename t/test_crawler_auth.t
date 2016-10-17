@@ -19,6 +19,7 @@ use Test::More tests => 6;
 use MediaWords::Crawler::Engine;
 use MediaWords::Test::DB;
 use MediaWords::Util::Config;
+use Storable qw(dclone);
 
 # call the fetcher on the given feed and return the response
 sub fetch_response
@@ -58,11 +59,12 @@ sub test_auth
     my $media = MediaWords::Test::DB::create_test_story_stack( $db, { A => { B => [ 1 ] } } );
     my $feed = $media->{ A }->{ feeds }->{ B };
 
-    my $config = MediaWords::Util::Config::get_config;
+    my $config     = MediaWords::Util::Config::get_config;
+    my $new_config = dclone( $config );
 
-    $config->{ mediawords }->{ crawler_authenticated_domains } =
+    $new_config->{ mediawords }->{ crawler_authenticated_domains } =
       [ { domain => 'localhost.localhost', user => 'foo', password => 'bar' } ];
-    MediaWords::Util::Config::set_config( $config );
+    MediaWords::Util::Config::set_config( $new_config );
 
     my $noauth_response = fetch_response( $db, $feed, "http://127.0.01:$port/auth" );
     my $auth_response   = fetch_response( $db, $feed, "http://localhost:$port/auth" );
