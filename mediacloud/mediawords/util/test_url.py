@@ -25,6 +25,7 @@ def test_fix_common_url_mistakes():
 
 
 def test_is_http_url():
+    # noinspection PyTypeChecker
     assert not is_http_url(None)
     assert not is_http_url('')
 
@@ -43,6 +44,7 @@ def test_is_http_url():
 
 
 def test_is_shortened_url():
+    # noinspection PyTypeChecker
     assert not is_shortened_url(None)
     assert not is_shortened_url('http://bit.ly')
     assert not is_shortened_url('http://bit.ly/')
@@ -153,6 +155,7 @@ def test_normalize_url_lossy():
 
 def test_is_homepage_url():
     # Bad input
+    # noinspection PyTypeChecker
     assert not is_homepage_url(None)
     assert not is_homepage_url('')
 
