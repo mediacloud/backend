@@ -1,20 +1,22 @@
 use strict;
 use warnings;
-
 use utf8;
-use Test::More;
-
-use Data::Dumper;
-
-use MediaWords::Test::DB;
-use MediaWords::Util::Facebook;
 
 BEGIN
 {
     use FindBin;
-    use lib "$FindBin::Bin/../lib";
+    use lib "$FindBin::Bin/../../lib";
 }
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
+use Test::More;
+
+use MediaWords::Test::DB;
+use MediaWords::Util::Facebook;
+
+use Data::Dumper;
 
 # URLs that might fail
 sub test_bogus_urls($)
