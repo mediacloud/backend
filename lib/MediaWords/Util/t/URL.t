@@ -7,7 +7,7 @@ use MediaWords::CommonLibs;
 
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 14;
+use Test::More tests => 27;
 
 use Readonly;
 use HTTP::HashServer;
