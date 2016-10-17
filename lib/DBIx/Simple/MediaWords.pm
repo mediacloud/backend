@@ -191,25 +191,15 @@ sub schema_is_up_to_date
 
 }
 
-sub _query_impl
-{
-    my $self = shift @_;
-
-    my $ret = $self->SUPER::query( @_ );
-
-    return $ret;
-}
-
 sub query
 {
     my $self = shift @_;
 
     my $ret;
-
-    eval { $ret = $self->_query_impl( @_ ) };
+    eval { $ret = $self->SUPER::query( @_ ); };
     if ( $@ )
     {
-        LOGCONFESS( "query error: $@" );
+        LOGCONFESS( "Query error: $@" );
     }
 
     return $ret;
@@ -219,7 +209,7 @@ sub get_current_work_mem
 {
     my $self = shift @_;
 
-    my ( $ret ) = $self->_query_impl( "SHOW work_mem" )->flat();
+    my ( $ret ) = $self->query( "SHOW work_mem" )->flat();
 
     return $ret;
 }
@@ -283,7 +273,7 @@ sub _set_work_mem
 {
     my ( $self, $new_work_mem ) = @_;
 
-    $self->_query_impl( "SET work_mem = ? ", $new_work_mem );
+    $self->query( "SET work_mem = ? ", $new_work_mem );
 
     return;
 }
@@ -293,12 +283,9 @@ sub query_with_large_work_mem
     my $self = shift @_;
 
     my $ret;
-
-    my @args = @_;
-
     run_block_with_large_work_mem
     {
-        $ret = $self->_query_impl( @args );
+        $ret = $self->query( @_ );
     }
     $self;
 
