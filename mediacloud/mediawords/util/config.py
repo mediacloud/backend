@@ -4,7 +4,7 @@ import os
 import yaml
 
 from mediawords.util.paths import mc_root_path
-from mediawords.util.perl import decode_dictionary_from_bytes_if_needed
+from mediawords.util.perl import decode_object_from_bytes_if_needed
 
 try:
     # noinspection PyPackageRequirements
@@ -93,7 +93,7 @@ def set_config(config):
         l.warn("config object already cached")
 
     # FIXME MC_REWRITE_TO_PYTHON: Catalyst::Test might want to set a couple of values which end up as being "binary"
-    config = decode_dictionary_from_bytes_if_needed(config)
+    config = decode_object_from_bytes_if_needed(config)
 
     static_defaults = __read_static_defaults()
 

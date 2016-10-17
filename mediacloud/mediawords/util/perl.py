@@ -14,12 +14,18 @@ def decode_string_from_bytes_if_needed(string):
 
 
 # FIXME MC_REWRITE_TO_PYTHON: remove after porting all Perl code to Python
-def decode_dictionary_from_bytes_if_needed(dictionary):
-    new_dictionary = {}
-    for k, v in dictionary.items():
-        k = decode_string_from_bytes_if_needed(k)
-        if isinstance(v, dict):
-            new_dictionary[k] = decode_dictionary_from_bytes_if_needed(v)
-        else:
-            new_dictionary[k] = decode_string_from_bytes_if_needed(v)
-    return new_dictionary
+def decode_object_from_bytes_if_needed(obj):
+    if isinstance(obj, dict):
+        result = dict()
+        for k, v in obj.items():
+            k = decode_object_from_bytes_if_needed(k)
+            v = decode_object_from_bytes_if_needed(v)
+            result[k] = v
+    elif isinstance(obj, list):
+        result = list()
+        for v in obj:
+            v = decode_object_from_bytes_if_needed(v)
+            result.append(v)
+    else:
+        result = decode_string_from_bytes_if_needed(obj)
+    return result
