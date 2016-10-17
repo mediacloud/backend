@@ -9,3 +9,6 @@ python-dateutil
 
 # Normalizing URLs
 url_normalize
+
+# Binding code between Perl and Python Readability
+thrift
