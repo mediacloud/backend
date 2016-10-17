@@ -14,14 +14,11 @@ use MediaWords::DB;
 use MediaWords::Util::Config;
 use MediaWords::Util::SchemaVersion;
 
-use CHI;
 use Data::Dumper;
 use Data::Page;
 use DBD::Pg qw(:pg_types);
 use Encode;
 use File::Slurp;
-use IPC::Run3;
-use JSON;
 use Math::Random::Secure;
 use Try::Tiny;
 
