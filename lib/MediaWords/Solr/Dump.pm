@@ -109,7 +109,7 @@ my $_solr_select_url;
 # order and names of fields exported to and imported from csv
 Readonly my @CSV_FIELDS =>
   qw/stories_id media_id story_sentences_id solr_id publish_date publish_day sentence_number sentence title language
-  bitly_click_count processed_stories_id tags_id_media tags_id_stories tags_id_story_sentences/;
+  bitly_click_count processed_stories_id tags_id_media tags_id_stories tags_id_story_sentences bitly_clicks timespans/;
 
 # numbner of lines in each chunk of csv to import
 Readonly my $CSV_CHUNK_LINES => 10_000;
@@ -287,9 +287,10 @@ sub _print_csv_to_file_from_csr
             my $media_tags_list   = $data_lookup->{ media_tags }->{ $media_id }        || '';
             my $stories_tags_list = $data_lookup->{ stories_tags }->{ $stories_id }    || '';
             my $ss_tags_list      = $data_lookup->{ ss_tags }->{ $story_sentences_id } || '';
+            my $timespans_list    = $data_lookup->{ timespans }->{ $stories_id }       || '';
 
             $csv->combine( @{ $row }, $click_count, $processed_stories_id, $media_tags_list, $stories_tags_list,
-                $ss_tags_list );
+                $ss_tags_list, $timespans_list );
             $fh->print( encode( 'utf8', $csv->string . "\n" ) );
 
             $imported_stories_ids->{ $stories_id } = 1;
@@ -395,6 +396,13 @@ END
     _set_lookup( $db, $data_lookup, 'bitly_clicks', <<END );
 select click_count, stories_id
     from bitly_clicks_total
+    where stories_id % $num_proc = $proc - 1
+        $delta_clause
+END
+
+    _set_lookup( $db, $data_lookup, 'timespans', <<END );
+select string_agg( timespans_id::text, ';' ), stories_id
+    from snap.story_link_counts
     where stories_id % $num_proc = $proc - 1
         $delta_clause
 END
