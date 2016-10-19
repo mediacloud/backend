@@ -423,13 +423,10 @@ sub get_all_models_top_media ($$)
 {
     my ( $db, $timespan ) = @_;
 
-    my $config     = MediaWords::Util::Config::get_config;
-    my $model_reps = $config->{ mediawords }->{ topic_model_reps };
+    my $config = MediaWords::Util::Config::get_config;
+    my $model_reps = $config->{ mediawords }->{ topic_model_reps } || 0;
 
-    if ( $model_reps == 0 )
-    {
-        return undef;
-    }
+    return undef if ( $model_reps == 0 );
 
     create_snapshot_indexes( $db );
 

@@ -243,16 +243,29 @@ sub restrict_period_stories_to_focus
     {
         $db->query( "truncate table snapshot_period_stories" );
         return;
+
+    }
+    my $all_stories_ids      = @{ $snapshot_period_stories_ids };
+    my $matching_stories_ids = [];
+    my $chunk_size           = 10_000;
+    while ( @{ $all_stories_ids } )
+    {
+        my $chunk_stories_ids = [];
+        my $chunk_ids         = [];
+        my $chunk_size        = List::Util::min( $chunk_size, scalar( @{ $all_stories_ids } ) );
+        map { push( @{ $chunk_ids }, shift( @{ $all_stories_ids } ) ) } ( 1 .. $chunk_size );
+
+        my $solr_q = $qs->{ query };
+        $solr_q = "( $solr_q )" if ( $solr_q =~ /or/i );
+
+        my $stories_ids_list = join( ' ', @{ $chunk_stories_ids } );
+        $solr_q = "$solr_q and stories_id:( $stories_ids_list )";
+        my $solr_stories_ids = MediaWords::Solr::search_for_stories_ids( $db, { rows => 1000000, q => $solr_q } );
+
+        push( @{ $matching_stories_ids }, @{ $solr_stories_ids } );
     }
 
-    my $stories_ids_list = join( ' ', @{ $snapshot_period_stories_ids } );
-
-    my $solr_q = $qs->{ query };
-    $solr_q = "( $solr_q )" if ( $solr_q =~ /or/i );
-    $solr_q = "$solr_q and stories_id:( $stories_ids_list )";
-    my $solr_stories_ids = MediaWords::Solr::search_for_stories_ids( $db, { rows => 1000000, q => $solr_q } );
-
-    my $ids_table = $db->get_temporary_ids_table( $solr_stories_ids );
+    my $ids_table = $db->get_temporary_ids_table( $matching_stories_ids );
 
     $db->query( "delete from snapshot_period_stories where stories_id not in ( select id from $ids_table )" );
 }
@@ -1702,6 +1715,20 @@ SQL
     }
 }
 
+# put all stories in this dump in solr_extra_import_stories for export to solr
+sub _export_stories_to_solr($$)
+{
+    my ( $db, $cd ) = @_;
+
+    DEBUG( "queueing stories for solr import ..." );
+    $db->query( <<SQL, $cd->{ snapshots_id } );
+insert into solr_import_extra_stories ( stories_id )
+    select distinct stories_id from snap.stories where snapshots_id = ?
+SQL
+
+    $db->update_by_id( 'snapshots', $cd->{ snapshots_id }, { searchable => 'f' } );
+}
+
 =head2 snapshot_topic( $db, $topics_id )
 
 Create a snapshot for the given topic.
@@ -1746,6 +1773,8 @@ sub snapshot_topic ($$)
 
         write_date_counts_snapshot( $db, $cd, 'daily' );
         write_date_counts_snapshot( $db, $cd, 'weekly' );
+
+        _export_stories_to_solr( $db, $cd );
 
         analyze_snapshot_tables( $db );
 

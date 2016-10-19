@@ -1391,7 +1391,8 @@ create table snapshots (
     end_date                        timestamp not null,
     note                            text,
     state                           text not null default 'queued',
-    error_message                   text null
+    error_message                   text null,
+    searchable             boolean not null default false
 );
 
 create index snapshots_topic on snapshots ( topics_id );

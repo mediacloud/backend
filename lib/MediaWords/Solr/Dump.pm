@@ -109,7 +109,7 @@ my $_solr_select_url;
 # order and names of fields exported to and imported from csv
 Readonly my @CSV_FIELDS =>
   qw/stories_id media_id story_sentences_id solr_id publish_date publish_day sentence_number sentence title language
-  bitly_click_count processed_stories_id tags_id_media tags_id_stories tags_id_story_sentences bitly_clicks timespans/;
+  bitly_click_count processed_stories_id tags_id_media tags_id_stories tags_id_story_sentences timespans_id/;
 
 # numbner of lines in each chunk of csv to import
 Readonly my $CSV_CHUNK_LINES => 10_000;
@@ -405,6 +405,7 @@ select string_agg( timespans_id::text, ';' ), stories_id
     from snap.story_link_counts
     where stories_id % $num_proc = $proc - 1
         $delta_clause
+    group by stories_id
 END
 
     my $ss_delta_clause = '';
@@ -812,6 +813,8 @@ sub _get_import_url_params
         'f.tags_id_stories.separator'         => ';',
         'f.tags_id_story_sentences.split'     => 'true',
         'f.tags_id_story_sentences.separator' => ';',
+        'f.timespans_id.split'                => 'true',
+        'f.timespans_id.separator'            => ';',
         'skip'                                => 'field_type,id,solr_import_date'
     };
 
@@ -1230,6 +1233,28 @@ sub _stories_queue_is_small
     return $exist ? 0 : 1;
 }
 
+# set snapshots.searchable to true for all snapshots that are currently false and
+# have no stories in the solr_import_extra_stories queue
+sub _update_snapshot_solr_status
+{
+    my ( $db ) = @_;
+
+    # the combination the searchable clause and the not exists which stops after the first hit should
+    # make this quite fast
+    $db->query( <<SQL );
+update snapshots s set searchable = true
+    where
+        searchable = false and
+        not exists (
+            select 1
+                from timespans t
+                    join snap.story_link_counts slc using ( timespans_id )
+                    join solr_import_extra_stories sies using ( stories_id )
+                where s.snapshots_id = s.snapshots_id
+        )
+SQL
+}
+
 =head2 generate_and_import_data( $delta, $delete, $staging, $jobs )
 
 Generate and import dump.  If $delta is true, generate delta dump since beginning of last full or delta dump.  If $delta
@@ -1300,6 +1325,8 @@ sub generate_and_import_data
         _solr_request( 'update', { 'commit' => 'true' }, $staging );
 
         map { unlink( $_ ) } @{ $dump_files };
+
+        _update_snapshot_solr_status( $db );
 
         last if ( _stories_queue_is_small( $db ) || ( ++$i > 100 ) );
     }

@@ -14,17 +14,25 @@
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
+create index timespans_story on timespans( stories_id );
+
+alter table snapshots add searchable boolean not null default false;
+
+update snapshots set searchable = true;
+
+create index snapshots_searchable on snapshots ( searchable );
+
 --
 -- 2 of 2. Reset the database version.
 --
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
-    
+
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
     MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4591;
-    
+
 BEGIN
 
     -- Update / set database schema version
@@ -32,11 +40,9 @@ BEGIN
     INSERT INTO database_variables (name, value) VALUES ('database-schema-version', MEDIACLOUD_DATABASE_SCHEMA_VERSION::int);
 
     return true;
-    
+
 END;
 $$
 LANGUAGE 'plpgsql';
 
 SELECT set_database_schema_version();
-
-

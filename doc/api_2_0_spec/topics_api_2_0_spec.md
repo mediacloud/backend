@@ -1787,9 +1787,13 @@ Return a list of all completed *snapshots* in the given *topic*.
 | snapshot_date | date on which the snapshot was created |
 | note          | short text note about the snapshot     |
 | state         | state of the snapshotting process      |
+| searchable    | boolean indicating whether timespans are searchable yet |
 
 The state indicates the state of the current snapshot process, including but not limmited to 'completed' for a snapshot
-whose process has successfully completed and 'snapshot failed' for a snapshot that failed for some reason.
+whose process has successfully completed and 'snapshot failed' for a snapshot that failed for some reason.  
+
+Each timespan in a snapshot is queued for text indexing when the snapshot is generated.  This process may take a
+few minutes up to a few hours.  The 'searchable' field is set to true once that indexing process is complete.
 
 ### Example
 
