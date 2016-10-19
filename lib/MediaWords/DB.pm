@@ -33,20 +33,13 @@ sub _create_connect_info_from_settings
         $data_source .= ';port=' . $settings->{ port };
     }
 
-    my $options = {
-        AutoCommit     => 1,
-        pg_enable_utf8 => 1,
-        RaiseError     => 1
-    };
-
     # Arguments for DBIx::Simple::MediaWords->connect()
     return (
         $settings->{ host },    #
         $settings->{ port },    #
         $settings->{ user },    #
         $settings->{ pass },    #
-        $settings->{ db },      #
-        $options                #
+        $settings->{ db }       #
     );
 }
 
