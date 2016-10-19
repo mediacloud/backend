@@ -274,13 +274,6 @@ sub schema_is_up_to_date
     # Fetching a single row at a time
     #
 
-    # Returns a list of values, or (in scalar context), only the last value
-    sub list($)
-    {
-        my $self = shift;
-        return $self->{ result }->list;
-    }
-
     # Returns a reference to an array
     sub array($)
     {

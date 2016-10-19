@@ -45,7 +45,7 @@ MediaWords::Test::DB::test_on_test_database(
             }
         );
 
-        is( $db->query( 'SELECT COUNT(*) FROM media' )->list, '1', 'simple transaction' );
+        is( $db->query( 'SELECT COUNT(*) FROM media' )->array->[ 0 ], '1', 'simple transaction' );
 
         # transaction failure
         eval {
@@ -59,7 +59,7 @@ MediaWords::Test::DB::test_on_test_database(
         };
 
         like( $@, qr/^I did too much work in the transaction!/, 'die propagation' );
-        is( $db->query( 'SELECT COUNT(*) FROM media' )->list, '1', 'exceptions roll-back transactions' );
+        is( $db->query( 'SELECT COUNT(*) FROM media' )->array->[ 0 ], '1', 'exceptions roll-back transactions' );
 
         # transaction abortion
         $db->transaction(
@@ -70,6 +70,6 @@ MediaWords::Test::DB::test_on_test_database(
             }
         );
 
-        is( $db->query( 'SELECT COUNT(*) FROM media' )->list, '1', 'voluntary abortion' );
+        is( $db->query( 'SELECT COUNT(*) FROM media' )->array->[ 0 ], '1', 'voluntary abortion' );
     }
 );
