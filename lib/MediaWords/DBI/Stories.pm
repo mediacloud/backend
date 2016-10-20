@@ -1209,7 +1209,7 @@ sub get_story_word_matrix($$;$$)
                 $word_index_lookup->{ $stem } //= $word_index_sequence++;
                 my $index = $word_index_lookup->{ $stem };
 
-                $stem_vector->{ $index } = $count;
+                $stem_vector->{ $index } += $count;
 
                 map { $word_term_counts->{ $stem }->{ $_ } += $terms->{ $_ } } keys( %{ $terms } );
             }
