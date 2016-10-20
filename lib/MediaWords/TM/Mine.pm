@@ -1973,14 +1973,14 @@ sub update_topic_tags
     my $all_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "$tagset_name:all" )
       || die( "Can't find or create all_tag" );
 
-    $db->query_with_large_work_mem( <<SQL, $all_tag->{ tags_id }, $topic->{ topics_id } );
+    $db->execute_with_large_work_mem( <<SQL, $all_tag->{ tags_id }, $topic->{ topics_id } );
 delete from stories_tags_map stm
     where stm.tags_id = ? and
         not exists ( select 1 from topic_stories cs
                          where cs.topics_id = ? and cs.stories_id = stm.stories_id )
 SQL
 
-    $db->query_with_large_work_mem( <<SQL, $topic->{ topics_id }, $all_tag->{ tags_id } );
+    $db->execute_with_large_work_mem( <<SQL, $topic->{ topics_id }, $all_tag->{ tags_id } );
 insert into stories_tags_map ( stories_id, tags_id )
     select distinct cs.stories_id, \$2
         from topic_stories cs
