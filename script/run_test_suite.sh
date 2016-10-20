@@ -58,7 +58,7 @@ echo "Running Python unit tests..."
 set +u
 source mc-venv/bin/activate
 set -u
-nosetests --where=mediacloud/
+nosetests --detailed-errors --where=mediacloud/
 
 echo "Running Perl unit tests..."
 TEST_FILES=`find lib script t -name '*.t'`
