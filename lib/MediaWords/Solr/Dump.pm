@@ -267,7 +267,8 @@ sub _print_csv_to_file_from_csr
     while ( 1 )
     {
         my $rows = $db->query( "fetch $FETCH_BLOCK_SIZE from csr" )->hashes;
-        if ( scalar( @{ $rows } ) == 0 ) {
+        if ( scalar( @{ $rows } ) == 0 )
+        {
             last;
         }
 
@@ -286,21 +287,21 @@ sub _print_csv_to_file_from_csr
             my $ss_tags_list      = $data_lookup->{ ss_tags }->{ $story_sentences_id } || '';
 
             $csv->combine(
-                $stories_id,
-                $media_id,
-                $story_sentences_id,
-                $row->{ solr_id },
-                $row->{ publish_date },
-                $row->{ publish_day },
-                $row->{ sentence_number },
-                $row->{ sentence },
-                $row->{ title },
-                $row->{ language },
-                $click_count,
-                $processed_stories_id,
-                $media_tags_list,
-                $stories_tags_list,
-                $ss_tags_list
+                $stories_id,                  #
+                $media_id,                    #
+                $story_sentences_id,          #
+                $row->{ solr_id },            #
+                $row->{ publish_date },       #
+                $row->{ publish_day },        #
+                $row->{ sentence_number },    #
+                $row->{ sentence },           #
+                $row->{ title },              #
+                $row->{ language },           #
+                $click_count,                 #
+                $processed_stories_id,        #
+                $media_tags_list,             #
+                $stories_tags_list,           #
+                $ss_tags_list                 #
             );
             $fh->print( encode( 'utf8', $csv->string . "\n" ) );
 
