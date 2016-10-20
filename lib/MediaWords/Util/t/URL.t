@@ -459,7 +459,8 @@ END
         $story_3->{ url } . "/alternate"
     ];
 
-    my $url_variants = MediaWords::Util::URL::get_topic_url_variants( $db, $story_1->{ url } );
+    my @test_urls = ( $story_1->{ url } );
+    my $url_variants = MediaWords::Util::URL::get_topic_url_variants( $db, \@test_urls );
 
     $url_variants  = [ sort { $a cmp $b } @{ $url_variants } ];
     $expected_urls = [ sort { $a cmp $b } @{ $expected_urls } ];
