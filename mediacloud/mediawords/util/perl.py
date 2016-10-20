@@ -15,6 +15,7 @@ def decode_string_from_bytes_if_needed(string):
 
 # FIXME MC_REWRITE_TO_PYTHON: remove after porting all Perl code to Python
 def decode_object_from_bytes_if_needed(obj):
+    """Convert object (dictionary, list or string) from 'bytes' string to 'unicode' if needed."""
     if isinstance(obj, dict):
         result = dict()
         for k, v in obj.items():
