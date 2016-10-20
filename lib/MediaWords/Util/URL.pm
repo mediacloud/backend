@@ -180,7 +180,7 @@ sub get_topic_url_variants
 {
     my ( $db, $urls ) = @_;
 
-    my $stories_ids = $db->query( "select stories_id from stories where url in (??)", $urls )->flat;
+    my $stories_ids = $db->query( "select stories_id from stories where url in (??)", @{ $urls } )->flat;
 
     my $all_stories_ids = _get_merged_stories_ids( $db, $stories_ids );
 
