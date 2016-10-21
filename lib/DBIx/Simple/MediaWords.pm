@@ -75,7 +75,6 @@ sub connect($$$$$$;$)
     }
 
     my $options = {
-        AutoCommit     => 1,
         pg_enable_utf8 => 1,
         RaiseError     => 1
     };
@@ -83,6 +82,7 @@ sub connect($$$$$$;$)
     my $dsn = "dbi:Pg:dbname=$database;host=$host;port=$port;";
 
     my $db = $self->SUPER::connect( $dsn, $user, $pass, $options );
+    $db->autocommit( 1 );
 
     unless ( $do_not_check_schema_version )
     {
