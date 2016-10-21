@@ -1,6 +1,9 @@
 # Unit tests
 nose
 
+# PostgreSQL
+pyscopg2
+
 # Configuration file
 pyyaml
 
