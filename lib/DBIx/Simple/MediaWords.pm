@@ -1,6 +1,6 @@
 package DBIx::Simple::MediaWords;
 
-# local subclass of DBIx::Simple with some modification for use in media cloud code
+# Database handler: proxy package to DBIx::Simple with some extra helpers
 
 use strict;
 use warnings;
@@ -8,14 +8,13 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use base qw(DBIx::Simple);
-
 use MediaWords::DB;
 use MediaWords::Util::Config;
 use MediaWords::Util::Pages;
 use MediaWords::Util::SchemaVersion;
 
 use Data::Dumper;
+use DBIx::Simple;
 use DBD::Pg qw(:pg_types);
 use Encode;
 use File::Slurp;
@@ -40,19 +39,18 @@ my %_schema_version_check_pids;
 
 sub new
 {
-    my $proto = shift;
-    my $class = ref( $proto ) || $proto;
-
-    my $self = $class->SUPER::new();
-
-    bless( $self, $class );
-
-    return $self;
+    my $class = shift;
+    return $class->connect( @_ );
 }
 
+# Constructor
 sub connect($$$$$$;$)
 {
-    my ( $self, $host, $port, $user, $pass, $database, $do_not_check_schema_version ) = @_;
+    my $class = shift;
+    my ( $host, $port, $user, $pass, $database, $do_not_check_schema_version ) = @_;
+
+    my $self = {};
+    bless $self, $class;
 
     unless ( $host and $user and $pass and $database )
     {
@@ -81,8 +79,8 @@ sub connect($$$$$$;$)
 
     my $dsn = "dbi:Pg:dbname=$database;host=$host;port=$port;";
 
-    my $db = $self->SUPER::connect( $dsn, $user, $pass, $options );
-    $db->autocommit( 1 );
+    $self->{ _db } = DBIx::Simple->connect( $dsn, $user, $pass, $options );
+    $self->autocommit( 1 );
 
     unless ( $do_not_check_schema_version )
     {
@@ -91,14 +89,14 @@ sub connect($$$$$$;$)
         # at this particular point too, but schema_is_up_to_date() warns the user about schema being
         # too old on every run, and that's supposedly a good thing.
 
-        die "Database schema is not up-to-date." unless $db->schema_is_up_to_date();
+        die "Database schema is not up-to-date." unless $self->schema_is_up_to_date();
     }
 
     # If schema is not up-to-date, connect() dies and we don't get to set PID here
     $_schema_version_check_pids{ $$ } = 1;
 
     # Check deadlock_timeout
-    my $deadlock_timeout = $db->query( 'SHOW deadlock_timeout' )->flat()->[ 0 ];
+    my $deadlock_timeout = $self->query( 'SHOW deadlock_timeout' )->flat()->[ 0 ];
     $deadlock_timeout =~ s/\s*s$//i;
     $deadlock_timeout = int( $deadlock_timeout );
     if ( $deadlock_timeout < $MIN_DEADLOCK_TIMEOUT )
@@ -106,14 +104,15 @@ sub connect($$$$$$;$)
         WARN '"deadlock_timeout" is less than "' . $MIN_DEADLOCK_TIMEOUT . 's", expect deadlocks on high extractor load';
     }
 
-    return $db;
+    return $self;
 }
 
 sub disconnect
 {
     my ( $self ) = @_;
 
-    return $self->SUPER::disconnect;
+    $self->{ _db }->disconnect;
+    delete $self->{ _db };
 }
 
 # Schema is outdated / too new; returns 1 if MC should continue nevertheless, 0 otherwise
@@ -244,7 +243,7 @@ sub schema_is_up_to_date
         my $self = {};
         bless $self, $class;
 
-        eval { $self->{ result } = $db->_query_super( @query_args ); };
+        eval { $self->{ result } = $db->_query_internal( @query_args ); };
         if ( $@ )
         {
             die "Query error: $@";
@@ -340,13 +339,13 @@ sub schema_is_up_to_date
     1;
 }
 
-sub _query_super
+sub _query_internal
 {
     my $self       = shift;
     my @query_args = @_;
 
     # Calls DBIx::Simple directly
-    $self->SUPER::query( @query_args );
+    $self->{ _db }->query( @query_args );
 }
 
 sub query
@@ -459,7 +458,7 @@ sub primary_key_column
         return $id_col;
     }
 
-    my ( $id_col ) = $self->dbh->primary_key( undef, undef, $table );
+    my ( $id_col ) = $self->{ _db }->dbh->primary_key( undef, undef, $table );
 
     $_primary_key_columns->{ $table } = $id_col;
 
@@ -494,7 +493,7 @@ sub select($)
 {
     my ( $self, $table, $what_to_select, $condition_hash ) = @_;
 
-    return $self->SUPER::select( $table, $what_to_select, $condition_hash );
+    return $self->{ _db }->select( $table, $what_to_select, $condition_hash );
 }
 
 # update the row in the table with the given id
@@ -514,7 +513,7 @@ sub update_by_id($$$$)
         delete( $hash->{ $k } );
     }
 
-    my $r = $self->update( $table, $hash, { $id_col => $id } );
+    my $r = $self->{ _db }->update( $table, $hash, { $id_col => $id } );
 
     while ( my ( $k, $v ) = each( %{ $hidden_values } ) )
     {
@@ -611,22 +610,14 @@ sub delete_by_id
     return $self->query( "delete from $table where $id_col = ?", $id );
 }
 
-# alias for create()
-sub insert
-{
-    my ( $self, $table, $hash ) = @_;
-
-    return $self->create( $table, $hash );
-}
-
 # insert a row into the database for the given table with the given hash values and return the created row as a hash
-sub create
+sub insert
 {
     my ( $self, $table, $hash ) = @_;
 
     delete( $hash->{ submit } );
 
-    eval { $self->SUPER::insert( $table, $hash ); };
+    eval { $self->{ _db }->insert( $table, $hash ); };
 
     if ( $@ )
     {
@@ -638,7 +629,7 @@ sub create
     my $id;
 
     eval {
-        $id = $self->last_insert_id( undef, undef, $table, undef );
+        $id = $self->{ _db }->last_insert_id( undef, undef, $table, undef );
 
         LOGCONFESS "Could not get last id inserted" if ( !defined( $id ) );
     };
@@ -650,6 +641,14 @@ sub create
     LOGCONFESS "could not find new id '$id' in table '$table' " unless ( $ret );
 
     return $ret;
+}
+
+# alias to insert()
+sub create
+{
+    my ( $self, $table, $hash ) = @_;
+
+    return $self->insert( $table, $hash );
 }
 
 # select a single row from the database matching the hash or insert
@@ -750,14 +749,14 @@ sub get_temporary_ids_table($;$$)
 
     $self->query( "create temporary table $table ( $pk id bigint )" );
 
-    $self->dbh->do( "COPY $table (id) FROM STDIN" );
+    $self->{ _db }->dbh->do( "COPY $table (id) FROM STDIN" );
 
     for my $id ( @{ $ids } )
     {
-        $self->dbh->pg_putcopydata( "$id\n" );
+        $self->{ _db }->dbh->pg_putcopydata( "$id\n" );
     }
 
-    $self->dbh->pg_putcopyend();
+    $self->{ _db }->dbh->pg_putcopyend();
 
     $self->query( "ANALYZE $table" );
 
@@ -775,52 +774,52 @@ sub begin_work
 {
     my ( $self ) = @_;
 
-    $self->SUPER::begin_work;
+    $self->{ _db }->begin_work;
 }
 
 sub commit
 {
     my ( $self ) = @_;
 
-    return $self->SUPER::commit;
+    return $self->{ _db }->commit;
 }
 
 sub rollback
 {
     my ( $self ) = @_;
 
-    return $self->SUPER::rollback;
+    return $self->{ _db }->rollback;
 }
 
 # Alias for DBD::Pg's quote()
 sub quote($$)
 {
     my ( $self, $value ) = @_;
-    return $self->dbh->quote( $value );
+    return $self->{ _db }->dbh->quote( $value );
 }
 
 sub quote_bool($$)
 {
     my ( $self, $value ) = @_;
-    return $self->dbh->quote( $value, { pg_type => DBD::Pg::PG_BOOL } );
+    return $self->{ _db }->dbh->quote( $value, { pg_type => DBD::Pg::PG_BOOL } );
 }
 
 sub quote_varchar($$)
 {
     my ( $self, $value ) = @_;
-    return $self->dbh->quote( $value, { pg_type => DBD::Pg::PG_VARCHAR } );
+    return $self->{ _db }->dbh->quote( $value, { pg_type => DBD::Pg::PG_VARCHAR } );
 }
 
 sub quote_date($$)
 {
     my ( $self, $value ) = @_;
-    return $self->dbh->quote( $value, { pg_type => DBD::Pg::PG_VARCHAR } ) . '::date';
+    return $self->{ _db }->dbh->quote( $value, { pg_type => DBD::Pg::PG_VARCHAR } ) . '::date';
 }
 
 sub quote_timestamp($$)
 {
     my ( $self, $value ) = @_;
-    return $self->dbh->quote( $value, { pg_type => DBD::Pg::PG_VARCHAR } ) . '::timestamp';
+    return $self->{ _db }->dbh->quote( $value, { pg_type => DBD::Pg::PG_VARCHAR } ) . '::timestamp';
 }
 
 {
@@ -844,10 +843,14 @@ sub quote_timestamp($$)
         my $self = {};
         bless $self, $class;
 
-        $self->{ db }  = $db;
+        if ( ref( $db ) ne 'DBIx::Simple::MediaWords' )
+        {
+            die "Database is not a reference to DBIx::Simple::MediaWords but rather to " . ref( $db );
+        }
+
         $self->{ sql } = $sql;
 
-        eval { $self->{ sth } = $db->dbh->prepare( $sql ); };
+        eval { $self->{ sth } = $db->{ _db }->dbh->prepare( $sql ); };
         if ( $@ )
         {
             die "Error while preparing statement '$sql': $@";
@@ -940,49 +943,49 @@ SQL
 sub autocommit($)
 {
     my $self = shift;
-    return $self->{ dbh }->{ AutoCommit };
+    return $self->{ _db }->dbh->{ AutoCommit };
 }
 
 sub set_autocommit($$)
 {
     my ( $self, $autocommit ) = @_;
-    $self->{ dbh }->{ AutoCommit } = $autocommit;
+    $self->{ _db }->dbh->{ AutoCommit } = $autocommit;
 }
 
 sub show_error_statement($)
 {
     my $self = shift;
-    return $self->{ dbh }->{ ShowErrorStatement };
+    return $self->{ _db }->dbh->{ ShowErrorStatement };
 }
 
 sub set_show_error_statement($$)
 {
     my ( $self, $show_error_statement ) = @_;
-    $self->{ dbh }->{ ShowErrorStatement } = $show_error_statement;
+    $self->{ _db }->dbh->{ ShowErrorStatement } = $show_error_statement;
 }
 
 sub print_warn($)
 {
     my $self = shift;
-    return $self->{ dbh }->{ PrintWarn };
+    return $self->{ _db }->dbh->{ PrintWarn };
 }
 
 sub set_print_warn($$)
 {
     my ( $self, $print_warn ) = @_;
-    $self->{ dbh }->{ PrintWarn } = $print_warn;
+    $self->{ _db }->dbh->{ PrintWarn } = $print_warn;
 }
 
 sub prepare_on_server_side($)
 {
     my $self = shift;
-    return $self->dbh->{ pg_server_prepare };
+    return $self->{ _db }->dbh->{ pg_server_prepare };
 }
 
 sub set_prepare_on_server_side($$)
 {
     my ( $self, $prepare_on_server_side ) = @_;
-    $self->dbh->{ pg_server_prepare } = $prepare_on_server_side;
+    $self->{ _db }->dbh->{ pg_server_prepare } = $prepare_on_server_side;
 }
 
 # COPY FROM helpers
@@ -990,7 +993,7 @@ sub copy_from_start($$)
 {
     my ( $self, $sql ) = @_;
 
-    eval { $self->dbh->do( $sql ) };
+    eval { $self->{ _db }->dbh->do( $sql ) };
     if ( $@ )
     {
         die "Error while running '$sql': $@";
@@ -1003,7 +1006,7 @@ sub copy_from_put_line($$)
 
     chomp $line;
 
-    eval { $self->dbh->pg_putcopydata( "$line\n" ); };
+    eval { $self->{ _db }->dbh->pg_putcopydata( "$line\n" ); };
     if ( $@ )
     {
         die "Error on pg_putcopydata('$line'): $@";
@@ -1014,7 +1017,7 @@ sub copy_from_end($)
 {
     my ( $self ) = @_;
 
-    eval { $self->dbh->pg_putcopyend(); };
+    eval { $self->{ _db }->dbh->pg_putcopyend(); };
     if ( $@ )
     {
         die "Error on pg_putcopyend(): $@";
@@ -1026,7 +1029,7 @@ sub copy_to_start($$)
 {
     my ( $self, $sql ) = @_;
 
-    eval { $self->dbh->do( $sql ) };
+    eval { $self->{ _db }->dbh->do( $sql ) };
     if ( $@ )
     {
         die "Error while running '$sql': $@";
@@ -1038,7 +1041,7 @@ sub copy_to_get_line($)
     my ( $self ) = @_;
 
     my $line = '';
-    if ( $self->dbh->pg_getcopydata( $line ) > -1 )
+    if ( $self->{ _db }->dbh->pg_getcopydata( $line ) > -1 )
     {
         return $line;
     }
