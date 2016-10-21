@@ -103,7 +103,7 @@ sub connect_settings
     my ( $label ) = @_;
 
     # If this is Catalyst::Test run, force the label to the test database
-    if ( $ENV{ MEDIAWORDS_FORCE_USING_TEST_DATABASE } )
+    if ( MediaWords::Test::DB::using_test_database() )
     {
         $label = 'test';
     }

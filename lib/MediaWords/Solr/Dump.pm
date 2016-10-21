@@ -854,7 +854,7 @@ sub _reprocess_file_errors
 
         INFO "reprocessing $file position $data->{ pos } ...";
 
-        $pm->start and next;
+        $pm->start and next if ( $pm->max_procs() > 1 );
 
         eval { _solr_request( $import_url, $import_params, $staging, $data->{ csv } ); };
         if ( $@ )
@@ -863,10 +863,10 @@ sub _reprocess_file_errors
             _add_file_error( $file, { pos => $data->{ pos }, message => $error } );
         }
 
-        $pm->finish;
+        $pm->finish if ( $pm->max_procs() > 1 );
     }
 
-    $pm->wait_all_children;
+    $pm->wait_all_children if ( $pm->max_procs() > 1 );
 }
 
 # return the delta setting for the given chunk, which if true indicates that we cannot assume that
@@ -971,7 +971,7 @@ sub _import_csv_single_file
             next;
         }
 
-        $pm->start and next;
+        $pm->start and next if ( $pm->max_procs() > 1 );
 
         my ( $import_url, $import_params ) = _get_import_url_params( $chunk_delta );
 
@@ -984,10 +984,10 @@ sub _import_csv_single_file
             _add_file_error( $file, { pos => $data->{ pos }, message => $error } );
         }
 
-        $pm->finish;
+        $pm->finish if ( $pm->max_procs() > 1 );
     }
 
-    $pm->wait_all_children;
+    $pm->wait_all_children if ( $pm->max_procs() > 1 );
 
     _reprocess_file_errors( $pm, $file, $staging );
 
@@ -1283,7 +1283,6 @@ sub generate_and_import_data
 
     while ()
     {
-
         my $dump_file = _get_dump_file();
 
         _mark_import_date( $db );
