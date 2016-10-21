@@ -2,7 +2,7 @@
 nose
 
 # PostgreSQL
-pyscopg2
+psycopg2
 
 # Configuration file
 pyyaml
