@@ -109,6 +109,13 @@ sub connect($$$$$$;$)
     return $db;
 }
 
+sub disconnect
+{
+    my ( $self ) = @_;
+
+    return $self->disconnect;
+}
+
 # Schema is outdated / too new; returns 1 if MC should continue nevertheless, 0 otherwise
 sub _should_continue_with_outdated_schema($$$)
 {
@@ -597,6 +604,14 @@ sub delete_by_id
     return $self->query( "delete from $table where $id_col = ?", $id );
 }
 
+# alias for create()
+sub insert
+{
+    my ( $self, $table, $hash ) = @_;
+
+    return $self->create( $table, $hash );
+}
+
 # insert a row into the database for the given table with the given hash values and return the created row as a hash
 sub create
 {
@@ -742,15 +757,32 @@ sub get_temporary_ids_table($;$$)
     return $table;
 }
 
+sub begin
+{
+    my ( $self ) = @_;
+
+    return $self->begin_work;
+}
+
 sub begin_work
 {
     my ( $self ) = @_;
 
-    eval { $self->SUPER::begin_work; };
-    if ( $@ )
-    {
-        LOGCONFESS( $@ );
-    }
+    $self->SUPER::begin_work;
+}
+
+sub commit
+{
+    my ( $self ) = @_;
+
+    return $self->commit;
+}
+
+sub rollback
+{
+    my ( $self ) = @_;
+
+    return $self->rollback;
 }
 
 # Alias for DBD::Pg's quote()
