@@ -37,6 +37,10 @@ sub _test_for_topic_permission
         die 'Invalid API key or authentication cookie. Access denied.';
     }
 
+    return if ( grep { $_ eq $MediaWords::DBI::Auth::Roles::ADMIN } @{ $user_roles } );
+    return
+      if ( ( $permission_type eq 'read' ) && grep { $_ eq $MediaWords::DBI::Auth::Roles::ADMIN_READONLY } @{ $user_roles } );
+
     my $topic = $c->dbis->query( <<SQL, $topics_id, $user_email )->hash;
 select t.*
     from topics_with_user_permission t
@@ -47,6 +51,8 @@ select t.*
 SQL
 
     my $user_permission = $topic->{ user_permission };
+
+    return if ( $topic->{ is_public } && ( $topic->{ user_permission } eq 'read' ) );
 
     my $allowed_permissions_lookup = {
         read  => [ qw/read write admin/ ],
