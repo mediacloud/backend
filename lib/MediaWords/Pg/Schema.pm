@@ -110,7 +110,7 @@ sub recreate_db
         my $message = shift;
         if ( _postgresql_response_line_is_expected( $message ) )
         {
-            say STDERR "PostgreSQL warning: $message";
+            DEBUG( "PostgreSQL warning: $message" );
         }
         else
         {
@@ -252,7 +252,7 @@ EOF
         <<SQL
         SELECT 1
         FROM pg_type AS t
-            JOIN pg_enum AS e ON t.oid = e.enumtypid  
+            JOIN pg_enum AS e ON t.oid = e.enumtypid
             JOIN pg_catalog.pg_namespace AS n ON n.oid = t.typnamespace
         WHERE n.nspname = CURRENT_SCHEMA()
           AND t.typname = 'feed_feed_type'
