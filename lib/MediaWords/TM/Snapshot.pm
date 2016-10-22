@@ -245,15 +245,14 @@ sub restrict_period_stories_to_focus
         return;
 
     }
-    my $all_stories_ids      = @{ $snapshot_period_stories_ids };
+    my $all_stories_ids      = [ @{ $snapshot_period_stories_ids } ];
     my $matching_stories_ids = [];
     my $chunk_size           = 10_000;
     while ( @{ $all_stories_ids } )
     {
         my $chunk_stories_ids = [];
-        my $chunk_ids         = [];
-        my $chunk_size        = List::Util::min( $chunk_size, scalar( @{ $all_stories_ids } ) );
-        map { push( @{ $chunk_ids }, shift( @{ $all_stories_ids } ) ) } ( 1 .. $chunk_size );
+        my $chunk_size = List::Util::min( $chunk_size, scalar( @{ $all_stories_ids } ) );
+        map { push( @{ $chunk_stories_ids }, shift( @{ $all_stories_ids } ) ) } ( 1 .. $chunk_size );
 
         my $solr_q = $qs->{ query };
         $solr_q = "( $solr_q )" if ( $solr_q =~ /or/i );
