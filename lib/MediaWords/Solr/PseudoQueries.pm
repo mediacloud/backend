@@ -37,6 +37,9 @@ use Readonly;
 
 use MediaWords::DB;
 
+# die if the transformed query is bigger than this
+Readonly my $MAX_QUERY_LENGTH => 2_000_000;
+
 # list of field functions that can be called within a psuedo query clause.
 # the list is in [ $field_name, $field_function, $num_required_args ] format.
 # for each such field in a pseudo query in field_name:arg1[-arg2 ...] format,
@@ -246,7 +249,7 @@ sub _transform_clause
 {
     my ( $clause ) = @_;
 
-    my $db = MediaWords::DB::connect_to_db;
+    my $db = MediaWords::DB::connect_to_db();
 
     $db->begin;
 
@@ -287,7 +290,6 @@ sub _transform_clause
                 {
                     $stories_ids = $r->{ stories_ids };
                 }
-
             }
         }
 
@@ -305,7 +307,7 @@ sub _transform_clause
 
     if ( @{ $stories_ids } > 0 )
     {
-        return 'stories_id:(' . join( ' ', @{ $stories_ids } ) . ')';
+        return MediaWords::Solr::consolidate_id_query( 'stories_id', $stories_ids );
     }
     else
     {
@@ -334,6 +336,8 @@ sub transform_query
     my $t = $q;
 
     $t =~ s/(\{\~[^\}]*\})/_transform_clause( $1 )/eg;
+
+    die( "transformed query is longer than max of $MAX_QUERY_LENGTH" ) if ( length( $t ) > $MAX_QUERY_LENGTH );
 
     TRACE "transformed solr query: '$q' -> '$t'\n" unless ( $t eq $q );
 
