@@ -72,11 +72,36 @@ SQL
     my $num_topic_sentences = MediaWords::Solr::get_num_found( $db, { q => "timespans_id:$timespan->{ timespans_id }" } );
     is( $num_topic_sentences, $num_topic_medium_sentences, "topic sentences after snapshot" );
 
-    # TODO:
-    # * test focus creation
-    # * fix and test pseudo queries
-    # * fix pseudo queries to always chunk?
+    my $focus_stories_id = $media->{ story_1 }->{ stories_id };
 
+    my $fsd = $db->create( 'focal_set_definitions',
+        { topics_id => $topic->{ topics_id }, name => 'test', focal_technique => 'Boolean Query' } );
+
+    $db->query( <<SQL, 'test', 'test', "stories_id:$focus_stories_id", $fsd->{ focal_set_definitions_id } );
+insert into focus_definitions ( name, description, arguments, focal_set_definitions_id )
+    select \$1, \$2, ( '{ "query": ' || to_json( \$3::text ) || ' }' )::json, \$4
+SQL
+
+    MediaWords::TM::Snapshot::snapshot_topic( $db, $topic->{ topics_id } );
+    MediaWords::Solr::Dump::generate_and_import_data( 1 );
+
+    my ( $focus_timespans_id ) = $db->query( <<SQL )->flat;
+select *
+    from timespans t
+    where
+        t.foci_id is not null and
+        t.period = 'overall'
+    order by timespans_id desc limit 1
+SQL
+
+    my $focus_story_sentences    = MediaWords::Solr::get_num_found( $db, { q => "stories_id:$focus_stories_id" } );
+    my $focus_timespan_sentences = MediaWords::Solr::get_num_found( $db, { q => "timespans_id:$focus_timespans_id" } );
+
+    is( $focus_timespan_sentences, $focus_story_sentences, "focus timespan sentences" );
+
+    my $psuedo_timespan_sentences = MediaWords::Solr::get_num_found( $db, { q => "{~ timespan:$focus_timespans_id }" } );
+
+    is( $psuedo_timespan_sentences, $focus_story_sentences, "focus timespan sentences" );
 }
 
 sub main
