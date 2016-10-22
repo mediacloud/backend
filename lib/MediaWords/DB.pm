@@ -11,6 +11,8 @@ use DBIx::Simple::MediaWords;
 
 use MediaWords::Util::Config;
 
+use MediaWords::Test::DB;
+
 # takes a hashref to a hash of settings and returns an array
 #  with DBI connect info
 sub _create_connect_info_from_settings
