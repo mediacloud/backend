@@ -79,14 +79,14 @@ $(document).ready(function () {
         q = display_stories_solr_query } ) %]
 
     [% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]
-    [% SET dashboard_q = "{~ timespan:${ timespan.timespans_id }-${ live } }" %]
+    [% SET dashboard_q = "timespans_id:${ timespan.timespans_id }" %]
     [% SET dashboard_q = display_stories_solr_query ? "$dashboard_q and ( " _ display_stories_solr_query.replace( '"', '\"' )  _ " ) " : dashboard_q %]
     [% SET dashboard_url = 'https://dashboard.mediameter.org/#query/["' _ dashboard_q _ '"]/[{}]/["' _ topic.start_date _ '"]/["' _ topic.end_date _ '"]/[{"uid":5,"color":"5f165f"}]' %]
 
 
     <a class="boxcommand" href="[% wc_url | html %]">word cloud</a>
     <a class="boxcommand" target="new" href="[% dashboard_url | html %]">dashboard query</a>
-    <a class="boxcommand" href="[% stats_url | html %]">story stats</a>
+    <a class="boxcommand" href="[% stats_url | html %]">story stats</a>{~
 
     </div>
 [% END %]
