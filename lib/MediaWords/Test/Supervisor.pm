@@ -120,7 +120,11 @@ sub _run_supervisord()
         if ( $output =~ /Another program is already listening/ )
         {
             my $status = _run_supervisorctl( 'status' );
-            die( "supervisord already running" ) unless ( $status =~ /SHUTDOWN_STATE/ );
+            if ( !( $status =~ /SHUTDOWN_STATE/ ) )
+            {
+                DEBUG( "shutting down existing supervisord ..." );
+                _run_supervisorctl( 'shutdown' );
+            }
 
             # otherwise, supervisord is in the process of shutting down, so just wait
             DEBUG( "waiting for supervisord to finish shutting down ..." );
