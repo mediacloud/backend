@@ -1873,7 +1873,8 @@ create table snap.story_link_counts (
 );
 
 -- TODO: add complex foreign key to check that stories_id exists for the snapshot stories snapshot
-create index story_link_counts_story on snap.story_link_counts ( timespans_id, stories_id );
+create index story_link_counts_ts on snap.story_link_counts ( timespans_id, stories_id );
+create index story_link_counts_story on snap.story_link_counts ( stories_id );
 
 -- links counts for media within a timespan
 create table snap.medium_link_counts (
