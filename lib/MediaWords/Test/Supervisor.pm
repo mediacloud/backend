@@ -25,6 +25,7 @@ use warnings;
 use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 
+use LWP::Simple;
 use Readonly;
 
 use MediaWords::Solr;
@@ -123,6 +124,9 @@ sub _run_supervisord()
             if ( !( $status =~ /SHUTDOWN_STATE/ ) )
             {
                 DEBUG( "shutting down existing supervisord ..." );
+                DEBUG( "status: $status" );
+                my $response = LWP::UserAgent->new()->get( 'http://localhost:4398' );
+                DEBUG( $response->as_string() );
                 _run_supervisorctl( 'shutdown' );
             }
 
