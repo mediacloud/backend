@@ -127,7 +127,8 @@ sub _run_supervisord()
                 DEBUG( "status: $status" );
                 my $response = LWP::UserAgent->new()->get( 'http://localhost:4398' );
                 DEBUG( $response->as_string() );
-                _run_supervisorctl( 'shutdown' );
+                my $sc_output = _run_supervisorctl( 'shutdown' );
+                DEBUG( "shutdown command output: $sc_output" );
             }
 
             # otherwise, supervisord is in the process of shutting down, so just wait
