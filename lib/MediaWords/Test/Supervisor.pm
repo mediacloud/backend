@@ -112,6 +112,8 @@ sub _run_supervisorctl($)
 # appropriate message
 sub _run_supervisord()
 {
+    my $status;
+
     for my $i ( 1 .. $SUPERVISOR_SHUTDOWN_TIMEOUT )
     {
         my $output = `$_supervisord_bin 2>&1`;
@@ -120,15 +122,11 @@ sub _run_supervisord()
 
         if ( $output =~ /Another program is already listening/ )
         {
-            my $status = _run_supervisorctl( 'status' );
+            $status = _run_supervisorctl( 'status' );
             if ( !( $status =~ /SHUTDOWN_STATE/ ) )
             {
                 DEBUG( "shutting down existing supervisord ..." );
-                DEBUG( "status: $status" );
-                my $response = LWP::UserAgent->new()->get( 'http://localhost:4398' );
-                DEBUG( $response->as_string() );
-                my $sc_output = _run_supervisorctl( 'shutdown' );
-                DEBUG( "shutdown command output: $sc_output" );
+                _run_supervisorctl( 'shutdown' );
             }
 
             # otherwise, supervisord is in the process of shutting down, so just wait
@@ -137,7 +135,7 @@ sub _run_supervisord()
         }
     }
 
-    die( "timed out waiting for supervisord to finish shutting down" );
+    DEBUG( "timed out waiting for supervisord to finish shutting down.  proceeding with existing supervisord." );
 }
 
 # if any of the given processes are not running, start them.  die if any of the given processes are still not running.
