@@ -290,7 +290,7 @@ programs=extractor_python_readability_server
 
 [% INCLUDE program_config
     program='extractor_python_readability_server'
-    command='python python_scripts/extractor_python_readability_server.py'
+    command='python2.7 python_scripts/extractor_python_readability_server.py'
     default_stopasgroup='true'
     default_killasgroup='true'
     default_autorestart='true'
