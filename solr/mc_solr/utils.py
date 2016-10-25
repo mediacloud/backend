@@ -291,7 +291,7 @@ def compare_versions(version1, version2):
 def java_version():
     """Return Java version, e.g. "1.8.0_66"."""
     java_version_output = subprocess.Popen(["java", "-version"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    java_version_output = java_version_output.stdout.read()
+    java_version_output = java_version_output.stdout.read().decode('utf-8')
 
     java_version_string = re.search(r'(java|openjdk) version "(.+?)"', java_version_output)
     if java_version_string is None:
