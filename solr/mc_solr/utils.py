@@ -137,7 +137,7 @@ def extract_zip_to_directory(archive_file, dest_directory):
 
 def fqdn():
     """Return Fully Qualified Domain Name (hostname -f), e.g. mcquery2.media.mit.edu."""
-    hostname = socket.getfqdn()
+    hostname = socket.getaddrinfo(socket.gethostname(), 0, flags=socket.AI_CANONNAME)[0][3]
     if hostname is None or len(hostname) == 0:
         raise Exception("Unable to determine FQDN.")
     hostname = hostname.lower()
