@@ -195,7 +195,7 @@ def gracefully_kill_child_process(child_pid, sigkill_timeout=60):
             os.kill(child_pid, signal.SIGKILL)
         except OSError as e:
             # Might be already killed
-            logger.warn("Unable to send SIGKILL to child PID %d: %s" % (child_pid, e.message))
+            logger.warn("Unable to send SIGKILL to child PID %d: %s" % (child_pid, str(e)))
 
         for retry in range(sigkill_timeout):
             if process_with_pid_is_running(pid=child_pid):
@@ -211,7 +211,7 @@ def gracefully_kill_child_process(child_pid, sigkill_timeout=60):
                 os.kill(child_pid, signal.SIGTERM)
             except OSError as e:
                 # Might be already killed
-                logger.warn("Unable to send SIGTERM to child PID %d: %s" % (child_pid, e.message))
+                logger.warn("Unable to send SIGTERM to child PID %d: %s" % (child_pid, str(e)))
 
             time.sleep(3)
 
@@ -277,11 +277,15 @@ def run_command_in_foreground(command):
 def compare_versions(version1, version2):
     """Compare two version strings. Return 0 if equal, -1 if version1 < version2, 1 if version1 > version2."""
 
+    def __cmp(a, b):
+        # Python 3 does not have cmp()
+        return (a > b) - (a < b)
+
     def normalize(v):
         v = v.replace("_", ".")
         return [int(x) for x in re.sub(r'(\.0+)*$', '', v).split(".")]
 
-    return cmp(normalize(version1), normalize(version2))
+    return __cmp(normalize(version1), normalize(version2))
 
 
 def java_version():
