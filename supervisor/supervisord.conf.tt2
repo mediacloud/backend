@@ -46,7 +46,7 @@ redirect_stderr=[% redirect_stderr %]
 [%- END %]
 
 [inet_http_server]
-port = 127.0.0.1:4398
+port = 127.0.0.1:8398
 username = supervisord
 password = qHujfp7n4J
 
