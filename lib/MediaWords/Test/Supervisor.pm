@@ -43,7 +43,7 @@ Readonly my $SOLR_INSTALL_TIMEOUT => 600;
 Readonly my $SOLR_RUN_TIMEOUT => 10;
 
 # seconds to wait for supervisord to stop shutting down
-Readonly my $SUPERVISOR_SHUTDOWN_TIMEOUT => 10;
+Readonly my $SUPERVISOR_SHUTDOWN_TIMEOUT => 90;
 
 # mediacloud root path and supervisor scripts
 my $_mc_root_path      = MediaWords::Util::Paths::mc_root_path();
