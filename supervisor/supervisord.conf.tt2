@@ -23,7 +23,11 @@
 command = [% command %]
 directory = %(here)s/../
 autorestart = [% supervisor.programs.$program.autorestart_b|| default_autorestart  %]
+[% IF supervisor.start_no_supervisor_programs == 'true'  %]
+autostart = false
+[% ELSE %]
 autostart = [% supervisor.programs.$program.autostart_b || default_autostart  %]
+[% END %]
 stopasgroup = [% supervisor.programs.$program.stopasgroup_b || default_stopasgroup  %]
 killasgroup = [% supervisor.programs.$program.killasgroup_b || default_killasgroup %]
 priority = [% priority || 20 %]
