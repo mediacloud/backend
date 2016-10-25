@@ -211,4 +211,36 @@ sub create_test_story_stack
     return $media;
 }
 
+# create test topic with a simple label.  create associated topic_dates and topic_tag_set rows as well
+sub create_test_topic($$)
+{
+    my ( $db, $label ) = @_;
+
+    my $topic_tag_set = $db->create( 'tag_sets', { name => "topic $label" } );
+
+    my $topic = $db->create(
+        'topics',
+        {
+            name                => $label,
+            description         => $label,
+            pattern             => $label,
+            solr_seed_query     => $label,
+            solr_seed_query_run => 't',
+            topic_tag_sets_id   => $topic_tag_set->{ topic_tag_sets_id }
+        }
+    );
+
+    $db->create(
+        'topic_dates',
+        {
+            topics_id  => $topic->{ topics_id },
+            start_date => '2016-01-01',
+            end_date   => '2016-03-01',
+            boundary   => 't'
+        }
+    );
+
+    return $topic;
+}
+
 1;

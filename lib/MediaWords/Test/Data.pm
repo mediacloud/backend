@@ -16,6 +16,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use File::Basename;
+use File::Slurp;
 use Data::Dumper;
 use MediaWords::Util::SQL;
 use MediaWords::Util::DateTime;
@@ -241,6 +242,16 @@ sub adjust_test_timezone
         $story->{ publish_date } = MediaWords::Util::SQL::get_sql_date_from_epoch( $epoch_date );
     }
 
+}
+
+# read and return data from test file. die on read error.
+sub read_test_file($$)
+{
+    my ( $dir, $file ) = @_;
+
+    my $data_file = MediaWords::Test::Data::get_path_to_data_files( $dir ) . "/$file";
+
+    return read_file( $data_file ) || LOGDIE( "Unable to read file '$data_file'" );
 }
 
 1;

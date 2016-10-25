@@ -275,7 +275,11 @@ database:
 #    consumer_key: ""
 #    consumer_secret: ""
 #    access_token: ""
-#    access_token_secret: ""  
+#    access_token_secret: ""
+
+# key to fetch tweets from crimson hexagon.  necessary for topic tweets as implements in FetchTopicTweets.pm
+#crimson_hexagon:
+#   key: ""
 
 ### Univision.com feed credentials
 #univision:

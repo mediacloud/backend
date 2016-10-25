@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4590;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4591;
 
 BEGIN
 
@@ -1232,7 +1232,10 @@ create table topics (
     has_been_spidered       boolean not null default false,
     has_been_dumped         boolean not null default false,
     error_message           text null,
-    is_public               boolean not null default false
+    is_public               boolean not null default false,
+
+    -- this is the id of a crimson hexagon monitor, not an internal database id
+    ch_monitor_id           bigint null
 );
 
 create unique index topics_name on topics( name );
@@ -2848,3 +2851,14 @@ create or replace view topics_with_user_permission as
         from topics t
             join auth_users u on ( true )
             left join topic_permissions tp using ( topics_id, auth_users_id );
+
+-- list of tweet counts and fetching statuses for each day of each topic
+create table topic_tweet_days (
+    topic_tweet_days        serial primary key,
+    topics_id               int not null references topics on delete cascade,
+    day                     date not null,
+    num_tweets              int not null,
+    tweets_fetched          boolean not null default false
+);
+
+create unique index topic_tweet_days_td on topic_tweet_days ( topics_id, day );
