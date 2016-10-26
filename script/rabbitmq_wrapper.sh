@@ -93,6 +93,10 @@ rabbitmq_is_up_to_date() {
 }
 
 max_fd_limit_is_big_enough() {
+    if [ "$MC_SKIP_RABBIT_OPEN_FILES_LIMIT_CHECK" == "1" ]; then
+        return 0
+    fi
+
     if [ `ulimit -S -n` -ge "$MIN_OPEN_FILES_LIMIT" ]; then
         return 0    # "true" in Bash
     else
