@@ -77,6 +77,8 @@ before_script:
     # Initialize PostgreSQL database
     - ./script/run_with_carton.sh ./script/mediawords_create_db.pl
 script:
+    # make sure number of files limit is high enough not to trigger rabbitmq error
+    - ulimit -n 65536
     # Start Readability service for testing "PythonReadability" extractor method on t/test_extractor.t
     - "python python_scripts/extractor_python_readability_server.py &"
     # Run Media Cloud's test suite, report test coverage to https://coveralls.io/r/berkmancenter/mediacloud
