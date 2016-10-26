@@ -60,22 +60,18 @@ sub _get_stories_ids_temporary_table
 {
     my ( $db, $sentences ) = @_;
 
-    $db->query( "create temporary table _stories_ids ( stories_id bigint )" );
+    my $table_name = '_stories_ids';
 
-    eval { $db->dbh->do( "copy _stories_ids from STDIN" ) };
-    die( " Error on copy for _stories_ids: $@" ) if ( $@ );
+    $db->query( "CREATE TEMPORARY TABLE $table_name (stories_id BIGINT)" );
 
+    $db->copy_from_start( "COPY $table_name FROM STDIN" );
     for my $ss ( @{ $sentences } )
     {
-        eval { $db->dbh->pg_putcopydata( "$ss->{ stories_id }\n" ); };
-        die( " Error on pg_putcopydata for _stories_ids: $@" ) if ( $@ );
+        $db->copy_from_put_line( $ss->{ stories_id } );
     }
+    $db->copy_from_end();
 
-    eval { $db->dbh->pg_putcopyend(); };
-
-    die( " Error on pg_putcopyend for _stories_ids: $@" ) if ( $@ );
-
-    return '_stories_ids';
+    return $table_name;
 }
 
 # attach the following fields to each sentence: sentence_number, media_id, publish_date, url, medium_name

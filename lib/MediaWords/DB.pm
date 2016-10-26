@@ -33,15 +33,13 @@ sub _create_connect_info_from_settings
         $data_source .= ';port=' . $settings->{ port };
     }
 
+    # Arguments for DBIx::Simple::MediaWords->connect()
     return (
-        $data_source,
-        $settings->{ user },
-        $settings->{ pass },
-        {
-            AutoCommit     => 1,
-            pg_enable_utf8 => 1,
-            RaiseError     => 1
-        }
+        $settings->{ host },    #
+        $settings->{ port },    #
+        $settings->{ user },    #
+        $settings->{ pass },    #
+        $settings->{ db }       #
     );
 }
 
@@ -93,7 +91,7 @@ $$;
 END_SQL
 
     $ret->query( $query );
-    $ret->dbh->{ AutoCommit } || $ret->commit;
+    $ret->autocommit() || $ret->commit;
 
     return $ret;
 }
@@ -178,24 +176,6 @@ sub print_shell_env_commands_for_psql
     }
 }
 
-sub run_block_with_large_work_mem( &$ )
-{
-
-    my $block = shift;
-    my $db    = shift;
-
-    unless ( $block and ref( $block ) eq 'CODE' )
-    {
-        LOGCONFESS "Block is undefined or is not a subref.";
-    }
-    unless ( $db and ref( $db ) eq 'DBIx::Simple::MediaWords' )
-    {
-        LOGCONFESS "Database handler is undefined or is not a database instance.";
-    }
-
-    DBIx::Simple::MediaWords::run_block_with_large_work_mem( sub { $block->() }, $db );
-}
-
 my $_disable_story_triggers = 0;
 
 sub story_triggers_disabled
@@ -230,20 +210,6 @@ sub get_label
     }
 
     return undef;
-}
-
-# return a new db for a forked process, taking care to deactivate the existing
-# handle to avoid having the child process kill the parent db on exit
-sub reset_forked_db
-{
-    my ( $db ) = @_;
-
-    my $label = get_label( $db );
-
-    $db->dbh->{ InactiveDestroy } = 1;
-    $db->{ dbh } = undef;
-
-    return connect_to_db( $label );
 }
 
 # You can replace this text with custom content, and it will be preserved on regeneration

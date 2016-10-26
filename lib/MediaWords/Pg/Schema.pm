@@ -96,15 +96,13 @@ sub recreate_db
     DEBUG( 'Resetting all schemas...' );
     _reset_all_schemas( $db );
 
-    my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
+    my $script_dir = MediaWords::Util::Config::get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
     TRACE( "script_dir: $script_dir" );
 
     my $mediawords_sql_path = $script_dir . '/mediawords.sql';
     my $mediawords_sql      = read_file( $mediawords_sql_path );
 
-    $db->dbh->{ RaiseError }         = 1;
-    $db->dbh->{ PrintError }         = 1;
-    $db->dbh->{ ShowErrorStatement } = 1;
+    $db->set_show_error_statement( 1 );
 
     local $SIG{ __WARN__ } = sub {
         my $message = shift;
@@ -132,7 +130,7 @@ sub upgrade_db($;$)
 {
     my ( $label, $echo_instead_of_executing ) = @_;
 
-    my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
+    my $script_dir = MediaWords::Util::Config::get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
 
     DEBUG "script_dir: $script_dir";
     my $db;
@@ -159,10 +157,8 @@ EOF
     INFO "Current schema version: $current_schema_version";
 
     # Target schema version
-    open SQLFILE, "$script_dir/mediawords.sql" or LOGDIE $!;
-    my @sql = <SQLFILE>;
-    close SQLFILE;
-    my $target_schema_version = MediaWords::Util::SchemaVersion::schema_version_from_lines( @sql );
+    my $sql = read_file( "$script_dir/mediawords.sql" );
+    my $target_schema_version = MediaWords::Util::SchemaVersion::schema_version_from_lines( $sql );
     unless ( $target_schema_version )
     {
         LOGDIE( "Invalid target schema version." );

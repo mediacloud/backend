@@ -13,7 +13,6 @@ use Modern::Perl "2015";
 use MediaWords::DB;
 use MediaWords::CommonLibs;
 use MediaWords::Util::Compress;
-use DBD::Pg qw(:pg_types);
 
 # Configuration
 has '_conf_table' => ( is => 'rw' );
@@ -55,25 +54,25 @@ sub store_content($$$$;$)
         LOGCONFESS "Unable to compress object ID $object_id: $@";
     }
 
-    my $use_transaction = $db->dbh->{ AutoCommit };
+    my $use_transaction = $db->autocommit();
 
     # "Upsert" the object
     $db->begin_work if ( $use_transaction );
 
     my $sth;
 
-    $sth = $db->dbh->prepare(
+    $sth = $db->prepare(
         <<"EOF",
     	UPDATE $table
     	SET raw_data = ?
     	WHERE object_id = ?
 EOF
     );
-    $sth->bind_param( 1, $content_to_store, { pg_type => DBD::Pg::PG_BYTEA } );
+    $sth->bind_param( 1, $content_to_store, $DBIx::Simple::MediaWords::Statement::VALUE_BYTEA );
     $sth->bind_param( 2, $object_id );
     $sth->execute();
 
-    $sth = $db->dbh->prepare(
+    $sth = $db->prepare(
         <<"EOF",
     	INSERT INTO $table (object_id, raw_data)
 			SELECT ?, ?
@@ -85,7 +84,7 @@ EOF
 EOF
     );
     $sth->bind_param( 1, $object_id );
-    $sth->bind_param( 2, $content_to_store, { pg_type => DBD::Pg::PG_BYTEA } );
+    $sth->bind_param( 2, $content_to_store, $DBIx::Simple::MediaWords::Statement::VALUE_BYTEA );
     $sth->bind_param( 3, $object_id );
     $sth->execute();
 

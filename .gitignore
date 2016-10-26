@@ -12,6 +12,9 @@ cache/translate
 # all caches
 data/cache/
 
+# Media Cloud virtualenv
+mc-venv/
+
 # Python bytecode files
 *.py[cod]
 
@@ -26,7 +29,7 @@ Session.vim
 # OS X
 .DS_Store
 
-# Inline::Java
+# Inline::* bytecode
 _Inline/
 
 # Devel::NYTProf output

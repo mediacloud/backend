@@ -38,7 +38,7 @@ my $_corenlp_annotator_url = lazy
         fatal_error( "CoreNLP annotator is not enabled; why are you accessing this variable?" );
     }
 
-    my $config = MediaWords::Util::Config->get_config();
+    my $config = MediaWords::Util::Config::get_config();
 
     # CoreNLP annotator URL
     my $url = $config->{ corenlp }->{ annotator_url };
@@ -74,7 +74,7 @@ my $_corenlp_annotator_timeout = lazy
         fatal_error( "CoreNLP annotator is not enabled; why are you accessing this variable?" );
     }
 
-    my $config = MediaWords::Util::Config->get_config();
+    my $config = MediaWords::Util::Config::get_config();
 
     # Timeout
     my $corenlp_annotator_timeout = $config->{ corenlp }->{ annotator_timeout };
@@ -96,7 +96,7 @@ my $_corenlp_annotator_level = lazy
         fatal_error( "CoreNLP annotator is not enabled; why are you accessing this variable?" );
     }
 
-    my $config = MediaWords::Util::Config->get_config();
+    my $config = MediaWords::Util::Config::get_config();
 
     # Level
     my $corenlp_annotator_level = $config->{ corenlp }->{ annotator_level };
@@ -423,7 +423,7 @@ sub _fetch_raw_annotation_for_story($$)
 # Returns true if CoreNLP annotator is enabled
 sub annotator_is_enabled()
 {
-    my $config = MediaWords::Util::Config->get_config();
+    my $config = MediaWords::Util::Config::get_config();
     my $corenlp_enabled = $config->{ corenlp }->{ enabled } // '';
 
     if ( $corenlp_enabled eq 'yes' )

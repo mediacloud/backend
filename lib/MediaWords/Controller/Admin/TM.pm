@@ -300,7 +300,7 @@ sub _get_mining_status
 
     my $cid = $topic->{ topics_id };
 
-    my $queued_urls = $db->query( <<END, $cid )->list;
+    my $queued_urls = $db->query( <<END, $cid )->array->[ 0 ];
 select count(*) from topic_links where topics_id = ? and ref_stories_id is null
 END
 
@@ -1364,7 +1364,7 @@ sub _get_story_and_links_from_snapshot_tables
     # if the below query returns nothing, the return type of the server prepared statement
     # may differ from the first call, which throws a postgres error, so we need to
     # disable server side prepares
-    $db->dbh->{ pg_server_prepare } = 0;
+    $db->set_prepare_on_server_side( 0 );
 
     my $story = $db->query( <<SQL, $stories_id )->hash;
 select * from snapshot_stories s join snapshot_story_link_counts slc using ( stories_id ) where s.stories_id = ?
@@ -2169,7 +2169,7 @@ END
     my $sql_activities =
       MediaWords::DBI::Activities::sql_activities_which_reference_column( 'topics.topics_id', $topics_id );
 
-    my ( $activities, $pager ) = $c->dbis->query_paged_hashes( $sql_activities, [], $p, $ROWS_PER_PAGE );
+    my ( $activities, $pager ) = $c->dbis->query_paged_hashes( $sql_activities, $p, $ROWS_PER_PAGE );
 
     # FIXME put activity preparation (JSON decoding, description fetching) into
     # a subroutine in order to not repeat oneself.

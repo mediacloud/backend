@@ -41,7 +41,7 @@ if ps aux | grep java | grep 8983 > /dev/null; then
 fi
 
 echo "Starting Solr..."
-python ./solr/run_solr_standalone.py &
+python3 ./solr/run_solr_standalone.py &
 solr_pid=$!
 
 SOLR_IS_UP=0
@@ -119,7 +119,7 @@ if MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION=1 MEDIAWORDS_FORCE_USING_TEST_DATABASE=1 
             done
 
         cd MediaCloud-API-Client
-        if python test.py; then
+        if python2 test.py; then
             echo "Python API test succeeded"
         else
             TEST_RETURN_STATUS=$?

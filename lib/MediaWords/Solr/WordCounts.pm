@@ -501,7 +501,7 @@ sub _get_cache_key
 {
     my ( $self ) = @_;
 
-    $_wc_cache_version //= MediaWords::Util::Config->get_config->{ mediawords }->{ wc_cache_version } || '1';
+    $_wc_cache_version //= MediaWords::Util::Config::get_config->{ mediawords }->{ wc_cache_version } || '1';
 
     my $meta = $self->meta;
 
