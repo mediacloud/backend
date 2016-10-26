@@ -22,5 +22,3 @@ use File::Basename;
 my $dirname = dirname( __FILE__ );
 
 exec( "$dirname/run_fcgi_with_plackup_and_carton.sh" );
-
-1;
