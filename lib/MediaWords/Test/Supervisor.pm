@@ -125,7 +125,6 @@ sub _run_supervisord()
             $status = _run_supervisorctl( 'status' );
             if ( !( $status =~ /SHUTDOWN_STATE/ ) )
             {
-                DEBUG( "existing supervisord status: $status" );
                 DEBUG( "shutting down existing supervisord ..." );
                 _run_supervisorctl( 'shutdown' );
             }
