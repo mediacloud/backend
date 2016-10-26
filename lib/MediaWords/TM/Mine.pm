@@ -379,17 +379,17 @@ sub insert_topic_links
 {
     my ( $db, $topic_links ) = @_;
 
-    $db->dbh->do( "COPY topic_links ( stories_id, url, topics_id ) FROM STDIN WITH CSV" );
+    my $columns = [ 'stories_id', 'url', 'topics_id' ];
 
     my $csv = Text::CSV_XS->new( { binary => 1 } );
 
+    $db->copy_from_start( "COPY topic_links (" . join( ', ', @{ $columns } ) . ") FROM STDIN WITH CSV" );
     for my $topic_link ( @{ $topic_links } )
     {
-        $csv->combine( map { $topic_link->{ $_ } } ( qw/stories_id url topics_id/ ) );
-        $db->dbh->pg_putcopydata( encode( 'utf8', $csv->string ) . "\n" );
+        $csv->combine( map { $topic_link->{ $_ } } ( @{ $columns } ) );
+        $db->copy_from_put_line( encode( 'utf8', $csv->string ) );
     }
-
-    $db->dbh->pg_putcopyend();
+    $db->copy_from_end();
 }
 
 # for each story, return a list of the links found in either the extracted html or the story description
@@ -1107,7 +1107,7 @@ sub postgres_regex_match($$$)
 
     return undef unless ( @{ $strings } );
 
-    my $quoted_strings = join( ',', map { "(" . $db->dbh->quote( $_ ) . ")" } @{ $strings } );
+    my $quoted_strings = join( ',', map { "(" . $db->quote( $_ ) . ")" } @{ $strings } );
 
     # combine all the strings together to avoid overhead of lots of indivdiual queries
     my $match = $db->query( <<SQL, $re )->hash;
@@ -1262,7 +1262,7 @@ sub get_matching_story_from_db ($$;$)
 
     my $url_lookup = {};
     map { $url_lookup->{ $_ } = 1 } ( $u, $ru, $nu, $nru );
-    my $quoted_url_list = join( ',', map { "(" . $db->dbh->quote( $_ ) . ")" } keys( %{ $url_lookup } ) );
+    my $quoted_url_list = join( ',', map { "(" . $db->quote( $_ ) . ")" } keys( %{ $url_lookup } ) );
 
     # TODO - only query stories_id and media_id initially
 
@@ -1604,7 +1604,7 @@ sub get_stories_to_extract
             push( @{ $extract_stories }, $story );
         }
 
-        $db->commit unless ( $db->{ dbh }->{ AutoCommit } );
+        $db->commit unless ( $db->autocommit() );
     }
 
     return $extract_stories;
@@ -1973,14 +1973,14 @@ sub update_topic_tags
     my $all_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "$tagset_name:all" )
       || die( "Can't find or create all_tag" );
 
-    $db->query_with_large_work_mem( <<SQL, $all_tag->{ tags_id }, $topic->{ topics_id } );
+    $db->execute_with_large_work_mem( <<SQL, $all_tag->{ tags_id }, $topic->{ topics_id } );
 delete from stories_tags_map stm
     where stm.tags_id = ? and
         not exists ( select 1 from topic_stories cs
                          where cs.topics_id = ? and cs.stories_id = stm.stories_id )
 SQL
 
-    $db->query_with_large_work_mem( <<SQL, $topic->{ topics_id }, $all_tag->{ tags_id } );
+    $db->execute_with_large_work_mem( <<SQL, $topic->{ topics_id }, $all_tag->{ tags_id } );
 insert into stories_tags_map ( stories_id, tags_id )
     select distinct cs.stories_id, \$2
         from topic_stories cs
@@ -2064,7 +2064,7 @@ END
         add_to_topic_stories( $db, $topic, $keep_story, $merged_iteration, 1 );
     }
 
-    $db->begin if $db->dbh->{ AutoCommit };
+    $db->begin if $db->autocommit();
 
     my $topic_links = $db->query( <<END, $delete_story->{ stories_id }, $topics_id )->hashes;
 select * from topic_links where stories_id = ? and topics_id = ?
@@ -2093,7 +2093,7 @@ END
 insert into topic_merged_stories_map ( source_stories_id, target_stories_id ) values ( ?, ? )
 END
 
-    $db->commit unless $db->dbh->{ AutoCommit };
+    $db->commit unless $db->autocommit();
 
 }
 
@@ -2366,7 +2366,7 @@ update topic_seed_urls
     where topic_seed_urls_id = ?
 END
     }
-    $db->commit unless $db->dbh->{ AutoCommit };
+    $db->commit unless $db->autocommit();
 }
 
 # look for any stories in the topic tagged with a date method of 'current_time' and
@@ -2684,19 +2684,17 @@ sub insert_topic_seed_urls
 
     INFO "inserting " . scalar( @{ $topic_seed_urls } ) . " topic seed urls ...";
 
-    $db->dbh->do( <<SQL );
-COPY topic_seed_urls ( stories_id, url, topics_id, assume_match ) FROM STDIN WITH CSV
-SQL
+    my $columns = [ 'stories_id', 'url', 'topics_id', 'assume_match' ];
 
     my $csv = Text::CSV_XS->new( { binary => 1 } );
 
+    $db->copy_from_start( "COPY topic_seed_urls (" . join( ', ', @{ $columns } ) . ") FROM STDIN WITH CSV" );
     for my $csu ( @{ $topic_seed_urls } )
     {
-        $csv->combine( map { $csu->{ $_ } } ( qw/stories_id url topics_id assume_match/ ) );
-        $db->dbh->pg_putcopydata( $csv->string . "\n" );
+        $csv->combine( map { $csu->{ $_ } } ( @{ $columns } ) );
+        $db->copy_from_put_line( $csv->string );
     }
-
-    $db->dbh->pg_putcopyend();
+    $db->copy_from_end();
 }
 
 # import stories intro topic_seed_urls from solr by running
@@ -2736,7 +2734,7 @@ sub import_solr_seed_query
 
     $db->query( "update topics set solr_seed_query_run = 't' where topics_id = ?", $topic->{ topics_id } );
 
-    $db->commit unless $db->dbh->{ AutoCommit };
+    $db->commit unless $db->autocommit();
 }
 
 # return true if there are fewer than $MAX_NULL_BITLY_STORIES stories without bitly data

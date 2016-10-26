@@ -17,17 +17,10 @@ if [ ! -f mediawords.yml ]; then
 fi
 
 ./install_scripts/install_mediacloud_package_dependencies.sh
+./install_scripts/install_python_dependencies.sh
 ./install_scripts/set_kernel_parameters.sh
 ./install_scripts/set_postgresql_parameters.sh
 ./install_mc_perlbrew_and_modules.sh
-
-# Install Python dependencies
-sudo pip install --upgrade pip # make sure pip is latest version to avoid errors
-sudo pip install --upgrade -r python_scripts/requirements.txt || {
-    # Sometimes fails with some sort of Setuptools error
-    echo "'pip install' failed the first time, retrying..."
-    sudo pip install --upgrade -r python_scripts/requirements.txt
-}
 
 echo "install complete"
 echo "running compile test"

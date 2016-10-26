@@ -1,33 +1,38 @@
 use strict;
 use warnings;
-use Dir::Self;
-use Data::Dumper;
+
 use Test::NoWarnings;
-use Test::More tests => 11 + 1;
+use Test::More tests => 9;
 
 BEGIN
 {
-    use_ok( 'MediaWords::Util::Config' );
-    use_ok( 'MediaWords::DB' );
-    use_ok( 'DBIx::Simple::MediaWords' );
+    use FindBin;
+    use lib "$FindBin::Bin/../lib";
 }
 
-require_ok( 'MediaWords::Util::Config' );
-require_ok( 'MediaWords::DB' );
-require_ok( 'DBIx::Simple::MediaWords' );
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
+use MediaWords::Util::Config;
+use MediaWords::DB;
+use DBIx::Simple::MediaWords;
+
+use Dir::Self;
 
 MediaWords::Util::Config::set_config_file( __DIR__ . '/db_production.yml' );
 
-my ( $connect, $user, $password, $options ) = MediaWords::DB::connect_info();
+{
+    my ( $host, $port, $username, $password, $database ) = MediaWords::DB::connect_info();
+    is( $host,     'localhost' );
+    is( $username, 'mediaclouduser' );
+    is( $password, 'secretpassword' );
+    is( $database, 'mediacloud' );
+}
 
-is( $connect, 'dbi:Pg:dbname=mediacloud;host=localhost', 'connection string creation' );
-
-is( $user, 'mediaclouduser', 'username capture' );
-
-is( $password, 'secretpassword', 'password capture' );
-
-( $connect, $user, $password, $options ) = MediaWords::DB::connect_info( 'test' );
-
-is( $connect, 'dbi:Pg:dbname=mediacloudtest;host=localhost', 'labeled connection string creation' );
-
-is( $user, 'mediacloudtestuser', 'labeled username capture' );
+{
+    my ( $host, $port, $username, $password, $database ) = MediaWords::DB::connect_info( 'test' );
+    is( $host,     'localhost' );
+    is( $username, 'mediacloudtestuser' );
+    is( $password, 'secretpassword' );
+    is( $database, 'mediacloudtest' );
+}

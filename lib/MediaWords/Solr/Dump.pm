@@ -130,10 +130,10 @@ sub _set_lookup
 {
     my ( $db, $data_lookup, $name, $query ) = @_;
 
-    my $sth = $db->query( $query );
+    my $res = $db->query( $query );
 
     my $lookup = {};
-    while ( my $row = $sth->array )
+    while ( my $row = $res->array )
     {
         $lookup->{ $row->[ 1 ] } = $row->[ 0 ];
     }
@@ -191,7 +191,7 @@ sub _declare_sentences_cursor
 
     # DO NOT ADD JOINS TO THIS QUERY! INSTEAD ADD ANY JOINED TABLES TO _get_data_lookup AND THEN ADD TO THE CSV
     # IN _print_csv_to_file_from_csr. see pod description above for more info.
-    $db->dbh->do( <<END );
+    $db->query( <<END );
 declare csr cursor for
 
     select
@@ -224,7 +224,7 @@ sub _declare_titles_cursor
 
     # DO NOT ADD JOINS TO THIS QUERY! INSTEAD ADD ANY JOINED TABLES TO _get_data_lookup AND THEN ADD TO THE CSV
     # IN _print_csv_to_file_from_csr. see pod description above for more info.
-    $db->dbh->do( <<END );
+    $db->query( <<END );
 declare csr cursor for
 
     select
@@ -266,19 +266,17 @@ sub _print_csv_to_file_from_csr
     my $i                    = 0;
     while ( 1 )
     {
-        my $sth = $db->dbh->prepare( "fetch $FETCH_BLOCK_SIZE from csr" );
-
-        $sth->execute;
-
-        last if 0 == $sth->rows;
-
-        # use fetchrow_arrayref to optimize fetching and lookup speed below -- perl
-        # cpu is a significant bottleneck for this script
-        while ( my $row = $sth->fetchrow_arrayref )
+        my $rows = $db->query( "fetch $FETCH_BLOCK_SIZE from csr" )->hashes;
+        if ( scalar( @{ $rows } ) == 0 )
         {
-            my $stories_id         = $row->[ 0 ];
-            my $media_id           = $row->[ 1 ];
-            my $story_sentences_id = $row->[ 2 ];
+            last;
+        }
+
+        foreach my $row ( @{ $rows } )
+        {
+            my $stories_id         = $row->{ stories_id };
+            my $media_id           = $row->{ media_id };
+            my $story_sentences_id = $row->{ story_sentences_id };
 
             my $processed_stories_id = $data_lookup->{ ps }->{ $stories_id };
             next unless ( $processed_stories_id );
@@ -288,8 +286,23 @@ sub _print_csv_to_file_from_csr
             my $stories_tags_list = $data_lookup->{ stories_tags }->{ $stories_id }    || '';
             my $ss_tags_list      = $data_lookup->{ ss_tags }->{ $story_sentences_id } || '';
 
-            $csv->combine( @{ $row }, $click_count, $processed_stories_id, $media_tags_list, $stories_tags_list,
-                $ss_tags_list );
+            $csv->combine(
+                $stories_id,                  #
+                $media_id,                    #
+                $story_sentences_id,          #
+                $row->{ solr_id },            #
+                $row->{ publish_date },       #
+                $row->{ publish_day },        #
+                $row->{ sentence_number },    #
+                $row->{ sentence },           #
+                $row->{ title },              #
+                $row->{ language },           #
+                $click_count,                 #
+                $processed_stories_id,        #
+                $media_tags_list,             #
+                $stories_tags_list,           #
+                $ss_tags_list                 #
+            );
             $fh->print( encode( 'utf8', $csv->string . "\n" ) );
 
             $imported_stories_ids->{ $stories_id } = 1;
@@ -298,7 +311,7 @@ sub _print_csv_to_file_from_csr
         INFO time() . " " . ( ++$i * $FETCH_BLOCK_SIZE );    # unless ( ++$i % 10 );
     }
 
-    $db->dbh->do( "close csr" );
+    $db->query( "close csr" );
 
     return [ keys %{ $imported_stories_ids } ];
 }
@@ -944,7 +957,7 @@ sub _import_csv_single_file
         my $elapsed_time = ( time + 1 ) - $start_time;
 
         my $remaining_time = int( $elapsed_time * ( 1 / $partial_progress ) ) - $elapsed_time;
-        $remaining_time = '??' if ( $chunk_num < $jobs );
+        $remaining_time = 'unknown' if ( $chunk_num < $jobs );
 
         my $chunk_delta = _get_chunk_delta( $data, $last_chunk_delta, $staging );
         $last_chunk_delta = $chunk_delta;

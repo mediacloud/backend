@@ -345,15 +345,19 @@ sub _test_crawler($$$$)
             $test_http_server->start();
             my $url_to_crawl = $test_http_server->url();
 
+            INFO "Adding test feed...";
             _add_test_feed( $db, $url_to_crawl, $test_name, $test_prefix );
 
+            INFO "Starting crawler...";
             _run_crawler();
 
             if ( defined( $ARGV[ 0 ] ) && ( $ARGV[ 0 ] eq '-d' ) )
             {
+                INFO "Dumping stories...";
                 _dump_stories( $db, $test_name, $test_prefix, $extractor_method );
             }
 
+            INFO "Testing stories...";
             _test_stories( $db, $test_name, $test_prefix, $stories_count, $extractor_method );
 
             INFO "Killing server";

@@ -41,7 +41,7 @@ my $_bitly_access_token = lazy
         fatal_error( "Bit.ly processing is not enabled; why are you accessing this variable?" );
     }
 
-    my $config = MediaWords::Util::Config->get_config();
+    my $config = MediaWords::Util::Config::get_config();
 
     my $access_token = $config->{ bitly }->{ access_token };
     unless ( $access_token )
@@ -60,7 +60,7 @@ my $_bitly_timeout = lazy
         fatal_error( "Bit.ly processing is not enabled; why are you accessing this variable?" );
     }
 
-    my $config = MediaWords::Util::Config->get_config();
+    my $config = MediaWords::Util::Config::get_config();
 
     my $timeout = $config->{ bitly }->{ timeout };
     unless ( $timeout )

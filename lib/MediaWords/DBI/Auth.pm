@@ -738,7 +738,7 @@ sub add_user_or_return_error_message($$$$$$$$$;$$)
     }
 
     # Begin transaction
-    $db->dbh->begin_work;
+    $db->begin_work;
 
     # Create the user
     $db->query(
@@ -753,19 +753,21 @@ EOF
     $userinfo = user_info( $db, $email );
     if ( !$userinfo )
     {
-        $db->dbh->rollback;
+        $db->rollback;
         return "I've attempted to create the user but it doesn't exist.";
     }
     my $auth_users_id = $userinfo->{ auth_users_id };
 
     # Create roles
-    my $sql = 'INSERT INTO auth_users_roles_map (auth_users_id, auth_roles_id) VALUES (?, ?)';
-    my $sth = $db->dbh->prepare_cached( $sql );
     for my $auth_roles_id ( @{ $role_ids } )
     {
-        $sth->execute( $auth_users_id, $auth_roles_id );
+        $db->query(<<SQL,
+            INSERT INTO auth_users_roles_map (auth_users_id, auth_roles_id)
+            VALUES (?, ?)
+SQL
+            $auth_users_id, $auth_roles_id
+        );
     }
-    $sth->finish;
 
     # Update limits (if they're defined)
     if ( defined $weekly_requests_limit )
@@ -793,7 +795,7 @@ EOF
     }
 
     # End transaction
-    $db->dbh->commit;
+    $db->commit;
 
     # Success
     return '';
@@ -815,7 +817,7 @@ sub update_user_or_return_error_message($$$$$$;$$$$$)
     }
 
     # Begin transaction
-    $db->dbh->begin_work;
+    $db->begin_work;
 
     # Update the user
     $db->query(
@@ -838,7 +840,7 @@ EOF
           _change_password_or_return_error_message( $db, $email, $password, $password_repeat, 1 );
         if ( $password_change_error_message )
         {
-            $db->dbh->rollback;
+            $db->rollback;
             return $password_change_error_message;
         }
     }
@@ -875,16 +877,17 @@ EOF
 EOF
         $userinfo->{ auth_users_id }
     );
-    my $sql = 'INSERT INTO auth_users_roles_map (auth_users_id, auth_roles_id) VALUES (?, ?)';
-    my $sth = $db->dbh->prepare_cached( $sql );
     for my $auth_roles_id ( @{ $roles } )
     {
-        $sth->execute( $userinfo->{ auth_users_id }, $auth_roles_id );
+        $db->query(<<SQL,
+            INSERT INTO auth_users_roles_map (auth_users_id, auth_roles_id) VALUES (?, ?)
+SQL
+            $userinfo->{ auth_users_id }, $auth_roles_id
+        );
     }
-    $sth->finish;
 
     # End transaction
-    $db->dbh->commit;
+    $db->commit;
 
     return '';
 }
