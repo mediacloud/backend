@@ -111,7 +111,7 @@ sub _get_feedly_json_data_deteremined($$)
     {
         my $json_data;
         eval {
-            my $ua = MediaWords::Util::Web::UserAgent;
+            my $ua = MediaWords::Util::Web::UserAgent();
             $ua->max_size( undef );
             $ua->timeout( 60 );
 

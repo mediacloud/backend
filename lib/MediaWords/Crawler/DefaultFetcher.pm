@@ -98,7 +98,7 @@ sub fetch_download($$$)
 
     $db->update_by_id( "downloads", $download->{ downloads_id }, $download );
 
-    my $ua = MediaWords::Util::Web::UserAgent;
+    my $ua = MediaWords::Util::Web::UserAgent();
 
     my $url = MediaWords::Util::URL::fix_common_url_mistakes( $download->{ url } );
 
