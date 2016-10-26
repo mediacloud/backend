@@ -237,9 +237,11 @@ sub query_encoded_json($$;$)
     $params->{ rows } = List::Util::min( $params->{ rows }, 1000000 );
 
     _uppercase_boolean_operators( $params->{ q } );
+
     # _uppercase_boolean_operators( $params->{ fq } );
 
-    $params->{ q }  = MediaWords::Solr::PseudoQueries::transform_query( $params->{ q } );
+    $params->{ q } = MediaWords::Solr::PseudoQueries::transform_query( $params->{ q } );
+
     # $params->{ fq } = MediaWords::Solr::PseudoQueries::transform_query( $params->{ fq } );
 
     # Ensure that only UTF-8 strings get passed to Solr
@@ -249,7 +251,7 @@ sub query_encoded_json($$;$)
 
     my $url = sprintf( '%s/%s/%s', get_solr_url(), get_live_collection( $db ), $url_action );
 
-    my $ua = MediaWords::Util::Web::UserAgent;
+    my $ua = MediaWords::Util::Web::UserAgent();
 
     $ua->timeout( 300 );
     $ua->max_size( undef );

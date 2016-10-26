@@ -1070,8 +1070,8 @@ sub _get_story_word_matrix_cursor($$$)
 
     my $ids_table = $db->get_temporary_ids_table( $stories_ids );
     $db->query( <<SQL, $sentence_separator );
-declare story_text cursor for
-    select stories_id, language, string_agg( sentence, \$1 ) $cursor
+declare $cursor cursor for
+    select stories_id, language, string_agg( sentence, \$1 ) story_text
         from story_sentences
         where stories_id in ( select id from $ids_table )
         group by stories_id, language
@@ -1200,7 +1200,8 @@ sub get_story_word_matrix($$;$$)
                 splice( @{ $stem_count_list }, 0, $max_words );
             }
 
-            my $stem_vector = {};
+            $word_matrix->{ $story->{ stories_id } } //= {};
+            my $stem_vector = $word_matrix->{ $story->{ stories_id } };
             for my $stem_count ( @{ $stem_count_list } )
             {
                 my ( $stem, $count, $terms ) = @{ $stem_count };
@@ -1208,12 +1209,10 @@ sub get_story_word_matrix($$;$$)
                 $word_index_lookup->{ $stem } //= $word_index_sequence++;
                 my $index = $word_index_lookup->{ $stem };
 
-                $stem_vector->{ $index } = $count;
+                $stem_vector->{ $index } += $count;
 
                 map { $word_term_counts->{ $stem }->{ $_ } += $terms->{ $_ } } keys( %{ $terms } );
             }
-
-            $word_matrix->{ $story->{ stories_id } } = $stem_vector;
         }
     }
 
