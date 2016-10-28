@@ -221,10 +221,12 @@ sub get_original_url_from_momento_archive_url
     my $response = $ua->get( $archive_site_url );
 
     my $link_header = $response->headers()->{ link };
+    $link_header = pop( @{ $link_header } ) if ( ref( $link_header ) eq ref( [] ) );
 
-    my @urls = ( $link_header =~ /\<(http[^>]*)\>/g );
+    return undef unless ( $link_header =~ /\<(http[^>]*)\>/ );
+    my $original_url = $1;
 
-    my $original_url = $urls[ 0 ];
+    $original_url =~ s~^http.*/(https?:)~$1~;
 
     return $original_url;
 }
