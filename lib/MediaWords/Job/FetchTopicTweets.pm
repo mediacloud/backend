@@ -27,11 +27,15 @@ BEGIN
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use MediaWords::DB;
-use MediaWords::Util::Web;
-use MediaWords::Util::JSON;
+use List::MoreUtils;
+use Net::Twitter;
 
-my $_ch_api_url = "https://api.crimsonhexagon.com/api/monitor/posts";
+use MediaWords::DB;
+use MediaWords::Util::DateTime;
+use MediaWords::Util::JSON;
+use MediaWords::Util::Web;
+
+my $_api_host = undef;
 
 =head1 METHODS
 
@@ -49,7 +53,9 @@ sub _fetch_ch_posts ($$;$)
 
     my $next_day = MediaWords::Util::SQL::increment_day( $day );
 
-    my $url = "$_ch_api_url?auth=-$key&id=$ch_monitor_id&start=$day&end=$next_day";
+    my $url = _get_ch_api_url() . "?auth=$key&id=$ch_monitor_id&start=$day&end=$next_day";
+
+    DEBUG( "CH URL: $url" );
 
     my $response = $ua->get( $url );
 
@@ -63,7 +69,7 @@ sub _fetch_ch_posts ($$;$)
     my $data;
     eval { $data = MediaWords::Util::JSON::decode_json( $decoded_content ); };
 
-    LOGDIE( "Unable to parse json from url $url: $@ " . substr( $decoded_content, 0, 1024 ) ) unless ( $data );
+    LOGDIE( "Unable to parse json from url $url: $@ " . substr( $decoded_content, 0, 1024 ) . " ..." ) unless ( $data );
 
     LOGDIE( "Unknown response status: '$data->{ status }'" ) unless ( $data->{ status } eq 'success' );
 
@@ -117,10 +123,106 @@ SQL
     return $topic_tweet_days;
 }
 
+# given a set of ch_posts, fetch data from twitter about each tweet and attach it under the $ch->{ tweet } field
+sub _add_tweets_to_ch_posts
+{
+    my ( $twitter, $ch_posts ) = @_;
+
+    DEBUG( "fetching tweets for " . scalar( @{ $ch_posts } ) . " tweets" );
+
+    LOGDIE( "more than 100 posts in $ch_posts" ) unless ( scalar( @{ $ch_posts } ) <= 500 );
+
+    my $ch_post_lookup = {};
+    for my $ch_post ( @{ $ch_posts } )
+    {
+        LOGDIE( "Unable to parse id from tweet url: $ch_post->{ url }" ) unless ( $ch_post->{ url } =~ m~/status/(\d+)~ );
+        my $tweet_id = $1;
+
+        $ch_post->{ tweet_id } = $tweet_id;
+        $ch_post_lookup->{ $tweet_id } = $ch_post;
+    }
+
+    my $tweet_ids = [ keys( %{ $ch_post_lookup } ) ];
+
+    my $tweets = $twitter->lookup_statuses( { id => $tweet_ids, include_entities => 'false', trim_user => 'true' } );
+
+    for my $tweet ( @{ $tweets } )
+    {
+        if ( my $ch_post = $ch_post_lookup->{ $tweet->{ id } } )
+        {
+            $ch_post->{ tweet } = $tweet;
+        }
+        else
+        {
+            LOGDIE( "no post found for tweet id $tweet->{ id }" );
+        }
+    }
+
+    map { WARN( "no tweet fetched for url $_->{ url }" ); } ( grep { !$_->{ tweet } } @{ $ch_posts } );
+}
+
 # if tweets_fetched is false for the given topic_tweet_days row, fetch the tweets for the given day by querying
 # the list of tweets from CH and then fetching each tweet from twitter
-sub _fetch_tweets
+sub _fetch_tweets_for_day
 {
+    my ( $db, $twitter, $topic, $topic_tweet_day ) = @_;
+
+    return if ( $topic_tweet_day->{ tweets_fetched } );
+
+    my $ch_posts_data = _fetch_ch_posts( $topic->{ ch_monitor_id }, $topic_tweet_day->{ day }, 1 );
+
+    LOGDIE( "no 'posts' field found in json result for topic $topic->{ topics_id } day $topic_tweet_day->{ day }" )
+      unless ( $ch_posts_data->{ posts } );
+
+    my $ch_posts = $ch_posts_data->{ posts };
+
+    DEBUG(
+        "adding " . scalar( @{ $ch_posts } ) . " tweets for topic $topic->{ topics_id } day $topic_tweet_day->{ day } ..." );
+
+    # we can get 100 posts at a time from twitter
+    my $get_posts_chunk = List::MoreUtils::natatime( 100, @{ $ch_posts } );
+    while ( my @ch_posts_chunk = $get_posts_chunk->() )
+    {
+        _add_tweets_to_ch_posts( $twitter, \@ch_posts_chunk );
+    }
+
+    for my $ch_post ( grep { $_->{ tweet } } @{ $ch_posts } )
+    {
+        $db->begin();
+        my $publish_date = MediaWords::Util::SQL::get_sql_date_from_str2time( $ch_post->{ tweet }->{ created_at } );
+        my $topic_tweet  = {
+            topics_id    => $topic->{ topics_id },
+            data         => MediaWords::Util::JSON::encode_json( $ch_post ),
+            content      => $ch_post->{ tweet }->{ text },
+            tweet_id     => $ch_post->{ tweet_id },
+            publish_date => $publish_date
+        };
+
+        $db->create( 'topic_tweets', $topic_tweet );
+        $db->query( <<SQL, $topic_tweet_day->{ topic_tweet_days_id } );
+update topic_tweet_days set tweets_fetched = true where topic_tweet_days_id = ?
+SQL
+        $db->commit();
+    }
+}
+
+# get Net::Twitter handle using auth info from mediawords.yml
+sub _get_twitter_handle
+{
+    my $config = MediaWords::Util::Config::get_config;
+
+    map { die( "missing config for //twitter/$_" ) unless ( $config->{ twitter }->{ $_ } ) }
+      qw(consumer_key consumer_secret access_token access_token_secret);
+
+    my $twitter = Net::Twitter->new(
+        traits              => [ qw/API::RESTv1_1/ ],
+        ssl                 => 0,
+        apiurl              => _get_twitter_api_url(),
+        consumer_key        => $config->{ twitter }->{ consumer_key },
+        consumer_secret     => $config->{ twitter }->{ consumer_secret },
+        access_token        => $config->{ twitter }->{ access_token },
+        access_token_secret => $config->{ twitter }->{ access_token_secret },
+    );
 }
 
 =head2 run( $self, $args )
@@ -164,20 +266,38 @@ sub run($;$)
 
     my $topic_tweet_days = _get_topic_tweet_days( $db, $topic );
 
-    map { _fetch_tweets( $db, $topic, $_ ) } @{ $topic_tweet_days };
+    my $twitter = _get_twitter_handle();
+
+    map { _fetch_tweets_for_day( $db, $twitter, $topic, $_ ) } @{ $topic_tweet_days };
 }
 
-=head2 set_ch_api_url( $url )
+=head2 set_api_host( $host )
 
-Set the full api url used to access crimson hexagon.
+Set the scheme, host, and port in schem://host.name:port format to use for both ch and twitter api calls for testing purposes.
 
 =cut
 
-sub set_api_url ($$)
+sub set_api_host ($$)
 {
-    my ( $class, $url ) = @_;
+    my ( $class, $host ) = @_;
 
-    $_ch_api_url = $url;
+    $_api_host = $host;
+}
+
+# return the url for the ch monitor/posts call
+sub _get_ch_api_url
+{
+    my $host = $_api_host ? $_api_host : 'https://api.crimsonhexagon.com';
+
+    return "$host/api/monitor/posts";
+}
+
+# return the url to pass as the apiurl to the Net::Twitter module
+sub _get_twitter_api_url
+{
+    my $host = $_api_host ? $_api_host : 'https://api.twitter.com/1.1';
+
+    return $host;
 }
 
 no Moose;    # gets rid of scaffolding

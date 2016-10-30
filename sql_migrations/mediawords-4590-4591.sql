@@ -17,7 +17,7 @@ alter table topics add ch_monitor_id bigint null;
 
 -- list of tweet counts and fetching statuses for each day of each topic
 create table topic_tweet_days (
-    topic_tweet_days       serial primary key,
+    topic_tweet_days_id     serial primary key,
     topics_id               int not null references topics on delete cascade,
     day                     date not null,
     num_tweets              int not null,
@@ -26,7 +26,18 @@ create table topic_tweet_days (
 
 create unique index topic_tweet_days_td on topic_tweet_days ( topics_id, day );
 
---
+-- list of tweets associated with a given topic
+create table topic_tweets (
+    topic_tweets_id         serial primary key,
+    topics_id               int not null references topics on delete cascade,
+    data                    json not null,
+    tweet_id                varchar(256) not null,
+    content                 text not null,
+    publish_date            timestamp not null
+);
+
+create unique index topic_tweets_id on topic_tweets( topics_id, tweet_id );
+    --
 -- 2 of 2. Reset the database version.
 --
 

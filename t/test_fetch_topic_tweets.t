@@ -65,6 +65,49 @@ $json
 HTTP
 }
 
+sub mock_twitter_lookup
+{
+    my ( $self, $cgi ) = @_;
+
+    my $id_list = $cgi->param( 'id' );
+
+    die( "id param must be specified" ) unless ( $id_list );
+
+    my $ids = [ split( ',', $id_list ) ];
+
+    die( "at least one id must be specified" ) unless ( @{ $ids } );
+
+    die( "all ids must be integers" ) if ( grep { $_ =~ /[^0-9]/ } @{ $ids } );
+
+    my $num_errors = ( scalar( @{ $ids } ) > 10 ) ? 3 : 0;
+
+    # simulate twitter not being able to find some ids, which is typical
+    map { pop( @{ $ids } ) } ( 1 .. $num_errors );
+
+    my $tweets = [];
+    for my $id ( @{ $ids } )
+    {
+        # all we use is id, text, and created_by, so just test for those
+        push(
+            @{ $tweets },
+            {
+                id         => $id,
+                text       => "sample tweet for id $id",
+                created_at => 'Wed Jun 06 20:07:10 +0000 2016'
+            }
+        );
+    }
+
+    my $json = MediaWords::Util::JSON::encode_json( $tweets );
+
+    print <<HTTP
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+$json
+HTTP
+}
+
 # core testing functionality
 sub test_fetch_topic_tweets
 {
@@ -85,32 +128,51 @@ SQL
         # regexp parse the number of tweets from the data so that we don't use same json parsing code path
         my $expected_json = get_test_data( $date );
         LOGDIE( "unable to parse num of tweets for $date" ) unless ( $expected_json =~ /"totalPostsAvailable":(\d+)/ );
-        my $expected_num_tweets = $1;
+        my $expected_tweet_count = $1;
 
         my $topic_tweet_date = $db->query( <<SQL, $topic->{ topics_id }, $date )->hash;
 select * from topic_tweet_days where topics_id = \$1 and day = \$2
 SQL
         ok( $topic_tweet_date, "topic_tweet_date created for $date" );
-        is( $topic_tweet_date->{ num_tweets }, $expected_num_tweets, "number of tweets for $date" );
+        is( $topic_tweet_date->{ num_tweets }, $expected_tweet_count, "tweet count for $date" );
     }
 
-    DEBUG( "DONE" );
+    my ( $num_tweets_inserted ) = $db->query( "select count(*) from topic_tweets" )->flat;
+    ok( $num_tweets_inserted > 1900, "num of topic_tweets inserted ($num_tweets_inserted > 1900)" );
+
+    my ( $num_null_text_tweets ) = $db->query( "select count(*) from topic_tweets where content is null" )->flat;
+    is( $num_null_text_tweets, 0, "number of null text tweets" );
+
+    my ( $num_null_date_tweets ) = $db->query( "select count(*) from topic_tweets where publish_date is null" )->flat;
+    is( $num_null_date_tweets, 0, "number of null publish_date tweets" );
+
+    my ( $num_null_text_tweets ) = $db->query( "select count(*) from topic_tweets where length( CONTENT ) < 16" )->flat;
+    is( $num_null_text_tweets, 0, "number of short tweets" );
 }
 
 sub main
 {
-    my $hs = HTTP::HashServer->new( $PORT, { '/api/monitor/posts' => { callback => \&mock_ch_posts } } );
+    my $hs = HTTP::HashServer->new(
+        $PORT,
+        {
+            '/api/monitor/posts'    => { callback => \&mock_ch_posts },
+            '/statuses/lookup.json' => { callback => \&mock_twitter_lookup }
+        }
+    );
     $hs->start();
 
     if ( !MediaWords::Test::ExternalAPI::use_external_api() )
     {
-        MediaWords::Job::FetchTopicTweets->set_api_url( "http://localhost:$PORT/api/monitor/posts" );
+        MediaWords::Job::FetchTopicTweets->set_api_host( "http://localhost:$PORT" );
         MediaWords::Util::Config::get_config->{ crimson_hexagon }->{ key } = 'TEST';
     }
 
-    MediaWords::Test::DB::test_on_test_database( \&test_fetch_topic_tweets );
+    eval { MediaWords::Test::DB::test_on_test_database( \&test_fetch_topic_tweets ); };
+    my $test_error = $@;
 
     $hs->stop();
+
+    die( $test_error ) if ( $test_error );
 
     done_testing();
 }
