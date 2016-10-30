@@ -10,8 +10,16 @@ use MediaWords::CommonLibs;
 
 use MediaWords::Util::DateTime;
 
+use Date::Parse;
 use DateTime;
 use DateTime::Format::Pg;
+
+sub get_sql_date_from_str2time
+{
+    my ( $date_string ) = @_;
+
+    return get_sql_date_from_epoch( Date::Parse::str2time( $date_string ) );
+}
 
 sub get_sql_date_from_epoch
 {
