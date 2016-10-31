@@ -44,7 +44,7 @@ my $_api_host = undef;
 # fetch the list of tweets from the ch api.  return only 500 posts unless $fetch_10k_posts is true.
 sub _fetch_ch_posts ($$;$)
 {
-    my ( $ch_monitor_id, $day, $fetch_10k_posts ) = @_;
+    my ( $ch_monitor_id, $day, $fetch_10k_post ) = @_;
 
     my $ua = MediaWords::Util::Web::UserAgent();
 
@@ -87,16 +87,19 @@ SQL
 
     return if ( $topic_tweet_day );
 
-    my $ch_posts = _fetch_ch_posts( $topic->{ ch_monitor_id }, $day );
+    my $ch_posts = _fetch_ch_posts( $topic->{ ch_monitor_id }, $day, 1 );
 
-    my $num_tweets = $ch_posts->{ totalPostsAvailable };
+    my $tweet_count = $ch_posts->{ totalPostsAvailable };
+
+    my $num_ch_tweets = scalar( @{ $ch_posts->{ posts } } );
 
     $db->create(
         'topic_tweet_days',
         {
             topics_id      => $topic->{ topics_id },
             day            => $day,
-            num_tweets     => $num_tweets,
+            tweet_count    => $tweet_count,
+            num_ch_tweets  => $num_ch_tweets,
             tweets_fetched => 'false'
         }
     );
@@ -186,6 +189,7 @@ sub _fetch_tweets_for_day
         _add_tweets_to_ch_posts( $twitter, \@ch_posts_chunk );
     }
 
+    DEBUG( "inserting into topic_tweets ..." );
     for my $ch_post ( grep { $_->{ tweet } } @{ $ch_posts } )
     {
         $db->begin();
@@ -204,6 +208,7 @@ update topic_tweet_days set tweets_fetched = true where topic_tweet_days_id = ?
 SQL
         $db->commit();
     }
+    DEBUG( "done inserting into topic_tweets" );
 }
 
 # get Net::Twitter handle using auth info from mediawords.yml

@@ -20,7 +20,8 @@ create table topic_tweet_days (
     topic_tweet_days_id     serial primary key,
     topics_id               int not null references topics on delete cascade,
     day                     date not null,
-    num_tweets              int not null,
+    tweet_count             int not null,
+    num_ch_tweets           int not null,
     tweets_fetched          boolean not null default false
 );
 

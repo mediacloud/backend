@@ -134,11 +134,15 @@ SQL
 select * from topic_tweet_days where topics_id = \$1 and day = \$2
 SQL
         ok( $topic_tweet_date, "topic_tweet_date created for $date" );
-        is( $topic_tweet_date->{ num_tweets }, $expected_tweet_count, "tweet count for $date" );
+        is( $topic_tweet_date->{ tweet_count }, $expected_tweet_count, "tweet count for $date" );
     }
 
+    my ( $expected_num_ch_tweets ) = $db->query( "select sum( num_ch_tweets ) from topic_tweet_days" )->flat;
+    $expected_num_ch_tweets *= 0.90;    # allow for deleted tweets, which twitter doesn't return
+
     my ( $num_tweets_inserted ) = $db->query( "select count(*) from topic_tweets" )->flat;
-    ok( $num_tweets_inserted > 1900, "num of topic_tweets inserted ($num_tweets_inserted > 1900)" );
+    ok( $num_tweets_inserted > $expected_num_ch_tweets,
+        "num of topic_tweets inserted ($num_tweets_inserted > $expected_num_ch_tweets)" );
 
     my ( $num_null_text_tweets ) = $db->query( "select count(*) from topic_tweets where content is null" )->flat;
     is( $num_null_text_tweets, 0, "number of null text tweets" );
@@ -146,8 +150,8 @@ SQL
     my ( $num_null_date_tweets ) = $db->query( "select count(*) from topic_tweets where publish_date is null" )->flat;
     is( $num_null_date_tweets, 0, "number of null publish_date tweets" );
 
-    my ( $num_null_text_tweets ) = $db->query( "select count(*) from topic_tweets where length( CONTENT ) < 16" )->flat;
-    is( $num_null_text_tweets, 0, "number of short tweets" );
+    my ( $num_short_tweets ) = $db->query( "select count(*) from topic_tweets where length( CONTENT ) < 16" )->flat;
+    is( $num_short_tweets, 0, "number of short tweets" );
 }
 
 sub main
