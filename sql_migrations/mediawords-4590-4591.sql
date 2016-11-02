@@ -13,7 +13,11 @@
 --
 -- 1 of 2. Import the output of 'apgdiff':
 --
+
 alter table topics add ch_monitor_id bigint null;
+alter table topics add twitter_parent_topics_id int null references topics on delete set null;
+
+alter table topic_dead_links alter stories_id set not null;
 
 -- list of tweet counts and fetching statuses for each day of each topic
 create table topic_tweet_days (
@@ -38,7 +42,17 @@ create table topic_tweets (
 );
 
 create unique index topic_tweets_id on topic_tweets( topics_id, tweet_id );
-    --
+
+-- urls parsed from topic tweets and imported into topic_seed_urls
+create table topic_tweet_urls (
+    topic_tweet_urls_id     serial primary key,
+    topic_tweets_id         int not null references topic_tweets on delete cascade,
+    url                     varchar (1024) not null
+);
+
+create index topic_tweet_urls_url on topic_tweet_urls ( url );
+create unique index topic_tweet_urls_tt on topic_tweet_urls ( topic_tweets_id, url );
+--
 -- 2 of 2. Reset the database version.
 --
 

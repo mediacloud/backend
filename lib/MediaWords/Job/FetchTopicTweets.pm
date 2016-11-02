@@ -147,7 +147,7 @@ sub _add_tweets_to_ch_posts
 
     my $tweet_ids = [ keys( %{ $ch_post_lookup } ) ];
 
-    my $tweets = $twitter->lookup_statuses( { id => $tweet_ids, include_entities => 'false', trim_user => 'true' } );
+    my $tweets = $twitter->lookup_statuses( { id => $tweet_ids, include_entities => 'true', trim_user => 'false' } );
 
     for my $tweet ( @{ $tweets } )
     {
@@ -164,8 +164,38 @@ sub _add_tweets_to_ch_posts
     map { WARN( "no tweet fetched for url $_->{ url }" ); } ( grep { !$_->{ tweet } } @{ $ch_posts } );
 }
 
+# using the data in ch_post, store the tweet in topic_tweets and its urls in topic_tweet_urls
+sub _store_tweet_and_urls
+{
+    my ( $db, $topic, $ch_post ) = @_;
+
+    my $publish_date = MediaWords::Util::SQL::get_sql_date_from_str2time( $ch_post->{ tweet }->{ created_at } );
+    my $topic_tweet  = {
+        topics_id    => $topic->{ topics_id },
+        data         => MediaWords::Util::JSON::encode_json( $ch_post ),
+        content      => $ch_post->{ tweet }->{ text },
+        tweet_id     => $ch_post->{ tweet_id },
+        publish_date => $publish_date,
+        twitter_user => $ch_post->{ tweet }->{ user }->{ screen_name }
+    };
+
+    $topic_tweet = $db->create( 'topic_tweets', $topic_tweet );
+
+    for my $url_data ( @{ $ch_post->{ tweet }->{ entities }->{ urls } } )
+    {
+        my $url = $url_data->{ expanded_url };
+        $db->create(
+            'topic_tweet_urls',
+            {
+                topic_tweets_id => $topic_tweet->{ topic_tweets_id },
+                url             => $url
+            }
+        );
+    }
+}
+
 # if tweets_fetched is false for the given topic_tweet_days row, fetch the tweets for the given day by querying
-# the list of tweets from CH and then fetching each tweet from twitter
+# the list of tweets from CH and then fetching each tweet from twitter.
 sub _fetch_tweets_for_day
 {
     my ( $db, $twitter, $topic, $topic_tweet_day ) = @_;
@@ -189,25 +219,21 @@ sub _fetch_tweets_for_day
         _add_tweets_to_ch_posts( $twitter, \@ch_posts_chunk );
     }
 
-    DEBUG( "inserting into topic_tweets ..." );
-    for my $ch_post ( grep { $_->{ tweet } } @{ $ch_posts } )
-    {
-        $db->begin();
-        my $publish_date = MediaWords::Util::SQL::get_sql_date_from_str2time( $ch_post->{ tweet }->{ created_at } );
-        my $topic_tweet  = {
-            topics_id    => $topic->{ topics_id },
-            data         => MediaWords::Util::JSON::encode_json( $ch_post ),
-            content      => $ch_post->{ tweet }->{ text },
-            tweet_id     => $ch_post->{ tweet_id },
-            publish_date => $publish_date
-        };
+    $db->begin();
 
-        $db->create( 'topic_tweets', $topic_tweet );
-        $db->query( <<SQL, $topic_tweet_day->{ topic_tweet_days_id } );
-update topic_tweet_days set tweets_fetched = true where topic_tweet_days_id = ?
+    DEBUG( "inserting into topic_tweets ..." );
+
+    map { _store_tweet_and_urls( $db, $topic, $_ ) } ( grep { $_->{ tweet } } @{ $ch_posts } );
+
+    my $num_deleted_tweets = scalar( grep { !$_->{ tweet } } @{ $ch_posts } );
+    $topic_tweet_day->{ num_ch_tweets } -= $num_deleted_tweets;
+
+    $db->query( <<SQL, $topic_tweet_day->{ topic_tweet_days_id }, $topic_tweet_day->{ num_ch_tweets } );
+update topic_tweet_days set tweets_fetched = true, num_ch_tweets = \$2 where topic_tweet_days_id = \$1
 SQL
-        $db->commit();
-    }
+
+    $db->commit();
+
     DEBUG( "done inserting into topic_tweets" );
 }
 
@@ -248,7 +274,7 @@ tweets from twitter (CH does not provide the tweet content, only the url).  Each
 recorded in topic_tweet_days, and subsequent calls to the function will not refetch a given day for a given topic,
 but each call will fetch any days newly included in the date range of the topic given a topic dates change.
 
-=cut
+=cut`
 
 sub run($;$)
 {

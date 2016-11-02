@@ -1235,7 +1235,11 @@ create table topics (
     is_public               boolean not null default false,
 
     -- this is the id of a crimson hexagon monitor, not an internal database id
-    ch_monitor_id           bigint null
+    ch_monitor_id           bigint null,
+
+    -- for twitter topics, the parent topic; if this is not null, this topic is the child twitter topic of
+    -- the given main topic
+    twitter_parent_topics_id int null references topics on delete set null
 );
 
 create unique index topics_name on topics( name );
@@ -1313,7 +1317,7 @@ create index topic_stories_topic on topic_stories( topics_id );
 create table topic_dead_links (
     topic_dead_links_id   serial primary key,
     topics_id            int not null,
-    stories_id                  int not null,
+    stories_id                  int,
     url                         text not null
 );
 
@@ -2871,7 +2875,19 @@ create table topic_tweets (
     data                    json not null,
     tweet_id                varchar(256) not null,
     content                 text not null,
-    publish_date            timestamp not null
+    publish_date            timestamp not null,
+    twitter_user            varchar( 1024 ) not null
 );
 
 create unique index topic_tweets_id on topic_tweets( topics_id, tweet_id );
+create index topic_tweet_topic_user on topic_tweets( topics_id, twitter_user );
+
+-- urls parsed from topic tweets and imported into topic_seed_urls
+create table topic_tweet_urls (
+    topic_tweet_urls_id     serial primary key,
+    topic_tweets_id         int not null references topic_tweets on delete cascade,
+    url                     varchar (1024) not null
+);
+
+create index topic_tweet_urls_url on topic_tweet_urls ( url );
+create unique index topic_tweet_urls_tt on topic_tweet_urls ( topic_tweets_id, url );
