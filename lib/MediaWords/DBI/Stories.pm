@@ -15,6 +15,7 @@ This module includes various helper function for dealing with stories.
 
 use strict;
 use warnings;
+use utf8;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
@@ -905,21 +906,21 @@ sub _get_title_parts
     $title = decode_entities( $title );
 
     my $title_parts;
-    if ( $title =~ m~http://[^ ]*^~ )
+    if ( $title =~ m~https?://[^ ]*~ )
     {
         $title_parts = [ $title ];
     }
     else
     {
-        $title_parts = [ split( /\s*[-:|]+\s*/, $title ) ];
+        $title_parts = [ split( /\s*[-•:|]+\s*/, $title ) ];
     }
-
-    map { s/^\s+//; s/\s+$//; s/[[:punct:]]//g; } @{ $title_parts };
 
     if ( @{ $title_parts } > 1 )
     {
         unshift( @{ $title_parts }, $title );
     }
+
+    map { s/^\s+//; s/\s+$//; s/[[:punct:]]//g; } @{ $title_parts };
 
     return $title_parts;
 }
@@ -958,7 +959,7 @@ sub get_medium_dup_stories_by_title
     my $title_part_counts = {};
     for my $story ( @{ $stories } )
     {
-        next if ( $_->{ url } && ( $_->{ url } =~ /https?:\/\/(twitter\.com|t\.co)/i ) );
+        next if ( $story->{ url } && ( $story->{ url } =~ /https?:\/\/(twitter\.com|t\.co)/i ) );
 
         my $title_parts = _get_title_parts( $story->{ title } );
 
@@ -992,6 +993,7 @@ sub get_medium_dup_stories_by_title
     for my $t ( grep { $_->{ solo } } values( %{ $title_part_counts } ) )
     {
         my $num_stories = scalar( keys( %{ $t->{ stories } } ) );
+
         if ( $num_stories > 1 )
         {
             my $dup_stories = [ values( %{ $t->{ stories } } ) ];
