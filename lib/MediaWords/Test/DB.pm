@@ -116,8 +116,8 @@ sub create_test_story
             guid          => "guid://story/$label",
             title         => "story $label",
             description   => "description $label",
-            publish_date  => \'now() - interval \'100000 seconds\'',
-            collect_date  => \'now() - interval \'200000 seconds\'',
+            publish_date  => '2016-10-15 08:00:00',
+            collect_date  => '2016-10-15 10:00:00',
             full_text_rss => 't'
         }
     );
