@@ -227,26 +227,28 @@ sub _get_large_work_mem
     return $ret;
 }
 
-sub run_block_with_large_work_mem($&)
+sub run_block_with_large_work_mem( &$ )
 {
-    my ( $self, $block ) = @_;
+
+    my $block = shift;
+    my $db    = shift;
 
     unless ( $block and ref( $block ) eq 'CODE' )
     {
         LOGCONFESS "Block is undefined or is not a subref.";
     }
-    unless ( $self and ref( $self ) eq 'DBIx::Simple::MediaWords' )
+    unless ( $db and ref( $db ) eq 'DBIx::Simple::MediaWords' )
     {
         LOGCONFESS "Database handler is undefined or is not a database instance.";
     }
 
     TRACE "starting run_block_with_large_work_mem";
 
-    my $large_work_mem = $self->_get_large_work_mem();
+    my $large_work_mem = $db->_get_large_work_mem();
 
-    my $old_work_mem = $self->get_current_work_mem();
+    my $old_work_mem = $db->get_current_work_mem();
 
-    $self->_set_work_mem( $large_work_mem );
+    $db->_set_work_mem( $large_work_mem );
 
     try
     {
@@ -254,12 +256,12 @@ sub run_block_with_large_work_mem($&)
     }
     catch
     {
-        $self->_set_work_mem( $old_work_mem );
+        $db->_set_work_mem( $old_work_mem );
 
         LOGCONFESS $_;
     };
 
-    $self->_set_work_mem( $old_work_mem );
+    $db->_set_work_mem( $old_work_mem );
 
     TRACE "exiting run_block_with_large_work_mem";
 }
@@ -278,11 +280,11 @@ sub query_with_large_work_mem
     my $self = shift @_;
 
     my $ret;
-    $self->run_block_with_large_work_mem(
-        sub {
-            $ret = $self->query( @_ );
-        }
-    );
+    run_block_with_large_work_mem
+    {
+        $ret = $self->query( @_ );
+    }
+    $self;
 
     return $ret;
 }
