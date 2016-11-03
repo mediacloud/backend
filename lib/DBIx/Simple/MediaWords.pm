@@ -626,7 +626,7 @@ sub create
 
     delete( $hash->{ submit } );
 
-    eval { $self->SUPER::insert( $table, $hash ); };
+    eval { $self->insert( $table, $hash ); };
 
     if ( $@ )
     {
