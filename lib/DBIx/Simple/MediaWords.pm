@@ -490,13 +490,6 @@ sub require_by_id
     return $row;
 }
 
-sub select($)
-{
-    my ( $self, $table, $what_to_select, $condition_hash ) = @_;
-
-    return $self->SUPER::select( $table, $what_to_select, $condition_hash );
-}
-
 # update the row in the table with the given id
 # ignore any fields that start with '_'
 sub update_by_id($$$$)
