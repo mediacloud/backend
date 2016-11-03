@@ -147,8 +147,8 @@ sub save_features_queue
     for my $feature ( @{ $_features_queue } )
     {
         my $stories_id = $feature->[ 0 ];
-        my $q_name     = $db->quote( $feature->[ 1 ] );
-        my $q_value    = $db->quote( $feature->[ 2 ] );
+        my $q_name     = $db->dbh->quote( $feature->[ 1 ] );
+        my $q_value    = $db->dbh->quote( $feature->[ 2 ] );
 
         push( @{ $values }, "($stories_id, $q_name, $q_value)" );
     }
@@ -338,7 +338,7 @@ sub insert_detected_stories
 
     return if ( !@{ $stories } );
 
-    my $q_method = $db->quote( $method );
+    my $q_method = $db->dbh->quote( $method );
 
     my $values = [];
     for my $s ( @{ $stories } )

@@ -85,7 +85,7 @@ sub add_date_is_reliable_to_stories
 
     my $reliable_methods =
       [ qw/guess_by_og_article_published_time guess_by_url guess_by_url_and_date_text merged_story_rss manual/ ];
-    my $quoted_reliable_methods_list = join( ',', map { $db->quote( $_ ) } @{ $reliable_methods } );
+    my $quoted_reliable_methods_list = join( ',', map { $db->dbh->quote( $_ ) } @{ $reliable_methods } );
 
     my $reliable_stories_ids = $db->query( <<SQL )->flat;
 with date_tags as (
