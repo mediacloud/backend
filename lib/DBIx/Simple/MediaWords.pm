@@ -421,7 +421,7 @@ sub run_block_with_large_work_mem($&)
     TRACE "exiting run_block_with_large_work_mem";
 }
 
-sub execute_with_large_work_mem
+sub query_with_large_work_mem
 {
     my $self = shift @_;
 
@@ -435,11 +435,14 @@ sub execute_with_large_work_mem
     }
 
     my @args = @_;
+    my $ret;
     $self->run_block_with_large_work_mem(
         sub {
-            $self->query( @args );
+            $ret = $self->query( @args );
         }
     );
+
+    return $ret;
 }
 
 # get the primary key column for the table
