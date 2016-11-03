@@ -1,9 +1,9 @@
 #<<<
 $VAR1 = {
-          'collect_date' => '2016-05-08 20:42:28.766369',
+          'collect_date' => '2016-11-04 01:40:21.675274',
           'content' => '<p>This is the first item.</p>
 ',
-          'db_row_last_updated' => '2016-05-08 20:42:30.155637-05',
+          'db_row_last_updated' => '2016-11-04 01:40:24.450409+02',
           'description' => 'RSS description of the first inline item.',
           'disable_triggers' => undef,
           'extracted_text' => 'First inline item
@@ -23,16 +23,16 @@ RSS description of the first inline item.
           'guid' => 'http://www.example.com/inline_content/item_1.html',
           'language' => 'en',
           'media_id' => 1,
-          'publish_date' => '2009-06-11 05:57:00',
+          'publish_date' => '2009-06-11 06:57:00',
           'stories_id' => 1,
           'story_sentences' => [
                                  {
-                                   'db_row_last_updated' => '2016-05-08 20:42:30.155637-05',
+                                   'db_row_last_updated' => '2016-11-04 01:40:24.450409+02',
                                    'disable_triggers' => 0,
                                    'is_dup' => undef,
                                    'language' => 'en',
                                    'media_id' => 1,
-                                   'publish_date' => '2009-06-11 05:57:00',
+                                   'publish_date' => '2009-06-11 06:57:00',
                                    'sentence' => 'First inline item.RSS description of the first inline item.',
                                    'sentence_number' => 0,
                                    'stories_id' => 1,
@@ -40,8 +40,8 @@ RSS description of the first inline item.
                                  }
                                ],
           'tags' => [],
-          'timezone' => 'America/Chicago',
+          'timezone' => 'America/New_York',
           'title' => 'First inline item',
-          'url' => 'http://raven.local:54020/inline_content/item_1.html'
+          'url' => 'http://tundra.local:58513/inline_content/item_1.html'
         };
 #>>>

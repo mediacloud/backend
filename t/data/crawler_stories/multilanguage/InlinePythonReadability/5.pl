@@ -1,12 +1,12 @@
 #<<<
 $VAR1 = {
-          'collect_date' => '2016-05-08 20:44:01.340389',
+          'collect_date' => '2016-11-04 01:42:02.626959',
           'content' => '<p>
     This RSS feed is used to test whether the story language gets identified
     correctly.
 </p>
 ',
-          'db_row_last_updated' => '2016-05-08 20:44:01.372193-05',
+          'db_row_last_updated' => '2016-11-04 01:42:02.656931+02',
           'description' => undef,
           'disable_triggers' => undef,
           'extracted_text' => '(no title)
@@ -30,19 +30,19 @@ $VAR1 = {
   ',
           'feed_type' => 'web_page',
           'full_text_rss' => 0,
-          'guid' => '1462758241:http://raven.local:54332//multilanguage/home.html',
+          'guid' => '1478216522:http://tundra.local:58698//multilanguage/home.html',
           'language' => 'en',
           'media_id' => 1,
-          'publish_date' => '2016-05-08 20:44:01',
+          'publish_date' => '2016-11-03 19:42:02',
           'stories_id' => 5,
           'story_sentences' => [
                                  {
-                                   'db_row_last_updated' => '2016-05-08 20:44:01.372193-05',
+                                   'db_row_last_updated' => '2016-11-04 01:42:02.656931+02',
                                    'disable_triggers' => 0,
                                    'is_dup' => undef,
                                    'language' => 'en',
                                    'media_id' => 1,
-                                   'publish_date' => '2016-05-08 20:44:01',
+                                   'publish_date' => '2016-11-03 19:42:02',
                                    'sentence' => 'This RSS feed is used to test whether the story language gets identified correctly.',
                                    'sentence_number' => 0,
                                    'stories_id' => 5,
@@ -50,8 +50,8 @@ $VAR1 = {
                                  }
                                ],
           'tags' => [],
-          'timezone' => 'America/Chicago',
+          'timezone' => 'America/New_York',
           'title' => '(no title)',
-          'url' => 'http://raven.local:54332//multilanguage/home.html'
+          'url' => 'http://tundra.local:58698//multilanguage/home.html'
         };
 #>>>

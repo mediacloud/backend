@@ -1,6 +1,6 @@
 #<<<
 $VAR1 = {
-          'collect_date' => '2016-05-08 20:44:01.215623',
+          'collect_date' => '2016-11-04 01:42:01.524237',
           'content' => '<!DOCTYPE html>
 <html>
 <head>
@@ -41,7 +41,7 @@ $VAR1 = {
 </body>
 </html>
 ',
-          'db_row_last_updated' => '2016-05-08 20:44:02.694018-05',
+          'db_row_last_updated' => '2016-11-04 01:42:04.125325+02',
           'description' => 'English: The quick brown fox jumps over the lazy dog.',
           'disable_triggers' => undef,
           'extracted_text' => 'English: The quick brown fox jumps over the lazy dog
@@ -97,16 +97,16 @@ English: The quick brown fox jumps over the lazy dog.
           'guid' => 'http://www.example.com/multilanguage/english.html',
           'language' => 'en',
           'media_id' => 1,
-          'publish_date' => '2009-06-11 05:57:00',
+          'publish_date' => '2009-06-11 06:57:00',
           'stories_id' => 1,
           'story_sentences' => [
                                  {
-                                   'db_row_last_updated' => '2016-05-08 20:44:02.694018-05',
+                                   'db_row_last_updated' => '2016-11-04 01:42:04.125325+02',
                                    'disable_triggers' => 0,
                                    'is_dup' => undef,
                                    'language' => 'en',
                                    'media_id' => 1,
-                                   'publish_date' => '2009-06-11 05:57:00',
+                                   'publish_date' => '2009-06-11 06:57:00',
                                    'sentence' => 'The quick brown fox jumps over the lazy dog.',
                                    'sentence_number' => 0,
                                    'stories_id' => 1,
@@ -114,8 +114,8 @@ English: The quick brown fox jumps over the lazy dog.
                                  }
                                ],
           'tags' => [],
-          'timezone' => 'America/Chicago',
+          'timezone' => 'America/New_York',
           'title' => 'English: The quick brown fox jumps over the lazy dog',
-          'url' => 'http://raven.local:54332/multilanguage/english.html'
+          'url' => 'http://tundra.local:58698/multilanguage/english.html'
         };
 #>>>
