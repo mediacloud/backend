@@ -718,15 +718,4 @@ sub set_show_error_statement($)
     $self->{ dbh }->{ ShowErrorStatement } = $show_error_statement;
 }
 
-sub print_warn()
-{
-    return $self->{ dbh }->{ PrintWarn };
-}
-
-sub set_print_warn($)
-{
-    my $print_warn = shift;
-    $self->{ dbh }->{ PrintWarn } = $print_warn;
-}
-
 1;
