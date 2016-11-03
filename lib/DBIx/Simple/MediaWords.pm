@@ -113,7 +113,7 @@ sub disconnect
 {
     my ( $self ) = @_;
 
-    return $self->SUPER::disconnect;
+    return $self->disconnect;
 }
 
 # Schema is outdated / too new; returns 1 if MC should continue nevertheless, 0 otherwise
@@ -775,14 +775,14 @@ sub commit
 {
     my ( $self ) = @_;
 
-    return $self->SUPER::commit;
+    return $self->commit;
 }
 
 sub rollback
 {
     my ( $self ) = @_;
 
-    return $self->SUPER::rollback;
+    return $self->rollback;
 }
 
 # Alias for DBD::Pg's quote()
