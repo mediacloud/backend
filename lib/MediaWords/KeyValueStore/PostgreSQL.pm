@@ -62,7 +62,7 @@ sub store_content($$$$;$)
 
     my $sth;
 
-    $sth = $db->prepare(
+    $sth = $db->dbh->prepare(
         <<"EOF",
     	UPDATE $table
     	SET raw_data = ?
@@ -73,7 +73,7 @@ EOF
     $sth->bind_param( 2, $object_id );
     $sth->execute();
 
-    $sth = $db->prepare(
+    $sth = $db->dbh->prepare(
         <<"EOF",
     	INSERT INTO $table (object_id, raw_data)
 			SELECT ?, ?

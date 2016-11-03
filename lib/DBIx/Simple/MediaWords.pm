@@ -653,13 +653,6 @@ sub quote_timestamp
     return $self->quote_varchar( $value ) . '::timestamp';
 }
 
-# Alias for DBD::Pg's prepare()
-sub prepare
-{
-    my $self = shift;
-    return $self->dbh->prepare( @_ );
-}
-
 # Alias for DBD::Pg's prepare_cached()
 sub prepare_cached
 {
