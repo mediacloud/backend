@@ -707,15 +707,4 @@ sub set_autocommit($)
     $self->{ dbh }->{ AutoCommit } = $autocommit;
 }
 
-sub show_error_statement()
-{
-    return $self->{ dbh }->{ ShowErrorStatement };
-}
-
-sub set_show_error_statement($)
-{
-    my $show_error_statement = shift;
-    $self->{ dbh }->{ ShowErrorStatement } = $show_error_statement;
-}
-
 1;
