@@ -394,12 +394,12 @@ sub delete_tag : Local
         else
         {
             # Start transaction
-            $c->dbis->begin_work;
+            $c->dbis->dbh->begin_work;
 
             my $reason = $c->request->params->{ reason };
             unless ( $reason )
             {
-                $c->dbis->rollback;
+                $c->dbis->dbh->rollback;
                 die( "Tag NOT deleted.  Reason left blank." );
             }
 
@@ -425,12 +425,12 @@ sub delete_tag : Local
                 )
               )
             {
-                $c->dbis->rollback;
+                $c->dbis->dbh->rollback;
                 die "Unable to log addition of new tags.\n";
             }
 
             # Things went fine
-            $c->dbis->commit;
+            $c->dbis->dbh->commit;
 
             $status_msg = 'Tag \'' . $tag->{ tag } . '\' deleted from this story.';
         }
@@ -473,7 +473,7 @@ sub add_tag_do : Local
     $c->stash->{ story } = $story;
 
     # Start transaction
-    $c->dbis->begin_work;
+    $c->dbis->dbh->begin_work;
 
     # Fetch old tags
     my $old_tags = MediaWords::DBI::Stories::get_existing_tags_as_string( $c->dbis, $stories_id );
@@ -483,12 +483,12 @@ sub add_tag_do : Local
     my $reason  = $c->request->params->{ reason };
     unless ( $new_tag )
     {
-        $c->dbis->rollback;
+        $c->dbis->dbh->rollback;
         die( "Tag NOT added.  Tag name left blank." );
     }
     unless ( $reason )
     {
-        $c->dbis->rollback;
+        $c->dbis->dbh->rollback;
         die( "Tag NOT added.  Reason left blank." );
     }
 
@@ -533,12 +533,12 @@ sub add_tag_do : Local
         )
       )
     {
-        $c->dbis->rollback;
+        $c->dbis->dbh->rollback;
         die "Unable to log addition of new tags.\n";
     }
 
     # Things went fine
-    $c->dbis->commit;
+    $c->dbis->dbh->commit;
 
     $c->response->redirect(
         $c->uri_for(

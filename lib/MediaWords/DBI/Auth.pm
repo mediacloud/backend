@@ -738,7 +738,7 @@ sub add_user_or_return_error_message($$$$$$$$$;$$)
     }
 
     # Begin transaction
-    $db->begin_work;
+    $db->dbh->begin_work;
 
     # Create the user
     $db->query(
@@ -753,7 +753,7 @@ EOF
     $userinfo = user_info( $db, $email );
     if ( !$userinfo )
     {
-        $db->rollback;
+        $db->dbh->rollback;
         return "I've attempted to create the user but it doesn't exist.";
     }
     my $auth_users_id = $userinfo->{ auth_users_id };
@@ -793,7 +793,7 @@ EOF
     }
 
     # End transaction
-    $db->commit;
+    $db->dbh->commit;
 
     # Success
     return '';
@@ -815,7 +815,7 @@ sub update_user_or_return_error_message($$$$$$;$$$$$)
     }
 
     # Begin transaction
-    $db->begin_work;
+    $db->dbh->begin_work;
 
     # Update the user
     $db->query(
@@ -838,7 +838,7 @@ EOF
           _change_password_or_return_error_message( $db, $email, $password, $password_repeat, 1 );
         if ( $password_change_error_message )
         {
-            $db->rollback;
+            $db->dbh->rollback;
             return $password_change_error_message;
         }
     }
@@ -884,7 +884,7 @@ EOF
     $sth->finish;
 
     # End transaction
-    $db->commit;
+    $db->dbh->commit;
 
     return '';
 }

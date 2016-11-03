@@ -428,7 +428,7 @@ sub update_by_id_and_log($$$$$$$$)
     }
 
     # Start transaction
-    $self->begin_work;
+    $self->dbh->begin_work;
 
     # Make the change
     my $r = 0;
@@ -437,7 +437,7 @@ sub update_by_id_and_log($$$$$$$$)
     {
 
         # Update failed
-        $self->rollback;
+        $self->dbh->rollback;
         die $@;
     }
 
@@ -446,12 +446,12 @@ sub update_by_id_and_log($$$$$$$$)
     # Update succeeded, write the activity log
     unless ( MediaWords::DBI::Activities::log_activities( $self, $activity_name, $username, $id, $reason, \@changes ) )
     {
-        $self->rollback;
+        $self->dbh->rollback;
         die "Logging one of the changes failed: $@";
     }
 
     # Things went fine at this point, commit
-    $self->commit;
+    $self->dbh->commit;
 
     return $r;
 }
