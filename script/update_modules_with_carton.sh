@@ -12,5 +12,4 @@ fi
 source ./script/set_perl_brew_environment.sh
 cpanm Carton
 
-source ./script/set_java_home.sh
-JAVA_HOME=$JAVA_HOME ./script/run_carton.sh update
+./script/run_carton.sh update

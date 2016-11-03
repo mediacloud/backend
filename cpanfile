@@ -78,7 +78,6 @@ requires 'HTML::TagCloud';
 requires 'HTML::TreeBuilder::LibXML';
 requires 'HTTP::Message', '6.11';
 requires 'Inline';
-requires 'Inline::Java';
 requires 'Inline::Python';
 requires 'IO::Compress::Bzip2';
 requires 'IO::Compress::Gzip';
