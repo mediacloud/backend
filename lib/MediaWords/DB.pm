@@ -33,13 +33,15 @@ sub _create_connect_info_from_settings
         $data_source .= ';port=' . $settings->{ port };
     }
 
-    # Arguments for DBIx::Simple::MediaWords->connect()
     return (
-        $settings->{ host },    #
-        $settings->{ port },    #
-        $settings->{ user },    #
-        $settings->{ pass },    #
-        $settings->{ db }       #
+        $data_source,
+        $settings->{ user },
+        $settings->{ pass },
+        {
+            AutoCommit     => 1,
+            pg_enable_utf8 => 1,
+            RaiseError     => 1
+        }
     );
 }
 
@@ -91,7 +93,7 @@ $$;
 END_SQL
 
     $ret->query( $query );
-    $ret->autocommit() || $ret->commit;
+    $ret->dbh->{ AutoCommit } || $ret->commit;
 
     return $ret;
 }
@@ -174,6 +176,24 @@ sub print_shell_env_commands_for_psql
             say "export $psql_env_var=" . $ENV{ $psql_env_var };
         }
     }
+}
+
+sub run_block_with_large_work_mem( &$ )
+{
+
+    my $block = shift;
+    my $db    = shift;
+
+    unless ( $block and ref( $block ) eq 'CODE' )
+    {
+        LOGCONFESS "Block is undefined or is not a subref.";
+    }
+    unless ( $db and ref( $db ) eq 'DBIx::Simple::MediaWords' )
+    {
+        LOGCONFESS "Database handler is undefined or is not a database instance.";
+    }
+
+    DBIx::Simple::MediaWords::run_block_with_large_work_mem( sub { $block->() }, $db );
 }
 
 my $_disable_story_triggers = 0;

@@ -102,7 +102,9 @@ sub recreate_db
     my $mediawords_sql_path = $script_dir . '/mediawords.sql';
     my $mediawords_sql      = read_file( $mediawords_sql_path );
 
-    $db->set_show_error_statement( 1 );
+    $db->dbh->{ RaiseError }         = 1;
+    $db->dbh->{ PrintError }         = 1;
+    $db->dbh->{ ShowErrorStatement } = 1;
 
     local $SIG{ __WARN__ } = sub {
         my $message = shift;

@@ -253,7 +253,7 @@ sub model_confidence_data
 {
     my ( $db, $timespan ) = @_;
 
-    die( "model confidence data cannot be called within an ongoing transaction" ) unless ( $db->autocommit() );
+    die( "model confidence data cannot be called within an ongoing transaction" ) unless ( $db->dbh->{ AutoCommit } );
 
     $db->begin;
 
