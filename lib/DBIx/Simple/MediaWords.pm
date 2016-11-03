@@ -259,7 +259,7 @@ sub run_block_with_large_work_mem($&)
 
     try
     {
-        $block->( $self );
+        $block->();
     }
     catch
     {
@@ -277,11 +277,10 @@ sub query_with_large_work_mem
 {
     my $self = shift @_;
 
-    my @args = @_;
     my $ret;
     $self->run_block_with_large_work_mem(
         sub {
-            $ret = $self->query( @args );
+            $ret = $self->query( @_ );
         }
     );
 
