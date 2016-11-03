@@ -169,7 +169,7 @@ sub schema_is_up_to_date
     die "Invalid current schema version.\n" unless ( $current_schema_version );
 
     # Target schema version
-    my $sql                   = read_file( "$script_dir/mediawords.sql" );
+    my $sql = read_file( "$script_dir/mediawords.sql" );
     my $target_schema_version = MediaWords::Util::SchemaVersion::schema_version_from_lines( $sql );
     die "Invalid target schema version.\n" unless ( $target_schema_version );
 
@@ -291,6 +291,14 @@ sub query_with_large_work_mem
 
     my $ret;
 
+    #DEBUG "starting query_with_large_work_mem";
+
+    #say Dumper ( [ @_ ] );
+
+    #    my $block =  { $ret = $self->_query_impl( @_ ) };
+
+    #    say Dumper ( $block );
+
     my @args = @_;
 
     run_block_with_large_work_mem
@@ -299,6 +307,7 @@ sub query_with_large_work_mem
     }
     $self;
 
+    #say Dumper( $ret );
     return $ret;
 }
 
@@ -654,7 +663,6 @@ sub quote_timestamp
     use DBD::Pg qw(:pg_types);
 
     our $VALUE_BYTEA = 1;
-
     # There are other types (e.g. PG_POINT), but they aren't used currently by
     # any live code
 
@@ -665,12 +673,13 @@ sub quote_timestamp
         my $self = {};
         bless $self, $class;
 
-        $self->{ db }  = $db;
+        $self->{ db } = $db;
         $self->{ sql } = $sql;
 
-        eval { $self->{ sth } = $db->dbh->prepare( $sql ); };
-        if ( $@ )
-        {
+        eval {
+            $self->{ sth } = $db->dbh->prepare( $sql );
+        };
+        if ( $@ ) {
             die "Error while preparing statement '$sql': $@";
         }
 
@@ -699,7 +708,9 @@ sub quote_timestamp
             }
         }
 
-        eval { $self->{ sth }->bind_param( $param_num, $bind_value, $bind_args ); };
+        eval {
+            $self->{ sth }->bind_param( $param_num, $bind_value, $bind_args );
+        };
         if ( $@ )
         {
             die "Error while binding parameter $param_num for prepared statement '" . $self->{ sql } . "': $@";
@@ -710,7 +721,9 @@ sub quote_timestamp
     {
         my ( $self ) = @_;
 
-        eval { $self->{ sth }->execute(); };
+        eval {
+            $self->{ sth }->execute();
+        };
         if ( $@ )
         {
             die "Error while executing prepared statement '" . $self->{ sql } . "': $@";
@@ -858,13 +871,10 @@ sub copy_to_get_line($)
 {
     my ( $self ) = @_;
 
-    my $line = '';
-    if ( $self->dbh->pg_getcopydata( $line ) > -1 )
-    {
+    my $line      = '';
+    if ( $self->dbh->pg_getcopydata( $line ) > -1 ) {
         return $line;
-    }
-    else
-    {
+    } else {
         return undef;
     }
 }
