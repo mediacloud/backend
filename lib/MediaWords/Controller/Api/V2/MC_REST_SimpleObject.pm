@@ -208,7 +208,7 @@ sub get_name_search_clause
 
     return 'and false' unless ( length( $name_val ) > 2 );
 
-    my $q_name_val = $c->dbis->quote( $name_val );
+    my $q_name_val = $c->dbis->dbh->quote( $name_val );
 
     return "and $name_field ilike '%' || $q_name_val || '%'";
 }
@@ -227,7 +227,7 @@ sub _get_filter_field_clause
         my $val = $c->req->params->{ $required_field_name };
         die( "Missing required param $required_field_name" ) unless ( defined( $val ) );
 
-        push( @{ $clauses }, "$required_field_name = " . $c->dbis->quote( $val ) );
+        push( @{ $clauses }, "$required_field_name = " . $c->dbis->dbh->quote( $val ) );
     }
 
     my $field_names = $self->list_optional_query_filter_field || [];
@@ -238,7 +238,7 @@ sub _get_filter_field_clause
 
         if ( $val )
         {
-            push( @{ $clauses }, "$field_name = " . $c->dbis->quote( $val ) );
+            push( @{ $clauses }, "$field_name = " . $c->dbis->dbh->quote( $val ) );
         }
     }
 

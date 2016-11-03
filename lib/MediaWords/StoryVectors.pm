@@ -299,7 +299,7 @@ sub update_story_sentences_and_language($$;$)
     _update_ap_syndicated( $db, $story );
 
     # FIXME remove commit here because transaction wasn't started in this subroutine
-    $db->autocommit() || $db->commit;
+    $db->dbh->{ AutoCommit } || $db->commit;
 
     unless ( $extractor_args->skip_corenlp_annotation() )
     {

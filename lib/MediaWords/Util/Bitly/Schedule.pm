@@ -145,7 +145,7 @@ sub add_to_processing_schedule($$)
     }
 
     my $now             = DateTime->now()->epoch;
-    my $use_transaction = $db->autocommit();
+    my $use_transaction = $db->dbh->{ AutoCommit };
 
     $db->begin if ( $use_transaction );
     foreach my $delay ( @{ $schedule } )

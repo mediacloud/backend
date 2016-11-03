@@ -31,7 +31,7 @@ sub export_downloads
 
     my $db = MediaWords::DB::connect_to_db;
 
-    $db->set_autocommit( 0 );
+    $db->dbh->{ AutoCommit } = 0;
 
     my $doc  = XML::LibXML::Document->new();
     my $root = $doc->createElement( 'downloads' );

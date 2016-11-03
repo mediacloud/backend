@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 9;
+use Test::More tests => 6;
 
 BEGIN
 {
@@ -18,21 +18,20 @@ use MediaWords::DB;
 use DBIx::Simple::MediaWords;
 
 use Dir::Self;
+use Data::Dumper;
 
 MediaWords::Util::Config::set_config_file( __DIR__ . '/db_production.yml' );
 
-{
-    my ( $host, $port, $username, $password, $database ) = MediaWords::DB::connect_info();
-    is( $host,     'localhost' );
-    is( $username, 'mediaclouduser' );
-    is( $password, 'secretpassword' );
-    is( $database, 'mediacloud' );
-}
+my ( $connect, $user, $password, $options ) = MediaWords::DB::connect_info();
 
-{
-    my ( $host, $port, $username, $password, $database ) = MediaWords::DB::connect_info( 'test' );
-    is( $host,     'localhost' );
-    is( $username, 'mediacloudtestuser' );
-    is( $password, 'secretpassword' );
-    is( $database, 'mediacloudtest' );
-}
+is( $connect, 'dbi:Pg:dbname=mediacloud;host=localhost', 'connection string creation' );
+
+is( $user, 'mediaclouduser', 'username capture' );
+
+is( $password, 'secretpassword', 'password capture' );
+
+( $connect, $user, $password, $options ) = MediaWords::DB::connect_info( 'test' );
+
+is( $connect, 'dbi:Pg:dbname=mediacloudtest;host=localhost', 'labeled connection string creation' );
+
+is( $user, 'mediacloudtestuser', 'labeled username capture' );
