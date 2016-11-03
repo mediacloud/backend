@@ -944,7 +944,7 @@ sub _import_csv_single_file
         my $elapsed_time = ( time + 1 ) - $start_time;
 
         my $remaining_time = int( $elapsed_time * ( 1 / $partial_progress ) ) - $elapsed_time;
-        $remaining_time = 'unknown' if ( $chunk_num < $jobs );
+        $remaining_time = '??' if ( $chunk_num < $jobs );
 
         my $chunk_delta = _get_chunk_delta( $data, $last_chunk_delta, $staging );
         $last_chunk_delta = $chunk_delta;

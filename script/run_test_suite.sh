@@ -54,13 +54,7 @@ fi
 # Run test suite
 cd `dirname $0`/../
 
-echo "Running Python unit tests..."
-set +u
-source mc-venv/bin/activate
-set -u
-nosetests --detailed-errors --where=mediacloud/
-
-echo "Running Perl unit tests..."
+echo "Starting unit tests..."
 TEST_FILES=`find lib script t -name '*.t'`
 ./script/run_carton.sh exec prove -Ilib/ $* $TEST_FILES || {
     echo "One or more unit tests have failed with error code $?."
