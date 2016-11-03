@@ -618,34 +618,34 @@ sub begin_work
 }
 
 # Alias for DBD::Pg's quote()
-sub quote($$)
+sub quote
 {
-    my ( $self, $value ) = @_;
-    return $self->dbh->quote( $value );
+    my $self = shift;
+    return $self->dbh->quote( @_ );
 }
 
-sub quote_bool($$)
+sub quote_bool
 {
     my ( $self, $value ) = @_;
-    return $self->dbh->quote( $value, { pg_type => DBD::Pg::PG_BOOL } );
+    return $self->quote( $value, { pg_type => DBD::Pg::PG_BOOL } );
 }
 
-sub quote_varchar($$)
+sub quote_varchar
 {
     my ( $self, $value ) = @_;
-    return $self->dbh->quote( $value, { pg_type => DBD::Pg::PG_VARCHAR } );
+    return $self->quote( $value, { pg_type => DBD::Pg::PG_VARCHAR } );
 }
 
-sub quote_date($$)
+sub quote_date
 {
     my ( $self, $value ) = @_;
-    return $self->dbh->quote_varchar( $value ) . '::date';
+    return $self->quote_varchar( $value ) . '::date';
 }
 
-sub quote_timestamp($$)
+sub quote_timestamp
 {
     my ( $self, $value ) = @_;
-    return $self->dbh->quote_varchar( $value ) . '::timestamp';
+    return $self->quote_varchar( $value ) . '::timestamp';
 }
 
 {
