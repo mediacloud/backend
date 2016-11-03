@@ -202,7 +202,7 @@ sub query
     return $ret;
 }
 
-sub _get_current_work_mem
+sub get_current_work_mem
 {
     my $self = shift @_;
 
@@ -221,19 +221,10 @@ sub _get_large_work_mem
 
     if ( !defined( $ret ) )
     {
-        $ret = $self->_get_current_work_mem();
+        $ret = $self->get_current_work_mem();
     }
 
     return $ret;
-}
-
-sub _set_work_mem
-{
-    my ( $self, $new_work_mem ) = @_;
-
-    $self->query( "SET work_mem = ? ", $new_work_mem );
-
-    return;
 }
 
 sub run_block_with_large_work_mem($&)
@@ -253,7 +244,7 @@ sub run_block_with_large_work_mem($&)
 
     my $large_work_mem = $self->_get_large_work_mem();
 
-    my $old_work_mem = $self->_get_current_work_mem();
+    my $old_work_mem = $self->get_current_work_mem();
 
     $self->_set_work_mem( $large_work_mem );
 
@@ -271,6 +262,15 @@ sub run_block_with_large_work_mem($&)
     $self->_set_work_mem( $old_work_mem );
 
     TRACE "exiting run_block_with_large_work_mem";
+}
+
+sub _set_work_mem
+{
+    my ( $self, $new_work_mem ) = @_;
+
+    $self->query( "SET work_mem = ? ", $new_work_mem );
+
+    return;
 }
 
 sub query_with_large_work_mem
