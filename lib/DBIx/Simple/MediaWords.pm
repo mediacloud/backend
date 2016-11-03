@@ -12,10 +12,10 @@ use base qw(DBIx::Simple);
 
 use MediaWords::DB;
 use MediaWords::Util::Config;
-use MediaWords::Util::Pages;
 use MediaWords::Util::SchemaVersion;
 
 use Data::Dumper;
+use Data::Page;
 use DBD::Pg qw(:pg_types);
 use Encode;
 use File::Slurp;
@@ -679,7 +679,7 @@ sub query_paged_hashes
         $max++;
     }
 
-    my $pager = MediaWords::Util::Pages->new( $max, $rows_per_page, $page );
+    my $pager = Data::Page->new( $max, $rows_per_page, $page );
 
     return ( $list, $pager );
 
