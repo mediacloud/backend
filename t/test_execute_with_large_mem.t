@@ -38,7 +38,7 @@ sub test_execute_with_large_work_mem($)
     my ( $current_work_mem ) = $db->query( "SELECT setting::int FROM pg_settings WHERE name = 'work_mem'" )->flat;
     is( $current_work_mem, $normal_work_mem * 1024 );
 
-    $db->query( 'CREATE TEMPORARY TABLE execute_large_work_mem (work_mem INT NOT NULL)' );
+    $db->query( 'CREATE TABLE execute_large_work_mem (work_mem INT NOT NULL)' );
     $db->execute_with_large_work_mem(
         <<EOF
         INSERT INTO execute_large_work_mem (work_mem)
@@ -73,7 +73,7 @@ sub test_run_block_with_large_work_mem($)
     my ( $current_work_mem ) = $db->query( "SELECT setting::int FROM pg_settings WHERE name = 'work_mem'" )->flat;
     is( $current_work_mem, $normal_work_mem * 1024 );
 
-    $db->query( 'CREATE TEMPORARY TABLE run_large_work_mem (work_mem INT NOT NULL)' );
+    $db->query( 'CREATE TABLE run_large_work_mem (work_mem INT NOT NULL)' );
     $db->run_block_with_large_work_mem(
         sub {
             $db->query(
