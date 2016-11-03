@@ -379,18 +379,17 @@ sub insert_topic_links
 {
     my ( $db, $topic_links ) = @_;
 
-    my $table = 'topic_links';
-    my $columns = [ 'stories_id', 'url', 'topics_id' ];
+    $db->dbh->do( "COPY topic_links ( stories_id, url, topics_id ) FROM STDIN WITH CSV" );
 
     my $csv = Text::CSV_XS->new( { binary => 1 } );
 
-    $db->copy_from_start( $table, $columns );
     for my $topic_link ( @{ $topic_links } )
     {
-        $csv->combine( map { $topic_link->{ $_ } } ( @{ $columns } ) );
-        $db->copy_from_put_line( $table, encode( 'utf8', $csv->string ) );
+        $csv->combine( map { $topic_link->{ $_ } } ( qw/stories_id url topics_id/ ) );
+        $db->dbh->pg_putcopydata( encode( 'utf8', $csv->string ) . "\n" );
     }
-    $db->copy_from_end( $table );
+
+    $db->dbh->pg_putcopyend();
 }
 
 # for each story, return a list of the links found in either the extracted html or the story description
@@ -2685,18 +2684,19 @@ sub insert_topic_seed_urls
 
     INFO "inserting " . scalar( @{ $topic_seed_urls } ) . " topic seed urls ...";
 
-    my $table = 'topic_seed_urls';
-    my $columns = [ 'stories_id', 'url', 'topics_id', 'assume_match' ];
+    $db->dbh->do( <<SQL );
+COPY topic_seed_urls ( stories_id, url, topics_id, assume_match ) FROM STDIN WITH CSV
+SQL
 
     my $csv = Text::CSV_XS->new( { binary => 1 } );
 
-    $db->copy_from_start( $table, $columns );
     for my $csu ( @{ $topic_seed_urls } )
     {
-        $csv->combine( map { $csu->{ $_ } } ( @{ $columns } ) );
-        $db->copy_from_put_line( $table, $csv->string );
+        $csv->combine( map { $csu->{ $_ } } ( qw/stories_id url topics_id assume_match/ ) );
+        $db->dbh->pg_putcopydata( $csv->string . "\n" );
     }
-    $db->copy_from_end( $table );
+
+    $db->dbh->pg_putcopyend();
 }
 
 # import stories intro topic_seed_urls from solr by running
