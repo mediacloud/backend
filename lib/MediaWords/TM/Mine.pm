@@ -1604,7 +1604,7 @@ sub get_stories_to_extract
             push( @{ $extract_stories }, $story );
         }
 
-        $db->commit unless ( $db->autocommit() );
+        $db->commit unless ( $db->{ dbh }->{ AutoCommit } );
     }
 
     return $extract_stories;
@@ -2064,7 +2064,7 @@ END
         add_to_topic_stories( $db, $topic, $keep_story, $merged_iteration, 1 );
     }
 
-    $db->begin if $db->autocommit();
+    $db->begin if $db->dbh->{ AutoCommit };
 
     my $topic_links = $db->query( <<END, $delete_story->{ stories_id }, $topics_id )->hashes;
 select * from topic_links where stories_id = ? and topics_id = ?
@@ -2093,7 +2093,7 @@ END
 insert into topic_merged_stories_map ( source_stories_id, target_stories_id ) values ( ?, ? )
 END
 
-    $db->commit unless $db->autocommit();
+    $db->commit unless $db->dbh->{ AutoCommit };
 
 }
 
@@ -2366,7 +2366,7 @@ update topic_seed_urls
     where topic_seed_urls_id = ?
 END
     }
-    $db->commit unless $db->autocommit();
+    $db->commit unless $db->dbh->{ AutoCommit };
 }
 
 # look for any stories in the topic tagged with a date method of 'current_time' and
@@ -2736,7 +2736,7 @@ sub import_solr_seed_query
 
     $db->query( "update topics set solr_seed_query_run = 't' where topics_id = ?", $topic->{ topics_id } );
 
-    $db->commit unless $db->autocommit();
+    $db->commit unless $db->dbh->{ AutoCommit };
 }
 
 # return true if there are fewer than $MAX_NULL_BITLY_STORIES stories without bitly data

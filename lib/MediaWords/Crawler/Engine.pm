@@ -698,7 +698,7 @@ sub _reconnect_db
     }
 
     $self->{ dbs } = MediaWords::DB::connect_to_db;
-    $self->dbs->set_autocommit( 1 );
+    $self->dbs->dbh->{ AutoCommit } = 1;
 }
 
 1;
