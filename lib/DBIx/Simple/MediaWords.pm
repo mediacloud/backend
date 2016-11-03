@@ -745,38 +745,48 @@ sub set_prepare_on_server_side($$)
 }
 
 # COPY FROM helpers
-sub copy_from_start($$)
+sub copy_from_start($$;$)
 {
-    my ( $self, $sql ) = @_;
+    my ( $self, $table, $columns ) = @_;
 
-    eval { $self->dbh->do( $sql ) };
+    my $query;
+    if ( $columns ) {
+        unless ( ref $columns eq ref [] ) {
+            die "Columns is not an arrayref.";
+        }
+        $query = "COPY $table (" . join( ', ', @{ $columns } ) . ") FROM STDIN WITH CSV";
+    } else {
+        $query = "COPY $table FROM STDIN";
+    }
+
+    eval { $self->dbh->do( $query ) };
     if ( $@ )
     {
-        die "Error while running '$sql': $@";
+        die "Error on 'COPY $table' FROM STDIN: $@";
     }
 }
 
-sub copy_from_put_line($$)
+sub copy_from_put_line($$$)
 {
-    my ( $self, $line ) = @_;
+    my ( $self, $table, $line ) = @_;
 
     chomp $line;
 
     eval { $self->dbh->pg_putcopydata( "$line\n" ); };
     if ( $@ )
     {
-        die "Error on pg_putcopydata('$line'): $@";
+        die "Error on pg_putcopydata for $table: $@";
     }
 }
 
-sub copy_from_end($)
+sub copy_from_end($$)
 {
-    my ( $self ) = @_;
+    my ( $self, $table ) = @_;
 
     eval { $self->dbh->pg_putcopyend(); };
     if ( $@ )
     {
-        die "Error on pg_putcopyend(): $@";
+        die "Error on pg_putcopyend for $table: $@";
     }
 }
 

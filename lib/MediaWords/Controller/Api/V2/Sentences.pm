@@ -64,12 +64,12 @@ sub _get_stories_ids_temporary_table
 
     $db->query( "CREATE TEMPORARY TABLE $table_name (stories_id BIGINT)" );
 
-    $db->copy_from_start( "COPY $table_name FROM STDIN" );
+    $db->copy_from_start( $table_name );
     for my $ss ( @{ $sentences } )
     {
-        $db->copy_from_put_line( $ss->{ stories_id } );
+        $db->copy_from_put_line( $table_name, $ss->{ stories_id } );
     }
-    $db->copy_from_end();
+    $db->copy_from_end( $table_name );
 
     return $table_name;
 }
