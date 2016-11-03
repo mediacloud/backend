@@ -10,6 +10,7 @@ use MediaWords::CommonLibs;
 
 use base qw(Catalyst::Model);
 
+use DBIx::Simple::MediaWords;
 use MediaWords::DB;
 
 sub new
@@ -37,8 +38,11 @@ sub dbis
     $self->{ prev_req_id } = $req_id;
 
     # we put an eval and print the error here b/c the web auth dies silently on a database error
-    eval {        
-        $db = MediaWords::DB::connect_to_db
+    eval {
+        $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
+          || die DBIx::Simple::MediaWords->error;
+
+        $db->dbh->{ RaiseError } = 1;
         $self->{ dbis } = $db;
     };
     if ( $@ )
