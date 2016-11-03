@@ -300,7 +300,7 @@ sub _get_mining_status
 
     my $cid = $topic->{ topics_id };
 
-    my $queued_urls = $db->query( <<END, $cid )->array->[ 0 ];
+    my $queued_urls = $db->query( <<END, $cid )->list;
 select count(*) from topic_links where topics_id = ? and ref_stories_id is null
 END
 
