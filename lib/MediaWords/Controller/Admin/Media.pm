@@ -390,7 +390,7 @@ sub _search_paged_media
 
     $q = "'%$q%'";
 
-    return $db->query_paged_hashes( <<END, $page, $row_count );
+    return $db->query_paged_hashes( <<END, [], $page, $row_count );
 select distinct m.media_id as media_id, m.name as name, m.url as url
     from media m
         left join (
@@ -434,7 +434,7 @@ sub search : Local
     }
     elsif ( $f )
     {
-        ( $media, $pager ) = $db->query_paged_hashes( <<END, $p, $ROWS_PER_PAGE );
+        ( $media, $pager ) = $db->query_paged_hashes( <<END, [], $p, $ROWS_PER_PAGE );
 select * from media m
     where not exists (select 1 from feeds f where f.media_id = m.media_id and feed_status = 'active')
     order by media_id
@@ -446,7 +446,7 @@ END
     }
     else
     {
-        ( $media, $pager ) = $db->query_paged_hashes( "select * from media order by media_id", $p, $ROWS_PER_PAGE );
+        ( $media, $pager ) = $db->query_paged_hashes( "select * from media order by media_id", [], $p, $ROWS_PER_PAGE );
     }
 
     for my $m ( @{ $media } )
