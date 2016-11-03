@@ -686,14 +686,14 @@ sub query_paged_hashes
 }
 
 # executes the supplied subroutine inside a transaction
-sub transaction($$)
+sub transaction
 {
-    my ( $self, $subroutine ) = @_;
+    my ( $self, $tsub, @tsub_args ) = @_;
 
     $self->query( 'START TRANSACTION' );
 
     eval {
-        if ( $subroutine->() )
+        if ( $tsub->( @tsub_args ) )
         {
             $self->query( 'COMMIT' );
         }
