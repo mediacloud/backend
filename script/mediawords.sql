@@ -2871,7 +2871,7 @@ create unique index topic_tweet_days_td on topic_tweet_days ( topics_id, day );
 -- list of tweets associated with a given topic
 create table topic_tweets (
     topic_tweets_id         serial primary key,
-    topics_id               int not null references topics on delete cascade,
+    topic_tweet_days_id     int not null references topic_tweet_days on delete cascade,
     data                    json not null,
     tweet_id                varchar(256) not null,
     content                 text not null,
@@ -2879,8 +2879,8 @@ create table topic_tweets (
     twitter_user            varchar( 1024 ) not null
 );
 
-create unique index topic_tweets_id on topic_tweets( topics_id, tweet_id );
-create index topic_tweet_topic_user on topic_tweets( topics_id, twitter_user );
+create unique index topic_tweets_id on topic_tweets( topic_tweet_days_id, tweet_id );
+create index topic_tweet_topic_user on topic_tweets( topic_tweet_days_id, twitter_user );
 
 -- urls parsed from topic tweets and imported into topic_seed_urls
 create table topic_tweet_urls (
@@ -2891,3 +2891,26 @@ create table topic_tweet_urls (
 
 create index topic_tweet_urls_url on topic_tweet_urls ( url );
 create unique index topic_tweet_urls_tt on topic_tweet_urls ( topic_tweets_id, url );
+
+create view topic_tweet_full_urls as
+    select
+            t.topics_id parent_topics_id, twt.topics_id twitter_topics_id,
+            tt.topic_tweets_id, tt.content, tt.publish_date, tt.twitter_user,
+            ttd.day, ttd.tweet_count, ttd.num_ch_tweets, ttd.tweets_fetched,
+            ttu.url, tsu.topic_seed_urls_id, tsu.stories_id
+        from
+            topics t
+            join topics twt on ( t.topics_id = twt.twitter_parent_topics_id )
+            join topic_tweet_days ttd on ( t.topics_id = ttd.topics_id )
+            join topic_tweets tt using ( topic_tweet_days_id )
+            join topic_tweet_urls ttu using ( topic_tweets_id )
+            left join topic_seed_urls tsu on ( tsu.topics_id = twt.topics_id and ttu.url = tsu.url )
+
+
+-- view that joins together the related topic_tweets, topic_tweet_days, topic_tweet_urls, and topic_seed_urls tables
+-- tables for convenient querying of topic twitter url data
+-- create view topic_tweet_full_urls as
+--     select *
+--         from topic_tweets tt
+--             join topic_tweet_days using ( topic_tweets_id )
+--             join

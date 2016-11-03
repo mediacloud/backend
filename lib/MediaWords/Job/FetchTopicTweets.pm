@@ -165,18 +165,18 @@ sub _add_tweets_to_ch_posts
 }
 
 # using the data in ch_post, store the tweet in topic_tweets and its urls in topic_tweet_urls
-sub _store_tweet_and_urls
+sub _store_tweet_and_urls($$$$)
 {
-    my ( $db, $topic, $ch_post ) = @_;
+    my ( $db, $topic, $topic_tweet_day, $ch_post ) = @_;
 
     my $publish_date = MediaWords::Util::SQL::get_sql_date_from_str2time( $ch_post->{ tweet }->{ created_at } );
     my $topic_tweet  = {
-        topics_id    => $topic->{ topics_id },
-        data         => MediaWords::Util::JSON::encode_json( $ch_post ),
-        content      => $ch_post->{ tweet }->{ text },
-        tweet_id     => $ch_post->{ tweet_id },
-        publish_date => $publish_date,
-        twitter_user => $ch_post->{ tweet }->{ user }->{ screen_name }
+        topic_tweet_days_id => $topic_tweet_day->{ topic_tweet_days_id },
+        data                => MediaWords::Util::JSON::encode_json( $ch_post ),
+        content             => $ch_post->{ tweet }->{ text },
+        tweet_id            => $ch_post->{ tweet_id },
+        publish_date        => $publish_date,
+        twitter_user        => $ch_post->{ tweet }->{ user }->{ screen_name }
     };
 
     $topic_tweet = $db->create( 'topic_tweets', $topic_tweet );
@@ -223,7 +223,7 @@ sub _fetch_tweets_for_day
 
     DEBUG( "inserting into topic_tweets ..." );
 
-    map { _store_tweet_and_urls( $db, $topic, $_ ) } ( grep { $_->{ tweet } } @{ $ch_posts } );
+    map { _store_tweet_and_urls( $db, $topic, $topic_tweet_day, $_ ) } ( grep { $_->{ tweet } } @{ $ch_posts } );
 
     my $num_deleted_tweets = scalar( grep { !$_->{ tweet } } @{ $ch_posts } );
     $topic_tweet_day->{ num_ch_tweets } -= $num_deleted_tweets;

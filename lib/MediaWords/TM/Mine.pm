@@ -2825,32 +2825,19 @@ sub generate_twitter_links
 
     return unless ( $topic->{ twitter_parent_topics_id } );
 
-    my $twitter_links = $db->query( <<SQL, $topic->{ topics_id } )->hashes;
+    my $num_generated_links = $db->query( <<SQL, $topic->{ topics_id } )->rows;
 insert into topic_links ( topics_id, stories_id, url, redirect_url, ref_stories_id, link_spidered )
     select
-            t.topics_id, tsu_a.stories_id, min( tsu_a.url ), min( tsu_a.url) , tsu_b.stories_id, true
+            a.twitter_topics_id, a.stories_id, min( a.url ), min( a.url ), b.stories_id, true
         from
-            topics t
-            join topic_stories ts_a on ( ts_a.topics_id = t.topics_id )
-            join topic_seed_urls tsu_a on ( t.topics_id = tsu_a.topics_id and ts_a.stories_id = tsu_a.stories_id )
-            join topic_tweets tt_a on ( t.twitter_parent_topics_id = tt_a.topics_id )
-            join topic_tweet_urls ttu_a on
-                ( tt_a.topic_tweets_id = ttu_a.topic_tweets_id and tsu_a.url = ttu_a.url )
-            join topic_stories ts_b on ( ts_b.topics_id = t.topics_id )
-            join topic_seed_urls tsu_b on ( t.topics_id = tsu_b.topics_id and ts_b.stories_id = tsu_b.stories_id )
-            join topic_tweets tt_b on ( t.twitter_parent_topics_id = tt_b.topics_id )
-            join topic_tweet_urls ttu_b on
-                ( tt_b.topic_tweets_id = ttu_b.topic_tweets_id and tsu_b.url = ttu_b.url )
+            topic_tweet_full_urls a
+            join topic_tweet_full_urls_b on ( a.topics_id = b.topics_id and a.twitter_user = b.twitter_user )
         where
-            tsu_a.stories_id <> tsu_b.stories_id and
-            tt_a.twitter_user = tt_b.twitter_user and
-            t.topics_id = \$1
-        group by t.topics_id, tsu_a.stories_id, tsu_b.stories_id
-        returning *
+            a.stories_id <> b.stories_id and
+            a.twitter_topics_id = \$1
 SQL
 
-    DEBUG( "GENERATED TWITTER LINKS: " . scalar( @{ $twitter_links } ) );
-
+    DEBUG( "GENERATED TWITTER LINKS: $num_generated_links" );
 }
 
 # mine the given topic for links and to recursively discover new stories on the web.
@@ -2866,7 +2853,7 @@ sub do_mine_topic ($$;$)
     map { $options->{ $_ } ||= 0 }
       qw/cache_broken_downloads import_only skip_outgoing_foreign_rss_links skip_post_processing test_mode/;
 
-    # Log activity that's about to start
+    # Log activity that is about to start
     MediaWords::DBI::Activities::log_system_activity( $db, 'tm_mine_topic', $topic->{ topics_id }, $options )
       || die( "Unable to log the 'tm_mine_topic' activity." );
 
@@ -2981,26 +2968,6 @@ SQL
     return $topic;
 }
 
-# add the url to the topic_tweet_url table if it does not already exist
-sub add_topic_tweet_url($$$$)
-{
-    my ( $db, $topic, $topic_tweet, $url ) = @_;
-
-    my $existing_tweet_url = $db->query( <<SQL, $topic->{ topics_id } );
-select * from topic_tweet_url where topic_tweet_id = ? and url = ?
-SQL
-
-    return if $existing_tweet_url;
-
-    $db->create(
-        'topic_tweet_urls',
-        {
-            topic_tweets_id => $topic_tweet->{ topic_tweets_id },
-            url             => $url
-        }
-    );
-}
-
 # add the url parsed from a tweet to topics_seed_url
 sub add_tweet_seed_url
 {
@@ -3037,30 +3004,22 @@ sub seed_topic_with_tweet_urls($$)
     $db->query( <<SQL, $topic->{ topics_id } );
 update topic_seed_urls tsu
     set assume_match = 't', processed = 'f'
+    from
+        topic_tweet_full_urls ttfu
     where
+        ttfu.twitter_topics_id = tsu.topics_id  and
+        ttfu.url = tsu.url and
         tsu.topics_id = \$1 and
-        url in (
-            select url
-                from topic_tweet_urls ttu
-                    join topic_tweets tt using ( topic_tweets_id )
-                    where tt.topics_id = tsu.topics_id
-        ) and
-        assume_match = 'f'
+        assume_match = false
 SQL
 
     # now insert any topic_tweet_urls that are not already in the topic_seed_urls
-    $db->query( <<SQL, $topic->{ twitter_parent_topics_id }, $topic->{ topics_id } );
+    $db->query( <<SQL, $topic->{ topics_id } );
 insert into topic_seed_urls ( topics_id, url, assume_match, source )
-    select distinct \$2::int, ttu.url, true, 'twitter'
-        from topic_tweet_urls ttu
-            join topic_tweets tt using ( topic_tweets_id )
+    select distinct ttfu.twitter_topics_id, ttfu.url, true, 'twitter'
+        from topic_tweet_full_urls ttfu
             where
-                tt.topics_id = \$1 and
-                not exists (
-                    select 1
-                        from topic_seed_urls tsu
-                        where tsu.topics_id = \$2 and tsu.url = ttu.url
-                )
+                ttfu.twitter_topics_id = \$1 and ttfu.topic_seed_urls_id is null
 SQL
 }
 

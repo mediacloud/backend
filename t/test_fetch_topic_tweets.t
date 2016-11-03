@@ -133,7 +133,13 @@ sub validate_topic_tweet_urls($$)
 {
     my ( $db, $topic ) = @_;
 
-    my $topic_tweets = $db->query( "select * from topic_tweets where topics_id = \$1", $topic->{ topics_id } )->hashes;
+    my $topic_tweets = $db->query( <<SQL, $topic->{ topics_id } )->hashes;
+select *
+    from topic_tweets tt
+        join topic_tweet_days ttd using ( topic_tweet_days_id )
+    where
+        ttd.topics_id = ?
+SQL
 
     my $num_topic_tweets = scalar( @{ $topic_tweets } );
 
@@ -178,14 +184,7 @@ SQL
     is( $twitter_topic->{ name }, "$parent_topic->{ name } (twitter)", "twitter topic name" );
 
     my ( $num_matching_seed_urls ) = $db->query( <<SQL, $parent_topic->{ topics_id } )->flat;
-select count(*)
-    from topic_seed_urls tsu, topic_tweet_urls ttu, topic_tweets tt, topics t
-    where
-        t.twitter_parent_topics_id = \$1 and
-        t.twitter_parent_topics_id = tt.topics_id and
-        tt.topic_tweets_id = ttu.topic_tweets_id and
-        tsu.url = ttu.url and
-        tsu.topics_id = t.topics_id
+select count(*) from topic_tweet_full_urls where parent_topics_id = \$1
 SQL
 
     my ( $expected_num_urls ) = $db->query( "select count(*) from topic_tweet_urls" )->flat;
@@ -193,13 +192,11 @@ SQL
 
     my ( $num_dead_tweets ) = $db->query( <<SQL, $twitter_topic->{ topics_id } )->flat;
 select count(*)
-    from
-        topics t
-        join topic_dead_links tdl on ( t.topics_id = tdl.topics_id )
-        join topic_tweets tt on ( t.twitter_parent_topics_id = tt.topics_id )
-        join topic_tweet_urls ttu on ( ttu.url = tdl.url and ttu.topic_tweets_id = tt.topic_tweets_id )
+    from topic_dead_links tdl
+        join topic_tweet_full_urls ttfu on
+            ( ttfu.twitter_topics_id = tdl.topics_id and tdl.url = ttfu.url )
     where
-        t.topics_id = \$1
+        tdl.topics_id = \$1
 SQL
 
     my ( $num_null_story_seed_urls ) = $db->query( <<SQL, $twitter_topic->{ topics_id } )->flat;
@@ -209,15 +206,7 @@ SQL
         "number of topic_seed_urls with null stories_id: $num_null_story_seed_urls <= $num_dead_tweets" );
 
     my ( $num_matching_topic_stories ) = $db->query( <<SQL, $twitter_topic->{ topics_id } )->flat;
-select count(*)
-    from
-        topics t
-        join topic_stories ts on ( t.topics_id = ts.topics_id )
-        join topic_seed_urls tsu on ( tsu.stories_id = ts.stories_id and tsu.topics_id = ts.topics_id )
-        join topic_tweets tt on ( t.twitter_parent_topics_id = tt.topics_id )
-        join topic_tweet_urls ttu on ( ttu.url = tsu.url and ttu.topic_tweets_id = tt.topic_tweets_id )
-    where
-        t.topics_id = \$1
+select count(*) from topic_tweet_full_urls where stories_id is not null and twitter_topics_id = \$1
 SQL
 
     my $num_processed_stories = $num_matching_topic_stories + $num_dead_tweets;
@@ -269,11 +258,22 @@ SQL
     validate_topic_data( $db, $topic );
 }
 
-sub main
+# if the twitter and ch keys are setup, run the tests on the external apis
+sub run_tests_on_external_apis
 {
-    # topic date modeling confuses perl TAP for some reason
-    MediaWords::Util::Config::get_config()->{ mediawords }->{ topic_model_reps } = 0;
+    my $config = MediaWords::Util::Config::get_config();
 
+    if ( !$config->{ twitter }->{ consumer_secret } || !$config->{ crimson_hexagon }->{ key } )
+    {
+        WARN( "SKIPPING EXTERNAL APIS BECAUSE TWITTER AND/OR CRIMSON HEXAGON KEYS NOT FOUND" );
+        return;
+    }
+
+    MediaWords::Test::DB::test_on_test_database( \&test_fetch_topic_tweets );
+}
+
+sub run_tests_on_mock_apis
+{
     my $hs = HTTP::HashServer->new(
         $PORT,
         {
@@ -284,11 +284,8 @@ sub main
     );
     $hs->start();
 
-    if ( !MediaWords::Test::ExternalAPI::use_external_api() )
-    {
-        MediaWords::Job::FetchTopicTweets->set_api_host( "http://localhost:$PORT" );
-        MediaWords::Util::Config::get_config->{ crimson_hexagon }->{ key } = 'TEST';
-    }
+    MediaWords::Job::FetchTopicTweets->set_api_host( "http://localhost:$PORT" );
+    MediaWords::Util::Config::get_config->{ crimson_hexagon }->{ key } = 'TEST';
 
     eval { MediaWords::Test::DB::test_on_test_database( \&test_fetch_topic_tweets ); };
     my $test_error = $@;
@@ -296,6 +293,17 @@ sub main
     $hs->stop();
 
     die( $test_error ) if ( $test_error );
+
+}
+
+sub main
+{
+    # topic date modeling confuses perl TAP for some reason
+    MediaWords::Util::Config::get_config()->{ mediawords }->{ topic_model_reps } = 0;
+
+    run_tests_on_external_apis();
+
+    #run_tests_on_nmock_apis();
 
     done_testing();
 }
