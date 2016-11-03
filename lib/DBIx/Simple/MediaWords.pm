@@ -639,13 +639,13 @@ sub quote_varchar($$)
 sub quote_date($$)
 {
     my ( $self, $value ) = @_;
-    return $self->dbh->quote( $value, { pg_type => DBD::Pg::PG_VARCHAR } ) . '::date';
+    return $self->dbh->quote_varchar( $value ) . '::date';
 }
 
 sub quote_timestamp($$)
 {
     my ( $self, $value ) = @_;
-    return $self->dbh->quote( $value, { pg_type => DBD::Pg::PG_VARCHAR } ) . '::timestamp';
+    return $self->dbh->quote_varchar( $value ) . '::timestamp';
 }
 
 {
