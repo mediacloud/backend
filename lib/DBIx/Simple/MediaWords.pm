@@ -50,7 +50,7 @@ sub new
     return $self;
 }
 
-sub connect($$$$;$$)
+sub connect($$$$$;$)
 {
     my ( $self, $dsn, $user, $pass, $options, $do_not_check_schema_version ) = @_;
 
@@ -68,7 +68,6 @@ sub connect($$$$;$$)
         }
     }
 
-    $options //= {};
     my $db = $self->SUPER::connect( $dsn, $user, $pass, $options );
 
     unless ( $do_not_check_schema_version )
