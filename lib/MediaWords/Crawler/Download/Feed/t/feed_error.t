@@ -17,7 +17,6 @@ use Readonly;
 
 use MediaWords::Crawler::Engine;
 use MediaWords::Test::DB;
-use Storable qw(dclone);
 
 Readonly my $HTTP_PORT => 8912;
 
@@ -86,12 +85,9 @@ sub test_do_not_process_feeds($)
     my ( $db ) = @_;
 
     # Temporarily set 'do_not_process_feeds'
-    my $config     = MediaWords::Util::Config::get_config;
-    my $new_config = dclone( $config );
-
+    my $config                    = MediaWords::Util::Config::get_config;
     my $orig_do_not_process_feeds = $config->{ mediawords }->{ do_not_process_feeds };
-    $new_config->{ mediawords }->{ do_not_process_feeds } = 'yes';
-    MediaWords::Util::Config::set_config( $new_config );
+    $config->{ mediawords }->{ do_not_process_feeds } = 'yes';
 
     my $pages = { '/foo' => '<rss version="2.0"><channel /></rss>', };
 
@@ -109,8 +105,7 @@ sub test_do_not_process_feeds($)
 
     $hs->stop;
 
-    $new_config->{ mediawords }->{ do_not_process_feeds } = $orig_do_not_process_feeds;
-    MediaWords::Util::Config::set_config( $new_config );
+    $config->{ mediawords }->{ do_not_process_feeds } = $orig_do_not_process_feeds;
 }
 
 sub main

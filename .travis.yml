@@ -45,15 +45,20 @@ env:
 before_install:
     # Install APT packages (not PostgreSQL though)
     - ./install_scripts/install_mediacloud_system_package_dependencies.sh
-    # Install Python dependencies
-    - travis_retry ./install_scripts/install_python_dependencies.sh
     # Set up kernel and PostgreSQL parameters
     - ./install_scripts/set_kernel_parameters.sh
     - ./install_scripts/set_postgresql_parameters.sh
+    # Set up local Media Cloud environment for Python
+    - mkdir -p $HOME/mc-python
+    - virtualenv $HOME/mc-python
+    - source $HOME/mc-python/bin/activate
+    # Install Python dependencies
+    - travis_retry pip install --upgrade pip setuptools
+    - travis_retry pip install --upgrade -r python_scripts/requirements.txt
     # Install Media Cloud testing variant of the Python Client
     - travis_retry git clone https://github.com/berkmancenter/mediacloud-api-testing-client.git MediaCloud-API-Client/
     - cd MediaCloud-API-Client/; git checkout v2.25.0-api-testing-cleanup; cd ../
-    - travis_retry sudo pip2 install --editable MediaCloud-API-Client/
+    - travis_retry pip install --editable MediaCloud-API-Client/
     # Create + switch to the Media Cloud's Perlbrew library
     - perlbrew lib create mediacloud
     - perlbrew switch @mediacloud
@@ -73,6 +78,6 @@ before_script:
     - ./script/run_with_carton.sh ./script/mediawords_create_db.pl
 script:
     # Start Readability service for testing "PythonReadability" extractor method on t/test_extractor.t
-    - "python2 python_scripts/extractor_python_readability_server.py &"
+    - "python python_scripts/extractor_python_readability_server.py &"
     # Run Media Cloud's test suite, report test coverage to https://coveralls.io/r/berkmancenter/mediacloud
     - ./script/run_test_suite_for_devel_cover.sh coveralls --destroy-solr

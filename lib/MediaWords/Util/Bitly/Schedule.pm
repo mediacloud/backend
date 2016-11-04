@@ -113,7 +113,7 @@ sub story_processing_is_enabled()
         return 0;
     }
 
-    my $config = MediaWords::Util::Config::get_config();
+    my $config = MediaWords::Util::Config->get_config();
     my $enabled = $config->{ bitly }->{ story_processing }->{ enabled } // '';
 
     return ( $enabled eq 'yes' );
@@ -137,7 +137,7 @@ sub add_to_processing_schedule($$)
         die "Story ID $stories_id was not found.";
     }
 
-    my $config   = MediaWords::Util::Config::get_config();
+    my $config   = MediaWords::Util::Config->get_config();
     my $schedule = $config->{ bitly }->{ story_processing }->{ schedule };
     unless ( $schedule and ref( $schedule ) eq ref( [] ) )
     {

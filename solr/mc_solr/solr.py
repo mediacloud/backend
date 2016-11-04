@@ -1,9 +1,9 @@
 import atexit
 import glob
 import shutil
+import urllib2
 
-from urllib.request import urlopen
-from urllib.error import URLError
+import sys
 
 from mc_solr.constants import *
 from mc_solr.utils import *
@@ -677,8 +677,8 @@ def reload_solr_shard(shard_num,
         logger.debug("Requesting URL %s..." % url)
 
         try:
-            urlopen(url)
-        except URLError as e:
+            urllib2.urlopen(url)
+        except urllib2.URLError as e:
             raise Exception("Unable to reload shard %d on %s:%d: %s" % (shard_num, host, shard_port, e.reason))
 
     logger.info("Reloaded shard %d on %s:%d." % (shard_num, host, shard_port))
@@ -726,8 +726,8 @@ def optimize_solr_index(host="localhost",
         logger.debug("Requesting URL %s..." % url)
 
         try:
-            urlopen(url)
-        except URLError as e:
+            urllib2.urlopen(url)
+        except urllib2.URLError as e:
             raise Exception("Unable to optimize collection '%s' index on %s:%d: %s" % (
                 collection_name, host, port, e.reason))
 

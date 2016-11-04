@@ -81,9 +81,10 @@ sub run($;$)
     # Mark the story as processed in "processed_stories" (which might contain duplicate records)
     unless ( MediaWords::DBI::Stories::mark_as_processed( $db, $stories_id ) )
     {
+
         # If the script wasn't able to log annotated story to PostgreSQL, this
         # is also a fatal error (meaning that the script can't continue running)
-        die 'Unable to to log annotated story $stories_id to database';
+        die 'Unable to to log annotated story $stories_id to database: ' . $db->dbh->errstr;
     }
 
     return 1;

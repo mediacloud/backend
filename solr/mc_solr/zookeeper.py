@@ -1,5 +1,7 @@
 import atexit
 
+import sys
+
 import mc_solr.solr
 from mc_solr.constants import *
 from mc_solr.utils import *

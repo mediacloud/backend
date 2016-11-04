@@ -12,9 +12,6 @@ cache/translate
 # all caches
 data/cache/
 
-# Media Cloud virtualenv
-mc-venv/
-
 # Python bytecode files
 *.py[cod]
 
@@ -28,9 +25,6 @@ Session.vim
 
 # OS X
 .DS_Store
-
-# Inline::* bytecode (there might be multiple directories that start with this prefix)
-_Inline*
 
 # Devel::NYTProf output
 nytprof*

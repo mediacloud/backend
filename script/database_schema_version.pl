@@ -18,7 +18,6 @@ BEGIN
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
-use File::Slurp;
 
 use MediaWords::Util::SchemaVersion;
 
@@ -33,17 +32,19 @@ sub main
     die $usage unless $#ARGV == 0;    # 1 argument
     my $sql_filename = $ARGV[ -1 ];
 
-    my $sql;
+    my @input;
     if ( $sql_filename eq '-' )
     {
-        $sql = do { local $/; <STDIN> };
+        @input = <STDIN>;
     }
     else
     {
-        $sql = read_file( $sql_filename );
+        open SQLFILE, $sql_filename or die $!;
+        @input = <SQLFILE>;
+        close SQLFILE;
     }
 
-    my $schema_version = MediaWords::Util::SchemaVersion::schema_version_from_lines( $sql );
+    my $schema_version = MediaWords::Util::SchemaVersion::schema_version_from_lines( @input );
     die "Unable to determine schema version.\n" unless ( $schema_version );
 
     print $schema_version;
