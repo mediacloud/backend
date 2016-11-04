@@ -49,7 +49,6 @@ requires 'Data::Structure::Util';
 requires 'Date::Calc';
 requires 'DateTime::Format::Pg';
 requires 'DBD::Pg', '2.19.3';
-requires 'DBD::SQLite';
 requires 'DBIx::Class::Schema';
 requires 'DBIx::Simple';
 requires 'Devel::Cover', '1.17';
