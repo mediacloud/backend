@@ -2831,10 +2831,12 @@ insert into topic_links ( topics_id, stories_id, url, redirect_url, ref_stories_
             a.twitter_topics_id, a.stories_id, min( a.url ), min( a.url ), b.stories_id, true
         from
             topic_tweet_full_urls a
-            join topic_tweet_full_urls_b on ( a.topics_id = b.topics_id and a.twitter_user = b.twitter_user )
+            join topic_tweet_full_urls b on
+                ( a.twitter_topics_id = b.twitter_topics_id and a.twitter_user = b.twitter_user )
         where
             a.stories_id <> b.stories_id and
             a.twitter_topics_id = \$1
+        group by a.twitter_topics_id, a.stories_id, b.stories_id
 SQL
 
     DEBUG( "GENERATED TWITTER LINKS: $num_generated_links" );

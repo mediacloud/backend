@@ -1875,7 +1875,10 @@ create table snap.story_link_counts (
     -- (values can be NULL if Bit.ly is not enabled / configured for a topic)
     bitly_click_count                       int null,
 
-    facebook_share_count                    int null
+    facebook_share_count                    int null,
+
+    simple_tweet_count                      int null,
+    normalized_tweet_count                  float null
 );
 
 -- TODO: add complex foreign key to check that stories_id exists for the snapshot stories snapshot
@@ -1894,7 +1897,12 @@ create table snap.medium_link_counts (
 
     -- Bit.ly (aggregated) stats
     -- (values can be NULL if Bit.ly is not enabled / configured for a topic)
-    bitly_click_count               int null
+    bitly_click_count               int null,
+
+    facebook_share_count            int null,
+
+    simple_tweet_count              int null,
+    normalized_tweet_count          float null
 );
 
 -- TODO: add complex foreign key to check that media_id exists for the snapshot media snapshot
@@ -2892,6 +2900,8 @@ create table topic_tweet_urls (
 create index topic_tweet_urls_url on topic_tweet_urls ( url );
 create unique index topic_tweet_urls_tt on topic_tweet_urls ( topic_tweets_id, url );
 
+-- view that joins together the related topic_tweets, topic_tweet_days, topic_tweet_urls, and topic_seed_urls tables
+-- tables for convenient querying of topic twitter url data
 create view topic_tweet_full_urls as
     select
             t.topics_id parent_topics_id, twt.topics_id twitter_topics_id,
@@ -2904,13 +2914,11 @@ create view topic_tweet_full_urls as
             join topic_tweet_days ttd on ( t.topics_id = ttd.topics_id )
             join topic_tweets tt using ( topic_tweet_days_id )
             join topic_tweet_urls ttu using ( topic_tweets_id )
-            left join topic_seed_urls tsu on ( tsu.topics_id = twt.topics_id and ttu.url = tsu.url )
+            left join topic_seed_urls tsu on ( tsu.topics_id = twt.topics_id and ttu.url = tsu.url );
 
+-- copy structure of topic_tweet_full_urls for snapshot table
+create table snap.topic_tweet_full_urls as select * from topic_tweet_full_urls where false;
+alter table snap.topic_tweet_full_urls add snapshots_id int references snapshots on delete cascade;
 
--- view that joins together the related topic_tweets, topic_tweet_days, topic_tweet_urls, and topic_seed_urls tables
--- tables for convenient querying of topic twitter url data
--- create view topic_tweet_full_urls as
---     select *
---         from topic_tweets tt
---             join topic_tweet_days using ( topic_tweets_id )
---             join
+create index snap_topic_tweet_full_urls_snap_story on snap.topic_tweet_full_urls( snapshots_id, stories_id );
+create index snap_topic_tweet_full_urls_snap_user on snap.topic_tweet_full_urls( snapshots_id, twitter_user );

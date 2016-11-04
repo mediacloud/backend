@@ -85,7 +85,7 @@ my $_media_static_gexf_attribute_types = {
 # all tables that the snapshot process snapshots for each snapshot
 my $_snapshot_tables = [
     qw/topic_stories topic_links_cross_media topic_media_codes
-      stories media stories_tags_map media_tags_map tags tag_sets/
+      stories media stories_tags_map media_tags_map tags tag_sets topic_tweet_full_urls/
 ];
 
 # tablespace clause for temporary tables
@@ -131,7 +131,7 @@ sub write_live_snapshot_tables
         $topics_id = $cd->{ topics_id };
     }
 
-    write_temporary_snapshot_tables( $db, $topics_id );
+    write_temporary_snapshot_tables( $db, $topic );
     write_period_stories( $db, $timespan );
     write_story_links_snapshot( $db, $timespan, 1 );
     write_story_link_counts_snapshot( $db, $timespan, 1 );
@@ -485,12 +485,25 @@ create temporary table snapshot_story_link_counts $_temporary_tablespace as
             from
                 snapshot_story_media_links sml
             group by sml.ref_stories_id
+    ),
+
+    snapshot_twitter_counts as (
+        select
+                s.stories_id,
+                count(*) as simple_tweet_count,
+                sum( num_ch_tweets::float /
+                    ( case when tweet_count = 0 then 1 else tweet_count end )::float ) as normalized_tweet_count
+            from topic_tweet_full_urls ttfu
+                join snapshot_period_stories s using ( stories_id )
+            group by s.stories_id
     )
 
     select distinct ps.stories_id,
-            coalesce ( smlc.media_inlink_count, 0 ) media_inlink_count,
+            coalesce( smlc.media_inlink_count, 0 ) media_inlink_count,
             coalesce( ilc.inlink_count, 0 ) inlink_count,
             coalesce( olc.outlink_count, 0 ) outlink_count,
+            stc.simple_tweet_count,
+            stc.normalized_tweet_count,
             b.click_count bitly_click_count,
             ss.facebook_share_count facebook_share_count
         from snapshot_period_stories ps
@@ -515,6 +528,8 @@ create temporary table snapshot_story_link_counts $_temporary_tablespace as
                 on ps.stories_id = b.stories_id
             left join story_statistics ss
                 on ss.stories_id = ps.stories_id
+            left join snapshot_twitter_counts stc
+                on stc.stories_id = ps.stories_id
 END
 
     if ( !$is_model )
@@ -690,7 +705,9 @@ create temporary table snapshot_medium_link_counts $_temporary_tablespace as
                sum( slc.outlink_count) outlink_count,
                count(*) story_count,
                sum( slc.bitly_click_count ) bitly_click_count,
-               sum( slc.facebook_share_count ) facebook_share_count
+               sum( slc.facebook_share_count ) facebook_share_count,
+               sum( slc.simple_tweet_count ) simple_tweet_count,
+               sum( slc.normalized_tweet_count ) normalized_tweet_count
             from
                 snapshot_media m
                 join snapshot_stories s using ( media_id )
@@ -1484,7 +1501,9 @@ sub create_snap_snapshot
 # these are the tables that apply to the whole snapshot.
 sub write_temporary_snapshot_tables
 {
-    my ( $db, $topics_id ) = @_;
+    my ( $db, $topic ) = @_;
+
+    my $topics_id = $topic->{ topics_id };
 
     set_temporary_table_tablespace();
 
@@ -1560,11 +1579,24 @@ END
     $db->query( <<END );
 create temporary table snapshot_tag_sets $_temporary_tablespace as
     select ts.*
-    from tag_sets ts
-    where ts.tag_sets_id in ( select tag_sets_id from snapshot_tags )
+        from tag_sets ts
+        where ts.tag_sets_id in ( select tag_sets_id from snapshot_tags )
+END
+
+    $db->query( <<END, $topics_id );
+        create temporary table snapshot_topic_tweet_full_urls $_temporary_tablespace as
+            select ttfu.*
+                from topic_tweet_full_urls ttfu
+                where \$1 in ( ttfu.parent_topics_id, ttfu.twitter_topics_id )
 END
 
     add_media_type_views( $db );
+
+    for my $table ( @{ get_snapshot_tables() } )
+    {
+        my $table_exists = $db->query( "select * from pg_class where relname = ?", $table )->hash;
+        die( "snapshot not created for snapshot table: $table" ) unless ( $table_exists );
+    }
 
 }
 
@@ -1733,7 +1765,7 @@ sub snapshot_topic ($$)
     eval {
         _update_snapshot_state( $db, $cd, "snapshotting data" );
 
-        write_temporary_snapshot_tables( $db, $topic->{ topics_id } );
+        write_temporary_snapshot_tables( $db, $topic );
 
         generate_snapshots_from_temporary_snapshot_tables( $db, $cd );
 

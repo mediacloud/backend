@@ -10,6 +10,7 @@ use HTTP::HashServer;
 use Readonly;
 use Test::More;
 
+use MediaWords::TM;
 use MediaWords::TM::Mine;
 use MediaWords::Test::DB;
 use MediaWords::Test::Data;
@@ -22,6 +23,11 @@ Readonly my $PORT => 8899;
 
 # id for valid monitor at CH (valid id needed only if MC_TEST_EXTERNAL_APIS set)
 Readonly my $CH_MONITOR_ID => 4488828184;
+
+# number of mock urls and users -- the mock api roughly distributes this many unique urls
+# and users among the tweets
+Readonly my $NUM_MOCK_URLS  => 250;
+Readonly my $NUM_MOCK_USERS => 75;
 
 # return list of dates to test for
 sub get_test_dates
@@ -41,8 +47,6 @@ sub get_test_data
 sub mock_ch_posts
 {
     my ( $self, $cgi ) = @_;
-
-    DEBUG( "MOCK CH POSTS" );
 
     my $auth       = $cgi->param( 'auth' )  || LOGDIE( "missing auth param" );
     my $id         = $cgi->param( 'id' )    || LOGDIE( "missing id param" );
@@ -105,15 +109,18 @@ sub mock_twitter_lookup
     my $tweets = [];
     for my $id ( @{ $ids } )
     {
+        my $url_id  = $id % $NUM_MOCK_URLS;
+        my $user_id = $id % $NUM_MOCK_USERS;
+
         # all we use is id, text, and created_by, so just test for those
         push(
             @{ $tweets },
             {
                 id         => $id,
-                text       => "sample tweet for id $id t.co",
+                text       => "sample tweet for id $id",
                 created_at => 'Wed Jun 06 20:07:10 +0000 2016',
-                user       => { screen_name => "user-$id" },
-                entities   => { urls => [ { expanded_url => "http://localhost:$PORT/tweet_url?id=$id" } ] }
+                user       => { screen_name => "user-$user_id" },
+                entities   => { urls => [ { expanded_url => "http://localhost:$PORT/tweet_url?id=$url_id" } ] }
             }
         );
     }
@@ -171,6 +178,79 @@ SQL
     is( $total_json_urls, $num_urls, "num of urls in json vs. num of urls in database" );
 }
 
+# validate that topic_links is what it should be by rebuilding the topic links directly from the
+# ch + twitter json data stored in topic_tweets and generating a link list using perl
+sub validate_topic_links
+{
+    my ( $db, $twitter_topic ) = @_;
+
+    my $topic_tweets = $db->query( <<SQL, $twitter_topic->{ twitter_parent_topics_id } )->hashes;
+select tt.* from topic_tweets tt join topic_tweet_days ttd using ( topic_tweet_days_id ) where ttd.topics_id = \$1
+SQL
+
+    my $expected_story_tweet_counts = {};
+    my $user_stories_lookup         = {};
+    for my $topic_tweet ( @{ $topic_tweets } )
+    {
+        my $data = MediaWords::Util::JSON::decode_json( $topic_tweet->{ data } );
+        ok( $data->{ url }, "topic tweet data has url" );
+
+        my $tweet = $data->{ tweet } || next;
+
+        my $user = $tweet->{ user }->{ screen_name };
+        my $urls = [ map { $_->{ expanded_url } } @{ $tweet->{ entities }->{ urls } } ];
+        for my $url ( @{ $urls } )
+        {
+            # assume that the stories_ids have gotten into topic_seed_urls becasue we tested for that already
+            my ( $stories_id ) = $db->query( <<SQL, $twitter_topic->{ topics_id }, $url )->flat;
+select stories_id from topic_seed_urls where topics_id = \$1 and url = \$2
+SQL
+            next unless ( $stories_id );
+
+            $expected_story_tweet_counts->{ $stories_id }++;
+            $user_stories_lookup->{ $user }->{ $stories_id } = 1 if ( $stories_id );
+        }
+    }
+
+    my $expected_link_lookup = {};
+    while ( my ( $user, $stories_lookup ) = each( %{ $user_stories_lookup } ) )
+    {
+        my $stories_ids = [ keys( %{ $stories_lookup } ) ];
+        for my $a ( @{ $stories_ids } )
+        {
+            for my $b ( @{ $stories_ids } )
+            {
+                $expected_link_lookup->{ $a }->{ $b } = 1 unless ( $a == $b );
+            }
+        }
+    }
+
+    my $expected_num_links = 0;
+    map { $expected_num_links += scalar( keys( %{ $expected_link_lookup->{ $_ } } ) ) } keys( %{ $expected_link_lookup } );
+
+    my $topic_links = $db->query( "select * from topic_links where topics_id = \$1", $twitter_topic->{ topics_id } )->hashes;
+
+    is( scalar( @{ $topic_links } ), $expected_num_links, "number of topic links match" );
+
+    for my $topic_link ( @{ $topic_links } )
+    {
+        my $stories_id     = $topic_link->{ stories_id };
+        my $ref_stories_id = $topic_link->{ ref_stories_id };
+        ok( $expected_link_lookup->{ $stories_id }->{ $ref_stories_id },
+            "valid topic link: $stories_id -> $ref_stories_id" );
+    }
+
+    my $timespan = MediaWords::TM::get_latest_overall_timespan( $db, $twitter_topic->{ topics_id } );
+    my $story_link_counts = $db->query( <<SQL, $timespan->{ timespans_id } )->hashes;
+select * from snap.story_link_counts where timespans_id = \$1
+SQL
+
+    for my $slc ( @{ $story_link_counts } )
+    {
+        is( $slc->{ simple_tweet_count }, $expected_story_tweet_counts->{ $slc->{ stories_id } }, "simple tweet count" );
+    }
+}
+
 # verify that topic data has been properly created, including topic_seed_urls, topic_stories, and topic_links
 sub validate_topic_data($$)
 {
@@ -182,6 +262,8 @@ SQL
 
     ok( $twitter_topic, "twitter topic created" );
     is( $twitter_topic->{ name }, "$parent_topic->{ name } (twitter)", "twitter topic name" );
+
+    is( $twitter_topic->{ state }, 'ready', "twitter topic state" );
 
     my ( $num_matching_seed_urls ) = $db->query( <<SQL, $parent_topic->{ topics_id } )->flat;
 select count(*) from topic_tweet_full_urls where parent_topics_id = \$1
@@ -212,6 +294,8 @@ SQL
     my $num_processed_stories = $num_matching_topic_stories + $num_dead_tweets;
 
     is( $num_processed_stories, $expected_num_urls, "number of processed urls in twitter topic" );
+
+    validate_topic_links( $db, $twitter_topic );
 }
 
 # core testing functionality
@@ -285,7 +369,11 @@ sub run_tests_on_mock_apis
     $hs->start();
 
     MediaWords::Job::FetchTopicTweets->set_api_host( "http://localhost:$PORT" );
-    MediaWords::Util::Config::get_config->{ crimson_hexagon }->{ key } = 'TEST';
+    my $config = MediaWords::Util::Config::get_config();
+
+    # set dummy values so that we can hit the mock apis without the underlying modules complaining
+    $config->{ crimson_hexagon }->{ key } = 'TEST';
+    map { $config->{ twitter }->{ $_ } = 'TEST' } qw/consumer_key consumer_secret access_token access_token_secret/;
 
     eval { MediaWords::Test::DB::test_on_test_database( \&test_fetch_topic_tweets ); };
     my $test_error = $@;
@@ -301,9 +389,9 @@ sub main
     # topic date modeling confuses perl TAP for some reason
     MediaWords::Util::Config::get_config()->{ mediawords }->{ topic_model_reps } = 0;
 
-    run_tests_on_external_apis();
+    #run_tests_on_external_apis();
 
-    #run_tests_on_nmock_apis();
+    run_tests_on_mock_apis();
 
     done_testing();
 }
