@@ -1,6 +1,6 @@
 #<<<
 $VAR1 = {
-          'collect_date' => '2016-11-04 01:42:01.558886',
+          'collect_date' => '2016-11-04 03:41:14.288304',
           'content' => '<!DOCTYPE html>
 <html>
 <head>
@@ -41,7 +41,7 @@ $VAR1 = {
 </body>
 </html>
 ',
-          'db_row_last_updated' => '2016-11-04 01:42:07.428584+02',
+          'db_row_last_updated' => '2016-11-04 03:41:20.13871+02',
           'description' => '*yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC',
           'disable_triggers' => undef,
           'extracted_text' => '*yZ>)32{3&&<? :9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC
@@ -101,7 +101,7 @@ $VAR1 = {
           'stories_id' => 4,
           'story_sentences' => [
                                  {
-                                   'db_row_last_updated' => '2016-11-04 01:42:07.428584+02',
+                                   'db_row_last_updated' => '2016-11-04 03:41:20.13871+02',
                                    'disable_triggers' => 0,
                                    'is_dup' => undef,
                                    'language' => 'hr',
@@ -116,6 +116,6 @@ $VAR1 = {
           'tags' => [],
           'timezone' => 'America/New_York',
           'title' => '*yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:\'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC',
-          'url' => 'http://tundra.local:58698/multilanguage/not_a_language.html'
+          'url' => 'http://tundra.local:59834/multilanguage/not_a_language.html'
         };
 #>>>

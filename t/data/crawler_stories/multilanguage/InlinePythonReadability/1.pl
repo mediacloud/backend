@@ -1,6 +1,6 @@
 #<<<
 $VAR1 = {
-          'collect_date' => '2016-11-04 01:42:01.524237',
+          'collect_date' => '2016-11-04 03:41:14.252468',
           'content' => '<!DOCTYPE html>
 <html>
 <head>
@@ -41,7 +41,7 @@ $VAR1 = {
 </body>
 </html>
 ',
-          'db_row_last_updated' => '2016-11-04 01:42:04.125325+02',
+          'db_row_last_updated' => '2016-11-04 03:41:16.797717+02',
           'description' => 'English: The quick brown fox jumps over the lazy dog.',
           'disable_triggers' => undef,
           'extracted_text' => 'English: The quick brown fox jumps over the lazy dog
@@ -101,7 +101,7 @@ English: The quick brown fox jumps over the lazy dog.
           'stories_id' => 1,
           'story_sentences' => [
                                  {
-                                   'db_row_last_updated' => '2016-11-04 01:42:04.125325+02',
+                                   'db_row_last_updated' => '2016-11-04 03:41:16.797717+02',
                                    'disable_triggers' => 0,
                                    'is_dup' => undef,
                                    'language' => 'en',
@@ -116,6 +116,6 @@ English: The quick brown fox jumps over the lazy dog.
           'tags' => [],
           'timezone' => 'America/New_York',
           'title' => 'English: The quick brown fox jumps over the lazy dog',
-          'url' => 'http://tundra.local:58698/multilanguage/english.html'
+          'url' => 'http://tundra.local:59834/multilanguage/english.html'
         };
 #>>>
