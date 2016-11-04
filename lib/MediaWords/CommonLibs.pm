@@ -6,6 +6,7 @@ use warnings;
 use feature qw/ :5.22 /;
 
 use Modern::Perl "2015";
+use MediaWords::CommonLibs;
 
 require Exporter;
 our @ISA = qw(Exporter);
@@ -13,19 +14,7 @@ our @ISA = qw(Exporter);
 use Data::Dumper;
 use Readonly;
 
-eval {
-    require MediaWords::Util::Config;
-    MediaWords::Util::Config->import();
-
-    # Search for Python modules under "mediacloud/"
-    $ENV{ PYTHONPATH } = MediaWords::Util::Config::get_mc_python_dir();
-
-    1;
-} or do
-{
-    my $error = $@;
-    die "Unable to load MediaWords::Util::Config: $@";
-};
+use MediaWords::Util::Config;
 
 our @LOGGER = qw(FATAL ERROR WARN INFO DEBUG TRACE LOGDIE LOGWARN LOGCARP LOGCLUCK LOGCONFESS LOGCROAK);
 

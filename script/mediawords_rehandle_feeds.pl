@@ -14,7 +14,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;
-use MediaWords::Util::Config;
+use MediaWords::Util::Config qw(get_config);
 
 use Data::Dumper;
 
@@ -24,7 +24,7 @@ sub main
 
     die( 'usage: mediawords_rehandle_feeds.pl <error pattern> <date >' ) unless ( $error_pattern && $date );
 
-    my $dnpf = MediaWords::Util::Config::get_config->{ mediawords }->{ do_not_process_feeds };
+    my $dnpf = get_config->{ mediawords }->{ do_not_process_feeds };
     die( "set mediawords.do_not_process_feeds to 'no' in mediawords.yml" ) if ( $dnpf && ( $dnpf eq 'yes' ) );
 
     my $db = MediaWords::DB::connect_to_db;

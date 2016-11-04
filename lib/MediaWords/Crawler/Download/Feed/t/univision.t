@@ -9,7 +9,6 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 use MediaWords::Crawler::Download::Feed::Univision;
-use Storable qw(dclone);
 
 BEGIN
 {
@@ -162,24 +161,19 @@ sub test_univision($$$)
         sub {
             my $db = shift;
 
-            my $config     = MediaWords::Util::Config::get_config();
-            my $new_config = dclone( $config );
-
             # Inject Univision credentials into configuration
-            $new_config->{ univision } = {};
+            my $config                      = MediaWords::Util::Config::get_config();
             my $old_univision_client_id     = $config->{ univision }->{ client_id };
             my $old_univision_client_secret = $config->{ univision }->{ client_secret };
-            $new_config->{ univision }->{ client_id }     = $univision_client_id;
-            $new_config->{ univision }->{ client_secret } = $univision_client_secret;
-            MediaWords::Util::Config::set_config( $new_config );
+            $config->{ univision }->{ client_id }     = $univision_client_id;
+            $config->{ univision }->{ client_secret } = $univision_client_secret;
 
             test_fetch_handle_download( $db, $univision_url );
             Test::NoWarnings::had_no_warnings();
 
             # Reset configuration
-            $new_config->{ univision }->{ client_id }     = $old_univision_client_id;
-            $new_config->{ univision }->{ client_secret } = $old_univision_client_secret;
-            MediaWords::Util::Config::set_config( $new_config );
+            $config->{ univision }->{ client_id }     = $old_univision_client_id;
+            $config->{ univision }->{ client_secret } = $old_univision_client_secret;
         }
     );
 }

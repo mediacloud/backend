@@ -137,7 +137,7 @@ def extract_zip_to_directory(archive_file, dest_directory):
 
 def fqdn():
     """Return Fully Qualified Domain Name (hostname -f), e.g. mcquery2.media.mit.edu."""
-    hostname = socket.getaddrinfo(socket.gethostname(), 0, flags=socket.AI_CANONNAME)[0][3]
+    hostname = socket.getfqdn()
     if hostname is None or len(hostname) == 0:
         raise Exception("Unable to determine FQDN.")
     hostname = hostname.lower()
@@ -195,7 +195,7 @@ def gracefully_kill_child_process(child_pid, sigkill_timeout=60):
             os.kill(child_pid, signal.SIGKILL)
         except OSError as e:
             # Might be already killed
-            logger.warn("Unable to send SIGKILL to child PID %d: %s" % (child_pid, str(e)))
+            logger.warn("Unable to send SIGKILL to child PID %d: %s" % (child_pid, e.message))
 
         for retry in range(sigkill_timeout):
             if process_with_pid_is_running(pid=child_pid):
@@ -211,7 +211,7 @@ def gracefully_kill_child_process(child_pid, sigkill_timeout=60):
                 os.kill(child_pid, signal.SIGTERM)
             except OSError as e:
                 # Might be already killed
-                logger.warn("Unable to send SIGTERM to child PID %d: %s" % (child_pid, str(e)))
+                logger.warn("Unable to send SIGTERM to child PID %d: %s" % (child_pid, e.message))
 
             time.sleep(3)
 
@@ -277,21 +277,17 @@ def run_command_in_foreground(command):
 def compare_versions(version1, version2):
     """Compare two version strings. Return 0 if equal, -1 if version1 < version2, 1 if version1 > version2."""
 
-    def __cmp(a, b):
-        # Python 3 does not have cmp()
-        return (a > b) - (a < b)
-
     def normalize(v):
         v = v.replace("_", ".")
         return [int(x) for x in re.sub(r'(\.0+)*$', '', v).split(".")]
 
-    return __cmp(normalize(version1), normalize(version2))
+    return cmp(normalize(version1), normalize(version2))
 
 
 def java_version():
     """Return Java version, e.g. "1.8.0_66"."""
     java_version_output = subprocess.Popen(["java", "-version"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    java_version_output = java_version_output.stdout.read().decode('utf-8')
+    java_version_output = java_version_output.stdout.read()
 
     java_version_string = re.search(r'(java|openjdk) version "(.+?)"', java_version_output)
     if java_version_string is None:
