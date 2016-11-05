@@ -1,3 +1,11 @@
+package MediaWords::Test::TopicTweets;
+
+=head1 NAME
+
+MediaWords::Test::TopicTweets - functions to help testing external apis
+
+=cut
+
 use strict;
 use warnings;
 
@@ -251,7 +259,8 @@ SQL
     }
 }
 
-# verify that topic data has been properly created, including topic_seed_urls, topic_stories, and topic_links
+# verify that topic data has been properly created, including topic_seed_urls and topic_stories for the parent
+# topic and those and also topic_links for the twitter topic
 sub validate_topic_data($$)
 {
     my ( $db, $parent_topic ) = @_;
@@ -296,6 +305,21 @@ SQL
     is( $num_processed_stories, $expected_num_urls, "number of processed urls in twitter topic" );
 
     validate_topic_links( $db, $twitter_topic );
+
+    my ( $num_twitter_topic_stories ) = $db->query( <<SQL, $twitter_topic->{ topics_id } )->flat;
+select count(*) from topic_stories where topics_id = ?
+SQL
+
+    my ( $num_parent_topic_stories ) =
+      $db->query( <<SQL, $parent_topic->{ topics_id }, $twitter_topic->{ topics_id } )->flat;
+select count(*)
+    from topic_stories ps
+        join topic_stories ts on ( ps.stories_id = ts.stories_id )
+    where
+        ps.topics_id = \$1 and
+        ts.topics_id = \$2
+SQL
+    is( $num_parent_topic_stories, $num_twitter_topic_stories, "number of parent stories matching twitter stories" );
 }
 
 # core testing functionality
@@ -305,11 +329,15 @@ sub test_fetch_topic_tweets
 
     my $topic = MediaWords::Test::DB::create_test_topic( $db, 'tweet topic' );
 
-    $topic->{ ch_monitor_id } = $CH_MONITOR_ID;
+    $topic->{ ch_monitor_id }       = $CH_MONITOR_ID;
+    $topic->{ import_twitter_urls } = 1;
     $db->update_by_id( 'topics', $topic->{ topics_id }, $topic );
     $db->query( <<SQL, $topic->{ topics_id }, '2016-01-01', '2016-01-05' );
 update topic_dates set start_date = \$2, end_date = \$3 where topics_id = \$1
 SQL
+
+    # topic date modeling confuses perl TAP for some reason
+    MediaWords::Util::Config::get_config()->{ mediawords }->{ topic_model_reps } = 0;
 
     MediaWords::TM::Mine::mine_topic( $db, $topic, { test_mode => 1 } );
 
@@ -354,6 +382,8 @@ sub run_tests_on_external_apis
     }
 
     MediaWords::Test::DB::test_on_test_database( \&test_fetch_topic_tweets );
+
+    done_testing();
 }
 
 sub run_tests_on_mock_apis
@@ -382,18 +412,7 @@ sub run_tests_on_mock_apis
 
     die( $test_error ) if ( $test_error );
 
-}
-
-sub main
-{
-    # topic date modeling confuses perl TAP for some reason
-    MediaWords::Util::Config::get_config()->{ mediawords }->{ topic_model_reps } = 0;
-
-    #run_tests_on_external_apis();
-
-    run_tests_on_mock_apis();
-
     done_testing();
 }
 
-main();
+1;

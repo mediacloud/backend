@@ -1239,7 +1239,10 @@ create table topics (
 
     -- for twitter topics, the parent topic; if this is not null, this topic is the child twitter topic of
     -- the given main topic
-    twitter_parent_topics_id int null references topics on delete set null
+    twitter_parent_topics_id int null references topics on delete set null,
+
+    -- whether to automagicall import urls discovered from crimson_hexagon using ch_monitor_id
+    import_twitter_urls     boolean not null default false
 );
 
 create unique index topics_name on topics( name );

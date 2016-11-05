@@ -2997,7 +2997,7 @@ SQL
     }
 }
 
-# insert all topic_tweet_urls into topic_seed_urls
+# insert all topic_tweet_urls into topic_seed_urls for twitter child toic
 sub seed_topic_with_tweet_urls($$)
 {
     my ( $db, $topic ) = @_;
@@ -3025,6 +3025,26 @@ insert into topic_seed_urls ( topics_id, url, assume_match, source )
 SQL
 }
 
+# insert all topic_tweet_urls into topic_seed_urls for parent topic
+sub seed_parent_topic_with_tweet_urls($$)
+{
+    my ( $db, $parent_topic ) = @_;
+
+    # now insert any topic_tweet_urls that are not already in the topic_seed_urls
+    $db->query( <<SQL, $parent_topic->{ topics_id } );
+insert into topic_seed_urls ( topics_id, url, assume_match, source )
+    select distinct ttd.topics_id, ttu.url, true, 'twitter'
+        from topic_tweet_days ttd
+            join topic_tweets tt using ( topic_tweet_days_id )
+            join topic_tweet_urls ttu using ( topic_tweets_id )
+            left join topic_seed_urls tsu on
+                 ( tsu.topics_id = ttd.topics_id and tsu.url = ttu.url )
+        where
+            tsu.url is null and
+            ttd.topics_id = \$1
+SQL
+}
+
 # if there is a ch_monitor_id for the given topic, fetch the twitter data from crimson hexagon and
 # twitter, run a twitter topic using those tweets, and add twitter metrics to the main topic
 sub add_twitter_data_and_topic($$$)
@@ -3041,6 +3061,7 @@ sub add_twitter_data_and_topic($$$)
     my $twitter_topic = find_or_create_twitter_topic( $db, $topic );
 
     seed_topic_with_tweet_urls( $db, $twitter_topic );
+    seed_parent_topic_with_tweet_urls( $db, $topic ) if ( $topic->{ import_twitter_urls } );
 
     mine_topic( $db, $twitter_topic, $options );
 
