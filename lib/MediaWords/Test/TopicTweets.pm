@@ -381,10 +381,12 @@ sub run_tests_on_external_apis
     if ( !$config->{ twitter }->{ consumer_secret } || !$config->{ crimson_hexagon }->{ key } )
     {
         WARN( "SKIPPING EXTERNAL APIS BECAUSE TWITTER AND/OR CRIMSON HEXAGON KEYS NOT FOUND" );
-        return;
+        ok( 1, "skipped test" );
     }
-
-    MediaWords::Test::DB::test_on_test_database( \&test_fetch_topic_tweets );
+    else
+    {
+        MediaWords::Test::DB::test_on_test_database( \&test_fetch_topic_tweets );
+    }
 
     done_testing();
 }
