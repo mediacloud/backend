@@ -575,7 +575,7 @@ sub _solr_request($$$;$$)
     $abs_uri->query_form( $params );
     my $abs_url = $abs_uri->as_string;
 
-    my $ua = MediaWords::Util::Web::UserAgent;
+    my $ua = MediaWords::Util::Web::UserAgent();
     $ua->max_size( undef );
 
     # should be able to process about this fast.  otherwise, time out and throw error so that we can continue processing
