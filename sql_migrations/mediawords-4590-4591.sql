@@ -70,11 +70,11 @@ create unique index topic_tweet_urls_tt on topic_tweet_urls ( topic_tweets_id, u
 -- view that joins together the related topic_tweets, topic_tweet_days, topic_tweet_urls, and topic_seed_urls tables
 -- tables for convenient querying of topic twitter url data
 create view topic_tweet_full_urls as
-    select 
+    select distinct
             t.topics_id parent_topics_id, twt.topics_id twitter_topics_id,
             tt.topic_tweets_id, tt.content, tt.publish_date, tt.twitter_user,
             ttd.day, ttd.tweet_count, ttd.num_ch_tweets, ttd.tweets_fetched,
-            ttu.url, tsu.topic_seed_urls_id, tsu.stories_id
+            ttu.url, tsu.stories_id
         from
             topics t
             join topics twt on ( t.topics_id = twt.twitter_parent_topics_id )
