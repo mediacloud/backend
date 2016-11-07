@@ -1466,6 +1466,7 @@ create table timespans (
     story_link_count                int not null,
     medium_count                    int not null,
     medium_link_count               int not null,
+    tweet_count                     int not null,
 
     tags_id                         int references tags -- keep on cascade to avoid accidental deletion
 );
@@ -2906,18 +2907,19 @@ create unique index topic_tweet_urls_tt on topic_tweet_urls ( topic_tweets_id, u
 -- view that joins together the related topic_tweets, topic_tweet_days, topic_tweet_urls, and topic_seed_urls tables
 -- tables for convenient querying of topic twitter url data
 create view topic_tweet_full_urls as
-    select
+    select distinct
             t.topics_id parent_topics_id, twt.topics_id twitter_topics_id,
             tt.topic_tweets_id, tt.content, tt.publish_date, tt.twitter_user,
             ttd.day, ttd.tweet_count, ttd.num_ch_tweets, ttd.tweets_fetched,
-            ttu.url, tsu.topic_seed_urls_id, tsu.stories_id
+            ttu.url, tsu.stories_id
         from
             topics t
             join topics twt on ( t.topics_id = twt.twitter_parent_topics_id )
             join topic_tweet_days ttd on ( t.topics_id = ttd.topics_id )
             join topic_tweets tt using ( topic_tweet_days_id )
             join topic_tweet_urls ttu using ( topic_tweets_id )
-            left join topic_seed_urls tsu on ( tsu.topics_id = twt.topics_id and ttu.url = tsu.url );
+            left join topic_seed_urls tsu
+                on ( tsu.topics_id in ( twt.twitter_parent_topics_id, twt.topics_id ) and ttu.url = tsu.url );
 
 -- copy structure of topic_tweet_full_urls for snapshot table
 create table snap.topic_tweet_full_urls as select * from topic_tweet_full_urls where false;
@@ -2925,3 +2927,10 @@ alter table snap.topic_tweet_full_urls add snapshots_id int references snapshots
 
 create index snap_topic_tweet_full_urls_snap_story on snap.topic_tweet_full_urls( snapshots_id, stories_id );
 create index snap_topic_tweet_full_urls_snap_user on snap.topic_tweet_full_urls( snapshots_id, twitter_user );
+
+create table snap.timespan_tweets (
+    topic_tweets_id     int not null references topic_tweets on delete cascade,
+    timespans_id        int not null references timespans on delete cascade
+);
+
+create unique index snap_timespan_tweets_u on snap.timespan_tweets( timespans_id, topic_tweets_id );

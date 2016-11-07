@@ -85,7 +85,7 @@ my $_media_static_gexf_attribute_types = {
 # all tables that the snapshot process snapshots for each snapshot
 my $_snapshot_tables = [
     qw/topic_stories topic_links_cross_media topic_media_codes
-      stories media stories_tags_map media_tags_map tags tag_sets topic_tweet_full_urls/
+      stories media stories_tags_map media_tags_map tags tag_sets/
 ];
 
 # tablespace clause for temporary tables
@@ -460,6 +460,55 @@ sub write_stories_csv
     create_timespan_file( $db, $timespan, 'stories.csv', $csv );
 }
 
+sub get_timespan_tweets_csv
+{
+    my ( $db, $timespan ) = @_;
+
+    my $csv = MediaWords::Util::CSV::get_query_as_csv( $db, <<SQL );
+select tt.topic_tweets_id, tt.tweet_id, tt.publish_date, tt.twitter_user, tt.data->>'url', tt.content
+    from snap.topic_tweets stt
+        join topic_tweets tt using ( topic_tweets_id )
+SQL
+}
+
+sub write_timespan_tweets_snapshot
+{
+    my ( $db, $timespan, $is_model ) = @_;
+
+    $db->query( "drop table if exists snapshot_timespan_tweets" );
+
+    my $start_date_q = $db->dbh->quote( $timespan->{ start_date } );
+    my $end_date_q   = $db->dbh->quote( $timespan->{ end_date } );
+
+    my $date_clause =
+      $timespan->{ period } eq 'overall'
+      ? '1=1'
+      : "publish_date >= $start_date_q and publish_date < $end_date_q";
+
+    my $snapshot = $db->require_by_id( 'snapshots', $timespan->{ snapshots_id } );
+    my $topic    = $db->require_by_id( 'topics',    $snapshot->{ topics_id } );
+
+    my $tweet_topics_id =
+        $topic->{ twitter_parent_topics_id }
+      ? $topic->{ twitter_parent_topics_id }
+      : $topic->{ topics_id };
+
+    $db->query( <<SQL, $tweet_topics_id );
+create temporary table snapshot_timespan_tweets as
+    select tt.topic_tweets_id
+        from topic_tweets tt
+            join topic_tweet_days using ( topic_tweet_days_id )
+        where
+            topics_id = \$1 and
+            $date_clause
+SQL
+
+    if ( !$is_model )
+    {
+        create_timespan_snapshot( $db, $timespan, 'timespan_tweets' );
+    }
+}
+
 sub write_story_link_counts_snapshot
 {
     my ( $db, $timespan, $is_model ) = @_;
@@ -495,6 +544,7 @@ create temporary table snapshot_story_link_counts $_temporary_tablespace as
                     ( case when tweet_count = 0 then 1 else tweet_count end )::float ) as normalized_tweet_count
             from topic_tweet_full_urls ttfu
                 join snapshot_period_stories s using ( stories_id )
+                join snapshot_timespan_tweets tt using ( topic_tweets_id )
             group by s.stories_id
     )
 
@@ -1222,6 +1272,7 @@ sub create_timespan ($$$$$$)
         story_link_count  => 0,
         medium_count      => 0,
         medium_link_count => 0,
+        tweet_count       => 0,
         foci_id           => $focus ? $focus->{ foci_id } : undef
     };
 
@@ -1239,6 +1290,8 @@ sub generate_timespan_data ($$;$)
     my ( $db, $timespan, $is_model ) = @_;
 
     write_period_stories( $db, $timespan );
+
+    write_timespan_tweets_snapshot( $db, $timespan );
 
     write_story_links_snapshot( $db, $timespan, $is_model );
     write_story_link_counts_snapshot( $db, $timespan, $is_model );
@@ -1267,6 +1320,8 @@ sub update_timespan_counts ($$;$)
     ( $timespan->{ medium_count } ) = $db->query( "select count(*) from snapshot_medium_link_counts" )->flat;
 
     ( $timespan->{ medium_link_count } ) = $db->query( "select count(*) from snapshot_medium_links" )->flat;
+
+    ( $timespan->{ tweet_count } ) = $db->query( "select count(*) from snapshot_timespan_tweets" )->flat;
 
     return if ( $live );
 
@@ -1581,13 +1636,6 @@ create temporary table snapshot_tag_sets $_temporary_tablespace as
     select ts.*
         from tag_sets ts
         where ts.tag_sets_id in ( select tag_sets_id from snapshot_tags )
-END
-
-    $db->query( <<END, $topics_id );
-        create temporary table snapshot_topic_tweet_full_urls $_temporary_tablespace as
-            select ttfu.*
-                from topic_tweet_full_urls ttfu
-                where \$1 in ( ttfu.parent_topics_id, ttfu.twitter_topics_id )
 END
 
     add_media_type_views( $db );

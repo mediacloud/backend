@@ -85,7 +85,7 @@ sub mock_tweet_url
 
     my $id = $cgi->param( 'id' );
 
-    die( "id param must be specified" ) unless ( $id );
+    die( "id param must be specified" ) unless ( defined( $id ) );
 
     print <<HTTP;
 HTTP/1.1 200 OK
@@ -273,6 +273,9 @@ SQL
     is( $twitter_topic->{ name }, "$parent_topic->{ name } (twitter)", "twitter topic name" );
 
     is( $twitter_topic->{ state }, 'ready', "twitter topic state" );
+
+    my ( $failed_snapshots ) = $db->query( "select count(*) from snapshots where state <> 'completed'" )->flat;
+    is( $failed_snapshots, 0, "number of failed snapshots" );
 
     my ( $num_matching_seed_urls ) = $db->query( <<SQL, $parent_topic->{ topics_id } )->flat;
 select count(*) from topic_tweet_full_urls where parent_topics_id = \$1

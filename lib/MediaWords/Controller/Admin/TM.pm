@@ -712,19 +712,21 @@ sub _get_top_media_for_timespan
     $num_media = 20 if ( $num_media > 20 );
 
     my $top_media = $db->query(
-        <<END,
+        <<SQL,
         SELECT m.*,
               mlc.media_inlink_count,
               mlc.inlink_count,
                mlc.outlink_count,
                mlc.story_count,
+               mlc.simple_tweet_count,
+               mlc.normalized_tweet_count,
                mlc.bitly_click_count
         FROM snapshot_media_with_types AS m,
              snapshot_medium_link_counts AS mlc
         WHERE m.media_id = mlc.media_id
         ORDER BY mlc.media_inlink_count DESC
         LIMIT ?
-END
+SQL
         $num_media
     )->hashes;
 
@@ -742,6 +744,8 @@ sub _get_top_stories_for_timespan
                slc.media_inlink_count,
                slc.inlink_count,
                slc.outlink_count,
+               slc.simple_tweet_count,
+               slc.normalized_tweet_count,
                slc.bitly_click_count,
                m.name as medium_name,
                m.media_type
@@ -934,7 +938,8 @@ sub _download_timespan_csv
 {
     my ( $c, $timespans_id, $table, $live ) = @_;
 
-    die( "illegal table name '$table'" ) unless ( grep { $_ eq $table } qw(stories story_links media medium_links) );
+    die( "illegal table name '$table'" )
+      unless ( grep { $_ eq $table } qw(stories story_links media medium_links timespan_tweets) );
 
     my $db = $c->dbis;
 
@@ -1025,6 +1030,13 @@ sub snapshot_medium_links : Local
     my ( $self, $c, $timespans_id ) = @_;
 
     _download_timespan_csv( $c, $timespans_id, 'medium_links', $c->req->params->{ l } );
+}
+
+sub snapshot_timespan_tweets : Local
+{
+    my ( $self, $c, $timespans_id ) = @_;
+
+    _download_timespan_csv( $c, $timespans_id, 'timespan_tweets', 0 );
 }
 
 # download the gexf file for the timespan.  if the 'l' param is 1, use live data instead of
@@ -1159,6 +1171,8 @@ sub _get_medium_and_stories_from_snapshot_tables
                slc.inlink_count,
                slc.media_inlink_count,
                slc.outlink_count,
+               slc.simple_tweet_count,
+               slc.normalized_tweet_count,
                slc.bitly_click_count
         FROM snapshot_stories AS s,
              snapshot_media_with_types AS m,
@@ -1187,6 +1201,8 @@ SQL
                         sslc.media_inlink_count,
                         sslc.inlink_count,
                         sslc.outlink_count,
+                        sslc.simple_tweet_count,
+                        sslc.normalized_tweet_count,
                         sslc.bitly_click_count
         FROM snapshot_stories AS s,
              snapshot_story_link_counts AS sslc,
@@ -1212,6 +1228,8 @@ END
                         rslc.media_inlink_count,
                         rslc.inlink_count,
                         rslc.outlink_count,
+                        rslc.simple_tweet_count,
+                        rslc.normalized_tweet_count,
                         rslc.bitly_click_count
         FROM snapshot_stories AS r,
              snapshot_story_link_counts AS rslc,
@@ -1386,6 +1404,8 @@ SQL
                         sslc.inlink_count,
                         sslc.media_inlink_count,
                         sslc.outlink_count,
+                        sslc.simple_tweet_count,
+                        sslc.normalized_tweet_count,
                         sslc.bitly_click_count
         FROM snapshot_stories AS s,
              snapshot_story_link_counts AS sslc,
@@ -1412,6 +1432,8 @@ END
                         rslc.inlink_count,
                         rslc.media_inlink_count,
                         rslc.outlink_count,
+                        rslc.simple_tweet_count,
+                        rslc.normalized_tweet_count,
                         rslc.bitly_click_count
         FROM snapshot_stories AS r,
              snapshot_story_link_counts AS rslc,
@@ -1532,6 +1554,42 @@ sub story : Local
     $c->stash->{ template }       = 'tm/story.tt2';
 }
 
+# list topic_tweets associated with the story
+sub story_tweets : Local
+{
+    my ( $self, $c, $stories_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my ( $timespan, $cd, $topic ) = _get_topic_objects( $db, $c->req->param( 'timespan' ) );
+
+    MediaWords::TM::Snapshot::setup_temporary_snapshot_tables( $db, $timespan );
+
+    my $story = $db->query( <<SQL, $stories_id )->hash;
+select * from snapshot_stories s join snapshot_story_link_counts slc using ( stories_id ) where s.stories_id = ?
+SQL
+
+    my $tweets = $db->query( <<SQL, $stories_id )->hashes;
+select tt.*, tt.data->>'url' url
+    from topic_tweets tt
+    where
+        topic_tweets_id in
+            ( select topic_tweets_id from snapshot_topic_tweet_full_urls where stories_id = \$1 )
+    order by tt.publish_date
+SQL
+
+    MediaWords::TM::Snapshot::discard_temp_tables( $db );
+
+    DEBUG( Dumper( $tweets ) );
+
+    $c->stash->{ timespan } = $timespan;
+    $c->stash->{ snapshot } = $cd;
+    $c->stash->{ topic }    = $topic;
+    $c->stash->{ story }    = $story;
+    $c->stash->{ tweets }   = $tweets;
+    $c->stash->{ template } = 'tm/story_tweets.tt2';
+}
+
 # get the text for a sql query that returns all of the story ids that
 # match the given search query within solr.
 sub _get_stories_id_search_query
@@ -1641,7 +1699,7 @@ sub remove_stories : Local
 }
 
 # display a word cloud of the words in the stories given in the stories_ids cgi param
-# optionaly tfidf'd to all stories in the given topic
+# optionaly tfidf all stories in the given topic
 sub word_cloud : Local
 {
     my ( $self, $c ) = @_;
@@ -1700,6 +1758,8 @@ sub search_stories : Local
                slc.inlink_count,
                slc.media_inlink_count,
                slc.outlink_count,
+               slc.simple_tweet_count,
+               slc.nornmalized_tweet_count,
                slc.bitly_click_count
         FROM snapshot_stories AS s,
              snapshot_media_with_types AS m,
@@ -1804,6 +1864,8 @@ sub search_media : Local
                         mlc.media_inlink_count,
                         mlc.outlink_count,
                         mlc.bitly_click_count,
+                        mlc.simple_tweet_count,
+                        mlc.normalized_tweet_count,
                         mlc.story_count
         FROM snapshot_media_with_types AS m,
              snapshot_medium_link_counts AS mlc

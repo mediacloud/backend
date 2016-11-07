@@ -64,8 +64,12 @@ page, and changes made since the snapshot will not be visible.
 [% merge_story_url = c.uri_for( "/admin/tm/merge_stories/$story.stories_id", { timespan => timespan.timespans_id } ) %]
 [% edit_story_url = c.uri_for( "/admin/stories/edit/$story.stories_id" ) %]
 
-<div class="boxtitle">
-    Basic Data for [% story.title | truncate( 96 ) | html %] [% IF timespan %] in [% timespan_date_range %] Timespan[% END %]
+<div id="wholecolumn">
+
+    <div id="widecolumn">
+
+    <div class="boxtitle">
+    Summary
     <a class="boxcommand remove_story" href="[% remove_story_url | html %]">remove</a>
     <a class="boxcommand" href="[% merge_story_url | html %]">merge</a>
     <a class="boxcommand" href="[% edit_story_url | html %]">edit</a>
@@ -105,21 +109,38 @@ page, and changes made since the snapshot will not be visible.
     <tr>
         <td>Media Type</td><td>[% story.medium.media_type | html %]</td>
     </tr>
+    </table>
+    </div>
+    <div id="narrowcolumn">
+    <div class="boxtitle">Stats</div>
+    <table class="even_rows_grey">
     <tr>
-        <td># Incoming Media Links</td><td>[% story.media_inlink_count %] </td>
+        <td>Media Inlinks</td><td>[% story.media_inlink_count %] </td>
     </tr>
     <tr>
-        <td># Incoming Story Links</td><td>[% story.inlink_count %] </td>
+        <td>Story Inlinks</td><td>[% story.inlink_count %] </td>
     </tr>
     <tr>
-        <td># Outgoing Story Links</td><td>[% story.outlink_count %]</td>
+        <td>Story Outlinks</td><td>[% story.outlink_count %]</td>
     </tr>
     <tr>
-        <td>Topic Field Matched</td>
+        <td>Bitly Clicks</td><td>[% story.bitly_count %]</td>
+    </tr>
+    <tr>
+        <td>Facebook Shares</td><td>[% story.facebook_share_count %]</td>
+    </tr>
+    <tr>
+        <td>Tweets (simple / norm)</td>
+        <td><a href="[% c.uri_for( '/admin/tm/story_tweets/' _  story.stories_id, timespan => timespan.timespans_id ) %]">[% story.simple_tweet_count %] / [% story.normalized_tweet_count | format( '%.3f' ) %]</td>
+    </tr>
+    <tr>
+        <td>Field Matched</td>
         <td>[% story.topic_match | html %]
     </tr>
 
 </table>
+</div>
+</div>
 
 [% INCLUDE tm/stories_table.tt2
     display_stories = story.inlink_stories

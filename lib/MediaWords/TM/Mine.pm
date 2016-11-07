@@ -3021,7 +3021,7 @@ insert into topic_seed_urls ( topics_id, url, assume_match, source )
     select distinct ttfu.twitter_topics_id, ttfu.url, true, 'twitter'
         from topic_tweet_full_urls ttfu
             where
-                ttfu.twitter_topics_id = \$1 and ttfu.topic_seed_urls_id is null
+                ttfu.twitter_topics_id = \$1 and ttfu.stories_id is null
 SQL
 }
 

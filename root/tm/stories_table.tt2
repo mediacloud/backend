@@ -107,6 +107,7 @@ $(document).ready(function () {
         <th><a href="[% self_url | html %]">Media Inlinks</a></th>
         <th>Outlinks</th>
         <th><a href="[% self_url _ '&order=bitly_click_count' | html %]">Clicks</th>
+        <th>Tweets</th>
     </tr>
 
 [% IF display_stories.size() < 1 %]
@@ -139,6 +140,7 @@ $(document).ready(function () {
         <td>[% s.media_inlink_count %]</td>
         <td>[% s.outlink_count %]</td>
         <td>[% s.bitly_click_count %]</td>
+        <td>[% s.simple_tweet_count %]</td>
     </tr>
 
     [% END # FOREACH s -%]

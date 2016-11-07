@@ -22,6 +22,7 @@
         <th><a href="[% self_url  | html %]">Media Inlinks</a></th>
         <th>Outlinks</th>
         <th><a href="[% self_url _ '&order=bitly_click_count' | html %]">Clicks</a></th>
+        <th>Tweets</th>
     </tr>
 
 [% IF display_media %]
@@ -40,6 +41,7 @@
         <td>[% m.media_inlink_count | html %]</td>
         <td>[% m.outlink_count | html %]</td>
         <td>[% m.bitly_click_count | html %]</td>
+        <td>[% m.simple_tweet_count | html %]</td>
     </tr>
 
     [% END %]
