@@ -761,4 +761,61 @@ SQL
     return $clusters;
 }
 
+# given a list of $ids for $field, consolidate them into ranges where possible.
+# so transform this:
+#     stories_id:( 1 2 4 5 6 7 9 )
+# into:
+#    stories_id:( 1 2 9 ) stories_id:[ 4 TO 7 ]
+sub consolidate_id_query
+{
+    my ( $field, $ids ) = @_;
+
+    die( "ids list" ) unless ( @{ $ids } );
+
+    $ids = [ sort { $a <=> $b } @{ $ids } ];
+
+    my $singletons = [ -2 ];
+    my $ranges = [ [ -2 ] ];
+    for my $id ( @{ $ids } )
+    {
+        if ( $id == ( $ranges->[ -1 ]->[ -1 ] + 1 ) )
+        {
+            push( @{ $ranges->[ -1 ] }, $id );
+        }
+        elsif ( $id == ( $singletons->[ -1 ] + 1 ) )
+        {
+            push( @{ $ranges }, [ pop( @{ $singletons } ), $id ] );
+        }
+        else
+        {
+            push( @{ $singletons }, $id );
+        }
+    }
+
+    shift( @{ $singletons } );
+    shift( @{ $ranges } );
+
+    my $long_ranges = [];
+    for my $range ( @{ $ranges } )
+    {
+        if ( scalar( @{ $range } ) > 2 )
+        {
+            push( @{ $long_ranges }, $range );
+        }
+        else
+        {
+            push( @{ $singletons }, @{ $range } );
+        }
+    }
+
+    my $queries = [];
+
+    push( @{ $queries }, map { "$field:[$_->[ 0 ] TO $_->[ -1 ]]" } @{ $long_ranges } );
+    push( @{ $queries }, "$field:(" . join( ' ', @{ $singletons } ) . ')' ) if ( @{ $singletons } );
+
+    my $query = join( ' ', @{ $queries } );
+
+    return $query;
+}
+
 1;

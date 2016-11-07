@@ -109,7 +109,7 @@ my $_solr_select_url;
 # order and names of fields exported to and imported from csv
 Readonly my @CSV_FIELDS =>
   qw/stories_id media_id story_sentences_id solr_id publish_date publish_day sentence_number sentence title language
-  bitly_click_count processed_stories_id tags_id_media tags_id_stories tags_id_story_sentences/;
+  bitly_click_count processed_stories_id tags_id_media tags_id_stories tags_id_story_sentences timespans_id/;
 
 # numbner of lines in each chunk of csv to import
 Readonly my $CSV_CHUNK_LINES => 10_000;
@@ -287,9 +287,10 @@ sub _print_csv_to_file_from_csr
             my $media_tags_list   = $data_lookup->{ media_tags }->{ $media_id }        || '';
             my $stories_tags_list = $data_lookup->{ stories_tags }->{ $stories_id }    || '';
             my $ss_tags_list      = $data_lookup->{ ss_tags }->{ $story_sentences_id } || '';
+            my $timespans_list    = $data_lookup->{ timespans }->{ $stories_id }       || '';
 
             $csv->combine( @{ $row }, $click_count, $processed_stories_id, $media_tags_list, $stories_tags_list,
-                $ss_tags_list );
+                $ss_tags_list, $timespans_list );
             $fh->print( encode( 'utf8', $csv->string . "\n" ) );
 
             $imported_stories_ids->{ $stories_id } = 1;
@@ -397,6 +398,14 @@ select click_count, stories_id
     from bitly_clicks_total
     where stories_id % $num_proc = $proc - 1
         $delta_clause
+END
+
+    _set_lookup( $db, $data_lookup, 'timespans', <<END );
+select string_agg( timespans_id::text, ';' ), stories_id
+    from snap.story_link_counts
+    where stories_id % $num_proc = $proc - 1
+        $delta_clause
+    group by stories_id
 END
 
     my $ss_delta_clause = '';
@@ -804,6 +813,8 @@ sub _get_import_url_params
         'f.tags_id_stories.separator'         => ';',
         'f.tags_id_story_sentences.split'     => 'true',
         'f.tags_id_story_sentences.separator' => ';',
+        'f.timespans_id.split'                => 'true',
+        'f.timespans_id.separator'            => ';',
         'skip'                                => 'field_type,id,solr_import_date'
     };
 
@@ -843,7 +854,7 @@ sub _reprocess_file_errors
 
         INFO "reprocessing $file position $data->{ pos } ...";
 
-        $pm->start and next;
+        $pm->start and next if ( $pm->max_procs() > 1 );
 
         eval { _solr_request( $import_url, $import_params, $staging, $data->{ csv } ); };
         if ( $@ )
@@ -852,10 +863,10 @@ sub _reprocess_file_errors
             _add_file_error( $file, { pos => $data->{ pos }, message => $error } );
         }
 
-        $pm->finish;
+        $pm->finish if ( $pm->max_procs() > 1 );
     }
 
-    $pm->wait_all_children;
+    $pm->wait_all_children if ( $pm->max_procs() > 1 );
 }
 
 # return the delta setting for the given chunk, which if true indicates that we cannot assume that
@@ -960,7 +971,7 @@ sub _import_csv_single_file
             next;
         }
 
-        $pm->start and next;
+        $pm->start and next if ( $pm->max_procs() > 1 );
 
         my ( $import_url, $import_params ) = _get_import_url_params( $chunk_delta );
 
@@ -973,10 +984,10 @@ sub _import_csv_single_file
             _add_file_error( $file, { pos => $data->{ pos }, message => $error } );
         }
 
-        $pm->finish;
+        $pm->finish if ( $pm->max_procs() > 1 );
     }
 
-    $pm->wait_all_children;
+    $pm->wait_all_children if ( $pm->max_procs() > 1 );
 
     _reprocess_file_errors( $pm, $file, $staging );
 
@@ -1222,6 +1233,28 @@ sub _stories_queue_is_small
     return $exist ? 0 : 1;
 }
 
+# set snapshots.searchable to true for all snapshots that are currently false and
+# have no stories in the solr_import_extra_stories queue
+sub _update_snapshot_solr_status
+{
+    my ( $db ) = @_;
+
+    # the combination the searchable clause and the not exists which stops after the first hit should
+    # make this quite fast
+    $db->query( <<SQL );
+update snapshots s set searchable = true
+    where
+        searchable = false and
+        not exists (
+            select 1
+                from timespans t
+                    join snap.story_link_counts slc using ( timespans_id )
+                    join solr_import_extra_stories sies using ( stories_id )
+                where s.snapshots_id = s.snapshots_id
+        )
+SQL
+}
+
 =head2 generate_and_import_data( $delta, $delete, $staging, $jobs )
 
 Generate and import dump.  If $delta is true, generate delta dump since beginning of last full or delta dump.  If $delta
@@ -1250,7 +1283,6 @@ sub generate_and_import_data
 
     while ()
     {
-
         my $dump_file = _get_dump_file();
 
         _mark_import_date( $db );
@@ -1292,6 +1324,8 @@ sub generate_and_import_data
         _solr_request( 'update', { 'commit' => 'true' }, $staging );
 
         map { unlink( $_ ) } @{ $dump_files };
+
+        _update_snapshot_solr_status( $db );
 
         last if ( _stories_queue_is_small( $db ) || ( ++$i > 100 ) );
     }

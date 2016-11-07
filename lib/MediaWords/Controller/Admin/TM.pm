@@ -1615,7 +1615,7 @@ sub _get_solr_params_for_timespan_query
 {
     my ( $timespan, $q ) = @_;
 
-    my $params = { fq => "{~ timespan:$timespan->{ timespans_id } }" };
+    my $params = { fq => "timespans_id:$timespan->{ timespans_id }" };
 
     $params->{ q } = ( defined( $q ) && $q ne '' ) ? $q : '*:*';
 

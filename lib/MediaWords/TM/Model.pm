@@ -423,8 +423,8 @@ sub get_all_models_top_media ($$)
 {
     my ( $db, $timespan ) = @_;
 
-    my $config     = MediaWords::Util::Config::get_config;
-    my $model_reps = $config->{ mediawords }->{ topic_model_reps };
+    my $config = MediaWords::Util::Config::get_config;
+    my $model_reps = $config->{ mediawords }->{ topic_model_reps } || 0;
 
     $model_reps //= 10;
 

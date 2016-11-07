@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4591;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4592;
 
 BEGIN
 
@@ -1401,7 +1401,8 @@ create table snapshots (
     end_date                        timestamp not null,
     note                            text,
     state                           text not null default 'queued',
-    error_message                   text null
+    error_message                   text null,
+    searchable             boolean not null default false
 );
 
 create index snapshots_topic on snapshots ( topics_id );
@@ -1886,7 +1887,8 @@ create table snap.story_link_counts (
 );
 
 -- TODO: add complex foreign key to check that stories_id exists for the snapshot stories snapshot
-create index story_link_counts_story on snap.story_link_counts ( timespans_id, stories_id );
+create index story_link_counts_ts on snap.story_link_counts ( timespans_id, stories_id );
+create index story_link_counts_story on snap.story_link_counts ( stories_id );
 
 -- links counts for media within a timespan
 create table snap.medium_link_counts (

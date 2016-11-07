@@ -9,13 +9,19 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use File::Path;
+use Readonly;
+use Text::Lorem::More;
 
 use DBIx::Simple::MediaWords;
 use MediaWords::DB;
 use MediaWords::DBI::Auth;
+use MediaWords::DBI::Downloads;
+use MediaWords::Job::ExtractAndVector;
 use MediaWords::Pg::Schema;
 use MediaWords::Util::Config;
 use MediaWords::Util::URL;
+
+Readonly my $TEST_DB_ENV_LABEL => 'MEDIAWORDS_FORCE_USING_TEST_DATABASE';
 
 # run the given function on a temporary, clean database
 sub test_on_test_database
@@ -26,12 +32,12 @@ sub test_on_test_database
 
     my $db = MediaWords::DB::connect_to_db( 'test' );
 
-    my $previous_force_using_test_db_value = $ENV{ MEDIAWORDS_FORCE_USING_TEST_DATABASE };
-    $ENV{ MEDIAWORDS_FORCE_USING_TEST_DATABASE } = 1;
+    my $previous_force_using_test_db_value = $ENV{ $TEST_DB_ENV_LABEL };
+    $ENV{ $TEST_DB_ENV_LABEL } = 1;
 
     eval { $sub->( $db ); };
 
-    $ENV{ MEDIAWORDS_FORCE_USING_TEST_DATABASE } = $previous_force_using_test_db_value;
+    $ENV{ $TEST_DB_ENV_LABEL } = $previous_force_using_test_db_value;
 
     if ( $@ )
     {
@@ -42,6 +48,12 @@ sub test_on_test_database
     {
         $db->disconnect();
     }
+}
+
+# return true if we are running within test_on_test_database
+sub using_test_database
+{
+    return $ENV{ $TEST_DB_ENV_LABEL };
 }
 
 sub create_download_for_feed
@@ -112,8 +124,8 @@ sub create_test_story
         'stories',
         {
             media_id      => $feed->{ media_id },
-            url           => "http://story/$label",
-            guid          => "guid://story/$label",
+            url           => "http://story.test/$label",
+            guid          => "guid://story.test/$label",
             title         => "story $label",
             description   => "description $label",
             publish_date  => '2016-10-15 08:00:00',
@@ -193,22 +205,130 @@ sub create_test_story_stack
         }
     }
 
-    # Create a user for temporary databases
-    sub create_test_user
+    return $media;
+}
+
+# generated 1 - 10 paragraphs of 1 - 5 sentences of ipsem lorem.
+sub get_test_content
+{
+    my $lorem = Text::Lorem::More->new();
+
+    my $num_paragraphs = int( rand( 10 ) + 1 );
+
+    my $paragraphs = [];
+
+    for my $i ( 1 .. $num_paragraphs )
     {
-        my $db = shift;
-
-        my $add_user_error_message =
-          MediaWords::DBI::Auth::add_user_or_return_error_message( $db, 'jdoe@cyber.law.harvard.edu', 'John Doe', '', [ 1 ],
-            1, 'testtest', 'testtest', 1, 1000, 1000 );
-
-        my $api_key = $db->query( "select api_token from auth_users where email =\'jdoe\@cyber.law.harvard.edu\'" )->hash;
-
-        return $api_key->{ api_token };
-
+        my $text = $lorem->sentences( int( rand( 5 ) + 1 ) );
+        push( @{ $paragraphs }, $text );
     }
 
-    return $media;
+    my $content = join( "\n\n", map { "<p>\n$_\n</p>" } @{ $paragraphs } );
+
+    return $content;
+}
+
+# adds a 'download' and a 'content' field to each story in the test story stack.  stores the content in the download
+# store.  generates the content using get_test_content()
+sub add_content_to_test_story($$$)
+{
+    my ( $db, $story, $feed ) = @_;
+
+    my $content = get_test_content();
+
+    my $host     = MediaWords::Util::URL::get_url_host( $feed->{ url } );
+    my $download = $db->create(
+        'downloads',
+        {
+            feeds_id      => $feed->{ feeds_id },
+            url           => $story->{ url },
+            host          => $host,
+            type          => 'content',
+            sequence      => 1,
+            state         => 'fetching',
+            priority      => 1,
+            download_time => 'now()',
+            extracted     => 'f',
+            stories_id    => $story->{ stories_id }
+        }
+    );
+
+    MediaWords::DBI::Downloads::store_content( $db, $download, \$content );
+
+    $story->{ download } = $download;
+    $story->{ content }  = $content;
+
+    MediaWords::Job::ExtractAndVector->run( { stories_id => $story->{ stories_id } } );
+
+    $story->{ download_text } = $db->query( <<SQL, $download->{ downloads_id } )->hash;
+select * from download_texts where downloads_id = ?
+SQL
+
+    die( "Unable to find download_text" ) unless ( $story->{ download_text } );
+}
+
+# add a download and store its content for each story in the test story stack as returned from create_test_story_stack.
+# also extract and vector each download.
+sub add_content_to_test_story_stack($$)
+{
+    my ( $db, $story_stack ) = @_;
+
+    for my $medium ( values( %{ $story_stack } ) )
+    {
+        for my $feed ( values( %{ $medium->{ feeds } } ) )
+        {
+            for my $story ( values( %{ $feed->{ stories } } ) )
+            {
+                add_content_to_test_story( $db, $story, $feed );
+            }
+        }
+    }
+}
+
+# Create a user for temporary databases
+sub create_test_user
+{
+    my $db = shift;
+
+    my $add_user_error_message =
+      MediaWords::DBI::Auth::add_user_or_return_error_message( $db, 'jdoe@cyber.law.harvard.edu', 'John Doe', '', [ 1 ], 1,
+        'testtest', 'testtest', 1, 1000, 1000 );
+
+    my $api_key = $db->query( "select api_token from auth_users where email =\'jdoe\@cyber.law.harvard.edu\'" )->hash;
+
+    return $api_key->{ api_token };
+}
+
+# create test topic with a simple label.  create associated topic_dates and topic_tag_set rows as well
+sub create_test_topic($$)
+{
+    my ( $db, $label ) = @_;
+
+    my $topic_tag_set = $db->create( 'tag_sets', { name => "topic $label" } );
+
+    my $topic = $db->create(
+        'topics',
+        {
+            name                => $label,
+            description         => $label,
+            pattern             => $label,
+            solr_seed_query     => $label,
+            solr_seed_query_run => 't',
+            topic_tag_sets_id   => $topic_tag_set->{ topic_tag_sets_id }
+        }
+    );
+
+    $db->create(
+        'topic_dates',
+        {
+            topics_id  => $topic->{ topics_id },
+            start_date => '2016-01-01',
+            end_date   => '2016-03-01',
+            boundary   => 't'
+        }
+    );
+
+    return $topic;
 }
 
 # create test topic with a simple label.  create associated topic_dates and topic_tag_set rows as well

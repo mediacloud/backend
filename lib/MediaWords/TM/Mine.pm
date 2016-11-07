@@ -67,9 +67,6 @@ Readonly my $MAX_SOCIAL_MEDIA_FETCH_TIME => ( 60 * 60 * 3 );
 # max number of stories with no bitly metrics
 Readonly my $MAX_NULL_BITLY_STORIES => 500;
 
-# make regex matches fail if they take longer than this many seconds
-Readonly my $REGEX_TIMEOUT => 3;
-
 # add new links in chunks of this size
 Readonly my $ADD_NEW_LINKS_CHUNK_SIZE => 1000;
 
