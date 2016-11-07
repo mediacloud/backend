@@ -32,6 +32,8 @@ use MediaWords::Test::DB;
 
 use MediaWords::Util::Web;
 
+use MediaWords::Util::Config;
+
 use MediaWords::Controller::Api::V2::Topics::Stories;
 
 use Readonly;
@@ -343,29 +345,11 @@ sub _test_sort
     is_deeply( $actual_stories_inlink_counts, $expected_counts, 'expected stories' );
 }
 
-# test that all topics/ end points are protected by at least read permissions, that specific topics end points
-# are protected by the appropriate permissions, and that the read / write / admin permissions work as expected
-sub test_permissions
-{
-    my ( $db ) = @_;
-
-    # use any old request just to get the $c
-    my ( $res, $c ) = ctx_request( '/admin/topics/list' );
-
-    # getting the _paths private attribute of the dispatch_type is the only way I can find to get
-    # catalyst to give me all of the paths implemented by the web app
-    my $dispatch_type = $c->dispatcher->dispatch_type( 'Path' );
-    my $paths         = [ keys( %{ $dispatch_type->_paths } ) ];
-
-    for my $path ( @{ $paths } )
-    {
-        say STDERR "PATH: $path";
-        say STDERR Dumper( $dispatch_type->_paths->{ $path } );
-    }
-}
-
 sub main
 {
+    # topic date modeling confuses perl TAP for some reason
+    MediaWords::Util::Config::get_config()->{ mediawords }->{ topic_model_reps } = 0;
+
     MediaWords::Test::DB::test_on_test_database(
         sub {
 
@@ -391,8 +375,6 @@ sub main
             test_default_sort( $stories );
             test_social_sort( $stories );
             test_media_list( $stories );
-
-            test_permissions();
 
             done_testing();
         }
