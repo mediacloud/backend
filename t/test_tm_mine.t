@@ -257,7 +257,7 @@ sub test_page
 
     DEBUG( "test page: $label $url" );
 
-    my $ua       = MediaWords::Util::Web::UserAgent;
+    my $ua       = MediaWords::Util::Web::UserAgent();
     my $request  = HTTP::Request->new( GET => $url );
     my $response = $ua->request( $request );
 

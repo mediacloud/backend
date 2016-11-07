@@ -26,9 +26,6 @@ Session.vim
 # OS X
 .DS_Store
 
-# Inline::Java
-_Inline/
-
 # Devel::NYTProf output
 nytprof*
 

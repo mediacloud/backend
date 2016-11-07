@@ -14,7 +14,7 @@ use MediaWords::Thrift::Extractor;
 
 sub extractor_version
 {
-    return 'readability-lxml-0.3.0.5';
+    return 'readability-lxml-0.6.2';
 }
 
 sub get_extracted_html

@@ -328,9 +328,6 @@ mediawords:
     ### script directory
     #script_dir: "<bindir>/../script"
 
-    # Uncomment to use JNI mode on Inline::Java. This improves performance but breaks the test suite.
-    #inline_java_jni: "yes"
-
     ### HTTP user agent and the email address of the owner of the bot
     user_agent: "mediawords bot (http://cyber.law.harvard.edu)"
     owner: "mediawords@cyber.law.harvard.edu"

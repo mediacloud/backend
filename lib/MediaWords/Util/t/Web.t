@@ -9,6 +9,7 @@ use Test::More tests => 5;
 use Readonly;
 use Data::Dumper;
 use HTTP::HashServer;
+use MediaWords::Util::Web;
 
 my Readonly $TEST_HTTP_SERVER_PORT = 9998;
 my Readonly $TEST_HTTP_SERVER_URL  = 'http://localhost:' . $TEST_HTTP_SERVER_PORT;

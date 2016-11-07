@@ -27,6 +27,7 @@ use Readonly;
 use MediaWords::Util::Config;
 use MediaWords::Util::Paths;
 use MediaWords::Util::SQL;
+use MediaWords::Util::URL;
 
 Readonly my $MAX_DOWNLOAD_SIZE => 1024 * 1024;
 Readonly my $TIMEOUT           => 20;
@@ -210,21 +211,40 @@ sub get_original_url_from_momento_archive_url
 {
     my ( $archive_site_url ) = @_;
 
-    # archive.org is sometimes down, so get the archived URL without making any
-    # kind of requests
+    my $original_url = undef;
+
     if ( $archive_site_url =~ m|^https?://web\.archive\.org/web/(\d+?/)?(https?://.+?)$|i )
     {
-        return $2;
+        # archive.org is sometimes down, so get the archived URL without making any
+        # kind of requests
+        $original_url = $2;
     }
+    elsif ( $archive_site_url =~ m|^https?://archive\.is/(.+?)$|i )
+    {
+        my $ua       = MediaWords::Util::Web::UserAgent();
+        my $response = $ua->get( $archive_site_url );
 
-    my $ua       = MediaWords::Util::Web::UserAgent();
-    my $response = $ua->get( $archive_site_url );
-
-    my $link_header = $response->headers()->{ link };
-
-    my @urls = ( $link_header =~ /\<(http[^>]*)\>/g );
-
-    my $original_url = $urls[ 0 ];
+        if ( $response->is_success )
+        {
+            my $canonical_link = MediaWords::Util::URL::link_canonical_url_from_html( $response->decoded_content );
+            if ( $canonical_link =~ m|^https?://archive\.is/\d+?/(https?://.+?)$|i )
+            {
+                $original_url = $1;
+            }
+            else
+            {
+                ERROR "Unable to determine original URL from archive.is URL '$archive_site_url': $canonical_link";
+            }
+        }
+        else
+        {
+            ERROR "Unable to determine target URL for archive.is URL '$archive_site_url': " . $response->status_line;
+        }
+    }
+    else
+    {
+        ERROR "Unrecognized archive.org URL: $archive_site_url";
+    }
 
     return $original_url;
 }

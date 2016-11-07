@@ -4679,17 +4679,6 @@ DISTRIBUTIONS
       Parse::RecDescent 1.967009
       Pegex 0.58
       perl 5.008001
-  Inline-Java-0.58
-    pathname: E/ET/ETJ/Inline-Java-0.58.tar.gz
-    provides:
-      Inline::Java 0.58
-    requirements:
-      ExtUtils::MakeMaker 0
-      Inline 0.68
-      Inline::C 0.62
-      MIME::Base64 0
-      Test 1.13
-      perl 5.008
   Inline-Python-0.49
     pathname: N/NI/NINE/Inline-Python-0.49.tar.gz
     provides:
