@@ -18,7 +18,7 @@ alter table topics add ch_monitor_id bigint null;
 alter table topics add twitter_parent_topics_id int null references topics on delete set null;
 alter table topics add import_twitter_urls boolean not null default false;
 
-alter table topic_dead_links alter stories_id set not null;
+alter table topic_dead_links alter stories_id drop not null;
 
 alter table snap.story_link_counts add simple_tweet_count int null;
 alter table snap.story_link_counts add normalized_tweet_count int null;
