@@ -131,7 +131,7 @@ sub write_live_snapshot_tables
         $topics_id = $cd->{ topics_id };
     }
 
-    write_temporary_snapshot_tables( $db, $topics_id );
+    write_temporary_snapshot_tables( $db, $topic );
     write_period_stories( $db, $timespan );
     write_story_links_snapshot( $db, $timespan, 1 );
     write_story_link_counts_snapshot( $db, $timespan, 1 );
@@ -243,16 +243,28 @@ sub restrict_period_stories_to_focus
     {
         $db->query( "truncate table snapshot_period_stories" );
         return;
+
+    }
+    my $all_stories_ids      = [ @{ $snapshot_period_stories_ids } ];
+    my $matching_stories_ids = [];
+    my $chunk_size           = 10_000;
+    while ( @{ $all_stories_ids } )
+    {
+        my $chunk_stories_ids = [];
+        my $chunk_size = List::Util::min( $chunk_size, scalar( @{ $all_stories_ids } ) );
+        map { push( @{ $chunk_stories_ids }, shift( @{ $all_stories_ids } ) ) } ( 1 .. $chunk_size );
+
+        my $solr_q = $qs->{ query };
+        $solr_q = "( $solr_q )" if ( $solr_q =~ /or/i );
+
+        my $stories_ids_list = join( ' ', @{ $chunk_stories_ids } );
+        $solr_q = "$solr_q and stories_id:( $stories_ids_list )";
+        my $solr_stories_ids = MediaWords::Solr::search_for_stories_ids( $db, { rows => 1000000, q => $solr_q } );
+
+        push( @{ $matching_stories_ids }, @{ $solr_stories_ids } );
     }
 
-    my $stories_ids_list = join( ' ', @{ $snapshot_period_stories_ids } );
-
-    my $solr_q = $qs->{ query };
-    $solr_q = "( $solr_q )" if ( $solr_q =~ /or/i );
-    $solr_q = "$solr_q and stories_id:( $stories_ids_list )";
-    my $solr_stories_ids = MediaWords::Solr::search_for_stories_ids( $db, { rows => 1000000, q => $solr_q } );
-
-    my $ids_table = $db->get_temporary_ids_table( $solr_stories_ids );
+    my $ids_table = $db->get_temporary_ids_table( $matching_stories_ids );
 
     $db->query( "delete from snapshot_period_stories where stories_id not in ( select id from $ids_table )" );
 }
@@ -460,6 +472,55 @@ sub write_stories_csv
     create_timespan_file( $db, $timespan, 'stories.csv', $csv );
 }
 
+sub get_timespan_tweets_csv
+{
+    my ( $db, $timespan ) = @_;
+
+    my $csv = MediaWords::Util::CSV::get_query_as_csv( $db, <<SQL );
+select tt.topic_tweets_id, tt.tweet_id, tt.publish_date, tt.twitter_user, tt.data->>'url', tt.content
+    from snap.topic_tweets stt
+        join topic_tweets tt using ( topic_tweets_id )
+SQL
+}
+
+sub write_timespan_tweets_snapshot
+{
+    my ( $db, $timespan, $is_model ) = @_;
+
+    $db->query( "drop table if exists snapshot_timespan_tweets" );
+
+    my $start_date_q = $db->dbh->quote( $timespan->{ start_date } );
+    my $end_date_q   = $db->dbh->quote( $timespan->{ end_date } );
+
+    my $date_clause =
+      $timespan->{ period } eq 'overall'
+      ? '1=1'
+      : "publish_date >= $start_date_q and publish_date < $end_date_q";
+
+    my $snapshot = $db->require_by_id( 'snapshots', $timespan->{ snapshots_id } );
+    my $topic    = $db->require_by_id( 'topics',    $snapshot->{ topics_id } );
+
+    my $tweet_topics_id =
+        $topic->{ twitter_parent_topics_id }
+      ? $topic->{ twitter_parent_topics_id }
+      : $topic->{ topics_id };
+
+    $db->query( <<SQL, $tweet_topics_id );
+create temporary table snapshot_timespan_tweets as
+    select tt.topic_tweets_id
+        from topic_tweets tt
+            join topic_tweet_days using ( topic_tweet_days_id )
+        where
+            topics_id = \$1 and
+            $date_clause
+SQL
+
+    if ( !$is_model )
+    {
+        create_timespan_snapshot( $db, $timespan, 'timespan_tweets' );
+    }
+}
+
 sub write_story_link_counts_snapshot
 {
     my ( $db, $timespan, $is_model ) = @_;
@@ -485,12 +546,26 @@ create temporary table snapshot_story_link_counts $_temporary_tablespace as
             from
                 snapshot_story_media_links sml
             group by sml.ref_stories_id
+    ),
+
+    snapshot_twitter_counts as (
+        select
+                s.stories_id,
+                count(*) as simple_tweet_count,
+                sum( num_ch_tweets::float /
+                    ( case when tweet_count = 0 then 1 else tweet_count end )::float ) as normalized_tweet_count
+            from topic_tweet_full_urls ttfu
+                join snapshot_period_stories s using ( stories_id )
+                join snapshot_timespan_tweets tt using ( topic_tweets_id )
+            group by s.stories_id
     )
 
     select distinct ps.stories_id,
-            coalesce ( smlc.media_inlink_count, 0 ) media_inlink_count,
+            coalesce( smlc.media_inlink_count, 0 ) media_inlink_count,
             coalesce( ilc.inlink_count, 0 ) inlink_count,
             coalesce( olc.outlink_count, 0 ) outlink_count,
+            stc.simple_tweet_count,
+            stc.normalized_tweet_count,
             b.click_count bitly_click_count,
             ss.facebook_share_count facebook_share_count
         from snapshot_period_stories ps
@@ -515,6 +590,8 @@ create temporary table snapshot_story_link_counts $_temporary_tablespace as
                 on ps.stories_id = b.stories_id
             left join story_statistics ss
                 on ss.stories_id = ps.stories_id
+            left join snapshot_twitter_counts stc
+                on stc.stories_id = ps.stories_id
 END
 
     if ( !$is_model )
@@ -690,7 +767,9 @@ create temporary table snapshot_medium_link_counts $_temporary_tablespace as
                sum( slc.outlink_count) outlink_count,
                count(*) story_count,
                sum( slc.bitly_click_count ) bitly_click_count,
-               sum( slc.facebook_share_count ) facebook_share_count
+               sum( slc.facebook_share_count ) facebook_share_count,
+               sum( slc.simple_tweet_count ) simple_tweet_count,
+               sum( slc.normalized_tweet_count ) normalized_tweet_count
             from
                 snapshot_media m
                 join snapshot_stories s using ( media_id )
@@ -1205,6 +1284,7 @@ sub create_timespan ($$$$$$)
         story_link_count  => 0,
         medium_count      => 0,
         medium_link_count => 0,
+        tweet_count       => 0,
         foci_id           => $focus ? $focus->{ foci_id } : undef
     };
 
@@ -1222,6 +1302,8 @@ sub generate_timespan_data ($$;$)
     my ( $db, $timespan, $is_model ) = @_;
 
     write_period_stories( $db, $timespan );
+
+    write_timespan_tweets_snapshot( $db, $timespan );
 
     write_story_links_snapshot( $db, $timespan, $is_model );
     write_story_link_counts_snapshot( $db, $timespan, $is_model );
@@ -1250,6 +1332,8 @@ sub update_timespan_counts ($$;$)
     ( $timespan->{ medium_count } ) = $db->query( "select count(*) from snapshot_medium_link_counts" )->flat;
 
     ( $timespan->{ medium_link_count } ) = $db->query( "select count(*) from snapshot_medium_links" )->flat;
+
+    ( $timespan->{ tweet_count } ) = $db->query( "select count(*) from snapshot_timespan_tweets" )->flat;
 
     return if ( $live );
 
@@ -1484,7 +1568,9 @@ sub create_snap_snapshot
 # these are the tables that apply to the whole snapshot.
 sub write_temporary_snapshot_tables
 {
-    my ( $db, $topics_id ) = @_;
+    my ( $db, $topic ) = @_;
+
+    my $topics_id = $topic->{ topics_id };
 
     set_temporary_table_tablespace();
 
@@ -1560,11 +1646,17 @@ END
     $db->query( <<END );
 create temporary table snapshot_tag_sets $_temporary_tablespace as
     select ts.*
-    from tag_sets ts
-    where ts.tag_sets_id in ( select tag_sets_id from snapshot_tags )
+        from tag_sets ts
+        where ts.tag_sets_id in ( select tag_sets_id from snapshot_tags )
 END
 
     add_media_type_views( $db );
+
+    for my $table ( @{ get_snapshot_tables() } )
+    {
+        my $table_exists = $db->query( "select * from pg_class where relname = ?", $table )->hash;
+        die( "snapshot not created for snapshot table: $table" ) unless ( $table_exists );
+    }
 
 }
 
@@ -1702,6 +1794,20 @@ SQL
     }
 }
 
+# put all stories in this dump in solr_extra_import_stories for export to solr
+sub _export_stories_to_solr($$)
+{
+    my ( $db, $cd ) = @_;
+
+    DEBUG( "queueing stories for solr import ..." );
+    $db->query( <<SQL, $cd->{ snapshots_id } );
+insert into solr_import_extra_stories ( stories_id )
+    select distinct stories_id from snap.stories where snapshots_id = ?
+SQL
+
+    $db->update_by_id( 'snapshots', $cd->{ snapshots_id }, { searchable => 'f' } );
+}
+
 =head2 snapshot_topic( $db, $topics_id )
 
 Create a snapshot for the given topic.
@@ -1733,7 +1839,7 @@ sub snapshot_topic ($$)
     eval {
         _update_snapshot_state( $db, $cd, "snapshotting data" );
 
-        write_temporary_snapshot_tables( $db, $topic->{ topics_id } );
+        write_temporary_snapshot_tables( $db, $topic );
 
         generate_snapshots_from_temporary_snapshot_tables( $db, $cd );
 
@@ -1746,6 +1852,8 @@ sub snapshot_topic ($$)
 
         write_date_counts_snapshot( $db, $cd, 'daily' );
         write_date_counts_snapshot( $db, $cd, 'weekly' );
+
+        _export_stories_to_solr( $db, $cd );
 
         analyze_snapshot_tables( $db );
 

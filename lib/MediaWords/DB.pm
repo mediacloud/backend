@@ -11,6 +11,8 @@ use DBIx::Simple::MediaWords;
 
 use MediaWords::Util::Config;
 
+use MediaWords::Test::DB;
+
 # takes a hashref to a hash of settings and returns an array
 #  with DBI connect info
 sub _create_connect_info_from_settings
@@ -103,7 +105,7 @@ sub connect_settings
     my ( $label ) = @_;
 
     # If this is Catalyst::Test run, force the label to the test database
-    if ( $ENV{ MEDIAWORDS_FORCE_USING_TEST_DATABASE } )
+    if ( MediaWords::Test::DB::using_test_database() )
     {
         $label = 'test';
     }

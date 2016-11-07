@@ -29,6 +29,7 @@ use Text::Lorem::More;
 
 use MediaWords::TM::Mine;
 use MediaWords::Test::DB;
+use MediaWords::Util::Config;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Web;
 
@@ -348,8 +349,8 @@ sub create_topic
         'topic_dates',
         {
             topics_id  => $topic->{ topics_id },
-            start_date => '2000-01-01',
-            end_date   => '2030-01-01',
+            start_date => '2016-01-01',
+            end_date   => '2017-01-01',
             boundary   => 't'
         }
     );
@@ -494,6 +495,9 @@ sub test_spider
     test_pages( $sites );
 
     my $topic = create_topic( $db, $sites );
+
+    # topic date modeling confuses perl TAP for some reason
+    MediaWords::Util::Config::get_config()->{ mediawords }->{ topic_model_reps } = 0;
 
     my $mine_options = {
         skip_post_processing            => 1,    #

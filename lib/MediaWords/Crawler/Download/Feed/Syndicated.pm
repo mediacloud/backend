@@ -13,6 +13,7 @@ use MediaWords::CommonLibs;
 use Moose;
 with 'MediaWords::Crawler::DefaultFetcher', 'MediaWords::Crawler::Download::FeedHandler';
 
+use MediaWords::Crawler::Engine;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories;
 use MediaWords::Util::SQL;

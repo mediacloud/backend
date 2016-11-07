@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4590;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4592;
 
 BEGIN
 
@@ -1232,7 +1232,17 @@ create table topics (
     has_been_spidered       boolean not null default false,
     has_been_dumped         boolean not null default false,
     error_message           text null,
-    is_public               boolean not null default false
+    is_public               boolean not null default false,
+
+    -- this is the id of a crimson hexagon monitor, not an internal database id
+    ch_monitor_id           bigint null,
+
+    -- for twitter topics, the parent topic; if this is not null, this topic is the child twitter topic of
+    -- the given main topic
+    twitter_parent_topics_id int null references topics on delete set null,
+
+    -- whether to automagicall import urls discovered from crimson_hexagon using ch_monitor_id
+    import_twitter_urls     boolean not null default false
 );
 
 create unique index topics_name on topics( name );
@@ -1310,7 +1320,7 @@ create index topic_stories_topic on topic_stories( topics_id );
 create table topic_dead_links (
     topic_dead_links_id   serial primary key,
     topics_id            int not null,
-    stories_id                  int not null,
+    stories_id                  int,
     url                         text not null
 );
 
@@ -1391,7 +1401,8 @@ create table snapshots (
     end_date                        timestamp not null,
     note                            text,
     state                           text not null default 'queued',
-    error_message                   text null
+    error_message                   text null,
+    searchable             boolean not null default false
 );
 
 create index snapshots_topic on snapshots ( topics_id );
@@ -1456,6 +1467,7 @@ create table timespans (
     story_link_count                int not null,
     medium_count                    int not null,
     medium_link_count               int not null,
+    tweet_count                     int not null,
 
     tags_id                         int references tags -- keep on cascade to avoid accidental deletion
 );
@@ -1868,11 +1880,15 @@ create table snap.story_link_counts (
     -- (values can be NULL if Bit.ly is not enabled / configured for a topic)
     bitly_click_count                       int null,
 
-    facebook_share_count                    int null
+    facebook_share_count                    int null,
+
+    simple_tweet_count                      int null,
+    normalized_tweet_count                  float null
 );
 
 -- TODO: add complex foreign key to check that stories_id exists for the snapshot stories snapshot
-create index story_link_counts_story on snap.story_link_counts ( timespans_id, stories_id );
+create index story_link_counts_ts on snap.story_link_counts ( timespans_id, stories_id );
+create index story_link_counts_story on snap.story_link_counts ( stories_id );
 
 -- links counts for media within a timespan
 create table snap.medium_link_counts (
@@ -1887,7 +1903,12 @@ create table snap.medium_link_counts (
 
     -- Bit.ly (aggregated) stats
     -- (values can be NULL if Bit.ly is not enabled / configured for a topic)
-    bitly_click_count               int null
+    bitly_click_count               int null,
+
+    facebook_share_count            int null,
+
+    simple_tweet_count              int null,
+    normalized_tweet_count          float null
 );
 
 -- TODO: add complex foreign key to check that media_id exists for the snapshot media snapshot
@@ -2848,3 +2869,70 @@ create or replace view topics_with_user_permission as
         from topics t
             join auth_users u on ( true )
             left join topic_permissions tp using ( topics_id, auth_users_id );
+
+-- list of tweet counts and fetching statuses for each day of each topic
+create table topic_tweet_days (
+    topic_tweet_days_id     serial primary key,
+    topics_id               int not null references topics on delete cascade,
+    day                     date not null,
+    tweet_count             int not null,
+    num_ch_tweets           int not null,
+    tweets_fetched          boolean not null default false
+);
+
+create unique index topic_tweet_days_td on topic_tweet_days ( topics_id, day );
+
+-- list of tweets associated with a given topic
+create table topic_tweets (
+    topic_tweets_id         serial primary key,
+    topic_tweet_days_id     int not null references topic_tweet_days on delete cascade,
+    data                    json not null,
+    tweet_id                varchar(256) not null,
+    content                 text not null,
+    publish_date            timestamp not null,
+    twitter_user            varchar( 1024 ) not null
+);
+
+create unique index topic_tweets_id on topic_tweets( topic_tweet_days_id, tweet_id );
+create index topic_tweet_topic_user on topic_tweets( topic_tweet_days_id, twitter_user );
+
+-- urls parsed from topic tweets and imported into topic_seed_urls
+create table topic_tweet_urls (
+    topic_tweet_urls_id     serial primary key,
+    topic_tweets_id         int not null references topic_tweets on delete cascade,
+    url                     varchar (1024) not null
+);
+
+create index topic_tweet_urls_url on topic_tweet_urls ( url );
+create unique index topic_tweet_urls_tt on topic_tweet_urls ( topic_tweets_id, url );
+
+-- view that joins together the related topic_tweets, topic_tweet_days, topic_tweet_urls, and topic_seed_urls tables
+-- tables for convenient querying of topic twitter url data
+create view topic_tweet_full_urls as
+    select distinct
+            t.topics_id parent_topics_id, twt.topics_id twitter_topics_id,
+            tt.topic_tweets_id, tt.content, tt.publish_date, tt.twitter_user,
+            ttd.day, ttd.tweet_count, ttd.num_ch_tweets, ttd.tweets_fetched,
+            ttu.url, tsu.stories_id
+        from
+            topics t
+            join topics twt on ( t.topics_id = twt.twitter_parent_topics_id )
+            join topic_tweet_days ttd on ( t.topics_id = ttd.topics_id )
+            join topic_tweets tt using ( topic_tweet_days_id )
+            join topic_tweet_urls ttu using ( topic_tweets_id )
+            left join topic_seed_urls tsu
+                on ( tsu.topics_id in ( twt.twitter_parent_topics_id, twt.topics_id ) and ttu.url = tsu.url );
+
+-- copy structure of topic_tweet_full_urls for snapshot table
+create table snap.topic_tweet_full_urls as select * from topic_tweet_full_urls where false;
+alter table snap.topic_tweet_full_urls add snapshots_id int references snapshots on delete cascade;
+
+create index snap_topic_tweet_full_urls_snap_story on snap.topic_tweet_full_urls( snapshots_id, stories_id );
+create index snap_topic_tweet_full_urls_snap_user on snap.topic_tweet_full_urls( snapshots_id, twitter_user );
+
+create table snap.timespan_tweets (
+    topic_tweets_id     int not null references topic_tweets on delete cascade,
+    timespans_id        int not null references timespans on delete cascade
+);
+
+create unique index snap_timespan_tweets_u on snap.timespan_tweets( timespans_id, topic_tweets_id );

@@ -44,6 +44,7 @@ use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::Job::Bitly::FetchStoryStats;
 use MediaWords::Job::ExtractAndVector;
+use MediaWords::Job::FetchTopicTweets;
 use MediaWords::Job::Facebook::FetchStoryStats;
 use MediaCloud::JobManager::Job;
 use MediaWords::Languages::Language;
@@ -65,9 +66,6 @@ Readonly my $MAX_SOCIAL_MEDIA_FETCH_TIME => ( 60 * 60 * 3 );
 
 # max number of stories with no bitly metrics
 Readonly my $MAX_NULL_BITLY_STORIES => 500;
-
-# make regex matches fail if they take longer than this many seconds
-Readonly my $REGEX_TIMEOUT => 3;
 
 # add new links in chunks of this size
 Readonly my $ADD_NEW_LINKS_CHUNK_SIZE => 1000;
@@ -400,6 +398,12 @@ sub generate_topic_links
     INFO "GENERATE TOPIC LINKS: " . scalar( @{ $stories } );
 
     my $topic_links = [];
+
+    if ( $topic->{ twitter_parent_topics_id } )
+    {
+        INFO( "SKIP LINK GENERATION FOR TWITTER TOPIC" );
+        return;
+    }
 
     for my $story ( @{ $stories } )
     {
@@ -925,7 +929,8 @@ sub add_new_story
     INFO "add_new_story: $old_story->{ url }";
 
     # if neither the url nor the content match the pattern, it cannot be a match so return and don't add the story
-    if ( $check_pattern
+    if (  !$link->{ assume_match }
+        && $check_pattern
         && !potential_story_matches_topic_pattern( $db, $topic, $link->{ url }, $link->{ redirect_url }, $story_content ) )
     {
         INFO( "SKIP - NO POTENTIAL MATCH" );
@@ -948,7 +953,7 @@ sub add_new_story
 
     MediaWords::DBI::Stories::GuessDate::assign_date_guess_method( $db, $story, $date_guess_method, 1 );
 
-    INFO "add story: $story->{ title } / $story->{ url } / $story->{ publish_date } / $story->{ stories_id }";
+    DEBUG( "add story: $story->{ title } / $story->{ url } / $story->{ publish_date } / $story->{ stories_id }" );
 
     $db->create( 'feeds_stories_map', { feeds_id => $feed->{ feeds_id }, stories_id => $story->{ stories_id } } );
 
@@ -1558,7 +1563,7 @@ sub add_links_with_matching_stories
         }
         else
         {
-            INFO( "add to fetch list ..." );
+            DEBUG( "add to fetch list ..." );
             push( @{ $fetch_links }, $link );
         }
     }
@@ -1586,7 +1591,7 @@ sub get_stories_to_extract
     {
         next if ( $link->{ ref_stories_id } );
 
-        INFO( "fetch spidering $link->{ url } ..." );
+        DEBUG( "fetch spidering $link->{ url } ..." );
 
         next if ( _skip_self_linked_domain( $db, $link ) );
 
@@ -2091,6 +2096,10 @@ END
 
     $db->query( <<END, $delete_story->{ stories_id }, $keep_story->{ stories_id } );
 insert into topic_merged_stories_map ( source_stories_id, target_stories_id ) values ( ?, ? )
+END
+
+    $db->query( <<END, $delete_story->{ stories_id }, $keep_story->{ stories_id }, $topic->{ topics_id } );
+update topic_seed_urls set stories_id = \$2 where stories_id = \$1 and topics_id = \$3
 END
 
     $db->commit unless $db->dbh->{ AutoCommit };
@@ -2786,6 +2795,9 @@ sub fetch_social_media_data ($$)
 {
     my ( $db, $topic ) = @_;
 
+    # test spider should be able to run with job broker, so we skip social media collection
+    return if ( $_test_mode );
+
     my $cid = $topic->{ topics_id };
 
     MediaWords::Job::Bitly::FetchStoryStats->add_topic_stories_to_queue( $db, $topic );
@@ -2803,6 +2815,30 @@ sub fetch_social_media_data ($$)
     die( "Timed out waiting for social media data" );
 }
 
+# if the topic is a twitter topic, generate links between stories that have been shared by the same user
+sub generate_twitter_links
+{
+    my ( $db, $topic ) = @_;
+
+    return unless ( $topic->{ twitter_parent_topics_id } );
+
+    my $num_generated_links = $db->query( <<SQL, $topic->{ topics_id } )->rows;
+insert into topic_links ( topics_id, stories_id, url, redirect_url, ref_stories_id, link_spidered )
+    select
+            a.twitter_topics_id, a.stories_id, min( a.url ), min( a.url ), b.stories_id, true
+        from
+            topic_tweet_full_urls a
+            join topic_tweet_full_urls b on
+                ( a.twitter_topics_id = b.twitter_topics_id and a.twitter_user = b.twitter_user )
+        where
+            a.stories_id <> b.stories_id and
+            a.twitter_topics_id = \$1
+        group by a.twitter_topics_id, a.stories_id, b.stories_id
+SQL
+
+    DEBUG( "GENERATED TWITTER LINKS: $num_generated_links" );
+}
+
 # mine the given topic for links and to recursively discover new stories on the web.
 # options:
 #   import_only - only run import_seed_urls and import_solr_seed and exit
@@ -2813,9 +2849,10 @@ sub do_mine_topic ($$;$)
 {
     my ( $db, $topic, $options ) = @_;
 
-    $options->{ test_mode } ||= 0;
+    map { $options->{ $_ } ||= 0 }
+      qw/cache_broken_downloads import_only skip_outgoing_foreign_rss_links skip_post_processing test_mode/;
 
-    # Log activity that's about to start
+    # Log activity that is about to start
     MediaWords::DBI::Activities::log_system_activity( $db, 'tm_mine_topic', $topic->{ topics_id }, $options )
       || die( "Unable to log the 'tm_mine_topic' activity." );
 
@@ -2848,6 +2885,9 @@ sub do_mine_topic ($$;$)
 
         update_topic_state( $db, $topic, "running spider" );
         run_spider( $db, $topic );
+
+        update_topic_state( $db, $topic, "generating twitter links" );
+        generate_twitter_links( $db, $topic );
 
         # disabling because there are too many foreign_rss_links media sources
         # with bogus feeds that pollute the results
@@ -2890,16 +2930,156 @@ sub do_mine_topic ($$;$)
     update_topic_state( $db, $topic, "ready" );
 }
 
+# if twitter topic corresponding to the main topic does not already exist, create it
+sub find_or_create_twitter_topic($$)
+{
+    my ( $db, $parent_topic ) = @_;
+
+    my $twitter_topic = $db->query( <<SQL, $parent_topic->{ topics_id } )->hash;
+select * from topics where twitter_parent_topics_id = ?
+SQL
+
+    return $twitter_topic if ( $twitter_topic );
+
+    my $topic_tag_set = $db->create( 'tag_sets', { name => "topic $parent_topic->{ name } (twitter)" } );
+
+    $twitter_topic = {
+        twitter_parent_topics_id => $parent_topic->{ topics_id },
+        name                     => "$parent_topic->{ name } (twitter)",
+        pattern                  => '(none)',
+        solr_seed_query          => '(none)',
+        solr_seed_query_run      => 1,
+        description              => "twitter child topic of $parent_topic->{ name }",
+        topic_tag_sets_id        => $topic_tag_set->{ topic_tag_sets_id },
+        ch_monitor_id            => $parent_topic->{ ch_monitor_id }
+    };
+
+    my $topic = $db->create( 'topics', $twitter_topic );
+
+    my $parent_topic_dates =
+      $db->query( "select * from topics_with_dates where topics_id = ?", $parent_topic->{ topics_id } )->hash;
+
+    $db->query( <<SQL, $topic->{ topics_id }, $parent_topic->{ topics_id } );
+insert into topic_dates ( topics_id, boundary, start_date, end_date )
+    select \$1, true, start_date::date, end_date::date from topics_with_dates where topics_id = \$2
+SQL
+
+    return $topic;
+}
+
+# add the url parsed from a tweet to topics_seed_url
+sub add_tweet_seed_url
+{
+    my ( $db, $topic, $url ) = @_;
+
+    my $existing_seed_url = $db->query( <<SQL, $topic->{ topics_id }, $url );
+select * from topic_seed_urls where topics_id = ? and url = ?
+SQL
+
+    if ( $existing_seed_url )
+    {
+        $db->update_by_id( 'topic_seed_urls', $existing_seed_url->{ topic_seed_urls_id }, { assume_match => 1 } );
+    }
+    else
+    {
+        $db->create(
+            'topic_seed_urls',
+            {
+                topics_id    => $topic->{ topics_id },
+                url          => $url,
+                assume_match => 1,
+                source       => 'twitter',
+            }
+        );
+    }
+}
+
+# insert all topic_tweet_urls into topic_seed_urls for twitter child toic
+sub seed_topic_with_tweet_urls($$)
+{
+    my ( $db, $topic ) = @_;
+
+    # update any already existing urls to be assume_match = 't'
+    $db->query( <<SQL, $topic->{ topics_id } );
+update topic_seed_urls tsu
+    set assume_match = 't', processed = 'f'
+    from
+        topic_tweet_full_urls ttfu
+    where
+        ttfu.twitter_topics_id = tsu.topics_id  and
+        ttfu.url = tsu.url and
+        tsu.topics_id = \$1 and
+        assume_match = false
+SQL
+
+    # now insert any topic_tweet_urls that are not already in the topic_seed_urls
+    $db->query( <<SQL, $topic->{ topics_id } );
+insert into topic_seed_urls ( topics_id, url, assume_match, source )
+    select distinct ttfu.twitter_topics_id, ttfu.url, true, 'twitter'
+        from topic_tweet_full_urls ttfu
+            where
+                ttfu.twitter_topics_id = \$1 and ttfu.stories_id is null
+SQL
+}
+
+# insert all topic_tweet_urls into topic_seed_urls for parent topic
+sub seed_parent_topic_with_tweet_urls($$)
+{
+    my ( $db, $parent_topic ) = @_;
+
+    # now insert any topic_tweet_urls that are not already in the topic_seed_urls
+    $db->query( <<SQL, $parent_topic->{ topics_id } );
+insert into topic_seed_urls ( topics_id, url, assume_match, source )
+    select distinct ttd.topics_id, ttu.url, true, 'twitter'
+        from topic_tweet_days ttd
+            join topic_tweets tt using ( topic_tweet_days_id )
+            join topic_tweet_urls ttu using ( topic_tweets_id )
+            left join topic_seed_urls tsu on
+                 ( tsu.topics_id = ttd.topics_id and tsu.url = ttu.url )
+        where
+            tsu.url is null and
+            ttd.topics_id = \$1
+SQL
+}
+
+# if there is a ch_monitor_id for the given topic, fetch the twitter data from crimson hexagon and
+# twitter, run a twitter topic using those tweets, and add twitter metrics to the main topic
+sub add_twitter_data_and_topic($$$)
+{
+    my ( $db, $topic, $options ) = @_;
+
+    # only add  twitter data if there is a ch_monitor_id; don't add it for twitter topic
+    return unless ( $topic->{ ch_monitor_id } && !$topic->{ twitter_parent_topics_id } );
+
+    update_topic_state( $db, $topic, "generating twitter topic" );
+
+    MediaWords::Job::FetchTopicTweets->run( { topics_id => $topic->{ topics_id } } );
+
+    my $twitter_topic = find_or_create_twitter_topic( $db, $topic );
+
+    seed_topic_with_tweet_urls( $db, $twitter_topic );
+    seed_parent_topic_with_tweet_urls( $db, $topic ) if ( $topic->{ import_twitter_urls } );
+
+    mine_topic( $db, $twitter_topic, $options );
+
+}
+
 # wrap do_mine_topic in eval and handle errors and state
 sub mine_topic ($$;$)
 {
     my ( $db, $topic, $options ) = @_;
 
-    init_static_variables();
+    my $prev_test_mode = $_test_mode;
 
-    $_test_mode = 1 if ( $options->{ test_mode } );
+    eval {
+        add_twitter_data_and_topic( $db, $topic, $options );
 
-    eval { do_mine_topic( $db, $topic, $options ); };
+        init_static_variables();
+
+        $_test_mode = 1 if ( $options->{ test_mode } );
+
+        do_mine_topic( $db, $topic );
+    };
     if ( $@ )
     {
         my $error = $@;
@@ -2909,6 +3089,8 @@ sub mine_topic ($$;$)
         update_topic_state( $db, $topic, "spidering failed" );
         $db->update_by_id( 'topics', $topic->{ topics_id }, { error_message => $error } );
     }
+
+    $_test_mode = $prev_test_mode;
 }
 
 1;

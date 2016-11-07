@@ -150,6 +150,7 @@ else
         pandoc netcat rabbitmq-server libyaml-dev unzip
 
     # Choose to use OpenJDK 8 by default
+    PATH="$PATH:/usr/sbin"
     sudo update-java-alternatives -s `update-java-alternatives --list | grep java-1.8 | awk '{ print $3 }'`
 
     # Install / upgrade Setuptools before installing Python dependencies
@@ -160,7 +161,7 @@ else
     # Disable system-wide RabbitMQ server (we will start and use our very own instance)
     sudo update-rc.d rabbitmq-server disable
     sudo service rabbitmq-server stop
-    
+
     # Install an up-to-date version of Vagrant
     if [ ! "${SKIP_VAGRANT_TEST:+x}" ]; then
         if [ ! -x /usr/bin/vagrant ]; then

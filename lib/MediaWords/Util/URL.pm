@@ -1253,7 +1253,7 @@ sub get_url_path_fast
 {
     my ( $url ) = @_;
 
-    if ( $url =~ m~^[a-z]://[^/]+(/.*)~ )
+    if ( $url =~ m~^[a-z]+://[^/]+(/.*)~i )
     {
         return $1;
     }

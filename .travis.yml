@@ -42,6 +42,8 @@ env:
         - MEDIACLOUD_ENABLE_PYTHON_API_TESTS=1
         # Test PythonReadability extractor method in t/test_extractor.t
         - MC_TEST_EXTRACTOR_PYTHONREADABILITY=1
+        # let tests know that they are running on travis
+        - MC_SKIP_RABBIT_OPEN_FILES_LIMIT_CHECK=1
 before_install:
     # Install APT packages (not PostgreSQL though)
     - ./install_scripts/install_mediacloud_system_package_dependencies.sh

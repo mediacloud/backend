@@ -74,6 +74,11 @@
                 <td><a href="[% c.uri_for( '/admin/tm/snapshot_medium_links/' _ timespan.timespans_id, { l => live } ) %]">CSV</a></td>
             </tr>
             <tr>
+                <td># Tweet URLs</td>
+                <td></td>
+                <td><a href="[% c.uri_for( '/admin/tm/snapshot_tweet_urls/' _ timespan.timespans_id, { l => live } ) %]">CSV</a></td>
+            </tr>
+            <tr>
                 <td># Modeled Top Media</td>
                 <td>[% timespan.model_num_media %]</td>
                 <td />

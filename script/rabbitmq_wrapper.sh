@@ -7,6 +7,9 @@ PWD="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 QUERY_CONFIG="$PWD/../script/run_with_carton.sh $PWD/../script/mediawords_query_config.pl"
 
+# rabbitmq-server is likely to be in /usr/sbin, which will not be in a non-root path
+PATH="$PATH:/usr/sbin"
+
 # 'cd' to Media Cloud's root (assuming that this script is stored in './script/')
 cd "$PWD/../"
 
@@ -74,7 +77,7 @@ erlang_is_of_the_required_version() {
             return 1    # "false" in Bash
         }
         return 0    # "true" in Bash
-        
+
     else
         return 0    # "true" in Bash
     fi
@@ -90,6 +93,10 @@ rabbitmq_is_up_to_date() {
 }
 
 max_fd_limit_is_big_enough() {
+    if [ "$MC_SKIP_RABBIT_OPEN_FILES_LIMIT_CHECK" == "1" ]; then
+        return 0
+    fi
+
     if [ `ulimit -S -n` -ge "$MIN_OPEN_FILES_LIMIT" ]; then
         return 0    # "true" in Bash
     else
@@ -152,7 +159,7 @@ else
     PATH_TO_RABBITMQ_SERVER="/usr/lib/rabbitmq/bin/rabbitmq-server"
     PATH_TO_RABBITMQCTL="/usr/lib/rabbitmq/bin/rabbitmqctl"
 fi
-if [ ! -x "$PATH_TO_RABBITMQ_SERVER" ]; then 
+if [ ! -x "$PATH_TO_RABBITMQ_SERVER" ]; then
     log "Unable to find (execute) rabbitmq-server under $PATH_TO_RABBITMQ_SERVER."
     exit 1
 fi
@@ -190,13 +197,13 @@ fi
 export RABBITMQ_MNESIA_BASE="${RABBITMQ_BASE}/mnesia"
 if [ ! -d "$RABBITMQ_MNESIA_BASE" ]; then
     log "RabbitMQ Mnesia directory '$RABBITMQ_MNESIA_BASE' does not exist."
-    exit 1    
+    exit 1
 fi
 
 export RABBITMQ_LOG_BASE="${RABBITMQ_BASE}/logs"
 if [ ! -d "$RABBITMQ_LOG_BASE" ]; then
     log "RabbitMQ log directory '$RABBITMQ_LOG_BASE' does not exist."
-    exit 1    
+    exit 1
 fi
 
 export RABBITMQ_ENABLED_PLUGINS_FILE="${RABBITMQ_BASE}/enabled_plugins"

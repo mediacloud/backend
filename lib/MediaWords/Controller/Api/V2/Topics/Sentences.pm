@@ -50,7 +50,7 @@ sub count_GET
 
     my $q = $c->req->params->{ q };
 
-    my $timespan_clause = "{~ timespan:$timespan->{ timespans_id } ~}";
+    my $timespan_clause = "timespans_id:$timespan->{ timespans_id }";
 
     $q = $q ? "$timespan_clause and ( $q )" : $timespan_clause;
 
