@@ -42,9 +42,9 @@ my $_api_host = undef;
 =cut
 
 # fetch the list of tweets from the ch api.  return only 500 posts unless $fetch_10k_posts is true.
-sub _fetch_ch_posts ($$;$)
+sub _fetch_ch_posts ($$)
 {
-    my ( $ch_monitor_id, $day, $fetch_10k_post ) = @_;
+    my ( $ch_monitor_id, $day ) = @_;
 
     my $ua = MediaWords::Util::Web::UserAgent();
 
@@ -53,7 +53,7 @@ sub _fetch_ch_posts ($$;$)
 
     my $next_day = MediaWords::Util::SQL::increment_day( $day );
 
-    my $url = _get_ch_api_url() . "?auth=$key&id=$ch_monitor_id&start=$day&end=$next_day";
+    my $url = _get_ch_api_url() . "?auth=$key&id=$ch_monitor_id&start=$day&end=$next_day&extendLimit=true";
 
     DEBUG( "CH URL: $url" );
 
@@ -87,7 +87,7 @@ SQL
 
     return if ( $topic_tweet_day );
 
-    my $ch_posts = _fetch_ch_posts( $topic->{ ch_monitor_id }, $day, 1 );
+    my $ch_posts = _fetch_ch_posts( $topic->{ ch_monitor_id }, $day );
 
     my $tweet_count = $ch_posts->{ totalPostsAvailable };
 
@@ -202,7 +202,7 @@ sub _fetch_tweets_for_day
 
     return if ( $topic_tweet_day->{ tweets_fetched } );
 
-    my $ch_posts_data = _fetch_ch_posts( $topic->{ ch_monitor_id }, $topic_tweet_day->{ day }, 1 );
+    my $ch_posts_data = _fetch_ch_posts( $topic->{ ch_monitor_id }, $topic_tweet_day->{ day } );
 
     LOGDIE( "no 'posts' field found in json result for topic $topic->{ topics_id } day $topic_tweet_day->{ day }" )
       unless ( $ch_posts_data->{ posts } );
@@ -274,7 +274,7 @@ tweets from twitter (CH does not provide the tweet content, only the url).  Each
 recorded in topic_tweet_days, and subsequent calls to the function will not refetch a given day for a given topic,
 but each call will fetch any days newly included in the date range of the topic given a topic dates change.
 
-=cut`
+=cut
 
 sub run($;$)
 {
