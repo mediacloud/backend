@@ -14,7 +14,7 @@
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
-drop index drop index topic_tweet_urls_tt;
+drop index topic_tweet_urls_tt;
 create index topic_tweet_urls_tt on topic_tweet_urls( topic_tweets_id, url );
 
 drop view topics_with_dates;
