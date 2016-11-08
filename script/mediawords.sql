@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4592;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4593;
 
 BEGIN
 
@@ -2880,7 +2880,7 @@ create table topic_tweet_days (
     tweets_fetched          boolean not null default false
 );
 
-create unique index topic_tweet_days_td on topic_tweet_days ( topics_id, day );
+create index topic_tweet_days_td on topic_tweet_days ( topics_id, day );
 
 -- list of tweets associated with a given topic
 create table topic_tweets (
