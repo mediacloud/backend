@@ -16,14 +16,6 @@ use warnings;
 use Moose;
 with 'MediaWords::AbstractJob';
 
-BEGIN
-{
-    use FindBin;
-
-    # "lib/" relative to "local/bin/mjm_worker.pl":
-    use lib "$FindBin::Bin/../../lib";
-}
-
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
@@ -47,6 +39,8 @@ sub _fetch_ch_posts ($$)
     my ( $ch_monitor_id, $day ) = @_;
 
     my $ua = MediaWords::Util::Web::UserAgent();
+    $ua->max_size( 100 * 1024 * 1024 );
+    $ua->timeout( 90 );
 
     my $key = MediaWords::Util::Config::get_config->{ crimson_hexagon }->{ key };
     LOGDIE( "no crimson hexagon key in mediawords.yml at //crimson_hexagon/key." ) unless ( $key );
@@ -93,7 +87,7 @@ SQL
 
     my $num_ch_tweets = scalar( @{ $ch_posts->{ posts } } );
 
-    $db->create(
+    $topic_tweet_day = $db->create(
         'topic_tweet_days',
         {
             topics_id      => $topic->{ topics_id },
@@ -103,27 +97,29 @@ SQL
             tweets_fetched => 'false'
         }
     );
+
+    $topic_tweet_day->{ ch_posts } = $ch_posts;
+
+    return $topic_tweet_day;
 }
 
 # for each day within the topic date range, find or create a topic_tweet_day row.
-sub _get_topic_tweet_days ($$)
+sub _add_topic_tweet_days ($$)
 {
     my ( $db, $topic ) = @_;
 
     $topic = $db->query( "select * from topics_with_dates where topics_id = ?", $topic->{ topics_id } )->hash;
 
+    my $twitter = _get_twitter_handle();
+
     my $date = $topic->{ start_date };
     while ( $date le $topic->{ end_date } )
     {
-        _add_topic_tweet_single_day( $db, $topic, $date );
+        my $topic_tweet_day = _add_topic_tweet_single_day( $db, $topic, $date );
         $date = MediaWords::Util::SQL::increment_day( $date );
+        _fetch_tweets_for_day( $db, $twitter, $topic, $topic_tweet_day );
     }
 
-    my $topic_tweet_days = $db->query( <<SQL, $topic->{ topics_id }, $topic->{ start_date }, $topic->{ end_date } )->hashes;
-select * from topic_tweet_days where topics_id = \$1 and day between \$2 and \$3
-SQL
-
-    return $topic_tweet_days;
 }
 
 # given a set of ch_posts, fetch data from twitter about each tweet and attach it under the $ch->{ tweet } field
@@ -147,7 +143,21 @@ sub _add_tweets_to_ch_posts
 
     my $tweet_ids = [ keys( %{ $ch_post_lookup } ) ];
 
-    my $tweets = $twitter->lookup_statuses( { id => $tweet_ids, include_entities => 'true', trim_user => 'false' } );
+    my $tweets;
+    my $twitter_retries = 10;
+    while ( !$tweets && $twitter_retries-- )
+    {
+        eval {
+            $tweets = $twitter->lookup_statuses( { id => $tweet_ids, include_entities => 'true', trim_user => 'false' } );
+        };
+        if ( !$tweets )
+        {
+            DEBUG( "twitter fetch error.  waiting 60 seconds before retry ..." );
+            sleep( 60 );
+        }
+    }
+
+    die( "unable to fetch tweets: $@ " ) unless ( $tweets );
 
     for my $tweet ( @{ $tweets } )
     {
@@ -169,8 +179,13 @@ sub _store_tweet_and_urls($$$$)
 {
     my ( $db, $topic, $topic_tweet_day, $ch_post ) = @_;
 
-    my $publish_date = MediaWords::Util::SQL::get_sql_date_from_str2time( $ch_post->{ tweet }->{ created_at } );
-    my $topic_tweet  = {
+    my $created_at = $ch_post->{ tweet }->{ created_at };
+    my $publish_date =
+      $created_at
+      ? MediaWords::Util::SQL::get_sql_date_from_str2time( $created_at )
+      : MediaWords::UTil::SQL::sql_now();
+
+    my $topic_tweet = {
         topic_tweet_days_id => $topic_tweet_day->{ topic_tweet_days_id },
         data                => MediaWords::Util::JSON::encode_json( $ch_post ),
         content             => $ch_post->{ tweet }->{ text },
@@ -181,9 +196,14 @@ sub _store_tweet_and_urls($$$$)
 
     $topic_tweet = $db->create( 'topic_tweets', $topic_tweet );
 
+    my $urls_inserted;
     for my $url_data ( @{ $ch_post->{ tweet }->{ entities }->{ urls } } )
     {
         my $url = $url_data->{ expanded_url };
+
+        next if ( $urls_inserted->{ $url } );
+        $urls_inserted->{ $url } = 1;
+
         $db->create(
             'topic_tweet_urls',
             {
@@ -196,13 +216,15 @@ sub _store_tweet_and_urls($$$$)
 
 # if tweets_fetched is false for the given topic_tweet_days row, fetch the tweets for the given day by querying
 # the list of tweets from CH and then fetching each tweet from twitter.
-sub _fetch_tweets_for_day
+sub _fetch_tweets_for_day($$$$)
 {
     my ( $db, $twitter, $topic, $topic_tweet_day ) = @_;
 
     return if ( $topic_tweet_day->{ tweets_fetched } );
 
-    my $ch_posts_data = _fetch_ch_posts( $topic->{ ch_monitor_id }, $topic_tweet_day->{ day } );
+    # my $ch_posts_data = _fetch_ch_posts( $topic->{ ch_monitor_id }, $topic_tweet_day->{ day } );
+
+    my $ch_posts_data = $topic_tweet_day->{ ch_posts };
 
     LOGDIE( "no 'posts' field found in json result for topic $topic->{ topics_id } day $topic_tweet_day->{ day }" )
       unless ( $ch_posts_data->{ posts } );
@@ -295,11 +317,11 @@ sub run($;$)
         return;
     }
 
-    my $topic_tweet_days = _get_topic_tweet_days( $db, $topic );
+    _add_topic_tweet_days( $db, $topic );
 
-    my $twitter = _get_twitter_handle();
-
-    map { _fetch_tweets_for_day( $db, $twitter, $topic, $_ ) } @{ $topic_tweet_days };
+    # my $twitter = _get_twitter_handle();
+    #
+    # map { _fetch_tweets_for_day( $db, $twitter, $topic, $_ ) } @{ $topic_tweet_days };
 }
 
 =head2 set_api_host( $host )
