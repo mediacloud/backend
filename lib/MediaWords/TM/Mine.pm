@@ -2822,7 +2822,7 @@ sub generate_twitter_links
 
     return unless ( $topic->{ twitter_parent_topics_id } );
 
-    my $num_generated_links = $db->query( <<SQL, $topic->{ topics_id } )->rows;
+    my $num_generated_links = $db->query_with_large_work_mem( <<SQL, $topic->{ topics_id } )->rows;
 insert into topic_links ( topics_id, stories_id, url, redirect_url, ref_stories_id, link_spidered )
     select
             a.twitter_topics_id, a.stories_id, min( a.url ), min( a.url ), b.stories_id, true

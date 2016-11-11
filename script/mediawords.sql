@@ -2904,7 +2904,7 @@ create table topic_tweet_urls (
 );
 
 create index topic_tweet_urls_url on topic_tweet_urls ( url );
-create unique index topic_tweet_urls_tt on topic_tweet_urls ( topic_tweets_id, url );
+create index topic_tweet_urls_tt on topic_tweet_urls ( topic_tweets_id, url );
 
 -- view that joins together the related topic_tweets, topic_tweet_days, topic_tweet_urls, and topic_seed_urls tables
 -- tables for convenient querying of topic twitter url data

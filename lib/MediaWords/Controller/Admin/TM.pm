@@ -19,7 +19,6 @@ use MediaWords::TM::Snapshot;
 use MediaWords::TM;
 use MediaWords::Util::Bitly;
 
-use Data::Dumper;
 use Digest::MD5;
 use JSON;
 use List::Compare;
@@ -1207,11 +1206,11 @@ SQL
         FROM snapshot_stories AS s,
              snapshot_story_link_counts AS sslc,
              snapshot_media_with_types AS sm,
-             snapshot_topic_links_cross_media AS cl
+             snapshot_story_links AS sl
         WHERE s.stories_id = sslc.stories_id
           AND s.media_id = sm.media_id
-          AND s.stories_id = cl.stories_id
-          AND cl.ref_stories_id in ( select stories_id from tm_medium_stories_ids )
+          AND s.stories_id = sl.source_stories_id
+          AND sl.ref_stories_id in ( select stories_id from tm_medium_stories_ids )
         ORDER BY sslc.media_inlink_count DESC
         limit 50
 END
@@ -1234,11 +1233,11 @@ END
         FROM snapshot_stories AS r,
              snapshot_story_link_counts AS rslc,
              snapshot_media_with_types AS rm,
-             snapshot_topic_links_cross_media AS cl
+             snapshot_story_links AS sl
         WHERE r.stories_id = rslc.stories_id
           AND r.media_id = rm.media_id
-          AND r.stories_id = cl.ref_stories_id
-          AND cl.stories_id in ( select stories_id from tm_medium_stories_ids )
+          AND r.stories_id = sl.ref_stories_id
+          AND sl.source_stories_id in ( select stories_id from tm_medium_stories_ids )
         ORDER BY rslc.media_inlink_count DESC
         limit 50
 END
@@ -1410,11 +1409,11 @@ SQL
         FROM snapshot_stories AS s,
              snapshot_story_link_counts AS sslc,
              snapshot_media_with_types AS sm,
-             snapshot_topic_links_cross_media AS cl
+             snapshot_story_links AS sl
         WHERE s.stories_id = sslc.stories_id
           AND s.media_id = sm.media_id
-          AND s.stories_id = cl.stories_id
-          AND cl.ref_stories_id = ?
+          AND s.stories_id = sl.source_stories_id
+          AND sl.ref_stories_id = ?
         ORDER BY sslc.media_inlink_count DESC
         limit 50
 END
@@ -1438,11 +1437,11 @@ END
         FROM snapshot_stories AS r,
              snapshot_story_link_counts AS rslc,
              snapshot_media_with_types AS rm,
-             snapshot_topic_links_cross_media AS cl
+             snapshot_story_links AS sl
         WHERE r.stories_id = rslc.stories_id
           AND r.media_id = rm.media_id
-          AND r.stories_id = cl.ref_stories_id
-          AND cl.stories_id = ?
+          AND r.stories_id = sl.ref_stories_id
+          AND sl.source_stories_id = ?
         ORDER BY rslc.media_inlink_count DESC
         limit 50
 END
@@ -1573,14 +1572,17 @@ SQL
 select tt.*, tt.data->>'url' url
     from topic_tweets tt
     where
-        topic_tweets_id in
-            ( select topic_tweets_id from snapshot_topic_tweet_full_urls where stories_id = \$1 )
+        topic_tweets_id in (
+            select topic_tweets_id
+                from snapshot_timespan_tweets stt
+                    join topic_tweet_full_urls ttfu using ( topic_tweets_id )
+                where
+                    ttfu.stories_id = \$1
+        )
     order by tt.publish_date
 SQL
 
     MediaWords::TM::Snapshot::discard_temp_tables( $db );
-
-    DEBUG( Dumper( $tweets ) );
 
     $c->stash->{ timespan } = $timespan;
     $c->stash->{ snapshot } = $cd;
