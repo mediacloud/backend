@@ -65,7 +65,7 @@ sub get_test_date_range()
     }
     else
     {
-        return ( '2016-01-01', '2016-01-10' );
+        return ( '2016-01-01', '2016-01-30' );
     }
 }
 
@@ -398,9 +398,21 @@ create or replace temporary view period_topic_tweet_full_urls as
             ttfu.twitter_topics_id = \$1
 SQL
 
+    my ( $expected_num_story_links ) = $db->query( <<SQL )->flat;
+select count(*) from (
+    select distinct sa.stories_id source_stories_id, sb.stories_id ref_stories_id
+        from period_topic_tweet_full_urls ua
+            join period_topic_tweet_full_urls ub on ( ua.twitter_user = ub.twitter_user )
+            join stories sa on ( ua.stories_id = sa.stories_id )
+            join stories sb on ( ub.stories_id = sb.stories_id )
+        where
+            sa.media_id <> sb.media_id
+) q
+SQL
+
     my ( $num_story_links ) =
       $db->query( "select count(*) from snap.story_links where timespans_id = ?", $timespans_id )->flat;
-    ok( $num_story_links > 0, "num of story links > 0 for $timespan_date timespan" );
+    is( $num_story_links, $expected_num_story_links, "num of story links for $timespan_date timespan" );
 
     my ( $num_out_of_date_links ) = $db->query( <<SQL, $timespans_id )->flat;
 select count( * )
@@ -537,6 +549,7 @@ SQL
     my ( $expected_num_ch_tweets ) = $db->query( "select sum( num_ch_tweets ) from topic_tweet_days" )->flat;
     my ( $num_tweets_inserted )    = $db->query( "select count(*) from topic_tweets" )->flat;
     is( $num_tweets_inserted, $expected_num_ch_tweets, "num of topic_tweets inserted" );
+    ok( $num_tweets_inserted > 0, "num topic_tweets > 0" );
 
     my ( $num_null_text_tweets ) = $db->query( "select count(*) from topic_tweets where content is null" )->flat;
     is( $num_null_text_tweets, 0, "number of null text tweets" );
