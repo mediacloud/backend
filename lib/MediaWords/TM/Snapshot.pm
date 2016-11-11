@@ -562,8 +562,8 @@ sub get_timespan_tweets_csv
     my ( $db, $timespan ) = @_;
 
     my $csv = MediaWords::Util::CSV::get_query_as_csv( $db, <<SQL );
-select tt.topic_tweets_id, tt.tweet_id, tt.publish_date, tt.twitter_user, tt.data->>'url', tt.content
-    from snap.topic_tweets stt
+select tt.topic_tweets_id, tt.tweet_id, tt.publish_date, tt.twitter_user, tt.data->>'url' url, tt.content
+    from snap.timespan_tweets stt
         join topic_tweets tt using ( topic_tweets_id )
 SQL
 }
