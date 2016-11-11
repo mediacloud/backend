@@ -32,26 +32,95 @@ Readonly my $PORT => 8899;
 # id for valid monitor at CH (valid id needed only if MC_TEST_EXTERNAL_APIS set)
 Readonly my $CH_MONITOR_ID => 4488828184;
 
-# number of mock urls and users -- the mock api roughly distributes this many unique urls
-# and users among the tweets
-Readonly my $NUM_MOCK_URLS  => 250;
-Readonly my $NUM_MOCK_USERS => 75;
+# this is an estimate of the number of tweets per day included in the ch-posts-$date.json files
+# this should not be edited other than to provide a better estimate
+Readonly my $MAX_MOCK_TWEETS_PER_DAY => 400;
 
-# return list of dates to test for
-sub get_test_dates
+# number of mocked tweets to return for each day -- edit this up to $MAX_MOCK_TWEETS_PER_DAY to change the size
+# of the testing set
+Readonly my $MOCK_TWEETS_PER_DAY => 25;
+
+# ratios of tweets to urls and users.  these can be edited to derive the desired ratios for testing
+Readonly my $MOCK_TWEETS_PER_URL  => 4;
+Readonly my $MOCK_TWEETS_PER_USER => 20;
+
+# max number of days difference between start and end dates for test topic -- this can edited for the desired
+# number of days for the locak test
+Readonly my $LOCAL_DATE_RANGE => 30;
+
+# these should not be edited
+Readonly my $NUM_MOCK_URLS  => int( ( $LOCAL_DATE_RANGE * $MOCK_TWEETS_PER_DAY ) / $MOCK_TWEETS_PER_URL );
+Readonly my $NUM_MOCK_USERS => int( ( $LOCAL_DATE_RANGE * $MOCK_TWEETS_PER_DAY ) / $MOCK_TWEETS_PER_USER );
+
+# keep track of a date for each story so that they are consistent
+my $_mock_story_dates = {};
+
+# return either 2016-01-01 - 2016-01-10 for external api tests or a 2016-01-01 + $LOCAL_DATE_RANGE - 1 for local tests
+sub get_test_date_range()
 {
-    my $dates = [ map { "2016-01-0$_" } ( 1 .. 5 ) ];
-
-    return $dates;
+    if ( MediaWords::Job::FetchTopicTweets->_get_ch_api_url() =~ /localhost/ )
+    {
+        my $end_date = MediaWords::Util::SQL::increment_day( '2016-01-01', $LOCAL_DATE_RANGE - 1 );
+        return ( '2016-01-01', $end_date );
+    }
+    else
+    {
+        return ( '2016-01-01', '2016-01-10' );
+    }
 }
 
+# return list of dates to test for
+sub get_test_dates()
+{
+    my ( $start_date, $end_date ) = get_test_date_range();
+
+    my $test_dates = [];
+    for ( my $date = $start_date ; $date le $end_date ; $date = MediaWords::Util::SQL::increment_day( $date ) )
+    {
+        push( @{ $test_dates }, $date );
+    }
+
+    return $test_dates;
+}
+
+# randomly get one of the rest dates
+sub get_random_test_date
+{
+    my $test_dates = get_test_dates();
+    return $test_dates->[ int( rand( @{ $test_dates } ) ) ];
+}
+
+# return the json in one of the ch-posts-$data.json files, where files are available for 2016-01-0[12345];
+# chop out all posts other than the first $MOCK_TWEETS_PER_DAY from each file
 sub get_test_data
 {
     my ( $date ) = @_;
 
-    return MediaWords::Test::Data::read_test_file( "ch", "ch-posts-$date.json" );
+    if ( $MOCK_TWEETS_PER_DAY > $MAX_MOCK_TWEETS_PER_DAY )
+    {
+        die( "\$MOCK_TWEETS_PER_DAY must be less than \$MAX_MOCK_TWEETS_PER_DAY" );
+    }
+
+    my $epoch_day = ( MediaWords::Util::SQL::get_epoch_from_sql_date( $date ) / 86400 );
+    my $file_dates = [ map { "2016-01-0" . $_ } ( 1 .. 5 ) ];
+
+    my $file_date = $file_dates->[ $epoch_day % scalar( @{ $file_dates } ) ];
+
+    my $json = MediaWords::Test::Data::read_test_file( "ch", "ch-posts-$file_date.json" );
+
+    my $data = MediaWords::Util::JSON::decode_json( $json );
+
+    die( "no posts found" ) unless ( $data->{ posts } );
+
+    splice( @{ $data->{ posts } }, $MOCK_TWEETS_PER_DAY );
+
+    return MediaWords::Util::JSON::encode_json( $data );
 }
 
+# return a mock ch response to the posts end point.  generate the mock response by sending back data
+# from a consistent but semirandom selection of ch-posts-2016-01-0[123456].json and replacing
+# the tweet id in each tweet url returned by ch with a new unique id. The unique id is the start_date
+# passed into the request plus an iterator that increases for each tweet returned.
 sub mock_ch_posts
 {
     my ( $self, $cgi ) = @_;
@@ -61,20 +130,29 @@ sub mock_ch_posts
     my $start_date = $cgi->param( 'start' ) || LOGDIE( "missing start param" );
     my $end_date   = $cgi->param( 'end' )   || LOGDIE( "missing end param" );
 
-    my $file_dates = get_test_dates();
-
-    LOGDIE( "no test data for $start_date" ) unless ( grep { $_ eq $start_date } @{ $file_dates } );
-
     my $expected_end_date = MediaWords::Util::SQL::increment_day( $start_date );
     LOGDIE( "end_date expected to be '$expected_end_date' for mock api" ) unless ( $end_date eq $expected_end_date );
 
     my $json = get_test_data( $start_date );
 
+    my $data = MediaWords::Util::JSON::decode_json( $json );
+
+    # replace tweets with the epoch of the start date so that we can infer the date of each tweet in
+    # mock_twitter_lookup below
+    my $i = 0;
+    for my $ch_post ( @{ $data->{ posts } } )
+    {
+        my $new_id = MediaWords::Util::SQL::get_epoch_from_sql_date( $start_date ) + $i++;
+        $ch_post->{ url } =~ s/status\/\d+/status\/$new_id/;
+    }
+
+    my $new_json = MediaWords::Util::JSON::encode_json( $data );
+
     print <<HTTP
 HTTP/1.1 200 OK
 Content-Type: application/json
 
-$json
+$new_json
 HTTP
 }
 
@@ -87,11 +165,24 @@ sub mock_tweet_url
 
     die( "id param must be specified" ) unless ( defined( $id ) );
 
+    my $publish_date = $_mock_story_dates->{ $id };
+    if ( !$publish_date )
+    {
+        my ( $start_date, $end_date ) = get_test_date_range();
+        my $start_date_epoch = MediaWords::Util::SQL::get_epoch_from_sql_date( $start_date );
+        my $days_back        = $LOCAL_DATE_RANGE + int( rand( 30 ) );
+        $publish_date = Date::Format::time2str( "%B %d, %Y", $start_date_epoch - ( 86400 * $days_back ) );
+        $_mock_story_dates->{ $id } ||= $publish_date;
+    }
+
+    # just include the date as a literal string and the GuessDate module should find and assign that date to the story
     print <<HTTP;
 HTTP/1.1 200 OK
 Content-Type: text/plain
 
-Sample page for tweet $id url
+
+Sample page for tweet $id url $publish_date
+
 HTTP
 }
 
@@ -117,8 +208,21 @@ sub mock_twitter_lookup
     my $tweets = [];
     for my $id ( @{ $ids } )
     {
-        my $url_id  = $id % $NUM_MOCK_URLS;
-        my $user_id = $id % $NUM_MOCK_USERS;
+        # restrict url and user ids to desired number;
+        # include randomness so that they urls and users are not nearly collated
+        my $url_id  = int( $id * rand() ) % $NUM_MOCK_URLS;
+        my $user_id = int( $id * rand() ) % $NUM_MOCK_USERS;
+
+        # we can infer the date from the $id as set in mock_ch_post() above
+        my $created_at = Date::Format::time2str( '%a %b %d %H:%M:%S +000000 %Y', $id );
+
+        # 127.0.00000.1 goofiness to generate variations on localhost that will produce separate media in TM::Mine
+        my $medium_number = $url_id % 10;
+        my $test_host = '127.0.' . ( '0' x $medium_number ) . ".1";
+
+        my $test_url = "http://$test_host:$PORT/tweet_url?id=$url_id";
+
+        DEBUG( "$id -> $created_at" );
 
         # all we use is id, text, and created_by, so just test for those
         push(
@@ -126,9 +230,9 @@ sub mock_twitter_lookup
             {
                 id         => $id,
                 text       => "sample tweet for id $id",
-                created_at => 'Wed Jun 06 20:07:10 +0000 2016',
+                created_at => $created_at,
                 user       => { screen_name => "user-$user_id" },
-                entities   => { urls => [ { expanded_url => "http://localhost:$PORT/tweet_url?id=$url_id" } ] }
+                entities   => { urls => [ { expanded_url => $test_url } ] }
             }
         );
     }
@@ -259,6 +363,75 @@ SQL
     }
 }
 
+# verify the the weekly snapshot has only stories shared the given week and links for coshares between tweets
+# during the given week
+sub validate_weekly_timespan($$$)
+{
+    my ( $db, $twitter_topic, $timespan ) = @_;
+
+    my $timespans_id  = $timespan->{ timespans_id };
+    my $timespan_date = $timespan->{ start_date };
+
+    my $story_link_counts = $db->query( <<SQL, $timespans_id )->hashes;
+select * from snap.story_link_counts where timespans_id = \$1
+SQL
+
+    my ( $expected_num_stories ) = $db->query( <<SQL, $twitter_topic->{ topics_id }, $timespans_id )->flat;
+select count( distinct stories_id )
+    from topic_tweet_full_urls ttfu
+        join timespans t on ( timespans_id = \$2 )
+    where
+        ttfu.publish_date between t.start_date and t.end_date and
+        ttfu.twitter_topics_id = \$1
+SQL
+
+    ok( $expected_num_stories > 0, "num of stories for $timespan_date timespan > 0" );
+    is( scalar( @{ $story_link_counts } ), $expected_num_stories, "num of stories for $timespan_date timespan" );
+
+    $db->query( <<SQL, $twitter_topic->{ topics_id }, $timespans_id );
+create or replace temporary view period_topic_tweet_full_urls as
+    select ttfu.*
+        from topic_tweet_full_urls ttfu
+            join timespans t on ( t.timespans_id = \$2 )
+        where
+            publish_date between t.start_date and t.end_date and
+            ttfu.twitter_topics_id = \$1
+SQL
+
+    my ( $num_story_links ) =
+      $db->query( "select count(*) from snap.story_links where timespans_id = ?", $timespans_id )->flat;
+    ok( $num_story_links > 0, "num of story links > 0 for $timespan_date timespan" );
+
+    my ( $num_out_of_date_links ) = $db->query( <<SQL, $timespans_id )->flat;
+select count( * )
+    from snap.story_links sl
+    where
+        sl.timespans_id = \$1 and
+        ( sl.source_stories_id not in ( select stories_id from period_topic_tweet_full_urls ) or
+            sl.ref_stories_id not in ( select stories_id from period_topic_tweet_full_urls ) )
+SQL
+
+    is( $num_out_of_date_links, 0, "number of out date links for $timespan_date timespan" );
+}
+
+# verify that the data in each of the weekly snapshots is correct
+sub validate_weekly_timespans($$)
+{
+    my ( $db, $twitter_topic ) = @_;
+
+    my $timespans = $db->query( <<SQL, $twitter_topic->{ topics_id } )->hashes;
+select t.*
+    from timespans  t
+        join snapshots s using ( snapshots_id )
+    where
+        period = 'weekly' and
+        topics_id = \$1
+    order by start_date
+SQL
+
+    map { validate_weekly_timespan( $db, $twitter_topic, $_ ) } @{ $timespans };
+}
+
 # verify that topic data has been properly created, including topic_seed_urls and topic_stories for the parent
 # topic and those and also topic_links for the twitter topic
 sub validate_topic_data($$)
@@ -323,19 +496,27 @@ select count(*)
         ts.topics_id = \$2
 SQL
     is( $num_parent_topic_stories, $num_twitter_topic_stories, "number of parent stories matching twitter stories" );
+
+    validate_weekly_timespans( $db, $twitter_topic );
 }
 
 # core testing functionality
-sub test_fetch_topic_tweets
+sub test_fetch_topic_tweets($)
 {
     my ( $db ) = @_;
+
+    # seed random number generator so that we get consistent results
+    srand( 123456 );
 
     my $topic = MediaWords::Test::DB::create_test_topic( $db, 'tweet topic' );
 
     $topic->{ ch_monitor_id }       = $CH_MONITOR_ID;
     $topic->{ import_twitter_urls } = 1;
     $db->update_by_id( 'topics', $topic->{ topics_id }, $topic );
-    $db->query( <<SQL, $topic->{ topics_id }, '2016-01-01', '2016-01-05' );
+
+    my ( $start_date, $end_date ) = get_test_date_range();
+
+    $db->query( <<SQL, $topic->{ topics_id }, $start_date, $end_date );
 update topic_dates set start_date = \$2, end_date = \$3 where topics_id = \$1
 SQL
 
@@ -347,10 +528,10 @@ SQL
     my $test_dates = get_test_dates();
     for my $date ( @{ $test_dates } )
     {
-        my $topic_tweet_date = $db->query( <<SQL, $topic->{ topics_id }, $date )->hash;
+        my $topic_tweet_day = $db->query( <<SQL, $topic->{ topics_id }, $date )->hash;
 select * from topic_tweet_days where topics_id = \$1 and day = \$2
 SQL
-        ok( $topic_tweet_date, "topic_tweet_date created for $date" );
+        ok( $topic_tweet_day, "topic_tweet_day created for $date" );
     }
 
     my ( $expected_num_ch_tweets ) = $db->query( "select sum( num_ch_tweets ) from topic_tweet_days" )->flat;

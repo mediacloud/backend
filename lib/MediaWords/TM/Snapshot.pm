@@ -158,7 +158,7 @@ create temporary view snapshot_$t as select * from snap.$t
 END
     }
 
-    for my $t ( qw(story_link_counts story_links medium_link_counts medium_links) )
+    for my $t ( qw(story_link_counts story_links medium_link_counts medium_links timespan_tweets) )
     {
         $db->query( <<END )
 create temporary view snapshot_$t as select * from snap.$t
@@ -286,13 +286,88 @@ END
     return $date_clause;
 }
 
-# write snapshot_period_stories table that holds list of all stories that should be included in the
-# current period.  For an overall snapshot, every story should be in the current period.
-# For other snapshots, a story should be in the current snapshot if either its date is within
+# for a twitter topic, the only stories that should appear in the timespan are stories associated
+# with a tweet published during the timespan
+sub create_twitter_snapshot_period_stories($$)
+{
+    my ( $db, $timespan ) = @_;
+
+    DEBUG(
+        "TWITTER SNAPSHOT: " . Dumper( $timespan->{ start_date }, $timespan->{ end_date }, $timespan->{ timespans_id } ) );
+
+    $db->query( <<SQL, $timespan->{ start_date }, $timespan->{ end_date }, $timespan->{ timespans_id } );
+create temporary table snapshot_period_stories $_temporary_tablespace as
+    select distinct stories_id
+        from topic_tweet_full_urls ttfu
+            join timespans t on ( timespans_id = \$3 )
+            join snapshots s using ( snapshots_id )
+        where
+            ttfu.twitter_topics_id = s.topics_id and
+            ttfu.publish_date between \$1 and \$2 and
+            ttfu.stories_id is not null
+SQL
+}
+
+# restrict the set of stories to the current timespan based on publish date or referencing story
+# publish date.  a story should be in the current snapshot if either its date is within
 # the period dates or if a story that links to it has a date within the period dates.
 # For this purpose, stories tagged with the 'date_invalid:undateable' tag
 # are considered to have an invalid tag, so their dates cannot be used to pass
 # either of the above tests.
+sub create_link_snapshot_period_stories($$)
+{
+    my ( $db, $timespan ) = @_;
+
+    $db->query( <<END );
+create or replace temporary view snapshot_undateable_stories as
+select distinct s.stories_id
+    from snapshot_stories s, snapshot_stories_tags_map stm, snapshot_tags t, snapshot_tag_sets ts
+    where s.stories_id = stm.stories_id and
+        stm.tags_id = t.tags_id and
+        t.tag_sets_id = ts.tag_sets_id and
+        ts.name = 'date_invalid' and
+        t.tag = 'undateable'
+END
+
+    my $date_where_clause = get_period_stories_date_where_clause( $timespan );
+
+    $db->query( <<"END", $timespan->{ start_date }, $timespan->{ end_date } );
+create temporary table snapshot_period_stories $_temporary_tablespace as
+select distinct s.stories_id
+    from snapshot_stories s
+        left join snapshot_topic_links_cross_media cl on ( cl.ref_stories_id = s.stories_id )
+        left join snapshot_stories ss on ( cl.stories_id = ss.stories_id )
+    where
+        $date_where_clause
+END
+
+    $db->query( "drop view snapshot_undateable_stories" );
+}
+
+# return true if the topic of the timespan is a child twitter topic
+sub topic_is_twitter_topic
+{
+    my ( $db, $timespan ) = @_;
+
+    my ( $is_twitter_topic ) = $db->query( <<SQL, $timespan->{ snapshots_id } )->flat;
+select t.twitter_parent_topics_id
+    from topics t
+        join snapshots s using ( topics_id )
+    where
+        t.twitter_parent_topics_id is not null and
+        s.snapshots_id = \$1
+SQL
+
+    $is_twitter_topic ||= 0;
+
+    DEBUG( "IS_TWITTER_TOPIC: $is_twitter_topic" );
+
+    return $is_twitter_topic;
+}
+
+# write snapshot_period_stories table that holds list of all stories that should be included in the
+# current period.  For an overall snapshot, every story should be in the current period.
+# the definition of period stories depends on whether the topic is a twitter topic or not.
 #
 # The resulting snapshot_period_stories should be used by all other snapshot queries to determine
 # story membership within a give period.
@@ -308,33 +383,17 @@ sub write_period_stories
 create temporary table snapshot_period_stories $_temporary_tablespace as select stories_id from snapshot_stories
 END
     }
+    elsif ( topic_is_twitter_topic( $db, $timespan ) )
+    {
+        create_twitter_snapshot_period_stories( $db, $timespan );
+    }
     else
     {
-        $db->query( <<END );
-create or replace temporary view snapshot_undateable_stories as
-    select distinct s.stories_id
-        from snapshot_stories s, snapshot_stories_tags_map stm, snapshot_tags t, snapshot_tag_sets ts
-        where s.stories_id = stm.stories_id and
-            stm.tags_id = t.tags_id and
-            t.tag_sets_id = ts.tag_sets_id and
-            ts.name = 'date_invalid' and
-            t.tag = 'undateable'
-END
-
-        my $date_where_clause = get_period_stories_date_where_clause( $timespan );
-
-        $db->query( <<"END", $timespan->{ start_date }, $timespan->{ end_date } );
-create temporary table snapshot_period_stories $_temporary_tablespace as
-    select distinct s.stories_id
-        from snapshot_stories s
-            left join snapshot_topic_links_cross_media cl on ( cl.ref_stories_id = s.stories_id )
-            left join snapshot_stories ss on ( cl.stories_id = ss.stories_id )
-        where
-            $date_where_clause
-END
-
-        $db->query( "drop view snapshot_undateable_stories" );
+        create_link_snapshot_period_stories( $db, $timespan );
     }
+
+    my ( $num_period_stories ) = $db->query( "select count(*) from snapshot_period_stories" )->flat;
+    DEBUG( "NUM PERIOD STORIES: $num_period_stories" );
 
     if ( $timespan->{ foci_id } )
     {
@@ -416,13 +475,39 @@ sub write_story_links_snapshot
 
     $db->query( "drop table if exists snapshot_story_links" );
 
-    $db->query( <<END );
+    if ( !( $timespan->{ period } eq 'overall' ) && topic_is_twitter_topic( $db, $timespan ) )
+    {
+        # for twitter topics we want only links generated by tweets within the time period
+        $db->query_with_large_work_mem( <<SQL, $timespan->{ timespans_id } );
+create temporary table snapshot_story_links $_temporary_tablespace as
+    select distinct a.stories_id source_stories_id, b.stories_id ref_stories_id
+        from
+            topic_tweet_full_urls a
+            join topic_tweet_full_urls b on
+                ( a.twitter_topics_id = b.twitter_topics_id and a.twitter_user = b.twitter_user )
+            join snapshots s on ( a.twitter_topics_id = b.twitter_topics_id )
+            join timespans t using ( snapshots_id )
+            join stories sa on ( a.stories_id = sa.stories_id )
+            join stories sb on ( b.stories_id = sb.stories_id )
+        where
+            a.stories_id <> b.stories_id and
+            sa.media_id <> sb.media_id and
+            a.twitter_topics_id = s.topics_id and
+            t.timespans_id = \$1 and
+            a.publish_date between t.start_date and t.end_date and
+            b.publish_date between t.start_date and t.end_date
+SQL
+    }
+    else
+    {
+        $db->query( <<END );
 create temporary table snapshot_story_links $_temporary_tablespace as
     select distinct cl.stories_id source_stories_id, cl.ref_stories_id
 	    from snapshot_topic_links_cross_media cl, snapshot_period_stories sps, snapshot_period_stories rps
     	where cl.stories_id = sps.stories_id and
     	    cl.ref_stories_id = rps.stories_id
 END
+    }
 
     # re-enable above to prevent post-dated links
     #          ss.publish_date > rs.publish_date - interval '1 day' and
@@ -571,20 +656,20 @@ create temporary table snapshot_story_link_counts $_temporary_tablespace as
         from snapshot_period_stories ps
             left join snapshot_story_media_link_counts smlc using ( stories_id )
             left join
-                ( select cl.ref_stories_id,
-                         count( distinct cl.stories_id ) inlink_count
-                  from snapshot_topic_links_cross_media cl,
+                ( select sl.ref_stories_id,
+                         count( distinct sl.source_stories_id ) inlink_count
+                  from snapshot_story_links sl,
                        snapshot_period_stories ps
-                  where cl.stories_id = ps.stories_id
-                  group by cl.ref_stories_id
+                  where sl.source_stories_id = ps.stories_id
+                  group by sl.ref_stories_id
                 ) ilc on ( ps.stories_id = ilc.ref_stories_id )
             left join
-                ( select cl.stories_id,
-                         count( distinct cl.ref_stories_id ) outlink_count
-                  from snapshot_topic_links_cross_media cl,
+                ( select sl.source_stories_id stories_id,
+                         count( distinct sl.ref_stories_id ) outlink_count
+                  from snapshot_story_links sl,
                        snapshot_period_stories ps
-                  where cl.ref_stories_id = ps.stories_id
-                  group by cl.stories_id
+                  where sl.ref_stories_id = ps.stories_id
+                  group by sl.source_stories_id
                 ) olc on ( ps.stories_id = olc.stories_id )
             left join bitly_clicks_total b
                 on ps.stories_id = b.stories_id
