@@ -19,7 +19,6 @@ use MediaWords::TM::Snapshot;
 use MediaWords::TM;
 use MediaWords::Util::Bitly;
 
-use Data::Dumper;
 use Digest::MD5;
 use JSON;
 use List::Compare;
@@ -1584,8 +1583,6 @@ select tt.*, tt.data->>'url' url
 SQL
 
     MediaWords::TM::Snapshot::discard_temp_tables( $db );
-
-    DEBUG( Dumper( $tweets ) );
 
     $c->stash->{ timespan } = $timespan;
     $c->stash->{ snapshot } = $cd;
