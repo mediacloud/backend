@@ -217,7 +217,7 @@ sub mock_twitter_lookup
         my $created_at = Date::Format::time2str( '%a %b %d %H:%M:%S +000000 %Y', $id );
 
         # 127.0.00000.1 goofiness to generate variations on localhost that will produce separate media in TM::Mine
-        my $medium_number = $url_id % 10;
+        my $medium_number = ( $url_id % 10 ) + 1;
         my $test_host = '127.0.' . ( '0' x $medium_number ) . ".1";
 
         my $test_url = "http://$test_host:$PORT/tweet_url?id=$url_id";
