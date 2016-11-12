@@ -212,7 +212,7 @@ sub _store_tweet_and_urls($$$$)
             'topic_tweet_urls',
             {
                 topic_tweets_id => $topic_tweet->{ topic_tweets_id },
-                url             => $url
+                url             => substr( $url, 0, 1024 )
             }
         );
     }
