@@ -79,7 +79,10 @@ sub _add_topic_tweet_single_day ($$$)
 select * from topic_tweet_days where topics_id = \$1 and day = \$2
 SQL
 
-    return if ( $topic_tweet_day );
+    return if ( $topic_tweet_day && $topic_tweet_day->{ tweets_fetched } );
+
+    # if we have a ttd but had not finished fetching tweets, delete it and start over
+    $db->delete_by_id( 'topic_tweet_days', $topic_tweet_day->{ topic_tweet_days_id } ) if ( $topic_tweet_day );
 
     my $ch_posts = _fetch_ch_posts( $topic->{ ch_monitor_id }, $day );
 
@@ -116,8 +119,9 @@ sub _add_topic_tweet_days ($$)
     while ( $date le $topic->{ end_date } )
     {
         my $topic_tweet_day = _add_topic_tweet_single_day( $db, $topic, $date );
+        _fetch_tweets_for_day( $db, $twitter, $topic, $topic_tweet_day ) if ( $topic_tweet_day );
+
         $date = MediaWords::Util::SQL::increment_day( $date );
-        _fetch_tweets_for_day( $db, $twitter, $topic, $topic_tweet_day );
     }
 
 }
