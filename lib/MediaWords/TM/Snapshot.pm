@@ -292,9 +292,6 @@ sub create_twitter_snapshot_period_stories($$)
 {
     my ( $db, $timespan ) = @_;
 
-    DEBUG(
-        "TWITTER SNAPSHOT: " . Dumper( $timespan->{ start_date }, $timespan->{ end_date }, $timespan->{ timespans_id } ) );
-
     $db->query( <<SQL, $timespan->{ start_date }, $timespan->{ end_date }, $timespan->{ timespans_id } );
 create temporary table snapshot_period_stories $_temporary_tablespace as
     select distinct stories_id
@@ -360,8 +357,6 @@ SQL
 
     $is_twitter_topic ||= 0;
 
-    DEBUG( "IS_TWITTER_TOPIC: $is_twitter_topic" );
-
     return $is_twitter_topic;
 }
 
@@ -393,7 +388,7 @@ END
     }
 
     my ( $num_period_stories ) = $db->query( "select count(*) from snapshot_period_stories" )->flat;
-    DEBUG( "NUM PERIOD STORIES: $num_period_stories" );
+    DEBUG( "num_period_stories: $num_period_stories" );
 
     if ( $timespan->{ foci_id } )
     {

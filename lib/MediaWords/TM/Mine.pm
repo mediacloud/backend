@@ -2653,7 +2653,7 @@ sub get_topic_stories_by_medium
     my ( $db, $topic ) = @_;
 
     my $stories = $db->query( <<END, $topic->{ topics_id } )->hashes;
-select s.stories_id, s.media_id, s.title, s.url
+select s.stories_id, s.media_id, s.title, s.url, s.publish_date
     from snap.live_stories s
     where s.topics_id = ?
 END
