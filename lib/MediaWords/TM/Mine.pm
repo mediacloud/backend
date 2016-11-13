@@ -2982,7 +2982,7 @@ update topic_seed_urls tsu
 SQL
 
     # now insert any topic_tweet_urls that are not already in the topic_seed_urls
-    $db->query( <<SQL, $topic->{ topics_id } );
+    $db->query_with_large_work_mem( <<SQL, $topic->{ topics_id } );
 insert into topic_seed_urls ( topics_id, url, assume_match, source )
     select distinct ttfu.twitter_topics_id, ttfu.url, true, 'twitter'
         from topic_tweet_full_urls ttfu
