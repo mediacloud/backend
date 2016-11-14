@@ -720,14 +720,6 @@ sub _website_name_from_host($)
     return $domain;
 }
 
-# "http://www.example.com/one/two/three.xml" -> "www.example.com"
-sub _host_from_url($)
-{
-    my ( $url ) = @_;
-
-    return lc( URI->new( $url )->host );
-}
-
 # return default feeds from the feed links passed as a parameter
 # (might return an empty array if no links look like default feeds)
 sub _default_feed_links($$)
@@ -736,15 +728,15 @@ sub _default_feed_links($$)
 
     my $default_feed_links = [];
 
-    my $medium_host                = _host_from_url( $medium->{ url } );                # e.g. "www.example.com"
-    my $medium_second_level_domain = _second_level_domain_from_host( $medium_host );    # e.g. "example.com"
-    my $medium_name                = _website_name_from_host( $medium_host );           # e.g. "example"
+    my $medium_host                = MediaWords::Util::URL::get_url_host( $medium->{ url } );    # e.g. "www.example.com"
+    my $medium_second_level_domain = _second_level_domain_from_host( $medium_host );             # e.g. "example.com"
+    my $medium_name                = _website_name_from_host( $medium_host );                    # e.g. "example"
 
     # look through all feeds found for those with the host name in them and if found
     # treat them as default feeds
     foreach my $feed_link ( @{ $feed_links } )
     {
-        my $feed_host                = _host_from_url( $feed_link->{ url } );
+        my $feed_host                = MediaWords::Util::URL::get_url_host( $feed_link->{ url } );
         my $feed_second_level_domain = _second_level_domain_from_host( $feed_host );
 
         if ( $feed_link->{ url } !~ /foaf/ )
