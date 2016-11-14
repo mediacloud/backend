@@ -17,6 +17,7 @@ use MediaWords::Crawler::Engine;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories;
 use MediaWords::Util::SQL;
+use MediaWords::Util::URL;
 
 use Data::Dumper;
 use Date::Parse;
@@ -42,7 +43,7 @@ sub _sanitize_guid
     return undef unless ( defined( $guid ) );
 
     # ignore it if it is a url without a number or a path
-    if ( ( $guid !~ /\d/ ) && ( $guid =~ m~https?://[^/]+/?$~ ) )
+    if ( MediaWords::Util::URL::is_http_url( $guid ) and $guid !~ /\d/ )
     {
         return undef;
     }
