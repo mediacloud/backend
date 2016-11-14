@@ -1,4 +1,4 @@
-package Feed::Scrape;
+package MediaWords::Feed::Scrape;
 
 # scrape an html page for rss/rsf/atom feeds
 
@@ -57,11 +57,11 @@ Readonly my @URL_IGNORE_PATTERNS => (
 );
 
 #
-# Note: We consider just using Feed::Find from CPAN but didn't find it sufficent so we created Feed::Scrape
+# Note: We consider just using Feed::Find from CPAN but didn't find it sufficent so we created MediaWords::Feed::Scrape
 #
 # Details:
-# Feed::Find is much simpler and less effective than our Feed::Scrape stuff,
-# mostly because Feed::Scrape is more inclusive but goes to the trouble of
+# Feed::Find is much simpler and less effective than our MediaWords::Feed::Scrape stuff,
+# mostly because MediaWords::Feed::Scrape is more inclusive but goes to the trouble of
 # actually downloading anything that looks like it might be a feed to verify. We found it
 # necessary to actually download the feeds to get any sort of accuracy in finding the feeds,
 # albeit at the cost of downloading them.
@@ -862,7 +862,7 @@ sub get_feed_links_and_need_to_moderate($$)
 
     # first look for <link> feeds or a set of url pattern feeds that are likely to be
     # main feeds if present (like "$url/feed")
-    my $default_feed_links = Feed::Scrape->get_main_feed_urls_from_url( $medium->{ url } );
+    my $default_feed_links = MediaWords::Feed::Scrape->get_main_feed_urls_from_url( $medium->{ url } );
 
     # otherwise do an expansive search
     my $feed_links;
@@ -870,7 +870,7 @@ sub get_feed_links_and_need_to_moderate($$)
     if ( scalar @{ $default_feed_links } == 0 )
     {
         $need_to_moderate = 1;
-        $feed_links = Feed::Scrape->get_valid_feeds_from_index_url( [ $medium->{ url } ], 1, $db, [] );
+        $feed_links = MediaWords::Feed::Scrape->get_valid_feeds_from_index_url( [ $medium->{ url } ], 1, $db, [] );
 
         $default_feed_links = _default_feed_links( $medium, $feed_links );
     }

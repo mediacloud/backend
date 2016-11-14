@@ -16,7 +16,7 @@ use MediaWords::DBI::Media;
 use MediaWords::DBI::Feeds;
 use MediaWords::Job::RescrapeMedia;
 use MediaWords::Util::URL;
-use Feed::Scrape;
+use MediaWords::Feed::Scrape;
 
 use URI;
 use Digest::SHA qw(sha256_hex);
@@ -167,7 +167,7 @@ sub rescrape_media($$)
         die "Media ID $media_id does not exist.";
     }
 
-    my ( $feed_links, $need_to_moderate ) = Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
+    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
 
     $db->begin_work;
 

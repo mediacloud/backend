@@ -15,7 +15,7 @@ use Test::Deep;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 use MediaWords::Test::DB;
-use Feed::Scrape;
+use MediaWords::Feed::Scrape;
 
 use utf8;
 
@@ -36,7 +36,7 @@ my Readonly $TEST_HTTP_SERVER_URL_2  = 'http://127.0.0.1:' . $TEST_HTTP_SERVER_P
 my Readonly $HTTP_CONTENT_TYPE_RSS  = 'Content-Type: application/rss+xml; charset=UTF-8';
 my Readonly $HTTP_CONTENT_TYPE_ATOM = 'Content-Type: application/atom+xml; charset=UTF-8';
 
-BEGIN { use_ok 'Feed::Scrape' }
+BEGIN { use_ok 'MediaWords::Feed::Scrape' }
 
 sub _sample_rss_feed($;$)
 {
@@ -161,7 +161,7 @@ HTML
 
     $hs->start();
 
-    cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
+    cmp_bag( MediaWords::Feed::Scrape->get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
         $expected_result, 'Basic test' );
 
     $hs->stop();
@@ -210,7 +210,7 @@ HTML
 
     $hs->start();
 
-    my $actual_result = Feed::Scrape->get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } );
+    my $actual_result = MediaWords::Feed::Scrape->get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } );
     cmp_bag( $actual_result, $expected_result, 'Basic test - UTF-8 title' );
 
     $hs->stop();
@@ -256,7 +256,7 @@ HTML
 
     $hs->start();
 
-    cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
+    cmp_bag( MediaWords::Feed::Scrape->get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
         $expected_result, 'Basic test - entities in URLs' );
 
     $hs->stop();
@@ -302,7 +302,7 @@ HTML
 
     $hs->start();
 
-    cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
+    cmp_bag( MediaWords::Feed::Scrape->get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
         $expected_result, 'Basic test - short URLs' );
 
     $hs->stop();
@@ -348,7 +348,7 @@ HTML
 
     $hs->start();
 
-    cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
+    cmp_bag( MediaWords::Feed::Scrape->get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
         $expected_result, 'Basic test - no RSS titles' );
 
     $hs->stop();
@@ -547,7 +547,7 @@ HTML
 
     $hs->start();
 
-    cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
+    cmp_bag( MediaWords::Feed::Scrape->get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
         $expected_result, 'Dagbladet.se test' );
 
     $hs->stop();
@@ -913,7 +913,7 @@ sub test_gp_se($)
 
     $hs->start();
 
-    cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
+    cmp_bag( MediaWords::Feed::Scrape->get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
         $expected_result, 'GP.se test' );
 
     $hs->stop();
@@ -978,7 +978,7 @@ EOF
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
-    my $feed_links = Feed::Scrape->get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
+    my $feed_links = MediaWords::Feed::Scrape->get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
 
     $hs->stop();
 
@@ -1049,7 +1049,7 @@ HTML
     $hs1->start();
     $hs2->start();
 
-    my ( $feed_links, $need_to_moderate ) = Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
+    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
 
     $hs1->stop();
     $hs2->stop();
@@ -1130,7 +1130,7 @@ HTML
     $hs1->start();
     $hs2->start();
 
-    my ( $feed_links, $need_to_moderate ) = Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
+    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
 
     $hs1->stop();
     $hs2->stop();
@@ -1214,7 +1214,7 @@ HTML
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my $feed_links = Feed::Scrape->get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
+    my $feed_links = MediaWords::Feed::Scrape->get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
 
     $hs->stop();
 
@@ -1281,7 +1281,7 @@ HTML
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my $feed_links = Feed::Scrape->get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
+    my $feed_links = MediaWords::Feed::Scrape->get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
 
     $hs->stop();
 
@@ -1348,7 +1348,7 @@ HTML
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my $feed_links = Feed::Scrape->get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
+    my $feed_links = MediaWords::Feed::Scrape->get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
 
     $hs->stop();
 
@@ -1402,7 +1402,7 @@ HTML
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my ( $feed_links, $need_to_moderate ) = Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
+    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
 
     $hs->stop();
 
@@ -1469,7 +1469,7 @@ HTML
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my ( $feed_links, $need_to_moderate ) = Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
+    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
 
     $hs->stop();
 
@@ -1556,7 +1556,7 @@ XML
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my ( $feed_links, $need_to_moderate ) = Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
+    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
 
     $hs->stop();
 
@@ -1619,7 +1619,7 @@ HTML
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my ( $feed_links, $need_to_moderate ) = Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
+    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
 
     $hs->stop();
 
@@ -1661,7 +1661,7 @@ HTML
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my ( $feed_links, $need_to_moderate ) = Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
+    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
 
     $hs->stop();
 

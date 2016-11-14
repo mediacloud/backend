@@ -22,7 +22,7 @@ use MediaWords::Util::URL;
 use Data::Dumper;
 use Date::Parse;
 use Encode;
-use Feed::Scrape;
+use MediaWords::Feed::Scrape;
 use Readonly;
 
 # if $v is a scalar, return $v, else return undef.
@@ -56,7 +56,7 @@ sub _get_stories_from_syndicated_feed($$$)
 {
     my ( $decoded_content, $media_id, $download_time ) = @_;
 
-    my $feed = Feed::Scrape->parse_feed( $decoded_content );
+    my $feed = MediaWords::Feed::Scrape->parse_feed( $decoded_content );
 
     die( "Unable to parse feed" ) unless $feed;
 
