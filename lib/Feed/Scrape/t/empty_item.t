@@ -13,7 +13,7 @@ BEGIN
     use lib "$FindBin::Bin/../../../lib";
 }
 
-use_ok( 'Feed::Scrape::MediaWords' );
+use_ok( 'Feed::Scrape' );
 
 use Data::Dumper;
 
@@ -38,7 +38,7 @@ sub main()
 </rss>
 XML
 
-    my $feed = Feed::Scrape::MediaWords->parse_feed( $feed_text );
+    my $feed = Feed::Scrape->parse_feed( $feed_text );
 
     die "Unable to parse feed " unless $feed;
 

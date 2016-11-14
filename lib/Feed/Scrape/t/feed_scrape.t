@@ -15,7 +15,7 @@ use Test::Deep;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 use MediaWords::Test::DB;
-use Feed::Scrape::MediaWords;
+use Feed::Scrape;
 
 use utf8;
 
@@ -978,7 +978,7 @@ EOF
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
-    my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
+    my $feed_links = Feed::Scrape->get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
 
     $hs->stop();
 
@@ -1214,7 +1214,7 @@ HTML
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
+    my $feed_links = Feed::Scrape->get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
 
     $hs->stop();
 
@@ -1281,7 +1281,7 @@ HTML
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
+    my $feed_links = Feed::Scrape->get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
 
     $hs->stop();
 
@@ -1348,7 +1348,7 @@ HTML
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
+    my $feed_links = Feed::Scrape->get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
 
     $hs->stop();
 

@@ -270,14 +270,31 @@ sub parse_feed
 
 # give a list of urls, return a list of feeds in the form of { name => $name, url => $url, feed_type => 'syndicated' }
 # representing all of the links that refer to valid feeds (rss, rdf, or atom).
+# ignore urls that match one of the ignore patterns
 sub get_valid_feeds_from_urls
 {
-    my ( $class, $urls ) = @_;
+    my ( $class, $urls, $db, $ignore_patterns_string ) = @_;
 
     if ( !$urls || !@{ $urls } )
     {
         return [];
     }
+
+    $ignore_patterns_string = '' unless ( defined( $ignore_patterns_string ) );
+
+    my $ignore_patterns = [ split( ' ', $ignore_patterns_string ) ];
+
+    my $pruned_urls = [];
+    for my $url ( @{ $urls } )
+    {
+        if ( grep { index( lc( $url ), lc( $_ ) ) > -1 } @{ $ignore_patterns } )
+        {
+            next;
+        }
+
+        push( @{ $pruned_urls }, $url );
+    }
+    $urls = $pruned_urls;
 
     my $url_hash;
     $urls = [ grep { !$url_hash->{ $_ }++ } @{ $urls } ];
@@ -853,8 +870,7 @@ sub get_feed_links_and_need_to_moderate($$)
     if ( scalar @{ $default_feed_links } == 0 )
     {
         $need_to_moderate = 1;
-        $feed_links =
-          Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ $medium->{ url } ], 1, $db, [] );
+        $feed_links = Feed::Scrape->get_valid_feeds_from_index_url( [ $medium->{ url } ], 1, $db, [] );
 
         $default_feed_links = _default_feed_links( $medium, $feed_links );
     }
