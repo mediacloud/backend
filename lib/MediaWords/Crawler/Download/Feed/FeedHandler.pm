@@ -1,4 +1,4 @@
-package MediaWords::Crawler::Download::FeedHandler;
+package MediaWords::Crawler::Download::Feed::FeedHandler;
 
 #
 # Handler for 'feed' downloads
