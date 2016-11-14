@@ -273,7 +273,7 @@ sub parse_feed
 # ignore urls that match one of the ignore patterns
 sub get_valid_feeds_from_urls
 {
-    my ( $class, $urls, $db, $ignore_patterns_string ) = @_;
+    my ( $class, $urls, $ignore_patterns_string ) = @_;
 
     if ( !$urls || !@{ $urls } )
     {
@@ -544,7 +544,7 @@ sub _recurse_get_valid_feeds_from_index_url($$$$$$)
 
     $#{ $scraped_urls } = List::Util::min( $#{ $scraped_urls }, $MAX_INDEX_URLS - 1 );
 
-    my $valid_feeds = $class->get_valid_feeds_from_urls( $scraped_urls, $db, $ignore_patterns );
+    my $valid_feeds = $class->get_valid_feeds_from_urls( $scraped_urls, $ignore_patterns );
 
     if ( scalar @{ $scraped_urls } > 0 )
     {

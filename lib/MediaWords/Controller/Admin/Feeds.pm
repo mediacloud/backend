@@ -575,7 +575,7 @@ sub batch_create_do : Local
 
     my $urls = [ map { $_ =~ s/[\n\r\s]//g; $_ } split( "\n", $c->request->param( 'urls' ) ) ];
 
-    my $valid_links = Feed::Scrape->get_valid_feeds_from_urls( $urls, $c->dbis );
+    my $valid_links = Feed::Scrape->get_valid_feeds_from_urls( $urls );
 
     my $status_msg = _get_skipped_urls_message( $urls, $valid_links, 'are not valid feeds' );
 
