@@ -16,7 +16,6 @@ use MediaWords::DBI::Media;
 use MediaWords::DBI::Feeds;
 use MediaWords::Job::RescrapeMedia;
 use MediaWords::Util::URL;
-use Feed::Scrape::MediaWords;
 
 use URI;
 use Digest::SHA qw(sha256_hex);
