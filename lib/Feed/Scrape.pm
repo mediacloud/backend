@@ -271,7 +271,7 @@ sub parse_feed
 # give a list of urls, return a list of feeds in the form of { name => $name, url => $url, feed_type => 'syndicated' }
 # representing all of the links that refer to valid feeds (rss, rdf, or atom).
 # ignore urls that match one of the ignore patterns
-sub get_valid_feeds_from_urls
+sub get_valid_feeds_from_urls($$;$)
 {
     my ( $class, $urls, $ignore_patterns_string ) = @_;
 
