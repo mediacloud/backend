@@ -289,7 +289,7 @@ sub get_valid_feeds_from_urls
     my $links = $class->_validate_and_name_feed_urls( $urls );
 
     my $u = {};
-    map { $u->{ normalize_feed_url( $_->{ url } ) } = $_ } @{ $links };
+    map { $u->{ _normalize_feed_url( $_->{ url } ) } = $_ } @{ $links };
 
     return [ sort { $a->{ name } cmp $b->{ name } } values( %{ $u } ) ];
 }
@@ -548,7 +548,7 @@ sub _recurse_get_valid_feeds_from_index_url($$$$$$)
             );
 
             my $u = {};
-            map { $u->{ normalize_feed_url( $_->{ url } ) } = $_ } @{ $valid_feeds };
+            map { $u->{ _normalize_feed_url( $_->{ url } ) } = $_ } @{ $valid_feeds };
             $valid_feeds = [ sort { $a->{ name } cmp $b->{ name } } values( %{ $u } ) ];
         }
     }
@@ -583,7 +583,7 @@ sub get_valid_feeds_from_index_url($$$$$)
 }
 
 # return a normalized version of the feed to help avoid duplicate feeds
-sub normalize_feed_url
+sub _normalize_feed_url
 {
     my ( $url ) = @_;
 
