@@ -1042,16 +1042,6 @@ DISTRIBUTIONS
       Class::Data::Inheritable 0.08
     requirements:
       ExtUtils::MakeMaker 0
-  Class-ErrorHandler-0.03
-    pathname: T/TO/TOKUHIROM/Class-ErrorHandler-0.03.tar.gz
-    provides:
-      Class::ErrorHandler 0.03
-    requirements:
-      CPAN::Meta 0
-      CPAN::Meta::Prereqs 0
-      ExtUtils::CBuilder 0
-      Module::Build 0.38
-      perl 5.008_001
   Class-Factory-Util-1.7
     pathname: D/DR/DROLSKY/Class-Factory-Util-1.7.tar.gz
     provides:
@@ -3612,19 +3602,6 @@ DISTRIBUTIONS
       FCGI::ProcManager::Constrained undef
     requirements:
       ExtUtils::MakeMaker 0
-  Feed-Find-0.07
-    pathname: B/BT/BTROTT/Feed-Find-0.07.tar.gz
-    provides:
-      Feed::Find 0.07
-    requirements:
-      Class::ErrorHandler 0
-      ExtUtils::MakeMaker 6.42
-      Filter::Util::Call 0
-      HTML::Parser 0
-      LWP 0
-      Test::More 0
-      URI 0
-      perl 5.008001
   File-ChangeNotify-0.24
     pathname: D/DR/DROLSKY/File-ChangeNotify-0.24.tar.gz
     provides:
