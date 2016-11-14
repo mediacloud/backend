@@ -47,7 +47,7 @@ sub _sample_rss_feed($;$)
     $base_url = encode_entities( $base_url, '<>&' );
     $title    = encode_entities( $title,    '<>&' );
 
-    return <<"EOF";
+    return <<"XML";
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
     <channel>
@@ -66,7 +66,7 @@ sub _sample_rss_feed($;$)
         </item>
     </channel>
 </rss>
-EOF
+XML
 }
 
 sub _sample_atom_feed($;$)
@@ -78,7 +78,7 @@ sub _sample_atom_feed($;$)
     $base_url = encode_entities( $base_url, '<>&' );
     $title    = encode_entities( $title,    '<>&' );
 
-    return <<EOF;
+    return <<"XML";
 <?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-US" xml:base="$base_url/wp-atom.php">
     <title type="text">$title</title>
@@ -118,7 +118,7 @@ sub _sample_atom_feed($;$)
     </entry>
 
 </feed>
-EOF
+XML
 }
 
 # Basic RSS feed URL scraping
@@ -129,7 +129,7 @@ sub test_basic($)
     my $pages = {
 
         # Index page
-        '/' => <<"EOF",
+        '/' => <<"HTML",
             <html>
             <head>
                 <title>Basic test</title>
@@ -140,7 +140,7 @@ sub test_basic($)
                 <p>Hello!</p>
             </body>
             </html>
-EOF
+HTML
 
         # Sample feed
         '/feed/atom/' => {
@@ -178,7 +178,7 @@ sub test_utf8_title($)
     my $pages = {
 
         # Index page
-        '/' => <<"EOF",
+        '/' => <<"HTML",
             <html>
             <head>
                 <title>Basic test</title>
@@ -189,7 +189,7 @@ sub test_utf8_title($)
                 <p>Hello!</p>
             </body>
             </html>
-EOF
+HTML
 
         # Sample feed
         '/feed/atom/' => {
@@ -224,7 +224,7 @@ sub test_basic_entities_in_urls($)
     my $pages = {
 
         # Index page
-        '/' => <<"EOF",
+        '/' => <<"HTML",
             <html>
             <head>
                 <title>Basic test</title>
@@ -235,7 +235,7 @@ sub test_basic_entities_in_urls($)
                 <p>Hello!</p>
             </body>
             </html>
-EOF
+HTML
 
         # Sample feed
         '/feed/atom/' => {
@@ -270,7 +270,7 @@ sub test_basic_short_urls($)
     my $pages = {
 
         # Index page
-        '/' => <<"EOF",
+        '/' => <<"HTML",
             <html>
             <head>
                 <title>Basic test</title>
@@ -281,7 +281,7 @@ sub test_basic_short_urls($)
                 <p>Hello!</p>
             </body>
             </html>
-EOF
+HTML
 
         # Sample feed
         '/feed/atom/' => {
@@ -316,7 +316,7 @@ sub test_basic_no_titles($)
     my $pages = {
 
         # Index page
-        '/' => <<"EOF",
+        '/' => <<"HTML",
             <html>
             <head>
                 <title>Basic test</title>
@@ -327,7 +327,7 @@ sub test_basic_no_titles($)
                 <p>Hello!</p>
             </body>
             </html>
-EOF
+HTML
 
         # Sample feed
         '/feed/atom/' => {
@@ -362,7 +362,7 @@ sub test_dagbladet_se($)
     my $pages = {
 
         # Index page
-        '/' => <<"EOF",
+        '/' => <<"HTML",
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="sv" lang="sv" >
 <head>
@@ -401,7 +401,7 @@ sub test_dagbladet_se($)
     <!-- Stylesheets -->        
     <link rel="stylesheet" href="/css/global.css" type="text/css" media="all" />
     <link rel="stylesheet" href="/polopoly_fs/2.401.1365410226!/dasu_fredrikh_130403.css" type="text/css" media="all" />
-EOF
+HTML
 
         # Feeds
         '/1.51407' => {
@@ -1001,7 +1001,7 @@ sub test_rss_immediate_redirect_via_http_header($)
     my $pages_2 = {
 
         # Index page
-        '/' => <<EOF,
+        '/' => <<"HTML",
             <h1>Acme News</h1>
             <p>
                 Blah blah yada yada.
@@ -1012,10 +1012,10 @@ sub test_rss_immediate_redirect_via_http_header($)
                 here's a link to the RSS link listing:<br />
                 <a href="/rss">RSS</a>
             </p>
-EOF
+HTML
 
         # RSS listing page
-        '/rss' => <<EOF,
+        '/rss' => <<"HTML",
             <h1>Acme News</h1>
             <p>
             Our RSS feeds:
@@ -1023,7 +1023,7 @@ EOF
             <ul>
                 <li><a href="/feed.xml">Wile E. Coyote</a></li>
             </ul>
-EOF
+HTML
 
         # Sample feeds
         '/feed.xml' => {
@@ -1065,7 +1065,7 @@ sub test_rss_immediate_redirect_via_html_meta_refresh($)
     my $pages_1 = {
 
         # META-redirect to a new website
-        '/' => <<"EOF"
+        '/' => <<"HTML"
             <html>
                 <head>
                     <meta http-equiv="Refresh" content="0; url=$TEST_HTTP_SERVER_URL_2">
@@ -1075,14 +1075,14 @@ sub test_rss_immediate_redirect_via_html_meta_refresh($)
                     <p>See you there!</p>
                 </body>
             </html>
-EOF
+HTML
 
     };
 
     my $pages_2 = {
 
         # Index page
-        '/' => <<EOF,
+        '/' => <<"HTML",
             <h1>Acme News</h1>
             <p>
                 Blah blah yada yada.
@@ -1093,10 +1093,10 @@ EOF
                 here's a link to the RSS link listing:<br />
                 <a href="/rss">RSS</a>
             </p>
-EOF
+HTML
 
         # RSS listing page
-        '/rss' => <<EOF,
+        '/rss' => <<"HTML",
             <h1>Acme News</h1>
             <p>
             Our RSS feeds:
@@ -1104,7 +1104,7 @@ EOF
             <ul>
                 <li><a href="/feed.xml">Wile E. Coyote</a></li>
             </ul>
-EOF
+HTML
 
         # Sample feeds
         '/feed.xml' => {
@@ -1148,7 +1148,7 @@ sub test_rss_base_href($)
     my $pages = {
 
         # Index page
-        '/' => <<"EOF",
+        '/' => <<"HTML",
             <html>
                 <head>
                     <base href="$TEST_HTTP_SERVER_URL/path_one/" target="_blank" />
@@ -1166,10 +1166,10 @@ sub test_rss_base_href($)
                     </p>
                 </body>
             </html>
-EOF
+HTML
 
         # RSS listing page
-        '/path_one/rss' => <<EOF,
+        '/path_one/rss' => <<"HTML",
             <html>
                 <head>
                     <base href="$TEST_HTTP_SERVER_URL/path_two/" target="_blank" />
@@ -1185,7 +1185,7 @@ EOF
                     </ul>
                 </body>
             </html>
-EOF
+HTML
 
         # Sample feeds
         '/path_two/feed1.xml' => {
@@ -1228,7 +1228,7 @@ sub test_rss_unlinked_urls($)
     my $pages = {
 
         # Index page
-        '/' => <<EOF,
+        '/' => <<"HTML",
             <h1>Acme News</h1>
             <p>
                 Blah blah yada yada.
@@ -1239,10 +1239,10 @@ sub test_rss_unlinked_urls($)
                 here's a link to the RSS link listing:<br />
                 <a href="/rss">RSS</a>
             </p>
-EOF
+HTML
 
         # RSS listing page
-        '/rss' => <<"EOF",
+        '/rss' => <<"HTML",
             <h1>Acme News</h1>
             <p>
             Our RSS feeds:
@@ -1252,7 +1252,7 @@ EOF
                 $TEST_HTTP_SERVER_URL/feed1.xml -- Wile E. Coyote<br />
                 $TEST_HTTP_SERVER_URL/feed2.xml -- The Road Runner<br />
             </ul>
-EOF
+HTML
 
         # Sample feeds
         '/feed1.xml' => {
@@ -1295,7 +1295,7 @@ sub test_rss_image_link($)
     my $pages = {
 
         # Index page
-        '/' => <<EOF,
+        '/' => <<"HTML",
             <h1>Acme News</h1>
             <p>
                 Blah blah yada yada.
@@ -1307,10 +1307,10 @@ sub test_rss_image_link($)
                 here's a link to the Rich Site Summary link listing:<br />
                 <a href="/listing"><img src="/rss.png" alt="" /></a>
             </p>
-EOF
+HTML
 
         # RSS listing page
-        '/listing' => <<EOF,
+        '/listing' => <<"HTML",
             <h1>Acme News</h1>
             <p>
             Our Rich Site Summary feeds:
@@ -1319,7 +1319,7 @@ EOF
                 <li><a href="/feed1.xml">Wile E. Coyote</a></li>
                 <li><a href="/feed2.xml">The Road Runner</a></li>
             </ul>
-EOF
+HTML
 
         # Sample feeds
         '/feed1.xml' => {
@@ -1362,7 +1362,7 @@ sub test_rss_external_feeds($)
     my $pages = {
 
         # Index page
-        '/' => <<EOF,
+        '/' => <<"HTML",
             <h1>Acme News</h1>
             <p>
                 Blah blah yada yada.
@@ -1373,10 +1373,10 @@ sub test_rss_external_feeds($)
                 here's a link to the RSS link listing:<br />
                 <a href="/rss">RSS</a>
             </p>
-EOF
+HTML
 
         # RSS listing page
-        '/rss' => <<EOF,
+        '/rss' => <<"HTML",
             <h1>Acme News</h1>
             <p>
             Our RSS feeds:
@@ -1385,7 +1385,7 @@ EOF
                 <li><a href="http://feeds2.feedburner.com/localhost">Wile E. Coyote</a></li> <!-- This one should be declared as main feed -->
                 <li><a href="http://quotidianohome.feedsportal.com/c/33327/f/565662/index.rss">The Road Runner</a></li> <!-- This one should *not* be declared a main feed -->
             </ul>
-EOF
+HTML
     };
 
     my $expected_links = [
@@ -1417,7 +1417,7 @@ sub test_get_feed_links_and_need_to_moderate($)
     my $pages = {
 
         # Index page
-        '/' => <<EOF,
+        '/' => <<"HTML",
             <h1>Acme News</h1>
             <p>
                 Blah blah yada yada.
@@ -1428,15 +1428,15 @@ sub test_get_feed_links_and_need_to_moderate($)
                 here's a link to the RSS link listing:<br />
                 <a href="/rss">RSS</a>
             </p>
-EOF
+HTML
 
         # URL that looks like a feed but doesn't contain one
-        '/feed' => <<EOF,
+        '/feed' => <<"HTML",
             The feed searcher will look here, but there is no feed to be found at this URL.
-EOF
+HTML
 
         # RSS listing page
-        '/rss' => <<EOF,
+        '/rss' => <<"HTML",
             <h1>Acme News</h1>
             <p>
             Our RSS feeds:
@@ -1447,7 +1447,7 @@ EOF
 
                 <li><a href="http://feeds.feedburner.com/thesartorialist">The Road Runner</a></li>
             </ul>
-EOF
+HTML
     };
 
     my $expected_links = [
@@ -1484,7 +1484,7 @@ sub test_feeds_with_common_prefix($)
     my $pages = {
 
         # Index page
-        '/' => <<EOF,
+        '/' => <<"HTML",
             <h1>Acme News</h1>
             <p>
                 Blah blah yada yada.
@@ -1495,10 +1495,10 @@ sub test_feeds_with_common_prefix($)
                 here's a link to the RSS link listing:<br />
                 <a href="/rss">RSS</a>
             </p>
-EOF
+HTML
 
         # RSS listing page
-        '/rss' => <<"EOF",
+        '/rss' => <<"HTML",
             <h1>Acme News</h1>
             <p>
             Our RSS feeds:
@@ -1508,36 +1508,36 @@ EOF
                 <li><a href="$TEST_HTTP_SERVER_URL/feed2.xml">Feed two</a></li>
                 <li><a href="$TEST_HTTP_SERVER_URL/feed3.xml">Feed three</a></li>
             </ul>
-EOF
+HTML
 
         # Sample feeds
         '/feed1.xml' => {
             header  => $HTTP_CONTENT_TYPE_RSS,
-            content => <<EOF
+            content => <<"XML"
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"><channel>
         <title>Example.com - Sports</title> <!-- One of the sub-feeds -->
 </channel></rss>
-EOF
+XML
         },
         '/feed2.xml' => {
             header  => $HTTP_CONTENT_TYPE_RSS,
-            content => <<EOF
+            content => <<"XML"
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"><channel>
         <title>Example.com</title> <!-- This is the "main" feed which is expected to
                                         contain posts from the sub-feeds above -->
 </channel></rss>
-EOF
+XML
         },
         '/feed3.xml' => {
             header  => $HTTP_CONTENT_TYPE_RSS,
-            content => <<EOF
+            content => <<XML
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"><channel>
         <title>Example.com - Entertainment</title> <!-- One of the sub-feeds -->
 </channel></rss>
-EOF
+XML
         },
 
     };
@@ -1571,7 +1571,7 @@ sub test_feed_aggregator_urls($)
     my $pages = {
 
         # Index page
-        '/' => <<EOF,
+        '/' => <<"HTML",
             <h1>Acme News</h1>
             <p>
                 Blah blah yada yada.
@@ -1582,10 +1582,10 @@ sub test_feed_aggregator_urls($)
                 here's a link to the RSS link listing:<br />
                 <a href="/rss">RSS</a>
             </p>
-EOF
+HTML
 
         # RSS listing page
-        '/rss' => <<"EOF",
+        '/rss' => <<"HTML",
             <h1>Acme News</h1>
             <p>
             Our RSS feeds:
@@ -1595,7 +1595,7 @@ EOF
                 <li><a href="http://add.my.yahoo.com/rss?url=$TEST_HTTP_SERVER_URL/feed.xml">Add to Yahoo!</a></li>
                 <li><a href="http://www.netvibes.com/subscribe.php?url=$TEST_HTTP_SERVER_URL/feed.xml">Add to NetVibes</a></li>
             </ul>
-EOF
+HTML
 
         # Sample feeds
         '/feed.xml' => {
@@ -1636,7 +1636,7 @@ sub test_web_page_feed($)
     my $pages       = {
 
         # Index page
-        '/' => <<EOF,
+        '/' => <<"HTML",
             <h1>Acme News</h1>
             <p>
                 Blah blah yada yada.
@@ -1646,7 +1646,7 @@ sub test_web_page_feed($)
                 This website doesn't have any RSS feeds, so it should be added
                 as an "web_page" feed.
             </p>
-EOF
+HTML
     };
     my $expected_links = [
         {
