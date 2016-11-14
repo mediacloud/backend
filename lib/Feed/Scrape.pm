@@ -16,7 +16,6 @@ use Domain::PublicSuffix;
 use Encode;
 use Feed::Find;
 use HTML::Entities;
-use HTML::Entities;
 use HTML::LinkExtractor;
 use List::MoreUtils qw(any all none notall true false firstidx first_index
   lastidx last_index insert_after insert_after_string
