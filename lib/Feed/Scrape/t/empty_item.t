@@ -4,35 +4,39 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use Test::NoWarnings;
+use Test::More tests => 2 + 1;
+
 BEGIN
 {
     use FindBin;
     use lib "$FindBin::Bin/../../../lib";
 }
 
-use Dir::Self;
-use Data::Dumper;
-use DBIx::Simple::MediaWords;
-use MediaWords::Util::Tags;
-use MediaWords::DB;
-use File::Slurp;
-use Data::Dumper;
-use XML::FeedPP;
-
-use Test::NoWarnings;
-use Test::More tests => 2 + 1;
-
 use_ok( 'Feed::Scrape::MediaWords' );
+
+use Data::Dumper;
 
 sub main()
 {
-
-    use File::Basename ();
-    use Cwd            ();
-
-    my $current_dir = Cwd::realpath( File::Basename::dirname( __FILE__ ) );
-
-    my $feed_text = read_file( "$current_dir/business_reduced.xml" );
+    my $feed_text = <<XML;
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="/css/rss20.xsl" type="text/xsl"?>
+<rss version="2.0">
+    <channel>
+        <title>foo</title>
+        <link>http://example.com</link>
+        <description/>
+        <language>en</language>
+        <item xmlns:atom="http://www.w3.org/2005/Atom">
+            <title><![CDATA[]]></title>
+            <link/>
+            <guid isPermaLink="false"/>
+            <pubDate>Mon, 11 Apr 2011 13:13:48 EST</pubDate>
+        </item>
+    </channel>
+</rss>
+XML
 
     my $feed = Feed::Scrape::MediaWords->parse_feed( $feed_text );
 
@@ -42,22 +46,15 @@ sub main()
 
     my $num_new_stories = 0;
 
-  ITEM:
     for my $item ( @{ $items } )
     {
         my $url  = $item->link() || $item->guid();
         my $guid = $item->guid() || $item->link();
 
-        ok( ( !$guid ) || !ref( $guid ), "GUID is nonscalar " . ( $guid ? $guid : '<undefined?' ) );
+        ok( ( !$guid ) || !ref( $guid ), "GUID is nonscalar: " . Dumper( $item ) );
 
         next unless $url || $guid;
-
-        if ( $guid && ref( $guid ) )
-        {
-            ERROR Dumper( $item );
-        }
     }
 }
 
 main();
-1;
