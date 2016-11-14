@@ -1,4 +1,4 @@
-package MediaWords::Crawler::DefaultHandler;
+package MediaWords::Crawler::Download::DefaultHandler;
 
 #
 # Default response handler implementation

@@ -18,7 +18,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Moose::Role;
-with 'MediaWords::Crawler::DefaultHandler';
+with 'MediaWords::Crawler::Download::DefaultHandler';
 
 # Return a list of new, to-be-fetcherd story IDs that were added from the feed
 #
