@@ -21,6 +21,7 @@ use List::Util qw(max min);
 use LWP::Simple;
 use Readonly;
 use Regexp::Common qw(time);
+use Time::Local;
 
 # threshold of number of days a guess date can be before the source link
 # story date without dropping the guess
@@ -136,9 +137,18 @@ sub _validate_date_parts
 {
     my ( $year, $month, $day ) = @_;
 
-    return 0 if ( ( $year < 2000 ) || ( $year > 2020 ) );
+    return 0 if ( ( $year < 2000 ) || ( $year > 2030 ) );
 
     return MediaWords::Util::DateTime::str2time_21st_century( "$year-$month-$day 12:00 PM", 'GMT' );
+}
+
+# return true if _validate_date_parts passes for the given epoch
+sub _validate_epoch
+{
+    my ( $epoch ) = @_;
+
+    my ( undef, undef, undef, $mday, $mon, $year ) = localtime( $epoch );
+    return 1 if ( _validate_date_parts( $year + 1900, $mon + 1, $mday ) );
 }
 
 # if the date is exactly midnight, round it to noon because noon is a better guess of the publication time
@@ -773,11 +783,18 @@ sub _make_unix_timestamp
 
     return undef unless ( $date );
 
-    return $date if ( $date =~ /^\d+$/ );
+    # if the date is a 14 digit number starting with 12 or 20, assume it is an iso date with no punctuation
+    if ( $date =~ /((?:19|20)\d\d)(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)/ )
+    {
+        $date = "$1-$2-$3 $4:$5:$6";
+    }
+
+    # only return the number as an epoch if it looks like a valid date
+    return $date if ( $date =~ /^\d+$/ && _validate_epoch( $date ) );
 
     my $timestamp = MediaWords::Util::DateTime::str2time_21st_century( $date, 'GMT' );
 
-    return undef unless ( $timestamp );
+    return undef unless ( $timestamp && _validate_epoch( $timestamp ) );
 
     $timestamp = _round_midnight_to_noon( $timestamp );
 
