@@ -66,7 +66,6 @@ sub _get_stories_from_syndicated_feed($$$)
 
     my $ret = [];
 
-  ITEM:
     for my $item ( @{ $items } )
     {
         my $guid = _sanitize_guid( _no_ref( $item->guid ) );
@@ -74,7 +73,10 @@ sub _get_stories_from_syndicated_feed($$$)
         my $url = _no_ref( $item->link() ) || _no_ref( $item->get( 'nnd:canonicalUrl' ) ) || $guid;
         $guid ||= $url;
 
-        next ITEM unless ( $url );
+        unless ( $url )
+        {
+            next;
+        }
 
         $url  = substr( $url,  0, 1024 );
         $guid = substr( $guid, 0, 1024 );
