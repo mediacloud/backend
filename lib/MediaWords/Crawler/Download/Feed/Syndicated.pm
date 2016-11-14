@@ -24,9 +24,6 @@ use Encode;
 use Feed::Scrape::MediaWords;
 use Readonly;
 
-Readonly my $EXTERNAL_FEED_URL  => 'http://external/feed/url';
-Readonly my $EXTERNAL_FEED_NAME => 'EXTERNAL FEED';
-
 # if $v is a scalar, return $v, else return undef.
 # we need to do this to make sure we don't get a ref back from a feed object field
 sub _no_ref
@@ -135,51 +132,6 @@ END
     $db->query( "update feeds set last_checksum = ? where feeds_id = ?", $checksum, $feeds_id );
 
     return 0;
-}
-
-=head2 import_external_feed( $db, $media_id, $feed_content )
-
-Given the content of some feed, import all new stories from that content as if we had downloaded the content.
-Associate any stories in the feed with a feed (created if needed) named $EXTERNAL_FEED_NAME in the given media source.
-import stories from external feed into the given media source.
-
-This is useful for scripts that need to import archived feed content from a non-http source or that need to create
-a custom feed to import a list of stories from some archived source.
-
-=cut
-
-sub import_external_feed
-{
-    my ( $db, $media_id, $feed_content ) = @_;
-
-    my $feed = $db->query( "select * from feeds where media_id = ? and name = ?", $media_id, $EXTERNAL_FEED_NAME )->hash;
-
-    $feed ||= $db->create(
-        'feeds',
-        {
-            media_id    => $media_id,
-            name        => $EXTERNAL_FEED_NAME,
-            url         => $EXTERNAL_FEED_URL,
-            feed_status => 'inactive'
-        }
-    );
-
-    my $download = $db->create(
-        'downloads',
-        {
-            url           => $EXTERNAL_FEED_URL,
-            feeds_id      => $feed->{ feeds_id },
-            host          => 'external',
-            download_time => \'now()',
-            type          => 'feed',
-            state         => 'fetching',
-            priority      => 1,
-            sequence      => 1
-        }
-    );
-
-    my $handler = MediaWords::Crawler::Engine::handler_for_download( $db, $download );
-    $handler->handle_download( $db, $download, $feed_content );
 }
 
 # parse the feed content; create a story hash for each parsed story; check for a new url since the last
