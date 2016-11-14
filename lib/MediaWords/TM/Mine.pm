@@ -2319,35 +2319,38 @@ END
 select * from topic_seed_urls where topics_id = ? and processed = 'f'
 END
 
-    my $non_content_urls = [];
-    for my $csu ( @{ $seed_urls } )
+    # process these in chunks in case we have to start over so that we don't have to redo the whole batch
+    my $iterator = List::MoreUtils::natatime( $ADD_NEW_LINKS_CHUNK_SIZE, @{ $seed_urls } );
+    while ( my @seed_urls_chunk = $iterator->() )
     {
-        if ( $csu->{ content } )
+        my $non_content_urls = [];
+        for my $csu ( @seed_urls_chunk )
         {
-            my $story = get_matching_story_from_db( $db, $csu )
-              || add_new_story( $db, $csu, undef, $topic, 0, 1 );
-            add_to_topic_stories_if_match( $db, $topic, $story, $csu );
+            if ( $csu->{ content } )
+            {
+                my $story = get_matching_story_from_db( $db, $csu )
+                  || add_new_story( $db, $csu, undef, $topic, 0, 1 );
+                add_to_topic_stories_if_match( $db, $topic, $story, $csu );
+            }
+            else
+            {
+                push( @{ $non_content_urls }, $csu );
+            }
         }
-        else
+
+        add_new_links( $db, $topic, 0, $non_content_urls );
+
+        $db->begin;
+        for my $seed_url ( @seed_urls_chunk )
         {
-            push( @{ $non_content_urls }, $csu );
-        }
-    }
-
-    add_new_links( $db, $topic, 0, $non_content_urls );
-
-    $db->begin;
-    for my $seed_url ( @{ $seed_urls } )
-    {
-        my $story = $seed_url->{ story };
-        my $set_stories_id = $story ? $story->{ stories_id } : undef;
-        $db->query( <<END, $set_stories_id, $seed_url->{ topic_seed_urls_id } );
-update topic_seed_urls
-    set stories_id = ?, processed = 't'
-    where topic_seed_urls_id = ?
+            my $story = $seed_url->{ story };
+            my $set_stories_id = $story ? $story->{ stories_id } : undef;
+            $db->query( <<END, $set_stories_id, $seed_url->{ topic_seed_urls_id } );
+update topic_seed_urls set stories_id = ?, processed = 't' where topic_seed_urls_id = ?
 END
+        }
+        $db->commit;
     }
-    $db->commit unless $db->dbh->{ AutoCommit };
 }
 
 # look for any stories in the topic tagged with a date method of 'current_time' and
