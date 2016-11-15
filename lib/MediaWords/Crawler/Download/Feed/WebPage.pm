@@ -40,12 +40,12 @@ sub add_stories_from_feed($$$$)
         }
     );
 
-    $db->query(
-        <<SQL,
-        INSERT INTO feeds_stories_map (feeds_id, stories_id)
-        VALUES (?, ?)
-SQL
-        $feed->{ feeds_id }, $story->{ stories_id }
+    $db->find_or_create(
+        'feeds_stories_map',
+        {
+            stories_id => $story->{ stories_id },
+            feeds_id   => $feed->{ feeds_id }
+        }
     );
 
     $db->query(
