@@ -16,7 +16,6 @@ with 'MediaWords::Crawler::Download::DefaultFetcher', 'MediaWords::Crawler::Down
 use MediaWords::Crawler::Engine;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories;
-use MediaWords::Util::SQL;
 
 use Data::Dumper;
 use Date::Parse;
@@ -45,36 +44,21 @@ sub _get_stories_from_syndicated_feed($$$)
             next;
         }
 
-        my $guid = $item->guid_if_valid() || $url;
-
-        my $publish_date;
-
-        if ( my $date_string = $item->pubDate() )
-        {
-            # Date::Parse is more robust at parsing date than postgres
-            eval {
-                $publish_date = MediaWords::Util::SQL::get_sql_date_from_epoch( Date::Parse::str2time( $date_string ) ); };
-            if ( $@ )
-            {
-                $publish_date = $download_time;
-                WARN "Error getting date from item pubDate ('" . $item->pubDate() . "') just using download time: $@";
-            }
-        }
-        else
-        {
-            $publish_date = $download_time;
-        }
+        my $guid  = $item->guid_if_valid() || $url;
+        my $title = $item->title           || '(no title)';
+        my $description = $item->description;
+        my $publish_date = $item->publish_date_sql() || $download_time;
 
         my $story = {
             url          => $url,
             guid         => $guid,
             media_id     => $media_id,
             publish_date => $publish_date,
-            title        => $item->title || '(no title)',
-            description  => $item->description,
+            title        => $title,
+            description  => $description,
         };
 
-        push @{ $ret }, $story;
+        push( @{ $ret }, $story );
     }
 
     return $ret;

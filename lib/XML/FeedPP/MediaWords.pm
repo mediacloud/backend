@@ -110,6 +110,11 @@ use warnings;
 
 use base 'XML::FeedPP::RSS::Item';
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
+use MediaWords::Util::SQL;
+
 use Readonly;
 use Data::Dumper;
 
@@ -167,6 +172,26 @@ sub pubDate
     my $pub_date = $self->SUPER::pubDate( @_ );
 
     return _no_ref( $pub_date );
+}
+
+sub publish_date_sql
+{
+    my $self = shift;
+
+    my $publish_date;
+
+    if ( my $date_string = $self->pubDate() )
+    {
+        # Date::Parse is more robust at parsing date than postgres
+        eval { $publish_date = MediaWords::Util::SQL::get_sql_date_from_epoch( Date::Parse::str2time( $date_string ) ); };
+        if ( $@ )
+        {
+            WARN "Error getting date from item pubDate ('$date_string'): $@";
+            $publish_date = undef;
+        }
+    }
+
+    return $publish_date;
 }
 
 sub category
