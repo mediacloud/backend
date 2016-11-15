@@ -17,11 +17,7 @@ use Domain::PublicSuffix;
 use Encode;
 use HTML::Entities;
 use HTML::LinkExtractor;
-use List::MoreUtils qw(any all none notall true false firstidx first_index
-  lastidx last_index insert_after insert_after_string
-  apply after after_incl before before_incl indexes
-  firstval first_value lastval last_value each_array
-  each_arrayref pairwise natatime mesh zip distinct uniq minmax);
+use List::MoreUtils qw/distinct/;
 use List::Util;
 use Readonly;
 use URI::Escape;
