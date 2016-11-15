@@ -38,7 +38,7 @@ sub main()
 </rss>
 XML
 
-    my $feed = MediaWords::Feed::Parse->parse_feed( $feed_text );
+    my $feed = MediaWords::Feed::Parse::parse_feed( $feed_text );
 
     die "Unable to parse feed " unless $feed;
 

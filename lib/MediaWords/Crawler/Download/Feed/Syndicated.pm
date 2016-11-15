@@ -55,7 +55,7 @@ sub _get_stories_from_syndicated_feed($$$)
 {
     my ( $decoded_content, $media_id, $download_time ) = @_;
 
-    my $feed = MediaWords::Feed::Parse->parse_feed( $decoded_content );
+    my $feed = MediaWords::Feed::Parse::parse_feed( $decoded_content );
 
     die( "Unable to parse feed" ) unless $feed;
 

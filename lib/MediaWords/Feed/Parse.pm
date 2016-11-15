@@ -93,9 +93,9 @@ sub _fix_atom_content_element_encoding
 
 # parse feed with XML::FeedPP after some simple munging to correct feed formatting.
 # return the XML::FeedPP feed object or undef if the parse failed.
-sub parse_feed
+sub parse_feed($)
 {
-    my ( $class, $content ) = @_;
+    my $content = shift;
 
     # fix content in various ways to make sure it will parse
 

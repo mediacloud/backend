@@ -92,7 +92,7 @@ sub _validate_and_name_feed_urls
 
         DEBUG "Parsing $url";
 
-        if ( my $feed = MediaWords::Feed::Parse->parse_feed( $content ) )
+        if ( my $feed = MediaWords::Feed::Parse::parse_feed( $content ) )
         {
             push(
                 @{ $links },
