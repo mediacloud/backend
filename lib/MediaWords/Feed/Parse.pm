@@ -24,7 +24,7 @@ sub _fix_atom_content_element_encoding
 
     if ( $@ )
     {
-        DEBUG "Error parsing feed string";
+        WARN "Feed string parsing failed: $@";
         return $xml_string;
     }
 
@@ -131,7 +131,7 @@ sub parse_feed($)
 
     if ( $@ )
     {
-        DEBUG "parse feed failed";
+        WARN "Feed parsing failed: $@";
         return undef;
     }
     else
