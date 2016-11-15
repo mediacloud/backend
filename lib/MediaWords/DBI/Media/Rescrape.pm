@@ -167,7 +167,7 @@ sub rescrape_media($$)
         die "Media ID $media_id does not exist.";
     }
 
-    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
+    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
 
     $db->begin_work;
 

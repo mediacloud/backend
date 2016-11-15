@@ -343,11 +343,11 @@ sub _get_feed_urls_from_html($$)
 #
 # fetch the html for the page at the $index url.  call get_valid_feeds_from_urls on the
 # urls scraped from that page.
-sub _recurse_get_valid_feeds_from_index_url($$$$$);    # prototype to be able to recurse
+sub _recurse_get_valid_feeds_from_index_url($$$$);    # prototype to be able to recurse
 
-sub _recurse_get_valid_feeds_from_index_url($$$$$)
+sub _recurse_get_valid_feeds_from_index_url($$$$)
 {
-    my ( $urls, $db, $ignore_patterns, $recurse_urls_to_skip, $recurse_levels_left ) = @_;
+    my ( $urls, $ignore_patterns, $recurse_urls_to_skip, $recurse_levels_left ) = @_;
 
     LOGCARP '$urls must be a reference ' unless ref( $urls );
 
@@ -384,7 +384,7 @@ sub _recurse_get_valid_feeds_from_index_url($$$$$)
             push(
                 @{ $valid_feeds },
                 @{
-                    _recurse_get_valid_feeds_from_index_url( $scraped_urls, $db, $ignore_patterns, $valid_feeds,
+                    _recurse_get_valid_feeds_from_index_url( $scraped_urls, $ignore_patterns, $valid_feeds,
                         $recurse_levels_left )
                 }
             );
@@ -622,9 +622,9 @@ sub _default_feed_links($$)
 # If the URL gets immediately redirected to a new location (via HTTP headers),
 # return the URL it gets redirected to.
 # Returns undef if there's no such redirection
-sub _immediate_redirection_url_for_medium($$)
+sub _immediate_redirection_url_for_medium($)
 {
-    my ( $db, $medium ) = @_;
+    my $medium = shift;
 
     my $ua       = MediaWords::Util::Web::UserAgent();
     my $response = $ua->get( $medium->{ url } );
@@ -652,9 +652,9 @@ sub _immediate_redirection_url_for_medium($$)
 #
 # fetch the html for the page at the $index url.  call get_valid_feeds_from_urls on the
 # urls scraped from that page.
-sub get_valid_feeds_from_index_url($$$;$)
+sub get_valid_feeds_from_index_url($$;$)
 {
-    my ( $urls, $recurse, $db, $ignore_patterns ) = @_;
+    my ( $urls, $recurse, $ignore_patterns ) = @_;
 
     my $recurse_levels_left;
     if ( $recurse )
@@ -670,7 +670,7 @@ sub get_valid_feeds_from_index_url($$$;$)
         $recurse_levels_left = 0;
     }
 
-    return _recurse_get_valid_feeds_from_index_url( $urls, $db, $ignore_patterns, [], $recurse_levels_left );
+    return _recurse_get_valid_feeds_from_index_url( $urls, $ignore_patterns, [], $recurse_levels_left );
 }
 
 # give a list of urls, return a list of feeds in the form of { name => $name, url => $url, feed_type => 'syndicated' }
@@ -716,13 +716,13 @@ sub get_valid_feeds_from_urls($;$)
 
 # Add default feeds for the media by searching for them in the index page, then (if not found)
 # in a couple of child pages
-sub get_feed_links_and_need_to_moderate($$)
+sub get_feed_links_and_need_to_moderate($)
 {
-    my ( $db, $medium ) = @_;
+    my $medium = shift;
 
     # if the website's main URL has been changed to a new one, update the URL to the new one
     # (don't touch the database though)
-    my $new_url_after_redirect = _immediate_redirection_url_for_medium( $db, $medium );
+    my $new_url_after_redirect = _immediate_redirection_url_for_medium( $medium );
     if ( $new_url_after_redirect )
     {
         $medium->{ url } = $new_url_after_redirect;
@@ -738,7 +738,7 @@ sub get_feed_links_and_need_to_moderate($$)
     if ( scalar @{ $default_feed_links } == 0 )
     {
         $need_to_moderate = 1;
-        $feed_links = get_valid_feeds_from_index_url( [ $medium->{ url } ], 1, $db, [] );
+        $feed_links = get_valid_feeds_from_index_url( [ $medium->{ url } ], 1, [] );
 
         $default_feed_links = _default_feed_links( $medium, $feed_links );
     }

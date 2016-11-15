@@ -292,8 +292,7 @@ sub scrape : Local
         my $ignore_patterns = $c->request->param( 'ignore_patterns' );
         my $recurse         = $c->request->param( 'recurse' );
 
-        my $links =
-          MediaWords::Feed::Scrape::get_valid_feeds_from_index_url( [ $url ], $recurse, $c->dbis, $ignore_patterns );
+        my $links = MediaWords::Feed::Scrape::get_valid_feeds_from_index_url( [ $url ], $recurse, $ignore_patterns );
 
         $c->stash->{ links } = $links;
     }
