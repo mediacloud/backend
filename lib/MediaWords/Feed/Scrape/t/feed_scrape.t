@@ -161,7 +161,7 @@ HTML
 
     $hs->start();
 
-    cmp_bag( MediaWords::Feed::Scrape->get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
+    cmp_bag( MediaWords::Feed::Scrape->_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
         $expected_result, 'Basic test' );
 
     $hs->stop();
@@ -210,7 +210,7 @@ HTML
 
     $hs->start();
 
-    my $actual_result = MediaWords::Feed::Scrape->get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } );
+    my $actual_result = MediaWords::Feed::Scrape->_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } );
     cmp_bag( $actual_result, $expected_result, 'Basic test - UTF-8 title' );
 
     $hs->stop();
@@ -256,7 +256,7 @@ HTML
 
     $hs->start();
 
-    cmp_bag( MediaWords::Feed::Scrape->get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
+    cmp_bag( MediaWords::Feed::Scrape->_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
         $expected_result, 'Basic test - entities in URLs' );
 
     $hs->stop();
@@ -302,7 +302,7 @@ HTML
 
     $hs->start();
 
-    cmp_bag( MediaWords::Feed::Scrape->get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
+    cmp_bag( MediaWords::Feed::Scrape->_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
         $expected_result, 'Basic test - short URLs' );
 
     $hs->stop();
@@ -348,7 +348,7 @@ HTML
 
     $hs->start();
 
-    cmp_bag( MediaWords::Feed::Scrape->get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
+    cmp_bag( MediaWords::Feed::Scrape->_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
         $expected_result, 'Basic test - no RSS titles' );
 
     $hs->stop();
@@ -547,7 +547,7 @@ HTML
 
     $hs->start();
 
-    cmp_bag( MediaWords::Feed::Scrape->get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
+    cmp_bag( MediaWords::Feed::Scrape->_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
         $expected_result, 'Dagbladet.se test' );
 
     $hs->stop();
@@ -913,7 +913,7 @@ sub test_gp_se($)
 
     $hs->start();
 
-    cmp_bag( MediaWords::Feed::Scrape->get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
+    cmp_bag( MediaWords::Feed::Scrape->_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
         $expected_result, 'GP.se test' );
 
     $hs->stop();
