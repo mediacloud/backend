@@ -112,6 +112,15 @@ use base 'XML::FeedPP::RSS::Item';
 
 use Data::Dumper;
 
+# if $v is a scalar, return $v, else return undef.
+# we need to do this to make sure we don't get a ref back from a feed object field
+sub _no_ref
+{
+    my ( $v ) = @_;
+
+    return ref( $v ) ? undef : $v;
+}
+
 sub create_wrapped_rss_item
 {
     my $package = shift;
@@ -126,6 +135,15 @@ sub create_wrapped_rss_item
     return $obj;
 }
 
+sub title
+{
+    my $self = shift;
+
+    my $title = $self->SUPER::title( @_ );
+
+    return _no_ref( $title );
+}
+
 sub description
 {
     my $self = shift;
@@ -135,7 +153,34 @@ sub description
     my $content;
     $content = $self->get( 'content:encoded' );
 
-    return $content || $description;
+    return _no_ref( $content || $description );
+}
+
+sub pubDate
+{
+    my $self = shift;
+
+    my $pub_date = $self->SUPER::pubDate( @_ );
+
+    return _no_ref( $pub_date );
+}
+
+sub category
+{
+    my $self = shift;
+
+    my $category = $self->SUPER::category( @_ );
+
+    return _no_ref( $category );
+}
+
+sub author
+{
+    my $self = shift;
+
+    my $author = $self->SUPER::author( @_ );
+
+    return _no_ref( $author );
 }
 
 sub guid
@@ -154,7 +199,25 @@ sub guid
         }
     }
 
-    return $guid;
+    return _no_ref( $guid );
+}
+
+sub get
+{
+    my $self = shift;
+
+    my $value = $self->SUPER::get( @_ );
+
+    return _no_ref( $value );
+}
+
+sub link
+{
+    my $self = shift;
+
+    my $link = $self->SUPER::link( @_ );
+
+    return _no_ref( $link );
 }
 
 1;

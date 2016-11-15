@@ -24,15 +24,6 @@ use Encode;
 use MediaWords::Feed::Parse;
 use Readonly;
 
-# if $v is a scalar, return $v, else return undef.
-# we need to do this to make sure we don't get a ref back from a feed object field
-sub _no_ref
-{
-    my ( $v ) = @_;
-
-    return ref( $v ) ? undef : $v;
-}
-
 # some guids are not in fact unique.  return the guid if it looks valid or undef if the guid looks like
 # it is not unique
 sub _sanitize_guid
@@ -65,9 +56,9 @@ sub _get_stories_from_syndicated_feed($$$)
 
     for my $item ( @{ $items } )
     {
-        my $guid = _sanitize_guid( _no_ref( $item->guid ) );
+        my $guid = _sanitize_guid( $item->guid );
 
-        my $url = _no_ref( $item->link() ) || _no_ref( $item->get( 'nnd:canonicalUrl' ) ) || $guid;
+        my $url = $item->link() || $item->get( 'nnd:canonicalUrl' ) || $guid;
         $guid ||= $url;
 
         unless ( $url )
@@ -82,7 +73,7 @@ sub _get_stories_from_syndicated_feed($$$)
 
         my $publish_date;
 
-        if ( my $date_string = _no_ref( $item->pubDate() ) )
+        if ( my $date_string = $item->pubDate() )
         {
             # Date::Parse is more robust at parsing date than postgres
             eval {
@@ -103,8 +94,8 @@ sub _get_stories_from_syndicated_feed($$$)
             guid         => $guid,
             media_id     => $media_id,
             publish_date => $publish_date,
-            title        => _no_ref( $item->title ) || '(no title)',
-            description  => _no_ref( $item->description ),
+            title        => $item->title || '(no title)',
+            description  => $item->description,
         };
 
         push @{ $ret }, $story;
