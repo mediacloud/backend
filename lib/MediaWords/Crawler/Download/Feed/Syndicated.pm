@@ -34,7 +34,7 @@ sub _get_stories_from_syndicated_feed($$$)
 
     my $items = [ $feed->get_item ];
 
-    my $ret = [];
+    my $stories = [];
 
     for my $item ( @{ $items } )
     {
@@ -58,10 +58,10 @@ sub _get_stories_from_syndicated_feed($$$)
             description  => $description,
         };
 
-        push( @{ $ret }, $story );
+        push( @{ $stories }, $story );
     }
 
-    return $ret;
+    return $stories;
 }
 
 # check whether the checksum of the concatenated urls of the stories in the feed matches the last such checksum for this
