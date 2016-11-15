@@ -293,7 +293,7 @@ sub scrape : Local
         my $recurse         = $c->request->param( 'recurse' );
 
         my $links =
-          MediaWords::Feed::Scrape->get_valid_feeds_from_index_url( [ $url ], $recurse, $c->dbis, $ignore_patterns );
+          MediaWords::Feed::Scrape::get_valid_feeds_from_index_url( [ $url ], $recurse, $c->dbis, $ignore_patterns );
 
         $c->stash->{ links } = $links;
     }
@@ -576,7 +576,7 @@ sub batch_create_do : Local
 
     my $urls = [ map { $_ =~ s/[\n\r\s]//g; $_ } split( "\n", $c->request->param( 'urls' ) ) ];
 
-    my $valid_links = MediaWords::Feed::Scrape->get_valid_feeds_from_urls( $urls );
+    my $valid_links = MediaWords::Feed::Scrape::get_valid_feeds_from_urls( $urls );
 
     my $status_msg = _get_skipped_urls_message( $urls, $valid_links, 'are not valid feeds' );
 
