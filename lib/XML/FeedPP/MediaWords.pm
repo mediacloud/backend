@@ -105,6 +105,9 @@ use Class::Std;
 
 package XML::FeedPP::RSS::Item::MediaWords;
 
+use strict;
+use warnings;
+
 use base 'XML::FeedPP::RSS::Item';
 
 use Data::Dumper;
