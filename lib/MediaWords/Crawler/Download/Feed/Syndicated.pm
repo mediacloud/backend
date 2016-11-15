@@ -74,13 +74,19 @@ sub _stories_checksum_matches_feed
 
     my $checksum = Digest::MD5::md5_hex( encode( 'utf8', $story_url_concat ) );
 
-    my ( $matches ) = $db->query( <<END, $feeds_id, $checksum )->flat;
-select 1 from feeds where feeds_id = ? and last_checksum = ?
-END
+    my ( $matches ) = $db->query(
+        <<SQL,
+        SELECT 1
+        FROM feeds
+        WHERE feeds_id = ?
+          AND last_checksum = ?
+SQL
+        $feeds_id, $checksum
+    )->flat;
 
     return 1 if ( $matches );
 
-    $db->query( "update feeds set last_checksum = ? where feeds_id = ?", $checksum, $feeds_id );
+    $db->query( 'UPDATE feeds SET last_checksum = ? WHERE feeds_id = ?', $checksum, $feeds_id );
 
     return 0;
 }
