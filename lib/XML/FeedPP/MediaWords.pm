@@ -110,7 +110,11 @@ use warnings;
 
 use base 'XML::FeedPP::RSS::Item';
 
+use Readonly;
 use Data::Dumper;
+
+Readonly my $MAX_LINK_LENGTH => 1024;
+Readonly my $MAX_GUID_LENGTH => 1024;
 
 # if $v is a scalar, return $v, else return undef.
 # we need to do this to make sure we don't get a ref back from a feed object field
@@ -189,17 +193,48 @@ sub guid
 
     my $guid = $self->SUPER::guid( @_ );
 
-    if ( $guid && ref $guid )
+    if ( $guid )
     {
-
-        #WORK AROUND FOR NASTY in XML::Feed
-        if ( ( ref $guid ) eq 'HASH' )
-        {
-            undef( $guid );
-        }
+        $guid = substr( $guid, 0, $MAX_GUID_LENGTH );
     }
 
     return _no_ref( $guid );
+}
+
+# some guids are not in fact unique.  return the guid if it looks valid or undef if the guid looks like
+# it is not unique
+sub guid_if_valid
+{
+    my $self = shift;
+
+    my $guid = $self->guid();
+
+    if ( defined $guid )
+    {
+        # ignore it if it is a url without a number or a path
+        if ( ( $guid !~ /\d/ ) && ( $guid =~ m~https?://[^/]+/?$~ ) )
+        {
+            $guid = undef;
+        }
+    }
+
+    return $guid;
+}
+
+sub link
+{
+    my $self = shift;
+
+    my $link = $self->SUPER::link( @_ ) || $self->get( 'nnd:canonicalUrl' ) || $self->guid_if_valid();
+    $link = _no_ref( $link );
+
+    if ( $link )
+    {
+        $link = substr( $link, 0, $MAX_LINK_LENGTH );
+        $link =~ s/[\n\r\s]//g;
+    }
+
+    return $link;
 }
 
 sub get
@@ -209,15 +244,6 @@ sub get
     my $value = $self->SUPER::get( @_ );
 
     return _no_ref( $value );
-}
-
-sub link
-{
-    my $self = shift;
-
-    my $link = $self->SUPER::link( @_ );
-
-    return _no_ref( $link );
 }
 
 1;

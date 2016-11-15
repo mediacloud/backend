@@ -24,23 +24,6 @@ use Encode;
 use MediaWords::Feed::Parse;
 use Readonly;
 
-# some guids are not in fact unique.  return the guid if it looks valid or undef if the guid looks like
-# it is not unique
-sub _sanitize_guid
-{
-    my ( $guid ) = @_;
-
-    return undef unless ( defined( $guid ) );
-
-    # ignore it if it is a url without a number or a path
-    if ( ( $guid !~ /\d/ ) && ( $guid =~ m~https?://[^/]+/?$~ ) )
-    {
-        return undef;
-    }
-
-    return $guid;
-}
-
 # parse the feed.  return a (non-db-backed) story hash for each story found in the feed.
 sub _get_stories_from_syndicated_feed($$$)
 {
@@ -56,20 +39,13 @@ sub _get_stories_from_syndicated_feed($$$)
 
     for my $item ( @{ $items } )
     {
-        my $guid = _sanitize_guid( $item->guid );
-
-        my $url = $item->link() || $item->get( 'nnd:canonicalUrl' ) || $guid;
-        $guid ||= $url;
-
+        my $url = $item->link();
         unless ( $url )
         {
             next;
         }
 
-        $url  = substr( $url,  0, 1024 );
-        $guid = substr( $guid, 0, 1024 );
-
-        $url =~ s/[\n\r\s]//g;
+        my $guid = $item->guid_if_valid() || $url;
 
         my $publish_date;
 
