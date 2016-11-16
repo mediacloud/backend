@@ -100,9 +100,6 @@ requires 'fetch_and_return_long_stop_words';
 #
 requires 'stem';
 
-# Returns a word length limit of a language (0 -- no limit)
-requires 'get_word_length_limit';
-
 # Returns a list of sentences from a story text (tokenizes text into sentences)
 requires 'get_sentences';
 

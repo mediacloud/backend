@@ -42,21 +42,6 @@ sub stem
     return $self->_stem_with_lingua_stem_snowball( 'no', 'UTF-8', \@_ );
 }
 
-sub get_word_length_limit
-{
-    my $self = shift;
-
-    # The longest word in Norwegian, that is a real word in ordinary use, is
-    # menneskerettighetsorganisasjonene (33 letters).[citation needed] The
-    # meaning is "the human rights organizations". Being used mostly in
-    # statistics, the term sannsynlighetstetthetsfunksjonene (meaning “the
-    # probability density functions”) is also 33 characters long. The physics
-    # term minoritetsladningsbærerdiffusjonskoeffisientmålingsapparatur has
-    # 60 characters, but is not a common word. Its meaning is "(a) device
-    # for measuring the distance between particles in a crystal".
-    return 60;
-}
-
 sub get_sentences
 {
     my ( $self, $story_text ) = @_;
