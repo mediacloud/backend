@@ -346,7 +346,7 @@ sub get_long_stop_word_stems
 }
 
 # return stop word stems of $length 'tiny', 'short', or 'long'.  die if the $length is unsupported
-sub get_stop_word_stems($)
+sub get_stop_word_stems($$)
 {
     my ( $self, $length ) = @_;
 
