@@ -111,8 +111,8 @@ sub get_sentences
     # Replace Hindi's "।" with line break to make Lingua::Sentence split on both "।" and period
     $story_text =~ s/।/।\n\n/gs;
 
-    # FIXME uses English tokenizer and non-breaking prefixes
-    Readonly my $nonbreaking_prefix_file => 'lib/MediaWords/Languages/resources/hi_nonbreaking_prefixes.txt';
+    # No non-breaking prefixes in Hindi, so using English file
+    Readonly my $nonbreaking_prefix_file => 'lib/MediaWords/Languages/resources/en_nonbreaking_prefixes.txt';
     return $self->_tokenize_text_with_lingua_sentence( 'en', $nonbreaking_prefix_file, $story_text );
 }
 
