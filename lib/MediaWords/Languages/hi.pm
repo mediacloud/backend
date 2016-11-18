@@ -31,7 +31,14 @@ my $_hunspell_hindi = lazy
     my @self_test_encoded_stems = $hunspell->stem( 'गुरुओं' );
     if ( ( !$self_test_encoded_stems[ 0 ] ) or decode( 'utf-8', $self_test_encoded_stems[ 0 ] ) ne 'गुरु' )
     {
-        die "Hunspell self-test failed; make sure that Hunspell is installed and dictionaries are accessible.";
+        die <<EOF;
+Hunspell self-test failed; make sure that Hunspell is installed and
+dictionaries are accessible, e.g. you might need to fetch Git submodules by
+running:
+
+    git submodule update --init --recursive
+
+EOF
     }
 
     return $hunspell;
