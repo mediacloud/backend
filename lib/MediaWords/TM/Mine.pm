@@ -2797,6 +2797,20 @@ sub generate_twitter_links
 
     return unless ( $topic->{ twitter_parent_topics_id } );
 
+    # first cleanup any topic_seed_urls pointing to a merged story
+    $db->query_with_large_work_mem( <<SQL, $topic->{ topics_id } );
+update topic_seed_urls tsu
+    set stories_id = tms.target_stories_id
+    from
+        topic_merged_stories_map tms,
+        topic_stories ts
+    where
+        tsu.stories_id = tms.source_stories_id and
+        ts.stories_id = tms.target_stories_id and
+        tsu.topics_id = ts.topics_id and
+        ts.topics_id = \$1
+SQL
+
     my $num_generated_links = $db->query_with_large_work_mem( <<SQL, $topic->{ topics_id } )->rows;
 insert into topic_links ( topics_id, stories_id, url, redirect_url, ref_stories_id, link_spidered )
     select
