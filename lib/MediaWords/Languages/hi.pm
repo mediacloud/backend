@@ -14,7 +14,28 @@ with 'MediaWords::Languages::Language';
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use Encode;
 use Readonly;
+use Scalar::Defer;
+use Text::Hunspell;
+
+my $_hunspell_hindi = lazy
+{
+    my $hunspell = Text::Hunspell->new(
+        'lib/MediaWords/Languages/resources/hi/hindi-hunspell/dict-hi_IN/hi_IN.aff',    # Hunspell affix file
+        'lib/MediaWords/Languages/resources/hi/hindi-hunspell/dict-hi_IN/hi_IN.dic'     # Hunspell dictionary file
+    );
+
+    # Quick self-test to make sure that Hunspell is installed and dictionary
+    # is available (because otherwise Text::Hunspell fails silently)
+    my @self_test_encoded_stems = $hunspell->stem( 'गुरुओं' );
+    if ( ( !$self_test_encoded_stems[ 0 ] ) or decode( 'utf-8', $self_test_encoded_stems[ 0 ] ) ne 'गुरु' )
+    {
+        die "Hunspell self-test failed; make sure that Hunspell is installed and dictionaries are accessible.";
+    }
+
+    return $hunspell;
+};
 
 sub get_language_code
 {
@@ -43,61 +64,47 @@ sub stem
 {
     my $self = shift;
 
-# Ported from Python code which, in turn, is a port of Lucene's HindiStemmer.java:
-# * http://research.variancia.com/hindi_stemmer/
-# * https://github.com/apache/lucene-solr/blob/master/lucene/analysis/common/src/java/org/apache/lucene/analysis/hi/HindiStemmer.java
-# * http://computing.open.ac.uk/Sites/EACLSouthAsia/Papers/p6-Ramanathan.pdf
-    sub _stem_hindi_word($)
-    {
-        my $word = shift;
-
-        my $suffixes = {
-            1 => [ "ो", "े", "ू", "ु", "ी", "ि", "ा" ],
-            2 => [
-                "कर", "ाओ", "िए", "ाई", "ाए", "ने", "नी", "ना",
-                "ते", "ीं", "ती", "ता", "ाँ", "ां", "ों", "ें"
-            ],
-            3 => [
-                "ाकर", "ाइए", "ाईं", "ाया", "ेगी", "ेगा", "ोगी", "ोगे",
-                "ाने", "ाना", "ाते", "ाती", "ाता", "तीं", "ाओं", "ाएं",
-                "ुओं", "ुएं", "ुआं"
-            ],
-            4 => [
-                "ाएगी", "ाएगा", "ाओगी", "ाओगे", "एंगी", "ेंगी",
-                "एंगे", "ेंगे", "ूंगी", "ूंगा", "ातीं", "नाओं",
-                "नाएं", "ताओं", "ताएं", "ियाँ", "ियों", "ियां"
-            ],
-            5 => [
-                "ाएंगी", "ाएंगे", "ाऊंगी", "ाऊंगा",
-                "ाइयाँ", "ाइयों", "ाइयां"
-            ],
-        };
-
-        for ( my $level = 5 ; $level >= 1 ; --$level )
-        {
-            if ( length( $word ) > $level + 1 )
-            {
-                for my $suffix ( @{ $suffixes->{ $level } } )
-                {
-                    if ( $word =~ qr/\Q$suffix\E$/ )    # ends with
-                    {
-                        return substr( $word, 0, $level * -1 );
-                    }
-                }
-            }
-        }
-
-        return $word;
-    }
-
     my @stems;
     for my $token ( @_ )
     {
-        my $stem = _stem_hindi_word( $token );
-        unless ( defined $stem )
+        my $stem;
+
+        unless ( $token )
         {
-            LOGDIE "Undefined stem for Hindi token $token";
+            TRACE 'Token is empty or undefined.';
+            $stem = $token;
+
         }
+        else
+        {
+            my @encoded_stems = $_hunspell_hindi->stem( $token );
+            TRACE "Encoded stems for '$token': " . Dumper( \@encoded_stems );
+
+            if ( scalar @encoded_stems )
+            {
+                my $encoded_stem = $encoded_stems[ 0 ];
+
+                eval { $stem = decode( 'utf-8', $encoded_stem ); };
+                if ( $@ )
+                {
+                    TRACE "Unable to decode stem '$encoded_stem' for token '$token': $@_";
+                    $stem = $token;
+                }
+
+                unless ( $stem )
+                {
+                    TRACE "Unable to stem for token '$token'";
+                    $stem = $token;
+                }
+
+            }
+            else
+            {
+                TRACE "Token '$token' was not found.";
+                $stem = $token;
+            }
+        }
+
         push( @stems, $stem );
     }
 
