@@ -2819,9 +2819,18 @@ insert into topic_links ( topics_id, stories_id, url, redirect_url, ref_stories_
             topic_tweet_full_urls a
             join topic_tweet_full_urls b on
                 ( a.twitter_topics_id = b.twitter_topics_id and a.twitter_user = b.twitter_user )
+            join topic_stories tsa on
+                ( tsa.topics_id = a.twitter_topics_id and tsa.stories_id = a.stories_id )
+            join topic_stories tsb on
+                ( tsb.topics_id = b.twitter_topics_id and tsb.stories_id = b.stories_id )
+            left join topic_links tl on
+                ( tl.topics_id = a.twitter_topics_id and
+                    tl.stories_id = a.stories_id and
+                    tl.ref_stories_id = b.stories_id )
         where
             a.stories_id <> b.stories_id and
-            a.twitter_topics_id = \$1
+            a.twitter_topics_id = \$1 and
+            tl.topic_links_id is null
         group by a.twitter_topics_id, a.stories_id, b.stories_id
 SQL
 
