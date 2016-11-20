@@ -1761,7 +1761,7 @@ sub search_stories : Local
                slc.media_inlink_count,
                slc.outlink_count,
                slc.simple_tweet_count,
-               slc.nornmalized_tweet_count,
+               slc.normalized_tweet_count,
                slc.bitly_click_count
         FROM snapshot_stories AS s,
              snapshot_media_with_types AS m,
