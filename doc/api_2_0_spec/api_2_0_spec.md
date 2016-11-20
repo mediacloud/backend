@@ -1,4 +1,119 @@
+<!-- MDTOC maxdepth:6 firsth1:1 numbering:0 flatten:0 bullets:1 updateOnSave:1 -->
 
+- [Overview](#overview)   
+   - [Authentication](#authentication)   
+      - [Example](#example)   
+   - [Request Limits](#request-limits)   
+   - [Python Client](#python-client)   
+   - [API URLs](#api-urls)   
+   - [Errors](#errors)   
+   - [Request Limits](#request-limits)   
+- [Media](#media)   
+   - [api/v2/media/single/](#apiv2mediasingle)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
+   - [api/v2/media/list/](#apiv2medialist)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
+   - [api/v2/media/suggestions/submit - POST](#apiv2mediasuggestionssubmit-post)   
+      - [Input Description](#input-description)   
+      - [Example](#example)   
+- [Media Health](#media-health)   
+   - [api/v2/mediahealth/list](#apiv2mediahealthlist)   
+      - [Query Parameters](#query-parameters)   
+      - [Output description](#output-description)   
+      - [Example](#example)   
+- [Feeds](#feeds)   
+   - [api/v2/feeds/single](#apiv2feedssingle)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
+   - [api/v2/feeds/list](#apiv2feedslist)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
+- [Stories](#stories)   
+   - [Output description](#output-description)   
+   - [api/v2/stories_public/single](#apiv2stories_publicsingle)   
+      - [Example](#example)   
+   - [api/v2/stories_public/list](#apiv2stories_publiclist)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
+   - [api/v2/stories_public/count](#apiv2stories_publiccount)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
+   - [api/v2/stories_public/word_matrix](#apiv2stories_publicword_matrix)   
+      - [Query Parameters](#query-parameters)   
+      - [Output Description](#output-description)   
+- [Sentences](#sentences)   
+   - [api/v2/sentences/count](#apiv2sentencescount)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
+- [Word Counting](#word-counting)   
+   - [api/v2/wc/list](#apiv2wclist)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
+- [Tags and Tag Sets](#tags-and-tag-sets)   
+   - [api/v2/tags/single/](#apiv2tagssingle)   
+      - [Query Parameters](#query-parameters)   
+      - [Output description](#output-description)   
+      - [Example](#example)   
+   - [api/v2/tags/list/](#apiv2tagslist)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
+   - [api/v2/tag_sets/single/](#apiv2tag_setssingle)   
+      - [Query Parameters](#query-parameters)   
+      - [Output description](#output-description)   
+      - [Example](#example)   
+   - [api/v2/tag_sets/list/](#apiv2tag_setslist)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
+- [Topics](#topics)   
+   - [api/v2/topics/single/](#apiv2topicssingle)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
+   - [api/v2/topics/list/](#apiv2topicslist)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
+   - [api/v2/snapshots/single/](#apiv2snapshotssingle)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
+   - [api/v2/snapshots/list/](#apiv2snapshotslist)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
+   - [api/v2/timespans/single/](#apiv2timespanssingle)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
+   - [api/v2/timespans/list/](#apiv2timespanslist)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
+- [Users](#users)   
+   - [api/v2/users/profile PENDING](#apiv2usersprofile-pending)   
+      - [Query Parameters](#query-parameters)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
+- [Stats](#stats)   
+   - [api/v2/stats PENDING](#apiv2stats-pending)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
+- [Extended Examples](#extended-examples)   
+   - [Output Format / JSON](#output-format-json)   
+   - [Create a CSV file with all media sources.](#create-a-csv-file-with-all-media-sources)   
+   - [Grab all processed stories from US Mainstream Media as a stream](#grab-all-processed-stories-from-us-mainstream-media-as-a-stream)   
+   - [Grab stories by querying stories_public/list](#grab-stories-by-querying-stories_publiclist)   
+   - [Grab all stories in The New York Times during October 2012](#grab-all-stories-in-the-new-york-times-during-october-2012)   
+      - [Find the `media_id` of The New York Times](#find-the-media_id-of-the-new-york-times)   
+      - [Grab stories by querying stories_public/list](#grab-stories-by-querying-stories_publiclist)   
+   - [Get word counts for top words for sentences matching 'trayvon' in US Mainstream Media during April 2012](#get-word-counts-for-top-words-for-sentences-matching-trayvon-in-us-mainstream-media-during-april-2012)   
+      - [Find the media collection](#find-the-media-collection)   
+      - [Make a request for the word counts based on `tags_id_media`, sentence text and date range](#make-a-request-for-the-word-counts-based-on-tags_id_media-sentence-text-and-date-range)   
+   - [Get word counts for top words for sentences with the tag `'odd'` in `tag_set = 'ts'`](#get-word-counts-for-top-words-for-sentences-with-the-tag-odd-in-tag_set-ts)   
+      - [Find the `tag_sets_id` for `'ts'`](#find-the-tag_sets_id-for-ts)   
+      - [Request a word count using the `tags_id`](#request-a-word-count-using-the-tags_id)   
+   - [Grab stories from 10 January 2014 with the tag `'foo:bar'`](#grab-stories-from-10-january-2014-with-the-tag-foobar)   
+      - [Find the `tag_sets_id` for `'foo'`](#find-the-tag_sets_id-for-foo)   
+      - [Find the `tags_id` for `'bar'` given the `tag_sets_id`](#find-the-tags_id-for-bar-given-the-tag_sets_id)   
+   - [Grab stories by querying stories_public/list](#grab-stories-by-querying-stories_publiclist)   
+
+<!-- /MDTOC -->
 
 # Overview
 
@@ -116,13 +231,13 @@ Response:
 | `last_media_id`    | 0       | Return media sources with a `media_id` greater than this value
 | `rows`             | 20      | Number of media sources to return. Cannot be larger than 100
 | `name`             | none    | Name of media source for which to search
-| `name_or_tag` | none | Name of media source or associated tag for which to search [PENDING]
+| `name_or_tag` | none | Name of media source or associated tag for which to search PENDING
 | `timespans_id`     | null    | Return media within the given timespan
 | `topic_mode`       | null    | If set to 'live', return media from live topics
 | `tags_id`          | null    | Return media associate with the given tag
 | `q`                | null    | Return media with at least one sentence that matches the solr query
 | `include_dups`     | 0       | Include duplicate media among the results
-| `unhealthy` | none | Only return media that are currently marked as unhealthy (see mediahealth/list) [PENDING]
+| `unhealthy` | none | Only return media that are currently marked as unhealthy (see mediahealth/list) PENDING
 | `similar_media_id` | none | Return media with the most tags in common [PENDING[]
 
 If the name parameter is specified, the call returns only media sources that match a case insensitive search specified value.  If the specified value is less than 3 characters long, the call returns an empty list.  The name_or_tag parameter behaves identically, but it also searches for all media sources that either have a name that matches the search text or that are associated with a tag that matches the search text.
@@ -146,18 +261,18 @@ URL: https://api.mediacloud.org/api/v2/media/list?last_media_id=1&rows=2
 
 Output format is the same as for api/v2/media/single above.
 
-## api/v2/media/suggest - POST
+## api/v2/media/suggestions/submit - POST
 
 | URL                 | Function
 | ------------------- | -----------------------------
-| `api/v2/media/suggest` | Suggest a media source for Media Cloud to crawl
+| `api/v2/media/suggestions/submit` | Suggest a media source for Media Cloud to crawl
 
 This api end point allows the user to send a suggest a new media source to the Media Cloud team for regular crawling.
 
 ### Input Description
 
 | Field | Description
-|------|------------ 
+|------|------------
 | name | human readable name of media source (optional)
 | url | url of the media source home page (required)
 | feed_url | url of am rss, rdf, or atom  syndication feed for the source
@@ -166,7 +281,7 @@ This api end point allows the user to send a suggest a new media source to the M
 
 ### Example
 
-URL: https://api.mediacloud.org/api/v2/media/suggest
+URL: https://api.mediacloud.org/api/v2/media/suggestions/submit
 
 Input:
 ```json
@@ -398,7 +513,7 @@ URL: https://api.mediacloud.org/api/v2/stories_public/single/27456565
 | ---------------------------- | ---------------------- | ------------------------------------------------------------------------------
 | `last_processed_stories_id`  | 0  | Return stories in which the `processed_stories_id` is greater than this value.
 | `rows`                       | 20                     | Number of stories to return, max 10,000.
-| `feeds_id` | null | Return only stories that match the given feeds_id, sorted my descending publish date [PENDING]
+| `feeds_id` | null | Return only stories that match the given feeds_id, sorted my descending publish date PENDING
 
 | `q`  | null  | If specified, return only results that match the given Solr query.  Only one `q` parameter may be included.
 | `fq`             | null    | If specified, file results by the given Solr query.  More than one `fq` parameter may be included.
@@ -937,7 +1052,7 @@ Response:
 | `public`        | none       | If public=1, return only public tags (see below)
 | `search`        | none       | Search for tags by text (see below)
 
-| `similar_tags_id` |  none |  return list of tags with a similar 
+| `similar_tags_id` |  none |  return list of tags with a similar
 
 If set to 1, the public parameter will return only tags that are generally useful for public consumption.  Those
 tags are defined as tags for which show_on_media or show_on_stories is set to true for either the tag
@@ -1195,7 +1310,7 @@ URL: https://api.mediacloud.org/api/v2/timespans/list?snapshots_id=5
 
 # Users
 
-## api/v2/users/profile [PENDING]
+## api/v2/users/profile PENDING
 
 | URL                     | Function
 | ----------------------- | -----------------
@@ -1231,7 +1346,7 @@ URL: https://api.mediacloud.org/api/v2/users/profile
 
 # Stats
 
-## api/v2/stats [PENDING]
+## api/v2/stats PENDING
 
 | URL                     | Function
 | ----------------------- | -----------------
