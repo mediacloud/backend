@@ -1,7 +1,76 @@
+<!-- MDTOC maxdepth:6 firsth1:1 numbering:0 flatten:0 bullets:1 updateOnSave:1 -->
+
+- [Overview](#overview)   
+- [Stories](#stories)   
+   - [Output description](#output-description)   
+   - [api/v2/stories/single](#apiv2storiessingle)   
+   - [api/v2/stories/list](#apiv2storieslist)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
+   - [api/v2/stories/cluster_stories](#apiv2storiescluster_stories)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
+- [Sentences](#sentences)   
+   - [api/v2/sentences/list](#apiv2sentenceslist)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
+- [Downloads](#downloads)   
+   - [api/v2/downloads/single/](#apiv2downloadssingle)   
+      - [Query Parameters](#query-parameters)   
+   - [api/v2/downloads/list/](#apiv2downloadslist)   
+   - [Query Parameters](#query-parameters)   
+- [Tags](#tags)   
+   - [api/v2/stories/put_tags (PUT) PENDING](#apiv2storiesput_tags-put-pending)   
+      - [Input Description](#input-description)   
+      - [Example](#example)   
+   - [api/v2/sentences/put_tags (PUT) PENDING](#apiv2sentencesput_tags-put-pending)   
+      - [Input Description](#input-description)   
+      - [Example](#example)   
+   - [api/v2/media/put_tags (PUT) PENDING](#apiv2mediaput_tags-put-pending)   
+      - [Input Description](#input-description)   
+      - [Example](#example)   
+   - [api/v2/tags/create (POST) PENDING](#apiv2tagscreate-post-pending)   
+      - [Query Parameters](#query-parameters)   
+   - [api/v2/tags/update (PUT)](#apiv2tagsupdate-put)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
+   - [api/v2/tag_sets/update (PUT)](#apiv2tag_setsupdate-put)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
+   - [Tag Set Permissions](#tag-set-permissions)   
+      - [Granting Permissions](#granting-permissions)   
+      - [Exceptions - user name tag set](#exceptions-user-name-tag-set)   
+- [Feeds](#feeds)   
+   - [api/v2/feeds/create (POST) PENDING](#apiv2feedscreate-post-pending)   
+      - [Input Description](#input-description)   
+      - [Example](#example)   
+   - [api/v2/feeds/update (PUT) PENDING](#apiv2feedsupdate-put-pending)   
+      - [Input Description](#input-description)   
+      - [Example](#example)   
+   - [api/v2/feeds/scrape (POST) PENDING](#apiv2feedsscrape-post-pending)   
+      - [Input Description](#input-description)   
+      - [Example](#example)   
+- [Media](#media)   
+   - [api/v2/media/create (POST) PENDING](#apiv2mediacreate-post-pending)   
+      - [Input Description](#input-description)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
+   - [api/v2/media/update (PUT) PENDING](#apiv2mediaupdate-put-pending)   
+      - [Input Description](#input-description)   
+      - [Example](#example)   
+   - [api/v2/media/suggestions/list PENDING](#apiv2mediasuggestionslist-pending)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
+   - [api/v2/media/suggestions/mark PENDING](#apiv2mediasuggestionsmark-pending)   
+      - [Input Description](#input-description)   
+      - [Example](#example)   
+
+<!-- /MDTOC -->
+
 # Overview
 
 
-This document describes API calls for administrative users. These calls are intended for users running their own install of Media Cloud. Public users of the mediacloud.org API should refer instead to the Media Cloud API 2.0 Spec.  Please refer to the Media Cloud API 2.0 spec for general information on how requests should be constructed. 
+This document describes API calls for administrative users. These calls are intended for users running their own install of Media Cloud. Public users of the mediacloud.org API should refer instead to the Media Cloud API 2.0 Spec.  Please refer to the Media Cloud API 2.0 spec for general information on how requests should be constructed.
 
 # Stories
 
@@ -61,7 +130,7 @@ the order it is processed by the system.
 The `q` and `fq` parameters specify queries to be sent to a Solr server that indexes all Media Cloud stories.  The Solr
 server provides full text search indexing of each sentence collected by Media Cloud.  All content is stored as individual
 sentences.  The api/v2/stories/list call searches for sentences matching the `q` and / or `fq` parameters if specified and
-the stories that include at least one sentence returned by the specified query. **Refer to the stories_public/list access point in the
+the stories that include at least one sentence returned by the specified query. Refer to the stories_public/list access point in the
 Media Cloud API 2.0 Spec for a more detailed description of the `q` and `fq` parameters.
 
 ### Example
@@ -330,7 +399,7 @@ None.
 
 These calls allow users to edit tag data, including both the metadata of the tags themselves and their associations with stories, sentences, and media.
 
-## api/v2/stories/put_tags (PUT) [PENDING]
+## api/v2/stories/put_tags (PUT) PENDING
 
 | URL                          | Function
 | ---------------------------- | --------------------------------------------------
@@ -372,7 +441,7 @@ Output:
 { "success": 1 }
 ```
 
-## api/v2/sentences/put_tags (PUT) [PENDING]
+## api/v2/sentences/put_tags (PUT) PENDING
 
 | URL                                  | Function
 | ------------------------------------ | -----------------------------------------------------------
@@ -407,19 +476,19 @@ Output:
 { "success": 1 }
 ```
 
-## api/v2/media/put_tags (PUT) [PENDING]
+## api/v2/media/put_tags (PUT) PENDING
 
-| URL | Function
-|----- | ---------
-| `api/v2/media/put_tags` | add tags to media sources
+| URL                     | Function                  |
+| ----------------------- | ------------------------- |
+| `api/v2/media/put_tags` | add tags to media sources |
 
 ### Input Description
 
-See input description for stories/put_tags, but replace `stories_id` with `story_sentencs_id`.
+See input description for stories/put_tags, but replace `stories_id` with `story_sentences_id`.
 
 ### Example
 
-URL: https://api.mediacloud.org/aip/v2/story_sentences/put_tags
+URL: https://api.mediacloud.org/aip/v2/media/put_tags
 
 Input:
 
@@ -442,34 +511,31 @@ Output:
 { "success": 1 }
 ```
 
-## api/v2/tags/create (POST) [PENDING]
+## api/v2/tags/create (POST) PENDING
 
-| URL                                  | Function
-| ------------------------------------ | -----------------------------------------------------------
-| `api/v2/tags/update/<tags_id>`        | Update the given tag
+| URL                            | Function             |
+| ------------------------------ | -------------------- |
+| `api/v2/tags/update/<tags_id>` | Update the given tag |
 
 ### Query Parameters
 
-| Parameter            | Notes
-| -------------------- | --------------------------------------------------------------------------
-| `tag`                | New name for the tag.
-| `label`              | New label for the tag.
-| `description`        | New description for the tag.
+| Parameter     | Notes                                    |
+| ------------- | ---------------------------------------- |
+| `tag`         | New name for the tag.                    |
+| `label`       | New label for the tag.                   |
+| `description` | New description for the tag.             |
+| `is_static`   | True if this is a tag whose contents should be expected to remain static over time |
 
 
 ## api/v2/tags/update (PUT)
 
-| URL                                  | Function
-| ------------------------------------ | -----------------------------------------------------------
-| `api/v2/tags/update/<tags_id>`        | Update the given tag
+| URL                            | Function             |
+| ------------------------------ | -------------------- |
+| `api/v2/tags/update/<tags_id>` | Update the given tag |
 
 ### Query Parameters
 
-| Parameter            | Notes
-| -------------------- | --------------------------------------------------------------------------
-| `tag`                | New name for the tag.
-| `label`              | New label for the tag.
-| `description`        | New description for the tag.
+See api/v2/tags/create above.
 
 ### Example
 
@@ -479,17 +545,17 @@ curl -X PUT -d 'tag=test_tagXX' -d 'label=YY' -d 'description=Bfoo' http://api.m
 
 ## api/v2/tag_sets/update (PUT)
 
-| URL                                   | Function
-| ------------------------------------  | -----------------------------------------------------------
-| `api/v2/tag_sets/update/<tag_sets_id` | Alter the tag set in which `tag_sets_id` equals `<tag_sets_id>`
+| URL                                   | Function                                 |
+| ------------------------------------- | ---------------------------------------- |
+| `api/v2/tag_sets/update/<tag_sets_id` | Alter the tag set in which `tag_sets_id` equals `<tag_sets_id>` |
 
 ### Query Parameters
 
-| Parameter            | Notes
-| -------------------- | --------------------------------------------------------------------------
-| `name`               | New name for the tag set.
-| `label`              | New label for the tag set.
-| `description`        | New description for the tag set.
+| Parameter     | Notes                            |
+| ------------- | -------------------------------- |
+| `name`        | New name for the tag set.        |
+| `label`       | New label for the tag set.       |
+| `description` | New description for the tag set. |
 
 ### Example
 
@@ -504,14 +570,17 @@ For each tag set a users may have up to 4 of the following permissions: edit_tag
 
 These permissions are described below:
 
-| Parameter                   | Notes
+| Parameter | Notes |
+| --------- | ----- |
+|           |       |
+
 | --------------------        | --------------------------------------------------------------------------
 | ` edit_tag_descriptors`     | For all tags in the tag set, the user may alter the tag name, tag description, and tag label using the api/v2/tags/update API call
 | ` edit_tag_set_descriptors` | The user may alter the tag set name, tag set description, and tag  set label for the tag set using the api/v2/tag_sets/update API call
 | `apply_tags`                | The user may apply existing tags within the tag set to stories and sentences
 | `create_tags`               | The user may create new tags within the tag set
 
-In addition, users with the `stories-edit` role can add or remove tags from any story or sentences, and users with the `media-edit` role can add or remove tags from any media source.  Users with the `admin` role can edit all tags and associations. [PENDING]
+In addition, users with the `stories-edit` role can add or remove tags from any story or sentences, and users with the `media-edit` role can add or remove tags from any media source.  Users with the `admin` role can edit all tags and associations. PENDING
 
 
 ### Granting Permissions
@@ -529,13 +598,13 @@ Note that this exception is based purely on a string comparison of the tag set n
 
 # Feeds
 
-## api/v2/feeds/create (POST)
+## api/v2/feeds/create (POST) PENDING
 
 | URL                 | Description       |
 | ------------------- | ----------------- |
 | api/v2/feeds/create | create a new feed |
 
-## Input Description
+### Input Description
 
 | Field       | Description                        |
 | ----------- | ---------------------------------- |
@@ -571,7 +640,7 @@ Output:
 { "success": 1 }
 ```
 
-## api/v2/feeds/update (PUT)
+## api/v2/feeds/update (PUT) PENDING
 
 | URL                 | Description             |
 | ------------------- | ----------------------- |
@@ -604,5 +673,234 @@ Output:
 
 
 
+## api/v2/feeds/scrape (POST) PENDING
+
+| URL                 | Description                         |
+| ------------------- | ----------------------------------- |
+| api/v2/feeds/scrape | scrape a media source for new feeds |
+
+This end point scrapes through the web site of the given media source to try to discover new feeds.  This call queues a scraping job on the backend, which can take a few minutes or a few hours to complete.
+
+### Input Description
+
+| Field    | Description                              |
+| -------- | ---------------------------------------- |
+| media_id | id of media source to discover new feeds for |
+
+### Example
+
+URL: https://api.medicloud.org/api/v2/feeds/scrape
+
+Input:
+
+```json
+{
+  "media_id": 1
+}
+```
 
 
+
+Output:
+
+```json
+{ "success": 1 }
+```
+
+
+
+# Media
+
+## api/v2/media/create (POST) PENDING
+
+| URL                 | Description               |
+| ------------------- | ------------------------- |
+| api/v2/media/create | create a new media source |
+
+This call will create one or more media sources with the given information, if no existing media source matching the input already exists.  The call will return a status indicating whether each media source already exists along with the media_id of either the new or the existing media source.
+
+### Input Description
+
+| Field             | Description                              |
+| ----------------- | ---------------------------------------- |
+| url               | home page of media source (required)     |
+| name              | unique, human readable name for source (default scraped) |
+| foreign_rss_links | true if the link elements in the source's rss feeds are largely links to other sites, for aggregators for instance (default false) |
+| content_delay     | delay url downloads for this feed this many hours (default 0) |
+| feeds             | list of syndicated feed urls (default none) |
+| tags_ids          | list of tags to which to associate the media source (default none) |
+| editor_notes      | notes about the source for internal media cloud consumption (default none) |
+| public_notes      | notes about the source for public consumption ( default none) |
+| is_monitored      | true if the source is manually monitored for completeness by the Media Cloud team (default false) |
+
+The end point accepts either a single json record in the above format or a list of records in the same format.
+
+The only required field for a media source is the url.  The name will be assigned to the html title at the media source url if no name is provided.  A feed scraping job will be queued if no feeds are specified.
+
+The `foreign rss links` field should be used only if the link elements themselves in the source's feeds point to external urls.  This flag tells the spider not to treat spidered stories matching those external links as if they belong to this media source.
+
+The `content_delay` field is useful for sources that make many changes to their stories immediately after first publication  Media Cloud only collects each story once, so if the story will change dramatically it can be best to wait a few hour before downloading it.
+
+If an existing media source is found for a given record:
+
+* any tags in `tags_id` will be added to the media source and
+* if the source contains no active feeds, either the listed feeds will be added to the media source or, if no feeds are listed, a feed scraping job will be queued.
+
+Other than the above, no other updates will be made to the existing media source during this call.
+
+### Output Description
+
+| Field    | Description                            |
+| -------- | -------------------------------------- |
+| status   | `new` or `existing`                    |
+| media_id | id of the new or existing media source |
+| url      | url of processed record                |
+
+
+The output is always a list of records with the fields described above.  The output will include one record for each input record.
+
+### Example
+
+URL: https://api.mediacloud.org/api/v2/media/create (PUT)
+
+Input:
+
+```json
+[
+  {
+    "name": "New York Times",
+    "url": "http://nytimes.com"
+  },
+  {
+    "name": "Yew Tork Nimes",
+    "url": "http://ytnimes.com"
+  }
+]
+
+```
+
+Output:
+
+```json
+[
+  {
+    "status:": "existing",
+    "media_id": 1,
+    "url": "http://nytimes.com"
+  },
+  {
+    "status": "new",
+    "media_id": 123456,
+    "url": "http://ytnimes.com"
+  }
+]
+```
+
+## api/v2/media/update (PUT) PENDING
+
+| URL                 | Description                     |
+| ------------------- | ------------------------------- |
+| api/v2/media/update | update an existing media source |
+
+This call updates a single existing media source.
+
+### Input Description
+
+See api/v2/media/create end point above for possible input fields.  The input record must also include a `media_id` field with an id of an existing media source.  The `feeds` and `tags_ids` fields may not be include in an update call (use the `api/v2/media/put_tags` and `api/v2/feeds/*` calls instead).
+
+### Example
+
+URL: https://api.mediacloud.org/api/v2/media/update
+
+Input:
+
+```json
+{
+  "media_id": 123456,
+  "url": "http://www.ytnimes.com"
+}
+```
+
+Output:
+
+```json
+{ "success": 1 }
+```
+
+## api/v2/media/suggestions/list PENDING
+
+| URL                             | Description                            |
+| ------------------------------- | -------------------------------------- |
+| `api/v2/media/suggestions/list` | list suggestions for new media sources |
+
+Suggestions will be listed in the order that they were submitted.
+
+### Query Parameters
+
+| Parameter | Default | Notes                                    |
+| --------- | ------- | ---------------------------------------- |
+| all       | false   | list all suggestions, including those that have been approved or rejected |
+
+### Example
+
+URL: https://api.mediacloud.org/api/v2/media/suggestions/list?tags_id=123
+
+Output:
+
+```json
+[
+  {
+    "user": "hroberts@cyber.law.harvard.edu",
+    "url": "http://mediacloud.org",
+    "feed": "http://mediacloud.org/feed/",
+    "reason": "Media Cloud is a great project",
+    "collections": "InfoTech",
+    "date_submitted": "2016-11-20 07:42:00",
+    "date_marked": "",
+    "media_suggestions_id": 1,
+    "status": "pending",
+    "mark_reason": ""
+  }
+]
+```
+
+## api/v2/media/suggestions/mark PENDING
+
+
+| URL                             | Description                       |
+| ------------------------------- | --------------------------------- |
+| `api/v2/media/suggestions/mark` | approve a media source suggestion |
+
+Mark a list of media suggestion as having been approved or rejected.  Marking a suggestion as approve or rejected will change the status of the suggestions to 'approved' or 'rejected' and make it not appear in the results listed by `api/v2/media/suggestions/list` unless the `all` parameter is submitted.
+
+Note that marking a suggestion as approved does not automatically create the media source as well.  If you want to create the media source in addition to marking the suggestion, you have to call `api/v2/media/create`.
+
+### Input Description
+
+| Field                | Description                         |
+| -------------------- | ----------------------------------- |
+| media_suggestions_id | suggestion id (required)            |
+| status               | 'approved' or 'rejected' (required) |
+| mark_reason          | reason for approving or rejecting   |
+
+### Example
+
+URL: https://api.mediacloud.org/api/v2/media/suggestions/mark
+
+Input:
+
+```json
+[
+  {
+    "media_suggestions_id": 1,
+    "status": "approved",
+    "mark_reason": "Media Cloud is great"
+  }
+]
+```
+
+Output:
+
+```json
+{ "success": 1 }
+```
