@@ -147,10 +147,10 @@
    <!-- Query by sentence is a core function, but we could rewrite the perl Solr.pm module to query
    sentences from the ss table instead using sentences returned by solr; we will need to do this to have
    room to fit the story_text: field into the index -->
-   <field name="sentence"  type="text_general" indexed="true" stored="true" />
+   <field name="sentence"  type="text_general" indexed="true" stored="false" />
 
    <!-- (see sentence) -->
-   <field name="title" type="text_general" indexed="true" stored="true" />
+   <field name="title" type="text_general" indexed="true" stored="false" />
 
    <!-- Query by date is a core function -->
    <field name="publish_date" type="tdate" indexed="true" stored="false"/>
