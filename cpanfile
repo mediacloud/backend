@@ -139,6 +139,7 @@ requires 'Test::Differences';
 requires 'Test::NoWarnings';
 requires 'Test::Strict';
 requires 'Text::CSV';
+requires 'Text::Hunspell';
 requires 'Text::Lorem::More';
 requires 'Text::Trim';
 requires 'Text::WordDiff';

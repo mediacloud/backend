@@ -2319,35 +2319,38 @@ END
 select * from topic_seed_urls where topics_id = ? and processed = 'f'
 END
 
-    my $non_content_urls = [];
-    for my $csu ( @{ $seed_urls } )
+    # process these in chunks in case we have to start over so that we don't have to redo the whole batch
+    my $iterator = List::MoreUtils::natatime( $ADD_NEW_LINKS_CHUNK_SIZE, @{ $seed_urls } );
+    while ( my @seed_urls_chunk = $iterator->() )
     {
-        if ( $csu->{ content } )
+        my $non_content_urls = [];
+        for my $csu ( @seed_urls_chunk )
         {
-            my $story = get_matching_story_from_db( $db, $csu )
-              || add_new_story( $db, $csu, undef, $topic, 0, 1 );
-            add_to_topic_stories_if_match( $db, $topic, $story, $csu );
+            if ( $csu->{ content } )
+            {
+                my $story = get_matching_story_from_db( $db, $csu )
+                  || add_new_story( $db, $csu, undef, $topic, 0, 1 );
+                add_to_topic_stories_if_match( $db, $topic, $story, $csu );
+            }
+            else
+            {
+                push( @{ $non_content_urls }, $csu );
+            }
         }
-        else
+
+        add_new_links( $db, $topic, 0, $non_content_urls );
+
+        $db->begin;
+        for my $seed_url ( @seed_urls_chunk )
         {
-            push( @{ $non_content_urls }, $csu );
-        }
-    }
-
-    add_new_links( $db, $topic, 0, $non_content_urls );
-
-    $db->begin;
-    for my $seed_url ( @{ $seed_urls } )
-    {
-        my $story = $seed_url->{ story };
-        my $set_stories_id = $story ? $story->{ stories_id } : undef;
-        $db->query( <<END, $set_stories_id, $seed_url->{ topic_seed_urls_id } );
-update topic_seed_urls
-    set stories_id = ?, processed = 't'
-    where topic_seed_urls_id = ?
+            my $story = $seed_url->{ story };
+            my $set_stories_id = $story ? $story->{ stories_id } : undef;
+            $db->query( <<END, $set_stories_id, $seed_url->{ topic_seed_urls_id } );
+update topic_seed_urls set stories_id = ?, processed = 't' where topic_seed_urls_id = ?
 END
+        }
+        $db->commit;
     }
-    $db->commit unless $db->dbh->{ AutoCommit };
 }
 
 # look for any stories in the topic tagged with a date method of 'current_time' and
@@ -2794,6 +2797,20 @@ sub generate_twitter_links
 
     return unless ( $topic->{ twitter_parent_topics_id } );
 
+    # first cleanup any topic_seed_urls pointing to a merged story
+    $db->query_with_large_work_mem( <<SQL, $topic->{ topics_id } );
+update topic_seed_urls tsu
+    set stories_id = tms.target_stories_id
+    from
+        topic_merged_stories_map tms,
+        topic_stories ts
+    where
+        tsu.stories_id = tms.source_stories_id and
+        ts.stories_id = tms.target_stories_id and
+        tsu.topics_id = ts.topics_id and
+        ts.topics_id = \$1
+SQL
+
     my $num_generated_links = $db->query_with_large_work_mem( <<SQL, $topic->{ topics_id } )->rows;
 insert into topic_links ( topics_id, stories_id, url, redirect_url, ref_stories_id, link_spidered )
     select
@@ -2802,9 +2819,18 @@ insert into topic_links ( topics_id, stories_id, url, redirect_url, ref_stories_
             topic_tweet_full_urls a
             join topic_tweet_full_urls b on
                 ( a.twitter_topics_id = b.twitter_topics_id and a.twitter_user = b.twitter_user )
+            join topic_stories tsa on
+                ( tsa.topics_id = a.twitter_topics_id and tsa.stories_id = a.stories_id )
+            join topic_stories tsb on
+                ( tsb.topics_id = b.twitter_topics_id and tsb.stories_id = b.stories_id )
+            left join topic_links tl on
+                ( tl.topics_id = a.twitter_topics_id and
+                    tl.stories_id = a.stories_id and
+                    tl.ref_stories_id = b.stories_id )
         where
             a.stories_id <> b.stories_id and
-            a.twitter_topics_id = \$1
+            a.twitter_topics_id = \$1 and
+            tl.topic_links_id is null
         group by a.twitter_topics_id, a.stories_id, b.stories_id
 SQL
 
@@ -2982,7 +3008,7 @@ update topic_seed_urls tsu
 SQL
 
     # now insert any topic_tweet_urls that are not already in the topic_seed_urls
-    $db->query( <<SQL, $topic->{ topics_id } );
+    $db->query_with_large_work_mem( <<SQL, $topic->{ topics_id } );
 insert into topic_seed_urls ( topics_id, url, assume_match, source )
     select distinct ttfu.twitter_topics_id, ttfu.url, true, 'twitter'
         from topic_tweet_full_urls ttfu

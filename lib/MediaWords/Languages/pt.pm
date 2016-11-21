@@ -42,21 +42,6 @@ sub stem
     return $self->_stem_with_lingua_stem_snowball( 'pt', 'UTF-8', \@_ );
 }
 
-sub get_word_length_limit
-{
-    my $self = shift;
-
-    # The 46-letter word pneumoultramicroscopicossilicovulcanoconioticozinhos
-    # (plural diminutive of pneumoultramicroscopicossilicovulcanoconiótico) is
-    # the longest word[citation needed]. It is an adjective referring to a
-    # sufferer of the disease pneumonoultramicroscopicsilicovolcanoconiosis.
-    # The 29-letter word anticonstitucionalissimamente (adverb, meaning "in a
-    # very unconstitutional way") is recognized as being the longest
-    # non-technical word.[citation needed]
-    # (http://en.wikipedia.org/wiki/Longest_words#Portuguese)
-    return 46;
-}
-
 sub get_sentences
 {
     my ( $self, $story_text ) = @_;

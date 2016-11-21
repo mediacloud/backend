@@ -94,7 +94,7 @@ if [ "$PROVIDER" == "virtualbox" ]; then
 fi
 
 echo "Cloning the Media Cloud repository..."
-git clone http://github.com/berkmancenter/mediacloud.git "$TEMP_MC_REPO_DIR"
+git clone --recursive http://github.com/berkmancenter/mediacloud.git "$TEMP_MC_REPO_DIR"
 cd "$TEMP_MC_REPO_DIR/script/vagrant/"
 
 echo "Setting up the virtual machine..."
