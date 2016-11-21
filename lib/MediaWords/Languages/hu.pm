@@ -42,17 +42,6 @@ sub stem
     return $self->_stem_with_lingua_stem_snowball( 'hu', 'UTF-8', \@_ );
 }
 
-sub get_word_length_limit
-{
-    my $self = shift;
-
-    # Megszentségteleníthetetlenségeskedéseitekért, with 44 letters is officially the longest word in
-    # the Hungarian language and means something like "for your [plural] continued behaviour as if
-    # you could not be desecrated". It is already morphed, since Hungarian is an agglutinative language.
-    # (http://en.wikipedia.org/wiki/Longest_words#Hungarian)
-    return 44;
-}
-
 sub get_sentences
 {
     my ( $self, $story_text ) = @_;

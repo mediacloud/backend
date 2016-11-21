@@ -42,15 +42,6 @@ sub stem
     return $self->_stem_with_lingua_stem_snowball( 'it', 'UTF-8', \@_ );
 }
 
-sub get_word_length_limit
-{
-    my $self = shift;
-
-    # The longest accepted neologism is psiconeuroendocrinoimmunologia (30 letters).[citation needed]
-    # (http://en.wikipedia.org/wiki/Longest_words#Italian)
-    return 30;
-}
-
 sub get_sentences
 {
     my ( $self, $story_text ) = @_;
