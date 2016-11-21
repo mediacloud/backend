@@ -9,6 +9,7 @@
    - [Request Limits](#request-limits)   
    - [Python Client](#python-client)   
    - [API URLs](#api-urls)   
+   - [Supported Languages](#supported-languages)
    - [Errors](#errors)   
    - [Request Limits](#request-limits-1)   
 - [Media](#media)   
@@ -143,6 +144,28 @@ available [here]( https://github.com/c4fcm/MediaCloud-API-Client ).
 ## API URLs
 
 *Note:* by default the API only returns a subset of the available fields in returned objects. The returned fields are those that we consider to be the most relevant to users of the API. If the `all_fields` parameter is provided and is non-zero, then a more complete list of fields will be returned. For space reasons, we do not list the `all_fields` parameter on individual API descriptions.
+
+## Supported Languages
+
+The following language are supported (by 2 letter language code):
+
+* `da` (Danish)
+* `de` (German)
+* `en` (English)
+* `es` (Spanish)
+* `fi` (Finnish)
+* `fr` (French)
+* `hi` (Hindi)
+* `hu` (Hungarian)
+* `it` (Italian)
+* `lt` (Lithuanian)
+* `nl` (Dutch)
+* `no` (Norwegian)
+* `pt` (Portuguese)
+* `ro` (Romanian)
+* `ru` (Russian)
+* `sv` (Swedish)
+* `tr` (Turkish)
 
 ## Errors
 
@@ -586,9 +609,7 @@ The q and fq parameters are passed directly through to Solr (see description of 
 api/v2/stories_public/list section above).
 
 If stopword_length is specified, eliminate the 'tiny', 'short', or 'long' list of stopwords from the results, if the
-system has stopwords for the language of each story.  Media Cloud currently supports these languages: Danish, German,
-English, Spanish, Finnish, French, Hungarian, Italian, Lithuanian, Dutch, Norwegian, Portuguese, Romanian, Russian,
-Swedish, Turkish.
+system has stopwords for the language of each story. See [Supported Languages](#supported-languages) for a list of supported languages and their codes.
 
 ### Output Description
 
@@ -814,10 +835,7 @@ by the language code for each language.  This sequential stemming is likely to i
 results.  If you want results in only a single language, include a `language:<code>` (for instance `language:en`)
 clause in your query to ensure only sentences of that language are returned.
 
-The following language are supported (by 2 letter language code):
-'da' (Danish), 'de' (German), 'en' (English), 'es' (Spanish), 'fi' (Finnish), 'fr' (French), 'hi' (Hindi),
-'hu' (Hungarian), 'it' (Italian), 'lt' (Lithuanian), 'nl' (Dutch), 'no' (Norwegian), 'pt' (Portuguese),
-'ro' (Romanian), 'ru' (Russian), 'sv' (Swedish), 'tr' (Turkish).
+See [Supported Languages](#supported-languages) for a list of supported languages and their codes.
 
 Setting the 'stats' field to true changes the structure of the response, as shown in the example below.
 Following fields are included in the stats response:
