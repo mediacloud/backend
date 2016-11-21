@@ -42,23 +42,6 @@ sub stem
     return $self->_stem_with_lingua_stem_snowball( 'fi', 'UTF-8', \@_ );
 }
 
-sub get_word_length_limit
-{
-    my $self = shift;
-
-    # An example of an actually long word that has been used in the Finnish language is
-    # kolmivaihekilowattituntimittari which means "three phase kilowatt hour meter"
-    # (31 letters) or lentokonesuihkuturbiinimoottoriapumekaanikkoaliupseerioppilas
-    # "airplane jet turbine engine auxiliary mechanic under officer student" (61 letters)
-    # which has been deprecated. If conjugation is allowed even longer real words can be
-    # made. Allowing derivatives and clitic allows the already lengthy word to grow even
-    # longer even though the real usability of the word starts to degrade. The Finnish
-    # language uses free forming of composite words: New words can even be formed during
-    # a conversation. This allows for adding nouns after each other without breaking
-    # grammar rules.
-    return 61;
-}
-
 sub get_sentences
 {
     my ( $self, $story_text ) = @_;

@@ -239,13 +239,22 @@ END
 
     if ( $self->{ show_sentences } )
     {
-        my $sentences = $db->query( <<END )->hashes;
-    select s.*, string_agg( sstm.tags_id::text, ';' ) tags_list
-        from story_sentences s
-            left join story_sentences_tags_map sstm on ( s.story_sentences_id = sstm.story_sentences_id )
-        where s.stories_id in ( select id from $ids_table )
-        group by s.story_sentences_id
-        order by s.sentence_number
+
+        # first create a temporary table so that postgres can generate a sane query plan that
+        # doesn't result in a seq scan on story_sentences_tags_map
+        $db->query( <<SQL );
+create temporary table attach_sentences as
+    select * from story_sentences where stories_id in ( select id from $ids_table );
+
+alter table attach_sentences add constraint pk primary key ( story_sentences_id )
+SQL
+
+        my $sentences = $db->query_with_large_work_mem( <<END )->hashes;
+select s.*, string_agg( sstm.tags_id::text, ';' ) tags_list
+    from attach_sentences s
+        left join story_sentences_tags_map sstm on ( s.story_sentences_id = sstm.story_sentences_id )
+    group by s.story_sentences_id
+    order by s.sentence_number
 END
         MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $sentences, 'story_sentences' );
 

@@ -2797,6 +2797,20 @@ sub generate_twitter_links
 
     return unless ( $topic->{ twitter_parent_topics_id } );
 
+    # first cleanup any topic_seed_urls pointing to a merged story
+    $db->query_with_large_work_mem( <<SQL, $topic->{ topics_id } );
+update topic_seed_urls tsu
+    set stories_id = tms.target_stories_id
+    from
+        topic_merged_stories_map tms,
+        topic_stories ts
+    where
+        tsu.stories_id = tms.source_stories_id and
+        ts.stories_id = tms.target_stories_id and
+        tsu.topics_id = ts.topics_id and
+        ts.topics_id = \$1
+SQL
+
     my $num_generated_links = $db->query_with_large_work_mem( <<SQL, $topic->{ topics_id } )->rows;
 insert into topic_links ( topics_id, stories_id, url, redirect_url, ref_stories_id, link_spidered )
     select
@@ -2805,9 +2819,18 @@ insert into topic_links ( topics_id, stories_id, url, redirect_url, ref_stories_
             topic_tweet_full_urls a
             join topic_tweet_full_urls b on
                 ( a.twitter_topics_id = b.twitter_topics_id and a.twitter_user = b.twitter_user )
+            join topic_stories tsa on
+                ( tsa.topics_id = a.twitter_topics_id and tsa.stories_id = a.stories_id )
+            join topic_stories tsb on
+                ( tsb.topics_id = b.twitter_topics_id and tsb.stories_id = b.stories_id )
+            left join topic_links tl on
+                ( tl.topics_id = a.twitter_topics_id and
+                    tl.stories_id = a.stories_id and
+                    tl.ref_stories_id = b.stories_id )
         where
             a.stories_id <> b.stories_id and
-            a.twitter_topics_id = \$1
+            a.twitter_topics_id = \$1 and
+            tl.topic_links_id is null
         group by a.twitter_topics_id, a.stories_id, b.stories_id
 SQL
 

@@ -65,6 +65,48 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 6.36
       List::Util 0
       Test::More 0
+  Alien-Base-0.030
+    pathname: P/PL/PLICEASE/Alien-Base-0.030.tar.gz
+    provides:
+      Alien::Base 0.030
+      Alien::Base::ModuleBuild 0.030
+      Alien::Base::ModuleBuild::Cabinet 0.030
+      Alien::Base::ModuleBuild::File 0.030
+      Alien::Base::ModuleBuild::Repository 0.030
+      Alien::Base::ModuleBuild::Repository::FTP 0.030
+      Alien::Base::ModuleBuild::Repository::HTTP 0.030
+      Alien::Base::ModuleBuild::Repository::Local 0.030
+      Alien::Base::ModuleBuild::Utils 0.030
+      Alien::Base::PkgConfig 0.030
+    requirements:
+      Archive::Extract 0
+      Capture::Tiny 0.17
+      FFI::CheckLib 0.11
+      File::ShareDir 0
+      File::chdir 0.1005
+      HTTP::Tiny 0.044
+      JSON::PP 0
+      List::MoreUtils 0
+      Module::Build 0.36
+      Perl::OSType 0
+      Shell::Config::Generate 0
+      Shell::Guess 0
+      Sort::Versions 0
+      Text::ParseWords 3.26
+      URI 0
+      parent 0
+      perl v5.8.1
+  Alien-Hunspell-0.07
+    pathname: P/PL/PLICEASE/Alien-Hunspell-0.07.tar.gz
+    provides:
+      Alien::Hunspell 0.07
+    requirements:
+      Alien::Base 0.020
+      Alien::Base::ModuleBuild 0.020
+      FFI::CheckLib 0
+      File::ShareDir 1.03
+      parent 0
+      perl 5.006
   Any-Moose-0.26
     pathname: E/ET/ETHER/Any-Moose-0.26.tar.gz
     provides:
@@ -199,6 +241,21 @@ DISTRIBUTIONS
     requirements:
       ExtUtils::MakeMaker 0
       Test::More 0
+  Archive-Extract-0.78
+    pathname: B/BI/BINGOS/Archive-Extract-0.78.tar.gz
+    provides:
+      Archive::Extract 0.78
+    requirements:
+      ExtUtils::MakeMaker 0
+      File::Basename 0
+      File::Path 0
+      File::Spec 0.82
+      IPC::Cmd 0.64
+      Locale::Maketext::Simple 0
+      Module::Load::Conditional 0.66
+      Params::Check 0.07
+      Test::More 0
+      if 0
   Archive-Zip-1.56
     pathname: P/PH/PHRED/Archive-Zip-1.56.tar.gz
     provides:
@@ -3612,6 +3669,13 @@ DISTRIBUTIONS
       FCGI::ProcManager::Constrained undef
     requirements:
       ExtUtils::MakeMaker 0
+  FFI-CheckLib-0.15
+    pathname: P/PL/PLICEASE/FFI-CheckLib-0.15.tar.gz
+    provides:
+      FFI::CheckLib 0.15
+    requirements:
+      ExtUtils::MakeMaker 0
+      perl 5.006
   Feed-Find-0.07
     pathname: B/BT/BTROTT/Feed-Find-0.07.tar.gz
     provides:
@@ -5453,6 +5517,19 @@ DISTRIBUTIONS
       YAML::Tiny 1.38
       autodie 0
       perl 5.006
+  Module-Load-Conditional-0.68
+    pathname: B/BI/BINGOS/Module-Load-Conditional-0.68.tar.gz
+    provides:
+      Module::Load::Conditional 0.68
+    requirements:
+      ExtUtils::MakeMaker 0
+      Locale::Maketext::Simple 0
+      Module::CoreList 2.22
+      Module::Load 0.28
+      Module::Metadata 1.000005
+      Params::Check 0
+      Test::More 0
+      version 0.69
   Module-Pluggable-5.2
     pathname: S/SI/SIMONW/Module-Pluggable-5.2.tar.gz
     provides:
@@ -7306,6 +7383,22 @@ DISTRIBUTIONS
       Set::Scalar::Virtual 1.29
     requirements:
       ExtUtils::MakeMaker 0
+  Shell-Config-Generate-0.25
+    pathname: P/PL/PLICEASE/Shell-Config-Generate-0.25.tar.gz
+    provides:
+      Shell::Config::Generate 0.25
+    requirements:
+      ExtUtils::MakeMaker 0
+      Shell::Guess 0.02
+      perl 5.008001
+  Shell-Guess-0.06
+    pathname: P/PL/PLICEASE/Shell-Guess-0.06.tar.gz
+    provides:
+      Shell::Guess 0.06
+    requirements:
+      Module::Build 0.28
+      Unix::Process 0
+      perl 5.006
   Smart-Comments-1.06
     pathname: N/NE/NEILB/Smart-Comments-1.06.tar.gz
     provides:
@@ -7332,6 +7425,16 @@ DISTRIBUTIONS
       Lingua::Stem::Snowball::Se 1.2
     requirements:
       Test::More 0.42
+  Sort-Versions-1.62
+    pathname: N/NE/NEILB/Sort-Versions-1.62.tar.gz
+    provides:
+      Sort::Versions 1.62
+    requirements:
+      Exporter 0
+      ExtUtils::MakeMaker 0
+      perl 5.006
+      strict 0
+      warnings 0
   Starman-0.4010
     pathname: M/MI/MIYAGAWA/Starman-0.4010.tar.gz
     provides:
@@ -8121,6 +8224,13 @@ DISTRIBUTIONS
       Text::Glob 0.09
     requirements:
       Test::More 0
+  Text-Hunspell-2.14
+    pathname: C/CO/COSIMO/Text-Hunspell-2.14.tar.gz
+    provides:
+      Text::Hunspell 2.14
+    requirements:
+      Alien::Hunspell 0.04
+      ExtUtils::MakeMaker 6.52
   Text-Lorem-More-0.13
     pathname: R/RK/RKRIMEN/Text-Lorem-More-0.13.tar.gz
     provides:
@@ -8541,6 +8651,14 @@ DISTRIBUTIONS
       POSIX 0
       Test::More 0
       Time::HiRes 0
+  Unix-Process-1.3101
+    pathname: J/JE/JETTERO/Unix-Process-1.3101.tar.gz
+    provides:
+      Unix::Process 1.3101
+    requirements:
+      ExtUtils::MakeMaker 0
+      IPC::System::Simple 0
+      perl 5.008
   VM-EC2-1.25
     pathname: L/LD/LDS/VM-EC2-1.25.tar.gz
     provides:

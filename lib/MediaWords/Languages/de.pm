@@ -42,27 +42,6 @@ sub stem
     return $self->_stem_with_lingua_stem_snowball( 'de', 'UTF-8', \@_ );
 }
 
-sub get_word_length_limit
-{
-    my $self = shift;
-
-    # In German, whole numbers (smaller than 1 million) are expressed as single words,
-    # which makes siebenhundertsiebenundsiebzigtausendsiebenhundertsiebenundsiebzig
-    # (777,777) a 65 letter word. In combination with -fach or, as a noun, (das ...)
-    # -fache, all numbers are written as one word. A 79 letter word,
-    # Donaudampfschifffahrtselektrizitätenhauptbetriebswerkbauunterbeamtengesellschaft,
-    # was named the longest published word in the German language by the 1996 Guinness
-    # Book of World Records, but longer words are possible. The word refers to a
-    # division of an Austrian steam-powered shipping company named the
-    # Donaudampfschiffahrtsgesellschaft which transported passengers and cargo on the
-    # Danube. The longest word that is not created artificially as a longest-word
-    # record seems to be Rindfleischetikettierungsüberwachungsaufgabenübertragungsgesetz
-    # at 63 letters.
-    # (http://en.wikipedia.org/wiki/Longest_words#German)
-
-    return 79;
-}
-
 sub get_sentences
 {
     my ( $self, $story_text ) = @_;
