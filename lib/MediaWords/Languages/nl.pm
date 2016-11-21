@@ -42,18 +42,6 @@ sub stem
     return $self->_stem_with_lingua_stem_snowball( 'nl', 'UTF-8', \@_ );
 }
 
-sub get_word_length_limit
-{
-    my $self = shift;
-
-    # Dutch, like many Germanic languages, is capable of forming compounds of potentially limitless
-    # length. The 49-letter word Kindercarnavalsoptochtvoorbereidingswerkzaamheden, meaning
-    # "preparation activities for a children's carnival procession," was cited by the 1996 Guinness
-    # Book of World Records as the longest Dutch word.[2]
-    # (http://en.wikipedia.org/wiki/Longest_words#Dutch)
-    return 49;
-}
-
 sub get_sentences
 {
     my ( $self, $story_text ) = @_;

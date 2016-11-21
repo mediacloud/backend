@@ -56,25 +56,6 @@ sub stem
     return \@stems;
 }
 
-sub get_word_length_limit
-{
-    my $self = shift;
-
-    # The two longest Lithuanian words are 37 letters long: 1) the adjective
-    # septyniasdešimtseptyniastraipsniuose – the plural locative case of the
-    # adjective septyniasdešimtseptyniastraipsnis, meaning "(object) with
-    # seventy-seven articles"; 2) the participle
-    # nebeprisikiškiakopūsteliaudavusiuose, "in those that were repeatedly
-    # unable to pick enough of small wood-sorrels in the past" – the plural
-    # locative case of past iterative active participle of verb
-    # kiškiakopūsteliauti meaning "to pick wood-sorrels" (edible forest plant
-    # with sour taste, word by word translation "rabbit cabbage"). The word
-    # is commonly attributed to famous Lithuanian language teacher Jonas
-    # Kvederaitis, who actually used the plural first person of past iterative
-    # tense, nebeprisikiškiakopūstaudavome.[citation needed]
-    return 37;
-}
-
 sub get_sentences
 {
     my ( $self, $story_text ) = @_;

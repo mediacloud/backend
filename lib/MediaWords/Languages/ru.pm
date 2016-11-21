@@ -42,20 +42,6 @@ sub stem
     return $self->_stem_with_lingua_stem_snowball( 'ru', 'UTF-8', \@_ );
 }
 
-sub get_word_length_limit
-{
-    my $self = shift;
-
-# Probably, one of the longest originally-Russian word is превысокомногорассмотрительствующий,
-# which contains 35 letters, or its dative case form превысокомногорассмотрительствующему (36
-# letters), which can be an example of excessively official vocabulary of XIX century. The
-# longest word Numeral compounds, such as Тысячевосьмисотвосьмидесятидевятимикрометровый
-# (tysiachevosmisotvosmidesiatideviatimikrometrovyi), which is an adjective containing 46
-# letters, means "1889-micrometer".[citation needed]
-# (http://en.wikipedia.org/wiki/Longest_words#Russian)
-    return 46;
-}
-
 sub get_sentences
 {
     my ( $self, $story_text ) = @_;
