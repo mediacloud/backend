@@ -484,7 +484,7 @@ Output:
 
 ### Input Description
 
-See input description for stories/put_tags, but replace `stories_id` with `story_sentences_id`.
+See input description for stories/put_tags, but replace `stories_id` with `media_id`.
 
 ### Example
 
@@ -570,18 +570,16 @@ For each tag set a users may have up to 4 of the following permissions: edit_tag
 
 These permissions are described below:
 
-| Parameter | Notes |
-| --------- | ----- |
-|           |       |
-
-| --------------------        | --------------------------------------------------------------------------
-| ` edit_tag_descriptors`     | For all tags in the tag set, the user may alter the tag name, tag description, and tag label using the api/v2/tags/update API call
-| ` edit_tag_set_descriptors` | The user may alter the tag set name, tag set description, and tag  set label for the tag set using the api/v2/tag_sets/update API call
-| `apply_tags`                | The user may apply existing tags within the tag set to stories and sentences
-| `create_tags`               | The user may create new tags within the tag set
+| Parameter                   | Notes                                    |
+| --------------------------- | ---------------------------------------- |
+| ` edit_tag_descriptors`     | For all tags in the tag set, the user may alter the tag name, tag description, and tag label using the api/v2/tags/update API call |
+| ` edit_tag_set_descriptors` | The user may alter the tag set name, tag set description, and tag  set label for the tag set using the api/v2/tag_sets/update API call |
+| `apply_tags`                | The user may apply existing tags within the tag set to stories and sentences |
+| `create_tags`               | The user may create new tags within the tag set |
 
 In addition, users with the `stories-edit` role can add or remove tags from any story or sentences, and users with the `media-edit` role can add or remove tags from any media source.  Users with the `admin` role can edit all tags and associations. PENDING
 
+In addition, users with the `stories-edit` role can add or remove tags from any story or sentences, and users with the `media-edit` role can add or remove tags from any media source.  Users with the `admin` role can edit all tags and associations. PENDING
 
 ### Granting Permissions
 
@@ -859,7 +857,8 @@ Output:
     "date_marked": "",
     "media_suggestions_id": 1,
     "status": "pending",
-    "mark_reason": ""
+    "mark_reason": "",
+    "media_id": null
   }
 ]
 ```
@@ -882,6 +881,7 @@ Note that marking a suggestion as approved does not automatically create the med
 | media_suggestions_id | suggestion id (required)            |
 | status               | 'approved' or 'rejected' (required) |
 | mark_reason          | reason for approving or rejecting   |
+|  media_id | associated the given media source with an 'approved' suggestion |
 
 ### Example
 
@@ -894,7 +894,8 @@ Input:
   {
     "media_suggestions_id": 1,
     "status": "approved",
-    "mark_reason": "Media Cloud is great"
+    "mark_reason": "Media Cloud is great",
+    "media_id": 2
   }
 ]
 ```

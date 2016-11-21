@@ -213,7 +213,17 @@ Response:
         "new_value": "New York Times",
         "old_value": "nytimes.com"
       }
-    ]
+    ],
+    "suggestion": {
+      "media_suggestions_id": 1,
+      "status": "approved",
+      "reason": "all the news that's fit to print",
+      "media_id": 1,
+      "user": "hroberts@cyber.law.harvard.edu",
+      "mark_reason": "good suggestion",
+      "date_submitted": "2008-01-01",
+      "date_marked": "2008-01-05"
+    }
   }
 ]
 ```
