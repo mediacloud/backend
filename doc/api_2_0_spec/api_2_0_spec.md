@@ -815,7 +815,7 @@ results.  If you want results in only a single language, include a `language:<co
 clause in your query to ensure only sentences of that language are returned.
 
 The following language are supported (by 2 letter language code):
-'da' (Danish), 'de' (German), 'en' (English), 'es' (Spanish), 'fi' (Finnish), 'fr' (French),
+'da' (Danish), 'de' (German), 'en' (English), 'es' (Spanish), 'fi' (Finnish), 'fr' (French), 'hi' (Hindi),
 'hu' (Hungarian), 'it' (Italian), 'lt' (Lithuanian), 'nl' (Dutch), 'no' (Norwegian), 'pt' (Portuguese),
 'ro' (Romanian), 'ru' (Russian), 'sv' (Swedish), 'tr' (Turkish).
 

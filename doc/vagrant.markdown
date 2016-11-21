@@ -36,7 +36,7 @@ To create a new Media Cloud instance on Vagrant using the VirtualBox provider:
     vagrant box add ubuntu/xenial64
 
     # Check out a *fresh* copy of Media Cloud from the Git repository
-    git clone https://github.com/berkmancenter/mediacloud.git vagrant-mediacloud/
+    git clone --recursive https://github.com/berkmancenter/mediacloud.git vagrant-mediacloud/
     cd vagrant-mediacloud/
 
     # Change to the directory in which "Vagrantfile" and other files are located
@@ -78,7 +78,7 @@ To create a new Media Cloud instance on Vagrant using the Amazon EC2 provider:
         vagrant plugin install vagrant-aws
 
         # Check out a *fresh* copy of Media Cloud from the Git repository
-        git clone https://github.com/berkmancenter/mediacloud.git vagrant-mediacloud/
+        git clone --recursive https://github.com/berkmancenter/mediacloud.git vagrant-mediacloud/
         cd vagrant-mediacloud/
 
         # Change to the directory in which "Vagrantfile" and other files are located

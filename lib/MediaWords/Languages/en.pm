@@ -42,18 +42,6 @@ sub stem
     return $self->_stem_with_lingua_stem_snowball( 'en', 'UTF-8', \@_ );
 }
 
-sub get_word_length_limit
-{
-    my $self = shift;
-
-    # The 45-letter word pneumonoultramicroscopicsilicovolcanoconiosis is the longest English word
-    # that appears in a major dictionary.[6] Originally coined to become a candidate for the longest
-    # word in English, the term eventually developed some independent use in medicine.[7] It is
-    # referred to as "P45" by researchers.[8]
-    # (http://en.wikipedia.org/wiki/Longest_words#English)
-    return 45;
-}
-
 sub get_sentences
 {
     my ( $self, $story_text ) = @_;

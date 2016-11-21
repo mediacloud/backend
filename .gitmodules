@@ -1,0 +1,3 @@
+[submodule "lib/MediaWords/Languages/resources/hi/hindi-hunspell"]
+	path = lib/MediaWords/Languages/resources/hi/hindi-hunspell
+	url = https://github.com/Shreeshrii/hindi-hunspell.git

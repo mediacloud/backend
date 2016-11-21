@@ -42,16 +42,6 @@ sub stem
     return $self->_stem_with_lingua_stem_snowball( 'tr', 'UTF-8', \@_ );
 }
 
-sub get_word_length_limit
-{
-    my $self = shift;
-
-    # Muvaffakiyetsizleştiricileştiriveremeyebileceklerimizdenmişsinizcesine, at 70 letters, has been
-    # cited as the longest Turkish word, though it is a compound word and Turkish, as an agglutinative
-    # language, carries the potential for words of theoretically infinite length.[citation needed]
-    return 70;
-}
-
 sub get_sentences
 {
     my ( $self, $story_text ) = @_;
