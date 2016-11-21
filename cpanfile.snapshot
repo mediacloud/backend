@@ -1360,14 +1360,6 @@ DISTRIBUTIONS
       Test::Exception 0
       Test::More 0
       ok 0
-  Cpanel-JSON-XS-2.3404
-    pathname: R/RU/RURBAN/Cpanel-JSON-XS-2.3404.tar.gz
-    provides:
-      Cpanel::JSON::XS 2.3404
-    requirements:
-      ExtUtils::MakeMaker 0
-      Pod::Text 2.08
-      Pod::Usage 1.33
   Crypt-Random-Seed-0.03
     pathname: D/DA/DANAJ/Crypt-Random-Seed-0.03.tar.gz
     provides:
@@ -4622,7 +4614,6 @@ DISTRIBUTIONS
       IO::Socket::SSL::Utils 2.014
     requirements:
       ExtUtils::MakeMaker 0
-      Mozilla::CA 0
       Net::SSLeay 1.46
       Scalar::Util 0
   IO-String-1.08
@@ -4708,18 +4699,6 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       File::Spec 0.8
       perl 5.008001
-  Inline-C-0.76
-    pathname: I/IN/INGY/Inline-C-0.76.tar.gz
-    provides:
-      Inline::C 0.76
-    requirements:
-      ExtUtils::MakeMaker 7.00
-      File::ShareDir::Install 0.06
-      File::Spec 0.8
-      Inline 0.79
-      Parse::RecDescent 1.967009
-      Pegex 0.58
-      perl 5.008001
   Inline-Python-0.49
     pathname: N/NI/NINE/Inline-Python-0.49.tar.gz
     provides:
@@ -4750,7 +4729,6 @@ DISTRIBUTIONS
       JSON::MaybeXS 1.003005
     requirements:
       Carp 0
-      Cpanel::JSON::XS 2.3310
       ExtUtils::CBuilder 0.27
       ExtUtils::MakeMaker 0
       File::Spec 0
@@ -6369,10 +6347,10 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Test 0
       perl 5.006
-  Net-AMQP-RabbitMQ-2.100001
-    pathname: M/MA/MARKELLIS/Net-AMQP-RabbitMQ-2.100001.tar.gz
+  Net-AMQP-RabbitMQ-2.30000
+    pathname: M/MA/MARKELLIS/Net-AMQP-RabbitMQ-2.30000.tar.gz
     provides:
-      Net::AMQP::RabbitMQ 2.100001
+      Net::AMQP::RabbitMQ 2.30000
     requirements:
       ExtUtils::MakeMaker 0
       Math::Int64 0.34
@@ -6876,31 +6854,6 @@ DISTRIBUTIONS
       overload 0
       strict 0
       warnings 0
-  Pegex-0.60
-    pathname: I/IN/INGY/Pegex-0.60.tar.gz
-    provides:
-      Pegex 0.60
-      Pegex::Base undef
-      Pegex::Bootstrap undef
-      Pegex::Compiler undef
-      Pegex::Constant undef
-      Pegex::Grammar undef
-      Pegex::Grammar::Atoms undef
-      Pegex::Input undef
-      Pegex::Module undef
-      Pegex::Optimizer undef
-      Pegex::Parser undef
-      Pegex::Parser::Indent undef
-      Pegex::Pegex::AST undef
-      Pegex::Pegex::Grammar undef
-      Pegex::Receiver undef
-      Pegex::Regex undef
-      Pegex::Tree undef
-      Pegex::Tree::Wrap undef
-    requirements:
-      ExtUtils::MakeMaker 0
-      File::ShareDir::Install 0.06
-      perl 5.008001
   Perl-Tidy-20160302
     pathname: S/SH/SHANCOCK/Perl-Tidy-20160302.tar.gz
     provides:
