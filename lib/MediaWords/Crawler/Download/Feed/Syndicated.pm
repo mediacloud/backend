@@ -23,6 +23,47 @@ use Encode;
 use MediaWords::Feed::Parse;
 use Readonly;
 
+# parse the feed.  return a (non-db-backed) story hash for each story found in the feed.
+sub _get_stories_from_syndicated_feed($$$)
+{
+    my ( $decoded_content, $media_id, $download_time ) = @_;
+
+    my $feed = MediaWords::Feed::Parse::parse_feed( $decoded_content );
+
+    die( "Unable to parse feed" ) unless $feed;
+
+    my $items = [ $feed->get_item ];
+
+    my $stories = [];
+
+    for my $item ( @{ $items } )
+    {
+        my $url = $item->link();
+        unless ( $url )
+        {
+            next;
+        }
+
+        my $guid  = $item->guid_if_valid() || $url;
+        my $title = $item->title           || '(no title)';
+        my $description = $item->description;
+        my $publish_date = $item->publish_date_sql() || $download_time;
+
+        my $story = {
+            url          => $url,
+            guid         => $guid,
+            media_id     => $media_id,
+            publish_date => $publish_date,
+            title        => $title,
+            description  => $description,
+        };
+
+        push( @{ $stories }, $story );
+    }
+
+    return $stories;
+}
+
 # check whether the checksum of the concatenated urls of the stories in the feed matches the last such checksum for this
 # feed.  If the checksums don't match, store the current checksum in the feed
 sub _stories_checksum_matches_feed
@@ -59,40 +100,13 @@ sub add_stories_from_feed($$$$)
     my ( $self, $db, $download, $decoded_content ) = @_;
 
     my $media_id = MediaWords::DBI::Downloads::get_media_id( $db, $download );
+    my $download_time = $download->{ download_time };
 
-    my $feed;
-    eval { $feed = MediaWords::Feed::Parse::parse_feed( $decoded_content ); };
+    my $stories;
+    eval { $stories = _get_stories_from_syndicated_feed( $decoded_content, $media_id, $download_time ); };
     if ( $@ )
     {
         die "Error processing feed for $download->{ url }: $@";
-    }
-
-    my $items = [ $feed->get_item ];
-
-    my $stories = [];
-    for my $item ( @{ $items } )
-    {
-        my $url = $item->link();
-        unless ( $url )
-        {
-            next;
-        }
-
-        my $guid  = $item->guid_if_valid() || $url;
-        my $title = $item->title           || '(no title)';
-        my $description = $item->description;
-        my $publish_date = $item->publish_date_sql() || $download->{ download_time };
-
-        my $story = {
-            url          => $url,
-            guid         => $guid,
-            media_id     => $media_id,
-            publish_date => $publish_date,
-            title        => $title,
-            description  => $description,
-        };
-
-        push( @{ $stories }, $story );
     }
 
     if ( _stories_checksum_matches_feed( $db, $download->{ feeds_id }, $stories ) )
