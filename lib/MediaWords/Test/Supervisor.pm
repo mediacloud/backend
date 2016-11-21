@@ -100,7 +100,8 @@ sub _rabbit_ready($)
             username => $rabbitmq_config->{ username },    #
             password => $rabbitmq_config->{ password },    #
             vhost    => $rabbitmq_config->{ vhost },       #
-            timeout  => 120,                               # default of 60 might not be enough in limited EC2 environment
+            timeout  => $rabbitmq_config->{ timeout },     #
+            retries  => 120,                               # default of 60 might not be enough in limited EC2 environment
         );
     };
     die( "rabbitmq failed to start: '$@'" ) if ( $@ );
