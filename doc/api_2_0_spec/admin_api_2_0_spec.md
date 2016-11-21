@@ -677,7 +677,9 @@ Output:
 | ------------------- | ----------------------------------- |
 | api/v2/feeds/scrape | scrape a media source for new feeds |
 
-This end point scrapes through the web site of the given media source to try to discover new feeds.  This call queues a scraping job on the backend, which can take a few minutes or a few hours to complete.
+This end point scrapes through the web site of the given media source to try to discover new feeds.  
+
+This call queues a scraping job on the backend, which can take a few minutes or a few hours to complete.  After invoking this end point, the `feed_scrape_status` field on the given media source (accessible via `api/v2/media/list` or `api/v2/media/single`) will immediately change to `pending`.  The status will change to `scraping` while the scraping job is executing and either `complete` when the scraping successfully completed or `scraping failed` if there was an error.
 
 ### Input Description
 
@@ -876,12 +878,12 @@ Note that marking a suggestion as approved does not automatically create the med
 
 ### Input Description
 
-| Field                | Description                         |
-| -------------------- | ----------------------------------- |
-| media_suggestions_id | suggestion id (required)            |
-| status               | 'approved' or 'rejected' (required) |
-| mark_reason          | reason for approving or rejecting   |
-|  media_id | associated the given media source with an 'approved' suggestion |
+| Field                | Description                              |
+| -------------------- | ---------------------------------------- |
+| media_suggestions_id | suggestion id (required)                 |
+| status               | 'approved' or 'rejected' (required)      |
+| mark_reason          | reason for approving or rejecting        |
+| media_id             | associated the given media source with an 'approved' suggestion |
 
 ### Example
 

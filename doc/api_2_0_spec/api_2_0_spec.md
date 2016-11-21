@@ -194,6 +194,7 @@ Response:
     "media_id": 1,
     "primary_language": "en",
     "is_healthy": 1,
+    "feed_scrape_status": "complete",
     "media_source_tags": [
          {
            "tag_sets_id": 5,
