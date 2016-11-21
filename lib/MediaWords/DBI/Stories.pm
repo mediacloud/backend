@@ -587,7 +587,7 @@ sub process_extracted_story($$$)
 
     if ( $mark_story_as_processed )
     {
-        unless ( MediaWords::DBI::Stories::mark_as_processed( $db, $stories_id ) )
+        unless ( mark_as_processed( $db, $stories_id ) )
         {
             die "Unable to mark story ID $stories_id as processed";
         }
@@ -1243,7 +1243,7 @@ sub _add_story_using_parent_download
 
     $db->begin;
     $db->query( "lock table stories in row exclusive mode" );
-    if ( !MediaWords::DBI::Stories::is_new( $db, $story ) )
+    unless ( is_new( $db, $story ) )
     {
         $db->commit;
         return;
@@ -1268,7 +1268,7 @@ sub _add_story_using_parent_download
         }
     }
 
-    MediaWords::DBI::Stories::update_rss_full_text_field( $db, $story );
+    update_rss_full_text_field( $db, $story );
 
     $db->find_or_create(
         'feeds_stories_map',
