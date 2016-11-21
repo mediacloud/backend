@@ -150,7 +150,7 @@
    <field name="sentence"  type="text_general" indexed="true" stored="false" />
 
    <!-- (see sentence) -->
-   <field name="title" type="text_general" indexed="true" stored="true" />
+   <field name="title" type="text_general" indexed="true" stored="false" />
 
    <!-- Query by date is a core function -->
    <field name="publish_date" type="tdate" indexed="true" stored="false"/>
