@@ -93,7 +93,16 @@ sub _rabbit_ready($)
 
     # creating a rabbitmq object automatically tries to connect to the server and has its own
     # timeout builtin, so all we have to do is make sure we can connect
-    eval { MediaCloud::JobManager::Broker::RabbitMQ->new( $rabbitmq_config ); };
+    eval {
+        MediaCloud::JobManager::Broker::RabbitMQ->new(
+            hostname => $rabbitmq_config->{ hostname },    #
+            port     => $rabbitmq_config->{ port },        #
+            username => $rabbitmq_config->{ username },    #
+            password => $rabbitmq_config->{ password },    #
+            vhost    => $rabbitmq_config->{ vhost },       #
+            timeout  => 120,                               # default of 60 might not be enough in limited EC2 environment
+        );
+    };
     die( "rabbitmq failed to start: '$@'" ) if ( $@ );
 }
 
