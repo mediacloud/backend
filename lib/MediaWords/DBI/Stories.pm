@@ -292,7 +292,7 @@ sub _update_rss_full_text_field
 {
     my ( $db, $story ) = @_;
 
-    my $medium = $db->query( "select * from media where media_id = ?", $story->{ media_id } )->hash;
+    my $medium = $db->find_by_id( 'media', $story->{ media_id } );
 
     my $full_text_in_rss = ( $medium->{ full_text_rss } ) ? 1 : 0;
 
