@@ -231,7 +231,7 @@ sub add_stories_from_feed($$$$)
     my $story_ids = [];
     foreach my $story ( @{ $new_stories } )
     {
-        MediaWords::DBI::Stories::add_story_and_content_download( $db, $story, $download );
+        $story = MediaWords::DBI::Stories::add_story_and_content_download( $db, $story, $download );
         push( @{ $story_ids }, $story->{ stories_id } );
     }
 

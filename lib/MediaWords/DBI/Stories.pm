@@ -1266,6 +1266,8 @@ sub add_story_and_content_download
     {
         MediaWords::DBI::Downloads::create_child_download_for_story( $db, $story, $parent_download );
     }
+
+    return $story;
 }
 
 1;
