@@ -281,40 +281,6 @@ EOF
     return $tags;
 }
 
-=head2 _update_rss_full_text_field( $db, $story )
-
-Set stories.full_text_rss to the value of the medium's full_text_rss field.  If the new value is different than
-$story->{ full_text_rss }, update the value in the db.
-
-=cut
-
-sub _update_rss_full_text_field
-{
-    my ( $db, $story ) = @_;
-
-    my $medium = $db->find_by_id( 'media', $story->{ media_id } );
-
-    my $full_text_in_rss = ( $medium->{ full_text_rss } ) ? 1 : 0;
-
-    #This is a temporary hack to work around a bug in XML::FeedPP
-    $full_text_in_rss = 0 if ( defined( $story->{ description } ) && ( length( $story->{ description } ) == 0 ) );
-
-    if ( defined( $story->{ full_text_rss } ) && ( $story->{ full_text_rss } != $full_text_in_rss ) )
-    {
-        $story->{ full_text_rss } = $full_text_in_rss;
-        $db->query(
-            <<"EOF",
-            UPDATE stories
-            SET full_text_rss = ?
-            WHERE stories_id = ?
-EOF
-            $full_text_in_rss, $story->{ stories_id }
-        );
-    }
-
-    return $story;
-}
-
 =head2 fetch_content( $db, $story )
 
 Fetch the content of the first download of the story.
@@ -1249,17 +1215,24 @@ sub _add_story_using_parent_download
         return;
     }
 
-    eval { $story = $db->create( "stories", $story ); };
+    my $medium = $db->find_by_id( 'media', $story->{ media_id } );
+
+    my $full_text_in_rss = ( $medium->{ full_text_rss } ) ? 1 : 0;
+    if ( defined( $story->{ description } ) and ( length( $story->{ description } ) == 0 ) )
+    {
+        $full_text_in_rss = 0;
+    }
+    $story->{ full_text_rss } = $full_text_in_rss;
+
+    eval { $story = $db->create( 'stories', $story ); };
 
     if ( $@ )
     {
-
         $db->rollback;
 
         if ( $@ =~ /unique constraint \"stories_guid/ )
         {
             WARN "Failed to add story for '." . $story->{ url } . "' to guid conflict ( guid =  '" . $story->{ guid } . "')";
-
             return;
         }
         else
@@ -1267,8 +1240,6 @@ sub _add_story_using_parent_download
             die( "error adding story: $@\n" . Dumper( $story ) );
         }
     }
-
-    _update_rss_full_text_field( $db, $story );
 
     $db->find_or_create(
         'feeds_stories_map',
