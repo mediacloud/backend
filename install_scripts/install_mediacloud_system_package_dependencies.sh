@@ -18,6 +18,17 @@ RABBITMQ_PACKAGECLOUD_SCRIPT="https://packagecloud.io/install/repositories/rabbi
 #
 ERLANG_OLD_UBUNTU_APT_VERSION="1:17.5.3"
 
+# RabbitMQ version to install on Ubuntu < 16.04:
+#
+# Update rabbitmq_wrapper.sh too!
+#
+# Newest RabbitMQ version (3.6.6 at the time of writing) does not install on 12.04 anymore because:
+#
+# The following packages have unmet dependencies:
+#  rabbitmq-server : Depends: init-system-helpers (>= 1.13~) but it is not installable
+#
+RABBITMQ_OLD_UBUNTU_APT_VERSION="3.6.2-1"
+
 
 function echo_vagrant_instructions {
     cat <<EOF
@@ -110,26 +121,39 @@ else
         }
     done
 
-    # Ubuntu < 14.04 APT's version of Erlang is too old (needed by RabbitMQ)
-    if verlt "$DISTRIB_RELEASE" "14.04"; then
+    #
+    # Erlang:
 
-         # Ubuntu 12.04 APT's version of Erlang is too old
+    if verlt "$DISTRIB_RELEASE" "14.04"; then
+        # Ubuntu < 14.04 APT's version of Erlang is too old (needed by RabbitMQ)
         sudo apt-get -y remove erlang*
         curl "$ERLANG_APT_GPG_KEY_URL" | sudo apt-key add -
         echo "deb $ERLANG_APT_REPOSITORY_URL precise contrib" | \
             sudo tee -a /etc/apt/sources.list.d/erlang-solutions.list
         sudo apt-get -y update
 
-        # Install and hold specific version of Erlang
         sudo apt-get -y install esl-erlang="$ERLANG_OLD_UBUNTU_APT_VERSION" erlang-mode="$ERLANG_OLD_UBUNTU_APT_VERSION"
         sudo apt-mark hold erlang-mode esl-erlang
     fi
+
+    #
+    # RabbitMQ:
 
     # Ubuntu (all versions) APT's version of RabbitMQ is too old
     # (we need 3.6.0+ to support priorities and lazy queues)
     curl -s "$RABBITMQ_PACKAGECLOUD_SCRIPT" | sudo bash
 
-    # OpenJDK version to install
+    if verlt "$DISTRIB_RELEASE" "14.04"; then
+        # Newest RabbitMQ does not work anymore on 12.04
+        sudo apt-get -y install rabbitmq-server="$RABBITMQ_OLD_UBUNTU_APT_VERSION"
+        sudo apt-mark hold rabbitmq-server
+    else
+        sudo apt-get -y install rabbitmq-server
+    fi
+
+    #
+    # OpenJDK:
+    
     if verlt "$DISTRIB_RELEASE" "16.04"; then
         # Solr 6+ requires Java 8 which is unavailable before 16.04
         sudo apt-get -y install python-software-properties
@@ -147,7 +171,7 @@ else
         libreadonly-xs-perl curl python2.7 python2.7-dev python-pip \
         libxml2-dev libxslt1-dev libxslt1-dbg libxslt1.1 build-essential make gcc g++ \
         cpanminus perl-doc liblocale-maketext-lexicon-perl openjdk-8-jdk \
-        pandoc netcat rabbitmq-server libyaml-dev unzip hunspell
+        pandoc netcat libyaml-dev unzip hunspell
 
     # Choose to use OpenJDK 8 by default
     PATH="$PATH:/usr/sbin"

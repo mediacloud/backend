@@ -99,10 +99,20 @@ END
     my $story_lookup = {};
     map { $story_lookup->{ $_->{ stories_id } } = $_ } @{ $stories };
 
+    my $story_sentences_ids = [ map { $_->{ story_sentences_id } } @{ $sentences } ];
+    my $temp_ss_ids         = $db->get_temporary_ids_table( $story_sentences_ids );
+    my $story_sentences     = $db->query( <<SQL )->hashes;
+select story_sentences_id, sentence from story_sentences where story_sentences_id in ( select id from $temp_ss_ids )
+SQL
+
+    my $ss_lookup = {};
+    map { $ss_lookup->{ $_->{ story_sentences_id } } = $_->{ sentence } } @{ $story_sentences };
+
     for my $sentence ( @{ $sentences } )
     {
         my $story = $story_lookup->{ $sentence->{ stories_id } };
         map { $sentence->{ $_ } = $story->{ $_ } } qw/sentence_number media_id publish_date url medium_name/;
+        $sentence->{ sentence } = $ss_lookup->{ $sentence->{ story_sentences_id } } || '';
     }
 }
 
