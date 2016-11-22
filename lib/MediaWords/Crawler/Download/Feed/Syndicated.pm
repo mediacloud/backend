@@ -15,6 +15,7 @@ with 'MediaWords::Crawler::Download::DefaultFetcher', 'MediaWords::Crawler::Down
 
 use MediaWords::Crawler::Engine;
 use MediaWords::DBI::Downloads;
+use MediaWords::DBI::Feeds;
 use MediaWords::DBI::Stories;
 
 use Data::Dumper;
@@ -64,33 +65,6 @@ sub _get_stories_from_syndicated_feed($$$)
     return $stories;
 }
 
-# check whether the checksum of the concatenated urls of the stories in the feed matches the last such checksum for this
-# feed.  If the checksums don't match, store the current checksum in the feed
-sub _stories_checksum_matches_feed
-{
-    my ( $db, $feeds_id, $stories ) = @_;
-
-    my $story_url_concat = join( '|', map { $_->{ url } } @{ $stories } );
-
-    my $checksum = Digest::MD5::md5_hex( encode( 'utf8', $story_url_concat ) );
-
-    my ( $matches ) = $db->query(
-        <<SQL,
-        SELECT 1
-        FROM feeds
-        WHERE feeds_id = ?
-          AND last_checksum = ?
-SQL
-        $feeds_id, $checksum
-    )->flat;
-
-    return 1 if ( $matches );
-
-    $db->query( 'UPDATE feeds SET last_checksum = ? WHERE feeds_id = ?', $checksum, $feeds_id );
-
-    return 0;
-}
-
 # parse the feed content; create a story hash for each parsed story; check for a new url since the last
 # feed download; if there is a new url, check whether each story is new, and if so add it to the database and
 # ad a pending download for it.
@@ -109,7 +83,7 @@ sub add_stories_from_feed($$$$)
         die "Error processing feed for $download->{ url }: $@";
     }
 
-    if ( _stories_checksum_matches_feed( $db, $download->{ feeds_id }, $stories ) )
+    if ( MediaWords::DBI::Feeds::stories_checksum_matches_feed( $db, $download->{ feeds_id }, $stories ) )
     {
         return [];
     }
