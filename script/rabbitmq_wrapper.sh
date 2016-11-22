@@ -123,6 +123,17 @@ print_rabbitmq_installation_instructions() {
     log "Please install RabbitMQ by running 'install_mediacloud_system_package_dependencies.sh'"
 }
 
+kill_process_group() {
+    local pid="$1"
+
+    if [ `uname` == 'Darwin' ]; then
+        # For whatever reason pkill kills *all* user processes on OS X
+        kill $pid
+    else
+        pkill -P $pid
+    fi
+}
+
 #
 # ---
 #
@@ -233,7 +244,7 @@ function kill_rabbitmq {
     $PATH_TO_RABBITMQCTL -n "$RABBITMQ_NODENAME" stop
 
     echo "Killing RabbitMQ at group PID $RABBITMQ_PID..."
-    pkill -P $RABBITMQ_PID
+    kill_process_group "$RABBITMQ_PID"
 }
 trap kill_rabbitmq SIGINT
 
@@ -259,8 +270,8 @@ done
 if [ $RABBITMQ_IS_UP = 1 ]; then
     echo "RabbitMQ is up at PID $RABBITMQ_PID."
 else
-    echo "RabbitMQ is down after $RABBITMQ_START_RETRIES seconds, giving up."
-    pkill -9 -P $RABBITMQ_PID
+    echo "RabbitMQ is down after $RABBITMQ_START_RETRIES seconds, giving up and killing process group $RABBITMQ_PID."
+    kill_process_group "$RABBITMQ_PID"
     exit 1
 fi
 
