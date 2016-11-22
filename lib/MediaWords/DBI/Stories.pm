@@ -281,14 +281,14 @@ EOF
     return $tags;
 }
 
-=head2 update_rss_full_text_field( $db, $story )
+=head2 _update_rss_full_text_field( $db, $story )
 
 Set stories.full_text_rss to the value of the medium's full_text_rss field.  If the new value is different than
 $story->{ full_text_rss }, update the value in the db.
 
 =cut
 
-sub update_rss_full_text_field
+sub _update_rss_full_text_field
 {
     my ( $db, $story ) = @_;
 
@@ -1268,7 +1268,7 @@ sub _add_story_using_parent_download
         }
     }
 
-    update_rss_full_text_field( $db, $story );
+    _update_rss_full_text_field( $db, $story );
 
     $db->find_or_create(
         'feeds_stories_map',
