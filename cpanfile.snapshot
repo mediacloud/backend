@@ -5232,12 +5232,12 @@ DISTRIBUTIONS
       Math::Random::ISAAC v1.0.1
       Test::More 0
       Test::Warn 0
-  MediaCloud-JobManager-0.25
-    pathname: L/LV/LVALIUKAS/MediaCloud-JobManager-0.25.tar.gz
+  MediaCloud-JobManager-0.26
+    pathname: L/LV/LVALIUKAS/MediaCloud-JobManager-0.26.tar.gz
     provides:
       Addition undef
       AdditionAlwaysFails undef
-      MediaCloud::JobManager 0.25
+      MediaCloud::JobManager 0.26
       MediaCloud::JobManager::Admin undef
       MediaCloud::JobManager::Broker undef
       MediaCloud::JobManager::Broker::Null undef
@@ -6804,6 +6804,7 @@ DISTRIBUTIONS
       Parse::RecDescent::Token 1.967009
       Parse::RecDescent::UncondReject 1.967009
     requirements:
+      ExtUtils::MakeMaker 6.5702
       Test::More 0
       Text::Balanced 1.95
   Path-Class-0.33
@@ -7790,8 +7791,9 @@ DISTRIBUTIONS
     requirements:
       Capture::Tiny 0.24
       Data::Dumper 2.126
+      ExtUtils::MakeMaker 0
       Test::More 0.88
-      Text::Diff 0.35
+      Text::Diff 1.43
   Test-Exception-0.32
     pathname: A/AD/ADIE/Test-Exception-0.32.tar.gz
     provides:
@@ -8123,17 +8125,18 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       IO::Handle 0
       Test::More 0
-  Text-Diff-1.41
-    pathname: O/OV/OVID/Text-Diff-1.41.tar.gz
+  Text-Diff-1.44
+    pathname: N/NE/NEILB/Text-Diff-1.44.tar.gz
     provides:
-      Text::Diff 1.41
-      Text::Diff::Base 1.41
-      Text::Diff::Config 1.41
-      Text::Diff::Table 1.41
+      Text::Diff 1.44
+      Text::Diff::Base 1.44
+      Text::Diff::Config 1.44
+      Text::Diff::Table 1.44
     requirements:
       Algorithm::Diff 1.19
       Exporter 0
       ExtUtils::MakeMaker 0
+      perl 5.006
   Text-German-0.06
     pathname: U/UL/ULPFR/Text-German-0.06.tar.gz
     provides:
