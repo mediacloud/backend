@@ -370,6 +370,24 @@ sub set_language_objects
     $self->language_objects( $language_objects );
 }
 
+# given the story_sentences_id in the results, fetch the sentences from postgres
+sub _get_sentences_from_solr_results($$)
+{
+    my ( $self, $solr_data ) = @_;
+
+    my $db = $self->db;
+
+    my $story_sentences_ids = [ map { $_->{ story_sentences_id } } @{ $solr_data->{ response }->{ docs } } ];
+
+    my $ids_table = $db->get_temporary_ids_table( $story_sentences_ids );
+
+    my $sentences = $db->query( <<SQL )->flat;
+select sentence from story_sentences where story_sentences_id in ( select id from $ids_table )
+SQL
+
+    return $sentences;
+}
+
 # connect to solr server directly and count the words resulting from the query
 sub get_words_from_solr_server
 {
@@ -381,7 +399,7 @@ sub get_words_from_solr_server
         q    => $self->q(),
         fq   => $self->fq,
         rows => $self->sample_size,
-        fl   => 'sentence',
+        fl   => 'story_sentences_id',
         sort => 'random_1 asc'
     };
 
@@ -390,12 +408,14 @@ sub get_words_from_solr_server
     my $data = MediaWords::Solr::query( $self->db, $solr_params );
 
     my $sentences_found = $data->{ response }->{ numFound };
-    my @sentences = map { $_->{ sentence } } @{ $data->{ response }->{ docs } };
+    my $sentences       = $self->_get_sentences_from_solr_results( $data );
 
-    $self->set_default_languages( \@sentences );
+    # my @sentences = map { $_->{ sentence } } @{ $data->{ response }->{ docs } };
+
+    $self->set_default_languages( $sentences );
 
     DEBUG( "counting sentences..." );
-    my $words = $self->count_stems( \@sentences );
+    my $words = $self->count_stems( $sentences );
 
     my @word_list;
     while ( my ( $stem, $count ) = each( %{ $words } ) )
@@ -435,7 +455,7 @@ sub get_words_from_solr_server
         return {
             stats => {
                 num_words_returned     => scalar( @{ $counts } ),
-                num_sentences_returned => scalar( @sentences ),
+                num_sentences_returned => scalar( @{ $sentences } ),
                 num_sentences_found    => $sentences_found,
                 num_words_param        => $self->num_words,
                 sample_size_param      => $self->sample_size

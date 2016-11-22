@@ -1,8 +1,5 @@
-# Table of Contents
-
 <!-- MDTOC maxdepth:6 firsth1:1 numbering:0 flatten:0 bullets:1 updateOnSave:1 -->
 
-- [Table of Contents](#table-of-contents)   
 - [Overview](#overview)   
    - [Authentication](#authentication)   
       - [Example](#example)   
@@ -11,84 +8,93 @@
    - [API URLs](#api-urls)   
    - [Supported Languages](#supported-languages)
    - [Errors](#errors)   
-   - [Request Limits](#request-limits-1)   
+   - [Request Limits](#request-limits)   
 - [Media](#media)   
    - [api/v2/media/single/](#apiv2mediasingle)   
       - [Query Parameters](#query-parameters)   
-      - [Example](#example-1)   
+      - [Example](#example)   
+   - [api/v2/media/list/](#apiv2medialist)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
+   - [api/v2/media/suggestions/submit - POST](#apiv2mediasuggestionssubmit-post)   
+      - [Input Description](#input-description)   
+      - [Example](#example)   
 - [Media Health](#media-health)   
    - [api/v2/mediahealth/list](#apiv2mediahealthlist)   
-      - [Query Parameters](#query-parameters-1)   
+      - [Query Parameters](#query-parameters)   
       - [Output description](#output-description)   
-      - [Example](#example-2)   
-   - [api/v2/media/list/](#apiv2medialist)   
-      - [Query Parameters](#query-parameters-2)   
-      - [Example](#example-3)   
+      - [Example](#example)   
 - [Feeds](#feeds)   
    - [api/v2/feeds/single](#apiv2feedssingle)   
-      - [Query Parameters](#query-parameters-3)   
-      - [Example](#example-4)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
    - [api/v2/feeds/list](#apiv2feedslist)   
-      - [Query Parameters](#query-parameters-4)   
-      - [Example](#example-5)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
 - [Stories](#stories)   
-   - [Output description](#output-description-1)   
+   - [Output description](#output-description)   
    - [api/v2/stories_public/single](#apiv2stories_publicsingle)   
-      - [Example](#example-6)   
+      - [Example](#example)   
    - [api/v2/stories_public/list](#apiv2stories_publiclist)   
-      - [Query Parameters](#query-parameters-5)   
-      - [Example](#example-7)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
    - [api/v2/stories_public/count](#apiv2stories_publiccount)   
-      - [Query Parameters](#query-parameters-6)   
-      - [Example](#example-8)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
    - [api/v2/stories_public/word_matrix](#apiv2stories_publicword_matrix)   
-      - [Query Parameters](#query-parameters-7)   
+      - [Query Parameters](#query-parameters)   
       - [Output Description](#output-description)   
 - [Sentences](#sentences)   
    - [api/v2/sentences/count](#apiv2sentencescount)   
-      - [Query Parameters](#query-parameters-8)   
-      - [Example](#example-9)   
-   - [api/v2/sentences/field\_count](#apiv2sentencesfield_count)   
-      - [Query Parameters](#query-parameters-9)   
-      - [Example](#example-10)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
 - [Word Counting](#word-counting)   
    - [api/v2/wc/list](#apiv2wclist)   
-      - [Query Parameters](#query-parameters-10)   
-      - [Example](#example-11)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
 - [Tags and Tag Sets](#tags-and-tag-sets)   
    - [api/v2/tags/single/](#apiv2tagssingle)   
-      - [Query Parameters](#query-parameters-11)   
-      - [Output description](#output-description-2)   
-      - [Example](#example-12)   
+      - [Query Parameters](#query-parameters)   
+      - [Output description](#output-description)   
+      - [Example](#example)   
    - [api/v2/tags/list/](#apiv2tagslist)   
-      - [Query Parameters](#query-parameters-12)   
-      - [Example](#example-13)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
    - [api/v2/tag_sets/single/](#apiv2tag_setssingle)   
-      - [Query Parameters](#query-parameters-13)   
-      - [Output description](#output-description-3)   
-      - [Example](#example-14)   
+      - [Query Parameters](#query-parameters)   
+      - [Output description](#output-description)   
+      - [Example](#example)   
    - [api/v2/tag_sets/list/](#apiv2tag_setslist)   
-      - [Query Parameters](#query-parameters-14)   
-      - [Example](#example-15)   
-- [Topics](#topics)
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
+- [Topics](#topics)   
    - [api/v2/topics/single/](#apiv2topicssingle)   
-      - [Query Parameters](#query-parameters-15)   
-      - [Example](#example-16)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
    - [api/v2/topics/list/](#apiv2topicslist)   
-      - [Query Parameters](#query-parameters-16)   
-      - [Example](#example-17)   
-   - [api/v2/topic_snapshots/single/](#apiv2topic_snapshotssingle)   
-      - [Query Parameters](#query-parameters-17)   
-      - [Example](#example-18)   
-   - [api/v2/topic_snapshots/list/](#apiv2topic_snapshotslist)   
-      - [Query Parameters](#query-parameters-18)   
-      - [Example](#example-19)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
+   - [api/v2/snapshots/single/](#apiv2snapshotssingle)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
+   - [api/v2/snapshots/list/](#apiv2snapshotslist)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
    - [api/v2/timespans/single/](#apiv2timespanssingle)   
-      - [Query Parameters](#query-parameters-19)   
-      - [Example](#example-20)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
    - [api/v2/timespans/list/](#apiv2timespanslist)   
-      - [Query Parameters](#query-parameters-20)   
-      - [Example](#example-21)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
+- [Users](#users)   
+   - [api/v2/users/profile PENDING](#apiv2usersprofile-pending)   
+      - [Query Parameters](#query-parameters)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
+- [Stats](#stats)   
+   - [api/v2/stats PENDING](#apiv2stats-pending)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example)   
 - [Extended Examples](#extended-examples)   
    - [Output Format / JSON](#output-format-json)   
    - [Create a CSV file with all media sources.](#create-a-csv-file-with-all-media-sources)   
@@ -96,9 +102,9 @@
    - [Grab stories by querying stories_public/list](#grab-stories-by-querying-stories_publiclist)   
    - [Grab all stories in The New York Times during October 2012](#grab-all-stories-in-the-new-york-times-during-october-2012)   
       - [Find the `media_id` of The New York Times](#find-the-media_id-of-the-new-york-times)   
-      - [Grab stories by querying stories_public/list](#grab-stories-by-querying-stories_publiclist-1)   
+      - [Grab stories by querying stories_public/list](#grab-stories-by-querying-stories_publiclist)   
    - [Get word counts for top words for sentences matching 'trayvon' in US Mainstream Media during April 2012](#get-word-counts-for-top-words-for-sentences-matching-trayvon-in-us-mainstream-media-during-april-2012)   
-      - [Find the media set](#find-the-media-set)   
+      - [Find the media collection](#find-the-media-collection)   
       - [Make a request for the word counts based on `tags_id_media`, sentence text and date range](#make-a-request-for-the-word-counts-based-on-tags_id_media-sentence-text-and-date-range)   
    - [Get word counts for top words for sentences with the tag `'odd'` in `tag_set = 'ts'`](#get-word-counts-for-top-words-for-sentences-with-the-tag-odd-in-tag_set-ts)   
       - [Find the `tag_sets_id` for `'ts'`](#find-the-tag_sets_id-for-ts)   
@@ -106,7 +112,7 @@
    - [Grab stories from 10 January 2014 with the tag `'foo:bar'`](#grab-stories-from-10-january-2014-with-the-tag-foobar)   
       - [Find the `tag_sets_id` for `'foo'`](#find-the-tag_sets_id-for-foo)   
       - [Find the `tags_id` for `'bar'` given the `tag_sets_id`](#find-the-tags_id-for-bar-given-the-tag_sets_id)   
-   - [Grab stories by querying stories_public/list](#grab-stories-by-querying-stories_publiclist-2)   
+   - [Grab stories by querying stories_public/list](#grab-stories-by-querying-stories_publiclist)   
 
 <!-- /MDTOC -->
 
@@ -114,8 +120,7 @@
 
 ## Authentication
 
-Every call below includes a `key` parameter which will authenticate the user to the API service.  The key parameter is excluded
-from the examples in the below sections for brevity.
+Every call below includes a `key` parameter which will authenticate the user to the API service.  The key parameter is excluded from the examples in the below sections for brevity.
 
 To get a key, register for a user:
 
@@ -210,6 +215,8 @@ Response:
     "url": "http:\/\/nytimes.com",
     "name": "New York Times",
     "media_id": 1,
+    "primary_language": "en",
+    "is_healthy": 1,
     "media_source_tags": [
          {
            "tag_sets_id": 5,
@@ -222,14 +229,98 @@ Response:
            "label": "U.S. Mainstream Media"
          }
     ],
+    "activities": [
+      {
+        "date": "2015-08-12 18:17:35.922523",
+        "field": "name",
+        "new_value": "New York Times",
+        "old_value": "nytimes.com"
+      }
+    ]
   }
 ]
 ```
 
-# Media Health
+## api/v2/media/list/
 
-BETA - The media health feature is in beta.  The fields returned and the definitions of those fields may
-change in the future.
+| URL                 | Function
+| ------------------- | -----------------------------
+| `api/v2/media/list` | Return multiple media sources
+
+### Query Parameters
+
+| Parameter          | Default | Notes
+| ------------------ | ------- | -----------------------------------------------------------------
+| `last_media_id`    | 0       | Return media sources with a `media_id` greater than this value
+| `rows`             | 20      | Number of media sources to return. Cannot be larger than 100
+| `name`             | none    | Name of media source for which to search
+| `name_or_tag` | none | Name of media source or associated tag for which to search PENDING
+| `timespans_id`     | null    | Return media within the given timespan
+| `topic_mode`       | null    | If set to 'live', return media from live topics
+| `tags_id`          | null    | Return media associate with the given tag
+| `q`                | null    | Return media with at least one sentence that matches the solr query
+| `include_dups`     | 0       | Include duplicate media among the results
+| `unhealthy` | none | Only return media that are currently marked as unhealthy (see mediahealth/list) PENDING
+| `similar_media_id` | none | Return media with the most tags in common [PENDING[]
+
+If the name parameter is specified, the call returns only media sources that match a case insensitive search specified value.  If the specified value is less than 3 characters long, the call returns an empty list.  The name_or_tag parameter behaves identically, but it also searches for all media sources that either have a name that matches the search text or that are associated with a tag that matches the search text.
+
+By default, calls that specify a name parameter will only return media that are not duplicates of
+some other media source.  Media Cloud has many media sources that are either subsets of other media sources or are
+just holders for spidered media from a given media source, both of which are marked as duplicate media and are not
+included in the default results.  If the 'include_dups' parameter is set to 1, those duplicate sources will be
+included in the results.
+
+If the `timespans_id` parameter is specified, return media within the given time slice,
+sorted by descending inlink_count within the timespan.  If `topic_mode` is set to
+'live', return media from the live topic stories rather than from the frozen snapshot.
+
+If the 'q' parameter is specified, return only media that include at least on sentence that matches the given
+solr query.  For a description of the solr query format, see the stories\_public/list call.
+
+### Example
+
+URL: https://api.mediacloud.org/api/v2/media/list?last_media_id=1&rows=2
+
+Output format is the same as for api/v2/media/single above.
+
+## api/v2/media/suggestions/submit - POST
+
+| URL                 | Function
+| ------------------- | -----------------------------
+| `api/v2/media/suggestions/submit` | Suggest a media source for Media Cloud to crawl
+
+This api end point allows the user to send a suggest a new media source to the Media Cloud team for regular crawling.
+
+### Input Description
+
+| Field | Description
+|------|------------
+| name | human readable name of media source (optional)
+| url | url of the media source home page (required)
+| feed_url | url of am rss, rdf, or atom  syndication feed for the source
+| reason | reason media source should be added to the system (optional)
+| collections | list of collections to which to add the media source
+
+### Example
+
+URL: https://api.mediacloud.org/api/v2/media/suggestions/submit
+
+Input:
+```json
+{
+  "name": "Cameroon Tribue",
+  "url": "http://www.cameroon-tribune.cm"
+}
+```
+
+Output:
+
+```json
+{ "success": 1 }
+```
+
+# Media Health
 
 The Media Health api call provides information about the health of a media source, meaning to what degree we are
 capturing all of the stories published by that media source.  Media Cloud collects its data via
@@ -320,49 +411,6 @@ Response:
 ```
 
 
-
-## api/v2/media/list/
-
-| URL                 | Function
-| ------------------- | -----------------------------
-| `api/v2/media/list` | Return multiple media sources
-
-### Query Parameters
-
-| Parameter          | Default | Notes
-| ------------------ | ------- | -----------------------------------------------------------------
-| `last_media_id`    | 0       | Return media sources with a `media_id` greater than this value
-| `rows`             | 20      | Number of media sources to return. Cannot be larger than 100
-| `name`             | none    | Name of media source for which to search
-| `timespans_id`     | null    | Return media within the given timespan
-| `topic_mode`       | null    | If set to 'live', return media from live topics
-| `tags_id`          | null    | Return media associate with the given tag
-| `q`                | null    | Return media with at least one sentence that matches the solr query
-| `include_dups`     | 0       | Include duplicate media among the results
-
-
-If the name parameter is specified, the call returns only media sources that match a case insensitive search
-specified value.  If the specified value is less than 3 characters long, the call returns an empty list.
-
-By default, calls that specify a name parameter will only return media that are not duplicates of
-some other media source.  Media Cloud has many media sources that are either subsets of other media sources or are
-just holders for spidered media from a given media source, both of which are marked as duplicate media and are not
-included in the default results.  If the 'include_dups' parameter is set to 1, those duplicate sources will be
-included in the results.
-
-If the `timespans_id` parameter is specified, return media within the given time slice,
-sorted by descending inlink_count within the timespan.  If `topic_mode` is set to
-'live', return media from the live topic stories rather than from the frozen snapshot.
-
-If the 'q' parameter is specified, return only media that include at least on sentence that matches the given
-solr query.  For a description of the solr query format, see the stories\_public/list call.
-
-
-### Example
-
-URL: https://api.mediacloud.org/api/v2/media/list?last_media_id=1&rows=2
-
-Output format is the same as for api/v2/media/single above.
 
 # Feeds
 
@@ -486,16 +534,16 @@ URL: https://api.mediacloud.org/api/v2/stories_public/single/27456565
 
 | Parameter                    | Default                | Notes
 | ---------------------------- | ---------------------- | ------------------------------------------------------------------------------
-| `last_processed_stories_id`  | 0                      | Return stories in which the `processed_stories_id` is greater than this value.
+| `last_processed_stories_id`  | 0  | Return stories in which the `processed_stories_id` is greater than this value.
 | `rows`                       | 20                     | Number of stories to return, max 10,000.
-| `q`                          | null                   | If specified, return only results that match the given Solr query.  Only one `q` parameter may be included.
-| `fq`                         | null                   | If specified, file results by the given Solr query.  More than one `fq` parameter may be included.
+| `feeds_id` | null | Return only stories that match the given feeds_id, sorted my descending publish date PENDING
+
+| `q`  | null  | If specified, return only results that match the given Solr query.  Only one `q` parameter may be included.
+| `fq`             | null    | If specified, file results by the given Solr query.  More than one `fq` parameter may be included.
 | `sort`                       | `processed_stories_id` | Returned results sort order. Supported values: <ul><li><code>processed_stories_id</code> - order results by processed stories ID (ascending);</li><li><code>bitly_click_count</code> - order results by Bit.ly click count (descending).</ul>
 
 
-The `last_processed_stories_id` parameter can be used to page through these results. The API will return stories with a
-`processed_stories_id` greater than this value.  To get a continuous stream of stories as they are processed by Media Cloud,
-the user must make a series of calls to api/v2/stories_public/list in which `last_processed_stories_id` for each
+The `last_processed_stories_id` parameter can be used to page through these results. The API will return stories with a`processed_stories_id` greater than this value.  To get a continuous stream of stories as they are processed by Media Cloud, the user must make a series of calls to api/v2/stories_public/list in which `last_processed_stories_id` for each
 call is set to the `processed_stories_id` of the last story in the previous call to the API.  A single call can only
 return up to 10,000 results, but you can get the full list of results by paging through the full list using
 `last_processed_stories_id`.
@@ -726,7 +774,7 @@ URL: https://api.mediacloud.org/api/v2/sentences/count?q=sentence:africa+AND+tag
     "start": "2014-01-01T00:00:00Z",
     }
 }
-````
+​````
 
 ## api/v2/sentences/field\_count
 
@@ -770,7 +818,7 @@ Gets the tag counts for all sentences containing the word `'obama'` in The New Y
 
 URL:  https://api.mediacloud.org/api/v2/sentences/field_count?q=obama+AND+media_id:1
 
-```json
+​```json
 [
     {
         "count": "68",
@@ -1022,6 +1070,8 @@ Response:
 | `public`        | none       | If public=1, return only public tags (see below)
 | `search`        | none       | Search for tags by text (see below)
 
+| `similar_tags_id` |  none |  return list of tags with a similar
+
 If set to 1, the public parameter will return only tags that are generally useful for public consumption.  Those
 tags are defined as tags for which show_on_media or show_on_stories is set to true for either the tag
 or the tag's parent tag_set.  As described below in tags/single, a public tag can be usefully searched
@@ -1108,11 +1158,7 @@ URL: https://api.mediacloud.org/api/v2/tag_sets/list
 
 # Topics
 
-Topics are collections of stories within some date range that match some pattern
-indicating that they belong to some topic.  Topics both stories matched from
-crawled Media Cloud content and stories discovered by spidering out from the links of
-those matched stories. For more information about topics and how they are generated,
-see:
+Topics are collections of stories within some date range that match some pattern indicating that they belong to some topic.  Topics both stories matched from crawled Media Cloud content and stories discovered by spidering out from the links of those matched stories. For more information about topics and how they are generated, see:
 
 http://cyber.law.harvard.edu/publications/2013/social_mobilization_and_the_networked_public_sphere
 
@@ -1279,6 +1325,71 @@ Response:
 ### Example
 
 URL: https://api.mediacloud.org/api/v2/timespans/list?snapshots_id=5
+
+# Users
+
+## api/v2/users/profile PENDING
+
+| URL                     | Function
+| ----------------------- | -----------------
+| `api/v2/users/profile` | Return profile information about the requesting user
+
+### Query Parameters
+
+( none )
+
+### Output Description
+
+Returns basic profile information about the current user.  Includes a list of  authentication roles for the user that give the user permission to access various parts of the backend web interface and some of the private api functionality (that for example allow editing and administration of Media Cloud's sources).
+
+### Example
+
+URL: https://api.mediacloud.org/api/v2/users/profile
+
+```json
+{
+  "email": "hroberts@cyber.law.harvard.edu",
+  "auth_userS_id": 1,
+  "full_name": "Hal Roberts",
+  "notes": "Media Cloud Geek"
+  "non_public_api": 1,
+  "created_date": "2014-12-10 13:36:29.537007",
+  "auth_roles":
+  [
+  	"media-edit",
+  	"stories-edit"
+  ]
+}
+```
+
+# Stats
+
+## api/v2/stats PENDING
+
+| URL                     | Function
+| ----------------------- | -----------------
+| `api/v2/stats` | Return basic summary stats about total sources, stories, feeds, etc processed by Media Cloud
+
+### Query Parameters
+
+( none )
+
+### Example
+
+URL: https://api.mediacloud.org/api/v2/stats
+
+```json
+{
+	"total_media":  311963,
+  	"total_stories": 516145344,
+  	"total_downloads": 941078656,
+    "total_sentences": 6899028480,
+  	"active_crawled_media": 123,
+  	"active_crawled_feeds": 123,
+    "daily_stories": 123,
+  	"daily_downloads": 123,
+}
+```
 
 # Extended Examples
 
