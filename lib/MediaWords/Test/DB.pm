@@ -208,6 +208,30 @@ sub create_test_story_stack
     return $media;
 }
 
+# call create_test_story_stack with $num_media, num_feeds_per_medium, $num_stories_per_feed instead of
+# explicit hash as described above
+sub create_test_story_stack_numerated($$$$)
+{
+    my ( $db, $num_media, $num_feeds_per_medium, $num_stories_per_feed ) = @_;
+
+    my $feed_index  = 0;
+    my $story_index = 0;
+
+    my $def = {};
+    for my $i ( 0 .. $num_media - 1 )
+    {
+        my $feeds = {};
+        $def->{ "media_$i" } = $feeds;
+
+        for my $j ( 0 .. $num_feeds_per_medium - 1 )
+        {
+            $feeds->{ "feed_" . $feed_index++ } = [ map { "story_" . $story_index++ } ( 0 .. $num_stories_per_feed - 1 ) ];
+        }
+    }
+
+    return create_test_story_stack( $db, $def );
+}
+
 # generated 1 - 10 paragraphs of 1 - 5 sentences of ipsem lorem.
 sub get_test_content
 {
