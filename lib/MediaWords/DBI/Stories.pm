@@ -1202,7 +1202,8 @@ sub get_story_word_matrix($$;$$)
     return ( $word_matrix, $word_list );
 }
 
-# if the story is new, add story to the database with the feed of the download as story feed
+# If the story is new, add story to the database with the feed of the download as story feed.
+# Returns created story or undef if story wasn't created.
 sub _add_story_using_parent_download
 {
     my ( $db, $story, $parent_download ) = @_;
@@ -1212,7 +1213,7 @@ sub _add_story_using_parent_download
     unless ( is_new( $db, $story ) )
     {
         $db->commit;
-        return;
+        return undef;
     }
 
     my $medium = $db->find_by_id( 'media', $story->{ media_id } );
@@ -1233,7 +1234,7 @@ sub _add_story_using_parent_download
         if ( $@ =~ /unique constraint \"stories_guid/ )
         {
             WARN "Failed to add story for '." . $story->{ url } . "' to guid conflict ( guid =  '" . $story->{ guid } . "')";
-            return;
+            return undef;
         }
         else
         {
