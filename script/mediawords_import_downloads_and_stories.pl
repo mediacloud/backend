@@ -206,7 +206,8 @@ sub import_downloads
 
             delete( $story_hash->{ stories_id } );
 
-            my $db_story = MediaWords::DBI::Stories::_add_story_using_parent_download( $db, $story_hash, $db_download );
+            my $db_story =
+              MediaWords::DBI::Stories::_add_story_using_parent_download( $db, $story_hash, $db_download->{ feeds_id } );
 
             LOGCONFESS "Story not created for object " . Dumper( $story_hash ) unless defined( $db_story ) and $db_story;
 
