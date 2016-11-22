@@ -194,7 +194,6 @@ Response:
     "media_id": 1,
     "primary_language": "en",
     "is_healthy": 1,
-    "feed_scrape_status": "complete",
     "media_source_tags": [
          {
            "tag_sets_id": 5,
@@ -214,17 +213,7 @@ Response:
         "new_value": "New York Times",
         "old_value": "nytimes.com"
       }
-    ],
-    "suggestion": {
-      "media_suggestions_id": 1,
-      "status": "approved",
-      "reason": "all the news that's fit to print",
-      "media_id": 1,
-      "user": "hroberts@cyber.law.harvard.edu",
-      "mark_reason": "good suggestion",
-      "date_submitted": "2008-01-01",
-      "date_marked": "2008-01-05"
-    }
+    ]
   }
 ]
 ```
@@ -1319,13 +1308,13 @@ Response:
 
 URL: https://api.mediacloud.org/api/v2/timespans/list?snapshots_id=5
 
-# Users
+# Auth
 
-## api/v2/users/profile PENDING
+## api/v2/auth/profile PENDING
 
 | URL                     | Function
 | ----------------------- | -----------------
-| `api/v2/users/profile` | Return profile information about the requesting user
+| `api/v2/auth/profile` | Return profile information about the requesting user
 
 ### Query Parameters
 
@@ -1335,14 +1324,27 @@ URL: https://api.mediacloud.org/api/v2/timespans/list?snapshots_id=5
 
 Returns basic profile information about the current user.  Includes a list of  authentication roles for the user that give the user permission to access various parts of the backend web interface and some of the private api functionality (that for example allow editing and administration of Media Cloud's sources).
 
+Media Cloud currently includes the following authentication roles:
+
+| Role | Permission Gratned |
+|-|-|
+| admin | read and write every resource |
+| admin-readonly | read every resource |
+| media-edit | edit media sources |
+| stories-edit | edit stories |
+| search | access core.mediacloud.org/search page |
+| tm | access legacy topic mapper web interface |
+| tm-readonly | access legacy topic mapper web interface with editing privileges |
+
+
 ### Example
 
-URL: https://api.mediacloud.org/api/v2/users/profile
+URL: https://api.mediacloud.org/api/v2/auth/profile
 
 ```json
 {
   "email": "hroberts@cyber.law.harvard.edu",
-  "auth_userS_id": 1,
+  "auth_users_id": 1,
   "full_name": "Hal Roberts",
   "notes": "Media Cloud Geek"
   "non_public_api": 1,
