@@ -14,7 +14,6 @@ use MediaWords::Util::Web;
 use Data::Dumper;
 use Domain::PublicSuffix;
 use Encode;
-use Feed::Find;
 use HTML::Entities;
 use HTML::Entities;
 use HTML::LinkExtractor;
