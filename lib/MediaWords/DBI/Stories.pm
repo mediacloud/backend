@@ -1204,7 +1204,7 @@ sub get_story_word_matrix($$;$$)
 
 # If the story is new, add story to the database with the feed of the download as story feed.
 # Returns created story or undef if story wasn't created.
-sub _add_story_using_parent_download($$$)
+sub add_story($$$)
 {
     my ( $db, $story, $feeds_id ) = @_;
 
@@ -1260,7 +1260,7 @@ sub add_story_and_content_download
 {
     my ( $db, $story, $parent_download ) = @_;
 
-    $story = _add_story_using_parent_download( $db, $story, $parent_download->{ feeds_id } );
+    $story = add_story( $db, $story, $parent_download->{ feeds_id } );
 
     if ( defined( $story ) )
     {
