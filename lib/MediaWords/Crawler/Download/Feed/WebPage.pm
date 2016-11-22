@@ -24,29 +24,22 @@ sub add_stories_from_feed($$$$)
 {
     my ( $self, $db, $download, $decoded_content ) = @_;
 
-    my $feed = $db->find_by_id( 'feeds', $download->{ feeds_id } );
+    my $feeds_id = $download->{ feeds_id };
+
+    my $feed = $db->find_by_id( 'feeds', $feeds_id );
 
     my $title = MediaWords::Util::HTML::html_title( $decoded_content, '(no title)' );
     my $guid = substr( time . ":" . $download->{ url }, 0, 1024 );
 
-    my $story = $db->create(
-        'stories',
-        {
-            url          => $download->{ url },
-            guid         => $guid,
-            media_id     => $feed->{ media_id },
-            publish_date => MediaWords::Util::SQL::sql_now,
-            title        => $title
-        }
-    );
+    my $story = {
+        url          => $download->{ url },
+        guid         => $guid,
+        media_id     => $feed->{ media_id },
+        publish_date => MediaWords::Util::SQL::sql_now,
+        title        => $title,
+    };
 
-    $db->find_or_create(
-        'feeds_stories_map',
-        {
-            stories_id => $story->{ stories_id },
-            feeds_id   => $feed->{ feeds_id }
-        }
-    );
+    $story = MediaWords::DBI::Stories::add_story( $db, $story, $feeds_id );
 
     $db->query(
         <<SQL,
@@ -60,7 +53,7 @@ SQL
     );
 
     # A webpage that was just fetched is also a story
-    my $story_ids = [ $download->{ stories_id } ];
+    my $story_ids = [ $story->{ stories_id } ];
     return $story_ids;
 }
 
