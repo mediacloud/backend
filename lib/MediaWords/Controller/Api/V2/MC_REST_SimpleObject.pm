@@ -69,7 +69,7 @@ sub _purge_non_permissible_fields
     my $new_obj = {};
     for my $field ( @{ $self->permissible_output_fields } )
     {
-        $new_obj->{ $field } = $obj->{ $field } if ( defined( $obj->{ $field } ) );
+        $new_obj->{ $field } = $obj->{ $field };
     }
 
     return $new_obj;
