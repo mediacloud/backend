@@ -42,15 +42,6 @@ sub stem
     return $self->_stem_with_lingua_stem_snowball( 'ro', 'UTF-8', \@_ );
 }
 
-sub get_word_length_limit
-{
-    my $self = shift;
-
-    # The 44-letter word pneumonoultramicroscopicsilicovolcaniconioză is the longest word.
-    # It is a substantive referring to a disease.
-    return 44;
-}
-
 sub get_sentences
 {
     my ( $self, $story_text ) = @_;

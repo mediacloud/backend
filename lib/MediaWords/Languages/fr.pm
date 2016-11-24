@@ -42,16 +42,6 @@ sub stem
     return $self->_stem_with_lingua_stem_snowball( 'fr', 'UTF-8', \@_ );
 }
 
-sub get_word_length_limit
-{
-    my $self = shift;
-
-    # The longest usual word in French is anticonstitutionnellement (25 letters), meaning
-    # "anticonstitutionally" (in a way which is not conforming to the constitution).[10]
-    # (http://en.wikipedia.org/wiki/Longest_words#French)
-    return 25;
-}
-
 sub get_sentences
 {
     my ( $self, $story_text ) = @_;

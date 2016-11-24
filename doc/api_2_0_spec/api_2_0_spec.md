@@ -6,6 +6,7 @@
    - [Request Limits](#request-limits)   
    - [Python Client](#python-client)   
    - [API URLs](#api-urls)   
+   - [Supported Languages](#supported-languages)
    - [Errors](#errors)   
    - [Request Limits](#request-limits)   
 - [Media](#media)   
@@ -148,6 +149,28 @@ available [here]( https://github.com/c4fcm/MediaCloud-API-Client ).
 ## API URLs
 
 *Note:* by default the API only returns a subset of the available fields in returned objects. The returned fields are those that we consider to be the most relevant to users of the API. If the `all_fields` parameter is provided and is non-zero, then a more complete list of fields will be returned. For space reasons, we do not list the `all_fields` parameter on individual API descriptions.
+
+## Supported Languages
+
+The following language are supported (by 2 letter language code):
+
+* `da` (Danish)
+* `de` (German)
+* `en` (English)
+* `es` (Spanish)
+* `fi` (Finnish)
+* `fr` (French)
+* `hi` (Hindi)
+* `hu` (Hungarian)
+* `it` (Italian)
+* `lt` (Lithuanian)
+* `nl` (Dutch)
+* `no` (Norwegian)
+* `pt` (Portuguese)
+* `ro` (Romanian)
+* `ru` (Russian)
+* `sv` (Swedish)
+* `tr` (Turkish)
 
 ## Errors
 
@@ -509,15 +532,16 @@ URL: https://api.mediacloud.org/api/v2/stories_public/single/27456565
 
 ### Query Parameters
 
-| Parameter                    | Default                | Notes
-| ---------------------------- | ---------------------- | ------------------------------------------------------------------------------
-| `last_processed_stories_id`  | 0  | Return stories in which the `processed_stories_id` is greater than this value.
-| `rows`                       | 20                     | Number of stories to return, max 10,000.
-| `feeds_id` | null | Return only stories that match the given feeds_id, sorted my descending publish date PENDING
+| Parameter                    | Default                | Notes |
+| ---------------------------- | ---------------------- | ------------------------------------------------------------------------------|
+| `last_processed_stories_id`  | 0  | Return stories in which the `processed_stories_id` is greater than this value. |
+| `rows`                       | 20                     | Number of stories to return, max 10,000. |
+| `feeds_id` | null | Return only stories that match the given feeds_id, sorted my descending publish date PENDING |
 
-| `q`  | null  | If specified, return only results that match the given Solr query.  Only one `q` parameter may be included.
-| `fq`             | null    | If specified, file results by the given Solr query.  More than one `fq` parameter may be included.
-| `sort`                       | `processed_stories_id` | Returned results sort order. Supported values: <ul><li><code>processed_stories_id</code> - order results by processed stories ID (ascending);</li><li><code>bitly_click_count</code> - order results by Bit.ly click count (descending).</ul>
+| `q`  | null  | If specified, return only results that match the given Solr query.  Only one `q` parameter may be included. |
+| `fq`             | null    | If specified, file results by the given Solr query.  More than one `fq` parameter may be included. |
+| `sort`                       | `processed_stories_id` | Returned results sort order. Supported values: <ul><li><code>processed_stories_id</code> - order results by processed stories ID (ascending);</li><li><code>bitly_click_count</code> - order results by Bit.ly click count (descending).</ul> |
+| `wc` | 0 | if set to 1, include a 'word_count' field with each story that includes a count of the most common words in the story |
 
 
 The `last_processed_stories_id` parameter can be used to page through these results. The API will return stories with a`processed_stories_id` greater than this value.  To get a continuous stream of stories as they are processed by Media Cloud, the user must make a series of calls to api/v2/stories_public/list in which `last_processed_stories_id` for each
@@ -634,9 +658,7 @@ The q and fq parameters are passed directly through to Solr (see description of 
 api/v2/stories_public/list section above).
 
 If stopword_length is specified, eliminate the 'tiny', 'short', or 'long' list of stopwords from the results, if the
-system has stopwords for the language of each story.  Media Cloud currently supports these languages: Danish, German,
-English, Spanish, Finnish, French, Hungarian, Italian, Lithuanian, Dutch, Norwegian, Portuguese, Romanian, Russian,
-Swedish, Turkish.
+system has stopwords for the language of each story. See [Supported Languages](#supported-languages) for a list of supported languages and their codes.
 
 ### Output Description
 
@@ -862,10 +884,7 @@ by the language code for each language.  This sequential stemming is likely to i
 results.  If you want results in only a single language, include a `language:<code>` (for instance `language:en`)
 clause in your query to ensure only sentences of that language are returned.
 
-The following language are supported (by 2 letter language code):
-'da' (Danish), 'de' (German), 'en' (English), 'es' (Spanish), 'fi' (Finnish), 'fr' (French),
-'hu' (Hungarian), 'it' (Italian), 'lt' (Lithuanian), 'nl' (Dutch), 'no' (Norwegian), 'pt' (Portuguese),
-'ro' (Romanian), 'ru' (Russian), 'sv' (Swedish), 'tr' (Turkish).
+See [Supported Languages](#supported-languages) for a list of supported languages and their codes.
 
 Setting the 'stats' field to true changes the structure of the response, as shown in the example below.
 Following fields are included in the stats response:

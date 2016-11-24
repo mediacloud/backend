@@ -42,20 +42,6 @@ sub stem
     return $self->_stem_with_lingua_stem_snowball( 'sv', 'UTF-8', \@_ );
 }
 
-sub get_word_length_limit
-{
-    my $self = shift;
-
-# The longest word in the Swedish language, according to Guinness World Records, is
-# Nordöstersjökustartilleriflygspaningssimulatoranläggningsmaterielunderhållsuppföljningssystemdiskussionsinläggsförberedelsearbeten
-# (130 letters). It means "Northern Baltic Sea Coast Artillery Reconnaissance Flight
-# Simulator Facility Equipment Maintenance Follow-Up System Discussion Post Preparation
-# Work(s)." Since compound words are written together to form entirely new words, the
-# "longest one" could be arbitrarily long.
-# (http://en.wikipedia.org/wiki/Longest_words#Swedish)
-    return 130;
-}
-
 sub get_sentences
 {
     my ( $self, $story_text ) = @_;

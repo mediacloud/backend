@@ -18,7 +18,7 @@ package MediaWords::Job::TM::MineTopic;
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/mjm_worker.pl lib/MediaWords/Job/TM/Minetopic.pm
+# ./script/run_with_carton.sh local/bin/mjm_worker.pl lib/MediaWords/Job/TM/MineTopic.pm
 #
 
 use strict;

@@ -34,6 +34,7 @@ my @_enabled_languages = (
     'es',    # Spanish
     'fi',    # Finnish
     'fr',    # French
+    'hi',    # Hindi
     'hu',    # Hungarian
     'it',    # Italian
     'lt',    # Lithuanian
@@ -99,9 +100,6 @@ requires 'fetch_and_return_long_stop_words';
 #   }
 #
 requires 'stem';
-
-# Returns a word length limit of a language (0 -- no limit)
-requires 'get_word_length_limit';
 
 # Returns a list of sentences from a story text (tokenizes text into sentences)
 requires 'get_sentences';
@@ -346,7 +344,7 @@ sub get_long_stop_word_stems
 }
 
 # return stop word stems of $length 'tiny', 'short', or 'long'.  die if the $length is unsupported
-sub get_stop_word_stems($)
+sub get_stop_word_stems($$)
 {
     my ( $self, $length ) = @_;
 
