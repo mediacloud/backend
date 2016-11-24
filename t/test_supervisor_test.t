@@ -27,9 +27,10 @@ sub test_supervisor
 
     # using goofy ps list as a way to check for running processes that doesn't use supervisor
     my $ps_list = `ps aux`;
-    for my $process_match ( qw/ExtractAndVector MineTopic erlang.*rabbitmq_server java.*solr/ )
+    my @processes_to_test = ( qr/ExtractAndVector/, qr/MineTopic/, qr/beam\.smp.*rabbitmq/, qr/java.*solr/, );
+    for my $process_regex ( @processes_to_test )
     {
-        ok( $ps_list =~ /$process_match/, "process match: $process_match" );
+        like( $ps_list, $process_regex, "process match: $process_regex" );
     }
 }
 

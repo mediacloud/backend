@@ -4,7 +4,7 @@ use warnings;
 use utf8;
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 5;
+use Test::More tests => 4;
 
 use Readonly;
 use Data::Dumper;
@@ -30,12 +30,6 @@ sub test_get_original_url_from_momento_archive_url()
         ),
         qr|^http://(www\.)?john\-daly\.com/hockey/hockey\.htm$|,
         'archive.org test '
-    );
-
-    like(
-        MediaWords::Util::Web::get_original_url_from_momento_archive_url( 'https://archive.is/1Zcql' ),
-        qr|^https?://www\.whitehouse\.gov/my2k/?$|,
-        'archive.is test'
     );
 }
 
