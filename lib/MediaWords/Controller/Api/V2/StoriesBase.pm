@@ -320,8 +320,6 @@ EOF
     )->hashes;
     MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $bitly_click_data );
 
-    DEBUG( "SHOW WC: $self->{ show_wc }" );
-
     _attach_word_counts_to_stories( $db, $stories ) if ( $self->{ show_wc } );
 
     return $stories;

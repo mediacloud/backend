@@ -66,11 +66,11 @@ sub _purge_non_permissible_fields
 {
     my ( $self, $obj ) = @_;
 
-    my $object_fields = keys %{ $obj };
-
-    my $permissible_output_fields = $self->permissible_output_fields();
-
-    my $new_obj = { map { $_ => $obj->{ $_ } } @$permissible_output_fields };
+    my $new_obj = {};
+    for my $field ( @{ $self->permissible_output_fields } )
+    {
+        $new_obj->{ $field } = $obj->{ $field };
+    }
 
     return $new_obj;
 }
