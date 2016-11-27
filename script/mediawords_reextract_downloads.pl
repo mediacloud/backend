@@ -31,10 +31,10 @@ use MIME::Base64;
 
 sub queue_extraction($$)
 {
-    my ( $db, $downloads_id ) = @_;
+    my ( $db, $stories_id ) = @_;
 
     my $args = {
-        downloads_id            => $downloads_id,
+        stories_id              => $stories_id,
         skip_bitly_processing   => 0,
         skip_corenlp_annotation => 0,
         use_cache               => 1
@@ -63,43 +63,42 @@ sub main
         die( "must specify one of either --file, --download_ids, --query, or --unextracted" );
     }
 
-    my $downloads_ids;
+    my $stories_ids;
 
     my $db = MediaWords::DB::connect_to_db;
 
     if ( scalar( @{ $download_ids } ) )
     {
         my $ids = $db->get_temporary_ids_table( $download_ids );
-        $downloads_ids =
-          $db->query( "SELECT downloads_id from downloads where downloads_id in ( select id from $ids )" )->flat;
+        $stories_ids = $db->query( "SELECT stories_id from downloads where downloads_id in ( select id from $ids )" )->flat;
     }
     elsif ( $file )
     {
         open( DOWNLOAD_ID_FILE, $file ) || die( "Could not open file: $file" );
         $download_ids = [ map { chomp( $_ ); $_ } <DOWNLOAD_ID_FILE> ];
         my $ids = $db->get_temporary_ids_table( $download_ids );
-        $downloads_ids =
-          $db->query( "SELECT downloads_id from downloads where downloads_id in ( select id from $ids )" )->flat;
+        $stories_ids = $db->query( "SELECT stories_id from downloads where downloads_id in ( select id from $ids )" )->flat;
     }
     elsif ( $query )
     {
-        $downloads_ids = $db->query( $query )->flat;
+        $stories_ids = $db->query( $query )->flat;
     }
     elsif ( $unextracted )
     {
-        $downloads_ids = $db->query(
-            "select downloads_id from downloads where state = 'success' and type = 'content' and extracted = false" )->flat;
+        $stories_ids =
+          $db->query( "select stories_id from downloads where state = 'success' and type = 'content' and extracted = false" )
+          ->flat;
     }
     else
     {
         die "must specify file or downloads id";
     }
 
-    die 'no downloads found' unless scalar( @{ $downloads_ids } );
+    die 'no downloads found' unless scalar( @{ $stories_ids } );
 
-    DEBUG "queueing " . scalar( @{ $downloads_ids } ) . ' downloads for extraction ...';
+    DEBUG "queueing " . scalar( @{ $stories_ids } ) . ' stories for extraction ...';
 
-    map { queue_extraction( $db, $_ ) } @{ $downloads_ids };
+    map { queue_extraction( $db, $_ ) } @{ $stories_ids };
 }
 
 main();
