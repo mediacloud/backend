@@ -60,7 +60,9 @@ sub serialize_json
 {
     my ( $data ) = @_;
 
-    return JSON->new->utf8->convert_blessed->canonical->canonical->encode( $data );
+    my $json = JSON->new->utf8->convert_blessed->canonical->canonical->encode( $data );
+
+    return $json;
 }
 
 # custom function to deserialize json because catalyst ignores the documents json_options config
@@ -68,7 +70,13 @@ sub deserialize_json
 {
     my ( $json ) = @_;
 
-    return JSON->decode( $json );
+    my $data = eval { JSON->new->decode( $json ) };
+    if ( $@ )
+    {
+        die( "error decoding json: $json" );
+    }
+
+    return $data;
 }
 
 sub serialize : ActionClass('Serialize')
