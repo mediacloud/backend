@@ -2831,16 +2831,21 @@ insert into topic_links ( topics_id, stories_id, url, redirect_url, ref_stories_
                 a.stories_id <> b.stories_id and
                 a.twitter_topics_id = \$1
             group by a.stories_id, b.stories_id, a.twitter_user
-            having count(*) >= $TWITTER_COSHARE_THRESHOLD
-    )
+    ),
 
-    select
-            distinct \$1, cs.stories_id_a, cs.url, cs.url, cs.stories_id_b, true
-        from coshared_stories cs
+    coshared_links_threshold as (
+        select cs.stories_id_a, min( cs.url) url, cs.stories_id_b
+            from coshared_links cs
+            group by cs.stories_id_a, cs.stories_id_b
+            having count(*) >= $TWITTER_COSHARE_THRESHOLD
+        )
+
+    select distinct \$1, cs.stories_id_a, cs.url, cs.url, cs.stories_id_b, true
+        from coshared_links_threshold cs
             left join topic_links tl on
-                ( tl.topics_id = a.twitter_topics_id and
-                    tl.stories_id = a.stories_id and
-                    tl.ref_stories_id = b.stories_id )
+                ( tl.topics_id = \$1 and
+                    tl.stories_id = cs.stories_id_a and
+                    tl.ref_stories_id = cs.stories_id_b )
         where
             tl.topic_links_id is null
 SQL
