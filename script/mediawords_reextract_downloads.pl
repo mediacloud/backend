@@ -29,84 +29,76 @@ use Digest::SHA qw(sha1 sha1_hex sha1_base64);
 use Encode;
 use MIME::Base64;
 
-#use XML::LibXML::Enhanced;
-
-my $_re_generate_cache = 0;
-
-sub reextract_downloads
+sub queue_extraction($$)
 {
+    my ( $db, $stories_id ) = @_;
 
-    my $downloads = shift;
+    my $args = {
+        stories_id              => $stories_id,
+        skip_bitly_processing   => 0,
+        skip_corenlp_annotation => 0,
+        use_cache               => 1
+    };
 
-    my @downloads = @{ $downloads };
-
-    INFO "Starting reextract_downloads";
-
-    @downloads = sort { $a->{ downloads_id } <=> $b->{ downloads_id } } @downloads;
-
-    my $download_results = [];
-
-    my $dbs = MediaWords::DB::connect_to_db;
-
-    for my $download ( @downloads )
-    {
-        die "Non-content type download: $download->{ downloads_id } $download->{ type } "
-          unless $download->{ type } eq 'content';
-
-        INFO "Processing download $download->{downloads_id}";
-
-        MediaWords::DBI::Downloads::process_download_for_extractor( $dbs, $download );
-    }
+    my $priority = $MediaCloud::JobManager::Job::MJM_JOB_PRIORITY_LOW;
+    MediaWords::Job::ExtractAndVector->add_to_queue( $args, $priority );
 }
 
 # do a test run of the text extractor
 sub main
 {
+    my ( $file, $download_ids, $unextracted, $query );
 
-    my $dbs = MediaWords::DB::connect_to_db;
-
-    my $file;
-    my @download_ids;
+    $download_ids = [];
 
     GetOptions(
-        'file|f=s'                  => \$file,
-        'downloads|d=s'             => \@download_ids,
-        'regenerate_database_cache' => \$_re_generate_cache,
+        'file|f=s'      => \$file,
+        'downloads|d=s' => $download_ids,
+        'query|q=s'     => \$query,
+        'unextracted!'  => \$unextracted
     ) or die;
 
-    unless ( $file || ( @download_ids ) )
+    unless ( $file || $download_ids || $query || $unextracted )
     {
-        die "no options given ";
+        die( "must specify one of either --file, --download_ids, --query, or --unextracted" );
     }
 
-    my $downloads;
+    my $stories_ids;
 
-    DEBUG join( ', ', @download_ids );
+    my $db = MediaWords::DB::connect_to_db;
 
-    if ( @download_ids )
+    if ( scalar( @{ $download_ids } ) )
     {
-        $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
+        my $ids = $db->get_temporary_ids_table( $download_ids );
+        $stories_ids = $db->query( "SELECT stories_id from downloads where downloads_id in ( select id from $ids )" )->flat;
     }
     elsif ( $file )
     {
         open( DOWNLOAD_ID_FILE, $file ) || die( "Could not open file: $file" );
-        @download_ids = <DOWNLOAD_ID_FILE>;
-        $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
+        $download_ids = [ map { chomp( $_ ); $_ } <DOWNLOAD_ID_FILE> ];
+        my $ids = $db->get_temporary_ids_table( $download_ids );
+        $stories_ids = $db->query( "SELECT stories_id from downloads where downloads_id in ( select id from $ids )" )->flat;
+    }
+    elsif ( $query )
+    {
+        $stories_ids = $db->query( $query )->flat;
+    }
+    elsif ( $unextracted )
+    {
+        $stories_ids =
+          $db->query( "select stories_id from downloads where state = 'success' and type = 'content' and extracted = false" )
+          ->flat;
     }
     else
     {
         die "must specify file or downloads id";
     }
 
-    DEBUG Dumper( $downloads );
+    die 'no downloads found' unless scalar( @{ $stories_ids } );
 
-    die 'no downloads found ' unless scalar( @$downloads );
+    DEBUG "queueing " . scalar( @{ $stories_ids } ) . ' stories for extraction ...';
 
-    DEBUG scalar( @$downloads ) . ' downloads';
-
-    reextract_downloads( $downloads );
-
-    INFO "completed extraction";
+    map { queue_extraction( $db, $_ ) } @{ $stories_ids };
 }
 
 main();

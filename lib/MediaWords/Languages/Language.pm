@@ -192,6 +192,8 @@ sub language_is_enabled($)
 {
     my $language_code = shift;
 
+    return 0 unless $language_code;
+
     if ( exists $_lang_instances->{ $language_code } )
     {
         return 1;
