@@ -121,8 +121,6 @@ select ar.role
     order by auth_roles_id
 SQL
 
-    DEBUG( Dumper( $profile ) );
-
     return $self->status_ok( $c, entity => $profile );
 }
 
