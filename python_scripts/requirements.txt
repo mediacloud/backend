@@ -5,6 +5,7 @@ choice
 cssselect
 dateutils
 flask
+hausastemmer
 ipdb
 ipython
 joblib
