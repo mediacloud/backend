@@ -705,7 +705,8 @@ sub add_user_or_return_error_message($$$$$$$$$;$$)
         $weekly_requests_limit, $weekly_requested_items_limit )
       = @_;
 
-    INFO "Creating user with email: $email, full name: $full_name, notes: $notes, role IDs: " . Dumper( $role_ids ) .
+    INFO "Creating user with email: $email, full name: $full_name, notes: $notes, role IDs: " .
+      join( ',', @{ $role_ids } ) .
       ", is active: $is_active, non_public_api_access: $non_public_api_access, weekly_requests_limit: " .
       ( defined $weekly_requests_limit ? $weekly_requests_limit : 'default' ) . ', weekly requested items limit: ' .
       ( defined $weekly_requested_items_limit ? $weekly_requested_items_limit : 'default' );
