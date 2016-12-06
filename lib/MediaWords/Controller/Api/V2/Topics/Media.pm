@@ -35,45 +35,6 @@ sub list : Chained('media') : Args(0) : ActionClass('MC_REST')
 
 }
 
-# if topic_timespans_id is specified, create a temporary
-# table with the media name that supercedes the normal media table
-# but includes only media in the given topic timespan and
-# has the topic metric data
-sub _create_topic_media_table
-{
-    my ( $self, $c, $timespans_id ) = @_;
-
-    # my $timespan_mode = $c->req->params->{ topic_mode } || '';
-
-    return unless ( $timespans_id );
-
-    $self->{ topic_media } = 1;
-
-    # my $live = $timespan_mode eq 'live' ? 1 : 0;
-
-    my $db = $c->dbis;
-
-    my $timespan = $db->find_by_id( 'timespans', $timespans_id )
-      || die( "Unable to find timespan with id '$timespans_id'" );
-
-    my $topic = $db->query( <<END, $timespan->{ snapshots_id } )->hash;
-select * from topics where topics_id in (
-    select topics_id from snapshots where snapshots_id = ? )
-END
-
-    $db->begin;
-
-    MediaWords::TM::Snapshot::setup_temporary_snapshot_tables( $db, $timespan, $topic, 0 );
-
-    $db->query( <<END );
-create temporary table media as
-    select m.name, m.url, mlc.*
-        from snapshot_media m join snapshot_medium_link_counts mlc on ( m.media_id = mlc.media_id )
-END
-
-    $db->commit;
-}
-
 # get any where clauses for media_id, link_to_stories_id, link_from_stories_id, stories_id params
 sub _get_extra_where_clause($$)
 {
