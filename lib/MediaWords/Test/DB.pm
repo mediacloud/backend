@@ -297,6 +297,8 @@ sub add_content_to_test_story_stack($$)
 {
     my ( $db, $story_stack ) = @_;
 
+    DEBUG( "adding content to test story stack ..." );
+
     for my $medium ( values( %{ $story_stack } ) )
     {
         for my $feed ( values( %{ $medium->{ feeds } } ) )
