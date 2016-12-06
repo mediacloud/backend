@@ -167,7 +167,7 @@ sub _set_last_num_found
         $_last_num_found = undef;
     }
 
-    DEBUG( ( $_last_num_found ? $_last_num_found : 0 ) . " matches found." );
+    TRACE( ( $_last_num_found ? $_last_num_found : 0 ) . " matches found." );
 
 }
 
