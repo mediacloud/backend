@@ -34,6 +34,7 @@ my @_enabled_languages = (
     'es',    # Spanish
     'fi',    # Finnish
     'fr',    # French
+    'ha',    # Hausa
     'hi',    # Hindi
     'hu',    # Hungarian
     'it',    # Italian
