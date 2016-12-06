@@ -225,7 +225,7 @@ sub _add_missing_media_from_urls
 
 # add a feed with the given url to the medium if the feed does not already exist and
 # if the feed validates
-sub _add_feed_url_to_medium
+sub add_feed_url_to_medium
 {
     my ( $db, $medium, $feed_url ) = @_;
 
@@ -268,7 +268,7 @@ sub _add_media_tags_and_feeds_from_strings
                 if ( $item =~ /^https?\:/i )
                 {
                     DEBUG "add feed: $item";
-                    _add_feed_url_to_medium( $dbis, $url_medium->{ medium }, $item );
+                    add_feed_url_to_medium( $dbis, $url_medium->{ medium }, $item );
                 }
                 else
                 {
