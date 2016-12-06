@@ -60,7 +60,7 @@ MC_SOLR_CLUSTER_JVM_OPTS = [
 # ---
 
 # ZooKeeper version to install and use
-MC_ZOOKEEPER_VERSION = "3.4.8"
+MC_ZOOKEEPER_VERSION = "3.4.9"
 
 # Default ZooKeeper host to bind to, e.g. "localhost"
 MC_ZOOKEEPER_LISTEN = "0.0.0.0"
