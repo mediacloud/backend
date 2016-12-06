@@ -5,13 +5,20 @@ use MediaWords::CommonLibs;
 use strict;
 use warnings;
 use base 'Catalyst::Controller';
+
+use Encode;
 use JSON;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
 use namespace::autoclean;
 use List::Compare;
+
+use MediaWords::DBI::Media::Lookup;
 use MediaWords::Solr;
 use MediaWords::TM::Snapshot;
+use MediaWords::Util::HTML;
+use MediaWords::Util::URL;
+use MediaWords::Util::Web;
 
 =head1 NAME
 
@@ -166,6 +173,141 @@ sub list_GET
     $self->_create_topic_media_table( $c );
 
     return $self->SUPER::list_GET( $c );
+}
+
+# try to find a media source that matches any of the urls in the list of redirect urls for the given media source
+sub _find_medium_by_response_chain
+{
+    my ( $db, $response ) = @_;
+
+    while ( $response )
+    {
+        my $medium = MediaWords::DBI::Media::Lookup::find_medium_by_url( $db, decode( 'utf8', $response->request->url ) );
+        return $medium if ( $medium );
+
+        $response = $response->previous;
+    }
+
+    return undef;
+}
+
+# for eery record in the media/create input, attach either an existing medium or an old medium or attach
+# an error record that indicates why a medium could not be created
+sub _attach_media_to_input($$)
+{
+    my ( $db, $input_media ) = @_;
+
+    my $fetch_urls = [];
+    for my $input_medium ( @{ $input_media } )
+    {
+        $input_medium->{ medium } = MediaWords::DBI::Media::Lookup::find_medium_by_url( $db, $input_medium->{ url } );
+        push( @{ $fetch_urls }, $input_medium->{ url } ) unless ( $input_medium->{ medium } );
+    }
+
+    my $responses = MediaWords::Util::Web::ParallelGet( $fetch_urls );
+
+    for my $response ( @{ $responses } )
+    {
+        my $input_medium = MediaWords::Util::Web::lookup_by_response_url( $input_media, $response ) || next;
+
+        if ( !$response->is_success )
+        {
+            $input_medium->{ error } = "Unable to fetch medium url '$input_medium->{ url }': " . $response->status_line;
+            next;
+        }
+
+        my $decoded_url = decode( 'utf8', $response->request->url );
+        my $title = MediaWords::Util::HTML::html_title( $response->decoded_content, $decoded_url, 128 );
+
+        $input_medium->{ medium } = _find_medium_by_response_chain( $db, $response )
+          || $db->query( "select * from media where name in ( ?, ? )", $title, $input_medium->{ name } )->hash;
+        next if ( $input_medium->{ medium } );
+
+        my $create_medium = {
+            url               => $input_medium->{ url },
+            name              => $input_medium->{ name } || $title,
+            foreign_rss_links => $input_medium->{ foreign_rss_links } || 'f',
+            content_delay     => $input_medium->{ content_delay } || 0,
+            editor_notes      => $input_medium->{ editor_notes },
+            public_notes      => $input_medium->{ public_notes },
+            is_monitored      => $input_medium->{ is_monitored } || 'f',
+            moderated         => 't'
+        };
+        $input_medium->{ medium } = eval { $db->create( 'media', $create_medium ) };
+        $input_medium->{ error } = "Error creating medium: $@" if ( $@ );
+    }
+
+    map { $_->{ error } = "no url fetched for $_->{ url }" unless ( $_->{ medium } || $_->{ error } ) } @{ $input_media };
+
+    my $medium_lookup = {};
+    for my $input_medium ( @{ $input_media } )
+    {
+        my $medium = $input_medium->{ medium };
+        next unless ( $medium );
+
+        if ( my $existing_medium = $medium_lookup->{ $medium->{ media_id } } )
+        {
+            $input_medium->{ medium } = $existing_medium;
+        }
+
+        $medium_lookup->{ $medium->{ media_id } } = $input_medium->{ medium };
+    }
+}
+
+# update each medium in $input_media:
+# * add any feeds listed in $input_medium->{ feeds };
+# * queue a rescrape_media job for each medium;
+# * add an tags in tags_ids;
+sub _apply_updates_to_media($$)
+{
+    my ( $db, $input_media ) = @_;
+
+    for my $input_medium ( @{ $input_media } )
+    {
+        my $medium = $input_medium->{ medium };
+        next unless ( $medium );
+
+        if ( my $feeds = $input_medium->{ feeds } )
+        {
+            map { MediaWords::DBI::Media::add_feed_url_to_medium( $db, $input_medium->{ medium }, $_ ) } @{ $feeds };
+        }
+
+        MediaWords::Job::RescrapeMedia->add_to_queue( { media_id => $medium->{ media_id } } );
+
+        if ( my $tags_ids = $input_medium->{ tags_ids } )
+        {
+            my $media_id = $medium->{ media_id };
+            map { $db->find_or_create( 'media_tags_map', { tags_id => $_, media_id => $media_id } ) } @{ $tags_ids };
+        }
+    }
+}
+
+sub create : Local : ActionClass('MC_REST')
+{
+}
+
+sub create_GET
+{
+    my ( $self, $c ) = @_;
+
+    my $input_media = $c->req->data;
+
+    die( "input must be a list" ) unless ( ref( $input_media ) eq ref( [] ) );
+
+    map { die( "each record must include a 'url' field" ) unless ( $_->{ url } ) } @{ $input_media };
+
+    map { $_->{ url } = MediaWords::Util::URL::fix_common_url_mistakes( $_->{ url } ) } @{ $input_media };
+
+    my $db = $c->dbis;
+
+    _attach_media_to_input( $db, $input_media );
+
+    _apply_updates_to_media( $db, $input_media );
+
+    my $return_media = [ map { $_->{ medium } } grep { $_->{ medium } } @{ $input_media } ];
+    my $errors       = [ map { $_->{ error } } grep  { $_->{ error } } @{ $input_media } ];
+
+    $self->status_ok( $c, entity => { media => $return_media, errors => $errors } );
 }
 
 =head1 AUTHOR
