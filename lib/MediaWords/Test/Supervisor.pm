@@ -240,15 +240,16 @@ sub test_with_supervisor($;$)
 
     $start_processes ||= [];
 
-    _run_supervisord();
-
     eval {
-        my $status = `$_supervisorctl_bin status`;
-        die( "bad supervisor status after startup: '$status'" ) if ( $status !~ /STOPPED|STARTING|RUNNING/ );
-
         MediaWords::Test::DB::test_on_test_database(
             sub {
                 my ( $db ) = @_;
+
+                _run_supervisord();
+
+                my $status = `$_supervisorctl_bin status`;
+                die( "bad supervisor status after startup: '$status'" ) if ( $status !~ /STOPPED|STARTING|RUNNING/ );
+
                 _verify_processes_status( $db, $start_processes );
                 _verify_processes_ready( $db, $start_processes );
                 $func->( $db );
