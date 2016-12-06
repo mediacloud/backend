@@ -110,7 +110,7 @@ sub recreate_db
         my $message = shift;
         if ( _postgresql_response_line_is_expected( $message ) )
         {
-            DEBUG( "PostgreSQL warning: $message" );
+            TRACE( "PostgreSQL warning: $message" );
         }
         else
         {
