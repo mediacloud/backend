@@ -536,8 +536,6 @@ sub process_extracted_story($$$)
 
     my $stories_id = $story->{ stories_id };
 
-    DEBUG "Processing extracted story $stories_id...";
-
     unless ( $extractor_args->no_vector() )
     {
         MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story, $extractor_args );
@@ -606,8 +604,6 @@ sub process_extracted_story($$$)
     {
         DEBUG "Won't process story $stories_id with Bit.ly because it's set to be skipped";
     }
-
-    DEBUG "process_extracted_story done";
 }
 
 =head2 restore_download_content( $db, $download, $story_content )
