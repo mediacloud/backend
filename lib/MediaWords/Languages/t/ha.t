@@ -26,7 +26,6 @@ sub test_stem($)
     # https://github.com/berkmancenter/mediacloud-hausastemmer/blob/develop/tests/ref_stems/with_dict_lookup.py
     my $tokens_and_stems = {
 
-        # Masculine noun inflections
         'ababen'  => 'ababe',
         'abin'    => 'abin',
         'abincin' => 'abinci',
