@@ -48,3 +48,7 @@ script/vagrant/temp-vagrant-mediacloud
 
 # atom sync config
 .remote-sync.json
+
+# Inline:: binaries
+_Inline*
+
