@@ -328,6 +328,29 @@ sub get_original_request
     return $original_response->request;
 }
 
+=head2 lookup_by_response_url( $list, $response )
+
+Given a list of hashes, each of which includes a 'url' key, and an HTTP::Response, return the hash in $list for
+which the canonical version of the url is the same as the canonical version of the originally requested
+url for the response.  Return undef if no match is found.
+
+This function is helpful for associating a given respone returned by ParallelGet with the object that originally
+generated the url (for instance, the medium input record that generate the url fetch for the medium title)
+
+=cut
+
+sub lookup_by_response_url($$)
+{
+    my ( $list, $response ) = @_;
+
+    my $original_request = MediaWords::Util::Web->get_original_request( $response );
+    my $url              = URI->new( $original_request->url );
+
+    map { return ( $_ ) if ( URI->new( $_->{ url } ) eq $url ) } @{ $list };
+
+    return undef;
+}
+
 =head2 cache_link_downloads( $links )
 
 Cache link downloads $LINK_CACHE_SIZE at a time so that we can do them in parallel. This call doesn't actually do any

@@ -310,6 +310,33 @@ sub create_GET
     $self->status_ok( $c, entity => { media => $return_media, errors => $errors } );
 }
 
+sub update : Local : ActionClass('MC_REST')
+{
+}
+
+sub update_PUT
+{
+    my ( $self, $c ) = @_;
+
+    my $data = $c->req->data;
+
+    die( "input must be a hash" ) unless ( ref( $data ) eq ref( {} ) );
+
+    die( "input must include media_id" ) unless ( $data->{ media_id } );
+
+    my $db = $c->dbis;
+
+    my $medium = $db->require_by_id( 'media', $data->{ media_id } );
+
+    my $fields = [ qw/url name foreign_rss_links content_delay editor_notes public_notes is_monitored/ ];
+    my $update = {};
+    map { $update->{ $_ } = $data->{ $_ } if ( defined( $data->{ $_ } ) ) } @{ $fields };
+
+    $db->update_by_id( 'media', $medium->{ media_id }, $update ) if ( scalar( keys( %{ $update } ) ) > 0 );
+
+    $self->status_ok( $c, entity => { success => 1 } );
+}
+
 =head1 AUTHOR
 
 David Larochelle

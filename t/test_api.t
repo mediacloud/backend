@@ -289,7 +289,7 @@ sub test_media_create_update($$)
         my $medium = $db->query( "select * from media where name = ?", $site->{ name } )->hash
           || die( "unable to find medium for site $site->{ name }" );
         my $feeds = $db->query( "select * from feeds where media_id = ? order by feeds_id", $medium->{ media_id } )->hashes;
-        is( scalar( @{ $feeds } ), 3, "media/create update $site->{ name } num feeds" );
+        is( scalar( @{ $feeds } ), 2, "media/create update $site->{ name } num feeds" );
 
         is( $feeds->[ 0 ]->{ url }, $site->{ feed_url },        "media/create update $site->{ name } default feed url" );
         is( $feeds->[ 1 ]->{ url }, $site->{ custom_feed_url }, "media/create update $site->{ name } custom feed url" );
@@ -305,6 +305,48 @@ select * from media_tags_map where media_id = \$1 and tags_id = \$2
 SQL
         ok( $tag_exists, "media/create update $site->{ name } tag exists" );
     }
+}
+
+# test media/update call
+sub test_media_update($$)
+{
+    my ( $db, $sites ) = @_;
+
+    # test that request with no media_id returns an error
+    test_put( '/api/v2/media/update', {}, 1 );
+
+    # test that request with list returns an error
+    test_put( '/api/v2/media/update', [ { media_id => 1 } ], 1 );
+
+    my $medium = $db->query( "select * from media where name = ?", $sites->[ 0 ]->{ name } )->hash;
+
+    my $fields = [ qw/media_id name url content_delay editor_notes public_notes foreign_rss_links/ ];
+
+    # test just name change
+    my $r = test_put( '/api/v2/media/update', { media_id => $medium->{ media_id }, name => "$medium->{ name } FOO" } );
+    is( $r->{ success }, 1, "media/update name success" );
+
+    my $updated_medium = $db->require_by_id( 'media', $medium->{ media_id } );
+    is( $updated_medium->{ name }, "$medium->{ name } FOO", "media update name" );
+    $medium->{ name } = $updated_medium->{ name };
+    map { is( $updated_medium->{ $_ }, $medium->{ $_ }, "media update name field $_" ) } @{ $fields };
+
+    # test all other fields
+    $medium = {
+        media_id          => $medium->{ media_id },
+        url               => "http://url.update/",
+        name              => 'name update',
+        foreign_rss_links => 1,
+        content_delay     => 100,
+        editor_notes      => 'editor_notes update',
+        public_notes      => 'public_notes update'
+    };
+
+    $r = test_put( '/api/v2/media/update', $medium );
+    is( $r->{ success }, 1, "media/update all success" );
+
+    my $updated_medium = $db->require_by_id( 'media', $medium->{ media_id } );
+    map { is( $updated_medium->{ $_ }, $medium->{ $_ }, "media update name field $_" ) } @{ $fields };
 }
 
 # test media/create  end point
@@ -332,6 +374,12 @@ sub test_media_create($)
 
     # delete existing entries in media_rescraping so that we can wait for it to be empty in test_for_scraped_feeds()
     $db->query( "truncate table media_rescraping" );
+
+    # test that non-list returns an error
+    test_post( '/api/v2/media/create', {}, 1 );
+
+    # test that single element without url returns an error
+    test_post( '/api/v2/media/create', [ { url => 'http://foo.com' }, { name => "bar" } ], 1 );
 
     # simple test for creation of url only medium
     my $first_site   = $sites->[ 0 ];
@@ -371,6 +419,8 @@ sub test_media_create($)
 
     test_media_create_update( $db, $sites );
 
+    test_media_update( $db, $sites );
+
     $hs->stop();
 }
 
@@ -392,14 +442,7 @@ sub test_media($$)
         map { is( $medium->{ $_ }, $expected_medium->{ $_ }, "media/list: field $_" ) } @{ $fields };
     }
 
-    # test that non-list returns an error
-    test_post( '/api/v2/media/create', {}, 1 );
-
-    # test that single element without url returns an error
-    test_post( '/api/v2/media/create', [ { url => 'http://foo.com' }, { name => "bar" } ], 1 );
-
     test_media_create( $db );
-
 }
 
 # test parts of the ai that only require reading, so we can test these all in one chunk

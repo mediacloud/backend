@@ -711,7 +711,7 @@ Output:
 
 # Media
 
-## api/v2/media/create (POST) PENDING
+## api/v2/media/create (POST)
 
 | URL                 | Description               |
 | ------------------- | ------------------------- |
@@ -796,7 +796,7 @@ Output:
 ]
 ```
 
-## api/v2/media/update (PUT) PENDING
+## api/v2/media/update (PUT)
 
 | URL                 | Description                     |
 | ------------------- | ------------------------------- |
