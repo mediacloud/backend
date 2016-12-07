@@ -247,7 +247,7 @@ sub restrict_period_stories_to_focus
     }
     my $all_stories_ids      = [ @{ $snapshot_period_stories_ids } ];
     my $matching_stories_ids = [];
-    my $chunk_size           = 10_000;
+    my $chunk_size           = 1000;
     while ( @{ $all_stories_ids } )
     {
         my $chunk_stories_ids = [];
