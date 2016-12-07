@@ -178,9 +178,7 @@ else
     sudo update-java-alternatives -s `update-java-alternatives --list | grep java-1.8 | awk '{ print $3 }'`
 
     # Install / upgrade Setuptools before installing Python dependencies
-    # (latest version of Setuptools is 20.10.1 but it's not available on pypi.python.org yet)
-    SETUPTOOLS_VERSION=20.9.0
-    wget https://bootstrap.pypa.io/ez_setup.py -O - | sudo python2.7 - --version=$SETUPTOOLS_VERSION
+    wget https://bootstrap.pypa.io/ez_setup.py -O - | sudo python2.7 -
 
     # Disable system-wide RabbitMQ server (we will start and use our very own instance)
     sudo update-rc.d rabbitmq-server disable

@@ -4731,21 +4731,19 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       File::Spec 0.8
       perl 5.008001
-  Inline-Python-0.49
-    pathname: N/NI/NINE/Inline-Python-0.49.tar.gz
+  Inline-Python-0.52
+    pathname: N/NI/NINE/Inline-Python-0.52.tar.gz
     provides:
-      Inline::Python 0.49
-      Inline::Python::Boolean 0.49
-      Inline::Python::Function 0.49
-      Inline::Python::Object 0.49
-      Inline::Python::Object::Data 0.49
+      Inline::Python 0.52
+      Inline::Python::Boolean 0.52
+      Inline::Python::Function 0.52
+      Inline::Python::Object 0.52
+      Inline::Python::Object::Data 0.52
     requirements:
       Data::Dumper 0
       Digest::MD5 2.5
       ExtUtils::MakeMaker 0
       Inline 0.46
-      Test 0
-      Test::More 0
   JSON-2.90
     pathname: M/MA/MAKAMAKA/JSON-2.90.tar.gz
     provides:
