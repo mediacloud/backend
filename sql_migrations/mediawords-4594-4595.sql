@@ -22,6 +22,10 @@ alter table media add public_notes                text null;
 -- if true, indicates that media cloud closely monitors the health of this source
 alter table media add is_monitored                boolean not null default false;
 
+-- if true, users can expect tags and associations in this tag set not to change in major ways
+alter table tags add is_static boolean not null default false;
+
+
 --
 -- 2 of 2. Reset the database version.
 --

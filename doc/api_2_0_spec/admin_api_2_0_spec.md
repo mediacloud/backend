@@ -515,7 +515,7 @@ Output:
 
 | URL                            | Function             |
 | ------------------------------ | -------------------- |
-| `api/v2/tags/update/<tags_id>` | Update the given tag |
+| `api/v2/tags/create` | Create the given tag |
 
 ### Query Parameters
 
@@ -524,6 +524,8 @@ Output:
 | `tag`         | New name for the tag.                    |
 | `label`       | New label for the tag.                   |
 | `description` | New description for the tag.             |
+| `show_on_media` | Show as an option for searching media sources |
+| `show_on_stories` | Show as an option for searching media sources |
 | `is_static`   | True if this is a tag whose contents should be expected to remain static over time |
 
 

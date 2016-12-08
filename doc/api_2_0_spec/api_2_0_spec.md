@@ -1021,6 +1021,7 @@ None.
 | description           | a couple of sentences describing the meaning of the tag
 | show\_on\_media       | recommendation to show this tag as an option for searching solr using the tags_id_media
 | show\_on\_stories     | recommendation to show this tag as an option for searching solr using the tags_id_stories
+| is\_static            | if true, users can expect this tag and its associations not to change in major ways
 | tag\_set\_name        | name field of associated tag set
 | tag\_set\_label       | label field of associated tag set
 | tag\_set\_description | description field of associated tag set
@@ -1070,7 +1071,6 @@ Response:
 | `rows`          | 20         | Number of tags to return. Cannot be larger than 100
 | `public`        | none       | If public=1, return only public tags (see below)
 | `search`        | none       | Search for tags by text (see below)
-
 | `similar_tags_id` |  none |  return list of tags with a similar
 
 If set to 1, the public parameter will return only tags that are generally useful for public consumption.  Those
@@ -1110,7 +1110,6 @@ None.
 | description           | a couple of sentences describing the meaning of the tag
 | show\_on\_media       | recommendation to show this tag as an option for searching solr using the tags_id_media
 | show\_on\_stories     | recommendation to show this tag as an option for searching solr using the tags_id_stories
-
 
 The show\_on\_media and show\_on\_stories fields are useful for picking out which tags are likely to be useful for
 external researchers.  A tag should be considered useful for searching via tags\_id\_media or tags\_id\_stories

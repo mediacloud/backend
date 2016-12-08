@@ -42,7 +42,7 @@ sub test_request_response($$;$)
 
     my $url = $response->request->url;
 
-    is( $response->is_success, !$expect_error, "HTTP response status OK for $label" );
+    is( $response->is_success, !$expect_error, "HTTP response status OK for $label:\n" . $response->as_string );
 
     my $data = MediaWords::Util::JSON::decode_json( $response->content );
 
@@ -50,11 +50,14 @@ sub test_request_response($$;$)
 
     if ( $expect_error )
     {
-        ok( ( ( ref( $data ) eq ref( {} ) ) && $data->{ error } ), "response is an error for $label" );
+        ok( ( ( ref( $data ) eq ref( {} ) ) && $data->{ error } ), "response is an error for $label:\n" . Dumper( $data ) );
     }
     else
     {
-        ok( !( ( ref( $data ) eq ref( {} ) ) && $data->{ error } ), "response is not an error for $label" );
+        ok(
+            !( ( ref( $data ) eq ref( {} ) ) && $data->{ error } ),
+            "response is not an error for $label:\n" . Dumper( $data )
+        );
     }
 
     return $data;
@@ -345,7 +348,7 @@ sub test_media_update($$)
     $r = test_put( '/api/v2/media/update', $medium );
     is( $r->{ success }, 1, "media/update all success" );
 
-    my $updated_medium = $db->require_by_id( 'media', $medium->{ media_id } );
+    $updated_medium = $db->require_by_id( 'media', $medium->{ media_id } );
     map { is( $updated_medium->{ $_ }, $medium->{ $_ }, "media update name field $_" ) } @{ $fields };
 }
 
@@ -445,6 +448,190 @@ sub test_media($$)
     test_media_create( $db );
 }
 
+# given the response from an api call, fetch the referred row from the given table in the database
+# and verify that the fields in the given input match what's in the database
+sub validate_db_row($$$$$)
+{
+    my ( $db, $table, $response, $input, $label ) = @_;
+
+    my $id_field = "${ table }_id";
+
+    ok( $response->{ $id_field } > 0, "$label $id_field returned" );
+    my $db_row = $db->find_by_id( $table, $response->{ $id_field } );
+    ok( $db_row, "$label row found in db" );
+    map { is( $db_row->{ $_ }, $input->{ $_ }, "$label field $_" ) } keys( %{ $input } );
+}
+
+# test tags/list
+sub test_tags_list($)
+{
+    my ( $db ) = @_;
+
+    my $num_tags = 10;
+    my $label    = "tags list";
+
+    my $tag_set     = $db->create( 'tag_sets', { name => 'tag list test' } );
+    my $tag_sets_id = $tag_set->{ tag_sets_id };
+    my $input_tags  = [ map { { tag => "tag $_", label => "tag $_", tag_sets_id => $tag_sets_id } } ( 1 .. $num_tags ) ];
+    map { test_post( '/api/v2/tags/create', $_ ) } @{ $input_tags };
+
+    # query by tag_sets_id
+    my $got_tags = test_get( '/api/v2/tags/list', { tag_sets_id => $tag_sets_id } );
+    is( scalar( @{ $got_tags } ), $num_tags, "$label number of tags" );
+
+    for my $got_tag ( @{ $got_tags } )
+    {
+        my ( $input_tag ) = grep { $got_tag->{ tag } eq $_->{ tag } } @{ $input_tags };
+        ok( $input_tag, "$label found input tag" );
+        map { is( $got_tag->{ $_ }, $input_tag->{ $_ }, "$label field $_" ) } keys( %{ $input_tag } );
+    }
+
+    my ( $t0, $t1, $t2, $t3 ) = @{ $got_tags };
+
+    # test public= query
+    test_put( '/api/v2/tags/update', { tags_id => $t0->{ tags_id }, show_on_media   => 1 } );
+    test_put( '/api/v2/tags/update', { tags_id => $t1->{ tags_id }, show_on_stories => 1 } );
+    my $got_public_tags = test_get( '/api/v2/tags/list', { public => 1, tag_sets_id => $tag_sets_id } );
+    is( scalar( @{ $got_public_tags } ), 2, "$label show_on_media count" );
+    ok( ( grep { $_->{ tags_id } == $t0->{ tags_id } } @{ $got_public_tags } ), "$label public show_on_media" );
+    ok( ( grep { $_->{ tags_id } == $t1->{ tags_id } } @{ $got_public_tags } ), "$label public show_on_stories" );
+
+    # test similar_tags_id
+    my $medium = $db->query( "select * from media limit 1" )->hash;
+    map { $db->create( 'media_tags_map', { media_id => $medium->{ media_id }, tags_id => $_->{ tags_id } } ) }
+      ( $t0, $t1, $t2 );
+    my $got_similar_tags = test_get( '/api/v2/tags/list', { similar_tags_id => $t0->{ tags_id } } );
+    is( scalar( @{ $got_similar_tags } ), 2, "$label similar count" );
+    ok( ( grep { $_->{ tags_id } == $t1->{ tags_id } } @{ $got_similar_tags } ), "$label similar tags_id t1" );
+    ok( ( grep { $_->{ tags_id } == $t2->{ tags_id } } @{ $got_similar_tags } ), "$label simlar tags_id t2" );
+
+}
+
+# test tags create, update, list, and association
+sub test_tags($)
+{
+    my ( $db ) = @_;
+
+    # test for required fields errors
+    test_post( '/api/v2/tags/create', { tag   => 'foo' }, 1 );    # should require label
+    test_post( '/api/v2/tags/create', { label => 'foo' }, 1 );    # should require tag
+    test_put( '/api/v2/tags/update', { tag => 'foo' }, 1 );       # should require tags_id
+
+    my $tag_set = $db->create( 'tag_sets', { name => 'foo tag set' } );
+
+    # simple tag creation
+    my $create_input = {
+        tag_sets_id     => $tag_set->{ tag_sets_id },
+        tag             => 'foo tag',
+        label           => 'foo label',
+        description     => 'foo description',
+        show_on_media   => 1,
+        show_on_stories => 1,
+        is_static       => 1
+    };
+
+    my $r = test_post( '/api/v2/tags/create', $create_input );
+    validate_db_row( $db, 'tags', $r->{ tag }, $create_input, 'create tag' );
+
+    # error on update non-existent tag
+    test_put( '/api/v2/tags/update', { tags_id => -1 }, 1 );
+
+    # simple update
+    my $update_input = {
+        tags_id         => $r->{ tag }->{ tags_id },
+        tag             => 'bar tag',
+        label           => 'bar label',
+        description     => 'bar description',
+        show_on_media   => 0,
+        show_on_stories => 0,
+        is_static       => 0
+    };
+
+    $r = test_put( '/api/v2/tags/update', $update_input );
+    validate_db_row( $db, 'tags', $r->{ tag }, $update_input, 'update tag' );
+
+    # simple tags/list test
+    test_tags_list( $db );
+}
+
+# test tag set create, update, and list
+sub test_tag_sets($)
+{
+    my ( $db ) = @_;
+
+    # test for required fields errors
+    test_post( '/api/v2/tag_sets/create', { name  => 'foo' }, 1 );    # should require label
+    test_post( '/api/v2/tag_sets/create', { label => 'foo' }, 1 );    # should require name
+    test_put( '/api/v2/tag_sets/update', { name => 'foo' }, 1 );      # should require tag_sets_id
+
+    # simple tag creation
+    my $create_input = {
+        name            => 'fooz tag set',
+        label           => 'fooz label',
+        description     => 'fooz description',
+        show_on_media   => 1,
+        show_on_stories => 1,
+    };
+
+    my $r = test_post( '/api/v2/tag_sets/create', $create_input );
+    validate_db_row( $db, 'tag_sets', $r->{ tag_set }, $create_input, 'create tag set' );
+
+    # error on update non-existent tag
+    test_put( '/api/v2/tag_sets/update', { tag_sets_id => -1 }, 1 );
+
+    # simple update
+    my $update_input = {
+        tag_sets_id     => $r->{ tag_set }->{ tag_sets_id },
+        name            => 'barz tag',
+        label           => 'barz label',
+        description     => 'barz description',
+        show_on_media   => 0,
+        show_on_stories => 0,
+    };
+
+    $r = test_put( '/api/v2/tag_sets/update', $update_input );
+    validate_db_row( $db, 'tag_sets', $r->{ tag_set }, $update_input, 'update tag set' );
+}
+
+# test feed create, update, and list
+sub test_feeds($)
+{
+    my ( $db ) = @_;
+
+    # test for required fields errors
+    test_post( '/api/v2/feeds/create', {}, 1 );
+    test_put( '/api/v2/feeds/update', { name => 'foo' }, 1 );
+
+    my $medium = $db->query( "select * from media limit 1" )->hash;
+
+    # simple tag creation
+    my $create_input = {
+        media_id    => $medium->{ media_id },
+        name        => 'feed name',
+        url         => 'http://feed.create',
+        feed_type   => 'syndicated',
+        feed_status => 'active'
+    };
+
+    my $r = test_post( '/api/v2/feeds/create', $create_input );
+    validate_db_row( $db, 'feeds', $r->{ feed }, $create_input, 'create feed' );
+
+    # error on update non-existent tag
+    test_put( '/api/v2/feeds/update', { feeds_id => -1 }, 1 );
+
+    # simple update
+    my $update_input = {
+        feeds_id    => $r->{ feed }->{ feeds_id },
+        name        => 'feed name update',
+        url         => 'http://feed.create/update',
+        feed_type   => 'web_page',
+        feed_status => 'inactive'
+    };
+
+    $r = test_put( '/api/v2/feeds/update', $update_input );
+    validate_db_row( $db, 'feeds', $r->{ feed }, $update_input, 'update feed' );
+}
+
 # test parts of the ai that only require reading, so we can test these all in one chunk
 sub test_api($)
 {
@@ -459,9 +646,13 @@ sub test_api($)
 
     MediaWords::Test::Solr::setup_test_index( $db );
 
-    test_stories_public_list( $db, $media );
-    test_auth_profile( $db );
-    test_media( $db, $media );
+    # test_stories_public_list( $db, $media );
+    # test_auth_profile( $db );
+    # test_media( $db, $media );
+    test_tags( $db );
+
+    # test_tag_sets( $db );
+    # test_feeds( $db );
 
 }
 

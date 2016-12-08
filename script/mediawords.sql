@@ -556,11 +556,22 @@ LANGUAGE 'plpgsql';
 
 create table tag_sets (
     tag_sets_id            serial            primary key,
+
+    --unique identifier
     name                varchar(512)    not null,
+
+    -- short human readable label
     label               varchar(512),
+
+    -- longer human readable description
     description         text,
+
+    -- should public interfaces show this as an option for searching media sources
     show_on_media       boolean,
+
+    -- should public interfaces show this as an option for search stories
     show_on_stories     boolean,
+
     CONSTRAINT tag_sets_name_not_empty CHECK (((name)::text <> ''::text))
 );
 
@@ -569,11 +580,25 @@ create unique index tag_sets_name on tag_sets (name);
 create table tags (
     tags_id                serial            primary key,
     tag_sets_id            int                not null references tag_sets,
+
+    -- unique identifier
     tag                    varchar(512)    not null,
-    label                  varchar(512),
-    description            text,
-    show_on_media          boolean,
-    show_on_stories        boolean,
+
+    -- short human readable label
+    label               varchar(512),
+
+    -- longer human readable description
+    description         text,
+
+    -- should public interfaces show this as an option for searching media sources
+    show_on_media       boolean,
+
+    -- should public interfaces show this as an option for search stories
+    show_on_stories     boolean,
+
+    -- if true, users can expect this tag ans its associations not to change in major ways
+    is_static              boolean not null default false,
+
         CONSTRAINT no_line_feed CHECK (((NOT ((tag)::text ~~ '%
 %'::text)) AND (NOT ((tag)::text ~~ '%
 %'::text)))),
