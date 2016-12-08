@@ -110,7 +110,6 @@ sub _get_stories_from_syndicated_feed($$$)
 
         push @{ $ret }, $story;
     }
-
     return $ret;
 }
 
@@ -124,9 +123,13 @@ sub _stories_checksum_matches_feed
 
     my $checksum = Digest::MD5::md5_hex( encode( 'utf8', $story_url_concat ) );
 
+    TRACE( "feed checksum for $feeds_id: $checksum [$story_url_concat]" );
+
     my ( $matches ) = $db->query( <<END, $feeds_id, $checksum )->flat;
 select 1 from feeds where feeds_id = ? and last_checksum = ?
 END
+
+    TRACE( "feed checksum: " . $matches ? 'MATCH' : 'NO MATCH' );
 
     return 1 if ( $matches );
 
@@ -204,6 +207,8 @@ sub add_stories_from_feed($$$$)
     }
 
     my $new_stories = [ grep { MediaWords::DBI::Stories::is_new( $db, $_ ) } @{ $stories } ];
+
+    TRACE( "add_stories_from_feed: new stories: " . scalar( @{ $new_stories } ) . " / " . scalar( @{ $stories } ) );
 
     my $story_ids = [];
     foreach my $story ( @{ $new_stories } )
