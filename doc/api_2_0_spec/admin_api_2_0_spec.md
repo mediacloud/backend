@@ -407,14 +407,13 @@ These calls allow users to edit tag data, including both the metadata of the tag
 
 ### Input Description
 
-Input for this call should be a json document with a list of records, each with a `stories_id` key and a `tag` key.  Each record may also contain an `action` key which can have the value of either `add` or `remove`; if not specified, the default `action` is `add`.
+Input for this call should be a json document with a list of records, each with a `stories_id` key and tag keys (see bwlow).  Each record may also contain an `action` key which can have the value of either `add` or `remove`; if not specified, the default `action` is `add`.
 
 To associate a story with more than one tag, include multiple different records with that story's id.
 A single call can include multiple stories as well as multiple tags.  Users are encouraged to batch writes for multiple stories into a single call to avoid the web server overhead of many small web service calls.
 
-The value for the `tag` key can be in one of two formats -- either the `tags_id` of the tag or the tag set name and tag in `<tag set>:<tag>` format, for example `gv_country:japan`.
-
-If the tag is specified in the latter format and the given tag set does not exist, a new tag set with that name will be created by the current user.  If the tag does not exist, a new tag will be created within the given tag set.
+The tag can be specified with using a `tags_id` key or by specifying a `tag` and a `tag_set` key.  If the latter form
+is used, a new tag or tag_set will be created if ti does not already exist for the given value.
 
 ### Example
 
@@ -426,11 +425,13 @@ Input:
 [
   {
     "stories_id": 123456,
-    "tag": "gv_country:brazil"
+    "tags_id": "789123",
+    "action": "remove"
   }
   {
     "stories_id": 123456,
-    "tag": "gv_country:jaapan"
+    "tag": "japan",
+    "tag_set": "gv_country"
   }
 ]
 ```
