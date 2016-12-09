@@ -1204,16 +1204,20 @@ sub get_story_word_matrix($$;$$)
 
 # If the story is new, add story to the database with the feed of the download as story feed.
 # Returns created story or undef if story wasn't created.
-sub add_story($$$)
+sub add_story($$$;$)
 {
-    my ( $db, $story, $feeds_id ) = @_;
+    my ( $db, $story, $feeds_id, $skip_checking_if_new ) = @_;
 
     $db->begin;
     $db->query( "lock table stories in row exclusive mode" );
-    unless ( is_new( $db, $story ) )
+    unless ( $skip_checking_if_new )
     {
-        $db->commit;
-        return undef;
+        unless ( is_new( $db, $story ) )
+        {
+            DEBUG "Story '" . $story->{ url } . "' is not new";
+            $db->commit;
+            return undef;
+        }
     }
 
     my $medium = $db->find_by_id( 'media', $story->{ media_id } );
