@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4594;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4595;
 
 BEGIN
 
@@ -441,7 +441,10 @@ create type feed_feed_type AS ENUM (
     'web_page',
 
     -- Univision.com XML feed
-    'univision'
+    'univision',
+
+    -- Superglue (TV) feed
+    'superglue'
 
 );
 
