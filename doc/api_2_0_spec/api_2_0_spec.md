@@ -160,6 +160,7 @@ The following language are supported (by 2 letter language code):
 * `es` (Spanish)
 * `fi` (Finnish)
 * `fr` (French)
+* `ha` (Hausa)
 * `hi` (Hindi)
 * `hu` (Hungarian)
 * `it` (Italian)
@@ -532,15 +533,16 @@ URL: https://api.mediacloud.org/api/v2/stories_public/single/27456565
 
 ### Query Parameters
 
-| Parameter                    | Default                | Notes
-| ---------------------------- | ---------------------- | ------------------------------------------------------------------------------
-| `last_processed_stories_id`  | 0  | Return stories in which the `processed_stories_id` is greater than this value.
-| `rows`                       | 20                     | Number of stories to return, max 10,000.
-| `feeds_id` | null | Return only stories that match the given feeds_id, sorted my descending publish date PENDING
+| Parameter                    | Default                | Notes |
+| ---------------------------- | ---------------------- | ------------------------------------------------------------------------------|
+| `last_processed_stories_id`  | 0  | Return stories in which the `processed_stories_id` is greater than this value. |
+| `rows`                       | 20                     | Number of stories to return, max 10,000. |
+| `feeds_id` | null | Return only stories that match the given feeds_id, sorted my descending publish date PENDING |
 
-| `q`  | null  | If specified, return only results that match the given Solr query.  Only one `q` parameter may be included.
-| `fq`             | null    | If specified, file results by the given Solr query.  More than one `fq` parameter may be included.
-| `sort`                       | `processed_stories_id` | Returned results sort order. Supported values: <ul><li><code>processed_stories_id</code> - order results by processed stories ID (ascending);</li><li><code>bitly_click_count</code> - order results by Bit.ly click count (descending).</ul>
+| `q`  | null  | If specified, return only results that match the given Solr query.  Only one `q` parameter may be included. |
+| `fq`             | null    | If specified, file results by the given Solr query.  More than one `fq` parameter may be included. |
+| `sort`                       | `processed_stories_id` | Returned results sort order. Supported values: <ul><li><code>processed_stories_id</code> - order results by processed stories ID (ascending);</li><li><code>bitly_click_count</code> - order results by Bit.ly click count (descending).</ul> |
+| `wc` | 0 | if set to 1, include a 'word_count' field with each story that includes a count of the most common words in the story |
 
 
 The `last_processed_stories_id` parameter can be used to page through these results. The API will return stories with a`processed_stories_id` greater than this value.  To get a continuous stream of stories as they are processed by Media Cloud, the user must make a series of calls to api/v2/stories_public/list in which `last_processed_stories_id` for each

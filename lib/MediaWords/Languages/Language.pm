@@ -34,6 +34,7 @@ my @_enabled_languages = (
     'es',    # Spanish
     'fi',    # Finnish
     'fr',    # French
+    'ha',    # Hausa
     'hi',    # Hindi
     'hu',    # Hungarian
     'it',    # Italian
@@ -191,6 +192,8 @@ my $_lang_instances = lazy
 sub language_is_enabled($)
 {
     my $language_code = shift;
+
+    return 0 unless $language_code;
 
     if ( exists $_lang_instances->{ $language_code } )
     {

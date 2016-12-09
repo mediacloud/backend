@@ -193,6 +193,35 @@ SQL
     return $ap_stories_ids;
 }
 
+# add a word_count field to each story that includes a word count for that story
+sub _attach_word_counts_to_stories($$)
+{
+    my ( $db, $stories ) = @_;
+
+    my $stories_ids = [ map { $_->{ stories_id } } @{ $stories } ];
+
+    my $stories_lookup = {};
+    map { $stories_lookup->{ $_->{ stories_id } } = $_ } @{ $stories };
+
+    my ( $word_matrix, $word_list ) = MediaWords::DBI::Stories::get_story_word_matrix( $db, $stories_ids );
+
+    while ( my ( $stories_id, $word_counts ) = each( %{ $word_matrix } ) )
+    {
+        while ( my ( $word_index, $count ) = each( %{ $word_counts } ) )
+        {
+            push(
+                @{ $stories_lookup->{ $stories_id }->{ word_count } },
+                {
+                    stem  => $word_list->[ $word_index ]->[ 0 ],
+                    term  => $word_list->[ $word_index ]->[ 1 ],
+                    count => $count
+                }
+            );
+
+        }
+    }
+}
+
 sub _add_nested_data
 {
     my ( $self, $db, $stories ) = @_;
@@ -291,6 +320,8 @@ EOF
     )->hashes;
     MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $bitly_click_data );
 
+    _attach_word_counts_to_stories( $db, $stories ) if ( $self->{ show_wc } );
+
     return $stories;
 }
 
@@ -322,6 +353,7 @@ sub _fetch_list($$$$$$)
     $self->{ show_sentences }     = $c->req->params->{ sentences };
     $self->{ show_text }          = $c->req->params->{ text };
     $self->{ show_ap_stories_id } = $c->req->params->{ ap_stories_id };
+    $self->{ show_wc }            = $c->req->params->{ wc };
 
     $rows //= 20;
     $rows = List::Util::min( $rows, 10_000 );
