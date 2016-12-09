@@ -22,7 +22,6 @@ use MediaWords::CommonLibs;
 
 use Encode;
 use File::Temp;
-use FileHandle;
 use HTML::Entities;
 use List::Compare;
 use List::Util;
@@ -1046,37 +1045,6 @@ declare $cursor cursor for
 SQL
 
     return $cursor;
-}
-
-# give a file in the form returned by get_story_word_matrix_file() but missing trailing 0s in some lines, pad all lines
-# that have fewer than the size of $word_list with enough additional 0's to make all lines have $num_items items.
-sub _pad_story_word_matrix_file($$)
-{
-    my ( $unpadded_file, $word_list ) = @_;
-
-    my $num_items = @{ $word_list } + 1;
-
-    my $unpadded_fh = FileHandle->new( $unpadded_file ) || die( "Unable to open file '$unpadded_file': $!" );
-
-    my ( $padded_fh, $padded_file ) = File::Temp::tempfile;
-
-    while ( my $line = <$unpadded_fh> )
-    {
-        chomp( $line );
-        my $items = [ split( ',', $line ) ];
-
-        if ( scalar( @{ $items } ) < $num_items )
-        {
-            $line .= ",0" x ( $num_items - scalar( @{ $items } ) );
-        }
-
-        $padded_fh->print( "$line\n" );
-    }
-
-    $padded_fh->close();
-    $unpadded_fh->close();
-
-    return $padded_file;
 }
 
 # remove stopwords from the $stem_count list, using the $language and stop word $length
