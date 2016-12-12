@@ -4905,25 +4905,6 @@ DISTRIBUTIONS
       ExtUtils::ParseXS 0
       Test::More 0
       perl v5.6.2
-  Lingua-StopWords-0.09
-    pathname: C/CR/CREAMYG/Lingua-StopWords-0.09.tar.gz
-    provides:
-      Lingua::StopWords 0.09
-      Lingua::StopWords::DA 0.08
-      Lingua::StopWords::DE 0.08
-      Lingua::StopWords::EN 0.08
-      Lingua::StopWords::ES 0.08
-      Lingua::StopWords::FI 0.08
-      Lingua::StopWords::FR 0.08
-      Lingua::StopWords::HU 0.08
-      Lingua::StopWords::IT 0.08
-      Lingua::StopWords::NL 0.08
-      Lingua::StopWords::NO 0.08
-      Lingua::StopWords::PT 0.08
-      Lingua::StopWords::RU 0.08
-      Lingua::StopWords::SV 0.08
-    requirements:
-      ExtUtils::MakeMaker 0
   Lingua-ZH-WordSegmenter-0.01
     pathname: J/JZ/JZHANG/Lingua-ZH-WordSegmenter-0.01.tar.gz
     provides:
