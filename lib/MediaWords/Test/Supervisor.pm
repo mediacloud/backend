@@ -162,6 +162,9 @@ sub _verify_processes_status($$)
 {
     my ( $db, $processes ) = @_;
 
+    # first send 'start' to all processes so that any stopped ones are starting in parallel
+    map { _run_supervisorctl( "start $_" ) } @{ $processes };
+
     for my $process ( @{ $processes } )
     {
         my $process_is_running = 0;
