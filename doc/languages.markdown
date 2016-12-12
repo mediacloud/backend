@@ -1,11 +1,6 @@
 Media Cloud language support
 ============================
 
-MediaCloud language support builds upon the Lingua:: Perl packages, in particular, Lingua::StopWords for defining a
-list of words that should not be included in most textual analyses, and
-[Lingua::Stem](http://search.cpan.org/dist/Lingua-Stem/lib/Lingua/Stem.pod) for allowing words with similar meanings to
-be grouped together based on a common word stem.
-
 Media Cloud does not need any special language support to collect data for a given language.  For example, we have no
 language support for Chinese, but the system is still capable of crawling and collecting Chinese language content.
 
@@ -23,10 +18,6 @@ Requirements for adding a new language
 --------------------------------------
 
 1. A list of stop words (a stoplist).
-
-    * `Lingua::StopWords` might already support your language. If it does, you're good to go.
-    * If not, get a list of stop words for your language and later configure your language's submodule accordingly.
-    * After running Media Cloud for some time, you might want to generate a new stoplist straight from the data that you've collected. See `./script/mediawords_generate_stopwords.pl` for an example of how to do that.
 
 2. A stemmer.
 
