@@ -304,7 +304,6 @@ sub count_GET
     $self->status_ok( $c, entity => $response );
 }
 
-##TODO merge with stories put_tags
 sub put_tags : Local : ActionClass('MC_REST')
 {
 }
@@ -312,26 +311,24 @@ sub put_tags : Local : ActionClass('MC_REST')
 sub put_tags_PUT
 {
     my ( $self, $c ) = @_;
-    my $subset = $c->req->data;
 
-    my $story_tag = $c->req->params->{ 'sentence_tag' };
+    my $sentence_tag = $c->req->params->{ 'sentence_tag' };
 
-    my $story_tags;
-
-    if ( ref $story_tag )
+    # legacy support for sentence_tag= param
+    if ( $sentence_tag )
     {
-        $story_tags = $story_tag;
+        my $sentence_tags = ( ref $sentence_tag ) ? $sentence_tag : [ $sentence_tag ];
+
+        $self->_add_tags( $c, $sentence_tags );
+
+        $self->status_ok( $c, entity => $sentence_tags );
     }
     else
     {
-        $story_tags = [ $story_tag ];
+        $self->process_put_tags( $c );
+
+        $self->status_ok( $c, entity => { success => 1 } );
     }
-
-    DEBUG Dumper( $story_tags );
-
-    $self->_add_tags( $c, $story_tags );
-
-    $self->status_ok( $c, entity => $story_tags );
 
     return;
 }

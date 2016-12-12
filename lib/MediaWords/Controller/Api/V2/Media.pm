@@ -337,6 +337,21 @@ sub update_PUT
     $self->status_ok( $c, entity => { success => 1 } );
 }
 
+sub put_tags : Local : ActionClass('MC_REST')
+{
+}
+
+sub put_tags_PUT
+{
+    my ( $self, $c ) = @_;
+
+    $self->process_put_tags( $c );
+
+    $self->status_ok( $c, entity => { success => 1 } );
+
+    return;
+}
+
 =head1 AUTHOR
 
 David Larochelle

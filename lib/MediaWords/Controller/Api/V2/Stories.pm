@@ -69,26 +69,23 @@ sub put_tags_PUT
 {
     my ( $self, $c ) = @_;
 
-    my $subset = $c->req->data;
-
     my $story_tag = $c->req->params->{ 'story_tag' };
 
-    my $story_tags;
-
-    if ( ref $story_tag )
+    # legacy support for story_tag= param
+    if ( $story_tag )
     {
-        $story_tags = $story_tag;
+        my $story_tags = ( ref $story_tag ) ? $story_tag : [ $story_tag ];
+
+        $self->_add_tags( $c, $story_tags );
+
+        $self->status_ok( $c, entity => $story_tags );
     }
     else
     {
-        $story_tags = [ $story_tag ];
+        $self->process_put_tags( $c );
+
+        $self->status_ok( $c, entity => { success => 1 } );
     }
-
-    # TRACE Dumper( $story_tags );
-
-    $self->_add_tags( $c, $story_tags );
-
-    $self->status_ok( $c, entity => $story_tags );
 
     return;
 }

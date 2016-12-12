@@ -69,7 +69,7 @@ sub test_data_request($$$;$)
 {
     my ( $method, $url, $data, $expect_error ) = @_;
 
-    $url = "$url?key=$_api_token";
+    $url = $url =~ /\?/ ? "$url&key=$_api_token" : "$url?key=$_api_token";
 
     my $json = MediaWords::Util::JSON::encode_json( $data );
 
@@ -163,6 +163,26 @@ sub test_stories_public_list($$)
     is( scalar( @{ $stories_single } ), 1, "stories_public/single: count" );
     is( $stories_single->[ 0 ]->{ stories_id }, $stories->[ 1 ]->{ stories_id }, "stories_public/single: stories_id match" );
     test_story_fields( $search_result->[ 0 ], "stories_public/single" );
+
+    # test feeds_id= param
+
+    # expect error when including q= and feeds_id=
+    test_get( '/api/v2/stories_public/list', { q => 'foo', feeds_id => 1 }, 1 );
+
+    my $feed =
+      $db->query( "select * from feeds where feeds_id in ( select feeds_id from feeds_stories_map ) limit 1" )->hash;
+    my $feed_stories = test_get( '/api/v2/stories_public/list', { rows => 100000, feeds_id => $feed->{ feeds_id } } );
+    my $expected_feed_stories = $db->query( <<SQL, $feed->{ feeds_id } )->hashes;
+select s.* from stories s join feeds_stories_map fsm using ( stories_id ) where feeds_id = ?
+SQL
+
+    is( scalar( @{ $feed_stories } ), scalar( @{ $expected_feed_stories } ), "stories feed count feed $feed->{ feeds_id }" );
+    for my $feed_story ( @{ $feed_stories } )
+    {
+        my ( $expected_story ) = grep { $_->{ stories_id } eq $feed_story->{ stories_id } } @{ $expected_feed_stories };
+        ok( $expected_story,
+            "stories feed story $feed_story->{ stories_id } feed $feed->{ feeds_id } matches expected story" );
+    }
 }
 
 # test auth/profile call
@@ -462,6 +482,230 @@ sub validate_db_row($$$$$)
     map { is( $db_row->{ $_ }, $input->{ $_ }, "$label field $_" ) } keys( %{ $input } );
 }
 
+# return tag in either { tags_id => $tags_id }or { tag => $tag, tag_set => $tag_set } form depending on $input_form
+sub get_put_tag_input_tag($$$)
+{
+    my ( $tag, $tag_set, $input_form ) = @_;
+
+    if ( $input_form eq 'id' )
+    {
+        return { tags_id => $tag->{ tags_id } };
+    }
+    elsif ( $input_form eq 'name' )
+    {
+        return { tag => $tag->{ tag }, tag_set => $tag_set->{ name } };
+    }
+    else
+    {
+        die( "unknown input_form '$input_form'" );
+    }
+}
+
+# given a set of tags, return a list of hashes in the proper form for a put_tags call
+sub get_put_tag_input_records($$$$$$)
+{
+    my ( $db, $table, $rows, $tag_sets, $input_form, $action ) = @_;
+
+    my $id_field = $table . "_id";
+
+    my $input = [];
+    for my $add_tag_set ( @{ $tag_sets } )
+    {
+        for my $add_tag ( @{ $add_tag_set->{ add_tags } } )
+        {
+            for my $row ( @{ $rows } )
+            {
+                my $put_tag = get_put_tag_input_tag( $add_tag, $add_tag_set, $input_form );
+                $put_tag->{ $id_field } = $row->{ $id_field };
+                $put_tag->{ action } = $action;
+
+                push( @{ $input }, $put_tag );
+            }
+        }
+    }
+
+    return $input;
+}
+
+# get the url for the put_tag end point for the given table
+sub get_put_tag_url($;$)
+{
+    my ( $table, $clear ) = @_;
+
+    my $url = ( $table eq 'story_sentences' ) ? '/api/v2/sentences/put_tags' : "/api/v2/$table/put_tags";
+
+    $url .= '?clear_tag_sets=1' if ( $clear );
+
+    return $url;
+}
+
+# test using put_tags to add the given tags to the given rows in the given table.
+sub test_add_tags
+{
+    my ( $db, $table, $rows, $tag_sets, $input_form, $clear ) = @_;
+
+    my $num_add_tag_sets = int( scalar( @{ $tag_sets } ) / 2 );
+    my $num_add_tags     = int( scalar( @{ $tag_sets->[ 0 ]->{ tags } } ) / 2 );
+
+    my $add_tag_sets = [ @{ $tag_sets }[ 0 .. $num_add_tag_sets - 1 ] ];
+    map { $_->{ add_tags } = [ @{ $_->{ tags } }[ 0 .. $num_add_tags - 1 ] ] } @{ $add_tag_sets };
+
+    my $put_tags = get_put_tag_input_records( $db, $table, $rows, $add_tag_sets, $input_form, 'add' );
+
+    my $r = test_put( get_put_tag_url( $table, $clear ), $put_tags );
+
+    my $map_table    = $table . "_tags_map";
+    my $id_field     = $table . "_id";
+    my $row_ids      = [ map { $_->{ $id_field } } @{ $rows } ];
+    my $row_ids_list = join( ',', @{ $row_ids } );
+
+    my $add_tags = [];
+    map { push( @{ $add_tags }, @{ $_->{ add_tags } } ) } @{ $add_tag_sets };
+
+    my $clear_label = $clear ? 'clear' : 'no clear';
+    my $label =
+      "test add tags $table with $clear_label input $input_form [" .
+      scalar( @{ $rows } ) . " rows / " .
+      scalar( @{ $add_tags } ) . " add tags]";
+
+    my $tags_ids_list = join( ',', map { $_->{ tags_id } } @{ $add_tags } );
+
+    my ( $map_count ) = $db->query( <<SQL )->flat;
+select count(*) from $map_table where $id_field in ( $row_ids_list ) and tags_id in ( $tags_ids_list )
+SQL
+
+    my $expected_map_count = scalar( @{ $rows } ) * scalar( @{ $add_tags } );
+    is( $map_count, $expected_map_count, "$label map count" );
+
+    my $maps = $db->query( <<SQL )->hashes;
+select * from $map_table where $id_field in ( $row_ids_list ) and tags_id in ( $tags_ids_list )
+SQL
+    for my $map ( @{ $maps } )
+    {
+        my $row_expected = grep { $map->{ $id_field } == $_->{ $id_field } } @{ $rows };
+        ok( $row_expected, "$label expected row $map->{ $id_field }" );
+
+        my $tag_expected = grep { $map->{ $id_field } == $_->{ $id_field } } @{ $rows };
+        ok( $tag_expected, "$label expected tag $map->{ tags_id }" );
+    }
+
+    # clean up so the next test has a clean slate
+    $db->query( "delete from $map_table where $id_field in ( $row_ids_list ) and tags_id in ( $tags_ids_list )" );
+}
+
+# test removing tag associations
+sub test_remove_tags
+{
+    my ( $db, $table, $rows, $tag_sets, $input_form ) = @_;
+
+    my $map_table         = $table . "_tags_map";
+    my $id_field          = $table . "_id";
+    my $row_ids           = [ map { $_->{ $id_field } } @{ $rows } ];
+    my $row_ids_list      = join( ',', @{ $row_ids } );
+    my $tag_sets_ids_list = join( ',', map { $_->{ tag_sets_id } } @{ $tag_sets } );
+
+    my $label = "test remove tags $table input $input_form";
+
+    for my $row ( @{ $rows } )
+    {
+        $db->query( <<SQL, $row->{ $id_field } );
+insert into $map_table ( $id_field, tags_id )
+        select \$1, tags_id from tags where tag_sets_id in ( $tag_sets_ids_list )
+SQL
+    }
+
+    map { $_->{ add_tags } = [ $_->{ tags }->[ 0 ] ] } @{ $tag_sets };
+
+    my $put_tags = get_put_tag_input_records( $db, $table, $rows, $tag_sets, $input_form, 'remove' );
+    my $r = test_put( get_put_tag_url( $table ), $put_tags );
+
+    my $expected_map_count =
+      scalar( @{ $tag_sets } ) * ( scalar( @{ $tag_sets->[ 0 ]->{ tags } } ) - 1 ) * scalar( @{ $rows } );
+
+    my ( $map_count ) = $db->query( <<SQL )->flat;
+select count(*)
+    from $map_table join tags using ( tags_id )
+    where $id_field in ( $row_ids_list ) and tag_sets_id in ( $tag_sets_ids_list )
+SQL
+    is( $map_count, $expected_map_count, "$label map count" );
+
+    # clean up so the next test has a clean slate
+    $db->query( <<SQL );
+delete from $map_table
+    using tags
+    where $map_table.tags_id = tags.tags_id and
+        $id_field in ( $row_ids_list ) and
+        tag_sets_id in ( $tag_sets_ids_list )
+SQL
+}
+
+# add all tags to the map, use the clear_tags= param, then make sure only added tags are associated
+sub test_clear_tags($$$$$)
+{
+    my ( $db, $table, $rows, $tag_sets, $input_form ) = @_;
+
+    my $map_table = $table . "_tags_map";
+    my $id_field  = $table . "_id";
+
+    my $tag_sets_ids_list = join( ',', map { $_->{ tag_sets_id } } @{ $tag_sets } );
+
+    for my $row ( @{ $rows } )
+    {
+        $db->query( <<SQL, $row->{ $id_field } );
+insert into $map_table ( $id_field, tags_id )
+        select \$1, tags_id from tags where tag_sets_id in ( $tag_sets_ids_list )
+SQL
+    }
+
+    test_add_tags( $db, $table, $rows, $tag_sets, $input_form, 1 );
+}
+
+# test /apiv/2/$table/put_tags call.  assumes that there are at least three rows in $table, which there should be
+# from the create_test_story_stack() call
+sub test_put_tags($$)
+{
+    my ( $db, $table ) = @_;
+
+    my $url      = get_put_tag_url( $table );
+    my $id_field = $table . "_id";
+
+    my $num_tag_sets = 5;
+    my $num_tags     = 10;
+
+    my $tag_sets = [];
+    for my $i ( 1 .. $num_tag_sets )
+    {
+        my $tag_set = $db->find_or_create( 'tag_sets', { name => "put tags $i" } );
+        for my $i ( 1 .. $num_tags )
+        {
+            my $tag = $db->find_or_create( 'tags', { tag => "tag $i", tag_sets_id => $tag_set->{ tag_sets_id } } );
+            push( @{ $tag_set->{ tags } }, $tag );
+        }
+        push( @{ $tag_sets }, $tag_set );
+    }
+
+    my $first_tags_id = $tag_sets->[ 0 ]->{ tags }->[ 0 ];
+
+    my $num_rows = 3;
+    my $rows     = $db->query( "select * from $table limit $num_rows" )->hashes;
+
+    my $first_row_id = $rows->[ 0 ]->{ "${ table }_id" };
+
+    # test that api recognizes various errors
+    test_put( $url, {}, 1 );    # require list
+    test_put( $url, [ [] ], 1 );    # require list of records
+    test_put( $url, [ { tags_id   => $first_tags_id } ], 1 );    # require id
+    test_put( $url, [ { $id_field => $first_row_id } ],  1 );    # require tag
+
+    DEBUG( "END PUT TAG ERROR TESTS" );
+
+    test_add_tags( $db, $table, $rows, $tag_sets, 'id' );
+    test_add_tags( $db, $table, $rows, $tag_sets, 'name' );
+    test_remove_tags( $db, $table, $rows, $tag_sets, 'id' );
+
+    test_clear_tags( $db, $table, $rows, $tag_sets, 'id' );
+}
+
 # test tags/list
 sub test_tags_list($)
 {
@@ -504,7 +748,6 @@ sub test_tags_list($)
     is( scalar( @{ $got_similar_tags } ), 2, "$label similar count" );
     ok( ( grep { $_->{ tags_id } == $t1->{ tags_id } } @{ $got_similar_tags } ), "$label similar tags_id t1" );
     ok( ( grep { $_->{ tags_id } == $t2->{ tags_id } } @{ $got_similar_tags } ), "$label simlar tags_id t2" );
-
 }
 
 # test tags create, update, list, and association
@@ -552,6 +795,12 @@ sub test_tags($)
 
     # simple tags/list test
     test_tags_list( $db );
+
+    # test put_tags calls on all tables
+    test_put_tags( $db, 'stories' );
+    test_put_tags( $db, 'story_sentences' );
+    test_put_tags( $db, 'media' );
+
 }
 
 # test tag set create, update, and list
@@ -646,13 +895,12 @@ sub test_api($)
 
     MediaWords::Test::Solr::setup_test_index( $db );
 
-    # test_stories_public_list( $db, $media );
-    # test_auth_profile( $db );
-    # test_media( $db, $media );
+    test_stories_public_list( $db, $media );
+    test_auth_profile( $db );
+    test_media( $db, $media );
+    test_tag_sets( $db );
+    test_feeds( $db );
     test_tags( $db );
-
-    # test_tag_sets( $db );
-    # test_feeds( $db );
 
 }
 

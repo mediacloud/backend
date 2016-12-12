@@ -405,6 +405,12 @@ These calls allow users to edit tag data, including both the metadata of the tag
 | ---------------------------- | --------------------------------------------------
 | `api/v2/stories/put_tags`    | Add tags to a story. Must be a PUT request.
 
+### Query Parameters
+
+| Parameter                         | Default | Notes
+| --------------------------------- | ------- | -----------------------------------------------------------------
+| `clear_tag_sets`                  | 0       | If true, delete all tags in 'add' tag_sets other than the added tags
+
 ### Input Description
 
 Input for this call should be a json document with a list of records, each with a `stories_id` key and tag keys (see bwlow).  Each record may also contain an `action` key which can have the value of either `add` or `remove`; if not specified, the default `action` is `add`.
@@ -414,6 +420,9 @@ A single call can include multiple stories as well as multiple tags.  Users are 
 
 The tag can be specified with using a `tags_id` key or by specifying a `tag` and a `tag_set` key.  If the latter form
 is used, a new tag or tag_set will be created if ti does not already exist for the given value.
+
+If the `clear_tags` parameter is set to 1, this will call will delete all tag associations for the given stories
+for each tag_set included in the list of tags other than the tags added by this call.
 
 ### Example
 
