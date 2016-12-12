@@ -1190,12 +1190,19 @@ sub add_story($$$;$)
 
     my $medium = $db->find_by_id( 'media', $story->{ media_id } );
 
-    my $full_text_in_rss = ( $medium->{ full_text_rss } ) ? 1 : 0;
-    if ( defined( $story->{ description } ) and ( length( $story->{ description } ) == 0 ) )
+    unless ( defined $story->{ full_text_rss } )
     {
-        $full_text_in_rss = 0;
+        my $full_text_in_rss = ( $medium->{ full_text_rss } ) ? 1 : 0;
+        if ( defined( $story->{ description } ) and ( length( $story->{ description } ) == 0 ) )
+        {
+            $full_text_in_rss = 0;
+        }
+        $story->{ full_text_rss } = $full_text_in_rss;
     }
-    $story->{ full_text_rss } = $full_text_in_rss;
+    else
+    {
+        # Caller knows better -- no-op
+    }
 
     eval { $story = $db->create( 'stories', $story ); };
 
