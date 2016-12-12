@@ -5,6 +5,7 @@
 #
 # Sources:
 #     http://search.cpan.org/~creamyg/Lingua-StopWords-0.09/
+#     that one Swedish journalist
 #
 
 alla
@@ -15,10 +16,13 @@ blev
 bli
 blir
 blivit
+borde
+båda
 de
 dem
 den
 denna
+dens
 deras
 dess
 dessa
@@ -28,10 +32,13 @@ dig
 din
 dina
 ditt
+dom
 du
 där
 då
 efter
+eftersom
+egen
 ej
 eller
 en
@@ -39,13 +46,25 @@ er
 era
 ert
 ett
+fanns
+finns
 från
+få
 för
+före
+genom
+gjorde
+gjort
+göra
 ha
 hade
+hade 
 han
+han 
 hans
+hans 
 har
+hen
 henne
 hennes
 hon
@@ -53,24 +72,31 @@ honom
 hur
 här
 i
+i 
 icke
+igen
 ingen
+innan
 inom
 inte
 jag
 ju
 kan
 kunde
+kunnat
+lite
 man
 med
 mellan
 men
 mig
 min
+min 
 mina
 mitt
 mot
 mycket
+nere
 ni
 nu
 när
@@ -83,6 +109,7 @@ oss
 på
 samma
 sedan
+sen
 sig
 sin
 sina
@@ -94,11 +121,15 @@ så
 sådan
 sådana
 sådant
+sån
 till
+till 
+tills 
 under
 upp
 ut
 utan
+ute
 vad
 var
 vara
@@ -116,6 +147,7 @@ vilken
 vilket
 vår
 våra
+vårat
 vårt
 än
 är
