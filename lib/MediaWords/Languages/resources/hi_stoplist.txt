@@ -1,8 +1,6 @@
 #
 # This is a stop word list for the Hindi language.
 #
-# The encoding of this file is UTF-8.
-#
 # Sources:
 #     http://www.ranks.nl/stopwords/hindi
 #     http://members.unine.ch/jacques.savoy/clef/hindiST.txt
