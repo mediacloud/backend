@@ -48,7 +48,7 @@ sub _get_full_text_from_rss
 {
     my ( $db, $story ) = @_;
 
-    my $ret = html_strip( $story->{ title } || '' ) . "\n" . html_strip( $story->{ description } || '' );
+    my $ret = html_strip( $story->{ title } || '' ) . "\n\n" . html_strip( $story->{ description } || '' );
 
     return $ret;
 }
