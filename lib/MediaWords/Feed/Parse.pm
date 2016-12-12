@@ -93,9 +93,9 @@ sub _fix_atom_content_element_encoding
 
 # parse feed with XML::FeedPP after some simple munging to correct feed formatting.
 # return the XML::FeedPP feed object or undef if the parse failed.
-sub parse_feed($)
+sub parse_feed($;$)
 {
-    my $content = shift;
+    my ( $content, $skip_preprocessing ) = @_;
 
     # fix content in various ways to make sure it will parse
 
@@ -116,13 +116,16 @@ sub parse_feed($)
         return undef;
     }
 
-    # parser doesn't like files that start with comments
-    $content =~ s/^<!--[^>]*-->\s*<\?/<\?/;
+    unless ( $skip_preprocessing )
+    {
+        # parser doesn't like files that start with comments
+        $content =~ s/^<!--[^>]*-->\s*<\?/<\?/;
 
-    # get rid of any cruft before xml tag that upsets parser
-    $content =~ s/.{1,256}\<\?xml/\<\?xml/;
+        # get rid of any cruft before xml tag that upsets parser
+        $content =~ s/.{1,256}\<\?xml/\<\?xml/;
 
-    $content = _fix_atom_content_element_encoding( $content );
+        $content = _fix_atom_content_element_encoding( $content );
+    }
 
     my $feed;
 
