@@ -806,6 +806,29 @@ create table stories_ap_syndicated (
 
 create unique index stories_ap_syndicated_story on stories_ap_syndicated ( stories_id );
 
+
+--- Superglue (TV) stories thumbnails -->
+CREATE TABLE stories_superglue_thumbnails (
+    stories_superglue_thumbnails_id     SERIAL    PRIMARY KEY,
+    stories_id                          INT       NOT NULL REFERENCES stories ON DELETE CASCADE,
+    thumbnail_url                       VARCHAR   NOT NULL
+);
+
+CREATE UNIQUE INDEX stories_superglue_thumbnails_stories_id
+    ON stories_superglue_thumbnails (stories_id);
+
+
+--- Superglue (TV) stories segment durations -->
+CREATE TABLE stories_superglue_segment_durations (
+    stories_superglue_segment_durations_id    SERIAL    PRIMARY KEY,
+    stories_id                                INT       NOT NULL REFERENCES stories ON DELETE CASCADE,
+    segment_duration                          NUMERIC   NOT NULL
+);
+
+CREATE UNIQUE INDEX stories_superglue_segment_durations_stories_id
+    ON stories_superglue_segment_durations (stories_id);
+
+
 CREATE TYPE download_state AS ENUM (
     'error',
     'fetching',
