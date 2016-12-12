@@ -17,7 +17,12 @@ use MediaWords::TM::Snapshot;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
-__PACKAGE__->config( action => { list => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] }, } );
+__PACKAGE__->config(
+    action => {
+        list => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
+        map  => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
+    }
+);
 
 sub apibase : Chained('/') : PathPart('api/v2/topics') : CaptureArgs(1)
 {
@@ -109,6 +114,41 @@ SQL
     MediaWords::DBI::ApiLinks::add_links_to_entity( $c, $entity, 'media' );
 
     $self->status_ok( $c, entity => $entity );
+}
+
+sub map : Chained('media') : Args(0) : ActionClass('MC_REST')
+{
+
+}
+
+sub map_GET
+{
+    my ( $self, $c ) = @_;
+
+    my $timespan    = MediaWords::TM::set_timespans_id_param( $c );
+    my $color_field = $c->req->params->{ color_field } || 'media_type';
+    my $num_media   = $c->req->params->{ num_media } || 500;
+
+    MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
+
+    my $db = $c->dbis;
+
+    my $topic = $db->require_by_id( 'topics', $c->stash->{ topics_id } );
+
+    MediaWords::TM::Snapshot::setup_temporary_snapshot_tables( $db, $timespan, $topic );
+    my $gexf = MediaWords::TM::Snapshot::get_gexf_snapshot( $db, $timespan, $color_field, $num_media );
+    MediaWords::TM::Snapshot::discard_temp_tables( $db );
+
+    my $base_url = $c->uri_for( '/' );
+
+    $gexf =~ s/\[_mc_base_url_\]/$base_url/g;
+
+    my $file = "media_$timespan->{ timespans_id }.gexf";
+
+    $c->response->header( "Content-Disposition" => "attachment;filename=$file" );
+    $c->response->content_type( 'text/gexf; charset=UTF-8' );
+    $c->response->content_length( bytes::length( $gexf ) );
+    $c->response->body( $gexf );
 }
 
 1;

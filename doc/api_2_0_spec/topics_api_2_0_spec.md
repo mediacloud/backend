@@ -1095,6 +1095,33 @@ Response:
     }
 }
 ```
+## media/map - DONE
+
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/media/map`
+
+The media list call returns a gexf formatted network map of the media in the topic / timespan.
+
+### Query Parameters
+
+| Parameter | Default | Notes                                    |
+| --------- | ------- | ---------------------------------------- |
+| color_field  | media_type    | node coloring; possible values: `partisan`, `media_type`          |
+| num_media      | 500  | number of media to map, sorted by media inlinks |
+
+Standard parameters accepted: snapshots_id, foci_id, timespans_id.
+
+### Output Description
+
+Output is a gexf formatted file, as described here:
+
+https://gephi.org/gexf/format/
+
+### Example
+
+Return the network map for topic id 12:
+
+`https://api.mediacloud.org/api/v2/topics/12/media/map`
+
 ## media/~media_id~/edit (PUT) - TODO
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/media/~media_id~/edit`
