@@ -9,7 +9,7 @@ source "$PWD/set_mc_root_dir.inc.sh"
 cd "$MC_ROOT_DIR"
 
 source ./script/set_perl_brew_environment.sh
-perl -v
+echo "Using Perl version: `perl -e 'print substr($^V, 1)'`"
 
 if [ `uname` == 'Darwin' ]; then
 
