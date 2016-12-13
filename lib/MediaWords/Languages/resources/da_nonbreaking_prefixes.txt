@@ -2,8 +2,6 @@
 # This is a non-breaking prefix list for the Danish language.
 # The file is used for sentence tokenization (text -> sentence splitting).
 #
-# The encoding of this file is UTF-8.
-#
 # The file was adapted from LanguageTool package (src/main/java/org/languagetool/tokenizers/da/DanishSentenceTokenizer.java):
 #     http://www.languagetool.org/
 #

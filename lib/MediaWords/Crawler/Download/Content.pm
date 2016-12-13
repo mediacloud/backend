@@ -11,7 +11,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Moose;
-with 'MediaWords::Crawler::DefaultFetcher', 'MediaWords::Crawler::DefaultHandler';
+with 'MediaWords::Crawler::Download::DefaultFetcher', 'MediaWords::Crawler::Download::DefaultHandler';
 
 use MediaWords::DBI::Downloads;
 

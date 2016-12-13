@@ -1,4 +1,4 @@
-package MediaWords::Crawler::DefaultHandler;
+package MediaWords::Crawler::Download::DefaultHandler;
 
 #
 # Default response handler implementation
@@ -109,7 +109,8 @@ sub handle_response($$$$)
     my $download_url  = $download->{ url };
     my $download_type = $download->{ type };
 
-    DEBUG "Handling download $downloads_id ($download_url)...";
+    DEBUG "Handling download $downloads_id...";
+    TRACE "(URL of download $downloads_id which is about to be handled: $download_url)";
 
     unless ( $response->is_success )
     {
@@ -165,7 +166,8 @@ SQL
         }
     }
 
-    DEBUG "Handled download $downloads_id ($download_url).";
+    DEBUG "Handled download $downloads_id.";
+    TRACE "(URL of download $downloads_id which was just handled: $download_url)";
 }
 
 1;

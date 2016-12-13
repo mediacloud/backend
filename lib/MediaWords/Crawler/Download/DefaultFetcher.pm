@@ -1,4 +1,4 @@
-package MediaWords::Crawler::DefaultFetcher;
+package MediaWords::Crawler::Download::DefaultFetcher;
 
 #
 # Default fetcher implementation

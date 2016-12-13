@@ -1,8 +1,6 @@
 use strict;
 use warnings;
 
-# test feed checksumming in MediaWords::Crawler::Download::Feed::Syndicated
-
 BEGIN
 {
     use FindBin;
@@ -14,18 +12,19 @@ use Test::More tests => 12;
 use Test::NoWarnings;
 
 use MediaWords::Test::DB;
-use MediaWords::DB;
-use MediaWords::Crawler::Download::Feed::Syndicated;
+use MediaWords::DBI::Feeds;
 
-use English '-no_match_vars';
 
-sub test_feed_checksums
+# test feed checksumming
+sub test_stories_checksum_matches_feed
 {
     my ( $db ) = @_;
 
+    my $pid = $$;
+
     my $medium = {
-        name      => "test feed checksum $PROCESS_ID",
-        url       => "url://test/feed/checksum/$PROCESS_ID",
+        name      => "test feed checksum $$",
+        url       => "url://test/feed/checksum/$$",
         moderated => 't',
     };
     $medium = $db->create( 'media', $medium );
@@ -82,40 +81,31 @@ sub test_feed_checksums
     my $stories_b = [ map { { url => $_ } } @{ $urls_b } ];
 
     # first check should fail since feed checksum should be empty
-    is( MediaWords::Crawler::Download::Feed::Syndicated::_stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_a ),
-        0, "empty checksum" );
+    is( MediaWords::DBI::Feeds::stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_a ), 0, "empty checksum" );
 
     # next check with same stories should be a match
-    is( MediaWords::Crawler::Download::Feed::Syndicated::_stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_a ),
-        1, "match 1" );
+    is( MediaWords::DBI::Feeds::stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_a ), 1, "match 1" );
 
     # and another match
-    is( MediaWords::Crawler::Download::Feed::Syndicated::_stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_a ),
-        1, "match 2" );
+    is( MediaWords::DBI::Feeds::stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_a ), 1, "match 2" );
 
     # and now try with different set of stories
-    is( MediaWords::Crawler::Download::Feed::Syndicated::_stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_b ),
-        0, "fail 1" );
+    is( MediaWords::DBI::Feeds::stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_b ), 0, "fail 1" );
 
     # and now with the same b stories
-    is( MediaWords::Crawler::Download::Feed::Syndicated::_stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_b ),
-        1, "match 3" );
+    is( MediaWords::DBI::Feeds::stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_b ), 1, "match 3" );
 
     # and now add one story
     push( @{ $stories_b }, { url => 'http://foo.bar.com' } );
-    is( MediaWords::Crawler::Download::Feed::Syndicated::_stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_b ),
-        0, "fail 2" );
-    is( MediaWords::Crawler::Download::Feed::Syndicated::_stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_b ),
-        1, "match 4" );
+    is( MediaWords::DBI::Feeds::stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_b ), 0, "fail 2" );
+    is( MediaWords::DBI::Feeds::stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_b ), 1, "match 4" );
 
     # and now with no stories
-    is( MediaWords::Crawler::Download::Feed::Syndicated::_stories_checksum_matches_feed( $db, $feed->{ feeds_id }, [] ), 0, "fail 3" );
+    is( MediaWords::DBI::Feeds::stories_checksum_matches_feed( $db, $feed->{ feeds_id }, [] ), 0, "fail 3" );
 
     # and now with b again
-    is( MediaWords::Crawler::Download::Feed::Syndicated::_stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_a ),
-        0, "fail 4" );
-    is( MediaWords::Crawler::Download::Feed::Syndicated::_stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_a ),
-        1, "match 5" );
+    is( MediaWords::DBI::Feeds::stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_a ), 0, "fail 4" );
+    is( MediaWords::DBI::Feeds::stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_a ), 1, "match 5" );
 }
 
 sub main
@@ -124,7 +114,7 @@ sub main
         sub {
             my $db = shift;
 
-            test_feed_checksums( $db );
+            test_stories_checksum_matches_feed( $db );
 
             Test::NoWarnings::had_no_warnings();
         }

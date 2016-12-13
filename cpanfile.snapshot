@@ -1099,16 +1099,6 @@ DISTRIBUTIONS
       Class::Data::Inheritable 0.08
     requirements:
       ExtUtils::MakeMaker 0
-  Class-ErrorHandler-0.03
-    pathname: T/TO/TOKUHIROM/Class-ErrorHandler-0.03.tar.gz
-    provides:
-      Class::ErrorHandler 0.03
-    requirements:
-      CPAN::Meta 0
-      CPAN::Meta::Prereqs 0
-      ExtUtils::CBuilder 0
-      Module::Build 0.38
-      perl 5.008_001
   Class-Factory-Util-1.7
     pathname: D/DR/DROLSKY/Class-Factory-Util-1.7.tar.gz
     provides:
@@ -1370,14 +1360,6 @@ DISTRIBUTIONS
       Test::Exception 0
       Test::More 0
       ok 0
-  Cpanel-JSON-XS-2.3404
-    pathname: R/RU/RURBAN/Cpanel-JSON-XS-2.3404.tar.gz
-    provides:
-      Cpanel::JSON::XS 2.3404
-    requirements:
-      ExtUtils::MakeMaker 0
-      Pod::Text 2.08
-      Pod::Usage 1.33
   Crypt-Random-Seed-0.03
     pathname: D/DA/DANAJ/Crypt-Random-Seed-0.03.tar.gz
     provides:
@@ -3676,19 +3658,6 @@ DISTRIBUTIONS
     requirements:
       ExtUtils::MakeMaker 0
       perl 5.006
-  Feed-Find-0.07
-    pathname: B/BT/BTROTT/Feed-Find-0.07.tar.gz
-    provides:
-      Feed::Find 0.07
-    requirements:
-      Class::ErrorHandler 0
-      ExtUtils::MakeMaker 6.42
-      Filter::Util::Call 0
-      HTML::Parser 0
-      LWP 0
-      Test::More 0
-      URI 0
-      perl 5.008001
   File-ChangeNotify-0.24
     pathname: D/DR/DROLSKY/File-ChangeNotify-0.24.tar.gz
     provides:
@@ -4645,7 +4614,6 @@ DISTRIBUTIONS
       IO::Socket::SSL::Utils 2.014
     requirements:
       ExtUtils::MakeMaker 0
-      Mozilla::CA 0
       Net::SSLeay 1.46
       Scalar::Util 0
   IO-String-1.08
@@ -4759,7 +4727,6 @@ DISTRIBUTIONS
       JSON::MaybeXS 1.003005
     requirements:
       Carp 0
-      Cpanel::JSON::XS 2.3310
       ExtUtils::CBuilder 0.27
       ExtUtils::MakeMaker 0
       File::Spec 0

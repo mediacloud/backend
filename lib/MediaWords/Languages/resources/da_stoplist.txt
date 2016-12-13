@@ -1,8 +1,6 @@
 #
 # This is a stop word list for the Danish language.
 #
-# The encoding of this file is UTF-8.
-#
 # Sources:
 #     http://search.cpan.org/~creamyg/Lingua-StopWords-0.09/
 #
