@@ -24,26 +24,16 @@ SET search_path = public, pg_catalog;
 --ALTER TYPE feed_feed_type ADD VALUE 'superglue';
 
 
---- Superglue (TV) stories thumbnails -->
-CREATE TABLE stories_superglue_thumbnails (
-    stories_superglue_thumbnails_id     SERIAL    PRIMARY KEY,
-    stories_id                          INT       NOT NULL REFERENCES stories ON DELETE CASCADE,
-    thumbnail_url                       VARCHAR   NOT NULL
+--- Superglue (TV) stories metadata -->
+CREATE TABLE stories_superglue_metadata (
+    stories_superglue_metadata_id   SERIAL    PRIMARY KEY,
+    stories_id                      INT       NOT NULL REFERENCES stories ON DELETE CASCADE,
+    thumbnail_url                   VARCHAR   NOT NULL,
+    segment_duration                NUMERIC   NOT NULL
 );
 
-CREATE UNIQUE INDEX stories_superglue_thumbnails_stories_id
-    ON stories_superglue_thumbnails (stories_id);
-
-
---- Superglue (TV) stories segment durations -->
-CREATE TABLE stories_superglue_segment_durations (
-    stories_superglue_segment_durations_id    SERIAL    PRIMARY KEY,
-    stories_id                                INT       NOT NULL REFERENCES stories ON DELETE CASCADE,
-    segment_duration                          NUMERIC   NOT NULL
-);
-
-CREATE UNIQUE INDEX stories_superglue_segment_durations_stories_id
-    ON stories_superglue_segment_durations (stories_id);
+CREATE UNIQUE INDEX stories_superglue_metadata_stories_id
+    ON stories_superglue_metadata (stories_id);
 
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$

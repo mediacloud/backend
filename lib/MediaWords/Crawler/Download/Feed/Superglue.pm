@@ -120,20 +120,12 @@ sub add_stories_from_feed($$$$)
         # Fill "story_sentences", set story language etc.
         MediaWords::StoryVectors::update_story_sentences_and_language( $db, $added_story );
 
-        # Record thumbnail URL
+        # Record metadata
         $db->create(
-            'stories_superglue_thumbnails',
-            {
-                'stories_id'    => $added_stories_id,
-                'thumbnail_url' => $superglue_story->{ thumbnail_url },
-            }
-        );
-
-        # Record segment duration
-        $db->create(
-            'stories_superglue_segment_durations',
+            'stories_superglue_metadata',
             {
                 'stories_id'       => $added_stories_id,
+                'thumbnail_url'    => $superglue_story->{ thumbnail_url },
                 'segment_duration' => $superglue_story->{ segment_duration },
             }
         );

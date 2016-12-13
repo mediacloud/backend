@@ -73,11 +73,8 @@ sub test_fetch_handle_download($$)
     my $story_sentence_count = $db->query( 'SELECT COUNT(*) FROM story_sentences' )->flat->[ 0 ] + 0;
     ok( $story_sentence_count > 0, "Some sentences must have been extracted from 'superglue' feed" );
 
-    my $segment_duration_count = $db->query( 'SELECT COUNT(*) FROM stories_superglue_segment_durations' )->flat->[ 0 ] + 0;
-    ok( $segment_duration_count == $story_count, 'Segment duration count should match story count' );
-
-    my $thumbnail_count = $db->query( 'SELECT COUNT(*) FROM stories_superglue_thumbnails' )->flat->[ 0 ] + 0;
-    ok( $thumbnail_count == $story_count, 'Thumbnail count should match story count' );
+    my $metadata_count = $db->query( 'SELECT COUNT(*) FROM stories_superglue_metadata' )->flat->[ 0 ] + 0;
+    ok( $metadata_count == $story_count, 'Superglue metadata count should match story count' );
 
     my $bad_stories = $db->query(
         <<SQL
@@ -114,38 +111,23 @@ SQL
     ok( scalar( @{ $bad_story_sentences } ) == 0,
         "Some sentences matched the 'bad sentences' query: " . Dumper( $bad_story_sentences ) );
 
-    my $bad_segment_durations = $db->query(
+    my $bad_metadata = $db->query(
         <<SQL
         SELECT *
-        FROM stories_superglue_segment_durations
+        FROM stories_superglue_metadata
         WHERE NOT EXISTS (
             SELECT 1
             FROM stories
-            WHERE stories_superglue_segment_durations.stories_id = stories_superglue_segment_durations.stories_id
+            WHERE stories_superglue_metadata.stories_id = stories_superglue_metadata.stories_id
         )
            OR segment_duration IS NULL
            OR segment_duration < 0
-SQL
-    )->hashes;
-    ok( scalar( @{ $bad_segment_durations } ) == 0,
-        "Some segment durations matched the 'bad segment durations' query: " . Dumper( $bad_segment_durations ) );
-
-    my $bad_thumbnail_urls = $db->query(
-        <<SQL
-        SELECT *
-        FROM stories_superglue_thumbnails
-        WHERE NOT EXISTS (
-            SELECT 1
-            FROM stories
-            WHERE stories_superglue_thumbnails.stories_id = stories_superglue_thumbnails.stories_id
-        )
            OR thumbnail_url IS NULL
            OR thumbnail_url = ''
            OR thumbnail_url NOT ILIKE 'http%'
 SQL
     )->hashes;
-    ok( scalar( @{ $bad_thumbnail_urls } ) == 0,
-        "Some thumbnail URLs matched the 'bad thumbnail URLs' query: " . Dumper( $bad_thumbnail_urls ) );
+    ok( scalar( @{ $bad_metadata } ) == 0, "Some metadata matched the 'bad metadata' query: " . Dumper( $bad_metadata ) );
 
     # Try running handle_response() with the same feed data again, see if if_new() works
     $handler->handle_response( $db, $download, $response );
@@ -183,11 +165,11 @@ sub main()
 
     if ( $remote_superglue_url )
     {
-        plan tests => 27;
+        plan tests => 23;
     }
     else
     {
-        plan tests => 14;
+        plan tests => 12;
     }
 
     say STDERR "Testing against local Superglue test HTTP server...";
