@@ -283,7 +283,7 @@ SQL
           AND e.enumlabel = 'superglue'
 SQL
     )->flat;
-    unless ( $feed_type_has_univision_value )
+    unless ( $feed_type_has_superglue_value )
     {
         DEBUG( "Adding 'superglue' value to 'feed_feed_type' enum..." );
         $db->query( "ALTER TYPE feed_feed_type ADD VALUE 'superglue'" );
