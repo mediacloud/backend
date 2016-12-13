@@ -37,7 +37,7 @@ We recommend that you read through this entire file. Nevertheless most users wil
      sudo ./install_scripts/install_mediacloud_package_dependencies.sh
      sudo ./install_scripts/create_default_db_user_and_databases.sh 
      cp  mediawords.yml.dist mediawords.yml
-     ./install_mc_perlbrew_and_modules.sh
+     ./install_scripts/install_mc_perlbrew_and_modules.sh
      ./python_scripts/pip_installs.sh
      ./script/run_carton.sh exec prove -Ilib/ -r t/compile.t
      ./script/run_with_carton.sh ./script/mediawords_create_db.pl
@@ -75,9 +75,9 @@ After you have successfully run the above commands, skip to the POST INSTALL sec
 5. *Optional:* Edit the other sections of `mediawords.yml` to suit your local configuration.  
 Note that if you uncomment a suboption, you also need to uncomment the parent option.  For example, if you uncomment `extractor_method`, you should also uncomment `mediawords`.
 
-6. Run the `install_mc_perlbrew_and_modules.sh` script. This scripts installs Perlbrew, carton and the required modules. Simply `cd` to the base directory of Media Cloud and run the following. Note that the script will take a long time to complete:
+6. Run the `./install_scripts/install_mc_perlbrew_and_modules.sh` script. This scripts installs Perlbrew, carton and the required modules. Simply `cd` to the base directory of Media Cloud and run the following. Note that the script will take a long time to complete:
 
-        ./install_mc_perlbrew_and_modules.sh
+        ./install_scripts/install_mc_perlbrew_and_modules.sh
 
 7. Run the `python_scripts/pip_install.sh` script. This scripts installs Python modules through pip. Simply `cd` to the base directory of Media Cloud and run the following. Note that the script will take a long time to complete:
 
