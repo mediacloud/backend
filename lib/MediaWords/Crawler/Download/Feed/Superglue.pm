@@ -47,7 +47,7 @@ sub add_stories_from_feed($$$$)
 
     my $stories           = [];
     my $superglue_stories = [];    # Additional Superglue data
-    foreach my $item ( $feed->get_item )
+    foreach my $item ( @{ $feed->items() } )
     {
         my ( $title, $video_url, $transcript, $guid, $publish_date, $thumbnail_url, $segment_duration );
         eval {

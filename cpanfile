@@ -37,7 +37,6 @@ requires 'Catalyst::View::TT';
 requires 'CGI';
 requires 'CHI', '>= 0.60';
 requires 'Class::CSV';
-requires 'Class::Std';
 requires 'Color::Mix';
 requires 'Config::Any';
 requires 'Crypt::SaltedHash';

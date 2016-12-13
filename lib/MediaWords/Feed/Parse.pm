@@ -10,7 +10,8 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use XML::FeedPP::MediaWords;
+use MediaWords::Feed::Parse::SyndicatedFeed;
+
 use XML::LibXML;
 
 sub _fix_atom_content_element_encoding
@@ -91,8 +92,8 @@ sub _fix_atom_content_element_encoding
     return $ret;
 }
 
-# parse feed with XML::FeedPP after some simple munging to correct feed formatting.
-# return the XML::FeedPP feed object or undef if the parse failed.
+# Parse feed after some simple munging to correct feed formatting.
+# return the MediaWords::Feed::Parse::SyndicatedFeed::Item feed object or undef if the parse failed.
 sub parse_feed($;$)
 {
     my ( $content, $skip_preprocessing ) = @_;
@@ -130,7 +131,7 @@ sub parse_feed($;$)
     my $feed;
 
     #$DB::single = 1;
-    eval { $feed = XML::FeedPP::MediaWords->new( { content => $content, type => 'string' } ) };
+    eval { $feed = MediaWords::Feed::Parse::SyndicatedFeed->new( $content ) };
 
     if ( $@ )
     {

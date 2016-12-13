@@ -33,11 +33,9 @@ sub _get_stories_from_syndicated_feed($$$)
 
     die( "Unable to parse feed" ) unless $feed;
 
-    my $items = [ $feed->get_item ];
-
     my $stories = [];
 
-    for my $item ( @{ $items } )
+    for my $item ( @{ $feed->items() } )
     {
         my $url = $item->link();
         unless ( $url )
