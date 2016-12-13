@@ -11,7 +11,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Moose;
-with 'MediaWords::Crawler::DefaultFetcher', 'MediaWords::Crawler::Download::FeedHandler';
+with 'MediaWords::Crawler::Download::DefaultFetcher', 'MediaWords::Crawler::Download::Feed::FeedHandler';
 
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories;
@@ -231,7 +231,7 @@ sub add_stories_from_feed($$$$)
     my $story_ids = [];
     foreach my $story ( @{ $new_stories } )
     {
-        MediaWords::DBI::Stories::add_story_and_content_download( $db, $story, $download );
+        $story = MediaWords::DBI::Stories::add_story_and_content_download( $db, $story, $download );
         push( @{ $story_ids }, $story->{ stories_id } );
     }
 

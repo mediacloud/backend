@@ -1,4 +1,4 @@
-package Feed::Scrape;
+package MediaWords::Feed::Scrape;
 
 # scrape an html page for rss/rsf/atom feeds
 
@@ -8,6 +8,7 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use MediaWords::Feed::Parse;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 
@@ -15,19 +16,12 @@ use Data::Dumper;
 use Domain::PublicSuffix;
 use Encode;
 use HTML::Entities;
-use HTML::Entities;
 use HTML::LinkExtractor;
-use List::MoreUtils qw(any all none notall true false firstidx first_index
-  lastidx last_index insert_after insert_after_string
-  apply after after_incl before before_incl indexes
-  firstval first_value lastval last_value each_array
-  each_arrayref pairwise natatime mesh zip distinct uniq minmax);
+use List::MoreUtils qw/distinct/;
 use List::Util;
 use Readonly;
 use URI::Escape;
 use URI::URL;
-use XML::FeedPP::MediaWords;
-use XML::LibXML;
 
 Readonly my $MAX_DEFAULT_FEEDS => 4;
 
@@ -58,11 +52,11 @@ Readonly my @URL_IGNORE_PATTERNS => (
 );
 
 #
-# Note: We consider just using Feed::Find from CPAN but didn't find it sufficent so we created Feed::Scrape
+# Note: We consider just using Feed::Find from CPAN but didn't find it sufficent so we created MediaWords::Feed::Scrape
 #
 # Details:
-# Feed::Find is much simpler and less effective than our Feed::Scrape stuff,
-# mostly because Feed::Scrape is more inclusive but goes to the trouble of
+# Feed::Find is much simpler and less effective than our MediaWords::Feed::Scrape stuff,
+# mostly because MediaWords::Feed::Scrape is more inclusive but goes to the trouble of
 # actually downloading anything that looks like it might be a feed to verify. We found it
 # necessary to actually download the feeds to get any sort of accuracy in finding the feeds,
 # albeit at the cost of downloading them.
@@ -74,7 +68,7 @@ Readonly my @URL_IGNORE_PATTERNS => (
 # representing all of the links that refer to valid feeds (rss, rdf, or atom)
 sub _validate_and_name_feed_urls
 {
-    my ( $class, $urls ) = @_;
+    my $urls = shift;
 
     my $links = [];
 
@@ -94,7 +88,7 @@ sub _validate_and_name_feed_urls
 
         DEBUG "Parsing $url";
 
-        if ( my $feed = $class->parse_feed( $content ) )
+        if ( my $feed = MediaWords::Feed::Parse::parse_feed( $content ) )
         {
             push(
                 @{ $links },
@@ -111,9 +105,9 @@ sub _validate_and_name_feed_urls
 }
 
 # resolve relative url if necessary
-sub _resolve_relative_url
+sub _resolve_relative_url($$)
 {
-    my ( $class, $base_url, $url ) = @_;
+    my ( $base_url, $url ) = @_;
 
     my $resolved_url = url( decode_entities( $url ) )->abs( $base_url )->as_string();
 
@@ -123,9 +117,9 @@ sub _resolve_relative_url
 }
 
 # check whether the url passes various validity tests
-sub _is_valid_feed_url
+sub _is_valid_feed_url($)
 {
-    my ( $class, $url ) = @_;
+    my $url = shift;
 
     if ( length( $url ) > $MAX_SCRAPED_URL_LENGTH )
     {
@@ -140,163 +134,10 @@ sub _is_valid_feed_url
     return MediaWords::Util::URL::is_http_url( $url );
 }
 
-# METHODS
-
-sub _fix_atom_content_element_encoding
-{
-    my $xml_string = shift @_;
-
-    my $parser = XML::LibXML->new;
-    my $doc;
-
-    eval { $doc = $parser->parse_string( $xml_string ); };
-
-    if ( $@ )
-    {
-        DEBUG "Error parsing feed string";
-        return $xml_string;
-    }
-
-    my $doc_element = $doc->documentElement() || die;
-
-    my $xpc = XML::LibXML::XPathContext->new;
-    $xpc->registerNs( 'x', 'http://www.w3.org/2005/Atom' );
-    my @content_nodes = $xpc->findnodes( '//x:entry/x:content', $doc_element )->get_nodelist;
-
-    #either the feed is RSS or there is no content
-    return $xml_string if scalar( @content_nodes ) == 0;
-
-    my $fixed_content_element = 0;
-
-    foreach my $content_node ( @content_nodes )
-    {
-        next if ( !$content_node->hasChildNodes() );
-
-        my $child_nodes = $content_node->childNodes();
-
-        my $child_node_count = $child_nodes->size;
-
-        if ( $child_node_count == 1 )
-        {
-            my $first_child = $content_node->firstChild();
-
-            next if ( $first_child->nodeType == XML_CDATA_SECTION_NODE );
-            next if ( $first_child->nodeType == XML_TEXT_NODE );
-        }
-
-        my @content_node_child_list = $child_nodes->get_nodelist();
-
-        # allow white space before CDATA_SECTION
-        if ( any { $_->nodeType == XML_CDATA_SECTION_NODE } @content_node_child_list )
-        {
-            my @non_cdata_children = grep { $_->nodeType != XML_CDATA_SECTION_NODE } @content_node_child_list;
-
-            if ( all { $_->nodeType == XML_TEXT_NODE } @non_cdata_children )
-            {
-                if ( all { $_->data =~ /\s+/ } @non_cdata_children )
-                {
-                    next;
-                }
-            }
-        }
-
-        $fixed_content_element = 1;
-
-        my $child_nodes_string = join '', ( map { $_->toString() } ( $child_nodes->get_nodelist() ) );
-
-        $content_node->removeChildNodes();
-
-        my $cdata_node = XML::LibXML::CDATASection->new( $child_nodes_string );
-        $content_node->appendChild( $cdata_node );
-    }
-
-    #just return the original string if we didn't need to fix anything...
-    return $xml_string if !$fixed_content_element;
-
-    my $ret = $doc->toString;
-
-    TRACE "Returning :'$ret'";
-
-    return $ret;
-}
-
-# parse feed with XML::FeedPP after some simple munging to correct feed formatting.
-# return the XML::FeedPP feed object or undef if the parse failed.
-sub parse_feed
-{
-    my ( $class, $content ) = @_;
-
-    # fix content in various ways to make sure it will parse
-
-    my $chunk = substr( $content, 0, 1024 );
-
-    # make sure that there's some sort of feed id in the first chunk of the file
-    if ( $chunk =~ /<html/i )
-    {
-
-        TRACE "Feed not parsed -- contains '<html'";
-        return undef;
-    }
-
-    if ( $chunk !~ /<(?:rss|feed|rdf)/i )
-    {
-
-        TRACE "Feed not parsed -- missing feed tag in first 1024 characters";
-        return undef;
-    }
-
-    # parser doesn't like files that start with comments
-    $content =~ s/^<!--[^>]*-->\s*<\?/<\?/;
-
-    # get rid of any cruft before xml tag that upsets parser
-    $content =~ s/.{1,256}\<\?xml/\<\?xml/;
-
-    $content = _fix_atom_content_element_encoding( $content );
-
-    my $feed;
-
-    #$DB::single = 1;
-    eval { $feed = XML::FeedPP::MediaWords->new( { content => $content, type => 'string' } ) };
-
-    if ( $@ )
-    {
-        DEBUG "parse feed failed";
-        return undef;
-    }
-    else
-    {
-        return $feed;
-    }
-}
-
-# give a list of urls, return a list of feeds in the form of { name => $name, url => $url, feed_type => 'syndicated' }
-# representing all of the links that refer to valid feeds (rss, rdf, or atom).
-sub get_valid_feeds_from_urls
-{
-    my ( $class, $urls ) = @_;
-
-    if ( !$urls || !@{ $urls } )
-    {
-        return [];
-    }
-
-    my $url_hash;
-    $urls = [ grep { !$url_hash->{ $_ }++ } @{ $urls } ];
-
-    $urls = [ grep { $_ !~ /\.(gif|jpg|jpeg|png|css|js)$/i } @{ $urls } ];
-
-    my $links = $class->_validate_and_name_feed_urls( $urls );
-
-    my $u = {};
-    map { $u->{ normalize_feed_url( $_->{ url } ) } = $_ } @{ $links };
-
-    return [ sort { $a->{ name } cmp $b->{ name } } values( %{ $u } ) ];
-}
-
 # parse the html feed link tags
-sub get_feed_urls_from_html_links
+sub _get_feed_urls_from_html_links($$)
 {
-    my ( $class, $base_url, $html ) = @_;
+    my ( $base_url, $html ) = @_;
 
     my $url_hash = {};
 
@@ -312,7 +153,7 @@ sub get_feed_urls_from_html_links
         {
             if ( $link =~ m~href\s*=\s*["']([^"']*)["']~i )
             {
-                my $url = $class->_resolve_relative_url( $base_url, $1 );
+                my $url = _resolve_relative_url( $base_url, $1 );
 
                 DEBUG "Match link: $url";
                 push( @{ $urls }, $url );
@@ -326,13 +167,13 @@ sub get_feed_urls_from_html_links
 
 # look for a valid feed that is either a <link> tag or one of a
 # set of standard feed urls based on the blog url
-sub get_main_feed_urls_from_html($$$)
+sub _get_main_feed_urls_from_html($$)
 {
-    my ( $class, $url, $html ) = @_;
+    my ( $url, $html ) = @_;
 
-    my $link_feed_urls = $class->get_feed_urls_from_html_links( $url, $html );
+    my $link_feed_urls = _get_feed_urls_from_html_links( $url, $html );
 
-    my $valid_link_feeds = $class->get_valid_feeds_from_urls( $link_feed_urls );
+    my $valid_link_feeds = get_valid_feeds_from_urls( $link_feed_urls );
 
     return $valid_link_feeds if ( @{ $valid_link_feeds } );
 
@@ -369,7 +210,7 @@ sub get_main_feed_urls_from_html($$$)
 
     my $standard_urls = [ map { "${ chopped_url }/$_" } @{ $suffixes } ];
 
-    my $valid_feed_urls = $class->get_valid_feeds_from_urls( $standard_urls );
+    my $valid_feed_urls = get_valid_feeds_from_urls( $standard_urls );
 
     $valid_feed_urls = [ $valid_feed_urls->[ 0 ] ] if ( @{ $valid_feed_urls } );
 
@@ -377,10 +218,10 @@ sub get_main_feed_urls_from_html($$$)
 
 }
 
-# same as get_main_feed_urls_from_html(), just fetch the URL beforehand
-sub get_main_feed_urls_from_url($$)
+# same as _get_main_feed_urls_from_html(), just fetch the URL beforehand
+sub _get_main_feed_urls_from_url($)
 {
-    my ( $class, $url ) = @_;
+    my $url = shift;
 
     my $response = MediaWords::Util::Web::ParallelGet( [ $url ] )->[ 0 ];
 
@@ -388,15 +229,15 @@ sub get_main_feed_urls_from_url($$)
 
     my $html = $response->decoded_content;
 
-    my $feeds = $class->get_main_feed_urls_from_html( $url, $html );
+    my $feeds = _get_main_feed_urls_from_html( $url, $html );
 
     return $feeds;
 }
 
 # parse the html for anything that looks like a feed url
-sub get_feed_urls_from_html($$$)
+sub _get_feed_urls_from_html($$)
 {
-    my ( $class, $base_url, $html ) = @_;
+    my ( $base_url, $html ) = @_;
 
     # If <base href="..." /> is present, use that instead of the base URL passed as a parameter
     if ( $html =~ m|<\s*?base\s+?href\s*?=\s*?["'](http://.+?)["']|i )
@@ -454,9 +295,9 @@ sub get_feed_urls_from_html($$$)
         #Remove trailing backslash
         $url =~ s/(.*)\\/$1/;
 
-        my $quoted_url = $class->_resolve_relative_url( $base_url, $url );
+        my $quoted_url = _resolve_relative_url( $base_url, $url );
 
-        if ( $class->_is_valid_feed_url( $quoted_url ) )
+        if ( _is_valid_feed_url( $quoted_url ) )
         {
             DEBUG "Matched quoted URL: $quoted_url";
             push( @{ $urls }, $quoted_url );
@@ -466,9 +307,9 @@ sub get_feed_urls_from_html($$$)
     # look for unquoted urls
     while ( $html =~ m~href=([^ "'>]*(?:feed|rss|xml|syndication|sitemap|rdf|atom)[^ "'>]*)[ >]~gi )
     {
-        my $unquoted_url = $class->_resolve_relative_url( $base_url, $1 );
+        my $unquoted_url = _resolve_relative_url( $base_url, $1 );
 
-        if ( $class->_is_valid_feed_url( $unquoted_url ) )
+        if ( _is_valid_feed_url( $unquoted_url ) )
         {
             DEBUG "Matched unquoted URL: $unquoted_url";
             push( @{ $urls }, $unquoted_url );
@@ -481,9 +322,9 @@ sub get_feed_urls_from_html($$$)
     {
         if ( $url =~ m~feed|rss|xml|syndication|sitemap|rdf|atom~gi )
         {
-            my $quoted_url = $class->_resolve_relative_url( $base_url, $url );
+            my $quoted_url = _resolve_relative_url( $base_url, $url );
 
-            if ( $class->_is_valid_feed_url( $quoted_url ) )
+            if ( _is_valid_feed_url( $quoted_url ) )
             {
                 DEBUG "Matched unlinked URL: $quoted_url";
                 push( @{ $urls }, $quoted_url );
@@ -502,9 +343,11 @@ sub get_feed_urls_from_html($$$)
 #
 # fetch the html for the page at the $index url.  call get_valid_feeds_from_urls on the
 # urls scraped from that page.
-sub _recurse_get_valid_feeds_from_index_url($$$$$$)
+sub _recurse_get_valid_feeds_from_index_url($$$$);    # prototype to be able to recurse
+
+sub _recurse_get_valid_feeds_from_index_url($$$$)
 {
-    my ( $class, $urls, $db, $ignore_patterns, $recurse_urls_to_skip, $recurse_levels_left ) = @_;
+    my ( $urls, $ignore_patterns, $recurse_urls_to_skip, $recurse_levels_left ) = @_;
 
     LOGCARP '$urls must be a reference ' unless ref( $urls );
 
@@ -516,7 +359,7 @@ sub _recurse_get_valid_feeds_from_index_url($$$$$$)
 
     for my $response ( @{ $responses } )
     {
-        my $feed_urls = $class->get_feed_urls_from_html( $response->request->url, $response->decoded_content );
+        my $feed_urls = _get_feed_urls_from_html( $response->request->url, $response->decoded_content );
 
         map { $scraped_url_lookup->{ $_ }++ } @{ $feed_urls };
     }
@@ -528,7 +371,7 @@ sub _recurse_get_valid_feeds_from_index_url($$$$$$)
 
     $#{ $scraped_urls } = List::Util::min( $#{ $scraped_urls }, $MAX_INDEX_URLS - 1 );
 
-    my $valid_feeds = $class->get_valid_feeds_from_urls( $scraped_urls, $db, $ignore_patterns );
+    my $valid_feeds = get_valid_feeds_from_urls( $scraped_urls, $ignore_patterns );
 
     if ( scalar @{ $scraped_urls } > 0 )
     {
@@ -541,13 +384,13 @@ sub _recurse_get_valid_feeds_from_index_url($$$$$$)
             push(
                 @{ $valid_feeds },
                 @{
-                    $class->_recurse_get_valid_feeds_from_index_url( $scraped_urls, $db, $ignore_patterns, $valid_feeds,
+                    _recurse_get_valid_feeds_from_index_url( $scraped_urls, $ignore_patterns, $valid_feeds,
                         $recurse_levels_left )
                 }
             );
 
             my $u = {};
-            map { $u->{ normalize_feed_url( $_->{ url } ) } = $_ } @{ $valid_feeds };
+            map { $u->{ _normalize_feed_url( $_->{ url } ) } = $_ } @{ $valid_feeds };
             $valid_feeds = [ sort { $a->{ name } cmp $b->{ name } } values( %{ $u } ) ];
         }
     }
@@ -555,36 +398,10 @@ sub _recurse_get_valid_feeds_from_index_url($$$$$$)
     return $valid_feeds;
 }
 
-# try to find all rss feeds for a site from the home page url of the site.  return a list
-# of urls of found rss feeds.
-#
-# fetch the html for the page at the $index url.  call get_valid_feeds_from_urls on the
-# urls scraped from that page.
-sub get_valid_feeds_from_index_url($$$$$)
-{
-    my ( $class, $urls, $recurse, $db, $ignore_patterns ) = @_;
-
-    my $recurse_levels_left;
-    if ( $recurse )
-    {
-
-        # Run recursively with up to $MAX_RECURSE_LEVELS
-        $recurse_levels_left = $MAX_RECURSE_LEVELS;
-    }
-    else
-    {
-
-        # Run only once (non-recursively)
-        $recurse_levels_left = 0;
-    }
-
-    return $class->_recurse_get_valid_feeds_from_index_url( $urls, $db, $ignore_patterns, [], $recurse_levels_left );
-}
-
 # return a normalized version of the feed to help avoid duplicate feeds
-sub normalize_feed_url
+sub _normalize_feed_url($)
 {
-    my ( $url ) = @_;
+    my $url = shift;
 
     $url = lc( $url );
 
@@ -617,7 +434,7 @@ sub normalize_feed_url
 # undef if it doesn't at all or 2+ such feeds exist
 sub _main_feed_via_common_prefixed_feeds($)
 {
-    my ( $feed_links ) = @_;
+    my $feed_links = shift;
 
     # If there's only one feed and it still has to be moderated, we should probably leave it that way
     if ( scalar @{ $feed_links } == 1 )
@@ -673,7 +490,7 @@ sub _main_feed_via_common_prefixed_feeds($)
 # "subdomain.example.com" => "example.com"
 sub _second_level_domain_from_host($)
 {
-    my ( $host ) = @_;
+    my $host = shift;
     my $domain;
 
     if ( $host =~ /^[a-zA-Z.]+$/ and $host =~ /\./ )
@@ -696,7 +513,7 @@ sub _second_level_domain_from_host($)
 # "www.example.com" -> "example"
 sub _website_name_from_host($)
 {
-    my ( $host ) = @_;
+    my $host = shift;
     my $domain;
 
     if ( $host =~ /^[a-zA-Z.]+$/ and $host =~ /\./ )
@@ -719,14 +536,6 @@ sub _website_name_from_host($)
     return $domain;
 }
 
-# "http://www.example.com/one/two/three.xml" -> "www.example.com"
-sub _host_from_url($)
-{
-    my ( $url ) = @_;
-
-    return lc( URI->new( $url )->host );
-}
-
 # return default feeds from the feed links passed as a parameter
 # (might return an empty array if no links look like default feeds)
 sub _default_feed_links($$)
@@ -735,15 +544,15 @@ sub _default_feed_links($$)
 
     my $default_feed_links = [];
 
-    my $medium_host                = _host_from_url( $medium->{ url } );                # e.g. "www.example.com"
-    my $medium_second_level_domain = _second_level_domain_from_host( $medium_host );    # e.g. "example.com"
-    my $medium_name                = _website_name_from_host( $medium_host );           # e.g. "example"
+    my $medium_host                = MediaWords::Util::URL::get_url_host( $medium->{ url } );    # e.g. "www.example.com"
+    my $medium_second_level_domain = _second_level_domain_from_host( $medium_host );             # e.g. "example.com"
+    my $medium_name                = _website_name_from_host( $medium_host );                    # e.g. "example"
 
     # look through all feeds found for those with the host name in them and if found
     # treat them as default feeds
     foreach my $feed_link ( @{ $feed_links } )
     {
-        my $feed_host                = _host_from_url( $feed_link->{ url } );
+        my $feed_host                = MediaWords::Util::URL::get_url_host( $feed_link->{ url } );
         my $feed_second_level_domain = _second_level_domain_from_host( $feed_host );
 
         if ( $feed_link->{ url } !~ /foaf/ )
@@ -813,9 +622,9 @@ sub _default_feed_links($$)
 # If the URL gets immediately redirected to a new location (via HTTP headers),
 # return the URL it gets redirected to.
 # Returns undef if there's no such redirection
-sub _immediate_redirection_url_for_medium($$)
+sub _immediate_redirection_url_for_medium($)
 {
-    my ( $db, $medium ) = @_;
+    my $medium = shift;
 
     my $ua       = MediaWords::Util::Web::UserAgent();
     my $response = $ua->get( $medium->{ url } );
@@ -838,15 +647,82 @@ sub _immediate_redirection_url_for_medium($$)
     return undef;
 }
 
+# try to find all rss feeds for a site from the home page url of the site.  return a list
+# of urls of found rss feeds.
+#
+# fetch the html for the page at the $index url.  call get_valid_feeds_from_urls on the
+# urls scraped from that page.
+sub get_valid_feeds_from_index_url($$;$)
+{
+    my ( $urls, $recurse, $ignore_patterns ) = @_;
+
+    my $recurse_levels_left;
+    if ( $recurse )
+    {
+
+        # Run recursively with up to $MAX_RECURSE_LEVELS
+        $recurse_levels_left = $MAX_RECURSE_LEVELS;
+    }
+    else
+    {
+
+        # Run only once (non-recursively)
+        $recurse_levels_left = 0;
+    }
+
+    return _recurse_get_valid_feeds_from_index_url( $urls, $ignore_patterns, [], $recurse_levels_left );
+}
+
+# give a list of urls, return a list of feeds in the form of { name => $name, url => $url, feed_type => 'syndicated' }
+# representing all of the links that refer to valid feeds (rss, rdf, or atom).
+# ignore urls that match one of the ignore patterns
+sub get_valid_feeds_from_urls($;$)
+{
+    my ( $urls, $ignore_patterns_string ) = @_;
+
+    if ( !$urls || !@{ $urls } )
+    {
+        return [];
+    }
+
+    $ignore_patterns_string = '' unless ( defined( $ignore_patterns_string ) );
+
+    my $ignore_patterns = [ split( ' ', $ignore_patterns_string ) ];
+
+    my $pruned_urls = [];
+    for my $url ( @{ $urls } )
+    {
+        if ( grep { index( lc( $url ), lc( $_ ) ) > -1 } @{ $ignore_patterns } )
+        {
+            next;
+        }
+
+        push( @{ $pruned_urls }, $url );
+    }
+    $urls = $pruned_urls;
+
+    my $url_hash;
+    $urls = [ grep { !$url_hash->{ $_ }++ } @{ $urls } ];
+
+    $urls = [ grep { $_ !~ /\.(gif|jpg|jpeg|png|css|js)$/i } @{ $urls } ];
+
+    my $links = _validate_and_name_feed_urls( $urls );
+
+    my $u = {};
+    map { $u->{ _normalize_feed_url( $_->{ url } ) } = $_ } @{ $links };
+
+    return [ sort { $a->{ name } cmp $b->{ name } } values( %{ $u } ) ];
+}
+
 # Add default feeds for the media by searching for them in the index page, then (if not found)
 # in a couple of child pages
-sub get_feed_links_and_need_to_moderate($$)
+sub get_feed_links_and_need_to_moderate($)
 {
-    my ( $db, $medium ) = @_;
+    my $medium = shift;
 
     # if the website's main URL has been changed to a new one, update the URL to the new one
     # (don't touch the database though)
-    my $new_url_after_redirect = _immediate_redirection_url_for_medium( $db, $medium );
+    my $new_url_after_redirect = _immediate_redirection_url_for_medium( $medium );
     if ( $new_url_after_redirect )
     {
         $medium->{ url } = $new_url_after_redirect;
@@ -854,7 +730,7 @@ sub get_feed_links_and_need_to_moderate($$)
 
     # first look for <link> feeds or a set of url pattern feeds that are likely to be
     # main feeds if present (like "$url/feed")
-    my $default_feed_links = Feed::Scrape->get_main_feed_urls_from_url( $medium->{ url } );
+    my $default_feed_links = _get_main_feed_urls_from_url( $medium->{ url } );
 
     # otherwise do an expansive search
     my $feed_links;
@@ -862,8 +738,7 @@ sub get_feed_links_and_need_to_moderate($$)
     if ( scalar @{ $default_feed_links } == 0 )
     {
         $need_to_moderate = 1;
-        $feed_links =
-          Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ $medium->{ url } ], 1, $db, [] );
+        $feed_links = get_valid_feeds_from_index_url( [ $medium->{ url } ], 1, [] );
 
         $default_feed_links = _default_feed_links( $medium, $feed_links );
     }

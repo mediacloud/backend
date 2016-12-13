@@ -14,8 +14,7 @@ use Test::Deep;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
-use MediaWords::Test::DB;
-use Feed::Scrape::MediaWords;
+use MediaWords::Feed::Scrape;
 
 use utf8;
 
@@ -36,7 +35,7 @@ my Readonly $TEST_HTTP_SERVER_URL_2  = 'http://127.0.0.1:' . $TEST_HTTP_SERVER_P
 my Readonly $HTTP_CONTENT_TYPE_RSS  = 'Content-Type: application/rss+xml; charset=UTF-8';
 my Readonly $HTTP_CONTENT_TYPE_ATOM = 'Content-Type: application/atom+xml; charset=UTF-8';
 
-BEGIN { use_ok 'Feed::Scrape' }
+BEGIN { use_ok 'MediaWords::Feed::Scrape' }
 
 sub _sample_rss_feed($;$)
 {
@@ -47,7 +46,7 @@ sub _sample_rss_feed($;$)
     $base_url = encode_entities( $base_url, '<>&' );
     $title    = encode_entities( $title,    '<>&' );
 
-    return <<"EOF";
+    return <<"XML";
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
     <channel>
@@ -66,7 +65,7 @@ sub _sample_rss_feed($;$)
         </item>
     </channel>
 </rss>
-EOF
+XML
 }
 
 sub _sample_atom_feed($;$)
@@ -78,7 +77,7 @@ sub _sample_atom_feed($;$)
     $base_url = encode_entities( $base_url, '<>&' );
     $title    = encode_entities( $title,    '<>&' );
 
-    return <<EOF;
+    return <<"XML";
 <?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-US" xml:base="$base_url/wp-atom.php">
     <title type="text">$title</title>
@@ -118,18 +117,16 @@ sub _sample_atom_feed($;$)
     </entry>
 
 </feed>
-EOF
+XML
 }
 
 # Basic RSS feed URL scraping
-sub test_basic($)
+sub test_basic()
 {
-    my $db = shift;
-
     my $pages = {
 
         # Index page
-        '/' => <<"EOF",
+        '/' => <<"HTML",
             <html>
             <head>
                 <title>Basic test</title>
@@ -140,7 +137,7 @@ sub test_basic($)
                 <p>Hello!</p>
             </body>
             </html>
-EOF
+HTML
 
         # Sample feed
         '/feed/atom/' => {
@@ -161,24 +158,22 @@ EOF
 
     $hs->start();
 
-    cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
+    cmp_bag( MediaWords::Feed::Scrape::_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
         $expected_result, 'Basic test' );
 
     $hs->stop();
 }
 
 # Basic RSS feed URL scraping
-sub test_utf8_title($)
+sub test_utf8_title()
 {
-    my $db = shift;
-
     my Readonly $utf8_title =
 "𝘉𝘰𝘳𝘯 𝘥𝘰𝘸𝘯 𝘪𝘯 𝘢 𝘥𝘦𝘢𝘥 𝘮𝘢𝘯'𝘴 𝘵𝘰𝘸𝘯 / 𝘛𝘩𝘦 𝘧𝘪𝘳𝘴𝘵 𝘬𝘪𝘤𝘬 𝘐 𝘵𝘰𝘰𝘬 𝘸𝘢𝘴 𝘸𝘩𝘦𝘯 𝘐 𝘩𝘪𝘵 𝘵𝘩𝘦 𝘨𝘳𝘰𝘶𝘯𝘥 / äëïöü";
 
     my $pages = {
 
         # Index page
-        '/' => <<"EOF",
+        '/' => <<"HTML",
             <html>
             <head>
                 <title>Basic test</title>
@@ -189,7 +184,7 @@ sub test_utf8_title($)
                 <p>Hello!</p>
             </body>
             </html>
-EOF
+HTML
 
         # Sample feed
         '/feed/atom/' => {
@@ -210,21 +205,19 @@ EOF
 
     $hs->start();
 
-    my $actual_result = Feed::Scrape->get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } );
+    my $actual_result = MediaWords::Feed::Scrape::_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } );
     cmp_bag( $actual_result, $expected_result, 'Basic test - UTF-8 title' );
 
     $hs->stop();
 }
 
 # Basic RSS feed (entities in URLs)
-sub test_basic_entities_in_urls($)
+sub test_basic_entities_in_urls()
 {
-    my $db = shift;
-
     my $pages = {
 
         # Index page
-        '/' => <<"EOF",
+        '/' => <<"HTML",
             <html>
             <head>
                 <title>Basic test</title>
@@ -235,7 +228,7 @@ sub test_basic_entities_in_urls($)
                 <p>Hello!</p>
             </body>
             </html>
-EOF
+HTML
 
         # Sample feed
         '/feed/atom/' => {
@@ -256,21 +249,19 @@ EOF
 
     $hs->start();
 
-    cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
+    cmp_bag( MediaWords::Feed::Scrape::_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
         $expected_result, 'Basic test - entities in URLs' );
 
     $hs->stop();
 }
 
 # Basic RSS feed (short URLs)
-sub test_basic_short_urls($)
+sub test_basic_short_urls()
 {
-    my $db = shift;
-
     my $pages = {
 
         # Index page
-        '/' => <<"EOF",
+        '/' => <<"HTML",
             <html>
             <head>
                 <title>Basic test</title>
@@ -281,7 +272,7 @@ sub test_basic_short_urls($)
                 <p>Hello!</p>
             </body>
             </html>
-EOF
+HTML
 
         # Sample feed
         '/feed/atom/' => {
@@ -302,21 +293,19 @@ EOF
 
     $hs->start();
 
-    cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
+    cmp_bag( MediaWords::Feed::Scrape::_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
         $expected_result, 'Basic test - short URLs' );
 
     $hs->stop();
 }
 
 # Basic RSS feed URL scraping (no RSS feed titles)
-sub test_basic_no_titles($)
+sub test_basic_no_titles()
 {
-    my $db = shift;
-
     my $pages = {
 
         # Index page
-        '/' => <<"EOF",
+        '/' => <<"HTML",
             <html>
             <head>
                 <title>Basic test</title>
@@ -327,7 +316,7 @@ sub test_basic_no_titles($)
                 <p>Hello!</p>
             </body>
             </html>
-EOF
+HTML
 
         # Sample feed
         '/feed/atom/' => {
@@ -348,21 +337,19 @@ EOF
 
     $hs->start();
 
-    cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
+    cmp_bag( MediaWords::Feed::Scrape::_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
         $expected_result, 'Basic test - no RSS titles' );
 
     $hs->stop();
 }
 
 # More complex example (more HTML tags, HTML entities; from dagbladet.se)
-sub test_dagbladet_se($)
+sub test_dagbladet_se()
 {
-    my $db = shift;
-
     my $pages = {
 
         # Index page
-        '/' => <<"EOF",
+        '/' => <<"HTML",
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="sv" lang="sv" >
 <head>
@@ -401,7 +388,7 @@ sub test_dagbladet_se($)
     <!-- Stylesheets -->        
     <link rel="stylesheet" href="/css/global.css" type="text/css" media="all" />
     <link rel="stylesheet" href="/polopoly_fs/2.401.1365410226!/dasu_fredrikh_130403.css" type="text/css" media="all" />
-EOF
+HTML
 
         # Feeds
         '/1.51407' => {
@@ -547,17 +534,15 @@ EOF
 
     $hs->start();
 
-    cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
+    cmp_bag( MediaWords::Feed::Scrape::_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
         $expected_result, 'Dagbladet.se test' );
 
     $hs->stop();
 }
 
 # More complex example (relative URLs to RSS feeds; a lot of RSS feeds in a single line; from gp.se)
-sub test_gp_se($)
+sub test_gp_se()
 {
-    my $db = shift;
-
     my $pages = {
 
         # Index page
@@ -913,16 +898,14 @@ sub test_gp_se($)
 
     $hs->start();
 
-    cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
+    cmp_bag( MediaWords::Feed::Scrape::_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
         $expected_result, 'GP.se test' );
 
     $hs->stop();
 }
 
-sub test_rss_simple_website($)
+sub test_rss_simple_website()
 {
-    my $db = shift;
-
     my $pages = {
 
         # Index page
@@ -978,17 +961,15 @@ EOF
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
-    my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
+    my $feed_links = MediaWords::Feed::Scrape::get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1 );
 
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_simple_website' );
 }
 
-sub test_rss_immediate_redirect_via_http_header($)
+sub test_rss_immediate_redirect_via_http_header()
 {
-    my $db = shift;
-
     my $pages_1 = {
 
         '/' => {
@@ -1001,7 +982,7 @@ sub test_rss_immediate_redirect_via_http_header($)
     my $pages_2 = {
 
         # Index page
-        '/' => <<EOF,
+        '/' => <<"HTML",
             <h1>Acme News</h1>
             <p>
                 Blah blah yada yada.
@@ -1012,10 +993,10 @@ sub test_rss_immediate_redirect_via_http_header($)
                 here's a link to the RSS link listing:<br />
                 <a href="/rss">RSS</a>
             </p>
-EOF
+HTML
 
         # RSS listing page
-        '/rss' => <<EOF,
+        '/rss' => <<"HTML",
             <h1>Acme News</h1>
             <p>
             Our RSS feeds:
@@ -1023,7 +1004,7 @@ EOF
             <ul>
                 <li><a href="/feed.xml">Wile E. Coyote</a></li>
             </ul>
-EOF
+HTML
 
         # Sample feeds
         '/feed.xml' => {
@@ -1049,7 +1030,7 @@ EOF
     $hs1->start();
     $hs2->start();
 
-    my ( $feed_links, $need_to_moderate ) = Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
+    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
 
     $hs1->stop();
     $hs2->stop();
@@ -1058,14 +1039,12 @@ EOF
     is( $need_to_moderate, $expected_need_to_moderate, 'test_rss_immediate_redirect_via_http_header need_to_moderate' );
 }
 
-sub test_rss_immediate_redirect_via_html_meta_refresh($)
+sub test_rss_immediate_redirect_via_html_meta_refresh()
 {
-    my $db = shift;
-
     my $pages_1 = {
 
         # META-redirect to a new website
-        '/' => <<"EOF"
+        '/' => <<"HTML"
             <html>
                 <head>
                     <meta http-equiv="Refresh" content="0; url=$TEST_HTTP_SERVER_URL_2">
@@ -1075,14 +1054,14 @@ sub test_rss_immediate_redirect_via_html_meta_refresh($)
                     <p>See you there!</p>
                 </body>
             </html>
-EOF
+HTML
 
     };
 
     my $pages_2 = {
 
         # Index page
-        '/' => <<EOF,
+        '/' => <<"HTML",
             <h1>Acme News</h1>
             <p>
                 Blah blah yada yada.
@@ -1093,10 +1072,10 @@ EOF
                 here's a link to the RSS link listing:<br />
                 <a href="/rss">RSS</a>
             </p>
-EOF
+HTML
 
         # RSS listing page
-        '/rss' => <<EOF,
+        '/rss' => <<"HTML",
             <h1>Acme News</h1>
             <p>
             Our RSS feeds:
@@ -1104,7 +1083,7 @@ EOF
             <ul>
                 <li><a href="/feed.xml">Wile E. Coyote</a></li>
             </ul>
-EOF
+HTML
 
         # Sample feeds
         '/feed.xml' => {
@@ -1130,7 +1109,7 @@ EOF
     $hs1->start();
     $hs2->start();
 
-    my ( $feed_links, $need_to_moderate ) = Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
+    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
 
     $hs1->stop();
     $hs2->stop();
@@ -1141,14 +1120,12 @@ EOF
 }
 
 # <base href="" />, like in http://www.thejakartaglobe.com
-sub test_rss_base_href($)
+sub test_rss_base_href()
 {
-    my $db = shift;
-
     my $pages = {
 
         # Index page
-        '/' => <<"EOF",
+        '/' => <<"HTML",
             <html>
                 <head>
                     <base href="$TEST_HTTP_SERVER_URL/path_one/" target="_blank" />
@@ -1166,10 +1143,10 @@ sub test_rss_base_href($)
                     </p>
                 </body>
             </html>
-EOF
+HTML
 
         # RSS listing page
-        '/path_one/rss' => <<EOF,
+        '/path_one/rss' => <<"HTML",
             <html>
                 <head>
                     <base href="$TEST_HTTP_SERVER_URL/path_two/" target="_blank" />
@@ -1185,7 +1162,7 @@ EOF
                     </ul>
                 </body>
             </html>
-EOF
+HTML
 
         # Sample feeds
         '/path_two/feed1.xml' => {
@@ -1214,21 +1191,19 @@ EOF
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
+    my $feed_links = MediaWords::Feed::Scrape::get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1 );
 
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_base_href' );
 }
 
-sub test_rss_unlinked_urls($)
+sub test_rss_unlinked_urls()
 {
-    my $db = shift;
-
     my $pages = {
 
         # Index page
-        '/' => <<EOF,
+        '/' => <<"HTML",
             <h1>Acme News</h1>
             <p>
                 Blah blah yada yada.
@@ -1239,10 +1214,10 @@ sub test_rss_unlinked_urls($)
                 here's a link to the RSS link listing:<br />
                 <a href="/rss">RSS</a>
             </p>
-EOF
+HTML
 
         # RSS listing page
-        '/rss' => <<"EOF",
+        '/rss' => <<"HTML",
             <h1>Acme News</h1>
             <p>
             Our RSS feeds:
@@ -1252,7 +1227,7 @@ EOF
                 $TEST_HTTP_SERVER_URL/feed1.xml -- Wile E. Coyote<br />
                 $TEST_HTTP_SERVER_URL/feed2.xml -- The Road Runner<br />
             </ul>
-EOF
+HTML
 
         # Sample feeds
         '/feed1.xml' => {
@@ -1281,21 +1256,19 @@ EOF
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
+    my $feed_links = MediaWords::Feed::Scrape::get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1 );
 
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_unlinked_urls' );
 }
 
-sub test_rss_image_link($)
+sub test_rss_image_link()
 {
-    my $db = shift;
-
     my $pages = {
 
         # Index page
-        '/' => <<EOF,
+        '/' => <<"HTML",
             <h1>Acme News</h1>
             <p>
                 Blah blah yada yada.
@@ -1307,10 +1280,10 @@ sub test_rss_image_link($)
                 here's a link to the Rich Site Summary link listing:<br />
                 <a href="/listing"><img src="/rss.png" alt="" /></a>
             </p>
-EOF
+HTML
 
         # RSS listing page
-        '/listing' => <<EOF,
+        '/listing' => <<"HTML",
             <h1>Acme News</h1>
             <p>
             Our Rich Site Summary feeds:
@@ -1319,7 +1292,7 @@ EOF
                 <li><a href="/feed1.xml">Wile E. Coyote</a></li>
                 <li><a href="/feed2.xml">The Road Runner</a></li>
             </ul>
-EOF
+HTML
 
         # Sample feeds
         '/feed1.xml' => {
@@ -1348,21 +1321,19 @@ EOF
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
+    my $feed_links = MediaWords::Feed::Scrape::get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1 );
 
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_image_link' );
 }
 
-sub test_rss_external_feeds($)
+sub test_rss_external_feeds()
 {
-    my $db = shift;
-
     my $pages = {
 
         # Index page
-        '/' => <<EOF,
+        '/' => <<"HTML",
             <h1>Acme News</h1>
             <p>
                 Blah blah yada yada.
@@ -1373,10 +1344,10 @@ sub test_rss_external_feeds($)
                 here's a link to the RSS link listing:<br />
                 <a href="/rss">RSS</a>
             </p>
-EOF
+HTML
 
         # RSS listing page
-        '/rss' => <<EOF,
+        '/rss' => <<"HTML",
             <h1>Acme News</h1>
             <p>
             Our RSS feeds:
@@ -1385,7 +1356,7 @@ EOF
                 <li><a href="http://feeds2.feedburner.com/localhost">Wile E. Coyote</a></li> <!-- This one should be declared as main feed -->
                 <li><a href="http://quotidianohome.feedsportal.com/c/33327/f/565662/index.rss">The Road Runner</a></li> <!-- This one should *not* be declared a main feed -->
             </ul>
-EOF
+HTML
     };
 
     my $expected_links = [
@@ -1402,7 +1373,7 @@ EOF
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my ( $feed_links, $need_to_moderate ) = Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
+    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
 
     $hs->stop();
 
@@ -1410,14 +1381,12 @@ EOF
     is( $need_to_moderate, $expected_need_to_moderate, 'test_rss_external_feeds need_to_moderate' );
 }
 
-sub test_get_feed_links_and_need_to_moderate($)
+sub test_get_feed_links_and_need_to_moderate()
 {
-    my $db = shift;
-
     my $pages = {
 
         # Index page
-        '/' => <<EOF,
+        '/' => <<"HTML",
             <h1>Acme News</h1>
             <p>
                 Blah blah yada yada.
@@ -1428,15 +1397,15 @@ sub test_get_feed_links_and_need_to_moderate($)
                 here's a link to the RSS link listing:<br />
                 <a href="/rss">RSS</a>
             </p>
-EOF
+HTML
 
         # URL that looks like a feed but doesn't contain one
-        '/feed' => <<EOF,
+        '/feed' => <<"HTML",
             The feed searcher will look here, but there is no feed to be found at this URL.
-EOF
+HTML
 
         # RSS listing page
-        '/rss' => <<EOF,
+        '/rss' => <<"HTML",
             <h1>Acme News</h1>
             <p>
             Our RSS feeds:
@@ -1447,7 +1416,7 @@ EOF
 
                 <li><a href="http://feeds.feedburner.com/thesartorialist">The Road Runner</a></li>
             </ul>
-EOF
+HTML
     };
 
     my $expected_links = [
@@ -1469,7 +1438,7 @@ EOF
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my ( $feed_links, $need_to_moderate ) = Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
+    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
 
     $hs->stop();
 
@@ -1477,14 +1446,12 @@ EOF
     is( $need_to_moderate, $expected_need_to_moderate, 'test_get_feed_links_and_need_to_moderate need_to_moderate' );
 }
 
-sub test_feeds_with_common_prefix($)
+sub test_feeds_with_common_prefix()
 {
-    my $db = shift;
-
     my $pages = {
 
         # Index page
-        '/' => <<EOF,
+        '/' => <<"HTML",
             <h1>Acme News</h1>
             <p>
                 Blah blah yada yada.
@@ -1495,10 +1462,10 @@ sub test_feeds_with_common_prefix($)
                 here's a link to the RSS link listing:<br />
                 <a href="/rss">RSS</a>
             </p>
-EOF
+HTML
 
         # RSS listing page
-        '/rss' => <<"EOF",
+        '/rss' => <<"HTML",
             <h1>Acme News</h1>
             <p>
             Our RSS feeds:
@@ -1508,36 +1475,36 @@ EOF
                 <li><a href="$TEST_HTTP_SERVER_URL/feed2.xml">Feed two</a></li>
                 <li><a href="$TEST_HTTP_SERVER_URL/feed3.xml">Feed three</a></li>
             </ul>
-EOF
+HTML
 
         # Sample feeds
         '/feed1.xml' => {
             header  => $HTTP_CONTENT_TYPE_RSS,
-            content => <<EOF
+            content => <<"XML"
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"><channel>
         <title>Example.com - Sports</title> <!-- One of the sub-feeds -->
 </channel></rss>
-EOF
+XML
         },
         '/feed2.xml' => {
             header  => $HTTP_CONTENT_TYPE_RSS,
-            content => <<EOF
+            content => <<"XML"
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"><channel>
         <title>Example.com</title> <!-- This is the "main" feed which is expected to
                                         contain posts from the sub-feeds above -->
 </channel></rss>
-EOF
+XML
         },
         '/feed3.xml' => {
             header  => $HTTP_CONTENT_TYPE_RSS,
-            content => <<EOF
+            content => <<XML
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"><channel>
         <title>Example.com - Entertainment</title> <!-- One of the sub-feeds -->
 </channel></rss>
-EOF
+XML
         },
 
     };
@@ -1556,7 +1523,7 @@ EOF
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my ( $feed_links, $need_to_moderate ) = Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
+    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
 
     $hs->stop();
 
@@ -1564,14 +1531,12 @@ EOF
     is( $need_to_moderate, $expected_need_to_moderate, 'test_feeds_with_common_prefix need_to_moderate' );
 }
 
-sub test_feed_aggregator_urls($)
+sub test_feed_aggregator_urls()
 {
-    my $db = shift;
-
     my $pages = {
 
         # Index page
-        '/' => <<EOF,
+        '/' => <<"HTML",
             <h1>Acme News</h1>
             <p>
                 Blah blah yada yada.
@@ -1582,10 +1547,10 @@ sub test_feed_aggregator_urls($)
                 here's a link to the RSS link listing:<br />
                 <a href="/rss">RSS</a>
             </p>
-EOF
+HTML
 
         # RSS listing page
-        '/rss' => <<"EOF",
+        '/rss' => <<"HTML",
             <h1>Acme News</h1>
             <p>
             Our RSS feeds:
@@ -1595,7 +1560,7 @@ EOF
                 <li><a href="http://add.my.yahoo.com/rss?url=$TEST_HTTP_SERVER_URL/feed.xml">Add to Yahoo!</a></li>
                 <li><a href="http://www.netvibes.com/subscribe.php?url=$TEST_HTTP_SERVER_URL/feed.xml">Add to NetVibes</a></li>
             </ul>
-EOF
+HTML
 
         # Sample feeds
         '/feed.xml' => {
@@ -1619,7 +1584,7 @@ EOF
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my ( $feed_links, $need_to_moderate ) = Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
+    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
 
     $hs->stop();
 
@@ -1627,16 +1592,14 @@ EOF
     is( $need_to_moderate, $expected_need_to_moderate, 'test_feed_aggregator_urls need_to_moderate' );
 }
 
-sub test_web_page_feed($)
+sub test_web_page_feed()
 {
-    my $db = shift;
-
     my $medium_name = 'Acme News -- The best news ever!';
     my $medium      = { url => $TEST_HTTP_SERVER_URL, name => $medium_name };
     my $pages       = {
 
         # Index page
-        '/' => <<EOF,
+        '/' => <<"HTML",
             <h1>Acme News</h1>
             <p>
                 Blah blah yada yada.
@@ -1646,7 +1609,7 @@ sub test_web_page_feed($)
                 This website doesn't have any RSS feeds, so it should be added
                 as an "web_page" feed.
             </p>
-EOF
+HTML
     };
     my $expected_links = [
         {
@@ -1661,7 +1624,7 @@ EOF
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my ( $feed_links, $need_to_moderate ) = Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
+    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
 
     $hs->stop();
 
@@ -1676,32 +1639,26 @@ sub main
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my $db = shift;
+    test_basic();
+    test_utf8_title();
+    test_basic_entities_in_urls();
+    test_basic_short_urls();
+    test_basic_no_titles();
+    test_dagbladet_se();
+    test_gp_se();
+    test_rss_simple_website();
+    test_rss_immediate_redirect_via_http_header();
+    test_rss_immediate_redirect_via_html_meta_refresh();
+    test_rss_base_href();
+    test_rss_unlinked_urls();
+    test_rss_image_link();
+    test_rss_external_feeds();
+    test_get_feed_links_and_need_to_moderate();
+    test_feeds_with_common_prefix();
+    test_feed_aggregator_urls();
+    test_web_page_feed();
 
-            test_basic( $db );
-            test_utf8_title( $db );
-            test_basic_entities_in_urls( $db );
-            test_basic_short_urls( $db );
-            test_basic_no_titles( $db );
-            test_dagbladet_se( $db );
-            test_gp_se( $db );
-            test_rss_simple_website( $db );
-            test_rss_immediate_redirect_via_http_header( $db );
-            test_rss_immediate_redirect_via_html_meta_refresh( $db );
-            test_rss_base_href( $db );
-            test_rss_unlinked_urls( $db );
-            test_rss_image_link( $db );
-            test_rss_external_feeds( $db );
-            test_get_feed_links_and_need_to_moderate( $db );
-            test_feeds_with_common_prefix( $db );
-            test_feed_aggregator_urls( $db );
-            test_web_page_feed( $db );
-
-            Test::NoWarnings::had_no_warnings();
-        }
-    );
+    Test::NoWarnings::had_no_warnings();
 }
 
 main();
