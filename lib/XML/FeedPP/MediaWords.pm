@@ -31,22 +31,7 @@ use Class::Std;
 
         my $fp;
 
-        my $snapshot_content = 0;
-        my $snapshot_file    = '/tmp/content.txt';
-
         $DB::single = 1;
-
-        if ( $snapshot_content )
-        {
-
-            open OUTFILE, ">", $snapshot_file;
-
-            say OUTFILE $content;
-
-            close OUTFILE;
-
-            TRACE Dumper( { content->$content, type->$type } );
-        }
 
         eval { $fp = XML::FeedPP->new( $content, -type => $type ); };
 
