@@ -176,7 +176,7 @@ sub _add_tweets_to_ch_posts
         }
     }
 
-    map { WARN( "no tweet fetched for url $_->{ url }" ); } ( grep { !$_->{ tweet } } @{ $ch_posts } );
+    map { DEBUG( "no tweet fetched for url $_->{ url }" ); } ( grep { !$_->{ tweet } } @{ $ch_posts } );
 }
 
 # using the data in ch_post, store the tweet in topic_tweets and its urls in topic_tweet_urls

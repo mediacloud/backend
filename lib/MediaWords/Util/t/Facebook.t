@@ -127,7 +127,7 @@ sub test_store_result($)
     is( $ss->{ facebook_comment_count }, $comment_count, "stored url comment count" );
     ok( !defined( $ss->{ facebook_api_error } ), "null url share count error" );
 
-    $story->{ url } = 'foobar';
+    $story->{ url } = 'boguschema://foobar';
 
     MediaWords::Util::Facebook::get_and_store_share_comment_counts( $db, $story );
 

@@ -7,7 +7,7 @@ use MediaWords::CommonLibs;
 
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 140;
+use Test::More tests => 139;
 
 use Readonly;
 use HTTP::HashServer;
@@ -145,8 +145,6 @@ sub test_normalize_url()
     # Bad URLs
     eval { MediaWords::Util::URL::normalize_url( undef ); };
     ok( $@, 'normalize_url() - undefined URL' );
-    eval { MediaWords::Util::URL::normalize_url( 'url.com/without/scheme/' ); };
-    ok( $@, 'normalize_url() - URL without scheme' );
     eval { MediaWords::Util::URL::normalize_url( 'gopher://gopher.floodgap.com/0/v2/vstat' ); };
     ok( $@, 'normalize_url() - URL is of unsupported scheme' );
 

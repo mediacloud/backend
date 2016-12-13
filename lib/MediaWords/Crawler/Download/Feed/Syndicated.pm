@@ -129,7 +129,7 @@ sub _stories_checksum_matches_feed
 select 1 from feeds where feeds_id = ? and last_checksum = ?
 END
 
-    TRACE( "feed checksum: " . $matches ? 'MATCH' : 'NO MATCH' );
+    TRACE( "feed checksum: " . ( $matches ? 'MATCH' : 'NO MATCH' ) );
 
     return 1 if ( $matches );
 

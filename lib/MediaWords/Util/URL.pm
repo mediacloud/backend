@@ -495,8 +495,12 @@ sub fix_common_url_mistakes($)
     # http://newsmachete.com?page=2 -> http://newsmachete.com/?page=2
     $url =~ s~(https?://[^/]+)\?~$1/\?~;
 
+    # trim
+    $url =~ s/^\s+//;
+    $url =~ s/\s+$//;
+
     # add http
-    $url = "http://$url" unless ( $url =~ /^http/i );
+    $url = "http://$url" unless ( $url =~ /^[a-z]+:/i );
 
     return $url;
 }
