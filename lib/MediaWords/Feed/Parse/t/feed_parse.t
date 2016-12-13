@@ -65,19 +65,25 @@ sub _test_feed_contents($)
     is( scalar( @{ $items } ), 2 );
 
     my $first_item = $items->[ 0 ];
-    is( $first_item->title(),            'First item' );
-    is( $first_item->link(),             'http://www.example.com/first_item.html' );
-    is( $first_item->pubDate(),          '2016-12-14T04:04:01Z' );
-    is( $first_item->publish_date_sql(), '2016-12-14 12:04:01' );
-    is( $first_item->guid(),             'http://www.example.com/first_item.html' );
-    is( $first_item->guid_if_valid(),    'http://www.example.com/first_item.html' );
-    is( $first_item->description(),      'This is a first item.' );
+    is( $first_item->title(),   'First item' );
+    is( $first_item->link(),    'http://www.example.com/first_item.html' );
+    is( $first_item->pubDate(), '2016-12-14T04:04:01Z' );
+
+    # publish_date_sql() is dependent on machine's timezone (which shouldn't be the case, but it is)
+    like( $first_item->publish_date_sql(), qr/2016-12-1\d \d\d:\d\d:\d\d/ );
+
+    is( $first_item->guid(),          'http://www.example.com/first_item.html' );
+    is( $first_item->guid_if_valid(), 'http://www.example.com/first_item.html' );
+    is( $first_item->description(),   'This is a first item.' );
 
     my $second_item = $items->[ 1 ];
-    is( $second_item->title(),                       'ɯǝʇı puoɔǝS' );
-    is( $second_item->link(),                        'http://www.example.com/second_item.html' );
-    is( $second_item->pubDate(),                     '2016-12-14T04:05:01Z' );
-    is( $second_item->publish_date_sql(),            '2016-12-14 12:05:01' );
+    is( $second_item->title(),   'ɯǝʇı puoɔǝS' );
+    is( $second_item->link(),    'http://www.example.com/second_item.html' );
+    is( $second_item->pubDate(), '2016-12-14T04:05:01Z' );
+
+    # publish_date_sql() is dependent on machine's timezone (which shouldn't be the case, but it is)
+    like( $second_item->publish_date_sql(), qr/2016-12-1\d \d\d:\d\d:\d\d/ );
+
     is( $second_item->guid(),                        'http://www.example.com/second_item.html' );
     is( $second_item->guid_if_valid(),               'http://www.example.com/second_item.html' );
     is( $second_item->description(),                 'This is a second item.' );
