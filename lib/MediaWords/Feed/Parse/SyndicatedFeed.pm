@@ -1,259 +1,229 @@
 package MediaWords::Feed::Parse::SyndicatedFeed;
 
-##
-#  This class is a wrapper to work around bugs in XML::FeedPP
-#  XML::FeedPP does not provide a way to grab the <content> element from RSS feeds
-#  It will only provide the <description> element which often has a summary instead of the full text
 #
-#  We wanted to sub class XML::FeedPP but XML::FeedPP cannot be subclassed so we have to use AUTOMETHOD to fake subclassing it.
+# Feed parsing helper
 #
-##
+# Wrapper around XML::FeedPP.
+#
+
 use strict;
 use warnings;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use Data::Dumper;
 use XML::FeedPP;
 
-use Class::Std;
 {
 
-    my %feedPP : ATTR;
+    package MediaWords::Feed::Parse::SyndicatedFeed::Item;
 
-    sub BUILD
+    use strict;
+    use warnings;
+
+    use Modern::Perl "2015";
+    use MediaWords::CommonLibs;
+
+    use MediaWords::Util::SQL;
+
+    use Readonly;
+
+    Readonly my $MAX_LINK_LENGTH => 1024;
+    Readonly my $MAX_GUID_LENGTH => 1024;
+
+    sub new($$)
     {
-        my ( $self, $ident, $arg_ref ) = @_;
+        my ( $class, $item ) = @_;
 
-        my $content = $arg_ref->{ content };
-        my $type    = $arg_ref->{ type };
-
-        my $fp;
-
-        $DB::single = 1;
-
-        eval { $fp = XML::FeedPP->new( $content, -type => $type ); };
-
-        $feedPP{ $ident } = $fp;
-
-        if ( $@ )
+        unless ( $item )
         {
-            my $err_mesg = $@;
-            die "XML::FeedPP->new failed: $err_mesg";
+            die "Item is empty.";
         }
+        unless ( ref( $item ) =~ /^XML::FeedPP/i )
+        {
+            die "Item doesn't seem to be coming from XML::FeedPP.";
+        }
+
+        my $self = {};
+        bless $self, $class;
+
+        $self->{ _item } = $item;
+
+        return $self;
     }
 
-    sub _wrapper_if_necessary
+    # if $v is a scalar, return $v, else return undef.
+    # we need to do this to make sure we don't get a ref back from a feed object field
+    sub _no_ref
     {
-        my ( $obj ) = @_;
+        my ( $v ) = @_;
 
-        return $obj if ( !$obj->isa( 'XML::FeedPP::RSS::Item' ) );
-
-        return MediaWords::Feed::Parse::SyndicatedFeed::Item->create_wrapped_rss_item( $obj );
+        return ref( $v ) ? undef : $v;
     }
 
-    sub get_item
+    sub title
     {
         my $self = shift;
 
-        my @args  = @_;
-        my @items = $feedPP{ ident $self}->get_item( @args );
+        my $title = $self->{ _item }->title( @_ );
 
-        my @ret = map { _wrapper_if_necessary( $_ ) } @items;
-
-        if ( defined( $args[ 0 ] ) )
-        {
-            return $ret[ 0 ];
-        }
-        elsif ( wantarray )
-        {
-            return @ret;
-        }
-        else
-        {
-            return scalar @ret;
-        }
+        return _no_ref( $title );
     }
 
-    sub AUTOMETHOD
+    # XML::FeedPP does not provide a way to grab the <content> element from RSS
+    # feeds.
+    # It will only provide the <description> element which often has a summary
+    # instead of the full text.
+    sub description
     {
-        my ( $self, $ident, $number ) = @_;
+        my $self = shift;
 
-        my $subname = $_;    # Requested subroutine name is passed via $_
+        my $description = $self->{ _item }->description( @_ );
 
-        return sub { return $feedPP{ ident $self}->$subname; };
+        my $content;
+        $content = $self->get( 'content:encoded' );
+
+        return _no_ref( $content || $description );
     }
-}
 
-1;
-
-package MediaWords::Feed::Parse::SyndicatedFeed::Item;
-
-use strict;
-use warnings;
-
-use base 'XML::FeedPP::RSS::Item';
-
-use Modern::Perl "2015";
-use MediaWords::CommonLibs;
-
-use MediaWords::Util::SQL;
-
-use Readonly;
-use Data::Dumper;
-
-Readonly my $MAX_LINK_LENGTH => 1024;
-Readonly my $MAX_GUID_LENGTH => 1024;
-
-# if $v is a scalar, return $v, else return undef.
-# we need to do this to make sure we don't get a ref back from a feed object field
-sub _no_ref
-{
-    my ( $v ) = @_;
-
-    return ref( $v ) ? undef : $v;
-}
-
-sub create_wrapped_rss_item
-{
-    my $package = shift;
-    my $obj     = shift;
-
-    my $debug = Dumper( $obj );
-
-    #say $debug;
-
-    bless $obj, $package;
-
-    return $obj;
-}
-
-sub title
-{
-    my $self = shift;
-
-    my $title = $self->SUPER::title( @_ );
-
-    return _no_ref( $title );
-}
-
-sub description
-{
-    my $self = shift;
-
-    my $description = $self->SUPER::description( @_ );
-
-    my $content;
-    $content = $self->get( 'content:encoded' );
-
-    return _no_ref( $content || $description );
-}
-
-sub pubDate
-{
-    my $self = shift;
-
-    my $pub_date = $self->SUPER::pubDate( @_ );
-
-    return _no_ref( $pub_date );
-}
-
-sub publish_date_sql
-{
-    my $self = shift;
-
-    my $publish_date;
-
-    if ( my $date_string = $self->pubDate() )
+    sub pubDate
     {
-        # Date::Parse is more robust at parsing date than postgres
-        eval { $publish_date = MediaWords::Util::SQL::get_sql_date_from_epoch( Date::Parse::str2time( $date_string ) ); };
-        if ( $@ )
+        my $self = shift;
+
+        my $pub_date = $self->{ _item }->pubDate( @_ );
+
+        return _no_ref( $pub_date );
+    }
+
+    sub publish_date_sql
+    {
+        my $self = shift;
+
+        my $publish_date;
+
+        if ( my $date_string = $self->pubDate() )
         {
-            WARN "Error getting date from item pubDate ('$date_string'): $@";
-            $publish_date = undef;
+            # Date::Parse is more robust at parsing date than postgres
+            eval { $publish_date = MediaWords::Util::SQL::get_sql_date_from_epoch( Date::Parse::str2time( $date_string ) ); };
+            if ( $@ )
+            {
+                WARN "Error getting date from item pubDate ('$date_string'): $@";
+                $publish_date = undef;
+            }
         }
+
+        return $publish_date;
     }
 
-    return $publish_date;
-}
-
-sub category
-{
-    my $self = shift;
-
-    my $category = $self->SUPER::category( @_ );
-
-    return _no_ref( $category );
-}
-
-sub author
-{
-    my $self = shift;
-
-    my $author = $self->SUPER::author( @_ );
-
-    return _no_ref( $author );
-}
-
-sub guid
-{
-    my $self = shift;
-
-    my $guid = $self->SUPER::guid( @_ );
-
-    if ( $guid )
+    sub guid
     {
-        $guid = substr( $guid, 0, $MAX_GUID_LENGTH );
-    }
+        my $self = shift;
 
-    return _no_ref( $guid );
-}
+        my $guid = $self->{ _item }->guid( @_ );
 
-# some guids are not in fact unique.  return the guid if it looks valid or undef if the guid looks like
-# it is not unique
-sub guid_if_valid
-{
-    my $self = shift;
-
-    my $guid = $self->guid();
-
-    if ( defined $guid )
-    {
-        # ignore it if it is a url without a number or a path
-        if ( ( $guid !~ /\d/ ) && ( $guid =~ m~https?://[^/]+/?$~ ) )
+        if ( $guid )
         {
-            $guid = undef;
+            $guid = substr( $guid, 0, $MAX_GUID_LENGTH );
         }
+
+        return _no_ref( $guid );
     }
 
-    return $guid;
-}
-
-sub link
-{
-    my $self = shift;
-
-    my $link = $self->SUPER::link( @_ ) || $self->get( 'nnd:canonicalUrl' ) || $self->guid_if_valid();
-    $link = _no_ref( $link );
-
-    if ( $link )
+    # some guids are not in fact unique.  return the guid if it looks valid or undef if the guid looks like
+    # it is not unique
+    sub guid_if_valid
     {
-        $link = substr( $link, 0, $MAX_LINK_LENGTH );
-        $link =~ s/[\n\r\s]//g;
+        my $self = shift;
+
+        my $guid = $self->guid();
+
+        if ( defined $guid )
+        {
+            # ignore it if it is a url without a number or a path
+            if ( ( $guid !~ /\d/ ) && ( $guid =~ m~https?://[^/]+/?$~ ) )
+            {
+                $guid = undef;
+            }
+        }
+
+        return $guid;
     }
 
-    return $link;
+    sub link
+    {
+        my $self = shift;
+
+        my $link = $self->{ _item }->link( @_ ) || $self->get( 'nnd:canonicalUrl' ) || $self->guid_if_valid();
+        $link = _no_ref( $link );
+
+        if ( $link )
+        {
+            $link = substr( $link, 0, $MAX_LINK_LENGTH );
+            $link =~ s/[\n\r\s]//g;
+        }
+
+        return $link;
+    }
+
+    sub get
+    {
+        my $self = shift;
+
+        my $value = $self->{ _item }->get( @_ );
+
+        return _no_ref( $value );
+    }
+
+    1;
 }
 
-sub get
+sub new($$)
+{
+    my ( $class, $feed_string ) = @_;
+
+    unless ( $feed_string )
+    {
+        die "Feed string is empty.";
+    }
+
+    my $self = {};
+    bless $self, $class;
+
+    my $feed_parser;
+    eval { $feed_parser = XML::FeedPP->new( $feed_string, -type => 'string' ); };
+    if ( $@ )
+    {
+        die "XML::FeedPP->new failed: $@";
+    }
+    $self->{ _feed_parser } = $feed_parser;
+
+    my @items;
+    foreach my $item ( $feed_parser->get_item )
+    {
+        my $wrappered_item = MediaWords::Feed::Parse::SyndicatedFeed::Item->new( $item );
+        push( @items, $wrappered_item );
+    }
+    $self->{ _items } = \@items;
+
+    return $self;
+}
+
+#
+# Add proxy subroutines to other methods as needed
+#
+
+# Returns feed title
+sub title($)
 {
     my $self = shift;
+    return $self->{ _feed_parser }->title() . '';
+}
 
-    my $value = $self->SUPER::get( @_ );
-
-    return _no_ref( $value );
+# Returns feed items (MediaWords::Feed::Parse::SyndicatedFeed::Item objects)
+sub items($)
+{
+    my $self = shift;
+    return $self->{ _items };
 }
 
 1;

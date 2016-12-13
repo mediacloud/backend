@@ -42,11 +42,9 @@ XML
 
     die "Unable to parse feed " unless $feed;
 
-    my $items = [ $feed->get_item ];
-
     my $num_new_stories = 0;
 
-    for my $item ( @{ $items } )
+    for my $item ( @{ $feed->items() } )
     {
         my $url  = $item->link() || $item->guid();
         my $guid = $item->guid() || $item->link();
