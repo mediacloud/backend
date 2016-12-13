@@ -1,4 +1,4 @@
-package XML::FeedPP::MediaWords;
+package MediaWords::Feed::Parse::SyndicatedFeed;
 
 ##
 #  This class is a wrapper to work around bugs in XML::FeedPP
@@ -50,7 +50,7 @@ use Class::Std;
 
         return $obj if ( !$obj->isa( 'XML::FeedPP::RSS::Item' ) );
 
-        return XML::FeedPP::RSS::Item::MediaWords->create_wrapped_rss_item( $obj );
+        return MediaWords::Feed::Parse::SyndicatedFeed::Item->create_wrapped_rss_item( $obj );
     }
 
     sub get_item
@@ -88,7 +88,7 @@ use Class::Std;
 
 1;
 
-package XML::FeedPP::RSS::Item::MediaWords;
+package MediaWords::Feed::Parse::SyndicatedFeed::Item;
 
 use strict;
 use warnings;
