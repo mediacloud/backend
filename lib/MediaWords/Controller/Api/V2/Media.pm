@@ -38,6 +38,14 @@ Catalyst Controller.
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
+__PACKAGE__->config(
+    action => {
+        create   => { Does => [ qw( ~MediaEditAuthenticated ~Throttled ~Logged ) ] },
+        put_tags => { Does => [ qw( ~MediaEditAuthenticated ~Throttled ~Logged ) ] },
+        update   => { Does => [ qw( ~MediaEditAuthenticated ~Throttled ~Logged ) ] },
+    }
+);
+
 sub get_table_name
 {
     return "media";

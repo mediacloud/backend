@@ -36,9 +36,9 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
 __PACKAGE__->config(
     action => {
-        single      => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        list        => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        put_tags    => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        single      => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
+        list        => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
+        put_tags    => { Does => [ qw( ~StoriesEditAuthenticated ~Throttled ~Logged ) ] },
         count       => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         field_count => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
     }

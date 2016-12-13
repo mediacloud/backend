@@ -20,9 +20,10 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
 __PACKAGE__->config(    #
     action => {         #
-        single => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
-      }    #
-);         #
+        single  => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
+        profile => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+    }
+);
 
 sub single : Local : ActionClass('MC_REST')
 {

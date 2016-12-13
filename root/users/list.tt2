@@ -7,7 +7,6 @@
     <th>Email</th>
     <th>Full name</th>
     <th>Roles</th>
-    <th>Full API</th>
 
     [% IF c.acl_user_can_visit('/admin/users/edit') %]
         <th>Edit</th>
@@ -37,8 +36,6 @@
             [% END %]
             [% role_list.join( '|') | html %]
         </td>
-        
-        <td>[% user.non_public_api %]</td>
 
         [% IF c.acl_user_can_visit('/admin/users/edit') %]
             <td><a href="[% c.uri_for('/admin/users/edit') %]?email=[% user.email | uri %]">Edit</a></td>

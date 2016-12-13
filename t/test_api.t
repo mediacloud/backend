@@ -195,7 +195,7 @@ select * from auth_users au join auth_user_limits using ( auth_users_id ) where 
 SQL
     my $profile = test_get( "/api/v2/auth/profile" );
 
-    for my $field ( qw/email auth_users_id weekly_request_items_limit non_public_api notes active weekly_requests_limit/ )
+    for my $field ( qw/email auth_users_id weekly_request_items_limit notes active weekly_requests_limit/ )
     {
         is( $profile->{ $field }, $expected_user->{ $field }, "auth profile $field" );
     }

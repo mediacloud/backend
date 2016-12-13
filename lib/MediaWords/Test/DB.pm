@@ -318,7 +318,7 @@ sub create_test_user
 
     my $add_user_error_message =
       MediaWords::DBI::Auth::add_user_or_return_error_message( $db, 'jdoe@cyber.law.harvard.edu', 'John Doe', '', [ 1 ], 1,
-        'testtest', 'testtest', 1, 1000, 1000 );
+        'testtest', 'testtest', 1000, 1000 );
 
     my $api_key = $db->query( "select api_token from auth_users where email =\'jdoe\@cyber.law.harvard.edu\'" )->hash;
 

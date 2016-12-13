@@ -150,7 +150,6 @@ sub user_info($$)
         <<"EOF",
         SELECT auth_users.auth_users_id,
                auth_users.email,
-               auth_users.non_public_api,
                full_name,
                api_token,
                notes,
@@ -644,7 +643,6 @@ sub all_users($)
             auth_users.email,
             auth_users.full_name,
             auth_users.notes,
-            auth_users.non_public_api,
             auth_users.active,
 
             -- Role from a list of all roles
@@ -674,12 +672,11 @@ EOF
     for my $user ( @{ $users } )
     {
         my $auth_users_id = $user->{ auth_users_id } + 0;
-        $unique_users->{ $auth_users_id }->{ 'auth_users_id' }  = $auth_users_id;
-        $unique_users->{ $auth_users_id }->{ 'email' }          = $user->{ email };
-        $unique_users->{ $auth_users_id }->{ 'full_name' }      = $user->{ full_name };
-        $unique_users->{ $auth_users_id }->{ 'notes' }          = $user->{ notes };
-        $unique_users->{ $auth_users_id }->{ 'active' }         = $user->{ active };
-        $unique_users->{ $auth_users_id }->{ 'non_public_api' } = $user->{ non_public_api };
+        $unique_users->{ $auth_users_id }->{ 'auth_users_id' } = $auth_users_id;
+        $unique_users->{ $auth_users_id }->{ 'email' }         = $user->{ email };
+        $unique_users->{ $auth_users_id }->{ 'full_name' }     = $user->{ full_name };
+        $unique_users->{ $auth_users_id }->{ 'notes' }         = $user->{ notes };
+        $unique_users->{ $auth_users_id }->{ 'active' }        = $user->{ active };
 
         if ( !ref( $unique_users->{ $auth_users_id }->{ 'roles' } ) eq 'HASH' )
         {
@@ -699,15 +696,14 @@ EOF
 }
 
 # Add new user; $role_ids is a arrayref to an array of role IDs; returns error message on error, empty string on success
-sub add_user_or_return_error_message($$$$$$$$$;$$)
+sub add_user_or_return_error_message($$$$$$$$;$$)
 {
-    my ( $db, $email, $full_name, $notes, $role_ids, $is_active, $password, $password_repeat, $non_public_api_access,
+    my ( $db, $email, $full_name, $notes, $role_ids, $is_active, $password, $password_repeat,
         $weekly_requests_limit, $weekly_requested_items_limit )
       = @_;
 
     INFO "Creating user with email: $email, full name: $full_name, notes: $notes, role IDs: " .
-      join( ',', @{ $role_ids } ) .
-      ", is active: $is_active, non_public_api_access: $non_public_api_access, weekly_requests_limit: " .
+      join( ',', @{ $role_ids } ) . ", is active: $is_active, weekly_requests_limit: " .
       ( defined $weekly_requests_limit ? $weekly_requests_limit : 'default' ) . ', weekly requested items limit: ' .
       ( defined $weekly_requested_items_limit ? $weekly_requested_items_limit : 'default' );
 
@@ -744,10 +740,10 @@ sub add_user_or_return_error_message($$$$$$$$$;$$)
     # Create the user
     $db->query(
         <<"EOF",
-        INSERT INTO auth_users (email, password_hash, full_name, notes, active, non_public_api)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO auth_users (email, password_hash, full_name, notes, active )
+        VALUES (?, ?, ?, ?, ? )
 EOF
-        $email, $password_hash, $full_name, $notes, ( $is_active ? 'true' : 'false' ), $non_public_api_access
+        $email, $password_hash, $full_name, $notes, ( $is_active ? 'true' : 'false' )
     );
 
     # Fetch the user's ID
@@ -802,9 +798,9 @@ EOF
 
 # Update an existing user; returns error message on error, empty string on success
 # ($password and $password_repeat are optional; if not provided, the password will not be changed)
-sub update_user_or_return_error_message($$$$$$;$$$$$)
+sub update_user_or_return_error_message($$$$$$;$$$$)
 {
-    my ( $db, $email, $full_name, $notes, $roles, $is_active, $password, $password_repeat, $non_public_api_access,
+    my ( $db, $email, $full_name, $notes, $roles, $is_active, $password, $password_repeat,
         $weekly_requests_limit, $weekly_requested_items_limit )
       = @_;
 
@@ -824,14 +820,11 @@ sub update_user_or_return_error_message($$$$$$;$$$$$)
         UPDATE auth_users
         SET full_name = ?,
             notes = ?,
-            non_public_api = ?,
             active = ?
         WHERE email = ?
 EOF
-        $full_name, $notes, ( $non_public_api_access ? 'true' : 'false' ), ( $is_active ? 'true' : 'false' ), $email
+        $full_name, $notes, ( $is_active ? 'true' : 'false' ), $email
     );
-
-# TRACE Dumper( [ $full_name, $notes, ( $non_public_api_access ? 'true' : 'false' ), ( $is_active ? 'true' : 'false' ), $email ] );
 
     if ( $password )
     {

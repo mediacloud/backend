@@ -144,7 +144,6 @@ sub user_add($)
     my $user_full_name                    = '';
     my $user_notes                        = '';
     my $user_is_inactive                  = 0;
-    my $non_public_api_access             = 0;
     my $user_roles                        = '';
     my $user_password                     = undef;
     my $user_weekly_requests_limit        = undef;
@@ -156,7 +155,6 @@ Usage: $0 --action=add \
     --full_name="John Doe" \
     [--notes="Media Cloud developer."] \
     [--inactive] \
-    [--non_public_api_access ] \
     [--roles="query-create,media-edit,stories-edit"] \
     [--password="correct horse battery staple"] \
     [--weekly_requests_limit=2000] \
@@ -168,7 +166,6 @@ EOF
         'full_name=s'                    => \$user_full_name,
         'notes:s'                        => \$user_notes,
         'inactive'                       => \$user_is_inactive,
-        'non_public_api_access'          => \$non_public_api_access,
         'roles:s'                        => \$user_roles,
         'password:s'                     => \$user_password,
         'weekly_requests_limit:i'        => \$user_weekly_requests_limit,
@@ -212,12 +209,10 @@ EOF
     }
 
     # Add the user
-    my $add_user_error_message = MediaWords::DBI::Auth::add_user_or_return_error_message(
-        $db, $user_email, $user_full_name,
+    my $add_user_error_message =
+      MediaWords::DBI::Auth::add_user_or_return_error_message( $db, $user_email, $user_full_name,
         $user_notes, \@user_role_ids, ( !$user_is_inactive ),
-        $user_password,              $user_password_repeat, $non_public_api_access,
-        $user_weekly_requests_limit, $user_weekly_requested_items_limit
-    );
+        $user_password, $user_password_repeat, $user_weekly_requests_limit, $user_weekly_requested_items_limit );
     if ( $add_user_error_message )
     {
         ERROR "Error while trying to add user: $add_user_error_message";
@@ -239,8 +234,6 @@ sub user_modify($)
     my $user_notes                        = undef;
     my $user_is_active                    = undef;
     my $user_is_inactive                  = undef;
-    my $non_public_api_access             = undef;
-    my $no_non_public_api_access          = undef;
     my $user_roles                        = undef;
     my $user_password                     = undef;
     my $user_set_password                 = undef;
@@ -253,8 +246,6 @@ Usage: $0 --action=modify \
     [--full_name="John Doe"] \
     [--notes="Media Cloud developer."] \
     [--active|--inactive] \
-    [--non_public_api_access ] \
-    [--no_non_public_api_access ] \
     [--roles="query-create,media-edit,stories-edit"] \
     [--password="correct horse battery staple" | --set-password] \
 EOF
@@ -265,8 +256,6 @@ EOF
         'notes:s'                        => \$user_notes,
         'active'                         => \$user_is_active,
         'inactive'                       => \$user_is_inactive,
-        'non_public_api_access'          => \$non_public_api_access,
-        'no_non_public_api_access'       => \$no_non_public_api_access,
         'roles:s'                        => \$user_roles,
         'password:s'                     => \$user_password,
         'set-password'                   => \$user_set_password,
@@ -290,8 +279,6 @@ EOF
         or defined $user_notes
         or defined $user_is_active
         or defined $user_is_inactive
-        or defined $non_public_api_access
-        or defined $no_non_public_api_access
         or defined $user_roles
         or defined $user_password
         or defined $user_set_password
@@ -321,19 +308,6 @@ EOF
     else
     {
         $modified_user{ active } = $db_user->{ active };
-    }
-
-    if ( defined $no_non_public_api_access )
-    {
-        $modified_user{ non_public_api } = 0;
-    }
-    elsif ( defined $non_public_api_access )
-    {
-        $modified_user{ non_public_api } = 1;
-    }
-    else
-    {
-        $modified_user{ non_public_api } = $db_user->{ non_public_api };
     }
 
     # Roles array
@@ -384,7 +358,6 @@ EOF
         $modified_user{ active },
         $modified_user{ password },
         $modified_user{ password_repeat },
-        $modified_user{ non_public_api },
         $user_weekly_requests_limit,
         $user_weekly_requested_items_limit
     );
@@ -480,7 +453,6 @@ sub user_show($)
     say "Active:    " . ( $db_user->{ active } ? 'yes' : 'no' );
     say "Roles:     " . join( ',', @{ $db_user_roles->{ roles } } );
     say "API key:   " . $db_user->{ api_token };
-    say "Can access non-public API:    " . ( $db_user->{ non_public_api } ? 'yes' : 'no' );
     say "Weekly requests limit:        " . $db_user->{ weekly_requests_limit };
     say "Weekly requested items limit: " . $db_user->{ weekly_requested_items_limit };
 

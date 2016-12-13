@@ -11,6 +11,13 @@ use namespace::autoclean;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
+__PACKAGE__->config(
+    action => {
+        create => { Does => [ qw( ~MediaEditAuthenticated ~Throttled ~Logged ) ] },
+        update => { Does => [ qw( ~MediaEditAuthenticated ~Throttled ~Logged ) ] },
+    }
+);
+
 sub default_output_fields
 {
     return [ qw ( name url media_id feeds_id feed_type ) ];

@@ -1364,8 +1364,7 @@ URL: https://api.mediacloud.org/api/v2/auth/profile
   "email": "hroberts@cyber.law.harvard.edu",
   "auth_users_id": 1,
   "full_name": "Hal Roberts",
-  "notes": "Media Cloud Geek"
-  "non_public_api": 1,
+  "notes": "Media Cloud Geek",
   "created_date": "2014-12-10 13:36:29.537007",
   "auth_roles":
   [
