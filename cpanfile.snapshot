@@ -1257,16 +1257,6 @@ DISTRIBUTIONS
       Class::Singleton 1.4
     requirements:
       ExtUtils::MakeMaker 0
-  Class-Std-0.013
-    pathname: C/CH/CHORNY/Class-Std-0.013.tar.gz
-    provides:
-      Class::Std 0.013
-      Class::Std::SCR 0.013
-    requirements:
-      Data::Dumper 0
-      Scalar::Util 0
-      Test::More 0
-      perl 5.006
   Class-Throwable-0.11
     pathname: K/KM/KMX/Class-Throwable-0.11.tar.gz
     provides:
