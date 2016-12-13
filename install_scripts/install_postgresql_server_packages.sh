@@ -3,8 +3,10 @@
 set -u
 set -o errexit
 
-working_dir=`dirname $0`
-cd $working_dir
+PWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$PWD/set_mc_root_dir.inc.sh"
+
+cd "$MC_ROOT_DIR"
 
 echo "installing postgresql packages"
 echo
@@ -51,7 +53,7 @@ if [ `uname` == 'Darwin' ]; then
 
 else
 
-    echo | sudo ../foreign_modules/apt.postgresql.org.sh
+    echo | sudo ./foreign_modules/apt.postgresql.org.sh
     # assume Ubuntu
     sudo apt-get --assume-yes install \
         postgresql postgresql-client postgresql-contrib postgresql-server-dev-all

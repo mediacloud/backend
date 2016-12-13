@@ -1,13 +1,15 @@
 #!/bin/bash
 
-working_dir=`dirname $0`
+set -u
+set -o errexit
 
-cd $working_dir
+PWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$PWD/set_mc_root_dir.inc.sh"
+
+cd "$MC_ROOT_DIR"
 
 source ./script/set_perl_brew_environment.sh
 perl -v
-set -u
-set -o  errexit
 
 if [ `uname` == 'Darwin' ]; then
 

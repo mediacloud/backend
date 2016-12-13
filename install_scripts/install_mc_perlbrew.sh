@@ -1,11 +1,12 @@
 #!/bin/bash
 
-working_dir=`dirname $0`
-
-cd $working_dir
-
 set -e
-set -o  errexit
+set -o errexit
+
+PWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$PWD/set_mc_root_dir.inc.sh"
+
+cd "$MC_ROOT_DIR"
 
 # Perl version to install
 PERL_INSTALL_VERSION="5.22.1"

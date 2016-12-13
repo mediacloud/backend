@@ -64,11 +64,11 @@ before_install:
     - perlbrew lib create mediacloud
     - perlbrew switch @mediacloud
     # Install Media Cloud system package dependencies
-    - ./install_modules_outside_of_carton.sh
+    - ./install_scripts/install_modules_outside_of_carton.sh
     # (Re)install Carton dependencies (which might be restored from cache into
     # "local/" already in which case we just check if Carton is happy with the
     # current setup)
-    - ./install_modules_with_carton.sh
+    - ./install_scripts/install_modules_with_carton.sh
 install:
     # Use default configuration
     - cp mediawords.yml.dist mediawords.yml
