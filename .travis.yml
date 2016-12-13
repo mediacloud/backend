@@ -38,8 +38,6 @@ env:
         - secure: "Fw42BMs0PDUn3ouHbeDwps28BolRQuLcHtvax25sbFd6novSIpns/01c31pZy8LkOYSb0fDqnrx3zTYh468CctJks4cDRPTn8xjPMGP5mnrOxdQbVHLFD5nqo/bpOzvdUmBWj8t7r96C8x6PNqxfsQqeinzHi1e2wMbDyxGdFHQ="
         # Do not ask for confirmation when running ./script/mediawords_create_db.pl
         - MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1
-        # Enable Python API tests in ./script/run_test_suite_for_devel_cover.sh
-        - MEDIACLOUD_ENABLE_PYTHON_API_TESTS=1
         # Test PythonReadability extractor method in t/test_extractor.t
         - MC_TEST_EXTRACTOR_PYTHONREADABILITY=1
         # let tests know that they are running on travis
@@ -57,10 +55,6 @@ before_install:
     # Install Python dependencies
     - travis_retry pip install --upgrade pip setuptools
     - travis_retry pip install --upgrade -r python_scripts/requirements.txt
-    # Install Media Cloud testing variant of the Python Client
-    - travis_retry git clone https://github.com/berkmancenter/mediacloud-api-testing-client.git MediaCloud-API-Client/
-    - cd MediaCloud-API-Client/; git checkout v2.25.0-api-testing-cleanup; cd ../
-    - travis_retry pip install --editable MediaCloud-API-Client/
     # Create + switch to the Media Cloud's Perlbrew library
     - perlbrew lib create mediacloud
     - perlbrew switch @mediacloud
