@@ -88,16 +88,44 @@ EOF
     fi
 
     brew install \
+        coreutils \
+        cpanminus \
+        curl \
+        gawk \
         graphviz --with-bindings \
-        coreutils curl homebrew/dupes/tidy libyaml gawk cpanminus \
-        netcat openssl rabbitmq libyaml hunspell
+        homebrew/dupes/tidy \
+        hunspell \
+        libyaml \
+        libyaml \
+        netcat \
+        openssl \
+        rabbitmq \
+        #
 
     sudo cpanm \
-        XML::Parser XML::SAX::Expat XML::LibXML XML::LibXML::Simple \
-        Test::WWW::Mechanize OpenGL DBD::Pg Perl::Tidy HTML::Parser YAML \
-        YAML::LibYAML YAML::Syck List::AllUtils List::MoreUtils Readonly \
-        Readonly::XS GraphViz Graph Graph::Writer::GraphViz \
-        HTML::Entities version Lingua::Stem::Snowball
+        DBD::Pg \
+        Graph \
+        Graph::Writer::GraphViz \
+        GraphViz \
+        HTML::Entities \
+        HTML::Parser \
+        Lingua::Stem::Snowball \
+        List::AllUtils \
+        List::MoreUtils \
+        OpenGL \
+        Perl::Tidy \
+        Readonly \
+        Readonly::XS \
+        Test::WWW::Mechanize \
+        version \
+        XML::LibXML \
+        XML::LibXML::Simple \
+        XML::Parser \
+        XML::SAX::Expat \
+        YAML \
+        YAML::LibYAML \
+        YAML::Syck \
+        #
 
    if [ ! "${SKIP_VAGRANT_TEST:+x}" ]; then
         if [ ! -x /usr/bin/vagrant ]; then
@@ -163,15 +191,48 @@ else
 
     # Install the rest of the packages
     sudo apt-get --assume-yes install \
-        expat libexpat1-dev libxml2-dev gawk postgresql-server-dev-all \
-        libdb-dev libtest-www-mechanize-perl libtidy-dev \
-        libopengl-perl libgraph-writer-graphviz-perl libgraphviz-perl \
-        graphviz graphviz-dev graphviz-doc libgraphviz-dev libyaml-syck-perl \
-        liblist-allutils-perl liblist-moreutils-perl libreadonly-perl \
-        libreadonly-xs-perl curl python2.7 python2.7-dev python-pip \
-        libxml2-dev libxslt1-dev libxslt1-dbg libxslt1.1 build-essential make gcc g++ \
-        cpanminus perl-doc liblocale-maketext-lexicon-perl openjdk-8-jdk \
-        pandoc netcat libyaml-dev unzip hunspell
+        build-essential \
+        cpanminus \
+        curl \
+        expat \
+        g++ \
+        gawk \
+        gcc \
+        graphviz \
+        graphviz-dev \
+        graphviz-doc \
+        hunspell \
+        libdb-dev \
+        libexpat1-dev \
+        libgraph-writer-graphviz-perl \
+        libgraphviz-dev \
+        libgraphviz-perl \
+        liblist-allutils-perl \
+        liblist-moreutils-perl \
+        liblocale-maketext-lexicon-perl \
+        libopengl-perl \
+        libreadonly-perl \
+        libreadonly-xs-perl \
+        libtest-www-mechanize-perl \
+        libtidy-dev \
+        libxml2-dev \
+        libxml2-dev \
+        libxslt1-dbg \
+        libxslt1-dev \
+        libxslt1.1 \
+        libyaml-dev \
+        libyaml-syck-perl \
+        make \
+        netcat \
+        openjdk-8-jdk \
+        pandoc \
+        perl-doc \
+        postgresql-server-dev-all \
+        python-pip \
+        python2.7 \
+        python2.7-dev \
+        unzip \
+        #
 
     # Choose to use OpenJDK 8 by default
     PATH="$PATH:/usr/sbin"
