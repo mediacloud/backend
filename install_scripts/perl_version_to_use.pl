@@ -11,7 +11,16 @@ use warnings;
 use version 0.77;    # get latest bug-fixes and API;
 
 # Min. Perl version to use
-my $perl_min_version = '5.22.1';
+
+my $perl_min_version;
+if ( $ENV{ 'CI' } )
+{
+    $perl_min_version = '5.22.0';    # Travis CI
+}
+else
+{
+    $perl_min_version = '5.22.1';
+}
 
 sub main()
 {
