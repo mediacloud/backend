@@ -2,7 +2,7 @@ language: perl
 # Installing up-to-date Erlang requires root
 sudo: true
 perl:
-    - "5.22.1"
+    - "5.22"
 addons:
     postgresql: "9.3"
     hosts:
