@@ -6,6 +6,11 @@
 set -u
 set -o errexit
 
+PWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$PWD/set_mc_root_dir.inc.sh"
+
+cd "$MC_ROOT_DIR"
+
 if [ `uname` == 'Darwin' ]; then
     # greadlink from coreutils
     READLINK="greadlink"
@@ -17,10 +22,6 @@ HOOK_SOURCE="script/pre_commit_hooks/pre-commit"
 HOOK_TARGET=".git/hooks/pre-commit"
 
 # ---
-
-# 'cd' to Media Cloud's root (assuming that this script is stored in './install_scripts/')
-PWD="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd "$PWD/../"
 
 if [ ! -d .git ]; then
     echo ".git directory doesn't exist in the current path."

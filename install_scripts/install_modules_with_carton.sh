@@ -1,11 +1,12 @@
 #!/bin/bash
 
 set -u
-set -o  errexit
+set -o errexit
 
-working_dir=`dirname $0`
+PWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$PWD/set_mc_root_dir.inc.sh"
 
-cd $working_dir
+cd "$MC_ROOT_DIR"
 
 if pwd | grep ' ' ; then
     echo "Media Cloud cannot be installed in a file path with spaces in its name"
