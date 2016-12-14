@@ -2,6 +2,7 @@
 # Perl (Inline::Perl) helpers
 #
 import re
+from typing import Union
 
 from mediawords.util.log import create_logger
 
@@ -9,7 +10,7 @@ l = create_logger(__name__)
 
 
 # FIXME MC_REWRITE_TO_PYTHON: remove after porting all Perl code to Python
-def decode_string_from_bytes_if_needed(string):
+def decode_string_from_bytes_if_needed(string: Union[str, bytes, None]) -> Union[str, None]:
     """Convert 'bytes' string to 'unicode' if needed.
     (http://search.cpan.org/dist/Inline-Python/Python.pod#PORTING_YOUR_INLINE_PYTHON_CODE_FROM_2_TO_3)"""
     if string is not None:
@@ -19,7 +20,7 @@ def decode_string_from_bytes_if_needed(string):
 
 
 # FIXME MC_REWRITE_TO_PYTHON: remove after porting all Perl code to Python
-def decode_object_from_bytes_if_needed(obj):
+def decode_object_from_bytes_if_needed(obj: Union[dict, list, str, bytes, None]) -> Union[dict, list, str, None]:
     """Convert object (dictionary, list or string) from 'bytes' string to 'unicode' if needed."""
     if isinstance(obj, dict):
         result = dict()
@@ -42,7 +43,7 @@ class ConvertDBDPgArgumentsToPsycopg2FormatException(Exception):
 
 
 # FIXME MC_REWRITE_TO_PYTHON: remove after porting queries to named parameter style
-def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters):
+def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, tuple]) -> tuple:
     """Convert DBD::Pg's question mark-style SQL query parameters to psycopg2's syntax."""
     if len(query_parameters) == 0:
         raise Exception('No query or its parameters.')

@@ -11,7 +11,7 @@ class McRootPathException(Exception):
     pass
 
 
-def mc_root_path():
+def mc_root_path() -> str:
     # FIXME MC_REWRITE_TO_PYTHON: Inline::Python doesn't always set __file__
     # properly, but chances are that we're running from Media Cloud root directory
     try:
@@ -33,7 +33,7 @@ class McScriptPathException(Exception):
     pass
 
 
-def mc_script_path():
+def mc_script_path() -> str:
     root_path = mc_root_path()
     script_path = os.path.join(root_path, "script")
     if not os.path.isdir(script_path):
