@@ -1,4 +1,5 @@
 import re
+from typing import Optional
 from urllib.parse import urlparse, parse_qs, urlsplit, urlunsplit, urlencode, urljoin
 import url_normalize
 
@@ -470,7 +471,7 @@ __URL_SHORTENER_HOSTNAMES = [
 ]
 
 
-def fix_common_url_mistakes(url: str) -> str:
+def fix_common_url_mistakes(url: str) -> Optional[str]:
     """Fixes common URL mistakes (mistypes, etc.)."""
     url = decode_string_from_bytes_if_needed(url)
 
@@ -710,7 +711,7 @@ def normalize_url(url: str) -> str:
     return url
 
 
-def normalize_url_lossy(url: str) -> str:
+def normalize_url_lossy(url: str) -> Optional[str]:
     """Do some simple transformations on a URL to make it match other equivalent URLs as well as possible; normalization
     is "lossy" (makes the whole URL lowercase, removes subdomain parts "m.", "data.", "news.", ... in some cases)"""
     url = decode_string_from_bytes_if_needed(url)
@@ -847,10 +848,10 @@ def get_url_distinctive_domain(url: str) -> str:
     return domain.lower()
 
 
-def meta_refresh_url_from_html(html: str, base_url: str = None) -> str:
+def meta_refresh_url_from_html(html: str, base_url: str = None) -> Optional[str]:
     """From the provided HTML, determine the <meta http-equiv="refresh" /> URL (if any)."""
 
-    def __get_meta_refresh_url_from_tag(inner_tag: str, inner_base_url=None) -> str:
+    def __get_meta_refresh_url_from_tag(inner_tag: str, inner_base_url=None) -> Optional[str]:
         """Given a <meta ...> tag, return the url from the content="url=XXX" attribute.  return undef if no such url is
         found."""
         if not re.search(r'http-equiv\s*?=\s*?["\']\s*?refresh\s*?["\']', inner_tag, re.I):
@@ -893,7 +894,7 @@ def meta_refresh_url_from_html(html: str, base_url: str = None) -> str:
     return None
 
 
-def link_canonical_url_from_html(html: str, base_url: str = None) -> str:
+def link_canonical_url_from_html(html: str, base_url: str = None) -> Optional[str]:
     """From the provided HTML, determine the <link rel="canonical" /> URL (if any)."""
     html = decode_string_from_bytes_if_needed(html)
     base_url = decode_string_from_bytes_if_needed(base_url)

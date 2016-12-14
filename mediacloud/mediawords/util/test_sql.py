@@ -2,7 +2,6 @@ from mediawords.util.sql import *
 
 import time
 import datetime
-import sys
 
 
 def test_get_sql_date_from_epoch():

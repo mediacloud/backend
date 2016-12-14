@@ -19,7 +19,8 @@ BEGIN
 
     -- Update / set database schema version
     DELETE FROM database_variables WHERE name = 'database-schema-version';
-    INSERT INTO database_variables (name, value) VALUES ('database-schema-version', MEDIACLOUD_DATABASE_SCHEMA_VERSION::int);
+    INSERT INTO database_variables (name, value) VALUES
+        ('database-schema-version', MEDIACLOUD_DATABASE_SCHEMA_VERSION::int);
 
     return true;
 
