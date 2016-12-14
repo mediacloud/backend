@@ -17,6 +17,7 @@ use MediaWords::CommonLibs;
 use HTTP::HashServer;
 use Readonly;
 use Test::More;
+use Storable qw(dclone);
 
 use MediaWords::TM;
 use MediaWords::TM::Mine;
@@ -533,7 +534,10 @@ update topic_dates set start_date = \$2, end_date = \$3 where topics_id = \$1
 SQL
 
     # topic date modeling confuses perl TAP for some reason
-    MediaWords::Util::Config::get_config()->{ mediawords }->{ topic_model_reps } = 0;
+    my $config     = MediaWords::Util::Config::get_config();
+    my $new_config = dclone( $config );
+    $new_config->{ mediawords }->{ topic_model_reps } = 0;
+    MediaWords::Util::Config::set_config( $new_config );
 
     MediaWords::TM::Mine::mine_topic( $db, $topic, { test_mode => 1 } );
 
@@ -601,8 +605,10 @@ sub run_tests_on_mock_apis
     my $config = MediaWords::Util::Config::get_config();
 
     # set dummy values so that we can hit the mock apis without the underlying modules complaining
-    $config->{ crimson_hexagon }->{ key } = 'TEST';
-    map { $config->{ twitter }->{ $_ } = 'TEST' } qw/consumer_key consumer_secret access_token access_token_secret/;
+    my $new_config = dclone( $config );
+    $new_config->{ crimson_hexagon }->{ key } = 'TEST';
+    map { $new_config->{ twitter }->{ $_ } = 'TEST' } qw/consumer_key consumer_secret access_token access_token_secret/;
+    MediaWords::Util::Config::set_config( $new_config );
 
     eval { MediaWords::Test::DB::test_on_test_database( \&test_fetch_topic_tweets ); };
     my $test_error = $@;
