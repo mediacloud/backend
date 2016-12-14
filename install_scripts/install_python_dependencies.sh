@@ -22,9 +22,9 @@ fi
 
 echo "Installing (upgrading) Pip..."
 wget https://bootstrap.pypa.io/get-pip.py -O - | $COMMAND_PREFIX python2.7 -
-rm setuptools-*.zip || echo "No setuptools to cleanup"
+$COMMAND_PREFIX rm setuptools-*.zip || echo "No setuptools to cleanup"
 wget https://bootstrap.pypa.io/get-pip.py -O - | $COMMAND_PREFIX python3.5 -
-rm setuptools-*.zip || echo "No setuptools to cleanup"
+$COMMAND_PREFIX rm setuptools-*.zip || echo "No setuptools to cleanup"
 
 echo "Installing (upgrading) Supervisor..."
 # * change dir, otherwise the installer might think we're trying to install from the supervisor/ directory
