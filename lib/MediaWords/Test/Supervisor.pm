@@ -45,6 +45,9 @@ Readonly my $SOLR_RUN_TIMEOUT => 10;
 # seconds to wait for supervisord to stop shutting down
 Readonly my $SUPERVISOR_SHUTDOWN_TIMEOUT => 90;
 
+# Seconds to wait for Supervisord / Supervisorctl to react
+Readonly my $SUPERVISOR_COMMAND_TIMEOUT => 5;
+
 # mediacloud root path and supervisor scripts
 my $_mc_root_path      = MediaWords::Util::Paths::mc_root_path();
 my $_supervisord_bin   = "$_mc_root_path/supervisor/supervisord.sh";
@@ -79,7 +82,7 @@ sub _solr_standalone_ready($)
         eval { MediaWords::Solr::query( $db, { q => '*:*', rows => 0 } ) };
         return unless ( $@ );
 
-        sleep( 1 );
+        sleep( $SUPERVISOR_COMMAND_TIMEOUT );
     }
 
     die( "solr failed to start after timeout" );
@@ -144,7 +147,7 @@ sub _run_supervisord()
 
             # otherwise, supervisord is in the process of shutting down, so just wait
             DEBUG( "waiting for supervisord to finish shutting down ..." );
-            sleep( 1 );
+            sleep( $SUPERVISOR_COMMAND_TIMEOUT );
         }
     }
 
@@ -197,7 +200,7 @@ sub _verify_processes_status($$)
             }
 
             DEBUG( "waiting for process $process which is in state '$state'" );
-            sleep 1;
+            sleep( $SUPERVISOR_COMMAND_TIMEOUT );
         }
 
         die( "$process not running" ) unless ( $process_is_running );
