@@ -20,13 +20,11 @@ else
     COMMAND_PREFIX="sudo"
 fi
 
-echo "Installing (upgrading) Setuptools..."
-wget https://bootstrap.pypa.io/ez_setup.py -O - | $COMMAND_PREFIX python2.7 -
-wget https://bootstrap.pypa.io/ez_setup.py -O - | $COMMAND_PREFIX python3.5 -
-
 echo "Installing (upgrading) Pip..."
-$COMMAND_PREFIX easy_install-2.7 pip
-$COMMAND_PREFIX easy_install-3.5 pip
+wget https://bootstrap.pypa.io/get-pip.py -O - | $COMMAND_PREFIX python2.7 -
+rm setuptools-*.zip || echo "No setuptools to cleanup"
+wget https://bootstrap.pypa.io/get-pip.py -O - | $COMMAND_PREFIX python3.5 -
+rm setuptools-*.zip || echo "No setuptools to cleanup"
 
 echo "Installing (upgrading) Supervisor..."
 # * change dir, otherwise the installer might think we're trying to install from the supervisor/ directory
