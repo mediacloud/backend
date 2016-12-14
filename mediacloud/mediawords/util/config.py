@@ -26,7 +26,7 @@ def get_mc_root_dir():
     return __MC_ROOT_DIR
 
 
-def get_config():
+def get_config() -> dict:
     global __CONFIG
 
     if __CONFIG is not None:
@@ -35,10 +35,12 @@ def get_config():
     # TODO: This should be standardized
     set_config_file(os.path.join(__base_dir, "mediawords.yml"))
 
+    # noinspection PyTypeChecker
+    # FIXME inspection could still be enabled here
     return __CONFIG
 
 
-def __parse_config_file(config_file):
+def __parse_config_file(config_file: str) -> dict:
     if not os.path.isfile(config_file):
         raise Exception("Configuration file '%s' was not found." % config_file)
 
@@ -47,7 +49,7 @@ def __parse_config_file(config_file):
     return yaml_data
 
 
-def set_config_file(config_file):
+def set_config_file(config_file: str) -> None:
     """set the cached config object given a file path"""
     if not os.path.isfile(config_file):
         raise Exception("Configuration file '%s' was not found." % config_file)
@@ -55,10 +57,10 @@ def set_config_file(config_file):
     set_config(__parse_config_file(config_file))
 
 
-def __merge_configs(config, static_defaults):
+def __merge_configs(config: dict, static_defaults: dict) -> dict:
     """merge configs using Hash::Merge, with precedence for the mediawords.yml config."""
 
-    def __merge_configs_internal(a, b, path=None):
+    def __merge_configs_internal(a: dict, b: dict, path=None) -> dict:
         """Merges b into a (http://stackoverflow.com/a/7205107/200603)"""
         if path is None:
             path = []
@@ -86,7 +88,7 @@ def __merge_configs(config, static_defaults):
     return merged_config
 
 
-def set_config(config):
+def set_config(config: dict) -> None:
     global __CONFIG
 
     if __CONFIG is not None:
@@ -104,13 +106,13 @@ def set_config(config):
     verify_settings(__CONFIG)
 
 
-def __read_static_defaults():
+def __read_static_defaults() -> dict:
     defaults_file_yml = os.path.join(get_mc_root_dir(), "config", "defaults.yml")
     static_defaults = __parse_config_file(defaults_file_yml)
     return static_defaults
 
 
-def verify_settings(config):
+def verify_settings(config: dict) -> None:
     if 'database' not in config:
         raise Exception("No database connections configured")
 
@@ -132,7 +134,7 @@ def verify_settings(config):
             l.warn('Please configure "rabbitmq" job manager under "job_manager" root key in mediawords.yml.')
 
 
-def __set_dynamic_defaults(config):
+def __set_dynamic_defaults(config: dict) -> dict:
     global __base_dir
 
     if 'mediawords' not in config:

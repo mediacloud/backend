@@ -10,7 +10,7 @@ l = create_logger(__name__)
 
 
 # FIXME MC_REWRITE_TO_PYTHON: remove after porting all Perl code to Python
-def decode_string_from_bytes_if_needed(string: Union[str, bytes, None]) -> Union[str, None]:
+def decode_string_from_bytes_if_needed(string: Union[int, str, bytes, None]) -> Union[int, str, None]:
     """Convert 'bytes' string to 'unicode' if needed.
     (http://search.cpan.org/dist/Inline-Python/Python.pod#PORTING_YOUR_INLINE_PYTHON_CODE_FROM_2_TO_3)"""
     if string is not None:

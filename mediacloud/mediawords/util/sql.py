@@ -30,5 +30,3 @@ def increment_day(date: str, days: int = 1) -> str:
         return date
     epoch_date = get_epoch_from_sql_date(date) + (((days * 24) + 12) * 60 * 60)
     return datetime.datetime.fromtimestamp(int(epoch_date)).strftime('%Y-%m-%d')
-
-
