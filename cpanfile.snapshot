@@ -3490,7 +3490,7 @@ DISTRIBUTIONS
       Encode::HanConvert::Perl 0.06
     requirements:
       Encode 1.41
-      ExtUtils::MakeMaker 7.0401
+      ExtUtils::MakeMaker 7.1001
   Encode-Locale-1.03
     pathname: G/GA/GAAS/Encode-Locale-1.03.tar.gz
     provides:
@@ -4604,6 +4604,7 @@ DISTRIBUTIONS
       IO::Socket::SSL::Utils 2.014
     requirements:
       ExtUtils::MakeMaker 0
+      Mozilla::CA 0
       Net::SSLeay 1.46
       Scalar::Util 0
   IO-String-1.08
@@ -6747,7 +6748,7 @@ DISTRIBUTIONS
     provides:
       Parse::BooleanLogic 0.09
     requirements:
-      ExtUtils::MakeMaker 7.0401
+      ExtUtils::MakeMaker 7.1001
       Regexp::Common 0
       Test::Deep 0
       Test::More 0
@@ -6773,7 +6774,6 @@ DISTRIBUTIONS
       Parse::RecDescent::Token 1.967009
       Parse::RecDescent::UncondReject 1.967009
     requirements:
-      ExtUtils::MakeMaker 6.5702
       Test::More 0
       Text::Balanced 1.95
   Path-Class-0.33
@@ -7214,17 +7214,6 @@ DISTRIBUTIONS
       Class::InsideOut 0
       Exporter::Lite 0
       ExtUtils::MakeMaker 6.42
-  Scalar-List-Utils-1.45
-    pathname: P/PE/PEVANS/Scalar-List-Utils-1.45.tar.gz
-    provides:
-      List::Util 1.45
-      List::Util::XS 1.45
-      Scalar::Util 1.45
-      Sub::Util 1.45
-    requirements:
-      ExtUtils::MakeMaker 0
-      Test::More 0
-      perl 5.006
   Scope-Guard-0.20
     pathname: C/CH/CHOCOLATE/Scope-Guard-0.20.tar.gz
     provides:
@@ -7760,9 +7749,8 @@ DISTRIBUTIONS
     requirements:
       Capture::Tiny 0.24
       Data::Dumper 2.126
-      ExtUtils::MakeMaker 0
       Test::More 0.88
-      Text::Diff 1.43
+      Text::Diff 0.35
   Test-Exception-0.32
     pathname: A/AD/ADIE/Test-Exception-0.32.tar.gz
     provides:
@@ -8139,7 +8127,7 @@ DISTRIBUTIONS
       Text::Lorem::More 0.13
       Text::Lorem::More::Source undef
     requirements:
-      ExtUtils::MakeMaker 7.0401
+      ExtUtils::MakeMaker 7.1001
       Parse::RecDescent 0
       Test::More 0
       Test::Most 0
@@ -8163,7 +8151,7 @@ DISTRIBUTIONS
     provides:
       Text::WordDiff 0.08
       Text::WordDiff::ANSIColor 0.08
-      Text::WordDiff::Base undef
+      Text::WordDiff::Base 0
       Text::WordDiff::HTML 0.08
       Text::WordDiff::HTMLTwoLines 0.08
     requirements:
@@ -8564,136 +8552,136 @@ DISTRIBUTIONS
   VM-EC2-1.25
     pathname: L/LD/LDS/VM-EC2-1.25.tar.gz
     provides:
-      RetryTimer undef
+      RetryTimer 0
       VM::EC2 1.25
-      VM::EC2::ASG undef
-      VM::EC2::AccountAttributes undef
-      VM::EC2::AvailabilityZone undef
-      VM::EC2::BlockDevice undef
-      VM::EC2::BlockDevice::Attachment undef
-      VM::EC2::BlockDevice::EBS undef
-      VM::EC2::BlockDevice::Mapping undef
-      VM::EC2::BlockDevice::Mapping::EBS undef
-      VM::EC2::CondVar undef
-      VM::EC2::Dispatch undef
-      VM::EC2::ELB undef
-      VM::EC2::ELB::BackendServerDescription undef
-      VM::EC2::ELB::HealthCheck undef
-      VM::EC2::ELB::InstanceState undef
-      VM::EC2::ELB::Listener undef
-      VM::EC2::ELB::ListenerDescription undef
-      VM::EC2::ELB::Policies undef
-      VM::EC2::ELB::Policies::AppCookieStickinessPolicy undef
-      VM::EC2::ELB::Policies::LBCookieStickinessPolicy undef
-      VM::EC2::ELB::PolicyAttribute undef
-      VM::EC2::ELB::PolicyAttributeType undef
-      VM::EC2::ELB::PolicyDescription undef
-      VM::EC2::ELB::PolicyTypeDescription undef
-      VM::EC2::ElasticAddress undef
-      VM::EC2::Error undef
-      VM::EC2::Generic undef
-      VM::EC2::Group undef
-      VM::EC2::Image undef
-      VM::EC2::Image::LaunchPermission undef
-      VM::EC2::Instance undef
-      VM::EC2::Instance::ConsoleOutput undef
-      VM::EC2::Instance::IamProfile undef
-      VM::EC2::Instance::Metadata undef
-      VM::EC2::Instance::MonitoringState undef
-      VM::EC2::Instance::PasswordData undef
-      VM::EC2::Instance::Placement undef
-      VM::EC2::Instance::Set undef
-      VM::EC2::Instance::State undef
-      VM::EC2::Instance::State::Change undef
-      VM::EC2::Instance::State::Reason undef
-      VM::EC2::Instance::Status undef
-      VM::EC2::Instance::Status::Details undef
-      VM::EC2::Instance::Status::Event undef
-      VM::EC2::Instance::StatusItem undef
-      VM::EC2::KeyPair undef
-      VM::EC2::LaunchConfiguration undef
-      VM::EC2::NetworkInterface undef
-      VM::EC2::NetworkInterface::Association undef
-      VM::EC2::NetworkInterface::Attachment undef
-      VM::EC2::NetworkInterface::PrivateIpAddress undef
-      VM::EC2::ParmParser undef
-      VM::EC2::PlacementGroup undef
-      VM::EC2::ProductCode undef
-      VM::EC2::REST::ami undef
-      VM::EC2::REST::autoscaling undef
-      VM::EC2::REST::customer_gateway undef
-      VM::EC2::REST::devpay undef
-      VM::EC2::REST::dhcp undef
-      VM::EC2::REST::ebs undef
-      VM::EC2::REST::elastic_ip undef
-      VM::EC2::REST::elastic_load_balancer undef
-      VM::EC2::REST::elastic_network_interface undef
-      VM::EC2::REST::general undef
-      VM::EC2::REST::instance undef
-      VM::EC2::REST::internet_gateway undef
-      VM::EC2::REST::keys undef
-      VM::EC2::REST::monitoring undef
-      VM::EC2::REST::network_acl undef
-      VM::EC2::REST::placement_group undef
-      VM::EC2::REST::private_ip undef
-      VM::EC2::REST::reserved_instance undef
-      VM::EC2::REST::route_table undef
-      VM::EC2::REST::security_group undef
-      VM::EC2::REST::security_token undef
-      VM::EC2::REST::spot_instance undef
-      VM::EC2::REST::subnet undef
-      VM::EC2::REST::tag undef
-      VM::EC2::REST::vm_export undef
-      VM::EC2::REST::vm_import undef
-      VM::EC2::REST::vpc undef
-      VM::EC2::REST::vpn undef
-      VM::EC2::REST::vpn_gateway undef
-      VM::EC2::REST::windows undef
-      VM::EC2::REST::zone undef
-      VM::EC2::Region undef
-      VM::EC2::ReservationSet undef
-      VM::EC2::ReservedInstance undef
-      VM::EC2::ReservedInstance::Offering undef
-      VM::EC2::Security::Credentials undef
-      VM::EC2::Security::FederatedUser undef
-      VM::EC2::Security::Policy undef
-      VM::EC2::Security::Token undef
-      VM::EC2::SecurityGroup undef
-      VM::EC2::SecurityGroup::GroupPermission undef
-      VM::EC2::SecurityGroup::IpPermission undef
-      VM::EC2::Snapshot undef
-      VM::EC2::Snapshot::CreateVolumePermission undef
-      VM::EC2::Spot::DatafeedSubscription undef
-      VM::EC2::Spot::InstanceRequest undef
-      VM::EC2::Spot::LaunchSpecification undef
-      VM::EC2::Spot::PriceHistory undef
-      VM::EC2::Spot::Status undef
-      VM::EC2::Staging::Manager undef
-      VM::EC2::Staging::Server undef
-      VM::EC2::Staging::Volume undef
-      VM::EC2::Tag undef
-      VM::EC2::VPC undef
-      VM::EC2::VPC::CustomerGateway undef
-      VM::EC2::VPC::DhcpOptions undef
-      VM::EC2::VPC::InternetGateway undef
-      VM::EC2::VPC::InternetGateway::Attachment undef
-      VM::EC2::VPC::NetworkAcl undef
-      VM::EC2::VPC::NetworkAcl::Association undef
-      VM::EC2::VPC::NetworkAcl::Entry undef
-      VM::EC2::VPC::Route undef
-      VM::EC2::VPC::RouteTable undef
-      VM::EC2::VPC::RouteTable::Association undef
-      VM::EC2::VPC::Subnet undef
-      VM::EC2::VPC::VpnConnection undef
-      VM::EC2::VPC::VpnGateway undef
-      VM::EC2::VPC::VpnGateway::Attachment undef
-      VM::EC2::VPC::VpnTunnelTelemetry undef
-      VM::EC2::Volume undef
-      VM::EC2::Volume::Status undef
-      VM::EC2::Volume::Status::Action undef
-      VM::EC2::Volume::Status::Details undef
-      VM::EC2::Volume::Status::Event undef
-      VM::EC2::Volume::StatusItem undef
+      VM::EC2::ASG 0
+      VM::EC2::AccountAttributes 0
+      VM::EC2::AvailabilityZone 0
+      VM::EC2::BlockDevice 0
+      VM::EC2::BlockDevice::Attachment 0
+      VM::EC2::BlockDevice::EBS 0
+      VM::EC2::BlockDevice::Mapping 0
+      VM::EC2::BlockDevice::Mapping::EBS 0
+      VM::EC2::CondVar 0
+      VM::EC2::Dispatch 0
+      VM::EC2::ELB 0
+      VM::EC2::ELB::BackendServerDescription 0
+      VM::EC2::ELB::HealthCheck 0
+      VM::EC2::ELB::InstanceState 0
+      VM::EC2::ELB::Listener 0
+      VM::EC2::ELB::ListenerDescription 0
+      VM::EC2::ELB::Policies 0
+      VM::EC2::ELB::Policies::AppCookieStickinessPolicy 0
+      VM::EC2::ELB::Policies::LBCookieStickinessPolicy 0
+      VM::EC2::ELB::PolicyAttribute 0
+      VM::EC2::ELB::PolicyAttributeType 0
+      VM::EC2::ELB::PolicyDescription 0
+      VM::EC2::ELB::PolicyTypeDescription 0
+      VM::EC2::ElasticAddress 0
+      VM::EC2::Error 0
+      VM::EC2::Generic 0
+      VM::EC2::Group 0
+      VM::EC2::Image 0
+      VM::EC2::Image::LaunchPermission 0
+      VM::EC2::Instance 0
+      VM::EC2::Instance::ConsoleOutput 0
+      VM::EC2::Instance::IamProfile 0
+      VM::EC2::Instance::Metadata 0
+      VM::EC2::Instance::MonitoringState 0
+      VM::EC2::Instance::PasswordData 0
+      VM::EC2::Instance::Placement 0
+      VM::EC2::Instance::Set 0
+      VM::EC2::Instance::State 0
+      VM::EC2::Instance::State::Change 0
+      VM::EC2::Instance::State::Reason 0
+      VM::EC2::Instance::Status 0
+      VM::EC2::Instance::Status::Details 0
+      VM::EC2::Instance::Status::Event 0
+      VM::EC2::Instance::StatusItem 0
+      VM::EC2::KeyPair 0
+      VM::EC2::LaunchConfiguration 0
+      VM::EC2::NetworkInterface 0
+      VM::EC2::NetworkInterface::Association 0
+      VM::EC2::NetworkInterface::Attachment 0
+      VM::EC2::NetworkInterface::PrivateIpAddress 0
+      VM::EC2::ParmParser 0
+      VM::EC2::PlacementGroup 0
+      VM::EC2::ProductCode 0
+      VM::EC2::REST::ami 0
+      VM::EC2::REST::autoscaling 0
+      VM::EC2::REST::customer_gateway 0
+      VM::EC2::REST::devpay 0
+      VM::EC2::REST::dhcp 0
+      VM::EC2::REST::ebs 0
+      VM::EC2::REST::elastic_ip 0
+      VM::EC2::REST::elastic_load_balancer 0
+      VM::EC2::REST::elastic_network_interface 0
+      VM::EC2::REST::general 0
+      VM::EC2::REST::instance 0
+      VM::EC2::REST::internet_gateway 0
+      VM::EC2::REST::keys 0
+      VM::EC2::REST::monitoring 0
+      VM::EC2::REST::network_acl 0
+      VM::EC2::REST::placement_group 0
+      VM::EC2::REST::private_ip 0
+      VM::EC2::REST::reserved_instance 0
+      VM::EC2::REST::route_table 0
+      VM::EC2::REST::security_group 0
+      VM::EC2::REST::security_token 0
+      VM::EC2::REST::spot_instance 0
+      VM::EC2::REST::subnet 0
+      VM::EC2::REST::tag 0
+      VM::EC2::REST::vm_export 0
+      VM::EC2::REST::vm_import 0
+      VM::EC2::REST::vpc 0
+      VM::EC2::REST::vpn 0
+      VM::EC2::REST::vpn_gateway 0
+      VM::EC2::REST::windows 0
+      VM::EC2::REST::zone 0
+      VM::EC2::Region 0
+      VM::EC2::ReservationSet 0
+      VM::EC2::ReservedInstance 0
+      VM::EC2::ReservedInstance::Offering 0
+      VM::EC2::Security::Credentials 0
+      VM::EC2::Security::FederatedUser 0
+      VM::EC2::Security::Policy 0
+      VM::EC2::Security::Token 0
+      VM::EC2::SecurityGroup 0
+      VM::EC2::SecurityGroup::GroupPermission 0
+      VM::EC2::SecurityGroup::IpPermission 0
+      VM::EC2::Snapshot 0
+      VM::EC2::Snapshot::CreateVolumePermission 0
+      VM::EC2::Spot::DatafeedSubscription 0
+      VM::EC2::Spot::InstanceRequest 0
+      VM::EC2::Spot::LaunchSpecification 0
+      VM::EC2::Spot::PriceHistory 0
+      VM::EC2::Spot::Status 0
+      VM::EC2::Staging::Manager 0
+      VM::EC2::Staging::Server 0
+      VM::EC2::Staging::Volume 0
+      VM::EC2::Tag 0
+      VM::EC2::VPC 0
+      VM::EC2::VPC::CustomerGateway 0
+      VM::EC2::VPC::DhcpOptions 0
+      VM::EC2::VPC::InternetGateway 0
+      VM::EC2::VPC::InternetGateway::Attachment 0
+      VM::EC2::VPC::NetworkAcl 0
+      VM::EC2::VPC::NetworkAcl::Association 0
+      VM::EC2::VPC::NetworkAcl::Entry 0
+      VM::EC2::VPC::Route 0
+      VM::EC2::VPC::RouteTable 0
+      VM::EC2::VPC::RouteTable::Association 0
+      VM::EC2::VPC::Subnet 0
+      VM::EC2::VPC::VpnConnection 0
+      VM::EC2::VPC::VpnGateway 0
+      VM::EC2::VPC::VpnGateway::Attachment 0
+      VM::EC2::VPC::VpnTunnelTelemetry 0
+      VM::EC2::Volume 0
+      VM::EC2::Volume::Status 0
+      VM::EC2::Volume::Status::Action 0
+      VM::EC2::Volume::Status::Details 0
+      VM::EC2::Volume::Status::Event 0
+      VM::EC2::Volume::StatusItem 0
     requirements:
       AnyEvent 7.04
       AnyEvent::HTTP 2.15
