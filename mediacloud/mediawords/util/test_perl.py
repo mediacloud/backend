@@ -41,7 +41,7 @@ def test_object_from_bytes_if_needed():
     assert expected == got
 
 
-# noinspection SqlResolve
+# noinspection SqlResolve,SpellCheckingInspection
 def test_convert_dbd_pg_arguments_to_psycopg2_format():
     # Native psycopg2 query with tuple
     input_parameters = ("SELECT * FROM foo WHERE name = %s AND surname = %s", ('Kim', 'Kardashian'))

@@ -7,7 +7,7 @@ from mediawords.util.log import create_logger
 l = create_logger(__name__)
 
 
-# noinspection SqlResolve
+# noinspection SqlResolve,SpellCheckingInspection
 class TestMediaWords(TestCase):
     __db = None
 

@@ -47,6 +47,7 @@ __HOMEPAGE_URL_PATH_REGEXES = [
 # Sources:
 # * http://www.techmaish.com/list-of-230-free-url-shorteners-services/
 # * http://longurl.org/services
+# noinspection SpellCheckingInspection
 __URL_SHORTENER_HOSTNAMES = [
     '0rz.tw',
     '1link.in',
@@ -471,6 +472,7 @@ __URL_SHORTENER_HOSTNAMES = [
 ]
 
 
+# noinspection SpellCheckingInspection
 def fix_common_url_mistakes(url: str) -> Optional[str]:
     """Fixes common URL mistakes (mistypes, etc.)."""
     url = decode_string_from_bytes_if_needed(url)
@@ -555,12 +557,13 @@ class NormalizeURLException(Exception):
     pass
 
 
+# noinspection SpellCheckingInspection
 def normalize_url(url: str) -> str:
     """Normalize URL
 
     * Fix common mistypes, e.g. "http://http://..."
     * Run URL through normalization, i.e. standardize URL's scheme and hostname case, remove default port, uppercase
-      all escape sequences, unescape octets that can be represented as plain characters, remove whitespace before /
+      all escape sequences, un-escape octets that can be represented as plain characters, remove whitespace before /
       after the URL string)
     * Remove #fragment
     * Remove various ad tracking query parameters, e.g. "utm_source", "utm_medium", "PHPSESSID", etc.
@@ -711,6 +714,7 @@ def normalize_url(url: str) -> str:
     return url
 
 
+# noinspection SpellCheckingInspection
 def normalize_url_lossy(url: str) -> Optional[str]:
     """Do some simple transformations on a URL to make it match other equivalent URLs as well as possible; normalization
     is "lossy" (makes the whole URL lowercase, removes subdomain parts "m.", "data.", "news.", ... in some cases)"""
@@ -809,6 +813,7 @@ def get_url_host(url: str) -> str:
     return uri.hostname
 
 
+# noinspection SpellCheckingInspection
 def get_url_distinctive_domain(url: str) -> str:
     """Return a truncated form of URL's host (domain) that distinguishes it from others, e.g.:
 

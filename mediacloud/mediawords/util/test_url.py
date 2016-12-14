@@ -3,6 +3,7 @@ from nose.tools import assert_raises
 from mediawords.util.url import *
 
 
+# noinspection SpellCheckingInspection
 def test_fix_common_url_mistakes():
     urls = {
         # "http://http://"
@@ -24,6 +25,7 @@ def test_fix_common_url_mistakes():
         assert fix_common_url_mistakes(fix_common_url_mistakes(orig_url)) == fixed_url
 
 
+# noinspection SpellCheckingInspection
 def test_is_http_url():
     # noinspection PyTypeChecker
     assert not is_http_url(None)
@@ -52,6 +54,7 @@ def test_is_shortened_url():
     assert is_shortened_url('http://bit.ly/abc')
 
 
+# noinspection SpellCheckingInspection
 def test_normalize_url():
     # Bad URLs
     assert_raises(NormalizeURLException, normalize_url, None)
@@ -122,6 +125,7 @@ def test_normalize_url():
          '1227184460050'
 
 
+# noinspection SpellCheckingInspection
 def test_normalize_url_lossy():
     # FIXME - some resulting URLs look funny, not sure if I can change them easily though
     assert normalize_url_lossy(
@@ -153,6 +157,7 @@ def test_normalize_url_lossy():
         assert normalize_url_lossy(input_url) == expected_output_url
 
 
+# noinspection SpellCheckingInspection
 def test_is_homepage_url():
     # Bad input
     # noinspection PyTypeChecker
@@ -208,12 +213,14 @@ def test_is_homepage_url():
     assert is_homepage_url('http://www.politico.com/playbook/')
 
 
+# noinspection SpellCheckingInspection
 def test_get_url_host():
     assert_raises(GetURLHostException, get_url_host, None)
     assert get_url_host('http://www.nytimes.com/') == 'www.nytimes.com'
     assert get_url_host('http://obama:barack1@WHITEHOUSE.GOV/michelle.html') == 'whitehouse.gov'
 
 
+# noinspection SpellCheckingInspection
 def test_get_url_distinctive_domain():
     # FIXME - some resulting domains look funny, not sure if I can change them easily though
     assert get_url_distinctive_domain('http://www.nytimes.com/') == 'nytimes.com'
@@ -231,6 +238,7 @@ def test_get_url_distinctive_domain():
     assert get_url_distinctive_domain('https://en.blog.wordpress.com/') == 'en.blog.wordpress.com'
 
 
+# noinspection SpellCheckingInspection
 def test_meta_refresh_url_from_html():
     # No <meta http-equiv="refresh" />
     assert meta_refresh_url_from_html(html="""
@@ -336,6 +344,7 @@ def test_meta_refresh_url_from_html():
     """) is None
 
 
+# noinspection SpellCheckingInspection
 def test_link_canonical_url_from_html():
     # No <link rel="canonical" />
     assert link_canonical_url_from_html(html="""
@@ -399,6 +408,7 @@ def test_link_canonical_url_from_html():
     """) is None
 
 
+# noinspection SpellCheckingInspection
 def test_http_urls_in_string():
     # Basic test
     assert set(http_urls_in_string("""
