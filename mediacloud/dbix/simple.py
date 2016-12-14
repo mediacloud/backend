@@ -3,8 +3,7 @@ import pprint
 import re
 
 import itertools
-from typing import Dict, Callable
-from typing import List
+from typing import Dict, Callable, List
 
 import psycopg2
 import psycopg2.extras
