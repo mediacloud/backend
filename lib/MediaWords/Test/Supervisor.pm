@@ -127,8 +127,11 @@ sub _run_supervisord()
     for my $i ( 1 .. $SUPERVISOR_SHUTDOWN_TIMEOUT )
     {
         my $output = `$_supervisord_bin 2>&1`;
-
-        return unless ( $output );
+        unless ( $? )
+        {
+            # Succeeded
+            return;
+        }
 
         if ( $output =~ /Another program is already listening/ )
         {
