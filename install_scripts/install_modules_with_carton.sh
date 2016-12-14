@@ -35,12 +35,17 @@ if [ `uname` == 'Darwin' ]; then
         Net::AMQP::RabbitMQ~2.100001
 fi
 
+# Inline::Python needs to use virtualenv's Python 3 instead of the default Python2
+set +u; source mc-venv/bin/activate; set -u
+INLINE_PYTHON_EXECUTABLE=`which python3`
+
 # Install dependency modules; run the command twice because the first
 # attempt might fail
 ATTEMPT=1
 CARTON_INSTALL_SUCCEEDED=0
 until [ $ATTEMPT -ge 3 ]; do
     OPENSSL_PREFIX=$OPENSSL_PREFIX \
+    INLINE_PYTHON_EXECUTABLE=$INLINE_PYTHON_EXECUTABLE \
     ./script/run_carton.sh install && {
         echo "Successfully installed Carton modules"
         CARTON_INSTALL_SUCCEEDED=1

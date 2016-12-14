@@ -14,13 +14,11 @@ use MediaWords::DB;
 use MediaWords::Util::Config;
 use MediaWords::Util::SchemaVersion;
 
-use CHI;
 use Data::Dumper;
 use Data::Page;
 use DBD::Pg qw(:pg_types);
 use Encode;
-use IPC::Run3;
-use JSON;
+use File::Slurp;
 use Math::Random::Secure;
 use Try::Tiny;
 
@@ -103,7 +101,7 @@ sub _should_continue_with_outdated_schema($$$)
     my ( $current_schema_version, $target_schema_version, $IGNORE_SCHEMA_VERSION_ENV_VARIABLE ) = @_;
 
     my $config_ignore_schema_version =
-      MediaWords::Util::Config->get_config()->{ mediawords }->{ ignore_schema_version } || '';
+      MediaWords::Util::Config::get_config()->{ mediawords }->{ ignore_schema_version } || '';
 
     if ( ( $config_ignore_schema_version eq 'yes' ) || exists $ENV{ $IGNORE_SCHEMA_VERSION_ENV_VARIABLE } )
     {
@@ -150,7 +148,7 @@ sub schema_is_up_to_date
 {
     my $self = shift @_;
 
-    my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
+    my $script_dir = MediaWords::Util::Config::get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
 
     # Check if the database is empty
     my $db_vars_table_exists_query =
@@ -171,10 +169,8 @@ sub schema_is_up_to_date
     die "Invalid current schema version.\n" unless ( $current_schema_version );
 
     # Target schema version
-    open SQLFILE, "$script_dir/mediawords.sql" or die $!;
-    my @sql = <SQLFILE>;
-    close SQLFILE;
-    my $target_schema_version = MediaWords::Util::SchemaVersion::schema_version_from_lines( @sql );
+    my $sql = read_file( "$script_dir/mediawords.sql" );
+    my $target_schema_version = MediaWords::Util::SchemaVersion::schema_version_from_lines( $sql );
     die "Invalid target schema version.\n" unless ( $target_schema_version );
 
     # Check if the current schema is up-to-date

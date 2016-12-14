@@ -62,7 +62,7 @@ Following are instructions for setting up and running a temporary crawler (backu
 
 6. Import media and feeds from the production server by running:
 
-        python python_scripts/media_import.py --api-key API-KEY
+        python2 python_scripts/media_import.py --api-key API-KEY
 
     where `API-KEY` is an API key for mediacloud.org.
 
@@ -102,7 +102,7 @@ When you're ready to export:
 
 4. Export `feed_downloads` to the production system by running:
 
-        python python_scripts/export_feed_downloads_through_api.py \
+        python2 python_scripts/export_feed_downloads_through_api.py \
             --source-api-key SOURCE_API_KEY \
             --dest-api-key DEST_API_KEY \
             --source-media-cloud-api_url SOURCE_MEDIA_CLOUD_API_URL \
@@ -117,7 +117,7 @@ When you're ready to export:
 
     E.g.:
 
-        python python_scripts/export_feed_downloads_through_api.py \
+        python2 python_scripts/export_feed_downloads_through_api.py \
             --source-api-key 'e07cf98dd0d457351354ee520635c226acd238ecf15ec9e853346e185343bf7b' \
             --dest-api-key '1161251f5de4f381a198eea4dc20350fd992f5eef7cb2fdc284c245ff3d4f3ca' \
             --source-media-cloud-api_url 'http://localhost:3000/' \

@@ -6268,10 +6268,10 @@ DISTRIBUTIONS
       MooseX::Types 0.04
       Path::Class 0.16
       Test::More 0.88
-  Mouse-2.4.1
-    pathname: G/GF/GFUJI/Mouse-2.4.1.tar.gz
+  Mouse-v2.4.5
+    pathname: S/SY/SYOHEX/Mouse-v2.4.5.tar.gz
     provides:
-      Mouse v2.4.1
+      Mouse v2.4.5
       Mouse::Exporter undef
       Mouse::Meta::Attribute undef
       Mouse::Meta::Class undef
@@ -6289,11 +6289,11 @@ DISTRIBUTIONS
       Mouse::Meta::TypeConstraint undef
       Mouse::Object undef
       Mouse::PurePerl undef
-      Mouse::Role v2.4.1
-      Mouse::Spec v2.4.1
-      Mouse::Tiny v2.2.0
+      Mouse::Role v2.4.5
+      Mouse::Spec v2.4.5
+      Mouse::Tiny v2.4.5
       Mouse::TypeRegistry undef
-      Mouse::Util v2.4.1
+      Mouse::Util v2.4.5
       Mouse::Util::MetaRole undef
       Mouse::Util::TypeConstraints undef
       Squirrel undef
@@ -6301,7 +6301,7 @@ DISTRIBUTIONS
       Test::Mouse undef
       ouse undef
     requirements:
-      Devel::PPPort 3.19
+      Devel::PPPort 3.22
       ExtUtils::ParseXS 3.22
       Module::Build 0.4005
       Module::Build::XSUtil 0
