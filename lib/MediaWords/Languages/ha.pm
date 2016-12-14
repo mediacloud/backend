@@ -15,17 +15,11 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Readonly;
-use Inline Python => <<'PYTHON';
 
-#
-# Uses "hausastemmer" Python module:
-#
-# * https://github.com/berkmancenter/mediacloud-hausastemmer
-# * https://pypi.python.org/pypi/hausastemmer/1.0
-#
-from hausastemmer import stem as py_hausa_stem
+use MediaWords::Util::Config;
 
-PYTHON
+# Import py_hausa_stem()
+use Inline Python => MediaWords::Util::Config::get_mc_python_dir() . '/mediawords/languages/ha.py';
 
 sub get_language_code
 {
