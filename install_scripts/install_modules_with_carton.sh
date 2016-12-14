@@ -37,7 +37,7 @@ fi
 
 # Inline::Python needs to use virtualenv's Python 3 instead of the default Python2
 set +u; source mc-venv/bin/activate; set -u
-INLINE_PYTHON_EXECUTABLE=`command -m python3`   # `which` is a liar
+INLINE_PYTHON_EXECUTABLE=`command -v python3`   # `which` is a liar
 
 # Install dependency modules; run the command twice because the first
 # attempt might fail
