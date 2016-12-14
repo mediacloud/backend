@@ -99,6 +99,7 @@ EOF
         libyaml \
         netcat \
         openssl \
+        python \
         python3 \
         rabbitmq \
         #
