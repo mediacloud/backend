@@ -2,15 +2,18 @@
   <dictionary name="pypt">
     <words>
       <w>abcdef</w>
+      <w>dateutil</w>
       <w>hausastemmer</w>
       <w>hostnames</w>
       <w>kanye</w>
       <w>lossy</w>
+      <w>lxml</w>
       <w>nytimes</w>
       <w>phpsessid</w>
       <w>pids</w>
       <w>plpgsql</w>
       <w>postgre</w>
+      <w>pyyaml</w>
       <w>regexes</w>
       <w>shortener</w>
       <w>shorteners</w>
