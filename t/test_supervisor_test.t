@@ -45,7 +45,7 @@ sub main
     eval {
         MediaWords::Test::Supervisor::test_with_supervisor( sub { }, [ 'bogus_process' ] );
     };
-    ok( $@ && ( $@ =~ /no such process/ ), "unknown process detected" );
+    ok( $@ && ( $@ =~ /no such process/ ), "unknown process detected: $@" );
 
     eval {
         MediaWords::Test::Supervisor::test_with_supervisor( sub { die( 'foo' ) }, [] );

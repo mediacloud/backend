@@ -3,7 +3,6 @@ package HTML::FormFu::Unicode;
 use strict;
 use warnings;
 
-use Data::Page;
 use Encode;
 
 use base qw(HTML::FormFu);

@@ -108,7 +108,7 @@ sub test_media
             }
         ];
 
-        cmp_deeply( $actual_response, $expected_response, "response format mismatch for $url" );
+        cmp_deeply( $actual_response, $expected_response, "response format mismatch for $url; actual response: " . Dumper( $actual_response ) );
 
         foreach my $medium ( @{ $expected_response } )
         {
@@ -135,7 +135,7 @@ sub test_media
 
             my $feed_actual_response = decode_json( $response->decoded_content() );
 
-            cmp_deeply( $feed_actual_response, $expected_feed, 'response format mismatch for feed' );
+            cmp_deeply( $feed_actual_response, $expected_feed, 'response format mismatch for feed; actual response: ' . Dumper( $feed_actual_response ) );
         }
     }
 
@@ -178,7 +178,7 @@ sub test_tags
             }
         ];
 
-        cmp_deeply( $actual_response, $expected_response, "response format mismatch for $url" );
+        cmp_deeply( $actual_response, $expected_response, "response format mismatch for $url; actual response: " . Dumper( $actual_response ) );
     }
 }
 
