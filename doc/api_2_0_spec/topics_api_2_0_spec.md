@@ -798,7 +798,7 @@ The stories list call returns stories in the topic.
 | limit                | 20      | return the given number of stories       |
 | link_id              | null    | return stories using the paging link     |
 
-The call will return an error if more than one of the following parameters are specified: `q`, `stories_id`, `link_to_stories`, `link_from_stories_id`, `media_id`.
+The call will return an error if more than one of the following parameters are specified: `q`, `link_to_stories`, `link_from_stories_id`.  The `stories_id` and `media_id` parameters can be specified more than once to include stories from more than `stories_id` / `media_id`.
 
 For a detailed description of the format of the query specified in `q` parameter, see the entry for [stories_public/list](api_2_0_spec.md) in the main API spec.
 
