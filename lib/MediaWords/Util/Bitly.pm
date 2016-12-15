@@ -42,7 +42,7 @@ my $_results_store = lazy
     require MediaWords::KeyValueStore::CachedAmazonS3;
     require MediaWords::KeyValueStore::MultipleStores;
 
-    my $config = MediaWords::Util::Config->get_config();
+    my $config = MediaWords::Util::Config::get_config();
 
     unless ( bitly_processing_is_enabled() )
     {
@@ -76,7 +76,7 @@ my $_results_store = lazy
         }
         elsif ( $location eq 'amazon_s3' )
         {
-            my $config = MediaWords::Util::Config->get_config();
+            my $config = MediaWords::Util::Config::get_config();
 
             unless ( $config->{ amazon_s3 }->{ bitly_processing_results }->{ access_key_id } )
             {
@@ -137,7 +137,7 @@ my $_results_store = lazy
 # Returns true if Bit.ly processing is enabled
 sub bitly_processing_is_enabled()
 {
-    my $config = MediaWords::Util::Config->get_config();
+    my $config = MediaWords::Util::Config::get_config();
     my $bitly_enabled = $config->{ bitly }->{ enabled } // '';
 
     return ( $bitly_enabled eq 'yes' );

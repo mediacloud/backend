@@ -18,7 +18,7 @@ use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::DBI::Downloads;
 use MediaWords::KeyValueStore::AmazonS3;
-use MediaWords::Util::Config qw(get_config);
+use MediaWords::Util::Config;
 
 use Data::Dumper;
 
@@ -45,12 +45,13 @@ sub test_download
 
     if ( $store_error )
     {
+        my $config = MediaWords::Util::Config::get_config();
         my $_s3_store ||= MediaWords::KeyValueStore::AmazonS3->new(
             {
-                access_key_id     => get_config->{ amazon_s3 }->{ downloads }->{ access_key_id },
-                secret_access_key => get_config->{ amazon_s3 }->{ downloads }->{ secret_access_key },
-                bucket_name       => get_config->{ amazon_s3 }->{ downloads }->{ bucket_name },
-                directory_name    => get_config->{ amazon_s3 }->{ downloads }->{ directory_name }
+                access_key_id     => $config->{ amazon_s3 }->{ downloads }->{ access_key_id },
+                secret_access_key => $config->{ amazon_s3 }->{ downloads }->{ secret_access_key },
+                bucket_name       => $config->{ amazon_s3 }->{ downloads }->{ bucket_name },
+                directory_name    => $config->{ amazon_s3 }->{ downloads }->{ directory_name }
             }
         );
         eval { $content_ref = $_s3_store->fetch_content( $db, $download->{ downloads_id }, $download->{ path } ); };
