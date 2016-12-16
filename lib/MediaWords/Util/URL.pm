@@ -152,7 +152,17 @@ sub _get_merged_stories_ids
 {
     my ( $db, $stories_ids, $n ) = @_;
 
+    # "The crazy load was from a query to our topic_merged_stories_ids to get
+    # url variants.  It looks like we have some case of many, many merged story
+    # pairs that are causing that query to make postgres sit on a cpu for a
+    # super long time.  There's no good reason to query for ridiculous numbers
+    # of merged stories, so I just abitrarily capped the number of merged story
+    # pairs to 20 to prevent this query from running away in the future."
+    my $max_stories = 20;
+
     return [] unless ( @{ $stories_ids } );
+
+    return [ @{ $stories_ids }[ 0 .. $max_stories - 1 ] ] if ( scalar( @{ $stories_ids } ) >= $max_stories );
 
     my $stories_ids_list = join( ',', @{ $stories_ids } );
 
@@ -160,12 +170,13 @@ sub _get_merged_stories_ids
 select distinct target_stories_id, source_stories_id
     from topic_merged_stories_map
     where target_stories_id in ( $stories_ids_list ) or source_stories_id in ( $stories_ids_list )
+    limit $max_stories
 END
 
     my $all_stories_ids = [ List::MoreUtils::distinct( @{ $stories_ids }, @{ $merged_stories_ids } ) ];
 
     $n ||= 0;
-    if ( ( $n > 10 ) || ( @{ $stories_ids } == @{ $all_stories_ids } ) )
+    if ( ( $n > 10 ) || ( @{ $stories_ids } == @{ $all_stories_ids } ) || ( @{ $stories_ids } >= $max_stories ) )
     {
         return $all_stories_ids;
     }
