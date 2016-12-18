@@ -746,7 +746,11 @@ def normalize_url_lossy(url: str) -> Optional[str]:
 
     url = re.sub(r'^https:', 'http:', url)
 
-    url = __canonical_url(url)
+    # canonical_url might raise an encoding error if url is not invalid; just skip the canonical url step in the case
+    try:
+        url = __canonical_url(url)
+    except Exception as ex:
+        pass
 
     # add trailing slash
     if re.search(r'https?://[^/]*$', url):
