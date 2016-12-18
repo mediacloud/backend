@@ -2830,7 +2830,8 @@ insert into topic_links ( topics_id, stories_id, url, redirect_url, ref_stories_
                     ( tsb.topics_id = b.twitter_topics_id and tsb.stories_id = b.stories_id )
             where
                 a.stories_id <> b.stories_id and
-                a.twitter_topics_id = \$1
+                a.twitter_topics_id = \$1 and
+                not ( ( tsa.redirect_url || tsb.redirect_url ) ilike '%twitter.com%' )
             group by a.stories_id, b.stories_id, a.twitter_user
     ),
 
