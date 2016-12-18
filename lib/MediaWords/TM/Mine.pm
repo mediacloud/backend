@@ -25,7 +25,7 @@ use DateTime;
 use Digest::MD5;
 use Encode;
 use Getopt::Long;
-use HTML::LinkExtractor;
+use HTML::LinkExtor;
 use List::Util;
 use Parallel::ForkManager;
 use Readonly;
@@ -148,24 +148,31 @@ sub get_links_from_html
 {
     my ( $html, $url ) = @_;
 
+    # use LinkExtor instead of LinkExtractor because the latter results in mis-encoded urls after translating
+    # html entities in urls
+    my $p = HTML::LinkExtor->new;
+
     # we choose not to pass the base url here to avoid collecting relative urls.  we end up with too many
     # stories linked from the same media source when we allow relative links.
-    $_link_extractor ||= new HTML::LinkExtractor();
 
-    $_link_extractor->parse( \$html );
+    $p->parse( $html );
 
     my $links = [];
-    for my $link ( @{ $_link_extractor->links } )
+    for my $link ( $p->links )
     {
-        next if ( !$link->{ href } );
+        my ( $tag, $attribute_name, $url ) = @{ $link };
 
-        next if ( $link->{ href } !~ /^http/i );
+        next if ( $attribute_name ne 'href' );
 
-        next if ( $link->{ href } =~ $_ignore_link_pattern );
+        next if ( !$url );
+
+        next if ( $url !~ /^http/i );
+
+        next if ( $url =~ $_ignore_link_pattern );
 
         $link =~ s/www[a-z0-9]+.nytimes/www.nytimes/i;
 
-        push( @{ $links }, { url => $link->{ href } } );
+        push( @{ $links }, { url => $url } );
     }
 
     return $links;
@@ -3060,7 +3067,7 @@ sub add_twitter_data_and_topic($$$)
 
 }
 
-# wrap do_mine_topic in eval and handle errors and state
+# wrap do_mine_topic in eval and handle errors and state1
 sub mine_topic ($$;$)
 {
     my ( $db, $topic, $options ) = @_;
