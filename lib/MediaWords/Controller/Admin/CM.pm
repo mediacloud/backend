@@ -6,15 +6,6 @@ use strict;
 use warnings;
 use base 'Catalyst::Controller';
 
-use Feed::Scrape::MediaWords;
-use MediaWords::Util::Tags;
-use MediaWords::Util::Web;
-
-use Data::Dumper;
-use HTML::Entities;
-use LWP::Simple;
-use XML::FeedPP;
-
 =head1 NAME>
 
 MediaWords::Controller::Admin::CM

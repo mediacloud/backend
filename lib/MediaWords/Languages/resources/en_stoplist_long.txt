@@ -1,8 +1,6 @@
 #
 # This is a "long" stop word list for the English language.
 #
-# The encoding of this file is UTF-8.
-#
 
 a
 abandoned

@@ -130,6 +130,26 @@ sub _match_xpath($$)
     return $results;
 }
 
+sub for_every_hash_value
+{
+    my ( $hash, $fn ) = @_;
+
+    my $new_hash = {};
+    while ( my ( $key, $value ) = each %{ $hash } )
+    {
+        if ( ref $value eq ref {} )
+        {
+            $new_hash->{ $key } = for_every_hash_value( $value, $fn );
+        }
+        else
+        {
+            $new_hash->{ $key } = $fn->( $key, $value );
+        }
+    }
+
+    return $new_hash;
+}
+
 sub main
 {
     my $usage = "Usage: $0 xpath_query\n";
@@ -144,6 +164,17 @@ sub main
     my $config = MediaWords::Util::Config::get_config();
 
     TRACE Dumper( $config );
+
+    $config = for_every_hash_value( $config, sub {
+        my ( $key, $value ) = @_;
+
+        if ( ref $value and ref $value ne ref [] and ref $value ne ref {} )
+        {
+            # Convert unknown objects into scalars
+            $value = $value . '';
+        }
+        return $value;
+    } );
 
     # Convert the configuration hash to an XML object so that we can use XPath
     # queries against it

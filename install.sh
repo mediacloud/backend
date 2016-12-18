@@ -3,8 +3,10 @@
 set -u
 set -o errexit
 
-working_dir=`dirname $0`
-cd $working_dir
+PWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$PWD/install_scripts/set_mc_root_dir.inc.sh"
+
+cd "$MC_ROOT_DIR"
 
 if [ `getconf LONG_BIT` != '64' ]; then
    echo "Install failed, you must have a 64 bit OS."
@@ -17,17 +19,10 @@ if [ ! -f mediawords.yml ]; then
 fi
 
 ./install_scripts/install_mediacloud_package_dependencies.sh
+./install_scripts/install_python_dependencies.sh
 ./install_scripts/set_kernel_parameters.sh
 ./install_scripts/set_postgresql_parameters.sh
-./install_mc_perlbrew_and_modules.sh
-
-# Install Python dependencies
-sudo pip install --upgrade pip # make sure pip is latest version to avoid errors
-sudo pip install --upgrade -r python_scripts/requirements.txt || {
-    # Sometimes fails with some sort of Setuptools error
-    echo "'pip install' failed the first time, retrying..."
-    sudo pip install --upgrade -r python_scripts/requirements.txt
-}
+./install_scripts/install_mc_perlbrew_and_modules.sh
 
 echo "install complete"
 echo "running compile test"

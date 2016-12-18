@@ -1,22 +1,24 @@
 use strict;
 use warnings;
-use Dir::Self;
-use Data::Dumper;
 
 use Test::NoWarnings;
-use Test::More tests => 7 + 1;
+use Test::More tests => 2;
 
 BEGIN
 {
-    use_ok( 'MediaWords::Util::Config' );
-    use_ok( 'MediaWords::DB' );
-    use_ok( 'DBIx::Simple::MediaWords' );
+    use FindBin;
+    use lib "$FindBin::Bin/../lib";
 }
 
-require_ok( 'MediaWords::Util::Config' );
-require_ok( 'MediaWords::DB' );
-require_ok( 'DBIx::Simple::MediaWords' );
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
+use MediaWords::Util::Config;
+use MediaWords::DB;
+use DBIx::Simple::MediaWords;
+
+use Dir::Self;
+use Data::Dumper;
 
 eval { MediaWords::Util::Config::set_config_file( __DIR__ . '/db_invalid.yml' ); };
-
 isnt( $@, '', 'using nonexistant config files should croak' );

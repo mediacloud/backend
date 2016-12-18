@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4594;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4595;
 
 BEGIN
 
@@ -441,7 +441,10 @@ create type feed_feed_type AS ENUM (
     'web_page',
 
     -- Univision.com XML feed
-    'univision'
+    'univision',
+
+    -- Superglue (TV) feed
+    'superglue'
 
 );
 
@@ -802,6 +805,19 @@ create table stories_ap_syndicated (
 );
 
 create unique index stories_ap_syndicated_story on stories_ap_syndicated ( stories_id );
+
+
+--- Superglue (TV) stories metadata -->
+CREATE TABLE stories_superglue_metadata (
+    stories_superglue_metadata_id   SERIAL    PRIMARY KEY,
+    stories_id                      INT       NOT NULL REFERENCES stories ON DELETE CASCADE,
+    thumbnail_url                   VARCHAR   NOT NULL,
+    segment_duration                NUMERIC   NOT NULL
+);
+
+CREATE UNIQUE INDEX stories_superglue_metadata_stories_id
+    ON stories_superglue_metadata (stories_id);
+
 
 CREATE TYPE download_state AS ENUM (
     'error',
@@ -2923,7 +2939,7 @@ create view topic_tweet_full_urls as
                 on ( tsu.topics_id in ( twt.twitter_parent_topics_id, twt.topics_id ) and ttu.url = tsu.url );
 
 -- copy structure of topic_tweet_full_urls for snapshot table
-create table snap.topic_tweet_full_urls as select * from topic_tweet_full_urls where false;
+CREATE TABLE snap.topic_tweet_full_urls AS TABLE topic_tweet_full_urls WITH NO DATA;
 alter table snap.topic_tweet_full_urls add snapshots_id int references snapshots on delete cascade;
 
 create index snap_topic_tweet_full_urls_snap_story on snap.topic_tweet_full_urls( snapshots_id, stories_id );

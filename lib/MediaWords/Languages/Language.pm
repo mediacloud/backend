@@ -17,7 +17,6 @@ use MediaWords::CommonLibs;
 
 use Moose::Role;
 use Lingua::Stem::Snowball;
-use Lingua::StopWords;
 use Lingua::Sentence;
 use Scalar::Defer;
 
@@ -34,6 +33,7 @@ my @_enabled_languages = (
     'es',    # Spanish
     'fi',    # Finnish
     'fr',    # French
+    'ha',    # Hausa
     'hi',    # Hindi
     'hu',    # Hungarian
     'it',    # Italian
@@ -59,14 +59,6 @@ requires 'get_language_code';
 
 # Returns a hashref to a "tiny" (~200 entries) list of stop words for the language
 # where the keys are all stopwords and the values are all 1.
-#
-# If Lingua::StopWords module supports the language you're about to add, you can use the module helper:
-#
-#   sub fetch_and_return_tiny_stop_words
-#   {
-#       my $self = shift;
-#       return $self->_get_stop_words_with_lingua_stopwords( 'en', 'UTF-8' );
-#   }
 #
 # If you've decided to store a stoplist in an external file, you can use the module helper:
 #
@@ -191,6 +183,8 @@ my $_lang_instances = lazy
 sub language_is_enabled($)
 {
     my $language_code = shift;
+
+    return 0 unless $language_code;
 
     if ( exists $_lang_instances->{ $language_code } )
     {
@@ -388,13 +382,6 @@ sub _stem_with_lingua_stem_snowball
     my @stems = $self->stemmer->stem( $ref_words );
 
     return \@stems;
-}
-
-# Lingua::StopWords helper
-sub _get_stop_words_with_lingua_stopwords
-{
-    my ( $self, $language, $encoding ) = @_;
-    return Lingua::StopWords::getStopWords( $language, $encoding );
 }
 
 # Lingua::Sentence helper

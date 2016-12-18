@@ -96,7 +96,7 @@ sub recreate_db
     DEBUG( 'Resetting all schemas...' );
     _reset_all_schemas( $db );
 
-    my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
+    my $script_dir = MediaWords::Util::Config::get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
     TRACE( "script_dir: $script_dir" );
 
     my $mediawords_sql_path = $script_dir . '/mediawords.sql';
@@ -132,7 +132,7 @@ sub upgrade_db($;$)
 {
     my ( $label, $echo_instead_of_executing ) = @_;
 
-    my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
+    my $script_dir = MediaWords::Util::Config::get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
 
     DEBUG "script_dir: $script_dir";
     my $db;
@@ -159,10 +159,8 @@ EOF
     INFO "Current schema version: $current_schema_version";
 
     # Target schema version
-    open SQLFILE, "$script_dir/mediawords.sql" or LOGDIE $!;
-    my @sql = <SQLFILE>;
-    close SQLFILE;
-    my $target_schema_version = MediaWords::Util::SchemaVersion::schema_version_from_lines( @sql );
+    my $sql = read_file( "$script_dir/mediawords.sql" );
+    my $target_schema_version = MediaWords::Util::SchemaVersion::schema_version_from_lines( $sql );
     unless ( $target_schema_version )
     {
         LOGDIE( "Invalid target schema version." );
@@ -267,6 +265,30 @@ SQL
     else
     {
         DEBUG( "'feed_feed_type' already has 'univision' value" );
+    }
+
+    # Add 'superglue' option to "feed_feed_type" enum
+    # (adding new enum values don't work in transactions or multi-line queries
+    # thus a migration wouldn't have worked)
+    my ( $feed_type_has_superglue_value ) = $db->query(
+        <<SQL
+        SELECT 1
+        FROM pg_type AS t
+            JOIN pg_enum AS e ON t.oid = e.enumtypid
+            JOIN pg_catalog.pg_namespace AS n ON n.oid = t.typnamespace
+        WHERE n.nspname = CURRENT_SCHEMA()
+          AND t.typname = 'feed_feed_type'
+          AND e.enumlabel = 'superglue'
+SQL
+    )->flat;
+    unless ( $feed_type_has_superglue_value )
+    {
+        DEBUG( "Adding 'superglue' value to 'feed_feed_type' enum..." );
+        $db->query( "ALTER TYPE feed_feed_type ADD VALUE 'superglue'" );
+    }
+    else
+    {
+        DEBUG( "'feed_feed_type' already has 'superglue' value" );
     }
 
     $db->disconnect;

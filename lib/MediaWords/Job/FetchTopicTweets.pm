@@ -21,6 +21,7 @@ use MediaWords::CommonLibs;
 
 use List::MoreUtils;
 use Net::Twitter;
+use Date::Parse;
 
 use MediaWords::DB;
 use MediaWords::Util::DateTime;
@@ -38,9 +39,10 @@ sub _fetch_ch_posts ($$)
 {
     my ( $ch_monitor_id, $day ) = @_;
 
-    my $ua = MediaWords::Util::Web::UserAgent();
+    my $ua = MediaWords::Util::Web::UserAgentDetermined();
     $ua->max_size( 100 * 1024 * 1024 );
     $ua->timeout( 90 );
+    $ua->timing( '1,2,4,8,16,32,64,128,256,512' );
 
     my $key = MediaWords::Util::Config::get_config->{ crimson_hexagon }->{ key };
     LOGDIE( "no crimson hexagon key in mediawords.yml at //crimson_hexagon/key." ) unless ( $key );
@@ -186,7 +188,7 @@ sub _store_tweet_and_urls($$$$)
     my $created_at = $ch_post->{ tweet }->{ created_at };
     my $publish_date =
       $created_at
-      ? MediaWords::Util::SQL::get_sql_date_from_str2time( $created_at )
+      ? MediaWords::Util::SQL::get_sql_date_from_epoch( Date::Parse::str2time( $created_at ) )
       : MediaWords::UTil::SQL::sql_now();
 
     my $topic_tweet = {
