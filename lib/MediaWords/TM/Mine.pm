@@ -59,7 +59,7 @@ use MediaWords::Util::Web;
 use MediaWords::Util::Bitly;
 
 # min number of users need to coshare two urls to generate a link
-Readonly my $TWITTER_COSHARE_THRESHOLD => 2;
+Readonly my $TWITTER_COSHARE_THRESHOLD => 3;
 
 # max number of solely self linked stories to include
 Readonly my $MAX_SELF_LINKED_STORIES => 100;
