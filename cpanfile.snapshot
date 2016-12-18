@@ -103,9 +103,21 @@ DISTRIBUTIONS
     requirements:
       Alien::Base 0.020
       Alien::Base::ModuleBuild 0.020
+      Alien::patch 0.06
       FFI::CheckLib 0
       File::ShareDir 1.03
       parent 0
+      perl 5.006
+  Alien-patch-0.08
+    pathname: P/PL/PLICEASE/Alien-patch-0.08.tar.gz
+    provides:
+      Alien::patch 0.08
+    requirements:
+      Alien::Base 0.016
+      Alien::Base::ModuleBuild 0.016
+      Capture::Tiny 0
+      File::ShareDir 1.03
+      File::chdir 0
       perl 5.006
   Any-Moose-0.26
     pathname: E/ET/ETHER/Any-Moose-0.26.tar.gz
@@ -1099,6 +1111,16 @@ DISTRIBUTIONS
       Class::Data::Inheritable 0.08
     requirements:
       ExtUtils::MakeMaker 0
+  Class-ErrorHandler-0.03
+    pathname: T/TO/TOKUHIROM/Class-ErrorHandler-0.03.tar.gz
+    provides:
+      Class::ErrorHandler 0.03
+    requirements:
+      CPAN::Meta 0
+      CPAN::Meta::Prereqs 0
+      ExtUtils::CBuilder 0
+      Module::Build 0.38
+      perl 5.008_001
   Class-Factory-Util-1.7
     pathname: D/DR/DROLSKY/Class-Factory-Util-1.7.tar.gz
     provides:
@@ -1257,6 +1279,16 @@ DISTRIBUTIONS
       Class::Singleton 1.4
     requirements:
       ExtUtils::MakeMaker 0
+  Class-Std-0.013
+    pathname: C/CH/CHORNY/Class-Std-0.013.tar.gz
+    provides:
+      Class::Std 0.013
+      Class::Std::SCR 0.013
+    requirements:
+      Data::Dumper 0
+      Scalar::Util 0
+      Test::More 0
+      perl 5.006
   Class-Throwable-0.11
     pathname: K/KM/KMX/Class-Throwable-0.11.tar.gz
     provides:
@@ -1327,6 +1359,28 @@ DISTRIBUTIONS
       File::Spec::Functions 0
       FileHandle 0
       IO::File 0
+  Config-INI-0.025
+    pathname: R/RJ/RJBS/Config-INI-0.025.tar.gz
+    provides:
+      Config::INI 0.025
+      Config::INI::Reader 0.025
+      Config::INI::Writer 0.025
+    requirements:
+      Carp 0
+      ExtUtils::MakeMaker 0
+      Mixin::Linewise::Readers 0.105
+      Mixin::Linewise::Writers 0
+      strict 0
+      warnings 0
+  Config-INI-Reader-Ordered-0.020
+    pathname: R/RJ/RJBS/Config-INI-Reader-Ordered-0.020.tar.gz
+    provides:
+      Config::INI::Reader::Ordered 0.020
+    requirements:
+      Config::INI::Reader 0
+      ExtUtils::MakeMaker 0
+      strict 0
+      vars 0
   Config-Tiny-2.20
     pathname: R/RS/RSAVAGE/Config-Tiny-2.20.tgz
     provides:
@@ -1350,6 +1404,14 @@ DISTRIBUTIONS
       Test::Exception 0
       Test::More 0
       ok 0
+  Cpanel-JSON-XS-2.3404
+    pathname: R/RU/RURBAN/Cpanel-JSON-XS-2.3404.tar.gz
+    provides:
+      Cpanel::JSON::XS 2.3404
+    requirements:
+      ExtUtils::MakeMaker 0
+      Pod::Text 2.08
+      Pod::Usage 1.33
   Crypt-Random-Seed-0.03
     pathname: D/DA/DANAJ/Crypt-Random-Seed-0.03.tar.gz
     provides:
@@ -3168,6 +3230,14 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Sub::Exporter::Progressive 0.001011
       perl 5.006
+  Devel-LexAlias-0.05
+    pathname: R/RC/RCLAMP/Devel-LexAlias-0.05.tar.gz
+    provides:
+      Devel::LexAlias 0.05
+    requirements:
+      Devel::Caller 0.03
+      ExtUtils::MakeMaker 0
+      Test::More 0
   Devel-NYTProf-6.02
     pathname: T/TI/TIMB/Devel-NYTProf-6.02.tar.gz
     provides:
@@ -3490,7 +3560,7 @@ DISTRIBUTIONS
       Encode::HanConvert::Perl 0.06
     requirements:
       Encode 1.41
-      ExtUtils::MakeMaker 7.1001
+      ExtUtils::MakeMaker 7.0401
   Encode-Locale-1.03
     pathname: G/GA/GAAS/Encode-Locale-1.03.tar.gz
     provides:
@@ -3648,6 +3718,19 @@ DISTRIBUTIONS
     requirements:
       ExtUtils::MakeMaker 0
       perl 5.006
+  Feed-Find-0.07
+    pathname: B/BT/BTROTT/Feed-Find-0.07.tar.gz
+    provides:
+      Feed::Find 0.07
+    requirements:
+      Class::ErrorHandler 0
+      ExtUtils::MakeMaker 6.42
+      Filter::Util::Call 0
+      HTML::Parser 0
+      LWP 0
+      Test::More 0
+      URI 0
+      perl 5.008001
   File-ChangeNotify-0.24
     pathname: D/DR/DROLSKY/File-ChangeNotify-0.24.tar.gz
     provides:
@@ -3721,13 +3804,12 @@ DISTRIBUTIONS
       File::HomeDir::Windows 1.00
     requirements:
       Carp 0
-      Cwd 3
+      Cwd 3.12
       ExtUtils::MakeMaker 6.36
       File::Path 2.01
-      File::Spec 3
+      File::Spec 3.12
       File::Temp 0.19
       File::Which 0.05
-      Mac::SystemDirectory 0.04
       Test::More 0.47
       perl 5.00503
   File-Listing-6.04
@@ -4690,6 +4772,29 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       File::Spec 0.8
       perl 5.008001
+  Inline-C-0.76
+    pathname: I/IN/INGY/Inline-C-0.76.tar.gz
+    provides:
+      Inline::C 0.76
+    requirements:
+      ExtUtils::MakeMaker 7.00
+      File::ShareDir::Install 0.06
+      File::Spec 0.8
+      Inline 0.79
+      Parse::RecDescent 1.967009
+      Pegex 0.58
+      perl 5.008001
+  Inline-Java-0.58
+    pathname: E/ET/ETJ/Inline-Java-0.58.tar.gz
+    provides:
+      Inline::Java 0.58
+    requirements:
+      ExtUtils::MakeMaker 0
+      Inline 0.68
+      Inline::C 0.62
+      MIME::Base64 0
+      Test 1.13
+      perl 5.008
   Inline-Python-0.52
     pathname: N/NI/NINE/Inline-Python-0.52.tar.gz
     provides:
@@ -4718,6 +4823,7 @@ DISTRIBUTIONS
       JSON::MaybeXS 1.003005
     requirements:
       Carp 0
+      Cpanel::JSON::XS 2.3310
       ExtUtils::CBuilder 0.27
       ExtUtils::MakeMaker 0
       File::Spec 0
@@ -4863,6 +4969,25 @@ DISTRIBUTIONS
       ExtUtils::ParseXS 0
       Test::More 0
       perl v5.6.2
+  Lingua-StopWords-0.09
+    pathname: C/CR/CREAMYG/Lingua-StopWords-0.09.tar.gz
+    provides:
+      Lingua::StopWords 0.09
+      Lingua::StopWords::DA 0.08
+      Lingua::StopWords::DE 0.08
+      Lingua::StopWords::EN 0.08
+      Lingua::StopWords::ES 0.08
+      Lingua::StopWords::FI 0.08
+      Lingua::StopWords::FR 0.08
+      Lingua::StopWords::HU 0.08
+      Lingua::StopWords::IT 0.08
+      Lingua::StopWords::NL 0.08
+      Lingua::StopWords::NO 0.08
+      Lingua::StopWords::PT 0.08
+      Lingua::StopWords::RU 0.08
+      Lingua::StopWords::SV 0.08
+    requirements:
+      ExtUtils::MakeMaker 0
   Lingua-ZH-WordSegmenter-0.01
     pathname: J/JZ/JZHANG/Lingua-ZH-WordSegmenter-0.01.tar.gz
     provides:
@@ -5082,14 +5207,6 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 6.59
       Test::More 0.47
       perl 5.006
-  Mac-SystemDirectory-0.06
-    pathname: C/CH/CHANSEN/Mac-SystemDirectory-0.06.tar.gz
-    provides:
-      Mac::SystemDirectory 0.06
-    requirements:
-      ExtUtils::MakeMaker 6.42
-      Test::More 0.86
-      perl 5.006
   MailTools-2.13
     pathname: M/MA/MARKOV/MailTools-2.13.tar.gz
     provides:
@@ -5242,6 +5359,21 @@ DISTRIBUTIONS
       Tie::Cache 0
       Time::HiRes 0
       UUID::Tiny 1.04
+  Mixin-Linewise-0.108
+    pathname: R/RJ/RJBS/Mixin-Linewise-0.108.tar.gz
+    provides:
+      Mixin::Linewise 0.108
+      Mixin::Linewise::Readers 0.108
+      Mixin::Linewise::Writers 0.108
+    requirements:
+      Carp 0
+      ExtUtils::MakeMaker 0
+      IO::File 0
+      PerlIO::utf8_strict 0
+      Sub::Exporter 0
+      perl 5.008001
+      strict 0
+      warnings 0
   Modern-Perl-1.20150127
     pathname: C/CH/CHROMATIC/Modern-Perl-1.20150127.tar.gz
     provides:
@@ -6317,10 +6449,10 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Test 0
       perl 5.006
-  Net-AMQP-RabbitMQ-2.30000
-    pathname: M/MA/MARKELLIS/Net-AMQP-RabbitMQ-2.30000.tar.gz
+  Net-AMQP-RabbitMQ-2.100001
+    pathname: M/MA/MARKELLIS/Net-AMQP-RabbitMQ-2.100001.tar.gz
     provides:
-      Net::AMQP::RabbitMQ 2.30000
+      Net::AMQP::RabbitMQ 2.100001
     requirements:
       ExtUtils::MakeMaker 0
       Math::Int64 0.34
@@ -6748,7 +6880,7 @@ DISTRIBUTIONS
     provides:
       Parse::BooleanLogic 0.09
     requirements:
-      ExtUtils::MakeMaker 7.1001
+      ExtUtils::MakeMaker 7.0401
       Regexp::Common 0
       Test::Deep 0
       Test::More 0
@@ -6824,6 +6956,31 @@ DISTRIBUTIONS
       overload 0
       strict 0
       warnings 0
+  Pegex-0.60
+    pathname: I/IN/INGY/Pegex-0.60.tar.gz
+    provides:
+      Pegex 0.60
+      Pegex::Base undef
+      Pegex::Bootstrap undef
+      Pegex::Compiler undef
+      Pegex::Constant undef
+      Pegex::Grammar undef
+      Pegex::Grammar::Atoms undef
+      Pegex::Input undef
+      Pegex::Module undef
+      Pegex::Optimizer undef
+      Pegex::Parser undef
+      Pegex::Parser::Indent undef
+      Pegex::Pegex::AST undef
+      Pegex::Pegex::Grammar undef
+      Pegex::Receiver undef
+      Pegex::Regex undef
+      Pegex::Tree undef
+      Pegex::Tree::Wrap undef
+    requirements:
+      ExtUtils::MakeMaker 0
+      File::ShareDir::Install 0.06
+      perl 5.008001
   Perl-Tidy-20160302
     pathname: S/SH/SHANCOCK/Perl-Tidy-20160302.tar.gz
     provides:
@@ -6847,6 +7004,16 @@ DISTRIBUTIONS
       Perl::Tidy::VerticalAligner::Line 20160302
     requirements:
       ExtUtils::MakeMaker 0
+  PerlIO-utf8_strict-0.006
+    pathname: L/LE/LEONT/PerlIO-utf8_strict-0.006.tar.gz
+    provides:
+      PerlIO::utf8_strict 0.006
+    requirements:
+      ExtUtils::MakeMaker 0
+      XSLoader 0
+      perl 5.008
+      strict 0
+      warnings 0
   Plack-1.0030
     pathname: M/MI/MIYAGAWA/Plack-1.0030.tar.gz
     provides:
@@ -7161,6 +7328,61 @@ DISTRIBUTIONS
       POSIX 0
       Regexp::Common 0
       Test::More 0.40
+  Reply-0.42
+    pathname: D/DO/DOY/Reply-0.42.tar.gz
+    provides:
+      Reply 0.42
+      Reply::App 0.42
+      Reply::Config 0.42
+      Reply::Plugin 0.42
+      Reply::Plugin::AutoRefresh 0.42
+      Reply::Plugin::Autocomplete::Commands 0.42
+      Reply::Plugin::Autocomplete::Functions 0.42
+      Reply::Plugin::Autocomplete::Globals 0.42
+      Reply::Plugin::Autocomplete::Keywords 0.42
+      Reply::Plugin::Autocomplete::Lexicals 0.42
+      Reply::Plugin::Autocomplete::Methods 0.42
+      Reply::Plugin::Autocomplete::Packages 0.42
+      Reply::Plugin::CollapseStack 0.42
+      Reply::Plugin::Colors 0.42
+      Reply::Plugin::DataDump 0.42
+      Reply::Plugin::DataDumper 0.42
+      Reply::Plugin::DataPrinter 0.42
+      Reply::Plugin::Editor 0.42
+      Reply::Plugin::FancyPrompt 0.42
+      Reply::Plugin::Hints 0.42
+      Reply::Plugin::Interrupt 0.42
+      Reply::Plugin::LexicalPersistence 0.42
+      Reply::Plugin::LoadClass 0.42
+      Reply::Plugin::Nopaste 0.42
+      Reply::Plugin::Packages 0.42
+      Reply::Plugin::Pager 0.42
+      Reply::Plugin::ReadLine 0.42
+      Reply::Plugin::ResultCache 0.42
+      Reply::Plugin::Timer 0.42
+    requirements:
+      Config::INI::Reader::Ordered 0
+      Data::Dumper 0
+      Devel::LexAlias 0
+      Eval::Closure 0.11
+      Exporter 0
+      ExtUtils::MakeMaker 0
+      File::HomeDir 0
+      File::Spec 0
+      Getopt::Long 2.36
+      Module::Runtime 0
+      Package::Stash 0
+      PadWalker 0
+      Scalar::Util 0
+      Term::ANSIColor 0
+      Term::ReadLine 0
+      Time::HiRes 0
+      Try::Tiny 0
+      base 0
+      overload 0
+      perl 5.006
+      strict 0
+      warnings 0
   Role-Tiny-2.000001
     pathname: H/HA/HAARG/Role-Tiny-2.000001.tar.gz
     provides:
@@ -7214,6 +7436,17 @@ DISTRIBUTIONS
       Class::InsideOut 0
       Exporter::Lite 0
       ExtUtils::MakeMaker 6.42
+  Scalar-List-Utils-1.45
+    pathname: P/PE/PEVANS/Scalar-List-Utils-1.45.tar.gz
+    provides:
+      List::Util 1.45
+      List::Util::XS 1.45
+      Scalar::Util 1.45
+      Sub::Util 1.45
+    requirements:
+      ExtUtils::MakeMaker 0
+      Test::More 0
+      perl 5.006
   Scope-Guard-0.20
     pathname: C/CH/CHOCOLATE/Scope-Guard-0.20.tar.gz
     provides:
@@ -7286,7 +7519,6 @@ DISTRIBUTIONS
       Shell::Guess 0.06
     requirements:
       Module::Build 0.28
-      Unix::Process 0
       perl 5.006
   Smart-Comments-1.06
     pathname: N/NE/NEILB/Smart-Comments-1.06.tar.gz
@@ -7784,6 +8016,30 @@ DISTRIBUTIONS
       Test::Builder::Tester 1.04
       Test::Manifest 1.14
       Test::More 0.95
+  Test-LWP-UserAgent-0.031
+    pathname: E/ET/ETHER/Test-LWP-UserAgent-0.031.tar.gz
+    provides:
+      Test::LWP::UserAgent 0.031
+    requirements:
+      CPAN::Meta::Requirements 2.120620
+      Carp 0
+      ExtUtils::MakeMaker 0
+      HTTP::Date 0
+      HTTP::Request 0
+      HTTP::Response 0
+      HTTP::Status 0
+      LWP::UserAgent 0
+      Module::Metadata 0
+      Safe::Isa 0
+      Scalar::Util 0
+      Storable 0
+      Try::Tiny 0
+      URI 1.62
+      namespace::clean 0.19
+      parent 0
+      perl 5.006
+      strict 0
+      warnings 0
   Test-LeakTrace-0.15
     pathname: G/GF/GFUJI/Test-LeakTrace-0.15.tar.gz
     provides:
@@ -8082,18 +8338,17 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       IO::Handle 0
       Test::More 0
-  Text-Diff-1.44
-    pathname: N/NE/NEILB/Text-Diff-1.44.tar.gz
+  Text-Diff-1.41
+    pathname: O/OV/OVID/Text-Diff-1.41.tar.gz
     provides:
-      Text::Diff 1.44
-      Text::Diff::Base 1.44
-      Text::Diff::Config 1.44
-      Text::Diff::Table 1.44
+      Text::Diff 1.41
+      Text::Diff::Base 1.41
+      Text::Diff::Config 1.41
+      Text::Diff::Table 1.41
     requirements:
       Algorithm::Diff 1.19
       Exporter 0
       ExtUtils::MakeMaker 0
-      perl 5.006
   Text-German-0.06
     pathname: U/UL/ULPFR/Text-German-0.06.tar.gz
     provides:
@@ -8127,7 +8382,7 @@ DISTRIBUTIONS
       Text::Lorem::More 0.13
       Text::Lorem::More::Source undef
     requirements:
-      ExtUtils::MakeMaker 7.1001
+      ExtUtils::MakeMaker 7.0401
       Parse::RecDescent 0
       Test::More 0
       Test::Most 0
@@ -8541,14 +8796,6 @@ DISTRIBUTIONS
       POSIX 0
       Test::More 0
       Time::HiRes 0
-  Unix-Process-1.3101
-    pathname: J/JE/JETTERO/Unix-Process-1.3101.tar.gz
-    provides:
-      Unix::Process 1.3101
-    requirements:
-      ExtUtils::MakeMaker 0
-      IPC::System::Simple 0
-      perl 5.008
   VM-EC2-1.25
     pathname: L/LD/LDS/VM-EC2-1.25.tar.gz
     provides:
@@ -8760,10 +9007,10 @@ DISTRIBUTIONS
       Fcntl 0
       URI 1.10
       perl 5.008001
-  Want-0.29
-    pathname: R/RO/ROBIN/Want-0.29.tar.gz
+  Want-0.25
+    pathname: R/RO/ROBIN/Want-0.25.tar.gz
     provides:
-      Want 0.29
+      Want 0.25
     requirements:
       ExtUtils::MakeMaker 0
   XML-Bare-0.53
