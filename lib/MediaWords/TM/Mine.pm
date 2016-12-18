@@ -25,7 +25,7 @@ use DateTime;
 use Digest::MD5;
 use Encode;
 use Getopt::Long;
-use HTML::LinkExtor;
+use HTML::Entities;
 use List::Util;
 use Parallel::ForkManager;
 use Readonly;
@@ -148,21 +148,15 @@ sub get_links_from_html
 {
     my ( $html, $url ) = @_;
 
-    # use LinkExtor instead of LinkExtractor because the latter results in mis-encoded urls after translating
-    # html entities in urls
-    my $p = HTML::LinkExtor->new;
-
-    # we choose not to pass the base url here to avoid collecting relative urls.  we end up with too many
-    # stories linked from the same media source when we allow relative links.
-
-    $p->parse( $html );
+    # use regex parsing here instead of html parsing because it is much faster than HTML::LinkExtor
+    # and does not generate broken unicode encoding like HTML::LinkExtractor does
 
     my $links = [];
-    for my $link ( $p->links )
+    while ( $html =~ m~href\s*=\s*[\"\']?(https?://[^\s\"\')]+)~g )
     {
-        my ( $tag, $attribute_name, $url ) = @{ $link };
+        my $url = $1;
 
-        next if ( $attribute_name ne 'href' );
+        $url = decode_entities( $url );
 
         next if ( !$url );
 
@@ -170,12 +164,41 @@ sub get_links_from_html
 
         next if ( $url =~ $_ignore_link_pattern );
 
-        $link =~ s/www[a-z0-9]+.nytimes/www.nytimes/i;
+        $url =~ s/www[a-z0-9]+.nytimes/www.nytimes/i;
 
         push( @{ $links }, { url => $url } );
     }
 
     return $links;
+
+    # # use LinkExtor instead of LinkExtractor because the latter results in mis-encoded urls after translating
+    # # html entities in urls
+    # my $p = HTML::LinkExtor->new;
+    #
+    # # we choose not to pass the base url here to avoid collecting relative urls.  we end up with too many
+    # # stories linked from the same media source when we allow relative links.
+    #
+    # $p->parse( $html );
+    #
+    # my $links = [];
+    # for my $link ( $p->links )
+    # {
+    #     my ( $tag, $attribute_name, $url ) = @{ $link };
+    #
+    #     next if ( $attribute_name ne 'href' );
+    #
+    #     next if ( !$url );
+    #
+    #     next if ( $url !~ /^http/i );
+    #
+    #     next if ( $url =~ $_ignore_link_pattern );
+    #
+    #     $link =~ s/www[a-z0-9]+.nytimes/www.nytimes/i;
+    #
+    #     push( @{ $links }, { url => $url } );
+    # }
+    #
+    # return $links;
 }
 
 sub get_cached_medium_by_id

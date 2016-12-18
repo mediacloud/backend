@@ -69,7 +69,6 @@ requires 'GraphViz2';
 requires 'HTML::Entities';
 requires 'HTML::FormFu';
 requires 'HTML::FormFu::Element::reCAPTCHA';
-requires 'HTML::LinkExtor';
 requires 'HTML::LinkExtractor';
 requires 'HTML::Strip';
 requires 'HTML::TagCloud';
