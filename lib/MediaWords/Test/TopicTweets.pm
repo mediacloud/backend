@@ -352,11 +352,7 @@ SQL
         }
     }
 
-    my $sort_links = sub {
-        $b->[ 2 ] <=> $a->[ 2 ]
-          || $a->[ 0 ] <=> $b->[ 0 ]
-          || $a->[ 1 ] <=> $b->[ 1 ];
-    };
+    my $sort_links = sub { $b->[ 2 ] <=> $a->[ 2 ] || $a->[ 0 ] <=> $b->[ 0 ] || $a->[ 1 ] <=> $b->[ 1 ] };
     $shared_link_counts = [ sort $sort_links @{ $shared_link_counts } ];
 
     splice( @{ $shared_link_counts }, $num_topic_stories );
