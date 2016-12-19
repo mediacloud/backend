@@ -2,8 +2,6 @@
 # This is a non-breaking prefix list for the Romanian language.
 # The file is used for sentence tokenization (text -> sentence splitting).
 #
-# The encoding of this file is UTF-8.
-#
 # The file is home-made by a programmer (not a linguist) who doesn't even speak Romanian so it surely can be improved.
 #
 

@@ -1,8 +1,6 @@
 #
 # This is a "tiny" stop word list for the Russian language.
 #
-# The encoding of this file is UTF-8.
-#
 
 в
 и

@@ -11,7 +11,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Moose;
-with 'MediaWords::Crawler::DefaultFetcher', 'MediaWords::Crawler::Download::FeedHandler';
+with 'MediaWords::Crawler::Download::DefaultFetcher', 'MediaWords::Crawler::Download::Feed::FeedHandler';
 
 use MediaWords::Util::HTML;
 use MediaWords::Util::SQL;
@@ -24,29 +24,27 @@ sub add_stories_from_feed($$$$)
 {
     my ( $self, $db, $download, $decoded_content ) = @_;
 
-    my $feed = $db->find_by_id( 'feeds', $download->{ feeds_id } );
+    my $feeds_id = $download->{ feeds_id };
+
+    my $feed = $db->find_by_id( 'feeds', $feeds_id );
 
     my $title = MediaWords::Util::HTML::html_title( $decoded_content, '(no title)' );
     my $guid = substr( time . ":" . $download->{ url }, 0, 1024 );
 
-    my $story = $db->create(
-        'stories',
-        {
-            url          => $download->{ url },
-            guid         => $guid,
-            media_id     => $feed->{ media_id },
-            publish_date => MediaWords::Util::SQL::sql_now,
-            title        => $title
-        }
-    );
+    my $new_story = {
+        url          => $download->{ url },
+        guid         => $guid,
+        media_id     => $feed->{ media_id },
+        publish_date => MediaWords::Util::SQL::sql_now,
+        title        => $title,
+    };
 
-    $db->query(
-        <<SQL,
-        INSERT INTO feeds_stories_map (feeds_id, stories_id)
-        VALUES (?, ?)
-SQL
-        $feed->{ feeds_id }, $story->{ stories_id }
-    );
+    Readonly my $skip_checking_if_new => 1;
+    my $story = MediaWords::DBI::Stories::add_story( $db, $new_story, $feeds_id, $skip_checking_if_new );
+    unless ( defined $story )
+    {
+        LOGCONFESS "Failed to add story " . Dumper( $new_story );
+    }
 
     $db->query(
         <<SQL,
@@ -60,7 +58,7 @@ SQL
     );
 
     # A webpage that was just fetched is also a story
-    my $story_ids = [ $download->{ stories_id } ];
+    my $story_ids = [ $story->{ stories_id } ];
     return $story_ids;
 }
 

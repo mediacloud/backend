@@ -21,6 +21,7 @@ use MediaWords::CommonLibs;
 
 use List::MoreUtils;
 use Net::Twitter;
+use Date::Parse;
 
 use MediaWords::DB;
 use MediaWords::Util::DateTime;
@@ -187,7 +188,7 @@ sub _store_tweet_and_urls($$$$)
     my $created_at = $ch_post->{ tweet }->{ created_at };
     my $publish_date =
       $created_at
-      ? MediaWords::Util::SQL::get_sql_date_from_str2time( $created_at )
+      ? MediaWords::Util::SQL::get_sql_date_from_epoch( Date::Parse::str2time( $created_at ) )
       : MediaWords::UTil::SQL::sql_now();
 
     my $topic_tweet = {

@@ -29,7 +29,7 @@ use MediaWords::Util::Paths;
 use MediaWords::Util::SQL;
 use MediaWords::Util::URL;
 
-Readonly my $MAX_DOWNLOAD_SIZE => 1024 * 1024;
+Readonly my $MAX_DOWNLOAD_SIZE => 10 * 1024 * 1024;    # Superglue (TV) feeds could grow big
 Readonly my $TIMEOUT           => 20;
 Readonly my $MAX_REDIRECT      => 15;
 

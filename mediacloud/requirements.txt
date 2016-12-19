@@ -1,0 +1,23 @@
+# Stemming Hausa words
+hausastemmer
+
+# Unit tests
+nose
+
+# PostgreSQL
+psycopg2
+
+# Configuration file
+pyyaml
+
+# Date parsing
+python-dateutil
+
+# Extracting text from stories
+readability-lxml==0.6.2
+
+# Normalizing URLs
+url_normalize
+
+# Binding code between Perl and Python Readability
+thrift

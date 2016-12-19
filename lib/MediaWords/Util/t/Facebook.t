@@ -1,21 +1,23 @@
 use strict;
 use warnings;
-
 use utf8;
-use Test::More;
-
-use Data::Dumper;
-
-use MediaWords::Test::DB;
-use MediaWords::Util::Facebook;
 
 BEGIN
 {
     use FindBin;
-    use lib "$FindBin::Bin/../lib";
+    use lib "$FindBin::Bin/../../lib";
 }
 
-my $_last_request_time;
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
+use Test::More;
+
+use MediaWords::Test::DB;
+use MediaWords::Util::Facebook;
+
+use Data::Dumper;
+use Storable qw(dclone);
 
 # URLs that might fail
 sub test_bogus_urls($)
@@ -30,10 +32,6 @@ sub test_bogus_urls($)
         'http://www.nbcnews.com/#/health',
         'http://www.nbcnews.com/#/',
         'http://foo.com/#/bar/',
-
-        # Twitter API works only when the #fragment starts with a slash (/)
-        # 'http://www.nbcnews.com/#health',
-        # 'http://www.nbcnews.com/#health/',
 
         # URLs with ~tilde
         'http://cyber.law.harvard.edu/~lvaliukas/test.html/',
@@ -60,36 +58,6 @@ sub test_bogus_urls($)
         eval { MediaWords::Util::Facebook::get_url_share_comment_counts( $db, $bogus_url ); };
         ok( !$@, "Stats were fetched for bogus URL '$bogus_url'" );
     }
-}
-
-# URLs that won't work so shouldn't be tried against Facebook API
-sub test_urls_which_wont_work($)
-{
-    my ( $db ) = @_;
-
-    my @urls_which_wont_work = (
-
-        'http://www.google.com/trends/explore#q=net%20neutrality.',
-        'https://www.google.com/webhp?sourceid=chrome-instant&ion=1&espv=2&ie=UTF-8#safe=off&q=net+neutrality'
-
-    );
-
-    foreach my $url_which_wont_work ( @urls_which_wont_work )
-    {
-        eval { MediaWords::Util::Facebook::get_url_share_comment_counts( $db, $url_which_wont_work ); };
-        ok( $@, "Stats shouldn't have been fetched for URL '$url_which_wont_work'" );
-    }
-}
-
-sub test_graphmethodexception_unsupported_get_request($)
-{
-    my ( $db ) = @_;
-
-    # URL was throwing "(100 GraphMethodException) Unsupported get request."
-    my $url = 'https://www.facebook.com/nikkibrooks01/posts/919871464721610?_fb_noscript=1';
-
-    eval { MediaWords::Util::Facebook::get_url_share_comment_counts( $db, $url ); };
-    ok( $@, "Stats shouldn't have been fetched for URL '$url'" );
 }
 
 sub test_share_comment_counts($)
@@ -149,12 +117,17 @@ sub main()
         # variables set by the automated testing environment
         if ( defined $ENV{ 'MC_FACEBOOK_APP_ID' } and defined $ENV{ 'MC_FACEBOOK_APP_SECRET' } )
         {
-            $config->{ facebook }->{ enabled }    = 'yes';
-            $config->{ facebook }->{ app_id }     = $ENV{ 'MC_FACEBOOK_APP_ID' };
-            $config->{ facebook }->{ app_secret } = $ENV{ 'MC_FACEBOOK_APP_SECRET' };
+            my $new_config = dclone( $config );
 
-            # FIXME Awful trick to modify config's cache
-            $MediaWords::Util::Config::_config = $config;
+            unless ( $new_config->{ facebook } )
+            {
+                $new_config->{ facebook } = {};
+            }
+            $new_config->{ facebook }->{ enabled }    = 'yes';
+            $new_config->{ facebook }->{ app_id }     = $ENV{ 'MC_FACEBOOK_APP_ID' };
+            $new_config->{ facebook }->{ app_secret } = $ENV{ 'MC_FACEBOOK_APP_SECRET' };
+
+            MediaWords::Util::Config::set_config( $new_config );
         }
         else
         {
@@ -176,8 +149,6 @@ sub main()
 
             test_bogus_urls( $db );
 
-            #test_urls_which_wont_work( $db );
-            #test_graphmethodexception_unsupported_get_request( $db );
             test_share_comment_counts( $db );
             test_store_result( $db );
         }

@@ -103,9 +103,21 @@ DISTRIBUTIONS
     requirements:
       Alien::Base 0.020
       Alien::Base::ModuleBuild 0.020
+      Alien::patch 0.06
       FFI::CheckLib 0
       File::ShareDir 1.03
       parent 0
+      perl 5.006
+  Alien-patch-0.08
+    pathname: P/PL/PLICEASE/Alien-patch-0.08.tar.gz
+    provides:
+      Alien::patch 0.08
+    requirements:
+      Alien::Base 0.016
+      Alien::Base::ModuleBuild 0.016
+      Capture::Tiny 0
+      File::ShareDir 1.03
+      File::chdir 0
       perl 5.006
   Any-Moose-0.26
     pathname: E/ET/ETHER/Any-Moose-0.26.tar.gz
@@ -1347,6 +1359,28 @@ DISTRIBUTIONS
       File::Spec::Functions 0
       FileHandle 0
       IO::File 0
+  Config-INI-0.025
+    pathname: R/RJ/RJBS/Config-INI-0.025.tar.gz
+    provides:
+      Config::INI 0.025
+      Config::INI::Reader 0.025
+      Config::INI::Writer 0.025
+    requirements:
+      Carp 0
+      ExtUtils::MakeMaker 0
+      Mixin::Linewise::Readers 0.105
+      Mixin::Linewise::Writers 0
+      strict 0
+      warnings 0
+  Config-INI-Reader-Ordered-0.020
+    pathname: R/RJ/RJBS/Config-INI-Reader-Ordered-0.020.tar.gz
+    provides:
+      Config::INI::Reader::Ordered 0.020
+    requirements:
+      Config::INI::Reader 0
+      ExtUtils::MakeMaker 0
+      strict 0
+      vars 0
   Config-Tiny-2.20
     pathname: R/RS/RSAVAGE/Config-Tiny-2.20.tgz
     provides:
@@ -3196,6 +3230,14 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Sub::Exporter::Progressive 0.001011
       perl 5.006
+  Devel-LexAlias-0.05
+    pathname: R/RC/RCLAMP/Devel-LexAlias-0.05.tar.gz
+    provides:
+      Devel::LexAlias 0.05
+    requirements:
+      Devel::Caller 0.03
+      ExtUtils::MakeMaker 0
+      Test::More 0
   Devel-NYTProf-6.02
     pathname: T/TI/TIMB/Devel-NYTProf-6.02.tar.gz
     provides:
@@ -3762,13 +3804,12 @@ DISTRIBUTIONS
       File::HomeDir::Windows 1.00
     requirements:
       Carp 0
-      Cwd 3
+      Cwd 3.12
       ExtUtils::MakeMaker 6.36
       File::Path 2.01
-      File::Spec 3
+      File::Spec 3.12
       File::Temp 0.19
       File::Which 0.05
-      Mac::SystemDirectory 0.04
       Test::More 0.47
       perl 5.00503
   File-Listing-6.04
@@ -4731,21 +4772,42 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       File::Spec 0.8
       perl 5.008001
-  Inline-Python-0.49
-    pathname: N/NI/NINE/Inline-Python-0.49.tar.gz
+  Inline-C-0.76
+    pathname: I/IN/INGY/Inline-C-0.76.tar.gz
     provides:
-      Inline::Python 0.49
-      Inline::Python::Boolean 0.49
-      Inline::Python::Function 0.49
-      Inline::Python::Object 0.49
-      Inline::Python::Object::Data 0.49
+      Inline::C 0.76
+    requirements:
+      ExtUtils::MakeMaker 7.00
+      File::ShareDir::Install 0.06
+      File::Spec 0.8
+      Inline 0.79
+      Parse::RecDescent 1.967009
+      Pegex 0.58
+      perl 5.008001
+  Inline-Java-0.58
+    pathname: E/ET/ETJ/Inline-Java-0.58.tar.gz
+    provides:
+      Inline::Java 0.58
+    requirements:
+      ExtUtils::MakeMaker 0
+      Inline 0.68
+      Inline::C 0.62
+      MIME::Base64 0
+      Test 1.13
+      perl 5.008
+  Inline-Python-0.52
+    pathname: N/NI/NINE/Inline-Python-0.52.tar.gz
+    provides:
+      Inline::Python 0.52
+      Inline::Python::Boolean 0.52
+      Inline::Python::Function 0.52
+      Inline::Python::Object 0.52
+      Inline::Python::Object::Data 0.52
     requirements:
       Data::Dumper 0
       Digest::MD5 2.5
       ExtUtils::MakeMaker 0
       Inline 0.46
-      Test 0
-      Test::More 0
   JSON-2.90
     pathname: M/MA/MAKAMAKA/JSON-2.90.tar.gz
     provides:
@@ -5145,14 +5207,6 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 6.59
       Test::More 0.47
       perl 5.006
-  Mac-SystemDirectory-0.06
-    pathname: C/CH/CHANSEN/Mac-SystemDirectory-0.06.tar.gz
-    provides:
-      Mac::SystemDirectory 0.06
-    requirements:
-      ExtUtils::MakeMaker 6.42
-      Test::More 0.86
-      perl 5.006
   MailTools-2.13
     pathname: M/MA/MARKOV/MailTools-2.13.tar.gz
     provides:
@@ -5305,6 +5359,21 @@ DISTRIBUTIONS
       Tie::Cache 0
       Time::HiRes 0
       UUID::Tiny 1.04
+  Mixin-Linewise-0.108
+    pathname: R/RJ/RJBS/Mixin-Linewise-0.108.tar.gz
+    provides:
+      Mixin::Linewise 0.108
+      Mixin::Linewise::Readers 0.108
+      Mixin::Linewise::Writers 0.108
+    requirements:
+      Carp 0
+      ExtUtils::MakeMaker 0
+      IO::File 0
+      PerlIO::utf8_strict 0
+      Sub::Exporter 0
+      perl 5.008001
+      strict 0
+      warnings 0
   Modern-Perl-1.20150127
     pathname: C/CH/CHROMATIC/Modern-Perl-1.20150127.tar.gz
     provides:
@@ -6332,10 +6401,10 @@ DISTRIBUTIONS
       MooseX::Types 0.04
       Path::Class 0.16
       Test::More 0.88
-  Mouse-2.4.1
-    pathname: G/GF/GFUJI/Mouse-2.4.1.tar.gz
+  Mouse-v2.4.5
+    pathname: S/SY/SYOHEX/Mouse-v2.4.5.tar.gz
     provides:
-      Mouse v2.4.1
+      Mouse v2.4.5
       Mouse::Exporter undef
       Mouse::Meta::Attribute undef
       Mouse::Meta::Class undef
@@ -6353,11 +6422,11 @@ DISTRIBUTIONS
       Mouse::Meta::TypeConstraint undef
       Mouse::Object undef
       Mouse::PurePerl undef
-      Mouse::Role v2.4.1
-      Mouse::Spec v2.4.1
-      Mouse::Tiny v2.2.0
+      Mouse::Role v2.4.5
+      Mouse::Spec v2.4.5
+      Mouse::Tiny v2.4.5
       Mouse::TypeRegistry undef
-      Mouse::Util v2.4.1
+      Mouse::Util v2.4.5
       Mouse::Util::MetaRole undef
       Mouse::Util::TypeConstraints undef
       Squirrel undef
@@ -6365,7 +6434,7 @@ DISTRIBUTIONS
       Test::Mouse undef
       ouse undef
     requirements:
-      Devel::PPPort 3.19
+      Devel::PPPort 3.22
       ExtUtils::ParseXS 3.22
       Module::Build 0.4005
       Module::Build::XSUtil 0
@@ -6380,10 +6449,10 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Test 0
       perl 5.006
-  Net-AMQP-RabbitMQ-2.30000
-    pathname: M/MA/MARKELLIS/Net-AMQP-RabbitMQ-2.30000.tar.gz
+  Net-AMQP-RabbitMQ-2.100001
+    pathname: M/MA/MARKELLIS/Net-AMQP-RabbitMQ-2.100001.tar.gz
     provides:
-      Net::AMQP::RabbitMQ 2.30000
+      Net::AMQP::RabbitMQ 2.100001
     requirements:
       ExtUtils::MakeMaker 0
       Math::Int64 0.34
@@ -6837,7 +6906,6 @@ DISTRIBUTIONS
       Parse::RecDescent::Token 1.967009
       Parse::RecDescent::UncondReject 1.967009
     requirements:
-      ExtUtils::MakeMaker 6.5702
       Test::More 0
       Text::Balanced 1.95
   Path-Class-0.33
@@ -6888,6 +6956,31 @@ DISTRIBUTIONS
       overload 0
       strict 0
       warnings 0
+  Pegex-0.60
+    pathname: I/IN/INGY/Pegex-0.60.tar.gz
+    provides:
+      Pegex 0.60
+      Pegex::Base undef
+      Pegex::Bootstrap undef
+      Pegex::Compiler undef
+      Pegex::Constant undef
+      Pegex::Grammar undef
+      Pegex::Grammar::Atoms undef
+      Pegex::Input undef
+      Pegex::Module undef
+      Pegex::Optimizer undef
+      Pegex::Parser undef
+      Pegex::Parser::Indent undef
+      Pegex::Pegex::AST undef
+      Pegex::Pegex::Grammar undef
+      Pegex::Receiver undef
+      Pegex::Regex undef
+      Pegex::Tree undef
+      Pegex::Tree::Wrap undef
+    requirements:
+      ExtUtils::MakeMaker 0
+      File::ShareDir::Install 0.06
+      perl 5.008001
   Perl-Tidy-20160302
     pathname: S/SH/SHANCOCK/Perl-Tidy-20160302.tar.gz
     provides:
@@ -6911,6 +7004,16 @@ DISTRIBUTIONS
       Perl::Tidy::VerticalAligner::Line 20160302
     requirements:
       ExtUtils::MakeMaker 0
+  PerlIO-utf8_strict-0.006
+    pathname: L/LE/LEONT/PerlIO-utf8_strict-0.006.tar.gz
+    provides:
+      PerlIO::utf8_strict 0.006
+    requirements:
+      ExtUtils::MakeMaker 0
+      XSLoader 0
+      perl 5.008
+      strict 0
+      warnings 0
   Plack-1.0030
     pathname: M/MI/MIYAGAWA/Plack-1.0030.tar.gz
     provides:
@@ -7225,6 +7328,61 @@ DISTRIBUTIONS
       POSIX 0
       Regexp::Common 0
       Test::More 0.40
+  Reply-0.42
+    pathname: D/DO/DOY/Reply-0.42.tar.gz
+    provides:
+      Reply 0.42
+      Reply::App 0.42
+      Reply::Config 0.42
+      Reply::Plugin 0.42
+      Reply::Plugin::AutoRefresh 0.42
+      Reply::Plugin::Autocomplete::Commands 0.42
+      Reply::Plugin::Autocomplete::Functions 0.42
+      Reply::Plugin::Autocomplete::Globals 0.42
+      Reply::Plugin::Autocomplete::Keywords 0.42
+      Reply::Plugin::Autocomplete::Lexicals 0.42
+      Reply::Plugin::Autocomplete::Methods 0.42
+      Reply::Plugin::Autocomplete::Packages 0.42
+      Reply::Plugin::CollapseStack 0.42
+      Reply::Plugin::Colors 0.42
+      Reply::Plugin::DataDump 0.42
+      Reply::Plugin::DataDumper 0.42
+      Reply::Plugin::DataPrinter 0.42
+      Reply::Plugin::Editor 0.42
+      Reply::Plugin::FancyPrompt 0.42
+      Reply::Plugin::Hints 0.42
+      Reply::Plugin::Interrupt 0.42
+      Reply::Plugin::LexicalPersistence 0.42
+      Reply::Plugin::LoadClass 0.42
+      Reply::Plugin::Nopaste 0.42
+      Reply::Plugin::Packages 0.42
+      Reply::Plugin::Pager 0.42
+      Reply::Plugin::ReadLine 0.42
+      Reply::Plugin::ResultCache 0.42
+      Reply::Plugin::Timer 0.42
+    requirements:
+      Config::INI::Reader::Ordered 0
+      Data::Dumper 0
+      Devel::LexAlias 0
+      Eval::Closure 0.11
+      Exporter 0
+      ExtUtils::MakeMaker 0
+      File::HomeDir 0
+      File::Spec 0
+      Getopt::Long 2.36
+      Module::Runtime 0
+      Package::Stash 0
+      PadWalker 0
+      Scalar::Util 0
+      Term::ANSIColor 0
+      Term::ReadLine 0
+      Time::HiRes 0
+      Try::Tiny 0
+      base 0
+      overload 0
+      perl 5.006
+      strict 0
+      warnings 0
   Role-Tiny-2.000001
     pathname: H/HA/HAARG/Role-Tiny-2.000001.tar.gz
     provides:
@@ -7361,7 +7519,6 @@ DISTRIBUTIONS
       Shell::Guess 0.06
     requirements:
       Module::Build 0.28
-      Unix::Process 0
       perl 5.006
   Smart-Comments-1.06
     pathname: N/NE/NEILB/Smart-Comments-1.06.tar.gz
@@ -7824,9 +7981,8 @@ DISTRIBUTIONS
     requirements:
       Capture::Tiny 0.24
       Data::Dumper 2.126
-      ExtUtils::MakeMaker 0
       Test::More 0.88
-      Text::Diff 1.43
+      Text::Diff 0.35
   Test-Exception-0.32
     pathname: A/AD/ADIE/Test-Exception-0.32.tar.gz
     provides:
@@ -7860,6 +8016,30 @@ DISTRIBUTIONS
       Test::Builder::Tester 1.04
       Test::Manifest 1.14
       Test::More 0.95
+  Test-LWP-UserAgent-0.031
+    pathname: E/ET/ETHER/Test-LWP-UserAgent-0.031.tar.gz
+    provides:
+      Test::LWP::UserAgent 0.031
+    requirements:
+      CPAN::Meta::Requirements 2.120620
+      Carp 0
+      ExtUtils::MakeMaker 0
+      HTTP::Date 0
+      HTTP::Request 0
+      HTTP::Response 0
+      HTTP::Status 0
+      LWP::UserAgent 0
+      Module::Metadata 0
+      Safe::Isa 0
+      Scalar::Util 0
+      Storable 0
+      Try::Tiny 0
+      URI 1.62
+      namespace::clean 0.19
+      parent 0
+      perl 5.006
+      strict 0
+      warnings 0
   Test-LeakTrace-0.15
     pathname: G/GF/GFUJI/Test-LeakTrace-0.15.tar.gz
     provides:
@@ -8158,18 +8338,17 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       IO::Handle 0
       Test::More 0
-  Text-Diff-1.44
-    pathname: N/NE/NEILB/Text-Diff-1.44.tar.gz
+  Text-Diff-1.41
+    pathname: O/OV/OVID/Text-Diff-1.41.tar.gz
     provides:
-      Text::Diff 1.44
-      Text::Diff::Base 1.44
-      Text::Diff::Config 1.44
-      Text::Diff::Table 1.44
+      Text::Diff 1.41
+      Text::Diff::Base 1.41
+      Text::Diff::Config 1.41
+      Text::Diff::Table 1.41
     requirements:
       Algorithm::Diff 1.19
       Exporter 0
       ExtUtils::MakeMaker 0
-      perl 5.006
   Text-German-0.06
     pathname: U/UL/ULPFR/Text-German-0.06.tar.gz
     provides:
@@ -8227,7 +8406,7 @@ DISTRIBUTIONS
     provides:
       Text::WordDiff 0.08
       Text::WordDiff::ANSIColor 0.08
-      Text::WordDiff::Base undef
+      Text::WordDiff::Base 0
       Text::WordDiff::HTML 0.08
       Text::WordDiff::HTMLTwoLines 0.08
     requirements:
@@ -8617,147 +8796,139 @@ DISTRIBUTIONS
       POSIX 0
       Test::More 0
       Time::HiRes 0
-  Unix-Process-1.3101
-    pathname: J/JE/JETTERO/Unix-Process-1.3101.tar.gz
-    provides:
-      Unix::Process 1.3101
-    requirements:
-      ExtUtils::MakeMaker 0
-      IPC::System::Simple 0
-      perl 5.008
   VM-EC2-1.25
     pathname: L/LD/LDS/VM-EC2-1.25.tar.gz
     provides:
-      RetryTimer undef
+      RetryTimer 0
       VM::EC2 1.25
-      VM::EC2::ASG undef
-      VM::EC2::AccountAttributes undef
-      VM::EC2::AvailabilityZone undef
-      VM::EC2::BlockDevice undef
-      VM::EC2::BlockDevice::Attachment undef
-      VM::EC2::BlockDevice::EBS undef
-      VM::EC2::BlockDevice::Mapping undef
-      VM::EC2::BlockDevice::Mapping::EBS undef
-      VM::EC2::CondVar undef
-      VM::EC2::Dispatch undef
-      VM::EC2::ELB undef
-      VM::EC2::ELB::BackendServerDescription undef
-      VM::EC2::ELB::HealthCheck undef
-      VM::EC2::ELB::InstanceState undef
-      VM::EC2::ELB::Listener undef
-      VM::EC2::ELB::ListenerDescription undef
-      VM::EC2::ELB::Policies undef
-      VM::EC2::ELB::Policies::AppCookieStickinessPolicy undef
-      VM::EC2::ELB::Policies::LBCookieStickinessPolicy undef
-      VM::EC2::ELB::PolicyAttribute undef
-      VM::EC2::ELB::PolicyAttributeType undef
-      VM::EC2::ELB::PolicyDescription undef
-      VM::EC2::ELB::PolicyTypeDescription undef
-      VM::EC2::ElasticAddress undef
-      VM::EC2::Error undef
-      VM::EC2::Generic undef
-      VM::EC2::Group undef
-      VM::EC2::Image undef
-      VM::EC2::Image::LaunchPermission undef
-      VM::EC2::Instance undef
-      VM::EC2::Instance::ConsoleOutput undef
-      VM::EC2::Instance::IamProfile undef
-      VM::EC2::Instance::Metadata undef
-      VM::EC2::Instance::MonitoringState undef
-      VM::EC2::Instance::PasswordData undef
-      VM::EC2::Instance::Placement undef
-      VM::EC2::Instance::Set undef
-      VM::EC2::Instance::State undef
-      VM::EC2::Instance::State::Change undef
-      VM::EC2::Instance::State::Reason undef
-      VM::EC2::Instance::Status undef
-      VM::EC2::Instance::Status::Details undef
-      VM::EC2::Instance::Status::Event undef
-      VM::EC2::Instance::StatusItem undef
-      VM::EC2::KeyPair undef
-      VM::EC2::LaunchConfiguration undef
-      VM::EC2::NetworkInterface undef
-      VM::EC2::NetworkInterface::Association undef
-      VM::EC2::NetworkInterface::Attachment undef
-      VM::EC2::NetworkInterface::PrivateIpAddress undef
-      VM::EC2::ParmParser undef
-      VM::EC2::PlacementGroup undef
-      VM::EC2::ProductCode undef
-      VM::EC2::REST::ami undef
-      VM::EC2::REST::autoscaling undef
-      VM::EC2::REST::customer_gateway undef
-      VM::EC2::REST::devpay undef
-      VM::EC2::REST::dhcp undef
-      VM::EC2::REST::ebs undef
-      VM::EC2::REST::elastic_ip undef
-      VM::EC2::REST::elastic_load_balancer undef
-      VM::EC2::REST::elastic_network_interface undef
-      VM::EC2::REST::general undef
-      VM::EC2::REST::instance undef
-      VM::EC2::REST::internet_gateway undef
-      VM::EC2::REST::keys undef
-      VM::EC2::REST::monitoring undef
-      VM::EC2::REST::network_acl undef
-      VM::EC2::REST::placement_group undef
-      VM::EC2::REST::private_ip undef
-      VM::EC2::REST::reserved_instance undef
-      VM::EC2::REST::route_table undef
-      VM::EC2::REST::security_group undef
-      VM::EC2::REST::security_token undef
-      VM::EC2::REST::spot_instance undef
-      VM::EC2::REST::subnet undef
-      VM::EC2::REST::tag undef
-      VM::EC2::REST::vm_export undef
-      VM::EC2::REST::vm_import undef
-      VM::EC2::REST::vpc undef
-      VM::EC2::REST::vpn undef
-      VM::EC2::REST::vpn_gateway undef
-      VM::EC2::REST::windows undef
-      VM::EC2::REST::zone undef
-      VM::EC2::Region undef
-      VM::EC2::ReservationSet undef
-      VM::EC2::ReservedInstance undef
-      VM::EC2::ReservedInstance::Offering undef
-      VM::EC2::Security::Credentials undef
-      VM::EC2::Security::FederatedUser undef
-      VM::EC2::Security::Policy undef
-      VM::EC2::Security::Token undef
-      VM::EC2::SecurityGroup undef
-      VM::EC2::SecurityGroup::GroupPermission undef
-      VM::EC2::SecurityGroup::IpPermission undef
-      VM::EC2::Snapshot undef
-      VM::EC2::Snapshot::CreateVolumePermission undef
-      VM::EC2::Spot::DatafeedSubscription undef
-      VM::EC2::Spot::InstanceRequest undef
-      VM::EC2::Spot::LaunchSpecification undef
-      VM::EC2::Spot::PriceHistory undef
-      VM::EC2::Spot::Status undef
-      VM::EC2::Staging::Manager undef
-      VM::EC2::Staging::Server undef
-      VM::EC2::Staging::Volume undef
-      VM::EC2::Tag undef
-      VM::EC2::VPC undef
-      VM::EC2::VPC::CustomerGateway undef
-      VM::EC2::VPC::DhcpOptions undef
-      VM::EC2::VPC::InternetGateway undef
-      VM::EC2::VPC::InternetGateway::Attachment undef
-      VM::EC2::VPC::NetworkAcl undef
-      VM::EC2::VPC::NetworkAcl::Association undef
-      VM::EC2::VPC::NetworkAcl::Entry undef
-      VM::EC2::VPC::Route undef
-      VM::EC2::VPC::RouteTable undef
-      VM::EC2::VPC::RouteTable::Association undef
-      VM::EC2::VPC::Subnet undef
-      VM::EC2::VPC::VpnConnection undef
-      VM::EC2::VPC::VpnGateway undef
-      VM::EC2::VPC::VpnGateway::Attachment undef
-      VM::EC2::VPC::VpnTunnelTelemetry undef
-      VM::EC2::Volume undef
-      VM::EC2::Volume::Status undef
-      VM::EC2::Volume::Status::Action undef
-      VM::EC2::Volume::Status::Details undef
-      VM::EC2::Volume::Status::Event undef
-      VM::EC2::Volume::StatusItem undef
+      VM::EC2::ASG 0
+      VM::EC2::AccountAttributes 0
+      VM::EC2::AvailabilityZone 0
+      VM::EC2::BlockDevice 0
+      VM::EC2::BlockDevice::Attachment 0
+      VM::EC2::BlockDevice::EBS 0
+      VM::EC2::BlockDevice::Mapping 0
+      VM::EC2::BlockDevice::Mapping::EBS 0
+      VM::EC2::CondVar 0
+      VM::EC2::Dispatch 0
+      VM::EC2::ELB 0
+      VM::EC2::ELB::BackendServerDescription 0
+      VM::EC2::ELB::HealthCheck 0
+      VM::EC2::ELB::InstanceState 0
+      VM::EC2::ELB::Listener 0
+      VM::EC2::ELB::ListenerDescription 0
+      VM::EC2::ELB::Policies 0
+      VM::EC2::ELB::Policies::AppCookieStickinessPolicy 0
+      VM::EC2::ELB::Policies::LBCookieStickinessPolicy 0
+      VM::EC2::ELB::PolicyAttribute 0
+      VM::EC2::ELB::PolicyAttributeType 0
+      VM::EC2::ELB::PolicyDescription 0
+      VM::EC2::ELB::PolicyTypeDescription 0
+      VM::EC2::ElasticAddress 0
+      VM::EC2::Error 0
+      VM::EC2::Generic 0
+      VM::EC2::Group 0
+      VM::EC2::Image 0
+      VM::EC2::Image::LaunchPermission 0
+      VM::EC2::Instance 0
+      VM::EC2::Instance::ConsoleOutput 0
+      VM::EC2::Instance::IamProfile 0
+      VM::EC2::Instance::Metadata 0
+      VM::EC2::Instance::MonitoringState 0
+      VM::EC2::Instance::PasswordData 0
+      VM::EC2::Instance::Placement 0
+      VM::EC2::Instance::Set 0
+      VM::EC2::Instance::State 0
+      VM::EC2::Instance::State::Change 0
+      VM::EC2::Instance::State::Reason 0
+      VM::EC2::Instance::Status 0
+      VM::EC2::Instance::Status::Details 0
+      VM::EC2::Instance::Status::Event 0
+      VM::EC2::Instance::StatusItem 0
+      VM::EC2::KeyPair 0
+      VM::EC2::LaunchConfiguration 0
+      VM::EC2::NetworkInterface 0
+      VM::EC2::NetworkInterface::Association 0
+      VM::EC2::NetworkInterface::Attachment 0
+      VM::EC2::NetworkInterface::PrivateIpAddress 0
+      VM::EC2::ParmParser 0
+      VM::EC2::PlacementGroup 0
+      VM::EC2::ProductCode 0
+      VM::EC2::REST::ami 0
+      VM::EC2::REST::autoscaling 0
+      VM::EC2::REST::customer_gateway 0
+      VM::EC2::REST::devpay 0
+      VM::EC2::REST::dhcp 0
+      VM::EC2::REST::ebs 0
+      VM::EC2::REST::elastic_ip 0
+      VM::EC2::REST::elastic_load_balancer 0
+      VM::EC2::REST::elastic_network_interface 0
+      VM::EC2::REST::general 0
+      VM::EC2::REST::instance 0
+      VM::EC2::REST::internet_gateway 0
+      VM::EC2::REST::keys 0
+      VM::EC2::REST::monitoring 0
+      VM::EC2::REST::network_acl 0
+      VM::EC2::REST::placement_group 0
+      VM::EC2::REST::private_ip 0
+      VM::EC2::REST::reserved_instance 0
+      VM::EC2::REST::route_table 0
+      VM::EC2::REST::security_group 0
+      VM::EC2::REST::security_token 0
+      VM::EC2::REST::spot_instance 0
+      VM::EC2::REST::subnet 0
+      VM::EC2::REST::tag 0
+      VM::EC2::REST::vm_export 0
+      VM::EC2::REST::vm_import 0
+      VM::EC2::REST::vpc 0
+      VM::EC2::REST::vpn 0
+      VM::EC2::REST::vpn_gateway 0
+      VM::EC2::REST::windows 0
+      VM::EC2::REST::zone 0
+      VM::EC2::Region 0
+      VM::EC2::ReservationSet 0
+      VM::EC2::ReservedInstance 0
+      VM::EC2::ReservedInstance::Offering 0
+      VM::EC2::Security::Credentials 0
+      VM::EC2::Security::FederatedUser 0
+      VM::EC2::Security::Policy 0
+      VM::EC2::Security::Token 0
+      VM::EC2::SecurityGroup 0
+      VM::EC2::SecurityGroup::GroupPermission 0
+      VM::EC2::SecurityGroup::IpPermission 0
+      VM::EC2::Snapshot 0
+      VM::EC2::Snapshot::CreateVolumePermission 0
+      VM::EC2::Spot::DatafeedSubscription 0
+      VM::EC2::Spot::InstanceRequest 0
+      VM::EC2::Spot::LaunchSpecification 0
+      VM::EC2::Spot::PriceHistory 0
+      VM::EC2::Spot::Status 0
+      VM::EC2::Staging::Manager 0
+      VM::EC2::Staging::Server 0
+      VM::EC2::Staging::Volume 0
+      VM::EC2::Tag 0
+      VM::EC2::VPC 0
+      VM::EC2::VPC::CustomerGateway 0
+      VM::EC2::VPC::DhcpOptions 0
+      VM::EC2::VPC::InternetGateway 0
+      VM::EC2::VPC::InternetGateway::Attachment 0
+      VM::EC2::VPC::NetworkAcl 0
+      VM::EC2::VPC::NetworkAcl::Association 0
+      VM::EC2::VPC::NetworkAcl::Entry 0
+      VM::EC2::VPC::Route 0
+      VM::EC2::VPC::RouteTable 0
+      VM::EC2::VPC::RouteTable::Association 0
+      VM::EC2::VPC::Subnet 0
+      VM::EC2::VPC::VpnConnection 0
+      VM::EC2::VPC::VpnGateway 0
+      VM::EC2::VPC::VpnGateway::Attachment 0
+      VM::EC2::VPC::VpnTunnelTelemetry 0
+      VM::EC2::Volume 0
+      VM::EC2::Volume::Status 0
+      VM::EC2::Volume::Status::Action 0
+      VM::EC2::Volume::Status::Details 0
+      VM::EC2::Volume::Status::Event 0
+      VM::EC2::Volume::StatusItem 0
     requirements:
       AnyEvent 7.04
       AnyEvent::HTTP 2.15

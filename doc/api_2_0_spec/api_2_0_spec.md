@@ -160,6 +160,7 @@ The following language are supported (by 2 letter language code):
 * `es` (Spanish)
 * `fi` (Finnish)
 * `fr` (French)
+* `ha` (Hausa)
 * `hi` (Hindi)
 * `hu` (Hungarian)
 * `it` (Italian)
