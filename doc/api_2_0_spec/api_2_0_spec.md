@@ -87,7 +87,7 @@
       - [Query Parameters](#query-parameters)   
       - [Example](#example)   
 - [Users](#users)   
-   - [api/v2/users/profile PENDING](#apiv2usersprofile-pending)   
+   - [api/v2/users/profile](#apiv2usersprofile-pending)   
       - [Query Parameters](#query-parameters)   
       - [Output Description](#output-description)   
       - [Example](#example)   
@@ -536,7 +536,7 @@ URL: https://api.mediacloud.org/api/v2/stories_public/single/27456565
 | ---------------------------- | ---------------------- | ------------------------------------------------------------------------------|
 | `last_processed_stories_id`  | 0  | Return stories in which the `processed_stories_id` is greater than this value. |
 | `rows`                       | 20                     | Number of stories to return, max 10,000. |
-| `feeds_id` | null | Return only stories that match the given feeds_id, sorted my descending publish date PENDING |
+| `feeds_id` | null | Return only stories that match the given feeds_id, sorted my descending publish date |
 
 | `q`  | null  | If specified, return only results that match the given Solr query.  Only one `q` parameter may be included. |
 | `fq`             | null    | If specified, file results by the given Solr query.  More than one `fq` parameter may be included. |
@@ -1328,7 +1328,7 @@ URL: https://api.mediacloud.org/api/v2/timespans/list?snapshots_id=5
 
 # Auth
 
-## api/v2/auth/profile PENDING
+## api/v2/auth/profile
 
 | URL                     | Function
 | ----------------------- | -----------------

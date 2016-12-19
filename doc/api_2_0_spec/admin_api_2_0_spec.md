@@ -20,16 +20,16 @@
    - [api/v2/downloads/list/](#apiv2downloadslist)   
    - [Query Parameters](#query-parameters)   
 - [Tags](#tags)   
-   - [api/v2/stories/put_tags (PUT) PENDING](#apiv2storiesput_tags-put-pending)   
+   - [api/v2/stories/put_tags (PUT)](#apiv2storiesput_tags-put-pending)   
       - [Input Description](#input-description)   
       - [Example](#example)   
-   - [api/v2/sentences/put_tags (PUT) PENDING](#apiv2sentencesput_tags-put-pending)   
+   - [api/v2/sentences/put_tags (PUT)](#apiv2sentencesput_tags-put-pending)   
       - [Input Description](#input-description)   
       - [Example](#example)   
-   - [api/v2/media/put_tags (PUT) PENDING](#apiv2mediaput_tags-put-pending)   
+   - [api/v2/media/put_tags (PUT)](#apiv2mediaput_tags-put-pending)   
       - [Input Description](#input-description)   
       - [Example](#example)   
-   - [api/v2/tags/create (POST) PENDING](#apiv2tagscreate-post-pending)   
+   - [api/v2/tags/create (POST)](#apiv2tagscreate-post-pending)   
       - [Query Parameters](#query-parameters)   
    - [api/v2/tags/update (PUT)](#apiv2tagsupdate-put)   
       - [Query Parameters](#query-parameters)   
@@ -41,21 +41,21 @@
       - [Granting Permissions](#granting-permissions)   
       - [Exceptions - user name tag set](#exceptions-user-name-tag-set)   
 - [Feeds](#feeds)   
-   - [api/v2/feeds/create (POST) PENDING](#apiv2feedscreate-post-pending)   
+   - [api/v2/feeds/create (POST)](#apiv2feedscreate-post-pending)   
       - [Input Description](#input-description)   
       - [Example](#example)   
-   - [api/v2/feeds/update (PUT) PENDING](#apiv2feedsupdate-put-pending)   
+   - [api/v2/feeds/update (PUT)](#apiv2feedsupdate-put-pending)   
       - [Input Description](#input-description)   
       - [Example](#example)   
-   - [api/v2/feeds/scrape (POST) PENDING](#apiv2feedsscrape-post-pending)   
+   - [api/v2/feeds/scrape (POST)](#apiv2feedsscrape-post-pending)   
       - [Input Description](#input-description)   
       - [Example](#example)   
 - [Media](#media)   
-   - [api/v2/media/create (POST) PENDING](#apiv2mediacreate-post-pending)   
+   - [api/v2/media/create (POST)](#apiv2mediacreate-post-pending)   
       - [Input Description](#input-description)   
       - [Output Description](#output-description)   
       - [Example](#example)   
-   - [api/v2/media/update (PUT) PENDING](#apiv2mediaupdate-put-pending)   
+   - [api/v2/media/update (PUT)](#apiv2mediaupdate-put-pending)   
       - [Input Description](#input-description)   
       - [Example](#example)   
    - [api/v2/media/suggestions/list PENDING](#apiv2mediasuggestionslist-pending)   
@@ -399,7 +399,7 @@ None.
 
 These calls allow users to edit tag data, including both the metadata of the tags themselves and their associations with stories, sentences, and media.
 
-## api/v2/stories/put_tags (PUT) PENDING
+## api/v2/stories/put_tags (PUT)
 
 | URL                          | Function
 | ---------------------------- | --------------------------------------------------
@@ -451,7 +451,7 @@ Output:
 { "success": 1 }
 ```
 
-## api/v2/sentences/put_tags (PUT) PENDING
+## api/v2/sentences/put_tags (PUT)
 
 | URL                                  | Function
 | ------------------------------------ | -----------------------------------------------------------
@@ -486,7 +486,7 @@ Output:
 { "success": 1 }
 ```
 
-## api/v2/media/put_tags (PUT) PENDING
+## api/v2/media/put_tags (PUT)
 
 | URL                     | Function                  |
 | ----------------------- | ------------------------- |
@@ -521,7 +521,7 @@ Output:
 { "success": 1 }
 ```
 
-## api/v2/tags/create (POST) PENDING
+## api/v2/tags/create (POST)
 
 | URL                            | Function             |
 | ------------------------------ | -------------------- |
@@ -589,9 +589,9 @@ These permissions are described below:
 | `apply_tags`                | The user may apply existing tags within the tag set to stories and sentences |
 | `create_tags`               | The user may create new tags within the tag set |
 
-In addition, users with the `stories-edit` role can add or remove tags from any story or sentences, and users with the `media-edit` role can add or remove tags from any media source.  Users with the `admin` role can edit all tags and associations. PENDING
+In addition, users with the `stories-edit` role can add or remove tags from any story or sentences, and users with the `media-edit` role can add or remove tags from any media source.  Users with the `admin` role can edit all tags and associations.
 
-In addition, users with the `stories-edit` role can add or remove tags from any story or sentences, and users with the `media-edit` role can add or remove tags from any media source.  Users with the `admin` role can edit all tags and associations. PENDING
+In addition, users with the `stories-edit` role can add or remove tags from any story or sentences, and users with the `media-edit` role can add or remove tags from any media source.  Users with the `admin` role can edit all tags and associations.
 
 ### Granting Permissions
 
@@ -608,7 +608,7 @@ Note that this exception is based purely on a string comparison of the tag set n
 
 # Feeds
 
-## api/v2/feeds/create (POST) PENDING
+## api/v2/feeds/create (POST)
 
 | URL                 | Description       |
 | ------------------- | ----------------- |
@@ -650,7 +650,7 @@ Output:
 { "success": 1 }
 ```
 
-## api/v2/feeds/update (PUT) PENDING
+## api/v2/feeds/update (PUT)
 
 | URL                 | Description             |
 | ------------------- | ----------------------- |
@@ -683,7 +683,7 @@ Output:
 
 
 
-## api/v2/feeds/scrape (POST) PENDING
+## api/v2/feeds/scrape (POST)
 
 | URL                 | Description                         |
 | ------------------- | ----------------------------------- |
