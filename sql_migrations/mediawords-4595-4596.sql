@@ -26,7 +26,7 @@ alter table media add is_monitored                boolean not null default false
 alter table tags add is_static boolean not null default false;
 
 insert into auth_users_roles_map ( auth_users_id, auth_roles_id )
-    select email, auth_users_id, auth_roles_id
+    select auth_users_id, auth_roles_id
         from auth_users u
             join auth_roles r on ( r.role = 'admin-readonly' )
         where
