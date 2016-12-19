@@ -147,7 +147,8 @@ SQL
     if ( my $q = $c->req->params->{ q } )
     {
         $q = "timespans_id:$timespans_id and ( $q )";
-        my $solr_stories_id = MediaWords::Solr::search_for_stories_ids( $c->dbis, { q => $q } );
+
+        my $solr_stories_id = MediaWords::Solr::search_for_stories_ids( $c->dbis, { q => $q, rows => 10_000_000 } );
 
         my $ids_table = $c->dbis->get_temporary_ids_table( $solr_stories_id );
         push( @{ $clauses }, "s.stories_id in ( select id from $ids_table )" );
@@ -168,7 +169,10 @@ sub list_GET
 
     my $db = $c->dbis;
 
-    my $sort_param = $c->req->params->{ sort } || 'inlink';
+    $c->req->params->{ sort }  ||= 'inlink';
+    $c->req->params->{ limit } ||= 1000;
+
+    my $sort_param = $c->req->params->{ sort };
 
     # md5 hashing is to make tie breaks random but consistent
     my $sort_clause =
@@ -222,7 +226,7 @@ sub count_GET
 
     if ( $q )
     {
-        $c->req->params->{ q } = "{~ timespan:$timespans_id } and ( $q )";
+        $c->req->params->{ q } = "timespans_id:$timespans_id and ( $q )";
         return $c->controller( 'Api::V2::Stories_Public' )->count_GET( $c );
     }
     else
