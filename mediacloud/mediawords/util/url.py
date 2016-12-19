@@ -826,35 +826,41 @@ def get_url_distinctive_domain(url: str) -> str:
     * kardashian.blogspot.com => kardashian.blogspot.com
 
     Return original URL if unable to process the URL."""
-    url = decode_string_from_bytes_if_needed(url)
 
-    url = fix_common_url_mistakes(url)
+    try:
+        url = decode_string_from_bytes_if_needed(url)
 
-    host = get_url_host(url)
-    if host is None:
-        return url
+        url = fix_common_url_mistakes(url)
 
-    name_parts = host.split('.')
-    n = len(name_parts) - 1
+        host = get_url_host(url)
+        if host is None:
+            return url
 
-    if re.search(r'\.(gov|org|com?)\...$', host, re.I):
-        # foo.co.uk -> foo.co.uk instead of co.uk
-        parts = [str(name_parts[n - 2]), str(name_parts[n - 1]), str(name_parts[n])]
-        domain = '.'.join(parts)
-    elif re.search(r'\.(edu|gov)$', host, re.I):
-        parts = [str(name_parts[n - 2]), str(name_parts[n - 1])]
-        domain = '.'.join(parts)
-    elif re.search(
-                    r'go.com|wordpress.com|blogspot|livejournal.com|privet.ru|wikia.com|feedburner.com'
-                    + '|24open.ru|patch.com|tumblr.com', host, re.I
-    ):
-        # identify sites in these domains as the whole host name (abcnews.go.com instead of go.com)
-        domain = host
-    else:
-        parts = [str(name_parts[n - 1] or ''), str(name_parts[n] or '')]
-        domain = '.'.join(parts)
+        name_parts = host.split('.')
+        n = len(name_parts) - 1
 
-    return domain.lower()
+        if re.search(r'\.(gov|org|com?)\...$', host, re.I):
+            # foo.co.uk -> foo.co.uk instead of co.uk
+            parts = [str(name_parts[n - 2]), str(name_parts[n - 1]), str(name_parts[n])]
+            domain = '.'.join(parts)
+        elif re.search(r'\.(edu|gov)$', host, re.I):
+            parts = [str(name_parts[n - 2]), str(name_parts[n - 1])]
+            domain = '.'.join(parts)
+        elif re.search(
+                        r'go.com|wordpress.com|blogspot|livejournal.com|privet.ru|wikia.com|feedburner.com'
+                        + '|24open.ru|patch.com|tumblr.com', host, re.I
+        ):
+            # identify sites in these domains as the whole host name (abcnews.go.com instead of go.com)
+            domain = host
+        else:
+            parts = [str(name_parts[n - 1] or ''), str(name_parts[n] or '')]
+            domain = '.'.join(parts)
+
+        return domain.lower()
+
+    except Exception as ex:
+        l.debug( "get_url_distinctive_domain falling back to url: " + str( ex ) )
+        return url.lower()
 
 
 def meta_refresh_url_from_html(html: str, base_url: str = None) -> Optional[str]:
