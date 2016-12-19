@@ -333,12 +333,23 @@ SQL
         {
             for my $b ( @{ $stories_ids } )
             {
-                $expected_link_lookup->{ $a }->{ $b } = 1 unless ( $a == $b );
+                $expected_link_lookup->{ $a }->{ $b }++ unless ( $a == $b );
             }
         }
     }
 
+    my $twitter_coshare_threshold = 3;
+
     my $expected_num_links = 0;
+    for my $a ( keys( %{ $expected_link_lookup } ) )
+    {
+        for my $b ( keys( %{ $expected_link_lookup->{ $a } } ) )
+        {
+            delete $expected_link_lookup->{ $a }->{ $b }
+              unless ( $expected_link_lookup->{ $a }->{ $b } >= $twitter_coshare_threshold );
+        }
+    }
+
     map { $expected_num_links += scalar( keys( %{ $expected_link_lookup->{ $_ } } ) ) } keys( %{ $expected_link_lookup } );
 
     my $topic_links = $db->query( "select * from topic_links where topics_id = \$1", $twitter_topic->{ topics_id } )->hashes;
@@ -349,8 +360,10 @@ SQL
     {
         my $stories_id     = $topic_link->{ stories_id };
         my $ref_stories_id = $topic_link->{ ref_stories_id };
-        ok( $expected_link_lookup->{ $stories_id }->{ $ref_stories_id },
-            "valid topic link: $stories_id -> $ref_stories_id" );
+        ok(
+            $expected_link_lookup->{ $stories_id }->{ $ref_stories_id } >= 3,
+            "valid topic link: $stories_id -> $ref_stories_id"
+        );
     }
 
     my $timespan = MediaWords::TM::get_latest_overall_timespan( $db, $twitter_topic->{ topics_id } );
