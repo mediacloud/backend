@@ -15,7 +15,8 @@ __PACKAGE__->config(
     action => {
         single => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         list   => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        update => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        create => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
+        update => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
@@ -24,49 +25,49 @@ sub get_table_name
     return "tag_sets";
 }
 
+sub get_update_fields($)
+{
+    return [ qw/name label description show_on_media show_on_stories/ ];
+}
+
 sub update : Local : ActionClass('MC_REST')
 {
 }
 
 sub update_PUT
 {
-    my ( $self, $c, $id ) = @_;
+    my ( $self, $c ) = @_;
 
-    my $name        = $c->req->params->{ 'name' };
-    my $label       = $c->req->params->{ 'label' };
-    my $description = $c->req->params->{ 'description' };
+    my $data = $c->req->data;
 
-    my $tag_set = $c->dbis->find_by_id( 'tag_sets', $id );
+    $self->require_fields( $c, [ qw/tag_sets_id/ ] );
 
-    die 'tag set not found ' unless defined( $tag_set );
+    my $tag_set = $c->dbis->require_by_id( 'tag_sets', $data->{ tag_sets_id } );
 
-    $self->die_unless_user_can_edit_tag_set_descriptors( $c, $tag_set );
+    my $input = { map { $_ => $data->{ $_ } } grep { exists( $data->{ $_ } ) } @{ $self->get_update_fields } };
 
-    if ( defined( $name ) )
-    {
-        DEBUG "updating name to '$name'";
-        $c->dbis->query( "UPDATE tag_sets set name = ? where tag_sets_id = ? ", $name, $id );
-    }
+    my $row = $c->dbis->update_by_id( 'tag_sets', $data->{ tag_sets_id }, $input );
 
-    if ( defined( $label ) )
-    {
-        DEBUG "updating label to '$label'";
-        $c->dbis->query( "UPDATE tag_sets set label = ? where tag_sets_id = ? ", $label, $id );
-    }
+    return $self->status_ok( $c, entity => { tag_set => $row } );
+}
 
-    if ( defined( $description ) )
-    {
-        DEBUG "updating description to '$description'";
-        $c->dbis->query( "UPDATE tag_sets set description = ? where tag_sets_id = ? ", $description, $id );
-    }
+sub create : Local : ActionClass( 'MC_REST' )
+{
+}
 
-    die unless defined( $name ) || defined( $label ) || defined( $description );
+sub create_GET
+{
+    my ( $self, $c ) = @_;
 
-    $tag_set = $c->dbis->find_by_id( 'tag_sets', $id );
+    my $data = $c->req->data;
 
-    $self->status_ok( $c, entity => $tag_set );
+    $self->require_fields( $c, [ qw/name label/ ] );
 
-    return;
+    my $input = { map { $_ => $data->{ $_ } } grep { exists( $data->{ $_ } ) } @{ $self->get_update_fields } };
+
+    my $row = $c->dbis->create( 'tag_sets', $input );
+
+    return $self->status_ok( $c, entity => { tag_set => $row } );
 }
 
 1;

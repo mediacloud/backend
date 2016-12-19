@@ -35,7 +35,7 @@ sub test_url
 
     $params->{ key } = $_key;
 
-    my $url = URI::new( );
+    my $url = URI::new();
     $url->query_form( $params );
     $url->path( $path );
 
@@ -53,27 +53,32 @@ sub test_url
 # run the dashboard queries required
 sub run_dashboard_queries
 {
-    my ( $topic) = @_;
+    my ( $topic ) = @_;
 
-    my $query = $topic->{ solr_seed_query };
+    my $query      = $topic->{ solr_seed_query };
     my $start_date = substr( $topic->{ start_date }, 0, 10 );
-    my $end_date = substr( $topic->{ end_date }, 0, 10 );
+    my $end_date   = substr( $topic->{ end_date }, 0, 10 );
 
     my $start_time = time;
 
-    test_url( '/api/v2/sentences/list', { q => $query, rows => 10, sort => 'random' }, sub { @{ $_[0]->{ response }->{ docs } } > 0 } );
+    test_url(
+        '/api/v2/sentences/list',
+        { q => $query, rows => 10, sort => 'random' },
+        sub { @{ $_[ 0 ]->{ response }->{ docs } } > 0 }
+    );
 
-    test_url( '/api/v2/sentences/count', { q => $query }, sub { $_[0]->{ count } > 0 } );
-    test_url( '/api/v2/stories/count', { q => $query }, sub { $_[0]->{ count } > 0 } );
+    test_url( '/api/v2/sentences/count', { q => $query }, sub { $_[ 0 ]->{ count } > 0 } );
+    test_url( '/api/v2/stories/count',   { q => $query }, sub { $_[ 0 ]->{ count } > 0 } );
 
     test_url(
         '/api/v2/sentences/count',
         { q => $query, split => 1, split_start_date => $start_date, split_end_date => $end_date },
-        sub { ( $_[0]->{ count } > 0 ) && $_[0]->{ split } } );
+        sub { ( $_[ 0 ]->{ count } > 0 ) && $_[ 0 ]->{ split } }
+    );
 
-    test_url( '/api/v2/wc/list', { q => $query }, sub { $_[0]->[0]->{ count } > 0 } );
+    test_url( '/api/v2/wc/list', { q => $query }, sub { $_[ 0 ]->[ 0 ]->{ count } > 0 } );
 
-    test_url( '/api/v2/sentences/field_count', { q => $query }, sub { $_[0]->[0]->{ count } > 0 } );
+    test_url( '/api/v2/sentences/field_count', { q => $query }, sub { $_[ 0 ]->[ 0 ]->{ count } > 0 } );
 
     DEBUG( "elapsed time for '$query': " . ( time - $start_time ) );
 }
@@ -87,7 +92,7 @@ sub main
     if ( @ARGV )
     {
         my $end_date = MediaWords::Util::SQL::sql_now;
-        $topics = [ map { { solr_seed_query => $_, start_date => '2010-01-01', end_date => $end_date } } @ARGV ]
+        $topics = [ map { { solr_seed_query => $_, start_date => '2010-01-01', end_date => $end_date } } @ARGV ];
     }
     else
     {
@@ -100,8 +105,16 @@ select solr_seed_query, start_date, end_date
 SQL
     }
 
-    my $key = $db->query( "select api_token from auth_users where non_public_api limit 1" )->flat;
-    die( "Unable to find non_public_api api_token in auth_users" ) unless ( $key );
+    my $key = $db->query( <<SQL )->flat;
+select api_token
+    from auth_users
+        join auth_users_roles_map using ( auth_users_id )
+        join auth_roles using ( auth_roles_id )
+    where
+        role in ( 'admin-readonly', 'admin' )
+    limit 1
+SQL
+    die( "Unable to find admin api_token in auth_users" ) unless ( $key );
 
     $_key = $key;
 

@@ -369,12 +369,14 @@ sub update_by_id($$$$)
         delete( $hash->{ $k } );
     }
 
-    my $r = $self->update( $table, $hash, { $id_col => $id } );
+    $self->update( $table, $hash, { $id_col => $id } );
 
     while ( my ( $k, $v ) = each( %{ $hidden_values } ) )
     {
         $hash->{ $k } = $v;
     }
+
+    my $r = $self->query( "select * from $table where $id_col = \$1", $id )->hash;
 
     return $r;
 }

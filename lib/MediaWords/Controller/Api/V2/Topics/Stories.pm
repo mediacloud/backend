@@ -60,14 +60,16 @@ sub _get_extra_where_clause($$)
 
     if ( my $media_id = $c->req->params->{ media_id } )
     {
-        $media_id += 0;
-        push( @{ $clauses }, "s.media_id = $media_id" );
+        my $media_ids = ref( $media_id ) ? $media_id : [ $media_id ];
+        my $media_ids_list = join( ',', map { $_ += 0 } @{ $media_ids } );
+        push( @{ $clauses }, "s.media_id in ( $media_ids_list )" );
     }
 
     if ( my $stories_id = $c->req->params->{ stories_id } )
     {
-        $stories_id += 0;
-        push( @{ $clauses }, "s.stories_id = $stories_id" );
+        my $stories_ids = ref( $stories_id ) ? $stories_id : [ $stories_id ];
+        my $stories_ids_list = join( ',', map { $_ += 0 } @{ $stories_ids } );
+        push( @{ $clauses }, "s.stories_id in ( $stories_ids_list )" );
     }
 
     if ( my $link_to_stories_id = $c->req->params->{ link_to_stories_id } )

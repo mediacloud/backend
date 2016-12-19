@@ -53,7 +53,6 @@ sub create_user
     my $user_notes                        = $notes;
     my $user_is_active                    = 1;
     my $user_roles                        = $default_roles_ids;
-    my $user_non_public_api_access        = 0;
     my $user_weekly_requests_limit        = $default_weekly_requests_limit;
     my $user_weekly_requested_items_limit = $default_weekly_requested_items_limit;
     my $user_password                     = MediaWords::Util::Text::random_string( 64 );
@@ -61,13 +60,12 @@ sub create_user
 
     INFO "Adding user: " .
       Dumper( $mc_url, $user_email, $user_full_name, $user_notes, $user_roles, $user_is_active,
-        $user_password, $user_password_repeat, $user_non_public_api_access,
-        $user_weekly_requests_limit, $user_weekly_requested_items_limit );
+        $user_password, $user_password_repeat, $user_weekly_requests_limit, $user_weekly_requested_items_limit );
 
     # Add user
     my $add_user_error_message =
       MediaWords::DBI::Auth::add_user_or_return_error_message( $db, $user_email, $user_full_name,
-        $user_notes, $user_roles, $user_is_active, $user_password, $user_password_repeat, $user_non_public_api_access,
+        $user_notes, $user_roles, $user_is_active, $user_password, $user_password_repeat,
         $user_weekly_requests_limit, $user_weekly_requested_items_limit );
 
     if ( $add_user_error_message )

@@ -439,7 +439,7 @@ sub _tokenize_text_with_lingua_sentence
 
     unless ( $text )
     {
-        WARN "Text is empty after processing it.";
+        DEBUG "Text is empty after processing it.";
         return [];
     }
 

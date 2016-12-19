@@ -168,6 +168,9 @@ sub _verify_processes_status($$)
 {
     my ( $db, $processes ) = @_;
 
+    # first send 'start' to all processes so that any stopped ones are starting in parallel
+    map { _run_supervisorctl( "start $_" ) } @{ $processes };
+
     for my $process ( @{ $processes } )
     {
         my $process_is_running = 0;
@@ -246,15 +249,16 @@ sub test_with_supervisor($;$)
 
     $start_processes ||= [];
 
-    _run_supervisord();
-
     eval {
-        my $status = `$_supervisorctl_bin status`;
-        die( "bad supervisor status after startup: '$status'" ) if ( $status !~ /STOPPED|STARTING|RUNNING/ );
-
         MediaWords::Test::DB::test_on_test_database(
             sub {
                 my ( $db ) = @_;
+
+                _run_supervisord();
+
+                my $status = `$_supervisorctl_bin status`;
+                die( "bad supervisor status after startup: '$status'" ) if ( $status !~ /STOPPED|STARTING|RUNNING/ );
+
                 _verify_processes_status( $db, $start_processes );
                 _verify_processes_ready( $db, $start_processes );
                 $func->( $db );

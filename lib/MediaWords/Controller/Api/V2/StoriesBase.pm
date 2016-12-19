@@ -336,6 +336,20 @@ sub _get_object_ids
 {
     my ( $self, $c, $last_id, $rows ) = @_;
 
+    my $db = $c->dbis;
+
+    if ( my $feeds_id = $c->req->params->{ feeds_id } )
+    {
+        die( "cannot specify both 'feeds_id' and either 'q' or 'fq'" )
+          if ( $c->req->params->{ q } || $c->req->params->{ fq } );
+
+        my $stories_ids = $db->query( <<SQL, $feeds_id )->flat;
+select processed_stories_id from processed_stories join feeds_stories_map using ( stories_id ) where feeds_id = ?
+SQL
+
+        return $stories_ids;
+    }
+
     my $q = $c->req->param( 'q' ) || '*:*';
 
     my $fq = $c->req->params->{ fq } || [];
@@ -343,7 +357,7 @@ sub _get_object_ids
 
     my $sort = $c->req->param( 'sort' );
 
-    return MediaWords::Solr::search_for_processed_stories_ids( $c->dbis, $q, $fq, $last_id, $rows, $sort );
+    return MediaWords::Solr::search_for_processed_stories_ids( $db, $q, $fq, $last_id, $rows, $sort );
 }
 
 sub _fetch_list($$$$$$)
@@ -365,6 +379,8 @@ sub _fetch_list($$$$$$)
     my $db = $c->dbis;
 
     $db->begin;
+
+    DEBUG( "ps_ids: " . scalar( @{ $ps_ids } ) );
 
     my $ids_table = $db->get_temporary_ids_table( $ps_ids, 1 );
 
@@ -392,6 +408,7 @@ sub _fetch_list($$$$$$)
                 ON stories.media_id = media.media_id
             LEFT JOIN stories_ap_syndicated ap
                 ON stories.stories_id = ap.stories_id
+
         ORDER BY ps_ids.order_pkey
         LIMIT ?
 SQL

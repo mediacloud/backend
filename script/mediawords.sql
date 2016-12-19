@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4595;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4596;
 
 BEGIN
 
@@ -329,6 +329,15 @@ create table media (
 
     last_solr_import_date       timestamp with time zone not null default now(),
 
+    -- notes for internal media cloud consumption (eg. 'added this for yochai')
+    editor_notes                text null,
+    -- notes for public consumption (eg. 'leading dissident paper in anatarctica')
+    public_notes                text null,
+
+    -- if true, indicates that media cloud closely monitors the health of this source
+    is_monitored                boolean not null default false,
+
+
     CONSTRAINT media_name_not_empty CHECK ( ( (name)::text <> ''::text ) ),
     CONSTRAINT media_self_dup CHECK ( dup_media_id IS NULL OR dup_media_id <> media_id )
 );
@@ -550,11 +559,22 @@ LANGUAGE 'plpgsql';
 
 create table tag_sets (
     tag_sets_id            serial            primary key,
+
+    --unique identifier
     name                varchar(512)    not null,
+
+    -- short human readable label
     label               varchar(512),
+
+    -- longer human readable description
     description         text,
+
+    -- should public interfaces show this as an option for searching media sources
     show_on_media       boolean,
+
+    -- should public interfaces show this as an option for search stories
     show_on_stories     boolean,
+
     CONSTRAINT tag_sets_name_not_empty CHECK (((name)::text <> ''::text))
 );
 
@@ -563,11 +583,25 @@ create unique index tag_sets_name on tag_sets (name);
 create table tags (
     tags_id                serial            primary key,
     tag_sets_id            int                not null references tag_sets,
+
+    -- unique identifier
     tag                    varchar(512)    not null,
-    label                  varchar(512),
-    description            text,
-    show_on_media          boolean,
-    show_on_stories        boolean,
+
+    -- short human readable label
+    label               varchar(512),
+
+    -- longer human readable description
+    description         text,
+
+    -- should public interfaces show this as an option for searching media sources
+    show_on_media       boolean,
+
+    -- should public interfaces show this as an option for search stories
+    show_on_stories     boolean,
+
+    -- if true, users can expect this tag ans its associations not to change in major ways
+    is_static              boolean not null default false,
+
         CONSTRAINT no_line_feed CHECK (((NOT ((tag)::text ~~ '%
 %'::text)) AND (NOT ((tag)::text ~~ '%
 %'::text)))),
@@ -2144,7 +2178,6 @@ CREATE TABLE auth_users (
     full_name       TEXT    NOT NULL,
     notes           TEXT    NULL,
 
-    non_public_api  BOOLEAN NOT NULL DEFAULT false,
     active          BOOLEAN NOT NULL DEFAULT true,
 
     -- Salted hash of a password reset token (with Crypt::SaltedHash, algorithm => 'SHA-256',
