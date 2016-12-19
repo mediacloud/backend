@@ -58,9 +58,6 @@ use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 use MediaWords::Util::Bitly;
 
-# min number of users need to coshare two urls to generate a link
-Readonly my $TWITTER_COSHARE_THRESHOLD => 3;
-
 # max number of solely self linked stories to include
 Readonly my $MAX_SELF_LINKED_STORIES => 100;
 
@@ -2815,7 +2812,11 @@ update topic_seed_urls tsu
         ts.topics_id = \$1
 SQL
 
-    my $num_generated_links = $db->query_with_large_work_mem( <<SQL, $topic->{ topics_id } )->rows;
+    my ( $num_topic_stories ) = $db->query( <<SQL, $topic->{ topics_id } )->flat;
+select count(*) from topic_stories where topics_id = \$1
+SQL
+
+    my $num_generated_links = $db->query_with_large_work_mem( <<SQL, $topic->{ topics_id }, $num_topic_stories )->rows;
 insert into topic_links ( topics_id, stories_id, url, redirect_url, ref_stories_id, link_spidered )
     with coshared_links as (
         select
@@ -2839,7 +2840,8 @@ insert into topic_links ( topics_id, stories_id, url, redirect_url, ref_stories_
         select cs.stories_id_a, min( cs.url) url, cs.stories_id_b
             from coshared_links cs
             group by cs.stories_id_a, cs.stories_id_b
-            having count(*) >= $TWITTER_COSHARE_THRESHOLD
+            order by count(*) desc, cs.stories_id_a, cs.stories_id_b
+            limit \$2
         )
 
     select distinct \$1, cs.stories_id_a, cs.url, cs.url, cs.stories_id_b, true

@@ -338,19 +338,30 @@ SQL
         }
     }
 
-    my $twitter_coshare_threshold = 3;
+    my ( $num_topic_stories ) = $db->query( <<SQL, $twitter_topic->{ topics_id } )->flat;
+select count(*) from topic_stories where topics_id = \$1
+SQL
 
-    my $expected_num_links = 0;
+    my $shared_link_counts = [];
+
     for my $a ( keys( %{ $expected_link_lookup } ) )
     {
         for my $b ( keys( %{ $expected_link_lookup->{ $a } } ) )
         {
-            delete $expected_link_lookup->{ $a }->{ $b }
-              unless ( $expected_link_lookup->{ $a }->{ $b } >= $twitter_coshare_threshold );
+            push( @{ $shared_link_counts }, [ $a, $b, $expected_link_lookup->{ $a }->{ $b } ] );
         }
     }
 
-    map { $expected_num_links += scalar( keys( %{ $expected_link_lookup->{ $_ } } ) ) } keys( %{ $expected_link_lookup } );
+    my $sort_links = sub {
+        $b->[ 2 ] <=> $a->[ 2 ]
+          || $a->[ 0 ] <=> $b->[ 0 ]
+          || $a->[ 1 ] <=> $b->[ 1 ];
+    };
+    $shared_link_counts = [ sort $sort_links @{ $shared_link_counts } ];
+
+    splice( @{ $shared_link_counts }, $num_topic_stories );
+
+    my $expected_num_links = scalar( @{ $shared_link_counts } );
 
     my $topic_links = $db->query( "select * from topic_links where topics_id = \$1", $twitter_topic->{ topics_id } )->hashes;
 
@@ -360,10 +371,10 @@ SQL
     {
         my $stories_id     = $topic_link->{ stories_id };
         my $ref_stories_id = $topic_link->{ ref_stories_id };
-        ok(
-            $expected_link_lookup->{ $stories_id }->{ $ref_stories_id } >= 3,
-            "valid topic link: $stories_id -> $ref_stories_id"
-        );
+
+        my $valid_link = grep { $_->[ 0 ] == $stories_id && $_->[ 1 ] == $ref_stories_id } @{ $shared_link_counts };
+
+        ok( $valid_link, "valid topic link: $stories_id -> $ref_stories_id" );
     }
 
     my $timespan = MediaWords::TM::get_latest_overall_timespan( $db, $twitter_topic->{ topics_id } );
