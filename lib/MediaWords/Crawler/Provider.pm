@@ -162,10 +162,10 @@ sub _add_stale_feeds
 
     my $stale_feed_interval = $STALE_FEED_INTERVAL;
 
-    # if we're in feed archiving mode, download every feed once a day
+    # if we're in feed archiving mode, download every feed every two hours
     if ( ( MediaWords::Util::Config::get_config->{ mediawords }->{ do_not_process_feeds } || '' ) eq 'yes' )
     {
-        $stale_feed_interval = 86400;
+        $stale_feed_interval = 3600 * 2;
     }
 
     DEBUG "_add_stale_feeds";
