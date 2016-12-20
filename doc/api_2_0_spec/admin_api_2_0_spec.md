@@ -527,9 +527,9 @@ Output:
 | ------------------------------ | -------------------- |
 | `api/v2/tags/create` | Create the given tag |
 
-### Query Parameters
+### Input Description
 
-| Parameter     | Notes                                    |
+| Field     | Description                                    |
 | ------------- | ---------------------------------------- |
 | `tag`         | New name for the tag.                    |
 | `label`       | New label for the tag.                   |
@@ -538,32 +538,87 @@ Output:
 | `show_on_stories` | Show as an option for searching media sources |
 | `is_static`   | True if this is a tag whose contents should be expected to remain static over time |
 
+### Example
+
+https://api.mediacloud.org/api/v2/tags/create
+
+Input:
+
+```json
+{
+    "tag": "sample_tag",
+    "label": "Sample Tag",
+    "description": "This is a sample tag for an api example.",
+    "show_on_media": 0,
+    "show_on_stories": 0,
+    "is_static": 0
+}
+```
+
+Output:
+
+```json
+{ "tag":
+    {
+        "tags_id": 123,
+        "tag": "sample_tag",
+        "label": "Sample Tag",
+        "description": "This is a sample tag for an api example.",
+        "show_on_media": 0,
+        "show_on_stories": 0,
+        "is_static": 0
+    }    
+}
+```
 
 ## api/v2/tags/update (PUT)
 
 | URL                            | Function             |
 | ------------------------------ | -------------------- |
-| `api/v2/tags/update/<tags_id>` | Update the given tag |
+| `api/v2/tags/update` | Update the given tag |
 
-### Query Parameters
+### Input Description
 
-See api/v2/tags/create above.
+See api/v2/tags/create above.  The update call also requires a tags_id field
 
 ### Example
 
-```
-curl -X PUT -d 'tag=test_tagXX' -d 'label=YY' -d 'description=Bfoo' http://api.mediacloud.org/api/v2/tags/update/23
+https://api.mediacloud.org/api/v2/tags/update
+
+Input:
+
+```json
+{
+    "tags_id": 123,
+    "tag": "sample_tag_updated"
+}
 ```
 
-## api/v2/tag_sets/update (PUT)
+Output:
+
+```json
+{ "tag":
+    {
+        "tags_id": 123,
+        "tag": "sample_tag_updated",
+        "label": "Sample Tag",
+        "description": "This is a sample tag for an api example.",
+        "show_on_media": 0,
+        "show_on_stories": 0,
+        "is_static": 0
+    }    
+}
+```
+
+## api/v2/tag_sets/create (PUT)
 
 | URL                                   | Function                                 |
 | ------------------------------------- | ---------------------------------------- |
-| `api/v2/tag_sets/update/<tag_sets_id` | Alter the tag set in which `tag_sets_id` equals `<tag_sets_id>` |
+| `api/v2/tag_sets/create` | Create a new tag set |
 
-### Query Parameters
+### Input Description
 
-| Parameter     | Notes                            |
+| Field     | Description                            |
 | ------------- | -------------------------------- |
 | `name`        | New name for the tag set.        |
 | `label`       | New label for the tag set.       |
@@ -571,40 +626,68 @@ curl -X PUT -d 'tag=test_tagXX' -d 'label=YY' -d 'description=Bfoo' http://api.m
 
 ### Example
 
+https://api.mediacloud.org/api/v2/tag_sets/update/
+
+Input:
+
+```json
+{
+    "nane": "sample_tag_set",
+    "label": "Sample Tag Set",
+    "description": "This is a sample tag set for an api example"
+}
 ```
-curl -X PUT -d 'name=collection' -d 'label=XXXX' -d 'description=foo' http://api.mediacloud.org/api/v2/tag_sets/update/1
+
+Output:
+
+```json
+{
+    "tag_set":
+    {
+        "tag_sets_id": 456,
+        "nane": "sample_tag_set",
+        "label": "Sample Tag Set",
+        "description": "This is a sample tag set for an api example"
+    }
+}
 ```
 
-## Tag Set Permissions
+## api/v2/tag_sets/update (PUT)
 
-Within the administrative backend users are granted permissions at the tag set level.
-For each tag set a users may have up to 4 of the following permissions: edit_tag_descriptors, edit_tag_descriptors, appy_tags, and create_tags.
+| URL                                   | Function                                 |
+| ------------------------------------- | ---------------------------------------- |
+| `api/v2/tag_sets/update` | Update the given tag set |
 
-These permissions are described below:
+### Input Description
 
-| Parameter                   | Notes                                    |
-| --------------------------- | ---------------------------------------- |
-| ` edit_tag_descriptors`     | For all tags in the tag set, the user may alter the tag name, tag description, and tag label using the api/v2/tags/update API call |
-| ` edit_tag_set_descriptors` | The user may alter the tag set name, tag set description, and tag  set label for the tag set using the api/v2/tag_sets/update API call |
-| `apply_tags`                | The user may apply existing tags within the tag set to stories and sentences |
-| `create_tags`               | The user may create new tags within the tag set |
+See tags/create above.  The tag_sets/update call also requires a tag_sets_id field.
 
-In addition, users with the `stories-edit` role can add or remove tags from any story or sentences, and users with the `media-edit` role can add or remove tags from any media source.  Users with the `admin` role can edit all tags and associations.
+### Example
 
-In addition, users with the `stories-edit` role can add or remove tags from any story or sentences, and users with the `media-edit` role can add or remove tags from any media source.  Users with the `admin` role can edit all tags and associations.
+https://api.mediacloud.org/api/v2/tag_sets/update
 
-### Granting Permissions
+Input:
 
-Tag set permissions must be explicitly granted to users in the administrative backend UI.
-To grant user permissions go to  https://core.mediacloud.org/admin/users/list and click the Edit Tag Set Permissions link for that user.
+```json
+{
+    "tag_sets_id": 456,
+    "nane": "sample_tag_set_update",
+}
+```
 
-Do to the importance of tags and the potential for confusion and accidential misuse, permissions must be explicitly granted on a per user basis by administrators. With the exception of user name tag sets (see below), the default is for users to have no tag set permissions that have not been explicitly granted.
+Output:
 
-### Exceptions - user name tag set
-
-If the name of the tag_set matches the user's email address, they will be granted all 4 of the permissions above for that tag set.  For example, a user with the email address jdoe@mediacloud.org would be able to
-
-Note that this exception is based purely on a string comparison of the tag set name with the user's email. Thus if a user creates a tag set that matched their email address, they will be able to alter this tag set and its tags. However, if the user changes the name of the tag_set, through a call to api/v2/tag_sets/update, so that it no longer matches their email address, they will no longer have permissions for this tag set unless they have been explicitly given access in the administrative backend.
+```json
+{
+    "tag_set":
+    {
+        "tag_sets_id": 456,
+        "nane": "sample_tag_set_update",
+        "label": "Sample Tag Set",
+        "description": "This is a sample tag set for an api example"
+    }
+}
+```
 
 # Feeds
 
