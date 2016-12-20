@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4596;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4597;
 
 BEGIN
 
@@ -1064,8 +1064,6 @@ create table story_sentences (
 );
 
 create index story_sentences_story on story_sentences (stories_id, sentence_number);
-create index story_sentences_language on story_sentences(language);
-create index story_sentences_media_id    on story_sentences( media_id );
 create index story_sentences_db_row_last_updated    on story_sentences( db_row_last_updated );
 
 CREATE INDEX story_sentences_sentence_half_md5
