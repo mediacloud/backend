@@ -610,7 +610,7 @@ Output:
 }
 ```
 
-## api/v2/tag_sets/create (PUT)
+## api/v2/tag_sets/create (POST)
 
 | URL                                   | Function                                 |
 | ------------------------------------- | ---------------------------------------- |
