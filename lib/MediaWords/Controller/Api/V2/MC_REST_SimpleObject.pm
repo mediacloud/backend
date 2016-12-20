@@ -630,7 +630,6 @@ sub _process_single_put_tag($$$)
 insert into $map_table ( $id_field, tags_id )
     select \$1, \$2 where not exists ( select 1 from $map_table where $id_field = \$1 and tags_id = \$2 )
 SQL
-        my ( $c ) = $db->query( "select count(*) from stories_tags_map" )->flat;
     }
     elsif ( $action eq 'remove' )
     {
