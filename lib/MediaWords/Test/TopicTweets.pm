@@ -291,7 +291,7 @@ SQL
     is( $total_json_urls, $num_urls, "num of urls in json vs. num of urls in database" );
 }
 
-# validate that topic_links is what it should be by rebuilding the topic links directly from the
+# validate that snap.story_links is what it should be by rebuilding the topic links directly from the
 # ch + twitter json data stored in topic_tweets and generating a link list using perl
 sub validate_topic_links
 {
@@ -339,38 +339,29 @@ SQL
     }
 
     my ( $num_topic_stories ) = $db->query( <<SQL, $twitter_topic->{ topics_id } )->flat;
-select count(*) from topic_stories where topics_id = \$1
+select count(*) from topic_stories where topics_id = ?
 SQL
 
-    my $shared_link_counts = [];
+    my $story_links = $db->query( <<SQL, $twitter_topic->{ topics_id } )->hashes;
+select *
+    from snap.story_links sl
+        join timespans t using ( timespans_id )
+        join snapshots s using ( snapshots_id )
+    where s.topics_id = \$1
+        and t.period = 'overall'
+SQL
 
-    for my $a ( keys( %{ $expected_link_lookup } ) )
+    ok( scalar( @{ $story_links } ) <= $num_topic_stories, "number of story links <= number of stories" );
+    ok( scalar( @{ $story_links } ) > 0, "number of story links > 0" ) if ( scalar( keys( %{ $expected_link_lookup } ) ) );
+
+    for my $story_link ( @{ $story_links } )
     {
-        for my $b ( keys( %{ $expected_link_lookup->{ $a } } ) )
-        {
-            push( @{ $shared_link_counts }, [ $a, $b, $expected_link_lookup->{ $a }->{ $b } ] );
-        }
-    }
+        my $source_stories_id = $story_link->{ source_stories_id };
+        my $ref_stories_id    = $story_link->{ ref_stories_id };
 
-    my $sort_links = sub { $b->[ 2 ] <=> $a->[ 2 ] || $a->[ 0 ] <=> $b->[ 0 ] || $a->[ 1 ] <=> $b->[ 1 ] };
-    $shared_link_counts = [ sort $sort_links @{ $shared_link_counts } ];
+        my $valid_link = $expected_link_lookup->{ $source_stories_id }->{ $ref_stories_id };
 
-    splice( @{ $shared_link_counts }, $num_topic_stories );
-
-    my $expected_num_links = scalar( @{ $shared_link_counts } );
-
-    my $topic_links = $db->query( "select * from topic_links where topics_id = \$1", $twitter_topic->{ topics_id } )->hashes;
-
-    is( scalar( @{ $topic_links } ), $expected_num_links, "number of topic links match" );
-
-    for my $topic_link ( @{ $topic_links } )
-    {
-        my $stories_id     = $topic_link->{ stories_id };
-        my $ref_stories_id = $topic_link->{ ref_stories_id };
-
-        my $valid_link = grep { $_->[ 0 ] == $stories_id && $_->[ 1 ] == $ref_stories_id } @{ $shared_link_counts };
-
-        ok( $valid_link, "valid topic link: $stories_id -> $ref_stories_id" );
+        ok( $valid_link, "valid story link: $source_stories_id -> $ref_stories_id" );
     }
 
     my $timespan = MediaWords::TM::get_latest_overall_timespan( $db, $twitter_topic->{ topics_id } );
@@ -380,7 +371,11 @@ SQL
 
     for my $slc ( @{ $story_link_counts } )
     {
-        is( $slc->{ simple_tweet_count }, $expected_story_tweet_counts->{ $slc->{ stories_id } }, "simple tweet count" );
+        is(
+            $slc->{ simple_tweet_count },
+            $expected_story_tweet_counts->{ $slc->{ stories_id } },
+            "simple tweet count for story $slc->{ stories_id }"
+        );
     }
 }
 
@@ -411,23 +406,23 @@ SQL
 
     $db->query( <<SQL, $twitter_topic->{ topics_id }, $timespans_id );
 create or replace temporary view period_topic_tweet_full_urls as
-    select ttfu.*
+    select min( ttfu.stories_id ) stories_id, s.media_id, ttfu.twitter_user
         from topic_tweet_full_urls ttfu
+            join stories s using ( stories_id )
             join timespans t on ( t.timespans_id = \$2 )
         where
-            publish_date between t.start_date and t.end_date and
+            ttfu.publish_date between t.start_date and t.end_date and
             ttfu.twitter_topics_id = \$1
+        group by s.media_id, ttfu.twitter_user
 SQL
 
     my ( $expected_num_story_links ) = $db->query( <<SQL )->flat;
 select count(*) from (
-    select distinct sa.stories_id source_stories_id, sb.stories_id ref_stories_id
+    select distinct ua.stories_id, ub.stories_id
         from period_topic_tweet_full_urls ua
             join period_topic_tweet_full_urls ub on ( ua.twitter_user = ub.twitter_user )
-            join stories sa on ( ua.stories_id = sa.stories_id )
-            join stories sb on ( ub.stories_id = sb.stories_id )
         where
-            sa.media_id <> sb.media_id
+            ua.media_id <> ub.media_id
 ) q
 SQL
 
