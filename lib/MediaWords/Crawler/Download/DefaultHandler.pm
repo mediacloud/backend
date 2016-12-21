@@ -132,8 +132,9 @@ sub handle_response($$$$)
     $db->query(
         <<SQL,
         UPDATE downloads
-        SET url = ?
-        WHERE downloads_id = ?
+        SET url = \$1
+        WHERE downloads_id = \$2
+            and url <> \$1
 SQL
         $download->{ url }, $download->{ downloads_id }
     );

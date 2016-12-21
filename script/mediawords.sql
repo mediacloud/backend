@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4597;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4598;
 
 BEGIN
 
@@ -2982,3 +2982,16 @@ create table snap.timespan_tweets (
 );
 
 create unique index snap_timespan_tweets_u on snap.timespan_tweets( timespans_id, topic_tweets_id );
+
+create table snap.tweet_stories (
+    snapshots_id        int not null references snapshots on delete cascade,
+    topic_tweets_id     int not null references topic_tweets on delete cascade,
+    publish_date        date not null,
+    twitter_user        varchar( 1024 ) not null,
+    stories_id          int not null,
+    media_id            int not null,
+    num_ch_tweets       int not null,
+    tweet_count         int not null
+);
+
+create index snap_tweet_stories on snap.tweet_stories ( snapshots_id );
