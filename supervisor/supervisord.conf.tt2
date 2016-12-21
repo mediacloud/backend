@@ -289,20 +289,6 @@ programs=solr_shard
 %]
 
 
-[group:thrift]
-programs=extractor_python_readability_server
-
-[% INCLUDE program_config
-    program='extractor_python_readability_server'
-    command='python2.7 python_scripts/extractor_python_readability_server.py'
-    default_stopasgroup='true'
-    default_killasgroup='true'
-    default_autorestart='true'
-    default_autostart='true'
-    default_nice=12
-%]
-
-
 ; Include custom user's configuration
 [include]
 files = supervisord.user.*.conf

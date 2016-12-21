@@ -21,4 +21,3 @@ pyyaml
 readability-lxml==0.6.2
 requests
 supervisor
-thrift

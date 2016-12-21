@@ -33,7 +33,6 @@ sub new($;$)
     $self->{ _no_delete }               = $args ? $args->{ no_delete }               : 0;
     $self->{ _skip_bitly_processing }   = $args ? $args->{ skip_bitly_processing }   : 0;
     $self->{ _skip_corenlp_annotation } = $args ? $args->{ skip_corenlp_annotation } : 0;
-    $self->{ _extractor_method }        = $args ? $args->{ extractor_method }        : undef;
     $self->{ _use_cache }               = $args ? $args->{ use_cache }               : undef;
 
     return $self;
@@ -73,22 +72,6 @@ sub use_cache($)
 {
     my $self = shift;
     return $self->{ _use_cache };
-}
-
-# Falls back to default extractor method in configuration
-sub extractor_method($)
-{
-    my $self = shift;
-
-    if ( $self->{ _extractor_method } )
-    {
-        return $self->{ _extractor_method };
-    }
-    else
-    {
-        my $config = MediaWords::Util::Config::get_config;
-        return $config->{ mediawords }->{ extractor_method };
-    }
 }
 
 1;

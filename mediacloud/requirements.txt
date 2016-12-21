@@ -18,6 +18,3 @@ readability-lxml==0.6.2
 
 # Normalizing URLs
 url_normalize
-
-# Binding code between Perl and Python Readability
-thrift

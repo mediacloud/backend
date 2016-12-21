@@ -6,16 +6,14 @@ A strong principle of Media Cloud is to use only generic algorithms for data pro
 
 The extractor jobs run as job workers, which are started by supervisor.  The number of extractor jobs run at once is configured in the supervisord section of `mediawords.yml`.
 
-The algorithmic work of extracting substantive content from a web page is done by the Perl extractor worker calling a Python Thrift web service (also started by supervisor and configured in `mediawords.yml`).
-
 The extractor worker actually does a variety of processing tasks related to extraction.  Most of the below is done by `MediaWords::StoryVectors::update_story_sentences_and_language()`, which is called immediately after extraction.
 
 Altogether, the extractor:
 
 * pulls the content for the stories downloads from the content store
 * substitutes the title and description (from the RSS feed) for the content if no content was found
-* calls the Thrift web service to do the extraction work
-* strips HTML from the extracted content returned by the Thrift web service
+* calls Readability to do the extraction work
+* strips HTML from the extracted content
 * stores the resulting extracted text in `download_texts`
 * detects the language of the story using the [chromium compact language detection library](https://github.com/mikemccand/chromium-compact-language-detector)
 * parses the extracted text into individual sentences
@@ -32,8 +30,5 @@ The code that does all of the above is unfortunately spread out in many places t
 
 Here are some of the places to look for specific bits of code:
 
-* `MediaWords::DBI::Downloads::extract()` - does some preprocessing on the content and then calls the extraction method specified in `mediawords.yml` -> `mediawords.extractor_method` (always the Python Readability
-extractor in production).
-* `MediaWords::Util::ThriftExtractor::get_extracted_html()` - calls the Thrift Python readability extractor web service to return extracted HTML from the raw HTML
-* `python_scripts/extractor_python_readability_server.py` - implementation of Thrift python readability web service
+* `MediaWords::DBI::Downloads::extract()` - does some preprocessing on the content and extracts text from it.
 * `MediaWords::StoryVectors::update_story_sentences_and_language() - does all of the above stuff after the extraction proper (parses sentences, assigns languages, queues further work, etc.)

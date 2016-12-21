@@ -16,7 +16,6 @@ mail:
 mediawords:
     always_show_stack_traces: no
     default_home_page: admin/media/list
-    extractor_method: InlinePythonReadability
     language: en_US_and_ru_RU
     owner: mediacloud@cyber.law.harvard.edu
     download_storage_locations:

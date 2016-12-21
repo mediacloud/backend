@@ -39,6 +39,7 @@ use Readonly;
 
 use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
+use MediaWords::Util::ExtractText;
 use MediaWords::DB;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
@@ -46,7 +47,6 @@ use MediaWords::DBI::Stories::ExtractorArguments;
 use MediaWords::StoryVectors;
 use MediaWords::Util::Paths;
 use MediaWords::Job::AnnotateWithCoreNLP;
-use MediaWords::Util::ThriftExtractor;
 use MediaWords::Util::URL;
 
 # FCGI might be running from an unwritable path so we need to set a custom
@@ -447,10 +447,6 @@ Run the extractor against the download content and return a hash in the form of:
     { extracted_html => $html,    # a string with the extracted html
       extracted_text => $text }   # a string with the extracted html strippped to text
 
-The extractor used is configured in mediawords.yml by mediawords.extractor_method.
-
-Extractor method can be overridden by setting $extractor_args->extractor_method().
-
 =cut
 
 sub extract($$;$)
@@ -458,8 +454,6 @@ sub extract($$;$)
     my ( $db, $download, $extractor_args ) = @_;
 
     $extractor_args //= MediaWords::DBI::Stories::ExtractorArguments->new();
-
-    my $extractor_method = $extractor_args->extractor_method();
 
     my $results;
     if ( $extractor_args->use_cache && ( $results = _get_cached_extractor_results( $db, $download ) ) )
@@ -469,7 +463,7 @@ sub extract($$;$)
 
     my $content_ref = fetch_content( $db, $download );
 
-    $results = extract_content_ref( $content_ref, $extractor_method );
+    $results = extract_content_ref( $content_ref );
 
     _set_cached_extractor_results( $db, $download, $results ) if ( $extractor_args->use_cache );
 
@@ -494,93 +488,29 @@ sub _parse_out_javascript_content
     return 0;
 }
 
-my $_python_readability_imported;
-
-sub _import_python_readability
-{
-    return if ( $_python_readability_imported );
-
-    use Inline Python => <<'PYTHON';
-
-def import_python_readability(mc_root):
-    """Imports Readability extractor helper from python_scripts/extractor_python_readability_server.py."""
-    import os, sys
-    sys.path.append(os.path.join(mc_root, "python_scripts"))
-
-    # Import globally
-    global extract_with_python_readability
-    from extractor_python_readability_server import extract_with_python_readability
-
-def extract_with_python_readability(html):
-    """Extracts HTML using Readability helper from python_scripts/extractor_python_readability_server.py."""
-    return extractor_python_readability_server.extract_with_python_readability(html)
-
-PYTHON
-
-    import_python_readability( MediaWords::Util::Config::get_mc_root_dir() );
-
-    $_python_readability_imported = 1;
-}
-
-# use inline python to get extracted html
-sub _get_inline_extracted_html
-{
-    my ( $content ) = @_;
-
-    _import_python_readability();
-
-    my $extracted_html = join( ' ', extract_with_python_readability( $content ) );
-
-    TRACE "inline extractor: " . length( $content ) . " -> " . length( $extracted_html );
-
-    return $extracted_html;
-}
-
 # call configured extractor on the content_ref
-sub _call_extractor_on_html($;$)
+sub _call_extractor_on_html($)
 {
-    my ( $content_ref, $extractor_method ) = @_;
+    my $content_ref = shift;
 
-    my $ret;
-    my $extracted_html;
-
-    if ( $extractor_method eq 'PythonReadability' )
-    {
-        $extracted_html = MediaWords::Util::ThriftExtractor::get_extracted_html( $$content_ref );
-    }
-    elsif ( $extractor_method eq 'InlinePythonReadability' )
-    {
-        $extracted_html = _get_inline_extracted_html( $$content_ref );
-    }
-    elsif ( $extractor_method eq 'HeuristicExtractor' )
-    {
-        die "Heuristic Extractor has been removed.";
-    }
-    else
-    {
-        die "Invalid extractor method: $extractor_method";
-    }
-
+    my $extracted_html = MediaWords::Util::ExtractText::extract_article_from_html( $$content_ref );
     my $extracted_text = html_strip( $extracted_html );
 
-    $ret->{ extracted_html } = $extracted_html;
-    $ret->{ extracted_text } = $extracted_text;
-
-    return $ret;
+    return {
+        'extracted_html' => $extracted_html,
+        'extracted_text' => $extracted_text,
+    };
 }
 
-=head2 extract_content_ref( $content_ref, $extractor_method )
+=head2 extract_content_ref( $content_ref )
 
 Accept a content_ref pointing to an HTML string.  Run the extractor on the HTMl and return the extracted text.
 
-If $extractor_method is specified, use the given extractor method, otherwise use the extractor method specified
-in mediawords.yml.
-
 =cut
 
-sub extract_content_ref($$)
+sub extract_content_ref($)
 {
-    my ( $content_ref, $extractor_method ) = @_;
+    my $content_ref = shift;
 
     my $extracted_html;
     my $ret = {};
@@ -596,12 +526,12 @@ sub extract_content_ref($$)
     }
     else
     {
-        $ret = _call_extractor_on_html( $content_ref, $extractor_method );
+        $ret = _call_extractor_on_html( $content_ref );
 
         # if we didn't get much text, try looking for content stored in the javascript
         if ( ( length( $ret->{ extracted_text } ) < 256 ) && _parse_out_javascript_content( $content_ref ) )
         {
-            my $js_ret = _call_extractor_on_html( $content_ref, $extractor_method );
+            my $js_ret = _call_extractor_on_html( $content_ref );
 
             $ret = $js_ret if ( length( $js_ret->{ extracted_text } ) > length( $ret->{ extracted_text } ) );
         }
