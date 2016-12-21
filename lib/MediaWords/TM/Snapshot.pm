@@ -476,34 +476,30 @@ sub write_story_links_snapshot
 
     if ( topic_is_twitter_topic( $db, $timespan ) )
     {
-        my ( $num_topic_stories ) = $db->query( "select count(*) from snapshot_period_stories" )->flat;
-
-        my $num_generated_links = $db->query_with_large_work_mem( <<SQL, $num_topic_stories )->rows;
+        my $num_generated_links = $db->query_with_large_work_mem( <<SQL )->rows;
 create temporary table snapshot_story_links as
 
-    with tweet_media_stories as (
-        select s.media_id, min( s.stories_id ) stories_id, s.twitter_user
+    with tweet_stories as (
+        select s.media_id, s.stories_id, s.twitter_user, s.publish_date
             from snapshot_tweet_stories s
                 join snapshot_timespan_tweets t using ( topic_tweets_id )
-            group by s.media_id, s.twitter_user
     ),
 
     coshared_links as (
         select
                 a.stories_id stories_id_a, a.twitter_user, b.stories_id stories_id_b
             from
-                tweet_media_stories a
-                join tweet_media_stories b using ( twitter_user )
+                tweet_stories a
+                join tweet_stories b using ( twitter_user )
             where
-                a.media_id <> b.media_id
+                a.media_id <> b.media_id and
+                date_trunc( 'week', a.publish_date ) = date_trunc( 'week', b.publish_date )
             group by a.stories_id, b.stories_id, a.twitter_user
     )
 
     select cs.stories_id_a source_stories_id, cs.stories_id_b ref_stories_id
         from coshared_links cs
         group by cs.stories_id_a, cs.stories_id_b
-        order by count(*) desc, cs.stories_id_a, cs.stories_id_b
-        limit \$1
 SQL
     }
     else
@@ -589,7 +585,7 @@ sub write_timespan_tweets_snapshot
     my $date_clause =
       $timespan->{ period } eq 'overall'
       ? '1=1'
-      : "publish_date >= $start_date_q and publish_date < $end_date_q";
+      : "publish_date between $start_date_q and $end_date_q";
 
     my $snapshot = $db->require_by_id( 'snapshots', $timespan->{ snapshots_id } );
     my $topic    = $db->require_by_id( 'topics',    $snapshot->{ topics_id } );
