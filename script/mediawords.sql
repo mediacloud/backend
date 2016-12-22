@@ -2969,13 +2969,6 @@ create view topic_tweet_full_urls as
             left join topic_seed_urls tsu
                 on ( tsu.topics_id in ( twt.twitter_parent_topics_id, twt.topics_id ) and ttu.url = tsu.url );
 
--- copy structure of topic_tweet_full_urls for snapshot table
-CREATE TABLE snap.topic_tweet_full_urls AS TABLE topic_tweet_full_urls WITH NO DATA;
-alter table snap.topic_tweet_full_urls add snapshots_id int references snapshots on delete cascade;
-
-create index snap_topic_tweet_full_urls_snap_story on snap.topic_tweet_full_urls( snapshots_id, stories_id );
-create index snap_topic_tweet_full_urls_snap_user on snap.topic_tweet_full_urls( snapshots_id, twitter_user );
-
 create table snap.timespan_tweets (
     topic_tweets_id     int not null references topic_tweets on delete cascade,
     timespans_id        int not null references timespans on delete cascade

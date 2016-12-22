@@ -408,7 +408,7 @@ sub _get_cached_extractor_results($$)
 select extracted_html, extracted_text from cached_extractor_results where downloads_id = ?
 SQL
 
-    DEBUG( $r ? "EXTRACTOR CACHE HIT" : "EXTRACTOR CACHE MISS" );
+    TRACE( $r ? "EXTRACTOR CACHE HIT" : "EXTRACTOR CACHE MISS" );
 
     return $r;
 }
