@@ -150,7 +150,7 @@ class MediaWords(object):
             WHERE table_name = 'database_variables'
         """).flat()) > 0
         if not db_vars_table_exists:
-            l.debug("Database table 'database_variables' does not exist, probably the database is empty at this point.")
+            l.info("Database table 'database_variables' does not exist, probably the database is empty at this point.")
             return True
 
         # Current schema version

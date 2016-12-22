@@ -18,7 +18,7 @@ def mc_root_path() -> str:
         __file__
     except NameError:
         pwd = os.getcwd()
-        l.warn("__file__ is undefined, trying current directory to pass as Media Cloud root: %s" % pwd)
+        l.debug("__file__ is undefined, trying current directory to pass as Media Cloud root: %s" % pwd)
         root_path = pwd
     else:
         root_path = os.path.realpath(os.path.join(__file__, "..", "..", "..", ".."))

@@ -10,6 +10,6 @@ def create_logger(name):
     handler.setFormatter(formatter)
 
     l = logging.getLogger(name)
-    l.setLevel(logging.DEBUG)
+    l.setLevel(logging.INFO)
     l.addHandler(handler)
     return l
