@@ -81,9 +81,9 @@ sub _store_failed_download_error_message($$$$)
             <<SQL,
             UPDATE downloads
             SET state = 'pending',
-                download_time = now() + \$1::interval,
-                error_message = \$2
-            WHERE downloads_id = \$3
+                download_time = now() + ?::interval,
+                error_message = ?
+            WHERE downloads_id = ?
 SQL
             "$error_num hours", $enc_error_message, $download->{ downloads_id }
         );
@@ -135,8 +135,9 @@ sub handle_response($$$$)
         UPDATE downloads
         SET url = ?
         WHERE downloads_id = ?
+            and url != ?
 SQL
-        $download->{ url }, $download->{ downloads_id }
+        $download->{ url }, $download->{ downloads_id }, $download->{ url }
     );
 
     my $story_ids_to_extract;

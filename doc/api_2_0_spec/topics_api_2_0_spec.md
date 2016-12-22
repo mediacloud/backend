@@ -798,7 +798,7 @@ The stories list call returns stories in the topic.
 | limit                | 20      | return the given number of stories       |
 | link_id              | null    | return stories using the paging link     |
 
-The call will return an error if more than one of the following parameters are specified: `q`, `stories_id`, `link_to_stories`, `link_from_stories_id`, `media_id`.
+The call will return an error if more than one of the following parameters are specified: `q`, `link_to_stories`, `link_from_stories_id`.  The `stories_id` and `media_id` parameters can be specified more than once to include stories from more than `stories_id` / `media_id`.
 
 For a detailed description of the format of the query specified in `q` parameter, see the entry for [stories_public/list](api_2_0_spec.md) in the main API spec.
 
@@ -1095,6 +1095,33 @@ Response:
     }
 }
 ```
+## media/map - DONE
+
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/media/map`
+
+The media list call returns a gexf formatted network map of the media in the topic / timespan.
+
+### Query Parameters
+
+| Parameter | Default | Notes                                    |
+| --------- | ------- | ---------------------------------------- |
+| color_field  | media_type    | node coloring; possible values: `partisan`, `media_type`          |
+| num_media      | 500  | number of media to map, sorted by media inlinks |
+
+Standard parameters accepted: snapshots_id, foci_id, timespans_id.
+
+### Output Description
+
+Output is a gexf formatted file, as described here:
+
+https://gephi.org/gexf/format/
+
+### Example
+
+Return the network map for topic id 12:
+
+`https://api.mediacloud.org/api/v2/topics/12/media/map`
+
 ## media/~media_id~/edit (PUT) - TODO
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/media/~media_id~/edit`

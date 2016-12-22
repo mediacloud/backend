@@ -284,4 +284,26 @@ sub handle_request
     TRACE( "exit" );
 }
 
+# return the port the hashserver is running on
+sub port($) { return $_[ 0 ]->{ port } }
+
+# return the pages hash
+sub pages($) { return $_[ 0 ]->{ pages } }
+
+# return the url for the given page on the test server or die of the path does not exist
+sub page_url($$)
+{
+    my ( $self, $path ) = @_;
+
+    $path ||= '';
+
+    $path = "/$path" unless ( $path =~ m~^/~ );
+
+    my $page = $self->pages->{ $path };
+
+    die( "no page for path '$path'" ) unless ( $page );
+
+    return "http://localhost:" . $self->port . "$path";
+}
+
 1;

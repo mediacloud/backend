@@ -24,63 +24,69 @@ use URI::Escape;
 
 use MediaWords::Test::DB;
 
-# public and private key users
+# public and admin_read key users
 my $_public_user;
-my $_private_user;
-my $_admin_user;
 
 # test topics
 my $_public_topic;
 my $_topic_a;
 my $_topic_b;
 
-# this hash maps each api end point to the kind of permission it should have: public, private, or topics
+# this hash maps each api end point to the kind of permission it should have: public, admin_read, or topics
 my $_url_permission_types = {
-    '/api/v2/auth/single'                         => 'private',
+    '/api/v2/auth/single'                         => 'admin_read',
+    '/api/v2/auth/profile'                        => 'public',
     '/api/v2/controversies/list'                  => 'public',
     '/api/v2/controversies/single'                => 'public',
     '/api/v2/controversy_dumps/list'              => 'public',
     '/api/v2/controversy_dumps/single'            => 'public',
     '/api/v2/controversy_dump_time_slices/list'   => 'public',
     '/api/v2/controversy_dump_time_slices/single' => 'public',
-    '/api/v2/crawler/add_feed_download'           => 'private',
-    '/api/v2/downloads/list'                      => 'private',
-    '/api/v2/downloads/single'                    => 'private',
+    '/api/v2/crawler/add_feed_download'           => 'admin',
+    '/api/v2/downloads/list'                      => 'admin_read',
+    '/api/v2/downloads/single'                    => 'admin_read',
     '/api/v2/feeds/list'                          => 'public',
     '/api/v2/feeds/single'                        => 'public',
+    '/api/v2/feeds/create'                        => 'media_edit',
+    '/api/v2/feeds/update'                        => 'media_edit',
     '/api/v2/mc_rest_simpleobject/list'           => 'public',
     '/api/v2/mc_rest_simpleobject/single'         => 'public',
     '/api/v2/mediahealth/list'                    => 'public',
     '/api/v2/mediahealth/single'                  => 'public',
     '/api/v2/media/list'                          => 'public',
     '/api/v2/media/single'                        => 'public',
+    '/api/v2/media/create'                        => 'media_edit',
+    '/api/v2/media/put_tags'                      => 'media_edit',
+    '/api/v2/media/update'                        => 'media_edit',
     '/api/v2/sentences/count'                     => 'public',
     '/api/v2/sentences/field_count'               => 'public',
-    '/api/v2/sentences/list'                      => 'private',
-    '/api/v2/sentences/put_tags'                  => 'private',
-    '/api/v2/sentences/single'                    => 'private',
+    '/api/v2/sentences/list'                      => 'admin_read',
+    '/api/v2/sentences/put_tags'                  => 'stories_edit',
+    '/api/v2/sentences/single'                    => 'admin_read',
     '/api/v2/storiesbase/count'                   => 'public',
     '/api/v2/storiesbase/list'                    => 'public',
     '/api/v2/storiesbase/single'                  => 'public',
     '/api/v2/storiesbase/word_matrix'             => 'public',
-    '/api/v2/stories/cluster_stories'             => 'private',
-    '/api/v2/stories/corenlp'                     => 'private',
+    '/api/v2/stories/cluster_stories'             => 'admin_read',
+    '/api/v2/stories/corenlp'                     => 'admin_read',
     '/api/v2/stories/count'                       => 'public',
-    '/api/v2/stories/fetch_bitly_clicks'          => 'private',
-    '/api/v2/stories/list'                        => 'private',
+    '/api/v2/stories/fetch_bitly_clicks'          => 'admin_read',
+    '/api/v2/stories/list'                        => 'admin_read',
     '/api/v2/stories_public/count'                => 'public',
     '/api/v2/stories_public/list'                 => 'public',
     '/api/v2/stories_public/single'               => 'public',
     '/api/v2/stories_public/word_matrix'          => 'public',
-    '/api/v2/stories/put_tags'                    => 'private',
-    '/api/v2/stories/single'                      => 'private',
+    '/api/v2/stories/put_tags'                    => 'stories_edit',
+    '/api/v2/stories/single'                      => 'admin_read',
     '/api/v2/stories/word_matrix'                 => 'public',
     '/api/v2/tag_sets/list'                       => 'public',
     '/api/v2/tag_sets/single'                     => 'public',
-    '/api/v2/tag_sets/update'                     => 'private',
+    '/api/v2/tag_sets/update'                     => 'admin',
+    '/api/v2/tag_sets/create'                     => 'admin',
     '/api/v2/tags/list'                           => 'public',
     '/api/v2/tags/single'                         => 'public',
-    '/api/v2/tags/update'                         => 'private',
+    '/api/v2/tags/update'                         => 'admin',
+    '/api/v2/tags/create'                         => 'admin',
     '/api/v2/topics/focal_set_definitions/create' => 'topics_write',
     '/api/v2/topics/focal_set_definitions/delete' => 'topics_write',
     '/api/v2/topics/focal_set_definitions/list'   => 'topics_read',
@@ -93,6 +99,7 @@ my $_url_permission_types = {
     '/api/v2/topics/focus_definitions/update'     => 'topics_write',
     '/api/v2/topics/list'                         => 'public',
     '/api/v2/topics/media/list'                   => 'topics_read',
+    '/api/v2/topics/media/map'                    => 'topics_read',
     '/api/v2/topics/permissions/list'             => 'topics_admin',
     '/api/v2/topics/permissions/update'           => 'topics_admin',
     '/api/v2/topics/permissions/user_list'        => 'public',
@@ -122,6 +129,7 @@ my $_url_transformations = {
     '/api/v2/topics/focus_definitions/list'       => '/api/v2/topics/~topics_id~/focus_definitions/list',
     '/api/v2/topics/focus_definitions/update'     => '/api/v2/topics/~topics_id~/focus_definitions/~dummy_id~/update',
     '/api/v2/topics/media/list'                   => '/api/v2/topics/~topics_id~/media/list',
+    '/api/v2/topics/media/map'                    => '/api/v2/topics/~topics_id~/media/map',
     '/api/v2/topics/permissions/list'             => '/api/v2/topics/~topics_id~/permissions/list',
     '/api/v2/topics/permissions/update'           => '/api/v2/topics/~topics_id~/permissions/update',
     '/api/v2/topics/permissions/user_list'        => '/api/v2/topics/permissions/user/list',
@@ -205,28 +213,43 @@ sub test_user_permission
     map { ok( $_->code == $expected_code, "$message - $url: " . $_->as_string ) } @{ $responses };
 }
 
-sub test_public_permission($)
+# test a page with one of the permission types in the $permission_roles hash below.  verify that only
+# the roles in the permission_roles table have access to the page.  create a new user for each
+# tested user as needed.
+sub test_role_permission($$$)
 {
-    my ( $url ) = @_;
+    my ( $db, $url, $permission_type ) = @_;
+
+    my $permission_roles = {
+        'admin'        => [ qw/admin/ ],
+        'admin_read'   => [ qw/admin admin-readonly/ ],
+        'media_edit'   => [ qw/admin media-edit/ ],
+        'stories_edit' => [ qw/admin stories-edit media-edit/ ],
+        'public'       => [ qw/admin admin-readonly media-edit stories-edit/ ]
+    };
+
+    my $permitted_roles = $permission_roles->{ $permission_type }
+      || die( "unknown permission type '$permission_type'" );
 
     $url = transform_url( $url );
 
     test_key_required( $url );
 
-    test_user_permission( $url, $_public_user,  1, "public user accepted for public url" );
-    test_user_permission( $url, $_private_user, 1, "private user accepted for public url" );
-}
+    my $all_roles = {};
+    for my $r ( values( %{ $permission_roles } ) )
+    {
+        map { $all_roles->{ $_ } = 1 } @{ $r };
+    }
 
-sub test_private_permission($)
-{
-    my ( $url ) = @_;
+    for my $role ( keys( %{ $all_roles } ) )
+    {
+        my $user = find_or_add_test_user( $db, $role );
+        my $role_has_permission = grep { $_ eq $role } @{ $permitted_roles };
+        test_user_permission( $url, $user, $role_has_permission,
+            "role permission for $url / $permission_type / $role / permitted: $role_has_permission" );
+    }
 
-    $url = transform_url( $url );
-
-    test_key_required( $url );
-
-    test_user_permission( $url, $_public_user,  0, "public user rejected for public url" );
-    test_user_permission( $url, $_private_user, 1, "private user accepted for public url" );
+    test_user_permission( $url, $_public_user, $permission_type eq 'public', "public user accepted for public url $url" );
 }
 
 # use $_url_transformations to insert any necessary ids into the given url
@@ -306,11 +329,10 @@ sub test_topics_admin_permission($)
     test_user_permission( $public_topic_url, $_public_user, 0, "public user rejected for public topic" );
 }
 
-# lookup the permission type in $_url_permission_types and make sure that the url follows the rules for its
-# permission type
-sub test_permission($)
+# test that the url follows the rules for its permission type
+sub test_permission($$)
 {
-    my ( $url ) = @_;
+    my ( $db, $url ) = @_;
 
     my $permission_type = $_url_permission_types->{ $url };
 
@@ -318,27 +340,30 @@ sub test_permission($)
 
     return unless ( $permission_type );
 
-    if    ( $permission_type eq 'public' )       { test_public_permission( $url ) }
-    elsif ( $permission_type eq 'private' )      { test_private_permission( $url ) }
-    elsif ( $permission_type eq 'topics_read' )  { test_topics_read_permission( $url ) }
+    if    ( $permission_type eq 'topics_read' )  { test_topics_read_permission( $url ) }
     elsif ( $permission_type eq 'topics_write' ) { test_topics_write_permission( $url ) }
     elsif ( $permission_type eq 'topics_admin' ) { test_topics_admin_permission( $url ) }
-    else                                         { ok( undef, "unknown permission type '$permission_type' for $url" ) }
+    else                                         { test_role_permission( $db, $url, $permission_type ) }
 }
 
-# add user of type 'public' or 'private' and return the resulting auth_users hash;
-sub add_test_user($$)
+# find or add user with email $role@foo.bar.  if $role corresponds to a row in auth_roles, add the auth_role to the user
+sub find_or_add_test_user($$)
 {
-    my ( $db, $type ) = @_;
+    my ( $db, $role ) = @_;
 
-    my $email       = $type . '@foo.bar';
-    my $password    = '123456789';
-    my $private_api = ( $type eq 'private' ) ? 1 : 0;
+    my $email    = $role . '@foo.bar';
+    my $password = '123456789';
 
-    my $error = MediaWords::DBI::Auth::add_user_or_return_error_message( $db, $email, $type, $type, [], 1,
-        $password, $password, $private_api, 1000000, 1000000 );
+    my $user = $db->query( "select * from auth_users where email = ?", $email )->hash;
 
-    die( "error adding $type user: $error" ) if ( $error );
+    return $user if ( $user );
+
+    my $roles = $db->query( "select auth_roles_id from auth_roles where role = ?", $role )->flat;
+
+    my $error = MediaWords::DBI::Auth::add_user_or_return_error_message( $db, $email, $role, $role, $roles, 1,
+        $password, $password, 10000000, 10000000 );
+
+    die( "error adding $role user: $error" ) if ( $error );
 
     return $db->query( "select * from auth_users where email = ?", $email )->hash;
 }
@@ -348,7 +373,7 @@ sub add_topic_user($$$)
 {
     my ( $db, $topic, $permission ) = @_;
 
-    my $user = add_test_user( $db, "$topic->{ name } $permission" );
+    my $user = find_or_add_test_user( $db, "topic $topic->{ name } $permission" );
 
     $db->create(
         'topic_permissions',
@@ -394,8 +419,7 @@ sub test_permissions($$)
 {
     my ( $db, $api_urls ) = @_;
 
-    $_public_user  = add_test_user( $db, 'public' );
-    $_private_user = add_test_user( $db, 'private' );
+    $_public_user = find_or_add_test_user( $db, 'public' );
 
     $_public_topic = add_topic( $db, 'public topic', 1 );
     $_topic_a      = add_topic( $db, 'topic a' );
@@ -403,7 +427,7 @@ sub test_permissions($$)
 
     for my $url ( @{ $api_urls } )
     {
-        test_permission( $url );
+        test_permission( $db, $url );
     }
 }
 

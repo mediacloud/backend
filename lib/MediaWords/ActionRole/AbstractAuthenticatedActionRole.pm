@@ -137,4 +137,25 @@ sub _user_email_and_roles($$)
     return ( $user_email, \@user_roles );
 }
 
+# require one of the given roles for authentication.  return anything if one of the given roles is found. die if not.
+sub _require_role($$$)
+{
+    my ( $self, $c, $roles ) = @_;
+
+    my ( $user_email, $user_roles ) = $self->_user_email_and_roles( $c );
+    unless ( $user_email and $user_roles )
+    {
+        $c->response->status( HTTP_FORBIDDEN );
+        die 'Invalid API key or authentication cookie. Access denied.';
+    }
+
+    for my $role ( @{ $roles } )
+    {
+        return 1 if ( grep { $_ eq $role } @{ $user_roles } );
+    }
+
+    $c->response->status( HTTP_FORBIDDEN );
+    die( "User lacks one of these required permissions for the requested page: " . join( ', ', @{ $roles } ) );
+}
+
 1;

@@ -87,7 +87,7 @@
       - [Query Parameters](#query-parameters)   
       - [Example](#example)   
 - [Users](#users)   
-   - [api/v2/users/profile PENDING](#apiv2usersprofile-pending)   
+   - [api/v2/users/profile](#apiv2usersprofile-pending)   
       - [Query Parameters](#query-parameters)   
       - [Output Description](#output-description)   
       - [Example](#example)   
@@ -537,7 +537,7 @@ URL: https://api.mediacloud.org/api/v2/stories_public/single/27456565
 | ---------------------------- | ---------------------- | ------------------------------------------------------------------------------|
 | `last_processed_stories_id`  | 0  | Return stories in which the `processed_stories_id` is greater than this value. |
 | `rows`                       | 20                     | Number of stories to return, max 10,000. |
-| `feeds_id` | null | Return only stories that match the given feeds_id, sorted my descending publish date PENDING |
+| `feeds_id` | null | Return only stories that match the given feeds_id, sorted my descending publish date |
 
 | `q`  | null  | If specified, return only results that match the given Solr query.  Only one `q` parameter may be included. |
 | `fq`             | null    | If specified, file results by the given Solr query.  More than one `fq` parameter may be included. |
@@ -1022,6 +1022,7 @@ None.
 | description           | a couple of sentences describing the meaning of the tag
 | show\_on\_media       | recommendation to show this tag as an option for searching solr using the tags_id_media
 | show\_on\_stories     | recommendation to show this tag as an option for searching solr using the tags_id_stories
+| is\_static            | if true, users can expect this tag and its associations not to change in major ways
 | tag\_set\_name        | name field of associated tag set
 | tag\_set\_label       | label field of associated tag set
 | tag\_set\_description | description field of associated tag set
@@ -1071,7 +1072,6 @@ Response:
 | `rows`          | 20         | Number of tags to return. Cannot be larger than 100
 | `public`        | none       | If public=1, return only public tags (see below)
 | `search`        | none       | Search for tags by text (see below)
-
 | `similar_tags_id` |  none |  return list of tags with a similar
 
 If set to 1, the public parameter will return only tags that are generally useful for public consumption.  Those
@@ -1111,7 +1111,6 @@ None.
 | description           | a couple of sentences describing the meaning of the tag
 | show\_on\_media       | recommendation to show this tag as an option for searching solr using the tags_id_media
 | show\_on\_stories     | recommendation to show this tag as an option for searching solr using the tags_id_stories
-
 
 The show\_on\_media and show\_on\_stories fields are useful for picking out which tags are likely to be useful for
 external researchers.  A tag should be considered useful for searching via tags\_id\_media or tags\_id\_stories
@@ -1328,13 +1327,13 @@ Response:
 
 URL: https://api.mediacloud.org/api/v2/timespans/list?snapshots_id=5
 
-# Users
+# Auth
 
-## api/v2/users/profile PENDING
+## api/v2/auth/profile
 
 | URL                     | Function
 | ----------------------- | -----------------
-| `api/v2/users/profile` | Return profile information about the requesting user
+| `api/v2/auth/profile` | Return profile information about the requesting user
 
 ### Query Parameters
 
@@ -1344,17 +1343,29 @@ URL: https://api.mediacloud.org/api/v2/timespans/list?snapshots_id=5
 
 Returns basic profile information about the current user.  Includes a list of  authentication roles for the user that give the user permission to access various parts of the backend web interface and some of the private api functionality (that for example allow editing and administration of Media Cloud's sources).
 
+Media Cloud currently includes the following authentication roles:
+
+| Role | Permission Gratned |
+|-|-|
+| admin | read and write every resource |
+| admin-readonly | read every resource |
+| media-edit | edit media sources |
+| stories-edit | edit stories |
+| search | access core.mediacloud.org/search page |
+| tm | access legacy topic mapper web interface |
+| tm-readonly | access legacy topic mapper web interface with editing privileges |
+
+
 ### Example
 
-URL: https://api.mediacloud.org/api/v2/users/profile
+URL: https://api.mediacloud.org/api/v2/auth/profile
 
 ```json
 {
   "email": "hroberts@cyber.law.harvard.edu",
-  "auth_userS_id": 1,
+  "auth_users_id": 1,
   "full_name": "Hal Roberts",
-  "notes": "Media Cloud Geek"
-  "non_public_api": 1,
+  "notes": "Media Cloud Geek",
   "created_date": "2014-12-10 13:36:29.537007",
   "auth_roles":
   [

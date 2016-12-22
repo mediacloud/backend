@@ -80,6 +80,8 @@ select s.*
         d.parent = ?
 SQL
 
+    $feed = $db->find_by_id( 'feeds', $feed->{ feeds_id } );
+
     DEBUG "FEED STATE POST: " . Dumper( $feed );
 
     DEBUG "ADDED " . scalar( @{ $stories } ) . " STORIES:";

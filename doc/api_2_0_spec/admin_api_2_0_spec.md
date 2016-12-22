@@ -20,16 +20,16 @@
    - [api/v2/downloads/list/](#apiv2downloadslist)   
    - [Query Parameters](#query-parameters)   
 - [Tags](#tags)   
-   - [api/v2/stories/put_tags (PUT) PENDING](#apiv2storiesput_tags-put-pending)   
+   - [api/v2/stories/put_tags (PUT)](#apiv2storiesput_tags-put-pending)   
       - [Input Description](#input-description)   
       - [Example](#example)   
-   - [api/v2/sentences/put_tags (PUT) PENDING](#apiv2sentencesput_tags-put-pending)   
+   - [api/v2/sentences/put_tags (PUT)](#apiv2sentencesput_tags-put-pending)   
       - [Input Description](#input-description)   
       - [Example](#example)   
-   - [api/v2/media/put_tags (PUT) PENDING](#apiv2mediaput_tags-put-pending)   
+   - [api/v2/media/put_tags (PUT)](#apiv2mediaput_tags-put-pending)   
       - [Input Description](#input-description)   
       - [Example](#example)   
-   - [api/v2/tags/create (POST) PENDING](#apiv2tagscreate-post-pending)   
+   - [api/v2/tags/create (POST)](#apiv2tagscreate-post-pending)   
       - [Query Parameters](#query-parameters)   
    - [api/v2/tags/update (PUT)](#apiv2tagsupdate-put)   
       - [Query Parameters](#query-parameters)   
@@ -41,21 +41,21 @@
       - [Granting Permissions](#granting-permissions)   
       - [Exceptions - user name tag set](#exceptions-user-name-tag-set)   
 - [Feeds](#feeds)   
-   - [api/v2/feeds/create (POST) PENDING](#apiv2feedscreate-post-pending)   
+   - [api/v2/feeds/create (POST)](#apiv2feedscreate-post-pending)   
       - [Input Description](#input-description)   
       - [Example](#example)   
-   - [api/v2/feeds/update (PUT) PENDING](#apiv2feedsupdate-put-pending)   
+   - [api/v2/feeds/update (PUT)](#apiv2feedsupdate-put-pending)   
       - [Input Description](#input-description)   
       - [Example](#example)   
-   - [api/v2/feeds/scrape (POST) PENDING](#apiv2feedsscrape-post-pending)   
+   - [api/v2/feeds/scrape (POST)](#apiv2feedsscrape-post-pending)   
       - [Input Description](#input-description)   
       - [Example](#example)   
 - [Media](#media)   
-   - [api/v2/media/create (POST) PENDING](#apiv2mediacreate-post-pending)   
+   - [api/v2/media/create (POST)](#apiv2mediacreate-post-pending)   
       - [Input Description](#input-description)   
       - [Output Description](#output-description)   
       - [Example](#example)   
-   - [api/v2/media/update (PUT) PENDING](#apiv2mediaupdate-put-pending)   
+   - [api/v2/media/update (PUT)](#apiv2mediaupdate-put-pending)   
       - [Input Description](#input-description)   
       - [Example](#example)   
    - [api/v2/media/suggestions/list PENDING](#apiv2mediasuggestionslist-pending)   
@@ -399,22 +399,30 @@ None.
 
 These calls allow users to edit tag data, including both the metadata of the tags themselves and their associations with stories, sentences, and media.
 
-## api/v2/stories/put_tags (PUT) PENDING
+## api/v2/stories/put_tags (PUT)
 
 | URL                          | Function
 | ---------------------------- | --------------------------------------------------
 | `api/v2/stories/put_tags`    | Add tags to a story. Must be a PUT request.
 
+### Query Parameters
+
+| Parameter                         | Default | Notes
+| --------------------------------- | ------- | -----------------------------------------------------------------
+| `clear_tag_sets`                  | 0       | If true, delete all tags in 'add' tag_sets other than the added tags
+
 ### Input Description
 
-Input for this call should be a json document with a list of records, each with a `stories_id` key and a `tag` key.  Each record may also contain an `action` key which can have the value of either `add` or `remove`; if not specified, the default `action` is `add`.
+Input for this call should be a json document with a list of records, each with a `stories_id` key and tag keys (see bwlow).  Each record may also contain an `action` key which can have the value of either `add` or `remove`; if not specified, the default `action` is `add`.
 
 To associate a story with more than one tag, include multiple different records with that story's id.
 A single call can include multiple stories as well as multiple tags.  Users are encouraged to batch writes for multiple stories into a single call to avoid the web server overhead of many small web service calls.
 
-The value for the `tag` key can be in one of two formats -- either the `tags_id` of the tag or the tag set name and tag in `<tag set>:<tag>` format, for example `gv_country:japan`.
+The tag can be specified with using a `tags_id` key or by specifying a `tag` and a `tag_set` key.  If the latter form
+is used, a new tag or tag_set will be created if ti does not already exist for the given value.
 
-If the tag is specified in the latter format and the given tag set does not exist, a new tag set with that name will be created by the current user.  If the tag does not exist, a new tag will be created within the given tag set.
+If the `clear_tags` parameter is set to 1, this will call will delete all tag associations for the given stories
+for each tag_set included in the list of tags other than the tags added by this call.
 
 ### Example
 
@@ -426,11 +434,13 @@ Input:
 [
   {
     "stories_id": 123456,
-    "tag": "gv_country:brazil"
+    "tags_id": "789123",
+    "action": "remove"
   }
   {
     "stories_id": 123456,
-    "tag": "gv_country:jaapan"
+    "tag": "japan",
+    "tag_set": "gv_country"
   }
 ]
 ```
@@ -441,7 +451,7 @@ Output:
 { "success": 1 }
 ```
 
-## api/v2/sentences/put_tags (PUT) PENDING
+## api/v2/sentences/put_tags (PUT)
 
 | URL                                  | Function
 | ------------------------------------ | -----------------------------------------------------------
@@ -476,7 +486,7 @@ Output:
 { "success": 1 }
 ```
 
-## api/v2/media/put_tags (PUT) PENDING
+## api/v2/media/put_tags (PUT)
 
 | URL                     | Function                  |
 | ----------------------- | ------------------------- |
@@ -484,7 +494,7 @@ Output:
 
 ### Input Description
 
-See input description for stories/put_tags, but replace `stories_id` with `story_sentences_id`.
+See input description for stories/put_tags, but replace `stories_id` with `media_id`.
 
 ### Example
 
@@ -511,47 +521,104 @@ Output:
 { "success": 1 }
 ```
 
-## api/v2/tags/create (POST) PENDING
+## api/v2/tags/create (POST)
 
 | URL                            | Function             |
 | ------------------------------ | -------------------- |
-| `api/v2/tags/update/<tags_id>` | Update the given tag |
+| `api/v2/tags/create` | Create the given tag |
 
-### Query Parameters
+### Input Description
 
-| Parameter     | Notes                                    |
+| Field     | Description                                    |
 | ------------- | ---------------------------------------- |
 | `tag`         | New name for the tag.                    |
 | `label`       | New label for the tag.                   |
 | `description` | New description for the tag.             |
+| `show_on_media` | Show as an option for searching media sources |
+| `show_on_stories` | Show as an option for searching media sources |
 | `is_static`   | True if this is a tag whose contents should be expected to remain static over time |
 
+### Example
+
+https://api.mediacloud.org/api/v2/tags/create
+
+Input:
+
+```json
+{
+    "tag": "sample_tag",
+    "label": "Sample Tag",
+    "description": "This is a sample tag for an api example.",
+    "show_on_media": 0,
+    "show_on_stories": 0,
+    "is_static": 0
+}
+```
+
+Output:
+
+```json
+{ "tag":
+    {
+        "tags_id": 123,
+        "tag": "sample_tag",
+        "label": "Sample Tag",
+        "description": "This is a sample tag for an api example.",
+        "show_on_media": 0,
+        "show_on_stories": 0,
+        "is_static": 0
+    }    
+}
+```
 
 ## api/v2/tags/update (PUT)
 
 | URL                            | Function             |
 | ------------------------------ | -------------------- |
-| `api/v2/tags/update/<tags_id>` | Update the given tag |
+| `api/v2/tags/update` | Update the given tag |
 
-### Query Parameters
+### Input Description
 
-See api/v2/tags/create above.
+See api/v2/tags/create above.  The update call also requires a tags_id field
 
 ### Example
 
-```
-curl -X PUT -d 'tag=test_tagXX' -d 'label=YY' -d 'description=Bfoo' http://api.mediacloud.org/api/v2/tags/update/23
+https://api.mediacloud.org/api/v2/tags/update
+
+Input:
+
+```json
+{
+    "tags_id": 123,
+    "tag": "sample_tag_updated"
+}
 ```
 
-## api/v2/tag_sets/update (PUT)
+Output:
+
+```json
+{ "tag":
+    {
+        "tags_id": 123,
+        "tag": "sample_tag_updated",
+        "label": "Sample Tag",
+        "description": "This is a sample tag for an api example.",
+        "show_on_media": 0,
+        "show_on_stories": 0,
+        "is_static": 0
+    }    
+}
+```
+
+## api/v2/tag_sets/create (POST)
 
 | URL                                   | Function                                 |
 | ------------------------------------- | ---------------------------------------- |
-| `api/v2/tag_sets/update/<tag_sets_id` | Alter the tag set in which `tag_sets_id` equals `<tag_sets_id>` |
+| `api/v2/tag_sets/create` | Create a new tag set |
 
-### Query Parameters
+### Input Description
 
-| Parameter     | Notes                            |
+| Field     | Description                            |
 | ------------- | -------------------------------- |
 | `name`        | New name for the tag set.        |
 | `label`       | New label for the tag set.       |
@@ -559,46 +626,72 @@ curl -X PUT -d 'tag=test_tagXX' -d 'label=YY' -d 'description=Bfoo' http://api.m
 
 ### Example
 
+https://api.mediacloud.org/api/v2/tag_sets/update/
+
+Input:
+
+```json
+{
+    "nane": "sample_tag_set",
+    "label": "Sample Tag Set",
+    "description": "This is a sample tag set for an api example"
+}
 ```
-curl -X PUT -d 'name=collection' -d 'label=XXXX' -d 'description=foo' http://api.mediacloud.org/api/v2/tag_sets/update/1
+
+Output:
+
+```json
+{
+    "tag_set":
+    {
+        "tag_sets_id": 456,
+        "nane": "sample_tag_set",
+        "label": "Sample Tag Set",
+        "description": "This is a sample tag set for an api example"
+    }
+}
 ```
 
-## Tag Set Permissions
+## api/v2/tag_sets/update (PUT)
 
-Within the administrative backend users are granted permissions at the tag set level.
-For each tag set a users may have up to 4 of the following permissions: edit_tag_descriptors, edit_tag_descriptors, appy_tags, and create_tags.
+| URL                                   | Function                                 |
+| ------------------------------------- | ---------------------------------------- |
+| `api/v2/tag_sets/update` | Update the given tag set |
 
-These permissions are described below:
+### Input Description
 
-| Parameter | Notes |
-| --------- | ----- |
-|           |       |
+See tags/create above.  The tag_sets/update call also requires a tag_sets_id field.
 
-| --------------------        | --------------------------------------------------------------------------
-| ` edit_tag_descriptors`     | For all tags in the tag set, the user may alter the tag name, tag description, and tag label using the api/v2/tags/update API call
-| ` edit_tag_set_descriptors` | The user may alter the tag set name, tag set description, and tag  set label for the tag set using the api/v2/tag_sets/update API call
-| `apply_tags`                | The user may apply existing tags within the tag set to stories and sentences
-| `create_tags`               | The user may create new tags within the tag set
+### Example
 
-In addition, users with the `stories-edit` role can add or remove tags from any story or sentences, and users with the `media-edit` role can add or remove tags from any media source.  Users with the `admin` role can edit all tags and associations. PENDING
+https://api.mediacloud.org/api/v2/tag_sets/update
 
+Input:
 
-### Granting Permissions
+```json
+{
+    "tag_sets_id": 456,
+    "nane": "sample_tag_set_update",
+}
+```
 
-Tag set permissions must be explicitly granted to users in the administrative backend UI.
-To grant user permissions go to  https://core.mediacloud.org/admin/users/list and click the Edit Tag Set Permissions link for that user.
+Output:
 
-Do to the importance of tags and the potential for confusion and accidential misuse, permissions must be explicitly granted on a per user basis by administrators. With the exception of user name tag sets (see below), the default is for users to have no tag set permissions that have not been explicitly granted.
-
-### Exceptions - user name tag set
-
-If the name of the tag_set matches the user's email address, they will be granted all 4 of the permissions above for that tag set.  For example, a user with the email address jdoe@mediacloud.org would be able to
-
-Note that this exception is based purely on a string comparison of the tag set name with the user's email. Thus if a user creates a tag set that matched their email address, they will be able to alter this tag set and its tags. However, if the user changes the name of the tag_set, through a call to api/v2/tag_sets/update, so that it no longer matches their email address, they will no longer have permissions for this tag set unless they have been explicitly given access in the administrative backend.
+```json
+{
+    "tag_set":
+    {
+        "tag_sets_id": 456,
+        "nane": "sample_tag_set_update",
+        "label": "Sample Tag Set",
+        "description": "This is a sample tag set for an api example"
+    }
+}
+```
 
 # Feeds
 
-## api/v2/feeds/create (POST) PENDING
+## api/v2/feeds/create (POST)
 
 | URL                 | Description       |
 | ------------------- | ----------------- |
@@ -640,7 +733,7 @@ Output:
 { "success": 1 }
 ```
 
-## api/v2/feeds/update (PUT) PENDING
+## api/v2/feeds/update (PUT)
 
 | URL                 | Description             |
 | ------------------- | ----------------------- |
@@ -673,13 +766,15 @@ Output:
 
 
 
-## api/v2/feeds/scrape (POST) PENDING
+## api/v2/feeds/scrape (POST)
 
 | URL                 | Description                         |
 | ------------------- | ----------------------------------- |
 | api/v2/feeds/scrape | scrape a media source for new feeds |
 
-This end point scrapes through the web site of the given media source to try to discover new feeds.  This call queues a scraping job on the backend, which can take a few minutes or a few hours to complete.
+This end point scrapes through the web site of the given media source to try to discover new feeds.  
+
+This call queues a scraping job on the backend, which can take a few minutes or a few hours to complete.  After invoking this end point, the `feed_scrape_status` field on the given media source (accessible via `api/v2/media/list` or `api/v2/media/single`) will immediately change to `pending`.  The status will change to `scraping` while the scraping job is executing and either `complete` when the scraping successfully completed or `scraping failed` if there was an error.
 
 ### Input Description
 
@@ -711,7 +806,7 @@ Output:
 
 # Media
 
-## api/v2/media/create (POST) PENDING
+## api/v2/media/create (POST)
 
 | URL                 | Description               |
 | ------------------- | ------------------------- |
@@ -796,7 +891,7 @@ Output:
 ]
 ```
 
-## api/v2/media/update (PUT) PENDING
+## api/v2/media/update (PUT)
 
 | URL                 | Description                     |
 | ------------------- | ------------------------------- |
@@ -859,7 +954,8 @@ Output:
     "date_marked": "",
     "media_suggestions_id": 1,
     "status": "pending",
-    "mark_reason": ""
+    "mark_reason": "",
+    "media_id": null
   }
 ]
 ```
@@ -877,11 +973,12 @@ Note that marking a suggestion as approved does not automatically create the med
 
 ### Input Description
 
-| Field                | Description                         |
-| -------------------- | ----------------------------------- |
-| media_suggestions_id | suggestion id (required)            |
-| status               | 'approved' or 'rejected' (required) |
-| mark_reason          | reason for approving or rejecting   |
+| Field                | Description                              |
+| -------------------- | ---------------------------------------- |
+| media_suggestions_id | suggestion id (required)                 |
+| status               | 'approved' or 'rejected' (required)      |
+| mark_reason          | reason for approving or rejecting        |
+| media_id             | associated the given media source with an 'approved' suggestion |
 
 ### Example
 
@@ -894,7 +991,8 @@ Input:
   {
     "media_suggestions_id": 1,
     "status": "approved",
-    "mark_reason": "Media Cloud is great"
+    "mark_reason": "Media Cloud is great",
+    "media_id": 2
   }
 ]
 ```

@@ -40,12 +40,12 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::StoriesBase' }
 
 __PACKAGE__->config(
     action => {
-        single             => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        list               => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        put_tags           => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        fetch_bitly_clicks => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        cluster_stories    => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        corenlp            => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        single             => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
+        list               => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
+        put_tags           => { Does => [ qw( ~StoriesEditAuthenticated ~Throttled ~Logged ) ] },
+        fetch_bitly_clicks => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
+        cluster_stories    => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
+        corenlp            => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
@@ -69,26 +69,23 @@ sub put_tags_PUT
 {
     my ( $self, $c ) = @_;
 
-    my $subset = $c->req->data;
-
     my $story_tag = $c->req->params->{ 'story_tag' };
 
-    my $story_tags;
-
-    if ( ref $story_tag )
+    # legacy support for story_tag= param
+    if ( $story_tag )
     {
-        $story_tags = $story_tag;
+        my $story_tags = ( ref $story_tag ) ? $story_tag : [ $story_tag ];
+
+        $self->_add_tags( $c, $story_tags );
+
+        $self->status_ok( $c, entity => $story_tags );
     }
     else
     {
-        $story_tags = [ $story_tag ];
+        $self->process_put_tags( $c );
+
+        $self->status_ok( $c, entity => { success => 1 } );
     }
-
-    # TRACE Dumper( $story_tags );
-
-    $self->_add_tags( $c, $story_tags );
-
-    $self->status_ok( $c, entity => $story_tags );
 
     return;
 }

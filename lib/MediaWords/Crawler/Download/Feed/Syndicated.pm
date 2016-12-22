@@ -88,6 +88,8 @@ sub add_stories_from_feed($$$$)
 
     my $new_stories = [ grep { MediaWords::DBI::Stories::is_new( $db, $_ ) } @{ $stories } ];
 
+    TRACE( "add_stories_from_feed: new stories: " . scalar( @{ $new_stories } ) . " / " . scalar( @{ $stories } ) );
+
     my $story_ids = [];
     foreach my $story ( @{ $new_stories } )
     {

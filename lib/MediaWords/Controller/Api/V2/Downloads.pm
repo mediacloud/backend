@@ -32,8 +32,8 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
 __PACKAGE__->config(    #
     action => {         #
-        single => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },  # overrides "MC_REST_SimpleObject"
-        list   => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },  # overrides "MC_REST_SimpleObject"
+        single => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },    # overrides "MC_REST_SimpleObject"
+        list   => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },    # overrides "MC_REST_SimpleObject"
     }
 );
 

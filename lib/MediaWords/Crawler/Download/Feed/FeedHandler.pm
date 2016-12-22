@@ -100,35 +100,23 @@ SQL
     {
         my $feeds_id = $download->{ feeds_id };
 
+        my $last_new_story_time =
+          scalar( @{ $added_story_ids } ) > 0
+          ? 'last_new_story_time = last_attempted_download_time, '
+          : '';
+
         $db->query(
             <<SQL,
             UPDATE feeds
-            SET last_successful_download_time = greatest( last_successful_download_time, ? )
+            SET $last_new_story_time
+                last_successful_download_time = greatest( last_successful_download_time, ? )
             WHERE feeds_id = ?
 SQL
             $download->{ download_time }, $feeds_id
         );
 
-        if ( scalar( @{ $added_story_ids } ) > 0 )
-        {
-            $db->query(
-                <<SQL,
-                UPDATE feeds
-                SET last_new_story_time = last_attempted_download_time
-                WHERE feeds_id = ?
-SQL
-                $feeds_id
-            );
-        }
-        else
-        {
-            # If the feed didn't come up with any new stories, we store
-            # '(redundant feed)' as the content of the feed and do not check
-            # for new stories.  This prevents frequent storage of redundant
-            # feed content and also avoids the considerable processing time
-            # required to check individual urls for new stories.
-            $decoded_content = '(redundant feed)';
-        }
+        # if no new stories, just store (redudndant feed) to save storage space
+        $decoded_content = '(redundant feed)' if ( scalar( @{ $added_story_ids } ) == 0 );
     }
 
     # Reread the possibly updated download

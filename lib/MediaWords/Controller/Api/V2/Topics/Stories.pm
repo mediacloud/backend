@@ -60,14 +60,16 @@ sub _get_extra_where_clause($$)
 
     if ( my $media_id = $c->req->params->{ media_id } )
     {
-        $media_id += 0;
-        push( @{ $clauses }, "s.media_id = $media_id" );
+        my $media_ids = ref( $media_id ) ? $media_id : [ $media_id ];
+        my $media_ids_list = join( ',', map { $_ += 0 } @{ $media_ids } );
+        push( @{ $clauses }, "s.media_id in ( $media_ids_list )" );
     }
 
     if ( my $stories_id = $c->req->params->{ stories_id } )
     {
-        $stories_id += 0;
-        push( @{ $clauses }, "s.stories_id = $stories_id" );
+        my $stories_ids = ref( $stories_id ) ? $stories_id : [ $stories_id ];
+        my $stories_ids_list = join( ',', map { $_ += 0 } @{ $stories_ids } );
+        push( @{ $clauses }, "s.stories_id in ( $stories_ids_list )" );
     }
 
     if ( my $link_to_stories_id = $c->req->params->{ link_to_stories_id } )
@@ -145,7 +147,8 @@ SQL
     if ( my $q = $c->req->params->{ q } )
     {
         $q = "timespans_id:$timespans_id and ( $q )";
-        my $solr_stories_id = MediaWords::Solr::search_for_stories_ids( $c->dbis, { q => $q } );
+
+        my $solr_stories_id = MediaWords::Solr::search_for_stories_ids( $c->dbis, { q => $q, rows => 10_000_000 } );
 
         my $ids_table = $c->dbis->get_temporary_ids_table( $solr_stories_id );
         push( @{ $clauses }, "s.stories_id in ( select id from $ids_table )" );
@@ -166,7 +169,10 @@ sub list_GET
 
     my $db = $c->dbis;
 
-    my $sort_param = $c->req->params->{ sort } || 'inlink';
+    $c->req->params->{ sort }  ||= 'inlink';
+    $c->req->params->{ limit } ||= 1000;
+
+    my $sort_param = $c->req->params->{ sort };
 
     # md5 hashing is to make tie breaks random but consistent
     my $sort_clause =
@@ -220,7 +226,7 @@ sub count_GET
 
     if ( $q )
     {
-        $c->req->params->{ q } = "{~ timespan:$timespans_id } and ( $q )";
+        $c->req->params->{ q } = "timespans_id:$timespans_id and ( $q )";
         return $c->controller( 'Api::V2::Stories_Public' )->count_GET( $c );
     }
     else

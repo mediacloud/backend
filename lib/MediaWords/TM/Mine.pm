@@ -25,7 +25,7 @@ use DateTime;
 use Digest::MD5;
 use Encode;
 use Getopt::Long;
-use HTML::LinkExtractor;
+use HTML::Entities;
 use List::Util;
 use Parallel::ForkManager;
 use Readonly;
@@ -148,24 +148,25 @@ sub get_links_from_html
 {
     my ( $html, $url ) = @_;
 
-    # we choose not to pass the base url here to avoid collecting relative urls.  we end up with too many
-    # stories linked from the same media source when we allow relative links.
-    $_link_extractor ||= new HTML::LinkExtractor();
-
-    $_link_extractor->parse( \$html );
+    # use regex parsing here instead of html parsing because it is much faster than HTML::LinkExtor
+    # and does not generate broken unicode encoding like HTML::LinkExtractor does
 
     my $links = [];
-    for my $link ( @{ $_link_extractor->links } )
+    while ( $html =~ m~href\s*=\s*[\"\']?(https?://[^\s\"\')]+)~g )
     {
-        next if ( !$link->{ href } );
+        my $url = $1;
 
-        next if ( $link->{ href } !~ /^http/i );
+        $url = decode_entities( $url );
 
-        next if ( $link->{ href } =~ $_ignore_link_pattern );
+        next if ( !$url );
 
-        $link =~ s/www[a-z0-9]+.nytimes/www.nytimes/i;
+        next if ( $url !~ /^http/i );
 
-        push( @{ $links }, { url => $link->{ href } } );
+        next if ( $url =~ $_ignore_link_pattern );
+
+        $url =~ s/www[a-z0-9]+.nytimes/www.nytimes/i;
+
+        push( @{ $links }, { url => $url } );
     }
 
     return $links;
@@ -2804,27 +2805,46 @@ update topic_seed_urls tsu
         ts.topics_id = \$1
 SQL
 
-    my $num_generated_links = $db->query_with_large_work_mem( <<SQL, $topic->{ topics_id } )->rows;
+    my ( $num_topic_stories ) = $db->query( <<SQL, $topic->{ topics_id } )->flat;
+select count(*) from topic_stories where topics_id = \$1
+SQL
+
+    my $num_generated_links = $db->query_with_large_work_mem( <<SQL, $topic->{ topics_id }, $num_topic_stories )->rows;
 insert into topic_links ( topics_id, stories_id, url, redirect_url, ref_stories_id, link_spidered )
-    select
-            a.twitter_topics_id, a.stories_id, min( a.url ), min( a.url ), b.stories_id, true
-        from
-            topic_tweet_full_urls a
-            join topic_tweet_full_urls b on
-                ( a.twitter_topics_id = b.twitter_topics_id and a.twitter_user = b.twitter_user )
-            join topic_stories tsa on
-                ( tsa.topics_id = a.twitter_topics_id and tsa.stories_id = a.stories_id )
-            join topic_stories tsb on
-                ( tsb.topics_id = b.twitter_topics_id and tsb.stories_id = b.stories_id )
+    with coshared_links as (
+        select
+                a.stories_id stories_id_a, min( a.url ) url, a.twitter_user, b.stories_id stories_id_b
+            from
+                topic_tweet_full_urls a
+                join topic_tweet_full_urls b on
+                    ( a.twitter_topics_id = b.twitter_topics_id and a.twitter_user = b.twitter_user )
+                join topic_stories tsa on
+                    ( tsa.topics_id = a.twitter_topics_id and tsa.stories_id = a.stories_id )
+                join topic_stories tsb on
+                    ( tsb.topics_id = b.twitter_topics_id and tsb.stories_id = b.stories_id )
+            where
+                a.stories_id <> b.stories_id and
+                a.twitter_topics_id = \$1 and
+                not ( ( tsa.redirect_url || tsb.redirect_url ) ilike '%twitter.com%' )
+            group by a.stories_id, b.stories_id, a.twitter_user
+    ),
+
+    coshared_links_threshold as (
+        select cs.stories_id_a, min( cs.url) url, cs.stories_id_b
+            from coshared_links cs
+            group by cs.stories_id_a, cs.stories_id_b
+            order by count(*) desc, cs.stories_id_a, cs.stories_id_b
+            limit \$2
+        )
+
+    select distinct \$1, cs.stories_id_a, cs.url, cs.url, cs.stories_id_b, true
+        from coshared_links_threshold cs
             left join topic_links tl on
-                ( tl.topics_id = a.twitter_topics_id and
-                    tl.stories_id = a.stories_id and
-                    tl.ref_stories_id = b.stories_id )
+                ( tl.topics_id = \$1 and
+                    tl.stories_id = cs.stories_id_a and
+                    tl.ref_stories_id = cs.stories_id_b )
         where
-            a.stories_id <> b.stories_id and
-            a.twitter_topics_id = \$1 and
             tl.topic_links_id is null
-        group by a.twitter_topics_id, a.stories_id, b.stories_id
 SQL
 
     DEBUG( "GENERATED TWITTER LINKS: $num_generated_links" );
@@ -3053,7 +3073,7 @@ sub add_twitter_data_and_topic($$$)
 
 }
 
-# wrap do_mine_topic in eval and handle errors and state
+# wrap do_mine_topic in eval and handle errors and state1
 sub mine_topic ($$;$)
 {
     my ( $db, $topic, $options ) = @_;
