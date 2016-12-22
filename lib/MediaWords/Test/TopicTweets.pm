@@ -223,7 +223,7 @@ sub mock_twitter_lookup
 
         my $test_url = "http://$test_host:$PORT/tweet_url?id=$url_id";
 
-        DEBUG( "$id -> $created_at" );
+        TRACE( "$id -> $created_at" );
 
         # all we use is id, text, and created_by, so just test for those
         push(

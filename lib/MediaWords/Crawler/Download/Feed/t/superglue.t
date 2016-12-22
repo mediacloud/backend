@@ -96,21 +96,6 @@ SQL
     )->hashes;
     ok( scalar( @{ $bad_stories } ) == 0, "Some stories matched the 'bad stories' query: " . Dumper( $bad_stories ) );
 
-    my $bad_story_sentences = $db->query(
-        <<SQL
-        SELECT *
-        FROM story_sentences
-        WHERE NOT EXISTS (
-            SELECT 1
-            FROM stories
-            WHERE story_sentences.stories_id = story_sentences.stories_id
-        )
-           OR sentence LIKE '%>%'
-SQL
-    )->hashes;
-    ok( scalar( @{ $bad_story_sentences } ) == 0,
-        "Some sentences matched the 'bad sentences' query: " . Dumper( $bad_story_sentences ) );
-
     my $bad_metadata = $db->query(
         <<SQL
         SELECT *
@@ -165,11 +150,11 @@ sub main()
 
     if ( $remote_superglue_url )
     {
-        plan tests => 23;
+        plan tests => 21;
     }
     else
     {
-        plan tests => 12;
+        plan tests => 11;
     }
 
     say STDERR "Testing against local Superglue test HTTP server...";
