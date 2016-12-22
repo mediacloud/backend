@@ -19,7 +19,7 @@ SET search_path = public, pg_catalog;
 
 
 ALTER TABLE stories_superglue_metadata
-    ADD COLUMN video_url VARCHAR NOT NULL;
+    ADD COLUMN video_url VARCHAR NOT NULL DEFAULT '';
 
 -- Copy story (video) URLs to metadata table
 UPDATE stories_superglue_metadata
@@ -52,6 +52,10 @@ WHERE stories_id IN (
         WHERE feed_type = 'superglue'
     )
 );
+
+ALTER TABLE stories_superglue_metadata
+    ALTER COLUMN video_url DROP DEFAULT;
+
 
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
