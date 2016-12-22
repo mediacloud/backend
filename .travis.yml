@@ -53,13 +53,6 @@ before_install:
     # Set up kernel and PostgreSQL parameters
     - ./install_scripts/set_kernel_parameters.sh
     - ./install_scripts/set_postgresql_parameters.sh
-    # Set up local Media Cloud environment for Python
-    - mkdir -p $HOME/mc-python
-    - virtualenv $HOME/mc-python
-    - source $HOME/mc-python/bin/activate
-    # Install Python dependencies
-    - travis_retry pip install --upgrade pip setuptools
-    - travis_retry pip install --upgrade -r python_scripts/requirements.txt
     # Create + switch to the Media Cloud's Perlbrew library
     - perlbrew lib create mediacloud
     - perlbrew switch @mediacloud

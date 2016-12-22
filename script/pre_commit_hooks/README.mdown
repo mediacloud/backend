@@ -44,7 +44,7 @@ and Sundays):
 1. Create a file `/script/git_hooks/hook-weekends-are-sacred.sh`
 2. In the hook, check if the current day is weekend:
 
-        #!/bin/sh
+        #!/bin/bash
 
         if [[ $(date +%u) -gt 5 ]] ; then
             echo "Today is a weekend and committing code to Media Cloud's repository is prohibited."

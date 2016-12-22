@@ -35,7 +35,7 @@ hroberts@mcdb1:~$ pps
 `pps -l`  does not cut off each query at the wide of the terminal:
 
  ```
- #!/bin/sh
+ #!/bin/bash
 echo "select pid, usename, state, query_start, query from pg_stat_activity where state not like 'idle%' order by query_start desc" | psql mediacloud
 ```
 

@@ -84,9 +84,11 @@ sub test_fetch_handle_download($$)
            OR media_id = 0
            OR url IS NULL
            OR url = ''
-           OR url NOT ILIKE 'http%'
+           OR url ILIKE 'http%'     -- Expect URL to look like GUID
            OR guid IS NULL
            OR guid = ''
+           OR guid ILIKE 'http%'    -- Expect GUID to not look like URL in order to not leak private data
+           OR guid != url           -- Instead of URL, we store GUID to hide the video URL
            OR title IS NULL
            OR title = ''
            OR description IS NULL
@@ -95,21 +97,6 @@ sub test_fetch_handle_download($$)
 SQL
     )->hashes;
     ok( scalar( @{ $bad_stories } ) == 0, "Some stories matched the 'bad stories' query: " . Dumper( $bad_stories ) );
-
-    my $bad_story_sentences = $db->query(
-        <<SQL
-        SELECT *
-        FROM story_sentences
-        WHERE NOT EXISTS (
-            SELECT 1
-            FROM stories
-            WHERE story_sentences.stories_id = story_sentences.stories_id
-        )
-           OR sentence LIKE '%>%'
-SQL
-    )->hashes;
-    ok( scalar( @{ $bad_story_sentences } ) == 0,
-        "Some sentences matched the 'bad sentences' query: " . Dumper( $bad_story_sentences ) );
 
     my $bad_metadata = $db->query(
         <<SQL
@@ -122,6 +109,9 @@ SQL
         )
            OR segment_duration IS NULL
            OR segment_duration < 0
+           OR video_url IS NULL
+           OR video_url = ''
+           OR video_url NOT ILIKE 'http%'
            OR thumbnail_url IS NULL
            OR thumbnail_url = ''
            OR thumbnail_url NOT ILIKE 'http%'
@@ -165,11 +155,11 @@ sub main()
 
     if ( $remote_superglue_url )
     {
-        plan tests => 23;
+        plan tests => 21;
     }
     else
     {
-        plan tests => 12;
+        plan tests => 11;
     }
 
     say STDERR "Testing against local Superglue test HTTP server...";

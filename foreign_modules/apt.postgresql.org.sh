@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # script to add apt.postgresql.org to sources.list
 
