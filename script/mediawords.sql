@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4598;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4599;
 
 BEGIN
 
@@ -845,6 +845,7 @@ create unique index stories_ap_syndicated_story on stories_ap_syndicated ( stori
 CREATE TABLE stories_superglue_metadata (
     stories_superglue_metadata_id   SERIAL    PRIMARY KEY,
     stories_id                      INT       NOT NULL REFERENCES stories ON DELETE CASCADE,
+    video_url                       VARCHAR   NOT NULL,
     thumbnail_url                   VARCHAR   NOT NULL,
     segment_duration                NUMERIC   NOT NULL
 );
