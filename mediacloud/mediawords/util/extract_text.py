@@ -15,6 +15,7 @@ __module_version_cache = {}
 
 
 def __get_pip_module_version(module_name):
+    """Return module version using Pip (not all modules have "__version__" attribute)."""
     global __module_version_cache
 
     if module_name not in __module_version_cache:
