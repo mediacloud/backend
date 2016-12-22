@@ -1,5 +1,6 @@
 argparse
 dateutils
+ipdb
 lxml
 mediacloud
 prompter
