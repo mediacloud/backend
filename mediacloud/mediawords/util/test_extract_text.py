@@ -4,7 +4,12 @@ from mediawords.util.extract_text import *
 
 
 def test_extractor_name():
-    assert extractor_name().startswith('readability-lxml')
+    name = extractor_name()
+    assert re.match('^readability-lxml-[\d.]{3,7}?$', name)
+
+    # Test caching
+    cached_name = extractor_name()
+    assert name == cached_name
 
 
 # noinspection SpellCheckingInspection

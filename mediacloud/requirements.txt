@@ -4,6 +4,9 @@ hausastemmer
 # Unit tests
 nose
 
+# Finding out which Readability version we're using
+pip
+
 # PostgreSQL
 psycopg2
 
