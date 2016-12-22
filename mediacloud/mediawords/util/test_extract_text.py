@@ -90,18 +90,19 @@ def test_extract_text_from_html():
 
 </body>
 </html>"""
-    expected_title = 'Kim Kardashian'
-    expected_summary = """<body id="readabilityBody">
-    <nav class="navbar navbar-default" role="navigation">Chloe Kardashian</nav>
-    <article class="container"><p>Kim Kardashian</p></article>
-    <footer>Some other Kardashian</footer>
-    </body>"""
 
-    expected_text = "%s\n\n%s" % (expected_title, expected_summary)
     extracted_text = extract_article_from_html(input_html)
 
-    # Don't mind the whitespace
-    expected_text = re.sub('\s+', ' ', expected_text)
-    extracted_text = re.sub('\s+', ' ', extracted_text)
+    assert re.match(
+        """
+            Kim\ Kardashian\s*?
+            <body.*?>\s*?
+                <nav.*?>Chloe\ Kardashian</nav>\s*?
+                <article.*?><p>Kim\ Kardashian</p></article>\s*?
+                <footer>Some\ other\ Kardashian</footer>\s*?
+            </body>
+""",
 
-    assert extracted_text == expected_text
+        extracted_text,
+        flags=re.X
+    )
