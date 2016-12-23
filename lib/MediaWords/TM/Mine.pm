@@ -2350,6 +2350,21 @@ END
 update topic_seed_urls set stories_id = ?, processed = 't' where topic_seed_urls_id = ?
 END
         }
+
+        # cleanup any topic_seed_urls pointing to a merged story
+        $db->query_with_large_work_mem( <<SQL, $topic->{ topics_id } );
+update topic_seed_urls tsu
+    set stories_id = tms.target_stories_id
+    from
+        topic_merged_stories_map tms,
+        topic_stories ts
+    where
+        tsu.stories_id = tms.source_stories_id and
+        ts.stories_id = tms.target_stories_id and
+        tsu.topics_id = ts.topics_id and
+        ts.topics_id = \$1
+SQL
+
         $db->commit;
     }
 }
@@ -2791,72 +2806,6 @@ sub fetch_social_media_data ($$)
     die( "Timed out waiting for social media data" );
 }
 
-# if the topic is a twitter topic, generate links between stories that have been shared by the same user
-sub generate_twitter_links
-{
-    my ( $db, $topic ) = @_;
-
-    return unless ( $topic->{ twitter_parent_topics_id } );
-
-    # first cleanup any topic_seed_urls pointing to a merged story
-    $db->query_with_large_work_mem( <<SQL, $topic->{ topics_id } );
-update topic_seed_urls tsu
-    set stories_id = tms.target_stories_id
-    from
-        topic_merged_stories_map tms,
-        topic_stories ts
-    where
-        tsu.stories_id = tms.source_stories_id and
-        ts.stories_id = tms.target_stories_id and
-        tsu.topics_id = ts.topics_id and
-        ts.topics_id = \$1
-SQL
-
-    my ( $num_topic_stories ) = $db->query( <<SQL, $topic->{ topics_id } )->flat;
-select count(*) from topic_stories where topics_id = \$1
-SQL
-
-    my $num_generated_links = $db->query_with_large_work_mem( <<SQL, $topic->{ topics_id }, $num_topic_stories )->rows;
-insert into topic_links ( topics_id, stories_id, url, redirect_url, ref_stories_id, link_spidered )
-    with coshared_links as (
-        select
-                a.stories_id stories_id_a, min( a.url ) url, a.twitter_user, b.stories_id stories_id_b
-            from
-                topic_tweet_full_urls a
-                join topic_tweet_full_urls b on
-                    ( a.twitter_topics_id = b.twitter_topics_id and a.twitter_user = b.twitter_user )
-                join topic_stories tsa on
-                    ( tsa.topics_id = a.twitter_topics_id and tsa.stories_id = a.stories_id )
-                join topic_stories tsb on
-                    ( tsb.topics_id = b.twitter_topics_id and tsb.stories_id = b.stories_id )
-            where
-                a.stories_id <> b.stories_id and
-                a.twitter_topics_id = \$1 and
-                not ( ( tsa.redirect_url || tsb.redirect_url ) ilike '%twitter.com%' )
-            group by a.stories_id, b.stories_id, a.twitter_user
-    ),
-
-    coshared_links_threshold as (
-        select cs.stories_id_a, min( cs.url) url, cs.stories_id_b
-            from coshared_links cs
-            group by cs.stories_id_a, cs.stories_id_b
-            order by count(*) desc, cs.stories_id_a, cs.stories_id_b
-            limit \$2
-        )
-
-    select distinct \$1, cs.stories_id_a, cs.url, cs.url, cs.stories_id_b, true
-        from coshared_links_threshold cs
-            left join topic_links tl on
-                ( tl.topics_id = \$1 and
-                    tl.stories_id = cs.stories_id_a and
-                    tl.ref_stories_id = cs.stories_id_b )
-        where
-            tl.topic_links_id is null
-SQL
-
-    DEBUG( "GENERATED TWITTER LINKS: $num_generated_links" );
-}
-
 # mine the given topic for links and to recursively discover new stories on the web.
 # options:
 #   import_only - only run import_seed_urls and import_solr_seed and exit
@@ -2903,9 +2852,6 @@ sub do_mine_topic ($$;$)
 
         update_topic_state( $db, $topic, "running spider" );
         run_spider( $db, $topic );
-
-        update_topic_state( $db, $topic, "generating twitter links" );
-        generate_twitter_links( $db, $topic );
 
         # disabling because there are too many foreign_rss_links media sources
         # with bogus feeds that pollute the results

@@ -92,7 +92,7 @@ def set_config(config: dict) -> None:
     global __CONFIG
 
     if __CONFIG is not None:
-        l.warn("config object already cached")
+        l.debug("config object already cached")
 
     # FIXME MC_REWRITE_TO_PYTHON: Catalyst::Test might want to set a couple of values which end up as being "binary"
     config = decode_object_from_bytes_if_needed(config)

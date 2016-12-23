@@ -301,7 +301,7 @@ sub validate_story_links
 
     my $topic_tweets =
       $db->query( <<SQL, $twitter_topic->{ twitter_parent_topics_id }, $timespan->{ timespans_id } )->hashes;
-select tt.*, date_trunc( 'week', tt.publish_date ) publish_week
+select tt.*, date_trunc( 'day', tt.publish_date ) publish_day
     from topic_tweets tt
         join topic_tweet_days ttd using ( topic_tweet_days_id )
         join timespans t on ( t.timespans_id = \$2 )
@@ -345,7 +345,7 @@ SQL
             $expected_story_tweet_counts->{ $story->{ stories_id } }++;
 
             $user_stories_lookup->{ $user }->{ $stories_id }->{ media_id } = $story->{ media_id };
-            $user_stories_lookup->{ $user }->{ $stories_id }->{ publish_weeks }->{ $topic_tweet->{ publish_week } } = 1;
+            $user_stories_lookup->{ $user }->{ $stories_id }->{ publish_days }->{ $topic_tweet->{ publish_day } } = 1;
         }
     }
 
@@ -354,10 +354,10 @@ SQL
     {
         for my $a ( keys( %{ $stories_lookup } ) )
         {
-            my $weeks_a = [ keys( %{ $stories_lookup->{ $a }->{ publish_weeks } } ) ];
+            my $days_a = [ keys( %{ $stories_lookup->{ $a }->{ publish_days } } ) ];
             for my $b ( keys( %{ $stories_lookup } ) )
             {
-                next unless ( grep { $stories_lookup->{ $b }->{ publish_weeks }->{ $_ } } @{ $weeks_a } );
+                next unless ( grep { $stories_lookup->{ $b }->{ publish_days }->{ $_ } } @{ $days_a } );
 
                 next if ( $stories_lookup->{ $a }->{ media_id } == $stories_lookup->{ $b }->{ media_id } );
 
@@ -402,7 +402,7 @@ SQL
     }
 }
 
-# verify the the snapshot has only stories shared the given week and links for coshares between tweets during timespan
+# verify the the snapshot has only stories shared the given timespan and links for coshares between tweets during timespan
 sub validate_timespan($$$)
 {
     my ( $db, $twitter_topic, $timespan ) = @_;

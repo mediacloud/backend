@@ -493,7 +493,7 @@ create temporary table snapshot_story_links as
                 join tweet_stories b using ( twitter_user )
             where
                 a.media_id <> b.media_id and
-                date_trunc( 'week', a.publish_date ) = date_trunc( 'week', b.publish_date )
+                date_trunc( 'day', a.publish_date ) = date_trunc( 'day', b.publish_date )
             group by a.stories_id, b.stories_id, a.twitter_user
     )
 
