@@ -171,7 +171,8 @@ sub test_stories_public_list($$)
 
     my $feed =
       $db->query( "select * from feeds where feeds_id in ( select feeds_id from feeds_stories_map ) limit 1" )->hash;
-    my $feed_stories = test_get( '/api/v2/stories_public/list', { rows => 100000, feeds_id => $feed->{ feeds_id } } );
+    my $feed_stories =
+      test_get( '/api/v2/stories_public/list', { rows => 100000, feeds_id => $feed->{ feeds_id }, show_feeds => 1 } );
     my $expected_feed_stories = $db->query( <<SQL, $feed->{ feeds_id } )->hashes;
 select s.* from stories s join feeds_stories_map fsm using ( stories_id ) where feeds_id = ?
 SQL
@@ -182,6 +183,11 @@ SQL
         my ( $expected_story ) = grep { $_->{ stories_id } eq $feed_story->{ stories_id } } @{ $expected_feed_stories };
         ok( $expected_story,
             "stories feed story $feed_story->{ stories_id } feed $feed->{ feeds_id } matches expected story" );
+        is( scalar( @{ $feed_story->{ feeds } } ), 1, "stories feed one feed returned" );
+        for my $field ( qw/name url feeds_id media_id feed_type/ )
+        {
+            is( $feed_story->{ feeds }->[ 0 ]->{ $field }, $feed->{ $field }, "feed story field $field" );
+        }
     }
 }
 

@@ -307,6 +307,19 @@ select s.stories_id, t.tags_id, t.tag, ts.tag_sets_id, ts.name as tag_set
 END
     MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $tag_data, 'story_tags' );
 
+    if ( $self->{ show_feeds } )
+    {
+        my $feed_data = $db->query( <<END )->hashes;
+select f.name, f.url, f.media_id, f.feeds_id, f.feed_type, fsm.stories_id
+    from feeds f
+        join feeds_stories_map fsm using ( feeds_id )
+    where
+        fsm.stories_id in ( select id from $ids_table )
+    order by f.feeds_id
+END
+        MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $feed_data, 'feeds' );
+    }
+
     # Bit.ly total click counts
     my $bitly_click_data = $db->query(
         <<"EOF",
@@ -368,6 +381,7 @@ sub _fetch_list($$$$$$)
     $self->{ show_text }          = $c->req->params->{ text };
     $self->{ show_ap_stories_id } = $c->req->params->{ ap_stories_id };
     $self->{ show_wc }            = $c->req->params->{ wc };
+    $self->{ show_feeds }         = $c->req->params->{ show_feeds };
 
     $rows //= 20;
     $rows = List::Util::min( $rows, 10_000 );
