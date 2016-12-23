@@ -84,9 +84,11 @@ sub test_fetch_handle_download($$)
            OR media_id = 0
            OR url IS NULL
            OR url = ''
-           OR url NOT ILIKE 'http%'
+           OR url ILIKE 'http%'     -- Expect URL to look like GUID
            OR guid IS NULL
            OR guid = ''
+           OR guid ILIKE 'http%'    -- Expect GUID to not look like URL in order to not leak private data
+           OR guid != url           -- Instead of URL, we store GUID to hide the video URL
            OR title IS NULL
            OR title = ''
            OR description IS NULL
@@ -107,6 +109,9 @@ SQL
         )
            OR segment_duration IS NULL
            OR segment_duration < 0
+           OR video_url IS NULL
+           OR video_url = ''
+           OR video_url NOT ILIKE 'http%'
            OR thumbnail_url IS NULL
            OR thumbnail_url = ''
            OR thumbnail_url NOT ILIKE 'http%'

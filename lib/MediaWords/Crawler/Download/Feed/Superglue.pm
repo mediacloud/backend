@@ -77,7 +77,7 @@ sub add_stories_from_feed($$$$)
         $transcript =~ s/\s>>>\s/\n\n/gs;    # typo by the transcriber?
 
         my $story = {
-            url          => $video_url,
+            url          => $guid,           # Video URL is not public by request
             guid         => $guid,
             media_id     => $media_id,
             publish_date => $publish_date,
@@ -90,6 +90,7 @@ sub add_stories_from_feed($$$$)
             # 'language' will be set by update_story_sentences_and_language()
         };
         my $superglue_story = {
+            video_url        => $video_url,
             thumbnail_url    => $thumbnail_url,
             segment_duration => $segment_duration,
         };
@@ -125,6 +126,7 @@ sub add_stories_from_feed($$$$)
             'stories_superglue_metadata',
             {
                 'stories_id'       => $added_stories_id,
+                'video_url'        => $superglue_story->{ video_url },
                 'thumbnail_url'    => $superglue_story->{ thumbnail_url },
                 'segment_duration' => $superglue_story->{ segment_duration },
             }
