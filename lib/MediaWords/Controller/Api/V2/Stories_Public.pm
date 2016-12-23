@@ -50,6 +50,7 @@ sub permissible_output_fields
           bitly_click_count
           ap_syndicated
           word_count
+          feeds
           /
     ];
 }
