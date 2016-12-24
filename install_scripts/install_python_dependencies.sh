@@ -32,8 +32,8 @@ echo "Installing (upgrading) Supervisor..."
 ( cd /tmp; $COMMAND_PREFIX pip2.7 install --upgrade supervisor )
 
 echo "Installing (upgrading) Virtualenv..."
-$COMMAND_PREFIX pip2.7 install --upgrade virtualenv
-$COMMAND_PREFIX pip3.5 install --upgrade virtualenv
+$COMMAND_PREFIX pip2.7 install --force-reinstall --upgrade virtualenv
+$COMMAND_PREFIX pip3.5 install --force-reinstall --upgrade virtualenv
 
 echo "Installing Python 2.7 dependencies..."
 $COMMAND_PREFIX pip2.7 install --upgrade -r python_scripts/requirements.txt || {
