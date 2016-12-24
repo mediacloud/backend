@@ -87,6 +87,17 @@ EOF
         exit 1
     fi
 
+    # Homebrew now installs Python 3.6 by default, so we need older Python 3.5 which is best installed as a .pkg
+    command -v python3.5 >/dev/null 2>&1 || {
+        echo "Media Cloud requires Python 3.5.1."
+        echo
+        echo "Please install the 'Mac OS X 64-bit/32-bit installer' manually from the following link:"
+        echo
+        echo "    https://www.python.org/downloads/release/python-351/"
+        echo
+        exit 1
+    }
+
     echo "Installing Media Cloud dependencies with Homebrew..."
     brew install \
         coreutils \
@@ -100,7 +111,6 @@ EOF
         netcat \
         openssl \
         python \
-        python3 \
         rabbitmq \
         #
 
