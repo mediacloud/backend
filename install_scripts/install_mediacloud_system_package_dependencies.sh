@@ -108,6 +108,7 @@ EOF
         homebrew/dupes/tidy \
         hunspell \
         libyaml \
+        logrotate \
         netcat \
         openssl \
         python \
@@ -253,6 +254,7 @@ else
         libxslt1.1 \
         libyaml-dev \
         libyaml-syck-perl \
+        logrotate \
         make \
         netcat \
         openjdk-8-jdk \
