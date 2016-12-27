@@ -41,8 +41,6 @@ env:
         - secure: "BzZcSjsuihkDowYPRz0F2HRiZ9LbEJkPXJpL8sRTBp1exbKAyfQ2+pXm3k2d34utp/gNiLlL+GFDmm7dr9wZ82DSqouBC8UJa3gaL/AeBrdXngaJbBeUqIWiDhsZFkf5F3V0J3r+7CxEAQVhU8hAPE7LB4VFjSYgXGZfoAMcdCw="
         # Do not ask for confirmation when running ./script/mediawords_create_db.pl
         - MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1
-        # Test PythonReadability extractor method in t/test_extractor.t
-        - MC_TEST_EXTRACTOR_PYTHONREADABILITY=1
         # let tests know that they are running on travis
         - MC_SKIP_RABBIT_OPEN_FILES_LIMIT_CHECK=1
 before_install:
@@ -69,7 +67,5 @@ before_script:
     # Initialize PostgreSQL database
     - ./script/run_with_carton.sh ./script/mediawords_create_db.pl
 script:
-    # Start Readability service for testing "PythonReadability" extractor method on t/test_extractor.t
-    - "python2 python_scripts/extractor_python_readability_server.py &"
     # Run Media Cloud's test suite, report test coverage to https://coveralls.io/r/berkmancenter/mediacloud
     - ./script/run_test_suite_for_devel_cover.sh coveralls --destroy-solr

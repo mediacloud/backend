@@ -40,7 +40,8 @@ use MediaWords::Job::ExtractAndVector;
 # max number of times to try a page after a 5xx error
 Readonly my $MAX_5XX_RETRIES => 10;
 
-# Whether download should be extracted in process instead of passing it to Readability via Thrift
+# Whether download should be extracted in process instead of adding it to job
+# broker's queue
 has '_extract_in_process' => ( is => 'rw' );
 
 # Constructor
