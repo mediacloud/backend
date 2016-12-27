@@ -15,6 +15,12 @@ CHILDLOGDIR="$(cd "$CHILDLOGDIR" && pwd )"
 
 ./script/run_with_carton.sh ./script/mediawords_generate_supervisord_conf.pl
 
+# PYTHONHOME might have been set by run_carton.sh to make use of Media Cloud's
+# virtualenv under mc-venv. Supervisor doesn't support Python 3, to unset
+# PYTHONHOME for Supervisor's Python 2.7 to search for modules at correct
+# location.
+unset PYTHONHOME
+
 cd "supervisor/"
 
 cd "$PWD/"
