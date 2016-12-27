@@ -80,7 +80,7 @@ MC_ZOOKEEPER_SIGKILL_TIMEOUT = 60
 MC_INSTALL_TIMEOUT = 2 * 60
 
 # Where to extract software distributions (relative to solr/; must already exist)
-MC_DIST_DIR = "dist"
+MC_DIST_DIR = "../data/solr/dist"
 
 # File placed in distribution directory which signifies that distribution is being installed right now
 MC_PACKAGE_INSTALLING_FILE = "mc-installing.txt"
