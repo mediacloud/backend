@@ -4,6 +4,8 @@ import mc_solr.solr
 from mc_solr.constants import *
 from mc_solr.utils import *
 
+from mediawords.util.log import create_logger
+
 l = create_logger(__name__)
 
 __zookeeper_pid = None

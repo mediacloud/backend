@@ -1,5 +1,3 @@
-import logging
-
 import errno
 import os
 import re
@@ -14,19 +12,7 @@ import signal
 
 import sys
 
-
-def create_logger(name):
-    """Create and return 'logging' instance."""
-    formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(module)s - %(message)s')
-
-    handler = logging.StreamHandler()
-    handler.setFormatter(formatter)
-
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
-    logger.addHandler(handler)
-    return logger
-
+from mediawords.util.log import create_logger
 
 l = create_logger(__name__)
 

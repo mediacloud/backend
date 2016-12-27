@@ -8,6 +8,8 @@ from urllib.error import URLError
 from mc_solr.constants import *
 from mc_solr.utils import *
 
+from mediawords.util.log import create_logger
+
 l = create_logger(__name__)
 
 __solr_pid = None
