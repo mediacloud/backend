@@ -673,13 +673,6 @@ sub extract_download($$$)
 
     if ( my $error = $@ )
     {
-        if ( ref( $error ) )
-        {
-            # ugliness needed to avoid passing object to $db->query below
-            my $thrift_error = UNIVERSAL::isa( $error, 'Thrift::TException' );
-            $error = $thrift_error ? "$error->{ code } $error->{ message }" : $error . '';
-        }
-
         WARN "extract error processing download $download->{ downloads_id }: $error";
     }
     else

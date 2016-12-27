@@ -142,6 +142,54 @@ sub upgrade_db($;$)
         $db = MediaWords::DB::connect_to_db( $label, $do_not_check_schema_version );
     }
 
+    # Add 'univision' option to "feed_feed_type" enum
+    # (adding new enum values don't work in transactions or multi-line queries
+    # thus a migration wouldn't have worked)
+    my ( $feed_type_has_univision_value ) = $db->query(
+        <<SQL
+        SELECT 1
+        FROM pg_type AS t
+            JOIN pg_enum AS e ON t.oid = e.enumtypid
+            JOIN pg_catalog.pg_namespace AS n ON n.oid = t.typnamespace
+        WHERE n.nspname = CURRENT_SCHEMA()
+          AND t.typname = 'feed_feed_type'
+          AND e.enumlabel = 'univision'
+SQL
+    )->flat;
+    unless ( $feed_type_has_univision_value )
+    {
+        DEBUG( "Adding 'univision' value to 'feed_feed_type' enum..." );
+        $db->query( "ALTER TYPE feed_feed_type ADD VALUE 'univision'" );
+    }
+    else
+    {
+        DEBUG( "'feed_feed_type' already has 'univision' value" );
+    }
+
+    # Add 'superglue' option to "feed_feed_type" enum
+    # (adding new enum values don't work in transactions or multi-line queries
+    # thus a migration wouldn't have worked)
+    my ( $feed_type_has_superglue_value ) = $db->query(
+        <<SQL
+        SELECT 1
+        FROM pg_type AS t
+            JOIN pg_enum AS e ON t.oid = e.enumtypid
+            JOIN pg_catalog.pg_namespace AS n ON n.oid = t.typnamespace
+        WHERE n.nspname = CURRENT_SCHEMA()
+          AND t.typname = 'feed_feed_type'
+          AND e.enumlabel = 'superglue'
+SQL
+    )->flat;
+    unless ( $feed_type_has_superglue_value )
+    {
+        DEBUG( "Adding 'superglue' value to 'feed_feed_type' enum..." );
+        $db->query( "ALTER TYPE feed_feed_type ADD VALUE 'superglue'" );
+    }
+    else
+    {
+        DEBUG( "'feed_feed_type' already has 'superglue' value" );
+    }
+
     # Current schema version
     my $schema_version_query = <<EOF;
         SELECT value AS schema_version
@@ -159,7 +207,7 @@ EOF
     INFO "Current schema version: $current_schema_version";
 
     # Target schema version
-    my $sql = read_file( "$script_dir/mediawords.sql" );
+    my $sql                   = read_file( "$script_dir/mediawords.sql" );
     my $target_schema_version = MediaWords::Util::SchemaVersion::schema_version_from_lines( $sql );
     unless ( $target_schema_version )
     {
@@ -241,54 +289,6 @@ EOF
     else
     {
         $db->query( $upgrade_sql );
-    }
-
-    # Add 'univision' option to "feed_feed_type" enum
-    # (adding new enum values don't work in transactions or multi-line queries
-    # thus a migration wouldn't have worked)
-    my ( $feed_type_has_univision_value ) = $db->query(
-        <<SQL
-        SELECT 1
-        FROM pg_type AS t
-            JOIN pg_enum AS e ON t.oid = e.enumtypid
-            JOIN pg_catalog.pg_namespace AS n ON n.oid = t.typnamespace
-        WHERE n.nspname = CURRENT_SCHEMA()
-          AND t.typname = 'feed_feed_type'
-          AND e.enumlabel = 'univision'
-SQL
-    )->flat;
-    unless ( $feed_type_has_univision_value )
-    {
-        DEBUG( "Adding 'univision' value to 'feed_feed_type' enum..." );
-        $db->query( "ALTER TYPE feed_feed_type ADD VALUE 'univision'" );
-    }
-    else
-    {
-        DEBUG( "'feed_feed_type' already has 'univision' value" );
-    }
-
-    # Add 'superglue' option to "feed_feed_type" enum
-    # (adding new enum values don't work in transactions or multi-line queries
-    # thus a migration wouldn't have worked)
-    my ( $feed_type_has_superglue_value ) = $db->query(
-        <<SQL
-        SELECT 1
-        FROM pg_type AS t
-            JOIN pg_enum AS e ON t.oid = e.enumtypid
-            JOIN pg_catalog.pg_namespace AS n ON n.oid = t.typnamespace
-        WHERE n.nspname = CURRENT_SCHEMA()
-          AND t.typname = 'feed_feed_type'
-          AND e.enumlabel = 'superglue'
-SQL
-    )->flat;
-    unless ( $feed_type_has_superglue_value )
-    {
-        DEBUG( "Adding 'superglue' value to 'feed_feed_type' enum..." );
-        $db->query( "ALTER TYPE feed_feed_type ADD VALUE 'superglue'" );
-    }
-    else
-    {
-        DEBUG( "'feed_feed_type' already has 'superglue' value" );
     }
 
     $db->disconnect;

@@ -314,10 +314,6 @@ supervisor:
 #      domainname: "<DOMAIN>"
 
 mediawords:
-    ### Extractor method to use (defaults to "InlinePythonReadability")
-    ### Might be overridden by MediaWords::Job::ExtractAndVector "extractor_method" argument
-    #extractor_method: PythonReadability
-
     ### defaults to http://$hostname:$port/.
     #base_url: "http://your.mediacloud.server/and/path"
 
