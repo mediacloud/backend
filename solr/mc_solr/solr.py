@@ -525,6 +525,7 @@ instanceDir=%(instance_dir)s
     if jvm_heap_size is not None:
         args += ["-Xmx%s" % jvm_heap_size]
     args += jvm_opts
+    # noinspection SpellCheckingInspection
     args += [
         "-server",
         "-Djava.util.logging.config.file=file://" + os.path.abspath(log4j_properties_path),
@@ -633,6 +634,7 @@ def run_solr_shard(shard_num,
     l.info("ZooKeeper is up!")
 
     l.info("Starting Solr shard %d on port %d..." % (shard_num, shard_port))
+    # noinspection SpellCheckingInspection
     shard_args = [
         "-DzkHost=%s:%d" % (zookeeper_host, zookeeper_port),
         "-DnumShards=%d" % shard_count,
