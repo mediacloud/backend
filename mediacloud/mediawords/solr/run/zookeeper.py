@@ -12,7 +12,7 @@ __zookeeper_pid = None
 
 def __zookeeper_path(dist_directory=MC_DIST_DIR, zookeeper_version=MC_ZOOKEEPER_VERSION):
     """Return path to where ZooKeeper distribution should be located."""
-    dist_path = resolve_absolute_path(name=dist_directory)
+    dist_path = resolve_absolute_path_under_mc_root(name=dist_directory)
     zookeeper_directory = "zookeeper-%s" % zookeeper_version
     solr_path = os.path.join(dist_path, zookeeper_directory)
     return solr_path
@@ -124,7 +124,7 @@ def run_zookeeper(dist_directory=MC_DIST_DIR,
         l.info("ZooKeeper is not installed, installing...")
         __install_zookeeper()
 
-    data_dir = resolve_absolute_path(name=data_dir, must_exist=True)
+    data_dir = resolve_absolute_path_under_mc_root(name=data_dir, must_exist=True)
 
     zookeeper_data_dir = os.path.join(data_dir, "mediacloud-cluster-zookeeper")
     if not os.path.isdir(zookeeper_data_dir):

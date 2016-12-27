@@ -12,6 +12,8 @@ import signal
 
 import sys
 
+from mediawords.util.paths import mc_root_path
+
 from mediawords.util.log import create_logger
 
 l = create_logger(__name__)
@@ -230,10 +232,10 @@ def wait_for_tcp_port_to_open(port, hostname="localhost", retries=60, delay=1):
     return port_is_open
 
 
-def resolve_absolute_path(name, must_exist=False):
-    """Return absolute path to object (file or directory) under solr/."""
-    script_path = os.path.dirname(os.path.abspath(__file__))
-    dist_path = os.path.join(script_path, "..", name)
+def resolve_absolute_path_under_mc_root(name, must_exist=False):
+    """Return absolute path to object (file or directory) under Media Cloud root."""
+    mc_root = mc_root_path()
+    dist_path = os.path.join(mc_root, name)
     if must_exist:
         if not os.path.isdir(dist_path):
             raise Exception("Object '%s' at path '%s' does not exist." % (name, dist_path))
