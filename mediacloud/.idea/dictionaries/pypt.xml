@@ -6,6 +6,7 @@
       <w>hausastemmer</w>
       <w>hostnames</w>
       <w>kanye</w>
+      <w>logrotate</w>
       <w>lossy</w>
       <w>lxml</w>
       <w>nytimes</w>
@@ -18,6 +19,7 @@
       <w>shortener</w>
       <w>shorteners</w>
       <w>sopa</w>
+      <w>supervisord</w>
       <w>yyyy</w>
     </words>
   </dictionary>
