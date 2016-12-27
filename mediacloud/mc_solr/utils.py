@@ -250,7 +250,7 @@ def resolve_absolute_path(name, must_exist=False):
     dist_path = os.path.join(script_path, "..", name)
     if must_exist:
         if not os.path.isdir(dist_path):
-            raise Exception("Object '%s' at path '%s' does not exist." % (name, resolve_absolute_path))
+            raise Exception("Object '%s' at path '%s' does not exist." % (name, dist_path))
     return os.path.abspath(dist_path)
 
 
