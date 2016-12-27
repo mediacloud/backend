@@ -7,10 +7,6 @@ mediacloud.tmproj
 jons_stuff
 .carton
 local
-cache/translate
-
-# all caches
-data/cache/
 
 # Media Cloud virtualenv
 mc-venv/
