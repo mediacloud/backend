@@ -44,13 +44,13 @@ stopwaitsecs=[% stopwaitsecs %]
     [%- IF stopsignal %]
 stopsignal=[% stopsignal %]
     [%- END %]
-    [%- IF redirect_stderr %]
-redirect_stderr=[% redirect_stderr %]
-    [%- END %]
+
+; Write everything into a single log file
+redirect_stderr = true
 
 ; Path to log file
-stdout_logfile = %(here)s/../data/supervisor_logs/%(program_name)s_%(process_num)02d_stdout.log
-stderr_logfile = %(here)s/../data/supervisor_logs/%(program_name)s_%(process_num)02d_stderr.log
+stdout_logfile = %(here)s/../data/supervisor_logs/%(program_name)s_%(process_num)02d.log
+stderr_logfile = %(here)s/../data/supervisor_logs/%(program_name)s_%(process_num)02d.log
 
 ; Don't rotate logs (logrotate will do that)
 stdout_logfile_maxbytes = 0
@@ -270,7 +270,6 @@ programs = rabbitmq
     stopwaitsecs=100
 
     default_nice=0
-    redirect_stderr='true'
 %]
 
 [group:solr_cluster]
@@ -296,7 +295,6 @@ programs=solr_shard
     default_numprocs = solr_cluster_shards_local_shard_count
 
     default_nice=0
-    redirect_stderr='true'
 %]
 
 
