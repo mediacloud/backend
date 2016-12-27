@@ -83,29 +83,6 @@ sub _lwp_request_callback($)
         $request->uri( "http://blacklistedsite.localhost/$url" );
         $blacklisted = 1;
     }
-
-    my $day = substr( MediaWords::Util::SQL::sql_now, 0, 10 );
-
-    my $logfile = "$config->{ mediawords }->{ data_dir }/logs/http_request_$day.log";
-
-    my $fh = FileHandle->new;
-
-    my $is_new_file = !( -f $logfile );
-
-    if ( !$fh->open( ">>$logfile" ) )
-    {
-        ERROR( "unable to open log file '$logfile': $!" );
-        return;
-    }
-
-    flock( $fh, Fcntl::LOCK_EX );
-
-    $fh->print( MediaWords::Util::SQL::sql_now . " $url\n" );
-    $fh->print( "invalidating blacklist url.  stack: " . Carp::longmess . "\n" ) if ( $blacklisted );
-
-    chmod( 0777, $logfile ) if ( $is_new_file );
-
-    $fh->close;
 }
 
 # set default Media Cloud properties for LWP::UserAgent objects
@@ -446,8 +423,7 @@ sub get_cached_link_download
             }
             else
             {
-                my $msg = "Error retrieving content for $original_url: " . $response->status_line;
-                WARN $msg;
+                DEBUG( "Error retrieving content for $original_url: " . $response->status_line );
                 $_link_downloads_cache->{ $response_link_num } = '';
             }
         }

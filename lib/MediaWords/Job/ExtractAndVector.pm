@@ -34,7 +34,6 @@ use MediaWords::DBI::Stories::ExtractorArguments;
 #
 # Arguments:
 # * stories_id -- story ID to extract
-# * (optional) extractor_method -- extractor method to use (e.g. "PythonReadability")
 # * (optional) disable_story_triggers -- disable triggers on "stories" table
 #              (probably skips updating db_row_last_updated?)
 # * (optional) skip_bitly_processing -- don't add extracted story to the Bit.ly
@@ -68,9 +67,6 @@ sub run($$)
 
     my $extractor_args = MediaWords::DBI::Stories::ExtractorArguments->new(
         {
-            # If unset, will fallback to default extractor method set in configuration
-            extractor_method => $args->{ extractor_method },
-
             skip_bitly_processing   => $args->{ skip_bitly_processing },
             skip_corenlp_annotation => $args->{ skip_corenlp_annotation },
             use_cache               => $args->{ use_cache }

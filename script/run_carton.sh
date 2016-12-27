@@ -10,6 +10,15 @@ set -o  errexit
 # Make sure Inline::Python uses correct virtualenv
 set +u; cd "$working_dir/../"; source mc-venv/bin/activate; set -u
 
+# Also set PYTHONHOME for Python to search for modules at correct location
+
+if [ `uname` == 'Darwin' ]; then
+	# greadlink from coreutils
+	PYTHONHOME=`greadlink -m mc-venv/`
+else
+	PYTHONHOME=`readlink -m mc-venv/`
+fi
+
 # Check if Carton is of version v1.0.0+
 #
 # v0.9.* used the old "carton.lock" to keep track of specific module versions,
@@ -35,4 +44,4 @@ fi
 export PERL_LWP_SSL_VERIFY_HOSTNAME=0
 
 #echo carton "$@"
-exec carton "$@"
+PYTHONHOME=$PYTHONHOME exec carton "$@"

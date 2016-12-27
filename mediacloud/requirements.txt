@@ -4,6 +4,9 @@ hausastemmer
 # Unit tests
 nose
 
+# Finding out which Readability version we're using
+pip
+
 # PostgreSQL
 psycopg2
 
@@ -18,6 +21,3 @@ readability-lxml==0.6.2
 
 # Normalizing URLs
 url_normalize
-
-# Binding code between Perl and Python Readability
-thrift

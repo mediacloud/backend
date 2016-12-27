@@ -673,13 +673,6 @@ sub extract_download($$$)
 
     if ( my $error = $@ )
     {
-        if ( ref( $error ) )
-        {
-            # ugliness needed to avoid passing object to $db->query below
-            my $thrift_error = UNIVERSAL::isa( $error, 'Thrift::TException' );
-            $error = $thrift_error ? "$error->{ code } $error->{ message }" : $error . '';
-        }
-
         WARN "extract error processing download $download->{ downloads_id }: $error";
     }
     else
@@ -1190,16 +1183,47 @@ sub _story_domain_matches_medium
     return ( grep { $medium_domain eq $_ } @{ $story_domains } ) ? 1 : 0;
 }
 
+# query the database for a count of sentences for each story
+sub get_story_with_most_sentences($$)
+{
+    my ( $db, $stories ) = @_;
+
+    die( "no stories" ) unless ( scalar( @{ $stories } ) );
+
+    return $stories->[ 0 ] unless ( scalar( @{ $stories } ) > 1 );
+
+    my $stories_id_list = join( ',', map { $_->{ stories_id } } @{ $stories } );
+
+    my ( $stories_id ) = $db->query( <<SQL )->flat;
+select stories_id
+    from story_sentences
+    where stories_id in ($stories_id_list)
+    group by stories_id
+    order by count(*) desc
+    limit 1
+SQL
+
+    $stories_id ||= $stories->[ 0 ]->{ stories_id };
+
+    map { return $_ if ( $_->{ stories_id } eq $stories_id ) } @{ $stories };
+
+    die( "unable to find story '$stories_id'" );
+}
+
 # given a set of possible story matches, find the story that is likely the best.
-# the best story is the one that sorts first according to the following criteria,
-# in descending order of importance:
+# the best story is the one that first belongs to the media source that sorts first
+# according to the following criteria, in descending order of importance:
 # * media pointed to by some dup_media_id;
 # * media with a dup_media_id;
 # * media whose url domain matches that of the story;
 # * media with a lower media_id
+#
+# within a media source, the preferred story is the one with the most sentences.
 sub get_preferred_story
 {
     my ( $db, $url, $redirect_url, $stories ) = @_;
+
+    return undef unless ( @{ $stories } );
 
     my $stories_lookup = {};
     map { $stories_lookup->{ $_->{ stories_id } } = $_ } @{ $stories };
@@ -1212,14 +1236,19 @@ sub get_preferred_story
     my $media_lookup = {};
     for my $story ( @{ $stories } )
     {
-        next if ( $media_lookup->{ $story->{ media_id } } );
-
-        my $medium = get_cached_medium_by_id( $db, $story->{ media_id } );
-        $medium->{ story }          = $story;
-        $medium->{ is_dup_source }  = $medium->{ dup_media_id } ? 1 : 0;
-        $medium->{ matches_domain } = _story_domain_matches_medium( $db, $medium, $url, $redirect_url );
-
-        $media_lookup->{ $medium->{ media_id } } = $medium;
+        my $medium = $media_lookup->{ $story->{ media_id } };
+        if ( !$medium )
+        {
+            $medium = get_cached_medium_by_id( $db, $story->{ media_id } );
+            $medium->{ is_dup_source } = $medium->{ dup_media_id } ? 1 : 0;
+            $medium->{ matches_domain } = _story_domain_matches_medium( $db, $medium, $url, $redirect_url );
+            $media_lookup->{ $medium->{ media_id } } = $medium;
+            $medium->{ stories } = [ $story ];
+        }
+        else
+        {
+            push( @{ $medium->{ stories } }, $story );
+        }
     }
 
     my $media = [ values %{ $media_lookup } ];
@@ -1234,9 +1263,11 @@ sub get_preferred_story
 
     my $sorted_media = [ sort _compare_media @{ $media } ];
 
+    my $preferred_story = get_story_with_most_sentences( $db, $sorted_media->[ 0 ]->{ stories } );
+
     TRACE "get_preferred_story done";
 
-    return $sorted_media->[ 0 ]->{ story };
+    return $preferred_story;
 }
 
 sub story_has_download_text
