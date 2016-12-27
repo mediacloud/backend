@@ -5,11 +5,11 @@ MC_SOLR_VERSION = "6.3.0"
 MC_SOLR_LUCENEMATCHVERSION = "6.3.0"
 
 # Solr home directory (solr.home; relative to Media Cloud root; must already exist)
-MC_SOLR_HOME_DIR = "mediacloud/"
+MC_SOLR_HOME_DIR = "solr/"
 
 # Base data directory under which both cluster (Solr and ZooKeeper) and non-cluster
 # (only Solr) data will be stored (relative to Media Cloud root; must already exist)
-MC_SOLR_BASE_DATA_DIR = "../data/solr/"
+MC_SOLR_BASE_DATA_DIR = "data/solr/"
 
 # Seconds to wait for Solr to shutdown after SIGKILLing it; after the timeout, SIGTERM will be sent
 MC_SOLR_SIGKILL_TIMEOUT = 60
@@ -80,7 +80,7 @@ MC_ZOOKEEPER_SIGKILL_TIMEOUT = 60
 MC_INSTALL_TIMEOUT = 2 * 60
 
 # Where to extract software distributions (relative to Media Cloud root; must already exist)
-MC_DIST_DIR = "../data/solr/dist"
+MC_DIST_DIR = "data/solr/dist/"
 
 # File placed in distribution directory which signifies that distribution is being installed right now
 MC_PACKAGE_INSTALLING_FILE = "mc-installing.txt"
