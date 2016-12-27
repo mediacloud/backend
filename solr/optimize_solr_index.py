@@ -2,8 +2,8 @@
 
 import argparse
 
-from mc_solr.constants import *
-from mc_solr.solr import optimize_solr_index
+from mediawords.solr.run.constants import *
+from mediawords.solr.run.solr import optimize_solr_index
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Optimize Solr index.",

@@ -2,7 +2,7 @@
 
 import argparse
 
-from mc_solr.solr import upgrade_lucene_standalone_index, upgrade_lucene_shards_indexes
+from mediawords.solr.run.solr import upgrade_lucene_standalone_index, upgrade_lucene_shards_indexes
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Upgrade Lucene index using IndexUpgrader utility.",

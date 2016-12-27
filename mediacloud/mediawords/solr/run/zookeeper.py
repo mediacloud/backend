@@ -1,9 +1,8 @@
 import atexit
 
-import mc_solr.solr
-from mc_solr.constants import *
-from mc_solr.utils import *
-
+from mediawords.solr.run.constants import *
+from mediawords.solr.run.utils import *
+from mediawords.solr.run.solr import update_zookeeper_solr_configuration
 from mediawords.util.log import create_logger
 
 l = create_logger(__name__)
@@ -203,10 +202,10 @@ syncLimit=5
         raise Exception("Unable to connect to ZooKeeper at port %d" % port)
 
     l.info("Uploading initial Solr collection configurations to ZooKeeper...")
-    mc_solr.solr.update_zookeeper_solr_configuration(zookeeper_host="localhost",
-                                                     zookeeper_port=port,
-                                                     dist_directory=dist_directory,
-                                                     solr_version=solr_version)
+    update_zookeeper_solr_configuration(zookeeper_host="localhost",
+                                        zookeeper_port=port,
+                                        dist_directory=dist_directory,
+                                        solr_version=solr_version)
 
     l.info("ZooKeeper is ready on port %d!" % port)
     while True:

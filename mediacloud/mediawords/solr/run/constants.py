@@ -4,11 +4,11 @@ MC_SOLR_VERSION = "6.3.0"
 # <luceneMatchVersion> value
 MC_SOLR_LUCENEMATCHVERSION = "6.3.0"
 
-# Solr home directory (solr.home; relative to solr/; must already exist)
+# Solr home directory (solr.home; relative to Media Cloud root; must already exist)
 MC_SOLR_HOME_DIR = "mediacloud/"
 
 # Base data directory under which both cluster (Solr and ZooKeeper) and non-cluster
-# (only Solr) data will be stored (relative to solr/; must already exist)
+# (only Solr) data will be stored (relative to Media Cloud root; must already exist)
 MC_SOLR_BASE_DATA_DIR = "../data/solr/"
 
 # Seconds to wait for Solr to shutdown after SIGKILLing it; after the timeout, SIGTERM will be sent
@@ -79,7 +79,7 @@ MC_ZOOKEEPER_SIGKILL_TIMEOUT = 60
 # Timeout for installations (in seconds)
 MC_INSTALL_TIMEOUT = 2 * 60
 
-# Where to extract software distributions (relative to solr/; must already exist)
+# Where to extract software distributions (relative to Media Cloud root; must already exist)
 MC_DIST_DIR = "../data/solr/dist"
 
 # File placed in distribution directory which signifies that distribution is being installed right now

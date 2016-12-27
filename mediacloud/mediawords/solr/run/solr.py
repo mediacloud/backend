@@ -1,13 +1,11 @@
 import atexit
 import glob
 import shutil
-
-from urllib.request import urlopen
 from urllib.error import URLError
+from urllib.request import urlopen
 
-from mc_solr.constants import *
-from mc_solr.utils import *
-
+from mediawords.solr.run.constants import *
+from mediawords.solr.run.utils import *
 from mediawords.util.log import create_logger
 
 l = create_logger(__name__)

@@ -2,9 +2,9 @@
 
 import argparse
 
-from mc_solr.constants import *
-from mc_solr.solr import run_solr_shard
-from mc_solr.utils import fqdn
+from mediawords.solr.run.constants import *
+from mediawords.solr.run.utils import fqdn
+from mediawords.solr.run.solr import run_solr_shard
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Install Solr and start a shard.",

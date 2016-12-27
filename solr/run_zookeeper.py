@@ -2,8 +2,8 @@
 
 import argparse
 
-from mc_solr.constants import *
-from mc_solr.zookeeper import run_zookeeper
+from mediawords.solr.run.constants import *
+from mediawords.solr.run.zookeeper import run_zookeeper
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Install and run ZooKeeper instance.",
