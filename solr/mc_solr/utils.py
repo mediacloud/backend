@@ -22,18 +22,18 @@ def create_logger(name):
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
 
-    l = logging.getLogger(name)
-    l.setLevel(logging.DEBUG)
-    l.addHandler(handler)
-    return l
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(handler)
+    return logger
 
 
-logger = create_logger(__name__)
+l = create_logger(__name__)
 
 
 def mkdir_p(path):
     """mkdir -p"""
-    logger.debug("Creating directory '%s'..." % path)
+    l.debug("Creating directory '%s'..." % path)
     try:
         os.makedirs(path)
     except OSError as e:  # Python >2.5
@@ -41,13 +41,13 @@ def mkdir_p(path):
             pass
         else:
             raise
-    logger.debug("Created directory '%s'." % path)
+    l.debug("Created directory '%s'." % path)
 
 
 def lock_file(path, timeout=None):
     """Create lock file."""
     start_time = time.time()
-    logger.debug("Creating lock file '%s'..." % path)
+    l.debug("Creating lock file '%s'..." % path)
     while True:
         try:
             os.open(path, os.O_CREAT | os.O_EXCL | os.O_RDWR)
@@ -58,21 +58,21 @@ def lock_file(path, timeout=None):
                     if (time.time() - start_time) >= timeout:
                         raise Exception("Unable to create lock file '%s' in %d seconds." % (path, timeout))
 
-                logger.info("Lock file '%s' already exists, will retry shortly." % path)
+                l.info("Lock file '%s' already exists, will retry shortly." % path)
                 time.sleep(1)
             else:
                 # Some other I/O error
                 raise
-    logger.debug("Created lock file '%s'" % path)
+    l.debug("Created lock file '%s'" % path)
 
 
 def unlock_file(path):
     """Remove lock file."""
-    logger.debug("Removing lock file '%s'..." % path)
+    l.debug("Removing lock file '%s'..." % path)
     if not os.path.isfile(path):
         raise Exception("Lock file '%s' does not exist." % path)
     os.unlink(path)
-    logger.debug("Removed lock file '%s'." % path)
+    l.debug("Removed lock file '%s'." % path)
 
 
 def download_file(source_url, target_path):
@@ -143,7 +143,7 @@ def fqdn():
         raise Exception("Unable to determine FQDN.")
     hostname = hostname.lower()
     if hostname == 'localhost':
-        logger.warn("FQDN is 'localhost', are you sure that /etc/hosts is set up properly?")
+        l.warn("FQDN is 'localhost', are you sure that /etc/hosts is set up properly?")
     if not hostname_resolves(hostname):
         raise Exception("Hostname '%s' does not resolve." % hostname)
     return hostname
@@ -178,7 +178,7 @@ def relative_symlink(source, link_name):
 
     rel_source = os.path.relpath(source, os.path.dirname(link_name))
 
-    logger.debug("Creating relative symlink from '%s' to '%s'..." % (rel_source, link_name))
+    l.debug("Creating relative symlink from '%s' to '%s'..." % (rel_source, link_name))
     os.symlink(rel_source, link_name)
 
 
@@ -188,36 +188,36 @@ def gracefully_kill_child_process(child_pid, sigkill_timeout=60):
         raise Exception("Child PID is unset.")
 
     if not process_with_pid_is_running(pid=child_pid):
-        logger.warn("Child process with PID %d is not running, maybe it's dead already?" % child_pid)
+        l.warn("Child process with PID %d is not running, maybe it's dead already?" % child_pid)
     else:
-        logger.info("Sending SIGKILL to child process with PID %d..." % child_pid)
+        l.info("Sending SIGKILL to child process with PID %d..." % child_pid)
 
         try:
             os.kill(child_pid, signal.SIGKILL)
         except OSError as e:
             # Might be already killed
-            logger.warn("Unable to send SIGKILL to child PID %d: %s" % (child_pid, str(e)))
+            l.warn("Unable to send SIGKILL to child PID %d: %s" % (child_pid, str(e)))
 
         for retry in range(sigkill_timeout):
             if process_with_pid_is_running(pid=child_pid):
-                logger.info("Child with PID %d is still up (retry %d)." % (child_pid, retry))
+                l.info("Child with PID %d is still up (retry %d)." % (child_pid, retry))
                 time.sleep(1)
             else:
                 break
 
         if process_with_pid_is_running(pid=child_pid):
-            logger.warn("SIGKILL didn't work child process with PID %d, sending SIGTERM..." % child_pid)
+            l.warn("SIGKILL didn't work child process with PID %d, sending SIGTERM..." % child_pid)
 
             try:
                 os.kill(child_pid, signal.SIGTERM)
             except OSError as e:
                 # Might be already killed
-                logger.warn("Unable to send SIGTERM to child PID %d: %s" % (child_pid, str(e)))
+                l.warn("Unable to send SIGTERM to child PID %d: %s" % (child_pid, str(e)))
 
             time.sleep(3)
 
         if process_with_pid_is_running(pid=child_pid):
-            logger.warn("Even SIGKILL didn't do anything, kill child process with PID %d manually!" % child_pid)
+            l.warn("Even SIGKILL didn't do anything, kill child process with PID %d manually!" % child_pid)
 
 
 def tcp_port_is_open(port, hostname="localhost"):
@@ -232,9 +232,9 @@ def wait_for_tcp_port_to_open(port, hostname="localhost", retries=60, delay=1):
     port_is_open = False
     for retry in range(retries):
         if retry == 0:
-            logger.info("Trying to connect to %s:%d" % (hostname, port))
+            l.info("Trying to connect to %s:%d" % (hostname, port))
         else:
-            logger.info("Trying to connect to %s:%d, retry %d" % (hostname, port, retry))
+            l.info("Trying to connect to %s:%d, retry %d" % (hostname, port, retry))
 
         if tcp_port_is_open(port, hostname):
             port_is_open = True
@@ -256,7 +256,7 @@ def resolve_absolute_path(name, must_exist=False):
 
 def run_command_in_foreground(command):
     """Run command in foreground, raise exception if it fails."""
-    logger.debug("Running command: %s" % ' '.join(command))
+    l.debug("Running command: %s" % ' '.join(command))
 
     if sys.platform.lower() == 'darwin':
         # OS X -- requires some crazy STDOUT / STDERR buffering
@@ -266,7 +266,7 @@ def run_command_in_foreground(command):
             output = process.stdout.readline()
             if len(output) == 0 and process.poll() is not None:
                 break
-            logger.info(output.strip())
+            l.info(output.strip())
         rc = process.poll()
         if rc > 0:
             raise Exception("Process returned non-zero exit code %d" % rc)
