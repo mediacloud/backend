@@ -47,6 +47,17 @@ stopsignal=[% stopsignal %]
     [%- IF redirect_stderr %]
 redirect_stderr=[% redirect_stderr %]
     [%- END %]
+
+; Path to log file
+stdout_logfile = %(here)s/../data/supervisor_logs/%(program_name)s_%(process_num)02d_stdout.log
+stderr_logfile = %(here)s/../data/supervisor_logs/%(program_name)s_%(process_num)02d_stderr.log
+
+; Don't rotate logs (logrotate will do that)
+stdout_logfile_maxbytes = 0
+stderr_logfile_maxbytes = 0
+stdout_logfile_backups = 0
+stderr_logfile_backups = 0
+
 [%- END %]
 
 [inet_http_server]
