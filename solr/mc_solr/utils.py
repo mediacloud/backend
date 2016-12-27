@@ -143,7 +143,7 @@ def fqdn():
         raise Exception("Unable to determine FQDN.")
     hostname = hostname.lower()
     if hostname == 'localhost':
-        l.warn("FQDN is 'localhost', are you sure that /etc/hosts is set up properly?")
+        l.warning("FQDN is 'localhost', are you sure that /etc/hosts is set up properly?")
     if not hostname_resolves(hostname):
         raise Exception("Hostname '%s' does not resolve." % hostname)
     return hostname
@@ -188,7 +188,7 @@ def gracefully_kill_child_process(child_pid, sigkill_timeout=60):
         raise Exception("Child PID is unset.")
 
     if not process_with_pid_is_running(pid=child_pid):
-        l.warn("Child process with PID %d is not running, maybe it's dead already?" % child_pid)
+        l.warning("Child process with PID %d is not running, maybe it's dead already?" % child_pid)
     else:
         l.info("Sending SIGKILL to child process with PID %d..." % child_pid)
 
@@ -196,7 +196,7 @@ def gracefully_kill_child_process(child_pid, sigkill_timeout=60):
             os.kill(child_pid, signal.SIGKILL)
         except OSError as e:
             # Might be already killed
-            l.warn("Unable to send SIGKILL to child PID %d: %s" % (child_pid, str(e)))
+            l.warning("Unable to send SIGKILL to child PID %d: %s" % (child_pid, str(e)))
 
         for retry in range(sigkill_timeout):
             if process_with_pid_is_running(pid=child_pid):
@@ -206,18 +206,18 @@ def gracefully_kill_child_process(child_pid, sigkill_timeout=60):
                 break
 
         if process_with_pid_is_running(pid=child_pid):
-            l.warn("SIGKILL didn't work child process with PID %d, sending SIGTERM..." % child_pid)
+            l.warning("SIGKILL didn't work child process with PID %d, sending SIGTERM..." % child_pid)
 
             try:
                 os.kill(child_pid, signal.SIGTERM)
             except OSError as e:
                 # Might be already killed
-                l.warn("Unable to send SIGTERM to child PID %d: %s" % (child_pid, str(e)))
+                l.warning("Unable to send SIGTERM to child PID %d: %s" % (child_pid, str(e)))
 
             time.sleep(3)
 
         if process_with_pid_is_running(pid=child_pid):
-            l.warn("Even SIGKILL didn't do anything, kill child process with PID %d manually!" % child_pid)
+            l.warning("Even SIGKILL didn't do anything, kill child process with PID %d manually!" % child_pid)
 
 
 def tcp_port_is_open(port, hostname="localhost"):

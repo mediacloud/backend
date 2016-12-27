@@ -525,7 +525,7 @@ instanceDir=%(instance_dir)s
     if jvm_heap_size is not None:
         args += ["-Xmx%s" % jvm_heap_size]
     args += jvm_opts
-    args = args + [
+    args += [
         "-server",
         "-Djava.util.logging.config.file=file://" + os.path.abspath(log4j_properties_path),
         "-Djetty.base=%s" % instance_data_dir,
@@ -545,7 +545,7 @@ instanceDir=%(instance_dir)s
         "-Dmediacloud.solr_webapp_dir=%s" % solr_webapp_path,
     ]
     args = args + start_jar_args
-    args = args + [
+    args += [
         "-jar", start_jar_path,
         "--module=http",
     ]
