@@ -46,6 +46,19 @@ echo "Creating mc-venv virtualenv..."
 virtualenv --python=python3.5 mc-venv
 source mc-venv/bin/activate
 
+echo "Adding 'mediacloud/' to module search path..."
+SITE_PACKAGES_PATH="./mc-venv/lib/python3.5/site-packages/"
+if [ ! -d "$SITE_PACKAGES_PATH" ]; then
+    echo "'site-packages' at $SITE_PACKAGES_PATH does not exist."
+    exit 1
+fi
+cat > "$SITE_PACKAGES_PATH/mediacloud.pth" << EOF
+#
+# Include "mediacloud/" in sys.path to scripts under "tools/"
+#
+../../../../mediacloud/
+EOF
+
 echo "Installing Python 3.5 dependencies..."
 pip3.5 install --upgrade -r mediacloud/requirements.txt || {
     # Sometimes fails with some sort of Setuptools error
