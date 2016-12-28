@@ -27,9 +27,6 @@ MC_SOLR_STANDALONE_JVM_HEAP_SIZE = "256m"
 MC_SOLR_STANDALONE_JVM_OPTS = [
 ]
 
-# Min. Java version required to run Solr
-MC_SOLR_MIN_JAVA_VERSION = "1.8"    # Solr 6 requires Java 8
-
 # Solr starting port for shards, e.g.:
 # * shard #1 will start on port MC_SOLR_CLUSTER_STARTING_PORT
 # * shard #2 will start on port MC_SOLR_CLUSTER_STARTING_PORT+1

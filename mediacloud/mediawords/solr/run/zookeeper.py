@@ -1,5 +1,6 @@
 import atexit
 import signal
+import subprocess
 import sys
 
 from mediawords.solr.run.constants import *

@@ -1,11 +1,8 @@
 import errno
 import os
-import re
-import subprocess
 import tempfile
 import time
 
-from mediawords.util.paths import mc_root_path
 from mediawords.util.log import create_logger
 from mediawords.util.process import run_command_in_foreground
 
@@ -115,30 +112,3 @@ def relative_symlink(source, link_name):
 
     l.debug("Creating relative symlink from '%s' to '%s'..." % (rel_source, link_name))
     os.symlink(rel_source, link_name)
-
-
-def compare_versions(version1, version2):
-    """Compare two version strings. Return 0 if equal, -1 if version1 < version2, 1 if version1 > version2."""
-
-    def __cmp(a, b):
-        # Python 3 does not have cmp()
-        return (a > b) - (a < b)
-
-    def __normalize(v):
-        v = v.replace("_", ".")
-        return [int(x) for x in re.sub(r'(\.0+)*$', '', v).split(".")]
-
-    return __cmp(__normalize(version1), __normalize(version2))
-
-
-def java_version():
-    """Return Java version, e.g. "1.8.0_66"."""
-    java_version_output = subprocess.Popen(["java", "-version"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    java_version_output = java_version_output.stdout.read().decode('utf-8')
-
-    java_version_string = re.search(r'(java|openjdk) version "(.+?)"', java_version_output)
-    if java_version_string is None:
-        raise Exception("Unable to determine Java version from string: %s" % java_version_output)
-    java_version_string = java_version_string.group(2)
-
-    return java_version_string

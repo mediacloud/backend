@@ -1,7 +1,9 @@
 import atexit
 import glob
+import re
 import shutil
 import signal
+import subprocess
 import sys
 from urllib.error import URLError
 from urllib.request import urlopen
@@ -16,9 +18,6 @@ from mediawords.util.process import run_command_in_foreground, gracefully_kill_c
 l = create_logger(__name__)
 
 __solr_pid = None
-
-if compare_versions(java_version(), MC_SOLR_MIN_JAVA_VERSION) < 0:
-    raise Exception("Java is too old (expected: %s, actual: %s)" % (MC_SOLR_MIN_JAVA_VERSION, java_version()))
 
 
 def __solr_path(dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION):
