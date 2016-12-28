@@ -182,11 +182,11 @@ def compare_versions(version1, version2):
         # Python 3 does not have cmp()
         return (a > b) - (a < b)
 
-    def normalize(v):
+    def __normalize(v):
         v = v.replace("_", ".")
         return [int(x) for x in re.sub(r'(\.0+)*$', '', v).split(".")]
 
-    return __cmp(normalize(version1), normalize(version2))
+    return __cmp(__normalize(version1), __normalize(version2))
 
 
 def java_version():
