@@ -98,17 +98,3 @@ def extract_zip_to_directory(archive_file, dest_directory):
             "-d", dest_directory]
 
     run_command_in_foreground(args)
-
-
-def relative_symlink(source, link_name):
-    """Create symlink while also converting paths to relative ones by finding common prefix."""
-    source = os.path.abspath(source)
-    link_name = os.path.abspath(link_name)
-
-    if not os.path.exists(source):
-        raise Exception("Symlink source does not exist at path: %s" % source)
-
-    rel_source = os.path.relpath(source, os.path.dirname(link_name))
-
-    l.debug("Creating relative symlink from '%s' to '%s'..." % (rel_source, link_name))
-    os.symlink(rel_source, link_name)

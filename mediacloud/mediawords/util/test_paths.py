@@ -42,3 +42,23 @@ def test_resolve_absolute_path_under_mc_root():
     path = resolve_absolute_path_under_mc_root(path='TOTALLY_DOES_NOT_EXIST', must_exist=False)
     assert len(path) > 0
     assert os.path.isfile(path) is False
+
+
+def test_relative_symlink():
+    temp_dir = tempfile.mkdtemp()
+
+    source_dir = os.path.join(temp_dir, 'src', 'a', 'b', 'c')
+    mkdir_p(source_dir)
+    with open(os.path.join(source_dir, 'test.txt'), 'w') as fh:
+        fh.write('foo')
+
+    dest_dir = os.path.join(temp_dir, 'dst', 'd', 'e')
+    mkdir_p(dest_dir)
+    dest_symlink = os.path.join(dest_dir, 'f')
+
+    relative_symlink(source=source_dir, link_name=dest_symlink)
+
+    assert os.path.exists(dest_symlink)
+    assert os.path.lexists(dest_symlink)
+    assert os.path.islink(dest_symlink)
+    assert os.path.exists(os.path.join(dest_symlink, 'test.txt'))

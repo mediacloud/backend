@@ -68,3 +68,17 @@ def resolve_absolute_path_under_mc_root(path: str, must_exist: bool = False) -> 
         if not os.path.exists(dist_path):
             raise Exception("Object '%s' at path '%s' does not exist." % (path, dist_path))
     return os.path.abspath(dist_path)
+
+
+def relative_symlink(source: str, link_name: str) -> None:
+    """Create symlink while also converting paths to relative ones by finding common prefix."""
+    source = os.path.abspath(source)
+    link_name = os.path.abspath(link_name)
+
+    if not os.path.exists(source):
+        raise Exception("Symlink source does not exist at path: %s" % source)
+
+    rel_source = os.path.relpath(source, os.path.dirname(link_name))
+
+    l.debug("Creating relative symlink from '%s' to '%s'..." % (rel_source, link_name))
+    os.symlink(rel_source, link_name)
