@@ -5,7 +5,6 @@ import subprocess
 import tempfile
 import time
 
-from mediawords.util.network import tcp_port_is_open
 from mediawords.util.paths import mc_root_path
 from mediawords.util.log import create_logger
 from mediawords.util.process import run_command_in_foreground
@@ -116,23 +115,6 @@ def relative_symlink(source, link_name):
 
     l.debug("Creating relative symlink from '%s' to '%s'..." % (rel_source, link_name))
     os.symlink(rel_source, link_name)
-
-
-def wait_for_tcp_port_to_open(port, hostname="localhost", retries=60, delay=1):
-    """Try connecting to TCP port until it opens (or not); return True if managed to connect."""
-    port_is_open = False
-    for retry in range(retries):
-        if retry == 0:
-            l.info("Trying to connect to %s:%d" % (hostname, port))
-        else:
-            l.info("Trying to connect to %s:%d, retry %d" % (hostname, port, retry))
-
-        if tcp_port_is_open(port, hostname):
-            port_is_open = True
-            break
-        else:
-            time.sleep(delay)
-    return port_is_open
 
 
 def resolve_absolute_path_under_mc_root(name, must_exist=False):

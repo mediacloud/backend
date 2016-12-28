@@ -1,4 +1,6 @@
 import socket
+import time
+
 from mediawords.util.log import create_logger
 
 l = create_logger(__name__)
@@ -36,3 +38,20 @@ def tcp_port_is_open(port: int, hostname: str = 'localhost') -> bool:
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     result = sock.connect_ex((hostname, port))
     return result == 0
+
+
+def wait_for_tcp_port_to_open(port: int, hostname: str = 'localhost', retries: int = 60, delay: int = 1) -> bool:
+    """Try connecting to TCP port until it opens (or not); return True if managed to connect."""
+    port_is_open = False
+    for retry in range(retries):
+        if retry == 0:
+            l.info("Trying to connect to %s:%d" % (hostname, port))
+        else:
+            l.info("Trying to connect to %s:%d, retry %d" % (hostname, port, retry))
+
+        if tcp_port_is_open(port, hostname):
+            port_is_open = True
+            break
+        else:
+            time.sleep(delay)
+    return port_is_open
