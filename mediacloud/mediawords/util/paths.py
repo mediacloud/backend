@@ -14,6 +14,7 @@ class McRootPathException(Exception):
 
 
 def mc_root_path() -> str:
+    """Return full path to Media Cloud root directory."""
     # FIXME MC_REWRITE_TO_PYTHON: Inline::Python doesn't always set __file__
     # properly, but chances are that we're running from Media Cloud root directory
     try:
@@ -36,6 +37,8 @@ class McScriptPathException(Exception):
 
 
 def mc_script_path() -> str:
+    """Return full path to Media Cloud 'script/' directory."""
+    # FIXME MC_REWRITE_TO_PYTHON: probably won't be needed after Perl rewrite
     root_path = mc_root_path()
     script_path = os.path.join(root_path, "script")
     if not os.path.isdir(script_path):
