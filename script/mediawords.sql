@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4599;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4600;
 
 BEGIN
 
@@ -614,6 +614,9 @@ create index tags_label on tags (label);
 create index tags_tag_1 on tags (split_part(tag, ' ', 1));
 create index tags_tag_2 on tags (split_part(tag, ' ', 2));
 create index tags_tag_3 on tags (split_part(tag, ' ', 3));
+
+create index tags_show_on_media on tags ( show_on_media );
+create index tags_show_on_stories on tags ( show_on_stories );
 
 create view tags_with_sets as select t.*, ts.name as tag_set_name from tags t, tag_sets ts where t.tag_sets_id = ts.tag_sets_id;
 

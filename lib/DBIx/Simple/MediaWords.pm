@@ -169,7 +169,7 @@ sub schema_is_up_to_date
     die "Invalid current schema version.\n" unless ( $current_schema_version );
 
     # Target schema version
-    my $sql = read_file( "$script_dir/mediawords.sql" );
+    my $sql                   = read_file( "$script_dir/mediawords.sql" );
     my $target_schema_version = MediaWords::Util::SchemaVersion::schema_version_from_lines( $sql );
     die "Invalid target schema version.\n" unless ( $target_schema_version );
 
@@ -656,7 +656,7 @@ sub quote_timestamp
 }
 
 # for each row in $data, attach all results in the child query that match a join with the $id_column field in each
-# row of $data.  attach to $row->{ $child_field } for each row in $data
+# row of $data.  attach to $row->{ $child_field } an array of values for each row in $data
 sub attach_child_query ($$$$$)
 {
     my ( $db, $data, $child_query, $child_field, $id_column ) = @_;
@@ -679,6 +679,35 @@ SQL
     {
         my $parent = $parent_lookup->{ $child->{ $id_column } };
         push( @{ $parent->{ $child_field } }, $child );
+    }
+
+    return $data;
+}
+
+# for each row in $data, attach all results in the child query that match a join with the $id_column field in each
+# row of $data.  attach to $row->{ $child_field } the $child_field column in the corresponding row in $data.
+sub attach_child_query_singleton ($$$$$)
+{
+    my ( $db, $data, $child_query, $child_field, $id_column ) = @_;
+
+    my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ $id_column } } @{ $data } ] );
+
+    my $children = $db->query( <<SQL )->hashes;
+select q.* from ( $child_query ) q join $ids_table ids on ( q.$id_column = ids.id )
+SQL
+
+    my $parent_lookup = {};
+
+    for my $parent ( @{ $data } )
+    {
+        $parent_lookup->{ $parent->{ $id_column } } = $parent;
+    }
+
+    for my $child ( @{ $children } )
+    {
+        my $parent = $parent_lookup->{ $child->{ $id_column } };
+
+        $parent->{ $child_field } = $child->{ $child_field };
     }
 
     return $data;

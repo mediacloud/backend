@@ -443,6 +443,20 @@ SQL
     ok( $topic_spider_metric->{ links_processed } > scalar( @{ $cl } ), "metrics links_processed greater than topic_links" );
 }
 
+# test that no errors exist in the topics or snapshots tables
+sub test_for_errors
+{
+    my ( $db ) = @_;
+
+    my $error_topics = $db->query( "select * from topics where error_message is not null" )->hashes;
+
+    ok( scalar( @{ $error_topics } ) == 0, "topic errors: " . Dumper( $error_topics ) );
+
+    my $error_snapshots = $db->query( "select * from snapshots where error_message is not null" )->hashes;
+
+    ok( scalar( @{ $error_snapshots } ) == 0, "snapshot errors: " . Dumper( $error_snapshots ) );
+}
+
 sub test_spider_results
 {
     my ( $db, $topic, $sites ) = @_;
@@ -450,6 +464,8 @@ sub test_spider_results
     test_topic_stories( $db, $topic, $sites );
 
     test_topic_links( $db, $topic, $sites );
+
+    test_for_errors( $db );
 }
 
 sub get_site_structure
