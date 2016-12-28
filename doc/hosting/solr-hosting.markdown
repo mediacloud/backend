@@ -7,7 +7,7 @@ SolrCloud requires a fair amount of hand holding to get all of the shards (indiv
 
 To simplify cluster creation, startup, and configuration reloads, we have some local scripts that manage these tasks.
 
-All of these scripts live under `solr/` and support `-h` parameter to provide some rudimentary help.
+All of these scripts live under `tools/solr/run/` and support `-h` parameter to provide some rudimentary help.
 
 
 ## Standalone Instance
