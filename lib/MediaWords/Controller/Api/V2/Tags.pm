@@ -69,14 +69,14 @@ sub get_extra_where_clause
 
         my $clause = <<SQL;
 and tags_id in (
-    select distinct b.tags_id
+    select b.tags_id
         from media_tags_map a
             join media_tags_map b using ( media_id )
         where
             a.tags_id = $similar_tags_id and
             a.tags_id <> b.tags_id
         group by b.tags_id
-        order by b.tags_id
+        order by count(*) desc
         limit 100
 )
 SQL

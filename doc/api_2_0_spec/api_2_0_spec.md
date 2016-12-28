@@ -255,14 +255,14 @@ Response:
 | `last_media_id`    | 0       | Return media sources with a `media_id` greater than this value
 | `rows`             | 20      | Number of media sources to return. Cannot be larger than 100
 | `name`             | none    | Name of media source for which to search
-| `name_or_tag` | none | Name of media source or associated tag for which to search PENDING
+| `tag_name`         | none    | Name of tag for which to return belonging media PENDING
 | `timespans_id`     | null    | Return media within the given timespan
 | `topic_mode`       | null    | If set to 'live', return media from live topics
 | `tags_id`          | null    | Return media associate with the given tag
 | `q`                | null    | Return media with at least one sentence that matches the solr query
 | `include_dups`     | 0       | Include duplicate media among the results
-| `unhealthy` | none | Only return media that are currently marked as unhealthy (see mediahealth/list) PENDING
-| `similar_media_id` | none | Return media with the most tags in common [PENDING[]
+| `unhealthy` | none | Only return media that are currently marked as unhealthy (see mediahealth/list)
+| `similar_media_id` | none | Return media with the most tags in common PENDING
 
 If the name parameter is specified, the call returns only media sources that match a case insensitive search specified value.  If the specified value is less than 3 characters long, the call returns an empty list.  The name_or_tag parameter behaves identically, but it also searches for all media sources that either have a name that matches the search text or that are associated with a tag that matches the search text.
 
