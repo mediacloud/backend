@@ -37,6 +37,9 @@ def rotate_supervisor_logs():
     supervisor_logs_dir = os.path.join(root_path, child_log_dir)
     l.info('Supervisor logs path: %s' % supervisor_logs_dir)
 
+    logrotate_state_file = os.path.join(supervisor_logs_dir, 'logrotate.state')
+    l.debug('logrotate state file: %s' % logrotate_state_file)
+
     if not os.path.isdir(supervisor_logs_dir):
         raise Exception('Supervisor logs directory does not exist at path: %s' % supervisor_logs_dir)
 
@@ -62,7 +65,12 @@ def rotate_supervisor_logs():
         tmp.write(logrotate_config)
 
     l.info('Running logrotate...')
-    subprocess.check_call(['logrotate', '--verbose', logrotate_temp_config_path])
+    subprocess.check_call([
+        'logrotate',
+        '--verbose',
+        '--state', logrotate_state_file,
+        logrotate_temp_config_path
+    ])
 
     l.debug('Cleaning up temporary logrotate config...')
     os.unlink(logrotate_temp_config_path)
