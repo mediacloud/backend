@@ -1,5 +1,5 @@
 import atexit
-
+import signal
 import sys
 
 from mediawords.solr.run.constants import *
@@ -7,6 +7,7 @@ from mediawords.solr.run.utils import *
 from mediawords.solr.run.solr import update_zookeeper_solr_configuration
 from mediawords.util.log import create_logger
 from mediawords.util.paths import mkdir_p
+from mediawords.util.process import gracefully_kill_child_process
 
 l = create_logger(__name__)
 
