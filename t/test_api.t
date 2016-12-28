@@ -22,6 +22,7 @@ use Readonly;
 use Test::More;
 use URI::Escape;
 
+use MediaWords::DBI::Media::Health;
 use MediaWords::Test::DB;
 use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
@@ -488,9 +489,8 @@ sub test_media_list ($$)
     map { $_->{ is_healthy } = 1 } @{ $test_stack_media };
     my $unhealthy_medium = $test_stack_media->[ 2 ];
     $unhealthy_medium->{ is_healthy } = 0;
-    $db->query( <<SQL, $unhealthy_medium->{ media_id } );
-create table media_health as select \$1::int media_id, false is_healthy
-SQL
+    MediaWords::DBI::Media::Health::generate_media_health( $db );
+    $db->query( "update media_health set is_healthy = false where media_id = \$1", $unhealthy_medium->{ media_id } );
     test_media_list_call( { unhealthy => 1 }, [ $unhealthy_medium ] );
 
     test_media_list_call( {}, $test_stack_media );
@@ -946,13 +946,12 @@ sub test_api($)
 
     MediaWords::Test::Solr::setup_test_index( $db );
 
-    # test_stories_public_list( $db, $media );
-    # test_auth_profile( $db );
+    test_stories_public_list( $db, $media );
+    test_auth_profile( $db );
     test_media( $db, $media );
-
-    # test_tag_sets( $db );
-    # test_feeds( $db );
-    # test_tags( $db );
+    test_tag_sets( $db );
+    test_feeds( $db );
+    test_tags( $db );
 
 }
 
