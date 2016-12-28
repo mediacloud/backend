@@ -7,7 +7,7 @@ from mediawords.solr.run.utils import *
 from mediawords.solr.run.solr import update_zookeeper_solr_configuration
 from mediawords.util.log import create_logger
 from mediawords.util.network import wait_for_tcp_port_to_open, tcp_port_is_open
-from mediawords.util.paths import mkdir_p
+from mediawords.util.paths import mkdir_p, resolve_absolute_path_under_mc_root
 from mediawords.util.process import gracefully_kill_child_process
 
 l = create_logger(__name__)
@@ -17,7 +17,7 @@ __zookeeper_pid = None
 
 def __zookeeper_path(dist_directory=MC_DIST_DIR, zookeeper_version=MC_ZOOKEEPER_VERSION):
     """Return path to where ZooKeeper distribution should be located."""
-    dist_path = resolve_absolute_path_under_mc_root(name=dist_directory)
+    dist_path = resolve_absolute_path_under_mc_root(path=dist_directory)
     zookeeper_directory = "zookeeper-%s" % zookeeper_version
     solr_path = os.path.join(dist_path, zookeeper_directory)
     return solr_path
@@ -129,7 +129,7 @@ def run_zookeeper(dist_directory=MC_DIST_DIR,
         l.info("ZooKeeper is not installed, installing...")
         __install_zookeeper()
 
-    data_dir = resolve_absolute_path_under_mc_root(name=data_dir, must_exist=True)
+    data_dir = resolve_absolute_path_under_mc_root(path=data_dir, must_exist=True)
 
     zookeeper_data_dir = os.path.join(data_dir, "mediacloud-cluster-zookeeper")
     if not os.path.isdir(zookeeper_data_dir):

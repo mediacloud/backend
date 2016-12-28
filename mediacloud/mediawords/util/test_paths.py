@@ -27,3 +27,18 @@ def test_mkdir_p():
     # Try creating again
     mkdir_p(test_dir)
     assert os.path.isdir(test_dir) is True
+
+
+def test_resolve_absolute_path_under_mc_root():
+    path = resolve_absolute_path_under_mc_root(path='.', must_exist=True)
+    assert len(path) > 0
+
+    # Path that exists
+    path = resolve_absolute_path_under_mc_root(path='mediawords.yml', must_exist=True)
+    assert len(path) > 0
+    assert os.path.isfile(path) is True
+
+    # Path that does not exist
+    path = resolve_absolute_path_under_mc_root(path='TOTALLY_DOES_NOT_EXIST', must_exist=False)
+    assert len(path) > 0
+    assert os.path.isfile(path) is False

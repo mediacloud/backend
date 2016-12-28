@@ -55,3 +55,13 @@ def mkdir_p(path: str) -> None:
         else:
             raise
     l.debug("Created directory '%s'." % path)
+
+
+def resolve_absolute_path_under_mc_root(path: str, must_exist: bool = False) -> str:
+    """Return absolute path to object (file or directory) under Media Cloud root."""
+    mc_root = mc_root_path()
+    dist_path = os.path.join(mc_root, path)
+    if must_exist:
+        if not os.path.exists(dist_path):
+            raise Exception("Object '%s' at path '%s' does not exist." % (path, dist_path))
+    return os.path.abspath(dist_path)

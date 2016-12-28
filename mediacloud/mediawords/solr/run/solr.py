@@ -10,7 +10,7 @@ from mediawords.solr.run.constants import *
 from mediawords.solr.run.utils import *
 from mediawords.util.log import create_logger
 from mediawords.util.network import fqdn, hostname_resolves, wait_for_tcp_port_to_open, tcp_port_is_open
-from mediawords.util.paths import mkdir_p
+from mediawords.util.paths import mkdir_p, resolve_absolute_path_under_mc_root
 from mediawords.util.process import run_command_in_foreground, gracefully_kill_child_process
 
 l = create_logger(__name__)
@@ -23,7 +23,7 @@ if compare_versions(java_version(), MC_SOLR_MIN_JAVA_VERSION) < 0:
 
 def __solr_path(dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION):
     """Return path to where Solr distribution should be located."""
-    dist_path = resolve_absolute_path_under_mc_root(name=dist_directory, must_exist=True)
+    dist_path = resolve_absolute_path_under_mc_root(path=dist_directory, must_exist=True)
     solr_directory = "solr-%s" % solr_version
     solr_path = os.path.join(dist_path, solr_directory)
     return solr_path
@@ -125,7 +125,7 @@ def __install_solr(dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION):
 
 def __solr_home_path(solr_home_dir=MC_SOLR_HOME_DIR):
     """Return path to Solr home (with collection subdirectories)."""
-    solr_home_path = resolve_absolute_path_under_mc_root(name=solr_home_dir, must_exist=True)
+    solr_home_path = resolve_absolute_path_under_mc_root(path=solr_home_dir, must_exist=True)
     return solr_home_path
 
 
@@ -208,7 +208,7 @@ def __shard_port(shard_num, starting_port=MC_SOLR_CLUSTER_STARTING_PORT):
 def __raise_if_old_shards_exist():
     """Raise exception with migration instructions if old shard directories exist already."""
 
-    pwd = resolve_absolute_path_under_mc_root(".")
+    pwd = resolve_absolute_path_under_mc_root(path=".")
     old_shards = glob.glob(pwd + "/mediacloud-shard-*")
 
     if len(old_shards) == 0:
@@ -590,7 +590,7 @@ def run_solr_standalone(hostname=fqdn(),
         l.info("Solr is not installed, installing...")
         __install_solr(dist_directory=dist_directory, solr_version=solr_version)
 
-    base_data_dir = resolve_absolute_path_under_mc_root(name=base_data_dir, must_exist=True)
+    base_data_dir = resolve_absolute_path_under_mc_root(path=base_data_dir, must_exist=True)
     standalone_data_dir = __standalone_data_dir(base_data_dir=base_data_dir)
 
     if tcp_port_is_open(port=port):
@@ -627,7 +627,7 @@ def run_solr_shard(shard_num,
         l.info("Solr is not installed, installing...")
         __install_solr(dist_directory=dist_directory, solr_version=solr_version)
 
-    base_data_dir = resolve_absolute_path_under_mc_root(name=base_data_dir, must_exist=True)
+    base_data_dir = resolve_absolute_path_under_mc_root(path=base_data_dir, must_exist=True)
 
     shard_port = __shard_port(shard_num=shard_num, starting_port=starting_port)
     shard_data_dir = __shard_data_dir(shard_num=shard_num, base_data_dir=base_data_dir)
@@ -794,7 +794,7 @@ def upgrade_lucene_standalone_index(base_data_dir=MC_SOLR_BASE_DATA_DIR,
                                     solr_version=MC_SOLR_VERSION):
     """Upgrade Lucene index using the IndexUpgrader tool to standalone instance."""
 
-    base_data_dir = resolve_absolute_path_under_mc_root(name=base_data_dir, must_exist=True)
+    base_data_dir = resolve_absolute_path_under_mc_root(path=base_data_dir, must_exist=True)
 
     l.info("Making sure standalone instance isn't running...")
     port = MC_SOLR_STANDALONE_PORT
@@ -815,7 +815,7 @@ def upgrade_lucene_shards_indexes(base_data_dir=MC_SOLR_BASE_DATA_DIR,
                                   solr_version=MC_SOLR_VERSION):
     """Upgrade Lucene indexes using the IndexUpgrader tool to all shards."""
 
-    base_data_dir = resolve_absolute_path_under_mc_root(name=base_data_dir, must_exist=True)
+    base_data_dir = resolve_absolute_path_under_mc_root(path=base_data_dir, must_exist=True)
 
     # Try to guess shard count from how many shards are in data directory
     l.info("Looking for shards...")

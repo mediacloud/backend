@@ -117,16 +117,6 @@ def relative_symlink(source, link_name):
     os.symlink(rel_source, link_name)
 
 
-def resolve_absolute_path_under_mc_root(name, must_exist=False):
-    """Return absolute path to object (file or directory) under Media Cloud root."""
-    mc_root = mc_root_path()
-    dist_path = os.path.join(mc_root, name)
-    if must_exist:
-        if not os.path.isdir(dist_path):
-            raise Exception("Object '%s' at path '%s' does not exist." % (name, dist_path))
-    return os.path.abspath(dist_path)
-
-
 def compare_versions(version1, version2):
     """Compare two version strings. Return 0 if equal, -1 if version1 < version2, 1 if version1 > version2."""
 
