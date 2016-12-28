@@ -1,5 +1,7 @@
 import atexit
 
+import sys
+
 from mediawords.solr.run.constants import *
 from mediawords.solr.run.utils import *
 from mediawords.solr.run.solr import update_zookeeper_solr_configuration

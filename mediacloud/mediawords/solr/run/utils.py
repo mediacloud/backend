@@ -10,12 +10,10 @@ import time
 
 import signal
 
-import sys
-
 from mediawords.util.paths import mc_root_path
 
 from mediawords.util.log import create_logger
-from mediawords.util.process import process_with_pid_is_running
+from mediawords.util.process import process_with_pid_is_running, run_command_in_foreground
 
 l = create_logger(__name__)
 
@@ -218,27 +216,6 @@ def resolve_absolute_path_under_mc_root(name, must_exist=False):
         if not os.path.isdir(dist_path):
             raise Exception("Object '%s' at path '%s' does not exist." % (name, dist_path))
     return os.path.abspath(dist_path)
-
-
-def run_command_in_foreground(command):
-    """Run command in foreground, raise exception if it fails."""
-    l.debug("Running command: %s" % ' '.join(command))
-
-    if sys.platform.lower() == 'darwin':
-        # OS X -- requires some crazy STDOUT / STDERR buffering
-        line_buffered = 1
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=line_buffered)
-        while True:
-            output = process.stdout.readline()
-            if len(output) == 0 and process.poll() is not None:
-                break
-            l.info(output.strip())
-        rc = process.poll()
-        if rc > 0:
-            raise Exception("Process returned non-zero exit code %d" % rc)
-    else:
-        # assume Ubuntu
-        subprocess.check_call(command)
 
 
 def compare_versions(version1, version2):
