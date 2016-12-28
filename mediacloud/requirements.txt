@@ -1,3 +1,6 @@
+# Unit test coverage
+coverage
+
 # Stemming Hausa words
 hausastemmer
 
