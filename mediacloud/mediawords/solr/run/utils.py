@@ -20,19 +20,6 @@ from mediawords.util.process import process_with_pid_is_running
 l = create_logger(__name__)
 
 
-def mkdir_p(path):
-    """mkdir -p"""
-    l.debug("Creating directory '%s'..." % path)
-    try:
-        os.makedirs(path)
-    except OSError as e:  # Python >2.5
-        if e.errno == errno.EEXIST and os.path.isdir(path):
-            pass
-        else:
-            raise
-    l.debug("Created directory '%s'." % path)
-
-
 def lock_file(path, timeout=None):
     """Create lock file."""
     start_time = time.time()

@@ -7,6 +7,7 @@ from urllib.request import urlopen
 from mediawords.solr.run.constants import *
 from mediawords.solr.run.utils import *
 from mediawords.util.log import create_logger
+from mediawords.util.paths import mkdir_p
 
 l = create_logger(__name__)
 

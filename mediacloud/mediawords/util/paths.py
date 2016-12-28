@@ -1,5 +1,7 @@
 import os
 
+import errno
+
 from mediawords.util.log import create_logger
 
 l = create_logger(__name__)
@@ -40,3 +42,16 @@ def mc_script_path() -> str:
         raise McScriptPathException("Unable to determine Media Cloud script path (tried '%s')" % script_path)
     l.debug("Script path is %s" % script_path)
     return script_path
+
+
+def mkdir_p(path: str) -> None:
+    """mkdir -p"""
+    l.debug("Creating directory '%s'..." % path)
+    try:
+        os.makedirs(path)
+    except OSError as e:  # Python >2.5
+        if e.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
+    l.debug("Created directory '%s'." % path)
