@@ -15,6 +15,7 @@ import sys
 from mediawords.util.paths import mc_root_path
 
 from mediawords.util.log import create_logger
+from mediawords.util.process import process_with_pid_is_running
 
 l = create_logger(__name__)
 
@@ -144,16 +145,6 @@ def hostname_resolves(hostname):
         return True
     except socket.error:
         return False
-
-
-def process_with_pid_is_running(pid):
-    """Return true if process with PID is still running."""
-    try:
-        os.kill(pid, 0)
-    except OSError:
-        return False
-    else:
-        return True
 
 
 def relative_symlink(source, link_name):
