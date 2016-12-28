@@ -6,8 +6,6 @@ import subprocess
 import tempfile
 import time
 
-from mediawords.util.network import hostname_resolves
-
 from mediawords.util.paths import mc_root_path
 from mediawords.util.log import create_logger
 from mediawords.util.process import run_command_in_foreground
@@ -104,20 +102,6 @@ def extract_zip_to_directory(archive_file, dest_directory):
             "-d", dest_directory]
 
     run_command_in_foreground(args)
-
-
-def fqdn():
-    """Return Fully Qualified Domain Name (hostname -f), e.g. mcquery2.media.mit.edu."""
-    # socket.getfqdn() returns goofy results
-    hostname = socket.getaddrinfo(socket.gethostname(), 0, flags=socket.AI_CANONNAME)[0][3]
-    if hostname is None or len(hostname) == 0:
-        raise Exception("Unable to determine FQDN.")
-    hostname = hostname.lower()
-    if hostname == 'localhost':
-        l.warning("FQDN is 'localhost', are you sure that /etc/hosts is set up properly?")
-    if not hostname_resolves(hostname):
-        raise Exception("Hostname '%s' does not resolve." % hostname)
-    return hostname
 
 
 def relative_symlink(source, link_name):
