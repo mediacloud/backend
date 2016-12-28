@@ -13,18 +13,8 @@ def test_fqdn():
     assert hostname_resolves(fq_hostname) is True
 
 
-def __random_unused_port():
-    import socket
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind(('', 0))
-    s.listen(1)
-    port = s.getsockname()[1]
-    s.close()
-    return port
-
-
 def test_tcp_port_is_open():
-    random_port = __random_unused_port()
+    random_port = random_unused_port()
     assert tcp_port_is_open(random_port) is False
 
     # Open port
@@ -39,7 +29,7 @@ def test_tcp_port_is_open():
 
 
 def test_wait_for_tcp_port_to_open():
-    random_port = __random_unused_port()
+    random_port = random_unused_port()
     assert wait_for_tcp_port_to_open(port=random_port, retries=2) is False
 
     # Open port
@@ -51,3 +41,8 @@ def test_wait_for_tcp_port_to_open():
     # Close port
     s.close()
     assert wait_for_tcp_port_to_open(port=random_port, retries=2) is False
+
+
+def test_random_unused_port():
+    random_port = random_unused_port()
+    assert tcp_port_is_open(random_port) is False

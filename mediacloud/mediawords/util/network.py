@@ -55,3 +55,13 @@ def wait_for_tcp_port_to_open(port: int, hostname: str = 'localhost', retries: i
         else:
             time.sleep(delay)
     return port_is_open
+
+
+def random_unused_port() -> int:
+    """Return random unused TCP port that could be used e.g. for testing."""
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(('', 0))
+    s.listen(1)
+    port = s.getsockname()[1]
+    s.close()
+    return port
