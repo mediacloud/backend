@@ -219,7 +219,7 @@ After making these changes, you need to log back into a new shell session as `me
 
 #### Round Robin Solr Import
 
-To make imports on the `mcquery*` machines use all servers equally, add the following lines to `mediacloud/mediawords.yml` on each server:
+To make imports on the `mcquery*` machines use all servers equally, add the following lines to `mediacloud` section in `mediawords.yml` on each server:
 
 	solr_url:
 	    - http://localhost:7981/solr
