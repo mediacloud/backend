@@ -3,8 +3,6 @@
 
 ## Generic Information
 
-We are currently running on Solr 4.6.  All of the below applies to that specific version of Solr.
-
 SolrCloud requires a fair amount of hand holding to get all of the shards (individual cluster server instances) running together happily.  The basic idea is that you run a single instance of ZooKeeper which manages all the Solr shards, and then make Solr shards attach to said ZooKeeper instance.  There is no single Solr command to create or start an entire cluster of shards.
 
 To simplify cluster creation, startup, and configuration reloads, we have some local scripts that manage these tasks.
