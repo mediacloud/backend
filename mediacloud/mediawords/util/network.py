@@ -29,3 +29,10 @@ def fqdn() -> str:
     if not hostname_resolves(hostname):
         raise McFQDNException("Hostname '%s' does not resolve." % hostname)
     return hostname
+
+
+def tcp_port_is_open(port: int, hostname: str = 'localhost') -> bool:
+    """Test if TCP port is open."""
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    result = sock.connect_ex((hostname, port))
+    return result == 0

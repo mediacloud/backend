@@ -1,11 +1,11 @@
 import errno
 import os
 import re
-import socket
 import subprocess
 import tempfile
 import time
 
+from mediawords.util.network import tcp_port_is_open
 from mediawords.util.paths import mc_root_path
 from mediawords.util.log import create_logger
 from mediawords.util.process import run_command_in_foreground
@@ -116,13 +116,6 @@ def relative_symlink(source, link_name):
 
     l.debug("Creating relative symlink from '%s' to '%s'..." % (rel_source, link_name))
     os.symlink(rel_source, link_name)
-
-
-def tcp_port_is_open(port, hostname="localhost"):
-    """Test if TCP port is open."""
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    result = sock.connect_ex((hostname, port))
-    return result == 0
 
 
 def wait_for_tcp_port_to_open(port, hostname="localhost", retries=60, delay=1):
