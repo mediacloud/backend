@@ -6,6 +6,8 @@ import subprocess
 import tempfile
 import time
 
+from mediawords.util.network import hostname_resolves
+
 from mediawords.util.paths import mc_root_path
 from mediawords.util.log import create_logger
 from mediawords.util.process import run_command_in_foreground
@@ -116,15 +118,6 @@ def fqdn():
     if not hostname_resolves(hostname):
         raise Exception("Hostname '%s' does not resolve." % hostname)
     return hostname
-
-
-def hostname_resolves(hostname):
-    """Return true if hostname resolves to IP."""
-    try:
-        socket.gethostbyname(hostname)
-        return True
-    except socket.error:
-        return False
 
 
 def relative_symlink(source, link_name):
