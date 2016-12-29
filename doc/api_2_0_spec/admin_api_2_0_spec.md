@@ -847,9 +847,10 @@ Other than the above, no other updates will be made to the existing media source
 
 | Field    | Description                            |
 | -------- | -------------------------------------- |
-| status   | `new` or `existing`                    |
+| status   | `new`, `existing`, or `error`          |
 | media_id | id of the new or existing media source |
 | url      | url of processed record                |
+| error | error message for `error` status urls |
 
 
 The output is always a list of records with the fields described above.  The output will include one record for each input record.

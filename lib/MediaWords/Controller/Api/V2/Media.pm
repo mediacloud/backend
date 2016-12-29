@@ -275,7 +275,14 @@ sub _attach_media_to_input($$)
 
         $input_medium->{ medium } = _find_medium_by_response_chain( $db, $response )
           || $db->query( "select * from media where name in ( ?, ? )", $title, $input_medium->{ name } )->hash;
-        next if ( $input_medium->{ medium } );
+
+        if ( $input_medium->{ medium } )
+        {
+            $input_medium->{ status } = 'existing';
+            next;
+        }
+
+        $input_medium->{ status } = 'new';
 
         my $create_medium = {
             url               => $input_medium->{ url },
@@ -358,10 +365,23 @@ sub create_GET
 
     _apply_updates_to_media( $db, $input_media );
 
-    my $return_media = [ map { $_->{ medium } } grep { $_->{ medium } } @{ $input_media } ];
-    my $errors       = [ map { $_->{ error } } grep  { $_->{ error } } @{ $input_media } ];
+    my $statuses = [];
+    for my $i ( @{ $input_media } )
+    {
+        if ( $i->{ error } )
+        {
+            push( @{ $statuses }, { status => 'error', error => $i->{ error }, url => $i->{ url } } );
+        }
+        else
+        {
+            push(
+                @{ $statuses },
+                { status => $i->{ status }, media_id => $i->{ medium }->{ media_id }, url => $i->{ url } }
+            );
+        }
+    }
 
-    $self->status_ok( $c, entity => { media => $return_media, errors => $errors } );
+    $self->status_ok( $c, entity => $statuses );
 }
 
 sub update : Local : ActionClass('MC_REST')
