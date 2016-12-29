@@ -443,8 +443,7 @@ select f.*
     from foci f
         join focal_sets fs using ( focal_sets_id )
     where
-        fs.snapshots_id = \$1 and
-        fs.name = 'Queries'
+        fs.snapshots_id = \$1
     order by f.name
 SQL
 
