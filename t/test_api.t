@@ -934,6 +934,54 @@ sub test_feeds($)
     validate_db_row( $db, 'feeds', $r->{ feed }, $update_input, 'update feed' );
 }
 
+# test the media/suggestions calls
+sub test_media_suggestions($)
+{
+    my ( $db ) = @_;
+
+    # make sure url is required
+    test_post( '/api/v2/media/submit_suggestion', {}, 1 );
+
+    # test with simple url
+    my $simple_url = 'http://foo.com';
+    test_post( '/api/v2/media/submit_suggestion', { url => $simple_url } );
+
+    my $simple_ms = $db->query( "select * from media_suggestions where url = \$1", $simple_url )->hash;
+    ok( $simple_ms, "media/submit_suggestion simple url found" );
+
+    # test with all fields in input
+    my $tag_1 = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'media_suggestions:tag_1' );
+    my $tag_2 = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'media_suggestions:tag_2' );
+
+    my $full_ms_input = {
+        url      => 'http://bar.com',
+        name     => 'foo',
+        feed_url => 'http://feed.url',
+        reason   => 'bar',
+        tags_ids => [ map { $_->{ tags_id } } ( $tag_1, $tag_2 ) ]
+    };
+
+    test_post( '/api/v2/media/submit_suggestion', $full_ms_input );
+
+    my $full_ms_db = $db->query( "select * from media_suggestions where url = \$1", $full_ms_input->{ url } )->hash;
+    ok( $full_ms_db, "media/submit_suggestion full input found" );
+
+    for my $field ( qw/name feed_url reason/ )
+    {
+        is( $full_ms_db->{ $field }, $full_ms_input->{ $field }, "media/submit_suggestion full input $field" );
+    }
+
+    ok( $full_ms_db->{ date_submitted }, "media/submit_suggestion full date_submitted set" );
+
+    for my $tag ( $tag_1, $tag_2 )
+    {
+        my $tag_exists = $db->query( <<SQL, $tag->{ tags_id }, $full_ms_db->{ media_suggestions_id } )->hash;
+select * from media_suggestions_tags_map where tags_id = \$1 and media_suggestions_id = \$2
+SQL
+        ok( $tag_exists, "media/submit_suggestion full tag $tag->{ tags_id } exists" );
+    }
+}
+
 # test parts of the ai that only require reading, so we can test these all in one chunk
 sub test_api($)
 {
@@ -948,12 +996,13 @@ sub test_api($)
 
     MediaWords::Test::Solr::setup_test_index( $db );
 
-    test_stories_public_list( $db, $media );
-    test_auth_profile( $db );
-    test_media( $db, $media );
-    test_tag_sets( $db );
-    test_feeds( $db );
-    test_tags( $db );
+    # test_stories_public_list( $db, $media );
+    # test_auth_profile( $db );
+    # test_media( $db, $media );
+    # test_tag_sets( $db );
+    # test_feeds( $db );
+    # test_tags( $db );
+    test_media_suggestions( $db );
 
 }
 
