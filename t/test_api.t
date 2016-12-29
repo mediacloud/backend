@@ -312,8 +312,8 @@ sub test_media_create_update($$)
 
     my $r = test_post( '/api/v2/media/create', $input );
 
-    is( scalar( @{ $r->{ errors } } ), 0, "media/create update errors" );
-    is( scalar( @{ $r->{ media } } ), scalar( @{ $sites } ), "media/create update media returned" );
+    my $got_media_ids = [ map { $_->{ media_id } } grep { $_->{ status } ne 'error' } @{ $r } ];
+    is( scalar( @{ $got_media_ids } ), scalar( @{ $sites } ), "media/create update media returned" );
 
     for my $site ( @{ $sites } )
     {
@@ -413,37 +413,39 @@ sub test_media_create($)
     test_post( '/api/v2/media/create', [ { url => 'http://foo.com' }, { name => "bar" } ], 1 );
 
     # simple test for creation of url only medium
-    my $first_site   = $sites->[ 0 ];
-    my $r            = test_post( '/api/v2/media/create', [ { url => $first_site->{ url } } ] );
+    my $first_site = $sites->[ 0 ];
+    my $r = test_post( '/api/v2/media/create', [ { url => $first_site->{ url } } ] );
+
+    is( scalar( @{ $r } ),     1,                    "media/create url number of statuses" );
+    is( $r->[ 0 ]->{ status }, 'new',                "media/create url status" );
+    is( $r->[ 0 ]->{ url },    $first_site->{ url }, "media/create url url" );
+
     my $first_medium = $db->query( "select * from media where name = \$1", $first_site->{ name } )->hash;
-    is( scalar( @{ $r->{ media } } ), 1, "media/create url number returned" );
     ok( $first_medium, "media/create url found medium with matching title" );
-    _compare_fields( "media/create url", $r->{ media }->[ 0 ], $first_medium, [ qw/media_id name url/ ] );
 
     # test that create reuse the same media source we just created
     $r = test_post( '/api/v2/media/create', [ { url => $first_site->{ url } } ] );
-    is( scalar( @{ $r->{ media } } ), 1, "media/create url number returned" );
-    _compare_fields( "media/create url dup", $r->{ media }->[ 0 ], $first_medium, [ qw/media_id name url/ ] );
+    is( scalar( @{ $r } ),       1,                           "media/create existing number of statuses" );
+    is( $r->[ 0 ]->{ status },   'existing',                  "media/create existing status" );
+    is( $r->[ 0 ]->{ url },      $first_site->{ url },        "media/create existing url" );
+    is( $r->[ 0 ]->{ media_id }, $first_medium->{ media_id }, "media/create existing media_id" );
 
     # add all media sources in sites, plus one which should return a 404
     my $input = [ map { { url => $_->{ url } } } ( @{ $sites }, { url => 'http://192.168.168.168:123456/456789' } ) ];
     $r = test_post( '/api/v2/media/create', $input );
-    is( scalar( @{ $r->{ media } } ), scalar( @{ $sites } ), "media/create mixed urls number returned" );
-    is( scalar( @{ $r->{ errors } } ), 1, "media/create mixed urls errors returned" );
-    ok( $r->{ errors }->[ 0 ] =~ /Unable to fetch medium url/, "media/create mixed urls error message" );
+    my $status_media_ids = [ map { $_->{ media_id } } grep { $_->{ status } ne 'error' } @{ $r } ];
+    my $status_errors    = [ map { $_->{ error } } grep    { $_->{ status } eq 'error' } @{ $r } ];
+
+    is( scalar( @{ $status_media_ids } ), scalar( @{ $sites } ), "media/create mixed urls number returned" );
+    is( scalar( @{ $status_errors } ), 1, "media/create mixed urls errors returned" );
+    ok( $status_errors->[ 0 ] =~ /Unable to fetch medium url/, "media/create mixed urls error message" );
 
     for my $site ( @{ $sites } )
     {
         my $url = $site->{ url };
         my $db_m = $db->query( "select * from media where url = ?", $url )->hash;
         ok( $db_m, "media/create mixed urls medium found for in db url $url" );
-        my ( $r_m ) = grep { $_->{ url } eq $url } @{ $r->{ media } };
-        ok( $r_m, "media/create mixed urls medium found in api response for url $url" );
-        _compare_fields( "media/create mixed urls $url", $r_m, $db_m, [ qw/media_id name url/ ] );
-        if ( $url eq $first_site->{ url } )
-        {
-            is( $r_m->{ media_id }, $first_medium->{ media_id }, "media/create mixed urls existing medium" );
-        }
+        ok( grep { $_ == $db_m->{ media_id } } @{ $status_media_ids } );
     }
 
     test_for_scraped_feeds( $db, $sites );
