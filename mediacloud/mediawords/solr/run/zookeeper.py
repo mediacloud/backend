@@ -16,7 +16,8 @@ l = create_logger(__name__)
 __zookeeper_pid = None
 
 
-def __zookeeper_path(dist_directory=MC_DIST_DIR, zookeeper_version=MC_ZOOKEEPER_VERSION):
+def __zookeeper_path(dist_directory: str = MC_DIST_DIR,
+                     zookeeper_version: str = MC_ZOOKEEPER_VERSION) -> str:
     """Return path to where ZooKeeper distribution should be located."""
     dist_path = resolve_absolute_path_under_mc_root(path=dist_directory)
     zookeeper_directory = "zookeeper-%s" % zookeeper_version
@@ -24,19 +25,21 @@ def __zookeeper_path(dist_directory=MC_DIST_DIR, zookeeper_version=MC_ZOOKEEPER_
     return solr_path
 
 
-def __zookeeper_installing_file_path(dist_directory=MC_DIST_DIR, zookeeper_version=MC_ZOOKEEPER_VERSION):
+def __zookeeper_installing_file_path(dist_directory: str = MC_DIST_DIR,
+                                     zookeeper_version: str = MC_ZOOKEEPER_VERSION) -> str:
     """Return path to file which denotes that ZooKeeper is being installed (and thus serves as a lock file)."""
     zookeeper_path = __zookeeper_path(dist_directory=dist_directory, zookeeper_version=zookeeper_version)
     return os.path.join(zookeeper_path, MC_PACKAGE_INSTALLING_FILE)
 
 
-def __zookeeper_installed_file_path(dist_directory=MC_DIST_DIR, zookeeper_version=MC_ZOOKEEPER_VERSION):
+def __zookeeper_installed_file_path(dist_directory: str = MC_DIST_DIR,
+                                    zookeeper_version: str = MC_ZOOKEEPER_VERSION) -> str:
     """Return path to file which denotes that ZooKeeper has been installed."""
     zookeeper_path = __zookeeper_path(dist_directory=dist_directory, zookeeper_version=zookeeper_version)
     return os.path.join(zookeeper_path, MC_PACKAGE_INSTALLED_FILE)
 
 
-def __zookeeper_is_installed(dist_directory=MC_DIST_DIR, zookeeper_version=MC_ZOOKEEPER_VERSION):
+def __zookeeper_is_installed(dist_directory: str = MC_DIST_DIR, zookeeper_version: str = MC_ZOOKEEPER_VERSION) -> bool:
     """Return True if ZooKeeper is installed in distribution path."""
     zookeeper_path = __zookeeper_path(dist_directory=dist_directory, zookeeper_version=zookeeper_version)
     installed_file_path = __zookeeper_installed_file_path(dist_directory=dist_directory,
@@ -54,7 +57,7 @@ def __zookeeper_is_installed(dist_directory=MC_DIST_DIR, zookeeper_version=MC_ZO
     return False
 
 
-def __zookeeper_dist_url(zookeeper_version=MC_ZOOKEEPER_VERSION):
+def __zookeeper_dist_url(zookeeper_version: str = MC_ZOOKEEPER_VERSION) -> str:
     """Return URL to download ZooKeeper from."""
     zookeeper_dist_url = ("https://archive.apache.org/dist/zookeeper/zookeeper-%(zookeeper_version)s/"
                           "zookeeper-%(zookeeper_version)s.tar.gz") % {
@@ -63,7 +66,7 @@ def __zookeeper_dist_url(zookeeper_version=MC_ZOOKEEPER_VERSION):
     return zookeeper_dist_url
 
 
-def __install_zookeeper(dist_directory=MC_DIST_DIR, zookeeper_version=MC_ZOOKEEPER_VERSION):
+def __install_zookeeper(dist_directory: str = MC_DIST_DIR, zookeeper_version: str = MC_ZOOKEEPER_VERSION) -> None:
     """Install ZooKeeper to distribution directory; lock directory before installing and unlock afterwards."""
     if __zookeeper_is_installed(dist_directory=dist_directory, zookeeper_version=zookeeper_version):
         raise Exception("ZooKeeper %s is already installed in distribution directory '%s'." % (
@@ -109,7 +112,7 @@ def __install_zookeeper(dist_directory=MC_DIST_DIR, zookeeper_version=MC_ZOOKEEP
 
 
 # noinspection PyUnusedLocal
-def __kill_zookeeper_process(signum=None, frame=None):
+def __kill_zookeeper_process(signum: int = None, frame: int = None) -> None:
     """Pass SIGINT/SIGTERM to child ZooKeeper when exiting."""
     global __zookeeper_pid
     if __zookeeper_pid is None:
@@ -119,12 +122,12 @@ def __kill_zookeeper_process(signum=None, frame=None):
     sys.exit(signum or 0)
 
 
-def run_zookeeper(dist_directory=MC_DIST_DIR,
-                  listen=MC_ZOOKEEPER_LISTEN,
-                  port=MC_ZOOKEEPER_PORT,
-                  data_dir=MC_SOLR_BASE_DATA_DIR,
-                  zookeeper_version=MC_ZOOKEEPER_VERSION,
-                  solr_version=MC_SOLR_VERSION):
+def run_zookeeper(dist_directory: str = MC_DIST_DIR,
+                  listen: str = MC_ZOOKEEPER_LISTEN,
+                  port: int = MC_ZOOKEEPER_PORT,
+                  data_dir: str = MC_SOLR_BASE_DATA_DIR,
+                  zookeeper_version: str = MC_ZOOKEEPER_VERSION,
+                  solr_version: str = MC_SOLR_VERSION) -> None:
     """Run ZooKeeper, install if needed too."""
     if not __zookeeper_is_installed():
         l.info("ZooKeeper is not installed, installing...")

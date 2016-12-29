@@ -5,6 +5,7 @@ import shutil
 import signal
 import subprocess
 import sys
+from typing import Dict, List
 from urllib.error import URLError
 from urllib.request import urlopen
 
@@ -20,7 +21,7 @@ l = create_logger(__name__)
 __solr_pid = None
 
 
-def __solr_path(dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION):
+def __solr_path(dist_directory: str = MC_DIST_DIR, solr_version: str = MC_SOLR_VERSION) -> str:
     """Return path to where Solr distribution should be located."""
     dist_path = resolve_absolute_path_under_mc_root(path=dist_directory, must_exist=True)
     solr_directory = "solr-%s" % solr_version
@@ -28,19 +29,19 @@ def __solr_path(dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION):
     return solr_path
 
 
-def __solr_installing_file_path(dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION):
+def __solr_installing_file_path(dist_directory: str = MC_DIST_DIR, solr_version: str = MC_SOLR_VERSION) -> str:
     """Return path to file which denotes that Solr is being installed (and thus serves as a lock file)."""
     solr_path = __solr_path(dist_directory=dist_directory, solr_version=solr_version)
     return os.path.join(solr_path, MC_PACKAGE_INSTALLING_FILE)
 
 
-def __solr_installed_file_path(dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION):
+def __solr_installed_file_path(dist_directory: str = MC_DIST_DIR, solr_version: str = MC_SOLR_VERSION) -> str:
     """Return path to file which denotes that Solr has been installed."""
     solr_path = __solr_path(dist_directory=dist_directory, solr_version=solr_version)
     return os.path.join(solr_path, MC_PACKAGE_INSTALLED_FILE)
 
 
-def __solr_dist_url(solr_version=MC_SOLR_VERSION):
+def __solr_dist_url(solr_version: str = MC_SOLR_VERSION) -> str:
     """Return URL to download Solr from."""
     solr_dist_url = "https://archive.apache.org/dist/lucene/solr/%(solr_version)s/solr-%(solr_version)s.tgz" % {
         "solr_version": solr_version,
@@ -48,7 +49,7 @@ def __solr_dist_url(solr_version=MC_SOLR_VERSION):
     return solr_dist_url
 
 
-def __solr_is_installed(dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION):
+def __solr_is_installed(dist_directory: str = MC_DIST_DIR, solr_version: str = MC_SOLR_VERSION) -> bool:
     """Return True if Solr is installed in distribution path."""
     solr_path = __solr_path(dist_directory=dist_directory, solr_version=solr_version)
     installed_file_path = __solr_installed_file_path(dist_directory=dist_directory, solr_version=solr_version)
@@ -64,7 +65,7 @@ def __solr_is_installed(dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION
     return False
 
 
-def __install_solr(dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION):
+def __install_solr(dist_directory: str = MC_DIST_DIR, solr_version: str = MC_SOLR_VERSION) -> None:
     """Install Solr to distribution directory; lock directory before installing and unlock afterwards."""
     if __solr_is_installed(dist_directory=dist_directory, solr_version=solr_version):
         raise Exception("Solr %s is already installed in distribution directory '%s'." % (
@@ -122,13 +123,13 @@ def __install_solr(dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION):
         raise Exception("I've done everything but Solr is still not installed.")
 
 
-def __solr_home_path(solr_home_dir=MC_SOLR_HOME_DIR):
+def __solr_home_path(solr_home_dir: str = MC_SOLR_HOME_DIR) -> str:
     """Return path to Solr home (with collection subdirectories)."""
     solr_home_path = resolve_absolute_path_under_mc_root(path=solr_home_dir, must_exist=True)
     return solr_home_path
 
 
-def __jetty_home_path(dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION):
+def __jetty_home_path(dist_directory: str = MC_DIST_DIR, solr_version: str = MC_SOLR_VERSION) -> str:
     solr_path = __solr_path(dist_directory=dist_directory, solr_version=solr_version)
 
     jetty_home_path = None
@@ -150,7 +151,7 @@ def __jetty_home_path(dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION):
     return jetty_home_path
 
 
-def __collections_path(solr_home_dir=MC_SOLR_HOME_DIR):
+def __collections_path(solr_home_dir: str = MC_SOLR_HOME_DIR) -> str:
     solr_home_path = __solr_home_path(solr_home_dir=solr_home_dir)
     collections_path = os.path.join(solr_home_path, "collections/")
     if not os.path.isdir(collections_path):
@@ -159,7 +160,7 @@ def __collections_path(solr_home_dir=MC_SOLR_HOME_DIR):
     return collections_path
 
 
-def __collections(solr_home_dir=MC_SOLR_HOME_DIR):
+def __collections(solr_home_dir: str = MC_SOLR_HOME_DIR) -> Dict[str, str]:
     """Return dictionary with names and absolute paths to Solr collections."""
     collections = {}
     collections_path = __collections_path(solr_home_dir)
@@ -179,14 +180,14 @@ def __collections(solr_home_dir=MC_SOLR_HOME_DIR):
     return collections
 
 
-def __standalone_data_dir(base_data_dir=MC_SOLR_BASE_DATA_DIR):
+def __standalone_data_dir(base_data_dir: str = MC_SOLR_BASE_DATA_DIR) -> str:
     """Return data directory for a standalone instance."""
     if not os.path.isdir(base_data_dir):
         raise Exception("Solr data directory '%s' does not exist." % base_data_dir)
     return os.path.join(base_data_dir, "mediacloud-standalone")
 
 
-def __shard_data_dir(shard_num, base_data_dir=MC_SOLR_BASE_DATA_DIR):
+def __shard_data_dir(shard_num: int, base_data_dir: str = MC_SOLR_BASE_DATA_DIR) -> str:
     """Return data directory for a shard."""
     if shard_num < 1:
         raise Exception("Shard number must be 1 or greater.")
@@ -197,14 +198,14 @@ def __shard_data_dir(shard_num, base_data_dir=MC_SOLR_BASE_DATA_DIR):
     return os.path.join(base_data_dir, shard_subdir)
 
 
-def __shard_port(shard_num, starting_port=MC_SOLR_CLUSTER_STARTING_PORT):
+def __shard_port(shard_num: int, starting_port: int = MC_SOLR_CLUSTER_STARTING_PORT) -> int:
     """Return port on which a shard should listen to."""
     if shard_num < 1:
         raise Exception("Shard number must be 1 or greater.")
     return starting_port + shard_num - 1
 
 
-def __raise_if_old_shards_exist():
+def __raise_if_old_shards_exist() -> None:
     """Raise exception with migration instructions if old shard directories exist already."""
 
     pwd = resolve_absolute_path_under_mc_root(path=".")
@@ -274,11 +275,11 @@ def __raise_if_old_shards_exist():
     raise Exception(exc_message)
 
 
-def __run_solr_zkcli(zkcli_args,
-                     zookeeper_host=MC_SOLR_CLUSTER_ZOOKEEPER_HOST,
-                     zookeeper_port=MC_SOLR_CLUSTER_ZOOKEEPER_PORT,
-                     dist_directory=MC_DIST_DIR,
-                     solr_version=MC_SOLR_VERSION):
+def __run_solr_zkcli(zkcli_args: List[str],
+                     zookeeper_host: str = MC_SOLR_CLUSTER_ZOOKEEPER_HOST,
+                     zookeeper_port: int = MC_SOLR_CLUSTER_ZOOKEEPER_PORT,
+                     dist_directory: str = MC_DIST_DIR,
+                     solr_version: str = MC_SOLR_VERSION) -> None:
     """Run Solr's zkcli.sh helper script."""
     solr_path = __solr_path(dist_directory=dist_directory, solr_version=solr_version)
 
@@ -325,10 +326,10 @@ def __run_solr_zkcli(zkcli_args,
     run_command_in_foreground(args)
 
 
-def update_zookeeper_solr_configuration(zookeeper_host=MC_SOLR_CLUSTER_ZOOKEEPER_HOST,
-                                        zookeeper_port=MC_SOLR_CLUSTER_ZOOKEEPER_PORT,
-                                        dist_directory=MC_DIST_DIR,
-                                        solr_version=MC_SOLR_VERSION):
+def update_zookeeper_solr_configuration(zookeeper_host: str = MC_SOLR_CLUSTER_ZOOKEEPER_HOST,
+                                        zookeeper_port: int = MC_SOLR_CLUSTER_ZOOKEEPER_PORT,
+                                        dist_directory: str = MC_DIST_DIR,
+                                        solr_version: str = MC_SOLR_VERSION) -> None:
     """Update Solr's configuration on ZooKeeper."""
     if not __solr_is_installed():
         l.info("Solr is not installed, installing...")
@@ -372,7 +373,7 @@ def update_zookeeper_solr_configuration(zookeeper_host=MC_SOLR_CLUSTER_ZOOKEEPER
 
 
 # noinspection PyUnusedLocal
-def __kill_solr_process(signum=None, frame=None):
+def __kill_solr_process(signum: int = None, frame: int = None) -> None:
     """Pass SIGINT/SIGTERM to child Solr when exiting."""
     global __solr_pid
     if __solr_pid is None:
@@ -382,15 +383,15 @@ def __kill_solr_process(signum=None, frame=None):
     sys.exit(signum or 0)
 
 
-def __run_solr(port,
-               instance_data_dir,
-               hostname=fqdn(),
-               jvm_heap_size=None,
-               start_jar_args=None,
-               jvm_opts=None,
-               connect_timeout=120,
-               dist_directory=MC_DIST_DIR,
-               solr_version=MC_SOLR_VERSION):
+def __run_solr(port: int,
+               instance_data_dir: str,
+               hostname: str = fqdn(),
+               jvm_heap_size: str = None,
+               start_jar_args: List[str] = None,
+               jvm_opts: List[str] = None,
+               connect_timeout: int = 120,
+               dist_directory: str = MC_DIST_DIR,
+               solr_version: str = MC_SOLR_VERSION) -> None:
     """Run Solr instance."""
     if jvm_opts is None:
         jvm_opts = MC_SOLR_STANDALONE_JVM_OPTS
@@ -549,7 +550,7 @@ instanceDir=%(instance_dir)s
         "-Dmediacloud.solr_dist_dir=%s" % solr_path,
         "-Dmediacloud.solr_webapp_dir=%s" % solr_webapp_path,
     ]
-    args = args + start_jar_args
+    args += start_jar_args
     args += [
         "-jar", start_jar_path,
         "--module=http",
@@ -578,12 +579,12 @@ instanceDir=%(instance_dir)s
         time.sleep(1)
 
 
-def run_solr_standalone(hostname=fqdn(),
-                        port=MC_SOLR_STANDALONE_PORT,
-                        base_data_dir=MC_SOLR_BASE_DATA_DIR,
-                        dist_directory=MC_DIST_DIR,
-                        solr_version=MC_SOLR_VERSION,
-                        jvm_heap_size=MC_SOLR_STANDALONE_JVM_HEAP_SIZE):
+def run_solr_standalone(hostname: str = fqdn(),
+                        port: int = MC_SOLR_STANDALONE_PORT,
+                        base_data_dir: str = MC_SOLR_BASE_DATA_DIR,
+                        dist_directory: str = MC_DIST_DIR,
+                        solr_version: str = MC_SOLR_VERSION,
+                        jvm_heap_size: str = MC_SOLR_STANDALONE_JVM_HEAP_SIZE):
     """Run standalone instance of Solr."""
     if not __solr_is_installed(dist_directory=dist_directory, solr_version=solr_version):
         l.info("Solr is not installed, installing...")
@@ -606,16 +607,16 @@ def run_solr_standalone(hostname=fqdn(),
                solr_version=solr_version)
 
 
-def run_solr_shard(shard_num,
-                   shard_count,
-                   hostname=fqdn(),
-                   starting_port=MC_SOLR_CLUSTER_STARTING_PORT,
-                   base_data_dir=MC_SOLR_BASE_DATA_DIR,
-                   dist_directory=MC_DIST_DIR,
-                   solr_version=MC_SOLR_VERSION,
-                   zookeeper_host=MC_SOLR_CLUSTER_ZOOKEEPER_HOST,
-                   zookeeper_port=MC_SOLR_CLUSTER_ZOOKEEPER_PORT,
-                   jvm_heap_size=MC_SOLR_CLUSTER_JVM_HEAP_SIZE):
+def run_solr_shard(shard_num: int,
+                   shard_count: int,
+                   hostname: str = fqdn(),
+                   starting_port: int = MC_SOLR_CLUSTER_STARTING_PORT,
+                   base_data_dir: str = MC_SOLR_BASE_DATA_DIR,
+                   dist_directory: str = MC_DIST_DIR,
+                   solr_version: str = MC_SOLR_VERSION,
+                   zookeeper_host: str = MC_SOLR_CLUSTER_ZOOKEEPER_HOST,
+                   zookeeper_port: int = MC_SOLR_CLUSTER_ZOOKEEPER_PORT,
+                   jvm_heap_size: str = MC_SOLR_CLUSTER_JVM_HEAP_SIZE) -> None:
     """Run Solr shard, install Solr if needed; read configuration from ZooKeeper."""
     if shard_num < 1:
         raise Exception("Shard number must be 1 or greater.")
@@ -654,9 +655,9 @@ def run_solr_shard(shard_num,
                solr_version=solr_version)
 
 
-def reload_solr_shard(shard_num,
-                      host="localhost",
-                      starting_port=MC_SOLR_CLUSTER_STARTING_PORT):
+def reload_solr_shard(shard_num: int,
+                      host: str = "localhost",
+                      starting_port: int = MC_SOLR_CLUSTER_STARTING_PORT):
     """Reload Solr shard after ZooKeeper configuration change."""
     if shard_num < 1:
         raise Exception("Shard number must be 1 or greater.")
@@ -690,9 +691,9 @@ def reload_solr_shard(shard_num,
     l.info("Reloaded shard %d on %s:%d." % (shard_num, host, shard_port))
 
 
-def reload_all_solr_shards(shard_count,
-                           host="localhost",
-                           starting_port=MC_SOLR_CLUSTER_STARTING_PORT):
+def reload_all_solr_shards(shard_count: int,
+                           host: str = "localhost",
+                           starting_port: int = MC_SOLR_CLUSTER_STARTING_PORT) -> None:
     """Reload all Solr shards after ZooKeeper configuration change."""
     if shard_count < 1:
         raise Exception("Shard count must be 1 or greater.")
@@ -703,9 +704,9 @@ def reload_all_solr_shards(shard_count,
     l.info("Reloaded %d shards on %s." % (shard_count, host))
 
 
-def optimize_solr_index(host="localhost",
-                        port=MC_SOLR_STANDALONE_PORT,
-                        collections=None):
+def optimize_solr_index(host: str = "localhost",
+                        port: int = MC_SOLR_STANDALONE_PORT,
+                        collections: List[str] = None):
     """Optimize collection indexes.
 
     In SolrCloud cluster, optimization command run on one of the shards will trigger optimization on all of them."""
@@ -740,9 +741,9 @@ def optimize_solr_index(host="localhost",
     l.info("Optimized indexes on %s:%d." % (host, port))
 
 
-def __upgrade_lucene_index(instance_data_dir,
-                           dist_directory=MC_DIST_DIR,
-                           solr_version=MC_SOLR_VERSION):
+def __upgrade_lucene_index(instance_data_dir: str,
+                           dist_directory: str = MC_DIST_DIR,
+                           solr_version: str = MC_SOLR_VERSION):
     """Upgrade Solr (Lucene) index using the IndexUpgrader tool in a given instance directory."""
     if not __solr_is_installed(dist_directory=dist_directory, solr_version=solr_version):
         l.info("Solr is not installed, installing...")
@@ -788,9 +789,9 @@ def __upgrade_lucene_index(instance_data_dir,
         l.info("Upgraded index at path '%s'." % index_path)
 
 
-def upgrade_lucene_standalone_index(base_data_dir=MC_SOLR_BASE_DATA_DIR,
-                                    dist_directory=MC_DIST_DIR,
-                                    solr_version=MC_SOLR_VERSION):
+def upgrade_lucene_standalone_index(base_data_dir: str = MC_SOLR_BASE_DATA_DIR,
+                                    dist_directory: str = MC_DIST_DIR,
+                                    solr_version: str = MC_SOLR_VERSION):
     """Upgrade Lucene index using the IndexUpgrader tool to standalone instance."""
 
     base_data_dir = resolve_absolute_path_under_mc_root(path=base_data_dir, must_exist=True)
@@ -809,9 +810,9 @@ def upgrade_lucene_standalone_index(base_data_dir=MC_SOLR_BASE_DATA_DIR,
     l.info("Upgraded standalone instance indexes...")
 
 
-def upgrade_lucene_shards_indexes(base_data_dir=MC_SOLR_BASE_DATA_DIR,
-                                  dist_directory=MC_DIST_DIR,
-                                  solr_version=MC_SOLR_VERSION):
+def upgrade_lucene_shards_indexes(base_data_dir: str = MC_SOLR_BASE_DATA_DIR,
+                                  dist_directory: str = MC_DIST_DIR,
+                                  solr_version: str = MC_SOLR_VERSION):
     """Upgrade Lucene indexes using the IndexUpgrader tool to all shards."""
 
     base_data_dir = resolve_absolute_path_under_mc_root(path=base_data_dir, must_exist=True)

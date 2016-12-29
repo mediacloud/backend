@@ -9,7 +9,7 @@ from mediawords.util.process import run_command_in_foreground
 l = create_logger(__name__)
 
 
-def lock_file(path, timeout=None):
+def lock_file(path: str, timeout: int = None) -> None:
     """Create lock file."""
     start_time = time.time()
     l.debug("Creating lock file '%s'..." % path)
@@ -31,7 +31,7 @@ def lock_file(path, timeout=None):
     l.debug("Created lock file '%s'" % path)
 
 
-def unlock_file(path):
+def unlock_file(path: str) -> None:
     """Remove lock file."""
     l.debug("Removing lock file '%s'..." % path)
     if not os.path.isfile(path):
@@ -40,7 +40,7 @@ def unlock_file(path):
     l.debug("Removed lock file '%s'." % path)
 
 
-def download_file(source_url, target_path):
+def download_file(source_url: str, target_path: str) -> None:
     """Download URL to path."""
     args = ["curl",
             "--silent",
@@ -52,20 +52,20 @@ def download_file(source_url, target_path):
     run_command_in_foreground(args)
 
 
-def download_file_to_temp_path(source_url):
-    """Download URL to temporary path."""
+def download_file_to_temp_path(source_url: str) -> str:
+    """Download URL to temporary path, return that path."""
     dest_dir = tempfile.mkdtemp()
     dest_path = os.path.join(dest_dir, 'archive.tgz')
     download_file(source_url=source_url, target_path=dest_path)
     return dest_path
 
 
-def __file_extension(filename):
+def __file_extension(filename: str) -> str:
     """Return file extension, e.g. "zip"."""
     return os.path.splitext(os.path.basename(filename))[1].lower()
 
 
-def extract_tarball_to_directory(archive_file, dest_directory, strip_root=False):
+def extract_tarball_to_directory(archive_file: str, dest_directory: str, strip_root: bool = False) -> None:
     """Extract Tar archive (.tar, .tar.gz or .tgz) to destination directory,
     optionally stripping the root directory first."""
 
@@ -86,7 +86,7 @@ def extract_tarball_to_directory(archive_file, dest_directory, strip_root=False)
     run_command_in_foreground(args)
 
 
-def extract_zip_to_directory(archive_file, dest_directory):
+def extract_zip_to_directory(archive_file: str, dest_directory: str) -> None:
     """Extract ZIP archive (.zip or .war) to destination directory."""
 
     archive_file_extension = __file_extension(archive_file)
