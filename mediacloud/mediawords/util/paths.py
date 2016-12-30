@@ -82,3 +82,10 @@ def relative_symlink(source: str, link_name: str) -> None:
 
     l.debug("Creating relative symlink from '%s' to '%s'..." % (rel_source, link_name))
     os.symlink(rel_source, link_name)
+
+
+def file_extension(filename: str) -> str:
+    """Return file extension, e.g. ".zip" for "test.zip", or ".gz" for "test.tar.gz"."""
+    basename = os.path.basename(filename)
+    root, extension = os.path.splitext(basename)
+    return extension.lower()

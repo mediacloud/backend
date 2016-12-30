@@ -4,6 +4,7 @@ import tempfile
 import time
 
 from mediawords.util.log import create_logger
+from mediawords.util.paths import file_extension
 from mediawords.util.process import run_command_in_foreground
 
 l = create_logger(__name__)
@@ -60,17 +61,12 @@ def download_file_to_temp_path(source_url: str) -> str:
     return dest_path
 
 
-def __file_extension(filename: str) -> str:
-    """Return file extension, e.g. "zip"."""
-    return os.path.splitext(os.path.basename(filename))[1].lower()
-
-
 def extract_tarball_to_directory(archive_file: str, dest_directory: str, strip_root: bool = False) -> None:
-    """Extract Tar archive (.tar, .tar.gz or .tgz) to destination directory,
-    optionally stripping the root directory first."""
+    """Extract Tar archive (.tar, .tar.gz or .tgz) to destination directory, optionally stripping the root directory
+    first."""
 
-    archive_file_extension = __file_extension(archive_file)
-    if archive_file_extension in [".tar.gz", ".tgz"]:
+    archive_file_extension = file_extension(archive_file)
+    if archive_file_extension in [".gz", ".tgz"]:
         tar_args = "-zxf"
     elif archive_file_extension in [".tar"]:
         tar_args = "-xf"
@@ -89,7 +85,7 @@ def extract_tarball_to_directory(archive_file: str, dest_directory: str, strip_r
 def extract_zip_to_directory(archive_file: str, dest_directory: str) -> None:
     """Extract ZIP archive (.zip or .war) to destination directory."""
 
-    archive_file_extension = __file_extension(archive_file)
+    archive_file_extension = file_extension(archive_file)
     if archive_file_extension not in [".zip", ".war"]:
         raise Exception("Unsupported archive '%s' with extension '%s'" % (archive_file, archive_file_extension))
 

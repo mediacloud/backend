@@ -62,3 +62,15 @@ def test_relative_symlink():
     assert os.path.lexists(dest_symlink)
     assert os.path.islink(dest_symlink)
     assert os.path.exists(os.path.join(dest_symlink, 'test.txt'))
+
+
+def test_file_extension():
+    assert file_extension('') == ''
+    assert file_extension('test') == ''
+    assert file_extension('test.zip') == '.zip'
+    assert file_extension('/var/lib/test.zip') == '.zip'
+    assert file_extension('../../test.zip') == '.zip'
+    assert file_extension('./../../test.zip') == '.zip'
+    assert file_extension('TEST.ZIP') == '.zip'
+    assert file_extension('test.tar.gz') == '.gz'
+    assert file_extension('TEST.TAR.GZ') == '.gz'
