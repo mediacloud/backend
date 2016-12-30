@@ -1,9 +1,7 @@
 import errno
 import os
-import tempfile
 import time
 
-from mediawords.util.web import download_file
 from mediawords.util.log import create_logger
 
 l = create_logger(__name__)
@@ -38,11 +36,3 @@ def unlock_file(path: str) -> None:
         raise Exception("Lock file '%s' does not exist." % path)
     os.unlink(path)
     l.debug("Removed lock file '%s'." % path)
-
-
-def download_file_to_temp_path(source_url: str) -> str:
-    """Download URL to temporary path, return that path."""
-    dest_dir = tempfile.mkdtemp()
-    dest_path = os.path.join(dest_dir, 'archive.tgz')
-    download_file(source_url=source_url, target_path=dest_path)
-    return dest_path

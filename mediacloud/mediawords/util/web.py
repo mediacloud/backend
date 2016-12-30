@@ -1,3 +1,7 @@
+import os
+import tempfile
+from urllib.parse import urlparse
+
 from mediawords.util.log import create_logger
 
 from mediawords.util.process import run_command_in_foreground, McRunCommandInForegroundException
@@ -29,3 +33,34 @@ def download_file(source_url: str, target_path: str) -> None:
                 'target_path': target_path,
                 'exception': str(ex),
             })
+
+
+class McDownloadFileToTempPathException(McDownloadFileException):
+    pass
+
+
+def download_file_to_temp_path(source_url: str) -> str:
+    """Download URL to temporary path, return that path."""
+    dest_dir = tempfile.mkdtemp()
+
+    # Try to figure out a sensible name for the file
+    # noinspection PyBroadException
+    try:
+        uri = urlparse(source_url)
+        url_path = uri.path
+        temp_filename = os.path.basename(url_path)
+    except Exception:
+        temp_filename = "temp.dat"
+
+    dest_path = os.path.join(dest_dir, temp_filename)
+    try:
+        download_file(source_url=source_url, target_path=dest_path)
+    except McDownloadFileException as ex:
+        raise McDownloadFileToTempPathException(
+            "Error while downloading file from '%(source_url)s' to temp. location '%(target_path)s': %(exception)s" % {
+                'source_url': source_url,
+                'target_path': dest_path,
+                'exception': str(ex),
+            })
+
+    return dest_path

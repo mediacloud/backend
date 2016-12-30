@@ -11,6 +11,7 @@ from mediawords.util.log import create_logger
 from mediawords.util.network import wait_for_tcp_port_to_open, tcp_port_is_open
 from mediawords.util.paths import mkdir_p, resolve_absolute_path_under_mc_root
 from mediawords.util.process import gracefully_kill_child_process
+from mediawords.util.web import download_file_to_temp_path
 
 l = create_logger(__name__)
 
