@@ -31,7 +31,7 @@ def extract_tarball_to_directory(archive_file: str, dest_directory: str, strip_r
             tar_args, archive_file,
             "-C", dest_directory]
     if strip_root:
-        args.extend(("--strip", "1"))
+        args += ['--strip', '1']
 
     try:
         run_command_in_foreground(args)
