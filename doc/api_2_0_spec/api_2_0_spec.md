@@ -285,7 +285,7 @@ URL: https://api.mediacloud.org/api/v2/media/list?last_media_id=1&rows=2
 
 Output format is the same as for api/v2/media/single above.
 
-## api/v2/media/suggestions/submit - POST
+## api/v2/media/submit_suggestion - POST
 
 | URL                 | Function
 | ------------------- | -----------------------------
@@ -295,13 +295,13 @@ This api end point allows the user to send a suggest a new media source to the M
 
 ### Input Description
 
-| Field | Description
-|------|------------
-| name | human readable name of media source (optional)
-| url | url of the media source home page (required)
-| feed_url | url of am rss, rdf, or atom  syndication feed for the source
-| reason | reason media source should be added to the system (optional)
-| collections | list of collections to which to add the media source
+| Field | Description |
+|------|------------ |
+| name | human readable name of media source (optional) |
+| url | url of the media source home page (required) |
+| feed_url | url of am rss, rdf, or atom  syndication feed for the source |
+| reason | reason media source should be added to the system (optional) |
+| tags_ids |  list of suggested tags to add to the source (optional ) |
 
 ### Example
 

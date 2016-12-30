@@ -923,7 +923,7 @@ Output:
 { "success": 1 }
 ```
 
-## api/v2/media/suggestions/list PENDING
+## api/v2/media/list_suggestions PENDING
 
 | URL                             | Description                            |
 | ------------------------------- | -------------------------------------- |
@@ -948,9 +948,9 @@ Output:
   {
     "user": "hroberts@cyber.law.harvard.edu",
     "url": "http://mediacloud.org",
-    "feed": "http://mediacloud.org/feed/",
+    "feed_url": "http://mediacloud.org/feed/",
     "reason": "Media Cloud is a great project",
-    "collections": "InfoTech",
+    "tags_ids": [ 123, 456 ],
     "date_submitted": "2016-11-20 07:42:00",
     "date_marked": "",
     "media_suggestions_id": 1,
@@ -977,9 +977,9 @@ Note that marking a suggestion as approved does not automatically create the med
 | Field                | Description                              |
 | -------------------- | ---------------------------------------- |
 | media_suggestions_id | suggestion id (required)                 |
-| status               | 'approved' or 'rejected' (required)      |
+| status               | 'pending', 'approved' or 'rejected' (required)      |
 | mark_reason          | reason for approving or rejecting        |
-| media_id             | associated the given media source with an 'approved' suggestion |
+| media_id             | associated the given media source with an 'approved' suggestion (required for 'approved') |
 
 ### Example
 

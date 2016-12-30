@@ -45,8 +45,5 @@ script/vagrant/temp-vagrant-mediacloud
 # MediaWords::TM::Dump output
 /dump_layout_*
 
-# Cloned API client repo
-/MediaCloud-API-Client
-
 # atom sync config
 .remote-sync.json
