@@ -3046,6 +3046,8 @@ create table media_health (
 
 create index media_health_medium on media_health ( media_id );
 
+create type media_suggestions_status as enum ( 'pending', 'approved', 'rejected' );
+
 create table media_suggestions (
     media_suggestions_id        serial primary key,
     name                        text,
@@ -3053,7 +3055,14 @@ create table media_suggestions (
     feed_url                    text,
     reason                      text,
     auth_users_id               int references auth_users on delete set null,
-    date_submitted              timestamp not null default now()
+    mark_auth_users_id          int references auth_users on delete set null,
+    date_submitted              timestamp not null default now(),
+    media_id                    int references media on delete set null,
+    date_marked                 timestamp not null default now(),
+    mark_reason                 text,
+    status                      media_suggestions_status not null default 'pending',
+
+    CONSTRAINT media_suggestions_media_id CHECK ( ( status in ( 'pending', 'rejected' ) ) or ( media_id is not null ) )
 );
 
 create index media_suggestions_date on media_suggestions ( date_submitted );
