@@ -16,7 +16,7 @@ def decode_string_from_bytes_if_needed(string: Union[int, str, bytes, None]) -> 
     if string is not None:
         if isinstance(string, bytes):
             # mimic perl decode replace on error behavior
-            string = string.decode( encoding = 'utf-8', errors = 'replace' )
+            string = string.decode(encoding='utf-8', errors='replace')
     return string
 
 
