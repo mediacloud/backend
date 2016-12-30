@@ -1,5 +1,7 @@
 import tempfile
 
+from nose.tools import assert_raises
+
 from mediawords.util.paths import *
 
 
@@ -75,3 +77,28 @@ def test_file_extension():
     assert file_extension('TEST.ZIP') == '.zip'
     assert file_extension('test.tar.gz') == '.gz'
     assert file_extension('TEST.TAR.GZ') == '.gz'
+
+
+def test_lock_unlock_file():
+    temp_dir = tempfile.mkdtemp()
+    lock_file_path = os.path.join(temp_dir, 'test.lock')
+
+    assert os.path.isfile(lock_file_path) is False
+    lock_file(lock_file_path)
+    assert os.path.isfile(lock_file_path) is True
+    unlock_file(lock_file_path)
+    assert os.path.isfile(lock_file_path) is False
+
+    # Try locking twice, with timeout
+    assert os.path.isfile(lock_file_path) is False
+    lock_file(lock_file_path)
+    assert os.path.isfile(lock_file_path) is True
+    assert_raises(McLockFileException, lock_file, lock_file_path, 2)
+    assert os.path.isfile(lock_file_path) is True
+    unlock_file(lock_file_path)
+    assert os.path.isfile(lock_file_path) is False
+
+    # Try unlocking nonexistent file
+    assert os.path.isfile(lock_file_path) is False
+    assert_raises(McUnlockFileException, unlock_file, lock_file_path)
+    assert os.path.isfile(lock_file_path) is False

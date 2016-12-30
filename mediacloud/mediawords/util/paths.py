@@ -1,6 +1,6 @@
-import os
-
 import errno
+import os
+import time
 
 from mediawords.util.log import create_logger
 
@@ -89,3 +89,44 @@ def file_extension(filename: str) -> str:
     basename = os.path.basename(filename)
     root, extension = os.path.splitext(basename)
     return extension.lower()
+
+
+class McLockFileException(Exception):
+    pass
+
+
+def lock_file(path: str, timeout: int = None) -> None:
+    """Create lock file."""
+    # FIXME probably not thread-safe
+    start_time = time.time()
+    l.debug("Creating lock file '%s'..." % path)
+    while True:
+        try:
+            os.open(path, os.O_CREAT | os.O_EXCL | os.O_RDWR)
+            break
+        except OSError as e:
+            if e.errno == errno.EEXIST:
+                if timeout is not None:
+                    if (time.time() - start_time) >= timeout:
+                        raise McLockFileException("Unable to create lock file '%s' in %d seconds." % (path, timeout))
+
+                l.info("Lock file '%s' already exists, will retry shortly." % path)
+                time.sleep(1)
+            else:
+                # Some other I/O error
+                raise
+    l.debug("Created lock file '%s'" % path)
+
+
+class McUnlockFileException(Exception):
+    pass
+
+
+def unlock_file(path: str) -> None:
+    """Remove lock file."""
+    # FIXME probably not thread-safe
+    l.debug("Removing lock file '%s'..." % path)
+    if not os.path.isfile(path):
+        raise McUnlockFileException("Lock file '%s' does not exist." % path)
+    os.unlink(path)
+    l.debug("Removed lock file '%s'." % path)

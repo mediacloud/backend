@@ -1,21 +1,22 @@
 import atexit
 import glob
+import os
 import re
 import shutil
 import signal
 import subprocess
 import sys
 import tempfile
+import time
 from typing import Dict, List
 from urllib.error import URLError
 from urllib.request import urlopen
 
 from mediawords.solr.run.constants import *
-from mediawords.solr.run.utils import *
 from mediawords.util.compress import extract_tarball_to_directory, extract_zip_to_directory
 from mediawords.util.log import create_logger
 from mediawords.util.network import fqdn, hostname_resolves, wait_for_tcp_port_to_open, tcp_port_is_open
-from mediawords.util.paths import mkdir_p, resolve_absolute_path_under_mc_root, relative_symlink
+from mediawords.util.paths import mkdir_p, resolve_absolute_path_under_mc_root, relative_symlink, lock_file, unlock_file
 from mediawords.util.process import run_command_in_foreground, gracefully_kill_child_process
 from mediawords.util.web import download_file_to_temp_path
 
