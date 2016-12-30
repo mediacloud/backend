@@ -449,8 +449,7 @@ sub get_cached_link_download
             }
             else
             {
-                my $msg = "Error retrieving content for $original_url: " . $response->status_line;
-                WARN $msg;
+                DEBUG( "Error retrieving content for $original_url: " . $response->status_line );
                 $_link_downloads_cache->{ $response_link_num } = '';
             }
         }

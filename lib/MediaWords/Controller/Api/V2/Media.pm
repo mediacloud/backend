@@ -61,10 +61,10 @@ sub _add_nested_data
 
     my ( $self, $db, $media ) = @_;
 
-    foreach my $media_source ( @{ $media } )
+    foreach my $medium ( @{ $media } )
     {
         # TRACE "adding media_source tags ";
-        $media_source->{ media_source_tags } = $db->query( <<END, $media_source->{ media_id } )->hashes;
+        $medium->{ media_source_tags } = $db->query( <<END, $medium->{ media_id } )->hashes;
 select t.tags_id, t.tag, t.label, t.description, ts.tag_sets_id, ts.name as tag_set,
         ( t.show_on_media or ts.show_on_media ) show_on_media,
         ( t.show_on_stories or ts.show_on_stories ) show_on_stories
@@ -75,6 +75,11 @@ select t.tags_id, t.tag, t.label, t.description, ts.tag_sets_id, ts.name as tag_
     order by t.tags_id
 END
     }
+
+    $db->attach_child_query_singleton( $media, <<SQL, 'is_healthy', 'media_id' );
+select m.media_id, coalesce( h.is_healthy, true ) is_healthy
+    from media m left join media_health h using ( media_id )
+SQL
 
     return $media;
 }
@@ -166,7 +171,48 @@ sub get_extra_where_clause
         push( @{ $clauses }, "and media_id in ( select id from $ids_table )" );
     }
 
-    if ( $c->req->params->{ name } && !$c->req->params->{ include_dups } )
+    if ( my $tag_name = $c->req->params->{ tag_name } )
+    {
+        my $q_tag_name = $c->dbis->dbh->quote( $tag_name );
+        push( @{ $clauses }, <<SQL );
+and media_id in (
+    select media_id
+        from media_tags_map mtm
+            join tags t using ( tags_id )
+        where
+            ( t.show_on_media or t.show_on_stories ) and
+            t.tag ilike '%' || lower( $q_tag_name ) || '%'
+)
+SQL
+    }
+
+    if ( $c->req->params->{ unhealthy } )
+    {
+        push( @{ $clauses }, <<SQL );
+and exists ( select 1 from media_health h where h.media_id = media.media_id and h.is_healthy = false )
+SQL
+    }
+
+    if ( my $similar_media_id = $c->req->params->{ similar_media_id } )
+    {
+        # make sure this is an int
+        $similar_media_id += 0;
+        push( @{ $clauses }, <<SQL );
+and media_id in (
+    select b.media_id
+        from media_tags_map a
+            join media_tags_map b using ( tags_id )
+        where
+            a.media_id = $similar_media_id and
+            a.media_id <> b.media_id
+        group by b.media_id
+        order by count(*) desc
+        limit 100
+)
+SQL
+    }
+
+    if ( ( $c->req->params->{ name } || $c->req->params->{ tag_name } ) && !$c->req->params->{ include_dups } )
     {
         push( @{ $clauses }, "and dup_media_id is null" );
     }
@@ -229,7 +275,14 @@ sub _attach_media_to_input($$)
 
         $input_medium->{ medium } = _find_medium_by_response_chain( $db, $response )
           || $db->query( "select * from media where name in ( ?, ? )", $title, $input_medium->{ name } )->hash;
-        next if ( $input_medium->{ medium } );
+
+        if ( $input_medium->{ medium } )
+        {
+            $input_medium->{ status } = 'existing';
+            next;
+        }
+
+        $input_medium->{ status } = 'new';
 
         my $create_medium = {
             url               => $input_medium->{ url },
@@ -312,10 +365,23 @@ sub create_GET
 
     _apply_updates_to_media( $db, $input_media );
 
-    my $return_media = [ map { $_->{ medium } } grep { $_->{ medium } } @{ $input_media } ];
-    my $errors       = [ map { $_->{ error } } grep  { $_->{ error } } @{ $input_media } ];
+    my $statuses = [];
+    for my $i ( @{ $input_media } )
+    {
+        if ( $i->{ error } )
+        {
+            push( @{ $statuses }, { status => 'error', error => $i->{ error }, url => $i->{ url } } );
+        }
+        else
+        {
+            push(
+                @{ $statuses },
+                { status => $i->{ status }, media_id => $i->{ medium }->{ media_id }, url => $i->{ url } }
+            );
+        }
+    }
 
-    $self->status_ok( $c, entity => { media => $return_media, errors => $errors } );
+    $self->status_ok( $c, entity => $statuses );
 }
 
 sub update : Local : ActionClass('MC_REST')

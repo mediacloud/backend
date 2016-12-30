@@ -22,9 +22,11 @@ use Readonly;
 use Test::More;
 use URI::Escape;
 
+use MediaWords::DBI::Media::Health;
 use MediaWords::Test::DB;
 use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
+use MediaWords::Util::Tags;
 use MediaWords::Util::Web;
 
 Readonly my $NUM_MEDIA            => 5;
@@ -310,8 +312,8 @@ sub test_media_create_update($$)
 
     my $r = test_post( '/api/v2/media/create', $input );
 
-    is( scalar( @{ $r->{ errors } } ), 0, "media/create update errors" );
-    is( scalar( @{ $r->{ media } } ), scalar( @{ $sites } ), "media/create update media returned" );
+    my $got_media_ids = [ map { $_->{ media_id } } grep { $_->{ status } ne 'error' } @{ $r } ];
+    is( scalar( @{ $got_media_ids } ), scalar( @{ $sites } ), "media/create update media returned" );
 
     for my $site ( @{ $sites } )
     {
@@ -411,37 +413,39 @@ sub test_media_create($)
     test_post( '/api/v2/media/create', [ { url => 'http://foo.com' }, { name => "bar" } ], 1 );
 
     # simple test for creation of url only medium
-    my $first_site   = $sites->[ 0 ];
-    my $r            = test_post( '/api/v2/media/create', [ { url => $first_site->{ url } } ] );
+    my $first_site = $sites->[ 0 ];
+    my $r = test_post( '/api/v2/media/create', [ { url => $first_site->{ url } } ] );
+
+    is( scalar( @{ $r } ),     1,                    "media/create url number of statuses" );
+    is( $r->[ 0 ]->{ status }, 'new',                "media/create url status" );
+    is( $r->[ 0 ]->{ url },    $first_site->{ url }, "media/create url url" );
+
     my $first_medium = $db->query( "select * from media where name = \$1", $first_site->{ name } )->hash;
-    is( scalar( @{ $r->{ media } } ), 1, "media/create url number returned" );
     ok( $first_medium, "media/create url found medium with matching title" );
-    _compare_fields( "media/create url", $r->{ media }->[ 0 ], $first_medium, [ qw/media_id name url/ ] );
 
     # test that create reuse the same media source we just created
     $r = test_post( '/api/v2/media/create', [ { url => $first_site->{ url } } ] );
-    is( scalar( @{ $r->{ media } } ), 1, "media/create url number returned" );
-    _compare_fields( "media/create url dup", $r->{ media }->[ 0 ], $first_medium, [ qw/media_id name url/ ] );
+    is( scalar( @{ $r } ),       1,                           "media/create existing number of statuses" );
+    is( $r->[ 0 ]->{ status },   'existing',                  "media/create existing status" );
+    is( $r->[ 0 ]->{ url },      $first_site->{ url },        "media/create existing url" );
+    is( $r->[ 0 ]->{ media_id }, $first_medium->{ media_id }, "media/create existing media_id" );
 
     # add all media sources in sites, plus one which should return a 404
     my $input = [ map { { url => $_->{ url } } } ( @{ $sites }, { url => 'http://192.168.168.168:123456/456789' } ) ];
     $r = test_post( '/api/v2/media/create', $input );
-    is( scalar( @{ $r->{ media } } ), scalar( @{ $sites } ), "media/create mixed urls number returned" );
-    is( scalar( @{ $r->{ errors } } ), 1, "media/create mixed urls errors returned" );
-    ok( $r->{ errors }->[ 0 ] =~ /Unable to fetch medium url/, "media/create mixed urls error message" );
+    my $status_media_ids = [ map { $_->{ media_id } } grep { $_->{ status } ne 'error' } @{ $r } ];
+    my $status_errors    = [ map { $_->{ error } } grep    { $_->{ status } eq 'error' } @{ $r } ];
+
+    is( scalar( @{ $status_media_ids } ), scalar( @{ $sites } ), "media/create mixed urls number returned" );
+    is( scalar( @{ $status_errors } ), 1, "media/create mixed urls errors returned" );
+    ok( $status_errors->[ 0 ] =~ /Unable to fetch medium url/, "media/create mixed urls error message" );
 
     for my $site ( @{ $sites } )
     {
         my $url = $site->{ url };
         my $db_m = $db->query( "select * from media where url = ?", $url )->hash;
         ok( $db_m, "media/create mixed urls medium found for in db url $url" );
-        my ( $r_m ) = grep { $_->{ url } eq $url } @{ $r->{ media } };
-        ok( $r_m, "media/create mixed urls medium found in api response for url $url" );
-        _compare_fields( "media/create mixed urls $url", $r_m, $db_m, [ qw/media_id name url/ ] );
-        if ( $url eq $first_site->{ url } )
-        {
-            is( $r_m->{ media_id }, $first_medium->{ media_id }, "media/create mixed urls existing medium" );
-        }
+        ok( grep { $_ == $db_m->{ media_id } } @{ $status_media_ids } );
     }
 
     test_for_scraped_feeds( $db, $sites );
@@ -453,23 +457,66 @@ sub test_media_create($)
     $hs->stop();
 }
 
+# test that the media/list call with the given params returns precisely the list of expected media
+sub test_media_list_call($$)
+{
+    my ( $params, $expected_media ) = @_;
+
+    my $d = Data::Dumper->new( [ $params ] );
+    $d->Terse( 1 );
+    my $label = "media/list with params " . $d->Dump;
+
+    my $got_media = test_get( '/api/v2/media/list', $params );
+    is( scalar( @{ $got_media } ), scalar( @{ $expected_media } ), "$label number of media" );
+    for my $got_medium ( @{ $got_media } )
+    {
+        my ( $expected_medium ) = grep { $_->{ media_id } eq $got_medium->{ media_id } } @{ $expected_media };
+        ok( $expected_medium, "$label medium $got_medium->{ media_id } expected" );
+
+        my $fields = [ qw/name url is_healthy/ ];
+        map { ok( defined( $got_medium->{ $_ } ), "$label field $_ defined" ) } @{ $fields };
+        map { is( $got_medium->{ $_ }, $expected_medium->{ $_ }, "$label field $_" ) } @{ $fields };
+    }
+}
+
+# test the media/list call
+sub test_media_list ($$)
+{
+    my ( $db, $test_stack ) = @_;
+
+    my $test_stack_media = [ grep { defined( $_->{ foreign_rss_links } ) } values( %{ $test_stack } ) ];
+    die( "no media found: " . Dumper( $test_stack ) ) unless ( @{ $test_stack_media } );
+
+    # this has to be done first so that media_health exists
+    map { $_->{ is_healthy } = 1 } @{ $test_stack_media };
+    my $unhealthy_medium = $test_stack_media->[ 2 ];
+    $unhealthy_medium->{ is_healthy } = 0;
+    MediaWords::DBI::Media::Health::generate_media_health( $db );
+    $db->query( "update media_health set is_healthy = false where media_id = \$1", $unhealthy_medium->{ media_id } );
+    test_media_list_call( { unhealthy => 1 }, [ $unhealthy_medium ] );
+
+    test_media_list_call( {}, $test_stack_media );
+
+    my $single_medium = $test_stack_media->[ 0 ];
+    test_media_list_call( { name => $single_medium->{ name } }, [ $single_medium ] );
+
+    my $tagged_medium = $test_stack_media->[ 1 ];
+    my $test_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'media_list_test:media_list_test' );
+    $db->update_by_id( 'tags', $test_tag->{ tags_id }, { show_on_media => 1 } );
+    $db->create( 'media_tags_map', { tags_id => $test_tag->{ tags_id }, media_id => $tagged_medium->{ media_id } } );
+    test_media_list_call( { tag_name => $test_tag->{ tag } }, [ $tagged_medium ] );
+
+    my $similar_medium = $test_stack_media->[ 2 ];
+    $db->create( 'media_tags_map', { tags_id => $test_tag->{ tags_id }, media_id => $similar_medium->{ media_id } } );
+    test_media_list_call( { similar_media_id => $tagged_medium->{ media_id } }, [ $similar_medium ] );
+}
+
 # test various media/ calls
 sub test_media($$)
 {
     my ( $db, $test_media ) = @_;
 
-    my $expected_media = [ grep { $_->{ name } && $_->{ name } =~ /^media_/ } values( %{ $test_media } ) ];
-
-    my $media = test_get( '/api/v2/media/list', {} );
-    is( scalar( @{ $media } ), $NUM_MEDIA, "media/list num of media" );
-    for my $medium ( @{ $media } )
-    {
-        my ( $expected_medium ) = grep { $_->{ name } eq $medium->{ name } } @{ $expected_media };
-        ok( $expected_medium, "media/list found name amount expected media" );
-
-        my $fields = [ qw/name url/ ];
-        map { is( $medium->{ $_ }, $expected_medium->{ $_ }, "media/list: field $_" ) } @{ $fields };
-    }
+    test_media_list( $db, $test_media );
 
     test_media_create( $db );
 }
