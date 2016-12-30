@@ -6,6 +6,7 @@ import time
 from typing import List
 
 from mediawords.util.log import create_logger
+from mediawords.util.perl import decode_object_from_bytes_if_needed
 
 l = create_logger(__name__)
 
@@ -27,6 +28,8 @@ class McRunCommandInForegroundException(subprocess.SubprocessError):
 def run_command_in_foreground(command: List[str]) -> None:
     """Run command in foreground, raise McRunCommandInForegroundException if it fails."""
     l.debug("Running command: %s" % ' '.join(command))
+
+    command = decode_object_from_bytes_if_needed(command)
 
     # noinspection PyBroadException
     try:

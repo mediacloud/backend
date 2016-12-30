@@ -2,6 +2,7 @@ import os
 
 from mediawords.util.log import create_logger
 from mediawords.util.paths import file_extension
+from mediawords.util.perl import decode_string_from_bytes_if_needed
 from mediawords.util.process import run_command_in_foreground, McRunCommandInForegroundException
 
 l = create_logger(__name__)
@@ -14,6 +15,9 @@ class McExtractTarballToDirectoryException(Exception):
 def extract_tarball_to_directory(archive_file: str, dest_directory: str, strip_root: bool = False) -> None:
     """Extract Tar archive (.tar, .tar.gz or .tgz) to destination directory, optionally stripping the root directory
     first."""
+
+    archive_file = decode_string_from_bytes_if_needed(archive_file)
+    dest_directory = decode_string_from_bytes_if_needed(dest_directory)
 
     if not os.path.isfile(archive_file):
         raise McExtractTarballToDirectoryException("Archive at '%s' does not exist" % archive_file)
@@ -45,6 +49,9 @@ class McExtractZipToDirectoryException(Exception):
 
 def extract_zip_to_directory(archive_file: str, dest_directory: str) -> None:
     """Extract ZIP archive (.zip or .war) to destination directory."""
+
+    archive_file = decode_string_from_bytes_if_needed(archive_file)
+    dest_directory = decode_string_from_bytes_if_needed(dest_directory)
 
     if not os.path.isfile(archive_file):
         raise McExtractZipToDirectoryException("Archive at '%s' does not exist" % archive_file)

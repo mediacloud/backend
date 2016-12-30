@@ -2,6 +2,7 @@ import socket
 import time
 
 from mediawords.util.log import create_logger
+from mediawords.util.perl import decode_string_from_bytes_if_needed
 
 l = create_logger(__name__)
 
@@ -35,6 +36,9 @@ def fqdn() -> str:
 
 def tcp_port_is_open(port: int, hostname: str = 'localhost') -> bool:
     """Test if TCP port is open."""
+
+    hostname = decode_string_from_bytes_if_needed(hostname)
+
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     result = sock.connect_ex((hostname, port))
     return result == 0
@@ -42,6 +46,9 @@ def tcp_port_is_open(port: int, hostname: str = 'localhost') -> bool:
 
 def wait_for_tcp_port_to_open(port: int, hostname: str = 'localhost', retries: int = 60, delay: int = 1) -> bool:
     """Try connecting to TCP port until it opens (or not); return True if managed to connect."""
+
+    hostname = decode_string_from_bytes_if_needed(hostname)
+
     port_is_open = False
     for retry in range(retries):
         if retry == 0:
