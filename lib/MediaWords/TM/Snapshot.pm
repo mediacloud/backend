@@ -507,9 +507,12 @@ SQL
         $db->query( <<END );
 create temporary table snapshot_story_links $_temporary_tablespace as
     select distinct cl.stories_id source_stories_id, cl.ref_stories_id
-	    from snapshot_topic_links_cross_media cl, snapshot_period_stories sps, snapshot_period_stories rps
-    	where cl.stories_id = sps.stories_id and
-    	    cl.ref_stories_id = rps.stories_id
+	    from snapshot_topic_links_cross_media cl
+            join snapshot_period_stories sps on ( cl.stories_id = sps.stories_id )
+            join snapshot_period_stories rps on ( cl.ref_stories_id = rps.stories_id )
+            left join stories_ap_syndicated sap on ( sps.stories_id = sap.stories_id )
+    	where
+            ( ( sap.ap_syndicated is null ) or ( sap.ap_syndicated = false ) )
 END
     }
 
