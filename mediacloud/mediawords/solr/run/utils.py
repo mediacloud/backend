@@ -3,8 +3,8 @@ import os
 import tempfile
 import time
 
+from mediawords.util.web import download_file
 from mediawords.util.log import create_logger
-from mediawords.util.process import run_command_in_foreground
 
 l = create_logger(__name__)
 
@@ -38,18 +38,6 @@ def unlock_file(path: str) -> None:
         raise Exception("Lock file '%s' does not exist." % path)
     os.unlink(path)
     l.debug("Removed lock file '%s'." % path)
-
-
-def download_file(source_url: str, target_path: str) -> None:
-    """Download URL to path."""
-    args = ["curl",
-            "--silent",
-            "--show-error",
-            "--retry", "3",
-            "--retry-delay", "5",
-            "--output", target_path,
-            source_url]
-    run_command_in_foreground(args)
 
 
 def download_file_to_temp_path(source_url: str) -> str:
