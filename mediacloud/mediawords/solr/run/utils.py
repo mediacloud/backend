@@ -4,7 +4,6 @@ import tempfile
 import time
 
 from mediawords.util.log import create_logger
-from mediawords.util.paths import file_extension
 from mediawords.util.process import run_command_in_foreground
 
 l = create_logger(__name__)
@@ -59,17 +58,3 @@ def download_file_to_temp_path(source_url: str) -> str:
     dest_path = os.path.join(dest_dir, 'archive.tgz')
     download_file(source_url=source_url, target_path=dest_path)
     return dest_path
-
-
-def extract_zip_to_directory(archive_file: str, dest_directory: str) -> None:
-    """Extract ZIP archive (.zip or .war) to destination directory."""
-
-    archive_file_extension = file_extension(archive_file)
-    if archive_file_extension not in [".zip", ".war"]:
-        raise Exception("Unsupported archive '%s' with extension '%s'" % (archive_file, archive_file_extension))
-
-    args = ["unzip", "-q",
-            archive_file,
-            "-d", dest_directory]
-
-    run_command_in_foreground(args)
