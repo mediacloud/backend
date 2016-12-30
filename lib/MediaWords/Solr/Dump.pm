@@ -283,11 +283,14 @@ sub _print_csv_to_file_from_csr
             my $processed_stories_id = $data_lookup->{ ps }->{ $stories_id };
             next unless ( $processed_stories_id );
 
-            my $click_count       = $data_lookup->{ bitly_clicks }->{ $stories_id }    || '';
-            my $media_tags_list   = $data_lookup->{ media_tags }->{ $media_id }        || '';
-            my $stories_tags_list = $data_lookup->{ stories_tags }->{ $stories_id }    || '';
-            my $ss_tags_list      = $data_lookup->{ ss_tags }->{ $story_sentences_id } || '';
-            my $timespans_list    = $data_lookup->{ timespans }->{ $stories_id }       || '';
+            my $click_count       = $data_lookup->{ bitly_clicks }->{ $stories_id } || '';
+            my $media_tags_list   = $data_lookup->{ media_tags }->{ $media_id }     || '';
+            my $stories_tags_list = $data_lookup->{ stories_tags }->{ $stories_id } || '';
+            my $timespans_list    = $data_lookup->{ timespans }->{ $stories_id }    || '';
+
+            # replacing ss tags with stories tags because ss tags are killing performance of the import
+            # are we are switching to stories tags soon any way
+            my $ss_tags_list = $stories_tags_list;
 
             $csv->combine( @{ $row }, $click_count, $processed_stories_id, $media_tags_list, $stories_tags_list,
                 $ss_tags_list, $timespans_list );
@@ -406,26 +409,6 @@ select string_agg( timespans_id::text, ';' ), stories_id
     where stories_id % $num_proc = $proc - 1
         $delta_clause
     group by stories_id
-END
-
-    my $ss_delta_clause = '';
-    if ( $delta_clause )
-    {
-        $ss_delta_clause = <<SQL;
-            and story_sentences_id in (
-                select story_sentences_id
-                from story_sentences
-                where stories_id % $num_proc = $proc - 1
-                $delta_clause
-            )
-SQL
-    }
-
-    _set_lookup( $db, $data_lookup, 'ss_tags', <<END );
-select string_agg( tags_id::text, ';' ) tag_list, story_sentences_id
-    from story_sentences_tags_map
-    where true $ss_delta_clause
-    group by story_sentences_id
 END
 
     return $data_lookup;
@@ -1125,7 +1108,7 @@ sub delete_stories
 
     $stories_ids = [ sort { $a <=> $b } @{ $stories_ids } ];
 
-    my $max_chunk_size = 1000;
+    my $max_chunk_size = 5000;
 
     while ( @{ $stories_ids } )
     {
