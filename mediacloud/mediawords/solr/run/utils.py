@@ -61,27 +61,6 @@ def download_file_to_temp_path(source_url: str) -> str:
     return dest_path
 
 
-def extract_tarball_to_directory(archive_file: str, dest_directory: str, strip_root: bool = False) -> None:
-    """Extract Tar archive (.tar, .tar.gz or .tgz) to destination directory, optionally stripping the root directory
-    first."""
-
-    archive_file_extension = file_extension(archive_file)
-    if archive_file_extension in [".gz", ".tgz"]:
-        tar_args = "-zxf"
-    elif archive_file_extension in [".tar"]:
-        tar_args = "-xf"
-    else:
-        raise Exception("Unsupported archive '%s' with extension '%s'" % (archive_file, archive_file_extension))
-
-    args = ["tar",
-            tar_args, archive_file,
-            "-C", dest_directory]
-    if strip_root:
-        args.extend(("--strip", "1"))
-
-    run_command_in_foreground(args)
-
-
 def extract_zip_to_directory(archive_file: str, dest_directory: str) -> None:
     """Extract ZIP archive (.zip or .war) to destination directory."""
 
