@@ -7,6 +7,7 @@ def test_mc_root_path():
     root_path = mc_root_path()
     assert os.path.exists(root_path)
     assert os.path.isdir(root_path)
+    assert os.path.isfile(os.path.join(root_path, 'mediawords.yml.dist'))
 
 
 def test_mc_script_path():
