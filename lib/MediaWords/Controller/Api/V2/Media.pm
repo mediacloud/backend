@@ -17,6 +17,7 @@ use MediaWords::DBI::Media::Lookup;
 use MediaWords::Solr;
 use MediaWords::TM::Snapshot;
 use MediaWords::Util::HTML;
+use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 
@@ -40,9 +41,12 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
 __PACKAGE__->config(
     action => {
-        create   => { Does => [ qw( ~MediaEditAuthenticated ~Throttled ~Logged ) ] },
-        put_tags => { Does => [ qw( ~MediaEditAuthenticated ~Throttled ~Logged ) ] },
-        update   => { Does => [ qw( ~MediaEditAuthenticated ~Throttled ~Logged ) ] },
+        create            => { Does => [ qw( ~MediaEditAuthenticated ~Throttled ~Logged ) ] },
+        put_tags          => { Does => [ qw( ~MediaEditAuthenticated ~Throttled ~Logged ) ] },
+        update            => { Does => [ qw( ~MediaEditAuthenticated ~Throttled ~Logged ) ] },
+        submit_suggestion => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        list_suggestions  => { Does => [ qw( ~MediaEditAuthenticated ~Throttled ~Logged ) ] },
+        mark_suggestion   => { Does => [ qw( ~MediaEditAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
@@ -255,7 +259,14 @@ sub _attach_media_to_input($$)
     for my $input_medium ( @{ $input_media } )
     {
         $input_medium->{ medium } = MediaWords::DBI::Media::Lookup::find_medium_by_url( $db, $input_medium->{ url } );
-        push( @{ $fetch_urls }, $input_medium->{ url } ) unless ( $input_medium->{ medium } );
+        if ( $input_medium->{ medium } )
+        {
+            $input_medium->{ status } = 'existing';
+        }
+        else
+        {
+            push( @{ $fetch_urls }, $input_medium->{ url } );
+        }
     }
 
     my $responses = MediaWords::Util::Web::ParallelGet( $fetch_urls );
@@ -424,6 +435,121 @@ sub put_tags_PUT
     $self->status_ok( $c, entity => { success => 1 } );
 
     return;
+}
+
+sub submit_suggestion : Local : ActionClass('MC_REST')
+{
+}
+
+# submit a row to the media_suggestions table
+sub submit_suggestion_GET
+{
+    my ( $self, $c ) = @_;
+
+    $self->require_fields( $c, [ qw/url/ ] );
+
+    my $data = $c->req->data;
+
+    die( "input must be a hash" ) unless ( ref( $data ) eq ref( {} ) );
+
+    my $db = $c->dbis;
+
+    my $url      = $data->{ url };
+    my $name     = $data->{ name } || 'none';
+    my $feed_url = $data->{ feed_url } || 'none';
+    my $reason   = $data->{ reason } || 'none';
+
+    my $user          = MediaWords::DBI::Auth::user_for_api_token_catalyst( $c );
+    my $auth_users_id = $user->{ auth_users_id };
+
+    $db->begin;
+
+    my $ms = $db->create(
+        'media_suggestions',
+        {
+            url           => $url,
+            name          => $name,
+            feed_url      => $feed_url,
+            reason        => $reason,
+            auth_users_id => $auth_users_id
+        }
+    );
+
+    my $tags_ids = $data->{ tags_ids } || [];
+    die( "tags_ids must be a list" ) unless ( ref( $tags_ids ) eq ref( [] ) );
+    die( "each tags_id must be a postive int" ) if ( grep { $_ !~ /[0-9]+/ } @{ $tags_ids } );
+
+    for my $tags_id ( @{ $tags_ids } )
+    {
+        $db->query( <<SQL, $ms->{ media_suggestions_id }, $tags_id );
+insert into media_suggestions_tags_map ( media_suggestions_id, tags_id ) values ( \$1, \$2 )
+SQL
+    }
+
+    $db->commit;
+
+    $self->status_ok( $c, entity => { success => 1 } );
+
+}
+
+sub list_suggestions : Local : ActionClass('MC_REST')
+{
+}
+
+# submit a row to the media_suggestions table
+sub list_suggestions_GET
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $media_suggestions = $db->query( "select * from media_suggestions order by date_submitted" )->hashes;
+
+    $db->attach_child_query( $media_suggestions, <<SQL, 'tags_ids', 'media_suggestions_id' );
+select tags_id, media_suggestions_id from media_suggestions_tags_map
+SQL
+
+    $self->status_ok( $c, entity => { media_suggestions => $media_suggestions } );
+}
+
+sub mark_suggestion : Local : ActionClass( 'MC_REST' )
+{
+}
+
+# mark a suggestion as 'approved', 'rejected', or 'pending'
+sub mark_suggestion_PUT
+{
+    my ( $self, $c ) = @_;
+
+    $self->require_fields( $c, [ qw/media_suggestions_id status/ ] );
+
+    my $data = $c->req->data;
+
+    my $db = $c->dbis;
+
+    my $user          = MediaWords::DBI::Auth::user_for_api_token_catalyst( $c );
+    my $auth_users_id = $user->{ auth_users_id };
+
+    die( "status must be pending, approved, or rejected" )
+      unless ( grep { $_ eq $data->{ status } } ( qw/pending approved rejected/ ) );
+
+    die( "media_id required with approve" ) if ( ( $data->{ status } eq 'approved' ) && !$data->{ media_id } );
+
+    my $ms = $db->require_by_id( 'media_suggestions', $data->{ media_suggestions_id } );
+
+    $db->update_by_id(
+        'media_suggestions',
+        $data->{ media_suggestions_id },
+        {
+            media_suggestions_id => $data->{ media_suggestions_id },
+            status               => $data->{ status },
+            mark_reason          => $data->{ mark_reason },
+            media_id             => $data->{ media_id },
+            mark_auth_users_id   => $auth_users_id
+        }
+    );
+
+    $self->status_ok( $c, entity => { success => 1 } );
 }
 
 =head1 AUTHOR
