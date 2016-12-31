@@ -49,6 +49,7 @@ use File::Temp;
 use FileHandle;
 use Getopt::Long;
 use GraphViz2;
+use List::Util;
 use XML::Simple;
 use Readonly;
 
@@ -255,6 +256,9 @@ sub restrict_period_stories_to_focus
     my $all_stories_ids      = [ @{ $snapshot_period_stories_ids } ];
     my $matching_stories_ids = [];
     my $chunk_size           = 1000;
+    my $max_solr_errors      = 10;
+    my $solr_error_count     = 0;
+
     while ( @{ $all_stories_ids } )
     {
         my $chunk_stories_ids = [];
@@ -262,11 +266,17 @@ sub restrict_period_stories_to_focus
         map { push( @{ $chunk_stories_ids }, shift( @{ $all_stories_ids } ) ) } ( 1 .. $chunk_size );
 
         my $solr_q = $qs->{ query };
-        $solr_q = "( $solr_q )" if ( $solr_q =~ /or/i );
 
         my $stories_ids_list = join( ' ', @{ $chunk_stories_ids } );
-        $solr_q = "$solr_q and stories_id:( $stories_ids_list )";
-        my $solr_stories_ids = MediaWords::Solr::search_for_stories_ids( $db, { rows => 1000000, q => $solr_q } );
+        $solr_q = "( $solr_q ) and stories_id:( $stories_ids_list )";
+
+        my $solr_stories_ids =
+          eval { MediaWords::Solr::search_for_stories_ids( $db, { rows => 1000000, q => $solr_q } ) };
+        if ( $@ )
+        {
+            $chunk_size = List::Util::max( $chunk_size / 2, 100 );
+            die( "solr error: $@" ) if ( ++$solr_error_count > $max_solr_errors );
+        }
 
         push( @{ $matching_stories_ids }, @{ $solr_stories_ids } );
     }
