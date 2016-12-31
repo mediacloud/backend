@@ -32,7 +32,7 @@ sub get_content
     if ( $content_type eq 'sentences' )
     {
         my ( $sentences ) = $db->query( <<SQL, $stories_id )->flat;
-select string_agg( sentence, '' ) from (
+select string_agg( sentence, ' ' ) from (
     select sentence from story_sentences where stories_id = \$1 order by stories_id ) q
 SQL
         return $sentences;
