@@ -201,11 +201,11 @@ sub get_topic_url_variants
 
     my $all_urls = $db->query( <<END )->flat;
 select distinct url from (
-    select redirect_url url from topic_links where stories_id in ( $all_stories_ids_list )
+    select redirect_url url from topic_links where ref_stories_id in ( $all_stories_ids_list )
     union
-    select url from topic_links where stories_id in( $all_stories_ids_list )
+    select url from topic_links where ref_stories_id in( $all_stories_ids_list )
     union
-    select url from stories where stories_id in ( $all_stories_ids_list )
+    select url from stories where ref_stories_id in ( $all_stories_ids_list )
 ) q
     where q is not null
 END
