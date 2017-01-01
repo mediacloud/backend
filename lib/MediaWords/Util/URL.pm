@@ -205,7 +205,7 @@ select distinct url from (
     union
     select url from topic_links where ref_stories_id in( $all_stories_ids_list )
     union
-    select url from stories where ref_stories_id in ( $all_stories_ids_list )
+    select url from stories where stories_id in ( $all_stories_ids_list )
 ) q
     where q is not null
 END
