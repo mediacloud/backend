@@ -1749,7 +1749,8 @@ sub search_stories : Local
     my $search_query = _get_stories_id_search_query( $db, $query );
 
     my $order = $c->req->params->{ order } || '';
-    my $order_clause = $order eq 'bitly_click_count' ? 'slc.bitly_click_count desc' : 'slc.media_inlink_count desc';
+    my $order_clause =
+      $order eq 'bitly_click_count' ? 'slc.bitly_click_count desc nulls last' : 'slc.media_inlink_count desc';
 
     my $stories = $db->query(
         <<"END"
