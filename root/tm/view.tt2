@@ -48,7 +48,7 @@
                 <th>Snapshot Date</th>
                 <th>Start Date</th>
                 <th>End Date</th>
-                <th>Periods</th>
+                <th>State</th>
                 <th>Note</th>
             </tr>
 
@@ -62,7 +62,7 @@
 
                     <td>[% date.format( snap.end_date ) %]</td>
 
-                    <td>[% snap.periods | html %]</td>
+                    <td>[% snap.state | html %]</td>
 
                     <td>[% snap.note | html %]</td>
                 </tr>
@@ -97,11 +97,6 @@
         <table><tr><td bgcolor="#ffffff">
             [% topic.state %]
         </td></tr></table>
-
-        [% INCLUDE tm/include/latest_activities.tt2
-                   activities=latest_activities
-                   topic=topic %]
-
 
 
     </div>

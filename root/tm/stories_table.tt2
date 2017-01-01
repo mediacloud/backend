@@ -55,7 +55,7 @@ $(document).ready(function () {
 [% IF display_stories_short_title %]
     <div class="boxtitle">
 
-    [% display_stories_short_title %]
+    [% display_stories_short_title | html %]
 
     [% IF timespan_date_range %]
         in [% timespan_date_range %] Timespan
@@ -86,7 +86,7 @@ $(document).ready(function () {
 
     <a class="boxcommand" href="[% wc_url | html %]">word cloud</a>
     <a class="boxcommand" target="new" href="[% dashboard_url | html %]">dashboard query</a>
-    <a class="boxcommand" href="[% stats_url | html %]">story stats</a>{~
+    <a class="boxcommand" href="[% stats_url | html %]">story stats</a>
 
     </div>
 [% END %]
