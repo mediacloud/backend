@@ -47,10 +47,6 @@
 
 
     <div id="narrowcolumn">
-        <div class="boxtitle">Live</div>
-            <fieldset>
-                <a href="[% c.uri_for( "/admin/tm/view_timespan/" _ timespan.timespans_id _ "?l=1" ) %]">View Live Data for this timespan</a>
-            </fieldset>
         <div class="boxtitle">Stats</div>
         <table class="even_rows_grey">
             <tr>
@@ -129,21 +125,6 @@
             <p><a href="[% partisan_url | html %]">Partisanship</a></p>
             <p><a href="[% type_url | html %]">Add Media Types</a></p>
         </fieldset>
-
-        <div class="boxtitle">Media Types - Link Weight</div>
-        <table class="even_rows_grey">
-            [% FOREACH mt IN media_type_stats.link_weight %]
-                <tr><td >[% mt.media_type | html %]</td><td>[% mt.percent_link_weight %]%</td></tr>
-            [% END %]
-        </table>
-
-        <div class="boxtitle">Media Types - Story Count</div>
-        <table class="even_rows_grey">
-            [% FOREACH mt IN media_type_stats.story_count %]
-                <tr><td>[% mt.media_type | html %]</td><td>[% mt.percent_stories %]%</td></tr>
-            [% END %]
-        </table>
-
 
     </div>
 

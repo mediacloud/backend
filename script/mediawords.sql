@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4601;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4602;
 
 BEGIN
 
@@ -3045,3 +3045,32 @@ create table media_health (
 );
 
 create index media_health_medium on media_health ( media_id );
+
+create type media_suggestions_status as enum ( 'pending', 'approved', 'rejected' );
+
+create table media_suggestions (
+    media_suggestions_id        serial primary key,
+    name                        text,
+    url                         text not null,
+    feed_url                    text,
+    reason                      text,
+    auth_users_id               int references auth_users on delete set null,
+    mark_auth_users_id          int references auth_users on delete set null,
+    date_submitted              timestamp not null default now(),
+    media_id                    int references media on delete set null,
+    date_marked                 timestamp not null default now(),
+    mark_reason                 text,
+    status                      media_suggestions_status not null default 'pending',
+
+    CONSTRAINT media_suggestions_media_id CHECK ( ( status in ( 'pending', 'rejected' ) ) or ( media_id is not null ) )
+);
+
+create index media_suggestions_date on media_suggestions ( date_submitted );
+
+create table media_suggestions_tags_map (
+    media_suggestions_id        int references media_suggestions on delete cascade,
+    tags_id                     int references tags on delete cascade
+);
+
+create index media_suggestions_tags_map_ms on media_suggestions_tags_map ( media_suggestions_id );
+create index media_suggestions_tags_map_tag on media_suggestions_tags_map ( tags_id );

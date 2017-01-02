@@ -33,20 +33,24 @@ sub list_GET
 
     my $db = $c->dbis;
 
+    my $name = $c->req->params->{ name } || '';
+
     my $limit  = $c->req->params->{ limit };
     my $offset = $c->req->params->{ offset };
 
     my $auth_users_id = $c->stash->{ api_auth }->{ auth_users_id };
 
-    my $topics = $db->query( <<END, $auth_users_id, $limit, $offset )->hashes;
+    my $topics = $db->query( <<END, $auth_users_id, $name, $limit, $offset )->hashes;
 select t.*, min( p.auth_users_id ) auth_users_id, min( p.user_permission ) user_permission
     from topics  t
         join topics_with_user_permission p using ( topics_id )
         left join snapshots snap on ( t.topics_id = snap.topics_id )
-    where p.auth_users_id= \$1
+    where
+        p.auth_users_id= \$1 and
+        t.name like '%' || \$2 || '%'
     group by t.topics_id
     order by t.state = 'ready', t.state,  max( coalesce( snap.snapshot_date, '2000-01-01'::date ) ) desc
-    limit \$2 offset \$3
+    limit \$3 offset \$4
 END
 
     my $entity = { topics => $topics };

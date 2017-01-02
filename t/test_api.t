@@ -46,9 +46,9 @@ sub test_request_response($$;$)
 
     is( $response->is_success, !$expect_error, "HTTP response status OK for $label:\n" . $response->as_string );
 
-    my $data = MediaWords::Util::JSON::decode_json( $response->content );
+    my $data = eval { MediaWords::Util::JSON::decode_json( $response->content ) };
 
-    ok( $data, "decoded json for $label" );
+    ok( $data, "decoded json for $label (json error: $@)" );
 
     if ( $expect_error )
     {
@@ -934,6 +934,220 @@ sub test_feeds($)
     validate_db_row( $db, 'feeds', $r->{ feed }, $update_input, 'update feed' );
 }
 
+# test the media/submit_suggestion call
+sub test_media_suggestions_submit($)
+{
+    my ( $db ) = @_;
+
+    # make sure url is required
+    test_post( '/api/v2/media/submit_suggestion', {}, 1 );
+
+    # test with simple url
+    my $simple_url = 'http://foo.com';
+    test_post( '/api/v2/media/submit_suggestion', { url => $simple_url } );
+
+    my $simple_ms = $db->query( "select * from media_suggestions where url = \$1", $simple_url )->hash;
+    ok( $simple_ms, "media/submit_suggestion simple url found" );
+
+    # test with all fields in input
+    my $tag_1 = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'media_suggestions:tag_1' );
+    my $tag_2 = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'media_suggestions:tag_2' );
+
+    my $full_ms_input = {
+        url      => 'http://bar.com',
+        name     => 'foo',
+        feed_url => 'http://feed.url',
+        reason   => 'bar',
+        tags_ids => [ map { $_->{ tags_id } } ( $tag_1, $tag_2 ) ]
+    };
+
+    test_post( '/api/v2/media/submit_suggestion', $full_ms_input );
+
+    my $full_ms_db = $db->query( "select * from media_suggestions where url = \$1", $full_ms_input->{ url } )->hash;
+    ok( $full_ms_db, "media/submit_suggestion full input found" );
+
+    for my $field ( qw/name feed_url reason/ )
+    {
+        is( $full_ms_db->{ $field }, $full_ms_input->{ $field }, "media/submit_suggestion full input $field" );
+    }
+
+    ok( $full_ms_db->{ date_submitted }, "media/submit_suggestion full date_submitted set" );
+
+    for my $tag ( $tag_1, $tag_2 )
+    {
+        my $tag_exists = $db->query( <<SQL, $tag->{ tags_id }, $full_ms_db->{ media_suggestions_id } )->hash;
+select * from media_suggestions_tags_map where tags_id = \$1 and media_suggestions_id = \$2
+SQL
+        ok( $tag_exists, "media/submit_suggestion full tag $tag->{ tags_id } exists" );
+    }
+}
+
+# test that the media/list_suggestions call with the given $call_params returned the given results
+sub test_suggestions_list_results($$$)
+{
+    my ( $label, $call_params, $expected_results ) = @_;
+
+    $label = "media/list_suggestions $label";
+
+    my $expected_num = scalar( @{ $expected_results } );
+
+    my $r = test_get( '/api/v2/media/list_suggestions', $call_params );
+    my $got_mss = $r->{ media_suggestions };
+    ok( $got_mss, "$label media_suggestions set" );
+
+    is( scalar( @{ $got_mss } ), $expected_num, "$label number returned" );
+
+    my $prev_id = 0;
+    for my $got_ms ( @{ $got_mss } )
+    {
+        my ( $expected_ms ) =
+          grep { $_->{ media_suggestions_id } == $got_ms->{ media_suggestions_id } } @{ $expected_results };
+        ok( $expected_ms, "$label returned ms $got_ms->{ media_suggestions_id } matches db row" );
+        for my $field ( qw/status url name feed_url reason media_id mark_reason/ )
+        {
+            is( $got_ms->{ $field }, $expected_ms->{ $field }, "$label field $field" );
+        }
+        ok( $got_ms->{ media_suggestions_id } > $prev_id, "$label media_ids in order" );
+        $prev_id = $got_ms->{ media_suggestions_id };
+    }
+
+}
+
+# test media/list_suggestions
+sub test_media_suggestions_list($)
+{
+    my ( $db ) = @_;
+
+    my $num_status_ms = 10;
+
+    my ( $auth_users_id ) = $db->query( "select auth_users_id from auth_users limit 1" )->flat;
+
+    my $ms_db     = [];
+    my $media_ids = $db->query( "select media_id from media" )->flat;
+
+    my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "media_suggestions:test_tag" );
+
+    for my $status ( qw/pending approved rejected/ )
+    {
+        for my $i ( 1 .. $num_status_ms )
+        {
+            my $ms = {
+                url           => "http://m.s/$i",
+                name          => "ms $i",
+                feed_url      => "http://feed.m.s/$i",
+                auth_users_id => $auth_users_id,
+                reason        => "reason $i",
+                status        => $status,
+            };
+
+            if ( $status ne 'pending' )
+            {
+                $ms->{ mark_reason } = "mark reason $i";
+                $ms->{ date_marked } = MediaWords::Util::SQL::sql_now;
+            }
+
+            if ( $status eq 'approved' )
+            {
+                $ms->{ media_id } = shift( @{ $media_ids } );
+                push( @{ $media_ids }, $ms->{ media_id } );
+            }
+
+            $ms = $db->create( 'media_suggestions', $ms );
+
+            if ( $i % 2 )
+            {
+                $ms->{ tags_id } = [ $tag->{ tags_id } ];
+                $db->query( <<SQL, $ms->{ media_suggestions_id }, $tag->{ tags_id } );
+insert into media_suggestions_tags_map ( media_suggestions_id, tags_id ) values ( \$1, \$2 )
+SQL
+            }
+
+            push( @{ $ms_db }, $ms );
+        }
+    }
+
+    test_suggestions_list_results( 'pending', {}, [ grep { $_->{ status } eq 'pending' } @{ $ms_db } ] );
+    test_suggestions_list_results( 'all', { all => 1 }, $ms_db );
+
+    my $pending_tags_ms = [ grep { $_->{ status } eq 'pending' && $_->{ tags_id } } @{ $ms_db } ];
+    test_suggestions_list_results( 'pending + tags_id', { tags_id => $tag->{ tags_id } }, $pending_tags_ms );
+
+}
+
+# test media/mark_suggestion end point
+sub test_media_suggestions_mark($)
+{
+    my ( $db ) = @_;
+
+    my ( $auth_users_id ) = $db->query( "select auth_users_id from auth_users limit 1" )->flat;
+
+    my $ms = {
+        url           => "http://m.s/mark",
+        name          => "ms mark",
+        feed_url      => "http://feed.m.s/mark",
+        auth_users_id => $auth_users_id,
+        reason        => "reason mark"
+    };
+    $ms = $db->create( 'media_suggestions', $ms );
+    my $ms_id = $ms->{ media_suggestions_id };
+
+    # test for required status and media_suggestions_id
+    test_put( '/api/v2/media/mark_suggestion', {}, 1 );
+    test_put( '/api/v2/media/mark_suggestion', { media_suggestions_id => $ms_id }, 1 );
+    test_put( '/api/v2/media/mark_suggestion', { status => 'approved' }, 1 );
+
+    # test for error on invalid input
+    test_put( '/api/v2/media/mark_suggestion', { media_suggestions_id => 0,      status => 'approved' },       1 );
+    test_put( '/api/v2/media/mark_suggestion', { media_suggestions_id => $ms_id, status => 'invalid_status' }, 1 );
+
+    # test reject
+    test_put( '/api/v2/media/mark_suggestion',
+        { media_suggestions_id => $ms_id, status => 'rejected', mark_reason => 'rejected' } );
+    $ms = $db->require_by_id( 'media_suggestions', $ms_id );
+
+    is( $ms->{ status },      'rejected', "media/mark_suggestion reject status" );
+    is( $ms->{ mark_reason }, 'rejected', "media/mark_suggestion reject mark_reason" );
+
+    my ( $media_id ) = $db->query( "select media_id from media limit 1" )->flat;
+
+    # test approve
+    my $approve_input = {
+        media_suggestions_id => $ms_id,
+        status               => 'approved',
+        mark_reason          => 'approved'
+    };
+
+    # verify that approval with media_id causes error
+    test_put( '/api/v2/media/mark_suggestion', $approve_input, 1 );
+
+    # now try valid submission
+    $approve_input->{ media_id } = $media_id;
+    test_put( '/api/v2/media/mark_suggestion', $approve_input );
+    $ms = $db->require_by_id( 'media_suggestions', $ms_id );
+
+    is( $ms->{ status },      'approved', "media/mark_suggestion approve status" );
+    is( $ms->{ mark_reason }, 'approved', "media/mark_suggestion approve mark_reason" );
+    is( $ms->{ media_id },    $media_id,  'media/mark_suggestion approve media_id' );
+
+    # now try setting back to pending
+    test_put( '/api/v2/media/mark_suggestion',
+        { media_suggestions_id => $ms_id, status => 'pending', mark_reason => 'pending' } );
+    $ms = $db->require_by_id( 'media_suggestions', $ms_id );
+
+    is( $ms->{ status },      'pending', "media/mark_suggestion pending status" );
+    is( $ms->{ mark_reason }, 'pending', "media/mark_suggestion pending mark_reason" );
+}
+
+# test media suggestions list, submit, and mark calls
+sub test_media_suggestions($)
+{
+    my ( $db ) = @_;
+
+    test_media_suggestions_list( $db );
+    test_media_suggestions_submit( $db );
+    test_media_suggestions_mark( $db );
+}
+
 # test parts of the ai that only require reading, so we can test these all in one chunk
 sub test_api($)
 {
@@ -954,6 +1168,7 @@ sub test_api($)
     test_tag_sets( $db );
     test_feeds( $db );
     test_tags( $db );
+    test_media_suggestions( $db );
 
 }
 

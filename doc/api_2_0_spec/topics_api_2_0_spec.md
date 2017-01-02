@@ -528,7 +528,11 @@ that does not include a topics_id in the url.
 
 ### Query Parameters
 
-Standard parameters accepter: link_id.
+| Parameter | Default | Notes |
+|-|-|-|
+| name | null | return only topics with a name including the parameter value |
+
+Standard parameters accepted: link_id.
 
 ### Output Description
 

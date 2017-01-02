@@ -378,6 +378,7 @@ sub test_get_topic_url_variants
     my $story_1 = $media->{ A }->{ feeds }->{ B }->{ stories }->{ 1 };
     my $story_2 = $media->{ A }->{ feeds }->{ B }->{ stories }->{ 2 };
     my $story_3 = $media->{ A }->{ feeds }->{ B }->{ stories }->{ 3 };
+    my $story_4 = $media->{ A }->{ feeds }->{ C }->{ stories }->{ 4 };
 
     $db->query( <<END, $story_2->{ stories_id }, $story_1->{ stories_id } );
 insert into topic_merged_stories_map ( source_stories_id, target_stories_id ) values( ?, ? )
@@ -401,6 +402,14 @@ END
         'topic_stories',
         {
             topics_id  => $topic->{ topics_id },
+            stories_id => $story_4->{ stories_id }
+        }
+    );
+
+    $db->create(
+        'topic_stories',
+        {
+            topics_id  => $topic->{ topics_id },
             stories_id => $story_1->{ stories_id }
         }
     );
@@ -408,10 +417,11 @@ END
     $db->create(
         'topic_links',
         {
-            topics_id    => $topic->{ topics_id },
-            stories_id   => $story_1->{ stories_id },
-            url          => $story_1->{ url },
-            redirect_url => $story_1->{ url } . "/redirect_url"
+            topics_id      => $topic->{ topics_id },
+            stories_id     => $story_4->{ stories_id },
+            ref_stories_id => $story_1->{ stories_id },
+            url            => $story_1->{ url },
+            redirect_url   => $story_1->{ url } . "/redirect_url"
         }
     );
 
@@ -426,10 +436,11 @@ END
     $db->create(
         'topic_links',
         {
-            topics_id    => $topic->{ topics_id },
-            stories_id   => $story_2->{ stories_id },
-            url          => $story_2->{ url },
-            redirect_url => $story_2->{ url } . "/redirect_url"
+            topics_id      => $topic->{ topics_id },
+            stories_id     => $story_4->{ stories_id },
+            ref_stories_id => $story_2->{ stories_id },
+            url            => $story_2->{ url },
+            redirect_url   => $story_2->{ url } . "/redirect_url"
         }
     );
 
@@ -444,9 +455,10 @@ END
     $db->create(
         'topic_links',
         {
-            topics_id  => $topic->{ topics_id },
-            stories_id => $story_3->{ stories_id },
-            url        => $story_3->{ url } . '/alternate',
+            topics_id      => $topic->{ topics_id },
+            stories_id     => $story_4->{ stories_id },
+            ref_stories_id => $story_3->{ stories_id },
+            url            => $story_3->{ url } . '/alternate',
         }
     );
 

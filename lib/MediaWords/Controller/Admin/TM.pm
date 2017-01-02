@@ -209,33 +209,6 @@ sub create : Local
     $c->res->redirect( $c->uri_for( "/admin/tm/view/$topic->{ topics_id }", { status_msg => $status_msg } ) );
 }
 
-# add a periods field to the topic snapshot
-sub add_periods_to_snapshot
-{
-    my ( $db, $snapshot ) = @_;
-
-    my $periods = $db->query( <<END, $snapshot->{ snapshots_id } )->hashes;
-select distinct period from timespans
-    where snapshots_id = ?
-    order by period;
-END
-
-    my $custom_dates = $db->query( <<END, $snapshot->{ topics_id } )->hash;
-select * from topic_dates where topics_id = ?
-END
-
-    my $expected_periods = ( $custom_dates ) ? 4 : 3;
-
-    if ( @{ $periods } == $expected_periods )
-    {
-        $snapshot->{ periods } = 'all';
-    }
-    else
-    {
-        $snapshot->{ periods } = join( ", ", map { $_->{ period } } @{ $periods } );
-    }
-}
-
 # get all timespans associated with a snapshot, sorted consistenty and
 # with a tag_name field added
 sub _get_timespan_from_cd
@@ -257,38 +230,6 @@ SQL
 
     return $timespans;
 
-}
-
-# get the latest full snapshot (snapshot with all periods) and add timespans to it
-# under the timespans field
-sub get_latest_full_snapshot_with_timespans
-{
-    my ( $db, $snapshots, $topic, $qs_id ) = @_;
-
-    if ( !@{ $snapshots } )
-    {
-        $snapshots = _get_snapshots_with_periods( $db, $topic, $qs_id );
-    }
-
-    my $latest_full_snapshot;
-    for my $cd ( @{ $snapshots } )
-    {
-        if ( $cd->{ periods } eq 'all' )
-        {
-            $latest_full_snapshot = $cd;
-            last;
-        }
-    }
-
-    return unless ( $latest_full_snapshot );
-
-    my $timespans = _get_timespan_from_cd( $db, $latest_full_snapshot, $qs_id );
-
-    map { _add_timespan_model_reliability( $db, $_ ) } @{ $timespans };
-
-    $latest_full_snapshot->{ timespans } = $timespans;
-
-    return $latest_full_snapshot;
 }
 
 # if there are pending topic_links, return a hash describing the status
@@ -324,7 +265,7 @@ SQL
 
 # get the topic snapshots associated with the given topic and optional focus.  attach
 # periods label to each snapshot.
-sub _get_snapshots_with_periods ($$$)
+sub _get_snapshots($$$)
 {
     my ( $db, $topic, $foci_id ) = @_;
 
@@ -346,8 +287,6 @@ from snapshots snap
 where snap.topics_id = ? $focus_clause
 order by snapshots_id desc
 SQL
-
-    map { add_periods_to_snapshot( $db, $_ ) } @{ $snapshots };
 
     return $snapshots;
 }
@@ -403,19 +342,14 @@ sub view : Local
 
     my $topic = _get_topic_with_focus( $db, $topics_id, $foci_id );
 
-    my $snapshots = _get_snapshots_with_periods( $db, $topic, $foci_id );
-    my $latest_full_snapshot = get_latest_full_snapshot_with_timespans( $db, $snapshots, $topic, $foci_id );
-
-    my $latest_activities = _get_latest_activities( $db, $topics_id );
+    my $snapshots = _get_snapshots( $db, $topic, $foci_id );
 
     my $focus_definitions = _get_focus_definitions( $db, $topic );
 
-    $c->stash->{ topic }                = $topic;
-    $c->stash->{ snapshots }            = $snapshots;
-    $c->stash->{ latest_full_snapshot } = $latest_full_snapshot;
-    $c->stash->{ latest_activities }    = $latest_activities;
-    $c->stash->{ focus_definitions }    = $focus_definitions;
-    $c->stash->{ template }             = 'tm/view.tt2';
+    $c->stash->{ topic }             = $topic;
+    $c->stash->{ snapshots }         = $snapshots;
+    $c->stash->{ focus_definitions } = $focus_definitions;
+    $c->stash->{ template }          = 'tm/view.tt2';
 }
 
 # add num_stories, num_story_links, num_media, and num_media_links
@@ -433,7 +367,7 @@ sub _add_media_and_story_counts_to_timespan
     ( $timespan->{ num_medium_links } ) = $db->query( "select count(*) from snapshot_medium_links" )->flat;
 }
 
-# get all foci in the 'Queries' focus set of the given snapshot
+# get all foci in the given snapshot
 sub _get_snapshot_foci
 {
     my ( $db, $snapshot ) = @_;
@@ -443,8 +377,7 @@ select f.*
     from foci f
         join focal_sets fs using ( focal_sets_id )
     where
-        fs.snapshots_id = \$1 and
-        fs.name = 'Queries'
+        fs.snapshots_id = \$1
     order by f.name
 SQL
 
@@ -739,22 +672,25 @@ sub _get_top_stories_for_timespan
 
     my $top_stories = $db->query(
         <<END,
-        SELECT s.*,
-               slc.media_inlink_count,
-               slc.inlink_count,
-               slc.outlink_count,
-               slc.simple_tweet_count,
-               slc.normalized_tweet_count,
-               slc.bitly_click_count,
-               m.name as medium_name,
-               m.media_type
-        FROM snapshot_stories AS s,
-             snapshot_story_link_counts AS slc,
-             snapshot_media_with_types AS m
-        WHERE s.stories_id = slc.stories_id
-          AND s.media_id = m.media_id
-        ORDER BY slc.media_inlink_count DESC
-        LIMIT ?
+with top_story_link_counts as (
+    select * from snapshot_story_link_counts order by media_inlink_count desc limit \$1
+)
+
+SELECT s.*,
+       slc.media_inlink_count,
+       slc.inlink_count,
+       slc.outlink_count,
+       slc.simple_tweet_count,
+       slc.normalized_tweet_count,
+       slc.bitly_click_count,
+       m.name as medium_name,
+       m.media_type
+FROM snapshot_stories AS s,
+     top_story_link_counts AS slc,
+     snapshot_media_with_types AS m
+WHERE s.stories_id = slc.stories_id
+  AND s.media_id = m.media_id
+ORDER BY slc.media_inlink_count DESC
 END
         20
     )->hashes;
@@ -917,18 +853,16 @@ sub view_timespan : Local
 
     my $top_media = _get_top_media_for_timespan( $db, $timespan );
     my $top_stories = _get_top_stories_for_timespan( $db, $timespan );
-    my $media_type_stats = _get_media_type_stats_for_timespan( $db );
 
     $db->commit;
 
-    $c->stash->{ timespan }         = $timespan;
-    $c->stash->{ snapshot }         = $cd;
-    $c->stash->{ topic }            = $topic;
-    $c->stash->{ top_media }        = $top_media;
-    $c->stash->{ top_stories }      = $top_stories;
-    $c->stash->{ media_type_stats } = $media_type_stats;
-    $c->stash->{ live }             = $live;
-    $c->stash->{ template }         = 'tm/view_timespan.tt2';
+    $c->stash->{ timespan }    = $timespan;
+    $c->stash->{ snapshot }    = $cd;
+    $c->stash->{ topic }       = $topic;
+    $c->stash->{ top_media }   = $top_media;
+    $c->stash->{ top_stories } = $top_stories;
+    $c->stash->{ live }        = $live;
+    $c->stash->{ template }    = 'tm/view_timespan.tt2';
 }
 
 # download a csv field from timespans_id or generate the
@@ -1164,23 +1098,23 @@ sub _get_medium_and_stories_from_snapshot_tables
 
     $medium->{ stories } = $db->query(
         <<END,
-        SELECT s.*,
-               m.name AS medium_name,
-               m.media_type,
-               slc.inlink_count,
-               slc.media_inlink_count,
-               slc.outlink_count,
-               slc.simple_tweet_count,
-               slc.normalized_tweet_count,
-               slc.bitly_click_count
-        FROM snapshot_stories AS s,
-             snapshot_media_with_types AS m,
-             snapshot_story_link_counts AS slc
-        WHERE s.stories_id = slc.stories_id
-          AND s.media_id = m.media_id
-          AND s.media_id = ?
-        ORDER BY slc.media_inlink_count DESC
-        limit 50
+SELECT s.*,
+       m.name AS medium_name,
+       m.media_type,
+       slc.inlink_count,
+       slc.media_inlink_count,
+       slc.outlink_count,
+       slc.simple_tweet_count,
+       slc.normalized_tweet_count,
+       slc.bitly_click_count
+FROM snapshot_stories AS s,
+     snapshot_media_with_types AS m,
+     snapshot_story_link_counts AS slc
+WHERE s.stories_id = slc.stories_id
+  AND s.media_id = m.media_id
+  AND s.media_id = ?
+ORDER BY slc.media_inlink_count DESC
+limit 50
 END
         $media_id
     )->hashes;
@@ -1194,25 +1128,31 @@ SQL
 
     $medium->{ inlink_stories } = $db->query(
         <<END
-        SELECT DISTINCT s.*,
-                        sm.name AS medium_name,
-                        sm.media_type,
-                        sslc.media_inlink_count,
-                        sslc.inlink_count,
-                        sslc.outlink_count,
-                        sslc.simple_tweet_count,
-                        sslc.normalized_tweet_count,
-                        sslc.bitly_click_count
-        FROM snapshot_stories AS s,
-             snapshot_story_link_counts AS sslc,
-             snapshot_media_with_types AS sm,
-             snapshot_story_links AS sl
-        WHERE s.stories_id = sslc.stories_id
-          AND s.media_id = sm.media_id
-          AND s.stories_id = sl.source_stories_id
-          AND sl.ref_stories_id in ( select stories_id from tm_medium_stories_ids )
-        ORDER BY sslc.media_inlink_count DESC
-        limit 50
+with inlinks as (
+    select source_stories_id, ref_stories_id
+        from snapshot_story_links
+        where ref_stories_id in ( select stories_id from tm_medium_stories_ids )
+),
+
+inlink_stories as (
+    select * from snapshot_stories s join inlinks l on ( s.stories_id = l.source_stories_id )
+)
+SELECT DISTINCT s.*,
+                sm.name AS medium_name,
+                sm.media_type,
+                sslc.media_inlink_count,
+                sslc.inlink_count,
+                sslc.outlink_count,
+                sslc.simple_tweet_count,
+                sslc.normalized_tweet_count,
+                sslc.bitly_click_count
+FROM inlink_stories AS s,
+     snapshot_story_link_counts AS sslc,
+     snapshot_media_with_types AS sm
+WHERE s.stories_id = sslc.stories_id
+  AND s.media_id = sm.media_id
+ORDER BY sslc.media_inlink_count DESC
+limit 50
 END
     )->hashes;
 
@@ -1221,25 +1161,32 @@ END
 
     $medium->{ outlink_stories } = $db->query(
         <<END
-        SELECT DISTINCT r.*,
-                        rm.name AS medium_name,
-                        rm.media_type,
-                        rslc.media_inlink_count,
-                        rslc.inlink_count,
-                        rslc.outlink_count,
-                        rslc.simple_tweet_count,
-                        rslc.normalized_tweet_count,
-                        rslc.bitly_click_count
-        FROM snapshot_stories AS r,
-             snapshot_story_link_counts AS rslc,
-             snapshot_media_with_types AS rm,
-             snapshot_story_links AS sl
-        WHERE r.stories_id = rslc.stories_id
-          AND r.media_id = rm.media_id
-          AND r.stories_id = sl.ref_stories_id
-          AND sl.source_stories_id in ( select stories_id from tm_medium_stories_ids )
-        ORDER BY rslc.media_inlink_count DESC
-        limit 50
+with outlinks as (
+    select source_stories_id, ref_stories_id
+        from snapshot_story_links
+        where source_stories_id in ( select stories_id from tm_medium_stories_ids )
+),
+
+outlink_stories as (
+    select * from snapshot_stories s join outlinks l on ( s.stories_id = l.ref_stories_id )
+)
+
+SELECT DISTINCT r.*,
+                rm.name AS medium_name,
+                rm.media_type,
+                rslc.media_inlink_count,
+                rslc.inlink_count,
+                rslc.outlink_count,
+                rslc.simple_tweet_count,
+                rslc.normalized_tweet_count,
+                rslc.bitly_click_count
+FROM outlink_stories AS r,
+     snapshot_story_link_counts AS rslc,
+     snapshot_media_with_types AS rm
+WHERE r.stories_id = rslc.stories_id
+  AND r.media_id = rm.media_id
+ORDER BY rslc.media_inlink_count DESC
+limit 50
 END
     )->hashes;
 
@@ -1619,7 +1566,9 @@ sub _get_solr_params_for_timespan_query
 
     my $params = { fq => "timespans_id:$timespan->{ timespans_id }" };
 
-    $params->{ q } = ( defined( $q ) && $q ne '' ) ? $q : '*:*';
+    $params->{ q }    = ( defined( $q ) && $q ne '' ) ? $q : '*:*';
+    $params->{ rows } = 100_000;
+    $params->{ sort } = 'random_1 asc';
 
     return $params;
 }
@@ -1750,7 +1699,8 @@ sub search_stories : Local
     my $search_query = _get_stories_id_search_query( $db, $query );
 
     my $order = $c->req->params->{ order } || '';
-    my $order_clause = $order eq 'bitly_click_count' ? 'slc.bitly_click_count desc' : 'slc.media_inlink_count desc';
+    my $order_clause =
+      $order eq 'bitly_click_count' ? 'slc.bitly_click_count desc nulls last' : 'slc.media_inlink_count desc';
 
     my $stories = $db->query(
         <<"END"
@@ -3062,6 +3012,7 @@ sub story_stats : Local
     my $q     = $c->req->params->{ q };
 
     my $solr_p = _get_solr_params_for_timespan_query( $timespan, $q );
+
     my $stories_ids = MediaWords::Solr::search_for_stories_ids( $db, $solr_p );
 
     my $num_stories = scalar( @{ $stories_ids } );
@@ -3172,7 +3123,7 @@ sub delete_focus : Local
     $c->res->redirect( $c->uri_for( "/admin/tm/edit_foci/$fsd->{ topics_id }", { status_msg => $status_msg } ) );
 }
 
-# get the focus definitions within the 'Queries' focus set definitions for the given topic
+# get the focus definitions for the given topic
 sub _get_focus_definitions ($$)
 {
     my ( $db, $topic ) = @_;
@@ -3181,8 +3132,7 @@ sub _get_focus_definitions ($$)
 select fd.*
     from focus_definitions fd
         join focal_set_definitions fsd using ( focal_set_definitions_id )
-    where fsd.topics_id = ? and
-        fsd.name = 'Queries'
+    where fsd.topics_id = ?
     order by name
 SQL
 

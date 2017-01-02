@@ -20,48 +20,50 @@
    - [api/v2/downloads/list/](#apiv2downloadslist)   
    - [Query Parameters](#query-parameters)   
 - [Tags](#tags)   
-   - [api/v2/stories/put_tags (PUT)](#apiv2storiesput_tags-put-pending)   
-      - [Input Description](#input-description)   
-      - [Example](#example)   
-   - [api/v2/sentences/put_tags (PUT)](#apiv2sentencesput_tags-put-pending)   
-      - [Input Description](#input-description)   
-      - [Example](#example)   
-   - [api/v2/media/put_tags (PUT)](#apiv2mediaput_tags-put-pending)   
-      - [Input Description](#input-description)   
-      - [Example](#example)   
-   - [api/v2/tags/create (POST)](#apiv2tagscreate-post-pending)   
+   - [api/v2/stories/put_tags (PUT)](#apiv2storiesput_tags-put)   
       - [Query Parameters](#query-parameters)   
+      - [Input Description](#input-description)   
+      - [Example](#example)   
+   - [api/v2/sentences/put_tags (PUT)](#apiv2sentencesput_tags-put)   
+      - [Input Description](#input-description)   
+      - [Example](#example)   
+   - [api/v2/media/put_tags (PUT)](#apiv2mediaput_tags-put)   
+      - [Input Description](#input-description)   
+      - [Example](#example)   
+   - [api/v2/tags/create (POST)](#apiv2tagscreate-post)   
+      - [Input Description](#input-description)   
+      - [Example](#example)   
    - [api/v2/tags/update (PUT)](#apiv2tagsupdate-put)   
-      - [Query Parameters](#query-parameters)   
+      - [Input Description](#input-description)   
+      - [Example](#example)   
+   - [api/v2/tag_sets/create (POST)](#apiv2tag_setscreate-post)   
+      - [Input Description](#input-description)   
       - [Example](#example)   
    - [api/v2/tag_sets/update (PUT)](#apiv2tag_setsupdate-put)   
-      - [Query Parameters](#query-parameters)   
+      - [Input Description](#input-description)   
       - [Example](#example)   
-   - [Tag Set Permissions](#tag-set-permissions)   
-      - [Granting Permissions](#granting-permissions)   
-      - [Exceptions - user name tag set](#exceptions-user-name-tag-set)   
 - [Feeds](#feeds)   
-   - [api/v2/feeds/create (POST)](#apiv2feedscreate-post-pending)   
+   - [api/v2/feeds/create (POST)](#apiv2feedscreate-post)   
       - [Input Description](#input-description)   
       - [Example](#example)   
-   - [api/v2/feeds/update (PUT)](#apiv2feedsupdate-put-pending)   
+   - [api/v2/feeds/update (PUT)](#apiv2feedsupdate-put)   
       - [Input Description](#input-description)   
       - [Example](#example)   
-   - [api/v2/feeds/scrape (POST)](#apiv2feedsscrape-post-pending)   
+   - [api/v2/feeds/scrape (POST)](#apiv2feedsscrape-post)   
       - [Input Description](#input-description)   
       - [Example](#example)   
 - [Media](#media)   
-   - [api/v2/media/create (POST)](#apiv2mediacreate-post-pending)   
+   - [api/v2/media/create (POST)](#apiv2mediacreate-post)   
       - [Input Description](#input-description)   
       - [Output Description](#output-description)   
       - [Example](#example)   
-   - [api/v2/media/update (PUT)](#apiv2mediaupdate-put-pending)   
+   - [api/v2/media/update (PUT)](#apiv2mediaupdate-put)   
       - [Input Description](#input-description)   
       - [Example](#example)   
-   - [api/v2/media/suggestions/list PENDING](#apiv2mediasuggestionslist-pending)   
+   - [api/v2/media/list_suggestions](#apiv2medialist_suggestions)   
       - [Query Parameters](#query-parameters)   
       - [Example](#example)   
-   - [api/v2/media/suggestions/mark PENDING](#apiv2mediasuggestionsmark-pending)   
+   - [api/v2/media/mark_suggestion](#apiv2mediamark_suggestion)   
       - [Input Description](#input-description)   
       - [Example](#example)   
 
@@ -923,11 +925,11 @@ Output:
 { "success": 1 }
 ```
 
-## api/v2/media/suggestions/list PENDING
+## api/v2/media/list_suggestions
 
 | URL                             | Description                            |
 | ------------------------------- | -------------------------------------- |
-| `api/v2/media/suggestions/list` | list suggestions for new media sources |
+| `api/v2/media/list_suggestions` | list suggestions for new media sources |
 
 Suggestions will be listed in the order that they were submitted.
 
@@ -936,10 +938,11 @@ Suggestions will be listed in the order that they were submitted.
 | Parameter | Default | Notes                                    |
 | --------- | ------- | ---------------------------------------- |
 | all       | false   | list all suggestions, including those that have been approved or rejected |
+| tags_id   | null    | return only suggestions associated with the given tags_id |
 
 ### Example
 
-URL: https://api.mediacloud.org/api/v2/media/suggestions/list?tags_id=123
+URL: https://api.mediacloud.org/api/v2/media/list_suggestions
 
 Output:
 
@@ -948,9 +951,9 @@ Output:
   {
     "user": "hroberts@cyber.law.harvard.edu",
     "url": "http://mediacloud.org",
-    "feed": "http://mediacloud.org/feed/",
+    "feed_url": "http://mediacloud.org/feed/",
     "reason": "Media Cloud is a great project",
-    "collections": "InfoTech",
+    "tags_ids": [ 123, 456 ],
     "date_submitted": "2016-11-20 07:42:00",
     "date_marked": "",
     "media_suggestions_id": 1,
@@ -961,14 +964,14 @@ Output:
 ]
 ```
 
-## api/v2/media/suggestions/mark PENDING
+## api/v2/media/mark_suggestion
 
 
 | URL                             | Description                       |
 | ------------------------------- | --------------------------------- |
-| `api/v2/media/suggestions/mark` | approve a media source suggestion |
+| `api/v2/media/mark_suggestion` | approve a media source suggestion |
 
-Mark a list of media suggestion as having been approved or rejected.  Marking a suggestion as approve or rejected will change the status of the suggestions to 'approved' or 'rejected' and make it not appear in the results listed by `api/v2/media/suggestions/list` unless the `all` parameter is submitted.
+Mark a media suggestion as having been approved or rejected.  Marking a suggestion as approve or rejected will change the status of the suggestions to 'approved' or 'rejected' and make it not appear in the results listed by `api/v2/media/suggestions/list` unless the `all` parameter is submitted.
 
 Note that marking a suggestion as approved does not automatically create the media source as well.  If you want to create the media source in addition to marking the suggestion, you have to call `api/v2/media/create`.
 
@@ -977,13 +980,13 @@ Note that marking a suggestion as approved does not automatically create the med
 | Field                | Description                              |
 | -------------------- | ---------------------------------------- |
 | media_suggestions_id | suggestion id (required)                 |
-| status               | 'approved' or 'rejected' (required)      |
+| status               | 'pending', 'approved' or 'rejected' (required)      |
 | mark_reason          | reason for approving or rejecting        |
-| media_id             | associated the given media source with an 'approved' suggestion |
+| media_id             | associated the given media source with an 'approved' suggestion (required for 'approved') |
 
 ### Example
 
-URL: https://api.mediacloud.org/api/v2/media/suggestions/mark
+URL: https://api.mediacloud.org/api/v2/media/mark_suggestion
 
 Input:
 
