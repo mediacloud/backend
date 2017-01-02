@@ -1,6 +1,9 @@
 # Read / write to Amazon S3
 boto3
 
+# Unit test coverage
+coverage
+
 # Stemming Hausa words
 hausastemmer
 

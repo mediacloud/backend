@@ -3,3 +3,6 @@
 # Except this file
 !.gitignore
 
+# ...and dist/
+!dist/
+

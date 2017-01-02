@@ -1,35 +1,48 @@
 import atexit
+import os
+import signal
+import subprocess
+import sys
+import time
 
-import mc_solr.solr
-from mc_solr.constants import *
-from mc_solr.utils import *
+from mediawords.solr.run.constants import *
+from mediawords.solr.run.solr import update_zookeeper_solr_configuration
+from mediawords.util.compress import extract_tarball_to_directory
+from mediawords.util.log import create_logger
+from mediawords.util.network import wait_for_tcp_port_to_open, tcp_port_is_open
+from mediawords.util.paths import mkdir_p, resolve_absolute_path_under_mc_root, lock_file, unlock_file
+from mediawords.util.process import gracefully_kill_child_process
+from mediawords.util.web import download_file_to_temp_path
 
-logger = create_logger(__name__)
+l = create_logger(__name__)
 
 __zookeeper_pid = None
 
 
-def __zookeeper_path(dist_directory=MC_DIST_DIR, zookeeper_version=MC_ZOOKEEPER_VERSION):
+def __zookeeper_path(dist_directory: str = MC_DIST_DIR,
+                     zookeeper_version: str = MC_ZOOKEEPER_VERSION) -> str:
     """Return path to where ZooKeeper distribution should be located."""
-    dist_path = resolve_absolute_path(name=dist_directory)
+    dist_path = resolve_absolute_path_under_mc_root(path=dist_directory)
     zookeeper_directory = "zookeeper-%s" % zookeeper_version
     solr_path = os.path.join(dist_path, zookeeper_directory)
     return solr_path
 
 
-def __zookeeper_installing_file_path(dist_directory=MC_DIST_DIR, zookeeper_version=MC_ZOOKEEPER_VERSION):
+def __zookeeper_installing_file_path(dist_directory: str = MC_DIST_DIR,
+                                     zookeeper_version: str = MC_ZOOKEEPER_VERSION) -> str:
     """Return path to file which denotes that ZooKeeper is being installed (and thus serves as a lock file)."""
     zookeeper_path = __zookeeper_path(dist_directory=dist_directory, zookeeper_version=zookeeper_version)
     return os.path.join(zookeeper_path, MC_PACKAGE_INSTALLING_FILE)
 
 
-def __zookeeper_installed_file_path(dist_directory=MC_DIST_DIR, zookeeper_version=MC_ZOOKEEPER_VERSION):
+def __zookeeper_installed_file_path(dist_directory: str = MC_DIST_DIR,
+                                    zookeeper_version: str = MC_ZOOKEEPER_VERSION) -> str:
     """Return path to file which denotes that ZooKeeper has been installed."""
     zookeeper_path = __zookeeper_path(dist_directory=dist_directory, zookeeper_version=zookeeper_version)
     return os.path.join(zookeeper_path, MC_PACKAGE_INSTALLED_FILE)
 
 
-def __zookeeper_is_installed(dist_directory=MC_DIST_DIR, zookeeper_version=MC_ZOOKEEPER_VERSION):
+def __zookeeper_is_installed(dist_directory: str = MC_DIST_DIR, zookeeper_version: str = MC_ZOOKEEPER_VERSION) -> bool:
     """Return True if ZooKeeper is installed in distribution path."""
     zookeeper_path = __zookeeper_path(dist_directory=dist_directory, zookeeper_version=zookeeper_version)
     installed_file_path = __zookeeper_installed_file_path(dist_directory=dist_directory,
@@ -39,7 +52,7 @@ def __zookeeper_is_installed(dist_directory=MC_DIST_DIR, zookeeper_version=MC_ZO
         if os.path.isfile(os.path.join(zookeeper_path, "README.txt")):
             return True
         else:
-            logger.warn(
+            l.warn(
                 "ZooKeeper distribution was not found at path '%s' even though it was supposed to be there." %
                 zookeeper_path)
             os.unlink(installed_file_path)
@@ -47,7 +60,7 @@ def __zookeeper_is_installed(dist_directory=MC_DIST_DIR, zookeeper_version=MC_ZO
     return False
 
 
-def __zookeeper_dist_url(zookeeper_version=MC_ZOOKEEPER_VERSION):
+def __zookeeper_dist_url(zookeeper_version: str = MC_ZOOKEEPER_VERSION) -> str:
     """Return URL to download ZooKeeper from."""
     zookeeper_dist_url = ("https://archive.apache.org/dist/zookeeper/zookeeper-%(zookeeper_version)s/"
                           "zookeeper-%(zookeeper_version)s.tar.gz") % {
@@ -56,7 +69,7 @@ def __zookeeper_dist_url(zookeeper_version=MC_ZOOKEEPER_VERSION):
     return zookeeper_dist_url
 
 
-def __install_zookeeper(dist_directory=MC_DIST_DIR, zookeeper_version=MC_ZOOKEEPER_VERSION):
+def __install_zookeeper(dist_directory: str = MC_DIST_DIR, zookeeper_version: str = MC_ZOOKEEPER_VERSION) -> None:
     """Install ZooKeeper to distribution directory; lock directory before installing and unlock afterwards."""
     if __zookeeper_is_installed(dist_directory=dist_directory, zookeeper_version=zookeeper_version):
         raise Exception("ZooKeeper %s is already installed in distribution directory '%s'." % (
@@ -65,36 +78,36 @@ def __install_zookeeper(dist_directory=MC_DIST_DIR, zookeeper_version=MC_ZOOKEEP
 
     zookeeper_path = __zookeeper_path(dist_directory=dist_directory, zookeeper_version=zookeeper_version)
 
-    logger.info("Creating ZooKeeper directory...")
+    l.info("Creating ZooKeeper directory...")
     mkdir_p(zookeeper_path)
 
     installing_file_path = __zookeeper_installing_file_path(dist_directory=dist_directory,
                                                             zookeeper_version=zookeeper_version)
 
-    logger.info("Locking ZooKeeper directory for installation...")
+    l.info("Locking ZooKeeper directory for installation...")
     lock_file(installing_file_path, timeout=MC_INSTALL_TIMEOUT)
 
     # Waited for concurrent installation to finish?
     if __zookeeper_is_installed(dist_directory=dist_directory, zookeeper_version=zookeeper_version):
-        logger.info("While waiting for ZooKeeper directory to unlock, ZooKeeper got installed to said directory.")
+        l.info("While waiting for ZooKeeper directory to unlock, ZooKeeper got installed to said directory.")
         return
 
     zookeeper_dist_url = __zookeeper_dist_url(zookeeper_version=zookeeper_version)
 
-    logger.info("Downloading ZooKeeper %s from %s..." % (zookeeper_version, zookeeper_dist_url))
+    l.info("Downloading ZooKeeper %s from %s..." % (zookeeper_version, zookeeper_dist_url))
     zookeeper_tarball_dest_path = download_file_to_temp_path(source_url=zookeeper_dist_url)
 
-    logger.info("Extracting %s to %s..." % (zookeeper_tarball_dest_path, zookeeper_path))
+    l.info("Extracting %s to %s..." % (zookeeper_tarball_dest_path, zookeeper_path))
     extract_tarball_to_directory(archive_file=zookeeper_tarball_dest_path,
                                  dest_directory=zookeeper_path,
                                  strip_root=True)
 
-    logger.info("Creating 'installed' file...")
+    l.info("Creating 'installed' file...")
     installed_file_path = __zookeeper_installed_file_path(dist_directory=dist_directory,
                                                           zookeeper_version=zookeeper_version)
     lock_file(installed_file_path)
 
-    logger.info("Removing lock file...")
+    l.info("Removing lock file...")
     unlock_file(installing_file_path)
 
     if not __zookeeper_is_installed(dist_directory=dist_directory, zookeeper_version=zookeeper_version):
@@ -102,32 +115,32 @@ def __install_zookeeper(dist_directory=MC_DIST_DIR, zookeeper_version=MC_ZOOKEEP
 
 
 # noinspection PyUnusedLocal
-def __kill_zookeeper_process(signum=None, frame=None):
+def __kill_zookeeper_process(signum: int = None, frame: int = None) -> None:
     """Pass SIGINT/SIGTERM to child ZooKeeper when exiting."""
     global __zookeeper_pid
     if __zookeeper_pid is None:
-        logger.warn("ZooKeeper PID is unset, probably it wasn't started.")
+        l.warn("ZooKeeper PID is unset, probably it wasn't started.")
     else:
         gracefully_kill_child_process(child_pid=__zookeeper_pid, sigkill_timeout=MC_ZOOKEEPER_SIGKILL_TIMEOUT)
     sys.exit(signum or 0)
 
 
-def run_zookeeper(dist_directory=MC_DIST_DIR,
-                  listen=MC_ZOOKEEPER_LISTEN,
-                  port=MC_ZOOKEEPER_PORT,
-                  data_dir=MC_SOLR_BASE_DATA_DIR,
-                  zookeeper_version=MC_ZOOKEEPER_VERSION,
-                  solr_version=MC_SOLR_VERSION):
+def run_zookeeper(dist_directory: str = MC_DIST_DIR,
+                  listen: str = MC_ZOOKEEPER_LISTEN,
+                  port: int = MC_ZOOKEEPER_PORT,
+                  data_dir: str = MC_SOLR_BASE_DATA_DIR,
+                  zookeeper_version: str = MC_ZOOKEEPER_VERSION,
+                  solr_version: str = MC_SOLR_VERSION) -> None:
     """Run ZooKeeper, install if needed too."""
     if not __zookeeper_is_installed():
-        logger.info("ZooKeeper is not installed, installing...")
+        l.info("ZooKeeper is not installed, installing...")
         __install_zookeeper()
 
-    data_dir = resolve_absolute_path(name=data_dir, must_exist=True)
+    data_dir = resolve_absolute_path_under_mc_root(path=data_dir, must_exist=True)
 
     zookeeper_data_dir = os.path.join(data_dir, "mediacloud-cluster-zookeeper")
     if not os.path.isdir(zookeeper_data_dir):
-        logger.info("Creating data directory at %s..." % zookeeper_data_dir)
+        l.info("Creating data directory at %s..." % zookeeper_data_dir)
         mkdir_p(zookeeper_data_dir)
 
     if tcp_port_is_open(port=port):
@@ -144,7 +157,7 @@ def run_zookeeper(dist_directory=MC_DIST_DIR,
         raise Exception("log4j.properties at '%s' was not found.")
 
     zoo_cnf_path = os.path.join(zookeeper_data_dir, "zoo.cfg")
-    logger.info("Creating zoo.cfg in '%s'..." % zoo_cnf_path)
+    l.info("Creating zoo.cfg in '%s'..." % zoo_cnf_path)
 
     with open(zoo_cnf_path, 'w') as zoo_cnf:
         zoo_cnf.write("""
@@ -178,9 +191,9 @@ syncLimit=5
         "start-foreground"
     ]
 
-    logger.info("Starting ZooKeeper on %s:%d..." % (listen, port))
-    logger.debug("Running command: %s" % str(args))
-    logger.debug("Environment variables: %s" % str(zookeeper_env))
+    l.info("Starting ZooKeeper on %s:%d..." % (listen, port))
+    l.debug("Running command: %s" % str(args))
+    l.debug("Environment variables: %s" % str(zookeeper_env))
 
     process = subprocess.Popen(args, env=zookeeper_env)
     global __zookeeper_pid
@@ -193,19 +206,19 @@ syncLimit=5
     signal.signal(signal.SIGTERM, __kill_zookeeper_process)  # SIGTERM is handled differently for whatever reason
     atexit.register(__kill_zookeeper_process)
 
-    logger.info("ZooKeeper PID: %d" % __zookeeper_pid)
+    l.info("ZooKeeper PID: %d" % __zookeeper_pid)
 
-    logger.info("Waiting for ZooKeeper to start at port %d..." % port)
+    l.info("Waiting for ZooKeeper to start at port %d..." % port)
     zookeeper_started = wait_for_tcp_port_to_open(port=port, retries=MC_ZOOKEEPER_CONNECT_RETRIES)
     if not zookeeper_started:
         raise Exception("Unable to connect to ZooKeeper at port %d" % port)
 
-    logger.info("Uploading initial Solr collection configurations to ZooKeeper...")
-    mc_solr.solr.update_zookeeper_solr_configuration(zookeeper_host="localhost",
-                                                     zookeeper_port=port,
-                                                     dist_directory=dist_directory,
-                                                     solr_version=solr_version)
+    l.info("Uploading initial Solr collection configurations to ZooKeeper...")
+    update_zookeeper_solr_configuration(zookeeper_host="localhost",
+                                        zookeeper_port=port,
+                                        dist_directory=dist_directory,
+                                        solr_version=solr_version)
 
-    logger.info("ZooKeeper is ready on port %d!" % port)
+    l.info("ZooKeeper is ready on port %d!" % port)
     while True:
         time.sleep(1)
