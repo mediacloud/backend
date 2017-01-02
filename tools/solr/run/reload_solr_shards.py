@@ -1,8 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import argparse
 
-from mc_solr.solr import reload_all_solr_shards
+from mediawords.solr.run.solr import reload_all_solr_shards
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Reload Solr shards with updated configuration on ZooKeeper.",

@@ -1,9 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import argparse
 
-from mc_solr.constants import *
-from mc_solr.solr import update_zookeeper_solr_configuration
+from mediawords.solr.run.constants import *
+from mediawords.solr.run.solr import update_zookeeper_solr_configuration
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Update Solr's configuration on ZooKeeper.",

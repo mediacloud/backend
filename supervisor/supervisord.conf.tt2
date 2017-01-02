@@ -242,7 +242,7 @@ programs = rabbitmq
 [%- solr_standalone_jvm_heap_size = supervisor_solr.standalone.jvm_heap_size || "256m" %]
 [% INCLUDE program_config
     program='solr_standalone'
-    command="python3 ./solr/run_solr_standalone.py --jvm_heap_size $solr_standalone_jvm_heap_size"
+    command="./tools/supervisor/run_in_virtualenv.sh ./tools/solr/run/run_solr_standalone.py --jvm_heap_size $solr_standalone_jvm_heap_size"
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='true'
@@ -259,7 +259,7 @@ programs = rabbitmq
 [%- solr_cluster_zookeeper_port = supervisor_solr.cluster.zookeeper.port || 9983 %]
 [% INCLUDE program_config
     program='solr_cluster_zookeeper'
-    command="python3 ./solr/run_zookeeper.py --listen $solr_cluster_zookeeper_listen --port $solr_cluster_zookeeper_port"
+    command="./tools/supervisor/run_in_virtualenv.sh ./tools/solr/run/run_zookeeper.py --listen $solr_cluster_zookeeper_listen --port $solr_cluster_zookeeper_port"
     default_stopasgroup='true'
     default_killasgroup='true'
     default_autorestart='false'
@@ -282,7 +282,7 @@ programs=solr_shard
 [%- solr_cluster_shards_zookeeper_port = supervisor_solr.cluster.shards.zookeeper_port %]
 [% INCLUDE program_config
     program='solr_shard'
-    command="python3 ./solr/run_solr_shard.py --shard_index %(process_num)d --shard_count $solr_cluster_shards_cluster_shard_count --zookeeper_host $solr_cluster_shards_zookeeper_host --zookeeper_port $solr_cluster_shards_zookeeper_port --jvm_heap_size $solr_cluster_shards_jvm_heap_size"
+    command="./tools/supervisor/run_in_virtualenv.sh ./tools/solr/run/run_solr_shard.py --shard_index %(process_num)d --shard_count $solr_cluster_shards_cluster_shard_count --zookeeper_host $solr_cluster_shards_zookeeper_host --zookeeper_port $solr_cluster_shards_zookeeper_port --jvm_heap_size $solr_cluster_shards_jvm_heap_size"
     default_stopasgroup='true'
     default_killasgroup='true'
     default_autorestart='false'
