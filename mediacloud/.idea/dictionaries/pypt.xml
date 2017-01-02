@@ -2,6 +2,8 @@
   <dictionary name="pypt">
     <words>
       <w>abcdef</w>
+      <w>bitly</w>
+      <w>boto</w>
       <w>dateutil</w>
       <w>hausastemmer</w>
       <w>hostnames</w>

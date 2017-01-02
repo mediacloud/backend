@@ -503,7 +503,26 @@ sub list_suggestions_GET
 
     my $db = $c->dbis;
 
-    my $media_suggestions = $db->query( "select * from media_suggestions order by date_submitted" )->hashes;
+    my $tags_id = $c->req->params->{ tags_id } || 0;
+    my $all     = $c->req->params->{ all }     || 0;
+
+    die( "tags_id must be a positve integer" ) if ( $tags_id =~ /[^0-9]/ );
+
+    my $clauses = [ 'true' ];
+
+    if ( $tags_id )
+    {
+        push( @{ $clauses }, <<SQL );
+media_suggestions_id in ( select media_suggestions_id from media_suggestions_tags_map where tags_id = $tags_id )
+SQL
+    }
+
+    push( @{ $clauses }, "status = 'pending'" ) unless ( $all );
+
+    my $clause_list = join( ' and ', @{ $clauses } );
+
+    my $media_suggestions =
+      $db->query( "select * from media_suggestions where $clause_list order by date_submitted" )->hashes;
 
     $db->attach_child_query( $media_suggestions, <<SQL, 'tags_ids', 'media_suggestions_id' );
 select tags_id, media_suggestions_id from media_suggestions_tags_map
