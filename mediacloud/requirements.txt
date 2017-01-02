@@ -1,3 +1,6 @@
+# Read / write to Amazon S3
+boto3
+
 # Stemming Hausa words
 hausastemmer
 
