@@ -923,11 +923,11 @@ Output:
 { "success": 1 }
 ```
 
-## api/v2/media/list_suggestions PENDING
+## api/v2/media/list_suggestions
 
 | URL                             | Description                            |
 | ------------------------------- | -------------------------------------- |
-| `api/v2/media/suggestions/list` | list suggestions for new media sources |
+| `api/v2/media/list_suggestions` | list suggestions for new media sources |
 
 Suggestions will be listed in the order that they were submitted.
 
@@ -936,10 +936,11 @@ Suggestions will be listed in the order that they were submitted.
 | Parameter | Default | Notes                                    |
 | --------- | ------- | ---------------------------------------- |
 | all       | false   | list all suggestions, including those that have been approved or rejected |
+| tags_id   | null    | return only suggestions associated with the given tags_id |
 
 ### Example
 
-URL: https://api.mediacloud.org/api/v2/media/suggestions/list?tags_id=123
+URL: https://api.mediacloud.org/api/v2/media/list_suggestions
 
 Output:
 
@@ -961,14 +962,14 @@ Output:
 ]
 ```
 
-## api/v2/media/suggestions/mark PENDING
+## api/v2/media/mark_suggestion
 
 
 | URL                             | Description                       |
 | ------------------------------- | --------------------------------- |
-| `api/v2/media/suggestions/mark` | approve a media source suggestion |
+| `api/v2/media/mark_suggestion` | approve a media source suggestion |
 
-Mark a list of media suggestion as having been approved or rejected.  Marking a suggestion as approve or rejected will change the status of the suggestions to 'approved' or 'rejected' and make it not appear in the results listed by `api/v2/media/suggestions/list` unless the `all` parameter is submitted.
+Mark a media suggestion as having been approved or rejected.  Marking a suggestion as approve or rejected will change the status of the suggestions to 'approved' or 'rejected' and make it not appear in the results listed by `api/v2/media/suggestions/list` unless the `all` parameter is submitted.
 
 Note that marking a suggestion as approved does not automatically create the media source as well.  If you want to create the media source in addition to marking the suggestion, you have to call `api/v2/media/create`.
 
@@ -983,7 +984,7 @@ Note that marking a suggestion as approved does not automatically create the med
 
 ### Example
 
-URL: https://api.mediacloud.org/api/v2/media/suggestions/mark
+URL: https://api.mediacloud.org/api/v2/media/mark_suggestion
 
 Input:
 

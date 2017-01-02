@@ -982,6 +982,37 @@ SQL
     }
 }
 
+# test that the media/list_suggestions call with the given $call_params returned the given results
+sub test_suggestions_list_results($$$)
+{
+    my ( $label, $call_params, $expected_results ) = @_;
+
+    $label = "media/list_suggestions $label";
+
+    my $expected_num = scalar( @{ $expected_results } );
+
+    my $r = test_get( '/api/v2/media/list_suggestions', $call_params );
+    my $got_mss = $r->{ media_suggestions };
+    ok( $got_mss, "$label media_suggestions set" );
+
+    is( scalar( @{ $got_mss } ), $expected_num, "$label number returned" );
+
+    my $prev_id = 0;
+    for my $got_ms ( @{ $got_mss } )
+    {
+        my ( $expected_ms ) =
+          grep { $_->{ media_suggestions_id } == $got_ms->{ media_suggestions_id } } @{ $expected_results };
+        ok( $expected_ms, "$label returned ms $got_ms->{ media_suggestions_id } matches db row" );
+        for my $field ( qw/status url name feed_url reason media_id mark_reason/ )
+        {
+            is( $got_ms->{ $field }, $expected_ms->{ $field }, "$label field $field" );
+        }
+        ok( $got_ms->{ media_suggestions_id } > $prev_id, "$label media_ids in order" );
+        $prev_id = $got_ms->{ media_suggestions_id };
+    }
+
+}
+
 # test media/list_suggestions
 sub test_media_suggestions_list($)
 {
@@ -993,6 +1024,8 @@ sub test_media_suggestions_list($)
 
     my $ms_db     = [];
     my $media_ids = $db->query( "select media_id from media" )->flat;
+
+    my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "media_suggestions:test_tag" );
 
     for my $status ( qw/pending approved rejected/ )
     {
@@ -1021,28 +1054,24 @@ sub test_media_suggestions_list($)
 
             $ms = $db->create( 'media_suggestions', $ms );
 
+            if ( $i % 2 )
+            {
+                $ms->{ tags_id } = [ $tag->{ tags_id } ];
+                $db->query( <<SQL, $ms->{ media_suggestions_id }, $tag->{ tags_id } );
+insert into media_suggestions_tags_map ( media_suggestions_id, tags_id ) values ( \$1, \$2 )
+SQL
+            }
+
             push( @{ $ms_db }, $ms );
         }
     }
 
-    my $r       = test_get( '/api/v2/media/list_suggestions' );
-    my $got_mss = $r->{ media_suggestions };
-    ok( $got_mss, "media/list_suggestions pending media_suggestions set" );
+    test_suggestions_list_results( 'pending', {}, [ grep { $_->{ status } eq 'pending' } @{ $ms_db } ] );
+    test_suggestions_list_results( 'all', { all => 1 }, $ms_db );
 
-    is( scalar( @{ $got_mss } ), $num_status_ms * 3, "media/list_suggestions pending number returned" );
+    my $pending_tags_ms = [ grep { $_->{ status } eq 'pending' && $_->{ tags_id } } @{ $ms_db } ];
+    test_suggestions_list_results( 'pending + tags_id', { tags_id => $tag->{ tags_id } }, $pending_tags_ms );
 
-    my $prev_id = 0;
-    for my $got_ms ( @{ $got_mss } )
-    {
-        my ( $expected_ms ) = grep { $_->{ media_suggestions_id } == $got_ms->{ media_suggestions_id } } @{ $ms_db };
-        ok( $expected_ms, "media/list_suggestions pending returned ms $got_ms->{ media_suggestions_id } matches db row" );
-        for my $field ( qw/status url name feed_url reason media_id mark_reason/ )
-        {
-            is( $got_ms->{ $field }, $expected_ms->{ $field }, "media/list_suggestions pending field $field" );
-        }
-        ok( $got_ms->{ media_suggestions_id } > $prev_id, "media/list_suggestions pending media_ids in order" );
-        $prev_id = $got_ms->{ media_suggestions_id };
-    }
 }
 
 # test media/mark_suggestion end point
