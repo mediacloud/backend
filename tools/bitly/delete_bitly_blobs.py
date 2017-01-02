@@ -20,8 +20,12 @@ def delete_bitly_blobs(story_ids: List[int]):
 
     l.info('Deleting %d Bit.ly blobs, split into %d chunks...' % (len(story_ids), len(story_ids_chunks)))
 
+    chunk_num = 1
     for chunk in story_ids_chunks:
         objects_to_delete = []
+
+        l.info('Deleting chunk %d out of %d...' % (chunk_num, len(story_ids_chunks)))
+        chunk_num += 1
 
         for stories_id in chunk:
             objects_to_delete.append({'Key': 'json_blobs/%d' % stories_id})
