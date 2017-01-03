@@ -64,8 +64,8 @@ Readonly my $MAX_SELF_LINKED_STORIES => 100;
 # total time to wait for fetching of social media metrics
 Readonly my $MAX_SOCIAL_MEDIA_FETCH_TIME => ( 60 * 60 * 24 );
 
-# max number of stories with no bitly metrics
-Readonly my $MAX_NULL_BITLY_STORIES => 500;
+# max prooprtion of stories with no bitly metrics
+Readonly my $MAX_NULL_BITLY_STORIES => 0.02;
 
 # add new links in chunks of this size
 Readonly my $ADD_NEW_LINKS_CHUNK_SIZE => 1000;
@@ -2775,16 +2775,26 @@ sub all_bitly_data_fetched
 {
     my ( $db, $topic ) = @_;
 
-    my $null_bitly_story = $db->query( <<SQL, $topic->{ topics_id }, $MAX_NULL_BITLY_STORIES )->hash;
+    my ( $num_topic_stories ) = $db->query( <<SQL, $topic->{ topics_id } )->flat;
+select count(*) from topic_stories where topics_id = ?
+SQL
+
+    my $max_nulls = int( $MAX_NULL_BITLY_STORIES * $num_topic_stories ) + 1;
+
+    DEBUG( "all bitly data fetched: $num_topic_stories topic stories total, $max_nulls max nulls" );
+
+    my $null_bitly_story = $db->query( <<SQL, $topic->{ topics_id }, $max_nulls )->hash;
 select 1
     from topic_stories cs
         left join bitly_clicks_total b on ( cs.stories_id = b.stories_id )
     where
         cs.topics_id = ? and
-        b.stories_id is null
-    offset ?
+        b.click_count is null
     limit 1
+    offset ?
 SQL
+
+    DEBUG( "all bitly data fetched: " . ( $null_bitly_story ? 'no' : 'yes' ) );
 
     return !$null_bitly_story;
 }
