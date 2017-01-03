@@ -18,10 +18,10 @@ sub test_gzip_encode($)
 {
     my $test_string = shift;
 
-    my $gzipped_data = MediaWords::Util::Compress::encode_and_gzip( $test_string );
+    my $gzipped_data = MediaWords::Util::Compress::gzip( $test_string );
     ok( length( $gzipped_data ), 'Length of gzipped data is non-zero' );
     isnt( $gzipped_data, $test_string, 'Gzipped data and source string differ' );
-    my $gunzipped_data = MediaWords::Util::Compress::gunzip_and_decode( $gzipped_data );
+    my $gunzipped_data = MediaWords::Util::Compress::gunzip( $gzipped_data );
     is( $gunzipped_data, $test_string, 'Gunzipped data matches source string' );
 }
 
@@ -29,10 +29,10 @@ sub test_bzip2_encode($)
 {
     my $test_string = shift;
 
-    my $bzip2ped_data = MediaWords::Util::Compress::encode_and_bzip2( $test_string );
+    my $bzip2ped_data = MediaWords::Util::Compress::bzip2( $test_string );
     ok( length( $bzip2ped_data ), 'Length of bzip2ped data is non-zero' );
     isnt( $bzip2ped_data, $test_string, 'Bzip2ped data and source string differ' );
-    my $bunzip2ped_data = MediaWords::Util::Compress::bunzip2_and_decode( $bzip2ped_data );
+    my $bunzip2ped_data = MediaWords::Util::Compress::bunzip2( $bzip2ped_data );
     is( $bunzip2ped_data, $test_string, 'Bunzip2ped data matches source string' );
 }
 
@@ -48,23 +48,23 @@ sub test_wrong_algorithm($)
 
 sub test_bad_input()
 {
-    eval { MediaWords::Util::Compress::encode_and_gzip( undef ) };
-    ok( $@, 'Undefined input for encode_and_gzip' );
-    eval { MediaWords::Util::Compress::gunzip_and_decode( undef ) };
-    ok( $@, 'Undefined input for gunzip_and_decode' );
-    eval { MediaWords::Util::Compress::gunzip_and_decode( '' ) };
-    ok( $@, 'Empty input for gunzip_and_decode' );
-    eval { MediaWords::Util::Compress::gunzip_and_decode( 'No way this is valid Gzip data' ) };
-    ok( $@, 'Invalid input for gunzip_and_decode' );
+    eval { MediaWords::Util::Compress::gzip( undef ) };
+    ok( $@, 'Undefined input for gzip' );
+    eval { MediaWords::Util::Compress::gunzip( undef ) };
+    ok( $@, 'Undefined input for gunzip' );
+    eval { MediaWords::Util::Compress::gunzip( '' ) };
+    ok( $@, 'Empty input for gunzip' );
+    eval { MediaWords::Util::Compress::gunzip( 'No way this is valid Gzip data' ) };
+    ok( $@, 'Invalid input for gunzip' );
 
-    eval { MediaWords::Util::Compress::encode_and_bzip2( undef ) };
-    ok( $@, 'Undefined input for encode_and_bzip2' );
-    eval { MediaWords::Util::Compress::bunzip2_and_decode( undef ) };
-    ok( $@, 'Undefined input for bunzip2_and_decode' );
-    eval { MediaWords::Util::Compress::bunzip2_and_decode( '' ) };
-    ok( $@, 'Empty input for bunzip2_and_decode' );
-    eval { MediaWords::Util::Compress::bunzip2_and_decode( 'No way this is valid Bzip2 data' ) };
-    ok( $@, 'Invalid input for bunzip2_and_decode' );
+    eval { MediaWords::Util::Compress::bzip2( undef ) };
+    ok( $@, 'Undefined input for bzip2' );
+    eval { MediaWords::Util::Compress::bunzip2( undef ) };
+    ok( $@, 'Undefined input for bunzip2' );
+    eval { MediaWords::Util::Compress::bunzip2( '' ) };
+    ok( $@, 'Empty input for bunzip2' );
+    eval { MediaWords::Util::Compress::bunzip2( 'No way this is valid Bzip2 data' ) };
+    ok( $@, 'Invalid input for bunzip2' );
 }
 
 sub main()

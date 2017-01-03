@@ -15,41 +15,46 @@ use MediaWords::CommonLibs;
 use MediaWords::Util::Compress;
 use DBD::Pg qw(:pg_types);
 
+# Default compression method for PostgreSQL
+Readonly my $POSTGRESQL_DEFAULT_COMPRESSION_METHOD => $MediaWords::KeyValueStore::COMPRESSION_GZIP;
+
 # Configuration
 has '_conf_table' => ( is => 'rw' );
+
+# Compression method to use
+has '_conf_compression_method' => ( is => 'rw' );
 
 # Constructor
 sub BUILD($$)
 {
     my ( $self, $args ) = @_;
 
-    unless ( $args->{ table } )
+    my $table = $args->{ table };
+    my $compression_method = $args->{ compression_method } || $POSTGRESQL_DEFAULT_COMPRESSION_METHOD;
+
+    unless ( $table )
     {
         die "Database table to store objects in is unset.";
     }
+    unless ( $self->compression_method_is_valid( $compression_method ) )
+    {
+        LOGCONFESS "Unsupported compression method '$compression_method'";
+    }
 
-    $self->_conf_table( $args->{ table } );
+    $self->_conf_table( $table );
+    $self->_conf_compression_method( $compression_method );
 }
 
 # Moose method
-sub store_content($$$$;$)
+sub store_content($$$$)
 {
-    my ( $self, $db, $object_id, $content_ref, $use_bzip2_instead_of_gzip ) = @_;
+    my ( $self, $db, $object_id, $content_ref ) = @_;
 
     my $table = $self->_conf_table;
 
-    # Encode + compress
+    # Compress
     my $content_to_store;
-    eval {
-        if ( $use_bzip2_instead_of_gzip )
-        {
-            $content_to_store = MediaWords::Util::Compress::encode_and_bzip2( $$content_ref );
-        }
-        else
-        {
-            $content_to_store = MediaWords::Util::Compress::encode_and_gzip( $$content_ref );
-        }
-    };
+    eval { $content_to_store = $self->compress_data_for_method( $$content_ref, $self->_conf_compression_method ); };
     if ( $@ or ( !defined $content_to_store ) )
     {
         LOGCONFESS "Unable to compress object ID $object_id: $@";
@@ -96,9 +101,9 @@ EOF
 }
 
 # Moose method
-sub fetch_content($$$;$$)
+sub fetch_content($$$;$)
 {
-    my ( $self, $db, $object_id, $object_path, $use_bunzip2_instead_of_gunzip ) = @_;
+    my ( $self, $db, $object_id, $object_path ) = @_;
 
     unless ( defined $object_id )
     {
@@ -137,17 +142,9 @@ EOF
         LOGCONFESS "Compressed data is empty for object $object_id.";
     }
 
+    # Uncompress
     my $decoded_content;
-    eval {
-        if ( $use_bunzip2_instead_of_gunzip )
-        {
-            $decoded_content = MediaWords::Util::Compress::bunzip2_and_decode( $compressed_content );
-        }
-        else
-        {
-            $decoded_content = MediaWords::Util::Compress::gunzip_and_decode( $compressed_content );
-        }
-    };
+    eval { $decoded_content = $self->uncompress_data_for_method( $compressed_content, $self->_conf_compression_method ); };
     if ( $@ or ( !defined $decoded_content ) )
     {
         LOGCONFESS "Unable to uncompress object ID $object_id: $@";
