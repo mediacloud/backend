@@ -38,7 +38,6 @@ sub import_superglue_backfill_feed($$$$)
 SQL
         $media_id, $feed_url
     )->flat;
-    print Dumper( $feed_exists );
     if ( $feed_exists )
     {
         LOGCONFESS "Feed with URL '$feed_url' already exists in media ID $media_id.";
