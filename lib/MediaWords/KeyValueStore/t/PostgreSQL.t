@@ -13,7 +13,7 @@ BEGIN
 use MediaWords::KeyValueStore::PostgreSQL;
 use MediaWords::Test::DB;
 
-require 'postgresql_tests.inc.pl';
+require 'helpers/postgresql_tests.inc.pl';
 
 MediaWords::Test::DB::test_on_test_database(
     sub {

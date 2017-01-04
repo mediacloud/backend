@@ -28,46 +28,12 @@ package MediaWords::KeyValueStore;
 #
 #     $store->store_content( $db, 'Vincent Van Furrball', \read_file('vincent.jpg') );
 #
-#     # Some subpackages of MediaWords::KeyValueStore support additional
-#     # parameters for store_content() that define how the object is processed.
-#     # For example, MediaWords::KeyValueStore::PostgreSQL::store_content() supports
-#     # the following parameters:
-#     # * $use_bzip2_instead_of_gzip -- use Bzip2 compression instead of Gzip
-#     # Make sure to read the declaration of the store_content() for the specific
-#     # subpackage subroutine before using it.
-#
-#     my $use_bzip2_instead_of_gzip = 1;
-#     $postgresql_store->store_content(
-#         $db,
-#         'Cuddles McCracken',
-#         \read_file('cuddles.jpg'),
-#         $use_bzip2_instead_of_gzip
-#     );
-#
 # Fetching data:
 #
 #     # In this case, "Mister Bigglesworth" is the key.
 #     # The *reference* to the contents of the file stored in the store is returned.
 #
 #     my $content_ref = $store->fetch_content( $db, 'Mister Bigglesworth' );
-#
-#     # Some subpackages of MediaWords::KeyValueStore support additional
-#     # parameters for fetch_content() that define how the object is processed.
-#     # For example, MediaWords::KeyValueStore::PostgreSQL::fetch_content() supports
-#     # the following parameters:
-#     # * $object_path -- object path; not used
-#     # * $use_bzip2_instead_of_gzip -- use Bzip2 uncompression instead of Gzip
-#     # Make sure to read the declaration of the fetch_content() for the specific
-#     # subpackage subroutine before using it.
-#
-#     my $object_path = undef;    # default value
-#     my $use_bzip2_instead_of_gzip = 1;
-#     my $content_ref = $postgresql_store->fetch_content(
-#         $db,
-#         'Mister Bigglesworth',
-#         $object_path,
-#         $use_bzip2_instead_of_gzip
-#     );
 #
 # Removing data:
 #
@@ -106,6 +72,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::Util::Config;
+use MediaWords::Util::Compress;
 
 #
 # Required methods
@@ -132,6 +99,88 @@ requires 'remove_content';
 # Checks if content exists under a certain key; returns true if it does, false
 # if it doesn't, dies on error
 requires 'content_exists';
+
+# Available compression methods
+Readonly our $COMPRESSION_NONE  => 'mc-kvs-compression-none';
+Readonly our $COMPRESSION_GZIP  => 'mc-kvs-compression-gzip';
+Readonly our $COMPRESSION_BZIP2 => 'mc-kvs-compression-bzip2';
+
+# Helper for validating compression method
+sub compression_method_is_valid($$)
+{
+    my ( $self, $compression_method ) = @_;
+
+    if (   $compression_method eq $MediaWords::KeyValueStore::COMPRESSION_NONE
+        or $compression_method eq $MediaWords::KeyValueStore::COMPRESSION_GZIP
+        or $compression_method eq $MediaWords::KeyValueStore::COMPRESSION_BZIP2 )
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+# Compress data
+sub compress_data_for_method($$$)
+{
+    my ( $self, $data, $compression_method ) = @_;
+
+    unless ( defined $data )
+    {
+        LOGCONFESS "Data is undefined.";
+    }
+
+    if ( $compression_method eq $COMPRESSION_NONE )
+    {
+        # no-op
+    }
+    elsif ( $compression_method eq $COMPRESSION_GZIP )
+    {
+        $data = MediaWords::Util::Compress::gzip( $data );
+    }
+    elsif ( $compression_method eq $COMPRESSION_BZIP2 )
+    {
+        $data = MediaWords::Util::Compress::bzip2( $data );
+    }
+    else
+    {
+        LOGCONFESS "Invalid compression method '$compression_method'";
+    }
+
+    return $data;
+}
+
+# Uncompress data
+sub uncompress_data_for_method($$$)
+{
+    my ( $self, $data, $compression_method ) = @_;
+
+    unless ( defined $data )
+    {
+        LOGCONFESS "Data is undefined.";
+    }
+
+    if ( $compression_method eq $COMPRESSION_NONE )
+    {
+        # no-op
+    }
+    elsif ( $compression_method eq $COMPRESSION_GZIP )
+    {
+        $data = MediaWords::Util::Compress::gunzip( $data );
+    }
+    elsif ( $compression_method eq $COMPRESSION_BZIP2 )
+    {
+        $data = MediaWords::Util::Compress::bunzip2( $data );
+    }
+    else
+    {
+        LOGCONFESS "Invalid compression method '$compression_method'";
+    }
+
+    return $data;
+}
 
 no Moose;    # gets rid of scaffolding
 
