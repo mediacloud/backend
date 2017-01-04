@@ -18,6 +18,7 @@ __LOG_MAX_SIZE = 2 * 1024 * 1024 * 1024
 # Number of old logs to keep
 __OLD_LOG_COUNT = 7
 
+
 l = create_logger(__name__)
 
 
@@ -32,23 +33,13 @@ def rotate_http_request_log():
     l.debug('Logs path: %s' % logs_dir)
 
     try:
-        path_to_xz = subprocess.check_output(
-            ['command', '-v', 'xz'],
-
-            # 'subprocess' uses /bin/sh by default which doesn't have 'command'
-            shell=True, executable='/bin/bash'
-        ).decode('utf-8').strip()
+        path_to_xz = subprocess.check_output(['command', '-v', 'xz']).decode('utf-8').strip()
     except subprocess.CalledProcessError as ex:
         raise Exception('"xz" not found on the system: %s' % str(ex))
     l.info('Path to "xz": %s' % path_to_xz)
 
     try:
-        path_to_unxz = subprocess.check_output(
-            ['command', '-v', 'unxz'],
-
-            # 'subprocess' uses /bin/sh by default which doesn't have 'command'
-            shell=True, executable='/bin/bash'
-        ).decode('utf-8').strip()
+        path_to_unxz = subprocess.check_output(['command', '-v', 'unxz']).decode('utf-8').strip()
     except subprocess.CalledProcessError as ex:
         raise Exception('"unxz" not found on the system: %s' % str(ex))
     l.info('Path to "unxz": %s' % path_to_unxz)
