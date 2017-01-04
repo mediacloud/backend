@@ -256,6 +256,7 @@ sub restrict_period_stories_to_focus
     my $all_stories_ids      = [ @{ $snapshot_period_stories_ids } ];
     my $matching_stories_ids = [];
     my $chunk_size           = 1000;
+    my $min_chunk_size       = 10;
     my $max_solr_errors      = 10;
     my $solr_error_count     = 0;
 
@@ -275,9 +276,16 @@ sub restrict_period_stories_to_focus
         if ( $@ )
         {
             # sometimes solr throws a NullException error on one of these queries; retrying with smaller
-            # chunks seems to make it happy
-            $chunk_size = List::Util::max( $chunk_size / 2, 100 );
-            die( "solr error: $@" ) if ( ++$solr_error_count > $max_solr_errors );
+            # chunks seems to make it happy; if the error keeps happening, just drop those stories_ids
+            if ( ++$solr_error_count > $max_solr_errors )
+            {
+                my $ids = join( ',', @{ $chunk_stories_ids } );
+                warn( "solr error (after $solr_error_count errors) for stories_ids $ids: $@" );
+                $solr_stories_ids = [];
+            }
+
+            $chunk_size = List::Util::max( $chunk_size / 2, $min_chunk_size );
+            unshift( @{ $all_stories_ids }, @{ $chunk_stories_ids } );
         }
 
         push( @{ $matching_stories_ids }, @{ $solr_stories_ids } );

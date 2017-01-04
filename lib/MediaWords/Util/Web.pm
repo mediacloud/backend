@@ -87,9 +87,7 @@ sub _lwp_request_callback($)
         $blacklisted = 1;
     }
 
-    my $day = substr( MediaWords::Util::SQL::sql_now, 0, 10 );
-
-    my $logfile = "$config->{ mediawords }->{ data_dir }/logs/http_request_$day.log";
+    my $logfile = "$config->{ mediawords }->{ data_dir }/logs/http_request.log";
 
     my $fh = FileHandle->new;
 

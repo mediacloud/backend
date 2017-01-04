@@ -45,7 +45,7 @@ def rotate_supervisor_logs():
 
     logrotate_config = '''
 %(supervisor_logs_dir)s/*.log {
-    maxsize %(log_max_size)d
+    size %(log_max_size)d
     rotate %(old_log_count)d
     copytruncate
     compress

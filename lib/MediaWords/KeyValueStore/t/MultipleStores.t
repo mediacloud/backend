@@ -36,7 +36,7 @@ sub main()
     );
 }
 
-require 'amazon_s3_set_credentials_from_env.inc.pl';
+require 'helpers/amazon_s3_set_credentials_from_env.inc.pl';
 set_amazon_s3_test_credentials_from_env_if_needed();
 
 my $config = MediaWords::Util::Config::get_config;
@@ -46,8 +46,8 @@ unless ( defined( $config->{ amazon_s3 }->{ test } ) )
 }
 else
 {
-    require 'amazon_s3_tests.inc.pl';
-    require 'postgresql_tests.inc.pl';
+    require 'helpers/amazon_s3_tests.inc.pl';
+    require 'helpers/postgresql_tests.inc.pl';
 
     main();
 }
