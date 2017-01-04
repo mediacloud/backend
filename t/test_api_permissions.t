@@ -66,6 +66,7 @@ my $_url_permission_types = {
     '/api/v2/sentences/list'                      => 'admin_read',
     '/api/v2/sentences/put_tags'                  => 'stories_edit',
     '/api/v2/sentences/single'                    => 'admin_read',
+    '/api/v2/stats/list'                          => 'public',
     '/api/v2/storiesbase/count'                   => 'public',
     '/api/v2/storiesbase/list'                    => 'public',
     '/api/v2/storiesbase/single'                  => 'public',
