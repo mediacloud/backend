@@ -101,13 +101,6 @@ sub list : Local
 select * from feeds where media_id = ? and $sql_feed_status order by name, url
 END
 
-    # if there aren't any feeds, return the feed scraping page instead of
-    # the feed list
-    if ( !@{ $feeds } )
-    {
-        return $self->scrape( $c, $media_id );
-    }
-
     # for each feed, load any other data needed for the feed within the template
     for my $f ( @{ $feeds } )
     {
