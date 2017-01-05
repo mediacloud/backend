@@ -29,6 +29,22 @@ session required pam_limits.so
 EOF
     fi
 
+    PAM_SUDO_FILE=/etc/pam.d/sudo
+    if [ ! -f "$PAM_SUDO_FILE" ]; then
+        echo "PAM sudo file does not exist at $PAM_SUDO_FILE"
+        exit 1
+    fi
+    if ! grep -q "pam_limits.so" "$PAM_SUDO_FILE"; then
+        echo "Adding pam_limits.so to PAM sudo file $PAM_SUDO_FILE..."
+
+        sudo tee -a "$PAM_SUDO_FILE" <<EOF
+
+# Enforce Media Cloud limits
+session required pam_limits.so
+
+EOF
+    fi
+
     MEDIACLOUD_USER=`id -un`
     echo "Setting required kernel parameters via limits.conf for user '$MEDIACLOUD_USER'..."
 
