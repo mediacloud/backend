@@ -52,6 +52,7 @@ sub run($$)
     my $stories_id = $args->{ stories_id };
 
     my $db = MediaWords::DB::connect_to_db();
+    $db->dbh->{ AutoCommit } = 0;
 
     if ( exists $args->{ disable_story_triggers } and $args->{ disable_story_triggers } )
     {

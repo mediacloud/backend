@@ -456,10 +456,6 @@ sub extract_and_process_story($$$)
 {
     my ( $db, $story, $extractor_args ) = @_;
 
-    my $use_transaction = $db->dbh->{ AutoCommit };
-
-    $db->begin if ( $use_transaction );
-
     my $downloads = $db->query( <<SQL, $story->{ stories_id } )->hashes;
 SELECT * FROM downloads WHERE stories_id = ? AND type = 'content' ORDER BY downloads_id ASC
 SQL
@@ -471,7 +467,7 @@ SQL
 
     process_extracted_story( $db, $story, $extractor_args );
 
-    $db->commit if ( $use_transaction );
+    $db->commit;
 }
 
 # update disable_triggers for given story if needed
@@ -838,9 +834,7 @@ sub attach_story_meta_data_to_stories
 {
     my ( $db, $stories ) = @_;
 
-    my $use_transaction = $db->dbh->{ AutoCommit };
-
-    $db->begin if ( $use_transaction );
+    $db->begin;
 
     my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
 
@@ -852,7 +846,7 @@ END
 
     attach_story_data_to_stories( $stories, $story_data );
 
-    $db->commit if ( $use_transaction );
+    $db->commit;
 
     return $stories;
 }
@@ -1107,10 +1101,7 @@ sub get_story_word_matrix($$;$$)
     my $word_index_sequence = 0;
     my $word_term_counts    = {};
 
-    my $use_transaction = $db->dbh->{ AutoCommit };
-
-    $db->begin if ( $use_transaction );
-
+    $db->begin;
     my $sentence_separator = 'SPLITSPLIT';
     my $story_text_cursor = _get_story_word_matrix_cursor( $db, $stories_ids, $sentence_separator );
 
@@ -1157,7 +1148,7 @@ sub get_story_word_matrix($$;$$)
         }
     }
 
-    $db->commit if ( $use_transaction );
+    $db->commit;
 
     my $word_list = [];
     for my $stem ( keys( %{ $word_index_lookup } ) )
@@ -1181,17 +1172,14 @@ sub add_story($$$;$)
 {
     my ( $db, $story, $feeds_id, $skip_checking_if_new ) = @_;
 
-    my $use_transaction = $db->dbh->{ AutoCommit };
-
-    $db->begin if ( $use_transaction );
-
+    $db->begin;
     $db->query( "lock table stories in row exclusive mode" );
     unless ( $skip_checking_if_new )
     {
         unless ( is_new( $db, $story ) )
         {
             DEBUG "Story '" . $story->{ url } . "' is not new";
-            $db->commit if ( $use_transaction );
+            $db->commit;
             return undef;
         }
     }
@@ -1216,7 +1204,7 @@ sub add_story($$$;$)
 
     if ( $@ )
     {
-        $db->rollback if ( $use_transaction );
+        $db->rollback;
 
         if ( $@ =~ /unique constraint \"stories_guid/ )
         {
@@ -1237,7 +1225,7 @@ sub add_story($$$;$)
         }
     );
 
-    $db->commit if ( $use_transaction );
+    $db->commit;
 
     return $story;
 }
