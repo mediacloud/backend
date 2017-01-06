@@ -6,7 +6,7 @@
    - [Request Limits](#request-limits)   
    - [Python Client](#python-client)   
    - [API URLs](#api-urls)   
-   - [Supported Languages](#supported-languages)
+   - [Supported Languages](#supported-languages)   
    - [Errors](#errors)   
    - [Request Limits](#request-limits)   
 - [Media](#media)   
@@ -16,7 +16,7 @@
    - [api/v2/media/list/](#apiv2medialist)   
       - [Query Parameters](#query-parameters)   
       - [Example](#example)   
-   - [api/v2/media/suggestions/submit - POST](#apiv2mediasuggestionssubmit-post)   
+   - [api/v2/media/submit_suggestion - POST](#apiv2mediasubmit_suggestion-post)   
       - [Input Description](#input-description)   
       - [Example](#example)   
 - [Media Health](#media-health)   
@@ -86,14 +86,15 @@
    - [api/v2/timespans/list/](#apiv2timespanslist)   
       - [Query Parameters](#query-parameters)   
       - [Example](#example)   
-- [Users](#users)   
-   - [api/v2/users/profile](#apiv2usersprofile-pending)   
+- [Auth](#auth)   
+   - [api/v2/auth/profile](#apiv2authprofile)   
       - [Query Parameters](#query-parameters)   
       - [Output Description](#output-description)   
       - [Example](#example)   
 - [Stats](#stats)   
-   - [api/v2/stats PENDING](#apiv2stats-pending)   
+   - [api/v2/stats/list](#apiv2statslist)   
       - [Query Parameters](#query-parameters)   
+      - [Output Description](#output-description)   
       - [Example](#example)   
 - [Extended Examples](#extended-examples)   
    - [Output Format / JSON](#output-format-json)   
@@ -1378,23 +1379,34 @@ URL: https://api.mediacloud.org/api/v2/auth/profile
 
 # Stats
 
-## api/v2/stats PENDING
+## api/v2/stats/list
 
 | URL                     | Function
 | ----------------------- | -----------------
-| `api/v2/stats` | Return basic summary stats about total sources, stories, feeds, etc processed by Media Cloud
+| `api/v2/stats/list` | Return basic summary stats about total sources, stories, feeds, etc processed by Media Cloud
 
 ### Query Parameters
 
 ( none )
 
+### Output Description
+
+| Field | Description |
+|-|-|
+| total_stories | total number of stories in the Media Cloud database |
+| total_downloads | total number of downloads (including stories and feeds) in the Media Cloud database |
+| total_sentences | total number of sentences in the Media Cloud database |
+| active_crawled_feeds | number of syndicated feeds with a story in the last 180 days |
+| active_crawled_media | number of media source with an active crawled feed |
+| daily_stories | number of stories added yesterday |
+| daily_downloads | number of downloads added yesterday |
+
 ### Example
 
-URL: https://api.mediacloud.org/api/v2/stats
+URL: https://api.mediacloud.org/api/v2/stats/list
 
 ```json
 {
-	"total_media":  311963,
   	"total_stories": 516145344,
   	"total_downloads": 941078656,
     "total_sentences": 6899028480,
