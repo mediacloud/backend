@@ -75,12 +75,15 @@ Readonly my $MAX_GEXF_MEDIA => 500;
 
 # attributes to include in gexf snapshot
 my $_media_static_gexf_attribute_types = {
-    url          => 'string',
-    inlink_count => 'integer',
-    story_count  => 'integer',
-    view_medium  => 'string',
-    media_type   => 'string',
-    bitly_clicks => 'integer'
+    url                    => 'string',
+    inlink_count           => 'integer',
+    story_count            => 'integer',
+    view_medium            => 'string',
+    media_type             => 'string',
+    bitly_click_count      => 'integer',
+    facebook_share_count   => 'integer',
+    simple_tweet_count     => 'integer',
+    normalized_tweet_count => 'integer'
 };
 
 # all tables that get stored as snapshot_* for each spanshot
@@ -1293,10 +1296,18 @@ sub get_gexf_snapshot
     $max_media   ||= $MAX_GEXF_MEDIA;
 
     my $media = $db->query( <<END, $max_media )->hashes;
-select distinct *
-    from snapshot_media_with_types m, snapshot_medium_link_counts mlc
-    where m.media_id = mlc.media_id
-    order by mlc.media_inlink_count desc
+select distinct
+        m.*,
+        mlc.media_inlink_count inlink_count,
+        mlc.story_count,
+        mlc.bitly_click_count,
+        mlc.facebook_share_count,
+        mlc.simple_tweet_count,
+        mlc.normalized_tweet_count
+    from snapshot_media_with_types m
+        join snapshot_medium_link_counts mlc using ( media_id )
+    order
+        by mlc.media_inlink_count desc
     limit ?
 END
 
