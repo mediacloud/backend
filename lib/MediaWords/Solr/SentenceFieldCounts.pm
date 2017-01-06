@@ -8,6 +8,7 @@ use Moose;
 use strict;
 use warnings;
 
+use CHI;
 use Data::Dumper;
 
 use MediaWords::Solr;

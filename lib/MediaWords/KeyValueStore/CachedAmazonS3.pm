@@ -15,6 +15,9 @@ use MediaWords::Util::Config;
 use CHI;
 use Readonly;
 
+# Default compression method for cache
+Readonly my $CACHE_DEFAULT_COMPRESSION_METHOD => $MediaWords::KeyValueStore::COMPRESSION_GZIP;
+
 # Configuration
 has '_conf_cache_root_dir' => ( is => 'rw' );
 
@@ -24,17 +27,21 @@ has '_chi' => ( is => 'rw' );
 # Process PID (to prevent forks attempting to clone the Net::Amazon::S3 accessor objects)
 has '_pid' => ( is => 'rw', default => 0 );
 
+# Compression method to use
+has '_conf_cache_compression_method' => ( is => 'rw' );
+
 # Constructor
 sub BUILD($$)
 {
     my ( $self, $args ) = @_;
 
-    unless ( $args->{ cache_root_dir } )
+    my $cache_root_dir = $args->{ cache_root_dir };
+    my $cache_compression_method = $args->{ cache_compression_method } || $CACHE_DEFAULT_COMPRESSION_METHOD;
+
+    unless ( $cache_root_dir )
     {
         LOGCONFESS "Please provide 'cache_root_dir' argument.";
     }
-    my $cache_root_dir = $args->{ cache_root_dir };
-
     unless ( -d $cache_root_dir )
     {
         unless ( mkdir( $cache_root_dir ) )
@@ -42,8 +49,13 @@ sub BUILD($$)
             LOGCONFESS "Unable to create cache directory '$cache_root_dir': $!";
         }
     }
+    unless ( $self->compression_method_is_valid( $cache_compression_method ) )
+    {
+        LOGCONFESS "Unsupported cache compression method '$cache_compression_method'";
+    }
 
     $self->_conf_cache_root_dir( $cache_root_dir );
+    $self->_conf_cache_compression_method( $cache_compression_method );
 
     $self->_pid( $$ );
 }
@@ -84,12 +96,13 @@ sub _try_storing_object_in_cache($$$)
     $self->_initialize_chi_or_die();
 
     eval {
-        # Encode + gzip
+        # Compress
         my $content_to_store;
-        eval { $content_to_store = MediaWords::Util::Compress::encode_and_gzip( $$content_ref ); };
+        eval {
+            $content_to_store = $self->compress_data_for_method( $$content_ref, $self->_conf_cache_compression_method ); };
         if ( $@ or ( !defined $content_to_store ) )
         {
-            LOGCONFESS "Unable to compress cached object ID $object_id: $@";
+            LOGCONFESS "Unable to compress object ID $object_id: $@";
         }
 
         $self->_chi->set( $object_id, $content_to_store );
@@ -107,16 +120,20 @@ sub _try_retrieving_object_from_cache($$)
 
     $self->_initialize_chi_or_die();
 
-    my $cached_content;
+    my $decoded_content;
     eval {
-        my $cached_gzipped_content = $self->_chi->get( $object_id );
-        if ( defined $cached_gzipped_content )
+        my $compressed_content = $self->_chi->get( $object_id );
+        if ( defined $compressed_content )
         {
-            # Gunzip + decode
-            eval { $cached_content = MediaWords::Util::Compress::gunzip_and_decode( $cached_gzipped_content ); };
-            if ( $@ or ( !defined $cached_content ) )
+            # Uncompress
+            my $decoded_content;
+            eval {
+                $decoded_content =
+                  $self->uncompress_data_for_method( $compressed_content, $self->_conf_cache_compression_method );
+            };
+            if ( $@ or ( !defined $decoded_content ) )
             {
-                LOGCONFESS "Unable to uncompress cached object ID $object_id: $@";
+                LOGCONFESS "Unable to uncompress object ID $object_id: $@";
             }
         }
     };
@@ -126,10 +143,10 @@ sub _try_retrieving_object_from_cache($$)
         WARN "Restoring object $object_id from cache failed: $@";
     }
 
-    if ( defined $cached_content )
+    if ( defined $decoded_content )
     {
         # Something was found in cache
-        return \$cached_content;
+        return \$decoded_content;
     }
     else
     {

@@ -4,7 +4,7 @@ set -u
 set -o errexit
 
 
-VAGRANT_URL_DEBIAN="https://releases.hashicorp.com/vagrant/1.8.6/vagrant_1.8.6_x86_64.deb"
+VAGRANT_URL_DEBIAN="https://releases.hashicorp.com/vagrant/1.9.1/vagrant_1.9.1_x86_64.deb"
 ERLANG_APT_GPG_KEY_URL="http://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc"
 ERLANG_APT_REPOSITORY_URL="http://packages.erlang-solutions.com/ubuntu"
 RABBITMQ_PACKAGECLOUD_SCRIPT="https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.deb.sh"

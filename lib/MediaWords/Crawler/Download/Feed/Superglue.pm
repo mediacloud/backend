@@ -58,8 +58,8 @@ sub add_stories_from_feed($$$$)
             $guid         = $item->guid()             or die "<guid> not set";
             $publish_date = $item->publish_date_sql() or die "<pubDate> not set";
 
-            $thumbnail_url    = $item->get( 'enclosure@url' )    or die "<enclosure> not set";
-            $segment_duration = $item->get( 'segment:duration' ) or die "<segment:duration> not set";
+            $thumbnail_url    = $item->get( 'enclosure@url' )    // '';
+            $segment_duration = $item->get( 'segment:duration' ) // '';
         };
         if ( $@ )
         {
