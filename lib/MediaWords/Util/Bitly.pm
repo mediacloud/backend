@@ -69,9 +69,20 @@ my $_results_store = lazy
     {
         my $location = shift;
 
+        my $compression_method = $MediaWords::KeyValueStore::COMPRESSION_GZIP;
+        if ( $BITLY_USE_BZIP2 )
+        {
+            $compression_method = $MediaWords::KeyValueStore::COMPRESSION_BZIP2;
+        }
+
         if ( $location eq 'postgresql' )
         {
-            return MediaWords::KeyValueStore::PostgreSQL->new( { table => $BITLY_POSTGRESQL_KVS_TABLE_NAME } );
+            return MediaWords::KeyValueStore::PostgreSQL->new(
+                {
+                    table              => $BITLY_POSTGRESQL_KVS_TABLE_NAME,    #
+                    compression_method => $compression_method,                 #
+                }
+            );
 
         }
         elsif ( $location eq 'amazon_s3' )
@@ -94,11 +105,13 @@ my $_results_store = lazy
 
             return $store_package_name->new(
                 {
-                    access_key_id     => $config->{ amazon_s3 }->{ bitly_processing_results }->{ access_key_id },
-                    secret_access_key => $config->{ amazon_s3 }->{ bitly_processing_results }->{ secret_access_key },
-                    bucket_name       => $config->{ amazon_s3 }->{ bitly_processing_results }->{ bucket_name },
-                    directory_name    => $config->{ amazon_s3 }->{ bitly_processing_results }->{ directory_name },
-                    cache_root_dir    => $cache_root_dir,
+                    access_key_id            => $config->{ amazon_s3 }->{ bitly_processing_results }->{ access_key_id },
+                    secret_access_key        => $config->{ amazon_s3 }->{ bitly_processing_results }->{ secret_access_key },
+                    bucket_name              => $config->{ amazon_s3 }->{ bitly_processing_results }->{ bucket_name },
+                    directory_name           => $config->{ amazon_s3 }->{ bitly_processing_results }->{ directory_name },
+                    cache_root_dir           => $cache_root_dir,
+                    compression_method       => $compression_method,
+                    cache_compression_method => $compression_method,
                 }
             );
 
@@ -297,12 +310,7 @@ sub write_story_stats($$$)
     TRACE 'JSON length: ' . length( $json_stats );
 
     # Write to key-value store, index by stories_id
-    eval {
-        my $param_use_bzip2_instead_of_gzip = $BITLY_USE_BZIP2;
-
-        my $path =
-          ( force $_results_store)->store_content( $db, $stories_id, \$json_stats, $param_use_bzip2_instead_of_gzip );
-    };
+    eval { ( force $_results_store)->store_content( $db, $stories_id, \$json_stats ); };
     if ( $@ )
     {
         die "Unable to store Bit.ly result to store: $@";
@@ -338,15 +346,9 @@ sub read_story_stats($$)
     }
 
     # Fetch processing result
-    my $json_ref = undef;
-
-    my $param_object_path                   = undef;
-    my $param_use_bunzip2_instead_of_gunzip = $BITLY_USE_BZIP2;
-
-    eval {
-        $json_ref = ( force $_results_store)
-          ->fetch_content( $db, $stories_id, $param_object_path, $param_use_bunzip2_instead_of_gunzip );
-    };
+    my $json_ref          = undef;
+    my $param_object_path = undef;
+    eval { $json_ref = ( force $_results_store)->fetch_content( $db, $stories_id, $param_object_path ); };
     if ( $@ or ( !defined $json_ref ) )
     {
         die "Storage died while fetching Bit.ly stats for story $stories_id: $@\n";

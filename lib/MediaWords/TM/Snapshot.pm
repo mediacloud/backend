@@ -75,12 +75,15 @@ Readonly my $MAX_GEXF_MEDIA => 500;
 
 # attributes to include in gexf snapshot
 my $_media_static_gexf_attribute_types = {
-    url          => 'string',
-    inlink_count => 'integer',
-    story_count  => 'integer',
-    view_medium  => 'string',
-    media_type   => 'string',
-    bitly_clicks => 'integer'
+    url                    => 'string',
+    inlink_count           => 'integer',
+    story_count            => 'integer',
+    view_medium            => 'string',
+    media_type             => 'string',
+    bitly_click_count      => 'integer',
+    facebook_share_count   => 'integer',
+    simple_tweet_count     => 'integer',
+    normalized_tweet_count => 'integer'
 };
 
 # all tables that get stored as snapshot_* for each spanshot
@@ -256,6 +259,7 @@ sub restrict_period_stories_to_focus
     my $all_stories_ids      = [ @{ $snapshot_period_stories_ids } ];
     my $matching_stories_ids = [];
     my $chunk_size           = 1000;
+    my $min_chunk_size       = 10;
     my $max_solr_errors      = 10;
     my $solr_error_count     = 0;
 
@@ -275,9 +279,16 @@ sub restrict_period_stories_to_focus
         if ( $@ )
         {
             # sometimes solr throws a NullException error on one of these queries; retrying with smaller
-            # chunks seems to make it happy
-            $chunk_size = List::Util::max( $chunk_size / 2, 100 );
-            die( "solr error: $@" ) if ( ++$solr_error_count > $max_solr_errors );
+            # chunks seems to make it happy; if the error keeps happening, just drop those stories_ids
+            if ( ++$solr_error_count > $max_solr_errors )
+            {
+                my $ids = join( ',', @{ $chunk_stories_ids } );
+                warn( "solr error (after $solr_error_count errors) for stories_ids $ids: $@" );
+                $solr_stories_ids = [];
+            }
+
+            $chunk_size = List::Util::max( $chunk_size / 2, $min_chunk_size );
+            unshift( @{ $all_stories_ids }, @{ $chunk_stories_ids } );
         }
 
         push( @{ $matching_stories_ids }, @{ $solr_stories_ids } );
@@ -1285,10 +1296,18 @@ sub get_gexf_snapshot
     $max_media   ||= $MAX_GEXF_MEDIA;
 
     my $media = $db->query( <<END, $max_media )->hashes;
-select distinct *
-    from snapshot_media_with_types m, snapshot_medium_link_counts mlc
-    where m.media_id = mlc.media_id
-    order by mlc.media_inlink_count desc
+select distinct
+        m.*,
+        mlc.media_inlink_count inlink_count,
+        mlc.story_count,
+        mlc.bitly_click_count,
+        mlc.facebook_share_count,
+        mlc.simple_tweet_count,
+        mlc.normalized_tweet_count
+    from snapshot_media_with_types m
+        join snapshot_medium_link_counts mlc using ( media_id )
+    order
+        by mlc.media_inlink_count desc
     limit ?
 END
 

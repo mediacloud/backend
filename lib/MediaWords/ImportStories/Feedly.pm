@@ -28,6 +28,7 @@ use warnings;
 use Moose;
 with 'MediaWords::ImportStories';
 
+use CHI;
 use Data::Dumper;
 use Encode;
 use LWP::Simple;

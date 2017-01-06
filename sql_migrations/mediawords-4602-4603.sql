@@ -25,6 +25,8 @@ create table mediacloud_stats (
     total_sentences         bigint not null
 );
 
+alter table media add primary_language            varchar( 4 ) null;
+
 --
 -- 2 of 2. Reset the database version.
 --
