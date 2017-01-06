@@ -1109,7 +1109,7 @@ The media list call returns a gexf formatted network map of the media in the top
 
 | Parameter | Default | Notes                                    |
 | --------- | ------- | ---------------------------------------- |
-| color_field  | media_type    | node coloring; possible values: `partisan`, `media_type`          |
+| color_field  | media_type    | node coloring; possible values: `partisan_code`, `media_type`          |
 | num_media      | 500  | number of media to map, sorted by media inlinks |
 
 Standard parameters accepted: snapshots_id, foci_id, timespans_id.
