@@ -19,7 +19,6 @@ def sql_now() -> str:
 def get_epoch_from_sql_date(date: str) -> int:
     """Given a date in the sql format 'YYYY-MM-DD', return the epoch time."""
     date = decode_string_from_bytes_if_needed(date)
-    print( "get_epoch: " + date );
     parsed_date = dateutil.parser.parse(date)
     return int(parsed_date.timestamp())
 
