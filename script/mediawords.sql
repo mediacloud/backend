@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4602;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4603;
 
 BEGIN
 
@@ -337,6 +337,7 @@ create table media (
     -- if true, indicates that media cloud closely monitors the health of this source
     is_monitored                boolean not null default false,
 
+    primary_language            varchar( 4 ) null,
 
     CONSTRAINT media_name_not_empty CHECK ( ( (name)::text <> ''::text ) ),
     CONSTRAINT media_self_dup CHECK ( dup_media_id IS NULL OR dup_media_id <> media_id )
