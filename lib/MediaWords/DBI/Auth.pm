@@ -756,13 +756,15 @@ EOF
     my $auth_users_id = $userinfo->{ auth_users_id };
 
     # Create roles
-    my $sql = 'INSERT INTO auth_users_roles_map (auth_users_id, auth_roles_id) VALUES (?, ?)';
-    my $sth = $db->prepare_cached( $sql );
     for my $auth_roles_id ( @{ $role_ids } )
     {
-        $sth->execute( $auth_users_id, $auth_roles_id );
+        $db->query(<<SQL,
+            INSERT INTO auth_users_roles_map (auth_users_id, auth_roles_id)
+            VALUES (?, ?)
+SQL
+            $auth_users_id, $auth_roles_id
+        );
     }
-    $sth->finish;
 
     # Update limits (if they're defined)
     if ( defined $weekly_requests_limit )
@@ -869,13 +871,14 @@ EOF
 EOF
         $userinfo->{ auth_users_id }
     );
-    my $sql = 'INSERT INTO auth_users_roles_map (auth_users_id, auth_roles_id) VALUES (?, ?)';
-    my $sth = $db->prepare_cached( $sql );
     for my $auth_roles_id ( @{ $roles } )
     {
-        $sth->execute( $userinfo->{ auth_users_id }, $auth_roles_id );
+        $db->query(<<SQL,
+            INSERT INTO auth_users_roles_map (auth_users_id, auth_roles_id) VALUES (?, ?)
+SQL
+            $userinfo->{ auth_users_id }, $auth_roles_id
+        );
     }
-    $sth->finish;
 
     # End transaction
     $db->commit;
