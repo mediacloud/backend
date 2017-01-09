@@ -377,7 +377,7 @@ sub delete : Local
 
 # search for media matching search for the given keyword
 # return the matching media from the given page along with a
-# Data::Page object for the results
+# MediaWords::Util::Pages object for the results
 sub _search_paged_media
 {
     my ( $self, $c, $q, $page, $row_count ) = @_;
