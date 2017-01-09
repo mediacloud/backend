@@ -212,7 +212,7 @@ sub setup_temporary_snapshot_tables
     my ( $db, $timespan, $topic, $live ) = @_;
 
     # postgres prints lots of 'NOTICE's when deleting temp tables
-    $db->dbh->{ PrintWarn } = 0;
+    $db->set_print_warn( 0 );
 
     if ( $live )
     {
@@ -1958,7 +1958,7 @@ sub snapshot_topic ($$)
     my $topic = $db->find_by_id( 'topics', $topics_id )
       || die( "Unable to find topic '$topics_id'" );
 
-    $db->dbh->{ PrintWarn } = 0;    # avoid noisy, extraneous postgres notices from drops
+    $db->set_print_warn( 0 );    # avoid noisy, extraneous postgres notices from drops
 
     # Log activity that's about to start
     my $changes = {};
