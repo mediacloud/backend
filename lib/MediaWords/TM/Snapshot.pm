@@ -1004,7 +1004,7 @@ sub attach_stories_to_media
 
 sub get_weighted_edges
 {
-    my ( $db, $media, $max_media, $include_weights ) = @_;
+    my ( $db, $media, $max_media ) = @_;
 
     my $media_links = $db->query( <<END, $max_media )->hashes;
 with top_media as (
@@ -1030,7 +1030,9 @@ END
             id     => $k++,
             source => $media_link->{ source_media_id },
             target => $media_link->{ ref_media_id },
-            weight => ( $include_weights ? $media_link->{ link_count } : 1 )
+            weight => 1
+
+              # weight => $media_link->{ inlink_count }
         };
 
         push( @{ $edges }, $edge );
@@ -1274,7 +1276,7 @@ sub layout_gexf_with_graphviz_1
     scale_gexf_nodes( $gexf );
 }
 
-=head2 get_gexf_snapshot( $db, $timespan, $color_field, $max_media, $include_weights )
+=head2 get_gexf_snapshot( $db, $timespan, $color_field, $max_media )
 
 Get a gexf snapshot of the graph described by the linked media sources within the given topic timespan.
 
@@ -1288,7 +1290,7 @@ Include only the $max_media media sources with the most inlinks in the timespan 
 
 sub get_gexf_snapshot
 {
-    my ( $db, $timespan, $color_field, $max_media, $include_weights ) = @_;
+    my ( $db, $timespan, $color_field, $max_media ) = @_;
 
     $color_field ||= 'media_type';
     $max_media   ||= $MAX_GEXF_MEDIA;
@@ -1344,7 +1346,7 @@ END
         push( @{ $attributes->{ attribute } }, { id => $i++, title => $name, type => $type } );
     }
 
-    my $edges = get_weighted_edges( $db, $media, $max_media, $include_weights );
+    my $edges = get_weighted_edges( $db, $media, $max_media );
     $graph->{ edges }->{ edge } = $edges;
 
     my $edge_lookup;
