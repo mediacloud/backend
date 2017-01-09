@@ -698,6 +698,18 @@ SQL
     return $data;
 }
 
+sub autocommit($)
+{
+    my $self = shift;
+    return $self->{ dbh }->{ AutoCommit };
+}
+
+sub set_autocommit($$)
+{
+    my ( $self, $autocommit ) = @_;
+    $self->{ dbh }->{ AutoCommit } = $autocommit;
+}
+
 # for each row in $data, attach all results in the child query that match a join with the $id_column field in each
 # row of $data.  attach to $row->{ $child_field } the $child_field column in the corresponding row in $data.
 sub attach_child_query_singleton ($$$$$)

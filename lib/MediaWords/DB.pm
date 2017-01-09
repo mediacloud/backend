@@ -95,7 +95,7 @@ $$;
 END_SQL
 
     $ret->query( $query );
-    $ret->dbh->{ AutoCommit } || $ret->commit;
+    $ret->autocommit() || $ret->commit;
 
     return $ret;
 }

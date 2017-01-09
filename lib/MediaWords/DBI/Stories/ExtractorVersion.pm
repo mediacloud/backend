@@ -32,7 +32,7 @@ sub _get_tags_id($$$)
     );
 
     #Commit to make sure cache and database are consistent
-    $db->dbh->{ AutoCommit } || $db->commit;
+    $db->autocommit() || $db->commit;
 
     $_tags_id_cache->{ $tag_sets_id }->{ $term } = $tag->{ tags_id };
 

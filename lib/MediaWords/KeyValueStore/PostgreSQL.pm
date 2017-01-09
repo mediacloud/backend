@@ -60,7 +60,7 @@ sub store_content($$$$)
         LOGCONFESS "Unable to compress object ID $object_id: $@";
     }
 
-    my $use_transaction = $db->dbh->{ AutoCommit };
+    my $use_transaction = $db->autocommit();
 
     # "Upsert" the object
     $db->begin_work if ( $use_transaction );
