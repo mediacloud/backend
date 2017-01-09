@@ -670,13 +670,13 @@ sub quote_varchar($$)
 sub quote_date($$)
 {
     my ( $self, $value ) = @_;
-    return $self->dbh->quote_varchar( $value ) . '::date';
+    return $self->dbh->quote( $value, { pg_type => DBD::Pg::PG_VARCHAR } ) . '::date';
 }
 
 sub quote_timestamp($$)
 {
     my ( $self, $value ) = @_;
-    return $self->dbh->quote_varchar( $value ) . '::timestamp';
+    return $self->dbh->quote( $value, { pg_type => DBD::Pg::PG_VARCHAR } ) . '::timestamp';
 }
 
 {
