@@ -399,7 +399,8 @@ sub crawl
 
     DEBUG "starting Crawler::Engine::crawl";
 
-    MediaWords::DB::run_block_with_large_work_mem(
+    my $db = $self->dbs;
+    $db->run_block_with_large_work_mem(
         sub {
 
           MAINLOOP: while ( 1 )
@@ -448,8 +449,7 @@ sub crawl
                     }
                 }
             }
-        },
-        $self->dbs
+        }
     );
 
     kill( 15, map { $_->{ pid } } @{ $self->{ fetchers } } );
