@@ -19,7 +19,7 @@ that the caller of might have initiated.
 
 =head2 Logging a single activity from web UI's controller
 
-    $c->dbis->dbh->begin_work;
+    $c->dbis->begin_work;
 
     # Save story edit
     save_story_edit();
@@ -36,11 +36,11 @@ that the caller of might have initiated.
         )
       )
     {
-        $c->dbis->dbh->rollback;
+        $c->dbis->rollback;
         die "Unable to log addition of new tags.\n";
     }
 
-    $c->dbis->dbh->commit;
+    $c->dbis->commit;
 
 =head2 Logging a system activity from a CLI script
 
