@@ -191,7 +191,7 @@ sub _declare_sentences_cursor
 
     # DO NOT ADD JOINS TO THIS QUERY! INSTEAD ADD ANY JOINED TABLES TO _get_data_lookup AND THEN ADD TO THE CSV
     # IN _print_csv_to_file_from_csr. see pod description above for more info.
-    $db->dbh->do( <<END );
+    $db->query( <<END );
 declare csr cursor for
 
     select
@@ -224,7 +224,7 @@ sub _declare_titles_cursor
 
     # DO NOT ADD JOINS TO THIS QUERY! INSTEAD ADD ANY JOINED TABLES TO _get_data_lookup AND THEN ADD TO THE CSV
     # IN _print_csv_to_file_from_csr. see pod description above for more info.
-    $db->dbh->do( <<END );
+    $db->query( <<END );
 declare csr cursor for
 
     select
@@ -266,19 +266,17 @@ sub _print_csv_to_file_from_csr
     my $i                    = 0;
     while ( 1 )
     {
-        my $sth = $db->prepare( "fetch $FETCH_BLOCK_SIZE from csr" );
-
-        $sth->execute;
-
-        last if 0 == $sth->rows;
-
-        # use fetchrow_arrayref to optimize fetching and lookup speed below -- perl
-        # cpu is a significant bottleneck for this script
-        while ( my $row = $sth->fetchrow_arrayref )
+        my $rows = $db->query( "fetch $FETCH_BLOCK_SIZE from csr" )->hashes;
+        if ( scalar( @{ $rows } ) == 0 )
         {
-            my $stories_id         = $row->[ 0 ];
-            my $media_id           = $row->[ 1 ];
-            my $story_sentences_id = $row->[ 2 ];
+            last;
+        }
+
+        foreach my $row ( @{ $rows } )
+        {
+            my $stories_id         = $row->{ stories_id };
+            my $media_id           = $row->{ media_id };
+            my $story_sentences_id = $row->{ story_sentences_id };
 
             my $processed_stories_id = $data_lookup->{ ps }->{ $stories_id };
             next unless ( $processed_stories_id );
@@ -302,7 +300,7 @@ sub _print_csv_to_file_from_csr
         INFO time() . " " . ( ++$i * $FETCH_BLOCK_SIZE );    # unless ( ++$i % 10 );
     }
 
-    $db->dbh->do( "close csr" );
+    $db->query( "close csr" );
 
     return [ keys %{ $imported_stories_ids } ];
 }
