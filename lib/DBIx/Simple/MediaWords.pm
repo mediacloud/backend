@@ -50,9 +50,9 @@ sub new
     return $self;
 }
 
-sub connect($$$$$$;$$)
+sub connect($$$$$$;$)
 {
-    my ( $self, $host, $port, $user, $pass, $database, $options, $do_not_check_schema_version ) = @_;
+    my ( $self, $host, $port, $user, $pass, $database, $do_not_check_schema_version ) = @_;
 
     unless ( $host and $user and $pass and $database )
     {
@@ -74,7 +74,11 @@ sub connect($$$$$$;$$)
         }
     }
 
-    $options //= {};
+    my $options = {
+        AutoCommit     => 1,
+        pg_enable_utf8 => 1,
+        RaiseError     => 1
+    };
 
     my $dsn = "dbi:Pg:dbname=$database;host=$host;port=$port;";
 
