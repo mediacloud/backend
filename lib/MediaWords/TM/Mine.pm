@@ -1106,7 +1106,7 @@ sub postgres_regex_match($$$)
 
     return undef unless ( @{ $strings } );
 
-    my $quoted_strings = join( ',', map { "(" . $db->dbh->quote( $_ ) . ")" } @{ $strings } );
+    my $quoted_strings = join( ',', map { "(" . $db->quote( $_ ) . ")" } @{ $strings } );
 
     # combine all the strings together to avoid overhead of lots of indivdiual queries
     my $match = $db->query( <<SQL, $re )->hash;
@@ -1299,7 +1299,7 @@ sub get_matching_story_from_db ($$;$)
 
     my $url_lookup = {};
     map { $url_lookup->{ $_ } = 1 } ( $u, $ru, $nu, $nru );
-    my $quoted_url_list = join( ',', map { "(" . $db->dbh->quote( $_ ) . ")" } keys( %{ $url_lookup } ) );
+    my $quoted_url_list = join( ',', map { "(" . $db->quote( $_ ) . ")" } keys( %{ $url_lookup } ) );
 
     # TODO - only query stories_id and media_id initially
 
