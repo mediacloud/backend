@@ -684,11 +684,93 @@ sub quote_timestamp
     return $self->quote_varchar( $value ) . '::timestamp';
 }
 
-# Alias for DBD::Pg's prepare()
-sub prepare
 {
-    my $self = shift;
-    return $self->dbh->prepare( @_ );
+    # Wrapper around prepared statement
+    package DBIx::Simple::MediaWords::Statement;
+
+    use strict;
+    use warnings;
+
+    use DBD::Pg qw(:pg_types);
+
+    our $VALUE_BYTEA = 1;
+    # There are other types (e.g. PG_POINT), but they aren't used currently by
+    # any live code
+
+    sub new($$$)
+    {
+        my ( $class, $db, $sql ) = @_;
+
+        my $self = {};
+        bless $self, $class;
+
+        $self->{ db } = $db;
+        $self->{ sql } = $sql;
+
+        eval {
+            $self->{ sth } = $db->dbh->prepare( $sql );
+        };
+        if ( $@ ) {
+            die "Error while preparing statement '$sql': $@";
+        }
+
+        return $self;
+    }
+
+    sub bind_param($$$;$)
+    {
+        my ( $self, $param_num, $bind_value, $bind_type ) = @_;
+
+        if ( $param_num < 1 )
+        {
+            die "Parameter number must be >= 1.";
+        }
+
+        my $bind_args = undef;
+        if ( defined $bind_type )
+        {
+            if ( $bind_type == $VALUE_BYTEA )
+            {
+                $bind_args = { pg_type => DBD::Pg::PG_BYTEA };
+            }
+            else
+            {
+                die "Unknown bind type $bind_type.";
+            }
+        }
+
+        eval {
+            $self->{ sth }->bind_param( $param_num, $bind_value, $bind_args );
+        };
+        if ( $@ )
+        {
+            die "Error while binding parameter $param_num for prepared statement '" . $self->{ sql } . "': $@";
+        }
+    }
+
+    sub execute($)
+    {
+        my ( $self ) = @_;
+
+        eval {
+            $self->{ sth }->execute();
+        };
+        if ( $@ )
+        {
+            die "Error while executing prepared statement '" . $self->{ sql } . "': $@";
+        }
+    }
+
+    1;
+}
+
+# Alias for DBD::Pg's prepare()
+sub prepare($$)
+{
+    my ( $self, $sql ) = @_;
+
+    # Tiny wrapper around DBD::Pg's statement
+    return DBIx::Simple::MediaWords::Statement->new( $self, $sql );
 }
 
 # for each row in $data, attach all results in the child query that match a join with the $id_column field in each

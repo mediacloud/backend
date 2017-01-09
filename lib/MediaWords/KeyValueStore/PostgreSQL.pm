@@ -13,7 +13,6 @@ use Modern::Perl "2015";
 use MediaWords::DB;
 use MediaWords::CommonLibs;
 use MediaWords::Util::Compress;
-use DBD::Pg qw(:pg_types);
 
 # Default compression method for PostgreSQL
 Readonly my $POSTGRESQL_DEFAULT_COMPRESSION_METHOD => $MediaWords::KeyValueStore::COMPRESSION_GZIP;
@@ -74,7 +73,7 @@ sub store_content($$$$)
     	WHERE object_id = ?
 EOF
     );
-    $sth->bind_param( 1, $content_to_store, { pg_type => DBD::Pg::PG_BYTEA } );
+    $sth->bind_param( 1, $content_to_store, $DBIx::Simple::MediaWords::Statement::VALUE_BYTEA );
     $sth->bind_param( 2, $object_id );
     $sth->execute();
 
@@ -90,7 +89,7 @@ EOF
 EOF
     );
     $sth->bind_param( 1, $object_id );
-    $sth->bind_param( 2, $content_to_store, { pg_type => DBD::Pg::PG_BYTEA } );
+    $sth->bind_param( 2, $content_to_store, $DBIx::Simple::MediaWords::Statement::VALUE_BYTEA );
     $sth->bind_param( 3, $object_id );
     $sth->execute();
 
