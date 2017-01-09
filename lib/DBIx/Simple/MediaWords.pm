@@ -50,9 +50,15 @@ sub new
     return $self;
 }
 
-sub connect($$$$;$$)
+sub connect($$$$$$;$$)
 {
-    my ( $self, $dsn, $user, $pass, $options, $do_not_check_schema_version ) = @_;
+    my ( $self, $host, $port, $user, $pass, $database, $options, $do_not_check_schema_version ) = @_;
+
+    unless ( $host and $user and $pass and $database )
+    {
+        die "Database connection credentials are not set.";
+    }
+    $port //= 5432;
 
     # If the user didn't clearly (via 'true' or 'false') state whether or not
     # to check schema version, check it once per PID
@@ -69,6 +75,9 @@ sub connect($$$$;$$)
     }
 
     $options //= {};
+
+    my $dsn = "dbi:Pg:dbname=$database;host=$host;port=$port;";
+
     my $db = $self->SUPER::connect( $dsn, $user, $pass, $options );
 
     unless ( $do_not_check_schema_version )
