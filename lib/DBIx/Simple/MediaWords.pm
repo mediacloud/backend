@@ -556,6 +556,35 @@ sub query_paged_hashes
 
 }
 
+# for each row in $data, attach all results in the child query that match a join with the $id_column field in each
+# row of $data.  attach to $row->{ $child_field } the $child_field column in the corresponding row in $data.
+sub attach_child_query_singleton ($$$$$)
+{
+    my ( $db, $data, $child_query, $child_field, $id_column ) = @_;
+
+    my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ $id_column } } @{ $data } ] );
+
+    my $children = $db->query( <<SQL )->hashes;
+select q.* from ( $child_query ) q join $ids_table ids on ( q.$id_column = ids.id )
+SQL
+
+    my $parent_lookup = {};
+
+    for my $parent ( @{ $data } )
+    {
+        $parent_lookup->{ $parent->{ $id_column } } = $parent;
+    }
+
+    for my $child ( @{ $children } )
+    {
+        my $parent = $parent_lookup->{ $child->{ $id_column } };
+
+        $parent->{ $child_field } = $child->{ $child_field };
+    }
+
+    return $data;
+}
+
 # executes the supplied subroutine inside a transaction
 sub transaction
 {
@@ -720,35 +749,6 @@ sub set_show_error_statement($$)
 {
     my ( $self, $show_error_statement ) = @_;
     $self->{ dbh }->{ ShowErrorStatement } = $show_error_statement;
-}
-
-# for each row in $data, attach all results in the child query that match a join with the $id_column field in each
-# row of $data.  attach to $row->{ $child_field } the $child_field column in the corresponding row in $data.
-sub attach_child_query_singleton ($$$$$)
-{
-    my ( $db, $data, $child_query, $child_field, $id_column ) = @_;
-
-    my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ $id_column } } @{ $data } ] );
-
-    my $children = $db->query( <<SQL )->hashes;
-select q.* from ( $child_query ) q join $ids_table ids on ( q.$id_column = ids.id )
-SQL
-
-    my $parent_lookup = {};
-
-    for my $parent ( @{ $data } )
-    {
-        $parent_lookup->{ $parent->{ $id_column } } = $parent;
-    }
-
-    for my $child ( @{ $children } )
-    {
-        my $parent = $parent_lookup->{ $child->{ $id_column } };
-
-        $parent->{ $child_field } = $child->{ $child_field };
-    }
-
-    return $data;
 }
 
 1;
