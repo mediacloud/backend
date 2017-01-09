@@ -978,9 +978,10 @@ sub gexf : Local
 {
     my ( $self, $c, $timespans_id, $csv ) = @_;
 
-    my $l           = $c->req->params->{ l };
-    my $color_field = $c->req->params->{ cf };
-    my $num_media   = $c->req->params->{ nm };
+    my $l               = $c->req->params->{ l };
+    my $color_field     = $c->req->params->{ cf };
+    my $num_media       = $c->req->params->{ nm };
+    my $include_weights = $c->req->params->{ w };
 
     my $db = $c->dbis;
 
@@ -998,7 +999,7 @@ END
     if ( !$gexf )
     {
         MediaWords::TM::Snapshot::setup_temporary_snapshot_tables( $db, $timespan, $topic, $l );
-        $gexf = MediaWords::TM::Snapshot::get_gexf_snapshot( $db, $timespan, $color_field, $num_media );
+        $gexf = MediaWords::TM::Snapshot::get_gexf_snapshot( $db, $timespan, $color_field, $num_media, $include_weights );
     }
 
     my $base_url = $c->uri_for( '/' );
