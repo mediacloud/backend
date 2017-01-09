@@ -192,6 +192,15 @@ sub query
 {
     my $self = shift @_;
 
+    if ( scalar( @_ ) == 0 )
+    {
+        LOGCONFESS 'No query or its parameters.';
+    }
+    unless ( $_[ 0 ] )
+    {
+        LOGCONFESS 'Query is empty or undefined.';
+    }
+
     my $ret;
     eval { $ret = $self->SUPER::query( @_ ); };
     if ( $@ )
@@ -276,6 +285,15 @@ sub run_block_with_large_work_mem($&)
 sub query_with_large_work_mem
 {
     my $self = shift @_;
+
+    if ( scalar( @_ ) == 0 )
+    {
+        LOGCONFESS 'No query or its parameters.';
+    }
+    unless ( $_[ 0 ] )
+    {
+        LOGCONFESS 'Query is empty or undefined.';
+    }
 
     my @args = @_;
     my $ret;
