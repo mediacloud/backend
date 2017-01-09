@@ -710,6 +710,18 @@ sub set_autocommit($$)
     $self->{ dbh }->{ AutoCommit } = $autocommit;
 }
 
+sub show_error_statement($)
+{
+    my $self = shift;
+    return $self->{ dbh }->{ ShowErrorStatement };
+}
+
+sub set_show_error_statement($$)
+{
+    my ( $self, $show_error_statement ) = @_;
+    $self->{ dbh }->{ ShowErrorStatement } = $show_error_statement;
+}
+
 # for each row in $data, attach all results in the child query that match a join with the $id_column field in each
 # row of $data.  attach to $row->{ $child_field } the $child_field column in the corresponding row in $data.
 sub attach_child_query_singleton ($$$$$)
