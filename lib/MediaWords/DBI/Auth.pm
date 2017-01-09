@@ -757,7 +757,7 @@ EOF
 
     # Create roles
     my $sql = 'INSERT INTO auth_users_roles_map (auth_users_id, auth_roles_id) VALUES (?, ?)';
-    my $sth = $db->dbh->prepare_cached( $sql );
+    my $sth = $db->prepare_cached( $sql );
     for my $auth_roles_id ( @{ $role_ids } )
     {
         $sth->execute( $auth_users_id, $auth_roles_id );
@@ -870,7 +870,7 @@ EOF
         $userinfo->{ auth_users_id }
     );
     my $sql = 'INSERT INTO auth_users_roles_map (auth_users_id, auth_roles_id) VALUES (?, ?)';
-    my $sth = $db->dbh->prepare_cached( $sql );
+    my $sth = $db->prepare_cached( $sql );
     for my $auth_roles_id ( @{ $roles } )
     {
         $sth->execute( $userinfo->{ auth_users_id }, $auth_roles_id );
