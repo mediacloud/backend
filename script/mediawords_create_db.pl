@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #
-# See MediaWords::Pg::Schema for definition of which functions to add
+# See MediaWords::DB::Schema for definition of which functions to add
 #
 # Set the MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1 environment variable to create
 # the database without confirming the action.
@@ -20,7 +20,7 @@ use MediaWords::DB;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use MediaWords::Pg::Schema;
+use MediaWords::DB::Schema;
 
 use Term::Prompt;
 use Readonly;
@@ -69,7 +69,7 @@ EOF
 
     exit if !$continue_and_reset_db;
 
-    MediaWords::Pg::Schema::recreate_db();
+    MediaWords::DB::Schema::recreate_db();
 
     INFO "Database created.";
 }

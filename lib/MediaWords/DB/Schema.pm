@@ -1,4 +1,4 @@
-package MediaWords::Pg::Schema;
+package MediaWords::DB::Schema;
 
 # import functions into server schema
 

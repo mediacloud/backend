@@ -11,7 +11,7 @@ BEGIN
 }
 
 use Data::Dumper;
-use MediaWords::Pg::Schema;
+use MediaWords::DB::Schema;
 
 use Test::NoWarnings;
 use Test::More tests => 12;
@@ -34,7 +34,7 @@ MediaWords::Test::DB::test_on_test_database(
         isa_ok( $db, "DBIx::Simple::MediaWords" );
 
         # clear the DB
-        MediaWords::Pg::Schema::recreate_db( 'test' );
+        MediaWords::DB::Schema::recreate_db( 'test' );
 
         # transaction success
         $db->transaction(

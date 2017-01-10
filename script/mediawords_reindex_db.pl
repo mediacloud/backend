@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# see MediaWords::Pg::Schema for definition of which functions to add
+# see MediaWords::DB::Schema for definition of which functions to add
 
 use strict;
 use warnings;
@@ -16,7 +16,7 @@ use MediaWords::DB;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use MediaWords::Pg::Schema;
+use MediaWords::DB::Schema;
 
 use Term::Prompt;
 use Data::Dumper;

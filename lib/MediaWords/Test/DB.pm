@@ -17,7 +17,7 @@ use MediaWords::DB;
 use MediaWords::DBI::Auth;
 use MediaWords::DBI::Downloads;
 use MediaWords::Job::ExtractAndVector;
-use MediaWords::Pg::Schema;
+use MediaWords::DB::Schema;
 use MediaWords::Util::Config;
 use MediaWords::Util::URL;
 
@@ -28,7 +28,7 @@ sub test_on_test_database
 {
     my ( $sub ) = @_;
 
-    MediaWords::Pg::Schema::recreate_db( 'test' );
+    MediaWords::DB::Schema::recreate_db( 'test' );
 
     my $db = MediaWords::DB::connect_to_db( 'test' );
 

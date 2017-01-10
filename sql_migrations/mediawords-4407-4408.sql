@@ -174,7 +174,7 @@ CREATE INDEX auth_users_roles_map_users_id_roles_id ON auth_users_roles_map (use
 
 --
 -- Manually added stopwords
--- (output of MediaWords::Pg::Schema::get_is_stop_stem_function_tables_and_definition())
+-- (output of MediaWords::DB::Schema::get_is_stop_stem_function_tables_and_definition())
 --
 
 -- PostgreSQL sends notices about implicit keys that are being created,
