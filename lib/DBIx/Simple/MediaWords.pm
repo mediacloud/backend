@@ -115,6 +115,11 @@ sub disconnect
     delete $self->{ _db };
 }
 
+sub dbh
+{
+    LOGCONFESS "Please don't use internal 'dbh' handle anymore; instead, use one of DBIx::Simple::MediaWords helpers.";
+}
+
 # Schema is outdated / too new; returns 1 if MC should continue nevertheless, 0 otherwise
 sub _should_continue_with_outdated_schema($$$)
 {
