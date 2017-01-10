@@ -1,11 +1,11 @@
 #!/bin/bash
 
-if [ ! -e script/mediawords.sql ]; then
-    echo "Can't find script/mediawords.sql.  Are you running from the mediacloud root directory?";
+if [ ! -e schema/mediawords.sql ]; then
+    echo "Can't find schema/mediawords.sql.  Are you running from the mediacloud root directory?";
     exit;
 fi  
 
-NEW_SCHEMA_VERSION=`cat script/mediawords.sql  \
+NEW_SCHEMA_VERSION=`cat schema/mediawords.sql  \
     | perl -lne 'print if /(MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT)/'   \
     | perl -lpe 's/.*MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := (\d+?);.*/$1/'`
     

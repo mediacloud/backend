@@ -4,12 +4,12 @@
 # updated and the diff has been created.
 #
 # Usage:
-# 1) Do some changes in Media Cloud's code under version control (SVN or Git) involving script/mediawords.sql.
+# 1) Do some changes in Media Cloud's code under version control (SVN or Git) involving schema/mediawords.sql.
 # 2) Run ./script/pre_commit_hooks/hook-db-schema-version.sh before committing.
 # 3) The script will exit with a non-zero exit status if there are some additional modifications that you have
 #    to do before committing.
 
-SCHEMA_FILE="script/mediawords.sql"
+SCHEMA_FILE="schema/mediawords.sql"
 
 if [ -d .git ]; then
     #echo "This is a Git repository."
