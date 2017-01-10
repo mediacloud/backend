@@ -499,7 +499,8 @@ sub write_story_links_snapshot
 
     if ( topic_is_twitter_topic( $db, $timespan ) )
     {
-        $db->execute_with_large_work_mem( <<SQL )->rows;
+        $db->execute_with_large_work_mem(
+            <<SQL
 create temporary table snapshot_story_links as
 
     with tweet_stories as (
@@ -524,6 +525,7 @@ create temporary table snapshot_story_links as
         from coshared_links cs
         group by cs.stories_id_a, cs.stories_id_b
 SQL
+        );
     }
     else
     {
