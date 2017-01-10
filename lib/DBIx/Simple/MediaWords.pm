@@ -764,9 +764,7 @@ sub transaction($$)
     {
         $self->query( 'ROLLBACK' );
 
-        # TODO: This obliterates any stack trace that exists.
-        # See <http://stackoverflow.com/questions/971273/perl-sigdie-eval-and-stack-trace>
-        die $x;
+        LOGCONFESS $x;
     }
 }
 
