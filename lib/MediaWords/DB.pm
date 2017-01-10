@@ -13,11 +13,15 @@ use MediaWords::Util::Config;
 
 use MediaWords::Test::DB;
 
-# takes a hashref to a hash of settings and returns an array
-#  with DBI connect info
-sub _create_connect_info_from_settings
+# returns connection info from the configuration file
+# if no connection label is supplied and no connections have been made,
+# the first connection in the config is used otherwise the last used settings
+# are returned
+sub connect_info
 {
-    my ( $settings ) = @_;
+    my ( $label ) = @_;
+
+    my $settings = connect_settings( $label );
 
     unless ( defined $settings )
     {
@@ -43,19 +47,6 @@ sub _create_connect_info_from_settings
         $settings->{ pass },    #
         $settings->{ db }       #
     );
-}
-
-# returns connection info from the configuration file
-# if no connection label is supplied and no connections have been made,
-# the first connection in the config is used otherwise the last used settings
-# are returned
-sub connect_info
-{
-    my ( $label ) = @_;
-
-    my $settings = connect_settings( $label );
-
-    return _create_connect_info_from_settings( $settings );
 }
 
 sub connect_to_db(;$$)
