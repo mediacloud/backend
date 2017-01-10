@@ -4,7 +4,7 @@ from mediawords.db.schema.version import *
 
 
 def test_schema_version_from_lines():
-    assert_raises(SchemaVersionFromLinesException, schema_version_from_lines, 'no version')
+    assert_raises(McSchemaVersionFromLinesException, schema_version_from_lines, 'no version')
 
     # noinspection SqlDialectInspection,SqlNoDataSourceInspection
     assert schema_version_from_lines("""
