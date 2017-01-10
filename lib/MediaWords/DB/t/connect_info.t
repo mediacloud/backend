@@ -19,7 +19,7 @@ use DBIx::Simple::MediaWords;
 
 use Dir::Self;
 
-MediaWords::Util::Config::set_config_file( __DIR__ . '/db_production.yml' );
+MediaWords::Util::Config::set_config_file( __DIR__ . '/connect_info.yml' );
 
 {
     my ( $host, $port, $username, $password, $database ) = MediaWords::DB::connect_info();
