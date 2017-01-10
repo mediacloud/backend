@@ -12,7 +12,7 @@ def test_get_config():
     assert 'data_dir' in config['mediawords']
 
 
-def test_set_config_nonexistent_file():
+def test_set_config_file_nonexistent():
     tempdir = tempfile.mkdtemp()
     nonexistent_config = os.path.join(tempdir, 'nonexistent_configuration.yml')
     assert os.path.exists(nonexistent_config) is False
