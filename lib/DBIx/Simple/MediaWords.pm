@@ -395,6 +395,10 @@ sub _set_work_mem
     return;
 }
 
+# Run an argument subroutine block with large "work_mem" enabled
+#
+# This helper DOES NOT return a result (due to internals of psycopg2), so make
+# sure to store whatever you want to store within an argument subroutine.
 sub run_block_with_large_work_mem($&)
 {
     my ( $self, $block ) = @_;
@@ -432,6 +436,14 @@ sub run_block_with_large_work_mem($&)
     TRACE "exiting run_block_with_large_work_mem";
 }
 
+# Execute an argument query with large "work_mem" enabled
+#
+# This helper DOES NOT return a result (due to internals of psycopg2). If you
+# need a result, either:
+#
+# 1) use run_block_with_large_work_mem() and store the result in a variable
+#    within a subroutine, or
+# 2) store it in a temporary table and fetch it afterwards.
 sub execute_with_large_work_mem
 {
     my $self = shift @_;
