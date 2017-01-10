@@ -78,7 +78,7 @@ join snapshot_period_stories to other snapshot_ tables to generate the necessary
 
 It is important to know about the snapshot_ tables for two reasons.  First, topic mapper related queries will appear
 in the running queries list of the server that include these tables, which are not in the static schema definition
-in script/mediawords.sql.  A downside of the use of these temporary tables is that these queries can be difficult
+in schema/mediawords.sql.  A downside of the use of these temporary tables is that these queries can be difficult
 to optimize because they cannot be explained in a separate session with psql.  Instead, you have to embed an explain
 query in the code that creates and uses the temporary tables.
 
