@@ -754,32 +754,6 @@ SQL
     return $data;
 }
 
-# executes the supplied subroutine inside a transaction
-sub transaction($$)
-{
-    my ( $self, $subroutine ) = @_;
-
-    $self->query( 'START TRANSACTION' );
-
-    eval {
-        if ( $subroutine->() )
-        {
-            $self->query( 'COMMIT' );
-        }
-        else
-        {
-            $self->query( 'ROLLBACK' );
-        }
-    };
-
-    if ( my $x = $@ )
-    {
-        $self->query( 'ROLLBACK' );
-
-        LOGCONFESS $x;
-    }
-}
-
 # get the name of a temporary table that contains all of the ids in $ids as an 'id bigint' field.
 # the database connection must be within a transaction.  the temporary table is setup to be dropped
 # at the end of the current transaction. row insertion order is maintained.
