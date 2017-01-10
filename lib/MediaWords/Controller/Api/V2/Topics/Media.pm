@@ -125,10 +125,11 @@ sub map_GET
 {
     my ( $self, $c ) = @_;
 
-    my $timespan        = MediaWords::TM::set_timespans_id_param( $c );
-    my $color_field     = $c->req->params->{ color_field } || 'media_type';
-    my $num_media       = $c->req->params->{ num_media } || 500;
-    my $include_weights = $c->req->params->{ include_weights } || 0;
+    my $timespan             = MediaWords::TM::set_timespans_id_param( $c );
+    my $color_field          = $c->req->params->{ color_field } || 'media_type';
+    my $num_media            = $c->req->params->{ num_media } || 500;
+    my $include_weights      = $c->req->params->{ include_weights } || 0;
+    my $num_links_per_medium = $c->req->params->{ num_links_per_medium } || 1000;
 
     MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
 
@@ -137,7 +138,14 @@ sub map_GET
     my $topic = $db->require_by_id( 'topics', $c->stash->{ topics_id } );
 
     MediaWords::TM::Snapshot::setup_temporary_snapshot_tables( $db, $timespan, $topic );
-    my $gexf = MediaWords::TM::Snapshot::get_gexf_snapshot( $db, $timespan, $color_field, $num_media, $include_weights );
+
+    my $gexf_options = {
+        max_media            => $num_media,
+        color_field          => $color_field,
+        include_weights      => $include_weights,
+        max_links_per_medium => $num_links_per_medium
+    };
+    my $gexf = MediaWords::TM::Snapshot::get_gexf_snapshot( $db, $timespan, $gexf_options );
     MediaWords::TM::Snapshot::discard_temp_tables( $db );
 
     my $base_url = $c->uri_for( '/' );
