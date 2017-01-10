@@ -2382,18 +2382,19 @@ END
         }
 
         # cleanup any topic_seed_urls pointing to a merged story
-        $db->query_with_large_work_mem( <<SQL, $topic->{ topics_id } );
-update topic_seed_urls tsu
-    set stories_id = tms.target_stories_id
-    from
-        topic_merged_stories_map tms,
-        topic_stories ts
-    where
-        tsu.stories_id = tms.source_stories_id and
-        ts.stories_id = tms.target_stories_id and
-        tsu.topics_id = ts.topics_id and
-        ts.topics_id = \$1
+        $db->execute_with_large_work_mem(
+            <<SQL,
+            UPDATE topic_seed_urls AS tsu
+            SET stories_id = tms.target_stories_id
+            FROM topic_merged_stories_map AS tms,
+                 topic_stories ts
+            WHERE tsu.stories_id = tms.source_stories_id
+              AND ts.stories_id = tms.target_stories_id
+              AND tsu.topics_id = ts.topics_id
+              AND ts.topics_id = \$1
 SQL
+            $topic->{ topics_id }
+        );
 
         $db->commit;
     }
@@ -3012,14 +3013,20 @@ update topic_seed_urls tsu
 SQL
 
     # now insert any topic_tweet_urls that are not already in the topic_seed_urls
-    $db->query_with_large_work_mem( <<SQL, $topic->{ topics_id } );
-insert into topic_seed_urls ( topics_id, url, assume_match, source )
-    select distinct ttfu.twitter_topics_id, ttfu.url, true, 'twitter'
-        from topic_tweet_full_urls ttfu
-            where
-                ttfu.twitter_topics_id = \$1 and
-                ttfu.url not in ( select url from topic_seed_urls where topics_id = \$1 )
+    $db->execute_with_large_work_mem(
+        <<SQL,
+        INSERT INTO topic_seed_urls ( topics_id, url, assume_match, source )
+            SELECT DISTINCT ttfu.twitter_topics_id, ttfu.url, true, 'twitter'
+            FROM topic_tweet_full_urls ttfu
+            WHERE ttfu.twitter_topics_id = \$1
+              AND ttfu.url NOT IN (
+                SELECT url
+                FROM topic_seed_urls
+                WHERE topics_id = \$1
+              )
 SQL
+        $topic->{ topics_id }
+    );
 }
 
 # insert all topic_tweet_urls into topic_seed_urls for parent topic
