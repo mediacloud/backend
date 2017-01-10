@@ -31,7 +31,7 @@ class RequireByIDException(MediaWordsDatabaseException):
 # FIXME make PyCharm parse psycopg2's query parameters correctly: http://stackoverflow.com/a/36346689/200603
 # FIXME custom exceptions
 # FIXME add function parameter / return types
-class MediaWords(object):
+class DatabaseHandler(object):
     """PostgreSQL middleware (imitates DBIx::Simple's interface)."""
 
     # Environment variable which, when set, will make us ignore the schema version
@@ -259,7 +259,7 @@ class MediaWords(object):
         if len(query_params) > 2:
             raise Exception("psycopg2's execute() accepts at most 2 parameters.")
 
-        return MediaWords.Result(self.__db, *query_params)
+        return DatabaseHandler.Result(self.__db, *query_params)
 
     def __get_current_work_mem(self) -> str:
         current_work_mem = self.query("SHOW work_mem").flat()[0]

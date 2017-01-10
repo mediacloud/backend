@@ -13,7 +13,7 @@ use MediaWords::CommonLibs;
 
 use Getopt::Long;
 use HTML::Strip;
-use DBIx::Simple::MediaWords;
+use MediaWords::DB::Handler;
 use MediaWords::DB;
 
 use MediaWords::DBI::Downloads;

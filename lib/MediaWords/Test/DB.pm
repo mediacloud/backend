@@ -12,8 +12,8 @@ use File::Path;
 use Readonly;
 use Text::Lorem::More;
 
-use DBIx::Simple::MediaWords;
 use MediaWords::DB;
+use MediaWords::DB::Handler;
 use MediaWords::DBI::Auth;
 use MediaWords::DBI::Downloads;
 use MediaWords::Job::ExtractAndVector;

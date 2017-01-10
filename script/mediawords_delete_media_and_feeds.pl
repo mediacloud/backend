@@ -16,7 +16,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;
-use DBIx::Simple::MediaWords;
+use MediaWords::DB::Handler;
 
 sub main
 {

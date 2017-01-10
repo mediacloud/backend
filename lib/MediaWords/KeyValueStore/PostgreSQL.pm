@@ -73,7 +73,7 @@ sub store_content($$$$)
     	WHERE object_id = ?
 EOF
     );
-    $sth->bind_param( 1, $content_to_store, $DBIx::Simple::MediaWords::Statement::VALUE_BYTEA );
+    $sth->bind_param( 1, $content_to_store, $MediaWords::DB::Handler::Statement::VALUE_BYTEA );
     $sth->bind_param( 2, $object_id );
     $sth->execute();
 
@@ -89,7 +89,7 @@ EOF
 EOF
     );
     $sth->bind_param( 1, $object_id );
-    $sth->bind_param( 2, $content_to_store, $DBIx::Simple::MediaWords::Statement::VALUE_BYTEA );
+    $sth->bind_param( 2, $content_to_store, $MediaWords::DB::Handler::Statement::VALUE_BYTEA );
     $sth->bind_param( 3, $object_id );
     $sth->execute();
 

@@ -19,19 +19,19 @@ use Test::More tests => 12;
 BEGIN
 {
     use_ok( 'MediaWords::Util::Config' );
-    use_ok( 'DBIx::Simple::MediaWords' );
+    use_ok( 'MediaWords::DB::Handler' );
     use_ok( 'MediaWords::Test::DB' );
 }
 
 require_ok( 'MediaWords::Util::Config' );
-require_ok( 'DBIx::Simple::MediaWords' );
+require_ok( 'MediaWords::DB::Handler' );
 require_ok( 'MediaWords::Test::DB' );
 
 MediaWords::Test::DB::test_on_test_database(
     sub {
         my $db = shift;
 
-        isa_ok( $db, "DBIx::Simple::MediaWords" );
+        isa_ok( $db, "MediaWords::DB::Handler" );
 
         # clear the DB
         MediaWords::DB::Schema::recreate_db( 'test' );

@@ -38,8 +38,7 @@ Here's a brief road map of the MC repository
 
 * `lib/MediaWords/Crawler/Extractor.pm` - text extraction implementation
 
-* `lib/DBIx/Simple/MediaWords.pm` - local sub class of DBIx::Simple that
-  Media Cloud uses for database access
+* `lib/MediaWords/DB/Handler.pm` - PostgreSQL database handler
 
 * `data/` - directory for all data files, meaning anything that gets written by the system (cache files, etc).
 

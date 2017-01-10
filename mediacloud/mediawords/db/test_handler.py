@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from dbix.simple import *
+from mediawords.db.handler import *
 from mediawords.util.config import get_config, set_config
 from mediawords.util.log import create_logger
 
@@ -8,7 +8,7 @@ l = create_logger(__name__)
 
 
 # noinspection SqlResolve,SpellCheckingInspection
-class TestMediaWords(TestCase):
+class TestDatabaseHandler(TestCase):
     __db = None
 
     def setUp(self):
@@ -21,12 +21,12 @@ class TestMediaWords(TestCase):
                 break
         assert test_database is not None
 
-        l.info("Connecting to test database '%s' via MediaWords class..." % test_database['db'])
-        self.__db = MediaWords(host=test_database['host'],
-                               port=test_database['port'],
-                               username=test_database['user'],
-                               password=test_database['pass'],
-                               database=test_database['db'])
+        l.info("Connecting to test database '%s' via DatabaseHandler class..." % test_database['db'])
+        self.__db = DatabaseHandler(host=test_database['host'],
+                                    port=test_database['port'],
+                                    username=test_database['user'],
+                                    password=test_database['pass'],
+                                    database=test_database['db'])
 
         l.info("Preparing test table 'kardashians'...")
         self.__db.query("""

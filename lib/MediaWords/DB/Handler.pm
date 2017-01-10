@@ -1,4 +1,4 @@
-package DBIx::Simple::MediaWords;
+package MediaWords::DB::Handler;
 
 # Database handler: proxy package to DBIx::Simple with some extra helpers
 
@@ -117,7 +117,7 @@ sub disconnect
 
 sub dbh
 {
-    LOGCONFESS "Please don't use internal 'dbh' handle anymore; instead, use one of DBIx::Simple::MediaWords helpers.";
+    LOGCONFESS "Please don't use internal 'dbh' handle anymore; instead, use one of MediaWords::DB::Handler helpers.";
 }
 
 # Schema is outdated / too new; returns 1 if MC should continue nevertheless, 0 otherwise
@@ -218,7 +218,7 @@ sub schema_is_up_to_date
     #
     # Clarifies which DBIx::Simple helpers are being used and need to be ported
     # to Python)
-    package DBIx::Simple::MediaWords::Result;
+    package MediaWords::DB::Handler::Result;
 
     use strict;
     use warnings;
@@ -231,9 +231,9 @@ sub schema_is_up_to_date
         my $db         = shift;
         my @query_args = @_;
 
-        if ( ref( $db ) ne 'DBIx::Simple::MediaWords' )
+        if ( ref( $db ) ne 'MediaWords::DB::Handler' )
         {
-            die "Database is not a reference to DBIx::Simple::MediaWords but rather to " . ref( $db );
+            die "Database is not a reference to MediaWords::DB::Handler but rather to " . ref( $db );
         }
 
         if ( scalar( @query_args ) == 0 )
@@ -258,7 +258,7 @@ sub schema_is_up_to_date
     }
 
     #
-    # DBIx::Simple::Result methods
+    # MediaWords::DB::Handler::Result methods
     #
 
     # Returns a list of column names
@@ -358,7 +358,7 @@ sub query
     my $self       = shift;
     my @query_args = @_;
 
-    return DBIx::Simple::MediaWords::Result->new( $self, @query_args );
+    return MediaWords::DB::Handler::Result->new( $self, @query_args );
 }
 
 sub _get_current_work_mem
@@ -407,7 +407,7 @@ sub run_block_with_large_work_mem($&)
     {
         LOGCONFESS "Block is undefined or is not a subref.";
     }
-    unless ( $self and ref( $self ) eq 'DBIx::Simple::MediaWords' )
+    unless ( $self and ref( $self ) eq 'MediaWords::DB::Handler' )
     {
         LOGCONFESS "Database handler is undefined or is not a database instance.";
     }
@@ -870,7 +870,7 @@ sub quote_timestamp($$)
 
 {
     # Wrapper around prepared statement
-    package DBIx::Simple::MediaWords::Statement;
+    package MediaWords::DB::Handler::Statement;
 
     use strict;
     use warnings;
@@ -889,9 +889,9 @@ sub quote_timestamp($$)
         my $self = {};
         bless $self, $class;
 
-        if ( ref( $db ) ne 'DBIx::Simple::MediaWords' )
+        if ( ref( $db ) ne 'MediaWords::DB::Handler' )
         {
-            die "Database is not a reference to DBIx::Simple::MediaWords but rather to " . ref( $db );
+            die "Database is not a reference to MediaWords::DB::Handler but rather to " . ref( $db );
         }
 
         $self->{ sql } = $sql;
@@ -954,7 +954,7 @@ sub prepare($$)
     my ( $self, $sql ) = @_;
 
     # Tiny wrapper around DBD::Pg's statement
-    return DBIx::Simple::MediaWords::Statement->new( $self, $sql );
+    return MediaWords::DB::Handler::Statement->new( $self, $sql );
 }
 
 # for each row in $data, attach all results in the child query that match a join with the $id_column field in each

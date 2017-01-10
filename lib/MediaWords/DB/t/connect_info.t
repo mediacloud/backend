@@ -15,7 +15,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::Util::Config;
 use MediaWords::DB;
-use DBIx::Simple::MediaWords;
+use MediaWords::DB::Handler;
 
 use Dir::Self;
 

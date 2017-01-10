@@ -499,7 +499,7 @@ sub main
     binmode( STDOUT, ":utf8" );
     binmode( STDERR, ":utf8" );
 
-    my $db = MediaWords::DB::connect_to_db() || die DBIx::Simple::MediaWords->error;
+    my $db = MediaWords::DB::connect_to_db() || die MediaWords::DB::Handler->error;
 
     if ( $action eq 'add' )
     {

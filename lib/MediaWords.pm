@@ -10,10 +10,11 @@ use v5.22;
 
 #use Catalyst::Runtime;
 
-use DBIx::Simple::MediaWords;
+use MediaWords::DB::Handler;
 use MediaWords::Util::Config;
-use URI;
 use MediaWords::DBI::Auth::Roles;
+
+use URI;
 
 # Set flags and add plugins for the application
 #
