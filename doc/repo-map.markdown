@@ -15,9 +15,9 @@ Here's a brief road map of the MC repository
 * `supervisor/*` - supervisord installation that runs the various daemons to crawl feeds, extract text, annotate
   stories, etc.
 
-* `script/` - command line scripts that run the various aspects of the system.
+* `schema/mediawords.sql` - sql definition of postgres database
 
-* `script/mediawords.sql` - sql definition of postgres database
+* `script/` - command line scripts that run the various aspects of the system.
 
 * `script/run_with_carton.sh` - shell script that should be used to run all perl scripts
 

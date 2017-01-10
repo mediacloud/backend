@@ -8,14 +8,15 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use MediaWords::DB;
 use MediaWords::DB::Schema::Version;
+use MediaWords::DB;
 use MediaWords::Util::Config;
 use MediaWords::Util::Pages;
+use MediaWords::Util::Paths;
 
 use Data::Dumper;
-use DBIx::Simple;
 use DBD::Pg qw(:pg_types);
+use DBIx::Simple;
 use Encode;
 use File::Slurp;
 use Math::Random::Secure;
@@ -178,8 +179,6 @@ sub schema_is_up_to_date
 {
     my $self = shift @_;
 
-    my $script_dir = MediaWords::Util::Config::get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
-
     # Check if the database is empty
     my $db_vars_table_exists_query =
       "SELECT EXISTS(SELECT * FROM information_schema.tables WHERE table_name='database_variables')";
@@ -199,7 +198,8 @@ sub schema_is_up_to_date
     die "Invalid current schema version.\n" unless ( $current_schema_version );
 
     # Target schema version
-    my $sql                   = read_file( "$script_dir/mediawords.sql" );
+    my $root_path             = MediaWords::Util::Paths::mc_root_path();
+    my $sql                   = read_file( "$root_path/schema/mediawords.sql" );
     my $target_schema_version = MediaWords::DB::Schema::Version::schema_version_from_lines( $sql );
     die "Invalid target schema version.\n" unless ( $target_schema_version );
 

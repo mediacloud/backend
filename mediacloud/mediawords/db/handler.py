@@ -10,7 +10,7 @@ import psycopg2.extras
 from mediawords.db.schema.version import schema_version_from_lines
 from mediawords.util.config import get_config
 from mediawords.util.log import create_logger
-from mediawords.util.paths import mc_script_path
+from mediawords.util.paths import mc_root_path
 from mediawords.util.perl import convert_dbd_pg_arguments_to_psycopg2_format
 
 l = create_logger(__name__)
@@ -139,7 +139,7 @@ class DatabaseHandler(object):
 
     def schema_is_up_to_date(self) -> bool:
         """Checks if the database schema is up-to-date"""
-        script_dir = mc_script_path()
+        root_dir = mc_root_path()
 
         # Check if the database is empty
         db_vars_table_exists = len(self.query("""
@@ -164,7 +164,7 @@ class DatabaseHandler(object):
             raise Exception("Current schema version is 0")
 
         # Target schema version
-        sql = open(os.path.join(script_dir, 'mediawords.sql'), 'r').read()
+        sql = open(os.path.join(root_dir, 'schema', 'mediawords.sql'), 'r').read()
         target_schema_version = schema_version_from_lines(sql)
         if not target_schema_version:
             raise Exception("Invalid target schema version.")

@@ -144,9 +144,6 @@ def __set_dynamic_defaults(config: dict) -> dict:
     if 'mediawords' not in config or config['mediawords'] is None:
         raise McConfigException('Configuration does not have "mediawords" key')
 
-    if 'script_dir' not in config['mediawords'] or config['mediawords']['script_dir'] is None:
-        # FIXME use mc_script_dir()
-        config['mediawords']['script_dir'] = os.path.join(__base_dir, 'script')
     if 'data_dir' not in config['mediawords'] or config['mediawords']['data_dir'] is None:
         # FIXME create a helper in 'paths'
         config['mediawords']['data_dir'] = os.path.join(__base_dir, 'data')
