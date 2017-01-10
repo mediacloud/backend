@@ -71,7 +71,7 @@ helpSchemaDiff()
     fi
 
     # Destination file
-    SCHEMA_MIGRATION_FILE="sql_migrations/mediawords-${OLD_SCHEMA_VERSION}-${NEW_SCHEMA_VERSION}.sql"
+    SCHEMA_MIGRATION_FILE="schema/migrations/mediawords-${OLD_SCHEMA_VERSION}-${NEW_SCHEMA_VERSION}.sql"
 
     echo "You have to generate a SQL schema diff between the current database schema and the schema "
     echo "that is being committed, and place it to ${SCHEMA_MIGRATION_FILE}."
@@ -134,7 +134,7 @@ if [ ! -z "$SCHEMA_DIFF" ]; then
     fi
 
     # Check if the SQL migration is being committed too
-    SCHEMA_MIGRATION_FILE="sql_migrations/mediawords-${OLD_SCHEMA_VERSION}-${NEW_SCHEMA_VERSION}.sql"
+    SCHEMA_MIGRATION_FILE="schema/migrations/mediawords-${OLD_SCHEMA_VERSION}-${NEW_SCHEMA_VERSION}.sql"
     SCHEMA_MIGRATION_FILE_COMMITTED=""  # non-empty for true
     for filepath in $ADDED_MODIFIED_FILES; do
         if [ "$filepath" == "$SCHEMA_MIGRATION_FILE" ]; then

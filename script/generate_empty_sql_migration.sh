@@ -21,7 +21,7 @@ if [ "$OLD_SCHEMA_VERSION" == '' ] ; then
     exit;
 fi
 
-MIGRATION_FILE="sql_migrations/mediawords-$OLD_SCHEMA_VERSION-$NEW_SCHEMA_VERSION.sql";
+MIGRATION_FILE="schema/migrations/mediawords-$OLD_SCHEMA_VERSION-$NEW_SCHEMA_VERSION.sql";
 
 if [ -e "$MIGRATION_FILE" ]; then
     echo "'$MIGRATION_FILE' already exists.  Cowardly refusing to overwrite it.";

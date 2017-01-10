@@ -230,7 +230,7 @@ EOF
     my @sql_diff_files;
     for ( my $version = $current_schema_version ; $version < $target_schema_version ; ++$version )
     {
-        my $diff_filename = './sql_migrations/mediawords-' . $version . '-' . ( $version + 1 ) . '.sql';
+        my $diff_filename = './schema/migrations/mediawords-' . $version . '-' . ( $version + 1 ) . '.sql';
         unless ( -e $diff_filename )
         {
             LOGDIE "SQL diff file '$diff_filename' does not exist.";
