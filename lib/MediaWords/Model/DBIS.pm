@@ -40,8 +40,7 @@ sub dbis
     # we put an eval and print the error here b/c the web auth dies silently on a database error
     eval {
         # ->connect is smart enough to reuse current connection
-        $db = MediaWords::DB::Handler->connect( MediaWords::DB::connect_info )
-          || die MediaWords::DB::Handler->error;
+        $db = MediaWords::DB::Handler->connect( MediaWords::DB::connect_info );
 
         $self->{ dbis } = $db;
     };

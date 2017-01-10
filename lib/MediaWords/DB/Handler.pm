@@ -79,7 +79,12 @@ sub connect($$$$$$;$)
 
     my $dsn = "dbi:Pg:dbname=$database;host=$host;port=$port;";
 
-    $self->{ _db } = DBIx::Simple->connect( $dsn, $user, $pass, $options );
+    eval { $self->{ _db } = DBIx::Simple->connect( $dsn, $user, $pass, $options ); };
+    if ( $@ )
+    {
+        die "Unable to connect to DSN $dsn: " . DBIx::Simple->error;
+    }
+
     $self->autocommit( 1 );
 
     unless ( $do_not_check_schema_version )
