@@ -117,7 +117,7 @@ def __read_static_defaults() -> dict:
 
 
 def verify_settings(config: dict) -> None:
-    if 'database' not in config:
+    if 'database' not in config or config['database'] is None or len(config['database']) < 1:
         raise McConfigException("No database connections configured")
 
     # Warn if there's a foreign database set for storing raw downloads
@@ -131,34 +131,34 @@ def verify_settings(config: dict) -> None:
         """)
 
     # Warn if no job brokers are configured
-    if 'job_manager' not in config:
+    if 'job_manager' not in config or config['job_manager'] is None:
         l.warn('Please configure a job manager under "job_manager" root key in mediawords.yml.')
     else:
-        if 'rabbitmq' not in config['job_manager']:
+        if 'rabbitmq' not in config['job_manager'] or config['job_manager']['rabbitmq'] is None:
             l.warn('Please configure "rabbitmq" job manager under "job_manager" root key in mediawords.yml.')
 
 
 def __set_dynamic_defaults(config: dict) -> dict:
     global __base_dir
 
-    if 'mediawords' not in config:
+    if 'mediawords' not in config or config['mediawords'] is None:
         raise McConfigException('Configuration does not have "mediawords" key')
 
-    if 'script_dir' not in config['mediawords']:
+    if 'script_dir' not in config['mediawords'] or config['mediawords']['script_dir'] is None:
         # FIXME use mc_script_dir()
         config['mediawords']['script_dir'] = os.path.join(__base_dir, 'script')
-    if 'data_dir' not in config['mediawords']:
+    if 'data_dir' not in config['mediawords'] or config['mediawords']['data_dir'] is None:
         # FIXME create a helper in 'paths'
         config['mediawords']['data_dir'] = os.path.join(__base_dir, 'data')
 
     # FIXME probably not needed
-    if 'session' not in config:
+    if 'session' not in config or config['session'] is None:
         config['session'] = {}
-    if 'storage' not in config['session']:
+    if 'storage' not in config['session'] or config['session']['storage'] is None:
         config['session']['storage'] = os.path.join(os.path.expanduser('~'), "tmp", "mediacloud-session")
 
     # FIXME probably not needed after Python rewrite
-    if "Plugin::Authentication" not in config:
+    if 'Plugin::Authentication' not in config or config['Plugin::Authentication'] is None:
         config['Plugin::Authentication'] = {
             "default_realm": 'users',
             "users": {
