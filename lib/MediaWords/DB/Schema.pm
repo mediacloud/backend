@@ -10,7 +10,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::Languages::Language;
 use MediaWords::Util::Config;
-use MediaWords::Util::SchemaVersion;
+use MediaWords::DB::Schema::Version;
 
 use File::Slurp;
 use FindBin;
@@ -206,7 +206,7 @@ EOF
 
     # Target schema version
     my $sql                   = read_file( "$script_dir/mediawords.sql" );
-    my $target_schema_version = MediaWords::Util::SchemaVersion::schema_version_from_lines( $sql );
+    my $target_schema_version = MediaWords::DB::Schema::Version::schema_version_from_lines( $sql );
     unless ( $target_schema_version )
     {
         LOGDIE( "Invalid target schema version." );

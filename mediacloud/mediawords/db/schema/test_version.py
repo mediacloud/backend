@@ -1,6 +1,6 @@
 from nose.tools import assert_raises
 
-from mediawords.util.schema_version import *
+from mediawords.db.schema.version import *
 
 
 def test_schema_version_from_lines():

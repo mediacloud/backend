@@ -9,9 +9,9 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;
+use MediaWords::DB::Schema::Version;
 use MediaWords::Util::Config;
 use MediaWords::Util::Pages;
-use MediaWords::Util::SchemaVersion;
 
 use Data::Dumper;
 use DBIx::Simple;
@@ -195,7 +195,7 @@ sub schema_is_up_to_date
 
     # Target schema version
     my $sql                   = read_file( "$script_dir/mediawords.sql" );
-    my $target_schema_version = MediaWords::Util::SchemaVersion::schema_version_from_lines( $sql );
+    my $target_schema_version = MediaWords::DB::Schema::Version::schema_version_from_lines( $sql );
     die "Invalid target schema version.\n" unless ( $target_schema_version );
 
     # Check if the current schema is up-to-date

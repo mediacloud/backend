@@ -1,18 +1,17 @@
+import itertools
 import os
 import pprint
 import re
-
-import itertools
 from typing import Dict, Callable, List
 
 import psycopg2
 import psycopg2.extras
 
+from mediawords.db.schema.version import schema_version_from_lines
 from mediawords.util.config import get_config
 from mediawords.util.log import create_logger
 from mediawords.util.paths import mc_script_path
 from mediawords.util.perl import convert_dbd_pg_arguments_to_psycopg2_format
-from mediawords.util.schema_version import schema_version_from_lines
 
 l = create_logger(__name__)
 
