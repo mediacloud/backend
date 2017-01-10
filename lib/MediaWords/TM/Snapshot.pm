@@ -605,8 +605,8 @@ sub write_timespan_tweets_snapshot
 
     $db->query( "drop table if exists snapshot_timespan_tweets" );
 
-    my $start_date_q = $db->dbh->quote( $timespan->{ start_date } );
-    my $end_date_q   = $db->dbh->quote( $timespan->{ end_date } );
+    my $start_date_q = $db->quote( $timespan->{ start_date } );
+    my $end_date_q   = $db->quote( $timespan->{ end_date } );
 
     my $date_clause =
       $timespan->{ period } eq 'overall'

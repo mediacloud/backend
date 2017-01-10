@@ -157,6 +157,8 @@ sub get_extra_where_clause
 
     my $clauses = [];
 
+    my $db = $c->dbis;
+
     if ( my $tags_id = $c->req->params->{ tags_id } )
     {
         $tags_id += 0;
@@ -168,16 +170,16 @@ sub get_extra_where_clause
     if ( my $q = $c->req->params->{ q } )
     {
         my $solr_params = { q => $q };
-        my $media_ids = MediaWords::Solr::search_for_media_ids( $c->dbis, $solr_params );
+        my $media_ids = MediaWords::Solr::search_for_media_ids( $db, $solr_params );
 
-        my $ids_table = $c->dbis->get_temporary_ids_table( $media_ids );
+        my $ids_table = $db->get_temporary_ids_table( $media_ids );
 
         push( @{ $clauses }, "and media_id in ( select id from $ids_table )" );
     }
 
     if ( my $tag_name = $c->req->params->{ tag_name } )
     {
-        my $q_tag_name = $c->dbis->dbh->quote( $tag_name );
+        my $q_tag_name = $db->quote( $tag_name );
         push( @{ $clauses }, <<SQL );
 and media_id in (
     select media_id
@@ -201,7 +203,7 @@ SQL
     {
         $languages = [ $languages ] unless ( ref( $languages ) );
 
-        my $languages_list = join( ',', map { $c->dbis->dbh->quote( $_ ) } @{ $languages } );
+        my $languages_list = join( ',', map { $db->quote( $_ ) } @{ $languages } );
 
         push( @{ $clauses }, "and primary_language in ( $languages_list )" );
     }
