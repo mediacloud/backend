@@ -22,6 +22,10 @@ __base_dir = __MC_ROOT_DIR  # FIXME remove
 __CONFIG = None
 
 
+class McConfigException(Exception):
+    pass
+
+
 def get_mc_root_dir():
     return __MC_ROOT_DIR
 
@@ -42,7 +46,7 @@ def get_config() -> dict:
 
 def __parse_config_file(config_file: str) -> dict:
     if not os.path.isfile(config_file):
-        raise Exception("Configuration file '%s' was not found." % config_file)
+        raise McConfigException("Configuration file '%s' was not found." % config_file)
 
     yaml_file = open(config_file, 'r').read()
     yaml_data = yaml.load(yaml_file, Loader=Loader)
@@ -52,7 +56,7 @@ def __parse_config_file(config_file: str) -> dict:
 def set_config_file(config_file: str) -> None:
     """set the cached config object given a file path"""
     if not os.path.isfile(config_file):
-        raise Exception("Configuration file '%s' was not found." % config_file)
+        raise McConfigException("Configuration file '%s' was not found." % config_file)
 
     set_config(__parse_config_file(config_file))
 
@@ -114,7 +118,7 @@ def __read_static_defaults() -> dict:
 
 def verify_settings(config: dict) -> None:
     if 'database' not in config:
-        raise Exception("No database connections configured")
+        raise McConfigException("No database connections configured")
 
     # Warn if there's a foreign database set for storing raw downloads
     if "raw_downloads" in config["database"]:
@@ -138,7 +142,7 @@ def __set_dynamic_defaults(config: dict) -> dict:
     global __base_dir
 
     if 'mediawords' not in config:
-        raise Exception('Configuration does not have "mediawords" key')
+        raise McConfigException('Configuration does not have "mediawords" key')
 
     if 'script_dir' not in config['mediawords']:
         # FIXME use mc_script_dir()
