@@ -1,4 +1,4 @@
-package MediaWords::Pg::Schema;
+package MediaWords::DB::Schema;
 
 # import functions into server schema
 
@@ -8,14 +8,14 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use MediaWords::DB::Schema::Version;
 use MediaWords::Languages::Language;
 use MediaWords::Util::Config;
 use MediaWords::Util::Paths;
-use MediaWords::Util::SchemaVersion;
 
+use Data::Dumper;
 use File::Slurp;
 use FindBin;
-use Data::Dumper;
 
 # recreates all schemas
 sub _reset_all_schemas($)
@@ -102,9 +102,7 @@ sub recreate_db
 
     my $mediawords_sql = read_file( $mediawords_sql_path );
 
-    $db->dbh->{ RaiseError }         = 1;
-    $db->dbh->{ PrintError }         = 1;
-    $db->dbh->{ ShowErrorStatement } = 1;
+    $db->set_show_error_statement( 1 );
 
     local $SIG{ __WARN__ } = sub {
         my $message = shift;
@@ -208,7 +206,8 @@ EOF
     my $mediawords_sql_path = "$root_path/schema/mediawords.sql";
 
     my $sql                   = read_file( $mediawords_sql_path );
-    my $target_schema_version = MediaWords::Util::SchemaVersion::schema_version_from_lines( $sql );
+    my $target_schema_version = MediaWords::DB::Schema::Version::schema_version_from_lines( $sql );
+
     unless ( $target_schema_version )
     {
         LOGDIE( "Invalid target schema version." );

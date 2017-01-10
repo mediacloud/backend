@@ -1,18 +1,17 @@
+import itertools
 import os
 import pprint
 import re
-
-import itertools
 from typing import Dict, Callable, List
 
 import psycopg2
 import psycopg2.extras
 
+from mediawords.db.schema.version import schema_version_from_lines
 from mediawords.util.config import get_config
 from mediawords.util.log import create_logger
 from mediawords.util.paths import mc_root_path
 from mediawords.util.perl import convert_dbd_pg_arguments_to_psycopg2_format
-from mediawords.util.schema_version import schema_version_from_lines
 
 l = create_logger(__name__)
 
@@ -31,7 +30,7 @@ class RequireByIDException(MediaWordsDatabaseException):
 # FIXME make PyCharm parse psycopg2's query parameters correctly: http://stackoverflow.com/a/36346689/200603
 # FIXME custom exceptions
 # FIXME add function parameter / return types
-class MediaWords(object):
+class DatabaseHandler(object):
     """PostgreSQL middleware (imitates DBIx::Simple's interface)."""
 
     # Environment variable which, when set, will make us ignore the schema version
@@ -259,7 +258,7 @@ class MediaWords(object):
         if len(query_params) > 2:
             raise Exception("psycopg2's execute() accepts at most 2 parameters.")
 
-        return MediaWords.Result(self.__db, *query_params)
+        return DatabaseHandler.Result(self.__db, *query_params)
 
     def __get_current_work_mem(self) -> str:
         current_work_mem = self.query("SHOW work_mem").flat()[0]
@@ -500,29 +499,3 @@ class MediaWords(object):
     # noinspection PyMethodMayBeStatic
     def dbh(self):
         raise Exception("Please don't use internal database handler directly")
-
-    def update_by_id_and_log(self,
-                             table: str,
-                             object_id: int,
-                             old_hash: dict,
-                             new_hash: dict,
-                             activity_name: str,
-                             reason: str,
-                             username: str):
-        """Update the row in the table with the given ID and make note of the changes that were made."""
-        raise Exception("FIXME not implemented: %s" % self)
-
-    def query_paged_hashes(self, query: str, page: int, rows_per_page: int):
-        """Execute the query and return a list of pages hashes."""
-        raise Exception("FIXME not implemented: %s" % self)
-
-    def transaction(self, block: Callable[[], None]) -> None:
-        """Execute the supplied subroutine inside a transaction."""
-        raise Exception("FIXME not implemented: %s" % self)
-
-    def get_temporary_ids_table(self, ids: list = None, ordered: bool = False) -> str:
-        """Get the name of a temporary table that contains all of the IDs in $ids as an 'id bigint' field.
-        The database connection must be within a transaction. The temporary table is setup to be dropped at the end of
-        the current transaction. Row insertion order is maintained. If $ordered is true, include an ${ids_table}_id
-        serial primary key field in the table."""
-        raise Exception("FIXME not implemented: %s" % self)

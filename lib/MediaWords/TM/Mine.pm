@@ -378,17 +378,17 @@ sub insert_topic_links
 {
     my ( $db, $topic_links ) = @_;
 
-    $db->dbh->do( "COPY topic_links ( stories_id, url, topics_id ) FROM STDIN WITH CSV" );
+    my $columns = [ 'stories_id', 'url', 'topics_id' ];
 
     my $csv = Text::CSV_XS->new( { binary => 1 } );
 
+    $db->copy_from_start( "COPY topic_links (" . join( ', ', @{ $columns } ) . ") FROM STDIN WITH CSV" );
     for my $topic_link ( @{ $topic_links } )
     {
-        $csv->combine( map { $topic_link->{ $_ } } ( qw/stories_id url topics_id/ ) );
-        $db->dbh->pg_putcopydata( encode( 'utf8', $csv->string ) . "\n" );
+        $csv->combine( map { $topic_link->{ $_ } } ( @{ $columns } ) );
+        $db->copy_from_put_line( encode( 'utf8', $csv->string ) );
     }
-
-    $db->dbh->pg_putcopyend();
+    $db->copy_from_end();
 }
 
 # for each story, return a list of the links found in either the extracted html or the story description
@@ -1106,7 +1106,7 @@ sub postgres_regex_match($$$)
 
     return undef unless ( @{ $strings } );
 
-    my $quoted_strings = join( ',', map { "(" . $db->dbh->quote( $_ ) . ")" } @{ $strings } );
+    my $quoted_strings = join( ',', map { "(" . $db->quote( $_ ) . ")" } @{ $strings } );
 
     # combine all the strings together to avoid overhead of lots of indivdiual queries
     my $match = $db->query( <<SQL, $re )->hash;
@@ -1299,7 +1299,7 @@ sub get_matching_story_from_db ($$;$)
 
     my $url_lookup = {};
     map { $url_lookup->{ $_ } = 1 } ( $u, $ru, $nu, $nru );
-    my $quoted_url_list = join( ',', map { "(" . $db->dbh->quote( $_ ) . ")" } keys( %{ $url_lookup } ) );
+    my $quoted_url_list = join( ',', map { "(" . $db->quote( $_ ) . ")" } keys( %{ $url_lookup } ) );
 
     # TODO - only query stories_id and media_id initially
 
@@ -1641,7 +1641,7 @@ sub get_stories_to_extract
             push( @{ $extract_stories }, $story );
         }
 
-        $db->commit unless ( $db->{ dbh }->{ AutoCommit } );
+        $db->commit unless ( $db->autocommit() );
     }
 
     return $extract_stories;
@@ -2073,7 +2073,7 @@ END
         add_to_topic_stories( $db, $topic, $keep_story, $merged_iteration, 1 );
     }
 
-    $db->begin if $db->dbh->{ AutoCommit };
+    $db->begin if $db->autocommit();
 
     my $topic_links = $db->query( <<END, $delete_story->{ stories_id }, $topics_id )->hashes;
 select * from topic_links where stories_id = ? and topics_id = ?
@@ -2106,8 +2106,7 @@ END
 update topic_seed_urls set stories_id = \$2 where stories_id = \$1 and topics_id = \$3
 END
 
-    $db->commit unless $db->dbh->{ AutoCommit };
-
+    $db->commit unless $db->autocommit();
 }
 
 # if the given story's url domain does not match the url domain of the story,
@@ -2383,18 +2382,19 @@ END
         }
 
         # cleanup any topic_seed_urls pointing to a merged story
-        $db->query_with_large_work_mem( <<SQL, $topic->{ topics_id } );
-update topic_seed_urls tsu
-    set stories_id = tms.target_stories_id
-    from
-        topic_merged_stories_map tms,
-        topic_stories ts
-    where
-        tsu.stories_id = tms.source_stories_id and
-        ts.stories_id = tms.target_stories_id and
-        tsu.topics_id = ts.topics_id and
-        ts.topics_id = \$1
+        $db->execute_with_large_work_mem(
+            <<SQL,
+            UPDATE topic_seed_urls AS tsu
+            SET stories_id = tms.target_stories_id
+            FROM topic_merged_stories_map AS tms,
+                 topic_stories ts
+            WHERE tsu.stories_id = tms.source_stories_id
+              AND ts.stories_id = tms.target_stories_id
+              AND tsu.topics_id = ts.topics_id
+              AND ts.topics_id = \$1
 SQL
+            $topic->{ topics_id }
+        );
 
         $db->commit;
     }
@@ -2715,19 +2715,17 @@ sub insert_topic_seed_urls
 
     INFO "inserting " . scalar( @{ $topic_seed_urls } ) . " topic seed urls ...";
 
-    $db->dbh->do( <<SQL );
-COPY topic_seed_urls ( stories_id, url, topics_id, assume_match ) FROM STDIN WITH CSV
-SQL
+    my $columns = [ 'stories_id', 'url', 'topics_id', 'assume_match' ];
 
     my $csv = Text::CSV_XS->new( { binary => 1 } );
 
+    $db->copy_from_start( "COPY topic_seed_urls (" . join( ', ', @{ $columns } ) . ") FROM STDIN WITH CSV" );
     for my $csu ( @{ $topic_seed_urls } )
     {
-        $csv->combine( map { $csu->{ $_ } } ( qw/stories_id url topics_id assume_match/ ) );
-        $db->dbh->pg_putcopydata( $csv->string . "\n" );
+        $csv->combine( map { $csu->{ $_ } } ( @{ $columns } ) );
+        $db->copy_from_put_line( $csv->string );
     }
-
-    $db->dbh->pg_putcopyend();
+    $db->copy_from_end();
 }
 
 # import stories intro topic_seed_urls from solr by running
@@ -2767,7 +2765,7 @@ sub import_solr_seed_query
 
     $db->query( "update topics set solr_seed_query_run = 't' where topics_id = ?", $topic->{ topics_id } );
 
-    $db->commit unless $db->dbh->{ AutoCommit };
+    $db->commit unless $db->autocommit();
 }
 
 # return true if there are fewer than $MAX_NULL_BITLY_STORIES stories without bitly data
@@ -3015,14 +3013,20 @@ update topic_seed_urls tsu
 SQL
 
     # now insert any topic_tweet_urls that are not already in the topic_seed_urls
-    $db->query_with_large_work_mem( <<SQL, $topic->{ topics_id } );
-insert into topic_seed_urls ( topics_id, url, assume_match, source )
-    select distinct ttfu.twitter_topics_id, ttfu.url, true, 'twitter'
-        from topic_tweet_full_urls ttfu
-            where
-                ttfu.twitter_topics_id = \$1 and
-                ttfu.url not in ( select url from topic_seed_urls where topics_id = \$1 )
+    $db->execute_with_large_work_mem(
+        <<SQL,
+        INSERT INTO topic_seed_urls ( topics_id, url, assume_match, source )
+            SELECT DISTINCT ttfu.twitter_topics_id, ttfu.url, true, 'twitter'
+            FROM topic_tweet_full_urls ttfu
+            WHERE ttfu.twitter_topics_id = \$1
+              AND ttfu.url NOT IN (
+                SELECT url
+                FROM topic_seed_urls
+                WHERE topics_id = \$1
+              )
 SQL
+        $topic->{ topics_id }
+    );
 }
 
 # insert all topic_tweet_urls into topic_seed_urls for parent topic

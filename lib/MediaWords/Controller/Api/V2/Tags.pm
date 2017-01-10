@@ -32,7 +32,7 @@ sub get_name_search_clause
 
     return 'and false' unless ( length( $v ) > 2 );
 
-    my $qv = $c->dbis->dbh->quote( $v );
+    my $qv = $c->dbis->quote( $v );
 
     return <<END;
 and tags_id in (

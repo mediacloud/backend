@@ -20,7 +20,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 use File::Slurp;
 
-use MediaWords::Util::SchemaVersion;
+use MediaWords::DB::Schema::Version;
 
 sub main
 {
@@ -43,7 +43,7 @@ sub main
         $sql = read_file( $sql_filename );
     }
 
-    my $schema_version = MediaWords::Util::SchemaVersion::schema_version_from_lines( $sql );
+    my $schema_version = MediaWords::DB::Schema::Version::schema_version_from_lines( $sql );
     die "Unable to determine schema version.\n" unless ( $schema_version );
 
     print $schema_version;

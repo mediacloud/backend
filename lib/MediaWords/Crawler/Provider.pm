@@ -367,7 +367,6 @@ sub provide_downloads
 
     $self->_timeout_stale_downloads();
 
-    # $self->engine->dbs->transaction(sub { $self->_add_stale_feeds(); });
     $self->_add_stale_feeds();
 
     $self->_add_pending_downloads();
