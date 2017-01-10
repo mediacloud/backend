@@ -278,13 +278,22 @@ create temporary table attach_sentences as
 alter table attach_sentences add constraint pk primary key ( story_sentences_id )
 SQL
 
-        my $sentences = $db->query_with_large_work_mem( <<END )->hashes;
-select s.*, string_agg( sstm.tags_id::text, ';' ) tags_list
-    from attach_sentences s
-        left join story_sentences_tags_map sstm on ( s.story_sentences_id = sstm.story_sentences_id )
-    group by s.story_sentences_id
-    order by s.sentence_number
-END
+        my $sentences;
+        $db->run_block_with_large_work_mem(
+            sub {
+                $sentences = $db->query(
+                    <<SQL
+                SELECT s.*,
+                       string_agg( sstm.tags_id::text, ';' ) AS tags_list
+                FROM attach_sentences AS s
+                    LEFT JOIN story_sentences_tags_map AS sstm
+                        ON s.story_sentences_id = sstm.story_sentences_id
+                GROUP BY s.story_sentences_id
+                ORDER BY s.sentence_number
+SQL
+                )->hashes;
+            }
+        );
         MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $sentences, 'story_sentences' );
 
         _split_sentence_tags_list( $stories );
