@@ -1004,18 +1004,30 @@ sub attach_stories_to_media
 
 sub get_weighted_edges
 {
-    my ( $db, $media, $max_media, $include_weights ) = @_;
+    my ( $db, $media, $options ) = @_;
 
-    my $media_links = $db->query( <<END, $max_media )->hashes;
+    my $max_media            = $options->{ max_media };
+    my $include_weights      = $options->{ include_weights } || 0;
+    my $max_links_per_medium = $options->{ max_links_per_medium } || 1_000_000;
+
+    DEBUG(
+"get_weighted_edges: $max_media max media; $include_weights include_weights; $max_links_per_medium max_links_per_medium"
+    );
+
+    my $media_links = $db->query( <<END, $max_media, $max_links_per_medium )->hashes;
 with top_media as (
-    select media_id from snapshot_medium_link_counts order by media_inlink_count desc limit ?
+    select * from snapshot_medium_link_counts order by media_inlink_count desc limit \$1
+),
+
+ranked_media as (
+    select *,
+            row_number() over ( partition by source_media_id order by l.link_count desc, rlc.inlink_count desc ) source_rank
+        from snapshot_medium_links l
+            join top_media slc on ( l.source_media_id = slc.media_id )
+            join top_media rlc on ( l.ref_media_id = rlc.media_id )
 )
 
-select *
-    from snapshot_medium_links
-    where
-        source_media_id in ( select media_id from top_media ) and
-        ref_media_id in ( select media_id from top_media )
+select * from ranked_media where source_rank <= \$2
 END
 
     my $media_map = {};
@@ -1274,26 +1286,29 @@ sub layout_gexf_with_graphviz_1
     scale_gexf_nodes( $gexf );
 }
 
-=head2 get_gexf_snapshot( $db, $timespan, $color_field, $max_media, $include_weights )
+=head2 get_gexf_snapshot( $db, $timespan, $options )
 
 Get a gexf snapshot of the graph described by the linked media sources within the given topic timespan.
 
 Layout the graph using the gaphviz neato algorithm.
 
-Color the nodes by the given field: $medium->{ $color_field } (default 'media_type').
+Accepts these $options:
 
-Include only the $max_media media sources with the most inlinks in the timespan (default 500).
+* color_field - color the nodes by the given field: $medium->{ $color_field } (default 'media_type').
+* max_media -  include only the $max_media media sources with the most inlinks in the timespan (default 500).
+* include_weights - if true, use weighted edges
+* max_links_per_medium - if set, only inclue the top $max_links_per_media out links from each medium, sorted by medium_link_counts.link_count and then inlink_count of the target medium
 
 =cut
 
 sub get_gexf_snapshot
 {
-    my ( $db, $timespan, $color_field, $max_media, $include_weights ) = @_;
+    my ( $db, $timespan, $options ) = @_;
 
-    $color_field ||= 'media_type';
-    $max_media   ||= $MAX_GEXF_MEDIA;
+    $options->{ max_media }   ||= $MAX_GEXF_MEDIA;
+    $options->{ color_field } ||= 'media_type';
 
-    my $media = $db->query( <<END, $max_media )->hashes;
+    my $media = $db->query( <<END, $options->{ max_media } )->hashes;
 select distinct
         m.*,
         mlc.media_inlink_count inlink_count,
@@ -1344,7 +1359,7 @@ END
         push( @{ $attributes->{ attribute } }, { id => $i++, title => $name, type => $type } );
     }
 
-    my $edges = get_weighted_edges( $db, $media, $max_media, $include_weights );
+    my $edges = get_weighted_edges( $db, $media, $options );
     $graph->{ edges }->{ edge } = $edges;
 
     my $edge_lookup;
@@ -1371,6 +1386,7 @@ END
             push( @{ $node->{ attvalues }->{ attvalue } }, { for => $j++, value => $medium->{ $name } } );
         }
 
+        my $color_field = $options->{ color_field };
         $node->{ 'viz:color' } = [ get_color( $db, $timespan, $color_field, $medium->{ $color_field } ) ];
         $node->{ 'viz:size' } = { value => $medium->{ inlink_count } + 1 };
 
