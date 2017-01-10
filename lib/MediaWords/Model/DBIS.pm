@@ -1,6 +1,6 @@
 package MediaWords::Model::DBIS;
 
-# custom DBIx::Simple::MediaWords based model for mediawords
+# custom MediaWords::DB::Handler based model for mediawords
 
 use strict;
 use warnings;
@@ -10,8 +10,8 @@ use MediaWords::CommonLibs;
 
 use base qw(Catalyst::Model);
 
-use DBIx::Simple::MediaWords;
 use MediaWords::DB;
+use MediaWords::DB::Handler;
 
 sub new
 {
@@ -39,10 +39,9 @@ sub dbis
 
     # we put an eval and print the error here b/c the web auth dies silently on a database error
     eval {
-        $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
-          || die DBIx::Simple::MediaWords->error;
+        # ->connect is smart enough to reuse current connection
+        $db = MediaWords::DB::Handler->connect( MediaWords::DB::connect_info );
 
-        $db->dbh->{ RaiseError } = 1;
         $self->{ dbis } = $db;
     };
     if ( $@ )

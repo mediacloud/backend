@@ -399,7 +399,8 @@ sub crawl
 
     DEBUG "starting Crawler::Engine::crawl";
 
-    MediaWords::DB::run_block_with_large_work_mem(
+    my $db = $self->dbs;
+    $db->run_block_with_large_work_mem(
         sub {
 
           MAINLOOP: while ( 1 )
@@ -448,8 +449,7 @@ sub crawl
                     }
                 }
             }
-        },
-        $self->dbs
+        }
     );
 
     kill( 15, map { $_->{ pid } } @{ $self->{ fetchers } } );
@@ -703,7 +703,7 @@ sub _reconnect_db
     }
 
     $self->{ dbs } = MediaWords::DB::connect_to_db;
-    $self->dbs->dbh->{ AutoCommit } = 1;
+    $self->dbs->set_autocommit( 1 );
 }
 
 1;

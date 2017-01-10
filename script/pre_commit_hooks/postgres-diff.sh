@@ -3,12 +3,12 @@
 # Create a PostgreSQL diff between two SQL dumps before a SVN / Git commit.
 #
 # Usage:
-# 1) Do some changes in Media Cloud's code under version control (SVN or Git) involving script/mediawords.sql.
+# 1) Do some changes in Media Cloud's code under version control (SVN or Git) involving schema/mediawords.sql.
 # 2) Run ./script/pre_commit_hooks/postgres-diff.sh before committing.
 # 3) The script will print out SQL diff to STDOUT and (optionally) some warnings to STDERR.
 
 PATH_TO_AGPDIFF="./script/pre_commit_hooks/apgdiff-2.4.jar"
-SCHEMA_FILE="script/mediawords.sql"
+SCHEMA_FILE="schema/mediawords.sql"
 
 
 # Exit on error

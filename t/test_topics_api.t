@@ -26,7 +26,7 @@ use MediaWords::TM::Snapshot;
 
 use MediaWords::CommonLibs;
 
-use MediaWords::Pg::Schema;
+use MediaWords::DB::Schema;
 
 use MediaWords::Test::DB;
 

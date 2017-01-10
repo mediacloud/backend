@@ -324,9 +324,6 @@ mediawords:
     ### Note that since these are uncompressed files they can be very large.
     #data_dump_tmp_dir : <PATH>
 
-    ### script directory
-    #script_dir: "<bindir>/../script"
-
     ### HTTP user agent and the email address of the owner of the bot
     user_agent: "mediawords bot (http://cyber.law.harvard.edu)"
     owner: "mediawords@cyber.law.harvard.edu"

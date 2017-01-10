@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #
-# See MediaWords::Pg::Schema for definition of which functions to add
+# See MediaWords::DB::Schema for definition of which functions to add
 #
 # Set the MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1 environment variable to create
 # the database without confirming the action.

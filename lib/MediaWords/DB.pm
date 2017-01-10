@@ -7,17 +7,21 @@ use warnings;
 
 use List::Util qw( first );
 
-use DBIx::Simple::MediaWords;
+use MediaWords::DB::Handler;
 
 use MediaWords::Util::Config;
 
 use MediaWords::Test::DB;
 
-# takes a hashref to a hash of settings and returns an array
-#  with DBI connect info
-sub _create_connect_info_from_settings
+# returns connection info from the configuration file
+# if no connection label is supplied and no connections have been made,
+# the first connection in the config is used otherwise the last used settings
+# are returned
+sub connect_info
 {
-    my ( $settings ) = @_;
+    my ( $label ) = @_;
+
+    my $settings = connect_settings( $label );
 
     unless ( defined $settings )
     {
@@ -35,36 +39,21 @@ sub _create_connect_info_from_settings
         $data_source .= ';port=' . $settings->{ port };
     }
 
+    # Arguments for MediaWords::DB::Handler->connect()
     return (
-        $data_source,
-        $settings->{ user },
-        $settings->{ pass },
-        {
-            AutoCommit     => 1,
-            pg_enable_utf8 => 1,
-            RaiseError     => 1
-        }
+        $settings->{ host },    #
+        $settings->{ port },    #
+        $settings->{ user },    #
+        $settings->{ pass },    #
+        $settings->{ db }       #
     );
-}
-
-# returns connection info from the configuration file
-# if no connection label is supplied and no connections have been made,
-# the first connection in the config is used otherwise the last used settings
-# are returned
-sub connect_info
-{
-    my ( $label ) = @_;
-
-    my $settings = connect_settings( $label );
-
-    return _create_connect_info_from_settings( $settings );
 }
 
 sub connect_to_db(;$$)
 {
     my ( $label, $do_not_check_schema_version ) = @_;
 
-    my $ret = DBIx::Simple::MediaWords->connect( connect_info( $label ), $do_not_check_schema_version );
+    my $ret = MediaWords::DB::Handler->connect( connect_info( $label ), $do_not_check_schema_version );
 
     die "Error in connect_to_db $@" unless defined( $ret );
 
@@ -95,7 +84,7 @@ $$;
 END_SQL
 
     $ret->query( $query );
-    $ret->dbh->{ AutoCommit } || $ret->commit;
+    $ret->autocommit() || $ret->commit;
 
     return $ret;
 }
@@ -178,24 +167,6 @@ sub print_shell_env_commands_for_psql
             say "export $psql_env_var=" . $ENV{ $psql_env_var };
         }
     }
-}
-
-sub run_block_with_large_work_mem( &$ )
-{
-
-    my $block = shift;
-    my $db    = shift;
-
-    unless ( $block and ref( $block ) eq 'CODE' )
-    {
-        LOGCONFESS "Block is undefined or is not a subref.";
-    }
-    unless ( $db and ref( $db ) eq 'DBIx::Simple::MediaWords' )
-    {
-        LOGCONFESS "Database handler is undefined or is not a database instance.";
-    }
-
-    DBIx::Simple::MediaWords::run_block_with_large_work_mem( sub { $block->() }, $db );
 }
 
 my $_disable_story_triggers = 0;

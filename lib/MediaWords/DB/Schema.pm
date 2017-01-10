@@ -1,4 +1,4 @@
-package MediaWords::Pg::Schema;
+package MediaWords::DB::Schema;
 
 # import functions into server schema
 
@@ -8,13 +8,14 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use MediaWords::DB::Schema::Version;
 use MediaWords::Languages::Language;
 use MediaWords::Util::Config;
-use MediaWords::Util::SchemaVersion;
+use MediaWords::Util::Paths;
 
+use Data::Dumper;
 use File::Slurp;
 use FindBin;
-use Data::Dumper;
 
 # recreates all schemas
 sub _reset_all_schemas($)
@@ -96,15 +97,12 @@ sub recreate_db
     DEBUG( 'Resetting all schemas...' );
     _reset_all_schemas( $db );
 
-    my $script_dir = MediaWords::Util::Config::get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
-    TRACE( "script_dir: $script_dir" );
+    my $root_path           = MediaWords::Util::Paths::mc_root_path();
+    my $mediawords_sql_path = "$root_path/schema/mediawords.sql";
 
-    my $mediawords_sql_path = $script_dir . '/mediawords.sql';
-    my $mediawords_sql      = read_file( $mediawords_sql_path );
+    my $mediawords_sql = read_file( $mediawords_sql_path );
 
-    $db->dbh->{ RaiseError }         = 1;
-    $db->dbh->{ PrintError }         = 1;
-    $db->dbh->{ ShowErrorStatement } = 1;
+    $db->set_show_error_statement( 1 );
 
     local $SIG{ __WARN__ } = sub {
         my $message = shift;
@@ -132,9 +130,6 @@ sub upgrade_db($;$)
 {
     my ( $label, $echo_instead_of_executing ) = @_;
 
-    my $script_dir = MediaWords::Util::Config::get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
-
-    DEBUG "script_dir: $script_dir";
     my $db;
     {
 
@@ -207,8 +202,12 @@ EOF
     INFO "Current schema version: $current_schema_version";
 
     # Target schema version
-    my $sql                   = read_file( "$script_dir/mediawords.sql" );
-    my $target_schema_version = MediaWords::Util::SchemaVersion::schema_version_from_lines( $sql );
+    my $root_path           = MediaWords::Util::Paths::mc_root_path();
+    my $mediawords_sql_path = "$root_path/schema/mediawords.sql";
+
+    my $sql                   = read_file( $mediawords_sql_path );
+    my $target_schema_version = MediaWords::DB::Schema::Version::schema_version_from_lines( $sql );
+
     unless ( $target_schema_version )
     {
         LOGDIE( "Invalid target schema version." );
@@ -230,7 +229,7 @@ EOF
     my @sql_diff_files;
     for ( my $version = $current_schema_version ; $version < $target_schema_version ; ++$version )
     {
-        my $diff_filename = './sql_migrations/mediawords-' . $version . '-' . ( $version + 1 ) . '.sql';
+        my $diff_filename = './schema/migrations/mediawords-' . $version . '-' . ( $version + 1 ) . '.sql';
         unless ( -e $diff_filename )
         {
             LOGDIE "SQL diff file '$diff_filename' does not exist.";
