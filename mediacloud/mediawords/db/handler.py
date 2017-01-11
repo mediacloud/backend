@@ -105,6 +105,10 @@ class DatabaseHandler(object):
             l.warn('"deadlock_timeout" is less than "%ds", expect deadlocks on high extractor load' %
                    self.__MIN_DEADLOCK_TIMEOUT)
 
+    # noinspection PyMethodMayBeStatic
+    def dbh(self):
+        raise McDatabaseHandlerException("Please don't use internal database handler directly")
+
     def __should_continue_with_outdated_schema(self, current_schema_version: int, target_schema_version: int) -> bool:
         """Schema is outdated / too new; returns 1 if MC should continue nevertheless, 0 otherwise"""
         config = get_config()
@@ -442,7 +446,3 @@ class DatabaseHandler(object):
             return row
         else:
             return self.create(table=table, insert_hash=insert_hash)
-
-    # noinspection PyMethodMayBeStatic
-    def dbh(self):
-        raise McDatabaseHandlerException("Please don't use internal database handler directly")
