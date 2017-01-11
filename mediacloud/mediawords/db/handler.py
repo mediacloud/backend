@@ -448,7 +448,9 @@ class DatabaseHandler(object):
             return self.create(table=table, insert_hash=insert_hash)
 
     def autocommit(self) -> bool:
+        """Return True if autocommit mode is on."""
         return self.__conn.autocommit
 
     def set_autocommit(self, autocommit: bool) -> None:
+        """Set autocommit mode."""
         self.__conn.autocommit = autocommit
