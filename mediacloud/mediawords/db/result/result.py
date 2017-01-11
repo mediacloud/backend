@@ -15,10 +15,10 @@ class DatabaseResult(object):
 
     __cursor = None  # psycopg2 cursor
 
-    def __init__(self, cursor: DictCursor, query_args: tuple):
-        self.__execute(cursor=cursor, query_args=query_args)
+    def __init__(self, cursor: DictCursor, query_args: tuple, print_warnings: bool):
+        self.__execute(cursor=cursor, query_args=query_args, print_warnings=print_warnings)
 
-    def __execute(self, cursor, query_args):
+    def __execute(self, cursor, query_args, print_warnings: bool):
         """Execute statement, set up cursor to results."""
         if len(query_args) == 0:
             raise McDatabaseResultException('No query or its parameters.')
@@ -28,7 +28,10 @@ class DatabaseResult(object):
         try:
             cursor.execute(*query_args)
         except psycopg2.Warning as ex:
-            l.warn('Warning while running query: %s' % str(ex))
+            if print_warnings:
+                l.warn('Warning while running query: %s' % str(ex))
+            else:
+                l.debug('Warning while running query: %s' % str(ex))
         except psycopg2.Error as ex:
             raise McDatabaseResultException('Query failed: %s' % str(ex))
 

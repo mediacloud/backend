@@ -37,6 +37,9 @@ class DatabaseHandler(object):
     # PIDs for which the schema version has been checked
     __schema_version_check_pids = {}
 
+    # Whether or not to print PostgreSQL warnings
+    __print_warnings = True
+
     # Pyscopg2 instance and cursor
     __conn = None
     __db = None
@@ -213,7 +216,7 @@ class DatabaseHandler(object):
         if len(query_params) > 2:
             raise McQueryException("psycopg2's execute() accepts at most 2 parameters.")
 
-        return DatabaseResult(cursor=self.__db, query_args=query_params)
+        return DatabaseResult(cursor=self.__db, query_args=query_params, print_warnings=self.__print_warnings)
 
     def __get_current_work_mem(self) -> str:
         current_work_mem = self.query("SHOW work_mem").flat()[0]
@@ -489,3 +492,11 @@ class DatabaseHandler(object):
         # FIXME set_prepare_on_server_side() was being used to get around DBD::Pg's bug, so probably not needed anymore
         # MC_REWRITE_TO_PYTHON remove after porting
         pass
+
+    def print_warn(self) -> bool:
+        """Return whether PostgreSQL warnings will be printed."""
+        return self.__print_warnings
+
+    def set_print_warn(self, print_warn: bool) -> None:
+        """Set whether PostgreSQL warnings will be printed."""
+        self.__print_warnings = print_warn
