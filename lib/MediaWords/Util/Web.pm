@@ -275,8 +275,8 @@ sub ParallelGet
         push( @{ $results }, $result );
     }
 
-    my $mc_script_path = MediaWords::Util::Paths::mc_script_path();
-    my $cmd            = "'$mc_script_path'/../script/mediawords_web_store.pl";
+    my $mc_root_path = MediaWords::Util::Paths::mc_root_path();
+    my $cmd          = "'$mc_root_path'/script/mediawords_web_store.pl";
 
     if ( !open( CMD, '|-', $cmd ) )
     {

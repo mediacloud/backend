@@ -33,21 +33,6 @@ def mc_root_path() -> str:
     return root_path
 
 
-class McScriptPathException(Exception):
-    pass
-
-
-def mc_script_path() -> str:
-    """Return full path to Media Cloud 'script/' directory."""
-    # FIXME MC_REWRITE_TO_PYTHON: probably won't be needed after Perl rewrite
-    root_path = mc_root_path()
-    script_path = os.path.join(root_path, "script")
-    if not os.path.isdir(script_path):
-        raise McScriptPathException("Unable to determine Media Cloud script path (tried '%s')" % script_path)
-    l.debug("Script path is %s" % script_path)
-    return script_path
-
-
 def mkdir_p(path: str) -> None:
     """mkdir -p"""
 
