@@ -209,7 +209,7 @@ class DatabaseHandler(object):
         if len(query_params) > 2:
             raise McQueryException("psycopg2's execute() accepts at most 2 parameters.")
 
-        return DatabaseResult(self.__db, *query_params)
+        return DatabaseResult(cursor=self.__db, query_args=query_params)
 
     def __get_current_work_mem(self) -> str:
         current_work_mem = self.query("SHOW work_mem").flat()[0]
