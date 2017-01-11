@@ -290,8 +290,10 @@ sub restrict_period_stories_to_focus
             $chunk_size = List::Util::max( $chunk_size / 2, $min_chunk_size );
             unshift( @{ $all_stories_ids }, @{ $chunk_stories_ids } );
         }
-
-        push( @{ $matching_stories_ids }, @{ $solr_stories_ids } );
+        else
+        {
+            push( @{ $matching_stories_ids }, @{ $solr_stories_ids } );
+        }
     }
 
     my $ids_table = $db->get_temporary_ids_table( $matching_stories_ids );
