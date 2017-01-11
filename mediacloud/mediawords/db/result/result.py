@@ -1,10 +1,12 @@
 import itertools
 import pprint
+import psycopg2
 from typing import Dict, List
 
-import psycopg2
-
 from mediawords.db.exceptions.result import *
+from mediawords.util.log import create_logger
+
+l = create_logger(__name__)
 
 
 class DatabaseResult(object):
@@ -24,6 +26,8 @@ class DatabaseResult(object):
 
         try:
             cursor.execute(*query_args)
+        except psycopg2.Warning as ex:
+            l.warn('Warning while running query: %s' % str(ex))
         except psycopg2.Error as ex:
             raise McDatabaseResultException('Query failed: %s' % str(ex))
 
