@@ -446,3 +446,9 @@ class DatabaseHandler(object):
             return row
         else:
             return self.create(table=table, insert_hash=insert_hash)
+
+    def autocommit(self) -> bool:
+        return self.__conn.autocommit
+
+    def set_autocommit(self, autocommit: bool) -> None:
+        self.__conn.autocommit = autocommit
