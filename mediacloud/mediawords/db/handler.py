@@ -454,3 +454,15 @@ class DatabaseHandler(object):
     def set_autocommit(self, autocommit: bool) -> None:
         """Set autocommit mode."""
         self.__conn.autocommit = autocommit
+
+    # noinspection PyMethodMayBeStatic
+    def show_error_statement(self) -> bool:
+        """Return whether failed SQL statement will be included into thrown exception."""
+        # FIXME I suppose psycopg2 always return failed statement?
+        return True
+
+    # noinspection PyMethodMayBeStatic
+    def set_show_error_statement(self, show_error_statement: bool) -> None:
+        """Set whether failed SQL statement will be included into thrown exception."""
+        # FIXME I suppose psycopg2 always return failed statement?
+        pass
