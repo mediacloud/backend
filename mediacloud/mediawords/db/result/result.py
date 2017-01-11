@@ -2,6 +2,8 @@ import itertools
 import pprint
 from typing import Dict, List
 
+import psycopg2
+
 from mediawords.db.exceptions.result import *
 
 
@@ -11,12 +13,19 @@ class DatabaseResult(object):
     __cursor = None  # psycopg2 cursor
 
     def __init__(self, cursor, *query_args):
+        self.__execute(cursor, *query_args)
+
+    def __execute(self, cursor, *query_args):
+        """Execute statement, set up cursor to results."""
         if len(query_args) == 0:
             raise McDatabaseResultException('No query or its parameters.')
         if len(query_args[0]) == 0:
             raise McDatabaseResultException('Query is empty or undefined.')
 
-        cursor.execute(*query_args)
+        try:
+            cursor.execute(*query_args)
+        except psycopg2.Error as ex:
+            raise McDatabaseResultException('Query failed: %s' % str(ex))
 
         self.__cursor = cursor  # Cursor now holds results
 
