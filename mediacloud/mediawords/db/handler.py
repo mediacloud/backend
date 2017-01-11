@@ -472,3 +472,20 @@ class DatabaseHandler(object):
         # FIXME I suppose psycopg2 always return failed statement?
         # MC_REWRITE_TO_PYTHON remove after porting
         pass
+
+    # noinspection PyMethodMayBeStatic
+    def prepare_on_server_side(self) -> bool:
+        """Return whether queries are being prepared on server-side."""
+        # FIXME prepare_on_server_side() was being used to get around DBD::Pg's bug, so probably not needed anymore
+        # MC_REWRITE_TO_PYTHON remove after porting
+
+        # Always prepared on server-side because of psycopg2.extras.DictCursor, see:
+        # https://wiki.postgresql.org/wiki/Using_psycopg2_with_PostgreSQL#Fetch_Records_using_a_Server-Side_Cursor
+        return True
+
+    # noinspection PyMethodMayBeStatic
+    def set_prepare_on_server_side(self, prepare_on_server_side: bool) -> None:
+        """Set whether queries are being prepared on server-side."""
+        # FIXME set_prepare_on_server_side() was being used to get around DBD::Pg's bug, so probably not needed anymore
+        # MC_REWRITE_TO_PYTHON remove after porting
+        pass
