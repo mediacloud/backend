@@ -2,15 +2,7 @@ import itertools
 import pprint
 from typing import Dict, List
 
-
-class McDatabaseResultException(Exception):
-    """Result exception."""
-    pass
-
-
-class McDatabaseResultTextException(McDatabaseResultException):
-    """text() exception."""
-    pass
+from mediawords.db.exceptions.result import *
 
 
 class DatabaseResult(object):

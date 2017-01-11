@@ -5,6 +5,7 @@ from typing import Callable
 import psycopg2
 import psycopg2.extras
 
+from mediawords.db.exceptions.handler import *
 from mediawords.db.result.result import DatabaseResult
 from mediawords.db.schema.version import schema_version_from_lines
 from mediawords.util.config import get_config
@@ -13,61 +14,6 @@ from mediawords.util.paths import mc_root_path
 from mediawords.util.perl import convert_dbd_pg_arguments_to_psycopg2_format
 
 l = create_logger(__name__)
-
-
-class McDatabaseHandlerException(Exception):
-    """Database handler exception."""
-    pass
-
-
-class McConnectException(McDatabaseHandlerException):
-    """__connect() exception."""
-    pass
-
-
-class McSchemaIsUpToDateException(McDatabaseHandlerException):
-    """schema_is_up_to_date() exception."""
-    pass
-
-
-class McQueryException(McDatabaseHandlerException):
-    """query() exception."""
-    pass
-
-
-class McPrimaryKeyColumnException(McDatabaseHandlerException):
-    """primary_key_column() exception."""
-    pass
-
-
-class McFindByIDException(McDatabaseHandlerException):
-    """find_by_id() exception."""
-    pass
-
-
-class McRequireByIDException(McDatabaseHandlerException):
-    """require_by_id() exception."""
-    pass
-
-
-class McUpdateByIDException(McDatabaseHandlerException):
-    """update_by_id() exception."""
-    pass
-
-
-class McDeleteByIDException(McDatabaseHandlerException):
-    """delete_by_id() exception."""
-    pass
-
-
-class McCreateException(McDatabaseHandlerException):
-    """create() exception."""
-    pass
-
-
-class McFindOrCreateException(McDatabaseHandlerException):
-    """find_or_create() exception."""
-    pass
 
 
 # FIXME add decode_string_from_bytes_if_needed() everywhere
