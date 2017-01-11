@@ -83,7 +83,11 @@ class DatabaseHandler(object):
                 do_not_check_schema_version = False
 
         self.__conn = psycopg2.connect(host=host, port=port, user=username, password=password, database=database)
-        self.__db = self.__conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+        # psycopg2.extras.DictCursor factory enables server-side query prepares so all result data does not get fetched
+        # at once
+        cursor_factory = psycopg2.extras.DictCursor
+        self.__db = self.__conn.cursor(cursor_factory=cursor_factory)
 
         if not do_not_check_schema_version:
             if not self.schema_is_up_to_date():
