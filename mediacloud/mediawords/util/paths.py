@@ -49,6 +49,10 @@ def mkdir_p(path: str) -> None:
     l.debug("Created directory '%s'." % path)
 
 
+class McResolveAbsolutePathUnderMcRootException(Exception):
+    pass
+
+
 def resolve_absolute_path_under_mc_root(path: str, must_exist: bool = False) -> str:
     """Return absolute path to object (file or directory) under Media Cloud root."""
 
@@ -58,8 +62,14 @@ def resolve_absolute_path_under_mc_root(path: str, must_exist: bool = False) -> 
     dist_path = os.path.join(mc_root, path)
     if must_exist:
         if not os.path.exists(dist_path):
-            raise Exception("Object '%s' at path '%s' does not exist." % (path, dist_path))
+            raise McResolveAbsolutePathUnderMcRootException(
+                "Object '%s' at path '%s' does not exist." % (path, dist_path)
+            )
     return os.path.abspath(dist_path)
+
+
+class McRelativeSymlinkException(Exception):
+    pass
 
 
 def relative_symlink(source: str, link_name: str) -> None:
@@ -72,7 +82,7 @@ def relative_symlink(source: str, link_name: str) -> None:
     link_name = os.path.abspath(link_name)
 
     if not os.path.exists(source):
-        raise Exception("Symlink source does not exist at path: %s" % source)
+        raise McRelativeSymlinkException("Symlink source does not exist at path: %s" % source)
 
     rel_source = os.path.relpath(source, os.path.dirname(link_name))
 

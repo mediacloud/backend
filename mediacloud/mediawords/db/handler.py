@@ -1,12 +1,11 @@
-import itertools
 import os
-import pprint
 import re
-from typing import Dict, Callable, List
+from typing import Callable
 
 import psycopg2
 import psycopg2.extras
 
+from mediawords.db.result.result import DatabaseResult
 from mediawords.db.schema.version import schema_version_from_lines
 from mediawords.util.config import get_config
 from mediawords.util.log import create_logger
@@ -16,11 +15,58 @@ from mediawords.util.perl import convert_dbd_pg_arguments_to_psycopg2_format
 l = create_logger(__name__)
 
 
-class MediaWordsDatabaseException(Exception):
+class McDatabaseHandlerException(Exception):
+    """Database handler exception."""
     pass
 
 
-class RequireByIDException(MediaWordsDatabaseException):
+class McConnectException(McDatabaseHandlerException):
+    """__connect() exception."""
+    pass
+
+
+class McSchemaIsUpToDateException(McDatabaseHandlerException):
+    """schema_is_up_to_date() exception."""
+    pass
+
+
+class McQueryException(McDatabaseHandlerException):
+    """query() exception."""
+    pass
+
+
+class McPrimaryKeyColumnException(McDatabaseHandlerException):
+    """primary_key_column() exception."""
+    pass
+
+
+class McFindByIDException(McDatabaseHandlerException):
+    """find_by_id() exception."""
+    pass
+
+
+class McRequireByIDException(McDatabaseHandlerException):
+    """require_by_id() exception."""
+    pass
+
+
+class McUpdateByIDException(McDatabaseHandlerException):
+    """update_by_id() exception."""
+    pass
+
+
+class McDeleteByIDException(McDatabaseHandlerException):
+    """delete_by_id() exception."""
+    pass
+
+
+class McCreateException(McDatabaseHandlerException):
+    """create() exception."""
+    pass
+
+
+class McFindOrCreateException(McDatabaseHandlerException):
+    """find_or_create() exception."""
     pass
 
 
@@ -56,6 +102,22 @@ class DatabaseHandler(object):
                  password: str,
                  database: str,
                  do_not_check_schema_version: bool = False):
+        """Database handler constructor; connects to PostgreSQL too."""
+        self.__connect(
+            host=host,
+            port=port,
+            username=username,
+            password=password,
+            database=database,
+            do_not_check_schema_version=do_not_check_schema_version
+        )
+
+    def __connect(self, host: str,
+                  port: int,
+                  username: str,
+                  password: str,
+                  database: str,
+                  do_not_check_schema_version: bool = False):
         """Connect to PostgreSQL."""
 
         # If the user didn't clearly (via 'true' or 'false') state whether or not
@@ -63,7 +125,7 @@ class DatabaseHandler(object):
         pid = os.getpid()
 
         if not (host and username and password and database):
-            raise Exception("Database connection credentials are not set.")
+            raise McConnectException("Database connection credentials are not set.")
 
         if not port:
             port = 5432
@@ -82,7 +144,7 @@ class DatabaseHandler(object):
                 # It would make sense to check the MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION environment variable
                 # at this particular point too, but schema_is_up_to_date() warns the user about schema being
                 # too old on every run, and that's supposedly a good thing.
-                raise Exception("Database schema is not up-to-date.")
+                raise McConnectException("Database schema is not up-to-date.")
 
         # If schema is not up-to-date, connect() dies and we don't get to set PID here
         self.__schema_version_check_pids[pid] = True
@@ -92,7 +154,7 @@ class DatabaseHandler(object):
         deadlock_timeout = re.sub(r'\s*s$', '', deadlock_timeout, re.I)
         deadlock_timeout = int(deadlock_timeout)
         if deadlock_timeout == 0:
-            raise Exception("'deadlock_timeout' is 0, probably unable to read it")
+            raise McConnectException("'deadlock_timeout' is 0, probably unable to read it")
         if deadlock_timeout < self.__MIN_DEADLOCK_TIMEOUT:
             l.warn('"deadlock_timeout" is less than "%ds", expect deadlocks on high extractor load' %
                    self.__MIN_DEADLOCK_TIMEOUT)
@@ -161,13 +223,13 @@ class DatabaseHandler(object):
         """).flat()
         current_schema_version = int(current_schema_version)
         if current_schema_version == 0:
-            raise Exception("Current schema version is 0")
+            raise McSchemaIsUpToDateException("Current schema version is 0")
 
         # Target schema version
         sql = open(os.path.join(root_dir, 'schema', 'mediawords.sql'), 'r').read()
         target_schema_version = schema_version_from_lines(sql)
         if not target_schema_version:
-            raise Exception("Invalid target schema version.")
+            raise McSchemaIsUpToDateException("Invalid target schema version.")
 
         # Check if the current schema is up-to-date
         if current_schema_version != target_schema_version:
@@ -176,69 +238,8 @@ class DatabaseHandler(object):
             # Things are fine at this point.
             return True
 
-    class Result(object):
-        """Wrapper around SQL query result."""
-
-        __cursor = None  # psycopg2 cursor
-
-        def __init__(self, cursor, *query_args):
-            if len(query_args) == 0:
-                raise Exception('No query or its parameters.')
-            if len(query_args[0]) == 0:
-                raise Exception('Query is empty or undefined.')
-
-            cursor.execute(*query_args)
-
-            self.__cursor = cursor  # Cursor now holds results
-
-        def columns(self) -> list:
-            """(result) Returns a list of column names"""
-            column_names = [desc[0] for desc in self.__cursor.description]
-            return column_names
-
-        def rows(self) -> int:
-            """(result) Returns the number of rows affected by the last row affecting command, or -1 if the number of
-            rows is not known or not available"""
-            rows_affected = self.__cursor.rowcount
-            return rows_affected
-
-        def array(self) -> list:
-            """(single row) Returns a reference to an array"""
-            row_tuple = self.__cursor.fetchone()
-            if row_tuple is not None:
-                row = list(row_tuple)
-            else:
-                row = None
-            return row
-
-        def hash(self) -> dict:
-            """(single row) Returns a reference to a hash, keyed by column name"""
-            row_tuple = self.__cursor.fetchone()
-            if row_tuple is not None:
-                row = dict(row_tuple)
-            else:
-                row = None
-            return row
-
-        def flat(self) -> list:
-            """(all remaining rows) Returns a flattened list"""
-            all_rows = self.__cursor.fetchall()
-            flat_rows = list(itertools.chain.from_iterable(all_rows))
-            return flat_rows
-
-        def hashes(self) -> List[Dict]:
-            """(all remaining rows) Returns a list of references to hashes, keyed by column name"""
-            rows = [dict(row) for row in self.__cursor.fetchall()]
-            return rows
-
-        def text(self, text_type='neat') -> str:
-            """(all remaining rows) Returns a string with a simple text representation of the data."""
-            if text_type != 'neat':
-                raise Exception("Formatting types other than 'neat' are not supported.")
-            return pprint.pformat(self.hashes(), indent=4)
-
-    def query(self, *query_params) -> Result:
-        """Run the query, return instance of MediaWords.Result for accessing the result.
+    def query(self, *query_params) -> DatabaseResult:
+        """Run the query, return instance of DatabaseResult for accessing the result.
 
         Accepts either (preferred) psycopg2-style query and parameters:
 
@@ -254,11 +255,11 @@ class DatabaseHandler(object):
         query_params = convert_dbd_pg_arguments_to_psycopg2_format(*query_params)
 
         if len(query_params) == 0:
-            raise Exception("Query is unset.")
+            raise McQueryException("Query is unset.")
         if len(query_params) > 2:
-            raise Exception("psycopg2's execute() accepts at most 2 parameters.")
+            raise McQueryException("psycopg2's execute() accepts at most 2 parameters.")
 
-        return DatabaseHandler.Result(self.__db, *query_params)
+        return DatabaseResult(self.__db, *query_params)
 
     def __get_current_work_mem(self) -> str:
         current_work_mem = self.query("SHOW work_mem").flat()[0]
@@ -329,9 +330,9 @@ class DatabaseHandler(object):
                 ORDER BY ordinal_position
             """, {'table_name': table}).flat()
             if primary_key_column is None or len(primary_key_column) == 0:
-                raise Exception("Primary key for table '%s' was not found" % table)
+                raise McPrimaryKeyColumnException("Primary key for table '%s' was not found" % table)
             if len(primary_key_column) > 1:
-                raise Exception(
+                raise McPrimaryKeyColumnException(
                     "More than one primary key column was found for table '%(table)s': %(primary_key_columns)s" % {
                         'table': table,
                         'primary_key_columns': str(primary_key_column)
@@ -342,11 +343,11 @@ class DatabaseHandler(object):
 
         return self.__primary_key_columns[table]
 
-    def find_by_id(self, table: str, object_id: int) -> Result:
+    def find_by_id(self, table: str, object_id: int) -> DatabaseResult:
         """Do an ID lookup on the table and return a single row match if found."""
         primary_key_column = self.primary_key_column(table)
         if not primary_key_column:
-            raise Exception("Primary key for table '%s' was not found" % table)
+            raise McFindByIDException("Primary key for table '%s' was not found" % table)
 
         # Python substitution
         find_by_id_query = "SELECT * FROM %(table)s WHERE %(id_column)s" % {
@@ -357,14 +358,14 @@ class DatabaseHandler(object):
         # psycopg2 substitution
         return self.query(find_by_id_query + " = %(id_value)s", {'id_value': object_id})
 
-    def require_by_id(self, table: str, object_id: int) -> Result:
+    def require_by_id(self, table: str, object_id: int) -> DatabaseResult:
         """find_by_id() or raise exception if not found."""
         row = self.find_by_id(table, object_id)
         if row is None or row.rows() == 0:
-            raise RequireByIDException("Unable to find id '%d' in table '%s'" % (object_id, table))
+            raise McRequireByIDException("Unable to find id '%d' in table '%s'" % (object_id, table))
         return row
 
-    def update_by_id(self, table: str, object_id: int, update_hash: dict) -> Result:
+    def update_by_id(self, table: str, object_id: int, update_hash: dict) -> DatabaseResult:
         """Update the row in the table with the given ID. Ignore any fields that start with '_'."""
         update_hash = update_hash.copy()  # To be able to safely modify it
 
@@ -375,11 +376,11 @@ class DatabaseHandler(object):
         update_hash = {k: v for k, v in update_hash.items() if not k.startswith("_")}
 
         if len(update_hash) == 0:
-            raise Exception("Hash to UPDATE is empty.")
+            raise McUpdateByIDException("Hash to UPDATE is empty.")
 
         primary_key_column = self.primary_key_column(table)
         if not primary_key_column:
-            raise Exception("Primary key for table '%s' was not found" % table)
+            raise McUpdateByIDException("Primary key for table '%s' was not found" % table)
 
         keys = []
         for key, value in update_hash.items():
@@ -397,12 +398,12 @@ class DatabaseHandler(object):
 
         return self.query(sql, update_hash)
 
-    def delete_by_id(self, table: str, object_id: int) -> Result:
+    def delete_by_id(self, table: str, object_id: int) -> DatabaseResult:
         """Delete the row in the table with the given ID."""
 
         primary_key_column = self.primary_key_column(table)
         if not primary_key_column:
-            raise Exception("Primary key for table '%s' was not found" % table)
+            raise McDeleteByIDException("Primary key for table '%s' was not found" % table)
 
         sql = "DELETE FROM %s " % table
         sql += "WHERE %s = " % primary_key_column
@@ -410,11 +411,11 @@ class DatabaseHandler(object):
 
         return self.query(sql, {"__object_id": object_id})
 
-    def insert(self, table: str, insert_hash: dict) -> Result:
+    def insert(self, table: str, insert_hash: dict) -> DatabaseResult:
         """Alias for create()."""
         return self.create(table=table, insert_hash=insert_hash)
 
-    def create(self, table: str, insert_hash: dict) -> Result:
+    def create(self, table: str, insert_hash: dict) -> DatabaseResult:
         """Insert a row into the database for the given table with the given hash values and return the created row."""
         insert_hash = insert_hash.copy()  # To be able to safely modify it
 
@@ -423,11 +424,11 @@ class DatabaseHandler(object):
             del insert_hash["submit"]
 
         if len(insert_hash) == 0:
-            raise Exception("Hash to INSERT is empty")
+            raise McCreateException("Hash to INSERT is empty")
 
         primary_key_column = self.primary_key_column(table)
         if not primary_key_column:
-            raise Exception("Primary key for table '%s' was not found" % table)
+            raise McCreateException("Primary key for table '%s' was not found" % table)
 
         keys = []
         values = []
@@ -443,16 +444,16 @@ class DatabaseHandler(object):
         last_inserted_id = self.query(sql, insert_hash).flat()
 
         if last_inserted_id is None or len(last_inserted_id) == 0:
-            raise Exception("Last inserted ID was not found")
+            raise McCreateException("Last inserted ID was not found")
         last_inserted_id = last_inserted_id[0]
 
         inserted_row = self.find_by_id(table=table, object_id=last_inserted_id)
         if inserted_row is None:
-            raise Exception("Could not find new ID %d in table '%s'" % (last_inserted_id, table))
+            raise McCreateException("Could not find new ID %d in table '%s'" % (last_inserted_id, table))
 
         return inserted_row
 
-    def select(self, table: str, what_to_select: str, condition_hash: dict = None) -> Result:
+    def select(self, table: str, what_to_select: str, condition_hash: dict = None) -> DatabaseResult:
         """SELECT chosen columns from the table that match given conditions."""
 
         if condition_hash is None:
@@ -478,13 +479,13 @@ class DatabaseHandler(object):
 
         return self.query(sql, condition_hash)
 
-    def find_or_create(self, table: str, insert_hash: dict) -> Result:
+    def find_or_create(self, table: str, insert_hash: dict) -> DatabaseResult:
         """Select a single row from the database matching the hash or insert a row with the hash values and return the
         inserted row as a hash."""
         insert_hash = insert_hash.copy()  # To be able to safely modify it
 
         if len(insert_hash) == 0:
-            raise Exception("Hash to INSERT or SELECT is empty")
+            raise McFindOrCreateException("Hash to INSERT or SELECT is empty")
 
         # FIXME MC_REWRITE_TO_PYTHON: remove after getting rid of Catalyst
         if "submit" in insert_hash:
@@ -498,4 +499,4 @@ class DatabaseHandler(object):
 
     # noinspection PyMethodMayBeStatic
     def dbh(self):
-        raise Exception("Please don't use internal database handler directly")
+        raise McDatabaseHandlerException("Please don't use internal database handler directly")

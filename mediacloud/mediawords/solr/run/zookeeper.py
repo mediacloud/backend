@@ -19,6 +19,11 @@ l = create_logger(__name__)
 __zookeeper_pid = None
 
 
+class McZooKeeperRunException(Exception):
+    """Exception of running ZooKeeper."""
+    pass
+
+
 def __zookeeper_path(dist_directory: str = MC_DIST_DIR,
                      zookeeper_version: str = MC_ZOOKEEPER_VERSION) -> str:
     """Return path to where ZooKeeper distribution should be located."""
@@ -72,7 +77,7 @@ def __zookeeper_dist_url(zookeeper_version: str = MC_ZOOKEEPER_VERSION) -> str:
 def __install_zookeeper(dist_directory: str = MC_DIST_DIR, zookeeper_version: str = MC_ZOOKEEPER_VERSION) -> None:
     """Install ZooKeeper to distribution directory; lock directory before installing and unlock afterwards."""
     if __zookeeper_is_installed(dist_directory=dist_directory, zookeeper_version=zookeeper_version):
-        raise Exception("ZooKeeper %s is already installed in distribution directory '%s'." % (
+        raise McZooKeeperRunException("ZooKeeper %s is already installed in distribution directory '%s'." % (
             zookeeper_version, dist_directory
         ))
 
@@ -111,7 +116,7 @@ def __install_zookeeper(dist_directory: str = MC_DIST_DIR, zookeeper_version: st
     unlock_file(installing_file_path)
 
     if not __zookeeper_is_installed(dist_directory=dist_directory, zookeeper_version=zookeeper_version):
-        raise Exception("I've done everything but ZooKeeper is still not installed.")
+        raise McZooKeeperRunException("I've done everything but ZooKeeper is still not installed.")
 
 
 # noinspection PyUnusedLocal
@@ -144,17 +149,17 @@ def run_zookeeper(dist_directory: str = MC_DIST_DIR,
         mkdir_p(zookeeper_data_dir)
 
     if tcp_port_is_open(port=port):
-        raise Exception("Port %d is already open on this machine." % port)
+        raise McZooKeeperRunException("Port %d is already open on this machine." % port)
 
     zookeeper_path = __zookeeper_path(dist_directory=dist_directory, zookeeper_version=zookeeper_version)
 
     zkserver_path = os.path.join(zookeeper_path, "bin", "zkServer.sh")
     if not os.path.isfile(zkserver_path):
-        raise Exception("zkServer.sh at '%s' was not found." % zkserver_path)
+        raise McZooKeeperRunException("zkServer.sh at '%s' was not found." % zkserver_path)
 
     log4j_properties_path = os.path.join(zookeeper_path, "conf", "log4j.properties")
     if not os.path.isfile(log4j_properties_path):
-        raise Exception("log4j.properties at '%s' was not found.")
+        raise McZooKeeperRunException("log4j.properties at '%s' was not found.")
 
     zoo_cnf_path = os.path.join(zookeeper_data_dir, "zoo.cfg")
     l.info("Creating zoo.cfg in '%s'..." % zoo_cnf_path)
@@ -211,7 +216,7 @@ syncLimit=5
     l.info("Waiting for ZooKeeper to start at port %d..." % port)
     zookeeper_started = wait_for_tcp_port_to_open(port=port, retries=MC_ZOOKEEPER_CONNECT_RETRIES)
     if not zookeeper_started:
-        raise Exception("Unable to connect to ZooKeeper at port %d" % port)
+        raise McZooKeeperRunException("Unable to connect to ZooKeeper at port %d" % port)
 
     l.info("Uploading initial Solr collection configurations to ZooKeeper...")
     update_zookeeper_solr_configuration(zookeeper_host="localhost",

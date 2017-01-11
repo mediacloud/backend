@@ -22,11 +22,13 @@ class TestDatabaseHandler(TestCase):
         assert test_database is not None
 
         l.info("Connecting to test database '%s' via DatabaseHandler class..." % test_database['db'])
-        self.__db = DatabaseHandler(host=test_database['host'],
-                                    port=test_database['port'],
-                                    username=test_database['user'],
-                                    password=test_database['pass'],
-                                    database=test_database['db'])
+        self.__db = DatabaseHandler(
+            host=test_database['host'],
+            port=test_database['port'],
+            username=test_database['user'],
+            password=test_database['pass'],
+            database=test_database['db']
+        )
 
         l.info("Preparing test table 'kardashians'...")
         self.__db.query("""
@@ -230,7 +232,7 @@ class TestDatabaseHandler(TestCase):
         row = None
         try:
             row = self.__db.require_by_id(table='kardashians', object_id=42)
-        except RequireByIDException:
+        except McRequireByIDException:
             pass
         else:
             assert "Should have thrown an exception, " == "but it didn't"

@@ -14,6 +14,10 @@ l = create_logger(__name__)
 __module_version_cache = {}
 
 
+class McGetPipModuleVersionException(Exception):
+    pass
+
+
 def __get_pip_module_version(module_name):
     """Return module version using Pip (not all modules have "__version__" attribute)."""
     global __module_version_cache
@@ -32,7 +36,7 @@ def __get_pip_module_version(module_name):
                 break
 
         if module_version is None:
-            raise Exception("Unable to determine '%s' module version" % module_name)
+            raise McGetPipModuleVersionException("Unable to determine '%s' module version" % module_name)
 
         __module_version_cache[module_name] = module_version
 

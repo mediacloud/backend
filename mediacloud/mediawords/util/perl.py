@@ -39,7 +39,7 @@ def decode_object_from_bytes_if_needed(obj: Union[dict, list, str, bytes, None])
     return result
 
 
-class ConvertDBDPgArgumentsToPsycopg2FormatException(Exception):
+class McConvertDBDPgArgumentsToPsycopg2FormatException(Exception):
     pass
 
 
@@ -47,13 +47,15 @@ class ConvertDBDPgArgumentsToPsycopg2FormatException(Exception):
 def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, tuple]) -> tuple:
     """Convert DBD::Pg's question mark-style SQL query parameters to psycopg2's syntax."""
     if len(query_parameters) == 0:
-        raise Exception('No query or its parameters.')
+        raise McConvertDBDPgArgumentsToPsycopg2FormatException('No query or its parameters.')
 
     query = query_parameters[0]
     if isinstance(query, bytes):
-        raise Exception('Query is still "bytes"; did you forget to decode it to "string"?')
+        raise McConvertDBDPgArgumentsToPsycopg2FormatException(
+            'Query is still "bytes"; did you forget to decode it to "string"?'
+        )
     if len(query) == 0:
-        raise Exception('Query is empty or undefined.')
+        raise McConvertDBDPgArgumentsToPsycopg2FormatException('Query is empty or undefined.')
     query = str(query)
 
     query_args = query_parameters[1:]
@@ -86,7 +88,7 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
         double_question_mark_count = len(re.findall(double_question_mark_regex, query))
         if double_question_mark_count > 0:
             if double_question_mark_count > 1:
-                raise ConvertDBDPgArgumentsToPsycopg2FormatException("""
+                raise McConvertDBDPgArgumentsToPsycopg2FormatException("""
                     More than one double question mark found
                     in query "%(query)s" (arguments: %(query_args)s)
                 """ % {
@@ -113,7 +115,7 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
             question_mark_count = len(re.findall(question_mark_regex, query))
             if question_mark_count > 0:
                 if question_mark_count != len(query_args):
-                    raise ConvertDBDPgArgumentsToPsycopg2FormatException("""
+                    raise McConvertDBDPgArgumentsToPsycopg2FormatException("""
                         Question mark count (%(question_mark_count)d)
                         does not match the argument count (%(argument_count)d
                         in query "%(query)s" (arguments: %(query_args)s)
@@ -141,7 +143,7 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
             dollar_sign_unique_count = len(dollar_sign_unique_indexes)
             if dollar_sign_unique_count > 0:
                 if dollar_sign_unique_count != len(query_args):
-                    raise ConvertDBDPgArgumentsToPsycopg2FormatException("""
+                    raise McConvertDBDPgArgumentsToPsycopg2FormatException("""
                         Unique dollar sign count (%(dollar_sign_unique_count)d)
                         does not match the argument count (%(argument_count)d
                         in query "%(query)s" (arguments: %(query_args)s)
