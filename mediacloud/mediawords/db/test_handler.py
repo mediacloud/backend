@@ -389,3 +389,13 @@ class TestDatabaseHandler(TestCase):
 
         row = self.__db.query("SELECT * FROM kardashians WHERE name = 'Lamar'")
         assert row.rows() == 0
+
+    def test_quote(self):
+        assert self.__db.quote(None) == 'NULL'
+        assert self.__db.quote("foo") == "'foo'"
+        assert self.__db.quote("foo'bar") == "'foo''bar'"
+        assert self.__db.quote(0) == "0"
+        assert self.__db.quote(1) == "1"
+        assert self.__db.quote(3.4528) == "3.4528"
+        assert self.__db.quote(True) == "true"
+        assert self.__db.quote(False) == "false"

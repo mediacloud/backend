@@ -1,9 +1,10 @@
 import os
 import re
-from typing import Callable
+from typing import Callable, Union
 
 import psycopg2
 import psycopg2.extras
+from psycopg2.extensions import adapt as psycopg2_adapt
 
 from mediawords.db.exceptions.handler import *
 from mediawords.db.result.result import DatabaseResult
@@ -541,3 +542,53 @@ class DatabaseHandler(object):
 
         self.query('ROLLBACK')
         self.__in_manual_transaction = False
+
+    @staticmethod
+    def quote(value: Union[bool, int, float, str, None]) -> str:
+        """Quote a string for being passed as a literal in a query."""
+        quoted_obj = None
+        try:
+            # Docs say that: "While the original adapt() takes 3 arguments, psycopg2's one only takes 1: the bound
+            # variable to be adapted", so:
+            #
+            # noinspection PyArgumentList
+            quoted_obj = psycopg2_adapt(value)
+        except Exception as ex:
+            raise McQuoteException("psycopg2_adapt() failed while quoting '%s': %s" % (quoted_obj, str(ex)))
+        if quoted_obj is None:
+            raise McQuoteException("psycopg2_adapt() returned None while quoting '%s'" % quoted_obj)
+
+        quoted_value = quoted_obj.getquoted()
+        if quoted_value is None:
+            raise McQuoteException("getquoted() returned None while quoting '%s'" % quoted_obj)
+
+        if isinstance(quoted_value, bytes):
+            quoted_value = quoted_value.decode(encoding='utf-8', errors='replace')
+
+        if not isinstance(quoted_value, str):
+            # Maybe overly paranoid, but better than returning random stuff for a string that will go into the database
+            raise McQuoteException("Quoted value is not 'str' after quoting '%s'" % quoted_obj)
+
+        return quoted_value
+
+    @staticmethod
+    def quote_bool(value: bool) -> str:
+        """Quote a boolean value for being passed as a literal in a query."""
+        # FIXME probably there's no point in having this as an alias
+        return DatabaseHandler.quote(value=value)
+
+    @staticmethod
+    def quote_varchar(value: str) -> str:
+        """Quote VARCHAR for being passed as a literal in a query."""
+        # FIXME probably there's no point in having this as an alias
+        return DatabaseHandler.quote(value=value)
+
+    @staticmethod
+    def quote_date(value: str) -> str:
+        """Quote DATE for being passed as a literal in a query."""
+        return '%s::date' % DatabaseHandler.quote(value=value)
+
+    @staticmethod
+    def quote_timestamp(value: str) -> str:
+        """Quote TIMESTAMP for being passed as a literal in a query."""
+        return '%s::timestamp' % DatabaseHandler.quote(value=value)

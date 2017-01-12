@@ -51,3 +51,8 @@ class McCreateException(McDatabaseHandlerException):
 class McFindOrCreateException(McDatabaseHandlerException):
     """find_or_create() exception."""
     pass
+
+
+class McQuoteException(McDatabaseHandlerException):
+    """quote() exception."""
+    pass
