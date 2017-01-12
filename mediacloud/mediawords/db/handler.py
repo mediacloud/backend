@@ -22,6 +22,7 @@ l = create_logger(__name__)
 # FIXME make PyCharm parse psycopg2's query parameters correctly: http://stackoverflow.com/a/36346689/200603
 # FIXME custom exceptions
 # FIXME add function parameter / return types
+# FIXME test if autocommit can be toggled with database cursor enabled
 class DatabaseHandler(object):
     """PostgreSQL middleware (imitates DBIx::Simple's interface)."""
 
