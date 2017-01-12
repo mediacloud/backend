@@ -750,4 +750,79 @@ EOF
     return $sql_activities;
 }
 
+# update the row in the table with the given id
+# and make note of the changes that were made
+sub update_by_id_and_log($$$$$$$$)
+{
+    my ( $db, $table, $id, $old_hash, $new_hash, $activity_name, $reason, $username ) = @_;
+
+    # Delete the "reason" from the HTTP parameters as it has already been copied
+    # to $reason variable
+    delete( $new_hash->{ reason } );
+
+    # Find out which fields were changed
+    my @changes;
+    foreach my $field_name ( keys %{ $old_hash } )
+    {
+
+        # Ignore fields that start with '_' and other form cruft
+        unless ( $field_name =~ /^_/ or $field_name eq 'submit' or $field_name eq 'reason' )
+        {
+
+            # Might be empty
+            if ( defined $new_hash->{ $field_name } and defined $old_hash->{ $field_name } )
+            {
+
+                if ( $new_hash->{ $field_name } ne $old_hash->{ $field_name } )
+                {
+
+                    # INFO "Field '$field_name' was changed from: " . $old_hash->{$field_name} .
+                    #     "; to: " . $new_hash->{$field_name};
+
+                    my $change = {
+                        field     => $field_name,
+                        old_value => $old_hash->{ $field_name },
+                        new_value => $new_hash->{ $field_name },
+                    };
+                    push( @changes, $change );
+                }
+            }
+
+        }
+    }
+
+    # If there are no changes, there is nothing to do
+    if ( scalar( @changes ) == 0 )
+    {
+        DEBUG "Nothing to do.";
+        return 1;
+    }
+
+    # Start transaction
+    $db->begin_work;
+
+    # Make the change
+    my $r = 0;
+    eval { $r = $db->update_by_id( $table, $id, $new_hash ); };
+    if ( $@ )
+    {
+
+        # Update failed
+        $db->rollback;
+        die $@;
+    }
+
+    # Update succeeded, write the activity log
+    unless ( log_activities( $db, $activity_name, $username, $id, $reason, \@changes ) )
+    {
+        $db->rollback;
+        die "Logging one of the changes failed: $@";
+    }
+
+    # Things went fine at this point, commit
+    $db->commit;
+
+    return $r;
+}
+
 1;

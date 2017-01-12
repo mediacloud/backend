@@ -13,6 +13,7 @@ use URI::Escape;
 use URI::QueryParam;
 use Encode;
 
+use MediaWords::DBI::Activities;
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::DBI::Activities;
@@ -329,9 +330,16 @@ sub edit : Local
         delete $form_params->{ confirm_date };
         delete $form_params->{ undateable };
 
-        $c->dbis->update_by_id_and_log( 'stories', $stories_id, $story, $form_params,
-            'story_edit', $form->params->{ reason },
-            $c->user->username );
+        MediaWords::DBI::Activities::update_by_id_and_log(
+            $c->dbis,                                #
+            'stories',                               #
+            $stories_id,                             #
+            $story,                                  #
+            $form_params,                            #
+            'story_edit',                            #
+            $form->params->{ reason },               #
+            $c->user->username                       #
+        );
 
         if ( $c->req->params->{ confirm_date } )
         {

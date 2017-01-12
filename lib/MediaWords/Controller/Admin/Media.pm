@@ -16,6 +16,7 @@ use List::MoreUtils qw(any all none notall true false firstidx first_index
   apply after after_incl before before_incl indexes
   firstval first_value lastval last_value each_array
   each_arrayref pairwise natatime mesh zip uniq minmax);
+use MediaWords::DBI::Activities;
 use MediaWords::DBI::Feeds;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
@@ -286,8 +287,16 @@ sub edit_do : Local
         $db->update_by_id( 'media', $id, $form_params );
 
         # Make a logged update
-        $db->update_by_id_and_log( 'media', $id, $medium, $form_params, 'media_edit', $form->params->{ reason },
-            $c->user->username );
+        MediaWords::DBI::Activities::update_by_id_and_log(
+            $db,                          #
+            'media',                      #
+            $id,                          #
+            $medium,                      #
+            $form_params,                 #
+            'media_edit',                 #
+            $form->params->{ reason },    #
+            $c->user->username            #
+        );
 
         my $msg = "Media source updated.";
         if ( $form->params->{ referer } )
