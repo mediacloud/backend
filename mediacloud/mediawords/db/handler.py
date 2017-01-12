@@ -92,6 +92,9 @@ class DatabaseHandler(object):
         cursor_factory = psycopg2.extras.DictCursor
         self.__db = self.__conn.cursor(cursor_factory=cursor_factory)
 
+        # Queries to have immediate effect by default
+        self.set_autocommit(True)
+
         if not do_not_check_schema_version:
             if not self.schema_is_up_to_date():
                 # It would make sense to check the MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION environment variable
