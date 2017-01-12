@@ -508,7 +508,7 @@ class DatabaseHandler(object):
         """Set whether PostgreSQL warnings will be printed."""
         self.__print_warnings = print_warn
 
-    def begin(self):
+    def begin(self) -> None:
         """Begin a transaction."""
         if self.autocommit():
             l.warn("Autocommit is enabled, are you sure you want to start a transaction?")
@@ -518,11 +518,11 @@ class DatabaseHandler(object):
         self.query('BEGIN')
         self.__in_manual_transaction = True
 
-    def begin_work(self):
+    def begin_work(self) -> None:
         """Begin a transaction."""
         return self.begin()
 
-    def commit(self):
+    def commit(self) -> None:
         """Commit a transaction."""
         if self.autocommit():
             l.warn("Autocommit is enabled, are you sure you want to commit a transaction?")
@@ -532,7 +532,7 @@ class DatabaseHandler(object):
         self.query('COMMIT')
         self.__in_manual_transaction = False
 
-    def rollback(self):
+    def rollback(self) -> None:
         """Rollback a transaction."""
         if self.autocommit():
             l.warn("Autocommit is enabled, are you sure you want to rollback a transaction?")
