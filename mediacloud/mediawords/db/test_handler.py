@@ -7,11 +7,37 @@ from mediawords.util.log import create_logger
 l = create_logger(__name__)
 
 
+# FIXME make use of the testing database
 # noinspection SqlResolve,SpellCheckingInspection
 class TestDatabaseHandler(TestCase):
     __db = None
 
+    @staticmethod
+    def __create_database_handler():
+        l.info("Looking for test database credentials...")
+        test_database = None
+        config = get_config()
+        for database in config['database']:
+            if database['label'] == 'test':
+                test_database = database
+                break
+        assert test_database is not None
+
+        l.info("Connecting to test database '%s' via DatabaseHandler class..." % test_database['db'])
+        db = DatabaseHandler(
+            host=test_database['host'],
+            port=test_database['port'],
+            username=test_database['user'],
+            password=test_database['pass'],
+            database=test_database['db']
+        )
+
+        return db
+
     def setUp(self):
+
+        self.__db = self.__create_database_handler()
+
         l.info("Looking for test database credentials...")
         test_database = None
         config = get_config()
@@ -31,8 +57,9 @@ class TestDatabaseHandler(TestCase):
         )
 
         l.info("Preparing test table 'kardashians'...")
+        self.__db.query("DROP TABLE IF EXISTS kardashians")
         self.__db.query("""
-            CREATE TEMPORARY TABLE kardashians (
+            CREATE TABLE kardashians (
                 id SERIAL PRIMARY KEY NOT NULL,
                 name VARCHAR UNIQUE NOT NULL,   -- UNIQUE to test find_or_create()
                 surname TEXT NOT NULL,
@@ -54,6 +81,7 @@ class TestDatabaseHandler(TestCase):
 
     def tearDown(self):
         l.info("Tearing down...")
+        self.__db.query("DROP TABLE IF EXISTS kardashians")
 
     def test_query_parameters(self):
 
@@ -308,3 +336,56 @@ class TestDatabaseHandler(TestCase):
         assert row.rows() == 1
         row_hash = row.hash()
         assert row_hash['surname'] == 'Odom'
+
+    def test_begin_commit(self):
+
+        row = self.__db.query("SELECT * FROM kardashians WHERE name = 'Lamar'")
+        assert row.rows() == 0
+
+        # Create a separate database handler to test whether transactions are isolated
+        isolated_db = self.__create_database_handler()
+        row = isolated_db.query("SELECT * FROM kardashians WHERE name = 'Lamar'")
+        assert row.rows() == 0
+
+        self.__db.begin()
+        self.__db.create(table='kardashians', insert_hash={
+            'name': 'Lamar',
+            'surname': 'Odom',
+            'dob': '1979-11-06',
+        })
+
+        # Should exist in a handle that initiated the transaction...
+        row = self.__db.query("SELECT * FROM kardashians WHERE name = 'Lamar'").hash()
+        assert row['surname'] == 'Odom'
+        assert str(row['dob']) == '1979-11-06'
+
+        # ...but not on the testing handle which is supposed to be isolated
+        row = isolated_db.query("SELECT * FROM kardashians WHERE name = 'Lamar'")
+        assert row.rows() == 0
+
+        self.__db.commit()
+
+        # Both handles should be able to access new row at this point
+        row = self.__db.query("SELECT * FROM kardashians WHERE name = 'Lamar'").hash()
+        assert row['surname'] == 'Odom'
+        assert str(row['dob']) == '1979-11-06'
+
+        row = isolated_db.query("SELECT * FROM kardashians WHERE name = 'Lamar'").hash()
+        assert row['surname'] == 'Odom'
+        assert str(row['dob']) == '1979-11-06'
+
+    def test_begin_rollback(self):
+
+        row = self.__db.query("SELECT * FROM kardashians WHERE name = 'Lamar'")
+        assert row.rows() == 0
+
+        self.__db.begin()
+        self.__db.create(table='kardashians', insert_hash={
+            'name': 'Lamar',
+            'surname': 'Odom',
+            'dob': '1979-11-06',
+        })
+        self.__db.rollback()
+
+        row = self.__db.query("SELECT * FROM kardashians WHERE name = 'Lamar'")
+        assert row.rows() == 0

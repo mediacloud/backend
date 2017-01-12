@@ -41,6 +41,9 @@ class DatabaseHandler(object):
     # Whether or not to print PostgreSQL warnings
     __print_warnings = True
 
+    # Debugging variable to test whether we're in a transaction
+    __in_manual_transaction = False
+
     # Pyscopg2 instance and cursor
     __conn = None
     __db = None
@@ -504,3 +507,37 @@ class DatabaseHandler(object):
     def set_print_warn(self, print_warn: bool) -> None:
         """Set whether PostgreSQL warnings will be printed."""
         self.__print_warnings = print_warn
+
+    def begin(self):
+        """Begin a transaction."""
+        if self.autocommit():
+            l.warn("Autocommit is enabled, are you sure you want to start a transaction?")
+        if self.__in_manual_transaction:
+            l.warn("We're already in the middle of a manual transaction, the query will probably fail")
+
+        self.query('BEGIN')
+        self.__in_manual_transaction = True
+
+    def begin_work(self):
+        """Begin a transaction."""
+        return self.begin()
+
+    def commit(self):
+        """Commit a transaction."""
+        if self.autocommit():
+            l.warn("Autocommit is enabled, are you sure you want to commit a transaction?")
+        if not self.__in_manual_transaction:
+            l.warn("We're not in the middle of a manual transaction, the query will probably fail")
+
+        self.query('COMMIT')
+        self.__in_manual_transaction = False
+
+    def rollback(self):
+        """Rollback a transaction."""
+        if self.autocommit():
+            l.warn("Autocommit is enabled, are you sure you want to rollback a transaction?")
+        if not self.__in_manual_transaction:
+            l.warn("We're not in the middle of a manual transaction, the query will probably fail")
+
+        self.query('ROLLBACK')
+        self.__in_manual_transaction = False
