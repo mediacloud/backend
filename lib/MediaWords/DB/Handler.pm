@@ -686,7 +686,7 @@ SQL
 # the database connection must be within a transaction.  the temporary table is setup to be dropped
 # at the end of the current transaction. row insertion order is maintained.
 # if $ordered is true, include an ${ids_table}_id serial primary key field in the table.
-sub get_temporary_ids_table($;$$)
+sub get_temporary_ids_table($$;$)
 {
     my ( $self, $ids, $ordered ) = @_;
 
