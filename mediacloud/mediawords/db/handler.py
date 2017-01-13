@@ -16,6 +16,12 @@ from mediawords.util.perl import convert_dbd_pg_arguments_to_psycopg2_format
 
 l = create_logger(__name__)
 
+# Set to the module in addition to connection so that adapt() returns what it should
+# noinspection PyArgumentList
+psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
+# noinspection PyArgumentList
+psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
+
 
 # FIXME add decode_string_from_bytes_if_needed() everywhere
 # FIXME think about Catalyst reconnecting to the database every time
@@ -24,6 +30,7 @@ l = create_logger(__name__)
 # FIXME custom exceptions
 # FIXME add function parameter / return types
 # FIXME test if autocommit can be toggled with database cursor enabled
+# FIXME add some more Unicode tests
 class DatabaseHandler(object):
     """PostgreSQL middleware (imitates DBIx::Simple's interface)."""
 
@@ -91,6 +98,12 @@ class DatabaseHandler(object):
                 do_not_check_schema_version = False
 
         self.__conn = psycopg2.connect(host=host, port=port, user=username, password=password, database=database)
+
+        psycopg2.extensions.register_type(psycopg2.extensions.UNICODE, self.__conn)
+        psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY, self.__conn)
+
+        # Magic bits for psycopg2 to start supporting UTF-8
+        self.__conn.set_client_encoding(psycopg2.extensions.encodings['UTF8'])
 
         # psycopg2.extras.DictCursor factory enables server-side query prepares so all result data does not get fetched
         # at once
@@ -553,12 +566,20 @@ class DatabaseHandler(object):
             #
             # noinspection PyArgumentList
             quoted_obj = psycopg2_adapt(value)
+
+            if hasattr(quoted_obj, 'encoding'):  # integer adaptors don't support encoding for example
+                # Otherwise string gets treated as Latin-1:
+                quoted_obj.encoding = psycopg2.extensions.encodings['UTF8']
+
         except Exception as ex:
             raise McQuoteException("psycopg2_adapt() failed while quoting '%s': %s" % (quoted_obj, str(ex)))
         if quoted_obj is None:
             raise McQuoteException("psycopg2_adapt() returned None while quoting '%s'" % quoted_obj)
 
-        quoted_value = quoted_obj.getquoted()
+        try:
+            quoted_value = quoted_obj.getquoted()
+        except Exception as ex:
+            raise McQuoteException("getquoted() failed while quoting '%s': %s" % (quoted_obj, str(ex)))
         if quoted_value is None:
             raise McQuoteException("getquoted() returned None while quoting '%s'" % quoted_obj)
 
