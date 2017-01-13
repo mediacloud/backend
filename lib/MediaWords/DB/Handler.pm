@@ -936,67 +936,123 @@ sub set_prepare_on_server_side($$)
     $self->{ _db }->dbh->{ pg_server_prepare } = $prepare_on_server_side;
 }
 
-# COPY FROM helpers
-sub copy_from_start($$)
+{
+    # Wrapper around COPY FROM
+    package MediaWords::DB::Handler::CopyFrom;
+
+    use strict;
+    use warnings;
+
+    sub new($$$)
+    {
+        my ( $class, $db, $sql ) = @_;
+
+        my $self = {};
+        bless $self, $class;
+
+        if ( ref( $db ) ne 'MediaWords::DB::Handler' )
+        {
+            die "Database is not a reference to MediaWords::DB::Handler but rather to " . ref( $db );
+        }
+
+        $self->{ _db } = $db;
+
+        eval { $self->{ _db }->dbh->do( $sql ) };
+        if ( $@ )
+        {
+            die "Error while running '$sql': $@";
+        }
+
+        return $self;
+    }
+
+    sub put_line($$)
+    {
+        my ( $self, $line ) = @_;
+
+        chomp $line;
+
+        eval { $self->{ _mediawords_db }->{ _db }->dbh->pg_putcopydata( "$line\n" ); };
+        if ( $@ )
+        {
+            die "Error on pg_putcopydata('$line'): $@";
+        }
+    }
+
+    sub end($$)
+    {
+        my ( $self ) = @_;
+
+        eval { $self->{ _mediawords_db }->{ _db }->dbh->pg_putcopyend(); };
+        if ( $@ )
+        {
+            die "Error on pg_putcopyend(): $@";
+        }
+    }
+
+    1;
+}
+
+sub copy_from($$)
 {
     my ( $self, $sql ) = @_;
 
-    eval { $self->{ _db }->dbh->do( $sql ) };
-    if ( $@ )
-    {
-        die "Error while running '$sql': $@";
-    }
+    return MediaWords::DB::Handler::CopyFrom->new( $self, $sql );
 }
 
-sub copy_from_put_line($$)
 {
-    my ( $self, $line ) = @_;
+    # Wrapper around COPY TO
+    package MediaWords::DB::Handler::CopyTo;
 
-    chomp $line;
+    use strict;
+    use warnings;
 
-    eval { $self->{ _db }->dbh->pg_putcopydata( "$line\n" ); };
-    if ( $@ )
+    sub new($$$)
     {
-        die "Error on pg_putcopydata('$line'): $@";
+        my ( $class, $db, $sql ) = @_;
+
+        my $self = {};
+        bless $self, $class;
+
+        if ( ref( $db ) ne 'MediaWords::DB::Handler' )
+        {
+            die "Database is not a reference to MediaWords::DB::Handler but rather to " . ref( $db );
+        }
+
+        $self->{ _mediawords_db } = $db;
+
+        eval { $self->{ _mediawords_db }->{ _db }->dbh->do( $sql ) };
+        if ( $@ )
+        {
+            die "Error while running '$sql': $@";
+        }
+
+        return $self;
     }
+
+    sub get_line($)
+    {
+        my ( $self ) = @_;
+
+        my $line = '';
+        if ( $self->{ _mediawords_db }->{ _db }->dbh->pg_getcopydata( $line ) > -1 )
+        {
+            return $line;
+        }
+        else
+        {
+            return undef;
+        }
+    }
+
+    1;
 }
 
-sub copy_from_end($)
-{
-    my ( $self ) = @_;
-
-    eval { $self->{ _db }->dbh->pg_putcopyend(); };
-    if ( $@ )
-    {
-        die "Error on pg_putcopyend(): $@";
-    }
-}
-
-# COPY TO helpers
-sub copy_to_start($$)
+sub copy_to($$)
 {
     my ( $self, $sql ) = @_;
 
-    eval { $self->{ _db }->dbh->do( $sql ) };
-    if ( $@ )
-    {
-        die "Error while running '$sql': $@";
-    }
-}
-
-sub copy_to_get_line($)
-{
-    my ( $self ) = @_;
-
-    my $line = '';
-    if ( $self->{ _db }->dbh->pg_getcopydata( $line ) > -1 )
-    {
-        return $line;
-    }
-    else
-    {
-        return undef;
-    }
+    return MediaWords::DB::Handler::CopyTo->new( $self, $sql );
 }
 
 1;

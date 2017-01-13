@@ -84,7 +84,7 @@ sub dump_table_single($$$$$$)
 
     my $str_columns = _str_columns( $columns );
 
-    $db->copy_to_start( <<"SQL" );
+    my $copy_to = $db->copy_to( <<"SQL" );
 copy
     ( select $str_columns from $table where $key between $min and ( $min + $range ) )
     to STDOUT
@@ -93,7 +93,7 @@ SQL
 
     my $lines_buf = [];
     my $line      = '';
-    while ( my $line = $db->copy_to_get_line() )
+    while ( my $line = $copy_to->get_line() )
     {
         push( @{ $lines_buf }, $line );
 
@@ -113,8 +113,8 @@ sub print_csv_header($$$)
 
     my $str_columns = _str_columns( $columns );
 
-    $db->copy_to_start( "copy ( select $str_columns from $table where false ) to STDOUT with csv header" );
-    my $line = $db->copy_to_get_line();
+    my $copy_to = $db->copy_to( "copy ( select $str_columns from $table where false ) to STDOUT with csv header" );
+    my $line    = $copy_to->get_line();
 
     print $line;
 }

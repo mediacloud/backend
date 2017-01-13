@@ -382,13 +382,13 @@ sub insert_topic_links
 
     my $csv = Text::CSV_XS->new( { binary => 1 } );
 
-    $db->copy_from_start( "COPY topic_links (" . join( ', ', @{ $columns } ) . ") FROM STDIN WITH CSV" );
+    my $copy_from = $db->copy_from( "COPY topic_links (" . join( ', ', @{ $columns } ) . ") FROM STDIN WITH CSV" );
     for my $topic_link ( @{ $topic_links } )
     {
         $csv->combine( map { $topic_link->{ $_ } } ( @{ $columns } ) );
-        $db->copy_from_put_line( encode( 'utf8', $csv->string ) );
+        $copy_from->put_line( encode( 'utf8', $csv->string ) );
     }
-    $db->copy_from_end();
+    $copy_from->end();
 }
 
 # for each story, return a list of the links found in either the extracted html or the story description
@@ -2719,13 +2719,13 @@ sub insert_topic_seed_urls
 
     my $csv = Text::CSV_XS->new( { binary => 1 } );
 
-    $db->copy_from_start( "COPY topic_seed_urls (" . join( ', ', @{ $columns } ) . ") FROM STDIN WITH CSV" );
+    my $copy_from = $db->copy_from( "COPY topic_seed_urls (" . join( ', ', @{ $columns } ) . ") FROM STDIN WITH CSV" );
     for my $csu ( @{ $topic_seed_urls } )
     {
         $csv->combine( map { $csu->{ $_ } } ( @{ $columns } ) );
-        $db->copy_from_put_line( $csv->string );
+        $copy_from->put_line( $csv->string );
     }
-    $db->copy_from_end();
+    $copy_from->end();
 }
 
 # import stories intro topic_seed_urls from solr by running
