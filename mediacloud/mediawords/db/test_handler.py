@@ -83,6 +83,9 @@ class TestDatabaseHandler(TestCase):
         l.info("Tearing down...")
         self.__db.query("DROP TABLE IF EXISTS kardashians")
 
+        # Test disconnect() in a way too
+        self.__db.disconnect()
+
     def test_query_parameters(self):
 
         # DBD::Pg style

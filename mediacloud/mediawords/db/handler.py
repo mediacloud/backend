@@ -137,6 +137,14 @@ class DatabaseHandler(object):
             l.warn('"deadlock_timeout" is less than "%ds", expect deadlocks on high extractor load' %
                    self.__MIN_DEADLOCK_TIMEOUT)
 
+    def disconnect(self):
+        """Disconnect from the database."""
+        self.__db.close()
+        self.__db = None
+
+        self.__conn.close()
+        self.__db = None
+
     # noinspection PyMethodMayBeStatic
     def dbh(self):
         raise McDatabaseHandlerException("Please don't use internal database handler directly")
