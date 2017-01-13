@@ -19,9 +19,9 @@ sub new($$$)
         die "Database is not a reference to MediaWords::DB::Handler but rather to " . ref( $db );
     }
 
-    $self->{ _db } = $db;
+    $self->{ _mediawords_db } = $db;
 
-    eval { $self->{ _db }->dbh->do( $sql ) };
+    eval { $self->{ _mediawords_db }->{ _db }->dbh->do( $sql ) };
     if ( $@ )
     {
         die "Error while running '$sql': $@";
