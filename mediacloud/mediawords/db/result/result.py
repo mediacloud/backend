@@ -15,7 +15,7 @@ class DatabaseResult(object):
 
     __cursor = None  # psycopg2 cursor
 
-    def __init__(self, cursor: DictCursor, query_args: tuple, print_warnings: bool):
+    def __init__(self, cursor: DictCursor, query_args: tuple, print_warnings: bool = True):
         self.__execute(cursor=cursor, query_args=query_args, print_warnings=print_warnings)
 
     def __execute(self, cursor, query_args, print_warnings: bool):
