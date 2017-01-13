@@ -54,6 +54,26 @@ sub list : Local : ActionClass('MC_REST')
     #TRACE "starting Sentences/list";
 }
 
+# fill stories_ids temporary table with stories_ids from the given sentences
+# and return the temp table name
+sub _get_stories_ids_temporary_table
+{
+    my ( $db, $sentences ) = @_;
+
+    my $table_name = '_stories_ids';
+
+    $db->query( "CREATE TEMPORARY TABLE $table_name (stories_id BIGINT)" );
+
+    $db->copy_from_start( "COPY $table_name FROM STDIN" );
+    for my $ss ( @{ $sentences } )
+    {
+        $db->copy_from_put_line( $ss->{ stories_id } );
+    }
+    $db->copy_from_end();
+
+    return $table_name;
+}
+
 # attach the following fields to each sentence: sentence_number, media_id, publish_date, url, medium_name
 sub _attach_data_to_sentences
 {
@@ -61,17 +81,16 @@ sub _attach_data_to_sentences
 
     return unless ( $sentences && @{ $sentences } );
 
-    my $stories_ids = [ map { $_->{ stories_id } } @{ $sentences } ];
-    my $temp_stories_ids_table = $db->get_temporary_ids_table( $stories_ids );
+    my $temp_stories_ids = _get_stories_ids_temporary_table( $db, $sentences );
 
     my $stories = $db->query( <<END )->hashes;
 select s.publish_date, s.stories_id, s.url, m.name medium_name, s.media_id, 0 as sentence_number
     from stories s
-        join $temp_stories_ids_table q on ( s.stories_id = q.stories_id )
+        join $temp_stories_ids q on ( s.stories_id = q.stories_id )
         join media m on ( s.media_id = m.media_id )
 END
 
-    $db->query( "drop table $temp_stories_ids_table" );
+    $db->query( "drop table $temp_stories_ids" );
 
     my $story_lookup = {};
     map { $story_lookup->{ $_->{ stories_id } } = $_ } @{ $stories };
