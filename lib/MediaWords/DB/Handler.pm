@@ -8,6 +8,10 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use MediaWords::DB::Handler::CopyFrom;
+use MediaWords::DB::Handler::CopyTo;
+use MediaWords::DB::Handler::Result;
+use MediaWords::DB::Handler::Statement;
 use MediaWords::DB::Schema::Version;
 use MediaWords::DB;
 use MediaWords::Util::Config;
@@ -216,137 +220,6 @@ sub schema_is_up_to_date
         return 1;
     }
 
-}
-
-{
-    # Wrapper around query result
-    #
-    # Clarifies which DBIx::Simple helpers are being used and need to be ported
-    # to Python)
-    package MediaWords::DB::Handler::Result;
-
-    use strict;
-    use warnings;
-
-    use Data::Dumper;
-
-    sub new
-    {
-        my $class      = shift;
-        my $db         = shift;
-        my @query_args = @_;
-
-        if ( ref( $db ) ne 'MediaWords::DB::Handler' )
-        {
-            die "Database is not a reference to MediaWords::DB::Handler but rather to " . ref( $db );
-        }
-
-        if ( scalar( @query_args ) == 0 )
-        {
-            die 'No query or its parameters.';
-        }
-        unless ( $query_args[ 0 ] )
-        {
-            die 'Query is empty or undefined.';
-        }
-
-        my $self = {};
-        bless $self, $class;
-
-        eval { $self->{ result } = $db->_query_internal( @query_args ); };
-        if ( $@ )
-        {
-            die "Query error: $@";
-        }
-
-        return $self;
-    }
-
-    #
-    # MediaWords::DB::Handler::Result methods
-    #
-
-    # Returns a list of column names
-    sub columns($)
-    {
-        my $self = shift;
-        return $self->{ result }->columns;
-    }
-
-    # Returns the number of rows affected by the last row affecting command,
-    # or -1 if the number of rows is not known or not available
-    sub rows($)
-    {
-        my $self = shift;
-        return $self->{ result }->rows;
-    }
-
-    # bind(LIST) -- not used
-    # attr(...) -- not used
-    # func(...) -- not used
-    # finish -- not used
-
-    #
-    # Fetching a single row at a time
-    #
-
-    # Returns a reference to an array
-    sub array($)
-    {
-        my $self = shift;
-        return $self->{ result }->array;
-    }
-
-    # Returns a reference to a hash, keyed by column name
-    sub hash($)
-    {
-        my $self = shift;
-        return $self->{ result }->hash;
-    }
-
-    # fetch -- not used
-    # into(LIST) -- not used
-    # kv_list -- not used
-    # kv_array -- not used
-
-    #
-    # Fetching all remaining rows
-    #
-
-    # Returns a flattened list
-    sub flat($)
-    {
-        my $self = shift;
-        return $self->{ result }->flat;
-    }
-
-    # Returns a list of references to hashes, keyed by column name
-    sub hashes($)
-    {
-        my $self = shift;
-        return $self->{ result }->hashes;
-    }
-
-    # Returns a string with a simple text representation of the data. $type can
-    # be any of: neat, table, box. It defaults to table if Text::Table is
-    # installed, to neat if it isn't
-    sub text($$)
-    {
-        my ( $self, $type ) = @_;
-        return $self->{ result }->text( $type );
-    }
-
-    # arrays -- not used
-    # kv_flat -- not used
-    # kv_arrays -- not used
-    # objects($class, ...) -- not used
-    # map_arrays($column_number) -- not used
-    # map_hashes($column_name) -- not used
-    # map -- not used
-    # xto(%attr) -- not used
-    # html(%attr) -- not used
-
-    1;
 }
 
 sub _query_internal
@@ -770,86 +643,6 @@ sub quote_timestamp($$)
     return $self->{ _db }->dbh->quote( $value, { pg_type => DBD::Pg::PG_VARCHAR } ) . '::timestamp';
 }
 
-{
-    # Wrapper around prepared statement
-    package MediaWords::DB::Handler::Statement;
-
-    use strict;
-    use warnings;
-
-    use DBD::Pg qw(:pg_types);
-
-    our $VALUE_BYTEA = 1;
-
-    # There are other types (e.g. PG_POINT), but they aren't used currently by
-    # any live code
-
-    sub new($$$)
-    {
-        my ( $class, $db, $sql ) = @_;
-
-        my $self = {};
-        bless $self, $class;
-
-        if ( ref( $db ) ne 'MediaWords::DB::Handler' )
-        {
-            die "Database is not a reference to MediaWords::DB::Handler but rather to " . ref( $db );
-        }
-
-        $self->{ sql } = $sql;
-
-        eval { $self->{ sth } = $db->{ _db }->dbh->prepare( $sql ); };
-        if ( $@ )
-        {
-            die "Error while preparing statement '$sql': $@";
-        }
-
-        return $self;
-    }
-
-    sub bind_param($$$;$)
-    {
-        my ( $self, $param_num, $bind_value, $bind_type ) = @_;
-
-        if ( $param_num < 1 )
-        {
-            die "Parameter number must be >= 1.";
-        }
-
-        my $bind_args = undef;
-        if ( defined $bind_type )
-        {
-            if ( $bind_type == $VALUE_BYTEA )
-            {
-                $bind_args = { pg_type => DBD::Pg::PG_BYTEA };
-            }
-            else
-            {
-                die "Unknown bind type $bind_type.";
-            }
-        }
-
-        eval { $self->{ sth }->bind_param( $param_num, $bind_value, $bind_args ); };
-        if ( $@ )
-        {
-            die "Error while binding parameter $param_num for prepared statement '" . $self->{ sql } . "': $@";
-        }
-    }
-
-    sub execute($)
-    {
-        my ( $self ) = @_;
-
-        eval { $self->{ sth }->execute(); };
-        if ( $@ )
-        {
-            die "Error while executing prepared statement '" . $self->{ sql } . "': $@";
-        }
-    }
-
-    1;
-}
-
 # Alias for DBD::Pg's prepare()
 sub prepare($$)
 {
@@ -936,116 +729,11 @@ sub set_prepare_on_server_side($$)
     $self->{ _db }->dbh->{ pg_server_prepare } = $prepare_on_server_side;
 }
 
-{
-    # Wrapper around COPY FROM
-    package MediaWords::DB::Handler::CopyFrom;
-
-    use strict;
-    use warnings;
-
-    sub new($$$)
-    {
-        my ( $class, $db, $sql ) = @_;
-
-        my $self = {};
-        bless $self, $class;
-
-        if ( ref( $db ) ne 'MediaWords::DB::Handler' )
-        {
-            die "Database is not a reference to MediaWords::DB::Handler but rather to " . ref( $db );
-        }
-
-        $self->{ _db } = $db;
-
-        eval { $self->{ _db }->dbh->do( $sql ) };
-        if ( $@ )
-        {
-            die "Error while running '$sql': $@";
-        }
-
-        return $self;
-    }
-
-    sub put_line($$)
-    {
-        my ( $self, $line ) = @_;
-
-        chomp $line;
-
-        eval { $self->{ _mediawords_db }->{ _db }->dbh->pg_putcopydata( "$line\n" ); };
-        if ( $@ )
-        {
-            die "Error on pg_putcopydata('$line'): $@";
-        }
-    }
-
-    sub end($$)
-    {
-        my ( $self ) = @_;
-
-        eval { $self->{ _mediawords_db }->{ _db }->dbh->pg_putcopyend(); };
-        if ( $@ )
-        {
-            die "Error on pg_putcopyend(): $@";
-        }
-    }
-
-    1;
-}
-
 sub copy_from($$)
 {
     my ( $self, $sql ) = @_;
 
     return MediaWords::DB::Handler::CopyFrom->new( $self, $sql );
-}
-
-{
-    # Wrapper around COPY TO
-    package MediaWords::DB::Handler::CopyTo;
-
-    use strict;
-    use warnings;
-
-    sub new($$$)
-    {
-        my ( $class, $db, $sql ) = @_;
-
-        my $self = {};
-        bless $self, $class;
-
-        if ( ref( $db ) ne 'MediaWords::DB::Handler' )
-        {
-            die "Database is not a reference to MediaWords::DB::Handler but rather to " . ref( $db );
-        }
-
-        $self->{ _mediawords_db } = $db;
-
-        eval { $self->{ _mediawords_db }->{ _db }->dbh->do( $sql ) };
-        if ( $@ )
-        {
-            die "Error while running '$sql': $@";
-        }
-
-        return $self;
-    }
-
-    sub get_line($)
-    {
-        my ( $self ) = @_;
-
-        my $line = '';
-        if ( $self->{ _mediawords_db }->{ _db }->dbh->pg_getcopydata( $line ) > -1 )
-        {
-            return $line;
-        }
-        else
-        {
-            return undef;
-        }
-    }
-
-    1;
 }
 
 sub copy_to($$)
