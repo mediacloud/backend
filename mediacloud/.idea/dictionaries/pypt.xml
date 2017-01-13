@@ -22,6 +22,7 @@
       <w>nytimes</w>
       <w>phpsessid</w>
       <w>pids</w>
+      <w>pkey</w>
       <w>plpgsql</w>
       <w>postgre</w>
       <w>pyyaml</w>
@@ -30,6 +31,7 @@
       <w>shortener</w>
       <w>shorteners</w>
       <w>sopa</w>
+      <w>stdin</w>
       <w>supervisord</w>
       <w>upconfig</w>
       <w>webapp</w>
