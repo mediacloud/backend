@@ -33,6 +33,7 @@ class DatabaseResult(object):
             else:
                 l.debug('Warning while running query: %s' % str(ex))
         except psycopg2.Error as ex:
+            l.debug("Mogrified query: %s" % cursor.mogrify(*query_args))
             raise McDatabaseResultException('Query failed: %s' % str(ex))
 
         self.__cursor = cursor  # Cursor now holds results

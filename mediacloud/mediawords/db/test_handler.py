@@ -159,6 +159,36 @@ class TestDatabaseHandler(TestCase):
         assert len(hashes[1]) == 5
         assert hashes[1]['name'] == 'Kris'
 
+    def test_prepare(self):
+
+        # Basic
+        statement = self.__db.prepare("""
+            UPDATE kardashians
+            SET surname = ?
+            WHERE name = ?
+              AND surname = ?
+        """)
+        statement.bind(1, 'Kardashian-West')
+        statement.bind(2, 'Kim')
+        statement.bind(3, 'Kardashian')
+        statement.execute()
+
+        row_hash = self.__db.query("SELECT * FROM kardashians WHERE name = ?", 'Kim').hash()
+        assert row_hash['surname'] == 'Kardashian-West'
+
+        # BYTEA
+        random_bytes = os.urandom(10 * 1024)
+        self.__db.query('CREATE TEMPORARY TABLE table_with_bytea_column (bytea_data BYTEA NOT NULL)')
+        statement = self.__db.prepare("""
+            INSERT INTO table_with_bytea_column (bytea_data)
+            VALUES (?)
+        """)
+        statement.bind(1, random_bytes)
+        statement.execute()
+
+        row_hash = self.__db.query("SELECT bytea_data FROM table_with_bytea_column").hash()
+        assert bytes(row_hash['bytea_data']) == random_bytes
+
     def test_execute_with_large_work_mem(self):
         normal_work_mem = 256  # MB
         large_work_mem = 512  # MB

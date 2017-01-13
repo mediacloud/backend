@@ -56,3 +56,8 @@ class McFindOrCreateException(McDatabaseHandlerException):
 class McQuoteException(McDatabaseHandlerException):
     """quote() exception."""
     pass
+
+
+class McPrepareException(McDatabaseHandlerException):
+    """prepare() exception."""
+    pass

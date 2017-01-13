@@ -10,6 +10,7 @@ from psycopg2.extensions import adapt as psycopg2_adapt
 from mediawords.db.copy.copy_from import CopyFrom
 from mediawords.db.copy.copy_to import CopyTo
 from mediawords.db.exceptions.handler import *
+from mediawords.db.statement.statement import DatabaseStatement
 from mediawords.db.result.result import DatabaseResult
 from mediawords.db.schema.version import schema_version_from_lines
 
@@ -250,6 +251,12 @@ class DatabaseHandler(object):
             raise McQueryException("psycopg2's execute() accepts at most 2 parameters.")
 
         return DatabaseResult(cursor=self.__db, query_args=query_params, print_warnings=self.__print_warnings)
+
+    def prepare(self, sql: str) -> DatabaseStatement:
+        """Return a prepared statement."""
+        # FIXME MC_REWRITE_TO_PYTHON get rid of it because it was useful only for writing BYTEA cells; psycopg2 can just
+        # use 'bytes' arguments
+        return DatabaseStatement(cursor=self.__db, sql=sql)
 
     def __get_current_work_mem(self) -> str:
         current_work_mem = self.query("SHOW work_mem").flat()[0]
