@@ -22,6 +22,10 @@ __base_dir = __MC_ROOT_DIR  # FIXME remove
 __CONFIG = None
 
 
+class McConfigException(Exception):
+    pass
+
+
 def get_mc_root_dir():
     return __MC_ROOT_DIR
 
@@ -42,7 +46,7 @@ def get_config() -> dict:
 
 def __parse_config_file(config_file: str) -> dict:
     if not os.path.isfile(config_file):
-        raise Exception("Configuration file '%s' was not found." % config_file)
+        raise McConfigException("Configuration file '%s' was not found." % config_file)
 
     yaml_file = open(config_file, 'r').read()
     yaml_data = yaml.load(yaml_file, Loader=Loader)
@@ -52,7 +56,7 @@ def __parse_config_file(config_file: str) -> dict:
 def set_config_file(config_file: str) -> None:
     """set the cached config object given a file path"""
     if not os.path.isfile(config_file):
-        raise Exception("Configuration file '%s' was not found." % config_file)
+        raise McConfigException("Configuration file '%s' was not found." % config_file)
 
     set_config(__parse_config_file(config_file))
 
@@ -113,8 +117,8 @@ def __read_static_defaults() -> dict:
 
 
 def verify_settings(config: dict) -> None:
-    if 'database' not in config:
-        raise Exception("No database connections configured")
+    if 'database' not in config or config['database'] is None or len(config['database']) < 1:
+        raise McConfigException("No database connections configured")
 
     # Warn if there's a foreign database set for storing raw downloads
     if "raw_downloads" in config["database"]:
@@ -127,34 +131,31 @@ def verify_settings(config: dict) -> None:
         """)
 
     # Warn if no job brokers are configured
-    if 'job_manager' not in config:
+    if 'job_manager' not in config or config['job_manager'] is None:
         l.warn('Please configure a job manager under "job_manager" root key in mediawords.yml.')
     else:
-        if 'rabbitmq' not in config['job_manager']:
+        if 'rabbitmq' not in config['job_manager'] or config['job_manager']['rabbitmq'] is None:
             l.warn('Please configure "rabbitmq" job manager under "job_manager" root key in mediawords.yml.')
 
 
 def __set_dynamic_defaults(config: dict) -> dict:
     global __base_dir
 
-    if 'mediawords' not in config:
-        raise Exception('Configuration does not have "mediawords" key')
+    if 'mediawords' not in config or config['mediawords'] is None:
+        raise McConfigException('Configuration does not have "mediawords" key')
 
-    if 'script_dir' not in config['mediawords']:
-        # FIXME use mc_script_dir()
-        config['mediawords']['script_dir'] = os.path.join(__base_dir, 'script')
-    if 'data_dir' not in config['mediawords']:
+    if 'data_dir' not in config['mediawords'] or config['mediawords']['data_dir'] is None:
         # FIXME create a helper in 'paths'
         config['mediawords']['data_dir'] = os.path.join(__base_dir, 'data')
 
     # FIXME probably not needed
-    if 'session' not in config:
+    if 'session' not in config or config['session'] is None:
         config['session'] = {}
-    if 'storage' not in config['session']:
+    if 'storage' not in config['session'] or config['session']['storage'] is None:
         config['session']['storage'] = os.path.join(os.path.expanduser('~'), "tmp", "mediacloud-session")
 
     # FIXME probably not needed after Python rewrite
-    if "Plugin::Authentication" not in config:
+    if 'Plugin::Authentication' not in config or config['Plugin::Authentication'] is None:
         config['Plugin::Authentication'] = {
             "default_realm": 'users',
             "users": {

@@ -154,7 +154,7 @@ sub insert_detected_stories
 
     return if ( !@{ $stories } );
 
-    my $q_method = $db->dbh->quote( $method );
+    my $q_method = $db->quote( $method );
 
     my $values = [];
     for my $s ( @{ $stories } )
