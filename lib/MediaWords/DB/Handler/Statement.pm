@@ -9,8 +9,6 @@ use MediaWords::CommonLibs;
 
 use DBD::Pg qw(:pg_types);
 
-our $VALUE_BYTEA = 1;
-
 # There are other types (e.g. PG_POINT), but they aren't used currently by
 # any live code
 
@@ -37,9 +35,9 @@ sub new($$$)
     return $self;
 }
 
-sub bind_param($$$;$)
+sub _bind($$$$)
 {
-    my ( $self, $param_num, $bind_value, $bind_type ) = @_;
+    my ( $self, $param_num, $bind_value, $pg_type ) = @_;
 
     if ( $param_num < 1 )
     {
@@ -47,23 +45,30 @@ sub bind_param($$$;$)
     }
 
     my $bind_args = undef;
-    if ( defined $bind_type )
+    if ( $pg_type )
     {
-        if ( $bind_type == $VALUE_BYTEA )
-        {
-            $bind_args = { pg_type => DBD::Pg::PG_BYTEA };
-        }
-        else
-        {
-            die "Unknown bind type $bind_type.";
-        }
+        $bind_args = { pg_type => $pg_type };
     }
 
-    eval { $self->{ sth }->bind_param( $param_num, $bind_value, $bind_args ); };
+    eval { $self->{ sth }->bind_param( $param_num, $bind_value ); };
     if ( $@ )
     {
         die "Error while binding parameter $param_num for prepared statement '" . $self->{ sql } . "': $@";
     }
+}
+
+sub bind($$$)
+{
+    my ( $self, $param_num, $bind_value ) = @_;
+
+    $self->_bind( $param_num, $bind_value );
+}
+
+sub bind_bytea($$$)
+{
+    my ( $self, $param_num, $bind_value ) = @_;
+
+    $self->_bind( $param_num, $bind_value, DBD::Pg::PG_BYTEA );
 }
 
 sub execute($)
