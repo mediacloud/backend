@@ -6,9 +6,12 @@ import psycopg2
 import psycopg2.extras
 from psycopg2.extensions import adapt as psycopg2_adapt
 
+from mediawords.db.copy.copy_from import CopyFrom
+from mediawords.db.copy.copy_to import CopyTo
 from mediawords.db.exceptions.handler import *
 from mediawords.db.result.result import DatabaseResult
 from mediawords.db.schema.version import schema_version_from_lines
+
 from mediawords.util.config import get_config
 from mediawords.util.log import create_logger
 from mediawords.util.paths import mc_root_path
@@ -613,3 +616,11 @@ class DatabaseHandler(object):
     def quote_timestamp(value: str) -> str:
         """Quote TIMESTAMP for being passed as a literal in a query."""
         return '%s::timestamp' % DatabaseHandler.quote(value=value)
+
+    def copy_from(self, sql: str) -> CopyFrom:
+        """Return COPY FROM helper object."""
+        return CopyFrom(cursor=self.__db, sql=sql)
+
+    def copy_to(self, sql: str) -> CopyTo:
+        """Return COPY TO helper object."""
+        return CopyTo(cursor=self.__db, sql=sql)

@@ -400,3 +400,41 @@ class TestDatabaseHandler(TestCase):
         assert self.__db.quote(3.4528) == "3.4528"
         assert self.__db.quote(True) == "true"
         assert self.__db.quote(False) == "false"
+
+    def test_copy_from(self):
+        copy = self.__db.copy_from(sql="COPY kardashians (name, surname, dob, married_to_kanye) FROM STDIN WITH CSV")
+        copy.put_line("Lamar,Odom,1979-11-06,f\n")
+        copy.put_line("Sam Brody,Jenner,1983-08-21,f\n")
+        copy.end()
+
+        row = self.__db.query("SELECT * FROM kardashians WHERE name = 'Lamar'").hash()
+        assert row is not None
+        assert row['surname'] == 'Odom'
+        assert str(row['dob']) == '1979-11-06'
+
+        row = self.__db.query("SELECT * FROM kardashians WHERE name = 'Sam Brody'").hash()
+        assert row is not None
+        assert row['surname'] == 'Jenner'
+        assert str(row['dob']) == '1983-08-21'
+
+    def test_copy_to(self):
+        sql = """
+            COPY (
+                SELECT name, surname, dob, married_to_kanye
+                FROM kardashians
+                ORDER BY id
+            ) TO STDOUT WITH CSV
+        """
+
+        copy = self.__db.copy_to(sql=sql)
+        line = copy.get_line()
+        copy.end()
+        assert line == "Kris,Jenner,1955-11-05,f\n"
+
+        # Test iterator
+        copy = self.__db.copy_to(sql=sql)
+        count = 0
+        for _ in copy:
+            count += 1
+        copy.end()
+        assert count == 8
