@@ -498,7 +498,7 @@ sub test_media_list ($$)
     my $unhealthy_medium = $test_stack_media->[ 2 ];
     $unhealthy_medium->{ is_healthy } = 0;
     MediaWords::DBI::Media::Health::generate_media_health( $db );
-    $db->query( "update media_health set is_healthy = false where media_id = \$1", $unhealthy_medium->{ media_id } );
+    $db->query( "update media_health set is_healthy = ( media_id <> \$1 )", $unhealthy_medium->{ media_id } );
     test_media_list_call( { unhealthy => 1 }, [ $unhealthy_medium ] );
 
     test_media_list_call( {}, $test_stack_media );
