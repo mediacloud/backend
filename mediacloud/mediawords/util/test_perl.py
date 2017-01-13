@@ -88,6 +88,11 @@ def test_convert_dbd_pg_arguments_to_psycopg2_format():
     actual_parameters = convert_dbd_pg_arguments_to_psycopg2_format(*input_parameters)
     assert expected_parameters == actual_parameters
 
+    input_parameters = ("""INSERT INTO foo (a, b, c) VALUES (?, ?, ?)""".strip(), 'Kim', 42, True)
+    expected_parameters = ("""INSERT INTO foo (a, b, c) VALUES (%s, %s, %s)""".strip(), ('Kim', 42, True))
+    actual_parameters = convert_dbd_pg_arguments_to_psycopg2_format(*input_parameters)
+    assert expected_parameters == actual_parameters
+
     # DBIx::Simple's query with a multiple question mark-style ("WHERE id IN (??)") parameters
     input_sql = "SELECT * FROM foo "
     input_sql += "WHERE name IN (??)"
@@ -110,5 +115,13 @@ def test_convert_dbd_pg_arguments_to_psycopg2_format():
           AND meaning_of_life = %(param_2)s
           AND name = %(param_1)s""".strip(), {'param_1': 'Kim', 'param_2': 42}
                            )
+    actual_parameters = convert_dbd_pg_arguments_to_psycopg2_format(*input_parameters)
+    assert expected_parameters == actual_parameters
+
+    input_parameters = ("""INSERT INTO foo (a, b, c) VALUES ($2, $1, $3)""".strip(), 'Kim', 42, True)
+    expected_parameters = (
+        """INSERT INTO foo (a, b, c) VALUES (%(param_2)s, %(param_1)s, %(param_3)s)""".strip(),
+        {'param_1': 'Kim', 'param_2': 42, 'param_3': True}
+    )
     actual_parameters = convert_dbd_pg_arguments_to_psycopg2_format(*input_parameters)
     assert expected_parameters == actual_parameters
