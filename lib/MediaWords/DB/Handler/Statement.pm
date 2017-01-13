@@ -50,7 +50,7 @@ sub _bind($$$$)
         $bind_args = { pg_type => $pg_type };
     }
 
-    eval { $self->{ sth }->bind_param( $param_num, $bind_value ); };
+    eval { $self->{ sth }->bind_param( $param_num, $bind_value, $bind_args ); };
     if ( $@ )
     {
         die "Error while binding parameter $param_num for prepared statement '" . $self->{ sql } . "': $@";
