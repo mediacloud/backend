@@ -1,6 +1,7 @@
 import os
+import random
 import re
-from typing import Callable, Union
+from typing import Callable, Union, List
 
 import psycopg2
 import psycopg2.extras
@@ -624,3 +625,32 @@ class DatabaseHandler(object):
     def copy_to(self, sql: str) -> CopyTo:
         """Return COPY TO helper object."""
         return CopyTo(cursor=self.__db, sql=sql)
+
+    def get_temporary_ids_table(self, ids: List[int], ordered: bool = False) -> str:
+        """Get the name of a temporary table that contains all of the IDs in "ids" as an "id BIGINT" field.
+
+        The database connection must be within a transaction. The temporary table is setup to be dropped at the end of
+        the current transaction. If "ordered" is True, include an "<...>_id SERIAL PRIMARY KEY" field in the table."""
+
+        r = random.SystemRandom()  # FIXME replace with "secrets" module after upgrading to Python 3.6
+        table_name = '_tmp_ids_%s' % str(r.randrange(2 ** 64))
+
+        l.debug("Temporary IDs table: %s" % table_name)
+
+        primary_key_clause = ""
+        if ordered:
+            primary_key_clause = "%s_pkey SERIAL PRIMARY KEY," % table_name
+
+        sql = """CREATE TEMPORARY TABLE %s (""" % table_name
+        sql += primary_key_clause
+        sql += "id BIGINT)"
+        self.query(sql)
+
+        copy = self.copy_from("COPY %s (id) FROM STDIN" % table_name)
+        for single_id in ids:
+            copy.put_line("%d\n" % single_id)
+        copy.end()
+
+        self.query("ANALYZE %s" % table_name)
+
+        return table_name

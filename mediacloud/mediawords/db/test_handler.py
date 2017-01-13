@@ -438,3 +438,18 @@ class TestDatabaseHandler(TestCase):
             count += 1
         copy.end()
         assert count == 8
+
+    def test_get_temporary_ids_table(self):
+        ints = [1, 2, 3, 4, 5]
+
+        # Unordered
+        table_name = self.__db.get_temporary_ids_table(ids=ints, ordered=False)
+        returned_ints = self.__db.query("SELECT * FROM %s" % table_name).hashes()
+        assert len(returned_ints) == len(ints)
+
+        # Ordered
+        table_name = self.__db.get_temporary_ids_table(ids=ints, ordered=True)
+        returned_ints = self.__db.query(
+            "SELECT id FROM %(table_name)s ORDER BY %(table_name)s_pkey" % {'table_name': table_name}
+        ).flat()
+        assert returned_ints == ints
