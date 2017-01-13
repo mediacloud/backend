@@ -45,4 +45,11 @@ sub get_line($)
     }
 }
 
+sub end($$)
+{
+    my ( $self ) = @_;
+
+    # no-op
+}
+
 1;
