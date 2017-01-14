@@ -80,7 +80,7 @@ select t.tags_id, t.tag, t.label, t.description, ts.tag_sets_id, ts.name as tag_
 END
     }
 
-    $db->attach_child_query_singleton( $media, <<SQL, 'is_healthy', 'media_id' );
+    $media = $db->attach_child_query_singleton( $media, <<SQL, 'is_healthy', 'media_id' );
 select m.media_id, coalesce( h.is_healthy, true ) is_healthy
     from media m left join media_health h using ( media_id )
 SQL
@@ -535,7 +535,7 @@ SQL
     my $media_suggestions =
       $db->query( "select * from media_suggestions where $clause_list order by date_submitted" )->hashes;
 
-    $db->attach_child_query( $media_suggestions, <<SQL, 'tags_ids', 'media_suggestions_id' );
+    $media_suggestions = $db->attach_child_query( $media_suggestions, <<SQL, 'tags_ids', 'media_suggestions_id' );
 select tags_id, media_suggestions_id from media_suggestions_tags_map
 SQL
 

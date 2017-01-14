@@ -54,7 +54,7 @@ select focal_set_definitions_id, name, description, focal_technique, false
     order by name
 SQL
 
-    $db->attach_child_query( $fsds, <<SQL, 'focus_definitions', 'focal_set_definitions_id' );
+    $fsds = $db->attach_child_query( $fsds, <<SQL, 'focus_definitions', 'focal_set_definitions_id' );
 select focal_set_definitions_id, focus_definitions_id, name, description, arguments->>'query' query from focus_definitions
 SQL
 
