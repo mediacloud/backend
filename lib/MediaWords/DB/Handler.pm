@@ -712,7 +712,7 @@ sub copy_to($$)
 #        my $single = 1;
 #
 #        print( Dumper( $db->attach_child_query(
-#            $names,
+#            $surnames,
 #            $child_query,
 #            $child_field,
 #            $id_column,
