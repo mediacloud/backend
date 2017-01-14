@@ -698,8 +698,10 @@ sub attach_child_query($$$$$;$)
 
     my $ids_table = $self->get_temporary_ids_table( [ map { $_->{ $id_column } } @{ $data } ] );
 
-    my $children = $self->query( <<SQL )->hashes;
-select q.* from ( $child_query ) q join $ids_table ids on ( q.$id_column = ids.id )
+    my $children = $self->query( <<"SQL" )->hashes;
+        SELECT q.*
+        FROM ( $child_query ) AS q
+            JOIN $ids_table AS ids ON q.$id_column = ids.id
 SQL
 
     my $parent_lookup = {};
