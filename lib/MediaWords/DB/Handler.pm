@@ -820,16 +820,17 @@ sub attach_child_query($$$$$;$)
     my ( $self, $data, $child_query, $child_field, $id_column, $single ) = @_;
 
     my $parent_lookup = {};
+    my $ids           = [];
     for my $parent ( @{ $data } )
     {
         my $parent_id = $parent->{ $id_column };
+
         $parent_lookup->{ $parent_id } = $parent;
+        push( @{ $ids }, $parent_id );
     }
 
-    my $ids = [ map { $_->{ $id_column } } @{ $data } ];
     my $ids_table = $self->get_temporary_ids_table( $ids );
-
-    my $children = $self->query(
+    my $children  = $self->query(
         <<"SQL"
         SELECT q.*
         FROM ( $child_query ) AS q
