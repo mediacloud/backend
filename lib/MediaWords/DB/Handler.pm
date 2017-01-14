@@ -690,47 +690,167 @@ sub copy_to($$)
 #
 # Then, attach to $row->{ $child_field }:
 #
-# * if $singleton is true, the $child_field column in the corresponding row in
-#   $data;
-# * if $singleton is false, an array of values for each row in $data.
+# * If $single is true, the $child_field column in the corresponding row in
+#   $data:
+#
+#        CREATE TEMPORARY TABLE names (
+#            id INT NOT NULL,
+#            name VARCHAR NOT NULL
+#        );
+#        INSERT INTO names (id, name)
+#        VALUES (1, 'John'), (2, 'Jane'), (3, 'Joe');
+#
+#        my $surnames = [
+#            { 'id' => 1, 'surname' => 'Doe' },
+#            { 'id' => 2, 'surname' => 'Roe' },
+#            { 'id' => 3, 'surname' => 'Bloggs' },
+#        ];
+#
+#        my $child_query = 'SELECT id, name FROM names';
+#        my $child_field = 'name';
+#        my $id_column = 'id';
+#        my $single = 1;
+#
+#        print( Dumper( $db->attach_child_query(
+#            $names,
+#            $child_query,
+#            $child_field,
+#            $id_column,
+#            $single
+#        ));
+#
+#            # [
+#            #     {
+#            #         'id' => 1,
+#            #         'name' => 'John',
+#            #         'surname' => 'Doe'
+#            #     },
+#            #     {
+#            #         'id' => 2,
+#            #         'name' => 'Jane',
+#            #         'surname' => 'Roe'
+#            #     },
+#            #     {
+#            #         'id' => 3,
+#            #         'name' => 'Joe',
+#            #         'surname' => 'Bloggs'
+#            #     }
+#            # ];
+#
+#
+# * If $single is false, an array of values for each row in $data:
+#
+#        CREATE TEMPORARY TABLE dogs (
+#            owner_id INT NOT NULL,
+#            dog_name VARCHAR NOT NULL
+#        );
+#        INSERT INTO dogs (owner_id, dog_name)
+#        VALUES (1, 'Bailey'), (1, 'Max'), (2, 'Charlie'), (2, 'Bella'), (3, 'Lucy'), (3, 'Molly');
+#
+#        my $owners = [
+#            { 'owner_id' => 1, 'owner_name' => 'John' },
+#            { 'owner_id' => 2, 'owner_name' => 'Jane' },
+#            { 'owner_id' => 3, 'owner_name' => 'Joe' },
+#        ];
+#
+#        my $child_query = 'SELECT owner_id, dog_name FROM dogs';
+#        my $child_field = 'owned_dogs';
+#        my $id_column = 'owner_id';
+#        my $single = 0;
+#
+#        print( Dumper( $db->attach_child_query(
+#            $owners,
+#            $child_query,
+#            $child_field,
+#            $id_column,
+#            $single
+#        ));
+#
+#            # [
+#            #     {
+#            #         'owner_id' => 1,
+#            #         'owner_name' => 'John',
+#            #         'owned_dogs' => [
+#            #             {
+#            #                 'dog_name' => 'Bailey',
+#            #                 'owner_id' => 1
+#            #             },
+#            #             {
+#            #                 'owner_id' => 1,
+#            #                 'dog_name' => 'Max'
+#            #             }
+#            #         ]
+#            #     },
+#            #     {
+#            #         'owner_id' => 2,
+#            #         'owner_name' => 'Jane',
+#            #         'owned_dogs' => [
+#            #             {
+#            #                 'owner_id' => 2,
+#            #                 'dog_name' => 'Charlie'
+#            #             },
+#            #             {
+#            #                 'dog_name' => 'Bella',
+#            #                 'owner_id' => 2
+#            #             }
+#            #         ]
+#            #     },
+#            #     {
+#            #         'owner_id' => 3,
+#            #         'owner_name' => 'Joe',
+#            #         'owned_dogs' => [
+#            #             {
+#            #                 'dog_name' => 'Lucy',
+#            #                 'owner_id' => 3
+#            #             },
+#            #             {
+#            #                 'owner_id' => 3,
+#            #                 'dog_name' => 'Molly'
+#            #             }
+#            #         ]
+#            #     }
+#            # ];
+#
+#
+# FIXME get rid of this hard to understand reimplementation of JOIN which is
+# here due to the sole reason that _add_nested_data() is hard to refactor out.
+#
 sub attach_child_query($$$$$;$)
 {
-    my ( $self, $data, $child_query, $child_field, $id_column, $singleton ) = @_;
+    my ( $self, $data, $child_query, $child_field, $id_column, $single ) = @_;
+
+    my $parent_lookup = {};
+    for my $parent ( @{ $data } )
+    {
+        my $parent_id = $parent->{ $id_column };
+        $parent_lookup->{ $parent_id } = $parent;
+    }
 
     my $ids = [ map { $_->{ $id_column } } @{ $data } ];
-
     my $ids_table = $self->get_temporary_ids_table( $ids );
 
     my $children = $self->query(
         <<"SQL"
         SELECT q.*
         FROM ( $child_query ) AS q
+            -- Limit rows returned by $child_query to only IDs from $ids
             INNER JOIN $ids_table AS ids ON q.$id_column = ids.id
 SQL
     )->hashes;
 
-    my $parent_lookup = {};
-
-    for my $parent ( @{ $data } )
-    {
-        $parent_lookup->{ $parent->{ $id_column } } = $parent;
-
-        unless ( $singleton )
-        {
-            $parent->{ $child_field } = [];
-        }
-    }
-
     for my $child ( @{ $children } )
     {
-        my $parent = $parent_lookup->{ $child->{ $id_column } };
+        my $child_id = $child->{ $id_column };
 
-        if ( $singleton )
+        my $parent = $parent_lookup->{ $child_id };
+
+        if ( $single )
         {
             $parent->{ $child_field } = $child->{ $child_field };
         }
         else
         {
+            $parent->{ $child_field } //= [];
             push( @{ $parent->{ $child_field } }, $child );
         }
     }

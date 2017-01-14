@@ -80,8 +80,8 @@ select t.tags_id, t.tag, t.label, t.description, ts.tag_sets_id, ts.name as tag_
 END
     }
 
-    Readonly my $singleton => 1;
-    $media = $db->attach_child_query( $media, <<SQL, 'is_healthy', 'media_id', $singleton );
+    Readonly my $single => 1;
+    $media = $db->attach_child_query( $media, <<SQL, 'is_healthy', 'media_id', $single );
 select m.media_id, coalesce( h.is_healthy, true ) is_healthy
     from media m left join media_health h using ( media_id )
 SQL
