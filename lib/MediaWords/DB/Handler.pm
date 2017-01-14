@@ -701,11 +701,13 @@ sub attach_child_query($$$$$;$)
 
     my $ids_table = $self->get_temporary_ids_table( $ids );
 
-    my $children = $self->query( <<"SQL" )->hashes;
+    my $children = $self->query(
+        <<"SQL"
         SELECT q.*
         FROM ( $child_query ) AS q
             JOIN $ids_table AS ids ON q.$id_column = ids.id
 SQL
+    )->hashes;
 
     my $parent_lookup = {};
 
