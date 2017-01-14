@@ -486,3 +486,118 @@ class TestDatabaseHandler(TestCase):
             "SELECT id FROM %(table_name)s ORDER BY %(table_name)s_pkey" % {'table_name': table_name}
         ).flat()
         assert returned_ints == ints
+
+    def test_attach_child_query(self):
+
+        # Single
+        self.__db.query("""
+            CREATE TEMPORARY TABLE names (
+               id INT NOT NULL,
+               name VARCHAR NOT NULL
+            );
+            INSERT INTO names (id, name)
+            VALUES (1, 'John'), (2, 'Jane'), (3, 'Joe');
+        """)
+
+        surnames = [
+            {'id': 1, 'surname': 'Doe'},
+            {'id': 2, 'surname': 'Roe'},
+            {'id': 3, 'surname': 'Bloggs'},
+        ]
+
+        names_and_surnames = self.__db.attach_child_query(
+            data=surnames,
+            child_query='SELECT id, name FROM names',
+            child_field='name',
+            id_column='id',
+            single=True
+        )
+        assert names_and_surnames == [
+            {
+                'id': 1,
+                'name': 'John',
+                'surname': 'Doe'
+            },
+            {
+                'id': 2,
+                'name': 'Jane',
+                'surname': 'Roe'
+            },
+            {
+                'id': 3,
+                'name': 'Joe',
+                'surname': 'Bloggs'
+            }
+        ]
+
+        # Not single
+        self.__db.query("""
+            CREATE TEMPORARY TABLE dogs (
+               owner_id INT NOT NULL,
+               dog_name VARCHAR NOT NULL
+            );
+            INSERT INTO dogs (owner_id, dog_name)
+            VALUES
+                (1, 'Bailey'), (1, 'Max'),
+                (2, 'Charlie'), (2, 'Bella'),
+                (3, 'Lucy'), (3, 'Molly');
+        """)
+
+        owners = [
+            {'owner_id': 1, 'owner_name': 'John'},
+            {'owner_id': 2, 'owner_name': 'Jane'},
+            {'owner_id': 3, 'owner_name': 'Joe'},
+        ]
+
+        owners_and_their_dogs = self.__db.attach_child_query(
+            data=owners,
+            child_query='SELECT owner_id, dog_name FROM dogs',
+            child_field='owned_dogs',
+            id_column='owner_id',
+            single=False
+        )
+
+        assert owners_and_their_dogs == [
+            {
+                'owner_id': 1,
+                'owner_name': 'John',
+                'owned_dogs': [
+                    {
+                        'dog_name': 'Bailey',
+                        'owner_id': 1
+                    },
+                    {
+                        'owner_id': 1,
+                        'dog_name': 'Max'
+                    }
+                ]
+            },
+            {
+                'owner_id': 2,
+                'owner_name': 'Jane',
+                'owned_dogs': [
+                    {
+                        'owner_id': 2,
+                        'dog_name': 'Charlie'
+                    },
+                    {
+                        'dog_name': 'Bella',
+                        'owner_id': 2
+                    }
+                ]
+            },
+            {
+                'owner_id': 3,
+                'owner_name': 'Joe',
+                'owned_dogs': [
+                    {
+                        'dog_name': 'Lucy',
+                        'owner_id': 3
+                    },
+                    {
+                        'owner_id': 3,
+                        'dog_name': 'Molly'
+                    }
+                ]
+            }
+        ]

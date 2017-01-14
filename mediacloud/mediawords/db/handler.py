@@ -1,7 +1,7 @@
 import os
 import random
 import re
-from typing import Callable, Union, List
+from typing import Callable, Union, List, Dict, Any
 
 import psycopg2
 import psycopg2.extras
@@ -669,3 +669,59 @@ class DatabaseHandler(object):
         self.query("ANALYZE %s" % table_name)
 
         return table_name
+
+    def attach_child_query(self,
+                           data: List[Dict[str, Any]],
+                           child_query: str,
+                           child_field: str,
+                           id_column: str,
+                           single: bool = False) -> List[Dict[str, Any]]:
+        """For each row in "data", attach all results in the child query that match a JOIN with the "id_column" field in
+        each row of "data".
+
+        Then, attach to "row[child_field]":
+
+        * If "single" is True, the "child_field" column in the corresponding row in "data";
+
+        * If "single" is False, a list of values for each row in "data".
+
+        For an example on how this works, see test_attach_child_query() in test_handler.py."""
+
+        # FIXME get rid of this hard to understand reimplementation of JOIN which is here due to the sole reason that
+        # _add_nested_data() is hard to refactor out and no one bothered to do it.
+
+        parent_lookup = {}
+        ids = []
+        for parent in data:
+            parent_id = parent[id_column]
+
+            parent_lookup[parent_id] = parent
+            ids.append(parent_id)
+
+        ids_table = self.get_temporary_ids_table(ids=ids)
+        sql = """
+            -- noinspection SqlResolve
+            SELECT q.*
+            FROM ( %(child_query)s ) AS q
+                -- Limit rows returned by "child_query" to only IDs from "ids"
+                INNER JOIN %(ids_table)s AS ids
+                    ON q.%(id_column)s = ids.id
+        """ % {
+            'child_query': child_query,
+            'ids_table': ids_table,
+            'id_column': id_column,
+        }
+        children = self.query(sql).hashes()
+
+        for child in children:
+            child_id = child[id_column]
+            parent = parent_lookup[child_id]
+
+            if single:
+                parent[child_field] = child[child_field]
+            else:
+                if child_field not in parent:
+                    parent[child_field] = []
+                parent[child_field].append(child)
+
+        return data
