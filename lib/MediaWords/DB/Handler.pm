@@ -705,7 +705,7 @@ sub attach_child_query($$$$$;$)
         <<"SQL"
         SELECT q.*
         FROM ( $child_query ) AS q
-            JOIN $ids_table AS ids ON q.$id_column = ids.id
+            INNER JOIN $ids_table AS ids ON q.$id_column = ids.id
 SQL
     )->hashes;
 
