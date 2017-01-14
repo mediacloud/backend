@@ -690,7 +690,8 @@ sub copy_to($$)
 #
 # Then, attach to $row->{ $child_field }:
 #
-# * if $singleton is true, the $child_field column in the corresponding row in $data;
+# * if $singleton is true, the $child_field column in the corresponding row in
+#   $data;
 # * if $singleton is false, an array of values for each row in $data.
 sub attach_child_query($$$$$;$)
 {
