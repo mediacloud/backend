@@ -697,7 +697,9 @@ sub attach_child_query($$$$$;$)
 {
     my ( $self, $data, $child_query, $child_field, $id_column, $singleton ) = @_;
 
-    my $ids_table = $self->get_temporary_ids_table( [ map { $_->{ $id_column } } @{ $data } ] );
+    my $ids = [ map { $_->{ $id_column } } @{ $data } ];
+
+    my $ids_table = $self->get_temporary_ids_table( $ids );
 
     my $children = $self->query( <<"SQL" )->hashes;
         SELECT q.*
