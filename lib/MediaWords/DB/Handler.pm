@@ -526,35 +526,6 @@ sub query_paged_hashes
 
 }
 
-# for each row in $data, attach all results in the child query that match a join with the $id_column field in each
-# row of $data.  attach to $row->{ $child_field } the $child_field column in the corresponding row in $data.
-sub attach_child_query_singleton ($$$$$)
-{
-    my ( $self, $data, $child_query, $child_field, $id_column ) = @_;
-
-    my $ids_table = $self->get_temporary_ids_table( [ map { $_->{ $id_column } } @{ $data } ] );
-
-    my $children = $self->query( <<SQL )->hashes;
-select q.* from ( $child_query ) q join $ids_table ids on ( q.$id_column = ids.id )
-SQL
-
-    my $parent_lookup = {};
-
-    for my $parent ( @{ $data } )
-    {
-        $parent_lookup->{ $parent->{ $id_column } } = $parent;
-    }
-
-    for my $child ( @{ $children } )
-    {
-        my $parent = $parent_lookup->{ $child->{ $id_column } };
-
-        $parent->{ $child_field } = $child->{ $child_field };
-    }
-
-    return $data;
-}
-
 # get the name of a temporary table that contains all of the ids in $ids as an 'id bigint' field.
 # the database connection must be within a transaction.  the temporary table is setup to be dropped
 # at the end of the current transaction. row insertion order is maintained.
@@ -652,35 +623,6 @@ sub prepare($$)
     return MediaWords::DB::Handler::Statement->new( $self, $sql );
 }
 
-# for each row in $data, attach all results in the child query that match a join with the $id_column field in each
-# row of $data.  attach to $row->{ $child_field } an array of values for each row in $data
-sub attach_child_query($$$$$)
-{
-    my ( $self, $data, $child_query, $child_field, $id_column ) = @_;
-
-    my $ids_table = $self->get_temporary_ids_table( [ map { $_->{ $id_column } } @{ $data } ] );
-
-    my $children = $self->query( <<SQL )->hashes;
-select q.* from ( $child_query ) q join $ids_table ids on ( q.$id_column = ids.id )
-SQL
-
-    my $parent_lookup = {};
-
-    for my $parent ( @{ $data } )
-    {
-        $parent_lookup->{ $parent->{ $id_column } } = $parent;
-        $parent->{ $child_field } = [];
-    }
-
-    for my $child ( @{ $children } )
-    {
-        my $parent = $parent_lookup->{ $child->{ $id_column } };
-        push( @{ $parent->{ $child_field } }, $child );
-    }
-
-    return $data;
-}
-
 sub autocommit($)
 {
     my $self = shift;
@@ -741,6 +683,64 @@ sub copy_to($$)
     my ( $self, $sql ) = @_;
 
     return MediaWords::DB::Handler::CopyTo->new( $self, $sql );
+}
+
+# for each row in $data, attach all results in the child query that match a join with the $id_column field in each
+# row of $data.  attach to $row->{ $child_field } an array of values for each row in $data
+sub attach_child_query($$$$$)
+{
+    my ( $self, $data, $child_query, $child_field, $id_column ) = @_;
+
+    my $ids_table = $self->get_temporary_ids_table( [ map { $_->{ $id_column } } @{ $data } ] );
+
+    my $children = $self->query( <<SQL )->hashes;
+select q.* from ( $child_query ) q join $ids_table ids on ( q.$id_column = ids.id )
+SQL
+
+    my $parent_lookup = {};
+
+    for my $parent ( @{ $data } )
+    {
+        $parent_lookup->{ $parent->{ $id_column } } = $parent;
+        $parent->{ $child_field } = [];
+    }
+
+    for my $child ( @{ $children } )
+    {
+        my $parent = $parent_lookup->{ $child->{ $id_column } };
+        push( @{ $parent->{ $child_field } }, $child );
+    }
+
+    return $data;
+}
+
+# for each row in $data, attach all results in the child query that match a join with the $id_column field in each
+# row of $data.  attach to $row->{ $child_field } the $child_field column in the corresponding row in $data.
+sub attach_child_query_singleton ($$$$$)
+{
+    my ( $self, $data, $child_query, $child_field, $id_column ) = @_;
+
+    my $ids_table = $self->get_temporary_ids_table( [ map { $_->{ $id_column } } @{ $data } ] );
+
+    my $children = $self->query( <<SQL )->hashes;
+select q.* from ( $child_query ) q join $ids_table ids on ( q.$id_column = ids.id )
+SQL
+
+    my $parent_lookup = {};
+
+    for my $parent ( @{ $data } )
+    {
+        $parent_lookup->{ $parent->{ $id_column } } = $parent;
+    }
+
+    for my $child ( @{ $children } )
+    {
+        my $parent = $parent_lookup->{ $child->{ $id_column } };
+
+        $parent->{ $child_field } = $child->{ $child_field };
+    }
+
+    return $data;
 }
 
 1;
