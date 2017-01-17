@@ -75,6 +75,6 @@ class DatabaseStatement(object):
                 raise McPrepareException("Invalid parameter number %d" % param_num)
             expected_param_num += 1
 
-        query_args = convert_dbd_pg_arguments_to_psycopg2_format(*query_args)
+        query_args = convert_dbd_pg_arguments_to_psycopg2_format(*query_args, skip_decoding=True)
 
         return DatabaseResult(cursor=self.__cursor, query_args=query_args)

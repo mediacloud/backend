@@ -49,14 +49,15 @@ class McConvertDBDPgArgumentsToPsycopg2FormatException(Exception):
 
 
 # MC_REWRITE_TO_PYTHON: remove after porting queries to named parameter style
-def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, tuple]) -> tuple:
+def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, tuple], skip_decoding=False) -> tuple:
     """Convert DBD::Pg's question mark-style SQL query parameters to psycopg2's syntax."""
     if len(query_parameters) == 0:
         raise McConvertDBDPgArgumentsToPsycopg2FormatException('No query or its parameters.')
 
-    if isinstance(query_parameters, list):
-        # Coming from Perl
-        query_parameters = decode_object_from_bytes_if_needed(query_parameters)
+    if not skip_decoding:
+        if isinstance(query_parameters, list):
+            # Coming from Perl
+            query_parameters = decode_object_from_bytes_if_needed(query_parameters)
 
     query = query_parameters[0]
     if isinstance(query, bytes):
