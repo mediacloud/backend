@@ -18,7 +18,7 @@ class DatabasePages(object):
 
         self.__execute(cursor=cursor, query=query, page=page, rows_per_page=rows_per_page)
 
-    def __execute(self, cursor: DictCursor, query: str, page: int, rows_per_page: int):
+    def __execute(self, cursor: DictCursor, query: str, page: int, rows_per_page: int) -> None:
 
         query = decode_object_from_bytes_if_needed(query)
 

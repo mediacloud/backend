@@ -34,7 +34,6 @@ psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
 # FIXME pass arguments by name, not by index
 # FIXME make PyCharm parse psycopg2's query parameters correctly: http://stackoverflow.com/a/36346689/200603
 # FIXME custom exceptions
-# FIXME add function parameter / return types
 # FIXME test if autocommit can be toggled with database cursor enabled
 # FIXME add some more Unicode tests
 class DatabaseHandler(object):
@@ -91,7 +90,7 @@ class DatabaseHandler(object):
                   username: str,
                   password: str,
                   database: str,
-                  do_not_check_schema_version: bool = False):
+                  do_not_check_schema_version: bool = False) -> None:
         """Connect to PostgreSQL."""
 
         host = decode_object_from_bytes_if_needed(host)
@@ -151,7 +150,7 @@ class DatabaseHandler(object):
             l.warn('"deadlock_timeout" is less than "%ds", expect deadlocks on high extractor load' %
                    self.__MIN_DEADLOCK_TIMEOUT)
 
-    def disconnect(self):
+    def disconnect(self) -> None:
         """Disconnect from the database."""
         self.__db.close()
         self.__db = None
@@ -160,7 +159,7 @@ class DatabaseHandler(object):
         self.__db = None
 
     # noinspection PyMethodMayBeStatic
-    def dbh(self):
+    def dbh(self) -> None:
         raise McDatabaseHandlerException("Please don't use internal database handler directly")
 
     def __should_continue_with_outdated_schema(self, current_schema_version: int, target_schema_version: int) -> bool:

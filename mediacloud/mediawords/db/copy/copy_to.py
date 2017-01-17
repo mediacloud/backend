@@ -37,7 +37,7 @@ class CopyTo(object):
 
         self.__start_copy_to(cursor=cursor, sql=sql)
 
-    def __start_copy_to(self, cursor: DictCursor, sql: str):
+    def __start_copy_to(self, cursor: DictCursor, sql: str) -> None:
         """Start COPY TO."""
 
         sql = decode_object_from_bytes_if_needed(sql)

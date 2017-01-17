@@ -66,7 +66,7 @@ class Pages(object):
         else:
             return self.__current_page * self.__entries_per_page
 
-    def __last_page(self):
+    def __last_page(self) -> int:
         """Returns the total number of pages of information.
 
         print("Pages range to: %d" % .page.__last_page())

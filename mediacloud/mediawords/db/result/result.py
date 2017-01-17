@@ -23,7 +23,7 @@ class DatabaseResult(object):
 
         self.__execute(cursor=cursor, query_args=query_args, print_warnings=print_warnings)
 
-    def __execute(self, cursor: DictCursor, query_args: tuple, print_warnings: bool):
+    def __execute(self, cursor: DictCursor, query_args: tuple, print_warnings: bool) -> None:
         """Execute statement, set up cursor to results."""
 
         # MC_REWRITE_TO_PYTHON: 'query_args' should be decoded from 'bytes' at this point
