@@ -30,7 +30,6 @@ psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
 
 
-# FIXME test if autocommit can be toggled with database cursor enabled
 class DatabaseHandler(object):
     """PostgreSQL middleware (imitates DBIx::Simple's interface)."""
 
