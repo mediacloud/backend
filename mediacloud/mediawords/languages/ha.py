@@ -13,6 +13,6 @@ l = create_logger(__name__)
 
 def py_hausa_stem(token):
     """Used by Perl code to do Hausa stemming."""
-    # FIXME MC_REWRITE_TO_PYTHON: simplify after rewriting language module to Python.
+    # MC_REWRITE_TO_PYTHON: simplify after rewriting language module to Python.
     token = decode_string_from_bytes_if_needed(token)
     return hausastemmer.stem(token)

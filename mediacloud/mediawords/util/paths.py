@@ -16,7 +16,7 @@ class McRootPathException(Exception):
 
 def mc_root_path() -> str:
     """Return full path to Media Cloud root directory."""
-    # FIXME MC_REWRITE_TO_PYTHON: Inline::Python doesn't always set __file__
+    # MC_REWRITE_TO_PYTHON: Inline::Python doesn't always set __file__
     # properly, but chances are that we're running from Media Cloud root directory
     try:
         __file__

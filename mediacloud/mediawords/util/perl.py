@@ -9,7 +9,7 @@ from mediawords.util.log import create_logger
 l = create_logger(__name__)
 
 
-# FIXME MC_REWRITE_TO_PYTHON: remove after porting all Perl code to Python
+# MC_REWRITE_TO_PYTHON: remove after porting all Perl code to Python
 def decode_string_from_bytes_if_needed(string: Union[int, str, bytes, None]) -> Union[int, str, None]:
     """Convert 'bytes' string to 'unicode' if needed.
     (http://search.cpan.org/dist/Inline-Python/Python.pod#PORTING_YOUR_INLINE_PYTHON_CODE_FROM_2_TO_3)"""
@@ -20,7 +20,7 @@ def decode_string_from_bytes_if_needed(string: Union[int, str, bytes, None]) -> 
     return string
 
 
-# FIXME MC_REWRITE_TO_PYTHON: remove after porting all Perl code to Python
+# MC_REWRITE_TO_PYTHON: remove after porting all Perl code to Python
 def decode_object_from_bytes_if_needed(obj: Union[dict, list, str, bytes, None]) -> Union[dict, list, str, None]:
     """Convert object (dictionary, list or string) from 'bytes' string to 'unicode' if needed."""
     if isinstance(obj, dict):
@@ -43,7 +43,7 @@ class McConvertDBDPgArgumentsToPsycopg2FormatException(Exception):
     pass
 
 
-# FIXME MC_REWRITE_TO_PYTHON: remove after porting queries to named parameter style
+# MC_REWRITE_TO_PYTHON: remove after porting queries to named parameter style
 def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, tuple]) -> tuple:
     """Convert DBD::Pg's question mark-style SQL query parameters to psycopg2's syntax."""
     if len(query_parameters) == 0:
@@ -72,7 +72,7 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
 
     # "When parameters are used, in order to include a literal % in the query you can use the %% string."
     #
-    # FIXME MC_REWRITE_TO_PYTHON: both psycopg2 and DBD::Pg queries get their %'s doubled here; this is usually not a
+    # MC_REWRITE_TO_PYTHON: both psycopg2 and DBD::Pg queries get their %'s doubled here; this is usually not a
     # big deal ("LIKE 'Abc%'" and "LIKE 'Abc%%'" work the same), but after converting queries to psycopg2's syntax, the
     # following statement should be removed.
     query = query.replace('%', '%%')

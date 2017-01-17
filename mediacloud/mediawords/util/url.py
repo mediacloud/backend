@@ -938,7 +938,7 @@ class McHTTPURLsInStringException(Exception):
     pass
 
 
-# FIXME MC_REWRITE_TO_PYTHON: Perl doesn't support sets, but this method should return a set
+# MC_REWRITE_TO_PYTHON: Perl doesn't support sets, but this method should return a set
 def http_urls_in_string(string: str) -> list:
     """Extract http(s):// URLs from a string.
 

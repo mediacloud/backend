@@ -31,7 +31,7 @@ psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
 
 # FIXME add decode_string_from_bytes_if_needed() everywhere
 # FIXME think about Catalyst reconnecting to the database every time
-# FIXME MC_REWRITE_TO_PYTHON: pass arguments by name, not by index
+# FIXME pass arguments by name, not by index
 # FIXME make PyCharm parse psycopg2's query parameters correctly: http://stackoverflow.com/a/36346689/200603
 # FIXME custom exceptions
 # FIXME add function parameter / return types
@@ -244,7 +244,7 @@ class DatabaseHandler(object):
             db.query('SELECT * FROM foo WHERE bar = ? AND baz = ?', bar, baz)
         """
 
-        # FIXME MC_REWRITE_TO_PYTHON: remove after porting queries to named parameter style
+        # MC_REWRITE_TO_PYTHON: remove after porting queries to named parameter style
         query_params = convert_dbd_pg_arguments_to_psycopg2_format(*query_params)
 
         if len(query_params) == 0:
@@ -256,7 +256,7 @@ class DatabaseHandler(object):
 
     def prepare(self, sql: str) -> DatabaseStatement:
         """Return a prepared statement."""
-        # FIXME MC_REWRITE_TO_PYTHON get rid of it because it was useful only for writing BYTEA cells; psycopg2 can just
+        # MC_REWRITE_TO_PYTHON get rid of it because it was useful only for writing BYTEA cells; psycopg2 can just
         # use 'bytes' arguments
         return DatabaseStatement(cursor=self.__db, sql=sql)
 
@@ -368,7 +368,7 @@ class DatabaseHandler(object):
         """Update the row in the table with the given ID. Ignore any fields that start with '_'."""
         update_hash = update_hash.copy()  # To be able to safely modify it
 
-        # FIXME MC_REWRITE_TO_PYTHON: remove after getting rid of Catalyst
+        # MC_REWRITE_TO_PYTHON: remove after getting rid of Catalyst
         if "submit" in update_hash:
             del update_hash["submit"]
 
@@ -418,7 +418,7 @@ class DatabaseHandler(object):
         """Insert a row into the database for the given table with the given hash values and return the created row."""
         insert_hash = insert_hash.copy()  # To be able to safely modify it
 
-        # FIXME MC_REWRITE_TO_PYTHON: remove after getting rid of Catalyst
+        # MC_REWRITE_TO_PYTHON: remove after getting rid of Catalyst
         if "submit" in insert_hash:
             del insert_hash["submit"]
 
@@ -460,7 +460,7 @@ class DatabaseHandler(object):
 
         condition_hash = condition_hash.copy()  # To be able to safely modify it
 
-        # FIXME MC_REWRITE_TO_PYTHON: remove after getting rid of Catalyst
+        # MC_REWRITE_TO_PYTHON: remove after getting rid of Catalyst
         if "submit" in condition_hash:
             del condition_hash["submit"]
 
@@ -486,7 +486,7 @@ class DatabaseHandler(object):
         if len(insert_hash) == 0:
             raise McFindOrCreateException("Hash to INSERT or SELECT is empty")
 
-        # FIXME MC_REWRITE_TO_PYTHON: remove after getting rid of Catalyst
+        # MC_REWRITE_TO_PYTHON: remove after getting rid of Catalyst
         if "submit" in insert_hash:
             del insert_hash["submit"]
 
