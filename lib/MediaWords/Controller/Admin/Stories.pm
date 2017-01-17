@@ -57,19 +57,23 @@ sub list : Local
     my $feed = $c->dbis->find_by_id( 'feeds', $feeds_id );
     $c->stash->{ feed } = $feed;
 
-    my ( $stories, $pager ) = $c->dbis->query_paged_hashes(
+    my $qph = $c->dbis->query_paged_hashes(
         "select s.* from stories s, feeds_stories_map fsm where s.stories_id = fsm.stories_id " .
           "and fsm.feeds_id = $feeds_id " . "and publish_date > now() - interval '30 days' " . "order by publish_date desc",
         $p, $ROWS_PER_PAGE
     );
+    my $stories = $qph->list();
+    my $pager   = $qph->pager();
 
     if ( scalar @{ $stories } < $ROWS_PER_PAGE )
     {
-        ( $stories, $pager ) = $c->dbis->query_paged_hashes(
+        $qph = $c->dbis->query_paged_hashes(
             "select s.* from stories s, feeds_stories_map fsm where s.stories_id = fsm.stories_id " .
               "and fsm.feeds_id = $feeds_id " . "order by publish_date desc",
             $p, $ROWS_PER_PAGE
         );
+        $stories = $qph->list();
+        $pager   = $qph->pager();
     }
 
     $c->stash->{ stories }   = $stories;

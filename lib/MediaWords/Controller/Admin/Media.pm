@@ -384,35 +384,6 @@ sub delete : Local
     }
 }
 
-# search for media matching search for the given keyword
-# return the matching media from the given page along with a
-# MediaWords::Util::Pages object for the results
-sub _search_paged_media
-{
-    my ( $self, $c, $q, $page, $row_count ) = @_;
-
-    my $db = $c->dbis;
-
-    $q =~ s/^\s+//g;
-    $q =~ s/\s+$//g;
-    $q =~ s/[^\w]/_/g;
-
-    $q = "'%$q%'";
-
-    return $db->query_paged_hashes( <<END, $page, $row_count );
-select distinct m.media_id as media_id, m.name as name, m.url as url
-    from media m
-        left join (
-            media_tags_map mtm join (
-                tags t join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id) )
-            on ( mtm.tags_id = t.tags_id) )
-        on (m.media_id = mtm.media_id)
-    where (m.name ilike $q or m.url ilike $q or lower(ts.name||':'||t.tag) ilike $q)
-    order by m.media_id
-END
-
-}
-
 # display search form, and results of a query was submitted.
 sub search : Local
 {
@@ -439,15 +410,36 @@ sub search : Local
 
     if ( $q )
     {
-        ( $media, $pager ) = $self->_search_paged_media( $c, $q, $p, $ROWS_PER_PAGE );
+        # search for media matching search for the given keyword
+        $q =~ s/^\s+//g;
+        $q =~ s/\s+$//g;
+        $q =~ s/[^\w]/_/g;
+
+        $q = "'%$q%'";
+
+        my $qph = $db->query_paged_hashes( <<END, $p, $ROWS_PER_PAGE );
+    select distinct m.media_id as media_id, m.name as name, m.url as url
+        from media m
+            left join (
+                media_tags_map mtm join (
+                    tags t join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id) )
+                on ( mtm.tags_id = t.tags_id) )
+            on (m.media_id = mtm.media_id)
+        where (m.name ilike $q or m.url ilike $q or lower(ts.name||':'||t.tag) ilike $q)
+        order by m.media_id
+END
+        $media = $qph->list();
+        $pager = $qph->pager();
     }
     elsif ( $f )
     {
-        ( $media, $pager ) = $db->query_paged_hashes( <<END, $p, $ROWS_PER_PAGE );
+        my $qph = $db->query_paged_hashes( <<END, $p, $ROWS_PER_PAGE );
 select * from media m
     where not exists (select 1 from feeds f where f.media_id = m.media_id and feed_status = 'active')
     order by media_id
 END
+        $media = $qph->list();
+        $pager = $qph->pager();
     }
     elsif ( @m )
     {
@@ -455,7 +447,9 @@ END
     }
     else
     {
-        ( $media, $pager ) = $db->query_paged_hashes( "select * from media order by media_id", $p, $ROWS_PER_PAGE );
+        my $qph = $db->query_paged_hashes( "select * from media order by media_id", $p, $ROWS_PER_PAGE );
+        $media = $qph->list();
+        $pager = $qph->pager();
     }
 
     for my $m ( @{ $media } )

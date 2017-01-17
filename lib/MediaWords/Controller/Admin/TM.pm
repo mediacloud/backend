@@ -2192,7 +2192,9 @@ END
     my $sql_activities =
       MediaWords::DBI::Activities::sql_activities_which_reference_column( 'topics.topics_id', $topics_id );
 
-    my ( $activities, $pager ) = $c->dbis->query_paged_hashes( $sql_activities, $p, $ROWS_PER_PAGE );
+    my $qph        = $c->dbis->query_paged_hashes( $sql_activities, $p, $ROWS_PER_PAGE );
+    my $activities = $qph->list();
+    my $pager      = $qph->pager();
 
     # FIXME put activity preparation (JSON decoding, description fetching) into
     # a subroutine in order to not repeat oneself.

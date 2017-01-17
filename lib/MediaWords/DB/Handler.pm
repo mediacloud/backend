@@ -10,12 +10,12 @@ use MediaWords::CommonLibs;
 
 use MediaWords::DB::Handler::CopyFrom;
 use MediaWords::DB::Handler::CopyTo;
+use MediaWords::DB::Handler::Pages;
 use MediaWords::DB::Handler::Result;
 use MediaWords::DB::Handler::Statement;
 use MediaWords::DB::Schema::Version;
 use MediaWords::DB;
 use MediaWords::Util::Config;
-use MediaWords::Util::Pages;
 use MediaWords::Util::Paths;
 
 use Data::Dumper;
@@ -491,39 +491,11 @@ sub find_or_create
 }
 
 # execute the query and return a list of pages hashes
-sub query_paged_hashes
+sub query_paged_hashes($$$$)
 {
     my ( $self, $query, $page, $rows_per_page ) = @_;
 
-    if ( $page < 1 )
-    {
-        die 'Page must be 1 or bigger.';
-    }
-
-    my $offset = ( $page - 1 ) * $rows_per_page;
-
-    $query .= " limit ( $rows_per_page + 1 ) offset $offset";
-
-    my $rs = $self->query( $query );
-
-    my $list = [];
-    my $i    = 0;
-    my $hash;
-    while ( ( $hash = $rs->hash ) && ( $i++ < $rows_per_page ) )
-    {
-        push( @{ $list }, $hash );
-    }
-
-    my $max = $offset + $i;
-    if ( $hash )
-    {
-        $max++;
-    }
-
-    my $pager = MediaWords::Util::Pages->new( $max, $rows_per_page, $page );
-
-    return ( $list, $pager );
-
+    return MediaWords::DB::Handler::Pages->new( $self, $query, $page, $rows_per_page );
 }
 
 # get the name of a temporary table that contains all of the ids in $ids as an 'id bigint' field.
