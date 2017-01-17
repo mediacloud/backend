@@ -46,7 +46,6 @@ use MediaWords::Util::DateTime;
 
 use Data::Dumper;
 use Data::Sorting qw( :basics :arrays :extras );
-use MediaWords::DB::Handler;
 use Encode;
 use LWP::UserAgent;
 use Readonly;

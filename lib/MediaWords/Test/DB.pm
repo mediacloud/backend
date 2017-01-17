@@ -13,7 +13,6 @@ use Readonly;
 use Text::Lorem::More;
 
 use MediaWords::DB;
-use MediaWords::DB::Handler;
 use MediaWords::DBI::Auth;
 use MediaWords::DBI::Downloads;
 use MediaWords::Job::ExtractAndVector;
