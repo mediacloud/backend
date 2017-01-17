@@ -552,14 +552,14 @@ class DatabaseHandler(object):
     # noinspection PyMethodMayBeStatic
     def show_error_statement(self) -> bool:
         """Return whether failed SQL statement will be included into thrown exception."""
-        # FIXME I suppose psycopg2 always return failed statement?
+        # FIXME I suppose psycopg2 always returns failed statement?
         # MC_REWRITE_TO_PYTHON remove after porting
         return True
 
     # noinspection PyMethodMayBeStatic
     def set_show_error_statement(self, show_error_statement: bool) -> None:
         """Set whether failed SQL statement will be included into thrown exception."""
-        # FIXME I suppose psycopg2 always return failed statement?
+        # FIXME I suppose psycopg2 always returns failed statement?
         # MC_REWRITE_TO_PYTHON remove after porting
         pass
 
