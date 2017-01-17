@@ -60,10 +60,12 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
             query_parameters = decode_object_from_bytes_if_needed(query_parameters)
 
     query = query_parameters[0]
+
     if isinstance(query, bytes):
         raise McConvertDBDPgArgumentsToPsycopg2FormatException(
-            'Query is still "bytes"; did you forget to decode it to "string"?'
+            'Query "%s" is still "bytes"; did you forget to decode it to "string"?' % str(query)
         )
+
     if len(query) == 0:
         raise McConvertDBDPgArgumentsToPsycopg2FormatException('Query is empty or undefined.')
     query = str(query)
