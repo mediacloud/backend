@@ -79,7 +79,8 @@ class DatabaseHandler(object):
             do_not_check_schema_version=do_not_check_schema_version
         )
 
-    def __connect(self, host: str,
+    def __connect(self,
+                  host: str,
                   port: int,
                   username: str,
                   password: str,
