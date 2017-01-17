@@ -46,8 +46,6 @@ def _parse_tokens( tokens, want_type = None ):
 
     token = tokens.pop( 0 )
 
-    print( "parse " + token );
-
     if ( token == '(' ):
         _check_type( token, TYPE_OPEN, want_type )
 
@@ -122,28 +120,88 @@ def _parse_tokens( tokens, want_type = None ):
         _check_type( token, TYPE_TERM, want_type )
         return ParseNode( 'term', token )
 
-def _get_plain_query( tree ):
-    print( tree.type )
-    if ( tree.type == TYPE_OPEN ):
-        return '( ' + _get_plain_query( tree.value ) + ' )'
-    elif( tree.type == TYPE_TERM ):
+def get_solr_query( tree ):
+    """ convert the parse tree back into a solr query """
+    if( tree.type == TYPE_TERM ):
         return str( tree.value )
     elif( tree.type == TYPE_NOT ):
-        return 'not ' + _get_plain_query( tree.value )
+        return 'not ' + get_solr_query( tree.value )
     elif( tree.type == TYPE_WILD ):
-        return _get_plain_query( tree.value ) + '*'
+        return get_solr_query( tree.value ) + '*'
     elif( tree.type == TYPE_AND ):
-        return '( ' + _get_plain_query( tree.value[ 0 ] ) + ' and ' + _get_plain_query( tree.value[ 1 ] ) + ' )'
+        return '( ' + get_solr_query( tree.value[ 0 ] ) + ' and ' + get_solr_query( tree.value[ 1 ] ) + ' )'
     elif( tree.type == TYPE_OR ):
-        return '( ' + _get_plain_query( tree.value[ 0 ] ) + ' or ' + _get_plain_query( tree.value[ 1 ] ) + ' )'
+        return '( ' + get_solr_query( tree.value[ 0 ] ) + ' or ' + get_solr_query( tree.value[ 1 ] ) + ' )'
     elif( tree.type == TYPE_FIELD ):
-        return tree.value[ 0 ] + ":" + _get_plain_query( tree.value[ 1 ] )
+        return tree.value[ 0 ] + ":" + get_solr_query( tree.value[ 1 ] )
     else:
         return '[ INVALID NODE TYPE ' + tree.type + ' ]'
 
+def _get_filtered_tsquery( tree ):
+    """ convert the tree into the equivalent postgres tsquery, assuming that any field nodes have been filtered out. """
+    if( tree.type == TYPE_TERM ):
+        return str( tree.value )
+    elif( tree.type == TYPE_NOT ):
+        return '!' + _get_filtered_tsquery( tree.value )
+    elif( tree.type == TYPE_WILD ):
+        return _get_filtered_tsquery( tree.value ) + ':*'
+    elif( tree.type == TYPE_AND ):
+        return '( ' + ' & '.join( map( lambda x: _get_filtered_tsquery( x ), tree.value ) ) + ' )'
+    elif( tree.type == TYPE_OR ):
+        return '( ' + ' | '.join( map( lambda x: _get_filtered_tsquery( x ), tree.value ) ) + ' )'
+    elif( tree.type == TYPE_FIELD ):
+        raise( ParseSyntaxError( "non-default field attributes not allowed" ) )
+    else:
+        raise( ParseSyntaxError( 'invalid tree type '+ tree.type )
 
-def convert_to_tsquery ( solr_query ):
-    """ convert a solr query to an equivalent tsquery for use in postgres """
+def _filter_fields_from_tree( tree, default_field ):
+    """ filter all field clauses from the parse tree other than those for the default_field.  convert searches for the
+    default field into a direct search (so 'sentence:( bar and bat )' becomes '( bar and bat )'.
+    """
+
+    if ( tree.type == TYPE_FIELD ):
+        if ( tree.value[ 0 ] == default_field ):
+            return tree.value[ 1 ]
+        else:
+            return None
+
+    elif( tree.type in ( TYPE_TERM, TYPE_WILD ) ):
+        return ParseNode( tree.type, tree.value )
+
+    elif( tree.type in ( TYPE_AND, TYPE_OR ) ):
+        filtered_operands = []
+        for operand in tree.value:
+            filtered_operand = _filter_fields_from_tree( operand, default_field )
+            if ( filtered_operand ):
+                filtered_operands.append( filtered_operand )
+
+        return ParseNode( tree.type, filtered_operands ) if ( len( filtered_operands ) > 0 ) else None
+
+    elif( tree.type == TYPE_NOT ):
+        filtered_operand = _filter_fields_from_Tree( tree.value, default_field )
+        return ParseNode( TYPE_NOT, tree.value ) if ( filtered_operand ) else None
+
+]
+
+def get_tsquery( tree ):
+    """ convert the tree into mostly equivalent posptgres tsquery
+
+    we can't make an exact equivalent because we can only search text, not other fields, so this function will simply
+    remove clauses for any fields other than the default or 'sentence'.  So 'title:foo and bar and sentence:bat' will return
+    'bar & bat'.
+    """
+    tree = _filter_fields_from_tree( tree, 'sentence' )
+
+    return _get_filtered_tsquery( tree )
+
+
+def parse_solr_query( solr_query ):
+    """ Parse a solr query and return a ParseNode object that encapsulates the query in structured form.
+
+    ParseNode has a 'type' and a 'value' attribute.  The type is one of the following: TYPE_TERM, TYPE_NOT, TYPE_AND,
+    TYPE_OR, TYPE_WILD, TYPE_FIELD.  The value is the value for the given type, for instance the term for a TYPE_TERM
+    node.
+    """
 
     solr_query = decode_string_from_bytes_if_needed( solr_query )\
 
@@ -153,14 +211,16 @@ def convert_to_tsquery ( solr_query ):
 
     tokens = []
     for token in full_tokens:
-        tokens.append( token[1] )
+        tokens.append( token[ 1 ] )
 
-    print( tokens )
+    return _parse_tokens( tokens )
 
-    tree = _parse_tokens( tokens )
 
-    query = _get_plain_query( tree )
+def convert_to_tsquery ( solr_query ):
+    """ parse a solr query to an equivalent tsquery for use in postgres """
 
-    print( query )
+    tree = parse_solr_query( solr_query )
+
+    query = _get_tsquery( tree )
 
     return query
