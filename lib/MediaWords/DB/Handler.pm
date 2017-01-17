@@ -42,20 +42,23 @@ my %_schema_version_check_pids;
 
 # METHODS
 
+# Constructor
 sub new
 {
     my $class = shift;
-    return $class->connect( @_ );
-}
-
-# Constructor
-sub connect($$$$$$;$)
-{
-    my $class = shift;
-    my ( $host, $port, $user, $pass, $database, $do_not_check_schema_version ) = @_;
 
     my $self = {};
     bless $self, $class;
+
+    $self->_connect( @_ );
+
+    return $self;
+}
+
+# Connect to the database
+sub _connect($$$$$$;$)
+{
+    my ( $self, $host, $port, $user, $pass, $database, $do_not_check_schema_version ) = @_;
 
     unless ( $host and $user and $pass and $database )
     {
@@ -113,8 +116,6 @@ sub connect($$$$$$;$)
     {
         WARN '"deadlock_timeout" is less than "' . $MIN_DEADLOCK_TIMEOUT . 's", expect deadlocks on high extractor load';
     }
-
-    return $self;
 }
 
 sub disconnect
