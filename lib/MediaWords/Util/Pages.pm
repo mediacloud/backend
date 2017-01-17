@@ -1,4 +1,4 @@
-package MediaWords::Util::Pages;
+package MediaWords::Util;    # not ::Pages to be able to load "Pages" Python class from pages.py
 
 use strict;
 use warnings;
