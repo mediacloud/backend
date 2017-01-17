@@ -43,7 +43,7 @@ def test_decode_object_from_bytes_if_needed():
 # noinspection SqlResolve,SpellCheckingInspection
 def test_convert_dbd_pg_arguments_to_psycopg2_format():
     # Native psycopg2 query with tuple
-    input_parameters = ("SELECT * FROM foo WHERE name = %s AND surname = %s", ('Kim', 'Kardashian'))
+    input_parameters = ("SELECT * FROM foo WHERE name = %s AND surname = %s", ('Kim', 'Kardashian',))
     expected_parameters = input_parameters
     actual_parameters = convert_dbd_pg_arguments_to_psycopg2_format(*input_parameters)
     assert expected_parameters == actual_parameters
