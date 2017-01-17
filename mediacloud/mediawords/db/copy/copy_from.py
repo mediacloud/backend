@@ -4,8 +4,8 @@ import psycopg2
 from psycopg2.extras import DictCursor
 
 from mediawords.db.exceptions.handler import McDatabaseHandlerException
-
 from mediawords.util.log import create_logger
+from mediawords.util.perl import decode_object_from_bytes_if_needed
 
 l = create_logger(__name__)
 
@@ -31,10 +31,16 @@ class CopyFrom(object):
     __temp_file_buffer = None
 
     def __init__(self, cursor: DictCursor, sql: str):
+
+        sql = decode_object_from_bytes_if_needed(sql)
+
         self.__start_copy_from(cursor=cursor, sql=sql)
 
     def __start_copy_from(self, cursor: DictCursor, sql: str):
         """Start COPY FROM."""
+
+        sql = decode_object_from_bytes_if_needed(sql)
+
         if sql is None:
             raise McDatabaseHandlerException("SQL is None.")
         if len(sql) == '':
@@ -46,6 +52,9 @@ class CopyFrom(object):
 
     def put_line(self, line: str) -> None:
         """Write line."""
+
+        line = decode_object_from_bytes_if_needed(line)
+
         line = line.rstrip('\n')
         try:
             self.__temp_file_buffer.write("%s\n" % line)

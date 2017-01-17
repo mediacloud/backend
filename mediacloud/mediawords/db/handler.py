@@ -18,7 +18,8 @@ from mediawords.db.schema.version import schema_version_from_lines
 from mediawords.util.config import get_config
 from mediawords.util.log import create_logger
 from mediawords.util.paths import mc_root_path
-from mediawords.util.perl import convert_dbd_pg_arguments_to_psycopg2_format
+from mediawords.util.perl import convert_dbd_pg_arguments_to_psycopg2_format, decode_object_from_bytes_if_needed, \
+    McDecodeObjectFromBytesIfNeededException
 
 l = create_logger(__name__)
 
@@ -29,7 +30,6 @@ psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
 
 
-# FIXME add decode_object_from_bytes_if_needed() everywhere
 # FIXME think about Catalyst reconnecting to the database every time
 # FIXME pass arguments by name, not by index
 # FIXME make PyCharm parse psycopg2's query parameters correctly: http://stackoverflow.com/a/36346689/200603
@@ -70,6 +70,12 @@ class DatabaseHandler(object):
                  database: str,
                  do_not_check_schema_version: bool = False):
         """Database handler constructor; connects to PostgreSQL too."""
+
+        host = decode_object_from_bytes_if_needed(host)
+        username = decode_object_from_bytes_if_needed(username)
+        password = decode_object_from_bytes_if_needed(password)
+        database = decode_object_from_bytes_if_needed(database)
+
         self.__connect(
             host=host,
             port=port,
@@ -87,6 +93,11 @@ class DatabaseHandler(object):
                   database: str,
                   do_not_check_schema_version: bool = False):
         """Connect to PostgreSQL."""
+
+        host = decode_object_from_bytes_if_needed(host)
+        username = decode_object_from_bytes_if_needed(username)
+        password = decode_object_from_bytes_if_needed(password)
+        database = decode_object_from_bytes_if_needed(database)
 
         # If the user didn't clearly (via 'true' or 'false') state whether or not
         # to check schema version, check it once per PID
@@ -258,6 +269,9 @@ class DatabaseHandler(object):
         """Return a prepared statement."""
         # MC_REWRITE_TO_PYTHON get rid of it because it was useful only for writing BYTEA cells; psycopg2 can just
         # use 'bytes' arguments
+
+        sql = decode_object_from_bytes_if_needed(sql)
+
         return DatabaseStatement(cursor=self.__db, sql=sql)
 
     def __get_current_work_mem(self) -> str:
@@ -273,6 +287,7 @@ class DatabaseHandler(object):
         return work_mem
 
     def __set_work_mem(self, new_work_mem: str) -> None:
+        new_work_mem = decode_object_from_bytes_if_needed(new_work_mem)
         self.query("SET work_mem TO %s", (new_work_mem,))
 
     def execute_with_large_work_mem(self, *query_args) -> None:
@@ -316,6 +331,9 @@ class DatabaseHandler(object):
 
     def primary_key_column(self, table: str) -> str:
         """Get the primary key column for the table."""
+
+        table = decode_object_from_bytes_if_needed(table)
+
         if table not in self.__primary_key_columns:
             # noinspection SqlResolve,SqlCheckUsingColumns
             primary_key_column = self.query("""
@@ -344,6 +362,9 @@ class DatabaseHandler(object):
 
     def find_by_id(self, table: str, object_id: int) -> DatabaseResult:
         """Do an ID lookup on the table and return a single row match if found."""
+
+        table = decode_object_from_bytes_if_needed(table)
+
         primary_key_column = self.primary_key_column(table)
         if not primary_key_column:
             raise McFindByIDException("Primary key for table '%s' was not found" % table)
@@ -359,6 +380,9 @@ class DatabaseHandler(object):
 
     def require_by_id(self, table: str, object_id: int) -> DatabaseResult:
         """find_by_id() or raise exception if not found."""
+
+        table = decode_object_from_bytes_if_needed(table)
+
         row = self.find_by_id(table, object_id)
         if row is None or row.rows() == 0:
             raise McRequireByIDException("Unable to find id '%d' in table '%s'" % (object_id, table))
@@ -366,6 +390,10 @@ class DatabaseHandler(object):
 
     def update_by_id(self, table: str, object_id: int, update_hash: dict) -> DatabaseResult:
         """Update the row in the table with the given ID. Ignore any fields that start with '_'."""
+
+        table = decode_object_from_bytes_if_needed(table)
+        update_hash = decode_object_from_bytes_if_needed(update_hash)
+
         update_hash = update_hash.copy()  # To be able to safely modify it
 
         # MC_REWRITE_TO_PYTHON: remove after getting rid of Catalyst
@@ -400,6 +428,8 @@ class DatabaseHandler(object):
     def delete_by_id(self, table: str, object_id: int) -> DatabaseResult:
         """Delete the row in the table with the given ID."""
 
+        table = decode_object_from_bytes_if_needed(table)
+
         primary_key_column = self.primary_key_column(table)
         if not primary_key_column:
             raise McDeleteByIDException("Primary key for table '%s' was not found" % table)
@@ -412,10 +442,17 @@ class DatabaseHandler(object):
 
     def insert(self, table: str, insert_hash: dict) -> DatabaseResult:
         """Alias for create()."""
+        table = decode_object_from_bytes_if_needed(table)
+        insert_hash = decode_object_from_bytes_if_needed(insert_hash)
+
         return self.create(table=table, insert_hash=insert_hash)
 
     def create(self, table: str, insert_hash: dict) -> DatabaseResult:
         """Insert a row into the database for the given table with the given hash values and return the created row."""
+
+        table = decode_object_from_bytes_if_needed(table)
+        insert_hash = decode_object_from_bytes_if_needed(insert_hash)
+
         insert_hash = insert_hash.copy()  # To be able to safely modify it
 
         # MC_REWRITE_TO_PYTHON: remove after getting rid of Catalyst
@@ -455,6 +492,10 @@ class DatabaseHandler(object):
     def select(self, table: str, what_to_select: str, condition_hash: dict = None) -> DatabaseResult:
         """SELECT chosen columns from the table that match given conditions."""
 
+        table = decode_object_from_bytes_if_needed(table)
+        what_to_select = decode_object_from_bytes_if_needed(what_to_select)
+        condition_hash = decode_object_from_bytes_if_needed(condition_hash)
+
         if condition_hash is None:
             condition_hash = {}
 
@@ -481,6 +522,10 @@ class DatabaseHandler(object):
     def find_or_create(self, table: str, insert_hash: dict) -> DatabaseResult:
         """Select a single row from the database matching the hash or insert a row with the hash values and return the
         inserted row as a hash."""
+
+        table = decode_object_from_bytes_if_needed(table)
+        insert_hash = decode_object_from_bytes_if_needed(insert_hash)
+
         insert_hash = insert_hash.copy()  # To be able to safely modify it
 
         if len(insert_hash) == 0:
@@ -580,6 +625,9 @@ class DatabaseHandler(object):
     @staticmethod
     def quote(value: Union[bool, int, float, str, None]) -> str:
         """Quote a string for being passed as a literal in a query."""
+
+        value = decode_object_from_bytes_if_needed(value)
+
         quoted_obj = None
         try:
             # Docs say that: "While the original adapt() takes 3 arguments, psycopg2's one only takes 1: the bound
@@ -623,24 +671,34 @@ class DatabaseHandler(object):
     def quote_varchar(value: str) -> str:
         """Quote VARCHAR for being passed as a literal in a query."""
         # FIXME probably there's no point in having this as an alias
+        value = decode_object_from_bytes_if_needed(value)
+
         return DatabaseHandler.quote(value=value)
 
     @staticmethod
     def quote_date(value: str) -> str:
         """Quote DATE for being passed as a literal in a query."""
+        value = decode_object_from_bytes_if_needed(value)
+
         return '%s::date' % DatabaseHandler.quote(value=value)
 
     @staticmethod
     def quote_timestamp(value: str) -> str:
         """Quote TIMESTAMP for being passed as a literal in a query."""
+        value = decode_object_from_bytes_if_needed(value)
+
         return '%s::timestamp' % DatabaseHandler.quote(value=value)
 
     def copy_from(self, sql: str) -> CopyFrom:
         """Return COPY FROM helper object."""
+        sql = decode_object_from_bytes_if_needed(sql)
+
         return CopyFrom(cursor=self.__db, sql=sql)
 
     def copy_to(self, sql: str) -> CopyTo:
         """Return COPY TO helper object."""
+        sql = decode_object_from_bytes_if_needed(sql)
+
         return CopyTo(cursor=self.__db, sql=sql)
 
     def get_temporary_ids_table(self, ids: List[int], ordered: bool = False) -> str:
@@ -692,6 +750,16 @@ class DatabaseHandler(object):
         # FIXME get rid of this hard to understand reimplementation of JOIN which is here due to the sole reason that
         # _add_nested_data() is hard to refactor out and no one bothered to do it.
 
+        data = decode_object_from_bytes_if_needed(data)
+        if not isinstance(data, list):
+            raise McDecodeObjectFromBytesIfNeededException(
+                "'data' is not a list anymore after converting: %s" % str(data)
+            )
+        data = list(data)  # get rid of return type warning by enforcing that 'data' is still a list
+        child_query = decode_object_from_bytes_if_needed(child_query)
+        child_field = decode_object_from_bytes_if_needed(child_field)
+        id_column = decode_object_from_bytes_if_needed(id_column)
+
         parent_lookup = {}
         ids = []
         for parent in data:
@@ -730,4 +798,7 @@ class DatabaseHandler(object):
 
     def query_paged_hashes(self, query: str, page: int, rows_per_page: int) -> DatabasePages:
         """Execute the query and return a list of pages hashes."""
+
+        query = decode_object_from_bytes_if_needed(query)
+
         return DatabasePages(cursor=self.__db, query=query, page=page, rows_per_page=rows_per_page)

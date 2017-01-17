@@ -5,7 +5,7 @@ from typing import List, Dict, Any
 from mediawords.db.exceptions.handler import McQueryPagedHashesException
 from mediawords.db.result.result import DatabaseResult
 from mediawords.util.pages import Pages
-from mediawords.util.perl import convert_dbd_pg_arguments_to_psycopg2_format
+from mediawords.util.perl import convert_dbd_pg_arguments_to_psycopg2_format, decode_object_from_bytes_if_needed
 
 
 class DatabasePages(object):
@@ -13,9 +13,15 @@ class DatabasePages(object):
     __pager = None
 
     def __init__(self, cursor: DictCursor, query: str, page: int, rows_per_page: int):
+
+        query = decode_object_from_bytes_if_needed(query)
+
         self.__execute(cursor=cursor, query=query, page=page, rows_per_page=rows_per_page)
 
     def __execute(self, cursor: DictCursor, query: str, page: int, rows_per_page: int):
+
+        query = decode_object_from_bytes_if_needed(query)
+
         if page < 1:
             raise McQueryPagedHashesException('Page must be 1 or bigger.')
 

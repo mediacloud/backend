@@ -1,11 +1,13 @@
 import itertools
 import pprint
+from typing import Dict, List
+
 import psycopg2
 from psycopg2.extras import DictCursor
-from typing import Dict, List
 
 from mediawords.db.exceptions.result import *
 from mediawords.util.log import create_logger
+from mediawords.util.perl import decode_object_from_bytes_if_needed
 
 l = create_logger(__name__)
 
@@ -16,10 +18,16 @@ class DatabaseResult(object):
     __cursor = None  # psycopg2 cursor
 
     def __init__(self, cursor: DictCursor, query_args: tuple, print_warnings: bool = True):
+
+        # MC_REWRITE_TO_PYTHON: 'query_args' should be decoded from 'bytes' at this point
+
         self.__execute(cursor=cursor, query_args=query_args, print_warnings=print_warnings)
 
-    def __execute(self, cursor, query_args, print_warnings: bool):
+    def __execute(self, cursor: DictCursor, query_args: tuple, print_warnings: bool):
         """Execute statement, set up cursor to results."""
+
+        # MC_REWRITE_TO_PYTHON: 'query_args' should be decoded from 'bytes' at this point
+
         if len(query_args) == 0:
             raise McDatabaseResultException('No query or its parameters.')
         if len(query_args[0]) == 0:
@@ -80,6 +88,9 @@ class DatabaseResult(object):
 
     def text(self, text_type='neat') -> str:
         """(all remaining rows) Returns a string with a simple text representation of the data."""
+
+        text_type = decode_object_from_bytes_if_needed(text_type)
+
         if text_type != 'neat':
             raise McDatabaseResultTextException("Formatting types other than 'neat' are not supported.")
         return pprint.pformat(self.hashes(), indent=4)

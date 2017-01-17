@@ -9,6 +9,10 @@ from mediawords.util.log import create_logger
 l = create_logger(__name__)
 
 
+class McDecodeObjectFromBytesIfNeededException(Exception):
+    pass
+
+
 # MC_REWRITE_TO_PYTHON: remove after porting all Perl code to Python
 def decode_object_from_bytes_if_needed(obj: Union[dict, list, str, bytes, None]) -> Union[dict, list, str, None]:
     """Convert object (dictionary, list or string) from 'bytes' string to 'unicode' if needed."""
@@ -33,8 +37,10 @@ def decode_object_from_bytes_if_needed(obj: Union[dict, list, str, bytes, None])
         for v in obj:
             v = decode_object_from_bytes_if_needed(v)
             result.append(v)
-    else:
+    elif isinstance(obj, bytes):
         result = __decode_string_from_bytes_if_needed(obj)
+    else:
+        result = obj
     return result
 
 
@@ -47,6 +53,10 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
     """Convert DBD::Pg's question mark-style SQL query parameters to psycopg2's syntax."""
     if len(query_parameters) == 0:
         raise McConvertDBDPgArgumentsToPsycopg2FormatException('No query or its parameters.')
+
+    if isinstance(query_parameters, list):
+        # Coming from Perl
+        query_parameters = decode_object_from_bytes_if_needed(query_parameters)
 
     query = query_parameters[0]
     if isinstance(query, bytes):

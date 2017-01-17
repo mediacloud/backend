@@ -178,15 +178,25 @@ class TestDatabaseHandler(TestCase):
 
         # BYTEA
         random_bytes = os.urandom(10 * 1024)
-        self.__db.query('CREATE TEMPORARY TABLE table_with_bytea_column (bytea_data BYTEA NOT NULL)')
-        statement = self.__db.prepare("""
-            INSERT INTO table_with_bytea_column (bytea_data)
-            VALUES (?)
+        self.__db.query("""
+            CREATE TEMPORARY TABLE table_with_bytea_column (
+                id INT NOT NULL,
+                surname VARCHAR NOT NULL,
+                bytea_data BYTEA NOT NULL
+            )
         """)
-        statement.bind(1, random_bytes)
+        statement = self.__db.prepare("""
+            INSERT INTO table_with_bytea_column (id, surname, bytea_data)
+            VALUES (?, ?, ?)
+        """)
+        statement.bind(1, 42)
+        statement.bind(2, 'Kardashian')
+        statement.bind_bytea(3, random_bytes)
         statement.execute()
 
-        row_hash = self.__db.query("SELECT bytea_data FROM table_with_bytea_column").hash()
+        row_hash = self.__db.query("SELECT id, surname, bytea_data FROM table_with_bytea_column").hash()
+        assert row_hash['id'] == 42
+        assert row_hash['surname'] == 'Kardashian'
         assert bytes(row_hash['bytea_data']) == random_bytes
 
     def test_execute_with_large_work_mem(self):
