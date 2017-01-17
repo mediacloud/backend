@@ -30,10 +30,6 @@ psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
 
 
-# FIXME think about Catalyst reconnecting to the database every time
-# FIXME pass arguments by name, not by index
-# FIXME make PyCharm parse psycopg2's query parameters correctly: http://stackoverflow.com/a/36346689/200603
-# FIXME custom exceptions
 # FIXME test if autocommit can be toggled with database cursor enabled
 # FIXME add some more Unicode tests
 class DatabaseHandler(object):
