@@ -11,6 +11,7 @@ from mediawords.db.copy.copy_from import CopyFrom
 from mediawords.db.copy.copy_to import CopyTo
 from mediawords.db.exceptions.handler import *
 from mediawords.db.statement.statement import DatabaseStatement
+from mediawords.db.pages.pages import DatabasePages
 from mediawords.db.result.result import DatabaseResult
 from mediawords.db.schema.version import schema_version_from_lines
 
@@ -725,3 +726,7 @@ class DatabaseHandler(object):
                 parent[child_field].append(child)
 
         return data
+
+    def query_paged_hashes(self, query: str, page: int, rows_per_page: int) -> DatabasePages:
+        """Execute the query and return a list of pages hashes."""
+        return DatabasePages(cursor=self.__db, query=query, page=page, rows_per_page=rows_per_page)

@@ -61,3 +61,8 @@ class McQuoteException(McDatabaseHandlerException):
 class McPrepareException(McDatabaseHandlerException):
     """prepare() exception."""
     pass
+
+
+class McQueryPagedHashesException(McDatabaseHandlerException):
+    """query_paged_hashes() exception."""
+    pass
