@@ -2346,8 +2346,10 @@ update topic_seed_urls a set stories_id = b.stories_id, processed = 't'
         a.stories_id is null and b.stories_id is not null
 END
 
+    # randomly shuffle this query so that we don't block the extractor pool by throwing it all
+    # stories from a single media_id at once
     my $seed_urls = $db->query( <<END, $topics_id )->hashes;
-select * from topic_seed_urls where topics_id = ? and processed = 'f'
+select * from topic_seed_urls where topics_id = ? and processed = 'f' order by random()
 END
 
     # process these in chunks in case we have to start over so that we don't have to redo the whole batch
