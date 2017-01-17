@@ -73,7 +73,7 @@ class TestDatabaseHandler(TestCase):
             ('Caitlyn', 'Jenner', '1949-10-28'::DATE, 'f'),       -- id=2
             ('Kourtney', 'Kardashian', '1979-04-18'::DATE, 'f'),  -- id=3
             ('Kim', 'Kardashian', '1980-10-21'::DATE, 't'),       -- id=4
-            ('Khloé', 'Kardashian', '1984-06-27'::DATE, 'f'),     -- id=5
+            ('Khloé', 'Kardashian', '1984-06-27'::DATE, 'f'),     -- id=5; also, UTF-8
             ('Rob', 'Kardashian', '1987-03-17'::DATE, 'f'),       -- id=6
             ('Kendall', 'Jenner', '1995-11-03'::DATE, 'f'),       -- id=7
             ('Kylie', 'Jenner', '1997-08-10'::DATE, 'f')          -- id=8
@@ -88,19 +88,19 @@ class TestDatabaseHandler(TestCase):
 
     def test_query_parameters(self):
 
-        # DBD::Pg style
-        row = self.__db.query("SELECT * FROM kardashians WHERE name = ?", 'Kris')
+        # DBD::Pg style + UTF-8
+        row = self.__db.query("SELECT * FROM kardashians WHERE name = ?", 'Khloé')
         assert row is not None
         row_hash = row.hash()
-        assert row_hash['name'] == 'Kris'
-        assert row_hash['surname'] == 'Jenner'
+        assert row_hash['name'] == 'Khloé'
+        assert row_hash['surname'] == 'Kardashian'
 
-        # psycopg2 style
-        row = self.__db.query('SELECT * FROM kardashians WHERE name = %s', ('Kris',))
+        # psycopg2 style + UTF-8
+        row = self.__db.query('SELECT * FROM kardashians WHERE name = %s', ('Khloé',))
         assert row is not None
         row_hash = row.hash()
-        assert row_hash['name'] == 'Kris'
-        assert row_hash['surname'] == 'Jenner'
+        assert row_hash['name'] == 'Khloé'
+        assert row_hash['surname'] == 'Kardashian'
 
     def test_query_result_columns(self):
         columns = self.__db.query("SELECT * FROM kardashians").columns()
