@@ -1,14 +1,13 @@
 from mediawords.util.perl import *
 
 
-def test_decode_string_from_bytes_if_needed():
-    assert decode_string_from_bytes_if_needed(b'foo') == 'foo'
-    assert decode_string_from_bytes_if_needed('foo') == 'foo'
-    assert decode_string_from_bytes_if_needed(42) == 42
-    assert decode_string_from_bytes_if_needed(None) is None
+def test_decode_object_from_bytes_if_needed():
+    assert decode_object_from_bytes_if_needed(b'foo') == 'foo'
+    assert decode_object_from_bytes_if_needed('foo') == 'foo'
+    # noinspection PyTypeChecker
+    assert decode_object_from_bytes_if_needed(42) == 42
+    assert decode_object_from_bytes_if_needed(None) is None
 
-
-def test_object_from_bytes_if_needed():
     input_obj = {
         b'a': b'b',
         b'c': [

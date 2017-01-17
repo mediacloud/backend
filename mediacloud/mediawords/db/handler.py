@@ -29,7 +29,7 @@ psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
 
 
-# FIXME add decode_string_from_bytes_if_needed() everywhere
+# FIXME add decode_object_from_bytes_if_needed() everywhere
 # FIXME think about Catalyst reconnecting to the database every time
 # FIXME pass arguments by name, not by index
 # FIXME make PyCharm parse psycopg2's query parameters correctly: http://stackoverflow.com/a/36346689/200603

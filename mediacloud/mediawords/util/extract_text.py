@@ -6,7 +6,7 @@ import pip
 import readability.readability
 
 from mediawords.util.log import create_logger
-from mediawords.util.perl import decode_string_from_bytes_if_needed
+from mediawords.util.perl import decode_object_from_bytes_if_needed
 
 l = create_logger(__name__)
 
@@ -54,7 +54,7 @@ def extractor_name():
 def extract_article_from_html(html: str) -> str:
     """Extract article HTML from a full HTML file."""
     # FIXME move HTML stripping here too
-    html = decode_string_from_bytes_if_needed(html)
+    html = decode_object_from_bytes_if_needed(html)
     if html is None or html == '':
         return ''
 

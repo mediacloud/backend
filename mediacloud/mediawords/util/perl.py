@@ -10,19 +10,18 @@ l = create_logger(__name__)
 
 
 # MC_REWRITE_TO_PYTHON: remove after porting all Perl code to Python
-def decode_string_from_bytes_if_needed(string: Union[int, str, bytes, None]) -> Union[int, str, None]:
-    """Convert 'bytes' string to 'unicode' if needed.
-    (http://search.cpan.org/dist/Inline-Python/Python.pod#PORTING_YOUR_INLINE_PYTHON_CODE_FROM_2_TO_3)"""
-    if string is not None:
-        if isinstance(string, bytes):
-            # mimic perl decode replace on error behavior
-            string = string.decode(encoding='utf-8', errors='replace')
-    return string
-
-
-# MC_REWRITE_TO_PYTHON: remove after porting all Perl code to Python
 def decode_object_from_bytes_if_needed(obj: Union[dict, list, str, bytes, None]) -> Union[dict, list, str, None]:
     """Convert object (dictionary, list or string) from 'bytes' string to 'unicode' if needed."""
+
+    def __decode_string_from_bytes_if_needed(string: Union[int, str, bytes, None]) -> Union[int, str, None]:
+        """Convert 'bytes' string to 'unicode' if needed.
+        (http://search.cpan.org/dist/Inline-Python/Python.pod#PORTING_YOUR_INLINE_PYTHON_CODE_FROM_2_TO_3)"""
+        if string is not None:
+            if isinstance(string, bytes):
+                # mimic perl decode replace on error behavior
+                string = string.decode(encoding='utf-8', errors='replace')
+        return string
+
     if isinstance(obj, dict):
         result = dict()
         for k, v in obj.items():
@@ -35,7 +34,7 @@ def decode_object_from_bytes_if_needed(obj: Union[dict, list, str, bytes, None])
             v = decode_object_from_bytes_if_needed(v)
             result.append(v)
     else:
-        result = decode_string_from_bytes_if_needed(obj)
+        result = __decode_string_from_bytes_if_needed(obj)
     return result
 
 

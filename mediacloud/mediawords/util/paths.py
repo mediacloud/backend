@@ -3,7 +3,7 @@ import os
 import time
 
 from mediawords.util.log import create_logger
-from mediawords.util.perl import decode_string_from_bytes_if_needed
+from mediawords.util.perl import decode_object_from_bytes_if_needed
 
 l = create_logger(__name__)
 
@@ -36,7 +36,7 @@ def mc_root_path() -> str:
 def mkdir_p(path: str) -> None:
     """mkdir -p"""
 
-    path = decode_string_from_bytes_if_needed(path)
+    path = decode_object_from_bytes_if_needed(path)
 
     l.debug("Creating directory '%s'..." % path)
     try:
@@ -56,7 +56,7 @@ class McResolveAbsolutePathUnderMcRootException(Exception):
 def resolve_absolute_path_under_mc_root(path: str, must_exist: bool = False) -> str:
     """Return absolute path to object (file or directory) under Media Cloud root."""
 
-    path = decode_string_from_bytes_if_needed(path)
+    path = decode_object_from_bytes_if_needed(path)
 
     mc_root = mc_root_path()
     dist_path = os.path.join(mc_root, path)
@@ -75,8 +75,8 @@ class McRelativeSymlinkException(Exception):
 def relative_symlink(source: str, link_name: str) -> None:
     """Create symlink while also converting paths to relative ones by finding common prefix."""
 
-    source = decode_string_from_bytes_if_needed(source)
-    link_name = decode_string_from_bytes_if_needed(link_name)
+    source = decode_object_from_bytes_if_needed(source)
+    link_name = decode_object_from_bytes_if_needed(link_name)
 
     source = os.path.abspath(source)
     link_name = os.path.abspath(link_name)
@@ -93,7 +93,7 @@ def relative_symlink(source: str, link_name: str) -> None:
 def file_extension(filename: str) -> str:
     """Return file extension, e.g. ".zip" for "test.zip", or ".gz" for "test.tar.gz"."""
 
-    filename = decode_string_from_bytes_if_needed(filename)
+    filename = decode_object_from_bytes_if_needed(filename)
 
     basename = os.path.basename(filename)
     root, extension = os.path.splitext(basename)
@@ -108,7 +108,7 @@ def lock_file(path: str, timeout: int = None) -> None:
     """Create lock file."""
     # FIXME probably not thread-safe
 
-    path = decode_string_from_bytes_if_needed(path)
+    path = decode_object_from_bytes_if_needed(path)
 
     start_time = time.time()
     l.debug("Creating lock file '%s'..." % path)
@@ -138,7 +138,7 @@ def unlock_file(path: str) -> None:
     """Remove lock file."""
     # FIXME probably not thread-safe
 
-    path = decode_string_from_bytes_if_needed(path)
+    path = decode_object_from_bytes_if_needed(path)
 
     l.debug("Removing lock file '%s'..." % path)
     if not os.path.isfile(path):
