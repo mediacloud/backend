@@ -752,6 +752,20 @@ class DatabaseHandler(object):
     def quote_bool(value: bool) -> str:
         """Quote a boolean value for being passed as a literal in a query."""
         # FIXME probably there's no point in having this as an alias
+
+        # MC_REWRITE_TO_PYTHON: remove after starting to use Python's boolean type everywhere
+        if isinstance(value, bool):
+            pass
+        elif isinstance(value, int):
+            if value == 0:
+                value = False
+            elif value == 1:
+                value = True
+            else:
+                raise McQuoteException("Value '%s' is neither 0 nor 1" % str(value))
+        else:
+            raise McQuoteException("Value '%s' is neither bool nor int" % str(value))
+
         return DatabaseHandler.quote(value=value)
 
     @staticmethod
