@@ -191,3 +191,20 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
     l.debug("Converted to: %s" % str(query_parameters))
 
     return query_parameters
+
+
+def psycopg2_exception_due_to_boolean_passed_as_int_column(exception_message: str) -> Union[str, None]:
+    """Given the psycopg2's exception message, tests if the exception is due to booleans being passed as ints, and if
+    so, returns the affected column that should be cast to bool."""
+    # MC_REWRITE_TO_PYTHON: remove after porting all Perl code to Python
+
+    if exception_message is None:
+        return None
+
+    matches = re.search('column "(.+?)" is of type boolean but expression is of type integer', exception_message)
+    if matches is not None:
+        affected_column = matches.group(1)
+        return affected_column
+
+    # Fallback
+    return None

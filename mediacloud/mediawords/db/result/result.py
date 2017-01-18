@@ -7,7 +7,8 @@ from psycopg2.extras import DictCursor
 
 from mediawords.db.exceptions.result import *
 from mediawords.util.log import create_logger
-from mediawords.util.perl import decode_object_from_bytes_if_needed
+from mediawords.util.perl import decode_object_from_bytes_if_needed, \
+    psycopg2_exception_due_to_boolean_passed_as_int_column
 
 l = create_logger(__name__)
 
@@ -24,7 +25,10 @@ class DatabaseResult(object):
         self.__execute(cursor=cursor, query_args=query_args, print_warnings=print_warnings)
 
     def __execute(self, cursor: DictCursor, query_args: tuple, print_warnings: bool) -> None:
-        """Execute statement, set up cursor to results."""
+        """Execute statement, set up cursor to results.
+
+        Raises McIntInsteadOfBooleanException if query can be retried on integers being cast to booleans manually,
+        McDatabaseResultException on other errors."""
 
         # MC_REWRITE_TO_PYTHON: 'query_args' should be decoded from 'bytes' at this point
 
@@ -35,14 +39,29 @@ class DatabaseResult(object):
 
         try:
             cursor.execute(*query_args)
+
         except psycopg2.Warning as ex:
             if print_warnings:
                 l.warn('Warning while running query: %s' % str(ex))
             else:
                 l.debug('Warning while running query: %s' % str(ex))
+
+        except psycopg2.ProgrammingError as ex:
+
+            # Perl doesn't have booleans, so we need to cast ints to them ourselves
+            # MC_REWRITE_TO_PYTHON: remove after porting all Perl code to Python
+            int_to_bool_column = psycopg2_exception_due_to_boolean_passed_as_int_column(
+                exception_message=ex.diag.message_primary
+            )
+            if int_to_bool_column is not None:
+                raise McIntInsteadOfBooleanException(message=str(ex), affected_column=int_to_bool_column)
+            else:
+                # Some other programming error
+                raise McDatabaseResultException('Query failed due to programming error: %s' % str(ex))
+
         except psycopg2.Error as ex:
             l.debug("Mogrified query: %s" % cursor.mogrify(*query_args))
-            raise McDatabaseResultException('Query failed: %s' % str(ex))
+            raise McDatabaseResultException('Query failed due to database error: %s' % str(ex))
 
         self.__cursor = cursor  # Cursor now holds results
 
