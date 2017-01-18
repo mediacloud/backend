@@ -92,6 +92,12 @@ def test_convert_dbd_pg_arguments_to_psycopg2_format():
     actual_parameters = convert_dbd_pg_arguments_to_psycopg2_format(*input_parameters)
     assert expected_parameters == actual_parameters
 
+    # Question mark before "::"
+    input_parameters = ("""INSERT INTO foo (a) VALUES (?::datetime)""".strip(), '2017-01-18')
+    expected_parameters = ("""INSERT INTO foo (a) VALUES (%s::datetime)""".strip(), ('2017-01-18',))
+    actual_parameters = convert_dbd_pg_arguments_to_psycopg2_format(*input_parameters)
+    assert expected_parameters == actual_parameters
+
     # DBIx::Simple's query with a multiple question mark-style ("WHERE id IN (??)") parameters
     input_sql = "SELECT * FROM foo "
     input_sql += "WHERE name IN (??)"

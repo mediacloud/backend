@@ -122,7 +122,7 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
 
             # Replace "?" parameters with psycopg2's "%s"
             question_mark_regex = re.compile(
-                r'(?P<whitespace_before_question_mark>\s|,|\()\?(?P<whitespace_after_question_mark>\s|,|\))'
+                r'(?P<whitespace_before_question_mark>\s|,|\()\?(?P<whitespace_after_question_mark>\s|,|\)|(::))'
             )
             question_mark_count = len(re.findall(question_mark_regex, query))
             if question_mark_count > 0:
@@ -151,7 +151,7 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
             dollar_sign_regex = re.compile(
                 r'(?P<whitespace_before_dollar_sign>\s|,|\()'
                 + '\$(?P<param_index>\d)'
-                + '(?P<whitespace_after_dollar_sign>\s|,|\))'
+                + '(?P<whitespace_after_dollar_sign>\s|,|\)|(::))'
             )
             dollar_sign_unique_indexes = set([x[1] for x in re.findall(dollar_sign_regex, query)])
             dollar_sign_unique_count = len(dollar_sign_unique_indexes)
