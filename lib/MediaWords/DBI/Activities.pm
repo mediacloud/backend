@@ -802,8 +802,7 @@ sub update_by_id_and_log($$$$$$$$)
     $db->begin_work;
 
     # Make the change
-    my $r = 0;
-    eval { $r = $db->update_by_id( $table, $id, $new_hash ); };
+    eval { $db->update_by_id( $table, $id, $new_hash ); };
     if ( $@ )
     {
 
@@ -821,8 +820,6 @@ sub update_by_id_and_log($$$$$$$$)
 
     # Things went fine at this point, commit
     $db->commit;
-
-    return $r;
 }
 
 1;

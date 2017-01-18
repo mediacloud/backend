@@ -392,7 +392,7 @@ class DatabaseHandler(object):
             raise McRequireByIDException("Unable to find id '%d' in table '%s'" % (object_id, table))
         return row
 
-    def update_by_id(self, table: str, object_id: int, update_hash: dict) -> DatabaseResult:
+    def update_by_id(self, table: str, object_id: int, update_hash: dict) -> None:
         """Update the row in the table with the given ID. Ignore any fields that start with '_'."""
 
         table = decode_object_from_bytes_if_needed(table)
@@ -427,7 +427,7 @@ class DatabaseHandler(object):
         sql += "WHERE %s = " % primary_key_column
         sql += "%(__object_id)s"  # "%(__object_id)s" to be resolved by psycopg2, not Python
 
-        return self.query(sql, update_hash)
+        self.query(sql, update_hash)
 
     def delete_by_id(self, table: str, object_id: int) -> DatabaseResult:
         """Delete the row in the table with the given ID."""
