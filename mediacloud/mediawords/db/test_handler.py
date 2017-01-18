@@ -347,6 +347,36 @@ class TestDatabaseHandler(TestCase):
         # Nonexistent column
         assert_raises(McUpdateByIDException, self.__db.update_by_id, 'kardashians', 4, {'does_not': 'exist'})
 
+        # Integers are being cast to booleans
+        # MC_REWRITE_TO_PYTHON: remove after porting all Perl code to Python
+        self.__db.query("""
+            CREATE TEMPORARY TABLE hotdogs (
+               id SERIAL PRIMARY KEY,
+               name VARCHAR NOT NULL,
+               with_mustard BOOLEAN NOT NULL,
+               with_ketchup BOOLEAN NOT NULL,
+               with_onions BOOLEAN NOT NULL
+            )
+        """)
+        row = self.__db.create(table='hotdogs', insert_hash={
+            'name': 'New York',
+            'with_mustard': False,
+            'with_ketchup': False,
+            'with_onions': False,
+        })
+        object_id = row['id']
+        self.__db.update_by_id(table='hotdogs', object_id=object_id, update_hash={
+            'with_mustard': 1,  # True
+            'with_ketchup': 0,  # False
+            'with_onions': True,
+        })
+        row = self.__db.find_by_id(table='hotdogs', object_id=object_id)
+        assert row['id'] == 1
+        assert row['name'] == 'New York'
+        assert row['with_mustard'] is True
+        assert row['with_ketchup'] is False
+        assert row['with_onions'] is True
+
     def test_delete_by_id(self):
         self.__db.delete_by_id(table='kardashians', object_id=4)
         row = self.__db.find_by_id(table='kardashians', object_id=4)
