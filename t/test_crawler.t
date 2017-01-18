@@ -61,7 +61,7 @@ sub _add_test_feed($$$$)
         VALUES (?, ?, ?)
         RETURNING *
 EOF
-        '_ Crawler Test', $url_to_crawl, 0
+        '_ Crawler Test', $url_to_crawl, 'f'
     )->hash;
 
     my $syndicated_feed = $db->create(
