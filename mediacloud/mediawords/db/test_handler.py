@@ -358,6 +358,9 @@ class TestDatabaseHandler(TestCase):
         assert row['surname'] == 'Odom'
         assert str(row['dob']) == '1979-11-06'
 
+        # Nonexistent column
+        assert_raises(McCreateException, self.__db.create, 'kardashians', {'does_not': 'exist'})
+
     def test_select(self):
         # One condition
         row = self.__db.select(table='kardashians', what_to_select='*', condition_hash={
