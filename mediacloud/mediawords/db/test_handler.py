@@ -102,6 +102,27 @@ class TestDatabaseHandler(TestCase):
         assert row_hash['name'] == 'Khloé'
         assert row_hash['surname'] == 'Kardashian'
 
+    def test_query_percentage_sign(self):
+
+        # LIKE with no psycopg2's arguments
+        row = self.__db.query("SELECT * FROM kardashians WHERE name LIKE 'Khlo%'", )
+        assert row is not None
+        row_hash = row.hash()
+        assert row_hash['name'] == 'Khloé'
+        assert row_hash['surname'] == 'Kardashian'
+
+        # LIKE with one argument
+        row = self.__db.query("""
+            SELECT *
+            FROM kardashians
+            WHERE name LIKE %(name_prefix)s
+              AND surname = %(surname)s
+        """, {'name_prefix': 'Khlo%', 'surname': 'Kardashian'})
+        assert row is not None
+        row_hash = row.hash()
+        assert row_hash['name'] == 'Khloé'
+        assert row_hash['surname'] == 'Kardashian'
+
     def test_query_result_columns(self):
         columns = self.__db.query("SELECT * FROM kardashians").columns()
         assert len(columns) == 5

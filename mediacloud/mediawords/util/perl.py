@@ -89,13 +89,6 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
     # At this point, it should be a DBD::Pg's question mark-style query.
     #
 
-    # "When parameters are used, in order to include a literal % in the query you can use the %% string."
-    #
-    # MC_REWRITE_TO_PYTHON: both psycopg2 and DBD::Pg queries get their %'s doubled here; this is usually not a
-    # big deal ("LIKE 'Abc%'" and "LIKE 'Abc%%'" work the same), but after converting queries to psycopg2's syntax, the
-    # following statement should be removed.
-    query = query.replace('%', '%%')
-
     # If there are no query parameters, there's nothing more to do
     if len(query_args) == 0:
         query_args = None
