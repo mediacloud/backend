@@ -52,7 +52,8 @@ sub run($$)
     my $stories_id = $args->{ stories_id };
 
     my $db = MediaWords::DB::connect_to_db();
-    $db->set_autocommit( 0 );
+
+    $db->begin;
 
     if ( exists $args->{ disable_story_triggers } and $args->{ disable_story_triggers } )
     {
@@ -89,6 +90,8 @@ sub run($$)
     {
         LOGDIE "Extractor died: $@; job args: " . Dumper( $args );
     }
+
+    $db->commit;
 
     return 1;
 }
