@@ -208,3 +208,28 @@ def psycopg2_exception_due_to_boolean_passed_as_int_column(exception_message: st
 
     # Fallback
     return None
+
+
+class McCastIntToBoolInDictException(Exception):
+    pass
+
+
+def cast_int_to_bool_in_dict(dictionary: dict, key: str) -> dict:
+    """Cast Perl's ints to bools to be able to use them with psycopg2."""
+    # MC_REWRITE_TO_PYTHON: remove after porting all Perl code to Python
+    if key is None:
+        raise McCastIntToBoolInDictException('Key is None')
+
+    if key not in dictionary:
+        raise McCastIntToBoolInDictException("Key '%s' is not in hash %s" % (key, dictionary))
+    if not isinstance(dictionary[key], int):
+        raise McCastIntToBoolInDictException("Value for '%s' in hash %s is not int" % (key, dictionary))
+
+    if dictionary[key] == 0:
+        dictionary[key] = False
+    elif dictionary[key] == 1:
+        dictionary[key] = True
+    else:
+        raise McCastIntToBoolInDictException("Value for '%s' in hash %s is neither 0 not 1" % (key, dictionary))
+
+    return dictionary
