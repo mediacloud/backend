@@ -193,7 +193,9 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
     return query_parameters
 
 
-def psycopg2_exception_due_to_boolean_passed_as_int_column(exception_message: str) -> Union[str, None]:
+def psycopg2_exception_due_to_boolean_passed_as_int_column(exception_message: str,
+                                                           statement: str,
+                                                           position_in_statement: int) -> Union[str, None]:
     """Given the psycopg2's exception message, tests if the exception is due to booleans being passed as ints, and if
     so, returns the affected column that should be cast to bool."""
     # MC_REWRITE_TO_PYTHON: remove after porting all Perl code to Python
@@ -201,8 +203,23 @@ def psycopg2_exception_due_to_boolean_passed_as_int_column(exception_message: st
     if exception_message is None:
         return None
 
+    # INSERT / UPDATE
     matches = re.search('column "(.+?)" is of type boolean but expression is of type integer', exception_message)
     if matches is not None:
+        affected_column = matches.group(1)
+        return affected_column
+
+    # SELECT (supports only basic "WHERE column = 1" statements, but should be enough to make select() work)
+    if 'operator does not exist: boolean = integer' in exception_message:
+        statement_to_position = statement[:position_in_statement]
+        if not statement_to_position.endswith('='):
+            l.warn("Unable to parse column out of statement '%s' at position %d" % (statement, position_in_statement))
+            return None
+        statement_to_position = re.sub('\s*=$', '', statement_to_position)
+        matches = re.search('\s(\S+?)$', statement_to_position)
+        if matches is None:
+            l.warn("Unable to parse column out of statement '%s' at position %d" % (statement, position_in_statement))
+            return None
         affected_column = matches.group(1)
         return affected_column
 

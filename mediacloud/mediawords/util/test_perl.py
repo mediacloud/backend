@@ -133,7 +133,19 @@ def test_convert_dbd_pg_arguments_to_psycopg2_format():
 
 
 def test_psycopg2_exception_due_to_boolean_passed_as_int_column():
-    assert psycopg2_exception_due_to_boolean_passed_as_int_column('foo') is None
     assert psycopg2_exception_due_to_boolean_passed_as_int_column(
-        'column "married_to_kanye" is of type boolean but expression is of type integer'
+        exception_message='foo',
+        statement='bar',  # not used
+        position_in_statement=123  # not used
+    ) is None
+    assert psycopg2_exception_due_to_boolean_passed_as_int_column(
+        exception_message='column "married_to_kanye" is of type boolean but expression is of type integer',
+        statement='foo bar',  # not used,
+        position_in_statement=123  # not used
+    ) == 'married_to_kanye'
+    # noinspection SqlResolve
+    assert psycopg2_exception_due_to_boolean_passed_as_int_column(
+        exception_message='operator does not exist: boolean = integer',
+        statement='SELECT * FROM kardashians WHERE married_to_kanye = 1',
+        position_in_statement=50
     ) == 'married_to_kanye'
