@@ -344,6 +344,9 @@ class TestDatabaseHandler(TestCase):
         assert row_hash['surname'] == 'Kardashian-West'
         assert '_ignored_key' not in row_hash
 
+        # Nonexistent column
+        assert_raises(McUpdateByIDException, self.__db.update_by_id, 'kardashians', 4, {'does_not': 'exist'})
+
     def test_delete_by_id(self):
         self.__db.delete_by_id(table='kardashians', object_id=4)
         row = self.__db.find_by_id(table='kardashians', object_id=4)
