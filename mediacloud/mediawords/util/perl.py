@@ -14,7 +14,8 @@ class McDecodeObjectFromBytesIfNeededException(Exception):
 
 
 # MC_REWRITE_TO_PYTHON: remove after porting all Perl code to Python
-def decode_object_from_bytes_if_needed(obj: Union[dict, list, str, bytes, None]) -> Union[dict, list, str, None]:
+def decode_object_from_bytes_if_needed(obj: Union[dict, list, tuple, str, bytes, None]) \
+        -> Union[dict, list, tuple, str, None]:
     """Convert object (dictionary, list or string) from 'bytes' string to 'unicode' if needed."""
 
     def __decode_string_from_bytes_if_needed(string: Union[int, str, bytes, None]) -> Union[int, str, None]:
@@ -37,6 +38,12 @@ def decode_object_from_bytes_if_needed(obj: Union[dict, list, str, bytes, None])
         for v in obj:
             v = decode_object_from_bytes_if_needed(v)
             result.append(v)
+    elif isinstance(obj, tuple):
+        result = list()
+        for v in obj:
+            v = decode_object_from_bytes_if_needed(v)
+            result.append(v)
+        result = tuple(result)
     elif isinstance(obj, bytes):
         result = __decode_string_from_bytes_if_needed(obj)
     else:
