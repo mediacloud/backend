@@ -48,6 +48,11 @@ class McCreateException(McDatabaseHandlerException):
     pass
 
 
+class McSelectException(McDatabaseHandlerException):
+    """select() exception."""
+    pass
+
+
 class McFindOrCreateException(McDatabaseHandlerException):
     """find_or_create() exception."""
     pass
