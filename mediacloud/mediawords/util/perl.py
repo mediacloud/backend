@@ -62,8 +62,8 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
         raise McConvertDBDPgArgumentsToPsycopg2FormatException('No query or its parameters.')
 
     if not skip_decoding:
-        if isinstance(query_parameters, list):
-            # Coming from Perl
+        # Coming from Perl?
+        if isinstance(query_parameters[0], bytes):
             query_parameters = decode_object_from_bytes_if_needed(query_parameters)
 
     query = query_parameters[0]
