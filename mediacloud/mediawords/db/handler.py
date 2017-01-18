@@ -564,19 +564,47 @@ class DatabaseHandler(object):
         if "submit" in condition_hash:
             del condition_hash["submit"]
 
-        sql_conditions = []
+        result = None
+        succeeded_or_failed_permanently = False
+        while not succeeded_or_failed_permanently:
+            try:
 
-        for key, value in condition_hash.items():
-            condition = key
-            condition += " = %(" + key + ")s"  # "%(key)s" to be resolved by psycopg2, not Python
-            sql_conditions.append(condition)
+                sql_conditions = []
 
-        sql = "SELECT %s " % what_to_select
-        sql += "FROM %s " % table
-        if len(sql_conditions) > 0:
-            sql += "WHERE %s" % " AND ".join(sql_conditions)
+                for key, value in condition_hash.items():
+                    condition = key
+                    condition += " = %(" + key + ")s"  # "%(key)s" to be resolved by psycopg2, not Python
+                    sql_conditions.append(condition)
 
-        return self.query(sql, condition_hash)
+                sql = "SELECT %s " % what_to_select
+                sql += "FROM %s " % table
+                if len(sql_conditions) > 0:
+                    sql += "WHERE %s" % " AND ".join(sql_conditions)
+
+                result = self.query(sql, condition_hash)
+
+                succeeded_or_failed_permanently = True
+
+            except McIntInsteadOfBooleanException as ex:
+                # If we got the 'column "..." is of type boolean but expression is of type integer' error, cast int to
+                # bool in affected column and retry query
+                # MC_REWRITE_TO_PYTHON: remove after porting all Perl code to Python
+
+                try:
+                    l.warn("Column '%s' is int instead of bool for table '%s'" % (ex.affected_column, table))
+                    condition_hash = cast_int_to_bool_in_dict(dictionary=condition_hash, key=ex.affected_column)
+                except McCastIntToBoolInDictException as cast_ex:
+                    raise McSelectException(
+                        "Unable to cast '%s' from int to bool: %s" % (ex.affected_column, str(cast_ex))
+                    )
+
+                succeeded_or_failed_permanently = False
+
+            except Exception as ex:
+                # Other exceptions
+                raise McSelectException("INSERTing a new row failed: %s" % str(ex))
+
+        return result
 
     def find_or_create(self, table: str, insert_hash: dict) -> Dict[str, Any]:
         """Select a single row from the database matching the hash or insert a row with the hash values and return the
