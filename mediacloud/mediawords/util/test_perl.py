@@ -130,3 +130,10 @@ def test_convert_dbd_pg_arguments_to_psycopg2_format():
     )
     actual_parameters = convert_dbd_pg_arguments_to_psycopg2_format(*input_parameters)
     assert expected_parameters == actual_parameters
+
+
+def test_psycopg2_exception_due_to_boolean_passed_as_int_column():
+    assert psycopg2_exception_due_to_boolean_passed_as_int_column('foo') is None
+    assert psycopg2_exception_due_to_boolean_passed_as_int_column(
+        'column "married_to_kanye" is of type boolean but expression is of type integer'
+    ) == 'married_to_kanye'
