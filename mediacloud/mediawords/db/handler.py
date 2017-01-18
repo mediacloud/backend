@@ -10,6 +10,7 @@ from psycopg2.extensions import adapt as psycopg2_adapt
 from mediawords.db.copy.copy_from import CopyFrom
 from mediawords.db.copy.copy_to import CopyTo
 from mediawords.db.exceptions.handler import *
+from mediawords.db.exceptions.result import McIntInsteadOfBooleanException
 from mediawords.db.statement.statement import DatabaseStatement
 from mediawords.db.pages.pages import DatabasePages
 from mediawords.db.result.result import DatabaseResult
@@ -18,8 +19,12 @@ from mediawords.db.schema.version import schema_version_from_lines
 from mediawords.util.config import get_config
 from mediawords.util.log import create_logger
 from mediawords.util.paths import mc_root_path
-from mediawords.util.perl import convert_dbd_pg_arguments_to_psycopg2_format, decode_object_from_bytes_if_needed, \
-    McDecodeObjectFromBytesIfNeededException
+from mediawords.util.perl import \
+    convert_dbd_pg_arguments_to_psycopg2_format, \
+    decode_object_from_bytes_if_needed, \
+    McDecodeObjectFromBytesIfNeededException, \
+    cast_int_to_bool_in_dict, \
+    McCastIntToBoolInDictException
 
 l = create_logger(__name__)
 
@@ -465,18 +470,44 @@ class DatabaseHandler(object):
         if not primary_key_column:
             raise McCreateException("Primary key for table '%s' was not found" % table)
 
-        keys = []
-        values = []
-        for key, value in insert_hash.items():
-            keys.append(key)
-            values.append("%(" + key + ")s")  # "%(key)s" to be resolved by psycopg2, not Python
+        last_inserted_id = None
+        succeeded_or_failed_permanently = False
+        while not succeeded_or_failed_permanently:
+            try:
 
-        sql = "INSERT INTO %s " % table
-        sql += "(%s) " % ", ".join(keys)
-        sql += "VALUES (%s) " % ", ".join(values)
-        sql += "RETURNING %s" % primary_key_column
+                keys = []
+                values = []
+                for key, value in insert_hash.items():
+                    keys.append(key)
+                    values.append("%(" + key + ")s")  # "%(key)s" to be resolved by psycopg2, not Python
 
-        last_inserted_id = self.query(sql, insert_hash).flat()
+                sql = "INSERT INTO %s " % table
+                sql += "(%s) " % ", ".join(keys)
+                sql += "VALUES (%s) " % ", ".join(values)
+                sql += "RETURNING %s" % primary_key_column
+
+                last_inserted_id = self.query(sql, insert_hash).flat()
+
+                succeeded_or_failed_permanently = True
+
+            except McIntInsteadOfBooleanException as ex:
+                # If we got the 'column "..." is of type boolean but expression is of type integer' error, cast int to
+                # bool in affected column and retry query
+                # MC_REWRITE_TO_PYTHON: remove after porting all Perl code to Python
+
+                try:
+                    l.warn("Column '%s' is int instead of bool for table '%s'" % (ex.affected_column, table))
+                    insert_hash = cast_int_to_bool_in_dict(dictionary=insert_hash, key=ex.affected_column)
+                except McCastIntToBoolInDictException as cast_ex:
+                    raise McCreateException(
+                        "Unable to cast '%s' from int to bool: %s" % (ex.affected_column, str(cast_ex))
+                    )
+
+                succeeded_or_failed_permanently = False
+
+            except Exception as ex:
+                # Other exceptions
+                raise McCreateException("INSERTing a new row failed: %s" % str(ex))
 
         if last_inserted_id is None or len(last_inserted_id) == 0:
             raise McCreateException("Last inserted ID was not found")

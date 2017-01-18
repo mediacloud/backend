@@ -361,6 +361,30 @@ class TestDatabaseHandler(TestCase):
         # Nonexistent column
         assert_raises(McCreateException, self.__db.create, 'kardashians', {'does_not': 'exist'})
 
+        # Integers are being cast to booleans
+        # MC_REWRITE_TO_PYTHON: remove after porting all Perl code to Python
+        self.__db.query("""
+            CREATE TEMPORARY TABLE hotdogs (
+               id SERIAL PRIMARY KEY,
+               name VARCHAR NOT NULL,
+               with_mustard BOOLEAN NOT NULL,
+               with_ketchup BOOLEAN NOT NULL,
+               with_onions BOOLEAN NOT NULL
+            )
+        """)
+        row = self.__db.create(table='hotdogs', insert_hash={
+            'id': 1,
+            'name': 'New York',
+            'with_mustard': 1,  # True
+            'with_ketchup': 0,  # False
+            'with_onions': True,
+        })
+        assert row['id'] == 1
+        assert row['name'] == 'New York'
+        assert row['with_mustard'] is True
+        assert row['with_ketchup'] is False
+        assert row['with_onions'] is True
+
     def test_select(self):
         # One condition
         row = self.__db.select(table='kardashians', what_to_select='*', condition_hash={
