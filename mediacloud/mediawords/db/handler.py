@@ -127,7 +127,7 @@ class DatabaseHandler(object):
         self.__db = self.__conn.cursor(cursor_factory=cursor_factory)
 
         # Queries to have immediate effect by default
-        self.set_autocommit(True)
+        self.__conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
 
         if not do_not_check_schema_version:
             if not self.schema_is_up_to_date():
@@ -631,10 +631,6 @@ class DatabaseHandler(object):
     def autocommit(self) -> bool:
         """Return True if autocommit mode is on."""
         return self.__conn.autocommit
-
-    def set_autocommit(self, autocommit: bool) -> None:
-        """Set autocommit mode."""
-        self.__conn.autocommit = autocommit
 
     # noinspection PyMethodMayBeStatic
     def show_error_statement(self) -> bool:
