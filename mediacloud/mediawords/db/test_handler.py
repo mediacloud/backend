@@ -308,16 +308,12 @@ class TestDatabaseHandler(TestCase):
         assert primary_key == 'id'
 
     def test_find_by_id(self):
-        row = self.__db.find_by_id(table='kardashians', object_id=4)
-        assert row is not None
-        row_hash = row.hash()
+        row_hash = self.__db.find_by_id(table='kardashians', object_id=4)
         assert row_hash['name'] == 'Kim'
 
     def test_require_by_id(self):
         # Exists
-        row = self.__db.find_by_id(table='kardashians', object_id=4)
-        assert row is not None
-        row_hash = row.hash()
+        row_hash = self.__db.require_by_id(table='kardashians', object_id=4)
         assert row_hash['name'] == 'Kim'
 
         # Doesn't exist
@@ -335,9 +331,8 @@ class TestDatabaseHandler(TestCase):
             'surname': 'Kardashian-West',
             '_ignored_key': 'Ignored value.'
         })
-        row = self.__db.find_by_id(table='kardashians', object_id=4)
-        assert row is not None
-        row_hash = row.hash()
+        row_hash = self.__db.find_by_id(table='kardashians', object_id=4)
+        assert row_hash is not None
         assert row_hash['name'] == 'Kim'
         assert row_hash['surname'] == 'Kardashian-West'
         assert '_ignored_key' not in row_hash
@@ -345,15 +340,14 @@ class TestDatabaseHandler(TestCase):
     def test_delete_by_id(self):
         self.__db.delete_by_id(table='kardashians', object_id=4)
         row = self.__db.find_by_id(table='kardashians', object_id=4)
-        assert row.rows() == 0
+        assert row is None
 
     def test_create(self):
-        self.__db.create(table='kardashians', insert_hash={
+        row = self.__db.create(table='kardashians', insert_hash={
             'name': 'Lamar',
             'surname': 'Odom',
             'dob': '1979-11-06',
         })
-        row = self.__db.query("SELECT * FROM kardashians WHERE name = 'Lamar'").hash()
         assert row['surname'] == 'Odom'
         assert str(row['dob']) == '1979-11-06'
 
@@ -378,27 +372,21 @@ class TestDatabaseHandler(TestCase):
         assert row.rows() == 0
 
         # Should INSERT
-        self.__db.find_or_create(table='kardashians', insert_hash={
+        row_hash = self.__db.find_or_create(table='kardashians', insert_hash={
             'name': 'Lamar',
             'surname': 'Odom',
             'dob': '1979-11-06',
         })
-        row = self.__db.query("SELECT * FROM kardashians WHERE name = 'Lamar'")
-        assert row is not None
-        assert row.rows() == 1
-        row_hash = row.hash()
+        assert row_hash is not None
         assert row_hash['surname'] == 'Odom'
 
         # Should SELECT
-        self.__db.find_or_create(table='kardashians', insert_hash={
+        row_hash = self.__db.find_or_create(table='kardashians', insert_hash={
             'name': 'Lamar',
             'surname': 'Odom',
             'dob': '1979-11-06',
         })
-        row = self.__db.query("SELECT * FROM kardashians WHERE name = 'Lamar'")
-        assert row is not None
-        assert row.rows() == 1
-        row_hash = row.hash()
+        assert row_hash is not None
         assert row_hash['surname'] == 'Odom'
 
     def test_begin_commit(self):

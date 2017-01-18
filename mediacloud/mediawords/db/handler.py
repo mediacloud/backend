@@ -353,7 +353,7 @@ class DatabaseHandler(object):
 
         return self.__primary_key_columns[table]
 
-    def find_by_id(self, table: str, object_id: int) -> DatabaseResult:
+    def find_by_id(self, table: str, object_id: int) -> Union[Dict[str, Any], None]:
         """Do an ID lookup on the table and return a single row match if found."""
 
         table = decode_object_from_bytes_if_needed(table)
@@ -369,15 +369,21 @@ class DatabaseHandler(object):
         }
 
         # psycopg2 substitution
-        return self.query(find_by_id_query + " = %(id_value)s", {'id_value': object_id})
+        result = self.query(find_by_id_query + " = %(id_value)s", {'id_value': object_id})
+        if result.rows() > 1:
+            raise McFindByIDException("More than one row was found for ID '%d' from table '%s'" % (object_id, table))
+        elif result.rows() == 1:
+            return result.hash()
+        else:
+            return None
 
-    def require_by_id(self, table: str, object_id: int) -> DatabaseResult:
+    def require_by_id(self, table: str, object_id: int) -> Dict[str, Any]:
         """find_by_id() or raise exception if not found."""
 
         table = decode_object_from_bytes_if_needed(table)
 
         row = self.find_by_id(table, object_id)
-        if row is None or row.rows() == 0:
+        if row is None:
             raise McRequireByIDException("Unable to find id '%d' in table '%s'" % (object_id, table))
         return row
 
@@ -433,14 +439,14 @@ class DatabaseHandler(object):
 
         return self.query(sql, {"__object_id": object_id})
 
-    def insert(self, table: str, insert_hash: dict) -> DatabaseResult:
+    def insert(self, table: str, insert_hash: dict) -> Dict[str, Any]:
         """Alias for create()."""
         table = decode_object_from_bytes_if_needed(table)
         insert_hash = decode_object_from_bytes_if_needed(insert_hash)
 
         return self.create(table=table, insert_hash=insert_hash)
 
-    def create(self, table: str, insert_hash: dict) -> DatabaseResult:
+    def create(self, table: str, insert_hash: dict) -> Dict[str, Any]:
         """Insert a row into the database for the given table with the given hash values and return the created row."""
 
         table = decode_object_from_bytes_if_needed(table)
@@ -512,7 +518,7 @@ class DatabaseHandler(object):
 
         return self.query(sql, condition_hash)
 
-    def find_or_create(self, table: str, insert_hash: dict) -> DatabaseResult:
+    def find_or_create(self, table: str, insert_hash: dict) -> Dict[str, Any]:
         """Select a single row from the database matching the hash or insert a row with the hash values and return the
         inserted row as a hash."""
 
@@ -530,7 +536,7 @@ class DatabaseHandler(object):
 
         row = self.select(table=table, what_to_select='*', condition_hash=insert_hash)
         if row is not None and row.rows() > 0:
-            return row
+            return row.hash()
         else:
             return self.create(table=table, insert_hash=insert_hash)
 
