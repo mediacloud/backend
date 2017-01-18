@@ -1,5 +1,7 @@
 from unittest import TestCase
+from nose.tools import assert_raises
 
+from mediawords.db.exceptions.result import McDatabaseResultException
 from mediawords.db.handler import *
 from mediawords.util.config import get_config, set_config
 from mediawords.util.log import create_logger
@@ -101,6 +103,11 @@ class TestDatabaseHandler(TestCase):
         row_hash = row.hash()
         assert row_hash['name'] == 'Khloé'
         assert row_hash['surname'] == 'Kardashian'
+
+    def test_query_error(self):
+
+        # Bad query
+        assert_raises(McDatabaseResultException, self.__db.query, "Badger badger badger badger")
 
     def test_query_percentage_sign(self):
 
