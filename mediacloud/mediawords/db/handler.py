@@ -430,6 +430,13 @@ class DatabaseHandler(object):
         keys = []
         for key, value in update_hash.items():
             key_value = key
+
+            # Cast Inline::Python's booleans to Python's booleans
+            # MC_REWRITE_TO_PYTHON: remove after porting
+            if type(value).__name__ == '_perl_obj':
+                value = bool(value)
+                update_hash[key] = value
+
             key_value += " = %(" + key + ")s"  # "%(key)s" to be resolved by psycopg2, not Python
 
             keys.append(key_value)
@@ -498,6 +505,12 @@ class DatabaseHandler(object):
             keys.append(key)
             values.append("%(" + key + ")s")  # "%(key)s" to be resolved by psycopg2, not Python
 
+            # Cast Inline::Python's booleans to Python's booleans
+            # MC_REWRITE_TO_PYTHON: remove after porting
+            if type(value).__name__ == '_perl_obj':
+                value = bool(value)
+                insert_hash[key] = value
+
         sql = "INSERT INTO %s " % table
         sql += "(%s) " % ", ".join(keys)
         sql += "VALUES (%s) " % ", ".join(values)
@@ -540,6 +553,12 @@ class DatabaseHandler(object):
             condition = key
             condition += " = %(" + key + ")s"  # "%(key)s" to be resolved by psycopg2, not Python
             sql_conditions.append(condition)
+
+            # Cast Inline::Python's booleans to Python's booleans
+            # MC_REWRITE_TO_PYTHON: remove after porting
+            if type(value).__name__ == '_perl_obj':
+                value = bool(value)
+                condition_hash[key] = value
 
         sql = "SELECT %s " % what_to_select
         sql += "FROM %s " % table
