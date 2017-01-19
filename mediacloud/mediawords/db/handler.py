@@ -422,7 +422,10 @@ class DatabaseHandler(object):
         sql += "WHERE %s = " % primary_key_column
         sql += "%(__object_id)s"  # "%(__object_id)s" to be resolved by psycopg2, not Python
 
-        self.query(sql, update_hash)
+        try:
+            self.query(sql, update_hash)
+        except Exception as ex:
+            raise McUpdateByIDException("Update to UPDATE hash '%s': %s" % (str(update_hash), str(ex)))
 
     def delete_by_id(self, table: str, object_id: int) -> DatabaseResult:
         """Delete the row in the table with the given ID."""
@@ -476,7 +479,10 @@ class DatabaseHandler(object):
         sql += "VALUES (%s) " % ", ".join(values)
         sql += "RETURNING %s" % primary_key_column
 
-        last_inserted_id = self.query(sql, insert_hash).flat()
+        try:
+            last_inserted_id = self.query(sql, insert_hash).flat()
+        except Exception as ex:
+            raise McCreateException("Unable to INSERT '%s': %s" % (str(insert_hash), str(ex)))
 
         if last_inserted_id is None or len(last_inserted_id) == 0:
             raise McCreateException("Last inserted ID was not found")
