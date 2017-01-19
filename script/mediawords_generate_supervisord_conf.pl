@@ -21,7 +21,6 @@ use Data::Dumper;
 use MediaWords::Util::Config;
 use MediaWords::Util::Paths;
 
-use Storable qw(dclone);
 use Template;
 
 sub main
@@ -34,7 +33,7 @@ sub main
     # template toolkit converts unquoted true and false values to '1' and '0', which
     # confuses the template processing
     my $config     = MediaWords::Util::Config::get_config;
-    my $new_config = dclone( $config );
+    my $new_config = make_python_variable_writable( $config );
     $new_config->{ supervisor }->{ programs } ||= {};
     my $boolean_fields = [ 'autostart', 'autorestart', 'killasgroup', 'stopasgroup' ];
     MediaWords::Util::Config::set_config( $new_config );

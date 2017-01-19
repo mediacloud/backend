@@ -35,7 +35,6 @@ use warnings;
 
 use Scalar::Defer;
 use Readonly;
-use Clone qw(clone);
 
 use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
@@ -348,7 +347,7 @@ sub store_content($$$)
 {
     my ( $db, $download, $content_ref ) = @_;
 
-    $download = clone( $download );    # MC_REWRITE_TO_PYTHON: can't edit returned value otherwise
+    $download = make_python_variable_writable( $download );
 
     my $new_state = 'success';
     if ( $download->{ state } eq 'feed_error' )

@@ -17,7 +17,6 @@ use Readonly;
 
 use MediaWords::Crawler::Engine;
 use MediaWords::Test::DB;
-use Storable qw(dclone);
 
 Readonly my $HTTP_PORT => 8912;
 
@@ -87,7 +86,7 @@ sub test_do_not_process_feeds($)
 
     # Temporarily set 'do_not_process_feeds'
     my $config     = MediaWords::Util::Config::get_config;
-    my $new_config = dclone( $config );
+    my $new_config = make_python_variable_writable( $config );
 
     my $orig_do_not_process_feeds = $config->{ mediawords }->{ do_not_process_feeds };
     $new_config->{ mediawords }->{ do_not_process_feeds } = 'yes';

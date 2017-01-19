@@ -12,6 +12,7 @@ our @ISA = qw(Exporter);
 
 use Data::Dumper;
 use Readonly;
+use MediaWords::Util::Python;
 
 eval {
     require MediaWords::Util::Config;
@@ -29,7 +30,7 @@ eval {
 
 our @LOGGER = qw(FATAL ERROR WARN INFO DEBUG TRACE LOGDIE LOGWARN LOGCARP LOGCLUCK LOGCONFESS LOGCROAK);
 
-our @EXPORT = ( @Readonly::EXPORT, @Data::Dumper::EXPORT, @LOGGER );
+our @EXPORT = ( @Readonly::EXPORT, @Data::Dumper::EXPORT, @MediaWords::Util::Python::EXPORT, @LOGGER );
 
 sub import
 {
