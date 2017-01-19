@@ -1188,12 +1188,12 @@ sub add_story($$$;$)
 
     unless ( defined $story->{ full_text_rss } )
     {
-        my $full_text_in_rss = ( $medium->{ full_text_rss } ) ? 1 : 0;
+        my $full_text_rss = ( $medium->{ full_text_rss } ) ? 't' : 'f';
         if ( defined( $story->{ description } ) and ( length( $story->{ description } ) == 0 ) )
         {
-            $full_text_in_rss = 0;
+            $full_text_rss = 'f';
         }
-        $story->{ full_text_rss } = $full_text_in_rss;
+        $story->{ full_text_rss } = $full_text_rss;
     }
     else
     {
