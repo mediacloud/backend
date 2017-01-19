@@ -252,7 +252,7 @@ sub _update_ap_syndicated
         INSERT INTO stories_ap_syndicated (stories_id, ap_syndicated)
         VALUES (?, ?)
 SQL
-        $story->{ stories_id }, $ap_syndicated ? 't' : 'f'
+        $story->{ stories_id }, normalize_boolean_for_db( $ap_syndicated )
     );
 
     $story->{ ap_syndicated } = $ap_syndicated;

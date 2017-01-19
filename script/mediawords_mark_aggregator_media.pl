@@ -45,7 +45,7 @@ END
 
         my $num_domains = scalar( values( %{ $domain_map } ) );
 
-        my $foreign_rss_links = ( $num_domains > $MAX_DIFFERENT_DOMAINS ) ? 't' : 'f';
+        my $foreign_rss_links = normalize_boolean_for_db( $num_domains > $MAX_DIFFERENT_DOMAINS );
 
         INFO "$medium->{ name } [ $medium->{ media_id } ]: $num_domains - $foreign_rss_links";
 

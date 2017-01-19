@@ -763,8 +763,8 @@ sub mark_as_processed($$)
         $db->insert(
             'processed_stories',
             {
-                stories_id => $stories_id,                                                   #
-                disable_triggers => MediaWords::DB::story_triggers_disabled() ? 't' : 'f'    #
+                stories_id       => $stories_id,                                                              #
+                disable_triggers => normalize_boolean_for_db( MediaWords::DB::story_triggers_disabled() ),    #
             }
         );
     };
@@ -1193,7 +1193,7 @@ sub add_story($$$;$)
 
     unless ( defined $story->{ full_text_rss } )
     {
-        my $full_text_rss = ( $medium->{ full_text_rss } ) ? 't' : 'f';
+        my $full_text_rss = normalize_boolean_for_db( $medium->{ full_text_rss } );
         if ( defined( $story->{ description } ) and ( length( $story->{ description } ) == 0 ) )
         {
             $full_text_rss = 'f';

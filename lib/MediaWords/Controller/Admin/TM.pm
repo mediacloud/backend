@@ -167,7 +167,7 @@ sub create : Local
     my $c_name            = $c->req->params->{ name };
     my $c_pattern         = $c->req->params->{ pattern };
     my $c_solr_seed_query = $c->req->params->{ solr_seed_query };
-    my $c_skip_solr_query = ( $c->req->params->{ skip_solr_query } ? 't' : 'f' );
+    my $c_skip_solr_query = normalize_boolean_for_db( $c->req->params->{ skip_solr_query } );
     my $c_description     = $c->req->params->{ description };
     my $c_start_date      = $c->req->params->{ start_date };
     my $c_end_date        = $c->req->params->{ end_date };
