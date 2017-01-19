@@ -65,6 +65,8 @@ class DatabaseHandler(object):
         """Database handler constructor; connects to PostgreSQL too."""
 
         host = decode_object_from_bytes_if_needed(host)
+        # noinspection PyTypeChecker
+        port = int(decode_object_from_bytes_if_needed(port))
         username = decode_object_from_bytes_if_needed(username)
         password = decode_object_from_bytes_if_needed(password)
         database = decode_object_from_bytes_if_needed(database)
@@ -88,6 +90,8 @@ class DatabaseHandler(object):
         """Connect to PostgreSQL."""
 
         host = decode_object_from_bytes_if_needed(host)
+        # noinspection PyTypeChecker
+        port = int(decode_object_from_bytes_if_needed(port))
         username = decode_object_from_bytes_if_needed(username)
         password = decode_object_from_bytes_if_needed(password)
         database = decode_object_from_bytes_if_needed(database)
@@ -356,6 +360,11 @@ class DatabaseHandler(object):
     def find_by_id(self, table: str, object_id: int) -> Union[Dict[str, Any], None]:
         """Do an ID lookup on the table and return a single row match if found."""
 
+        # MC_REWRITE_TO_PYTHON: some IDs get passed as 'str' / 'bytes'; remove after getting rid of Catalyst
+        # noinspection PyTypeChecker
+        object_id = decode_object_from_bytes_if_needed(object_id)
+        object_id = int(object_id)
+
         table = decode_object_from_bytes_if_needed(table)
 
         primary_key_column = self.primary_key_column(table)
@@ -380,6 +389,11 @@ class DatabaseHandler(object):
     def require_by_id(self, table: str, object_id: int) -> Dict[str, Any]:
         """find_by_id() or raise exception if not found."""
 
+        # MC_REWRITE_TO_PYTHON: some IDs get passed as 'str' / 'bytes'; remove after getting rid of Catalyst
+        # noinspection PyTypeChecker
+        object_id = decode_object_from_bytes_if_needed(object_id)
+        object_id = int(object_id)
+
         table = decode_object_from_bytes_if_needed(table)
 
         row = self.find_by_id(table, object_id)
@@ -389,6 +403,11 @@ class DatabaseHandler(object):
 
     def update_by_id(self, table: str, object_id: int, update_hash: dict) -> None:
         """Update the row in the table with the given ID. Ignore any fields that start with '_'."""
+
+        # MC_REWRITE_TO_PYTHON: some IDs get passed as 'str' / 'bytes'; remove after getting rid of Catalyst
+        # noinspection PyTypeChecker
+        object_id = decode_object_from_bytes_if_needed(object_id)
+        object_id = int(object_id)
 
         table = decode_object_from_bytes_if_needed(table)
         update_hash = decode_object_from_bytes_if_needed(update_hash)
@@ -429,6 +448,11 @@ class DatabaseHandler(object):
 
     def delete_by_id(self, table: str, object_id: int) -> DatabaseResult:
         """Delete the row in the table with the given ID."""
+
+        # MC_REWRITE_TO_PYTHON: some IDs get passed as 'str' / 'bytes'; remove after getting rid of Catalyst
+        # noinspection PyTypeChecker
+        object_id = decode_object_from_bytes_if_needed(object_id)
+        object_id = int(object_id)
 
         table = decode_object_from_bytes_if_needed(table)
 
@@ -817,6 +841,11 @@ class DatabaseHandler(object):
 
     def query_paged_hashes(self, query: str, page: int, rows_per_page: int) -> DatabasePages:
         """Execute the query and return a list of pages hashes."""
+
+        # MC_REWRITE_TO_PYTHON: some IDs get passed as 'str' / 'bytes'; remove after getting rid of Catalyst
+        # noinspection PyTypeChecker
+        page = decode_object_from_bytes_if_needed(page)
+        page = int(page)
 
         query = decode_object_from_bytes_if_needed(query)
 
