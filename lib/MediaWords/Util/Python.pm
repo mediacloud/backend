@@ -3,6 +3,8 @@ package MediaWords::Util::Python;
 #
 # Utilities assisting in Perl - Python binding code
 #
+# MC_REWRITE_TO_PYTHON: remove after porting (naturally)
+#
 
 use strict;
 use warnings;
