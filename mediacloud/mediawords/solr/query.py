@@ -17,7 +17,6 @@ T_OR     = 'or'
 T_NOT    = 'not'
 T_FIELD  = 'field'
 T_TERM   = 'term'
-T_WILD   = 'wildcard'
 T_PLUS   = 'plus'
 T_MINUS  = 'minus'
 T_NOOP   = 'noop'
@@ -27,6 +26,9 @@ NOOP_PLACEHOLDER = '__NOOP__'
 
 # replace ':' with this before tokenization so that it gets included with the field name
 FIELD_PLACEHOLDER = '__FIELD__'
+
+# replace '*' with this before tokenization so that it gets included with the term
+WILD_PLACEHOLDER = '__WILD__'
 
 class Token:
     """ object that holds the token value and type.  type should one of T_* above """
@@ -261,15 +263,16 @@ def _parse_tokens( tokens, want_type = None ):
             break
 
         elif ( token.type == T_NOOP ):
-            want_type = [ T_CLOSE, T_WILD, T_AND, T_OR, T_PLUS ]
+            want_type = [ T_CLOSE, T_AND, T_OR, T_PLUS ]
             clause = NoopNode()
 
         elif ( token.type == T_TERM):
-            want_type = [ T_CLOSE, T_WILD, T_AND, T_OR, T_PLUS ]
+            want_type = [ T_CLOSE, T_AND, T_OR, T_PLUS ]
             wildcard = False
-            if ( ( len( tokens ) > 0 ) and ( tokens[ 0 ].type == T_WILD ) ):
+            if ( token.value.endswith( WILD_PLACEHOLDER ) ):
+                token.value = token.value.replace( WILD_PLACEHOLDER, '' )
                 wildcard = True
-                tokens.pop( 0 )
+
             clause = TermNode( token.value, wildcard )
 
         elif ( token.type in ( T_AND, T_PLUS, T_OR ) ):
@@ -296,9 +299,6 @@ def _parse_tokens( tokens, want_type = None ):
             print( "field operand for %s: %s" % ( field_name, field_clause ) )
 
             clause = FieldNode( field_name, field_clause )
-
-        elif ( token.type == T_WILD ):
-            raise( ParseSyntaxError( "wildcard must immediately follow a term" ) )
 
         elif ( token.type == T_NOT ):
             want_type = [ T_CLOSE, T_AND, T_OR, T_PLUS ]
@@ -360,8 +360,6 @@ def _get_token_type( token ):
         return T_AND
     elif ( token.lower() == 'or' ):
         return T_OR
-    elif ( token == '*' ):
-        return T_WILD
     elif ( token.lower() in ( 'not', '!', '-' ) ):
         return T_NOT
     elif ( token == '+' ):
@@ -370,6 +368,8 @@ def _get_token_type( token ):
         raise( ParseSyntaxError( "proximity searches not supported" ) )
     elif ( token == '/' ):
         raise( ParseSyntaxError( "regular expression searches not supported" ) )
+    elif ( ( WILD_PLACEHOLDER in token ) and not re.match( r'^\w.+' + WILD_PLACEHOLDER + '$', token ) ):
+        raise( ParseSyntaxError( "* can only appear the end of a term" ) )
     elif ( token == NOOP_PLACEHOLDER ):
         return T_NOOP
     elif ( token.endswith( FIELD_PLACEHOLDER ) ):
@@ -384,6 +384,9 @@ def _get_tokens( query ):
 
     tokens = []
 
+    # normalize everything to lower case and make sure nothing conflicts with placeholders below
+    query = query.lower()
+
     # the tokenizer interprets as ! as a special character, which results in the ! and subsequent text disappearing.
     # we just replace it with the equivalent - to avoid this.
     query = query.replace( '!', '-' )
@@ -397,6 +400,9 @@ def _get_tokens( query ):
 
     # we want to include ':' at the end of field names, but tokenizer wants to make it a separate token
     query = re.sub( ':', FIELD_PLACEHOLDER + ' ', query )
+
+    # we want to include '*' at the end of field names, but tokenizer wants to make it a separate token
+    query = re.sub( r'\*', WILD_PLACEHOLDER , query )
 
     print( "filtered query: " + query )
 
