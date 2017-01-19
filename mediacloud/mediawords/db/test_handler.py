@@ -432,15 +432,6 @@ class TestDatabaseHandler(TestCase):
         assert rows is not None
         assert rows.rows() == 8
 
-        # Integers are being cast to booleans
-        # MC_REWRITE_TO_PYTHON: remove after porting all Perl code to Python
-        rows = self.__db.select(table='kardashians', what_to_select='*', condition_hash={
-            'married_to_kanye': 1,  # True
-        })
-        assert rows is not None
-        row_hash = rows.hash()
-        assert row_hash['name'] == 'Kim'
-
     def test_find_or_create(self):
 
         # Verify that the record is not here
