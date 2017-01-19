@@ -724,8 +724,16 @@ class DatabaseHandler(object):
                 value = True
             else:
                 raise McQuoteException("Value '%s' is neither 0 nor 1" % str(value))
+        elif isinstance(value, str) or isinstance(value, bytes):
+            value = decode_object_from_bytes_if_needed(value)
+            if value.lower() in ['t', 'true', 'y', 'yes', 'on', '1']:
+                value = True
+            elif value.lower() in ['f', 'false', 'n', 'no', 'off', '0']:
+                value = False
+            else:
+                raise McQuoteException("Value '%s' is string but neither of supported values" % str(value))
         else:
-            raise McQuoteException("Value '%s' is neither bool nor int" % str(value))
+            raise McQuoteException("Value '%s' is unsupported" % str(value))
 
         return DatabaseHandler.quote(value=value)
 
