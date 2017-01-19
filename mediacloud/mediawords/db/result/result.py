@@ -51,9 +51,7 @@ class DatabaseResult(object):
             # Perl doesn't have booleans, so we need to cast ints to them ourselves
             # MC_REWRITE_TO_PYTHON: remove after porting all Perl code to Python
             int_to_bool_column = psycopg2_exception_due_to_boolean_passed_as_int_column(
-                exception_message=ex.diag.message_primary,
-                statement=query_args[0],
-                position_in_statement=int(ex.diag.statement_position)
+                exception_message=ex.diag.message_primary
             )
             if int_to_bool_column is not None:
                 raise McIntInsteadOfBooleanException(message=str(ex), affected_column=int_to_bool_column)
