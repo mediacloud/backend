@@ -10,6 +10,9 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Test::More tests => 4;
 
 use HTTP::HashServer;

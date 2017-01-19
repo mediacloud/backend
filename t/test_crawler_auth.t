@@ -10,6 +10,9 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use English '-no_match_vars';
 
 use LWP::Simple;
