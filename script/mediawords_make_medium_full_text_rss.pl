@@ -30,7 +30,8 @@ sub main
     die( "usage: $0 < medium id >" ) if ( !$medium_id );
 
     my $db = MediaWords::DB::connect_to_db;
-    $db->autocommit( 0 );
+
+    $db->begin();
 
     my $medium = $db->find_by_id( 'media', $medium_id ) || die( "Unable to find medium: $medium_id" );
 
