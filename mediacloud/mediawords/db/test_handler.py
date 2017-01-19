@@ -729,11 +729,3 @@ class TestDatabaseHandler(TestCase):
         assert pager.next_page() is None
         assert pager.first() == 11
         assert pager.last() == 15
-
-    def test_autocommit(self):
-
-        # Try toggling
-        self.__db.set_autocommit(True)
-        self.__db.set_autocommit(False)
-        self.__db.set_autocommit(True)
-        self.__db.set_autocommit(False)

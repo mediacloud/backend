@@ -71,3 +71,13 @@ class McPrepareException(McDatabaseHandlerException):
 class McQueryPagedHashesException(McDatabaseHandlerException):
     """query_paged_hashes() exception."""
     pass
+
+
+class McTransactionException(McDatabaseHandlerException):
+    """Exception thrown on transaction problems."""
+    pass
+
+
+class McBeginException(McTransactionException):
+    """begin() exception."""
+    pass

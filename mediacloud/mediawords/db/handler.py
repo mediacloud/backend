@@ -628,10 +628,6 @@ class DatabaseHandler(object):
         else:
             return self.create(table=table, insert_hash=insert_hash)
 
-    def autocommit(self) -> bool:
-        """Return True if autocommit mode is on."""
-        return self.__conn.autocommit
-
     # noinspection PyMethodMayBeStatic
     def show_error_statement(self) -> bool:
         """Return whether failed SQL statement will be included into thrown exception."""
@@ -671,15 +667,27 @@ class DatabaseHandler(object):
         """Set whether PostgreSQL warnings will be printed."""
         self.__print_warnings = print_warn
 
+    def in_transaction(self) -> bool:
+        """Return True if we're within a manually started transaction."""
+        return self.__in_manual_transaction
+
+    def __set_in_transaction(self, in_transaction: bool) -> None:
+        if self.__in_manual_transaction == in_transaction:
+            l.warn("Setting self.__in_manual_transaction to the same value (%s)" % str(in_transaction))
+        self.__in_manual_transaction = in_transaction
+
+    def autocommit(self) -> bool:
+        """Compatibility helper, returns True if not currently in transaction."""
+        # FIXME remove, use in_transaction() instead
+        return not self.in_transaction()
+
     def begin(self) -> None:
         """Begin a transaction."""
-        if self.autocommit():
-            l.warn("Autocommit is enabled, are you sure you want to start a transaction?")
-        if self.__in_manual_transaction:
-            l.warn("We're already in the middle of a manual transaction, the query will probably fail")
+        if self.in_transaction():
+            raise McBeginException("Already in transaction, can't BEGIN.")
 
         self.query('BEGIN')
-        self.__in_manual_transaction = True
+        self.__set_in_transaction(True)
 
     def begin_work(self) -> None:
         """Begin a transaction."""
@@ -687,23 +695,19 @@ class DatabaseHandler(object):
 
     def commit(self) -> None:
         """Commit a transaction."""
-        if self.autocommit():
-            l.warn("Autocommit is enabled, are you sure you want to commit a transaction?")
-        if not self.__in_manual_transaction:
-            l.warn("We're not in the middle of a manual transaction, the query will probably fail")
-
-        self.query('COMMIT')
-        self.__in_manual_transaction = False
+        if not self.in_transaction():
+            l.warn("Not in transaction, nothing to COMMIT.")
+        else:
+            self.query('COMMIT')
+            self.__set_in_transaction(False)
 
     def rollback(self) -> None:
         """Rollback a transaction."""
-        if self.autocommit():
-            l.warn("Autocommit is enabled, are you sure you want to rollback a transaction?")
-        if not self.__in_manual_transaction:
-            l.warn("We're not in the middle of a manual transaction, the query will probably fail")
-
-        self.query('ROLLBACK')
-        self.__in_manual_transaction = False
+        if not self.in_transaction():
+            l.warn("Not in transaction, nothing to ROLLBACK.")
+        else:
+            self.query('ROLLBACK')
+            self.__set_in_transaction(False)
 
     @staticmethod
     def quote(value: Union[bool, int, float, str, None]) -> str:
