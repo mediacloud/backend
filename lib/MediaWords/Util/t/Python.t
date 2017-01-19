@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Test::More tests => 3;
+use Test::More tests => 16;
 use Test::NoWarnings;
 use Test::Deep;
 
@@ -31,6 +31,25 @@ sub test_make_python_variable_writable()
     isnt( $input, $actual_output, 'References must be different' );
 }
 
+sub test_normalize_boolean_for_db()
+{
+    is( normalize_boolean_for_db( undef ), undef );
+
+    is( normalize_boolean_for_db( 1 ),                              't' );
+    is( normalize_boolean_for_db( '1' ),                            't' );
+    is( normalize_boolean_for_db( 't' ),                            't' );
+    is( normalize_boolean_for_db( 'T' ),                            't' );
+    is( normalize_boolean_for_db( 'TRUE' ),                         't' );
+    is( normalize_boolean_for_db( $Inline::Python::Boolean::true ), 't' );
+
+    is( normalize_boolean_for_db( 0 ),                               'f' );
+    is( normalize_boolean_for_db( '0' ),                             'f' );
+    is( normalize_boolean_for_db( 'f' ),                             'f' );
+    is( normalize_boolean_for_db( 'F' ),                             'f' );
+    is( normalize_boolean_for_db( 'FALSE' ),                         'f' );
+    is( normalize_boolean_for_db( $Inline::Python::Boolean::false ), 'f' );
+}
+
 sub main()
 {
     my $builder = Test::More->builder;
@@ -39,6 +58,7 @@ sub main()
     binmode $builder->todo_output,    ":utf8";
 
     test_make_python_variable_writable();
+    test_normalize_boolean_for_db();
 }
 
 main();
