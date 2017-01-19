@@ -413,50 +413,21 @@ class DatabaseHandler(object):
         if not primary_key_column:
             raise McUpdateByIDException("Primary key for table '%s' was not found" % table)
 
-        succeeded_or_failed_permanently = False
+        keys = []
+        for key, value in update_hash.items():
+            key_value = key
+            key_value += " = %(" + key + ")s"  # "%(key)s" to be resolved by psycopg2, not Python
 
-        while not succeeded_or_failed_permanently:
-            try:
+            keys.append(key_value)
 
-                if '__object_id' in update_hash:
-                    del update_hash['__object_id']
+        update_hash['__object_id'] = object_id
 
-                keys = []
-                for key, value in update_hash.items():
-                    key_value = key
-                    key_value += " = %(" + key + ")s"  # "%(key)s" to be resolved by psycopg2, not Python
+        sql = "UPDATE %s " % table
+        sql += "SET %s " % ", ".join(keys)
+        sql += "WHERE %s = " % primary_key_column
+        sql += "%(__object_id)s"  # "%(__object_id)s" to be resolved by psycopg2, not Python
 
-                    keys.append(key_value)
-
-                update_hash['__object_id'] = object_id
-
-                sql = "UPDATE %s " % table
-                sql += "SET %s " % ", ".join(keys)
-                sql += "WHERE %s = " % primary_key_column
-                sql += "%(__object_id)s"  # "%(__object_id)s" to be resolved by psycopg2, not Python
-
-                self.query(sql, update_hash)
-
-                succeeded_or_failed_permanently = True
-
-            except McIntInsteadOfBooleanException as ex:
-                # If we got the 'column "..." is of type boolean but expression is of type integer' error, cast int to
-                # bool in affected column and retry query
-                # MC_REWRITE_TO_PYTHON: remove after porting all Perl code to Python
-
-                try:
-                    l.warn("Column '%s' is int instead of bool for table '%s'" % (ex.affected_column, table))
-                    update_hash = cast_int_to_bool_in_dict(dictionary=update_hash, key=ex.affected_column)
-                except McCastIntToBoolInDictException as cast_ex:
-                    raise McUpdateByIDException(
-                        "Unable to cast '%s' from int to bool: %s" % (ex.affected_column, str(cast_ex))
-                    )
-
-                succeeded_or_failed_permanently = False
-
-            except Exception as ex:
-                # Other exceptions
-                raise McUpdateByIDException("INSERTing a new row failed: %s" % str(ex))
+        self.query(sql, update_hash)
 
     def delete_by_id(self, table: str, object_id: int) -> DatabaseResult:
         """Delete the row in the table with the given ID."""
