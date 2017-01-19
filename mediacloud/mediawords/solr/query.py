@@ -305,7 +305,7 @@ def _parse_tokens( tokens, want_type = None ):
             operand = None
             next_token = tokens.pop( 0 );
             if ( next_token.type == T_OPEN ):
-                operand = _parse_tokens( tokens, [ T_PHRASE, T_NOT, T_TERM, T_NOOP, T_CLOSE, T_PLUS ] )
+                operand = _parse_tokens( tokens, [ T_FIELD, T_PHRASE, T_NOT, T_TERM, T_NOOP, T_CLOSE, T_PLUS ] )
             elif ( next_token.type == T_FIELD ):
                 tokens.insert( 0, next_token )
                 operand = _parse_tokens( tokens, [ T_FIELD ] )

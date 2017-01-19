@@ -104,3 +104,16 @@ def test_query():
     school_tsquery = '( ( ( school & climate  & (difference | disparit:* | gap | discrim:* | equit:* | inequit:* | equal:* | inequal:* | unequal | access | care | underserv:* | justice | injustice | pipeline)) | (education & pipeline) | ( suspension & rate ) | ( suspension & rates ) | ((( attention & rate ) | ( attention & rates )) & !(olympics | disney)) | ( parent & involvement ) | ( graduation & rate ) | ( dropout & rate ) ) )'
 
     validate_tsquery( school_query, school_tsquery )
+
+    lunch_query = ' +( (("head start" AND (food OR nutrition OR feed* OR breakfast OR lunch)) OR (WIC AND (school OR "pre school" OR "pre-school" OR "elementary" OR charter or "pre-k")) OR NSLP OR "national school lunch program" OR "Hunger-Free Kids Act" OR "School Breakfast Program" OR "Snack Program" OR "Child and Adult Care Food Program" OR "Summer Food Service Program") AND ((tags_id_media:8875027 OR tags_id_media:2453107 OR tags_id_media:9139487 OR tags_id_media:9139458 OR tags_id_media:8875108 OR tags_id_media:8878293 OR tags_id_media:8878292 OR tags_id_media:8878294 OR tags_id_stories:8875027 OR tags_id_stories:2453107 OR tags_id_stories:9139487 OR tags_id_stories:9139458 OR tags_id_stories:8875108 OR tags_id_stories:8878293 OR tags_id_stories:8878292 OR tags_id_stories:8878294 OR tags_id_media:9188663)) ) AND (+publish_date:[2015-09-01T00:00:00Z TO 2016-09-01T23:59:59Z])'
+
+    lunch_tsquery = '((( head & start & (food | nutrition | feed:* | breakfast | lunch)) | (WIC & (school | ( pre  & school ) | ( pre & school ) | ( elementary ) | charter | ( pre & k ))) | NSLP | ( national & school & lunch & program ) | ( Hunger & Free & Kids & Act ) | ( School & Breakfast & Program ) | ( Snack & Program ) | ( Child & and & Adult & Care & Food & Program ) | ( Summer & Food & Service & Program ) ) )'
+
+    validate_tsquery( lunch_query, lunch_tsquery )
+
+    gender_query = ' +("gender equality" OR "gender inequality" OR "sexual inequality" OR misogyn* OR sexism OR sexist OR feminis* OR "sexual equality" OR "womens equality" OR "womens inequality" OR "sexual assault" OR "sexual harassment" OR "sex discrimination" OR "gender equity") AND +(US OR "united states" OR america*) AND +tags_id_media:(9237114 9268737 8875471 9237114 8875456 8875460 8875107 8875110 8875109 8875111 8875108 8875028 8875027 8875114 8875113 8875115 8875029 129 2453107 8875031 8875033 8875034 8875471 8876474 8876987 8877928 8878292 8878293 8878294 8878332) AND +publish_date:[2015-04-01T00:00:00Z TO 2016-10-31T00:00:00Z] AND -(tags_id_media:8876474 OR tags_id_media:9201395 OR tags_id_media:8876987)'
+
+
+    gender_tsquery = '( ( ( gender & equality ) | ( gender & inequality ) | ( sexual & inequality ) | misogyn:* | sexism | sexist | feminis:* | ( sexual & equality )  | ( womens & equality ) | ( womens & inequality )  | ( sexual & assault ) | ( sexual & harassment ) | ( sex & discrimination ) | ( gender & equity )) & ( US | ( united & states ) | america:*) )'
+
+    validate_tsquery( gender_query, gender_tsquery )
