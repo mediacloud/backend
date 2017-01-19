@@ -760,8 +760,13 @@ sub mark_as_processed($$)
     my ( $db, $stories_id ) = @_;
 
     eval {
-        $db->insert( 'processed_stories',
-            { stories_id => $stories_id, disable_triggers => MediaWords::DB::story_triggers_disabled() } );
+        $db->insert(
+            'processed_stories',
+            {
+                stories_id => $stories_id,                                                   #
+                disable_triggers => MediaWords::DB::story_triggers_disabled() ? 't' : 'f'    #
+            }
+        );
     };
     if ( $@ )
     {

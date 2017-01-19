@@ -247,9 +247,13 @@ sub _update_ap_syndicated
 
     $db->query( "delete from stories_ap_syndicated where stories_id = \$1", $story->{ stories_id } );
 
-    $db->query( <<SQL, $story->{ stories_id }, $ap_syndicated );
-insert into stories_ap_syndicated ( stories_id, ap_syndicated ) values ( \$1, \$2 )
+    $db->query(
+        <<SQL,
+        INSERT INTO stories_ap_syndicated (stories_id, ap_syndicated)
+        VALUES (?, ?)
 SQL
+        $story->{ stories_id }, $ap_syndicated ? 't' : 'f'
+    );
 
     $story->{ ap_syndicated } = $ap_syndicated;
 }
