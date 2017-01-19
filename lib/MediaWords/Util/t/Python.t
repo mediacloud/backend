@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Test::More tests => 16;
+use Test::More tests => 17;
 use Test::NoWarnings;
 use Test::Deep;
 
@@ -33,7 +33,11 @@ sub test_make_python_variable_writable()
 
 sub test_normalize_boolean_for_db()
 {
-    is( normalize_boolean_for_db( undef ), undef );
+    my $allow_null;
+    $allow_null = 0;
+    is( normalize_boolean_for_db( undef, $allow_null ), 'f' );
+    $allow_null = 1;
+    is( normalize_boolean_for_db( undef, $allow_null ), undef );
 
     is( normalize_boolean_for_db( 1 ),                              't' );
     is( normalize_boolean_for_db( '1' ),                            't' );

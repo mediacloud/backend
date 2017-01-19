@@ -91,9 +91,9 @@ sub make_python_variable_writable
 # there's no good way to cast them in the database handler itself. Thus, this
 # subroutine normalizes various Perl boolean values to 't', 'f' and
 # undef (NULL) which psycopg2 plays happily with.
-sub normalize_boolean_for_db
+sub normalize_boolean_for_db($;$)
 {
-    my $value = shift;
+    my ( $value, $allow_null ) = @_;
 
     if ( defined $value )
     {
@@ -166,8 +166,15 @@ sub normalize_boolean_for_db
     }
     else
     {
-        # NULL is a valid "BOOLEAN" column value
-        return undef;
+        if ( $allow_null )
+        {
+            # NULL is a valid "BOOLEAN" column value
+            return undef;
+        }
+        else
+        {
+            return 'f';
+        }
     }
 }
 
