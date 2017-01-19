@@ -17,7 +17,8 @@ our @EXPORT = qw(make_python_variable_writable);
 use Carp;
 use Inline::Python;
 
-# Python function return values proxied through Inline::Python become read-only so attempts to modify them afterwards fail with:
+# Python function return values proxied through Inline::Python become read-only
+# so attempts to modify them afterwards fail with:
 #
 #     Modification of non-creatable hash value attempted, subscript "language"
 #
