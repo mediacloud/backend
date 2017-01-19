@@ -7,7 +7,7 @@ use warnings;
 
 use List::Util qw( first );
 
-use MediaWords::DB::Handler;
+use MediaWords::DB::HandlerProxy;
 
 use MediaWords::Util::Config;
 
@@ -39,7 +39,7 @@ sub connect_info
         $data_source .= ';port=' . $settings->{ port };
     }
 
-    # Arguments for MediaWords::DB::Handler->new()
+    # Arguments for MediaWords::DB::HandlerProxy->new()
     return (
         $settings->{ host },    #
         $settings->{ port },    #
@@ -53,7 +53,7 @@ sub connect_to_db(;$$)
 {
     my ( $label, $do_not_check_schema_version ) = @_;
 
-    my $ret = MediaWords::DB::Handler->new( connect_info( $label ), $do_not_check_schema_version );
+    my $ret = MediaWords::DB::HandlerProxy->new( connect_info( $label ), $do_not_check_schema_version );
 
     die "Error in connect_to_db $@" unless defined( $ret );
 
