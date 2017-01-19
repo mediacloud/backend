@@ -67,9 +67,10 @@ sub schema_is_up_to_date
 
     sub columns
     {
-        my $self         = shift;
-        my $return_value = $self->{ _python_result }->columns( @_ );
-        return make_python_variable_writable( $return_value );
+        my $self           = shift;
+        my $return_value   = $self->{ _python_result }->columns( @_ );
+        my $writable_value = make_python_variable_writable( $return_value );
+        return wantarray ? @{ $writable_value } : $writable_value;
     }
 
     sub rows
@@ -95,16 +96,18 @@ sub schema_is_up_to_date
 
     sub flat
     {
-        my $self         = shift;
-        my $return_value = $self->{ _python_result }->flat( @_ );
-        return make_python_variable_writable( $return_value );
+        my $self           = shift;
+        my $return_value   = $self->{ _python_result }->flat( @_ );
+        my $writable_value = make_python_variable_writable( $return_value );
+        return wantarray ? @{ $writable_value } : $writable_value;
     }
 
     sub hashes
     {
-        my $self         = shift;
-        my $return_value = $self->{ _python_result }->hashes( @_ );
-        return make_python_variable_writable( $return_value );
+        my $self           = shift;
+        my $return_value   = $self->{ _python_result }->hashes( @_ );
+        my $writable_value = make_python_variable_writable( $return_value );
+        return wantarray ? @{ $writable_value } : $writable_value;
     }
 
     sub text
