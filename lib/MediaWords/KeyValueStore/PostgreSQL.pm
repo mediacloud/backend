@@ -126,6 +126,13 @@ EOF
     }
 
     $compressed_content = $compressed_content->[ 0 ];
+
+    # Inline::Python returns Python's 'bytes' as arrayref
+    if ( ref( $compressed_content ) eq ref( [] ) )
+    {
+        $compressed_content = join( '', @{ $compressed_content } );
+    }
+
     if ( $compressed_content eq '' )
     {
         LOGCONFESS "Object's with ID $object_id data is empty in '$table' table.";
