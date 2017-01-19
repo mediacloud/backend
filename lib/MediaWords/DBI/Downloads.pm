@@ -35,6 +35,7 @@ use warnings;
 
 use Scalar::Defer;
 use Readonly;
+use Clone qw(clone);
 
 use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
@@ -346,6 +347,8 @@ Store the download content in the configured content store.
 sub store_content($$$)
 {
     my ( $db, $download, $content_ref ) = @_;
+
+    $download = clone( $download );    # MC_REWRITE_TO_PYTHON: can't edit returned value otherwise
 
     my $new_state = 'success';
     if ( $download->{ state } eq 'feed_error' )
