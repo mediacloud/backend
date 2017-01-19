@@ -446,7 +446,7 @@ class DatabaseHandler(object):
         except Exception as ex:
             raise McUpdateByIDException("Update to UPDATE hash '%s': %s" % (str(update_hash), str(ex)))
 
-    def delete_by_id(self, table: str, object_id: int) -> DatabaseResult:
+    def delete_by_id(self, table: str, object_id: int) -> None:
         """Delete the row in the table with the given ID."""
 
         # MC_REWRITE_TO_PYTHON: some IDs get passed as 'str' / 'bytes'; remove after getting rid of Catalyst
@@ -464,7 +464,7 @@ class DatabaseHandler(object):
         sql += "WHERE %s = " % primary_key_column
         sql += "%(__object_id)s"  # "%(object_id)s" to be resolved by psycopg2, not Python
 
-        return self.query(sql, {"__object_id": object_id})
+        self.query(sql, {"__object_id": object_id})
 
     def insert(self, table: str, insert_hash: dict) -> Dict[str, Any]:
         """Alias for create()."""
