@@ -101,7 +101,7 @@ def set_config(config: dict) -> None:
 
     __set_dynamic_defaults(__CONFIG)
 
-    verify_settings(__CONFIG)
+    __verify_settings(__CONFIG)
 
 
 def __read_static_defaults() -> dict:
@@ -110,7 +110,7 @@ def __read_static_defaults() -> dict:
     return static_defaults
 
 
-def verify_settings(config: dict) -> None:
+def __verify_settings(config: dict) -> None:
     if 'database' not in config or config['database'] is None or len(config['database']) < 1:
         raise McConfigException("No database connections configured")
 
