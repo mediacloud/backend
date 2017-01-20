@@ -309,18 +309,6 @@ sub set_print_warn
     return $self->{ _db }->set_print_warn( @_ );
 }
 
-sub prepare_on_server_side
-{
-    my $self = shift;
-    return $self->{ _db }->prepare_on_server_side( @_ );
-}
-
-sub set_prepare_on_server_side
-{
-    my $self = shift;
-    return $self->{ _db }->set_prepare_on_server_side( @_ );
-}
-
 sub copy_from
 {
     my $self = shift;
