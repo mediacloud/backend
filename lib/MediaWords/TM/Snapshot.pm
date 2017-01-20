@@ -260,7 +260,7 @@ sub restrict_period_stories_to_focus
     my $matching_stories_ids = [];
     my $chunk_size           = 1000;
     my $min_chunk_size       = 10;
-    my $max_solr_errors      = 10;
+    my $max_solr_errors      = 25;
     my $solr_error_count     = 0;
 
     while ( @{ $all_stories_ids } )
@@ -282,13 +282,12 @@ sub restrict_period_stories_to_focus
             # chunks seems to make it happy; if the error keeps happening, just drop those stories_ids
             if ( ++$solr_error_count > $max_solr_errors )
             {
-                my $ids = join( ',', @{ $chunk_stories_ids } );
-                warn( "solr error (after $solr_error_count errors) for stories_ids $ids: $@" );
-                $solr_stories_ids = [];
+                die( "too many solr errors: $@" );
             }
 
             $chunk_size = List::Util::max( $chunk_size / 2, $min_chunk_size );
             unshift( @{ $all_stories_ids }, @{ $chunk_stories_ids } );
+            sleep( int( 2**( 1 * ( $solr_error_count / 5 ) ) ) );
         }
         else
         {

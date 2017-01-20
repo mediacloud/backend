@@ -1,12 +1,8 @@
 # How to install Media Cloud
 
-These are very brief, likely incomplete, installation instructions.  If you
-want to install the system, follow these instructions as they are and
-send any questions to <info@mediacloud.org>.
+These are very brief, likely incomplete, installation instructions.  If you want to install the system, follow these instructions as they are and send any questions to <info@mediacloud.org>.
 
-These instructions assume comfort with PostgreSQL and especially with Perl. You
-may have a difficult time installing the system if you do not have experience
-with Perl and cpan.
+These instructions assume comfort with PostgreSQL and especially with Perl. You may have a difficult time installing the system if you do not have experience with Perl and cpan.
 
 **Note: these instructions have only been tested on Ubuntu Linux and Mac OS X.** We recommend using Ubuntu 12.04 (Precise Pangolin) or Mac OS X 10.7 Lion. Earlier versions may be missing some of the necessary packages. Additionally, Media Cloud requires a 64 bit OS.
 
@@ -23,7 +19,7 @@ If you're running Mac OS X, you'll need [Homebrew](http://mxcl.github.com/homebr
 
 We recommend that you first read through this entire file. However, users who are really impatient can just run a single script to execute the necessary commands to install media by running ./install.sh from the Media Cloud root directory:
 
-     ./install.sh
+    ./install.sh
 
 This script simply runs the commands given in the quick start section below.
 
@@ -34,20 +30,20 @@ If this script runs successfully, skip to the [Post Install](#post-install) sect
 
 We recommend that you read through this entire file. Nevertheless most users will be able to simply run the following commands from the Media Cloud root directory:
 
-     sudo ./install_scripts/install_mediacloud_package_dependencies.sh
-     sudo ./install_scripts/create_default_db_user_and_databases.sh 
-     cp  mediawords.yml.dist mediawords.yml
-     ./install_scripts/install_mc_perlbrew_and_modules.sh
-     ./python_scripts/pip_installs.sh
-     ./script/run_carton.sh exec prove -Ilib/ -r t/compile.t
-     ./script/run_with_carton.sh ./script/mediawords_create_db.pl
-     ./script/run_with_carton.sh ./script/mediawords_manage_users.pl \
-         --action=add \
-         --email="your@email.com" \
-         --full_name="Your Name" \
-         --notes="Media Cloud administrator" \
-         --roles="admin" \
-         --password="yourpassword123"
+    sudo ./install_scripts/install_mediacloud_package_dependencies.sh
+    sudo ./install_scripts/create_default_db_user_and_databases.sh 
+    cp mediawords.yml.dist mediawords.yml
+    ./install_scripts/install_mc_perlbrew_and_modules.sh
+    ./python_scripts/pip_installs.sh
+    ./script/run_carton.sh exec prove -Ilib/ -r t/compile.t
+    ./script/run_with_carton.sh ./script/mediawords_create_db.pl
+    ./script/run_with_carton.sh ./script/mediawords_manage_users.pl \
+        --action=add \
+        --email="your@email.com" \
+        --full_name="Your Name" \
+        --notes="Media Cloud administrator" \
+        --roles="admin" \
+        --password="yourpassword123"
 
 After you have successfully run the above commands, skip to the POST INSTALL section at the end of this file.
 
