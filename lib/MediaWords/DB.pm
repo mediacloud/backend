@@ -187,22 +187,5 @@ sub enable_story_triggers
     return;
 }
 
-# match the database name against the database names in mediawords.yml to find the current label
-sub get_label
-{
-    my ( $db ) = @_;
-
-    my $database_name = $db->query( "select current_database()" )->flat;
-
-    my $config = MediaWords::Util::Config::get_config;
-
-    for my $database_info ( @{ $config->{ database } } )
-    {
-        return $database_info->{ label } if ( $database_info->{ db } eq $database_name );
-    }
-
-    return undef;
-}
-
 # You can replace this text with custom content, and it will be preserved on regeneration
 1;
