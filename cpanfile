@@ -135,6 +135,7 @@ requires 'Test::Differences';
 requires 'Test::NoWarnings';
 requires 'Test::Strict';
 requires 'Text::CSV';
+requires 'Text::CSV_XS';
 requires 'Text::Hunspell';
 requires 'Text::Lorem::More';
 requires 'Text::Trim';
