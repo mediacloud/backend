@@ -92,6 +92,12 @@ def test_convert_dbd_pg_arguments_to_psycopg2_format():
     actual_parameters = convert_dbd_pg_arguments_to_psycopg2_format(*input_parameters)
     assert expected_parameters == actual_parameters
 
+    # Same as above, just without whitespace
+    input_parameters = ("""INSERT INTO foo (a, b, c) VALUES (?,?,?)""".strip(), 'Kim', 42, True)
+    expected_parameters = ("""INSERT INTO foo (a, b, c) VALUES (%s,%s,%s)""".strip(), ('Kim', 42, True))
+    actual_parameters = convert_dbd_pg_arguments_to_psycopg2_format(*input_parameters)
+    assert expected_parameters == actual_parameters
+
     # Question mark before "::"
     input_parameters = ("""INSERT INTO foo (a) VALUES (?::datetime)""".strip(), '2017-01-18')
     expected_parameters = ("""INSERT INTO foo (a) VALUES (%s::datetime)""".strip(), ('2017-01-18',))
@@ -126,6 +132,15 @@ def test_convert_dbd_pg_arguments_to_psycopg2_format():
     input_parameters = ("""INSERT INTO foo (a, b, c) VALUES ($2, $1, $3)""".strip(), 'Kim', 42, True)
     expected_parameters = (
         """INSERT INTO foo (a, b, c) VALUES (%(param_2)s, %(param_1)s, %(param_3)s)""".strip(),
+        {'param_1': 'Kim', 'param_2': 42, 'param_3': True}
+    )
+    actual_parameters = convert_dbd_pg_arguments_to_psycopg2_format(*input_parameters)
+    assert expected_parameters == actual_parameters
+
+    # Same as above just without whitespace
+    input_parameters = ("""INSERT INTO foo (a, b, c) VALUES ($2,$1,$3)""".strip(), 'Kim', 42, True)
+    expected_parameters = (
+        """INSERT INTO foo (a, b, c) VALUES (%(param_2)s,%(param_1)s,%(param_3)s)""".strip(),
         {'param_1': 'Kim', 'param_2': 42, 'param_3': True}
     )
     actual_parameters = convert_dbd_pg_arguments_to_psycopg2_format(*input_parameters)
