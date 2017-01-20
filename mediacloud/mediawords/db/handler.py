@@ -519,7 +519,11 @@ class DatabaseHandler(object):
         try:
             last_inserted_id = self.query(sql, insert_hash).flat()
         except Exception as ex:
-            raise McCreateException("Unable to INSERT '%s': %s" % (str(insert_hash), str(ex)))
+            raise McCreateException("Unable to INSERT into '%(table)s' data '%(data)s': %(exception)s" % {
+                'table': table,
+                'data': str(insert_hash),
+                'exception': str(ex),
+            })
 
         if last_inserted_id is None or len(last_inserted_id) == 0:
             raise McCreateException("Last inserted ID was not found")
