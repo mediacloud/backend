@@ -181,6 +181,9 @@ sub create : Local
         return;
     }
 
+    eval { MediaWords::Solr::query( $db, { q => $c_solr_seed_query, rows => 0 } ) };
+    die( "invalid solr query: $@" ) if ( $@ );
+
     $db->begin;
 
     my $topic = $db->create(
@@ -3051,6 +3054,9 @@ sub story_stats : Local
 sub _create_focus_definition
 {
     my ( $db, $topic, $p ) = @_;
+
+    eval { MediaWords::Solr::query( $db, { q => $p->{ query }, rows => 0 } ) };
+    die( "invalid solr query: $@" ) if ( $@ );
 
     my $fsd = $db->query( <<SQL, $topic->{ topics_id } )->hash;
 select * from focal_set_definitions where topics_id = ? and name = 'Queries'
