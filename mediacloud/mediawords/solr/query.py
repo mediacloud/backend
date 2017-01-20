@@ -2,11 +2,15 @@
 
 import inspect
 import io
+import shlex
 import re
 
 from tokenize import generate_tokens
 
+from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_string_from_bytes_if_needed
+
+l = create_logger(__name__)
 
 # token types
 T_OPEN   = 'open paren'
@@ -41,6 +45,27 @@ class Token:
 
     def __str__( self ):
         return self.__repr__()
+
+def _node_is_field_or_noop( node ):
+    """ return true if the field is a non-sentence field or is a noop """
+
+    if ( ( type( node ) is FieldNode ) and ( node.field != 'sentence' ) ):
+        return True;
+    elif ( type( node ) is NoopNode ):
+        return True;
+
+    return False;
+
+def _node_is_field_or_noop_or_not( node ):
+    """ return true if the field is a non-sentence field or is a noop """
+
+    if ( ( type( node ) is FieldNode ) and ( node.field != 'sentence' ) ):
+        return True;
+    elif ( type( node ) in ( NoopNode, NotNode ) ):
+        return True;
+
+    return False;
+
 
 class ParseNode:
     """ parent class for universal methods for *Node classes """
@@ -82,37 +107,68 @@ class ParseNode:
     def tsquery( self ):
         """ return a postgres tsquery that represents the parse tree """
 
-        def node_is_field_or_noop( node ):
-            """ return true if the field is a non-sentence field or is a noop """
-
-            if ( ( type( node ) is FieldNode ) and ( node.field != 'sentence' ) ):
-                return True;
-            elif ( type( node ) is NoopNode ):
-                return True;
-
-            return False;
-
-        filtered_tree = self.filter_tree( node_is_field_or_noop )
+        filtered_tree = self.filter_tree( _node_is_field_or_noop )
 
         if ( filtered_tree is None ):
             raise( ParseSyntaxError( "query is empty without fields or ranges" ) )
 
         return filtered_tree._get_tsquery()
 
+    def re( self ):
+        """ return a posix regex that represents the parse tree """
+
+        filtered_tree = self.filter_tree( _node_is_field_or_noop_or_not )
+
+        if ( filtered_tree is None ):
+            raise( ParseSyntaxError( "query is empty without fields or ranges" ) )
+
+        return filtered_tree._get_re();
+
 class TermNode( ParseNode ):
     """ parse node type for a simple keyword """
-    def __init__( self, term, wildcard = False ):
+    def __init__( self, term, wildcard = False, phrase = False ):
         self.term = term
         self.wildcard = wildcard
+        self.phrase = phrase
 
     def __repr__( self ):
         return self.term if ( not self.wildcard ) else self.term + "*"
 
     def _get_tsquery( self ):
-        return self.term if ( not self.wildcard ) else self.term + ":*"
+        if ( self.phrase ):
+            dequoted_phrase = shlex.split( self.term )[ 0 ]
+            operands = []
+            for term in re.split( '\W+', dequoted_phrase ):
+                if ( term ):
+                    operands.append( TermNode( term ) )
+
+            if ( len( operands ) == 0 ):
+                raise( ParseSyntaxError( "empty phrase not allowed" ) )
+
+            return AndNode( operands )._get_tsquery()
+        else:
+            return self.term if ( not self.wildcard ) else self.term + ":*"
+
+    def _get_re( self ):
+        term = self.term
+        if ( self.phrase ):
+            term = shlex.split( term )[ 0 ]
+
+            # should already be lower case, but make sure
+            term = term.lower()
+
+            # replace spaces with placeholder text so that we can replace it with [[:space:]] after re.escape
+            term = re.sub( r'\s+', 'SPACE', term )
+
+            term = re.escape( term )
+            term = re.sub( 'SPACE', '[[:space:]]+', term )
+
+            return '[[:<:]]' + term
+        else:
+            return '[[:<:]]' + re.escape( term )
 
     def _filter_node_children( self, filter_function ):
-        return TermNode( self.term, self.wildcard )
+        return TermNode( self.term, wildcard = self.wildcard, phrase = self.phrase )
 
 class BooleanNode( ParseNode ):
     """ supr class for ands and ors """
@@ -147,6 +203,17 @@ class AndNode( BooleanNode ):
     def _tsquery_connector( self ):
         return '&'
 
+    def _get_re( self, operands = None ):
+        if ( operands is None ):
+            operands = self.operands
+
+        if ( len( operands ) == 1 ):
+            return operands[ 0 ]._get_re()
+        else:
+            a = operands[ 0 ]._get_re()
+            b = self._get_re( operands[ 1: ] )
+            return '(?: (?: %s .* %s ) | (?: %s .* %s ) )' % ( a, b, b, a );
+
 class OrNode( BooleanNode ):
     """ parse node for an or clause """
     def _plain_connector( self ):
@@ -154,6 +221,10 @@ class OrNode( BooleanNode ):
 
     def _tsquery_connector( self ):
         return '|'
+
+    def _get_re( self ):
+        return '(?: ' + ' | '.join( map( lambda x: x._get_re(), self.operands ) ) + ' )'
+
 
 class NotNode( ParseNode ):
     """ parse node for a not clause """
@@ -166,6 +237,9 @@ class NotNode( ParseNode ):
 
     def _get_tsquery( self ):
         return '!' + self.operand._get_tsquery()
+
+    def _get_re( self ):
+        raise( ParseSyntaxError( "not operations not supported for re()" ) )
 
     def _filter_node_children( self, filter_function ):
         filtered_operand = self.operand.filter_tree( filter_function )
@@ -188,6 +262,13 @@ class FieldNode( ParseNode ):
         else:
             raise( ValueError( "non-sentence field nodes should have been filtered" ) )
 
+    def _get_re( self ):
+        if ( self.field == 'sentence' ):
+            return self.operand._get_re()
+        else:
+            raise( ValueError( "non-sentence field nodes should have been filtered" ) )
+
+
     def _filter_node_children( self, filter_function ):
         filtered_operand = self.operand.filter_tree( filter_function )
         return FieldNode( self.field, filtered_operand ) if ( filtered_operand ) else None
@@ -201,6 +282,9 @@ class NoopNode( ParseNode ):
         return NOOP_PLACEHOLDER
 
     def _get_tsquery( self ):
+        raise( ValueError( "noop nodes should have been filtered" ) )
+
+    def _get_re( self ):
         raise( ValueError( "noop nodes should have been filtered" ) )
 
     def _filter_node_children( self, filter_function ):
@@ -221,7 +305,7 @@ def _check_type( token, want_type ):
 def _parse_tokens( tokens, want_type = None ):
     """ given a flat list of tokens, generate a boolean logic tree """
 
-    print( "parse tree: " + str( tokens ) )
+    l.debug( "parse tree: " + str( tokens ) )
 
     if ( want_type is None ):
         want_type = [ T_OPEN, T_PHRASE, T_NOT, T_TERM ]
@@ -233,10 +317,10 @@ def _parse_tokens( tokens, want_type = None ):
     while ( len( tokens ) > 0 ):
 
         framedepth = len( inspect.getouterframes( inspect.currentframe() ) )
-        print( "clause: %s [%s] [framedepth: %s]" % ( clause, type( clause ), framedepth ) )
+        l.debug( "clause: %s [%s] [framedepth: %s]" % ( clause, type( clause ), framedepth ) )
 
         token = tokens.pop( 0 )
-        print( "parse token: " + str( token ) )
+        l.debug( "parse token: " + str( token ) )
 
         if ( ( token.type == T_PLUS ) and ( not clause or ( type( clause ) in ( AndNode, OrNode ) ) ) ):
             continue
@@ -245,11 +329,11 @@ def _parse_tokens( tokens, want_type = None ):
             boolean_clause = clause
             hanging_boolean = False
         elif ( clause and ( token.type in [ T_OPEN, T_PHRASE, T_TERM, T_NOOP, T_FIELD ] ) ):
-            print( "INSERT OR" )
+            l.debug( "INSERT OR" )
             tokens.insert( 0, token )
             token = Token( T_OR, 'or' );
         elif ( clause and ( token.type in [ T_NOT ] ) ):
-            print( "INSERT AND" )
+            l.debug( "INSERT AND" )
             tokens.insert( 0, token )
             token = Token( T_AND, 'and' );
 
@@ -273,7 +357,12 @@ def _parse_tokens( tokens, want_type = None ):
                 token.value = token.value.replace( WILD_PLACEHOLDER, '' )
                 wildcard = True
 
-            clause = TermNode( token.value, wildcard )
+            clause = TermNode( token.value, wildcard = wildcard )
+
+        elif( token.type == T_PHRASE ):
+            want_type = [ T_CLOSE, T_AND, T_OR, T_PLUS ]
+            clause = TermNode( token.value, phrase = True )
+            operands = []
 
         elif ( token.type in ( T_AND, T_PLUS, T_OR ) ):
             want_type = [ T_OPEN, T_PHRASE, T_NOT, T_FIELD, T_TERM, T_NOOP, T_CLOSE, T_PLUS ];
@@ -296,7 +385,7 @@ def _parse_tokens( tokens, want_type = None ):
             else:
                 field_clause = _parse_tokens( [ next_token ], [ T_PHRASE, T_TERM, T_NOOP ] )
 
-            print( "field operand for %s: %s" % ( field_name, field_clause ) )
+            l.debug( "field operand for %s: %s" % ( field_name, field_clause ) )
 
             clause = FieldNode( field_name, field_clause )
 
@@ -313,25 +402,13 @@ def _parse_tokens( tokens, want_type = None ):
                 operand = _parse_tokens( [ next_token ], [ T_PHRASE, T_TERM, T_NOOP, T_FIELD ] )
             clause = NotNode( operand )
 
-        elif( token.type == T_PHRASE ):
-            want_type = [ T_OPEN, T_PHRASE, T_NOT, T_FIELD, T_TERM, T_NOOP, T_CLOSE, T_AND, T_OR, T_PLUS ]
-            operands = []
-            for term in re.split( '\W+', token.value ):
-                if ( term ):
-                    operands.append( TermNode( term ) )
-
-            if ( len( operands ) == 0 ):
-                raise( ParseSyntaxError( "empty phrase not allowed" ) )
-
-            clause = AndNode( operands )
-
         else:
             raise( ParseSyntaxError( "unknown type for token '%s'" % token ) )
 
         want_type = want_type + [ T_CLOSE ]
 
         if ( boolean_clause ):
-            print( "boolean append: %s <- %s" % ( boolean_clause, clause ) )
+            l.debug( "boolean append: %s <- %s" % ( boolean_clause, clause ) )
             if ( ( type( boolean_clause ) is type( clause ) ) ):
                 boolean_clause.operands += clause.operands
             else:
@@ -341,9 +418,9 @@ def _parse_tokens( tokens, want_type = None ):
 
 
     try:
-        print( "parse result: " + str( clause ) )
+        l.debug( "parse result: " + str( clause ) )
     except:
-        print( "parse_result: [" + str( type( clause ) ) + "]" );
+        l.debug( "parse_result: [" + str( type( clause ) ) + "]" );
 
     return clause
 
@@ -368,8 +445,8 @@ def _get_token_type( token ):
         raise( ParseSyntaxError( "proximity searches not supported" ) )
     elif ( token == '/' ):
         raise( ParseSyntaxError( "regular expression searches not supported" ) )
-    elif ( ( WILD_PLACEHOLDER in token ) and not re.match( r'^\w.+' + WILD_PLACEHOLDER + '$', token ) ):
-        raise( ParseSyntaxError( "* can only appear the end of a term" ) )
+    elif ( ( WILD_PLACEHOLDER in token ) and not re.match( r'^\w+' + WILD_PLACEHOLDER + '$', token ) ):
+        raise( ParseSyntaxError( "* can only appear the end of a term: " + token ) )
     elif ( token == NOOP_PLACEHOLDER ):
         return T_NOOP
     elif ( token.endswith( FIELD_PLACEHOLDER ) ):
@@ -404,13 +481,13 @@ def _get_tokens( query ):
     # we want to include '*' at the end of field names, but tokenizer wants to make it a separate token
     query = re.sub( r'\*', WILD_PLACEHOLDER , query )
 
-    print( "filtered query: " + query )
+    l.debug( "filtered query: " + query )
 
     raw_tokens = generate_tokens(io.StringIO( query ).readline )
 
     for raw_token in raw_tokens:
         token_value = raw_token[ 1 ]
-        print( "raw token '%s'" % token_value )
+        l.debug( "raw token '%s'" % token_value )
         if ( len( token_value ) > 0 ):
             type = _get_token_type( token_value )
             tokens.append( Token( token_value, type ) )
@@ -425,6 +502,6 @@ def parse( solr_query ):
 
     tokens = _get_tokens( solr_query )
 
-    print( tokens )
+    l.debug( tokens )
 
     return _parse_tokens( tokens )

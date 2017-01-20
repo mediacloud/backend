@@ -38,10 +38,9 @@ sub _get_stories_from_syndicated_feed($$$)
     for my $item ( @{ $feed->items() } )
     {
         my $url = $item->link();
-        unless ( $url )
-        {
-            next;
-        }
+        next unless ( $url );
+
+        die( "url is a ref: " . Dumper( $url ) ) if ( ref( $url ) );
 
         my $guid  = $item->guid_if_valid() || $url;
         my $title = $item->title           || '(no title)';
