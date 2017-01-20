@@ -279,10 +279,10 @@ sub prepare
     return $self->{ _db }->prepare( @_ );
 }
 
-sub autocommit
+sub in_transaction
 {
     my $self = shift;
-    return $self->{ _db }->autocommit( @_ );
+    return $self->{ _db }->in_transaction( @_ );
 }
 
 sub show_error_statement

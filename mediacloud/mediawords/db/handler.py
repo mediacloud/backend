@@ -637,11 +637,6 @@ class DatabaseHandler(object):
             l.warn("Setting self.__in_manual_transaction to the same value (%s)" % str(in_transaction))
         self.__in_manual_transaction = in_transaction
 
-    def autocommit(self) -> bool:
-        """Compatibility helper, returns True if not currently in transaction."""
-        # FIXME remove, use in_transaction() instead
-        return not self.in_transaction()
-
     def begin(self) -> None:
         """Begin a transaction."""
         if self.in_transaction():

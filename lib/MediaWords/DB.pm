@@ -84,7 +84,6 @@ $$;
 END_SQL
 
     $ret->query( $query );
-    $ret->autocommit() || $ret->commit;
 
     return $ret;
 }

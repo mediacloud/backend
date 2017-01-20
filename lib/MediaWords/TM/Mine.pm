@@ -1643,7 +1643,7 @@ sub get_stories_to_extract
             push( @{ $extract_stories }, $story );
         }
 
-        $db->commit unless ( $db->autocommit() );
+        $db->commit if ( $db->in_transaction() );
     }
 
     return $extract_stories;
@@ -2075,7 +2075,8 @@ END
         add_to_topic_stories( $db, $topic, $keep_story, $merged_iteration, 1 );
     }
 
-    $db->begin if $db->autocommit();
+    my $use_transaction = !$db->in_transaction();
+    $db->begin if ( $use_transaction );
 
     my $topic_links = $db->query( <<END, $delete_story->{ stories_id }, $topics_id )->hashes;
 select * from topic_links where stories_id = ? and topics_id = ?
@@ -2108,7 +2109,7 @@ END
 update topic_seed_urls set stories_id = \$2 where stories_id = \$1 and topics_id = \$3
 END
 
-    $db->commit unless $db->autocommit();
+    $db->commit if ( $use_transaction );
 }
 
 # if the given story's url domain does not match the url domain of the story,
@@ -2767,7 +2768,7 @@ sub import_solr_seed_query
 
     $db->query( "update topics set solr_seed_query_run = 't' where topics_id = ?", $topic->{ topics_id } );
 
-    $db->commit unless $db->autocommit();
+    $db->commit if $db->in_transaction();
 }
 
 # return true if there are fewer than $MAX_NULL_BITLY_STORIES stories without bitly data
