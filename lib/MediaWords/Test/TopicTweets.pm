@@ -527,7 +527,7 @@ sub test_fetch_topic_tweets($)
     my $topic = MediaWords::Test::DB::create_test_topic( $db, 'tweet topic' );
 
     $topic->{ ch_monitor_id }       = $CH_MONITOR_ID;
-    $topic->{ import_twitter_urls } = 1;
+    $topic->{ import_twitter_urls } = 't';
     $db->update_by_id( 'topics', $topic->{ topics_id }, $topic );
 
     my ( $start_date, $end_date ) = get_test_date_range();

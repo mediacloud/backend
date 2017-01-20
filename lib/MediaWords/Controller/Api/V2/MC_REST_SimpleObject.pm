@@ -514,11 +514,16 @@ sub _clear_tags
 
         if ( grep { $self->get_table_name eq $_ } qw/stories story_sentences/ )
         {
-            $c->dbis->query( <<SQL, MediaWords::DB::story_triggers_disabled(), $id );
+            my $allow_null = 1;
+            $c->dbis->query(
+                <<SQL,
 UPDATE $table_name set disable_triggers = \$1
        where $table_id_name = \$2 and
             ( (disable_triggers is null) or (disable_triggers <> \$1 ) )
 SQL
+                normalize_boolean_for_db( MediaWords::DB::story_triggers_disabled(), $allow_null ),
+                $id
+            );
         }
 
         $c->dbis->query( <<END, $id );
@@ -576,7 +581,9 @@ UPDATE $table_name set disable_triggers = \$1
                     ( (disable_triggers is null) or (disable_triggers <> \$1 ) )
 END
 
-        $c->dbis->query( $disable_triggers_query, MediaWords::DB::story_triggers_disabled(), $id );
+        my $allow_null = 1;
+        $c->dbis->query( $disable_triggers_query,
+            normalize_boolean_for_db( MediaWords::DB::story_triggers_disabled(), $allow_null ), $id );
 
         my $query = <<END;
 INSERT INTO $tags_map_table ( $table_id_name, tags_id)

@@ -480,9 +480,10 @@ sub _update_story_disable_triggers
 
     if ( $config_disable_triggers != $story_disable_triggers )
     {
+        my $allow_null = 1;
         $db->query(
             "UPDATE stories SET disable_triggers  = ? WHERE stories_id = ?",
-            MediaWords::DB::story_triggers_disabled(),
+            normalize_boolean_for_db( MediaWords::DB::story_triggers_disabled(), $allow_null ),
             $story->{ stories_id }
         );
     }
@@ -760,11 +761,12 @@ sub mark_as_processed($$)
     my ( $db, $stories_id ) = @_;
 
     eval {
+        my $allow_null = 1;
         $db->insert(
             'processed_stories',
             {
-                stories_id       => $stories_id,                                                              #
-                disable_triggers => normalize_boolean_for_db( MediaWords::DB::story_triggers_disabled() ),    #
+                stories_id => $stories_id,                                                                                 #
+                disable_triggers => normalize_boolean_for_db( MediaWords::DB::story_triggers_disabled(), $allow_null ),    #
             }
         );
     };
@@ -1193,12 +1195,12 @@ sub add_story($$$;$)
 
     unless ( defined $story->{ full_text_rss } )
     {
-        my $full_text_rss = normalize_boolean_for_db( $medium->{ full_text_rss } );
+        my $full_text_rss = $medium->{ full_text_rss };
         if ( defined( $story->{ description } ) and ( length( $story->{ description } ) == 0 ) )
         {
-            $full_text_rss = 'f';
+            $full_text_rss = 0;
         }
-        $story->{ full_text_rss } = $full_text_rss;
+        $story->{ full_text_rss } = normalize_boolean_for_db( $full_text_rss );
     }
     else
     {

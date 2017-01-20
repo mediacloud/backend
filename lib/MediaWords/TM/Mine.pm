@@ -1156,8 +1156,10 @@ sub add_to_topic_stories
           . "  values ( ?, ?, ?, ?, ?, ? )",
         $topic->{ topics_id },
         $story->{ stories_id },
-        $iteration, $story->{ url },
-        $link_mined, $valid_foreign_rss_story
+        $iteration,
+        $story->{ url },
+        normalize_boolean_for_db( $link_mined ),
+        normalize_boolean_for_db( $valid_foreign_rss_story )
     );
 }
 
@@ -1894,7 +1896,7 @@ END
                     url            => $target_story->{ url },
                     topics_id      => $topic->{ topics_id },
                     ref_stories_id => $target_story->{ stories_id },
-                    link_spidered  => 1,
+                    link_spidered  => 't',
                 }
             );
         }
@@ -2948,7 +2950,7 @@ SQL
         name                     => "$parent_topic->{ name } (twitter)",
         pattern                  => '(none)',
         solr_seed_query          => '(none)',
-        solr_seed_query_run      => 1,
+        solr_seed_query_run      => 't',
         description              => "twitter child topic of $parent_topic->{ name }",
         topic_tag_sets_id        => $topic_tag_set->{ topic_tag_sets_id },
         ch_monitor_id            => $parent_topic->{ ch_monitor_id }
@@ -2978,7 +2980,7 @@ SQL
 
     if ( $existing_seed_url )
     {
-        $db->update_by_id( 'topic_seed_urls', $existing_seed_url->{ topic_seed_urls_id }, { assume_match => 1 } );
+        $db->update_by_id( 'topic_seed_urls', $existing_seed_url->{ topic_seed_urls_id }, { assume_match => 't' } );
     }
     else
     {
@@ -2987,7 +2989,7 @@ SQL
             {
                 topics_id    => $topic->{ topics_id },
                 url          => $url,
-                assume_match => 1,
+                assume_match => 't',
                 source       => 'twitter',
             }
         );

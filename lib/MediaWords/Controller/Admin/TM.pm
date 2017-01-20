@@ -123,6 +123,8 @@ sub edit : Local
 
         $p->{ solr_seed_query_run } = 'f' unless ( $topic->{ solr_seed_query } eq $p->{ solr_seed_query } );
 
+        $p->{ solr_seed_query_run } = normalize_boolean_for_db( $p->{ solr_seed_query_run } );
+
         $c->dbis->update_by_id( 'topics', $topics_id, $p );
 
         my $view_url = $c->uri_for( "/admin/tm/view/" . $topics_id, { status_msg => 'topic updated.' } );
@@ -187,7 +189,7 @@ sub create : Local
             name                => $c_name,
             pattern             => $c_pattern,
             solr_seed_query     => $c_solr_seed_query,
-            solr_seed_query_run => $c_skip_solr_query,
+            solr_seed_query_run => normalize_boolean_for_db( $c_skip_solr_query ),
             description         => $c_description,
             max_iterations      => $c_max_iterations
         }
@@ -2115,7 +2117,7 @@ sub unredirect_param_stories
 
         my $url_options = {
             url             => $url,
-            assume_match    => $c->req->params->{ "assume_match_${ param_tag }" },
+            assume_match    => normalize_boolean_for_db( $c->req->params->{ "assume_match_${ param_tag }" } ),
             manual_redirect => $c->req->params->{ "manual_redirect_${ param_tag }" }
         };
 

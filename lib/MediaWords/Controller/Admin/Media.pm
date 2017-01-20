@@ -276,8 +276,8 @@ sub edit_do : Local
         delete( $form_params->{ referer } );
 
         # Set the database-compatible boolean checkbox values (otherwise they're empty strings)
-        $form_params->{ full_text_rss }     ||= 0;
-        $form_params->{ foreign_rss_links } ||= 0;
+        $form_params->{ full_text_rss }     = normalize_boolean_for_db( $form_params->{ full_text_rss } );
+        $form_params->{ foreign_rss_links } = normalize_boolean_for_db( $form_params->{ foreign_rss_links } );
 
         MediaWords::DBI::Media::update_media_type( $db, $medium, $c->req->params->{ media_type_tags_id } );
         MediaWords::DBI::Media::update_media_type( $db, $medium, $c->req->params->{ topic_media_type_tags_id } );
@@ -784,7 +784,8 @@ sub do_eval_rss_full_text : Local
 
     if ( $full_text_state ne '' )
     {
-        $db->query( "UPDATE media set full_text_rss = ? where media_id = ?", $full_text_state, $id );
+        $db->query( "UPDATE media set full_text_rss = ? where media_id = ?",
+            normalize_boolean_for_db( $full_text_state ), $id );
     }
     else
     {

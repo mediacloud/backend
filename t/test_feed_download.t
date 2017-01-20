@@ -53,9 +53,9 @@ sub add_test_feed
     my ( $db, $url_to_crawl ) = @_;
 
     my $test_medium = $db->query(
-        "insert into media (name, url, moderated) values (?, ?, ?) returning *",
+        "insert into media (name, url, moderated) values (?, ?, 'f') returning *",
         '_ Crawler Test',
-        $url_to_crawl, 'f'
+        $url_to_crawl,
     )->hash;
 
     my $feed = $db->query(

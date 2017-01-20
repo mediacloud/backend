@@ -310,11 +310,11 @@ sub _attach_media_to_input($$)
         my $create_medium = {
             url               => $input_medium->{ url },
             name              => $input_medium->{ name } || $title,
-            foreign_rss_links => $input_medium->{ foreign_rss_links } || 'f',
+            foreign_rss_links => normalize_boolean_for_db( $input_medium->{ foreign_rss_links } ),
             content_delay     => $input_medium->{ content_delay } || 0,
             editor_notes      => $input_medium->{ editor_notes },
             public_notes      => $input_medium->{ public_notes },
-            is_monitored      => $input_medium->{ is_monitored } || 'f',
+            is_monitored      => normalize_boolean_for_db( $input_medium->{ is_monitored } ),
             moderated         => 't'
         };
         $input_medium->{ medium } = eval { $db->create( 'media', $create_medium ) };
@@ -428,6 +428,9 @@ sub update_PUT
     my $fields = [ qw/url name foreign_rss_links content_delay editor_notes public_notes is_monitored/ ];
     my $update = {};
     map { $update->{ $_ } = $data->{ $_ } if ( defined( $data->{ $_ } ) ) } @{ $fields };
+
+    $update->{ foreign_rss_links } = normalize_boolean_for_db( $update->{ foreign_rss_links } );
+    $update->{ is_monitored }      = normalize_boolean_for_db( $update->{ is_monitored } );
 
     $db->update_by_id( 'media', $medium->{ media_id }, $update ) if ( scalar( keys( %{ $update } ) ) > 0 );
 

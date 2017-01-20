@@ -49,7 +49,11 @@ END
 
         INFO "$medium->{ name } [ $medium->{ media_id } ]: $num_domains - $foreign_rss_links";
 
-        $db->query( "update media set foreign_rss_links = ? where media_id = ?", $foreign_rss_links, $medium->{ media_id } );
+        $db->query(
+            "update media set foreign_rss_links = ? where media_id = ?",
+            normalize_boolean_for_db( $foreign_rss_links ),
+            $medium->{ media_id }
+        );
 
         $medium->{ foreign_rss_links } = $foreign_rss_links;
         $medium->{ num_domains }       = $num_domains;

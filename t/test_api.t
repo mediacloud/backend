@@ -508,7 +508,7 @@ sub test_media_list ($$)
 
     my $tagged_medium = $test_stack_media->[ 1 ];
     my $test_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'media_list_test:media_list_test' );
-    $db->update_by_id( 'tags', $test_tag->{ tags_id }, { show_on_media => 1 } );
+    $db->update_by_id( 'tags', $test_tag->{ tags_id }, { show_on_media => 't' } );
     $db->create( 'media_tags_map', { tags_id => $test_tag->{ tags_id }, media_id => $tagged_medium->{ media_id } } );
     test_media_list_call( { tag_name => $test_tag->{ tag } }, [ $tagged_medium ] );
 

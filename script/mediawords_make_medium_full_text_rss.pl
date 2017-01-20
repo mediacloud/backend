@@ -36,7 +36,7 @@ sub main
     my $medium = $db->find_by_id( 'media', $medium_id ) || die( "Unable to find medium: $medium_id" );
 
     $medium->{ full_text_rss } = 1;
-    $db->update_by_id( 'media', $medium_id, { full_text_rss => 1 } );
+    $db->update_by_id( 'media', $medium_id, { full_text_rss => 't' } );
 
     my $stories = $db->query( "select * from stories where media_id = $medium_id and full_text_rss = 'f'" )->hashes;
 
@@ -44,7 +44,7 @@ sub main
     for my $story ( @{ $stories } )
     {
         $story->{ full_text_rss } = 1;
-        $db->update_by_id( 'stories', $story->{ stories_id }, { full_text_rss => 1 } );
+        $db->update_by_id( 'stories', $story->{ stories_id }, { full_text_rss => 't' } );
 
         MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story );
 

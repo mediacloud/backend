@@ -743,7 +743,7 @@ sub add_user_or_return_error_message($$$$$$$$;$$)
         INSERT INTO auth_users (email, password_hash, full_name, notes, active )
         VALUES (?, ?, ?, ?, ? )
 EOF
-        $email, $password_hash, $full_name, $notes, ( $is_active ? 'true' : 'false' )
+        $email, $password_hash, $full_name, $notes, normalize_boolean_for_db( $is_active )
     );
 
     # Fetch the user's ID
@@ -758,7 +758,8 @@ EOF
     # Create roles
     for my $auth_roles_id ( @{ $role_ids } )
     {
-        $db->query(<<SQL,
+        $db->query(
+            <<SQL,
             INSERT INTO auth_users_roles_map (auth_users_id, auth_roles_id)
             VALUES (?, ?)
 SQL
@@ -825,7 +826,7 @@ sub update_user_or_return_error_message($$$$$$;$$$$)
             active = ?
         WHERE email = ?
 EOF
-        $full_name, $notes, ( $is_active ? 'true' : 'false' ), $email
+        $full_name, $notes, normalize_boolean_for_db( $is_active ), $email
     );
 
     if ( $password )
@@ -873,7 +874,8 @@ EOF
     );
     for my $auth_roles_id ( @{ $roles } )
     {
-        $db->query(<<SQL,
+        $db->query(
+            <<SQL,
             INSERT INTO auth_users_roles_map (auth_users_id, auth_roles_id) VALUES (?, ?)
 SQL
             $userinfo->{ auth_users_id }, $auth_roles_id

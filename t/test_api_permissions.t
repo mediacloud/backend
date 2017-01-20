@@ -405,7 +405,7 @@ sub add_topic
         solr_seed_query   => $name,
         description       => $name,
         topic_tag_sets_id => $tag_set->{ tag_sets_id },
-        is_public         => $is_public ? 1 : 0
+        is_public         => normalize_boolean_for_db( $is_public )
     };
 
     $topic = $db->create( 'topics', $topic );

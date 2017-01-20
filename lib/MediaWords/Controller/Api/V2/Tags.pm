@@ -152,6 +152,10 @@ sub update_PUT
 
     my $input = { map { $_ => $data->{ $_ } } grep { exists( $data->{ $_ } ) } @{ $self->get_update_fields } };
 
+    $input->{ show_on_media }   = normalize_boolean_for_db( $input->{ show_on_media } );
+    $input->{ show_on_stories } = normalize_boolean_for_db( $input->{ show_on_stories } );
+    $input->{ is_static }       = normalize_boolean_for_db( $input->{ is_static } );
+
     my $updated_tag = $c->dbis->update_by_id( 'tags', $data->{ tags_id }, $input );
 
     return $self->status_ok( $c, entity => { tag => $updated_tag } );

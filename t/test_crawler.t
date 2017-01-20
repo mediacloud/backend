@@ -58,10 +58,10 @@ sub _add_test_feed($$$$)
     my $test_medium = $db->query(
         <<EOF,
         INSERT INTO media (name, url, moderated)
-        VALUES (?, ?, ?)
+        VALUES (?, ?, 'f')
         RETURNING *
 EOF
-        '_ Crawler Test', $url_to_crawl, 'f'
+        '_ Crawler Test', $url_to_crawl
     )->hash;
 
     my $syndicated_feed = $db->create(
