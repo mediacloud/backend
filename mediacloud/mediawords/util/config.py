@@ -154,7 +154,7 @@ def __set_dynamic_defaults(config: dict) -> dict:
     if 'storage' not in config['session'] or config['session']['storage'] is None:
         config['session']['storage'] = os.path.join(os.path.expanduser('~'), "tmp", "mediacloud-session")
 
-    # FIXME probably not needed after Python rewrite
+    # MC_REWRITE_TO_PYTHON: probably not needed after Python rewrite
     if 'Plugin::Authentication' not in config or config['Plugin::Authentication'] is None:
         config['Plugin::Authentication'] = {
             "default_realm": 'users',
