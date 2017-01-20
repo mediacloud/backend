@@ -60,7 +60,7 @@ sub serialize_json
 {
     my ( $data ) = @_;
 
-    my $json = JSON->new->utf8->convert_blessed->canonical->canonical->encode( $data );
+    my $json = JSON->new->utf8->allow_blessed->convert_blessed->canonical->canonical->encode( $data );
 
     return $json;
 }
