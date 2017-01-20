@@ -30,7 +30,8 @@ sub encode_json($;$$)
 
     my $json;
     eval {
-        $json = JSON::XS->new->utf8( $utf8 )->pretty( $pretty )->allow_blessed( 1 )->convert_blessed( 1 )->encode( $object );
+        $json = JSON::XS->new->utf8( $utf8 )->pretty( $pretty )->allow_blessed( 1 )->convert_blessed( 1 )->canonical( 1 )
+          ->encode( $object );
     };
     if ( $@ or ( !$json ) )
     {
