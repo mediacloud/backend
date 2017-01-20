@@ -398,7 +398,7 @@ class DatabaseHandler(object):
 
         row = self.find_by_id(table, object_id)
         if row is None:
-            raise McRequireByIDException("Unable to find id '%d' in table '%s'" % (object_id, table))
+            raise McRequireByIDException("Unable to find ID '%d' in table '%s'" % (object_id, table))
         return row
 
     def update_by_id(self, table: str, object_id: int, update_hash: dict) -> None:
