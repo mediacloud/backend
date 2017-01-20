@@ -712,9 +712,8 @@ class DatabaseHandler(object):
     @staticmethod
     def quote_bool(value: bool) -> str:
         """Quote a boolean value for being passed as a literal in a query."""
-        # FIXME probably there's no point in having this as an alias
-
         # MC_REWRITE_TO_PYTHON: remove after starting to use Python's boolean type everywhere
+
         if isinstance(value, bool):
             pass
         elif isinstance(value, int):
@@ -740,7 +739,7 @@ class DatabaseHandler(object):
     @staticmethod
     def quote_varchar(value: str) -> str:
         """Quote VARCHAR for being passed as a literal in a query."""
-        # FIXME probably there's no point in having this as an alias
+        # MC_REWRITE_TO_PYTHON: remove after starting to use Python's boolean type everywhere
         value = decode_object_from_bytes_if_needed(value)
 
         return DatabaseHandler.quote(value=value)
