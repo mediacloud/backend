@@ -3,7 +3,9 @@ from nose.tools import assert_raises
 
 from mediawords.db.exceptions.result import McDatabaseResultException
 from mediawords.db.handler import *
-from mediawords.util.config import get_config, set_config
+from mediawords.util.config import \
+    get_config as py_get_config, \
+    set_config as py_set_config  # MC_REWRITE_TO_PYTHON: rename back to get_config(), get_config()
 from mediawords.util.log import create_logger
 
 l = create_logger(__name__)
@@ -18,7 +20,7 @@ class TestDatabaseHandler(TestCase):
     def __create_database_handler():
         l.info("Looking for test database credentials...")
         test_database = None
-        config = get_config()
+        config = py_get_config()
         for database in config['database']:
             if database['label'] == 'test':
                 test_database = database
@@ -42,7 +44,7 @@ class TestDatabaseHandler(TestCase):
 
         l.info("Looking for test database credentials...")
         test_database = None
-        config = get_config()
+        config = py_get_config()
         for database in config['database']:
             if database['label'] == 'test':
                 test_database = database
@@ -232,12 +234,12 @@ class TestDatabaseHandler(TestCase):
         large_work_mem = 512  # MB
 
         old_large_work_mem = None
-        config = get_config()
+        config = py_get_config()
         if 'large_work_mem' in config['mediawords']:
             old_large_work_mem = config['mediawords']['large_work_mem']
 
         config['mediawords']['large_work_mem'] = '%dMB' % large_work_mem
-        set_config(config)
+        py_set_config(config)
 
         self.__db.query('SET work_mem TO %s', ('%sMB' % normal_work_mem,))
 
@@ -263,19 +265,19 @@ class TestDatabaseHandler(TestCase):
         assert current_work_mem == normal_work_mem * 1024
 
         config['mediawords']['large_work_mem'] = old_large_work_mem
-        set_config(config)
+        py_set_config(config)
 
     def test_run_block_with_large_work_mem(self):
         normal_work_mem = 256  # MB
         large_work_mem = 512  # MB
 
         old_large_work_mem = None
-        config = get_config()
+        config = py_get_config()
         if 'large_work_mem' in config['mediawords']:
             old_large_work_mem = config['mediawords']['large_work_mem']
 
         config['mediawords']['large_work_mem'] = '%dMB' % large_work_mem
-        set_config(config)
+        py_set_config(config)
 
         self.__db.query("SET work_mem TO %s", ('%sMB' % normal_work_mem,))
 
@@ -304,7 +306,7 @@ class TestDatabaseHandler(TestCase):
         assert current_work_mem == normal_work_mem * 1024
 
         config['mediawords']['large_work_mem'] = old_large_work_mem
-        set_config(config)
+        py_set_config(config)
 
     def test_primary_key_column(self):
         primary_key = self.__db.primary_key_column('kardashians')

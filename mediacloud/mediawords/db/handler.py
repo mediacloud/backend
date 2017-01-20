@@ -15,7 +15,7 @@ from mediawords.db.pages.pages import DatabasePages
 from mediawords.db.result.result import DatabaseResult
 from mediawords.db.schema.version import schema_version_from_lines
 
-from mediawords.util.config import get_config
+from mediawords.util.config import get_config as py_get_config  # MC_REWRITE_TO_PYTHON: rename back to get_config()
 from mediawords.util.log import create_logger
 from mediawords.util.paths import mc_root_path
 from mediawords.util.perl import convert_dbd_pg_arguments_to_psycopg2_format, decode_object_from_bytes_if_needed, \
@@ -162,7 +162,7 @@ class DatabaseHandler(object):
 
     def __should_continue_with_outdated_schema(self, current_schema_version: int, target_schema_version: int) -> bool:
         """Schema is outdated / too new; returns 1 if MC should continue nevertheless, 0 otherwise"""
-        config = get_config()
+        config = py_get_config()
         config_ignore_schema_version = config["mediawords"]["ignore_schema_version"] or False
 
         if config_ignore_schema_version and self.__IGNORE_SCHEMA_VERSION_ENV_VARIABLE in os.environ:
@@ -276,7 +276,7 @@ class DatabaseHandler(object):
         return current_work_mem
 
     def __get_large_work_mem(self) -> str:
-        config = get_config()
+        config = py_get_config()
         if 'large_work_mem' in config['mediawords']:
             work_mem = config['mediawords']['large_work_mem']
         else:
