@@ -117,7 +117,6 @@ EOF
 
     echo "Installing Media Cloud dependencies with cpanm..."
     sudo cpanm \
-        DBD::Pg \
         Graph \
         Graph::Writer::GraphViz \
         GraphViz \
