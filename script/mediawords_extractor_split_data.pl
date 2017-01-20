@@ -10,7 +10,6 @@ BEGIN
 }
 
 use Getopt::Long;
-use HTML::Strip;
 use MediaWords::DB;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;

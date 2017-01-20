@@ -19,7 +19,6 @@ use MediaWords::DB::Schema;
 
 use Term::Prompt;
 use Data::Dumper;
-use Smart::Comments;
 
 #why isn't this module on CPAN
 sub string_starts_with

@@ -12,7 +12,6 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Getopt::Long;
-use HTML::Strip;
 use MediaWords::DB;
 
 use MediaWords::DBI::Downloads;
