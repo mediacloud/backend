@@ -3,6 +3,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DBI::Auth;
+use MediaWords::Util::JSON;
 
 use strict;
 use warnings;
@@ -40,50 +41,26 @@ __PACKAGE__->config(
         'application/json' => [                 #
             'Callback',                         #
             {                                   #
-                deserialize => \&deserialize_json,    #
-                serialize   => \&serialize_json       #
+                serialize   => \&MediaWords::Util::JSON::encode_json,    #
+                deserialize => \&MediaWords::Util::JSON::decode_json,    #
             }    #
         ],       #
         'application/json; charset=UTF-8' => [    #
             'Callback',                           #
             {                                     #
-                deserialize => \&deserialize_json,    #
-                serialize   => \&serialize_json       #
+                serialize   => \&MediaWords::Util::JSON::encode_json,    #
+                deserialize => \&MediaWords::Util::JSON::decode_json,    #
             }    #
         ],       #
         'text/x-json' => [    #
             'Callback',       #
             {                 #
-                deserialize => \&deserialize_json,    #
-                serialize   => \&serialize_json       #
+                serialize   => \&MediaWords::Util::JSON::encode_json,    #
+                deserialize => \&MediaWords::Util::JSON::decode_json,    #
             }    #
         ],       #
     }
 );
-
-# custom function to serialize json because catalyst ignores the documents json_options config
-sub serialize_json
-{
-    my ( $data ) = @_;
-
-    my $json = JSON->new->utf8->allow_blessed->convert_blessed->canonical->canonical->encode( $data );
-
-    return $json;
-}
-
-# custom function to deserialize json because catalyst ignores the documents json_options config
-sub deserialize_json
-{
-    my ( $json ) = @_;
-
-    my $data = eval { JSON->new->decode( $json ) };
-    if ( $@ )
-    {
-        die( "error decoding json: $json" );
-    }
-
-    return $data;
-}
 
 sub serialize : ActionClass('Serialize')
 {
