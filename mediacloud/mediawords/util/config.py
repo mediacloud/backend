@@ -26,10 +26,6 @@ class McConfigException(Exception):
     pass
 
 
-def get_mc_root_dir():
-    return __MC_ROOT_DIR
-
-
 def get_config() -> dict:
     global __CONFIG
 
@@ -111,7 +107,7 @@ def set_config(config: dict) -> None:
 
 
 def __read_static_defaults() -> dict:
-    defaults_file_yml = os.path.join(get_mc_root_dir(), "config", "defaults.yml")
+    defaults_file_yml = os.path.join(mc_root_path(), "config", "defaults.yml")
     static_defaults = __parse_config_file(defaults_file_yml)
     return static_defaults
 
