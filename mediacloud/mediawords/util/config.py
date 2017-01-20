@@ -24,6 +24,7 @@ class McConfigException(Exception):
 
 
 def get_config() -> dict:
+    """Get configuration dictionary."""
     global __CONFIG
 
     if __CONFIG is not None:
@@ -37,7 +38,8 @@ def get_config() -> dict:
     return __CONFIG
 
 
-def __parse_config_file(config_file: str) -> dict:
+def __parse_yaml(config_file: str) -> dict:
+    """Parse and return YAML file with configuration."""
     if not os.path.isfile(config_file):
         raise McConfigException("Configuration file '%s' was not found." % config_file)
 
@@ -47,15 +49,15 @@ def __parse_config_file(config_file: str) -> dict:
 
 
 def set_config_file(config_file: str) -> None:
-    """set the cached config object given a file path"""
+    """Set the cached configuration dictionary from a file path."""
     if not os.path.isfile(config_file):
         raise McConfigException("Configuration file '%s' was not found." % config_file)
 
-    set_config(__parse_config_file(config_file))
+    set_config(__parse_yaml(config_file))
 
 
 def __merge_configs(config: dict, static_defaults: dict) -> dict:
-    """merge configs using Hash::Merge, with precedence for the mediawords.yml config."""
+    """Merge configs with precedence for the mediawords.yml config."""
 
     def __merge_configs_internal(a: dict, b: dict, path=None) -> dict:
         """Merges b into a (http://stackoverflow.com/a/7205107/200603)"""
@@ -86,6 +88,7 @@ def __merge_configs(config: dict, static_defaults: dict) -> dict:
 
 
 def set_config(config: dict) -> None:
+    """Set cached configuration dictionary."""
     global __CONFIG
 
     if __CONFIG is not None:
@@ -104,12 +107,14 @@ def set_config(config: dict) -> None:
 
 
 def __read_static_defaults() -> dict:
+    """Return configuration defaults dictionary."""
     defaults_file_yml = os.path.join(mc_root_path(), "config", "defaults.yml")
-    static_defaults = __parse_config_file(defaults_file_yml)
+    static_defaults = __parse_yaml(defaults_file_yml)
     return static_defaults
 
 
 def __verify_settings(config: dict) -> None:
+    """Verify configuration dictionary, print warnings or raise Exceptions if something's not right."""
     if 'database' not in config or config['database'] is None or len(config['database']) < 1:
         raise McConfigException("No database connections configured")
 
@@ -132,6 +137,7 @@ def __verify_settings(config: dict) -> None:
 
 
 def __set_dynamic_defaults(config: dict) -> dict:
+    """Fill configuration dictionary with some preset values."""
     if 'mediawords' not in config or config['mediawords'] is None:
         raise McConfigException('Configuration does not have "mediawords" key')
 
