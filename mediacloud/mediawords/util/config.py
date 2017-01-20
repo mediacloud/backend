@@ -17,8 +17,6 @@ from mediawords.util.log import create_logger
 
 l = create_logger(__name__)
 
-__MC_ROOT_DIR = mc_root_path()
-__base_dir = __MC_ROOT_DIR  # FIXME remove
 __CONFIG = None
 
 
@@ -33,7 +31,7 @@ def get_config() -> dict:
         return __CONFIG
 
     # TODO: This should be standardized
-    set_config_file(os.path.join(__base_dir, "mediawords.yml"))
+    set_config_file(os.path.join(mc_root_path(), "mediawords.yml"))
 
     # noinspection PyTypeChecker
     # FIXME inspection could still be enabled here
@@ -135,14 +133,12 @@ def verify_settings(config: dict) -> None:
 
 
 def __set_dynamic_defaults(config: dict) -> dict:
-    global __base_dir
-
     if 'mediawords' not in config or config['mediawords'] is None:
         raise McConfigException('Configuration does not have "mediawords" key')
 
     if 'data_dir' not in config['mediawords'] or config['mediawords']['data_dir'] is None:
         # FIXME create a helper in 'paths'
-        config['mediawords']['data_dir'] = os.path.join(__base_dir, 'data')
+        config['mediawords']['data_dir'] = os.path.join(mc_root_path(), 'data')
 
     # FIXME probably not needed
     if 'session' not in config or config['session'] is None:
