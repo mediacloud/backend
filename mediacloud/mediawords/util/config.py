@@ -3,6 +3,7 @@ import os
 # noinspection PyPackageRequirements
 import yaml
 
+from mediawords.util.log import create_logger
 from mediawords.util.paths import mc_root_path
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
@@ -12,8 +13,6 @@ try:
 except ImportError:
     # noinspection PyPackageRequirements
     from yaml import Loader
-
-from mediawords.util.log import create_logger
 
 l = create_logger(__name__)
 
