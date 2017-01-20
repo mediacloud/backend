@@ -13,6 +13,7 @@ our @ISA = qw(Exporter);
 use Data::Dumper;
 use Readonly;
 use MediaWords::Util::Python;
+use MediaWords::Util::Paths;
 
 eval {
     require MediaWords::Util::Config;
