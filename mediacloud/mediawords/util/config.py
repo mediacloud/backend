@@ -98,7 +98,7 @@ def set_config(config: dict) -> None:
 
     __CONFIG = __merge_configs(config, static_defaults)
 
-    __set_dynamic_defaults(__CONFIG)
+    __CONFIG = __set_dynamic_defaults(__CONFIG)
 
     __verify_settings(__CONFIG)
 
