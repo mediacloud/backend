@@ -36,13 +36,28 @@ __PACKAGE__->config(
     'default'   => 'application/json; charset=UTF-8',
     'stash_key' => 'rest',
     'map'       => {
-
-        'text/xml' => 'XML::Simple',
-
-        'application/json' => [ 'Callback', { deserialize => \&deserialize_json, serialize => \&serialize_json } ],
-        'application/json; charset=UTF-8' =>
-          [ 'Callback', { deserialize => \&deserialize_json, serialize => \&serialize_json } ],
-        'text/x-json' => [ 'Callback', { deserialize => \&deserialize_json, serialize => \&serialize_json } ],
+        'text/xml'         => 'XML::Simple',    #
+        'application/json' => [                 #
+            'Callback',                         #
+            {                                   #
+                deserialize => \&deserialize_json,    #
+                serialize   => \&serialize_json       #
+            }    #
+        ],       #
+        'application/json; charset=UTF-8' => [    #
+            'Callback',                           #
+            {                                     #
+                deserialize => \&deserialize_json,    #
+                serialize   => \&serialize_json       #
+            }    #
+        ],       #
+        'text/x-json' => [    #
+            'Callback',       #
+            {                 #
+                deserialize => \&deserialize_json,    #
+                serialize   => \&serialize_json       #
+            }    #
+        ],       #
     }
 );
 
