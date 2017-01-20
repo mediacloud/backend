@@ -30,7 +30,7 @@ def get_config() -> dict:
     if __CONFIG is not None:
         return __CONFIG
 
-    # TODO: This should be standardized
+    # FIXME: This should be standardized
     set_config_file(os.path.join(mc_root_path(), "mediawords.yml"))
 
     # noinspection PyTypeChecker
