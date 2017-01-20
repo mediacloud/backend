@@ -37,21 +37,12 @@ __PACKAGE__->config(
     'stash_key' => 'rest',
     'map'       => {
 
-        #	   'text/html'          => 'YAML::HTML',
         'text/xml' => 'XML::Simple',
 
-        # #         'text/x-yaml'        => 'YAML',
         'application/json' => [ 'Callback', { deserialize => \&deserialize_json, serialize => \&serialize_json } ],
         'application/json; charset=UTF-8' =>
           [ 'Callback', { deserialize => \&deserialize_json, serialize => \&serialize_json } ],
         'text/x-json' => [ 'Callback', { deserialize => \&deserialize_json, serialize => \&serialize_json } ],
-        'text/x-data-dumper'       => [ 'Data::Serializer', 'Data::Dumper' ],
-        'text/x-data-denter'       => [ 'Data::Serializer', 'Data::Denter' ],
-        'text/x-data-taxi'         => [ 'Data::Serializer', 'Data::Taxi' ],
-        'application/x-storable'   => [ 'Data::Serializer', 'Storable' ],
-        'application/x-freezethaw' => [ 'Data::Serializer', 'FreezeThaw' ],
-        'text/x-config-general'    => [ 'Data::Serializer', 'Config::General' ],
-        'text/x-php-serialization' => [ 'Data::Serializer', 'PHP::Serialization' ],
     }
 );
 
