@@ -12,8 +12,9 @@ use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::DBI::Stories;
 use MediaWords::Job::TM::MineTopic;
-use MediaWords::Solr::WordCounts;
 use MediaWords::Solr;
+use MediaWords::Solr::Query;
+use MediaWords::Solr::WordCounts;
 use MediaWords::TM::Mine;
 use MediaWords::TM::Snapshot;
 use MediaWords::TM;
@@ -103,17 +104,34 @@ sub edit : Local
         $c->stash->{ template } = 'tm/edit_topic.tt2';
         return;
     }
-    elsif ( $c->req->params->{ preview } )
+
+    my $p = $form->params;
+
+    my $num_stories = eval { MediaWords::Solr::count_stories( $db, { q => $p->{ solr_seed_query } } ) };
+    die( "invalid solr query: $@" ) if ( $@ );
+
+    die( "number of stories from query ($num_stories) is more than the max (500,000)" ) if ( $num_stories > 500000 );
+
+    my $pattern;
+    if ( $p->{ solr_seed_query } eq $topic->{ solr_seed_query } )
     {
-        my $solr_seed_query = $c->req->params->{ solr_seed_query };
-        my $pattern         = $c->req->params->{ pattern };
+        $pattern = $topic->{ pattern };
+    }
+    else
+    {
+        $pattern = eval { MediaWords::Solr::Query::parse( $p->{ solr_seed_query } )->re() };
+        die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
+    }
+
+    if ( $p->{ preview } )
+    {
+        my $solr_seed_query = $p->{ solr_seed_query };
         $c->res->redirect( $c->uri_for( '/search', { q => $solr_seed_query, pattern => $pattern } ) );
         return;
     }
 
     else
     {
-        my $p = $form->params;
 
         _add_topic_date( $db, $topic, $p->{ start_date }, $p->{ end_date }, 1 );
 
@@ -122,6 +140,7 @@ sub edit : Local
         delete( $p->{ preview } );
 
         $p->{ solr_seed_query_run } = 'f' unless ( $topic->{ solr_seed_query } eq $p->{ solr_seed_query } );
+        $p->{ pattern } = $pattern;
 
         $p->{ solr_seed_query_run } = normalize_boolean_for_db( $p->{ solr_seed_query_run } );
 
@@ -167,7 +186,6 @@ sub create : Local
     # At this point the form is submitted
 
     my $c_name            = $c->req->params->{ name };
-    my $c_pattern         = $c->req->params->{ pattern };
     my $c_solr_seed_query = $c->req->params->{ solr_seed_query };
     my $c_skip_solr_query = normalize_boolean_for_db( $c->req->params->{ skip_solr_query } );
     my $c_description     = $c->req->params->{ description };
@@ -175,14 +193,19 @@ sub create : Local
     my $c_end_date        = $c->req->params->{ end_date };
     my $c_max_iterations  = $c->req->params->{ max_iterations };
 
+    my $num_stories = eval { MediaWords::Solr::count_stories( $db, { q => $c_solr_seed_query } ) };
+    die( "invalid solr query: $@" ) if ( $@ );
+
+    die( "number of stories from query ($num_stories) is more than the max (500,000)" ) if ( $num_stories > 500000 );
+
+    my $pattern = eval { MediaWords::Solr::Query::parse( $c_solr_seed_query )->re() };
+    die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
+
     if ( $c->req->params->{ preview } )
     {
-        $c->res->redirect( $c->uri_for( '/search', { q => $c_solr_seed_query, pattern => $c_pattern } ) );
+        $c->res->redirect( $c->uri_for( '/search', { q => $c_solr_seed_query, pattern => $pattern } ) );
         return;
     }
-
-    eval { MediaWords::Solr::query( $db, { q => $c_solr_seed_query, rows => 0 } ) };
-    die( "invalid solr query: $@" ) if ( $@ );
 
     $db->begin;
 
@@ -190,7 +213,7 @@ sub create : Local
         'topics',
         {
             name                => $c_name,
-            pattern             => $c_pattern,
+            pattern             => $pattern,
             solr_seed_query     => $c_solr_seed_query,
             solr_seed_query_run => normalize_boolean_for_db( $c_skip_solr_query ),
             description         => $c_description,

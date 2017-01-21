@@ -818,4 +818,23 @@ sub consolidate_id_query
     return $query;
 }
 
+=head2 count_stories( $db, $params )
+
+Count the number of stories matching the query.
+
+=cut
+
+sub count_stories
+{
+    my ( $db, $params ) = @_;
+
+    my $q = $params->{ q };
+    my $fq = $params->{ fq } || undef;
+
+    my $list = MediaWords::Solr::query( $db,
+        { q => $q, fq => $fq, group => "true", "group.field" => "stories_id", "group.ngroups" => "true" } );
+
+    return $list->{ grouped }->{ stories_id }->{ ngroups };
+}
+
 1;
