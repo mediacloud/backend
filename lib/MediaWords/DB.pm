@@ -117,57 +117,6 @@ sub connect_settings
     return $connect_settings;
 }
 
-sub get_db_labels
-{
-    my $all_settings = MediaWords::Util::Config::get_config->{ database };
-
-    defined( $all_settings ) or LOGCROAK( "No database connections configured" );
-
-    my @labels = map { $_->{ label } } @{ $all_settings };
-
-    return @labels;
-}
-
-sub _set_environment_vars_for_db
-{
-    my ( $label ) = @_;
-
-    my $connect_settings = connect_settings( $label );
-
-    $ENV{ 'PGPASSWORD' } = $connect_settings->{ pass };
-    $ENV{ 'PGPORT' }     = $connect_settings->{ port };
-    $ENV{ 'PGHOST' }     = $connect_settings->{ host };
-    $ENV{ 'PGDATABASE' } = $connect_settings->{ db };
-    $ENV{ 'PGUSER' }     = $connect_settings->{ user };
-}
-
-sub exec_psql_for_db
-{
-    my ( $label, @ARGS ) = @_;
-
-    _set_environment_vars_for_db( $label );
-
-    exec( 'psql', @ARGS );
-    die 'exec failed';
-}
-
-sub print_shell_env_commands_for_psql
-{
-    my ( $label, @ARGS ) = @_;
-
-    _set_environment_vars_for_db( $label );
-
-    my $psql_env_vars = [ qw ( PGPASSWORD PGHOST PGDATABASE PGUSER PGPORT) ];
-
-    foreach my $psql_env_var ( @{ $psql_env_vars } )
-    {
-        if ( $ENV{ $psql_env_var } )
-        {
-            say "export $psql_env_var=" . $ENV{ $psql_env_var };
-        }
-    }
-}
-
 my $_disable_story_triggers = 0;
 
 sub story_triggers_disabled
