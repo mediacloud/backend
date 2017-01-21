@@ -183,7 +183,7 @@ sub import_downloads
 
         my $db_download = $db->create( 'downloads', $download );
 
-        MediaWords::DBI::Downloads::store_content( $db, $db_download, \$decoded_content );
+        $download = MediaWords::DBI::Downloads::store_content( $db, $db_download, \$decoded_content );
 
         foreach my $story_element ( @$new_stories )
         {
