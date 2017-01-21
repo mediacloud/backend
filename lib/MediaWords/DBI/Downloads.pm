@@ -664,7 +664,8 @@ sub create_child_download_for_story
     {
         # delay download of content this many hours.  this is useful for sources that are likely to
         # significantly change content in the hours after it is first published.
-        $download->{ download_time } = \"now() + interval '$content_delay hours'";
+        my $download_at_timestamp = time() + ( int( $content_delay ) * 60 * 60 );
+        $download->{ download_time } = MediaWords::Util::SQL::get_sql_date_from_epoch( $download_at_timestamp );
     }
 
     $db->create( 'downloads', $download );
