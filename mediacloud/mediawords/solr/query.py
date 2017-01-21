@@ -8,7 +8,7 @@ import re
 from tokenize import generate_tokens
 
 from mediawords.util.log import create_logger
-from mediawords.util.perl import decode_string_from_bytes_if_needed
+from mediawords.util.perl import decode_object_from_bytes_if_needed
 
 l = create_logger(__name__)
 
@@ -498,7 +498,7 @@ def _get_tokens( query ):
 def parse( solr_query ):
     """ Parse a solr query and return a set of *Node objects that encapsulate the query in structured form."""
 
-    solr_query = "( " + decode_string_from_bytes_if_needed( solr_query ) + " )";
+    solr_query = "( " + decode_object_from_bytes_if_needed( solr_query ) + " )";
 
     tokens = _get_tokens( solr_query )
 
