@@ -11,8 +11,8 @@ def get_sql_date_from_epoch(epoch: int) -> str:
     # Returns local date by default, no need to set timezone
     try:
         return datetime.datetime.fromtimestamp(int(epoch)).strftime('%Y-%m-%d %H:%M:%S')
-    except( ValueError ):
-        # mimic perl's behavior of sending the 0 epoch date on an error
+    except ValueError:
+        # Mimic perl's behavior of sending the 0 epoch date on an error
         return '1970-01-01 00:00:00'
 
 
