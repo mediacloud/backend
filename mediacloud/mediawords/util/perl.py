@@ -61,25 +61,13 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
     if len(query_parameters) == 0:
         raise McConvertDBDPgArgumentsToPsycopg2FormatException('No query or its parameters.')
 
-    if not skip_decoding:
-        # Coming from Perl?
-        if isinstance(query_parameters[0], bytes):
-            query_parameters = decode_object_from_bytes_if_needed(query_parameters)
-
     query = query_parameters[0]
-
-    if isinstance(query, bytes):
-        raise McConvertDBDPgArgumentsToPsycopg2FormatException(
-            'Query "%s" is still "bytes"; did you forget to decode it to "string"?' % str(query)
-        )
+    query_args = query_parameters[1:]
 
     if len(query) == 0:
         raise McConvertDBDPgArgumentsToPsycopg2FormatException('Query is empty or undefined.')
-    query = str(query)
 
-    query_args = query_parameters[1:]
-
-    l.debug("Query to convert: %s; with arguments: %s" % (query, query_args))
+    query = decode_object_from_bytes_if_needed(query)
 
     # If psycopg2's tuple of dictionary parameters were passed, there's nothing for us to do
     if len(query_args) == 1 and (isinstance(query_args[0], tuple) or isinstance(query_args[0], dict)):
@@ -88,6 +76,11 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
     #
     # At this point, it should be a DBD::Pg's question mark-style query.
     #
+
+    if not skip_decoding:
+        query_args = decode_object_from_bytes_if_needed(query_args)
+
+    l.debug("Query to convert: %s; with arguments: %s" % (query, query_args))
 
     # If there are no query parameters, there's nothing more to do
     if len(query_args) == 0:
