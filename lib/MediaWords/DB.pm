@@ -21,7 +21,27 @@ sub connect_info
 {
     my ( $label ) = @_;
 
-    my $settings = connect_settings( $label );
+    # If this is Catalyst::Test run, force the label to the test database
+    if ( MediaWords::Test::DB::using_test_database() )
+    {
+        $label = 'test';
+    }
+
+    my $all_settings = MediaWords::Util::Config::get_config->{ database };
+
+    defined( $all_settings ) or LOGCROAK( "No database connections configured" );
+
+    my $settings;
+    if ( defined( $label ) )
+    {
+        $settings = first { $_->{ label } eq $label } @{ $all_settings }
+          or LOGCROAK "No database connection settings labeled '$label'";
+    }
+
+    unless ( defined( $settings ) )
+    {
+        $settings = $all_settings->[ 0 ];
+    }
 
     unless ( defined $settings )
     {
@@ -86,35 +106,6 @@ END_SQL
     $ret->query( $query );
 
     return $ret;
-}
-
-sub connect_settings
-{
-    my ( $label ) = @_;
-
-    # If this is Catalyst::Test run, force the label to the test database
-    if ( MediaWords::Test::DB::using_test_database() )
-    {
-        $label = 'test';
-    }
-
-    my $all_settings = MediaWords::Util::Config::get_config->{ database };
-
-    defined( $all_settings ) or LOGCROAK( "No database connections configured" );
-
-    my $connect_settings;
-    if ( defined( $label ) )
-    {
-        $connect_settings = first { $_->{ label } eq $label } @{ $all_settings }
-          or LOGCROAK "No database connection settings labeled '$label'";
-    }
-
-    unless ( defined( $connect_settings ) )
-    {
-        $connect_settings = $all_settings->[ 0 ];
-    }
-
-    return $connect_settings;
 }
 
 my $_disable_story_triggers = 0;
