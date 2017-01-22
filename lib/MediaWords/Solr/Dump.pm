@@ -234,7 +234,7 @@ declare csr cursor for
         s.stories_id || '!' || 0 solr_id,
         to_char( date_trunc( 'minute', s.publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_date,
         to_char( date_trunc( 'hour', s.publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_day,
-        0,
+        0 as sentence_number,
         null sentence,
         s.title,
         s.language
