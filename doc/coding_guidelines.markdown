@@ -54,12 +54,14 @@ the story of what the code is doing. A rule of thumb is that no single function 
 
 * Comment every function - Add a brief (generally one line, up to a few lines) comment before every function definition.
 
+----
+
 # SQL Guidelines
 
-* Every table name should be plural ('stories' not 'story').
+* Every table name should be plural (`stories` not `story`).
 
-* Mapping tables should be names *table1*_*table2*_map (for example 'stories_tags_map').
+* Mapping tables should be names `*table1*_*table2*_map` (for example `stories_tags_map`).
 
-* Other than mapping tables or for good performance reasons, every table should have a serial primary key called *table*_id (for example 'stories_id').
+* Other than mapping tables or for good performance reasons, every table should have a serial primary key called `*table*_id` (for example `stories_id`).
 
 * Always follow proper denormalization principles unless there's a good reason not to.
