@@ -248,7 +248,7 @@ END
     if ( $@ )
     {
         MediaWords::DBI::Stories::fix_story_downloads_if_needed( $db, $story );
-        $download = $db->find_by_id( 'downloads', $download->{ downloads_id } );
+        $download = $db->find_by_id( 'downloads', int( $download->{ downloads_id } ) );
         eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download ); };
         WARN "Error refetching content: $@" if ( $@ );
     }
@@ -714,7 +714,7 @@ END
     my $source_story;
     if ( $source_link && $source_link->{ stories_id } )
     {
-        $source_story = $db->find_by_id( 'stories', $source_link->{ stories_id } );
+        $source_story = $db->find_by_id( 'stories', int( $source_link->{ stories_id } ) );
         $story->{ publish_date } = $source_story->{ publish_date };
     }
 
@@ -1451,7 +1451,7 @@ sub skip_topic_story
 select 1 from stories_tags_map where stories_id = ? and tags_id = ?
 END
 
-    my $ss = $db->find_by_id( 'stories', $link->{ stories_id } );
+    my $ss = $db->find_by_id( 'stories', int( $link->{ stories_id } ) );
     return 0 if ( $ss->{ media_id } && ( $ss->{ media_id } != $story->{ media_id } ) );
 
     return 1 if ( _skip_self_linked_domain( $db, $link ) );
@@ -1551,7 +1551,7 @@ sub _skip_self_linked_domain
     # only skip if the media source of the linking story is the same as the media source of the linked story.  we can't
     # know the media source of the linked story without adding it first, though, which we want to skip because it's time
     # expensive to do so.  so we just compare the url domain as a proxy for media source instead.
-    my $source_story = $db->find_by_id( 'stories', $link->{ stories_id } );
+    my $source_story = $db->find_by_id( 'stories', int( $link->{ stories_id } ) );
 
     my $source_domain = MediaWords::Util::URL::get_url_distinctive_domain( $source_story->{ url } );
 
