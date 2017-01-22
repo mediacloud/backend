@@ -388,7 +388,7 @@ sub _get_intersection_of_id_array_refs
 
     my $list = [ keys( %{ $id_lookup } ) ];
 
-    $list = map { int( $_ ) } @{ $list };
+    $list = [ map { int( $_ ) } @{ $list } ];
 
     return $list;
 }
