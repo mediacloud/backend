@@ -35,14 +35,27 @@ class DatabaseResult(object):
 
         try:
             cursor.execute(*query_args)
+
         except psycopg2.Warning as ex:
             if print_warnings:
                 l.warn('Warning while running query: %s' % str(ex))
             else:
                 l.debug('Warning while running query: %s' % str(ex))
+
+        except psycopg2.ProgrammingError as ex:
+            raise McDatabaseResultException(
+                'Invalid query: %(exception)s; query: %(query)s' % {
+                    'exception': str(ex),
+                    'query': str(query_args),
+                })
+        
         except psycopg2.Error as ex:
-            l.debug("Mogrified query: %s" % cursor.mogrify(*query_args))
-            raise McDatabaseResultException('Query failed: %s' % str(ex))
+            raise McDatabaseResultException(
+                'Query failed: %(exception)s; query: %(query)s; mogrified query: %(mogrified_query)s' % {
+                    'exception': str(ex),
+                    'query': str(query_args),
+                    'mogrified_query': str(cursor.mogrify(*query_args)),
+                })
 
         self.__cursor = cursor  # Cursor now holds results
 
