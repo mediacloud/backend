@@ -345,14 +345,12 @@ sub create_topic
         }
     );
 
-    $db->create(
-        'topic_dates',
-        {
-            topics_id  => $topic->{ topics_id },
-            start_date => \"now() - interval '1 month'",
-            end_date   => \"now() + interval '1 month'",
-            boundary   => 't'
-        }
+    $db->query(
+        <<SQL,
+        INSERT INTO topic_dates (topics_id, start_date, end_date, boundary)
+        VALUES (?, ?, NOW() - interval '1 month', NOW() + interval '1 month', 't')
+SQL
+        $topic->{ topics_id }
     );
 
     seed_unlinked_urls( $db, $topic, $sites );
