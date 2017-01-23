@@ -93,9 +93,12 @@ sub create_test_medium
     return $db->create(
         'media',
         {
-            name      => $label,
-            url       => "http://media.test/$label",
-            moderated => 't',
+            name         => $label,
+            url          => "http://media.test/$label",
+            moderated    => 't',
+            is_monitored => 't',
+            public_notes => "$label public notes",
+            editor_notes => "$label editor notes"
         }
     );
 }

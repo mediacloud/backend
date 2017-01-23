@@ -90,11 +90,16 @@ SQL
 
 sub default_output_fields
 {
-    my ( $self ) = @_;
+    my ( $self, $c ) = @_;
 
-    my $fields = [ qw ( name url media_id primary_language ) ];
+    my $fields = [ qw ( name url media_id primary_language is_monitored public_notes ) ];
 
     push( @{ $fields }, qw ( inlink_count outlink_count story_count ) ) if ( $self->{ topic_media } );
+
+    if ( grep { $MediaWords::DBI::Auth::Roles::ADMIN eq $_ } @{ $c->stash->{ api_auth }->{ roles } } )
+    {
+        push( @{ $fields }, 'editor_notes' );
+    }
 
     return $fields;
 }

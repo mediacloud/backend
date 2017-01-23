@@ -473,7 +473,7 @@ sub test_media_list_call($$)
         my ( $expected_medium ) = grep { $_->{ media_id } eq $got_medium->{ media_id } } @{ $expected_media };
         ok( $expected_medium, "$label medium $got_medium->{ media_id } expected" );
 
-        my $fields = [ qw/name url is_healthy/ ];
+        my $fields = [ qw/name url is_healthy is_monitored editor_notes public_notes/ ];
         map { ok( defined( $got_medium->{ $_ } ), "$label field $_ defined" ) } @{ $fields };
         map { is( $got_medium->{ $_ }, $expected_medium->{ $_ }, "$label field $_" ) } @{ $fields };
 

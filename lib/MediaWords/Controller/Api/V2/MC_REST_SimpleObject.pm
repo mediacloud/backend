@@ -43,11 +43,11 @@ Readonly my $ROWS_PER_PAGE => 20;
 
 sub _purge_extra_fields
 {
-    my ( $self, $obj ) = @_;
+    my ( $self, $c, $obj ) = @_;
 
     my $new_obj = {};
 
-    foreach my $default_output_field ( @{ $self->default_output_fields() } )
+    foreach my $default_output_field ( @{ $self->default_output_fields( $c ) } )
     {
         $new_obj->{ $default_output_field } = $obj->{ $default_output_field };
     }
@@ -57,9 +57,9 @@ sub _purge_extra_fields
 
 sub _purge_extra_fields_obj_list
 {
-    my ( $self, $list ) = @_;
+    my ( $self, $c, $list ) = @_;
 
-    return [ map { $self->_purge_extra_fields( $_ ) } @{ $list } ];
+    return [ map { $self->_purge_extra_fields( $c, $_ ) } @{ $list } ];
 }
 
 sub _purge_non_permissible_fields
@@ -116,9 +116,9 @@ sub _process_result_list
 {
     my ( $self, $c, $items, $all_fields ) = @_;
 
-    if ( $self->default_output_fields() && !$all_fields )
+    if ( $self->default_output_fields( $c ) && !$all_fields )
     {
-        $items = $self->_purge_extra_fields_obj_list( $items );
+        $items = $self->_purge_extra_fields_obj_list( $c, $items );
     }
 
     if ( $self->has_extra_data() )
