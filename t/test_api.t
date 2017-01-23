@@ -1014,7 +1014,7 @@ sub test_suggestions_list_results($$$)
         my ( $expected_ms ) =
           grep { $_->{ media_suggestions_id } == $got_ms->{ media_suggestions_id } } @{ $expected_results };
         ok( $expected_ms, "$label returned ms $got_ms->{ media_suggestions_id } matches db row" );
-        for my $field ( qw/status url name feed_url reason media_id mark_reason/ )
+        for my $field ( qw/status url name feed_url reason media_id mark_reason user/ )
         {
             is( $got_ms->{ $field }, $expected_ms->{ $field }, "$label field $field" );
         }
@@ -1031,7 +1031,7 @@ sub test_media_suggestions_list($)
 
     my $num_status_ms = 10;
 
-    my ( $auth_users_id ) = $db->query( "select auth_users_id from auth_users limit 1" )->flat;
+    my ( $auth_users_id, $email ) = $db->query( "select auth_users_id from auth_users limit 1" )->flat;
 
     my $ms_db     = [];
     my $media_ids = $db->query( "select media_id from media" )->flat;
@@ -1064,6 +1064,8 @@ sub test_media_suggestions_list($)
             }
 
             $ms = $db->create( 'media_suggestions', $ms );
+
+            $ms->{ email } = $email;
 
             if ( $i % 2 )
             {

@@ -949,7 +949,8 @@ Output:
 ```json
 [
   {
-    "user": "hroberts@cyber.law.harvard.edu",
+    "email": "hroberts@cyber.law.harvard.edu",
+    "auth_users_id": 123,
     "url": "http://mediacloud.org",
     "feed_url": "http://mediacloud.org/feed/",
     "reason": "Media Cloud is a great project",

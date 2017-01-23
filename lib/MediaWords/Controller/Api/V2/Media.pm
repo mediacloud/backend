@@ -537,8 +537,13 @@ SQL
 
     my $clause_list = join( ' and ', @{ $clauses } );
 
-    my $media_suggestions =
-      $db->query( "select * from media_suggestions where $clause_list order by date_submitted" )->hashes;
+    my $media_suggestions = $db->query( <<SQL )->hashes;
+select u.email email, *
+    from media_suggestions ms
+        join auth_users u using ( auth_users_id )
+    where $clause_list
+    order by date_submitted
+SQL
 
     $db->attach_child_query( $media_suggestions, <<SQL, 'tags_ids', 'media_suggestions_id' );
 select tags_id, media_suggestions_id from media_suggestions_tags_map
