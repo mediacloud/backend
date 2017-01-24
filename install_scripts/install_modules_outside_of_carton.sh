@@ -33,6 +33,9 @@ $CPANM Carton~1.0.22
 
 $CPANM List::MoreUtils
 
+# Always print stack traces when die()ing
+$CPANM Carp::Always
+
 # Install profiler and tools
 $CPANM Devel::NYTProf
 $CPANM Devel::Cover
