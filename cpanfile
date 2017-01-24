@@ -9,6 +9,7 @@
 # 9.
 requires 'AI::DecisionTree';
 requires 'Array::Compare';
+requires 'Carp::Always';
 requires 'Carton::CLI';
 requires 'Catalyst', '5.90030';
 requires 'Catalyst::Action::RenderView';
