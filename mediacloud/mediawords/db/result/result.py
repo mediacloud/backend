@@ -48,7 +48,14 @@ class DatabaseResult(object):
                     'exception': str(ex),
                     'query': str(query_args),
                 })
-        
+
+        except IndexError as ex:
+            raise McDatabaseResultException(
+                'Invalid query (DBD::Pg -> psycopg2 query conversion?): %(exception)s; query: %(query)s' % {
+                    'exception': str(ex),
+                    'query': str(query_args),
+                })
+
         except psycopg2.Error as ex:
             raise McDatabaseResultException(
                 'Query failed: %(exception)s; query: %(query)s; mogrified query: %(mogrified_query)s' % {
