@@ -61,7 +61,15 @@ sub make_python_variable_writable
     {
         # Inline::Python booleans
 
-        $copy = int( "$variable" ) ? 1 : 0;    # Cast to int
+        $copy = int( "$variable" );
+        if ( $copy )
+        {
+            $copy = $Inline::Python::Boolean::true;
+        }
+        else
+        {
+            $copy = $Inline::Python::Boolean::false;
+        }
 
     }
     elsif ( ref( $variable ) )
