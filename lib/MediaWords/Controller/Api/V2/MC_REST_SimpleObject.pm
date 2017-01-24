@@ -134,7 +134,7 @@ sub _process_result_list
 
         if ( $nested_data )
         {
-            $self->_add_nested_data( $c->dbis, $items );
+            $items = $self->_add_nested_data( $c->dbis, $items );
         }
     }
 
