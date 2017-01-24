@@ -95,7 +95,6 @@ sub fetch_download($$$)
 
     $download->{ download_time } = MediaWords::Util::SQL::sql_now;
     $download->{ state }         = 'fetching';
-    $download->{ extracted }     = normalize_boolean_for_db( $download->{ extracted } );
 
     $db->update_by_id( "downloads", $download->{ downloads_id }, $download );
 
