@@ -62,7 +62,7 @@ nosetests --detailed-errors --where=mediacloud/
 
 echo "Running Perl unit tests..."
 TEST_FILES=`find lib script t -name '*.t'`
-./script/run_carton.sh exec prove -Ilib/ $* $TEST_FILES || {
+PERL5OPT=-MCarp::Always ./script/run_carton.sh exec prove -Ilib/ $* $TEST_FILES || {
     echo "One or more unit tests have failed with error code $?."
     exit 1
 }
