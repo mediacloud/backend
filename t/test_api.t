@@ -761,8 +761,6 @@ sub test_put_tags($$)
     test_put( $url, [ { tags_id   => $first_tags_id } ], 1 );    # require id
     test_put( $url, [ { $id_field => $first_row_id } ],  1 );    # require tag
 
-    DEBUG( "END PUT TAG ERROR TESTS" );
-
     test_add_tags( $db, $table, $rows, $tag_sets, 'id' );
     test_add_tags( $db, $table, $rows, $tag_sets, 'name' );
     test_remove_tags( $db, $table, $rows, $tag_sets, 'id' );

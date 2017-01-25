@@ -63,7 +63,15 @@ use MediaWords::Util::Config;
     #
 
     use Moose::Role;
-    with 'MediaCloud::JobManager::Job';
+    with 'MediaCloud::JobManager::Job' => {
+
+        # this alias magic is required to be able to override the MediaCloud::JobManager::Job::add_to_queue
+        # helper function -- it reassigns that helper function to $class->_role_add_to_queue so that
+        # we can define our own $class->add_to_queue()
+        -alias    => { add_to_queue => '_role_add_to_queue' },
+        -excludes => [ 'add_to_queue' ]
+    };
+
     use MediaWords::CommonLibs;
 
     use Readonly;
@@ -138,18 +146,18 @@ use MediaWords::Util::Config;
     }
 
     ## override add_to_queue method to add state actions
-    sub add_to_queue($$;$)
+    sub add_to_queue($;$$)
     {
-        my ( $self, $args, $priority ) = @_;
+        my ( $class, $args, $priority ) = @_;
 
-        if ( $self->use_job_state() )
+        if ( $class->use_job_state() )
         {
             my $db = MediaWords::DB::connect_to_db();
-            my $job_states_id = $self->_create_queued_job_state( $db, $args, $priority );
+            my $job_states_id = $class->_create_queued_job_state( $db, $args, $priority );
             $args->{ job_states_id } = $job_states_id;
         }
 
-        $self->SUPER::add_to_queue( $args, $priority );
+        $class->_role_add_to_queue( $args, $priority );
     }
 
     # sub classes that use jbo state should implement run_statefully intead of run() to make sure that
