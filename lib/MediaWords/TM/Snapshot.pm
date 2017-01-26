@@ -53,9 +53,10 @@ use List::Util;
 use XML::Simple;
 use Readonly;
 
-use MediaWords::TM::Model;
 use MediaWords::DBI::Media;
+use MediaWords::Job::TM::SnapshotTopic;
 use MediaWords::Solr;
+use MediaWords::TM::Model;
 use MediaWords::Util::CSV;
 use MediaWords::Util::Colors;
 use MediaWords::Util::Config;
@@ -1484,15 +1485,6 @@ sub update_timespan_counts ($$;$)
     }
 }
 
-# update the state field in the snapshot
-sub _update_snapshot_state
-{
-    my ( $db, $cd, $state ) = @_;
-
-    DEBUG( "set snapshot state: $state" );
-    $db->update_by_id( 'snapshots', $cd->{ snapshots_id }, { state => $state } );
-}
-
 # generate the snapshot timespans for the given period, dates, and tag
 sub generate_timespan ($$$$$$)
 {
@@ -1505,7 +1497,7 @@ sub generate_timespan ($$$$$$)
 
     DEBUG( "generating $snapshot_label ..." );
 
-    _update_snapshot_state( $db, $cd, "snapshotting $snapshot_label" );
+    MediaWords::Job::TM::SnapshotTopic->update_job_state( $db, "snapshotting $snapshot_label" );
 
     my $all_models_top_media = MediaWords::TM::Model::get_all_models_top_media( $db, $timespan );
 
@@ -1988,42 +1980,30 @@ sub snapshot_topic ($$)
 
     my ( $start_date, $end_date ) = get_default_dates( $db, $topic );
 
-    my $cd = create_snapshot_row( $db, $topic, $start_date, $end_date );
+    my $snap = create_snapshot_row( $db, $topic, $start_date, $end_date );
 
-    eval {
-        _update_snapshot_state( $db, $cd, "snapshotting data" );
+    MediaWords::Job::TM::SnapshotTopic->update_job_state_args( $db, { snapshots_id => $snap->{ snapshots_id } } );
+    MediaWords::Job::TM::SnapshotTopic->update_job_state( $db, "snapshotting data" );
 
-        write_temporary_snapshot_tables( $db, $topic );
+    write_temporary_snapshot_tables( $db, $topic );
 
-        generate_snapshots_from_temporary_snapshot_tables( $db, $cd );
+    generate_snapshots_from_temporary_snapshot_tables( $db, $snap );
 
-        # generate null focus timespan snapshots
-        map { generate_period_snapshot( $db, $cd, $_, undef ) } ( @{ $periods } );
+    # generate null focus timespan snapshots
+    map { generate_period_snapshot( $db, $snap, $_, undef ) } ( @{ $periods } );
 
-        generate_period_focus_snapshots( $db, $cd, $periods );
+    generate_period_focus_snapshots( $db, $snap, $periods );
 
-        _update_snapshot_state( $db, $cd, "finalizing snapshot" );
+    MediaWords::Job::TM::SnapshotTopic->update_job_state( $db, "finalizing snapshot" );
 
-        write_date_counts_snapshot( $db, $cd, 'daily' );
-        write_date_counts_snapshot( $db, $cd, 'weekly' );
+    write_date_counts_snapshot( $db, $snap, 'daily' );
+    write_date_counts_snapshot( $db, $snap, 'weekly' );
 
-        _export_stories_to_solr( $db, $cd );
+    _export_stories_to_solr( $db, $snap );
 
-        analyze_snapshot_tables( $db );
+    analyze_snapshot_tables( $db );
 
-        discard_temp_tables( $db );
-    };
-    if ( $@ )
-    {
-        my $error = $@;
-        ERROR( "snapshot failed: $error" );
-        _update_snapshot_state( $db, $cd, "snapshot failed" );
-        $db->update_by_id( 'snapshots', $cd->{ snapshots_id }, { error_message => $error } );
-    }
-    else
-    {
-        _update_snapshot_state( $db, $cd, "completed" );
-    }
+    discard_temp_tables( $db );
 }
 
 1;

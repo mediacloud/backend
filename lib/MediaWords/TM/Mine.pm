@@ -112,13 +112,15 @@ sub init_static_variables
 }
 
 # update topics.state in the database
-sub update_topic_state
+sub update_topic_state($$$;$)
 {
-    my ( $db, $topic, $state ) = @_;
+    my ( $db, $topic, $state, $message ) = @_;
 
-    INFO( $state );
-
-    $db->update_by_id( 'topics', $topic->{ topics_id }, { state => "$state" } );
+    eval { MediaWords::Job::TM::MineTopic->update_job_state( $db, $state, $message ) };
+    if ( $@ )
+    {
+        die( "error updating job state (mine_topic() must be called from MediaWords::Job::TM::MineTopic): $@" );
+    }
 }
 
 # fetch each link and add a { redirect_url } field if the
@@ -1940,7 +1942,7 @@ select count(*) from topic_links where topics_id = ? and ref_stories_id is null
 SQL
 
     return <<END;
-spidering iteration: $iteration; stories last / total iteration: $stories_last_iteration/ $total_stories; links queued: $queued_links; iteration links: $link_num / $total_links
+spidering iteration: $iteration; stories last iteration / total: $stories_last_iteration/ $total_stories; links queued: $queued_links; iteration links: $link_num / $total_links
 END
 
 }
@@ -3095,8 +3097,7 @@ sub mine_topic ($$;$)
 
         ERROR( "topic mining failed: $@" );
 
-        update_topic_state( $db, $topic, "spidering failed" );
-        $db->update_by_id( 'topics', $topic->{ topics_id }, { error_message => $error } );
+        update_topic_state( $db, $topic, "error", $error );
     }
 
     $_test_mode = $prev_test_mode;

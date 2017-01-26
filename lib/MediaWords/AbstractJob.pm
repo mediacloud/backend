@@ -170,6 +170,48 @@ use MediaWords::Util::Config;
         LOGCONFESS( "classes that return true for use_job_states() must implement run_statefully() or run()" );
     }
 
+    # return the job_states row associated with the currently running job
+    sub get_current_job_state($$)
+    {
+        my ( $self, $db ) = @_;
+
+        LOGDIE( "no stateful job is currently running" ) unless ( $_current_job_states_id );
+
+        return $db->require_by_id( 'job_states', $_current_job_states_id );
+    }
+
+    # to make update_job_state update a state field in a table, make this method return a
+    # hash in the form of { table => $table, state_field => $state_field, message_field => $message_field }
+    sub get_state_table_info($)
+    {
+        return undef;
+    }
+
+    # if get_state_table_info returns a value, update the state and message fields in the given table for the
+    # row whose '<table>_id' field matches that field in the job args
+    sub _update_table_state($$$;$)
+    {
+        my ( $self, $db, $job_state ) = @_;
+
+        my $table_info = $self->get_state_table_info() || return;
+
+        my $args = MediaWords::Util::JSON::decode_json( $job_state->{ args } );
+
+        my $id_field = $table_info->{ table } . '_id';
+        my $id_value = $args->{ $id_field };
+
+        # sometimes there is not a relevant <table>_id until some of the code in run_statefully() has run,
+        # for instance SnapshotTopic needs to create the snapshot.
+        return unless ( $id_value );
+
+        my $update = {
+            $table_info->{ state }   => $job_state->{ state },
+            $table_info->{ message } => $job_state->{ message }
+        };
+
+        $db->update_by_id( $table_info->{ table }, $id_value, $update );
+    }
+
     # update the 'state' field of the job_states table for the currently active job_states_id.
     # jobs_states_id is set and unset in sub run() below, so this must be called from code running
     # from within the run_statefully() implementation of the sub class.
@@ -177,10 +219,12 @@ use MediaWords::Util::Config;
     {
         my ( $self, $db, $state, $message ) = @_;
 
+        DEBUG( $self->name . " state: $state" );
+
         my $job_states_id = $_current_job_states_id;
         LOGCONFESS( "must be called from inside of MediaWords::AbstractJob::run_statefully" ) unless ( $job_states_id );
 
-        $db->update_by_id(
+        my $job_state = $db->update_by_id(
             'job_states',
             $job_states_id,
             {
@@ -189,6 +233,28 @@ use MediaWords::Util::Config;
                 message      => $message || ''
             }
         );
+
+        $self->_update_table_state( $db, $job_state );
+    }
+
+    # update the args field for the current job_state row
+    sub update_job_state_args($$$)
+    {
+        my ( $self, $db, $update ) = @_;
+
+        my $job_states_id = $_current_job_states_id;
+        LOGCONFESS( "must be called from inside of MediaWords::AbstractJob::run_statefully" ) unless ( $job_states_id );
+
+        my $job_state = $db->require_by_id( 'job_states', $job_states_id );
+
+        my $args_data = MediaWords::Util::JSON::decode_json( $job_state->{ args } );
+
+        map { $args_data->{ $_ } = $update->{ $_ } } ( keys( %{ $update } ) );
+
+        my $args_json = MediaWords::Util::JSON::encode_json( $args_data );
+
+        $db->update_by_id( 'job_states', $job_state->{ job_states_id }, { args => $args_json } );
+
     }
 
     # set job state to running, call run_statefully, either catch any errors and set state to error and save

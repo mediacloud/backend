@@ -27,6 +27,7 @@ use Readonly;
 use Test::More;
 use Text::Lorem::More;
 
+use MediaWords::Job::TM::MineTopic;
 use MediaWords::TM::Mine;
 use MediaWords::Test::DB;
 use MediaWords::Util::Config;
@@ -446,11 +447,11 @@ sub test_for_errors
 {
     my ( $db ) = @_;
 
-    my $error_topics = $db->query( "select * from topics where error_message is not null" )->hashes;
+    my $error_topics = $db->query( "select * from topics where length( error_message ) > 0" )->hashes;
 
     ok( scalar( @{ $error_topics } ) == 0, "topic errors: " . Dumper( $error_topics ) );
 
-    my $error_snapshots = $db->query( "select * from snapshots where error_message is not null" )->hashes;
+    my $error_snapshots = $db->query( "select * from snapshots where length( error_message ) > 0" )->hashes;
 
     ok( scalar( @{ $error_snapshots } ) == 0, "snapshot errors: " . Dumper( $error_snapshots ) );
 }
@@ -513,15 +514,18 @@ sub test_spider
     # topic date modeling confuses perl TAP for some reason
     MediaWords::Util::Config::get_config()->{ mediawords }->{ topic_model_reps } = 0;
 
-    my $mine_options = {
-        skip_post_processing            => 1,    #
-        cache_broken_downloads          => 0,    #
-        import_only                     => 0,    #
-        skip_outgoing_foreign_rss_links => 0,    #
+    my $mine_args = {
+        topics_id                       => $topic->{ topics_id },
+        skip_post_processing            => 1,                       #
+        cache_broken_downloads          => 0,                       #
+        import_only                     => 0,                       #
+        skip_outgoing_foreign_rss_links => 0,                       #
         test_mode                       => 1
     };
 
-    MediaWords::TM::Mine::mine_topic( $db, $topic, $mine_options );
+    MediaWords::Job::TM::MineTopic->run_locally( $mine_args );
+
+    # MediaWords::TM::Mine::mine_topic( $db, $topic, $mine_options );
 
     test_spider_results( $db, $topic, $sites );
 
@@ -532,13 +536,7 @@ sub test_spider
 
 sub main
 {
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my ( $db ) = @_;
-
-            test_spider( $db );
-        }
-    );
+    MediaWords::Test::Supervisor::test_with_supervisor( \&test_spider, [ 'job_broker:rabbitmq' ] );
 }
 
 main();

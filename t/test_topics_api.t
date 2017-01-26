@@ -180,7 +180,7 @@ sub create_test_data
         }
     }
 
-    MediaWords::TM::Snapshot::snapshot_topic( $test_db, $topic->{ topics_id } );
+    MediaWords::Job::TM::SnapshotTopic->run_locally( { topics_id => $topic->{ topics_id } } );
 
 }
 
@@ -345,40 +345,40 @@ sub _test_sort
     is_deeply( $actual_stories_inlink_counts, $expected_counts, 'expected stories' );
 }
 
+sub test_topics_api
+{
+    my $db = shift;
+
+    my $stories = {
+        A => {
+            B => [ 1, 2, 3 ],
+            C => [ 4, 5, 6, 15 ]
+        },
+        D => { E => [ 7, 8, 9 ] },
+        F => {
+            G => [ 10, ],
+            H => [ 11, 12, 13, 14, ]
+        }
+    };
+
+    my $topic_media = create_stories( $db, $stories );
+
+    create_test_data( $db, $topic_media );
+    $TEST_API_KEY = MediaWords::Test::DB::create_test_user( $db );
+    test_story_count();
+    test_default_sort( $stories );
+    test_social_sort( $stories );
+    test_media_list( $stories );
+}
+
 sub main
 {
     # topic date modeling confuses perl TAP for some reason
     MediaWords::Util::Config::get_config()->{ mediawords }->{ topic_model_reps } = 0;
 
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
+    MediaWords::Test::Supervisor::test_with_supervisor( \&test_topics_api, [ 'job_broker:rabbitmq' ] );
 
-            my $db = shift;
-
-            my $stories = {
-                A => {
-                    B => [ 1, 2, 3 ],
-                    C => [ 4, 5, 6, 15 ]
-                },
-                D => { E => [ 7, 8, 9 ] },
-                F => {
-                    G => [ 10, ],
-                    H => [ 11, 12, 13, 14, ]
-                }
-            };
-
-            my $topic_media = create_stories( $db, $stories );
-
-            create_test_data( $db, $topic_media );
-            $TEST_API_KEY = MediaWords::Test::DB::create_test_user( $db );
-            test_story_count();
-            test_default_sort( $stories );
-            test_social_sort( $stories );
-            test_media_list( $stories );
-
-            done_testing();
-        }
-    );
+    done_testing();
 }
 
 main();

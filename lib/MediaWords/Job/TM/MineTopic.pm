@@ -41,12 +41,20 @@ use MediaWords::CommonLibs;
 use MediaWords::TM::Mine;
 use MediaWords::DB;
 
-# Run job
-sub run($;$)
+sub use_job_state
 {
-    my ( $self, $args ) = @_;
+    return 1;
+}
 
-    my $db = MediaWords::DB::connect_to_db();
+sub get_state_table_info
+{
+    return { table => 'topics', state => 'state', message => 'error_message' };
+}
+
+# Run job
+sub run_statefully($$;$)
+{
+    my ( $self, $db, $args ) = @_;
 
     my $topics_id                       = $args->{ topics_id };
     my $import_only                     = $args->{ import_only } // 0;

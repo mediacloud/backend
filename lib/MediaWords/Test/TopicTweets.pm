@@ -20,10 +20,11 @@ use Test::More;
 use Storable qw(dclone);
 
 use MediaWords::TM;
-use MediaWords::TM::Mine;
+use MediaWords::Job::TM::MineTopic;
 use MediaWords::Test::DB;
 use MediaWords::Test::Data;
 use MediaWords::Test::ExternalAPI;
+use MediaWords::Test::Supervisor;
 use MediaWords::Util::Config;
 use MediaWords::Util::JSON;
 
@@ -543,7 +544,7 @@ SQL
     $new_config->{ mediawords }->{ topic_model_reps } = 0;
     MediaWords::Util::Config::set_config( $new_config );
 
-    MediaWords::TM::Mine::mine_topic( $db, $topic, { test_mode => 1 } );
+    MediaWords::Job::TM::MineTopic->run_locally( { topics_id => $topic->{ topics_id }, test_mode => 1 } );
 
     my $test_dates = get_test_dates();
     for my $date ( @{ $test_dates } )
@@ -587,7 +588,7 @@ sub run_tests_on_external_apis
     }
     else
     {
-        MediaWords::Test::DB::test_on_test_database( \&test_fetch_topic_tweets );
+        MediaWords::Test::Supervisor::test_with_supervisor( \&test_fetch_topic_tweets, [ 'job_broker:rabbitmq' ] );
     }
 
     done_testing();
@@ -614,7 +615,7 @@ sub run_tests_on_mock_apis
     map { $new_config->{ twitter }->{ $_ } = 'TEST' } qw/consumer_key consumer_secret access_token access_token_secret/;
     MediaWords::Util::Config::set_config( $new_config );
 
-    eval { MediaWords::Test::DB::test_on_test_database( \&test_fetch_topic_tweets ); };
+    eval { MediaWords::Test::Supervisor::test_with_supervisor( \&test_fetch_topic_tweets, [ 'job_broker:rabbitmq' ] ); };
     my $test_error = $@;
 
     $hs->stop();
