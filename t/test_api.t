@@ -904,7 +904,7 @@ sub test_tag_sets($)
     validate_db_row( $db, 'tag_sets', $r->{ tag_set }, $update_input, 'update tag set' );
 }
 
-# test feed create, update, and list
+# test feeds/* end points
 sub test_feeds($)
 {
     my ( $db ) = @_;
@@ -941,6 +941,14 @@ sub test_feeds($)
 
     $r = test_put( '/api/v2/feeds/update', $update_input );
     validate_db_row( $db, 'feeds', $r->{ feed }, $update_input, 'update feed' );
+
+    $r = test_put( '/api/v2/feeds/scrape', { media_id => $medium->{ media_id } } );
+    ok( $r->{ job_state }, "feeds/scrape job state returned" );
+    is( $r->{ job_state }->{ media_id }, $medium->{ media_id }, "feeds/scrape media_id" );
+    ok( $r->{ job_state }->{ state } ne 'error', "feeds/scrape job state is not an error" );
+
+    $r = test_get( '/api/v2/feeds/scrape_status', { media_id => $medium->{ media_id } } );
+    is( $r->{ job_states }->[ 0 ]->{ media_id }, $medium->{ media_id }, "feeds/scrape_status media_id" );
 }
 
 # test the media/submit_suggestion call
@@ -1178,6 +1186,7 @@ sub test_api($)
     test_media( $db, $media );
     test_tag_sets( $db );
     test_feeds( $db );
+
     test_tags( $db );
     test_media_suggestions( $db );
 
