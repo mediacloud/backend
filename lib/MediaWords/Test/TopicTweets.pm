@@ -296,12 +296,11 @@ SQL
 # ch + twitter json data stored in topic_tweets and generating a link list using perl
 sub validate_story_links
 {
-    my ( $db, $twitter_topic, $timespan ) = @_;
+    my ( $db, $topic, $timespan ) = @_;
 
     my $label = "$timespan->{ period } timespan for $timespan->{ start_date }";
 
-    my $topic_tweets =
-      $db->query( <<SQL, $twitter_topic->{ twitter_parent_topics_id }, $timespan->{ timespans_id } )->hashes;
+    my $topic_tweets = $db->query( <<SQL, $topic->{ topics_id }, $timespan->{ timespans_id } )->hashes;
 select tt.*, date_trunc( 'day', tt.publish_date ) publish_day
     from topic_tweets tt
         join topic_tweet_days ttd using ( topic_tweet_days_id )
@@ -328,7 +327,7 @@ SQL
 
         for my $url ( @{ $urls } )
         {
-            my $story = $db->query( <<SQL, $twitter_topic->{ topics_id }, $url )->hash;
+            my $story = $db->query( <<SQL, $topic->{ topics_id }, $url )->hash;
 select s.*
     from stories s
         join topic_seed_urls u using ( stories_id )
@@ -406,7 +405,7 @@ SQL
 # verify the the snapshot has only stories shared the given timespan and links for coshares between tweets during timespan
 sub validate_timespan($$$)
 {
-    my ( $db, $twitter_topic, $timespan ) = @_;
+    my ( $db, $topic, $timespan ) = @_;
 
     my $timespans_id  = $timespan->{ timespans_id };
     my $timespan_date = $timespan->{ start_date };
@@ -417,7 +416,7 @@ sub validate_timespan($$$)
 select * from snap.story_link_counts where timespans_id = \$1
 SQL
 
-    my ( $expected_num_stories ) = $db->query( <<SQL, $twitter_topic->{ topics_id }, $timespans_id )->flat;
+    my ( $expected_num_stories ) = $db->query( <<SQL, $topic->{ topics_id }, $timespans_id )->flat;
 select count( distinct stories_id )
     from topic_tweet_full_urls ttfu
         join timespans t on ( timespans_id = \$2 )
@@ -426,21 +425,21 @@ select count( distinct stories_id )
             ( t.period = 'overall' ) or
             ( ttfu.publish_date between t.start_date and t.end_date )
         ) and
-        ttfu.twitter_topics_id = \$1
+        ttfu.topics_id = \$1
 SQL
 
     ok( $expected_num_stories > 0, "$label: num of stories > 0" );
     is( scalar( @{ $story_link_counts } ), $expected_num_stories, "$label: number of stories" );
 
-    validate_story_links( $db, $twitter_topic, $timespan );
+    validate_story_links( $db, $topic, $timespan );
 }
 
 # verify that the data in each of the  snapshots is correct
 sub validate_timespans($$)
 {
-    my ( $db, $twitter_topic ) = @_;
+    my ( $db, $topic ) = @_;
 
-    my $timespans = $db->query( <<SQL, $twitter_topic->{ topics_id } )->hashes;
+    my $timespans = $db->query( <<SQL, $topic->{ topics_id } )->hashes;
 select t.*
     from timespans  t
         join snapshots s using ( snapshots_id )
@@ -449,73 +448,53 @@ select t.*
     order by start_date
 SQL
 
-    map { validate_timespan( $db, $twitter_topic, $_ ) } @{ $timespans };
+    map { validate_timespan( $db, $topic, $_ ) } @{ $timespans };
 }
 
-# verify that topic data has been properly created, including topic_seed_urls and topic_stories for the parent
-# topic and those and also topic_links for the twitter topic
 sub validate_topic_data($$)
 {
-    my ( $db, $parent_topic ) = @_;
+    my ( $db, $topic ) = @_;
 
-    my $twitter_topic = $db->query( <<SQL, $parent_topic->{ topics_id } )->hash;
-select * from topics where twitter_parent_topics_id = \$1
-SQL
+    is( $topic->{ state }, 'completed successfully', "twitter topic state" );
 
-    ok( $twitter_topic, "twitter topic created" );
-    is( $twitter_topic->{ name }, "$parent_topic->{ name } (twitter)", "twitter topic name" );
-
-    is( $twitter_topic->{ state }, 'ready', "twitter topic state" );
-
-    my ( $failed_snapshots ) = $db->query( "select count(*) from snapshots where state <> 'completed'" )->flat;
+    my ( $failed_snapshots ) = $db->query( "select count(*) from snapshots where state <> 'completed successfully'" )->flat;
     is( $failed_snapshots, 0, "number of failed snapshots" );
 
-    my ( $num_matching_seed_urls ) = $db->query( <<SQL, $parent_topic->{ topics_id } )->flat;
-select count(*) from topic_tweet_full_urls where parent_topics_id = \$1
+    my ( $num_matching_seed_urls ) = $db->query( <<SQL, $topic->{ topics_id } )->flat;
+select count(*) from topic_tweet_full_urls where topics_id = \$1
 SQL
 
     my ( $expected_num_urls ) = $db->query( "select count(*) from topic_tweet_urls" )->flat;
     is( $num_matching_seed_urls, $expected_num_urls, "seed urls match topic tweet urls" );
 
-    my ( $num_dead_tweets ) = $db->query( <<SQL, $twitter_topic->{ topics_id } )->flat;
+    my ( $num_dead_tweets ) = $db->query( <<SQL, $topic->{ topics_id } )->flat;
 select count(*)
     from topic_dead_links tdl
         join topic_tweet_full_urls ttfu on
-            ( ttfu.twitter_topics_id = tdl.topics_id and tdl.url = ttfu.url )
+            ( ttfu.topics_id = tdl.topics_id and tdl.url = ttfu.url )
     where
         tdl.topics_id = \$1
 SQL
 
-    my ( $num_null_story_seed_urls ) = $db->query( <<SQL, $twitter_topic->{ topics_id } )->flat;
+    my ( $num_null_story_seed_urls ) = $db->query( <<SQL, $topic->{ topics_id } )->flat;
 select count(*) from topic_seed_urls where stories_id is null and topics_id = \$1
 SQL
     ok( $num_null_story_seed_urls <= $num_dead_tweets,
         "number of topic_seed_urls with null stories_id: $num_null_story_seed_urls <= $num_dead_tweets" );
 
-    my ( $num_matching_topic_stories ) = $db->query( <<SQL, $twitter_topic->{ topics_id } )->flat;
-select count(*) from topic_tweet_full_urls where stories_id is not null and twitter_topics_id = \$1
+    my ( $num_matching_topic_stories ) = $db->query( <<SQL, $topic->{ topics_id } )->flat;
+select count(*) from topic_tweet_full_urls where stories_id is not null and topics_id = \$1
 SQL
 
     my $num_processed_stories = $num_matching_topic_stories + $num_dead_tweets;
 
     is( $num_processed_stories, $expected_num_urls, "number of processed urls in twitter topic" );
 
-    my ( $num_twitter_topic_stories ) = $db->query( <<SQL, $twitter_topic->{ topics_id } )->flat;
+    my ( $num_twitter_topic_stories ) = $db->query( <<SQL, $topic->{ topics_id } )->flat;
 select count(*) from topic_stories where topics_id = ?
 SQL
 
-    my ( $num_parent_topic_stories ) =
-      $db->query( <<SQL, $parent_topic->{ topics_id }, $twitter_topic->{ topics_id } )->flat;
-select count(*)
-    from topic_stories ps
-        join topic_stories ts on ( ps.stories_id = ts.stories_id )
-    where
-        ps.topics_id = \$1 and
-        ts.topics_id = \$2
-SQL
-    is( $num_parent_topic_stories, $num_twitter_topic_stories, "number of parent stories matching twitter stories" );
-
-    validate_timespans( $db, $twitter_topic );
+    validate_timespans( $db, $topic );
 }
 
 # core testing functionality
@@ -528,8 +507,7 @@ sub test_fetch_topic_tweets($)
 
     my $topic = MediaWords::Test::DB::create_test_topic( $db, 'tweet topic' );
 
-    $topic->{ ch_monitor_id }       = $CH_MONITOR_ID;
-    $topic->{ import_twitter_urls } = 1;
+    $topic->{ ch_monitor_id } = $CH_MONITOR_ID;
     $db->update_by_id( 'topics', $topic->{ topics_id }, $topic );
 
     my ( $start_date, $end_date ) = get_test_date_range();
@@ -545,6 +523,8 @@ SQL
     MediaWords::Util::Config::set_config( $new_config );
 
     MediaWords::Job::TM::MineTopic->run_locally( { topics_id => $topic->{ topics_id }, test_mode => 1 } );
+
+    $topic = $db->require_by_id( 'topics', $topic->{ topics_id } );
 
     my $test_dates = get_test_dates();
     for my $date ( @{ $test_dates } )

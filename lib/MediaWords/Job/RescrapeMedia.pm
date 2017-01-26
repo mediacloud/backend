@@ -38,18 +38,21 @@ use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::DBI::Media::Rescrape;
 
-# Run job
-sub run($;$)
+sub use_job_state($)
 {
-    my ( $self, $args ) = @_;
+    return 1;
+}
+
+# Run job
+sub run_statefully($$;$)
+{
+    my ( $self, $db, $args ) = @_;
 
     my $media_id = $args->{ media_id };
     unless ( defined $media_id )
     {
         die "'media_id' is undefined.";
     }
-
-    my $db = MediaWords::DB::connect_to_db();
 
     MediaWords::DBI::Media::Rescrape::rescrape_media( $db, $media_id );
 }

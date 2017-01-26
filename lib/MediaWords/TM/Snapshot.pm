@@ -370,17 +370,17 @@ END
     $db->query( "drop view snapshot_undateable_stories" );
 }
 
-# return true if the topic of the timespan is a child twitter topic
+# return true if the topic of the timespan is a twitter_topic
 sub topic_is_twitter_topic
 {
     my ( $db, $timespan ) = @_;
 
     my ( $is_twitter_topic ) = $db->query( <<SQL, $timespan->{ snapshots_id } )->flat;
-select t.twitter_parent_topics_id
+select 1
     from topics t
         join snapshots s using ( topics_id )
     where
-        t.twitter_parent_topics_id is not null and
+        t.ch_monitor_id is not null and
         s.snapshots_id = \$1
 SQL
 
@@ -619,11 +619,6 @@ sub write_timespan_tweets_snapshot
 
     my $snapshot = $db->require_by_id( 'snapshots', $timespan->{ snapshots_id } );
     my $topic    = $db->require_by_id( 'topics',    $snapshot->{ topics_id } );
-
-    my $tweet_topics_id =
-        $topic->{ twitter_parent_topics_id }
-      ? $topic->{ twitter_parent_topics_id }
-      : $topic->{ topics_id };
 
     $db->query( <<SQL );
 create temporary table snapshot_timespan_tweets as
@@ -1783,17 +1778,14 @@ create temporary table snapshot_tag_sets $_temporary_tablespace as
         where ts.tag_sets_id in ( select tag_sets_id from snapshot_tags )
 END
 
-    my $tweet_topics_id =
-        $topic->{ twitter_parent_topics_id }
-      ? $topic->{ twitter_parent_topics_id }
-      : $topic->{ topics_id };
+    my $tweet_topics_id = $topic->{ twitter_topics_id } || $topic->{ topics_id };
 
     $db->query( <<SQL, $tweet_topics_id );
 create temporary table snapshot_tweet_stories as
     select topic_tweets_id, u.publish_date, twitter_user, stories_id, media_id, num_ch_tweets, tweet_count
         from topic_tweet_full_urls u
             join snapshot_stories using ( stories_id )
-        where parent_topics_id = \$1
+        where topics_id = \$1
 SQL
 
     add_media_type_views( $db );
@@ -2004,6 +1996,9 @@ sub snapshot_topic ($$)
     analyze_snapshot_tables( $db );
 
     discard_temp_tables( $db );
+
+    # update this manually because snapshot_topic might be called directly from Mine::mine_topic()
+    $db->update_by_id( 'snapshots', $snap->{ snapshots_id }, { state => 'completed successfully' } );
 }
 
 1;

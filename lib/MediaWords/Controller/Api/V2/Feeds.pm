@@ -78,4 +78,39 @@ sub create_GET
     return $self->status_ok( $c, entity => { feed => $row } );
 }
 
+sub scrape : Local : ActionClass( 'MC_REST' )
+{
+}
+
+sub scrape_PUT
+{
+    my ( $self, $c ) = @_;
+
+    my $data = $c->req->data;
+
+    $self->require_fields( $c, [ qw/media_id/ ] );
+
+    my $db = $c->dbi8;
+
+    my $job_state = $db->query( <<SQL, $data->{ media_id } )->hash;
+select *
+    from job_states
+    where
+        ( args->'media_id' )::int = ? and
+        class = 'MediaWords::Job::TM::RescrapeMedia' and
+        state not in ( 'completed successfully', 'error' )
+SQL
+
+    if ( !$job_state )
+    {
+        $db->begin;
+        MediaWords::Job::RescapeMedia->add_to_queue( { media_id => $data->{ media_id } } );
+        $job_state = $db->require_by_id( 'job_states', $job_state->{ job_states_id } );
+    }
+
+    $job_state->{ args } = MediaWords::Util::JSON::decode_json( $job_state->{ args } );
+
+    return $self->status_ok( $c, entity => { job_state => $job_state } );
+}
+
 1;

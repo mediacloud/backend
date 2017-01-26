@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4604;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4605;
 
 BEGIN
 
@@ -1289,12 +1289,9 @@ create table topics (
     -- this is the id of a crimson hexagon monitor, not an internal database id
     ch_monitor_id           bigint null,
 
-    -- for twitter topics, the parent topic; if this is not null, this topic is the child twitter topic of
-    -- the given main topic
-    twitter_parent_topics_id int null references topics on delete set null,
+    -- id of a twitter topic to use to generate snapshot twitter counts
+    twitter_topics_id int null references topics on delete set null
 
-    -- whether to automagicall import urls discovered from crimson_hexagon using ch_monitor_id
-    import_twitter_urls     boolean not null default false
 );
 
 create unique index topics_name on topics( name );
@@ -2961,18 +2958,17 @@ create index topic_tweet_urls_tt on topic_tweet_urls ( topic_tweets_id, url );
 -- tables for convenient querying of topic twitter url data
 create view topic_tweet_full_urls as
     select distinct
-            t.topics_id parent_topics_id, twt.topics_id twitter_topics_id,
+            t.topics_id,
             tt.topic_tweets_id, tt.content, tt.publish_date, tt.twitter_user,
             ttd.day, ttd.tweet_count, ttd.num_ch_tweets, ttd.tweets_fetched,
             ttu.url, tsu.stories_id
         from
             topics t
-            join topics twt on ( t.topics_id = twt.twitter_parent_topics_id )
             join topic_tweet_days ttd on ( t.topics_id = ttd.topics_id )
             join topic_tweets tt using ( topic_tweet_days_id )
             join topic_tweet_urls ttu using ( topic_tweets_id )
             left join topic_seed_urls tsu
-                on ( tsu.topics_id in ( twt.twitter_parent_topics_id, twt.topics_id ) and ttu.url = tsu.url );
+                on ( tsu.topics_id = t.topics_id and ttu.url = tsu.url );
 
 create table snap.timespan_tweets (
     topic_tweets_id     int not null references topic_tweets on delete cascade,

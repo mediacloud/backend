@@ -402,7 +402,7 @@ sub generate_topic_links
 
     my $topic_links = [];
 
-    if ( $topic->{ twitter_parent_topics_id } )
+    if ( $topic->{ ch_monitor_id } )
     {
         INFO( "SKIP LINK GENERATION FOR TWITTER TOPIC" );
         return;
@@ -2866,6 +2866,9 @@ sub do_mine_topic ($$;$)
     MediaWords::DBI::Activities::log_system_activity( $db, 'tm_mine_topic', $topic->{ topics_id }, $options )
       || die( "Unable to log the 'tm_mine_topic' activity." );
 
+    update_topic_state( $db, $topic, "fetching tweets" );
+    fetch_and_import_twitter_urls( $db, $topic );
+
     update_topic_state( $db, $topic, "importing solr seed query" );
     import_solr_seed_query( $db, $topic );
 
@@ -2934,43 +2937,6 @@ sub do_mine_topic ($$;$)
     update_topic_state( $db, $topic, "ready" );
 }
 
-# if twitter topic corresponding to the main topic does not already exist, create it
-sub find_or_create_twitter_topic($$)
-{
-    my ( $db, $parent_topic ) = @_;
-
-    my $twitter_topic = $db->query( <<SQL, $parent_topic->{ topics_id } )->hash;
-select * from topics where twitter_parent_topics_id = ?
-SQL
-
-    return $twitter_topic if ( $twitter_topic );
-
-    my $topic_tag_set = $db->create( 'tag_sets', { name => "topic $parent_topic->{ name } (twitter)" } );
-
-    $twitter_topic = {
-        twitter_parent_topics_id => $parent_topic->{ topics_id },
-        name                     => "$parent_topic->{ name } (twitter)",
-        pattern                  => '(none)',
-        solr_seed_query          => '(none)',
-        solr_seed_query_run      => 1,
-        description              => "twitter child topic of $parent_topic->{ name }",
-        topic_tag_sets_id        => $topic_tag_set->{ topic_tag_sets_id },
-        ch_monitor_id            => $parent_topic->{ ch_monitor_id }
-    };
-
-    my $topic = $db->create( 'topics', $twitter_topic );
-
-    my $parent_topic_dates =
-      $db->query( "select * from topics_with_dates where topics_id = ?", $parent_topic->{ topics_id } )->hash;
-
-    $db->query( <<SQL, $topic->{ topics_id }, $parent_topic->{ topics_id } );
-insert into topic_dates ( topics_id, boundary, start_date, end_date )
-    select \$1, true, start_date::date, end_date::date from topics_with_dates where topics_id = \$2
-SQL
-
-    return $topic;
-}
-
 # add the url parsed from a tweet to topics_seed_url
 sub add_tweet_seed_url
 {
@@ -3010,7 +2976,7 @@ update topic_seed_urls tsu
     from
         topic_tweet_full_urls ttfu
     where
-        ttfu.twitter_topics_id = tsu.topics_id  and
+        ttfu.topics_id = tsu.topics_id  and
         ttfu.url = tsu.url and
         tsu.topics_id = \$1 and
         assume_match = false
@@ -3020,9 +2986,9 @@ SQL
     $db->execute_with_large_work_mem(
         <<SQL,
         INSERT INTO topic_seed_urls ( topics_id, url, assume_match, source )
-            SELECT DISTINCT ttfu.twitter_topics_id, ttfu.url, true, 'twitter'
+            SELECT DISTINCT ttfu.topics_id, ttfu.url, true, 'twitter'
             FROM topic_tweet_full_urls ttfu
-            WHERE ttfu.twitter_topics_id = \$1
+            WHERE ttfu.topics_id = \$1
               AND ttfu.url NOT IN (
                 SELECT url
                 FROM topic_seed_urls
@@ -3033,46 +2999,17 @@ SQL
     );
 }
 
-# insert all topic_tweet_urls into topic_seed_urls for parent topic
-sub seed_parent_topic_with_tweet_urls($$)
+# if there is a ch_monitor_id for the given topic, fetch the twitter data from crimson hexagon and twitter
+sub fetch_and_import_twitter_urls($$$)
 {
-    my ( $db, $parent_topic ) = @_;
+    my ( $db, $topic ) = @_;
 
-    # now insert any topic_tweet_urls that are not already in the topic_seed_urls
-    $db->query( <<SQL, $parent_topic->{ topics_id } );
-insert into topic_seed_urls ( topics_id, url, assume_match, source )
-    select distinct ttd.topics_id, ttu.url, true, 'twitter'
-        from topic_tweet_days ttd
-            join topic_tweets tt using ( topic_tweet_days_id )
-            join topic_tweet_urls ttu using ( topic_tweets_id )
-            left join topic_seed_urls tsu on
-                 ( tsu.topics_id = ttd.topics_id and tsu.url = ttu.url )
-        where
-            tsu.url is null and
-            ttd.topics_id = \$1
-SQL
-}
-
-# if there is a ch_monitor_id for the given topic, fetch the twitter data from crimson hexagon and
-# twitter, run a twitter topic using those tweets, and add twitter metrics to the main topic
-sub add_twitter_data_and_topic($$$)
-{
-    my ( $db, $topic, $options ) = @_;
-
-    # only add  twitter data if there is a ch_monitor_id; don't add it for twitter topic
-    return unless ( $topic->{ ch_monitor_id } && !$topic->{ twitter_parent_topics_id } );
-
-    update_topic_state( $db, $topic, "generating twitter topic" );
+    # only add  twitter data if there is a ch_monitor_id
+    return unless ( $topic->{ ch_monitor_id } );
 
     MediaWords::Job::FetchTopicTweets->run( { topics_id => $topic->{ topics_id } } );
 
-    my $twitter_topic = find_or_create_twitter_topic( $db, $topic );
-
-    seed_topic_with_tweet_urls( $db, $twitter_topic );
-    seed_parent_topic_with_tweet_urls( $db, $topic ) if ( $topic->{ import_twitter_urls } );
-
-    mine_topic( $db, $twitter_topic, $options );
-
+    seed_topic_with_tweet_urls( $db, $topic );
 }
 
 # wrap do_mine_topic in eval and handle errors and state1
@@ -3083,7 +3020,6 @@ sub mine_topic ($$;$)
     my $prev_test_mode = $_test_mode;
 
     eval {
-        add_twitter_data_and_topic( $db, $topic, $options );
 
         init_static_variables();
 
