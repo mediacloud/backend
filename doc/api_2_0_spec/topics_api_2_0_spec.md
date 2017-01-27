@@ -822,7 +822,6 @@ Standard parameters accepted: snapshots_id, foci_id, timespans_id, limit, link_i
 | publish_date         | publication date of the story, or 'undateable' if the story is not dateable |
 | date_is_reliable     | boolean indicating whether the date_guess_method is nearly 100% reliable |
 | collect_date         | date the story was collected             |
-| date_guess_method    | method used to guess the publish_date    |
 | inlink_count         | count of hyperlinks from stories in other media in this timespan |
 | outlink_count        | count of hyperlinks to stories in other media in this timespan |
 | bitly_click_count    | number of clicks on bitly links that resolve to this story's url |
