@@ -17,8 +17,10 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
 __PACKAGE__->config(
     action => {
-        create => { Does => [ qw( ~MediaEditAuthenticated ~Throttled ~Logged ) ] },
-        update => { Does => [ qw( ~MediaEditAuthenticated ~Throttled ~Logged ) ] },
+        create        => { Does => [ qw( ~MediaEditAuthenticated ~Throttled ~Logged ) ] },
+        update        => { Does => [ qw( ~MediaEditAuthenticated ~Throttled ~Logged ) ] },
+        scrape        => { Does => [ qw( ~MediaEditAuthenticated ~Throttled ~Logged ) ] },
+        scrape_status => { Does => [ qw( ~MediaEditAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
