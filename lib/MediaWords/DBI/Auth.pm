@@ -145,6 +145,8 @@ sub user_info($$)
 {
     my ( $db, $email ) = @_;
 
+    LOGCONFESS( 'db not defined' ) unless ( $db );
+
     # Fetch readonly information about the user
     my $userinfo = $db->query(
         <<"EOF",
@@ -758,7 +760,8 @@ EOF
     # Create roles
     for my $auth_roles_id ( @{ $role_ids } )
     {
-        $db->query(<<SQL,
+        $db->query(
+            <<SQL,
             INSERT INTO auth_users_roles_map (auth_users_id, auth_roles_id)
             VALUES (?, ?)
 SQL
@@ -873,7 +876,8 @@ EOF
     );
     for my $auth_roles_id ( @{ $roles } )
     {
-        $db->query(<<SQL,
+        $db->query(
+            <<SQL,
             INSERT INTO auth_users_roles_map (auth_users_id, auth_roles_id) VALUES (?, ?)
 SQL
             $userinfo->{ auth_users_id }, $auth_roles_id

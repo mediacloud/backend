@@ -11,36 +11,23 @@ BEGIN
     use Catalyst::Test 'MediaWords';
 }
 
-use JSON;
-
-use List::MoreUtils "uniq";
-use List::Util "shuffle";
-
-use Math::Prime::Util;
-
 use Modern::Perl "2015";
-
-use MediaWords;
-
-use MediaWords::TM::Snapshot;
-
 use MediaWords::CommonLibs;
 
-use MediaWords::DB::Schema;
-
-use MediaWords::Test::DB;
-
-use MediaWords::Util::Web;
-
-use MediaWords::Util::Config;
-
-use MediaWords::Controller::Api::V2::Topics::Stories;
-
+use JSON;
+use List::MoreUtils "uniq";
+use List::Util "shuffle";
+use Math::Prime::Util;
 use Readonly;
-
 use Test::More;
 
-my $TEST_API_KEY;
+use MediaWords;
+use MediaWords::TM::Snapshot;
+use MediaWords::DB::Schema;
+use MediaWords::Test::API;
+use MediaWords::Test::DB;
+use MediaWords::Util::Web;
+use MediaWords::Util::Config;
 
 Readonly my $TEST_HTTP_SERVER_PORT => '3000';
 
@@ -82,27 +69,6 @@ sub add_topic_story
     $db->create( 'topic_stories', { stories_id => $story->{ stories_id }, topics_id => $topic->{ topics_id } } );
 }
 
-sub _api_request_url($;$)
-{
-    my ( $path, $params ) = @_;
-
-    my $uri = URI->new( $path );
-
-    $uri->query_param( 'key' => $TEST_API_KEY );
-
-    if ( $params )
-    {
-        foreach my $key ( keys %{ $params } )
-        {
-            $uri->query_param( $key => $params->{ $key } );
-        }
-    }
-
-    DEBUG( "uri: " . $uri->as_string );
-
-    return $uri->as_string;
-}
-
 sub create_stories
 {
     my ( $db, $stories, $topics ) = @_;
@@ -128,16 +94,9 @@ sub create_test_data
             solr_seed_query     => '',
             solr_seed_query_run => 'f',
             pattern             => '',
-            description         => 'test topic'
-        }
-    );
-
-    my $topic_dates = $test_db->create(
-        'topic_dates',
-        {
-            topics_id  => $topic->{ topics_id },
-            start_date => '2014-04-01',
-            end_date   => '2014-06-01'
+            description         => 'test topic',
+            start_date          => '2014-04-01',
+            end_date            => '2014-06-01'
         }
     );
 
@@ -184,27 +143,11 @@ sub create_test_data
 
 }
 
-sub _get_test_response
-{
-    my $base_url = shift;
-
-    my $url = _api_request_url( $base_url->{ path }, $base_url->{ params } );
-
-    my $response = request( $url );
-
-}
-
 sub test_media_list
 {
-    my $data = shift;
+    my ( $data ) = @_;
 
-    my $base_url = { path => '/api/v2/topics/1/media/list' };
-
-    my $response = _get_test_response( $base_url );
-
-    Test::More::ok( $response->is_success, 'Request should succeed' );
-
-    my $actual_response = JSON::decode_json( $response->decoded_content() );
+    my $actual_response = test_get( '/api/v2/topics/1/media/list' );
 
     ok( scalar @{ $actual_response->{ media } } == 3,
         "returned unexpected number of media scalar $actual_response->{ media }" );
@@ -234,13 +177,7 @@ sub test_story_count
 
     my $story_limit = 10;
 
-    my $base_url = { path => '/api/v2/topics/1/stories/list', params => { limit => $story_limit } };
-
-    my $response = _get_test_response( $base_url );
-
-    Test::More::ok( $response->is_success, 'Request should succeed' );
-
-    my $actual_response = JSON::decode_json( $response->decoded_content() );
+    my $actual_response = test_get( '/api/v2/topics/1/stories/list', { limit => $story_limit } );
 
     is( scalar @{ $actual_response->{ stories } }, $story_limit, "story limit" );
 
@@ -278,16 +215,13 @@ sub _get_expected_bitly_link_counts
 
     foreach my $m ( 1 .. 15 )
     {
-
         if ( $m % $TEST_MODULO )
         {
-
             $return_counts->{ "story " . $m } = $m % ( $TEST_MODULO - 1 );
         }
-
     }
-    return $return_counts;
 
+    return $return_counts;
 }
 
 sub test_default_sort
@@ -295,7 +229,7 @@ sub test_default_sort
 
     my $data = shift;
 
-    my $base_url = { path => '/api/v2/topics/1/stories/list?limit=20' };
+    my $base_url = '/api/v2/topics/1/stories/list';
 
     my $sort_key = "inlink_count";
 
@@ -310,14 +244,13 @@ sub test_social_sort
 
     my $data = shift;
 
-    my $base_url = { path => '/api/v2/topics/1/stories/list?sort=social&limit=20' };
+    my $base_url = '/api/v2/topics/1/stories/list';
 
     my $sort_key = "bitly_click_count";
 
     my $expected_counts = _get_expected_bitly_link_counts();
 
     _test_sort( $data, $expected_counts, $base_url, $sort_key );
-
 }
 
 sub _test_sort
@@ -328,9 +261,7 @@ sub _test_sort
 
     my ( $data, $expected_counts, $base_url, $sort_key ) = @_;
 
-    my $response = _get_test_response( $base_url );
-
-    my $actual_response = JSON::decode_json( $response->decoded_content() );
+    my $actual_response = test_get( $base_url, { limit => 20, sort => $sort_key } );
 
     my $actual_stories_inlink_counts = {};
     my $actual_stories_order         = ();
@@ -343,6 +274,101 @@ sub _test_sort
     }
 
     is_deeply( $actual_stories_inlink_counts, $expected_counts, 'expected stories' );
+}
+
+# test topics create and update
+sub test_topics_crud($)
+{
+    my ( $db ) = @_;
+
+    # verify required params
+    test_post( '/api/v2/topics/create', {}, 1 );
+
+    my $label = "create topic";
+
+    MediaWords::Test::DB::create_test_story_stack_numerated( $db, 10, 2, 2, $label );
+    $db->query( "insert into tag_sets ( name ) values ( 'create topic' )" );
+    $db->query( "insert into tags ( tag, tag_sets_id ) select m.name, ts.tag_sets_id from media m, tag_sets ts" );
+
+    my $media_ids = $db->query( "select media_id from media limit 5" )->flat;
+    my $tags_ids  = $db->query( "select tags_id from tags limit 5" )->flat;
+
+    my $input = {
+        name            => "$label name ",
+        description     => "$label description",
+        solr_seed_query => "$label query",
+        max_iterations  => 12,
+        start_date      => '2016-01-01',
+        end_date        => '2017-01-01',
+        is_public       => 1,
+        ch_monitor_id   => 123456,
+        media_ids       => $media_ids,
+        media_tags_ids  => $tags_ids
+    };
+
+    my $r = test_post( '/api/v2/topics/create', $input );
+
+    ok( $r->{ topics }, "$label json includes topics" );
+    my $got_topic = $r->{ topics }->[ 0 ];
+
+    my $exists_in_db = $db->find_by_id( "topics", $got_topic->{ topics_id } );
+    ok( $exists_in_db, "$label topic exists in db" );
+
+    my $test_fields = [ qw/name description solr_seed_query max_ierations start_date end_date is_public ch_monitor_id/ ];
+    map { is( $got_topic->{ $_ }, $input->{ $_ }, "$label $_" ) } @{ $test_fields };
+
+    my $topics_id = $got_topic->{ topics_id };
+
+    my $got_media_ids = [ map { $_->{ media_id } } @{ $got_topic->{ media } } ];
+    is_deeply( [ sort @{ $media_ids } ], [ sort @{ $media_ids } ], "$label media ids" );
+
+    my $got_tags_ids = [ map { $_->{ tags_id } } @{ $got_topic->{ media_tags } } ];
+    is_deeply( [ sort @{ $got_tags_ids } ], [ sort @{ $tags_ids } ], "$label media tag ids" );
+
+    my $update_media_ids = [ @{ $media_ids } ];
+    pop( @{ $update_media_ids } );
+    my $update_tags_ids = [ @{ $tags_ids } ];
+    pop( @{ $update_tags_ids } );
+
+    # test that update requires topics_id
+    test_put( '/api/v2/topics/update', {}, 1 );
+
+    my $update = {
+        topics_id       => $got_topic->{ topics_id },
+        name            => "$label name update",
+        description     => "$label description update",
+        solr_seed_query => "$label query update",
+        max_iterations  => 22,
+        start_date      => '2016-01-02',
+        end_date        => '2017-01-02',
+        is_public       => 0,
+        ch_monitor_id   => 1234567,
+        media_ids       => $update_media_ids,
+        media_tags_ids  => $update_tags_ids
+    };
+
+    $label = 'update topic';
+
+    $r = test_put( '/api/v2/topics/update', $update );
+
+    ok( $r->{ topics }, "$label json includes topics" );
+    $got_topic = $r->{ topics }->[ 0 ];
+
+    map { is( $got_topic->{ $_ }, $update->{ $_ }, "$label $_" ) } @{ $test_fields };
+
+    $got_media_ids = [ map { $_->{ media_id } } @{ $got_topic->{ media } } ];
+    is_deeply( [ sort @{ $got_media_ids } ], [ sort @{ $update_media_ids } ], "$label media ids" );
+
+    $got_tags_ids = [ map { $_->{ tags_id } } @{ $got_topic->{ media_tags } } ];
+    is_deeply( [ sort @{ $got_tags_ids } ], [ sort @{ $update_tags_ids } ], "$label media tag ids" );
+}
+
+# test topics/* calls
+sub test_topics($)
+{
+    my ( $db ) = @_;
+
+    test_topics_crud( $db );
 }
 
 sub test_topics_api
@@ -361,14 +387,18 @@ sub test_topics_api
         }
     };
 
+    MediaWords::Test::API::setup_test_api_key( $db );
+
     my $topic_media = create_stories( $db, $stories );
 
     create_test_data( $db, $topic_media );
-    $TEST_API_KEY = MediaWords::Test::DB::create_test_user( $db );
     test_story_count();
     test_default_sort( $stories );
     test_social_sort( $stories );
     test_media_list( $stories );
+
+    test_topics( $db );
+
 }
 
 sub main
@@ -376,7 +406,7 @@ sub main
     # topic date modeling confuses perl TAP for some reason
     MediaWords::Util::Config::get_config()->{ mediawords }->{ topic_model_reps } = 0;
 
-    MediaWords::Test::Supervisor::test_with_supervisor( \&test_topics_api, [ 'job_broker:rabbitmq' ] );
+    MediaWords::Test::Supervisor::test_with_supervisor( \&test_topics_api, [ 'solr_standalone', 'job_broker:rabbitmq' ] );
 
     done_testing();
 }

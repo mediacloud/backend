@@ -317,7 +317,7 @@ Permssions for the authenticated user for a given topic are included in the topi
 
 # Topics
 
-## topics/create (POST) - TODO
+## topics/create (POST) - DONE
 
 `https://api.mediacloud.org/api/v2/topics/create`
 
@@ -329,7 +329,7 @@ Create and return a new *topic*.
 
 ### Input Description
 
-The topics/create call accepts as input the following fields described in the Output Description of the topics/list call: name, pattern, solr_query, description, max_iterations, start_date, end_date, public.
+The topics/create call accepts as input the following fields described in the Output Description of the topics/list call: name, solr_seed_query, description, max_iterations, start_date, end_date, is_public, ch_monitor_id, twitter_topics_id, media_ids, media_tags_ids. Required fields are: name, solr_seed_query, description, start_date, end_date, media_ids and media_tags_ids.  Either media_ids or media_tags_ids must be included and not be an empty list.
 
 ### Example
 
@@ -343,12 +343,12 @@ Input:
 {
     "name": "immigration 2015",
     "description": "immigration coverage during 2015",
-    "pattern": "[[:<:]]immigration",
     "solr_seed_query": "immigration AND (+publish_date:[2016-01-01T00:00:00Z TO 2016-06-15T23:59:59Z]) AND tags_id_media:8875027",
     "max_iterations": 15,
     "start_date": "2015-01-01",
     "end_date": "2015-12-31",
-    "public": 1
+    "is_public": 1,
+    "media_tags_ids": [ 123 ]
 }
 ```
 Response:
@@ -367,25 +367,25 @@ Response:
       "start_date": "2015-01-01",
       "end_date": "2015-12-31",
       "state": "created but not queued",
-      "public": 1
+      "is_public": 1,
+      "media_tags":
+      [
+          {
+              "tags_id": 123,
+              "topics_id": 1390,
+              "tag": "us_msm",
+              "label": "US Mainstream Media",
+              "description": "major US mainstream media sources"
+          }
+      ]
 	}
   ]
 }
 ```
 
+## topics/~topics_id~/update (PUT) - DONE
 
-
-<!-- RB - are the names unique?  if so, what is the error returned? -->
-<!-- HR - names are unique. we have a crappy error reporting system that just basically returns the
-error directly from perl, so the error in this case would just be an echo of the unique constraint.  implementing
-a well documented set of errors would be very time expensive, but maybe pick a few likely triggered errors like this
-to have saner errors for? -->
-
-<!-- TODO - RB - do we need a public flag? or is that something we'll figure out with the permissions stuff separately -->
-
-## topics/~topics_id~/edit (PUT) - TODO
-
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/edit`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/update`
 
 Edit an existing *topic*.
 
@@ -401,18 +401,14 @@ Accepts the same input as the topics/create call.
 
 Edit the 'immigration 2015' topic.
 
+`https://api.mediacloud.org/api/v2/topics/update`
+
 Input:
 
 ```json
 {
-    "name": "immigration coverage 2015",
-    "description": "immigration coverage during 2015",
-    "pattern": "[[:<:]]immigration",
-    "solr_seed_query": "immigration AND (+publish_date:[2016-01-01T00:00:00Z TO 2016-06-15T23:59:59Z]) AND tags_id_media:8875027",
-    "max_iterations": 15,
-    "start_date": "2015-01-01",
-    "end_date": "2015-12-31",
-    "public": 1
+    "topics_id": 1390,
+    "name": "immigration coverage in 2015"
 }
 ```
 
@@ -424,15 +420,25 @@ Response:
   [
     {
       "topics_id": 1390,
-      "name": "immigration coverage 2015",
+      "name": "immigration coverage in 2015",
       "description": "immigration coverage during 2015",
       "pattern": "[[:<:]]immigration",
       "solr_seed_query": "immigration AND (+publish_date:[2016-01-01T00:00:00Z TO 2016-06-15T23:59:59Z]) AND tags_id_media:8875027",
       "max_iterations": 15,
       "start_date": "2015-01-01",
       "end_date": "2015-12-31",
-      "public": 1,
-      "state": "created but not queued",
+      "state": "queued",
+      "is_public": 1,
+      "media_tags":
+      [
+          {
+              "tags_id": 123,
+              "topics_id": 1390,
+              "tag": "us_msm",
+              "label": "US Mainstream Media",
+              "description": "major US mainstream media sources"
+          }
+      ]
 	}
   ]
 }
@@ -445,12 +451,6 @@ Response:
 Start a topic spidering job.
 
 Topic spidering is asynchronous.  Once the topic has started spidering, you cannot start another spidering job until the current one is complete.
-
-<!-- RB - what does this return if you try to start one when one is already running? -->
-<!-- HR - it should just run the, potentially at the same time.  there are valid reasons for
-doing this, for instance if the current job is in the middle of a dump but you want to edit the definition a bit
-and rerun the spider but still have access to the currently generating dump while the new spider is running.  that sounds
-contrived but I actually do it every once in a while -->
 
 ### Query Parameters
 
@@ -549,7 +549,7 @@ Standard parameters accepted: link_id.
 | end_date            | end of date range for topic              |
 | state               | the current status of the spidering process |
 | error_message       | last error message generated by the spider, if any |
-| public              | flag indicating whether this topic is readable by all authenticated users |
+| is_public           | flag indicating whether this topic is readable by all authenticated users |
 | user_permission     | permission for user submitting the api request: 'read', 'write', 'admin', or 'none' |
 
 ### Example
@@ -900,9 +900,9 @@ Response:
 { "count": 123 }
 ```
 
-## stories/~stories_id~/edit (PUT) - TODO
+## stories/~stories_id~/update (PUT) - TODO
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/~stories_id~/edit`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/~stories_id~/update`
 
 Edit and return a story.  Editing a story changes that story for all topics.
 
@@ -928,7 +928,7 @@ Edit and return a story.  Editing a story changes that story for all topics.
 
 Edit the publish_date of story 123456:
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/~stories_id~/edit`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/~stories_id~/update`
 
 Input:
 
@@ -1128,9 +1128,9 @@ Return the network map for topic id 12:
 
 `https://api.mediacloud.org/api/v2/topics/12/media/map`
 
-## media/~media_id~/edit (PUT) - TODO
+## media/~media_id~/update (PUT) - TODO
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/media/~media_id~/edit`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/media/~media_id~/update`
 
 Edit and return the given media source.  Media source edits apply to that media source for all topics.
 
@@ -1151,7 +1151,7 @@ Edit and return the given media source.  Media source edits apply to that media 
 
 Edit the name of media_id 1:
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/media/~media_id~/edit`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/media/~media_id~/update`
 
 Input:
 
@@ -1851,9 +1851,9 @@ Response:
 ```
 <!-- TODO - I bet it will be useful to include the username here that generated it -->
 
-## snapshots/~snapshots_id~/edit (PUT) - TODO
+## snapshots/~snapshots_id~/update (PUT) - TODO
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/snapshots/~snapshots_id~/edit`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/snapshots/~snapshots_id~/update`
 
 Edit and return the snapshot.
 
@@ -1876,7 +1876,7 @@ Edit and return the snapshot.
 
 Edit the note for snapshot 4567:
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/snapshots/~snapshots_id~/edit`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/snapshots/~snapshots_id~/update`
 
 Input:
 

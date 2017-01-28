@@ -513,7 +513,7 @@ sub test_fetch_topic_tweets($)
     my ( $start_date, $end_date ) = get_test_date_range();
 
     $db->query( <<SQL, $topic->{ topics_id }, $start_date, $end_date );
-update topic_dates set start_date = \$2, end_date = \$3 where topics_id = \$1
+update topics set start_date = \$2, end_date = \$3 where topics_id = \$1
 SQL
 
     # topic date modeling confuses perl TAP for some reason

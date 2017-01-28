@@ -353,15 +353,6 @@ sub story_within_topic_date_range
 
     my $story_date = substr( $story->{ publish_date }, 0, 10 );
 
-    if ( !$topic->{ start_date } )
-    {
-        my ( $start_date, $end_date ) = $db->query( <<SQL, $topic->{ topics_id } )->flat;
-select start_date, end_date from topic_dates where topics_id = ? and boundary
-SQL
-        $topic->{ start_date } = $start_date;
-        $topic->{ end_date }   = $end_date;
-    }
-
     my $start_date = $topic->{ start_date };
     $start_date = MediaWords::Util::SQL::increment_day( $start_date, -7 );
     $start_date = substr( $start_date, 0, 10 );
@@ -2732,6 +2723,46 @@ sub insert_topic_seed_urls
     $db->copy_from_end();
 }
 
+# get the full solr query by combining the solr_seed_query with generated clauses for start and
+# end date from topics and media clauses from topics_media_map and topics_media_tags_map
+sub get_full_solr_query($$;$$)
+{
+    my ( $db, $topic, $media_ids, $media_tags_ids ) = @_;
+
+    my ( $sd, $ed ) = ( $topic->{ start_date }, $topic->{ end_date } );
+    map { die( "date '$_' must be in form YYYY-MM-DD" ) unless ( $_ =~ /^\s*\d\d\d\d-\d\d-\d\d\s*$/ ) } ( $sd, $ed );
+
+    my $date_clause = "publish_date:[${ sd }T00:00:00Z TO ${ ed }T23:59:59Z]";
+
+    my $solr_query = "( " . $topic->{ solr_seed_query } . " ) and $date_clause";
+
+    my $media_clauses = [];
+    my $topics_id     = $topic->{ topics_id };
+
+    $media_ids ||= $db->query( "select media_id from topics_media_map where topics_id = ?", $topics_id )->flat;
+    if ( @{ $media_ids } )
+    {
+        my $media_ids_list = join( ' ', @{ $media_ids } );
+        push( @{ $media_clauses }, "media_id:( $media_ids_list )" );
+    }
+
+    $media_tags_ids ||= $db->query( "select tags_id from topics_media_tags_map where topics_id = ?", $topics_id )->flat;
+    if ( @{ $media_tags_ids } )
+    {
+        my $media_tags_ids_list = join( ' ', @{ $media_tags_ids } );
+        push( @{ $media_clauses }, "tags_id_media:( $media_tags_ids_list )" );
+    }
+
+    die( "query must include at least one media source or media set" ) unless ( @{ $media_clauses } );
+
+    my $media_clause_list = join( ' or ', @{ $media_clauses } );
+    $solr_query .= " and ( $media_clause_list )";
+
+    DEBUG( "full solr query: $solr_query" );
+
+    return $solr_query;
+}
+
 # import stories intro topic_seed_urls from solr by running
 # topic->{ solr_seed_query } against solr.  if the solr query has
 # already been imported, do nothing.
@@ -2741,11 +2772,18 @@ sub import_solr_seed_query
 
     return if ( $topic->{ solr_seed_query_run } );
 
-    my $max_stories = MediaWords::Util::Config::get_config->{ mediawords }->{ max_solr_seed_query_stories };
+    my $max_stories          = MediaWords::Util::Config::get_config->{ mediawords }->{ max_solr_seed_query_stories };
+    my $max_returned_stories = 0.95 * $max_stories;
+
+    my $solr_query = get_full_solr_query( $db, $topic );
 
     INFO "executing solr query: $topic->{ solr_seed_query }";
-    my $stories =
-      MediaWords::Solr::search_for_stories( $db, { q => $topic->{ solr_seed_query }, rows => $max_stories } );
+    my $stories = MediaWords::Solr::search_for_stories( $db, { q => $solr_query, rows => $max_stories } );
+
+    if ( scalar( @{ $stories } ) > $max_returned_stories )
+    {
+        die( "solr_seed_query returned more than $max_returned_stories stories" );
+    }
 
     INFO "adding " . scalar( @{ $stories } ) . " stories to topic_seed_urls";
 

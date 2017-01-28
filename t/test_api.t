@@ -15,14 +15,12 @@ BEGIN
 use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 
-use Catalyst::Test 'MediaWords';
 use HTTP::HashServer;
-use HTTP::Request;
 use Readonly;
 use Test::More;
-use URI::Escape;
 
 use MediaWords::DBI::Media::Health;
+use MediaWords::Test::API;
 use MediaWords::Test::DB;
 use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
@@ -32,89 +30,6 @@ use MediaWords::Util::Web;
 Readonly my $NUM_MEDIA            => 5;
 Readonly my $NUM_FEEDS_PER_MEDIUM => 2;
 Readonly my $NUM_STORIES_PER_FEED => 10;
-
-my $_api_token;
-
-#  test that we got a valid response,
-# that the response is valid json, and that the json response is not an error response.  Return
-# the decoded json.  If $expect_error is true, test for expected error response.
-sub test_request_response($$;$)
-{
-    my ( $label, $response, $expect_error ) = @_;
-
-    my $url = $response->request->url;
-
-    is( $response->is_success, !$expect_error, "HTTP response status OK for $label:\n" . $response->as_string );
-
-    my $data = eval { MediaWords::Util::JSON::decode_json( $response->content ) };
-
-    ok( $data, "decoded json for $label (json error: $@)" );
-
-    if ( $expect_error )
-    {
-        ok( ( ( ref( $data ) eq ref( {} ) ) && $data->{ error } ), "response is an error for $label:\n" . Dumper( $data ) );
-    }
-    else
-    {
-        ok(
-            !( ( ref( $data ) eq ref( {} ) ) && $data->{ error } ),
-            "response is not an error for $label:\n" . Dumper( $data )
-        );
-    }
-
-    return $data;
-}
-
-# execute Catalyst::Test::request with an HTTP request with the given data as json content.
-# call test_request_response() on the result and return the decoded json data
-sub test_data_request($$$;$)
-{
-    my ( $method, $url, $data, $expect_error ) = @_;
-
-    $url = $url =~ /\?/ ? "$url&key=$_api_token" : "$url?key=$_api_token";
-
-    my $json = MediaWords::Util::JSON::encode_json( $data );
-
-    my $request = HTTP::Request->new( $method, $url );
-    $request->header( 'Content-Type' => 'application/json' );
-    $request->content( $json );
-
-    my $label = $request->as_string;
-
-    return test_request_response( $label, request( $request ), $expect_error );
-}
-
-# call test_data_request with a 'PUT' method
-sub test_put($$;$)
-{
-    my ( $url, $data, $expect_error ) = @_;
-
-    return test_data_request( 'PUT', $url, $data, $expect_error );
-}
-
-# call test_data_request with a 'POST' method
-sub test_post($$;$)
-{
-    my ( $url, $data, $expect_error ) = @_;
-
-    return test_data_request( 'POST', $url, $data, $expect_error );
-}
-
-# execute Catalyst::Test::request on the given url with the given params and then call test_request_response()
-# to test and return the decode json data
-sub test_get($;$$)
-{
-    my ( $url, $params, $expect_error ) = @_;
-
-    $params //= {};
-    $params->{ key } //= $_api_token;
-
-    my $encoded_params = join( "&", map { $_ . '=' . uri_escape( $params->{ $_ } ) } keys( %{ $params } ) );
-
-    my $full_url = "$url?$encoded_params";
-
-    return test_request_response( $full_url, request( $full_url ), $expect_error );
-}
 
 # test that a story has the expected content
 sub test_story_fields($$)
@@ -198,7 +113,9 @@ sub test_auth_profile($)
 {
     my ( $db ) = @_;
 
-    my $expected_user = $db->query( <<SQL, $_api_token )->hash;
+    my $api_token = MediaWords::Test::API::get_test_api_key();
+
+    my $expected_user = $db->query( <<SQL, $api_token )->hash;
 select * from auth_users au join auth_user_limits using ( auth_users_id ) where api_token = \$1
 SQL
     my $profile = test_get( "/api/v2/auth/profile" );
@@ -1167,12 +1084,16 @@ sub test_media_suggestions($)
     test_media_suggestions_mark( $db );
 }
 
+# test topics/ create and update
+sub test_topics_crud($)
+{
+    my ( $db ) = @_;
+}
+
 # test parts of the ai that only require reading, so we can test these all in one chunk
 sub test_api($)
 {
     my ( $db ) = @_;
-
-    $_api_token = MediaWords::Test::DB::create_test_user( $db );
 
     my $media = MediaWords::Test::DB::create_test_story_stack_numerated( $db, $NUM_MEDIA, $NUM_FEEDS_PER_MEDIUM,
         $NUM_STORIES_PER_FEED );
@@ -1180,6 +1101,8 @@ sub test_api($)
     MediaWords::Test::DB::add_content_to_test_story_stack( $db, $media );
 
     MediaWords::Test::Solr::setup_test_index( $db );
+
+    MediaWords::Test::API::setup_test_api_key( $db );
 
     test_stories_public_list( $db, $media );
     test_auth_profile( $db );
@@ -1189,6 +1112,8 @@ sub test_api($)
 
     test_tags( $db );
     test_media_suggestions( $db );
+
+    test_topics_crud( $db );
 
 }
 

@@ -1561,6 +1561,7 @@ sub generate_period_snapshot ($$$$)
 
     if ( $period eq 'overall' )
     {
+        # this will generate an 'overall' timespan with all stories
         generate_timespan( $db, $cd, $start_date, $end_date, $period, $focus );
     }
     elsif ( $period eq 'weekly' )
@@ -1596,21 +1597,6 @@ sub generate_period_snapshot ($$$$)
     {
         die( "Unknown period '$period'" );
     }
-}
-
-# get default start and end dates from the query associated with the query_stories_search associated with the topic
-sub get_default_dates
-{
-    my ( $db, $topic ) = @_;
-
-    my ( $start_date, $end_date ) = $db->query( <<END, $topic->{ topics_id } )->flat;
-select min( td.start_date ), max( td.end_date ) from topic_dates td where td.topics_id = ?
-END
-
-    die( "Unable to find default dates" ) unless ( $start_date && $end_date );
-
-    return ( $start_date, $end_date );
-
 }
 
 # create temporary table copies of temporary tables so that we can copy
@@ -1970,7 +1956,7 @@ sub snapshot_topic ($$)
         die "Unable to log the 'tm_snapshot_topic' activity.";
     }
 
-    my ( $start_date, $end_date ) = get_default_dates( $db, $topic );
+    my ( $start_date, $end_date ) = ( $topic->{ start_date }, $topic->{ end_date } );
 
     my $snap = create_snapshot_row( $db, $topic, $start_date, $end_date );
 

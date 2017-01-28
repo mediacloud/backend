@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4605;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4606;
 
 BEGIN
 
@@ -1285,6 +1285,8 @@ create table topics (
     has_been_dumped         boolean not null default false,
     error_message           text null,
     is_public               boolean not null default false,
+    start_date              date not null,
+    end_date                date not null,
 
     -- this is the id of a crimson hexagon monitor, not an internal database id
     ch_monitor_id           bigint null,
@@ -1320,21 +1322,19 @@ create table topic_dates (
     boundary                boolean not null default 'false'
 );
 
-create view topics_with_dates as
-    select c.*,
-            to_char( td.start_date, 'YYYY-MM-DD' ) start_date,
-            to_char( td.end_date, 'YYYY-MM-DD' ) end_date
-        from
-            topics c
-            join topic_dates td on ( c.topics_id = td.topics_id )
-        where
-            td.boundary;
-
-create table snapshot_tags (
-    snapshot_tags_id    serial primary key,
-    topics_id            int not null references topics on delete cascade,
-    tags_id                     int not null references tags
+create table topics_media_map (
+    topics_id       int not null references topics on delete cascade,
+    media_id        int not null references media on delete cascade
 );
+
+create index topics_media_map_topic on topics_media_map ( topics_id );
+
+create table topics_media_tags_map (
+    topics_id       int not null references topics on delete cascade,
+    tags_id         int not null references tags on delete cascade
+);
+
+create index topics_media_tags_map_topic on topics_media_tags_map ( topics_id );
 
 create table topic_media_codes (
     topics_id        int not null references topics on delete cascade,

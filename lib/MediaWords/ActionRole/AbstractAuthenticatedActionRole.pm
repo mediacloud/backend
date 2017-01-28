@@ -26,9 +26,17 @@ sub _test_for_topic_permission
 
     my $path = $c->req->path;
 
-    die( "unable to parse request path '$path' for topics_id" ) if ( $path !~ m~/topics/(\d+)/~ );
+    my $topics_id;
+    if ( $path =~ /api\/v2\/topics\/update/ )
+    {
+        $topics_id = $c->req->data->{ topics_id };
+    }
+    else
+    {
+        ( $topics_id ) = $path =~ m~/topics/(\d+)/~;
+    }
 
-    my $topics_id = $1;
+    die( "unable to determine topics_id for request" ) unless ( $topics_id );
 
     my ( $user_email, $user_roles ) = $self->_user_email_and_roles( $c );
     unless ( $user_email and $user_roles )
