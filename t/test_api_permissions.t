@@ -112,6 +112,8 @@ my $_url_permission_types = {
     '/api/v2/topics/sentences/count'              => 'topics_read',
     '/api/v2/topics/single'                       => 'public',
     '/api/v2/topics/create'                       => 'media_edit',
+    '/api/v2/topics/spider'                       => 'topics_write',
+    '/api/v2/topics/spider_status'                => 'public',
     '/api/v2/topics/update'                       => 'topics_write',
     '/api/v2/topics/snapshots/generate'           => 'topics_write',
     '/api/v2/topics/snapshots/list'               => 'topics_read',
@@ -147,6 +149,9 @@ my $_url_transformations = {
     '/api/v2/topics/stories/count'                => '/api/v2/topics/~topics_id~/stories/count',
     '/api/v2/topics/stories/list'                 => '/api/v2/topics/~topics_id~/stories/list',
     '/api/v2/topics/timespans/list'               => '/api/v2/topics/~topics_id~/timespans/list',
+    '/api/v2/topics/update'                       => '/api/v2/topics/~topics_id~/update',
+    '/api/v2/topics/spider'                       => '/api/v2/topics/~topics_id~/spider',
+    '/api/v2/topics/spider_status'                => '/api/v2/topics/~topics_id~/spider_status',
     '/api/v2/topics/wc/list'                      => '/api/v2/topics/~topics_id~/wc/list',
 };
 
@@ -409,7 +414,9 @@ sub add_topic
         solr_seed_query   => $name,
         description       => $name,
         topic_tag_sets_id => $tag_set->{ tag_sets_id },
-        is_public         => $is_public ? 1 : 0
+        is_public         => $is_public ? 1 : 0,
+        start_date        => '2017-01-01',
+        end_date          => '2017-02-01',
     };
 
     $topic = $db->create( 'topics', $topic );

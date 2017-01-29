@@ -401,13 +401,12 @@ Accepts the same input as the topics/create call.
 
 Edit the 'immigration 2015' topic.
 
-`https://api.mediacloud.org/api/v2/topics/update`
+`https://api.mediacloud.org/api/v2/topics/1390/update`
 
 Input:
 
 ```json
 {
-    "topics_id": 1390,
     "name": "immigration coverage in 2015"
 }
 ```
@@ -444,9 +443,9 @@ Response:
 }
 ```
 
-## topics/~topics_id~/spider - TODO
+## topics/~topics_id~/spider (POST) - DONE
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/spider`
+`https://api.mediacloud.org/api/v2/topics/~topics_id/spider`
 
 Start a topic spidering job.
 
@@ -458,20 +457,67 @@ Topic spidering is asynchronous.  Once the topic has started spidering, you cann
 
 ### Output Description
 
-| Field   | Description                              |
-| ------- | ---------------------------------------- |
-| success | boolean indicating whether the spidering job was successfully queued. |
+The call returns a `job_state` record with information about the state of the queued spidering job.
 
 ### Example
 
 Start a topic spider for the 'U.S. 2016 Election' topic:
 
-`https://api.mediacloud.org/api/v2/topics/1344/spider`
+`https://api.mediacloud.org/api/v2/topics/spider`
+
+Input:
+
+```json
+{ "topics_id": 1404 }
+```
 
 Response:
 
 ```json
-{ "success": 1 }
+{
+    "job_state":
+        {
+            "topics_id": 1404,
+            "job_states_id": 1,
+            "last_updated": "2017-01-26 14:27:04.781095",
+            "message": null,
+            "state": "queued"
+        }
+}    
+```
+
+
+## topics/~topics_id~/spider_status - DONE
+
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/spider_status`
+
+Get a list all spidering jobs started for this topic.
+
+### Query Parameters
+
+| Parameter | Default | Notes |
+|-|-|
+| topics_id | (required) | topic id |
+
+
+### Example
+
+`https://api.mediacloud.org/api/v2/topics/1404/spider_status`
+
+Response:
+
+```json
+{
+    "job_states": [
+        {
+            "topics_id": 1404,
+            "job_states_id": 1,
+            "last_updated": "2017-01-26 14:27:04.781095",
+            "message": null,
+            "state": "queued"
+        }
+    ]
+}    
 ```
 
 ## topics/~topics_id~/iterations/list - TODO
@@ -642,7 +688,7 @@ Response:
 
 # Permissions
 
-## topics/permissions/user/list TODO
+## topics/permissions/user/list DONE
 
 `https://api.mediacloud.org/api/v2/topics/permissions/user/list`
 
@@ -681,7 +727,7 @@ Response:
 }
 ```
 
-## topics/~topics_id~/permissions/list TODO
+## topics/~topics_id~/permissions/list DONE
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/permissions/list`
 
@@ -722,7 +768,7 @@ Response:
 }
 ```
 
-## topics/~topics_id~/permissions/update (PUT) TODO
+## topics/~topics_id~/permissions/update (PUT) DONE
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/permissions/update`
 

@@ -91,7 +91,7 @@ sub scrape : Local : ActionClass( 'MC_REST' )
 {
 }
 
-sub scrape_PUT
+sub scrape_GET
 {
     my ( $self, $c ) = @_;
 

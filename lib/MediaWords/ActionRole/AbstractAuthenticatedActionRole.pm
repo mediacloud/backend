@@ -27,14 +27,8 @@ sub _test_for_topic_permission
     my $path = $c->req->path;
 
     my $topics_id;
-    if ( $path =~ /api\/v2\/topics\/update/ )
-    {
-        $topics_id = $c->req->data->{ topics_id };
-    }
-    else
-    {
-        ( $topics_id ) = $path =~ m~/topics/(\d+)/~;
-    }
+
+    $topics_id = $1 if ( $path =~ m~/topics/(\d+)/~ );
 
     die( "unable to determine topics_id for request" ) unless ( $topics_id );
 

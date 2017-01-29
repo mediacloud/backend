@@ -19,17 +19,28 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
 __PACKAGE__->config(
     action => {
-        list   => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        single => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        create => { Does => [ qw( ~MediaEditAuthenticated ~Throttled ~Logged ) ] },
-        update => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
+        list          => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        single        => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        create        => { Does => [ qw( ~MediaEditAuthenticated ~Throttled ~Logged ) ] },
+        update        => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
+        spider        => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
+        spider_status => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
 Readonly my $TOPICS_EDIT_FIELDS =>
   [ qw/name solr_seed_query description max_iterations start_date end_date is_public ch_monitor_id twitter_topics_id/ ];
 
-sub _get_topics_list($$$)
+Readonly my $JOB_STATE_FIELD_LIST => "job_states_id, args->>'topics_id' topics_id, state, message, last_updated";
+
+sub apibase : Chained('/') : PathPart('api/v2/topics') : CaptureArgs(1)
+{
+    my ( $self, $c, $topics_id ) = @_;
+
+    $c->stash->{ topics_id } = $topics_id;
+}
+
+sub _get_topics_list($$$)    # sql clause for fields to query from job_states for api publication
 {
     my ( $db, $params, $auth_users_id ) = @_;
 
@@ -196,15 +207,16 @@ sub create_GET
     $self->status_ok( $c, entity => { topics => $topics } );
 }
 
-sub update : Local : ActionClass('MC_REST')
+# sub stories : Chained('apibase') : PathPart('stories') : CaptureArgs(0)
+# sub list : Chained('stories') : Args(0) : ActionClass('MC_REST')
+
+sub update : Chained( 'apibase' ) : ActionClass( 'MC_REST' )
 {
 }
 
 sub update_PUT
 {
     my ( $self, $c ) = @_;
-
-    $self->require_fields( $c, [ 'topics_id' ] );
 
     my $data = $c->req->data;
 
@@ -218,9 +230,16 @@ sub update_PUT
 
     my $db = $c->dbis;
 
-    my $topic = $db->require_by_id( 'topics', $data->{ topics_id } );
+    my $topic = $db->require_by_id( 'topics', $c->stash->{ topics_id } );
 
-    my $update = { map { $_ => $data->{ $_ } } @{ $TOPICS_EDIT_FIELDS } };
+    my $update;
+    for my $field ( @{ $TOPICS_EDIT_FIELDS } )
+    {
+        if ( defined( $data->{ $field } ) )
+        {
+            $update->{ $field } = $data->{ $field };
+        }
+    }
 
     if ( $update->{ solr_seed_query } && ( $topic->{ solr_seed_query } ne $update->{ solr_seed_query } ) )
     {
@@ -247,6 +266,70 @@ sub update_PUT
     my $topics = _get_topics_list( $db, { topics_id => $topic->{ topics_id } }, $auth_users_id );
 
     $self->status_ok( $c, entity => { topics => $topics } );
+}
+
+sub spider : Chained( 'apibase' ) : ActionClass( 'MC_REST' )
+{
+}
+
+sub spider_GET
+{
+    my ( $self, $c ) = @_;
+
+    my $topics_id = $c->stash->{ topics_id };
+
+    my $db = $c->dbis;
+
+    my $job_class = MediaWords::Job::TM::MineTopic->name;
+
+    my $job_state = $db->query( <<SQL, $topics_id, $job_class )->hash;
+select $JOB_STATE_FIELD_LIST
+    from job_states
+    where
+        ( args->>'topics_id' )::int = \$1 and
+        class = \$2 and
+        state not in ( 'completed successfully', 'error' )
+SQL
+
+    if ( !$job_state )
+    {
+        $db->begin;
+        MediaWords::Job::TM::MineTopic->add_to_queue( { topics_id => $topics_id } );
+        $job_state = $db->query( "select $JOB_STATE_FIELD_LIST from job_states order by job_states_id desc limit 1" )->hash;
+        $db->commit;
+
+        die( "Unable to find job state from queued job" ) unless ( $job_state );
+    }
+
+    return $self->status_ok( $c, entity => { job_state => $job_state } );
+}
+
+sub spider_status : Chained( 'apibase' ) : ActionClass( 'MC_REST' )
+{
+}
+
+sub spider_status_GET
+{
+    my ( $self, $c ) = @_;
+
+    my $topics_id = $c->stash->{ topics_id };
+
+    my $job_class = MediaWords::Job::TM::MineTopic->name;
+
+    my $db = $c->dbis;
+
+    my $job_states;
+
+    $job_states = $db->query( <<SQL, $topics_id, $job_class )->hashes;
+select $JOB_STATE_FIELD_LIST
+    from job_states
+    where
+        class = \$2 and
+        ( args->>'topics_id' )::int = \$1
+    order by last_updated desc
+SQL
+
+    $self->status_ok( $c, entity => { job_states => $job_states } );
 }
 
 1;

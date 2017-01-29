@@ -36,7 +36,7 @@ sub test_story_fields($$)
 {
     my ( $story, $test ) = @_;
 
-    my ( $num ) = ( $story->{ title } =~ /story story_(\d+)/ );
+    my ( $num ) = ( $story->{ title } =~ /_(\d+)/ );
 
     ok( defined( $num ), "$test: found story number from title: $story->{ title }" );
 
@@ -859,7 +859,7 @@ sub test_feeds($)
     $r = test_put( '/api/v2/feeds/update', $update_input );
     validate_db_row( $db, 'feeds', $r->{ feed }, $update_input, 'update feed' );
 
-    $r = test_put( '/api/v2/feeds/scrape', { media_id => $medium->{ media_id } } );
+    $r = test_post( '/api/v2/feeds/scrape', { media_id => $medium->{ media_id } } );
     ok( $r->{ job_state }, "feeds/scrape job state returned" );
     is( $r->{ job_state }->{ media_id }, $medium->{ media_id }, "feeds/scrape media_id" );
     ok( $r->{ job_state }->{ state } ne 'error', "feeds/scrape job state is not an error" );

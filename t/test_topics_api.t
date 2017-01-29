@@ -330,11 +330,7 @@ sub test_topics_crud($)
     my $update_tags_ids = [ @{ $tags_ids } ];
     pop( @{ $update_tags_ids } );
 
-    # test that update requires topics_id
-    test_put( '/api/v2/topics/update', {}, 1 );
-
     my $update = {
-        topics_id       => $got_topic->{ topics_id },
         name            => "$label name update",
         description     => "$label description update",
         solr_seed_query => "$label query update",
@@ -349,7 +345,7 @@ sub test_topics_crud($)
 
     $label = 'update topic';
 
-    $r = test_put( '/api/v2/topics/update', $update );
+    $r = test_put( "/api/v2/topics/$topics_id/update", $update );
 
     ok( $r->{ topics }, "$label json includes topics" );
     $got_topic = $r->{ topics }->[ 0 ];
@@ -363,12 +359,38 @@ sub test_topics_crud($)
     is_deeply( [ sort @{ $got_tags_ids } ], [ sort @{ $update_tags_ids } ], "$label media tag ids" );
 }
 
+# test topics/spider call
+sub test_topics_spider($)
+{
+    my ( $db ) = @_;
+
+    my $topic = MediaWords::Test::DB::create_test_topic( $db, 'spider test' );
+
+    $topic = $db->update_by_id( 'topics', $topic->{ topics_id }, { solr_seed_query => 'BOGUSQUERYTORETURNOSTORIES' } );
+    my $topics_id = $topic->{ topics_id };
+
+    my $r = test_post( "/api/v2/topics/$topics_id/spider", {} );
+
+    ok( $r->{ job_state }, "spider return includes job_state" );
+
+    is( $r->{ job_state }->{ state }, 'queued', "spider state" );
+    is( $r->{ job_state }->{ topics_id }, $topic->{ topics_id }, "spider topics_id" );
+
+    $r = test_get( "/api/v2/topics/$topics_id/spider_status" );
+
+    ok( $r->{ job_states }, "spider status return includes job_states" );
+
+    is( $r->{ job_states }->[ 0 ]->{ state }, 'queued', "spider_status state" );
+    is( $r->{ job_states }->[ 0 ]->{ topics_id }, $topic->{ topics_id }, "spider_status topics_id" );
+}
+
 # test topics/* calls
 sub test_topics($)
 {
     my ( $db ) = @_;
 
     test_topics_crud( $db );
+    test_topics_spider( $db );
 }
 
 sub test_topics_api

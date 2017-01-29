@@ -49,7 +49,7 @@
    - [api/v2/feeds/update (PUT)](#apiv2feedsupdate-put)   
       - [Input Description](#input-description)   
       - [Example](#example)   
-   - [api/v2/feeds/scrape (PUT)](#apiv2feedsscrape-put)   
+   - [api/v2/feeds/scrape (POST)](#apiv2feedsscrape-put)   
       - [Input Description](#input-description)   
       - [Example](#example)   
    - [api/v2/feeds/scrape_status](#apiv2feedsscrape_status)   
@@ -771,7 +771,7 @@ Output:
 
 
 
-## api/v2/feeds/scrape (PUT)
+## api/v2/feeds/scrape (POST)
 
 | URL                 | Description                         |
 | ------------------- | ----------------------------------- |

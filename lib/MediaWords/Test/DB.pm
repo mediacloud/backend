@@ -231,7 +231,7 @@ sub create_test_story_stack_numerated($$$$;$)
         for my $j ( 0 .. $num_feeds_per_medium - 1 )
         {
             $feeds->{ "feed_${ label }_" . $feed_index++ } =
-              [ map { "story_${ label }_" . $story_index++ } ( 0 .. $num_stories_per_feed - 1 ) ];
+              [ map { "story_" . $story_index++ } ( 0 .. $num_stories_per_feed - 1 ) ];
         }
     }
 

@@ -3197,8 +3197,6 @@ sub mine : Local
 
     MediaWords::Job::TM::MineTopic->add_to_queue( { topics_id => $topics_id } );
 
-    $db->update_by_id( 'topics', $topics_id, { state => 'queued for spidering' } );
-
     my $status = 'Topic spidering job queued.';
     $c->res->redirect( $c->uri_for( "/admin/tm/view/" . $topics_id, { status_msg => $status } ) );
 
