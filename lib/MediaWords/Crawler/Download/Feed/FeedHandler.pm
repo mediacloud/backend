@@ -123,7 +123,7 @@ SQL
     $download = $db->find_by_id( 'downloads', $downloads_id );
 
     # Store the feed in any case
-    MediaWords::DBI::Downloads::store_content( $db, $download, \$decoded_content );
+    $download = MediaWords::DBI::Downloads::store_content( $db, $download, \$decoded_content );
 
     DEBUG "Done processing feed download $downloads_id";
 

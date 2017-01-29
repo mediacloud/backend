@@ -283,7 +283,7 @@ sub add_content_to_test_story($$$)
         }
     );
 
-    MediaWords::DBI::Downloads::store_content( $db, $download, \$content );
+    $download = MediaWords::DBI::Downloads::store_content( $db, $download, \$content );
 
     $story->{ download } = $download;
     $story->{ content }  = $content;

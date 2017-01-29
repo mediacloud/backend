@@ -581,7 +581,7 @@ sub restore_download_content
 {
     my ( $db, $download, $story_content ) = @_;
 
-    MediaWords::DBI::Downloads::store_content( $db, $download, \$story_content );
+    $download = MediaWords::DBI::Downloads::store_content( $db, $download, \$story_content );
     _reextract_download( $db, $download );
 }
 

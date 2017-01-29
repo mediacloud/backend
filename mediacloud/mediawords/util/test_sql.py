@@ -6,6 +6,9 @@ import datetime
 
 def test_get_sql_date_from_epoch():
     assert get_sql_date_from_epoch(int(time.time())) == datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S')
+    assert get_sql_date_from_epoch(0) == datetime.datetime.fromtimestamp(0).strftime('%Y-%m-%d %H:%M:%S')
+    # noinspection PyTypeChecker
+    assert get_sql_date_from_epoch('badger') == datetime.datetime.fromtimestamp(0).strftime('%Y-%m-%d %H:%M:%S')
 
 
 def test_sql_now():
