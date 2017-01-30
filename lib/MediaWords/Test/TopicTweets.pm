@@ -455,9 +455,11 @@ sub validate_topic_data($$)
 {
     my ( $db, $topic ) = @_;
 
-    is( $topic->{ state }, 'completed successfully', "twitter topic state" );
+    my $completed = $MediaWords::AbstractJob::STATE_COMPLETED;
 
-    my ( $failed_snapshots ) = $db->query( "select count(*) from snapshots where state <> 'completed successfully'" )->flat;
+    is( $topic->{ state }, $completed, "twitter topic state" );
+
+    my ( $failed_snapshots ) = $db->query( "select count(*) from snapshots where state <> ?", $completed )->flat;
     is( $failed_snapshots, 0, "number of failed snapshots" );
 
     my ( $num_matching_seed_urls ) = $db->query( <<SQL, $topic->{ topics_id } )->flat;

@@ -389,13 +389,7 @@ END
 
     my $tag_set = $db->create( 'tag_sets', { name => 'foo' } );
 
-    my $topic = {
-        name            => 'foo',
-        pattern         => 'foo',
-        solr_seed_query => 'foo',
-        description     => 'foo',
-    };
-    $topic = $db->create( 'topics', $topic );
+    my $topic = MediaWords::Test::DB::create_test_topic( $db, 'foo' );
 
     $db->create(
         'topic_stories',

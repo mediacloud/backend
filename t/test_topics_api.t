@@ -457,6 +457,7 @@ sub test_topics_api
     test_media_list( $stories );
 
     test_topics( $db );
+    test_snapsots( $db );
 
 }
 

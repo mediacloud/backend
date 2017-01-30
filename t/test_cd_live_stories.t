@@ -93,7 +93,9 @@ sub test_live_stories
         pattern             => '',
         solr_seed_query     => '',
         solr_seed_query_run => 'f',
-        description         => 'topic A'
+        description         => 'topic A',
+        start_date          => '2017-01-01',
+        end_date            => '2017-02-01',
     };
     $topic_a = $db->create( 'topics', $topic_a );
 
@@ -102,7 +104,9 @@ sub test_live_stories
         pattern             => '',
         solr_seed_query     => '',
         solr_seed_query_run => 'f',
-        description         => 'topic B'
+        description         => 'topic B',
+        start_date          => '2017-01-01',
+        end_date            => '2017-02-01',
     };
     $topic_b = $db->create( 'topics', $topic_b );
 
