@@ -373,14 +373,14 @@ sub test_topics_spider($)
 
     ok( $r->{ job_state }, "spider return includes job_state" );
 
-    is( $r->{ job_state }->{ state }, 'queued', "spider state" );
+    is( $r->{ job_state }->{ state }, $MediaWords::AbstractJob::STATE_QUEUED, "spider state" );
     is( $r->{ job_state }->{ topics_id }, $topic->{ topics_id }, "spider topics_id" );
 
     $r = test_get( "/api/v2/topics/$topics_id/spider_status" );
 
     ok( $r->{ job_states }, "spider status return includes job_states" );
 
-    is( $r->{ job_states }->[ 0 ]->{ state }, 'queued', "spider_status state" );
+    is( $r->{ job_states }->[ 0 ]->{ state }, $MediaWords::AbstractJob::STATE_QUEUED, "spider_status state" );
     is( $r->{ job_states }->[ 0 ]->{ topics_id }, $topic->{ topics_id }, "spider_status topics_id" );
 }
 
@@ -409,7 +409,7 @@ sub test_snapshots_generate($)
 
     ok( $r->{ job_state }, "$label return includes job_state" );
 
-    is( $r->{ job_state }->{ state }, 'queued', "$label state" );
+    is( $r->{ job_state }->{ state }, $MediaWords::AbstractJob::STATE_QUEUED, "$label state" );
     is( $r->{ job_state }->{ topics_id }, $topic->{ topics_id }, "$label topics_id" );
 
     $r = test_get( "/api/v2/topics/$topics_id/snapshots/generate_status" );
@@ -418,7 +418,7 @@ sub test_snapshots_generate($)
 
     ok( $r->{ job_states }, "$label return includes job_states" );
 
-    is( $r->{ job_states }->[ 0 ]->{ state }, 'queued', "$label status state" );
+    is( $r->{ job_states }->[ 0 ]->{ state }, $MediaWords::AbstractJob::STATE_QUEUED, "$label status state" );
     is( $r->{ job_states }->[ 0 ]->{ topics_id }, $topic->{ topics_id }, "$label topics_id" );
 }
 
@@ -457,7 +457,7 @@ sub test_topics_api
     test_media_list( $stories );
 
     test_topics( $db );
-    test_snapsots( $db );
+    test_snapshots( $db );
 
 }
 
