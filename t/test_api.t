@@ -222,7 +222,7 @@ sub test_media_create_update($$)
             {
                 url      => $_->{ url },
                 tags_ids => [ $tag->{ tags_id } ],
-                feeds    => [ $_->{ feed_url }, $_->{ custom_feed_url }, 'http://192.168.168.168:123456/456789/feed' ]
+                feeds    => [ $_->{ feed_url }, $_->{ custom_feed_url }, 'http://127.0.0.1:123456/456789/feed' ]
             }
         } @{ $sites }
     ];
@@ -348,7 +348,7 @@ sub test_media_create($)
     is( $r->[ 0 ]->{ media_id }, $first_medium->{ media_id }, "media/create existing media_id" );
 
     # add all media sources in sites, plus one which should return a 404
-    my $input = [ map { { url => $_->{ url } } } ( @{ $sites }, { url => 'http://192.168.168.168:123456/456789' } ) ];
+    my $input = [ map { { url => $_->{ url } } } ( @{ $sites }, { url => 'http://127.0.0.1:123456/456789' } ) ];
     $r = test_post( '/api/v2/media/create', $input );
     my $status_media_ids = [ map { $_->{ media_id } } grep { $_->{ status } ne 'error' } @{ $r } ];
     my $status_errors    = [ map { $_->{ error } } grep    { $_->{ status } eq 'error' } @{ $r } ];

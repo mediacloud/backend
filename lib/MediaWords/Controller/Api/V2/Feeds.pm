@@ -115,7 +115,7 @@ SQL
     if ( !$job_state )
     {
         $db->begin;
-        MediaWords::Job::RescrapeMedia->add_to_queue( { media_id => $data->{ media_id } } );
+        MediaWords::Job::RescrapeMedia->add_to_queue( { media_id => $data->{ media_id } }, undef, $db );
         $job_state = $db->query( "select $JOB_STATE_FIELD_LIST from job_states order by job_states_id desc limit 1" )->hash;
         $db->commit;
 

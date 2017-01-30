@@ -393,6 +393,43 @@ sub test_topics($)
     test_topics_spider( $db );
 }
 
+# test snapshots/generate and /generate_status
+sub test_snapshots_generate($)
+{
+    my ( $db ) = @_;
+
+    my $label = 'snapshot generate';
+
+    my $topic = MediaWords::Test::DB::create_test_topic( $db, $label );
+
+    $topic = $db->update_by_id( 'topics', $topic->{ topics_id }, { solr_seed_query => 'BOGUSQUERYTORETURNOSTORIES' } );
+    my $topics_id = $topic->{ topics_id };
+
+    my $r = test_post( "/api/v2/topics/$topics_id/snapshots/generate", {} );
+
+    ok( $r->{ job_state }, "$label return includes job_state" );
+
+    is( $r->{ job_state }->{ state }, 'queued', "$label state" );
+    is( $r->{ job_state }->{ topics_id }, $topic->{ topics_id }, "$label topics_id" );
+
+    $r = test_get( "/api/v2/topics/$topics_id/snapshots/generate_status" );
+
+    $label = 'snapshot generate_status';
+
+    ok( $r->{ job_states }, "$label return includes job_states" );
+
+    is( $r->{ job_states }->[ 0 ]->{ state }, 'queued', "$label status state" );
+    is( $r->{ job_states }->[ 0 ]->{ topics_id }, $topic->{ topics_id }, "$label topics_id" );
+}
+
+# test snapshots/* calls
+sub test_snapshots($)
+{
+    my ( $db ) = @_;
+
+    test_snapshots_generate( $db );
+}
+
 sub test_topics_api
 {
     my $db = shift;

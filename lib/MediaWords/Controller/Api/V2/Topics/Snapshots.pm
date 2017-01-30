@@ -20,6 +20,9 @@ __PACKAGE__->config(
     }
 );
 
+Readonly my $JOB_STATE_FIELD_LIST =>
+  "job_states_id, args->>'topics_id' topics_id, args->>'snapshots_id' snapshots_id, state, message, last_updated";
+
 sub apibase : Chained('/') : PathPart('api/v2/topics') : CaptureArgs(1)
 {
     my ( $self, $c, $topics_id ) = @_;
@@ -44,7 +47,7 @@ sub list_GET
     my $topics_id = $c->stash->{ topics_id };
 
     my $snapshots = $db->query( <<SQL, $topics_id )->hashes;
-select snapshots_id, snapshot_date, note, state, searchable
+select snapshots_id, snapshot_date, note, state, searchable, message
     from snapshots
     where topics_id = \$1
     order by snapshots_id desc
@@ -63,11 +66,61 @@ sub generate_GET
 
     my $topics_id = $c->stash->{ topics_id };
 
-    my $topic = $c->dbis->find_by_id( 'topics', $topics_id ) || die( "Unable to find topic" );
+    my $note = $c->req->data->{ post } || '' if ( $c->req->data );
 
-    MediaWords::Job::TM::SnapshotTopic->add_to_queue( { topics_id => $topics_id } );
+    my $job_class = MediaWords::Job::TM::SnapshotTopic->name;
 
-    $self->status_ok( $c, entity => { success => 1 } );
+    my $db = $c->dbis;
+
+    my $job_state = $db->query( <<SQL, $topics_id, $job_class )->hash;
+select $JOB_STATE_FIELD_LIST
+    from job_states
+    where
+        ( args->>'topics_id' )::int = \$1 and
+        class = \$2 and
+        state not in ( 'completed successfully', 'error' )
+    order by job_states_id desc
+SQL
+
+    if ( !$job_state )
+    {
+        $db->begin;
+        MediaWords::Job::TM::SnapshotTopic->add_to_queue( { topics_id => $topics_id, note => $note }, undef, $db );
+        $job_state = $db->query( "select $JOB_STATE_FIELD_LIST from job_states order by job_states_id desc limit 1" )->hash;
+        $db->commit;
+
+        die( "Unable to find job state from queued job" ) unless ( $job_state );
+    }
+
+    return $self->status_ok( $c, entity => { job_state => $job_state } );
+}
+
+sub generate_status : Chained('snapshots') : Args(0) : ActionClass('MC_REST')
+{
+}
+
+sub generate_status_GET
+{
+    my ( $self, $c ) = @_;
+
+    my $topics_id = $c->stash->{ topics_id };
+
+    my $job_class = MediaWords::Job::TM::SnapshotTopi->name;
+
+    my $db = $c->dbis;
+
+    my $job_states;
+
+    $job_states = $db->query( <<SQL, $topics_id, $job_class )->hashes;
+select $JOB_STATE_FIELD_LIST
+    from job_states
+    where
+        class = \$2 and
+        ( args->>'topics_id' )::int = \$1
+    order by last_updated desc
+SQL
+
+    $self->status_ok( $c, entity => { job_states => $job_states } );
 }
 
 1;

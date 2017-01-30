@@ -409,14 +409,13 @@ sub add_topic
     my $tag_set = $db->create( 'tag_sets', { name => $name } );
 
     my $topic = {
-        name              => $name,
-        pattern           => $name,
-        solr_seed_query   => $name,
-        description       => $name,
-        topic_tag_sets_id => $tag_set->{ tag_sets_id },
-        is_public         => $is_public ? 1 : 0,
-        start_date        => '2017-01-01',
-        end_date          => '2017-02-01',
+        name            => $name,
+        pattern         => $name,
+        solr_seed_query => $name,
+        description     => $name,
+        is_public       => $is_public ? 1 : 0,
+        start_date      => '2017-01-01',
+        end_date        => '2017-02-01',
     };
 
     $topic = $db->create( 'topics', $topic );

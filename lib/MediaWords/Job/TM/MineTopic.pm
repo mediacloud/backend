@@ -48,7 +48,7 @@ sub use_job_state
 
 sub get_state_table_info
 {
-    return { table => 'topics', state => 'state', message => 'error_message' };
+    return { table => 'topics', state => 'state', message => 'message' };
 }
 
 # Run job

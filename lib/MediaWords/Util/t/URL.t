@@ -390,11 +390,10 @@ END
     my $tag_set = $db->create( 'tag_sets', { name => 'foo' } );
 
     my $topic = {
-        name              => 'foo',
-        pattern           => 'foo',
-        solr_seed_query   => 'foo',
-        description       => 'foo',
-        topic_tag_sets_id => $tag_set->{ tag_sets_id }
+        name            => 'foo',
+        pattern         => 'foo',
+        solr_seed_query => 'foo',
+        description     => 'foo',
     };
     $topic = $db->create( 'topics', $topic );
 

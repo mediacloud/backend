@@ -58,7 +58,7 @@ sub _get_topics_list($$$)    # sql clause for fields to query from job_states fo
 
     my $topics = $db->query( <<END, $auth_users_id, $name, $limit, $offset )->hashes;
 select t.topics_id, t.name, t.pattern, t.solr_seed_query, t.description, t.max_iterations, t.state,
-        t.error_message, t.is_public, t.ch_monitor_id, t.twitter_topics_id, t.start_date, t.end_date,
+        t.message, t.is_public, t.ch_monitor_id, t.twitter_topics_id, t.start_date, t.end_date,
         min( p.auth_users_id ) auth_users_id, min( p.user_permission ) user_permission
     from topics t
         join topics_with_user_permission p using ( topics_id )
@@ -289,12 +289,13 @@ select $JOB_STATE_FIELD_LIST
         ( args->>'topics_id' )::int = \$1 and
         class = \$2 and
         state not in ( 'completed successfully', 'error' )
+    order by job_states_id desc
 SQL
 
     if ( !$job_state )
     {
         $db->begin;
-        MediaWords::Job::TM::MineTopic->add_to_queue( { topics_id => $topics_id } );
+        MediaWords::Job::TM::MineTopic->add_to_queue( { topics_id => $topics_id }, undef, $db );
         $job_state = $db->query( "select $JOB_STATE_FIELD_LIST from job_states order by job_states_id desc limit 1" )->hash;
         $db->commit;
 

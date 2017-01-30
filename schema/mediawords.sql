@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4606;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4607;
 
 BEGIN
 
@@ -1277,13 +1277,10 @@ create table topics (
     solr_seed_query         text not null,
     solr_seed_query_run     boolean not null default false,
     description             text not null,
-    topic_tag_sets_id int not null references tag_sets,
     media_type_tag_sets_id  int references tag_sets,
     max_iterations          int not null default 15,
     state                   text not null default 'created but not queued',
-    has_been_spidered       boolean not null default false,
-    has_been_dumped         boolean not null default false,
-    error_message           text null,
+    message                 text null,
     is_public               boolean not null default false,
     start_date              date not null,
     end_date                date not null,
@@ -1297,22 +1294,7 @@ create table topics (
 );
 
 create unique index topics_name on topics( name );
-create unique index topics_tag_set on topics( topic_tag_sets_id );
 create unique index topics_media_type_tag_set on topics( media_type_tag_sets_id );
-
-create function insert_topic_tag_set() returns trigger as $insert_topic_tag_set$
-    begin
-        insert into tag_sets ( name, label, description )
-            select 'topic_'||NEW.name, NEW.name||' topic', 'Tag set for stories within the '||NEW.name||' topic.';
-
-        select tag_sets_id into NEW.topic_tag_sets_id from tag_sets where name = 'topic_'||NEW.name;
-
-        return NEW;
-    END;
-$insert_topic_tag_set$ LANGUAGE plpgsql;
-
-create trigger topic_tag_set before insert on topics
-    for each row execute procedure insert_topic_tag_set();
 
 create table topic_dates (
     topic_dates_id    serial primary key,
@@ -1444,14 +1426,14 @@ create index topic_ignore_redirects_url on topic_ignore_redirects ( url );
 
 create table snapshots (
     snapshots_id            serial primary key,
-    topics_id                int not null references topics on delete cascade,
-    snapshot_date                       timestamp not null,
-    start_date                      timestamp not null,
-    end_date                        timestamp not null,
-    note                            text,
-    state                           text not null default 'queued',
-    error_message                   text null,
-    searchable             boolean not null default false
+    topics_id               int not null references topics on delete cascade,
+    snapshot_date           timestamp not null,
+    start_date              timestamp not null,
+    end_date                timestamp not null,
+    note                    text,
+    state                   text not null default 'queued',
+    message                 text null,
+    searchable              boolean not null default false
 );
 
 create index snapshots_topic on snapshots ( topics_id );

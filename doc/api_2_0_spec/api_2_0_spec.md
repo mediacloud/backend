@@ -1200,7 +1200,6 @@ Response:
 [
   {
     "topics_id": 6,
-    "topic_tag_sets_id": 14,
     "description": "obama",
     "name": "obama",
     "media_type_tag_sets_id": 18

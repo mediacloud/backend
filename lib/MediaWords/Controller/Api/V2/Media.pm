@@ -360,7 +360,7 @@ sub _apply_updates_to_media($$)
             map { MediaWords::DBI::Media::add_feed_url_to_medium( $db, $input_medium->{ medium }, $_ ) } @{ $feeds };
         }
 
-        MediaWords::Job::RescrapeMedia->add_to_queue( { media_id => $medium->{ media_id } } );
+        MediaWords::Job::RescrapeMedia->add_to_queue( { media_id => $medium->{ media_id } }, undef, $db );
 
         if ( my $tags_ids = $input_medium->{ tags_ids } )
         {

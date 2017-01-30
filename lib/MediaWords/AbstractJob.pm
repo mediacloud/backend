@@ -80,9 +80,13 @@ use MediaWords::Util::Config;
     use MediaWords::DB;
     use MediaWords::Util::JSON;
 
-    # tag to put into a die() message to make the module not set the final
-    # state to 'error' on a die for testing
+    # tag to put into a die() message to make the module not set the final state to 'error' on a die (for testing)
     Readonly our $DIE_WITHOUT_ERROR_TAG => 'dU3A4yUajMLV';
+
+    Readonly our $STATE_QUEUED    => 'queued';
+    Readonly our $STATE_RUNNING   => 'running';
+    Readonly our $STATE_COMPLETED => 'completed';
+    Readonly our $STATE_ERROR     => 'error';
 
     # set to the job_states_id for the current job while run_statefully() is executing
     my $_current_job_states_id;
@@ -132,7 +136,7 @@ use MediaWords::Util::Config;
         $priority ||= $MediaCloud::JobManager::Job::MJM_JOB_PRIORITY_NORMAL;
 
         my $job_state = {
-            state      => 'queued',
+            state      => $STATE_QUEUED,
             args       => $args_json,
             priority   => $priority,
             class      => $self->name(),
@@ -145,14 +149,15 @@ use MediaWords::Util::Config;
         return $job_state->{ job_states_id };
     }
 
-    ## override add_to_queue method to add state actions
-    sub add_to_queue($;$$)
+    # override add_to_queue method to add state actions, including add a new job_states row with a state
+    # of $STATE_QUEUED. optinoally include a $db handle to use to create the job_states row
+    sub add_to_queue($;$$$)
     {
-        my ( $class, $args, $priority ) = @_;
+        my ( $class, $args, $priority, $db ) = @_;
 
         if ( $class->use_job_state() )
         {
-            my $db = MediaWords::DB::connect_to_db();
+            $db ||= MediaWords::DB::connect_to_db();
             my $job_states_id = $class->_create_queued_job_state( $db, $args, $priority );
             $args->{ job_states_id } = $job_states_id;
         }
@@ -160,8 +165,8 @@ use MediaWords::Util::Config;
         $class->_role_add_to_queue( $args, $priority );
     }
 
-    # sub classes that use jbo state should implement run_statefully intead of run() to make sure that
-    # job state always gets set on job start, finish, and error.  unlike run(), run_statefully will be provided
+    # sub classes that use job state should implement run_statefully() intead of run() to make sure that
+    # job state always gets set on job start, finish, and error.  unlike run(), run_statefully() will be provided
     # with a $db handle as an argument.
     sub run_statefully($$;$)
     {
@@ -180,14 +185,16 @@ use MediaWords::Util::Config;
         return $db->require_by_id( 'job_states', $_current_job_states_id );
     }
 
-    # to make update_job_state update a state field in a table, make this method return a
-    # hash in the form of { table => $table, state_field => $state_field, message_field => $message_field }
+    # to make update_job_state() update a state field in a table other than job_states, make this method return a
+    # hash in the form of { table => $table, state_field => $state_field, message_field => $message_field }.  this is
+    # useful to keep the state and message of the current job in a table for easy access, for instance in
+    # topics.state for the MineTopic job.
     sub get_state_table_info($)
     {
         return undef;
     }
 
-    # if get_state_table_info returns a value, update the state and message fields in the given table for the
+    # if get_state_table_info() returns a value, update the state and message fields in the given table for the
     # row whose '<table>_id' field matches that field in the job args
     sub _update_table_state($$$;$)
     {
@@ -212,10 +219,10 @@ use MediaWords::Util::Config;
         $db->update_by_id( $table_info->{ table }, $id_value, $update );
     }
 
-    # update the 'state' field of the job_states table for the currently active job_states_id.
+    # update the state and message fields of the job_states table for the currently active job_states_id.
     # jobs_states_id is set and unset in sub run() below, so this must be called from code running
     # from within the run_statefully() implementation of the sub class.
-    sub update_job_state($$$)
+    sub _update_job_state($$$)
     {
         my ( $self, $db, $state, $message ) = @_;
 
@@ -257,25 +264,46 @@ use MediaWords::Util::Config;
 
     }
 
-    # set job state to running, call run_statefully, either catch any errors and set state to error and save
-    # the error or set state to 'completed successfully'
+    # update the message field for the current job_state row.  this is a public method that is intended to be used
+    # by code run anywhere above the stack from run_statefully() to publish messages updating the progress
+    # of a long running job.
+    sub update_job_state_message($$$)
+    {
+        my ( $self, $db, $message ) = @_;
+
+        my $job_states_id = $_current_job_states_id;
+        LOGCONFESS( "must be called from inside of MediaWords::AbstractJob::run_statefully" ) unless ( $job_states_id );
+
+        my $job_state = $db->require_by_id( 'job_states', $job_states_id );
+
+        $job_state = $db->update_by_id( 'job_states', $job_state->{ job_states_id }, { message => $message } );
+
+        $self->_update_table_state( $db, $job_state );
+    }
+
+    # set job state to $STATE_RUNNING, call run_statefully, either catch any errors and set state to $STATE_ERROR and save
+    # the error or set state to $STATE_COMPLETED
     sub run($;$)
     {
         my ( $self, $args ) = @_;
 
-        LOGCONFESS( "run() must be defined unless use_job_state() returns true" ) unless ( $self->use_job_state() );
-
-        LOGCONFESS( "run() calls cannot be nested for stateful jobs" ) if ( $_current_job_states_id );
-
         my $db = MediaWords::DB::connect_to_db();
 
-        my $job_states_id = $args->{ job_states_id } || $self->_create_queued_job_state( $db, $args );
+        my $r;
 
-        $_current_job_states_id = $job_states_id;
+        eval {
+            LOGCONFESS( "run() must be defined unless use_job_state() returns true" ) unless ( $self->use_job_state() );
 
-        $self->update_job_state( $db, 'running' );
+            LOGCONFESS( "run() calls cannot be nested for stateful jobs" ) if ( $_current_job_states_id );
 
-        my $r = eval { $self->run_statefully( $db, $args ) };
+            my $job_states_id = $args->{ job_states_id } || $self->_create_queued_job_state( $db, $args );
+
+            $_current_job_states_id = $job_states_id;
+
+            $self->_update_job_state( $db, $STATE_RUNNING );
+
+            $r = $self->run_statefully( $db, $args );
+        };
 
         if ( $@ && ( $@ =~ /\Q$DIE_WITHOUT_ERROR_TAG\E/ ) )
         {
@@ -284,11 +312,11 @@ use MediaWords::Util::Config;
         elsif ( $@ )
         {
             WARN( "logged error in job_states: $@" );
-            $self->update_job_state( $db, 'error', $@ );
+            $self->_update_job_state( $db, $STATE_ERROR, $@ );
         }
         else
         {
-            $self->update_job_state( $db, 'completed successfully' );
+            $self->_update_job_state( $db, $STATE_COMPLETED );
         }
 
         $_current_job_states_id = undef;

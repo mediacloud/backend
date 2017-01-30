@@ -1492,7 +1492,7 @@ sub generate_timespan ($$$$$$)
 
     DEBUG( "generating $snapshot_label ..." );
 
-    MediaWords::Job::TM::SnapshotTopic->update_job_state( $db, "snapshotting $snapshot_label" );
+    MediaWords::Job::TM::SnapshotTopic->update_job_state_message( $db, "snapshotting $snapshot_label" );
 
     my $all_models_top_media = MediaWords::TM::Model::get_all_models_top_media( $db, $timespan );
 
@@ -1838,14 +1838,16 @@ sub generate_snapshots_from_temporary_snapshot_tables
 }
 
 # create the snapshot row for the current snapshot
-sub create_snapshot_row ($$$$)
+sub create_snapshot_row ($$$$;$)
 {
-    my ( $db, $topic, $start_date, $end_date ) = @_;
+    my ( $db, $topic, $start_date, $end_date, $note ) = @_;
 
-    my $cd = $db->query( <<END, $topic->{ topics_id }, $start_date, $end_date )->hash;
+    $note //= '';
+
+    my $cd = $db->query( <<END, $topic->{ topics_id }, $start_date, $end_date, $note )->hash;
 insert into snapshots
-    ( topics_id, start_date, end_date, snapshot_date )
-    values ( ?, ?, ?, now() )
+    ( topics_id, start_date, end_date, snapshot_date, note )
+    values ( ?, ?, ?, now(), ? )
     returning *
 END
 
@@ -1938,9 +1940,9 @@ Create a snapshot for the given topic.
 
 =cut
 
-sub snapshot_topic ($$)
+sub snapshot_topic ($$;$)
 {
-    my ( $db, $topics_id ) = @_;
+    my ( $db, $topics_id, $note ) = @_;
 
     my $periods = [ qw(custom overall weekly monthly) ];
 
@@ -1958,10 +1960,10 @@ sub snapshot_topic ($$)
 
     my ( $start_date, $end_date ) = ( $topic->{ start_date }, $topic->{ end_date } );
 
-    my $snap = create_snapshot_row( $db, $topic, $start_date, $end_date );
+    my $snap = create_snapshot_row( $db, $topic, $start_date, $end_date, $note );
 
     MediaWords::Job::TM::SnapshotTopic->update_job_state_args( $db, { snapshots_id => $snap->{ snapshots_id } } );
-    MediaWords::Job::TM::SnapshotTopic->update_job_state( $db, "snapshotting data" );
+    MediaWords::Job::TM::SnapshotTopic->update_job_state_message( $db, "snapshotting data" );
 
     write_temporary_snapshot_tables( $db, $topic );
 
@@ -1972,7 +1974,7 @@ sub snapshot_topic ($$)
 
     generate_period_focus_snapshots( $db, $snap, $periods );
 
-    MediaWords::Job::TM::SnapshotTopic->update_job_state( $db, "finalizing snapshot" );
+    MediaWords::Job::TM::SnapshotTopic->update_job_state_message( $db, "finalizing snapshot" );
 
     write_date_counts_snapshot( $db, $snap, 'daily' );
     write_date_counts_snapshot( $db, $snap, 'weekly' );

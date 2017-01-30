@@ -35,7 +35,7 @@ sub use_job_state
 
 sub get_state_table_info
 {
-    return { table => 'snapshots', state => 'state', message => 'error_message' };
+    return { table => 'snapshots', state => 'state', message => 'message' };
 }
 
 # Run job
@@ -44,13 +44,12 @@ sub run_statefully($$;$)
     my ( $self, $db, $args ) = @_;
 
     my $topics_id = $args->{ topics_id };
-    unless ( defined $topics_id )
-    {
-        die "'topics_id' is undefined.";
-    }
+    my $note      = $args->{ note };
+
+    die( "'topics_id' is undefined" ) unless ( defined $topics_id );
 
     # No transaction started because apparently snapshot_topic() does start one itself
-    MediaWords::TM::Snapshot::snapshot_topic( $db, $topics_id );
+    MediaWords::TM::Snapshot::snapshot_topic( $db, $topics_id, $note );
 }
 
 no Moose;    # gets rid of scaffolding

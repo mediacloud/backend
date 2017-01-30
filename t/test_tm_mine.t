@@ -332,8 +332,6 @@ sub create_topic
 {
     my ( $db, $sites ) = @_;
 
-    my $topic_tag_set = $db->create( 'tag_sets', { name => 'test topic' } );
-
     my $now        = MediaWords::Util::SQL::sql_now();
     my $start_date = MediaWords::Util::SQL::increment_day( $now, -30 );
     my $end_date   = MediaWords::Util::SQL::increment_day( $now, 30 );
@@ -346,7 +344,6 @@ sub create_topic
             pattern             => $TOPIC_PATTERN,
             solr_seed_query     => 'stories_id:0',
             solr_seed_query_run => 't',
-            topic_tag_sets_id   => $topic_tag_set->{ topic_tag_sets_id },
             start_date          => $start_date,
             end_date            => $end_date
 
@@ -446,11 +443,11 @@ sub test_for_errors
 {
     my ( $db ) = @_;
 
-    my $error_topics = $db->query( "select * from topics where length( error_message ) > 0" )->hashes;
+    my $error_topics = $db->query( "select * from topics where state = 'error'" )->hashes;
 
     ok( scalar( @{ $error_topics } ) == 0, "topic errors: " . Dumper( $error_topics ) );
 
-    my $error_snapshots = $db->query( "select * from snapshots where length( error_message ) > 0" )->hashes;
+    my $error_snapshots = $db->query( "select * from snapshots where state = 'error'" )->hashes;
 
     ok( scalar( @{ $error_snapshots } ) == 0, "snapshot errors: " . Dumper( $error_snapshots ) );
 }

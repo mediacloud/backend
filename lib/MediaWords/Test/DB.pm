@@ -331,12 +331,10 @@ sub create_test_user($)
     return $api_key->{ api_token };
 }
 
-# create test topic with a simple label.  create associated topic_dates and topic_tag_set rows as well
+# create test topic with a simple label.
 sub create_test_topic($$)
 {
     my ( $db, $label ) = @_;
-
-    my $topic_tag_set = $db->create( 'tag_sets', { name => "topic $label" } );
 
     my $topic = $db->create(
         'topics',
@@ -346,7 +344,6 @@ sub create_test_topic($$)
             pattern             => $label,
             solr_seed_query     => $label,
             solr_seed_query_run => 't',
-            topic_tag_sets_id   => $topic_tag_set->{ topic_tag_sets_id },
             start_date          => '2016-01-01',
             end_date            => '2016-03-01',
         }

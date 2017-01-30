@@ -114,9 +114,9 @@ sub init_static_variables
 # update topics.state in the database
 sub update_topic_state($$$;$)
 {
-    my ( $db, $topic, $state, $message ) = @_;
+    my ( $db, $topic, $message ) = @_;
 
-    eval { MediaWords::Job::TM::MineTopic->update_job_state( $db, $state, $message ) };
+    eval { MediaWords::Job::TM::MineTopic->update_job_state_message( $db, $message ) };
     if ( $@ )
     {
         die( "error updating job state (mine_topic() must be called from MediaWords::Job::TM::MineTopic): $@" );
@@ -3057,22 +3057,11 @@ sub mine_topic ($$;$)
 
     my $prev_test_mode = $_test_mode;
 
-    eval {
+    init_static_variables();
 
-        init_static_variables();
+    $_test_mode = 1 if ( $options->{ test_mode } );
 
-        $_test_mode = 1 if ( $options->{ test_mode } );
-
-        do_mine_topic( $db, $topic );
-    };
-    if ( $@ )
-    {
-        my $error = $@;
-
-        ERROR( "topic mining failed: $@" );
-
-        update_topic_state( $db, $topic, "error", $error );
-    }
+    do_mine_topic( $db, $topic );
 
     $_test_mode = $prev_test_mode;
 }

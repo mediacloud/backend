@@ -49,11 +49,12 @@
    - [api/v2/feeds/update (PUT)](#apiv2feedsupdate-put)   
       - [Input Description](#input-description)   
       - [Example](#example)   
-   - [api/v2/feeds/scrape (POST)](#apiv2feedsscrape-put)   
+   - [api/v2/feeds/scrape (POST)](#apiv2feedsscrape-post)   
       - [Input Description](#input-description)   
       - [Example](#example)   
    - [api/v2/feeds/scrape_status](#apiv2feedsscrape_status)   
       - [Input Description](#input-description)   
+      - [Output Description](#output-description)   
       - [Example](#example)   
 - [Media](#media)   
    - [api/v2/media/create (POST)](#apiv2mediacreate-post)   
@@ -838,6 +839,15 @@ media sources.
 | Field    | Description                              |
 | -------- | ---------------------------------------- |
 | media_id | id of media source to query for feed scraping jobs|
+
+### Output Description
+
+| Field    | Description                              |
+| -------- | ---------------------------------------- |
+| state | one of queued, running, completed, or error |
+| message | error message of state is 'error' |
+| last_updated | date of last state change |
+| media_id | id of media being scraped |
 
 ### Example
 
