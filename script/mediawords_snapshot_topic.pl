@@ -50,7 +50,7 @@ sub main
 
         if ( $direct_job )
         {
-            MediaWords::Job::TM::SnapshotTopic->run_locally( $db, { topics_id => $topics_id } );
+            MediaWords::Job::TM::SnapshotTopic->run_locally( { topics_id => $topics_id } );
             next;
         }
 
