@@ -1786,7 +1786,7 @@ create temporary table snapshot_tweet_stories as
             join snapshot_stories using ( stories_id )
         where
             topics_id = \$1 and
-            ( ( tweets / days ) < $BOT_TWEETS_PER_DAY )
+            ( ( coalesce( tweets, 0 ) / coalesce( days, 1 ) ) < $BOT_TWEETS_PER_DAY )
 SQL
 
     add_media_type_views( $db );
