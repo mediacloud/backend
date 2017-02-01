@@ -74,6 +74,9 @@ Readonly my $MAX_MAP_WIDTH => 800;
 # max number of media to include in gexf map
 Readonly my $MAX_GEXF_MEDIA => 500;
 
+# number of tweets per day to use as a threshold for bot filtering
+Readonly my $BOT_TWEETS_PER_DAY => 200;
+
 # attributes to include in gexf snapshot
 my $_media_static_gexf_attribute_types = {
     url                    => 'string',
@@ -1768,10 +1771,22 @@ END
 
     $db->query( <<SQL, $tweet_topics_id );
 create temporary table snapshot_tweet_stories as
+    with tweets_per_day as (
+        select topic_tweets_id,
+                ( tt.data->'tweet'->'user'->>'statuses_count' ) ::int tweets,
+                extract( day from now() - ( tt.data->'tweet'->'user'->>'created_at' )::date ) days
+            from topic_tweets tt
+                join topic_tweet_days ttd using ( topic_tweet_days_id )
+            where ttd.topics_id = \$1
+    )
+
     select topic_tweets_id, u.publish_date, twitter_user, stories_id, media_id, num_ch_tweets, tweet_count
         from topic_tweet_full_urls u
+            join tweets_per_day tpd using ( topic_tweets_id )
             join snapshot_stories using ( stories_id )
-        where topics_id = \$1
+        where
+            topics_id = \$1 and
+            ( ( tweets / days ) < $BOT_TWEETS_PER_DAY )
 SQL
 
     add_media_type_views( $db );
