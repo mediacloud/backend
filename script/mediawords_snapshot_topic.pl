@@ -18,7 +18,6 @@ use MediaWords::CommonLibs;
 
 use Getopt::Long;
 
-use MediaWords::TM::Snapshot;
 use MediaWords::DB;
 use MediaWords::TM;
 use MediaWords::Job::TM::SnapshotTopic;
@@ -51,7 +50,7 @@ sub main
 
         if ( $direct_job )
         {
-            MediaWords::TM::Snapshot::snapshot_topic( $db, $topics_id );
+            MediaWords::Job::TM::SnapshotTopic->run_locally( $db, { topics_id => $topics_id } );
             next;
         }
 
