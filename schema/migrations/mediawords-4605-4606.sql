@@ -15,7 +15,7 @@
 --
 
 alter table topics add start_date date;
-alter table topics add end_date date4;
+alter table topics add end_date date;
 
 update topics t set start_date = td.start_date, end_date = td.end_date
         from topic_dates td
