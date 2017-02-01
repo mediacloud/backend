@@ -25,7 +25,7 @@
             </td>
 
             <td>[% topic.state %]</td>
-            <td>[% topic.message %] | truncate ( 128 ) | html </td>
+            <td>[% topic.message | truncate ( 128 ) | html %]</td>
         </tr>
     [% END # FOREACH stories -%]
 
