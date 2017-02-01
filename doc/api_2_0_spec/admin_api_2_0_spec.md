@@ -52,6 +52,10 @@
    - [api/v2/feeds/scrape (POST)](#apiv2feedsscrape-post)   
       - [Input Description](#input-description)   
       - [Example](#example)   
+   - [api/v2/feeds/scrape_status](#apiv2feedsscrape_status)   
+      - [Input Description](#input-description)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
 - [Media](#media)   
    - [api/v2/media/create (POST)](#apiv2mediacreate-post)   
       - [Input Description](#input-description)   
@@ -776,7 +780,9 @@ Output:
 
 This end point scrapes through the web site of the given media source to try to discover new feeds.  
 
-This call queues a scraping job on the backend, which can take a few minutes or a few hours to complete.  After invoking this end point, the `feed_scrape_status` field on the given media source (accessible via `api/v2/media/list` or `api/v2/media/single`) will immediately change to `pending`.  The status will change to `scraping` while the scraping job is executing and either `complete` when the scraping successfully completed or `scraping failed` if there was an error.
+This call queues a scraping job on the backend, which can take a few minutes or a few hours to complete. You can
+check the status of the scraping process for a given media source by calling `api/v2/feeds/scrape_status`.  The call
+will return the state of the job created to scrape the media source.
 
 ### Input Description
 
@@ -801,9 +807,77 @@ Input:
 Output:
 
 ```json
-{ "success": 1 }
+{
+    "job_states": [
+        {
+            "media_id": 1,
+            "job_states_id": 1,
+            "last_updated": "2017-01-26 14:27:04.781095",
+            "message": null,
+            "state": "queued"
+        }
+    ]
+}    
 ```
 
+## api/v2/feeds/scrape_status
+
+| URL                 | Description                         |
+| ------------------- | ----------------------------------- |
+| api/v2/feeds/scrape_status | check the status of feed scraping jobs |
+
+This end point lists the status of feed scraping jobs (see `api/v2/feeds/scrape` above).  Feed scraping jobs
+can be started manually for a specific media source, via a scheduled job (every media source is rescraped every
+six months at least), or by adding a media source for the first time.
+
+If called with a media_id input, the call returns all jobs for the given media source, sorted by the
+latest first.  If called with no input, the call returns the last 100 feed scraping jobs from all
+media sources.
+
+### Input Description
+
+| Field    | Description                              |
+| -------- | ---------------------------------------- |
+| media_id | id of media source to query for feed scraping jobs|
+
+### Output Description
+
+| Field    | Description                              |
+| -------- | ---------------------------------------- |
+| state | one of queued, running, completed, or error |
+| message | error message of state is 'error' |
+| last_updated | date of last state change |
+| media_id | id of media being scraped |
+
+### Example
+
+URL: https://api.medicloud.org/api/v2/feeds/scrape_status
+
+Input:
+
+```json
+{
+  "media_id": 1
+}
+```
+
+
+
+Output:
+
+```json
+{
+    "job_states": [
+        {
+            "media_id": 1,
+            "job_states_id": 1,
+            "last_updated": "2017-01-26 14:27:04.781095",
+            "message": null,
+            "state": "queued"
+        }
+    ]
+}    
+```
 
 
 # Media
@@ -949,7 +1023,8 @@ Output:
 ```json
 [
   {
-    "user": "hroberts@cyber.law.harvard.edu",
+    "email": "hroberts@cyber.law.harvard.edu",
+    "auth_users_id": 123,
     "url": "http://mediacloud.org",
     "feed_url": "http://mediacloud.org/feed/",
     "reason": "Media Cloud is a great project",

@@ -219,6 +219,9 @@ Response:
     "media_id": 1,
     "primary_language": "en",
     "is_healthy": 1,
+    "is_monitored": 1,
+    "public_notes": "all the news that's fit to print",
+    "editor_nnotes": "first media source",
     "media_source_tags": [
          {
            "tag_sets_id": 5,
@@ -1197,7 +1200,6 @@ Response:
 [
   {
     "topics_id": 6,
-    "topic_tag_sets_id": 14,
     "description": "obama",
     "name": "obama",
     "media_type_tag_sets_id": 18

@@ -31,7 +31,7 @@ sub main
 
     die( "Unable to get content" ) unless ( $content_ref );
 
-    MediaWords::DBI::Downloads::store_content( $db, $download, $content_ref );
+    $download = MediaWords::DBI::Downloads::store_content( $db, $download, $content_ref );
 }
 
 main();

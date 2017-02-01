@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4603;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4607;
 
 BEGIN
 
@@ -1277,43 +1277,24 @@ create table topics (
     solr_seed_query         text not null,
     solr_seed_query_run     boolean not null default false,
     description             text not null,
-    topic_tag_sets_id int not null references tag_sets,
     media_type_tag_sets_id  int references tag_sets,
     max_iterations          int not null default 15,
     state                   text not null default 'created but not queued',
-    has_been_spidered       boolean not null default false,
-    has_been_dumped         boolean not null default false,
-    error_message           text null,
+    message                 text null,
     is_public               boolean not null default false,
+    start_date              date not null,
+    end_date                date not null,
 
     -- this is the id of a crimson hexagon monitor, not an internal database id
     ch_monitor_id           bigint null,
 
-    -- for twitter topics, the parent topic; if this is not null, this topic is the child twitter topic of
-    -- the given main topic
-    twitter_parent_topics_id int null references topics on delete set null,
+    -- id of a twitter topic to use to generate snapshot twitter counts
+    twitter_topics_id int null references topics on delete set null
 
-    -- whether to automagicall import urls discovered from crimson_hexagon using ch_monitor_id
-    import_twitter_urls     boolean not null default false
 );
 
 create unique index topics_name on topics( name );
-create unique index topics_tag_set on topics( topic_tag_sets_id );
 create unique index topics_media_type_tag_set on topics( media_type_tag_sets_id );
-
-create function insert_topic_tag_set() returns trigger as $insert_topic_tag_set$
-    begin
-        insert into tag_sets ( name, label, description )
-            select 'topic_'||NEW.name, NEW.name||' topic', 'Tag set for stories within the '||NEW.name||' topic.';
-
-        select tag_sets_id into NEW.topic_tag_sets_id from tag_sets where name = 'topic_'||NEW.name;
-
-        return NEW;
-    END;
-$insert_topic_tag_set$ LANGUAGE plpgsql;
-
-create trigger topic_tag_set before insert on topics
-    for each row execute procedure insert_topic_tag_set();
 
 create table topic_dates (
     topic_dates_id    serial primary key,
@@ -1323,21 +1304,19 @@ create table topic_dates (
     boundary                boolean not null default 'false'
 );
 
-create view topics_with_dates as
-    select c.*,
-            to_char( td.start_date, 'YYYY-MM-DD' ) start_date,
-            to_char( td.end_date, 'YYYY-MM-DD' ) end_date
-        from
-            topics c
-            join topic_dates td on ( c.topics_id = td.topics_id )
-        where
-            td.boundary;
-
-create table snapshot_tags (
-    snapshot_tags_id    serial primary key,
-    topics_id            int not null references topics on delete cascade,
-    tags_id                     int not null references tags
+create table topics_media_map (
+    topics_id       int not null references topics on delete cascade,
+    media_id        int not null references media on delete cascade
 );
+
+create index topics_media_map_topic on topics_media_map ( topics_id );
+
+create table topics_media_tags_map (
+    topics_id       int not null references topics on delete cascade,
+    tags_id         int not null references tags on delete cascade
+);
+
+create index topics_media_tags_map_topic on topics_media_tags_map ( topics_id );
 
 create table topic_media_codes (
     topics_id        int not null references topics on delete cascade,
@@ -1447,14 +1426,14 @@ create index topic_ignore_redirects_url on topic_ignore_redirects ( url );
 
 create table snapshots (
     snapshots_id            serial primary key,
-    topics_id                int not null references topics on delete cascade,
-    snapshot_date                       timestamp not null,
-    start_date                      timestamp not null,
-    end_date                        timestamp not null,
-    note                            text,
-    state                           text not null default 'queued',
-    error_message                   text null,
-    searchable             boolean not null default false
+    topics_id               int not null references topics on delete cascade,
+    snapshot_date           timestamp not null,
+    start_date              timestamp not null,
+    end_date                timestamp not null,
+    note                    text,
+    state                   text not null default 'queued',
+    message                 text null,
+    searchable              boolean not null default false
 );
 
 create index snapshots_topic on snapshots ( topics_id );
@@ -2961,18 +2940,17 @@ create index topic_tweet_urls_tt on topic_tweet_urls ( topic_tweets_id, url );
 -- tables for convenient querying of topic twitter url data
 create view topic_tweet_full_urls as
     select distinct
-            t.topics_id parent_topics_id, twt.topics_id twitter_topics_id,
+            t.topics_id,
             tt.topic_tweets_id, tt.content, tt.publish_date, tt.twitter_user,
             ttd.day, ttd.tweet_count, ttd.num_ch_tweets, ttd.tweets_fetched,
             ttu.url, tsu.stories_id
         from
             topics t
-            join topics twt on ( t.topics_id = twt.twitter_parent_topics_id )
             join topic_tweet_days ttd on ( t.topics_id = ttd.topics_id )
             join topic_tweets tt using ( topic_tweet_days_id )
             join topic_tweet_urls ttu using ( topic_tweets_id )
             left join topic_seed_urls tsu
-                on ( tsu.topics_id in ( twt.twitter_parent_topics_id, twt.topics_id ) and ttu.url = tsu.url );
+                on ( tsu.topics_id = t.topics_id and ttu.url = tsu.url );
 
 create table snap.timespan_tweets (
     topic_tweets_id     int not null references topic_tweets on delete cascade,
@@ -3076,6 +3054,7 @@ create table media_suggestions_tags_map (
 create index media_suggestions_tags_map_ms on media_suggestions_tags_map ( media_suggestions_id );
 create index media_suggestions_tags_map_tag on media_suggestions_tags_map ( tags_id );
 
+-- keep track of basic high level stats for mediacloud for access through api
 create table mediacloud_stats (
     stats_date              date not null default now(),
     daily_downloads         bigint not null,
@@ -3086,3 +3065,30 @@ create table mediacloud_stats (
     total_downloads         bigint not null,
     total_sentences         bigint not null
 );
+
+-- job states as implemented in MediaWords::AbstractJob
+create table job_states (
+    job_states_id           serial primary key,
+
+    --MediaWords::Job::* class implementing the job
+    class                   varchar( 1024 ) not null,
+
+    -- short class specific state
+    state                   varchar( 1024 ) not null,
+
+    -- optional longer message describing the state, such as a stack trace for an error
+    message                 text,
+
+    -- last time this job state was updated
+    last_updated            timestamp not null default now(),
+
+    -- details about the job
+    args                    json not null,
+    priority                text not  null,
+
+    -- the hostname and process_id of the running process
+    hostname                text not null,
+    process_id              int not null
+);
+
+create index job_states_class_date on job_states( class, last_updated );

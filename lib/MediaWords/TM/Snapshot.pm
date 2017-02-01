@@ -53,9 +53,10 @@ use List::Util;
 use XML::Simple;
 use Readonly;
 
-use MediaWords::TM::Model;
 use MediaWords::DBI::Media;
+use MediaWords::Job::TM::SnapshotTopic;
 use MediaWords::Solr;
+use MediaWords::TM::Model;
 use MediaWords::Util::CSV;
 use MediaWords::Util::Colors;
 use MediaWords::Util::Config;
@@ -369,17 +370,17 @@ END
     $db->query( "drop view snapshot_undateable_stories" );
 }
 
-# return true if the topic of the timespan is a child twitter topic
+# return true if the topic of the timespan is a twitter_topic
 sub topic_is_twitter_topic
 {
     my ( $db, $timespan ) = @_;
 
     my ( $is_twitter_topic ) = $db->query( <<SQL, $timespan->{ snapshots_id } )->flat;
-select t.twitter_parent_topics_id
+select 1
     from topics t
         join snapshots s using ( topics_id )
     where
-        t.twitter_parent_topics_id is not null and
+        t.ch_monitor_id is not null and
         s.snapshots_id = \$1
 SQL
 
@@ -618,11 +619,6 @@ sub write_timespan_tweets_snapshot
 
     my $snapshot = $db->require_by_id( 'snapshots', $timespan->{ snapshots_id } );
     my $topic    = $db->require_by_id( 'topics',    $snapshot->{ topics_id } );
-
-    my $tweet_topics_id =
-        $topic->{ twitter_parent_topics_id }
-      ? $topic->{ twitter_parent_topics_id }
-      : $topic->{ topics_id };
 
     $db->query( <<SQL );
 create temporary table snapshot_timespan_tweets as
@@ -1484,15 +1480,6 @@ sub update_timespan_counts ($$;$)
     }
 }
 
-# update the state field in the snapshot
-sub _update_snapshot_state
-{
-    my ( $db, $cd, $state ) = @_;
-
-    DEBUG( "set snapshot state: $state" );
-    $db->update_by_id( 'snapshots', $cd->{ snapshots_id }, { state => $state } );
-}
-
 # generate the snapshot timespans for the given period, dates, and tag
 sub generate_timespan ($$$$$$)
 {
@@ -1505,7 +1492,7 @@ sub generate_timespan ($$$$$$)
 
     DEBUG( "generating $snapshot_label ..." );
 
-    _update_snapshot_state( $db, $cd, "snapshotting $snapshot_label" );
+    MediaWords::Job::TM::SnapshotTopic->update_job_state_message( $db, "snapshotting $snapshot_label" );
 
     my $all_models_top_media = MediaWords::TM::Model::get_all_models_top_media( $db, $timespan );
 
@@ -1574,6 +1561,7 @@ sub generate_period_snapshot ($$$$)
 
     if ( $period eq 'overall' )
     {
+        # this will generate an 'overall' timespan with all stories
         generate_timespan( $db, $cd, $start_date, $end_date, $period, $focus );
     }
     elsif ( $period eq 'weekly' )
@@ -1609,21 +1597,6 @@ sub generate_period_snapshot ($$$$)
     {
         die( "Unknown period '$period'" );
     }
-}
-
-# get default start and end dates from the query associated with the query_stories_search associated with the topic
-sub get_default_dates
-{
-    my ( $db, $topic ) = @_;
-
-    my ( $start_date, $end_date ) = $db->query( <<END, $topic->{ topics_id } )->flat;
-select min( td.start_date ), max( td.end_date ) from topic_dates td where td.topics_id = ?
-END
-
-    die( "Unable to find default dates" ) unless ( $start_date && $end_date );
-
-    return ( $start_date, $end_date );
-
 }
 
 # create temporary table copies of temporary tables so that we can copy
@@ -1791,17 +1764,14 @@ create temporary table snapshot_tag_sets $_temporary_tablespace as
         where ts.tag_sets_id in ( select tag_sets_id from snapshot_tags )
 END
 
-    my $tweet_topics_id =
-        $topic->{ twitter_parent_topics_id }
-      ? $topic->{ twitter_parent_topics_id }
-      : $topic->{ topics_id };
+    my $tweet_topics_id = $topic->{ twitter_topics_id } || $topic->{ topics_id };
 
     $db->query( <<SQL, $tweet_topics_id );
 create temporary table snapshot_tweet_stories as
     select topic_tweets_id, u.publish_date, twitter_user, stories_id, media_id, num_ch_tweets, tweet_count
         from topic_tweet_full_urls u
             join snapshot_stories using ( stories_id )
-        where parent_topics_id = \$1
+        where topics_id = \$1
 SQL
 
     add_media_type_views( $db );
@@ -1868,14 +1838,16 @@ sub generate_snapshots_from_temporary_snapshot_tables
 }
 
 # create the snapshot row for the current snapshot
-sub create_snapshot_row ($$$$)
+sub create_snapshot_row ($$$$;$)
 {
-    my ( $db, $topic, $start_date, $end_date ) = @_;
+    my ( $db, $topic, $start_date, $end_date, $note ) = @_;
 
-    my $cd = $db->query( <<END, $topic->{ topics_id }, $start_date, $end_date )->hash;
+    $note //= '';
+
+    my $cd = $db->query( <<END, $topic->{ topics_id }, $start_date, $end_date, $note )->hash;
 insert into snapshots
-    ( topics_id, start_date, end_date, snapshot_date )
-    values ( ?, ?, ?, now() )
+    ( topics_id, start_date, end_date, snapshot_date, note )
+    values ( ?, ?, ?, now(), ? )
     returning *
 END
 
@@ -1968,9 +1940,9 @@ Create a snapshot for the given topic.
 
 =cut
 
-sub snapshot_topic ($$)
+sub snapshot_topic ($$;$)
 {
-    my ( $db, $topics_id ) = @_;
+    my ( $db, $topics_id, $note ) = @_;
 
     my $periods = [ qw(custom overall weekly monthly) ];
 
@@ -1986,44 +1958,35 @@ sub snapshot_topic ($$)
         die "Unable to log the 'tm_snapshot_topic' activity.";
     }
 
-    my ( $start_date, $end_date ) = get_default_dates( $db, $topic );
+    my ( $start_date, $end_date ) = ( $topic->{ start_date }, $topic->{ end_date } );
 
-    my $cd = create_snapshot_row( $db, $topic, $start_date, $end_date );
+    my $snap = create_snapshot_row( $db, $topic, $start_date, $end_date, $note );
 
-    eval {
-        _update_snapshot_state( $db, $cd, "snapshotting data" );
+    MediaWords::Job::TM::SnapshotTopic->update_job_state_args( $db, { snapshots_id => $snap->{ snapshots_id } } );
+    MediaWords::Job::TM::SnapshotTopic->update_job_state_message( $db, "snapshotting data" );
 
-        write_temporary_snapshot_tables( $db, $topic );
+    write_temporary_snapshot_tables( $db, $topic );
 
-        generate_snapshots_from_temporary_snapshot_tables( $db, $cd );
+    generate_snapshots_from_temporary_snapshot_tables( $db, $snap );
 
-        # generate null focus timespan snapshots
-        map { generate_period_snapshot( $db, $cd, $_, undef ) } ( @{ $periods } );
+    # generate null focus timespan snapshots
+    map { generate_period_snapshot( $db, $snap, $_, undef ) } ( @{ $periods } );
 
-        generate_period_focus_snapshots( $db, $cd, $periods );
+    generate_period_focus_snapshots( $db, $snap, $periods );
 
-        _update_snapshot_state( $db, $cd, "finalizing snapshot" );
+    MediaWords::Job::TM::SnapshotTopic->update_job_state_message( $db, "finalizing snapshot" );
 
-        write_date_counts_snapshot( $db, $cd, 'daily' );
-        write_date_counts_snapshot( $db, $cd, 'weekly' );
+    write_date_counts_snapshot( $db, $snap, 'daily' );
+    write_date_counts_snapshot( $db, $snap, 'weekly' );
 
-        _export_stories_to_solr( $db, $cd );
+    _export_stories_to_solr( $db, $snap );
 
-        analyze_snapshot_tables( $db );
+    analyze_snapshot_tables( $db );
 
-        discard_temp_tables( $db );
-    };
-    if ( $@ )
-    {
-        my $error = $@;
-        ERROR( "snapshot failed: $error" );
-        _update_snapshot_state( $db, $cd, "snapshot failed" );
-        $db->update_by_id( 'snapshots', $cd->{ snapshots_id }, { error_message => $error } );
-    }
-    else
-    {
-        _update_snapshot_state( $db, $cd, "completed" );
-    }
+    discard_temp_tables( $db );
+
+    # update this manually because snapshot_topic might be called directly from Mine::mine_topic()
+    $db->update_by_id( 'snapshots', $snap->{ snapshots_id }, { state => $MediaWords::AbstractJob::STATE_COMPLETED } );
 }
 
 1;

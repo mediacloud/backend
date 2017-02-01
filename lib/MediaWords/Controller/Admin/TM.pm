@@ -55,7 +55,7 @@ END
 
 sub _add_topic_date
 {
-    my ( $db, $topic, $start_date, $end_date, $boundary ) = @_;
+    my ( $db, $topic, $start_date, $end_date ) = @_;
 
     my $existing_date = $db->query( <<END, $start_date, $end_date, $topic->{ topics_id } )->hash;
 select * from topic_dates where start_date = ? and end_date = ? and topics_id = ?
@@ -73,13 +73,6 @@ END
         );
     }
 
-    if ( $boundary )
-    {
-        $db->query( <<END, $start_date, $end_date, $topic->{ topics_id } )
-update topic_dates set boundary = ( start_date = ? and end_date = ? ) where topics_id = ?
-END
-    }
-
 }
 
 # edit an existing topic
@@ -91,8 +84,7 @@ sub edit : Local
 
     my $db = $c->dbis;
 
-    my $topic = $db->query( 'select * from topics_with_dates where topics_id = ?', $topics_id )->hash
-      || die( "Unable to find topic" );
+    my $topic = $db->require_by_id( 'topics', $topics_id );
 
     $form->default_values( $topic );
     $form->process( $c->req );
@@ -132,11 +124,6 @@ sub edit : Local
 
     else
     {
-
-        _add_topic_date( $db, $topic, $p->{ start_date }, $p->{ end_date }, 1 );
-
-        delete( $p->{ start_date } );
-        delete( $p->{ end_date } );
         delete( $p->{ preview } );
 
         $p->{ solr_seed_query_run } = 'f' unless ( $topic->{ solr_seed_query } eq $p->{ solr_seed_query } );
@@ -149,6 +136,34 @@ sub edit : Local
 
         return;
     }
+}
+
+# parse solr_seed_query coming directy from dashboard export.  return the part of the query without the
+# date or media source clauses as well as the list of media tags_ids from the filtered part of the query.
+# die if the query is not the form exported by the dashboard tool.  this is pretty kludgy but is just intended
+# to get us through the couple of weeks until we have topic editing in the new web tool
+sub _parse_solr_seed_query($)
+{
+    my ( $full_query ) = @_;
+
+# sample dashboard exported query:
+# +( "media cloud" mediacloud ) AND (+publish_date:[2016-01-01T00:00:00Z TO 2017-01-26T23:59:59Z]) AND ((tags_id_media:8875027 OR tags_id_stories:8875027))
+    if ( $full_query !~ /(.*) AND \(\+publish_date\:\[.*\]\) AND \(\((tags_id_media.*)\)\)$/ )
+    {
+        die( "unable to parse solr query (query must be in exact form exported by dashboard): '$full_query'" );
+    }
+
+    my ( $filtered_query, $tags_list ) = ( $1, $2 );
+
+    my $tags_ids_lookup = {};
+    while ( $tags_list =~ /(\d+)/g )
+    {
+        $tags_ids_lookup->{ $1 } = 1;
+    }
+
+    my $tags_ids = [ keys( %{ $tags_ids_lookup } ) ];
+
+    return ( $filtered_query, $tags_ids );
 }
 
 # create a new topic
@@ -205,6 +220,8 @@ sub create : Local
         return;
     }
 
+    my ( $filtered_seed_query, $tags_ids ) = _parse_solr_seed_query( $c_solr_seed_query );
+
     $db->begin;
 
     my $topic = $db->create(
@@ -212,22 +229,21 @@ sub create : Local
         {
             name                => $c_name,
             pattern             => $pattern,
-            solr_seed_query     => $c_solr_seed_query,
+            solr_seed_query     => $filtered_seed_query,
             solr_seed_query_run => $c_skip_solr_query,
             description         => $c_description,
-            max_iterations      => $c_max_iterations
+            max_iterations      => $c_max_iterations,
+            start_date          => $c_start_date,
+            end_date            => $c_end_date,
         }
     );
 
-    $db->create(
-        'topic_dates',
-        {
-            topics_id  => $topic->{ topics_id },
-            start_date => $c_start_date,
-            end_date   => $c_end_date,
-            boundary   => 't',
-        }
-    );
+    for my $tags_id ( @{ $tags_ids } )
+    {
+        $db->query( <<SQL, $topic->{ topics_id }, $tags_id );
+insert into topics_media_tags_map ( topics_id, tags_id ) values ( ?, ? )
+SQL
+    }
 
     $db->commit;
 
@@ -345,9 +361,7 @@ sub _get_topic_with_focus
 {
     my ( $db, $topics_id, $foci_id ) = @_;
 
-    my $topic = $db->query( <<END, $topics_id )->hash;
-select * from topics_with_dates where topics_id = ?
-END
+    my $topic = $db->require_by_id( 'topics', $topics_id );
 
     if ( $foci_id )
     {
@@ -756,20 +770,17 @@ sub _add_timespan_model_reliability
     $timespan->{ model_reliability } = $reliability;
 }
 
-# get the timespan, snapshot, and topic
-# for the current request
+# get the timespan, snapshot, and topic for the current request
 sub _get_topic_objects
 {
     my ( $db, $timespans_id ) = @_;
 
     die( "timespan param is required" ) unless ( $timespans_id );
 
-    my $timespan = $db->find_by_id( 'timespans', $timespans_id ) || die( "timespan not found" );
-    my $cd = $db->find_by_id( 'snapshots', $timespan->{ snapshots_id } );
+    my $timespan = $db->require_by_id( 'timespans', $timespans_id );
+    my $cd       = $db->require_by_id( 'snapshots', $timespan->{ snapshots_id } );
 
-    my $topic = $db->query( <<END, $cd->{ topics_id } )->hash;
-select * from topics_with_dates where topics_id = ?
-END
+    my $topic = $db->require_by_id( 'topics', $cd->{ topics_id } );
 
     if ( my $qs_id = $timespan->{ foci_id } )
     {
@@ -2717,22 +2728,6 @@ sub add_media_types : Local
     $c->stash->{ template }          = 'tm/add_media_types.tt2';
 }
 
-# delete all topic_dates in the topic
-sub delete_all_dates : Local
-{
-    my ( $self, $c, $topics_id ) = @_;
-
-    my $db = $c->dbis;
-
-    my $topic = $db->query( "select * from topics_with_dates where topics_id = ?", $topics_id )
-      || die( "Unable to find topic" );
-
-    $db->query( <<END, $topics_id );
-delete from topic_dates where not bounday and topics_id = ?
-END
-
-}
-
 # delet a single topic_dates row
 sub delete_date : Local
 {
@@ -2740,8 +2735,7 @@ sub delete_date : Local
 
     my $db = $c->dbis;
 
-    my $topic = $db->query( "select * from topics_with_dates where topics_id = ?", $topics_id )
-      || die( "Unable to find topic" );
+    my $topic = $db->require_by_id( 'topics', $topics_id );
 
     my $start_date = $c->req->params->{ start_date };
     my $end_date   = $c->req->params->{ end_date };
@@ -2749,7 +2743,7 @@ sub delete_date : Local
     die( "missing start_date or end_date" ) unless ( $start_date && $end_date );
 
     $db->query( <<END, $topics_id, $start_date, $end_date );
-delete from topic_dates where topics_id = ? and start_date = ? and end_date = ? and not boundary
+delete from topic_dates where topics_id = ? and start_date = ? and end_date = ?
 END
 
     $c->res->redirect( $c->uri_for( '/admin/tm/edit_dates/' . $topics_id, { status_msg => 'Date deleted.' } ) );
@@ -2779,8 +2773,7 @@ sub add_date : Local
 
     my $db = $c->dbis;
 
-    my $topic = $db->query( "select * from topics_with_dates where topics_id = ?", $topics_id )->hash
-      || die( "Unable to find topic" );
+    my $topic = $db->require_by_id( 'topics', $topics_id );
 
     my $interval   = $c->req->params->{ interval } + 0;
     my $start_date = $c->req->params->{ start_date };
@@ -3203,8 +3196,6 @@ sub mine : Local
     my $topic = $db->find_by_id( 'topics', $topics_id ) || die( "Unable to find topic" );
 
     MediaWords::Job::TM::MineTopic->add_to_queue( { topics_id => $topics_id } );
-
-    $db->update_by_id( 'topics', $topics_id, { state => 'queued for spidering' } );
 
     my $status = 'Topic spidering job queued.';
     $c->res->redirect( $c->uri_for( "/admin/tm/view/" . $topics_id, { status_msg => $status } ) );
