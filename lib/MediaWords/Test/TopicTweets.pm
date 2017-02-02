@@ -313,8 +313,8 @@ select tt.*, date_trunc( 'day', tt.publish_date ) publish_day
         )
 SQL
 
-    my $expected_story_tweet_counts = {};
-    my $user_stories_lookup         = {};
+    my $expected_story_tweet_users = {};
+    my $user_stories_lookup        = {};
     for my $topic_tweet ( @{ $topic_tweets } )
     {
         my $data = MediaWords::Util::JSON::decode_json( $topic_tweet->{ data } );
@@ -327,7 +327,7 @@ SQL
 
         for my $url ( @{ $urls } )
         {
-            my $story = $db->query( <<SQL, $topic->{ topics_id }, $url )->hash;
+            my $stories = $db->query( <<SQL, $topic->{ topics_id }, $url )->hashes;
 select s.*
     from stories s
         join topic_seed_urls u using ( stories_id )
@@ -338,14 +338,16 @@ select s.*
         u.url = \$2 and
         m.name not like '%twitter.com%'
 SQL
-            next unless ( $story );
 
-            my $stories_id = $story->{ stories_id };
+            for my $story ( @{ $stories } )
+            {
+                my $stories_id = $story->{ stories_id };
 
-            $expected_story_tweet_counts->{ $story->{ stories_id } }++;
+                $expected_story_tweet_users->{ $stories_id }->{ $topic_tweet->{ twitter_user } }++;
 
-            $user_stories_lookup->{ $user }->{ $stories_id }->{ media_id } = $story->{ media_id };
-            $user_stories_lookup->{ $user }->{ $stories_id }->{ publish_days }->{ $topic_tweet->{ publish_day } } = 1;
+                $user_stories_lookup->{ $user }->{ $stories_id }->{ media_id } = $story->{ media_id };
+                $user_stories_lookup->{ $user }->{ $stories_id }->{ publish_days }->{ $topic_tweet->{ publish_day } } = 1;
+            }
         }
     }
 
@@ -394,11 +396,9 @@ SQL
 
     for my $slc ( @{ $story_link_counts } )
     {
-        is(
-            $slc->{ simple_tweet_count },
-            $expected_story_tweet_counts->{ $slc->{ stories_id } },
-            "$label simple tweet count story $slc->{ stories_id }"
-        );
+        my $stories_id           = $slc->{ stories_id };
+        my $expected_tweet_count = scalar( keys( %{ $expected_story_tweet_users->{ $stories_id } } ) );
+        is( $slc->{ simple_tweet_count }, $expected_tweet_count, "$label simple tweet count story $stories_id" );
     }
 }
 

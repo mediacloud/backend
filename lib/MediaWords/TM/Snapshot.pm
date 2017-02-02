@@ -670,7 +670,7 @@ create temporary table snapshot_story_link_counts $_temporary_tablespace as
     snapshot_twitter_counts as (
         select
                 s.stories_id,
-                count(*) as simple_tweet_count,
+                count( distinct ts.twitter_user ) as simple_tweet_count,
                 sum( ( num_ch_tweets::float + 1 ) / ( tweet_count + 1 ) ) as normalized_tweet_count
             from snapshot_tweet_stories ts
                 join snapshot_period_stories s using ( stories_id )
