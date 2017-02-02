@@ -45,6 +45,21 @@ session required pam_limits.so
 EOF
     fi
 
+    SYSCTL_FILE=/etc/sysctl.d/50-mediacloud.conf
+    sudo tee "$SYSCTL_FILE" <<EOF
+#
+# Media Cloud kernel parameters
+#
+
+# We connect to PgBouncer often, so it might run out of available connections
+# without TIME_WAIT socket reuse (http://dba.stackexchange.com/a/59709)
+net.ipv4.tcp_tw_reuse=1
+
+EOF
+
+    echo "Rereading sysctl settings..."
+    sudo sysctl --system
+
     MEDIACLOUD_USER=`id -un`
     echo "Setting required kernel parameters via limits.conf for user '$MEDIACLOUD_USER'..."
 
