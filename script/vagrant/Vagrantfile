@@ -9,7 +9,7 @@ VAGRANTFILE_API_VERSION = "2"
 
 # AMI (see https://cloud-images.ubuntu.com/locator/ec2/)
 # ("us-east-1 xenial 16.04 LTS amd64 hvm:ebs-ssd")
-AWS_AMI           = ENV['AWS_AMI']            || "ami-4f680658"
+AWS_AMI           = ENV['AWS_AMI']            || "ami-6edd3078"
 AWS_REGION        = ENV['AWS_REGION']         || "us-east-1"
 AWS_INSTANCE_NAME = ENV['AWS_INSTANCE_NAME']  || "Media Cloud Vagrant test box"
 
@@ -110,10 +110,12 @@ See doc/README.vagrant.markdown for instructions on how to set those variables.
   # Hostname
   config.vm.hostname = "mediacloud.local"
 
-  # Share Media Cloud's repository as /mediacloud
-  # (path is relative to ./script/vagrant)
-  # Will mount on VirtualBox, rsync on AWS EC2
-  config.vm.synced_folder "../../", "/mediacloud"
+  # Copy over Media Cloud's repository to /mediacloud (do not mount to preserve
+  # symlinks on EC2)
+  # Path is relative to ./script/vagrant
+  config.vm.synced_folder "../../", "/mediacloud",
+      type: "rsync",
+      rsync__args: ["--verbose", "--archive", "--delete", "-z"]
 
   # Provision scripts
   config.vm.provision "shell", privileged: true, path: "provision_root.sh"

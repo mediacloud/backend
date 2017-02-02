@@ -129,7 +129,15 @@ sub _run_supervisord()
 
     for my $i ( 1 .. $SUPERVISOR_SHUTDOWN_TIMEOUT )
     {
-        my $output = `$_supervisord_bin 2>&1`;
+        my $command = '';
+
+        # Make rabbitmq_wrapper.sh skip the 'ulimit -n' check because we might
+        # be running on Travis / Vagrant / dev machine with such limit not
+        # being increased
+        $command .= "MC_SKIP_RABBIT_OPEN_FILES_LIMIT_CHECK=1 ";
+        $command .= "$_supervisord_bin 2>&1";
+
+        my $output = `$command`;
         unless ( $? )
         {
             # Succeeded
