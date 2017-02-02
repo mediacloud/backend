@@ -58,7 +58,7 @@ net.ipv4.tcp_tw_reuse=1
 EOF
 
     echo "Rereading sysctl settings..."
-    sudo sysctl --system
+    sudo service procps start
 
     MEDIACLOUD_USER=`id -un`
     echo "Setting required kernel parameters via limits.conf for user '$MEDIACLOUD_USER'..."
