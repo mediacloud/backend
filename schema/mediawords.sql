@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4607;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4608;
 
 BEGIN
 
@@ -1424,6 +1424,8 @@ create table topic_ignore_redirects (
 
 create index topic_ignore_redirects_url on topic_ignore_redirects ( url );
 
+create type bot_policy_type AS ENUM ( 'all', 'no bots', 'only bots');
+
 create table snapshots (
     snapshots_id            serial primary key,
     topics_id               int not null references topics on delete cascade,
@@ -1433,7 +1435,8 @@ create table snapshots (
     note                    text,
     state                   text not null default 'queued',
     message                 text null,
-    searchable              boolean not null default false
+    searchable              boolean not null default false,
+    bot_policy              bot_policy_type null
 );
 
 create index snapshots_topic on snapshots ( topics_id );

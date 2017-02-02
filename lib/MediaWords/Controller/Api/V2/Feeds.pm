@@ -158,7 +158,7 @@ SQL
 select $JOB_STATE_FIELD_LIST
     from job_states
     where
-        class = \$2 and
+        class = \$1
     order by last_updated desc
     limit 100
 SQL

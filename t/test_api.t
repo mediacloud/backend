@@ -866,6 +866,9 @@ sub test_feeds($)
 
     $r = test_get( '/api/v2/feeds/scrape_status', { media_id => $medium->{ media_id } } );
     is( $r->{ job_states }->[ 0 ]->{ media_id }, $medium->{ media_id }, "feeds/scrape_status media_id" );
+
+    $r = test_get( '/api/v2/feeds/scrape_status', {} );
+    is( $r->{ job_states }->[ 0 ]->{ media_id }, $medium->{ media_id }, "feeds/scrape_status all media_id" );
 }
 
 # test the media/submit_suggestion call
