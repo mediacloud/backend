@@ -129,7 +129,6 @@ supervisor:
         #create_missing_partitions
         #facebook_fetch_story_stats
         #process_bitly_schedule
-        #reextract_stories_without_readability_tag
         #extractor_python_readability_server
         #rabbitmq
         #rescrape_media
