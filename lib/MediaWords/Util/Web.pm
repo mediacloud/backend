@@ -4,7 +4,10 @@ use strict;
 use warnings;
 
 use Modern::Perl "2015";
-use MediaWords::CommonLibs;
+use MediaWords::CommonLibs;    # set PYTHONPATH too
+
+use MediaWords::Util::Config;
+use Inline Python => MediaWords::Util::Config::get_mc_python_dir() . '/mediawords/util/web.py';
 
 =head1 NAME MediaWords::Util::Web - web related functions
 
@@ -29,7 +32,7 @@ use MediaWords::Util::Paths;
 use MediaWords::Util::SQL;
 use MediaWords::Util::URL;
 
-Readonly my $MAX_DOWNLOAD_SIZE => 1024 * 1024;
+Readonly my $MAX_DOWNLOAD_SIZE => 10 * 1024 * 1024;    # Superglue (TV) feeds could grow big
 Readonly my $TIMEOUT           => 20;
 Readonly my $MAX_REDIRECT      => 15;
 
@@ -48,6 +51,7 @@ Readonly my @DETERMINED_HTTP_CODES => (
     HTTP_BAD_GATEWAY,
     HTTP_SERVICE_UNAVAILABLE,
     HTTP_GATEWAY_TIMEOUT,
+    HTTP_TOO_MANY_REQUESTS
 
 );
 
@@ -83,9 +87,7 @@ sub _lwp_request_callback($)
         $blacklisted = 1;
     }
 
-    my $day = substr( MediaWords::Util::SQL::sql_now, 0, 10 );
-
-    my $logfile = "$config->{ mediawords }->{ data_dir }/logs/http_request_$day.log";
+    my $logfile = "$config->{ mediawords }->{ data_dir }/logs/http_request.log";
 
     my $fh = FileHandle->new;
 
@@ -328,6 +330,29 @@ sub get_original_request
     return $original_response->request;
 }
 
+=head2 lookup_by_response_url( $list, $response )
+
+Given a list of hashes, each of which includes a 'url' key, and an HTTP::Response, return the hash in $list for
+which the canonical version of the url is the same as the canonical version of the originally requested
+url for the response.  Return undef if no match is found.
+
+This function is helpful for associating a given respone returned by ParallelGet with the object that originally
+generated the url (for instance, the medium input record that generate the url fetch for the medium title)
+
+=cut
+
+sub lookup_by_response_url($$)
+{
+    my ( $list, $response ) = @_;
+
+    my $original_request = MediaWords::Util::Web->get_original_request( $response );
+    my $url              = URI->new( $original_request->url );
+
+    map { return ( $_ ) if ( URI->new( $_->{ url } ) eq $url ) } @{ $list };
+
+    return undef;
+}
+
 =head2 cache_link_downloads( $links )
 
 Cache link downloads $LINK_CACHE_SIZE at a time so that we can do them in parallel. This call doesn't actually do any
@@ -422,8 +447,7 @@ sub get_cached_link_download
             }
             else
             {
-                my $msg = "Error retrieving content for $original_url: " . $response->status_line;
-                WARN $msg;
+                DEBUG( "Error retrieving content for $original_url: " . $response->status_line );
                 $_link_downloads_cache->{ $response_link_num } = '';
             }
         }

@@ -28,21 +28,29 @@ use MediaWords::CommonLibs;
 use MediaWords::TM::Snapshot;
 use MediaWords::DB;
 
-# Run job
-sub run($;$)
+sub use_job_state
 {
-    my ( $self, $args ) = @_;
+    return 1;
+}
 
-    my $db = MediaWords::DB::connect_to_db();
+sub get_state_table_info
+{
+    return { table => 'snapshots', state => 'state', message => 'message' };
+}
 
-    my $topics_id = $args->{ topics_id };
-    unless ( defined $topics_id )
-    {
-        die "'topics_id' is undefined.";
-    }
+# Run job
+sub run_statefully($$;$)
+{
+    my ( $self, $db, $args ) = @_;
+
+    my $topics_id  = $args->{ topics_id };
+    my $note       = $args->{ note };
+    my $bot_policy = $args->{ bot_policy };
+
+    die( "'topics_id' is undefined" ) unless ( defined $topics_id );
 
     # No transaction started because apparently snapshot_topic() does start one itself
-    MediaWords::TM::Snapshot::snapshot_topic( $db, $topics_id );
+    MediaWords::TM::Snapshot::snapshot_topic( $db, $topics_id, $note, $bot_policy );
 }
 
 no Moose;    # gets rid of scaffolding

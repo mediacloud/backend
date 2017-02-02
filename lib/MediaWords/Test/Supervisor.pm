@@ -45,6 +45,9 @@ Readonly my $SOLR_RUN_TIMEOUT => 10;
 # seconds to wait for supervisord to stop shutting down
 Readonly my $SUPERVISOR_SHUTDOWN_TIMEOUT => 90;
 
+# Seconds to wait for Supervisord / Supervisorctl to react
+Readonly my $SUPERVISOR_COMMAND_TIMEOUT => 5;
+
 # mediacloud root path and supervisor scripts
 my $_mc_root_path      = MediaWords::Util::Paths::mc_root_path();
 my $_supervisord_bin   = "$_mc_root_path/supervisor/supervisord.sh";
@@ -79,7 +82,7 @@ sub _solr_standalone_ready($)
         eval { MediaWords::Solr::query( $db, { q => '*:*', rows => 0 } ) };
         return unless ( $@ );
 
-        sleep( 1 );
+        sleep( $SUPERVISOR_COMMAND_TIMEOUT );
     }
 
     die( "solr failed to start after timeout" );
@@ -127,8 +130,11 @@ sub _run_supervisord()
     for my $i ( 1 .. $SUPERVISOR_SHUTDOWN_TIMEOUT )
     {
         my $output = `$_supervisord_bin 2>&1`;
-
-        return unless ( $output );
+        unless ( $? )
+        {
+            # Succeeded
+            return;
+        }
 
         if ( $output =~ /Another program is already listening/ )
         {
@@ -141,7 +147,7 @@ sub _run_supervisord()
 
             # otherwise, supervisord is in the process of shutting down, so just wait
             DEBUG( "waiting for supervisord to finish shutting down ..." );
-            sleep( 1 );
+            sleep( $SUPERVISOR_COMMAND_TIMEOUT );
         }
     }
 
@@ -161,6 +167,9 @@ sub _run_supervisord()
 sub _verify_processes_status($$)
 {
     my ( $db, $processes ) = @_;
+
+    # first send 'start' to all processes so that any stopped ones are starting in parallel
+    map { _run_supervisorctl( "start $_" ) } @{ $processes };
 
     for my $process ( @{ $processes } )
     {
@@ -194,7 +203,7 @@ sub _verify_processes_status($$)
             }
 
             DEBUG( "waiting for process $process which is in state '$state'" );
-            sleep 1;
+            sleep( $SUPERVISOR_COMMAND_TIMEOUT );
         }
 
         die( "$process not running" ) unless ( $process_is_running );
@@ -240,15 +249,16 @@ sub test_with_supervisor($;$)
 
     $start_processes ||= [];
 
-    _run_supervisord();
-
     eval {
-        my $status = `$_supervisorctl_bin status`;
-        die( "bad supervisor status after startup: '$status'" ) if ( $status !~ /STOPPED|STARTING|RUNNING/ );
-
         MediaWords::Test::DB::test_on_test_database(
             sub {
                 my ( $db ) = @_;
+
+                _run_supervisord();
+
+                my $status = `$_supervisorctl_bin status`;
+                die( "bad supervisor status after startup: '$status'" ) if ( $status !~ /STOPPED|STARTING|RUNNING/ );
+
                 _verify_processes_status( $db, $start_processes );
                 _verify_processes_ready( $db, $start_processes );
                 $func->( $db );

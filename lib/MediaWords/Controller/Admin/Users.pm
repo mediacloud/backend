@@ -183,7 +183,6 @@ sub create : Local
     my $user_notes                        = $form->param_value( 'notes' );
     my $user_is_active                    = $form->param_value( 'active' );
     my $user_roles                        = $form->param_array( 'roles' );
-    my $user_non_public_api_access        = $form->param_value( 'non_public_api_access' ) // 0;
     my $user_weekly_requests_limit        = $form->param_value( 'weekly_requests_limit' ) + 0;
     my $user_weekly_requested_items_limit = $form->param_value( 'weekly_requested_items_limit' ) + 0;
     my $user_password                     = '';
@@ -204,12 +203,10 @@ sub create : Local
     }
 
     # Add user
-    my $add_user_error_message = MediaWords::DBI::Auth::add_user_or_return_error_message(
-        $c->dbis,                    $user_email,           $user_full_name,
-        $user_notes,                 $user_roles,           $user_is_active,
-        $user_password,              $user_password_repeat, $user_non_public_api_access,
-        $user_weekly_requests_limit, $user_weekly_requested_items_limit
-    );
+    my $add_user_error_message =
+      MediaWords::DBI::Auth::add_user_or_return_error_message( $c->dbis, $user_email, $user_full_name,
+        $user_notes, $user_roles, $user_is_active, $user_password, $user_password_repeat,
+        $user_weekly_requests_limit, $user_weekly_requested_items_limit );
     if ( $add_user_error_message )
     {
         $c->stash->{ c }    = $c;
@@ -339,7 +336,6 @@ sub edit : Local
                 notes                        => $userinfo->{ notes },
                 active                       => $userinfo->{ active },
                 weekly_requests_limit        => $userinfo->{ weekly_requests_limit },
-                non_public_api_access        => $userinfo->{ non_public_api },
                 weekly_requested_items_limit => $userinfo->{ weekly_requested_items_limit }
             }
         );
@@ -366,7 +362,6 @@ sub edit : Local
     my $user_notes                        = $form->param_value( 'notes' );
     my $user_roles                        = $form->param_array( 'roles' );
     my $user_is_active                    = $form->param_value( 'active' );
-    my $user_non_public_api_access        = $form->param_value( 'non_public_api_access' );
     my $user_password                     = $form->param_value( 'password' );                       # Might be empty
     my $user_password_repeat              = $form->param_value( 'password_repeat' );                # Might be empty
     my $user_weekly_requests_limit        = $form->param_value( 'weekly_requests_limit' );
@@ -388,12 +383,10 @@ sub edit : Local
     }
 
     # Update user
-    my $update_user_error_message = MediaWords::DBI::Auth::update_user_or_return_error_message(
-        $c->dbis,                    $user_email,           $user_full_name,
-        $user_notes,                 $user_roles,           $user_is_active,
-        $user_password,              $user_password_repeat, $user_non_public_api_access,
-        $user_weekly_requests_limit, $user_weekly_requested_items_limit
-    );
+    my $update_user_error_message =
+      MediaWords::DBI::Auth::update_user_or_return_error_message( $c->dbis, $user_email, $user_full_name,
+        $user_notes, $user_roles, $user_is_active, $user_password, $user_password_repeat,
+        $user_weekly_requests_limit, $user_weekly_requested_items_limit );
     if ( $update_user_error_message )
     {
         $c->stash->{ auth_users_id } = $userinfo->{ auth_users_id };

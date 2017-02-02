@@ -5,13 +5,21 @@ use MediaWords::CommonLibs;
 use strict;
 use warnings;
 use base 'Catalyst::Controller';
+
+use Encode;
 use JSON;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
 use namespace::autoclean;
 use List::Compare;
+
+use MediaWords::DBI::Media::Lookup;
 use MediaWords::Solr;
 use MediaWords::TM::Snapshot;
+use MediaWords::Util::HTML;
+use MediaWords::Util::Tags;
+use MediaWords::Util::URL;
+use MediaWords::Util::Web;
 
 =head1 NAME
 
@@ -31,6 +39,17 @@ Catalyst Controller.
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
+__PACKAGE__->config(
+    action => {
+        create            => { Does => [ qw( ~MediaEditAuthenticated ~Throttled ~Logged ) ] },
+        put_tags          => { Does => [ qw( ~MediaEditAuthenticated ~Throttled ~Logged ) ] },
+        update            => { Does => [ qw( ~MediaEditAuthenticated ~Throttled ~Logged ) ] },
+        submit_suggestion => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        list_suggestions  => { Does => [ qw( ~MediaEditAuthenticated ~Throttled ~Logged ) ] },
+        mark_suggestion   => { Does => [ qw( ~MediaEditAuthenticated ~Throttled ~Logged ) ] },
+    }
+);
+
 sub get_table_name
 {
     return "media";
@@ -46,10 +65,10 @@ sub _add_nested_data
 
     my ( $self, $db, $media ) = @_;
 
-    foreach my $media_source ( @{ $media } )
+    foreach my $medium ( @{ $media } )
     {
         # TRACE "adding media_source tags ";
-        $media_source->{ media_source_tags } = $db->query( <<END, $media_source->{ media_id } )->hashes;
+        $medium->{ media_source_tags } = $db->query( <<END, $medium->{ media_id } )->hashes;
 select t.tags_id, t.tag, t.label, t.description, ts.tag_sets_id, ts.name as tag_set,
         ( t.show_on_media or ts.show_on_media ) show_on_media,
         ( t.show_on_stories or ts.show_on_stories ) show_on_stories
@@ -61,16 +80,26 @@ select t.tags_id, t.tag, t.label, t.description, ts.tag_sets_id, ts.name as tag_
 END
     }
 
+    $db->attach_child_query_singleton( $media, <<SQL, 'is_healthy', 'media_id' );
+select m.media_id, coalesce( h.is_healthy, true ) is_healthy
+    from media m left join media_health h using ( media_id )
+SQL
+
     return $media;
 }
 
 sub default_output_fields
 {
-    my ( $self ) = @_;
+    my ( $self, $c ) = @_;
 
-    my $fields = [ qw ( name url media_id ) ];
+    my $fields = [ qw ( name url media_id primary_language is_monitored public_notes ) ];
 
     push( @{ $fields }, qw ( inlink_count outlink_count story_count ) ) if ( $self->{ topic_media } );
+
+    if ( grep { $MediaWords::DBI::Auth::Roles::ADMIN eq $_ } @{ $c->stash->{ api_auth }->{ roles } } )
+    {
+        push( @{ $fields }, 'editor_notes' );
+    }
 
     return $fields;
 }
@@ -133,6 +162,8 @@ sub get_extra_where_clause
 
     my $clauses = [];
 
+    my $db = $c->dbis;
+
     if ( my $tags_id = $c->req->params->{ tags_id } )
     {
         $tags_id += 0;
@@ -144,14 +175,64 @@ sub get_extra_where_clause
     if ( my $q = $c->req->params->{ q } )
     {
         my $solr_params = { q => $q };
-        my $media_ids = MediaWords::Solr::search_for_media_ids( $c->dbis, $solr_params );
+        my $media_ids = MediaWords::Solr::search_for_media_ids( $db, $solr_params );
 
-        my $ids_table = $c->dbis->get_temporary_ids_table( $media_ids );
+        my $ids_table = $db->get_temporary_ids_table( $media_ids );
 
         push( @{ $clauses }, "and media_id in ( select id from $ids_table )" );
     }
 
-    if ( $c->req->params->{ name } && !$c->req->params->{ include_dups } )
+    if ( my $tag_name = $c->req->params->{ tag_name } )
+    {
+        my $q_tag_name = $db->quote( $tag_name );
+        push( @{ $clauses }, <<SQL );
+and media_id in (
+    select media_id
+        from media_tags_map mtm
+            join tags t using ( tags_id )
+        where
+            ( t.show_on_media or t.show_on_stories ) and
+            t.tag ilike '%' || lower( $q_tag_name ) || '%'
+)
+SQL
+    }
+
+    if ( $c->req->params->{ unhealthy } )
+    {
+        push( @{ $clauses }, <<SQL );
+and exists ( select 1 from media_health h where h.media_id = media.media_id and h.is_healthy = false )
+SQL
+    }
+
+    if ( my $languages = $c->req->params->{ primary_language } )
+    {
+        $languages = [ $languages ] unless ( ref( $languages ) );
+
+        my $languages_list = join( ',', map { $db->quote( $_ ) } @{ $languages } );
+
+        push( @{ $clauses }, "and primary_language in ( $languages_list )" );
+    }
+
+    if ( my $similar_media_id = $c->req->params->{ similar_media_id } )
+    {
+        # make sure this is an int
+        $similar_media_id += 0;
+        push( @{ $clauses }, <<SQL );
+and media_id in (
+    select b.media_id
+        from media_tags_map a
+            join media_tags_map b using ( tags_id )
+        where
+            a.media_id = $similar_media_id and
+            a.media_id <> b.media_id
+        group by b.media_id
+        order by count(*) desc
+        limit 100
+)
+SQL
+    }
+
+    if ( ( $c->req->params->{ name } || $c->req->params->{ tag_name } ) && !$c->req->params->{ include_dups } )
     {
         push( @{ $clauses }, "and dup_media_id is null" );
     }
@@ -166,6 +247,349 @@ sub list_GET
     $self->_create_topic_media_table( $c );
 
     return $self->SUPER::list_GET( $c );
+}
+
+# try to find a media source that matches any of the urls in the list of redirect urls for the given media source
+sub _find_medium_by_response_chain
+{
+    my ( $db, $response ) = @_;
+
+    while ( $response )
+    {
+        my $medium = MediaWords::DBI::Media::Lookup::find_medium_by_url( $db, decode( 'utf8', $response->request->url ) );
+        return $medium if ( $medium );
+
+        $response = $response->previous;
+    }
+
+    return undef;
+}
+
+# for eery record in the media/create input, attach either an existing medium or an old medium or attach
+# an error record that indicates why a medium could not be created
+sub _attach_media_to_input($$)
+{
+    my ( $db, $input_media ) = @_;
+
+    my $fetch_urls = [];
+    for my $input_medium ( @{ $input_media } )
+    {
+        $input_medium->{ medium } = MediaWords::DBI::Media::Lookup::find_medium_by_url( $db, $input_medium->{ url } );
+        if ( $input_medium->{ medium } )
+        {
+            $input_medium->{ status } = 'existing';
+        }
+        else
+        {
+            push( @{ $fetch_urls }, $input_medium->{ url } );
+        }
+    }
+
+    my $responses = MediaWords::Util::Web::ParallelGet( $fetch_urls );
+
+    for my $response ( @{ $responses } )
+    {
+        my $input_medium = MediaWords::Util::Web::lookup_by_response_url( $input_media, $response ) || next;
+
+        if ( !$response->is_success )
+        {
+            $input_medium->{ error } = "Unable to fetch medium url '$input_medium->{ url }': " . $response->status_line;
+            next;
+        }
+
+        my $decoded_url = decode( 'utf8', $response->request->url );
+        my $title = MediaWords::Util::HTML::html_title( $response->decoded_content, $decoded_url, 128 );
+
+        $input_medium->{ medium } = _find_medium_by_response_chain( $db, $response )
+          || $db->query( "select * from media where name in ( ?, ? )", $title, $input_medium->{ name } )->hash;
+
+        if ( $input_medium->{ medium } )
+        {
+            $input_medium->{ status } = 'existing';
+            next;
+        }
+
+        $input_medium->{ status } = 'new';
+
+        my $create_medium = {
+            url               => $input_medium->{ url },
+            name              => $input_medium->{ name } || $title,
+            foreign_rss_links => $input_medium->{ foreign_rss_links } || 'f',
+            content_delay     => $input_medium->{ content_delay } || 0,
+            editor_notes      => $input_medium->{ editor_notes },
+            public_notes      => $input_medium->{ public_notes },
+            is_monitored      => $input_medium->{ is_monitored } || 'f',
+            moderated         => 't'
+        };
+        $input_medium->{ medium } = eval { $db->create( 'media', $create_medium ) };
+        $input_medium->{ error } = "Error creating medium: $@" if ( $@ );
+    }
+
+    map { $_->{ error } = "no url fetched for $_->{ url }" unless ( $_->{ medium } || $_->{ error } ) } @{ $input_media };
+
+    my $medium_lookup = {};
+    for my $input_medium ( @{ $input_media } )
+    {
+        my $medium = $input_medium->{ medium };
+        next unless ( $medium );
+
+        if ( my $existing_medium = $medium_lookup->{ $medium->{ media_id } } )
+        {
+            $input_medium->{ medium } = $existing_medium;
+        }
+
+        $medium_lookup->{ $medium->{ media_id } } = $input_medium->{ medium };
+    }
+}
+
+# update each medium in $input_media:
+# * add any feeds listed in $input_medium->{ feeds };
+# * queue a rescrape_media job for each medium;
+# * add an tags in tags_ids;
+sub _apply_updates_to_media($$)
+{
+    my ( $db, $input_media ) = @_;
+
+    for my $input_medium ( @{ $input_media } )
+    {
+        my $medium = $input_medium->{ medium };
+        next unless ( $medium );
+
+        if ( my $feeds = $input_medium->{ feeds } )
+        {
+            map { MediaWords::DBI::Media::add_feed_url_to_medium( $db, $input_medium->{ medium }, $_ ) } @{ $feeds };
+        }
+
+        MediaWords::Job::RescrapeMedia->add_to_queue( { media_id => $medium->{ media_id } }, undef, $db );
+
+        if ( my $tags_ids = $input_medium->{ tags_ids } )
+        {
+            my $media_id = $medium->{ media_id };
+            map { $db->find_or_create( 'media_tags_map', { tags_id => $_, media_id => $media_id } ) } @{ $tags_ids };
+        }
+    }
+}
+
+sub create : Local : ActionClass('MC_REST')
+{
+}
+
+sub create_GET
+{
+    my ( $self, $c ) = @_;
+
+    my $input_media = $c->req->data;
+
+    die( "input must be a list" ) unless ( ref( $input_media ) eq ref( [] ) );
+
+    map { die( "each record must include a 'url' field" ) unless ( $_->{ url } ) } @{ $input_media };
+
+    map { $_->{ url } = MediaWords::Util::URL::fix_common_url_mistakes( $_->{ url } ) } @{ $input_media };
+
+    my $db = $c->dbis;
+
+    _attach_media_to_input( $db, $input_media );
+
+    _apply_updates_to_media( $db, $input_media );
+
+    my $statuses = [];
+    for my $i ( @{ $input_media } )
+    {
+        if ( $i->{ error } )
+        {
+            push( @{ $statuses }, { status => 'error', error => $i->{ error }, url => $i->{ url } } );
+        }
+        else
+        {
+            push(
+                @{ $statuses },
+                { status => $i->{ status }, media_id => $i->{ medium }->{ media_id }, url => $i->{ url } }
+            );
+        }
+    }
+
+    $self->status_ok( $c, entity => $statuses );
+}
+
+sub update : Local : ActionClass('MC_REST')
+{
+}
+
+sub update_PUT
+{
+    my ( $self, $c ) = @_;
+
+    my $data = $c->req->data;
+
+    die( "input must be a hash" ) unless ( ref( $data ) eq ref( {} ) );
+
+    die( "input must include media_id" ) unless ( $data->{ media_id } );
+
+    my $db = $c->dbis;
+
+    my $medium = $db->require_by_id( 'media', $data->{ media_id } );
+
+    my $fields = [ qw/url name foreign_rss_links content_delay editor_notes public_notes is_monitored/ ];
+    my $update = {};
+    map { $update->{ $_ } = $data->{ $_ } if ( defined( $data->{ $_ } ) ) } @{ $fields };
+
+    $db->update_by_id( 'media', $medium->{ media_id }, $update ) if ( scalar( keys( %{ $update } ) ) > 0 );
+
+    $self->status_ok( $c, entity => { success => 1 } );
+}
+
+sub put_tags : Local : ActionClass('MC_REST')
+{
+}
+
+sub put_tags_PUT
+{
+    my ( $self, $c ) = @_;
+
+    $self->process_put_tags( $c );
+
+    $self->status_ok( $c, entity => { success => 1 } );
+
+    return;
+}
+
+sub submit_suggestion : Local : ActionClass('MC_REST')
+{
+}
+
+# submit a row to the media_suggestions table
+sub submit_suggestion_GET
+{
+    my ( $self, $c ) = @_;
+
+    $self->require_fields( $c, [ qw/url/ ] );
+
+    my $data = $c->req->data;
+
+    die( "input must be a hash" ) unless ( ref( $data ) eq ref( {} ) );
+
+    my $db = $c->dbis;
+
+    my $url      = $data->{ url };
+    my $name     = $data->{ name } || 'none';
+    my $feed_url = $data->{ feed_url } || 'none';
+    my $reason   = $data->{ reason } || 'none';
+
+    my $user          = MediaWords::DBI::Auth::user_for_api_token_catalyst( $c );
+    my $auth_users_id = $user->{ auth_users_id };
+
+    $db->begin;
+
+    my $ms = $db->create(
+        'media_suggestions',
+        {
+            url           => $url,
+            name          => $name,
+            feed_url      => $feed_url,
+            reason        => $reason,
+            auth_users_id => $auth_users_id
+        }
+    );
+
+    my $tags_ids = $data->{ tags_ids } || [];
+    die( "tags_ids must be a list" ) unless ( ref( $tags_ids ) eq ref( [] ) );
+    die( "each tags_id must be a postive int" ) if ( grep { $_ !~ /[0-9]+/ } @{ $tags_ids } );
+
+    for my $tags_id ( @{ $tags_ids } )
+    {
+        $db->query( <<SQL, $ms->{ media_suggestions_id }, $tags_id );
+insert into media_suggestions_tags_map ( media_suggestions_id, tags_id ) values ( \$1, \$2 )
+SQL
+    }
+
+    $db->commit;
+
+    $self->status_ok( $c, entity => { success => 1 } );
+
+}
+
+sub list_suggestions : Local : ActionClass('MC_REST')
+{
+}
+
+# submit a row to the media_suggestions table
+sub list_suggestions_GET
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $tags_id = $c->req->params->{ tags_id } || 0;
+    my $all     = $c->req->params->{ all }     || 0;
+
+    die( "tags_id must be a positve integer" ) if ( $tags_id =~ /[^0-9]/ );
+
+    my $clauses = [ 'true' ];
+
+    if ( $tags_id )
+    {
+        push( @{ $clauses }, <<SQL );
+media_suggestions_id in ( select media_suggestions_id from media_suggestions_tags_map where tags_id = $tags_id )
+SQL
+    }
+
+    push( @{ $clauses }, "status = 'pending'" ) unless ( $all );
+
+    my $clause_list = join( ' and ', @{ $clauses } );
+
+    my $media_suggestions = $db->query( <<SQL )->hashes;
+select u.email email, *
+    from media_suggestions ms
+        join auth_users u using ( auth_users_id )
+    where $clause_list
+    order by date_submitted
+SQL
+
+    $db->attach_child_query( $media_suggestions, <<SQL, 'tags_ids', 'media_suggestions_id' );
+select tags_id, media_suggestions_id from media_suggestions_tags_map
+SQL
+
+    $self->status_ok( $c, entity => { media_suggestions => $media_suggestions } );
+}
+
+sub mark_suggestion : Local : ActionClass( 'MC_REST' )
+{
+}
+
+# mark a suggestion as 'approved', 'rejected', or 'pending'
+sub mark_suggestion_PUT
+{
+    my ( $self, $c ) = @_;
+
+    $self->require_fields( $c, [ qw/media_suggestions_id status/ ] );
+
+    my $data = $c->req->data;
+
+    my $db = $c->dbis;
+
+    my $user          = MediaWords::DBI::Auth::user_for_api_token_catalyst( $c );
+    my $auth_users_id = $user->{ auth_users_id };
+
+    die( "status must be pending, approved, or rejected" )
+      unless ( grep { $_ eq $data->{ status } } ( qw/pending approved rejected/ ) );
+
+    die( "media_id required with approve" ) if ( ( $data->{ status } eq 'approved' ) && !$data->{ media_id } );
+
+    my $ms = $db->require_by_id( 'media_suggestions', $data->{ media_suggestions_id } );
+
+    $db->update_by_id(
+        'media_suggestions',
+        $data->{ media_suggestions_id },
+        {
+            media_suggestions_id => $data->{ media_suggestions_id },
+            status               => $data->{ status },
+            mark_reason          => $data->{ mark_reason },
+            media_id             => $data->{ media_id },
+            mark_auth_users_id   => $auth_users_id
+        }
+    );
+
+    $self->status_ok( $c, entity => { success => 1 } );
 }
 
 =head1 AUTHOR

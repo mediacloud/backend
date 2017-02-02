@@ -38,6 +38,7 @@ use IO::Socket;
 use Data::Dumper;
 
 use MediaWords::Crawler::Download::Content;
+use MediaWords::Crawler::Download::Feed::Superglue;
 use MediaWords::Crawler::Download::Feed::Syndicated;
 use MediaWords::Crawler::Download::Feed::WebPage;
 use MediaWords::Crawler::Download::Feed::Univision;
@@ -101,6 +102,10 @@ sub handler_for_download($$;$)
         elsif ( $feed_type eq 'univision' )
         {
             $handler = MediaWords::Crawler::Download::Feed::Univision->new( $handler_args );
+        }
+        elsif ( $feed_type eq 'superglue' )
+        {
+            $handler = MediaWords::Crawler::Download::Feed::Superglue->new( $handler_args );
         }
         else
         {
@@ -394,7 +399,8 @@ sub crawl
 
     DEBUG "starting Crawler::Engine::crawl";
 
-    MediaWords::DB::run_block_with_large_work_mem(
+    my $db = $self->dbs;
+    $db->run_block_with_large_work_mem(
         sub {
 
           MAINLOOP: while ( 1 )
@@ -443,8 +449,7 @@ sub crawl
                     }
                 }
             }
-        },
-        $self->dbs
+        }
     );
 
     kill( 15, map { $_->{ pid } } @{ $self->{ fetchers } } );
@@ -698,7 +703,7 @@ sub _reconnect_db
     }
 
     $self->{ dbs } = MediaWords::DB::connect_to_db;
-    $self->dbs->dbh->{ AutoCommit } = 1;
+    $self->dbs->set_autocommit( 1 );
 }
 
 1;

@@ -46,7 +46,7 @@ use MediaWords::Util::DateTime;
 
 use Data::Dumper;
 use Data::Sorting qw( :basics :arrays :extras );
-use DBIx::Simple::MediaWords;
+use MediaWords::DB::Handler;
 use Encode;
 use LWP::UserAgent;
 use Readonly;
@@ -203,9 +203,9 @@ sub _purge_disable_triggers_field
 }
 
 # test various results of the crawler
-sub _test_stories($$$$$)
+sub _test_stories($$$$)
 {
-    my ( $db, $test_name, $test_prefix, $stories_count, $extractor_method ) = @_;
+    my ( $db, $test_name, $test_prefix, $stories_count ) = @_;
 
     my $download_errors = $db->query( "select * from downloads where state = 'error'" )->hashes;
     is( scalar( @{ $download_errors } ), 0, "$test_name - download errors" );
@@ -217,7 +217,7 @@ sub _test_stories($$$$$)
 
     my $test_stories =
       MediaWords::Test::Data::stories_arrayref_from_hashref(
-        MediaWords::Test::Data::fetch_test_data_from_individual_files( "crawler_stories/$test_prefix/$extractor_method" ) );
+        MediaWords::Test::Data::fetch_test_data_from_individual_files( "crawler_stories/$test_prefix" ) );
 
     MediaWords::Test::Data::adjust_test_timezone( $test_stories, $test_stories->[ 0 ]->{ timezone } );
 
@@ -315,9 +315,9 @@ sub _sanity_test_stories($$$)
 }
 
 # store the stories as test data to compare against in subsequent runs
-sub _dump_stories($$$$)
+sub _dump_stories($$$)
 {
-    my ( $db, $test_name, $test_prefix, $extractor_method ) = @_;
+    my ( $db, $test_name, $test_prefix ) = @_;
 
     my $stories = _get_expanded_stories( $db );
 
@@ -325,15 +325,15 @@ sub _dump_stories($$$$)
 
     map { $_->{ timezone } = $tz } @{ $stories };
 
-    MediaWords::Test::Data::store_test_data_to_individual_files( "crawler_stories/$test_prefix/$extractor_method",
+    MediaWords::Test::Data::store_test_data_to_individual_files( "crawler_stories/$test_prefix",
         MediaWords::Test::Data::stories_hashref_from_arrayref( $stories ) );
 
     _sanity_test_stories( $stories, $test_name, $test_prefix );
 }
 
-sub _test_crawler($$$$)
+sub _test_crawler($$$)
 {
-    my ( $test_name, $test_prefix, $stories_count, $extractor_method ) = @_;
+    my ( $test_name, $test_prefix, $stories_count ) = @_;
 
     MediaWords::Test::DB::test_on_test_database(
         sub {
@@ -345,16 +345,20 @@ sub _test_crawler($$$$)
             $test_http_server->start();
             my $url_to_crawl = $test_http_server->url();
 
+            INFO "Adding test feed...";
             _add_test_feed( $db, $url_to_crawl, $test_name, $test_prefix );
 
+            INFO "Starting crawler...";
             _run_crawler();
 
             if ( defined( $ARGV[ 0 ] ) && ( $ARGV[ 0 ] eq '-d' ) )
             {
-                _dump_stories( $db, $test_name, $test_prefix, $extractor_method );
+                INFO "Dumping stories...";
+                _dump_stories( $db, $test_name, $test_prefix );
             }
 
-            _test_stories( $db, $test_name, $test_prefix, $stories_count, $extractor_method );
+            INFO "Testing stories...";
+            _test_stories( $db, $test_name, $test_prefix, $stories_count );
 
             INFO "Killing server";
             $test_http_server->stop();
@@ -364,15 +368,6 @@ sub _test_crawler($$$$)
 
 sub main
 {
-    # Extractor method to use
-    #
-    # Please note that this constant doesn't mean that extractor will extract
-    # test stories using this particular method; it only means that the unit
-    # test itself will assume that stories got extracted using this extractor
-    # method and thus will load input / save output data from appropriate
-    # directories.
-    Readonly my $extractor_method => 'InlinePythonReadability';
-
     # Errors might want to print out UTF-8 characters
     binmode( STDERR, ':utf8' );
     binmode( STDOUT, ':utf8' );
@@ -383,17 +378,16 @@ sub main
     binmode $builder->todo_output,    ":utf8";
 
     # Test short inline "content:..." downloads
-    _test_crawler( 'Short "inline" downloads', 'inline_content', 4, $extractor_method );
+    _test_crawler( 'Short "inline" downloads', 'inline_content', 4 );
 
     # Test Global Voices downloads
-    _test_crawler( 'Global Voices', 'gv', 16, $extractor_method );
+    _test_crawler( 'Global Voices', 'gv', 16 );
 
     # Test multilanguage downloads
     _test_crawler(
         'Multilanguage downloads',
         'multilanguage',
         6 - 1,    # there are 6 tests, but one of them is an empty page
-        $extractor_method
     );
 
     Test::NoWarnings::had_no_warnings();

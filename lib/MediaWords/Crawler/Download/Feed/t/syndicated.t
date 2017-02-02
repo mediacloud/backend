@@ -20,7 +20,7 @@ use Test::NoWarnings;
 use Test::More;
 use Test::Deep;
 
-use MediaWords::DB;
+use MediaWords::Test::DB;
 
 sub _convert_to_local_time_zone
 {
@@ -209,9 +209,14 @@ __END_TEST_CASE__
 
 sub main()
 {
-    my $db = MediaWords::DB::connect_to_db || die( "can't connect to db" );
 
-    test_get_stories_from_syndicated_feed( $db );
+    MediaWords::Test::DB::test_on_test_database(
+        sub {
+            my ( $db ) = @_;
+
+            test_get_stories_from_syndicated_feed( $db );
+        }
+    );
 }
 
 main();

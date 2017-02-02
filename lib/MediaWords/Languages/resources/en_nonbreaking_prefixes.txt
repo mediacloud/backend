@@ -2,8 +2,6 @@
 # This is a non-breaking prefix list for the English language.
 # The file is used for sentence tokenization (text -> sentence splitting).
 #
-# The encoding of this file is UTF-8.
-#
 # The file was taken from Lingua::Sentence package:
 #     http://search.cpan.org/~achimru/Lingua-Sentence-1.03/lib/Lingua/Sentence.pm
 #

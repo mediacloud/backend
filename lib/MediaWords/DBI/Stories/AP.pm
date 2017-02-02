@@ -69,6 +69,9 @@ select * from downloads where stories_id = \$1 order by downloads_id limit 1
 SQL
     }
 
+    # There might be no download at all for full text RSS story (e.g. Superglue)
+    return '' unless ( $download );
+
     return '' unless ( $download->{ state } eq 'success' );
 
     my $content_ref;

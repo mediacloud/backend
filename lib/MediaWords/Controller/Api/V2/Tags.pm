@@ -17,7 +17,8 @@ __PACKAGE__->config(
     action => {
         single => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         list   => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        update => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        update => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
+        create => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
@@ -31,7 +32,7 @@ sub get_name_search_clause
 
     return 'and false' unless ( length( $v ) > 2 );
 
-    my $qv = $c->dbis->dbh->quote( $v );
+    my $qv = $c->dbis->quote( $v );
 
     return <<END;
 and tags_id in (
@@ -57,6 +58,35 @@ sub list_optional_query_filter_field
     return 'tag_sets_id';
 }
 
+sub get_extra_where_clause
+{
+    my ( $self, $c ) = @_;
+
+    if ( my $similar_tags_id = $c->req->params->{ similar_tags_id } )
+    {
+        # make sure this is an int
+        $similar_tags_id += 0;
+
+        my $clause = <<SQL;
+and tags_id in (
+    select b.tags_id
+        from media_tags_map a
+            join media_tags_map b using ( media_id )
+        where
+            a.tags_id = $similar_tags_id and
+            a.tags_id <> b.tags_id
+        group by b.tags_id
+        order by count(*) desc
+        limit 100
+)
+SQL
+
+        return $clause;
+    }
+
+    return '';
+}
+
 sub single_GET
 {
     my ( $self, $c, $id ) = @_;
@@ -65,7 +95,8 @@ sub single_GET
 select t.tags_id, t.tag_sets_id, t.label, t.description, t.tag,
         ts.name tag_set_name, ts.label tag_set_label, ts.description tag_set_description,
         t.show_on_media OR ts.show_on_media show_on_media,
-        t.show_on_stories OR ts.show_on_stories show_on_stories
+        t.show_on_stories OR ts.show_on_stories show_on_stories,
+        t.is_static
     from tags t
         join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
     where
@@ -89,7 +120,8 @@ create temporary view tags as
     select t.tags_id, t.tag_sets_id, t.label, t.description, t.tag,
         ts.name tag_set_name, ts.label tag_set_label, ts.description tag_set_description,
         t.show_on_media OR ts.show_on_media show_on_media,
-        t.show_on_stories OR ts.show_on_stories show_on_stories
+        t.show_on_stories OR ts.show_on_stories show_on_stories,
+        t.is_static
     from tags t
         join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
     where $public_clause
@@ -98,53 +130,51 @@ END
     return $self->SUPER::_fetch_list( $c, $last_id, $table_name, $id_field, $rows );
 }
 
+sub get_update_fields($)
+{
+    return [ qw/tag label description show_on_media show_on_stories is_static/ ];
+}
+
 sub update : Local : ActionClass('MC_REST')
 {
 }
 
 sub update_PUT
 {
-    my ( $self, $c, $id ) = @_;
+    my ( $self, $c ) = @_;
 
-    my $tag_name    = $c->req->params->{ 'tag' };
-    my $label       = $c->req->params->{ 'label' };
-    my $description = $c->req->params->{ 'description' };
+    my $data = $c->req->data;
 
-    my $tag = $c->dbis->find_by_id( 'tags', $id );
+    $self->require_fields( $c, [ qw/tags_id/ ] );
 
-    die 'tag not found ' unless defined( $tag );
+    my $tag = $c->dbis->require_by_id( 'tags', $data->{ tags_id } );
+    my $tag_set = $c->dbis->require_by_id( 'tag_sets', $data->{ tag_sets_id } ) if ( $data->{ tag_sets_id } );
 
-    my $tag_set = $c->dbis->find_by_id( 'tag_sets', $tag->{ tag_sets_id } );
+    my $input = { map { $_ => $data->{ $_ } } grep { exists( $data->{ $_ } ) } @{ $self->get_update_fields } };
 
-    die 'tag set not found ' unless defined( $tag_set );
+    my $updated_tag = $c->dbis->update_by_id( 'tags', $data->{ tags_id }, $input );
 
-    $self->die_unless_user_can_edit_tag_set_tag_descriptors( $c, $tag_set );
+    return $self->status_ok( $c, entity => { tag => $updated_tag } );
+}
 
-    if ( defined( $tag_name ) )
-    {
-        DEBUG "updating tag name to '$tag_name'";
-        $c->dbis->query( "UPDATE tags set tag = ? where tags_id = ? ", $tag_name, $id );
-    }
+sub create : Local : ActionClass( 'MC_REST' )
+{
+}
 
-    if ( defined( $label ) )
-    {
-        DEBUG "updating label to '$label'";
-        $c->dbis->query( "UPDATE tags set label = ? where tags_id = ? ", $label, $id );
-    }
+sub create_GET
+{
+    my ( $self, $c ) = @_;
 
-    if ( defined( $description ) )
-    {
-        DEBUG "updating description to '$description'";
-        $c->dbis->query( "UPDATE tags set description = ? where tags_id = ? ", $description, $id );
-    }
+    my $data = $c->req->data;
 
-    die unless defined( $tag_name ) || defined( $label ) || defined( $description );
+    $self->require_fields( $c, [ qw/tag_sets_id tag label/ ] );
 
-    $tag_set = $c->dbis->find_by_id( 'tags', $id );
+    my $fields = [ 'tag_sets_id', @{ $self->get_update_fields } ];
+    my $input = { map { $_ => $data->{ $_ } } grep { exists( $data->{ $_ } ) } @{ $fields } };
 
-    $self->status_ok( $c, entity => $tag_set );
+    my $created_tag = $c->dbis->create( 'tags', $input );
 
-    return;
+    return $self->status_ok( $c, entity => { tag => $created_tag } );
 }
 
 1;

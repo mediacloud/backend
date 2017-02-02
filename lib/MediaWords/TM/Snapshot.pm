@@ -49,18 +49,25 @@ use File::Temp;
 use FileHandle;
 use Getopt::Long;
 use GraphViz2;
+use List::Util;
 use XML::Simple;
 use Readonly;
 
-use MediaWords::TM::Model;
 use MediaWords::DBI::Media;
+use MediaWords::Job::TM::SnapshotTopic;
 use MediaWords::Solr;
+use MediaWords::TM::Model;
 use MediaWords::Util::CSV;
 use MediaWords::Util::Colors;
 use MediaWords::Util::Config;
 use MediaWords::Util::Paths;
 use MediaWords::Util::SQL;
 use MediaWords::DBI::Activities;
+
+# possible values of snapshots.bot_policy
+Readonly our $POLICY_NO_BOTS   => 'no bots';
+Readonly our $POLICY_ONLY_BOTS => 'only bots';
+Readonly our $POLICY_BOTS_ALL  => 'all';
 
 # max and mind node sizes for gexf snapshot
 Readonly my $MAX_NODE_SIZE => 20;
@@ -72,21 +79,30 @@ Readonly my $MAX_MAP_WIDTH => 800;
 # max number of media to include in gexf map
 Readonly my $MAX_GEXF_MEDIA => 500;
 
+# number of tweets per day to use as a threshold for bot filtering
+Readonly my $BOT_TWEETS_PER_DAY => 200;
+
 # attributes to include in gexf snapshot
 my $_media_static_gexf_attribute_types = {
-    url          => 'string',
-    inlink_count => 'integer',
-    story_count  => 'integer',
-    view_medium  => 'string',
-    media_type   => 'string',
-    bitly_clicks => 'integer'
+    url                    => 'string',
+    inlink_count           => 'integer',
+    story_count            => 'integer',
+    view_medium            => 'string',
+    media_type             => 'string',
+    bitly_click_count      => 'integer',
+    facebook_share_count   => 'integer',
+    simple_tweet_count     => 'integer',
+    normalized_tweet_count => 'integer'
 };
 
-# all tables that the snapshot process snapshots for each snapshot
+# all tables that get stored as snapshot_* for each spanshot
 my $_snapshot_tables = [
     qw/topic_stories topic_links_cross_media topic_media_codes
-      stories media stories_tags_map media_tags_map tags tag_sets/
+      stories media stories_tags_map media_tags_map tags tag_sets tweet_stories/
 ];
+
+# all tables that get stories as snapshot_* for each timespan
+my $_timespan_tables = [ qw/story_link_counts story_links medium_link_counts medium_links timespan_tweets/ ];
 
 # tablespace clause for temporary tables
 my $_temporary_tablespace;
@@ -104,6 +120,12 @@ sub get_snapshot_tables
     return [ @{ $_snapshot_tables } ];
 }
 
+# get the list of all timespan specific tables
+sub get_timespan_tables
+{
+    return [ @{ $_timespan_tables } ];
+}
+
 # if the temporary_table_tablespace config is present, set $_temporary_tablespace
 # to a tablespace clause for the tablespace, otherwise set it to ''
 sub set_temporary_table_tablespace
@@ -115,30 +137,6 @@ sub set_temporary_table_tablespace
     $_temporary_tablespace = $tablespace ? "tablespace $tablespace" : '';
 }
 
-# create all of the temporary snapshot* tables other than medium_links and story_links
-sub write_live_snapshot_tables
-{
-    my ( $db, $topic, $timespan ) = @_;
-
-    my $topics_id;
-    if ( $topic )
-    {
-        $topics_id = $topic->{ topics_id };
-    }
-    else
-    {
-        my $cd = $db->find_by_id( 'snapshots', $timespan->{ snapshots_id } );
-        $topics_id = $cd->{ topics_id };
-    }
-
-    write_temporary_snapshot_tables( $db, $topic );
-    write_period_stories( $db, $timespan );
-    write_story_links_snapshot( $db, $timespan, 1 );
-    write_story_link_counts_snapshot( $db, $timespan, 1 );
-    write_medium_links_snapshot( $db, $timespan, 1 );
-    write_medium_link_counts_snapshot( $db, $timespan, 1 );
-}
-
 # create temporary view of all the snapshot_* tables that call into the snap.* tables.
 # this is useful for writing queries on the snap.* tables without lots of ugly
 # joins and clauses to cd and timespan.  It also provides the same set of snapshot_*
@@ -148,9 +146,7 @@ sub create_temporary_snapshot_views
 {
     my ( $db, $timespan ) = @_;
 
-    my $snapshot_tables = get_snapshot_tables();
-
-    for my $t ( @{ $snapshot_tables } )
+    for my $t ( @{ get_snapshot_tables() } )
     {
         $db->query( <<END );
 create temporary view snapshot_$t as select * from snap.$t
@@ -158,7 +154,7 @@ create temporary view snapshot_$t as select * from snap.$t
 END
     }
 
-    for my $t ( qw(story_link_counts story_links medium_link_counts medium_links timespan_tweets) )
+    for my $t ( @{ get_timespan_tables() } )
     {
         $db->query( <<END )
 create temporary view snapshot_$t as select * from snap.$t
@@ -198,19 +194,12 @@ snapshot_story_link_counts: stories_id, inlink_count, outlink_count, citly_click
 
 sub setup_temporary_snapshot_tables
 {
-    my ( $db, $timespan, $topic, $live ) = @_;
+    my ( $db, $timespan, $topic ) = @_;
 
     # postgres prints lots of 'NOTICE's when deleting temp tables
-    $db->dbh->{ PrintWarn } = 0;
+    $db->set_print_warn( 0 );
 
-    if ( $live )
-    {
-        MediaWords::TM::Snapshot::write_live_snapshot_tables( $db, $topic, $timespan );
-    }
-    else
-    {
-        MediaWords::TM::Snapshot::create_temporary_snapshot_views( $db, $timespan );
-    }
+    MediaWords::TM::Snapshot::create_temporary_snapshot_views( $db, $timespan );
 }
 
 =head2 discard_temp_tables( $db )
@@ -247,7 +236,11 @@ sub restrict_period_stories_to_focus
     }
     my $all_stories_ids      = [ @{ $snapshot_period_stories_ids } ];
     my $matching_stories_ids = [];
-    my $chunk_size           = 10_000;
+    my $chunk_size           = 1000;
+    my $min_chunk_size       = 10;
+    my $max_solr_errors      = 25;
+    my $solr_error_count     = 0;
+
     while ( @{ $all_stories_ids } )
     {
         my $chunk_stories_ids = [];
@@ -255,13 +248,29 @@ sub restrict_period_stories_to_focus
         map { push( @{ $chunk_stories_ids }, shift( @{ $all_stories_ids } ) ) } ( 1 .. $chunk_size );
 
         my $solr_q = $qs->{ query };
-        $solr_q = "( $solr_q )" if ( $solr_q =~ /or/i );
 
         my $stories_ids_list = join( ' ', @{ $chunk_stories_ids } );
         $solr_q = "$solr_q and stories_id:( $stories_ids_list )";
-        my $solr_stories_ids = MediaWords::Solr::search_for_stories_ids( $db, { rows => 1000000, q => $solr_q } );
 
-        push( @{ $matching_stories_ids }, @{ $solr_stories_ids } );
+        my $solr_stories_ids =
+          eval { MediaWords::Solr::search_for_stories_ids( $db, { rows => 1000000, q => $solr_q } ) };
+        if ( $@ )
+        {
+            # sometimes solr throws a NullException error on one of these queries; retrying with smaller
+            # chunks seems to make it happy; if the error keeps happening, just drop those stories_ids
+            if ( ++$solr_error_count > $max_solr_errors )
+            {
+                die( "too many solr errors: $@" );
+            }
+
+            $chunk_size = List::Util::max( $chunk_size / 2, $min_chunk_size );
+            unshift( @{ $all_stories_ids }, @{ $chunk_stories_ids } );
+            sleep( int( 2**( 1 * ( $solr_error_count / 5 ) ) ) );
+        }
+        else
+        {
+            push( @{ $matching_stories_ids }, @{ $solr_stories_ids } );
+        }
     }
 
     my $ids_table = $db->get_temporary_ids_table( $matching_stories_ids );
@@ -292,16 +301,13 @@ sub create_twitter_snapshot_period_stories($$)
 {
     my ( $db, $timespan ) = @_;
 
-    $db->query( <<SQL, $timespan->{ start_date }, $timespan->{ end_date }, $timespan->{ timespans_id } );
+    $db->query( <<SQL, $timespan->{ timespans_id } );
 create temporary table snapshot_period_stories $_temporary_tablespace as
     select distinct stories_id
-        from topic_tweet_full_urls ttfu
-            join timespans t on ( timespans_id = \$3 )
-            join snapshots s using ( snapshots_id )
+        from snapshot_tweet_stories ts
+            join timespans t on ( timespans_id = \$1 )
         where
-            ttfu.twitter_topics_id = s.topics_id and
-            ttfu.publish_date between \$1 and \$2 and
-            ttfu.stories_id is not null
+            ts.publish_date between t.start_date and t.end_date
 SQL
 }
 
@@ -341,17 +347,17 @@ END
     $db->query( "drop view snapshot_undateable_stories" );
 }
 
-# return true if the topic of the timespan is a child twitter topic
+# return true if the topic of the timespan is a twitter_topic
 sub topic_is_twitter_topic
 {
     my ( $db, $timespan ) = @_;
 
     my ( $is_twitter_topic ) = $db->query( <<SQL, $timespan->{ snapshots_id } )->flat;
-select t.twitter_parent_topics_id
+select 1
     from topics t
         join snapshots s using ( topics_id )
     where
-        t.twitter_parent_topics_id is not null and
+        t.ch_monitor_id is not null and
         s.snapshots_id = \$1
 SQL
 
@@ -470,37 +476,47 @@ sub write_story_links_snapshot
 
     $db->query( "drop table if exists snapshot_story_links" );
 
-    if ( !( $timespan->{ period } eq 'overall' ) && topic_is_twitter_topic( $db, $timespan ) )
+    if ( topic_is_twitter_topic( $db, $timespan ) )
     {
-        # for twitter topics we want only links generated by tweets within the time period
-        $db->query_with_large_work_mem( <<SQL, $timespan->{ timespans_id } );
-create temporary table snapshot_story_links $_temporary_tablespace as
-    select distinct a.stories_id source_stories_id, b.stories_id ref_stories_id
-        from
-            topic_tweet_full_urls a
-            join topic_tweet_full_urls b on
-                ( a.twitter_topics_id = b.twitter_topics_id and a.twitter_user = b.twitter_user )
-            join snapshots s on ( a.twitter_topics_id = b.twitter_topics_id )
-            join timespans t using ( snapshots_id )
-            join stories sa on ( a.stories_id = sa.stories_id )
-            join stories sb on ( b.stories_id = sb.stories_id )
-        where
-            a.stories_id <> b.stories_id and
-            sa.media_id <> sb.media_id and
-            a.twitter_topics_id = s.topics_id and
-            t.timespans_id = \$1 and
-            a.publish_date between t.start_date and t.end_date and
-            b.publish_date between t.start_date and t.end_date
+        $db->execute_with_large_work_mem(
+            <<SQL
+create temporary table snapshot_story_links as
+
+    with tweet_stories as (
+        select s.media_id, s.stories_id, s.twitter_user, s.publish_date
+            from snapshot_tweet_stories s
+                join snapshot_timespan_tweets t using ( topic_tweets_id )
+    ),
+
+    coshared_links as (
+        select
+                a.stories_id stories_id_a, a.twitter_user, b.stories_id stories_id_b
+            from
+                tweet_stories a
+                join tweet_stories b using ( twitter_user )
+            where
+                a.media_id <> b.media_id and
+                date_trunc( 'day', a.publish_date ) = date_trunc( 'day', b.publish_date )
+            group by a.stories_id, b.stories_id, a.twitter_user
+    )
+
+    select cs.stories_id_a source_stories_id, cs.stories_id_b ref_stories_id
+        from coshared_links cs
+        group by cs.stories_id_a, cs.stories_id_b
 SQL
+        );
     }
     else
     {
         $db->query( <<END );
 create temporary table snapshot_story_links $_temporary_tablespace as
     select distinct cl.stories_id source_stories_id, cl.ref_stories_id
-	    from snapshot_topic_links_cross_media cl, snapshot_period_stories sps, snapshot_period_stories rps
-    	where cl.stories_id = sps.stories_id and
-    	    cl.ref_stories_id = rps.stories_id
+	    from snapshot_topic_links_cross_media cl
+            join snapshot_period_stories sps on ( cl.stories_id = sps.stories_id )
+            join snapshot_period_stories rps on ( cl.ref_stories_id = rps.stories_id )
+            left join stories_ap_syndicated sap on ( sps.stories_id = sap.stories_id )
+    	where
+            ( ( sap.ap_syndicated is null ) or ( sap.ap_syndicated = false ) )
 END
     }
 
@@ -570,29 +586,25 @@ sub write_timespan_tweets_snapshot
 
     $db->query( "drop table if exists snapshot_timespan_tweets" );
 
-    my $start_date_q = $db->dbh->quote( $timespan->{ start_date } );
-    my $end_date_q   = $db->dbh->quote( $timespan->{ end_date } );
+    my $start_date_q = $db->quote( $timespan->{ start_date } );
+    my $end_date_q   = $db->quote( $timespan->{ end_date } );
 
     my $date_clause =
       $timespan->{ period } eq 'overall'
       ? '1=1'
-      : "publish_date >= $start_date_q and publish_date < $end_date_q";
+      : "publish_date between $start_date_q and $end_date_q";
 
     my $snapshot = $db->require_by_id( 'snapshots', $timespan->{ snapshots_id } );
     my $topic    = $db->require_by_id( 'topics',    $snapshot->{ topics_id } );
 
-    my $tweet_topics_id =
-        $topic->{ twitter_parent_topics_id }
-      ? $topic->{ twitter_parent_topics_id }
-      : $topic->{ topics_id };
-
-    $db->query( <<SQL, $tweet_topics_id );
+    $db->query( <<SQL );
 create temporary table snapshot_timespan_tweets as
-    select tt.topic_tweets_id
-        from topic_tweets tt
-            join topic_tweet_days using ( topic_tweet_days_id )
+    select distinct ts.topic_tweets_id
+        from snapshot_tweet_stories ts
+            join snapshot_period_stories s using ( stories_id )
+            join snapshot_media m using ( media_id )
         where
-            topics_id = \$1 and
+            m.url not like '%twitter.com%' and
             $date_clause
 SQL
 
@@ -632,10 +644,9 @@ create temporary table snapshot_story_link_counts $_temporary_tablespace as
     snapshot_twitter_counts as (
         select
                 s.stories_id,
-                count(*) as simple_tweet_count,
-                sum( num_ch_tweets::float /
-                    ( case when tweet_count = 0 then 1 else tweet_count end )::float ) as normalized_tweet_count
-            from topic_tweet_full_urls ttfu
+                count( distinct ts.twitter_user ) as simple_tweet_count,
+                sum( ( num_ch_tweets::float + 1 ) / ( tweet_count + 1 ) ) as normalized_tweet_count
+            from snapshot_tweet_stories ts
                 join snapshot_period_stories s using ( stories_id )
                 join snapshot_timespan_tweets tt using ( topic_tweets_id )
             group by s.stories_id
@@ -969,18 +980,30 @@ sub attach_stories_to_media
 
 sub get_weighted_edges
 {
-    my ( $db, $media, $max_media ) = @_;
+    my ( $db, $media, $options ) = @_;
 
-    my $media_links = $db->query( <<END, $max_media )->hashes;
+    my $max_media            = $options->{ max_media };
+    my $include_weights      = $options->{ include_weights } || 0;
+    my $max_links_per_medium = $options->{ max_links_per_medium } || 1_000_000;
+
+    DEBUG(
+"get_weighted_edges: $max_media max media; $include_weights include_weights; $max_links_per_medium max_links_per_medium"
+    );
+
+    my $media_links = $db->query( <<END, $max_media, $max_links_per_medium )->hashes;
 with top_media as (
-    select media_id from snapshot_medium_link_counts order by media_inlink_count desc limit ?
+    select * from snapshot_medium_link_counts order by media_inlink_count desc limit \$1
+),
+
+ranked_media as (
+    select *,
+            row_number() over ( partition by source_media_id order by l.link_count desc, rlc.inlink_count desc ) source_rank
+        from snapshot_medium_links l
+            join top_media slc on ( l.source_media_id = slc.media_id )
+            join top_media rlc on ( l.ref_media_id = rlc.media_id )
 )
 
-select *
-    from snapshot_medium_links
-    where
-        source_media_id in ( select media_id from top_media ) and
-        ref_media_id in ( select media_id from top_media )
+select * from ranked_media where source_rank <= \$2
 END
 
     my $media_map = {};
@@ -995,9 +1018,7 @@ END
             id     => $k++,
             source => $media_link->{ source_media_id },
             target => $media_link->{ ref_media_id },
-            weight => 1
-
-              # weight => $media_link->{ inlink_count }
+            weight => ( $include_weights ? $media_link->{ link_count } : 1 )
         };
 
         push( @{ $edges }, $edge );
@@ -1241,30 +1262,41 @@ sub layout_gexf_with_graphviz_1
     scale_gexf_nodes( $gexf );
 }
 
-=head2 get_gexf_snapshot( $db, $timespan, $color_field, $max_media )
+=head2 get_gexf_snapshot( $db, $timespan, $options )
 
 Get a gexf snapshot of the graph described by the linked media sources within the given topic timespan.
 
 Layout the graph using the gaphviz neato algorithm.
 
-Color the nodes by the given field: $medium->{ $color_field } (default 'media_type').
+Accepts these $options:
 
-Include only the $max_media media sources with the most inlinks in the timespan (default 500).
+* color_field - color the nodes by the given field: $medium->{ $color_field } (default 'media_type').
+* max_media -  include only the $max_media media sources with the most inlinks in the timespan (default 500).
+* include_weights - if true, use weighted edges
+* max_links_per_medium - if set, only inclue the top $max_links_per_media out links from each medium, sorted by medium_link_counts.link_count and then inlink_count of the target medium
 
 =cut
 
 sub get_gexf_snapshot
 {
-    my ( $db, $timespan, $color_field, $max_media ) = @_;
+    my ( $db, $timespan, $options ) = @_;
 
-    $color_field ||= 'media_type';
-    $max_media   ||= $MAX_GEXF_MEDIA;
+    $options->{ max_media }   ||= $MAX_GEXF_MEDIA;
+    $options->{ color_field } ||= 'media_type';
 
-    my $media = $db->query( <<END, $max_media )->hashes;
-select distinct *
-    from snapshot_media_with_types m, snapshot_medium_link_counts mlc
-    where m.media_id = mlc.media_id
-    order by mlc.media_inlink_count desc
+    my $media = $db->query( <<END, $options->{ max_media } )->hashes;
+select distinct
+        m.*,
+        mlc.media_inlink_count inlink_count,
+        mlc.story_count,
+        mlc.bitly_click_count,
+        mlc.facebook_share_count,
+        mlc.simple_tweet_count,
+        mlc.normalized_tweet_count
+    from snapshot_media_with_types m
+        join snapshot_medium_link_counts mlc using ( media_id )
+    order
+        by mlc.media_inlink_count desc
     limit ?
 END
 
@@ -1303,7 +1335,7 @@ END
         push( @{ $attributes->{ attribute } }, { id => $i++, title => $name, type => $type } );
     }
 
-    my $edges = get_weighted_edges( $db, $media, $max_media );
+    my $edges = get_weighted_edges( $db, $media, $options );
     $graph->{ edges }->{ edge } = $edges;
 
     my $edge_lookup;
@@ -1330,6 +1362,7 @@ END
             push( @{ $node->{ attvalues }->{ attvalue } }, { for => $j++, value => $medium->{ $name } } );
         }
 
+        my $color_field = $options->{ color_field };
         $node->{ 'viz:color' } = [ get_color( $db, $timespan, $color_field, $medium->{ $color_field } ) ];
         $node->{ 'viz:size' } = { value => $medium->{ inlink_count } + 1 };
 
@@ -1424,15 +1457,6 @@ sub update_timespan_counts ($$;$)
     }
 }
 
-# update the state field in the snapshot
-sub _update_snapshot_state
-{
-    my ( $db, $cd, $state ) = @_;
-
-    DEBUG( "set snapshot state: $state" );
-    $db->update_by_id( 'snapshots', $cd->{ snapshots_id }, { state => $state } );
-}
-
 # generate the snapshot timespans for the given period, dates, and tag
 sub generate_timespan ($$$$$$)
 {
@@ -1445,7 +1469,7 @@ sub generate_timespan ($$$$$$)
 
     DEBUG( "generating $snapshot_label ..." );
 
-    _update_snapshot_state( $db, $cd, "snapshotting $snapshot_label" );
+    MediaWords::Job::TM::SnapshotTopic->update_job_state_message( $db, "snapshotting $snapshot_label" );
 
     my $all_models_top_media = MediaWords::TM::Model::get_all_models_top_media( $db, $timespan );
 
@@ -1514,6 +1538,7 @@ sub generate_period_snapshot ($$$$)
 
     if ( $period eq 'overall' )
     {
+        # this will generate an 'overall' timespan with all stories
         generate_timespan( $db, $cd, $start_date, $end_date, $period, $focus );
     }
     elsif ( $period eq 'weekly' )
@@ -1549,21 +1574,6 @@ sub generate_period_snapshot ($$$$)
     {
         die( "Unknown period '$period'" );
     }
-}
-
-# get default start and end dates from the query associated with the query_stories_search associated with the topic
-sub get_default_dates
-{
-    my ( $db, $topic ) = @_;
-
-    my ( $start_date, $end_date ) = $db->query( <<END, $topic->{ topics_id } )->flat;
-select min( td.start_date ), max( td.end_date ) from topic_dates td where td.topics_id = ?
-END
-
-    die( "Unable to find default dates" ) unless ( $start_date && $end_date );
-
-    return ( $start_date, $end_date );
-
 }
 
 # create temporary table copies of temporary tables so that we can copy
@@ -1647,9 +1657,9 @@ sub create_snap_snapshot
 
 # generate temporary snapshot_* tables for the specified snapshot for each of the snapshot_tables.
 # these are the tables that apply to the whole snapshot.
-sub write_temporary_snapshot_tables
+sub write_temporary_snapshot_tables($$$)
 {
-    my ( $db, $topic ) = @_;
+    my ( $db, $topic, $snapshot ) = @_;
 
     my $topics_id = $topic->{ topics_id };
 
@@ -1731,6 +1741,38 @@ create temporary table snapshot_tag_sets $_temporary_tablespace as
         where ts.tag_sets_id in ( select tag_sets_id from snapshot_tags )
 END
 
+    my $tweet_topics_id = $topic->{ twitter_topics_id } || $topic->{ topics_id };
+
+    my $bot_clause = '';
+    my $bot_policy = $snapshot->{ bot_policy } || $POLICY_NO_BOTS;
+    if ( $snapshot->{ bot_policy } eq $POLICY_NO_BOTS )
+    {
+        $bot_clause = "and ( ( coalesce( tweets, 0 ) / coalesce( days, 1 ) ) < $BOT_TWEETS_PER_DAY )";
+    }
+    elsif ( $snapshot->{ bot_policy } eq $POLICY_ONLY_BOTS )
+    {
+        $bot_clause = "and ( ( coalesce( tweets, 0 ) / coalesce( days, 1 ) ) >= $BOT_TWEETS_PER_DAY )";
+    }
+
+    $db->query( <<SQL, $tweet_topics_id );
+create temporary table snapshot_tweet_stories as
+    with tweets_per_day as (
+        select topic_tweets_id,
+                ( tt.data->'tweet'->'user'->>'statuses_count' ) ::int tweets,
+                extract( day from now() - ( tt.data->'tweet'->'user'->>'created_at' )::date ) days
+            from topic_tweets tt
+                join topic_tweet_days ttd using ( topic_tweet_days_id )
+            where ttd.topics_id = \$1
+    )
+
+    select topic_tweets_id, u.publish_date, twitter_user, stories_id, media_id, num_ch_tweets, tweet_count
+        from topic_tweet_full_urls u
+            join tweets_per_day tpd using ( topic_tweets_id )
+            join snapshot_stories using ( stories_id )
+        where
+            topics_id = \$1 $bot_clause
+SQL
+
     add_media_type_views( $db );
 
     for my $table ( @{ get_snapshot_tables() } )
@@ -1795,14 +1837,16 @@ sub generate_snapshots_from_temporary_snapshot_tables
 }
 
 # create the snapshot row for the current snapshot
-sub create_snapshot_row ($$$$)
+sub create_snapshot_row ($$$$;$$)
 {
-    my ( $db, $topic, $start_date, $end_date ) = @_;
+    my ( $db, $topic, $start_date, $end_date, $note, $bot_policy ) = @_;
 
-    my $cd = $db->query( <<END, $topic->{ topics_id }, $start_date, $end_date )->hash;
+    $note //= '';
+
+    my $cd = $db->query( <<END, $topic->{ topics_id }, $start_date, $end_date, $note, $bot_policy )->hash;
 insert into snapshots
-    ( topics_id, start_date, end_date, snapshot_date )
-    values ( ?, ?, ?, now() )
+    ( topics_id, start_date, end_date, snapshot_date, note, bot_policy )
+    values ( ?, ?, ?, now(), ?, ?)
     returning *
 END
 
@@ -1889,22 +1933,25 @@ SQL
     $db->update_by_id( 'snapshots', $cd->{ snapshots_id }, { searchable => 'f' } );
 }
 
-=head2 snapshot_topic( $db, $topics_id )
+=head2 snapshot_topic( $db, $topics_id, $note, $bot_policy )
 
-Create a snapshot for the given topic.
+Create a snapshot for the given topic.  Optionally pass a note and/or a bot_policy field to the created snapshot.
+
+The bot_policy should be one of 'all', 'no bots', or 'only bots' indicating for twitter topics whether and how to
+filter for bots (a bot is defined as any user tweeting more than 200 post per day).
 
 =cut
 
-sub snapshot_topic ($$)
+sub snapshot_topic ($$;$$)
 {
-    my ( $db, $topics_id ) = @_;
+    my ( $db, $topics_id, $note, $bot_policy ) = @_;
 
     my $periods = [ qw(custom overall weekly monthly) ];
 
     my $topic = $db->find_by_id( 'topics', $topics_id )
       || die( "Unable to find topic '$topics_id'" );
 
-    $db->dbh->{ PrintWarn } = 0;    # avoid noisy, extraneous postgres notices from drops
+    $db->set_print_warn( 0 );    # avoid noisy, extraneous postgres notices from drops
 
     # Log activity that's about to start
     my $changes = {};
@@ -1913,44 +1960,35 @@ sub snapshot_topic ($$)
         die "Unable to log the 'tm_snapshot_topic' activity.";
     }
 
-    my ( $start_date, $end_date ) = get_default_dates( $db, $topic );
+    my ( $start_date, $end_date ) = ( $topic->{ start_date }, $topic->{ end_date } );
 
-    my $cd = create_snapshot_row( $db, $topic, $start_date, $end_date );
+    my $snap = create_snapshot_row( $db, $topic, $start_date, $end_date, $note, $bot_policy );
 
-    eval {
-        _update_snapshot_state( $db, $cd, "snapshotting data" );
+    MediaWords::Job::TM::SnapshotTopic->update_job_state_args( $db, { snapshots_id => $snap->{ snapshots_id } } );
+    MediaWords::Job::TM::SnapshotTopic->update_job_state_message( $db, "snapshotting data" );
 
-        write_temporary_snapshot_tables( $db, $topic );
+    write_temporary_snapshot_tables( $db, $topic, $snap );
 
-        generate_snapshots_from_temporary_snapshot_tables( $db, $cd );
+    generate_snapshots_from_temporary_snapshot_tables( $db, $snap );
 
-        # generate null focus timespan snapshots
-        map { generate_period_snapshot( $db, $cd, $_, undef ) } ( @{ $periods } );
+    # generate null focus timespan snapshots
+    map { generate_period_snapshot( $db, $snap, $_, undef ) } ( @{ $periods } );
 
-        generate_period_focus_snapshots( $db, $cd, $periods );
+    generate_period_focus_snapshots( $db, $snap, $periods );
 
-        _update_snapshot_state( $db, $cd, "finalizing snapshot" );
+    MediaWords::Job::TM::SnapshotTopic->update_job_state_message( $db, "finalizing snapshot" );
 
-        write_date_counts_snapshot( $db, $cd, 'daily' );
-        write_date_counts_snapshot( $db, $cd, 'weekly' );
+    write_date_counts_snapshot( $db, $snap, 'daily' );
+    write_date_counts_snapshot( $db, $snap, 'weekly' );
 
-        _export_stories_to_solr( $db, $cd );
+    _export_stories_to_solr( $db, $snap );
 
-        analyze_snapshot_tables( $db );
+    analyze_snapshot_tables( $db );
 
-        discard_temp_tables( $db );
-    };
-    if ( $@ )
-    {
-        my $error = $@;
-        ERROR( "snapshot failed: $error" );
-        _update_snapshot_state( $db, $cd, "snapshot failed" );
-        $db->update_by_id( 'snapshots', $cd->{ snapshots_id }, { error_message => $error } );
-    }
-    else
-    {
-        _update_snapshot_state( $db, $cd, "completed" );
-    }
+    discard_temp_tables( $db );
+
+    # update this manually because snapshot_topic might be called directly from Mine::mine_topic()
+    $db->update_by_id( 'snapshots', $snap->{ snapshots_id }, { state => $MediaWords::AbstractJob::STATE_COMPLETED } );
 }
 
 1;

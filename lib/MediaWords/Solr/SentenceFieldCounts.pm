@@ -8,6 +8,7 @@ use Moose;
 use strict;
 use warnings;
 
+use CHI;
 use Data::Dumper;
 
 use MediaWords::Solr;
@@ -191,7 +192,7 @@ sub _get_cache_key
 {
     my ( $self ) = @_;
 
-    $_fc_cache_version //= MediaWords::Util::Config->get_config->{ mediawords }->{ fc_cache_version } || '1';
+    $_fc_cache_version //= MediaWords::Util::Config::get_config->{ mediawords }->{ fc_cache_version } || '1';
 
     my $meta = $self->meta;
 

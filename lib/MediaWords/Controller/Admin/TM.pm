@@ -12,8 +12,9 @@ use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::DBI::Stories;
 use MediaWords::Job::TM::MineTopic;
-use MediaWords::Solr::WordCounts;
 use MediaWords::Solr;
+use MediaWords::Solr::Query;
+use MediaWords::Solr::WordCounts;
 use MediaWords::TM::Mine;
 use MediaWords::TM::Snapshot;
 use MediaWords::TM;
@@ -45,7 +46,7 @@ select c.*
     from topics c
         left join snapshots snap on ( c.topics_id = snap.topics_id )
     group by c.topics_id
-    order by c.state = 'ready', c.state,  max( coalesce( snap.snapshot_date, '2000-01-01'::date ) ) desc
+    order by c.state = 'completed', max( coalesce( snap.snapshot_date, '2000-01-01'::date ) ) desc
 END
 
     $c->stash->{ topics }   = $topics;
@@ -54,7 +55,7 @@ END
 
 sub _add_topic_date
 {
-    my ( $db, $topic, $start_date, $end_date, $boundary ) = @_;
+    my ( $db, $topic, $start_date, $end_date ) = @_;
 
     my $existing_date = $db->query( <<END, $start_date, $end_date, $topic->{ topics_id } )->hash;
 select * from topic_dates where start_date = ? and end_date = ? and topics_id = ?
@@ -72,13 +73,6 @@ END
         );
     }
 
-    if ( $boundary )
-    {
-        $db->query( <<END, $start_date, $end_date, $topic->{ topics_id } )
-update topic_dates set boundary = ( start_date = ? and end_date = ? ) where topics_id = ?
-END
-    }
-
 }
 
 # edit an existing topic
@@ -90,8 +84,7 @@ sub edit : Local
 
     my $db = $c->dbis;
 
-    my $topic = $db->query( 'select * from topics_with_dates where topics_id = ?', $topics_id )->hash
-      || die( "Unable to find topic" );
+    my $topic = $db->require_by_id( 'topics', $topics_id );
 
     $form->default_values( $topic );
     $form->process( $c->req );
@@ -103,25 +96,38 @@ sub edit : Local
         $c->stash->{ template } = 'tm/edit_topic.tt2';
         return;
     }
-    elsif ( $c->req->params->{ preview } )
+
+    my $p = $form->params;
+
+    my $num_stories = eval { MediaWords::Solr::count_stories( $db, { q => $p->{ solr_seed_query } } ) };
+    die( "invalid solr query: $@" ) if ( $@ );
+
+    die( "number of stories from query ($num_stories) is more than the max (500,000)" ) if ( $num_stories > 500000 );
+
+    my $pattern;
+    if ( $p->{ solr_seed_query } eq $topic->{ solr_seed_query } )
     {
-        my $solr_seed_query = $c->req->params->{ solr_seed_query };
-        my $pattern         = $c->req->params->{ pattern };
+        $pattern = $topic->{ pattern };
+    }
+    else
+    {
+        $pattern = eval { MediaWords::Solr::Query::parse( $p->{ solr_seed_query } )->re() };
+        die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
+    }
+
+    if ( $p->{ preview } )
+    {
+        my $solr_seed_query = $p->{ solr_seed_query };
         $c->res->redirect( $c->uri_for( '/search', { q => $solr_seed_query, pattern => $pattern } ) );
         return;
     }
 
     else
     {
-        my $p = $form->params;
-
-        _add_topic_date( $db, $topic, $p->{ start_date }, $p->{ end_date }, 1 );
-
-        delete( $p->{ start_date } );
-        delete( $p->{ end_date } );
         delete( $p->{ preview } );
 
         $p->{ solr_seed_query_run } = 'f' unless ( $topic->{ solr_seed_query } eq $p->{ solr_seed_query } );
+        $p->{ pattern } = $pattern;
 
         $c->dbis->update_by_id( 'topics', $topics_id, $p );
 
@@ -130,6 +136,34 @@ sub edit : Local
 
         return;
     }
+}
+
+# parse solr_seed_query coming directy from dashboard export.  return the part of the query without the
+# date or media source clauses as well as the list of media tags_ids from the filtered part of the query.
+# die if the query is not the form exported by the dashboard tool.  this is pretty kludgy but is just intended
+# to get us through the couple of weeks until we have topic editing in the new web tool
+sub _parse_solr_seed_query($)
+{
+    my ( $full_query ) = @_;
+
+# sample dashboard exported query:
+# +( "media cloud" mediacloud ) AND (+publish_date:[2016-01-01T00:00:00Z TO 2017-01-26T23:59:59Z]) AND ((tags_id_media:8875027 OR tags_id_stories:8875027))
+    if ( $full_query !~ /(.*) AND \(\+publish_date\:\[.*\]\) AND \(\((tags_id_media.*)\)\)$/ )
+    {
+        die( "unable to parse solr query (query must be in exact form exported by dashboard): '$full_query'" );
+    }
+
+    my ( $filtered_query, $tags_list ) = ( $1, $2 );
+
+    my $tags_ids_lookup = {};
+    while ( $tags_list =~ /(\d+)/g )
+    {
+        $tags_ids_lookup->{ $1 } = 1;
+    }
+
+    my $tags_ids = [ keys( %{ $tags_ids_lookup } ) ];
+
+    return ( $filtered_query, $tags_ids );
 }
 
 # create a new topic
@@ -165,7 +199,6 @@ sub create : Local
     # At this point the form is submitted
 
     my $c_name            = $c->req->params->{ name };
-    my $c_pattern         = $c->req->params->{ pattern };
     my $c_solr_seed_query = $c->req->params->{ solr_seed_query };
     my $c_skip_solr_query = ( $c->req->params->{ skip_solr_query } ? 't' : 'f' );
     my $c_description     = $c->req->params->{ description };
@@ -173,11 +206,21 @@ sub create : Local
     my $c_end_date        = $c->req->params->{ end_date };
     my $c_max_iterations  = $c->req->params->{ max_iterations };
 
+    my $num_stories = eval { MediaWords::Solr::count_stories( $db, { q => $c_solr_seed_query } ) };
+    die( "invalid solr query: $@" ) if ( $@ );
+
+    die( "number of stories from query ($num_stories) is more than the max (500,000)" ) if ( $num_stories > 500000 );
+
+    my $pattern = eval { MediaWords::Solr::Query::parse( $c_solr_seed_query )->re() };
+    die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
+
     if ( $c->req->params->{ preview } )
     {
-        $c->res->redirect( $c->uri_for( '/search', { q => $c_solr_seed_query, pattern => $c_pattern } ) );
+        $c->res->redirect( $c->uri_for( '/search', { q => $c_solr_seed_query, pattern => $pattern } ) );
         return;
     }
+
+    my ( $filtered_seed_query, $tags_ids ) = _parse_solr_seed_query( $c_solr_seed_query );
 
     $db->begin;
 
@@ -185,55 +228,27 @@ sub create : Local
         'topics',
         {
             name                => $c_name,
-            pattern             => $c_pattern,
-            solr_seed_query     => $c_solr_seed_query,
+            pattern             => $pattern,
+            solr_seed_query     => $filtered_seed_query,
             solr_seed_query_run => $c_skip_solr_query,
             description         => $c_description,
-            max_iterations      => $c_max_iterations
+            max_iterations      => $c_max_iterations,
+            start_date          => $c_start_date,
+            end_date            => $c_end_date,
         }
     );
 
-    $db->create(
-        'topic_dates',
-        {
-            topics_id  => $topic->{ topics_id },
-            start_date => $c_start_date,
-            end_date   => $c_end_date,
-            boundary   => 't',
-        }
-    );
+    for my $tags_id ( @{ $tags_ids } )
+    {
+        $db->query( <<SQL, $topic->{ topics_id }, $tags_id );
+insert into topics_media_tags_map ( topics_id, tags_id ) values ( ?, ? )
+SQL
+    }
 
     $db->commit;
 
     my $status_msg = "Topic has been created.";
     $c->res->redirect( $c->uri_for( "/admin/tm/view/$topic->{ topics_id }", { status_msg => $status_msg } ) );
-}
-
-# add a periods field to the topic snapshot
-sub add_periods_to_snapshot
-{
-    my ( $db, $snapshot ) = @_;
-
-    my $periods = $db->query( <<END, $snapshot->{ snapshots_id } )->hashes;
-select distinct period from timespans
-    where snapshots_id = ?
-    order by period;
-END
-
-    my $custom_dates = $db->query( <<END, $snapshot->{ topics_id } )->hash;
-select * from topic_dates where topics_id = ?
-END
-
-    my $expected_periods = ( $custom_dates ) ? 4 : 3;
-
-    if ( @{ $periods } == $expected_periods )
-    {
-        $snapshot->{ periods } = 'all';
-    }
-    else
-    {
-        $snapshot->{ periods } = join( ", ", map { $_->{ period } } @{ $periods } );
-    }
 }
 
 # get all timespans associated with a snapshot, sorted consistenty and
@@ -259,38 +274,6 @@ SQL
 
 }
 
-# get the latest full snapshot (snapshot with all periods) and add timespans to it
-# under the timespans field
-sub get_latest_full_snapshot_with_timespans
-{
-    my ( $db, $snapshots, $topic, $qs_id ) = @_;
-
-    if ( !@{ $snapshots } )
-    {
-        $snapshots = _get_snapshots_with_periods( $db, $topic, $qs_id );
-    }
-
-    my $latest_full_snapshot;
-    for my $cd ( @{ $snapshots } )
-    {
-        if ( $cd->{ periods } eq 'all' )
-        {
-            $latest_full_snapshot = $cd;
-            last;
-        }
-    }
-
-    return unless ( $latest_full_snapshot );
-
-    my $timespans = _get_timespan_from_cd( $db, $latest_full_snapshot, $qs_id );
-
-    map { _add_timespan_model_reliability( $db, $_ ) } @{ $timespans };
-
-    $latest_full_snapshot->{ timespans } = $timespans;
-
-    return $latest_full_snapshot;
-}
-
 # if there are pending topic_links, return a hash describing the status
 # of the mining process with the following fields: stories_by_iteration, queued_urls, recent_topic_spider_metrics
 sub _get_mining_status
@@ -299,7 +282,7 @@ sub _get_mining_status
 
     my $cid = $topic->{ topics_id };
 
-    my $queued_urls = $db->query( <<END, $cid )->list;
+    my $queued_urls = $db->query( <<END, $cid )->array->[ 0 ];
 select count(*) from topic_links where topics_id = ? and ref_stories_id is null
 END
 
@@ -324,7 +307,7 @@ SQL
 
 # get the topic snapshots associated with the given topic and optional focus.  attach
 # periods label to each snapshot.
-sub _get_snapshots_with_periods ($$$)
+sub _get_snapshots($$$)
 {
     my ( $db, $topic, $foci_id ) = @_;
 
@@ -346,8 +329,6 @@ from snapshots snap
 where snap.topics_id = ? $focus_clause
 order by snapshots_id desc
 SQL
-
-    map { add_periods_to_snapshot( $db, $_ ) } @{ $snapshots };
 
     return $snapshots;
 }
@@ -380,9 +361,7 @@ sub _get_topic_with_focus
 {
     my ( $db, $topics_id, $foci_id ) = @_;
 
-    my $topic = $db->query( <<END, $topics_id )->hash;
-select * from topics_with_dates where topics_id = ?
-END
+    my $topic = $db->require_by_id( 'topics', $topics_id );
 
     if ( $foci_id )
     {
@@ -403,19 +382,14 @@ sub view : Local
 
     my $topic = _get_topic_with_focus( $db, $topics_id, $foci_id );
 
-    my $snapshots = _get_snapshots_with_periods( $db, $topic, $foci_id );
-    my $latest_full_snapshot = get_latest_full_snapshot_with_timespans( $db, $snapshots, $topic, $foci_id );
-
-    my $latest_activities = _get_latest_activities( $db, $topics_id );
+    my $snapshots = _get_snapshots( $db, $topic, $foci_id );
 
     my $focus_definitions = _get_focus_definitions( $db, $topic );
 
-    $c->stash->{ topic }                = $topic;
-    $c->stash->{ snapshots }            = $snapshots;
-    $c->stash->{ latest_full_snapshot } = $latest_full_snapshot;
-    $c->stash->{ latest_activities }    = $latest_activities;
-    $c->stash->{ focus_definitions }    = $focus_definitions;
-    $c->stash->{ template }             = 'tm/view.tt2';
+    $c->stash->{ topic }             = $topic;
+    $c->stash->{ snapshots }         = $snapshots;
+    $c->stash->{ focus_definitions } = $focus_definitions;
+    $c->stash->{ template }          = 'tm/view.tt2';
 }
 
 # add num_stories, num_story_links, num_media, and num_media_links
@@ -433,7 +407,7 @@ sub _add_media_and_story_counts_to_timespan
     ( $timespan->{ num_medium_links } ) = $db->query( "select count(*) from snapshot_medium_links" )->flat;
 }
 
-# get all foci in the 'Queries' focus set of the given snapshot
+# get all foci in the given snapshot
 sub _get_snapshot_foci
 {
     my ( $db, $snapshot ) = @_;
@@ -443,8 +417,7 @@ select f.*
     from foci f
         join focal_sets fs using ( focal_sets_id )
     where
-        fs.snapshots_id = \$1 and
-        fs.name = 'Queries'
+        fs.snapshots_id = \$1
     order by f.name
 SQL
 
@@ -739,22 +712,25 @@ sub _get_top_stories_for_timespan
 
     my $top_stories = $db->query(
         <<END,
-        SELECT s.*,
-               slc.media_inlink_count,
-               slc.inlink_count,
-               slc.outlink_count,
-               slc.simple_tweet_count,
-               slc.normalized_tweet_count,
-               slc.bitly_click_count,
-               m.name as medium_name,
-               m.media_type
-        FROM snapshot_stories AS s,
-             snapshot_story_link_counts AS slc,
-             snapshot_media_with_types AS m
-        WHERE s.stories_id = slc.stories_id
-          AND s.media_id = m.media_id
-        ORDER BY slc.media_inlink_count DESC
-        LIMIT ?
+with top_story_link_counts as (
+    select * from snapshot_story_link_counts order by media_inlink_count desc limit \$1
+)
+
+SELECT s.*,
+       slc.media_inlink_count,
+       slc.inlink_count,
+       slc.outlink_count,
+       slc.simple_tweet_count,
+       slc.normalized_tweet_count,
+       slc.bitly_click_count,
+       m.name as medium_name,
+       m.media_type
+FROM snapshot_stories AS s,
+     top_story_link_counts AS slc,
+     snapshot_media_with_types AS m
+WHERE s.stories_id = slc.stories_id
+  AND s.media_id = m.media_id
+ORDER BY slc.media_inlink_count DESC
 END
         20
     )->hashes;
@@ -794,20 +770,17 @@ sub _add_timespan_model_reliability
     $timespan->{ model_reliability } = $reliability;
 }
 
-# get the timespan, snapshot, and topic
-# for the current request
+# get the timespan, snapshot, and topic for the current request
 sub _get_topic_objects
 {
     my ( $db, $timespans_id ) = @_;
 
     die( "timespan param is required" ) unless ( $timespans_id );
 
-    my $timespan = $db->find_by_id( 'timespans', $timespans_id ) || die( "timespan not found" );
-    my $cd = $db->find_by_id( 'snapshots', $timespan->{ snapshots_id } );
+    my $timespan = $db->require_by_id( 'timespans', $timespans_id );
+    my $cd       = $db->require_by_id( 'snapshots', $timespan->{ snapshots_id } );
 
-    my $topic = $db->query( <<END, $cd->{ topics_id } )->hash;
-select * from topics_with_dates where topics_id = ?
-END
+    my $topic = $db->require_by_id( 'topics', $cd->{ topics_id } );
 
     if ( my $qs_id = $timespan->{ foci_id } )
     {
@@ -917,18 +890,16 @@ sub view_timespan : Local
 
     my $top_media = _get_top_media_for_timespan( $db, $timespan );
     my $top_stories = _get_top_stories_for_timespan( $db, $timespan );
-    my $media_type_stats = _get_media_type_stats_for_timespan( $db );
 
     $db->commit;
 
-    $c->stash->{ timespan }         = $timespan;
-    $c->stash->{ snapshot }         = $cd;
-    $c->stash->{ topic }            = $topic;
-    $c->stash->{ top_media }        = $top_media;
-    $c->stash->{ top_stories }      = $top_stories;
-    $c->stash->{ media_type_stats } = $media_type_stats;
-    $c->stash->{ live }             = $live;
-    $c->stash->{ template }         = 'tm/view_timespan.tt2';
+    $c->stash->{ timespan }    = $timespan;
+    $c->stash->{ snapshot }    = $cd;
+    $c->stash->{ topic }       = $topic;
+    $c->stash->{ top_media }   = $top_media;
+    $c->stash->{ top_stories } = $top_stories;
+    $c->stash->{ live }        = $live;
+    $c->stash->{ template }    = 'tm/view_timespan.tt2';
 }
 
 # download a csv field from timespans_id or generate the
@@ -1044,9 +1015,11 @@ sub gexf : Local
 {
     my ( $self, $c, $timespans_id, $csv ) = @_;
 
-    my $l           = $c->req->params->{ l };
-    my $color_field = $c->req->params->{ cf };
-    my $num_media   = $c->req->params->{ nm };
+    my $l                    = $c->req->params->{ l };
+    my $color_field          = $c->req->params->{ cf };
+    my $num_media            = $c->req->params->{ nm };
+    my $include_weights      = $c->req->params->{ w };
+    my $max_links_per_medium = $c->req->params->{ lpm };
 
     my $db = $c->dbis;
 
@@ -1064,7 +1037,14 @@ END
     if ( !$gexf )
     {
         MediaWords::TM::Snapshot::setup_temporary_snapshot_tables( $db, $timespan, $topic, $l );
-        $gexf = MediaWords::TM::Snapshot::get_gexf_snapshot( $db, $timespan, $color_field, $num_media );
+        my $gexf_options = {
+            color_field          => $color_field,
+            num_media            => $num_media,
+            include_weights      => $include_weights,
+            max_links_per_medium => $max_links_per_medium
+        };
+
+        $gexf = MediaWords::TM::Snapshot::get_gexf_snapshot( $db, $timespan, $gexf_options );
     }
 
     my $base_url = $c->uri_for( '/' );
@@ -1164,23 +1144,23 @@ sub _get_medium_and_stories_from_snapshot_tables
 
     $medium->{ stories } = $db->query(
         <<END,
-        SELECT s.*,
-               m.name AS medium_name,
-               m.media_type,
-               slc.inlink_count,
-               slc.media_inlink_count,
-               slc.outlink_count,
-               slc.simple_tweet_count,
-               slc.normalized_tweet_count,
-               slc.bitly_click_count
-        FROM snapshot_stories AS s,
-             snapshot_media_with_types AS m,
-             snapshot_story_link_counts AS slc
-        WHERE s.stories_id = slc.stories_id
-          AND s.media_id = m.media_id
-          AND s.media_id = ?
-        ORDER BY slc.media_inlink_count DESC
-        limit 50
+SELECT s.*,
+       m.name AS medium_name,
+       m.media_type,
+       slc.inlink_count,
+       slc.media_inlink_count,
+       slc.outlink_count,
+       slc.simple_tweet_count,
+       slc.normalized_tweet_count,
+       slc.bitly_click_count
+FROM snapshot_stories AS s,
+     snapshot_media_with_types AS m,
+     snapshot_story_link_counts AS slc
+WHERE s.stories_id = slc.stories_id
+  AND s.media_id = m.media_id
+  AND s.media_id = ?
+ORDER BY slc.media_inlink_count DESC
+limit 50
 END
         $media_id
     )->hashes;
@@ -1194,25 +1174,31 @@ SQL
 
     $medium->{ inlink_stories } = $db->query(
         <<END
-        SELECT DISTINCT s.*,
-                        sm.name AS medium_name,
-                        sm.media_type,
-                        sslc.media_inlink_count,
-                        sslc.inlink_count,
-                        sslc.outlink_count,
-                        sslc.simple_tweet_count,
-                        sslc.normalized_tweet_count,
-                        sslc.bitly_click_count
-        FROM snapshot_stories AS s,
-             snapshot_story_link_counts AS sslc,
-             snapshot_media_with_types AS sm,
-             snapshot_story_links AS sl
-        WHERE s.stories_id = sslc.stories_id
-          AND s.media_id = sm.media_id
-          AND s.stories_id = sl.source_stories_id
-          AND sl.ref_stories_id in ( select stories_id from tm_medium_stories_ids )
-        ORDER BY sslc.media_inlink_count DESC
-        limit 50
+with inlinks as (
+    select source_stories_id, ref_stories_id
+        from snapshot_story_links
+        where ref_stories_id in ( select stories_id from tm_medium_stories_ids )
+),
+
+inlink_stories as (
+    select * from snapshot_stories s join inlinks l on ( s.stories_id = l.source_stories_id )
+)
+SELECT DISTINCT s.*,
+                sm.name AS medium_name,
+                sm.media_type,
+                sslc.media_inlink_count,
+                sslc.inlink_count,
+                sslc.outlink_count,
+                sslc.simple_tweet_count,
+                sslc.normalized_tweet_count,
+                sslc.bitly_click_count
+FROM inlink_stories AS s,
+     snapshot_story_link_counts AS sslc,
+     snapshot_media_with_types AS sm
+WHERE s.stories_id = sslc.stories_id
+  AND s.media_id = sm.media_id
+ORDER BY sslc.media_inlink_count DESC
+limit 50
 END
     )->hashes;
 
@@ -1221,25 +1207,32 @@ END
 
     $medium->{ outlink_stories } = $db->query(
         <<END
-        SELECT DISTINCT r.*,
-                        rm.name AS medium_name,
-                        rm.media_type,
-                        rslc.media_inlink_count,
-                        rslc.inlink_count,
-                        rslc.outlink_count,
-                        rslc.simple_tweet_count,
-                        rslc.normalized_tweet_count,
-                        rslc.bitly_click_count
-        FROM snapshot_stories AS r,
-             snapshot_story_link_counts AS rslc,
-             snapshot_media_with_types AS rm,
-             snapshot_story_links AS sl
-        WHERE r.stories_id = rslc.stories_id
-          AND r.media_id = rm.media_id
-          AND r.stories_id = sl.ref_stories_id
-          AND sl.source_stories_id in ( select stories_id from tm_medium_stories_ids )
-        ORDER BY rslc.media_inlink_count DESC
-        limit 50
+with outlinks as (
+    select source_stories_id, ref_stories_id
+        from snapshot_story_links
+        where source_stories_id in ( select stories_id from tm_medium_stories_ids )
+),
+
+outlink_stories as (
+    select * from snapshot_stories s join outlinks l on ( s.stories_id = l.ref_stories_id )
+)
+
+SELECT DISTINCT r.*,
+                rm.name AS medium_name,
+                rm.media_type,
+                rslc.media_inlink_count,
+                rslc.inlink_count,
+                rslc.outlink_count,
+                rslc.simple_tweet_count,
+                rslc.normalized_tweet_count,
+                rslc.bitly_click_count
+FROM outlink_stories AS r,
+     snapshot_story_link_counts AS rslc,
+     snapshot_media_with_types AS rm
+WHERE r.stories_id = rslc.stories_id
+  AND r.media_id = rm.media_id
+ORDER BY rslc.media_inlink_count DESC
+limit 50
 END
     )->hashes;
 
@@ -1381,7 +1374,7 @@ sub _get_story_and_links_from_snapshot_tables
     # if the below query returns nothing, the return type of the server prepared statement
     # may differ from the first call, which throws a postgres error, so we need to
     # disable server side prepares
-    $db->dbh->{ pg_server_prepare } = 0;
+    $db->set_prepare_on_server_side( 0 );
 
     my $story = $db->query( <<SQL, $stories_id )->hash;
 select * from snapshot_stories s join snapshot_story_link_counts slc using ( stories_id ) where s.stories_id = ?
@@ -1619,7 +1612,9 @@ sub _get_solr_params_for_timespan_query
 
     my $params = { fq => "timespans_id:$timespan->{ timespans_id }" };
 
-    $params->{ q } = ( defined( $q ) && $q ne '' ) ? $q : '*:*';
+    $params->{ q }    = ( defined( $q ) && $q ne '' ) ? $q : '*:*';
+    $params->{ rows } = 100_000;
+    $params->{ sort } = 'random_1 asc';
 
     return $params;
 }
@@ -1750,7 +1745,8 @@ sub search_stories : Local
     my $search_query = _get_stories_id_search_query( $db, $query );
 
     my $order = $c->req->params->{ order } || '';
-    my $order_clause = $order eq 'bitly_click_count' ? 'slc.bitly_click_count desc' : 'slc.media_inlink_count desc';
+    my $order_clause =
+      $order eq 'bitly_click_count' ? 'slc.bitly_click_count desc nulls last' : 'slc.media_inlink_count desc';
 
     my $stories = $db->query(
         <<"END"
@@ -2233,7 +2229,7 @@ END
     my $sql_activities =
       MediaWords::DBI::Activities::sql_activities_which_reference_column( 'topics.topics_id', $topics_id );
 
-    my ( $activities, $pager ) = $c->dbis->query_paged_hashes( $sql_activities, [], $p, $ROWS_PER_PAGE );
+    my ( $activities, $pager ) = $c->dbis->query_paged_hashes( $sql_activities, $p, $ROWS_PER_PAGE );
 
     # FIXME put activity preparation (JSON decoding, description fetching) into
     # a subroutine in order to not repeat oneself.
@@ -2732,22 +2728,6 @@ sub add_media_types : Local
     $c->stash->{ template }          = 'tm/add_media_types.tt2';
 }
 
-# delete all topic_dates in the topic
-sub delete_all_dates : Local
-{
-    my ( $self, $c, $topics_id ) = @_;
-
-    my $db = $c->dbis;
-
-    my $topic = $db->query( "select * from topics_with_dates where topics_id = ?", $topics_id )
-      || die( "Unable to find topic" );
-
-    $db->query( <<END, $topics_id );
-delete from topic_dates where not bounday and topics_id = ?
-END
-
-}
-
 # delet a single topic_dates row
 sub delete_date : Local
 {
@@ -2755,8 +2735,7 @@ sub delete_date : Local
 
     my $db = $c->dbis;
 
-    my $topic = $db->query( "select * from topics_with_dates where topics_id = ?", $topics_id )
-      || die( "Unable to find topic" );
+    my $topic = $db->require_by_id( 'topics', $topics_id );
 
     my $start_date = $c->req->params->{ start_date };
     my $end_date   = $c->req->params->{ end_date };
@@ -2764,7 +2743,7 @@ sub delete_date : Local
     die( "missing start_date or end_date" ) unless ( $start_date && $end_date );
 
     $db->query( <<END, $topics_id, $start_date, $end_date );
-delete from topic_dates where topics_id = ? and start_date = ? and end_date = ? and not boundary
+delete from topic_dates where topics_id = ? and start_date = ? and end_date = ?
 END
 
     $c->res->redirect( $c->uri_for( '/admin/tm/edit_dates/' . $topics_id, { status_msg => 'Date deleted.' } ) );
@@ -2794,8 +2773,7 @@ sub add_date : Local
 
     my $db = $c->dbis;
 
-    my $topic = $db->query( "select * from topics_with_dates where topics_id = ?", $topics_id )->hash
-      || die( "Unable to find topic" );
+    my $topic = $db->require_by_id( 'topics', $topics_id );
 
     my $interval   = $c->req->params->{ interval } + 0;
     my $start_date = $c->req->params->{ start_date };
@@ -3062,6 +3040,7 @@ sub story_stats : Local
     my $q     = $c->req->params->{ q };
 
     my $solr_p = _get_solr_params_for_timespan_query( $timespan, $q );
+
     my $stories_ids = MediaWords::Solr::search_for_stories_ids( $db, $solr_p );
 
     my $num_stories = scalar( @{ $stories_ids } );
@@ -3092,6 +3071,9 @@ sub story_stats : Local
 sub _create_focus_definition
 {
     my ( $db, $topic, $p ) = @_;
+
+    eval { MediaWords::Solr::query( $db, { q => $p->{ query }, rows => 0 } ) };
+    die( "invalid solr query: $@" ) if ( $@ );
 
     my $fsd = $db->query( <<SQL, $topic->{ topics_id } )->hash;
 select * from focal_set_definitions where topics_id = ? and name = 'Queries'
@@ -3172,7 +3154,7 @@ sub delete_focus : Local
     $c->res->redirect( $c->uri_for( "/admin/tm/edit_foci/$fsd->{ topics_id }", { status_msg => $status_msg } ) );
 }
 
-# get the focus definitions within the 'Queries' focus set definitions for the given topic
+# get the focus definitions for the given topic
 sub _get_focus_definitions ($$)
 {
     my ( $db, $topic ) = @_;
@@ -3181,8 +3163,7 @@ sub _get_focus_definitions ($$)
 select fd.*
     from focus_definitions fd
         join focal_set_definitions fsd using ( focal_set_definitions_id )
-    where fsd.topics_id = ? and
-        fsd.name = 'Queries'
+    where fsd.topics_id = ?
     order by name
 SQL
 
@@ -3215,8 +3196,6 @@ sub mine : Local
     my $topic = $db->find_by_id( 'topics', $topics_id ) || die( "Unable to find topic" );
 
     MediaWords::Job::TM::MineTopic->add_to_queue( { topics_id => $topics_id } );
-
-    $db->update_by_id( 'topics', $topics_id, { state => 'queued for spidering' } );
 
     my $status = 'Topic spidering job queued.';
     $c->res->redirect( $c->uri_for( "/admin/tm/view/" . $topics_id, { status_msg => $status } ) );

@@ -20,9 +20,10 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
 __PACKAGE__->config(    #
     action => {         #
-        single => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
-      }    #
-);         #
+        single  => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
+        profile => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+    }
+);
 
 sub single : Local : ActionClass('MC_REST')
 {
@@ -98,6 +99,30 @@ sub single_GET : PathPrefix( '/api' )
     }
 
     $self->status_ok( $c, entity => [ { 'result' => 'found', 'token' => $token } ] );
+}
+
+# return info about currently logged in user
+sub profile : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $user = MediaWords::DBI::Auth::user_for_api_token_catalyst( $c );
+
+    my $profile = MediaWords::DBI::Auth::user_info( $c->dbis, $user->{ email } );
+
+    delete( $profile->{ api_token } );
+
+    $profile->{ auth_roles } = $c->dbis->query( <<SQL, $user->{ email } )->flat;
+select ar.role
+    from auth_roles ar
+        join auth_users_roles_map aurm using ( auth_roles_id )
+        join auth_users au using ( auth_users_id )
+    where
+        au.email = \$1
+    order by auth_roles_id
+SQL
+
+    return $self->status_ok( $c, entity => $profile );
 }
 
 1;

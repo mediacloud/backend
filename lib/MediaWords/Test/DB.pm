@@ -12,12 +12,12 @@ use File::Path;
 use Readonly;
 use Text::Lorem::More;
 
-use DBIx::Simple::MediaWords;
 use MediaWords::DB;
+use MediaWords::DB::Handler;
 use MediaWords::DBI::Auth;
 use MediaWords::DBI::Downloads;
 use MediaWords::Job::ExtractAndVector;
-use MediaWords::Pg::Schema;
+use MediaWords::DB::Schema;
 use MediaWords::Util::Config;
 use MediaWords::Util::URL;
 
@@ -28,7 +28,7 @@ sub test_on_test_database
 {
     my ( $sub ) = @_;
 
-    MediaWords::Pg::Schema::recreate_db( 'test' );
+    MediaWords::DB::Schema::recreate_db( 'test' );
 
     my $db = MediaWords::DB::connect_to_db( 'test' );
 
@@ -93,9 +93,12 @@ sub create_test_medium
     return $db->create(
         'media',
         {
-            name      => $label,
-            url       => "http://media.test/$label",
-            moderated => 't',
+            name         => $label,
+            url          => "http://media.test/$label",
+            moderated    => 't',
+            is_monitored => 't',
+            public_notes => "$label public notes",
+            editor_notes => "$label editor notes"
         }
     );
 }
@@ -208,6 +211,33 @@ sub create_test_story_stack
     return $media;
 }
 
+# call create_test_story_stack with $num_media, num_feeds_per_medium, $num_stories_per_feed instead of
+# explicit hash as described above
+sub create_test_story_stack_numerated($$$$;$)
+{
+    my ( $db, $num_media, $num_feeds_per_medium, $num_stories_per_feed, $label ) = @_;
+
+    my $feed_index  = 0;
+    my $story_index = 0;
+
+    $label ||= 'test';
+
+    my $def = {};
+    for my $i ( 0 .. $num_media - 1 )
+    {
+        my $feeds = {};
+        $def->{ "media_${ label }_${ i }" } = $feeds;
+
+        for my $j ( 0 .. $num_feeds_per_medium - 1 )
+        {
+            $feeds->{ "feed_${ label }_" . $feed_index++ } =
+              [ map { "story_" . $story_index++ } ( 0 .. $num_stories_per_feed - 1 ) ];
+        }
+    }
+
+    return create_test_story_stack( $db, $def );
+}
+
 # generated 1 - 10 paragraphs of 1 - 5 sentences of ipsem lorem.
 sub get_test_content
 {
@@ -253,7 +283,7 @@ sub add_content_to_test_story($$$)
         }
     );
 
-    MediaWords::DBI::Downloads::store_content( $db, $download, \$content );
+    $download = MediaWords::DBI::Downloads::store_content( $db, $download, \$content );
 
     $story->{ download } = $download;
     $story->{ content }  = $content;
@@ -273,6 +303,8 @@ sub add_content_to_test_story_stack($$)
 {
     my ( $db, $story_stack ) = @_;
 
+    DEBUG( "adding content to test story stack ..." );
+
     for my $medium ( values( %{ $story_stack } ) )
     {
         for my $feed ( values( %{ $medium->{ feeds } } ) )
@@ -286,25 +318,23 @@ sub add_content_to_test_story_stack($$)
 }
 
 # Create a user for temporary databases
-sub create_test_user
+sub create_test_user($)
 {
-    my $db = shift;
+    my ( $db ) = @_;
 
     my $add_user_error_message =
       MediaWords::DBI::Auth::add_user_or_return_error_message( $db, 'jdoe@cyber.law.harvard.edu', 'John Doe', '', [ 1 ], 1,
-        'testtest', 'testtest', 1, 1000, 1000 );
+        'testtest', 'testtest', 1000, 1000 );
 
     my $api_key = $db->query( "select api_token from auth_users where email =\'jdoe\@cyber.law.harvard.edu\'" )->hash;
 
     return $api_key->{ api_token };
 }
 
-# create test topic with a simple label.  create associated topic_dates and topic_tag_set rows as well
+# create test topic with a simple label.
 sub create_test_topic($$)
 {
     my ( $db, $label ) = @_;
-
-    my $topic_tag_set = $db->create( 'tag_sets', { name => "topic $label" } );
 
     my $topic = $db->create(
         'topics',
@@ -314,17 +344,8 @@ sub create_test_topic($$)
             pattern             => $label,
             solr_seed_query     => $label,
             solr_seed_query_run => 't',
-            topic_tag_sets_id   => $topic_tag_set->{ topic_tag_sets_id }
-        }
-    );
-
-    $db->create(
-        'topic_dates',
-        {
-            topics_id  => $topic->{ topics_id },
-            start_date => '2016-01-01',
-            end_date   => '2016-03-01',
-            boundary   => 't'
+            start_date          => '2016-01-01',
+            end_date            => '2016-03-01',
         }
     );
 

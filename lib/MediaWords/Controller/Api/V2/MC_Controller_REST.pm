@@ -41,21 +41,43 @@ __PACKAGE__->config(
         'text/xml' => 'XML::Simple',
 
         # #         'text/x-yaml'        => 'YAML',
-        'application/json'                => 'JSON',
-        'application/json; charset=UTF-8' => 'JSON',
-        'text/x-json'                     => 'JSON',
-        'text/x-data-dumper'              => [ 'Data::Serializer', 'Data::Dumper' ],
-        'text/x-data-denter'              => [ 'Data::Serializer', 'Data::Denter' ],
-        'text/x-data-taxi'                => [ 'Data::Serializer', 'Data::Taxi' ],
-        'application/x-storable'          => [ 'Data::Serializer', 'Storable' ],
-        'application/x-freezethaw'        => [ 'Data::Serializer', 'FreezeThaw' ],
-        'text/x-config-general'           => [ 'Data::Serializer', 'Config::General' ],
-        'text/x-php-serialization'        => [ 'Data::Serializer', 'PHP::Serialization' ],
-    },
-    json_options => { relaxed => 1, pretty => 1, space_before => 2, indent => 1, space_after => 2 }
+        'application/json' => [ 'Callback', { deserialize => \&deserialize_json, serialize => \&serialize_json } ],
+        'application/json; charset=UTF-8' =>
+          [ 'Callback', { deserialize => \&deserialize_json, serialize => \&serialize_json } ],
+        'text/x-json' => [ 'Callback', { deserialize => \&deserialize_json, serialize => \&serialize_json } ],
+        'text/x-data-dumper'       => [ 'Data::Serializer', 'Data::Dumper' ],
+        'text/x-data-denter'       => [ 'Data::Serializer', 'Data::Denter' ],
+        'text/x-data-taxi'         => [ 'Data::Serializer', 'Data::Taxi' ],
+        'application/x-storable'   => [ 'Data::Serializer', 'Storable' ],
+        'application/x-freezethaw' => [ 'Data::Serializer', 'FreezeThaw' ],
+        'text/x-config-general'    => [ 'Data::Serializer', 'Config::General' ],
+        'text/x-php-serialization' => [ 'Data::Serializer', 'PHP::Serialization' ],
+    }
 );
 
-__PACKAGE__->config( json_options => { relaxed => 1, pretty => 1, space_before => 2, indent => 1, space_after => 2 } );
+# custom function to serialize json because catalyst ignores the documents json_options config
+sub serialize_json
+{
+    my ( $data ) = @_;
+
+    my $json = JSON->new->utf8->convert_blessed->canonical->canonical->encode( $data );
+
+    return $json;
+}
+
+# custom function to deserialize json because catalyst ignores the documents json_options config
+sub deserialize_json
+{
+    my ( $json ) = @_;
+
+    my $data = eval { JSON->new->decode( $json ) };
+    if ( $@ )
+    {
+        die( "error decoding json: $json" );
+    }
+
+    return $data;
+}
 
 sub serialize : ActionClass('Serialize')
 {
@@ -120,10 +142,10 @@ sub require_fields ($$)
 
     for my $field ( @{ $fields } )
     {
-        if ( !defined( $data->{ $field } ) )
+        if ( !exists( $data->{ $field } ) )
         {
             $c->response->status( HTTP_BAD_REQUEST );
-            die( "Required field '$field' is required but not present" );
+            die( "Required field '$field' is not present" );
         }
     }
 }

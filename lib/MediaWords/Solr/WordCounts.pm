@@ -18,6 +18,7 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use CHI;
 use Data::Dumper;
 use Encode;
 use JSON;
@@ -332,7 +333,7 @@ sub set_default_languages($$)
 
     my $languages = [ keys( %{ $language_lookup } ) ];
 
-    DEBUG "default_languages: " . join( ', ', @{ $languages } );
+    TRACE "default_languages: " . join( ', ', @{ $languages } );
 
     $self->languages( $languages );
 }
@@ -345,8 +346,6 @@ sub set_language_objects
 
     return if ( $self->language_objects );
 
-    DEBUG "set_language_objects all: " . join( ', ', @{ $self->languages } );
-
     my $language_objects = [];
     for my $language_code ( @{ $self->languages } )
     {
@@ -357,15 +356,8 @@ sub set_language_objects
 
     if ( !@{ $language_objects } )
     {
-        WARN "set_langage_objects: falling back to english";
         push( @{ $language_objects }, MediaWords::Languages::Language::language_for_code( 'en' ) );
     }
-
-    DEBUG(
-        sub {
-            "set_language_objects supported: " . join( ', ', map { $_->get_language_code } @{ $language_objects } );
-        }
-    );
 
     $self->language_objects( $language_objects );
 }
@@ -521,7 +513,7 @@ sub _get_cache_key
 {
     my ( $self ) = @_;
 
-    $_wc_cache_version //= MediaWords::Util::Config->get_config->{ mediawords }->{ wc_cache_version } || '1';
+    $_wc_cache_version //= MediaWords::Util::Config::get_config->{ mediawords }->{ wc_cache_version } || '1';
 
     my $meta = $self->meta;
 

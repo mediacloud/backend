@@ -193,6 +193,35 @@ SQL
     return $ap_stories_ids;
 }
 
+# add a word_count field to each story that includes a word count for that story
+sub _attach_word_counts_to_stories($$)
+{
+    my ( $db, $stories ) = @_;
+
+    my $stories_ids = [ map { $_->{ stories_id } } @{ $stories } ];
+
+    my $stories_lookup = {};
+    map { $stories_lookup->{ $_->{ stories_id } } = $_ } @{ $stories };
+
+    my ( $word_matrix, $word_list ) = MediaWords::DBI::Stories::get_story_word_matrix( $db, $stories_ids );
+
+    while ( my ( $stories_id, $word_counts ) = each( %{ $word_matrix } ) )
+    {
+        while ( my ( $word_index, $count ) = each( %{ $word_counts } ) )
+        {
+            push(
+                @{ $stories_lookup->{ $stories_id }->{ word_count } },
+                {
+                    stem  => $word_list->[ $word_index ]->[ 0 ],
+                    term  => $word_list->[ $word_index ]->[ 1 ],
+                    count => $count
+                }
+            );
+
+        }
+    }
+}
+
 sub _add_nested_data
 {
     my ( $self, $db, $stories ) = @_;
@@ -249,13 +278,22 @@ create temporary table attach_sentences as
 alter table attach_sentences add constraint pk primary key ( story_sentences_id )
 SQL
 
-        my $sentences = $db->query_with_large_work_mem( <<END )->hashes;
-select s.*, string_agg( sstm.tags_id::text, ';' ) tags_list
-    from attach_sentences s
-        left join story_sentences_tags_map sstm on ( s.story_sentences_id = sstm.story_sentences_id )
-    group by s.story_sentences_id
-    order by s.sentence_number
-END
+        my $sentences;
+        $db->run_block_with_large_work_mem(
+            sub {
+                $sentences = $db->query(
+                    <<SQL
+                SELECT s.*,
+                       string_agg( sstm.tags_id::text, ';' ) AS tags_list
+                FROM attach_sentences AS s
+                    LEFT JOIN story_sentences_tags_map AS sstm
+                        ON s.story_sentences_id = sstm.story_sentences_id
+                GROUP BY s.story_sentences_id
+                ORDER BY s.sentence_number
+SQL
+                )->hashes;
+            }
+        );
         MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $sentences, 'story_sentences' );
 
         _split_sentence_tags_list( $stories );
@@ -278,6 +316,19 @@ select s.stories_id, t.tags_id, t.tag, ts.tag_sets_id, ts.name as tag_set
 END
     MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $tag_data, 'story_tags' );
 
+    if ( $self->{ show_feeds } )
+    {
+        my $feed_data = $db->query( <<END )->hashes;
+select f.name, f.url, f.media_id, f.feeds_id, f.feed_type, fsm.stories_id
+    from feeds f
+        join feeds_stories_map fsm using ( feeds_id )
+    where
+        fsm.stories_id in ( select id from $ids_table )
+    order by f.feeds_id
+END
+        MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $feed_data, 'feeds' );
+    }
+
     # Bit.ly total click counts
     my $bitly_click_data = $db->query(
         <<"EOF",
@@ -290,6 +341,8 @@ END
 EOF
     )->hashes;
     MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $bitly_click_data );
+
+    _attach_word_counts_to_stories( $db, $stories ) if ( $self->{ show_wc } );
 
     return $stories;
 }
@@ -305,6 +358,20 @@ sub _get_object_ids
 {
     my ( $self, $c, $last_id, $rows ) = @_;
 
+    my $db = $c->dbis;
+
+    if ( my $feeds_id = $c->req->params->{ feeds_id } )
+    {
+        die( "cannot specify both 'feeds_id' and either 'q' or 'fq'" )
+          if ( $c->req->params->{ q } || $c->req->params->{ fq } );
+
+        my $stories_ids = $db->query( <<SQL, $feeds_id )->flat;
+select processed_stories_id from processed_stories join feeds_stories_map using ( stories_id ) where feeds_id = ?
+SQL
+
+        return $stories_ids;
+    }
+
     my $q = $c->req->param( 'q' ) || '*:*';
 
     my $fq = $c->req->params->{ fq } || [];
@@ -312,7 +379,7 @@ sub _get_object_ids
 
     my $sort = $c->req->param( 'sort' );
 
-    return MediaWords::Solr::search_for_processed_stories_ids( $c->dbis, $q, $fq, $last_id, $rows, $sort );
+    return MediaWords::Solr::search_for_processed_stories_ids( $db, $q, $fq, $last_id, $rows, $sort );
 }
 
 sub _fetch_list($$$$$$)
@@ -322,6 +389,8 @@ sub _fetch_list($$$$$$)
     $self->{ show_sentences }     = $c->req->params->{ sentences };
     $self->{ show_text }          = $c->req->params->{ text };
     $self->{ show_ap_stories_id } = $c->req->params->{ ap_stories_id };
+    $self->{ show_wc }            = $c->req->params->{ wc };
+    $self->{ show_feeds }         = $c->req->params->{ show_feeds };
 
     $rows //= 20;
     $rows = List::Util::min( $rows, 10_000 );
@@ -333,6 +402,8 @@ sub _fetch_list($$$$$$)
     my $db = $c->dbis;
 
     $db->begin;
+
+    DEBUG( "ps_ids: " . scalar( @{ $ps_ids } ) );
 
     my $ids_table = $db->get_temporary_ids_table( $ps_ids, 1 );
 
@@ -360,6 +431,7 @@ sub _fetch_list($$$$$$)
                 ON stories.media_id = media.media_id
             LEFT JOIN stories_ap_syndicated ap
                 ON stories.stories_id = ap.stories_id
+
         ORDER BY ps_ids.order_pkey
         LIMIT ?
 SQL

@@ -22,7 +22,6 @@ use MediaWords::CommonLibs;
 
 use Encode;
 use File::Temp;
-use FileHandle;
 use HTML::Entities;
 use List::Compare;
 use List::Util;
@@ -49,7 +48,7 @@ sub _get_full_text_from_rss
 {
     my ( $db, $story ) = @_;
 
-    my $ret = html_strip( $story->{ title } || '' ) . "\n" . html_strip( $story->{ description } || '' );
+    my $ret = html_strip( $story->{ title } || '' ) . "\n\n" . html_strip( $story->{ description } || '' );
 
     return $ret;
 }
@@ -281,40 +280,6 @@ EOF
     return $tags;
 }
 
-=head2 update_rss_full_text_field( $db, $story )
-
-Set stories.full_text_rss to the value of the medium's full_text_rss field.  If the new value is different than
-$story->{ full_text_rss }, update the value in the db.
-
-=cut
-
-sub update_rss_full_text_field
-{
-    my ( $db, $story ) = @_;
-
-    my $medium = $db->query( "select * from media where media_id = ?", $story->{ media_id } )->hash;
-
-    my $full_text_in_rss = ( $medium->{ full_text_rss } ) ? 1 : 0;
-
-    #This is a temporary hack to work around a bug in XML::FeedPP
-    $full_text_in_rss = 0 if ( defined( $story->{ description } ) && ( length( $story->{ description } ) == 0 ) );
-
-    if ( defined( $story->{ full_text_rss } ) && ( $story->{ full_text_rss } != $full_text_in_rss ) )
-    {
-        $story->{ full_text_rss } = $full_text_in_rss;
-        $db->query(
-            <<"EOF",
-            UPDATE stories
-            SET full_text_rss = ?
-            WHERE stories_id = ?
-EOF
-            $full_text_in_rss, $story->{ stories_id }
-        );
-    }
-
-    return $story;
-}
-
 =head2 fetch_content( $db, $story )
 
 Fetch the content of the first download of the story.
@@ -536,8 +501,6 @@ sub process_extracted_story($$$)
 
     my $stories_id = $story->{ stories_id };
 
-    DEBUG "Processing extracted story $stories_id...";
-
     unless ( $extractor_args->no_vector() )
     {
         MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story, $extractor_args );
@@ -587,7 +550,7 @@ sub process_extracted_story($$$)
 
     if ( $mark_story_as_processed )
     {
-        unless ( MediaWords::DBI::Stories::mark_as_processed( $db, $stories_id ) )
+        unless ( mark_as_processed( $db, $stories_id ) )
         {
             die "Unable to mark story ID $stories_id as processed";
         }
@@ -606,8 +569,6 @@ sub process_extracted_story($$$)
     {
         DEBUG "Won't process story $stories_id with Bit.ly because it's set to be skipped";
     }
-
-    DEBUG "process_extracted_story done";
 }
 
 =head2 restore_download_content( $db, $download, $story_content )
@@ -620,7 +581,7 @@ sub restore_download_content
 {
     my ( $db, $download, $story_content ) = @_;
 
-    MediaWords::DBI::Downloads::store_content( $db, $download, \$story_content );
+    $download = MediaWords::DBI::Downloads::store_content( $db, $download, \$story_content );
     _reextract_download( $db, $download );
 }
 
@@ -1082,37 +1043,6 @@ SQL
     return $cursor;
 }
 
-# give a file in the form returned by get_story_word_matrix_file() but missing trailing 0s in some lines, pad all lines
-# that have fewer than the size of $word_list with enough additional 0's to make all lines have $num_items items.
-sub _pad_story_word_matrix_file($$)
-{
-    my ( $unpadded_file, $word_list ) = @_;
-
-    my $num_items = @{ $word_list } + 1;
-
-    my $unpadded_fh = FileHandle->new( $unpadded_file ) || die( "Unable to open file '$unpadded_file': $!" );
-
-    my ( $padded_fh, $padded_file ) = File::Temp::tempfile;
-
-    while ( my $line = <$unpadded_fh> )
-    {
-        chomp( $line );
-        my $items = [ split( ',', $line ) ];
-
-        if ( scalar( @{ $items } ) < $num_items )
-        {
-            $line .= ",0" x ( $num_items - scalar( @{ $items } ) );
-        }
-
-        $padded_fh->print( "$line\n" );
-    }
-
-    $padded_fh->close();
-    $unpadded_fh->close();
-
-    return $padded_file;
-}
-
 # remove stopwords from the $stem_count list, using the $language and stop word $length
 sub _remove_stopwords_from_stem_vector($$$)
 {
@@ -1236,31 +1166,50 @@ sub get_story_word_matrix($$;$$)
     return ( $word_matrix, $word_list );
 }
 
-# if the story is new, add story to the database with the feed of the download as story feed
-sub _add_story_using_parent_download
+# If the story is new, add story to the database with the feed of the download as story feed.
+# Returns created story or undef if story wasn't created.
+sub add_story($$$;$)
 {
-    my ( $db, $story, $parent_download ) = @_;
+    my ( $db, $story, $feeds_id, $skip_checking_if_new ) = @_;
 
     $db->begin;
     $db->query( "lock table stories in row exclusive mode" );
-    if ( !MediaWords::DBI::Stories::is_new( $db, $story ) )
+    unless ( $skip_checking_if_new )
     {
-        $db->commit;
-        return;
+        unless ( is_new( $db, $story ) )
+        {
+            DEBUG "Story '" . $story->{ url } . "' is not new";
+            $db->commit;
+            return undef;
+        }
     }
 
-    eval { $story = $db->create( "stories", $story ); };
+    my $medium = $db->find_by_id( 'media', $story->{ media_id } );
+
+    unless ( defined $story->{ full_text_rss } )
+    {
+        my $full_text_in_rss = ( $medium->{ full_text_rss } ) ? 1 : 0;
+        if ( defined( $story->{ description } ) and ( length( $story->{ description } ) == 0 ) )
+        {
+            $full_text_in_rss = 0;
+        }
+        $story->{ full_text_rss } = $full_text_in_rss;
+    }
+    else
+    {
+        # Caller knows better -- no-op
+    }
+
+    eval { $story = $db->create( 'stories', $story ); };
 
     if ( $@ )
     {
-
         $db->rollback;
 
         if ( $@ =~ /unique constraint \"stories_guid/ )
         {
             WARN "Failed to add story for '." . $story->{ url } . "' to guid conflict ( guid =  '" . $story->{ guid } . "')";
-
-            return;
+            return undef;
         }
         else
         {
@@ -1268,13 +1217,11 @@ sub _add_story_using_parent_download
         }
     }
 
-    MediaWords::DBI::Stories::update_rss_full_text_field( $db, $story );
-
     $db->find_or_create(
         'feeds_stories_map',
         {
             stories_id => $story->{ stories_id },
-            feeds_id   => $parent_download->{ feeds_id }
+            feeds_id   => $feeds_id
         }
     );
 
@@ -1288,12 +1235,14 @@ sub add_story_and_content_download
 {
     my ( $db, $story, $parent_download ) = @_;
 
-    $story = _add_story_using_parent_download( $db, $story, $parent_download );
+    $story = add_story( $db, $story, $parent_download->{ feeds_id } );
 
     if ( defined( $story ) )
     {
         MediaWords::DBI::Downloads::create_child_download_for_story( $db, $story, $parent_download );
     }
+
+    return $story;
 }
 
 1;

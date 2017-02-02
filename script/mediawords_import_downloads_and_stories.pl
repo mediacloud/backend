@@ -22,7 +22,6 @@ use XML::LibXML;
 use MIME::Base64;
 use Encode;
 use Data::Dumper;
-use MediaWords::Crawler::Download::Feed::Syndicated;
 use Try::Tiny;
 use Text::Trim;
 
@@ -184,7 +183,7 @@ sub import_downloads
 
         my $db_download = $db->create( 'downloads', $download );
 
-        MediaWords::DBI::Downloads::store_content( $db, $db_download, \$decoded_content );
+        $download = MediaWords::DBI::Downloads::store_content( $db, $db_download, \$decoded_content );
 
         foreach my $story_element ( @$new_stories )
         {
@@ -207,9 +206,7 @@ sub import_downloads
 
             delete( $story_hash->{ stories_id } );
 
-            my $db_story =
-              MediaWords::Crawler::Download::Feed::Syndicated::_add_story_using_parent_download( $db, $story_hash,
-                $db_download );
+            my $db_story = MediaWords::DBI::Stories::add_story( $db, $story_hash, $db_download->{ feeds_id } );
 
             LOGCONFESS "Story not created for object " . Dumper( $story_hash ) unless defined( $db_story ) and $db_story;
 

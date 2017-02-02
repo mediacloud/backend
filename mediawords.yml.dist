@@ -314,10 +314,6 @@ supervisor:
 #      domainname: "<DOMAIN>"
 
 mediawords:
-    ### Extractor method to use (defaults to "InlinePythonReadability")
-    ### Might be overridden by MediaWords::Job::ExtractAndVector "extractor_method" argument
-    #extractor_method: PythonReadability
-
     ### defaults to http://$hostname:$port/.
     #base_url: "http://your.mediacloud.server/and/path"
 
@@ -327,9 +323,6 @@ mediawords:
     ### Uncomment to use the directory given by <PATH> to temporarily store CSV files generated in the public data dumps
     ### Note that since these are uncompressed files they can be very large.
     #data_dump_tmp_dir : <PATH>
-
-    ### script directory
-    #script_dir: "<bindir>/../script"
 
     ### HTTP user agent and the email address of the owner of the bot
     user_agent: "mediawords bot (http://cyber.law.harvard.edu)"

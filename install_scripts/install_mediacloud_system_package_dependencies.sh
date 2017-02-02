@@ -4,7 +4,7 @@ set -u
 set -o errexit
 
 
-VAGRANT_URL_DEBIAN="https://releases.hashicorp.com/vagrant/1.8.5/vagrant_1.8.5_x86_64.deb"
+VAGRANT_URL_DEBIAN="https://releases.hashicorp.com/vagrant/1.9.1/vagrant_1.9.1_x86_64.deb"
 ERLANG_APT_GPG_KEY_URL="http://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc"
 ERLANG_APT_REPOSITORY_URL="http://packages.erlang-solutions.com/ubuntu"
 RABBITMQ_PACKAGECLOUD_SCRIPT="https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.deb.sh"
@@ -59,7 +59,7 @@ function verlt() {
 }
 
 
-echo "installing media cloud system dependencies"
+echo "Installing Media Cloud system dependencies..."
 echo
 
 if [ `uname` == 'Darwin' ]; then
@@ -87,17 +87,59 @@ EOF
         exit 1
     fi
 
-    brew install \
-        graphviz --with-bindings \
-        coreutils curl homebrew/dupes/tidy libyaml gawk cpanminus \
-        netcat openssl rabbitmq libyaml hunspell
+    # Homebrew now installs Python 3.6 by default, so we need older Python 3.5 which is best installed as a .pkg
+    command -v python3.5 >/dev/null 2>&1 || {
+        echo "Media Cloud requires Python 3.5.1."
+        echo
+        echo "Please install the 'Mac OS X 64-bit/32-bit installer' manually from the following link:"
+        echo
+        echo "    https://www.python.org/downloads/release/python-351/"
+        echo
+        exit 1
+    }
 
+    echo "Installing Media Cloud dependencies with Homebrew..."
+    brew install \
+        coreutils \
+        cpanminus \
+        curl \
+        gawk \
+        graphviz --with-bindings \
+        homebrew/dupes/tidy \
+        hunspell \
+        libyaml \
+        logrotate \
+        netcat \
+        openssl \
+        python \
+        rabbitmq \
+        #
+
+    echo "Installing Media Cloud dependencies with cpanm..."
     sudo cpanm \
-        XML::Parser XML::SAX::Expat XML::LibXML XML::LibXML::Simple \
-        Test::WWW::Mechanize OpenGL DBD::Pg Perl::Tidy HTML::Parser YAML \
-        YAML::LibYAML YAML::Syck List::AllUtils List::MoreUtils Readonly \
-        Readonly::XS GraphViz Graph Graph::Writer::GraphViz \
-        HTML::Entities version Lingua::Stem::Snowball
+        DBD::Pg \
+        Graph \
+        Graph::Writer::GraphViz \
+        GraphViz \
+        HTML::Entities \
+        HTML::Parser \
+        Lingua::Stem::Snowball \
+        List::AllUtils \
+        List::MoreUtils \
+        OpenGL \
+        Perl::Tidy \
+        Readonly \
+        Readonly::XS \
+        Test::WWW::Mechanize \
+        version \
+        XML::LibXML \
+        XML::LibXML::Simple \
+        XML::Parser \
+        XML::SAX::Expat \
+        YAML \
+        YAML::LibYAML \
+        YAML::Syck \
+        #
 
    if [ ! "${SKIP_VAGRANT_TEST:+x}" ]; then
         if [ ! -x /usr/bin/vagrant ]; then
@@ -110,6 +152,8 @@ else
 
     # assume Ubuntu
     source /etc/lsb-release
+
+    echo "Installing curl..."
     sudo apt-get -y install curl
 
     # Apt's versions of Supervisor, Vagrant, RabbitMQ are too old
@@ -126,7 +170,11 @@ else
 
     if verlt "$DISTRIB_RELEASE" "14.04"; then
         # Ubuntu < 14.04 APT's version of Erlang is too old (needed by RabbitMQ)
+        echo "Removing system package Erlang on Ubuntu 12.04 because it's too old..."
         sudo apt-get -y remove erlang*
+
+        # Install and hold specific version of Erlang
+        echo "Installing Erlang from Erlang Solutions..."
         curl "$ERLANG_APT_GPG_KEY_URL" | sudo apt-key add -
         echo "deb $ERLANG_APT_REPOSITORY_URL precise contrib" | \
             sudo tee -a /etc/apt/sources.list.d/erlang-solutions.list
@@ -141,6 +189,7 @@ else
 
     # Ubuntu (all versions) APT's version of RabbitMQ is too old
     # (we need 3.6.0+ to support priorities and lazy queues)
+    echo "Adding RabbitMQ GPG key for Apt..."
     curl -s "$RABBITMQ_PACKAGECLOUD_SCRIPT" | sudo bash
 
     if verlt "$DISTRIB_RELEASE" "14.04"; then
@@ -156,33 +205,80 @@ else
     
     if verlt "$DISTRIB_RELEASE" "16.04"; then
         # Solr 6+ requires Java 8 which is unavailable before 16.04
+        echo "Adding Java 8 PPA repository to Ubuntu 12.04..."
         sudo apt-get -y install python-software-properties
         sudo add-apt-repository -y ppa:openjdk-r/ppa
         sudo apt-get update
     fi
 
+    # Python version to install
+    if verlt "$DISTRIB_RELEASE" "16.04"; then
+        # We require at least Python 3.5 (12.04 only has 3.2 which doesn't work with newest Pip)
+        echo "Adding Python 3.5 PPA repository to Ubuntu 12.04..."
+        sudo apt-get -y install python-software-properties
+        sudo add-apt-repository -y ppa:fkrull/deadsnakes
+        sudo apt-get update
+    fi
+
     # Install the rest of the packages
+    echo "Installing Media Cloud dependencies with APT..."
     sudo apt-get --assume-yes install \
-        expat libexpat1-dev libxml2-dev gawk postgresql-server-dev-all \
-        libdb-dev libtest-www-mechanize-perl libtidy-dev \
-        libopengl-perl libgraph-writer-graphviz-perl libgraphviz-perl \
-        graphviz graphviz-dev graphviz-doc libgraphviz-dev libyaml-syck-perl \
-        liblist-allutils-perl liblist-moreutils-perl libreadonly-perl \
-        libreadonly-xs-perl curl python2.7 python2.7-dev python-pip \
-        libxml2-dev libxslt1-dev libxslt1-dbg libxslt1.1 build-essential make gcc g++ \
-        cpanminus perl-doc liblocale-maketext-lexicon-perl openjdk-8-jdk \
-        pandoc netcat libyaml-dev unzip hunspell
+        build-essential \
+        cpanminus \
+        curl \
+        expat \
+        g++ \
+        gawk \
+        gcc \
+        graphviz \
+        graphviz-dev \
+        graphviz-doc \
+        hunspell \
+        libdb-dev \
+        libexpat1-dev \
+        libgraph-writer-graphviz-perl \
+        libgraphviz-dev \
+        libgraphviz-perl \
+        liblist-allutils-perl \
+        liblist-moreutils-perl \
+        liblocale-maketext-lexicon-perl \
+        libopengl-perl \
+        libreadonly-perl \
+        libreadonly-xs-perl \
+        libtest-www-mechanize-perl \
+        libtidy-dev \
+        libxml2-dev \
+        libxml2-dev \
+        libxslt1-dbg \
+        libxslt1-dev \
+        libxslt1.1 \
+        libyaml-dev \
+        libyaml-syck-perl \
+        logrotate \
+        make \
+        netcat \
+        openjdk-8-jdk \
+        pandoc \
+        perl-doc \
+        postgresql-server-dev-all \
+        python-pip \
+        python2.7 \
+        python2.7-dev \
+        python3.5 \
+        python3.5-dev \
+        unzip \
+        #
 
     # Choose to use OpenJDK 8 by default
     PATH="$PATH:/usr/sbin"
+    echo "Selecting Java 8..."
     sudo update-java-alternatives -s `update-java-alternatives --list | grep java-1.8 | awk '{ print $3 }'`
 
     # Install / upgrade Setuptools before installing Python dependencies
-    # (latest version of Setuptools is 20.10.1 but it's not available on pypi.python.org yet)
-    SETUPTOOLS_VERSION=20.9.0
-    wget https://bootstrap.pypa.io/ez_setup.py -O - | sudo python2.7 - --version=$SETUPTOOLS_VERSION
+    wget https://bootstrap.pypa.io/ez_setup.py -O - | sudo python2.7 -
 
     # Disable system-wide RabbitMQ server (we will start and use our very own instance)
+    echo "Stopping and disabling system's RabbitMQ instance..."
     sudo update-rc.d rabbitmq-server disable
     sudo service rabbitmq-server stop
 
@@ -224,13 +320,4 @@ else
         fi
     fi
 
-fi
-
-# Install (upgrade) Supervisor
-# (change dir, otherwise the installer might think we're trying to install
-# from the supervisor/ directory)
-if [ `uname` == 'Darwin' ]; then
-    ( cd /tmp; pip install --upgrade supervisor )
-else
-    ( cd /tmp; sudo pip install --upgrade supervisor )
 fi

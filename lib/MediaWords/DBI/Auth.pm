@@ -145,12 +145,13 @@ sub user_info($$)
 {
     my ( $db, $email ) = @_;
 
+    LOGCONFESS( 'db not defined' ) unless ( $db );
+
     # Fetch readonly information about the user
     my $userinfo = $db->query(
         <<"EOF",
         SELECT auth_users.auth_users_id,
                auth_users.email,
-               auth_users.non_public_api,
                full_name,
                api_token,
                notes,
@@ -644,7 +645,6 @@ sub all_users($)
             auth_users.email,
             auth_users.full_name,
             auth_users.notes,
-            auth_users.non_public_api,
             auth_users.active,
 
             -- Role from a list of all roles
@@ -674,12 +674,11 @@ EOF
     for my $user ( @{ $users } )
     {
         my $auth_users_id = $user->{ auth_users_id } + 0;
-        $unique_users->{ $auth_users_id }->{ 'auth_users_id' }  = $auth_users_id;
-        $unique_users->{ $auth_users_id }->{ 'email' }          = $user->{ email };
-        $unique_users->{ $auth_users_id }->{ 'full_name' }      = $user->{ full_name };
-        $unique_users->{ $auth_users_id }->{ 'notes' }          = $user->{ notes };
-        $unique_users->{ $auth_users_id }->{ 'active' }         = $user->{ active };
-        $unique_users->{ $auth_users_id }->{ 'non_public_api' } = $user->{ non_public_api };
+        $unique_users->{ $auth_users_id }->{ 'auth_users_id' } = $auth_users_id;
+        $unique_users->{ $auth_users_id }->{ 'email' }         = $user->{ email };
+        $unique_users->{ $auth_users_id }->{ 'full_name' }     = $user->{ full_name };
+        $unique_users->{ $auth_users_id }->{ 'notes' }         = $user->{ notes };
+        $unique_users->{ $auth_users_id }->{ 'active' }        = $user->{ active };
 
         if ( !ref( $unique_users->{ $auth_users_id }->{ 'roles' } ) eq 'HASH' )
         {
@@ -699,14 +698,14 @@ EOF
 }
 
 # Add new user; $role_ids is a arrayref to an array of role IDs; returns error message on error, empty string on success
-sub add_user_or_return_error_message($$$$$$$$$;$$)
+sub add_user_or_return_error_message($$$$$$$$;$$)
 {
-    my ( $db, $email, $full_name, $notes, $role_ids, $is_active, $password, $password_repeat, $non_public_api_access,
+    my ( $db, $email, $full_name, $notes, $role_ids, $is_active, $password, $password_repeat,
         $weekly_requests_limit, $weekly_requested_items_limit )
       = @_;
 
-    INFO "Creating user with email: $email, full name: $full_name, notes: $notes, role IDs: " . Dumper( $role_ids ) .
-      ", is active: $is_active, non_public_api_access: $non_public_api_access, weekly_requests_limit: " .
+    INFO "Creating user with email: $email, full name: $full_name, notes: $notes, role IDs: " .
+      join( ',', @{ $role_ids } ) . ", is active: $is_active, weekly_requests_limit: " .
       ( defined $weekly_requests_limit ? $weekly_requests_limit : 'default' ) . ', weekly requested items limit: ' .
       ( defined $weekly_requested_items_limit ? $weekly_requested_items_limit : 'default' );
 
@@ -738,34 +737,37 @@ sub add_user_or_return_error_message($$$$$$$$$;$$)
     }
 
     # Begin transaction
-    $db->dbh->begin_work;
+    $db->begin_work;
 
     # Create the user
     $db->query(
         <<"EOF",
-        INSERT INTO auth_users (email, password_hash, full_name, notes, active, non_public_api)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO auth_users (email, password_hash, full_name, notes, active )
+        VALUES (?, ?, ?, ?, ? )
 EOF
-        $email, $password_hash, $full_name, $notes, ( $is_active ? 'true' : 'false' ), $non_public_api_access
+        $email, $password_hash, $full_name, $notes, ( $is_active ? 'true' : 'false' )
     );
 
     # Fetch the user's ID
     $userinfo = user_info( $db, $email );
     if ( !$userinfo )
     {
-        $db->dbh->rollback;
+        $db->rollback;
         return "I've attempted to create the user but it doesn't exist.";
     }
     my $auth_users_id = $userinfo->{ auth_users_id };
 
     # Create roles
-    my $sql = 'INSERT INTO auth_users_roles_map (auth_users_id, auth_roles_id) VALUES (?, ?)';
-    my $sth = $db->dbh->prepare_cached( $sql );
     for my $auth_roles_id ( @{ $role_ids } )
     {
-        $sth->execute( $auth_users_id, $auth_roles_id );
+        $db->query(
+            <<SQL,
+            INSERT INTO auth_users_roles_map (auth_users_id, auth_roles_id)
+            VALUES (?, ?)
+SQL
+            $auth_users_id, $auth_roles_id
+        );
     }
-    $sth->finish;
 
     # Update limits (if they're defined)
     if ( defined $weekly_requests_limit )
@@ -793,7 +795,7 @@ EOF
     }
 
     # End transaction
-    $db->dbh->commit;
+    $db->commit;
 
     # Success
     return '';
@@ -801,9 +803,9 @@ EOF
 
 # Update an existing user; returns error message on error, empty string on success
 # ($password and $password_repeat are optional; if not provided, the password will not be changed)
-sub update_user_or_return_error_message($$$$$$;$$$$$)
+sub update_user_or_return_error_message($$$$$$;$$$$)
 {
-    my ( $db, $email, $full_name, $notes, $roles, $is_active, $password, $password_repeat, $non_public_api_access,
+    my ( $db, $email, $full_name, $notes, $roles, $is_active, $password, $password_repeat,
         $weekly_requests_limit, $weekly_requested_items_limit )
       = @_;
 
@@ -815,7 +817,7 @@ sub update_user_or_return_error_message($$$$$$;$$$$$)
     }
 
     # Begin transaction
-    $db->dbh->begin_work;
+    $db->begin_work;
 
     # Update the user
     $db->query(
@@ -823,14 +825,11 @@ sub update_user_or_return_error_message($$$$$$;$$$$$)
         UPDATE auth_users
         SET full_name = ?,
             notes = ?,
-            non_public_api = ?,
             active = ?
         WHERE email = ?
 EOF
-        $full_name, $notes, ( $non_public_api_access ? 'true' : 'false' ), ( $is_active ? 'true' : 'false' ), $email
+        $full_name, $notes, ( $is_active ? 'true' : 'false' ), $email
     );
-
-# TRACE Dumper( [ $full_name, $notes, ( $non_public_api_access ? 'true' : 'false' ), ( $is_active ? 'true' : 'false' ), $email ] );
 
     if ( $password )
     {
@@ -838,7 +837,7 @@ EOF
           _change_password_or_return_error_message( $db, $email, $password, $password_repeat, 1 );
         if ( $password_change_error_message )
         {
-            $db->dbh->rollback;
+            $db->rollback;
             return $password_change_error_message;
         }
     }
@@ -875,16 +874,18 @@ EOF
 EOF
         $userinfo->{ auth_users_id }
     );
-    my $sql = 'INSERT INTO auth_users_roles_map (auth_users_id, auth_roles_id) VALUES (?, ?)';
-    my $sth = $db->dbh->prepare_cached( $sql );
     for my $auth_roles_id ( @{ $roles } )
     {
-        $sth->execute( $userinfo->{ auth_users_id }, $auth_roles_id );
+        $db->query(
+            <<SQL,
+            INSERT INTO auth_users_roles_map (auth_users_id, auth_roles_id) VALUES (?, ?)
+SQL
+            $userinfo->{ auth_users_id }, $auth_roles_id
+        );
     }
-    $sth->finish;
 
     # End transaction
-    $db->dbh->commit;
+    $db->commit;
 
     return '';
 }

@@ -10,6 +10,11 @@
 set -u
 set -o errexit
 
+PWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$PWD/set_mc_root_dir.inc.sh"
+
+cd "$MC_ROOT_DIR"
+
 if [ "$EUID" -eq 0 ]; then
     echo "Please run this script from the user from which you intend to run Media Cloud services."
     exit 1
@@ -20,17 +25,15 @@ psql --version || {
     exit 1
 }
 
-PWD="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
 # Path to Media Cloud's PostgreSQL general configuration file
-MEDIACLOUD_CONF_SRC_FILE_PATH="$PWD/../config/postgresql-mediacloud.conf"
+MEDIACLOUD_CONF_SRC_FILE_PATH="$MC_ROOT_DIR/config/postgresql-mediacloud.conf"
 if [ ! -f "$MEDIACLOUD_CONF_SRC_FILE_PATH" ]; then
     echo "Media Cloud's PostgreSQL configuration file was not found at: $MEDIACLOUD_CONF_SRC_FILE_PATH"
     exit 1
 fi
 
 # Path to Media Cloud's PostgreSQL production configuration file
-MEDIACLOUD_CONF_PRODUCTION_SRC_FILE_PATH="$PWD/../config/postgresql-mediacloud-production.conf"
+MEDIACLOUD_CONF_PRODUCTION_SRC_FILE_PATH="$MC_ROOT_DIR/config/postgresql-mediacloud-production.conf"
 if [ ! -f "$MEDIACLOUD_CONF_PRODUCTION_SRC_FILE_PATH" ]; then
     echo "Media Cloud's PostgreSQL production configuration file was not found at: $MEDIACLOUD_CONF_PRODUCTION_SRC_FILE_PATH"
     exit 1
@@ -45,10 +48,6 @@ else
     CONFIG_DIRS="/etc/postgresql/*/main/"
     POSTGRESQL_USER="postgres"
 fi
-
-PG_STAT_TMP_DIR="/var/run/postgresql/9.3-main.pg_stat_tmp/"
-sudo mkdir -p "$PG_STAT_TMP_DIR"
-sudo chown "$POSTGRESQL_USER" "$PG_STAT_TMP_DIR"
 
 for CONFIG_DIR in $CONFIG_DIRS; do
 

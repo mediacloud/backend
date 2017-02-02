@@ -1,56 +1,46 @@
 package MediaWords::DBI::Feeds;
-use Modern::Perl "2015";
-use MediaWords::CommonLibs;
 
-=head1 NAME
-
-MediaWords::DBI::Feeds - various functions related to feeds
-
-=cut
+#
+# Various functions related to feeds
+#
 
 use strict;
 use warnings;
 
-=head1 FUNCTIONS
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
 
-=head2 delete_feed_and_stories( $db, $feeds_id )
+use Digest::MD5 qw/md5_hex/;
+use Encode;
 
-Delete a feed, making sure to delete any stories belonging to that feed that are not associated with another feed
-
-=cut
-sub delete_feed_and_stories
+# check whether the checksum of the concatenated urls of the stories in the feed matches the last such checksum for this
+# feed.  If the checksums don't match, store the current checksum in the feed
+sub stories_checksum_matches_feed
 {
-    my ( $db, $feeds_id ) = @_;
+    my ( $db, $feeds_id, $stories ) = @_;
 
-    $db->query( <<END, $feeds_id );
-delete from stories s using feeds_stories_map fsm
-    where s.stories_id = fsm.stories_id and fsm.feeds_id = ?
-        and not exists
-            ( select 1 from feeds_stories_map fsm_b
-                  where fsm_b.stories_id = s.stories_id and fsm_b.feeds_id <> fsm.feeds_id )
-END
+    my $story_url_concat = join( '|', map { $_->{ url } } @{ $stories } );
 
-    $db->query( <<END, $feeds_id );
-delete from downloads d
-    where d.feeds_id = ? and not exists ( select 1 from stories s where s.stories_id = d.stories_id )
-END
+    my $checksum = md5_hex( encode( 'utf8', $story_url_concat ) );
 
-    $db->query( <<END, $feeds_id );
-update downloads d set feeds_id = fsm.feeds_id
-    from feeds_stories_map fsm
-    where d.feeds_id = ? and d.stories_id = fsm.stories_id  and fsm.feeds_id <> d.feeds_id
-END
+    my ( $matches ) = $db->query(
+        <<SQL,
+        SELECT 1
+        FROM feeds
+        WHERE feeds_id = ?
+          AND last_checksum = ?
+SQL
+        $feeds_id, $checksum
+    )->flat;
 
-    $db->query( "delete from downloads where stories_id is null and feeds_id = ?", $feeds_id );
+    return 1 if ( $matches );
 
-    $db->query( "delete from feeds where feeds_id = ?", $feeds_id );
+    $db->query( 'UPDATE feeds SET last_checksum = ? WHERE feeds_id = ?', $checksum, $feeds_id );
+
+    return 0;
 }
 
-=head2 disable_feed( $db, $feeds_id )
-
-(Temporarily) disable feed
-
-=cut
+# (Temporarily) disable feed
 sub disable_feed($$)
 {
     my ( $db, $feeds_id ) = @_;

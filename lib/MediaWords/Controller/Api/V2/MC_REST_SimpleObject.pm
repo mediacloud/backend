@@ -43,11 +43,11 @@ Readonly my $ROWS_PER_PAGE => 20;
 
 sub _purge_extra_fields
 {
-    my ( $self, $obj ) = @_;
+    my ( $self, $c, $obj ) = @_;
 
     my $new_obj = {};
 
-    foreach my $default_output_field ( @{ $self->default_output_fields() } )
+    foreach my $default_output_field ( @{ $self->default_output_fields( $c ) } )
     {
         $new_obj->{ $default_output_field } = $obj->{ $default_output_field };
     }
@@ -57,20 +57,20 @@ sub _purge_extra_fields
 
 sub _purge_extra_fields_obj_list
 {
-    my ( $self, $list ) = @_;
+    my ( $self, $c, $list ) = @_;
 
-    return [ map { $self->_purge_extra_fields( $_ ) } @{ $list } ];
+    return [ map { $self->_purge_extra_fields( $c, $_ ) } @{ $list } ];
 }
 
 sub _purge_non_permissible_fields
 {
     my ( $self, $obj ) = @_;
 
-    my $object_fields = keys %{ $obj };
-
-    my $permissible_output_fields = $self->permissible_output_fields();
-
-    my $new_obj = { map { $_ => $obj->{ $_ } } @$permissible_output_fields };
+    my $new_obj = {};
+    for my $field ( @{ $self->permissible_output_fields } )
+    {
+        $new_obj->{ $field } = $obj->{ $field };
+    }
 
     return $new_obj;
 }
@@ -116,9 +116,9 @@ sub _process_result_list
 {
     my ( $self, $c, $items, $all_fields ) = @_;
 
-    if ( $self->default_output_fields() && !$all_fields )
+    if ( $self->default_output_fields( $c ) && !$all_fields )
     {
-        $items = $self->_purge_extra_fields_obj_list( $items );
+        $items = $self->_purge_extra_fields_obj_list( $c, $items );
     }
 
     if ( $self->has_extra_data() )
@@ -208,7 +208,7 @@ sub get_name_search_clause
 
     return 'and false' unless ( length( $name_val ) > 2 );
 
-    my $q_name_val = $c->dbis->dbh->quote( $name_val );
+    my $q_name_val = $c->dbis->quote( $name_val );
 
     return "and $name_field ilike '%' || $q_name_val || '%'";
 }
@@ -227,7 +227,7 @@ sub _get_filter_field_clause
         my $val = $c->req->params->{ $required_field_name };
         die( "Missing required param $required_field_name" ) unless ( defined( $val ) );
 
-        push( @{ $clauses }, "$required_field_name = " . $c->dbis->dbh->quote( $val ) );
+        push( @{ $clauses }, "$required_field_name = " . $c->dbis->quote( $val ) );
     }
 
     my $field_names = $self->list_optional_query_filter_field || [];
@@ -238,7 +238,7 @@ sub _get_filter_field_clause
 
         if ( $val )
         {
-            push( @{ $clauses }, "$field_name = " . $c->dbis->dbh->quote( $val ) );
+            push( @{ $clauses }, "$field_name = " . $c->dbis->quote( $val ) );
         }
     }
 
@@ -281,6 +281,10 @@ select *
 END
 
     $list = $c->dbis->query( $query, $last_id, $rows )->hashes;
+
+    my $num_rows = scalar( @{ $list } );
+
+    TRACE( "fetch_list last_id $last_id got $num_rows rows: $query" );
 
     return $list;
 }
@@ -508,13 +512,14 @@ sub _clear_tags
     {
         my $tags_ids_list = join( ',', @{ $tags_ids } );
 
-        my $disable_triggers_query = <<END;
+        if ( grep { $self->get_table_name eq $_ } qw/stories story_sentences/ )
+        {
+            $c->dbis->query( <<SQL, MediaWords::DB::story_triggers_disabled(), $id );
 UPDATE $table_name set disable_triggers = \$1
-               where $table_id_name = \$2 and
-                    ( (disable_triggers is null) or (disable_triggers <> \$1 ) )
-END
-
-        $c->dbis->query( $disable_triggers_query, MediaWords::DB::story_triggers_disabled(), $id );
+       where $table_id_name = \$2 and
+            ( (disable_triggers is null) or (disable_triggers <> \$1 ) )
+SQL
+        }
 
         $c->dbis->query( <<END, $id );
 delete from $tags_map_table stm
@@ -595,6 +600,91 @@ END
     {
         $self->_clear_tags( $c, $clear_tags_map );
     }
+}
+
+# process a single recoed in a put_tags request.  see api docs for stories/put_tags.
+# returns put_tag object with a 'tag_row' field that points to the hash for the tag edited.
+sub _process_single_put_tag($$$)
+{
+    my ( $self, $c, $put_tag ) = @_;
+
+    my $db        = $c->dbis;
+    my $table     = $self->get_table_name;
+    my $id_field  = "${ table }_id";
+    my $map_table = "${ table }_tags_map";
+
+    die( "input must be a list of records" ) unless ( ref( $put_tag ) eq ref( {} ) );
+
+    die( "each record must include a '$id_field' field" ) unless ( $put_tag->{ $id_field } );
+
+    die( "input must include either a tags_id field or a tag and a tag_set field" )
+      unless ( $put_tag->{ tags_id } or ( $put_tag->{ tag } && $put_tag->{ tag_set } ) );
+
+    my $tag =
+        $put_tag->{ tags_id }
+      ? $db->require_by_id( 'tags', $put_tag->{ tags_id } )
+      : MediaWords::Util::Tags::lookup_or_create_tag( $db, "$put_tag->{ tag_set }:$put_tag->{ tag }" );
+
+    die( "unsupported table '$table'" ) unless ( grep { $_ eq $table } qw/stories media story_sentences/ );
+
+    my $action = $put_tag->{ action } || 'add';
+    if ( $action eq 'add' )
+    {
+        $db->query( <<SQL, $put_tag->{ $id_field }, $tag->{ tags_id } );
+insert into $map_table ( $id_field, tags_id )
+    select \$1, \$2 where not exists ( select 1 from $map_table where $id_field = \$1 and tags_id = \$2 )
+SQL
+    }
+    elsif ( $action eq 'remove' )
+    {
+        $db->query( <<SQL, $put_tag->{ $id_field }, $tag->{ tags_id } );
+delete from $map_table where $id_field = \$1 and tags_id = \$2
+SQL
+    }
+    else
+    {
+        die( "Uknown put_tags action: $action" );
+    }
+
+    $put_tag->{ tag } = $tag;
+
+    return $put_tag;
+}
+
+# process put_tags command for the current table.  see api docs for stories/put_tags.
+# json format.
+sub process_put_tags($$)
+{
+    my ( $self, $c ) = @_;
+
+    my $data = $c->req->data;
+
+    die( "no json input" ) unless ( $data );
+
+    die( "json must be a list" ) unless ( ref( $data ) eq ref( [] ) );
+
+    $c->dbis->begin;
+
+    # DRL 3/18/2015 this is a hack to make sure that triggers are enabled so that changes reach solr
+    # This is needed because we use connection pooling in production and db connections with triggers disabled are reused
+    # We;re also explicitly enabling story triggers when the database is created, which should be enough but isn't
+    $c->dbis->query( "SELECT enable_story_triggers() " );
+
+    my $put_tags = [ map { $self->_process_single_put_tag( $c, $_ ) } @{ $data } ];
+
+    if ( $c->req->params->{ clear_tag_sets } )
+    {
+        my $id_field       = $self->get_table_name . "_id";
+        my $clear_tags_map = {};
+        for my $put_tag ( @{ $put_tags } )
+        {
+            next unless ( !$_->{ action } || ( $_->{ action } eq 'add' ) );
+            push( @{ $clear_tags_map->{ $put_tag->{ $id_field } } }, $put_tag->{ tag }->{ tags_id } );
+        }
+
+        $self->_clear_tags( $c, $clear_tags_map );
+    }
+    $c->dbis->commit;
 }
 
 =head1 AUTHOR

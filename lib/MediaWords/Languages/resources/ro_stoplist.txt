@@ -1,8 +1,6 @@
 #
 # This is a stop word list for the Romanian language.
 #
-# The encoding of this file is UTF-8.
-#
 # Source: http://snowball.tartarus.org/otherapps/romanian/intro.html (romanian2.tgz)
 #
 

@@ -38,7 +38,7 @@ my $_corenlp_annotator_url = lazy
         fatal_error( "CoreNLP annotator is not enabled; why are you accessing this variable?" );
     }
 
-    my $config = MediaWords::Util::Config->get_config();
+    my $config = MediaWords::Util::Config::get_config();
 
     # CoreNLP annotator URL
     my $url = $config->{ corenlp }->{ annotator_url };
@@ -74,7 +74,7 @@ my $_corenlp_annotator_timeout = lazy
         fatal_error( "CoreNLP annotator is not enabled; why are you accessing this variable?" );
     }
 
-    my $config = MediaWords::Util::Config->get_config();
+    my $config = MediaWords::Util::Config::get_config();
 
     # Timeout
     my $corenlp_annotator_timeout = $config->{ corenlp }->{ annotator_timeout };
@@ -96,7 +96,7 @@ my $_corenlp_annotator_level = lazy
         fatal_error( "CoreNLP annotator is not enabled; why are you accessing this variable?" );
     }
 
-    my $config = MediaWords::Util::Config->get_config();
+    my $config = MediaWords::Util::Config::get_config();
 
     # Level
     my $corenlp_annotator_level = $config->{ corenlp }->{ annotator_level };
@@ -125,8 +125,19 @@ my $_postgresql_store = lazy
         fatal_error( "CoreNLP annotator is not enabled; why are you accessing this variable?" );
     }
 
+    my $compression_method = $MediaWords::KeyValueStore::COMPRESSION_GZIP;
+    if ( $CORENLP_USE_BZIP2 )
+    {
+        $compression_method = $MediaWords::KeyValueStore::COMPRESSION_BZIP2;
+    }
+
     # PostgreSQL storage
-    my $postgresql_store = MediaWords::KeyValueStore::PostgreSQL->new( { table => $CORENLP_POSTGRESQL_KVS_TABLE_NAME } );
+    my $postgresql_store = MediaWords::KeyValueStore::PostgreSQL->new(
+        {
+            table              => $CORENLP_POSTGRESQL_KVS_TABLE_NAME,    #
+            compression_method => $compression_method,                   #
+        }
+    );
     DEBUG "Will read / write CoreNLP annotator results to PostgreSQL table: $CORENLP_POSTGRESQL_KVS_TABLE_NAME";
 
     return $postgresql_store;
@@ -384,15 +395,9 @@ sub _fetch_raw_annotation_for_story($$)
     }
 
     # Fetch annotation
-    my $json_ref = undef;
-
-    my $param_object_path                   = undef;                 # no such thing, objects are indexed by filename
-    my $param_use_bunzip2_instead_of_gunzip = $CORENLP_USE_BZIP2;    # ...with Bzip2
-
-    eval {
-        $json_ref =
-          $_postgresql_store->fetch_content( $db, $stories_id, $param_object_path, $param_use_bunzip2_instead_of_gunzip );
-    };
+    my $json_ref          = undef;
+    my $param_object_path = undef;    # no such thing, objects are indexed by filename
+    eval { $json_ref = $_postgresql_store->fetch_content( $db, $stories_id, $param_object_path ); };
     if ( $@ or ( !defined $json_ref ) )
     {
         die "Store died while fetching annotation for story $stories_id: $@\n";
@@ -423,7 +428,7 @@ sub _fetch_raw_annotation_for_story($$)
 # Returns true if CoreNLP annotator is enabled
 sub annotator_is_enabled()
 {
-    my $config = MediaWords::Util::Config->get_config();
+    my $config = MediaWords::Util::Config::get_config();
     my $corenlp_enabled = $config->{ corenlp }->{ enabled } // '';
 
     if ( $corenlp_enabled eq 'yes' )
@@ -582,13 +587,7 @@ EOF
     INFO "Storing annotation results for story $stories_id...";
 
     # Write to PostgreSQL, index by stories_id
-    eval {
-        # objects should be compressed with Bzip2
-        my $param_use_bzip2_instead_of_gzip = $CORENLP_USE_BZIP2;
-
-        my $path =
-          $_postgresql_store->store_content( $db, $stories_id, \$json_annotation, $param_use_bzip2_instead_of_gzip );
-    };
+    eval { $_postgresql_store->store_content( $db, $stories_id, \$json_annotation ); };
     if ( $@ )
     {
         fatal_error( "Unable to store CoreNLP annotation result: $@" );

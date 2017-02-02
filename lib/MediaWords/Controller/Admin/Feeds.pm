@@ -6,7 +6,7 @@ use strict;
 use warnings;
 use base 'Catalyst::Controller';
 
-use Feed::Scrape::MediaWords;
+use MediaWords::Feed::Scrape;
 use MediaWords::Util::Tags;
 use MediaWords::Util::Web;
 
@@ -90,7 +90,7 @@ sub list : Local
     my ( $self, $c, $media_id ) = @_;
 
     # query database for the media source object corresponding to the
-    # given media id.  $c->dbis is the DBIx::Simple::MediaWords db handle.
+    # given media id.  $c->dbis is the MediaWords::DB::Handler db handle.
     my $medium = $c->dbis->find_by_id( 'media', $media_id );
 
     my $sql_feed_status = $c->request->param( 'all' ) ? '1=1' : "feed_status = 'active'";
@@ -100,13 +100,6 @@ sub list : Local
     my $feeds = $c->dbis->query( <<END, $media_id )->hashes;
 select * from feeds where media_id = ? and $sql_feed_status order by name, url
 END
-
-    # if there aren't any feeds, return the feed scraping page instead of
-    # the feed list
-    if ( !@{ $feeds } )
-    {
-        return $self->scrape( $c, $media_id );
-    }
 
     # for each feed, load any other data needed for the feed within the template
     for my $f ( @{ $feeds } )
@@ -292,8 +285,7 @@ sub scrape : Local
         my $ignore_patterns = $c->request->param( 'ignore_patterns' );
         my $recurse         = $c->request->param( 'recurse' );
 
-        my $links =
-          Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ $url ], $recurse, $c->dbis, $ignore_patterns );
+        my $links = MediaWords::Feed::Scrape::get_valid_feeds_from_index_url( [ $url ], $recurse, $ignore_patterns );
 
         $c->stash->{ links } = $links;
     }
@@ -576,7 +568,7 @@ sub batch_create_do : Local
 
     my $urls = [ map { $_ =~ s/[\n\r\s]//g; $_ } split( "\n", $c->request->param( 'urls' ) ) ];
 
-    my $valid_links = Feed::Scrape::MediaWords->get_valid_feeds_from_urls( $urls, $c->dbis );
+    my $valid_links = MediaWords::Feed::Scrape::get_valid_feeds_from_urls( $urls );
 
     my $status_msg = _get_skipped_urls_message( $urls, $valid_links, 'are not valid feeds' );
 

@@ -173,7 +173,7 @@ SQL
         RETURNING story_sentences.sentence
 SQL
 
-    DEBUG "Adding advisory lock on media ID $media_id...";
+    TRACE "Adding advisory lock on media ID $media_id...";
     $db->query(
         <<EOF,
         SELECT pg_advisory_lock(?)
@@ -186,7 +186,7 @@ EOF
     # Insert sentences
     my $inserted_sentences = $db->query( $sql )->flat();
 
-    DEBUG "Removing advisory lock on media ID $media_id...";
+    TRACE "Removing advisory lock on media ID $media_id...";
     $db->query(
         <<EOF,
         SELECT pg_advisory_unlock(?)
@@ -299,7 +299,7 @@ sub update_story_sentences_and_language($$;$)
     _update_ap_syndicated( $db, $story );
 
     # FIXME remove commit here because transaction wasn't started in this subroutine
-    $db->dbh->{ AutoCommit } || $db->commit;
+    $db->autocommit() || $db->commit;
 
     unless ( $extractor_args->skip_corenlp_annotation() )
     {

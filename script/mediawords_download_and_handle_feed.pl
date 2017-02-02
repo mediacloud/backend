@@ -18,7 +18,7 @@ use Data::Dumper;
 
 use MediaWords::Crawler::Engine;
 use MediaWords::DB;
-use MediaWords::Util::Config qw(get_config);
+use MediaWords::Util::Config;
 use MediaWords::Util::URL;
 
 sub create_feed_download
@@ -45,7 +45,7 @@ sub main
 
     die( "usage: $0 <feed id>" ) unless ( $feeds_id );
 
-    my $dnpf = get_config->{ mediawords }->{ do_not_process_feeds };
+    my $dnpf = MediaWords::Util::Config::get_config->{ mediawords }->{ do_not_process_feeds };
     die( "set mediawords.do_not_process_feeds to 'no' in mediawords.yml" ) if ( $dnpf && ( $dnpf eq 'yes' ) );
 
     my $db = MediaWords::DB::connect_to_db;
@@ -79,6 +79,8 @@ select s.*
     where
         d.parent = ?
 SQL
+
+    $feed = $db->find_by_id( 'feeds', $feed->{ feeds_id } );
 
     DEBUG "FEED STATE POST: " . Dumper( $feed );
 
