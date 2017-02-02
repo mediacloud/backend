@@ -64,6 +64,11 @@ use MediaWords::Util::Paths;
 use MediaWords::Util::SQL;
 use MediaWords::DBI::Activities;
 
+# possible values of snapshots.bot_policy
+Readonly our $POLICY_NO_BOTS   => 'no bots';
+Readonly our $POLICY_ONLY_BOTS => 'only bots';
+Readonly our $POLICY_BOTS_ALL  => 'all';
+
 # max and mind node sizes for gexf snapshot
 Readonly my $MAX_NODE_SIZE => 20;
 Readonly my $MIN_NODE_SIZE => 2;
@@ -132,30 +137,6 @@ sub set_temporary_table_tablespace
     $_temporary_tablespace = $tablespace ? "tablespace $tablespace" : '';
 }
 
-# create all of the temporary snapshot* tables other than medium_links and story_links
-sub write_live_snapshot_tables
-{
-    my ( $db, $topic, $timespan ) = @_;
-
-    my $topics_id;
-    if ( $topic )
-    {
-        $topics_id = $topic->{ topics_id };
-    }
-    else
-    {
-        my $cd = $db->find_by_id( 'snapshots', $timespan->{ snapshots_id } );
-        $topics_id = $cd->{ topics_id };
-    }
-
-    write_temporary_snapshot_tables( $db, $topic );
-    write_period_stories( $db, $timespan );
-    write_story_links_snapshot( $db, $timespan, 1 );
-    write_story_link_counts_snapshot( $db, $timespan, 1 );
-    write_medium_links_snapshot( $db, $timespan, 1 );
-    write_medium_link_counts_snapshot( $db, $timespan, 1 );
-}
-
 # create temporary view of all the snapshot_* tables that call into the snap.* tables.
 # this is useful for writing queries on the snap.* tables without lots of ugly
 # joins and clauses to cd and timespan.  It also provides the same set of snapshot_*
@@ -213,19 +194,12 @@ snapshot_story_link_counts: stories_id, inlink_count, outlink_count, citly_click
 
 sub setup_temporary_snapshot_tables
 {
-    my ( $db, $timespan, $topic, $live ) = @_;
+    my ( $db, $timespan, $topic ) = @_;
 
     # postgres prints lots of 'NOTICE's when deleting temp tables
     $db->set_print_warn( 0 );
 
-    if ( $live )
-    {
-        MediaWords::TM::Snapshot::write_live_snapshot_tables( $db, $topic, $timespan );
-    }
-    else
-    {
-        MediaWords::TM::Snapshot::create_temporary_snapshot_views( $db, $timespan );
-    }
+    MediaWords::TM::Snapshot::create_temporary_snapshot_views( $db, $timespan );
 }
 
 =head2 discard_temp_tables( $db )
@@ -1683,9 +1657,9 @@ sub create_snap_snapshot
 
 # generate temporary snapshot_* tables for the specified snapshot for each of the snapshot_tables.
 # these are the tables that apply to the whole snapshot.
-sub write_temporary_snapshot_tables
+sub write_temporary_snapshot_tables($$$)
 {
-    my ( $db, $topic ) = @_;
+    my ( $db, $topic, $snapshot ) = @_;
 
     my $topics_id = $topic->{ topics_id };
 
@@ -1769,6 +1743,17 @@ END
 
     my $tweet_topics_id = $topic->{ twitter_topics_id } || $topic->{ topics_id };
 
+    my $bot_clause = '';
+    my $bot_policy = $snapshot->{ bot_policy } || $POLICY_NO_BOTS;
+    if ( $snapshot->{ bot_policy } eq $POLICY_NO_BOTS )
+    {
+        $bot_clause = "and ( ( coalesce( tweets, 0 ) / coalesce( days, 1 ) ) < $BOT_TWEETS_PER_DAY )";
+    }
+    elsif ( $snapshot->{ bot_policy } eq $POLICY_ONLY_BOTS )
+    {
+        $bot_clause = "and ( ( coalesce( tweets, 0 ) / coalesce( days, 1 ) ) >= $BOT_TWEETS_PER_DAY )";
+    }
+
     $db->query( <<SQL, $tweet_topics_id );
 create temporary table snapshot_tweet_stories as
     with tweets_per_day as (
@@ -1785,8 +1770,7 @@ create temporary table snapshot_tweet_stories as
             join tweets_per_day tpd using ( topic_tweets_id )
             join snapshot_stories using ( stories_id )
         where
-            topics_id = \$1 and
-            ( ( coalesce( tweets, 0 ) / coalesce( days, 1 ) ) < $BOT_TWEETS_PER_DAY )
+            topics_id = \$1 $bot_clause
 SQL
 
     add_media_type_views( $db );
@@ -1853,16 +1837,16 @@ sub generate_snapshots_from_temporary_snapshot_tables
 }
 
 # create the snapshot row for the current snapshot
-sub create_snapshot_row ($$$$;$)
+sub create_snapshot_row ($$$$;$$)
 {
-    my ( $db, $topic, $start_date, $end_date, $note ) = @_;
+    my ( $db, $topic, $start_date, $end_date, $note, $bot_policy ) = @_;
 
     $note //= '';
 
-    my $cd = $db->query( <<END, $topic->{ topics_id }, $start_date, $end_date, $note )->hash;
+    my $cd = $db->query( <<END, $topic->{ topics_id }, $start_date, $end_date, $note, $bot_policy )->hash;
 insert into snapshots
-    ( topics_id, start_date, end_date, snapshot_date, note )
-    values ( ?, ?, ?, now(), ? )
+    ( topics_id, start_date, end_date, snapshot_date, note, bot_policy )
+    values ( ?, ?, ?, now(), ?, ?)
     returning *
 END
 
@@ -1949,15 +1933,18 @@ SQL
     $db->update_by_id( 'snapshots', $cd->{ snapshots_id }, { searchable => 'f' } );
 }
 
-=head2 snapshot_topic( $db, $topics_id )
+=head2 snapshot_topic( $db, $topics_id, $note, $bot_policy )
 
-Create a snapshot for the given topic.
+Create a snapshot for the given topic.  Optionally pass a note and/or a bot_policy field to the created snapshot.
+
+The bot_policy should be one of 'all', 'no bots', or 'only bots' indicating for twitter topics whether and how to
+filter for bots (a bot is defined as any user tweeting more than 200 post per day).
 
 =cut
 
-sub snapshot_topic ($$;$)
+sub snapshot_topic ($$;$$)
 {
-    my ( $db, $topics_id, $note ) = @_;
+    my ( $db, $topics_id, $note, $bot_policy ) = @_;
 
     my $periods = [ qw(custom overall weekly monthly) ];
 
@@ -1975,12 +1962,12 @@ sub snapshot_topic ($$;$)
 
     my ( $start_date, $end_date ) = ( $topic->{ start_date }, $topic->{ end_date } );
 
-    my $snap = create_snapshot_row( $db, $topic, $start_date, $end_date, $note );
+    my $snap = create_snapshot_row( $db, $topic, $start_date, $end_date, $note, $bot_policy );
 
     MediaWords::Job::TM::SnapshotTopic->update_job_state_args( $db, { snapshots_id => $snap->{ snapshots_id } } );
     MediaWords::Job::TM::SnapshotTopic->update_job_state_message( $db, "snapshotting data" );
 
-    write_temporary_snapshot_tables( $db, $topic );
+    write_temporary_snapshot_tables( $db, $topic, $snap );
 
     generate_snapshots_from_temporary_snapshot_tables( $db, $snap );
 

@@ -24,15 +24,17 @@ use MediaWords::Job::TM::SnapshotTopic;
 
 sub main
 {
-    my ( $topic_opt, $direct_job );
+    my ( $topic_opt, $direct_job, $note, $bot_policy );
 
     binmode( STDOUT, 'utf8' );
     binmode( STDERR, 'utf8' );
     $| = 1;
 
     Getopt::Long::GetOptions(
-        "topic=s"     => \$topic_opt,
-        "direct_job!" => \$direct_job
+        "topic=s"      => \$topic_opt,
+        "direct_job!"  => \$direct_job,
+        "note=s"       => \$note,
+        "bot_policy=s" => \$bot_policy
     ) || return;
 
     die( "Usage: $0 --topic < id >" ) unless ( $topic_opt );
@@ -47,16 +49,21 @@ sub main
     for my $topic ( @{ $topics } )
     {
         my $topics_id = $topic->{ topics_id };
+        my $args      = {
+            topics_id  => $topics_id,
+            note       => $note,
+            bot_policy => $bot_policy
+        };
 
         if ( $direct_job )
         {
-            MediaWords::Job::TM::SnapshotTopic->run_locally( { topics_id => $topics_id } );
-            next;
+            MediaWords::Job::TM::SnapshotTopic->run_locally( $args );
         }
-
-        my $args = { topics_id => $topics_id };
-        my $job_id = MediaWords::Job::TM::SnapshotTopic->add_to_queue( $args );
-        INFO "Added topic ID $topics_id ('$topic->{ name }') with job ID: $job_id";
+        else
+        {
+            my $job_id = MediaWords::Job::TM::SnapshotTopic->add_to_queue( $args );
+            INFO "Added topic ID $topics_id ('$topic->{ name }') with job ID: $job_id";
+        }
     }
 
 }
