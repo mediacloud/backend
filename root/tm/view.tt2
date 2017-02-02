@@ -65,7 +65,7 @@
 
                     <td>[% snap.state | html %]</td>
 
-                    <td>[% snap.state | truncate( 128 ) | html %]</td>
+                    <td>[% snap.message | truncate( 128 ) | html %]</td>
 
                     <td>[% snap.note | html %]</td>
                 </tr>
