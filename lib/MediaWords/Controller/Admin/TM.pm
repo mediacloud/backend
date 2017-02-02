@@ -46,7 +46,7 @@ select c.*
     from topics c
         left join snapshots snap on ( c.topics_id = snap.topics_id )
     group by c.topics_id
-    order by c.state = 'ready', c.state,  max( coalesce( snap.snapshot_date, '2000-01-01'::date ) ) desc
+    order by c.state = 'completed', max( coalesce( snap.snapshot_date, '2000-01-01'::date ) ) desc
 END
 
     $c->stash->{ topics }   = $topics;
