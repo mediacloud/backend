@@ -25,11 +25,6 @@ fi
 ./install_scripts/install_mc_perlbrew_and_modules.sh
 
 echo "install complete"
-echo "running compile test"
-
-./script/run_carton.sh exec prove -Ilib/ -r t/compile.t
-
-echo "compile test succeeded"
 echo "creating new database"
 
 # "create_default_db_user_and_databases.sh" uses configuration mediawords.yml
