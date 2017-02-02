@@ -3,12 +3,12 @@
 if [ ! -e schema/mediawords.sql ]; then
     echo "Can't find schema/mediawords.sql.  Are you running from the mediacloud root directory?";
     exit;
-fi  
+fi
 
 NEW_SCHEMA_VERSION=`cat schema/mediawords.sql  \
     | perl -lne 'print if /(MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT)/'   \
     | perl -lpe 's/.*MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := (\d+?);.*/$1/'`
-    
+
 if [ "$NEW_SCHEMA_VERSION" == '' ] ; then
     echo "Unable to find MEDIACLOUD_DATABASE_SCHEMA_VERSION in mediawords.sql";
     exit;
@@ -50,11 +50,11 @@ SQL="--
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS \$\$
 DECLARE
-    
+
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
     MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := ${NEW_SCHEMA_VERSION};
-    
+
 BEGIN
 
     -- Update / set database schema version
@@ -62,7 +62,7 @@ BEGIN
     INSERT INTO database_variables (name, value) VALUES ('database-schema-version', MEDIACLOUD_DATABASE_SCHEMA_VERSION::int);
 
     return true;
-    
+
 END;
 \$\$
 LANGUAGE 'plpgsql';
@@ -76,5 +76,3 @@ echo "$SQL" > "$MIGRATION_FILE"
 git add "$MIGRATION_FILE"
 
 echo "generated $MIGRATION_FILE and added it to git commit"
-
-
