@@ -110,10 +110,12 @@ See doc/README.vagrant.markdown for instructions on how to set those variables.
   # Hostname
   config.vm.hostname = "mediacloud.local"
 
-  # Share Media Cloud's repository as /mediacloud
-  # (path is relative to ./script/vagrant)
-  # Will mount on VirtualBox, rsync on AWS EC2
-  config.vm.synced_folder "../../", "/mediacloud"
+  # Copy over Media Cloud's repository to /mediacloud (do not mount to preserve
+  # symlinks on EC2)
+  # Path is relative to ./script/vagrant
+  config.vm.synced_folder "../../", "/mediacloud",
+      type: "rsync",
+      rsync__args: ["--verbose", "--archive", "--delete", "-z"]
 
   # Provision scripts
   config.vm.provision "shell", privileged: true, path: "provision_root.sh"
