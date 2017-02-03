@@ -70,8 +70,8 @@ def test_convert_dbd_pg_arguments_to_psycopg2_format():
     assert expected_parameters == actual_parameters
 
     # DBD::Pg's query with "LIKE '%'"
-    input_parameters = ("SELECT * FROM foo WHERE surname LIKE 'Karda''sh%' AND true = false",)
-    expected_parameters = ("SELECT * FROM foo WHERE surname LIKE 'Karda''sh%%' AND true = false",)
+    input_parameters = ("SELECT * FROM foo WHERE surname LIKE 'Karda''sh%' AND TRUE = FALSE",)
+    expected_parameters = ("SELECT * FROM foo WHERE surname LIKE 'Karda''sh%%' AND TRUE = FALSE",)
     actual_parameters = convert_dbd_pg_arguments_to_psycopg2_format(*input_parameters)
     assert expected_parameters == actual_parameters
 
