@@ -336,10 +336,15 @@ class TestDatabaseHandler(TestCase):
         assert row is None
 
     def test_update_by_id(self):
-        self.__db.update_by_id(table='kardashians', object_id=4, update_hash={
+        updated_row = self.__db.update_by_id(table='kardashians', object_id=4, update_hash={
             'surname': 'Kardashian-West',
             '_ignored_key': 'Ignored value.'
         })
+
+        assert updated_row is not None
+        assert updated_row['name'] == 'Kim'
+        assert updated_row['surname'] == 'Kardashian-West'
+
         row_hash = self.__db.find_by_id(table='kardashians', object_id=4)
         assert row_hash is not None
         assert row_hash['name'] == 'Kim'

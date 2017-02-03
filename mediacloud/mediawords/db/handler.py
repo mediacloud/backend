@@ -404,7 +404,7 @@ class DatabaseHandler(object):
             raise McRequireByIDException("Unable to find ID '%d' in table '%s'" % (object_id, table))
         return row
 
-    def update_by_id(self, table: str, object_id: int, update_hash: dict) -> None:
+    def update_by_id(self, table: str, object_id: int, update_hash: dict) -> Union[Dict[str, Any], None]:
         """Update the row in the table with the given ID. Ignore any fields that start with '_'."""
 
         # MC_REWRITE_TO_PYTHON: some IDs get passed as 'str' / 'bytes'; remove after getting rid of Catalyst
@@ -455,6 +455,10 @@ class DatabaseHandler(object):
             self.query(sql, update_hash)
         except Exception as ex:
             raise McUpdateByIDException("Update to UPDATE hash '%s': %s" % (str(update_hash), str(ex)))
+
+        updated_row = self.find_by_id(table=table, object_id=object_id)
+
+        return updated_row
 
     def delete_by_id(self, table: str, object_id: int) -> None:
         """Delete the row in the table with the given ID."""
