@@ -82,7 +82,7 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
 
     l.debug("Query to convert: %s; with arguments: %s" % (query, query_args))
 
-    def __duplicate_percentage_sign_in_line(q: str) -> str:
+    def __duplicate_percentage_sign(q: str) -> str:
         """Duplicate percentage sign in "LIKE '%'" statements."""
 
         # "When parameters are used, in order to include a literal % in the query you can use the %% string."
@@ -91,7 +91,7 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
         # big deal ("LIKE 'Abc%'" and "LIKE 'Abc%%'" work the same), but after converting queries to psycopg2's syntax,
         # this helper should be removed.
 
-        def __double_percentage_sign(match):
+        def __duplicate_percentage_sign_internal(match):
             result = match.group(1).replace('%', '%%')
             return result
 
@@ -103,11 +103,11 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
                 '.+?[^']'                   # 'like pattern%'
                 ([^']|$)                    # Next character is neither not "'" or end of file
             )
-        """, __double_percentage_sign, q, flags=re.I | re.X)
+        """, __duplicate_percentage_sign_internal, q, flags=re.I | re.X)
 
         return q
 
-    query = __duplicate_percentage_sign_in_line(q=query)
+    query = __duplicate_percentage_sign(q=query)
 
     # If there are no query parameters, there's nothing more to do
     if len(query_args) == 0:
