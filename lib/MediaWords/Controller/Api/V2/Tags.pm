@@ -176,6 +176,9 @@ sub create_GET
     my $fields = [ 'tag_sets_id', @{ $self->get_update_fields } ];
     my $input = { map { $_ => $data->{ $_ } } grep { exists( $data->{ $_ } ) } @{ $fields } };
 
+    $input->{ show_on_media }   = normalize_boolean_for_db( $input->{ show_on_media } );
+    $input->{ show_on_stories } = normalize_boolean_for_db( $input->{ show_on_stories } );
+
     my $created_tag = $c->dbis->create( 'tags', $input );
 
     return $self->status_ok( $c, entity => { tag => $created_tag } );
