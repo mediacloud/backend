@@ -175,6 +175,9 @@ sub create_GET
     $topic->{ pattern } = eval { MediaWords::Solr::Query::parse( $topic->{ solr_seed_query } )->re() };
     die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
 
+    $topic->{ is_public }           = normalize_boolean_for_db( $topic->{ is_public } );
+    $topic->{ solr_seed_query_run } = normalize_boolean_for_db( $topic->{ solr_seed_query_run } );
+
     my $db = $c->dbis;
 
     my $full_solr_query = MediaWords::TM::Mine::get_full_solr_query( $db, $topic, $media_ids, $media_tags_ids );
@@ -252,6 +255,9 @@ sub update_PUT
 
         die( "number of stories from query ($num_stories) is more than the max (500,000)" ) if ( $num_stories > 500000 );
     }
+
+    $update->{ is_public }           = normalize_boolean_for_db( $update->{ is_public } );
+    $update->{ solr_seed_query_run } = normalize_boolean_for_db( $update->{ solr_seed_query_run } );
 
     $db->begin;
 
