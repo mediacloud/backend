@@ -91,7 +91,15 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
         result = match.group(1).replace('%', '%%')
         return result
 
-    query = re.sub("(\s+(LIKE|ILIKE|SIMILAR\s+TO)\s+'.+?[^']'([^']|$))", __double_percentage_sign, query, flags=re.I)
+    query = re.sub("""
+        (   # Group the whole "LIKE '...%'" to be later used in __double_percentage_sign()
+            \s+                         # Some space before LIKE
+            (LIKE|ILIKE|SIMILAR\s+TO)   # LIKE / ILIKE / SIMILAR TO
+            \s+                         # Some space after LIKE
+            '.+?[^']'                   # 'like pattern%'
+            ([^']|$)                    # Next character is neither not "'" or end of file
+        )
+    """, __double_percentage_sign, query, flags=re.I | re.X)
 
     # If there are no query parameters, there's nothing more to do
     if len(query_args) == 0:
@@ -100,7 +108,10 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
     else:
 
         # Replace "??" parameters with psycopg2's "%s" and tuple parameter
-        double_question_mark_regex = re.compile(r'(?P<in_statement>\sIN\s)\(\s*\?\?\s*\)', flags=re.I)
+        double_question_mark_regex = re.compile("""
+            (?P<in_statement>\sIN\s)    # "(WHERE) column IN"
+            \(\s*\?\?\s*\)              # "(??)" with optional spaces around
+        """, flags=re.I | re.X)
         double_question_mark_count = len(re.findall(double_question_mark_regex, query))
         if double_question_mark_count > 0:
             if double_question_mark_count > 1:
@@ -125,11 +136,11 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
             query = " %s " % query
 
             # Replace "?" parameters with psycopg2's "%s"
-            question_mark_regex = re.compile(
-                r'(?P<whitespace_before_question_mark>\s|,|\()'
-                + '\?'
-                + '(?=(\s|,|\)|(::)))'  # Lookahead and make sure question mark is singled out
-            )
+            question_mark_regex = re.compile("""
+                (?P<char_before_question_mark>\s|,|\()      # Question mark preceded by whitespace, comma or bracket
+                \?                                          # Question mark
+                (?=(\s|,|\)|(::)))                          # Lookahead and make sure question mark is singled out
+            """, flags=re.I | re.X)
             question_mark_count = len(re.findall(question_mark_regex, query))
             if question_mark_count > 0:
                 if question_mark_count != len(query_args):
@@ -144,17 +155,17 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
                         'query_args': query_args,
                     })
 
-                query = re.sub(question_mark_regex, r'\g<whitespace_before_question_mark>%s', query)
+                query = re.sub(question_mark_regex, r'\g<char_before_question_mark>%s', query)
 
                 # Convert arguments to psycopg2's argument tuple
                 query_args = tuple(query_args)
 
             # Replace "$1" parameters with psycopg2's "%(param_1)s"
-            dollar_sign_regex = re.compile(
-                r'(?P<whitespace_before_dollar_sign>\s|,|\()'
-                + '\$(?P<param_index>\d)'
-                + '(?=(\s|,|\)|(::)))'  # Lookahead and make sure dollar sign is singled out
-            )
+            dollar_sign_regex = re.compile("""
+                (?P<char_before_dollar_sign>\s|,|\()    # Dollar sign preceded by whitespace, comma or bracket
+                \$(?P<param_index>\d)                   # Dollar sign with a single-digit index ("$1", "$2", ...)
+                (?=(\s|,|\)|(::)))                      # Lookahead and make sure dollar sign is singled out
+            """, flags=re.I | re.X)
             dollar_sign_unique_indexes = set([x[1] for x in re.findall(dollar_sign_regex, query)])
             dollar_sign_unique_count = len(dollar_sign_unique_indexes)
             if dollar_sign_unique_count > 0:
@@ -170,7 +181,7 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
                         'query_args': query_args,
                     })
 
-                query = re.sub(dollar_sign_regex, r'\g<whitespace_before_dollar_sign>%(param_\g<param_index>)s', query)
+                query = re.sub(dollar_sign_regex, r'\g<char_before_dollar_sign>%(param_\g<param_index>)s', query)
 
                 # Convert arguments to psycopg2's argument dictionary
                 query_args_dict = {}
