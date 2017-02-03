@@ -119,6 +119,10 @@ class DatabaseHandler(object):
         psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY, self.__conn)
         self.__conn.set_client_encoding(psycopg2.extensions.encodings['UTF8'])
 
+        # Don't automatically decode JSON, just like DBD::Pg doesn't
+        # MC_REWRITE_TO_PYTHON: (probably) remove after porting
+        psycopg2.extras.register_default_json(loads=lambda x: x)
+
         # psycopg2.extras.DictCursor factory enables server-side query prepares so all result data does not get fetched
         # at once
         cursor_factory = psycopg2.extras.DictCursor
