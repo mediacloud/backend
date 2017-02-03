@@ -114,10 +114,9 @@ class DatabaseHandler(object):
 
         self.__conn = psycopg2.connect(host=host, port=port, user=username, password=password, database=database)
 
+        # Magic bits for psycopg2 to start supporting UTF-8
         psycopg2.extensions.register_type(psycopg2.extensions.UNICODE, self.__conn)
         psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY, self.__conn)
-
-        # Magic bits for psycopg2 to start supporting UTF-8
         self.__conn.set_client_encoding(psycopg2.extensions.encodings['UTF8'])
 
         # psycopg2.extras.DictCursor factory enables server-side query prepares so all result data does not get fetched
