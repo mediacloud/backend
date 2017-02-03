@@ -157,3 +157,41 @@ def test_convert_dbd_pg_arguments_to_psycopg2_format():
     )
     actual_parameters = convert_dbd_pg_arguments_to_psycopg2_format(*input_parameters)
     assert expected_parameters == actual_parameters
+
+
+# noinspection SqlResolve
+def test_convert_dbd_pg_arguments_to_psycopg2_format_ignore_literals():
+    # "??" in literals
+    input_sql_query = "SELECT 'WHERE foo IN (??)' FROM bar "
+    input_sql_query += "WHERE baz IN (??)"
+    input_parameters = (input_sql_query, 'foo', 'bar',)
+    expected_parameters = ("""SELECT 'WHERE foo IN (??)' FROM bar WHERE baz IN %s""", (('foo', 'bar'),))
+    actual_parameters = convert_dbd_pg_arguments_to_psycopg2_format(*input_parameters)
+    assert expected_parameters == actual_parameters
+
+    # "?" in literals
+    input_parameters = ("""INSERT INTO foo VALUES ('VALUES (?, ?, ?)', ?, ?)""", 'foo', 'bar',)
+    expected_parameters = ("""INSERT INTO foo VALUES ('VALUES (?, ?, ?)', %s, %s)""", ('foo', 'bar',))
+    actual_parameters = convert_dbd_pg_arguments_to_psycopg2_format(*input_parameters)
+    assert expected_parameters == actual_parameters
+
+    # "$1, $2" in literals
+    input_parameters = ("""INSERT INTO foo VALUES ('VALUES ($1, $2)', $1, $2)""", 'foo', 'bar',)
+    expected_parameters = ("""INSERT INTO foo VALUES ('VALUES ($1, $2)', %(param_1)s, %(param_2)s)""", {
+        'param_1': 'foo',
+        'param_2': 'bar'
+    })
+    actual_parameters = convert_dbd_pg_arguments_to_psycopg2_format(*input_parameters)
+    assert expected_parameters == actual_parameters
+
+    # "LIKE 'foo%'" in literals
+    input_parameters = ("""INSERT INTO foo VALUES ('LIKE ''bar%s', ?, ?)""", 'foo', 'bar',)
+    expected_parameters = ("""INSERT INTO foo VALUES ('LIKE ''bar%s', %s, %s)""", ('foo', 'bar',))
+    actual_parameters = convert_dbd_pg_arguments_to_psycopg2_format(*input_parameters)
+    assert expected_parameters == actual_parameters
+
+    # "LIKE 'foo%''" in literals
+    input_parameters = ("""INSERT INTO foo VALUES ('LIKE ''''bar%s', ?, ?)""", 'foo', 'bar',)
+    expected_parameters = ("""INSERT INTO foo VALUES ('LIKE ''''bar%s', %s, %s)""", ('foo', 'bar',))
+    actual_parameters = convert_dbd_pg_arguments_to_psycopg2_format(*input_parameters)
+    assert expected_parameters == actual_parameters
