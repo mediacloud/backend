@@ -130,17 +130,6 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
 
         question_mark_count = len(re.findall(question_mark_regex, q))
         if question_mark_count > 0:
-            if question_mark_count != len(q_args):
-                raise McConvertDBDPgArgumentsToPsycopg2FormatException("""
-                        Question mark count (%(question_mark_count)d)
-                        does not match the argument count (%(argument_count)d
-                        in query "%(query)s" (arguments: %(query_args)s)
-                    """ % {
-                    'question_mark_count': question_mark_count,
-                    'argument_count': len(q_args),
-                    'query': q,
-                    'query_args': q_args,
-                })
 
             q = re.sub(question_mark_regex, question_mark_replacement, q)
 
@@ -166,17 +155,6 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
         dollar_sign_unique_indexes = set([x[1] for x in re.findall(dollar_sign_regex, q)])
         dollar_sign_unique_count = len(dollar_sign_unique_indexes)
         if dollar_sign_unique_count > 0:
-            if dollar_sign_unique_count != len(q_args):
-                raise McConvertDBDPgArgumentsToPsycopg2FormatException("""
-                        Unique dollar sign count (%(dollar_sign_unique_count)d)
-                        does not match the argument count (%(argument_count)d
-                        in query "%(query)s" (arguments: %(query_args)s)
-                    """ % {
-                    'dollar_sign_unique_count': dollar_sign_unique_count,
-                    'argument_count': len(q_args),
-                    'query': q,
-                    'query_args': q_args,
-                })
 
             q = re.sub(dollar_sign_regex, dollar_sign_replacement, q)
 

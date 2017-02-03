@@ -175,6 +175,21 @@ def test_convert_dbd_pg_arguments_to_psycopg2_format_ignore_literals():
     actual_parameters = convert_dbd_pg_arguments_to_psycopg2_format(*input_parameters)
     assert expected_parameters == actual_parameters
 
+    input_parameters = ("""
+        UPDATE downloads
+        SET stories_id = ?,
+            type = 'content'
+        WHERE downloads_id = ?
+    """.strip(), 1, 2,)
+    expected_parameters = ("""
+        UPDATE downloads
+        SET stories_id = %s,
+            type = 'content'
+        WHERE downloads_id = %s
+    """.strip(), (1, 2,))
+    actual_parameters = convert_dbd_pg_arguments_to_psycopg2_format(*input_parameters)
+    assert expected_parameters == actual_parameters
+
     # "$1, $2" in literals
     input_parameters = ("""INSERT INTO foo VALUES ('VALUES ($1, $2)', $1, $2)""", 'foo', 'bar',)
     expected_parameters = ("""INSERT INTO foo VALUES ('VALUES ($1, $2)', %(param_1)s, %(param_2)s)""", {
