@@ -112,13 +112,15 @@ sub init_static_variables
 }
 
 # update topics.state in the database
-sub update_topic_state
+sub update_topic_state($$$;$)
 {
-    my ( $db, $topic, $state ) = @_;
+    my ( $db, $topic, $message ) = @_;
 
-    INFO( $state );
-
-    $db->update_by_id( 'topics', $topic->{ topics_id }, { state => "$state" } );
+    eval { MediaWords::Job::TM::MineTopic->update_job_state_message( $db, $message ) };
+    if ( $@ )
+    {
+        die( "error updating job state (mine_topic() must be called from MediaWords::Job::TM::MineTopic): $@" );
+    }
 }
 
 # fetch each link and add a { redirect_url } field if the
@@ -351,15 +353,6 @@ sub story_within_topic_date_range
 
     my $story_date = substr( $story->{ publish_date }, 0, 10 );
 
-    if ( !$topic->{ start_date } )
-    {
-        my ( $start_date, $end_date ) = $db->query( <<SQL, $topic->{ topics_id } )->flat;
-select start_date, end_date from topic_dates where topics_id = ? and boundary
-SQL
-        $topic->{ start_date } = $start_date;
-        $topic->{ end_date }   = $end_date;
-    }
-
     my $start_date = $topic->{ start_date };
     $start_date = MediaWords::Util::SQL::increment_day( $start_date, -7 );
     $start_date = substr( $start_date, 0, 10 );
@@ -400,7 +393,7 @@ sub generate_topic_links
 
     my $topic_links = [];
 
-    if ( $topic->{ twitter_parent_topics_id } )
+    if ( $topic->{ ch_monitor_id } )
     {
         INFO( "SKIP LINK GENERATION FOR TWITTER TOPIC" );
         return;
@@ -1942,7 +1935,7 @@ select count(*) from topic_links where topics_id = ? and ref_stories_id is null
 SQL
 
     return <<END;
-spidering iteration: $iteration; stories last / total iteration: $stories_last_iteration/ $total_stories; links queued: $queued_links; iteration links: $link_num / $total_links
+spidering iteration: $iteration; stories last iteration / total: $stories_last_iteration/ $total_stories; links queued: $queued_links; iteration links: $link_num / $total_links
 END
 
 }
@@ -2733,6 +2726,46 @@ sub insert_topic_seed_urls
     $copy_from->end();
 }
 
+# get the full solr query by combining the solr_seed_query with generated clauses for start and
+# end date from topics and media clauses from topics_media_map and topics_media_tags_map
+sub get_full_solr_query($$;$$)
+{
+    my ( $db, $topic, $media_ids, $media_tags_ids ) = @_;
+
+    my ( $sd, $ed ) = ( $topic->{ start_date }, $topic->{ end_date } );
+    map { die( "date '$_' must be in form YYYY-MM-DD" ) unless ( $_ =~ /^\s*\d\d\d\d-\d\d-\d\d\s*$/ ) } ( $sd, $ed );
+
+    my $date_clause = "publish_date:[${ sd }T00:00:00Z TO ${ ed }T23:59:59Z]";
+
+    my $solr_query = "( " . $topic->{ solr_seed_query } . " ) and $date_clause";
+
+    my $media_clauses = [];
+    my $topics_id     = $topic->{ topics_id };
+
+    $media_ids ||= $db->query( "select media_id from topics_media_map where topics_id = ?", $topics_id )->flat;
+    if ( @{ $media_ids } )
+    {
+        my $media_ids_list = join( ' ', @{ $media_ids } );
+        push( @{ $media_clauses }, "media_id:( $media_ids_list )" );
+    }
+
+    $media_tags_ids ||= $db->query( "select tags_id from topics_media_tags_map where topics_id = ?", $topics_id )->flat;
+    if ( @{ $media_tags_ids } )
+    {
+        my $media_tags_ids_list = join( ' ', @{ $media_tags_ids } );
+        push( @{ $media_clauses }, "tags_id_media:( $media_tags_ids_list )" );
+    }
+
+    die( "query must include at least one media source or media set" ) unless ( @{ $media_clauses } );
+
+    my $media_clause_list = join( ' or ', @{ $media_clauses } );
+    $solr_query .= " and ( $media_clause_list )";
+
+    DEBUG( "full solr query: $solr_query" );
+
+    return $solr_query;
+}
+
 # import stories intro topic_seed_urls from solr by running
 # topic->{ solr_seed_query } against solr.  if the solr query has
 # already been imported, do nothing.
@@ -2742,11 +2775,18 @@ sub import_solr_seed_query
 
     return if ( $topic->{ solr_seed_query_run } );
 
-    my $max_stories = MediaWords::Util::Config::get_config->{ mediawords }->{ max_solr_seed_query_stories };
+    my $max_stories          = MediaWords::Util::Config::get_config->{ mediawords }->{ max_solr_seed_query_stories };
+    my $max_returned_stories = 0.95 * $max_stories;
+
+    my $solr_query = get_full_solr_query( $db, $topic );
 
     INFO "executing solr query: $topic->{ solr_seed_query }";
-    my $stories =
-      MediaWords::Solr::search_for_stories( $db, { q => $topic->{ solr_seed_query }, rows => $max_stories } );
+    my $stories = MediaWords::Solr::search_for_stories( $db, { q => $solr_query, rows => $max_stories } );
+
+    if ( scalar( @{ $stories } ) > $max_returned_stories )
+    {
+        die( "solr_seed_query returned more than $max_returned_stories stories" );
+    }
 
     INFO "adding " . scalar( @{ $stories } ) . " stories to topic_seed_urls";
 
@@ -2866,6 +2906,15 @@ sub do_mine_topic ($$;$)
     # Log activity that is about to start
     MediaWords::DBI::Activities::log_system_activity( $db, 'tm_mine_topic', $topic->{ topics_id }, $options )
       || LOGCONFESS( "Unable to log the 'tm_mine_topic' activity." );
+
+    eval {
+        update_topic_state( $db, $topic, "fetching tweets" );
+        fetch_and_import_twitter_urls( $db, $topic );
+    };
+    if ( $@ )
+    {
+        LOGCONFESS "fetch_and_import_twitter_urls() failed: $@";
+    }
 
     eval {
         update_topic_state( $db, $topic, "importing solr seed query" );
@@ -3106,7 +3155,7 @@ update topic_seed_urls tsu
     from
         topic_tweet_full_urls ttfu
     where
-        ttfu.twitter_topics_id = tsu.topics_id  and
+        ttfu.topics_id = tsu.topics_id  and
         ttfu.url = tsu.url and
         tsu.topics_id = \$1 and
         assume_match = false
@@ -3116,9 +3165,9 @@ SQL
     $db->execute_with_large_work_mem(
         <<SQL,
         INSERT INTO topic_seed_urls ( topics_id, url, assume_match, source )
-            SELECT DISTINCT ttfu.twitter_topics_id, ttfu.url, true, 'twitter'
+            SELECT DISTINCT ttfu.topics_id, ttfu.url, true, 'twitter'
             FROM topic_tweet_full_urls ttfu
-            WHERE ttfu.twitter_topics_id = \$1
+            WHERE ttfu.topics_id = \$1
               AND ttfu.url NOT IN (
                 SELECT url
                 FROM topic_seed_urls
@@ -3129,40 +3178,13 @@ SQL
     );
 }
 
-# insert all topic_tweet_urls into topic_seed_urls for parent topic
-sub seed_parent_topic_with_tweet_urls($$)
+# if there is a ch_monitor_id for the given topic, fetch the twitter data from crimson hexagon and twitter
+sub fetch_and_import_twitter_urls($$$)
 {
-    my ( $db, $parent_topic ) = @_;
+    my ( $db, $topic ) = @_;
 
-    # now insert any topic_tweet_urls that are not already in the topic_seed_urls
-    $db->query( <<SQL, $parent_topic->{ topics_id } );
-insert into topic_seed_urls ( topics_id, url, assume_match, source )
-    select distinct ttd.topics_id, ttu.url, true, 'twitter'
-        from topic_tweet_days ttd
-            join topic_tweets tt using ( topic_tweet_days_id )
-            join topic_tweet_urls ttu using ( topic_tweets_id )
-            left join topic_seed_urls tsu on
-                 ( tsu.topics_id = ttd.topics_id and tsu.url = ttu.url )
-        where
-            tsu.url is null and
-            ttd.topics_id = \$1
-SQL
-}
-
-# if there is a ch_monitor_id for the given topic, fetch the twitter data from crimson hexagon and
-# twitter, run a twitter topic using those tweets, and add twitter metrics to the main topic
-sub add_twitter_data_and_topic($$$)
-{
-    my ( $db, $topic, $options ) = @_;
-
-    # only add  twitter data if there is a ch_monitor_id; don't add it for twitter topic
-    return unless ( $topic->{ ch_monitor_id } && !$topic->{ twitter_parent_topics_id } );
-
-    eval { update_topic_state( $db, $topic, "generating twitter topic" ); };
-    if ( $@ )
-    {
-        LOGCONFESS "update_topic_state() failed: $@";
-    }
+    # only add  twitter data if there is a ch_monitor_id
+    return unless ( $topic->{ ch_monitor_id } );
 
     eval { MediaWords::Job::FetchTopicTweets->run( { topics_id => $topic->{ topics_id } } ); };
     if ( $@ )
@@ -3170,30 +3192,7 @@ sub add_twitter_data_and_topic($$$)
         LOGCONFESS "MediaWords::Job::FetchTopicTweets->run() failed: $@";
     }
 
-    my $twitter_topic;
-    eval { $twitter_topic = find_or_create_twitter_topic( $db, $topic ); };
-    if ( $@ )
-    {
-        LOGCONFESS "find_or_create_twitter_topic() failed: $@";
-    }
-
-    eval { seed_topic_with_tweet_urls( $db, $twitter_topic ); };
-    if ( $@ )
-    {
-        LOGCONFESS "seed_topic_with_tweet_urls() failed: $@";
-    }
-
-    eval { seed_parent_topic_with_tweet_urls( $db, $topic ) if ( $topic->{ import_twitter_urls } ); };
-    if ( $@ )
-    {
-        LOGCONFESS "seed_parent_topic_with_tweet_urls() failed: $@";
-    }
-
-    eval { mine_topic( $db, $twitter_topic, $options ); };
-    if ( $@ )
-    {
-        LOGCONFESS "mine_topic() failed: $@";
-    }
+    seed_topic_with_tweet_urls( $db, $topic );
 }
 
 # wrap do_mine_topic in eval and handle errors and state1
@@ -3203,33 +3202,11 @@ sub mine_topic ($$;$)
 
     my $prev_test_mode = $_test_mode;
 
-    eval {
+    init_static_variables();
 
-        eval { add_twitter_data_and_topic( $db, $topic, $options ); };
-        if ( $@ )
-        {
-            LOGCONFESS "add_twitter_data_and_topic() failed: $@";
-        }
+    $_test_mode = 1 if ( $options->{ test_mode } );
 
-        init_static_variables();
-
-        $_test_mode = 1 if ( $options->{ test_mode } );
-
-        eval { do_mine_topic( $db, $topic ); };
-        if ( $@ )
-        {
-            LOGCONFESS "do_mine_topic() failed: $@";
-        }
-    };
-    if ( $@ )
-    {
-        my $error = $@;
-
-        ERROR( "topic mining failed: $@" );
-
-        update_topic_state( $db, $topic, "spidering failed" );
-        $db->update_by_id( 'topics', $topic->{ topics_id }, { error_message => $error } );
-    }
+    do_mine_topic( $db, $topic );
 
     $_test_mode = $prev_test_mode;
 }

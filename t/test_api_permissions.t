@@ -46,6 +46,8 @@ my $_url_permission_types = {
     '/api/v2/downloads/list'                      => 'admin_read',
     '/api/v2/downloads/single'                    => 'admin_read',
     '/api/v2/feeds/list'                          => 'public',
+    '/api/v2/feeds/scrape'                        => 'media_edit',
+    '/api/v2/feeds/scrape_status'                 => 'media_edit',
     '/api/v2/feeds/single'                        => 'public',
     '/api/v2/feeds/create'                        => 'media_edit',
     '/api/v2/feeds/update'                        => 'media_edit',
@@ -109,7 +111,12 @@ my $_url_permission_types = {
     '/api/v2/topics/permissions/user_list'        => 'public',
     '/api/v2/topics/sentences/count'              => 'topics_read',
     '/api/v2/topics/single'                       => 'public',
+    '/api/v2/topics/create'                       => 'media_edit',
+    '/api/v2/topics/spider'                       => 'topics_write',
+    '/api/v2/topics/spider_status'                => 'public',
+    '/api/v2/topics/update'                       => 'topics_write',
     '/api/v2/topics/snapshots/generate'           => 'topics_write',
+    '/api/v2/topics/snapshots/generate_status'    => 'topics_read',
     '/api/v2/topics/snapshots/list'               => 'topics_read',
     '/api/v2/topics/stories/count'                => 'topics_read',
     '/api/v2/topics/stories/list'                 => 'topics_read',
@@ -139,10 +146,14 @@ my $_url_transformations = {
     '/api/v2/topics/permissions/user_list'        => '/api/v2/topics/permissions/user/list',
     '/api/v2/topics/sentences/count'              => '/api/v2/topics/~topics_id~/sentences/count',
     '/api/v2/topics/snapshots/generate'           => '/api/v2/topics/~topics_id~/snapshots/generate',
+    '/api/v2/topics/snapshots/generate_status'    => '/api/v2/topics/~topics_id~/snapshots/generate_status',
     '/api/v2/topics/snapshots/list'               => '/api/v2/topics/~topics_id~/snapshots/list',
     '/api/v2/topics/stories/count'                => '/api/v2/topics/~topics_id~/stories/count',
     '/api/v2/topics/stories/list'                 => '/api/v2/topics/~topics_id~/stories/list',
     '/api/v2/topics/timespans/list'               => '/api/v2/topics/~topics_id~/timespans/list',
+    '/api/v2/topics/update'                       => '/api/v2/topics/~topics_id~/update',
+    '/api/v2/topics/spider'                       => '/api/v2/topics/~topics_id~/spider',
+    '/api/v2/topics/spider_status'                => '/api/v2/topics/~topics_id~/spider_status',
     '/api/v2/topics/wc/list'                      => '/api/v2/topics/~topics_id~/wc/list',
 };
 
@@ -400,12 +411,13 @@ sub add_topic
     my $tag_set = $db->create( 'tag_sets', { name => $name } );
 
     my $topic = {
-        name              => $name,
-        pattern           => $name,
-        solr_seed_query   => $name,
-        description       => $name,
-        topic_tag_sets_id => $tag_set->{ tag_sets_id },
-        is_public         => normalize_boolean_for_db( $is_public )
+        name            => $name,
+        pattern         => $name,
+        solr_seed_query => $name,
+        description     => $name,
+        is_public       => normalize_boolean_for_db( $is_public ),
+        start_date      => '2017-01-01',
+        end_date        => '2017-02-01',
     };
 
     $topic = $db->create( 'topics', $topic );

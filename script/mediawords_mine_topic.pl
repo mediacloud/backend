@@ -56,26 +56,19 @@ sub main
         my $topics_id = $topic->{ topics_id };
         INFO "Processing topic $topics_id...";
 
+        my $args = {
+            topics_id                       => $topics_id,
+            import_only                     => $import_only,
+            cache_broken_downloads          => $cache_broken_downloads,
+            skip_outgoing_foreign_rss_links => $skip_outgoing_foreign_rss_links
+        };
+
         if ( $direct_job )
         {
-            my $options = {
-                import_only                     => $import_only,
-                cache_broken_downloads          => $cache_broken_downloads,
-                skip_outgoing_foreign_rss_links => $skip_outgoing_foreign_rss_links,
-                skip_post_processing            => $skip_post_processing
-            };
-
-            MediaWords::TM::Mine::mine_topic( $db, $topic, $options );
+            MediaWords::Job::TM::MineTopic->run_locally( $args );
         }
         else
         {
-            my $args = {
-                topics_id                       => $topics_id,
-                import_only                     => $import_only,
-                cache_broken_downloads          => $cache_broken_downloads,
-                skip_outgoing_foreign_rss_links => $skip_outgoing_foreign_rss_links
-            };
-
             my $job_id = MediaWords::Job::TM::MineTopic->add_to_queue( $args );
             INFO "Added job with ID: $job_id";
         }

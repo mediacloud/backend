@@ -91,11 +91,16 @@ SQL
 
 sub default_output_fields
 {
-    my ( $self ) = @_;
+    my ( $self, $c ) = @_;
 
-    my $fields = [ qw ( name url media_id primary_language ) ];
+    my $fields = [ qw ( name url media_id primary_language is_monitored public_notes ) ];
 
     push( @{ $fields }, qw ( inlink_count outlink_count story_count ) ) if ( $self->{ topic_media } );
+
+    if ( grep { $MediaWords::DBI::Auth::Roles::ADMIN eq $_ } @{ $c->stash->{ api_auth }->{ roles } } )
+    {
+        push( @{ $fields }, 'editor_notes' );
+    }
 
     return $fields;
 }
@@ -356,7 +361,7 @@ sub _apply_updates_to_media($$)
             map { MediaWords::DBI::Media::add_feed_url_to_medium( $db, $input_medium->{ medium }, $_ ) } @{ $feeds };
         }
 
-        MediaWords::Job::RescrapeMedia->add_to_queue( { media_id => $medium->{ media_id } } );
+        MediaWords::Job::RescrapeMedia->add_to_queue( { media_id => $medium->{ media_id } }, undef, $db );
 
         if ( my $tags_ids = $input_medium->{ tags_ids } )
         {
@@ -536,8 +541,13 @@ SQL
 
     my $clause_list = join( ' and ', @{ $clauses } );
 
-    my $media_suggestions =
-      $db->query( "select * from media_suggestions where $clause_list order by date_submitted" )->hashes;
+    my $media_suggestions = $db->query( <<SQL )->hashes;
+select u.email email, *
+    from media_suggestions ms
+        join auth_users u using ( auth_users_id )
+    where $clause_list
+    order by date_submitted
+SQL
 
     $media_suggestions = $db->attach_child_query( $media_suggestions, <<SQL, 'tags_ids', 'media_suggestions_id' );
 select tags_id, media_suggestions_id from media_suggestions_tags_map

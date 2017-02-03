@@ -805,18 +805,20 @@ class McGetURLHostException(Exception):
 
 
 def get_url_host(url: str) -> str:
-    """Return hostname of an URL."""
+    """Return hostname of an URL. If we can't parse out the host name, just return the URL."""
     url = decode_object_from_bytes_if_needed(url)
     if url is None:
         raise McGetURLHostException("URL is None")
     if len(url) == 0:
         raise McGetURLHostException("URL is empty")
 
-    url = fix_common_url_mistakes(url)
+    fixed_url = fix_common_url_mistakes(url)
 
-    uri = urlparse(url)
-    return uri.hostname
+    uri = urlparse(fixed_url)
 
+    host = uri.hostname
+
+    return host if ( host and ( len( host ) > 0 ) ) else url
 
 # noinspection SpellCheckingInspection
 def get_url_distinctive_domain(url: str) -> str:

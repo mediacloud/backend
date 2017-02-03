@@ -15,7 +15,6 @@ BEGIN
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
-use MediaWords::AbstractJob;
 use MediaWords::DBI::Media;
 
 sub main
