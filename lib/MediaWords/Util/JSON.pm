@@ -15,10 +15,70 @@ use Encode;
 use JSON::XS qw//;    # don't import encode_json() and decode_json() into current namespace
 use Data::Dumper;
 
+# Convert Inline::Python booleans to integers before serializing to JSON
+#
+# MC_REWRITE_TO_PYTHON: remove after porting all Perl code to Python
+sub _convert_inline_python_booleans_to_ints
+{
+    my $variable = shift;
+
+    my $copy;
+
+    # Neither clone() from Clone nor dclone() from Storable flattens
+    # Inline::Python's booleans as we want, so here goes our own deep copy
+    if ( ref( $variable ) eq ref( [] ) )
+    {
+        # Arrayref
+        $copy = [];
+        foreach my $value ( @{ $variable } )
+        {
+            my $writable_value = _convert_inline_python_booleans_to_ints( $value );
+            push( @{ $copy }, $writable_value );
+        }
+
+    }
+    elsif ( ref( $variable ) eq ref( {} ) )
+    {
+        # Hashref
+        $copy = {};
+        foreach my $key ( keys %{ $variable } )
+        {
+            my $value = $variable->{ $key };
+
+            my $writable_key   = _convert_inline_python_booleans_to_ints( $key );
+            my $writable_value = _convert_inline_python_booleans_to_ints( $value );
+            $copy->{ $writable_key } = $writable_value;
+        }
+
+    }
+    elsif ( ref( $variable ) eq 'Inline::Python::Boolean' )
+    {
+        # Inline::Python booleans
+
+        $copy = int( "$variable" );
+
+    }
+    elsif ( ref( $variable ) )
+    {
+        # Some other object
+        $copy = scalar( $variable );
+
+    }
+    else
+    {
+        $copy = $variable;
+
+    }
+
+    return $copy;
+}
+
 # Encode hashref to JSON, die() on error
 sub encode_json($;$$)
 {
     my ( $object, $pretty, $utf8 ) = @_;
+
+    $object = _convert_inline_python_booleans_to_ints( $object );
 
     $pretty = ( $pretty ? 1 : 0 );
     $utf8   = ( $utf8   ? 1 : 0 );    # if you set this to 1, make sure you don't double-encode
