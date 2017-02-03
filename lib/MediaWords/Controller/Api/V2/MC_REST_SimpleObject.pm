@@ -208,9 +208,9 @@ sub get_name_search_clause
 
     return 'and false' unless ( length( $name_val ) > 2 );
 
-    my $q_name_val = $c->dbis->quote( $name_val );
+    my $q_name_val = $c->dbis->quote( '%' . $name_val . '%' );
 
-    return "and $name_field ilike '%' || $q_name_val || '%'";
+    return "and $name_field ilike $q_name_val";
 }
 
 # list_query_filter_field or list_optional_query_field, add relevant clauses

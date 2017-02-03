@@ -185,7 +185,7 @@ sub get_extra_where_clause
 
     if ( my $tag_name = $c->req->params->{ tag_name } )
     {
-        my $q_tag_name = $db->quote( $tag_name );
+        my $q_tag_name = $db->quote( '%' . lc( $tag_name ) . '%' );
         push( @{ $clauses }, <<SQL );
 and media_id in (
     select media_id
@@ -193,7 +193,7 @@ and media_id in (
             join tags t using ( tags_id )
         where
             ( t.show_on_media or t.show_on_stories ) and
-            t.tag ilike '%' || lower( $q_tag_name ) || '%'
+            t.tag ilike $q_tag_name
 )
 SQL
     }

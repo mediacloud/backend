@@ -56,7 +56,8 @@ sub _get_topics_list($$$)    # sql clause for fields to query from job_states fo
         $id_clause = 't.topics_id = ' . int( $topics_id ) . ' and ';
     }
 
-    my $topics = $db->query( <<END, $auth_users_id, $name, $limit, $offset )->hashes;
+    my $topics = $db->query(
+        <<END,
 select t.topics_id, t.name, t.pattern, t.solr_seed_query, t.description, t.max_iterations, t.state,
         t.message, t.is_public, t.ch_monitor_id, t.twitter_topics_id, t.start_date, t.end_date,
         min( p.auth_users_id ) auth_users_id, min( p.user_permission ) user_permission
@@ -66,11 +67,13 @@ select t.topics_id, t.name, t.pattern, t.solr_seed_query, t.description, t.max_i
     where
         $id_clause
         p.auth_users_id= \$1 and
-        t.name like '%' || \$2 || '%'
+        t.name like \$2
     group by t.topics_id
     order by t.state = 'completed successfully', t.state,  max( coalesce( snap.snapshot_date, '2000-01-01'::date ) ) desc
     limit \$3 offset \$4
 END
+        $auth_users_id, '%' . $name . '%', $limit, $offset
+    )->hashes;
 
     $topics = $db->attach_child_query( $topics, <<SQL, 'media', 'topics_id' );
 select m.media_id, m.name, tmm.topics_id
