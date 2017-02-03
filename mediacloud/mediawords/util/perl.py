@@ -92,7 +92,6 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
         return result
 
     query = re.sub("(\s+(LIKE|ILIKE|SIMILAR\s+TO)\s+'.+?[^']'([^']|$))", __double_percentage_sign, query, flags=re.I)
-    # FIXME
 
     # If there are no query parameters, there's nothing more to do
     if len(query_args) == 0:
