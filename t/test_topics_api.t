@@ -177,17 +177,7 @@ sub test_story_count
 
     my $story_limit = 10;
 
-<<<<<<< HEAD
-    my $base_url = { path => '/api/v2/topics/1/stories/list', params => { limit => $story_limit } };
-
-    my $response = _get_test_response( $base_url );
-
-    Test::More::ok( $response->is_success, "Request should succeed: " . $response->decoded_content );
-
-    my $actual_response = JSON::decode_json( $response->decoded_content() );
-=======
     my $actual_response = test_get( '/api/v2/topics/1/stories/list', { limit => $story_limit } );
->>>>>>> master
 
     is( scalar @{ $actual_response->{ stories } }, $story_limit, "story limit" );
 
