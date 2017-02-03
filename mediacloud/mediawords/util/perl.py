@@ -157,34 +157,46 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
                 # Convert arguments to psycopg2's argument tuple
                 query_args = tuple(query_args)
 
-            # Replace "$1" parameters with psycopg2's "%(param_1)s"
-            dollar_sign_regex = re.compile("""
-                (?P<char_before_dollar_sign>\s|,|\()    # Dollar sign preceded by whitespace, comma or bracket
-                \$(?P<param_index>\d)                   # Dollar sign with a single-digit index ("$1", "$2", ...)
-                (?=(\s|,|\)|(::)|$))                    # Lookahead and make sure dollar sign is singled out
-            """, flags=re.I | re.X)
-            dollar_sign_unique_indexes = set([x[1] for x in re.findall(dollar_sign_regex, query)])
-            dollar_sign_unique_count = len(dollar_sign_unique_indexes)
-            if dollar_sign_unique_count > 0:
-                if dollar_sign_unique_count != len(query_args):
+            else:
+
+                # Replace "$1" parameters with psycopg2's "%(param_1)s"
+                dollar_sign_regex = re.compile("""
+                    (?P<char_before_dollar_sign>\s|,|\()    # Dollar sign preceded by whitespace, comma or bracket
+                    \$(?P<param_index>\d)                   # Dollar sign with a single-digit index ("$1", "$2", ...)
+                    (?=(\s|,|\)|(::)|$))                    # Lookahead and make sure dollar sign is singled out
+                """, flags=re.I | re.X)
+                dollar_sign_unique_indexes = set([x[1] for x in re.findall(dollar_sign_regex, query)])
+                dollar_sign_unique_count = len(dollar_sign_unique_indexes)
+                if dollar_sign_unique_count > 0:
+                    if dollar_sign_unique_count != len(query_args):
+                        raise McConvertDBDPgArgumentsToPsycopg2FormatException("""
+                            Unique dollar sign count (%(dollar_sign_unique_count)d)
+                            does not match the argument count (%(argument_count)d
+                            in query "%(query)s" (arguments: %(query_args)s)
+                        """ % {
+                            'dollar_sign_unique_count': dollar_sign_unique_count,
+                            'argument_count': len(query_args),
+                            'query': query,
+                            'query_args': query_args,
+                        })
+
+                    query = re.sub(dollar_sign_regex, r'\g<char_before_dollar_sign>%(param_\g<param_index>)s', query)
+
+                    # Convert arguments to psycopg2's argument dictionary
+                    query_args_dict = {}
+                    for i in range(0, dollar_sign_unique_count):
+                        query_args_dict['param_%d' % (i + 1)] = query_args[i]
+                    query_args = query_args_dict
+
+                else:
+
                     raise McConvertDBDPgArgumentsToPsycopg2FormatException("""
-                        Unique dollar sign count (%(dollar_sign_unique_count)d)
-                        does not match the argument count (%(argument_count)d
-                        in query "%(query)s" (arguments: %(query_args)s)
-                    """ % {
-                        'dollar_sign_unique_count': dollar_sign_unique_count,
-                        'argument_count': len(query_args),
-                        'query': query,
-                        'query_args': query_args,
-                    })
+                        Query has arguments coming from Perl, but none of the supported placeholders ("?", "??", "$1")
+                        were found. Query: %(query)s; arguments: %(query_args)s
+                    """ % {'query': query, 'query_args': query_args})
 
-                query = re.sub(dollar_sign_regex, r'\g<char_before_dollar_sign>%(param_\g<param_index>)s', query)
-
-                # Convert arguments to psycopg2's argument dictionary
-                query_args_dict = {}
-                for i in range(0, dollar_sign_unique_count):
-                    query_args_dict['param_%d' % (i + 1)] = query_args[i]
-                query_args = query_args_dict
+            # Remove extra whitespace that was just added
+            query = query.strip()
 
     if query_args is None:
         query_parameters = (query,)
