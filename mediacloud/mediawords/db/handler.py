@@ -642,7 +642,7 @@ class DatabaseHandler(object):
     def commit(self) -> None:
         """Commit a transaction."""
         if not self.in_transaction():
-            l.warn("Not in transaction, nothing to COMMIT.")
+            l.debug("Not in transaction, nothing to COMMIT.")
         else:
             self.query('COMMIT')
             self.__set_in_transaction(False)
