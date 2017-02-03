@@ -132,14 +132,11 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
 
         else:
 
-            # Make regexes match at the end-of-line too
-            query = " %s " % query
-
             # Replace "?" parameters with psycopg2's "%s"
             question_mark_regex = re.compile("""
                 (?P<char_before_question_mark>\s|,|\()      # Question mark preceded by whitespace, comma or bracket
                 \?                                          # Question mark
-                (?=(\s|,|\)|(::)))                          # Lookahead and make sure question mark is singled out
+                (?=(\s|,|\)|(::)|$))                        # Lookahead and make sure question mark is singled out
             """, flags=re.I | re.X)
             question_mark_count = len(re.findall(question_mark_regex, query))
             if question_mark_count > 0:
@@ -164,7 +161,7 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
             dollar_sign_regex = re.compile("""
                 (?P<char_before_dollar_sign>\s|,|\()    # Dollar sign preceded by whitespace, comma or bracket
                 \$(?P<param_index>\d)                   # Dollar sign with a single-digit index ("$1", "$2", ...)
-                (?=(\s|,|\)|(::)))                      # Lookahead and make sure dollar sign is singled out
+                (?=(\s|,|\)|(::)|$))                    # Lookahead and make sure dollar sign is singled out
             """, flags=re.I | re.X)
             dollar_sign_unique_indexes = set([x[1] for x in re.findall(dollar_sign_regex, query)])
             dollar_sign_unique_count = len(dollar_sign_unique_indexes)
@@ -188,9 +185,6 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
                 for i in range(0, dollar_sign_unique_count):
                     query_args_dict['param_%d' % (i + 1)] = query_args[i]
                 query_args = query_args_dict
-
-            # Remove extra whitespace that was just added
-            query = query.strip()
 
     if query_args is None:
         query_parameters = (query,)
