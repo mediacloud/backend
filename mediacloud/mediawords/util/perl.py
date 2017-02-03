@@ -195,9 +195,6 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
                         were found. Query: %(query)s; arguments: %(query_args)s
                     """ % {'query': query, 'query_args': query_args})
 
-            # Remove extra whitespace that was just added
-            query = query.strip()
-
     if query_args is None:
         query_parameters = (query,)
     else:
