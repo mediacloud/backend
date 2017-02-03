@@ -82,24 +82,32 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
 
     l.debug("Query to convert: %s; with arguments: %s" % (query, query_args))
 
-    # "When parameters are used, in order to include a literal % in the query you can use the %% string."
-    #
-    # MC_REWRITE_TO_PYTHON: both psycopg2 and DBD::Pg queries get their %'s doubled here; this is usually not a
-    # big deal ("LIKE 'Abc%'" and "LIKE 'Abc%%'" work the same), but after converting queries to psycopg2's syntax, the
-    # following statement should be removed.
-    def __double_percentage_sign(match):
-        result = match.group(1).replace('%', '%%')
-        return result
+    def __duplicate_percentage_sign_in_line(q: str) -> str:
+        """Duplicate percentage sign in "LIKE '%'" statements."""
 
-    query = re.sub("""
-        (   # Group the whole "LIKE '...%'" to be later used in __double_percentage_sign()
-            \s+                         # Some space before LIKE
-            (LIKE|ILIKE|SIMILAR\s+TO)   # LIKE / ILIKE / SIMILAR TO
-            \s+                         # Some space after LIKE
-            '.+?[^']'                   # 'like pattern%'
-            ([^']|$)                    # Next character is neither not "'" or end of file
-        )
-    """, __double_percentage_sign, query, flags=re.I | re.X)
+        # "When parameters are used, in order to include a literal % in the query you can use the %% string."
+        #
+        # MC_REWRITE_TO_PYTHON: both psycopg2 and DBD::Pg queries get their %'s doubled here; this is usually not a
+        # big deal ("LIKE 'Abc%'" and "LIKE 'Abc%%'" work the same), but after converting queries to psycopg2's syntax,
+        # this helper should be removed.
+
+        def __double_percentage_sign(match):
+            result = match.group(1).replace('%', '%%')
+            return result
+
+        q = re.sub("""
+            (   # Group the whole "LIKE '...%'" to be later used in __double_percentage_sign()
+                \s+                         # Some space before LIKE
+                (LIKE|ILIKE|SIMILAR\s+TO)   # LIKE / ILIKE / SIMILAR TO
+                \s+                         # Some space after LIKE
+                '.+?[^']'                   # 'like pattern%'
+                ([^']|$)                    # Next character is neither not "'" or end of file
+            )
+        """, __double_percentage_sign, q, flags=re.I | re.X)
+
+        return q
+
+    query = __duplicate_percentage_sign_in_line(q=query)
 
     # If there are no query parameters, there's nothing more to do
     if len(query_args) == 0:
