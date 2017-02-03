@@ -87,7 +87,12 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
     # MC_REWRITE_TO_PYTHON: both psycopg2 and DBD::Pg queries get their %'s doubled here; this is usually not a
     # big deal ("LIKE 'Abc%'" and "LIKE 'Abc%%'" work the same), but after converting queries to psycopg2's syntax, the
     # following statement should be removed.
-    query = query.replace('%', '%%')
+    def __double_percentage_sign(match):
+        result = match.group(1).replace('%', '%%')
+        return result
+
+    query = re.sub("(\s+(LIKE|ILIKE|SIMILAR\s+TO)\s+'.+?[^']'([^']|$))", __double_percentage_sign, query, flags=re.I)
+    # FIXME
 
     # If there are no query parameters, there's nothing more to do
     if len(query_args) == 0:

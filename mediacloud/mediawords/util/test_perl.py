@@ -63,9 +63,21 @@ def test_convert_dbd_pg_arguments_to_psycopg2_format():
     actual_parameters = convert_dbd_pg_arguments_to_psycopg2_format(*input_parameters)
     assert expected_parameters == actual_parameters
 
-    # DBD::Pg's query with '%' string literal
-    input_parameters = ("SELECT * FROM foo WHERE surname LIKE 'Kardash%'",)
-    expected_parameters = ("SELECT * FROM foo WHERE surname LIKE 'Kardash%%'",)
+    # DBD::Pg's query with "LIKE '%'"
+    input_parameters = ("SELECT * FROM foo WHERE surname LIKE 'Karda''sh%'",)
+    expected_parameters = ("SELECT * FROM foo WHERE surname LIKE 'Karda''sh%%'",)
+    actual_parameters = convert_dbd_pg_arguments_to_psycopg2_format(*input_parameters)
+    assert expected_parameters == actual_parameters
+
+    # DBD::Pg's query with "LIKE '%'"
+    input_parameters = ("SELECT * FROM foo WHERE surname LIKE 'Karda''sh%' AND true = false",)
+    expected_parameters = ("SELECT * FROM foo WHERE surname LIKE 'Karda''sh%%' AND true = false",)
+    actual_parameters = convert_dbd_pg_arguments_to_psycopg2_format(*input_parameters)
+    assert expected_parameters == actual_parameters
+
+    # DBD::Pg's query with "RAISE EXCEPTION '%'"
+    input_parameters = ("RAISE EXCEPTION 'Foo bar baz: % % %', foo, bar, baz;",)
+    expected_parameters = input_parameters
     actual_parameters = convert_dbd_pg_arguments_to_psycopg2_format(*input_parameters)
     assert expected_parameters == actual_parameters
 
