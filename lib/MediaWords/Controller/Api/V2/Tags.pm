@@ -180,6 +180,7 @@ sub create_GET
     my $allow_null = 1;
     $input->{ show_on_media }   = normalize_boolean_for_db( $input->{ show_on_media },   $allow_null );
     $input->{ show_on_stories } = normalize_boolean_for_db( $input->{ show_on_stories }, $allow_null );
+    $input->{ is_static }       = normalize_boolean_for_db( $input->{ is_static } );
 
     my $created_tag = $c->dbis->create( 'tags', $input );
 
