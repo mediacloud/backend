@@ -401,6 +401,13 @@ sub _tokenize_text_with_lingua_sentence
         return undef;
     }
 
+    # Lingua::Sentence can hang for a very long on very long text, and anything greater than 1M is more likely to
+    # be an artifact than actual text
+    if ( length( $text ) > ( 1024 * 1024 ) )
+    {
+        $text = substr( $text, 0, 1024 * 1024 );
+    }
+
     # Only "\n\n" (not a single "\n") denotes the end of sentence, so remove single line breaks
     $text =~ s/([^\n])\n([^\n])/$1 $2/gs;
 
