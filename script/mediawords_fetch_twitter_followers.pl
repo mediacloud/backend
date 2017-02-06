@@ -33,12 +33,12 @@ sub main
         access_token_secret => $config->{ twitter }->{ access_token_secret },
     );
 
-    my $ids    = [];
-    my $cursor = -1;
+    my $num_ids = 0;
+    my $cursor  = -1;
     my $r;
     while ( $cursor )
     {
-        DEBUG( "fetching ..." );
+        DEBUG( "fetching ( $num_ids / $cursor ) ..." );
 
         $r = eval { $twitter->followers_ids( { screen_name => $user, cursor => $cursor } ) };
         if ( $@ && ( $@ =~ /Rate limit exceeded/ ) )
@@ -48,13 +48,11 @@ sub main
             next;
         }
 
-        push( @{ $ids }, @{ $r->{ ids } } );
+        print( join( "\n", @{ $r->{ ids } } ) . "\n" );
+
         $cursor = $r->{ next_cursor };
-        DEBUG( "total ids: " . scalar( @{ $ids } ) );
+        $num_ids += scalar( @{ $r->{ ids } } );
     }
-
-    print( join( "\n", @{ $ids } ) . "\n" );
-
 }
 
 main();
