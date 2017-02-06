@@ -35,6 +35,12 @@ if [ `uname` == 'Darwin' ]; then
         Net::AMQP::RabbitMQ~2.100001
 fi
 
+# Carton is unable to find PkgConfig~0.14026 in a conventional way
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
+    --local-lib-contained local/ \
+    --verbose \
+    https://github.com/PerlPkgConfig/perl-PkgConfig/archive/8108f685b45423397f3448e03f369ad9a8311a93.tar.gz
+
 # Inline::Python needs to use virtualenv's Python 3 instead of the default Python2
 set +u; source mc-venv/bin/activate; set -u
 INLINE_PYTHON_EXECUTABLE=`command -v python3`   # `which` is a liar
