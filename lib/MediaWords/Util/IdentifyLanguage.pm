@@ -11,6 +11,7 @@ use utf8;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use Encode;
 use URI;
 use Readonly;
 use Lingua::Identify::CLD;
@@ -201,6 +202,14 @@ sub language_code_for_text($;$$)
 
     # Lingua::Identify::CLD doesn't like undef TLDs
     $tld ||= '';
+
+    # we need to verify that the file can cleany encode and decode because CLD can segfault on bad utf8
+    $text = eval { decode( 'utf-8', encode( 'utf-8', $text ) ) };
+    if ( $@ )
+    {
+        ERROR( "utf-8 error in text: $@" );
+        return '';
+    }
 
     my $language_name =
       lc( $cld->identify( $text, tld => $tld, isPlainText => ( !$is_html ), allowExtendedLanguages => 0 ) );
