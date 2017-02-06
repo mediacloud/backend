@@ -4880,10 +4880,10 @@ DISTRIBUTIONS
     requirements:
       ExtUtils::MakeMaker 0
       perl 5.006001
-  Lingua-Identify-CLD-0.09
-    pathname: A/AM/AMBS/Lingua-Identify-CLD-0.09.tar.gz
+  Lingua-Identify-CLD-0.10
+    pathname: A/AM/AMBS/Lingua-Identify-CLD-0.10.tar.gz
     provides:
-      Lingua::Identify::CLD 0.09
+      Lingua::Identify::CLD 0.10
     requirements:
       Config::AutoConf 0.17
       ExtUtils::CBuilder 0.27
