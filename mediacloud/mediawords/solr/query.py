@@ -16,6 +16,21 @@ from mediawords.util.perl import decode_string_from_bytes_if_needed
 l = create_logger(__name__)
 
 
+class McSolrQueryException(Exception):
+    """Generic Solr query exception."""
+    pass
+
+
+class McSolrQueryParseSyntaxException(McSolrQueryException):
+    """Error class for syntax errors encountered when parsing."""
+    pass
+
+
+class McSolrImplementationException(McSolrQueryException):
+    """Implementation errors."""
+    pass
+
+
 class TokenType(enum.Enum):
     """Token types."""
     OPEN = 'open paren'
@@ -157,7 +172,7 @@ class ParseNode(AbstractParseNode):
         filtered_tree = self.filter_tree(self.__node_is_field_or_noop)
 
         if filtered_tree is None:
-            raise ParseSyntaxError("query is empty without fields or ranges")
+            raise McSolrQueryParseSyntaxException("query is empty without fields or ranges")
 
         return filtered_tree.get_tsquery()
 
@@ -167,7 +182,7 @@ class ParseNode(AbstractParseNode):
         filtered_tree = self.filter_tree(self.__node_is_field_or_noop_or_not)
 
         if filtered_tree is None:
-            raise ParseSyntaxError("query is empty without fields or ranges")
+            raise McSolrQueryParseSyntaxException("query is empty without fields or ranges")
 
         return filtered_tree.get_re()
 
@@ -192,7 +207,7 @@ class TermNode(ParseNode):
                     operands.append(TermNode(term))
 
             if len(operands) == 0:
-                raise ParseSyntaxError("empty phrase not allowed")
+                raise McSolrQueryParseSyntaxException("empty phrase not allowed")
 
             return AndNode(operands).get_tsquery()
         else:
@@ -303,7 +318,7 @@ class NotNode(ParseNode):
         return '!' + self.operand.get_tsquery()
 
     def get_re(self, operands: List[AbstractParseNode] = None) -> str:
-        raise ParseSyntaxError("not operations not supported for re()")
+        raise McSolrQueryParseSyntaxException("not operations not supported for re()")
 
     def _filter_node_children(self, filter_function: Callable[[AbstractParseNode], bool]) \
             -> Union[AbstractParseNode, None]:
@@ -326,13 +341,13 @@ class FieldNode(ParseNode):
         if self.field == 'sentence':
             return self.operand.get_tsquery()
         else:
-            raise ValueError("non-sentence field nodes should have been filtered")
+            raise McSolrImplementationException("non-sentence field nodes should have been filtered")
 
     def get_re(self, operands: List[AbstractParseNode] = None) -> str:
         if self.field == 'sentence':
             return self.operand.get_re()
         else:
-            raise ValueError("non-sentence field nodes should have been filtered")
+            raise McSolrImplementationException("non-sentence field nodes should have been filtered")
 
     def _filter_node_children(self, filter_function: Callable[[AbstractParseNode], bool]) \
             -> Union[AbstractParseNode, None]:
@@ -350,28 +365,23 @@ class NoopNode(ParseNode):
         return NOOP_PLACEHOLDER
 
     def get_tsquery(self) -> str:
-        raise ValueError("noop nodes should have been filtered")
+        raise McSolrImplementationException("noop nodes should have been filtered")
 
     def get_re(self, operands: List[AbstractParseNode] = None) -> str:
-        raise ValueError("noop nodes should have been filtered")
+        raise McSolrImplementationException("noop nodes should have been filtered")
 
     def _filter_node_children(self, filter_function: Callable[[AbstractParseNode], bool]) \
             -> Union[AbstractParseNode, None]:
         return NoopNode()
 
 
-class ParseSyntaxError(Exception):
-    """Error class for syntax errors encountered when parsing."""
-    pass
-
-
 def __parse_tokens(tokens: List[Token], want_type: List[TokenType] = None) -> ParseNode:
     """Given a flat list of tokens, generate a boolean logic tree."""
 
     def __check_type(checked_token: Token, checked_want_type: List[TokenType]) -> None:
-        """Throw a ParseSyntaxError if the given type is not in the want_type list."""
+        """Throw a McSolrQueryParseSyntaxException if the given type is not in the want_type list."""
         if checked_token.token_type not in checked_want_type:
-            raise ParseSyntaxError(
+            raise McSolrQueryParseSyntaxException(
                 "Token '%s' is not one of the following expected types: %s" % (
                     str(checked_token), str(checked_want_type))
             )
@@ -524,7 +534,7 @@ def __parse_tokens(tokens: List[Token], want_type: List[TokenType] = None) -> Pa
             clause = NotNode(operand)
 
         else:
-            raise ParseSyntaxError("unknown type for token '%s'" % token)
+            raise McSolrQueryParseSyntaxException("unknown type for token '%s'" % token)
 
         want_type += [TokenType.CLOSE]
 
@@ -567,11 +577,11 @@ def __get_tokens(query: str) -> List[Token]:
         elif token == '+':
             return TokenType.PLUS
         elif token == '~':
-            raise ParseSyntaxError("proximity searches not supported")
+            raise McSolrQueryParseSyntaxException("proximity searches not supported")
         elif token == '/':
-            raise ParseSyntaxError("regular expression searches not supported")
+            raise McSolrQueryParseSyntaxException("regular expression searches not supported")
         elif (WILD_PLACEHOLDER in token) and not re.match(r'^\w+' + WILD_PLACEHOLDER + '$', token):
-            raise ParseSyntaxError("* can only appear the end of a term: " + token)
+            raise McSolrQueryParseSyntaxException("* can only appear the end of a term: " + token)
         elif token == NOOP_PLACEHOLDER:
             return TokenType.NOOP
         elif token.endswith(FIELD_PLACEHOLDER):
@@ -579,7 +589,7 @@ def __get_tokens(query: str) -> List[Token]:
         elif re.match('^\w+$', token):
             return TokenType.TERM
         else:
-            raise ParseSyntaxError("unrecognized token '%s'" % str(token))
+            raise McSolrQueryParseSyntaxException("unrecognized token '%s'" % str(token))
 
     tokens = []
 

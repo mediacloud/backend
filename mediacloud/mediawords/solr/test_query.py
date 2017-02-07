@@ -28,12 +28,12 @@ def validate_tsquery(solr_query, expected_tsquery):
 
 
 def run_tsquery_tests():
-    assert_raises(ParseSyntaxError, parse, "and")
-    assert_raises(ParseSyntaxError, lambda x: parse(x).tsquery(), "media_id:1")
-    assert_raises(ParseSyntaxError, parse, '"foo bar"~3')
-    assert_raises(ParseSyntaxError, parse, '( foo bar )*')
-    assert_raises(ParseSyntaxError, parse, '*')
-    assert_raises(ParseSyntaxError, parse, '*foo')
+    assert_raises(McSolrQueryParseSyntaxException, parse, "and")
+    assert_raises(McSolrQueryParseSyntaxException, lambda x: parse(x).tsquery(), "media_id:1")
+    assert_raises(McSolrQueryParseSyntaxException, parse, '"foo bar"~3')
+    assert_raises(McSolrQueryParseSyntaxException, parse, '( foo bar )*')
+    assert_raises(McSolrQueryParseSyntaxException, parse, '*')
+    assert_raises(McSolrQueryParseSyntaxException, parse, '*foo')
 
     # single term
     validate_tsquery('foo', 'foo')
@@ -166,7 +166,7 @@ def run_re_tests():
 
     # not claues should be filtered out
     # this should raise an error because filtering the not clause leaves an empty query
-    assert_raises(ParseSyntaxError, lambda x: parse(x).re(), 'not ( foo bar )')
+    assert_raises(McSolrQueryParseSyntaxException, lambda x: parse(x).re(), 'not ( foo bar )')
     validate_re('foo and !bar', '[[:<:]]foo')
     validate_re('foo -( bar and bar )', '[[:<:]]foo')
 
