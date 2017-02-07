@@ -225,6 +225,123 @@ Tips on writing useful unit tests:
 * If the code does not feel like it's easily testable, consider refactoring said code
 
 
+## Use Nose's Test Naming Syntax
+
+### Keep unit tests in the same directory, prefix file names with `test_`
+
+For example, unit tests for module `foo.py` should be kept in file `test_foo.py`.
+
+### Keep unit test functions separate
+
+Nose will automatically run all functions that start with `test_`:
+
+```python
+# BAD!
+def __test_this():
+    # Do some testing
+
+def __test_that():
+    # Do some more testing
+
+def test_everything_at_once():
+    __test_this()
+    __test_that()
+```
+
+```python
+# GOOD!
+def test_this():
+    # Do some *self contained* testing
+
+def test_that():
+    # Do some more *self contained* testing
+```
+
+This makes it easier to run a single test from an IDE instead of the full suite.
+
+If you need to do any preparations for the test that is being run, create a `TestCase` class and implement `setUp()` and `tearDown()` (see below).
+
+### Test utility modules with a flat test files
+
+Module `badger.py`:
+
+```python
+def foo():
+    # ...
+
+def bar():
+    # ...
+
+def baz():
+    # ...
+```
+
+Test file `test_badger.py`:
+
+```python
+from badger import *
+
+
+def test_foo():
+    assert foo('xyz') == 'abc'
+
+def test_bar():
+    # ...
+
+def test_baz():
+    # ...
+```
+
+### Test classes with test classes
+
+Module `research.py`:
+
+```python
+class Research(object):
+    
+    def research_something(self):
+        # ...
+
+    def get_funding(self):
+        # ...
+
+    def make_powerpoint_presentation(self):
+        # ...
+```
+
+Test file `test_research.py`:
+
+```python
+from unittest import TestCase
+
+from research import Research
+
+
+class TestResearch(TestCase):
+    __research = None
+
+    def setUp(self):
+        # Run before every test
+        # (it is not neccessary to create a object that's being tested in
+        # setUp() and use it in the test class, this is just a showcase that
+        # setUp() exists.)
+        self.__research = Research()
+
+    def tearDown(self):
+        # Run after every test
+        # ...
+
+    def test_research_something(self):
+        assert self.research_something() == 42
+
+    def test_get_funding(self):
+        # ...
+
+    def test_make_powerpoint_presentation(self):
+        # ...
+```
+
+
 ## Contain External Dependencies in Wrappers
 
 In other words, don't pass around objects coming from external dependencies throughout the code.
@@ -280,7 +397,7 @@ response_text = response.text()
 Unlike Perl, Python has native `bool` type, so use it instead of passing around `0` and `1` to denote "false" and "true".
 
 
-## Don't `import *`
+## Don't `import *` (except for in tests)
 
 Do not `from module import *` because it makes it hard to backtrack which external functions are actually being used.
 
