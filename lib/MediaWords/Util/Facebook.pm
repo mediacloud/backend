@@ -223,7 +223,7 @@ sub get_url_share_comment_counts
     }
     $url = $uri->as_string;
 
-    # Make API request (https://developers.facebook.com/docs/graph-api/reference/v2.3/url)
+    # Make API request (https://developers.facebook.com/docs/graph-api/reference/url/)
     my $data;
     eval { $data = api_request( '', [ { key => 'id', value => $url } ] ); };
     if ( $@ )
