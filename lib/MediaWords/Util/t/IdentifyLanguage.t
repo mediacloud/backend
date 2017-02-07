@@ -4,7 +4,7 @@ use warnings;
 use utf8;
 
 use Test::NoWarnings;
-use Test::More tests => 29;
+use Test::More tests => 31;
 
 use Readonly;
 
@@ -85,6 +85,14 @@ sub test_utf8()
     }
 }
 
+sub test_very_long_string()
+{
+    my $very_long_string = 'a' x ( 1024 * 1024 * 10 );    # 10 MB of 'a'
+    ok( length( $very_long_string ) > 1024 * 1024 * 9 );
+    eval { MediaWords::Util::IdentifyLanguage::language_code_for_text( $very_long_string ); };
+    ok( !$@, "Very long string" );
+}
+
 sub main()
 {
     my $builder = Test::More->builder;
@@ -96,6 +104,7 @@ sub main()
     test_identification_would_be_reliable();
     test_language_is_supported();
     test_utf8();
+    test_very_long_string();
 }
 
 main();

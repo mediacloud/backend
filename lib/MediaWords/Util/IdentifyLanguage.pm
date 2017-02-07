@@ -188,6 +188,9 @@ Readonly my %language_codes_to_names => reverse %language_names_to_codes;
 # Min. text length for reliable language identification
 Readonly my $RELIABLE_IDENTIFICATION_MIN_TEXT_LENGTH => 10;
 
+# Don't process strings longer than that
+Readonly my $MAX_TEXT_LENGTH => 1024 * 1024;
+
 # Returns an ISO 690 language code for the plain text passed as a parameter
 # Parameters:
 #  * Text that should be identified (required)
@@ -199,6 +202,12 @@ sub language_code_for_text($;$$)
     my ( $text, $tld, $is_html ) = @_;
 
     return '' unless ( $text );
+
+    if ( length( $text ) > $MAX_TEXT_LENGTH )
+    {
+        WARN "Text is longer than $MAX_TEXT_LENGTH, trimming...";
+        $text = substr( $text, 0, $MAX_TEXT_LENGTH );
+    }
 
     # Lingua::Identify::CLD doesn't like undef TLDs
     $tld ||= '';
@@ -246,6 +255,12 @@ sub identification_would_be_reliable($)
     if ( length( $text ) < $RELIABLE_IDENTIFICATION_MIN_TEXT_LENGTH )
     {
         return 0;
+    }
+
+    if ( length( $text ) > $MAX_TEXT_LENGTH )
+    {
+        WARN "Text is longer than $MAX_TEXT_LENGTH, trimming...";
+        $text = substr( $text, 0, $MAX_TEXT_LENGTH );
     }
 
     # Not enough letters as opposed to non-letters?
