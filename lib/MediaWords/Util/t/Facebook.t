@@ -64,10 +64,10 @@ sub test_share_comment_counts($)
 {
     my ( $db ) = @_;
 
-    my ( $nyt_share_count, $nyt_comment_count ) =
+    my ( $nyt_ferguson_share_count, $nyt_ferguson_comment_count ) =
       MediaWords::Util::Facebook::get_url_share_comment_counts( $db,
-        'https://www.nytimes.com/2017/02/05/us/politics/trump-white-house-aides-strategy.html' );
-    ok( $nyt_share_count > 60000, "nyt count '$nyt_share_count' should be greater than 60,000" );
+        'http://www.nytimes.com/interactive/2014/08/13/us/ferguson-missouri-town-under-siege-after-police-shooting.html' );
+    ok( $nyt_ferguson_share_count > 0, "nyt ferguson count '$nyt_ferguson_share_count' should be positive" );
 
     my ( $zero_share_count, $zero_comment_count ) =
       MediaWords::Util::Facebook::get_url_share_comment_counts( $db, 'http://totally.bogus.url.123456' );
