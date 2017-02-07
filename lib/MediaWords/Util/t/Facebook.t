@@ -66,7 +66,7 @@ sub test_share_comment_counts($)
     my ( $nyt_ferguson_share_count, $nyt_ferguson_comment_count ) =
       MediaWords::Util::Facebook::get_url_share_comment_counts( $db,
         'http://www.nytimes.com/interactive/2014/08/13/us/ferguson-missouri-town-under-siege-after-police-shooting.html' );
-    ok( $nyt_ferguson_share_count > 25000, "nyt ferguson count '$nyt_ferguson_share_count' should be greater than 25,000" );
+    ok( $nyt_ferguson_share_count > 0, "nyt ferguson count '$nyt_ferguson_share_count' should be positive" );
 
     my ( $zero_share_count, $zero_comment_count ) =
       MediaWords::Util::Facebook::get_url_share_comment_counts( $db, 'http://totally.bogus.url.123456' );

@@ -64,7 +64,7 @@ requires 'IO::Compress::Bzip2';
 requires 'IO::Compress::Gzip';
 requires 'JSON';
 requires 'JSON::XS';
-requires 'Lingua::Identify::CLD', '0.08';
+requires 'Lingua::Identify::CLD', '0.10';
 requires 'Lingua::Sentence';
 requires 'Lingua::Stem::Snowball';
 requires 'Lingua::Stem::Snowball::Lt', '0.02';

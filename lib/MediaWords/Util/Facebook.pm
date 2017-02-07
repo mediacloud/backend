@@ -21,7 +21,7 @@ use Data::Dumper;
 use List::MoreUtils qw/any/;
 
 # Facebook Graph API version to use
-Readonly my $FACEBOOK_GRAPH_API_VERSION => 'v2.5';
+Readonly my $FACEBOOK_GRAPH_API_VERSION => 'v2.8';
 
 # Number of retries to do on temporary Facebook Graph API errors (such as rate limiting issues or API downtime)
 Readonly my $FACEBOOK_GRAPH_API_RETRY_COUNT => 22;
@@ -223,7 +223,7 @@ sub get_url_share_comment_counts
     }
     $url = $uri->as_string;
 
-    # Make API request (https://developers.facebook.com/docs/graph-api/reference/v2.3/url)
+    # Make API request (https://developers.facebook.com/docs/graph-api/reference/url/)
     my $data;
     eval { $data = api_request( '', [ { key => 'id', value => $url } ] ); };
     if ( $@ )
