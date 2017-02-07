@@ -18,7 +18,7 @@ In order to:
 
 ## Format code with PEP 8
 
-[PEP 8](https://www.python.org/dev/peps/pep-0008/) is the go-to style guide for Python code, so let's not reinventing the wheel.
+[PEP 8](https://www.python.org/dev/peps/pep-0008/) is the go-to style guide for Python code, so let's not reinvent the wheel.
 
 If using PyCharm (which you should), it's easy to reformat your code by pressing `⌥⌘L` on OS X or `Ctrl + Alt + L` on Linux. Also, PyCharm will help you fix other PEP 8 mistakes automatically.
 
