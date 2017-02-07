@@ -5,7 +5,7 @@ In order to:
 * Keep our sanity intact
 * Make the codebase look like an unified body of work
 * Be able to eventually attract and hire someone new
-	* ...and not have to handhold him/her through the whole codebase for half a year
+    * ...and not have to handhold him/her through the whole codebase for half a year
 * Reduce the amount of fires we have to extinguish daily instead of implementing features
 
 ...on the best effort basis, we should:
@@ -73,7 +73,7 @@ Python 3 has [type hints](https://docs.python.org/3/library/typing.html), and we
 ```python
 # BAD!
 def select(table, what_to_select='*', condition_hash):
-	# ...
+    # ...
 ```
 
 ```python
@@ -81,7 +81,7 @@ def select(table, what_to_select='*', condition_hash):
 def select(table: str,
            what_to_select: str = '*',
            condition_hash: dict) -> dict:
-	# ...
+    # ...
 ```
 
 For argument / return types, you can define built-in types (`str`, `int`, `list`, `dict`, `bool`, ...) or nested types using helpers from `typing` package, e.g.:
@@ -90,13 +90,35 @@ For argument / return types, you can define built-in types (`str`, `int`, `list`
 from typing import Dict, Callable, List
 
 def a(arg1: List[Dict[str, int]]) -> None:
-	# 'arg1' is expected to be a `list` of `dict`s with `str` keys
-	# and `int` values, and we aren't returning anything in this
-	# function
+    # 'arg1' is expected to be a `list` of `dict`s with `str` keys
+    # and `int` values, and we aren't returning anything in this
+    # function
 
 def b(arg2: Callable[[], None]):
-	# 'arg2' is expected to be a function with no arguments and
-	# nothing to return
+    # 'arg2' is expected to be a function with no arguments and
+    # nothing to return
+```
+
+
+## Write docstrings for everything
+
+Describe what your functions / methods / classes / whatnot are doing **and why they're doing that**, so that others (including you in a couple of months) would be able to figure out what the code is all about without reading through the implementation. Start the docstring with a capital letter, end it with a period, wrap it around 120 lines as per PEP 8:
+
+```python
+# BAD!
+def do_stuff(param_1: int, obj: SomeSortOfObject, some_other_param: tuple) -> bool:
+    # No docstring, code that does strange stuff in the next 600 lines follows
+    ...
+```
+
+```python
+# GOOD!
+def do_stuff(param_1: int, obj: SomeSortOfObject, some_other_param: tuple) -> bool:
+    """Short summary of what does the function do.
+
+    Extended description of the minutiae of the function (if applicable) and an
+    explanation of function's purpose in a bigger picture."""
+    ...
 ```
 
 
@@ -110,29 +132,46 @@ On multiple occasions in the code, we have a need to find out:
 To make debugging easier, consider defining and throwing custom exceptions instead of just `Exception`:
 
 ```python
-class McBadgerException(Exception):
-	"""Problems in badger()."""
-	pass
+class McResearchException(Exception):
+    """Problems in research()."""
+    pass
 
-class McBadgerSoftFailureException(McBadgerException):
-	"""Recoverable problems in badger()."""
-	pass
+class McResearchSoftFailureException(McResearchException):
+    """Recoverable problems in research()."""
+    pass
 
-class McBadgerHardFailureException(McBadgerException):
-	"""Unrecoverable problems in badger()."""
-	pass
+class McResearchHardFailureException(McResearchException):
+    """Unrecoverable problems in research()."""
+    pass
 
 
-def badger():
-	if network.down():
-		raise McBadgerSoftFailureException(
-			"Network is down, but it's worth retrying."
-		)
-	
-	if funding.gone():
-		raise McBadgerHardFailureException(
-			"Well, we'll have to just stop here."
-		)
+def research():
+    """Do important researchy stuff."""
+    if network.down():
+        raise McResearchSoftFailureException(
+            "Network is down, but it's worth retrying."
+        )
+    
+    if funding.gone():
+        raise McResearchHardFailureException(
+            "Well, we'll have to just stop here."
+        )
+
+retries = 3
+for retry in range(0, 3):
+    while True:
+        try:
+            research()
+        except McResearchSoftFailureException as ex:
+            l.info("Something has failed while doing research, but I'll retry: %s" % str(ex))
+            continue
+        except McResearchHardFailureException as ex:
+            l.error("Critical error while doing research, can't continue: %s" % str(ex))
+            sys.exit(1)
+
+        l.info("Research completed, time to get published!")
+        break
+
 ```
 
 
@@ -149,19 +188,19 @@ Writing those tests is definitely a burden, especially when put under time const
 Tips on writing useful unit tests:
 
 * Write the test **first** and only then implement the required functionality.
-	* It's easier to postpone the testing indefinitely if the test is to be done "later".
-	* Instead of a burden, an unit test should be a tool for the developer to test the code.
+    * It's easier to postpone the testing indefinitely if the test is to be done "later".
+    * Instead of a burden, an unit test should be a tool for the developer to test the code.
 * Write **unit** tests, distinguish them from integration tests.
-	* Wikipedia defines a *unit* as *the smallest testable part of an application*. Thus, functionality spanning three modules and 3000 code lines is not much of a unit.
-	* Integration tests are at the very least:
-		* slow (as they test a lot of code at once),
-		* unable to cover all border cases of a single unit (a function or a method),
-		* hard to debug (typically, the integration test is able to report only that the code failed, not where and why it had done so)
-	* ...so while still tremendously useful, they're not a good replacement for having unit tests
+    * Wikipedia defines a *unit* as *the smallest testable part of an application*. Thus, functionality spanning three modules and 3000 code lines is not much of a unit.
+    * Integration tests are at the very least:
+        * slow (as they test a lot of code at once),
+        * unable to cover all border cases of a single unit (a function or a method),
+        * hard to debug (typically, the integration test is able to report only that the code failed, not where and why it had done so)
+    * ...so while still tremendously useful, they're not a good replacement for having unit tests
 * Make unit tests **atomic**
-	* ...meaning that a single test should be testing only a small part of the functionality, e.g. a function or a class method
+    * ...meaning that a single test should be testing only a small part of the functionality, e.g. a function or a class method
 * Make unit tests **isolated**
-	* A unit test can't depend on it being run in a particular order with other tests
+    * A unit test can't depend on it being run in a particular order with other tests
 * If the code does not feel like it's easily testable, consider refactoring said code
 
 
@@ -178,7 +217,7 @@ Quote often we decide to change underlying third party tool with an alternative 
 import requests
 
 def fetch_url(url: str) -> requests.Response:
-	return requests.get(url)
+    return requests.get(url)
 
 response = fetch_url('http://www.mediacloud.org/')
 response_text = response.text
@@ -195,16 +234,16 @@ import requests
 
 class FetchURLResponse(object):
 
-	__requests_response = None
+    __requests_response = None
 
-	def __init__(self, requests_response: requests.Response):
-		self.__requests_response = requests_response
+    def __init__(self, requests_response: requests.Response):
+        self.__requests_response = requests_response
 
-	def text(self) -> str:
-		return self.__requests_response.text
+    def text(self) -> str:
+        return self.__requests_response.text
 
 def fetch_url(url: str) -> requests.Response:
-	return FetchURLResponse(requests.get(url))
+    return FetchURLResponse(requests.get(url))
 
 response = fetch_url('http://www.mediacloud.org/')
 response_text = response.text()
