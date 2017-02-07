@@ -131,7 +131,7 @@ class ParseNode(object):
         filtered_tree = self.filter_tree(self.__node_is_field_or_noop)
 
         if filtered_tree is None:
-            raise (ParseSyntaxError("query is empty without fields or ranges"))
+            raise ParseSyntaxError("query is empty without fields or ranges")
 
         return filtered_tree.get_tsquery()
 
@@ -141,7 +141,7 @@ class ParseNode(object):
         filtered_tree = self.filter_tree(self.__node_is_field_or_noop_or_not)
 
         if filtered_tree is None:
-            raise (ParseSyntaxError("query is empty without fields or ranges"))
+            raise ParseSyntaxError("query is empty without fields or ranges")
 
         return filtered_tree.get_re()
 
@@ -166,7 +166,7 @@ class TermNode(ParseNode):
                     operands.append(TermNode(term))
 
             if len(operands) == 0:
-                raise (ParseSyntaxError("empty phrase not allowed"))
+                raise ParseSyntaxError("empty phrase not allowed")
 
             return AndNode(operands).get_tsquery()
         else:
@@ -203,10 +203,10 @@ class BooleanNode(ParseNode):
             operand.parent = self
 
     def _plain_connector(self):
-        raise (AssertionError("sub class must define _plain_connector"))
+        raise AssertionError("sub class must define _plain_connector")
 
     def _tsquery_connector(self):
-        raise (AssertionError("sub class must define _tsquery_connector"))
+        raise AssertionError("sub class must define _tsquery_connector")
 
     def __repr__(self):
         connector = ' ' + self._plain_connector() + ' '
@@ -271,7 +271,7 @@ class NotNode(ParseNode):
         return '!' + self.operand.get_tsquery()
 
     def get_re(self):
-        raise (ParseSyntaxError("not operations not supported for re()"))
+        raise ParseSyntaxError("not operations not supported for re()")
 
     def _filter_node_children(self, filter_function):
         filtered_operand = self.operand.filter_tree(filter_function)
@@ -293,13 +293,13 @@ class FieldNode(ParseNode):
         if self.field == 'sentence':
             return self.operand.get_tsquery()
         else:
-            raise (ValueError("non-sentence field nodes should have been filtered"))
+            raise ValueError("non-sentence field nodes should have been filtered")
 
     def get_re(self):
         if self.field == 'sentence':
             return self.operand.get_re()
         else:
-            raise (ValueError("non-sentence field nodes should have been filtered"))
+            raise ValueError("non-sentence field nodes should have been filtered")
 
     def _filter_node_children(self, filter_function):
         filtered_operand = self.operand.filter_tree(filter_function)
@@ -316,10 +316,10 @@ class NoopNode(ParseNode):
         return NOOP_PLACEHOLDER
 
     def get_tsquery(self):
-        raise (ValueError("noop nodes should have been filtered"))
+        raise ValueError("noop nodes should have been filtered")
 
     def get_re(self):
-        raise (ValueError("noop nodes should have been filtered"))
+        raise ValueError("noop nodes should have been filtered")
 
     def _filter_node_children(self, filter_function):
         return NoopNode()
@@ -330,7 +330,7 @@ class ParseSyntaxError(Exception):
     pass
 
 
-def _parse_tokens(tokens, want_type=None):
+def __parse_tokens(tokens, want_type=None):
     """Given a flat list of tokens, generate a boolean logic tree."""
 
     def __check_type(checked_token, checked_want_type):
@@ -376,7 +376,7 @@ def _parse_tokens(tokens, want_type=None):
         __check_type(token, want_type)
 
         if token.type == T_OPEN:
-            clause = _parse_tokens(tokens, [T_OPEN, T_PHRASE, T_NOT, T_FIELD, T_TERM, T_NOOP, T_CLOSE])
+            clause = __parse_tokens(tokens, [T_OPEN, T_PHRASE, T_NOT, T_FIELD, T_TERM, T_NOOP, T_CLOSE])
             want_type = [T_OPEN, T_PHRASE, T_NOT, T_FIELD, T_TERM, T_NOOP, T_CLOSE, T_AND, T_OR, T_PLUS]
 
         elif token.type == T_CLOSE:
@@ -417,9 +417,9 @@ def _parse_tokens(tokens, want_type=None):
             field_name = re.sub(FIELD_PLACEHOLDER, '', token.value)
             next_token = tokens.pop(0)
             if next_token.type == T_OPEN:
-                field_clause = _parse_tokens(tokens, [T_PHRASE, T_NOT, T_TERM, T_NOOP, T_CLOSE, T_PLUS])
+                field_clause = __parse_tokens(tokens, [T_PHRASE, T_NOT, T_TERM, T_NOOP, T_CLOSE, T_PLUS])
             else:
-                field_clause = _parse_tokens([next_token], [T_PHRASE, T_TERM, T_NOOP])
+                field_clause = __parse_tokens([next_token], [T_PHRASE, T_TERM, T_NOOP])
 
             l.debug("field operand for %s: %s" % (field_name, field_clause))
 
@@ -430,16 +430,16 @@ def _parse_tokens(tokens, want_type=None):
             # operand = None
             next_token = tokens.pop(0)
             if next_token.type == T_OPEN:
-                operand = _parse_tokens(tokens, [T_FIELD, T_PHRASE, T_NOT, T_TERM, T_NOOP, T_CLOSE, T_PLUS])
+                operand = __parse_tokens(tokens, [T_FIELD, T_PHRASE, T_NOT, T_TERM, T_NOOP, T_CLOSE, T_PLUS])
             elif next_token.type == T_FIELD:
                 tokens.insert(0, next_token)
-                operand = _parse_tokens(tokens, [T_FIELD])
+                operand = __parse_tokens(tokens, [T_FIELD])
             else:
-                operand = _parse_tokens([next_token], [T_PHRASE, T_TERM, T_NOOP, T_FIELD])
+                operand = __parse_tokens([next_token], [T_PHRASE, T_TERM, T_NOOP, T_FIELD])
             clause = NotNode(operand)
 
         else:
-            raise (ParseSyntaxError("unknown type for token '%s'" % token))
+            raise ParseSyntaxError("unknown type for token '%s'" % token)
 
         want_type += [T_CLOSE]
 
@@ -478,11 +478,11 @@ def _get_token_type(token):
     elif token == '+':
         return T_PLUS
     elif token == '~':
-        raise (ParseSyntaxError("proximity searches not supported"))
+        raise ParseSyntaxError("proximity searches not supported")
     elif token == '/':
-        raise (ParseSyntaxError("regular expression searches not supported"))
+        raise ParseSyntaxError("regular expression searches not supported")
     elif (WILD_PLACEHOLDER in token) and not re.match(r'^\w+' + WILD_PLACEHOLDER + '$', token):
-        raise (ParseSyntaxError("* can only appear the end of a term: " + token))
+        raise ParseSyntaxError("* can only appear the end of a term: " + token)
     elif token == NOOP_PLACEHOLDER:
         return T_NOOP
     elif token.endswith(FIELD_PLACEHOLDER):
@@ -490,10 +490,10 @@ def _get_token_type(token):
     elif re.match('^\w+$', token):
         return T_TERM
     else:
-        raise (ParseSyntaxError("unrecognized token '" + str(token) + "'"))
+        raise ParseSyntaxError("unrecognized token '%s'" % str(token))
 
 
-def _get_tokens(query):
+def __get_tokens(query):
     """Get a list of Token objects from the query."""
 
     tokens = []
@@ -537,8 +537,8 @@ def parse(solr_query):
 
     solr_query = "( " + decode_string_from_bytes_if_needed(solr_query) + " )"
 
-    tokens = _get_tokens(solr_query)
+    tokens = __get_tokens(solr_query)
 
     l.debug(tokens)
 
-    return _parse_tokens(tokens)
+    return __parse_tokens(tokens)
