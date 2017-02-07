@@ -3,31 +3,29 @@ from nose.tools import assert_raises
 from mediawords.solr.query import *
 
 
-def __normalize_tsquery(tsquery):
-    """Normalize tsquery by lowercasing and normalizing spaces."""
-
-    # make spaces around parentheses not significant
-    tsquery = re.sub('\(', ' ( ', tsquery)
-    tsquery = re.sub('\)', ' ) ', tsquery)
-
-    # make multiple spaces not significant
-    tsquery = re.sub('\s+', ' ', tsquery)
-
-    tsquery = tsquery.lower()
-
-    return tsquery
-
-
-def __validate_tsquery(solr_query, expected_tsquery):
-    """Validate that the tsquery generated from the given solr query matches the expected tsquery."""
-
-    got_tsquery = parse(solr_query=solr_query).tsquery()
-
-    assert __normalize_tsquery(got_tsquery) == __normalize_tsquery(expected_tsquery)
-
-
 # noinspection SpellCheckingInspection
 def test_tsquery():
+    def __normalize_tsquery(tsquery):
+        """Normalize tsquery by lowercasing and normalizing spaces."""
+
+        # make spaces around parentheses not significant
+        tsquery = re.sub('\(', ' ( ', tsquery)
+        tsquery = re.sub('\)', ' ) ', tsquery)
+
+        # make multiple spaces not significant
+        tsquery = re.sub('\s+', ' ', tsquery)
+
+        tsquery = tsquery.lower()
+
+        return tsquery
+
+    def __validate_tsquery(solr_query, expected_tsquery):
+        """Validate that the tsquery generated from the given solr query matches the expected tsquery."""
+
+        got_tsquery = parse(solr_query=solr_query).tsquery()
+
+        assert __normalize_tsquery(got_tsquery) == __normalize_tsquery(expected_tsquery)
+
     assert_raises(McSolrQueryParseSyntaxException, parse, "and")
     assert_raises(McSolrQueryParseSyntaxException, lambda x: parse(solr_query=x).tsquery(), "media_id:1")
     assert_raises(McSolrQueryParseSyntaxException, parse, '"foo bar"~3')
@@ -236,27 +234,25 @@ def test_tsquery():
     __validate_tsquery(gender_query, gender_tsquery)
 
 
-def __normalize_re(s):
-    """Normalize tsquery by lowercasing and normalizing spaces."""
-
-    # make multiple spaces not significant
-    s = re.sub('\s+', ' ', s)
-
-    s = s.lower()
-
-    return s
-
-
-def __validate_re(solr_query, expected_re):
-    """Validate that the re generated from the given solr query matches the expected re."""
-
-    got_re = parse(solr_query=solr_query).re()
-
-    assert __normalize_re(got_re) == __normalize_re(expected_re)
-
-
 # noinspection SpellCheckingInspection
 def test_re():
+    def __normalize_re(s):
+        """Normalize tsquery by lowercasing and normalizing spaces."""
+
+        # make multiple spaces not significant
+        s = re.sub('\s+', ' ', s)
+
+        s = s.lower()
+
+        return s
+
+    def __validate_re(solr_query, expected_re):
+        """Validate that the re generated from the given solr query matches the expected re."""
+
+        got_re = parse(solr_query=solr_query).re()
+
+        assert __normalize_re(got_re) == __normalize_re(expected_re)
+
     # single term
     __validate_re('foo', '[[:<:]]foo')
     __validate_re('( foo )', '[[:<:]]foo')
