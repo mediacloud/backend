@@ -216,6 +216,9 @@ class BooleanNode(ParseNode):
         connector = ' ' + self._tsquery_connector() + ' '
         return '( ' + connector.join(map(lambda x: x._get_tsquery(), self.operands)) + ' )'
 
+    def _get_re(self):
+        raise Exception("FIXME not implemented!")
+
     def _filter_node_children(self, filter_function):
         return self._filter_boolean_node_children(filter_function)
 
