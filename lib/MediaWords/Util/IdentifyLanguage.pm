@@ -11,10 +11,9 @@ use utf8;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use Encode;
-use URI;
 use Readonly;
 use Lingua::Identify::CLD;
+use MediaWords::Util::Text;
 
 # CLD instance
 my $cld = Lingua::Identify::CLD->new();
@@ -188,6 +187,9 @@ Readonly my %language_codes_to_names => reverse %language_names_to_codes;
 # Min. text length for reliable language identification
 Readonly my $RELIABLE_IDENTIFICATION_MIN_TEXT_LENGTH => 10;
 
+# Don't process strings longer than that
+Readonly my $MAX_TEXT_LENGTH => 1024 * 1024;
+
 # Returns an ISO 690 language code for the plain text passed as a parameter
 # Parameters:
 #  * Text that should be identified (required)
@@ -200,14 +202,20 @@ sub language_code_for_text($;$$)
 
     return '' unless ( $text );
 
+    if ( length( $text ) > $MAX_TEXT_LENGTH )
+    {
+        WARN "Text is longer than $MAX_TEXT_LENGTH, trimming...";
+        $text = substr( $text, 0, $MAX_TEXT_LENGTH );
+    }
+
     # Lingua::Identify::CLD doesn't like undef TLDs
     $tld ||= '';
 
-    # we need to verify that the file can cleany encode and decode because CLD can segfault on bad utf8
-    $text = eval { decode( 'utf-8', encode( 'utf-8', $text ) ) };
-    if ( $@ )
+    # We need to verify that the file can cleany encode and decode because CLD
+    # can segfault on bad UTF-8
+    unless ( MediaWords::Util::Text::is_valid_utf8( $text ) )
     {
-        ERROR( "utf-8 error in text: $@" );
+        ERROR( "Invalid UTF-8" );
         return '';
     }
 
@@ -246,6 +254,20 @@ sub identification_would_be_reliable($)
     if ( length( $text ) < $RELIABLE_IDENTIFICATION_MIN_TEXT_LENGTH )
     {
         return 0;
+    }
+
+    if ( length( $text ) > $MAX_TEXT_LENGTH )
+    {
+        WARN "Text is longer than $MAX_TEXT_LENGTH, trimming...";
+        $text = substr( $text, 0, $MAX_TEXT_LENGTH );
+    }
+
+    # We need to verify that the file can cleany encode and decode because CLD
+    # can segfault on bad UTF-8
+    unless ( MediaWords::Util::Text::is_valid_utf8( $text ) )
+    {
+        ERROR( "Invalid UTF-8" );
+        return '';
     }
 
     # Not enough letters as opposed to non-letters?
