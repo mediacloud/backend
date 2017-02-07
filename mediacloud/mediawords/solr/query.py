@@ -464,41 +464,40 @@ def __parse_tokens(tokens, want_type=None):
     return clause
 
 
-def _get_token_type(token):
-    """Given some token text, return one of T_* as the type for that token."""
-
-    if token == '(':
-        return T_OPEN
-    elif token == ')':
-        return T_CLOSE
-    elif token[0] in "'\"":
-        return T_PHRASE
-    elif token.lower() == 'and':
-        return T_AND
-    elif token.lower() == 'or':
-        return T_OR
-    elif token.lower() in ('not', '!', '-'):
-        return T_NOT
-    elif token == '+':
-        return T_PLUS
-    elif token == '~':
-        raise ParseSyntaxError("proximity searches not supported")
-    elif token == '/':
-        raise ParseSyntaxError("regular expression searches not supported")
-    elif (WILD_PLACEHOLDER in token) and not re.match(r'^\w+' + WILD_PLACEHOLDER + '$', token):
-        raise ParseSyntaxError("* can only appear the end of a term: " + token)
-    elif token == NOOP_PLACEHOLDER:
-        return T_NOOP
-    elif token.endswith(FIELD_PLACEHOLDER):
-        return T_FIELD
-    elif re.match('^\w+$', token):
-        return T_TERM
-    else:
-        raise ParseSyntaxError("unrecognized token '%s'" % str(token))
-
-
 def __get_tokens(query):
     """Get a list of Token objects from the query."""
+
+    def __get_token_type(token):
+        """Given some token text, return one of T_* as the type for that token."""
+
+        if token == '(':
+            return T_OPEN
+        elif token == ')':
+            return T_CLOSE
+        elif token[0] in "'\"":
+            return T_PHRASE
+        elif token.lower() == 'and':
+            return T_AND
+        elif token.lower() == 'or':
+            return T_OR
+        elif token.lower() in ('not', '!', '-'):
+            return T_NOT
+        elif token == '+':
+            return T_PLUS
+        elif token == '~':
+            raise ParseSyntaxError("proximity searches not supported")
+        elif token == '/':
+            raise ParseSyntaxError("regular expression searches not supported")
+        elif (WILD_PLACEHOLDER in token) and not re.match(r'^\w+' + WILD_PLACEHOLDER + '$', token):
+            raise ParseSyntaxError("* can only appear the end of a term: " + token)
+        elif token == NOOP_PLACEHOLDER:
+            return T_NOOP
+        elif token.endswith(FIELD_PLACEHOLDER):
+            return T_FIELD
+        elif re.match('^\w+$', token):
+            return T_TERM
+        else:
+            raise ParseSyntaxError("unrecognized token '%s'" % str(token))
 
     tokens = []
 
@@ -530,7 +529,7 @@ def __get_tokens(query):
         token_value = raw_token[1]
         l.debug("raw token '%s'" % token_value)
         if len(token_value) > 0:
-            token_type = _get_token_type(token_value)
+            token_type = __get_token_type(token_value)
             tokens.append(Token(token_value, token_type))
 
     return tokens
