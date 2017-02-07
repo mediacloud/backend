@@ -50,28 +50,6 @@ class Token(object):
         return self.__repr__()
 
 
-def _node_is_field_or_noop(node):
-    """Return true if the field is a non-sentence field or is a noop."""
-
-    if (type(node) is FieldNode) and (node.field != 'sentence'):
-        return True
-    elif type(node) is NoopNode:
-        return True
-
-    return False
-
-
-def _node_is_field_or_noop_or_not(node):
-    """Return true if the field is a non-sentence field or is a noop."""
-
-    if (type(node) is FieldNode) and (node.field != 'sentence'):
-        return True
-    elif type(node) in (NoopNode, NotNode):
-        return True
-
-    return False
-
-
 class ParseNode(object):
     """Parent class for universal methods for *Node classes."""
 
@@ -91,6 +69,28 @@ class ParseNode(object):
     @abc.abstractmethod
     def get_re(self):
         return
+
+    @staticmethod
+    def __node_is_field_or_noop(node):
+        """Return true if the field is a non-sentence field or is a noop."""
+
+        if (type(node) is FieldNode) and (node.field != 'sentence'):
+            return True
+        elif type(node) is NoopNode:
+            return True
+
+        return False
+
+    @staticmethod
+    def __node_is_field_or_noop_or_not(node):
+        """Return true if the field is a non-sentence field or is a noop."""
+
+        if (type(node) is FieldNode) and (node.field != 'sentence'):
+            return True
+        elif type(node) in (NoopNode, NotNode):
+            return True
+
+        return False
 
     def __str__(self):
         return self.__repr__()
@@ -128,7 +128,7 @@ class ParseNode(object):
     def tsquery(self):
         """ return a postgres tsquery that represents the parse tree """
 
-        filtered_tree = self.filter_tree(_node_is_field_or_noop)
+        filtered_tree = self.filter_tree(self.__node_is_field_or_noop)
 
         if filtered_tree is None:
             raise (ParseSyntaxError("query is empty without fields or ranges"))
@@ -138,7 +138,7 @@ class ParseNode(object):
     def re(self):
         """ return a posix regex that represents the parse tree """
 
-        filtered_tree = self.filter_tree(_node_is_field_or_noop_or_not)
+        filtered_tree = self.filter_tree(self.__node_is_field_or_noop_or_not)
 
         if filtered_tree is None:
             raise (ParseSyntaxError("query is empty without fields or ranges"))
