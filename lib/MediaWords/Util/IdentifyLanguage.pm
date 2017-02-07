@@ -10,11 +10,10 @@ use utf8;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
-use MediaWords::Util::Text;
 
-use URI;
 use Readonly;
 use Lingua::Identify::CLD;
+use MediaWords::Util::Text;
 
 # CLD instance
 my $cld = Lingua::Identify::CLD->new();
