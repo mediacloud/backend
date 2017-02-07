@@ -1,5 +1,4 @@
 from nose.tools import assert_raises
-from nose.tools import assert_equals
 
 from mediawords.solr.query import *
 
@@ -24,7 +23,7 @@ def __validate_tsquery(solr_query, expected_tsquery):
 
     got_tsquery = parse(solr_query).tsquery()
 
-    assert_equals(__normalize_tsquery(got_tsquery), __normalize_tsquery(expected_tsquery))
+    assert __normalize_tsquery(got_tsquery) == __normalize_tsquery(expected_tsquery)
 
 
 def test_tsquery():
@@ -138,7 +137,7 @@ def __validate_re(solr_query, expected_re):
 
     got_re = parse(solr_query).re()
 
-    assert_equals(__normalize_re(got_re), __normalize_re(expected_re))
+    assert __normalize_re(got_re) == __normalize_re(expected_re)
 
 
 def test_re():
