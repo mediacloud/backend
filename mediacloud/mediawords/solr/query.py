@@ -39,12 +39,15 @@ WILD_PLACEHOLDER = '__WILD__'
 class Token(object):
     """Object that holds the token value and type. type should one of T_* above """
 
-    def __init__(self, value, type):
-        self.value = value
-        self.type = type
+    token_type = None
+    token_value = None
+
+    def __init__(self, token_value, token_type):
+        self.token_value = token_value
+        self.token_type = token_type
 
     def __repr__(self):
-        return "[ %s: %s ]" % (self.type, self.value)
+        return "[ %s: %s ]" % (self.token_type, self.token_value)
 
     def __str__(self):
         return self.__repr__()
@@ -335,7 +338,7 @@ def __parse_tokens(tokens, want_type=None):
 
     def __check_type(checked_token, checked_want_type):
         """Throw a ParseSyntaxError if the given type is not in the want_type list."""
-        if checked_token.type not in checked_want_type:
+        if checked_token.token_type not in checked_want_type:
             raise ParseSyntaxError(
                 "Token '%s' is not one of the following expected types: %s" % (
                     str(checked_token), str(checked_want_type))
@@ -358,52 +361,52 @@ def __parse_tokens(tokens, want_type=None):
         token = tokens.pop(0)
         l.debug("parse token: " + str(token))
 
-        if (token.type == T_PLUS) and (not clause or (type(clause) in (AndNode, OrNode))):
+        if (token.token_type == T_PLUS) and (not clause or (type(clause) in (AndNode, OrNode))):
             continue
 
         if hanging_boolean:
             boolean_clause = clause
             hanging_boolean = False
-        elif clause and (token.type in [T_OPEN, T_PHRASE, T_TERM, T_NOOP, T_FIELD]):
+        elif clause and (token.token_type in [T_OPEN, T_PHRASE, T_TERM, T_NOOP, T_FIELD]):
             l.debug("INSERT OR")
             tokens.insert(0, token)
             token = Token(T_OR, 'or')
-        elif clause and (token.type in [T_NOT]):
+        elif clause and (token.token_type in [T_NOT]):
             l.debug("INSERT AND")
             tokens.insert(0, token)
             token = Token(T_AND, 'and')
 
         __check_type(token, want_type)
 
-        if token.type == T_OPEN:
+        if token.token_type == T_OPEN:
             clause = __parse_tokens(tokens, [T_OPEN, T_PHRASE, T_NOT, T_FIELD, T_TERM, T_NOOP, T_CLOSE])
             want_type = [T_OPEN, T_PHRASE, T_NOT, T_FIELD, T_TERM, T_NOOP, T_CLOSE, T_AND, T_OR, T_PLUS]
 
-        elif token.type == T_CLOSE:
+        elif token.token_type == T_CLOSE:
             break
 
-        elif token.type == T_NOOP:
+        elif token.token_type == T_NOOP:
             want_type = [T_CLOSE, T_AND, T_OR, T_PLUS]
             clause = NoopNode()
 
-        elif token.type == T_TERM:
+        elif token.token_type == T_TERM:
             want_type = [T_CLOSE, T_AND, T_OR, T_PLUS]
             wildcard = False
-            if token.value.endswith(WILD_PLACEHOLDER):
-                token.value = token.value.replace(WILD_PLACEHOLDER, '')
+            if token.token_value.endswith(WILD_PLACEHOLDER):
+                token.token_value = token.token_value.replace(WILD_PLACEHOLDER, '')
                 wildcard = True
 
-            clause = TermNode(token.value, wildcard=wildcard)
+            clause = TermNode(token.token_value, wildcard=wildcard)
 
-        elif token.type == T_PHRASE:
+        elif token.token_type == T_PHRASE:
             want_type = [T_CLOSE, T_AND, T_OR, T_PLUS]
-            clause = TermNode(token.value, phrase=True)
+            clause = TermNode(token.token_value, phrase=True)
             # operands = []
 
-        elif token.type in (T_AND, T_PLUS, T_OR):
+        elif token.token_type in (T_AND, T_PLUS, T_OR):
             want_type = [T_OPEN, T_PHRASE, T_NOT, T_FIELD, T_TERM, T_NOOP, T_CLOSE, T_PLUS]
 
-            node_type = OrNode if (token.type == T_OR) else AndNode
+            node_type = OrNode if (token.token_type == T_OR) else AndNode
 
             if type(clause) is node_type:
                 clause = node_type(clause.operands)
@@ -412,11 +415,11 @@ def __parse_tokens(tokens, want_type=None):
 
             hanging_boolean = True
 
-        elif token.type == T_FIELD:
+        elif token.token_type == T_FIELD:
             want_type = [T_CLOSE, T_AND, T_OR, T_PLUS]
-            field_name = re.sub(FIELD_PLACEHOLDER, '', token.value)
+            field_name = re.sub(FIELD_PLACEHOLDER, '', token.token_value)
             next_token = tokens.pop(0)
-            if next_token.type == T_OPEN:
+            if next_token.token_type == T_OPEN:
                 field_clause = __parse_tokens(tokens, [T_PHRASE, T_NOT, T_TERM, T_NOOP, T_CLOSE, T_PLUS])
             else:
                 field_clause = __parse_tokens([next_token], [T_PHRASE, T_TERM, T_NOOP])
@@ -425,13 +428,13 @@ def __parse_tokens(tokens, want_type=None):
 
             clause = FieldNode(field_name, field_clause)
 
-        elif token.type == T_NOT:
+        elif token.token_type == T_NOT:
             want_type = [T_CLOSE, T_AND, T_OR, T_PLUS]
             # operand = None
             next_token = tokens.pop(0)
-            if next_token.type == T_OPEN:
+            if next_token.token_type == T_OPEN:
                 operand = __parse_tokens(tokens, [T_FIELD, T_PHRASE, T_NOT, T_TERM, T_NOOP, T_CLOSE, T_PLUS])
-            elif next_token.type == T_FIELD:
+            elif next_token.token_type == T_FIELD:
                 tokens.insert(0, next_token)
                 operand = __parse_tokens(tokens, [T_FIELD])
             else:
