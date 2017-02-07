@@ -10,8 +10,8 @@ use utf8;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
+use MediaWords::Util::Text;
 
-use Encode;
 use URI;
 use Readonly;
 use Lingua::Identify::CLD;
@@ -212,11 +212,11 @@ sub language_code_for_text($;$$)
     # Lingua::Identify::CLD doesn't like undef TLDs
     $tld ||= '';
 
-    # we need to verify that the file can cleany encode and decode because CLD can segfault on bad utf8
-    $text = eval { decode( 'utf-8', encode( 'utf-8', $text ) ) };
-    if ( $@ )
+    # We need to verify that the file can cleany encode and decode because CLD
+    # can segfault on bad UTF-8
+    unless ( MediaWords::Util::Text::is_valid_utf8( $text ) )
     {
-        ERROR( "utf-8 error in text: $@" );
+        ERROR( "Invalid UTF-8" );
         return '';
     }
 
@@ -261,6 +261,14 @@ sub identification_would_be_reliable($)
     {
         WARN "Text is longer than $MAX_TEXT_LENGTH, trimming...";
         $text = substr( $text, 0, $MAX_TEXT_LENGTH );
+    }
+
+    # We need to verify that the file can cleany encode and decode because CLD
+    # can segfault on bad UTF-8
+    unless ( MediaWords::Util::Text::is_valid_utf8( $text ) )
+    {
+        ERROR( "Invalid UTF-8" );
+        return '';
     }
 
     # Not enough letters as opposed to non-letters?
