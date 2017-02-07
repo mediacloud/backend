@@ -9,162 +9,170 @@
    - [Examples](#examples)   
    - [Permissions](#permissions)   
 - [Topics](#topics)   
-   - [topics/create (POST) - TODO](#topicscreate-post-todo)   
+   - [topics/create (POST)](#topicscreate-post)   
       - [Query Parameters](#query-parameters)   
       - [Input Description](#input-description)   
       - [Example](#example)   
-   - [topics/~topics_id~/edit (PUT) - TODO](#topicstopics_idedit-put-todo)   
-      - [Query Parameters](#query-parameters-1)   
-      - [Input Description](#input-description-1)   
-      - [Example](#example-1)   
-   - [topics/~topics_id~/spider - TODO](#topicstopics_idspider-todo)   
-      - [Query Parameters](#query-parameters-2)   
+   - [topics/~topics_id~/update (PUT)](#topicstopics_idupdate-put)   
+      - [Query Parameters](#query-parameters)   
+      - [Input Description](#input-description)   
+      - [Example](#example)   
+   - [topics/~topics_id~/spider (POST)](#topicstopics_idspider-post)   
+      - [Query Parameters](#query-parameters)   
       - [Output Description](#output-description)   
-      - [Example](#example-2)   
+      - [Example](#example)   
+   - [topics/~topics_id~/spider_status](#topicstopics_idspider_status)   
+      - [Query Parameters](#query-parameters)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
    - [topics/~topics_id~/iterations/list - TODO](#topicstopics_iditerationslist-todo)   
-      - [Query Parameters](#query-parameters-3)   
-      - [Output Description](#output-description-1)   
-      - [Example](#example-3)   
-   - [topics/list - DONE](#topicslist-done)   
-      - [Query Parameters](#query-parameters-4)   
-      - [Output Description](#output-description-2)   
-      - [Example](#example-4)   
-   - [topics/single/~topics_id~ - DONE](#topicssingletopics_id-done)   
-      - [Query Parameters](#query-parameters-5)   
-      - [Output Description](#output-description-3)   
-      - [Example](#example-5)   
-- [Permissions](#permissions-1)   
-   - [permissions/user/list TODO](#permissionsuserlist-todo)   
-      - [Query Parameters](#query-parameters-6)   
-      - [Output Description](#output-description-4)   
-      - [Example](#example-6)   
-   - [permissions/list TODO](#permissionslist-todo)   
-      - [Query Parameters](#query-parameters-7)   
-      - [Output Description](#output-description-5)   
-      - [Example](#example-7)   
-   - [permissions/update (PUT) TODO](#permissionsupdate-put-todo)   
-      - [Query Parameters](#query-parameters-8)   
-      - [Input Description](#input-description-2)   
-      - [Output Description](#output-description-6)   
-      - [Example](#example-8)   
+      - [Query Parameters](#query-parameters)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
+   - [topics/list](#topicslist)   
+      - [Query Parameters](#query-parameters)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
+   - [topics/single/~topics_id~](#topicssingletopics_id)   
+      - [Query Parameters](#query-parameters)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
+- [Permissions](#permissions)   
+   - [topics/permissions/user/list DONE](#topicspermissionsuserlist-done)   
+      - [Query Parameters](#query-parameters)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
+   - [topics/~topics_id~/permissions/list DONE](#topicstopics_idpermissionslist-done)   
+      - [Query Parameters](#query-parameters)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
+   - [topics/~topics_id~/permissions/update (PUT) DONE](#topicstopics_idpermissionsupdate-put-done)   
+      - [Query Parameters](#query-parameters)   
+      - [Input Description](#input-description)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
 - [Stories](#stories)   
-   - [stories/list - DONE](#storieslist-done)   
-      - [Query Parameters](#query-parameters-9)   
-      - [Output Description](#output-description-7)   
-      - [Example](#example-9)   
-   - [stories/count - DONE](#storiescount-done)   
-      - [Query Parameters](#query-parameters-10)   
-      - [Output Description](#output-description-8)   
-      - [Example](#example-10)   
-   - [stories/~stories_id~/edit (PUT) - TODO](#storiesstories_idedit-put-todo)   
-      - [Query Parameters](#query-parameters-11)   
-      - [Input Description](#input-description-3)   
-      - [Output Description](#output-description-9)   
-      - [Example](#example-11)   
+   - [stories/list](#storieslist)   
+      - [Query Parameters](#query-parameters)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
+   - [stories/count](#storiescount)   
+      - [Query Parameters](#query-parameters)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
+   - [stories/~stories_id~/update (PUT) - TODO](#storiesstories_idupdate-put-todo)   
+      - [Query Parameters](#query-parameters)   
+      - [Input Description](#input-description)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
    - [stories/~stories_id~/remove (PUT) - TODO](#storiesstories_idremove-put-todo)   
-      - [Query Parameters](#query-parameters-12)   
-      - [Output Description](#output-description-10)   
-      - [Example](#example-12)   
+      - [Query Parameters](#query-parameters)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
    - [stories/merge (PUT) - TODO](#storiesmerge-put-todo)   
-      - [Query Parameters](#query-parameters-13)   
-      - [Input Description](#input-description-4)   
-      - [Output Description](#output-description-11)   
-      - [Example](#example-13)   
+      - [Query Parameters](#query-parameters)   
+      - [Input Description](#input-description)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
 - [Sentences](#sentences)   
-   - [sentences/count - DONE](#sentencescount-done)   
+   - [sentences/count](#sentencescount)   
 - [Media](#media)   
-   - [media/list - DONE](#medialist-done)   
-      - [Query Parameters](#query-parameters-14)   
-      - [Output Description](#output-description-12)   
-      - [Example](#example-14)   
-   - [media/~media_id~/edit (PUT) - TODO](#mediamedia_idedit-put-todo)   
-      - [Query Parameters](#query-parameters-15)   
-      - [Input Description](#input-description-5)   
-      - [Example](#example-15)   
+   - [media/list](#medialist)   
+      - [Query Parameters](#query-parameters)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
+   - [media/map](#mediamap)   
+      - [Query Parameters](#query-parameters)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
    - [media/~media_id~/remove (PUT) - TODO](#mediamedia_idremove-put-todo)   
-      - [Query Parameters](#query-parameters-16)   
-      - [Output Description](#output-description-13)   
-      - [Example](#example-16)   
+      - [Query Parameters](#query-parameters)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
    - [media/merge (PUT) - TODO](#mediamerge-put-todo)   
-      - [Query Parameters](#query-parameters-17)   
-      - [Input Description](#input-description-6)   
-      - [Output Description](#output-description-14)   
-      - [Example](#example-17)   
+      - [Query Parameters](#query-parameters)   
+      - [Input Description](#input-description)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
 - [Word Counts](#word-counts)   
-   - [wc/list - DONE](#wclist-done)   
+   - [wc/list](#wclist)   
 - [Foci](#foci)   
    - [Focal Techniques](#focal-techniques)   
       - [Focal Technique: Boolean Query](#focal-technique-boolean-query)   
-   - [focal_set_definitions/create (POST) - DONE](#focal_set_definitionscreate-post-done)   
-      - [Query Parameters](#query-parameters-18)   
-      - [Input Description](#input-description-7)   
-      - [Example](#example-18)   
-   - [focal_set_definitions/~focal_set_definitions_id~/update (PUT) - DONE](#focal_set_definitionsfocal_set_definitions_idupdate-put-done)   
-      - [Query Parameters](#query-parameters-19)   
+   - [focal_set_definitions/create (POST)](#focal_set_definitionscreate-post)   
+      - [Query Parameters](#query-parameters)   
+      - [Input Description](#input-description)   
+      - [Example](#example)   
+   - [focal_set_definitions/~focal_set_definitions_id~/update (PUT)](#focal_set_definitionsfocal_set_definitions_idupdate-put)   
+      - [Query Parameters](#query-parameters)   
       - [Input Parameters](#input-parameters)   
-      - [Example](#example-19)   
-   - [focal_set_definitions/~focal_set_definitions_id~/delete (PUT) - DONE](#focal_set_definitionsfocal_set_definitions_iddelete-put-done)   
-      - [Query Parameters](#query-parameters-20)   
-      - [Output Description](#output-description-15)   
-      - [Example](#example-20)   
-   - [focal_set_definitions/list - DONE](#focal_set_definitionslist-done)   
-      - [Query Parameters](#query-parameters-21)   
-      - [Output Description](#output-description-16)   
-      - [Example](#example-21)   
-   - [focal_sets/list - DONE](#focal_setslist-done)   
-      - [Query Parameters](#query-parameters-22)   
-      - [Output Description](#output-description-17)   
-      - [Example](#example-22)   
-   - [focus_definitions/create (POST) - DONE](#focus_definitionscreate-post-done)   
-      - [Query Parameters](#query-parameters-23)   
-      - [Input Description](#input-description-8)   
-      - [Example](#example-23)   
-   - [focus_definitions/~focus_definitions_id~/update (PUT) - DONE](#focus_definitionsfocus_definitions_idupdate-put-done)   
-      - [Query Parameters](#query-parameters-24)   
-      - [Input Description](#input-description-9)   
-      - [Example](#example-24)   
-   - [focus_definitions/~focus_definitions_id~/delete (PUT) - DONE](#focus_definitionsfocus_definitions_iddelete-put-done)   
-      - [Query Parameters](#query-parameters-25)   
-      - [Output Description](#output-description-18)   
-      - [Example](#example-25)   
-   - [focus_definitions/list - DONE](#focus_definitionslist-done)   
-      - [Query Parameters](#query-parameters-26)   
-      - [Output Description](#output-description-19)   
-      - [Example](#example-26)   
-   - [foci/list - DONE](#focilist-done)   
-      - [Query Parameters](#query-parameters-27)   
+      - [Example](#example)   
+   - [focal_set_definitions/~focal_set_definitions_id~/delete (PUT)](#focal_set_definitionsfocal_set_definitions_iddelete-put)   
+      - [Query Parameters](#query-parameters)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
+   - [focal_set_definitions/list](#focal_set_definitionslist)   
+      - [Query Parameters](#query-parameters)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
+   - [focal_sets/list](#focal_setslist)   
+      - [Query Parameters](#query-parameters)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
+   - [focus_definitions/create (POST)](#focus_definitionscreate-post)   
+      - [Query Parameters](#query-parameters)   
+      - [Input Description](#input-description)   
+      - [Example](#example)   
+   - [focus_definitions/~focus_definitions_id~/update (PUT)](#focus_definitionsfocus_definitions_idupdate-put)   
+      - [Query Parameters](#query-parameters)   
+      - [Input Description](#input-description)   
+      - [Example](#example)   
+   - [focus_definitions/~focus_definitions_id~/delete (PUT)](#focus_definitionsfocus_definitions_iddelete-put)   
+      - [Query Parameters](#query-parameters)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
+   - [focus_definitions/list](#focus_definitionslist)   
+      - [Query Parameters](#query-parameters)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
+   - [foci/list](#focilist)   
+      - [Query Parameters](#query-parameters)   
       - [Ouput Description](#ouput-description)   
-      - [Example](#example-27)   
+      - [Example](#example)   
 - [Snapshots](#snapshots)   
-   - [snapshots/generate (POST) - DONE](#snapshotsgenerate-post-done)   
-      - [Query Parameters](#query-parameters-28)   
-      - [Input Description](#input-description-10)   
-      - [Output Description](#output-description-20)   
-      - [Example](#example-28)   
-      - [snapshots/list - DONE](#snapshotslist-done)   
+   - [snapshots/generate (POST)](#snapshotsgenerate-post)   
+      - [Query Parameters](#query-parameters)   
+      - [Input Description](#input-description)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
+   - [snapshots/generate_status](#snapshotsgenerate_status)   
+      - [Query Parameters](#query-parameters)   
+      - [Input Description](#input-description)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
+      - [snapshots/list](#snapshotslist)   
       - [Query Paramaters](#query-paramaters)   
-      - [Output Description](#output-description-21)   
-      - [Example](#example-29)   
-   - [snapshots/~snapshots_id~/edit (PUT) - TODO](#snapshotssnapshots_idedit-put-todo)   
-      - [Query Parameters](#query-parameters-29)   
-      - [Input Description](#input-description-11)   
-      - [Output Description](#output-description-22)   
-      - [Example](#example-30)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
+   - [snapshots/~snapshots_id~/update (PUT) - TODO](#snapshotssnapshots_idupdate-put-todo)   
+      - [Query Parameters](#query-parameters)   
+      - [Input Description](#input-description)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
 - [Timespans](#timespans)   
-   - [timespans/list - DONE](#timespanslist-done)   
-      - [Query Parameters](#query-parameters-30)   
-      - [Output Description](#output-description-23)   
-      - [Example](#example-31)   
+   - [timespans/list](#timespanslist)   
+      - [Query Parameters](#query-parameters)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
    - [timespans/add_dates (PUT) - TODO](#timespansadd_dates-put-todo)   
-      - [Query Parameters](#query-parameters-31)   
-      - [Input Description](#input-description-12)   
-      - [Output Description](#output-description-24)   
-      - [Example](#example-32)   
+      - [Query Parameters](#query-parameters)   
+      - [Input Description](#input-description)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
    - [timespans/list_dates - TODO](#timespanslist_dates-todo)   
-      - [Query Parameters](#query-parameters-32)   
-      - [Output Description](#output-description-25)   
-      - [Example](#example-33)   
-- [TODO](#todo)   
+      - [Query Parameters](#query-parameters)   
+      - [Output Description](#output-description)   
+      - [Example](#example)   
 
 <!-- /MDTOC -->
 
@@ -221,10 +229,6 @@ For example, the following will return all stories in the latest snapshot of top
 Each *topic* is viewed through one of its *snapshots*.  A *snapshot* is static dump of all data from a topic at
 a given point in time.  The data within a *snapshot* will never change, so changes to a *topic* are not visible
 until a new *snapshot* is made.
-<!-- RB - really? what is someone decides to remove a media source from a snapshot... does that generate a new snapshot automatically? -->
-<!-- HR - really!  no data changes in the current snapshot.  a new one has to be created to see any changes.
-we can discuss whether there should be automatic triggers for creating a new snapshot or not.  think about the
-snapshot as a report that you are delivering to the user, not any kind of live view of the data.  editing media and story metadata will always be an internal option only, though, because those edits are to our core stories and media tables.  but story removal or merges will likewise not be visible until the next snapshot.   -->
 
 Within a *snapshot*, data can be viewed overall, or through some combination of a *focus* and a *timespan*.
 
@@ -262,9 +266,6 @@ For calls that support paging, each url supports a *limit* parameter and a *link
 current set of results again, or the previous or next page of results, call the same end point with only the *key* and
 *link_id* parameters. The *link_id* parameter includes state that remembers all of the parameters from the original
 call.
-<!-- RB - what is the *key* parameter? Is that just a typo? -->
-<!-- HR - the key parameter is used for authentication.  authentication is referenced as a link to the main api spec
-above.  just mentioning here to make clear that links don't provide unauthenticated access -->
 
 For example, the following is a paged response:
 
@@ -317,7 +318,7 @@ Permssions for the authenticated user for a given topic are included in the topi
 
 # Topics
 
-## topics/create (POST) - TODO
+## topics/create (POST)
 
 `https://api.mediacloud.org/api/v2/topics/create`
 
@@ -329,7 +330,7 @@ Create and return a new *topic*.
 
 ### Input Description
 
-The topics/create call accepts as input the following fields described in the Output Description of the topics/list call: name, pattern, solr_query, description, max_iterations, start_date, end_date, public.
+The topics/create call accepts as input the following fields described in the Output Description of the topics/list call: name, solr_seed_query, description, max_iterations, start_date, end_date, is_public, ch_monitor_id, twitter_topics_id, media_ids, media_tags_ids. Required fields are: name, solr_seed_query, description, start_date, end_date, media_ids and media_tags_ids.  Either media_ids or media_tags_ids must be included and not be an empty list.
 
 ### Example
 
@@ -343,12 +344,12 @@ Input:
 {
     "name": "immigration 2015",
     "description": "immigration coverage during 2015",
-    "pattern": "[[:<:]]immigration",
     "solr_seed_query": "immigration AND (+publish_date:[2016-01-01T00:00:00Z TO 2016-06-15T23:59:59Z]) AND tags_id_media:8875027",
     "max_iterations": 15,
     "start_date": "2015-01-01",
     "end_date": "2015-12-31",
-    "public": 1
+    "is_public": 1,
+    "media_tags_ids": [ 123 ]
 }
 ```
 Response:
@@ -367,25 +368,25 @@ Response:
       "start_date": "2015-01-01",
       "end_date": "2015-12-31",
       "state": "created but not queued",
-      "public": 1
+      "is_public": 1,
+      "media_tags":
+      [
+          {
+              "tags_id": 123,
+              "topics_id": 1390,
+              "tag": "us_msm",
+              "label": "US Mainstream Media",
+              "description": "major US mainstream media sources"
+          }
+      ]
 	}
   ]
 }
 ```
 
+## topics/~topics_id~/update (PUT)
 
-
-<!-- RB - are the names unique?  if so, what is the error returned? -->
-<!-- HR - names are unique. we have a crappy error reporting system that just basically returns the
-error directly from perl, so the error in this case would just be an echo of the unique constraint.  implementing
-a well documented set of errors would be very time expensive, but maybe pick a few likely triggered errors like this
-to have saner errors for? -->
-
-<!-- TODO - RB - do we need a public flag? or is that something we'll figure out with the permissions stuff separately -->
-
-## topics/~topics_id~/edit (PUT) - TODO
-
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/edit`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/update`
 
 Edit an existing *topic*.
 
@@ -401,18 +402,13 @@ Accepts the same input as the topics/create call.
 
 Edit the 'immigration 2015' topic.
 
+`https://api.mediacloud.org/api/v2/topics/1390/update`
+
 Input:
 
 ```json
 {
-    "name": "immigration coverage 2015",
-    "description": "immigration coverage during 2015",
-    "pattern": "[[:<:]]immigration",
-    "solr_seed_query": "immigration AND (+publish_date:[2016-01-01T00:00:00Z TO 2016-06-15T23:59:59Z]) AND tags_id_media:8875027",
-    "max_iterations": 15,
-    "start_date": "2015-01-01",
-    "end_date": "2015-12-31",
-    "public": 1
+    "name": "immigration coverage in 2015"
 }
 ```
 
@@ -424,33 +420,37 @@ Response:
   [
     {
       "topics_id": 1390,
-      "name": "immigration coverage 2015",
+      "name": "immigration coverage in 2015",
       "description": "immigration coverage during 2015",
       "pattern": "[[:<:]]immigration",
       "solr_seed_query": "immigration AND (+publish_date:[2016-01-01T00:00:00Z TO 2016-06-15T23:59:59Z]) AND tags_id_media:8875027",
       "max_iterations": 15,
       "start_date": "2015-01-01",
       "end_date": "2015-12-31",
-      "public": 1,
-      "state": "created but not queued",
+      "state": "queued",
+      "is_public": 1,
+      "media_tags":
+      [
+          {
+              "tags_id": 123,
+              "topics_id": 1390,
+              "tag": "us_msm",
+              "label": "US Mainstream Media",
+              "description": "major US mainstream media sources"
+          }
+      ]
 	}
   ]
 }
 ```
 
-## topics/~topics_id~/spider - TODO
+## topics/~topics_id~/spider (POST)
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/spider`
+`https://api.mediacloud.org/api/v2/topics/~topics_id/spider`
 
 Start a topic spidering job.
 
 Topic spidering is asynchronous.  Once the topic has started spidering, you cannot start another spidering job until the current one is complete.
-
-<!-- RB - what does this return if you try to start one when one is already running? -->
-<!-- HR - it should just run the, potentially at the same time.  there are valid reasons for
-doing this, for instance if the current job is in the middle of a dump but you want to edit the definition a bit
-and rerun the spider but still have access to the currently generating dump while the new spider is running.  that sounds
-contrived but I actually do it every once in a while -->
 
 ### Query Parameters
 
@@ -458,20 +458,76 @@ contrived but I actually do it every once in a while -->
 
 ### Output Description
 
-| Field   | Description                              |
-| ------- | ---------------------------------------- |
-| success | boolean indicating whether the spidering job was successfully queued. |
+The call returns a `job_state` record with information about the state of the queued spidering job.
 
 ### Example
 
 Start a topic spider for the 'U.S. 2016 Election' topic:
 
-`https://api.mediacloud.org/api/v2/topics/1344/spider`
+`https://api.mediacloud.org/api/v2/topics/spider`
+
+Input:
+
+```json
+{ "topics_id": 1404 }
+```
 
 Response:
 
 ```json
-{ "success": 1 }
+{
+    "job_state":
+        {
+            "topics_id": 1404,
+            "job_states_id": 1,
+            "last_updated": "2017-01-26 14:27:04.781095",
+            "message": null,
+            "state": "queued"
+        }
+}    
+```
+
+
+## topics/~topics_id~/spider_status
+
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/spider_status`
+
+Get a list all spidering jobs started for this topic.
+
+### Query Parameters
+
+| Parameter | Default | Notes |
+|-|-|
+| topics_id | (required) | topic id |
+
+
+### Output Description
+
+| Field    | Description                              |
+| -------- | ---------------------------------------- |
+| state | one of queued, running, completed, or error |
+| message | more detailed message about the job state |
+| last_updated | date of last state change |
+| topics_id | id of media being scraped |
+
+### Example
+
+`https://api.mediacloud.org/api/v2/topics/1404/spider_status`
+
+Response:
+
+```json
+{
+    "job_states": [
+        {
+            "topics_id": 1404,
+            "job_states_id": 1,
+            "last_updated": "2017-01-26 14:27:04.781095",
+            "message": null,
+            "state": "queued"
+        }
+    ]
+}    
 ```
 
 ## topics/~topics_id~/iterations/list - TODO
@@ -519,7 +575,7 @@ Response:
 }
 ```
 
-## topics/list - DONE
+## topics/list
 
 `https://api.mediacloud.org/api/v2/topics/list`
 
@@ -549,7 +605,7 @@ Standard parameters accepted: link_id.
 | end_date            | end of date range for topic              |
 | state               | the current status of the spidering process |
 | error_message       | last error message generated by the spider, if any |
-| public              | flag indicating whether this topic is readable by all authenticated users |
+| is_public           | flag indicating whether this topic is readable by all authenticated users |
 | user_permission     | permission for user submitting the api request: 'read', 'write', 'admin', or 'none' |
 
 ### Example
@@ -590,12 +646,8 @@ Response:
 
 }
 ```
-<!-- TODO - do we want to add the user that created/requested this to the output? -->
 
-<!-- RB - what about topics/single?  I need that.  it is currently implemented as topics/single, but I'd like the spider status added to those results -->
-<!-- HR -  I really hate having multiple end points that do the same thing.  is it really that much easier to call topics/single/123 rather than topics/list?topics_id=123 ? -->
-
-## topics/single/~topics_id~ - DONE
+## topics/single/~topics_id~
 
 `https://api.mediacloud.org/api/v2/topics/single/~topics_id~`
 
@@ -642,7 +694,7 @@ Response:
 
 # Permissions
 
-## topics/permissions/user/list TODO
+## topics/permissions/user/list DONE
 
 `https://api.mediacloud.org/api/v2/topics/permissions/user/list`
 
@@ -681,7 +733,7 @@ Response:
 }
 ```
 
-## topics/~topics_id~/permissions/list TODO
+## topics/~topics_id~/permissions/list DONE
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/permissions/list`
 
@@ -722,7 +774,7 @@ Response:
 }
 ```
 
-## topics/~topics_id~/permissions/update (PUT) TODO
+## topics/~topics_id~/permissions/update (PUT) DONE
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/permissions/update`
 
@@ -781,7 +833,7 @@ Response:
 
 # Stories
 
-## stories/list - DONE
+## stories/list
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/list`
 
@@ -822,7 +874,6 @@ Standard parameters accepted: snapshots_id, foci_id, timespans_id, limit, link_i
 | publish_date         | publication date of the story, or 'undateable' if the story is not dateable |
 | date_is_reliable     | boolean indicating whether the date_guess_method is nearly 100% reliable |
 | collect_date         | date the story was collected             |
-| date_guess_method    | method used to guess the publish_date    |
 | inlink_count         | count of hyperlinks from stories in other media in this timespan |
 | outlink_count        | count of hyperlinks to stories in other media in this timespan |
 | bitly_click_count    | number of clicks on bitly links that resolve to this story's url |
@@ -864,7 +915,7 @@ Response:
 }
 ```
 
-## stories/count - DONE
+## stories/count
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/count`
 
@@ -886,9 +937,6 @@ Standard parameters accepted : snapshots_id, foci_id, timespans_id, limit.
 | ----- | -------------------------- |
 | count | number of matching stories |
 
-<!-- RB - it'd be awesome if this can include split params, but I understand that might need to wait until new hardware -->
-<!-- HR - definitely not possible now -->
-
 ### Example
 
 Return the number of stories that mention 'immigration' in the 'US Election' topic:
@@ -901,9 +949,9 @@ Response:
 { "count": 123 }
 ```
 
-## stories/~stories_id~/edit (PUT) - TODO
+## stories/~stories_id~/update (PUT) - TODO
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/~stories_id~/edit`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/~stories_id~/update`
 
 Edit and return a story.  Editing a story changes that story for all topics.
 
@@ -929,7 +977,7 @@ Edit and return a story.  Editing a story changes that story for all topics.
 
 Edit the publish_date of story 123456:
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/~stories_id~/edit`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/~stories_id~/update`
 
 Input:
 
@@ -1019,7 +1067,7 @@ Response:
 
 # Sentences
 
-## sentences/count - DONE
+## sentences/count
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/sentences/count`
 
@@ -1034,7 +1082,7 @@ For details about this end point, including parameters, output, and examples, se
 
 # Media
 
-## media/list - DONE
+## media/list
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/media/list`
 
@@ -1099,7 +1147,7 @@ Response:
     }
 }
 ```
-## media/map - DONE
+## media/map
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/media/map`
 
@@ -1128,44 +1176,6 @@ https://gephi.org/gexf/format/
 Return the network map for topic id 12:
 
 `https://api.mediacloud.org/api/v2/topics/12/media/map`
-
-## media/~media_id~/edit (PUT) - TODO
-
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/media/~media_id~/edit`
-
-Edit and return the given media source.  Media source edits apply to that media source for all topics.
-
-### Query Parameters
-
-(no parameters)
-
-### Input Description
-
-| Field                 | Description                              |
-| --------------------- | ---------------------------------------- |
-| media_id              | id of medium to edit; required           |
-| name                  | name of medium                           |
-| url                   | url of medium                            |
-| has_foreign_rss_links | boolean indicating that many of the links in this source's rss feeds are to external sources |
-
-### Example
-
-Edit the name of media_id 1:
-
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/media/~media_id~/edit`
-
-Input:
-
-```json
-{
-  "media_id": 1,
-  "name": "The New York Times"
-}
-```
-
-Output:
-
-(see media/list)
 
 ## media/~media_id~/remove (PUT) - TODO
 
@@ -1243,7 +1253,7 @@ Response:
 
 # Word Counts
 
-## wc/list - DONE
+## wc/list
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/wc/list`
 
@@ -1256,11 +1266,6 @@ This call behaves exactly like the main api wc/list call, except:
 
 For details about this end point, including parameters, output, and examples, see the [main API](https://github.com/berkmancenter/mediacloud/blob/release/doc/api_2_0_spec/api_2_0_spec.md#apiv2wclist).
 
-<!-- RB - How do I find out what foci a particular word appears in most often? -->
-<!-- HR - This would be pretty hard.  The only way to do this is to run a solr query for the word for each focus.  That
-could have somewhat reasonable performance for a handful of foci, but I can't work my head around how to do it
-with reasonable performance with hundreds of foci, and I can imagine the tag set focal sets we've proposed having
-hundreds of foci. -->
 
 # Foci
 
@@ -1287,7 +1292,7 @@ Details about each focal technique are below.  Among other properties, each foca
 
 The Boolean Query focal technique associates a focus with a story by matching that story with a solr boolean query.  *focal sets* generated by the Boolean Query method are not exclusive.
 
-## focal_set_definitions/create (POST) - DONE
+## focal_set_definitions/create (POST)
 
 `https://api.mediacloud.org/api/topics/~topics_id~/focal_set_definitions/create`
 
@@ -1338,7 +1343,7 @@ Response:
 }
 ```
 
-## focal_set_definitions/~focal_set_definitions_id~/update (PUT) - DONE
+## focal_set_definitions/~focal_set_definitions_id~/update (PUT)
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/focal_set_definitions/~focal_set_definitions_id~/update/`
 
@@ -1385,7 +1390,7 @@ Response:
 }
 ```
 
-## focal_set_definitions/~focal_set_definitions_id~/delete (PUT) - DONE
+## focal_set_definitions/~focal_set_definitions_id~/delete (PUT)
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/focal_set_definitions/~focal_set_definitions_id~/delete`
 
@@ -1413,23 +1418,7 @@ Response:
 { "success": 1 }
 ```
 
-## focal_set_definitions/list - DONE
-
-<!-- RB - who needs to consume this end point? I don't think I ever do... If the core engine is the only one that ever needs this engine then should it exist? -->
-<!-- HR - I think you misunderstand the architecture I'm proposing.  
-
-When I tried to write this api, I realized that we had to distinguish between the data that the system generates for
-the foci and focal sets and the configuration data that the user creates to tell the system what data to generate.  If
-we have only a focal set object in the api, how do we update or delete existing focal sets after we have run one
-snapshot?  If we have just focal set object and not the definition and we delete a focal set, that would also
-delete the focus in all of the snapshots.
-
-So the idea is that the user will edit the focal set definitions to tell the system what focal sets to generate
-each time a snapshot is generated.  I considered calling them 'focal set templates', which might be clearer?
-
-Another way I could have done this is to have the 'focal set' objects be the templates and and then have 'snapshot
-focal set' objects that have the actual data in them.  But the idea of a 'focal set definition' seems cleaner and
-clearer than a 'snapshot focal set'. -->
+## focal_set_definitions/list
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/focal_set_definitions/list`
 
@@ -1484,7 +1473,7 @@ Response:
 }
 ```
 
-## focal_sets/list - DONE
+## focal_sets/list
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/focal_sets/list`
 
@@ -1541,7 +1530,7 @@ Response:
 ```
 
 
-## focus_definitions/create (POST) - DONE
+## focus_definitions/create (POST)
 
 `https://api.mediacloud.org/api/topics/~topics_id~/focus_definitions/create`
 
@@ -1597,7 +1586,7 @@ Response:
 ```
 
 
-## focus_definitions/~focus_definitions_id~/update (PUT) - DONE
+## focus_definitions/~focus_definitions_id~/update (PUT)
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/focus_definitions/~focus_definitions_id~/update`
 
@@ -1639,7 +1628,7 @@ Response:
 }
 ```
 
-## focus_definitions/~focus_definitions_id~/delete (PUT) - DONE
+## focus_definitions/~focus_definitions_id~/delete (PUT)
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/focus_definitions/~focus_definitions_id~/delete`
 
@@ -1667,7 +1656,7 @@ Response:
 { "success": 1 }
 ```
 
-## focus_definitions/list - DONE
+## focus_definitions/list
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/focus_definitions/~focal_set_definitions_id~/list`
 
@@ -1713,7 +1702,7 @@ Response:
 }
 ```
 
-## foci/list - DONE
+## foci/list
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/foci/list`
 
@@ -1762,18 +1751,15 @@ Response:
 
 Each *snapshot* contains a static copy of all data within a topic at the time the *snapshot* was made.  All data viewable by the Topics API must be viewed through a *snapshot*.
 
-## snapshots/generate (POST) - DONE
+## snapshots/generate (POST)
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/snapshots/generate`
 
-Generate a new *snapshot* for the given topic.
+Generate a new *snapshot* for the given topic.  Note that `topics/spider` will generate a snapshot as part of its
+spidering process, so this end point only needs to be called to generate an additional snapshot of a topic
+without also spidering (for instance after editing the foci definitions).
 
 This is an asynchronous call.  The *snapshot* process will run in the background, and the new *snapshot* will only become visible to the API once the generation is complete.
-
-<!-- RB - what happens if two people are working on separate focus definitions, but one finishes and presses the button that calls snapshots/generate?  will the other person's half-finished focal set be included in the new snapshot?  I guess I need to queue up all the focus definitions while someone is working on them until they press the big "generate" button, and then make a bunch of create calls before the snapshots/generate call. -->
-<!-- HR - I think you are overengineering this.  I think it will be rare to edit foci over the life of a topic,
-it will be rare for more than one person to edit a topic ever, and it will be vanishingly rare for two users to edit
-the foci for a topic concurrently. If we get complaints, we can start worrying about atomic focus editing. -->
 
 ### Query Parameters
 
@@ -1787,9 +1773,7 @@ the foci for a topic concurrently. If we get complaints, we can start worrying a
 
 ### Output Description
 
-| Field   | Description                              |
-| ------- | ---------------------------------------- |
-| success | boolean indicating whether the spidering job was successfully queued. |
+This command will return a job_state object as described in the `snapshots/generate_status` call below.
 
 ### Example
 
@@ -1800,10 +1784,66 @@ Start a new *snapshot* generation job for the 'U.S. 2016 Election' *topic*:
 Response:
 
 ```json
-{ "success": 1 }
+{
+    "job_state":
+        {
+            "topics_id": 1404,
+            "job_states_id": 1,
+            "last_updated": "2017-01-26 14:27:04.781095",
+            "message": null,
+            "state": "queued"
+        }
+}    
 ```
 
-### snapshots/list - DONE
+## snapshots/generate_status
+
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/snapshots/generate_status`
+
+Return a list of snapshots job_states for the given snapshot;
+
+### Query Parameters
+
+(no parameters)
+
+### Input Description
+
+| Field | Description                              |
+| ----- | ---------------------------------------- |
+| note  | short text note about the snapshot; optional |
+
+### Output Description
+
+| Field    | Description                              |
+| -------- | ---------------------------------------- |
+| state | one of queued, running, completed, or error |
+| message | more detailed message about the job state |
+| last_updated | date of last state change |
+| topics_id | id the topic being snapshotted |
+
+### Example
+
+List snapshot jobs for the 'U.S. 2016 Election' *topic*:
+
+`https://api.mediacloud.org/api/v2/topics/1344/snapshots/generate_status`
+
+Response:
+
+```json
+{
+    "job_states": [
+        {
+            "topics_id": 1404,
+            "job_states_id": 1,
+            "last_updated": "2017-01-27 14:27:04.781095",
+            "message": null,
+            "state": "completed"
+        }
+    ]
+}    
+```
+
+### snapshots/list
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/snapshots/list`
 
@@ -1821,10 +1861,11 @@ Return a list of all completed *snapshots* in the given *topic*.
 | snapshot_date | date on which the snapshot was created |
 | note          | short text note about the snapshot     |
 | state         | state of the snapshotting process      |
+| message       | more detailed message about the state of the snapshotting process |
 | searchable    | boolean indicating whether timespans are searchable yet |
 
-The state indicates the state of the current snapshot process, including but not limmited to 'completed' for a snapshot
-whose process has successfully completed and 'snapshot failed' for a snapshot that failed for some reason.  
+The state indicates the state of the current snapshot process, including but not limited to 'completed' for a snapshot
+whose process has successfully completed and 'error' for a snapshot that failed for some reason.  
 
 Each timespan in a snapshot is queued for text indexing when the snapshot is generated.  This process may take a
 few minutes up to a few hours.  The 'searchable' field is set to true once that indexing process is complete.
@@ -1850,11 +1891,10 @@ Response:
     ]
 }
 ```
-<!-- TODO - I bet it will be useful to include the username here that generated it -->
 
-## snapshots/~snapshots_id~/edit (PUT) - TODO
+## snapshots/~snapshots_id~/update (PUT) - TODO
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/snapshots/~snapshots_id~/edit`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/snapshots/~snapshots_id~/update`
 
 Edit and return the snapshot.
 
@@ -1877,7 +1917,7 @@ Edit and return the snapshot.
 
 Edit the note for snapshot 4567:
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/snapshots/~snapshots_id~/edit`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/snapshots/~snapshots_id~/update`
 
 Input:
 
@@ -1898,7 +1938,7 @@ Each *timespan* is a view of the *topic* that presents the topic as if it consis
 
 A *story* is included within a *timespan* if the publish_date of the story is within the *timespan* date range or if the *story* is linked to by a *story* that whose publish_date is within date range of the *timespan*.
 
-## timespans/list - DONE
+## timespans/list
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/timespans/list`
 
@@ -1965,15 +2005,8 @@ Response:
     ]
 }
 ```
-<!-- RB - does this include timespans queued up for the next spanshot? if so, please add a "status" column indicating if the timespan is valid or not.  if it doesn't include does, how do I list them to show the user?  Maybe after they create one I just say "you need to generate a new snapshot to see this"... but then if they click away that information is long gone for them. -->
-<!-- HR - there should be a timespans/list_dates call -->
-
 
 ## timespans/add_dates (PUT) - TODO
-<!-- RB - for consistency, do we want to call this a timespan_definition?  and have the url end with /timespan_definitions/create -->
-<!-- HR - I'm note sure.  the dates are simpler, so I thought I could get away with not making them first class
-objects with ids.  We don't need to delete them. That seems simpler to me, but if consistency is more important
-I'm fine with that. -->
 
 `https://api.meiacloud.org/api/v1/topics/~topics_id~/timespans/add_dates`
 
@@ -2055,12 +2088,3 @@ Response:
   ]
 }
 ```
-
-
-
-# TODO
-
-* topics ACLs
-* link and network graphing endpoints
-* media source coding
-* machline learning

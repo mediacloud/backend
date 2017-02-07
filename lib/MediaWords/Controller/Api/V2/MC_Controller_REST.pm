@@ -145,7 +145,7 @@ sub require_fields ($$)
         if ( !exists( $data->{ $field } ) )
         {
             $c->response->status( HTTP_BAD_REQUEST );
-            die( "Required field '$field' is required but not present" );
+            die( "Required field '$field' is not present" );
         }
     }
 }

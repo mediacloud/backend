@@ -804,18 +804,20 @@ class GetURLHostException(Exception):
 
 
 def get_url_host(url: str) -> str:
-    """Return hostname of an URL."""
+    """Return hostname of an URL.  if we can't parse out the host name, just return the url"""
     url = decode_string_from_bytes_if_needed(url)
     if url is None:
         raise GetURLHostException("URL is None")
     if len(url) == 0:
         raise GetURLHostException("URL is empty")
 
-    url = fix_common_url_mistakes(url)
+    fixed_url = fix_common_url_mistakes(url)
 
-    uri = urlparse(url)
-    return uri.hostname
+    uri = urlparse(fixed_url)
 
+    host = uri.hostname
+
+    return host if ( host and ( len( host ) > 0 ) ) else url
 
 # noinspection SpellCheckingInspection
 def get_url_distinctive_domain(url: str) -> str:

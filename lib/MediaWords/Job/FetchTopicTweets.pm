@@ -113,8 +113,6 @@ sub _add_topic_tweet_days ($$)
 {
     my ( $db, $topic ) = @_;
 
-    $topic = $db->query( "select * from topics_with_dates where topics_id = ?", $topic->{ topics_id } )->hash;
-
     my $twitter = _get_twitter_handle();
 
     my $date = $topic->{ start_date };
