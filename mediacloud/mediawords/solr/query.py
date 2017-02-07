@@ -132,10 +132,10 @@ class ParseNode(AbstractParseNode):
             return None
 
     def filter_tree(self, filter_function: Callable[[AbstractParseNode], bool]) -> Union[AbstractParseNode, None]:
-        """ filter all nodes from the tree for which filter_function returns tree.
-        so if the filter is lamda x: type( x ) is NotNode then '( foo and !bar ) or baz' will be filtered to
-        '( foo ) or baz'
-        """
+        """Filter all nodes from the tree for which filter_function returns tree.
+
+        So, if the filter is lambda x: type( x ) is NotNode then '( foo and !bar ) or baz' will be filtered to
+        '( foo ) or baz'."""
 
         try:
             if self.filtered_by_function == filter_function:
@@ -152,7 +152,7 @@ class ParseNode(AbstractParseNode):
             return filtered_tree
 
     def tsquery(self) -> str:
-        """ return a postgres tsquery that represents the parse tree """
+        """Return a postgres tsquery that represents the parse tree."""
 
         filtered_tree = self.filter_tree(self.__node_is_field_or_noop)
 
@@ -162,7 +162,7 @@ class ParseNode(AbstractParseNode):
         return filtered_tree.get_tsquery()
 
     def re(self) -> str:
-        """ return a posix regex that represents the parse tree """
+        """Return a posix regex that represents the parse tree."""
 
         filtered_tree = self.filter_tree(self.__node_is_field_or_noop_or_not)
 
@@ -173,7 +173,7 @@ class ParseNode(AbstractParseNode):
 
 
 class TermNode(ParseNode):
-    """ parse node type for a simple keyword """
+    """Parse node type for a simple keyword."""
 
     def __init__(self, term, wildcard=False, phrase=False):
         self.term = term
