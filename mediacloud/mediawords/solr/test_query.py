@@ -21,7 +21,7 @@ def __normalize_tsquery(tsquery):
 def __validate_tsquery(solr_query, expected_tsquery):
     """Validate that the tsquery generated from the given solr query matches the expected tsquery."""
 
-    got_tsquery = parse(solr_query).tsquery()
+    got_tsquery = parse(solr_query=solr_query).tsquery()
 
     assert __normalize_tsquery(got_tsquery) == __normalize_tsquery(expected_tsquery)
 
@@ -29,7 +29,7 @@ def __validate_tsquery(solr_query, expected_tsquery):
 # noinspection SpellCheckingInspection
 def test_tsquery():
     assert_raises(McSolrQueryParseSyntaxException, parse, "and")
-    assert_raises(McSolrQueryParseSyntaxException, lambda x: parse(x).tsquery(), "media_id:1")
+    assert_raises(McSolrQueryParseSyntaxException, lambda x: parse(solr_query=x).tsquery(), "media_id:1")
     assert_raises(McSolrQueryParseSyntaxException, parse, '"foo bar"~3')
     assert_raises(McSolrQueryParseSyntaxException, parse, '( foo bar )*')
     assert_raises(McSolrQueryParseSyntaxException, parse, '*')
@@ -250,7 +250,7 @@ def __normalize_re(s):
 def __validate_re(solr_query, expected_re):
     """Validate that the re generated from the given solr query matches the expected re."""
 
-    got_re = parse(solr_query).re()
+    got_re = parse(solr_query=solr_query).re()
 
     assert __normalize_re(got_re) == __normalize_re(expected_re)
 
@@ -317,7 +317,7 @@ def test_re():
 
     # not clauses should be filtered out
     # this should raise an error because filtering the not clause leaves an empty query
-    assert_raises(McSolrQueryParseSyntaxException, lambda x: parse(x).re(), 'not ( foo bar )')
+    assert_raises(McSolrQueryParseSyntaxException, lambda x: parse(solr_query=x).re(), 'not ( foo bar )')
     __validate_re('foo and !bar', '[[:<:]]foo')
     __validate_re('foo -( bar and bar )', '[[:<:]]foo')
 

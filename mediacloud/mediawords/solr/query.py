@@ -137,7 +137,7 @@ class ParseNode(AbstractParseNode):
         boolean_type = type(self)
         filtered_operands = []
         for operand in self.operands:
-            filtered_operand = operand.filter_tree(filter_function)
+            filtered_operand = operand.filter_tree(filter_function=filter_function)
             if filtered_operand:
                 filtered_operands.append(filtered_operand)
 
@@ -161,7 +161,7 @@ class ParseNode(AbstractParseNode):
         if filter_function(self):
             return None
         else:
-            filtered_tree = self._filter_node_children(filter_function)
+            filtered_tree = self._filter_node_children(filter_function=filter_function)
             if filtered_tree:
                 filtered_tree.filtered_by_function = filter_function
             return filtered_tree
@@ -169,7 +169,7 @@ class ParseNode(AbstractParseNode):
     def tsquery(self) -> str:
         """Return a postgres tsquery that represents the parse tree."""
 
-        filtered_tree = self.filter_tree(self.__node_is_field_or_noop)
+        filtered_tree = self.filter_tree(filter_function=self.__node_is_field_or_noop)
 
         if filtered_tree is None:
             raise McSolrQueryParseSyntaxException("query is empty without fields or ranges")
@@ -179,7 +179,7 @@ class ParseNode(AbstractParseNode):
     def re(self) -> str:
         """Return a posix regex that represents the parse tree."""
 
-        filtered_tree = self.filter_tree(self.__node_is_field_or_noop_or_not)
+        filtered_tree = self.filter_tree(filter_function=self.__node_is_field_or_noop_or_not)
 
         if filtered_tree is None:
             raise McSolrQueryParseSyntaxException("query is empty without fields or ranges")
@@ -267,7 +267,7 @@ class BooleanNode(ParseNode):
 
     def _filter_node_children(self, filter_function: Callable[[AbstractParseNode], bool]) \
             -> Union[AbstractParseNode, None]:
-        return self._filter_boolean_node_children(filter_function)
+        return self._filter_boolean_node_children(filter_function=filter_function)
 
 
 class AndNode(BooleanNode):
@@ -287,7 +287,7 @@ class AndNode(BooleanNode):
             return operands[0].get_re()
         else:
             a = operands[0].get_re()
-            b = self.get_re(operands[1:])
+            b = self.get_re(operands=operands[1:])
             return '(?: (?: %s .* %s ) | (?: %s .* %s ) )' % (a, b, b, a)
 
 
@@ -322,8 +322,8 @@ class NotNode(ParseNode):
 
     def _filter_node_children(self, filter_function: Callable[[AbstractParseNode], bool]) \
             -> Union[AbstractParseNode, None]:
-        filtered_operand = self.operand.filter_tree(filter_function)
-        return NotNode(filtered_operand) if filtered_operand else None
+        filtered_operand = self.operand.filter_tree(filter_function=filter_function)
+        return NotNode(operand=filtered_operand) if filtered_operand else None
 
 
 class FieldNode(ParseNode):
@@ -351,8 +351,11 @@ class FieldNode(ParseNode):
 
     def _filter_node_children(self, filter_function: Callable[[AbstractParseNode], bool]) \
             -> Union[AbstractParseNode, None]:
-        filtered_operand = self.operand.filter_tree(filter_function)
-        return FieldNode(self.field, filtered_operand) if filtered_operand else None
+        filtered_operand = self.operand.filter_tree(filter_function=filter_function)
+        if filtered_operand:
+            return FieldNode(field=self.field, operand=filtered_operand)
+        else:
+            return None
 
 
 class NoopNode(ParseNode):
@@ -425,13 +428,18 @@ def __parse_tokens(tokens: List[Token], want_type: List[TokenType] = None) -> Pa
         __check_type(token, want_type)
 
         if token.token_type == TokenType.OPEN:
-            clause = __parse_tokens(tokens, [TokenType.OPEN,
-                                             TokenType.PHRASE,
-                                             TokenType.NOT,
-                                             TokenType.FIELD,
-                                             TokenType.TERM,
-                                             TokenType.NOOP,
-                                             TokenType.CLOSE])
+            clause = __parse_tokens(
+                tokens=tokens,
+                want_type=[
+                    TokenType.OPEN,
+                    TokenType.PHRASE,
+                    TokenType.NOT,
+                    TokenType.FIELD,
+                    TokenType.TERM,
+                    TokenType.NOOP,
+                    TokenType.CLOSE
+                ]
+            )
             want_type = [
                 TokenType.OPEN,
                 TokenType.PHRASE,
@@ -492,16 +500,23 @@ def __parse_tokens(tokens: List[Token], want_type: List[TokenType] = None) -> Pa
             field_name = re.sub(FIELD_PLACEHOLDER, '', token.token_value)
             next_token = tokens.pop(0)
             if next_token.token_type == TokenType.OPEN:
-                field_clause = __parse_tokens(tokens, [
-                    TokenType.PHRASE,
-                    TokenType.NOT,
-                    TokenType.TERM,
-                    TokenType.NOOP,
-                    TokenType.CLOSE,
-                    TokenType.PLUS
-                ])
+                field_clause = __parse_tokens(
+                    tokens=tokens,
+                    want_type=[
+                        TokenType.PHRASE,
+                        TokenType.NOT,
+                        TokenType.TERM,
+                        TokenType.NOOP,
+                        TokenType.CLOSE,
+                        TokenType.PLUS
+                    ]
+                )
             else:
-                field_clause = __parse_tokens([next_token], [TokenType.PHRASE, TokenType.TERM, TokenType.NOOP])
+                field_clause = __parse_tokens(tokens=[next_token], want_type=[
+                    TokenType.PHRASE,
+                    TokenType.TERM,
+                    TokenType.NOOP
+                ])
 
             l.debug("field operand for %s: %s" % (field_name, field_clause))
 
@@ -512,7 +527,7 @@ def __parse_tokens(tokens: List[Token], want_type: List[TokenType] = None) -> Pa
             # operand = None
             next_token = tokens.pop(0)
             if next_token.token_type == TokenType.OPEN:
-                operand = __parse_tokens(tokens, [
+                operand = __parse_tokens(tokens=tokens, want_type=[
                     TokenType.FIELD,
                     TokenType.PHRASE,
                     TokenType.NOT,
@@ -523,9 +538,9 @@ def __parse_tokens(tokens: List[Token], want_type: List[TokenType] = None) -> Pa
                 ])
             elif next_token.token_type == TokenType.FIELD:
                 tokens.insert(0, next_token)
-                operand = __parse_tokens(tokens, [TokenType.FIELD])
+                operand = __parse_tokens(tokens=tokens, want_type=[TokenType.FIELD])
             else:
-                operand = __parse_tokens([next_token], [
+                operand = __parse_tokens(tokens=[next_token], want_type=[
                     TokenType.PHRASE,
                     TokenType.TERM,
                     TokenType.NOOP,
@@ -615,13 +630,13 @@ def __get_tokens(query: str) -> List[Token]:
 
     l.debug("filtered query: " + query)
 
-    raw_tokens = generate_tokens(io.StringIO(query).readline)
+    raw_tokens = generate_tokens(readline=io.StringIO(query).readline)
 
     for raw_token in raw_tokens:
         token_value = raw_token[1]
         l.debug("raw token '%s'" % token_value)
         if len(token_value) > 0:
-            token_type = __get_token_type(token_value)
+            token_type = __get_token_type(token=token_value)
             tokens.append(Token(token_value=token_value, token_type=token_type))
 
     return tokens
@@ -632,8 +647,8 @@ def parse(solr_query: str) -> ParseNode:
 
     solr_query = "( " + decode_string_from_bytes_if_needed(solr_query) + " )"
 
-    tokens = __get_tokens(solr_query)
+    tokens = __get_tokens(query=solr_query)
 
     l.debug(tokens)
 
-    return __parse_tokens(tokens)
+    return __parse_tokens(tokens=tokens)
