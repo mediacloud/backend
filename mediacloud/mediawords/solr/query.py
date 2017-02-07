@@ -85,11 +85,11 @@ class ParseNode(object):
         return
 
     @abc.abstractmethod
-    def _get_tsquery(self):
+    def get_tsquery(self):
         return
 
     @abc.abstractmethod
-    def _get_re(self):
+    def get_re(self):
         return
 
     def __str__(self):
@@ -133,7 +133,7 @@ class ParseNode(object):
         if filtered_tree is None:
             raise (ParseSyntaxError("query is empty without fields or ranges"))
 
-        return filtered_tree._get_tsquery()
+        return filtered_tree.get_tsquery()
 
     def re(self):
         """ return a posix regex that represents the parse tree """
@@ -143,7 +143,7 @@ class ParseNode(object):
         if filtered_tree is None:
             raise (ParseSyntaxError("query is empty without fields or ranges"))
 
-        return filtered_tree._get_re()
+        return filtered_tree.get_re()
 
 
 class TermNode(ParseNode):
@@ -157,7 +157,7 @@ class TermNode(ParseNode):
     def __repr__(self):
         return self.term if (not self.wildcard) else self.term + "*"
 
-    def _get_tsquery(self):
+    def get_tsquery(self):
         if self.phrase:
             dequoted_phrase = shlex.split(self.term)[0]
             operands = []
@@ -168,11 +168,11 @@ class TermNode(ParseNode):
             if len(operands) == 0:
                 raise (ParseSyntaxError("empty phrase not allowed"))
 
-            return AndNode(operands)._get_tsquery()
+            return AndNode(operands).get_tsquery()
         else:
             return self.term if (not self.wildcard) else self.term + ":*"
 
-    def _get_re(self):
+    def get_re(self):
         term = self.term
         if self.phrase:
             term = shlex.split(term)[0]
@@ -212,11 +212,11 @@ class BooleanNode(ParseNode):
         connector = ' ' + self._plain_connector() + ' '
         return '( ' + connector.join(map(lambda x: str(x), self.operands)) + ' )'
 
-    def _get_tsquery(self):
+    def get_tsquery(self):
         connector = ' ' + self._tsquery_connector() + ' '
-        return '( ' + connector.join(map(lambda x: x._get_tsquery(), self.operands)) + ' )'
+        return '( ' + connector.join(map(lambda x: x.get_tsquery(), self.operands)) + ' )'
 
-    def _get_re(self):
+    def get_re(self):
         raise Exception("FIXME not implemented!")
 
     def _filter_node_children(self, filter_function):
@@ -232,15 +232,15 @@ class AndNode(BooleanNode):
     def _tsquery_connector(self):
         return '&'
 
-    def _get_re(self, operands=None):
+    def get_re(self, operands=None):
         if operands is None:
             operands = self.operands
 
         if len(operands) == 1:
-            return operands[0]._get_re()
+            return operands[0].get_re()
         else:
-            a = operands[0]._get_re()
-            b = self._get_re(operands[1:])
+            a = operands[0].get_re()
+            b = self.get_re(operands[1:])
             return '(?: (?: %s .* %s ) | (?: %s .* %s ) )' % (a, b, b, a)
 
 
@@ -253,8 +253,8 @@ class OrNode(BooleanNode):
     def _tsquery_connector(self):
         return '|'
 
-    def _get_re(self):
-        return '(?: ' + ' | '.join(map(lambda x: x._get_re(), self.operands)) + ' )'
+    def get_re(self):
+        return '(?: ' + ' | '.join(map(lambda x: x.get_re(), self.operands)) + ' )'
 
 
 class NotNode(ParseNode):
@@ -267,10 +267,10 @@ class NotNode(ParseNode):
     def __repr__(self):
         return '!' + str(self.operand)
 
-    def _get_tsquery(self):
-        return '!' + self.operand._get_tsquery()
+    def get_tsquery(self):
+        return '!' + self.operand.get_tsquery()
 
-    def _get_re(self):
+    def get_re(self):
         raise (ParseSyntaxError("not operations not supported for re()"))
 
     def _filter_node_children(self, filter_function):
@@ -289,15 +289,15 @@ class FieldNode(ParseNode):
     def __repr__(self):
         return self.field + ':' + str(self.operand)
 
-    def _get_tsquery(self):
+    def get_tsquery(self):
         if self.field == 'sentence':
-            return self.operand._get_tsquery()
+            return self.operand.get_tsquery()
         else:
             raise (ValueError("non-sentence field nodes should have been filtered"))
 
-    def _get_re(self):
+    def get_re(self):
         if self.field == 'sentence':
-            return self.operand._get_re()
+            return self.operand.get_re()
         else:
             raise (ValueError("non-sentence field nodes should have been filtered"))
 
@@ -315,10 +315,10 @@ class NoopNode(ParseNode):
     def __repr__(self):
         return NOOP_PLACEHOLDER
 
-    def _get_tsquery(self):
+    def get_tsquery(self):
         raise (ValueError("noop nodes should have been filtered"))
 
-    def _get_re(self):
+    def get_re(self):
         raise (ValueError("noop nodes should have been filtered"))
 
     def _filter_node_children(self, filter_function):
