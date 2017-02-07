@@ -16,7 +16,7 @@ In order to:
 [PyCharm](https://www.jetbrains.com/pycharm/) is (arguably) the best Python IDE around, and there's no reason to not use it. There's a Community Version available for free, and we might even consider applying for their [open source license](https://www.jetbrains.com/buy/opensource/) too.
 
 
-## Format code with PEP 8
+## Format Code in PEP 8
 
 [PEP 8](https://www.python.org/dev/peps/pep-0008/) is the go-to style guide for Python code, so let's not reinvent the wheel.
 
@@ -25,7 +25,7 @@ If using PyCharm (which you should), it's easy to reformat your code by pressing
 There's no annoying pre-commit hook which would slow you down by asking to format the code properly, so make it into a habit to press this shortcut early and often.
 
 
-## Write code with no warnings
+## Write Code with No Warnings
 
 If using PyCharm, you'll see warnings on the top right corner of the editor view if you do something funny with your code:
 
@@ -44,7 +44,7 @@ On one-off cases, you can disable a specific warning by adding an annotation for
 For added karma points, write code without speling errors and use Proper Casing (sentences and proper nouns start with a capital letter!)
 
 
-## Use named arguments
+## Use Named Arguments
 
 Named arguments allow one to figure out what is being passed to the function without reading that function's definition.
 
@@ -63,7 +63,7 @@ select(table='badgers',
 Unless you pass a single argument and it's absolutely trivial what it's about (e.g. `strip_html(html)`), use named parameters.
 
 
-## Declare function parameter and return values
+## Declare Function Parameter and Return Values
 
 Python 3 has [type hints](https://docs.python.org/3/library/typing.html), and we should use so that we:
 
@@ -121,7 +121,7 @@ def h(arg1: Any) -> None:
 ```
 
 
-## Write docstrings for everything
+## Write `docstring`s for Everything
 
 Describe what your functions / methods / classes / whatnot are doing **and why they're doing that**, so that others (including you in a couple of months) would be able to figure out what the code is all about without reading through the implementation. Start the docstring with a capital letter, end it with a period, wrap it around 120 lines as per PEP 8:
 
@@ -143,7 +143,7 @@ def do_stuff(param_1: int, obj: SomeSortOfObject, some_other_param: tuple) -> bo
 ```
 
 
-## Throw custom exceptions
+## Throw Custom Exceptions
 
 On multiple occasions in the code, we have a need to find out:
 
@@ -196,7 +196,7 @@ for retry in range(0, 3):
 ```
 
 
-## Write unit tests
+## Write Unit Tests
 
 To be able to modify the underlying implementation of our code and not break the brittle crystal castles that make this code up, we need to cover it with unit tests.
 
@@ -225,7 +225,7 @@ Tips on writing useful unit tests:
 * If the code does not feel like it's easily testable, consider refactoring said code
 
 
-## Contain external dependencies in wrappers
+## Contain External Dependencies in Wrappers
 
 In other words, don't pass around objects coming from external dependencies throughout the code.
 
@@ -275,7 +275,7 @@ response_text = response.text()
 ```
 
 
-## Use Python booleans
+## Use Python Booleans
 
 Unlike Perl, Python has native `bool` type, so use it instead of passing around `0` and `1` to denote "false" and "true".
 
