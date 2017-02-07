@@ -280,6 +280,11 @@ response_text = response.text()
 Unlike Perl, Python has native `bool` type, so use it instead of passing around `0` and `1` to denote "false" and "true".
 
 
+## Don't `import *`
+
+Do not `from module import *` because it makes it hard to backtrack which external functions are actually being used.
+
+
 ----
 
 # Perl Guidelines
