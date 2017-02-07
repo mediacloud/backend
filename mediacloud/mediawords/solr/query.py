@@ -224,16 +224,20 @@ class TermNode(ParseNode):
 class BooleanNode(ParseNode):
     """Super class for ANDs and ORs."""
 
+    __metaclass__ = abc.ABCMeta
+
     def __init__(self, operands):
         self.operands = operands
         for operand in operands:
             operand.parent = self
 
+    @abc.abstractmethod
     def _plain_connector(self):
-        raise AssertionError("sub class must define _plain_connector")
+        raise NotImplementedError("sub class must define _plain_connector")
 
+    @abc.abstractmethod
     def _tsquery_connector(self):
-        raise AssertionError("sub class must define _tsquery_connector")
+        raise NotImplementedError("sub class must define _tsquery_connector")
 
     def __repr__(self):
         connector = ' ' + self._plain_connector() + ' '
