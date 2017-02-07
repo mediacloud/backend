@@ -330,15 +330,16 @@ class ParseSyntaxError(Exception):
     pass
 
 
-def _check_type(token, want_type):
-    """Throw a ParseSyntaxError if the given type is not in the want_type list."""
-    if token.type not in want_type:
-        error = "token '" + str(token) + "' is not one of the following expected types: " + ', '.join(want_type)
-        raise (ParseSyntaxError(error))
-
-
 def _parse_tokens(tokens, want_type=None):
     """Given a flat list of tokens, generate a boolean logic tree."""
+
+    def __check_type(checked_token, checked_want_type):
+        """Throw a ParseSyntaxError if the given type is not in the want_type list."""
+        if checked_token.type not in checked_want_type:
+            raise ParseSyntaxError(
+                "Token '%s' is not one of the following expected types: %s" % (
+                    str(checked_token), str(checked_want_type))
+            )
 
     l.debug("parse tree: " + str(tokens))
 
@@ -372,7 +373,7 @@ def _parse_tokens(tokens, want_type=None):
             tokens.insert(0, token)
             token = Token(T_AND, 'and')
 
-        _check_type(token, want_type)
+        __check_type(token, want_type)
 
         if token.type == T_OPEN:
             clause = _parse_tokens(tokens, [T_OPEN, T_PHRASE, T_NOT, T_FIELD, T_TERM, T_NOOP, T_CLOSE])
