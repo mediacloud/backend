@@ -1,6 +1,14 @@
 # Python guidelines
 
-On the best effort basis, you should:
+In order to:
+
+* Keep our sanity intact
+* Make the codebase look like an unified body of work
+* Be able to eventually attract and hire someone new
+	* ...and not have to handhold him/her through the whole codebase for half a year
+* Reduce the amount of fires we have to extinguish daily instead of implementing features
+
+...on the best effort basis, we should:
 
 
 ## Use PyCharm
@@ -31,7 +39,9 @@ On one-off cases, you can disable a specific warning by adding an annotation for
 
 ![PyCharm "suppress warning" menu](coding_guidelines/pycharm-suppress-warning.png)
 
-...however don't cheat and write good code instead (declare abstract methods, use preferred syntax, etc.)
+...however don't cheat and write good code instead (declare abstract methods, use preferred syntax, limit code lines to 120 characters, etc.)
+
+For added karma points, write code without speling errors and use Proper Casing (sentences and proper nouns start with a capital letter!)
 
 
 ## Use named arguments
@@ -124,6 +134,91 @@ def badger():
 			"Well, we'll have to just stop here."
 		)
 ```
+
+
+## Write unit tests
+
+To be able to modify the underlying implementation of our code and not break the brittle crystal castles that make this code up, we need to cover it with unit tests.
+
+Writing those tests is definitely a burden, especially when put under time constraints and looming deadlines, but so is:
+
+* time and effort spent recovering from buggy code,
+* time and effort spent figuring out what was meant by the code written in 2008,
+* time and effort spent postponing feature release because the code changed is untested so there's no confidence that it will work (continue working) as expected.
+
+Tips on writing useful unit tests:
+
+* Write the test **first** and only then implement the required functionality.
+	* It's easier to postpone the testing indefinitely if the test is to be done "later".
+	* Instead of a burden, an unit test should be a tool for the developer to test the code.
+* Write **unit** tests, distinguish them from integration tests.
+	* Wikipedia defines a *unit* as *the smallest testable part of an application*. Thus, functionality spanning three modules and 3000 code lines is not much of a unit.
+	* Integration tests are at the very least:
+		* slow (as they test a lot of code at once),
+		* unable to cover all border cases of a single unit (a function or a method),
+		* hard to debug (typically, the integration test is able to report only that the code failed, not where and why it had done so)
+	* ...so while still tremendously useful, they're not a good replacement for having unit tests
+* Make unit tests **atomic**
+	* ...meaning that a single test should be testing only a small part of the functionality, e.g. a function or a class method
+* Make unit tests **isolated**
+	* A unit test can't depend on it being run in a particular order with other tests
+* If the code does not feel like it's easily testable, consider refactoring said code
+
+
+## Contain external dependencies in wrappers
+
+In other words, don't pass around objects coming from external dependencies throughout the code.
+
+Quote often we decide to change underlying third party tool with an alternative choice (e.g. remember Gearman or MongoDB GridFS). Doing so when direct usages of the tool scattered all around the code is tremendously hard and error-prone:
+
+
+```python
+# BAD!
+
+import requests
+
+def fetch_url(url: str) -> requests.Response:
+	return requests.get(url)
+
+response = fetch_url('http://www.mediacloud.org/')
+response_text = response.text
+
+# 'response' is now of type requests.Response, thus making 'requests' module
+# forever ingrained into our code. Good luck changing it to an alternative!
+
+```
+
+```python
+# GOOD!
+
+import requests
+
+class FetchURLResponse(object):
+
+	__requests_response = None
+
+	def __init__(self, requests_response: requests.Response):
+		self.__requests_response = requests_response
+
+	def text(self) -> str:
+		return self.__requests_response.text
+
+def fetch_url(url: str) -> requests.Response:
+	return FetchURLResponse(requests.get(url))
+
+response = fetch_url('http://www.mediacloud.org/')
+response_text = response.text()
+
+# With five minutes of writing extra binding code, you've just saved someone
+# (very likely yourself) a whole week of head bashing!
+
+```
+
+
+## Use Python booleans
+
+Unlike Perl, Python has native `bool` type, so use it instead of passing around `0` and `1` to denote "false" and "true".
+
 
 ----
 
