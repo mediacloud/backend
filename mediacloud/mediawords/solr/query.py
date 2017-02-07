@@ -1,5 +1,6 @@
 """ Functions for manipulating Solr queries."""
 
+import abc
 import inspect
 import io
 import shlex
@@ -74,8 +75,22 @@ def _node_is_field_or_noop_or_not(node):
 class ParseNode(object):
     """Parent class for universal methods for *Node classes."""
 
+    __metaclass__ = abc.ABCMeta
+
     operands = []
     filtered_by_function = None
+
+    @abc.abstractmethod
+    def _filter_node_children(self, filter_function):
+        return
+
+    @abc.abstractmethod
+    def _get_tsquery(self):
+        return
+
+    @abc.abstractmethod
+    def _get_re(self):
+        return
 
     def __str__(self):
         return self.__repr__()
