@@ -1,4 +1,4 @@
-""" Functions for manipulating Solr queries."""
+"""Functions for manipulating Solr queries."""
 
 import abc
 import inspect
@@ -7,6 +7,7 @@ import shlex
 import re
 
 from tokenize import generate_tokens
+from typing import List, Callable, Union
 
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_string_from_bytes_if_needed
@@ -53,28 +54,41 @@ class Token(object):
         return self.__repr__()
 
 
-class ParseNode(object):
-    """Parent class for universal methods for *Node classes."""
-
+class AbstractParseNode(object):
     __metaclass__ = abc.ABCMeta
 
-    operands = []
+    field = None
+    operand = None
+    parent = None
     filtered_by_function = None
+    operands = []
+
+    @abc.abstractmethod
+    def get_re(self, operands: list = None) -> str:
+        raise NotImplementedError("Abstract method")
+
+    @abc.abstractmethod
+    def get_tsquery(self) -> str:
+        raise NotImplementedError("Abstract method")
+
+    @abc.abstractmethod
+    def filter_tree(self, filter_function):
+        raise NotImplementedError("Abstract method")
+
+
+class ParseNode(AbstractParseNode):
+    """Parent class for universal methods for *Node classes."""
 
     @abc.abstractmethod
     def _filter_node_children(self, filter_function):
-        return
+        raise NotImplementedError("Abstract method")
 
-    @abc.abstractmethod
-    def get_tsquery(self):
-        return
-
-    @abc.abstractmethod
-    def get_re(self):
-        return
+    @abc.abstractmethod  # further clarify parameter type of get_re()
+    def get_re(self, operands: List[AbstractParseNode] = None) -> str:
+        raise NotImplementedError("Abstract method")
 
     @staticmethod
-    def __node_is_field_or_noop(node):
+    def __node_is_field_or_noop(node: AbstractParseNode) -> bool:
         """Return true if the field is a non-sentence field or is a noop."""
 
         if (type(node) is FieldNode) and (node.field != 'sentence'):
@@ -85,7 +99,7 @@ class ParseNode(object):
         return False
 
     @staticmethod
-    def __node_is_field_or_noop_or_not(node):
+    def __node_is_field_or_noop_or_not(node: AbstractParseNode) -> bool:
         """Return true if the field is a non-sentence field or is a noop."""
 
         if (type(node) is FieldNode) and (node.field != 'sentence'):
@@ -98,7 +112,9 @@ class ParseNode(object):
     def __str__(self):
         return self.__repr__()
 
-    def _filter_boolean_node_children(self, filter_function):
+    def _filter_boolean_node_children(self, filter_function: Callable[[AbstractParseNode], bool]) \
+            -> Union[AbstractParseNode, None]:
+
         boolean_type = type(self)
         filtered_operands = []
         for operand in self.operands:
@@ -106,9 +122,12 @@ class ParseNode(object):
             if filtered_operand:
                 filtered_operands.append(filtered_operand)
 
-        return boolean_type(filtered_operands) if (len(filtered_operands) > 0) else None
+        if len(filtered_operands) > 0:
+            return boolean_type(filtered_operands)
+        else:
+            return None
 
-    def filter_tree(self, filter_function):
+    def filter_tree(self, filter_function: Callable[[AbstractParseNode], bool]) -> Union[AbstractParseNode, None]:
         """ filter all nodes from the tree for which filter_function returns tree.
         so if the filter is lamda x: type( x ) is NotNode then '( foo and !bar ) or baz' will be filtered to
         '( foo ) or baz'
@@ -128,7 +147,7 @@ class ParseNode(object):
                 filtered_tree.filtered_by_function = filter_function
             return filtered_tree
 
-    def tsquery(self):
+    def tsquery(self) -> str:
         """ return a postgres tsquery that represents the parse tree """
 
         filtered_tree = self.filter_tree(self.__node_is_field_or_noop)
@@ -138,7 +157,7 @@ class ParseNode(object):
 
         return filtered_tree.get_tsquery()
 
-    def re(self):
+    def re(self) -> str:
         """ return a posix regex that represents the parse tree """
 
         filtered_tree = self.filter_tree(self.__node_is_field_or_noop_or_not)
@@ -160,7 +179,7 @@ class TermNode(ParseNode):
     def __repr__(self):
         return self.term if (not self.wildcard) else self.term + "*"
 
-    def get_tsquery(self):
+    def get_tsquery(self) -> str:
         if self.phrase:
             dequoted_phrase = shlex.split(self.term)[0]
             operands = []
@@ -175,7 +194,7 @@ class TermNode(ParseNode):
         else:
             return self.term if (not self.wildcard) else self.term + ":*"
 
-    def get_re(self):
+    def get_re(self, operands: List[AbstractParseNode] = None) -> str:
         term = self.term
         if self.phrase:
             term = shlex.split(term)[0]
@@ -193,7 +212,8 @@ class TermNode(ParseNode):
         else:
             return '[[:<:]]' + re.escape(term)
 
-    def _filter_node_children(self, filter_function):
+    def _filter_node_children(self, filter_function: Callable[[AbstractParseNode], bool]) \
+            -> Union[AbstractParseNode, None]:
         return TermNode(self.term, wildcard=self.wildcard, phrase=self.phrase)
 
 
@@ -215,14 +235,15 @@ class BooleanNode(ParseNode):
         connector = ' ' + self._plain_connector() + ' '
         return '( ' + connector.join(map(lambda x: str(x), self.operands)) + ' )'
 
-    def get_tsquery(self):
+    def get_tsquery(self) -> str:
         connector = ' ' + self._tsquery_connector() + ' '
         return '( ' + connector.join(map(lambda x: x.get_tsquery(), self.operands)) + ' )'
 
-    def get_re(self):
-        raise Exception("FIXME not implemented!")
+    def get_re(self, operands: List[AbstractParseNode] = None) -> str:
+        raise NotImplementedError("FIXME not implemented!")
 
-    def _filter_node_children(self, filter_function):
+    def _filter_node_children(self, filter_function: Callable[[AbstractParseNode], bool]) \
+            -> Union[AbstractParseNode, None]:
         return self._filter_boolean_node_children(filter_function)
 
 
@@ -235,7 +256,7 @@ class AndNode(BooleanNode):
     def _tsquery_connector(self):
         return '&'
 
-    def get_re(self, operands=None):
+    def get_re(self, operands: List[AbstractParseNode] = None) -> str:
         if operands is None:
             operands = self.operands
 
@@ -256,27 +277,28 @@ class OrNode(BooleanNode):
     def _tsquery_connector(self):
         return '|'
 
-    def get_re(self):
+    def get_re(self, operands: List[AbstractParseNode] = None) -> str:
         return '(?: ' + ' | '.join(map(lambda x: x.get_re(), self.operands)) + ' )'
 
 
 class NotNode(ParseNode):
     """Parse node for a NOT clause."""
 
-    def __init__(self, operand):
+    def __init__(self, operand: AbstractParseNode):
         self.operand = operand
         operand.parent = self
 
     def __repr__(self):
         return '!' + str(self.operand)
 
-    def get_tsquery(self):
+    def get_tsquery(self) -> str:
         return '!' + self.operand.get_tsquery()
 
-    def get_re(self):
+    def get_re(self, operands: List[AbstractParseNode] = None) -> str:
         raise ParseSyntaxError("not operations not supported for re()")
 
-    def _filter_node_children(self, filter_function):
+    def _filter_node_children(self, filter_function: Callable[[AbstractParseNode], bool]) \
+            -> Union[AbstractParseNode, None]:
         filtered_operand = self.operand.filter_tree(filter_function)
         return NotNode(filtered_operand) if filtered_operand else None
 
@@ -284,7 +306,7 @@ class NotNode(ParseNode):
 class FieldNode(ParseNode):
     """Parse node for a field clause."""
 
-    def __init__(self, field, operand):
+    def __init__(self, field: str, operand: AbstractParseNode):
         self.field = field
         self.operand = operand
         operand.parent = self
@@ -292,19 +314,20 @@ class FieldNode(ParseNode):
     def __repr__(self):
         return self.field + ':' + str(self.operand)
 
-    def get_tsquery(self):
+    def get_tsquery(self) -> str:
         if self.field == 'sentence':
             return self.operand.get_tsquery()
         else:
             raise ValueError("non-sentence field nodes should have been filtered")
 
-    def get_re(self):
+    def get_re(self, operands: List[AbstractParseNode] = None) -> str:
         if self.field == 'sentence':
             return self.operand.get_re()
         else:
             raise ValueError("non-sentence field nodes should have been filtered")
 
-    def _filter_node_children(self, filter_function):
+    def _filter_node_children(self, filter_function: Callable[[AbstractParseNode], bool]) \
+            -> Union[AbstractParseNode, None]:
         filtered_operand = self.operand.filter_tree(filter_function)
         return FieldNode(self.field, filtered_operand) if filtered_operand else None
 
@@ -318,13 +341,14 @@ class NoopNode(ParseNode):
     def __repr__(self):
         return NOOP_PLACEHOLDER
 
-    def get_tsquery(self):
+    def get_tsquery(self) -> str:
         raise ValueError("noop nodes should have been filtered")
 
-    def get_re(self):
+    def get_re(self, operands: List[AbstractParseNode] = None) -> str:
         raise ValueError("noop nodes should have been filtered")
 
-    def _filter_node_children(self, filter_function):
+    def _filter_node_children(self, filter_function: Callable[[AbstractParseNode], bool]) \
+            -> Union[AbstractParseNode, None]:
         return NoopNode()
 
 
@@ -333,10 +357,10 @@ class ParseSyntaxError(Exception):
     pass
 
 
-def __parse_tokens(tokens, want_type=None):
+def __parse_tokens(tokens: List[Token], want_type: List[str] = None) -> ParseNode:
     """Given a flat list of tokens, generate a boolean logic tree."""
 
-    def __check_type(checked_token, checked_want_type):
+    def __check_type(checked_token: Token, checked_want_type: List[str]) -> None:
         """Throw a ParseSyntaxError if the given type is not in the want_type list."""
         if checked_token.token_type not in checked_want_type:
             raise ParseSyntaxError(
@@ -464,10 +488,10 @@ def __parse_tokens(tokens, want_type=None):
     return clause
 
 
-def __get_tokens(query):
+def __get_tokens(query: str) -> List[Token]:
     """Get a list of Token objects from the query."""
 
-    def __get_token_type(token):
+    def __get_token_type(token: str) -> str:
         """Given some token text, return one of T_* as the type for that token."""
 
         if token == '(':
@@ -535,7 +559,7 @@ def __get_tokens(query):
     return tokens
 
 
-def parse(solr_query):
+def parse(solr_query: str) -> ParseNode:
     """ Parse a solr query and return a set of *Node objects that encapsulate the query in structured form."""
 
     solr_query = "( " + decode_string_from_bytes_if_needed(solr_query) + " )"
