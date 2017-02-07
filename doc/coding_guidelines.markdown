@@ -44,9 +44,9 @@ On one-off cases, you can disable a specific warning by adding an annotation for
 For added karma points, write code without speling errors and use Proper Casing (sentences and proper nouns start with a capital letter!)
 
 
-## Use Named Arguments
+## Use Named Parameters
 
-Named arguments allow one to figure out what is being passed to the function without reading that function's definition.
+Named parameters allow one to figure out what is being passed to the function without reading that function's definition.
 
 ```python
 # BAD!
@@ -60,14 +60,14 @@ select(table='badgers',
        condition_hash={'name': 'Bob'})
 ```
 
-Unless you pass a single argument and it's absolutely trivial what it's about (e.g. `strip_html(html)`), use named parameters.
+Unless you pass a single parameter and it's absolutely trivial what it's about (e.g. `strip_html(html)`), use named parameters.
 
 
 ## Declare Function Parameter and Return Values
 
 Python 3 has [type hints](https://docs.python.org/3/library/typing.html), and we should use so that we:
 
-1. Know what kind of arguments does the function expect and get an IDE warning if we're passing the wrong type.
+1. Know what kind of parameters does the function expect and get an IDE warning if we're passing the wrong type.
 2. Know what does the function return (Is `None` one of the options, or does the function `raise` on errors? Is it a list of dicts or a dict of lists?), and get an IDE warning if we're using the return value in a wrong way (e.g. treating it as a dictionary instead of a list).
 
 ```python
@@ -84,7 +84,7 @@ def select(table: str,
     # ...
 ```
 
-For argument / return types, you can define built-in types (`str`, `int`, `list`, `dict`, `bool`, ...) or nested types using helpers from `typing` package, e.g.:
+For parameter / return types, you can define built-in types (`str`, `int`, `list`, `dict`, `bool`, ...) or nested types using helpers from `typing` package, e.g.:
 
 ```python
 from typing import Any, Dict, Callable, List, Union
@@ -108,7 +108,7 @@ def e(arg1: List[Dict[str, int]]) -> None:
     # Function doesn't return anything.    
 
 def f(arg2: Callable[[], None]) -> None:
-    # `arg1` is expected to be a function with no arguments.
+    # `arg1` is expected to be a function with no parameters.
     # Function doesn't return anything.
 
 def g(arg1: CustomType) -> None:
