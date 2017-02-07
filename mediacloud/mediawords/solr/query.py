@@ -397,7 +397,7 @@ def _parse_tokens(tokens, want_type=None):
         elif token.type == T_PHRASE:
             want_type = [T_CLOSE, T_AND, T_OR, T_PLUS]
             clause = TermNode(token.value, phrase=True)
-            operands = []
+            # operands = []
 
         elif token.type in (T_AND, T_PLUS, T_OR):
             want_type = [T_OPEN, T_PHRASE, T_NOT, T_FIELD, T_TERM, T_NOOP, T_CLOSE, T_PLUS]
@@ -426,7 +426,7 @@ def _parse_tokens(tokens, want_type=None):
 
         elif token.type == T_NOT:
             want_type = [T_CLOSE, T_AND, T_OR, T_PLUS]
-            operand = None
+            # operand = None
             next_token = tokens.pop(0)
             if next_token.type == T_OPEN:
                 operand = _parse_tokens(tokens, [T_FIELD, T_PHRASE, T_NOT, T_TERM, T_NOOP, T_CLOSE, T_PLUS])
