@@ -74,6 +74,9 @@ def _node_is_field_or_noop_or_not(node):
 class ParseNode(object):
     """Parent class for universal methods for *Node classes."""
 
+    operands = []
+    filtered_by_function = None
+
     def __str__(self):
         return self.__repr__()
 
