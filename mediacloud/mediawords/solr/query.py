@@ -452,6 +452,7 @@ def __parse_tokens(tokens, want_type=None):
             clause = boolean_clause
             boolean_clause = None
 
+    # noinspection PyBroadException
     try:
         l.debug("parse result: " + str(clause))
     except:
