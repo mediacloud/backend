@@ -87,16 +87,37 @@ def select(table: str,
 For argument / return types, you can define built-in types (`str`, `int`, `list`, `dict`, `bool`, ...) or nested types using helpers from `typing` package, e.g.:
 
 ```python
-from typing import Dict, Callable, List
+from typing import Any, Dict, Callable, List, Union
 
-def a(arg1: List[Dict[str, int]]) -> None:
-    # 'arg1' is expected to be a `list` of `dict`s with `str` keys
-    # and `int` values, and we aren't returning anything in this
-    # function
+def a() -> None:
+    # Function doesn't return anything.
 
-def b(arg2: Callable[[], None]):
-    # 'arg2' is expected to be a function with no arguments and
-    # nothing to return
+def b() -> Union[str, None]:
+    # Function returns either a 'str' value or None.
+
+def c(arg1: Dict[str, int]) -> None:
+    # `arg1` is expected to be a `dict` with `str` keys and `int` values.
+    # Function doesn't return anything.
+
+def d(arg1: List[str]) -> None:
+    # `arg1` is expected to be `list` with `str` items.
+    # Function doesn't return anything.
+
+def e(arg1: List[Dict[str, int]]) -> None:
+    # `arg1` is expected to be a `list` of `dict`s with `str` keys and `int` values.
+    # Function doesn't return anything.    
+
+def f(arg2: Callable[[], None]) -> None:
+    # `arg1` is expected to be a function with no arguments.
+    # Function doesn't return anything.
+
+def g(arg1: CustomType) -> None:
+    # `arg1` is expected to be an object of type `CustomType`.
+    # Function doesn't return anything.
+
+def h(arg1: Any) -> None:
+    # `arg1` is expected to be of any type (generally discouraged though).
+    # Function doesn't return anything.
 ```
 
 
