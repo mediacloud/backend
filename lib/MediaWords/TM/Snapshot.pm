@@ -752,7 +752,7 @@ select dmtm.*, dt.tag
         join snapshot_tags dt on ( dmtm.tags_id = dt.tags_id )
         join snapshot_tag_sets dts on ( dts.tag_sets_id = dt.tag_sets_id )
     where
-        dts.name = 'colletion' and
+        dts.name = 'collection' and
         dt.tag = 'fake_news_20170112'
 END
 
