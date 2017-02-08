@@ -28,12 +28,7 @@ sub dbis
     $self->{ prev_req_id } = $req_id;
 
     # we put an eval and print the error here b/c the web auth dies silently on a database error
-    eval {
-        # ->connect is smart enough to reuse current connection
-        $db = MediaWords::DB::connect_to_db();
-
-        $self->{ dbis } = $db;
-    };
+    eval { $self->{ dbis } = MediaWords::DB::connect_to_db(); };
     if ( $@ )
     {
         LOGDIE "Database error: $@";
