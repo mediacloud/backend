@@ -1730,11 +1730,11 @@ END
 
     my $bot_clause = '';
     my $bot_policy = $snapshot->{ bot_policy } || $POLICY_NO_BOTS;
-    if ( $snapshot->{ bot_policy } eq $POLICY_NO_BOTS )
+    if ( $bot_policy eq $POLICY_NO_BOTS )
     {
         $bot_clause = "and ( ( coalesce( tweets, 0 ) / coalesce( days, 1 ) ) < $BOT_TWEETS_PER_DAY )";
     }
-    elsif ( $snapshot->{ bot_policy } eq $POLICY_ONLY_BOTS )
+    elsif ( $bot_policy eq $POLICY_ONLY_BOTS )
     {
         $bot_clause = "and ( ( coalesce( tweets, 0 ) / coalesce( days, 1 ) ) >= $BOT_TWEETS_PER_DAY )";
     }
