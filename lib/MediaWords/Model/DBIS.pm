@@ -13,15 +13,6 @@ use base qw(Catalyst::Model);
 use MediaWords::DB;
 use MediaWords::DB::HandlerProxy;
 
-sub new
-{
-    my $self = shift->SUPER::new( @_ );
-
-    my @info = @{ $self->{ connect_info } || [] };
-
-    return $self;
-}
-
 # hand out a database connection.  reuse the last connection unless the request has changed
 # since the last call.
 sub dbis
@@ -40,7 +31,7 @@ sub dbis
     # we put an eval and print the error here b/c the web auth dies silently on a database error
     eval {
         # ->connect is smart enough to reuse current connection
-        $db = MediaWords::DB::HandlerProxy->new( MediaWords::DB::connect_info() );
+        $db = MediaWords::DB::connect_to_db();
 
         $self->{ dbis } = $db;
     };

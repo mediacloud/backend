@@ -8,18 +8,12 @@ use warnings;
 use List::Util qw( first );
 
 use MediaWords::DB::HandlerProxy;
-
 use MediaWords::Util::Config;
-
 use MediaWords::Test::DB;
 
-# returns connection info from the configuration file
-# if no connection label is supplied and no connections have been made,
-# the first connection in the config is used otherwise the last used settings
-# are returned
-sub connect_info
+sub connect_to_db(;$$)
 {
-    my ( $label ) = @_;
+    my ( $label, $do_not_check_schema_version ) = @_;
 
     # If this is Catalyst::Test run, force the label to the test database
     if ( MediaWords::Test::DB::using_test_database() )
@@ -27,7 +21,7 @@ sub connect_info
         $label = 'test';
     }
 
-    my $all_settings = MediaWords::Util::Config::get_config->{ database };
+    my $all_settings = MediaWords::Util::Config::get_config()->{ database };
 
     defined( $all_settings ) or LOGCROAK( "No database connections configured" );
 
@@ -52,28 +46,20 @@ sub connect_info
         LOGCONFESS "Settings is uncomplete ('db' and 'host' must both be set)";
     }
 
-    my $data_source = 'dbi:Pg:dbname=' . $settings->{ db } . ';host=' . $settings->{ host };
+    my $host   = $settings->{ host };
+    my $port   = $settings->{ port };
+    my $user   = $settings->{ user };
+    my $pass   = $settings->{ pass };
+    my $dbname = $settings->{ db };
 
-    if ( defined( $settings->{ port } ) )
-    {
-        $data_source .= ';port=' . $settings->{ port };
-    }
-
-    # Arguments for MediaWords::DB::HandlerProxy->new()
-    return (
-        $settings->{ host },    #
-        $settings->{ port },    #
-        $settings->{ user },    #
-        $settings->{ pass },    #
-        $settings->{ db }       #
+    my $ret = MediaWords::DB::HandlerProxy->new(
+        $host,                          #
+        $port,                          #
+        $user,                          #
+        $pass,                          #
+        $dbname,                        #
+        $do_not_check_schema_version    #
     );
-}
-
-sub connect_to_db(;$$)
-{
-    my ( $label, $do_not_check_schema_version ) = @_;
-
-    my $ret = MediaWords::DB::HandlerProxy->new( connect_info( $label ), $do_not_check_schema_version );
 
     die "Error in connect_to_db $@" unless defined( $ret );
 
