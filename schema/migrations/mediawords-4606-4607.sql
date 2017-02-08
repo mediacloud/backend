@@ -17,7 +17,7 @@
 drop view topics_with_user_permission;
 drop view controversies;
 
-alter table topics drop topic_tags_sets_id;
+alter table topics drop column if exists topic_tag_sets_id;
 alter table topics drop has_been_spidered;
 alter table topics drop has_been_dumped;
 alter table topics rename error_message to message;

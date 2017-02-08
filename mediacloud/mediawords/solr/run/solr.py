@@ -62,7 +62,7 @@ def __solr_is_installed(dist_directory: str = MC_DIST_DIR, solr_version: str = M
         if os.path.isfile(os.path.join(solr_path, "README.txt")):
             return True
         else:
-            l.warn(
+            l.warning(
                 "Solr distribution was not found at path '%s' even though it was supposed to be there." % solr_path)
             os.unlink(installed_file_path)
 
@@ -381,7 +381,7 @@ def __kill_solr_process(signum: int = None, frame: int = None) -> None:
     """Pass SIGINT/SIGTERM to child Solr when exiting."""
     global __solr_pid
     if __solr_pid is None:
-        l.warn("Solr PID is unset, probably it wasn't started.")
+        l.warning("Solr PID is unset, probably it wasn't started.")
     else:
         gracefully_kill_child_process(child_pid=__solr_pid, sigkill_timeout=MC_SOLR_SIGKILL_TIMEOUT)
     sys.exit(signum or 0)
