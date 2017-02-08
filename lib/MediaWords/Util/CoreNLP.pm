@@ -289,7 +289,7 @@ sub _annotate_text($)
     $request->content_type( 'application/json; charset=utf8' );
     $request->content( $text_json_encoded );
 
-    DEBUG "Sending request to $_corenlp_annotator_url (" . bytes::length( $text_json_encoded ) . " bytes)...";
+    DEBUG "Sending request to $_corenlp_annotator_url: $text_json_encoded";
     my $response = $ua->request( $request );
     DEBUG "Response received.";
 
