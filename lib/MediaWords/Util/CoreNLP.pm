@@ -178,6 +178,8 @@ sub _annotate_text($)
 {
     my $text = shift;
 
+    DEBUG "Annotating " . bytes::length( $text ) . " bytes of text...";
+
     unless ( $_corenlp_annotator_url )
     {
         fatal_error( "Unable to determine CoreNLP annotator URL to use." );
@@ -221,6 +223,7 @@ sub _annotate_text($)
     }
 
     # Create JSON request
+    DEBUG "Converting text to JSON request...";
     my $text_json;
     eval {
         my $text_json_hashref = { 'text' => $text };
@@ -235,8 +238,10 @@ sub _annotate_text($)
         # Not critical, might happen to some stories, no need to shut down the annotator
         die "Unable to encode text to a JSON request: $@\nText: $text\nLevel: $_corenlp_annotator_level";
     }
+    DEBUG "Done converting text to JSON request.";
 
     # Text has to be encoded because HTTP::Request only accepts bytes as POST data
+    DEBUG "Encoding JSON request...";
     my $text_json_encoded;
     eval { $text_json_encoded = Encode::encode_utf8( $text_json ); };
     if ( $@ or ( !$text_json_encoded ) )
@@ -244,6 +249,7 @@ sub _annotate_text($)
         # Not critical, might happen to some stories, no need to shut down the annotator
         die "Unable to encode_utf8() JSON text to be annotated: $@\nJSON: $text_json";
     }
+    DEBUG "Done encoding JSON request.";
 
     # Make a request
     my $ua = MediaWords::Util::Web::UserAgentDetermined;
@@ -259,6 +265,8 @@ sub _annotate_text($)
 
             unless ( $response->is_success )
             {
+                DEBUG "Request failed: " . $response->decoded_content;
+
                 if ( lc( $response->status_line ) eq '500 read timeout' )
                 {
                     # die() on request timeouts without retrying anything
@@ -266,6 +274,10 @@ sub _annotate_text($)
                     # to the CoreNLP annotator service and it got stuck
                     die "The request timed out, giving up.";
                 }
+            }
+            else
+            {
+                DEBUG "Request succeeded.";
             }
 
             # Otherwise call the original callback subroutine
@@ -277,7 +289,9 @@ sub _annotate_text($)
     $request->content_type( 'application/json; charset=utf8' );
     $request->content( $text_json_encoded );
 
+    DEBUG "Sending request to $_corenlp_annotator_url (" . bytes::length( $text_json_encoded ) . " bytes)...";
     my $response = $ua->request( $request );
+    DEBUG "Response received.";
 
     # Force UTF-8 encoding on the response because the server might not always
     # return correct "Content-Type"
@@ -334,13 +348,16 @@ sub _annotate_text($)
     }
 
     # Decode JSON response
+    DEBUG "Decoding response from UTF-8...";
     eval { $results_string = Encode::decode_utf8( $results_string, Encode::FB_CROAK ); };
     if ( $@ )
     {
         fatal_error( "Unable to decode string '$results_string': $@" );
     }
+    DEBUG "Done decoding response from UTF-8.";
 
     # Parse resulting JSON
+    DEBUG "Parsing response's JSON...";
     my $results_hashref;
     eval { $results_hashref = MediaWords::Util::JSON::decode_json( $results_string ); };
     if ( $@ or ( !ref $results_hashref ) )
@@ -349,6 +366,7 @@ sub _annotate_text($)
         # remote CoreNLP service, so that's why whe do fatal_error() here
         fatal_error( "Unable to parse JSON response: $@\nJSON string: $results_string" );
     }
+    DEBUG "Done parsing response's JSON.";
 
     # Check sanity
     unless ( exists( $results_hashref->{ corenlp } ) )
@@ -372,6 +390,8 @@ sub _annotate_text($)
     {
         fatal_error( "'corenlp' root key is not expected to be an empty hash in JSON response: $results_string" );
     }
+
+    DEBUG "Done annotating " . bytes::length( $text ) . " bytes of text.";
 
     return $results_hashref;
 }
