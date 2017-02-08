@@ -12,6 +12,7 @@ use Moose;
 use namespace::autoclean;
 use List::Compare;
 use Readonly;
+use MediaWords::DB::StoryTriggers;
 
 =head1 NAME
 
@@ -521,7 +522,7 @@ UPDATE $table_name set disable_triggers = \$1
        where $table_id_name = \$2 and
             ( (disable_triggers is null) or (disable_triggers <> \$1 ) )
 SQL
-                normalize_boolean_for_db( MediaWords::DB::story_triggers_disabled(), $allow_null ),
+                normalize_boolean_for_db( MediaWords::DB::StoryTriggers::story_triggers_disabled(), $allow_null ),
                 $id
             );
         }
@@ -583,7 +584,7 @@ END
 
         my $allow_null = 1;
         $c->dbis->query( $disable_triggers_query,
-            normalize_boolean_for_db( MediaWords::DB::story_triggers_disabled(), $allow_null ), $id );
+            normalize_boolean_for_db( MediaWords::DB::StoryTriggers::story_triggers_disabled(), $allow_null ), $id );
 
         my $query = <<END;
 INSERT INTO $tags_map_table ( $table_id_name, tags_id)
