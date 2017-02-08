@@ -49,6 +49,12 @@ sub test_on_test_database
     }
 }
 
+# Set correct environment variable to use the test database
+sub force_using_test_database
+{
+    $ENV{ $TEST_DB_ENV_LABEL } = 1;
+}
+
 # return true if we are running within test_on_test_database
 sub using_test_database
 {
