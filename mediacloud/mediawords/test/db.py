@@ -10,4 +10,7 @@ def force_using_test_database():
 
 def using_test_database() -> bool:
     """Returns True if we are running within test_on_test_database."""
-    return os.environ[__TEST_DB_ENV_LABEL] == "1"
+    if __TEST_DB_ENV_LABEL in os.environ and os.environ[__TEST_DB_ENV_LABEL] == "1":
+        return True
+    else:
+        return False
