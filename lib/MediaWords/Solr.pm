@@ -529,8 +529,15 @@ sub search_for_stories_ids ($$)
 
     my $response = query( $db, $p );
 
-    my $groups = $response->{ grouped }->{ stories_id }->{ groups };
-    my $stories_ids = [ map { $_->{ doclist }->{ docs }->[ 0 ]->{ stories_id } } @{ $groups } ];
+    my $groups      = $response->{ grouped }->{ stories_id }->{ groups };
+    my $stories_ids = [];
+    for my $group ( @{ $groups } )
+    {
+        my $stories_id = $group->{ doclist }->{ docs }->[ 0 ]->{ stories_id };
+        LOGCONFESS( "Unable to find stories_id in group: " . Dumper( $group ) );
+
+        push( @{ $stories_ids }, $stories_id );
+    }
 
     my $sentence_counts = [ map { $_->{ doclist }->{ numFound } } @{ $groups } ];
 
