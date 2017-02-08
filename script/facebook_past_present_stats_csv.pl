@@ -31,6 +31,7 @@ sub main
         <<SQL,
         SELECT story_statistics.stories_id,
                stories.url AS stories_url,
+               stories.publish_date AS stories_publish_date,
                stories.collect_date AS stories_collect_date,
                facebook_share_count AS past_share_count,
                facebook_comment_count AS past_comment_count,
@@ -51,6 +52,7 @@ SQL
     $csv->combine(
         'stories_id',              #
         'stories_url',             #
+        'stories_publish_date',    #
         'stories_collect_date',    #
 
         'past_share_count',        #
@@ -78,6 +80,7 @@ SQL
         $csv->combine(
             int( $stories_id ),                         #
             $stories_url,                               #
+            $sample_story->{ stories_publish_date },    #
             $sample_story->{ stories_collect_date },    #
 
             int( $sample_story->{ past_share_count } ),      #
