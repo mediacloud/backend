@@ -12,14 +12,12 @@ use Moose;
 with 'MediaWords::Languages::Language';
 
 use Modern::Perl "2015";
-use MediaWords::CommonLibs;
-
-use Readonly;
-
-use MediaWords::Util::Config;
+use MediaWords::CommonLibs;    # set PYTHONPATH too
 
 # Import py_hausa_stem()
-use Inline Python => MediaWords::Util::Config::get_mc_python_dir() . '/mediawords/languages/ha.py';
+import_python_module( __PACKAGE__, 'mediawords.languages.ha' );
+
+use Readonly;
 
 sub get_language_code
 {

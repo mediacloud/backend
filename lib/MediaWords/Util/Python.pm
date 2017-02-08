@@ -11,12 +11,53 @@ use warnings;
 
 use Modern::Perl "2015";
 
+# Deliberately don't include MediaWords::CommonLibs as it includes this package itself
+
 our @ISA    = qw(Exporter);
-our @EXPORT = qw(make_python_variable_writable normalize_boolean_for_db);
+our @EXPORT = qw(import_python_module make_python_variable_writable normalize_boolean_for_db);
 
 use Carp;
-use Inline::Python;
+use Inline::Python qw(py_eval py_bind_class py_bind_func py_study_package);
 use Scalar::Util qw/looks_like_number/;
+
+# Import all functions and classes from Python module to Perl package (not into
+# the main namespace as is the default by Inline::Python).
+#
+# Usage:
+#
+# import_python_module(__PACKAGE__, 'mediawords.util.foo');
+#
+sub import_python_module($$)
+{
+    my ( $perl_package_name, $python_module_name ) = @_;
+
+    # say STDERR "Importing Python module '$python_module_name'...";
+    py_eval( "import $python_module_name" );
+
+    # say STDERR "Fetching namespace of Python module '$python_module_name'...";
+    my %namespace = py_study_package( $python_module_name );
+
+    # say STDERR "Importing classes from Python module '$python_module_name' to Perl package '$perl_package_name'...";
+    for my $class_name ( keys %{ $namespace{ 'classes' } } )
+    {
+        my $target_class_name = $perl_package_name . '::' . $class_name;
+
+        # say STDERR "Importing Python class '$target_class_name' from module '$python_module_name'";
+        my @class_methods = $namespace{ 'classes' }{ $class_name };
+        py_bind_class( $target_class_name, $python_module_name, $class_name, @class_methods );
+    }
+
+    # say STDERR "Importing functions from Python module '$python_module_name' to Perl package '$perl_package_name'...";
+    for my $function_name ( @{ $namespace{ 'functions' } } )
+    {
+        my $target_function_name = $perl_package_name . '::' . $function_name;
+
+        # say STDERR "Importing Python function '$target_function_name' from module '$python_module_name'";
+        py_bind_func( $target_function_name, $python_module_name, $function_name );
+    }
+
+    # say STDERR "Done importing Python module '$python_module_name'.";
+}
 
 # Python function return values proxied through Inline::Python become read-only
 # so attempts to modify them afterwards fail with:

@@ -6,7 +6,10 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-BEGIN {
+use MediaWords::Util::Python;
+
+BEGIN
+{
 
     use File::Basename;
     use File::Spec;
@@ -15,14 +18,13 @@ BEGIN {
 
     sub get_mc_python_dir()
     {
-        return realpath(File::Spec->canonpath(dirname( __FILE__ ) . "/../../../" . 'mediacloud/'));
+        return realpath( File::Spec->canonpath( dirname( __FILE__ ) . "/../../../" . 'mediacloud/' ) );
     }
 
     # ::CommonLibs doesn't set PYTHONPATH
     $ENV{ PYTHONPATH } = get_mc_python_dir();
 }
 
-# Can't use get_mc_python_dir() ourselves
-use Inline Python => get_mc_python_dir() . '/mediawords/util/config.py';
+MediaWords::Util::Python::import_python_module( __PACKAGE__, 'mediawords.util.config' );
 
 1;

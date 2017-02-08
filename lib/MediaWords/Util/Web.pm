@@ -6,8 +6,7 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;    # set PYTHONPATH too
 
-use MediaWords::Util::Config;
-use Inline Python => MediaWords::Util::Config::get_mc_python_dir() . '/mediawords/util/web.py';
+import_python_module( __PACKAGE__, 'mediawords.util.web' );
 
 =head1 NAME MediaWords::Util::Web - web related functions
 
