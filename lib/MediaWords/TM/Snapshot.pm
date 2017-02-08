@@ -693,39 +693,6 @@ END
     }
 }
 
-sub add_tags_to_snapshot_media
-{
-    my ( $db, $timespan, $media ) = @_;
-
-    my $tag_sets = $db->query( <<END )->hashes;
-select * from snapshot_tag_sets
-    where tag_sets_id in
-        ( select tag_sets_id
-            from snapshot_tags t join snapshot_media_tags_map mtm on ( t.tags_id = mtm.tags_id ) )
-END
-
-    my $fields = [];
-    for my $tag_set ( @{ $tag_sets } )
-    {
-        my $label = "tag_" . $tag_set->{ name };
-
-        push( @{ $fields }, $label );
-
-        my $media_tags = $db->query( <<END, $tag_set->{ tag_sets_id } )->hashes;
-select dmtm.*, dt.tag
-    from snapshot_media_tags_map dmtm
-        join snapshot_tags dt on ( dmtm.tags_id = dt.tags_id )
-    where dt.tag_sets_id = ?
-END
-        my $map = {};
-        map { $map->{ $_->{ media_id } } = $_->{ tag } } @{ $media_tags };
-
-        map { $_->{ $label } = $map->{ $_->{ media_id } } || 'null' } @{ $media };
-    }
-
-    return $fields;
-}
-
 sub add_partisan_code_to_snapshot_media
 {
     my ( $db, $timespan, $media ) = @_;
@@ -750,31 +717,51 @@ END
     return $label;
 }
 
-sub add_codes_to_snapshot_media
+sub add_partisan_retweet_to_snapshot_media
 {
     my ( $db, $timespan, $media ) = @_;
 
-    my $code_types = $db->query( <<END )->flat;
-select distinct code_type from snapshot_topic_media_codes
+    my $label = 'partisan_retweet';
+
+    my $partisan_tags = $db->query( <<END )->hashes;
+select dmtm.*, dt.tag
+    from snapshot_media_tags_map dmtm
+        join snapshot_tags dt on ( dmtm.tags_id = dt.tags_id )
+        join snapshot_tag_sets dts on ( dts.tag_sets_id = dt.tag_sets_id )
+    where
+        dts.name = 'retweet_partisanship_2016_count_10'
 END
 
-    my $code_fields = [];
-    for my $code_type ( @{ $code_types } )
-    {
-        my $label = "code_" . $code_type;
+    my $map = {};
+    map { $map->{ $_->{ media_id } } = $_->{ tag } } @{ $partisan_tags };
 
-        push( @{ $code_fields }, $label );
+    map { $_->{ $label } = $map->{ $_->{ media_id } } || 'null' } @{ $media };
 
-        my $media_codes = $db->query( <<END, $code_type )->hashes;
-select * from snapshot_topic_media_codes where code_type = ?
+    return $label;
+}
+
+sub add_fake_news_to_snapshot_media
+{
+    my ( $db, $timespan, $media ) = @_;
+
+    my $label = 'fake_news';
+
+    my $tags = $db->query( <<END )->hashes;
+select dmtm.*, dt.tag
+    from snapshot_media_tags_map dmtm
+        join snapshot_tags dt on ( dmtm.tags_id = dt.tags_id )
+        join snapshot_tag_sets dts on ( dts.tag_sets_id = dt.tag_sets_id )
+    where
+        dts.name = 'collection' and
+        dt.tag = 'fake_news_20170112'
 END
-        my $media_codes_map = {};
-        map { $media_codes_map->{ $_->{ media_id } } = $_->{ code } } @{ $media_codes };
 
-        map { $_->{ $label } = $media_codes_map->{ $_->{ media_id } } || 'null' } @{ $media };
-    }
+    my $map = {};
+    map { $map->{ $_->{ media_id } } = $_->{ tag } ? 1 : 0 } @{ $tags };
 
-    return $code_fields;
+    map { $_->{ $label } = $map->{ $_->{ media_id } } || 0 } @{ $media };
+
+    return $label;
 }
 
 # add tags, codes, partisanship and other extra data to all snapshot media for the purpose
@@ -783,13 +770,11 @@ sub add_extra_fields_to_snapshot_media
 {
     my ( $db, $timespan, $media ) = @_;
 
-    # my $code_fields = add_codes_to_snapshot_media( $db, $timespan, $media );
-
-    # my $tag_fields = add_tags_to_snapshot_media( $db, $timespan, $media );
     my $partisan_field = add_partisan_code_to_snapshot_media( $db, $timespan, $media );
+    my $partisan_retweet_field = add_partisan_retweet_to_snapshot_media( $db, $timespan, $media );
+    my $fake_news_field = add_fake_news_to_snapshot_media( $db, $timespan, $media );
 
-    # my $all_fields = [ @{ $code_fields }, @{ $tag_fields }, $partisan_field ];
-    my $all_fields = [ $partisan_field ];
+    my $all_fields = [ $partisan_field, $partisan_retweet_field, $fake_news_field ];
 
     map { $_media_static_gexf_attribute_types->{ $_ } = 'string'; } @{ $all_fields };
 
@@ -1047,7 +1032,7 @@ sub get_color
     my ( $db, $timespan, $set, $id ) = @_;
 
     my $color_set;
-    if ( grep { $_ eq $set } qw(partisan_code media_type) )
+    if ( grep { $_ eq $set } qw(partisan_code media_type partisan_retweet) )
     {
         $color_set = $set;
     }

@@ -148,8 +148,8 @@ class DatabaseHandler(object):
         if deadlock_timeout == 0:
             raise McConnectException("'deadlock_timeout' is 0, probably unable to read it")
         if deadlock_timeout < self.__MIN_DEADLOCK_TIMEOUT:
-            l.warn('"deadlock_timeout" is less than "%ds", expect deadlocks on high extractor load' %
-                   self.__MIN_DEADLOCK_TIMEOUT)
+            l.warning('"deadlock_timeout" is less than "%ds", expect deadlocks on high extractor load' %
+                      self.__MIN_DEADLOCK_TIMEOUT)
 
     def disconnect(self) -> None:
         """Disconnect from the database."""
@@ -169,13 +169,13 @@ class DatabaseHandler(object):
         config_ignore_schema_version = config["mediawords"]["ignore_schema_version"] or False
 
         if config_ignore_schema_version and self.__IGNORE_SCHEMA_VERSION_ENV_VARIABLE in os.environ:
-            l.warn("""
+            l.warning("""
                 The current Media Cloud database schema is older than the schema present in mediawords.sql,
                 but %s is set so continuing anyway.
             """ % self.__IGNORE_SCHEMA_VERSION_ENV_VARIABLE)
             return True
         else:
-            l.warn("""
+            l.warning("""
                 ################################
 
                 The current Media Cloud database schema is not the same as the schema present in mediawords.sql.

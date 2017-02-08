@@ -689,7 +689,7 @@ def normalize_url(url: str) -> str:
     # Remove cruft parameters
     for parameter in parameters_to_remove:
         if ' ' in parameter:
-            l.warn('Invalid cruft parameter "%s"' % parameter)
+            l.warning('Invalid cruft parameter "%s"' % parameter)
         query.pop(parameter, None)
 
     for name in list(query.keys()):  # copy of list to be able to delete

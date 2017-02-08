@@ -155,12 +155,16 @@ sub _add_extra_stories_to_import
 
     my $max_queued_stories = List::Util::max( 0, $max_processed_stories - $num_delta_stories );
 
+    # order by stories_id so that we will tend to get story_sentences in chunked pages as much as possible; just using
+    # random stories_ids for collections of old stories (for instance queued to solr_import_extra_stories from a
+    # media tag update) can make this query a couple orders of magnitude slower
     my $num_queued_stories = $db->query(
         <<"SQL",
         INSERT INTO delta_import_stories (stories_id)
             SELECT stories_id
             FROM solr_import_extra_stories
             WHERE MOD( stories_id, $num_proc ) = ( $proc - 1 )
+            ORDER BY stories_id
             LIMIT ?
 SQL
         $max_queued_stories

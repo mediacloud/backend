@@ -120,7 +120,7 @@ def __verify_settings(config: dict) -> None:
 
     # Warn if there's a foreign database set for storing raw downloads
     if "raw_downloads" in config["database"]:
-        l.warn("""
+        l.warning("""
             You have a foreign database set for storing raw downloads as
             /database/label[raw_downloads].
 
@@ -130,10 +130,10 @@ def __verify_settings(config: dict) -> None:
 
     # Warn if no job brokers are configured
     if 'job_manager' not in config or config['job_manager'] is None:
-        l.warn('Please configure a job manager under "job_manager" root key in mediawords.yml.')
+        l.warning('Please configure a job manager under "job_manager" root key in mediawords.yml.')
     else:
         if 'rabbitmq' not in config['job_manager'] or config['job_manager']['rabbitmq'] is None:
-            l.warn('Please configure "rabbitmq" job manager under "job_manager" root key in mediawords.yml.')
+            l.warning('Please configure "rabbitmq" job manager under "job_manager" root key in mediawords.yml.')
 
 
 def __set_dynamic_defaults(config: dict) -> dict:

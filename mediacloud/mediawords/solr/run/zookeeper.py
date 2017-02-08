@@ -57,7 +57,7 @@ def __zookeeper_is_installed(dist_directory: str = MC_DIST_DIR, zookeeper_versio
         if os.path.isfile(os.path.join(zookeeper_path, "README.txt")):
             return True
         else:
-            l.warn(
+            l.warning(
                 "ZooKeeper distribution was not found at path '%s' even though it was supposed to be there." %
                 zookeeper_path)
             os.unlink(installed_file_path)
@@ -124,7 +124,7 @@ def __kill_zookeeper_process(signum: int = None, frame: int = None) -> None:
     """Pass SIGINT/SIGTERM to child ZooKeeper when exiting."""
     global __zookeeper_pid
     if __zookeeper_pid is None:
-        l.warn("ZooKeeper PID is unset, probably it wasn't started.")
+        l.warning("ZooKeeper PID is unset, probably it wasn't started.")
     else:
         gracefully_kill_child_process(child_pid=__zookeeper_pid, sigkill_timeout=MC_ZOOKEEPER_SIGKILL_TIMEOUT)
     sys.exit(signum or 0)
