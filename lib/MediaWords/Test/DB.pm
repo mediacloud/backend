@@ -8,6 +8,8 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+import_python_module( __PACKAGE__, 'mediawords.test.db' );
+
 use File::Path;
 use Readonly;
 use Text::Lorem::More;
@@ -47,18 +49,6 @@ sub test_on_test_database
     {
         $db->disconnect();
     }
-}
-
-# Set correct environment variable to use the test database
-sub force_using_test_database
-{
-    $ENV{ $TEST_DB_ENV_LABEL } = 1;
-}
-
-# return true if we are running within test_on_test_database
-sub using_test_database
-{
-    return $ENV{ $TEST_DB_ENV_LABEL };
 }
 
 sub create_download_for_feed
