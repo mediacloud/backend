@@ -22,8 +22,6 @@ use MediaWords::DB::Schema;
 use MediaWords::Util::Config;
 use MediaWords::Util::URL;
 
-Readonly my $TEST_DB_ENV_LABEL => 'MEDIAWORDS_FORCE_USING_TEST_DATABASE';
-
 # run the given function on a temporary, clean database
 sub test_on_test_database
 {
@@ -33,12 +31,9 @@ sub test_on_test_database
 
     my $db = MediaWords::DB::connect_to_db( 'test' );
 
-    my $previous_force_using_test_db_value = $ENV{ $TEST_DB_ENV_LABEL };
-    $ENV{ $TEST_DB_ENV_LABEL } = 1;
+    force_using_test_database();
 
     eval { $sub->( $db ); };
-
-    $ENV{ $TEST_DB_ENV_LABEL } = $previous_force_using_test_db_value;
 
     if ( $@ )
     {

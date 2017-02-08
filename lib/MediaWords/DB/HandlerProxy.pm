@@ -6,18 +6,16 @@ use strict;
 use warnings;
 
 use Modern::Perl "2015";
-use MediaWords::CommonLibs;    # set PYTHONPATH too
-
-import_python_module( __PACKAGE__, 'mediawords.db.handler' );
+use MediaWords::CommonLibs;
 
 sub new
 {
-    my $class = shift;
+    my ( $class, $db ) = @_;
 
     my $self = {};
     bless $self, $class;
 
-    $self->{ _db } = MediaWords::DB::HandlerProxy::DatabaseHandler->new( @_ );
+    $self->{ _db } = $db;
 
     return $self;
 }
