@@ -27,7 +27,7 @@ alter table topics alter start_date set not null;
 alter table topics alter end_date set not null;
 
 drop view topics_with_dates;
-drop table snapshot_tags;
+drop table if exists snapshot_tags;
 
 create table topics_media_map (
     topics_id       int not null references topics on delete cascade,

@@ -17,7 +17,7 @@
 drop view controversies;
 drop view topics_with_user_permission;
 
-alter table topics drop topic_tag_sets_id;
+alter table topics drop column if exists topic_tag_sets_id;
 
 create view controversies as select topics_id controversies_id, * from topics;
 
