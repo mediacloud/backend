@@ -11,7 +11,6 @@ use MediaWords::CommonLibs;
 use base qw(Catalyst::Model);
 
 use MediaWords::DB;
-use MediaWords::DB::HandlerProxy;
 
 # hand out a database connection.  reuse the last connection unless the request has changed
 # since the last call.
