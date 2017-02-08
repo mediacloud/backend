@@ -740,6 +740,30 @@ END
     return $label;
 }
 
+sub add_fake_news_to_snapshot_media
+{
+    my ( $db, $timespan, $media ) = @_;
+
+    my $label = 'fake_news';
+
+    my $tags = $db->query( <<END )->hashes;
+select dmtm.*, dt.tag
+    from snapshot_media_tags_map dmtm
+        join snapshot_tags dt on ( dmtm.tags_id = dt.tags_id )
+        join snapshot_tag_sets dts on ( dts.tag_sets_id = dt.tag_sets_id )
+    where
+        dts.name = 'colletion' and
+        dt.tag = 'fake_news_20170112'
+END
+
+    my $map = {};
+    map { $map->{ $_->{ media_id } } = $_->{ tag } ? 1 : 0 } @{ $tags };
+
+    map { $_->{ $label } = $map->{ $_->{ media_id } } || 0 } @{ $media };
+
+    return $label;
+}
+
 # add tags, codes, partisanship and other extra data to all snapshot media for the purpose
 # of making a gexf or csv snapshot.  return the list of extra fields added.
 sub add_extra_fields_to_snapshot_media
@@ -748,9 +772,9 @@ sub add_extra_fields_to_snapshot_media
 
     my $partisan_field = add_partisan_code_to_snapshot_media( $db, $timespan, $media );
     my $partisan_retweet_field = add_partisan_retweet_to_snapshot_media( $db, $timespan, $media );
+    my $fake_news_field = add_fake_news_to_snapshot_media( $db, $timespan, $media );
 
-    # my $all_fields = [ @{ $code_fields }, @{ $tag_fields }, $partisan_field ];
-    my $all_fields = [ $partisan_field, $partisan_retweet_field ];
+    my $all_fields = [ $partisan_field, $partisan_retweet_field, $fake_news_field ];
 
     map { $_media_static_gexf_attribute_types->{ $_ } = 'string'; } @{ $all_fields };
 
