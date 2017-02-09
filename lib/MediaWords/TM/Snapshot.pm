@@ -402,19 +402,6 @@ END
     }
 }
 
-sub create_timespan_file
-{
-    my ( $db, $timespan, $file_name, $file_content ) = @_;
-
-    my $timespan_file = {
-        timespans_id => $timespan->{ timespans_id },
-        file_name    => $file_name,
-        file_content => $file_content
-    };
-
-    return $db->create( 'timespan_files', $timespan_file );
-}
-
 sub create_snap_file
 {
     my ( $db, $cd, $file_name, $file_content ) = @_;
@@ -459,15 +446,6 @@ select distinct sl.source_stories_id source_stories_id, ss.title source_title, s
 END
 
     return $csv;
-}
-
-sub write_story_links_csv
-{
-    my ( $db, $timespan ) = @_;
-
-    my $csv = get_story_links_csv( $db, $timespan );
-
-    create_timespan_file( $db, $timespan, 'story_links.csv', $csv );
 }
 
 sub write_story_links_snapshot
@@ -526,7 +504,6 @@ END
     if ( !$is_model )
     {
         create_timespan_snapshot( $db, $timespan, 'story_links' );
-        write_story_links_csv( $db, $timespan );
     }
 }
 
@@ -558,15 +535,6 @@ select distinct s.stories_id, s.title, s.url,
 END
 
     return $csv;
-}
-
-sub write_stories_csv
-{
-    my ( $db, $timespan ) = @_;
-
-    my $csv = get_stories_csv( $db, $timespan );
-
-    create_timespan_file( $db, $timespan, 'stories.csv', $csv );
 }
 
 sub get_timespan_tweets_csv
@@ -689,7 +657,6 @@ END
     if ( !$is_model )
     {
         create_timespan_snapshot( $db, $timespan, 'story_link_counts' );
-        write_stories_csv( $db, $timespan );
     }
 }
 
@@ -810,15 +777,6 @@ END
     return $csv;
 }
 
-sub write_media_csv
-{
-    my ( $db, $timespan ) = @_;
-
-    my $csv = get_media_csv( $db, $timespan );
-
-    create_timespan_file( $db, $timespan, 'media.csv', $csv );
-}
-
 sub write_medium_link_counts_snapshot
 {
     my ( $db, $timespan, $is_model ) = @_;
@@ -865,7 +823,6 @@ END
     if ( !$is_model )
     {
         create_timespan_snapshot( $db, $timespan, 'medium_link_counts' );
-        write_media_csv( $db, $timespan );
     }
 }
 
@@ -889,15 +846,6 @@ END
     return $csv;
 }
 
-sub write_medium_links_csv
-{
-    my ( $db, $timespan ) = @_;
-
-    my $csv = get_medium_links_csv( $db, $timespan );
-
-    create_timespan_file( $db, $timespan, 'medium_links.csv', $csv );
-}
-
 sub write_medium_links_snapshot
 {
     my ( $db, $timespan, $is_model ) = @_;
@@ -915,7 +863,6 @@ END
     if ( !$is_model )
     {
         create_timespan_snapshot( $db, $timespan, 'medium_links' );
-        write_medium_links_csv( $db, $timespan );
     }
 }
 
@@ -952,6 +899,7 @@ END
     create_snap_snapshot( $db, $cd, "${ period }_date_counts" );
 
     write_date_counts_csv( $db, $cd, $period );
+
 }
 
 sub attach_stories_to_media
@@ -1726,15 +1674,15 @@ create temporary table snapshot_tag_sets $_temporary_tablespace as
         where ts.tag_sets_id in ( select tag_sets_id from snapshot_tags )
 END
 
-    my $tweet_topics_id = $topic->{ twitter_topics_id } || $topic->{ topics_id };
+    my $tweet_topics_id = $topic->{ topics_id };
 
     my $bot_clause = '';
     my $bot_policy = $snapshot->{ bot_policy } || $POLICY_NO_BOTS;
-    if ( $snapshot->{ bot_policy } eq $POLICY_NO_BOTS )
+    if ( $bot_policy eq $POLICY_NO_BOTS )
     {
         $bot_clause = "and ( ( coalesce( tweets, 0 ) / coalesce( days, 1 ) ) < $BOT_TWEETS_PER_DAY )";
     }
-    elsif ( $snapshot->{ bot_policy } eq $POLICY_ONLY_BOTS )
+    elsif ( $bot_policy eq $POLICY_ONLY_BOTS )
     {
         $bot_clause = "and ( ( coalesce( tweets, 0 ) / coalesce( days, 1 ) ) >= $BOT_TWEETS_PER_DAY )";
     }
