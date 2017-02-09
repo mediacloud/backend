@@ -161,7 +161,8 @@ use MediaWords::Util::Config;
             my $job_state = $class->_create_queued_job_state( $db, $args, $priority );
             $args->{ job_states_id } = $job_state->{ job_states_id };
 
-            $class->_update_table_state( $db, $job_state );
+            eval { $class->_update_table_state( $db, $job_state ); };
+            LOGCONFESS( "error updating table state: $@" ) if ( $@ );
         }
 
         $class->_role_add_to_queue( $args, $priority );
@@ -298,9 +299,14 @@ use MediaWords::Util::Config;
 
             LOGCONFESS( "run() calls cannot be nested for stateful jobs" ) if ( $_current_job_states_id );
 
-            my $job_state = $args->{ job_states_id } || $self->_create_queued_job_state( $db, $args );
+            my $job_states_id = $args->{ job_states_id };
+            if ( !$job_states_id )
+            {
+                my $job_state = $self->_create_queued_job_state( $db, $args );
+                $job_states_id = $job_state->{ job_states_id };
+            }
 
-            $_current_job_states_id = $job_state->{ job_states_id };
+            $_current_job_states_id = $job_states_id;
 
             $self->_update_job_state( $db, $STATE_RUNNING );
 
