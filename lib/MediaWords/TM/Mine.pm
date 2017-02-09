@@ -2753,10 +2753,16 @@ sub get_full_solr_query($$;$$)
         push( @{ $media_clauses }, "tags_id_media:( $media_tags_ids_list )" );
     }
 
-    die( "query must include at least one media source or media set" ) unless ( @{ $media_clauses } );
+    if ( !( $topic->{ solr_seed_query } =~ /media_id\:|tags_id_media\:/ ) && !@{ $media_clauses } )
+    {
+        die( "query must include at least one media source or media set" );
+    }
 
-    my $media_clause_list = join( ' or ', @{ $media_clauses } );
-    $solr_query .= " and ( $media_clause_list )";
+    if ( @{ $media_clauses } )
+    {
+        my $media_clause_list = join( ' or ', @{ $media_clauses } );
+        $solr_query .= " and ( $media_clause_list )";
+    }
 
     DEBUG( "full solr query: $solr_query" );
 
