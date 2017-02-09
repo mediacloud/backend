@@ -34,7 +34,26 @@ sub add_mass_market_focus($$)
     my $fd = {
         name                     => 'Mass Market Media',
         focal_set_definitions_id => $fsd->{ focal_set_definitions_id },
-        arguments                => '{ "query": "-media_id:( $MASS_MARKET_MEDIA )" }'
+        arguments                => '{ "query": "-media_id:( ' . $MASS_MARKET_MEDIA . ' )" }'
+    };
+    $fd = $db->create( 'focus_definitions', $fd );
+}
+
+sub add_clinton_foundation_focus($$)
+{
+    my ( $db, $topic ) = @_;
+
+    my $fsd = {
+        name            => 'Clinton Foundation',
+        focal_technique => 'Boolean Query',
+        topics_id       => $topic->{ topics_id }
+    };
+    $fsd = $db->create( 'focal_set_definitions', $fsd );
+
+    my $fd = {
+        name                     => 'Clinton Foundation',
+        focal_set_definitions_id => $fsd->{ focal_set_definitions_id },
+        arguments                => '{ "query": "clinton and foundation and -media_id:18346" }'
     };
     $fd = $db->create( 'focus_definitions', $fd );
 }
@@ -117,7 +136,7 @@ sub add_leftright_foci($$)
     {
         my $tags_list = join( ', ', map { $db->quote( $_ ) } @{ $d->{ quintiles } } );
 
-        my $media_ids = $db->query( <<SQL )->hashes;
+        my $media_ids = $db->query( <<SQL )->flat;
 select distinct media_id
     from media_tags_map mtm
         join tags t using ( tags_id )
@@ -132,7 +151,7 @@ SQL
         my $fd = {
             name                     => $d->{ name },
             focal_set_definitions_id => $fsd->{ focal_set_definitions_id },
-            arguments                => '{ "query": "' . $media_ids_list . '" }'
+            arguments                => '{ "query": "media_id:( ' . $media_ids_list . ' )"}'
         };
         $db->create( 'focus_definitions', $fd );
     }
@@ -159,6 +178,7 @@ sub main
         $db->query( "delete from focal_set_definitions where topics_id = \$1", $topic->{ topics_id } );
         add_mass_market_focus( $db, $topic );
         add_no_twitter_focus( $db, $topic );
+        add_clinton_foundation_focus( $db, $topic );
         add_quintile_foci( $db, $topic );
         add_leftright_foci( $db, $topic );
 
