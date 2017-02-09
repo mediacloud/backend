@@ -1674,7 +1674,7 @@ create temporary table snapshot_tag_sets $_temporary_tablespace as
         where ts.tag_sets_id in ( select tag_sets_id from snapshot_tags )
 END
 
-    my $tweet_topics_id = $topic->{ twitter_topics_id } || $topic->{ topics_id };
+    my $tweet_topics_id = $topic->{ topics_id };
 
     my $bot_clause = '';
     my $bot_policy = $snapshot->{ bot_policy } || $POLICY_NO_BOTS;
