@@ -171,7 +171,14 @@ sub _match_stories_to_pattern
 
     $db->begin;
 
-    my $topic = { name => '_preview', description => '_preview', solr_seed_query => '_preview', pattern => $pattern };
+    my $topic = {
+        name            => '_preview',
+        description     => '_preview',
+        solr_seed_query => '_preview',
+        pattern         => $pattern,
+        start_date      => '2000-01-01',
+        end_date        => '3000-01-01'
+    };
     $topic = $db->create( 'topics', $topic );
 
     map { $_->{ matches_pattern } = MediaWords::TM::Mine::story_matches_topic_pattern( $db, $topic, $_ ) } @{ $stories };
