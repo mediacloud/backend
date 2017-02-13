@@ -39,8 +39,11 @@ sub main
         FROM story_statistics
             INNER JOIN stories
                 ON story_statistics.stories_id = stories.stories_id
+            INNER JOIN media
+                ON stories.media_id = media.media_id
         WHERE facebook_share_count IS NOT NULL
           AND facebook_comment_count IS NOT NULL
+          AND media.name = 'New York Times'
         ORDER BY RANDOM()
         LIMIT ?
 SQL
