@@ -72,7 +72,7 @@ sub run($;$)
     }
 
     # Annotate story with CoreNLP
-    eval { MediaWords::Util::CoreNLP::store_annotation_for_story( $db, $stories_id ); };
+    eval { MediaWords::Util::CoreNLP::annotate_and_store_for_story( $db, $stories_id ); };
     if ( $@ )
     {
         die "Unable to process story $stories_id with CoreNLP: $@\n";

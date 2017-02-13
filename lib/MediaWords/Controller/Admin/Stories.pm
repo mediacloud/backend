@@ -233,7 +233,7 @@ sub corenlp_json : Local
         LOGCONFESS "Story $stories_id is not annotated.";
     }
 
-    my $corenlp_json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story_and_all_sentences( $c->dbis, $stories_id );
+    my $corenlp_json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story( $c->dbis, $stories_id );
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
     return $c->res->body( encode( 'utf-8', $corenlp_json ) );
