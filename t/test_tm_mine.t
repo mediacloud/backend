@@ -530,6 +530,67 @@ sub test_full_solr_query($)
 
 }
 
+# return the pages within the $sites data that both match the topic and match the given term
+sub get_topic_pages_matching_term($$)
+{
+    my ( $sites, $term ) = @_;
+
+    my $all_pages = [];
+    map { push( @{ $all_pages }, @{ $_->{ pages } } ) } @{ $sites };
+
+    my $topic_pages = [ grep { $_->{ matches_topic } } @{ $all_pages } ];
+
+    return [ grep { $_->{ content } =~ /\Q$term\E/i } @{ $topic_pages } ];
+}
+
+# basic test that verifies that the regenerate_focus_snapshot() call generates the expected focus and that the
+# focus ends up with the expected number of stories
+sub test_foci_results
+{
+    my ( $db, $topic, $sites ) = @_;
+
+    my $label = "test_foci_results";
+
+    # pick a random term that will appear in some but not all ipsem lorem text
+    my $focus_term = 'similique';
+
+    my ( $snapshots_id ) = $db->query( "select snapshots_id from snapshots order by snapshots_id desc" )->flat;
+
+    my $fsd = {
+        name            => 'test',
+        topics_id       => $topic->{ topics_id },
+        focal_technique => 'Boolean Query'
+    };
+    $fsd = $db->create( 'focal_set_definitions', $fsd );
+
+    my $fd = {
+        name                     => $focus_term,
+        focal_set_definitions_id => $fsd->{ focal_set_definitions_id },
+        arguments                => '{ "query": "' . $focus_term . '" }'
+    };
+    $fd = $db->create( 'focus_definitions', $fd );
+
+    MediaWords::TM::Snapshot::regenerate_focus_snapshot( $db, $snapshots_id, $fd->{ focus_definitions_id } );
+
+    my $focus = $db->query( "select * from foci where focus_definitions_id = ?", $fd->{ focus_definitions_id } );
+    ok( $focus, "$label focus created" );
+    map { is( $focus->{ $_ }, $fd->{ $_ }, "$label focus field $_" ) } ( qw/name arguments/ );
+
+    my $timespan = $db->query( <<SQL, $focus->{ foci_id }, $snapshots_id )->hash;
+select * from timespans where period = 'overall' and foci_id = \$1 and snapshots_id = \$2
+SQL
+
+    ok( $timespan, "$label timespan exists" );
+
+    my ( $got_num_focus_stories ) = $db->query( <<SQL, $timespan->{ timespans_id } )->flat;
+select count(*) from snap.story_link_counts where timespans_id = \$1
+SQL
+
+    my $pages = get_topic_pages_matching_query( $sites, $focus_term );
+
+    is( $got_num_focus_stories, scalar( @{ $pages } ), "$label num matching focus stories" );
+}
+
 sub test_spider
 {
     my ( $db ) = @_;
@@ -568,6 +629,8 @@ sub test_spider
     test_spider_results( $db, $topic, $sites );
 
     map { $_->stop } @{ $hash_servers };
+
+    test_foci_results( $db, $topic, $sites );
 
     done_testing();
 }

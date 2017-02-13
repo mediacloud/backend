@@ -1866,6 +1866,113 @@ SQL
     $db->update_by_id( 'snapshots', $cd->{ snapshots_id }, { searchable => 'f' } );
 }
 
+# put all stories in this focus in solr_extra_import_stories for export to solr
+sub _export_focus_stories_to_solr($$$)
+{
+    my ( $db, $snapshot, $focus ) = @_;
+
+    DEBUG( "queueing focus stories for solr import ..." );
+    $db->query( <<SQL, $focus->{ foci_id } );
+insert into solr_import_extra_stories ( stories_id )
+    select
+            distinct slc.stories_id
+        from snap.story_link_counts slc
+            join timespans t using ( timespans_id )
+        where
+            t.foci_id = \$1
+SQL
+
+    # we can only track searchability for the whole snapshot, so we have to mark the whole snapshot unsearcharble
+    $db->update_by_id( 'snapshots', $snapshot->{ snapshots_id }, { searchable => 'f' } );
+}
+
+# if a focus for the given focus definition already exists, return it.  otherwise create it.  also create
+# the parent focal_set if necessary.
+sub get_or_create_focus($$$)
+{
+    my ( $db, $snapshots_id, $focus_definitions_id ) = @_;
+
+    my $fsd = $db->query( <<SQL, $focus_definitions_id )->hash;
+select fsd.*
+    from focal_set_definitions fsd
+        join focus_definitions using ( focal_set_definitions_id )
+    where
+        focus_definitions_id = \$1
+SQL
+
+    my $focal_set = $db->query( <<SQL, $snapshots_id, $fsd->{ focal_set_definitions_id } )->hash;
+select fs.*
+    from focal_sets fs
+        join focal_set_definitions fsd on ( fs.name = fsd.name and fs.snapshots_id = \$1 )
+    where
+        fsd.focal_set_definitions_id = \$2
+SQL
+
+    if ( !$focal_set )
+    {
+        $focal_set = $db->query( <<SQL, $fsd->{ focal_set_definitions_id }, $snapshots_id )->hash;
+insert into focal_sets ( name, description, focal_technique, snapshots_id )
+    select name, description, focal_technique, \$2 from focal_set_definitions where focal_set_definitions_id = \$1
+    returning *
+SQL
+    }
+
+    my $focus = $db->query( <<SQL, $focal_set->{ focal_sets_id }, $focus_definitions_id )->hash;
+select f.*
+    from foci f
+        join focus_definitions fd on ( fd.name = f.name and f.focal_sets_id = \$1 )
+    where
+        fd.focus_definitions_id = \$2
+SQL
+
+    return $focus if ( $focus );
+
+    $focus = $db->query( <<SQL, $focus_definitions_id, $focal_set->{ focal_sets_id } )->hash;
+insert into foci ( name, description, arguments, focal_sets_id )
+    select name, description, arguments, \$2 from focus_definitions where focus_definitions_id = \$1
+    returning *
+SQL
+
+    return $focus;
+}
+
+=head2 add_topic_focus( $db, $topics_id, $snapshots_id, $focus_definitions_id )
+
+Given an existing snapshot, regenerate (or create from scratch) the focus corresponding to the given
+focus definition
+
+=cut
+
+sub regenerate_focus_snapshot($$$)
+{
+    my ( $db, $snapshots_id, $focus_definitions_id ) = @_;
+
+    my $snap             = $db->require_by_id( 'snapshots',         $snapshots_id );
+    my $focus_definition = $db->require_by_id( 'focus_definitions', $focus_definitions_id );
+
+    $db->set_print_warn( 0 );    # avoid noisy, extraneous postgres notices from drops
+
+    # create views accessing existing snapshot level tables
+    for my $t ( @{ get_snapshot_tables() } )
+    {
+        $db->query( <<SQL, $snapshots_id );
+create temporary view snapshot_$t as select * from snap.$t where snapshots_id = \$1
+SQL
+    }
+
+    my $focus = get_or_create_focus( $db, $snapshots_id, $focus_definitions_id );
+
+    DEBUG( "deleting existing focus timespans ..." );
+    $db->query( "delete from timespans where foci_id = ?", $focus->{ foci_id } );
+
+    # generate null focus timespan snapshots
+    map { generate_period_snapshot( $db, $snap, $_, $focus ) } ( qw/custom overall weekly monthly/ );
+
+    _export_focus_stories_to_solr( $db, $snap, $focus );
+
+    discard_temp_tables( $db );
+}
+
 =head2 snapshot_topic( $db, $topics_id, $note, $bot_policy )
 
 Create a snapshot for the given topic.  Optionally pass a note and/or a bot_policy field to the created snapshot.
