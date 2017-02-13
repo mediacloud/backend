@@ -536,7 +536,7 @@ sub search_for_stories_ids ($$)
     for my $group ( @{ $groups } )
     {
         my $stories_id = $group->{ doclist }->{ docs }->[ 0 ]->{ stories_id };
-        LOGCONFESS( "Unable to find stories_id in group: " . Dumper( $group ) );
+        LOGCONFESS( "Unable to find stories_id in group: " . Dumper( $group ) ) unless ( $stories_id );
 
         push( @{ $stories_ids }, $stories_id );
     }

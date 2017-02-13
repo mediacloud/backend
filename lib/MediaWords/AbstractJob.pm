@@ -146,7 +146,7 @@ use MediaWords::Util::Config;
 
         $job_state = $db->create( 'job_states', $job_state );
 
-        return $job_state->{ job_states_id };
+        return $job_state;
     }
 
     # override add_to_queue method to add state actions, including add a new job_states row with a state
@@ -158,8 +158,11 @@ use MediaWords::Util::Config;
         if ( $class->use_job_state() )
         {
             $db ||= MediaWords::DB::connect_to_db();
-            my $job_states_id = $class->_create_queued_job_state( $db, $args, $priority );
-            $args->{ job_states_id } = $job_states_id;
+            my $job_state = $class->_create_queued_job_state( $db, $args, $priority );
+            $args->{ job_states_id } = $job_state->{ job_states_id };
+
+            eval { $class->_update_table_state( $db, $job_state ); };
+            LOGCONFESS( "error updating table state: $@" ) if ( $@ );
         }
 
         $class->_role_add_to_queue( $args, $priority );
@@ -296,7 +299,12 @@ use MediaWords::Util::Config;
 
             LOGCONFESS( "run() calls cannot be nested for stateful jobs" ) if ( $_current_job_states_id );
 
-            my $job_states_id = $args->{ job_states_id } || $self->_create_queued_job_state( $db, $args );
+            my $job_states_id = $args->{ job_states_id };
+            if ( !$job_states_id )
+            {
+                my $job_state = $self->_create_queued_job_state( $db, $args );
+                $job_states_id = $job_state->{ job_states_id };
+            }
 
             $_current_job_states_id = $job_states_id;
 
