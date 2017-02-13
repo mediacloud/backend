@@ -110,7 +110,7 @@ sub corenlp : Local
         next if ( $json_list->{ $stories_id } );
 
         my $json;
-        eval { $json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story_and_all_sentences( $db, $stories_id ) };
+        eval { $json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story( $db, $stories_id ) };
         $json ||= '"story is not annotated"';
 
         $json_list->{ $stories_id } = $json;
