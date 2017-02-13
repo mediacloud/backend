@@ -563,28 +563,14 @@ EOF
 
     my %annotations;
 
-    INFO "Annotating sentences and story text for story $stories_id...";
-
-    # Annotate each sentence separately, index by story_sentences_id
-    foreach my $sentence ( @{ $story_sentences } )
-    {
-        my $sentence_id     = $sentence->{ story_sentences_id } + 0;
-        my $sentence_number = $sentence->{ sentence_number } + 0;
-        my $sentence_text   = $sentence->{ sentence };
-
-        INFO "Annotating story's $stories_id sentence " . ( $sentence_number + 1 ) . " / " .
-          scalar( @{ $story_sentences } ) . "...";
-        $annotations{ $sentence_id } = _annotate_text( $sentence_text );
-        unless ( defined $annotations{ $sentence_id } )
-        {
-            die "Unable to annotate story sentence $sentence_id.";
-        }
-    }
-
     # Annotate concatenation of all sentences, index as '_'
-    my $sentences_concat_text = join( ' ', map { $_->{ sentence } } @{ $story_sentences } );
-
+    #
+    # (In a previous implementation of the annotator client, individual
+    # sentences and the whole story were being annotated separately. To avoid
+    # having to rewrite old raw JSON annotation results, annotation JSON for
+    # the whole story text is still being stored under index '_').
     INFO "Annotating story's $stories_id concatenated sentences...";
+    my $sentences_concat_text = join( ' ', map { $_->{ sentence } } @{ $story_sentences } );
     my $concat_index = sentences_concatenation_index() . '';
     $annotations{ $concat_index } = _annotate_text( $sentences_concat_text );
     unless ( $annotations{ $concat_index } )
@@ -600,8 +586,8 @@ EOF
         fatal_error( "Unable to encode hashref to JSON: $@\nHashref: " . Dumper( $json_annotation ) );
         return 0;
     }
+    INFO "Done annotating story's $stories_id concatenated sentences.";
 
-    INFO "Done annotating sentences and story text for story $stories_id.";
     DEBUG 'JSON length: ' . length( $json_annotation );
 
     INFO "Storing annotation results for story $stories_id...";
@@ -618,114 +604,6 @@ EOF
     return 1;
 }
 
-# Fetch the CoreNLP annotation JSON from key-value store for the story
-# Return string JSON on success, undef if the annotation doesn't exist in any
-# key-value stores, die() on error
-sub fetch_annotation_json_for_story($$)
-{
-    my ( $db, $stories_id ) = @_;
-
-    unless ( annotator_is_enabled() )
-    {
-        LOGCONFESS "CoreNLP annotator is not enabled in the configuration.";
-    }
-
-    unless ( story_is_annotated( $db, $stories_id ) )
-    {
-        WARN "Story $stories_id is not annotated with CoreNLP.";
-        return undef;
-    }
-
-    my $annotation;
-    eval { $annotation = _fetch_raw_annotation_for_story( $db, $stories_id ); };
-    if ( $@ or ( !defined $annotation ) )
-    {
-        die "Unable to fetch annotation for story $stories_id: $@";
-    }
-
-    my $sentences_concat_text = sentences_concatenation_index() . '';
-    unless ( exists( $annotation->{ $sentences_concat_text } ) )
-    {
-        die "Annotation of the concatenation of all sentences under concatenation index " .
-          "'$sentences_concat_text' doesn't exist for story $stories_id";
-    }
-
-    # Test sanity
-    my $story_annotation = $annotation->{ $sentences_concat_text };
-    unless ( exists $story_annotation->{ corenlp } )
-    {
-        die "Story annotation does not have 'corenlp' root key for story $stories_id";
-    }
-
-    # Encode back to JSON, prettifying the result
-    my $story_annotation_json;
-    eval { $story_annotation_json = MediaWords::Util::JSON::encode_json( $story_annotation, 1 ); };
-    if ( $@ or ( !$story_annotation_json ) )
-    {
-        die "Unable to encode story annotation to JSON for story $stories_id: $@\nHashref: " . Dumper( $story_annotation );
-    }
-
-    return $story_annotation_json;
-}
-
-# Fetch the CoreNLP annotation JSON from key-value store for the story sentence
-# Return string JSON on success, undef if the annotation doesn't exist in any
-# key-value stores, die() on error
-sub fetch_annotation_json_for_story_sentence($$)
-{
-    my ( $db, $story_sentences_id ) = @_;
-
-    unless ( annotator_is_enabled() )
-    {
-        LOGCONFESS "CoreNLP annotator is not enabled in the configuration.";
-    }
-
-    my $story_sentence = $db->find_by_id( 'story_sentences', $story_sentences_id );
-    unless ( $story_sentence->{ story_sentences_id } )
-    {
-        die "Story sentence with ID $story_sentences_id was not found.";
-    }
-
-    my $stories_id = $story_sentence->{ stories_id } + 0;
-
-    unless ( story_is_annotated( $db, $stories_id ) )
-    {
-        WARN "Story $stories_id is not annotated with CoreNLP.";
-        return undef;
-    }
-
-    my $annotation;
-    eval { $annotation = _fetch_raw_annotation_for_story( $db, $stories_id ); };
-    if ( $@ or ( !defined $annotation ) )
-    {
-        die "Unable to fetch annotation for story $stories_id: $@";
-    }
-
-    unless ( exists( $annotation->{ $story_sentences_id } ) )
-    {
-        die "Annotation for story sentence $story_sentences_id does not exist in story's $stories_id annotation.";
-    }
-
-    # Test sanity
-    my $story_sentence_annotation = $annotation->{ $story_sentences_id };
-    unless ( exists $story_sentence_annotation->{ corenlp } )
-    {
-        die "Sentence annotation does not have 'corenlp' root key for story sentence " .
-          $story_sentences_id . ", story $stories_id";
-    }
-
-    # Encode back to JSON, prettifying the result
-    my $story_sentence_annotation_json;
-    eval { $story_sentence_annotation_json = MediaWords::Util::JSON::encode_json( $story_sentence_annotation, 1 ); };
-    if ( $@ or ( !$story_sentence_annotation_json ) )
-    {
-        die "Unable to encode sentence annotation to JSON for story sentence " .
-          $story_sentences_id . ", story $stories_id: $@\nHashref: " . Dumper( $story_sentence_annotation );
-    }
-
-    return $story_sentence_annotation_json;
-}
-
 # Fetch the CoreNLP annotation JSON from key-value store for the story and all
 # its sentences
 #
@@ -733,16 +611,19 @@ sub fetch_annotation_json_for_story_sentence($$)
 # sentences_concatenation_index(), e.g.:
 #
 # {
-#     '_' => { 'corenlp' => 'annotation of the concatenation of all story sentences' },
-#     1 => { 'corenlp' => 'annotation of the sentence with story_sentences_id => 1' },
-#     2 => { 'corenlp' => 'annotation of the sentence with story_sentences_id => 2' },
-#     3 => { 'corenlp' => 'annotation of the sentence with story_sentences_id => 3' },
-#     ...
+#     '_' => {
+#         'corenlp' => 'annotation of the concatenation of all story sentences'
+#     }
 # }
+#
+# (In a previous implementation of the annotator client, individual
+# sentences and the whole story were being annotated separately. To avoid
+# having to rewrite old raw JSON annotation results, annotation JSON for
+# the whole story text is still being stored under index '_').
 #
 # Return string JSON on success, undef if the annotation doesn't exist in any
 # key-value stores, die() on error
-sub fetch_annotation_json_for_story_and_all_sentences($$)
+sub fetch_annotation_json_for_story($$)
 {
     my ( $db, $stories_id ) = @_;
 
