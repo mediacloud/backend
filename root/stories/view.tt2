@@ -150,8 +150,7 @@
                             <strong>Notes:</strong>
                         </p>
                         <ul>
-                            <li>Integer index is <code>story_sentences_id</code>;</li>
-                            <li>index "<code>[% corenlp_sentences_concatenation_index | html %]</code>" is concatenation of all sentences.</li>
+                            <li>Index "<code>[% corenlp_sentences_concatenation_index | html %]</code>" is concatenation of all sentences.</li>
                         </ul>
 
                         <p>[% jsonview_help %]</p>
