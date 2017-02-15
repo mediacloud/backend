@@ -649,6 +649,6 @@ def parse(solr_query: str) -> ParseNode:
 
     tokens = __get_tokens(query=solr_query)
 
-    l.debug(tokens)
+    l.debug("Tokens: %s" % str(tokens))
 
     return __parse_tokens(tokens=tokens)
