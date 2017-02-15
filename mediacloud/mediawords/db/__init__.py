@@ -2,7 +2,10 @@ from mediawords.db.handler import DatabaseHandler
 from mediawords.test.db import using_test_database
 
 from mediawords.util.config import get_config as py_get_config
+from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
+
+l = create_logger(__name__)
 
 
 class McConnectToDBException(Exception):
@@ -25,6 +28,7 @@ def connect_to_db(label: str = None, do_not_check_schema_version: bool = False) 
         raise McConnectToDBException("No database connections configured")
 
     all_settings = config['database']
+    l.debug("All configured database connections: %s" % str(all_settings))
 
     settings = None
     if label is not None:
@@ -35,13 +39,16 @@ def connect_to_db(label: str = None, do_not_check_schema_version: bool = False) 
         if settings is None:
             raise McConnectToDBException("No database connection settings labeled '%s'." % label)
     else:
+        if len(all_settings) == 0:
+            raise McConnectToDBException("No default connection settings found.")
+
         settings = all_settings[0]
 
     if settings is None:
-        raise McConnectToDBException("Settings is undefined.")
+        raise McConnectToDBException("Settings are undefined.")
 
     if 'host' not in settings or 'db' not in settings:
-        raise McConnectToDBException("Settings is incomplete ('db' and 'host' must both be set).")
+        raise McConnectToDBException("Settings are incomplete ('db' and 'host' must both be set).")
 
     host = settings['host']
     port = int(settings['port'])
