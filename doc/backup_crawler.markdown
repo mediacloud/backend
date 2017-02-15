@@ -1,6 +1,6 @@
-# Temporary crawler
+# Backup crawler
 
-Following are instructions for setting up and running a temporary crawler (backup crawler) on an AWS machine. We use a temporary crawler for times in which we know that we will or might have to take down the main crawler for more than a few hours. Some of our biggest RSS feeds start scrolling stories off after a few hours, so we risk losing stories during extended crawler down time. In those cases, we run a temporary version of the crawler that collects only feeds and the URLs found on the feeds. Once the main crawler comes back up, we export the feeds and story URLs from the temporary crawler back to the main crawler.
+Following are instructions for setting up and running a backup crawler on an AWS machine. We use a backup crawler for times in which we know that we will or might have to take down the main crawler for more than a few hours. Some of our biggest RSS feeds start scrolling stories off after a few hours, so we risk losing stories during extended crawler down time. In those cases, we run a temporary version of the crawler that collects only feeds and the URLs found on the feeds. Once the main crawler comes back up, we export the feeds and story URLs from the backup crawler back to the main crawler.
 
 ## Setting up
 
@@ -26,21 +26,21 @@ Following are instructions for setting up and running a temporary crawler (backu
         #
         # See doc/README.vagrant.markdown for instructions on how to set the environment
         # variables below.
-        AWS_INSTANCE_NAME="mc-temporary-crawler" \
+        AWS_INSTANCE_NAME="mc-backup-crawler" \
         AWS_ACCESS_KEY_ID="AKIAIOSFODNN7EXAMPLE" \
         AWS_SECRET_ACCESS_KEY="wJalrXUtnFEMI/K7MDENG" \
         AWS_KEYPAIR_NAME="development" \
         AWS_SSH_PRIVKEY="~/development.pem" \
         AWS_SECURITY_GROUP="default" \
         \
-        vagrant up --provider=aws &> temporary_crawler.log
+        vagrant up --provider=aws &> backup_crawler.log
 
         # SSH into the newly setup instance
         vagrant ssh
 
     **Note:** make sure the machine has sufficient disk space. For example, if using AWS, you will need to either create the instance with a large root partition or mount additional storage and use symlinks to get PostgreSQL to use this storage instead of the root partition. At the time of writing, Vagrant sets up EC2 machines with 40 GB of disk space.
 
-    **Note:** make sure to choose a safe EC2 security group (`AWS_SECURITY_GROUP`) for the temporary crawler, "safe" meaning that one should allow inly incoming SSH (and maybe ICMP) traffic and nothing else. That's because Media Cloud's `install.sh` creates a demo user `jdoe@mediacloud.org` which could be accessed by anyone from outside.
+    **Note:** make sure to choose a safe EC2 security group (`AWS_SECURITY_GROUP`) for the backup crawler, "safe" meaning that one should allow inly incoming SSH (and maybe ICMP) traffic and nothing else. That's because Media Cloud's `install.sh` creates a demo user `jdoe@mediacloud.org` which could be accessed by anyone from outside.
 
 2. **Make sure that the time zone of your machine is set to Eastern Time.**
 

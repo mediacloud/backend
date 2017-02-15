@@ -4,10 +4,10 @@
 #
 # Usage:
 #
-# 1) On production (database that is being exported), run:
+# 1) On production machine (database that is being exported), run:
 #
 #     # Export tables to "mediacloud-dump.sql"
-#     ./script/run_with_carton.sh ./script/export_tables_to_backup_crawler.pl > mediacloud-dump.sql
+#     ./script/run_with_carton.sh ./script/import_export/export_tables_to_backup_crawler.pl > mediacloud-dump.sql
 #
 # 2) On target machine (e.g. a backup crawler), run:
 #
