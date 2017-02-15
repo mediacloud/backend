@@ -26,6 +26,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;
+use MediaWords::DB::StoryTriggers;
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::ExtractorArguments;
 
@@ -58,12 +59,12 @@ sub run($$)
     if ( exists $args->{ disable_story_triggers } and $args->{ disable_story_triggers } )
     {
         $db->query( "SELECT disable_story_triggers(); " );
-        MediaWords::DB::disable_story_triggers();
+        MediaWords::DB::StoryTriggers::disable_story_triggers();
     }
     else
     {
         $db->query( "SELECT enable_story_triggers(); " );
-        MediaWords::DB::enable_story_triggers();
+        MediaWords::DB::StoryTriggers::enable_story_triggers();
     }
 
     my $extractor_args = MediaWords::DBI::Stories::ExtractorArguments->new(
