@@ -10,7 +10,7 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
-use Test::More tests => 4;
+use Test::More tests => 2;
 
 use HTTP::HashServer;
 use Readonly;
@@ -80,39 +80,6 @@ sub test_invalid_feed($)
     $hs->stop;
 }
 
-# Test what happens when 'do_not_process_feeds' is set
-sub test_do_not_process_feeds($)
-{
-    my ( $db ) = @_;
-
-    # Temporarily set 'do_not_process_feeds'
-    my $config     = MediaWords::Util::Config::get_config;
-    my $new_config = dclone( $config );
-
-    my $orig_do_not_process_feeds = $config->{ mediawords }->{ do_not_process_feeds };
-    $new_config->{ mediawords }->{ do_not_process_feeds } = 'yes';
-    MediaWords::Util::Config::set_config( $new_config );
-
-    my $pages = { '/foo' => '<rss version="2.0"><channel /></rss>', };
-
-    my $hs = HTTP::HashServer->new( $HTTP_PORT, $pages );
-
-    $hs->start;
-
-    my $media = MediaWords::Test::DB::create_test_story_stack( $db, { A => { B => [ 1 ] } } );
-    my $feed = $media->{ A }->{ feeds }->{ B };
-
-    my $download = _fetch_and_handle_response( $db, $HTTP_PORT, $feed, '/foo' );
-
-    is( $download->{ state }, 'feed_error', '"do_not_process_feeds" download state' );
-    like( $download->{ error_message }, qr/do_not_process_feeds/, "'do_not_process_feeds' download error" );
-
-    $hs->stop;
-
-    $new_config->{ mediawords }->{ do_not_process_feeds } = $orig_do_not_process_feeds;
-    MediaWords::Util::Config::set_config( $new_config );
-}
-
 sub main
 {
     MediaWords::Test::DB::test_on_test_database(
@@ -120,14 +87,6 @@ sub main
             my ( $db ) = @_;
 
             test_invalid_feed( $db );
-        }
-    );
-
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my ( $db ) = @_;
-
-            test_do_not_process_feeds( $db );
         }
     );
 }

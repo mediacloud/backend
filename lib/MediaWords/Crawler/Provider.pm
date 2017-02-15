@@ -162,12 +162,6 @@ sub _add_stale_feeds
 
     my $stale_feed_interval = $STALE_FEED_INTERVAL;
 
-    # if we're in feed archiving mode, download every feed every two hours
-    if ( ( MediaWords::Util::Config::get_config->{ mediawords }->{ do_not_process_feeds } || '' ) eq 'yes' )
-    {
-        $stale_feed_interval = 3600 * 2;
-    }
-
     DEBUG "_add_stale_feeds";
 
     $self->{ last_stale_feed_check } = time();
@@ -306,14 +300,6 @@ sub _add_pending_downloads
 
     my $db = $self->engine->dbs;
 
-    my $archive_clause = '';
-
-    # if we're in feed archiving mode, don't download stories
-    if ( ( MediaWords::Util::Config::get_config->{ mediawords }->{ do_not_process_feeds } || '' ) eq 'yes' )
-    {
-        $archive_clause = "and d.type='feed'";
-    }
-
     my $downloads = $db->query( <<END, $MAX_QUEUED_DOWNLOADS )->hashes;
 select
         d.*,
@@ -324,7 +310,6 @@ select
     where
         d.state = 'pending' and
         ( d.download_time < now() or d.download_time is null )
-        $archive_clause
     order by priority asc
     limit ?
 END

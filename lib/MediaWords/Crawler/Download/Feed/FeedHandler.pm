@@ -41,22 +41,6 @@ use MediaWords::Util::Config;
 
 use Readonly;
 
-sub _feed_processing_is_disabled($)
-{
-    my $self = shift;
-
-    my $config = MediaWords::Util::Config::get_config;
-    if (   ( $config->{ mediawords }->{ do_not_process_feeds } )
-        && ( $config->{ mediawords }->{ do_not_process_feeds } eq 'yes' ) )
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
-}
-
 # Returns story IDs to extract
 sub handle_download($$$$)
 {
@@ -69,12 +53,6 @@ sub handle_download($$$$)
     my ( $added_story_ids, $story_ids_to_extract );
 
     eval {
-
-        if ( $self->_feed_processing_is_disabled() )
-        {
-            die "Feed processing is disabled in mediawords.yml ('do_not_process_feeds').";
-        }
-
         $added_story_ids = $self->add_stories_from_feed( $db, $download, $decoded_content );
         $story_ids_to_extract = $self->return_stories_to_be_extracted_from_feed( $db, $download, $decoded_content );
     };
