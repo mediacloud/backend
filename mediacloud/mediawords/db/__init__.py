@@ -25,10 +25,11 @@ def connect_to_db(label: str = None, do_not_check_schema_version: bool = False) 
     config = py_get_config()
 
     if 'database' not in config:
-        raise McConnectToDBException("No database connections configured")
+        raise McConnectToDBException("No database connections are configured")
 
     all_settings = config['database']
-    l.debug("All configured database connections: %s" % str(all_settings))
+    if all_settings is None:
+        raise McConnectToDBException("No database connections are configured")
 
     settings = None
     if label is not None:
