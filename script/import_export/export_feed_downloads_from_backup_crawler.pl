@@ -25,7 +25,6 @@ use MediaWords::DB;
 use MediaWords::DBI::Downloads;
 
 use Data::Dumper;
-use Encode;
 use Text::CSV_XS;
 
 sub main
@@ -69,7 +68,7 @@ SQL
     my $csv = Text::CSV_XS->new( { binary => 1 } );
 
     $csv->combine( @{ $column_names } );
-    print encode( 'utf8', $csv->string ) . "\n";
+    print $csv->string . "\n";
 
     my $n = 1;
     foreach my $downloads_id ( @{ $feed_downloads_ids } )
@@ -95,14 +94,7 @@ SQL
         # Append raw content as last column
         $csv->combine( @row, $$raw_download_content_ref );
 
-        my $encoded_csv_row;
-        eval { $encoded_csv_row = encode( 'utf8', $csv->string ) . "\n"; };
-        if ( $@ )
-        {
-            die "Unable to encode download " . Dumper( $download );
-        }
-
-        print $encoded_csv_row;
+        print $csv->string . "\n";
     }
 
     INFO "Done exporting " . scalar( @{ $feed_downloads_ids } ) . " feed downloads.";
