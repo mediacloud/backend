@@ -81,6 +81,13 @@ SQL
         my $download = $db->find_by_id( 'downloads', $downloads_id );
 
         my $raw_download_content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download );
+        my $raw_download_content = $$raw_download_content_ref;
+
+        if ( $raw_download_content eq '(redundant feed)' )
+        {
+            INFO "Download $downloads_id is redundant feed, skipping...";
+            next;
+        }
 
         foreach my $column_to_remove ( @columns_to_remove )
         {
