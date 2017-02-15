@@ -50,8 +50,6 @@ sub main
 
     $column_names = [ grep { my $f = $_; !grep $_ eq $f, @columns_to_remove } @{ $column_names } ];
 
-    push( @{ $column_names }, '_raw_download_content' );
-
     # Fetch all download IDs first to save some memory
     my $feed_downloads_ids = $db->query(
         <<SQL,
@@ -67,7 +65,8 @@ SQL
 
     my $csv = Text::CSV_XS->new( { binary => 1 } );
 
-    $csv->combine( @{ $column_names } );
+    # Append raw content as last column
+    $csv->combine( @{ $column_names }, '_raw_download_content' );
     print $csv->string . "\n";
 
     my $n = 1;
