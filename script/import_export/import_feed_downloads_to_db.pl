@@ -4,7 +4,7 @@
 #
 # Usage: on production machine (database that is being imported to ), run:
 #
-#     # Export tables to "mediacloud-dump.sql"
+#     # Import feed downloads from "mediacloud-feed-downloads.csv"
 #     ./script/run_with_carton.sh \
 #         ./script/import_export/import_feed_downloads_to_db.pl mediacloud-feed-downloads.csv
 #

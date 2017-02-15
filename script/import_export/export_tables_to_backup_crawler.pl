@@ -1,12 +1,12 @@
 #!/usr/bin/env perl
 #
-# Export "media", "feeds", ... tables needed to run a backup crawler
+# Export "media", "feeds", ... table data needed to run a backup crawler
 #
 # Usage:
 #
 # 1) On production machine (database that is being exported), run:
 #
-#     # Export tables to "mediacloud-dump.sql"
+#     # Export table data to "mediacloud-dump.sql"
 #     ./script/run_with_carton.sh ./script/import_export/export_tables_to_backup_crawler.pl > mediacloud-dump.sql
 #
 # 2) On target machine (e.g. a backup crawler), run:
