@@ -228,6 +228,8 @@ sub schema_is_up_to_date
     use strict;
     use warnings;
 
+    use MediaWords::CommonLibs;
+
     use Data::Dumper;
 
     sub new
@@ -238,16 +240,16 @@ sub schema_is_up_to_date
 
         if ( ref( $db ) ne 'MediaWords::DB::Handler' )
         {
-            die "Database is not a reference to MediaWords::DB::Handler but rather to " . ref( $db );
+            LOGCONFESS "Database is not a reference to MediaWords::DB::Handler but rather to " . ref( $db );
         }
 
         if ( scalar( @query_args ) == 0 )
         {
-            die 'No query or its parameters.';
+            LOGCONFESS 'No query or its parameters.';
         }
         unless ( $query_args[ 0 ] )
         {
-            die 'Query is empty or undefined.';
+            LOGCONFESS 'Query is empty or undefined.';
         }
 
         my $self = {};
@@ -256,7 +258,7 @@ sub schema_is_up_to_date
         eval { $self->{ result } = $db->_query_internal( @query_args ); };
         if ( $@ )
         {
-            die "Query error: $@";
+            LOGCONFESS( "Query error: $@" );
         }
 
         return $self;
