@@ -27,6 +27,9 @@ use MediaWords::DBI::Downloads;
 use Data::Dumper;
 use Text::CSV_XS;
 
+require "$FindBin::Bin/raw_download_content_column.inc.pl";
+our $raw_download_content_column;
+
 sub main
 {
     binmode STDOUT, ":utf8";
@@ -66,7 +69,7 @@ SQL
     my $csv = Text::CSV_XS->new( { binary => 1 } );
 
     # Append raw content as last column
-    $csv->combine( @{ $column_names }, '_raw_download_content' );
+    $csv->combine( @{ $column_names }, $raw_download_content_column );
     print $csv->string . "\n";
 
     my $n = 1;
