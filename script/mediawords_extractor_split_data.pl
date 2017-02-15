@@ -11,7 +11,7 @@ BEGIN
 
 use Getopt::Long;
 use HTML::Strip;
-use DBIx::Simple::MediaWords;
+use MediaWords::DB::Handler;
 use MediaWords::DB;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;

@@ -90,11 +90,16 @@ SQL
 
 sub default_output_fields
 {
-    my ( $self ) = @_;
+    my ( $self, $c ) = @_;
 
-    my $fields = [ qw ( name url media_id ) ];
+    my $fields = [ qw ( name url media_id primary_language is_monitored public_notes ) ];
 
     push( @{ $fields }, qw ( inlink_count outlink_count story_count ) ) if ( $self->{ topic_media } );
+
+    if ( grep { $MediaWords::DBI::Auth::Roles::ADMIN eq $_ } @{ $c->stash->{ api_auth }->{ roles } } )
+    {
+        push( @{ $fields }, 'editor_notes' );
+    }
 
     return $fields;
 }
@@ -157,6 +162,8 @@ sub get_extra_where_clause
 
     my $clauses = [];
 
+    my $db = $c->dbis;
+
     if ( my $tags_id = $c->req->params->{ tags_id } )
     {
         $tags_id += 0;
@@ -168,16 +175,16 @@ sub get_extra_where_clause
     if ( my $q = $c->req->params->{ q } )
     {
         my $solr_params = { q => $q };
-        my $media_ids = MediaWords::Solr::search_for_media_ids( $c->dbis, $solr_params );
+        my $media_ids = MediaWords::Solr::search_for_media_ids( $db, $solr_params );
 
-        my $ids_table = $c->dbis->get_temporary_ids_table( $media_ids );
+        my $ids_table = $db->get_temporary_ids_table( $media_ids );
 
         push( @{ $clauses }, "and media_id in ( select id from $ids_table )" );
     }
 
     if ( my $tag_name = $c->req->params->{ tag_name } )
     {
-        my $q_tag_name = $c->dbis->dbh->quote( $tag_name );
+        my $q_tag_name = $db->quote( $tag_name );
         push( @{ $clauses }, <<SQL );
 and media_id in (
     select media_id
@@ -195,6 +202,15 @@ SQL
         push( @{ $clauses }, <<SQL );
 and exists ( select 1 from media_health h where h.media_id = media.media_id and h.is_healthy = false )
 SQL
+    }
+
+    if ( my $languages = $c->req->params->{ primary_language } )
+    {
+        $languages = [ $languages ] unless ( ref( $languages ) );
+
+        my $languages_list = join( ',', map { $db->quote( $_ ) } @{ $languages } );
+
+        push( @{ $clauses }, "and primary_language in ( $languages_list )" );
     }
 
     if ( my $similar_media_id = $c->req->params->{ similar_media_id } )
@@ -344,7 +360,7 @@ sub _apply_updates_to_media($$)
             map { MediaWords::DBI::Media::add_feed_url_to_medium( $db, $input_medium->{ medium }, $_ ) } @{ $feeds };
         }
 
-        MediaWords::Job::RescrapeMedia->add_to_queue( { media_id => $medium->{ media_id } } );
+        MediaWords::Job::RescrapeMedia->add_to_queue( { media_id => $medium->{ media_id } }, undef, $db );
 
         if ( my $tags_ids = $input_medium->{ tags_ids } )
         {
@@ -521,8 +537,13 @@ SQL
 
     my $clause_list = join( ' and ', @{ $clauses } );
 
-    my $media_suggestions =
-      $db->query( "select * from media_suggestions where $clause_list order by date_submitted" )->hashes;
+    my $media_suggestions = $db->query( <<SQL )->hashes;
+select u.email email, *
+    from media_suggestions ms
+        join auth_users u using ( auth_users_id )
+    where $clause_list
+    order by date_submitted
+SQL
 
     $db->attach_child_query( $media_suggestions, <<SQL, 'tags_ids', 'media_suggestions_id' );
 select tags_id, media_suggestions_id from media_suggestions_tags_map

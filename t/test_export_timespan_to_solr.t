@@ -17,6 +17,7 @@ use MediaWords::CommonLibs;
 
 use Test::More;
 
+use MediaWords::Job::TM::SnapshotTopic;
 use MediaWords::Solr::Dump;
 use MediaWords::TM;
 use MediaWords::TM::Snapshot;
@@ -56,7 +57,7 @@ insert into topic_stories ( topics_id, stories_id )
     select \$1, stories_id from stories where media_id = \$2
 SQL
 
-    MediaWords::TM::Snapshot::snapshot_topic( $db, $topic->{ topics_id } );
+    MediaWords::Job::TM::SnapshotTopic->run_locally( { topics_id => $topic->{ topics_id } } );
 
     $num_solr_sentences = MediaWords::Solr::get_num_found( $db, { q => 'timespans_id:1' } );
     is( $num_solr_sentences, 0, "number of solr sentences before snapshot import" );
@@ -82,7 +83,7 @@ insert into focus_definitions ( name, description, arguments, focal_set_definiti
     select \$1, \$2, ( '{ "query": ' || to_json( \$3::text ) || ' }' )::json, \$4
 SQL
 
-    MediaWords::TM::Snapshot::snapshot_topic( $db, $topic->{ topics_id } );
+    MediaWords::Job::TM::SnapshotTopic->run_locally( { topics_id => $topic->{ topics_id } } );
     MediaWords::Solr::Dump::generate_and_import_data( 1 );
 
     my ( $focus_timespans_id ) = $db->query( <<SQL )->flat;
@@ -106,7 +107,8 @@ SQL
 
 sub main
 {
-    MediaWords::Test::Supervisor::test_with_supervisor( \&test_timespan_export, [ qw/solr_standalone/ ] );
+    MediaWords::Test::Supervisor::test_with_supervisor( \&test_timespan_export,
+        [ 'solr_standalone', 'job_broker:rabbitmq' ] );
 
     done_testing();
 }

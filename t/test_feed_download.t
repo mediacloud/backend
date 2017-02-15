@@ -43,7 +43,7 @@ use MediaWords::Util::DateTime;
 
 use Data::Dumper;
 use Data::Sorting qw( :basics :arrays :extras );
-use DBIx::Simple::MediaWords;
+use MediaWords::DB::Handler;
 use LWP::UserAgent;
 use MediaWords::StoryVectors;
 use Readonly;

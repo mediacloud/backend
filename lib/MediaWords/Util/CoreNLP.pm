@@ -125,8 +125,19 @@ my $_postgresql_store = lazy
         fatal_error( "CoreNLP annotator is not enabled; why are you accessing this variable?" );
     }
 
+    my $compression_method = $MediaWords::KeyValueStore::COMPRESSION_GZIP;
+    if ( $CORENLP_USE_BZIP2 )
+    {
+        $compression_method = $MediaWords::KeyValueStore::COMPRESSION_BZIP2;
+    }
+
     # PostgreSQL storage
-    my $postgresql_store = MediaWords::KeyValueStore::PostgreSQL->new( { table => $CORENLP_POSTGRESQL_KVS_TABLE_NAME } );
+    my $postgresql_store = MediaWords::KeyValueStore::PostgreSQL->new(
+        {
+            table              => $CORENLP_POSTGRESQL_KVS_TABLE_NAME,    #
+            compression_method => $compression_method,                   #
+        }
+    );
     DEBUG "Will read / write CoreNLP annotator results to PostgreSQL table: $CORENLP_POSTGRESQL_KVS_TABLE_NAME";
 
     return $postgresql_store;
@@ -166,6 +177,8 @@ my $_postgresql_store = lazy
 sub _annotate_text($)
 {
     my $text = shift;
+
+    DEBUG "Annotating " . bytes::length( $text ) . " bytes of text...";
 
     unless ( $_corenlp_annotator_url )
     {
@@ -210,6 +223,7 @@ sub _annotate_text($)
     }
 
     # Create JSON request
+    DEBUG "Converting text to JSON request...";
     my $text_json;
     eval {
         my $text_json_hashref = { 'text' => $text };
@@ -224,8 +238,10 @@ sub _annotate_text($)
         # Not critical, might happen to some stories, no need to shut down the annotator
         die "Unable to encode text to a JSON request: $@\nText: $text\nLevel: $_corenlp_annotator_level";
     }
+    DEBUG "Done converting text to JSON request.";
 
     # Text has to be encoded because HTTP::Request only accepts bytes as POST data
+    DEBUG "Encoding JSON request...";
     my $text_json_encoded;
     eval { $text_json_encoded = Encode::encode_utf8( $text_json ); };
     if ( $@ or ( !$text_json_encoded ) )
@@ -233,6 +249,7 @@ sub _annotate_text($)
         # Not critical, might happen to some stories, no need to shut down the annotator
         die "Unable to encode_utf8() JSON text to be annotated: $@\nJSON: $text_json";
     }
+    DEBUG "Done encoding JSON request.";
 
     # Make a request
     my $ua = MediaWords::Util::Web::UserAgentDetermined;
@@ -248,6 +265,8 @@ sub _annotate_text($)
 
             unless ( $response->is_success )
             {
+                DEBUG "Request failed: " . $response->decoded_content;
+
                 if ( lc( $response->status_line ) eq '500 read timeout' )
                 {
                     # die() on request timeouts without retrying anything
@@ -255,6 +274,10 @@ sub _annotate_text($)
                     # to the CoreNLP annotator service and it got stuck
                     die "The request timed out, giving up.";
                 }
+            }
+            else
+            {
+                DEBUG "Request succeeded.";
             }
 
             # Otherwise call the original callback subroutine
@@ -266,7 +289,9 @@ sub _annotate_text($)
     $request->content_type( 'application/json; charset=utf8' );
     $request->content( $text_json_encoded );
 
+    DEBUG "Sending request to $_corenlp_annotator_url: $text_json_encoded";
     my $response = $ua->request( $request );
+    DEBUG "Response received.";
 
     # Force UTF-8 encoding on the response because the server might not always
     # return correct "Content-Type"
@@ -323,13 +348,16 @@ sub _annotate_text($)
     }
 
     # Decode JSON response
+    DEBUG "Decoding response from UTF-8...";
     eval { $results_string = Encode::decode_utf8( $results_string, Encode::FB_CROAK ); };
     if ( $@ )
     {
         fatal_error( "Unable to decode string '$results_string': $@" );
     }
+    DEBUG "Done decoding response from UTF-8.";
 
     # Parse resulting JSON
+    DEBUG "Parsing response's JSON...";
     my $results_hashref;
     eval { $results_hashref = MediaWords::Util::JSON::decode_json( $results_string ); };
     if ( $@ or ( !ref $results_hashref ) )
@@ -338,6 +366,7 @@ sub _annotate_text($)
         # remote CoreNLP service, so that's why whe do fatal_error() here
         fatal_error( "Unable to parse JSON response: $@\nJSON string: $results_string" );
     }
+    DEBUG "Done parsing response's JSON.";
 
     # Check sanity
     unless ( exists( $results_hashref->{ corenlp } ) )
@@ -362,6 +391,8 @@ sub _annotate_text($)
         fatal_error( "'corenlp' root key is not expected to be an empty hash in JSON response: $results_string" );
     }
 
+    DEBUG "Done annotating " . bytes::length( $text ) . " bytes of text.";
+
     return $results_hashref;
 }
 
@@ -384,15 +415,9 @@ sub _fetch_raw_annotation_for_story($$)
     }
 
     # Fetch annotation
-    my $json_ref = undef;
-
-    my $param_object_path                   = undef;                 # no such thing, objects are indexed by filename
-    my $param_use_bunzip2_instead_of_gunzip = $CORENLP_USE_BZIP2;    # ...with Bzip2
-
-    eval {
-        $json_ref =
-          $_postgresql_store->fetch_content( $db, $stories_id, $param_object_path, $param_use_bunzip2_instead_of_gunzip );
-    };
+    my $json_ref          = undef;
+    my $param_object_path = undef;    # no such thing, objects are indexed by filename
+    eval { $json_ref = $_postgresql_store->fetch_content( $db, $stories_id, $param_object_path ); };
     if ( $@ or ( !defined $json_ref ) )
     {
         die "Store died while fetching annotation for story $stories_id: $@\n";
@@ -501,7 +526,7 @@ sub story_is_annotated($$)
 # Run the CoreNLP annotation for the story, store results in key-value store
 # If story is already annotated, issue a warning and overwrite
 # Return 1 on success, 0 on failure, die() on error, exit() on fatal error
-sub store_annotation_for_story($$)
+sub annotate_and_store_for_story($$)
 {
     my ( $db, $stories_id ) = @_;
 
@@ -538,28 +563,14 @@ EOF
 
     my %annotations;
 
-    INFO "Annotating sentences and story text for story $stories_id...";
-
-    # Annotate each sentence separately, index by story_sentences_id
-    foreach my $sentence ( @{ $story_sentences } )
-    {
-        my $sentence_id     = $sentence->{ story_sentences_id } + 0;
-        my $sentence_number = $sentence->{ sentence_number } + 0;
-        my $sentence_text   = $sentence->{ sentence };
-
-        INFO "Annotating story's $stories_id sentence " . ( $sentence_number + 1 ) . " / " .
-          scalar( @{ $story_sentences } ) . "...";
-        $annotations{ $sentence_id } = _annotate_text( $sentence_text );
-        unless ( defined $annotations{ $sentence_id } )
-        {
-            die "Unable to annotate story sentence $sentence_id.";
-        }
-    }
-
     # Annotate concatenation of all sentences, index as '_'
-    my $sentences_concat_text = join( ' ', map { $_->{ sentence } } @{ $story_sentences } );
-
+    #
+    # (In a previous implementation of the annotator client, individual
+    # sentences and the whole story were being annotated separately. To avoid
+    # having to rewrite old raw JSON annotation results, annotation JSON for
+    # the whole story text is still being stored under index '_').
     INFO "Annotating story's $stories_id concatenated sentences...";
+    my $sentences_concat_text = join( ' ', map { $_->{ sentence } } @{ $story_sentences } );
     my $concat_index = sentences_concatenation_index() . '';
     $annotations{ $concat_index } = _annotate_text( $sentences_concat_text );
     unless ( $annotations{ $concat_index } )
@@ -575,20 +586,14 @@ EOF
         fatal_error( "Unable to encode hashref to JSON: $@\nHashref: " . Dumper( $json_annotation ) );
         return 0;
     }
+    INFO "Done annotating story's $stories_id concatenated sentences.";
 
-    INFO "Done annotating sentences and story text for story $stories_id.";
     DEBUG 'JSON length: ' . length( $json_annotation );
 
     INFO "Storing annotation results for story $stories_id...";
 
     # Write to PostgreSQL, index by stories_id
-    eval {
-        # objects should be compressed with Bzip2
-        my $param_use_bzip2_instead_of_gzip = $CORENLP_USE_BZIP2;
-
-        my $path =
-          $_postgresql_store->store_content( $db, $stories_id, \$json_annotation, $param_use_bzip2_instead_of_gzip );
-    };
+    eval { $_postgresql_store->store_content( $db, $stories_id, \$json_annotation ); };
     if ( $@ )
     {
         fatal_error( "Unable to store CoreNLP annotation result: $@" );
@@ -599,114 +604,6 @@ EOF
     return 1;
 }
 
-# Fetch the CoreNLP annotation JSON from key-value store for the story
-# Return string JSON on success, undef if the annotation doesn't exist in any
-# key-value stores, die() on error
-sub fetch_annotation_json_for_story($$)
-{
-    my ( $db, $stories_id ) = @_;
-
-    unless ( annotator_is_enabled() )
-    {
-        LOGCONFESS "CoreNLP annotator is not enabled in the configuration.";
-    }
-
-    unless ( story_is_annotated( $db, $stories_id ) )
-    {
-        WARN "Story $stories_id is not annotated with CoreNLP.";
-        return undef;
-    }
-
-    my $annotation;
-    eval { $annotation = _fetch_raw_annotation_for_story( $db, $stories_id ); };
-    if ( $@ or ( !defined $annotation ) )
-    {
-        die "Unable to fetch annotation for story $stories_id: $@";
-    }
-
-    my $sentences_concat_text = sentences_concatenation_index() . '';
-    unless ( exists( $annotation->{ $sentences_concat_text } ) )
-    {
-        die "Annotation of the concatenation of all sentences under concatenation index " .
-          "'$sentences_concat_text' doesn't exist for story $stories_id";
-    }
-
-    # Test sanity
-    my $story_annotation = $annotation->{ $sentences_concat_text };
-    unless ( exists $story_annotation->{ corenlp } )
-    {
-        die "Story annotation does not have 'corenlp' root key for story $stories_id";
-    }
-
-    # Encode back to JSON, prettifying the result
-    my $story_annotation_json;
-    eval { $story_annotation_json = MediaWords::Util::JSON::encode_json( $story_annotation, 1 ); };
-    if ( $@ or ( !$story_annotation_json ) )
-    {
-        die "Unable to encode story annotation to JSON for story $stories_id: $@\nHashref: " . Dumper( $story_annotation );
-    }
-
-    return $story_annotation_json;
-}
-
-# Fetch the CoreNLP annotation JSON from key-value store for the story sentence
-# Return string JSON on success, undef if the annotation doesn't exist in any
-# key-value stores, die() on error
-sub fetch_annotation_json_for_story_sentence($$)
-{
-    my ( $db, $story_sentences_id ) = @_;
-
-    unless ( annotator_is_enabled() )
-    {
-        LOGCONFESS "CoreNLP annotator is not enabled in the configuration.";
-    }
-
-    my $story_sentence = $db->find_by_id( 'story_sentences', $story_sentences_id );
-    unless ( $story_sentence->{ story_sentences_id } )
-    {
-        die "Story sentence with ID $story_sentences_id was not found.";
-    }
-
-    my $stories_id = $story_sentence->{ stories_id } + 0;
-
-    unless ( story_is_annotated( $db, $stories_id ) )
-    {
-        WARN "Story $stories_id is not annotated with CoreNLP.";
-        return undef;
-    }
-
-    my $annotation;
-    eval { $annotation = _fetch_raw_annotation_for_story( $db, $stories_id ); };
-    if ( $@ or ( !defined $annotation ) )
-    {
-        die "Unable to fetch annotation for story $stories_id: $@";
-    }
-
-    unless ( exists( $annotation->{ $story_sentences_id } ) )
-    {
-        die "Annotation for story sentence $story_sentences_id does not exist in story's $stories_id annotation.";
-    }
-
-    # Test sanity
-    my $story_sentence_annotation = $annotation->{ $story_sentences_id };
-    unless ( exists $story_sentence_annotation->{ corenlp } )
-    {
-        die "Sentence annotation does not have 'corenlp' root key for story sentence " .
-          $story_sentences_id . ", story $stories_id";
-    }
-
-    # Encode back to JSON, prettifying the result
-    my $story_sentence_annotation_json;
-    eval { $story_sentence_annotation_json = MediaWords::Util::JSON::encode_json( $story_sentence_annotation, 1 ); };
-    if ( $@ or ( !$story_sentence_annotation_json ) )
-    {
-        die "Unable to encode sentence annotation to JSON for story sentence " .
-          $story_sentences_id . ", story $stories_id: $@\nHashref: " . Dumper( $story_sentence_annotation );
-    }
-
-    return $story_sentence_annotation_json;
-}
-
 # Fetch the CoreNLP annotation JSON from key-value store for the story and all
 # its sentences
 #
@@ -714,16 +611,19 @@ sub fetch_annotation_json_for_story_sentence($$)
 # sentences_concatenation_index(), e.g.:
 #
 # {
-#     '_' => { 'corenlp' => 'annotation of the concatenation of all story sentences' },
-#     1 => { 'corenlp' => 'annotation of the sentence with story_sentences_id => 1' },
-#     2 => { 'corenlp' => 'annotation of the sentence with story_sentences_id => 2' },
-#     3 => { 'corenlp' => 'annotation of the sentence with story_sentences_id => 3' },
-#     ...
+#     '_' => {
+#         'corenlp' => 'annotation of the concatenation of all story sentences'
+#     }
 # }
+#
+# (In a previous implementation of the annotator client, individual
+# sentences and the whole story were being annotated separately. To avoid
+# having to rewrite old raw JSON annotation results, annotation JSON for
+# the whole story text is still being stored under index '_').
 #
 # Return string JSON on success, undef if the annotation doesn't exist in any
 # key-value stores, die() on error
-sub fetch_annotation_json_for_story_and_all_sentences($$)
+sub fetch_annotation_json_for_story($$)
 {
     my ( $db, $stories_id ) = @_;
 

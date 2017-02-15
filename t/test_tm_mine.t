@@ -27,6 +27,7 @@ use Readonly;
 use Test::More;
 use Text::Lorem::More;
 
+use MediaWords::Job::TM::MineTopic;
 use MediaWords::TM::Mine;
 use MediaWords::Test::DB;
 use MediaWords::Util::Config;
@@ -331,7 +332,9 @@ sub create_topic
 {
     my ( $db, $sites ) = @_;
 
-    my $topic_tag_set = $db->create( 'tag_sets', { name => 'test topic' } );
+    my $now        = MediaWords::Util::SQL::sql_now();
+    my $start_date = MediaWords::Util::SQL::increment_day( $now, -30 );
+    my $end_date   = MediaWords::Util::SQL::increment_day( $now, 30 );
 
     my $topic = $db->create(
         'topics',
@@ -341,17 +344,9 @@ sub create_topic
             pattern             => $TOPIC_PATTERN,
             solr_seed_query     => 'stories_id:0',
             solr_seed_query_run => 't',
-            topic_tag_sets_id   => $topic_tag_set->{ topic_tag_sets_id }
-        }
-    );
+            start_date          => $start_date,
+            end_date            => $end_date
 
-    $db->create(
-        'topic_dates',
-        {
-            topics_id  => $topic->{ topics_id },
-            start_date => '2016-01-01',
-            end_date   => '2017-01-01',
-            boundary   => 't'
         }
     );
 
@@ -448,11 +443,11 @@ sub test_for_errors
 {
     my ( $db ) = @_;
 
-    my $error_topics = $db->query( "select * from topics where error_message is not null" )->hashes;
+    my $error_topics = $db->query( "select * from topics where state = 'error'" )->hashes;
 
     ok( scalar( @{ $error_topics } ) == 0, "topic errors: " . Dumper( $error_topics ) );
 
-    my $error_snapshots = $db->query( "select * from snapshots where error_message is not null" )->hashes;
+    my $error_snapshots = $db->query( "select * from snapshots where state = 'error'" )->hashes;
 
     ok( scalar( @{ $error_snapshots } ) == 0, "snapshot errors: " . Dumper( $error_snapshots ) );
 }
@@ -493,6 +488,48 @@ sub get_site_structure
     return $meta_sites;
 }
 
+# test that MediaWords::TM::Mine::get_full_solr_query returns the expected query
+sub test_full_solr_query($)
+{
+    my ( $db ) = @_;
+
+    MediaWords::Test::DB::create_test_story_stack_numerated( $db, 10, 2, 2 );
+
+    # just need some randomly named tags, so copying media names works as well as anything
+    $db->query( "insert into tag_sets( name ) values ('foo' )" );
+    $db->query( "insert into tags ( tag, tag_sets_id ) select media.name, tag_sets_id from media, tag_sets" );
+
+    my $topic = MediaWords::Test::DB::create_test_topic( $db, 'full solr query' );
+    my $topics_id = $topic->{ topics_id };
+
+    $db->query( "insert into topics_media_map ( topics_id, media_id ) select ?, media_id from media limit 5",   $topics_id );
+    $db->query( "insert into topics_media_tags_map ( topics_id, tags_id ) select ?, tags_id from tags limit 5", $topics_id );
+
+    my $got_full_solr_query = MediaWords::TM::Mine::get_full_solr_query( $db, $topic );
+
+    my @matches = $got_full_solr_query =~
+/\( (.*) \) and publish_date\:\[(\d\d\d\d\-\d\d\-\d\d)T00:00:00Z TO (\d\d\d\d\-\d\d\-\d\d)T23:59:59Z\] and \( media_id:\( ([\d\s]+) \) or tags_id_media:\( ([\d\s]+) \) \)/;
+
+    ok( @matches, "full solr query:  matches expected pattern: $got_full_solr_query" );
+
+    my ( $query, $start_date, $end_date, $media_ids_list, $tags_ids_list ) = @matches;
+
+    is( $topic->{ solr_seed_query }, $query,      "full solr query: solr_seed_query" );
+    is( $topic->{ start_date },      $start_date, "full solr query: start_date" );
+    is( $topic->{ end_date },        $end_date,   "full solr query: end_date" );
+
+    my $got_media_ids_list = join( ',', sort( split( ' ', $media_ids_list ) ) );
+    my $expected_media_ids = $db->query( "select media_id from topics_media_map where topics_id = ?", $topics_id )->flat;
+    my $expected_media_ids_list = join( ',', sort( @{ $expected_media_ids } ) );
+    is( $got_media_ids_list, $expected_media_ids_list, "full solr query: media ids" );
+
+    my $got_tags_ids_list = join( ',', sort( split( ' ', $tags_ids_list ) ) );
+    my $expected_tags_ids = $db->query( "select tags_id from topics_media_tags_map where topics_id = ?", $topics_id )->flat;
+    my $expected_tags_ids_list = join( ',', sort( @{ $expected_tags_ids } ) );
+    is( $got_tags_ids_list, $expected_tags_ids_list, "full solr query: media ids" );
+
+}
+
 sub test_spider
 {
     my ( $db ) = @_;
@@ -515,15 +552,18 @@ sub test_spider
     # topic date modeling confuses perl TAP for some reason
     MediaWords::Util::Config::get_config()->{ mediawords }->{ topic_model_reps } = 0;
 
-    my $mine_options = {
-        skip_post_processing            => 1,    #
-        cache_broken_downloads          => 0,    #
-        import_only                     => 0,    #
-        skip_outgoing_foreign_rss_links => 0,    #
+    my $mine_args = {
+        topics_id                       => $topic->{ topics_id },
+        skip_post_processing            => 1,                       #
+        cache_broken_downloads          => 0,                       #
+        import_only                     => 0,                       #
+        skip_outgoing_foreign_rss_links => 0,                       #
         test_mode                       => 1
     };
 
-    MediaWords::TM::Mine::mine_topic( $db, $topic, $mine_options );
+    MediaWords::Job::TM::MineTopic->run_locally( $mine_args );
+
+    # MediaWords::TM::Mine::mine_topic( $db, $topic, $mine_options );
 
     test_spider_results( $db, $topic, $sites );
 
@@ -532,15 +572,17 @@ sub test_spider
     done_testing();
 }
 
+sub run_nonspider_tests($)
+{
+    my ( $db ) = @_;
+
+    test_full_solr_query( $db );
+}
+
 sub main
 {
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my ( $db ) = @_;
-
-            test_spider( $db );
-        }
-    );
+    MediaWords::Test::DB::test_on_test_database( \&run_nonspider_tests );
+    MediaWords::Test::Supervisor::test_with_supervisor( \&test_spider, [ 'job_broker:rabbitmq' ] );
 }
 
 main();

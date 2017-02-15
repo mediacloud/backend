@@ -130,10 +130,10 @@ sub _set_lookup
 {
     my ( $db, $data_lookup, $name, $query ) = @_;
 
-    my $sth = $db->query( $query );
+    my $res = $db->query( $query );
 
     my $lookup = {};
-    while ( my $row = $sth->array )
+    while ( my $row = $res->array )
     {
         $lookup->{ $row->[ 1 ] } = $row->[ 0 ];
     }
@@ -155,12 +155,16 @@ sub _add_extra_stories_to_import
 
     my $max_queued_stories = List::Util::max( 0, $max_processed_stories - $num_delta_stories );
 
+    # order by stories_id so that we will tend to get story_sentences in chunked pages as much as possible; just using
+    # random stories_ids for collections of old stories (for instance queued to solr_import_extra_stories from a
+    # media tag update) can make this query a couple orders of magnitude slower
     my $num_queued_stories = $db->query(
         <<"SQL",
         INSERT INTO delta_import_stories (stories_id)
             SELECT stories_id
             FROM solr_import_extra_stories
             WHERE ( stories_id % $num_proc ) = ( $proc - 1 )
+            ORDER BY stories_id
             LIMIT ?
 SQL
         $max_queued_stories
@@ -191,7 +195,7 @@ sub _declare_sentences_cursor
 
     # DO NOT ADD JOINS TO THIS QUERY! INSTEAD ADD ANY JOINED TABLES TO _get_data_lookup AND THEN ADD TO THE CSV
     # IN _print_csv_to_file_from_csr. see pod description above for more info.
-    $db->dbh->do( <<END );
+    $db->query( <<END );
 declare csr cursor for
 
     select
@@ -224,7 +228,7 @@ sub _declare_titles_cursor
 
     # DO NOT ADD JOINS TO THIS QUERY! INSTEAD ADD ANY JOINED TABLES TO _get_data_lookup AND THEN ADD TO THE CSV
     # IN _print_csv_to_file_from_csr. see pod description above for more info.
-    $db->dbh->do( <<END );
+    $db->query( <<END );
 declare csr cursor for
 
     select
@@ -266,19 +270,17 @@ sub _print_csv_to_file_from_csr
     my $i                    = 0;
     while ( 1 )
     {
-        my $sth = $db->dbh->prepare( "fetch $FETCH_BLOCK_SIZE from csr" );
-
-        $sth->execute;
-
-        last if 0 == $sth->rows;
-
-        # use fetchrow_arrayref to optimize fetching and lookup speed below -- perl
-        # cpu is a significant bottleneck for this script
-        while ( my $row = $sth->fetchrow_arrayref )
+        my $rows = $db->query( "fetch $FETCH_BLOCK_SIZE from csr" )->hashes;
+        if ( scalar( @{ $rows } ) == 0 )
         {
-            my $stories_id         = $row->[ 0 ];
-            my $media_id           = $row->[ 1 ];
-            my $story_sentences_id = $row->[ 2 ];
+            last;
+        }
+
+        foreach my $row ( @{ $rows } )
+        {
+            my $stories_id         = $row->{ stories_id };
+            my $media_id           = $row->{ media_id };
+            my $story_sentences_id = $row->{ story_sentences_id };
 
             my $processed_stories_id = $data_lookup->{ ps }->{ $stories_id };
             next unless ( $processed_stories_id );
@@ -292,8 +294,24 @@ sub _print_csv_to_file_from_csr
             # are we are switching to stories tags soon any way
             my $ss_tags_list = $stories_tags_list;
 
-            $csv->combine( @{ $row }, $click_count, $processed_stories_id, $media_tags_list, $stories_tags_list,
-                $ss_tags_list, $timespans_list );
+            $csv->combine(
+                $stories_id,                  #
+                $media_id,                    #
+                $story_sentences_id,          #
+                $row->{ solr_id },            #
+                $row->{ publish_date },       #
+                $row->{ publish_day },        #
+                $row->{ sentence_number },    #
+                $row->{ sentence },           #
+                $row->{ title },              #
+                $row->{ language },           #
+                $click_count,                 #
+                $processed_stories_id,        #
+                $media_tags_list,             #
+                $stories_tags_list,           #
+                $ss_tags_list,                #
+                $timespans_list,              #
+            );
             $fh->print( encode( 'utf8', $csv->string . "\n" ) );
 
             $imported_stories_ids->{ $stories_id } = 1;
@@ -302,7 +320,7 @@ sub _print_csv_to_file_from_csr
         INFO time() . " " . ( ++$i * $FETCH_BLOCK_SIZE );    # unless ( ++$i % 10 );
     }
 
-    $db->dbh->do( "close csr" );
+    $db->query( "close csr" );
 
     return [ keys %{ $imported_stories_ids } ];
 }

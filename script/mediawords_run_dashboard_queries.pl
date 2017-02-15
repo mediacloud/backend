@@ -98,9 +98,8 @@ sub main
     {
         $topics = $db->query( <<SQL )->hashes;
 select solr_seed_query, start_date, end_date
-    from topics_with_dates
-    where solr_seed_query like '%publish_da%'
-    order by topics_id
+    from topics
+    order by topics_id desc
     limit 10;
 SQL
     }

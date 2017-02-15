@@ -22,6 +22,10 @@ use Scalar::Defer;
 
 use File::Basename ();
 use Cwd            ();
+use Readonly;
+
+# Max. text length to try to split into sentences
+Readonly my $MAX_TEXT_LENGTH => 1024 * 1024;
 
 #
 # LIST OF ENABLED LANGUAGES
@@ -399,6 +403,13 @@ sub _tokenize_text_with_lingua_sentence
     {
         WARN "Text is undefined.";
         return undef;
+    }
+
+    # Lingua::Sentence can hang for a very long on very long text, and anything
+    # greater than 1M is more likely to be an artifact than actual text
+    if ( length( $text ) > $MAX_TEXT_LENGTH )
+    {
+        $text = substr( $text, 0, $MAX_TEXT_LENGTH );
     }
 
     # Only "\n\n" (not a single "\n") denotes the end of sentence, so remove single line breaks

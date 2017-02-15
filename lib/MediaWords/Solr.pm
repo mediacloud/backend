@@ -529,8 +529,15 @@ sub search_for_stories_ids ($$)
 
     my $response = query( $db, $p );
 
-    my $groups = $response->{ grouped }->{ stories_id }->{ groups };
-    my $stories_ids = [ map { $_->{ doclist }->{ docs }->[ 0 ]->{ stories_id } } @{ $groups } ];
+    my $groups      = $response->{ grouped }->{ stories_id }->{ groups };
+    my $stories_ids = [];
+    for my $group ( @{ $groups } )
+    {
+        my $stories_id = $group->{ doclist }->{ docs }->[ 0 ]->{ stories_id };
+        LOGCONFESS( "Unable to find stories_id in group: " . Dumper( $group ) ) unless ( $stories_id );
+
+        push( @{ $stories_ids }, $stories_id );
+    }
 
     my $sentence_counts = [ map { $_->{ doclist }->{ numFound } } @{ $groups } ];
 
@@ -816,6 +823,25 @@ sub consolidate_id_query
     my $query = join( ' ', @{ $queries } );
 
     return $query;
+}
+
+=head2 count_stories( $db, $params )
+
+Count the number of stories matching the query.
+
+=cut
+
+sub count_stories
+{
+    my ( $db, $params ) = @_;
+
+    my $q = $params->{ q };
+    my $fq = $params->{ fq } || undef;
+
+    my $list = MediaWords::Solr::query( $db,
+        { q => $q, fq => $fq, group => "true", "group.field" => "stories_id", "group.ngroups" => "true" } );
+
+    return $list->{ grouped }->{ stories_id }->{ ngroups };
 }
 
 1;

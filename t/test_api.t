@@ -15,14 +15,12 @@ BEGIN
 use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 
-use Catalyst::Test 'MediaWords';
 use HTTP::HashServer;
-use HTTP::Request;
 use Readonly;
 use Test::More;
-use URI::Escape;
 
 use MediaWords::DBI::Media::Health;
+use MediaWords::Test::API;
 use MediaWords::Test::DB;
 use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
@@ -33,95 +31,12 @@ Readonly my $NUM_MEDIA            => 5;
 Readonly my $NUM_FEEDS_PER_MEDIUM => 2;
 Readonly my $NUM_STORIES_PER_FEED => 10;
 
-my $_api_token;
-
-#  test that we got a valid response,
-# that the response is valid json, and that the json response is not an error response.  Return
-# the decoded json.  If $expect_error is true, test for expected error response.
-sub test_request_response($$;$)
-{
-    my ( $label, $response, $expect_error ) = @_;
-
-    my $url = $response->request->url;
-
-    is( $response->is_success, !$expect_error, "HTTP response status OK for $label:\n" . $response->as_string );
-
-    my $data = eval { MediaWords::Util::JSON::decode_json( $response->content ) };
-
-    ok( $data, "decoded json for $label (json error: $@)" );
-
-    if ( $expect_error )
-    {
-        ok( ( ( ref( $data ) eq ref( {} ) ) && $data->{ error } ), "response is an error for $label:\n" . Dumper( $data ) );
-    }
-    else
-    {
-        ok(
-            !( ( ref( $data ) eq ref( {} ) ) && $data->{ error } ),
-            "response is not an error for $label:\n" . Dumper( $data )
-        );
-    }
-
-    return $data;
-}
-
-# execute Catalyst::Test::request with an HTTP request with the given data as json content.
-# call test_request_response() on the result and return the decoded json data
-sub test_data_request($$$;$)
-{
-    my ( $method, $url, $data, $expect_error ) = @_;
-
-    $url = $url =~ /\?/ ? "$url&key=$_api_token" : "$url?key=$_api_token";
-
-    my $json = MediaWords::Util::JSON::encode_json( $data );
-
-    my $request = HTTP::Request->new( $method, $url );
-    $request->header( 'Content-Type' => 'application/json' );
-    $request->content( $json );
-
-    my $label = $request->as_string;
-
-    return test_request_response( $label, request( $request ), $expect_error );
-}
-
-# call test_data_request with a 'PUT' method
-sub test_put($$;$)
-{
-    my ( $url, $data, $expect_error ) = @_;
-
-    return test_data_request( 'PUT', $url, $data, $expect_error );
-}
-
-# call test_data_request with a 'POST' method
-sub test_post($$;$)
-{
-    my ( $url, $data, $expect_error ) = @_;
-
-    return test_data_request( 'POST', $url, $data, $expect_error );
-}
-
-# execute Catalyst::Test::request on the given url with the given params and then call test_request_response()
-# to test and return the decode json data
-sub test_get($;$$)
-{
-    my ( $url, $params, $expect_error ) = @_;
-
-    $params //= {};
-    $params->{ key } //= $_api_token;
-
-    my $encoded_params = join( "&", map { $_ . '=' . uri_escape( $params->{ $_ } ) } keys( %{ $params } ) );
-
-    my $full_url = "$url?$encoded_params";
-
-    return test_request_response( $full_url, request( $full_url ), $expect_error );
-}
-
 # test that a story has the expected content
 sub test_story_fields($$)
 {
     my ( $story, $test ) = @_;
 
-    my ( $num ) = ( $story->{ title } =~ /story story_(\d+)/ );
+    my ( $num ) = ( $story->{ title } =~ /_(\d+)/ );
 
     ok( defined( $num ), "$test: found story number from title: $story->{ title }" );
 
@@ -198,7 +113,9 @@ sub test_auth_profile($)
 {
     my ( $db ) = @_;
 
-    my $expected_user = $db->query( <<SQL, $_api_token )->hash;
+    my $api_token = MediaWords::Test::API::get_test_api_key();
+
+    my $expected_user = $db->query( <<SQL, $api_token )->hash;
 select * from auth_users au join auth_user_limits using ( auth_users_id ) where api_token = \$1
 SQL
     my $profile = test_get( "/api/v2/auth/profile" );
@@ -305,7 +222,7 @@ sub test_media_create_update($$)
             {
                 url      => $_->{ url },
                 tags_ids => [ $tag->{ tags_id } ],
-                feeds    => [ $_->{ feed_url }, $_->{ custom_feed_url }, 'http://192.168.168.168:123456/456789/feed' ]
+                feeds    => [ $_->{ feed_url }, $_->{ custom_feed_url }, 'http://127.0.0.1:123456/456789/feed' ]
             }
         } @{ $sites }
     ];
@@ -431,7 +348,7 @@ sub test_media_create($)
     is( $r->[ 0 ]->{ media_id }, $first_medium->{ media_id }, "media/create existing media_id" );
 
     # add all media sources in sites, plus one which should return a 404
-    my $input = [ map { { url => $_->{ url } } } ( @{ $sites }, { url => 'http://192.168.168.168:123456/456789' } ) ];
+    my $input = [ map { { url => $_->{ url } } } ( @{ $sites }, { url => 'http://127.0.0.1:123456/456789' } ) ];
     $r = test_post( '/api/v2/media/create', $input );
     my $status_media_ids = [ map { $_->{ media_id } } grep { $_->{ status } ne 'error' } @{ $r } ];
     my $status_errors    = [ map { $_->{ error } } grep    { $_->{ status } eq 'error' } @{ $r } ];
@@ -473,9 +390,15 @@ sub test_media_list_call($$)
         my ( $expected_medium ) = grep { $_->{ media_id } eq $got_medium->{ media_id } } @{ $expected_media };
         ok( $expected_medium, "$label medium $got_medium->{ media_id } expected" );
 
-        my $fields = [ qw/name url is_healthy/ ];
+        my $fields = [ qw/name url is_healthy is_monitored editor_notes public_notes/ ];
         map { ok( defined( $got_medium->{ $_ } ), "$label field $_ defined" ) } @{ $fields };
         map { is( $got_medium->{ $_ }, $expected_medium->{ $_ }, "$label field $_" ) } @{ $fields };
+
+        is(
+            $got_medium->{ primary_language }      || 'null',
+            $expected_medium->{ primary_language } || 'null',
+            "$label field primary language"
+        );
     }
 }
 
@@ -492,7 +415,7 @@ sub test_media_list ($$)
     my $unhealthy_medium = $test_stack_media->[ 2 ];
     $unhealthy_medium->{ is_healthy } = 0;
     MediaWords::DBI::Media::Health::generate_media_health( $db );
-    $db->query( "update media_health set is_healthy = false where media_id = \$1", $unhealthy_medium->{ media_id } );
+    $db->query( "update media_health set is_healthy = ( media_id <> \$1 )", $unhealthy_medium->{ media_id } );
     test_media_list_call( { unhealthy => 1 }, [ $unhealthy_medium ] );
 
     test_media_list_call( {}, $test_stack_media );
@@ -509,6 +432,11 @@ sub test_media_list ($$)
     my $similar_medium = $test_stack_media->[ 2 ];
     $db->create( 'media_tags_map', { tags_id => $test_tag->{ tags_id }, media_id => $similar_medium->{ media_id } } );
     test_media_list_call( { similar_media_id => $tagged_medium->{ media_id } }, [ $similar_medium ] );
+
+    my $english_medium = $test_stack_media->[ 1 ];
+    $db->query( "update media set primary_language = 'en' where media_id = \$1", $english_medium->{ media_id } );
+    $english_medium->{ primary_language } = 'en';
+    test_media_list_call( { primary_language => 'en' }, [ $english_medium ] );
 }
 
 # test various media/ calls
@@ -750,8 +678,6 @@ sub test_put_tags($$)
     test_put( $url, [ { tags_id   => $first_tags_id } ], 1 );    # require id
     test_put( $url, [ { $id_field => $first_row_id } ],  1 );    # require tag
 
-    DEBUG( "END PUT TAG ERROR TESTS" );
-
     test_add_tags( $db, $table, $rows, $tag_sets, 'id' );
     test_add_tags( $db, $table, $rows, $tag_sets, 'name' );
     test_remove_tags( $db, $table, $rows, $tag_sets, 'id' );
@@ -895,7 +821,7 @@ sub test_tag_sets($)
     validate_db_row( $db, 'tag_sets', $r->{ tag_set }, $update_input, 'update tag set' );
 }
 
-# test feed create, update, and list
+# test feeds/* end points
 sub test_feeds($)
 {
     my ( $db ) = @_;
@@ -932,6 +858,17 @@ sub test_feeds($)
 
     $r = test_put( '/api/v2/feeds/update', $update_input );
     validate_db_row( $db, 'feeds', $r->{ feed }, $update_input, 'update feed' );
+
+    $r = test_post( '/api/v2/feeds/scrape', { media_id => $medium->{ media_id } } );
+    ok( $r->{ job_state }, "feeds/scrape job state returned" );
+    is( $r->{ job_state }->{ media_id }, $medium->{ media_id }, "feeds/scrape media_id" );
+    ok( $r->{ job_state }->{ state } ne 'error', "feeds/scrape job state is not an error" );
+
+    $r = test_get( '/api/v2/feeds/scrape_status', { media_id => $medium->{ media_id } } );
+    is( $r->{ job_states }->[ 0 ]->{ media_id }, $medium->{ media_id }, "feeds/scrape_status media_id" );
+
+    $r = test_get( '/api/v2/feeds/scrape_status', {} );
+    is( $r->{ job_states }->[ 0 ]->{ media_id }, $medium->{ media_id }, "feeds/scrape_status all media_id" );
 }
 
 # test the media/submit_suggestion call
@@ -1003,7 +940,7 @@ sub test_suggestions_list_results($$$)
         my ( $expected_ms ) =
           grep { $_->{ media_suggestions_id } == $got_ms->{ media_suggestions_id } } @{ $expected_results };
         ok( $expected_ms, "$label returned ms $got_ms->{ media_suggestions_id } matches db row" );
-        for my $field ( qw/status url name feed_url reason media_id mark_reason/ )
+        for my $field ( qw/status url name feed_url reason media_id mark_reason user/ )
         {
             is( $got_ms->{ $field }, $expected_ms->{ $field }, "$label field $field" );
         }
@@ -1020,7 +957,7 @@ sub test_media_suggestions_list($)
 
     my $num_status_ms = 10;
 
-    my ( $auth_users_id ) = $db->query( "select auth_users_id from auth_users limit 1" )->flat;
+    my ( $auth_users_id, $email ) = $db->query( "select auth_users_id from auth_users limit 1" )->flat;
 
     my $ms_db     = [];
     my $media_ids = $db->query( "select media_id from media" )->flat;
@@ -1053,6 +990,8 @@ sub test_media_suggestions_list($)
             }
 
             $ms = $db->create( 'media_suggestions', $ms );
+
+            $ms->{ email } = $email;
 
             if ( $i % 2 )
             {
@@ -1148,12 +1087,16 @@ sub test_media_suggestions($)
     test_media_suggestions_mark( $db );
 }
 
+# test topics/ create and update
+sub test_topics_crud($)
+{
+    my ( $db ) = @_;
+}
+
 # test parts of the ai that only require reading, so we can test these all in one chunk
 sub test_api($)
 {
     my ( $db ) = @_;
-
-    $_api_token = MediaWords::Test::DB::create_test_user( $db );
 
     my $media = MediaWords::Test::DB::create_test_story_stack_numerated( $db, $NUM_MEDIA, $NUM_FEEDS_PER_MEDIUM,
         $NUM_STORIES_PER_FEED );
@@ -1162,13 +1105,18 @@ sub test_api($)
 
     MediaWords::Test::Solr::setup_test_index( $db );
 
+    MediaWords::Test::API::setup_test_api_key( $db );
+
     test_stories_public_list( $db, $media );
     test_auth_profile( $db );
     test_media( $db, $media );
     test_tag_sets( $db );
     test_feeds( $db );
+
     test_tags( $db );
     test_media_suggestions( $db );
+
+    test_topics_crud( $db );
 
 }
 

@@ -29,6 +29,37 @@ session required pam_limits.so
 EOF
     fi
 
+    PAM_SUDO_FILE=/etc/pam.d/sudo
+    if [ ! -f "$PAM_SUDO_FILE" ]; then
+        echo "PAM sudo file does not exist at $PAM_SUDO_FILE"
+        exit 1
+    fi
+    if ! grep -q "pam_limits.so" "$PAM_SUDO_FILE"; then
+        echo "Adding pam_limits.so to PAM sudo file $PAM_SUDO_FILE..."
+
+        sudo tee -a "$PAM_SUDO_FILE" <<EOF
+
+# Enforce Media Cloud limits
+session required pam_limits.so
+
+EOF
+    fi
+
+    SYSCTL_FILE=/etc/sysctl.d/50-mediacloud.conf
+    sudo tee "$SYSCTL_FILE" <<EOF
+#
+# Media Cloud kernel parameters
+#
+
+# We connect to PgBouncer often, so it might run out of available connections
+# without TIME_WAIT socket reuse (http://dba.stackexchange.com/a/59709)
+net.ipv4.tcp_tw_reuse=1
+
+EOF
+
+    echo "Rereading sysctl settings..."
+    sudo service procps start
+
     MEDIACLOUD_USER=`id -un`
     echo "Setting required kernel parameters via limits.conf for user '$MEDIACLOUD_USER'..."
 

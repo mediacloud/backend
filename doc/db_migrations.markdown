@@ -49,7 +49,7 @@ A text editor should appear at this point asking for a commit message because on
 3. Make a change to the database schema and run the pre-commit hook:
 --------------------------------------------------------------------
 
-Open `script/mediawords.sql` and paste this at the end of the file without changing anything else:
+Open `schema/mediawords.sql` and paste this at the end of the file without changing anything else:
 
     CREATE TABLE this_is_a_test (
         one VARCHAR(255) NOT NULL,
@@ -63,10 +63,10 @@ Then run the pre-commit hook again:
 
 The hook should now complain with a rather longish error message:
 
-    You have changed the database schema (script/mediawords.sql) but haven't increased the schema
+    You have changed the database schema (`schema/mediawords.sql`) but haven't increased the schema
     version number (MEDIACLOUD_DATABASE_SCHEMA_VERSION constant) at the top of that file.
 
-    Increase the following number in `script/mediawords.sql`:
+    Increase the following number in `schema/mediawords.sql`:
 
         CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
         DECLARE
@@ -82,11 +82,11 @@ The hook should now complain with a rather longish error message:
 
     Additionally, create a database schema diff SQL file if you haven't done so already. You have to
     generate a SQL schema diff between the current database schema and the schema that is being
-    committed, and place it to `sql_migrations/mediawords-OLD_SCHEMA_VERSION-NEW_SCHEMA_VERSION.sql`.
+    committed, and place it to `schema/migrations/mediawords-OLD_SCHEMA_VERSION-NEW_SCHEMA_VERSION.sql`.
 
     You can create a database schema diff automatically using the 'agpdiff' tool. Run:
 
-        ./script/pre_commit_hooks/postgres-diff.sh > sql_migrations/mediawords-OLD_SCHEMA_VERSION-NEW_SCHEMA_VERSION.sql
+        ./script/pre_commit_hooks/postgres-diff.sh > schema/migrations/mediawords-OLD_SCHEMA_VERSION-NEW_SCHEMA_VERSION.sql
 
     One of the pre-commit hooks failed. You have to make
     some additional fixes before your changes can be committed.
@@ -94,7 +94,7 @@ The hook should now complain with a rather longish error message:
     that your commit is fine as-is, repeat the commit with the
     --no-verify option.
 
-Alternatively, run `script/generate_empty_sql_migration.sh` to generate an empty migration file in sql_migrations/ and
+Alternatively, run `script/generate_empty_sql_migration.sh` to generate an empty migration file in schema/migrations/ and
 then manually edit the file to add the sql commands to update the database structure.
 
 3.1. If you're using Git, the pre-commit hook is being run automatically by Git so you don't have to run it manually.
@@ -102,7 +102,7 @@ then manually edit the file to add the sql commands to update the database struc
 Make the change in the database schema (add the arbitrary table) as described above and then run:
 
     # Add the schema file to the list of committed files
-    git add script/mediawords.sql
+    git add schema/mediawords.sql
 
     # Try to do the commit
     git commit
@@ -112,7 +112,7 @@ The very same message as above should appear.
 4. Increase the database schema version and run the pre-commit hook again:
 --------------------------------------------------------------------------
 
-The first part of this message tells the developer that he / she has changed the database schema (added a new table) but haven't changed the database schema number located at the top of the file. Let's do that -- open `script/mediawords.sql` and at the almost-top of the file (line 68 at the time of writing) increase the database schema version by one:
+The first part of this message tells the developer that he / she has changed the database schema (added a new table) but haven't changed the database schema number located at the top of the file. Let's do that -- open `schema/mediawords.sql` and at the almost-top of the file (line 68 at the time of writing) increase the database schema version by one:
 
 Was:
 
@@ -133,7 +133,7 @@ The first part of the message is now gone but there's still one thing that has t
 Make the change in the database schema (increase the schema version by one) as described above and then run:
 
     # Add the schema file to the list of committed files
-    git add script/mediawords.sql
+    git add schema/mediawords.sql
 
     # Try to do the commit
     git commit
@@ -148,14 +148,14 @@ Only one pre-commit hook's complaint is left to be addressed -- we have to creat
     # Generate the diff
     # ("postgres-diff.sh" is a helper script that generates the "old" and "new" versions of mediawords.sql
     #  and then runs "apgdiff" Java tool to create a diff file)
-    ./script/pre_commit_hooks/postgres-diff.sh > sql_migrations/mediawords-4391-4392.sql
+    ./script/pre_commit_hooks/postgres-diff.sh > schema/migrations/mediawords-4391-4392.sql
 
     # Review the diff, make sure things are right
-    less sql_migrations/mediawords-4391-4392.sql
+    less schema/migrations/mediawords-4391-4392.sql
 
 If the diff is fine, we have to add it to the repository:
 
-    svn add sql_migrations/mediawords-4391-4392.sql
+    svn add schema/migrations/mediawords-4391-4392.sql
 
 ...and run the pre-commit hook again:
 
@@ -168,7 +168,7 @@ The script is now silent again because it made sure that both the database schem
 Create a SQL diff as described above and then run:
 
     # Add the SQL schema diff file to the list of committed files
-    git add sql_migrations/mediawords-4391-4392.sql
+    git add schema/migrations/mediawords-4391-4392.sql
 
     # Try to do the commit
     git commit
@@ -187,5 +187,5 @@ If you happen to be a user who just have checked out the latest Media Cloud code
 The script will:
 
 1. Find out the source database schema version (the one that's currently running in the database software),
-2. Find out the target database schema version (the one from the current `script/mediawords.sql`), and, if the upgrade is needed,
-3. Run the required SQL diff files from the `sql_migrations/` directory one-by-one to incrementally upgrade to the latest database schema version.
+2. Find out the target database schema version (the one from the current `schema/mediawords.sql`), and, if the upgrade is needed,
+3. Run the required SQL diff files from the `schema/migrations/` directory one-by-one to incrementally upgrade to the latest database schema version.

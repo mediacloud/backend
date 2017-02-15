@@ -201,6 +201,11 @@ select s.*, slc.*, m.name media_name
     limit \$3 offset \$4
 SQL
 
+    MediaWords::DBI::Stories::GuessDate::add_date_is_reliable_to_stories( $db, $stories );
+
+    MediaWords::DBI::Stories::GuessDate::add_undateable_to_stories( $db, $stories );
+    map { $_->{ publish_date } = 'undateable' if ( $_->{ undateable } ); delete( $_->{ undateable } ) } @{ $stories };
+
     my $entity = { stories => $stories };
 
     MediaWords::DBI::ApiLinks::add_links_to_entity( $c, $entity, 'stories' );

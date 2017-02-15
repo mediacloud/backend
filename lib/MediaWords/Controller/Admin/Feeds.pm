@@ -90,7 +90,7 @@ sub list : Local
     my ( $self, $c, $media_id ) = @_;
 
     # query database for the media source object corresponding to the
-    # given media id.  $c->dbis is the DBIx::Simple::MediaWords db handle.
+    # given media id.  $c->dbis is the MediaWords::DB::Handler db handle.
     my $medium = $c->dbis->find_by_id( 'media', $media_id );
 
     my $sql_feed_status = $c->request->param( 'all' ) ? '1=1' : "feed_status = 'active'";
@@ -100,13 +100,6 @@ sub list : Local
     my $feeds = $c->dbis->query( <<END, $media_id )->hashes;
 select * from feeds where media_id = ? and $sql_feed_status order by name, url
 END
-
-    # if there aren't any feeds, return the feed scraping page instead of
-    # the feed list
-    if ( !@{ $feeds } )
-    {
-        return $self->scrape( $c, $media_id );
-    }
 
     # for each feed, load any other data needed for the feed within the template
     for my $f ( @{ $feeds } )

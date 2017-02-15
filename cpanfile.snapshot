@@ -514,6 +514,13 @@ DISTRIBUTIONS
       Scalar::Util 0
       strict 0
       warnings 0
+  Carp-Always-0.13
+    pathname: F/FE/FERREIRA/Carp-Always-0.13.tar.gz
+    provides:
+      Carp::Always 0.13
+    requirements:
+      Carp 0
+      ExtUtils::MakeMaker 0
   Carp-Assert-0.20
     pathname: M/MS/MSCHWERN/Carp-Assert-0.20.tar.gz
     provides:
@@ -4873,10 +4880,10 @@ DISTRIBUTIONS
     requirements:
       ExtUtils::MakeMaker 0
       perl 5.006001
-  Lingua-Identify-CLD-0.09
-    pathname: A/AM/AMBS/Lingua-Identify-CLD-0.09.tar.gz
+  Lingua-Identify-CLD-0.10
+    pathname: A/AM/AMBS/Lingua-Identify-CLD-0.10.tar.gz
     provides:
-      Lingua::Identify::CLD 0.09
+      Lingua::Identify::CLD 0.10
     requirements:
       Config::AutoConf 0.17
       ExtUtils::CBuilder 0.27

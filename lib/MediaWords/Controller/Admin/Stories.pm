@@ -59,7 +59,7 @@ sub list : Local
     my ( $stories, $pager ) = $c->dbis->query_paged_hashes(
         "select s.* from stories s, feeds_stories_map fsm where s.stories_id = fsm.stories_id " .
           "and fsm.feeds_id = $feeds_id " . "and publish_date > now() - interval '30 days' " . "order by publish_date desc",
-        [], $p, $ROWS_PER_PAGE
+        $p, $ROWS_PER_PAGE
     );
 
     if ( scalar @{ $stories } < $ROWS_PER_PAGE )
@@ -67,7 +67,7 @@ sub list : Local
         ( $stories, $pager ) = $c->dbis->query_paged_hashes(
             "select s.* from stories s, feeds_stories_map fsm where s.stories_id = fsm.stories_id " .
               "and fsm.feeds_id = $feeds_id " . "order by publish_date desc",
-            [], $p, $ROWS_PER_PAGE
+            $p, $ROWS_PER_PAGE
         );
     }
 
@@ -233,7 +233,7 @@ sub corenlp_json : Local
         LOGCONFESS "Story $stories_id is not annotated.";
     }
 
-    my $corenlp_json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story_and_all_sentences( $c->dbis, $stories_id );
+    my $corenlp_json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story( $c->dbis, $stories_id );
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
     return $c->res->body( encode( 'utf-8', $corenlp_json ) );
@@ -394,12 +394,12 @@ sub delete_tag : Local
         else
         {
             # Start transaction
-            $c->dbis->dbh->begin_work;
+            $c->dbis->begin_work;
 
             my $reason = $c->request->params->{ reason };
             unless ( $reason )
             {
-                $c->dbis->dbh->rollback;
+                $c->dbis->rollback;
                 die( "Tag NOT deleted.  Reason left blank." );
             }
 
@@ -425,12 +425,12 @@ sub delete_tag : Local
                 )
               )
             {
-                $c->dbis->dbh->rollback;
+                $c->dbis->rollback;
                 die "Unable to log addition of new tags.\n";
             }
 
             # Things went fine
-            $c->dbis->dbh->commit;
+            $c->dbis->commit;
 
             $status_msg = 'Tag \'' . $tag->{ tag } . '\' deleted from this story.';
         }
@@ -473,7 +473,7 @@ sub add_tag_do : Local
     $c->stash->{ story } = $story;
 
     # Start transaction
-    $c->dbis->dbh->begin_work;
+    $c->dbis->begin_work;
 
     # Fetch old tags
     my $old_tags = MediaWords::DBI::Stories::get_existing_tags_as_string( $c->dbis, $stories_id );
@@ -483,12 +483,12 @@ sub add_tag_do : Local
     my $reason  = $c->request->params->{ reason };
     unless ( $new_tag )
     {
-        $c->dbis->dbh->rollback;
+        $c->dbis->rollback;
         die( "Tag NOT added.  Tag name left blank." );
     }
     unless ( $reason )
     {
-        $c->dbis->dbh->rollback;
+        $c->dbis->rollback;
         die( "Tag NOT added.  Reason left blank." );
     }
 
@@ -533,12 +533,12 @@ sub add_tag_do : Local
         )
       )
     {
-        $c->dbis->dbh->rollback;
+        $c->dbis->rollback;
         die "Unable to log addition of new tags.\n";
     }
 
     # Things went fine
-    $c->dbis->dbh->commit;
+    $c->dbis->commit;
 
     $c->response->redirect(
         $c->uri_for(

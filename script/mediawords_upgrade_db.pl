@@ -31,13 +31,13 @@ BEGIN
     use lib "$source_rt/lib";
 }
 
-use DBIx::Simple::MediaWords;
+use MediaWords::DB::Handler;
 use MediaWords::DB;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Getopt::Long;
-use MediaWords::Pg::Schema;
+use MediaWords::DB::Schema;
 
 sub main
 {
@@ -49,7 +49,7 @@ sub main
     GetOptions( 'import' => \$import, 'db_label=s' => \$db_label ) or die "$usage\n";
 
     DEBUG $import ? 'Upgrading...' : 'Printing SQL statements for upgrade to STDOUT...';
-    eval { MediaWords::Pg::Schema::upgrade_db( $db_label, ( !$import ) ); };
+    eval { MediaWords::DB::Schema::upgrade_db( $db_label, ( !$import ) ); };
     if ( $@ )
     {
         die "Error while upgrading: $@";

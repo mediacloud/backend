@@ -10,15 +10,6 @@ elements:
         - Required
 
   - type: Text
-    name: pattern
-    id: pattern
-    label: Pattern
-    comment: Regular expression for the topic
-    constraints:
-        - type: Regex
-          regex: '\<'
-
-  - type: Text
     name: solr_seed_query
     id: solr_seed_query
     label: "Solr Seed Query"

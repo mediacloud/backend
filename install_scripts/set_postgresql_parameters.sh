@@ -49,10 +49,6 @@ else
     POSTGRESQL_USER="postgres"
 fi
 
-PG_STAT_TMP_DIR="/var/run/postgresql/9.3-main.pg_stat_tmp/"
-sudo mkdir -p "$PG_STAT_TMP_DIR"
-sudo chown "$POSTGRESQL_USER" "$PG_STAT_TMP_DIR"
-
 for CONFIG_DIR in $CONFIG_DIRS; do
 
     POSTGRESQL_CONF_FILE_PATH="$CONFIG_DIR/postgresql.conf"

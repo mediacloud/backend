@@ -15,6 +15,7 @@ use MediaWords::CommonLibs;
 use MediaWords::DBI::Media::Lookup;
 use MediaWords::DBI::Media::Rescrape;
 use MediaWords::Util::HTML;
+use MediaWords::Util::SQL;
 use MediaWords::Util::URL;
 
 use Encode;
@@ -400,6 +401,88 @@ insert into media_tags_map ( media_id, tags_id )
         select 1 from media_tags_map where media_id = \$1 and tags_id = \$2
     )
 END
+}
+
+=head2 set_primary_language( $db, $medium )
+
+Set the primary language of the media source as the language of the greatest number of stories in the media
+source as long as that language is more than 50% of the stories in the media source.
+
+Do nothing for the media source if it has no active feeds or no stories.
+
+If there are less than 100 stories in the medium and the greatest last_new_story_time of the medium's feeds
+is within a month, do nothing.
+
+If there are less than 100 stories in the medium but the greatest last_new_story_time of the medium's feeds
+is outside of a month, set the primary language to the majority story language.
+
+If there are more than 100 stories in the media source and no language is the majority langauge, set the
+language to 'none'.
+
+=cut
+
+sub set_primary_language($$)
+{
+    my ( $db, $medium ) = @_;
+
+    my $media_id = $medium->{ media_id };
+
+    TRACE( "detect primary language for $medium->{ name } [$media_id] start" );
+
+    my $active_feed = $db->query( "select 1 from feeds where feed_status = 'active' and media_id = \$1", $media_id )->hash;
+
+    return unless ( $active_feed );
+
+    TRACE( "detect primary language for $medium->{ name } [$media_id] found active feed" );
+
+    my $first_story = $db->query( <<SQL, $media_id )->hash;
+select * from stories where media_id = \$1 limit 1
+SQL
+
+    return unless ( $first_story );
+
+    TRACE( "detect primary language for $medium->{ name } [$media_id] found at least one story" );
+
+    my $story_101 = $db->query( <<SQL, $media_id )->hash;
+    select * from stories where media_id = \$1 offset 101 limit 1
+SQL
+
+    if ( !$story_101 )
+    {
+        my $last_story = $db->query( <<SQL, $media_id )->hash;
+select * from stories where media_id = \$1 order by collect_date desc limit 1
+SQL
+
+        my $story_epoch = MediaWords::Util::SQL::get_epoch_from_sql_date( $last_story->{ collect_date } );
+
+        TRACE(
+"detect primary language for $medium->{ name } [$media_id] latest date $last_story->{ collect_date } (epoch $story_epoch)"
+        );
+        return if ( ( time() - $story_epoch ) < ( 86400 * 30 ) );
+    }
+
+    DEBUG( "detect primary language for $medium->{ name } [$media_id] ..." );
+
+    my $language_counts = $db->query( <<SQL, $media_id )->hashes;
+select count(*) count, language
+    from stories
+    where
+        media_id = \$1 and
+        language is not null
+    group by language
+    order by count(*) desc
+SQL
+
+    my $first_language = $language_counts->[ 0 ];
+
+    my $total_count = 0;
+    map { $total_count += $_->{ count } } @{ $language_counts };
+
+    my $primary_language = ( ( $first_language->{ count } / $total_count ) ) > 0.5 ? $first_language->{ language } : 'none';
+
+    DEBUG( "detect primary language for $medium->{ name } [$media_id] update to $primary_language" );
+
+    $db->update_by_id( 'media', $media_id, { primary_language => $primary_language } );
 }
 
 1;

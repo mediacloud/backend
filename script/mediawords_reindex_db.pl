@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# see MediaWords::Pg::Schema for definition of which functions to add
+# see MediaWords::DB::Schema for definition of which functions to add
 
 use strict;
 use warnings;
@@ -11,12 +11,12 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use DBIx::Simple::MediaWords;
+use MediaWords::DB::Handler;
 use MediaWords::DB;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use MediaWords::Pg::Schema;
+use MediaWords::DB::Schema;
 
 use Term::Prompt;
 use Data::Dumper;

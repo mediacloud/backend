@@ -12,11 +12,15 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::Util::Compress;
+use MediaWords::Util::Text;
 use Net::Amazon::S3;
 use Net::Amazon::S3::Client;
 use Net::Amazon::S3::Client::Bucket;
 use POSIX qw(floor);
 use Readonly;
+
+# Default compression method for Amazon S3
+Readonly my $AMAZON_S3_DEFAULT_COMPRESSION_METHOD => $MediaWords::KeyValueStore::COMPRESSION_GZIP;
 
 # Should the Amazon S3 module use secure (SSL-encrypted) connections?
 Readonly my $AMAZON_S3_USE_SSL => 0;
@@ -47,6 +51,9 @@ has '_conf_secret_access_key' => ( is => 'rw' );
 has '_conf_bucket_name'       => ( is => 'rw' );
 has '_conf_directory_name'    => ( is => 'rw', default => '' );
 
+# Compression method to use
+has '_conf_compression_method' => ( is => 'rw' );
+
 # Net::Amazon::S3 instance, bucket (lazy-initialized to prevent multiple forks using the same object)
 has '_s3'        => ( is => 'rw' );
 has '_s3_client' => ( is => 'rw' );
@@ -60,10 +67,11 @@ sub BUILD($$)
 {
     my ( $self, $args ) = @_;
 
-    my $access_key_id     = $args->{ access_key_id };
-    my $secret_access_key = $args->{ secret_access_key };
-    my $bucket_name       = $args->{ bucket_name };
-    my $directory_name    = $args->{ directory_name } || '';    # Directory is optional
+    my $access_key_id      = $args->{ access_key_id };
+    my $secret_access_key  = $args->{ secret_access_key };
+    my $bucket_name        = $args->{ bucket_name };
+    my $directory_name     = $args->{ directory_name } || '';                                         # Directory is optional
+    my $compression_method = $args->{ compression_method } || $AMAZON_S3_DEFAULT_COMPRESSION_METHOD;
 
     # Get arguments
     unless ( $access_key_id and $secret_access_key and $bucket_name )
@@ -80,6 +88,10 @@ sub BUILD($$)
     {
         LOGCONFESS "AMAZON_S3_WRITE_ATTEMPTS must be >= 1";
     }
+    unless ( $self->compression_method_is_valid( $compression_method ) )
+    {
+        LOGCONFESS "Unsupported compression method '$compression_method'";
+    }
 
     # Add slash to the end of the directory name (if it doesn't exist yet)
     if ( $directory_name and substr( $directory_name, -1, 1 ) ne '/' )
@@ -91,7 +103,8 @@ sub BUILD($$)
     $self->_conf_access_key_id( $access_key_id );
     $self->_conf_secret_access_key( $secret_access_key );
     $self->_conf_bucket_name( $bucket_name );
-    $self->_conf_directory_name( $directory_name || '' );
+    $self->_conf_directory_name( $directory_name );
+    $self->_conf_compression_method( $compression_method );
 
     $self->_pid( $$ );
 }
@@ -227,9 +240,9 @@ sub store_content($$$$)
         }
     }
 
-    # Encode + gzip
+    # Compress
     my $content_to_store;
-    eval { $content_to_store = MediaWords::Util::Compress::encode_and_gzip( $$content_ref ); };
+    eval { $content_to_store = $self->compress_data_for_method( $$content_ref, $self->_conf_compression_method ); };
     if ( $@ or ( !defined $content_to_store ) )
     {
         LOGCONFESS "Unable to compress object ID $object_id: $@";
@@ -289,7 +302,7 @@ sub fetch_content($$$;$)
     }
 
     my $object;
-    my $gzipped_content;
+    my $compressed_content;
 
     # S3 sometimes times out when reading, so we'll try to read several times
     for ( my $retry = 0 ; $retry < $AMAZON_S3_READ_ATTEMPTS ; ++$retry )
@@ -302,8 +315,8 @@ sub fetch_content($$$;$)
         eval {
 
             # Read; will die() on failure
-            $object          = $self->_object_for_object_id( $object_id );
-            $gzipped_content = $object->get;
+            $object             = $self->_object_for_object_id( $object_id );
+            $compressed_content = $object->get;
 
         };
 
@@ -317,14 +330,14 @@ sub fetch_content($$$;$)
         }
     }
 
-    unless ( defined $gzipped_content )
+    unless ( defined $compressed_content )
     {
         LOGCONFESS "Unable to read object ID $object_id from Amazon S3 after $AMAZON_S3_READ_ATTEMPTS retries.";
     }
 
-    # Gunzip + decode
+    # Uncompress
     my $decoded_content;
-    eval { $decoded_content = MediaWords::Util::Compress::gunzip_and_decode( $gzipped_content ); };
+    eval { $decoded_content = $self->uncompress_data_for_method( $compressed_content, $self->_conf_compression_method ); };
     if ( $@ or ( !defined $decoded_content ) )
     {
         LOGCONFESS "Unable to uncompress object ID $object_id: $@";

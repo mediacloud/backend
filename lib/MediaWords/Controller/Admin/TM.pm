@@ -12,8 +12,9 @@ use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::DBI::Stories;
 use MediaWords::Job::TM::MineTopic;
-use MediaWords::Solr::WordCounts;
 use MediaWords::Solr;
+use MediaWords::Solr::Query;
+use MediaWords::Solr::WordCounts;
 use MediaWords::TM::Mine;
 use MediaWords::TM::Snapshot;
 use MediaWords::TM;
@@ -45,7 +46,7 @@ select c.*
     from topics c
         left join snapshots snap on ( c.topics_id = snap.topics_id )
     group by c.topics_id
-    order by c.state = 'ready', c.state,  max( coalesce( snap.snapshot_date, '2000-01-01'::date ) ) desc
+    order by c.state = 'completed', max( coalesce( snap.snapshot_date, '2000-01-01'::date ) ) desc
 END
 
     $c->stash->{ topics }   = $topics;
@@ -54,7 +55,7 @@ END
 
 sub _add_topic_date
 {
-    my ( $db, $topic, $start_date, $end_date, $boundary ) = @_;
+    my ( $db, $topic, $start_date, $end_date ) = @_;
 
     my $existing_date = $db->query( <<END, $start_date, $end_date, $topic->{ topics_id } )->hash;
 select * from topic_dates where start_date = ? and end_date = ? and topics_id = ?
@@ -72,13 +73,6 @@ END
         );
     }
 
-    if ( $boundary )
-    {
-        $db->query( <<END, $start_date, $end_date, $topic->{ topics_id } )
-update topic_dates set boundary = ( start_date = ? and end_date = ? ) where topics_id = ?
-END
-    }
-
 }
 
 # edit an existing topic
@@ -90,8 +84,7 @@ sub edit : Local
 
     my $db = $c->dbis;
 
-    my $topic = $db->query( 'select * from topics_with_dates where topics_id = ?', $topics_id )->hash
-      || die( "Unable to find topic" );
+    my $topic = $db->require_by_id( 'topics', $topics_id );
 
     $form->default_values( $topic );
     $form->process( $c->req );
@@ -103,25 +96,38 @@ sub edit : Local
         $c->stash->{ template } = 'tm/edit_topic.tt2';
         return;
     }
-    elsif ( $c->req->params->{ preview } )
+
+    my $p = $form->params;
+
+    my $num_stories = eval { MediaWords::Solr::count_stories( $db, { q => $p->{ solr_seed_query } } ) };
+    die( "invalid solr query: $@" ) if ( $@ );
+
+    die( "number of stories from query ($num_stories) is more than the max (500,000)" ) if ( $num_stories > 500000 );
+
+    my $pattern;
+    if ( $p->{ solr_seed_query } eq $topic->{ solr_seed_query } )
     {
-        my $solr_seed_query = $c->req->params->{ solr_seed_query };
-        my $pattern         = $c->req->params->{ pattern };
+        $pattern = $topic->{ pattern };
+    }
+    else
+    {
+        $pattern = eval { MediaWords::Solr::Query::parse( $p->{ solr_seed_query } )->re() };
+        die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
+    }
+
+    if ( $p->{ preview } )
+    {
+        my $solr_seed_query = $p->{ solr_seed_query };
         $c->res->redirect( $c->uri_for( '/search', { q => $solr_seed_query, pattern => $pattern } ) );
         return;
     }
 
     else
     {
-        my $p = $form->params;
-
-        _add_topic_date( $db, $topic, $p->{ start_date }, $p->{ end_date }, 1 );
-
-        delete( $p->{ start_date } );
-        delete( $p->{ end_date } );
         delete( $p->{ preview } );
 
         $p->{ solr_seed_query_run } = 'f' unless ( $topic->{ solr_seed_query } eq $p->{ solr_seed_query } );
+        $p->{ pattern } = $pattern;
 
         $c->dbis->update_by_id( 'topics', $topics_id, $p );
 
@@ -130,6 +136,34 @@ sub edit : Local
 
         return;
     }
+}
+
+# parse solr_seed_query coming directy from dashboard export.  return the part of the query without the
+# date or media source clauses as well as the list of media tags_ids from the filtered part of the query.
+# die if the query is not the form exported by the dashboard tool.  this is pretty kludgy but is just intended
+# to get us through the couple of weeks until we have topic editing in the new web tool
+sub _parse_solr_seed_query($)
+{
+    my ( $full_query ) = @_;
+
+# sample dashboard exported query:
+# +( "media cloud" mediacloud ) AND (+publish_date:[2016-01-01T00:00:00Z TO 2017-01-26T23:59:59Z]) AND ((tags_id_media:8875027 OR tags_id_stories:8875027))
+    if ( $full_query !~ /(.*) AND \(\+publish_date\:\[.*\]\) AND \(\((tags_id_media.*)\)\)$/ )
+    {
+        die( "unable to parse solr query (query must be in exact form exported by dashboard): '$full_query'" );
+    }
+
+    my ( $filtered_query, $tags_list ) = ( $1, $2 );
+
+    my $tags_ids_lookup = {};
+    while ( $tags_list =~ /(\d+)/g )
+    {
+        $tags_ids_lookup->{ $1 } = 1;
+    }
+
+    my $tags_ids = [ keys( %{ $tags_ids_lookup } ) ];
+
+    return ( $filtered_query, $tags_ids );
 }
 
 # create a new topic
@@ -165,7 +199,6 @@ sub create : Local
     # At this point the form is submitted
 
     my $c_name            = $c->req->params->{ name };
-    my $c_pattern         = $c->req->params->{ pattern };
     my $c_solr_seed_query = $c->req->params->{ solr_seed_query };
     my $c_skip_solr_query = ( $c->req->params->{ skip_solr_query } ? 't' : 'f' );
     my $c_description     = $c->req->params->{ description };
@@ -173,11 +206,21 @@ sub create : Local
     my $c_end_date        = $c->req->params->{ end_date };
     my $c_max_iterations  = $c->req->params->{ max_iterations };
 
+    my $num_stories = eval { MediaWords::Solr::count_stories( $db, { q => $c_solr_seed_query } ) };
+    die( "invalid solr query: $@" ) if ( $@ );
+
+    die( "number of stories from query ($num_stories) is more than the max (500,000)" ) if ( $num_stories > 500000 );
+
+    my $pattern = eval { MediaWords::Solr::Query::parse( $c_solr_seed_query )->re() };
+    die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
+
     if ( $c->req->params->{ preview } )
     {
-        $c->res->redirect( $c->uri_for( '/search', { q => $c_solr_seed_query, pattern => $c_pattern } ) );
+        $c->res->redirect( $c->uri_for( '/search', { q => $c_solr_seed_query, pattern => $pattern } ) );
         return;
     }
+
+    my ( $filtered_seed_query, $tags_ids ) = _parse_solr_seed_query( $c_solr_seed_query );
 
     $db->begin;
 
@@ -185,23 +228,22 @@ sub create : Local
         'topics',
         {
             name                => $c_name,
-            pattern             => $c_pattern,
-            solr_seed_query     => $c_solr_seed_query,
+            pattern             => $pattern,
+            solr_seed_query     => $filtered_seed_query,
             solr_seed_query_run => $c_skip_solr_query,
             description         => $c_description,
-            max_iterations      => $c_max_iterations
+            max_iterations      => $c_max_iterations,
+            start_date          => $c_start_date,
+            end_date            => $c_end_date,
         }
     );
 
-    $db->create(
-        'topic_dates',
-        {
-            topics_id  => $topic->{ topics_id },
-            start_date => $c_start_date,
-            end_date   => $c_end_date,
-            boundary   => 't',
-        }
-    );
+    for my $tags_id ( @{ $tags_ids } )
+    {
+        $db->query( <<SQL, $topic->{ topics_id }, $tags_id );
+insert into topics_media_tags_map ( topics_id, tags_id ) values ( ?, ? )
+SQL
+    }
 
     $db->commit;
 
@@ -240,7 +282,7 @@ sub _get_mining_status
 
     my $cid = $topic->{ topics_id };
 
-    my $queued_urls = $db->query( <<END, $cid )->list;
+    my $queued_urls = $db->query( <<END, $cid )->array->[ 0 ];
 select count(*) from topic_links where topics_id = ? and ref_stories_id is null
 END
 
@@ -319,9 +361,7 @@ sub _get_topic_with_focus
 {
     my ( $db, $topics_id, $foci_id ) = @_;
 
-    my $topic = $db->query( <<END, $topics_id )->hash;
-select * from topics_with_dates where topics_id = ?
-END
+    my $topic = $db->require_by_id( 'topics', $topics_id );
 
     if ( $foci_id )
     {
@@ -730,20 +770,17 @@ sub _add_timespan_model_reliability
     $timespan->{ model_reliability } = $reliability;
 }
 
-# get the timespan, snapshot, and topic
-# for the current request
+# get the timespan, snapshot, and topic for the current request
 sub _get_topic_objects
 {
     my ( $db, $timespans_id ) = @_;
 
     die( "timespan param is required" ) unless ( $timespans_id );
 
-    my $timespan = $db->find_by_id( 'timespans', $timespans_id ) || die( "timespan not found" );
-    my $cd = $db->find_by_id( 'snapshots', $timespan->{ snapshots_id } );
+    my $timespan = $db->require_by_id( 'timespans', $timespans_id );
+    my $cd       = $db->require_by_id( 'snapshots', $timespan->{ snapshots_id } );
 
-    my $topic = $db->query( <<END, $cd->{ topics_id } )->hash;
-select * from topics_with_dates where topics_id = ?
-END
+    my $topic = $db->require_by_id( 'topics', $cd->{ topics_id } );
 
     if ( my $qs_id = $timespan->{ foci_id } )
     {
@@ -978,9 +1015,11 @@ sub gexf : Local
 {
     my ( $self, $c, $timespans_id, $csv ) = @_;
 
-    my $l           = $c->req->params->{ l };
-    my $color_field = $c->req->params->{ cf };
-    my $num_media   = $c->req->params->{ nm };
+    my $l                    = $c->req->params->{ l };
+    my $color_field          = $c->req->params->{ cf };
+    my $num_media            = $c->req->params->{ nm };
+    my $include_weights      = $c->req->params->{ w };
+    my $max_links_per_medium = $c->req->params->{ lpm };
 
     my $db = $c->dbis;
 
@@ -998,7 +1037,14 @@ END
     if ( !$gexf )
     {
         MediaWords::TM::Snapshot::setup_temporary_snapshot_tables( $db, $timespan, $topic, $l );
-        $gexf = MediaWords::TM::Snapshot::get_gexf_snapshot( $db, $timespan, $color_field, $num_media );
+        my $gexf_options = {
+            color_field          => $color_field,
+            num_media            => $num_media,
+            include_weights      => $include_weights,
+            max_links_per_medium => $max_links_per_medium
+        };
+
+        $gexf = MediaWords::TM::Snapshot::get_gexf_snapshot( $db, $timespan, $gexf_options );
     }
 
     my $base_url = $c->uri_for( '/' );
@@ -1328,7 +1374,7 @@ sub _get_story_and_links_from_snapshot_tables
     # if the below query returns nothing, the return type of the server prepared statement
     # may differ from the first call, which throws a postgres error, so we need to
     # disable server side prepares
-    $db->dbh->{ pg_server_prepare } = 0;
+    $db->set_prepare_on_server_side( 0 );
 
     my $story = $db->query( <<SQL, $stories_id )->hash;
 select * from snapshot_stories s join snapshot_story_link_counts slc using ( stories_id ) where s.stories_id = ?
@@ -2183,7 +2229,7 @@ END
     my $sql_activities =
       MediaWords::DBI::Activities::sql_activities_which_reference_column( 'topics.topics_id', $topics_id );
 
-    my ( $activities, $pager ) = $c->dbis->query_paged_hashes( $sql_activities, [], $p, $ROWS_PER_PAGE );
+    my ( $activities, $pager ) = $c->dbis->query_paged_hashes( $sql_activities, $p, $ROWS_PER_PAGE );
 
     # FIXME put activity preparation (JSON decoding, description fetching) into
     # a subroutine in order to not repeat oneself.
@@ -2682,22 +2728,6 @@ sub add_media_types : Local
     $c->stash->{ template }          = 'tm/add_media_types.tt2';
 }
 
-# delete all topic_dates in the topic
-sub delete_all_dates : Local
-{
-    my ( $self, $c, $topics_id ) = @_;
-
-    my $db = $c->dbis;
-
-    my $topic = $db->query( "select * from topics_with_dates where topics_id = ?", $topics_id )
-      || die( "Unable to find topic" );
-
-    $db->query( <<END, $topics_id );
-delete from topic_dates where not bounday and topics_id = ?
-END
-
-}
-
 # delet a single topic_dates row
 sub delete_date : Local
 {
@@ -2705,8 +2735,7 @@ sub delete_date : Local
 
     my $db = $c->dbis;
 
-    my $topic = $db->query( "select * from topics_with_dates where topics_id = ?", $topics_id )
-      || die( "Unable to find topic" );
+    my $topic = $db->require_by_id( 'topics', $topics_id );
 
     my $start_date = $c->req->params->{ start_date };
     my $end_date   = $c->req->params->{ end_date };
@@ -2714,7 +2743,7 @@ sub delete_date : Local
     die( "missing start_date or end_date" ) unless ( $start_date && $end_date );
 
     $db->query( <<END, $topics_id, $start_date, $end_date );
-delete from topic_dates where topics_id = ? and start_date = ? and end_date = ? and not boundary
+delete from topic_dates where topics_id = ? and start_date = ? and end_date = ?
 END
 
     $c->res->redirect( $c->uri_for( '/admin/tm/edit_dates/' . $topics_id, { status_msg => 'Date deleted.' } ) );
@@ -2744,8 +2773,7 @@ sub add_date : Local
 
     my $db = $c->dbis;
 
-    my $topic = $db->query( "select * from topics_with_dates where topics_id = ?", $topics_id )->hash
-      || die( "Unable to find topic" );
+    my $topic = $db->require_by_id( 'topics', $topics_id );
 
     my $interval   = $c->req->params->{ interval } + 0;
     my $start_date = $c->req->params->{ start_date };
@@ -3044,6 +3072,9 @@ sub _create_focus_definition
 {
     my ( $db, $topic, $p ) = @_;
 
+    eval { MediaWords::Solr::query( $db, { q => $p->{ query }, rows => 0 } ) };
+    die( "invalid solr query: $@" ) if ( $@ );
+
     my $fsd = $db->query( <<SQL, $topic->{ topics_id } )->hash;
 select * from focal_set_definitions where topics_id = ? and name = 'Queries'
 SQL
@@ -3165,8 +3196,6 @@ sub mine : Local
     my $topic = $db->find_by_id( 'topics', $topics_id ) || die( "Unable to find topic" );
 
     MediaWords::Job::TM::MineTopic->add_to_queue( { topics_id => $topics_id } );
-
-    $db->update_by_id( 'topics', $topics_id, { state => 'queued for spidering' } );
 
     my $status = 'Topic spidering job queued.';
     $c->res->redirect( $c->uri_for( "/admin/tm/view/" . $topics_id, { status_msg => $status } ) );

@@ -6,7 +6,7 @@
    - [Request Limits](#request-limits)   
    - [Python Client](#python-client)   
    - [API URLs](#api-urls)   
-   - [Supported Languages](#supported-languages)
+   - [Supported Languages](#supported-languages)   
    - [Errors](#errors)   
    - [Request Limits](#request-limits)   
 - [Media](#media)   
@@ -16,7 +16,7 @@
    - [api/v2/media/list/](#apiv2medialist)   
       - [Query Parameters](#query-parameters)   
       - [Example](#example)   
-   - [api/v2/media/suggestions/submit - POST](#apiv2mediasuggestionssubmit-post)   
+   - [api/v2/media/submit_suggestion - POST](#apiv2mediasubmit_suggestion-post)   
       - [Input Description](#input-description)   
       - [Example](#example)   
 - [Media Health](#media-health)   
@@ -86,14 +86,15 @@
    - [api/v2/timespans/list/](#apiv2timespanslist)   
       - [Query Parameters](#query-parameters)   
       - [Example](#example)   
-- [Users](#users)   
-   - [api/v2/users/profile](#apiv2usersprofile-pending)   
+- [Auth](#auth)   
+   - [api/v2/auth/profile](#apiv2authprofile)   
       - [Query Parameters](#query-parameters)   
       - [Output Description](#output-description)   
       - [Example](#example)   
 - [Stats](#stats)   
-   - [api/v2/stats PENDING](#apiv2stats-pending)   
+   - [api/v2/stats/list](#apiv2statslist)   
       - [Query Parameters](#query-parameters)   
+      - [Output Description](#output-description)   
       - [Example](#example)   
 - [Extended Examples](#extended-examples)   
    - [Output Format / JSON](#output-format-json)   
@@ -218,6 +219,9 @@ Response:
     "media_id": 1,
     "primary_language": "en",
     "is_healthy": 1,
+    "is_monitored": 1,
+    "public_notes": "all the news that's fit to print",
+    "editor_nnotes": "first media source",
     "media_source_tags": [
          {
            "tag_sets_id": 5,
@@ -255,14 +259,15 @@ Response:
 | `last_media_id`    | 0       | Return media sources with a `media_id` greater than this value
 | `rows`             | 20      | Number of media sources to return. Cannot be larger than 100
 | `name`             | none    | Name of media source for which to search
-| `tag_name`         | none    | Name of tag for which to return belonging media PENDING
+| `tag_name`         | none    | Name of tag for which to return belonging media
 | `timespans_id`     | null    | Return media within the given timespan
 | `topic_mode`       | null    | If set to 'live', return media from live topics
 | `tags_id`          | null    | Return media associate with the given tag
 | `q`                | null    | Return media with at least one sentence that matches the solr query
 | `include_dups`     | 0       | Include duplicate media among the results
 | `unhealthy` | none | Only return media that are currently marked as unhealthy (see mediahealth/list)
-| `similar_media_id` | none | Return media with the most tags in common PENDING
+| `similar_media_id` | none | Return media with the most tags in common
+| `primary_language` | none | Return media with the given ISO 639-1 2 letter primary language codes (specify more than once for a list)
 
 If the name parameter is specified, the call returns only media sources that match a case insensitive search specified value.  If the specified value is less than 3 characters long, the call returns an empty list.  The name_or_tag parameter behaves identically, but it also searches for all media sources that either have a name that matches the search text or that are associated with a tag that matches the search text.
 
@@ -1195,7 +1200,6 @@ Response:
 [
   {
     "topics_id": 6,
-    "topic_tag_sets_id": 14,
     "description": "obama",
     "name": "obama",
     "media_type_tag_sets_id": 18
@@ -1378,23 +1382,34 @@ URL: https://api.mediacloud.org/api/v2/auth/profile
 
 # Stats
 
-## api/v2/stats PENDING
+## api/v2/stats/list
 
 | URL                     | Function
 | ----------------------- | -----------------
-| `api/v2/stats` | Return basic summary stats about total sources, stories, feeds, etc processed by Media Cloud
+| `api/v2/stats/list` | Return basic summary stats about total sources, stories, feeds, etc processed by Media Cloud
 
 ### Query Parameters
 
 ( none )
 
+### Output Description
+
+| Field | Description |
+|-|-|
+| total_stories | total number of stories in the Media Cloud database |
+| total_downloads | total number of downloads (including stories and feeds) in the Media Cloud database |
+| total_sentences | total number of sentences in the Media Cloud database |
+| active_crawled_feeds | number of syndicated feeds with a story in the last 180 days |
+| active_crawled_media | number of media source with an active crawled feed |
+| daily_stories | number of stories added yesterday |
+| daily_downloads | number of downloads added yesterday |
+
 ### Example
 
-URL: https://api.mediacloud.org/api/v2/stats
+URL: https://api.mediacloud.org/api/v2/stats/list
 
 ```json
 {
-	"total_media":  311963,
   	"total_stories": 516145344,
   	"total_downloads": 941078656,
     "total_sentences": 6899028480,
