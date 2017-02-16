@@ -35,7 +35,6 @@ use MediaWords::CommonLibs;
 
 use MediaWords::DB;
 use Text::CSV_XS;
-use Encode;
 
 sub _print_table_csv_to_stdout($$)
 {
@@ -57,7 +56,7 @@ SQL
     while ( my $row = $res->array() )
     {
         $csv->combine( @{ $row } );
-        print encode( 'utf8', $csv->string ) . "\n";
+        print $csv->string . "\n";
     }
 
     print '\.' . "\n";
