@@ -110,7 +110,7 @@ sub add_leftright_foci($$)
 
     my $leftright_definitions = [
         { name => 'Right Half', quintiles => [ qw/right center_right center/ ] },
-        { name => 'Left Half',  quintiles => [ qw/right center_right center/ ] },
+        { name => 'Left Half',  quintiles => [ qw/left center_left center/ ] },
     ];
 
     for my $d ( @{ $leftright_definitions } )
