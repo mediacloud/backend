@@ -352,10 +352,6 @@ mediawords:
     ### Enable local (CHI-based) Amazon S3 download caching?
     #cache_s3_downloads : "no"
 
-    # Uncomment to cause feeds to be downloaded and stories but not processed for stories.
-    # Generally the only reason you would want to do this is to run a backup crawler
-    #do_not_process_feeds: 'yes'
-
     #controls the maximum time SQL queries can run for -- time is in ms
     #uncomment to enable a 10 minute timeout
     #db_statement_timeout: "600000"

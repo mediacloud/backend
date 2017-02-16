@@ -34,7 +34,6 @@ We recommend that you read through this entire file. Nevertheless most users wil
     sudo ./install_scripts/create_default_db_user_and_databases.sh 
     cp mediawords.yml.dist mediawords.yml
     ./install_scripts/install_mc_perlbrew_and_modules.sh
-    ./python_scripts/pip_installs.sh
     ./script/run_carton.sh exec prove -Ilib/ -r t/compile.t
     ./script/run_with_carton.sh ./script/mediawords_create_db.pl
     ./script/run_with_carton.sh ./script/mediawords_manage_users.pl \
@@ -75,29 +74,23 @@ Note that if you uncomment a suboption, you also need to uncomment the parent op
 
         ./install_scripts/install_mc_perlbrew_and_modules.sh
 
-7. Run the `python_scripts/pip_install.sh` script. This scripts installs Python modules through pip. Simply `cd` to the base directory of Media Cloud and run the following. Note that the script will take a long time to complete:
-
-        ./python_scripts/pip_installs.sh
-
-    *Note:* this script will fail if you aren't running a 64 bit OS.
-
-8. *Recommended:* Verify that the necessary modules are installed. Run the Media Cloud compile test to verify that all required modules have been installed:
+7. *Recommended:* Verify that the necessary modules are installed. Run the Media Cloud compile test to verify that all required modules have been installed:
 
         ./script/run_carton.sh exec prove -Ilib/ -r t/compile.t
 
     If there are errors, determine which modules are missing and install them by running `./script/run_carton.sh install`.
 
-9. Make sure that the directory in which Media Cloud is located can be read by the `postgres` user:
+8. Make sure that the directory in which Media Cloud is located can be read by the `postgres` user:
 
         chmod +rx ~/
 
-10. Run the following:
+9. Run the following:
 
         ./script/run_with_carton.sh ./script/mediawords_create_db.pl
 
     This will create create the necessary database tables and procedures within the database you specified above.  Answer 'yes' at the prompt since the database you created above should be empty.
 
-11. Create the initial administrator user so you can access the administration interface. Run the following:
+10. Create the initial administrator user so you can access the administration interface. Run the following:
 
         ./script/run_with_carton.sh ./script/mediawords_manage_users.pl \
             --action=add \
