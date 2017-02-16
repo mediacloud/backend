@@ -45,9 +45,6 @@ sub main
 
     die( "usage: $0 <feed id>" ) unless ( $feeds_id );
 
-    my $dnpf = MediaWords::Util::Config::get_config->{ mediawords }->{ do_not_process_feeds };
-    die( "set mediawords.do_not_process_feeds to 'no' in mediawords.yml" ) if ( $dnpf && ( $dnpf eq 'yes' ) );
-
     my $db = MediaWords::DB::connect_to_db;
 
     my $feed = $db->find_by_id( 'feeds', $feeds_id );
