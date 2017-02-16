@@ -35,13 +35,6 @@ echo "Installing (upgrading) Virtualenv..."
 $COMMAND_PREFIX pip2.7 install --force-reinstall --upgrade virtualenv
 $COMMAND_PREFIX pip3.5 install --force-reinstall --upgrade virtualenv
 
-echo "Installing Python 2.7 dependencies..."
-$COMMAND_PREFIX pip2.7 install --upgrade -r python_scripts/requirements.txt || {
-    # Sometimes fails with some sort of Setuptools error
-    echo "'pip2.7 install' failed the first time, retrying..."
-    $COMMAND_PREFIX pip2.7 install --upgrade -r python_scripts/requirements.txt
-}
-
 echo "Creating mc-venv virtualenv..."
 virtualenv --python=python3.5 mc-venv
 source mc-venv/bin/activate

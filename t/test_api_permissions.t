@@ -42,7 +42,6 @@ my $_url_permission_types = {
     '/api/v2/controversy_dumps/single'            => 'public',
     '/api/v2/controversy_dump_time_slices/list'   => 'public',
     '/api/v2/controversy_dump_time_slices/single' => 'public',
-    '/api/v2/crawler/add_feed_download'           => 'admin',
     '/api/v2/downloads/list'                      => 'admin_read',
     '/api/v2/downloads/single'                    => 'admin_read',
     '/api/v2/feeds/list'                          => 'public',
