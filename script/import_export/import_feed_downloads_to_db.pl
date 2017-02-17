@@ -62,7 +62,7 @@ sub main
             blank_is_undef => 1,    #
             empty_is_undef => 0,    #
         }
-    );
+    ) or die "" . Text::CSV_XS->error_diag();
 
     open my $fh, "<:encoding(UTF-8)", $import_csv_file;
     $csv->header( $fh );

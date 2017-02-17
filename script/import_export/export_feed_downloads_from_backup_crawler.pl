@@ -76,7 +76,7 @@ SQL
             blank_is_undef => 1,    #
             empty_is_undef => 0,    #
         }
-    );
+    ) or die "" . Text::CSV_XS->error_diag();
 
     # Append raw content as last column
     $csv->combine( @{ $column_names }, $raw_download_content_column );
