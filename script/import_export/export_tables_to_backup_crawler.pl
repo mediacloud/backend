@@ -59,7 +59,7 @@ SQL
             blank_is_undef => 1,    #
             empty_is_undef => 0,    #
         }
-    );
+    ) or die "" . Text::CSV_XS->error_diag();
 
     my $res = $db->query( "SELECT * FROM $table ORDER BY $primary_key_column" );
     while ( my $row = $res->array() )
