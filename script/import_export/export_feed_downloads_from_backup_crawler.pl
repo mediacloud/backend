@@ -49,6 +49,8 @@ sub main
 
     my $db = MediaWords::DB::connect_to_db;
 
+    my $db->begin;
+
     my $column_names = $db->query( 'SELECT * FROM downloads LIMIT 0' )->columns;
 
     $column_names = [ grep { my $f = $_; !grep $_ eq $f, @columns_to_remove } @{ $column_names } ];
@@ -105,6 +107,8 @@ SQL
 
         print $csv->string . "\n";
     }
+
+    $db->commit;
 
     INFO "Done exporting " . scalar( @{ $feed_downloads_ids } ) . " feed downloads.";
 }

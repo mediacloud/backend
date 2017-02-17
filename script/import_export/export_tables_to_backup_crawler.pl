@@ -132,11 +132,14 @@ SQL
 
     # Export tables
     my $tables = [ 'tag_sets', 'media', 'feeds', 'tags', 'media_tags_map', 'feeds_tags_map', ];
+
+    $db->begin;
     foreach my $table ( @{ $tables } )
     {
         INFO "Exporting table '$table'...";
         _print_table_csv_to_stdout( $db, $table );
     }
+    $db->commit;
 
     print <<SQL;
 
