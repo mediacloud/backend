@@ -54,7 +54,16 @@ sub main
 
     my $db = MediaWords::DB::connect_to_db;
 
-    my $csv = Text::CSV_XS->new( { binary => 1 } );
+    my $csv = Text::CSV_XS->new(
+        {    #
+            binary         => 1,    #
+            quote_empty    => 1,    #
+            quote_space    => 1,    #
+            blank_is_undef => 1,    #
+            empty_is_undef => 0,    #
+        }
+    );
+
     open my $fh, "<:encoding(UTF-8)", $import_csv_file;
     $csv->header( $fh );
 
