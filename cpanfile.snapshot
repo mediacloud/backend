@@ -8335,10 +8335,10 @@ DISTRIBUTIONS
       IO::Handle 0
       Test::Harness 0
       Test::More 0
-  Text-CSV_XS-1.05
-    pathname: H/HM/HMBRAND/Text-CSV_XS-1.05.tgz
+  Text-CSV_XS-1.26
+    pathname: H/HM/HMBRAND/Text-CSV_XS-1.26.tgz
     provides:
-      Text::CSV_XS 1.05
+      Text::CSV_XS 1.26
     requirements:
       Config 0
       DynaLoader 0
