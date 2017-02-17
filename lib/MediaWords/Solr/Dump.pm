@@ -1251,7 +1251,7 @@ update snapshots s set searchable = true
                 from timespans t
                     join snap.story_link_counts slc using ( timespans_id )
                     join solr_import_extra_stories sies using ( stories_id )
-                where s.snapshots_id = s.snapshots_id
+                where t.snapshots_id = s.snapshots_id
         )
 SQL
 }

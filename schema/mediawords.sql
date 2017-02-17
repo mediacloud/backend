@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4610;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4611;
 
 BEGIN
 
@@ -3095,3 +3095,5 @@ create table job_states (
 );
 
 create index job_states_class_date on job_states( class, last_updated );
+
+create view pending_job_states as select * from job_states where state in ( 'running', 'queued' );
