@@ -49,7 +49,7 @@ sub main
 
     my $db = MediaWords::DB::connect_to_db;
 
-    my $db->begin;
+    $db->begin;
 
     my $column_names = $db->query( 'SELECT * FROM downloads LIMIT 0' )->columns;
 
