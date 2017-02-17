@@ -51,7 +51,16 @@ SQL
 
     print "COPY $table (" . join( ', ', @{ $column_names } ) . ") FROM STDIN WITH CSV;\n";
 
-    my $csv = Text::CSV_XS->new( { binary => 1 } );
+    my $csv = Text::CSV_XS->new(
+        {    #
+            binary         => 1,    #
+            quote_empty    => 1,    #
+            quote_space    => 1,    #
+            blank_is_undef => 1,    #
+            empty_is_undef => 0,    #
+        }
+    );
+
     my $res = $db->query( "SELECT * FROM $table ORDER BY $primary_key_column" );
     while ( my $row = $res->array() )
     {

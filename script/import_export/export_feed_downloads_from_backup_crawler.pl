@@ -68,7 +68,15 @@ SQL
 
     INFO "Exporting " . scalar( @{ $feed_downloads_ids } ) . " feed downloads...";
 
-    my $csv = Text::CSV_XS->new( { binary => 1 } );
+    my $csv = Text::CSV_XS->new(
+        {    #
+            binary         => 1,    #
+            quote_empty    => 1,    #
+            quote_space    => 1,    #
+            blank_is_undef => 1,    #
+            empty_is_undef => 0,    #
+        }
+    );
 
     # Append raw content as last column
     $csv->combine( @{ $column_names }, $raw_download_content_column );
