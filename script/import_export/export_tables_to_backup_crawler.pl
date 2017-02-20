@@ -64,6 +64,8 @@ SQL
         $table
     )->hashes;
 
+    my @foreign_key_errors;
+
     foreach my $foreign_key ( @{ $foreign_keys } )
     {
         my $constraint_name      = $foreign_key->{ constraint_name };
@@ -89,11 +91,20 @@ SQL
         my $unreferenced_rows = $db->query( $sql )->flat;
         if ( scalar @{ $unreferenced_rows } )
         {
-            die "Table '$table' has unreferenced rows for constraint '$constraint_name': " .
+            my $error = "Table '$table' has unreferenced rows for constraint '$constraint_name': " .
               join( ', ', @{ $unreferenced_rows } ) . "; SQL: $sql";
+            push( @foreign_key_errors, $error );
+            WARN $error;
         }
+        else
+        {
+            INFO "Foreign key '$constraint_name' for table '$table' looks fine.";
+        }
+    }
 
-        INFO "Done validating foreign key '$constraint_name' for table '$table'.";
+    if ( scalar @foreign_key_errors > 0 )
+    {
+        die "One or more foreign key checks failed for table '$table': " . join( "\n", @foreign_key_errors );
     }
 }
 
