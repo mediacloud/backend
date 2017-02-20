@@ -187,7 +187,7 @@ sub main
     }
     if ( scalar @foreign_key_errors > 0 )
     {
-        die "One or more foreign key checks failed, won't continue as resulting SQL would be invalid: " .
+        die "One or more foreign key checks failed, won't continue as resulting SQL would be invalid:\n\n" .
           join( "\n", @foreign_key_errors );
     }
 
