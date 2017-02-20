@@ -37,6 +37,25 @@ sub import_python_module($$)
     # say STDERR "Fetching namespace of Python module '$python_module_name'...";
     my %namespace = py_study_package( $python_module_name );
 
+    local $SIG{ __WARN__ } = sub {
+        my $warning = shift;
+
+        # For whatever reason, Inline::Python warns on an attempt to import
+        # exception and type classes (e.g. "Optional") with:
+        #
+        # Illegal character in prototype for <...>Exception::ARRAY : 0x7fd3d2890808 at (eval 379) line 12.
+        #
+
+        if ( $warning =~ /^Illegal character in prototype for .+?::ARRAY/ )
+        {
+            # no-op
+        }
+        else
+        {
+            WARN $warning;
+        }
+    };
+
     # say STDERR "Importing classes from Python module '$python_module_name' to Perl package '$perl_package_name'...";
     for my $class_name ( keys %{ $namespace{ 'classes' } } )
     {
@@ -55,6 +74,8 @@ sub import_python_module($$)
         # say STDERR "Importing Python function '$target_function_name' from module '$python_module_name'";
         py_bind_func( $target_function_name, $python_module_name, $function_name );
     }
+
+    local $SIG{ __WARN__ } = undef;
 
     # say STDERR "Done importing Python module '$python_module_name'.";
 }
