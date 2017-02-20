@@ -69,7 +69,7 @@ select t.topics_id, t.name, t.pattern, t.solr_seed_query, t.description, t.max_i
         p.auth_users_id= \$1 and
         t.name like \$2
     group by t.topics_id
-    order by t.state = 'completed successfully', t.state,  max( coalesce( snap.snapshot_date, '2000-01-01'::date ) ) desc
+    order by t.state = 'completed', t.state,  max( coalesce( snap.snapshot_date, '2000-01-01'::date ) ) desc
     limit \$3 offset \$4
 END
         $auth_users_id, '%' . $name . '%', $limit, $offset
@@ -293,11 +293,10 @@ sub spider_GET
 
     my $job_state = $db->query( <<SQL, $topics_id, $job_class )->hash;
 select $JOB_STATE_FIELD_LIST
-    from job_states
+    from pending_job_states
     where
         ( args->>'topics_id' )::int = \$1 and
-        class = \$2 and
-        state not in ( 'completed successfully', 'error' )
+        class = \$2
     order by job_states_id desc
 SQL
 

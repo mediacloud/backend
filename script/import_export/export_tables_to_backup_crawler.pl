@@ -36,6 +36,78 @@ use MediaWords::CommonLibs;
 use MediaWords::DB;
 use Text::CSV_XS;
 
+sub _validate_table_foreign_keys($$)
+{
+    # If table's constraints aren't right, SQL would be pretty much invalid
+    my ( $db, $table ) = @_;
+
+    my $foreign_keys = $db->query(
+        <<SQL,
+        SELECT
+            tc.constraint_name,
+            tc.table_schema,
+            tc.table_name,
+            kcu.column_name,
+            ccu.table_schema AS foreign_table_schema,
+            ccu.table_name AS foreign_table_name,
+            ccu.column_name AS foreign_column_name
+
+        FROM information_schema.table_constraints AS tc
+            JOIN information_schema.key_column_usage AS kcu
+                ON tc.constraint_name = kcu.constraint_name
+            JOIN information_schema.constraint_column_usage AS ccu
+                ON ccu.constraint_name = tc.constraint_name
+        WHERE constraint_type = 'FOREIGN KEY'
+          AND tc.table_schema = 'public'
+          AND tc.table_name = ?
+SQL
+        $table
+    )->hashes;
+
+    my @foreign_key_errors;
+
+    foreach my $foreign_key ( @{ $foreign_keys } )
+    {
+        my $constraint_name      = $foreign_key->{ constraint_name };
+        my $table_schema         = $foreign_key->{ table_schema };
+        my $table_name           = $foreign_key->{ table_name };
+        my $column_name          = $foreign_key->{ column_name };
+        my $foreign_table_schema = $foreign_key->{ foreign_table_schema };
+        my $foreign_table_name   = $foreign_key->{ foreign_table_name };
+        my $foreign_column_name  = $foreign_key->{ foreign_column_name };
+
+        INFO "Validating foreign key '$constraint_name' for table '$table'...";
+
+        my $sql = "
+            SELECT DISTINCT a.$column_name
+            FROM $table_schema.$table_name AS a
+                LEFT JOIN $foreign_table_schema.$foreign_table_name AS b
+                    ON a.$column_name = b.$foreign_column_name
+            WHERE a.$column_name IS NOT NULL
+              AND b.$foreign_column_name IS NULL
+            ORDER BY a.$column_name
+        ";
+
+        my $unreferenced_rows = $db->query( $sql )->flat;
+        if ( scalar @{ $unreferenced_rows } )
+        {
+            my $error = "Table '$table' has unreferenced rows for constraint '$constraint_name': " .
+              join( ', ', @{ $unreferenced_rows } ) . "; SQL: $sql";
+            push( @foreign_key_errors, $error );
+            WARN $error;
+        }
+        else
+        {
+            INFO "Foreign key '$constraint_name' for table '$table' looks fine.";
+        }
+    }
+
+    if ( scalar @foreign_key_errors > 0 )
+    {
+        die "One or more foreign key checks failed for table '$table': " . join( "\n", @foreign_key_errors );
+    }
+}
+
 sub _print_table_csv_to_stdout($$)
 {
     my ( $db, $table ) = @_;
@@ -51,7 +123,16 @@ SQL
 
     print "COPY $table (" . join( ', ', @{ $column_names } ) . ") FROM STDIN WITH CSV;\n";
 
-    my $csv = Text::CSV_XS->new( { binary => 1 } );
+    my $csv = Text::CSV_XS->new(
+        {    #
+            binary         => 1,    #
+            quote_empty    => 1,    #
+            quote_space    => 1,    #
+            blank_is_undef => 1,    #
+            empty_is_undef => 0,    #
+        }
+    ) or die "" . Text::CSV_XS->error_diag();
+
     my $res = $db->query( "SELECT * FROM $table ORDER BY $primary_key_column" );
     while ( my $row = $res->array() )
     {
@@ -83,6 +164,34 @@ sub main
     $| = 1;
 
     my $db = MediaWords::DB::connect_to_db;
+
+    # Tables to export
+    my $tables = [ 'tag_sets', 'media', 'feeds', 'tags', 'media_tags_map', 'feeds_tags_map', ];
+
+    $db->begin;
+
+    INFO "Validating foreign keys...";
+    my @foreign_key_errors;
+    foreach my $table ( @{ $tables } )
+    {
+        INFO "Validating foreign keys for table '$table'...";
+
+        # Aggregate errors into array to be able to print a one huge complaint
+        eval { _validate_table_foreign_keys( $db, $table ); };
+        if ( $@ )
+        {
+            my $error = $@;
+            WARN "Validating foreign key for table '$table' failed: $error";
+            push( @foreign_key_errors, $error );
+        }
+    }
+    if ( scalar @foreign_key_errors > 0 )
+    {
+        die "One or more foreign key checks failed, won't continue as resulting SQL would be invalid:\n\n" .
+          join( "\n", @foreign_key_errors );
+    }
+
+    INFO "Done validating foreign keys.";
 
     print <<SQL;
 --
@@ -130,13 +239,15 @@ TRUNCATE tag_sets CASCADE;
 
 SQL
 
-    # Export tables
-    my $tables = [ 'tag_sets', 'media', 'feeds', 'tags', 'media_tags_map', 'feeds_tags_map', ];
+    INFO "Exporting tables...";
     foreach my $table ( @{ $tables } )
     {
         INFO "Exporting table '$table'...";
         _print_table_csv_to_stdout( $db, $table );
     }
+    INFO "Done exporting tables.";
+
+    $db->commit;
 
     print <<SQL;
 

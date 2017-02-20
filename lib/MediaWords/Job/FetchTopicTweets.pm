@@ -148,16 +148,17 @@ sub _add_tweets_to_ch_posts
     my $tweet_ids = [ keys( %{ $ch_post_lookup } ) ];
 
     my $tweets;
-    my $twitter_retries = 10;
-    while ( !$tweets && $twitter_retries-- )
+    my $twitter_retries = 0;
+    while ( !$tweets && ( ++$twitter_retries <= 10 ) )
     {
         eval {
             $tweets = $twitter->lookup_statuses( { id => $tweet_ids, include_entities => 'true', trim_user => 'false' } );
         };
         if ( !$tweets )
         {
-            DEBUG( "twitter fetch error.  waiting 60 seconds before retry ..." );
-            sleep( 60 );
+            my $sleep = 2 * ( $twitter_retries**2 );
+            DEBUG( "twitter fetch error.  waiting $sleep seconds before retry ..." );
+            sleep( $sleep );
         }
     }
 

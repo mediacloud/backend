@@ -105,11 +105,12 @@ sub scrape_GET
 
     my $job_state = $db->query( <<SQL, $data->{ media_id }, $job_class )->hash;
 select $JOB_STATE_FIELD_LIST
-    from job_states
+    from pending_job_states
     where
         ( args->>'media_id' )::int = \$1 and
-        class = \$2 and
-        state not in ( 'completed successfully', 'error' )
+        class = \$2
+    order by job_states_id desc
+    limit 1
 SQL
 
     if ( !$job_state )

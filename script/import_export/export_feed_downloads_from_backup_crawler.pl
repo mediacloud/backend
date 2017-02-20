@@ -49,6 +49,8 @@ sub main
 
     my $db = MediaWords::DB::connect_to_db;
 
+    $db->begin;
+
     my $column_names = $db->query( 'SELECT * FROM downloads LIMIT 0' )->columns;
 
     $column_names = [ grep { my $f = $_; !grep $_ eq $f, @columns_to_remove } @{ $column_names } ];
@@ -66,7 +68,15 @@ SQL
 
     INFO "Exporting " . scalar( @{ $feed_downloads_ids } ) . " feed downloads...";
 
-    my $csv = Text::CSV_XS->new( { binary => 1 } );
+    my $csv = Text::CSV_XS->new(
+        {    #
+            binary         => 1,    #
+            quote_empty    => 1,    #
+            quote_space    => 1,    #
+            blank_is_undef => 1,    #
+            empty_is_undef => 0,    #
+        }
+    ) or die "" . Text::CSV_XS->error_diag();
 
     # Append raw content as last column
     $csv->combine( @{ $column_names }, $raw_download_content_column );
@@ -105,6 +115,8 @@ SQL
 
         print $csv->string . "\n";
     }
+
+    $db->commit;
 
     INFO "Done exporting " . scalar( @{ $feed_downloads_ids } ) . " feed downloads.";
 }
