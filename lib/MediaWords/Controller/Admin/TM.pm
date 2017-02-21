@@ -129,6 +129,8 @@ sub edit : Local
         $p->{ solr_seed_query_run } = 'f' unless ( $topic->{ solr_seed_query } eq $p->{ solr_seed_query } );
         $p->{ pattern } = $pattern;
 
+        $p->{ solr_seed_query_run } = normalize_boolean_for_db( $p->{ solr_seed_query_run } );
+
         $c->dbis->update_by_id( 'topics', $topics_id, $p );
 
         my $view_url = $c->uri_for( "/admin/tm/view/" . $topics_id, { status_msg => 'topic updated.' } );
@@ -200,7 +202,7 @@ sub create : Local
 
     my $c_name            = $c->req->params->{ name };
     my $c_solr_seed_query = $c->req->params->{ solr_seed_query };
-    my $c_skip_solr_query = ( $c->req->params->{ skip_solr_query } ? 't' : 'f' );
+    my $c_skip_solr_query = normalize_boolean_for_db( $c->req->params->{ skip_solr_query } );
     my $c_description     = $c->req->params->{ description };
     my $c_start_date      = $c->req->params->{ start_date };
     my $c_end_date        = $c->req->params->{ end_date };
@@ -230,7 +232,7 @@ sub create : Local
             name                => $c_name,
             pattern             => $pattern,
             solr_seed_query     => $filtered_seed_query,
-            solr_seed_query_run => $c_skip_solr_query,
+            solr_seed_query_run => normalize_boolean_for_db( $c_skip_solr_query ),
             description         => $c_description,
             max_iterations      => $c_max_iterations,
             start_date          => $c_start_date,
@@ -1371,11 +1373,6 @@ sub _get_story_and_links_from_snapshot_tables
 {
     my ( $db, $stories_id ) = @_;
 
-    # if the below query returns nothing, the return type of the server prepared statement
-    # may differ from the first call, which throws a postgres error, so we need to
-    # disable server side prepares
-    $db->set_prepare_on_server_side( 0 );
-
     my $story = $db->query( <<SQL, $stories_id )->hash;
 select * from snapshot_stories s join snapshot_story_link_counts slc using ( stories_id ) where s.stories_id = ?
 SQL
@@ -2152,7 +2149,7 @@ sub unredirect_param_stories
 
         my $url_options = {
             url             => $url,
-            assume_match    => $c->req->params->{ "assume_match_${ param_tag }" },
+            assume_match    => normalize_boolean_for_db( $c->req->params->{ "assume_match_${ param_tag }" } ),
             manual_redirect => $c->req->params->{ "manual_redirect_${ param_tag }" }
         };
 
@@ -2229,7 +2226,9 @@ END
     my $sql_activities =
       MediaWords::DBI::Activities::sql_activities_which_reference_column( 'topics.topics_id', $topics_id );
 
-    my ( $activities, $pager ) = $c->dbis->query_paged_hashes( $sql_activities, $p, $ROWS_PER_PAGE );
+    my $qph        = $c->dbis->query_paged_hashes( $sql_activities, $p, $ROWS_PER_PAGE );
+    my $activities = $qph->list();
+    my $pager      = $qph->pager();
 
     # FIXME put activity preparation (JSON decoding, description fetching) into
     # a subroutine in order to not repeat oneself.

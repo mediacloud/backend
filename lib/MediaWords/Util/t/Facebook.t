@@ -17,7 +17,6 @@ use MediaWords::Test::DB;
 use MediaWords::Util::Facebook;
 
 use Data::Dumper;
-use Storable qw(dclone);
 
 # URLs that might fail
 sub test_bogus_urls($)
@@ -117,7 +116,7 @@ sub main()
         # variables set by the automated testing environment
         if ( defined $ENV{ 'MC_FACEBOOK_APP_ID' } and defined $ENV{ 'MC_FACEBOOK_APP_SECRET' } )
         {
-            my $new_config = dclone( $config );
+            my $new_config = make_python_variable_writable( $config );
 
             unless ( $new_config->{ facebook } )
             {

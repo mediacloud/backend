@@ -388,6 +388,8 @@ sub _get_intersection_of_id_array_refs
 
     my $list = [ keys( %{ $id_lookup } ) ];
 
+    $list = [ map { int( $_ ) } @{ $list } ];
+
     return $list;
 }
 
@@ -418,7 +420,7 @@ sub _get_stories_ids_from_stories_only_q
 
     if ( $q =~ /^stories_id:(\d+)$/ )
     {
-        return [ $1 ];
+        return [ int( $1 ) ];
     }
 
     if ( $q =~ /^stories_id:\([\s\d]+\)$/ )
@@ -426,7 +428,7 @@ sub _get_stories_ids_from_stories_only_q
         my $stories_ids;
         while ( $q =~ /(\d+)/g )
         {
-            push( @{ $stories_ids }, $1 );
+            push( @{ $stories_ids }, int( $1 ) );
         }
 
         return $stories_ids;

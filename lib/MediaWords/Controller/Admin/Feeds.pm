@@ -90,7 +90,7 @@ sub list : Local
     my ( $self, $c, $media_id ) = @_;
 
     # query database for the media source object corresponding to the
-    # given media id.  $c->dbis is the MediaWords::DB::Handler db handle.
+    # given media id.
     my $medium = $c->dbis->find_by_id( 'media', $media_id );
 
     my $sql_feed_status = $c->request->param( 'all' ) ? '1=1' : "feed_status = 'active'";

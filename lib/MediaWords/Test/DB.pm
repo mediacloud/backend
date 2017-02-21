@@ -8,20 +8,19 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+import_python_module( __PACKAGE__, 'mediawords.test.db' );
+
 use File::Path;
 use Readonly;
 use Text::Lorem::More;
 
 use MediaWords::DB;
-use MediaWords::DB::Handler;
 use MediaWords::DBI::Auth;
 use MediaWords::DBI::Downloads;
 use MediaWords::Job::ExtractAndVector;
 use MediaWords::DB::Schema;
 use MediaWords::Util::Config;
 use MediaWords::Util::URL;
-
-Readonly my $TEST_DB_ENV_LABEL => 'MEDIAWORDS_FORCE_USING_TEST_DATABASE';
 
 # run the given function on a temporary, clean database
 sub test_on_test_database
@@ -32,12 +31,9 @@ sub test_on_test_database
 
     my $db = MediaWords::DB::connect_to_db( 'test' );
 
-    my $previous_force_using_test_db_value = $ENV{ $TEST_DB_ENV_LABEL };
-    $ENV{ $TEST_DB_ENV_LABEL } = 1;
+    force_using_test_database();
 
     eval { $sub->( $db ); };
-
-    $ENV{ $TEST_DB_ENV_LABEL } = $previous_force_using_test_db_value;
 
     if ( $@ )
     {
@@ -48,12 +44,6 @@ sub test_on_test_database
     {
         $db->disconnect();
     }
-}
-
-# return true if we are running within test_on_test_database
-sub using_test_database
-{
-    return $ENV{ $TEST_DB_ENV_LABEL };
 }
 
 sub create_download_for_feed

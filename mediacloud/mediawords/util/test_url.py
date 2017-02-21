@@ -57,8 +57,8 @@ def test_is_shortened_url():
 # noinspection SpellCheckingInspection
 def test_normalize_url():
     # Bad URLs
-    assert_raises(NormalizeURLException, normalize_url, None)
-    assert_raises(NormalizeURLException, normalize_url, 'gopher://gopher.floodgap.com/0/v2/vstat')
+    assert_raises(McNormalizeURLException, normalize_url, None)
+    assert_raises(McNormalizeURLException, normalize_url, 'gopher://gopher.floodgap.com/0/v2/vstat')
 
     # Basic
     assert normalize_url('HTTP://CYBER.LAW.HARVARD.EDU:80/node/9244') == 'http://cyber.law.harvard.edu/node/9244'
@@ -215,7 +215,7 @@ def test_is_homepage_url():
 
 # noinspection SpellCheckingInspection
 def test_get_url_host():
-    assert_raises(GetURLHostException, get_url_host, None)
+    assert_raises(McGetURLHostException, get_url_host, None)
     assert get_url_host('http://www.nytimes.com/') == 'www.nytimes.com'
     assert get_url_host('http://obama:barack1@WHITEHOUSE.GOV/michelle.html') == 'whitehouse.gov'
 
@@ -436,7 +436,7 @@ def test_http_urls_in_string():
     """)) == set()
 
     # Erroneous input
-    assert_raises(HTTPURLsInStringException, http_urls_in_string, None)
+    assert_raises(McHTTPURLsInStringException, http_urls_in_string, None)
 
 
 def test_get_url_path_fast():

@@ -12,7 +12,7 @@ import os
 import subprocess
 import tempfile
 
-from mediawords.util.config import get_config
+from mediawords.util.config import get_config as py_get_config  # MC_REWRITE_TO_PYTHON: rename back to get_config()
 from mediawords.util.paths import mc_root_path
 from mediawords.util.log import create_logger
 
@@ -30,7 +30,7 @@ def rotate_supervisor_logs():
     root_path = mc_root_path()
     l.debug('Media Cloud root path: %s' % root_path)
 
-    config = get_config()
+    config = py_get_config()
     child_log_dir = config['supervisor']['childlogdir']
     l.debug('Child log directory: %s' % child_log_dir)
 

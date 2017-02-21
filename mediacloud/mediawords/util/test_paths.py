@@ -12,12 +12,6 @@ def test_mc_root_path():
     assert os.path.isfile(os.path.join(root_path, 'mediawords.yml.dist'))
 
 
-def test_mc_script_path():
-    script_path = mc_script_path()
-    assert os.path.exists(script_path)
-    assert os.path.isdir(script_path)
-
-
 def test_mkdir_p():
     temp_dir = tempfile.mkdtemp()
 

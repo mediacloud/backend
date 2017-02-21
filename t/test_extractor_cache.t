@@ -38,10 +38,10 @@ sub add_download_to_story
 
     my $story_content = "$story->{ title }\n\n$story->{ description }";
 
+    $download = MediaWords::DBI::Downloads::store_content( $db, $download, \$story_content );
+
     $story->{ content }  = $story_content;
     $story->{ download } = $download;
-
-    $download = MediaWords::DBI::Downloads::store_content( $db, $download, \$story_content );
 }
 
 sub get_cache_for_story

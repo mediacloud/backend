@@ -3,6 +3,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DBI::Auth;
+use MediaWords::Util::JSON;
 
 use strict;
 use warnings;
@@ -36,48 +37,30 @@ __PACKAGE__->config(
     'default'   => 'application/json; charset=UTF-8',
     'stash_key' => 'rest',
     'map'       => {
-
-        #	   'text/html'          => 'YAML::HTML',
-        'text/xml' => 'XML::Simple',
-
-        # #         'text/x-yaml'        => 'YAML',
-        'application/json' => [ 'Callback', { deserialize => \&deserialize_json, serialize => \&serialize_json } ],
-        'application/json; charset=UTF-8' =>
-          [ 'Callback', { deserialize => \&deserialize_json, serialize => \&serialize_json } ],
-        'text/x-json' => [ 'Callback', { deserialize => \&deserialize_json, serialize => \&serialize_json } ],
-        'text/x-data-dumper'       => [ 'Data::Serializer', 'Data::Dumper' ],
-        'text/x-data-denter'       => [ 'Data::Serializer', 'Data::Denter' ],
-        'text/x-data-taxi'         => [ 'Data::Serializer', 'Data::Taxi' ],
-        'application/x-storable'   => [ 'Data::Serializer', 'Storable' ],
-        'application/x-freezethaw' => [ 'Data::Serializer', 'FreezeThaw' ],
-        'text/x-config-general'    => [ 'Data::Serializer', 'Config::General' ],
-        'text/x-php-serialization' => [ 'Data::Serializer', 'PHP::Serialization' ],
+        'text/xml'         => 'XML::Simple',    #
+        'application/json' => [                 #
+            'Callback',                         #
+            {                                   #
+                serialize   => \&MediaWords::Util::JSON::encode_json,    #
+                deserialize => \&MediaWords::Util::JSON::decode_json,    #
+            }    #
+        ],       #
+        'application/json; charset=UTF-8' => [    #
+            'Callback',                           #
+            {                                     #
+                serialize   => \&MediaWords::Util::JSON::encode_json,    #
+                deserialize => \&MediaWords::Util::JSON::decode_json,    #
+            }    #
+        ],       #
+        'text/x-json' => [    #
+            'Callback',       #
+            {                 #
+                serialize   => \&MediaWords::Util::JSON::encode_json,    #
+                deserialize => \&MediaWords::Util::JSON::decode_json,    #
+            }    #
+        ],       #
     }
 );
-
-# custom function to serialize json because catalyst ignores the documents json_options config
-sub serialize_json
-{
-    my ( $data ) = @_;
-
-    my $json = JSON->new->utf8->convert_blessed->canonical->canonical->encode( $data );
-
-    return $json;
-}
-
-# custom function to deserialize json because catalyst ignores the documents json_options config
-sub deserialize_json
-{
-    my ( $json ) = @_;
-
-    my $data = eval { JSON->new->decode( $json ) };
-    if ( $@ )
-    {
-        die( "error decoding json: $json" );
-    }
-
-    return $data;
-}
 
 sub serialize : ActionClass('Serialize')
 {

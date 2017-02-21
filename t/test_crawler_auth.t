@@ -10,6 +10,9 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use English '-no_match_vars';
 
 use LWP::Simple;
@@ -19,7 +22,6 @@ use Test::More tests => 6;
 use MediaWords::Crawler::Engine;
 use MediaWords::Test::DB;
 use MediaWords::Util::Config;
-use Storable qw(dclone);
 
 # call the fetcher on the given feed and return the response
 sub fetch_response
@@ -60,7 +62,7 @@ sub test_auth
     my $feed = $media->{ A }->{ feeds }->{ B };
 
     my $config     = MediaWords::Util::Config::get_config;
-    my $new_config = dclone( $config );
+    my $new_config = make_python_variable_writable( $config );
 
     $new_config->{ mediawords }->{ crawler_authenticated_domains } =
       [ { domain => 'localhost.localhost', user => 'foo', password => 'bar' } ];

@@ -11,7 +11,6 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use MediaWords::DB::Handler;
 use MediaWords::DB;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
@@ -20,7 +19,6 @@ use MediaWords::DB::Schema;
 
 use Term::Prompt;
 use Data::Dumper;
-use Smart::Comments;
 
 #why isn't this module on CPAN
 sub string_starts_with

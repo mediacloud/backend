@@ -43,7 +43,6 @@ use MediaWords::Util::DateTime;
 
 use Data::Dumper;
 use Data::Sorting qw( :basics :arrays :extras );
-use MediaWords::DB::Handler;
 use LWP::UserAgent;
 use MediaWords::StoryVectors;
 use Readonly;
@@ -54,9 +53,9 @@ sub add_test_feed
     my ( $db, $url_to_crawl ) = @_;
 
     my $test_medium = $db->query(
-        "insert into media (name, url, moderated) values (?, ?, ?) returning *",
+        "insert into media (name, url, moderated) values (?, ?, 'f') returning *",
         '_ Crawler Test',
-        $url_to_crawl, 0
+        $url_to_crawl,
     )->hash;
 
     my $feed = $db->query(

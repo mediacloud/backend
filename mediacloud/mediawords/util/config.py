@@ -3,6 +3,7 @@ import os
 # noinspection PyPackageRequirements
 import yaml
 
+from mediawords.util.log import create_logger
 from mediawords.util.paths import mc_root_path
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
@@ -13,12 +14,8 @@ except ImportError:
     # noinspection PyPackageRequirements
     from yaml import Loader
 
-from mediawords.util.log import create_logger
-
 l = create_logger(__name__)
 
-__MC_ROOT_DIR = mc_root_path()
-__base_dir = __MC_ROOT_DIR  # FIXME remove
 __CONFIG = None
 
 
@@ -26,25 +23,23 @@ class McConfigException(Exception):
     pass
 
 
-def get_mc_root_dir():
-    return __MC_ROOT_DIR
-
-
 def get_config() -> dict:
+    """Get configuration dictionary."""
     global __CONFIG
 
     if __CONFIG is not None:
         return __CONFIG
 
-    # TODO: This should be standardized
-    set_config_file(os.path.join(__base_dir, "mediawords.yml"))
+    # FIXME: This should be standardized
+    set_config_file(os.path.join(mc_root_path(), "mediawords.yml"))
 
     # noinspection PyTypeChecker
     # FIXME inspection could still be enabled here
     return __CONFIG
 
 
-def __parse_config_file(config_file: str) -> dict:
+def __parse_yaml(config_file: str) -> dict:
+    """Parse and return YAML file with configuration."""
     if not os.path.isfile(config_file):
         raise McConfigException("Configuration file '%s' was not found." % config_file)
 
@@ -54,15 +49,15 @@ def __parse_config_file(config_file: str) -> dict:
 
 
 def set_config_file(config_file: str) -> None:
-    """set the cached config object given a file path"""
+    """Set the cached configuration dictionary from a file path."""
     if not os.path.isfile(config_file):
         raise McConfigException("Configuration file '%s' was not found." % config_file)
 
-    set_config(__parse_config_file(config_file))
+    set_config(__parse_yaml(config_file))
 
 
 def __merge_configs(config: dict, static_defaults: dict) -> dict:
-    """merge configs using Hash::Merge, with precedence for the mediawords.yml config."""
+    """Merge configs with precedence for the mediawords.yml config."""
 
     def __merge_configs_internal(a: dict, b: dict, path=None) -> dict:
         """Merges b into a (http://stackoverflow.com/a/7205107/200603)"""
@@ -93,30 +88,33 @@ def __merge_configs(config: dict, static_defaults: dict) -> dict:
 
 
 def set_config(config: dict) -> None:
+    """Set cached configuration dictionary."""
     global __CONFIG
 
     if __CONFIG is not None:
         l.debug("config object already cached")
 
-    # FIXME MC_REWRITE_TO_PYTHON: Catalyst::Test might want to set a couple of values which end up as being "binary"
+    # MC_REWRITE_TO_PYTHON: Catalyst::Test might want to set a couple of values which end up as being "binary"
     config = decode_object_from_bytes_if_needed(config)
 
     static_defaults = __read_static_defaults()
 
     __CONFIG = __merge_configs(config, static_defaults)
 
-    __set_dynamic_defaults(__CONFIG)
+    __CONFIG = __set_dynamic_defaults(__CONFIG)
 
-    verify_settings(__CONFIG)
+    __verify_settings(__CONFIG)
 
 
 def __read_static_defaults() -> dict:
-    defaults_file_yml = os.path.join(get_mc_root_dir(), "config", "defaults.yml")
-    static_defaults = __parse_config_file(defaults_file_yml)
+    """Return configuration defaults dictionary."""
+    defaults_file_yml = os.path.join(mc_root_path(), "config", "defaults.yml")
+    static_defaults = __parse_yaml(defaults_file_yml)
     return static_defaults
 
 
-def verify_settings(config: dict) -> None:
+def __verify_settings(config: dict) -> None:
+    """Verify configuration dictionary, print warnings or raise Exceptions if something's not right."""
     if 'database' not in config or config['database'] is None or len(config['database']) < 1:
         raise McConfigException("No database connections configured")
 
@@ -139,14 +137,13 @@ def verify_settings(config: dict) -> None:
 
 
 def __set_dynamic_defaults(config: dict) -> dict:
-    global __base_dir
-
+    """Fill configuration dictionary with some preset values."""
     if 'mediawords' not in config or config['mediawords'] is None:
         raise McConfigException('Configuration does not have "mediawords" key')
 
     if 'data_dir' not in config['mediawords'] or config['mediawords']['data_dir'] is None:
         # FIXME create a helper in 'paths'
-        config['mediawords']['data_dir'] = os.path.join(__base_dir, 'data')
+        config['mediawords']['data_dir'] = os.path.join(mc_root_path(), 'data')
 
     # FIXME probably not needed
     if 'session' not in config or config['session'] is None:
@@ -154,7 +151,7 @@ def __set_dynamic_defaults(config: dict) -> dict:
     if 'storage' not in config['session'] or config['session']['storage'] is None:
         config['session']['storage'] = os.path.join(os.path.expanduser('~'), "tmp", "mediacloud-session")
 
-    # FIXME probably not needed after Python rewrite
+    # MC_REWRITE_TO_PYTHON: probably not needed after Python rewrite
     if 'Plugin::Authentication' not in config or config['Plugin::Authentication'] is None:
         config['Plugin::Authentication'] = {
             "default_realm": 'users',

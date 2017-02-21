@@ -12,6 +12,7 @@ BEGIN
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
+use MediaWords::Test::Supervisor;
 
 use Sys::Hostname;
 

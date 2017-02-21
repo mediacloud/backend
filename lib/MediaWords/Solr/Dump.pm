@@ -163,7 +163,7 @@ sub _add_extra_stories_to_import
         INSERT INTO delta_import_stories (stories_id)
             SELECT stories_id
             FROM solr_import_extra_stories
-            WHERE ( stories_id % $num_proc ) = ( $proc - 1 )
+            WHERE MOD( stories_id, $num_proc ) = ( $proc - 1 )
             ORDER BY stories_id
             LIMIT ?
 SQL
@@ -212,7 +212,7 @@ declare csr cursor for
 
     from story_sentences ss
 
-    where ( ss.stories_id % $num_proc = $proc - 1 )
+    where (MOD(ss.stories_id, $num_proc) = $proc - 1)
         $delta_clause
 END
 
@@ -238,14 +238,14 @@ declare csr cursor for
         s.stories_id || '!' || 0 solr_id,
         to_char( date_trunc( 'minute', s.publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_date,
         to_char( date_trunc( 'hour', s.publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_day,
-        0,
+        0 as sentence_number,
         null sentence,
         s.title,
         s.language
 
     from stories s
 
-    where ( s.stories_id % $num_proc = $proc - 1 )
+    where MOD( s.stories_id, $num_proc ) = $proc - 1
         $delta_clause
 END
 
@@ -369,7 +369,7 @@ sub _create_delta_import_stories
 create temporary table delta_import_stories as
 select distinct stories_id
 from story_sentences ss
-where ss.db_row_last_updated > \$1 and ( stories_id % $num_proc ) = ( $proc - 1 )
+where ss.db_row_last_updated > \$1 and MOD( stories_id, $num_proc ) = ( $proc - 1 )
 
 END
     my ( $num_delta_stories ) = $db->query( "select count(*) from delta_import_stories" )->flat;
@@ -397,7 +397,7 @@ sub _get_data_lookup
     _set_lookup( $db, $data_lookup, 'ps', <<END );
 select processed_stories_id, stories_id
     from processed_stories
-    where stories_id % $num_proc = $proc - 1
+    where MOD(stories_id, $num_proc) = $proc - 1
         $delta_clause
 END
 
@@ -409,7 +409,7 @@ END
     _set_lookup( $db, $data_lookup, 'stories_tags', <<END );
 select string_agg( tags_id::text, ';' ) tag_list, stories_id
     from stories_tags_map
-    where stories_id % $num_proc = $proc - 1
+    where MOD(stories_id, $num_proc) = $proc - 1
         $delta_clause
     group by stories_id
 END
@@ -417,14 +417,14 @@ END
     _set_lookup( $db, $data_lookup, 'bitly_clicks', <<END );
 select click_count, stories_id
     from bitly_clicks_total
-    where stories_id % $num_proc = $proc - 1
+    where MOD(stories_id, $num_proc) = $proc - 1
         $delta_clause
 END
 
     _set_lookup( $db, $data_lookup, 'timespans', <<END );
 select string_agg( timespans_id::text, ';' ), stories_id
     from snap.story_link_counts
-    where stories_id % $num_proc = $proc - 1
+    where MOD(stories_id, $num_proc) = $proc - 1
         $delta_clause
     group by stories_id
 END

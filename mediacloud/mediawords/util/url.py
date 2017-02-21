@@ -4,7 +4,7 @@ from urllib.parse import urlparse, parse_qs, urlsplit, urlunsplit, urlencode, ur
 import url_normalize
 
 from mediawords.util.log import create_logger
-from mediawords.util.perl import decode_string_from_bytes_if_needed
+from mediawords.util.perl import decode_object_from_bytes_if_needed
 
 l = create_logger(__name__)
 
@@ -475,7 +475,7 @@ __URL_SHORTENER_HOSTNAMES = [
 # noinspection SpellCheckingInspection
 def fix_common_url_mistakes(url: str) -> Optional[str]:
     """Fixes common URL mistakes (mistypes, etc.)."""
-    url = decode_string_from_bytes_if_needed(url)
+    url = decode_object_from_bytes_if_needed(url)
 
     if url is None:
         return None
@@ -497,7 +497,7 @@ def fix_common_url_mistakes(url: str) -> Optional[str]:
 
 def is_http_url(url: str) -> bool:
     """Returns true if URL is in the "http" ("https") scheme."""
-    url = decode_string_from_bytes_if_needed(url)
+    url = decode_object_from_bytes_if_needed(url)
     if url is None:
         l.debug("URL is None")
         return False
@@ -522,7 +522,7 @@ def is_http_url(url: str) -> bool:
 
 def is_shortened_url(url: str) -> bool:
     """Returns true if URL is a shortened URL (e.g. with Bit.ly)."""
-    url = decode_string_from_bytes_if_needed(url)
+    url = decode_object_from_bytes_if_needed(url)
     if url is None:
         l.debug("URL is None")
         return False
@@ -553,7 +553,7 @@ def __canonical_url(url: str) -> str:
     return url_normalize.url_normalize(url)
 
 
-class NormalizeURLException(Exception):
+class McNormalizeURLException(Exception):
     pass
 
 
@@ -569,17 +569,17 @@ def normalize_url(url: str) -> str:
     * Remove various ad tracking query parameters, e.g. "utm_source", "utm_medium", "PHPSESSID", etc.
 
     Return normalized URL on success; raise on error"""
-    url = decode_string_from_bytes_if_needed(url)
+    url = decode_object_from_bytes_if_needed(url)
     if url is None:
-        raise NormalizeURLException("URL is None")
+        raise McNormalizeURLException("URL is None")
     if len(url) == 0:
-        raise NormalizeURLException("URL is empty")
+        raise McNormalizeURLException("URL is empty")
 
     url = fix_common_url_mistakes(url)
     url = __canonical_url(url)
 
     if not is_http_url(url):
-        raise NormalizeURLException("URL is not valid")
+        raise McNormalizeURLException("URL is not valid")
 
     scheme, netloc, path, query_string, fragment = urlsplit(url)
     query = parse_qs(query_string, keep_blank_values=True)
@@ -718,7 +718,7 @@ def normalize_url(url: str) -> str:
 def normalize_url_lossy(url: str) -> Optional[str]:
     """Do some simple transformations on a URL to make it match other equivalent URLs as well as possible; normalization
     is "lossy" (makes the whole URL lowercase, removes subdomain parts "m.", "data.", "news.", ... in some cases)"""
-    url = decode_string_from_bytes_if_needed(url)
+    url = decode_object_from_bytes_if_needed(url)
     if url is None:
         return None
     if len(url) == 0:
@@ -747,9 +747,10 @@ def normalize_url_lossy(url: str) -> Optional[str]:
     url = re.sub(r'^https:', 'http:', url)
 
     # canonical_url might raise an encoding error if url is not invalid; just skip the canonical url step in the case
+    # noinspection PyBroadException
     try:
         url = __canonical_url(url)
-    except Exception as ex:
+    except:
         pass
 
     # add trailing slash
@@ -762,7 +763,7 @@ def normalize_url_lossy(url: str) -> Optional[str]:
 def is_homepage_url(url: str) -> bool:
     """Returns true if URL is homepage (e.g. http://www.wired.com/) and not a child page
     (e.g. http://m.wired.com/threatlevel/2011/12/sopa-watered-down-amendment/)."""
-    url = decode_string_from_bytes_if_needed(url)
+    url = decode_object_from_bytes_if_needed(url)
     if url is None:
         l.debug("URL is None.")
         return False
@@ -777,7 +778,7 @@ def is_homepage_url(url: str) -> bool:
     # Remove cruft from the URL first
     try:
         url = normalize_url(url)
-    except NormalizeURLException as ex:
+    except McNormalizeURLException as ex:
         l.debug("Unable to normalize URL '%s' before checking if it's a homepage: %s" % (url, ex))
         return False
 
@@ -799,17 +800,17 @@ def is_homepage_url(url: str) -> bool:
     return False
 
 
-class GetURLHostException(Exception):
+class McGetURLHostException(Exception):
     pass
 
 
 def get_url_host(url: str) -> str:
-    """Return hostname of an URL.  if we can't parse out the host name, just return the url"""
-    url = decode_string_from_bytes_if_needed(url)
+    """Return hostname of an URL. If we can't parse out the host name, just return the URL."""
+    url = decode_object_from_bytes_if_needed(url)
     if url is None:
-        raise GetURLHostException("URL is None")
+        raise McGetURLHostException("URL is None")
     if len(url) == 0:
-        raise GetURLHostException("URL is empty")
+        raise McGetURLHostException("URL is empty")
 
     fixed_url = fix_common_url_mistakes(url)
 
@@ -830,7 +831,7 @@ def get_url_distinctive_domain(url: str) -> str:
     Return original URL if unable to process the URL."""
 
     try:
-        url = decode_string_from_bytes_if_needed(url)
+        url = decode_object_from_bytes_if_needed(url)
 
         url = fix_common_url_mistakes(url)
 
@@ -861,7 +862,7 @@ def get_url_distinctive_domain(url: str) -> str:
         return domain.lower()
 
     except Exception as ex:
-        l.debug( "get_url_distinctive_domain falling back to url: " + str( ex ) )
+        l.debug("get_url_distinctive_domain falling back to url: " + str(ex))
         return url.lower()
 
 
@@ -899,8 +900,8 @@ def meta_refresh_url_from_html(html: str, base_url: str = None) -> Optional[str]
 
         return None
 
-    html = decode_string_from_bytes_if_needed(html)
-    base_url = decode_string_from_bytes_if_needed(base_url)
+    html = decode_object_from_bytes_if_needed(html)
+    base_url = decode_object_from_bytes_if_needed(base_url)
 
     tags = re.findall(r'(<\s*meta[^>]+>)', html, re.I)
     for tag in tags:
@@ -913,8 +914,8 @@ def meta_refresh_url_from_html(html: str, base_url: str = None) -> Optional[str]
 
 def link_canonical_url_from_html(html: str, base_url: str = None) -> Optional[str]:
     """From the provided HTML, determine the <link rel="canonical" /> URL (if any)."""
-    html = decode_string_from_bytes_if_needed(html)
-    base_url = decode_string_from_bytes_if_needed(base_url)
+    html = decode_object_from_bytes_if_needed(html)
+    base_url = decode_object_from_bytes_if_needed(base_url)
 
     link_elements = re.findall(r'(<\s*?link.+?>)', html, re.I)
     for link_element in link_elements:
@@ -935,20 +936,20 @@ def link_canonical_url_from_html(html: str, base_url: str = None) -> Optional[st
     return None
 
 
-class HTTPURLsInStringException(Exception):
+class McHTTPURLsInStringException(Exception):
     pass
 
 
-# FIXME MC_REWRITE_TO_PYTHON: Perl doesn't support sets, but this method should return a set
+# MC_REWRITE_TO_PYTHON: Perl doesn't support sets, but this method should return a set
 def http_urls_in_string(string: str) -> list:
     """Extract http(s):// URLs from a string.
 
     Returns a set of unique URLs in a string, raises HTTPURLsInStringException on error."""
-    string = decode_string_from_bytes_if_needed(string)
+    string = decode_object_from_bytes_if_needed(string)
     if string is None:
-        raise HTTPURLsInStringException("String is None")
+        raise McHTTPURLsInStringException("String is None")
     if len(string) == 0:
-        raise HTTPURLsInStringException("String is empty")
+        raise McHTTPURLsInStringException("String is empty")
 
     urls = re.findall(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', string, re.I)
     http_urls = []
@@ -964,7 +965,7 @@ def http_urls_in_string(string: str) -> list:
 
 def get_url_path_fast(url: str) -> str:
     """Return URLs path."""
-    url = decode_string_from_bytes_if_needed(url)
+    url = decode_object_from_bytes_if_needed(url)
 
     if not is_http_url(url):
         return ''

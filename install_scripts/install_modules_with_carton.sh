@@ -45,6 +45,13 @@ fi
 set +u; source mc-venv/bin/activate; set -u
 INLINE_PYTHON_EXECUTABLE=`command -v python3`   # `which` is a liar
 
+# Install Inline::Python variant which die()s with tracebacks (stack traces)
+INLINE_PYTHON_EXECUTABLE=$INLINE_PYTHON_EXECUTABLE \
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
+    --local-lib-contained local/ \
+    --verbose \
+    https://github.com/pypt/inline-python-pm.git@exception_traceback_memleak
+
 # Install dependency modules; run the command twice because the first
 # attempt might fail
 ATTEMPT=1

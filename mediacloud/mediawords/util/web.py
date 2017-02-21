@@ -3,7 +3,7 @@ import tempfile
 from urllib.parse import urlparse
 
 from mediawords.util.log import create_logger
-from mediawords.util.perl import decode_string_from_bytes_if_needed
+from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.process import run_command_in_foreground, McRunCommandInForegroundException
 
 l = create_logger(__name__)
@@ -16,8 +16,8 @@ class McDownloadFileException(Exception):
 def download_file(source_url: str, target_path: str) -> None:
     """Download URL to path."""
 
-    source_url = decode_string_from_bytes_if_needed(source_url)
-    target_path = decode_string_from_bytes_if_needed(target_path)
+    source_url = decode_object_from_bytes_if_needed(source_url)
+    target_path = decode_object_from_bytes_if_needed(target_path)
 
     args = ["curl",
             "--silent",
@@ -46,7 +46,7 @@ class McDownloadFileToTempPathException(McDownloadFileException):
 def download_file_to_temp_path(source_url: str) -> str:
     """Download URL to temporary path, return that path."""
 
-    source_url = decode_string_from_bytes_if_needed(source_url)
+    source_url = decode_object_from_bytes_if_needed(source_url)
 
     dest_dir = tempfile.mkdtemp()
 
@@ -56,7 +56,7 @@ def download_file_to_temp_path(source_url: str) -> str:
         uri = urlparse(source_url)
         url_path = uri.path
         temp_filename = os.path.basename(url_path)
-    except Exception:
+    except:
         temp_filename = "temp.dat"
 
     dest_path = os.path.join(dest_dir, temp_filename)

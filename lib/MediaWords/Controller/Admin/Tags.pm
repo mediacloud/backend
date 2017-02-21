@@ -56,6 +56,9 @@ END
 
     map { $tag->{ $_ } = $c->req->params->{ $_ } } qw(tag label description show_on_media show_on_stories);
 
+    $tag->{ show_on_media }   = normalize_boolean_for_db( $tag->{ show_on_media } );
+    $tag->{ show_on_stories } = normalize_boolean_for_db( $tag->{ show_on_stories } );
+
     $db->update_by_id( 'tags', $tags_id, $tag );
 
     my $next_tag = $db->query( <<END, $tag->{ tags_id }, $tag->{ tag_sets_id } )->hash;

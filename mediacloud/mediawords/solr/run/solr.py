@@ -25,6 +25,11 @@ l = create_logger(__name__)
 __solr_pid = None
 
 
+class McSolrRunException(Exception):
+    """Exception of running Solr."""
+    pass
+
+
 def __solr_path(dist_directory: str = MC_DIST_DIR, solr_version: str = MC_SOLR_VERSION) -> str:
     """Return path to where Solr distribution should be located."""
     dist_path = resolve_absolute_path_under_mc_root(path=dist_directory, must_exist=True)
@@ -72,7 +77,7 @@ def __solr_is_installed(dist_directory: str = MC_DIST_DIR, solr_version: str = M
 def __install_solr(dist_directory: str = MC_DIST_DIR, solr_version: str = MC_SOLR_VERSION) -> None:
     """Install Solr to distribution directory; lock directory before installing and unlock afterwards."""
     if __solr_is_installed(dist_directory=dist_directory, solr_version=solr_version):
-        raise Exception("Solr %s is already installed in distribution directory '%s'." % (
+        raise McSolrRunException("Solr %s is already installed in distribution directory '%s'." % (
             solr_version, dist_directory
         ))
 
@@ -109,7 +114,7 @@ def __install_solr(dist_directory: str = MC_DIST_DIR, solr_version: str = MC_SOL
     if not os.path.exists(os.path.join(solr_war_dest_dir, "index.html")):
         solr_war_path = os.path.join(jetty_home_path, "webapps", "solr.war")
         if not os.path.isfile(solr_war_path):
-            raise Exception("Solr's .war file does not exist at path %s" % solr_war_path)
+            raise McSolrRunException("Solr's .war file does not exist at path %s" % solr_war_path)
 
         solr_war_dest_dir = os.path.join(jetty_home_path, "solr-webapp", "webapp")
         l.info("Extracting solr.war at '%s' to '%s'..." % (solr_war_path, solr_war_dest_dir))
@@ -124,7 +129,7 @@ def __install_solr(dist_directory: str = MC_DIST_DIR, solr_version: str = MC_SOL
     unlock_file(installing_file_path)
 
     if not __solr_is_installed(dist_directory=dist_directory, solr_version=solr_version):
-        raise Exception("I've done everything but Solr is still not installed.")
+        raise McSolrRunException("I've done everything but Solr is still not installed.")
 
 
 def __solr_home_path(solr_home_dir: str = MC_SOLR_HOME_DIR) -> str:
@@ -150,7 +155,7 @@ def __jetty_home_path(dist_directory: str = MC_DIST_DIR, solr_version: str = MC_
             l.debug("jetty.home found: %s" % candidate_path)
             jetty_home_path = candidate_path
     if jetty_home_path is None:
-        raise Exception("Unable to locate jetty.home among candidates: %s" % str(jetty_home_dir_candidates))
+        raise McSolrRunException("Unable to locate jetty.home among candidates: %s" % str(jetty_home_dir_candidates))
 
     return jetty_home_path
 
@@ -159,7 +164,7 @@ def __collections_path(solr_home_dir: str = MC_SOLR_HOME_DIR) -> str:
     solr_home_path = __solr_home_path(solr_home_dir=solr_home_dir)
     collections_path = os.path.join(solr_home_path, "collections/")
     if not os.path.isdir(collections_path):
-        raise Exception("Collections directory does not exist at path '%s'" % collections_path)
+        raise McSolrRunException("Collections directory does not exist at path '%s'" % collections_path)
     l.debug("Collections path: %s" % collections_path)
     return collections_path
 
@@ -177,7 +182,7 @@ def __collections(solr_home_dir: str = MC_SOLR_HOME_DIR) -> Dict[str, str]:
 
                 collection_conf_path = os.path.join(full_path, "conf")
                 if not os.path.isdir(collection_conf_path):
-                    raise Exception("Collection configuration path for collection '%s' does not exist." % name)
+                    raise McSolrRunException("Collection configuration path for collection '%s' does not exist." % name)
 
                 collections[name] = full_path
 
@@ -187,16 +192,16 @@ def __collections(solr_home_dir: str = MC_SOLR_HOME_DIR) -> Dict[str, str]:
 def __standalone_data_dir(base_data_dir: str = MC_SOLR_BASE_DATA_DIR) -> str:
     """Return data directory for a standalone instance."""
     if not os.path.isdir(base_data_dir):
-        raise Exception("Solr data directory '%s' does not exist." % base_data_dir)
+        raise McSolrRunException("Solr data directory '%s' does not exist." % base_data_dir)
     return os.path.join(base_data_dir, "mediacloud-standalone")
 
 
 def __shard_data_dir(shard_num: int, base_data_dir: str = MC_SOLR_BASE_DATA_DIR) -> str:
     """Return data directory for a shard."""
     if shard_num < 1:
-        raise Exception("Shard number must be 1 or greater.")
+        raise McSolrRunException("Shard number must be 1 or greater.")
     if not os.path.isdir(base_data_dir):
-        raise Exception("Solr data directory '%s' does not exist." % base_data_dir)
+        raise McSolrRunException("Solr data directory '%s' does not exist." % base_data_dir)
 
     shard_subdir = "mediacloud-cluster-shard-%d" % shard_num
     return os.path.join(base_data_dir, shard_subdir)
@@ -205,7 +210,7 @@ def __shard_data_dir(shard_num: int, base_data_dir: str = MC_SOLR_BASE_DATA_DIR)
 def __shard_port(shard_num: int, starting_port: int = MC_SOLR_CLUSTER_STARTING_PORT) -> int:
     """Return port on which a shard should listen to."""
     if shard_num < 1:
-        raise Exception("Shard number must be 1 or greater.")
+        raise McSolrRunException("Shard number must be 1 or greater.")
     return starting_port + shard_num - 1
 
 
@@ -225,7 +230,7 @@ def __raise_if_old_shards_exist() -> None:
 
         old_shard_num = re.search(r'^mediacloud-shard-(\d+?)$', old_shard_dir)
         if old_shard_num is None:
-            raise Exception("Unable to parse shard number for old shard directory '%s'" % old_shard_dir)
+            raise McSolrRunException("Unable to parse shard number for old shard directory '%s'" % old_shard_dir)
         old_shard_num = int(old_shard_num.group(1))
 
         num_shards = max(num_shards, old_shard_num)
@@ -253,18 +258,18 @@ def __raise_if_old_shards_exist() -> None:
         shard_solr_path = "mediacloud-shard-%d/solr/" % shard_num
         shard_collection_paths = glob.glob(shard_solr_path + "/collection*")
         if len(shard_collection_paths) == 0:
-            raise Exception("No collections found in shard '%d'" % shard_num)
+            raise McSolrRunException("No collections found in shard '%d'" % shard_num)
         for collection_path in shard_collection_paths:
             collection_name = os.path.basename(collection_path)
 
             src_collection_data_path = os.path.join(shard_solr_path, collection_name, "data")
             if not os.path.isdir(src_collection_data_path):
-                raise Exception("Source data directory '%s' does not exist." % src_collection_data_path)
+                raise McSolrRunException("Source data directory '%s' does not exist." % src_collection_data_path)
 
             dst_shard_data_dir = __shard_data_dir(shard_num=shard_num)
             dst_collection_data_path = os.path.join(dst_shard_data_dir, collection_name, "data")
             if os.path.isdir(dst_collection_data_path):
-                raise Exception("Destination data directory '%s' already exists." % dst_collection_data_path)
+                raise McSolrRunException("Destination data directory '%s' already exists." % dst_collection_data_path)
 
             exc_message += "mv %(src_collection_data_dir)s %(dst_collection_data_dir)s\n" % {
                 "src_collection_data_dir": src_collection_data_path,
@@ -276,7 +281,7 @@ def __raise_if_old_shards_exist() -> None:
     for shard_num in range(1, num_shards + 1):
         exc_message += "rm -rf mediacloud-shard-%d/\n" % shard_num
 
-    raise Exception(exc_message)
+    raise McSolrRunException(exc_message)
 
 
 def __run_solr_zkcli(zkcli_args: List[str],
@@ -304,11 +309,13 @@ def __run_solr_zkcli(zkcli_args: List[str],
             break
 
     if log4j_properties_path is None:
-        raise Exception("Unable to find log4j.properties file for zkcli.sh script in paths: %s" %
-                        str(log4j_properties_expected_paths))
+        raise McSolrRunException(
+            "Unable to find log4j.properties file for zkcli.sh script in paths: %s" %
+            str(log4j_properties_expected_paths)
+        )
 
     if not tcp_port_is_open(hostname=zookeeper_host, port=zookeeper_port):
-        raise Exception("ZooKeeper is not running at %s:%d." % (zookeeper_host, zookeeper_port))
+        raise McSolrRunException("ZooKeeper is not running at %s:%d." % (zookeeper_host, zookeeper_port))
 
     jetty_home_path = __jetty_home_path(dist_directory=dist_directory, solr_version=solr_version)
 
@@ -340,7 +347,7 @@ def update_zookeeper_solr_configuration(zookeeper_host: str = MC_SOLR_CLUSTER_ZO
         __install_solr()
 
     if not tcp_port_is_open(hostname=zookeeper_host, port=zookeeper_port):
-        raise Exception("ZooKeeper is not running at %s:%d." % (zookeeper_host, zookeeper_port))
+        raise McSolrRunException("ZooKeeper is not running at %s:%d." % (zookeeper_host, zookeeper_port))
 
     collections = __collections()
     l.debug("Solr collections: %s" % collections)
@@ -409,7 +416,7 @@ def __run_solr(port: int,
 
     solr_home_dir = __solr_home_path(solr_home_dir=MC_SOLR_HOME_DIR)
     if not os.path.isdir(solr_home_dir):
-        raise Exception("Solr home directory '%s' does not exist." % solr_home_dir)
+        raise McSolrRunException("Solr home directory '%s' does not exist." % solr_home_dir)
 
     solr_path = __solr_path(dist_directory=dist_directory, solr_version=solr_version)
 
@@ -424,7 +431,7 @@ def __run_solr(port: int,
 
         collection_conf_src_dir = os.path.join(collection_path, "conf")
         if not os.path.isdir(collection_conf_src_dir):
-            raise Exception("Configuration for collection '%s' at %s does not exist" % (
+            raise McSolrRunException("Configuration for collection '%s' at %s does not exist" % (
                 collection_name, collection_conf_src_dir
             ))
 
@@ -471,13 +478,13 @@ instanceDir=%(instance_dir)s
     for config_item in config_items_to_symlink:
         config_item_src_path = os.path.join(solr_home_dir, config_item)
         if not os.path.exists(config_item_src_path):
-            raise Exception("Expected configuration item '%s' does not exist" % config_item_src_path)
+            raise McSolrRunException("Expected configuration item '%s' does not exist" % config_item_src_path)
 
         # Recreate symlink just in case
         config_item_dst_path = os.path.join(instance_data_dir, config_item)
         if os.path.lexists(config_item_dst_path):
             if not os.path.islink(config_item_dst_path):
-                raise Exception("Configuration item '%s' exists but is not a symlink." % config_item_dst_path)
+                raise McSolrRunException("Configuration item '%s' exists but is not a symlink." % config_item_dst_path)
             os.unlink(config_item_dst_path)
 
         l.info("Symlinking '%s' to '%s'..." % (config_item_src_path, config_item_dst_path))
@@ -496,13 +503,13 @@ instanceDir=%(instance_dir)s
     for library_item in library_items_to_symlink:
         library_item_src_path = os.path.join(jetty_home_path, library_item)
         if not os.path.exists(library_item_src_path):
-            raise Exception("Expected library item '%s' does not exist" % library_item_src_path)
+            raise McSolrRunException("Expected library item '%s' does not exist" % library_item_src_path)
 
         # Recreate symlink just in case
         library_item_dst_path = os.path.join(instance_data_dir, library_item)
         if os.path.lexists(library_item_dst_path):
             if not os.path.islink(library_item_dst_path):
-                raise Exception("Library item '%s' exists but is not a symlink." % library_item_dst_path)
+                raise McSolrRunException("Library item '%s' exists but is not a symlink." % library_item_dst_path)
             os.unlink(library_item_dst_path)
 
         l.info("Symlinking '%s' to '%s'..." % (library_item_src_path, library_item_dst_path))
@@ -510,21 +517,21 @@ instanceDir=%(instance_dir)s
 
     log4j_properties_path = os.path.join(solr_home_dir, "resources", "log4j.properties")
     if not os.path.isfile(log4j_properties_path):
-        raise Exception("log4j.properties at '%s' was not found.")
+        raise McSolrRunException("log4j.properties at '%s' was not found.")
 
     start_jar_path = os.path.join(jetty_home_path, "start.jar")
     if not os.path.isfile(start_jar_path):
-        raise Exception("start.jar at '%s' was not found." % start_jar_path)
+        raise McSolrRunException("start.jar at '%s' was not found." % start_jar_path)
 
     solr_webapp_path = os.path.abspath(os.path.join(jetty_home_path, "solr-webapp"))
     if not os.path.isdir(solr_webapp_path):
-        raise Exception("Solr webapp dir at '%s' was not found." % solr_webapp_path)
+        raise McSolrRunException("Solr webapp dir at '%s' was not found." % solr_webapp_path)
 
     if not hostname_resolves(hostname):
-        raise Exception("Hostname '%s' does not resolve." % hostname)
+        raise McSolrRunException("Hostname '%s' does not resolve." % hostname)
 
     if tcp_port_is_open(port=port):
-        raise Exception("Port %d is already open on this machine." % port)
+        raise McSolrRunException("Port %d is already open on this machine." % port)
 
     __raise_if_old_shards_exist()
 
@@ -598,7 +605,7 @@ def run_solr_standalone(hostname: str = fqdn(),
     standalone_data_dir = __standalone_data_dir(base_data_dir=base_data_dir)
 
     if tcp_port_is_open(port=port):
-        raise Exception("Port %d is already open on this machine." % port)
+        raise McSolrRunException("Port %d is already open on this machine." % port)
 
     l.info("Starting standalone Solr instance on port %d..." % port)
     __run_solr(hostname=hostname,
@@ -623,9 +630,9 @@ def run_solr_shard(shard_num: int,
                    jvm_heap_size: str = MC_SOLR_CLUSTER_JVM_HEAP_SIZE) -> None:
     """Run Solr shard, install Solr if needed; read configuration from ZooKeeper."""
     if shard_num < 1:
-        raise Exception("Shard number must be 1 or greater.")
+        raise McSolrRunException("Shard number must be 1 or greater.")
     if shard_count < 1:
-        raise Exception("Shard count must be 1 or greater.")
+        raise McSolrRunException("Shard count must be 1 or greater.")
 
     if not __solr_is_installed(dist_directory=dist_directory, solr_version=solr_version):
         l.info("Solr is not installed, installing...")
@@ -664,12 +671,12 @@ def reload_solr_shard(shard_num: int,
                       starting_port: int = MC_SOLR_CLUSTER_STARTING_PORT):
     """Reload Solr shard after ZooKeeper configuration change."""
     if shard_num < 1:
-        raise Exception("Shard number must be 1 or greater.")
+        raise McSolrRunException("Shard number must be 1 or greater.")
 
     shard_port = __shard_port(shard_num=shard_num, starting_port=starting_port)
 
     if not tcp_port_is_open(hostname=host, port=shard_port):
-        raise Exception("Shard %d is not running on %s:%d." % (shard_num, host, shard_port))
+        raise McSolrRunException("Shard %d is not running on %s:%d." % (shard_num, host, shard_port))
 
     l.info("Reloading shard %d on %s:%d..." % (shard_num, host, shard_port))
 
@@ -690,7 +697,7 @@ def reload_solr_shard(shard_num: int,
         try:
             urlopen(url)
         except URLError as e:
-            raise Exception("Unable to reload shard %d on %s:%d: %s" % (shard_num, host, shard_port, e.reason))
+            raise McSolrRunException("Unable to reload shard %d on %s:%d: %s" % (shard_num, host, shard_port, e.reason))
 
     l.info("Reloaded shard %d on %s:%d." % (shard_num, host, shard_port))
 
@@ -700,7 +707,7 @@ def reload_all_solr_shards(shard_count: int,
                            starting_port: int = MC_SOLR_CLUSTER_STARTING_PORT) -> None:
     """Reload all Solr shards after ZooKeeper configuration change."""
     if shard_count < 1:
-        raise Exception("Shard count must be 1 or greater.")
+        raise McSolrRunException("Shard count must be 1 or greater.")
 
     l.info("Reloading %d shards on %s..." % (shard_count, host))
     for shard_num in range(1, shard_count + 1):
@@ -721,7 +728,7 @@ def optimize_solr_index(host: str = "localhost",
     l.debug("Solr collections to reindex: %s" % ', '.join(collections))
 
     if not tcp_port_is_open(hostname=host, port=port):
-        raise Exception("Solr is not running on %s:%d." % (host, port))
+        raise McSolrRunException("Solr is not running on %s:%d." % (host, port))
 
     l.info("Optimizing indexes on %s:%d..." % (host, port))
 
@@ -739,7 +746,7 @@ def optimize_solr_index(host: str = "localhost",
         try:
             urlopen(url)
         except URLError as e:
-            raise Exception("Unable to optimize collection '%s' index on %s:%d: %s" % (
+            raise McSolrRunException("Unable to optimize collection '%s' index on %s:%d: %s" % (
                 collection_name, host, port, e.reason))
 
     l.info("Optimized indexes on %s:%d." % (host, port))
@@ -754,32 +761,32 @@ def __upgrade_lucene_index(instance_data_dir: str,
         __install_solr(dist_directory=dist_directory, solr_version=solr_version)
 
     if not os.path.isdir(instance_data_dir):
-        raise Exception("Instance data directory '%s' does not exist." % instance_data_dir)
+        raise McSolrRunException("Instance data directory '%s' does not exist." % instance_data_dir)
 
     solr_path = __solr_path(dist_directory=dist_directory, solr_version=solr_version)
 
     lucene_lib_path = os.path.join(solr_path, "server", "solr-webapp", "webapp", "WEB-INF", "lib")
     if not os.path.isdir(lucene_lib_path):
-        raise Exception("Lucene library directory '%s' does not exist.")
+        raise McSolrRunException("Lucene library directory '%s' does not exist.")
 
     lucene_core_jar = glob.glob(lucene_lib_path + "/lucene-core-*.jar")
     if len(lucene_core_jar) != 1:
-        raise Exception("lucene-core JAR was not found in '%s'." % lucene_lib_path)
+        raise McSolrRunException("lucene-core JAR was not found in '%s'." % lucene_lib_path)
     lucene_core_jar = lucene_core_jar[0]
 
     lucene_backward_codecs_jar = glob.glob(lucene_lib_path + "/lucene-backward-codecs-*.jar")
     if len(lucene_backward_codecs_jar) != 1:
-        raise Exception("lucene-backward-codecs JAR was not found in '%s'." % lucene_lib_path)
+        raise McSolrRunException("lucene-backward-codecs JAR was not found in '%s'." % lucene_lib_path)
     lucene_backward_codecs_jar = lucene_backward_codecs_jar[0]
 
     collections = __collections().keys()
     for collection_name in collections:
         collection_path = os.path.join(instance_data_dir, collection_name)
         if not os.path.isdir(collection_path):
-            raise Exception("Collection data directory '%s' does not exist." % collection_path)
+            raise McSolrRunException("Collection data directory '%s' does not exist." % collection_path)
         index_path = os.path.join(collection_path, "data", "index")
         if not os.path.isdir(index_path):
-            raise Exception("Index directory '%s' does not exist." % index_path)
+            raise McSolrRunException("Index directory '%s' does not exist." % index_path)
 
         l.info("Upgrading index at path '%s'..." % index_path)
         args = [
@@ -803,7 +810,7 @@ def upgrade_lucene_standalone_index(base_data_dir: str = MC_SOLR_BASE_DATA_DIR,
     l.info("Making sure standalone instance isn't running...")
     port = MC_SOLR_STANDALONE_PORT
     if tcp_port_is_open(port=port):
-        raise Exception("Solr standalone instance is running on port %d." % port)
+        raise McSolrRunException("Solr standalone instance is running on port %d." % port)
     l.info("Made sure standalone instance isn't running.")
 
     l.info("Upgrading standalone instance indexes...")
@@ -833,7 +840,7 @@ def upgrade_lucene_shards_indexes(base_data_dir: str = MC_SOLR_BASE_DATA_DIR,
         else:
             break
     if shard_count < 2:
-        raise Exception("Found less than 2 shards.")
+        raise McSolrRunException("Found less than 2 shards.")
     l.info("Found %d shards." % shard_count)
 
     l.info("Making sure shards aren't running...")
@@ -841,7 +848,7 @@ def upgrade_lucene_shards_indexes(base_data_dir: str = MC_SOLR_BASE_DATA_DIR,
         shard_port = __shard_port(shard_num=shard_num, starting_port=MC_SOLR_CLUSTER_STARTING_PORT)
 
         if tcp_port_is_open(port=shard_port):
-            raise Exception("Solr shard %d is running on port %d." % (shard_num, shard_port))
+            raise McSolrRunException("Solr shard %d is running on port %d." % (shard_num, shard_port))
     l.info("Made sure shards aren't running.")
 
     l.info("Upgrading shard indexes...")

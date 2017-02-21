@@ -80,7 +80,8 @@ select t.tags_id, t.tag, t.label, t.description, ts.tag_sets_id, ts.name as tag_
 END
     }
 
-    $db->attach_child_query_singleton( $media, <<SQL, 'is_healthy', 'media_id' );
+    Readonly my $single => 1;
+    $media = $db->attach_child_query( $media, <<SQL, 'is_healthy', 'media_id', $single );
 select m.media_id, coalesce( h.is_healthy, true ) is_healthy
     from media m left join media_health h using ( media_id )
 SQL
@@ -184,7 +185,7 @@ sub get_extra_where_clause
 
     if ( my $tag_name = $c->req->params->{ tag_name } )
     {
-        my $q_tag_name = $db->quote( $tag_name );
+        my $q_tag_name = $db->quote( '%' . lc( $tag_name ) . '%' );
         push( @{ $clauses }, <<SQL );
 and media_id in (
     select media_id
@@ -192,7 +193,7 @@ and media_id in (
             join tags t using ( tags_id )
         where
             ( t.show_on_media or t.show_on_stories ) and
-            t.tag ilike '%' || lower( $q_tag_name ) || '%'
+            t.tag ilike $q_tag_name
 )
 SQL
     }
@@ -314,11 +315,11 @@ sub _attach_media_to_input($$)
         my $create_medium = {
             url               => $input_medium->{ url },
             name              => $input_medium->{ name } || $title,
-            foreign_rss_links => $input_medium->{ foreign_rss_links } || 'f',
+            foreign_rss_links => normalize_boolean_for_db( $input_medium->{ foreign_rss_links } ),
             content_delay     => $input_medium->{ content_delay } || 0,
             editor_notes      => $input_medium->{ editor_notes },
             public_notes      => $input_medium->{ public_notes },
-            is_monitored      => $input_medium->{ is_monitored } || 'f',
+            is_monitored      => normalize_boolean_for_db( $input_medium->{ is_monitored } ),
             moderated         => 't'
         };
         $input_medium->{ medium } = eval { $db->create( 'media', $create_medium ) };
@@ -433,6 +434,9 @@ sub update_PUT
     my $update = {};
     map { $update->{ $_ } = $data->{ $_ } if ( defined( $data->{ $_ } ) ) } @{ $fields };
 
+    $update->{ foreign_rss_links } = normalize_boolean_for_db( $update->{ foreign_rss_links } );
+    $update->{ is_monitored }      = normalize_boolean_for_db( $update->{ is_monitored } );
+
     $db->update_by_id( 'media', $medium->{ media_id }, $update ) if ( scalar( keys( %{ $update } ) ) > 0 );
 
     $self->status_ok( $c, entity => { success => 1 } );
@@ -545,7 +549,7 @@ select u.email email, *
     order by date_submitted
 SQL
 
-    $db->attach_child_query( $media_suggestions, <<SQL, 'tags_ids', 'media_suggestions_id' );
+    $media_suggestions = $db->attach_child_query( $media_suggestions, <<SQL, 'tags_ids', 'media_suggestions_id' );
 select tags_id, media_suggestions_id from media_suggestions_tags_map
 SQL
 

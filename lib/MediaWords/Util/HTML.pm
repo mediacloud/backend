@@ -63,7 +63,6 @@ memoize 'html_strip', SCALAR_CACHE => [ HASH => \%_html_strip_cache ];
 
 # Strip the html tags, html comments, any any text within TITLE, SCRIPT, APPLET, OBJECT, and STYLE tags
 # Code by powerman from: http://www.perlmonks.org/?node_id=161281
-# Don't use HTML::Strip because it "mucks up the encoding"
 sub html_strip($;$)
 {
     my ( $html, $include_title ) = @_;

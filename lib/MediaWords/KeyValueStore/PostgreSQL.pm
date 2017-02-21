@@ -59,7 +59,7 @@ sub store_content($$$$)
         LOGCONFESS "Unable to compress object ID $object_id: $@";
     }
 
-    my $use_transaction = $db->autocommit();
+    my $use_transaction = !$db->in_transaction();
 
     # "Upsert" the object
     $db->begin_work if ( $use_transaction );
@@ -73,8 +73,8 @@ sub store_content($$$$)
     	WHERE object_id = ?
 EOF
     );
-    $sth->bind_param( 1, $content_to_store, $MediaWords::DB::Handler::Statement::VALUE_BYTEA );
-    $sth->bind_param( 2, $object_id );
+    $sth->bind_bytea( 1, $content_to_store );
+    $sth->bind( 2, $object_id );
     $sth->execute();
 
     $sth = $db->prepare(
@@ -88,9 +88,9 @@ EOF
 			)
 EOF
     );
-    $sth->bind_param( 1, $object_id );
-    $sth->bind_param( 2, $content_to_store, $MediaWords::DB::Handler::Statement::VALUE_BYTEA );
-    $sth->bind_param( 3, $object_id );
+    $sth->bind( 1, $object_id );
+    $sth->bind_bytea( 2, $content_to_store );
+    $sth->bind( 3, $object_id );
     $sth->execute();
 
     $db->commit if ( $use_transaction );
@@ -126,6 +126,13 @@ EOF
     }
 
     $compressed_content = $compressed_content->[ 0 ];
+
+    # Inline::Python returns Python's 'bytes' as arrayref
+    if ( ref( $compressed_content ) eq ref( [] ) )
+    {
+        $compressed_content = join( '', @{ $compressed_content } );
+    }
+
     if ( $compressed_content eq '' )
     {
         LOGCONFESS "Object's with ID $object_id data is empty in '$table' table.";
