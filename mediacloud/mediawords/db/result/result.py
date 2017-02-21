@@ -50,12 +50,23 @@ class DatabaseResult(object):
                 })
 
         except psycopg2.Error as ex:
-            raise McDatabaseResultException(
-                'Query failed: %(exception)s; query: %(query)s; mogrified query: %(mogrified_query)s' % {
-                    'exception': str(ex),
-                    'query': str(query_args),
-                    'mogrified_query': str(cursor.mogrify(*query_args)),
-                })
+
+            try:
+                mogrified_query = cursor.mogrify(*query_args)
+            except Exception as ex:
+                # Can't mogrify
+                raise McDatabaseResultException(
+                    'Query failed: %(exception)s; query: %(query)s' % {
+                        'exception': str(ex),
+                        'query': str(query_args),
+                    })
+            else:
+                raise McDatabaseResultException(
+                    'Query failed: %(exception)s; query: %(query)s; mogrified query: %(mogrified_query)s' % {
+                        'exception': str(ex),
+                        'query': str(query_args),
+                        'mogrified_query': str(mogrified_query),
+                    })
 
         except Exception as ex:
             raise McDatabaseResultException(
