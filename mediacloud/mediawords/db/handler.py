@@ -702,6 +702,9 @@ class DatabaseHandler(object):
             # Maybe overly paranoid, but better than returning random stuff for a string that will go into the database
             raise McQuoteException("Quoted value is not 'str' after quoting '%s'" % quoted_obj)
 
+        # Duplicate percentage signs for psycopg2 to not try to interpolate them
+        quoted_value = quoted_value.replace('%', '%%')
+
         return quoted_value
 
     @staticmethod

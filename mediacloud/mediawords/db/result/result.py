@@ -34,6 +34,15 @@ class DatabaseResult(object):
             raise McDatabaseResultException('Query is empty or undefined.')
 
         try:
+
+            if len(query_args) == 1:
+                # If only a query without any parameters (tuple or dictionary) are passed, psycopg2 is happy to operate
+                # on a single literal '%' because it doesn't even try to do its own interpolation. However, with some
+                # parameters present (e.g. a dictionary) psycopg2 then tries to do the interpolation and expects literal
+                # '%' to be duplicated ('%%'). To unify the behavior, we always pass a parameter (even if it's empty)
+                # to execute().
+                query_args = (query_args[0], {},)
+
             cursor.execute(*query_args)
 
         except psycopg2.Warning as ex:
