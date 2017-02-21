@@ -11,8 +11,8 @@ cd "$MC_ROOT_DIR"
 echo "installing media cloud dependencies"
 echo
 
-./install_scripts/install_postgresql_server_packages.sh
-./install_scripts/install_mediacloud_system_package_dependencies.sh
+./install/install_postgresql_server_packages.sh
+./install/install_mediacloud_system_package_dependencies.sh
 
 echo
 echo "sucessfully installed media cloud dependencies"

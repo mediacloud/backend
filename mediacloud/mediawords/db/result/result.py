@@ -38,7 +38,7 @@ class DatabaseResult(object):
 
         except psycopg2.Warning as ex:
             if print_warnings:
-                l.warn('Warning while running query: %s' % str(ex))
+                l.warning('Warning while running query: %s' % str(ex))
             else:
                 l.debug('Warning while running query: %s' % str(ex))
 
@@ -49,19 +49,30 @@ class DatabaseResult(object):
                     'query': str(query_args),
                 })
 
-        except IndexError as ex:
+        except psycopg2.Error as ex:
+
+            try:
+                mogrified_query = cursor.mogrify(*query_args)
+            except Exception as ex:
+                # Can't mogrify
+                raise McDatabaseResultException(
+                    'Query failed: %(exception)s; query: %(query)s' % {
+                        'exception': str(ex),
+                        'query': str(query_args),
+                    })
+            else:
+                raise McDatabaseResultException(
+                    'Query failed: %(exception)s; query: %(query)s; mogrified query: %(mogrified_query)s' % {
+                        'exception': str(ex),
+                        'query': str(query_args),
+                        'mogrified_query': str(mogrified_query),
+                    })
+
+        except Exception as ex:
             raise McDatabaseResultException(
                 'Invalid query (DBD::Pg -> psycopg2 query conversion?): %(exception)s; query: %(query)s' % {
                     'exception': str(ex),
                     'query': str(query_args),
-                })
-
-        except psycopg2.Error as ex:
-            raise McDatabaseResultException(
-                'Query failed: %(exception)s; query: %(query)s; mogrified query: %(mogrified_query)s' % {
-                    'exception': str(ex),
-                    'query': str(query_args),
-                    'mogrified_query': str(cursor.mogrify(*query_args)),
                 })
 
         self.__cursor = cursor  # Cursor now holds results

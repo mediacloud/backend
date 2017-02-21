@@ -166,7 +166,10 @@ class DatabaseHandler(object):
     def __should_continue_with_outdated_schema(self, current_schema_version: int, target_schema_version: int) -> bool:
         """Schema is outdated / too new; returns 1 if MC should continue nevertheless, 0 otherwise"""
         config = py_get_config()
-        config_ignore_schema_version = config["mediawords"]["ignore_schema_version"] or False
+
+        config_ignore_schema_version = False
+        if 'ignore_schema_version' in config['mediawords']:
+            config_ignore_schema_version = config["mediawords"]["ignore_schema_version"]
 
         if config_ignore_schema_version and self.__IGNORE_SCHEMA_VERSION_ENV_VARIABLE in os.environ:
             l.warning("""
@@ -313,7 +316,10 @@ class DatabaseHandler(object):
         large_work_mem = self.__get_large_work_mem()
         old_work_mem = self.__get_current_work_mem()
 
-        self.__set_work_mem(large_work_mem)
+        if large_work_mem is not None:
+            self.__set_work_mem(large_work_mem)
+        else:
+            l.warning("Large work memory is unset, using default 'work_mem'")
 
         exception = None
         try:
@@ -628,7 +634,7 @@ class DatabaseHandler(object):
 
     def __set_in_transaction(self, in_transaction: bool) -> None:
         if self.__in_manual_transaction == in_transaction:
-            l.warn("Setting self.__in_manual_transaction to the same value (%s)" % str(in_transaction))
+            l.warning("Setting self.__in_manual_transaction to the same value (%s)" % str(in_transaction))
         self.__in_manual_transaction = in_transaction
 
     def begin(self) -> None:
@@ -654,7 +660,7 @@ class DatabaseHandler(object):
     def rollback(self) -> None:
         """Rollback a transaction."""
         if not self.in_transaction():
-            l.warn("Not in transaction, nothing to ROLLBACK.")
+            l.warning("Not in transaction, nothing to ROLLBACK.")
         else:
             self.query('ROLLBACK')
             self.__set_in_transaction(False)

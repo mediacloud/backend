@@ -55,7 +55,7 @@ class CopyTo(object):
             self.__cursor.copy_expert(sql=self.__sql, file=self.__temp_file_buffer, size=self.__COPY_CHUNK_SIZE)
             self.__temp_file_buffer.seek(0)
         except psycopg2.Warning as ex:
-            l.warn('Warning while running COPY TO query: %s' % str(ex))
+            l.warning('Warning while running COPY TO query: %s' % str(ex))
         except Exception as ex:
             raise McCopyToException('COPY TO query failed: %s' % str(ex))
 

@@ -9,7 +9,7 @@ source "$PWD/set_mc_root_dir.inc.sh"
 cd "$MC_ROOT_DIR"
 
 # Include PostgreSQL path helpers
-source "$MC_ROOT_DIR/install_scripts/postgresql_helpers.inc.sh"
+source "$MC_ROOT_DIR/install/postgresql_helpers.inc.sh"
 
 QUERY_CONFIG="$MC_ROOT_DIR/script/run_with_carton.sh $MC_ROOT_DIR/script/mediawords_query_config.pl"
 

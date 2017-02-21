@@ -267,6 +267,20 @@ class TestDatabaseHandler(TestCase):
         config['mediawords']['large_work_mem'] = old_large_work_mem
         py_set_config(config)
 
+    def test_execute_with_large_work_mem_params(self):
+
+        # psycopg2 style
+        self.__db.execute_with_large_work_mem("""
+            INSERT INTO kardashians (name, surname, dob)
+            VALUES (%(name)s, %(surname)s, %(dob)s)
+        """, {'name': 'Lamar', 'surname': 'Odom', 'dob': '1979-11-06'})
+
+        # DBD::Pg
+        self.__db.execute_with_large_work_mem("""
+            INSERT INTO kardashians (name, surname, dob)
+            VALUES (?, ?, ?)
+        """, 'Lamar-2', 'Odom-2', '1979-11-06')
+
     def test_run_block_with_large_work_mem(self):
         normal_work_mem = 256  # MB
         large_work_mem = 512  # MB

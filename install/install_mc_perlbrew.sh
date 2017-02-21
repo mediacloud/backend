@@ -42,7 +42,7 @@ fi
 
 echo "System's Perl version: `perl -e 'print substr($^V, 1)'`"
 
-MC_PERL_VERSION=`perl $MC_ROOT_DIR/install_scripts/perl_version_to_use.pl`
+MC_PERL_VERSION=`perl $MC_ROOT_DIR/install/perl_version_to_use.pl`
 echo "Will set up Media Cloud to use Perl version: $MC_PERL_VERSION"
 
 # "perl-system" should already exist, so if some other version gets chosen, compile and install it

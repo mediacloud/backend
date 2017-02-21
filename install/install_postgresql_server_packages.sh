@@ -52,7 +52,7 @@ if [ `uname` == 'Darwin' ]; then
 
 else
 
-    echo | sudo ./install_scripts/setup_postgresql_apt.sh
+    echo | sudo ./install/setup_postgresql_apt.sh
     # assume Ubuntu
     sudo apt-get --assume-yes install \
         postgresql postgresql-client postgresql-contrib postgresql-server-dev-all
