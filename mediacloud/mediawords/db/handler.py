@@ -166,7 +166,10 @@ class DatabaseHandler(object):
     def __should_continue_with_outdated_schema(self, current_schema_version: int, target_schema_version: int) -> bool:
         """Schema is outdated / too new; returns 1 if MC should continue nevertheless, 0 otherwise"""
         config = py_get_config()
-        config_ignore_schema_version = config["mediawords"]["ignore_schema_version"] or False
+
+        config_ignore_schema_version = False
+        if 'ignore_schema_version' in config['mediawords']:
+            config_ignore_schema_version = config["mediawords"]["ignore_schema_version"]
 
         if config_ignore_schema_version and self.__IGNORE_SCHEMA_VERSION_ENV_VARIABLE in os.environ:
             l.warning("""
