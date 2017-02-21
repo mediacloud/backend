@@ -723,7 +723,7 @@ sub query_clustered_stories($$;$)
 
     for my $cluster ( @{ $response->{ clusters } } )
     {
-        $cluster->{ stories_ids } = [ map { $_ =~ s/\!.*//; $_ } @{ $cluster->{ docs } } ];
+        $cluster->{ stories_ids } = [ map { $_ =~ s/\!.*//; int( $_ ) } @{ $cluster->{ docs } } ];
     }
 
     my $all_stories_ids = [];

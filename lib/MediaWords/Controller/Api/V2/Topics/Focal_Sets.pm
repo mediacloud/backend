@@ -47,7 +47,7 @@ select focal_sets_id, name, description, false is_exclusive
     order by name desc
 SQL
 
-    my $fs_ids = [ map { $_->{ focal_sets_id } } @{ $focal_sets } ];
+    my $fs_ids = [ map { int( $_->{ focal_sets_id } ) } @{ $focal_sets } ];
     my $ids_table = $db->get_temporary_ids_table( $fs_ids );
 
     my $foci = $db->query( <<SQL )->hashes;

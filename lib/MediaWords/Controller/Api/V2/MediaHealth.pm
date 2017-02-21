@@ -38,7 +38,7 @@ sub _add_nested_data
 
     my ( $self, $db, $media ) = @_;
 
-    my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ media_id } } @{ $media } ] );
+    my $ids_table = $db->get_temporary_ids_table( [ map { int( $_->{ media_id } ) } @{ $media } ] );
 
     my $gaps = $db > query( "select * from media_coverage_gaps where media_id in ( select id from $ids_table ) " )->hashes;
 
@@ -61,6 +61,8 @@ sub list_GET
     die( "media_id param required" ) unless ( $media_ids );
 
     $media_ids = [ $media_ids ] unless ( ref( $media_ids ) );
+
+    $media_ids = [ map { int( $_ ) } @{ $media_ids } ];
 
     my $ids_table = $db->get_temporary_ids_table( $media_ids );
 

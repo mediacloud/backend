@@ -273,6 +273,8 @@ sub restrict_period_stories_to_focus
         }
     }
 
+    $matching_stories_ids = [ map { int( $_ ) } @{ $matching_stories_ids } ];
+
     my $ids_table = $db->get_temporary_ids_table( $matching_stories_ids );
 
     $db->query( "delete from snapshot_period_stories where stories_id not in ( select id from $ids_table )" );
