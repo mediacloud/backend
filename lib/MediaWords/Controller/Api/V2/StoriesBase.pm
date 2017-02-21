@@ -226,7 +226,7 @@ sub _add_nested_data
 {
     my ( $self, $db, $stories ) = @_;
 
-    return unless ( scalar @{ $stories } );
+    return [] unless ( scalar @{ $stories } );
 
     my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
 
