@@ -61,8 +61,8 @@ sub _get_extra_where_clause($$)
         }
         else
         {
-            my $q_name_val = $c->dbis->quote( $name );
-            push( @{ $clauses }, "m.name ilike '%' || $q_name_val || '%'" );
+            my $q_name_val = $c->dbis->quote( '%' . $name . '%' );
+            push( @{ $clauses }, "m.name ilike $q_name_val" );
         }
     }
 

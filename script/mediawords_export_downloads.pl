@@ -44,7 +44,7 @@ sub export_downloads
 
     my $db = MediaWords::DB::connect_to_db;
 
-    $db->set_autocommit( 0 );
+    $db->begin();
 
     my $doc  = XML::LibXML::Document->new();
     my $root = $doc->createElement( 'downloads' );
@@ -75,6 +75,8 @@ sub export_downloads
 
         $cur_downloads_id = $download->{ downloads_id } + 1;
     }
+
+    $db->commit();
 
     my $file = ">/tmp/downloads.xml";
     open OUT, $file;

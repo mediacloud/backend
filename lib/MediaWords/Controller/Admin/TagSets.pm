@@ -40,6 +40,9 @@ sub edit : Local
 
     map { $tag_set->{ $_ } = $c->req->params->{ $_ } } qw(name label description show_on_media show_on_stories);
 
+    $tag_set->{ show_on_media }   = normalize_boolean_for_db( $tag_set->{ show_on_media } );
+    $tag_set->{ show_on_stories } = normalize_boolean_for_db( $tag_set->{ show_on_stories } );
+
     $db->update_by_id( 'tag_sets', $tag_sets_id, $tag_set );
 
     $c->response->redirect( $c->uri_for( "/search/tag_sets", { status_msg => 'tag set saved.' } ) );

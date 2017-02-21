@@ -93,7 +93,9 @@ sub main
               -- File (no prefix), Tar ("tar:" prefix) and GridFS ("gridfs:"
               -- prefix) downloads are being stored in GridFS, so filter out
               -- those which aren't
-              and path not like any(array['content%', 'postgresql%', 'amazon_s3%'])
+              and path not like 'content%'
+              and path not like 'postgresql%'
+              and path not like 'amazon_s3%'
 SQL
         next unless ( $download );
 

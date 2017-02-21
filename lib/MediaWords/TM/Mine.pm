@@ -250,7 +250,7 @@ END
     if ( $@ )
     {
         MediaWords::DBI::Stories::fix_story_downloads_if_needed( $db, $story );
-        $download = $db->find_by_id( 'downloads', $download->{ downloads_id } );
+        $download = $db->find_by_id( 'downloads', int( $download->{ downloads_id } ) );
         eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download ); };
         WARN "Error refetching content: $@" if ( $@ );
     }
@@ -375,13 +375,13 @@ sub insert_topic_links
 
     my $csv = Text::CSV_XS->new( { binary => 1 } );
 
-    $db->copy_from_start( "COPY topic_links (" . join( ', ', @{ $columns } ) . ") FROM STDIN WITH CSV" );
+    my $copy_from = $db->copy_from( "COPY topic_links (" . join( ', ', @{ $columns } ) . ") FROM STDIN WITH CSV" );
     for my $topic_link ( @{ $topic_links } )
     {
         $csv->combine( map { $topic_link->{ $_ } } ( @{ $columns } ) );
-        $db->copy_from_put_line( encode( 'utf8', $csv->string ) );
+        $copy_from->put_line( encode( 'utf8', $csv->string ) );
     }
-    $db->copy_from_end();
+    $copy_from->end();
 }
 
 # for each story, return a list of the links found in either the extracted html or the story description
@@ -707,7 +707,7 @@ END
     my $source_story;
     if ( $source_link && $source_link->{ stories_id } )
     {
-        $source_story = $db->find_by_id( 'stories', $source_link->{ stories_id } );
+        $source_story = $db->find_by_id( 'stories', int( $source_link->{ stories_id } ) );
         $story->{ publish_date } = $source_story->{ publish_date };
     }
 
@@ -869,7 +869,7 @@ sub add_new_story
 {
     my ( $db, $link, $old_story, $topic, $allow_foreign_rss_links, $check_pattern, $skip_extraction ) = @_;
 
-    die( "only one of $link or $old_story should be set" ) if ( $link && $old_story );
+    LOGCONFESS( "only one of $link or $old_story should be set" ) if ( $link && $old_story );
 
     my $story_content;
     if ( $link && $link->{ content } )
@@ -1149,8 +1149,10 @@ sub add_to_topic_stories
           . "  values ( ?, ?, ?, ?, ?, ? )",
         $topic->{ topics_id },
         $story->{ stories_id },
-        $iteration, $story->{ url },
-        $link_mined, $valid_foreign_rss_story
+        $iteration,
+        $story->{ url },
+        normalize_boolean_for_db( $link_mined ),
+        normalize_boolean_for_db( $valid_foreign_rss_story )
     );
 }
 
@@ -1181,7 +1183,7 @@ sub get_story_with_most_sentences($$)
 {
     my ( $db, $stories ) = @_;
 
-    die( "no stories" ) unless ( scalar( @{ $stories } ) );
+    LOGCONFESS( "no stories" ) unless ( scalar( @{ $stories } ) );
 
     return $stories->[ 0 ] unless ( scalar( @{ $stories } ) > 1 );
 
@@ -1200,7 +1202,7 @@ SQL
 
     map { return $_ if ( $_->{ stories_id } eq $stories_id ) } @{ $stories };
 
-    die( "unable to find story '$stories_id'" );
+    LOGCONFESS( "unable to find story '$stories_id'" );
 }
 
 # given a set of possible story matches, find the story that is likely the best.
@@ -1330,7 +1332,7 @@ END
         }
         else
         {
-            die( "Unknown extract_policy: '$extract_policy'" );
+            LOGCONFESS( "Unknown extract_policy: '$extract_policy'" );
         }
     }
 
@@ -1442,7 +1444,7 @@ sub skip_topic_story
 select 1 from stories_tags_map where stories_id = ? and tags_id = ?
 END
 
-    my $ss = $db->find_by_id( 'stories', $link->{ stories_id } );
+    my $ss = $db->find_by_id( 'stories', int( $link->{ stories_id } ) );
     return 0 if ( $ss->{ media_id } && ( $ss->{ media_id } != $story->{ media_id } ) );
 
     return 1 if ( _skip_self_linked_domain( $db, $link ) );
@@ -1542,7 +1544,7 @@ sub _skip_self_linked_domain
     # only skip if the media source of the linking story is the same as the media source of the linked story.  we can't
     # know the media source of the linked story without adding it first, though, which we want to skip because it's time
     # expensive to do so.  so we just compare the url domain as a proxy for media source instead.
-    my $source_story = $db->find_by_id( 'stories', $link->{ stories_id } );
+    my $source_story = $db->find_by_id( 'stories', int( $link->{ stories_id } ) );
 
     my $source_domain = MediaWords::Util::URL::get_url_distinctive_domain( $source_story->{ url } );
 
@@ -1634,7 +1636,7 @@ sub get_stories_to_extract
             push( @{ $extract_stories }, $story );
         }
 
-        $db->commit unless ( $db->autocommit() );
+        $db->commit if ( $db->in_transaction() );
     }
 
     return $extract_stories;
@@ -1887,7 +1889,7 @@ END
                     url            => $target_story->{ url },
                     topics_id      => $topic->{ topics_id },
                     ref_stories_id => $target_story->{ stories_id },
-                    link_spidered  => 1,
+                    link_spidered  => 't',
                 }
             );
         }
@@ -2066,7 +2068,8 @@ END
         add_to_topic_stories( $db, $topic, $keep_story, $merged_iteration, 1 );
     }
 
-    $db->begin if $db->autocommit();
+    my $use_transaction = !$db->in_transaction();
+    $db->begin if ( $use_transaction );
 
     my $topic_links = $db->query( <<END, $delete_story->{ stories_id }, $topics_id )->hashes;
 select * from topic_links where stories_id = ? and topics_id = ?
@@ -2099,7 +2102,7 @@ END
 update topic_seed_urls set stories_id = \$2 where stories_id = \$1 and topics_id = \$3
 END
 
-    $db->commit unless $db->autocommit();
+    $db->commit if ( $use_transaction );
 }
 
 # if the given story's url domain does not match the url domain of the story,
@@ -2469,7 +2472,7 @@ sub pick_first_matched_story
         }
     }
 
-    die( "can't find any pick element in reference list" );
+    LOGCONFESS( "can't find any pick element in reference list" );
 }
 
 # add the medium url to the topic_ignore_redirects table
@@ -2523,7 +2526,7 @@ sub get_story_field_from_url_table
     }
     else
     {
-        die( "Unknown table: '$table'" );
+        LOGCONFESS( "Unknown table: '$table'" );
     }
 
     return $story_field;
@@ -2714,13 +2717,13 @@ sub insert_topic_seed_urls
 
     my $csv = Text::CSV_XS->new( { binary => 1 } );
 
-    $db->copy_from_start( "COPY topic_seed_urls (" . join( ', ', @{ $columns } ) . ") FROM STDIN WITH CSV" );
+    my $copy_from = $db->copy_from( "COPY topic_seed_urls (" . join( ', ', @{ $columns } ) . ") FROM STDIN WITH CSV" );
     for my $csu ( @{ $topic_seed_urls } )
     {
         $csv->combine( map { $csu->{ $_ } } ( @{ $columns } ) );
-        $db->copy_from_put_line( $csv->string );
+        $copy_from->put_line( $csv->string );
     }
-    $db->copy_from_end();
+    $copy_from->end();
 }
 
 # get the full solr query by combining the solr_seed_query with generated clauses for start and
@@ -2813,7 +2816,7 @@ sub import_solr_seed_query
 
     $db->query( "update topics set solr_seed_query_run = 't' where topics_id = ?", $topic->{ topics_id } );
 
-    $db->commit unless $db->autocommit();
+    $db->commit if $db->in_transaction();
 }
 
 # return true if there are fewer than $MAX_NULL_BITLY_STORIES stories without bitly data
@@ -2890,7 +2893,7 @@ sub fetch_social_media_data ($$)
         sleep $poll_wait;
     }
 
-    die( "Timed out waiting for social media data" );
+    LOGCONFESS( "Timed out waiting for social media data" );
 }
 
 # mine the given topic for links and to recursively discover new stories on the web.
@@ -2908,61 +2911,150 @@ sub do_mine_topic ($$;$)
 
     # Log activity that is about to start
     MediaWords::DBI::Activities::log_system_activity( $db, 'tm_mine_topic', $topic->{ topics_id }, $options )
-      || die( "Unable to log the 'tm_mine_topic' activity." );
+      || LOGCONFESS( "Unable to log the 'tm_mine_topic' activity." );
 
-    update_topic_state( $db, $topic, "fetching tweets" );
-    fetch_and_import_twitter_urls( $db, $topic );
+    eval {
+        update_topic_state( $db, $topic, "fetching tweets" );
+        fetch_and_import_twitter_urls( $db, $topic );
+    };
+    if ( $@ )
+    {
+        LOGCONFESS "fetch_and_import_twitter_urls() failed: $@";
+    }
 
-    update_topic_state( $db, $topic, "importing solr seed query" );
-    import_solr_seed_query( $db, $topic );
+    eval {
+        update_topic_state( $db, $topic, "importing solr seed query" );
+        import_solr_seed_query( $db, $topic );
+    };
+    if ( $@ )
+    {
+        LOGCONFESS "import_solr_seed_query() failed: $@";
+    }
 
-    update_topic_state( $db, $topic, "importing seed urls" );
-    import_seed_urls( $db, $topic );
+    eval {
+        update_topic_state( $db, $topic, "importing seed urls" );
+        import_seed_urls( $db, $topic );
+    };
+    if ( $@ )
+    {
+        LOGCONFESS "import_seed_urls() failed: $@";
+    }
 
-    update_topic_state( $db, $topic, "mining topic stories" );
-    mine_topic_stories( $db, $topic );
+    eval {
+        update_topic_state( $db, $topic, "mining topic stories" );
+        mine_topic_stories( $db, $topic );
+    };
+    if ( $@ )
+    {
+        LOGCONFESS "mine_topic_stories() failed: $@";
+    }
 
     # # merge dup media and stories here to avoid redundant link processing for imported urls
-    update_topic_state( $db, $topic, "merging duplicate media stories" );
-    merge_dup_media_stories( $db, $topic );
+    eval {
+        update_topic_state( $db, $topic, "merging duplicate media stories" );
+        merge_dup_media_stories( $db, $topic );
+    };
+    if ( $@ )
+    {
+        LOGCONFESS "merge_dup_media_stories() failed: $@";
+    }
 
-    update_topic_state( $db, $topic, "merging duplicate stories" );
-    find_and_merge_dup_stories( $db, $topic );
+    eval {
+        update_topic_state( $db, $topic, "merging duplicate stories" );
+        find_and_merge_dup_stories( $db, $topic );
+    };
+    if ( $@ )
+    {
+        LOGCONFESS "update_topic_state() failed: $@";
+    }
 
     unless ( $options->{ import_only } )
     {
-        update_topic_state( $db, $topic, "merging foreign rss stories" );
-        merge_foreign_rss_stories( $db, $topic );
+        eval {
+            update_topic_state( $db, $topic, "merging foreign rss stories" );
+            merge_foreign_rss_stories( $db, $topic );
+        };
+        if ( $@ )
+        {
+            LOGCONFESS "merge_foreign_rss_stories() failed: $@";
+        }
 
-        update_topic_state( $db, $topic, "adding redirect urls to topic stories" );
-        add_redirect_urls_to_topic_stories( $db, $topic );
+        eval {
+            update_topic_state( $db, $topic, "adding redirect urls to topic stories" );
+            add_redirect_urls_to_topic_stories( $db, $topic );
+        };
+        if ( $@ )
+        {
+            LOGCONFESS "add_redirect_urls_to_topic_stories() failed: $@";
+        }
 
-        update_topic_state( $db, $topic, "mining topic stories" );
-        mine_topic_stories( $db, $topic );
+        eval {
+            update_topic_state( $db, $topic, "mining topic stories" );
+            mine_topic_stories( $db, $topic );
+        };
+        if ( $@ )
+        {
+            LOGCONFESS "mine_topic_stories() failed: $@";
+        }
 
-        update_topic_state( $db, $topic, "running spider" );
-        run_spider( $db, $topic );
+        eval {
+            update_topic_state( $db, $topic, "running spider" );
+            run_spider( $db, $topic );
+        };
+        if ( $@ )
+        {
+            LOGCONFESS "run_spider() failed: $@";
+        }
 
         # disabling because there are too many foreign_rss_links media sources
         # with bogus feeds that pollute the results
         # if ( !$options->{ skip_outgoing_foreign_rss_links } )
         # {
-        #     update_topic_state( $db, $topic, "adding outgoing foreign rss links" );
-        #     add_outgoing_foreign_rss_links( $db, $topic );
+        #     eval {
+        #         update_topic_state( $db, $topic, "adding outgoing foreign rss links" );
+        #         add_outgoing_foreign_rss_links( $db, $topic );
+        #     };
+        #     if ( $@ ) {
+        #         LOGCONFESS "add_outgoing_foreign_rss_links() failed: $@";
+        #     }
         # }
 
-        update_topic_state( $db, $topic, "merging archive stories" );
-        merge_archive_is_stories( $db, $topic );
+        eval {
+            update_topic_state( $db, $topic, "merging archive stories" );
+            merge_archive_is_stories( $db, $topic );
+        };
+        if ( $@ )
+        {
+            LOGCONFESS "merge_archive_is_stories() failed: $@";
+        }
 
         # merge dup media and stories again to catch dups from spidering
-        update_topic_state( $db, $topic, "merging duplicate media stories" );
-        merge_dup_media_stories( $db, $topic );
+        eval {
+            update_topic_state( $db, $topic, "merging duplicate media stories" );
+            merge_dup_media_stories( $db, $topic );
+        };
+        if ( $@ )
+        {
+            LOGCONFESS "merge_dup_media_stories() failed: $@";
+        }
 
-        update_topic_state( $db, $topic, "merging duplicate stories" );
-        find_and_merge_dup_stories( $db, $topic );
+        eval {
+            update_topic_state( $db, $topic, "merging duplicate stories" );
+            find_and_merge_dup_stories( $db, $topic );
+        };
+        if ( $@ )
+        {
+            LOGCONFESS "find_and_merge_dup_stories() failed: $@";
+        }
 
-        update_topic_state( $db, $topic, "adding source link dates" );
-        add_source_link_dates( $db, $topic );
+        eval {
+            update_topic_state( $db, $topic, "adding source link dates" );
+            add_source_link_dates( $db, $topic );
+        };
+        if ( $@ )
+        {
+            LOGCONFESS "add_source_link_dates() failed: $@";
+        }
 
         update_topic_state( $db, $topic, "analyzing topic tables" );
         $db->query( "analyze topic_stories" );
@@ -2970,15 +3062,64 @@ sub do_mine_topic ($$;$)
 
         if ( !$options->{ skip_post_processing } )
         {
-            update_topic_state( $db, $topic, "fetching social media data" );
-            fetch_social_media_data( $db, $topic );
+            eval {
+                update_topic_state( $db, $topic, "fetching social media data" );
+                fetch_social_media_data( $db, $topic );
+            };
+            if ( $@ )
+            {
+                LOGCONFESS "fetch_social_media_data() failed: $@";
+            }
 
-            update_topic_state( $db, $topic, "snapshotting" );
-            MediaWords::TM::Snapshot::snapshot_topic( $db, $topic->{ topics_id } );
+            eval {
+                update_topic_state( $db, $topic, "snapshotting" );
+                MediaWords::TM::Snapshot::snapshot_topic( $db, $topic->{ topics_id } );
+            };
+            if ( $@ )
+            {
+                LOGCONFESS "MediaWords::TM::Snapshot::snapshot_topic() failed: $@";
+            }
         }
     }
 
     update_topic_state( $db, $topic, "ready" );
+}
+
+# if twitter topic corresponding to the main topic does not already exist, create it
+sub find_or_create_twitter_topic($$)
+{
+    my ( $db, $parent_topic ) = @_;
+
+    my $twitter_topic = $db->query( <<SQL, $parent_topic->{ topics_id } )->hash;
+select * from topics where twitter_parent_topics_id = ?
+SQL
+
+    return $twitter_topic if ( $twitter_topic );
+
+    my $topic_tag_set = $db->create( 'tag_sets', { name => "topic $parent_topic->{ name } (twitter)" } );
+
+    $twitter_topic = {
+        twitter_parent_topics_id => $parent_topic->{ topics_id },
+        name                     => "$parent_topic->{ name } (twitter)",
+        pattern                  => '(none)',
+        solr_seed_query          => '(none)',
+        solr_seed_query_run      => 't',
+        description              => "twitter child topic of $parent_topic->{ name }",
+        topic_tag_sets_id        => $topic_tag_set->{ topic_tag_sets_id },
+        ch_monitor_id            => $parent_topic->{ ch_monitor_id }
+    };
+
+    my $topic = $db->create( 'topics', $twitter_topic );
+
+    my $parent_topic_dates =
+      $db->query( "select * from topics_with_dates where topics_id = ?", $parent_topic->{ topics_id } )->hash;
+
+    $db->query( <<SQL, $topic->{ topics_id }, $parent_topic->{ topics_id } );
+insert into topic_dates ( topics_id, boundary, start_date, end_date )
+    select \$1, true, start_date::date, end_date::date from topics_with_dates where topics_id = \$2
+SQL
+
+    return $topic;
 }
 
 # add the url parsed from a tweet to topics_seed_url
@@ -2992,7 +3133,7 @@ SQL
 
     if ( $existing_seed_url )
     {
-        $db->update_by_id( 'topic_seed_urls', $existing_seed_url->{ topic_seed_urls_id }, { assume_match => 1 } );
+        $db->update_by_id( 'topic_seed_urls', $existing_seed_url->{ topic_seed_urls_id }, { assume_match => 't' } );
     }
     else
     {
@@ -3001,7 +3142,7 @@ SQL
             {
                 topics_id    => $topic->{ topics_id },
                 url          => $url,
-                assume_match => 1,
+                assume_match => 't',
                 source       => 'twitter',
             }
         );
@@ -3051,7 +3192,11 @@ sub fetch_and_import_twitter_urls($$$)
     # only add  twitter data if there is a ch_monitor_id
     return unless ( $topic->{ ch_monitor_id } );
 
-    MediaWords::Job::FetchTopicTweets->run( { topics_id => $topic->{ topics_id } } );
+    eval { MediaWords::Job::FetchTopicTweets->run( { topics_id => $topic->{ topics_id } } ); };
+    if ( $@ )
+    {
+        LOGCONFESS "MediaWords::Job::FetchTopicTweets->run() failed: $@";
+    }
 
     seed_topic_with_tweet_urls( $db, $topic );
 }

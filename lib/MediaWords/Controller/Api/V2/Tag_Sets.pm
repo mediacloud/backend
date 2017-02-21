@@ -46,6 +46,9 @@ sub update_PUT
 
     my $input = { map { $_ => $data->{ $_ } } grep { exists( $data->{ $_ } ) } @{ $self->get_update_fields } };
 
+    $input->{ show_on_media }   = normalize_boolean_for_db( $input->{ show_on_media } );
+    $input->{ show_on_stories } = normalize_boolean_for_db( $input->{ show_on_stories } );
+
     my $row = $c->dbis->update_by_id( 'tag_sets', $data->{ tag_sets_id }, $input );
 
     return $self->status_ok( $c, entity => { tag_set => $row } );
@@ -64,6 +67,9 @@ sub create_GET
     $self->require_fields( $c, [ qw/name label/ ] );
 
     my $input = { map { $_ => $data->{ $_ } } grep { exists( $data->{ $_ } ) } @{ $self->get_update_fields } };
+
+    $input->{ show_on_media }   = normalize_boolean_for_db( $input->{ show_on_media } );
+    $input->{ show_on_stories } = normalize_boolean_for_db( $input->{ show_on_stories } );
 
     my $row = $c->dbis->create( 'tag_sets', $input );
 

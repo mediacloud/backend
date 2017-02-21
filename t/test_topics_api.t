@@ -26,6 +26,7 @@ use MediaWords::TM::Snapshot;
 use MediaWords::DB::Schema;
 use MediaWords::Test::API;
 use MediaWords::Test::DB;
+use MediaWords::Test::Supervisor;
 use MediaWords::Util::Web;
 use MediaWords::Util::Config;
 

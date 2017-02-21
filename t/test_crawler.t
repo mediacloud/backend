@@ -46,7 +46,6 @@ use MediaWords::Util::DateTime;
 
 use Data::Dumper;
 use Data::Sorting qw( :basics :arrays :extras );
-use MediaWords::DB::Handler;
 use Encode;
 use LWP::UserAgent;
 use Readonly;
@@ -59,10 +58,10 @@ sub _add_test_feed($$$$)
     my $test_medium = $db->query(
         <<EOF,
         INSERT INTO media (name, url, moderated)
-        VALUES (?, ?, ?)
+        VALUES (?, ?, 'f')
         RETURNING *
 EOF
-        '_ Crawler Test', $url_to_crawl, 0
+        '_ Crawler Test', $url_to_crawl
     )->hash;
 
     my $syndicated_feed = $db->create(

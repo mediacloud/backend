@@ -12,6 +12,8 @@ our @ISA = qw(Exporter);
 
 use Data::Dumper;
 use Readonly;
+use MediaWords::Util::Python;
+use MediaWords::Util::Paths;
 
 eval {
     require MediaWords::Util::Config;
@@ -29,7 +31,7 @@ eval {
 
 our @LOGGER = qw(FATAL ERROR WARN INFO DEBUG TRACE LOGDIE LOGWARN LOGCARP LOGCLUCK LOGCONFESS LOGCROAK);
 
-our @EXPORT = ( @Readonly::EXPORT, @Data::Dumper::EXPORT, @LOGGER );
+our @EXPORT = ( @Readonly::EXPORT, @Data::Dumper::EXPORT, @MediaWords::Util::Python::EXPORT, @LOGGER );
 
 sub import
 {
@@ -69,7 +71,7 @@ sub init_log
 {
     return if ( $_init_log );
 
-    Log::Log4perl::init( MediaWords::Util::Config::get_mc_root_dir() . "/log4perl.conf" );
+    Log::Log4perl::init( MediaWords::Util::Paths::mc_root_path() . "/log4perl.conf" );
 
     # makes default category be the calling package rather than mediawords.logger
     Log::Log4perl::wrapper_register( __PACKAGE__ );

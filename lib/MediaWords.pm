@@ -10,7 +10,6 @@ use v5.22;
 
 #use Catalyst::Runtime;
 
-use MediaWords::DB::Handler;
 use MediaWords::Util::Config;
 use MediaWords::DBI::Auth::Roles;
 

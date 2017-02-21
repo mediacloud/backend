@@ -12,6 +12,7 @@ use Moose;
 use namespace::autoclean;
 use List::Compare;
 use Readonly;
+use MediaWords::DB::StoryTriggers;
 
 =head1 NAME
 
@@ -134,7 +135,7 @@ sub _process_result_list
 
         if ( $nested_data )
         {
-            $self->_add_nested_data( $c->dbis, $items );
+            $items = $self->_add_nested_data( $c->dbis, $items );
         }
     }
 
@@ -208,9 +209,9 @@ sub get_name_search_clause
 
     return 'and false' unless ( length( $name_val ) > 2 );
 
-    my $q_name_val = $c->dbis->quote( $name_val );
+    my $q_name_val = $c->dbis->quote( '%' . $name_val . '%' );
 
-    return "and $name_field ilike '%' || $q_name_val || '%'";
+    return "and $name_field ilike $q_name_val";
 }
 
 # list_query_filter_field or list_optional_query_field, add relevant clauses
@@ -514,11 +515,16 @@ sub _clear_tags
 
         if ( grep { $self->get_table_name eq $_ } qw/stories story_sentences/ )
         {
-            $c->dbis->query( <<SQL, MediaWords::DB::story_triggers_disabled(), $id );
+            my $allow_null = 1;
+            $c->dbis->query(
+                <<SQL,
 UPDATE $table_name set disable_triggers = \$1
        where $table_id_name = \$2 and
             ( (disable_triggers is null) or (disable_triggers <> \$1 ) )
 SQL
+                normalize_boolean_for_db( MediaWords::DB::StoryTriggers::story_triggers_disabled(), $allow_null ),
+                $id
+            );
         }
 
         $c->dbis->query( <<END, $id );
@@ -576,7 +582,9 @@ UPDATE $table_name set disable_triggers = \$1
                     ( (disable_triggers is null) or (disable_triggers <> \$1 ) )
 END
 
-        $c->dbis->query( $disable_triggers_query, MediaWords::DB::story_triggers_disabled(), $id );
+        my $allow_null = 1;
+        $c->dbis->query( $disable_triggers_query,
+            normalize_boolean_for_db( MediaWords::DB::StoryTriggers::story_triggers_disabled(), $allow_null ), $id );
 
         my $query = <<END;
 INSERT INTO $tags_map_table ( $table_id_name, tags_id)

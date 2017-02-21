@@ -54,10 +54,14 @@ def run_command_in_foreground(command: List[str]) -> None:
         raise McRunCommandInForegroundException("Error while running command: %s" % str(ex))
 
 
+class McGracefullyKillChildProcessException(Exception):
+    pass
+
+
 def gracefully_kill_child_process(child_pid: int, sigkill_timeout: int = 60) -> None:
     """Try to kill child process gracefully with SIGKILL, then abruptly with SIGTERM."""
     if child_pid is None:
-        raise Exception("Child PID is unset.")
+        raise McGracefullyKillChildProcessException("Child PID is unset.")
 
     if not process_with_pid_is_running(pid=child_pid):
         l.warning("Child process with PID %d is not running, maybe it's dead already?" % child_pid)

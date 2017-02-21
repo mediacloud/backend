@@ -745,7 +745,7 @@ sub add_user_or_return_error_message($$$$$$$$;$$)
         INSERT INTO auth_users (email, password_hash, full_name, notes, active )
         VALUES (?, ?, ?, ?, ? )
 EOF
-        $email, $password_hash, $full_name, $notes, ( $is_active ? 'true' : 'false' )
+        $email, $password_hash, $full_name, $notes, normalize_boolean_for_db( $is_active )
     );
 
     # Fetch the user's ID
@@ -828,7 +828,7 @@ sub update_user_or_return_error_message($$$$$$;$$$$)
             active = ?
         WHERE email = ?
 EOF
-        $full_name, $notes, ( $is_active ? 'true' : 'false' ), $email
+        $full_name, $notes, normalize_boolean_for_db( $is_active ), $email
     );
 
     if ( $password )

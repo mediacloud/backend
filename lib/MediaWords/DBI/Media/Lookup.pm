@@ -16,7 +16,8 @@ sub _get_matching_media
 
     my $domain = MediaWords::Util::URL::get_url_distinctive_domain( $url );
 
-    my $media = $db->query( <<END, $domain )->hashes;
+    my $media = $db->query(
+        <<END,
 select m.*, mtm.tags_id spidered_tags_id
     from media m
         left join 
@@ -25,8 +26,10 @@ select m.*, mtm.tags_id spidered_tags_id
                 join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id and ts.name = 'spidered' )
             ) on ( m.media_id = mtm.media_id )
     where
-        m.url ilike ( '%'||?||'%' )
+        m.url ilike ?
 END
+        '%' . $db->quote( $domain ) . '%'
+    )->hashes;
 
     my $nu = MediaWords::Util::URL::normalize_url_lossy( $url );
 

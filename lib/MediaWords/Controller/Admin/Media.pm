@@ -16,6 +16,7 @@ use List::MoreUtils qw(any all none notall true false firstidx first_index
   apply after after_incl before before_incl indexes
   firstval first_value lastval last_value each_array
   each_arrayref pairwise natatime mesh zip uniq minmax);
+use MediaWords::DBI::Activities;
 use MediaWords::DBI::Feeds;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
@@ -275,8 +276,8 @@ sub edit_do : Local
         delete( $form_params->{ referer } );
 
         # Set the database-compatible boolean checkbox values (otherwise they're empty strings)
-        $form_params->{ full_text_rss }     ||= 0;
-        $form_params->{ foreign_rss_links } ||= 0;
+        $form_params->{ full_text_rss }     = normalize_boolean_for_db( $form_params->{ full_text_rss } );
+        $form_params->{ foreign_rss_links } = normalize_boolean_for_db( $form_params->{ foreign_rss_links } );
 
         MediaWords::DBI::Media::update_media_type( $db, $medium, $c->req->params->{ media_type_tags_id } );
         MediaWords::DBI::Media::update_media_type( $db, $medium, $c->req->params->{ topic_media_type_tags_id } );
@@ -286,8 +287,16 @@ sub edit_do : Local
         $db->update_by_id( 'media', $id, $form_params );
 
         # Make a logged update
-        $db->update_by_id_and_log( 'media', $id, $medium, $form_params, 'media_edit', $form->params->{ reason },
-            $c->user->username );
+        MediaWords::DBI::Activities::update_by_id_and_log(
+            $db,                          #
+            'media',                      #
+            $id,                          #
+            $medium,                      #
+            $form_params,                 #
+            'media_edit',                 #
+            $form->params->{ reason },    #
+            $c->user->username            #
+        );
 
         my $msg = "Media source updated.";
         if ( $form->params->{ referer } )
@@ -375,35 +384,6 @@ sub delete : Local
     }
 }
 
-# search for media matching search for the given keyword
-# return the matching media from the given page along with a
-# MediaWords::Util::Pages object for the results
-sub _search_paged_media
-{
-    my ( $self, $c, $q, $page, $row_count ) = @_;
-
-    my $db = $c->dbis;
-
-    $q =~ s/^\s+//g;
-    $q =~ s/\s+$//g;
-    $q =~ s/[^\w]/_/g;
-
-    $q = "'%$q%'";
-
-    return $db->query_paged_hashes( <<END, $page, $row_count );
-select distinct m.media_id as media_id, m.name as name, m.url as url
-    from media m
-        left join (
-            media_tags_map mtm join (
-                tags t join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id) )
-            on ( mtm.tags_id = t.tags_id) )
-        on (m.media_id = mtm.media_id)
-    where (m.name ilike $q or m.url ilike $q or lower(ts.name||':'||t.tag) ilike $q)
-    order by m.media_id
-END
-
-}
-
 # display search form, and results of a query was submitted.
 sub search : Local
 {
@@ -430,15 +410,36 @@ sub search : Local
 
     if ( $q )
     {
-        ( $media, $pager ) = $self->_search_paged_media( $c, $q, $p, $ROWS_PER_PAGE );
+        # search for media matching search for the given keyword
+        $q =~ s/^\s+//g;
+        $q =~ s/\s+$//g;
+        $q =~ s/[^\w]/_/g;
+
+        $q = "'%$q%'";
+
+        my $qph = $db->query_paged_hashes( <<END, $p, $ROWS_PER_PAGE );
+    select distinct m.media_id as media_id, m.name as name, m.url as url
+        from media m
+            left join (
+                media_tags_map mtm join (
+                    tags t join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id) )
+                on ( mtm.tags_id = t.tags_id) )
+            on (m.media_id = mtm.media_id)
+        where (m.name ilike $q or m.url ilike $q or lower(ts.name||':'||t.tag) ilike $q)
+        order by m.media_id
+END
+        $media = $qph->list();
+        $pager = $qph->pager();
     }
     elsif ( $f )
     {
-        ( $media, $pager ) = $db->query_paged_hashes( <<END, $p, $ROWS_PER_PAGE );
+        my $qph = $db->query_paged_hashes( <<END, $p, $ROWS_PER_PAGE );
 select * from media m
     where not exists (select 1 from feeds f where f.media_id = m.media_id and feed_status = 'active')
     order by media_id
 END
+        $media = $qph->list();
+        $pager = $qph->pager();
     }
     elsif ( @m )
     {
@@ -446,7 +447,9 @@ END
     }
     else
     {
-        ( $media, $pager ) = $db->query_paged_hashes( "select * from media order by media_id", $p, $ROWS_PER_PAGE );
+        my $qph = $db->query_paged_hashes( "select * from media order by media_id", $p, $ROWS_PER_PAGE );
+        $media = $qph->list();
+        $pager = $qph->pager();
     }
 
     for my $m ( @{ $media } )
@@ -781,7 +784,8 @@ sub do_eval_rss_full_text : Local
 
     if ( $full_text_state ne '' )
     {
-        $db->query( "UPDATE media set full_text_rss = ? where media_id = ?", $full_text_state, $id );
+        $db->query( "UPDATE media set full_text_rss = ? where media_id = ?",
+            normalize_boolean_for_db( $full_text_state ), $id );
     }
     else
     {

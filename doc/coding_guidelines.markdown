@@ -143,6 +143,27 @@ def do_stuff(param_1: int, obj: SomeSortOfObject, some_other_param: tuple) -> bo
 ```
 
 
+
+## Use dictionary-style arguments for psycopg2 queries
+
+This single style is very flexible, avoids using tuples, and is verbose enough for the IDE to help you catch errors:
+
+```python
+# GOOD!
+db.query(
+
+    # Please note the comma between SQL query and it's parameters.
+    #
+    # If the comma was replaced with '%', Python interpreter instead
+    # of psycopg2 would do the interpolation, and that would lead
+    # to an error.
+    
+    'SELECT * FROM foo WHERE bar = %(bar)s AND baz = %(baz)s',
+    { 'bar': bar, 'baz': baz }
+)
+```
+
+
 ## Throw Custom Exceptions
 
 On multiple occasions in the code, we have a need to find out:
