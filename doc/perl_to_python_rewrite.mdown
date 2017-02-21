@@ -1,0 +1,190 @@
+# Perl -> Python rewrite caveats
+
+## General
+
+### Translate strings coming from Perl to Python as `bytes`
+
+Perl strings reach Python code as `bytes` and not as `str`. Thus, encode them to `str` first by using `decode_object_from_bytes_if_needed()` helper:
+
+```python
+def foo(bar):
+    
+    bar = decode_object_from_bytes_if_needed(bar)
+    
+    # ...
+```
+
+
+### Add comment with `MC_REWRITE_TO_PYTHON` string near transitional code
+
+If you have to write some extra Python code just to improve its interoperability with Perl, add a comment with a string `MC_REWRITE_TO_PYTHON` so that this code is easy to find and remove later on:
+
+```python
+def foo(bar):
+    
+    # Do some extra preprocessing before continuing
+    # because data coming from Perl might be mucked
+    # in some twisted way
+    # MC_REWRITE_TO_PYTHON remove after porting
+    if coming_from_perl(bar):
+        bar = do_perl_preprocessing(bar)
+    
+    # ...
+```
+
+You don't have to add a comment with `MC_REWRITE_TO_PYTHON` string in it if you use helper functions from `util/perl.py`.
+
+
+### Don't attempt to modify values returned from Python
+
+(Probably) due to how `Inline::Perl` manages memory, trying to modify (e.g. set by reference) values returned from Python code will lead to nasty errors:
+
+```perl
+# BAD!
+my $hashref = python_function();
+$hashref->{ foo } = 'bar';
+```
+
+To make the returned variable writable, you can use globally available `make_python_variable_writable()` helper which accepts value of any type and returns a deep copy of said variable:
+
+```perl
+# GOOD!
+my $hashref = python_function();
+$hashref = make_python_variable_writable( $hashref );
+$hashref->{ foo } = 'bar';
+```
+
+This pretty much implies that procedures that edit a parameter variable by reference are a no-no in this brave new world. Simply make them into functions which return a value and use said value.
+
+Values returned from the PostgreSQL database handler are already deep copied, so you don't need to run them through `make_python_variable_writable()` again.
+
+
+### Don't call Perl code from Python
+
+Don't call Perl code from Python code to keep this transition top-down (or, rather, down-up).
+
+This means that you shouldn't pass Perl objects (be it Media Cloud's own code or objects coming from a third party library, e.g. `LWP::UserAgent`) to Python.
+
+Keep the Perl-Python interaction to the most primitive types (strings, integers, booleans, `undef`, etc.)
+
+
+### Avoid using global module variables in Python
+
+Long story short, sometimes a Python module might get imported twice and rewrite a global variable the value of which you have modified previously:
+
+```python
+# BAD!
+__global_variable = None
+
+def set_global_variable(global_variable):
+    __global_variable = global_variable
+
+def global_variable():
+    return __global_variable
+```
+
+In the example above, `__global_variable` might get reset to `None` variable if it gets imported again.
+
+A safe alternative to global variables is using a class:
+
+```python
+# GOOD!
+
+class GlobalVariable(object):
+
+    __global_variable = None
+
+    def set_global_variable(self, global_variable):
+        self.__global_variable = global_variable
+
+    def global_variable(self):
+        return self.__global_variable
+```
+
+
+### Keep in mind that Python booleans get returned as `Inline::Python::Boolean`
+
+`Inline::Python::Boolean` evaluate to either `0` (`False`) or `1` (`True`) in scalar context (`int($variable)`), but they still might break some code which expects vanilla scalars instead of references.
+
+
+## Database
+
+### Pass `'t'` or `'f'` instead of integers for boolean fields
+
+psycopg2 is strict about parameter types and thus expects Python's `bool` to be passed for PostgreSQL `BOOLEAN` type.
+
+Due to various reasons, we can't really cast all integers to Python booleans dynamically. Luckily, PostgreSQL accepts string `'t'` or `'f'` as valid `BOOLEAN` values.
+
+Instead of:
+
+```perl
+$boolean_value = $boolean_value ? 't' : 'f';
+```
+
+...you might consider a globally available `normalize_boolean_for_db($value, [$allow_null])` helper which supports various forms the "boolean" type in Perl might take (`'f'`/`'t'`, `0`/`1`, ...):
+
+```perl
+$boolean_value = normalize_boolean_for_db( $boolean_value );
+```
+
+or:
+
+```perl
+# BOOLEAN field might have NULL value
+my $allow_null = 1;
+$boolean_value = normalize_boolean_for_db( $boolean_value, $allow_null );
+```
+
+
+### Avoid using `quote()` on Perl side
+
+When SQL queries come from the Perl code, `query()` does some extra query translation trying to convert DBD::Pg-style queries to psycopg2 ones.
+
+The translation code tries its best to escape strings that need to be escaped, but is still potentially error-prone. Thus, it is not advisable to pass overly complex SQL queries (which might get complicated by `quote()` escaping unpredictable strings) directly to `query()`.
+
+Using `quote()` from Python side is safe, provided that you use either dictionary or tuple parameters.
+
+
+### Pass `LIKE` pattern string as a parameter
+
+Query translation does not support converting concatenated `LIKE` pattern strings:
+
+```perl
+# BAD!
+my $pattern = $db->quote('word');
+$db->query("
+    SELECT *
+    FROM foo
+    WHERE bar LIKE '%' || $pattern || '%'
+");
+```
+
+...so pass the `LIKE` pattern string as a parameter:
+
+```perl
+# GOOD!
+my $pattern = '%' . $db->quote('word') . '%';
+$db->query( "
+    SELECT *
+    FROM foo
+    WHERE bar LIKE ?
+", $pattern);
+```
+
+
+### Be wary about using literal `%` in SQL queries
+
+psycopg2 interpolates `%` to a query parameter placeholder, so to use a literal `%`, you might need to duplicate it (`%%`).
+
+
+### Don't use pass-by-reference trick to `create()`
+
+The pass-by-reference trick to `create()` does not work anymore:
+
+```perl
+# BAD
+$db->create('table', {
+    'name' = 'Foo',
+    'date_created' => \'NOW()'
+});
+```

@@ -1,20 +1,26 @@
 from unittest import TestCase
+from nose.tools import assert_raises
 
+from mediawords.db.exceptions.result import McDatabaseResultException
 from mediawords.db.handler import *
-from mediawords.util.config import get_config, set_config
+from mediawords.util.config import \
+    get_config as py_get_config, \
+    set_config as py_set_config  # MC_REWRITE_TO_PYTHON: rename back to get_config(), get_config()
 from mediawords.util.log import create_logger
 
 l = create_logger(__name__)
 
 
+# FIXME make use of the testing database
 # noinspection SqlResolve,SpellCheckingInspection
 class TestDatabaseHandler(TestCase):
     __db = None
 
-    def setUp(self):
+    @staticmethod
+    def __create_database_handler():
         l.info("Looking for test database credentials...")
         test_database = None
-        config = get_config()
+        config = py_get_config()
         for database in config['database']:
             if database['label'] == 'test':
                 test_database = database
@@ -22,15 +28,42 @@ class TestDatabaseHandler(TestCase):
         assert test_database is not None
 
         l.info("Connecting to test database '%s' via DatabaseHandler class..." % test_database['db'])
-        self.__db = DatabaseHandler(host=test_database['host'],
-                                    port=test_database['port'],
-                                    username=test_database['user'],
-                                    password=test_database['pass'],
-                                    database=test_database['db'])
+        db = DatabaseHandler(
+            host=test_database['host'],
+            port=test_database['port'],
+            username=test_database['user'],
+            password=test_database['pass'],
+            database=test_database['db']
+        )
+
+        return db
+
+    def setUp(self):
+
+        self.__db = self.__create_database_handler()
+
+        l.info("Looking for test database credentials...")
+        test_database = None
+        config = py_get_config()
+        for database in config['database']:
+            if database['label'] == 'test':
+                test_database = database
+                break
+        assert test_database is not None
+
+        l.info("Connecting to test database '%s' via DatabaseHandler class..." % test_database['db'])
+        self.__db = DatabaseHandler(
+            host=test_database['host'],
+            port=test_database['port'],
+            username=test_database['user'],
+            password=test_database['pass'],
+            database=test_database['db']
+        )
 
         l.info("Preparing test table 'kardashians'...")
+        self.__db.query("DROP TABLE IF EXISTS kardashians")
         self.__db.query("""
-            CREATE TEMPORARY TABLE kardashians (
+            CREATE TABLE kardashians (
                 id SERIAL PRIMARY KEY NOT NULL,
                 name VARCHAR UNIQUE NOT NULL,   -- UNIQUE to test find_or_create()
                 surname TEXT NOT NULL,
@@ -44,7 +77,7 @@ class TestDatabaseHandler(TestCase):
             ('Caitlyn', 'Jenner', '1949-10-28'::DATE, 'f'),       -- id=2
             ('Kourtney', 'Kardashian', '1979-04-18'::DATE, 'f'),  -- id=3
             ('Kim', 'Kardashian', '1980-10-21'::DATE, 't'),       -- id=4
-            ('Khloé', 'Kardashian', '1984-06-27'::DATE, 'f'),     -- id=5
+            ('Khloé', 'Kardashian', '1984-06-27'::DATE, 'f'),     -- id=5; also, UTF-8
             ('Rob', 'Kardashian', '1987-03-17'::DATE, 'f'),       -- id=6
             ('Kendall', 'Jenner', '1995-11-03'::DATE, 'f'),       -- id=7
             ('Kylie', 'Jenner', '1997-08-10'::DATE, 'f')          -- id=8
@@ -52,22 +85,52 @@ class TestDatabaseHandler(TestCase):
 
     def tearDown(self):
         l.info("Tearing down...")
+        self.__db.query("DROP TABLE IF EXISTS kardashians")
+
+        # Test disconnect() in a way too
+        self.__db.disconnect()
 
     def test_query_parameters(self):
 
-        # DBD::Pg style
-        row = self.__db.query("SELECT * FROM kardashians WHERE name = ?", 'Kris')
+        # DBD::Pg style + UTF-8
+        row = self.__db.query("SELECT * FROM kardashians WHERE name = ?", 'Khloé')
         assert row is not None
         row_hash = row.hash()
-        assert row_hash['name'] == 'Kris'
-        assert row_hash['surname'] == 'Jenner'
+        assert row_hash['name'] == 'Khloé'
+        assert row_hash['surname'] == 'Kardashian'
 
-        # psycopg2 style
-        row = self.__db.query('SELECT * FROM kardashians WHERE name = %s', ('Kris',))
+        # psycopg2 style + UTF-8
+        row = self.__db.query('SELECT * FROM kardashians WHERE name = %s', ('Khloé',))
         assert row is not None
         row_hash = row.hash()
-        assert row_hash['name'] == 'Kris'
-        assert row_hash['surname'] == 'Jenner'
+        assert row_hash['name'] == 'Khloé'
+        assert row_hash['surname'] == 'Kardashian'
+
+    def test_query_error(self):
+
+        # Bad query
+        assert_raises(McDatabaseResultException, self.__db.query, "Badger badger badger badger")
+
+    def test_query_percentage_sign(self):
+
+        # LIKE with no psycopg2's arguments
+        row = self.__db.query("SELECT * FROM kardashians WHERE name LIKE 'Khlo%'", )
+        assert row is not None
+        row_hash = row.hash()
+        assert row_hash['name'] == 'Khloé'
+        assert row_hash['surname'] == 'Kardashian'
+
+        # LIKE with one argument
+        row = self.__db.query("""
+            SELECT *
+            FROM kardashians
+            WHERE name LIKE %(name_prefix)s
+              AND surname = %(surname)s
+        """, {'name_prefix': 'Khlo%', 'surname': 'Kardashian'})
+        assert row is not None
+        row_hash = row.hash()
+        assert row_hash['name'] == 'Khloé'
+        assert row_hash['surname'] == 'Kardashian'
 
     def test_query_result_columns(self):
         columns = self.__db.query("SELECT * FROM kardashians").columns()
@@ -126,17 +189,57 @@ class TestDatabaseHandler(TestCase):
         assert len(hashes[1]) == 5
         assert hashes[1]['name'] == 'Kris'
 
+    def test_prepare(self):
+
+        # Basic
+        statement = self.__db.prepare("""
+            UPDATE kardashians
+            SET surname = ?
+            WHERE name = ?
+              AND surname = ?
+        """)
+        statement.bind(1, 'Kardashian-West')
+        statement.bind(2, 'Kim')
+        statement.bind(3, 'Kardashian')
+        statement.execute()
+
+        row_hash = self.__db.query("SELECT * FROM kardashians WHERE name = ?", 'Kim').hash()
+        assert row_hash['surname'] == 'Kardashian-West'
+
+        # BYTEA
+        random_bytes = os.urandom(10 * 1024)
+        self.__db.query("""
+            CREATE TEMPORARY TABLE table_with_bytea_column (
+                id INT NOT NULL,
+                surname VARCHAR NOT NULL,
+                bytea_data BYTEA NOT NULL
+            )
+        """)
+        statement = self.__db.prepare("""
+            INSERT INTO table_with_bytea_column (id, surname, bytea_data)
+            VALUES (?, ?, ?)
+        """)
+        statement.bind(1, 42)
+        statement.bind(2, 'Kardashian')
+        statement.bind_bytea(3, random_bytes)
+        statement.execute()
+
+        row_hash = self.__db.query("SELECT id, surname, bytea_data FROM table_with_bytea_column").hash()
+        assert row_hash['id'] == 42
+        assert row_hash['surname'] == 'Kardashian'
+        assert bytes(row_hash['bytea_data']) == random_bytes
+
     def test_execute_with_large_work_mem(self):
         normal_work_mem = 256  # MB
         large_work_mem = 512  # MB
 
         old_large_work_mem = None
-        config = get_config()
+        config = py_get_config()
         if 'large_work_mem' in config['mediawords']:
             old_large_work_mem = config['mediawords']['large_work_mem']
 
         config['mediawords']['large_work_mem'] = '%dMB' % large_work_mem
-        set_config(config)
+        py_set_config(config)
 
         self.__db.query('SET work_mem TO %s', ('%sMB' % normal_work_mem,))
 
@@ -162,19 +265,19 @@ class TestDatabaseHandler(TestCase):
         assert current_work_mem == normal_work_mem * 1024
 
         config['mediawords']['large_work_mem'] = old_large_work_mem
-        set_config(config)
+        py_set_config(config)
 
     def test_run_block_with_large_work_mem(self):
         normal_work_mem = 256  # MB
         large_work_mem = 512  # MB
 
         old_large_work_mem = None
-        config = get_config()
+        config = py_get_config()
         if 'large_work_mem' in config['mediawords']:
             old_large_work_mem = config['mediawords']['large_work_mem']
 
         config['mediawords']['large_work_mem'] = '%dMB' % large_work_mem
-        set_config(config)
+        py_set_config(config)
 
         self.__db.query("SET work_mem TO %s", ('%sMB' % normal_work_mem,))
 
@@ -203,7 +306,7 @@ class TestDatabaseHandler(TestCase):
         assert current_work_mem == normal_work_mem * 1024
 
         config['mediawords']['large_work_mem'] = old_large_work_mem
-        set_config(config)
+        py_set_config(config)
 
     def test_primary_key_column(self):
         primary_key = self.__db.primary_key_column('kardashians')
@@ -214,54 +317,59 @@ class TestDatabaseHandler(TestCase):
         assert primary_key == 'id'
 
     def test_find_by_id(self):
-        row = self.__db.find_by_id(table='kardashians', object_id=4)
-        assert row is not None
-        row_hash = row.hash()
+        row_hash = self.__db.find_by_id(table='kardashians', object_id=4)
         assert row_hash['name'] == 'Kim'
 
     def test_require_by_id(self):
         # Exists
-        row = self.__db.find_by_id(table='kardashians', object_id=4)
-        assert row is not None
-        row_hash = row.hash()
+        row_hash = self.__db.require_by_id(table='kardashians', object_id=4)
         assert row_hash['name'] == 'Kim'
 
         # Doesn't exist
         row = None
         try:
             row = self.__db.require_by_id(table='kardashians', object_id=42)
-        except RequireByIDException:
+        except McRequireByIDException:
             pass
         else:
             assert "Should have thrown an exception, " == "but it didn't"
         assert row is None
 
     def test_update_by_id(self):
-        self.__db.update_by_id(table='kardashians', object_id=4, update_hash={
+        updated_row = self.__db.update_by_id(table='kardashians', object_id=4, update_hash={
             'surname': 'Kardashian-West',
             '_ignored_key': 'Ignored value.'
         })
-        row = self.__db.find_by_id(table='kardashians', object_id=4)
-        assert row is not None
-        row_hash = row.hash()
+
+        assert updated_row is not None
+        assert updated_row['name'] == 'Kim'
+        assert updated_row['surname'] == 'Kardashian-West'
+
+        row_hash = self.__db.find_by_id(table='kardashians', object_id=4)
+        assert row_hash is not None
         assert row_hash['name'] == 'Kim'
         assert row_hash['surname'] == 'Kardashian-West'
         assert '_ignored_key' not in row_hash
 
+        # Nonexistent column
+        assert_raises(McUpdateByIDException, self.__db.update_by_id, 'kardashians', 4, {'does_not': 'exist'})
+
     def test_delete_by_id(self):
         self.__db.delete_by_id(table='kardashians', object_id=4)
         row = self.__db.find_by_id(table='kardashians', object_id=4)
-        assert row.rows() == 0
+        assert row is None
 
     def test_create(self):
-        self.__db.create(table='kardashians', insert_hash={
+        row = self.__db.create(table='kardashians', insert_hash={
             'name': 'Lamar',
             'surname': 'Odom',
             'dob': '1979-11-06',
         })
-        row = self.__db.query("SELECT * FROM kardashians WHERE name = 'Lamar'").hash()
         assert row['surname'] == 'Odom'
         assert str(row['dob']) == '1979-11-06'
+
+        # Nonexistent column
+        assert_raises(McCreateException, self.__db.create, 'kardashians', {'does_not': 'exist'})
 
     def test_select(self):
         # One condition
@@ -284,25 +392,284 @@ class TestDatabaseHandler(TestCase):
         assert row.rows() == 0
 
         # Should INSERT
-        self.__db.find_or_create(table='kardashians', insert_hash={
+        row_hash = self.__db.find_or_create(table='kardashians', insert_hash={
             'name': 'Lamar',
             'surname': 'Odom',
             'dob': '1979-11-06',
         })
-        row = self.__db.query("SELECT * FROM kardashians WHERE name = 'Lamar'")
-        assert row is not None
-        assert row.rows() == 1
-        row_hash = row.hash()
+        assert row_hash is not None
         assert row_hash['surname'] == 'Odom'
 
         # Should SELECT
-        self.__db.find_or_create(table='kardashians', insert_hash={
+        row_hash = self.__db.find_or_create(table='kardashians', insert_hash={
             'name': 'Lamar',
             'surname': 'Odom',
             'dob': '1979-11-06',
         })
-        row = self.__db.query("SELECT * FROM kardashians WHERE name = 'Lamar'")
-        assert row is not None
-        assert row.rows() == 1
-        row_hash = row.hash()
+        assert row_hash is not None
         assert row_hash['surname'] == 'Odom'
+
+    def test_begin_commit(self):
+
+        row = self.__db.query("SELECT * FROM kardashians WHERE name = 'Lamar'")
+        assert row.rows() == 0
+
+        # Create a separate database handler to test whether transactions are isolated
+        isolated_db = self.__create_database_handler()
+        row = isolated_db.query("SELECT * FROM kardashians WHERE name = 'Lamar'")
+        assert row.rows() == 0
+
+        self.__db.begin()
+        self.__db.create(table='kardashians', insert_hash={
+            'name': 'Lamar',
+            'surname': 'Odom',
+            'dob': '1979-11-06',
+        })
+
+        # Should exist in a handle that initiated the transaction...
+        row = self.__db.query("SELECT * FROM kardashians WHERE name = 'Lamar'").hash()
+        assert row['surname'] == 'Odom'
+        assert str(row['dob']) == '1979-11-06'
+
+        # ...but not on the testing handle which is supposed to be isolated
+        row = isolated_db.query("SELECT * FROM kardashians WHERE name = 'Lamar'")
+        assert row.rows() == 0
+
+        self.__db.commit()
+
+        # Both handles should be able to access new row at this point
+        row = self.__db.query("SELECT * FROM kardashians WHERE name = 'Lamar'").hash()
+        assert row['surname'] == 'Odom'
+        assert str(row['dob']) == '1979-11-06'
+
+        row = isolated_db.query("SELECT * FROM kardashians WHERE name = 'Lamar'").hash()
+        assert row['surname'] == 'Odom'
+        assert str(row['dob']) == '1979-11-06'
+
+    def test_begin_rollback(self):
+
+        row = self.__db.query("SELECT * FROM kardashians WHERE name = 'Lamar'")
+        assert row.rows() == 0
+
+        self.__db.begin()
+        self.__db.create(table='kardashians', insert_hash={
+            'name': 'Lamar',
+            'surname': 'Odom',
+            'dob': '1979-11-06',
+        })
+        self.__db.rollback()
+
+        row = self.__db.query("SELECT * FROM kardashians WHERE name = 'Lamar'")
+        assert row.rows() == 0
+
+    def test_quote(self):
+        assert self.__db.quote(None) == 'NULL'
+        assert self.__db.quote("foo") == "'foo'"
+        assert self.__db.quote("foo'bar") == "'foo''bar'"
+        assert self.__db.quote("Вот моё сердце. 'Оно полно любви.") == "'Вот моё сердце. ''Оно полно любви.'"
+        assert self.__db.quote(0) == "0"
+        assert self.__db.quote(1) == "1"
+        assert self.__db.quote(3.4528) == "3.4528"
+        assert self.__db.quote(True) == "true"
+        assert self.__db.quote(False) == "false"
+
+    def test_copy_from(self):
+        copy = self.__db.copy_from(sql="COPY kardashians (name, surname, dob, married_to_kanye) FROM STDIN WITH CSV")
+        copy.put_line("Lamar,Odom,1979-11-06,f\n")
+        copy.put_line("Sam Brody,Jenner,1983-08-21,f\n")
+        copy.end()
+
+        row = self.__db.query("SELECT * FROM kardashians WHERE name = 'Lamar'").hash()
+        assert row is not None
+        assert row['surname'] == 'Odom'
+        assert str(row['dob']) == '1979-11-06'
+
+        row = self.__db.query("SELECT * FROM kardashians WHERE name = 'Sam Brody'").hash()
+        assert row is not None
+        assert row['surname'] == 'Jenner'
+        assert str(row['dob']) == '1983-08-21'
+
+    def test_copy_to(self):
+        sql = """
+            COPY (
+                SELECT name, surname, dob, married_to_kanye
+                FROM kardashians
+                ORDER BY id
+            ) TO STDOUT WITH CSV
+        """
+
+        copy = self.__db.copy_to(sql=sql)
+        line = copy.get_line()
+        copy.end()
+        assert line == "Kris,Jenner,1955-11-05,f\n"
+
+        # Test iterator
+        copy = self.__db.copy_to(sql=sql)
+        count = 0
+        for _ in copy:
+            count += 1
+        copy.end()
+        assert count == 8
+
+    def test_get_temporary_ids_table(self):
+        ints = [1, 2, 3, 4, 5]
+
+        # Unordered
+        table_name = self.__db.get_temporary_ids_table(ids=ints, ordered=False)
+        returned_ints = self.__db.query("SELECT * FROM %s" % table_name).hashes()
+        assert len(returned_ints) == len(ints)
+
+        # Ordered
+        table_name = self.__db.get_temporary_ids_table(ids=ints, ordered=True)
+        returned_ints = self.__db.query(
+            "SELECT id FROM %(table_name)s ORDER BY %(table_name)s_pkey" % {'table_name': table_name}
+        ).flat()
+        assert returned_ints == ints
+
+    def test_attach_child_query(self):
+
+        # Single
+        self.__db.query("""
+            CREATE TEMPORARY TABLE names (
+               id INT NOT NULL,
+               name VARCHAR NOT NULL
+            );
+            INSERT INTO names (id, name)
+            VALUES (1, 'John'), (2, 'Jane'), (3, 'Joe');
+        """)
+
+        surnames = [
+            {'id': 1, 'surname': 'Doe'},
+            {'id': 2, 'surname': 'Roe'},
+            {'id': 3, 'surname': 'Bloggs'},
+        ]
+
+        names_and_surnames = self.__db.attach_child_query(
+            data=surnames,
+            child_query='SELECT id, name FROM names',
+            child_field='name',
+            id_column='id',
+            single=True
+        )
+        assert names_and_surnames == [
+            {
+                'id': 1,
+                'name': 'John',
+                'surname': 'Doe'
+            },
+            {
+                'id': 2,
+                'name': 'Jane',
+                'surname': 'Roe'
+            },
+            {
+                'id': 3,
+                'name': 'Joe',
+                'surname': 'Bloggs'
+            }
+        ]
+
+        # Not single
+        self.__db.query("""
+            CREATE TEMPORARY TABLE dogs (
+               owner_id INT NOT NULL,
+               dog_name VARCHAR NOT NULL
+            );
+            INSERT INTO dogs (owner_id, dog_name)
+            VALUES
+                (1, 'Bailey'), (1, 'Max'),
+                (2, 'Charlie'), (2, 'Bella'),
+                (3, 'Lucy'), (3, 'Molly');
+        """)
+
+        owners = [
+            {'owner_id': 1, 'owner_name': 'John'},
+            {'owner_id': 2, 'owner_name': 'Jane'},
+            {'owner_id': 3, 'owner_name': 'Joe'},
+        ]
+
+        owners_and_their_dogs = self.__db.attach_child_query(
+            data=owners,
+            child_query='SELECT owner_id, dog_name FROM dogs',
+            child_field='owned_dogs',
+            id_column='owner_id',
+            single=False
+        )
+
+        assert owners_and_their_dogs == [
+            {
+                'owner_id': 1,
+                'owner_name': 'John',
+                'owned_dogs': [
+                    {
+                        'dog_name': 'Bailey',
+                        'owner_id': 1
+                    },
+                    {
+                        'owner_id': 1,
+                        'dog_name': 'Max'
+                    }
+                ]
+            },
+            {
+                'owner_id': 2,
+                'owner_name': 'Jane',
+                'owned_dogs': [
+                    {
+                        'owner_id': 2,
+                        'dog_name': 'Charlie'
+                    },
+                    {
+                        'dog_name': 'Bella',
+                        'owner_id': 2
+                    }
+                ]
+            },
+            {
+                'owner_id': 3,
+                'owner_name': 'Joe',
+                'owned_dogs': [
+                    {
+                        'dog_name': 'Lucy',
+                        'owner_id': 3
+                    },
+                    {
+                        'owner_id': 3,
+                        'dog_name': 'Molly'
+                    }
+                ]
+            }
+        ]
+
+    def test_query_paged_hashes(self):
+
+        sql = """SELECT * FROM generate_series(1, 15) AS number"""
+        rows_per_page = 10
+
+        # First page
+        qph = self.__db.query_paged_hashes(query=sql, page=1, rows_per_page=rows_per_page)
+        hashes = qph.list()
+        pager = qph.pager()
+
+        assert len(hashes) == 10
+        assert hashes[0]['number'] == 1
+        assert hashes[9]['number'] == 10
+
+        assert pager.previous_page() is None
+        assert pager.next_page() == 2
+        assert pager.first() == 1
+        assert pager.last() == 10
+
+        # Last page
+        qph = self.__db.query_paged_hashes(query=sql, page=2, rows_per_page=rows_per_page)
+        hashes = qph.list()
+        pager = qph.pager()
+
+        assert len(hashes) == 5
+        assert hashes[0]['number'] == 11
+        assert hashes[4]['number'] == 15
+
+        assert pager.previous_page() == 1
+        assert pager.next_page() is None
+        assert pager.first() == 11
+        assert pager.last() == 15

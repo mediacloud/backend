@@ -504,7 +504,7 @@ EOF
         <<EOF,
         UPDATE media
         SET moderated = 't'
-        WHERE media_id  =?
+        WHERE media_id = ?
 EOF
         $media_id
     );

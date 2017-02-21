@@ -14,9 +14,8 @@ use MediaWords::DB;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use MediaWords::DB::Handler;
 use MediaWords::DBI::Downloads;
-use List::Uniq ':all';
+use List::MoreUtils qw(uniq);
 
 sub get_media_ids_to_update_by_rss_length_and_similarity
 {

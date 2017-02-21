@@ -56,7 +56,9 @@ sub list : Local
 
     $query .= " order by download_time desc";
 
-    my ( $downloads, $pager ) = $c->dbis->query_paged_hashes( $query, $p, $ROWS_PER_PAGE );
+    my $qph       = $c->dbis->query_paged_hashes( $query, $p, $ROWS_PER_PAGE );
+    my $downloads = $qph->list();
+    my $pager     = $qph->pager();
 
     for my $d ( @{ $downloads } )
     {

@@ -433,10 +433,10 @@ sub update_tag_set_permissions_json : Local
               . "  VALUES ( ?, ?, ?, ?, ?, ? )",
             $tag_set_permission->{ auth_users_id },
             $tag_set_permission->{ tag_sets_id },
-            $tag_set_permission->{ apply_tags },
-            $tag_set_permission->{ create_tags },
-            $tag_set_permission->{ edit_tag_descriptors },
-            $tag_set_permission->{ edit_tag_set_descriptors }
+            normalize_boolean_for_db( $tag_set_permission->{ apply_tags } ),
+            normalize_boolean_for_db( $tag_set_permission->{ create_tags } ),
+            normalize_boolean_for_db( $tag_set_permission->{ edit_tag_descriptors } ),
+            normalize_boolean_for_db( $tag_set_permission->{ edit_tag_set_descriptors } )
         );
     }
 

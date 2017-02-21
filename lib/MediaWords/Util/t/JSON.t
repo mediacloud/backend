@@ -4,7 +4,7 @@ use utf8;
 
 use Test::NoWarnings;
 use Readonly;
-use Test::More tests => 11;
+use Test::More tests => 10;
 use Test::Deep;
 use Data::Dumper;
 use Encode;
@@ -51,8 +51,6 @@ sub test_encode_decode_json()
     ok( $@, 'Trying to encode undefined JSON' );
     eval { MediaWords::Util::JSON::encode_json( "strings can't be encoded" ); };
     ok( $@, 'Trying to encode a string' );
-    eval { MediaWords::Util::JSON::encode_json( { 'foo' => JSON->new } ); };
-    ok( $@, 'Trying to encode an object' );
 
     eval { MediaWords::Util::JSON::decode_json( undef ); };
     ok( $@, 'Trying to decode undefined JSON' );

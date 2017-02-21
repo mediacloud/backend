@@ -10,6 +10,9 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Test::More tests => 2;
 
 use HTTP::HashServer;
@@ -17,7 +20,6 @@ use Readonly;
 
 use MediaWords::Crawler::Engine;
 use MediaWords::Test::DB;
-use Storable qw(dclone);
 
 Readonly my $HTTP_PORT => 8912;
 

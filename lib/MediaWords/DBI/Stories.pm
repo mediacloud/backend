@@ -26,6 +26,7 @@ use HTML::Entities;
 use List::Compare;
 use List::Util;
 
+use MediaWords::DB::StoryTriggers;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories::ExtractorVersion;
 use MediaWords::DBI::Stories::ExtractorArguments;
@@ -475,14 +476,15 @@ sub _update_story_disable_triggers
 {
     my ( $db, $story ) = @_;
 
-    my $config_disable_triggers = MediaWords::DB::story_triggers_disabled() ? 1 : 0;
+    my $config_disable_triggers = MediaWords::DB::StoryTriggers::story_triggers_disabled() ? 1 : 0;
     my $story_disable_triggers = $story->{ disable_triggers } ? 1 : 0;
 
     if ( $config_disable_triggers != $story_disable_triggers )
     {
+        my $allow_null = 1;
         $db->query(
             "UPDATE stories SET disable_triggers  = ? WHERE stories_id = ?",
-            MediaWords::DB::story_triggers_disabled(),
+            normalize_boolean_for_db( MediaWords::DB::StoryTriggers::story_triggers_disabled(), $allow_null ),
             $story->{ stories_id }
         );
     }
@@ -760,8 +762,15 @@ sub mark_as_processed($$)
     my ( $db, $stories_id ) = @_;
 
     eval {
-        $db->insert( 'processed_stories',
-            { stories_id => $stories_id, disable_triggers => MediaWords::DB::story_triggers_disabled() } );
+        my $allow_null = 1;
+        $db->insert(
+            'processed_stories',
+            {
+                stories_id => $stories_id,    #
+                disable_triggers =>
+                  normalize_boolean_for_db( MediaWords::DB::StoryTriggers::story_triggers_disabled(), $allow_null ),    #
+            }
+        );
     };
     if ( $@ )
     {
@@ -1188,12 +1197,12 @@ sub add_story($$$;$)
 
     unless ( defined $story->{ full_text_rss } )
     {
-        my $full_text_in_rss = ( $medium->{ full_text_rss } ) ? 1 : 0;
+        my $full_text_rss = $medium->{ full_text_rss };
         if ( defined( $story->{ description } ) and ( length( $story->{ description } ) == 0 ) )
         {
-            $full_text_in_rss = 0;
+            $full_text_rss = 0;
         }
-        $story->{ full_text_rss } = $full_text_in_rss;
+        $story->{ full_text_rss } = normalize_boolean_for_db( $full_text_rss );
     }
     else
     {

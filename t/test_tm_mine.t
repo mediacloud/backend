@@ -30,6 +30,7 @@ use Text::Lorem::More;
 use MediaWords::Job::TM::MineTopic;
 use MediaWords::TM::Mine;
 use MediaWords::Test::DB;
+use MediaWords::Test::Supervisor;
 use MediaWords::Util::Config;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Web;

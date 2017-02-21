@@ -9,7 +9,6 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 use MediaWords::Crawler::Download::Feed::Univision;
-use Storable qw(dclone);
 
 BEGIN
 {
@@ -163,7 +162,7 @@ sub test_univision($$$)
             my $db = shift;
 
             my $config     = MediaWords::Util::Config::get_config();
-            my $new_config = dclone( $config );
+            my $new_config = make_python_variable_writable( $config );
 
             # Inject Univision credentials into configuration
             $new_config->{ univision } = {};

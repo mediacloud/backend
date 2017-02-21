@@ -15,7 +15,6 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use MediaWords::DB::Handler;
 use MediaWords::DB;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;

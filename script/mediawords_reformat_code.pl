@@ -63,7 +63,8 @@ sub _tidy_with_perl_tidy($)
 {
     my $orig_files = shift;
 
-    my $perltidy_config_file = MediaWords::Util::Paths::mc_script_path() . '/mediawords_perltidy_config_file';
+    my $mc_root_path         = MediaWords::Util::Paths::mc_root_path();
+    my $perltidy_config_file = "$mc_root_path/script/mediawords_perltidy_config_file";
     my $stderr_string;
 
     TRACE "Using $perltidy_config_file";

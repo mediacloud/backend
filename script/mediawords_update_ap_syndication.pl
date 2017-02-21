@@ -68,7 +68,9 @@ sub update_stories
 {
     my ( $db, $updates ) = @_;
 
-    my $values_list = join( ',', map { "($_->{ stories_id }::int, $_->{ ap_syndicated }::boolean)" } @{ $updates } );
+    my $values_list = join( ',',
+        map { "($_->{ stories_id }::int, '" . normalize_boolean_for_db( $_->{ ap_syndicated } ) . "'::boolean)" }
+          @{ $updates } );
 
     $db->query( <<SQL );
 insert into stories_ap_syndicated (stories_id, ap_syndicated) values $values_list;

@@ -89,7 +89,8 @@ END
     {
         if ( $existing_seed_url->{ assume_match } != $csv_url->{ assume_match } )
         {
-            $db->query( <<END, $csv_url->{ assume_match }, $existing_seed_url->{ topic_seed_urls_id } );
+            $db->query(
+                <<END, normalize_boolean_for_db( $csv_url->{ assume_match } ), $existing_seed_url->{ topic_seed_urls_id } );
 update topic_seed_urls set assume_match = ? where topic_seed_urls_id = ?
 END
         }
@@ -101,7 +102,7 @@ END
         url          => $csv_url->{ url },
         topics_id    => $topic->{ topics_id },
         source       => $csv_url->{ source },
-        assume_match => $csv_url->{ assume_match },
+        assume_match => normalize_boolean_for_db( $csv_url->{ assume_match } ),
         content      => $csv_url->{ content },
         publish_date => $csv_url->{ publish_date },
         guid         => $csv_url->{ guid },

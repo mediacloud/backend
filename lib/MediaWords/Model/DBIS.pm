@@ -1,6 +1,6 @@
 package MediaWords::Model::DBIS;
 
-# custom MediaWords::DB::Handler based model for mediawords
+# custom MediaWords::DB::HandlerProxy based model for mediawords
 
 use strict;
 use warnings;
@@ -11,16 +11,6 @@ use MediaWords::CommonLibs;
 use base qw(Catalyst::Model);
 
 use MediaWords::DB;
-use MediaWords::DB::Handler;
-
-sub new
-{
-    my $self = shift->SUPER::new( @_ );
-
-    my @info = @{ $self->{ connect_info } || [] };
-
-    return $self;
-}
 
 # hand out a database connection.  reuse the last connection unless the request has changed
 # since the last call.
@@ -39,8 +29,11 @@ sub dbis
 
     # we put an eval and print the error here b/c the web auth dies silently on a database error
     eval {
-        # ->connect is smart enough to reuse current connection
-        $db = MediaWords::DB::Handler->connect( MediaWords::DB::connect_info );
+        $db = MediaWords::DB::connect_to_db();
+        unless ( $db )
+        {
+            die "Database handler is empty after an attempt to connect.";
+        }
 
         $self->{ dbis } = $db;
     };

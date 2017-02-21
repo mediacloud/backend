@@ -32,7 +32,7 @@ sub get_name_search_clause
 
     return 'and false' unless ( length( $v ) > 2 );
 
-    my $qv = $c->dbis->quote( $v );
+    my $qv = $c->dbis->quote( '%' . $v . '%' );
 
     return <<END;
 and tags_id in (
@@ -40,10 +40,10 @@ and tags_id in (
         from tags t
             join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
         where
-            t.tag ilike '%' || $qv || '%' or
-            t.label ilike '%' || $qv || '%' or
-            ts.name ilike '%' || $qv || '%' or
-            ts.label ilike '%' || $qv || '%'
+            t.tag ilike $qv or
+            t.label ilike $qv or
+            ts.name ilike $qv or
+            ts.label ilike $qv
 )
 END
 }
@@ -152,6 +152,11 @@ sub update_PUT
 
     my $input = { map { $_ => $data->{ $_ } } grep { exists( $data->{ $_ } ) } @{ $self->get_update_fields } };
 
+    my $allow_null = 1;
+    $input->{ show_on_media }   = normalize_boolean_for_db( $input->{ show_on_media },   $allow_null );
+    $input->{ show_on_stories } = normalize_boolean_for_db( $input->{ show_on_stories }, $allow_null );
+    $input->{ is_static }       = normalize_boolean_for_db( $input->{ is_static } );
+
     my $updated_tag = $c->dbis->update_by_id( 'tags', $data->{ tags_id }, $input );
 
     return $self->status_ok( $c, entity => { tag => $updated_tag } );
@@ -171,6 +176,11 @@ sub create_GET
 
     my $fields = [ 'tag_sets_id', @{ $self->get_update_fields } ];
     my $input = { map { $_ => $data->{ $_ } } grep { exists( $data->{ $_ } ) } @{ $fields } };
+
+    my $allow_null = 1;
+    $input->{ show_on_media }   = normalize_boolean_for_db( $input->{ show_on_media },   $allow_null );
+    $input->{ show_on_stories } = normalize_boolean_for_db( $input->{ show_on_stories }, $allow_null );
+    $input->{ is_static }       = normalize_boolean_for_db( $input->{ is_static } );
 
     my $created_tag = $c->dbis->create( 'tags', $input );
 

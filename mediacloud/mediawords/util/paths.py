@@ -3,7 +3,7 @@ import os
 import time
 
 from mediawords.util.log import create_logger
-from mediawords.util.perl import decode_string_from_bytes_if_needed
+from mediawords.util.perl import decode_object_from_bytes_if_needed
 
 l = create_logger(__name__)
 
@@ -16,7 +16,7 @@ class McRootPathException(Exception):
 
 def mc_root_path() -> str:
     """Return full path to Media Cloud root directory."""
-    # FIXME MC_REWRITE_TO_PYTHON: Inline::Python doesn't always set __file__
+    # MC_REWRITE_TO_PYTHON: Inline::Python doesn't always set __file__
     # properly, but chances are that we're running from Media Cloud root directory
     try:
         __file__
@@ -33,25 +33,10 @@ def mc_root_path() -> str:
     return root_path
 
 
-class McScriptPathException(Exception):
-    pass
-
-
-def mc_script_path() -> str:
-    """Return full path to Media Cloud 'script/' directory."""
-    # FIXME MC_REWRITE_TO_PYTHON: probably won't be needed after Perl rewrite
-    root_path = mc_root_path()
-    script_path = os.path.join(root_path, "script")
-    if not os.path.isdir(script_path):
-        raise McScriptPathException("Unable to determine Media Cloud script path (tried '%s')" % script_path)
-    l.debug("Script path is %s" % script_path)
-    return script_path
-
-
 def mkdir_p(path: str) -> None:
     """mkdir -p"""
 
-    path = decode_string_from_bytes_if_needed(path)
+    path = decode_object_from_bytes_if_needed(path)
 
     l.debug("Creating directory '%s'..." % path)
     try:
@@ -64,30 +49,40 @@ def mkdir_p(path: str) -> None:
     l.debug("Created directory '%s'." % path)
 
 
+class McResolveAbsolutePathUnderMcRootException(Exception):
+    pass
+
+
 def resolve_absolute_path_under_mc_root(path: str, must_exist: bool = False) -> str:
     """Return absolute path to object (file or directory) under Media Cloud root."""
 
-    path = decode_string_from_bytes_if_needed(path)
+    path = decode_object_from_bytes_if_needed(path)
 
     mc_root = mc_root_path()
     dist_path = os.path.join(mc_root, path)
     if must_exist:
         if not os.path.exists(dist_path):
-            raise Exception("Object '%s' at path '%s' does not exist." % (path, dist_path))
+            raise McResolveAbsolutePathUnderMcRootException(
+                "Object '%s' at path '%s' does not exist." % (path, dist_path)
+            )
     return os.path.abspath(dist_path)
+
+
+class McRelativeSymlinkException(Exception):
+    pass
 
 
 def relative_symlink(source: str, link_name: str) -> None:
     """Create symlink while also converting paths to relative ones by finding common prefix."""
 
-    source = decode_string_from_bytes_if_needed(source)
-    link_name = decode_string_from_bytes_if_needed(link_name)
+    source = decode_object_from_bytes_if_needed(source)
+    link_name = decode_object_from_bytes_if_needed(link_name)
 
     source = os.path.abspath(source)
     link_name = os.path.abspath(link_name)
 
     if not os.path.exists(source):
-        raise Exception("Symlink source does not exist at path: %s" % source)
+        raise McRelativeSymlinkException("Symlink source does not exist at path: %s" % source)
 
     rel_source = os.path.relpath(source, os.path.dirname(link_name))
 
@@ -98,7 +93,7 @@ def relative_symlink(source: str, link_name: str) -> None:
 def file_extension(filename: str) -> str:
     """Return file extension, e.g. ".zip" for "test.zip", or ".gz" for "test.tar.gz"."""
 
-    filename = decode_string_from_bytes_if_needed(filename)
+    filename = decode_object_from_bytes_if_needed(filename)
 
     basename = os.path.basename(filename)
     root, extension = os.path.splitext(basename)
@@ -113,7 +108,7 @@ def lock_file(path: str, timeout: int = None) -> None:
     """Create lock file."""
     # FIXME probably not thread-safe
 
-    path = decode_string_from_bytes_if_needed(path)
+    path = decode_object_from_bytes_if_needed(path)
 
     start_time = time.time()
     l.debug("Creating lock file '%s'..." % path)
@@ -143,7 +138,7 @@ def unlock_file(path: str) -> None:
     """Remove lock file."""
     # FIXME probably not thread-safe
 
-    path = decode_string_from_bytes_if_needed(path)
+    path = decode_object_from_bytes_if_needed(path)
 
     l.debug("Removing lock file '%s'..." % path)
     if not os.path.isfile(path):

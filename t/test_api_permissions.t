@@ -414,7 +414,7 @@ sub add_topic
         pattern         => $name,
         solr_seed_query => $name,
         description     => $name,
-        is_public       => $is_public ? 1 : 0,
+        is_public       => normalize_boolean_for_db( $is_public ),
         start_date      => '2017-01-01',
         end_date        => '2017-02-01',
     };
