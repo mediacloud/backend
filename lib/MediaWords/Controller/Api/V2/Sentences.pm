@@ -67,7 +67,7 @@ sub _get_stories_ids_temporary_table
     my $copy_from = $db->copy_from( "COPY $table_name FROM STDIN" );
     for my $ss ( @{ $sentences } )
     {
-        $copy_from->put_line( $ss->{ stories_id } );
+        $copy_from->put_line( $ss->{ stories_id } . '' );
     }
     $copy_from->end();
 
