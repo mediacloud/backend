@@ -38,7 +38,7 @@ class DatabaseResult(object):
 
         except psycopg2.Warning as ex:
             if print_warnings:
-                l.warn('Warning while running query: %s' % str(ex))
+                l.warning('Warning while running query: %s' % str(ex))
             else:
                 l.debug('Warning while running query: %s' % str(ex))
 

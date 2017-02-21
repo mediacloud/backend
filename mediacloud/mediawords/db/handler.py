@@ -631,7 +631,7 @@ class DatabaseHandler(object):
 
     def __set_in_transaction(self, in_transaction: bool) -> None:
         if self.__in_manual_transaction == in_transaction:
-            l.warn("Setting self.__in_manual_transaction to the same value (%s)" % str(in_transaction))
+            l.warning("Setting self.__in_manual_transaction to the same value (%s)" % str(in_transaction))
         self.__in_manual_transaction = in_transaction
 
     def begin(self) -> None:
@@ -657,7 +657,7 @@ class DatabaseHandler(object):
     def rollback(self) -> None:
         """Rollback a transaction."""
         if not self.in_transaction():
-            l.warn("Not in transaction, nothing to ROLLBACK.")
+            l.warning("Not in transaction, nothing to ROLLBACK.")
         else:
             self.query('ROLLBACK')
             self.__set_in_transaction(False)
