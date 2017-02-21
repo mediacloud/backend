@@ -46,7 +46,7 @@ sub get_detected_ap_stories_lookup
 {
     my ( $db, $stories ) = @_;
 
-    my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
+    my $ids_table = $db->get_temporary_ids_table( [ map { int( $_->{ stories_id } ) } @{ $stories } ] );
     my $detected_ap_stories_ids = MediaWords::Controller::Api::V2::StoriesBase::_get_ap_stories_ids( $db, $ids_table );
 
     my $detected_ap_lookup = {};

@@ -823,6 +823,8 @@ sub _get_media_type_stats_for_timespan
     my $stories_clause = '1=1';
     if ( $stories_ids )
     {
+        $stories_ids = [ map { int( $_ ) } @{ $stories_ids } ];
+
         my $ids_table = $db->get_temporary_ids_table( $stories_ids );
         $stories_clause = "s.stories_id in ( select id from $ids_table )";
     }
@@ -2365,6 +2367,8 @@ sub _get_partisan_link_metrics
     my $stories_clause = '1=1';
     if ( $stories_ids )
     {
+        $stories_ids = [ map { int( $_ ) } @{ $stories_ids } ];
+
         my $ids_table = $db->get_temporary_ids_table( $stories_ids );
         $stories_clause = "s.stories_id in ( select id from $ids_table )";
     }
@@ -2983,6 +2987,8 @@ sub _get_partisan_counts
     my $stories_clause = '1=1';
     if ( $stories_ids )
     {
+        $stories_ids = [ map { int( $_ ) } @{ $stories_ids } ];
+
         my $ids_table = $db->get_temporary_ids_table( $stories_ids );
         $stories_clause = "s.stories_id in ( select id from $ids_table )";
     }

@@ -28,7 +28,7 @@ select m.*, mtm.tags_id spidered_tags_id
     where
         m.url ilike ?
 END
-        '%' . $db->quote( $domain ) . '%'
+        $db->quote( '%' . $domain . '%' )
     )->hashes;
 
     my $nu = MediaWords::Util::URL::normalize_url_lossy( $url );

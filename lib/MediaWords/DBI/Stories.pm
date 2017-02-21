@@ -845,7 +845,7 @@ sub attach_story_meta_data_to_stories
 
     $db->begin;
 
-    my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
+    my $ids_table = $db->get_temporary_ids_table( [ map { int( $_->{ stories_id } ) } @{ $stories } ] );
 
     my $story_data = $db->query( <<END )->hashes;
 select s.stories_id, s.title, s.publish_date, s.url, s.guid, s.media_id, s.language, m.name media_name
@@ -1039,6 +1039,8 @@ sub _get_story_word_matrix_cursor($$$)
     my ( $db, $stories_ids, $sentence_separator ) = @_;
 
     my $cursor = 'story_text';
+
+    $stories_ids = [ map { int( $_ ) } @{ $stories_ids } ];
 
     my $ids_table = $db->get_temporary_ids_table( $stories_ids );
     $db->query( <<SQL, $sentence_separator );
