@@ -152,7 +152,7 @@ sub get_counts_from_solr_server
     my $data = MediaWords::Solr::query( $self->db, $solr_params );
 
     my $sentences_found = $data->{ response }->{ numFound };
-    my $ids = [ map { $_->{ $id_field } } @{ $data->{ response }->{ docs } } ];
+    my $ids = [ map { int( $_->{ $id_field } ) } @{ $data->{ response }->{ docs } } ];
 
     my $counts = $self->_get_counts( $ids, $field_definition );
 
