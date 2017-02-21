@@ -49,19 +49,19 @@ class DatabaseResult(object):
                     'query': str(query_args),
                 })
 
-        except IndexError as ex:
-            raise McDatabaseResultException(
-                'Invalid query (DBD::Pg -> psycopg2 query conversion?): %(exception)s; query: %(query)s' % {
-                    'exception': str(ex),
-                    'query': str(query_args),
-                })
-
         except psycopg2.Error as ex:
             raise McDatabaseResultException(
                 'Query failed: %(exception)s; query: %(query)s; mogrified query: %(mogrified_query)s' % {
                     'exception': str(ex),
                     'query': str(query_args),
                     'mogrified_query': str(cursor.mogrify(*query_args)),
+                })
+
+        except Exception as ex:
+            raise McDatabaseResultException(
+                'Invalid query (DBD::Pg -> psycopg2 query conversion?): %(exception)s; query: %(query)s' % {
+                    'exception': str(ex),
+                    'query': str(query_args),
                 })
 
         self.__cursor = cursor  # Cursor now holds results
