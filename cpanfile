@@ -31,7 +31,6 @@ requires 'Catalyst::Runtime', '5.90030';
 requires 'Catalyst::View::TT';
 requires 'CGI';
 requires 'CHI', '>= 0.60';
-requires 'Clone';
 requires 'Color::Mix';
 requires 'Crypt::SaltedHash';
 requires 'Data::Dumper';
