@@ -369,7 +369,7 @@ sub _get_sentences_from_solr_results($$)
 
     my $db = $self->db;
 
-    my $story_sentences_ids = [ map { $_->{ story_sentences_id } } @{ $solr_data->{ response }->{ docs } } ];
+    my $story_sentences_ids = [ map { int( $_->{ story_sentences_id } ) } @{ $solr_data->{ response }->{ docs } } ];
 
     my $ids_table = $db->get_temporary_ids_table( $story_sentences_ids );
 
