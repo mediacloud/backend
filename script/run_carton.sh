@@ -36,7 +36,7 @@ fi
 if [[ "$CARTON_VERSION" == cartonv0* ]]; then
     echo "You're using Carton version which is too old: '$CARTON_VERSION'" 1>&2
     echo "Run:" 1>&2
-    echo "    ./install_scripts/install_modules_outside_of_carton.sh" 1>&2
+    echo "    ./install/install_modules_outside_of_carton.sh" 1>&2
     echo "to upgrade Carton to the latest version (v1.0.0 or newer)." 1>&2
     exit 1
 fi

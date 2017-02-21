@@ -45,24 +45,24 @@ env:
         - MC_SKIP_RABBIT_OPEN_FILES_LIMIT_CHECK=1
 before_install:
     # Install APT packages (not PostgreSQL though)
-    - ./install_scripts/install_mediacloud_system_package_dependencies.sh
+    - ./install/install_mediacloud_system_package_dependencies.sh
     # Install Python dependencies
-    - travis_retry ./install_scripts/install_python_dependencies.sh
+    - travis_retry ./install/install_python_dependencies.sh
     # Set up kernel and PostgreSQL parameters
-    - ./install_scripts/set_kernel_parameters.sh
-    - ./install_scripts/set_postgresql_parameters.sh
+    - ./install/set_kernel_parameters.sh
+    - ./install/set_postgresql_parameters.sh
     # Create + switch to the Media Cloud's Perlbrew library
     - perlbrew lib create mediacloud
     - perlbrew switch @mediacloud
     # Set up Perl and module dependencies (dependencies might be restored from
     # cache into "local/" already in which case we just check if Carton is
     # happy with the current setup)
-    - ./install_scripts/install_mc_perlbrew_and_modules.sh
+    - ./install/install_mc_perlbrew_and_modules.sh
 install:
     # Use default configuration
     - cp mediawords.yml.dist mediawords.yml
     # Create PostgreSQL database
-    - ./install_scripts/create_default_db_user_and_databases.sh
+    - ./install/create_default_db_user_and_databases.sh
 before_script:
     # Initialize PostgreSQL database
     - ./script/run_with_carton.sh ./script/mediawords_create_db.pl

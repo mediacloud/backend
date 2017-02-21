@@ -4,7 +4,7 @@ set -u
 set -o errexit
 
 PWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$PWD/install_scripts/set_mc_root_dir.inc.sh"
+source "$PWD/install/set_mc_root_dir.inc.sh"
 
 cd "$MC_ROOT_DIR"
 
@@ -18,18 +18,18 @@ if [ ! -f mediawords.yml ]; then
     cp mediawords.yml.dist mediawords.yml
 fi
 
-./install_scripts/install_mediacloud_package_dependencies.sh
-./install_scripts/install_python_dependencies.sh
-./install_scripts/set_kernel_parameters.sh
-./install_scripts/set_postgresql_parameters.sh
-./install_scripts/install_mc_perlbrew_and_modules.sh
+./install/install_mediacloud_package_dependencies.sh
+./install/install_python_dependencies.sh
+./install/set_kernel_parameters.sh
+./install/set_postgresql_parameters.sh
+./install/install_mc_perlbrew_and_modules.sh
 
 echo "install complete"
 echo "creating new database"
 
 # "create_default_db_user_and_databases.sh" uses configuration mediawords.yml
 # so it needs a working Carton environment
-sudo ./install_scripts/create_default_db_user_and_databases.sh
+sudo ./install/create_default_db_user_and_databases.sh
 ./script/run_with_carton.sh ./script/mediawords_create_db.pl
 
 echo "creating new user 'jdoe@mediacloud.org' with password 'mediacloud'"
@@ -42,7 +42,7 @@ echo "creating new user 'jdoe@mediacloud.org' with password 'mediacloud'"
     --password="mediacloud"
 
 echo "Setting up Git pre-commit hooks..."
-./install_scripts/setup_git_precommit_hooks.sh
+./install/setup_git_precommit_hooks.sh
 
 echo "Media Cloud install succeeded!!!!"
 echo "See doc/ for more information on using Media Cloud"
