@@ -1,5 +1,6 @@
 import itertools
 import pprint
+import re
 from typing import Dict, List
 
 import psycopg2
@@ -42,6 +43,15 @@ class DatabaseResult(object):
                 # '%' to be duplicated ('%%'). To unify the behavior, we always pass a parameter (even if it's empty)
                 # to execute().
                 query_args = (query_args[0], {},)
+
+            # Duplicate '%' everywhere except for psycopg2 parameter placeholders ('%s' and '%(...)s')
+            query = query_args[0]
+
+            query = re.sub('%(?!(s|\(.+?\)s))', '%%', query)
+
+            query_args_list = list(query_args)
+            query_args_list[0] = query
+            query_args = tuple(query_args_list)
 
             cursor.execute(*query_args)
 
