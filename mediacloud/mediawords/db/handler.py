@@ -316,7 +316,10 @@ class DatabaseHandler(object):
         large_work_mem = self.__get_large_work_mem()
         old_work_mem = self.__get_current_work_mem()
 
-        self.__set_work_mem(large_work_mem)
+        if large_work_mem is not None:
+            self.__set_work_mem(large_work_mem)
+        else:
+            l.warning("Large work memory is unset, using default 'work_mem'")
 
         exception = None
         try:
