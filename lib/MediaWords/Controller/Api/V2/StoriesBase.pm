@@ -65,7 +65,7 @@ sub _add_raw_1st_download
     my ( $db, $stories ) = @_;
 
     $db->begin;
-    my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
+    my $ids_table = $db->get_temporary_ids_table( [ map { int( $_->{ stories_id } ) } @{ $stories } ] );
 
     my $downloads = $db->query( <<END )->hashes;
 select d.*
@@ -228,7 +228,7 @@ sub _add_nested_data
 
     return unless ( scalar @{ $stories } );
 
-    my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
+    my $ids_table = $db->get_temporary_ids_table( [ map { int( $_->{ stories_id } ) } @{ $stories } ] );
 
     if ( $self->{ show_text } )
     {
@@ -402,6 +402,8 @@ sub _fetch_list($$$$$$)
     my $db = $c->dbis;
 
     $db->begin;
+
+    $ps_ids = [ map { int( $_ ) } @{ $ps_ids } ];
 
     DEBUG( "ps_ids: " . scalar( @{ $ps_ids } ) );
 

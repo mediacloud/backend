@@ -111,6 +111,8 @@ sub _get_counts
 
     my $tag_set_clause = $self->tag_sets_id ? "and t.tag_sets_id = " . ( $self->tag_sets_id + 0 ) : '';
 
+    $ids = [ map { int( $_ ) } @{ $ids } ];
+
     my $ids_table = $self->db->get_temporary_ids_table( $ids );
 
     my $counts = $self->db->query( <<SQL )->hashes;

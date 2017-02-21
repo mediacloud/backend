@@ -113,7 +113,7 @@ sub _generate_story_tag_data
 
     $db->begin;
 
-    my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
+    my $ids_table = $db->get_temporary_ids_table( [ map { int( $_->{ stories_id } ) } @{ $stories } ] );
 
     my $story_tags = $db->query( <<END )->hashes;
 with itm as (
@@ -320,7 +320,7 @@ sub _attach_bitly_clicks_to_stories($$)
 {
     my ( $db, $stories ) = @_;
 
-    my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
+    my $ids_table = $db->get_temporary_ids_table( [ map { int( $_->{ stories_id } ) } @{ $stories } ] );
 
     my $bitly_clicks = $db->query( <<SQL )->hashes;
 select ids.id stories_id, coalesce( click_count::text, 'NA' ) bitly_clicks
