@@ -1197,6 +1197,29 @@ sub layout_gexf_with_graphviz_1
     scale_gexf_nodes( $gexf );
 }
 
+# get a descirption for the gexf file export
+sub _get_gexf_description($$)
+{
+    my ( $db, $timespan ) = @_;
+
+    my $topic = $db->query( <<SQL, $timespan->{ snapshots_id } )->hash;
+select * from topics t join snapshots s using ( topics_id ) where snapshots_id = ?
+SQL
+
+    my $description = <<END;
+Media Cloud topic map of $topic->{ name } for $timespan->{ period } timespan
+from $timespan->{ start_date } to $timespan->{ end_date }
+END
+
+    if ( $timespan->{ foci_id } )
+    {
+        my $focus = $db->require_by_id( 'foci', $timespan->{ foci_id } );
+        $description .= "for $focus->{ name } focus";
+    }
+
+    return $description;
+}
+
 =head2 get_gexf_snapshot( $db, $timespan, $options )
 
 Get a gexf snapshot of the graph described by the linked media sources within the given topic timespan.
@@ -1250,10 +1273,8 @@ END
 
     push( @{ $meta->{ creator } }, 'Berkman Center' );
 
-    my $topic = $timespan->{ snapshot }->{ topic }
-      || $db->find_by_id( 'topics', $timespan->{ snapshot }->{ topics_id } );
-
-    push( @{ $meta->{ description } }, "Media discussions of $topic->{ name }" );
+    my $description = _get_gexf_description( $db, $timespan );
+    push( @{ $meta->{ description } }, $description );
 
     my $graph = {
         'mode'            => "static",
