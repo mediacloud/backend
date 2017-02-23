@@ -1997,6 +1997,7 @@ update topic_links tl set ref_stories_id = null
     from stories s
     where
         tl.ref_stories_id = s.stories_id and
+        tl.topics_id = ? and
         s.media_id in ( $media_ids_list )
 SQL
 
