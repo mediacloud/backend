@@ -178,7 +178,7 @@ sub main
 
             my $response = $ua->get( $request->{ url } );
 
-            $response = MediaWords::Util::Web::get_meta_refresh_response( $response, $request );
+            $response = MediaWords::Util::Web::get_meta_redirect_response( $response, $request->{ url } );
 
             INFO "got [$i/$block_size/$total]: $request->{ url }";
 

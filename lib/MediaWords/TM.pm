@@ -44,7 +44,7 @@ sub get_latest_overall_timespan
     my ( $db, $topics_id ) = @_;
 
     my $timespan = $db->query( <<SQL, $topics_id )->hash;
-select *
+select timespan.*, snap.topics_id
    from timespans timespan
        join snapshots snap on ( snap.snapshots_id = timespan.snapshots_id )
    where
@@ -61,11 +61,11 @@ sub _get_timespan
     my ( $db, $timespans_id ) = @_;
 
     my $timespan = $db->query( <<SQL, $timespans_id )->hash;
-select *, snap.topics_id
-from timespans timespan
-join snapshots snap on (snap.snapshots_id = timespan.snapshots_id)
-where
-  timespan.timespans_id = \$1
+select timespan.*, snap.topics_id
+    from timespans timespan
+        join snapshots snap on (snap.snapshots_id = timespan.snapshots_id)
+    where
+        timespan.timespans_id = \$1
 SQL
     unless ( $timespan )
     {
@@ -78,7 +78,7 @@ sub _get_overall_timespan_from_snapshot
     my ( $db, $snapshot ) = @_;
 
     my $timespan = $db->query( <<SQL, $snapshot )->hash;
-select *, snap.topics_id
+select timespan.*, snap.topics_id
   from timespans timespan
   join snapshots snap on (snap.snapshots_id = timespan.snapshots_id)
   where
@@ -96,7 +96,7 @@ sub _get_latest_overall_timespan_from_topic
 {
     my ( $db, $topics_id ) = @_;
     my $timespan = $db->query( <<SQL, $topics_id )->hash;
-select *, snap.topics_id
+select timespan.*, snap.topics_id
   from timespans timespan
   join snapshots snap on (snap.snapshots_id = timespan.snapshots_id)
   where
