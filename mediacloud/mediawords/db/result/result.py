@@ -47,7 +47,7 @@ class DatabaseResult(object):
             # Duplicate '%' everywhere except for psycopg2 parameter placeholders ('%s' and '%(...)s')
             query = query_args[0]
 
-            query = re.sub('%(?!(s|\(.+?\)s))', '%%', query)
+            query = re.sub('%(?!(s|\(.*?\)s?))', '%%', query)
 
             query_args_list = list(query_args)
             query_args_list[0] = query
