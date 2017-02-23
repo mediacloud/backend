@@ -67,13 +67,15 @@ sub main
 
     if ( scalar( @{ $download_ids } ) )
     {
+        $download_ids = [ map { int( $_ ) } @{ $download_ids } ];
+
         my $ids = $db->get_temporary_ids_table( $download_ids );
         $stories_ids = $db->query( "SELECT stories_id from downloads where downloads_id in ( select id from $ids )" )->flat;
     }
     elsif ( $file )
     {
         open( DOWNLOAD_ID_FILE, $file ) || die( "Could not open file: $file" );
-        $download_ids = [ map { chomp( $_ ); $_ } <DOWNLOAD_ID_FILE> ];
+        $download_ids = [ map { chomp( $_ ); int( $_ ) } <DOWNLOAD_ID_FILE> ];
         my $ids = $db->get_temporary_ids_table( $download_ids );
         $stories_ids = $db->query( "SELECT stories_id from downloads where downloads_id in ( select id from $ids )" )->flat;
     }

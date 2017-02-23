@@ -170,7 +170,7 @@ else
 
     if ! max_fd_limit_is_big_enough; then
         log "Open file limit is less than $MIN_OPEN_FILES_LIMIT."
-        log "Please rerun ./install_scripts/set_kernel_parameters.sh"
+        log "Please rerun ./install/set_kernel_parameters.sh"
         exit 1
     fi
 fi

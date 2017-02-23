@@ -163,7 +163,7 @@ $db->query("
 
 ```perl
 # GOOD!
-my $pattern = '%' . $db->quote('word') . '%';
+my $pattern = $db->quote('%' . 'word' . '%');
 $db->query( "
     SELECT *
     FROM foo

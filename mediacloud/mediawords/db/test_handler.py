@@ -111,7 +111,7 @@ class TestDatabaseHandler(TestCase):
         # Bad query
         assert_raises(McDatabaseResultException, self.__db.query, "Badger badger badger badger")
 
-    def test_query_percentage_sign(self):
+    def test_query_percentage_sign_like(self):
 
         # LIKE with no psycopg2's arguments
         row = self.__db.query("SELECT * FROM kardashians WHERE name LIKE 'Khlo%'", )
@@ -131,6 +131,123 @@ class TestDatabaseHandler(TestCase):
         row_hash = row.hash()
         assert row_hash['name'] == 'Khloé'
         assert row_hash['surname'] == 'Kardashian'
+
+    def test_query_percentage_sign_quote_no_params(self):
+
+        # Quoted string with '%'
+        inserted_name = 'Lamar 100%'
+        inserted_surname = 'Odom 1000%'
+        inserted_dob = '1979-11-06'
+
+        quoted_name = self.__db.quote(inserted_name)
+        quoted_surname = self.__db.quote(inserted_surname)
+        quoted_dob = self.__db.quote(inserted_dob)
+
+        query = "INSERT INTO kardashians (name, surname, dob) VALUES (%(name)s, %(surname)s, %(dob)s)" % {
+            # Python interpolation
+            'name': quoted_name,
+            'surname': quoted_surname,
+            'dob': quoted_dob,
+        }
+
+        self.__db.query(query)
+
+        lamar = self.__db.query("SELECT * FROM kardashians WHERE name LIKE 'Lamar 100%%'").hash()
+        assert lamar is not None
+        assert lamar['name'] == inserted_name
+        assert lamar['surname'] == inserted_surname
+
+    def test_query_percentage_sign_quote_tuple_params(self):
+
+        # Quoted string with '%' and tuple parameters
+        inserted_name = 'Lamar 100%'
+        inserted_surname = 'Odom 1000%'
+        inserted_dob = '1979-11-06'
+
+        quoted_name = self.__db.quote(inserted_name)
+        quoted_surname = self.__db.quote(inserted_surname)
+
+        query = "INSERT INTO kardashians (name, surname, dob) VALUES (%(name)s, %(surname)s" % {
+            # Python interpolation
+            'name': quoted_name,
+            'surname': quoted_surname,
+        }
+
+        self.__db.query(query + ", %s)", (inserted_dob,))
+
+        lamar = self.__db.query("SELECT * FROM kardashians WHERE name LIKE 'Lamar 100%%'").hash()
+        assert lamar is not None
+        assert lamar['name'] == inserted_name
+        assert lamar['surname'] == inserted_surname
+
+    def test_query_percentage_sign_quote_dict_params(self):
+
+        # Quoted string with '%' and dictionary parameters
+        inserted_name = 'Lamar 100%'
+        inserted_surname = 'Odom 1000%'
+        inserted_dob = '1979-11-06'
+
+        quoted_name = self.__db.quote(inserted_name)
+        quoted_surname = self.__db.quote(inserted_surname)
+
+        query = "INSERT INTO kardashians (name, surname, dob) VALUES (%(name)s, %(surname)s" % {
+            # Python interpolation
+            'name': quoted_name,
+            'surname': quoted_surname,
+        }
+
+        self.__db.query(query + ", %(dob)s)", {'dob': inserted_dob})
+
+        lamar = self.__db.query("SELECT * FROM kardashians WHERE name LIKE 'Lamar 100%%'").hash()
+        assert lamar is not None
+        assert lamar['name'] == inserted_name
+        assert lamar['surname'] == inserted_surname
+
+    def test_query_percentage_sign_quote_dbd_pg_params(self):
+
+        # Quoted string with '%' and DBD::Pg parameters
+        inserted_name = 'Lamar 100%'
+        inserted_surname = 'Odom 1000%'
+        inserted_dob = '1979-11-06'
+
+        quoted_name = self.__db.quote(inserted_name)
+        quoted_surname = self.__db.quote(inserted_surname)
+
+        query = "INSERT INTO kardashians (name, surname, dob) VALUES (%(name)s, %(surname)s" % {
+            # Python interpolation
+            'name': quoted_name,
+            'surname': quoted_surname,
+        }
+
+        self.__db.query(query + ", ?)", inserted_dob)
+
+        lamar = self.__db.query("SELECT * FROM kardashians WHERE name LIKE 'Lamar 100%%'").hash()
+        assert lamar is not None
+        assert lamar['name'] == inserted_name
+        assert lamar['surname'] == inserted_surname
+
+    def test_query_percentage_sign_quote_psycopg2_param_lookalikes(self):
+
+        # Quoted string with '%' and DBD::Pg parameters
+        inserted_name = 'Lamar %(foo)s'
+        inserted_surname = 'Odom %s'
+        inserted_dob = '1979-11-06'
+
+        quoted_name = self.__db.quote(inserted_name)
+        quoted_surname = self.__db.quote(inserted_surname)
+
+        query = "INSERT INTO kardashians (name, surname, dob) VALUES (%(name)s, %(surname)s" % {
+            # Python interpolation
+            'name': quoted_name,
+            'surname': quoted_surname,
+        }
+
+        self.__db.query(query + ", ?)", inserted_dob)
+
+        lamar = self.__db.query("SELECT * FROM kardashians WHERE name LIKE 'Lamar%'").hash()
+        assert lamar is not None
+        assert lamar['name'] == 'Lamar % (foo)s'
+        assert lamar['surname'] == 'Odom % s'
 
     def test_query_result_columns(self):
         columns = self.__db.query("SELECT * FROM kardashians").columns()
@@ -266,6 +383,20 @@ class TestDatabaseHandler(TestCase):
 
         config['mediawords']['large_work_mem'] = old_large_work_mem
         py_set_config(config)
+
+    def test_execute_with_large_work_mem_params(self):
+
+        # psycopg2 style
+        self.__db.execute_with_large_work_mem("""
+            INSERT INTO kardashians (name, surname, dob)
+            VALUES (%(name)s, %(surname)s, %(dob)s)
+        """, {'name': 'Lamar', 'surname': 'Odom', 'dob': '1979-11-06'})
+
+        # DBD::Pg
+        self.__db.execute_with_large_work_mem("""
+            INSERT INTO kardashians (name, surname, dob)
+            VALUES (?, ?, ?)
+        """, 'Lamar-2', 'Odom-2', '1979-11-06')
 
     def test_run_block_with_large_work_mem(self):
         normal_work_mem = 256  # MB
@@ -472,6 +603,10 @@ class TestDatabaseHandler(TestCase):
         assert self.__db.quote(3.4528) == "3.4528"
         assert self.__db.quote(True) == "true"
         assert self.__db.quote(False) == "false"
+
+        # Doubling the psycopg2 parameter percentage signs
+        assert self.__db.quote("%s") == "'% s'"
+        assert self.__db.quote("%(param_1)s") == "'% (param_1)s'"
 
     def test_copy_from(self):
         copy = self.__db.copy_from(sql="COPY kardashians (name, surname, dob, married_to_kanye) FROM STDIN WITH CSV")

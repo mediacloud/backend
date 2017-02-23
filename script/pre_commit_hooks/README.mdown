@@ -14,7 +14,7 @@ Attaching pre-commit hooks to a Git's local copy
 
 To automatically install Media Cloud's pre-commit hooks, run:
 
-    ./install_scripts/setup_git_precommit_hooks.sh
+    ./install/setup_git_precommit_hooks.sh
 
 `./install.sh` script will do it for you.
 

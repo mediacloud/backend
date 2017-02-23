@@ -30,10 +30,10 @@ If this script runs successfully, skip to the [Post Install](#post-install) sect
 
 We recommend that you read through this entire file. Nevertheless most users will be able to simply run the following commands from the Media Cloud root directory:
 
-    sudo ./install_scripts/install_mediacloud_package_dependencies.sh
-    sudo ./install_scripts/create_default_db_user_and_databases.sh 
+    sudo ./install/install_mediacloud_package_dependencies.sh
+    sudo ./install/create_default_db_user_and_databases.sh 
     cp mediawords.yml.dist mediawords.yml
-    ./install_scripts/install_mc_perlbrew_and_modules.sh
+    ./install/install_mc_perlbrew_and_modules.sh
     ./script/run_carton.sh exec prove -Ilib/ -r t/compile.t
     ./script/run_with_carton.sh ./script/mediawords_create_db.pl
     ./script/run_with_carton.sh ./script/mediawords_manage_users.pl \
@@ -51,13 +51,13 @@ After you have successfully run the above commands, skip to the POST INSTALL sec
 
 1. Install the necessary Ubuntu deb packages. From the Media Cloud root directory, run:
 
-        sudo ./install_scripts/install_mediacloud_package_dependencies.sh
+        sudo ./install/install_mediacloud_package_dependencies.sh
 
     This will install PostgreSQL 9.1+ and a number of system libraries needed by CPAN modules.
 
 2. Create the default PostgreSQL user and databases for Media Cloud. From the Media Cloud root directory, run:
 
-        sudo ./install_scripts/create_default_db_user_and_databases.sh 
+        sudo ./install/create_default_db_user_and_databases.sh 
 
     This will create a PostgreSQL user called `mediaclouduser` and two databases owned by this user: `mediacloud` and `mediacloud_test`.
 
@@ -70,9 +70,9 @@ After you have successfully run the above commands, skip to the POST INSTALL sec
 5. *Optional:* Edit the other sections of `mediawords.yml` to suit your local configuration.  
 Note that if you uncomment a suboption, you also need to uncomment the parent option.  For example, if you uncomment `db_statement_timeout`, you should also uncomment `mediawords`.
 
-6. Run the `./install_scripts/install_mc_perlbrew_and_modules.sh` script. This scripts installs Perlbrew, carton and the required modules. Simply `cd` to the base directory of Media Cloud and run the following. Note that the script will take a long time to complete:
+6. Run the `./install/install_mc_perlbrew_and_modules.sh` script. This scripts installs Perlbrew, carton and the required modules. Simply `cd` to the base directory of Media Cloud and run the following. Note that the script will take a long time to complete:
 
-        ./install_scripts/install_mc_perlbrew_and_modules.sh
+        ./install/install_mc_perlbrew_and_modules.sh
 
 7. *Recommended:* Verify that the necessary modules are installed. Run the Media Cloud compile test to verify that all required modules have been installed:
 

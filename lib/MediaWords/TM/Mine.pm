@@ -424,7 +424,7 @@ sub generate_topic_links
 
     insert_topic_links( $db, $topic_links );
 
-    my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
+    my $ids_table = $db->get_temporary_ids_table( [ map { int( $_->{ stories_id } ) } @{ $stories } ] );
 
     $db->query( <<SQL );
 update topic_stories set link_mined = true
@@ -1649,7 +1649,7 @@ sub filter_and_attach_downloads_to_extract_stories($$)
 {
     my ( $db, $stories ) = @_;
 
-    my $stories_ids = [ map { $_->{ stories_id } } @{ $stories } ];
+    my $stories_ids = [ map { int( $_->{ stories_id } ) } @{ $stories } ];
 
     my $ids_table = $db->get_temporary_ids_table( $stories_ids );
 

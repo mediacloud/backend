@@ -1,5 +1,6 @@
 import itertools
 import pprint
+import re
 from typing import Dict, List
 
 import psycopg2
@@ -34,11 +35,29 @@ class DatabaseResult(object):
             raise McDatabaseResultException('Query is empty or undefined.')
 
         try:
+
+            if len(query_args) == 1:
+                # If only a query without any parameters (tuple or dictionary) are passed, psycopg2 is happy to operate
+                # on a single literal '%' because it doesn't even try to do its own interpolation. However, with some
+                # parameters present (e.g. a dictionary) psycopg2 then tries to do the interpolation and expects literal
+                # '%' to be duplicated ('%%'). To unify the behavior, we always pass a parameter (even if it's empty)
+                # to execute().
+                query_args = (query_args[0], {},)
+
+            # Duplicate '%' everywhere except for psycopg2 parameter placeholders ('%s' and '%(...)s')
+            query = query_args[0]
+
+            query = re.sub('%(?!(s|\(.+?\)s))', '%%', query)
+
+            query_args_list = list(query_args)
+            query_args_list[0] = query
+            query_args = tuple(query_args_list)
+
             cursor.execute(*query_args)
 
         except psycopg2.Warning as ex:
             if print_warnings:
-                l.warn('Warning while running query: %s' % str(ex))
+                l.warning('Warning while running query: %s' % str(ex))
             else:
                 l.debug('Warning while running query: %s' % str(ex))
 
@@ -49,19 +68,30 @@ class DatabaseResult(object):
                     'query': str(query_args),
                 })
 
-        except IndexError as ex:
+        except psycopg2.Error as ex:
+
+            try:
+                mogrified_query = cursor.mogrify(*query_args)
+            except Exception as ex:
+                # Can't mogrify
+                raise McDatabaseResultException(
+                    'Query failed: %(exception)s; query: %(query)s' % {
+                        'exception': str(ex),
+                        'query': str(query_args),
+                    })
+            else:
+                raise McDatabaseResultException(
+                    'Query failed: %(exception)s; query: %(query)s; mogrified query: %(mogrified_query)s' % {
+                        'exception': str(ex),
+                        'query': str(query_args),
+                        'mogrified_query': str(mogrified_query),
+                    })
+
+        except Exception as ex:
             raise McDatabaseResultException(
                 'Invalid query (DBD::Pg -> psycopg2 query conversion?): %(exception)s; query: %(query)s' % {
                     'exception': str(ex),
                     'query': str(query_args),
-                })
-
-        except psycopg2.Error as ex:
-            raise McDatabaseResultException(
-                'Query failed: %(exception)s; query: %(query)s; mogrified query: %(mogrified_query)s' % {
-                    'exception': str(ex),
-                    'query': str(query_args),
-                    'mogrified_query': str(cursor.mogrify(*query_args)),
                 })
 
         self.__cursor = cursor  # Cursor now holds results

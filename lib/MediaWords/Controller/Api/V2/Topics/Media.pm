@@ -27,7 +27,7 @@ __PACKAGE__->config(
 sub apibase : Chained('/') : PathPart('api/v2/topics') : CaptureArgs(1)
 {
     my ( $self, $c, $topics_id ) = @_;
-    $c->stash->{ topics_id } = $topics_id;
+    $c->stash->{ topics_id } = int( $topics_id );
 }
 
 sub media : Chained('apibase') : PathPart('media') : CaptureArgs(0)
@@ -135,7 +135,7 @@ sub map_GET
 
     my $db = $c->dbis;
 
-    my $topic = $db->require_by_id( 'topics', $c->stash->{ topics_id } );
+    my $topic = $db->require_by_id( 'topics', int( $c->stash->{ topics_id } ) );
 
     MediaWords::TM::Snapshot::setup_temporary_snapshot_tables( $db, $timespan, $topic );
 

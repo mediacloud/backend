@@ -67,7 +67,7 @@ sub _get_stories_ids_temporary_table
     my $copy_from = $db->copy_from( "COPY $table_name FROM STDIN" );
     for my $ss ( @{ $sentences } )
     {
-        $copy_from->put_line( $ss->{ stories_id } );
+        $copy_from->put_line( $ss->{ stories_id } . '' );
     }
     $copy_from->end();
 
@@ -95,7 +95,7 @@ END
     my $story_lookup = {};
     map { $story_lookup->{ $_->{ stories_id } } = $_ } @{ $stories };
 
-    my $story_sentences_ids = [ map { $_->{ story_sentences_id } } @{ $sentences } ];
+    my $story_sentences_ids = [ map { int( $_->{ story_sentences_id } ) } @{ $sentences } ];
     my $temp_ss_ids         = $db->get_temporary_ids_table( $story_sentences_ids );
     my $story_sentences     = $db->query( <<SQL )->hashes;
 select story_sentences_id, sentence from story_sentences where story_sentences_id in ( select id from $temp_ss_ids )

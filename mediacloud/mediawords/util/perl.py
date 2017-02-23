@@ -60,31 +60,6 @@ class McConvertDBDPgArgumentsToPsycopg2FormatException(Exception):
 def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, tuple], skip_decoding=False) -> tuple:
     """Convert DBD::Pg's question mark-style SQL query parameters to psycopg2's syntax."""
 
-    def __duplicate_percentage_sign(q: str) -> str:
-        """Duplicate percentage sign in "LIKE '%'" statements."""
-
-        # "When parameters are used, in order to include a literal % in the query you can use the %% string."
-        #
-        # MC_REWRITE_TO_PYTHON: both psycopg2 and DBD::Pg queries get their %'s doubled here; this is usually not a
-        # big deal ("LIKE 'Abc%'" and "LIKE 'Abc%%'" work the same), but after converting queries to psycopg2's syntax,
-        # this helper should be removed.
-
-        def __duplicate_percentage_sign_internal(match):
-            result = match.group(1).replace('%', '%%')
-            return result
-
-        q = re.sub("""
-            (   # Group the whole "LIKE '...%'" to be later used in __double_percentage_sign()
-                \s+                         # Some space before LIKE
-                (LIKE|ILIKE|SIMILAR\s+TO)   # LIKE / ILIKE / SIMILAR TO
-                \s+                         # Some space after LIKE
-                '.+?[^']'                   # 'like pattern%'
-                ([^']|$)                    # Next character is neither not "'" or end of file
-            )
-        """, __duplicate_percentage_sign_internal, q, flags=re.I | re.X)
-
-        return q
-
     def __replace_double_question_marks_or_return_none(q: str, q_args: list) -> Union[tuple, None]:
         """Replace "??" parameters with psycopg2's "%s" and tuple parameter, or return None if not found."""
 
@@ -195,9 +170,6 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
         query_args = decode_object_from_bytes_if_needed(query_args)
 
     l.debug("Query to convert: %s; with arguments: %s" % (query, query_args))
-
-    # Duplicate "%" in "LIKE" for psycopg2 to understand it
-    query = __duplicate_percentage_sign(q=query)
 
     # If there are no query parameters, there's nothing more to do
     if len(query_args) == 0:
