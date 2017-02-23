@@ -702,9 +702,13 @@ class DatabaseHandler(object):
             # Maybe overly paranoid, but better than returning random stuff for a string that will go into the database
             raise McQuoteException("Quoted value is not 'str' after quoting '%s'" % quoted_obj)
 
-        # Add space after percentage signs which look like psycopg2's parameter placeholders ('%s', '%(param_1)s')
+        # Add space after percentage signs which look like psycopg2's parameter placeholders ('%s', '%(param_1)s').
+        #
+        # Be rather harsh about it because psycopg2 interpolates pretty much any '%(' it can find (which might happen
+        # in binary files that somehow get treated as text).
+        #
         # FIXME pretty much a bug
-        quoted_value = re.sub('%(?=(s|\(.*?\)s?))', '% ', quoted_value)
+        quoted_value = re.sub('%(?=(s|\(.*?\)?s?))', '% ', quoted_value)
 
         return quoted_value
 
