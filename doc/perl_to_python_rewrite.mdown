@@ -159,11 +159,23 @@ $db->query("
 ");
 ```
 
-...so pass the `LIKE` pattern string as a parameter:
+...so, concatenate and `quote()` the `LIKE` pattern beforehand:
+
+```perl
+# MEH.
+my $quoted_pattern = $db->quote( '%' . 'word' . '%' );
+$db->query( "
+    SELECT *
+    FROM foo
+    WHERE bar LIKE $quoted_pattern
+");
+```
+
+...or (even better!) pass the `LIKE` pattern as a parameter:
 
 ```perl
 # GOOD!
-my $pattern = $db->quote('%' . 'word' . '%');
+my $pattern = '%' . 'word' . '%';
 $db->query( "
     SELECT *
     FROM foo
