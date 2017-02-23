@@ -249,6 +249,52 @@ class TestDatabaseHandler(TestCase):
         assert lamar['name'] == 'Lamar % (foo)s'
         assert lamar['surname'] == 'Odom % s'
 
+    def test_query_percentage_sign_quote_psycopg2_param_lookalikes_empty_name(self):
+
+        # Quoted string with '%' and DBD::Pg parameters
+        inserted_name = 'Lamar %()s'
+        inserted_surname = 'Odom %s'
+        inserted_dob = '1979-11-06'
+
+        quoted_name = self.__db.quote(inserted_name)
+        quoted_surname = self.__db.quote(inserted_surname)
+
+        query = "INSERT INTO kardashians (name, surname, dob) VALUES (%(name)s, %(surname)s" % {
+            # Python interpolation
+            'name': quoted_name,
+            'surname': quoted_surname,
+        }
+
+        self.__db.query(query + ", ?)", inserted_dob)
+
+        lamar = self.__db.query("SELECT * FROM kardashians WHERE name LIKE 'Lamar%'").hash()
+        assert lamar is not None
+        assert lamar['name'] == 'Lamar % ()s'
+        assert lamar['surname'] == 'Odom % s'
+
+    def test_query_percentage_sign_quote_psycopg2_param_lookalikes_empty_name_no_s(self):
+
+        # Quoted string with '%' and DBD::Pg parameters
+        inserted_name = 'Lamar %()'
+        inserted_surname = 'Odom %'
+        inserted_dob = '1979-11-06'
+
+        quoted_name = self.__db.quote(inserted_name)
+        quoted_surname = self.__db.quote(inserted_surname)
+
+        query = "INSERT INTO kardashians (name, surname, dob) VALUES (%(name)s, %(surname)s" % {
+            # Python interpolation
+            'name': quoted_name,
+            'surname': quoted_surname,
+        }
+
+        self.__db.query(query + ", ?)", inserted_dob)
+
+        lamar = self.__db.query("SELECT * FROM kardashians WHERE name LIKE 'Lamar%'").hash()
+        assert lamar is not None
+        assert lamar['name'] == 'Lamar % ()'
+        assert lamar['surname'] == 'Odom %'
+
     def test_query_result_columns(self):
         columns = self.__db.query("SELECT * FROM kardashians").columns()
         assert len(columns) == 5

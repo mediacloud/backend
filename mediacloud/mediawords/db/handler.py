@@ -704,7 +704,7 @@ class DatabaseHandler(object):
 
         # Add space after percentage signs which look like psycopg2's parameter placeholders ('%s', '%(param_1)s')
         # FIXME pretty much a bug
-        quoted_value = re.sub('%(?=(s|\(.+?\)s))', '% ', quoted_value)
+        quoted_value = re.sub('%(?=(s|\(.*?\)s?))', '% ', quoted_value)
 
         return quoted_value
 

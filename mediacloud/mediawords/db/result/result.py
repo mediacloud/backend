@@ -1,7 +1,7 @@
 import itertools
 import pprint
 import re
-from typing import Dict, List
+from typing import Dict, List, Any
 
 import psycopg2
 from psycopg2.extras import DictCursor
@@ -47,7 +47,7 @@ class DatabaseResult(object):
             # Duplicate '%' everywhere except for psycopg2 parameter placeholders ('%s' and '%(...)s')
             query = query_args[0]
 
-            query = re.sub('%(?!(s|\(.+?\)s))', '%%', query)
+            query = re.sub('%(?!(s|\(.*?\)s?))', '%%', query)
 
             query_args_list = list(query_args)
             query_args_list[0] = query
@@ -96,19 +96,19 @@ class DatabaseResult(object):
 
         self.__cursor = cursor  # Cursor now holds results
 
-    def columns(self) -> list:
-        """(result) Returns a list of column names"""
+    def columns(self) -> List[str]:
+        """Return a list of column names."""
         column_names = [desc[0] for desc in self.__cursor.description]
         return column_names
 
     def rows(self) -> int:
-        """(result) Returns the number of rows affected by the last row affecting command, or -1 if the number of
-        rows is not known or not available"""
+        """Return the number of rows affected by the last row affecting command, or -1 if the number of rows is not
+        known or not available."""
         rows_affected = self.__cursor.rowcount
         return rows_affected
 
-    def array(self) -> list:
-        """(single row) Returns a reference to an array"""
+    def array(self) -> List[Any]:
+        """Return a list of a single row."""
         row_tuple = self.__cursor.fetchone()
         if row_tuple is not None:
             row = list(row_tuple)
@@ -116,8 +116,8 @@ class DatabaseResult(object):
             row = None
         return row
 
-    def hash(self) -> dict:
-        """(single row) Returns a reference to a hash, keyed by column name"""
+    def hash(self) -> Dict[str, Any]:
+        """Return a dict of a single row, keyed by column name"""
         row_tuple = self.__cursor.fetchone()
         if row_tuple is not None:
             row = dict(row_tuple)
@@ -125,19 +125,19 @@ class DatabaseResult(object):
             row = None
         return row
 
-    def flat(self) -> list:
-        """(all remaining rows) Returns a flattened list"""
+    def flat(self) -> List[Any]:
+        """Return a flattened list of all returned (remaining) rows."""
         all_rows = self.__cursor.fetchall()
         flat_rows = list(itertools.chain.from_iterable(all_rows))
         return flat_rows
 
-    def hashes(self) -> List[Dict]:
-        """(all remaining rows) Returns a list of references to hashes, keyed by column name"""
+    def hashes(self) -> List[Dict[str, Any]]:
+        """Return a list of dicts of all returned (remaining) rows, keyed by column name."""
         rows = [dict(row) for row in self.__cursor.fetchall()]
         return rows
 
-    def text(self, text_type='neat') -> str:
-        """(all remaining rows) Returns a string with a simple text representation of the data."""
+    def text(self, text_type: str = 'neat') -> str:
+        """Return a string of all returned (remaining) rows with a simple text representation of the data."""
 
         text_type = decode_object_from_bytes_if_needed(text_type)
 
