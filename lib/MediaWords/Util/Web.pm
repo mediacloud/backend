@@ -8,6 +8,8 @@ use MediaWords::CommonLibs;    # set PYTHONPATH too
 
 import_python_module( __PACKAGE__, 'mediawords.util.web' );
 
+use MediaWords::Util::Config;
+
 =head1 NAME MediaWords::Util::Web - web related functions
 
 =head1 DESCRIPTION
@@ -20,6 +22,7 @@ use Fcntl;
 use File::Temp;
 use FileHandle;
 use FindBin;
+use HTML::TreeBuilder::LibXML;
 use LWP::UserAgent;
 use LWP::UserAgent::Determined;
 use HTTP::Status qw(:constants);
@@ -202,49 +205,109 @@ sub UserAgentDetermined
     return _set_lwp_useragent_properties( $ua );
 }
 
-=head2 get_original_url_from_momento_archive_url( $url )
+# return the first in a list of nodes matching the xpath pattern
+sub _find_first_node
+{
+    my ( $html_tree, $xpath ) = @_;
 
-Given a url, fetch the url and return the first returned in the 'link' http header.
+    my @nodes = $html_tree->findnodes( $xpath );
+
+    my $node = shift @nodes;
+
+    return $node;
+}
+
+# given the content of a linkis.com web page, find the original url in the content, which may be in one of
+# serveral places in the DOM
+sub _get_url_from_linkis_content($$)
+{
+    my ( $content, $url ) = @_;
+
+    my $html_tree = HTML::TreeBuilder::LibXML->new;
+    $html_tree->ignore_unknown( 0 );
+    $html_tree->parse_content( $content );
+
+    my $found_url = 0;
+
+    # list of dom search patterns to find nodes with a url and the attributes to use from those nodes as the url
+    # for instance the first item matches '<meta property="og:url" content="http://foo.bar">'
+    my $dom_maps = [
+        [ '//meta[@property="og:url"]',        'content' ],
+        [ '//a[@class="js-youtube-ln-event"]', 'href' ],
+        [ '//iframe[@id="source_site"]',       'src' ],
+    ];
+
+    for my $dom_map ( @{ $dom_maps } )
+    {
+        my ( $dom_pattern, $url_attribute ) = @{ $dom_map };
+        if ( my $node = _find_first_node( $html_tree, $dom_pattern ) )
+        {
+            my $url = $node->attr( $url_attribute );
+            if ( $url !~ m|^https?://linkis.com| )
+            {
+                return $url;
+            }
+        }
+    }
+
+    # as a last resort, look for the longUrl key in a javascript array
+    if ( $content =~ m|"longUrl":\s*"([^"]+)"| )
+    {
+        my $url = $1;
+
+        # kludge to de-escape \'d characters in javascript -- 99% of urls are captured by the dom stuff above,
+        # we shouldn't get to this point often
+        $url =~ s/\\//g;
+
+        if ( $url !~ m|^https?://linkis.com| )
+        {
+            return $url;
+        }
+    }
+
+    WARN( "no url found for linkis url: $url" );
+    return $url;
+}
+
+=head2 get_original_url_from_archive_url( $response, $url )
+
+Given a url and optional response from one of the following url archiving sites, return the original url
 
 =cut
 
-sub get_original_url_from_momento_archive_url
+sub get_original_url_from_archive_url($$)
 {
-    my ( $archive_site_url ) = @_;
-
-    my $original_url = undef;
+    my ( $response, $archive_site_url ) = @_;
 
     if ( $archive_site_url =~ m|^https?://web\.archive\.org/web/(\d+?/)?(https?://.+?)$|i )
     {
-        # archive.org is sometimes down, so get the archived URL without making any
-        # kind of requests
-        $original_url = $2;
+        return $2;
     }
-    elsif ( $archive_site_url =~ m|^https?://archive\.is/(.+?)$|i )
-    {
-        my $ua       = MediaWords::Util::Web::UserAgent();
-        my $response = $ua->get( $archive_site_url );
 
-        if ( $response->is_success )
+    if ( !$response->is_success )
+    {
+        ERROR( "Unable to fetch response from archive url '$archive_site_url':" . $response->status_line );
+        return undef;
+    }
+
+    my $original_url = undef;
+
+    if ( $archive_site_url =~ m|^https?://archive\.is/(.+?)$|i )
+    {
+        my $canonical_link = MediaWords::Util::URL::link_canonical_url_from_html( $response->decoded_content );
+        if ( $canonical_link =~ m|^https?://archive\.is/\d+?/(https?://.+?)$|i )
         {
-            my $canonical_link = MediaWords::Util::URL::link_canonical_url_from_html( $response->decoded_content );
-            if ( $canonical_link =~ m|^https?://archive\.is/\d+?/(https?://.+?)$|i )
-            {
-                $original_url = $1;
-            }
-            else
-            {
-                ERROR "Unable to determine original URL from archive.is URL '$archive_site_url': $canonical_link";
-            }
+            $original_url = $1;
         }
         else
         {
-            ERROR "Unable to determine target URL for archive.is URL '$archive_site_url': " . $response->status_line;
+            ERROR "Unable to parse original URL from archive.is response '$archive_site_url': $canonical_link";
         }
     }
-    else
+    elsif ( $archive_site_url =~ m|^https?://[^/]*linkis.com/| )
     {
-        ERROR "Unrecognized archive.org URL: $archive_site_url";
+        $original_url = _get_url_from_linkis_content( $response->decoded_content, $archive_site_url );
+        ERROR( "Unable to find url in linkis content for '$archive_site_url'" ) unless ( $original_url );
     }
 
     return $original_url;
@@ -516,7 +579,7 @@ sub response_error_is_client_side($)
     }
 }
 
-=head2 get_meta_refresh_url( $response, $request )
+=head2 get_meta_refresh_url( $response, $url )
 
 
 Given the response and request, parse the content for a meta refresh url and return if present. Otherwise,
@@ -526,35 +589,36 @@ return undef.
 
 sub get_meta_refresh_url
 {
-    my ( $response, $request ) = @_;
+    my ( $response, $url ) = @_;
 
     return undef unless ( $response->is_success );
 
-    MediaWords::Util::URL::meta_refresh_url_from_html( $response->decoded_content, $request->{ url } );
+    MediaWords::Util::URL::meta_refresh_url_from_html( $response->decoded_content, $url );
 }
 
-=head2 get_meta_refresh_response( $response, $request )
+=head2 get_meta_redirect_response( $response, $url )
 
-If the response has a meta refresh tag, fetch the meta refresh content and insert the response into the redirect
-response chain as a normal redirect.
+If thee response has a meta tag or is an archive url, parse out the original url and treat it as a redirect
+by inserting it into the response chain.   Otherwise, just return the original response.
 
 =cut
 
-sub get_meta_refresh_response
+sub get_meta_redirect_response
 {
-    my ( $response, $request ) = @_;
+    my ( $response, $url ) = @_;
 
-    my $meta_refresh_url = get_meta_refresh_url( $response, $request );
+    for my $f ( \&get_meta_refresh_url, \&get_original_url_from_archive_url )
+    {
+        my $redirect_url = $f->( $response, $url );
+        next unless ( $redirect_url );
 
-    return $response unless ( $meta_refresh_url );
+        my $redirect_response = UserAgent()->get( $redirect_url );
+        $redirect_response->previous( $response );
 
-    my $ua = UserAgent;
+        $response = $redirect_response;
+    }
 
-    my $meta_refresh_response = $ua->get( $meta_refresh_url );
-
-    $meta_refresh_response->previous( $response );
-
-    return $meta_refresh_response;
+    return $response;
 }
 
 1;

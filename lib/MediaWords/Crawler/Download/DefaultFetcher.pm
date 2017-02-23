@@ -110,7 +110,7 @@ sub fetch_download($$$)
 
     $response = _fix_alarabiya_response( $download, $ua, $response );
 
-    $response = MediaWords::Util::Web::get_meta_refresh_response( $response, $request );
+    $response = MediaWords::Util::Web::get_meta_redirect_response( $response, $request->url );
 
     return $response;
 }

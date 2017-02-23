@@ -1977,10 +1977,46 @@ END
     }
 }
 
+# delete any stories belonging to one of the archive site sources and set any links to archive stories
+# to null ref_stories_id so that they will be respidered.  this allows us to respider any archive stories
+# left over before implementation of archive site redirects
+sub cleanup_existing_archive_stories($$)
+{
+    my ( $db, $topic ) = @_;
+
+    my $archive_media_ids = $db->query( <<SQL )->flat;
+select media_id from media where name in ( 'is', 'linkis.com', 'archive.org' )
+SQL
+
+    return unless ( @{ $archive_media_ids } );
+
+    my $media_ids_list = join( ',', @{ $archive_media_ids } );
+
+    $db->query( <<SQL, $topic->{ topics_id } );
+update topic_links tl set ref_stories_id = null
+    from stories s
+    where
+        tl.ref_stories_id = s.stories_id and
+        s.media_id in ( $media_ids_list )
+SQL
+
+    $db->query( <<SQL, $topic->{ topics_id } );
+delete from topic_stories ts
+    using stories s
+    where
+        ts.stories_id = s.stories_id and
+        ts.topics_id = ? and
+        s.media_id in ( $media_ids_list )
+SQL
+
+}
+
 # mine for links any stories in topic_stories for this topic that have not already been mined
 sub mine_topic_stories
 {
     my ( $db, $topic ) = @_;
+
+    cleanup_existing_archive_stories( $db, $topic );
 
     my $stories = $db->query( <<SQL, $topic->{ topics_id } )->hashes;
 select distinct s.*, cs.link_mined, cs.redirect_url
@@ -2194,58 +2230,6 @@ insert into story_sentences ( stories_id, sentence_number, sentence, media_id, p
 SQL
 
     return $story;
-}
-
-# given a story in archive_is, find the destination domain and merge into the associated medium
-sub merge_archive_is_story
-{
-    my ( $db, $topic, $story ) = @_;
-
-    my $original_url = MediaWords::Util::Web::get_original_url_from_momento_archive_url( $story->{ url } );
-
-    if ( !$original_url )
-    {
-        WARN "Could not get original URL for $story->{ url } SKIPPING";
-        return;
-    }
-
-    INFO "Archive: $story->{ url }, Original $original_url";
-    my $link_medium = get_spider_medium( $db, $original_url );
-
-    my $new_story = $db->query(
-        <<END, $link_medium->{ media_id }, $original_url, $story->{ guid }, $story->{ title }, $story->{ publish_date } )->hash;
-SELECT s.* FROM stories s
-    WHERE s.media_id = \$1 and
-        ( ( \$2 in ( s.url, s.guid ) ) or
-          ( \$3 in ( s.url, s.guid ) ) or
-          ( s.title = \$4 and date_trunc( 'day', s.publish_date ) = \$5 ) )
-END
-
-    $new_story ||= clone_story( $db, $topic, $story, $link_medium );
-
-    merge_dup_story( $db, $topic, $story, $new_story );
-}
-
-# merge all stories belonging to the 'archive.is' medium into the linked domain media
-sub merge_archive_is_stories
-{
-    my ( $db, $topic ) = @_;
-
-    my $archive_is_stories = $db->query( <<END, $topic->{ topics_id } )->hashes;
-SELECT distinct s.*
-    FROM snap.live_stories s
-        join topic_stories cs on ( s.stories_id = cs.stories_id and s.topics_id = cs.topics_id )
-        join media m on ( s.media_id = m.media_id )
-    WHERE
-        cs.topics_id = ? and
-        m.name = 'is';
-
-END
-
-    INFO "merging " . scalar( @{ $archive_is_stories } ) . " archive.is stories"
-      if ( scalar( @{ $archive_is_stories } ) );
-
-    map { merge_archive_is_story( $db, $topic, $_ ) } @{ $archive_is_stories };
 }
 
 # given a story in a dup_media_id medium, look for or create a story in the medium pointed to by dup_media_id
@@ -3018,15 +3002,6 @@ sub do_mine_topic ($$;$)
         #         LOGCONFESS "add_outgoing_foreign_rss_links() failed: $@";
         #     }
         # }
-
-        eval {
-            update_topic_state( $db, $topic, "merging archive stories" );
-            merge_archive_is_stories( $db, $topic );
-        };
-        if ( $@ )
-        {
-            LOGCONFESS "merge_archive_is_stories() failed: $@";
-        }
 
         # merge dup media and stories again to catch dups from spidering
         eval {
