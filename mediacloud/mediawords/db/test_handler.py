@@ -653,6 +653,9 @@ class TestDatabaseHandler(TestCase):
         # Doubling the psycopg2 parameter percentage signs
         assert self.__db.quote("%s") == "'% s'"
         assert self.__db.quote("%(param_1)s") == "'% (param_1)s'"
+        assert self.__db.quote("%()s") == "'% ()s'"
+        assert self.__db.quote("%()") == "'% ()'"
+        assert self.__db.quote("%(") == "'% ('"
 
     def test_copy_from(self):
         copy = self.__db.copy_from(sql="COPY kardashians (name, surname, dob, married_to_kanye) FROM STDIN WITH CSV")
