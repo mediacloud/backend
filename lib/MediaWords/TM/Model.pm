@@ -352,8 +352,8 @@ sub update_model_correlation
         push( @{ $model_r2s }, $r * $r );
     }
 
-    my $r2_mean   = Statistics::Basic::mean( $model_r2s );
-    my $r2_stddev = Statistics::Basic::stddev( $model_r2s );
+    my $r2_mean   = Statistics::Basic::mean( $model_r2s ) + 0.00;
+    my $r2_stddev = Statistics::Basic::stddev( $model_r2s ) + 0.00;
 
     MediaWords::TM::Snapshot::update_timespan( $db, $timespan, 'model_r2_mean',   $r2_mean );
     MediaWords::TM::Snapshot::update_timespan( $db, $timespan, 'model_r2_stddev', $r2_stddev );
