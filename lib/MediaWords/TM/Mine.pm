@@ -1093,7 +1093,7 @@ sub postgres_regex_match($$$)
 {
     my ( $db, $strings, $re ) = @_;
 
-    return undef unless ( @{ $strings } );
+    return 0 unless ( @{ $strings } );
 
     for my $string ( @{ $strings } )
     {
