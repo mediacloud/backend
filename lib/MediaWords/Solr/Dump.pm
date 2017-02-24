@@ -1329,6 +1329,12 @@ sub generate_and_import_data
         _update_snapshot_solr_status( $db );
 
         last if ( _stories_queue_is_small( $db ) || ( ++$i > 100 ) );
+
+        # the machine literally overheats if it does too many imports without a break
+        if ( $i > 3 )
+        {
+            sleep( 300 );
+        }
     }
 }
 
