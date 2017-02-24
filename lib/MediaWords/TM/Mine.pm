@@ -1086,9 +1086,10 @@ sub add_missing_story_sentences
     $_story_sentences_added->{ $story->{ stories_id } } = 1;
 }
 
-# run the regex through the postgres engine.return true if the given value matches the given regex.
+# run the regex through the postgres engine against a given list of strings.
+# return true if any string matches the given regex.
 # this is necessary because very occasionally the wrong combination of text and complex boolean regex will
-# cause perl to hang.  of $string is a ref, check for a match against any of the strings in the list.
+# cause perl to hang.
 sub postgres_regex_match($$$)
 {
     my ( $db, $strings, $re ) = @_;
