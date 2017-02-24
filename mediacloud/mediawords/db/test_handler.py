@@ -42,24 +42,6 @@ class TestDatabaseHandler(TestCase):
 
         self.__db = self.__create_database_handler()
 
-        l.info("Looking for test database credentials...")
-        test_database = None
-        config = py_get_config()
-        for database in config['database']:
-            if database['label'] == 'test':
-                test_database = database
-                break
-        assert test_database is not None
-
-        l.info("Connecting to test database '%s' via DatabaseHandler class..." % test_database['db'])
-        self.__db = DatabaseHandler(
-            host=test_database['host'],
-            port=test_database['port'],
-            username=test_database['user'],
-            password=test_database['pass'],
-            database=test_database['db']
-        )
-
         l.info("Preparing test table 'kardashians'...")
         self.__db.query("DROP TABLE IF EXISTS kardashians")
         self.__db.query("""
