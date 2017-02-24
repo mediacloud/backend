@@ -1099,16 +1099,25 @@ sub postgres_regex_match($$$)
 
     return undef unless ( @{ $strings } );
 
-    my $quoted_strings = join( ',', map { "(" . $db->quote( $_ ) . ")" } @{ $strings } );
+    for my $string ( @{ $strings } )
+    {
+        my $match = $db->query( "select 1 where ? ~ ( '(?isx)' || ? )", $string, $re )->hash;
 
-    # combine all the strings together to avoid overhead of lots of indivdiual queries
-    my $match = $db->query( <<SQL, $re )->hash;
-with strings ( s ) as ( values $quoted_strings )
+        return 1 if $match;
+    }
 
-select 1 from strings where s ~ ( '(?isx)' || \$1 )
-SQL
+    return 0;
 
-    return $match;
+    #     my $quoted_strings = join( ',', map { "(" . $db->quote( $_ ) . ")" } @{ $strings } );
+    #
+    #     # combine all the strings together to avoid overhead of lots of indivdiual queries
+    #     my $match = $db->query( <<SQL, $re )->hash;
+    # with strings ( s ) as ( values $quoted_strings )
+    #
+    # select 1 from strings where s ~ ( '(?isx)' || \$1 )
+    # SQL
+    #
+    #     return $match;
 }
 
 # return the type of match if the story title, url, description, or sentences match topic search pattern.
