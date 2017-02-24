@@ -1443,8 +1443,12 @@ sub skip_topic_story
 select 1 from stories_tags_map where stories_id = ? and tags_id = ?
 END
 
-    my $ss = $db->find_by_id( 'stories', int( $link->{ stories_id } ) );
-    return 0 if ( $ss->{ media_id } && ( $ss->{ media_id } != $story->{ media_id } ) );
+    # don't skip if the media_id of the link source is different that the media_id of the link target
+    if ( $link->{ stories_id } )
+    {
+        my $ss = $db->find_by_id( 'stories', int( $link->{ stories_id } ) );
+        return 0 if ( $ss->{ media_id } && ( $ss->{ media_id } != $story->{ media_id } ) );
+    }
 
     return 1 if ( _skip_self_linked_domain( $db, $link ) );
 
