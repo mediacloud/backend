@@ -250,8 +250,14 @@ class DatabaseHandler(object):
 
         Accepts either (preferred) psycopg2-style query and parameters:
 
-            db.query('SELECT * FROM foo WHERE bar = %s AND baz = %s', (bar, baz,))
+            # Dictionary parameters (preferred):
             db.query('SELECT * FROM foo WHERE bar = %(bar)s AND baz = %(baz)s', {'bar': bar, 'baz': baz})
+
+            # Dictionary parameters with tuple:
+            db.query('SELECT * FROM foo WHERE bar IN %(bar)s, {'bar': tuple(['a', 'b', 'c'])})
+
+            # Tuple parameters:
+            db.query('SELECT * FROM foo WHERE bar = %s AND baz = %s', (bar, baz,))
 
         ...or DBD::Pg (DBIx::Simple) form of query and parameters:
 

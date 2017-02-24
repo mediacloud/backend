@@ -106,6 +106,23 @@ class TestDatabaseHandler(TestCase):
         assert row_hash['name'] == 'Khloé'
         assert row_hash['surname'] == 'Kardashian'
 
+    def test_query_parameters_multiple(self):
+
+        rows = self.__db.query('SELECT * FROM kardashians WHERE name IN %(names)s ORDER BY name', {
+            'names': tuple([
+                'Kim',
+                'Kris',
+                'Kylie',
+            ]),
+        }).hashes()
+
+        assert rows is not None
+        assert len(rows) == 3
+
+        assert rows[0]['name'] == 'Kim'
+        assert rows[1]['name'] == 'Kris'
+        assert rows[2]['name'] == 'Kylie'
+
     def test_query_error(self):
 
         # Bad query
