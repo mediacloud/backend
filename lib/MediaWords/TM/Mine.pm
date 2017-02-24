@@ -1094,6 +1094,11 @@ sub postgres_regex_match($$$)
 {
     my ( $db, $strings, $re ) = @_;
 
+    unless ( ref( $strings ) eq ref( [] ) )
+    {
+        LOGCONFESS "Strings must be an arrayref, but is: " . Dumper( $strings );
+    }
+
     return 0 unless ( @{ $strings } );
 
     for my $string ( @{ $strings } )
