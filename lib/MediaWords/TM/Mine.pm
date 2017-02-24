@@ -1038,7 +1038,7 @@ sub potential_story_matches_topic_pattern
 
     my $re = translate_pattern_to_perl( $topic->{ pattern } );
 
-    my $match = ( postgres_regex_match( $db, $redirect_url, $re ) || postgres_regex_match( $db, $url, $re ) );
+    my $match = ( postgres_regex_match( $db, [ $redirect_url ], $re ) || postgres_regex_match( $db, [ $url ], $re ) );
 
     return 1 if $match;
 
@@ -1091,11 +1091,7 @@ sub add_missing_story_sentences
 # cause perl to hang.  of $string is a ref, check for a match against any of the strings in the list.
 sub postgres_regex_match($$$)
 {
-    my ( $db, $string, $re ) = @_;
-
-    return undef unless ( defined( $string ) );
-
-    my $strings = ref( $string ) ? $string : [ $string ];
+    my ( $db, $strings, $re ) = @_;
 
     return undef unless ( @{ $strings } );
 
