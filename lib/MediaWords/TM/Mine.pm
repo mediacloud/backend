@@ -1099,16 +1099,25 @@ sub postgres_regex_match($$$)
 
     return undef unless ( @{ $strings } );
 
-    my $quoted_strings = join( ',', map { "(" . $db->quote( $_ ) . ")" } @{ $strings } );
+    for my $string ( @{ $strings } )
+    {
+        my $match = $db->query( "select 1 where ? ~ ( '(?isx)' || ? )", $string, $re )->hash;
 
-    # combine all the strings together to avoid overhead of lots of indivdiual queries
-    my $match = $db->query( <<SQL, $re )->hash;
-with strings ( s ) as ( values $quoted_strings )
+        return 1 if $match;
+    }
 
-select 1 from strings where s ~ ( '(?isx)' || \$1 )
-SQL
+    return 0;
 
-    return $match;
+    #     my $quoted_strings = join( ',', map { "(" . $db->quote( $_ ) . ")" } @{ $strings } );
+    #
+    #     # combine all the strings together to avoid overhead of lots of indivdiual queries
+    #     my $match = $db->query( <<SQL, $re )->hash;
+    # with strings ( s ) as ( values $quoted_strings )
+    #
+    # select 1 from strings where s ~ ( '(?isx)' || \$1 )
+    # SQL
+    #
+    #     return $match;
 }
 
 # return the type of match if the story title, url, description, or sentences match topic search pattern.
@@ -1154,16 +1163,6 @@ sub add_to_topic_stories
         normalize_boolean_for_db( $link_mined ),
         normalize_boolean_for_db( $valid_foreign_rss_story )
     );
-}
-
-# add story to topic_stories table and mine for topic_links
-sub add_to_topic_stories_and_links
-{
-    my ( $db, $topic, $story, $iteration ) = @_;
-
-    add_to_topic_stories( $db, $topic, $story, $iteration );
-
-    generate_topic_links( $db, $topic, [ $story ] );
 }
 
 # return true if the domain of the story url matches the domain of the medium url
@@ -1508,24 +1507,6 @@ END
     }
 
     return 0;
-}
-
-# if the story matches the topic pattern, add it to topic_stories and topic_links
-sub add_to_topic_stories_and_links_if_match
-{
-    my ( $db, $topic, $story, $link ) = @_;
-
-    set_topic_link_ref_story( $db, $story, $link ) if ( $link->{ topic_links_id } );
-
-    return if ( skip_topic_story( $db, $topic, $story, $link ) );
-
-    if ( $link->{ assume_match } || story_matches_topic_pattern( $db, $topic, $story ) )
-    {
-        INFO "TOPIC MATCH: $link->{ url }";
-        $link->{ iteration } ||= 0;
-        add_to_topic_stories_and_links( $db, $topic, $story, $link->{ iteration } + 1 );
-    }
-
 }
 
 # return true if the domain of the linked url is the same
@@ -2018,6 +1999,14 @@ sub mine_topic_stories
     my ( $db, $topic ) = @_;
 
     cleanup_existing_archive_stories( $db, $topic );
+
+    # check for twitter topic here as well as in generate_topic_links, because the below query grows very
+    # large without ever mining links
+    if ( $topic->{ ch_monitor_id } )
+    {
+        INFO( "SKIP LINK GENERATION FOR TWITTER TOPIC" );
+        return;
+    }
 
     my $stories = $db->query( <<SQL, $topic->{ topics_id } )->hashes;
 select distinct s.*, cs.link_mined, cs.redirect_url
