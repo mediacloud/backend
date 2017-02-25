@@ -488,7 +488,7 @@ sub edit_tags_do : Local
         return $self->edit_tags( $c, $feeds_id );
     }
 
-    MediaWords::Util::Tags->save_tags( $c, $feeds_id, 'feeds' );
+    MediaWords::Util::Tags::save_tags( $c, $feeds_id, 'feeds' );
 
     $c->response->redirect( $c->uri_for( "/admin/feeds/list/" . $feed->{ media_id }, { status_msg => 'Tags updated.' } ) );
 }

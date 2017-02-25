@@ -90,7 +90,7 @@ sub make_edit_tags_form
 # any new tags indicated,  if $append is true, append tags to existing ones
 sub save_tags
 {
-    my ( $class, $c, $oid, $table, $append ) = @_;
+    my ( $c, $oid, $table, $append ) = @_;
 
     my $oid_field = "${table}_id";
 
