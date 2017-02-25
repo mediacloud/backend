@@ -1,10 +1,12 @@
 package MediaWords::Util::Colors;
+
+use strict;
+use warnings;
+
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 # util functions that help dealing with colors, including color pallette generation
-
-use strict;
 
 my $_mc_colors = [
     '1f77b4', 'aec7e8', 'ff7f0e', 'ffbb78', '2ca02c', '98df8a', 'd62728', 'ff9896', '9467bd', 'c5b0d5',
