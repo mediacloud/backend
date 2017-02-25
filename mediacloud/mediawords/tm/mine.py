@@ -37,6 +37,7 @@ def postgres_regex_match(db: DatabaseHandler, strings: List[str], regex: str) ->
         SELECT 1
         FROM UNNEST(%(strings)s) AS string
         WHERE string ~ %(regex)s
+        LIMIT 1
     """, {
         'strings': strings,  # list gets converted to PostgreSQL's ARRAY[]
         'regex': full_regex,
