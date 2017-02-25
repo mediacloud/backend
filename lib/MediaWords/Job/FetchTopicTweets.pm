@@ -39,7 +39,7 @@ sub _fetch_ch_posts ($$)
 {
     my ( $ch_monitor_id, $day ) = @_;
 
-    my $ua = MediaWords::Util::Web::UserAgentDetermined();
+    my $ua = MediaWords::Util::Web::user_agent_determined();
     $ua->max_size( 100 * 1024 * 1024 );
     $ua->timeout( 90 );
     $ua->timing( '1,2,4,8,16,32,64,128,256,512' );

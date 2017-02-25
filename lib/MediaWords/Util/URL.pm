@@ -52,7 +52,7 @@ sub url_and_data_after_redirects($;$$)
     {
 
         # Do HTTP request to the current URL
-        my $ua = MediaWords::Util::Web::UserAgent();
+        my $ua = MediaWords::Util::Web::user_agent();
 
         $ua->max_redirect( $max_http_redirect );
 

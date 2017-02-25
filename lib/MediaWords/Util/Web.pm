@@ -133,19 +133,19 @@ sub _set_lwp_useragent_properties($)
     return $ua;
 }
 
-=head2 UserAgent( )
+=head2 user_agent()
 
 Return a LWP::UserAgent with media cloud default settings for agent, timeout, max size, etc.
 
 =cut
 
-sub UserAgent
+sub user_agent
 {
     my $ua = LWP::UserAgent->new();
     return _set_lwp_useragent_properties( $ua );
 }
 
-=head2 UserAgentDetermined( )
+=head2 user_agent_determined( )
 
 Return a LWP::UserAgent::Determined object with media cloud default settings for agent, timeout, max size, etc.
 
@@ -158,7 +158,7 @@ HTTP_GATEWAY_TIMEOUT
 
 =cut
 
-sub UserAgentDetermined
+sub user_agent_determined
 {
     my $ua = LWP::UserAgent::Determined->new();
 
@@ -173,7 +173,7 @@ sub UserAgentDetermined
             my $request = $lwp_args->[ 0 ];
             my $url     = $request->uri;
 
-            TRACE "user_agent_determined trying $url ...";
+            TRACE "Trying $url ...";
         }
     );
     $ua->after_determined_callback(

@@ -57,7 +57,7 @@ sub valid_url
 {
     my ( $url ) = @_;
 
-    my $ua = MediaWords::Util::Web::UserAgent();
+    my $ua = MediaWords::Util::Web::user_agent();
 
     my $response = $ua->get( $url );
 

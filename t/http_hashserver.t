@@ -7,7 +7,7 @@ use Test::More tests => 13;
 
 use HTTP::Request;
 use LWP::Simple;
-use LWP::UserAgent;
+use MediaWords::Util::Web;
 
 BEGIN
 {
@@ -55,7 +55,7 @@ sub main
     test_page( "http://127.0.0.1:$_port/localhost", 'home' );
     test_page( "http://localhost:$_port/127-foo",   'foo' );
 
-    my $ua_404       = LWP::UserAgent->new;
+    my $ua_404       = MediaWords::Util::Web::user_agent();
     my $response_404 = $ua_404->get( "http://localhost:$_port/404" );
     ok( !$response_404->is_success, "404 response should not succeed" );
     is( $response_404->status_line, "404 Not Found", "404 status line" );
@@ -65,14 +65,14 @@ sub main
     my $content = LWP::Simple::get( $auth_url );
     is( $content, undef, 'fail auth / no auth' );
 
-    my $ua = LWP::UserAgent->new;
+    my $ua = MediaWords::Util::Web::user_agent();
     my $request = HTTP::Request->new( GET => $auth_url );
     $request->authorization_basic( 'foo', 'bar' );
     my $response = $ua->request( $request );
 
     is( $response->content, 'foo bar', 'pass auth' );
 
-    $ua = LWP::UserAgent->new;
+    $ua = MediaWords::Util::Web::user_agent();
     $request = HTTP::Request->new( GET => $auth_url );
     $request->authorization_basic( 'foo', 'foo' );
     $response = $ua->request( $request );

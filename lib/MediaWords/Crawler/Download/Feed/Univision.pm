@@ -131,7 +131,7 @@ sub fetch_download($$$)
 
     $db->update_by_id( 'downloads', $download->{ downloads_id }, $download );
 
-    my $ua = MediaWords::Util::Web::UserAgent();
+    my $ua = MediaWords::Util::Web::user_agent();
 
     Readonly my $http_method => 'GET';
     my $url_with_credentials = _api_request_url_with_signature_from_config( $download->{ url }, $http_method );

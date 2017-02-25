@@ -138,7 +138,7 @@ sub main
 
     my $pm = new Parallel::ForkManager( $num_parallel );
 
-    my $ua = MediaWords::Util::Web::UserAgent();
+    my $ua = MediaWords::Util::Web::user_agent();
 
     $requests = get_scheduled_requests( $requests, $per_domain_timeout );
     my $start_time = time;

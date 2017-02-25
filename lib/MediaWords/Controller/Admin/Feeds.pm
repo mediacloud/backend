@@ -168,7 +168,7 @@ sub invalid_syndicated_feed
 
     return 0 unless ( $feed->{ feed_type } eq 'syndicated' );
 
-    my $ua       = MediaWords::Util::Web::UserAgent();
+    my $ua       = MediaWords::Util::Web::user_agent();
     my $response = $ua->get( $feed->{ url } );
 
     return "url fetch failed: " . $response->as_string if ( !$response->is_success );

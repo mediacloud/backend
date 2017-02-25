@@ -14,8 +14,8 @@ use Moose::Role;
 
 # Fetch the $download and return the HTTP::Response.
 #
-# In addition to the basic HTTP request with the UserAgent options supplied by
-# MediaWords::Util::Web::UserAgent, the implementation should:
+# In addition to the basic HTTP request with the user agent options supplied by
+# MediaWords::Util::Web::user_agent(), the implementation should:
 #
 # * fixes common url mistakes like doubling http: (http://http://google.com).
 # * follows meta refresh redirects in the response content

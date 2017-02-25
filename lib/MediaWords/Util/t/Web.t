@@ -112,7 +112,7 @@ sub test_get_meta_redirect_response()
 
 }
 
-sub test_lwp_useragent_determined_500_read_timeout()
+sub test_lwp_user_agent_determined_500_read_timeout()
 {
     my $pages = {
 
@@ -133,7 +133,7 @@ sub test_lwp_useragent_determined_500_read_timeout()
 
     $hs->start();
 
-    my $ua = MediaWords::Util::Web::UserAgentDetermined();
+    my $ua = MediaWords::Util::Web::user_agent_determined();
     $ua->timeout( 5 );    # time-out really fast
     $ua->timing( '1,2,4' );
 
@@ -153,7 +153,7 @@ sub main()
 
     test_get_original_url_from_archive_url();
     test_get_meta_redirect_response();
-    test_lwp_useragent_determined_500_read_timeout();
+    test_lwp_user_agent_determined_500_read_timeout();
 }
 
 main();
