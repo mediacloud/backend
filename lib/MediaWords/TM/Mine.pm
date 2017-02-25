@@ -1005,16 +1005,6 @@ END
     return $ss ? 1 : 0;
 }
 
-# translate postgres word break patterns ([[:<>:]]) into perl (\b)
-sub translate_pattern_to_perl
-{
-    my ( $s ) = @_;
-
-    $s =~ s/\[\[\:[\<\>]\:\]\]/\\b/g;
-
-    return $s;
-}
-
 sub _get_sentences_from_story_text
 {
     my ( $story_text, $story_lang ) = @_;
@@ -1036,7 +1026,7 @@ sub potential_story_matches_topic_pattern
 {
     my ( $db, $topic, $url, $redirect_url, $content ) = @_;
 
-    my $re = translate_pattern_to_perl( $topic->{ pattern } );
+    my $re = $topic->{ pattern };
 
     my $match = ( postgres_regex_match( $db, $redirect_url, $re ) || postgres_regex_match( $db, $url, $re ) );
 
@@ -1443,8 +1433,12 @@ sub skip_topic_story
 select 1 from stories_tags_map where stories_id = ? and tags_id = ?
 END
 
-    my $ss = $db->find_by_id( 'stories', int( $link->{ stories_id } ) );
-    return 0 if ( $ss->{ media_id } && ( $ss->{ media_id } != $story->{ media_id } ) );
+    # don't skip if the media_id of the link source is different that the media_id of the link target
+    if ( $link->{ stories_id } )
+    {
+        my $ss = $db->find_by_id( 'stories', int( $link->{ stories_id } ) );
+        return 0 if ( $ss->{ media_id } && ( $ss->{ media_id } != $story->{ media_id } ) );
+    }
 
     return 1 if ( _skip_self_linked_domain( $db, $link ) );
 

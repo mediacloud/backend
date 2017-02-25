@@ -284,11 +284,8 @@ sub get_original_url_from_archive_url($$)
         return $2;
     }
 
-    if ( !$response->is_success )
-    {
-        ERROR( "Unable to fetch response from archive url '$archive_site_url':" . $response->status_line );
-        return undef;
-    }
+    # everything else requires a response, so just return undef if there was not a successful response
+    return undef unless ( $response->is_success );
 
     my $original_url = undef;
 
