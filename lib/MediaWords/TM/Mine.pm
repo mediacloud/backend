@@ -1005,16 +1005,6 @@ END
     return $ss ? 1 : 0;
 }
 
-# translate postgres word break patterns ([[:<>:]]) into perl (\b)
-sub translate_pattern_to_perl
-{
-    my ( $s ) = @_;
-
-    $s =~ s/\[\[\:[\<\>]\:\]\]/\\b/g;
-
-    return $s;
-}
-
 sub _get_sentences_from_story_text
 {
     my ( $story_text, $story_lang ) = @_;
@@ -1036,7 +1026,7 @@ sub potential_story_matches_topic_pattern
 {
     my ( $db, $topic, $url, $redirect_url, $content ) = @_;
 
-    my $re = translate_pattern_to_perl( $topic->{ pattern } );
+    my $re = $topic->{ pattern };
 
     my $match = ( postgres_regex_match( $db, $redirect_url, $re ) || postgres_regex_match( $db, $url, $re ) );
 
