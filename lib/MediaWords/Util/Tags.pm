@@ -36,7 +36,7 @@ sub _get_tags_lookup
 # make edit tags form in real time by running yml template through template toolkit
 sub make_edit_tags_form
 {
-    my ( $class, $c, $action, $oid, $table ) = @_;
+    my ( $c, $action, $oid, $table ) = @_;
 
     my $oid_field = "${table}_id";
 
