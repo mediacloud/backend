@@ -174,12 +174,8 @@ sub _add_missing_media_from_urls
 
     for my $response ( @{ $responses } )
     {
-        say STDERR "Response: " . Dumper( $response );
-        my $original_request = MediaWords::Util::Web->get_original_request( $response );
-        say STDERR "Original request: " . Dumper( $original_request );
-
+        my $original_request = MediaWords::Util::Web::get_original_request( $response );
         my $url = $original_request->uri->as_string;
-        say STDERR "URL from original request: " . Dumper( $url );
 
         my $url_media_index = _get_url_medium_index_from_url( $url_media, $url );
         if ( !defined( $url_media_index ) )

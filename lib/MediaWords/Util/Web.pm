@@ -370,15 +370,15 @@ sub parallel_get
     return $responses;
 }
 
-=head2 get_original_request( $class, $request )
+=head2 get_original_request( $request )
 
 Walk back from the given response to get the original request that generated the response.
 
 =cut
 
-sub get_original_request
+sub get_original_request($)
 {
-    my ( $class, $response ) = @_;
+    my ( $response ) = @_;
 
     my $original_response = $response;
     while ( $original_response->previous )
@@ -404,7 +404,7 @@ sub lookup_by_response_url($$)
 {
     my ( $list, $response ) = @_;
 
-    my $original_request = MediaWords::Util::Web->get_original_request( $response );
+    my $original_request = MediaWords::Util::Web::get_original_request( $response );
     my $url              = URI->new( $original_request->uri->as_string );
 
     map { return ( $_ ) if ( URI->new( $_->{ url } ) eq $url ) } @{ $list };
@@ -491,7 +491,7 @@ sub get_cached_link_download
     $_link_downloads_cache = {};
     for my $response ( @{ $responses } )
     {
-        my $original_url = MediaWords::Util::Web->get_original_request( $response )->uri->as_string;
+        my $original_url = MediaWords::Util::Web::get_original_request( $response )->uri->as_string;
         my $response_link_nums = [ map { $_->{ _link_num } } @{ $url_lookup->{ $original_url } } ];
         if ( !@{ $response_link_nums } )
         {
