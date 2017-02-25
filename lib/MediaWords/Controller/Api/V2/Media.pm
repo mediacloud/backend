@@ -288,7 +288,7 @@ sub _attach_media_to_input($$)
         }
     }
 
-    my $responses = MediaWords::Util::Web::ParallelGet( $fetch_urls );
+    my $responses = MediaWords::Util::Web::parallel_get( $fetch_urls );
 
     for my $response ( @{ $responses } )
     {

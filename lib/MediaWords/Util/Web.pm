@@ -310,14 +310,14 @@ sub get_original_url_from_archive_url($$)
     return $original_url;
 }
 
-=head2 ParallelGet( $urls )
+=head2 parallel_get( $urls )
 
 Get urls in parallel by using an external, forking script.  Returns a list of HTTP::Response objects resulting
 from the fetches.
 
 =cut
 
-sub ParallelGet
+sub parallel_get
 {
     my ( $urls ) = @_;
 
@@ -395,7 +395,7 @@ Given a list of hashes, each of which includes a 'url' key, and an HTTP::Respons
 which the canonical version of the url is the same as the canonical version of the originally requested
 url for the response.  Return undef if no match is found.
 
-This function is helpful for associating a given respone returned by ParallelGet with the object that originally
+This function is helpful for associating a given respone returned by parallel_get() with the object that originally
 generated the url (for instance, the medium input record that generate the url fetch for the medium title)
 
 =cut
@@ -486,7 +486,7 @@ sub get_cached_link_download
         $link->{ _cached_link_downloads }++;
     }
 
-    my $responses = ParallelGet( $urls );
+    my $responses = parallel_get( $urls );
 
     $_link_downloads_cache = {};
     for my $response ( @{ $responses } )

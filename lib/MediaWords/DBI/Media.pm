@@ -170,7 +170,7 @@ sub _add_missing_media_from_urls
 
     my $fetch_urls = [ map { URI->new( $_->{ url } ) } grep { !( $_->{ medium } ) } @{ $url_media } ];
 
-    my $responses = MediaWords::Util::Web::ParallelGet( $fetch_urls );
+    my $responses = MediaWords::Util::Web::parallel_get( $fetch_urls );
 
     for my $response ( @{ $responses } )
     {
