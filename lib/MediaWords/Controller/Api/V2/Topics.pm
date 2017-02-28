@@ -44,8 +44,9 @@ sub _get_topics_list($$$)    # sql clause for fields to query from job_states fo
 {
     my ( $db, $params, $auth_users_id ) = @_;
 
-    my $name = $params->{ name } || '';
+    my $name      = $params->{ name } || '';
     my $topics_id = $params->{ topics_id };
+    my $public    = $params->{ public };
 
     my $limit  = $params->{ limit };
     my $offset = $params->{ offset };
@@ -56,9 +57,16 @@ sub _get_topics_list($$$)    # sql clause for fields to query from job_states fo
         $id_clause = 't.topics_id = ' . int( $topics_id ) . ' and ';
     }
 
+    my $public_clause = '';
+    if ( defined( $public ) )
+    {
+        $public_clause = $public ? "t.is_public and" : "not t.is_public and";
+    }
+
     my $topics = $db->query(
         <<END,
-select t.topics_id, t.name, t.pattern, t.solr_seed_query, t.description, t.max_iterations, t.state,
+select t.topics_id, t.name, t.pattern, t.solr_seed_query, t.solr_seed_query_run,
+        t.description, t.max_iterations, t.state,
         t.message, t.is_public, t.ch_monitor_id, t.twitter_topics_id, t.start_date, t.end_date,
         min( p.auth_users_id ) auth_users_id, min( p.user_permission ) user_permission
     from topics t
@@ -66,6 +74,7 @@ select t.topics_id, t.name, t.pattern, t.solr_seed_query, t.description, t.max_i
         left join snapshots snap on ( t.topics_id = snap.topics_id )
     where
         $id_clause
+        $public_clause
         p.auth_users_id= \$1 and
         t.name like \$2
     group by t.topics_id

@@ -12,7 +12,7 @@ use MediaWords::CommonLibs;
 
 require Exporter;
 our @ISA    = qw(Exporter);
-our @EXPORT = qw(test_request_response test_data_request test_get test_put test_post);
+our @EXPORT = qw(test_request_response test_data_request test_get test_put test_post rows_match);
 
 my $_test_api_key;
 
@@ -117,6 +117,33 @@ sub test_get($;$$)
     my $full_url = "$url?$encoded_params";
 
     return test_request_response( $full_url, request( $full_url ), $expect_error );
+}
+
+# test that got_rows matches expected_rows by checking for the same number of elements, the matching up rows in
+# got_rows and expected_rows and testing whether each field in $test_fields matches
+sub rows_match($$$$$)
+{
+    my ( $label, $got_rows, $expected_rows, $id_field, $test_fields ) = @_;
+
+    # just return if the number is not equal to avoid printing a bunch of uncessary errors
+    is( scalar( @{ $got_rows } ), scalar( @{ $expected_rows } ), "$label number of rows" ) || return;
+
+    my $expected_row_lookup = {};
+    map { $expected_row_lookup->{ $_->{ $id_field } } = $_ } @{ $expected_rows };
+
+    for my $got_row ( @{ $got_rows } )
+    {
+        my $expected_row = $expected_row_lookup->{ $got_row->{ $id_field } };
+
+        # don't try to test individual fields if the row does not exist
+        ok( $expected_row, "$label row with id $got_row->{ $id_field } is expected" ) || next;
+
+        for my $field ( @{ $test_fields } )
+        {
+            is( $got_row->{ $field }, $expected_row->{ $field }, "$label field $field" );
+        }
+    }
+
 }
 
 1;
