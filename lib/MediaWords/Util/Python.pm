@@ -86,9 +86,14 @@ sub import_python_module($$)
 #     Modification of non-creatable hash value attempted, subscript "language"
 #
 # To make the return values writable, we simply clone them.
-sub make_python_variable_writable
+#
+# If $cast_bools_to_int is set, cast Inline::Python booleans to ints instead of
+# leaving them as-is.
+sub make_python_variable_writable($;$);
+
+sub make_python_variable_writable($;$)
 {
-    my $variable = shift;
+    my ( $variable, $cast_bools_to_int ) = @_;
 
     my $copy;
 
@@ -100,7 +105,7 @@ sub make_python_variable_writable
         $copy = [];
         foreach my $value ( @{ $variable } )
         {
-            my $writable_value = make_python_variable_writable( $value );
+            my $writable_value = make_python_variable_writable( $value, $cast_bools_to_int );
             push( @{ $copy }, $writable_value );
         }
 
@@ -113,8 +118,8 @@ sub make_python_variable_writable
         {
             my $value = $variable->{ $key };
 
-            my $writable_key   = make_python_variable_writable( $key );
-            my $writable_value = make_python_variable_writable( $value );
+            my $writable_key   = make_python_variable_writable( $key,   $cast_bools_to_int );
+            my $writable_value = make_python_variable_writable( $value, $cast_bools_to_int );
             $copy->{ $writable_key } = $writable_value;
         }
 
@@ -126,11 +131,11 @@ sub make_python_variable_writable
         $copy = int( "$variable" );
         if ( $copy )
         {
-            $copy = $Inline::Python::Boolean::true;
+            $copy = $cast_bools_to_int ? 1 : $Inline::Python::Boolean::true;
         }
         else
         {
-            $copy = $Inline::Python::Boolean::false;
+            $copy = $cast_bools_to_int ? 0 : $Inline::Python::Boolean::false;
         }
 
     }
