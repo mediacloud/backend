@@ -18,7 +18,7 @@ sub set_amazon_s3_test_credentials_from_env_if_needed()
             and defined $ENV{ 'MC_AMAZON_S3_TEST_BUCKET_NAME' }
             and defined $ENV{ 'MC_AMAZON_S3_TEST_DIRECTORY_NAME' } )
         {
-            my $new_config = make_python_variable_writable( $config );
+            my $new_config = python_deep_copy( $config );
 
             $new_config->{ amazon_s3 }->{ test }->{ access_key_id }     = $ENV{ 'MC_AMAZON_S3_TEST_ACCESS_KEY_ID' };
             $new_config->{ amazon_s3 }->{ test }->{ secret_access_key } = $ENV{ 'MC_AMAZON_S3_TEST_SECRET_ACCESS_KEY' };

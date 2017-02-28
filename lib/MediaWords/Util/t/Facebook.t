@@ -116,7 +116,7 @@ sub main()
         # variables set by the automated testing environment
         if ( defined $ENV{ 'MC_FACEBOOK_APP_ID' } and defined $ENV{ 'MC_FACEBOOK_APP_SECRET' } )
         {
-            my $new_config = make_python_variable_writable( $config );
+            my $new_config = python_deep_copy( $config );
 
             unless ( $new_config->{ facebook } )
             {
