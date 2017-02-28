@@ -347,7 +347,7 @@ sub store_content($$$)
 {
     my ( $db, $download, $content_ref ) = @_;
 
-    $download = make_python_variable_writable( $download );
+    $download = python_deep_copy( $download );
 
     my $new_state = 'success';
     if ( $download->{ state } eq 'feed_error' )

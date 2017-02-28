@@ -12,7 +12,7 @@ use Inline::Python;
 
 use MediaWords::Util::Python;
 
-sub test_make_python_variable_writable()
+sub test_python_deep_copy()
 {
     my $input = {
         'a' => undef,
@@ -26,7 +26,7 @@ sub test_make_python_variable_writable()
         ],
     };
     my $expected_output = $input;
-    my $actual_output   = make_python_variable_writable( $input );
+    my $actual_output   = python_deep_copy( $input );
     cmp_deeply( $actual_output, $expected_output );
     isnt( $input, $actual_output, 'References must be different' );
 }
@@ -61,7 +61,7 @@ sub main()
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
-    test_make_python_variable_writable();
+    test_python_deep_copy();
     test_normalize_boolean_for_db();
 }
 

@@ -24,7 +24,7 @@ sub encode_json($;$$)
 
     # Do a deep copy in order to convert Inline::Python::Boolean to ints
     my $cast_bools_to_int = 1;
-    $object = make_python_variable_writable( $object, $cast_bools_to_int );
+    $object = python_deep_copy( $object, $cast_bools_to_int );
 
     $pretty = ( $pretty ? 1 : 0 );
     $utf8   = ( $utf8   ? 1 : 0 );    # if you set this to 1, make sure you don't double-encode
