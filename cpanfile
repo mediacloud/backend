@@ -102,7 +102,6 @@ requires 'Term::Prompt';
 requires 'Test::Differences';
 requires 'Test::NoWarnings';
 requires 'Test::Strict';
-requires 'Text::CSV';
 requires 'Text::CSV_XS', '1.26';
 requires 'Text::Hunspell';
 requires 'Text::Lorem::More';

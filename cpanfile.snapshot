@@ -7193,17 +7193,6 @@ DISTRIBUTIONS
       Test::Builder 0
       Test::Builder::Tester 0.09
       perl 5.007003
-  Text-CSV-1.33
-    pathname: M/MA/MAKAMAKA/Text-CSV-1.33.tar.gz
-    provides:
-      Text::CSV 1.33
-      Text::CSV::ErrorDiag 1.33
-      Text::CSV_PP 1.33
-    requirements:
-      ExtUtils::MakeMaker 0
-      IO::Handle 0
-      Test::Harness 0
-      Test::More 0
   Text-CSV_XS-1.26
     pathname: H/HM/HMBRAND/Text-CSV_XS-1.26.tgz
     provides:

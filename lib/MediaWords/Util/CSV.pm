@@ -8,7 +8,6 @@ use MediaWords::CommonLibs;
 
 use Encode;
 use JSON;
-use Text::CSV;
 use Text::CSV_XS;
 
 # various functions for outputting csv
@@ -50,7 +49,7 @@ sub get_csv_string_as_matrix
 {
     my ( $string ) = @_;
 
-    my $csv = Text::CSV->new( { binary => 1 } );
+    my $csv = Text::CSV_XS->new( { binary => 1 } );
 
     my $fh;
     open( $fh, '<', \$string );
