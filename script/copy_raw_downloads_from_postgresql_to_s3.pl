@@ -18,8 +18,20 @@ use MediaWords::KeyValueStore::AmazonS3;
 use Readonly;
 use Parallel::Fork::BossWorkerAsync;
 
+my %db_handles;
 my %postgresql_stores;
 my %s3_stores;
+
+sub _get_db_handle_for_current_pid()
+{
+    my $pid = $$;
+
+    unless ( $db_handles{ $pid } )
+    {
+        $db_handles{ $pid } = MediaWords::DB::connect_to_db();
+    }
+    return $db_handles{ $pid };
+}
 
 sub _get_postgresql_store_for_current_pid()
 {
@@ -27,7 +39,7 @@ sub _get_postgresql_store_for_current_pid()
 
     unless ( $postgresql_stores{ $pid } )
     {
-        $postgresql_stores{ $pid } = MediaWords::KeyValueStore::PostgreSQL->new( { table => 'bitly_processing_results' } );
+        $postgresql_stores{ $pid } = MediaWords::KeyValueStore::PostgreSQL->new( { table => 'raw_downloads' } );
     }
     return $postgresql_stores{ $pid };
 }
@@ -41,10 +53,10 @@ sub _get_s3_store_for_current_pid()
         my $config = MediaWords::Util::Config::get_config;
         $s3_stores{ $pid } = MediaWords::KeyValueStore::AmazonS3->new(
             {
-                access_key_id     => $config->{ amazon_s3 }->{ bitly_processing_results }->{ access_key_id },
-                secret_access_key => $config->{ amazon_s3 }->{ bitly_processing_results }->{ secret_access_key },
-                bucket_name       => $config->{ amazon_s3 }->{ bitly_processing_results }->{ bucket_name },
-                directory_name    => $config->{ amazon_s3 }->{ bitly_processing_results }->{ directory_name },
+                access_key_id     => $config->{ amazon_s3 }->{ downloads }->{ access_key_id },
+                secret_access_key => $config->{ amazon_s3 }->{ downloads }->{ secret_access_key },
+                bucket_name       => $config->{ amazon_s3 }->{ downloads }->{ bucket_name },
+                directory_name    => $config->{ amazon_s3 }->{ downloads }->{ directory_name },
             }
         );
     }
@@ -55,12 +67,13 @@ sub copy_from_postgresql_to_s3()
 {
     my $job = shift;
 
+    my $db               = _get_db_handle_for_current_pid();
     my $postgresql_store = _get_postgresql_store_for_current_pid();
     my $s3_store         = _get_s3_store_for_current_pid();
-    my $stories_id       = $job->{ stories_id };
+    my $downloads_id     = $job->{ downloads_id };
 
-    say STDERR "Copying story $stories_id...";
-    $s3_store->store_content( undef, $stories_id, $postgresql_store->fetch_content( undef, $stories_id ) );
+    INFO "Copying download $downloads_id...";
+    $s3_store->store_content( $db, $downloads_id, $postgresql_store->fetch_content( $db, $downloads_id ) );
 
     return { product => 1 };
 }
@@ -78,44 +91,44 @@ sub main
         worker_count   => 12,
     );
 
-    say STDERR "Fetching a list of Bit.ly stories...";
-    my $bitly_stories = $db->query(
+    INFO "Fetching a list of downloads...";
+    my $raw_downloads = $db->query(
         <<EOF
-        SELECT object_id AS stories_id
-        FROM bitly_processing_results
+        SELECT object_id AS downloads_id
+        FROM raw_downloads
         ORDER BY object_id
 EOF
     )->hashes;
 
-    my $story_count = scalar( @{ $bitly_stories } );
-    my $x           = 1;
+    my $download_count = scalar( @{ $raw_downloads } );
+    my $x              = 1;
 
-    say STDERR "Iterating over $story_count Bit.ly stories...";
-    foreach my $bitly_story ( @{ $bitly_stories } )
+    INFO "Iterating over $download_count downloads...";
+    foreach my $download ( @{ $raw_downloads } )
     {
-        my $stories_id = $bitly_story->{ stories_id };
+        my $downloads_id = $download->{ downloads_id };
 
-        say STDERR "Enqueueing story $x / $story_count...";
+        INFO "Enqueueing download $x / $download_count...";
         ++$x;
 
-        $bw->add_work( { stories_id => $stories_id } );
+        $bw->add_work( { downloads_id => $downloads_id } );
     }
 
     # Must fetch all the "results" for the whole thing to complete successfully
-    say STDERR "Fetching results...";
+    INFO "Fetching results...";
     while ( $bw->pending() )
     {
         my $ref = $bw->get_result();
         if ( $ref->{ ERROR } )
         {
-            die $ref->{ ERROR };
+            LOGCONFESS $ref->{ ERROR };
         }
     }
 
-    say STDERR "Finishing up...";
+    INFO "Finishing up...";
     $bw->shut_down();
 
-    say STDERR "All done.";
+    INFO "All done.";
 }
 
 main();
