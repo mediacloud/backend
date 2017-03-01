@@ -593,6 +593,7 @@ sub do_find_likely_full_text_rss : Local
 
         my $media_id = $1;
         die "Invalid $media_id " unless $media_id =~ /\d+/;
+        $media_id = int( $media_id );
 
         my $full_text_value = $post_params->{ $medium_full_text_param };
 
@@ -778,6 +779,7 @@ sub do_eval_rss_full_text : Local
 
     my $db = $c->dbis;
 
+    $id = int( $id );
     my $full_text_state = $c->request->parameters->{ full_text_rss };
 
     die "New RSS full text value undefined " if !defined( $full_text_state );
