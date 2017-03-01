@@ -10,7 +10,6 @@ use base 'Catalyst::Controller';
 
 use Data::Dumper;
 use Encode;
-use JSON;
 use List::MoreUtils qw(any all none notall true false firstidx first_index
   lastidx last_index insert_after insert_after_string
   apply after after_incl before before_incl indexes
@@ -21,6 +20,7 @@ use MediaWords::DBI::Feeds;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
 use MediaWords::Util::HTML;
+use MediaWords::Util::JSON;
 use MediaWords::Util::Tags;
 use MediaWords::Util::Web;
 use Readonly;
@@ -142,10 +142,7 @@ sub media_tags_search_json : Local
         )->flat;
     }
 
-    #TRACE Dumper( $terms );
-    #TRACE encode_json($terms);
-
-    $c->res->body( encode_json( $terms ) );
+    $c->res->body( MediaWords::Util::JSON::encode_json( $terms ) );
 
     return;
 }

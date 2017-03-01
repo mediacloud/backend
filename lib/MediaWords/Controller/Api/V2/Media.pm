@@ -7,7 +7,6 @@ use warnings;
 use base 'Catalyst::Controller';
 
 use Encode;
-use JSON;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
 use namespace::autoclean;

@@ -14,7 +14,6 @@ BEGIN
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use JSON;
 use List::MoreUtils "uniq";
 use List::Util "shuffle";
 use Math::Prime::Util;

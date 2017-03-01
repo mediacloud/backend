@@ -21,7 +21,6 @@ use MediaWords::CommonLibs;
 use CHI;
 use Data::Dumper;
 use Encode;
-use JSON;
 use Lingua::Stem::Snowball;
 use List::Util;
 use Readonly;

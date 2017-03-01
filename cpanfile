@@ -61,7 +61,6 @@ requires 'Inline';
 requires 'Inline::Python', '0.52';
 requires 'IO::Compress::Bzip2';
 requires 'IO::Compress::Gzip';
-requires 'JSON';
 requires 'JSON::XS';
 requires 'Lingua::Identify::CLD', '0.10';
 requires 'Lingua::Sentence';

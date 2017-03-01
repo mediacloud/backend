@@ -6,7 +6,6 @@ use MediaWords::CommonLibs;
 use strict;
 use warnings;
 use base 'Catalyst::Controller::REST';
-use JSON;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
 use namespace::autoclean;
