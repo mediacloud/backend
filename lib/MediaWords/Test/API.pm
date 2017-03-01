@@ -41,7 +41,7 @@ sub test_request_response($$;$)
 {
     my ( $label, $response, $expect_error ) = @_;
 
-    my $url = $response->request->url;
+    my $url = $response->request->uri->as_string;
 
     is( $response->is_success, !$expect_error, "HTTP response status OK for $label:\n" . $response->as_string );
 

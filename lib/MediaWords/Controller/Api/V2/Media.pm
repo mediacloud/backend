@@ -259,7 +259,8 @@ sub _find_medium_by_response_chain
 
     while ( $response )
     {
-        my $medium = MediaWords::DBI::Media::Lookup::find_medium_by_url( $db, decode( 'utf8', $response->request->url ) );
+        my $medium =
+          MediaWords::DBI::Media::Lookup::find_medium_by_url( $db, decode( 'utf8', $response->request->uri->as_string ) );
         return $medium if ( $medium );
 
         $response = $response->previous;
@@ -300,7 +301,7 @@ sub _attach_media_to_input($$)
             next;
         }
 
-        my $decoded_url = decode( 'utf8', $response->request->url );
+        my $decoded_url = decode( 'utf8', $response->request->uri->as_string );
         my $title = MediaWords::Util::HTML::html_title( $response->decoded_content, $decoded_url, 128 );
 
         $input_medium->{ medium } = _find_medium_by_response_chain( $db, $response )

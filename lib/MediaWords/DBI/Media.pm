@@ -122,7 +122,7 @@ sub find_or_create_media_from_urls
 # given a set of url media (as returned by _find_media_from_urls) and a url
 # return the index of the media source in the list whose url is the same as the url fetched the response.
 # note that the url should be the original url and not any redirected urls (such as might be stored in
-# response->request->url).
+# response->request->uri->as_string).
 sub _get_url_medium_index_from_url
 {
     my ( $url_media, $url ) = @_;
@@ -149,8 +149,13 @@ sub _find_medium_by_response
     my $r = $response;
 
     my $medium;
-    while ( $r
-        && !( $medium = MediaWords::DBI::Media::Lookup::find_medium_by_url( $dbis, decode( 'utf8', $r->request->url ) ) ) )
+    while (
+        $r
+        && !(
+            $medium =
+            MediaWords::DBI::Media::Lookup::find_medium_by_url( $dbis, decode( 'utf8', $r->request->uri->as_string ) )
+        )
+      )
     {
         $r = $r->previous;
     }
@@ -169,8 +174,12 @@ sub _add_missing_media_from_urls
 
     for my $response ( @{ $responses } )
     {
+        say STDERR "Response: " . Dumper( $response );
         my $original_request = MediaWords::Util::Web->get_original_request( $response );
-        my $url              = $original_request->url;
+        say STDERR "Original request: " . Dumper( $original_request );
+
+        my $url = $original_request->uri->as_string;
+        say STDERR "URL from original request: " . Dumper( $url );
 
         my $url_media_index = _get_url_medium_index_from_url( $url_media, $url );
         if ( !defined( $url_media_index ) )
@@ -184,8 +193,8 @@ sub _add_missing_media_from_urls
             next;
         }
 
-        my $title =
-          MediaWords::Util::HTML::html_title( $response->decoded_content, decode( 'utf8', $response->request->url ), 128 );
+        my $title = MediaWords::Util::HTML::html_title( $response->decoded_content,
+            decode( 'utf8', $response->request->uri->as_string ), 128 );
 
         my $medium = _find_medium_by_response( $dbis, $response );
 
@@ -202,9 +211,12 @@ sub _add_missing_media_from_urls
             }
             else
             {
+                say STDERR "Medium to be added: $title $url";
                 $medium = $dbis->create( 'media', { name => $title, url => $url, moderated => 'f' } );
+                say STDERR "Medium that got added: " . Dumper( $medium );
 
                 MediaWords::DBI::Media::Rescrape::add_to_rescrape_media_queue( $medium );
+                say STDERR "Medium after rescraping: " . Dumper( $medium );
 
                 DEBUG "added missing medium: $medium->{ url }";
             }

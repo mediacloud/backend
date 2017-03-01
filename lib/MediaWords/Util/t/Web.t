@@ -100,8 +100,8 @@ sub test_get_meta_redirect_response()
     is( $got_response->decoded_content, 'foo bar', "label redirected content" );
 
     # check that the response for the meta refresh redirected page got added to the end of the response chain
-    is( $got_response->request->url,           $redirect_url, "$label end url of response chain" );
-    is( $got_response->previous->request->url, $original_url, "$label previous url in response chain" );
+    is( $got_response->request->uri->as_string,           $redirect_url, "$label end url of response chain" );
+    is( $got_response->previous->request->uri->as_string, $original_url, "$label previous url in response chain" );
 
     $hs->stop;
 
