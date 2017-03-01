@@ -7,7 +7,6 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Encode;
-use JSON;
 use Text::CSV_XS;
 
 # various functions for outputting csv
