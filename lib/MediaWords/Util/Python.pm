@@ -216,12 +216,15 @@ sub normalize_boolean_for_db($;$)
                 {
                     return 't';
                 }
-                elsif ($value eq 'f'
+                elsif (
+                       $value eq 'f'
                     or $value eq 'false'
                     or $value eq 'n'
                     or $value eq 'no'
                     or $value eq 'off'
-                    or $value eq '0' )
+                    or $value eq '0'
+                    or $value eq ''    # coming from Catalyst form
+                  )
                 {
                     return 'f';
                 }
