@@ -20,6 +20,8 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+import_python_module( __PACKAGE__, 'mediawords.tm.mine' );
+
 use Data::Dumper;
 use DateTime;
 use Digest::MD5;
@@ -1028,7 +1030,7 @@ sub potential_story_matches_topic_pattern
 
     my $re = $topic->{ pattern };
 
-    my $match = ( postgres_regex_match( $db, $redirect_url, $re ) || postgres_regex_match( $db, $url, $re ) );
+    my $match = ( postgres_regex_match( $db, [ $redirect_url ], $re ) || postgres_regex_match( $db, [ $url ], $re ) );
 
     return 1 if $match;
 
@@ -1074,40 +1076,6 @@ sub add_missing_story_sentences
     MediaWords::DBI::Stories::add_missing_story_sentences( $db, $story );
 
     $_story_sentences_added->{ $story->{ stories_id } } = 1;
-}
-
-# run the regex through the postgres engine.return true if the given value matches the given regex.
-# this is necessary because very occasionally the wrong combination of text and complex boolean regex will
-# cause perl to hang.  of $string is a ref, check for a match against any of the strings in the list.
-sub postgres_regex_match($$$)
-{
-    my ( $db, $string, $re ) = @_;
-
-    return undef unless ( defined( $string ) );
-
-    my $strings = ref( $string ) ? $string : [ $string ];
-
-    return undef unless ( @{ $strings } );
-
-    for my $string ( @{ $strings } )
-    {
-        my $match = $db->query( "select 1 where ? ~ ( '(?isx)' || ? )", $string, $re )->hash;
-
-        return 1 if $match;
-    }
-
-    return 0;
-
-    #     my $quoted_strings = join( ',', map { "(" . $db->quote( $_ ) . ")" } @{ $strings } );
-    #
-    #     # combine all the strings together to avoid overhead of lots of indivdiual queries
-    #     my $match = $db->query( <<SQL, $re )->hash;
-    # with strings ( s ) as ( values $quoted_strings )
-    #
-    # select 1 from strings where s ~ ( '(?isx)' || \$1 )
-    # SQL
-    #
-    #     return $match;
 }
 
 # return the type of match if the story title, url, description, or sentences match topic search pattern.

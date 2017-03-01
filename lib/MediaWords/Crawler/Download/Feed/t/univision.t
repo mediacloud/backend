@@ -162,7 +162,7 @@ sub test_univision($$$)
             my $db = shift;
 
             my $config     = MediaWords::Util::Config::get_config();
-            my $new_config = make_python_variable_writable( $config );
+            my $new_config = python_deep_copy( $config );
 
             # Inject Univision credentials into configuration
             $new_config->{ univision } = {};

@@ -519,7 +519,7 @@ SQL
 
     # topic date modeling confuses perl TAP for some reason
     my $config     = MediaWords::Util::Config::get_config();
-    my $new_config = make_python_variable_writable( $config );
+    my $new_config = python_deep_copy( $config );
     $new_config->{ mediawords }->{ topic_model_reps } = 0;
     MediaWords::Util::Config::set_config( $new_config );
 
@@ -591,7 +591,7 @@ sub run_tests_on_mock_apis
     my $config = MediaWords::Util::Config::get_config();
 
     # set dummy values so that we can hit the mock apis without the underlying modules complaining
-    my $new_config = make_python_variable_writable( $config );
+    my $new_config = python_deep_copy( $config );
     $new_config->{ crimson_hexagon }->{ key } = 'TEST';
     map { $new_config->{ twitter }->{ $_ } = 'TEST' } qw/consumer_key consumer_secret access_token access_token_secret/;
     MediaWords::Util::Config::set_config( $new_config );

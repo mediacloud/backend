@@ -14,7 +14,7 @@ use Modern::Perl "2015";
 # Deliberately don't include MediaWords::CommonLibs as it includes this package itself
 
 our @ISA    = qw(Exporter);
-our @EXPORT = qw(import_python_module make_python_variable_writable normalize_boolean_for_db);
+our @EXPORT = qw(import_python_module python_deep_copy normalize_boolean_for_db);
 
 use Carp;
 use Inline::Python qw(py_eval py_bind_class py_bind_func py_study_package);
@@ -86,9 +86,14 @@ sub import_python_module($$)
 #     Modification of non-creatable hash value attempted, subscript "language"
 #
 # To make the return values writable, we simply clone them.
-sub make_python_variable_writable
+#
+# If $cast_bools_to_int is set, cast Inline::Python booleans to ints instead of
+# leaving them as-is.
+sub python_deep_copy($;$);
+
+sub python_deep_copy($;$)
 {
-    my $variable = shift;
+    my ( $variable, $cast_bools_to_int ) = @_;
 
     my $copy;
 
@@ -100,7 +105,7 @@ sub make_python_variable_writable
         $copy = [];
         foreach my $value ( @{ $variable } )
         {
-            my $writable_value = make_python_variable_writable( $value );
+            my $writable_value = python_deep_copy( $value, $cast_bools_to_int );
             push( @{ $copy }, $writable_value );
         }
 
@@ -113,8 +118,8 @@ sub make_python_variable_writable
         {
             my $value = $variable->{ $key };
 
-            my $writable_key   = make_python_variable_writable( $key );
-            my $writable_value = make_python_variable_writable( $value );
+            my $writable_key   = python_deep_copy( $key,   $cast_bools_to_int );
+            my $writable_value = python_deep_copy( $value, $cast_bools_to_int );
             $copy->{ $writable_key } = $writable_value;
         }
 
@@ -126,11 +131,11 @@ sub make_python_variable_writable
         $copy = int( "$variable" );
         if ( $copy )
         {
-            $copy = $Inline::Python::Boolean::true;
+            $copy = $cast_bools_to_int ? 1 : $Inline::Python::Boolean::true;
         }
         else
         {
-            $copy = $Inline::Python::Boolean::false;
+            $copy = $cast_bools_to_int ? 0 : $Inline::Python::Boolean::false;
         }
 
     }

@@ -1,8 +1,8 @@
-from unittest import TestCase
 from nose.tools import assert_raises
 
 from mediawords.db.exceptions.result import McDatabaseResultException
 from mediawords.db.handler import *
+from mediawords.test.test_database import TestDatabaseTestCase
 from mediawords.util.config import \
     get_config as py_get_config, \
     set_config as py_set_config  # MC_REWRITE_TO_PYTHON: rename back to get_config(), get_config()
@@ -11,58 +11,15 @@ from mediawords.util.log import create_logger
 l = create_logger(__name__)
 
 
-# FIXME make use of the testing database
 # noinspection SqlResolve,SpellCheckingInspection
-class TestDatabaseHandler(TestCase):
-    __db = None
-
-    @staticmethod
-    def __create_database_handler():
-        l.info("Looking for test database credentials...")
-        test_database = None
-        config = py_get_config()
-        for database in config['database']:
-            if database['label'] == 'test':
-                test_database = database
-                break
-        assert test_database is not None
-
-        l.info("Connecting to test database '%s' via DatabaseHandler class..." % test_database['db'])
-        db = DatabaseHandler(
-            host=test_database['host'],
-            port=test_database['port'],
-            username=test_database['user'],
-            password=test_database['pass'],
-            database=test_database['db']
-        )
-
-        return db
-
+class TestDatabaseHandler(TestDatabaseTestCase):
     def setUp(self):
 
-        self.__db = self.__create_database_handler()
-
-        l.info("Looking for test database credentials...")
-        test_database = None
-        config = py_get_config()
-        for database in config['database']:
-            if database['label'] == 'test':
-                test_database = database
-                break
-        assert test_database is not None
-
-        l.info("Connecting to test database '%s' via DatabaseHandler class..." % test_database['db'])
-        self.__db = DatabaseHandler(
-            host=test_database['host'],
-            port=test_database['port'],
-            username=test_database['user'],
-            password=test_database['pass'],
-            database=test_database['db']
-        )
+        TestDatabaseTestCase.setUp(self)
 
         l.info("Preparing test table 'kardashians'...")
-        self.__db.query("DROP TABLE IF EXISTS kardashians")
-        self.__db.query("""
+        self.db().query("DROP TABLE IF EXISTS kardashians")
+        self.db().query("""
             CREATE TABLE kardashians (
                 id SERIAL PRIMARY KEY NOT NULL,
                 name VARCHAR UNIQUE NOT NULL,   -- UNIQUE to test find_or_create()
@@ -71,7 +28,7 @@ class TestDatabaseHandler(TestCase):
                 married_to_kanye BOOL NOT NULL DEFAULT 'f'
             )
         """)
-        self.__db.query("""
+        self.db().query("""
             INSERT INTO kardashians (name, surname, dob, married_to_kanye) VALUES
             ('Kris', 'Jenner', '1955-11-05'::DATE, 'f'),          -- id=1
             ('Caitlyn', 'Jenner', '1949-10-28'::DATE, 'f'),       -- id=2
@@ -85,43 +42,60 @@ class TestDatabaseHandler(TestCase):
 
     def tearDown(self):
         l.info("Tearing down...")
-        self.__db.query("DROP TABLE IF EXISTS kardashians")
+        self.db().query("DROP TABLE IF EXISTS kardashians")
 
-        # Test disconnect() in a way too
-        self.__db.disconnect()
+        # Test disconnect() too
+        super(TestDatabaseTestCase, self).tearDown()
 
     def test_query_parameters(self):
 
         # DBD::Pg style + UTF-8
-        row = self.__db.query("SELECT * FROM kardashians WHERE name = ?", 'Khloé')
+        row = self.db().query("SELECT * FROM kardashians WHERE name = ?", 'Khloé')
         assert row is not None
         row_hash = row.hash()
         assert row_hash['name'] == 'Khloé'
         assert row_hash['surname'] == 'Kardashian'
 
         # psycopg2 style + UTF-8
-        row = self.__db.query('SELECT * FROM kardashians WHERE name = %s', ('Khloé',))
+        row = self.db().query('SELECT * FROM kardashians WHERE name = %s', ('Khloé',))
         assert row is not None
         row_hash = row.hash()
         assert row_hash['name'] == 'Khloé'
         assert row_hash['surname'] == 'Kardashian'
 
+    def test_query_parameters_multiple(self):
+
+        rows = self.db().query('SELECT * FROM kardashians WHERE name IN %(names)s ORDER BY name', {
+            'names': tuple([
+                'Kim',
+                'Kris',
+                'Kylie',
+            ]),
+        }).hashes()
+
+        assert rows is not None
+        assert len(rows) == 3
+
+        assert rows[0]['name'] == 'Kim'
+        assert rows[1]['name'] == 'Kris'
+        assert rows[2]['name'] == 'Kylie'
+
     def test_query_error(self):
 
         # Bad query
-        assert_raises(McDatabaseResultException, self.__db.query, "Badger badger badger badger")
+        assert_raises(McDatabaseResultException, self.db().query, "Badger badger badger badger")
 
     def test_query_percentage_sign_like(self):
 
         # LIKE with no psycopg2's arguments
-        row = self.__db.query("SELECT * FROM kardashians WHERE name LIKE 'Khlo%'", )
+        row = self.db().query("SELECT * FROM kardashians WHERE name LIKE 'Khlo%'", )
         assert row is not None
         row_hash = row.hash()
         assert row_hash['name'] == 'Khloé'
         assert row_hash['surname'] == 'Kardashian'
 
         # LIKE with one argument
-        row = self.__db.query("""
+        row = self.db().query("""
             SELECT *
             FROM kardashians
             WHERE name LIKE %(name_prefix)s
@@ -139,9 +113,9 @@ class TestDatabaseHandler(TestCase):
         inserted_surname = 'Odom 1000%'
         inserted_dob = '1979-11-06'
 
-        quoted_name = self.__db.quote(inserted_name)
-        quoted_surname = self.__db.quote(inserted_surname)
-        quoted_dob = self.__db.quote(inserted_dob)
+        quoted_name = self.db().quote(inserted_name)
+        quoted_surname = self.db().quote(inserted_surname)
+        quoted_dob = self.db().quote(inserted_dob)
 
         query = "INSERT INTO kardashians (name, surname, dob) VALUES (%(name)s, %(surname)s, %(dob)s)" % {
             # Python interpolation
@@ -150,9 +124,9 @@ class TestDatabaseHandler(TestCase):
             'dob': quoted_dob,
         }
 
-        self.__db.query(query)
+        self.db().query(query)
 
-        lamar = self.__db.query("SELECT * FROM kardashians WHERE name LIKE 'Lamar 100%%'").hash()
+        lamar = self.db().query("SELECT * FROM kardashians WHERE name LIKE 'Lamar 100%%'").hash()
         assert lamar is not None
         assert lamar['name'] == inserted_name
         assert lamar['surname'] == inserted_surname
@@ -164,8 +138,8 @@ class TestDatabaseHandler(TestCase):
         inserted_surname = 'Odom 1000%'
         inserted_dob = '1979-11-06'
 
-        quoted_name = self.__db.quote(inserted_name)
-        quoted_surname = self.__db.quote(inserted_surname)
+        quoted_name = self.db().quote(inserted_name)
+        quoted_surname = self.db().quote(inserted_surname)
 
         query = "INSERT INTO kardashians (name, surname, dob) VALUES (%(name)s, %(surname)s" % {
             # Python interpolation
@@ -173,9 +147,9 @@ class TestDatabaseHandler(TestCase):
             'surname': quoted_surname,
         }
 
-        self.__db.query(query + ", %s)", (inserted_dob,))
+        self.db().query(query + ", %s)", (inserted_dob,))
 
-        lamar = self.__db.query("SELECT * FROM kardashians WHERE name LIKE 'Lamar 100%%'").hash()
+        lamar = self.db().query("SELECT * FROM kardashians WHERE name LIKE 'Lamar 100%%'").hash()
         assert lamar is not None
         assert lamar['name'] == inserted_name
         assert lamar['surname'] == inserted_surname
@@ -187,8 +161,8 @@ class TestDatabaseHandler(TestCase):
         inserted_surname = 'Odom 1000%'
         inserted_dob = '1979-11-06'
 
-        quoted_name = self.__db.quote(inserted_name)
-        quoted_surname = self.__db.quote(inserted_surname)
+        quoted_name = self.db().quote(inserted_name)
+        quoted_surname = self.db().quote(inserted_surname)
 
         query = "INSERT INTO kardashians (name, surname, dob) VALUES (%(name)s, %(surname)s" % {
             # Python interpolation
@@ -196,9 +170,9 @@ class TestDatabaseHandler(TestCase):
             'surname': quoted_surname,
         }
 
-        self.__db.query(query + ", %(dob)s)", {'dob': inserted_dob})
+        self.db().query(query + ", %(dob)s)", {'dob': inserted_dob})
 
-        lamar = self.__db.query("SELECT * FROM kardashians WHERE name LIKE 'Lamar 100%%'").hash()
+        lamar = self.db().query("SELECT * FROM kardashians WHERE name LIKE 'Lamar 100%%'").hash()
         assert lamar is not None
         assert lamar['name'] == inserted_name
         assert lamar['surname'] == inserted_surname
@@ -210,8 +184,8 @@ class TestDatabaseHandler(TestCase):
         inserted_surname = 'Odom 1000%'
         inserted_dob = '1979-11-06'
 
-        quoted_name = self.__db.quote(inserted_name)
-        quoted_surname = self.__db.quote(inserted_surname)
+        quoted_name = self.db().quote(inserted_name)
+        quoted_surname = self.db().quote(inserted_surname)
 
         query = "INSERT INTO kardashians (name, surname, dob) VALUES (%(name)s, %(surname)s" % {
             # Python interpolation
@@ -219,9 +193,9 @@ class TestDatabaseHandler(TestCase):
             'surname': quoted_surname,
         }
 
-        self.__db.query(query + ", ?)", inserted_dob)
+        self.db().query(query + ", ?)", inserted_dob)
 
-        lamar = self.__db.query("SELECT * FROM kardashians WHERE name LIKE 'Lamar 100%%'").hash()
+        lamar = self.db().query("SELECT * FROM kardashians WHERE name LIKE 'Lamar 100%%'").hash()
         assert lamar is not None
         assert lamar['name'] == inserted_name
         assert lamar['surname'] == inserted_surname
@@ -233,8 +207,8 @@ class TestDatabaseHandler(TestCase):
         inserted_surname = 'Odom %s'
         inserted_dob = '1979-11-06'
 
-        quoted_name = self.__db.quote(inserted_name)
-        quoted_surname = self.__db.quote(inserted_surname)
+        quoted_name = self.db().quote(inserted_name)
+        quoted_surname = self.db().quote(inserted_surname)
 
         query = "INSERT INTO kardashians (name, surname, dob) VALUES (%(name)s, %(surname)s" % {
             # Python interpolation
@@ -242,9 +216,9 @@ class TestDatabaseHandler(TestCase):
             'surname': quoted_surname,
         }
 
-        self.__db.query(query + ", ?)", inserted_dob)
+        self.db().query(query + ", ?)", inserted_dob)
 
-        lamar = self.__db.query("SELECT * FROM kardashians WHERE name LIKE 'Lamar%'").hash()
+        lamar = self.db().query("SELECT * FROM kardashians WHERE name LIKE 'Lamar%'").hash()
         assert lamar is not None
         assert lamar['name'] == 'Lamar % (foo)s'
         assert lamar['surname'] == 'Odom % s'
@@ -256,8 +230,8 @@ class TestDatabaseHandler(TestCase):
         inserted_surname = 'Odom %s'
         inserted_dob = '1979-11-06'
 
-        quoted_name = self.__db.quote(inserted_name)
-        quoted_surname = self.__db.quote(inserted_surname)
+        quoted_name = self.db().quote(inserted_name)
+        quoted_surname = self.db().quote(inserted_surname)
 
         query = "INSERT INTO kardashians (name, surname, dob) VALUES (%(name)s, %(surname)s" % {
             # Python interpolation
@@ -265,9 +239,9 @@ class TestDatabaseHandler(TestCase):
             'surname': quoted_surname,
         }
 
-        self.__db.query(query + ", ?)", inserted_dob)
+        self.db().query(query + ", ?)", inserted_dob)
 
-        lamar = self.__db.query("SELECT * FROM kardashians WHERE name LIKE 'Lamar%'").hash()
+        lamar = self.db().query("SELECT * FROM kardashians WHERE name LIKE 'Lamar%'").hash()
         assert lamar is not None
         assert lamar['name'] == 'Lamar % ()s'
         assert lamar['surname'] == 'Odom % s'
@@ -279,8 +253,8 @@ class TestDatabaseHandler(TestCase):
         inserted_surname = 'Odom %'
         inserted_dob = '1979-11-06'
 
-        quoted_name = self.__db.quote(inserted_name)
-        quoted_surname = self.__db.quote(inserted_surname)
+        quoted_name = self.db().quote(inserted_name)
+        quoted_surname = self.db().quote(inserted_surname)
 
         query = "INSERT INTO kardashians (name, surname, dob) VALUES (%(name)s, %(surname)s" % {
             # Python interpolation
@@ -288,29 +262,29 @@ class TestDatabaseHandler(TestCase):
             'surname': quoted_surname,
         }
 
-        self.__db.query(query + ", ?)", inserted_dob)
+        self.db().query(query + ", ?)", inserted_dob)
 
-        lamar = self.__db.query("SELECT * FROM kardashians WHERE name LIKE 'Lamar%'").hash()
+        lamar = self.db().query("SELECT * FROM kardashians WHERE name LIKE 'Lamar%'").hash()
         assert lamar is not None
         assert lamar['name'] == 'Lamar % ()'
         assert lamar['surname'] == 'Odom %'
 
     def test_query_result_columns(self):
-        columns = self.__db.query("SELECT * FROM kardashians").columns()
+        columns = self.db().query("SELECT * FROM kardashians").columns()
         assert len(columns) == 5
         assert columns[2] == 'surname'
 
     def test_query_result_rows(self):
-        rows_affected = self.__db.query("SELECT * FROM kardashians").rows()
+        rows_affected = self.db().query("SELECT * FROM kardashians").rows()
         assert rows_affected == 8  # rows SELECTed
 
-        rows_affected = self.__db.query("""
+        rows_affected = self.db().query("""
             UPDATE kardashians SET surname = 'Kardashian-West' WHERE name = 'Kim'
         """).rows()
         assert rows_affected == 1  # rows UPDATEd
 
     def test_query_result_array(self):
-        result = self.__db.query("SELECT * FROM kardashians WHERE name IN ('Caitlyn', 'Kris') ORDER BY name")
+        result = self.db().query("SELECT * FROM kardashians WHERE name IN ('Caitlyn', 'Kris') ORDER BY name")
 
         row = result.array()
         assert row[1] == 'Caitlyn'
@@ -322,7 +296,7 @@ class TestDatabaseHandler(TestCase):
         assert row is None
 
     def test_query_result_hash(self):
-        result = self.__db.query("SELECT * FROM kardashians WHERE name IN ('Caitlyn', 'Kris') ORDER BY name")
+        result = self.db().query("SELECT * FROM kardashians WHERE name IN ('Caitlyn', 'Kris') ORDER BY name")
 
         row = result.hash()
         assert row['name'] == 'Caitlyn'
@@ -334,14 +308,14 @@ class TestDatabaseHandler(TestCase):
         assert row is None
 
     def test_query_result_flat(self):
-        flat_rows = self.__db.query("""
+        flat_rows = self.db().query("""
             SELECT * FROM kardashians WHERE name IN ('Caitlyn', 'Kris') ORDER BY name
         """).flat()
         assert len(flat_rows) == 5 * 2  # two rows, 5 columns each
         assert flat_rows[1] == 'Caitlyn'
 
     def test_query_result_hashes(self):
-        hashes = self.__db.query("""
+        hashes = self.db().query("""
             SELECT * FROM kardashians WHERE name IN ('Caitlyn', 'Kris') ORDER BY name
         """).hashes()
         assert len(hashes) == 2
@@ -355,7 +329,7 @@ class TestDatabaseHandler(TestCase):
     def test_prepare(self):
 
         # Basic
-        statement = self.__db.prepare("""
+        statement = self.db().prepare("""
             UPDATE kardashians
             SET surname = ?
             WHERE name = ?
@@ -366,19 +340,19 @@ class TestDatabaseHandler(TestCase):
         statement.bind(3, 'Kardashian')
         statement.execute()
 
-        row_hash = self.__db.query("SELECT * FROM kardashians WHERE name = ?", 'Kim').hash()
+        row_hash = self.db().query("SELECT * FROM kardashians WHERE name = ?", 'Kim').hash()
         assert row_hash['surname'] == 'Kardashian-West'
 
         # BYTEA
         random_bytes = os.urandom(10 * 1024)
-        self.__db.query("""
+        self.db().query("""
             CREATE TEMPORARY TABLE table_with_bytea_column (
                 id INT NOT NULL,
                 surname VARCHAR NOT NULL,
                 bytea_data BYTEA NOT NULL
             )
         """)
-        statement = self.__db.prepare("""
+        statement = self.db().prepare("""
             INSERT INTO table_with_bytea_column (id, surname, bytea_data)
             VALUES (?, ?, ?)
         """)
@@ -387,7 +361,7 @@ class TestDatabaseHandler(TestCase):
         statement.bind_bytea(3, random_bytes)
         statement.execute()
 
-        row_hash = self.__db.query("SELECT id, surname, bytea_data FROM table_with_bytea_column").hash()
+        row_hash = self.db().query("SELECT id, surname, bytea_data FROM table_with_bytea_column").hash()
         assert row_hash['id'] == 42
         assert row_hash['surname'] == 'Kardashian'
         assert bytes(row_hash['bytea_data']) == random_bytes
@@ -404,25 +378,25 @@ class TestDatabaseHandler(TestCase):
         config['mediawords']['large_work_mem'] = '%dMB' % large_work_mem
         py_set_config(config)
 
-        self.__db.query('SET work_mem TO %s', ('%sMB' % normal_work_mem,))
+        self.db().query('SET work_mem TO %s', ('%sMB' % normal_work_mem,))
 
-        current_work_mem = int(self.__db.query("""
+        current_work_mem = int(self.db().query("""
             SELECT setting::INT FROM pg_settings WHERE name = 'work_mem'
         """).flat()[0])
         assert current_work_mem == normal_work_mem * 1024
 
-        self.__db.query('CREATE TEMPORARY TABLE execute_large_work_mem (work_mem INT NOT NULL)')
-        self.__db.execute_with_large_work_mem("""
+        self.db().query('CREATE TEMPORARY TABLE execute_large_work_mem (work_mem INT NOT NULL)')
+        self.db().execute_with_large_work_mem("""
             INSERT INTO execute_large_work_mem (work_mem)
             SELECT setting::INT FROM pg_settings WHERE name = 'work_mem'
         """)
 
-        statement_work_mem = int(self.__db.query("""
+        statement_work_mem = int(self.db().query("""
             SELECT work_mem FROM execute_large_work_mem
         """).flat()[0])
         assert statement_work_mem == large_work_mem * 1024
 
-        current_work_mem = int(self.__db.query("""
+        current_work_mem = int(self.db().query("""
             SELECT setting::INT FROM pg_settings WHERE name = 'work_mem'
         """).flat()[0])
         assert current_work_mem == normal_work_mem * 1024
@@ -433,13 +407,13 @@ class TestDatabaseHandler(TestCase):
     def test_execute_with_large_work_mem_params(self):
 
         # psycopg2 style
-        self.__db.execute_with_large_work_mem("""
+        self.db().execute_with_large_work_mem("""
             INSERT INTO kardashians (name, surname, dob)
             VALUES (%(name)s, %(surname)s, %(dob)s)
         """, {'name': 'Lamar', 'surname': 'Odom', 'dob': '1979-11-06'})
 
         # DBD::Pg
-        self.__db.execute_with_large_work_mem("""
+        self.db().execute_with_large_work_mem("""
             INSERT INTO kardashians (name, surname, dob)
             VALUES (?, ?, ?)
         """, 'Lamar-2', 'Odom-2', '1979-11-06')
@@ -456,28 +430,28 @@ class TestDatabaseHandler(TestCase):
         config['mediawords']['large_work_mem'] = '%dMB' % large_work_mem
         py_set_config(config)
 
-        self.__db.query("SET work_mem TO %s", ('%sMB' % normal_work_mem,))
+        self.db().query("SET work_mem TO %s", ('%sMB' % normal_work_mem,))
 
-        current_work_mem = int(self.__db.query("""
+        current_work_mem = int(self.db().query("""
             SELECT setting::INT FROM pg_settings WHERE name = 'work_mem'
         """).flat()[0])
         assert current_work_mem == normal_work_mem * 1024
 
         def __test_run_block_with_large_work_mem_inner():
-            self.__db.execute_with_large_work_mem("""
+            self.db().execute_with_large_work_mem("""
                 INSERT INTO execute_large_work_mem (work_mem)
                 SELECT setting::INT FROM pg_settings WHERE name = 'work_mem'
             """)
 
-        self.__db.query('CREATE TEMPORARY TABLE execute_large_work_mem (work_mem INT NOT NULL)')
-        self.__db.run_block_with_large_work_mem(__test_run_block_with_large_work_mem_inner)
+        self.db().query('CREATE TEMPORARY TABLE execute_large_work_mem (work_mem INT NOT NULL)')
+        self.db().run_block_with_large_work_mem(__test_run_block_with_large_work_mem_inner)
 
-        statement_work_mem = int(self.__db.query("""
+        statement_work_mem = int(self.db().query("""
             SELECT work_mem FROM execute_large_work_mem
         """).flat()[0])
         assert statement_work_mem == large_work_mem * 1024
 
-        current_work_mem = int(self.__db.query("""
+        current_work_mem = int(self.db().query("""
             SELECT setting::INT FROM pg_settings WHERE name = 'work_mem'
         """).flat()[0])
         assert current_work_mem == normal_work_mem * 1024
@@ -486,26 +460,26 @@ class TestDatabaseHandler(TestCase):
         py_set_config(config)
 
     def test_primary_key_column(self):
-        primary_key = self.__db.primary_key_column('kardashians')
+        primary_key = self.db().primary_key_column('kardashians')
         assert primary_key == 'id'
 
         # Test caching
-        primary_key = self.__db.primary_key_column('kardashians')
+        primary_key = self.db().primary_key_column('kardashians')
         assert primary_key == 'id'
 
     def test_find_by_id(self):
-        row_hash = self.__db.find_by_id(table='kardashians', object_id=4)
+        row_hash = self.db().find_by_id(table='kardashians', object_id=4)
         assert row_hash['name'] == 'Kim'
 
     def test_require_by_id(self):
         # Exists
-        row_hash = self.__db.require_by_id(table='kardashians', object_id=4)
+        row_hash = self.db().require_by_id(table='kardashians', object_id=4)
         assert row_hash['name'] == 'Kim'
 
         # Doesn't exist
         row = None
         try:
-            row = self.__db.require_by_id(table='kardashians', object_id=42)
+            row = self.db().require_by_id(table='kardashians', object_id=42)
         except McRequireByIDException:
             pass
         else:
@@ -513,7 +487,7 @@ class TestDatabaseHandler(TestCase):
         assert row is None
 
     def test_update_by_id(self):
-        updated_row = self.__db.update_by_id(table='kardashians', object_id=4, update_hash={
+        updated_row = self.db().update_by_id(table='kardashians', object_id=4, update_hash={
             'surname': 'Kardashian-West',
             '_ignored_key': 'Ignored value.'
         })
@@ -522,22 +496,22 @@ class TestDatabaseHandler(TestCase):
         assert updated_row['name'] == 'Kim'
         assert updated_row['surname'] == 'Kardashian-West'
 
-        row_hash = self.__db.find_by_id(table='kardashians', object_id=4)
+        row_hash = self.db().find_by_id(table='kardashians', object_id=4)
         assert row_hash is not None
         assert row_hash['name'] == 'Kim'
         assert row_hash['surname'] == 'Kardashian-West'
         assert '_ignored_key' not in row_hash
 
         # Nonexistent column
-        assert_raises(McUpdateByIDException, self.__db.update_by_id, 'kardashians', 4, {'does_not': 'exist'})
+        assert_raises(McUpdateByIDException, self.db().update_by_id, 'kardashians', 4, {'does_not': 'exist'})
 
     def test_delete_by_id(self):
-        self.__db.delete_by_id(table='kardashians', object_id=4)
-        row = self.__db.find_by_id(table='kardashians', object_id=4)
+        self.db().delete_by_id(table='kardashians', object_id=4)
+        row = self.db().find_by_id(table='kardashians', object_id=4)
         assert row is None
 
     def test_create(self):
-        row = self.__db.create(table='kardashians', insert_hash={
+        row = self.db().create(table='kardashians', insert_hash={
             'name': 'Lamar',
             'surname': 'Odom',
             'dob': '1979-11-06',
@@ -546,11 +520,11 @@ class TestDatabaseHandler(TestCase):
         assert str(row['dob']) == '1979-11-06'
 
         # Nonexistent column
-        assert_raises(McCreateException, self.__db.create, 'kardashians', {'does_not': 'exist'})
+        assert_raises(McCreateException, self.db().create, 'kardashians', {'does_not': 'exist'})
 
     def test_select(self):
         # One condition
-        row = self.__db.select(table='kardashians', what_to_select='*', condition_hash={
+        row = self.db().select(table='kardashians', what_to_select='*', condition_hash={
             'name': 'Kim',
         })
         assert row is not None
@@ -558,18 +532,18 @@ class TestDatabaseHandler(TestCase):
         assert row_hash['surname'] == 'Kardashian'
 
         # No conditions
-        rows = self.__db.select(table='kardashians', what_to_select='*')
+        rows = self.db().select(table='kardashians', what_to_select='*')
         assert rows is not None
         assert rows.rows() == 8
 
     def test_find_or_create(self):
 
         # Verify that the record is not here
-        row = self.__db.query("SELECT * FROM kardashians WHERE name = 'Lamar'")
+        row = self.db().query("SELECT * FROM kardashians WHERE name = 'Lamar'")
         assert row.rows() == 0
 
         # Should INSERT
-        row_hash = self.__db.find_or_create(table='kardashians', insert_hash={
+        row_hash = self.db().find_or_create(table='kardashians', insert_hash={
             'name': 'Lamar',
             'surname': 'Odom',
             'dob': '1979-11-06',
@@ -578,7 +552,7 @@ class TestDatabaseHandler(TestCase):
         assert row_hash['surname'] == 'Odom'
 
         # Should SELECT
-        row_hash = self.__db.find_or_create(table='kardashians', insert_hash={
+        row_hash = self.db().find_or_create(table='kardashians', insert_hash={
             'name': 'Lamar',
             'surname': 'Odom',
             'dob': '1979-11-06',
@@ -588,23 +562,23 @@ class TestDatabaseHandler(TestCase):
 
     def test_begin_commit(self):
 
-        row = self.__db.query("SELECT * FROM kardashians WHERE name = 'Lamar'")
+        row = self.db().query("SELECT * FROM kardashians WHERE name = 'Lamar'")
         assert row.rows() == 0
 
         # Create a separate database handler to test whether transactions are isolated
-        isolated_db = self.__create_database_handler()
+        isolated_db = self._create_database_handler()
         row = isolated_db.query("SELECT * FROM kardashians WHERE name = 'Lamar'")
         assert row.rows() == 0
 
-        self.__db.begin()
-        self.__db.create(table='kardashians', insert_hash={
+        self.db().begin()
+        self.db().create(table='kardashians', insert_hash={
             'name': 'Lamar',
             'surname': 'Odom',
             'dob': '1979-11-06',
         })
 
         # Should exist in a handle that initiated the transaction...
-        row = self.__db.query("SELECT * FROM kardashians WHERE name = 'Lamar'").hash()
+        row = self.db().query("SELECT * FROM kardashians WHERE name = 'Lamar'").hash()
         assert row['surname'] == 'Odom'
         assert str(row['dob']) == '1979-11-06'
 
@@ -612,10 +586,10 @@ class TestDatabaseHandler(TestCase):
         row = isolated_db.query("SELECT * FROM kardashians WHERE name = 'Lamar'")
         assert row.rows() == 0
 
-        self.__db.commit()
+        self.db().commit()
 
         # Both handles should be able to access new row at this point
-        row = self.__db.query("SELECT * FROM kardashians WHERE name = 'Lamar'").hash()
+        row = self.db().query("SELECT * FROM kardashians WHERE name = 'Lamar'").hash()
         assert row['surname'] == 'Odom'
         assert str(row['dob']) == '1979-11-06'
 
@@ -625,50 +599,50 @@ class TestDatabaseHandler(TestCase):
 
     def test_begin_rollback(self):
 
-        row = self.__db.query("SELECT * FROM kardashians WHERE name = 'Lamar'")
+        row = self.db().query("SELECT * FROM kardashians WHERE name = 'Lamar'")
         assert row.rows() == 0
 
-        self.__db.begin()
-        self.__db.create(table='kardashians', insert_hash={
+        self.db().begin()
+        self.db().create(table='kardashians', insert_hash={
             'name': 'Lamar',
             'surname': 'Odom',
             'dob': '1979-11-06',
         })
-        self.__db.rollback()
+        self.db().rollback()
 
-        row = self.__db.query("SELECT * FROM kardashians WHERE name = 'Lamar'")
+        row = self.db().query("SELECT * FROM kardashians WHERE name = 'Lamar'")
         assert row.rows() == 0
 
     def test_quote(self):
-        assert self.__db.quote(None) == 'NULL'
-        assert self.__db.quote("foo") == "'foo'"
-        assert self.__db.quote("foo'bar") == "'foo''bar'"
-        assert self.__db.quote("Вот моё сердце. 'Оно полно любви.") == "'Вот моё сердце. ''Оно полно любви.'"
-        assert self.__db.quote(0) == "0"
-        assert self.__db.quote(1) == "1"
-        assert self.__db.quote(3.4528) == "3.4528"
-        assert self.__db.quote(True) == "true"
-        assert self.__db.quote(False) == "false"
+        assert self.db().quote(None) == 'NULL'
+        assert self.db().quote("foo") == "'foo'"
+        assert self.db().quote("foo'bar") == "'foo''bar'"
+        assert self.db().quote("Вот моё сердце. 'Оно полно любви.") == "'Вот моё сердце. ''Оно полно любви.'"
+        assert self.db().quote(0) == "0"
+        assert self.db().quote(1) == "1"
+        assert self.db().quote(3.4528) == "3.4528"
+        assert self.db().quote(True) == "true"
+        assert self.db().quote(False) == "false"
 
         # Doubling the psycopg2 parameter percentage signs
-        assert self.__db.quote("%s") == "'% s'"
-        assert self.__db.quote("%(param_1)s") == "'% (param_1)s'"
-        assert self.__db.quote("%()s") == "'% ()s'"
-        assert self.__db.quote("%()") == "'% ()'"
-        assert self.__db.quote("%(") == "'% ('"
+        assert self.db().quote("%s") == "'% s'"
+        assert self.db().quote("%(param_1)s") == "'% (param_1)s'"
+        assert self.db().quote("%()s") == "'% ()s'"
+        assert self.db().quote("%()") == "'% ()'"
+        assert self.db().quote("%(") == "'% ('"
 
     def test_copy_from(self):
-        copy = self.__db.copy_from(sql="COPY kardashians (name, surname, dob, married_to_kanye) FROM STDIN WITH CSV")
+        copy = self.db().copy_from(sql="COPY kardashians (name, surname, dob, married_to_kanye) FROM STDIN WITH CSV")
         copy.put_line("Lamar,Odom,1979-11-06,f\n")
         copy.put_line("Sam Brody,Jenner,1983-08-21,f\n")
         copy.end()
 
-        row = self.__db.query("SELECT * FROM kardashians WHERE name = 'Lamar'").hash()
+        row = self.db().query("SELECT * FROM kardashians WHERE name = 'Lamar'").hash()
         assert row is not None
         assert row['surname'] == 'Odom'
         assert str(row['dob']) == '1979-11-06'
 
-        row = self.__db.query("SELECT * FROM kardashians WHERE name = 'Sam Brody'").hash()
+        row = self.db().query("SELECT * FROM kardashians WHERE name = 'Sam Brody'").hash()
         assert row is not None
         assert row['surname'] == 'Jenner'
         assert str(row['dob']) == '1983-08-21'
@@ -682,13 +656,13 @@ class TestDatabaseHandler(TestCase):
             ) TO STDOUT WITH CSV
         """
 
-        copy = self.__db.copy_to(sql=sql)
+        copy = self.db().copy_to(sql=sql)
         line = copy.get_line()
         copy.end()
         assert line == "Kris,Jenner,1955-11-05,f\n"
 
         # Test iterator
-        copy = self.__db.copy_to(sql=sql)
+        copy = self.db().copy_to(sql=sql)
         count = 0
         for _ in copy:
             count += 1
@@ -699,13 +673,13 @@ class TestDatabaseHandler(TestCase):
         ints = [1, 2, 3, 4, 5]
 
         # Unordered
-        table_name = self.__db.get_temporary_ids_table(ids=ints, ordered=False)
-        returned_ints = self.__db.query("SELECT * FROM %s" % table_name).hashes()
+        table_name = self.db().get_temporary_ids_table(ids=ints, ordered=False)
+        returned_ints = self.db().query("SELECT * FROM %s" % table_name).hashes()
         assert len(returned_ints) == len(ints)
 
         # Ordered
-        table_name = self.__db.get_temporary_ids_table(ids=ints, ordered=True)
-        returned_ints = self.__db.query(
+        table_name = self.db().get_temporary_ids_table(ids=ints, ordered=True)
+        returned_ints = self.db().query(
             "SELECT id FROM %(table_name)s ORDER BY %(table_name)s_pkey" % {'table_name': table_name}
         ).flat()
         assert returned_ints == ints
@@ -713,7 +687,7 @@ class TestDatabaseHandler(TestCase):
     def test_attach_child_query(self):
 
         # Single
-        self.__db.query("""
+        self.db().query("""
             CREATE TEMPORARY TABLE names (
                id INT NOT NULL,
                name VARCHAR NOT NULL
@@ -728,7 +702,7 @@ class TestDatabaseHandler(TestCase):
             {'id': 3, 'surname': 'Bloggs'},
         ]
 
-        names_and_surnames = self.__db.attach_child_query(
+        names_and_surnames = self.db().attach_child_query(
             data=surnames,
             child_query='SELECT id, name FROM names',
             child_field='name',
@@ -754,7 +728,7 @@ class TestDatabaseHandler(TestCase):
         ]
 
         # Not single
-        self.__db.query("""
+        self.db().query("""
             CREATE TEMPORARY TABLE dogs (
                owner_id INT NOT NULL,
                dog_name VARCHAR NOT NULL
@@ -772,7 +746,7 @@ class TestDatabaseHandler(TestCase):
             {'owner_id': 3, 'owner_name': 'Joe'},
         ]
 
-        owners_and_their_dogs = self.__db.attach_child_query(
+        owners_and_their_dogs = self.db().attach_child_query(
             data=owners,
             child_query='SELECT owner_id, dog_name FROM dogs',
             child_field='owned_dogs',
@@ -831,7 +805,7 @@ class TestDatabaseHandler(TestCase):
         rows_per_page = 10
 
         # First page
-        qph = self.__db.query_paged_hashes(query=sql, page=1, rows_per_page=rows_per_page)
+        qph = self.db().query_paged_hashes(query=sql, page=1, rows_per_page=rows_per_page)
         hashes = qph.list()
         pager = qph.pager()
 
@@ -845,7 +819,7 @@ class TestDatabaseHandler(TestCase):
         assert pager.last() == 10
 
         # Last page
-        qph = self.__db.query_paged_hashes(query=sql, page=2, rows_per_page=rows_per_page)
+        qph = self.db().query_paged_hashes(query=sql, page=2, rows_per_page=rows_per_page)
         hashes = qph.list()
         pager = qph.pager()
 
