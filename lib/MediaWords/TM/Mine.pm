@@ -197,18 +197,6 @@ SQL
     return $_media_cache->{ $media_id };
 }
 
-# return true if the media the story belongs to has full_text_rss set to true
-sub story_media_has_full_text_rss
-{
-    my ( $db, $story ) = @_;
-
-    my $media_id = $story->{ media_id };
-
-    my $medium = get_cached_medium_by_id( $db, $story->{ media_id } );
-
-    return $medium->{ full_text_rss };
-}
-
 # get links at end of boingboing link
 sub get_boingboing_links
 {

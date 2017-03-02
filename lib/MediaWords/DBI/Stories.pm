@@ -1199,7 +1199,7 @@ sub add_story($$$;$)
 
     unless ( defined $story->{ full_text_rss } )
     {
-        my $full_text_rss = $medium->{ full_text_rss };
+        my $full_text_rss = $medium->{ full_text_rss } // 0;
         if ( defined( $story->{ description } ) and ( length( $story->{ description } ) == 0 ) )
         {
             $full_text_rss = 0;

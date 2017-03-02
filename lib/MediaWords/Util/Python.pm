@@ -17,6 +17,7 @@ our @ISA    = qw(Exporter);
 our @EXPORT = qw(import_python_module python_deep_copy normalize_boolean_for_db);
 
 use Carp;
+use Data::Dumper;
 use Inline::Python qw(py_eval py_bind_class py_bind_func py_study_package);
 use Scalar::Util qw/looks_like_number/;
 
@@ -196,7 +197,7 @@ sub normalize_boolean_for_db($;$)
                 }
                 else
                 {
-                    croak "Invalid boolean value: $value";
+                    confess "Invalid boolean value: " . Dumper( $value );
                 }
 
             }
@@ -215,18 +216,21 @@ sub normalize_boolean_for_db($;$)
                 {
                     return 't';
                 }
-                elsif ($value eq 'f'
+                elsif (
+                       $value eq 'f'
                     or $value eq 'false'
                     or $value eq 'n'
                     or $value eq 'no'
                     or $value eq 'off'
-                    or $value eq '0' )
+                    or $value eq '0'
+                    or $value eq ''    # coming from Catalyst form
+                  )
                 {
                     return 'f';
                 }
                 else
                 {
-                    croak "Invalid boolean value: $value";
+                    confess "Invalid boolean value: " . Dumper( $value );
                 }
             }
         }

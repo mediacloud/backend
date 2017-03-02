@@ -78,13 +78,13 @@ sub _validate_and_name_feed_urls
     {
         if ( !$response->is_success )
         {
-            DEBUG "Failed to get URL: " . $response->request->url . " with error: " . $response->status_line;
+            DEBUG "Failed to get URL: " . $response->request->uri->as_string . " with error: " . $response->status_line;
             next;
         }
 
         my $content = $response->decoded_content;
 
-        my $url = MediaWords::Util::Web->get_original_request( $response )->url->as_string;
+        my $url = MediaWords::Util::Web->get_original_request( $response )->uri->as_string;
 
         DEBUG "Parsing $url";
 
@@ -359,7 +359,7 @@ sub _recurse_get_valid_feeds_from_index_url($$$$)
 
     for my $response ( @{ $responses } )
     {
-        my $feed_urls = _get_feed_urls_from_html( $response->request->url, $response->decoded_content );
+        my $feed_urls = _get_feed_urls_from_html( $response->request->uri->as_string, $response->decoded_content );
 
         map { $scraped_url_lookup->{ $_ }++ } @{ $feed_urls };
     }

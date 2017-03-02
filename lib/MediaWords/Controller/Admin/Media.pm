@@ -10,7 +10,6 @@ use base 'Catalyst::Controller';
 
 use Data::Dumper;
 use Encode;
-use JSON;
 use List::MoreUtils qw(any all none notall true false firstidx first_index
   lastidx last_index insert_after insert_after_string
   apply after after_incl before before_incl indexes
@@ -21,6 +20,7 @@ use MediaWords::DBI::Feeds;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
 use MediaWords::Util::HTML;
+use MediaWords::Util::JSON;
 use MediaWords::Util::Tags;
 use MediaWords::Util::Web;
 use Readonly;
@@ -142,10 +142,7 @@ sub media_tags_search_json : Local
         )->flat;
     }
 
-    #TRACE Dumper( $terms );
-    #TRACE encode_json($terms);
-
-    $c->res->body( encode_json( $terms ) );
+    $c->res->body( MediaWords::Util::JSON::encode_json( $terms ) );
 
     return;
 }
@@ -276,8 +273,10 @@ sub edit_do : Local
         delete( $form_params->{ referer } );
 
         # Set the database-compatible boolean checkbox values (otherwise they're empty strings)
-        $form_params->{ full_text_rss }     = normalize_boolean_for_db( $form_params->{ full_text_rss } );
         $form_params->{ foreign_rss_links } = normalize_boolean_for_db( $form_params->{ foreign_rss_links } );
+
+        my $allow_null = 1;
+        $form_params->{ full_text_rss } = normalize_boolean_for_db( $form_params->{ full_text_rss }, $allow_null );
 
         MediaWords::DBI::Media::update_media_type( $db, $medium, $c->req->params->{ media_type_tags_id } );
         MediaWords::DBI::Media::update_media_type( $db, $medium, $c->req->params->{ topic_media_type_tags_id } );
@@ -591,6 +590,7 @@ sub do_find_likely_full_text_rss : Local
 
         my $media_id = $1;
         die "Invalid $media_id " unless $media_id =~ /\d+/;
+        $media_id = int( $media_id );
 
         my $full_text_value = $post_params->{ $medium_full_text_param };
 
@@ -776,6 +776,7 @@ sub do_eval_rss_full_text : Local
 
     my $db = $c->dbis;
 
+    $id = int( $id );
     my $full_text_state = $c->request->parameters->{ full_text_rss };
 
     die "New RSS full text value undefined " if !defined( $full_text_state );
@@ -784,8 +785,9 @@ sub do_eval_rss_full_text : Local
 
     if ( $full_text_state ne '' )
     {
+        my $allow_null = 1;
         $db->query( "UPDATE media set full_text_rss = ? where media_id = ?",
-            normalize_boolean_for_db( $full_text_state ), $id );
+            normalize_boolean_for_db( $full_text_state, $allow_null ), $id );
     }
     else
     {

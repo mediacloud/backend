@@ -5,7 +5,6 @@ use MediaWords::CommonLibs;
 use strict;
 use warnings;
 use base 'Catalyst::Controller';
-use JSON;
 use Moose;
 use namespace::autoclean;
 

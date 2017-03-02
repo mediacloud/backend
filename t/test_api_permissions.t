@@ -15,7 +15,6 @@ use MediaWords::CommonLibs;
 use Modern::Perl "2015";
 
 use HTTP::Request::Common;
-use JSON;
 use List::MoreUtils "uniq";
 use List::Util "shuffle";
 use Readonly;

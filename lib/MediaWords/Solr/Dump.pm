@@ -89,7 +89,6 @@ use File::Basename;
 use File::ReadBackwards;
 use FileHandle;
 use HTTP::Request;
-use JSON;
 use List::MoreUtils;
 use List::Util;
 use Parallel::ForkManager;
@@ -101,6 +100,7 @@ require bytes;    # do not override length() and such
 
 use MediaWords::DB;
 use MediaWords::Util::Config;
+use MediaWords::Util::JSON;
 use MediaWords::Util::Web;
 use MediaWords::Solr;
 
@@ -558,7 +558,7 @@ sub _sentence_exists_in_solr($$)
     }
 
     my $data;
-    eval { $data = decode_json( $json ) };
+    eval { $data = MediaWords::Util::JSON::decode_json( $json ) };
 
     die( "Error parsing solr json: $@\n$json" ) if ( $@ );
 

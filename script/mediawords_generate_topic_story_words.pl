@@ -16,9 +16,9 @@ use Modern::Perl '2015';
 
 use File::Slurp;
 use LWP::Simple;
-use JSON;
 
 use MediaWords::DB;
+use MediaWords::Util::JSON;
 
 sub main
 {
@@ -50,7 +50,7 @@ SQL
 
         write_file( "topic_stories_${ timespans_id }_${ psid }", $json );
 
-        my $data = decode_json( $json );
+        my $data = MediaWords::Util::JSON::decode_json( $json );
 
         my $psids = [ map { $_->{ processed_stories_id } } @{ $data } ];
 

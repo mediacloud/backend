@@ -19,10 +19,10 @@ use MediaWords::CommonLibs;
 
 use Catalyst::Test 'MediaWords';
 use Encode;
-use JSON;
 use URI;
 
 use MediaWords::DB;
+use MediaWords::Util::JSON;
 
 my $_key;
 
@@ -44,7 +44,7 @@ sub test_url
     my $content = get( $url->as_string );
 
     my $data;
-    eval { $data = decode_json( $content ); };
+    eval { $data = MediaWords::Util::JSON::decode_json( $content ); };
     die( "json decode error on { $content }: $@" ) if ( $@ );
 
     die( "failed test for $path / $params->{ q }" ) unless ( $test->( $data ) );
