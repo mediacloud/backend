@@ -9,6 +9,8 @@
       <w>bytea</w>
       <w>confdir</w>
       <w>confname</w>
+      <w>createdb</w>
+      <w>dataset</w>
       <w>datatype</w>
       <w>dateutil</w>
       <w>fqdn</w>
@@ -30,7 +32,9 @@
       <w>pkey</w>
       <w>plpgsql</w>
       <w>postgre</w>
+      <w>psql</w>
       <w>pyyaml</w>
+      <w>reenable</w>
       <w>regexes</w>
       <w>reindexed</w>
       <w>shortener</w>
