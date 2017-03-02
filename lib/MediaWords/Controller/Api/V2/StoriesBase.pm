@@ -7,7 +7,6 @@ use warnings;
 use base 'Catalyst::Controller';
 
 use Encode;
-use JSON;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
 use namespace::autoclean;
@@ -17,6 +16,7 @@ use MediaWords::DBI::Stories;
 use MediaWords::Solr;
 use MediaWords::Util::CoreNLP;
 use MediaWords::Util::HTML;
+use MediaWords::Util::JSON;
 
 =head1 NAME
 
@@ -110,7 +110,7 @@ sub _add_corenlp
 
         my $json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story( $db, $stories_id );
 
-        my $json_data = decode_json( encode( 'utf8', $json ) );
+        my $json_data = MediaWords::Util::JSON::decode_json( encode( 'utf8', $json ) );
 
         die( "unable to parse corenlp json for story '$stories_id'" )
           unless ( $json_data && $json_data->{ _ }->{ corenlp } );

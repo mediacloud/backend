@@ -8,7 +8,6 @@ use MediaWords::Util::JSON;
 use strict;
 use warnings;
 use base 'Catalyst::Controller::REST';
-use JSON;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
 use namespace::autoclean;
@@ -86,7 +85,7 @@ sub end : Private
         map { $_ =~ s/Caught exception.*"(.*)at \/.*/$1/ } @{ $c->stash->{ errors } };
 
         my $message = 'Error(s): ' . join( '; ', @{ $c->stash->{ errors } } );
-        my $body = JSON->new->utf8->encode( { 'error' => $message } );
+        my $body = MediaWords::Util::JSON::encode_json( { 'error' => $message } );
 
         if ( $c->response->status =~ /^[23]\d\d$/ )
         {
@@ -103,7 +102,7 @@ sub end : Private
     }
     elsif ( $c->stash->{ quit_after_auth } )
     {
-        my $body = JSON->new->utf8->encode( { 'success' => 1 } );
+        my $body = MediaWords::Util::JSON::encode_json( { 'success' => 1 } );
 
         $c->response->content_type( 'application/json; charset=UTF-8' );
         $c->response->body( $body );

@@ -18,7 +18,6 @@ use MediaWords::Util::Config;
 use MediaWords::Util::JSON;
 use MediaWords::Util::Log;
 use MediaWords::Util::SQL;
-use JSON;
 use List::MoreUtils qw( uniq );
 use Scalar::Defer;
 use Readonly;

@@ -10,8 +10,8 @@ use parent 'Catalyst::Controller';
 
 use MediaWords::DBI::Auth;
 use MediaWords::Util::Config;
+use MediaWords::Util::JSON;
 use MediaWords::Util::Text;
-use JSON;
 use POSIX qw(strftime);
 
 sub index : Path : Args(0)
@@ -440,7 +440,7 @@ sub update_tag_set_permissions_json : Local
         );
     }
 
-    $c->res->body( encode_json( $tag_set_permissions ) );
+    $c->res->body( MediaWords::Util::JSON::encode_json( $tag_set_permissions ) );
 }
 
 sub tag_set_permissions_json : Local
@@ -460,7 +460,7 @@ sub tag_set_permissions_json : Local
         $userinfo->{ auth_users_id }
     )->hashes();
 
-    $c->res->body( encode_json( $auth_users_tag_set_permissions ) );
+    $c->res->body( MediaWords::Util::JSON::encode_json( $auth_users_tag_set_permissions ) );
 }
 
 sub available_tag_sets_json : Local
@@ -479,7 +479,7 @@ sub available_tag_sets_json : Local
         $userinfo->{ auth_users_id }
     )->hashes();
 
-    $c->res->body( encode_json( $available_tag_sets ) );
+    $c->res->body( MediaWords::Util::JSON::encode_json( $available_tag_sets ) );
 }
 
 # show the user edit form
@@ -708,7 +708,7 @@ EOF
     }
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
-    $c->response->body( encode_json( $json_response ) );
+    $c->response->body( MediaWords::Util::JSON::encode_json( $json_response ) );
 }
 
 1;
