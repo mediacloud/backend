@@ -55,20 +55,20 @@ sub test_gmt_datetime_from_timestamp()
 
     # Some other timezone
     $timestamp = DateTime->new(
-        year      => 1990,
+        year      => 2017,
         month     => 3,
-        day       => 11,
-        hour      => 12,
+        day       => 3,
+        hour      => 17,
         minute    => 0,
         second    => 0,
-        time_zone => 'Europe/Vilnius'
+        time_zone => 'America/New_York'
     )->epoch;
 
     $datetime_2 = DateTime->new(    # same date, different TZ
-        year      => 1990,
+        year      => 2017,
         month     => 3,
-        day       => 11,
-        hour      => 9,
+        day       => 3,
+        hour      => 22,
         minute    => 0,
         second    => 0,
         time_zone => 'GMT'
