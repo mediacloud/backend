@@ -1,5 +1,4 @@
 import os
-import random
 import re
 from typing import Callable, Union, List, Dict, Any
 
@@ -20,6 +19,7 @@ from mediawords.util.log import create_logger
 from mediawords.util.paths import mc_root_path
 from mediawords.util.perl import convert_dbd_pg_arguments_to_psycopg2_format, decode_object_from_bytes_if_needed, \
     McDecodeObjectFromBytesIfNeededException
+from mediawords.util.text import random_string
 
 l = create_logger(__name__)
 
@@ -785,8 +785,7 @@ class DatabaseHandler(object):
         The database connection must be within a transaction. The temporary table is setup to be dropped at the end of
         the current transaction. If "ordered" is True, include an "<...>_id SERIAL PRIMARY KEY" field in the table."""
 
-        r = random.SystemRandom()  # FIXME replace with "secrets" module after upgrading to Python 3.6
-        table_name = '_tmp_ids_%s' % str(r.randrange(2 ** 64))
+        table_name = '_tmp_ids_%s' % random_string(length=16)
 
         l.debug("Temporary IDs table: %s" % table_name)
 
