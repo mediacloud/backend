@@ -29,7 +29,6 @@ use Parallel::ForkManager;
 use Storable;
 use Readonly;
 
-use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 
 # number of processes to run in parallel
