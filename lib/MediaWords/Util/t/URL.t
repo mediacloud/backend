@@ -478,17 +478,17 @@ END
     }
 }
 
-# test get_original_url_from_archive_url by passing the given url and a dummy response with the given content and
+# test original_url_from_archive_url by passing the given url and a dummy response with the given content and
 # expecting the given url
 sub _test_archive_url_response($$$$)
 {
     my ( $label, $url, $content, $expected_url ) = @_;
 
-    my $got_url = MediaWords::Util::URL::get_original_url_from_archive_url( $content, $url );
-    is( $got_url, $expected_url, "test get_original_url_from_archive_url $label" );
+    my $got_url = MediaWords::Util::URL::original_url_from_archive_url( $content, $url );
+    is( $got_url, $expected_url, "test original_url_from_archive_url $label" );
 }
 
-sub test_get_original_url_from_archive_url()
+sub test_original_url_from_archive_url()
 {
     _test_archive_url_response(
         'archive.org', 'https://web.archive.org/web/20150204024130/http://www.john-daly.com/hockey/hockey.htm',
@@ -542,7 +542,7 @@ sub main()
     test_url_and_data_after_redirects_http_loop();
     test_url_and_data_after_redirects_html_loop();
     test_url_and_data_after_redirects_cookies();
-    test_get_original_url_from_archive_url();
+    test_original_url_from_archive_url();
 
     MediaWords::Test::DB::test_on_test_database(
         sub {

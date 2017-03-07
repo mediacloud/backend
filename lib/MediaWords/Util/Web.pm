@@ -488,8 +488,7 @@ sub get_meta_redirect_response
 
     my $content = $response->decoded_content;
 
-    for my $f ( \&MediaWords::Util::URL::meta_refresh_url_from_html,
-        \&MediaWords::Util::URL::get_original_url_from_archive_url )
+    for my $f ( \&MediaWords::Util::URL::meta_refresh_url_from_html, \&MediaWords::Util::URL::original_url_from_archive_url )
     {
         my $redirect_url = $f->( $content, $url );
         next unless ( $redirect_url );

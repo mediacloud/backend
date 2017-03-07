@@ -360,13 +360,13 @@ sub _get_url_from_linkis_content($$)
     return $url;
 }
 
-=head2 get_original_url_from_archive_url( $content, $url )
+=head2 original_url_from_archive_url( $content, $url )
 
 Given a url and content from one of the following url archiving sites, return the original url
 
 =cut
 
-sub get_original_url_from_archive_url($$)
+sub original_url_from_archive_url($$)
 {
     my ( $content, $archive_site_url ) = @_;
 
