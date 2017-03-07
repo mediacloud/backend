@@ -22,13 +22,16 @@ class DatabaseStatement(object):
     # Database cursor
     __cursor = None
 
-    def __init__(self, cursor: DictCursor, sql: str):
+    # "Double percentage sign" marker (see handler's quote() for explanation)
+    __double_percentage_sign_marker = None
+
+    def __init__(self, cursor: DictCursor, sql: str, double_percentage_sign_marker: str):
 
         sql = decode_object_from_bytes_if_needed(sql)
 
-        self.__prepare(cursor=cursor, sql=sql)
+        self.__prepare(cursor=cursor, sql=sql, double_percentage_sign_marker=double_percentage_sign_marker)
 
-    def __prepare(self, cursor: DictCursor, sql: str) -> None:
+    def __prepare(self, cursor: DictCursor, sql: str, double_percentage_sign_marker: str) -> None:
         """Prepare statement."""
 
         sql = decode_object_from_bytes_if_needed(sql)
@@ -41,6 +44,7 @@ class DatabaseStatement(object):
         self.__sql = sql
         self.__arguments = collections.OrderedDict()
         self.__cursor = cursor
+        self.__double_percentage_sign_marker = double_percentage_sign_marker
 
     def __bind(self, param_num: int, value: Any) -> None:
         """Underlying implementation of bind(); doesn't do any decoding or preprocessing."""
@@ -77,4 +81,6 @@ class DatabaseStatement(object):
 
         query_args = convert_dbd_pg_arguments_to_psycopg2_format(*query_args, skip_decoding=True)
 
-        return DatabaseResult(cursor=self.__cursor, query_args=query_args)
+        return DatabaseResult(cursor=self.__cursor,
+                              query_args=query_args,
+                              double_percentage_sign_marker=self.__double_percentage_sign_marker)
