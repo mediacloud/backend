@@ -134,7 +134,7 @@ sub test_lwp_user_agent_determined_500_read_timeout()
     $hs->start();
 
     my $ua = MediaWords::Util::Web::user_agent_determined();
-    $ua->timeout( 5 );    # time-out really fast
+    $ua->timeout( 2 );    # time-out really fast
     $ua->timing( '1,2,4' );
 
     my $response = $ua->get( $TEST_HTTP_SERVER_URL . '/buggy-page' );
