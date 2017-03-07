@@ -40,6 +40,7 @@ use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
+use MediaWords::Util::Web::Cache;
 
 =head1 FUNCTIONS
 
@@ -661,7 +662,7 @@ END
     {
         if ( my $cached_download = $story->{ cached_downloads }->{ $download->{ downloads_id } } )
         {
-            $download->{ content } = MediaWords::Util::Web::get_cached_link_download( $cached_download );
+            $download->{ content } = MediaWords::Util::Web::Cache::get_cached_link_download( $cached_download );
         }
         else
         {
