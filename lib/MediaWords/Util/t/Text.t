@@ -4,7 +4,7 @@ use utf8;
 
 use Test::NoWarnings;
 use Readonly;
-use Test::More tests => 22;
+use Test::More tests => 17;
 use Test::Deep;
 
 BEGIN
@@ -91,21 +91,6 @@ sub test_is_valid_utf8()
     ok( !MediaWords::Util::Text::is_valid_utf8( "\xc3\x28" ),         'Invalid UTF-8' );
 }
 
-sub test_random_string()
-{
-    Readonly my $string_length  => 16;
-    Readonly my $alphanum_regex => qr/^[a-zA-Z0-9_]*$/;
-
-    my $string1 = MediaWords::Util::Text::random_string( $string_length );
-    my $string2 = MediaWords::Util::Text::random_string( $string_length );
-
-    is( length( $string1 ), $string_length );
-    is( length( $string2 ), $string_length );
-    ok( $string1 ne $string2 );
-    like( $string1, $alphanum_regex );
-    like( $string2, $alphanum_regex );
-}
-
 sub main()
 {
     my $builder = Test::More->builder;
@@ -116,7 +101,6 @@ sub main()
     test_encode_decode_utf8();
     test_recursively_encode_to_utf8();
     test_is_valid_utf8();
-    test_random_string();
 }
 
 main();
