@@ -576,6 +576,23 @@ sub response_error_is_client_side($)
     }
 }
 
+=head2 get_meta_refresh_url( $response, $url )
+
+
+Given the response and request, parse the content for a meta refresh url and return if present. Otherwise,
+return undef.
+
+=cut
+
+sub get_meta_refresh_url
+{
+    my ( $response, $url ) = @_;
+
+    return undef unless ( $response->is_success );
+
+    MediaWords::Util::URL::meta_refresh_url_from_html( $response->decoded_content, $url );
+}
+
 =head2 get_meta_redirect_response( $response, $url )
 
 If thee response has a meta tag or is an archive url, parse out the original url and treat it as a redirect
