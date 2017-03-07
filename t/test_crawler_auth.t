@@ -76,7 +76,7 @@ sub test_auth
 
     ok( $auth_response->is_success, "auth response should succeed" );
     is( $auth_response->status_line, "200 OK", 'auth response should return 200' );
-    is( $auth_response->content, $pages->{ '/auth' }->{ content }, "auth response content should match" );
+    is( $auth_response->decoded_content, $pages->{ '/auth' }->{ content }, "auth response content should match" );
 
     $hs->stop;
 }

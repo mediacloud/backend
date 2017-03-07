@@ -486,7 +486,7 @@ sub _get_remote_words
 
     die( "error retrieving words from solr: " . $res->as_string ) unless ( $res->is_success );
 
-    my $words = from_json( $res->content, { utf8 => 1 } );
+    my $words = from_json( $res->decoded_content, { utf8 => 1 } );
 
     die( "Unable to parse json" ) unless ( $words && ref( $words ) );
 

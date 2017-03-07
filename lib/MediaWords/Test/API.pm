@@ -45,7 +45,7 @@ sub test_request_response($$;$)
 
     is( $response->is_success, !$expect_error, "HTTP response status OK for $label:\n" . $response->as_string );
 
-    my $data = eval { MediaWords::Util::JSON::decode_json( $response->content ) };
+    my $data = eval { MediaWords::Util::JSON::decode_json( $response->decoded_content ) };
 
     ok( $data, "decoded json for $label (json error: $@)" );
 

@@ -70,7 +70,7 @@ sub main
     $request->authorization_basic( 'foo', 'bar' );
     my $response = $ua->request( $request );
 
-    is( $response->content, 'foo bar', 'pass auth' );
+    is( $response->decoded_content, 'foo bar', 'pass auth' );
 
     $ua = MediaWords::Util::Web::user_agent();
     $request = HTTP::Request->new( GET => $auth_url );

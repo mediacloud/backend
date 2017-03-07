@@ -327,7 +327,7 @@ sub query_encoded_json($$;$)
         die "Error fetching Solr response: $error_message";
     }
 
-    return $res->content;
+    return $res->decoded_content;
 }
 
 =head2 query( $db, $params, $c )

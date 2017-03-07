@@ -36,12 +36,12 @@ sub _fix_alarabiya_response
 
     return $response unless ( $download->{ url } =~ /alarabiya/ );
 
-    if ( $response->content !~ /This site requires JavaScript and Cookies to be enabled/ )
+    if ( $response->decoded_content !~ /This site requires JavaScript and Cookies to be enabled/ )
     {
         return $response;
     }
 
-    if ( $response->content =~ /setCookie\('([^']+)', '([^']+)'/ )
+    if ( $response->decoded_content =~ /setCookie\('([^']+)', '([^']+)'/ )
     {
         my $response = $ua->get( $download->{ url }, Cookie => "$1=$2" );
 
@@ -49,7 +49,7 @@ sub _fix_alarabiya_response
     }
     else
     {
-        WARN "Unable to parse cookie from alarabiya: " . $response->content;
+        WARN "Unable to parse cookie from alarabiya: " . $response->decoded_content;
         return $response;
     }
 }

@@ -121,7 +121,7 @@ sub _get_feedly_json_data_deteremined($$)
             die( "error calling feedly api with url '$url': " . $res->status_line ) unless ( $res->is_success );
 
             # for some reason, $res->decoded_content does not decode
-            my $json = decode( 'utf8', $res->content );
+            my $json = decode( 'utf8', $res->decoded_content );
 
             $json_data = MediaWords::Util::JSON::decode_json( $json );
         };
