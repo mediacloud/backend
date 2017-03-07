@@ -168,7 +168,7 @@ sub request_all_methods($;$)
     my $methods = [ 'GET', 'POST', 'PUT' ];
     my $responses = [];
 
-    my $ua = MediaWords::Util::Web::user_agent();
+    my $ua = MediaWords::Util::Web::UserAgent->new();
     foreach my $method ( @{ $methods } )
     {
         my $request = MediaWords::Util::Web::UserAgent::Request->new( $method, $params_url );

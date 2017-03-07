@@ -27,7 +27,7 @@ sub main
         $url = $download->{ url };
     }
 
-    my $ua = MediaWords::Util::Web::user_agent();
+    my $ua = MediaWords::Util::Web::UserAgent->new();
 
     my $response = $ua->get( $url );
 

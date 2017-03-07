@@ -251,7 +251,7 @@ sub query_encoded_json($$;$)
 
     my $url = sprintf( '%s/%s/%s', get_solr_url(), get_live_collection( $db ), $url_action );
 
-    my $ua = MediaWords::Util::Web::user_agent();
+    my $ua = MediaWords::Util::Web::UserAgent->new();
 
     $ua->timeout( 300 );
     $ua->max_size( undef );

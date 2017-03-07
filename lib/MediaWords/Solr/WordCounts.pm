@@ -470,7 +470,7 @@ sub _get_remote_words
     my $key = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_wc_key };
     return undef unless ( $url && $key );
 
-    my $ua = MediaWords::Util::Web::user_agent();
+    my $ua = MediaWords::Util::Web::UserAgent->new();
 
     $ua->timeout( 900 );
     $ua->max_size( undef );

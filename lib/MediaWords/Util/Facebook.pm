@@ -117,10 +117,10 @@ sub api_request($$)
     {
         DEBUG 'Retrying #' . $retry . '...' if ( $retry > 1 );
 
-        my $ua = MediaWords::Util::Web::user_agent();
+        my $ua = MediaWords::Util::Web::UserAgent->new();
         $ua->timeout( $config->{ facebook }->{ timeout } );
 
-        # user_agent() will retry on server-side errors; client-side errors
+        # UserAgent object will retry on server-side errors; client-side errors
         # will be handled by this module
         $ua->timing( join( ',', @FACEBOOK_RETRY_INTERVALS ) );
 

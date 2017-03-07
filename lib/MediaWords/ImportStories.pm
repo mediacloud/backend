@@ -347,7 +347,7 @@ sub _get_story_content
 
     DEBUG "fetching story url $url";
 
-    my $ua = MediaWords::Util::Web::user_agent();
+    my $ua = MediaWords::Util::Web::UserAgent->new();
     $ua->timing( '1,2,4,8' );
 
     my $res = $ua->get( $url );

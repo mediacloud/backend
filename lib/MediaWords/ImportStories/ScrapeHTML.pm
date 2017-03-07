@@ -74,7 +74,7 @@ sub _fetch_url
         return $content;
     }
 
-    my $ua = MediaWords::Util::Web::user_agent();
+    my $ua = MediaWords::Util::Web::UserAgent->new();
 
     my $content;
     my $refresh_loops = 0;

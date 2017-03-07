@@ -87,7 +87,7 @@ sub test_api_request($$$)
         $univision_client_secret );
     ok( length( $api_request_url ) > 0, 'API request URL is not empty' );
 
-    my $ua       = MediaWords::Util::Web::user_agent();
+    my $ua       = MediaWords::Util::Web::UserAgent->new();
     my $response = $ua->get( $api_request_url );
     ok( $response->is_success, 'API request was successful' );
 

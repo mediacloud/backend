@@ -626,7 +626,7 @@ sub _immediate_redirection_url_for_medium($)
 {
     my $medium = shift;
 
-    my $ua       = MediaWords::Util::Web::user_agent();
+    my $ua       = MediaWords::Util::Web::UserAgent->new();
     my $response = $ua->get( $medium->{ url } );
 
     my $new_url = $response->request->uri->as_string || '';

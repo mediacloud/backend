@@ -81,7 +81,7 @@ sub test_lwp_user_agent_retries()
 
     $hs->start();
 
-    my $ua = MediaWords::Util::Web::user_agent();
+    my $ua = MediaWords::Util::Web::UserAgent->new();
     $ua->timeout( 2 );    # time-out really fast
     $ua->timing( '1,2,4' );
 

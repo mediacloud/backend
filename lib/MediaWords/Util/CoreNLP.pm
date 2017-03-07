@@ -253,7 +253,7 @@ sub _annotate_text($)
     DEBUG "Done encoding JSON request.";
 
     # Make a request
-    my $ua = MediaWords::Util::Web::user_agent();
+    my $ua = MediaWords::Util::Web::UserAgent->new();
     $ua->timing( '1,2,4,8' );
     $ua->timeout( $_corenlp_annotator_timeout );
     $ua->max_size( undef );

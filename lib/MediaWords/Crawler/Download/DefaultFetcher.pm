@@ -4,7 +4,7 @@ package MediaWords::Crawler::Download::DefaultFetcher;
 # Default fetcher implementation
 #
 # In addition to the basic HTTP request with the user agent options supplied by
-# MediaWords::Util::Web::user_agent(), the default fetcher:
+# MediaWords::Util::Web::UserAgent object, the default fetcher:
 #
 # * fixes common url mistakes like doubling http: (http://http://google.com).
 # * follows meta refresh redirects in the response content
@@ -96,7 +96,7 @@ sub fetch_download($$$)
 
     $db->update_by_id( "downloads", $download->{ downloads_id }, $download );
 
-    my $ua = MediaWords::Util::Web::user_agent();
+    my $ua = MediaWords::Util::Web::UserAgent->new();
 
     my $url = MediaWords::Util::URL::fix_common_url_mistakes( $download->{ url } );
 
