@@ -592,7 +592,8 @@ sub get_meta_redirect_response
         my $redirect_url = $f->( $response, $url );
         next unless ( $redirect_url );
 
-        my $redirect_response = UserAgent()->get( $redirect_url );
+        my $ua                = user_agent();
+        my $redirect_response = $ua->get( $redirect_url );
         $redirect_response->previous( $response );
 
         $response = $redirect_response;
