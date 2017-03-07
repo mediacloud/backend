@@ -14,7 +14,6 @@ BEGIN
 use MediaWords::CommonLibs;
 use Modern::Perl "2015";
 
-use HTTP::Request::Common;
 use List::MoreUtils "uniq";
 use List::Util "shuffle";
 use Readonly;
@@ -22,6 +21,7 @@ use Test::More;
 use URI::Escape;
 
 use MediaWords::Test::DB;
+use MediaWords::Util::Web;
 
 # public and admin_read key users
 my $_public_user;
@@ -165,7 +165,16 @@ sub request_all_methods($;$)
 
     my $params_url = "$url?" . join( '&', map { "$_=" . uri_escape( $params->{ $_ } ) } keys( %{ $params } ) );
 
-    my $responses = [ map { request( $_ ) } ( PUT( $params_url ), POST( $params_url ), GET( $params_url ) ) ];
+    my $methods = [ 'GET', 'POST', 'PUT' ];
+    my $responses = [];
+
+    my $ua = MediaWords::Util::Web::user_agent();
+    foreach my $method ( @{ $methods } )
+    {
+        my $request = MediaWords::Util::Web::UserAgent::Request->new( $method, $params_url );
+        my $response = $ua->request( $request );
+        push( @{ $responses }, $response );
+    }
 
     return [ grep { $_->code != 405 } @{ $responses } ];
 }

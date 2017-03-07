@@ -5,7 +5,6 @@ use warnings;
 
 use Test::More tests => 13;
 
-use HTTP::Request;
 use LWP::Simple;
 use MediaWords::Util::Web;
 
@@ -66,14 +65,14 @@ sub main
     is( $content, undef, 'fail auth / no auth' );
 
     my $ua = MediaWords::Util::Web::user_agent();
-    my $request = HTTP::Request->new( GET => $auth_url );
+    my $request = MediaWords::Util::Web::UserAgent::Request->new( 'GET', $auth_url );
     $request->authorization_basic( 'foo', 'bar' );
     my $response = $ua->request( $request );
 
     is( $response->decoded_content, 'foo bar', 'pass auth' );
 
     $ua = MediaWords::Util::Web::user_agent();
-    $request = HTTP::Request->new( GET => $auth_url );
+    $request = MediaWords::Util::Web::UserAgent::Request->new( 'GET', $auth_url );
     $request->authorization_basic( 'foo', 'foo' );
     $response = $ua->request( $request );
 

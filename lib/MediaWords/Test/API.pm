@@ -4,11 +4,11 @@ use strict;
 use warnings;
 
 use Catalyst::Test 'MediaWords';
-use HTTP::Request;
 use Test::More;
 use URI::Escape;
 
 use MediaWords::CommonLibs;
+use MediaWords::Util::Web;
 
 require Exporter;
 our @ISA    = qw(Exporter);
@@ -76,7 +76,7 @@ sub test_data_request($$$;$)
 
     my $json = MediaWords::Util::JSON::encode_json( $data );
 
-    my $request = HTTP::Request->new( $method, $url );
+    my $request = MediaWords::Util::Web::UserAgent::Request->new( $method, $url );
     $request->header( 'Content-Type' => 'application/json' );
     $request->content( $json );
 

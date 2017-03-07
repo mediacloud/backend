@@ -10,12 +10,13 @@ import_python_module( __PACKAGE__, 'mediawords.util.url' );
 
 use HTML::TreeBuilder::LibXML;
 use List::MoreUtils qw/uniq/;
-use MediaWords::Util::Web;
 use Readonly;
 use Regexp::Common qw /URI/;
 use URI::Escape;
 use URI::QueryParam;
 use URI;
+
+use MediaWords::Util::Web;
 
 # Regular expressions for invalid "variants" of the resolved URL
 Readonly my @INVALID_URL_VARIANT_REGEXES => (
@@ -61,14 +62,14 @@ sub url_and_data_after_redirects($;$$)
 
         unless ( $response->is_success )
         {
-            my @redirects = $response->redirects();
-            if ( scalar @redirects + 1 >= $max_http_redirect )
+            my $redirects = $response->redirects();
+            if ( scalar @{ $redirects } + 1 >= $max_http_redirect )
             {
                 my @urls_redirected_to;
 
                 my $error_message = "";
                 $error_message .= "Number of HTTP redirects ($max_http_redirect) exhausted; redirects:\n";
-                foreach my $redirect ( @redirects )
+                foreach my $redirect ( @{ $redirects } )
                 {
                     push( @urls_redirected_to, $redirect->request()->uri()->canonical->as_string );
                     $error_message .= "* From: " . $redirect->request()->uri()->canonical->as_string . "; ";

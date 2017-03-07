@@ -22,7 +22,6 @@ use English '-no_match_vars';
 use Data::Dumper;
 use Digest::MD5 qw(md5_hex);
 use HTTP::HashServer;
-use HTTP::Request;
 use Readonly;
 use Test::More;
 use Text::Lorem::More;
@@ -260,7 +259,7 @@ sub test_page
     DEBUG( "test page: $label $url" );
 
     my $ua       = MediaWords::Util::Web::user_agent();
-    my $request  = HTTP::Request->new( GET => $url );
+    my $request  = MediaWords::Util::Web::UserAgent::Request->new( 'GET', $url );
     my $response = $ua->request( $request );
 
     ok( $response->is_success, "request success: $label $url" );

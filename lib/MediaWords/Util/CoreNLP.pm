@@ -7,18 +7,18 @@ use utf8;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use MediaWords::Util::Process;
-use MediaWords::Util::Config;
-use MediaWords::Util::Web;
-use MediaWords::Util::Text;
-use MediaWords::Util::JSON;
-use HTTP::Request;
-use HTTP::Status qw(:constants);
 use Encode;
 use URI;
 use Scalar::Defer;
 use Readonly;
 use Data::Dumper;
+
+use HTTP::Status qw(:constants);
+use MediaWords::Util::Config;
+use MediaWords::Util::JSON;
+use MediaWords::Util::Process;
+use MediaWords::Util::Text;
+use MediaWords::Util::Web;
 
 # PostgreSQL table name for storing raw CoreNLP annotations
 Readonly my $CORENLP_POSTGRESQL_KVS_TABLE_NAME => 'corenlp_annotations';
@@ -240,7 +240,8 @@ sub _annotate_text($)
     }
     DEBUG "Done converting text to JSON request.";
 
-    # Text has to be encoded because HTTP::Request only accepts bytes as POST data
+    # Text has to be encoded because MediaWords::Util::Web::UserAgent::Request
+    # only accepts bytes as POST data
     DEBUG "Encoding JSON request...";
     my $text_json_encoded;
     eval { $text_json_encoded = Encode::encode_utf8( $text_json ); };
@@ -286,7 +287,7 @@ sub _annotate_text($)
         }
     );
 
-    my $request = HTTP::Request->new( POST => $_corenlp_annotator_url );
+    my $request = MediaWords::Util::Web::UserAgent::Request->new( 'POST', $_corenlp_annotator_url );
     $request->content_type( 'application/json; charset=utf8' );
     $request->content( $text_json_encoded );
 
@@ -296,7 +297,7 @@ sub _annotate_text($)
 
     # Force UTF-8 encoding on the response because the server might not always
     # return correct "Content-Type"
-    my $results_string = $response->decoded_content(
+    my $results_string = $response->decoded_utf8_content(
         charset         => 'utf8',
         default_charset => 'utf8'
     );

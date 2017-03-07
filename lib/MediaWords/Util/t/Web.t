@@ -10,7 +10,6 @@ use Readonly;
 use Data::Dumper;
 use HTTP::HashServer;
 use HTTP::Response;
-use HTTP::Request;
 
 use MediaWords::Util::Web;
 
@@ -36,8 +35,9 @@ sub test_get_meta_redirect_response()
     my $original_url = "http://foo.bar";
 
     my $meta_tag = '<meta http-equiv="refresh" content="0;URL=\'' . $redirect_url . '\'" />';
-    my $response = HTTP::Response->new( 200, 'OK', [], $meta_tag );
-    $response->request( HTTP::Request->new( 'GET', $original_url ) );
+    my $response =
+      MediaWords::Util::Web::UserAgent::Response->new_from_http_response( HTTP::Response->new( 200, 'OK', [], $meta_tag ) );
+    $response->request( MediaWords::Util::Web::UserAgent::Request->new( 'GET', $original_url ) );
 
     my $got_response = MediaWords::Util::Web::get_meta_redirect_response( $response, $original_url );
 
@@ -51,7 +51,9 @@ sub test_get_meta_redirect_response()
 
     $hs->stop;
 
-    $response = HTTP::Response->new( 200, 'OK', [], 'no meta refresh' );
+    $response =
+      MediaWords::Util::Web::UserAgent::Response->new_from_http_response(
+        HTTP::Response->new( 200, 'OK', [], 'no meta refresh' ) );
     $got_response = MediaWords::Util::Web::get_meta_redirect_response( $response, $original_url );
 
     is( $got_response, $response, "$label no meta same response" );
@@ -85,7 +87,7 @@ sub test_lwp_user_agent_retries()
 
     my $response = $ua->get( $TEST_HTTP_SERVER_URL . '/buggy-page' );
     ok( !$response->is_success, 'Request should fail' );
-    $response->decoded_content();
+    $response->decoded_content;
 
     $hs->stop();
 }

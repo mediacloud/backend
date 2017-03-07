@@ -31,8 +31,8 @@ use MediaWords::Util::Config;
 use MediaWords::Util::JSON;
 use MediaWords::Util::Text;
 use MediaWords::Util::Web;
+
 use List::MoreUtils qw ( uniq );
-use HTTP::Request::Common qw( POST );
 
 use Time::HiRes;
 
@@ -261,8 +261,9 @@ sub query_encoded_json($$;$)
 
     my $t0 = [ gettimeofday ];
 
-    my $request = POST( $url, $encoded_params );
+    my $request = MediaWords::Util::Web::UserAgent::Request->new( 'POST', $url );
     $request->content_type( 'application/x-www-form-urlencoded; charset=utf-8' );
+    $request->content( $encoded_params );
 
     my $res = $ua->request( $request );
 

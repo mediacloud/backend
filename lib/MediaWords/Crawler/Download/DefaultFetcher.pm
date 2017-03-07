@@ -100,7 +100,7 @@ sub fetch_download($$$)
 
     my $url = MediaWords::Util::URL::fix_common_url_mistakes( $download->{ url } );
 
-    my $request = HTTP::Request->new( GET => $url );
+    my $request = MediaWords::Util::Web::UserAgent::Request->new( 'GET', $url );
 
     _add_http_auth( $download, $request );
 

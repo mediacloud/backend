@@ -12,7 +12,7 @@ use MediaWords::CommonLibs;
 
 use Moose::Role;
 
-# Fetch the $download and return the HTTP::Response.
+# Fetch the $download and return the response.
 #
 # In addition to the basic HTTP request with the user agent options supplied by
 # MediaWords::Util::Web::user_agent(), the implementation should:

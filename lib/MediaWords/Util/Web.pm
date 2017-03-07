@@ -8,8 +8,6 @@ use MediaWords::CommonLibs;    # set PYTHONPATH too
 
 import_python_module( __PACKAGE__, 'mediawords.util.web' );
 
-use MediaWords::Util::Config;
-
 =head1 NAME MediaWords::Util::Web - web related functions
 
 =head1 DESCRIPTION
@@ -18,173 +16,537 @@ Various functions to make downloading web pages easier and faster, including par
 
 =cut
 
-use Fcntl;
 use File::Temp;
-use FileHandle;
 use FindBin;
-use LWP::UserAgent;
-use LWP::UserAgent::Determined;
-use HTTP::Status qw(:constants);
-use Storable;
 use Readonly;
+use Storable;
 
-use MediaWords::Util::Config;
 use MediaWords::Util::Paths;
-use MediaWords::Util::SQL;
 use MediaWords::Util::URL;
 
-Readonly my $MAX_DOWNLOAD_SIZE => 10 * 1024 * 1024;    # Superglue (TV) feeds could grow big
-Readonly my $TIMEOUT           => 20;
-Readonly my $MAX_REDIRECT      => 15;
-
-# on which HTTP codes should requests be retried
-Readonly my @DETERMINED_HTTP_CODES => (
-
-    HTTP_REQUEST_TIMEOUT,
-    HTTP_INTERNAL_SERVER_ERROR,
-    HTTP_BAD_GATEWAY,
-    HTTP_SERVICE_UNAVAILABLE,
-    HTTP_GATEWAY_TIMEOUT,
-    HTTP_TOO_MANY_REQUESTS
-
-);
-
-=head1 FUNCTIONS
-
-=cut
-
-# handler callback assigned to prepare_request().
-#
-# this handler logs all http requests to a file and also invalidates any requests that match the regex in
-# mediawords.yml->mediawords->blacklist_url_pattern.
-sub _lwp_request_callback($)
 {
-    my ( $request, $ua, $h ) = @_;
+    # Wrapper around HTTP::Request
+    package MediaWords::Util::Web::UserAgent::Request;
 
-    my $config = MediaWords::Util::Config::get_config;
+    use strict;
+    use warnings;
 
-    my $blacklist_url_pattern = $config->{ mediawords }->{ blacklist_url_pattern };
+    use Modern::Perl "2015";
+    use MediaWords::CommonLibs;
 
-    my $url = $request->uri->as_string;
+    use Data::Dumper;
+    use URI::Escape;
 
-    TRACE( "url: $url" );
-
-    my $blacklisted;
-    if ( $blacklist_url_pattern && ( $url =~ $blacklist_url_pattern ) )
+    sub new($$$)
     {
-        $request->uri( "http://blacklistedsite.localhost/$url" );
-        $blacklisted = 1;
+        my ( $class, $method, $uri ) = @_;
+
+        my $self = {};
+        bless $self, $class;
+
+        if ( $uri )
+        {
+            if ( ref( $uri ) eq 'URI' )
+            {
+                LOGCONFESS "Please pass URL as string, not as URI object.";
+            }
+        }
+
+        $self->{ _request } = HTTP::Request->new( $method, $uri );
+
+        return $self;
     }
 
-    my $logfile = "$config->{ mediawords }->{ data_dir }/logs/http_request.log";
-
-    my $fh = FileHandle->new;
-
-    my $is_new_file = !( -f $logfile );
-
-    if ( !$fh->open( ">>$logfile" ) )
+    # Used internally to wrap HTTP::Request into this class
+    sub new_from_http_request($$)
     {
-        ERROR( "unable to open log file '$logfile': $!" );
-        return;
+        my ( $class, $request ) = @_;
+
+        unless ( ref( $request ) eq 'HTTP::Request' )
+        {
+            LOGCONFESS "Response is not HTTP::Request: " . Dumper( $request );
+        }
+
+        my $self = {};
+        bless $self, $class;
+
+        $self->{ _request } = $request;
+
+        return $self;
     }
 
-    flock( $fh, Fcntl::LOCK_EX );
+    # Used internally to return underlying HTTP::Request object
+    sub http_request($)
+    {
+        my ( $self ) = @_;
+        return $self->{ _request };
+    }
 
-    $fh->print( MediaWords::Util::SQL::sql_now . " $url\n" );
-    $fh->print( "invalidating blacklist url.  stack: " . Carp::longmess . "\n" ) if ( $blacklisted );
+    # Alias for method()
+    sub method($;$)
+    {
+        my ( $self, $method ) = @_;
+        return $self->{ _request }->method( $method );
+    }
 
-    chmod( 0777, $logfile ) if ( $is_new_file );
+    # Alias for uri()
+    sub uri($;$)
+    {
+        my ( $self, $uri ) = @_;
+        return $self->{ _request }->uri( $uri );
+    }
 
-    $fh->close;
+    # Alias for header()
+    sub header($$;$)
+    {
+        my ( $self, $field, $value ) = @_;
+        return $self->{ _request }->header( $field, $value );
+    }
+
+    # Alias for content_type()
+    sub content_type($;$)
+    {
+        my ( $self, $content_type ) = @_;
+        return $self->{ _request }->content_type( $content_type );
+    }
+
+    # Alias for content()
+    #
+    # If it's an hashref, URL-encode it first.
+    sub content($;$)
+    {
+        my ( $self, $content ) = @_;
+
+        if ( ref( $content ) eq ref( {} ) )
+        {
+
+            my @pairs;
+            for my $key ( keys %{ $content } )
+            {
+                push( @pairs, join( '=', map { uri_escape( $_ ) } $key, $content->{ $key } ) );
+            }
+            $content = join( '&', @pairs );
+        }
+
+        return $self->{ _request }->content( $content );
+    }
+
+    # Alias for as_string()
+    sub as_string($)
+    {
+        my ( $self ) = @_;
+        return $self->{ _request }->as_string();
+    }
+
+    1;
+}
+
+{
+    # Wrapper around HTTP::Response
+    package MediaWords::Util::Web::UserAgent::Response;
+
+    use strict;
+    use warnings;
+
+    use Modern::Perl "2015";
+    use MediaWords::CommonLibs;
+
+    use Data::Dumper;
+
+    sub new_from_http_response
+    {
+        my ( $class, $response ) = @_;
+
+        unless ( ref( $response ) eq 'HTTP::Response' )
+        {
+            LOGCONFESS "Response is not HTTP::Response: " . Dumper( $response );
+        }
+
+        my $self = {};
+        bless $self, $class;
+
+        $self->{ _response } = $response;
+
+        if ( $response->request() )
+        {
+            $self->{ _request } = MediaWords::Util::Web::UserAgent::Request->new_from_http_request( $response->request() );
+        }
+        if ( $response->previous() )
+        {
+            $self->{ _previous } =
+              MediaWords::Util::Web::UserAgent::Response->new_from_http_response( $response->previous() );
+        }
+
+        return $self;
+    }
+
+    # Alias for code()
+    sub code($)
+    {
+        my ( $self ) = @_;
+        return $self->{ _response }->code();
+    }
+
+    # Alias for message()
+    sub message($)
+    {
+        my ( $self ) = @_;
+        return $self->{ _response }->message();
+    }
+
+    # Alias for header()
+    sub header($$)
+    {
+        my ( $self, $field ) = @_;
+        return $self->{ _response }->header( $field );
+    }
+
+    # Alias for decoded_content()
+    sub decoded_content($)
+    {
+        my ( $self ) = @_;
+        return $self->{ _response }->decoded_content();
+    }
+
+    # Alias for decoded_content() with some extra params
+    sub decoded_utf8_content($)
+    {
+        my ( $self ) = @_;
+        return $self->{ _response }->decoded_content(
+            charset         => 'utf8',
+            default_charset => 'utf8'
+        );
+    }
+
+    # Alias for status_line()
+    sub status_line($)
+    {
+        my ( $self ) = @_;
+        return $self->{ _response }->status_line();
+    }
+
+    # Alias for is_success()
+    sub is_success($)
+    {
+        my ( $self ) = @_;
+        return $self->{ _response }->is_success();
+    }
+
+    # Alias for as_string()
+    sub as_string($)
+    {
+        my ( $self ) = @_;
+        return $self->{ _response }->as_string();
+    }
+
+    # Alias for redirects(), returns arrayref instead of array though
+    sub redirects($)
+    {
+        my ( $self ) = @_;
+        my @redirects = $self->{ _response }->redirects();
+        return \@redirects;
+    }
+
+    # Alias for content_type()
+    sub content_type($)
+    {
+        my ( $self ) = @_;
+        return $self->{ _response }->content_type();
+    }
+
+    # Alias for previous()
+    # FIXME used only once, probably could get rid of it
+    sub previous($;$)
+    {
+        my ( $self, $previous ) = @_;
+
+        if ( $previous )
+        {
+            unless ( ref( $previous ) eq 'MediaWords::Util::Web::UserAgent::Response' )
+            {
+                LOGCONFESS "Previous response is not MediaWords::Util::Web::UserAgent::Response: " . Dumper( $previous );
+            }
+            $self->{ _previous } = $previous;
+        }
+
+        return $self->{ _previous };
+    }
+
+    # Alias for request()
+    # FIXME getter used only once, probably could get rid of it
+    sub request($;$)
+    {
+        my ( $self, $request ) = @_;
+
+        if ( $request )
+        {
+            unless ( ref( $request ) eq 'MediaWords::Util::Web::UserAgent::Request' )
+            {
+                LOGCONFESS "Request is not MediaWords::Util::Web::UserAgent::Request: " . Dumper( $request );
+            }
+            $self->{ _request } = $request;
+        }
+
+        return $self->{ _request };
+    }
+
+    1;
+}
+
+{
+    # Wrapper around LWP::UserAgent
+    package MediaWords::Util::Web::UserAgent;
+
+    use strict;
+    use warnings;
+
+    use Modern::Perl "2015";
+    use MediaWords::CommonLibs;
+
+    use Data::Dumper;
+    use Fcntl;
+    use FileHandle;
+    use HTTP::Status qw(:constants);
+    use LWP::UserAgent::Determined;
+    use Readonly;
+
+    use MediaWords::Util::Config;
+    use MediaWords::Util::SQL;
+
+    Readonly my $MAX_DOWNLOAD_SIZE => 10 * 1024 * 1024;    # Superglue (TV) feeds could grow big
+    Readonly my $MAX_REDIRECT      => 15;
+    Readonly my $TIMEOUT           => 20;
+
+    # On which HTTP codes should requests be retried (if retrying is enabled)
+    Readonly my @DETERMINED_HTTP_CODES => (
+
+        HTTP_REQUEST_TIMEOUT,
+        HTTP_INTERNAL_SERVER_ERROR,
+        HTTP_BAD_GATEWAY,
+        HTTP_SERVICE_UNAVAILABLE,
+        HTTP_GATEWAY_TIMEOUT,
+        HTTP_TOO_MANY_REQUESTS
+
+    );
+
+    sub new
+    {
+        my ( $class ) = @_;
+
+        my $self = {};
+        bless $self, $class;
+
+        my $ua = LWP::UserAgent::Determined->new();
+
+        my $config = MediaWords::Util::Config::get_config();
+
+        $ua->from( $config->{ mediawords }->{ owner } );
+        $ua->agent( $config->{ mediawords }->{ user_agent } );
+
+        $ua->timeout( $TIMEOUT );
+        $ua->max_size( $MAX_DOWNLOAD_SIZE );
+        $ua->max_redirect( $MAX_REDIRECT );
+        $ua->env_proxy;
+        $ua->cookie_jar( {} );    # temporary cookie jar for an object
+        $ua->default_header( 'Accept-Charset' => 'utf-8' );
+
+        $ua->add_handler( request_prepare => \&_lwp_request_callback );
+
+        # Disable retries by default; if client wants those, it should call
+        # timing() itself, e.g. set it to '1,2,4,8'
+        $ua->timing( '' );
+
+        my %http_codes_hr = map { $_ => 1 } @DETERMINED_HTTP_CODES;
+        $ua->codes_to_determinate( \%http_codes_hr );
+
+        # Won't be called if timing() is unset
+        $ua->before_determined_callback(
+            sub {
+                my ( $ua, $timing, $duration, $codes_to_determinate, $lwp_args ) = @_;
+                my $request = $lwp_args->[ 0 ];
+                my $url     = $request->uri;
+
+                TRACE "Trying $url ...";
+            }
+        );
+
+        # Won't be called if timing() is unset
+        $ua->after_determined_callback(
+            sub {
+                my ( $ua, $timing, $duration, $codes_to_determinate, $lwp_args, $response ) = @_;
+                my $request = $lwp_args->[ 0 ];
+                my $url     = $request->uri;
+
+                unless ( $response->is_success )
+                {
+                    my $will_retry = 0;
+                    if ( $codes_to_determinate->{ $response->code } )
+                    {
+                        $will_retry = 1;
+                    }
+
+                    my $message = "Request to $url failed (" . $response->status_line . "), ";
+                    if ( MediaWords::Util::Web::response_error_is_client_side( $response ) )
+                    {
+                        $message .= 'error is on the client side, ';
+                    }
+
+                    DEBUG "$message " . ( ( $will_retry && $duration ) ? "retry in ${ duration }s" : "give up" );
+                    TRACE "full response: " . $response->as_string;
+                }
+            }
+        );
+
+        $self->{ _ua } = $ua;
+
+        return $self;
+    }
+
+    # Handler callback assigned to request_prepare().
+    #
+    # This handler logs all http requests to a file and also invalidates any
+    # requests that match the regex in mediawords.yml->mediawords->blacklist_url_pattern.
+    sub _lwp_request_callback
+    {
+        my ( $request, $ua, $h ) = @_;
+
+        my $config = MediaWords::Util::Config::get_config();
+
+        my $blacklist_url_pattern = $config->{ mediawords }->{ blacklist_url_pattern };
+
+        my $url = $request->uri->as_string;
+
+        TRACE( "url: $url" );
+
+        my $blacklisted;
+        if ( $blacklist_url_pattern && ( $url =~ $blacklist_url_pattern ) )
+        {
+            $request->uri( "http://blacklistedsite.localhost/$url" );
+            $blacklisted = 1;
+        }
+
+        my $logfile = "$config->{ mediawords }->{ data_dir }/logs/http_request.log";
+
+        my $fh = FileHandle->new;
+
+        my $is_new_file = !( -f $logfile );
+
+        if ( !$fh->open( ">>$logfile" ) )
+        {
+            ERROR( "unable to open log file '$logfile': $!" );
+            return;
+        }
+
+        flock( $fh, Fcntl::LOCK_EX );
+
+        $fh->print( MediaWords::Util::SQL::sql_now() . " $url\n" );
+        $fh->print( "invalidating blacklist url.  stack: " . Carp::longmess . "\n" ) if ( $blacklisted );
+
+        chmod( 0777, $logfile ) if ( $is_new_file );
+
+        $fh->close;
+    }
+
+    # Alias for get()
+    sub get($$)
+    {
+        my ( $self, $url ) = @_;
+        my $response = $self->{ _ua }->get( $url );
+        return MediaWords::Util::Web::UserAgent::Response->new_from_http_response( $response );
+    }
+
+    # Alias for post()
+    sub post($$)
+    {
+        my ( $self, $url, $form_params ) = @_;
+
+        unless ( ref( $form_params ) eq ref( {} ) )
+        {
+            LOGCONFESS "Form parameters is not a hashref: " . Dumper( $form_params );
+        }
+
+        my $response = $self->{ _ua }->post( $url, $form_params );
+        return MediaWords::Util::Web::UserAgent::Response->new_from_http_response( $response );
+    }
+
+    # Alias for request()
+    sub request($$)
+    {
+        my ( $self, $request ) = @_;
+
+        unless ( ref( $request ) eq 'MediaWords::Util::Web::UserAgent::Request' )
+        {
+            LOGCONFESS "Request is not MediaWords::Util::Web::UserAgent::Request: " . Dumper( $request );
+        }
+
+        my $http_request = $request->http_request();
+        my $response     = $self->{ _ua }->request( $http_request );
+        return MediaWords::Util::Web::UserAgent::Response->new_from_http_response( $response );
+    }
+
+    # Alias for timing()
+    sub timing($;$)
+    {
+        my ( $self, $timing ) = @_;
+        return $self->{ _ua }->timing( $timing );
+    }
+
+    # Alias for timeout()
+    sub timeout($;$)
+    {
+        my ( $self, $timeout ) = @_;
+        return $self->{ _ua }->timeout( $timeout );
+    }
+
+    # Alias for before_determined_callback()
+    sub before_determined_callback($$)
+    {
+        my ( $self, $before_determined_callback ) = @_;
+
+        # Intentionally doesn't return anything
+        $self->{ _ua }->before_determined_callback( $before_determined_callback );
+    }
+
+    # Alias for after_determined_callback($$)
+    sub after_determined_callback($$)
+    {
+        my ( $self, $after_determined_callback ) = @_;
+
+        # Intentionally doesn't return anything
+        $self->{ _ua }->after_determined_callback( $after_determined_callback );
+    }
+
+    # Alias for max_redirect()
+    sub max_redirect($;$)
+    {
+        my ( $self, $max_redirect ) = @_;
+        return $self->{ _ua }->max_redirect( $max_redirect );
+    }
+
+    # Alias for max_size()
+    sub max_size($;$)
+    {
+        my ( $self, $max_size ) = @_;
+        return $self->{ _ua }->max_size( $max_size );
+    }
+
+    1;
 }
 
 =head2 user_agent()
 
-Return a LWP::UserAgent::Determined (retries disabled by default) with
-Media Cloud default settings for agent, timeout, max size, etc.
-
-By calling timing(), e.g. timing('1,2,4,8'), one can reenable retries.
-
-Uses custom callback to only retry after one of the following responses, which
-indicate transient problem:
-
-HTTP_REQUEST_TIMEOUT,
-HTTP_INTERNAL_SERVER_ERROR,
-HTTP_BAD_GATEWAY,
-HTTP_SERVICE_UNAVAILABLE,
-HTTP_GATEWAY_TIMEOUT
+Create and return MediaWords::Util::Web::UserAgent object.
 
 =cut
 
 sub user_agent
 {
-    my $ua = LWP::UserAgent::Determined->new();
-
-    my $config = MediaWords::Util::Config::get_config;
-
-    $ua->from( $config->{ mediawords }->{ owner } );
-    $ua->agent( $config->{ mediawords }->{ user_agent } );
-
-    $ua->timeout( $TIMEOUT );
-    $ua->max_size( $MAX_DOWNLOAD_SIZE );
-    $ua->max_redirect( $MAX_REDIRECT );
-    $ua->env_proxy;
-    $ua->cookie_jar( {} );    # temporary cookie jar for an object
-    $ua->default_header( 'Accept-Charset' => 'utf-8' );
-
-    $ua->add_handler( request_prepare => \&_lwp_request_callback );
-
-    # Disable retries by default; if client wants those, it should call
-    # timing() itself, e.g. set it to '1,2,4,8'
-    $ua->timing( '' );
-
-    my %http_codes_hr = map { $_ => 1 } @DETERMINED_HTTP_CODES;
-    $ua->codes_to_determinate( \%http_codes_hr );
-
-    # Won't be called if timing() is unset
-    $ua->before_determined_callback(
-        sub {
-            my ( $ua, $timing, $duration, $codes_to_determinate, $lwp_args ) = @_;
-            my $request = $lwp_args->[ 0 ];
-            my $url     = $request->uri;
-
-            TRACE "Trying $url ...";
-        }
-    );
-
-    # Won't be called if timing() is unset
-    $ua->after_determined_callback(
-        sub {
-            my ( $ua, $timing, $duration, $codes_to_determinate, $lwp_args, $response ) = @_;
-            my $request = $lwp_args->[ 0 ];
-            my $url     = $request->uri;
-
-            unless ( $response->is_success )
-            {
-                my $will_retry = 0;
-                if ( $codes_to_determinate->{ $response->code } )
-                {
-                    $will_retry = 1;
-                }
-
-                my $message = "Request to $url failed (" . $response->status_line . "), ";
-                if ( response_error_is_client_side( $response ) )
-                {
-                    $message .= 'error is on the client side, ';
-                }
-
-                DEBUG( "$message " . ( ( $will_retry && $duration ) ? "retry in ${ duration }s" : "give up" ) );
-                TRACE( "full response: " . $response->as_string );
-            }
-        }
-    );
-
-    return $ua;
+    return MediaWords::Util::Web::UserAgent->new();
 }
 
 =head2 parallel_get( $urls )
 
-Get urls in parallel by using an external, forking script.  Returns a list of HTTP::Response objects resulting
+Get urls in parallel by using an external, forking script.  Returns a list of response objects resulting
 from the fetches.
 
 =cut
@@ -232,8 +594,9 @@ sub parallel_get
         }
         else
         {
-            $response = HTTP::Response->new( '500', "web store timeout for $result->{ url }" );
-            $response->request( HTTP::Request->new( GET => $result->{ url } ) );
+            my $http_response = HTTP::Response->new( '500', "web store timeout for $result->{ url }" );
+            $response = MediaWords::Util::Web::UserAgent::Response->new_from_http_response( $http_response );
+            $response->request( MediaWords::Util::Web::UserAgent::Request->new( 'GET', $result->{ url } ) );
 
             push( @{ $responses }, $response );
         }
@@ -263,7 +626,7 @@ sub get_original_request($)
 
 =head2 lookup_by_response_url( $list, $response )
 
-Given a list of hashes, each of which includes a 'url' key, and an HTTP::Response, return the hash in $list for
+Given a list of hashes, each of which includes a 'url' key, and a response object, return the hash in $list for
 which the canonical version of the url is the same as the canonical version of the originally requested
 url for the response.  Return undef if no match is found.
 

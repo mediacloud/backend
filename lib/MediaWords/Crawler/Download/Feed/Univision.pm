@@ -17,6 +17,7 @@ use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories;
 use MediaWords::Util::DateTime;
 use MediaWords::Util::URL;
+use MediaWords::Util::Web;
 
 use Data::Dumper;
 use Date::Parse;
@@ -136,7 +137,7 @@ sub fetch_download($$$)
     Readonly my $http_method => 'GET';
     my $url_with_credentials = _api_request_url_with_signature_from_config( $download->{ url }, $http_method );
 
-    my $request = HTTP::Request->new( GET => $url_with_credentials );
+    my $request = MediaWords::Util::Web::UserAgent::Request->new( 'GET', $url_with_credentials );
     my $response = $ua->request( $request );
 
     return $response;
