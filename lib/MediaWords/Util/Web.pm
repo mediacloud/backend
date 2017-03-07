@@ -269,29 +269,26 @@ sub _get_url_from_linkis_content($$)
     return $url;
 }
 
-=head2 get_original_url_from_archive_url( $response, $url )
+=head2 get_original_url_from_archive_url( $content, $url )
 
-Given a url and optional response from one of the following url archiving sites, return the original url
+Given a url and content from one of the following url archiving sites, return the original url
 
 =cut
 
 sub get_original_url_from_archive_url($$)
 {
-    my ( $response, $archive_site_url ) = @_;
+    my ( $content, $archive_site_url ) = @_;
 
     if ( $archive_site_url =~ m|^https?://web\.archive\.org/web/(\d+?/)?(https?://.+?)$|i )
     {
         return $2;
     }
 
-    # everything else requires a response, so just return undef if there was not a successful response
-    return undef unless ( $response->is_success );
-
     my $original_url = undef;
 
     if ( $archive_site_url =~ m|^https?://archive\.is/(.+?)$|i )
     {
-        my $canonical_link = MediaWords::Util::URL::link_canonical_url_from_html( $response->decoded_content );
+        my $canonical_link = MediaWords::Util::URL::link_canonical_url_from_html( $content );
         if ( $canonical_link =~ m|^https?://archive\.is/\d+?/(https?://.+?)$|i )
         {
             $original_url = $1;
@@ -303,7 +300,7 @@ sub get_original_url_from_archive_url($$)
     }
     elsif ( $archive_site_url =~ m|^https?://[^/]*linkis.com/| )
     {
-        $original_url = _get_url_from_linkis_content( $response->decoded_content, $archive_site_url );
+        $original_url = _get_url_from_linkis_content( $content, $archive_site_url );
         ERROR( "Unable to find url in linkis content for '$archive_site_url'" ) unless ( $original_url );
     }
 
@@ -576,23 +573,6 @@ sub response_error_is_client_side($)
     }
 }
 
-=head2 get_meta_refresh_url( $response, $url )
-
-
-Given the response and request, parse the content for a meta refresh url and return if present. Otherwise,
-return undef.
-
-=cut
-
-sub get_meta_refresh_url
-{
-    my ( $response, $url ) = @_;
-
-    return undef unless ( $response->is_success );
-
-    MediaWords::Util::URL::meta_refresh_url_from_html( $response->decoded_content, $url );
-}
-
 =head2 get_meta_redirect_response( $response, $url )
 
 If thee response has a meta tag or is an archive url, parse out the original url and treat it as a redirect
@@ -604,9 +584,16 @@ sub get_meta_redirect_response
 {
     my ( $response, $url ) = @_;
 
-    for my $f ( \&get_meta_refresh_url, \&get_original_url_from_archive_url )
+    unless ( $response->is_success )
     {
-        my $redirect_url = $f->( $response, $url );
+        return $response;
+    }
+
+    my $content = $response->decoded_content;
+
+    for my $f ( \&MediaWords::Util::URL::meta_refresh_url_from_html, \&get_original_url_from_archive_url )
+    {
+        my $redirect_url = $f->( $content, $url );
         next unless ( $redirect_url );
 
         my $ua                = user_agent();

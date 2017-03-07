@@ -31,9 +31,7 @@ sub test_archive_url_response($$$$)
 {
     my ( $label, $url, $content, $expected_url ) = @_;
 
-    my $response = HTTP::Response->new( 200, 'success', [], $content );
-
-    my $got_url = MediaWords::Util::Web::get_original_url_from_archive_url( $response, $url );
+    my $got_url = MediaWords::Util::Web::get_original_url_from_archive_url( $content, $url );
     is( $got_url, $expected_url, "test get_original_url_from_archive_url $label" );
 }
 
