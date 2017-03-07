@@ -4,7 +4,7 @@ use warnings;
 use utf8;
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 14;
+use Test::More tests => 8;
 
 use Readonly;
 use Data::Dumper;
@@ -23,58 +23,6 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 
     use_ok( 'MediaWords::Util::Web' );
-}
-
-# test get_original_url_from_archive_url by passing the given url and a dummy response with the given content and
-# expecting the given url
-sub test_archive_url_response($$$$)
-{
-    my ( $label, $url, $content, $expected_url ) = @_;
-
-    my $got_url = MediaWords::Util::Web::get_original_url_from_archive_url( $content, $url );
-    is( $got_url, $expected_url, "test get_original_url_from_archive_url $label" );
-}
-
-sub test_get_original_url_from_archive_url()
-{
-
-    test_archive_url_response(
-        'archive.org', 'https://web.archive.org/web/20150204024130/http://www.john-daly.com/hockey/hockey.htm',
-        'foo',         'http://www.john-daly.com/hockey/hockey.htm'
-    );
-
-    test_archive_url_response(
-        'archive.is',
-        'https://archive.is/20170201/https://bar.com/foo/bar',
-        '<link rel="canonical" href="https://archive.is/20170201/https://bar.com/foo/bar">',
-        'https://bar.com/foo/bar'
-    );
-
-    # my $dom_maps = [
-    #     [ '//meta[@property="og:url"]', 'content' ],
-    #     [ '//a[@class="js-youtube-ln-event"]', 'href' ],
-    #     [ '//iframe[@id="source_site"]', 'src' ],
-
-    test_archive_url_response(
-        'linkis og:url',                                        'https://linkis.com/foo.com/ASDF',
-        '<meta property="og:url" content="http://og.url/test"', 'http://og.url/test'
-    );
-
-    test_archive_url_response(
-        'linkis youtube',                                             'https://linkis.com/foo.com/ASDF',
-        '<a class="js-youtube-ln-event" href="http://you.tube/test"', 'http://you.tube/test'
-    );
-
-    test_archive_url_response(
-        'linkis source_site',                                     'https://linkis.com/foo.com/ASDF',
-        '<iframe id="source_site" src="http://source.site/test"', 'http://source.site/test'
-    );
-
-    test_archive_url_response(
-        'linkis javascript',                      'https://linkis.com/foo.com/ASDF',
-        '"longUrl":"http:\/\/java.script\/test"', 'http://java.script/test'
-    );
-
 }
 
 sub test_get_meta_redirect_response()
@@ -149,7 +97,6 @@ sub main()
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
-    test_get_original_url_from_archive_url();
     test_get_meta_redirect_response();
     test_lwp_user_agent_determined_500_read_timeout();
 }

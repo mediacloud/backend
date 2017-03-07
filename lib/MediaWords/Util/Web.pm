@@ -22,7 +22,6 @@ use Fcntl;
 use File::Temp;
 use FileHandle;
 use FindBin;
-use HTML::TreeBuilder::LibXML;
 use LWP::UserAgent;
 use LWP::UserAgent::Determined;
 use HTTP::Status qw(:constants);
@@ -203,108 +202,6 @@ sub user_agent_determined
     );
 
     return _set_lwp_useragent_properties( $ua );
-}
-
-# return the first in a list of nodes matching the xpath pattern
-sub _find_first_node
-{
-    my ( $html_tree, $xpath ) = @_;
-
-    my @nodes = $html_tree->findnodes( $xpath );
-
-    my $node = shift @nodes;
-
-    return $node;
-}
-
-# given the content of a linkis.com web page, find the original url in the content, which may be in one of
-# serveral places in the DOM
-sub _get_url_from_linkis_content($$)
-{
-    my ( $content, $url ) = @_;
-
-    my $html_tree = HTML::TreeBuilder::LibXML->new;
-    $html_tree->ignore_unknown( 0 );
-    $html_tree->parse_content( $content );
-
-    my $found_url = 0;
-
-    # list of dom search patterns to find nodes with a url and the attributes to use from those nodes as the url
-    # for instance the first item matches '<meta property="og:url" content="http://foo.bar">'
-    my $dom_maps = [
-        [ '//meta[@property="og:url"]',        'content' ],
-        [ '//a[@class="js-youtube-ln-event"]', 'href' ],
-        [ '//iframe[@id="source_site"]',       'src' ],
-    ];
-
-    for my $dom_map ( @{ $dom_maps } )
-    {
-        my ( $dom_pattern, $url_attribute ) = @{ $dom_map };
-        if ( my $node = _find_first_node( $html_tree, $dom_pattern ) )
-        {
-            my $url = $node->attr( $url_attribute );
-            if ( $url !~ m|^https?://linkis.com| )
-            {
-                return $url;
-            }
-        }
-    }
-
-    # as a last resort, look for the longUrl key in a javascript array
-    if ( $content =~ m|"longUrl":\s*"([^"]+)"| )
-    {
-        my $url = $1;
-
-        # kludge to de-escape \'d characters in javascript -- 99% of urls are captured by the dom stuff above,
-        # we shouldn't get to this point often
-        $url =~ s/\\//g;
-
-        if ( $url !~ m|^https?://linkis.com| )
-        {
-            return $url;
-        }
-    }
-
-    WARN( "no url found for linkis url: $url" );
-    return $url;
-}
-
-=head2 get_original_url_from_archive_url( $content, $url )
-
-Given a url and content from one of the following url archiving sites, return the original url
-
-=cut
-
-sub get_original_url_from_archive_url($$)
-{
-    my ( $content, $archive_site_url ) = @_;
-
-    if ( $archive_site_url =~ m|^https?://web\.archive\.org/web/(\d+?/)?(https?://.+?)$|i )
-    {
-        return $2;
-    }
-
-    my $original_url = undef;
-
-    if ( $archive_site_url =~ m|^https?://archive\.is/(.+?)$|i )
-    {
-        my $canonical_link = MediaWords::Util::URL::link_canonical_url_from_html( $content );
-        if ( $canonical_link =~ m|^https?://archive\.is/\d+?/(https?://.+?)$|i )
-        {
-            $original_url = $1;
-        }
-        else
-        {
-            ERROR "Unable to parse original URL from archive.is response '$archive_site_url': $canonical_link";
-        }
-    }
-    elsif ( $archive_site_url =~ m|^https?://[^/]*linkis.com/| )
-    {
-        $original_url = _get_url_from_linkis_content( $content, $archive_site_url );
-        ERROR( "Unable to find url in linkis content for '$archive_site_url'" ) unless ( $original_url );
-    }
-
-    return $original_url;
 }
 
 =head2 parallel_get( $urls )
@@ -591,7 +488,8 @@ sub get_meta_redirect_response
 
     my $content = $response->decoded_content;
 
-    for my $f ( \&MediaWords::Util::URL::meta_refresh_url_from_html, \&get_original_url_from_archive_url )
+    for my $f ( \&MediaWords::Util::URL::meta_refresh_url_from_html,
+        \&MediaWords::Util::URL::get_original_url_from_archive_url )
     {
         my $redirect_url = $f->( $content, $url );
         next unless ( $redirect_url );

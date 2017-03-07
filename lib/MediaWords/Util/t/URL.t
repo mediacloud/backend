@@ -7,7 +7,7 @@ use MediaWords::CommonLibs;
 
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 27;
+use Test::More tests => 33;
 
 use Readonly;
 use HTTP::HashServer;
@@ -478,6 +478,57 @@ END
     }
 }
 
+# test get_original_url_from_archive_url by passing the given url and a dummy response with the given content and
+# expecting the given url
+sub _test_archive_url_response($$$$)
+{
+    my ( $label, $url, $content, $expected_url ) = @_;
+
+    my $got_url = MediaWords::Util::URL::get_original_url_from_archive_url( $content, $url );
+    is( $got_url, $expected_url, "test get_original_url_from_archive_url $label" );
+}
+
+sub test_get_original_url_from_archive_url()
+{
+    _test_archive_url_response(
+        'archive.org', 'https://web.archive.org/web/20150204024130/http://www.john-daly.com/hockey/hockey.htm',
+        'foo',         'http://www.john-daly.com/hockey/hockey.htm'
+    );
+
+    _test_archive_url_response(
+        'archive.is',
+        'https://archive.is/20170201/https://bar.com/foo/bar',
+        '<link rel="canonical" href="https://archive.is/20170201/https://bar.com/foo/bar">',
+        'https://bar.com/foo/bar'
+    );
+
+    # my $dom_maps = [
+    #     [ '//meta[@property="og:url"]', 'content' ],
+    #     [ '//a[@class="js-youtube-ln-event"]', 'href' ],
+    #     [ '//iframe[@id="source_site"]', 'src' ],
+
+    _test_archive_url_response(
+        'linkis og:url',                                        'https://linkis.com/foo.com/ASDF',
+        '<meta property="og:url" content="http://og.url/test"', 'http://og.url/test'
+    );
+
+    _test_archive_url_response(
+        'linkis youtube',                                             'https://linkis.com/foo.com/ASDF',
+        '<a class="js-youtube-ln-event" href="http://you.tube/test"', 'http://you.tube/test'
+    );
+
+    _test_archive_url_response(
+        'linkis source_site',                                     'https://linkis.com/foo.com/ASDF',
+        '<iframe id="source_site" src="http://source.site/test"', 'http://source.site/test'
+    );
+
+    _test_archive_url_response(
+        'linkis javascript',                      'https://linkis.com/foo.com/ASDF',
+        '"longUrl":"http:\/\/java.script\/test"', 'http://java.script/test'
+    );
+
+}
+
 sub main()
 {
     my $builder = Test::More->builder;
@@ -491,6 +542,7 @@ sub main()
     test_url_and_data_after_redirects_http_loop();
     test_url_and_data_after_redirects_html_loop();
     test_url_and_data_after_redirects_cookies();
+    test_get_original_url_from_archive_url();
 
     MediaWords::Test::DB::test_on_test_database(
         sub {
