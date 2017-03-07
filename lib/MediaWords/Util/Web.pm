@@ -37,10 +37,6 @@ Readonly my $MAX_DOWNLOAD_SIZE => 10 * 1024 * 1024;    # Superglue (TV) feeds co
 Readonly my $TIMEOUT           => 20;
 Readonly my $MAX_REDIRECT      => 15;
 
-# for how many times and at what intervals should LWP::UserAgent::Determined
-# retry requests
-Readonly my $DETERMINED_RETRIES => '1,2,4,8';
-
 # on which HTTP codes should requests be retried
 Readonly my @DETERMINED_HTTP_CODES => (
 
@@ -57,7 +53,8 @@ Readonly my @DETERMINED_HTTP_CODES => (
 
 =cut
 
-# handler callback assigned to perpare_request as part of the standard _set_lwp_useragent_properties.
+# handler callback assigned to prepare_request().
+#
 # this handler logs all http requests to a file and also invalidates any requests that match the regex in
 # mediawords.yml->mediawords->blacklist_url_pattern.
 sub _lwp_request_callback($)
@@ -101,10 +98,27 @@ sub _lwp_request_callback($)
     $fh->close;
 }
 
-# set default Media Cloud properties for LWP::UserAgent objects
-sub _set_lwp_useragent_properties($)
+=head2 user_agent()
+
+Return a LWP::UserAgent::Determined (retries disabled by default) with
+Media Cloud default settings for agent, timeout, max size, etc.
+
+By calling timing(), e.g. timing('1,2,4,8'), one can reenable retries.
+
+Uses custom callback to only retry after one of the following responses, which
+indicate transient problem:
+
+HTTP_REQUEST_TIMEOUT,
+HTTP_INTERNAL_SERVER_ERROR,
+HTTP_BAD_GATEWAY,
+HTTP_SERVICE_UNAVAILABLE,
+HTTP_GATEWAY_TIMEOUT
+
+=cut
+
+sub user_agent
 {
-    my $ua = shift;
+    my $ua = LWP::UserAgent::Determined->new();
 
     my $config = MediaWords::Util::Config::get_config;
 
@@ -120,43 +134,14 @@ sub _set_lwp_useragent_properties($)
 
     $ua->add_handler( request_prepare => \&_lwp_request_callback );
 
-    return $ua;
-}
-
-=head2 user_agent()
-
-Return a LWP::UserAgent with media cloud default settings for agent, timeout, max size, etc.
-
-=cut
-
-sub user_agent
-{
-    my $ua = LWP::UserAgent->new();
-    return _set_lwp_useragent_properties( $ua );
-}
-
-=head2 user_agent_determined( )
-
-Return a LWP::UserAgent::Determined object with media cloud default settings for agent, timeout, max size, etc.
-
-Uses custom callback to only retry after one of the following responses, which indicate transient problem:
-HTTP_REQUEST_TIMEOUT,
-HTTP_INTERNAL_SERVER_ERROR,
-HTTP_BAD_GATEWAY,
-HTTP_SERVICE_UNAVAILABLE,
-HTTP_GATEWAY_TIMEOUT
-
-=cut
-
-sub user_agent_determined
-{
-    my $ua = LWP::UserAgent::Determined->new();
-
-    $ua->timing( $DETERMINED_RETRIES . '' );
+    # Disable retries by default; if client wants those, it should call
+    # timing() itself, e.g. set it to '1,2,4,8'
+    $ua->timing( '' );
 
     my %http_codes_hr = map { $_ => 1 } @DETERMINED_HTTP_CODES;
     $ua->codes_to_determinate( \%http_codes_hr );
 
+    # Won't be called if timing() is unset
     $ua->before_determined_callback(
         sub {
             my ( $ua, $timing, $duration, $codes_to_determinate, $lwp_args ) = @_;
@@ -166,6 +151,8 @@ sub user_agent_determined
             TRACE "Trying $url ...";
         }
     );
+
+    # Won't be called if timing() is unset
     $ua->after_determined_callback(
         sub {
             my ( $ua, $timing, $duration, $codes_to_determinate, $lwp_args, $response ) = @_;
@@ -192,7 +179,7 @@ sub user_agent_determined
         }
     );
 
-    return _set_lwp_useragent_properties( $ua );
+    return $ua;
 }
 
 =head2 parallel_get( $urls )
