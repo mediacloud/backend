@@ -21,7 +21,6 @@ use Test::More;
 use URI::Escape;
 
 use MediaWords::Test::DB;
-use MediaWords::Util::Web;
 
 # public and admin_read key users
 my $_public_user;
@@ -168,11 +167,10 @@ sub request_all_methods($;$)
     my $methods = [ 'GET', 'POST', 'PUT' ];
     my $responses = [];
 
-    my $ua = MediaWords::Util::Web::UserAgent->new();
     foreach my $method ( @{ $methods } )
     {
-        my $request = MediaWords::Util::Web::UserAgent::Request->new( $method, $params_url );
-        my $response = $ua->request( $request );
+        my $request = HTTP::Request->new( $method, $params_url );
+        my $response = Catalyst::Test::request( $request );
         push( @{ $responses }, $response );
     }
 
