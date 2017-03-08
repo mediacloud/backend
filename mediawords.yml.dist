@@ -103,7 +103,7 @@ supervisor:
 
     ### The log directory for child process logs (absolute or relative to Media
     ### Cloud's root; must already exist)
-    #childlogdir: "data/supervisor_logs/"
+    childlogdir: "data/supervisor_logs/"
 
     # if set to true, do not autostart any programs, regardless of the settings in the particular programs below.
     start_no_supervisor_programs: 'true'
@@ -149,90 +149,90 @@ supervisor:
         #solr_shard
 
 ### Solr server, when running as a Supervisor service
-#supervisor_solr:
+supervisor_solr:
 
     ### Standalone Solr instance
-    #standalone:
+    standalone:
 
         # JVM heap size (-Xmx)
-        #jvm_heap_size: "256m"
+        jvm_heap_size: "256m"
 
     ### Solr cluster
-    #cluster:
+    cluster:
 
         ### ZooKeeper instance
-        #zookeeper:
+        zookeeper:
 
             ### Address to bind to
-            #listen: "0.0.0.0"
+            listen: "0.0.0.0"
 
             ### Port to listen to
-            #port: 9983
+            port: 9983
 
         ### Solr shards
-        #shards:
+        shards:
 
             # Total number of local shards
-            #local_shard_count: 2
+            local_shard_count: 2
 
             # Total number of shards across the cluster ("numShards")
-            #cluster_shard_count: 2
+            cluster_shard_count: 2
 
             # JVM heap size for a single shard (-Xmx)
-            #jvm_heap_size: "256m"
+            jvm_heap_size: "256m"
 
             # ZooKeeper host + port to connect shards to
-            #zookeeper_host: "localhost"
-            #zookeeper_port: 9983
+            zookeeper_host: "localhost"
+            zookeeper_port: 9983
 
 ### CoreNLP annotator
-#corenlp:
+corenlp:
 
     ### Enable CoreNLP processing
     ### If enabled, CoreNLP processing will happen after every "content"
     ### download extraction
-    #enabled: "no"
+    enabled: "no"
 
-    ### Annotator URL
-    #annotator_url: "http://www.example.com:8080/corenlp/annotator"
+    ### Annotator URL, e.g. "http://www.example.com:8080/corenlp/annotator"
+    annotator_url: ""
 
     ### Annotator timeout (in seconds)
     ### If you annotate huge chunks of text or the CoreNLP annotator is busy in
     ### general, you might want to increase this value even more because
     ### otherwise the job worker will exit() often.
-    #annotator_timeout: 600
+    annotator_timeout: 600
 
-    ### CoreNLP annotator "level"; you might want to use this configuration
+    ### CoreNLP annotator level; you might want to use this configuration
     ### parameter to limit the scope of annotations returned from the service.
     ### Default is an empty string; you might want to set it to "ner".
-    #annotator_level: ""
+    annotator_level: ""
 
 ### Bit.ly API
-#bitly:
+bitly:
 
     ### Enable Bit.ly processing
-    #enabled: "no"
+    enabled: "no"
 
     ### (Generic) Access Token
     ### Get one at: https://bitly.com/a/oauth_apps
-    #access_token: ""
+    access_token: ""
 
     ### API request timeout (in seconds)
-    #timeout: 60
+    timeout: 60
 
     ### Locations to read raw JSON responses from
     ### (default is just "postgresql")
-    #json_read_stores:
+    json_read_stores:
         ### Try "bitly_processing_results" table first
-        #- postgresql
+        - postgresql
         ### ...then fallback to Amazon S3
         #- amazon_s3
 
     ### Locations to write raw JSON responses to
     ### (default is just "postgresql")
-    #json_write_stores:
+    json_write_stores:
         ### Write to "bitly_processing_results" table first
-        #- postgresql
+        - postgresql
         ### ...then to Amazon S3 too
         #- amazon_s3
 
@@ -259,16 +259,16 @@ supervisor:
 
 ### Facebook API
 ### (see doc/README.facebook_api.markdown)
-#facebook:
+facebook:
 
     ### Enable Facebook processing
-    #enabled: "yes"
+    enabled: "no"
 
     ## App ID
-    #app_id: ""
+    app_id: ""
 
     ## App Secret
-    #app_secret: ""
+    app_secret: ""
 
     ## Request timeout
     #timeout: 60
@@ -291,12 +291,12 @@ supervisor:
     ### Client Secret (Secret Key)
     #client_secret: 7187037755de2dd77451f491d46b103b86fbcf79
 
-#mail:
+mail:
     # Email address to receive bug report emails; leave empty for no bug reports via email
-    #bug_email : ""
+    bug_email : ""
 
     # "From:" email address that is being set in emails sent by Media Cloud
-    #from_address: "noreply@mediacloud.org"
+    from_address: "noreply@mediacloud.org"
 
 ### everything below is optional.  the system should work out of the box without
 ### touching any of these other than calais_key for tagging
@@ -336,21 +336,21 @@ mediawords:
     ###
     ### The path of the last download storage method listed below will be
     ### stored in "downloads.path" database column.
-    #download_storage_locations:
+    download_storage_locations:
         ### store downloads in the PostgreSQL database, "raw_downloads" table
-        #- postgresql
+        - postgresql
         ### store downloads in Amazon S3
         #- amazon_s3
 
     ### Read all non-inline ("content") downloads from S3
-    #read_all_downloads_from_s3 : "no"
+    read_all_downloads_from_s3 : "no"
 
     ### Uncomment to fallback PostgreSQL downloads to Amazon S3 (if download
     ### doesn't exist in PostgreSQL storage, S3 will be tried instead)
-    #fallback_postgresql_downloads_to_s3 : "no"
+    fallback_postgresql_downloads_to_s3 : "no"
 
     ### Enable local (CHI-based) Amazon S3 download caching?
-    #cache_s3_downloads : "no"
+    cache_s3_downloads : "no"
 
     #controls the maximum time SQL queries can run for -- time is in ms
     #uncomment to enable a 10 minute timeout
@@ -362,18 +362,18 @@ mediawords:
 
     # An experiment parameter to dump stack traces in error message even if not in debug mode
     # NOTE: may leak DB passwords and is not to be use in production
-    #always_show_stack_traces: "yes"
+    always_show_stack_traces: "no"
 
     # reCAPTCHA public key (used to prevent brute-force in the password reset form)
     # The default value was set up for http://127.0.0.1 and is a global key (should work across all domains)
-    #recaptcha_public_key: "6LfEVt0SAAAAAFwQI0pOZ1bTHgDTpQcMeQY6VLd_"
+    recaptcha_public_key: "6LfEVt0SAAAAAFwQI0pOZ1bTHgDTpQcMeQY6VLd_"
 
     # reCAPTCHA private key (used to prevent brute-force in the password reset form)
     # The default value was set up for http://127.0.0.1 and is a global key (should work across all domains)
-    #recaptcha_private_key: "6LfEVt0SAAAAABmI-8IJmx4g93eNcSeyeCxvLMs2"
+    recaptcha_private_key: "6LfEVt0SAAAAABmI-8IJmx4g93eNcSeyeCxvLMs2"
 
     #uncomment to make the public homepage the default start page
-    #default_home_page: "admin/media/list"
+    default_home_page: "admin/media/list"
 
     # downloads id under which to strip all non-ascii characters
     #ascii_hack_downloads_id: 123456789
@@ -395,10 +395,10 @@ mediawords:
 
     # URLs for Solr queries; include multiple to make Media Cloud choose a random URL from
     # the list for each Solr query
-    # solr_url:
+    solr_url:
 
         # Standalone Solr instance...
-        #- http://localhost:8983/solr
+        - http://localhost:8983/solr
 
         # ...or SolrCloud shards
         #- http://127.0.0.1:7981/solr
@@ -411,9 +411,9 @@ mediawords:
         #- http://127.0.0.1:7988/solr
 
     # Solr importer configuration
-    #solr_import:
+    solr_import:
         # Stories to import into Solr on a single run
-        #max_queued_stories: 100000
+        max_queued_stories: 100000
 
     # By default API requests require a invalid 'key' param.
     # comment to allow api requests without a key.
@@ -427,4 +427,4 @@ mediawords:
     # wc_cache_version: 1
 
     # No idea what this is really.
-    #max_solr_seed_query_stories: 250000
+    max_solr_seed_query_stories: 250000
