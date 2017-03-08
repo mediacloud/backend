@@ -5,7 +5,7 @@
 # * http://longurl.org/services
 #
 # noinspection SpellCheckingInspection
-URL_SHORTENER_HOSTNAMES = [
+URL_SHORTENER_HOSTNAMES = {
     '0rz.tw',
     '1link.in',
     '1url.com',
@@ -426,4 +426,4 @@ URL_SHORTENER_HOSTNAMES = [
     '➯.ws',
     '➹.ws',
     '➽.ws',
-]
+}
