@@ -317,10 +317,6 @@ mediawords:
     ### Directory in which various kinds of data (logs, etc.) is being stored
     #data_dir: "<bindir>/../data"
 
-    ### Uncomment to use the directory given by <PATH> to temporarily store CSV files generated in the public data dumps
-    ### Note that since these are uncompressed files they can be very large.
-    #data_dump_tmp_dir : <PATH>
-
     ### HTTP user agent and the email address of the owner of the bot
     user_agent: "mediawords bot (http://cyber.law.harvard.edu)"
     owner: "mediawords@cyber.law.harvard.edu"
