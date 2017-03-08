@@ -390,7 +390,11 @@ def get_url_host(url: str) -> str:
 
     host = uri.hostname
 
-    return host if ( host and ( len( host ) > 0 ) ) else url
+    if host is not None and len(host) > 0:
+        return host
+    else:
+        return url
+
 
 # noinspection SpellCheckingInspection
 def get_url_distinctive_domain(url: str) -> str:
