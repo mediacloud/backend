@@ -690,7 +690,7 @@ sub get_meta_redirect_response
         my $redirect_url = $f->( $content, $url );
         next unless ( $redirect_url );
 
-        my $ua                = UserAgent->new();
+        my $ua                = MediaWords::Util::Web::UserAgent->new();
         my $redirect_response = $ua->get( $redirect_url );
         $redirect_response->previous( $response );
 
