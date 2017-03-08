@@ -150,6 +150,13 @@ use MediaWords::Util::URL;
         return $self->{ _request }->content( $content );
     }
 
+    # Alias for authorization_basic()
+    sub authorization_basic($;$$)
+    {
+        my ( $self, $username, $password ) = @_;
+        return $self->{ _request }->authorization_basic( $username, $password );
+    }
+
     # Alias for as_string()
     sub as_string($)
     {
