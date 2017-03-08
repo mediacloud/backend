@@ -8,7 +8,7 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
-use Test::More tests => 44;
+use Test::More tests => 43;
 use Test::NoWarnings;
 use Test::Deep;
 
@@ -27,7 +27,6 @@ BEGIN { use_ok 'MediaWords::TM::GuessDate' }
 BEGIN { use_ok 'MediaWords::Util::Web' }
 BEGIN { use_ok 'MediaWords::TM::GuessDate::Result' }
 BEGIN { use_ok 'Date::Parse' }
-BEGIN { use_ok 'LWP::Protocol::https' }
 
 # Returns URL dating result
 sub _gr($$;$$)

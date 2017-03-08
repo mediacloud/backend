@@ -334,6 +334,7 @@ use MediaWords::Util::URL;
     use FileHandle;
     use HTTP::Status qw(:constants);
     use LWP::UserAgent::Determined;
+    use LWP::Protocol::https;
     use Readonly;
 
     use MediaWords::Util::Config;
