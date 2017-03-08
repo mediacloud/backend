@@ -123,7 +123,9 @@ use MediaWords::Util::URL;
             my @pairs;
             for my $key ( keys %{ $content } )
             {
-                push( @pairs, join( '=', map { uri_escape( $_ ) } $key, $content->{ $key } ) );
+                $key //= '';
+                my $value = $content->{ $key } // '';
+                push( @pairs, join( '=', map { uri_escape( $_ ) } $key, $value ) );
             }
             $content = join( '&', @pairs );
         }
