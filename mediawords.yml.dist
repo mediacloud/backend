@@ -291,10 +291,8 @@ facebook:
     ### Client Secret (Secret Key)
     #client_secret: 7187037755de2dd77451f491d46b103b86fbcf79
 
+### Email configuration
 mail:
-    # Email address to receive bug report emails; leave empty for no bug reports via email
-    bug_email : ""
-
     # "From:" email address that is being set in emails sent by Media Cloud
     from_address: "noreply@mediacloud.org"
 
