@@ -38,10 +38,3 @@ def test_set_config_file_nonexistent():
     assert os.path.exists(nonexistent_config) is False
     assert_raises(McConfigException, set_config_file, nonexistent_config)
     set_config(old_config)
-
-
-def test_set_config_no_database_connections():
-    old_config = get_config()
-    assert_raises(McConfigException, set_config, {'name': 'MediaWords'})
-    assert_raises(McConfigException, set_config, {'name': 'MediaWords', 'database': None})
-    set_config(old_config)
