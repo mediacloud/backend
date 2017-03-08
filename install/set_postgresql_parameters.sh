@@ -26,14 +26,14 @@ psql --version || {
 }
 
 # Path to Media Cloud's PostgreSQL general configuration file
-MEDIACLOUD_CONF_SRC_FILE_PATH="$MC_ROOT_DIR/config/postgresql-mediacloud.conf"
+MEDIACLOUD_CONF_SRC_FILE_PATH="$MC_ROOT_DIR/install/postgresql_conf/postgresql-mediacloud.conf"
 if [ ! -f "$MEDIACLOUD_CONF_SRC_FILE_PATH" ]; then
     echo "Media Cloud's PostgreSQL configuration file was not found at: $MEDIACLOUD_CONF_SRC_FILE_PATH"
     exit 1
 fi
 
 # Path to Media Cloud's PostgreSQL production configuration file
-MEDIACLOUD_CONF_PRODUCTION_SRC_FILE_PATH="$MC_ROOT_DIR/config/postgresql-mediacloud-production.conf"
+MEDIACLOUD_CONF_PRODUCTION_SRC_FILE_PATH="$MC_ROOT_DIR/install/postgresql_conf/postgresql-mediacloud-production.conf"
 if [ ! -f "$MEDIACLOUD_CONF_PRODUCTION_SRC_FILE_PATH" ]; then
     echo "Media Cloud's PostgreSQL production configuration file was not found at: $MEDIACLOUD_CONF_PRODUCTION_SRC_FILE_PATH"
     exit 1
