@@ -726,4 +726,21 @@ sub get_meta_redirect_response
     return $response;
 }
 
+# Returns URL content as string, undef on error
+sub get($)
+{
+    my $url = shift;
+
+    my $ua       = MediaWords::Util::Web::UserAgent->new();
+    my $response = $ua->get( $url );
+    if ( $response->is_success )
+    {
+        return $response->decoded_content;
+    }
+    else
+    {
+        return undef;
+    }
+}
+
 1;

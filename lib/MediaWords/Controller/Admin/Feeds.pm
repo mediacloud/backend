@@ -12,7 +12,6 @@ use MediaWords::Util::Web;
 
 use Data::Dumper;
 use HTML::Entities;
-use LWP::Simple;
 use XML::FeedPP;
 
 =head1 NAME>

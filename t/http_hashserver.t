@@ -5,7 +5,6 @@ use warnings;
 
 use Test::More tests => 13;
 
-use LWP::Simple;
 use MediaWords::Util::Web;
 
 BEGIN
@@ -21,7 +20,7 @@ sub test_page
 {
     my ( $url, $expected_content ) = @_;
 
-    my $content = LWP::Simple::get( $url );
+    my $content = MediaWords::Util::Web::get( $url );
 
     chomp( $content );
 
@@ -61,7 +60,7 @@ sub main
 
     my $auth_url = "http://localhost:$_port/auth";
 
-    my $content = LWP::Simple::get( $auth_url );
+    my $content = MediaWords::Util::Web::get( $auth_url );
     is( $content, undef, 'fail auth / no auth' );
 
     my $ua = MediaWords::Util::Web::UserAgent->new();

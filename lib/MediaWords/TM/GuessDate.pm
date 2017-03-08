@@ -18,7 +18,6 @@ use DateTime;
 use HTML::TreeBuilder::LibXML;
 use List::MoreUtils qw(any);
 use List::Util qw(max min);
-use LWP::Simple;
 use Readonly;
 use Regexp::Common qw(time);
 use Time::Local;

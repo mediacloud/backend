@@ -15,7 +15,6 @@ use MediaWords::CommonLibs;
 
 use English '-no_match_vars';
 
-use LWP::Simple;
 use HTTP::HashServer;
 use Test::More tests => 6;
 

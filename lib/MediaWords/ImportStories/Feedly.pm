@@ -31,7 +31,6 @@ with 'MediaWords::ImportStories';
 use CHI;
 use Data::Dumper;
 use Encode;
-use LWP::Simple;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 use URI::Escape;
