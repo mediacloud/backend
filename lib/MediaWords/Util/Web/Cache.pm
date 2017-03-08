@@ -97,7 +97,7 @@ sub get_cached_link_download
     $_link_downloads_cache = {};
     for my $response ( @{ $responses } )
     {
-        my $original_url = MediaWords::Util::Web::get_original_request( $response )->uri->as_string;
+        my $original_url = MediaWords::Util::Web::get_original_request( $response )->url;
         my $response_link_nums = [ map { $_->{ _link_num } } @{ $url_lookup->{ $original_url } } ];
         if ( !@{ $response_link_nums } )
         {
@@ -144,7 +144,7 @@ sub get_cached_link_download_redirect_url
     {
         if ( $response && ref( $response ) )
         {
-            return $response->request->uri->as_string;
+            return $response->request->url;
         }
     }
 

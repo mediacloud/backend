@@ -71,8 +71,8 @@ sub url_and_data_after_redirects($;$$)
                 $error_message .= "Number of HTTP redirects ($max_http_redirect) exhausted; redirects:\n";
                 foreach my $redirect ( @{ $redirects } )
                 {
-                    push( @urls_redirected_to, $redirect->request()->uri()->canonical->as_string );
-                    $error_message .= "* From: " . $redirect->request()->uri()->canonical->as_string . "; ";
+                    push( @urls_redirected_to, $redirect->request()->url() );
+                    $error_message .= "* From: " . $redirect->request()->url() . "; ";
                     $error_message .= "to: " . $redirect->header( 'Location' ) . "\n";
                 }
 
@@ -110,7 +110,7 @@ sub url_and_data_after_redirects($;$$)
             last;
         }
 
-        my $new_uri = $response->request()->uri()->canonical;
+        my $new_uri = URI->new( $response->request()->url() )->canonical;
         unless ( $uri->eq( $new_uri ) )
         {
             TRACE "New URI: " . $new_uri->as_string;

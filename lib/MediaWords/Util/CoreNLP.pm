@@ -263,7 +263,7 @@ sub _annotate_text($)
         sub {
             my ( $ua, $timing, $duration, $codes_to_determinate, $lwp_args, $response ) = @_;
             my $request = $lwp_args->[ 0 ];
-            my $url     = $request->uri;
+            my $url     = $request->url;
 
             unless ( $response->is_success )
             {

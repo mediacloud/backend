@@ -89,11 +89,28 @@ use MediaWords::Util::URL;
         return $self->{ _request }->method( $method );
     }
 
-    # Alias for uri()
-    sub uri($;$)
+    # uri() is not aliased because it returns URI object which we won't reimplement in Web.pm
+
+    # Alias for url()
+    sub url($;$)
     {
-        my ( $self, $uri ) = @_;
-        return $self->{ _request }->uri( $uri );
+        my ( $self, $url ) = @_;
+
+        if ( defined $url )
+        {
+            my $uri = URI->new( $url );
+            $self->{ _request }->uri( $uri );
+        }
+
+        my $uri = $self->{ _request }->uri();
+        if ( defined $uri )
+        {
+            return $uri->as_string;
+        }
+        else
+        {
+            return undef;
+        }
     }
 
     # Alias for header()
@@ -366,7 +383,7 @@ use MediaWords::Util::URL;
             sub {
                 my ( $ua, $timing, $duration, $codes_to_determinate, $lwp_args ) = @_;
                 my $request = $lwp_args->[ 0 ];
-                my $url     = $request->uri;
+                my $url     = $request->url;
 
                 TRACE "Trying $url ...";
             }
@@ -377,7 +394,7 @@ use MediaWords::Util::URL;
             sub {
                 my ( $ua, $timing, $duration, $codes_to_determinate, $lwp_args, $response ) = @_;
                 my $request = $lwp_args->[ 0 ];
-                my $url     = $request->uri;
+                my $url     = $request->url;
 
                 unless ( $response->is_success )
                 {
@@ -416,14 +433,14 @@ use MediaWords::Util::URL;
 
         my $blacklist_url_pattern = $config->{ mediawords }->{ blacklist_url_pattern };
 
-        my $url = $request->uri->as_string;
+        my $url = $request->url;
 
         TRACE( "url: $url" );
 
         my $blacklisted;
         if ( $blacklist_url_pattern && ( $url =~ $blacklist_url_pattern ) )
         {
-            $request->uri( "http://blacklistedsite.localhost/$url" );
+            $request->url( "http://blacklistedsite.localhost/$url" );
             $blacklisted = 1;
         }
 
@@ -631,7 +648,7 @@ sub lookup_by_response_url($$)
     my ( $list, $response ) = @_;
 
     my $original_request = get_original_request( $response );
-    my $url              = URI->new( $original_request->uri->as_string );
+    my $url              = URI->new( $original_request->url );
 
     map { return ( $_ ) if ( URI->new( $_->{ url } ) eq $url ) } @{ $list };
 
