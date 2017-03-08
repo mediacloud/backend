@@ -117,7 +117,7 @@ sub test_get($;$$)
 
     my $full_url = "$url?$encoded_params";
 
-    return test_request_response( $full_url, Catalyst::Text::request( $full_url ), $expect_error );
+    return test_request_response( $full_url, Catalyst::Test::request( $full_url ), $expect_error );
 }
 
 1;
