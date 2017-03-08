@@ -12,4 +12,4 @@ BEGIN
 use MediaWords::Controller::Logout;
 
 # Commented out because we need to log in first
-#ok( request( '/logout' )->is_success, 'Request should succeed' );
+#ok( Catalyst::Test::request( '/logout' )->is_success, 'Request should succeed' );

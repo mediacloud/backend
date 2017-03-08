@@ -83,7 +83,7 @@ sub test_data_request($$$;$)
 
     my $label = $request->as_string;
 
-    return test_request_response( $label, request( $request ), $expect_error );
+    return test_request_response( $label, Catalyst::Test::request( $request ), $expect_error );
 }
 
 # call test_data_request with a 'PUT' method
@@ -117,7 +117,7 @@ sub test_get($;$$)
 
     my $full_url = "$url?$encoded_params";
 
-    return test_request_response( $full_url, request( $full_url ), $expect_error );
+    return test_request_response( $full_url, Catalyst::Text::request( $full_url ), $expect_error );
 }
 
 1;
