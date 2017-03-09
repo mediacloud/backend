@@ -61,6 +61,7 @@ sub test_request_response($$;$)
     my $url = $response->request->url;
 
     my $url_path = URI->new( $url )->path;
+    $url_path =~ s/\/\d+//;
     $_api_requested_urls_lookup->{ $url_path } = 1;
 
     is( $response->is_success, !$expect_error, "HTTP response status OK for $label:\n" . $response->as_string );

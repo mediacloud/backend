@@ -32,18 +32,14 @@ Readonly my $NUM_FEEDS_PER_MEDIUM => 2;
 Readonly my $NUM_STORIES_PER_FEED => 10;
 
 # test that a story has the expected content
-sub test_story_fields($$)
+sub test_story_fields($$$)
 {
-    my ( $story, $test ) = @_;
+    my ( $db, $story, $label ) = @_;
 
-    my ( $num ) = ( $story->{ title } =~ /_(\d+)/ );
+    my $expected_story = $db->require_by_id( 'stories', $story->{ stories_id } );
 
-    ok( defined( $num ), "$test: found story number from title: $story->{ title }" );
-
-    is( $story->{ url },           "http://story.test/story_$num", "$test: story url" );
-    is( $story->{ guid },          "guid://story.test/story_$num", "$test: story guid" );
-    is( $story->{ ap_syndicated }, 0,                              "$test: story ap_syndicated" );
-
+    my $fields = [ qw/stories_id url guid language publish_date media_id title collect_date/ ];
+    map { is( $story->{ $_ }, $expected_story->{ $_ }, "$label field '$_'" ) } @{ $fields };
 }
 
 # various tests to validate stories_public/list
@@ -66,19 +62,19 @@ sub test_stories_public_list($$)
         my $expected_title = "story story_$i";
         my $found_story    = $title_stories_lookup->{ $expected_title };
         ok( $found_story, "found story with title '$expected_title'" );
-        test_story_fields( $stories->[ $i ], "all stories: story $i" );
+        test_story_fields( $db, $stories->[ $i ], "all stories: story $i" );
     }
 
     my $search_result =
       test_get( '/api/v2/stories_public/list', { q => 'stories_id:' . $stories->[ 0 ]->{ stories_id } } );
     is( scalar( @{ $search_result } ), 1, "stories_public search: count" );
     is( $search_result->[ 0 ]->{ stories_id }, $stories->[ 0 ]->{ stories_id }, "stories_public search: stories_id match" );
-    test_story_fields( $search_result->[ 0 ], "story_public search" );
+    test_story_fields( $db, $search_result->[ 0 ], "story_public search" );
 
     my $stories_single = test_get( '/api/v2/stories_public/single/' . $stories->[ 1 ]->{ stories_id } );
     is( scalar( @{ $stories_single } ), 1, "stories_public/single: count" );
     is( $stories_single->[ 0 ]->{ stories_id }, $stories->[ 1 ]->{ stories_id }, "stories_public/single: stories_id match" );
-    test_story_fields( $search_result->[ 0 ], "stories_public/single" );
+    test_story_fields( $db, $search_result->[ 0 ], "stories_public/single" );
 
     # test feeds_id= param
 
@@ -1202,6 +1198,173 @@ SQL
     }
 }
 
+# test controversies/list and single
+sub test_controversies($)
+{
+    my ( $db ) = @_;
+
+    my $label = "controversies/list";
+
+    map { MediaWords::Test::DB::create_test_topic( $db, "$label $_" ) } ( 1 .. 10 );
+
+    my $expected_topics = $db->query( "select *, topics_id controversies_id from topics" )->hashes;
+
+    my $got_controversies = test_get( '/api/v2/controversies/list', {} );
+
+    my $fields = [ qw/controversies_id name pattern solr_seed_query description max_iterations/ ];
+    rows_match( $label, $got_controversies, $expected_topics, "controversies_id", $fields );
+
+    $label = "controversies/single";
+
+    my $expected_single = $expected_topics->[ 0 ];
+
+    my $got_controversy = test_get( '/api/v2/controversies/single/' . $expected_single->{ topics_id }, {} );
+    rows_match( $label, $got_controversy, [ $expected_single ], 'controversies_id', $fields );
+}
+
+# test controversy_dumps/list and single
+sub test_controversy_dumps($)
+{
+    my ( $db ) = @_;
+
+    my $label = "controversy_dumps/list";
+
+    my $topic = MediaWords::Test::DB::create_test_topic( $db, $label );
+
+    for my $i ( 1 .. 10 )
+    {
+        $db->create(
+            'snapshots',
+            {
+                topics_id     => $topic->{ topics_id },
+                snapshot_date => '2017-01-01',
+                start_date    => '2016-01-01',
+                end_date      => '2017-01-01',
+                note          => "snapshot $i"
+            }
+        );
+    }
+
+    my $expected_snapshots = $db->query( <<SQL, $topic->{ topics_id } )->hashes;
+select *, topics_id controversies_id, snapshots_id controversy_dumps_id
+    from snapshots
+    where topics_id = ?
+SQL
+
+    my $got_cds = test_get( '/api/v2/controversy_dumps/list', { controversies_id => $topic->{ topics_id } } );
+
+    my $fields = [ qw/controversies_id controversy_dumps_id start_date end_date note/ ];
+    rows_match( $label, $got_cds, $expected_snapshots, 'controversy_dumps_id', $fields );
+
+    $label = 'controversy_dumps/single';
+
+    my $expected_snapshot = $expected_snapshots->[ 0 ];
+
+    my $got_cd = test_get( '/api/v2/controversy_dumps/single/' . $expected_snapshot->{ snapshots_id }, {} );
+    rows_match( $label, $got_cd, [ $expected_snapshot ], 'controversy_dumps_id', $fields );
+}
+
+# test controversy_dump_time_slices/list and single
+sub test_controversy_dump_time_slices($)
+{
+    my ( $db ) = @_;
+
+    my $label = "controversy_dump_time_slices/list";
+
+    my $topic = MediaWords::Test::DB::create_test_topic( $db, $label );
+    my $snapshot = $db->create(
+        'snapshots',
+        {
+            topics_id     => $topic->{ topics_id },
+            snapshot_date => '2017-01-01',
+            start_date    => '2016-01-01',
+            end_date      => '2017-01-01',
+        }
+    );
+
+    my $metrics = [
+        qw/story_count story_link_count medium_count medium_link_count tweet_count /,
+        qw/model_num_media model_r2_mean model_r2_stddev/
+    ];
+    for my $i ( 1 .. 9 )
+    {
+        my $timespan = {
+            snapshots_id => $snapshot->{ snapshots_id },
+            start_date   => '2016-01-0' . $i,
+            end_date     => '2017-01-0' . $i,
+            period       => 'custom'
+        };
+
+        map { $timespan->{ $_ } = $i * length( $_ ) } @{ $metrics };
+        $db->create( 'timespans', $timespan );
+    }
+
+    my $expected_timespans = $db->query( <<SQL, $snapshot->{ snapshots_id } )->hashes;
+select *, snapshots_id controversy_dumps_id, timespans_id controversy_dump_time_slices_id
+    from timespans
+    where snapshots_id = ?
+SQL
+
+    my $got_cdtss =
+      test_get( '/api/v2/controversy_dump_time_slices/list', { controversy_dumps_id => $snapshot->{ snapshots_id } } );
+
+    my $fields = [ qw/controversy_dumps_id start_date end_date period/, @{ $metrics } ];
+    rows_match( $label, $got_cdtss, $expected_timespans, 'controversy_dump_time_slices_id', $fields );
+
+    $label = 'controversy_dump_time_slices/single';
+
+    my $expected_timespan = $expected_timespans->[ 0 ];
+
+    my $got_cdts = test_get( '/api/v2/controversy_dump_time_slices/single/' . $expected_timespan->{ timespans_id }, {} );
+    rows_match( $label, $got_cdts, [ $expected_timespan ], 'controversy_dump_time_slices_id', $fields );
+}
+
+# test downloads/list and single
+sub test_downloads($)
+{
+    my ( $db ) = @_;
+
+    my $label = "downloads/list";
+
+    my $medium = MediaWords::Test::DB::create_test_medium( $db, $label );
+    my $feed = MediaWords::Test::DB::create_test_feed( $db, $label, $medium );
+    for my $i ( 1 .. 10 )
+    {
+        my $download = $db->create(
+            'downloads',
+            {
+                feeds_id => $feed->{ feeds_id },
+                url      => 'http://test.download/' . $i,
+                host     => 'test.download',
+                type     => 'feed',
+                state    => 'success',
+                path     => $i + $i,
+                priority => $i,
+                sequence => $i * $i
+            }
+        );
+
+        my $content = "content $download->{ downloads_id }";
+        MediaWords::DBI::Downloads::store_content( $db, $download, \$content );
+    }
+
+    my $expected_downloads = $db->query( "select * from downloads where feeds_id = ?", $feed->{ feeds_id } )->hashes;
+    map { $_->{ raw_content } = "content $_->{ downloads_id }" } @{ $expected_downloads };
+
+    my $got_downloads = test_get( '/api/v2/downloads/list', { feeds_id => $feed->{ feeds_id } } );
+
+    my $fields = [ qw/feeds_id url guid type state priority sequence download_time host/ ];
+    rows_match( $label, $got_downloads, $expected_downloads, "downloads_id", $fields );
+
+    $label = "downloads/single";
+
+    my $expected_single = $expected_downloads->[ 0 ];
+
+    my $got_download = test_get( '/api/v2/downloads/single/' . $expected_single->{ downloads_id }, {} );
+    rows_match( $label, $got_download, [ $expected_single ], 'downloads_id', $fields );
+
+}
+
 # test parts of the ai that only require reading, so we can test these all in one chunk
 sub test_api($)
 {
@@ -1226,6 +1389,12 @@ sub test_api($)
     test_media_suggestions( $db );
 
     test_topics_crud( $db );
+
+    test_controversies( $db );
+    test_controversy_dumps( $db );
+    test_controversy_dump_time_slices( $db );
+
+    test_downloads( $db );
 
     test_wc_list( $db );
 
