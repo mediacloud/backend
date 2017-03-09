@@ -82,6 +82,11 @@ SQL
     $self->status_ok( $c, entity => $media_health );
 }
 
+sub single_GET
+{
+    die( 'not implemented' );
+}
+
 =head1 AUTHOR
 
 David Larochelle

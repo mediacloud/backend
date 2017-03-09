@@ -455,6 +455,10 @@ sub test_media_list ($$)
     my $single_medium = $test_stack_media->[ 0 ];
     test_media_list_call( { name => $single_medium->{ name } }, [ $single_medium ] );
 
+    my $got_single_medium = test_get( '/api/v2/media/single/' . $single_medium->{ media_id }, {} );
+    my $fields = [ qw/name url is_healthy is_monitored editor_notes public_notes/ ];
+    rows_match( $db, $got_single_medium, [ $single_medium ], 'media_id', $fields );
+
     my $tagged_medium = $test_stack_media->[ 1 ];
     my $test_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'media_list_test:media_list_test' );
     $db->update_by_id( 'tags', $test_tag->{ tags_id }, { show_on_media => 't' } );
@@ -469,6 +473,7 @@ sub test_media_list ($$)
     $db->query( "update media set primary_language = 'en' where media_id = \$1", $english_medium->{ media_id } );
     $english_medium->{ primary_language } = 'en';
     test_media_list_call( { primary_language => 'en' }, [ $english_medium ] );
+
 }
 
 # test various media/ calls
@@ -873,6 +878,32 @@ sub test_tag_sets($)
     validate_db_row( $db, 'tag_sets', $r->{ tag_set }, $update_input, 'update tag set' );
 }
 
+# test feeds/list and single
+sub test_feeds_list($)
+{
+    my ( $db ) = @_;
+
+    my $label = "feeds/list";
+
+    my $medium = MediaWords::Test::DB::create_test_medium( $db, $label );
+
+    map { MediaWords::Test::DB::create_test_feed( $db, "$label $_", $medium ) } ( 1 .. 10 );
+
+    my $expected_feeds = $db->query( "select * from feeds where media_id = ?", $medium->{ media_id } )->hashes;
+
+    my $got_feeds = test_get( '/api/v2/feeds/list', { media_id => $medium->{ media_id } } );
+
+    my $fields = [ qw/name url feed_type media_id/ ];
+    rows_match( $label, $got_feeds, $expected_feeds, "feeds_id", $fields );
+
+    $label = "feeds/single";
+
+    my $expected_single = $expected_feeds->[ 0 ];
+
+    my $got_feed = test_get( '/api/v2/feeds/single/' . $expected_single->{ feeds_id }, {} );
+    rows_match( $label, $got_feed, [ $expected_single ], 'feeds_id', $fields );
+}
+
 # test feeds/* end points
 sub test_feeds($)
 {
@@ -921,6 +952,8 @@ sub test_feeds($)
 
     $r = test_get( '/api/v2/feeds/scrape_status', {} );
     is( $r->{ job_states }->[ 0 ]->{ media_id }, $medium->{ media_id }, "feeds/scrape_status all media_id" );
+
+    test_feeds_list( $db );
 }
 
 # test the media/submit_suggestion call
@@ -1365,6 +1398,45 @@ sub test_downloads($)
 
 }
 
+# test mediahealth/list and single
+sub test_mediahealth($)
+{
+    my ( $db ) = @_;
+
+    my $label = "mediahealth/list";
+
+    my $metrics = [
+        qw/num_stories num_stories_w num_stories_90 num_stories_y num_sentences num_sentences_w/,
+        qw/num_sentences_90 num_sentences_y expected_stories expected_sentences coverage_gaps/
+    ];
+    for my $i ( 1 .. 10 )
+    {
+        my $medium = MediaWords::Test::DB::create_test_medium( $db, "$label $i" );
+        my $mh = {
+            media_id        => $medium->{ media_id },
+            is_healthy      => ( $medium->{ media_id } % 2 ) ? 't' : 'f',
+            has_active_feed => ( $medium->{ media_id } % 2 ) ? 't' : 'f',
+            start_date      => '2011-01-01',
+            end_date        => '2017-01-01'
+        };
+
+        map { $mh->{ $_ } = $i * length( $_ ) } @{ $metrics };
+
+        $db->create( 'media_health', $mh );
+    }
+
+    my $expected_mhs = $db->query( <<SQL, $label )->hashes;
+select mh.* from media_health mh join media m using ( media_id ) where m.name like ? || '%'
+SQL
+
+    my $media_id_params = join( '&', map { "media_id=$_->{ media_id }" } @{ $expected_mhs } );
+
+    my $got_mhs = test_get( '/api/v2/mediahealth/list?' . $media_id_params, {} );
+
+    my $fields = [ qw/media_id is_health has_active_feed start_date end_date/, @{ $metrics } ];
+    rows_match( $label, $got_mhs, $expected_mhs, 'media_id', $fields );
+}
+
 # test parts of the ai that only require reading, so we can test these all in one chunk
 sub test_api($)
 {
@@ -1395,6 +1467,8 @@ sub test_api($)
     test_controversy_dump_time_slices( $db );
 
     test_downloads( $db );
+
+    test_mediahealth( $db );
 
     test_wc_list( $db );
 

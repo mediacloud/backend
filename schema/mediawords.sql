@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4611;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4612;
 
 BEGIN
 
@@ -3008,6 +3008,7 @@ create table media_coverage_gaps (
 create index media_coverage_gaps_medium on media_coverage_gaps ( media_id );
 
 create table media_health (
+    media_health_id     serial primary key,
     media_id            int not null references media on delete cascade,
     num_stories         numeric not null,
     num_stories_y       numeric not null,

@@ -95,7 +95,7 @@ sub test_data_request($$$;$)
 
     my $api_token = get_test_api_key();
 
-    $url = $url =~ /\?/ ? "$url&key=$api_token" : "$url?key=$api_token";
+    $url = ( index( $url, '?' ) > 0 ) ? "$url&key=$api_token" : "$url?key=$api_token";
 
     my $json = MediaWords::Util::JSON::encode_json( $data );
 
@@ -137,7 +137,7 @@ sub test_get($;$$)
 
     my $encoded_params = join( "&", map { $_ . '=' . uri_escape( $params->{ $_ } ) } keys( %{ $params } ) );
 
-    my $full_url = "$url?$encoded_params";
+    my $full_url = ( index( $url, '?' ) > 0 ) ? "$url&$encoded_params" : "$url?$encoded_params";
 
     return test_request_response( $full_url, request( $full_url ), $expect_error );
 }
@@ -194,6 +194,14 @@ sub get_api_urls()
 sub get_untested_api_urls()
 {
     my $api_urls = get_api_urls();
+
+    # these are just methods of super classess
+    my $ignore_urls = [
+        '/api/v2/mc_rest_simpleobject/list', '/api/v2/mc_rest_simpleobject/single',
+        '/api/v2/storiesbase/list',          '/api/v2/storiesbase/single'
+    ];
+
+    map { $_api_requested_urls_lookup->{ $_ } = 1 } @{ $ignore_urls };
 
     return [ grep { !$_api_requested_urls_lookup->{ $_ } } @{ $api_urls } ];
 }
