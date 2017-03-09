@@ -22,8 +22,8 @@
 #
 
 from mediawords.db import connect_to_db
-from mediawords.db.export.export_tables import export_tables_to_backup_crawler
+from mediawords.db.export.export_tables import print_exported_tables_to_backup_crawler
 
 if __name__ == '__main__':
     db = connect_to_db()
-    export_tables_to_backup_crawler(db=db)
+    print_exported_tables_to_backup_crawler(db=db)

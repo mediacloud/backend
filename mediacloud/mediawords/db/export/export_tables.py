@@ -143,13 +143,13 @@ SELECT setval(
     })
 
 
-class McExportTablesToBackupCrawlerException(Exception):
-    """export_tables_to_backup_crawler() exception."""
+class McPrintExportedTablesToBackupCrawlerException(Exception):
+    """print_exported_tables_to_backup_crawler() exception."""
     pass
 
 
 # noinspection SqlResolve
-def export_tables_to_backup_crawler(db: DatabaseHandler) -> None:
+def print_exported_tables_to_backup_crawler(db: DatabaseHandler) -> None:
     """Export tables by printing their SQL dump to STDOUT."""
 
     # Tables to export
@@ -172,7 +172,7 @@ def export_tables_to_backup_crawler(db: DatabaseHandler) -> None:
             foreign_key_errors.append(error)
 
     if len(foreign_key_errors):
-        raise McExportTablesToBackupCrawlerException(
+        raise McPrintExportedTablesToBackupCrawlerException(
             "One or more foreign key checks failed, won't continue as resulting SQL would be invalid:\n\n%s" %
             str(foreign_key_errors)
         )
