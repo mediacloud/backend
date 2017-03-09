@@ -800,10 +800,7 @@ sub attach_story_data_to_stories
 
     map { $_->{ $list_field } = [] } @{ $stories } if ( $list_field );
 
-    unless ( scalar @{ $story_data } )
-    {
-        return;
-    }
+    return unless ( scalar @{ $story_data } );
 
     TRACE "stories size: " . scalar( @{ $stories } );
     TRACE "story_data size: " . scalar( @{ $story_data } );
@@ -811,20 +808,22 @@ sub attach_story_data_to_stories
     my $story_data_lookup = {};
     for my $sd ( @{ $story_data } )
     {
+        my $sd_id = $sd->{ stories_id };
         if ( $list_field )
         {
-            $story_data_lookup->{ $sd->{ stories_id } } //= { $list_field => [] };
-            push( @{ $story_data_lookup->{ $sd->{ stories_id } }->{ $list_field } }, $sd );
+            $story_data_lookup->{ $sd_id } //= { $list_field => [] };
+            push( @{ $story_data_lookup->{ $sd_id }->{ $list_field } }, $sd );
         }
         else
         {
-            $story_data_lookup->{ $sd->{ stories_id } } = $sd;
+            $story_data_lookup->{ $sd_id } = $sd;
         }
     }
 
     for my $story ( @{ $stories } )
     {
-        if ( my $sd = $story_data_lookup->{ $story->{ stories_id } } )
+        my $sid = $story->{ stories_id };
+        if ( my $sd = $story_data_lookup->{ $sid } )
         {
             map { $story->{ $_ } = $sd->{ $_ } } keys( %{ $sd } );
             TRACE "story matched: " . Dumper( $story );

@@ -208,6 +208,8 @@ SQL
     MediaWords::DBI::Stories::GuessDate::add_undateable_to_stories( $db, $stories );
     map { $_->{ publish_date } = 'undateable' if ( $_->{ undateable } ); delete( $_->{ undateable } ) } @{ $stories };
 
+    map { $_->{ stories_id } = int( $_->{ stories_id } ) } @{ $stories };
+
     my $entity = { stories => $stories };
 
     MediaWords::DBI::ApiLinks::add_links_to_entity( $c, $entity, 'stories' );

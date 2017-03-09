@@ -307,7 +307,7 @@ SQL
     }
 
     my $tag_data = $db->query( <<END )->hashes;
-select s.stories_id, t.tags_id, t.tag, ts.tag_sets_id, ts.name as tag_set
+select s.stories_id::int, t.tags_id, t.tag, ts.tag_sets_id, ts.name as tag_set
     from stories_tags_map s
         join tags t on ( t.tags_id = s.tags_id )
         join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id )

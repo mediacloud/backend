@@ -117,9 +117,8 @@ sub swap_live_collection
 
     $db->query( "delete from database_variables where name = 'live_solr_collection'" );
     $db->create( 'database_variables', { name => 'live_solr_collection', value => $current_staging_collection } );
-    -
 
-      $db->commit;
+    $db->commit;
 }
 
 =head2 get_last_num_found

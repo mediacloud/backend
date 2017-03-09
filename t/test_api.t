@@ -42,7 +42,6 @@ sub test_story_fields($$)
 
     is( $story->{ url },           "http://story.test/story_$num", "$test: story url" );
     is( $story->{ guid },          "guid://story.test/story_$num", "$test: story guid" );
-    is( $story->{ language },      "en",                           "$test: story language" );
     is( $story->{ ap_syndicated }, 0,                              "$test: story ap_syndicated" );
 
 }
@@ -124,6 +123,43 @@ SQL
     {
         is( $profile->{ $field }, $expected_user->{ $field }, "auth profile $field" );
     }
+}
+
+# test auth/single
+sub test_auth_single($)
+{
+    my ( $db ) = @_;
+
+    my $label = "auth/single";
+
+    my $email    = 'test@auth.single';
+    my $password = 'authsingle';
+
+    my $error = MediaWords::DBI::Auth::add_user_or_return_error_message( $db, $email, 'auth single', '', [ 1 ], 1, $password,
+        $password, 1000, 1000 );
+
+    my $r = test_get( '/api/v2/auth/single', { username => $email, password => $password } );
+
+    my $db_token = $db->query( <<SQL )->hash;
+select * from auth_user_ip_tokens order by auth_user_ip_tokens_id desc limit 1
+SQL
+
+    is( $r->[ 0 ]->{ result }, 'found', "$label token found" );
+    is( $r->[ 0 ]->{ token }, $db_token->{ api_token }, "$label token" );
+    is( $db_token->{ ip_address }, '127.0.0.1' );
+
+    my $r_not_found = test_get( '/api/v2/auth/single', { username => $email, password => "$password FOO" } );
+
+    is( $r_not_found->[ 0 ]->{ result }, "not found", "$label status for wrong password" );
+}
+
+# test auth/* calls
+sub test_auth($)
+{
+    my ( $db ) = @_;
+
+    test_auth_profile( $db );
+    test_auth_single( $db );
 }
 
 # test that the values at the given fields are equal in each hash, using the given test label
@@ -729,6 +765,25 @@ sub test_tags_list($)
     ok( ( grep { $_->{ tags_id } == $t2->{ tags_id } } @{ $got_similar_tags } ), "$label simlar tags_id t2" );
 }
 
+# test tags/single
+sub test_tags_single($)
+{
+    my ( $db ) = @_;
+
+    my $label = "tags/single";
+
+    my $expected_tag = $db->query( "select * from tags order by tags_id limit 1" )->hash;
+
+    my $got_tags = test_get( '/api/v2/tags/single/' . $expected_tag->{ tags_id } );
+
+    my $got_tag = $got_tags->[ 0 ];
+
+    ok( $got_tag, "$label found tag" );
+
+    my $fields = [ qw/tags_id tag_sets_id tag label description show_on_media show_on_stories is_static/ ];
+    map { is( $got_tag->{ $_ }, $expected_tag->{ $_ }, "$label field $_" ) } @{ $fields };
+}
+
 # test tags create, update, list, and association
 sub test_tags($)
 {
@@ -774,6 +829,7 @@ sub test_tags($)
 
     # simple tags/list test
     test_tags_list( $db );
+    test_tags_single( $db );
 
     # test put_tags calls on all tables
     test_put_tags( $db, 'stories' );
@@ -1093,6 +1149,59 @@ sub test_topics_crud($)
     my ( $db ) = @_;
 }
 
+# test whether we have at least requested every api end point outside of topics/
+sub test_coverage()
+{
+    my $untested_urls = MediaWords::Test::API::get_untested_api_urls();
+
+    $untested_urls = [ grep { $_ !~ m~/topics/~ } @{ $untested_urls } ];
+
+    ok( scalar( @{ $untested_urls } ) == 0, "end points not requested: " . join( ', ', @{ $untested_urls } ) );
+}
+
+# test wc/list end point
+sub test_wc_list($)
+{
+    my ( $db ) = @_;
+
+    my $label = "wc/list";
+
+    my $story = $db->query( "select * from stories order by stories_id limit 1" )->hash;
+
+    my $sentences = $db->query( <<SQL, $story->{ stories_id } )->flat;
+select sentence from story_sentences where stories_id = ?
+SQL
+
+    my $en = MediaWords::Languages::Language::language_for_code( 'en' );
+
+    my $expected_word_counts = {};
+    for my $sentence ( @{ $sentences } )
+    {
+        my $words = [ grep { length( $_ ) > 2 } split( /\W+/, lc( $sentence ) ) ];
+        my $stems = $en->stem( @{ $words } );
+        map { $expected_word_counts->{ $_ }++ } @{ $stems };
+    }
+
+    my $got_word_counts = test_get(
+        '/api/v2/wc/list',
+        {
+            q                 => "stories_id:$story->{ stories_id }",
+            languages         => 'en',                                 # set to english so that we can know how to stem above
+            num_words         => 10000,
+            include_stopwords => 1                                     # don't try to test stopwording
+        }
+    );
+
+    is( scalar( @{ $got_word_counts } ), scalar( keys( %{ $expected_word_counts } ) ), "$label number of words" );
+
+    for my $got_word_count ( @{ $got_word_counts } )
+    {
+        my $stem = $got_word_count->{ stem };
+        ok( $expected_word_counts->{ $stem }, "$label word count for '$stem' is found but not expected" );
+        is( $got_word_count->{ count }, $expected_word_counts->{ $stem }, "$label expected word count for '$stem'" );
+    }
+}
+
 # test parts of the ai that only require reading, so we can test these all in one chunk
 sub test_api($)
 {
@@ -1108,7 +1217,7 @@ sub test_api($)
     MediaWords::Test::API::setup_test_api_key( $db );
 
     test_stories_public_list( $db, $media );
-    test_auth_profile( $db );
+    test_auth( $db );
     test_media( $db, $media );
     test_tag_sets( $db );
     test_feeds( $db );
@@ -1118,6 +1227,9 @@ sub test_api($)
 
     test_topics_crud( $db );
 
+    test_wc_list( $db );
+
+    test_coverage();
 }
 
 sub main

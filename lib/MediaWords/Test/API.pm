@@ -16,6 +16,10 @@ our @EXPORT = qw(test_request_response test_data_request test_get test_put test_
 
 my $_test_api_key;
 
+# list of api urls requested by this process; used by get_untested_api_urls() to get a list of api urls that have not
+# been called by this process
+my $_api_requested_urls_lookup = {};
+
 sub setup_test_api_key($)
 {
     my ( $db ) = @_;
@@ -34,6 +38,19 @@ sub get_test_api_key()
     return $_test_api_key;
 }
 
+# test that all fields with purely number responses return json numbers
+sub validate_number_fields($$)
+{
+    my ( $label, $json ) = @_;
+
+    while ( $json =~ /("[^"]+"\s*:\s*"[\d]+")/g )
+    {
+        ok( 0, "$label number field has been stringified: $1" );
+        WARN( "json: " . substr( $json, 0, 2048 ) );
+        die();
+    }
+}
+
 #  test that we got a valid response,
 # that the response is valid json, and that the json response is not an error response.  Return
 # the decoded json.  If $expect_error is true, test for expected error response.
@@ -43,11 +60,16 @@ sub test_request_response($$;$)
 
     my $url = $response->request->url;
 
+    my $url_path = URI->new( $url )->path;
+    $_api_requested_urls_lookup->{ $url_path } = 1;
+
     is( $response->is_success, !$expect_error, "HTTP response status OK for $label:\n" . $response->as_string );
 
     my $data = eval { MediaWords::Util::JSON::decode_json( $response->content ) };
 
     ok( $data, "decoded json for $label (json error: $@)" );
+
+    validate_number_fields( $label, $response->decoded_content );
 
     if ( $expect_error )
     {
@@ -144,6 +166,35 @@ sub rows_match($$$$$)
         }
     }
 
+}
+
+# query the catalyst context to get a list of urls of all api end points
+sub get_api_urls()
+{
+    # use any old request just to get the $c
+    my ( $res, $c ) = ctx_request( '/admin/topics/list' );
+
+    # this chunk of code that pulls url end points out of catalyst relies on ugly reverse engineering of the
+    # private internals of the Catalyst::DispatchType::Chained and Catalyst::DispathType::Path, but it is as
+    # far as I can tell the only way to get catalyst to tell us what urls it is serving.
+
+    my $chained_actions = $c->dispatcher->dispatch_type( 'Chained' )->_endpoints;
+    my $chained_urls = [ map { "/$_->{ reverse }" } @{ $chained_actions } ];
+
+    my $path_actions = [ values( %{ $c->dispatcher->dispatch_type( 'Path' )->_paths } ) ];
+    my $path_urls = [ map { $_->[ 0 ]->private_path } @{ $path_actions } ];
+
+    my $api_urls = [ sort grep { m~/api/~ } ( @{ $path_urls }, @{ $chained_urls } ) ];
+
+    return $api_urls;
+}
+
+# get list of urls matching the
+sub get_untested_api_urls()
+{
+    my $api_urls = get_api_urls();
+
+    return [ grep { !$_api_requested_urls_lookup->{ $_ } } @{ $api_urls } ];
 }
 
 1;

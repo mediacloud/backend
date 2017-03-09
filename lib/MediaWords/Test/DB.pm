@@ -256,6 +256,12 @@ sub add_content_to_test_story($$$)
 
     my $content = get_test_content();
 
+    if ( $story->{ full_text_rss } )
+    {
+        $story->{ full_text_rss } = 0;
+        $db->update_by_id( 'stories', $story->{ stories_id }, { full_text_rss => 'f' } );
+    }
+
     my $host     = MediaWords::Util::URL::get_url_host( $feed->{ url } );
     my $download = $db->create(
         'downloads',
