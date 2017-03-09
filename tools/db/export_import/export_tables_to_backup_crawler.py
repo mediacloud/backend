@@ -7,7 +7,7 @@
 # 1) On production machine (database that is being exported), run:
 #
 #     # Export table data to "mediacloud-dump.sql"
-#     ./tools/import_export/export_tables_to_backup_crawler.py > mediacloud-dump.sql
+#     ./tools/export_import/export_tables_to_backup_crawler.py > mediacloud-dump.sql
 #
 # 2) On target machine (e.g. a backup crawler), run:
 #
