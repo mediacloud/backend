@@ -13,6 +13,7 @@
       <w>dataset</w>
       <w>datatype</w>
       <w>dateutil</w>
+      <w>dropdb</w>
       <w>fqdn</w>
       <w>hausastemmer</w>
       <w>hostnames</w>
@@ -38,6 +39,7 @@
       <w>reenable</w>
       <w>regexes</w>
       <w>reindexed</w>
+      <w>sbin</w>
       <w>shortener</w>
       <w>shorteners</w>
       <w>sopa</w>
