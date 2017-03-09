@@ -170,7 +170,9 @@ sub request_all_methods($;$)
     foreach my $method ( @{ $methods } )
     {
         my $request = HTTP::Request->new( $method, $params_url );
-        my $response = Catalyst::Test::request( $request );
+
+        # Catalyst::Test::request()
+        my $response = request( $request );
         push( @{ $responses }, $response );
     }
 
@@ -196,7 +198,8 @@ sub test_key_required($)
 sub get_api_urls()
 {
     # use any old request just to get the $c
-    my ( $res, $c ) = Catalyst::Test::ctx_request( '/admin/topics/list' );
+    # Catalyst::Test::ctx_request()
+    my ( $res, $c ) = ctx_request( '/admin/topics/list' );
 
     # this chunk of code that pulls url end points out of catalyst relies on ugly reverse engineering of the
     # private internals of the Catalyst::DispatchType::Chained and Catalyst::DispathType::Path, but it is as

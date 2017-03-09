@@ -65,7 +65,7 @@ sub test_request_response($$;$)
     return $data;
 }
 
-# execute Catalyst::Test::request with an HTTP request with the given data as json content.
+# execute Catalyst::Test::request() with an HTTP request with the given data as json content.
 # call test_request_response() on the result and return the decoded json data
 sub test_data_request($$$;$)
 {
@@ -83,7 +83,8 @@ sub test_data_request($$$;$)
 
     my $label = $request->as_string;
 
-    return test_request_response( $label, Catalyst::Test::request( $request ), $expect_error );
+    # Catalyst::Test::request()
+    return test_request_response( $label, request( $request ), $expect_error );
 }
 
 # call test_data_request with a 'PUT' method
@@ -102,7 +103,7 @@ sub test_post($$;$)
     return test_data_request( 'POST', $url, $data, $expect_error );
 }
 
-# execute Catalyst::Test::request on the given url with the given params and then call test_request_response()
+# execute Catalyst::Test::request() on the given url with the given params and then call test_request_response()
 # to test and return the decode json data
 sub test_get($;$$)
 {
@@ -117,7 +118,8 @@ sub test_get($;$$)
 
     my $full_url = "$url?$encoded_params";
 
-    return test_request_response( $full_url, Catalyst::Test::request( $full_url ), $expect_error );
+    # Catalyst::Test::request()
+    return test_request_response( $full_url, request( $full_url ), $expect_error );
 }
 
 1;

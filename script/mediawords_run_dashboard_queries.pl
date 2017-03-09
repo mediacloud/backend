@@ -26,7 +26,7 @@ use MediaWords::Util::JSON;
 
 my $_key;
 
-# create url from relative path + query params and call Catalyst::Test::get on that url.  get the $data structure
+# create url from relative path + query params and call Catalyst::Test::get() on that url.  get the $data structure
 # generated from the resulting json.  invoke the $test function with the resulting $data and die if that
 # test function returns false.
 sub test_url
