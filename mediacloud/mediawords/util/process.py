@@ -31,12 +31,20 @@ def run_command_in_foreground(command: List[str]) -> None:
 
     command = decode_object_from_bytes_if_needed(command)
 
+    # Add some more PATHs to look into
+    env_path = os.environ.copy()
+    env_path['PATH'] = '/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:' + env_path['PATH']
+
     # noinspection PyBroadException
     try:
         if sys.platform.lower() == 'darwin':
             # OS X -- requires some crazy STDOUT / STDERR buffering
             line_buffered = 1
-            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=line_buffered)
+            process = subprocess.Popen(command,
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT,
+                                       bufsize=line_buffered,
+                                       env=env_path)
             while True:
                 output = process.stdout.readline()
                 if len(output) == 0 and process.poll() is not None:
@@ -47,7 +55,7 @@ def run_command_in_foreground(command: List[str]) -> None:
                 raise McRunCommandInForegroundException("Process returned non-zero exit code %d" % rc)
         else:
             # assume Ubuntu
-            subprocess.check_call(command)
+            subprocess.check_call(command, env=env_path)
     except subprocess.CalledProcessError as ex:
         raise McRunCommandInForegroundException("Process returned non-zero exit code %d" % ex.returncode)
     except Exception as ex:
