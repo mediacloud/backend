@@ -108,7 +108,7 @@ def set_config(config: dict) -> None:
 
 def __read_static_defaults() -> dict:
     """Return configuration defaults dictionary."""
-    defaults_file_yml = os.path.join(mc_root_path(), "config", "defaults.yml")
+    defaults_file_yml = os.path.join(mc_root_path(), "mediawords.yml.dist")
     static_defaults = __parse_yaml(defaults_file_yml)
     return static_defaults
 

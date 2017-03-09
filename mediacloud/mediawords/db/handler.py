@@ -1,5 +1,4 @@
 import os
-import random
 import re
 from typing import Callable, Union, List, Dict, Any
 
@@ -20,6 +19,7 @@ from mediawords.util.log import create_logger
 from mediawords.util.paths import mc_root_path
 from mediawords.util.perl import convert_dbd_pg_arguments_to_psycopg2_format, decode_object_from_bytes_if_needed, \
     McDecodeObjectFromBytesIfNeededException
+from mediawords.util.text import random_string
 
 l = create_logger(__name__)
 
@@ -47,6 +47,9 @@ class DatabaseHandler(object):
 
     # Whether or not to print PostgreSQL warnings
     __print_warnings = True
+
+    # "Double percentage sign" marker (see handler's quote() for explanation)
+    __double_percentage_sign_marker = "<DOUBLE PERCENTAGE SIGN: " + random_string(length=16) + ">"
 
     # Debugging variable to test whether we're in a transaction
     __in_manual_transaction = False
@@ -272,7 +275,10 @@ class DatabaseHandler(object):
         if len(query_params) > 2:
             raise McQueryException("psycopg2's execute() accepts at most 2 parameters.")
 
-        return DatabaseResult(cursor=self.__db, query_args=query_params, print_warnings=self.__print_warnings)
+        return DatabaseResult(cursor=self.__db,
+                              query_args=query_params,
+                              double_percentage_sign_marker=self.__double_percentage_sign_marker,
+                              print_warnings=self.__print_warnings)
 
     def prepare(self, sql: str) -> DatabaseStatement:
         """Return a prepared statement."""
@@ -281,7 +287,9 @@ class DatabaseHandler(object):
 
         sql = decode_object_from_bytes_if_needed(sql)
 
-        return DatabaseStatement(cursor=self.__db, sql=sql)
+        return DatabaseStatement(cursor=self.__db,
+                                 sql=sql,
+                                 double_percentage_sign_marker=self.__double_percentage_sign_marker)
 
     def __get_current_work_mem(self) -> str:
         current_work_mem = self.query("SHOW work_mem").flat()[0]
@@ -671,9 +679,11 @@ class DatabaseHandler(object):
             self.query('ROLLBACK')
             self.__set_in_transaction(False)
 
-    @staticmethod
-    def quote(value: Union[bool, int, float, str, None]) -> str:
-        """Quote a string for being passed as a literal in a query."""
+    def quote(self, value: Union[bool, int, float, str, None]) -> str:
+        """Quote a string for being passed as a literal in a query.
+
+        Also, replace all cases of a percentage sign ('%') with a random string shared within database handler's
+        instance which will be later replaced back into double percentage sign ('%%') when executing the query."""
 
         value = decode_object_from_bytes_if_needed(value)
 
@@ -708,18 +718,13 @@ class DatabaseHandler(object):
             # Maybe overly paranoid, but better than returning random stuff for a string that will go into the database
             raise McQuoteException("Quoted value is not 'str' after quoting '%s'" % quoted_obj)
 
-        # Add space after percentage signs which look like psycopg2's parameter placeholders ('%s', '%(param_1)s').
-        #
-        # Be rather harsh about it because psycopg2 interpolates pretty much any '%(' it can find (which might happen
-        # in binary files that somehow get treated as text).
-        #
-        # FIXME pretty much a bug
-        quoted_value = re.sub('%(?=(s|\(.*?\)?s?))', '% ', quoted_value)
+        # Replace percentage signs with a randomly generated marker that will be replaced back into '%%' when executing
+        # the query.
+        quoted_value = quoted_value.replace('%', self.__double_percentage_sign_marker)
 
         return quoted_value
 
-    @staticmethod
-    def quote_bool(value: bool) -> str:
+    def quote_bool(self, value: bool) -> str:
         """Quote a boolean value for being passed as a literal in a query."""
         # MC_REWRITE_TO_PYTHON: remove after starting to use Python's boolean type everywhere
 
@@ -743,29 +748,26 @@ class DatabaseHandler(object):
         else:
             raise McQuoteException("Value '%s' is unsupported" % str(value))
 
-        return DatabaseHandler.quote(value=value)
+        return self.quote(value=value)
 
-    @staticmethod
-    def quote_varchar(value: str) -> str:
+    def quote_varchar(self, value: str) -> str:
         """Quote VARCHAR for being passed as a literal in a query."""
         # MC_REWRITE_TO_PYTHON: remove after starting to use Python's boolean type everywhere
         value = decode_object_from_bytes_if_needed(value)
 
-        return DatabaseHandler.quote(value=value)
+        return self.quote(value=value)
 
-    @staticmethod
-    def quote_date(value: str) -> str:
+    def quote_date(self, value: str) -> str:
         """Quote DATE for being passed as a literal in a query."""
         value = decode_object_from_bytes_if_needed(value)
 
-        return '%s::date' % DatabaseHandler.quote(value=value)
+        return '%s::date' % self.quote(value=value)
 
-    @staticmethod
-    def quote_timestamp(value: str) -> str:
+    def quote_timestamp(self, value: str) -> str:
         """Quote TIMESTAMP for being passed as a literal in a query."""
         value = decode_object_from_bytes_if_needed(value)
 
-        return '%s::timestamp' % DatabaseHandler.quote(value=value)
+        return '%s::timestamp' % self.quote(value=value)
 
     def copy_from(self, sql: str) -> CopyFrom:
         """Return COPY FROM helper object."""
@@ -785,8 +787,7 @@ class DatabaseHandler(object):
         The database connection must be within a transaction. The temporary table is setup to be dropped at the end of
         the current transaction. If "ordered" is True, include an "<...>_id SERIAL PRIMARY KEY" field in the table."""
 
-        r = random.SystemRandom()  # FIXME replace with "secrets" module after upgrading to Python 3.6
-        table_name = '_tmp_ids_%s' % str(r.randrange(2 ** 64))
+        table_name = '_tmp_ids_%s' % random_string(length=16)
 
         l.debug("Temporary IDs table: %s" % table_name)
 
@@ -884,4 +885,8 @@ class DatabaseHandler(object):
 
         query = decode_object_from_bytes_if_needed(query)
 
-        return DatabasePages(cursor=self.__db, query=query, page=page, rows_per_page=rows_per_page)
+        return DatabasePages(cursor=self.__db,
+                             query=query,
+                             page=page,
+                             rows_per_page=rows_per_page,
+                             double_percentage_sign_marker=self.__double_percentage_sign_marker)

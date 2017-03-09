@@ -12,13 +12,19 @@ class DatabasePages(object):
     __list = None
     __pager = None
 
-    def __init__(self, cursor: DictCursor, query: str, page: int, rows_per_page: int):
+    def __init__(self, cursor: DictCursor, query: str, page: int, rows_per_page: int,
+                 double_percentage_sign_marker: str):
 
         query = decode_object_from_bytes_if_needed(query)
 
-        self.__execute(cursor=cursor, query=query, page=page, rows_per_page=rows_per_page)
+        self.__execute(cursor=cursor,
+                       query=query,
+                       page=page,
+                       rows_per_page=rows_per_page,
+                       double_percentage_sign_marker=double_percentage_sign_marker)
 
-    def __execute(self, cursor: DictCursor, query: str, page: int, rows_per_page: int) -> None:
+    def __execute(self, cursor: DictCursor, query: str, page: int, rows_per_page: int,
+                  double_percentage_sign_marker: str) -> None:
 
         query = decode_object_from_bytes_if_needed(query)
 
@@ -37,7 +43,9 @@ class DatabasePages(object):
         query_args = convert_dbd_pg_arguments_to_psycopg2_format(*query_args)
 
         # Query
-        rs = DatabaseResult(cursor=cursor, query_args=query_args)
+        rs = DatabaseResult(cursor=cursor,
+                            query_args=query_args,
+                            double_percentage_sign_marker=double_percentage_sign_marker)
 
         hashes = rs.hashes()
 

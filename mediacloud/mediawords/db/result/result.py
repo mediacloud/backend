@@ -18,13 +18,24 @@ class DatabaseResult(object):
 
     __cursor = None  # psycopg2 cursor
 
-    def __init__(self, cursor: DictCursor, query_args: tuple, print_warnings: bool = True):
+    def __init__(self,
+                 cursor: DictCursor,
+                 query_args: tuple,
+                 double_percentage_sign_marker: str,
+                 print_warnings: bool = True):
 
         # MC_REWRITE_TO_PYTHON: 'query_args' should be decoded from 'bytes' at this point
 
-        self.__execute(cursor=cursor, query_args=query_args, print_warnings=print_warnings)
+        self.__execute(cursor=cursor,
+                       query_args=query_args,
+                       double_percentage_sign_marker=double_percentage_sign_marker,
+                       print_warnings=print_warnings)
 
-    def __execute(self, cursor: DictCursor, query_args: tuple, print_warnings: bool) -> None:
+    def __execute(self,
+                  cursor: DictCursor,
+                  query_args: tuple,
+                  double_percentage_sign_marker: str,
+                  print_warnings: bool) -> None:
         """Execute statement, set up cursor to results."""
 
         # MC_REWRITE_TO_PYTHON: 'query_args' should be decoded from 'bytes' at this point
@@ -44,10 +55,13 @@ class DatabaseResult(object):
                 # to execute().
                 query_args = (query_args[0], {},)
 
-            # Duplicate '%' everywhere except for psycopg2 parameter placeholders ('%s' and '%(...)s')
             query = query_args[0]
 
+            # Duplicate '%' everywhere except for psycopg2 parameter placeholders ('%s' and '%(...)s')
             query = re.sub('%(?!(s|\(.*?\)s?))', '%%', query)
+
+            # Replace percentage signs coming from quote()d strings with double percentage signs
+            query = query.replace(double_percentage_sign_marker, '%%')
 
             query_args_list = list(query_args)
             query_args_list[0] = query

@@ -15,11 +15,13 @@ BEGIN
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use Encode;
 use File::Basename;
 use File::Slurp;
-use Data::Dumper;
-use MediaWords::Util::SQL;
+
 use MediaWords::Util::DateTime;
+use MediaWords::Util::SQL;
+use MediaWords::Util::JSON;
 
 # get path to where data file(s) should be stored
 sub get_path_to_data_files(;$)
@@ -46,7 +48,7 @@ sub get_path_to_data_files(;$)
 
 sub _get_data_file_extension()
 {
-    return '.pl';
+    return '.json';
 }
 
 # get the file path corresponding to the given basename
@@ -69,23 +71,10 @@ sub store_test_data($$;$)
 {
     my ( $basename, $data, $subdirectory ) = @_;
 
-    my $file = _get_data_file( $basename, $subdirectory );
-
-    {
-        # Make sure that results can be eval{}-ed
-        local $Data::Dumper::Purity = 1;
-
-        # Sort hash keys so that Git commit diffs will look more concise afterwards
-        local $Data::Dumper::Sortkeys = 1;
-
-        open( FILE, ">$file" ) or die "Unable to open file $file: $!";
-
-        print FILE "#<<<\n";
-        print FILE Dumper( $data );
-        print FILE "#>>>\n";
-
-        close( FILE );
-    }
+    my $file   = _get_data_file( $basename, $subdirectory );
+    my $pretty = 1;
+    my $json   = MediaWords::Util::JSON::encode_json( $data, $pretty );
+    write_file( $file, encode( 'utf8', $json ) );
 }
 
 # Write the given data to disk under the given basename; split the data
@@ -134,25 +123,11 @@ sub fetch_test_data($;$)
     my ( $basename, $subdirectory ) = @_;
 
     my $file = _get_data_file( $basename, $subdirectory );
+    my $json = decode( 'utf8', read_file( $file ) );
 
-    open( FILE, "<$file" ) or die "Unable to open file $file: $!";
+    my $data = MediaWords::Util::JSON::decode_json( $json );
 
-    my $data;
-    while ( my $line = <FILE> )
-    {
-        $data .= $line;
-    }
-
-    close( FILE );
-
-    my $VAR1;
-    eval( $data );
-    if ( $@ )
-    {
-        die( "error restoring data: $@" );
-    }
-
-    return $VAR1;
+    return $data;
 }
 
 # Fetch the given data from disk under the given basename; join the data from
