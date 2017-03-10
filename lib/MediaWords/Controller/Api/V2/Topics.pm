@@ -15,7 +15,11 @@ use namespace::autoclean;
 
 use MediaWords::TM::Mine;
 
-BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
+BEGIN
+{
+    extends 'MediaWords::Controller::Api::V2::MC_Controller_REST';
+    use MediaWords::DBI::Auth::Roles;
+}
 
 __PACKAGE__->config(
     action => {
@@ -28,10 +32,12 @@ __PACKAGE__->config(
     }
 );
 
-Readonly my $TOPICS_EDIT_FIELDS =>
-  [ qw/name solr_seed_query description max_iterations start_date end_date is_public ch_monitor_id twitter_topics_id/ ];
+Readonly::Scalar my $TOPICS_EDIT_FIELDS => [
+    qw/name solr_seed_query description max_iterations start_date end_date is_public ch_monitor_id twitter_topics_id max_stories/
+];
 
-Readonly my $JOB_STATE_FIELD_LIST => "job_states_id, ( args->>'topics_id' )::int topics_id, state, message, last_updated";
+Readonly::Scalar my $JOB_STATE_FIELD_LIST =>
+  "job_states_id, ( args->>'topics_id' )::int topics_id, state, message, last_updated";
 
 sub apibase : Chained('/') : PathPart('api/v2/topics') : CaptureArgs(1)
 {
@@ -68,7 +74,8 @@ sub _get_topics_list($$$)    # sql clause for fields to query from job_states fo
 select t.topics_id, t.name, t.pattern, t.solr_seed_query, t.solr_seed_query_run,
         t.description, t.max_iterations, t.state,
         t.message, t.is_public, t.ch_monitor_id, t.twitter_topics_id, t.start_date, t.end_date,
-        min( p.auth_users_id ) auth_users_id, min( p.user_permission ) user_permission
+        min( p.auth_users_id ) auth_users_id, min( p.user_permission ) user_permission,
+        t.job_queue, t.max_stories, t.max_stories_reached
     from topics t
         join topics_with_user_permission p using ( topics_id )
         left join snapshots snap on ( t.topics_id = snap.topics_id )
@@ -162,6 +169,57 @@ sub _set_topic_media($$$$)
     }
 }
 
+# die if the user is not an admin and the max_stories is great than the max_stories field in auth_users for the  user
+sub _validate_max_stories($$$)
+{
+    my ( $db, $max_stories, $auth_users_id ) = @_;
+
+    my $auth_user = $db->require_by_id( 'auth_users', $auth_users_id );
+
+    my $admin_roles = [ $MediaWords::DBI::Auth::Roles::ADMIN, $MediaWords::DBI::Auth::Roles::ADMIN_READONLY ];
+
+    $auth_users_id = int( $auth_users_id );
+
+    my $is_admin = $db->query( <<SQL, @{ $admin_roles } )->hash;
+select ar.role
+    from auth_roles ar
+        join auth_users_roles_map aurm using ( auth_roles_id )
+    where
+        aurm.auth_users_id = $auth_users_id and
+        ar.role in ( ?? )
+    limit 1
+SQL
+
+    # admins have no limit
+    return if ( $is_admin );
+
+    if ( $max_stories > $auth_user->{ max_topic_stories } )
+    {
+        die( "max_stories ($max_stories ) is greater than allowed for user ($auth_user->{ max_topic_stories })" );
+    }
+}
+
+# return true if topics from this user should be put into the mc queue.  jobs should be put into the mc
+# queue if the user has tm or any edit or admin roles
+sub _is_mc_queue_user($$)
+{
+    my ( $db, $auth_users_id ) = @_;
+
+    $auth_users_id = int( $auth_users_id );
+
+    my $is_mc = $db->query( <<SQL, @{ $MediaWords::DBI::Auth::Roles::TOPIC_MC_QUEUE_ROLES } )->hash;
+select ar.role
+    from auth_roles ar
+        join auth_users_roles_map aurm using ( auth_roles_id )
+    where
+        aurm.auth_users_id = $auth_users_id and
+        ar.role in ( ?? )
+    limit 1
+SQL
+
+    return $is_mc;
+}
+
 sub create : Local : ActionClass('MC_REST')
 {
 }
@@ -170,12 +228,19 @@ sub create_GET
 {
     my ( $self, $c ) = @_;
 
+    my $db = $c->dbis;
+
     $self->require_fields( $c, [ qw/name solr_seed_query description start_date end_date/ ] );
 
     my $data = $c->req->data;
 
     my $media_ids      = $data->{ media_ids }      || [];
     my $media_tags_ids = $data->{ media_tags_ids } || [];
+
+    my $auth_users_id = $c->stash->{ api_auth }->{ auth_users_id };
+
+    _validate_max_stories( $db, $data->{ max_stories }, $auth_users_id );
+    $data->{ max_stories } ||= 100_000;
 
     if ( !( scalar( @{ $media_ids } ) || scalar( @{ $media_tags_ids } ) ) )
     {
@@ -190,21 +255,19 @@ sub create_GET
     $topic->{ is_public }           = normalize_boolean_for_db( $topic->{ is_public } );
     $topic->{ solr_seed_query_run } = normalize_boolean_for_db( $topic->{ solr_seed_query_run } );
 
-    my $db = $c->dbis;
-
     my $full_solr_query = MediaWords::TM::Mine::get_full_solr_query( $db, $topic, $media_ids, $media_tags_ids );
     my $num_stories = eval { MediaWords::Solr::count_stories( $db, { q => $full_solr_query } ) };
     die( "invalid solr query: $@" ) if ( $@ );
 
     die( "number of stories from query ($num_stories) is more than the max (500,000)" ) if ( $num_stories > 500000 );
 
+    $topic->{ job_queue } = _is_mc_queue_user( $db, $auth_users_id ) ? 'mc' : 'public';
+
     $db->begin;
 
     $topic = $db->create( 'topics', $topic );
 
     _set_topic_media( $db, $topic, $media_ids, $media_tags_ids );
-
-    my $auth_users_id = $c->stash->{ api_auth }->{ auth_users_id };
 
     $db->create(
         'topic_permissions',
@@ -271,6 +334,10 @@ sub update_PUT
     $update->{ is_public }           = normalize_boolean_for_db( $update->{ is_public } );
     $update->{ solr_seed_query_run } = normalize_boolean_for_db( $update->{ solr_seed_query_run } );
 
+    my $auth_users_id = $c->stash->{ api_auth }->{ auth_users_id };
+
+    _validate_max_stories( $db, $data->{ max_stories }, $auth_users_id ) if ( defined( $data->{ max_stories } ) );
+
     $db->begin;
 
     $db->update_by_id( 'topics', $topic->{ topics_id }, $update );
@@ -278,8 +345,6 @@ sub update_PUT
     _set_topic_media( $db, $topic, $media_ids, $media_tags_ids );
 
     $db->commit;
-
-    my $auth_users_id = $c->stash->{ api_auth }->{ auth_users_id };
 
     my $topics = _get_topics_list( $db, { topics_id => $topic->{ topics_id } }, $auth_users_id );
 

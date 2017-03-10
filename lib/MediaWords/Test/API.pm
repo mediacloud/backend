@@ -24,7 +24,7 @@ sub setup_test_api_key($)
 {
     my ( $db ) = @_;
 
-    $_test_api_key ||= MediaWords::Test::DB::create_test_user( $db );
+    $_test_api_key ||= MediaWords::Test::DB::create_test_user( $db, 'api_key' );
 
     return $_test_api_key;
 }

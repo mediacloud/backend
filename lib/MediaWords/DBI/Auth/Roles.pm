@@ -36,4 +36,7 @@ Readonly our $STORIES_API => 'stories-api';
 # Access to the /search pages
 Readonly our $SEARCH => 'search';
 
+# roles that are allows to queue a topic into the 'mc' queue instead of the 'public' queue
+Readonly::Scalar our $TOPIC_MC_QUEUE_ROLES => [ $ADMIN, $ADMIN_READONLY, $MEDIA_EDIT, $STORIES_EDIT, $TM ];
+
 1;

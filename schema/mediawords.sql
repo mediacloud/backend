@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4612;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4613;
 
 BEGIN
 
@@ -1269,6 +1269,7 @@ create index solr_import_extra_stories_story on solr_import_extra_stories ( stor
 
 create index solr_imports_date on solr_imports ( import_date );
 
+create type topics_job_queue_type AS ENUM ( 'mc', 'public' );
 
 create table topics (
     topics_id        serial primary key,
@@ -1287,6 +1288,15 @@ create table topics (
 
     -- this is the id of a crimson hexagon monitor, not an internal database id
     ch_monitor_id           bigint null,
+
+    -- job queue to use for spider and snapshot jobs for this topic
+    job_queue               topics_job_queue_type not null,
+
+    -- max stories allowed in the topic
+    max_stories             int not null,
+
+    -- true if the spider halted because it hit the max_stories limit
+    max_stories_reached     boolean not null default false,
 
     -- id of a twitter topic to use to generate snapshot twitter counts
     twitter_topics_id int null references topics on delete set null
@@ -2175,8 +2185,9 @@ CREATE TABLE auth_users (
     -- attempts in order to prevent brute-force attacks
     last_unsuccessful_login_attempt     TIMESTAMP NOT NULL DEFAULT TIMESTAMP 'epoch',
 
-    created_date                        timestamp not null default now()
+    created_date                        timestamp not null default now(),
 
+    max_topic_stories                   int not null default 100000
 );
 
 create index auth_users_email on auth_users( email );

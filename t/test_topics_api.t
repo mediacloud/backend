@@ -96,7 +96,9 @@ sub create_test_data
             pattern             => '',
             description         => 'test topic',
             start_date          => '2014-04-01',
-            end_date            => '2014-06-01'
+            end_date            => '2014-06-01',
+            job_queue           => 'mc',
+            max_stories         => 100_000
         }
     );
 
@@ -325,6 +327,8 @@ sub test_topics_crud($)
     my $got_tags_ids = [ map { $_->{ tags_id } } @{ $got_topic->{ media_tags } } ];
     is_deeply( [ sort @{ $got_tags_ids } ], [ sort @{ $tags_ids } ], "$label media tag ids" );
 
+    is( $got_topic->{ job_queue }, 'mc', "$label queue for admin user" );
+
     my $update_media_ids = [ @{ $media_ids } ];
     pop( @{ $update_media_ids } );
     my $update_tags_ids = [ @{ $tags_ids } ];
@@ -393,7 +397,7 @@ sub test_topics_list($)
 
     my $match_fields = [
         qw/name pattern solr_seed_query solr_seed_query_run description max_iterations start_date end_date state
-          message/
+          message job_queue max_stories max_stories_reached/
     ];
 
     my $topic_private_a = MediaWords::Test::DB::create_test_topic( $db, "label private a" );
