@@ -233,7 +233,7 @@ sub query_encoded_json($$;$)
         $params->{ fq } = undef;
     }
 
-    $params->{ rows } = List::Util::min( $params->{ rows }, 1000000 );
+    $params->{ rows } = List::Util::min( $params->{ rows }, 10_000_000 );
 
     _uppercase_boolean_operators( $params->{ q } );
 

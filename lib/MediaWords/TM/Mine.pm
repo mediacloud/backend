@@ -1106,10 +1106,32 @@ SQL
     return 0;
 }
 
+my $_max_stories_check_count = 0;
+
+# die() with an appropriate error if topic_stories > topics.max_stories; because this check is expensive and we don't
+# care if the topic goes over by a few thousand stories, we only actually run the check randmly 1/1000 of the time
+sub die_if_max_stories_exceeded($$)
+{
+    my ( $db, $topic ) = @_;
+
+    return if ( $_max_stories_check_count++ % 1000 );
+
+    my ( $num_topic_stories ) = $db->query( <<SQL, $topic->{ topics_id } )->flat;
+select count(*) from topic_stories where topics_id = ?
+SQL
+
+    if ( $num_topic_stories > $topic->{ max_stories } )
+    {
+        die( "topic has $num_topic_stories stories, which exceeds topic max stories of $topic->{ max_stories }" );
+    }
+}
+
 # add to topic_stories table
 sub add_to_topic_stories
 {
     my ( $db, $topic, $story, $iteration, $link_mined, $valid_foreign_rss_story ) = @_;
+
+    die_if_max_stories_exceeded( $db, $topic );
 
     $db->query(
         "insert into topic_stories ( topics_id, stories_id, iteration, redirect_url, link_mined, valid_foreign_rss_story ) "
@@ -2268,8 +2290,7 @@ sub import_seed_urls
 
     my $topics_id = $topic->{ topics_id };
 
-    # take care of any seed urls with urls that we have already processed
-    # for this topic
+    # take care of any seed urls with urls that we have already processed for this topic
     $db->query( <<END, $topics_id );
 update topic_seed_urls a set stories_id = b.stories_id, processed = 't'
     from topic_seed_urls b
@@ -2717,8 +2738,11 @@ sub import_solr_seed_query
 
     return if ( $topic->{ solr_seed_query_run } );
 
-    my $max_stories          = MediaWords::Util::Config::get_config->{ mediawords }->{ max_solr_seed_query_stories };
-    my $max_returned_stories = 0.95 * $max_stories;
+    my $max_stories = $topic->{ max_stories };
+
+    # if solr maxes out on returned stories, it returns a few documents less than the rows= parameter, so we
+    # assume that we hit the solr max if we are within 5% of the ma stories
+    my $max_returned_stories = $max_stories * 0.95;
 
     my $solr_query = get_full_solr_query( $db, $topic );
 
