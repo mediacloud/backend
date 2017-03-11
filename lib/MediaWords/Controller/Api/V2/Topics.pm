@@ -363,6 +363,8 @@ sub spider_GET
 
     my $db = $c->dbis;
 
+    my $topic = $db->require_by_id( $topics_id );
+
     my $job_class = MediaWords::Job::TM::MineTopic->name;
 
     my $job_state = $db->query( <<SQL, $topics_id, $job_class )->hash;
@@ -376,9 +378,12 @@ SQL
 
     if ( !$job_state )
     {
+        # wrap this in a transaction so that we're sure the last job added is the one we just added
         $db->begin;
-        MediaWords::Job::TM::MineTopic->add_to_queue( { topics_id => $topics_id }, undef, $db );
+
+        MediaWords::TM::add_to_mine_job_queue( $db, $topic );
         $job_state = $db->query( "select $JOB_STATE_FIELD_LIST from job_states order by job_states_id desc limit 1" )->hash;
+
         $db->commit;
 
         die( "Unable to find job state from queued job" ) unless ( $job_state );

@@ -1122,7 +1122,7 @@ SQL
 
     if ( $num_topic_stories > $topic->{ max_stories } )
     {
-        die( "topic has $num_topic_stories stories, which exceeds topic max stories of $topic->{ max_stories }" );
+        LOGDIE( "topic has $num_topic_stories stories, which exceeds topic max stories of $topic->{ max_stories }" );
     }
 }
 

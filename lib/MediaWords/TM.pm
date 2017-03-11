@@ -11,6 +11,9 @@ use MediaWords::CommonLibs;
 use Getopt::Long;
 use Data::Dumper;
 
+use MediaWords::Job::TM::MineTopic;
+use MediaWords::Job::TM::MineTopicPublic;
+
 # get a list topics that match the topic option, which can either be an id
 # or a pattern that matches topic names. Die if no topics are found.
 sub require_topics_by_opt
@@ -161,6 +164,25 @@ sub set_timespans_id_param($)
     $c->req->params->{ timespans_id } = $timespan->{ timespans_id };
 
     return $timespan;
+}
+
+# add to the MineTopic or the MineTopicPublic job queue depending on the $topic->{ job_queue } value
+sub add_to_mine_job_queue($$)
+{
+    my ( $db, $topic ) = @_;
+
+    if ( $topic->{ job_queue } eq 'mc' )
+    {
+        MediaWords::Job::TM::MineTopic->add_to_queue( { topics_id => $topic->{ topics_id } }, undef, $db );
+    }
+    elsif ( $topic->{ job_queue } eq 'public' )
+    {
+        MediaWords::Job::TM::MineTopicPublic->add_to_queue( { topics_id => $topic->{ topics_id } }, undef, $db );
+    }
+    else
+    {
+        LOGDIE( "unknown job_queue type: $topic->{ job_queue }" );
+    }
 }
 
 1;
