@@ -168,7 +168,7 @@ sub set_timespans_id_param($)
 }
 
 # send an alert about significant activity on the topic to all users with at least write access to the topic
-sub send_topic_alert($$)
+sub send_topic_alert($$$)
 {
     my ( $db, $topic, $message ) = @_;
 

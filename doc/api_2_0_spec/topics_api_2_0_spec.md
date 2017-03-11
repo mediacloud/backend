@@ -615,7 +615,6 @@ Standard parameters accepted: link_id.
 | user_permission     | permission for user submitting the api request: 'read', 'write', 'admin', or 'none' |
 | queue               | which job pool the topic runs in -- 'mc' for internal media cloud jobs and 'public' for public jobs |
 | max_stories         | max number of stories allowed in the topic |
-| max_stories_reached | true if the spider halted because the max number of stories was reached |
 
 ### Example
 
@@ -645,7 +644,6 @@ Response:
             "user_permission": "admin",
             "queue": "mc",
             "max_stories": 100000,
-            "max_stories_reached": 0
         }
     ],
     "link_ids":
@@ -701,7 +699,6 @@ Response:
             "user_permission": "admin",
             "queue": "mc",
             "max_stories": 100000,
-            "max_stories_reached": 0
         }
     ]
 }

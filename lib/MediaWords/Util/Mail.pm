@@ -14,6 +14,9 @@ use MediaWords::Util::Config;
 use Email::MIME;
 use Email::Sender::Simple;
 
+# used by test_mode() below to make send() only print out messages rather than sending them
+my $_test_mode = 0;
+
 # Send email to someone; returns 1 on success, 0 on failure
 sub send($$$;$)
 {
@@ -50,7 +53,8 @@ EOF
     );
 
     my $smtp = $config->{ smtp };
-    if ( $smtp->{ test } && ( $smtp->{ test } eq 'yes' ) )
+
+    if ( $_test_mode || ( $smtp && $smtp->{ test } && ( $smtp->{ test } eq 'yes' ) ) )
     {
         TRACE( "send mail to $to_email: " . $message->body_raw );
         return 1;
@@ -64,6 +68,16 @@ EOF
     }
 
     return 1;
+}
+
+# return the value of test_mode for this module.  if an argument is specified and defined, set test_mode
+# to be the new value first.  while test_mode is true, send() will print emails using TRACE instead of sending them,
+# which the same behavior as setting smtp.test to 'yes' in mediawords.yml.
+sub test_mode(;$)
+{
+    $_test_mode = $_[ 0 ] if ( defined( $_[ 0 ] ) );
+
+    return $_test_mode;
 }
 
 1;

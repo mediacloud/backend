@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4613;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4614;
 
 BEGIN
 
@@ -1294,9 +1294,6 @@ create table topics (
 
     -- max stories allowed in the topic
     max_stories             int not null,
-
-    -- true if the spider halted because it hit the max_stories limit
-    max_stories_reached     boolean not null default false,
 
     -- id of a twitter topic to use to generate snapshot twitter counts
     twitter_topics_id int null references topics on delete set null

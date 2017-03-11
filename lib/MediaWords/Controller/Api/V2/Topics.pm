@@ -75,7 +75,7 @@ select t.topics_id, t.name, t.pattern, t.solr_seed_query, t.solr_seed_query_run,
         t.description, t.max_iterations, t.state,
         t.message, t.is_public, t.ch_monitor_id, t.twitter_topics_id, t.start_date, t.end_date,
         min( p.auth_users_id ) auth_users_id, min( p.user_permission ) user_permission,
-        t.job_queue, t.max_stories, t.max_stories_reached
+        t.job_queue, t.max_stories
     from topics t
         join topics_with_user_permission p using ( topics_id )
         left join snapshots snap on ( t.topics_id = snap.topics_id )
@@ -382,7 +382,7 @@ sub spider_GET
 
     my $db = $c->dbis;
 
-    my $topic         = $db->require_by_id( $topics_id );
+    my $topic = $db->require_by_id( 'topics', $topics_id );
     my $auth_users_id = $c->stash->{ api_auth }->{ auth_users_id };
 
     if ( my $job_state = _get_user_public_queued_job( $db, $auth_users_id ) )

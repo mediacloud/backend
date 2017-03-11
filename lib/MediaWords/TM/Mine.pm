@@ -37,6 +37,7 @@ use URI::Escape;
 
 use MediaWords::CommonLibs;
 
+use MediaWords::TM;
 use MediaWords::TM::Snapshot;
 use MediaWords::TM::GuessDate;
 use MediaWords::TM::GuessDate::Result;
@@ -3032,7 +3033,7 @@ SQL
 }
 
 # if there is a ch_monitor_id for the given topic, fetch the twitter data from crimson hexagon and twitter
-sub fetch_and_import_twitter_urls($$$)
+sub fetch_and_import_twitter_urls($$)
 {
     my ( $db, $topic ) = @_;
 

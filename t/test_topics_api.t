@@ -397,7 +397,7 @@ sub test_topics_list($)
 
     my $match_fields = [
         qw/name pattern solr_seed_query solr_seed_query_run description max_iterations start_date end_date state
-          message job_queue max_stories max_stories_reached/
+          message job_queue max_stories/
     ];
 
     my $topic_private_a = MediaWords::Test::DB::create_test_topic( $db, "label private a" );
