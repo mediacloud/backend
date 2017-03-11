@@ -12,7 +12,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::Util::Config;
 use Email::MIME;
-use Email::Sender::Simple qw(try_to_sendmail);
+use Email::Sender::Simple;
 
 # Send email to someone; returns 1 on success, 0 on failure
 sub send($$$;$)
@@ -42,21 +42,28 @@ Hello,
 
 $message_body
 
--- 
+--
 Media Cloud (www.mediacloud.org)
 
 EOF
+
     );
 
-    if ( try_to_sendmail( $message ) )
+    my $smtp = $config->{ smtp };
+    if ( $smtp->{ test } && ( $smtp->{ test } eq 'yes' ) )
     {
+        TRACE( "send mail to $to_email: " . $message->body_raw );
         return 1;
     }
-    else
+
+    eval { Email::Sender::Simple->send( $message ) };
+    if ( $@ )
     {
-        ERROR "Unable to send email to $to_email";
+        ERROR( "Unable to send email to $to_email: $@" );
         return 0;
     }
+
+    return 1;
 }
 
 1;
