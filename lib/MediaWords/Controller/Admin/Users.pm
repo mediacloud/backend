@@ -42,6 +42,8 @@ sub delete : Local
 {
     my ( $self, $c ) = @_;
 
+    my $db = $c->dbis;
+
     my $email = $c->request->param( 'email' );
     if ( !$email )
     {
@@ -51,11 +53,11 @@ sub delete : Local
         return;
     }
 
-    # Fetch readonly information about the user
-    my $userinfo = MediaWords::DBI::Auth::user_info( $c->dbis, $email );
-    if ( !$userinfo )
+    my $userinfo;
+    eval { $userinfo = MediaWords::DBI::Auth::user_info( $db, $email ); };
+    if ( $@ or ( !$userinfo ) )
     {
-        die "Unable to find user '$email' in the database.";
+        die "Unable to find user with email '$email'";
     }
 
     $c->stash->{ auth_users_id } = $userinfo->{ auth_users_id };
@@ -178,7 +180,7 @@ sub create : Local
 
     # Form has been submitted
 
-    my $user_email                        = $form->param_value( 'email' );
+    my $email                             = $form->param_value( 'email' );
     my $user_full_name                    = $form->param_value( 'full_name' );
     my $user_notes                        = $form->param_value( 'notes' );
     my $user_is_active                    = $form->param_value( 'active' );
@@ -204,7 +206,7 @@ sub create : Local
 
     # Add user
     my $add_user_error_message =
-      MediaWords::DBI::Auth::add_user_or_return_error_message( $c->dbis, $user_email, $user_full_name,
+      MediaWords::DBI::Auth::add_user_or_return_error_message( $c->dbis, $email, $user_full_name,
         $user_notes, $user_roles, $user_is_active, $user_password, $user_password_repeat,
         $user_weekly_requests_limit, $user_weekly_requested_items_limit );
     if ( $add_user_error_message )
@@ -220,7 +222,7 @@ sub create : Local
     if ( $user_will_choose_password_himself )
     {
         my $reset_password_error_message =
-          MediaWords::DBI::Auth::send_password_reset_token_or_return_error_message( $c->dbis, $user_email,
+          MediaWords::DBI::Auth::send_password_reset_token_or_return_error_message( $c->dbis, $email,
             $c->uri_for( '/login/reset' ), 1 );
         if ( $reset_password_error_message )
         {
@@ -247,14 +249,13 @@ sub create : Local
     if ( $user_will_choose_password_himself )
     {
         $status_msg =
-          "User with email address '$user_email' has been created and the password reset " .
+          "User with email address '$email' has been created and the password reset " .
           "link has been sent to the email address provided.";
     }
     else
     {
         $status_msg =
-          "User with email address '$user_email' has been created with the password provided. " .
-          "No emails have been sent.";
+          "User with email address '$email' has been created with the password provided. " . "No emails have been sent.";
     }
     $status_msg .= " You may now create another user using the form below.";
 
@@ -269,6 +270,8 @@ sub edit : Local
 {
     my ( $self, $c ) = @_;
 
+    my $db = $c->dbis;
+
     my $form = $c->create_form(
         {
             load_config_file => $c->path_to() . '/root/forms/users/edit.yml',
@@ -277,8 +280,8 @@ sub edit : Local
         }
     );
 
-    my $user_email = $c->request->param( 'email' );
-    if ( !$user_email )
+    my $email = $c->request->param( 'email' );
+    if ( !$email )
     {
         $c->stash( error_msg => "Empty email." );
         $c->stash->{ c }        = $c;
@@ -288,11 +291,17 @@ sub edit : Local
     }
 
     # Fetch information about the user and roles
-    my $userinfo = MediaWords::DBI::Auth::user_info( $c->dbis, $user_email );
-    my $roles = MediaWords::DBI::Auth::user_auth( $c->dbis, $user_email );
-    unless ( $userinfo and $roles )
+    my $userinfo;
+    eval { $userinfo = MediaWords::DBI::Auth::user_info( $db, $email ); };
+    if ( $@ or ( !$userinfo ) )
     {
-        die "Unable to find user '$user_email' in the database.";
+        die "Unable to find user with email '$email'";
+    }
+
+    my $roles = MediaWords::DBI::Auth::user_auth( $db, $email );
+    if ( !$roles )
+    {
+        die "Unable to find authentication roles for email '$email'";
     }
 
     my %user_roles = map { $_ => 1 } @{ $roles->{ roles } };
@@ -303,7 +312,7 @@ sub edit : Local
     {
 
         # Fetch list of available roles
-        my $available_roles = MediaWords::DBI::Auth::all_user_roles( $c->dbis );
+        my $available_roles = MediaWords::DBI::Auth::all_user_roles( $db );
         my @roles_options;
         for my $role ( @{ $available_roles } )
         {
@@ -331,7 +340,7 @@ sub edit : Local
 
         $form->default_values(
             {
-                email                        => $user_email,
+                email                        => $email,
                 full_name                    => $userinfo->{ full_name },
                 notes                        => $userinfo->{ notes },
                 active                       => $userinfo->{ active },
@@ -384,7 +393,7 @@ sub edit : Local
 
     # Update user
     my $update_user_error_message =
-      MediaWords::DBI::Auth::update_user_or_return_error_message( $c->dbis, $user_email, $user_full_name,
+      MediaWords::DBI::Auth::update_user_or_return_error_message( $db, $email, $user_full_name,
         $user_notes, $user_roles, $user_is_active, $user_password, $user_password_repeat,
         $user_weekly_requests_limit, $user_weekly_requested_items_limit );
     if ( $update_user_error_message )
@@ -401,7 +410,7 @@ sub edit : Local
         return;
     }
 
-    my $status_msg = "User information for user '$user_email' has been saved.";
+    my $status_msg = "User information for user '$email' has been saved.";
     if ( $user_password )
     {
         $status_msg .= " Additionaly, the user's password has been changed.";
@@ -447,14 +456,22 @@ sub tag_set_permissions_json : Local
 {
     my ( $self, $c ) = @_;
 
-    my $user_email = $c->request->param( 'email' );
+    my $db = $c->dbis;
 
-    die "missing required param user_email" unless $user_email;
+    my $email = $c->request->param( 'email' );
 
-    my $userinfo = MediaWords::DBI::Auth::user_info( $c->dbis, $user_email );
-    my $roles = MediaWords::DBI::Auth::user_auth( $c->dbis, $user_email );
+    die "missing required param email" unless $email;
 
-    my $auth_users_tag_set_permissions = $c->dbis->query(
+    my $userinfo;
+    eval { $userinfo = MediaWords::DBI::Auth::user_info( $db, $email ); };
+    if ( $@ or ( !$userinfo ) )
+    {
+        die "Unable to find user with email '$email'";
+    }
+
+    my $roles = MediaWords::DBI::Auth::user_auth( $db, $email );
+
+    my $auth_users_tag_set_permissions = $db->query(
 "SELECT autsp.*, ts.name as tag_set_name from auth_users_tag_sets_permissions autsp, tag_sets ts where auth_users_id = ? "
           . " AND ts.tag_sets_id = autsp.tag_sets_id ",
         $userinfo->{ auth_users_id }
@@ -467,14 +484,22 @@ sub available_tag_sets_json : Local
 {
     my ( $self, $c ) = @_;
 
-    my $user_email = $c->request->param( 'email' );
+    my $db = $c->dbis;
 
-    die "missing required param user_email" unless $user_email;
+    my $email = $c->request->param( 'email' );
 
-    my $userinfo = MediaWords::DBI::Auth::user_info( $c->dbis, $user_email );
-    my $roles = MediaWords::DBI::Auth::user_auth( $c->dbis, $user_email );
+    die "missing required param email" unless $email;
 
-    my $available_tag_sets = $c->dbis->query(
+    my $userinfo;
+    eval { $userinfo = MediaWords::DBI::Auth::user_info( $db, $email ); };
+    if ( $@ or ( !$userinfo ) )
+    {
+        die "Unable to find user with email '$email'";
+    }
+
+    my $roles = MediaWords::DBI::Auth::user_auth( $db, $email );
+
+    my $available_tag_sets = $db->query(
 "SELECT * from tag_sets where tag_sets_id not in ( select tag_sets_id from auth_users_tag_sets_permissions where auth_users_id = ?)  ",
         $userinfo->{ auth_users_id }
     )->hashes();
@@ -487,8 +512,10 @@ sub edit_tag_set_permissions : Local
 {
     my ( $self, $c ) = @_;
 
-    my $user_email = $c->request->param( 'email' );
-    if ( !$user_email )
+    my $db = $c->dbis;
+
+    my $email = $c->request->param( 'email' );
+    if ( !$email )
     {
         $c->stash( error_msg => "Empty email." );
         $c->stash->{ c } = $c;
@@ -500,17 +527,23 @@ sub edit_tag_set_permissions : Local
     }
 
     # Fetch information about the user and roles
-    my $userinfo = MediaWords::DBI::Auth::user_info( $c->dbis, $user_email );
-    my $roles = MediaWords::DBI::Auth::user_auth( $c->dbis, $user_email );
+    my $userinfo;
+    eval { $userinfo = MediaWords::DBI::Auth::user_info( $db, $email ); };
+    if ( $@ or ( !$userinfo ) )
+    {
+        die "Unable to find user with email '$email'";
+    }
+
+    my $roles = MediaWords::DBI::Auth::user_auth( $db, $email );
     unless ( $userinfo and $roles )
     {
-        die "Unable to find user '$user_email' in the database.";
+        die "Unable to find user '$email' in the database.";
     }
 
     my %user_roles = map { $_ => 1 } @{ $roles->{ roles } };
 
     # Fetch list of available roles
-    my $available_roles = MediaWords::DBI::Auth::all_user_roles( $c->dbis );
+    my $available_roles = MediaWords::DBI::Auth::all_user_roles( $db );
     my @roles_options;
     for my $role ( @{ $available_roles } )
     {

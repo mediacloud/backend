@@ -144,10 +144,15 @@ EOF
     return $auth_roles_id->{ auth_roles_id };
 }
 
-# Fetch a hash of basic user information (email, full name, notes); returns 0 on error
+# Fetch a hash of basic user information (email, full name, notes); die() on error
 sub user_info($$)
 {
     my ( $db, $email ) = @_;
+
+    unless ( $email )
+    {
+        LOGCONFESS "User email is not defined.";
+    }
 
     # Fetch readonly information about the user
     my $userinfo = $db->query(
@@ -173,7 +178,7 @@ EOF
     )->hash;
     unless ( ref( $userinfo ) eq ref( {} ) and $userinfo->{ auth_users_id } )
     {
-        return 0;
+        LOGCONFESS "User with email '$email' was not found.";
     }
 
     return $userinfo;
@@ -726,7 +731,8 @@ sub add_user_or_return_error_message($$$$$$$$;$$)
     }
 
     # Check if user already exists
-    my $userinfo = user_info( $db, $email );
+    my $userinfo = undef;
+    eval { $userinfo = user_info( $db, $email ); };
     if ( $userinfo )
     {
         return "User with email address '$email' already exists.";
@@ -753,8 +759,9 @@ EOF
     );
 
     # Fetch the user's ID
-    $userinfo = user_info( $db, $email );
-    if ( !$userinfo )
+    $userinfo = undef;
+    eval { $userinfo = user_info( $db, $email ); };
+    if ( $@ or ( !$userinfo ) )
     {
         $db->rollback;
         return "I've attempted to create the user but it doesn't exist.";
@@ -814,8 +821,9 @@ sub update_user_or_return_error_message($$$$$$;$$$$)
       = @_;
 
     # Check if user exists
-    my $userinfo = user_info( $db, $email );
-    if ( !$userinfo )
+    my $userinfo;
+    eval { $userinfo = user_info( $db, $email ); };
+    if ( $@ or ( !$userinfo ) )
     {
         return "User with email address '$email' does not exist.";
     }
@@ -900,8 +908,9 @@ sub delete_user_or_return_error_message($$)
     my ( $db, $email ) = @_;
 
     # Check if user exists
-    my $userinfo = MediaWords::DBI::Auth::user_info( $db, $email );
-    if ( !$userinfo )
+    my $userinfo;
+    eval { $userinfo = user_info( $db, $email ); };
+    if ( $@ or ( !$userinfo ) )
     {
         return "User with email address '$email' does not exist.";
     }
@@ -1082,8 +1091,9 @@ sub regenerate_api_token_or_return_error_message($$)
     }
 
     # Check if user exists
-    my $userinfo = MediaWords::DBI::Auth::user_info( $db, $email );
-    if ( !$userinfo )
+    my $userinfo;
+    eval { $userinfo = user_info( $db, $email ); };
+    if ( $@ or ( !$userinfo ) )
     {
         return "User with email address '$email' does not exist.";
     }

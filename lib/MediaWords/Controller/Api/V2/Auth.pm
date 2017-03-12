@@ -106,13 +106,21 @@ sub profile : Local
 {
     my ( $self, $c ) = @_;
 
-    my $user = MediaWords::DBI::Auth::user_for_api_token_catalyst( $c );
+    my $db = $c->dbis;
 
-    my $profile = MediaWords::DBI::Auth::user_info( $c->dbis, $user->{ email } );
+    my $user  = MediaWords::DBI::Auth::user_for_api_token_catalyst( $c );
+    my $email = $user->{ email };
 
-    delete( $profile->{ api_token } );
+    my $userinfo;
+    eval { $userinfo = MediaWords::DBI::Auth::user_info( $db, $email ); };
+    if ( $@ or ( !$userinfo ) )
+    {
+        die "Unable to find user with email '$email'";
+    }
 
-    $profile->{ auth_roles } = $c->dbis->query( <<SQL, $user->{ email } )->flat;
+    delete $userinfo->{ api_token };
+
+    $userinfo->{ auth_roles } = $db->query( <<SQL, $email )->flat;
 select ar.role
     from auth_roles ar
         join auth_users_roles_map aurm using ( auth_roles_id )
@@ -122,7 +130,7 @@ select ar.role
     order by auth_roles_id
 SQL
 
-    return $self->status_ok( $c, entity => $profile );
+    return $self->status_ok( $c, entity => $userinfo );
 }
 
 1;

@@ -266,10 +266,16 @@ EOF
     die "$user_modify_usage\n" unless ( $user_email );
 
     # Fetch default information about the user
-    my $db_user = MediaWords::DBI::Auth::user_info( $db, $user_email );
-    my $db_user_roles = MediaWords::DBI::Auth::user_auth( $db, $user_email );
+    my $db_user;
+    eval { $db_user = MediaWords::DBI::Auth::user_info( $db, $user_email ); };
+    if ( $@ or ( !$db_user ) )
+    {
+        ERROR "Unable to find user with email '$user_email'";
+        return 1;
+    }
 
-    unless ( $db_user and $db_user_roles )
+    my $db_user_roles = MediaWords::DBI::Auth::user_auth( $db, $user_email );
+    unless ( $db_user_roles )
     {
         ERROR "Unable to find user '$user_email' in the database.";
         return 1;
@@ -439,10 +445,16 @@ sub user_show($)
     die "$user_show_usage\n" unless ( $user_email );
 
     # Fetch information about the user
-    my $db_user = MediaWords::DBI::Auth::user_info( $db, $user_email );
-    my $db_user_roles = MediaWords::DBI::Auth::user_auth( $db, $user_email );
+    my $db_user;
+    eval { $db_user = MediaWords::DBI::Auth::user_info( $db, $user_email ); };
+    if ( $@ or ( !$db_user ) )
+    {
+        ERROR "Unable to find user with email '$user_email'";
+        return 1;
+    }
 
-    unless ( $db_user and $db_user_roles )
+    my $db_user_roles = MediaWords::DBI::Auth::user_auth( $db, $user_email );
+    unless ( $db_user_roles )
     {
         ERROR "Unable to find user '$user_email' in the database.";
         return 1;

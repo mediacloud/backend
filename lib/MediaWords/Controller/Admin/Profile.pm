@@ -17,13 +17,22 @@ sub index : Path : Args(0)
 {
     my ( $self, $c ) = @_;
 
-    # Fetch readonly information about the user
-    my $userinfo = MediaWords::DBI::Auth::user_info( $c->dbis, $c->user->username );
-    my $userauth = MediaWords::DBI::Auth::user_auth( $c->dbis, $c->user->username );
-    unless ( $userinfo and $userauth )
+    my $db    = $c->dbis;
+    my $email = $c->user->username;
+
+    my $userinfo;
+    eval { $userinfo = MediaWords::DBI::Auth::user_info( $db, $email ); };
+    if ( $@ or ( !$userinfo ) )
     {
-        die 'Unable to find currently logged in user in the database.';
+        die "Unable to find user with email '$email'";
     }
+
+    my $userauth = MediaWords::DBI::Auth::user_auth( $db, $email );
+    if ( !$userauth )
+    {
+        die "Unable to find authentication roles for email '$email'";
+    }
+
     my $roles = $userauth->{ roles };
 
     my $weekly_requests_limit        = $userinfo->{ weekly_requests_limit } + 0;
@@ -98,18 +107,19 @@ sub regenerate_api_token : Local
 {
     my ( $self, $c ) = @_;
 
-    # Fetch readonly information about the user
-    my $userinfo = MediaWords::DBI::Auth::user_info( $c->dbis, $c->user->username );
-    if ( !$userinfo )
-    {
-        die 'Unable to find currently logged in user in the database.';
-    }
-
+    my $db    = $c->dbis;
     my $email = $c->user->username;
+
+    my $userinfo;
+    eval { $userinfo = MediaWords::DBI::Auth::user_info( $db, $email ); };
+    if ( $@ or ( !$userinfo ) )
+    {
+        die "Unable to find user with email '$email'";
+    }
 
     # Delete user
     my $regenerate_api_token_error_message =
-      MediaWords::DBI::Auth::regenerate_api_token_or_return_error_message( $c->dbis, $email );
+      MediaWords::DBI::Auth::regenerate_api_token_or_return_error_message( $db, $email );
     if ( $regenerate_api_token_error_message )
     {
         $c->response->redirect( $c->uri_for( '/admin/profile', { error_msg => $regenerate_api_token_error_message } ) );

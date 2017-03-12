@@ -277,10 +277,17 @@ sub activate : Local
 
     $c->stash->{ email } = $email;
 
-    my $user_info = MediaWords::DBI::Auth::user_info( $c->dbis, $email );
+    my $user_info;
+    eval { $user_info = MediaWords::DBI::Auth::user_info( $c->dbis, $email ); };
+    if ( $@ or ( !$user_info ) )
+    {
+        ERROR "User $email does not exist.";
+        $c->stash->{ template } = 'auth/welcome.tt2';
+        return;
+    }
 
-    #Check if the user has already been activated
-    if ( $user_info && $user_info->{ active } )
+    # Check if the user has already been activated
+    if ( $user_info->{ active } )
     {
         WARN "User $email has already been activated";
         $c->stash->{ template } = 'auth/welcome.tt2';
