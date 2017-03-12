@@ -48,8 +48,7 @@
    - [api/v2/sentences/count](#apiv2sentencescount)   
       - [Query Parameters](#query-parameters)   
       - [Example](#example)   
-- [Word Counting](#word-counting)   
-   - [api/v2/wc/list](#apiv2wclist)   
+   - [api/v2/sentences/field\_count](#apiv2sentencesfield_count)   
       - [Query Parameters](#query-parameters)   
       - [Example](#example)   
 - [Tags and Tag Sets](#tags-and-tag-sets)   
@@ -779,10 +778,11 @@ URL: https://api.mediacloud.org/api/v2/sentences/count?q=sentence:africa+AND+tag
     "2014-02-26T00:00:00Z": 1218,
     "gap": "+7DAYS",
     "end": "2014-03-05T00:00:00Z",
-    "start": "2014-01-01T00:00:00Z",
-    }
+    "start": "2014-01-01T00:00:00Z"
+  }
 }
-​````
+```
+
 
 ## api/v2/sentences/field\_count
 

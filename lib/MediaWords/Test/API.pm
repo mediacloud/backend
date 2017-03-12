@@ -195,10 +195,11 @@ sub get_untested_api_urls()
 {
     my $api_urls = get_api_urls();
 
-    # these are just methods of super classess
+    # these are orphan methods that catalyst thinks are end points but are not
     my $ignore_urls = [
         '/api/v2/mc_rest_simpleobject/list', '/api/v2/mc_rest_simpleobject/single',
-        '/api/v2/storiesbase/list',          '/api/v2/storiesbase/single'
+        '/api/v2/storiesbase/list',          '/api/v2/storiesbase/single',
+        '/api/v2/mediahealth/single'
     ];
 
     map { $_api_requested_urls_lookup->{ $_ } = 1 } @{ $ignore_urls };

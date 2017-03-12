@@ -1437,6 +1437,65 @@ SQL
     rows_match( $label, $got_mhs, $expected_mhs, 'media_id', $fields );
 }
 
+sub test_sentences_count($)
+{
+    my ( $db ) = @_;
+
+    my $label = "setences/count";
+
+    my $stories     = $db->query( "select * from stories order by stories_id asc limit 10" )->hashes;
+    my $stories_ids = [ map { $_->{ stories_id } } @{ $stories } ];
+    my $ss          = $db->query( 'select * from story_sentences where stories_id in ( ?? )', @{ $stories_ids } )->hashes;
+
+    my $stories_ids_list = join( ' ', @{ $stories_ids } );
+    my $r = test_get( '/api/v2/sentences/count', { q => "stories_id:($stories_ids_list)" } );
+
+    # we import titles as sentences as well as the sentences themselves, so expect them in the count
+    my $expected_count = scalar( @{ $ss } ) + 10;
+
+    is( $r->{ count }, $expected_count, "$label count" );
+}
+
+sub test_sentences_field_count($)
+{
+    my ( $db ) = @_;
+
+    my $label = "setences/field_count";
+
+    my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "$label:$label" );
+
+    my $stories = $db->query( "select * from stories order by stories_id asc limit 10" )->hashes;
+    my $tagged_stories = [ ( @{ $stories } )[ 1 .. 5 ] ];
+    for my $story ( @{ $tagged_stories } )
+    {
+        $db->query( <<SQL, $story->{ stories_id }, $tag->{ tags_id } );
+insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )
+SQL
+    }
+
+    my $stories_ids = [ map { $_->{ stories_id } } @{ $stories } ];
+    my $stories_ids_list = join( ' ', @{ $stories_ids } );
+
+    my $tagged_stories_ids = [ map { $_->{ stories_id } } @{ $tagged_stories } ];
+
+    my $r = test_get( '/api/v2/sentences/field_count',
+        { field => 'tags_id_stories', q => "stories_id:($stories_ids_list)", tag_sets_id => $tag->{ tag_sets_id } } );
+
+    is( scalar( @{ $r } ), 1, "$label num of tags" );
+
+    my $got_tag = $r->[ 0 ];
+    is( $got_tag->{ count }, scalar( @{ $tagged_stories } ), "$label count" );
+    map { is( $got_tag->{ $_ }, $tag->{ $_ }, "$label field '$_'" ) } ( qw/tag tags_id label tag_sets_id/ );
+}
+
+sub test_sentences($)
+{
+    my ( $db ) = @_;
+
+    test_sentences_count( $db );
+    test_sentences_field_count( $db );
+}
+
 # test parts of the ai that only require reading, so we can test these all in one chunk
 sub test_api($)
 {
@@ -1471,6 +1530,8 @@ sub test_api($)
     test_mediahealth( $db );
 
     test_wc_list( $db );
+
+    test_sentences( $db );
 
     test_coverage();
 }
