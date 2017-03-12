@@ -117,15 +117,14 @@ EOF
     return $roles;
 }
 
-# Fetch a user role's ID for a role; returns 0 if no such role was found
+# Fetch a user role's ID for a role; die()s if no such role was found
 sub role_id_for_role($$)
 {
     my ( $db, $role ) = @_;
 
     if ( !$role )
     {
-        ERROR "Role is empty.";
-        return 0;
+        LOGCONFESS "Role is empty.";
     }
 
     my $auth_roles_id = $db->query(
@@ -137,9 +136,9 @@ sub role_id_for_role($$)
 EOF
         $role
     )->hash;
-    if ( !( ref( $auth_roles_id ) eq 'HASH' and $auth_roles_id->{ auth_roles_id } ) )
+    if ( !( ref( $auth_roles_id ) eq ref( {} ) and $auth_roles_id->{ auth_roles_id } ) )
     {
-        return 0;
+        LOGCONFESS "Role '$role' was not found.";
     }
 
     return $auth_roles_id->{ auth_roles_id };

@@ -178,8 +178,9 @@ EOF
     my @user_role_ids;
     foreach my $user_role ( @user_roles )
     {
-        my $user_role_id = MediaWords::DBI::Auth::role_id_for_role( $db, $user_role );
-        if ( !$user_role_id )
+        my $user_role_id;
+        eval { $user_role_id = MediaWords::DBI::Auth::role_id_for_role( $db, $user_role ); };
+        if ( $@ or ( !$user_role_id ) )
         {
             ERROR "Role '$user_role' was not found.";
             return 1;
@@ -316,8 +317,9 @@ EOF
     my @user_role_ids;
     foreach my $user_role ( @{ $modified_user{ roles } } )
     {
-        my $user_role_id = MediaWords::DBI::Auth::role_id_for_role( $db, $user_role );
-        if ( !$user_role_id )
+        my $user_role_id;
+        eval { $user_role_id = MediaWords::DBI::Auth::role_id_for_role( $db, $user_role ); };
+        if ( $@ or ( !$user_role_id ) )
         {
             ERROR "Role '$user_role' was not found.";
             return 1;
