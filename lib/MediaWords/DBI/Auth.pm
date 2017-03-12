@@ -55,7 +55,7 @@ sub password_hash_is_valid($$)
 
 # Hash a secure hash (password / password reset token) with Crypt::SaltedHash;
 # return hash on success, die() on error
-sub generate_secure_hash($)
+sub _generate_secure_hash($)
 {
     my ( $secret ) = @_;
 
@@ -484,7 +484,7 @@ sub _change_password_or_return_error_message($$$$;$)
 
     # Hash + validate the password
     my $password_new_hash;
-    eval { $password_new_hash = generate_secure_hash( $password_new ); };
+    eval { $password_new_hash = _generate_secure_hash( $password_new ); };
     if ( $@ or ( !$password_new_hash ) )
     {
         return 'Unable to hash a new password.';
@@ -729,7 +729,7 @@ sub add_user_or_return_error_message($$$$$$$$;$$)
 
     # Hash + validate the password
     my $password_hash;
-    eval { $password_hash = generate_secure_hash( $password ); };
+    eval { $password_hash = _generate_secure_hash( $password ); };
     if ( $@ or ( !$password_hash ) )
     {
         return 'Unable to hash a new password.';
@@ -1030,7 +1030,7 @@ EOF
 
     # Hash + validate the password reset token
     my $password_reset_token_hash;
-    eval { $password_reset_token_hash = generate_secure_hash( $password_reset_token ); };
+    eval { $password_reset_token_hash = _generate_secure_hash( $password_reset_token ); };
     if ( $@ or ( !$password_reset_token_hash ) )
     {
         return 'Unable to hash a password reset token.';
