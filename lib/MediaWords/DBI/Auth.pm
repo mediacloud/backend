@@ -387,8 +387,6 @@ EOF
     # end up creating a lot of processes that would sleep() and take up memory.
     # So, let's return the error page ASAP and hope that a legitimate user won't be able to reenter
     # his / her password before the $POST_UNSUCCESSFUL_LOGIN_DELAY amount of seconds pass.
-
-    return 1;
 }
 
 # Validate password reset token; returns 1 if token exists and is valid, 0 otherwise
