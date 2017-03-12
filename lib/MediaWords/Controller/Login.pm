@@ -193,7 +193,7 @@ sub reset : Local
     my $password_reset_token = $c->request->param( 'token' );
 
     # Check if the password token (a required parameter in all cases for this action) exists
-    my $token_is_valid = MediaWords::DBI::Auth::validate_password_reset_token( $c->dbis, $email, $password_reset_token );
+    my $token_is_valid = MediaWords::DBI::Auth::password_reset_token_is_valid( $c->dbis, $email, $password_reset_token );
 
     if ( !$form->submitted_and_valid() )
     {
@@ -273,7 +273,7 @@ sub activate : Local
     my $password_reset_token = $c->request->param( 'token' );
 
     # Check if the password token (a required parameter in all cases for this action) exists
-    my $token_is_valid = MediaWords::DBI::Auth::validate_password_reset_token( $c->dbis, $email, $password_reset_token );
+    my $token_is_valid = MediaWords::DBI::Auth::password_reset_token_is_valid( $c->dbis, $email, $password_reset_token );
 
     $c->stash->{ email } = $email;
 

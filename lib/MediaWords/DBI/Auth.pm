@@ -390,7 +390,7 @@ SQL
 }
 
 # Validate password reset token; returns 1 if token exists and is valid, 0 otherwise
-sub validate_password_reset_token($$$)
+sub password_reset_token_is_valid($$$)
 {
     my ( $db, $email, $password_reset_token ) = @_;
 
@@ -593,7 +593,7 @@ sub change_password_via_token_or_return_error_message($$$$$)
     }
 
     # Validate the token once more (was pre-validated in controller)
-    if ( !validate_password_reset_token( $db, $email, $password_reset_token ) )
+    if ( !password_reset_token_is_valid( $db, $email, $password_reset_token ) )
     {
         return 'Password reset token is invalid.';
     }
@@ -622,7 +622,7 @@ sub activate_user_via_token_or_return_error_message($$$)
     }
 
     # Validate the token once more (was pre-validated in controller)
-    if ( !validate_password_reset_token( $db, $email, $password_reset_token ) )
+    if ( !password_reset_token_is_valid( $db, $email, $password_reset_token ) )
     {
         return 'Password reset token is invalid.';
     }
