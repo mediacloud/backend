@@ -149,8 +149,6 @@ sub user_info($$)
 {
     my ( $db, $email ) = @_;
 
-    LOGCONFESS( 'db not defined' ) unless ( $db );
-
     # Fetch readonly information about the user
     my $userinfo = $db->query(
         <<"EOF",
