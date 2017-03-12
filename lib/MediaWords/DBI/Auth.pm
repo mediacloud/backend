@@ -54,7 +54,7 @@ sub password_hash_is_valid($$)
 }
 
 # Hash a secure hash (password / password reset token) with Crypt::SaltedHash;
-# return hash on success, empty string on error
+# return hash on success, die() on error
 sub generate_secure_hash($)
 {
     my ( $secret ) = @_;
@@ -63,32 +63,29 @@ sub generate_secure_hash($)
     my $config = MediaWords::Util::Config::get_config;
 
     my $salt_len = $config->{ 'Plugin::Authentication' }->{ 'users' }->{ 'credential' }->{ 'password_salt_len' };
-    if ( !$salt_len )
+    unless ( $salt_len )
     {
-        WARN "Salt length is 0";
-        $salt_len = 0;
+        LOGCONFESS "Salt length is 0";
     }
 
     my $hash_type = $config->{ 'Plugin::Authentication' }->{ 'users' }->{ 'credential' }->{ 'password_hash_type' };
-    if ( !$hash_type )
+    unless ( $hash_type )
     {
-        ERROR "Unable to determine the password hashing algorithm";
-        return '';
+        LOGCONFESS "Unable to determine the password hashing algorithm";
     }
 
     # Hash the password
     my $csh = Crypt::SaltedHash->new( algorithm => $hash_type, salt_len => $salt_len );
     $csh->add( $secret );
     my $secret_hash = $csh->generate;
-    if ( !$secret_hash )
+    unless ( $secret_hash )
     {
-        die "Unable to hash a secret.";
-        return '';
+        LOGCONFESS "Unable to hash a secret.";
     }
-    if ( !password_hash_is_valid( $secret_hash, $secret ) )
+
+    unless ( password_hash_is_valid( $secret_hash, $secret ) )
     {
-        ERROR "Secret hash has been generated, but it does not validate.";
-        return '';
+        LOGCONFESS "Secret hash has been generated, but it does not validate.";
     }
 
     return $secret_hash;
@@ -486,8 +483,9 @@ sub _change_password_or_return_error_message($$$$;$)
     }
 
     # Hash + validate the password
-    my $password_new_hash = generate_secure_hash( $password_new );
-    if ( !$password_new_hash )
+    my $password_new_hash;
+    eval { $password_new_hash = generate_secure_hash( $password_new ); };
+    if ( $@ or ( !$password_new_hash ) )
     {
         return 'Unable to hash a new password.';
     }
@@ -730,8 +728,9 @@ sub add_user_or_return_error_message($$$$$$$$;$$)
     }
 
     # Hash + validate the password
-    my $password_hash = generate_secure_hash( $password );
-    if ( !$password_hash )
+    my $password_hash;
+    eval { $password_hash = generate_secure_hash( $password ); };
+    if ( $@ or ( !$password_hash ) )
     {
         return 'Unable to hash a new password.';
     }
@@ -1030,8 +1029,9 @@ EOF
     }
 
     # Hash + validate the password reset token
-    my $password_reset_token_hash = generate_secure_hash( $password_reset_token );
-    if ( !$password_reset_token_hash )
+    my $password_reset_token_hash;
+    eval { $password_reset_token_hash = generate_secure_hash( $password_reset_token ); };
+    if ( $@ or ( !$password_reset_token_hash ) )
     {
         return 'Unable to hash a password reset token.';
     }
