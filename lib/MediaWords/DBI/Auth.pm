@@ -205,7 +205,7 @@ EOF
         $email
     )->hash;
 
-    if ( ref( $user ) eq 'HASH' and $user->{ auth_users_id } )
+    if ( ref( $user ) eq ref( {} ) and $user->{ auth_users_id } )
     {
         return 1;
     }
@@ -326,7 +326,7 @@ EOF
         $ip_address
     )->hash;
 
-    if ( !( ref( $user ) eq 'HASH' and $user->{ auth_users_id } ) )
+    if ( !( ref( $user ) eq ref( {} ) and $user->{ auth_users_id } ) )
     {
         return 0;
     }
@@ -412,7 +412,7 @@ sub validate_password_reset_token($$$)
 EOF
         $email
     )->hash;
-    if ( !( ref( $password_reset_token_hash ) eq 'HASH' and $password_reset_token_hash->{ auth_users_id } ) )
+    if ( !( ref( $password_reset_token_hash ) eq ref( {} ) and $password_reset_token_hash->{ auth_users_id } ) )
     {
         ERROR 'Unable to find user ' . $email . ' in the database.';
         return 0;
@@ -566,7 +566,7 @@ EOF
         $email
     )->hash;
 
-    if ( !( ref( $db_password_old ) eq 'HASH' and $db_password_old->{ auth_users_id } ) )
+    if ( !( ref( $db_password_old ) eq ref( {} ) and $db_password_old->{ auth_users_id } ) )
     {
         return 'Unable to find the user in the database.';
     }
@@ -689,7 +689,7 @@ EOF
         $unique_users->{ $auth_users_id }->{ 'notes' }         = $user->{ notes };
         $unique_users->{ $auth_users_id }->{ 'active' }        = $user->{ active };
 
-        if ( !ref( $unique_users->{ $auth_users_id }->{ 'roles' } ) eq 'HASH' )
+        if ( !ref( $unique_users->{ $auth_users_id }->{ 'roles' } ) eq ref( {} ) )
         {
             $unique_users->{ $auth_users_id }->{ 'roles' } = {};
         }
@@ -1027,7 +1027,7 @@ EOF
         $email
     )->hash;
 
-    if ( !( ref( $user_exists ) eq 'HASH' and $user_exists->{ auth_users_id } ) )
+    if ( !( ref( $user_exists ) eq ref( {} ) and $user_exists->{ auth_users_id } ) )
     {
 
         # User was not found, so set the email address to an empty string, but don't
