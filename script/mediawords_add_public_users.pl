@@ -20,6 +20,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::DB;
 use MediaWords::DBI::Auth;
+use MediaWords::DBI::Auth::Limits;
 use MediaWords::Util::CSV;
 use MediaWords::Util::Text;
 
@@ -45,10 +46,10 @@ sub create_user
     }
 
     my $default_roles_ids = $db->query( "select auth_roles_id from auth_roles where role in ( 'search' ) " )->flat;
-    my $default_weekly_requests_limit          = MediaWords::DBI::Auth::default_weekly_requests_limit( $db ),
-      my $default_weekly_requested_items_limit = MediaWords::DBI::Auth::default_weekly_requested_items_limit( $db ),
+    my $default_weekly_requests_limit        = MediaWords::DBI::Auth::Limits::default_weekly_requests_limit( $db );
+    my $default_weekly_requested_items_limit = MediaWords::DBI::Auth::Limits::default_weekly_requested_items_limit( $db );
 
-      my $user_email = $email;
+    my $user_email                        = $email;
     my $user_full_name                    = $full_name;
     my $user_notes                        = $notes;
     my $user_is_active                    = 1;

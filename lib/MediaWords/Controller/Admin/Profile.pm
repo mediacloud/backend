@@ -8,6 +8,7 @@ use namespace::autoclean;
 
 use MediaWords::Util::Config;
 use MediaWords::DBI::Auth;
+use MediaWords::DBI::Auth::Limits;
 
 use List::MoreUtils qw/ any /;
 
@@ -40,7 +41,7 @@ sub index : Path : Args(0)
     my $weekly_requested_items_limit = $userinfo->{ weekly_requested_items_limit } + 0;
 
     # Admin users are effectively unlimited
-    my $roles_exempt_from_user_limits = MediaWords::DBI::Auth::roles_exempt_from_user_limits();
+    my $roles_exempt_from_user_limits = MediaWords::DBI::Auth::Limits::roles_exempt_from_user_limits();
     foreach my $exempt_role ( @{ $roles_exempt_from_user_limits } )
     {
         if ( any { $_ eq $exempt_role } @{ $roles } )

@@ -17,6 +17,8 @@ use namespace::autoclean;
 use List::MoreUtils qw/ any /;
 use HTTP::Status qw(:constants);
 
+use MediaWords::DBI::Auth::Limits;
+
 around execute => sub {
 
     my $orig = shift;
@@ -33,7 +35,7 @@ around execute => sub {
         }
 
         # Admin users are effectively unlimited
-        my $roles_exempt_from_user_limits   = MediaWords::DBI::Auth::roles_exempt_from_user_limits();
+        my $roles_exempt_from_user_limits   = MediaWords::DBI::Auth::Limits::roles_exempt_from_user_limits();
         my $user_is_exempt_from_user_limits = 0;
 
         foreach my $exempt_role ( @{ $roles_exempt_from_user_limits } )

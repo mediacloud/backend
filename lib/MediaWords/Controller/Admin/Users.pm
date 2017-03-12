@@ -9,6 +9,7 @@ use MediaWords::CommonLibs;
 use parent 'Catalyst::Controller';
 
 use MediaWords::DBI::Auth;
+use MediaWords::DBI::Auth::Limits;
 use MediaWords::Util::Config;
 use MediaWords::Util::JSON;
 use MediaWords::Util::Text;
@@ -159,8 +160,8 @@ sub create : Local
 
     $form->default_values(
         {
-            weekly_requests_limit        => MediaWords::DBI::Auth::default_weekly_requests_limit( $c->dbis ),
-            weekly_requested_items_limit => MediaWords::DBI::Auth::default_weekly_requested_items_limit( $c->dbis ),
+            weekly_requests_limit        => MediaWords::DBI::Auth::Limits::default_weekly_requests_limit( $c->dbis ),
+            weekly_requested_items_limit => MediaWords::DBI::Auth::Limits::default_weekly_requested_items_limit( $c->dbis ),
             roles                        => $default_roles_ids,
         }
     );
