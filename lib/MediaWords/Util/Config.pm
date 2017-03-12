@@ -4,7 +4,8 @@ use strict;
 use warnings;
 
 use Modern::Perl "2015";
-use MediaWords::CommonLibs;
+
+# Deliberately don't include MediaWords::CommonLibs as it includes this package itself
 
 use MediaWords::Util::Python;
 
