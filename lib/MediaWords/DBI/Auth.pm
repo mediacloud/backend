@@ -361,8 +361,6 @@ sub post_successful_login($$)
 EOF
         $email
     );
-
-    return 1;
 }
 
 # Post-unsuccessful login database tasks
