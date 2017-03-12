@@ -430,7 +430,7 @@ SQL
 }
 
 # Check if password fits the requirements; returns empty string on valid password, error message on invalid password
-sub validate_password_requirements_or_return_error_message($$$)
+sub _validate_password_requirements_or_return_error_message($$$)
 {
     my ( $email, $password, $password_repeat ) = @_;
 
@@ -451,7 +451,7 @@ sub validate_password_requirements_or_return_error_message($$$)
 
     if ( length( $password ) < 8 or length( $password ) > 120 )
     {
-        return 'Password must be 8 to 120 characters in length.';
+        return 'Password must be between 8 and 120 characters length.';
     }
 
     if ( $password eq $email )
@@ -486,7 +486,7 @@ sub _change_password_or_return_error_message($$$$;$)
     my ( $db, $email, $password_new, $password_new_repeat, $do_not_inform_via_email ) = @_;
 
     my $password_validation_message =
-      validate_password_requirements_or_return_error_message( $email, $password_new, $password_new_repeat );
+      _validate_password_requirements_or_return_error_message( $email, $password_new, $password_new_repeat );
     if ( $password_validation_message )
     {
         return $password_validation_message;
@@ -718,7 +718,7 @@ sub add_user_or_return_error_message($$$$$$$$;$$)
       ( defined $weekly_requested_items_limit ? $weekly_requested_items_limit : 'default' );
 
     my $password_validation_message =
-      validate_password_requirements_or_return_error_message( $email, $password, $password_repeat );
+      _validate_password_requirements_or_return_error_message( $email, $password, $password_repeat );
     if ( $password_validation_message )
     {
         return $password_validation_message;
