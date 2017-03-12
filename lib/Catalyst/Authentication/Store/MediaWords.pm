@@ -32,39 +32,44 @@ sub find_user
 {
     my ( $self, $userinfo, $c ) = @_;
 
-    my $username = $userinfo->{ 'username' } || '';
+    my $db = $c->dbis;
+    my $email = $userinfo->{ 'username' } || '';
 
     # Check if user has tried to log in unsuccessfully before and now is trying
     # again too fast
-    if ( MediaWords::DBI::Auth::user_is_trying_to_login_too_soon( $c->dbis, $username ) )
+    if ( MediaWords::DBI::Auth::user_is_trying_to_login_too_soon( $db, $email ) )
     {
-        WARN "User '$username' is trying to log in too soon after the last unsuccessful attempt.";
+        WARN "User '$email' is trying to log in too soon after the last unsuccessful attempt.";
         return 0;
     }
 
     # Check if user exists and is active; if so, fetch user info,
     # password hash and a list of roles
-    my $user = MediaWords::DBI::Auth::user_auth( $c->dbis, $username );
-    if ( $user and $user->{ active } )
+    my $userauth;
+    eval { $userauth = MediaWords::DBI::Auth::user_auth( $db, $email ); };
+    if ( $@ or ( !$userauth ) )
     {
-        return Catalyst::Authentication::User::Hash->new(
-            'id'       => $user->{ auth_users_id },
-            'username' => $user->{ email },
-            'password' => $user->{ password_hash },
-
-            # List of roles get hashed into the user object and are refetched from the
-            # database each and every time the user tries to access a page (via the
-            # from_session() subroutine). This is done because a list of roles might
-            # change while the user is still logged in.
-            'roles' => $user->{ roles }
-        );
-    }
-    else
-    {
-        WARN "User '$username' not found or inactive";
+        WARN "User '$email' was not found.";
         return 0;
     }
 
+    unless ( $userauth->{ active } )
+    {
+        WARN "User '$email' is not active.";
+        return 0;
+    }
+
+    return Catalyst::Authentication::User::Hash->new(
+        'id'       => $userauth->{ auth_users_id },
+        'username' => $userauth->{ email },
+        'password' => $userauth->{ password_hash },
+
+        # List of roles get hashed into the user object and are refetched from the
+        # database each and every time the user tries to access a page (via the
+        # from_session() subroutine). This is done because a list of roles might
+        # change while the user is still logged in.
+        'roles' => $userauth->{ roles }
+    );
 }
 
 # does any restoration required when obtaining a user from the session

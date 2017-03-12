@@ -27,8 +27,9 @@ sub index : Path : Args(0)
         die "Unable to find user with email '$email'";
     }
 
-    my $userauth = MediaWords::DBI::Auth::user_auth( $db, $email );
-    if ( !$userauth )
+    my $userauth;
+    eval { $userauth = MediaWords::DBI::Auth::user_auth( $db, $email ); };
+    if ( $@ or ( !$userauth ) )
     {
         die "Unable to find authentication roles for email '$email'";
     }

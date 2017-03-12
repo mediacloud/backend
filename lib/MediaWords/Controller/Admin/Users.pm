@@ -298,13 +298,14 @@ sub edit : Local
         die "Unable to find user with email '$email'";
     }
 
-    my $roles = MediaWords::DBI::Auth::user_auth( $db, $email );
-    if ( !$roles )
+    my $userauth;
+    eval { $userauth = MediaWords::DBI::Auth::user_auth( $db, $email ); };
+    if ( $@ or ( !$userauth ) )
     {
         die "Unable to find authentication roles for email '$email'";
     }
 
-    my %user_roles = map { $_ => 1 } @{ $roles->{ roles } };
+    my %user_roles = map { $_ => 1 } @{ $userauth->{ roles } };
 
     $form->process( $c->request );
 
@@ -469,7 +470,12 @@ sub tag_set_permissions_json : Local
         die "Unable to find user with email '$email'";
     }
 
-    my $roles = MediaWords::DBI::Auth::user_auth( $db, $email );
+    my $userauth;
+    eval { $userauth = MediaWords::DBI::Auth::user_auth( $db, $email ); };
+    if ( $@ or ( !$userauth ) )
+    {
+        die "Unable to find authentication roles for email '$email'";
+    }
 
     my $auth_users_tag_set_permissions = $db->query(
 "SELECT autsp.*, ts.name as tag_set_name from auth_users_tag_sets_permissions autsp, tag_sets ts where auth_users_id = ? "
@@ -497,7 +503,12 @@ sub available_tag_sets_json : Local
         die "Unable to find user with email '$email'";
     }
 
-    my $roles = MediaWords::DBI::Auth::user_auth( $db, $email );
+    my $userauth;
+    eval { $userauth = MediaWords::DBI::Auth::user_auth( $db, $email ); };
+    if ( $@ or ( !$userauth ) )
+    {
+        die "Unable to find authentication roles for email '$email'";
+    }
 
     my $available_tag_sets = $db->query(
 "SELECT * from tag_sets where tag_sets_id not in ( select tag_sets_id from auth_users_tag_sets_permissions where auth_users_id = ?)  ",
@@ -534,13 +545,14 @@ sub edit_tag_set_permissions : Local
         die "Unable to find user with email '$email'";
     }
 
-    my $roles = MediaWords::DBI::Auth::user_auth( $db, $email );
-    unless ( $userinfo and $roles )
+    my $userauth;
+    eval { $userauth = MediaWords::DBI::Auth::user_auth( $db, $email ); };
+    if ( $@ or ( !$userauth ) )
     {
-        die "Unable to find user '$email' in the database.";
+        die "Unable to find authentication roles for email '$email'";
     }
 
-    my %user_roles = map { $_ => 1 } @{ $roles->{ roles } };
+    my %user_roles = map { $_ => 1 } @{ $userauth->{ roles } };
 
     # Fetch list of available roles
     my $available_roles = MediaWords::DBI::Auth::all_user_roles( $db );

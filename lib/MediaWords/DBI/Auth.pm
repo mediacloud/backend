@@ -223,6 +223,11 @@ sub user_auth($$)
 {
     my ( $db, $email ) = @_;
 
+    unless ( $email )
+    {
+        LOGCONFESS "User email is not defined.";
+    }
+
     # Check if user exists; if so, fetch user info, password hash and a list of roles.
     my $user = $db->query(
         <<"EOF",
@@ -249,7 +254,7 @@ EOF
 
     unless ( ref( $user ) eq ref( {} ) and $user->{ auth_users_id } )
     {
-        return 0;
+        LOGCONFESS "User with email '$email' was not found.";
     }
 
     # Make an array out of list of roles

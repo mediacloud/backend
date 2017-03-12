@@ -274,10 +274,11 @@ EOF
         return 1;
     }
 
-    my $db_user_roles = MediaWords::DBI::Auth::user_auth( $db, $user_email );
-    unless ( $db_user_roles )
+    my $db_user_roles;
+    eval { $db_user_roles = MediaWords::DBI::Auth::user_auth( $db, $user_email ); };
+    if ( $@ or ( !$db_user_roles ) )
     {
-        ERROR "Unable to find user '$user_email' in the database.";
+        ERROR "Unable to find authentication roles for email '$user_email'";
         return 1;
     }
 
@@ -453,10 +454,11 @@ sub user_show($)
         return 1;
     }
 
-    my $db_user_roles = MediaWords::DBI::Auth::user_auth( $db, $user_email );
-    unless ( $db_user_roles )
+    my $db_user_roles;
+    eval { $db_user_roles = MediaWords::DBI::Auth::user_auth( $db, $user_email ); };
+    if ( $@ or ( !$db_user_roles ) )
     {
-        ERROR "Unable to find user '$user_email' in the database.";
+        ERROR "Unable to find authentication roles for email '$user_email'";
         return 1;
     }
 

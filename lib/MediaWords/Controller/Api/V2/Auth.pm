@@ -29,21 +29,30 @@ sub single : Local : ActionClass('MC_REST')
 {
 }
 
-# try to login with the given username and password.  return the username if login is successful.
+# try to login with the given email and password.  return the email if login is successful.
 sub _login
 {
-    my ( $db, $username, $password ) = @_;
+    my ( $db, $email, $password ) = @_;
 
-    return 0 unless ( $username && $password );
+    return 0 unless ( $email && $password );
 
-    my $user = MediaWords::DBI::Auth::user_auth( $db, $username );
+    my $userauth;
+    eval { $userauth = MediaWords::DBI::Auth::user_auth( $db, $email ); };
+    if ( $@ or ( !$userauth ) )
+    {
+        WARN "Unable to find authentication roles for email '$email'";
+        return 0;
+    }
 
-    return 0 unless ( $user && $user->{ active } );
+    if ( $userauth->{ active } )
+    {
+        WARN "User with email '$email' is not active.";
+        return 0;
+    }
 
-    return 0 unless ( MediaWords::DBI::Auth::password_hash_is_valid( $user->{ password_hash }, $password ) );
+    return 0 unless ( MediaWords::DBI::Auth::password_hash_is_valid( $userauth->{ password_hash }, $password ) );
 
-    return $user;
-
+    return $userauth;
 }
 
 # get an ip token for the current user and ip request
@@ -74,9 +83,9 @@ END
 # login and get an ip token for the logged in user.  return 0 on error or failed login.
 sub _login_and_get_ip_token_for_user
 {
-    my ( $c, $username, $password ) = @_;
+    my ( $c, $email, $password ) = @_;
 
-    my $user = _login( $c->dbis, $username, $password );
+    my $user = _login( $c->dbis, $email, $password );
 
     return 0 unless ( $user );
 
@@ -87,10 +96,10 @@ sub single_GET : PathPrefix( '/api' )
 {
     my ( $self, $c ) = @_;
 
-    my $username = $c->req->params->{ username };
+    my $email    = $c->req->params->{ username };
     my $password = $c->req->params->{ password };
 
-    my $token = _login_and_get_ip_token_for_user( $c, $username, $password );
+    my $token = _login_and_get_ip_token_for_user( $c, $email, $password );
 
     if ( !$token )
     {
