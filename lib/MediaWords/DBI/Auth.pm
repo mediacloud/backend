@@ -105,13 +105,13 @@ sub all_user_roles($)
     my ( $db ) = @_;
 
     my $roles = $db->query(
-        <<"EOF"
+        <<"SQL"
         SELECT auth_roles_id,
                role,
                description
         FROM auth_roles
         ORDER BY auth_roles_id
-EOF
+SQL
     )->hashes;
 
     return $roles;
@@ -128,12 +128,12 @@ sub role_id_for_role($$)
     }
 
     my $auth_roles_id = $db->query(
-        <<"EOF",
+        <<"SQL",
         SELECT auth_roles_id
         FROM auth_roles
         WHERE role = ?
         LIMIT 1
-EOF
+SQL
         $role
     )->hash;
     if ( !( ref( $auth_roles_id ) eq ref( {} ) and $auth_roles_id->{ auth_roles_id } ) )
@@ -156,7 +156,7 @@ sub user_info($$)
 
     # Fetch readonly information about the user
     my $userinfo = $db->query(
-        <<"EOF",
+        <<"SQL",
         SELECT auth_users.auth_users_id,
                auth_users.email,
                full_name,
@@ -173,7 +173,7 @@ sub user_info($$)
             auth_user_limits_weekly_usage( \$1 )
         WHERE auth_users.email = \$1
         LIMIT 1
-EOF
+SQL
         $email
     )->hash;
     unless ( ref( $userinfo ) eq ref( {} ) and $userinfo->{ auth_users_id } )
@@ -193,7 +193,7 @@ sub user_is_trying_to_login_too_soon($$)
     my $interval = "$POST_UNSUCCESSFUL_LOGIN_DELAY seconds";
 
     my $user = $db->query(
-        <<"EOF",
+        <<"SQL",
         SELECT auth_users_id,
                email
         FROM auth_users
@@ -201,7 +201,7 @@ sub user_is_trying_to_login_too_soon($$)
               AND last_unsuccessful_login_attempt >= LOCALTIMESTAMP - INTERVAL '$interval'
         ORDER BY auth_users_id
         LIMIT 1
-EOF
+SQL
         $email
     )->hash;
 
@@ -230,7 +230,7 @@ sub user_auth($$)
 
     # Check if user exists; if so, fetch user info, password hash and a list of roles.
     my $user = $db->query(
-        <<"EOF",
+        <<"SQL",
         SELECT auth_users.auth_users_id,
                auth_users.email,
                auth_users.password_hash,
@@ -248,7 +248,7 @@ sub user_auth($$)
                  auth_users.active
         ORDER BY auth_users.auth_users_id
         LIMIT 1
-EOF
+SQL
         $email
     )->hash;
 
@@ -300,7 +300,7 @@ sub user_for_api_token($$)
     my $ip_address = get_request_ip_address( $c );
 
     my $user = $db->query(
-        <<"EOF",
+        <<"SQL",
         SELECT auth_users.auth_users_id,
                auth_users.email,
                ARRAY_TO_STRING(ARRAY_AGG(role), ' ') AS roles
@@ -321,7 +321,7 @@ sub user_for_api_token($$)
                  auth_users.email
         ORDER BY auth_users.auth_users_id
         LIMIT 1
-EOF
+SQL
         $api_token,
         $ip_address
     )->hash;
@@ -354,11 +354,11 @@ sub post_successful_login($$)
 
     # Reset the password reset token (if any)
     $db->query(
-        <<"EOF",
+        <<"SQL",
         UPDATE auth_users
         SET password_reset_token_hash = NULL
         WHERE email = ?
-EOF
+SQL
         $email
     );
 }
@@ -373,11 +373,11 @@ sub post_unsuccessful_login($$)
     # Set the unsuccessful login timestamp
     # (TIMESTAMP 'now' returns "current transaction's start time", so using LOCALTIMESTAMP instead)
     $db->query(
-        <<"EOF",
+        <<"SQL",
         UPDATE auth_users
         SET last_unsuccessful_login_attempt = LOCALTIMESTAMP
         WHERE email = ?
-EOF
+SQL
         $email
     );
 
@@ -402,14 +402,14 @@ sub validate_password_reset_token($$$)
 
     # Fetch readonly information about the user
     my $password_reset_token_hash = $db->query(
-        <<"EOF",
+        <<"SQL",
         SELECT auth_users_id,
                email,
                password_reset_token_hash
         FROM auth_users
         WHERE email = ?
         LIMIT 1
-EOF
+SQL
         $email
     )->hash;
     if ( !( ref( $password_reset_token_hash ) eq ref( {} ) and $password_reset_token_hash->{ auth_users_id } ) )
@@ -470,11 +470,11 @@ sub _activate_user_or_return_error_message($$)
 
     # Set the password hash
     $db->query(
-        <<"EOF",
+        <<"SQL",
         UPDATE auth_users
         SET active = TRUE
         WHERE email = ?
-EOF
+SQL
         $email
     );
 
@@ -503,11 +503,11 @@ sub _change_password_or_return_error_message($$$$;$)
 
     # Set the password hash
     $db->query(
-        <<"EOF",
+        <<"SQL",
         UPDATE auth_users
         SET password_hash = ?, active = true
         WHERE email = ?
-EOF
+SQL
         $password_new_hash, $email
     );
 
@@ -555,14 +555,14 @@ sub change_password_via_profile_or_return_error_message($$$$$)
     # the hash from the database again because that hash might be outdated (e.g. if the
     # password has been changed already))
     my $db_password_old = $db->query(
-        <<"EOF",
+        <<"SQL",
         SELECT auth_users_id,
                email,
                password_hash
         FROM auth_users
         WHERE email = ?
         LIMIT 1
-EOF
+SQL
         $email
     )->hash;
 
@@ -648,7 +648,7 @@ sub all_users($)
     # List a full list of roles near each user because (presumably) one can then find out
     # whether or not a particular user has a specific role faster.
     my $users = $db->query(
-        <<"EOF"
+        <<"SQL"
         SELECT
             auth_users.auth_users_id,
             auth_users.email,
@@ -674,7 +674,7 @@ sub all_users($)
              (SELECT role FROM auth_roles ORDER BY auth_roles_id) AS all_user_roles
 
         ORDER BY auth_users.auth_users_id
-EOF
+SQL
     )->hashes;
 
     my $unique_users = {};
@@ -752,10 +752,10 @@ sub add_user_or_return_error_message($$$$$$$$;$$)
 
     # Create the user
     $db->query(
-        <<"EOF",
+        <<"SQL",
         INSERT INTO auth_users (email, password_hash, full_name, notes, active )
         VALUES (?, ?, ?, ?, ? )
-EOF
+SQL
         $email, $password_hash, $full_name, $notes, normalize_boolean_for_db( $is_active )
     );
 
@@ -785,11 +785,11 @@ SQL
     if ( defined $weekly_requests_limit )
     {
         $db->query(
-            <<EOF,
+            <<SQL,
             UPDATE auth_user_limits
             SET weekly_requests_limit = ?
             WHERE auth_users_id = ?
-EOF
+SQL
             $weekly_requests_limit, $auth_users_id
         );
     }
@@ -797,11 +797,11 @@ EOF
     if ( defined $weekly_requested_items_limit )
     {
         $db->query(
-            <<EOF,
+            <<SQL,
             UPDATE auth_user_limits
             SET weekly_requested_items_limit = ?
             WHERE auth_users_id = ?
-EOF
+SQL
             $weekly_requested_items_limit, $auth_users_id
         );
     }
@@ -834,13 +834,13 @@ sub update_user_or_return_error_message($$$$$$;$$$$)
 
     # Update the user
     $db->query(
-        <<"EOF",
+        <<"SQL",
         UPDATE auth_users
         SET full_name = ?,
             notes = ?,
             active = ?
         WHERE email = ?
-EOF
+SQL
         $full_name, $notes, normalize_boolean_for_db( $is_active ), $email
     );
 
@@ -858,11 +858,11 @@ EOF
     if ( defined $weekly_requests_limit )
     {
         $db->query(
-            <<EOF,
+            <<SQL,
             UPDATE auth_user_limits
             SET weekly_requests_limit = ?
             WHERE auth_users_id = ?
-EOF
+SQL
             $weekly_requests_limit, $userinfo->{ auth_users_id }
         );
     }
@@ -870,21 +870,21 @@ EOF
     if ( defined $weekly_requested_items_limit )
     {
         $db->query(
-            <<EOF,
+            <<SQL,
             UPDATE auth_user_limits
             SET weekly_requested_items_limit = ?
             WHERE auth_users_id = ?
-EOF
+SQL
             $weekly_requested_items_limit, $userinfo->{ auth_users_id }
         );
     }
 
     # Update roles
     $db->query(
-        <<"EOF",
+        <<SQL,
         DELETE FROM auth_users_roles_map
         WHERE auth_users_id = ?
-EOF
+SQL
         $userinfo->{ auth_users_id }
     );
     for my $auth_roles_id ( @{ $roles } )
@@ -918,10 +918,10 @@ sub delete_user_or_return_error_message($$)
 
     # Delete the user (PostgreSQL's relation will take care of 'auth_users_roles_map')
     $db->query(
-        <<"EOF",
+        <<SQL,
         DELETE FROM auth_users
         WHERE email = ?
-EOF
+SQL
         $email
     );
 
@@ -1017,13 +1017,13 @@ sub send_password_reset_token_or_return_error_message($$$;$)
     # (Possible improvement: make the script work for the exact same amount of
     # time in both cases to avoid timing attacks)
     my $user_exists = $db->query(
-        <<"EOF",
+        <<"SQL",
         SELECT auth_users_id,
                email
         FROM auth_users
         WHERE email = ?
         LIMIT 1
-EOF
+SQL
         $email
     )->hash;
 
@@ -1054,11 +1054,11 @@ EOF
     # Set the password token hash in the database
     # (if the email address doesn't exist, this query will do nothing)
     $db->query(
-        <<"EOF",
+        <<"SQL",
         UPDATE auth_users
         SET password_reset_token_hash = ?
         WHERE email = ? AND email != ''
-EOF
+SQL
         $password_reset_token_hash, $email
     );
 
@@ -1101,12 +1101,12 @@ sub regenerate_api_token_or_return_error_message($$)
 
     # Regenerate API token
     $db->query(
-        <<"EOF",
+        <<SQL,
         UPDATE auth_users
         -- DEFAULT points to a generation function
         SET api_token = DEFAULT
         WHERE email = ?
-EOF
+SQL
         $email
     );
 
@@ -1120,12 +1120,12 @@ sub default_weekly_requests_limit($)
     my $db = shift;
 
     my $default_weekly_requests_limit = $db->query(
-        <<EOF
+        <<SQL
         SELECT column_default AS default_weekly_requests_limit
         FROM information_schema.columns
         WHERE (table_schema, table_name) = ('public', 'auth_user_limits')
           AND column_name = 'weekly_requests_limit'
-EOF
+SQL
     )->hash;
     unless ( ref( $default_weekly_requests_limit ) eq ref( {} )
         and defined( $default_weekly_requests_limit->{ default_weekly_requests_limit } ) )
@@ -1142,12 +1142,12 @@ sub default_weekly_requested_items_limit($)
     my $db = shift;
 
     my $default_weekly_requested_items_limit = $db->query(
-        <<EOF
+        <<SQL
         SELECT column_default AS default_weekly_requested_items_limit
         FROM information_schema.columns
         WHERE (table_schema, table_name) = ('public', 'auth_user_limits')
           AND column_name = 'weekly_requested_items_limit'
-EOF
+SQL
     )->hash;
     unless ( ref( $default_weekly_requested_items_limit ) eq ref( {} )
         and defined( $default_weekly_requested_items_limit->{ default_weekly_requested_items_limit } ) )
