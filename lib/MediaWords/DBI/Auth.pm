@@ -28,21 +28,38 @@ Readonly my $POST_UNSUCCESSFUL_LOGIN_DELAY => 1;
 # API token HTTP GET parameter
 Readonly my $API_TOKEN_PARAMETER => 'key';
 
+# Return salt length
+sub _salt_length()
+{
+    my $config   = MediaWords::Util::Config::get_config();
+    my $salt_len = $config->{ 'Plugin::Authentication' }->{ 'users' }->{ 'credential' }->{ 'password_salt_len' };
+    if ( !$salt_len )
+    {
+        LOGCONFESS "Salt length is 0";
+    }
+
+    return $salt_len;
+}
+
+# Return hash type
+sub _hash_type()
+{
+    my $config    = MediaWords::Util::Config::get_config();
+    my $hash_type = $config->{ 'Plugin::Authentication' }->{ 'users' }->{ 'credential' }->{ 'password_hash_type' };
+    unless ( $hash_type )
+    {
+        LOGCONFESS "Unable to determine the password hashing algorithm";
+    }
+
+    return $hash_type;
+}
+
 # Validate a password / password token with Crypt::SaltedHash; return 1 on success, 0 on error
 sub password_hash_is_valid($$)
 {
     my ( $secret_hash, $secret ) = @_;
 
-    # Determine salt (hash type should be placed in the hash)
-    my $config = MediaWords::Util::Config::get_config;
-
-    my $salt_len = $config->{ 'Plugin::Authentication' }->{ 'users' }->{ 'credential' }->{ 'password_salt_len' };
-    if ( !$salt_len )
-    {
-        WARN "Salt length is 0";
-        $salt_len = 0;
-    }
-
+    my $salt_len = _salt_length();
     if ( Crypt::SaltedHash->validate( $secret_hash, $secret, $salt_len ) )
     {
         return 1;
@@ -62,17 +79,8 @@ sub _generate_secure_hash($)
     # Determine salt and hash type
     my $config = MediaWords::Util::Config::get_config;
 
-    my $salt_len = $config->{ 'Plugin::Authentication' }->{ 'users' }->{ 'credential' }->{ 'password_salt_len' };
-    unless ( $salt_len )
-    {
-        LOGCONFESS "Salt length is 0";
-    }
-
-    my $hash_type = $config->{ 'Plugin::Authentication' }->{ 'users' }->{ 'credential' }->{ 'password_hash_type' };
-    unless ( $hash_type )
-    {
-        LOGCONFESS "Unable to determine the password hashing algorithm";
-    }
+    my $salt_len  = _salt_length();
+    my $hash_type = _hash_type();
 
     # Hash the password
     my $csh = Crypt::SaltedHash->new( algorithm => $hash_type, salt_len => $salt_len );
