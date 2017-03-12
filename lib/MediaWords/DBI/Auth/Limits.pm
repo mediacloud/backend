@@ -1,4 +1,4 @@
-package MediaWords::DBI::Auth;
+package MediaWords::DBI::Auth::Limits;
 
 #
 # Authentication helpers related to user request limits
