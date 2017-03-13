@@ -60,8 +60,7 @@ In those cases, we run a temporary version of the crawler that collects only fee
 
 4. On production machine, export `media`, `feeds`, ... table data needed to run a backup crawler:
 
-		production-machine$ ./script/run_with_carton.sh \
-			./script/import_export/export_tables_to_backup_crawler.pl \
+		production-machine$ ./tools/db/export_import/export_tables_to_backup_crawler.py \
 			> mediacloud-dump.sql
 
 5. On backup crawler, create database structure and import table data from production:
@@ -95,11 +94,11 @@ When you're ready to export:
 2. On backup crawler, export feed downloads to a CSV file:
 
 		backup-crawler$ ./script/run_with_carton.sh \
-			./script/import_export/export_feed_downloads_from_backup_crawler.pl \
+			./script/export_import/export_feed_downloads_from_backup_crawler.pl \
 			> mediacloud-feed-downloads.csv
 
 3. On production machine, import feed downloads from CSV file:
 
 		production-machine$ ./script/run_with_carton.sh \
-			./script/import_export/import_feed_downloads_to_db.pl \
+			./script/export_import/import_feed_downloads_to_db.pl \
 			mediacloud-feed-downloads.csv

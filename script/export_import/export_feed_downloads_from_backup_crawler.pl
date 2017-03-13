@@ -6,7 +6,7 @@
 #
 #     # Export feed downloads to "mediacloud-feed-downloads.csv"
 #     ./script/run_with_carton.sh \
-#         ./script/import_export/export_feed_downloads_from_backup_crawler.pl > mediacloud-feed-downloads.csv
+#         ./script/export_import/export_feed_downloads_from_backup_crawler.pl > mediacloud-feed-downloads.csv
 #
 
 use strict;
