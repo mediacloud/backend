@@ -82,25 +82,26 @@ use MediaWords::Util::URL;
         return $self->{ _request };
     }
 
-    # Alias for method()
-    sub method($;$)
+    # method() getter
+    sub method($)
     {
         my ( $self, $method ) = @_;
-        return $self->{ _request }->method( $method );
+        return $self->{ _request }->method();
+    }
+
+    # method() setter
+    sub set_method($$)
+    {
+        my ( $self, $method ) = @_;
+        $self->{ _request }->method( $method );
     }
 
     # uri() is not aliased because it returns URI object which we won't reimplement in Web.pm
 
-    # Alias for url()
-    sub url($;$)
+    # url() getter
+    sub url($)
     {
-        my ( $self, $url ) = @_;
-
-        if ( defined $url )
-        {
-            my $uri = URI->new( $url );
-            $self->{ _request }->uri( $uri );
-        }
+        my ( $self ) = @_;
 
         my $uri = $self->{ _request }->uri();
         if ( defined $uri )
@@ -113,24 +114,55 @@ use MediaWords::Util::URL;
         }
     }
 
-    # Alias for header()
-    sub header($$;$)
+    # url() setter
+    sub set_url($$)
+    {
+        my ( $self, $url ) = @_;
+
+        my $uri = URI->new( $url );
+        $self->{ _request }->uri( $uri );
+    }
+
+    # header() getter
+    sub header($$)
+    {
+        my ( $self, $field ) = @_;
+        return $self->{ _request }->header( $field );
+    }
+
+    # header() setter
+    sub set_header($$$)
     {
         my ( $self, $field, $value ) = @_;
-        return $self->{ _request }->header( $field, $value );
+        $self->{ _request }->header( $field, $value );
     }
 
-    # Alias for content_type()
-    sub content_type($;$)
+    # content_type() getter
+    sub content_type($)
+    {
+        my ( $self ) = @_;
+        return $self->{ _request }->content_type();
+    }
+
+    # content_type() setter
+    sub set_content_type($$)
     {
         my ( $self, $content_type ) = @_;
-        return $self->{ _request }->content_type( $content_type );
+        $self->{ _request }->content_type( $content_type );
     }
 
-    # Alias for content()
+    # content() getter
+    sub content($)
+    {
+        my ( $self ) = @_;
+
+        return $self->{ _request }->content();
+    }
+
+    # content() setter
     #
     # If it's an hashref, URL-encode it first.
-    sub content($;$)
+    sub set_content($$)
     {
         my ( $self, $content ) = @_;
 
@@ -147,15 +179,17 @@ use MediaWords::Util::URL;
             $content = join( '&', @pairs );
         }
 
-        return $self->{ _request }->content( $content );
+        $self->{ _request }->content( $content );
     }
 
-    # Alias for authorization_basic()
-    sub authorization_basic($;$$)
+    # authorization_basic() setter
+    sub authorization_basic($$$)
     {
         my ( $self, $username, $password ) = @_;
-        return $self->{ _request }->authorization_basic( $username, $password );
+        $self->{ _request }->authorization_basic( $username, $password );
     }
+
+    # No authorization_basic() getter
 
     # Alias for as_string()
     sub as_string($)
@@ -206,35 +240,35 @@ use MediaWords::Util::URL;
         return $self;
     }
 
-    # Alias for code()
+    # code() getter
     sub code($)
     {
         my ( $self ) = @_;
         return $self->{ _response }->code();
     }
 
-    # Alias for message()
+    # message() getter
     sub message($)
     {
         my ( $self ) = @_;
         return $self->{ _response }->message();
     }
 
-    # Alias for header()
+    # header() getter
     sub header($$)
     {
         my ( $self, $field ) = @_;
         return $self->{ _response }->header( $field );
     }
 
-    # Alias for decoded_content()
+    # decoded_content() getter
     sub decoded_content($)
     {
         my ( $self ) = @_;
         return $self->{ _response }->decoded_content();
     }
 
-    # Alias for decoded_content() with some extra params
+    # decoded_content() getter with enforced UTF-8 response
     sub decoded_utf8_content($)
     {
         my ( $self ) = @_;
@@ -244,14 +278,14 @@ use MediaWords::Util::URL;
         );
     }
 
-    # Alias for status_line()
+    # status_line() getter
     sub status_line($)
     {
         my ( $self ) = @_;
         return $self->{ _response }->status_line();
     }
 
-    # Alias for is_success()
+    # is_success() getter
     sub is_success($)
     {
         my ( $self ) = @_;
@@ -448,7 +482,7 @@ use MediaWords::Util::URL;
         my $blacklisted;
         if ( $blacklist_url_pattern && ( $url =~ $blacklist_url_pattern ) )
         {
-            $request->url( "http://blacklistedsite.localhost/$url" );
+            $request->set_url( "http://blacklistedsite.localhost/$url" );
             $blacklisted = 1;
         }
 

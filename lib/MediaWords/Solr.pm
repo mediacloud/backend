@@ -262,8 +262,8 @@ sub query_encoded_json($$;$)
     my $t0 = [ gettimeofday ];
 
     my $request = MediaWords::Util::Web::UserAgent::Request->new( 'POST', $url );
-    $request->content_type( 'application/x-www-form-urlencoded; charset=utf-8' );
-    $request->content( $encoded_params );
+    $request->set_content_type( 'application/x-www-form-urlencoded; charset=utf-8' );
+    $request->set_content( $encoded_params );
 
     my $res = $ua->request( $request );
 

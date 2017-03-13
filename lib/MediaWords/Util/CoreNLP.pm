@@ -288,8 +288,8 @@ sub _annotate_text($)
     );
 
     my $request = MediaWords::Util::Web::UserAgent::Request->new( 'POST', $_corenlp_annotator_url );
-    $request->content_type( 'application/json; charset=utf8' );
-    $request->content( $text_json_encoded );
+    $request->set_content_type( 'application/json; charset=utf8' );
+    $request->set_content( $text_json_encoded );
 
     DEBUG "Sending request to $_corenlp_annotator_url: $text_json_encoded";
     my $response = $ua->request( $request );

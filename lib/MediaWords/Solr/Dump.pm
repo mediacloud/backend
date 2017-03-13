@@ -599,9 +599,9 @@ sub _solr_request($$$;$$)
         $content_type ||= 'text/plain; charset=utf-8';
 
         $req = MediaWords::Util::Web::UserAgent::Request->new( 'POST', $abs_url );
-        $req->header( 'Content-Type',   $content_type );
-        $req->header( 'Content-Length', bytes::length( $content ) );
-        $req->content( $content );
+        $req->set_header( 'Content-Type',   $content_type );
+        $req->set_header( 'Content-Length', bytes::length( $content ) );
+        $req->set_content( $content );
     }
     else
     {
