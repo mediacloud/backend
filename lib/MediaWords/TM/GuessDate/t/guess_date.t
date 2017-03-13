@@ -65,7 +65,8 @@ sub _gr_url($$;$)
     {
 
         # 404 Not Found pages will be empty
-        $html = MediaWords::Util::Web::get( $story_url ) || '';
+        my $ua = MediaWords::Util::Web::UserAgent->new();
+        $html = $ua->get_string( $story_url ) || '';
     }
 
     return _gr( $db, $html, $story_url, $story_publish_date );

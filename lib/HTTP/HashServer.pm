@@ -66,7 +66,10 @@ sub new
     eval {
         local $SIG{ ALRM } = sub { die( "alarm" ) };
         alarm 1;
-        MediaWords::Util::Web::get( "http://localhost:${ port }/die" );
+
+        my $ua = MediaWords::Util::Web::UserAgent->new();
+        $ua->get_string( "http://localhost:${ port }/die" );
+
         alarm 0;
     };
     die( $@ ) if ( $@ && ( $@ ne "alarm\n" ) );

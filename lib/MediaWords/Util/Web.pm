@@ -516,6 +516,22 @@ use MediaWords::Util::URL;
         return MediaWords::Util::Web::UserAgent::Response->new_from_http_response( $response );
     }
 
+    # Returns URL content as string, undef on error
+    sub get_string($$)
+    {
+        my ( $self, $url ) = @_;
+
+        my $response = $self->get( $url );
+        if ( $response->is_success )
+        {
+            return $response->decoded_content;
+        }
+        else
+        {
+            return undef;
+        }
+    }
+
     # Alias for post()
     sub post($$)
     {
@@ -759,23 +775,6 @@ sub get_meta_redirect_response
     }
 
     return $response;
-}
-
-# Returns URL content as string, undef on error
-sub get($)
-{
-    my $url = shift;
-
-    my $ua       = MediaWords::Util::Web::UserAgent->new();
-    my $response = $ua->get( $url );
-    if ( $response->is_success )
-    {
-        return $response->decoded_content;
-    }
-    else
-    {
-        return undef;
-    }
 }
 
 1;
