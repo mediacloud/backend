@@ -314,21 +314,23 @@ use MediaWords::Util::URL;
         return $self->{ _response }->content_type();
     }
 
-    # Alias for previous()
-    sub previous($;$)
+    # previous() getter
+    sub previous($)
+    {
+        my ( $self ) = @_;
+        return $self->{ _previous };
+    }
+
+    # previous() setter
+    sub set_previous($$)
     {
         my ( $self, $previous ) = @_;
 
-        if ( $previous )
+        unless ( ref( $previous ) eq 'MediaWords::Util::Web::UserAgent::Response' )
         {
-            unless ( ref( $previous ) eq 'MediaWords::Util::Web::UserAgent::Response' )
-            {
-                LOGCONFESS "Previous response is not MediaWords::Util::Web::UserAgent::Response: " . Dumper( $previous );
-            }
-            $self->{ _previous } = $previous;
+            LOGCONFESS "Previous response is not MediaWords::Util::Web::UserAgent::Response: " . Dumper( $previous );
         }
-
-        return $self->{ _previous };
+        $self->{ _previous } = $previous;
     }
 
     # Alias for request()
@@ -820,7 +822,7 @@ sub get_meta_redirect_response
 
         my $ua                = MediaWords::Util::Web::UserAgent->new();
         my $redirect_response = $ua->get( $redirect_url );
-        $redirect_response->previous( $response );
+        $redirect_response->set_previous( $response );
 
         $response = $redirect_response;
     }
