@@ -72,7 +72,8 @@ sub _validate_and_name_feed_urls
 
     my $links = [];
 
-    my $responses = MediaWords::Util::Web::parallel_get( $urls );
+    my $ua        = MediaWords::Util::Web::UserAgent->new();
+    my $responses = $ua->parallel_get( $urls );
 
     for my $response ( @{ $responses } )
     {
@@ -223,7 +224,8 @@ sub _get_main_feed_urls_from_url($)
 {
     my $url = shift;
 
-    my $response = MediaWords::Util::Web::parallel_get( [ $url ] )->[ 0 ];
+    my $ua = MediaWords::Util::Web::UserAgent->new();
+    my $response = $ua->parallel_get( [ $url ] )->[ 0 ];
 
     return [] unless ( $response->is_success );
 
@@ -353,7 +355,8 @@ sub _recurse_get_valid_feeds_from_index_url($$$$)
 
     $#{ $urls } = List::Util::min( $#{ $urls }, $MAX_INDEX_URLS - 1 );
 
-    my $responses = MediaWords::Util::Web::parallel_get( $urls );
+    my $ua        = MediaWords::Util::Web::UserAgent->new();
+    my $responses = $ua->parallel_get( $urls );
 
     my $scraped_url_lookup = {};
 

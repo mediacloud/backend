@@ -92,7 +92,8 @@ sub get_cached_link_download
         $link->{ _cached_link_downloads }++;
     }
 
-    my $responses = MediaWords::Util::Web::parallel_get( $urls );
+    my $ua        = MediaWords::Util::Web::UserAgent->new();
+    my $responses = $ua->parallel_get( $urls );
 
     $_link_downloads_cache = {};
     for my $response ( @{ $responses } )

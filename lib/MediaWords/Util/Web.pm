@@ -516,6 +516,62 @@ use MediaWords::Util::URL;
         return MediaWords::Util::Web::UserAgent::Response->new_from_http_response( $response );
     }
 
+    # Get multiple URLs in parallel.
+    # Returns a list of response objects resulting from the fetches.
+    sub parallel_get($$)
+    {
+        my ( $self, $urls ) = @_;
+
+        return [] unless ( $urls && @{ $urls } );
+
+        my $web_store_input;
+        my $results;
+        for my $url ( @{ $urls } )
+        {
+            my $result = { url => $url, file => File::Temp::mktemp( '/tmp/MediaWordsUtilWebXXXXXXXX' ) };
+
+            $web_store_input .= "$result->{ file }:$result->{ url }\n";
+
+            push( @{ $results }, $result );
+        }
+
+        my $mc_root_path = MediaWords::Util::Paths::mc_root_path();
+        my $cmd          = "'$mc_root_path'/script/mediawords_web_store.pl";
+
+        if ( !open( CMD, '|-', $cmd ) )
+        {
+            WARN "Unable to start $cmd: $!";
+            return;
+        }
+
+        binmode( CMD, 'utf8' );
+
+        print CMD $web_store_input;
+        close( CMD );
+
+        my $responses;
+        for my $result ( @{ $results } )
+        {
+            my $response;
+            if ( -f $result->{ file } )
+            {
+                $response = Storable::retrieve( $result->{ file } );
+                push( @{ $responses }, $response );
+                unlink( $result->{ file } );
+            }
+            else
+            {
+                my $http_response = HTTP::Response->new( '500', "web store timeout for $result->{ url }" );
+                $response = MediaWords::Util::Web::UserAgent::Response->new_from_http_response( $http_response );
+                $response->request( MediaWords::Util::Web::UserAgent::Request->new( 'GET', $result->{ url } ) );
+
+                push( @{ $responses }, $response );
+            }
+        }
+
+        return $responses;
+    }
+
     # Returns URL content as string, undef on error
     sub get_string($$)
     {
@@ -646,67 +702,6 @@ use MediaWords::Util::URL;
     }
 
     1;
-}
-
-=head2 parallel_get( $urls )
-
-Get urls in parallel by using an external, forking script.  Returns a list of response objects resulting
-from the fetches.
-
-=cut
-
-sub parallel_get
-{
-    my ( $urls ) = @_;
-
-    return [] unless ( $urls && @{ $urls } );
-
-    my $web_store_input;
-    my $results;
-    for my $url ( @{ $urls } )
-    {
-        my $result = { url => $url, file => File::Temp::mktemp( '/tmp/MediaWordsUtilWebXXXXXXXX' ) };
-
-        $web_store_input .= "$result->{ file }:$result->{ url }\n";
-
-        push( @{ $results }, $result );
-    }
-
-    my $mc_root_path = MediaWords::Util::Paths::mc_root_path();
-    my $cmd          = "'$mc_root_path'/script/mediawords_web_store.pl";
-
-    if ( !open( CMD, '|-', $cmd ) )
-    {
-        WARN "Unable to start $cmd: $!";
-        return;
-    }
-
-    binmode( CMD, 'utf8' );
-
-    print CMD $web_store_input;
-    close( CMD );
-
-    my $responses;
-    for my $result ( @{ $results } )
-    {
-        my $response;
-        if ( -f $result->{ file } )
-        {
-            $response = Storable::retrieve( $result->{ file } );
-            push( @{ $responses }, $response );
-            unlink( $result->{ file } );
-        }
-        else
-        {
-            my $http_response = HTTP::Response->new( '500', "web store timeout for $result->{ url }" );
-            $response = MediaWords::Util::Web::UserAgent::Response->new_from_http_response( $http_response );
-            $response->request( MediaWords::Util::Web::UserAgent::Request->new( 'GET', $result->{ url } ) );
-
-            push( @{ $responses }, $response );
-        }
-    }
-
-    return $responses;
 }
 
 =head2 get_original_request( $request )

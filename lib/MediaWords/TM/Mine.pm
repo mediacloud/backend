@@ -134,7 +134,8 @@ sub add_redirect_links
 
     my $urls = [ map { URI->new( $_->{ url } )->as_string } @{ $links } ];
 
-    my $responses = MediaWords::Util::Web::parallel_get( $urls );
+    my $ua        = MediaWords::Util::Web::UserAgent->new();
+    my $responses = $ua->parallel_get( $urls );
 
     my $link_lookup = {};
     map { $link_lookup->{ URI->new( $_->{ url } )->as_string } = $_ } @{ $links };

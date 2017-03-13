@@ -618,7 +618,8 @@ sub get_broken_download_content
 
     my $urls = [ map { URI->new( $_->{ url } )->as_string } @{ $downloads } ];
 
-    my $responses = MediaWords::Util::Web::parallel_get( $urls );
+    my $ua        = MediaWords::Util::Web::UserAgent->new();
+    my $responses = $ua->parallel_get( $urls );
 
     my $download_lookup = {};
     map { $download_lookup->{ URI->new( $_->{ url } )->as_string } = $_ } @{ $downloads };

@@ -14,7 +14,7 @@ package MediaWords::Job::RescrapeMedia;
 #    got [1/1]: http://www.delfi.lt/
 #    <...>
 #
-# That's because MediaWords::Util::Web::parallel_get() starts a child process
+# That's because MediaWords::Util::Web::UserAgent->parallel_get() starts a child process
 # for fetching URLs (instead of a fork()).
 #
 
