@@ -63,7 +63,7 @@ select(table='badgers',
 Unless you pass a single parameter and it's absolutely trivial what it's about (e.g. `strip_html(html)`), use named parameters.
 
 
-## Declare Function Parameter and Return Values
+## Declare Function Parameter and Return Value Types
 
 Python 3 has [type hints](https://docs.python.org/3/library/typing.html), and we should use so that we:
 
