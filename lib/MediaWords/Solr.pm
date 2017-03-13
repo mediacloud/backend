@@ -273,7 +273,7 @@ sub query_encoded_json($$;$)
     {
         my $error_message;
 
-        if ( MediaWords::Util::Web::response_error_is_client_side( $res ) )
+        if ( $res->error_is_client_side() )
         {
 
             # LWP error (LWP wasn't able to connect to the server or something like that)
