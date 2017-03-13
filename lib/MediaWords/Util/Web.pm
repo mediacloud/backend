@@ -776,29 +776,6 @@ use MediaWords::Util::URL;
     1;
 }
 
-=head2 lookup_by_response_url( $list, $response )
-
-Given a list of hashes, each of which includes a 'url' key, and a response object, return the hash in $list for
-which the canonical version of the url is the same as the canonical version of the originally requested
-url for the response.  Return undef if no match is found.
-
-This function is helpful for associating a given respone returned by parallel_get() with the object that originally
-generated the url (for instance, the medium input record that generate the url fetch for the medium title)
-
-=cut
-
-sub lookup_by_response_url($$)
-{
-    my ( $list, $response ) = @_;
-
-    my $original_request = $response->original_request;
-    my $url              = URI->new( $original_request->url );
-
-    map { return ( $_ ) if ( URI->new( $_->{ url } ) eq $url ) } @{ $list };
-
-    return undef;
-}
-
 =head2 get_meta_redirect_response( $response, $url )
 
 If thee response has a meta tag or is an archive url, parse out the original url and treat it as a redirect

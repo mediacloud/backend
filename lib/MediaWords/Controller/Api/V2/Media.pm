@@ -11,6 +11,7 @@ use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
 use namespace::autoclean;
 use List::Compare;
+use URI;
 
 use MediaWords::DBI::Media::Lookup;
 use MediaWords::Solr;
@@ -267,6 +268,27 @@ sub _find_medium_by_response_chain
     return undef;
 }
 
+# Given a list of hashes, each of which includes a 'url' key, and a response
+# object, return the hash in $list for which the canonical version of the url
+# is the same as the canonical version of the originally requested url for the
+# response. Return undef if no match is found.
+#
+# This function is helpful for associating a given respone returned by
+# parallel_get() with the object that originally generated the url (for
+# instance, the medium input record that generate the url fetch for the medium
+# title)
+sub _lookup_by_response_url($$)
+{
+    my ( $list, $response ) = @_;
+
+    my $original_request = $response->original_request;
+    my $url              = URI->new( $original_request->url );
+
+    map { return ( $_ ) if ( URI->new( $_->{ url } ) eq $url ) } @{ $list };
+
+    return undef;
+}
+
 # for eery record in the media/create input, attach either an existing medium or an old medium or attach
 # an error record that indicates why a medium could not be created
 sub _attach_media_to_input($$)
@@ -292,7 +314,7 @@ sub _attach_media_to_input($$)
 
     for my $response ( @{ $responses } )
     {
-        my $input_medium = MediaWords::Util::Web::lookup_by_response_url( $input_media, $response ) || next;
+        my $input_medium = _lookup_by_response_url( $input_media, $response ) || next;
 
         if ( !$response->is_success )
         {
