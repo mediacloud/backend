@@ -585,7 +585,7 @@ sub _solr_request($$$;$$)
     my $abs_url = $abs_uri->as_string;
 
     my $ua = MediaWords::Util::Web::UserAgent->new();
-    $ua->max_size( undef );
+    $ua->set_max_size( undef );
 
     # should be able to process about this fast.  otherwise, time out and throw error so that we can continue processing
     my $req;
@@ -614,7 +614,7 @@ sub _solr_request($$$;$$)
 
         alarm $timeout;
 
-        $ua->timeout( $timeout );
+        $ua->set_timeout( $timeout );
         $res = $ua->request( $req );
 
         alarm 0;

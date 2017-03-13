@@ -472,8 +472,8 @@ sub _get_remote_words
 
     my $ua = MediaWords::Util::Web::UserAgent->new();
 
-    $ua->timeout( 900 );
-    $ua->max_size( undef );
+    $ua->set_timeout( 900 );
+    $ua->set_max_size( undef );
 
     my $uri          = URI->new( $url );
     my $query_params = $self->get_cgi_param_hash;

@@ -40,9 +40,9 @@ sub _fetch_ch_posts ($$)
     my ( $ch_monitor_id, $day ) = @_;
 
     my $ua = MediaWords::Util::Web::UserAgent->new();
-    $ua->max_size( 100 * 1024 * 1024 );
-    $ua->timeout( 90 );
-    $ua->timing( '1,2,4,8,16,32,64,128,256,512' );
+    $ua->set_max_size( 100 * 1024 * 1024 );
+    $ua->set_timeout( 90 );
+    $ua->set_timing( '1,2,4,8,16,32,64,128,256,512' );
 
     my $key = MediaWords::Util::Config::get_config->{ crimson_hexagon }->{ key };
     LOGDIE( "no crimson hexagon key in mediawords.yml at //crimson_hexagon/key." ) unless ( $key );

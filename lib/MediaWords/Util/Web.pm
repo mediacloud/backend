@@ -561,50 +561,88 @@ use MediaWords::Util::URL;
         return MediaWords::Util::Web::UserAgent::Response->new_from_http_response( $response );
     }
 
-    # Alias for timing()
-    sub timing($;$)
+    # timing() getter
+    sub timing($)
+    {
+        my ( $self ) = @_;
+        return $self->{ _ua }->timing();
+    }
+
+    # timing() setter
+    sub set_timing($$)
     {
         my ( $self, $timing ) = @_;
-        return $self->{ _ua }->timing( $timing );
+        $self->{ _ua }->timing( $timing );
     }
 
     # Alias for timeout()
-    sub timeout($;$)
+    sub timeout($)
     {
-        my ( $self, $timeout ) = @_;
-        return $self->{ _ua }->timeout( $timeout );
+        my ( $self ) = @_;
+        return $self->{ _ua }->timeout();
     }
 
-    # Alias for before_determined_callback()
-    sub before_determined_callback($$)
+    # timeout() setter
+    sub set_timeout($$)
+    {
+        my ( $self, $timeout ) = @_;
+        $self->{ _ua }->timeout( $timeout );
+    }
+
+    # before_determined_callback() getter
+    sub before_determined_callback($)
+    {
+        my ( $self ) = @_;
+        return $self->{ _ua }->before_determined_callback();
+    }
+
+    # before_determined_callback() setter
+    sub set_before_determined_callback($$)
     {
         my ( $self, $before_determined_callback ) = @_;
-
-        # Intentionally doesn't return anything
         $self->{ _ua }->before_determined_callback( $before_determined_callback );
     }
 
-    # Alias for after_determined_callback($$)
-    sub after_determined_callback($$)
+    # after_determined_callback() getter
+    sub after_determined_callback($)
+    {
+        my ( $self ) = @_;
+        return $self->{ _ua }->after_determined_callback();
+    }
+
+    # after_determined_callback() setter
+    sub set_after_determined_callback($$)
     {
         my ( $self, $after_determined_callback ) = @_;
-
-        # Intentionally doesn't return anything
         $self->{ _ua }->after_determined_callback( $after_determined_callback );
     }
 
-    # Alias for max_redirect()
-    sub max_redirect($;$)
+    # max_redirect() getter
+    sub max_redirect($)
     {
-        my ( $self, $max_redirect ) = @_;
-        return $self->{ _ua }->max_redirect( $max_redirect );
+        my ( $self ) = @_;
+        return $self->{ _ua }->max_redirect();
     }
 
-    # Alias for max_size()
-    sub max_size($;$)
+    # max_redirect() setter
+    sub set_max_redirect($$)
+    {
+        my ( $self, $max_redirect ) = @_;
+        $self->{ _ua }->max_redirect( $max_redirect );
+    }
+
+    # max_size() getter
+    sub max_size($)
+    {
+        my ( $self ) = @_;
+        return $self->{ _ua }->max_size();
+    }
+
+    # max_size() setter
+    sub set_max_size($$)
     {
         my ( $self, $max_size ) = @_;
-        return $self->{ _ua }->max_size( $max_size );
+        $self->{ _ua }->max_size( $max_size );
     }
 
     1;

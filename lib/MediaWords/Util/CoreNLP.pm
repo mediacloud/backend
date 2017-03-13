@@ -254,12 +254,12 @@ sub _annotate_text($)
 
     # Make a request
     my $ua = MediaWords::Util::Web::UserAgent->new();
-    $ua->timing( '1,2,4,8' );
-    $ua->timeout( $_corenlp_annotator_timeout );
-    $ua->max_size( undef );
+    $ua->set_timing( '1,2,4,8' );
+    $ua->set_timeout( $_corenlp_annotator_timeout );
+    $ua->set_max_size( undef );
 
     my $old_after_determined_callback = $ua->after_determined_callback;
-    $ua->after_determined_callback(
+    $ua->set_after_determined_callback(
         sub {
             my ( $ua, $timing, $duration, $codes_to_determinate, $lwp_args, $response ) = @_;
             my $request = $lwp_args->[ 0 ];

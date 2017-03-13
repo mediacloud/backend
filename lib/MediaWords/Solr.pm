@@ -253,8 +253,8 @@ sub query_encoded_json($$;$)
 
     my $ua = MediaWords::Util::Web::UserAgent->new();
 
-    $ua->timeout( 300 );
-    $ua->max_size( undef );
+    $ua->set_timeout( 300 );
+    $ua->set_max_size( undef );
 
     TRACE "Executing Solr query on $url ...";
     TRACE 'Encoded parameters: ' . Dumper( $encoded_params );

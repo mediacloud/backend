@@ -184,9 +184,9 @@ sub _request($$)
     my $url = $uri->as_string;
 
     my $ua = MediaWords::Util::Web::UserAgent->new();
-    $ua->timing( '1,2,4,8' );
-    $ua->timeout( $_bitly_timeout );
-    $ua->max_size( undef );
+    $ua->set_timing( '1,2,4,8' );
+    $ua->set_timeout( $_bitly_timeout );
+    $ua->set_max_size( undef );
 
     my $response = $ua->get( $url );
 
