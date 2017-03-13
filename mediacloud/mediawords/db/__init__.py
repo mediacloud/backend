@@ -1,5 +1,3 @@
-from typing import Callable
-
 from mediawords.db.handler import DatabaseHandler
 from mediawords.test.db import using_test_database
 
@@ -104,9 +102,3 @@ def connect_to_db(label: str = None, do_not_check_schema_version: bool = False) 
     """)
 
     return ret
-
-
-def k(arg1: Callable[[str, int], bool]) -> None:
-    # `arg1` is expected to be a function which doesn't have parameters and doesn't return anything.
-    # Function doesn't return anything.
-    pass
