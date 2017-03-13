@@ -315,7 +315,6 @@ use MediaWords::Util::URL;
     }
 
     # Alias for previous()
-    # FIXME used only once, probably could get rid of it
     sub previous($;$)
     {
         my ( $self, $previous ) = @_;
@@ -333,7 +332,6 @@ use MediaWords::Util::URL;
     }
 
     # Alias for request()
-    # FIXME getter used only once, probably could get rid of it
     sub request($;$)
     {
         my ( $self, $request ) = @_;
