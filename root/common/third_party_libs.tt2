@@ -2,7 +2,6 @@
 <script type="text/javascript" src="[% c.uri_for('/include/jquery-1.5.1.js') %]"></script>
 <script type="text/javascript" src="[% c.uri_for('/include/jquery-ui-1.8.5.custom.min.js') %]"></script>
  <script type="text/javascript" src="//www.google.com/jsapi"></script>
- <script type="text/javascript"  src="[% c.uri_for('/include/jquery.openheatmap.js') %]"></script> 
  <script type="text/javascript"  src="[% c.uri_for('/include/jquery.validate.js') %]"></script>  
  <script type="text/javascript"  src="[% c.uri_for('/include/jquery.url.js') %]"></script> 
  <script type="text/javascript"  src="[% c.uri_for('/include/jquery.iframe-auto-height.plugin_msie_workaround.js') %]"></script> 
