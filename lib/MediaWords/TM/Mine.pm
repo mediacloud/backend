@@ -142,7 +142,7 @@ sub add_redirect_links
 
     for my $response ( @{ $responses } )
     {
-        my $original_url = MediaWords::Util::Web::get_original_request( $response )->url;
+        my $original_url = $response->original_request->url;
         my $final_url    = $response->request->url;
         my $link         = $link_lookup->{ $original_url };
         $link->{ redirect_url } = $final_url;

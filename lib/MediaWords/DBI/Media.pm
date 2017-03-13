@@ -170,7 +170,7 @@ sub _add_missing_media_from_urls
 
     for my $response ( @{ $responses } )
     {
-        my $original_request = MediaWords::Util::Web::get_original_request( $response );
+        my $original_request = $response->original_request();
         my $url              = $original_request->url;
 
         my $url_media_index = _get_url_medium_index_from_url( $url_media, $url );

@@ -85,7 +85,7 @@ sub _validate_and_name_feed_urls
 
         my $content = $response->decoded_content;
 
-        my $url = MediaWords::Util::Web::get_original_request( $response )->url;
+        my $url = $response->original_request->url;
 
         DEBUG "Parsing $url";
 

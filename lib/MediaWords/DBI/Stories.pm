@@ -626,7 +626,7 @@ sub get_broken_download_content
 
     for my $response ( @{ $responses } )
     {
-        my $original_url = MediaWords::Util::Web::get_original_request( $response )->url;
+        my $original_url = $response->original_request->url;
 
         $download_lookup->{ $original_url }->{ content } = $response->decoded_content;
     }
