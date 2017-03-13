@@ -84,10 +84,14 @@ def select(table: str,
     # ...
 ```
 
+
+### Basic
+
 For parameter / return types, you can define built-in types (`str`, `int`, `list`, `dict`, `bool`, ...) or nested types using helpers from `typing` package, e.g.:
 
 ```python
-from typing import Any, Dict, Callable, List, Union
+from typing import Any
+
 
 def a() -> None:
     # Function doesn't return anything.
@@ -109,6 +113,22 @@ def f() -> dict:
     # Function returns a free-form dictionary (`dict`).
     # (if you can predict the types of dictionary keys / values, consider using `Dict`)
 
+def m(arg1: CustomType) -> None:
+    # `arg1` is expected to be an object of type `CustomType`.
+    # Function doesn't return anything.
+
+def n(arg1: Any) -> None:
+    # `arg1` is expected to be of any type (generally discouraged though).
+    # Function doesn't return anything.
+```
+
+
+### Subtypes
+
+```python
+from typing import Dict, List, Union
+
+
 def g() -> Union[str, None]:
     # Function returns either a 'str' value or `None`.
 
@@ -122,7 +142,15 @@ def i(arg1: List[str]) -> None:
 
 def j(arg1: List[Dict[str, int]]) -> None:
     # `arg1` is expected to be a `list` of `dict`s with `str` keys and `int` values.
-    # Function doesn't return anything.    
+    # Function doesn't return anything.
+```
+
+
+### Subtypes of Argument Functions
+
+```python
+from typing import Callable
+
 
 def k(arg1: Callable[[], None]) -> None:
     # `arg1` is expected to be a function which:
@@ -134,14 +162,6 @@ def l(arg1: Callable[[str, int], bool]) -> None:
     # `arg1` is expected to be a function which:
     #     * accepts two parameters - `str` and `int`, and
     #     * returns `bool`.
-    # Function doesn't return anything.
-
-def m(arg1: CustomType) -> None:
-    # `arg1` is expected to be an object of type `CustomType`.
-    # Function doesn't return anything.
-
-def n(arg1: Any) -> None:
-    # `arg1` is expected to be of any type (generally discouraged though).
     # Function doesn't return anything.
 ```
 
