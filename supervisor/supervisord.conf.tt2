@@ -121,7 +121,7 @@ programs = crawler
 
 [% INCLUDE program_config
     program='create_missing_partitions'
-    command="bash ./script/run_with_carton.sh ./script/create_missing_partitions.pl"
+    command="./tools/supervisor/run_in_virtualenv.sh ./tools/db/create_missing_partitions.py"
     default_stopasgroup='true'
     default_killasgroup='true'
     default_autorestart='false'
