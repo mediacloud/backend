@@ -92,30 +92,55 @@ from typing import Any, Dict, Callable, List, Union
 def a() -> None:
     # Function doesn't return anything.
 
-def b() -> Union[str, None]:
-    # Function returns either a 'str' value or None.
+def b() -> str:
+    # Function returns a string (`str`).
 
-def c(arg1: Dict[str, int]) -> None:
+def c() -> int:
+    # Function returns an integer (`int`).
+
+def d() -> bool:
+    # Function returns a boolean (`bool`).
+
+def e() -> list:
+    # Function returns a free-form list (`list`).
+    # (if you can predict the types of list items, consider using `List`)
+
+def f() -> dict:
+    # Function returns a free-form dictionary (`dict`).
+    # (if you can predict the types of dictionary keys / values, consider using `Dict`)
+
+def g() -> Union[str, None]:
+    # Function returns either a 'str' value or `None`.
+
+def h(arg1: Dict[str, int]) -> None:
     # `arg1` is expected to be a `dict` with `str` keys and `int` values.
     # Function doesn't return anything.
 
-def d(arg1: List[str]) -> None:
+def i(arg1: List[str]) -> None:
     # `arg1` is expected to be `list` with `str` items.
     # Function doesn't return anything.
 
-def e(arg1: List[Dict[str, int]]) -> None:
+def j(arg1: List[Dict[str, int]]) -> None:
     # `arg1` is expected to be a `list` of `dict`s with `str` keys and `int` values.
     # Function doesn't return anything.    
 
-def f(arg2: Callable[[], None]) -> None:
-    # `arg1` is expected to be a function with no parameters.
+def k(arg1: Callable[[], None]) -> None:
+    # `arg1` is expected to be a function which:
+    #     * doesn't have parameters, and
+    #     * doesn't return anything.
     # Function doesn't return anything.
 
-def g(arg1: CustomType) -> None:
+def l(arg1: Callable[[str, int], bool]) -> None:
+    # `arg1` is expected to be a function which:
+    #     * accepts two parameters - `str` and `int`, and
+    #     * returns `bool`.
+    # Function doesn't return anything.
+
+def m(arg1: CustomType) -> None:
     # `arg1` is expected to be an object of type `CustomType`.
     # Function doesn't return anything.
 
-def h(arg1: Any) -> None:
+def n(arg1: Any) -> None:
     # `arg1` is expected to be of any type (generally discouraged though).
     # Function doesn't return anything.
 ```
