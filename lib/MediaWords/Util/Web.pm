@@ -703,7 +703,7 @@ use MediaWords::Util::URL;
         $self->{ _ua }->timing( $timing );
     }
 
-    # Alias for timeout()
+    # timeout() getter
     sub timeout($)
     {
         my ( $self ) = @_;
