@@ -109,8 +109,18 @@ sub corenlp : Local
         next if ( $json_list->{ $stories_id } );
 
         my $json;
-        eval { $json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story( $db, $stories_id ) };
-        $json ||= '"story is not annotated"';
+
+        my $story = $db->find_by_id( 'stories', $stories_id );
+        if ( !$story )
+        {
+            # mostly useful for testing this end point without triggering a fatal error because corenlp is not enabled
+            $json = '"story does not exist"';
+        }
+        else
+        {
+            eval { $json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story( $db, $stories_id ) };
+            $json ||= '"story is not annotated"';
+        }
 
         $json_list->{ $stories_id } = $json;
 

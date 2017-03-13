@@ -104,6 +104,20 @@ SQL
     }
 }
 
+sub test_stories_count($)
+{
+    my ( $db ) = @_;
+
+    my $stories = $db->query( "select * from stories order by stories_id asc limit 23" )->hashes;
+
+    my $stories_ids_list = join( ' ', map { $_->{ stories_id } } @{ $stories } );
+
+    my $r = test_get( '/api/v2/stories/count', { q => "stories_id:($stories_ids_list)" } );
+
+    is( $r->{ count }, scalar( @{ $stories } ), "stories/count count" );
+
+}
+
 # test auth/profile call
 sub test_auth_profile($)
 {
@@ -1527,6 +1541,25 @@ sub test_stats_list($)
     map { is( $r->{ $_ }, $ms->{ $_ }, "$label field '$_'" ) } @{ $fields };
 }
 
+sub test_stories_corenlp($)
+{
+    my ( $db ) = @_;
+
+    # TODO add infrastructure to actually generate corenlp and test it
+
+    my $label = "stories/corenlp";
+
+    # pick a stories_id that does not exist so that we make the end point just tell us that the
+    # end point does not exist instead of triggering a fatal error
+    my $stories_id = -1;
+
+    my $r = test_get( '/api/v2/stories/corenlp', { stories_id => $stories_id } );
+
+    is( scalar( @{ $r } ),         1,                      "$label num stories returned" );
+    is( $r->[ 0 ]->{ stories_id }, $stories_id,            "$label stories_id" );
+    is( $r->[ 0 ]->{ corenlp },    "story does not exist", "$label does not exist message" );
+}
+
 # test whether we have at least requested every api end point outside of topics/
 sub test_coverage()
 {
@@ -1552,6 +1585,8 @@ sub test_api($)
     MediaWords::Test::API::setup_test_api_key( $db );
 
     test_stories_public_list( $db, $media );
+    test_stories_count( $db );
+
     test_auth( $db );
     test_media( $db, $media );
     test_tag_sets( $db );
@@ -1574,6 +1609,8 @@ sub test_api($)
     test_sentences( $db );
 
     test_stats_list( $db );
+
+    test_stories_corenlp( $db );
 
     test_coverage();
 }
