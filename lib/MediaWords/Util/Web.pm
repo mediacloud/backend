@@ -460,43 +460,70 @@ use MediaWords::Util::URL;
         my %http_codes_hr = map { $_ => 1 } @DETERMINED_HTTP_CODES;
         $ua->codes_to_determinate( \%http_codes_hr );
 
+        # Default "before" callback
+        $self->{ _before_determined_callback } = sub {
+
+            # Coming from ::Web::UserAgent
+            my ( $ua, $request, $timing, $duration, $codes_to_determinate ) = @_;
+            my $url = $request->url;
+
+            TRACE "Trying $url ...";
+        };
+
         # Won't be called if timing() is unset
         $ua->before_determined_callback(
             sub {
+                # Coming from LWP::UserAgent
                 my ( $ua, $timing, $duration, $codes_to_determinate, $lwp_args ) = @_;
                 my $request = MediaWords::Util::Web::UserAgent::Request->new_from_http_request( $lwp_args->[ 0 ] );
-                my $url     = $request->url;
 
-                TRACE "Trying $url ...";
+                if ( defined $self->{ _before_determined_callback } )
+                {
+                    $self->{ _before_determined_callback }->( $self, $request, $timing, $duration, $codes_to_determinate );
+                }
             }
         );
+
+        # Default "after" callback
+        $self->{ _after_determined_callback } = sub {
+
+            # Coming from ::Web::UserAgent
+            my ( $ua, $request, $response, $timing, $duration, $codes_to_determinate ) = @_;
+
+            my $url = $request->url;
+
+            unless ( $response->is_success )
+            {
+                my $will_retry = 0;
+                if ( $codes_to_determinate->{ $response->code } )
+                {
+                    $will_retry = 1;
+                }
+
+                my $message = "Request to $url failed (" . $response->status_line . "), ";
+                if ( $response->error_is_client_side() )
+                {
+                    $message .= 'error is on the client side, ';
+                }
+
+                DEBUG "$message " . ( ( $will_retry && $duration ) ? "retry in ${ duration }s" : "give up" );
+                TRACE "full response: " . $response->as_string;
+            }
+        };
 
         # Won't be called if timing() is unset
         $ua->after_determined_callback(
             sub {
+                # Coming from LWP::UserAgent
                 my ( $ua, $timing, $duration, $codes_to_determinate, $lwp_args, $response ) = @_;
 
                 my $request = MediaWords::Util::Web::UserAgent::Request->new_from_http_request( $lwp_args->[ 0 ] );
                 $response = MediaWords::Util::Web::UserAgent::Response->new_from_http_response( $response );
 
-                my $url = $request->url;
-
-                unless ( $response->is_success )
+                if ( defined $self->{ _after_determined_callback } )
                 {
-                    my $will_retry = 0;
-                    if ( $codes_to_determinate->{ $response->code } )
-                    {
-                        $will_retry = 1;
-                    }
-
-                    my $message = "Request to $url failed (" . $response->status_line . "), ";
-                    if ( $response->error_is_client_side() )
-                    {
-                        $message .= 'error is on the client side, ';
-                    }
-
-                    DEBUG "$message " . ( ( $will_retry && $duration ) ? "retry in ${ duration }s" : "give up" );
-                    TRACE "full response: " . $response->as_string;
+                    $self->{ _after_determined_callback }
+                      ->( $self, $request, $response, $timing, $duration, $codes_to_determinate );
                 }
             }
         );
@@ -692,28 +719,28 @@ use MediaWords::Util::URL;
     sub before_determined_callback($)
     {
         my ( $self ) = @_;
-        return $self->{ _ua }->before_determined_callback();
+        return $self->{ _before_determined_callback };
     }
 
     # before_determined_callback() setter
     sub set_before_determined_callback($$)
     {
         my ( $self, $before_determined_callback ) = @_;
-        $self->{ _ua }->before_determined_callback( $before_determined_callback );
+        $self->{ _before_determined_callback } = $before_determined_callback;
     }
 
     # after_determined_callback() getter
     sub after_determined_callback($)
     {
         my ( $self ) = @_;
-        return $self->{ _ua }->after_determined_callback();
+        return $self->{ _after_determined_callback };
     }
 
     # after_determined_callback() setter
     sub set_after_determined_callback($$)
     {
         my ( $self, $after_determined_callback ) = @_;
-        $self->{ _ua }->after_determined_callback( $after_determined_callback );
+        $self->{ _after_determined_callback } = $after_determined_callback;
     }
 
     # max_redirect() getter

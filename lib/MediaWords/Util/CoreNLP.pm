@@ -261,9 +261,9 @@ sub _annotate_text($)
     my $old_after_determined_callback = $ua->after_determined_callback;
     $ua->set_after_determined_callback(
         sub {
-            my ( $ua, $timing, $duration, $codes_to_determinate, $lwp_args, $response ) = @_;
-            my $request = $lwp_args->[ 0 ];
-            my $url     = $request->url;
+            my ( $ua, $request, $response, $timing, $duration, $codes_to_determinate ) = @_;
+
+            my $url = $request->url;
 
             unless ( $response->is_success )
             {
@@ -283,7 +283,7 @@ sub _annotate_text($)
             }
 
             # Otherwise call the original callback subroutine
-            $old_after_determined_callback->( $ua, $timing, $duration, $codes_to_determinate, $lwp_args, $response );
+            $old_after_determined_callback->( $ua, $request, $response, $timing, $duration, $codes_to_determinate );
         }
     );
 
