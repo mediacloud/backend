@@ -399,4 +399,35 @@ sub original_url_from_archive_url($$)
     return $original_url;
 }
 
+# If the response has a meta tag or is an archive url, parse out the original
+# url and treat it as a redirect by inserting it into the response chain.
+# Otherwise, just return the original response.
+#
+# FIXME maybe make it into a ::Web::UserAgent::Response method later on?
+sub get_meta_redirect_response
+{
+    my ( $response, $url ) = @_;
+
+    unless ( $response->is_success )
+    {
+        return $response;
+    }
+
+    my $content = $response->decoded_content;
+
+    for my $f ( \&meta_refresh_url_from_html, \&original_url_from_archive_url )
+    {
+        my $redirect_url = $f->( $content, $url );
+        next unless ( $redirect_url );
+
+        my $ua                = MediaWords::Util::Web::UserAgent->new();
+        my $redirect_response = $ua->get( $redirect_url );
+        $redirect_response->set_previous( $response );
+
+        $response = $redirect_response;
+    }
+
+    return $response;
+}
+
 1;

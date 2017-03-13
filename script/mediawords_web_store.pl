@@ -29,6 +29,7 @@ use Parallel::ForkManager;
 use Storable;
 use Readonly;
 
+use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 
 # number of processes to run in parallel
@@ -177,7 +178,7 @@ sub main
 
             my $response = $ua->get( $request->{ url } );
 
-            $response = MediaWords::Util::Web::get_meta_redirect_response( $response, $request->{ url } );
+            $response = MediaWords::Util::URL::get_meta_redirect_response( $response, $request->{ url } );
 
             INFO "got [$i/$block_size/$total]: $request->{ url }";
 

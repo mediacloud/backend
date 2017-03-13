@@ -22,7 +22,6 @@ use Readonly;
 use Storable;
 
 use MediaWords::Util::Paths;
-use MediaWords::Util::URL;
 
 {
     # Wrapper around HTTP::Request
@@ -774,39 +773,6 @@ use MediaWords::Util::URL;
     }
 
     1;
-}
-
-=head2 get_meta_redirect_response( $response, $url )
-
-If thee response has a meta tag or is an archive url, parse out the original url and treat it as a redirect
-by inserting it into the response chain.   Otherwise, just return the original response.
-
-=cut
-
-sub get_meta_redirect_response
-{
-    my ( $response, $url ) = @_;
-
-    unless ( $response->is_success )
-    {
-        return $response;
-    }
-
-    my $content = $response->decoded_content;
-
-    for my $f ( \&MediaWords::Util::URL::meta_refresh_url_from_html, \&MediaWords::Util::URL::original_url_from_archive_url )
-    {
-        my $redirect_url = $f->( $content, $url );
-        next unless ( $redirect_url );
-
-        my $ua                = MediaWords::Util::Web::UserAgent->new();
-        my $redirect_response = $ua->get( $redirect_url );
-        $redirect_response->set_previous( $response );
-
-        $response = $redirect_response;
-    }
-
-    return $response;
 }
 
 1;

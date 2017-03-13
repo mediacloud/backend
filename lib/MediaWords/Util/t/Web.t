@@ -4,7 +4,7 @@ use warnings;
 use utf8;
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 8;
+use Test::More tests => 3;
 
 use Readonly;
 use Data::Dumper;
@@ -22,42 +22,6 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 
     use_ok( 'MediaWords::Util::Web' );
-}
-
-sub test_get_meta_redirect_response()
-{
-    my $label = "test_get_meta_redirect_response";
-
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, { '/foo' => 'foo bar' } );
-    $hs->start;
-
-    my $redirect_url = "http://localhost:$TEST_HTTP_SERVER_PORT/foo";
-    my $original_url = "http://foo.bar";
-
-    my $meta_tag = '<meta http-equiv="refresh" content="0;URL=\'' . $redirect_url . '\'" />';
-    my $response =
-      MediaWords::Util::Web::UserAgent::Response->new_from_http_response( HTTP::Response->new( 200, 'OK', [], $meta_tag ) );
-    $response->set_request( MediaWords::Util::Web::UserAgent::Request->new( 'GET', $original_url ) );
-
-    my $got_response = MediaWords::Util::Web::get_meta_redirect_response( $response, $original_url );
-
-    ok( $got_response->is_success, "$label meta response succeeded" );
-
-    is( $got_response->decoded_content, 'foo bar', "label redirected content" );
-
-    # check that the response for the meta refresh redirected page got added to the end of the response chain
-    is( $got_response->request->url,           $redirect_url, "$label end url of response chain" );
-    is( $got_response->previous->request->url, $original_url, "$label previous url in response chain" );
-
-    $hs->stop;
-
-    $response =
-      MediaWords::Util::Web::UserAgent::Response->new_from_http_response(
-        HTTP::Response->new( 200, 'OK', [], 'no meta refresh' ) );
-    $got_response = MediaWords::Util::Web::get_meta_redirect_response( $response, $original_url );
-
-    is( $got_response, $response, "$label no meta same response" );
-
 }
 
 sub test_lwp_user_agent_retries()
@@ -99,7 +63,6 @@ sub main()
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
-    test_get_meta_redirect_response();
     test_lwp_user_agent_retries();
 }
 
