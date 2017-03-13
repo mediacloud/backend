@@ -1,3 +1,11 @@
+#
+# Python module requirements
+# ---
+#
+# 1. Keep the list in alphabetical order
+# 2. Write a short description for how this module is being used
+#
+
 # Unit test coverage
 coverage
 
