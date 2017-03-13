@@ -3,10 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <script type="text/javascript" src="[% c.uri_for( '/script/protovis-r3.2.js' ) %]"></script>
     <script type="text/javascript" src="[% c.uri_for( '/script/jquery-1.4.2.min.js' ) %]"></script>
-    <script type="text/javascript" src="[% c.uri_for( '/script/jquery.tipsy.js' ) %]"></script>
-    <script type="text/javascript" src="[% c.uri_for( '/script/tipsy.js' ) %]"></script>
     
     <title>
       Media Words: [% title | html %]
@@ -15,7 +12,6 @@
     <link href="[% c.uri_for('/include/style.css') %]" rel="stylesheet" type="text/css" />
     <link href="[% c.uri_for('/include/vertically-aligned.css') %]" rel="stylesheet" type="text/css" />
     <link href="[% c.uri_for('/include/clusterstyle.css') %]" rel="stylesheet" type="text/css" />
-    <link href="[% c.uri_for('/include/tipsy.css') %]" rel="stylesheet" type="text/css" />
     <link href="[% c.uri_for( '/include/word_cloud.css' ) %]" rel="stylesheet" type="text/css" />
     
     <!--[if IE]>
