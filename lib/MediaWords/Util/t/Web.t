@@ -37,7 +37,7 @@ sub test_get_meta_redirect_response()
     my $meta_tag = '<meta http-equiv="refresh" content="0;URL=\'' . $redirect_url . '\'" />';
     my $response =
       MediaWords::Util::Web::UserAgent::Response->new_from_http_response( HTTP::Response->new( 200, 'OK', [], $meta_tag ) );
-    $response->request( MediaWords::Util::Web::UserAgent::Request->new( 'GET', $original_url ) );
+    $response->set_request( MediaWords::Util::Web::UserAgent::Request->new( 'GET', $original_url ) );
 
     my $got_response = MediaWords::Util::Web::get_meta_redirect_response( $response, $original_url );
 

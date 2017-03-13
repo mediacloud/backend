@@ -333,21 +333,23 @@ use MediaWords::Util::URL;
         $self->{ _previous } = $previous;
     }
 
-    # Alias for request()
-    sub request($;$)
+    # request() getter
+    sub request($)
+    {
+        my ( $self ) = @_;
+        return $self->{ _request };
+    }
+
+    # request() setter
+    sub set_request($$)
     {
         my ( $self, $request ) = @_;
 
-        if ( $request )
+        unless ( ref( $request ) eq 'MediaWords::Util::Web::UserAgent::Request' )
         {
-            unless ( ref( $request ) eq 'MediaWords::Util::Web::UserAgent::Request' )
-            {
-                LOGCONFESS "Request is not MediaWords::Util::Web::UserAgent::Request: " . Dumper( $request );
-            }
-            $self->{ _request } = $request;
+            LOGCONFESS "Request is not MediaWords::Util::Web::UserAgent::Request: " . Dumper( $request );
         }
-
-        return $self->{ _request };
+        $self->{ _request } = $request;
     }
 
     # Walk back from the given response to get the original request that generated the response.
@@ -633,7 +635,7 @@ use MediaWords::Util::URL;
             {
                 my $http_response = HTTP::Response->new( '500', "web store timeout for $result->{ url }" );
                 $response = MediaWords::Util::Web::UserAgent::Response->new_from_http_response( $http_response );
-                $response->request( MediaWords::Util::Web::UserAgent::Request->new( 'GET', $result->{ url } ) );
+                $response->set_request( MediaWords::Util::Web::UserAgent::Request->new( 'GET', $result->{ url } ) );
 
                 push( @{ $responses }, $response );
             }
