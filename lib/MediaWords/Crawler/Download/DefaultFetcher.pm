@@ -83,7 +83,7 @@ sub _add_http_auth
 
     if ( my $auth = $auth_lookup->{ lc( $domain ) } )
     {
-        $request->authorization_basic( $auth->{ user }, $auth->{ password } );
+        $request->set_authorization_basic( $auth->{ user }, $auth->{ password } );
     }
 }
 

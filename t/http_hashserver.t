@@ -66,12 +66,12 @@ sub main
     is( $content, undef, 'fail auth / no auth' );
 
     my $request = MediaWords::Util::Web::UserAgent::Request->new( 'GET', $auth_url );
-    $request->authorization_basic( 'foo', 'bar' );
+    $request->set_authorization_basic( 'foo', 'bar' );
     my $response = $ua->request( $request );
     is( $response->decoded_content, 'foo bar', 'pass auth' );
 
     $request = MediaWords::Util::Web::UserAgent::Request->new( 'GET', $auth_url );
-    $request->authorization_basic( 'foo', 'foo' );
+    $request->set_authorization_basic( 'foo', 'foo' );
     $response = $ua->request( $request );
 
     is( $response->status_line, "401 Access Denied", 'fail auth / bad password' );

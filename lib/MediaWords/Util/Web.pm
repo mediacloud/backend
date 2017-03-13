@@ -182,14 +182,14 @@ use MediaWords::Util::URL;
         $self->{ _request }->content( $content );
     }
 
+    # No authorization_basic() getter
+
     # authorization_basic() setter
-    sub authorization_basic($$$)
+    sub set_authorization_basic($$$)
     {
         my ( $self, $username, $password ) = @_;
         $self->{ _request }->authorization_basic( $username, $password );
     }
-
-    # No authorization_basic() getter
 
     # Alias for as_string()
     sub as_string($)
