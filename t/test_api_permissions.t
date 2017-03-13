@@ -73,7 +73,6 @@ my $_url_permission_types = {
     '/api/v2/storiesbase/list'                    => 'public',
     '/api/v2/storiesbase/single'                  => 'public',
     '/api/v2/storiesbase/word_matrix'             => 'public',
-    '/api/v2/stories/cluster_stories'             => 'admin_read',
     '/api/v2/stories/corenlp'                     => 'admin_read',
     '/api/v2/stories/count'                       => 'public',
     '/api/v2/stories/fetch_bitly_clicks'          => 'admin_read',

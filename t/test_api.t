@@ -20,6 +20,7 @@ use Readonly;
 use Test::More;
 
 use MediaWords::DBI::Media::Health;
+use MediaWords::DBI::Stats;
 use MediaWords::Test::API;
 use MediaWords::Test::DB;
 use MediaWords::Test::Solr;
@@ -1178,16 +1179,6 @@ sub test_topics_crud($)
     my ( $db ) = @_;
 }
 
-# test whether we have at least requested every api end point outside of topics/
-sub test_coverage()
-{
-    my $untested_urls = MediaWords::Test::API::get_untested_api_urls();
-
-    $untested_urls = [ grep { $_ !~ m~/topics/~ } @{ $untested_urls } ];
-
-    ok( scalar( @{ $untested_urls } ) == 0, "end points not requested: " . join( ', ', @{ $untested_urls } ) );
-}
-
 # test wc/list end point
 sub test_wc_list($)
 {
@@ -1488,12 +1479,62 @@ SQL
     map { is( $got_tag->{ $_ }, $tag->{ $_ }, "$label field '$_'" ) } ( qw/tag tags_id label tag_sets_id/ );
 }
 
+sub test_sentences_list($)
+{
+    my ( $db ) = @_;
+
+    my $label = "setences/list";
+
+    my $stories     = $db->query( "select * from stories order by stories_id asc limit 10" )->hashes;
+    my $stories_ids = [ map { $_->{ stories_id } } @{ $stories } ];
+    my $ss          = $db->query( 'select * from story_sentences where stories_id in ( ?? )', @{ $stories_ids } )->hashes;
+
+    my $stories_ids_list = join( ' ', @{ $stories_ids } );
+    my $r = test_get( '/api/v2/sentences/list', { q => "stories_id:($stories_ids_list) and sentence:[* TO *]" } );
+
+    is( $r->{ response }->{ numFound }, scalar( @{ $ss } ), "$label num found" );
+
+    my $fields = [ qw/stories_id media_id sentence/ ];
+    rows_match( $label, $r->{ response }->{ docs }, $ss, 'story_sentences_id', $fields );
+}
+
 sub test_sentences($)
 {
     my ( $db ) = @_;
 
     test_sentences_count( $db );
     test_sentences_field_count( $db );
+    test_sentences_list( $db );
+}
+
+sub test_stats_list($)
+{
+    my ( $db ) = @_;
+
+    my $label = "stats/list";
+
+    MediaWords::DBI::Stats::refresh_stats( $db );
+
+    my $ms = $db->query( "select * from mediacloud_stats" )->hash;
+
+    my $r = test_get( '/api/v2/stats/list', {} );
+
+    my $fields = [
+        qw/stats_date daily_downloads daily_stories active_crawled_media active_crawled_feeds/,
+        qw/total_stories total_downloads total_sentences/
+    ];
+
+    map { is( $r->{ $_ }, $ms->{ $_ }, "$label field '$_'" ) } @{ $fields };
+}
+
+# test whether we have at least requested every api end point outside of topics/
+sub test_coverage()
+{
+    my $untested_urls = MediaWords::Test::API::get_untested_api_urls();
+
+    $untested_urls = [ grep { $_ !~ m~/topics/~ } @{ $untested_urls } ];
+
+    ok( scalar( @{ $untested_urls } ) == 0, "end points not requested: " . join( ', ', @{ $untested_urls } ) );
 }
 
 # test parts of the ai that only require reading, so we can test these all in one chunk
@@ -1526,12 +1567,13 @@ sub test_api($)
     test_controversy_dump_time_slices( $db );
 
     test_downloads( $db );
-
     test_mediahealth( $db );
 
     test_wc_list( $db );
 
     test_sentences( $db );
+
+    test_stats_list( $db );
 
     test_coverage();
 }

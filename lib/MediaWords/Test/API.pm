@@ -199,7 +199,7 @@ sub get_untested_api_urls()
     my $ignore_urls = [
         '/api/v2/mc_rest_simpleobject/list', '/api/v2/mc_rest_simpleobject/single',
         '/api/v2/storiesbase/list',          '/api/v2/storiesbase/single',
-        '/api/v2/mediahealth/single'
+        '/api/v2/mediahealth/single',        '/api/v2/sentences/single'
     ];
 
     map { $_api_requested_urls_lookup->{ $_ } = 1 } @{ $ignore_urls };

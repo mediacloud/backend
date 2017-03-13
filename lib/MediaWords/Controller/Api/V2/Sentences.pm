@@ -205,6 +205,9 @@ sub list_GET
 
     _attach_data_to_sentences( $c->dbis, $sentences );
 
+    MediaWords::Util::JSON::numify_fields( $sentences, [ qw/stories_id story_sentences_id/ ] );
+    MediaWords::Util::JSON::numify_fields( [ $entity->{ responseHeader }->{ params } ], [ qw/rows start/ ] );
+
     $self->status_ok( $c, entity => $entity );
 }
 
@@ -347,6 +350,12 @@ sub field_count_GET
     my $counts = $fc->get_counts;
 
     $self->status_ok( $c, entity => $counts );
+}
+
+# override
+sub single_GET
+{
+    die( "not implemented" );
 }
 
 1;

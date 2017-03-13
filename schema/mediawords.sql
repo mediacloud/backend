@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4614;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4615;
 
 BEGIN
 
@@ -3068,6 +3068,7 @@ create index media_suggestions_tags_map_tag on media_suggestions_tags_map ( tags
 
 -- keep track of basic high level stats for mediacloud for access through api
 create table mediacloud_stats (
+    mediacloud_stats_id     serial primary key,
     stats_date              date not null default now(),
     daily_downloads         bigint not null,
     daily_stories           bigint not null,
