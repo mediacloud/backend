@@ -75,7 +75,7 @@ sub main
 
     plan tests => 3;
 
-    extract_and_compare( 'gv', 'index.html.1', 'Brazil: Amplified conversations to fight the Digital Crimes Bill' );
+    extract_and_compare( 'gv', 'index_1.html', 'Brazil: Amplified conversations to fight the Digital Crimes Bill' );
 
     Test::NoWarnings::had_no_warnings();
 }
