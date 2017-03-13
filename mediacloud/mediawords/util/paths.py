@@ -33,6 +33,11 @@ def mc_root_path() -> str:
     return root_path
 
 
+def mc_sql_schema_path() -> str:
+    """Return full path to SQL schema (mediawords.sql)."""
+    return os.path.join(mc_root_path(), 'schema', 'mediawords.sql')
+
+
 def mkdir_p(path: str) -> None:
     """mkdir -p"""
 

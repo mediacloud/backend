@@ -13,14 +13,20 @@ class Logger(object):
     def __init__(self, name: str):
         """Initialize logger object for a given name."""
         # noinspection SpellCheckingInspection
-        formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(module)s - %(message)s')
-
-        handler = logging.StreamHandler()
-        handler.setFormatter(formatter)
 
         self.__l = logging.getLogger(name)
-        self.__l.setLevel(self.__default_logging_level)
-        self.__l.addHandler(handler)
+        if not self.__l.handlers:
+            formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(module)s - %(message)s')
+
+            handler = logging.StreamHandler()
+            handler.setFormatter(formatter)
+
+            self.__l.setLevel(self.__default_logging_level)
+            self.__l.addHandler(handler)
+
+            # Don't propagate handler to root logger
+            # (http://stackoverflow.com/a/21127526/200603)
+            self.__l.propagate = False
 
     def error(self, message: str) -> None:
         """Log error message."""
