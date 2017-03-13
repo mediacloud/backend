@@ -4,3 +4,6 @@
 [submodule "root/script/non-free/amcharts3"]
 	path = root/script/non-free/amcharts3
 	url = https://github.com/amcharts/amcharts3.git
+[submodule "root/include/libs/handsontable"]
+	path = root/include/libs/handsontable
+	url = https://github.com/handsontable/handsontable.git

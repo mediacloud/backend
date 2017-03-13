@@ -41,11 +41,11 @@
     <link href="[% c.uri_for('/include/tipsy.css') %]" rel="stylesheet" type="text/css" />
     <link href="[% c.uri_for( '/include/word_cloud.css' ) %]" rel="stylesheet" type="text/css" />
 
-    <script src="[% c.uri_for('/include/libs/handsontable-0.13.0/dist/handsontable.full.js') %]"></script>
-    <link rel="stylesheet" media="screen" href="[% c.uri_for('/include/libs/handsontable-0.13.0/dist/handsontable.full.css') %]">
+    <script src="[% c.uri_for('/include/libs/handsontable/dist/handsontable.full.js') %]"></script>
+    <link rel="stylesheet" media="screen" href="[% c.uri_for('/include/libs/handsontable/dist/handsontable.full.css') %]">
 
-    <script src="[% c.uri_for('/include/libs/handsontable-0.13.0/plugins/removeRow/handsontable.removeRow.js') %]"></script>
-    <link rel="stylesheet" media="screen" href="[% c.uri_for('/include/libs/handsontable-0.13.0/plugins/removeRow/handsontable.removeRow.css') %]">
+    <script src="[% c.uri_for('/include/libs/handsontable/plugins/removeRow/handsontable.removeRow.js') %]"></script>
+    <link rel="stylesheet" media="screen" href="[% c.uri_for('/include/libs/handsontable/plugins/removeRow/handsontable.removeRow.css') %]">
 
     <!--[if IE]>
   <style type="text/css" media="all">
