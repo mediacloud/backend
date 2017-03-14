@@ -398,6 +398,8 @@ sub add_topic
         is_public       => normalize_boolean_for_db( $is_public ),
         start_date      => '2017-01-01',
         end_date        => '2017-02-01',
+        job_queue       => 'mc',
+        max_stories     => 100_000,
     };
 
     $topic = $db->create( 'topics', $topic );
