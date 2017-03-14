@@ -148,6 +148,8 @@ sub rows_match($$$$$)
 {
     my ( $label, $got_rows, $expected_rows, $id_field, $test_fields ) = @_;
 
+    ok( defined( $got_rows ), "$label got_rows defined" );
+
     # just return if the number is not equal to avoid printing a bunch of uncessary errors
     is( scalar( @{ $got_rows } ), scalar( @{ $expected_rows } ), "$label number of rows" ) || return;
 
@@ -199,6 +201,7 @@ sub get_untested_api_urls()
     my $ignore_urls = [
         '/api/v2/mc_rest_simpleobject/list', '/api/v2/mc_rest_simpleobject/single',
         '/api/v2/storiesbase/list',          '/api/v2/storiesbase/single',
+        '/api/v2/storiesbase/count',         '/api/v2/storiesbase/word_matrix',
         '/api/v2/mediahealth/single',        '/api/v2/sentences/single'
     ];
 

@@ -268,7 +268,6 @@ END
 
     if ( $self->{ show_sentences } )
     {
-
         # first create a temporary table so that postgres can generate a sane query plan that
         # doesn't result in a seq scan on story_sentences_tags_map
         $db->query( <<SQL );
@@ -294,6 +293,7 @@ SQL
                 )->hashes;
             }
         );
+
         MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $sentences, 'story_sentences' );
 
         _split_sentence_tags_list( $stories );
@@ -489,7 +489,7 @@ sub word_matrix_GET
 
     my ( $word_matrix, $word_list ) = MediaWords::DBI::Stories::get_story_word_matrix( $db, $stories_ids );
 
-    $self->status_ok( $c, entity => [ word_matrix => $word_matrix, word_list => $word_list ] );
+    $self->status_ok( $c, entity => { word_matrix => $word_matrix, word_list => $word_list } );
 
 }
 

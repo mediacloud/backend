@@ -173,6 +173,12 @@ sub fetch_bitly_clicks : Local
     if ( $stories_id )
     {
         $response->{ stories_id } = $stories_id;
+        my $story = $db->find_by_id( 'stories', $stories_id );
+        if ( !$story )
+        {
+            $self->status_bad_request( $c, message => "stories_id '$stories_id' does not exist" );
+            return;
+        }
     }
     elsif ( $stories_url )
     {

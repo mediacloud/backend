@@ -1048,6 +1048,7 @@ declare $cursor cursor for
         from story_sentences
         where stories_id in ( select id from $ids_table )
         group by stories_id, language
+        order by stories_id, language
 SQL
 
     return $cursor;

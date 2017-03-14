@@ -18,6 +18,7 @@ use MediaWords::CommonLibs;
 use HTTP::HashServer;
 use Readonly;
 use Test::More;
+use Test::Deep;
 
 use MediaWords::DBI::Media::Health;
 use MediaWords::DBI::Stats;
@@ -113,6 +114,10 @@ sub test_stories_count($)
     my $stories_ids_list = join( ' ', map { $_->{ stories_id } } @{ $stories } );
 
     my $r = test_get( '/api/v2/stories/count', { q => "stories_id:($stories_ids_list)" } );
+
+    is( $r->{ count }, scalar( @{ $stories } ), "stories/count count" );
+
+    $r = test_get( '/api/v2/stories_public/count', { q => "stories_id:($stories_ids_list)" } );
 
     is( $r->{ count }, scalar( @{ $stories } ), "stories/count count" );
 
@@ -891,6 +896,16 @@ sub test_tag_sets($)
 
     $r = test_put( '/api/v2/tag_sets/update', $update_input );
     validate_db_row( $db, 'tag_sets', $r->{ tag_set }, $update_input, 'update tag set' );
+
+    my $tag_sets       = $db->query( "select * from tag_sets" )->hashes;
+    my $got_tag_sets   = test_get( '/api/v2/tag_sets/list' );
+    my $tag_set_fields = [ qw/name label description show_on_media show_on_stories/ ];
+    rows_match( "tag_sets/list", $got_tag_sets, $tag_sets, 'tag_sets_id', $tag_set_fields );
+
+    my $tag_set = $tag_sets->[ 0 ];
+    $got_tag_sets = test_get( '/api/v2/tag_sets/single/' . $tag_set->{ tag_sets_id }, {} );
+    rows_match( "tag_sets/single", $got_tag_sets, [ $tag_set ], 'tag_sets_id', $tag_set_fields );
+
 }
 
 # test feeds/list and single
@@ -1560,6 +1575,145 @@ sub test_stories_corenlp($)
     is( $r->[ 0 ]->{ corenlp },    "story does not exist", "$label does not exist message" );
 }
 
+sub test_stories_fetch_bitly_clicks($)
+{
+    my ( $db ) = @_;
+
+    # TODO add infrastructure to be able to test direct fetch from bitly
+
+    # barring ability to test bitly fetch, just request a non-existent stories_id
+    my $stories_id = -1;
+
+    my $params = { stories_id => $stories_id, start_timestamp => '2016-01-01', end_timestamp => '2017-01-01' };
+    my $r = test_get( '/api/v2/stories/fetch_bitly_clicks', $params, 1 );
+
+    is( $r->{ error }, "stories_id '-1' does not exist" );
+}
+
+sub test_stories_list($)
+{
+    my ( $db ) = @_;
+
+    my $label = "stories/list";
+
+    my $stories = $db->query( <<SQL )->hashes;
+select s.*,
+        m.name media_name,
+        m.url media_url,
+        false ap_syndicated
+    from stories s
+        join media m using ( media_id )
+    order by stories_id
+    limit 10
+SQL
+
+    my $stories_ids_list = join( ' ', map { $_->{ stories_id } } @{ $stories } );
+
+    my $params = {
+        q                => "stories_id:( $stories_ids_list )",
+        raw_1st_download => 1,
+        sentences        => 1,
+        text             => 1,
+        corenlp          => 0
+    };
+
+    my $got_stories = test_get( '/api/v2/stories/list', $params );
+
+    my $fields = [ qw/title description publish_date language collect_date ap_syndicated media_id media_name media_url/ ];
+    rows_match( $label, $got_stories, $stories, 'stories_id', $fields );
+
+    my $got_stories_lookup = {};
+    map { $got_stories_lookup->{ $_->{ stories_id } } = $_ } @{ $got_stories };
+
+    for my $story ( @{ $stories } )
+    {
+        my $sid       = $story->{ stories_id };
+        my $got_story = $got_stories_lookup->{ $story->{ stories_id } };
+
+        my $sentences = $db->query( "select * from story_sentences where stories_id = ?", $sid )->hashes;
+        my $download_text = $db->query( <<SQL, $sid )->hash;
+select dt.*
+    from download_texts dt
+        join downloads d using ( downloads_id )
+    where d.stories_id = ?
+    order by dt.download_texts_id
+    limit 1
+SQL
+        my $content_ref = MediaWords::DBI::Stories::get_content_for_first_download( $db, $story );
+
+        my $ss_fields = [ qw/is_dup language media_id publish_date sentence sentence_number story_sentences_id/ ];
+        rows_match( "$label $sid sentences", $got_story->{ story_sentences }, $sentences, 'story_sentences_id', $ss_fields );
+
+        is( $got_story->{ raw_first_download_file }, $$content_ref, "$label $sid download" );
+        is( $got_story->{ story_text }, $download_text->{ download_text }, "$label $sid download_text" );
+    }
+
+    my $story = $stories->[ 0 ];
+
+    my $got_story = test_get( '/api/v2/stories/single/' . $story->{ stories_id }, {} );
+    rows_match( "stories/single", $got_story, [ $story ], 'stories_id', [ qw/stories_id title publish_date/ ] );
+
+}
+
+sub test_stories_single($)
+{
+    my ( $db ) = @_;
+
+    my $label = "stories/list";
+
+    my $story = $db->query( <<SQL )->hash;
+select s.*,
+        m.name media_name,
+        m.url media_url,
+        false ap_syndicated
+    from stories s
+        join media m using ( media_id )
+    order by stories_id
+    limit 1
+SQL
+
+    my $got_stories = test_get( '/api/v2/stories/list', { q => "stories_id:$story->{ stories_id }" } );
+
+    my $fields = [ qw/title description publish_date language collect_date ap_syndicated media_id media_name media_url/ ];
+    rows_match( $label, $got_stories, [ $story ], 'stories_id', $fields );
+}
+
+sub test_stories_word_matrix($)
+{
+    my ( $db ) = @_;
+
+    my $label = "stories/word_matrix";
+
+    my $stories          = $db->query( "select * from stories order by stories_id limit 17" )->hashes;
+    my $stories_ids      = [ map { $_->{ stories_id } } @{ $stories } ];
+    my $stories_ids_list = join( ' ', @{ $stories_ids } );
+
+    # this functionality is already tested in test_get_story_word_matrix(), so we're just makingn sure no errors
+    # are generated and the return format is correct
+
+    my $r = test_get( '/api/v2/stories/word_matrix', { q => "stories_id:( $stories_ids_list )" } );
+    ok( $r->{ word_matrix }, "$label word matrix present" );
+    ok( $r->{ word_list },   "$label word list present" );
+
+    $r = test_get( '/api/v2/stories_public/word_matrix', { q => "stories_id:( $stories_ids_list )" } );
+    ok( $r->{ word_matrix }, "$label word matrix present" );
+    ok( $r->{ word_list },   "$label word list present" );
+
+}
+
+sub test_stories($$)
+{
+    my ( $db, $media ) = @_;
+
+    test_stories_corenlp( $db );
+    test_stories_fetch_bitly_clicks( $db );
+    test_stories_list( $db );
+    test_stories_single( $db );
+    test_stories_public_list( $db, $media );
+    test_stories_count( $db );
+    test_stories_word_matrix( $db );
+}
+
 # test whether we have at least requested every api end point outside of topics/
 sub test_coverage()
 {
@@ -1584,8 +1738,7 @@ sub test_api($)
 
     MediaWords::Test::API::setup_test_api_key( $db );
 
-    test_stories_public_list( $db, $media );
-    test_stories_count( $db );
+    test_stories( $db, $media );
 
     test_auth( $db );
     test_media( $db, $media );
@@ -1609,8 +1762,6 @@ sub test_api($)
     test_sentences( $db );
 
     test_stats_list( $db );
-
-    test_stories_corenlp( $db );
 
     test_coverage();
 }
