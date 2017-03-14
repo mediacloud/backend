@@ -66,7 +66,7 @@ sub schema_is_up_to_date
     {
         my $self           = shift;
         my $return_value   = $self->{ _python_result }->columns( @_ );
-        my $writable_value = make_python_variable_writable( $return_value );
+        my $writable_value = python_deep_copy( $return_value );
         return wantarray ? @{ $writable_value } : $writable_value;
     }
 
@@ -74,28 +74,28 @@ sub schema_is_up_to_date
     {
         my $self         = shift;
         my $return_value = $self->{ _python_result }->rows( @_ );
-        return make_python_variable_writable( $return_value );
+        return python_deep_copy( $return_value );
     }
 
     sub array
     {
         my $self         = shift;
         my $return_value = $self->{ _python_result }->array( @_ );
-        return make_python_variable_writable( $return_value );
+        return python_deep_copy( $return_value );
     }
 
     sub hash
     {
         my $self         = shift;
         my $return_value = $self->{ _python_result }->hash( @_ );
-        return make_python_variable_writable( $return_value );
+        return python_deep_copy( $return_value );
     }
 
     sub flat
     {
         my $self           = shift;
         my $return_value   = $self->{ _python_result }->flat( @_ );
-        my $writable_value = make_python_variable_writable( $return_value );
+        my $writable_value = python_deep_copy( $return_value );
         return wantarray ? @{ $writable_value } : $writable_value;
     }
 
@@ -103,7 +103,7 @@ sub schema_is_up_to_date
     {
         my $self           = shift;
         my $return_value   = $self->{ _python_result }->hashes( @_ );
-        my $writable_value = make_python_variable_writable( $return_value );
+        my $writable_value = python_deep_copy( $return_value );
         return wantarray ? @{ $writable_value } : $writable_value;
     }
 
@@ -111,7 +111,7 @@ sub schema_is_up_to_date
     {
         my $self         = shift;
         my $return_value = $self->{ _python_result }->text( @_ );
-        return make_python_variable_writable( $return_value );
+        return python_deep_copy( $return_value );
     }
 
     1;
@@ -141,21 +141,21 @@ sub primary_key_column
 {
     my $self         = shift;
     my $return_value = $self->{ _db }->primary_key_column( @_ );
-    return make_python_variable_writable( $return_value );
+    return python_deep_copy( $return_value );
 }
 
 sub find_by_id
 {
     my $self         = shift;
     my $return_value = $self->{ _db }->find_by_id( @_ );
-    return make_python_variable_writable( $return_value );
+    return python_deep_copy( $return_value );
 }
 
 sub require_by_id
 {
     my $self         = shift;
     my $return_value = $self->{ _db }->require_by_id( @_ );
-    return make_python_variable_writable( $return_value );
+    return python_deep_copy( $return_value );
 }
 
 sub select
@@ -181,21 +181,21 @@ sub insert
 {
     my $self         = shift;
     my $return_value = $self->{ _db }->insert( @_ );
-    return make_python_variable_writable( $return_value );
+    return python_deep_copy( $return_value );
 }
 
 sub create
 {
     my $self         = shift;
     my $return_value = $self->{ _db }->create( @_ );
-    return make_python_variable_writable( $return_value );
+    return python_deep_copy( $return_value );
 }
 
 sub find_or_create
 {
     my $self         = shift;
     my $return_value = $self->{ _db }->find_or_create( @_ );
-    return make_python_variable_writable( $return_value );
+    return python_deep_copy( $return_value );
 }
 
 sub query_paged_hashes
@@ -208,7 +208,7 @@ sub get_temporary_ids_table
 {
     my $self         = shift;
     my $return_value = $self->{ _db }->get_temporary_ids_table( @_ );
-    return make_python_variable_writable( $return_value );
+    return python_deep_copy( $return_value );
 }
 
 sub begin
@@ -239,35 +239,35 @@ sub quote
 {
     my $self         = shift;
     my $return_value = $self->{ _db }->quote( @_ );
-    return make_python_variable_writable( $return_value );
+    return python_deep_copy( $return_value );
 }
 
 sub quote_bool
 {
     my $self         = shift;
     my $return_value = $self->{ _db }->quote_bool( @_ );
-    return make_python_variable_writable( $return_value );
+    return python_deep_copy( $return_value );
 }
 
 sub quote_varchar
 {
     my $self         = shift;
     my $return_value = $self->{ _db }->quote_varchar( @_ );
-    return make_python_variable_writable( $return_value );
+    return python_deep_copy( $return_value );
 }
 
 sub quote_date
 {
     my $self         = shift;
     my $return_value = $self->{ _db }->quote_date( @_ );
-    return make_python_variable_writable( $return_value );
+    return python_deep_copy( $return_value );
 }
 
 sub quote_timestamp
 {
     my $self         = shift;
     my $return_value = $self->{ _db }->quote_timestamp( @_ );
-    return make_python_variable_writable( $return_value );
+    return python_deep_copy( $return_value );
 }
 
 sub prepare
@@ -339,7 +339,7 @@ sub copy_from
     {
         my $self         = shift;
         my $return_value = $self->{ _python_result }->get_line( @_ );
-        return make_python_variable_writable( $return_value );
+        return python_deep_copy( $return_value );
     }
 
     sub end
@@ -364,7 +364,7 @@ sub attach_child_query
     my $self = shift;
 
     my $return_value = $self->{ _db }->attach_child_query( @_ );
-    return make_python_variable_writable( $return_value );
+    return python_deep_copy( $return_value );
 }
 
 1;

@@ -45,18 +45,18 @@ my $hashref = python_function();
 $hashref->{ foo } = 'bar';
 ```
 
-To make the returned variable writable, you can use globally available `make_python_variable_writable()` helper which accepts value of any type and returns a deep copy of said variable:
+To make the returned variable writable, you can use globally available `python_deep_copy()` helper which accepts value of any type and returns a deep copy of said variable:
 
 ```perl
 # GOOD!
 my $hashref = python_function();
-$hashref = make_python_variable_writable( $hashref );
+$hashref = python_deep_copy( $hashref );
 $hashref->{ foo } = 'bar';
 ```
 
 This pretty much implies that procedures that edit a parameter variable by reference are a no-no in this brave new world. Simply make them into functions which return a value and use said value.
 
-Values returned from the PostgreSQL database handler are already deep copied, so you don't need to run them through `make_python_variable_writable()` again.
+Values returned from the PostgreSQL database handler are already deep copied, so you don't need to run them through `python_deep_copy()` again.
 
 
 ### Don't call Perl code from Python

@@ -12,6 +12,12 @@ def test_mc_root_path():
     assert os.path.isfile(os.path.join(root_path, 'mediawords.yml.dist'))
 
 
+def test_mc_sql_schema_path():
+    sql_schema_path = mc_sql_schema_path()
+    assert os.path.exists(sql_schema_path)
+    assert os.path.isfile(sql_schema_path)
+
+
 def test_mkdir_p():
     temp_dir = tempfile.mkdtemp()
 

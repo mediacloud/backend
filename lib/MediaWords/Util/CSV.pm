@@ -7,8 +7,6 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Encode;
-use JSON;
-use Text::CSV;
 use Text::CSV_XS;
 
 # various functions for outputting csv
@@ -45,25 +43,12 @@ sub get_hashes_as_encoded_csv
     return $encoded_output;
 }
 
-# send a list of hashes as a csv page through catalyst
-sub send_hashes_as_csv_page
-{
-    my ( $c, $hashes, $title ) = @_;
-
-    my $encoded_output = get_hashes_as_encoded_csv( $hashes );
-
-    $c->res->header( 'Content-Disposition', qq[attachment; filename="$title"] );
-    $c->res->header( 'Content-Length',      bytes::length( $encoded_output ) );
-    $c->res->content_type( 'text/csv; charset=UTF-8' );
-    $c->res->body( $encoded_output );
-}
-
 # given a csv string without headers, return a list of lists of values
 sub get_csv_string_as_matrix
 {
     my ( $string ) = @_;
 
-    my $csv = Text::CSV->new( { binary => 1 } );
+    my $csv = Text::CSV_XS->new( { binary => 1 } );
 
     my $fh;
     open( $fh, '<', \$string );
@@ -116,50 +101,6 @@ sub get_query_as_csv
     my $csv_string = get_hashes_as_encoded_csv( $data, $fields );
 
     return $csv_string;
-}
-
-# accepts a file handle from which to read.  assumes that each line is a json
-# object.  prints out a csv line for each json object, assuming that the
-# keys for all json objects are the same as for the first.
-sub stream_json_to_csv
-{
-    my ( $in_fh, $out_fh ) = @_;
-
-    my $first_line = <$in_fh>;
-
-    INFO "first_line: $first_line";
-
-    return unless ( $first_line );
-
-    my $json = JSON->new->relaxed( 1 )->utf8( 1 );
-
-    my $csv = Text::CSV_XS->new( { binary => 1 } );
-
-    my $first_json_object = $json->decode( $first_line );
-
-    my $keys = [ keys( %{ $first_json_object } ) ];
-    $csv->combine( @{ $keys } );
-    $out_fh->print( encode( 'utf-8', $csv->string . "\n" ) );
-
-    $csv->combine( map { $first_json_object->{ $_ } } @{ $keys } );
-    $out_fh->print( encode( 'utf-8', $csv->string . "\n" ) );
-
-    my $i = 0;
-    while ( my $line = <$in_fh> )
-    {
-        INFO "$i" unless ( $i++ % 1000 );
-        my $json_object;
-        eval { $json_object = $json->decode( $line ) };
-        if ( $@ )
-        {
-            WARN "Unable to decode line '$line': $@";
-        }
-        else
-        {
-            $csv->combine( map { $json_object->{ $_ } } @{ $keys } );
-            $out_fh->print( encode( 'utf-8', $csv->string . "\n" ) );
-        }
-    }
 }
 
 1;

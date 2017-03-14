@@ -9,8 +9,11 @@
       <w>bytea</w>
       <w>confdir</w>
       <w>confname</w>
+      <w>createdb</w>
+      <w>dataset</w>
       <w>datatype</w>
       <w>dateutil</w>
+      <w>dropdb</w>
       <w>fqdn</w>
       <w>hausastemmer</w>
       <w>hostnames</w>
@@ -30,9 +33,13 @@
       <w>pkey</w>
       <w>plpgsql</w>
       <w>postgre</w>
+      <w>postgresql</w>
+      <w>psql</w>
       <w>pyyaml</w>
+      <w>reenable</w>
       <w>regexes</w>
       <w>reindexed</w>
+      <w>sbin</w>
       <w>shortener</w>
       <w>shorteners</w>
       <w>sopa</w>

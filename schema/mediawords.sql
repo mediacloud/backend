@@ -312,7 +312,7 @@ create table media (
     name                varchar(128)    not null,
     moderated           boolean         not null,
     moderation_notes    text            null,
-    full_text_rss       boolean,
+    full_text_rss       boolean         null,
 
     -- It indicates that the media source includes a substantial number of
     -- links in its feeds that are not its own. These media sources cause

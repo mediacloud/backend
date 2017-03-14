@@ -7,7 +7,9 @@ use warnings;
 use utf8;
 
 use Modern::Perl "2015";
-use MediaWords::CommonLibs;
+use MediaWords::CommonLibs;    # set PYTHONPATH too
+
+import_python_module( __PACKAGE__, 'mediawords.util.text' );
 
 use MediaWords::Languages::Language;
 use List::Util qw(min);
@@ -97,13 +99,6 @@ sub is_valid_utf8($)
     Encode::_utf8_off( $s );
 
     return $valid;
-}
-
-# Generate random, not crypto-secure alphanumeric string of the specified length
-sub random_string($)
-{
-    my $length = shift;
-    return join '', map +( 0 .. 9, 'a' .. 'z', 'A' .. 'Z' )[ Math::Random::Secure::rand( 10 + 26 * 2 ) ], 1 .. $length;
 }
 
 1;

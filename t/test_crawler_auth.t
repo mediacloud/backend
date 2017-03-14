@@ -62,7 +62,7 @@ sub test_auth
     my $feed = $media->{ A }->{ feeds }->{ B };
 
     my $config     = MediaWords::Util::Config::get_config;
-    my $new_config = make_python_variable_writable( $config );
+    my $new_config = python_deep_copy( $config );
 
     $new_config->{ mediawords }->{ crawler_authenticated_domains } =
       [ { domain => 'localhost.localhost', user => 'foo', password => 'bar' } ];

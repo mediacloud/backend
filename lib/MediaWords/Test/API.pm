@@ -58,7 +58,7 @@ sub test_request_response($$;$)
 {
     my ( $label, $response, $expect_error ) = @_;
 
-    my $url = $response->request->url;
+    my $url = $response->request->uri->as_string;
 
     my $url_path = URI->new( $url )->path;
     $url_path =~ s/\/\d+//;

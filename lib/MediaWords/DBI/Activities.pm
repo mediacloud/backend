@@ -87,8 +87,8 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use JSON;
 use Array::Compare;
+use MediaWords::Util::JSON;
 
 my Readonly $ACTIVITIES_SUBQUERY_OBJECT_ID_PLACEHOLDER = '##OBJECT_ID##';
 
@@ -542,7 +542,7 @@ sub encode_activity_description($$)
           join( ' ', @actual_parameters );
     }
 
-    my $description_json = JSON->new->canonical( 1 )->utf8( 1 )->encode( $description_hash );
+    my $description_json = MediaWords::Util::JSON::encode_json( $description_hash );
     unless ( $description_json )
     {
         die "Unable to encode activity description to JSON: $!";
@@ -578,7 +578,7 @@ sub decode_activity_description($$)
 {
     my ( $activity_name, $description_json ) = @_;
 
-    my $description_hash = JSON->new->canonical( 1 )->utf8( 1 )->decode( $description_json );
+    my $description_hash = MediaWords::Util::JSON::decode_json( $description_json );
     unless ( $description_hash )
     {
         die "Unable to decode activity description from JSON: $!";

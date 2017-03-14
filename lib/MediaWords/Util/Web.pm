@@ -405,7 +405,7 @@ sub lookup_by_response_url($$)
     my ( $list, $response ) = @_;
 
     my $original_request = MediaWords::Util::Web->get_original_request( $response );
-    my $url              = URI->new( $original_request->url );
+    my $url              = URI->new( $original_request->uri->as_string );
 
     map { return ( $_ ) if ( URI->new( $_->{ url } ) eq $url ) } @{ $list };
 

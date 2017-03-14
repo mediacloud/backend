@@ -19,7 +19,6 @@ use MediaWords::Util::JSON;
 use MediaWords::Util::DateTime;
 use URI;
 use URI::QueryParam;
-use JSON;
 use Scalar::Util qw/looks_like_number/;
 use Scalar::Defer;
 use DateTime;
@@ -198,7 +197,7 @@ sub _request($$)
     my $json_string = $response->decoded_content;
 
     my $json;
-    eval { $json = decode_json( $json_string ); };
+    eval { $json = MediaWords::Util::JSON::decode_json( $json_string ); };
     if ( $@ or ( !$json ) )
     {
         die "Unable to decode JSON response: $@; JSON: $json_string";

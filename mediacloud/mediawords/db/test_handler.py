@@ -202,72 +202,32 @@ class TestDatabaseHandler(TestDatabaseTestCase):
 
     def test_query_percentage_sign_quote_psycopg2_param_lookalikes(self):
 
-        # Quoted string with '%' and DBD::Pg parameters
-        inserted_name = 'Lamar %(foo)s'
-        inserted_surname = 'Odom %s'
-        inserted_dob = '1979-11-06'
+        # Try out various strings that could be taken as psycopg2's parameter placeholders, see if database handler
+        # fails
+        names = [
+            'Lamar %(foo)s',
+            'Lamar %s',
+            'Lamar %()s',
+            'Lamar %()',
+            'Lamar %(',
+            'Lamar %',
+        ]
 
-        quoted_name = self.db().quote(inserted_name)
-        quoted_surname = self.db().quote(inserted_surname)
+        for name in names:
+            query = "INSERT INTO kardashians (name, surname, dob) VALUES (%(name)s, 'Odom', '1979-11-06')" % {
+                # Python interpolation
+                'name': self.db().quote(name),
+            }
+            self.db().query(query)
 
-        query = "INSERT INTO kardashians (name, surname, dob) VALUES (%(name)s, %(surname)s" % {
-            # Python interpolation
-            'name': quoted_name,
-            'surname': quoted_surname,
-        }
+            lamar = self.db().query("SELECT * FROM kardashians WHERE name LIKE 'Lamar%'").hash()
+            assert lamar is not None
+            assert lamar['name'] == name
+            assert lamar['surname'] == 'Odom'
 
-        self.db().query(query + ", ?)", inserted_dob)
-
-        lamar = self.db().query("SELECT * FROM kardashians WHERE name LIKE 'Lamar%'").hash()
-        assert lamar is not None
-        assert lamar['name'] == 'Lamar % (foo)s'
-        assert lamar['surname'] == 'Odom % s'
-
-    def test_query_percentage_sign_quote_psycopg2_param_lookalikes_empty_name(self):
-
-        # Quoted string with '%' and DBD::Pg parameters
-        inserted_name = 'Lamar %()s'
-        inserted_surname = 'Odom %s'
-        inserted_dob = '1979-11-06'
-
-        quoted_name = self.db().quote(inserted_name)
-        quoted_surname = self.db().quote(inserted_surname)
-
-        query = "INSERT INTO kardashians (name, surname, dob) VALUES (%(name)s, %(surname)s" % {
-            # Python interpolation
-            'name': quoted_name,
-            'surname': quoted_surname,
-        }
-
-        self.db().query(query + ", ?)", inserted_dob)
-
-        lamar = self.db().query("SELECT * FROM kardashians WHERE name LIKE 'Lamar%'").hash()
-        assert lamar is not None
-        assert lamar['name'] == 'Lamar % ()s'
-        assert lamar['surname'] == 'Odom % s'
-
-    def test_query_percentage_sign_quote_psycopg2_param_lookalikes_empty_name_no_s(self):
-
-        # Quoted string with '%' and DBD::Pg parameters
-        inserted_name = 'Lamar %()'
-        inserted_surname = 'Odom %'
-        inserted_dob = '1979-11-06'
-
-        quoted_name = self.db().quote(inserted_name)
-        quoted_surname = self.db().quote(inserted_surname)
-
-        query = "INSERT INTO kardashians (name, surname, dob) VALUES (%(name)s, %(surname)s" % {
-            # Python interpolation
-            'name': quoted_name,
-            'surname': quoted_surname,
-        }
-
-        self.db().query(query + ", ?)", inserted_dob)
-
-        lamar = self.db().query("SELECT * FROM kardashians WHERE name LIKE 'Lamar%'").hash()
-        assert lamar is not None
-        assert lamar['name'] == 'Lamar % ()'
-        assert lamar['surname'] == 'Odom %'
+            self.db().query("DELETE FROM kardashians WHERE name LIKE 'Lamar%'")
+            lamar = self.db().query("SELECT * FROM kardashians WHERE name LIKE 'Lamar%'").hash()
+            assert lamar is None
 
     def test_query_result_columns(self):
         columns = self.db().query("SELECT * FROM kardashians").columns()
@@ -623,13 +583,6 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         assert self.db().quote(3.4528) == "3.4528"
         assert self.db().quote(True) == "true"
         assert self.db().quote(False) == "false"
-
-        # Doubling the psycopg2 parameter percentage signs
-        assert self.db().quote("%s") == "'% s'"
-        assert self.db().quote("%(param_1)s") == "'% (param_1)s'"
-        assert self.db().quote("%()s") == "'% ()s'"
-        assert self.db().quote("%()") == "'% ()'"
-        assert self.db().quote("%(") == "'% ('"
 
     def test_copy_from(self):
         copy = self.db().copy_from(sql="COPY kardashians (name, surname, dob, married_to_kanye) FROM STDIN WITH CSV")

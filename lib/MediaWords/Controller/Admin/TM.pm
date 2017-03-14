@@ -19,9 +19,9 @@ use MediaWords::TM::Mine;
 use MediaWords::TM::Snapshot;
 use MediaWords::TM;
 use MediaWords::Util::Bitly;
+use MediaWords::Util::JSON;
 
 use Digest::MD5;
-use JSON;
 use List::Compare;
 use Readonly;
 
@@ -545,7 +545,7 @@ END
 
     my $media_with_timespan_counts = _get_media_with_timespan_counts( $db, $snapshot );
 
-    $c->res->body( encode_json( $media_with_timespan_counts ) );
+    $c->res->body( MediaWords::Util::JSON::encode_json( $media_with_timespan_counts ) );
 }
 
 # display network viz

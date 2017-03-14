@@ -5,7 +5,6 @@ use MediaWords::CommonLibs;
 use strict;
 use warnings;
 use base 'Catalyst::Controller';
-use JSON;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Readonly;
 use URI;
@@ -642,7 +641,7 @@ sub stories_query_json : Local
     DEBUG "finished stories_query_json";
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
-    return $c->res->body( encode_json( $stories ) );
+    return $c->res->body( MediaWords::Util::JSON::encode_json( $stories ) );
 }
 
 =head1 AUTHOR
