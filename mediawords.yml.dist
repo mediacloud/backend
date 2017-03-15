@@ -310,6 +310,9 @@ mail:
 #      account: "<ACOUNT>"
 #      domainname: "<DOMAIN>"
 
+# smtp:
+#     test: "yes" # if set to 'yes', use TRACE() to print emails instead of sending them
+
 mediawords:
     ### defaults to http://$hostname:$port/.
     #base_url: "http://your.mediacloud.server/and/path"
@@ -409,16 +412,13 @@ mediawords:
         # Stories to import into Solr on a single run
         max_queued_stories: 100000
 
-    # By default API requests require a invalid 'key' param.
-    # comment to allow api requests without a key.
-    # WARNING DO NOT enable on a production or Internet connected instance
-    # allow_unauthenticated_api_requests: yes
-
     # set to "yes" to skip requirement to run on the correct database schema version
     # ignore_schema_version: "no"
 
     # increment wc_cache_version to invalidate existing cache
     # wc_cache_version: 1
 
-    # No idea what this is really.
-    max_solr_seed_query_stories: 250000
+    # list of emails to which to send all topic alerts
+    # topic_alert_emails:
+    #     - topicupdates@mediacloud.org
+    #     - slackupdates@mediacloud.org

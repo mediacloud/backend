@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4611;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4615;
 
 BEGIN
 
@@ -1269,6 +1269,7 @@ create index solr_import_extra_stories_story on solr_import_extra_stories ( stor
 
 create index solr_imports_date on solr_imports ( import_date );
 
+create type topics_job_queue_type AS ENUM ( 'mc', 'public' );
 
 create table topics (
     topics_id        serial primary key,
@@ -1287,6 +1288,12 @@ create table topics (
 
     -- this is the id of a crimson hexagon monitor, not an internal database id
     ch_monitor_id           bigint null,
+
+    -- job queue to use for spider and snapshot jobs for this topic
+    job_queue               topics_job_queue_type not null,
+
+    -- max stories allowed in the topic
+    max_stories             int not null,
 
     -- id of a twitter topic to use to generate snapshot twitter counts
     twitter_topics_id int null references topics on delete set null
@@ -2175,8 +2182,9 @@ CREATE TABLE auth_users (
     -- attempts in order to prevent brute-force attacks
     last_unsuccessful_login_attempt     TIMESTAMP NOT NULL DEFAULT TIMESTAMP 'epoch',
 
-    created_date                        timestamp not null default now()
+    created_date                        timestamp not null default now(),
 
+    max_topic_stories                   int not null default 100000
 );
 
 create index auth_users_email on auth_users( email );
@@ -3008,6 +3016,7 @@ create table media_coverage_gaps (
 create index media_coverage_gaps_medium on media_coverage_gaps ( media_id );
 
 create table media_health (
+    media_health_id     serial primary key,
     media_id            int not null references media on delete cascade,
     num_stories         numeric not null,
     num_stories_y       numeric not null,
@@ -3059,6 +3068,7 @@ create index media_suggestions_tags_map_tag on media_suggestions_tags_map ( tags
 
 -- keep track of basic high level stats for mediacloud for access through api
 create table mediacloud_stats (
+    mediacloud_stats_id     serial primary key,
     stats_date              date not null default now(),
     daily_downloads         bigint not null,
     daily_stories           bigint not null,

@@ -35,6 +35,11 @@ __PACKAGE__->config(    #
     }
 );
 
+sub list_optional_query_filter_field
+{
+    return 'feeds_id';
+}
+
 sub get_table_name
 {
     return "downloads";

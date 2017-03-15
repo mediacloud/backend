@@ -1,7 +1,7 @@
 [% INCLUDE tm/header.tt2 title = "Spider Status" %]
 
 <div class="boxtitle">
-    Spidering Status: [% topic.state %] [% topic.message | truncate( 128 ) | html %]
+    Spidering Status: [% topic.state %] [% topic.message | truncate( 192 ) | html %]
     <a class="boxcommand" href="[% c.uri_for( '/admin/tm/mine/' _ topic.topics_id ) %]">spider</a>
 </div>
 

@@ -8,7 +8,7 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
-use Test::More tests => 4;
+use Test::More tests => 7;
 
 use MediaWords::Test::DB;
 use MediaWords::TM::Mine;
@@ -50,15 +50,57 @@ sub test_postgres_regex_match($)
     }
 }
 
+my $_topic_stories_medium_count = 0;
+
+sub add_test_topic_stories($$$$)
+{
+    my ( $db, $topic, $num_stories, $label ) = @_;
+
+    my $medium = MediaWords::Test::DB::create_test_medium( $db, "$label  " . $_topic_stories_medium_count++ );
+    my $feed = MediaWords::Test::DB::create_test_feed( $db, $label, $medium );
+
+    for my $i ( 1 .. $num_stories )
+    {
+        my $story = MediaWords::Test::DB::create_test_story( $db, "$label $i", $feed );
+        MediaWords::TM::Mine::add_to_topic_stories( $db, $topic, $story, 1, 'f', 1 );
+    }
+}
+
+sub test_die_if_max_stories_exceeded($)
+{
+    my ( $db ) = @_;
+
+    my $label = "test_die_if_max_stories_exceeded";
+
+    my $topic = MediaWords::Test::DB::create_test_topic( $db, $label );
+
+    $topic = $db->update_by_id( 'topics', $topic->{ topics_id }, { max_stories => 0 } );
+
+    eval { add_test_topic_stories( $db, $topic, 1001, $label ) };
+    ok( $@, "$label adding 1001 stories to 0 max_stories topic generates error" );
+
+    $db->query( "delete from topic_stories where topics_id = ?", $topic->{ topics_id } );
+
+    $topic = $db->update_by_id( 'topics', $topic->{ topics_id }, { max_stories => 1000 } );
+
+    eval { add_test_topic_stories( $db, $topic, 999, $label ) };
+    ok( !$@, "$label adding 999 stories to a 1000 max_stories does not generate an error: $@" );
+
+    eval { add_test_topic_stories( $db, $topic, 1002, $label ) };
+    ok( $@, "$label adding 2001 stories to a 1000 max_stories generates an error" );
+}
+
+sub test_mine($)
+{
+    my ( $db ) = @_;
+
+    test_postgres_regex_match( $db );
+    test_die_if_max_stories_exceeded( $db );
+}
+
 sub main
 {
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my ( $db ) = @_;
-
-            test_postgres_regex_match( $db );
-        }
-    );
+    MediaWords::Test::DB::test_on_test_database( \&test_mine );
 }
 
 main();

@@ -69,4 +69,16 @@ sub decode_json($;$)
     return $hashref;
 }
 
+# numify the given fields in the given list of hashes so that encode_json() will encode them as
+# numbers rather than strings
+sub numify_fields($$)
+{
+    my ( $hashes, $numify_fields ) = @_;
+
+    for my $hash ( @{ $hashes } )
+    {
+        map { $hash->{ $_ } += 0 if ( defined( $hash->{ $_ } ) ) } @{ $numify_fields };
+    }
+}
+
 1;

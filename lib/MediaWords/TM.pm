@@ -11,6 +11,10 @@ use MediaWords::CommonLibs;
 use Getopt::Long;
 use Data::Dumper;
 
+use MediaWords::Job::TM::MineTopic;
+use MediaWords::Job::TM::MineTopicPublic;
+use MediaWords::Util::Mail;
+
 # get a list topics that match the topic option, which can either be an id
 # or a pattern that matches topic names. Die if no topics are found.
 sub require_topics_by_opt
@@ -161,6 +165,68 @@ sub set_timespans_id_param($)
     $c->req->params->{ timespans_id } = $timespan->{ timespans_id };
 
     return $timespan;
+}
+
+# send an alert about significant activity on the topic to all users with at least write access to the topic
+sub send_topic_alert($$$)
+{
+    my ( $db, $topic, $message ) = @_;
+
+    my $users = $db->query( <<SQL, $topic->{ topics_id } )->hashes;
+select distinct au.*
+    from auth_users au
+        join topic_permissions tp using ( auth_users_id )
+    where
+        tp.permission in ( 'admin', 'write' ) and
+        tp.topics_id = ?
+SQL
+
+    my $emails = [ map { $_->{ email } } @{ $users } ];
+
+    if ( my $topic_alert_emails = MediaWords::Util::Config::get_config->{ mediawords }->{ topic_alert_emails } )
+    {
+        push( @{ $emails }, @{ $topic_alert_emails } );
+    }
+
+    my $emails_lookup = {};
+    map { $emails_lookup->{ lc( $_ ) } = 1 } @{ $emails };
+    $emails = [ keys( %{ $emails_lookup } ) ];
+
+    for my $email ( @{ $emails } )
+    {
+        MediaWords::Util::Mail::send( $email, "Topic Spider Update for $topic->{ name }", <<EMAIL );
+This is an update email for a Media Cloud topic spidering job.
+
+Topic: $topic->{ name }
+Update: $message
+URL: https://topics.mediacloud.org/#/topics/$topic->{ topics_id }/summary
+
+You got this email because you have a user account on Media Cloud
+that has write or admin permission for the above topic.
+
+Thanks!
+EMAIL
+    }
+
+}
+
+# add to the MineTopic or the MineTopicPublic job queue depending on the $topic->{ job_queue } value
+sub add_to_mine_job_queue($$)
+{
+    my ( $db, $topic ) = @_;
+
+    if ( $topic->{ job_queue } eq 'mc' )
+    {
+        MediaWords::Job::TM::MineTopic->add_to_queue( { topics_id => $topic->{ topics_id } }, undef, $db );
+    }
+    elsif ( $topic->{ job_queue } eq 'public' )
+    {
+        MediaWords::Job::TM::MineTopicPublic->add_to_queue( { topics_id => $topic->{ topics_id } }, undef, $db );
+    }
+    else
+    {
+        LOGDIE( "unknown job_queue type: $topic->{ job_queue }" );
+    }
 }
 
 1;

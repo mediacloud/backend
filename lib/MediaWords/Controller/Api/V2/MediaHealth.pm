@@ -69,16 +69,30 @@ sub list_GET
 select mh.* from media_health mh join $ids_table ids on ( mh.media_id = ids.id ) order by mh.media_id
 SQL
 
+    my $mh_numify_fields = [
+        qw/num_stories num_stories_y num_stories_w num_stories_90 num_sentences num_sentences_y num_sentences_w/,
+        qw/num_sentences_y num_sentences_90 expected_sentences expected_stories/
+    ];
+    MediaWords::Util::JSON::numify_fields( $media_health, $mh_numify_fields );
+
     my $gaps = $db->query( <<SQL )->hashes;
 select mcg.* from media_coverage_gaps mcg join $ids_table ids on ( mcg.media_id = ids.id ) order by mcg.stat_week
 SQL
 
-    my $gaps_lookup = {};
-    map { push( @{ $gaps_lookup->{ $_->{ media_id } } }, $_ ) } @{ $gaps };
+    my $gap_numify_fields = [ qw/num_stories expected_stories num_sentences expected_sentences/ ];
+    MediaWords::Util::JSON::numify_fields( $gaps, $gap_numify_fields );
 
-    map { $_->{ coverage_gaps_list } = $gaps_lookup->{ $_->{ media_id } } } @{ $media_health };
+    my $gaps_lookup = {};
+    map { my $mid = $_->{ media_id }; push( @{ $gaps_lookup->{ $mid } }, $_ ) } @{ $gaps };
+
+    map { my $mid = $_->{ media_id }; $_->{ coverage_gaps_list } = $gaps_lookup->{ $mid } } @{ $media_health };
 
     $self->status_ok( $c, entity => $media_health );
+}
+
+sub single_GET
+{
+    die( 'not implemented' );
 }
 
 =head1 AUTHOR

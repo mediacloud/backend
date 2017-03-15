@@ -304,7 +304,9 @@ SQL
 
     $db->query( <<SQL );
 insert into media_health
-
+    ( media_id, num_stories, num_stories_y, num_stories_w, num_stories_90,
+        num_sentences, num_sentences_y, num_sentences_w, num_sentences_90, is_healthy, has_active_feed,
+        start_date, end_date, expected_sentences, expected_stories, coverage_gaps )
     select m.media_id,
             ms0.num_stories,
             msy.num_stories num_stories_y,

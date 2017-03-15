@@ -406,7 +406,7 @@ sub create_GET
         {
             push(
                 @{ $statuses },
-                { status => $i->{ status }, media_id => $i->{ medium }->{ media_id }, url => $i->{ url } }
+                { status => $i->{ status }, media_id => int( $i->{ medium }->{ media_id } ), url => $i->{ url } }
             );
         }
     }
