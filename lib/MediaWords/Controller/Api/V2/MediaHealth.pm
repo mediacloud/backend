@@ -70,7 +70,7 @@ select mh.* from media_health mh join $ids_table ids on ( mh.media_id = ids.id )
 SQL
 
     my $mh_numify_fields = [
-        qw/n num_stories num_stories_y num_stories_w num_stories_90 num_sentences num_sentences_y num_sentences_w/,
+        qw/num_stories num_stories_y num_stories_w num_stories_90 num_sentences num_sentences_y num_sentences_w/,
         qw/num_sentences_y num_sentences_90 expected_sentences expected_stories/
     ];
     MediaWords::Util::JSON::numify_fields( $media_health, $mh_numify_fields );
