@@ -128,8 +128,7 @@ sub update_topic_state($$$;$)
     }
 }
 
-# fetch each link and add a { redirect_url } field if the
-# { url } field redirects to another url
+# fetch each link and add a { redirect_url } field if the { url } field redirects to another url
 sub add_redirect_links
 {
     my ( $db, $links ) = @_;
@@ -276,8 +275,7 @@ sub get_youtube_embed_links
     return $links;
 }
 
-# get the extracted html for the story.  fix the story downloads by redownloading
-# as necessary
+# get the extracted html for the story.  fix the story downloads by redownloading as necessary
 sub get_extracted_html
 {
     my ( $db, $story ) = @_;
@@ -626,16 +624,6 @@ END
     return $db->query( $feed_query, $medium->{ media_id }, $medium->{ url } )->hash;
 }
 
-# return true if the args are valid date arguments.  assume a date has to be between 2000 and 2040.
-sub valid_date_parts
-{
-    my ( $year, $month, $day ) = @_;
-
-    return 0 if ( ( $year < 2000 ) || ( $year > 2040 ) );
-
-    return Date::Parse::str2time( "$year-$month-$day" );
-}
-
 # extract the story for the given download
 sub extract_download($$$)
 {
@@ -717,7 +705,6 @@ END
 
     return ( 'current_time', MediaWords::Util::SQL::sql_now );
 }
-my $reliable_methods = [ qw(guess_by_url guess_by_url_and_date_text merged_story_rss manual) ];
 
 # recursively search for the medium pointed to by dup_media_id
 # by the media_id medium.  return the first medium that does not have a dup_media_id.
@@ -962,24 +949,6 @@ EOF
     );
 }
 
-# return true if any of the download_texts for the story matches the topic search pattern
-sub story_download_text_matches_pattern
-{
-    my ( $db, $story, $topic ) = @_;
-
-    my $dt = $db->query( <<END, $story->{ stories_id }, $topic->{ topics_id } )->hash;
-select 1
-    from download_texts dt
-        join downloads d on ( dt.downloads_id = d.downloads_id )
-        join topics c on ( c.topics_id = \$2 )
-    where
-        d.stories_id = \$1 and
-        dt.download_text ~ ( '(?isx)' || c.pattern )
-    limit 1
-END
-    return $dt ? 1 : 0;
-}
-
 # return true if any of the story_sentences with no duplicates for the story matches the topic search pattern
 sub story_sentence_matches_pattern
 {
@@ -1030,15 +999,13 @@ sub potential_story_matches_topic_pattern
 
     my $story_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $text_content, '' );
 
+    # only match first MB of text to avoid running giant, usually binary, strings through the regex match
+    $text_content = substr( $text_content, 0, 1024 * 1024 ) if ( length( $text_content ) > 1024 * 1024 );
     my $sentences = _get_sentences_from_story_text( $text_content, $story_lang );
 
+    # shockingly, this is much faster than native perl regexes for the kind of complex, boolean-converted
+    # regexes we often use for topics
     $match = postgres_regex_match( $db, $sentences, $re );
-
-    #     # shockingly, this is much faster than native perl regexes for the kind of complex, boolean-converted
-    #     # regexes we often use for topics
-    #     $match = $db->query( <<SQL, $topic->{ topics_id }, $text_content )->hash;
-    # select 1 from topics where topics_id = ? and ? ~ ( '(?isx)' || pattern )
-    # SQL
 
     if ( !$match )
     {
@@ -1236,17 +1203,6 @@ sub get_preferred_story
     return $preferred_story;
 }
 
-sub story_has_download_text
-{
-    my ( $db, $story ) = @_;
-
-    my $dt = $db->query( <<SQL, $story->{ stories_id } )->hash;
-select 1 from download_texts dt join downloads d on ( dt.downloads_id = d.downloads_id ) where d.stories_id = ?
-SQL
-
-    return $dt ? 1 : 0;
-}
-
 # look for a story matching the link stories_id, url,  in the db
 sub get_matching_story_from_db ($$;$)
 {
@@ -1338,36 +1294,6 @@ sub add_redirect_url_to_link
         $link->{ redirect_url },
         $link->{ topic_links_id }
     );
-}
-
-# if the ref_stories_id for the topic_link story and topic does not
-# exist, set ref_stories_id the topic_link to the ref_story.  If it already
-# exists, delete the link
-sub set_topic_ref_story
-{
-    my ( $db, $ref_story, $topic_link ) = @_;
-
-    my $ref_stories_id = $ref_story->{ stories_id };
-    my $stories_id     = $topic_link->{ stories_id };
-    my $topics_id      = $topic_link->{ topics_id };
-
-    my $link_exists = $db->query( <<END, $ref_stories_id, $stories_id, $topics_id )->hash;
-select 1 from topic_links
-    where ref_stories_id = ? and stories_id = ? and topics_id = ?
-END
-
-    if ( $link_exists )
-    {
-        $db->query( <<END, $topic_link->{ topic_links_id } );
-delete from topic_links where topic_links_id = ?
-END
-    }
-    else
-    {
-        $db->query( <<END, $ref_story->{ stories_id }, $topic_link->{ topic_links_id } );
-update topic_links set ref_stories_id = ? where topic_links_id = ?
-END
-    }
 }
 
 sub set_topic_link_ref_story
@@ -1739,120 +1665,6 @@ sub add_new_links($$$$)
     }
 }
 
-# build a lookup table of aliases for a url based on url and redirect_url fields in the topic_links
-sub get_url_alias_lookup
-{
-    my ( $db ) = @_;
-
-    my $lookup;
-
-    my $url_pairs = $db->query( <<END )->hashes;
-select distinct url, redirect_url from
-    ( ( select url, redirect_url from topic_links where url <> redirect_url ) union
-      ( select s.url, cs.redirect_url
-           from topic_stories cs join stories s on ( cs.stories_id = s.stories_id )
-           where cs.redirect_url <> s.url
-       ) ) q
-END
-
-    # use a hash of hashes so that we can do easy hash lookups in the
-    # network traversal below
-    for my $url_pair ( @{ $url_pairs } )
-    {
-        $lookup->{ $url_pair->{ url } }->{ $url_pair->{ redirect_url } } = 1;
-        $lookup->{ $url_pair->{ redirect_url } }->{ $url_pair->{ url } } = 1;
-    }
-
-    # traverse the network gathering indirect aliases
-    my $lookups_updated = 1;
-    while ( $lookups_updated )
-    {
-        $lookups_updated = 0;
-        while ( my ( $url, $aliases ) = each( %{ $lookup } ) )
-        {
-            for my $alias_url ( keys( %{ $aliases } ) )
-            {
-                if ( !$lookup->{ $alias_url }->{ $url } )
-                {
-                    $lookups_updated = 1;
-                    $lookup->{ $alias_url }->{ $url } = 1;
-                }
-            }
-        }
-    }
-
-    my $url_alias_lookup = {};
-    while ( my ( $url, $aliases ) = each( %{ $lookup } ) )
-    {
-        $url_alias_lookup->{ $url } = [ keys( %{ $aliases } ) ];
-    }
-
-    return $url_alias_lookup;
-}
-
-# return true if the domain of the source story medium url is found in the target story url
-sub medium_domain_matches_url
-{
-    my ( $db, $source_story, $target_story ) = @_;
-
-    my $source_medium = $db->query( "select url from media where media_id = ?", $source_story->{ media_id } )->hash;
-
-    my $domain = MediaWords::Util::URL::get_url_distinctive_domain( $source_medium->{ url } );
-
-    return 1 if ( index( lc( $target_story->{ url } ), lc( $domain ) ) >= 0 );
-
-    return 0;
-}
-
-# for each stories in aggregator stories that has the same url as a topic story, add
-# that story as a topic story with a link to the matching topic story
-sub add_outgoing_foreign_rss_links
-{
-    my ( $db, $topic ) = @_;
-
-    # I can't get postgres to generate a plan that recognizes that
-    # these aggregator url matches are pretty rare, so it's quicker
-    # to do the url lookups in perl
-    my $target_stories = $db->query( <<END, $topic->{ topics_id } )->hashes;
-select s.* from stories s, topic_stories cs
-    where s.stories_id = cs.stories_id and cs.topics_id = ?
-END
-
-    my $url_alias_lookup = get_url_alias_lookup( $db );
-    for my $target_story ( @{ $target_stories } )
-    {
-        my $urls = $url_alias_lookup->{ $target_story->{ url } };
-        push( @{ $urls }, $target_story->{ url } );
-        my $url_params = join( ',', map { '?' } ( 1 .. scalar( @{ $urls } ) ) );
-        my $source_stories = $db->query( <<END, @{ $urls } )->hashes;
-select s.*
-    from stories s
-        join media m on ( s.media_id = m.media_id )
-    where
-        m.foreign_rss_links and
-        s.url in ( $url_params ) and
-        not exists (
-            select 1 from topic_stories cs where s.stories_id = cs.stories_id )
-END
-        for my $source_story ( @{ $source_stories } )
-        {
-            next if ( medium_domain_matches_url( $db, $source_story, $target_story ) );
-
-            add_to_topic_stories( $db, $topic, $source_story, 1, 1, 1 );
-            $db->create(
-                "topic_links",
-                {
-                    stories_id     => $source_story->{ stories_id },
-                    url            => $target_story->{ url },
-                    topics_id      => $topic->{ topics_id },
-                    ref_stories_id => $target_story->{ stories_id },
-                    link_spidered  => 't',
-                }
-            );
-        }
-    }
-}
-
 # find any links for the topic of this iteration or less that have not already been spidered
 # and call add_new_links on them.
 sub spider_new_links
@@ -1995,28 +1807,6 @@ select distinct s.*, cs.link_mined, cs.redirect_url
 SQL
 
     generate_topic_links( $db, $topic, $stories );
-}
-
-# increase the link_weight of each story to which this story links and recurse along links from those stories.
-# the link_weight gets increment by ( 1 / path_depth ) so that stories further down along the link path
-# get a smaller increment than more direct links.
-sub add_link_weights
-{
-    my ( $story, $stories_lookup, $path_depth, $link_path_lookup ) = @_;
-
-    $story->{ link_weight } += ( 1 / $path_depth ) if ( !$path_depth );
-
-    return if ( !scalar( @{ $story->{ links } } ) );
-
-    $link_path_lookup->{ $story->{ stories_id } } = 1;
-
-    for my $link ( @{ $story->{ links } } )
-    {
-        next if ( $link_path_lookup->{ $link->{ ref_stories_id } } );
-
-        my $linked_story = $stories_lookup->{ $link->{ ref_stories_id } };
-        add_link_weights( $linked_story, $stories_lookup, $path_depth++, $link_path_lookup );
-    }
 }
 
 # get the smaller iteration of the two stories
@@ -2275,7 +2065,8 @@ END
     map { merge_dup_media_story( $db, $topic, $_ ) } @{ $dup_media_stories };
 }
 
-# import all topic_seed_urls that have not already been processed
+# import all topic_seed_urls that have not already been processed;
+# return 1 if new stories were added to the topic and 0 if not
 sub import_seed_urls
 {
     my ( $db, $topic ) = @_;
@@ -2296,6 +2087,8 @@ END
     my $seed_urls = $db->query( <<END, $topics_id )->hashes;
 select * from topic_seed_urls where topics_id = ? and processed = 'f' order by random()
 END
+
+    return 0 unless ( @{ $seed_urls } );
 
     # process these in chunks in case we have to start over so that we don't have to redo the whole batch
     my $iterator = List::MoreUtils::natatime( $ADD_NEW_LINKS_CHUNK_SIZE, @{ $seed_urls } );
@@ -2345,6 +2138,8 @@ SQL
 
         $db->commit;
     }
+
+    return 1;
 }
 
 # look for any stories in the topic tagged with a date method of 'current_time' and
@@ -2872,17 +2667,19 @@ sub do_mine_topic ($$;$)
     import_solr_seed_query( $db, $topic );
 
     update_topic_state( $db, $topic, "importing seed urls" );
-    import_seed_urls( $db, $topic );
+    if ( import_seed_urls( $db, $topic ) )
+    {
+
+        # merge dup media and stories here to avoid redundant link processing for imported urls
+        update_topic_state( $db, $topic, "merging duplicate media stories" );
+        merge_dup_media_stories( $db, $topic );
+
+        update_topic_state( $db, $topic, "merging duplicate stories" );
+        find_and_merge_dup_stories( $db, $topic );
+    }
 
     update_topic_state( $db, $topic, "mining topic stories" );
     mine_topic_stories( $db, $topic );
-
-    # merge dup media and stories here to avoid redundant link processing for imported urls
-    update_topic_state( $db, $topic, "merging duplicate media stories" );
-    merge_dup_media_stories( $db, $topic );
-
-    update_topic_state( $db, $topic, "merging duplicate stories" );
-    find_and_merge_dup_stories( $db, $topic );
 
     unless ( $options->{ import_only } )
     {
