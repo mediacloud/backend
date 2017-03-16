@@ -117,9 +117,8 @@ sub swap_live_collection
 
     $db->query( "delete from database_variables where name = 'live_solr_collection'" );
     $db->create( 'database_variables', { name => 'live_solr_collection', value => $current_staging_collection } );
-    -
 
-      $db->commit;
+    $db->commit;
 }
 
 =head2 get_last_num_found
@@ -234,7 +233,7 @@ sub query_encoded_json($$;$)
         $params->{ fq } = undef;
     }
 
-    $params->{ rows } = List::Util::min( $params->{ rows }, 1000000 );
+    $params->{ rows } = List::Util::min( $params->{ rows }, 10_000_000 );
 
     _uppercase_boolean_operators( $params->{ q } );
 

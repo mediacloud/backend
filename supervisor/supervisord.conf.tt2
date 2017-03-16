@@ -178,6 +178,16 @@ programs = rabbitmq
 %]
 
 [% INCLUDE program_config
+    program='topic_mine_public'
+    worker_module='TM/MineTopicPublic.pm'
+    default_stopasgroup='false'
+    default_killasgroup='false'
+    default_autorestart='false'
+    default_autostart='true'
+    default_nice=15
+%]
+
+[% INCLUDE program_config
     program='topic_snapshot'
     worker_module='TM/SnapshotTopic.pm'
     default_stopasgroup='false'

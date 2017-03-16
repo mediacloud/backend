@@ -256,6 +256,12 @@ sub add_content_to_test_story($$$)
 
     my $content = get_test_content();
 
+    if ( $story->{ full_text_rss } )
+    {
+        $story->{ full_text_rss } = 0;
+        $db->update_by_id( 'stories', $story->{ stories_id }, { full_text_rss => 'f' } );
+    }
+
     my $host     = MediaWords::Util::URL::get_url_host( $feed->{ url } );
     my $download = $db->create(
         'downloads',
@@ -308,15 +314,17 @@ sub add_content_to_test_story_stack($$)
 }
 
 # Create a user for temporary databases
-sub create_test_user($)
+sub create_test_user($$)
 {
-    my ( $db ) = @_;
+    my ( $db, $label ) = @_;
+
+    my $email = $label . '@em.ail';
 
     my $add_user_error_message =
-      MediaWords::DBI::Auth::add_user_or_return_error_message( $db, 'jdoe@cyber.law.harvard.edu', 'John Doe', '', [ 1 ], 1,
+      MediaWords::DBI::Auth::add_user_or_return_error_message( $db, $email, $label, '', [ 1 ], 1,
         'testtest', 'testtest', 1000, 1000 );
 
-    my $api_key = $db->query( "select api_token from auth_users where email =\'jdoe\@cyber.law.harvard.edu\'" )->hash;
+    my $api_key = $db->query( "select api_token from auth_users where email = ?", $email )->hash;
 
     return $api_key->{ api_token };
 }
@@ -336,6 +344,8 @@ sub create_test_topic($$)
             solr_seed_query_run => 't',
             start_date          => '2016-01-01',
             end_date            => '2016-03-01',
+            job_queue           => 'mc',
+            max_stories         => 100_000
         }
     );
 

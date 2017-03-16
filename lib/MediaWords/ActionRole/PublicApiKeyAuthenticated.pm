@@ -24,17 +24,11 @@ around execute => sub {
     my ( $controller, $c ) = @_;
 
     eval {
-        # Check API key
-        my $allow_unauth =
-          MediaWords::Util::Config::get_config->{ mediawords }->{ allow_unauthenticated_api_requests } || 'no';
-        if ( $allow_unauth ne 'yes' )
+        my ( $user_email, $user_roles ) = $self->_user_email_and_roles( $c );
+        unless ( $user_email and $user_roles )
         {
-            my ( $user_email, $user_roles ) = $self->_user_email_and_roles( $c );
-            unless ( $user_email and $user_roles )
-            {
-                $c->response->status( HTTP_FORBIDDEN );
-                die 'Invalid API key or authentication cookie. Access denied.';
-            }
+            $c->response->status( HTTP_FORBIDDEN );
+            die 'Invalid API key or authentication cookie. Access denied.';
         }
     };
     if ( $@ )

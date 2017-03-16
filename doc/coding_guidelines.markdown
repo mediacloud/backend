@@ -63,7 +63,7 @@ select(table='badgers',
 Unless you pass a single parameter and it's absolutely trivial what it's about (e.g. `strip_html(html)`), use named parameters.
 
 
-## Declare Function Parameter and Return Values
+## Declare Function Parameter and Return Value Types
 
 Python 3 has [type hints](https://docs.python.org/3/library/typing.html), and we should use so that we:
 
@@ -84,39 +84,84 @@ def select(table: str,
     # ...
 ```
 
+
+### Basic
+
 For parameter / return types, you can define built-in types (`str`, `int`, `list`, `dict`, `bool`, ...) or nested types using helpers from `typing` package, e.g.:
 
 ```python
-from typing import Any, Dict, Callable, List, Union
+from typing import Any
+
 
 def a() -> None:
     # Function doesn't return anything.
 
-def b() -> Union[str, None]:
-    # Function returns either a 'str' value or None.
+def b() -> str:
+    # Function returns a string (`str`).
 
-def c(arg1: Dict[str, int]) -> None:
-    # `arg1` is expected to be a `dict` with `str` keys and `int` values.
-    # Function doesn't return anything.
+def c() -> int:
+    # Function returns an integer (`int`).
 
-def d(arg1: List[str]) -> None:
-    # `arg1` is expected to be `list` with `str` items.
-    # Function doesn't return anything.
+def d() -> bool:
+    # Function returns a boolean (`bool`).
 
-def e(arg1: List[Dict[str, int]]) -> None:
-    # `arg1` is expected to be a `list` of `dict`s with `str` keys and `int` values.
-    # Function doesn't return anything.    
+def e() -> list:
+    # Function returns a free-form list (`list`).
+    # (if you can predict the types of list items, consider using `List`)
 
-def f(arg2: Callable[[], None]) -> None:
-    # `arg1` is expected to be a function with no parameters.
-    # Function doesn't return anything.
+def f() -> dict:
+    # Function returns a free-form dictionary (`dict`).
+    # (if you can predict the types of dictionary keys / values, consider using `Dict`)
 
-def g(arg1: CustomType) -> None:
+def m(arg1: CustomType) -> None:
     # `arg1` is expected to be an object of type `CustomType`.
     # Function doesn't return anything.
 
-def h(arg1: Any) -> None:
+def n(arg1: Any) -> None:
     # `arg1` is expected to be of any type (generally discouraged though).
+    # Function doesn't return anything.
+```
+
+
+### Subtypes
+
+```python
+from typing import Dict, List, Union
+
+
+def g() -> Union[str, None]:
+    # Function returns either a 'str' value or `None`.
+
+def h(arg1: Dict[str, int]) -> None:
+    # `arg1` is expected to be a `dict` with `str` keys and `int` values.
+    # Function doesn't return anything.
+
+def i(arg1: List[str]) -> None:
+    # `arg1` is expected to be `list` with `str` items.
+    # Function doesn't return anything.
+
+def j(arg1: List[Dict[str, int]]) -> None:
+    # `arg1` is expected to be a `list` of `dict`s with `str` keys and `int` values.
+    # Function doesn't return anything.
+```
+
+
+### Subtypes of Argument Functions
+
+```python
+from typing import Callable
+
+
+def k(arg1: Callable[[], None]) -> None:
+    # `arg1` is expected to be a function which:
+    #     * doesn't have parameters, and
+    #     * doesn't return anything.
+    # Function doesn't return anything.
+
+def l(arg1: Callable[[str, int], bool]) -> None:
+    # `arg1` is expected to be a function which:
+    #     * accepts two parameters - `str` and `int`, and
+    #     * returns `bool`.
     # Function doesn't return anything.
 ```
 

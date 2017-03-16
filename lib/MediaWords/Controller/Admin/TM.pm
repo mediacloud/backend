@@ -3200,7 +3200,7 @@ sub mine : Local
 
     my $topic = $db->find_by_id( 'topics', $topics_id ) || die( "Unable to find topic" );
 
-    MediaWords::Job::TM::MineTopic->add_to_queue( { topics_id => $topics_id } );
+    MediaWords::TM::add_to_mine_job_queue( $db, $topic );
 
     my $status = 'Topic spidering job queued.';
     $c->res->redirect( $c->uri_for( "/admin/tm/view/" . $topics_id, { status_msg => $status } ) );

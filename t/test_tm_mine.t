@@ -345,7 +345,9 @@ sub create_topic
             solr_seed_query     => 'stories_id:0',
             solr_seed_query_run => 't',
             start_date          => $start_date,
-            end_date            => $end_date
+            end_date            => $end_date,
+            job_queue           => 'mc',
+            max_stories         => 100_000,
 
         }
     );
@@ -536,6 +538,8 @@ sub test_spider
 
     # we pseudo-randomly generate test data, but we want repeatable tests
     srand( 3 );
+
+    MediaWords::Util::Mail::test_mode( 1 );
 
     my $sites = get_test_sites();
 

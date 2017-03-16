@@ -74,7 +74,6 @@ sub create_stories
     my ( $db, $stories, $topics ) = @_;
 
     my $media = MediaWords::Test::DB::create_test_story_stack( $db, $stories );
-
 }
 
 sub create_test_data
@@ -96,7 +95,9 @@ sub create_test_data
             pattern             => '',
             description         => 'test topic',
             start_date          => '2014-04-01',
-            end_date            => '2014-06-01'
+            end_date            => '2014-06-01',
+            job_queue           => 'mc',
+            max_stories         => 100_000
         }
     );
 
@@ -325,6 +326,8 @@ sub test_topics_crud($)
     my $got_tags_ids = [ map { $_->{ tags_id } } @{ $got_topic->{ media_tags } } ];
     is_deeply( [ sort @{ $got_tags_ids } ], [ sort @{ $tags_ids } ], "$label media tag ids" );
 
+    is( $got_topic->{ job_queue }, 'mc', "$label queue for admin user" );
+
     my $update_media_ids = [ @{ $media_ids } ];
     pop( @{ $update_media_ids } );
     my $update_tags_ids = [ @{ $tags_ids } ];
@@ -384,11 +387,56 @@ sub test_topics_spider($)
     is( $r->{ job_states }->[ 0 ]->{ topics_id }, $topic->{ topics_id }, "spider_status topics_id" );
 }
 
+# test topics/list
+sub test_topics_list($)
+{
+    my ( $db ) = @_;
+
+    my $label = "topics list";
+
+    my $match_fields = [
+        qw/name pattern solr_seed_query solr_seed_query_run description max_iterations start_date end_date state
+          message job_queue max_stories/
+    ];
+
+    my $topic_private_a = MediaWords::Test::DB::create_test_topic( $db, "label private a" );
+    my $topic_private_b = MediaWords::Test::DB::create_test_topic( $db, "label private b" );
+    my $topic_public_a  = MediaWords::Test::DB::create_test_topic( $db, "label public a" );
+    my $topic_public_b  = MediaWords::Test::DB::create_test_topic( $db, "label public b" );
+
+    map { $db->update_by_id( 'topics', $_->{ topics_id }, { is_public => 't' } ) } ( $topic_public_a, $topic_public_b );
+
+    {
+        my $r = test_get( "/api/v2/topics/list", {} );
+        my $expected_topics = $db->query( "select * from topics order by topics_id" )->hashes;
+        ok( $r->{ topics }, "$label topics field present" );
+        rows_match( $label, $r->{ topics }, $expected_topics, 'topics_id', $match_fields );
+    }
+
+    {
+        $label = "$label with name";
+        my $r = test_get( "/api/v2/topics/list", { name => 'label private a' } );
+        my $expected_topics = $db->query( "select * from topics where name = 'label private a'" )->hashes;
+        ok( $r->{ topics }, "$label topics field present" );
+        rows_match( $label, $r->{ topics }, $expected_topics, 'topics_id', $match_fields );
+    }
+
+    {
+        $label = "$label public";
+        my $r = test_get( "/api/v2/topics/list", { public => 1 } );
+        my $expected_topics = $db->query( "select * from topics where name % 'public ?'" )->hashes;
+        ok( $r->{ topics }, "$label topics field present" );
+        rows_match( $label, $r->{ topics }, $expected_topics, 'topics_id', $match_fields );
+    }
+
+}
+
 # test topics/* calls
 sub test_topics($)
 {
     my ( $db ) = @_;
 
+    test_topics_list( $db );
     test_topics_crud( $db );
     test_topics_spider( $db );
 }

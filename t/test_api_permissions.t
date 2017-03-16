@@ -20,6 +20,7 @@ use Readonly;
 use Test::More;
 use URI::Escape;
 
+use MediaWords::Test::API;
 use MediaWords::Test::DB;
 
 # public and admin_read key users
@@ -70,7 +71,6 @@ my $_url_permission_types = {
     '/api/v2/storiesbase/list'                    => 'public',
     '/api/v2/storiesbase/single'                  => 'public',
     '/api/v2/storiesbase/word_matrix'             => 'public',
-    '/api/v2/stories/cluster_stories'             => 'admin_read',
     '/api/v2/stories/corenlp'                     => 'admin_read',
     '/api/v2/stories/count'                       => 'public',
     '/api/v2/stories/fetch_bitly_clicks'          => 'admin_read',
@@ -194,28 +194,6 @@ sub test_key_required($)
     }
 }
 
-# query the catalyst context to get a list of urls of all api end points
-sub get_api_urls()
-{
-    # use any old request just to get the $c
-    # Catalyst::Test::ctx_request()
-    my ( $res, $c ) = ctx_request( '/admin/topics/list' );
-
-    # this chunk of code that pulls url end points out of catalyst relies on ugly reverse engineering of the
-    # private internals of the Catalyst::DispatchType::Chained and Catalyst::DispathType::Path, but it is as
-    # far as I can tell the only way to get catalyst to tell us what urls it is serving.
-
-    my $chained_actions = $c->dispatcher->dispatch_type( 'Chained' )->_endpoints;
-    my $chained_urls = [ map { "/$_->{ reverse }" } @{ $chained_actions } ];
-
-    my $path_actions = [ values( %{ $c->dispatcher->dispatch_type( 'Path' )->_paths } ) ];
-    my $path_urls = [ map { $_->[ 0 ]->private_path } @{ $path_actions } ];
-
-    my $api_urls = [ sort grep { m~/api/~ } ( @{ $path_urls }, @{ $chained_urls } ) ];
-
-    return $api_urls;
-}
-
 sub request_all_methods_as_user($$)
 {
     my ( $url, $user ) = @_;
@@ -284,7 +262,9 @@ sub transform_url($;$)
 
     return $url unless ( $model );
 
-    $model =~ s/~topics_id~/$topic->{ topics_id }/xg;
+    my $topics_id = $topic->{ topics_id } || '';
+
+    $model =~ s/~topics_id~/$topics_id/xg;
     $model =~ s/~dummy_id~/1/g;
 
     die( "Unknown transformation: $model" ) if ( $model =~ /~/ );
@@ -426,6 +406,8 @@ sub add_topic
         is_public       => normalize_boolean_for_db( $is_public ),
         start_date      => '2017-01-01',
         end_date        => '2017-02-01',
+        job_queue       => 'mc',
+        max_stories     => 100_000,
     };
 
     $topic = $db->create( 'topics', $topic );
@@ -441,7 +423,9 @@ sub add_topic
 # permission is required for the path
 sub test_permissions($$)
 {
-    my ( $db, $api_urls ) = @_;
+    my ( $db ) = @_;
+
+    my $api_urls = MediaWords::Test::API::get_api_urls();
 
     $_public_user = find_or_add_test_user( $db, 'public' );
 
@@ -457,18 +441,10 @@ sub test_permissions($$)
 
 sub main()
 {
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
 
-            my $db = shift;
+    MediaWords::Test::DB::test_on_test_database( \&test_permissions );
 
-            my $api_urls = get_api_urls();
-
-            test_permissions( $db, $api_urls );
-
-            done_testing();
-        }
-    );
+    done_testing();
 }
 
 main();

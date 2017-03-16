@@ -25,7 +25,7 @@ __PACKAGE__->config(
 );
 
 # sql clause for fields to query from job_states for api publication
-Readonly my $JOB_STATE_FIELD_LIST => "job_states_id, args->>'media_id' media_id, state, message, last_updated";
+Readonly my $JOB_STATE_FIELD_LIST => "job_states_id, ( args->>'media_id' )::int media_id, state, message, last_updated";
 
 sub default_output_fields
 {

@@ -43,7 +43,6 @@ __PACKAGE__->config(
         list               => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
         put_tags           => { Does => [ qw( ~StoriesEditAuthenticated ~Throttled ~Logged ) ] },
         fetch_bitly_clicks => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
-        cluster_stories    => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
         corenlp            => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
     }
 );
@@ -109,8 +108,18 @@ sub corenlp : Local
         next if ( $json_list->{ $stories_id } );
 
         my $json;
-        eval { $json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story( $db, $stories_id ) };
-        $json ||= '"story is not annotated"';
+
+        my $story = $db->find_by_id( 'stories', $stories_id );
+        if ( !$story )
+        {
+            # mostly useful for testing this end point without triggering a fatal error because corenlp is not enabled
+            $json = '"story does not exist"';
+        }
+        else
+        {
+            eval { $json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story( $db, $stories_id ) };
+            $json ||= '"story is not annotated"';
+        }
 
         $json_list->{ $stories_id } = $json;
 
@@ -163,6 +172,12 @@ sub fetch_bitly_clicks : Local
     if ( $stories_id )
     {
         $response->{ stories_id } = $stories_id;
+        my $story = $db->find_by_id( 'stories', $stories_id );
+        if ( !$story )
+        {
+            $self->status_bad_request( $c, message => "stories_id '$stories_id' does not exist" );
+            return;
+        }
     }
     elsif ( $stories_url )
     {
@@ -245,32 +260,6 @@ sub fetch_bitly_clicks : Local
     $c->response->content_type( 'application/json; charset=UTF-8' );
     $c->response->content_length( bytes::length( $json ) );
     $c->response->body( $json );
-}
-
-sub cluster_stories : Local : ActionClass('MC_REST')
-{
-
-}
-
-sub cluster_stories_GET
-{
-    my ( $self, $c ) = @_;
-
-    my $db = $c->dbis;
-
-    my $q    = $c->req->params->{ q };
-    my $fq   = $c->req->params->{ fq };
-    my $rows = $c->req->params->{ rows } || 1000;
-
-    die( "must specify either 'q' or 'fq' param" ) unless ( $q || $fq );
-
-    $rows = List::Util::min( $rows, 100_000 );
-
-    my $solr_params = { q => $q, fq => $fq, rows => $rows };
-
-    my $clusters = MediaWords::Solr::query_clustered_stories( $db, $solr_params, $c );
-
-    $self->status_ok( $c, entity => $clusters );
 }
 
 =head1 AUTHOR

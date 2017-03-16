@@ -21,7 +21,7 @@ __PACKAGE__->config(
 );
 
 Readonly my $JOB_STATE_FIELD_LIST =>
-  "job_states_id, args->>'topics_id' topics_id, args->>'snapshots_id' snapshots_id, state, message, last_updated";
+"job_states_id, ( args->>'topics_id' )::int topics_id, ( args->>'snapshots_id' )::int snapshots_id, state, message, last_updated";
 
 sub apibase : Chained('/') : PathPart('api/v2/topics') : CaptureArgs(1)
 {
