@@ -60,6 +60,7 @@ use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
+use MediaWords::Util::Web::Cache;
 use MediaWords::Util::Bitly;
 
 # max number of solely self linked stories to include
@@ -135,15 +136,16 @@ sub add_redirect_links
 
     my $urls = [ map { URI->new( $_->{ url } )->as_string } @{ $links } ];
 
-    my $responses = MediaWords::Util::Web::ParallelGet( $urls );
+    my $ua        = MediaWords::Util::Web::UserAgent->new();
+    my $responses = $ua->parallel_get( $urls );
 
     my $link_lookup = {};
     map { $link_lookup->{ URI->new( $_->{ url } )->as_string } = $_ } @{ $links };
 
     for my $response ( @{ $responses } )
     {
-        my $original_url = MediaWords::Util::Web->get_original_request( $response )->uri->as_string;
-        my $final_url    = $response->request->uri->as_string;
+        my $original_url = $response->original_request->url;
+        my $final_url    = $response->request->url;
         my $link         = $link_lookup->{ $original_url };
         $link->{ redirect_url } = $final_url;
     }
@@ -874,7 +876,7 @@ sub add_new_story
     }
     elsif ( $link )
     {
-        $story_content = MediaWords::Util::Web::get_cached_link_download( $link );
+        $story_content = MediaWords::Util::Web::Cache::get_cached_link_download( $link );
 
         if ( !$story_content )
         {
@@ -883,7 +885,7 @@ sub add_new_story
             return;
         }
 
-        $link->{ redirect_url } ||= MediaWords::Util::Web::get_cached_link_download_redirect_url( $link );
+        $link->{ redirect_url } ||= MediaWords::Util::Web::Cache::get_cached_link_download_redirect_url( $link );
 
         if ( ignore_redirect( $db, $link ) )
         {
@@ -1329,7 +1331,7 @@ sub add_redirect_url_to_link
 {
     my ( $db, $link ) = @_;
 
-    $link->{ redirect_url } = MediaWords::Util::Web::get_cached_link_download_redirect_url( $link );
+    $link->{ redirect_url } = MediaWords::Util::Web::Cache::get_cached_link_download_redirect_url( $link );
 
     $db->query(
         "update topic_links set redirect_url = ? where topic_links_id = ?",
@@ -1565,7 +1567,7 @@ sub get_stories_to_extract
 {
     my ( $db, $topic, $fetch_links ) = @_;
 
-    MediaWords::Util::Web::cache_link_downloads( $fetch_links );
+    MediaWords::Util::Web::Cache::cache_link_downloads( $fetch_links );
 
     my $extract_stories = [];
 
@@ -2381,8 +2383,8 @@ END
 }
 
 # make a pass through all broken stories caching any broken downloads
-# using MediaWords::Util::Web::cache_link_downloads.  these will get
-# fetched with Web::get_cached_link_download and then stored via
+# using MediaWords::Util::Web::Cache::cache_link_downloads().  these will get
+# fetched with ::Web::Cache::get_cached_link_download and then stored via
 # MediaWords::DBI::Stories::fix_story_downloads_if_needed
 # later in the process, but we have to cache the downloads now so that we can do the
 # downloads in one big parallel job rather than one at a time.
@@ -2403,7 +2405,7 @@ END
         push( @{ $fetch_links }, @{ $broken_downloads } );
     }
 
-    MediaWords::Util::Web::cache_link_downloads( $fetch_links );
+    MediaWords::Util::Web::Cache::cache_link_downloads( $fetch_links );
 }
 
 # get the story in pick_list that appears first in ref_list
@@ -2531,7 +2533,7 @@ sub unredirect_story
         $u->{ redirect_url } = $u->{ manual_redirect };
     }
 
-    MediaWords::Util::Web::cache_link_downloads( $urls );
+    MediaWords::Util::Web::Cache::cache_link_downloads( $urls );
 
     my $cl_lookup  = get_redirect_url_lookup( $db, $story, $topic, 'topic_links' );
     my $csu_lookup = get_redirect_url_lookup( $db, $story, $topic, 'topic_seed_urls' );

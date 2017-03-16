@@ -14,7 +14,6 @@ BEGIN
 use MediaWords::CommonLibs;
 use Modern::Perl "2015";
 
-use HTTP::Request::Common;
 use List::MoreUtils "uniq";
 use List::Util "shuffle";
 use Readonly;
@@ -165,7 +164,17 @@ sub request_all_methods($;$)
 
     my $params_url = "$url?" . join( '&', map { "$_=" . uri_escape( $params->{ $_ } ) } keys( %{ $params } ) );
 
-    my $responses = [ map { request( $_ ) } ( PUT( $params_url ), POST( $params_url ), GET( $params_url ) ) ];
+    my $methods = [ 'GET', 'POST', 'PUT' ];
+    my $responses = [];
+
+    foreach my $method ( @{ $methods } )
+    {
+        my $request = HTTP::Request->new( $method, $params_url );
+
+        # Catalyst::Test::request()
+        my $response = request( $request );
+        push( @{ $responses }, $response );
+    }
 
     return [ grep { $_->code != 405 } @{ $responses } ];
 }

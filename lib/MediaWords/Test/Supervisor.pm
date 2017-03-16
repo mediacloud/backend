@@ -25,7 +25,6 @@ use warnings;
 use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 
-use LWP::Simple;
 use Readonly;
 
 use MediaWords::Solr;

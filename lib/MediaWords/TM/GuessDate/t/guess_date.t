@@ -8,7 +8,7 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
-use Test::More tests => 44;
+use Test::More tests => 43;
 use Test::NoWarnings;
 use Test::Deep;
 
@@ -24,10 +24,9 @@ Readonly my $TIMESTAMP_12_00_GMT => 1326801600;    # Tue, 17 Jan 2012 12:00:00 G
 Readonly my $TIMESTAMP_12_00_EST => 1326819600;    # Tue, 17 Jan 2012 12:00:00 EST (-05:00)
 
 BEGIN { use_ok 'MediaWords::TM::GuessDate' }
+BEGIN { use_ok 'MediaWords::Util::Web' }
 BEGIN { use_ok 'MediaWords::TM::GuessDate::Result' }
 BEGIN { use_ok 'Date::Parse' }
-BEGIN { use_ok 'LWP::Simple' }
-BEGIN { use_ok 'LWP::Protocol::https' }
 
 # Returns URL dating result
 sub _gr($$;$$)
@@ -66,7 +65,8 @@ sub _gr_url($$;$)
     {
 
         # 404 Not Found pages will be empty
-        $html = get( $story_url ) || '';
+        my $ua = MediaWords::Util::Web::UserAgent->new();
+        $html = $ua->get_string( $story_url ) || '';
     }
 
     return _gr( $db, $html, $story_url, $story_publish_date );

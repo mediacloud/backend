@@ -15,10 +15,10 @@ use MediaWords::CommonLibs;
 use Modern::Perl '2015';
 
 use File::Slurp;
-use LWP::Simple;
 
 use MediaWords::DB;
 use MediaWords::Util::JSON;
+use MediaWords::Util::Web;
 
 sub main
 {
@@ -45,7 +45,10 @@ SQL
     {
         my $url = "$base_url&last_processed_stories_id=$psid.json";
         say STDERR "fetching $url ...";
-        my $json = LWP::Simple::get( $url );
+
+        my $ua   = MediaWords::Util::Web::UserAgent->new();
+        my $json = $ua->get_string( $url );
+
         die( 'url failed: ' . $url ) unless ( $json );
 
         write_file( "topic_stories_${ timespans_id }_${ psid }", $json );

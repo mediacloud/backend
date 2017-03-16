@@ -12,7 +12,7 @@ use MediaWords::CommonLibs;
 
 use Moose::Role;
 
-# Handle the download (HTTP::Response object) somehow, e.g. store it, parse if
+# Handle the download (response object) somehow, e.g. store it, parse if
 # it is a feed, add new stories derived from it, etc.
 requires 'handle_response';
 

@@ -12,7 +12,6 @@ use MediaWords::Util::Web;
 
 use Data::Dumper;
 use HTML::Entities;
-use LWP::Simple;
 use XML::FeedPP;
 
 =head1 NAME>
@@ -168,7 +167,7 @@ sub invalid_syndicated_feed
 
     return 0 unless ( $feed->{ feed_type } eq 'syndicated' );
 
-    my $ua       = MediaWords::Util::Web::UserAgent();
+    my $ua       = MediaWords::Util::Web::UserAgent->new();
     my $response = $ua->get( $feed->{ url } );
 
     return "url fetch failed: " . $response->as_string if ( !$response->is_success );
@@ -458,7 +457,7 @@ sub edit_tags : Local
 
     my $action = $c->uri_for( '/admin/feeds/edit_tags_do/' . $feeds_id );
 
-    my $form = MediaWords::Util::Tags->make_edit_tags_form( $c, $action, $feeds_id, 'feeds' );
+    my $form = MediaWords::Util::Tags::make_edit_tags_form( $c, $action, $feeds_id, 'feeds' );
 
     $c->stash->{ form }     = $form;
     $c->stash->{ medium }   = $medium;
@@ -481,14 +480,14 @@ sub edit_tags_do : Local
     }
 
     my $action = $c->uri_for( '/admin/feeds/edit_tags_do/' ) . $feeds_id;
-    my $form = MediaWords::Util::Tags->make_edit_tags_form( $c, $action, $feeds_id, 'feeds' );
+    my $form = MediaWords::Util::Tags::make_edit_tags_form( $c, $action, $feeds_id, 'feeds' );
 
     if ( !$form->submitted_and_valid )
     {
         return $self->edit_tags( $c, $feeds_id );
     }
 
-    MediaWords::Util::Tags->save_tags( $c, $feeds_id, 'feeds' );
+    MediaWords::Util::Tags::save_tags( $c, $feeds_id, 'feeds' );
 
     $c->response->redirect( $c->uri_for( "/admin/feeds/list/" . $feed->{ media_id }, { status_msg => 'Tags updated.' } ) );
 }
