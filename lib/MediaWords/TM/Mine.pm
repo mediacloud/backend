@@ -3058,8 +3058,9 @@ sub mine_topic ($$;$)
     };
     if ( $@ )
     {
+        my $error = $@;
         MediaWords::TM::send_topic_alert( $db, $topic, "aborted topic spidering due to error" );
-        LOGDIE( $@ );
+        LOGDIE( $error );
     }
 
     $_test_mode = $prev_test_mode;
