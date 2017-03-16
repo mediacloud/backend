@@ -8,7 +8,7 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
-use Test::More tests => 7;
+use Test::More tests => 9;
 
 use MediaWords::Test::DB;
 use MediaWords::TM::Mine;
@@ -47,6 +47,16 @@ sub test_postgres_regex_match($)
             'This is a string describing something else again.',    #
         ];
         ok( !MediaWords::TM::Mine::postgres_regex_match( $db, $strings, $regex ) );
+    }
+
+    {
+        my $strings = [ ( 'x' x ( 8 * 1024 * 1024 ) ) . 'MATCH' ];
+        ok( !MediaWords::TM::Mine::postgres_regex_match( $db, $strings, 'MATCH' ) );
+    }
+
+    {
+        my $strings = [ 'MATCH' . ( 'x' x ( 8 * 1024 * 1024 ) ) ];
+        ok( MediaWords::TM::Mine::postgres_regex_match( $db, $strings, 'MATCH' ) );
     }
 }
 

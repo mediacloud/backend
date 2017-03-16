@@ -15,7 +15,7 @@ class McPostgresRegexMatch(Exception):
 def postgres_regex_match(db: DatabaseHandler, strings: List[str], regex: str) -> bool:
     """Run the regex through the PostgreSQL engine against a given list of strings.
 
-    Return True if any string matches the given regex.
+    Return True if any string matches the given regex.  Only try to match against the first megabyte of each string.
 
     This is necessary because very occasionally the wrong combination of text and complex boolean regex will cause Perl
     (Python too?) to hang."""
@@ -28,6 +28,16 @@ def postgres_regex_match(db: DatabaseHandler, strings: List[str], regex: str) ->
 
     if len(strings) == 0:
         return False
+
+    max_len = 1024 * 1024
+    filter_strings = False
+    for s in strings:
+        if len(s) > max_len:
+            filter_strings = True
+            break
+
+    if filter_strings:
+        strings = list(map(lambda x: x[0:max_len], strings))
 
     if not isinstance(strings[0], str):
         raise McPostgresRegexMatch("Strings must be a list of strings, but is: %s" % str(strings))
