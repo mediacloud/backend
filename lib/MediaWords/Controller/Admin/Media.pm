@@ -530,7 +530,7 @@ sub edit_tags_do : Local
       || die( "Unable to find medium $media_id" );
 
     my $action = $c->uri_for( '/admin/media/edit_tags_do/' ) . $media_id;
-    my $form = MediaWords::Util::Tags->make_edit_tags_form( $c, $action, $media_id, 'media' );
+    my $form = MediaWords::Util::Tags::make_edit_tags_form( $c, $action, $media_id, 'media' );
 
     if ( !$form->submitted_and_valid )
     {

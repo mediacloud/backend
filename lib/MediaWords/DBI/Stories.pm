@@ -40,6 +40,7 @@ use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
+use MediaWords::Util::Web::Cache;
 
 =head1 FUNCTIONS
 
@@ -617,14 +618,15 @@ sub get_broken_download_content
 
     my $urls = [ map { URI->new( $_->{ url } )->as_string } @{ $downloads } ];
 
-    my $responses = MediaWords::Util::Web::ParallelGet( $urls );
+    my $ua        = MediaWords::Util::Web::UserAgent->new();
+    my $responses = $ua->parallel_get( $urls );
 
     my $download_lookup = {};
     map { $download_lookup->{ URI->new( $_->{ url } )->as_string } = $_ } @{ $downloads };
 
     for my $response ( @{ $responses } )
     {
-        my $original_url = MediaWords::Util::Web->get_original_request( $response )->uri->as_string;
+        my $original_url = $response->original_request->url;
 
         $download_lookup->{ $original_url }->{ content } = $response->decoded_content;
     }
@@ -661,7 +663,7 @@ END
     {
         if ( my $cached_download = $story->{ cached_downloads }->{ $download->{ downloads_id } } )
         {
-            $download->{ content } = MediaWords::Util::Web::get_cached_link_download( $cached_download );
+            $download->{ content } = MediaWords::Util::Web::Cache::get_cached_link_download( $cached_download );
         }
         else
         {

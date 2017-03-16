@@ -9,6 +9,7 @@ use Test::More;
 use URI::Escape;
 
 use MediaWords::CommonLibs;
+use MediaWords::Util::Web;
 
 require Exporter;
 our @ISA    = qw(Exporter);
@@ -58,7 +59,7 @@ sub test_request_response($$;$)
 {
     my ( $label, $response, $expect_error ) = @_;
 
-    my $url = $response->request->uri->as_string;
+    my $url = $response->request->url;
 
     my $url_path = URI->new( $url )->path;
     $url_path =~ s/\/\d+//;
@@ -66,7 +67,7 @@ sub test_request_response($$;$)
 
     is( $response->is_success, !$expect_error, "HTTP response status OK for $label:\n" . $response->as_string );
 
-    my $data = eval { MediaWords::Util::JSON::decode_json( $response->content ) };
+    my $data = eval { MediaWords::Util::JSON::decode_json( $response->decoded_content ) };
 
     ok( $data, "decoded json for $label (json error: $@)" );
 
@@ -87,7 +88,7 @@ sub test_request_response($$;$)
     return $data;
 }
 
-# execute Catalyst::Test::request with an HTTP request with the given data as json content.
+# execute Catalyst::Test::request() with an HTTP request with the given data as json content.
 # call test_request_response() on the result and return the decoded json data
 sub test_data_request($$$;$)
 {
@@ -105,6 +106,7 @@ sub test_data_request($$$;$)
 
     my $label = $request->as_string;
 
+    # Catalyst::Test::request()
     return test_request_response( $label, request( $request ), $expect_error );
 }
 
@@ -124,7 +126,7 @@ sub test_post($$;$)
     return test_data_request( 'POST', $url, $data, $expect_error );
 }
 
-# execute Catalyst::Test::request on the given url with the given params and then call test_request_response()
+# execute Catalyst::Test::request() on the given url with the given params and then call test_request_response()
 # to test and return the decode json data
 sub test_get($;$$)
 {
@@ -139,6 +141,7 @@ sub test_get($;$$)
 
     my $full_url = ( index( $url, '?' ) > 0 ) ? "$url&$encoded_params" : "$url?$encoded_params";
 
+    # Catalyst::Test::request()
     return test_request_response( $full_url, request( $full_url ), $expect_error );
 }
 
@@ -175,6 +178,7 @@ sub rows_match($$$$$)
 sub get_api_urls()
 {
     # use any old request just to get the $c
+    # Catalyst::Test::ctx_request()
     my ( $res, $c ) = ctx_request( '/admin/topics/list' );
 
     # this chunk of code that pulls url end points out of catalyst relies on ugly reverse engineering of the

@@ -11,4 +11,5 @@ BEGIN
 }
 use MediaWords::Controller::Login;
 
+# Catalyst::Test::request()
 ok( request( '/login' )->is_success, 'Request should succeed' );

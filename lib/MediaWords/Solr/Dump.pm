@@ -88,7 +88,6 @@ use Encode;
 use File::Basename;
 use File::ReadBackwards;
 use FileHandle;
-use HTTP::Request;
 use List::MoreUtils;
 use List::Util;
 use Parallel::ForkManager;
@@ -585,8 +584,8 @@ sub _solr_request($$$;$$)
     $abs_uri->query_form( $params );
     my $abs_url = $abs_uri->as_string;
 
-    my $ua = MediaWords::Util::Web::UserAgent();
-    $ua->max_size( undef );
+    my $ua = MediaWords::Util::Web::UserAgent->new();
+    $ua->set_max_size( undef );
 
     # should be able to process about this fast.  otherwise, time out and throw error so that we can continue processing
     my $req;
@@ -599,14 +598,14 @@ sub _solr_request($$$;$$)
     {
         $content_type ||= 'text/plain; charset=utf-8';
 
-        $req = HTTP::Request->new( POST => $abs_url );
-        $req->header( 'Content-Type',   $content_type );
-        $req->header( 'Content-Length', bytes::length( $content ) );
-        $req->content( $content );
+        $req = MediaWords::Util::Web::UserAgent::Request->new( 'POST', $abs_url );
+        $req->set_header( 'Content-Type',   $content_type );
+        $req->set_header( 'Content-Length', bytes::length( $content ) );
+        $req->set_content( $content );
     }
     else
     {
-        $req = HTTP::Request->new( GET => $abs_url );
+        $req = MediaWords::Util::Web::UserAgent::Request->new( 'GET', $abs_url );
     }
 
     my $res;
@@ -615,7 +614,7 @@ sub _solr_request($$$;$$)
 
         alarm $timeout;
 
-        $ua->timeout( $timeout );
+        $ua->set_timeout( $timeout );
         $res = $ua->request( $req );
 
         alarm 0;

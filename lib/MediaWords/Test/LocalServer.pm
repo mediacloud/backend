@@ -70,12 +70,12 @@ sub start($)
         return;
     }
 
-    while ( my $c = $self->{ daemon }->accept )
+    while ( my $client = $self->{ daemon }->accept )
     {
 
-        while ( my $r = $c->get_request )
+        while ( my $request = $client->get_request )
         {
-            my $uri = $r->uri;
+            my $uri = $request->uri;
 
             # We use "as_string" because URL paths with two slashes (e.g.
             # "//gv/test.rss") could be interpreted as "http://gv/test.rss" by
@@ -83,7 +83,7 @@ sub start($)
             my $path = $uri->as_string;
             DEBUG "URI path is '$path'";
 
-            if ( $r->method eq 'GET' && $path && $path !~ /\.\./ )
+            if ( $request->method eq 'GET' && $path && $path !~ /\.\./ )
             {
 
                 #change double slash to single slash
@@ -92,9 +92,9 @@ sub start($)
                 DEBUG "Normalized path is '$path'";
                 if ( $path eq '/kill_server' )
                 {
-                    $c->send_response( "shutting down" );
-                    $c->close;
-                    undef( $c );
+                    $client->send_response( "shutting down" );
+                    $client->close;
+                    undef( $client );
                     DEBUG "Shutting down server";
                     exit;
                 }
@@ -112,19 +112,19 @@ sub start($)
                 }
 
                 DEBUG "Sending file $path...";
-                $c->send_file_response( $path ) or die "Unable to send file $path: ''$!' $@' '$?'";
+                $client->send_file_response( $path ) or die "Unable to send file $path: ''$!' $@' '$?'";
                 DEBUG "Sent file $path";
             }
             else
             {
-                DEBUG "Won't serve path: " . $r->uri->path;
-                DEBUG "Request: " . Dumper( $r );
-                $c->send_error( RC_FORBIDDEN );
+                DEBUG "Won't serve path: " . $request->uri->path;
+                DEBUG "Request: " . Dumper( $request );
+                $client->send_error( RC_FORBIDDEN );
             }
         }
         DEBUG "closing connection";
-        $c->close;
-        undef( $c );
+        $client->close;
+        undef( $client );
     }
 }
 

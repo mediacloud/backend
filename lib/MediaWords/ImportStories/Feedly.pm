@@ -31,7 +31,6 @@ with 'MediaWords::ImportStories';
 use CHI;
 use Data::Dumper;
 use Encode;
-use LWP::Simple;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 use URI::Escape;
@@ -112,16 +111,16 @@ sub _get_feedly_json_data_deteremined($$)
     {
         my $json_data;
         eval {
-            my $ua = MediaWords::Util::Web::UserAgent();
-            $ua->max_size( undef );
-            $ua->timeout( 60 );
+            my $ua = MediaWords::Util::Web::UserAgent->new();
+            $ua->set_max_size( undef );
+            $ua->set_timeout( 60 );
 
             my $res = $ua->get( $url );
 
             die( "error calling feedly api with url '$url': " . $res->status_line ) unless ( $res->is_success );
 
             # for some reason, $res->decoded_content does not decode
-            my $json = decode( 'utf8', $res->content );
+            my $json = decode( 'utf8', $res->decoded_content );
 
             $json_data = MediaWords::Util::JSON::decode_json( $json );
         };

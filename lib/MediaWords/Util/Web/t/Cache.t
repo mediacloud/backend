@@ -1,18 +1,17 @@
 use strict;
 use warnings;
 
-# test HTTP::HashServer
+use Test::More tests => 183;
 
 use English '-no_match_vars';
-
 use List::Util;
 
-use Test::More tests => 183;
+use MediaWords::Util::Web::Cache;
 
 BEGIN
 {
     use_ok( 'HTTP::HashServer' );
-    use_ok( 'MediaWords::Util::Web' );
+    use_ok( 'MediaWords::Util::Web::Cache' );
 }
 
 my $_port = 8899;
@@ -47,11 +46,11 @@ sub main
 
     $urls = [ List::Util::shuffle( @{ $urls } ) ];
 
-    MediaWords::Util::Web::cache_link_downloads( $urls );
+    MediaWords::Util::Web::Cache::cache_link_downloads( $urls );
 
     for my $url ( @{ $urls } )
     {
-        my $content = MediaWords::Util::Web::get_cached_link_download( $url );
+        my $content = MediaWords::Util::Web::Cache::get_cached_link_download( $url );
         chomp( $content );
         is( $content, $url->{ content }, "$url->{ url } content matches" );
         is( $url->{ _cached_link_downloads }, 1, "$url->{ url } downloaded exactly once" );

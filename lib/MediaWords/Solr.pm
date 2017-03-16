@@ -31,8 +31,8 @@ use MediaWords::Util::Config;
 use MediaWords::Util::JSON;
 use MediaWords::Util::Text;
 use MediaWords::Util::Web;
+
 use List::MoreUtils qw ( uniq );
-use HTTP::Request::Common qw( POST );
 
 use Time::HiRes;
 
@@ -250,18 +250,19 @@ sub query_encoded_json($$;$)
 
     my $url = sprintf( '%s/%s/%s', get_solr_url(), get_live_collection( $db ), $url_action );
 
-    my $ua = MediaWords::Util::Web::UserAgent();
+    my $ua = MediaWords::Util::Web::UserAgent->new();
 
-    $ua->timeout( 300 );
-    $ua->max_size( undef );
+    $ua->set_timeout( 300 );
+    $ua->set_max_size( undef );
 
     TRACE "Executing Solr query on $url ...";
     TRACE 'Encoded parameters: ' . Dumper( $encoded_params );
 
     my $t0 = [ gettimeofday ];
 
-    my $request = POST( $url, $encoded_params );
-    $request->content_type( 'application/x-www-form-urlencoded; charset=utf-8' );
+    my $request = MediaWords::Util::Web::UserAgent::Request->new( 'POST', $url );
+    $request->set_content_type( 'application/x-www-form-urlencoded; charset=utf-8' );
+    $request->set_content( $encoded_params );
 
     my $res = $ua->request( $request );
 
@@ -271,7 +272,7 @@ sub query_encoded_json($$;$)
     {
         my $error_message;
 
-        if ( MediaWords::Util::Web::response_error_is_client_side( $res ) )
+        if ( $res->error_is_client_side() )
         {
 
             # LWP error (LWP wasn't able to connect to the server or something like that)
@@ -326,7 +327,7 @@ sub query_encoded_json($$;$)
         die "Error fetching Solr response: $error_message";
     }
 
-    return $res->content;
+    return $res->decoded_content;
 }
 
 =head2 query( $db, $params, $c )

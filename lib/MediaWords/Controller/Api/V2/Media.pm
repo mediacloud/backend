@@ -11,6 +11,7 @@ use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
 use namespace::autoclean;
 use List::Compare;
+use URI;
 
 use MediaWords::DBI::Media::Lookup;
 use MediaWords::Solr;
@@ -258,12 +259,32 @@ sub _find_medium_by_response_chain
 
     while ( $response )
     {
-        my $medium =
-          MediaWords::DBI::Media::Lookup::find_medium_by_url( $db, decode( 'utf8', $response->request->uri->as_string ) );
+        my $medium = MediaWords::DBI::Media::Lookup::find_medium_by_url( $db, decode( 'utf8', $response->request->url ) );
         return $medium if ( $medium );
 
         $response = $response->previous;
     }
+
+    return undef;
+}
+
+# Given a list of hashes, each of which includes a 'url' key, and a response
+# object, return the hash in $list for which the canonical version of the url
+# is the same as the canonical version of the originally requested url for the
+# response. Return undef if no match is found.
+#
+# This function is helpful for associating a given respone returned by
+# parallel_get() with the object that originally generated the url (for
+# instance, the medium input record that generate the url fetch for the medium
+# title)
+sub _lookup_by_response_url($$)
+{
+    my ( $list, $response ) = @_;
+
+    my $original_request = $response->original_request;
+    my $url              = URI->new( $original_request->url );
+
+    map { return ( $_ ) if ( URI->new( $_->{ url } ) eq $url ) } @{ $list };
 
     return undef;
 }
@@ -288,11 +309,12 @@ sub _attach_media_to_input($$)
         }
     }
 
-    my $responses = MediaWords::Util::Web::ParallelGet( $fetch_urls );
+    my $ua        = MediaWords::Util::Web::UserAgent->new();
+    my $responses = $ua->parallel_get( $fetch_urls );
 
     for my $response ( @{ $responses } )
     {
-        my $input_medium = MediaWords::Util::Web::lookup_by_response_url( $input_media, $response ) || next;
+        my $input_medium = _lookup_by_response_url( $input_media, $response ) || next;
 
         if ( !$response->is_success )
         {
@@ -300,7 +322,7 @@ sub _attach_media_to_input($$)
             next;
         }
 
-        my $decoded_url = decode( 'utf8', $response->request->uri->as_string );
+        my $decoded_url = decode( 'utf8', $response->request->url );
         my $title = MediaWords::Util::HTML::html_title( $response->decoded_content, $decoded_url, 128 );
 
         $input_medium->{ medium } = _find_medium_by_response_chain( $db, $response )
