@@ -117,18 +117,18 @@ sub api_request($$)
     {
         DEBUG 'Retrying #' . $retry . '...' if ( $retry > 1 );
 
-        my $ua = MediaWords::Util::Web::UserAgentDetermined();
-        $ua->timeout( $config->{ facebook }->{ timeout } );
+        my $ua = MediaWords::Util::Web::UserAgent->new();
+        $ua->set_timeout( $config->{ facebook }->{ timeout } );
 
-        # UserAgentDetermined will retry on server-side errors; client-side errors
+        # UserAgent object will retry on server-side errors; client-side errors
         # will be handled by this module
-        $ua->timing( join( ',', @FACEBOOK_RETRY_INTERVALS ) );
+        $ua->set_timing( join( ',', @FACEBOOK_RETRY_INTERVALS ) );
 
         my $response;
         eval { $response = $ua->get( $api_uri->as_string ); };
         if ( $@ )
         {
-            LOGDIE 'LWP::UserAgent::Determined LOGDIEd while fetching response: ' . $@;
+            LOGDIE 'User agent died while fetching response: ' . $@;
         }
 
         $decoded_content = $response->decoded_content;

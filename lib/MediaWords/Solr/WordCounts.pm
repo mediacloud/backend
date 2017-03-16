@@ -30,6 +30,7 @@ use MediaWords::Languages::Language;
 use MediaWords::Solr;
 use MediaWords::Util::Config;
 use MediaWords::Util::IdentifyLanguage;
+use MediaWords::Util::JSON;
 
 # minimum ratio of sentences in a given language to total sentences for a given query to include
 # stopwords and stemming for that language
@@ -471,10 +472,10 @@ sub _get_remote_words
     my $key = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_wc_key };
     return undef unless ( $url && $key );
 
-    my $ua = MediaWords::Util::Web::UserAgent();
+    my $ua = MediaWords::Util::Web::UserAgent->new();
 
-    $ua->timeout( 900 );
-    $ua->max_size( undef );
+    $ua->set_timeout( 900 );
+    $ua->set_max_size( undef );
 
     my $uri          = URI->new( $url );
     my $query_params = $self->get_cgi_param_hash;
@@ -488,7 +489,7 @@ sub _get_remote_words
 
     die( "error retrieving words from solr: " . $res->as_string ) unless ( $res->is_success );
 
-    my $words = from_json( $res->content, { utf8 => 1 } );
+    my $words = MediaWords::Util::JSON::decode_json( $res->decoded_content );
 
     die( "Unable to parse json" ) unless ( $words && ref( $words ) );
 

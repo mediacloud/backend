@@ -5,9 +5,7 @@ use warnings;
 
 use Test::More tests => 13;
 
-use HTTP::Request;
-use LWP::Simple;
-use LWP::UserAgent;
+use MediaWords::Util::Web;
 
 BEGIN
 {
@@ -22,7 +20,8 @@ sub test_page
 {
     my ( $url, $expected_content ) = @_;
 
-    my $content = LWP::Simple::get( $url );
+    my $ua      = MediaWords::Util::Web::UserAgent->new();
+    my $content = $ua->get_string( $url );
 
     chomp( $content );
 
@@ -55,26 +54,24 @@ sub main
     test_page( "http://127.0.0.1:$_port/localhost", 'home' );
     test_page( "http://localhost:$_port/127-foo",   'foo' );
 
-    my $ua_404       = LWP::UserAgent->new;
-    my $response_404 = $ua_404->get( "http://localhost:$_port/404" );
+    my $ua = MediaWords::Util::Web::UserAgent->new();
+
+    my $response_404 = $ua->get( "http://localhost:$_port/404" );
     ok( !$response_404->is_success, "404 response should not succeed" );
     is( $response_404->status_line, "404 Not Found", "404 status line" );
 
     my $auth_url = "http://localhost:$_port/auth";
 
-    my $content = LWP::Simple::get( $auth_url );
+    my $content = $ua->get_string( $auth_url );
     is( $content, undef, 'fail auth / no auth' );
 
-    my $ua = LWP::UserAgent->new;
-    my $request = HTTP::Request->new( GET => $auth_url );
-    $request->authorization_basic( 'foo', 'bar' );
+    my $request = MediaWords::Util::Web::UserAgent::Request->new( 'GET', $auth_url );
+    $request->set_authorization_basic( 'foo', 'bar' );
     my $response = $ua->request( $request );
+    is( $response->decoded_content, 'foo bar', 'pass auth' );
 
-    is( $response->content, 'foo bar', 'pass auth' );
-
-    $ua = LWP::UserAgent->new;
-    $request = HTTP::Request->new( GET => $auth_url );
-    $request->authorization_basic( 'foo', 'foo' );
+    $request = MediaWords::Util::Web::UserAgent::Request->new( 'GET', $auth_url );
+    $request->set_authorization_basic( 'foo', 'foo' );
     $response = $ua->request( $request );
 
     is( $response->status_line, "401 Access Denied", 'fail auth / bad password' );

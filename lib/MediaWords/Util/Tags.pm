@@ -1,6 +1,8 @@
 package MediaWords::Util::Tags;
 
 # various functions for editing feed and medium tags
+#
+# FIXME move everything to "Tags" / "Tag sets" models?
 
 use strict;
 use warnings;
@@ -11,9 +13,9 @@ use MediaWords::CommonLibs;
 use YAML::Syck;
 
 # return a hash with keys of each tag id associated with the object
-sub get_tags_lookup
+sub _get_tags_lookup
 {
-    my ( $class, $c, $oid, $oid_field, $map_table ) = @_;
+    my ( $c, $oid, $oid_field, $map_table ) = @_;
 
     if ( !$oid )
     {
@@ -34,7 +36,7 @@ sub get_tags_lookup
 # make edit tags form in real time by running yml template through template toolkit
 sub make_edit_tags_form
 {
-    my ( $class, $c, $action, $oid, $table ) = @_;
+    my ( $c, $action, $oid, $table ) = @_;
 
     my $oid_field = "${table}_id";
 
@@ -51,7 +53,7 @@ sub make_edit_tags_form
           $c->dbis->query( "select * from tags where tag_sets_id = $tag_set->{tag_sets_id} order by tag" )->hashes;
     }
 
-    my $tags_lookup = $class->get_tags_lookup( $c, $oid, $oid_field, $map_table );
+    my $tags_lookup = _get_tags_lookup( $c, $oid, $oid_field, $map_table );
 
     my $vars = {
         tag_sets    => \@tag_sets,
@@ -88,7 +90,7 @@ sub make_edit_tags_form
 # any new tags indicated,  if $append is true, append tags to existing ones
 sub save_tags
 {
-    my ( $class, $c, $oid, $table, $append ) = @_;
+    my ( $c, $oid, $table, $append ) = @_;
 
     my $oid_field = "${table}_id";
 
@@ -216,35 +218,6 @@ sub lookup_or_create_tag_set
     my $tag_set = $db->find_or_create( 'tag_sets', { name => $tag_set_name } );
 
     return $tag_set;
-}
-
-# given a list of hashes with { tags_id } fields, use lookup_tag_name to add a { tag_name } field
-sub assign_tag_names
-{
-    my ( $db, $tags ) = @_;
-
-    for my $tag ( @{ $tags } )
-    {
-        $tag->{ tag_set_name } = lookup_tag_name( $db, $tag->{ tags_id } );
-    }
-}
-
-# given a tag id, lookup the tag name in the tag_set:tag format
-sub lookup_tag_name
-{
-    my ( $db, $tags_id ) = @_;
-
-    my ( $tag_set_name, $tag ) = $db->query(
-        "select ts.name, t.tag from tag_sets ts, tags t where ts.tag_sets_id = t.tag_sets_id " . "    and t.tags_id = ?",
-        $tags_id )->flat;
-
-    if ( !$tag_set_name )
-    {
-        WARN "Unable to find tag '$tags_id'";
-        return '';
-    }
-
-    return "$tag_set_name:$tag";
 }
 
 1;

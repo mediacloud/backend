@@ -39,9 +39,10 @@ use HTML::Entities;
 use HTTP::Server::Simple;
 use HTTP::Server::Simple::CGI;
 use HTTP::Status;
-use LWP::Simple;
 use MIME::Base64;
 use Readonly;
+
+use MediaWords::Util::Web;
 
 use base qw(HTTP::Server::Simple::CGI);
 
@@ -65,7 +66,10 @@ sub new
     eval {
         local $SIG{ ALRM } = sub { die( "alarm" ) };
         alarm 1;
-        LWP::Simple::get( "http://localhost:${ port }/die" );
+
+        my $ua = MediaWords::Util::Web::UserAgent->new();
+        $ua->get_string( "http://localhost:${ port }/die" );
+
         alarm 0;
     };
     die( $@ ) if ( $@ && ( $@ ne "alarm\n" ) );

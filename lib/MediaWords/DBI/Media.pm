@@ -122,7 +122,7 @@ sub find_or_create_media_from_urls
 # given a set of url media (as returned by _find_media_from_urls) and a url
 # return the index of the media source in the list whose url is the same as the url fetched the response.
 # note that the url should be the original url and not any redirected urls (such as might be stored in
-# response->request->uri->as_string).
+# response->request->url).
 sub _get_url_medium_index_from_url
 {
     my ( $url_media, $url ) = @_;
@@ -149,13 +149,8 @@ sub _find_medium_by_response
     my $r = $response;
 
     my $medium;
-    while (
-        $r
-        && !(
-            $medium =
-            MediaWords::DBI::Media::Lookup::find_medium_by_url( $dbis, decode( 'utf8', $r->request->uri->as_string ) )
-        )
-      )
+    while ( $r
+        && !( $medium = MediaWords::DBI::Media::Lookup::find_medium_by_url( $dbis, decode( 'utf8', $r->request->url() ) ) ) )
     {
         $r = $r->previous;
     }
@@ -170,16 +165,13 @@ sub _add_missing_media_from_urls
 
     my $fetch_urls = [ map { URI->new( $_->{ url } ) } grep { !( $_->{ medium } ) } @{ $url_media } ];
 
-    my $responses = MediaWords::Util::Web::ParallelGet( $fetch_urls );
+    my $ua        = MediaWords::Util::Web::UserAgent->new();
+    my $responses = $ua->parallel_get( $fetch_urls );
 
     for my $response ( @{ $responses } )
     {
-        say STDERR "Response: " . Dumper( $response );
-        my $original_request = MediaWords::Util::Web->get_original_request( $response );
-        say STDERR "Original request: " . Dumper( $original_request );
-
-        my $url = $original_request->uri->as_string;
-        say STDERR "URL from original request: " . Dumper( $url );
+        my $original_request = $response->original_request();
+        my $url              = $original_request->url;
 
         my $url_media_index = _get_url_medium_index_from_url( $url_media, $url );
         if ( !defined( $url_media_index ) )
@@ -193,8 +185,8 @@ sub _add_missing_media_from_urls
             next;
         }
 
-        my $title = MediaWords::Util::HTML::html_title( $response->decoded_content,
-            decode( 'utf8', $response->request->uri->as_string ), 128 );
+        my $title =
+          MediaWords::Util::HTML::html_title( $response->decoded_content, decode( 'utf8', $response->request->url ), 128 );
 
         my $medium = _find_medium_by_response( $dbis, $response );
 

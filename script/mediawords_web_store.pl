@@ -138,7 +138,7 @@ sub main
 
     my $pm = new Parallel::ForkManager( $num_parallel );
 
-    my $ua = MediaWords::Util::Web::UserAgent();
+    my $ua = MediaWords::Util::Web::UserAgent->new();
 
     $requests = get_scheduled_requests( $requests, $per_domain_timeout );
     my $start_time = time;
@@ -178,7 +178,7 @@ sub main
 
             my $response = $ua->get( $request->{ url } );
 
-            $response = MediaWords::Util::Web::get_meta_redirect_response( $response, $request->{ url } );
+            $response = MediaWords::Util::URL::get_meta_redirect_response( $response, $request->{ url } );
 
             INFO "got [$i/$block_size/$total]: $request->{ url }";
 

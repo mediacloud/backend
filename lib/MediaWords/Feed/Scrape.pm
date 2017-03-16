@@ -72,19 +72,20 @@ sub _validate_and_name_feed_urls
 
     my $links = [];
 
-    my $responses = MediaWords::Util::Web::ParallelGet( $urls );
+    my $ua        = MediaWords::Util::Web::UserAgent->new();
+    my $responses = $ua->parallel_get( $urls );
 
     for my $response ( @{ $responses } )
     {
         if ( !$response->is_success )
         {
-            DEBUG "Failed to get URL: " . $response->request->uri->as_string . " with error: " . $response->status_line;
+            DEBUG "Failed to get URL: " . $response->request->url . " with error: " . $response->status_line;
             next;
         }
 
         my $content = $response->decoded_content;
 
-        my $url = MediaWords::Util::Web->get_original_request( $response )->uri->as_string;
+        my $url = $response->original_request->url;
 
         DEBUG "Parsing $url";
 
@@ -223,7 +224,8 @@ sub _get_main_feed_urls_from_url($)
 {
     my $url = shift;
 
-    my $response = MediaWords::Util::Web::ParallelGet( [ $url ] )->[ 0 ];
+    my $ua = MediaWords::Util::Web::UserAgent->new();
+    my $response = $ua->parallel_get( [ $url ] )->[ 0 ];
 
     return [] unless ( $response->is_success );
 
@@ -353,13 +355,14 @@ sub _recurse_get_valid_feeds_from_index_url($$$$)
 
     $#{ $urls } = List::Util::min( $#{ $urls }, $MAX_INDEX_URLS - 1 );
 
-    my $responses = MediaWords::Util::Web::ParallelGet( $urls );
+    my $ua        = MediaWords::Util::Web::UserAgent->new();
+    my $responses = $ua->parallel_get( $urls );
 
     my $scraped_url_lookup = {};
 
     for my $response ( @{ $responses } )
     {
-        my $feed_urls = _get_feed_urls_from_html( $response->request->uri->as_string, $response->decoded_content );
+        my $feed_urls = _get_feed_urls_from_html( $response->request->url, $response->decoded_content );
 
         map { $scraped_url_lookup->{ $_ }++ } @{ $feed_urls };
     }
@@ -626,10 +629,10 @@ sub _immediate_redirection_url_for_medium($)
 {
     my $medium = shift;
 
-    my $ua       = MediaWords::Util::Web::UserAgent();
+    my $ua       = MediaWords::Util::Web::UserAgent->new();
     my $response = $ua->get( $medium->{ url } );
 
-    my $new_url = $response->request->uri->as_string || '';
+    my $new_url = $response->request->url;
     if ( $new_url and $medium->{ url } ne $new_url )
     {
         DEBUG "New medium URL via HTTP redirect: $medium->{url} => $new_url";

@@ -183,9 +183,10 @@ sub _request($$)
     $uri->query_param( $params );
     my $url = $uri->as_string;
 
-    my $ua = MediaWords::Util::Web::UserAgentDetermined;
-    $ua->timeout( $_bitly_timeout );
-    $ua->max_size( undef );
+    my $ua = MediaWords::Util::Web::UserAgent->new();
+    $ua->set_timing( '1,2,4,8' );
+    $ua->set_timeout( $_bitly_timeout );
+    $ua->set_max_size( undef );
 
     my $response = $ua->get( $url );
 
