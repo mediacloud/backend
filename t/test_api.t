@@ -361,20 +361,6 @@ sub test_media($$)
     test_media_create( $db );
 }
 
-# given the response from an api call, fetch the referred row from the given table in the database
-# and verify that the fields in the given input match what's in the database
-sub validate_db_row($$$$$)
-{
-    my ( $db, $table, $response, $input, $label ) = @_;
-
-    my $id_field = "${ table }_id";
-
-    ok( $response->{ $id_field } > 0, "$label $id_field returned" );
-    my $db_row = $db->find_by_id( $table, $response->{ $id_field } );
-    ok( $db_row, "$label row found in db" );
-    map { is( $db_row->{ $_ }, $input->{ $_ }, "$label field $_" ) } keys( %{ $input } );
-}
-
 # return tag in either { tags_id => $tags_id }or { tag => $tag, tag_set => $tag_set } form depending on $input_form
 sub get_put_tag_input_tag($$$)
 {
