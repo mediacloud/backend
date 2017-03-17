@@ -154,26 +154,6 @@ SQL
     rows_match( $label, $got_cdts, [ $expected_timespan ], 'controversy_dump_time_slices_id', $fields );
 }
 
-sub test_stats_list($)
-{
-    my ( $db ) = @_;
-
-    my $label = "stats/list";
-
-    MediaWords::DBI::Stats::refresh_stats( $db );
-
-    my $ms = $db->query( "select * from mediacloud_stats" )->hash;
-
-    my $r = test_get( '/api/v2/stats/list', {} );
-
-    my $fields = [
-        qw/stats_date daily_downloads daily_stories active_crawled_media active_crawled_feeds/,
-        qw/total_stories total_downloads total_sentences/
-    ];
-
-    map { is( $r->{ $_ }, $ms->{ $_ }, "$label field '$_'" ) } @{ $fields };
-}
-
 # test whether we have at least requested every api end point outside of topics/
 sub test_coverage()
 {
@@ -201,8 +181,6 @@ sub test_api($)
     test_controversies( $db );
     test_controversy_dumps( $db );
     test_controversy_dump_time_slices( $db );
-
-    test_stats_list( $db );
 
     test_coverage();
 }
