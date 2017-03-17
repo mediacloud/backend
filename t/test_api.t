@@ -34,7 +34,7 @@ Readonly my $NUM_FEEDS_PER_MEDIUM => 2;
 Readonly my $NUM_STORIES_PER_FEED => 10;
 
 # return tag in either { tags_id => $tags_id }or { tag => $tag, tag_set => $tag_set } form depending on $input_form
-sub get_put_tag_input_tag($$$)
+sub _get_put_tag_input_tag($$$)
 {
     my ( $tag, $tag_set, $input_form ) = @_;
 
@@ -66,7 +66,7 @@ sub get_put_tag_input_records($$$$$$)
         {
             for my $row ( @{ $rows } )
             {
-                my $put_tag = get_put_tag_input_tag( $add_tag, $add_tag_set, $input_form );
+                my $put_tag = _get_put_tag_input_tag( $add_tag, $add_tag_set, $input_form );
                 $put_tag->{ $id_field } = $row->{ $id_field };
                 $put_tag->{ action } = $action;
 
