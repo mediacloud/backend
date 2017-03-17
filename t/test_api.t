@@ -33,49 +33,6 @@ Readonly my $NUM_MEDIA            => 5;
 Readonly my $NUM_FEEDS_PER_MEDIUM => 2;
 Readonly my $NUM_STORIES_PER_FEED => 10;
 
-# test wc/list end point
-sub test_wc_list($)
-{
-    my ( $db ) = @_;
-
-    my $label = "wc/list";
-
-    my $story = $db->query( "select * from stories order by stories_id limit 1" )->hash;
-
-    my $sentences = $db->query( <<SQL, $story->{ stories_id } )->flat;
-select sentence from story_sentences where stories_id = ?
-SQL
-
-    my $en = MediaWords::Languages::Language::language_for_code( 'en' );
-
-    my $expected_word_counts = {};
-    for my $sentence ( @{ $sentences } )
-    {
-        my $words = [ grep { length( $_ ) > 2 } split( /\W+/, lc( $sentence ) ) ];
-        my $stems = $en->stem( @{ $words } );
-        map { $expected_word_counts->{ $_ }++ } @{ $stems };
-    }
-
-    my $got_word_counts = test_get(
-        '/api/v2/wc/list',
-        {
-            q                 => "stories_id:$story->{ stories_id }",
-            languages         => 'en',                                 # set to english so that we can know how to stem above
-            num_words         => 10000,
-            include_stopwords => 1                                     # don't try to test stopwording
-        }
-    );
-
-    is( scalar( @{ $got_word_counts } ), scalar( keys( %{ $expected_word_counts } ) ), "$label number of words" );
-
-    for my $got_word_count ( @{ $got_word_counts } )
-    {
-        my $stem = $got_word_count->{ stem };
-        ok( $expected_word_counts->{ $stem }, "$label word count for '$stem' is found but not expected" );
-        is( $got_word_count->{ count }, $expected_word_counts->{ $stem }, "$label expected word count for '$stem'" );
-    }
-}
-
 # test controversies/list and single
 sub test_controversies($)
 {
@@ -285,8 +242,6 @@ sub test_api($)
     test_controversy_dump_time_slices( $db );
 
     test_mediahealth( $db );
-
-    test_wc_list( $db );
 
     test_stats_list( $db );
 
