@@ -11,6 +11,7 @@ class McPostgresRegexMatch(Exception):
     """postgres_regex_match() exception."""
     pass
 
+
 def postgres_regex_match(db: DatabaseHandler, strings: List[str], regex: str) -> bool:
     """Run the regex through the PostgreSQL engine against a given list of strings.
 
@@ -33,11 +34,11 @@ def postgres_regex_match(db: DatabaseHandler, strings: List[str], regex: str) ->
     max_len = 1024 * 1024
     filter_strings = False
     for s in strings:
-        if ( len(s) > max_len ) or ( '\x00' in s ):
+        if (len(s) > max_len) or ('\x00' in s):
             filter_strings = True
             break
 
-    # do this two pass thing so that we don't unecessarily copy the whole strings list
+    # do this two pass thing so that we don't unnecessarily copy the whole strings list
     if filter_strings:
         filtered_strings = []
         for s in strings:
@@ -45,10 +46,9 @@ def postgres_regex_match(db: DatabaseHandler, strings: List[str], regex: str) ->
                 s = s[0:max_len]
             if '\x00' in s:
                 s = ''
-            filtered_strings.append( s )
+            filtered_strings.append(s)
 
         strings = filtered_strings
-
 
     if not isinstance(strings[0], str):
         raise McPostgresRegexMatch("Strings must be a list of strings, but is: %s" % str(strings))
