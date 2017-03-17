@@ -123,61 +123,6 @@ sub test_stories_count($)
 
 }
 
-# test auth/profile call
-sub test_auth_profile($)
-{
-    my ( $db ) = @_;
-
-    my $api_token = MediaWords::Test::API::get_test_api_key();
-
-    my $expected_user = $db->query( <<SQL, $api_token )->hash;
-select * from auth_users au join auth_user_limits using ( auth_users_id ) where api_token = \$1
-SQL
-    my $profile = test_get( "/api/v2/auth/profile" );
-
-    for my $field ( qw/email auth_users_id weekly_request_items_limit notes active weekly_requests_limit/ )
-    {
-        is( $profile->{ $field }, $expected_user->{ $field }, "auth profile $field" );
-    }
-}
-
-# test auth/single
-sub test_auth_single($)
-{
-    my ( $db ) = @_;
-
-    my $label = "auth/single";
-
-    my $email    = 'test@auth.single';
-    my $password = 'authsingle';
-
-    my $error = MediaWords::DBI::Auth::add_user_or_return_error_message( $db, $email, 'auth single', '', [ 1 ], 1, $password,
-        $password, 1000, 1000 );
-
-    my $r = test_get( '/api/v2/auth/single', { username => $email, password => $password } );
-
-    my $db_token = $db->query( <<SQL )->hash;
-select * from auth_user_ip_tokens order by auth_user_ip_tokens_id desc limit 1
-SQL
-
-    is( $r->[ 0 ]->{ result }, 'found', "$label token found" );
-    is( $r->[ 0 ]->{ token }, $db_token->{ api_token }, "$label token" );
-    is( $db_token->{ ip_address }, '127.0.0.1' );
-
-    my $r_not_found = test_get( '/api/v2/auth/single', { username => $email, password => "$password FOO" } );
-
-    is( $r_not_found->[ 0 ]->{ result }, "not found", "$label status for wrong password" );
-}
-
-# test auth/* calls
-sub test_auth($)
-{
-    my ( $db ) = @_;
-
-    test_auth_profile( $db );
-    test_auth_single( $db );
-}
-
 # test that the values at the given fields are equal in each hash, using the given test label
 sub _compare_fields($$$$)
 {
@@ -1740,7 +1685,6 @@ sub test_api($)
 
     test_stories( $db, $media );
 
-    test_auth( $db );
     test_media( $db, $media );
     test_tag_sets( $db );
     test_feeds( $db );
