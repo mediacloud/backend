@@ -79,7 +79,7 @@ sub test_for_scraped_feeds($$)
 # * custom feed page - http://localhost:$port/$site/custom_feed
 #
 # return the HTTP::HashServer
-sub start_media_create_hash_server
+sub _start_media_create_hash_server
 {
     my ( $site_names ) = @_;
 
@@ -211,7 +211,7 @@ sub test_media_create($)
 
     my $site_names = [ map { "media_create_site_$_" } ( 1 .. 5 ) ];
 
-    my $hs = start_media_create_hash_server( $site_names );
+    my $hs = _start_media_create_hash_server( $site_names );
 
     my $sites = [];
     for my $site_name ( @{ $site_names } )
