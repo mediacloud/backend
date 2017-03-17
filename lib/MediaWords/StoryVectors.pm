@@ -179,7 +179,7 @@ SQL
         RETURNING story_sentences.sentence
 SQL
 
-    DEBUG "Adding advisory lock on media ID $media_id...";
+    TRACE "Adding advisory lock on media ID $media_id...";
     $db->query(
         <<EOF,
         SELECT pg_advisory_lock(?)
@@ -192,7 +192,7 @@ EOF
     # Insert sentences
     my $inserted_sentences = $db->query( $sql )->flat();
 
-    DEBUG "Removing advisory lock on media ID $media_id...";
+    TRACE "Removing advisory lock on media ID $media_id...";
     $db->query(
         <<EOF,
         SELECT pg_advisory_unlock(?)
