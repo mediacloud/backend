@@ -325,12 +325,12 @@ sub update_story_sentences_and_language($$;$)
         }
         else
         {
-            DEBUG "Won't add $stories_id to CoreNLP annotation queue because it's not annotatable with CoreNLP";
+            TRACE "Won't add $stories_id to CoreNLP annotation queue because it's not annotatable with CoreNLP";
         }
     }
     else
     {
-        DEBUG "Won't add $stories_id to CoreNLP annotation queue because it's set be skipped";
+        TRACE "Won't add $stories_id to CoreNLP annotation queue because it's set be skipped";
     }
 }
 
