@@ -154,45 +154,6 @@ SQL
     rows_match( $label, $got_cdts, [ $expected_timespan ], 'controversy_dump_time_slices_id', $fields );
 }
 
-# test mediahealth/list and single
-sub test_mediahealth($)
-{
-    my ( $db ) = @_;
-
-    my $label = "mediahealth/list";
-
-    my $metrics = [
-        qw/num_stories num_stories_w num_stories_90 num_stories_y num_sentences num_sentences_w/,
-        qw/num_sentences_90 num_sentences_y expected_stories expected_sentences coverage_gaps/
-    ];
-    for my $i ( 1 .. 10 )
-    {
-        my $medium = MediaWords::Test::DB::create_test_medium( $db, "$label $i" );
-        my $mh = {
-            media_id        => $medium->{ media_id },
-            is_healthy      => ( $medium->{ media_id } % 2 ) ? 't' : 'f',
-            has_active_feed => ( $medium->{ media_id } % 2 ) ? 't' : 'f',
-            start_date      => '2011-01-01',
-            end_date        => '2017-01-01'
-        };
-
-        map { $mh->{ $_ } = $i * length( $_ ) } @{ $metrics };
-
-        $db->create( 'media_health', $mh );
-    }
-
-    my $expected_mhs = $db->query( <<SQL, $label )->hashes;
-select mh.* from media_health mh join media m using ( media_id ) where m.name like ? || '%'
-SQL
-
-    my $media_id_params = join( '&', map { "media_id=$_->{ media_id }" } @{ $expected_mhs } );
-
-    my $got_mhs = test_get( '/api/v2/mediahealth/list?' . $media_id_params, {} );
-
-    my $fields = [ qw/media_id is_health has_active_feed start_date end_date/, @{ $metrics } ];
-    rows_match( $label, $got_mhs, $expected_mhs, 'media_id', $fields );
-}
-
 sub test_stats_list($)
 {
     my ( $db ) = @_;
@@ -240,8 +201,6 @@ sub test_api($)
     test_controversies( $db );
     test_controversy_dumps( $db );
     test_controversy_dump_time_slices( $db );
-
-    test_mediahealth( $db );
 
     test_stats_list( $db );
 
