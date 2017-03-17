@@ -291,9 +291,9 @@ sub _annotate_text($)
     $request->set_content_type( 'application/json; charset=utf8' );
     $request->set_content( $text_json_encoded );
 
-    DEBUG "Sending request to $_corenlp_annotator_url: $text_json_encoded";
+    TRACE "Sending request to $_corenlp_annotator_url: $text_json_encoded";
     my $response = $ua->request( $request );
-    DEBUG "Response received.";
+    TRACE "Response received.";
 
     # Force UTF-8 encoding on the response because the server might not always
     # return correct "Content-Type"

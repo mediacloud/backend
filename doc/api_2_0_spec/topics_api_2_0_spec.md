@@ -584,8 +584,10 @@ Response:
 
 `https://api.mediacloud.org/api/v2/topics/list`
 
-The topics/list call returns a simple list of topics available in Media Cloud.  The topics/list call is is only call
-that does not include a topics_id in the url.
+The topics/list call returns a simple list of topics available in Media Cloud.  The call will only return topics for
+which the calling user has read or higher permissions.  
+
+The topics/list call is is only call that does not include a topics_id in the url.
 
 ### Query Parameters
 
@@ -661,7 +663,7 @@ Response:
 
 `https://api.mediacloud.org/api/v2/topics/single/~topics_id~`
 
-The topics/single call returns a single topic.
+The topics/single call returns a single topic, if the calling user has permission to read that topic.
 
 ### Query Parameters
 

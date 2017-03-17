@@ -8,7 +8,7 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
-use Test::More tests => 7;
+use Test::More tests => 10;
 
 use MediaWords::Test::DB;
 use MediaWords::TM::Mine;
@@ -48,6 +48,23 @@ sub test_postgres_regex_match($)
         ];
         ok( !MediaWords::TM::Mine::postgres_regex_match( $db, $strings, $regex ) );
     }
+
+    {
+        my $strings = [ ( 'x' x ( 8 * 1024 * 1024 ) ) . 'MATCH' ];
+        ok( !MediaWords::TM::Mine::postgres_regex_match( $db, $strings, 'MATCH' ) );
+    }
+
+    {
+        my $strings = [ 'MATCH' . ( 'x' x ( 8 * 1024 * 1024 ) ) ];
+        ok( MediaWords::TM::Mine::postgres_regex_match( $db, $strings, 'MATCH' ) );
+    }
+
+    {
+        # make sure we just fail and don't crash on null char
+        my $strings = [ "MATCH\x00FOO" ];
+        ok( !MediaWords::TM::Mine::postgres_regex_match( $db, $strings, 'MATCH' ) );
+    }
+
 }
 
 my $_topic_stories_medium_count = 0;
