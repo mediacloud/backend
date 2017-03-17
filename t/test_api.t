@@ -372,13 +372,6 @@ sub test_tags($)
 
 }
 
-# test tag set create, update, and list
-sub test_tag_sets($)
-{
-    my ( $db ) = @_;
-
-}
-
 # test feeds/list and single
 sub test_feeds_list($)
 {
@@ -972,7 +965,6 @@ sub test_api($)
 
     MediaWords::Test::API::setup_test_api_key( $db );
 
-    test_tag_sets( $db );
     test_feeds( $db );
 
     test_tags( $db );
