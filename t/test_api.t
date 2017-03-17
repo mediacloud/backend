@@ -79,7 +79,7 @@ sub _get_put_tag_input_records($$$$$$)
 }
 
 # get the url for the put_tag end point for the given table
-sub get_put_tag_url($;$)
+sub _get_put_tag_url($;$)
 {
     my ( $table, $clear ) = @_;
 
@@ -103,7 +103,7 @@ sub test_add_tags
 
     my $put_tags = _get_put_tag_input_records( $db, $table, $rows, $add_tag_sets, $input_form, 'add' );
 
-    my $r = test_put( get_put_tag_url( $table, $clear ), $put_tags );
+    my $r = test_put( _get_put_tag_url( $table, $clear ), $put_tags );
 
     my $map_table    = $table . "_tags_map";
     my $id_field     = $table . "_id";
@@ -168,7 +168,7 @@ SQL
     map { $_->{ add_tags } = [ $_->{ tags }->[ 0 ] ] } @{ $tag_sets };
 
     my $put_tags = _get_put_tag_input_records( $db, $table, $rows, $tag_sets, $input_form, 'remove' );
-    my $r = test_put( get_put_tag_url( $table ), $put_tags );
+    my $r = test_put( _get_put_tag_url( $table ), $put_tags );
 
     my $expected_map_count =
       scalar( @{ $tag_sets } ) * ( scalar( @{ $tag_sets->[ 0 ]->{ tags } } ) - 1 ) * scalar( @{ $rows } );
@@ -217,7 +217,7 @@ sub test_put_tags($$)
 {
     my ( $db, $table ) = @_;
 
-    my $url      = get_put_tag_url( $table );
+    my $url      = _get_put_tag_url( $table );
     my $id_field = $table . "_id";
 
     my $num_tag_sets = 5;
