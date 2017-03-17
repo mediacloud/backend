@@ -53,7 +53,7 @@ sub _get_put_tag_input_tag($$$)
 }
 
 # given a set of tags, return a list of hashes in the proper form for a put_tags call
-sub get_put_tag_input_records($$$$$$)
+sub _get_put_tag_input_records($$$$$$)
 {
     my ( $db, $table, $rows, $tag_sets, $input_form, $action ) = @_;
 
@@ -101,7 +101,7 @@ sub test_add_tags
     my $add_tag_sets = [ @{ $tag_sets }[ 0 .. $num_add_tag_sets - 1 ] ];
     map { $_->{ add_tags } = [ @{ $_->{ tags } }[ 0 .. $num_add_tags - 1 ] ] } @{ $add_tag_sets };
 
-    my $put_tags = get_put_tag_input_records( $db, $table, $rows, $add_tag_sets, $input_form, 'add' );
+    my $put_tags = _get_put_tag_input_records( $db, $table, $rows, $add_tag_sets, $input_form, 'add' );
 
     my $r = test_put( get_put_tag_url( $table, $clear ), $put_tags );
 
@@ -167,7 +167,7 @@ SQL
 
     map { $_->{ add_tags } = [ $_->{ tags }->[ 0 ] ] } @{ $tag_sets };
 
-    my $put_tags = get_put_tag_input_records( $db, $table, $rows, $tag_sets, $input_form, 'remove' );
+    my $put_tags = _get_put_tag_input_records( $db, $table, $rows, $tag_sets, $input_form, 'remove' );
     my $r = test_put( get_put_tag_url( $table ), $put_tags );
 
     my $expected_map_count =
