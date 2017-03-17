@@ -154,16 +154,6 @@ SQL
     rows_match( $label, $got_cdts, [ $expected_timespan ], 'controversy_dump_time_slices_id', $fields );
 }
 
-# test whether we have at least requested every api end point outside of topics/
-sub test_coverage()
-{
-    my $untested_urls = MediaWords::Test::API::get_untested_api_urls();
-
-    $untested_urls = [ grep { $_ !~ m~/topics/~ } @{ $untested_urls } ];
-
-    ok( scalar( @{ $untested_urls } ) == 0, "end points not requested: " . join( ', ', @{ $untested_urls } ) );
-}
-
 # test parts of the ai that only require reading, so we can test these all in one chunk
 sub test_api($)
 {
@@ -181,8 +171,6 @@ sub test_api($)
     test_controversies( $db );
     test_controversy_dumps( $db );
     test_controversy_dump_time_slices( $db );
-
-    test_coverage();
 }
 
 sub main
