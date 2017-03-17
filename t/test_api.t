@@ -33,17 +33,6 @@ Readonly my $NUM_MEDIA            => 5;
 Readonly my $NUM_FEEDS_PER_MEDIUM => 2;
 Readonly my $NUM_STORIES_PER_FEED => 10;
 
-# test that the values at the given fields are equal in each hash, using the given test label
-sub _compare_fields($$$$)
-{
-    my ( $label, $got, $expected, $fields ) = @_;
-
-    for my $field ( @{ $fields } )
-    {
-        is( $got->{ $field }, $expected->{ $field }, "$label $field" );
-    }
-}
-
 # wait for feed scraping to happen and verify that a valid feed has been discovered for each site
 sub test_for_scraped_feeds($$)
 {
