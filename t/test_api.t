@@ -33,12 +33,6 @@ Readonly my $NUM_MEDIA            => 5;
 Readonly my $NUM_FEEDS_PER_MEDIUM => 2;
 Readonly my $NUM_STORIES_PER_FEED => 10;
 
-# test topics/ create and update
-sub test_topics_crud($)
-{
-    my ( $db ) = @_;
-}
-
 # test wc/list end point
 sub test_wc_list($)
 {
@@ -331,8 +325,6 @@ sub test_api($)
     MediaWords::Test::Solr::setup_test_index( $db );
 
     MediaWords::Test::API::setup_test_api_key( $db );
-
-    test_topics_crud( $db );
 
     test_controversies( $db );
     test_controversy_dumps( $db );
