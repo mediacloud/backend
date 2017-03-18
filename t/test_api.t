@@ -1213,6 +1213,11 @@ sub test_wc_list($)
 {
     my ( $db ) = @_;
 
+    test_get( '/api/v2/wc/list', { q => 'the' } );
+
+    # commenting out to allow hot fix for wc/list stopwording bug
+    return;
+
     my $label = "wc/list";
 
     my $story = $db->query( "select * from stories order by stories_id limit 1" )->hash;
@@ -1757,8 +1762,7 @@ sub test_api($)
     test_downloads( $db );
     test_mediahealth( $db );
 
-    # commenting out to allow hot fix for wc/list stopwording bug
-    # test_wc_list( $db );
+    test_wc_list( $db );
 
     test_sentences( $db );
 
