@@ -1215,9 +1215,6 @@ sub test_wc_list($)
 
     test_get( '/api/v2/wc/list', { q => 'the' } );
 
-    # commenting out to allow hot fix for wc/list stopwording bug
-    return;
-
     my $label = "wc/list";
 
     my $story = $db->query( "select * from stories order by stories_id limit 1" )->hash;

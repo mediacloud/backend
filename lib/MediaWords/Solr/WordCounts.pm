@@ -308,8 +308,7 @@ sub set_default_languages($$)
 {
     my ( $self, $sentences ) = @_;
 
-    # commenting out as temporary hotfix because this broken non-english stopwording
-    #return if ( $self->languages && @{ $self->languages } );
+    return if ( $self->languages && @{ $self->languages } );
 
     # our cld language detection mis-identifies english as other languages enough that we should always include 'en'
     my $language_lookup = { 'en' => 1 };
