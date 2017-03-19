@@ -27,3 +27,21 @@ class TestTMMine(TestDatabaseTestCase):
             'This is a string describing something else again.',
         ]
         assert postgres_regex_match(db=self.db(), strings=strings, regex=regex) is False
+
+        # String over 1 MB
+        strings = [
+            'alt-right alt-right ' * (1024 * 1024)
+        ]
+        assert postgres_regex_match(db=self.db(), strings=strings, regex=regex) is True
+
+        # String where regex is not in the first 1 MB
+        strings = [
+            'a' * (1024 * 1024 + 10) + ' alt-right alt-right'
+        ]
+        assert postgres_regex_match(db=self.db(), strings=strings, regex=regex) is False
+
+        # String with a null char
+        strings = [
+            "alt-right alt-right \x00 alt-right"
+        ]
+        assert postgres_regex_match(db=self.db(), strings=strings, regex=regex) is False
