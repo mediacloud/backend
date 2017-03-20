@@ -55,9 +55,6 @@ EOF
 # without TIME_WAIT socket reuse (http://dba.stackexchange.com/a/59709)
 net.ipv4.tcp_tw_reuse=1
 
-# Don't be too keep to move stuff to swap
-vm.swappiness = 10
-
 EOF
 
     echo "Rereading sysctl settings..."
