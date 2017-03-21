@@ -8,13 +8,13 @@ The overall process is documented in [story_processing_flow.pdf](diagrams/story_
 The story processing flow consists of five components: the crawler, the extractor, the corenlp annotator, the solr
 import, the bitly fetcher, and the geotagger.  The crawler, extractor, corenlp annotator, and bitly fetchers all run via
 [supervisor](supervisor.markdown)  on the core media cloud server.  The extractor, corenlp annotator, and bitly fetchers
-all run as jobs. The geotagger runs from a separate codebase on a separate server.  The solr import process runs from
+all run as jobs. The geotagger runs from a separate codebase on a separate server.  The Solr import process runs from
 the same code base but from a separate machine in the production media cloud setup.
 
 Media Cloud organizes its content collection around media sources, feeds, and stories.  Media sources are publications
 like the New York Times.  Feeds are syndicated feeds like atom, rss, or rdf feeds.  Every feed belongs to a single media
 source.  Multiple feeds may belong to a media source (some media sources have hundreds).  Stories are the individual
-items published in rss feeds.  Each story belongs to a single media source but may belong to multiple feeds within
+items published in RSS feeds.  Each story belongs to a single media source but may belong to multiple feeds within
 the same media source.
 
 Order of Operations
@@ -22,23 +22,22 @@ Order of Operations
 
 The order of the operations described below is:
 
-crawl -> extract -> optional annotation -> solr import
+crawl -> extract -> optional annotation -> Solr import
 
-As described below, bitly fetching happens 3 and 30 days after story publication, and each bitly fetch triggers another
-solr import.
+As described below, bitly fetching happens 3 and 30 days after story publication, and each bitly fetch triggers another Solr import.
 
 Crawler
 -------
 
 The crawler is responsible downloading all feeds and stories.  The crawler consists of the provider, the engine, and
-a specified number of fetcher/handler processes.  The engine hands urls to the fetchers to download.  The handlers
+a specified number of fetcher/handler processes.  The engine hands URLs to the fetchers to download.  The handlers
 store the downloaded content.  If the content is a feed, parse the feed to find new stories and add those to the
 download queue.  More details about the crawler are [here](crawler.markdown).
 
 Extractor
 ---------
 
-The extractors are responsible for parsing the substantive text from the raw html of each story and storing it in the
+The extractors are responsible for parsing the substantive text from the raw HTML of each story and storing it in the
 download_texts table.  The extractor also parses the download_text into sentences and stores those sentences in the
 story_sentences table.  An extractor job is queued by the crawler handler for each story it downloads.  More
 information in the extractor [here](extractor.markdown).
@@ -65,22 +64,22 @@ for annotation and by the annotation worker otherwise.
 Solr Importer
 -------------
 
-The solr importer checks for any stories present in processed_stories that are new or have been updated
-in some way since the last update (in production, we run a solr import hourly).  Solr imports stories with each
-story_sentence as a separate document.  More information on our solr setup [here](solr.markdown).
+The Solr importer checks for any stories present in processed_stories that are new or have been updated
+in some way since the last update (in production, we run a Solr import hourly).  Solr imports stories with each
+story_sentence as a separate document.  More information on our Solr setup [here](solr.markdown).
 
 Bitly Fetcher
 -------------
 
 A bitly fetcher runs for each story 3 days after it is first created and then again 30 days later for each story that
 had each at least one bitly click on the first fetch.  The 3 day fetch is queued for the story when the story is
-extracted.  The bitly fetcher calls the bitly api to find the number of bitly clicks for each story.  More information
+extracted.  The bitly fetcher calls the bitly API to find the number of bitly clicks for each story.  More information
 on the bitly fetching [here](bitly.markdown).
 
 Geotagging Client
 =----------------
 The geotagging client adds a set of tags to each story that indicate that the story is about that location.  The
-geotagger operates entirely through the api.  It periodically calls the api to download all new stories in media sources
+geotagger operates entirely through the api.  It periodically calls the API to download all new stories in media sources
 that we want to geotag, including the corenlp annotation for each; generates the geotagging information based on the
 entity data in the corenlp annotation; and then writes any tags for each story back to the core system through the api.
 The geotagger is run as a separate codebase, available

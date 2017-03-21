@@ -11,18 +11,18 @@ Basic Spider Flow
 
 A topic is defined as:
 
-* a solr seed query, which specifies a date range, some media collections, and a text query
+* a Solr seed query, which specifies a date range, some media collections, and a text query
 * a regex pattern for determining relevance
 * a date range which bounds the timespans and restricts which stories are mined for links
 
 The basic operation of the spider is:
 
-1. Run the solr query to get an initial set of matching stories from our archive.
-2. Add the urls of those stories to the spider queue.
-3. For each story in the spider queue, try to match the url against an existing media cloud story.
-4. If there is no match and the raw html content of the story matches the topic pattern, create a new story.
-5. If the sentence text or url of the story (existing or created) matches the regex pattern, add it to the topic
-and add all urls within the story text to the spider queue.
+1. Run the Solr query to get an initial set of matching stories from our archive.
+2. Add the URLs of those stories to the spider queue.
+3. For each story in the spider queue, try to match the URL against an existing media cloud story.
+4. If there is no match and the raw HTML content of the story matches the topic pattern, create a new story.
+5. If the sentence text or URL of the story (existing or created) matches the regex pattern, add it to the topic
+and add all URLs within the story text to the spider queue.
 6. Repeat steps 3. - 6. until the spider has completed 15 complete iterations (or the max_iterations set for the
 topic).
 
@@ -52,7 +52,7 @@ Approaches we have used in the past to add more content to a sparse topic includ
 
 * editing the parameters of the query (keywords, dates, and / or sources) to find more seed stories;
 * adding and backfilling with feedly a new media collection with relevant sources;
-* manually creating a list of relevant seed urls through google searches, manual curation, or other such methods;
+* manually creating a list of relevant seed URLs through google searches, manual curation, or other such methods;
 * mining twitter for a list of links using crimson hexagon;
 
 Story Matching
@@ -60,23 +60,23 @@ Story Matching
 
 Problem: Stories often do not match by the simple approach of matching urls.
 
-The first problem with simple url matching is that many pages link to redirecting urls that eventually lead to the
-story in question.  We mitigate this problem by matching on both the original url and the url that the original
+The first problem with simple URL matching is that many pages link to redirecting URLs that eventually lead to the
+story in question.  We mitigate this problem by matching on both the original URL and the URL that the original
 url redirects to.  We also try to match to the guid that we store for our RSS crawled stories, since that guid is
-sometimes an alternative url for the story.
+sometimes an alternative URL for the story.
 
-In many cases, there are multiple, non-redirecting urls for the same story.  Some of those urls are small variations
-of a common url (for example, with different '#...' anchors tagged onto the end, or with varying case).  Before matching
-urls we use a lossy url normalization process that pretty aggressively trims information out of urls that is rarely
+In many cases, there are multiple, non-redirecting URLs for the same story.  Some of those URLs are small variations
+of a common URL (for example, with different '#...' anchors tagged onto the end, or with varying case).  Before matching
+urls we use a lossy URL normalization process that pretty aggressively trims information out of URLs that is rarely
 useful in distinguishing stories (for example, we remove everything after '#' and lowercase all urls).  
 
-For the full details of our url matching, see
+For the full details of our URL matching, see
 [MediaWords::DBI::Stories::get_medium_dup_stories_by_url](../lib/MediaWords/DBI/Stories.pm).
 
-Even with redirect url matching and aggressive url normalization, we still often miss duplicate stories, so we also
+Even with redirect URL matching and aggressive URL normalization, we still often miss duplicate stories, so we also
 deduplicate stories by title.  The basic approach of the title deduplication is to break the title of each story into
 parts by [-:|] and look for any such part that is the sole title part for any one story and is at least 4 words long and
-is not the title of a story with a path-less url.  Any story in the same media source as that story that includes that
+is not the title of a story with a path-less URL.  Any story in the same media source as that story that includes that
 title part becomes a duplicate.  The idea is that we often see duplicate stories not only by exact title but also in
 the form of 'Trayvon Martin case to go to grand jury' vs. 'Orlando Sentinel: Trayvon Martin case to go to grand jury'.
 
@@ -92,18 +92,18 @@ Media Source Assignment
 Problem: We want to do analysis of larger media sources that publish the stories, but in most web pages there is no
 structured data about the publisher.
 
-For urls that match a story already in our database, we already have a media source for the story (because our
-platform assigns every rss feed we crawl to a media source).  But for spidered stories that do not match an existing
+For URLs that match a story already in our database, we already have a media source for the story (because our
+platform assigns every RSS feed we crawl to a media source).  But for spidered stories that do not match an existing
 story, we need to assign the story to either an existing media source or a new one we create on the spot.
 
-We assign stories to media sources based on the url host (for
+We assign stories to media sources based on the URL host (for
 'http://www.nytimes.com/2016/03/11/us/politics/republican-debate.html' the domain is 'www.nytimes.com').  The same
-lossy url normalization algorithm is used on the medium url as is used on the urls for story matching described
-above.  If a media source with the normalized url does not already exist, we create a new one.
+lossy URL normalization algorithm is used on the medium URL as is used on the URLs for story matching described
+above.  If a media source with the normalized URL does not already exist, we create a new one.
 
-In many cases, media sources use urls too different for the normalization algorithm to detect.  To treat those cases,
+In many cases, media sources use URLs too different for the normalization algorithm to detect.  To treat those cases,
 we periodically run a manual media source deduplication script that presents to a human lists of topic media
-sources with the same media url domain.  The human makes a judgment about whether media sources with the same
+sources with the same media URL domain.  The human makes a judgment about whether media sources with the same
 url domain are duplicates or not.  These media duplicate lists are then used for all future topic spider runs
 (including reruns on existing topics, in which case stories from duplicate media sources are merged).
 
@@ -117,9 +117,9 @@ External Seed Sets
 Problem: In some cases, the existing Media Cloud content does not provide a sufficient seed set to accurately reflect
 activity around the topic topic.
 
-For these cases, we provide the option of adding an externally generated list of urls to seed a topic.  Those
+For these cases, we provide the option of adding an externally generated list of URLs to seed a topic.  Those
 urls might come from manual google searches, twitter searches, or researcher curation.  When the topic has a list
-of external seed urls, those urls are simply added to the spider url queue before running the spider.
+of external seed URLs, those URLs are simply added to the spider URL queue before running the spider.
 
 Date Assignment
 ---------------
@@ -131,7 +131,7 @@ For stories that we collect from RSS feeds, we assign the publish date from the 
 collection date / time if there is no publish date in the RSS feed.  These dates are often not accurate to the hour but
 are almost always accurate to the day.
 
-For spidered stories, we have no RSS date, so we have guess the date using just the html of the story.  There is no
+For spidered stories, we have no RSS date, so we have guess the date using just the HTML of the story.  There is no
 single format for including structured data about dates in html.  There are several different xml tags that various
 different publishers use, many of which may indicate the date of either the whole story or of some element related
 to the story (a comment, another story, the whole media source, etc).
@@ -169,8 +169,8 @@ methods are used by the module, here are the date guess method counts for the ne
 
 For some stories, there is no single date that can be assigned to the page.  For instance, there is no single publish
 date for a wikipedia page or the home page of an activist site.  Before guessing the date of a story, the date guessing
-tries to guess whether the story is undateable by looking at the url.  For instance, urls with no path are assumed
-undateable, as are urls with no numbers in the path.
+tries to guess whether the story is undateable by looking at the URL.  For instance, URLs with no path are assumed
+undateable, as are URLs with no numbers in the path.
 
 When we validated this method, we found that dates guessed by some method other than guess_by_url_and_date_text (which
 are almost always correct) are accurate to the day in 87% of cases.  The above numbers are from a topic with  

@@ -83,6 +83,6 @@ to optimize because they cannot be explained in a separate session with psql.  I
 query in the code that creates and uses the temporary tables.
 
 More importantly, we use these snapshot_ tables as an abstraction interface for querying topic data both lived and
-snapshoted data.  We use this abstraction layer so that we can allow web app or api code to have access to the snapshot
+snapshoted data.  We use this abstraction layer so that we can allow web app or API code to have access to the snapshot
 tables without having to query the snap.* tables, which are traditional tables that are expensive to update in real time.
 For details about how to query the snapshot tables, see [MediaWords::TM::Snapshot](../lib/MediaWords/TM/Snapshot.pm).

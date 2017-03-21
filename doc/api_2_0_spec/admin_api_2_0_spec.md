@@ -297,7 +297,7 @@ The provides access to the downloads table.
 
 **Note:** Downloads are an internal implementation detail. Most users will be better served by interacting with the API at the story level and should not use this access point.
 
-The fields of the returned objects include all fields in the downloads table within Postgresql plus 'raw_content' which contains the raw html is the download was successful. (If the download was not successful 'raw_content' is omitted.
+The fields of the returned objects include all fields in the downloads table within Postgresql plus 'raw_content' which contains the raw HTML is the download was successful. (If the download was not successful 'raw_content' is omitted.
 
 
 ## api/v2/downloads/single/
@@ -476,7 +476,7 @@ Input:
 {
     "tag": "sample_tag",
     "label": "Sample Tag",
-    "description": "This is a sample tag for an api example.",
+    "description": "This is a sample tag for an API example.",
     "show_on_media": 0,
     "show_on_stories": 0,
     "is_static": 0
@@ -491,7 +491,7 @@ Output:
         "tags_id": 123,
         "tag": "sample_tag",
         "label": "Sample Tag",
-        "description": "This is a sample tag for an api example.",
+        "description": "This is a sample tag for an API example.",
         "show_on_media": 0,
         "show_on_stories": 0,
         "is_static": 0
@@ -530,7 +530,7 @@ Output:
         "tags_id": 123,
         "tag": "sample_tag_updated",
         "label": "Sample Tag",
-        "description": "This is a sample tag for an api example.",
+        "description": "This is a sample tag for an API example.",
         "show_on_media": 0,
         "show_on_stories": 0,
         "is_static": 0
@@ -562,7 +562,7 @@ Input:
 {
     "nane": "sample_tag_set",
     "label": "Sample Tag Set",
-    "description": "This is a sample tag set for an api example"
+    "description": "This is a sample tag set for an API example"
 }
 ```
 
@@ -575,7 +575,7 @@ Output:
         "tag_sets_id": 456,
         "nane": "sample_tag_set",
         "label": "Sample Tag Set",
-        "description": "This is a sample tag set for an api example"
+        "description": "This is a sample tag set for an API example"
     }
 }
 ```
@@ -612,7 +612,7 @@ Output:
         "tag_sets_id": 456,
         "nane": "sample_tag_set_update",
         "label": "Sample Tag Set",
-        "description": "This is a sample tag set for an api example"
+        "description": "This is a sample tag set for an API example"
     }
 }
 ```
@@ -631,11 +631,11 @@ Output:
 | ----------- | ---------------------------------- |
 | media_id    | id of the parent medium (required) |
 | name        | human readable name for the feed   |
-| url         | feed url (required)                |
+| url         | feed URL (required)                |
 | feed_type   | `syndicated` or `web_page`         |
 | feed_status | `active`, `inactive`, `skipped`    |
 
-This call adds a new feed to an existing media source.  The `syndicated` feed_type should be used for RSS, RDF, and ATOM feeds.  The `web_page` feed_type will just download the given url once a week and treat the url as a new story each time.  The `active` feed_status will cause the feed to be regularly crawled.  Feeds should be marked as `inactive` if they are functional and may have been crawled at one point but are no longer crawled now (for instance, feeds that have not had a new story in many months are sometimes marked `inactive`)  Feeds should be given the `skipped` feed_type if they are being added merely to indicate to the automatic feed scraping process that the given url should not be added to the given media source as a feed.
+This call adds a new feed to an existing media source.  The `syndicated` feed_type should be used for RSS, RDF, and ATOM feeds.  The `web_page` feed_type will just download the given URL once a week and treat the URL as a new story each time.  The `active` feed_status will cause the feed to be regularly crawled.  Feeds should be marked as `inactive` if they are functional and may have been crawled at one point but are no longer crawled now (for instance, feeds that have not had a new story in many months are sometimes marked `inactive`)  Feeds should be given the `skipped` feed_type if they are being added merely to indicate to the automatic feed scraping process that the given URL should not be added to the given media source as a feed.
 
 ### Example
 
@@ -818,9 +818,9 @@ This call will create one or more media sources with the given information, if n
 | ----------------- | ---------------------------------------- |
 | url               | home page of media source (required)     |
 | name              | unique, human readable name for source (default scraped) |
-| foreign_rss_links | true if the link elements in the source's rss feeds are largely links to other sites, for aggregators for instance (default false) |
-| content_delay     | delay url downloads for this feed this many hours (default 0) |
-| feeds             | list of syndicated feed urls (default none) |
+| foreign_rss_links | true if the link elements in the source's RSS feeds are largely links to other sites, for aggregators for instance (default false) |
+| content_delay     | delay URL downloads for this feed this many hours (default 0) |
+| feeds             | list of syndicated feed URLs (default none) |
 | tags_ids          | list of tags to which to associate the media source (default none) |
 | editor_notes      | notes about the source for internal media cloud consumption (default none) |
 | public_notes      | notes about the source for public consumption ( default none) |
@@ -828,9 +828,9 @@ This call will create one or more media sources with the given information, if n
 
 The end point accepts either a single json record in the above format or a list of records in the same format.
 
-The only required field for a media source is the url.  The name will be assigned to the html title at the media source url if no name is provided.  A feed scraping job will be queued if no feeds are specified.
+The only required field for a media source is the URL.  The name will be assigned to the HTML title at the media source URL if no name is provided.  A feed scraping job will be queued if no feeds are specified.
 
-The `foreign rss links` field should be used only if the link elements themselves in the source's feeds point to external urls.  This flag tells the spider not to treat spidered stories matching those external links as if they belong to this media source.
+The `foreign_rss_links` field should be used only if the link elements themselves in the source's feeds point to external urls.  This flag tells the spider not to treat spidered stories matching those external links as if they belong to this media source.
 
 The `content_delay` field is useful for sources that make many changes to their stories immediately after first publication  Media Cloud only collects each story once, so if the story will change dramatically it can be best to wait a few hour before downloading it.
 
@@ -847,8 +847,8 @@ Other than the above, no other updates will be made to the existing media source
 | -------- | -------------------------------------- |
 | status   | `new`, `existing`, or `error`          |
 | media_id | id of the new or existing media source |
-| url      | url of processed record                |
-| error | error message for `error` status urls |
+| url      | URL of processed record                |
+| error    | error message for `error` status URLs  |
 
 
 The output is always a list of records with the fields described above.  The output will include one record for each input record.

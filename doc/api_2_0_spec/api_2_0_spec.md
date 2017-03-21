@@ -189,7 +189,7 @@ limit will result in a status 403 error.  Users who need access to more requests
 
 # Media
 
-The Media api calls provide information about media sources.  A media source is a publisher of content, such as the New York
+The Media API calls provide information about media sources.  A media source is a publisher of content, such as the New York
 Times or Instapundit.  Every story belongs to a `single media source.  Each media source can have zero or more feeds.
 
 ## api/v2/media/single/
@@ -262,7 +262,7 @@ Response:
 | `timespans_id`     | null    | Return media within the given timespan
 | `topic_mode`       | null    | If set to 'live', return media from live topics
 | `tags_id`          | null    | Return media associate with the given tag
-| `q`                | null    | Return media with at least one sentence that matches the solr query
+| `q`                | null    | Return media with at least one sentence that matches the Solr query
 | `include_dups`     | 0       | Include duplicate media among the results
 | `unhealthy` | none | Only return media that are currently marked as unhealthy (see mediahealth/list)
 | `similar_media_id` | none | Return media with the most tags in common
@@ -280,8 +280,7 @@ If the `timespans_id` parameter is specified, return media within the given time
 sorted by descending inlink_count within the timespan.  If `topic_mode` is set to
 'live', return media from the live topic stories rather than from the frozen snapshot.
 
-If the 'q' parameter is specified, return only media that include at least on sentence that matches the given
-solr query.  For a description of the solr query format, see the stories\_public/list call.
+If the `q` parameter is specified, return only media that include at least on sentence that matches the given Solr query.  For a description of the Solr query format, see the `stories_public/list` call.
 
 ### Example
 
@@ -295,15 +294,15 @@ Output format is the same as for api/v2/media/single above.
 | ------------------- | -----------------------------
 | `api/v2/media/suggestions/submit` | Suggest a media source for Media Cloud to crawl
 
-This api end point allows the user to send a suggest a new media source to the Media Cloud team for regular crawling.
+This API end point allows the user to send a suggest a new media source to the Media Cloud team for regular crawling.
 
 ### Input Description
 
 | Field | Description |
 |------|------------ |
 | name | human readable name of media source (optional) |
-| url | url of the media source home page (required) |
-| feed_url | url of am rss, rdf, or atom  syndication feed for the source |
+| url | URL of the media source home page (required) |
+| feed_url | URL of am rss, rdf, or atom  syndication feed for the source |
 | reason | reason media source should be added to the system (optional) |
 | tags_ids |  list of suggested tags to add to the source (optional ) |
 
@@ -327,9 +326,9 @@ Output:
 
 # Media Health
 
-The Media Health api call provides information about the health of a media source, meaning to what degree we are
+The Media Health API call provides information about the health of a media source, meaning to what degree we are
 capturing all of the stories published by that media source.  Media Cloud collects its data via
-automatically detected rss feeds on the open web.  This means first that the system generally has data for a given
+automatically detected RSS feeds on the open web.  This means first that the system generally has data for a given
 media source from the time we first enter that source into our database.  Second, Media Cloud data for a given media
 source is only as good as the set of feeds we have for that source.  Our feed scraper is not perfect and so sometimes
 misses feeds it should be collecting.   Third, feeds change over time.  We periodically rescrape every media source
@@ -488,7 +487,7 @@ The following table describes the meaning and origin of fields returned by both 
 | `stories_id`        | The internal Media Cloud ID for the story.
 | `media_id`          | The internal Media Cloud ID for the media source to which the story belongs.
 | `media_name`        | The name of the media source to which the story belongs.
-| `media_url`         | The url of the media source to which the story belongs.
+| `media_url`         | The URL of the media source to which the story belongs.
 | `publish_date`      | The publish date of the story as specified in the RSS feed.
 | `tags`              | A list of any tags associated with this story, including those written through the write-back api.
 | `collect_date`      | The date the RSS feed was actually downloaded.
@@ -563,7 +562,7 @@ server provides full text search indexing of each sentence collected by Media Cl
 sentences.  The api/v2/stories_public/list call searches for sentences matching the `q` and / or `fq` parameters if specified and
 the stories that include at least one sentence returned by the specified query.
 
-The `q` and `fq` parameters are passed directly through to Solr.  Documentation of the format of the `q` and `fq` parameters is [here](http://lucene.apache.org/core/4_6_1/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#package_description).  Below are the fields that may be used as solr query parameters, for example 'sentence:obama AND media_id:1':
+The `q` and `fq` parameters are passed directly through to Solr.  Documentation of the format of the `q` and `fq` parameters is [here](http://lucene.apache.org/core/4_6_1/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#package_description).  Below are the fields that may be used as Solr query parameters, for example 'sentence:obama AND media_id:1':
 
 | Field                        | Description
 | -------------------- | -----------------------------------------------------
@@ -577,7 +576,7 @@ The `q` and `fq` parameters are passed directly through to Solr.  Documentation 
 
 Be aware that ':' is usually replaced with '%3A' in programmatically generated URLs.
 
-In addition, there following fields may be entered as pseudo queries within the solr query:
+In addition, there following fields may be entered as pseudo queries within the Solr query:
 
 | Pseudo Query Field                        | Description
 | ---------------------------- | -----------------------------------------------------
@@ -589,11 +588,11 @@ In addition, there following fields may be entered as pseudo queries within the 
 | link_to_medium   | a medium id, returns stories that link to stories within the medium
 | link_from_medium | link_from_medium, returns stories that are linked from stories within the medium
 
-To include one of these fields in a larger solr query, delineate with {~ }, for example:
+To include one of these fields in a larger Solr query, delineate with {~ }, for example:
 
 {~ topic:1 } and media_id:1
 
-The api will translate the given pseudo query into a stories_id: clause in the larger solr query.  So the above query
+The API will translate the given pseudo query into a stories_id: clause in the larger Solr query.  So the above query
 will be translated into the following, including topic 1 consists of stories with ids 1, 2, 3, and 4.
 
 stories_id:( 1 2 3 4 ) and media_id:1
@@ -743,7 +742,7 @@ The number of days in each date range depends on the total number of days betwee
 | < 180      | 3 days
 | >= 180     | 7 days
 
-Note that the total count returned by a split query is for all sentences found by the solr query, which query might or might not
+Note that the total count returned by a split query is for all sentences found by the Solr query, which query might or might not
 include a date restriction.  So in the example africa query below, the 236372 count is for all sentences matching africa, not just those within the split date range.
 
 ### Example
@@ -808,8 +807,8 @@ matching sentence.  If the field is set to `tags_id_stories`, the call returns a
 story including a sentence matching the query along with a count of how many times each tag is associated with
 each matching story.
 
-To provide quick results, the api counts field values in a randomly sampled set of sentences returned
-by the given query.  By default, the request will sample 1000 sentences.  You can make the api sample
+To provide quick results, the API counts field values in a randomly sampled set of sentences returned
+by the given query.  By default, the request will sample 1000 sentences.  You can make the API sample
 more sentences (up to 100,000) at the cost of increased time.
 
 Setting the 'stats' field to true changes includes the following fields in the response:
@@ -817,7 +816,7 @@ Setting the 'stats' field to true changes includes the following fields in the r
 | Field                        | Description
 | ---------------------------- | -------------------------------------------------------------------
 | num_sentences_returned       | The number of sentences returned by the call, up to sample_size
-| num_sentences_found          | The total number of sentences found by solr to match the query
+| num_sentences_found          | The total number of sentences found by Solr to match the query
 | sample_size_param            | The sample size passed into the call, or the default value
 
 ### Example
@@ -859,7 +858,7 @@ URL:  https://api.mediacloud.org/api/v2/sentences/field_count?q=obama+AND+media_
 
 Returns word frequency counts of the most common words in a randomly sampled set of all sentences returned by querying
 Solr using the `q` and `fq` parameters, with stopwords removed by default.  Words are stemmed before being counted.  For
-each word, the call returns the stem and the full term most used with the given stem in the specified solr query (for
+each word, the call returns the stem and the full term most used with the given stem in the specified Solr query (for
 example, in the below example, 'democrat' is the stem that appeared 58 times and 'democrats' is the word that was most
 commonly stemmed into 'democract').
 
@@ -877,9 +876,9 @@ commonly stemmed into 'democract').
 
 See above /api/v2/stories_public/list for Solr query syntax.
 
-To provide quick results, the api counts words in a randomly sampled set of sentences returned
+To provide quick results, the API counts words in a randomly sampled set of sentences returned
 by the given query.  By default, the request will sample 1000 sentences and return 500 words.  You
-can make the api sample more sentences.  The system takes about one second to process each multiple of
+can make the API sample more sentences.  The system takes about one second to process each multiple of
 1000 sentences.
 
 By default, the system stems and stopwords the list in English plus each of the supported languages it detects for
@@ -900,7 +899,7 @@ Following fields are included in the stats response:
 | ---------------------------- | -------------------------------------------------------------------
 | num_words_returned           | The number of words returned by the call, up to num_words
 | num_sentences_returned       | The number of sentences returned by the call, up to sample_size
-| num_sentences_found          | The total number of sentences found by solr to match the query
+| num_sentences_found          | The total number of sentences found by Solr to match the query
 | num_words_param              | The num_words param passed into the call, or the default value
 | sample_size_param            | The sample size passed into the call, or the default value
 
@@ -1026,8 +1025,8 @@ None.
 | tag                   | text of tag, often cryptic
 | label                 | a short human readable label for the tag
 | description           | a couple of sentences describing the meaning of the tag
-| show\_on\_media       | recommendation to show this tag as an option for searching solr using the tags_id_media
-| show\_on\_stories     | recommendation to show this tag as an option for searching solr using the tags_id_stories
+| show\_on\_media       | recommendation to show this tag as an option for searching Solr using the tags_id_media
+| show\_on\_stories     | recommendation to show this tag as an option for searching Solr using the tags_id_stories
 | is\_static            | if true, users can expect this tag and its associations not to change in major ways
 | tag\_set\_name        | name field of associated tag set
 | tag\_set\_label       | label field of associated tag set
@@ -1083,7 +1082,7 @@ Response:
 If set to 1, the public parameter will return only tags that are generally useful for public consumption.  Those
 tags are defined as tags for which show_on_media or show_on_stories is set to true for either the tag
 or the tag's parent tag_set.  As described below in tags/single, a public tag can be usefully searched
-using the solr tags_id_media field if show_on_media is true and by the tags_id_stories field if
+using the Solr tags_id_media field if show_on_media is true and by the tags_id_stories field if
 show_on_stories is true.
 
 If the search parameter is set, the call will return only tags that match a case insensitive search for
@@ -1115,8 +1114,8 @@ None.
 | name                  | text of tag set, often cryptic
 | label                 | a short human readable label for the tag
 | description           | a couple of sentences describing the meaning of the tag
-| show\_on\_media       | recommendation to show this tag as an option for searching solr using the tags_id_media
-| show\_on\_stories     | recommendation to show this tag as an option for searching solr using the tags_id_stories
+| show\_on\_media       | recommendation to show this tag as an option for searching Solr using the tags_id_media
+| show\_on\_stories     | recommendation to show this tag as an option for searching Solr using the tags_id_stories
 
 The show\_on\_media and show\_on\_stories fields are useful for picking out which tags are likely to be useful for
 external researchers.  A tag should be considered useful for searching via tags\_id\_media or tags\_id\_stories
@@ -1175,7 +1174,7 @@ for researchers and also includes analytical results like link counts.  A timesp
 represents the set of stories active in a topic within a given date range.  Every timespan belongs to a snapshot.
 
 Topic data can be used to search stories and media sources as well.  Use the
-timespans_id param to list the media sources within a given timespan.  See the documentation for solr pseudo queries for documentation of how to
+timespans_id param to list the media sources within a given timespan.  See the documentation for Solr pseudo queries for documentation of how to
 query for stories within a topic.
 
 ## api/v2/topics/single/
@@ -1346,7 +1345,7 @@ URL: https://api.mediacloud.org/api/v2/timespans/list?snapshots_id=5
 
 ### Output Description
 
-Returns basic profile information about the current user.  Includes a list of  authentication roles for the user that give the user permission to access various parts of the backend web interface and some of the private api functionality (that for example allow editing and administration of Media Cloud's sources).
+Returns basic profile information about the current user.  Includes a list of  authentication roles for the user that give the user permission to access various parts of the backend web interface and some of the private API functionality (that for example allow editing and administration of Media Cloud's sources).
 
 Media Cloud currently includes the following authentication roles:
 
@@ -1480,12 +1479,12 @@ with open( '/tmp/media.csv', 'wb') as csvfile:
 This is broken down into multiple steps for convenience and because that's probably how a real user would do it.
 
 The you almost always want to search by a specific media source or media collection.  The easiest way to find a relevant media
-collection is to use our [Sources Tool](https://sources.mediameter.org).  The url for a the US Mainstream Media media collection in
+collection is to use our [Sources Tool](https://sources.mediameter.org).  The URL for a the US Mainstream Media media collection in
 the sources tool looks like this:
 
 https://sources.mediameter.org/#media-tag/8875027/details
 
-The number in that url is the tags_id of the media collection.
+The number in that URL is the tags_id of the media collection.
 
 ## Grab stories by querying stories_public/list
 

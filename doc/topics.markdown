@@ -20,12 +20,11 @@ The topic web UI is implemented in the [`MediaWords::Controller::Admin::TM`](../
 
 If you are running on a development machine, first make sure that you have a Solr instance running in `supervisord`.
 
-Then run the following import data into solr from PostgreSQL and verify existence of data in Solr by searching for a common word on the `/search` page.
+Then run the following import data into Solr from PostgreSQL and verify existence of data in Solr by searching for a common word on the `/search` page.
 
 **DO NOT RUN THIS IN PRODUCTION!**
 
-The process for running a topic in production is the same, but without the solr import (the production
-solr database will already have data).
+The process for running a topic in production is the same, but without the Solr import (the production Solr database will already have data).
 
     ./script/run_with_carton.sh \
         ./script/mediawords_import_solr_data.pl \
@@ -86,7 +85,7 @@ to deduplicate the media discovered during the spidering process:
 
 5. Repeat 3. and 4. until no new topic links are found or the max number of iterations is reached.
 
-6. Deduplicate stories by duplicate media source, duplication title, or duplicate url.
+6. Deduplicate stories by duplicate media source, duplication title, or duplicate URL.
 
 7. Add the `<topic name>:all` tag to each story in the topic.
 
@@ -116,8 +115,8 @@ to deduplicate the media discovered during the spidering process:
 4. Create a row in the topics table with the above Solr seed query and topic regex using the `core/admin/tm/create` page.
     * This basic topic metadata goes into the `topics` table.
 
-5. Add any additional seed set urls from other sources (e.g. manual research by RAs, twitter links, Google search results).
-    * These seed set urls are generated manually and imported from CSVs into `topic_seed_urls` using `mediawords_import_topic_seed_urls.pl`.
+5. Add any additional seed set URLs from other sources (e.g. manual research by RAs, twitter links, Google search results).
+    * These seed set URLs are generated manually and imported from CSVs into `topic_seed_urls` using `mediawords_import_topic_seed_urls.pl`.
     * The `topic_seed_urls` table has an `assume_match` field that, if `true`, makes the spider add every URL from this regardless of whether it matches the topic pattern; otherwise only URLs that match the pattern are added to the topic.
 
 6. Run `mediawords_mine_topic.pl --topic <id>` to start the topic mining process. You can use the `--direct_job` option to run the mining code directly in process rather than sending a job off to the `TM/Minetopic` job.  The topic mining sets off the following process:

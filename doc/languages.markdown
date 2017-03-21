@@ -6,11 +6,11 @@ language support for Chinese, but the system is still capable of crawling and co
 
 The language support described in this file is mostly used for two purposes.  Most importantly, the sentence parsing
 is used to break each story into the sentences which are stores in the story_sentences table.  That table is used
-as the source of content for the source exports to solr and is also used in various places in the code as a
+as the source of content for the source exports to Solr and is also used in various places in the code as a
 representation of the text of each story.
 
 Secondarily, the tokenizing, stemming, and stopwording are used for the word counting, which provides the data for
-the various word counting api end points (including wc/list, topics/<id>/wc/list, and stories_public/get_word_matrix).
+the various word counting API end points (including wc/list, topics/<id>/wc/list, and stories_public/get_word_matrix).
 Contents in a language not supported by Media Cloud will still be processed by those end points, but the results will
 not be stemmed or stopworded.
 

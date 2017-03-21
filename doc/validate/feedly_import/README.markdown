@@ -3,7 +3,7 @@ Feedly Import Validation
 
 This document describes how we validated the performance of the [Feedly import
 module](../../lib/MediaWords/ImportStories/Feedly.pm).   The purpose of the feedly import module is to use
-the feedly api to backfill stories into existing feeds.  Without feedly, we can only collect feed contents from the
+the feedly API to backfill stories into existing feeds.  Without feedly, we can only collect feed contents from the
 time we added a given feed to the system.  By using the feedly api, we can stories going back as far into the past
 as feedly has data for some feed (presumably from the first time some feedly user first subscribed to the given feed).
 
@@ -13,13 +13,13 @@ Problem
 The main problem to solve with the feedly import is that we have to merge feedly stories into the existing stories
 for a given medium.  If we just add all stories from feedly to the media sources, some of those stories may already
 exist within the media source, so we will often end up with duplicate stories.  The feedly import module therefore
-tries to detect duplicate stories based on url and title using the story duplication detection code used by our
+tries to detect duplicate stories based on URL and title using the story duplication detection code used by our
 topic spider.
 
 Metric
 ------
 
-The validation metric is the precision and recall of the feedly deduping system.
+The validation metric is the precision and recall of the feedly deduplication system.
 
 This validation does not measure the degree to which feedly stories represent the full set of stories within a given
 source.  It only measures how many of the feedly stories that should be added to our system get added after

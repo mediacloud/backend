@@ -180,7 +180,7 @@
 
 This document described the Media Cloud Topics API.  The Topics API is a subset of the larger Media Cloud API.  The Topics API provides access to data about Media Cloud Topics and related data.  For a fuller understanding of Media Cloud data structures and for information about *Authentication*, *Request Limits*, the API *Python Client*, and *Errors*, see the documentation for the main [link: main api] Media Cloud API.
 
-The topics api is currently under development and is available only to Media Cloud team members and select beta testers.  Email us at info@mediacloud.org if you would like to beta test the Topics API.
+The topics API is currently under development and is available only to Media Cloud team members and select beta testers.  Email us at info@mediacloud.org if you would like to beta test the Topics API.
 
 A *topic* currently may be created only by the Media Cloud team, though we occasionally run topics for external researchers.
 
@@ -195,18 +195,18 @@ A *feed* is a syndicated feed (RSS, RDF, ATOM) from which Media Cloud pulls stor
 *media source* may have anywhere from zero *feeds* (in which case we do not regularly crawl the site for new content) up
 to hundreds of feeds (for a site like the New York Times to make sure we collect all of its content).
 
-A *story* represents a single published piece of content within a *media source*.  Each *story* has a unique url within
+A *story* represents a single published piece of content within a *media source*.  Each *story* has a unique URL within
 a given *media source*, even though a single *story* might be published under multiple urls.  Media Cloud tries
 to deduplicate stories by title.
 
-The Media Cloud crawler regularly downloads every *feed* within its database and parses out all urls from each *feed*.
-It downloads every new url it discovers and adds a *story* for that url, as long as the story is not a duplicate for
+The Media Cloud crawler regularly downloads every *feed* within its database and parses out all URLs from each *feed*.
+It downloads every new URL it discovers and adds a *story* for that URL, as long as the story is not a duplicate for
 the given *media source*.  The Media Cloud archive consists primarily of *stories* collected by this crawler.
 
 ## Topic Data Structures
 
 A Media Cloud *topic* is a set of stories relevant to some subject.  The topic spider starts by searching for a
-set of stories relevant to the story within the Media Cloud archive and then spiders urls from those
+set of stories relevant to the story within the Media Cloud archive and then spiders URLs from those
 stories to find more relevant stories, then iteratively repeats the process 15 times.
 
 After the spidering is complete, a *topic* consists of a set of relevant *stories*, *links* between those stories, the
@@ -216,7 +216,7 @@ data.
 
 ## API URLs
 
-All urls in the topics api are in the form:
+All URLs in the topics API are in the form:
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/list`
 
@@ -250,18 +250,18 @@ parent *focus* (and by implication the parent *snapshot*), or else the null *foc
     * focus
       * timespan
 
-Every url that returns data from a *topic* accepts optional *spanshots_id*, *timespans_id*, and *foci_id* parameters.
+Every URL that returns data from a *topic* accepts optional *spanshots_id*, *timespans_id*, and *foci_id* parameters.
 
 If no *snapshots_id* is specified, the call returns data from the latest *snapshot* generated for the *topic*.  If no
 *timespans_id* is specified, the call returns data from the overall *timespan* of the given *snapshot* and *focus*.  If
 no *foci_id* is specified, the call assumes the null *focus*.  If multiple of these parameters are specified,
 they must point to the same *topic* / *snapshot* / *focus* / *timespan* or an error will be returned (for instance, a
-call that specifies a *snapshots_id* for a *snapshot* in a *topic* different from the one specified in the url, an error
+call that specifies a *snapshots_id* for a *snapshot* in a *topic* different from the one specified in the URL, an error
 will be returned).
 
 ## Paging
 
-For calls that support paging, each url supports a *limit* parameter and a *link_id* parameter.  For these calls, only
+For calls that support paging, each URL supports a *limit* parameter and a *link_id* parameter.  For these calls, only
 *limit* results will be returned at a time, and a set of *link_ids* will be returned along with the results.  To get the
 current set of results again, or the previous or next page of results, call the same end point with only the *key* and
 *link_id* parameters. The *link_id* parameter includes state that remembers all of the parameters from the original
@@ -296,7 +296,7 @@ For example, the following is a paged response:
 }
 ```
 
-After receiving that reponse, you can use the following url with no other parameters to fetch the next page of results:
+After receiving that reponse, you can use the following URL with no other parameters to fetch the next page of results:
 
 `https://api.mediacloud.org/api/v2/topics/1/stories/list?link_id=789123`
 
@@ -310,7 +310,7 @@ The section for each end point includes an example call and response for that en
 
 ## Permissions
 
-The topics api assigns read, write, and admin permissions to individual users.  Read permission allows the given user to view all data within the topic.  Write permission grants read permission and also allows the user to perform all operations on the topic -- including spidering, snapshotting, and merging — other editing permissions.  Admin permission grants write permission and also allows all the user to edit the permissions for the topic.
+The topics API assigns read, write, and admin permissions to individual users.  Read permission allows the given user to view all data within the topic.  Write permission grants read permission and also allows the user to perform all operations on the topic -- including spidering, snapshotting, and merging — other editing permissions.  Admin permission grants write permission and also allows all the user to edit the permissions for the topic.
 
 Each topic also has an 'public' flag.  If that flag is set to true, then all users will have implicit read permission for that topic.
 
@@ -587,7 +587,7 @@ Response:
 The topics/list call returns a simple list of topics available in Media Cloud.  The call will only return topics for
 which the calling user has read or higher permissions.  
 
-The topics/list call is is only call that does not include a topics_id in the url.
+The topics/list call is is only call that does not include a topics_id in the URL.
 
 ### Query Parameters
 
@@ -604,9 +604,9 @@ Standard parameters accepted: link_id.
 | ------------------- | ---------------------------------------- |
 | topics_id           | topic id                                 |
 | name                | human readable label                     |
-| pattern             | regular expression derived from solr query |
-| solr_seed_query     | solr query used to generate seed stories |
-| solr_seed_query_run | boolean indicating whether the solr seed query has been run to seed the topic |
+| pattern             | regular expression derived from Solr query |
+| solr_seed_query     | Solr query used to generate seed stories |
+| solr_seed_query_run | boolean indicating whether the Solr seed query has been run to seed the topic |
 | description         | human readable description               |
 | max_iterations      | maximum number of iterations for spidering |
 | start_date          | start of date range for topic            |
@@ -614,7 +614,7 @@ Standard parameters accepted: link_id.
 | state               | the current status of the spidering process |
 | message             | last error message generated by the spider, if any |
 | is_public           | flag indicating whether this topic is readable by all authenticated users |
-| user_permission     | permission for user submitting the api request: 'read', 'write', 'admin', or 'none' |
+| user_permission     | permission for user submitting the API request: 'read', 'write', 'admin', or 'none' |
 | queue               | which job pool the topic runs in -- 'mc' for internal media cloud jobs and 'public' for public jobs |
 | max_stories         | max number of stories allowed in the topic |
 
@@ -857,7 +857,7 @@ The stories list call returns stories in the topic.
 
 | Parameter            | Default | Notes                                    |
 | -------------------- | ------- | ---------------------------------------- |
-| q                    | null    | if specified, return only stories that match the given solr query |
+| q                    | null    | if specified, return only stories that match the given Solr query |
 | sort                 | inlink  | sort field for returned stories; possible values: `inlink`, `social` |
 | stories_id           | null    | return only stories matching these stories_ids |
 | link_to_stories_id   | null    | return only stories from other media that link to the given stories_id |
@@ -881,7 +881,7 @@ Standard parameters accepted: snapshots_id, foci_id, timespans_id, limit, link_i
 | stories_id           | story id                                 |
 | media_id             | media source id                          |
 | media_name           | media source name                        |
-| url                  | story url                                |
+| url                  | story URL                                |
 | title                | story title                              |
 | guid                 | story globally unique identifier         |
 | language             | two letter code for story language       |
@@ -890,8 +890,8 @@ Standard parameters accepted: snapshots_id, foci_id, timespans_id, limit, link_i
 | collect_date         | date the story was collected             |
 | inlink_count         | count of hyperlinks from stories in other media in this timespan |
 | outlink_count        | count of hyperlinks to stories in other media in this timespan |
-| bitly_click_count    | number of clicks on bitly links that resolve to this story's url |
-| facebook_share_count | number of facebook shares for this story's url |
+| bitly_click_count    | number of clicks on bitly links that resolve to this story's URL |
+| facebook_share_count | number of facebook shares for this story's URL |
 | focus_ids            | list of ids of foci to which this story belongs |
 ### Example
 
@@ -1087,7 +1087,7 @@ Response:
 
 Return the numer of sentences that match the query, optionally split by date.
 
-This call behaves exactly like the main api sentences/count call, except:
+This call behaves exactly like the main API sentences/count call, except:
 
 - This call only searches within the given snapshot
 - This call accepts the standard topics parameters: snapshots_id, foci_id, timespans_id
@@ -1122,7 +1122,7 @@ Standard parameters accepted: snapshots_id, foci_id, timespans_id, limit, link_i
 | -------------------- | ---------------------------------------- |
 | media_id             | medium id                                |
 | name                 | human readable label for medium          |
-| url                  | medium url                               |
+| url                  | medium URL                               |
 | story_count          | number of stories in medium              |
 | inlink_count         | sum of the inlink_count for each story in the medium |
 | outlink_count        | sum of the outlink_count for each story in the medium |
@@ -1236,7 +1236,7 @@ Merge all stories from one medium into another medium within this topic.
 | from_media_id | id of the medium to merge into to_media_id; required |
 | to_media_id   | id of the medium into which from_media_id will be merge; required |
 
-Mergin from_media_id into to_media_id merges all stories of from_media_it into to_media_id.  If a story with a matching url or title already exists in to_media_id, the call merges those stories as described in stories/merge.  If no matching story exists in to_media_id, a new story is created.
+Mergin from_media_id into to_media_id merges all stories of from_media_it into to_media_id.  If a story with a matching URL or title already exists in to_media_id, the call merges those stories as described in stories/merge.  If no matching story exists in to_media_id, a new story is created.
 
 ### Output Description
 
@@ -1273,7 +1273,7 @@ Response:
 
 Returns sampled counts of the most prevalent words in a topic, optionally restricted to sentences that match a given query.
 
-This call behaves exactly like the main api wc/list call, except:
+This call behaves exactly like the main API wc/list call, except:
 
 * This call only searches within the given snapshot
 * This call accepts the standard topics parameters: snapshots_id, foci_id, timespans_id
@@ -1304,7 +1304,7 @@ Details about each focal technique are below.  Among other properties, each foca
 
 ### Focal Technique: Boolean Query
 
-The Boolean Query focal technique associates a focus with a story by matching that story with a solr boolean query.  *focal sets* generated by the Boolean Query method are not exclusive.
+The Boolean Query focal technique associates a focus with a story by matching that story with a Solr boolean query.  *focal sets* generated by the Boolean Query method are not exclusive.
 
 ## focal_set_definitions/create (POST)
 
@@ -1987,7 +1987,7 @@ Every *topic* generates the following timespans for every *snapshot*:
 * weekly - a weekly timespan for each calendar week in the date range of the topic
 * monthly - a monthly timespan for each calendar month in the date range of the topic
 
-Media Cloud needs to guess the date of many of the stories discovered while topic spidering.  We have validated the date guessing to be about 87% accurate for all methods other than the finding a url in the story url.  The possiblity of significant date errors make it possible for the Topic Mapper system to wrongly assign stories to a given timespan and to also miscount links within a given timespan (due to stories getting misdated into or out of a given timespan).  To mitigate the risk of drawing the wrong research conclusions from a given timespan, we model what the timespan might look like if dates were wrong with the frequency that our validation tell us that they are wrong within a given timespan.  We then generate a pearson's correlation between the ranks of the top media for the given timespan in our actual data and in each of ten runs of the modeled data.  The model_* fields provide the mean and standard deviations of the square of those correlations.
+Media Cloud needs to guess the date of many of the stories discovered while topic spidering.  We have validated the date guessing to be about 87% accurate for all methods other than the finding a URL in the story URL.  The possiblity of significant date errors make it possible for the Topic Mapper system to wrongly assign stories to a given timespan and to also miscount links within a given timespan (due to stories getting misdated into or out of a given timespan).  To mitigate the risk of drawing the wrong research conclusions from a given timespan, we model what the timespan might look like if dates were wrong with the frequency that our validation tell us that they are wrong within a given timespan.  We then generate a pearson's correlation between the ranks of the top media for the given timespan in our actual data and in each of ten runs of the modeled data.  The model_* fields provide the mean and standard deviations of the square of those correlations.
 
 ### Example
 
