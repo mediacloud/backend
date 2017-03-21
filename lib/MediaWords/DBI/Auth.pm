@@ -429,8 +429,9 @@ SQL
     }
 }
 
-# Check if password fits the requirements; returns empty string on valid password, error message on invalid password
-sub _validate_password_requirements_or_return_error_message($$$)
+# Check if password complies with strength the requirements; returns empty
+# string on valid password, error message on invalid password
+sub _validate_password($$$)
 {
     my ( $email, $password, $password_repeat ) = @_;
 
@@ -485,8 +486,7 @@ sub _change_password_or_return_error_message($$$$;$)
 {
     my ( $db, $email, $password_new, $password_new_repeat, $do_not_inform_via_email ) = @_;
 
-    my $password_validation_message =
-      _validate_password_requirements_or_return_error_message( $email, $password_new, $password_new_repeat );
+    my $password_validation_message = _validate_password( $email, $password_new, $password_new_repeat );
     if ( $password_validation_message )
     {
         return $password_validation_message;
@@ -717,8 +717,7 @@ sub add_user_or_return_error_message($$$$$$$$;$$)
       ( defined $weekly_requests_limit ? $weekly_requests_limit : 'default' ) . ', weekly requested items limit: ' .
       ( defined $weekly_requested_items_limit ? $weekly_requested_items_limit : 'default' );
 
-    my $password_validation_message =
-      _validate_password_requirements_or_return_error_message( $email, $password, $password_repeat );
+    my $password_validation_message = _validate_password( $email, $password, $password_repeat );
     if ( $password_validation_message )
     {
         return $password_validation_message;
