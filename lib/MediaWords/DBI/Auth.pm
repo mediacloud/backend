@@ -17,7 +17,6 @@ use MediaWords::Util::Text;
 use Crypt::SaltedHash;
 use Data::Dumper;
 use Digest::SHA qw/sha256_hex/;
-use Net::IP;
 use Readonly;
 use URI::Escape;
 
@@ -262,32 +261,6 @@ SQL
     return $user;
 }
 
-# get the ip address of the given catalyst request, using the x-forwarded-for header
-# if present and ip address is localhost
-sub get_request_ip_address($)
-{
-    my ( $c ) = @_;
-
-    my $headers     = $c->req->headers;
-    my $req_address = $c->req->address;
-
-    my $forwarded_ip = $headers->header( 'X-Real-IP' ) || $headers->header( 'X-Forwarded-For' );
-
-    if ( $forwarded_ip )
-    {
-        my $net_ip = new Net::IP( $req_address ) or die( Net::IP::Error() );
-        my $iptype = uc( $net_ip->iptype() );
-
-        # 127.0.0.1 / ::1, 10.0.0.0/8, 172.16.0.0/12 or 192.168.0.0/16?
-        if ( $iptype eq 'PRIVATE' or $iptype eq 'LOOPBACK' )
-        {
-            return $forwarded_ip;
-        }
-    }
-
-    return $req_address;
-}
-
 # Fetch a hash of basic user information and an array of assigned roles based on the API token.
 # Only active users are fetched.
 # Returns 0 on error
@@ -296,7 +269,7 @@ sub user_for_api_token($$)
     my ( $c, $api_token ) = @_;
 
     my $db         = $c->dbis;
-    my $ip_address = get_request_ip_address( $c );
+    my $ip_address = $c->request_ip_address();
 
     my $user = $db->query(
         <<"SQL",

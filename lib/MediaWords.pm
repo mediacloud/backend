@@ -13,6 +13,7 @@ use v5.22;
 use MediaWords::Util::Config;
 use MediaWords::DBI::Auth::Roles;
 
+use Net::IP;
 use URI;
 
 # Set flags and add plugins for the application
@@ -239,6 +240,32 @@ sub setup_acl()
 }
 
 setup_acl();
+
+# Get the ip address of the given catalyst request, using the x-forwarded-for header
+# if present and ip address is localhost
+sub request_ip_address($)
+{
+    my ( $self ) = @_;
+
+    my $headers     = $self->req->headers;
+    my $req_address = $self->req->address;
+
+    my $forwarded_ip = $headers->header( 'X-Real-IP' ) || $headers->header( 'X-Forwarded-For' );
+
+    if ( $forwarded_ip )
+    {
+        my $net_ip = new Net::IP( $req_address ) or die( Net::IP::Error() );
+        my $iptype = uc( $net_ip->iptype() );
+
+        # 127.0.0.1 / ::1, 10.0.0.0/8, 172.16.0.0/12 or 192.168.0.0/16?
+        if ( $iptype eq 'PRIVATE' or $iptype eq 'LOOPBACK' )
+        {
+            return $forwarded_ip;
+        }
+    }
+
+    return $req_address;
+}
 
 # Checks if current user can visit a specified action
 # (similar to can_visit() from Catalyst::ActionRole::ACL)

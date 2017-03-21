@@ -62,7 +62,7 @@ sub _get_ip_token_for_user
 
     my $db = $c->dbis;
 
-    my $ip_address = MediaWords::DBI::Auth::get_request_ip_address( $c );
+    my $ip_address = $c->request_ip_address();
 
     if ( !$ip_address )
     {
