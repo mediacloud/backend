@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4615;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4616;
 
 BEGIN
 
@@ -2143,13 +2143,13 @@ CREATE VIEW daily_stats AS
 -- Authentication
 --
 
--- Generate random API token
-CREATE FUNCTION generate_api_token() RETURNS VARCHAR(64) LANGUAGE plpgsql AS $$
+-- Generate random API key
+CREATE FUNCTION generate_api_key() RETURNS VARCHAR(64) LANGUAGE plpgsql AS $$
 DECLARE
-    token VARCHAR(64);
+    api_key VARCHAR(64);
 BEGIN
-    SELECT encode(digest(gen_random_bytes(256), 'sha256'), 'hex') INTO token;
-    RETURN token;
+    SELECT encode(digest(gen_random_bytes(256), 'sha256'), 'hex') INTO api_key;
+    RETURN api_key;
 END;
 $$;
 
@@ -2161,11 +2161,11 @@ CREATE TABLE auth_users (
     -- Salted hash of a password (with Crypt::SaltedHash, algorithm => 'SHA-256', salt_len=>64)
     password_hash   TEXT    NOT NULL CONSTRAINT password_hash_sha256 CHECK(LENGTH(password_hash) = 137),
 
-    -- API authentication token
+    -- API key
     -- (must be 64 bytes in order to prevent someone from resetting it to empty string somehow)
-    api_token       VARCHAR(64)     UNIQUE NOT NULL DEFAULT generate_api_token()
-        CONSTRAINT api_token_64_characters
-            CHECK(LENGTH(api_token) = 64),
+    api_key       VARCHAR(64)     UNIQUE NOT NULL DEFAULT generate_api_key()
+        CONSTRAINT api_key_64_characters
+            CHECK(LENGTH(api_key) = 64),
 
     full_name       TEXT    NOT NULL,
     notes           TEXT    NULL,
@@ -2188,7 +2188,7 @@ CREATE TABLE auth_users (
 );
 
 create index auth_users_email on auth_users( email );
-create index auth_users_token on auth_users( api_token );
+create index auth_users_api_key on auth_users( api_key );
 
 create table auth_registration_queue (
     auth_registration_queue_id  serial  primary key,
@@ -2200,16 +2200,18 @@ create table auth_registration_queue (
 );
 
 
-create table auth_user_ip_tokens (
-    auth_user_ip_tokens_id  serial      primary key,
-    auth_users_id           int         not null references auth_users on delete cascade,
-    api_token               varchar(64) unique not null default generate_api_token()
-        constraint api_token_64_characters
-            check( length( api_token ) = 64 ),
-    ip_address              inet    not null
+CREATE TABLE auth_user_ip_address_api_keys (
+    auth_user_ip_address_api_keys_id  SERIAL      PRIMARY KEY,
+    auth_users_id                     INT         NOT NULL REFERENCES auth_users ON DELETE CASCADE,
+    api_key                           VARCHAR(64) UNIQUE NOT NULL
+                                                      DEFAULT generate_api_key()
+                                                      CONSTRAINT api_key_64_characters
+                                                          CHECK( length( api_key ) = 64 ),
+    ip_address                        inet        NOT NULL
 );
 
-create index auth_user_ip_tokens_token on auth_user_ip_tokens ( api_token, ip_address );
+CREATE INDEX auth_user_ip_address_api_keys_api_key_ip_address
+    ON auth_user_ip_address_api_keys ( api_key, ip_address );
 
 -- List of roles the users can perform
 CREATE TABLE auth_roles (

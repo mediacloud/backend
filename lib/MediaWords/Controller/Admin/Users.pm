@@ -68,8 +68,8 @@ sub delete : Local
     $c->stash->{ template }      = 'users/delete.tt2';
 }
 
-# regenerate API token
-sub regenerate_api_token : Local
+# regenerate API key
+sub regenerate_api_key : Local
 {
     my ( $self, $c ) = @_;
 
@@ -81,17 +81,17 @@ sub regenerate_api_token : Local
     }
 
     # Delete user
-    eval { MediaWords::DBI::Auth::regenerate_api_token( $c->dbis, $email ); };
+    eval { MediaWords::DBI::Auth::regenerate_api_key( $c->dbis, $email ); };
     if ( $@ )
     {
-        my $error_message = "Unable to regenerate API token: $@";
+        my $error_message = "Unable to regenerate API key: $@";
 
         $c->response->redirect( $c->uri_for( '/admin/users/edit', { email => $email, error_msg => $error_message } ) );
         return;
     }
 
     $c->response->redirect(
-        $c->uri_for( '/admin/users/edit', { email => $email, status_msg => "API token has been regenerated." } ) );
+        $c->uri_for( '/admin/users/edit', { email => $email, status_msg => "API key has been regenerated." } ) );
 
 }
 
@@ -353,8 +353,8 @@ sub edit : Local
         my $el_roles = $form->get_element( { name => 'roles', type => 'Checkboxgroup' } );
         $el_roles->options( \@roles_options );
 
-        my $el_regenerate_api_token = $form->get_element( { name => 'regenerate_api_token', type => 'Button' } );
-        $el_regenerate_api_token->comment( $userinfo->{ api_token } );
+        my $el_regenerate_api_key = $form->get_element( { name => 'regenerate_api_key', type => 'Button' } );
+        $el_regenerate_api_key->comment( $userinfo->{ api_key } );
 
         $form->default_values(
             {

@@ -326,9 +326,9 @@ sub create_test_user($$)
         LOGCONFESS "Adding new user failed: $@";
     }
 
-    my $api_key = $db->query( "select api_token from auth_users where email = ?", $email )->hash;
+    my $api_key = $db->query( "select api_key from auth_users where email = ?", $email )->hash;
 
-    return $api_key->{ api_token };
+    return $api_key->{ api_key };
 }
 
 # create test topic with a simple label.

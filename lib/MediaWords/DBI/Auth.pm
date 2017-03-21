@@ -21,8 +21,8 @@ use URI::Escape;
 # Post-unsuccessful login delay (in seconds)
 Readonly my $POST_UNSUCCESSFUL_LOGIN_DELAY => 1;
 
-# API token HTTP GET parameter
-Readonly my $API_TOKEN_PARAMETER => 'key';
+# API key HTTP GET parameter
+Readonly my $API_KEY_PARAMETER => 'key';
 
 # Fetch a list of available user roles
 sub all_user_roles($)
@@ -85,7 +85,7 @@ sub user_info($$)
         SELECT auth_users.auth_users_id,
                auth_users.email,
                full_name,
-               api_token,
+               api_key,
                notes,
                active,
                weekly_requests_sum,
@@ -188,12 +188,12 @@ SQL
     return $user;
 }
 
-# Fetch a hash of basic user information and an array of assigned roles based on the API token.
+# Fetch a hash of basic user information and an array of assigned roles based on the API key.
 # Only active users are fetched.
 # Returns 0 on error
-sub user_for_api_token($$)
+sub user_for_api_key($$)
 {
-    my ( $c, $api_token ) = @_;
+    my ( $c, $api_key ) = @_;
 
     my $db         = $c->dbis;
     my $ip_address = $c->request_ip_address();
@@ -208,12 +208,12 @@ sub user_for_api_token($$)
                 ON auth_users.auth_users_id = auth_users_roles_map.auth_users_id
             LEFT JOIN auth_roles
                 ON auth_users_roles_map.auth_roles_id = auth_roles.auth_roles_id
-        WHERE auth_users.api_token = LOWER(\$1) OR
+        WHERE auth_users.api_key = LOWER(\$1) OR
             LOWER(\$1) in (
-                SELECT api_token
-                    FROM auth_user_ip_tokens
+                SELECT api_key
+                    FROM auth_user_ip_address_api_keys
                     WHERE
-                        auth_users.auth_users_id = auth_user_ip_tokens.auth_users_id AND
+                        auth_users.auth_users_id = auth_user_ip_address_api_keys.auth_users_id AND
                         ip_address = \$2 )
           AND active = true
         GROUP BY auth_users.auth_users_id,
@@ -221,7 +221,7 @@ sub user_for_api_token($$)
         ORDER BY auth_users.auth_users_id
         LIMIT 1
 SQL
-        $api_token,
+        $api_key,
         $ip_address
     )->hash;
 
@@ -237,13 +237,13 @@ SQL
 }
 
 # Same as above, just with the Catalyst's $c object
-sub user_for_api_token_catalyst($)
+sub user_for_api_key_catalyst($)
 {
     my $c = shift;
 
-    my $api_token = $c->request->param( $API_TOKEN_PARAMETER . '' );
+    my $api_key = $c->request->param( $API_KEY_PARAMETER . '' );
 
-    return user_for_api_token( $c, $api_token );
+    return user_for_api_key( $c, $api_key );
 }
 
 # Post-successful login database tasks
@@ -883,8 +883,8 @@ SQL
     }
 }
 
-# Regenerate API token; die()s on error
-sub regenerate_api_token($$)
+# Regenerate API key; die()s on error
+sub regenerate_api_key($$)
 {
     my ( $db, $email ) = @_;
 
@@ -901,12 +901,12 @@ sub regenerate_api_token($$)
         die "User with email address '$email' does not exist.";
     }
 
-    # Regenerate API token
+    # Regenerate API key
     $db->query(
         <<SQL,
         UPDATE auth_users
         -- DEFAULT points to a generation function
-        SET api_token = DEFAULT
+        SET api_key = DEFAULT
         WHERE email = ?
 SQL
         $email

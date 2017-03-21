@@ -196,7 +196,7 @@ sub request_all_methods_as_user($$)
 {
     my ( $url, $user ) = @_;
 
-    return request_all_methods( $url, { key => $user->{ api_token } } );
+    return request_all_methods( $url, { key => $user->{ api_key } } );
 }
 
 # test whether the user has permission to request the url; if $expect_pass is true, expect that the user is allowed

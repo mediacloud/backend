@@ -433,7 +433,7 @@ sub test_topics_list($)
     {
         $label = "$label list only permitted topics";
         my $api_key = MediaWords::Test::API::get_test_api_key();
-        my $auth_user = $db->query( "select * from auth_users where api_token = ?", $api_key )->hash;
+        my $auth_user = $db->query( "select * from auth_users where api_key = ?", $api_key )->hash;
         $db->query( "delete from auth_users_roles_map where auth_users_id = ?", $auth_user->{ auth_users_id } );
 
         my $r               = test_get( "/api/v2/topics/list" );

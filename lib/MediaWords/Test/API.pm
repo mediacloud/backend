@@ -94,9 +94,9 @@ sub test_data_request($$$;$)
 {
     my ( $method, $url, $data, $expect_error ) = @_;
 
-    my $api_token = get_test_api_key();
+    my $api_key = get_test_api_key();
 
-    $url = ( index( $url, '?' ) > 0 ) ? "$url&key=$api_token" : "$url?key=$api_token";
+    $url = ( index( $url, '?' ) > 0 ) ? "$url&key=$api_key" : "$url?key=$api_key";
 
     my $json = MediaWords::Util::JSON::encode_json( $data );
 
@@ -132,10 +132,10 @@ sub test_get($;$$)
 {
     my ( $url, $params, $expect_error ) = @_;
 
-    my $api_token = get_test_api_key();
+    my $api_key = get_test_api_key();
 
     $params //= {};
-    $params->{ key } //= $api_token;
+    $params->{ key } //= $api_key;
 
     my $encoded_params = join( "&", map { $_ . '=' . uri_escape( $params->{ $_ } ) } keys( %{ $params } ) );
 

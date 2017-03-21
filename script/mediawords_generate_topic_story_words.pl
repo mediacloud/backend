@@ -29,7 +29,7 @@ sub main
     my $db = MediaWords::DB::connect_to_db;
 
     my ( $key ) = $db->query( <<SQL )->flat;
-select api_token
+select api_key
     from auth_users
         join auth_users_roles_map using ( auth_users_id )
         join auth_roles using ( auth_roles_id )

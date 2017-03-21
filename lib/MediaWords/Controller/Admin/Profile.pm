@@ -55,7 +55,7 @@ sub index : Path : Args(0)
     $c->stash->{ c }         = $c;
     $c->stash->{ email }     = $userinfo->{ email };
     $c->stash->{ full_name } = $userinfo->{ full_name };
-    $c->stash->{ api_token } = $userinfo->{ api_token };
+    $c->stash->{ api_key }   = $userinfo->{ api_key };
     $c->stash->{ notes }     = $userinfo->{ notes };
 
     $c->stash->{ weekly_requests_sum }          = $userinfo->{ weekly_requests_sum } + 0;
@@ -107,8 +107,8 @@ sub index : Path : Args(0)
     }
 }
 
-# regenerate API token
-sub regenerate_api_token : Local
+# Regenerate API key
+sub regenerate_api_key : Local
 {
     my ( $self, $c ) = @_;
 
@@ -123,16 +123,16 @@ sub regenerate_api_token : Local
     }
 
     # Delete user
-    eval { MediaWords::DBI::Auth::regenerate_api_token( $db, $email ); };
+    eval { MediaWords::DBI::Auth::regenerate_api_key( $db, $email ); };
     if ( $@ )
     {
-        my $error_message = "Unable to regenerate API token: $@";
+        my $error_message = "Unable to regenerate API key: $@";
 
         $c->response->redirect( $c->uri_for( '/admin/profile', { error_msg => $error_message } ) );
         return;
     }
 
-    $c->response->redirect( $c->uri_for( '/admin/profile', { status_msg => "API token has been regenerated." } ) );
+    $c->response->redirect( $c->uri_for( '/admin/profile', { status_msg => "API key has been regenerated." } ) );
 
 }
 

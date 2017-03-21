@@ -479,7 +479,7 @@ sub user_show($)
     say "Notes:     " . $db_user->{ notes };
     say "Active:    " . ( $db_user->{ active } ? 'yes' : 'no' );
     say "Roles:     " . join( ',', @{ $db_user_roles->{ roles } } );
-    say "API key:   " . $db_user->{ api_token };
+    say "API key:   " . $db_user->{ api_key };
     say "Weekly requests limit:        " . $db_user->{ weekly_requests_limit };
     say "Weekly requested items limit: " . $db_user->{ weekly_requested_items_limit };
 

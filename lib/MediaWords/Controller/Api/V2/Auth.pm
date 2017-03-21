@@ -1,6 +1,6 @@
 package MediaWords::Controller::Api::V2::Auth;
 
-# api controller for handling auth token generation
+# api controller for handling API key generation
 
 use strict;
 use warnings;
@@ -56,8 +56,8 @@ sub _login
     return $userauth;
 }
 
-# login and get an ip token for the logged in user.  return 0 on error or failed login.
-sub _login_and_get_ip_token_for_user
+# login and get an IP API key for the logged in user.  return 0 on error or failed login.
+sub _login_and_get_ip_api_key_for_user
 {
     my ( $c, $email, $password ) = @_;
 
@@ -75,10 +75,10 @@ sub _login_and_get_ip_token_for_user
         return 0;
     }
 
-    my $auth_user_ip_token = $db->query(
+    my $auth_user_ip_api_key = $db->query(
         <<SQL,
         SELECT *
-        FROM auth_user_ip_tokens
+        FROM auth_user_ip_address_api_keys
         WHERE auth_users_id = ?
           AND ip_address = ?
 SQL
@@ -86,9 +86,9 @@ SQL
     )->hash;
 
     my $auit_hash = { auth_users_id => $user->{ auth_users_id }, ip_address => $ip_address };
-    $auth_user_ip_token //= $db->create( 'auth_user_ip_tokens', $auit_hash );
+    $auth_user_ip_api_key //= $db->create( 'auth_user_ip_address_api_keys', $auit_hash );
 
-    return $auth_user_ip_token->{ api_token };
+    return $auth_user_ip_api_key->{ api_key };
 }
 
 sub single_GET : PathPrefix( '/api' )
@@ -98,15 +98,24 @@ sub single_GET : PathPrefix( '/api' )
     my $email    = $c->req->params->{ username };
     my $password = $c->req->params->{ password };
 
-    my $token = _login_and_get_ip_token_for_user( $c, $email, $password );
+    my $api_key = _login_and_get_ip_api_key_for_user( $c, $email, $password );
 
-    if ( !$token )
+    if ( !$api_key )
     {
         $self->status_ok( $c, entity => [ { 'result' => 'not found' } ] );
         return;
     }
 
-    $self->status_ok( $c, entity => [ { 'result' => 'found', 'token' => $token } ] );
+    $self->status_ok(
+        $c,
+        entity => [
+            {
+                'result'  => 'found',     #
+                'token'   => $api_key,    # legacy; renamed to API key
+                'api_key' => $api_key,    #
+            }
+        ]
+    );
 }
 
 # return info about currently logged in user
@@ -116,7 +125,7 @@ sub profile : Local
 
     my $db = $c->dbis;
 
-    my $user  = MediaWords::DBI::Auth::user_for_api_token_catalyst( $c );
+    my $user  = MediaWords::DBI::Auth::user_for_api_key_catalyst( $c );
     my $email = $user->{ email };
 
     my $userinfo;
@@ -126,7 +135,7 @@ sub profile : Local
         die "Unable to find user with email '$email'";
     }
 
-    delete $userinfo->{ api_token };
+    delete $userinfo->{ api_key };
 
     $userinfo->{ auth_roles } = $db->query( <<SQL, $email )->flat;
 select ar.role
