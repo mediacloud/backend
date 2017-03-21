@@ -45,4 +45,4 @@ Solr processing queue so that the story gets reimported into Solr with the total
     this field to prevent the system from trying to collect data on imported stories).
 
 * A simple LRU disk cache sits in front of the bitly JSON storage, so quick repeated fetches of the JSON during the
-    processing steps does not require repeated fetches from the content store (which is amazon in our production).
+    processing steps does not require repeated fetches from the content store (which is Amazon S3 in our production).

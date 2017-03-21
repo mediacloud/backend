@@ -41,7 +41,7 @@ following fields:
 
 Stored fields mean that they are going to be returned by Solr queries. Storing fields in addition to indexing them
 requires significant extra resources (disk space, import time, query time), so we should not store fields unless
-there is a good reason for not just querying the results from postgres once we get the `stories_id`s back.
+there is a good reason for not just querying the results from PostgreSQL once we get the `stories_id`s back.
 
 Stories (titles) are stored as separate documents.  So, a story with ten sentences will be imported as 11 documents -- 10 documents
 with the sentence field set and 1 with the title field set.
@@ -53,4 +53,4 @@ and get accurate results.
 For more information about the Solr import process, see [MediaWords::Solr::Dump](lib/MediaWords/Solr/Dump.pm).
 
 Reads from the Solr database are performed through the [MediaWords::Solr](lib/MediaWords/Solr.pm) module for Perl code
-in the codebase and through the api (which itself uses Solr.pm) by external clients.
+in the codebase and through the API (which itself uses Solr.pm) by external clients.

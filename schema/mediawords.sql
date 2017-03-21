@@ -316,7 +316,7 @@ create table media (
 
     -- It indicates that the media source includes a substantial number of
     -- links in its feeds that are not its own. These media sources cause
-    -- problems for the cm spider, which finds those foreign rss links and
+    -- problems for the topic mapper's spider, which finds those foreign rss links and
     -- thinks that the urls belong to the parent media source.
     foreign_rss_links   boolean         not null default( false ),
     dup_media_id        int             null references media on delete set null deferrable,

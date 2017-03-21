@@ -10,12 +10,12 @@ Here's a brief road map of the MC repository
 
 * `root/` - web app template files
 
-* `solr/` - solr installation
+* `solr/` - Solr installation
 
 * `supervisor/*` - supervisord installation that runs the various daemons to crawl feeds, extract text, annotate
   stories, etc.
 
-* `schema/mediawords.sql` - sql definition of postgres database
+* `schema/mediawords.sql` - sql definition of PostgreSQL database
 
 * `script/` - command line scripts that run the various aspects of the system.
 
