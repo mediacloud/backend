@@ -508,7 +508,7 @@ SQL
     $db_password_old = $db_password_old->{ password_hash };
 
     # Validate the password
-    if ( !password_hash_is_valid( $db_password_old, $password_old ) )
+    unless ( password_hash_is_valid( $db_password_old, $password_old ) )
     {
         die 'Old password is incorrect.';
     }
