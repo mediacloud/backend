@@ -11,7 +11,6 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DBI::Auth::Mail;
-use MediaWords::Util::Config;
 use MediaWords::Util::Text;
 
 use Crypt::SaltedHash;
@@ -23,42 +22,21 @@ use URI::Escape;
 # Post-unsuccessful login delay (in seconds)
 Readonly my $POST_UNSUCCESSFUL_LOGIN_DELAY => 1;
 
+# Password hash type
+Readonly my $PASSWORD_HASH_TYPE => 'SHA-256';
+
+# Password salt length
+Readonly my $PASSWORD_SALT_LEN => 64;
+
 # API token HTTP GET parameter
 Readonly my $API_TOKEN_PARAMETER => 'key';
-
-# Return salt length
-sub _salt_length()
-{
-    my $config   = MediaWords::Util::Config::get_config();
-    my $salt_len = $config->{ 'Plugin::Authentication' }->{ 'users' }->{ 'credential' }->{ 'password_salt_len' };
-    if ( !$salt_len )
-    {
-        LOGCONFESS "Salt length is 0";
-    }
-
-    return $salt_len;
-}
-
-# Return hash type
-sub _hash_type()
-{
-    my $config    = MediaWords::Util::Config::get_config();
-    my $hash_type = $config->{ 'Plugin::Authentication' }->{ 'users' }->{ 'credential' }->{ 'password_hash_type' };
-    unless ( $hash_type )
-    {
-        LOGCONFESS "Unable to determine the password hashing algorithm";
-    }
-
-    return $hash_type;
-}
 
 # Validate a password / password token with Crypt::SaltedHash; return 1 on success, 0 on error
 sub password_hash_is_valid($$)
 {
     my ( $secret_hash, $secret ) = @_;
 
-    my $salt_len = _salt_length();
-    if ( Crypt::SaltedHash->validate( $secret_hash, $secret, $salt_len ) )
+    if ( Crypt::SaltedHash->validate( $secret_hash, $secret, $PASSWORD_SALT_LEN ) )
     {
         return 1;
     }
@@ -74,14 +52,8 @@ sub _generate_secure_hash($)
 {
     my ( $secret ) = @_;
 
-    # Determine salt and hash type
-    my $config = MediaWords::Util::Config::get_config;
-
-    my $salt_len  = _salt_length();
-    my $hash_type = _hash_type();
-
     # Hash the password
-    my $csh = Crypt::SaltedHash->new( algorithm => $hash_type, salt_len => $salt_len );
+    my $csh = Crypt::SaltedHash->new( algorithm => $PASSWORD_HASH_TYPE, salt_len => $PASSWORD_SALT_LEN );
     $csh->add( $secret );
     my $secret_hash = $csh->generate;
     unless ( $secret_hash )

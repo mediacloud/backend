@@ -60,14 +60,8 @@ __PACKAGE__->config(
     'Plugin::Authentication' => {
         'default_realm' => 'users',
         'users'         => {
-            'credential' => {
-                'class'              => 'Password',
-                'password_field'     => 'password',
-                'password_type'      => 'salted_hash',
-                'password_hash_type' => 'SHA-256',
-                'password_salt_len'  => 64,
-            },
-            'store' => { 'class' => 'MediaWords' }
+            'credential' => { 'class' => 'MediaWords' },
+            'store'      => { 'class' => 'MediaWords' }
         }
     }
 );
