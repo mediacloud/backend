@@ -12,7 +12,7 @@ use MediaWords::CommonLibs;
 
 use HTTP::HashServer;
 use Readonly;
-use Test::More tests => 19;
+use Test::More tests => 20;
 use Test::Deep;
 
 use MediaWords::Test::API;
@@ -51,6 +51,7 @@ sub test_auth_single($)
 
     my $error = MediaWords::DBI::Auth::add_user_or_return_error_message( $db, $email, 'auth single', '', [ 1 ], 1, $password,
         $password, 1000, 1000 );
+    ok( !$error, "Unable to add user: $error" );
 
     my $r = test_get( '/api/v2/auth/single', { username => $email, password => $password } );
 

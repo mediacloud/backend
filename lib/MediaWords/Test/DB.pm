@@ -323,6 +323,10 @@ sub create_test_user($$)
     my $add_user_error_message =
       MediaWords::DBI::Auth::add_user_or_return_error_message( $db, $email, $label, '', [ 1 ], 1,
         'testtest', 'testtest', 1000, 1000 );
+    if ( $add_user_error_message )
+    {
+        LOGCONFESS "Adding new user failed: $add_user_error_message";
+    }
 
     my $api_key = $db->query( "select api_token from auth_users where email = ?", $email )->hash;
 
