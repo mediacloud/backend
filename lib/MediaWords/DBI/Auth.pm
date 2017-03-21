@@ -11,9 +11,9 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DBI::Auth::Mail;
+use MediaWords::DBI::Auth::Password;
 use MediaWords::Util::Text;
 
-use Crypt::SaltedHash;
 use Data::Dumper;
 use Readonly;
 use URI::Escape;
@@ -21,52 +21,8 @@ use URI::Escape;
 # Post-unsuccessful login delay (in seconds)
 Readonly my $POST_UNSUCCESSFUL_LOGIN_DELAY => 1;
 
-# Password hash type
-Readonly my $PASSWORD_HASH_TYPE => 'SHA-256';
-
-# Password salt length
-Readonly my $PASSWORD_SALT_LEN => 64;
-
 # API token HTTP GET parameter
 Readonly my $API_TOKEN_PARAMETER => 'key';
-
-# Validate a password / password token with Crypt::SaltedHash; return 1 on success, 0 on error
-sub password_hash_is_valid($$)
-{
-    my ( $secret_hash, $secret ) = @_;
-
-    if ( Crypt::SaltedHash->validate( $secret_hash, $secret, $PASSWORD_SALT_LEN ) )
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
-}
-
-# Hash a secure hash (password / password reset token) with Crypt::SaltedHash;
-# return hash on success, die() on error
-sub _generate_secure_hash($)
-{
-    my ( $secret ) = @_;
-
-    # Hash the password
-    my $csh = Crypt::SaltedHash->new( algorithm => $PASSWORD_HASH_TYPE, salt_len => $PASSWORD_SALT_LEN );
-    $csh->add( $secret );
-    my $secret_hash = $csh->generate;
-    unless ( $secret_hash )
-    {
-        LOGCONFESS "Unable to hash a secret.";
-    }
-
-    unless ( password_hash_is_valid( $secret_hash, $secret ) )
-    {
-        LOGCONFESS "Secret hash has been generated, but it does not validate.";
-    }
-
-    return $secret_hash;
-}
 
 # Fetch a list of available user roles
 sub all_user_roles($)
@@ -363,7 +319,7 @@ SQL
 
     $password_reset_token_hash = $password_reset_token_hash->{ password_reset_token_hash };
 
-    if ( password_hash_is_valid( $password_reset_token_hash, $password_reset_token ) )
+    if ( MediaWords::DBI::Auth::Password::password_hash_is_valid( $password_reset_token_hash, $password_reset_token ) )
     {
         return 1;
     }
@@ -420,7 +376,7 @@ sub _change_password($$$$;$)
 
     # Hash + validate the password
     my $password_new_hash;
-    eval { $password_new_hash = _generate_secure_hash( $password_new ); };
+    eval { $password_new_hash = MediaWords::DBI::Auth::Password::generate_secure_hash( $password_new ); };
     if ( $@ or ( !$password_new_hash ) )
     {
         die "Unable to hash a new password: $@";
@@ -479,7 +435,7 @@ SQL
     $db_password_old = $db_password_old->{ password_hash };
 
     # Validate the password
-    unless ( password_hash_is_valid( $db_password_old, $password_old ) )
+    unless ( MediaWords::DBI::Auth::Password::password_hash_is_valid( $db_password_old, $password_old ) )
     {
         die 'Old password is incorrect.';
     }
@@ -651,7 +607,7 @@ sub add_user($$$$$$$$;$$)
 
     # Hash + validate the password
     my $password_hash;
-    eval { $password_hash = _generate_secure_hash( $password ); };
+    eval { $password_hash = MediaWords::DBI::Auth::Password::generate_secure_hash( $password ); };
     if ( $@ or ( !$password_hash ) )
     {
         die 'Unable to hash a new password.';
@@ -882,7 +838,7 @@ SQL
 
     # Hash + validate the password reset token
     my $password_reset_token_hash;
-    eval { $password_reset_token_hash = _generate_secure_hash( $password_reset_token ); };
+    eval { $password_reset_token_hash = MediaWords::DBI::Auth::Password::generate_secure_hash( $password_reset_token ); };
     if ( $@ or ( !$password_reset_token_hash ) )
     {
         die "Unable to hash a password reset token: $@";

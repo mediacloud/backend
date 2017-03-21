@@ -19,7 +19,7 @@ use Readonly;
 
 __PACKAGE__->mk_accessors( qw/realm/ );
 
-use MediaWords::DBI::Auth;
+use MediaWords::DBI::Auth::Password;
 
 Readonly my $password_field => 'password';
 
@@ -70,7 +70,7 @@ sub check_password
     my $password       = $authinfo->{ $password_field };
     my $storedpassword = $user->get( $password_field );
 
-    return MediaWords::DBI::Auth::password_hash_is_valid( $storedpassword, $password );
+    return MediaWords::DBI::Auth::Password::password_hash_is_valid( $storedpassword, $password );
 }
 
 __PACKAGE__;

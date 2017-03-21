@@ -12,6 +12,7 @@ use base 'Catalyst::Controller';
 
 use MediaWords::Controller::Api::V2::MC_Controller_REST;
 use MediaWords::DBI::Auth;
+use MediaWords::DBI::Auth::Password;
 
 use Moose;
 use namespace::autoclean;
@@ -50,7 +51,7 @@ sub _login
         return 0;
     }
 
-    return 0 unless ( MediaWords::DBI::Auth::password_hash_is_valid( $userauth->{ password_hash }, $password ) );
+    return 0 unless ( MediaWords::DBI::Auth::Password::password_hash_is_valid( $userauth->{ password_hash }, $password ) );
 
     return $userauth;
 }
