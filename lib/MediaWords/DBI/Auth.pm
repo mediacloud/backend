@@ -514,19 +514,19 @@ EOF
     }
 }
 
-# Change password by entering old password; returns error message on failure, empty string on success
-sub change_password_via_profile_or_return_error_message($$$$$)
+# Change password by entering old password; die()s on error
+sub change_password_via_profile($$$$$)
 {
     my ( $db, $email, $password_old, $password_new, $password_new_repeat ) = @_;
 
-    if ( !$password_old )
+    unless ( $password_old )
     {
-        return 'To change the password, please enter an old ' . 'password and then repeat the new password twice.';
+        die 'To change the password, please enter an old ' . 'password and then repeat the new password twice.';
     }
 
     if ( $password_old eq $password_new )
     {
-        return 'Old and new passwords are the same.';
+        die 'Old and new passwords are the same.';
     }
 
     # Validate old password (password hash is located in $c->user->password, but fetch
@@ -546,14 +546,14 @@ SQL
 
     if ( !( ref( $db_password_old ) eq ref( {} ) and $db_password_old->{ auth_users_id } ) )
     {
-        return 'Unable to find the user in the database.';
+        die 'Unable to find the user in the database.';
     }
     $db_password_old = $db_password_old->{ password_hash };
 
     # Validate the password
     if ( !password_hash_is_valid( $db_password_old, $password_old ) )
     {
-        return 'Old password is incorrect.';
+        die 'Old password is incorrect.';
     }
 
     # Execute the change
@@ -561,11 +561,8 @@ SQL
     if ( $@ )
     {
         my $error_message = "Unable to change password: $@";
-        return $error_message;
+        die $error_message;
     }
-
-    # Success
-    return '';
 }
 
 # Change password with a password token sent by email; returns error message on failure, empty string on success
