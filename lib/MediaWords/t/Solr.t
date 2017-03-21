@@ -51,7 +51,7 @@ sub test_query
     }
 }
 
-sub main
+sub test_solr_stories_only_query()
 {
     test_query( { q  => '' }, undef, 'empty q' );
     test_query( { fq => '' }, undef, 'empty fq' );
@@ -108,8 +108,13 @@ sub main
     test_query( { q => 'stories_id:( 1 2 3 4 5 6 )', start => '2' }, [ 3, 4, 5, 6 ], 'start parameter' );
     test_query( { q => 'stories_id:( 1 2 3 4 5 6 )', start => '2', rows => 2 }, [ 3, 4 ], 'start and rows parameter' );
     test_query( { q => 'stories_id:( 1 2 3 4 5 6 )', rows => 2 }, [ 1, 2 ], 'rows parameter' );
+}
 
-    done_testing;
+sub main
+{
+    test_solr_stories_only_query();
+
+    done_testing();
 }
 
 main();
