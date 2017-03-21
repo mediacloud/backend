@@ -562,7 +562,7 @@ server provides full text search indexing of each sentence collected by Media Cl
 sentences.  The api/v2/stories_public/list call searches for sentences matching the `q` and / or `fq` parameters if specified and
 the stories that include at least one sentence returned by the specified query.
 
-The `q` and `fq` parameters are passed directly through to Solr.  Documentation of the format of the `q` and `fq` parameters is [here](http://lucene.apache.org/core/4_6_1/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#package_description).  Below are the fields that may be used as Solr query parameters, for example 'sentence:obama AND media_id:1':
+The `q` and `fq` parameters are passed directly through to Solr.  Documentation of the format of the `q` and `fq` parameters is [here](https://cwiki.apache.org/confluence/display/solr/Common+Query+Parameters).  Below are the fields that may be used as Solr query parameters, for example 'sentence:obama AND media_id:1':
 
 | Field                        | Description
 | -------------------- | -----------------------------------------------------
