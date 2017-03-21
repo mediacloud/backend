@@ -15,7 +15,6 @@ use MediaWords::Util::Text;
 
 use Crypt::SaltedHash;
 use Data::Dumper;
-use Digest::SHA qw/sha256_hex/;
 use Readonly;
 use URI::Escape;
 
