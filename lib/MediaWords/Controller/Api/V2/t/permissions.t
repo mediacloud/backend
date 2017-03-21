@@ -361,10 +361,13 @@ sub find_or_add_test_user($$)
 
     my $roles = $db->query( "select auth_roles_id from auth_roles where role = ?", $role )->flat;
 
-    my $error = MediaWords::DBI::Auth::add_user_or_return_error_message( $db, $email, $role, $role, $roles, 1,
-        $password, $password, 10000000, 10000000 );
-
-    die( "error adding $role user: $error" ) if ( $error );
+    eval {
+        MediaWords::DBI::Auth::add_user( $db, $email, $role, $role, $roles, 1, $password, $password, 10000000, 10000000 );
+    };
+    if ( $@ )
+    {
+        die( "error adding $role user: $@" );
+    }
 
     return $db->query( "select * from auth_users where email = ?", $email )->hash;
 }

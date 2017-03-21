@@ -64,14 +64,23 @@ sub create_user
         $user_password, $user_password_repeat, $user_weekly_requests_limit, $user_weekly_requested_items_limit );
 
     # Add user
-    my $add_user_error_message =
-      MediaWords::DBI::Auth::add_user_or_return_error_message( $db, $user_email, $user_full_name,
-        $user_notes, $user_roles, $user_is_active, $user_password, $user_password_repeat,
-        $user_weekly_requests_limit, $user_weekly_requested_items_limit );
-
-    if ( $add_user_error_message )
+    eval {
+        MediaWords::DBI::Auth::add_user(
+            $db,                                  #
+            $user_email,                          #
+            $user_full_name,                      #
+            $user_notes,                          #
+            $user_roles,                          #
+            $user_is_active,                      #
+            $user_password,                       #
+            $user_password_repeat,                #
+            $user_weekly_requests_limit,          #
+            $user_weekly_requested_items_limit    #
+        );
+    };
+    if ( $@ )
     {
-        die( "error adding user '$email': $add_user_error_message" );
+        die "error adding user '$email': $@";
     }
 
     my $reset_password_error_message =

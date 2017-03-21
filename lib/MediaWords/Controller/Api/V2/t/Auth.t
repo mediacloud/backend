@@ -49,9 +49,8 @@ sub test_auth_single($)
     my $email    = 'test@auth.single';
     my $password = 'authsingle';
 
-    my $error = MediaWords::DBI::Auth::add_user_or_return_error_message( $db, $email, 'auth single', '', [ 1 ], 1, $password,
-        $password, 1000, 1000 );
-    ok( !$error, "Unable to add user: $error" );
+    eval { MediaWords::DBI::Auth::add_user( $db, $email, 'auth single', '', [ 1 ], 1, $password, $password, 1000, 1000 ); };
+    ok( !$@, "Unable to add user: $@" );
 
     my $r = test_get( '/api/v2/auth/single', { username => $email, password => $password } );
 

@@ -378,18 +378,28 @@ sub register : Local
     my $user_password_repeat              = $form->param_value( 'password_repeat' );
 
     # Add user
-    my $add_user_error_message =
-      MediaWords::DBI::Auth::add_user_or_return_error_message( $db, $user_email, $user_full_name, $user_notes,
-        $user_roles, $user_is_active, $user_password, $user_password_repeat,
-        $user_weekly_requests_limit, $user_weekly_requested_items_limit );
-
-    if ( $add_user_error_message )
+    eval {
+        MediaWords::DBI::Auth::add_user(
+            $db,                                  #
+            $user_email,                          #
+            $user_full_name,                      #
+            $user_notes,                          #
+            $user_roles,                          #
+            $user_is_active,                      #
+            $user_password,                       #
+            $user_password_repeat,                #
+            $user_weekly_requests_limit,          #
+            $user_weekly_requested_items_limit    #
+        );
+    };
+    if ( $@ )
     {
-        $c->stash( error_msg => $add_user_error_message );
+        my $error_message = "Unable to add user: $@";
+
+        $c->stash( error_msg => $error_message );
     }
     else
     {
-
         my $error_message =
           MediaWords::DBI::Auth::send_password_reset_token_or_return_error_message( $c->dbis, $user_email,
             $c->uri_for( '/login/activate' ), 1 );

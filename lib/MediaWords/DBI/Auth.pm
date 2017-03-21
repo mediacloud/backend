@@ -689,8 +689,8 @@ SQL
     return $users;
 }
 
-# Add new user; $role_ids is a arrayref to an array of role IDs; returns error message on error, empty string on success
-sub add_user_or_return_error_message($$$$$$$$;$$)
+# Add new user; $role_ids is a arrayref to an array of role IDs; die()s on error
+sub add_user($$$$$$$$;$$)
 {
     my ( $db, $email, $full_name, $notes, $role_ids, $is_active, $password, $password_repeat,
         $weekly_requests_limit, $weekly_requested_items_limit )
@@ -704,13 +704,13 @@ sub add_user_or_return_error_message($$$$$$$$;$$)
     my $password_validation_message = _validate_password( $email, $password, $password_repeat );
     if ( $password_validation_message )
     {
-        return $password_validation_message;
+        die "Provided password is invalid: $password_validation_message";
     }
 
     # Check if roles is an arrayref
     if ( ref $role_ids ne 'ARRAY' )
     {
-        return 'List of role IDs is not an array.';
+        die 'List of role IDs is not an array.';
     }
 
     # Check if user already exists
@@ -718,7 +718,7 @@ sub add_user_or_return_error_message($$$$$$$$;$$)
     eval { $userinfo = user_info( $db, $email ); };
     if ( $userinfo )
     {
-        return "User with email address '$email' already exists.";
+        die "User with email address '$email' already exists.";
     }
 
     # Hash + validate the password
@@ -726,7 +726,7 @@ sub add_user_or_return_error_message($$$$$$$$;$$)
     eval { $password_hash = _generate_secure_hash( $password ); };
     if ( $@ or ( !$password_hash ) )
     {
-        return 'Unable to hash a new password.';
+        die 'Unable to hash a new password.';
     }
 
     # Begin transaction
@@ -747,7 +747,7 @@ SQL
     if ( $@ or ( !$userinfo ) )
     {
         $db->rollback;
-        return "I've attempted to create the user but it doesn't exist.";
+        die "I've attempted to create the user but it doesn't exist.";
     }
     my $auth_users_id = $userinfo->{ auth_users_id };
 
@@ -790,9 +790,6 @@ SQL
 
     # End transaction
     $db->commit;
-
-    # Success
-    return '';
 }
 
 # Update an existing user; returns error message on error, empty string on success

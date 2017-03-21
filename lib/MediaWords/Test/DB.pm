@@ -320,12 +320,10 @@ sub create_test_user($$)
 
     my $email = $label . '@em.ail';
 
-    my $add_user_error_message =
-      MediaWords::DBI::Auth::add_user_or_return_error_message( $db, $email, $label, '', [ 1 ], 1,
-        'testtest', 'testtest', 1000, 1000 );
-    if ( $add_user_error_message )
+    eval { MediaWords::DBI::Auth::add_user( $db, $email, $label, '', [ 1 ], 1, 'testtest', 'testtest', 1000, 1000 ); };
+    if ( $@ )
     {
-        LOGCONFESS "Adding new user failed: $add_user_error_message";
+        LOGCONFESS "Adding new user failed: $@";
     }
 
     my $api_key = $db->query( "select api_token from auth_users where email = ?", $email )->hash;

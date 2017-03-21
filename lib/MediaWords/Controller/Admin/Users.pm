@@ -140,8 +140,10 @@ sub create : Local
         }
     );
 
+    my $db = $c->dbis;
+
     # Set list of roles
-    my $available_roles = MediaWords::DBI::Auth::all_user_roles( $c->dbis );
+    my $available_roles = MediaWords::DBI::Auth::all_user_roles( $db );
     my @roles_options;
     for my $role ( @{ $available_roles } )
     {
@@ -156,12 +158,12 @@ sub create : Local
     my $el_roles = $form->get_element( { name => 'roles', type => 'Checkboxgroup' } );
     $el_roles->options( \@roles_options );
 
-    my $default_roles_ids = $c->dbis->query( "select auth_roles_id from auth_roles where role in ( 'search' ) " )->flat;
+    my $default_roles_ids = $db->query( "select auth_roles_id from auth_roles where role in ( 'search' ) " )->flat;
 
     $form->default_values(
         {
-            weekly_requests_limit        => MediaWords::DBI::Auth::Limits::default_weekly_requests_limit( $c->dbis ),
-            weekly_requested_items_limit => MediaWords::DBI::Auth::Limits::default_weekly_requested_items_limit( $c->dbis ),
+            weekly_requests_limit        => MediaWords::DBI::Auth::Limits::default_weekly_requests_limit( $db ),
+            weekly_requested_items_limit => MediaWords::DBI::Auth::Limits::default_weekly_requested_items_limit( $db ),
             roles                        => $default_roles_ids,
         }
     );
@@ -206,16 +208,28 @@ sub create : Local
     }
 
     # Add user
-    my $add_user_error_message =
-      MediaWords::DBI::Auth::add_user_or_return_error_message( $c->dbis, $email, $user_full_name,
-        $user_notes, $user_roles, $user_is_active, $user_password, $user_password_repeat,
-        $user_weekly_requests_limit, $user_weekly_requested_items_limit );
-    if ( $add_user_error_message )
+    eval {
+        MediaWords::DBI::Auth::add_user(
+            $db,                                  #
+            $email,                               #
+            $user_full_name,                      #
+            $user_notes,                          #
+            $user_roles,                          #
+            $user_is_active,                      #
+            $user_password,                       #
+            $user_password_repeat,                #
+            $user_weekly_requests_limit,          #
+            $user_weekly_requested_items_limit    #
+        );
+    };
+    if ( $@ )
     {
+        my $error_message = "Unable to add user: $@";
+
         $c->stash->{ c }    = $c;
         $c->stash->{ form } = $form;
         $c->stash( template  => 'users/create.tt2' );
-        $c->stash( error_msg => $add_user_error_message );
+        $c->stash( error_msg => $error_message );
         return;
     }
 
@@ -223,7 +237,7 @@ sub create : Local
     if ( $user_will_choose_password_himself )
     {
         my $reset_password_error_message =
-          MediaWords::DBI::Auth::send_password_reset_token_or_return_error_message( $c->dbis, $email,
+          MediaWords::DBI::Auth::send_password_reset_token_or_return_error_message( $db, $email,
             $c->uri_for( '/login/reset' ), 1 );
         if ( $reset_password_error_message )
         {
