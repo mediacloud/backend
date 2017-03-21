@@ -44,7 +44,7 @@ sub _login
         return 0;
     }
 
-    if ( $userauth->{ active } )
+    unless ( $userauth->{ active } )
     {
         WARN "User with email '$email' is not active.";
         return 0;
