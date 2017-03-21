@@ -55,41 +55,39 @@ sub _login
     return $userauth;
 }
 
-# get an ip token for the current user and ip request
-sub _get_ip_token_for_user
-{
-    my ( $c, $user ) = @_;
-
-    my $db = $c->dbis;
-
-    my $ip_address = $c->request_ip_address();
-
-    if ( !$ip_address )
-    {
-        WARN "Unable to find ip address for request";
-        return 0;
-    }
-
-    my $auth_user_ip_token = $db->query( <<END, $user->{ auth_users_id }, $ip_address )->hash;
-select * from auth_user_ip_tokens where auth_users_id = ? and ip_address = ?
-END
-
-    my $auit_hash = { auth_users_id => $user->{ auth_users_id }, ip_address => $ip_address };
-    $auth_user_ip_token //= $db->create( 'auth_user_ip_tokens', $auit_hash );
-
-    return $auth_user_ip_token->{ api_token };
-}
-
 # login and get an ip token for the logged in user.  return 0 on error or failed login.
 sub _login_and_get_ip_token_for_user
 {
     my ( $c, $email, $password ) = @_;
 
-    my $user = _login( $c->dbis, $email, $password );
+    my $db = $c->dbis;
+
+    my $user = _login( $db, $email, $password );
 
     return 0 unless ( $user );
 
-    return _get_ip_token_for_user( $c, $user );
+    my $ip_address = $c->request_ip_address();
+
+    unless ( $ip_address )
+    {
+        WARN "Unable to find IP address for request";
+        return 0;
+    }
+
+    my $auth_user_ip_token = $db->query(
+        <<SQL,
+        SELECT *
+        FROM auth_user_ip_tokens
+        WHERE auth_users_id = ?
+          AND ip_address = ?
+SQL
+        $user->{ auth_users_id }, $ip_address
+    )->hash;
+
+    my $auit_hash = { auth_users_id => $user->{ auth_users_id }, ip_address => $ip_address };
+    $auth_user_ip_token //= $db->create( 'auth_user_ip_tokens', $auit_hash );
+
+    return $auth_user_ip_token->{ api_token };
 }
 
 sub single_GET : PathPrefix( '/api' )
