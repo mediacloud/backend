@@ -14,8 +14,6 @@ BEGIN
 use MediaWords::CommonLibs;
 use Modern::Perl "2015";
 
-use List::MoreUtils "uniq";
-use List::Util "shuffle";
 use Readonly;
 use Test::More;
 use URI::Escape;
