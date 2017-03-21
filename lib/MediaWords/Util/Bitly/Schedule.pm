@@ -109,7 +109,7 @@ sub story_processing_is_enabled()
 {
     unless ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
     {
-        DEBUG( "Bit.ly story processing is not enabled because Bit.ly processing itself is not enabled." );
+        TRACE( "Bit.ly story processing is not enabled because Bit.ly processing itself is not enabled." );
         return 0;
     }
 
