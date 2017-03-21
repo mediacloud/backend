@@ -408,12 +408,24 @@ sub edit : Local
     }
 
     # Update user
-    my $update_user_error_message =
-      MediaWords::DBI::Auth::update_user_or_return_error_message( $db, $email, $user_full_name,
-        $user_notes, $user_roles, $user_is_active, $user_password, $user_password_repeat,
-        $user_weekly_requests_limit, $user_weekly_requested_items_limit );
-    if ( $update_user_error_message )
+    eval {
+        MediaWords::DBI::Auth::update_user(
+            $db,                                  #
+            $email,                               #
+            $user_full_name,                      #
+            $user_notes,                          #
+            $user_roles,                          #
+            $user_is_active,                      #
+            $user_password,                       #
+            $user_password_repeat,                #
+            $user_weekly_requests_limit,          #
+            $user_weekly_requested_items_limit    #
+        );
+    };
+    if ( $@ )
     {
+        my $error_message = "Unable to update user: $@";
+
         $c->stash->{ auth_users_id } = $userinfo->{ auth_users_id };
         $c->stash->{ email }         = $userinfo->{ email };
         $c->stash->{ full_name }     = $userinfo->{ full_name };
@@ -422,7 +434,7 @@ sub edit : Local
         $c->stash->{ c }             = $c;
         $c->stash->{ form }          = $form;
         $c->stash->{ template }      = 'users/edit.tt2';
-        $c->stash( error_msg => $update_user_error_message );
+        $c->stash( error_msg => $error_message );
         return;
     }
 

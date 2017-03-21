@@ -792,9 +792,9 @@ SQL
     $db->commit;
 }
 
-# Update an existing user; returns error message on error, empty string on success
+# Update an existing user; die()s on error
 # ($password and $password_repeat are optional; if not provided, the password will not be changed)
-sub update_user_or_return_error_message($$$$$$;$$$$)
+sub update_user($$$$$$;$$$$)
 {
     my ( $db, $email, $full_name, $notes, $roles, $is_active, $password, $password_repeat,
         $weekly_requests_limit, $weekly_requested_items_limit )
@@ -805,7 +805,7 @@ sub update_user_or_return_error_message($$$$$$;$$$$)
     eval { $userinfo = user_info( $db, $email ); };
     if ( $@ or ( !$userinfo ) )
     {
-        return "User with email address '$email' does not exist.";
+        die "User with email address '$email' does not exist.";
     }
 
     # Begin transaction
@@ -831,7 +831,7 @@ SQL
             my $error_message = "Unable to change password: $@";
 
             $db->rollback;
-            return $error_message;
+            die $error_message;
         }
     }
 
@@ -879,8 +879,6 @@ SQL
 
     # End transaction
     $db->commit;
-
-    return '';
 }
 
 # Delete user; returns error message on error, empty string on success

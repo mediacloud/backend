@@ -368,21 +368,23 @@ EOF
     }
 
     # Modify (update) user
-    my $update_user_error_message = MediaWords::DBI::Auth::update_user_or_return_error_message(
-        $db,
-        $modified_user{ email },
-        $modified_user{ full_name },
-        $modified_user{ notes },
-        $modified_user{ role_ids },
-        $modified_user{ active },
-        $modified_user{ password },
-        $modified_user{ password_repeat },
-        $user_weekly_requests_limit,
-        $user_weekly_requested_items_limit
-    );
-    if ( $update_user_error_message )
+    eval {
+        MediaWords::DBI::Auth::update_user(
+            $db,                                  #
+            $modified_user{ email },              #
+            $modified_user{ full_name },          #
+            $modified_user{ notes },              #
+            $modified_user{ role_ids },           #
+            $modified_user{ active },             #
+            $modified_user{ password },           #
+            $modified_user{ password_repeat },    #
+            $user_weekly_requests_limit,          #
+            $user_weekly_requested_items_limit    #
+        );
+    };
+    if ( $@ )
     {
-        ERROR "Error while trying to modify user: $update_user_error_message";
+        ERROR "Error while trying to modify user: $@";
         return 1;
     }
 
