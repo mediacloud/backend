@@ -32,13 +32,13 @@ unless ( $story_content )
 If called from `MediaWords::TM::Mine`, this will get printed by the default STDERR appender as:
 
 ```
-2016/04/13 13:59:35 MediaWords.CM.Mine: SKIP - NO CONTENT
+2016/04/13 13:59:35 MediaWords.TM.Mine: SKIP - NO CONTENT
 ```
 
 To see more info from specific categories, add lines like the following to the `log4perl.conf` file:
 
 ```
-log4perl.logger.MediaWords.CM.Mine = DEBUG, STDERR
+log4perl.logger.MediaWords.TM.Mine = DEBUG, STDERR
 ```
 
 Keep in mind that Perl will evaluate any expression passed as argument to a logging call.  If you anticipate that a logging call might be slow and will be called often (e.g. `TRACE()` call that uses `Dumper()` to print a huge hashref), consider using `LOGGING_CALL( sub { ... } )` syntax:

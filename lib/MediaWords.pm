@@ -145,7 +145,7 @@ sub setup_acl()
       /admin/tagsets/edit
       |;
 
-    # cm role; can access all cm pages + admin-readonly + media-edit + stories-edi
+    # topic mapper role; can access all topic mapper pages + admin-readonly + media-edit + stories-edit
     my @acl_cm = qw|
       /admin/tm/
       |;

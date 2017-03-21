@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# execute a postgres query within a session that has the cm temporary dump tables
+# execute a postgres query within a session that has the topic mapper's temporary dump tables
 
 use strict;
 use warnings;

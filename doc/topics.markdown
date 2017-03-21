@@ -12,9 +12,9 @@ The topic mapping system is used to generate and analyze spidered sets
 of stories on some time and text pattern defined topic. The key differences
 between the topic mapping system and the rest of the system are that:
 
-* the cm uses links in the text of existing content to spider for new content
+* the topic mapper uses links in the text of existing content to spider for new content
   (in general all stories in media cloud are discovered via an rss feed) and
-* as the cm parses links to discover new stories, it stores those links in the
+* as the topic mapper parses links to discover new stories, it stores those links in the
   database so that we can use them for link analysis.
 
 The code that runs the topics spider is [MediaWords::TM::Spider](../lib/MediaWords/TM/Spider.pm).  More
@@ -25,7 +25,7 @@ models reliability for date guesses) is in [MediaWords::TM::Mine](../lib/MediaWo
 the snapshotting process is [here](snapshots.markdown).
 
 The topic web ui is implemented in the
-[MediaWords::Controller::Admin::CM](../lib/MediaWords/Controller/Admin/CM.pm) catalyst controller.
+[MediaWords::Controller::Admin::TM](../lib/MediaWords/Controller/Admin/TM.pm) catalyst controller.
 
 How to run a topic for development
 ----------------------------------------
@@ -43,7 +43,7 @@ solr database will already have data).
 script/run_with_carton.sh script/mediawords_import_solr_data.pl --delete_all
 </pre>
 
-1. Go to http://localhost:3000/admin/cm (replace localhost:3000 with your mc web app).
+1. Go to http://localhost:3000/admin/tm (replace localhost:3000 with your mc web app).
 
 2. Click on 'create topic' link on the right of the page.
 
@@ -67,7 +67,7 @@ script/run_with_carton.sh script/mediawords_mine_topic.pl --topic <topics_id> --
 </pre>
 
 9. Wait for the topic spider to complete.  This can take anywhere from an hour or so to several days.  
-If you want it to complete faster, edit mediawords->cm\_spider\_iterations in mediawords.yml to some small
+If you want it to complete faster, edit mediawords->tm\_spider\_iterations in mediawords.yml to some small
 number (1 or 2), which will make the spider only spider out that many levels from the seed set.
 
 10. Once the the mine has finished, run the following command and follow the instructions within the script
@@ -89,7 +89,7 @@ script/run_with_carton.sh script/mediawords_snapshot_topic.pl --topic <topics_id
 13. That's it.  You should have a functioning topic.  Go to the topic page in step 1 and
 click on the newly create topic.
 
-Basic flow of CM
+Basic flow of TM
 ----------------
 
 1. Search solr for a set of seed stories.
@@ -110,7 +110,7 @@ Basic flow of CM
 7. Add the `<topic name>:all` tag to each story in the topic.
 
 
-Tables used by CM
+Tables used by TM
 -----------------
 
 * `topics` -- basic topic metadata
@@ -132,7 +132,7 @@ Tables used by CM
 * `snap.*` -- tables used for snapshotting
 
 
-Detailed explanation of CM process
+Detailed explanation of TM process
 ----------------------------------
 
 1. Write both a solr query and date range that defines the topic seed
@@ -236,4 +236,4 @@ required.  Most often, a topic will need to mined again if any of the following 
 
 * the solr query is changed in a way that will add stories to the topic;
 * new urls are added to topic_seed_urls for the topic; or
-* a media source in the topic is newly marked as a dup of a media source outside of the cm web app
+* a media source in the topic is newly marked as a dup of a media source outside of the topic mapper web app
