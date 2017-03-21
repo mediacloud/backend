@@ -463,24 +463,6 @@ sub _validate_password($$$)
     return '';
 }
 
-# Activate the user
-sub _activate_user_or_return_error_message($$)
-{
-    my ( $db, $email ) = @_;
-
-    # Set the password hash
-    $db->query(
-        <<"SQL",
-        UPDATE auth_users
-        SET active = TRUE
-        WHERE email = ?
-SQL
-        $email
-    );
-
-    return;
-}
-
 # Change password; returns error message on failure, empty string on success
 sub _change_password_or_return_error_message($$$$;$)
 {
@@ -626,17 +608,20 @@ sub activate_user_via_token_or_return_error_message($$$)
         return 'Password reset token is invalid.';
     }
 
-    # Execute the change
-    my $error_message = _activate_user_or_return_error_message( $db, $email );
-    if ( $error_message )
-    {
-        return $error_message;
-    }
+    # Set the password hash
+    $db->query(
+        <<"SQL",
+        UPDATE auth_users
+        SET active = TRUE
+        WHERE email = ?
+SQL
+        $email
+    );
 
     # Unset the password reset token
     post_successful_login( $db, $email );
 
-    return $error_message;
+    return '';
 }
 
 # Fetch and return a list of users and their roles; returns an arrayref
