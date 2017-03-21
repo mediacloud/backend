@@ -966,19 +966,18 @@ EOF
     }
 }
 
-# Prepare for password reset by emailing the password reset token; returns error
-# message on failure, empty string on success
-sub send_password_reset_token_or_return_error_message($$$;$)
+# Prepare for password reset by emailing the password reset token; die()s on error
+sub send_password_reset_token($$$;$)
 {
     my ( $db, $email, $password_reset_link, $new_user ) = @_;
 
-    if ( !$email )
+    unless ( $email )
     {
-        return 'Email address is empty.';
+        die 'Email address is empty.';
     }
-    if ( !$password_reset_link )
+    unless ( $password_reset_link )
     {
-        return 'Password reset link is empty.';
+        die 'Password reset link is empty.';
     }
 
     # Check if the email address exists in the user table; if not, pretend that
@@ -1010,9 +1009,9 @@ SQL
 
     # Generate the password reset token
     my $password_reset_token = MediaWords::Util::Text::random_string( 64 );
-    if ( !length( $password_reset_token ) )
+    unless ( length( $password_reset_token ) > 0 )
     {
-        return 'Unable to generate a password reset token.';
+        die 'Unable to generate a password reset token.';
     }
 
     # Hash + validate the password reset token
@@ -1020,7 +1019,7 @@ SQL
     eval { $password_reset_token_hash = _generate_secure_hash( $password_reset_token ); };
     if ( $@ or ( !$password_reset_token_hash ) )
     {
-        return 'Unable to hash a password reset token.';
+        die "Unable to hash a password reset token: $@";
     }
 
     # Set the password token hash in the database
@@ -1034,11 +1033,11 @@ SQL
         $password_reset_token_hash, $email
     );
 
-    # If we didn't find an email address in the database, we return here with a fake
-    # "success" message
-    if ( !length( $email ) )
+    # If we didn't find an email address in the database, we return here imitating success
+    # (again, due to timing attacks)
+    unless ( length( $email ) > 0 )
     {
-        return '';
+        return;
     }
 
     $password_reset_link =
@@ -1058,11 +1057,8 @@ SQL
     if ( $@ )
     {
         my $error_message = "Unable to send email to user: $@";
-        return $error_message;
+        die $error_message;
     }
-
-    # Success
-    return '';
 }
 
 # Regenerate API token

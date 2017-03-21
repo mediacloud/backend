@@ -238,15 +238,15 @@ sub create : Local
     # Send the password reset link if needed
     if ( $user_will_choose_password_himself )
     {
-        my $reset_password_error_message =
-          MediaWords::DBI::Auth::send_password_reset_token_or_return_error_message( $db, $email,
-            $c->uri_for( '/login/reset' ), 1 );
-        if ( $reset_password_error_message )
+        eval { MediaWords::DBI::Auth::send_password_reset_token( $db, $email, $c->uri_for( '/login/reset' ), 1 ); };
+        if ( $@ )
         {
+            my $error_message = "Unable to send password reset token: $@";
+
             $c->stash->{ c }    = $c;
             $c->stash->{ form } = $form;
             $c->stash( template  => 'users/create.tt2' );
-            $c->stash( error_msg => $reset_password_error_message );
+            $c->stash( error_msg => $error_message );
             return;
         }
     }

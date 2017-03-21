@@ -83,9 +83,11 @@ sub create_user
         die "error adding user '$email': $@";
     }
 
-    my $reset_password_error_message =
-      MediaWords::DBI::Auth::send_password_reset_token_or_return_error_message( $db, $user_email, "$mc_url/login/reset", 1 );
-    die( "error resetting password '$user_email': $reset_password_error_message" ) if ( $reset_password_error_message );
+    eval { MediaWords::DBI::Auth::send_password_reset_token( $db, $user_email, "$mc_url/login/reset", 1 ); };
+    if ( $@ )
+    {
+        die "error resetting password '$user_email': $@";
+    }
 }
 
 sub main

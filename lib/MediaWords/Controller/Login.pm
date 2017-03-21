@@ -152,11 +152,11 @@ sub forgot : Local
     }
 
     my $email = $form->param_value( 'email' );
-    my $error_message =
-      MediaWords::DBI::Auth::send_password_reset_token_or_return_error_message( $c->dbis, $email,
-        $c->uri_for( '/login/reset' ) );
-    if ( $error_message )
+    eval { MediaWords::DBI::Auth::send_password_reset_token( $c->dbis, $email, $c->uri_for( '/login/reset' ) ); };
+    if ( $@ )
     {
+        my $error_message = "Unable to send password reset token: $@";
+
         $c->stash->{ c }    = $c;
         $c->stash->{ form } = $form;
         $c->stash( template  => 'auth/forgot.tt2' );
@@ -400,12 +400,12 @@ sub register : Local
     }
     else
     {
-        my $error_message =
-          MediaWords::DBI::Auth::send_password_reset_token_or_return_error_message( $c->dbis, $user_email,
-            $c->uri_for( '/login/activate' ), 1 );
-
-        if ( $error_message )
+        eval {
+            MediaWords::DBI::Auth::send_password_reset_token( $c->dbis, $user_email, $c->uri_for( '/login/activate' ), 1 );
+        };
+        if ( $@ )
         {
+            my $error_message = "Unable to send password reset token: $@";
 
             $c->stash( error_msg => $error_message );
         }
