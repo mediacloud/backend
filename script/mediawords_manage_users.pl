@@ -405,12 +405,11 @@ sub user_delete($)
     GetOptions( 'email=s' => \$user_email, ) or die "$user_delete_usage\n";
     die "$user_delete_usage\n" unless ( $user_email );
 
-    # Add the user
     # Delete user
-    my $delete_user_error_message = MediaWords::DBI::Auth::delete_user_or_return_error_message( $db, $user_email );
-    if ( $delete_user_error_message )
+    eval { MediaWords::DBI::Auth::delete_user( $db, $user_email ); };
+    if ( $@ )
     {
-        ERROR "Error while trying to delete user: $delete_user_error_message";
+        ERROR "Error while trying to delete user: $@";
         return 1;
     }
 

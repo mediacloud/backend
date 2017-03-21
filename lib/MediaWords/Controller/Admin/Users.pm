@@ -108,10 +108,12 @@ sub delete_do : Local
     }
 
     # Delete user
-    my $delete_user_error_message = MediaWords::DBI::Auth::delete_user_or_return_error_message( $c->dbis, $email );
-    if ( $delete_user_error_message )
+    eval { MediaWords::DBI::Auth::delete_user( $c->dbis, $email ); };
+    if ( $@ )
     {
-        $c->response->redirect( $c->uri_for( '/admin/users/list', { error_msg => $delete_user_error_message } ) );
+        my $error_message = "Unable to delete user: $@";
+
+        $c->response->redirect( $c->uri_for( '/admin/users/list', { error_msg => $error_message } ) );
         return;
     }
 

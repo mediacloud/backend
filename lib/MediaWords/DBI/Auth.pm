@@ -881,8 +881,8 @@ SQL
     $db->commit;
 }
 
-# Delete user; returns error message on error, empty string on success
-sub delete_user_or_return_error_message($$)
+# Delete user; die()s on error
+sub delete_user($$)
 {
     my ( $db, $email ) = @_;
 
@@ -891,7 +891,7 @@ sub delete_user_or_return_error_message($$)
     eval { $userinfo = user_info( $db, $email ); };
     if ( $@ or ( !$userinfo ) )
     {
-        return "User with email address '$email' does not exist.";
+        die "User with email address '$email' does not exist.";
     }
 
     # Delete the user (PostgreSQL's relation will take care of 'auth_users_roles_map')
@@ -902,8 +902,6 @@ sub delete_user_or_return_error_message($$)
 SQL
         $email
     );
-
-    return '';
 }
 
 # send password reset email in response to user clicking on reset password link
