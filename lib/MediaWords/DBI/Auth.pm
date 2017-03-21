@@ -463,15 +463,15 @@ sub _validate_password($$$)
     return '';
 }
 
-# Change password; returns error message on failure, empty string on success
-sub _change_password_or_return_error_message($$$$;$)
+# Change password; die()s on failure
+sub _change_password($$$$;$)
 {
     my ( $db, $email, $password_new, $password_new_repeat, $do_not_inform_via_email ) = @_;
 
     my $password_validation_message = _validate_password( $email, $password_new, $password_new_repeat );
     if ( $password_validation_message )
     {
-        return $password_validation_message;
+        die "Unable to change password: $password_validation_message";
     }
 
     # Hash + validate the password
@@ -479,7 +479,7 @@ sub _change_password_or_return_error_message($$$$;$)
     eval { $password_new_hash = _generate_secure_hash( $password_new ); };
     if ( $@ or ( !$password_new_hash ) )
     {
-        return 'Unable to hash a new password.';
+        die "Unable to hash a new password: $@";
     }
 
     # Set the password hash
@@ -492,7 +492,7 @@ SQL
         $password_new_hash, $email
     );
 
-    if ( !$do_not_inform_via_email )
+    unless ( $do_not_inform_via_email )
     {
 
         # Send email
@@ -507,14 +507,11 @@ If you did not request this change, please contact Media Cloud support at
 www.mediacloud.org.
 EOF
 
-        if ( !MediaWords::Util::Mail::send( $email, $email_subject, $email_message ) )
+        unless ( MediaWords::Util::Mail::send( $email, $email_subject, $email_message ) )
         {
-            return 'The password has been changed, but I was unable to send an email notifying you about the change.';
+            die 'The password has been changed, but I was unable to send an email notifying you about the change.';
         }
     }
-
-    # Success
-    return '';
 }
 
 # Change password by entering old password; returns error message on failure, empty string on success
@@ -560,7 +557,15 @@ SQL
     }
 
     # Execute the change
-    return _change_password_or_return_error_message( $db, $email, $password_new, $password_new_repeat );
+    eval { _change_password( $db, $email, $password_new, $password_new_repeat ); };
+    if ( $@ )
+    {
+        my $error_message = "Unable to change password: $@";
+        return $error_message;
+    }
+
+    # Success
+    return '';
 }
 
 # Change password with a password token sent by email; returns error message on failure, empty string on success
@@ -580,16 +585,18 @@ sub change_password_via_token_or_return_error_message($$$$$)
     }
 
     # Execute the change
-    my $error_message = _change_password_or_return_error_message( $db, $email, $password_new, $password_new_repeat );
-    if ( $error_message )
+    eval { _change_password( $db, $email, $password_new, $password_new_repeat ); };
+    if ( $@ )
     {
+        my $error_message = "Unable to change password: $@";
         return $error_message;
     }
 
     # Unset the password reset token
     post_successful_login( $db, $email );
 
-    return $error_message;
+    # Success
+    return '';
 }
 
 # Change password with a password token sent by email; returns error message on failure, empty string on success
@@ -829,12 +836,13 @@ SQL
 
     if ( $password )
     {
-        my $password_change_error_message =
-          _change_password_or_return_error_message( $db, $email, $password, $password_repeat, 1 );
-        if ( $password_change_error_message )
+        eval { _change_password( $db, $email, $password, $password_repeat, 1 ); };
+        if ( $@ )
         {
+            my $error_message = "Unable to change password: $@";
+
             $db->rollback;
-            return $password_change_error_message;
+            return $error_message;
         }
     }
 
