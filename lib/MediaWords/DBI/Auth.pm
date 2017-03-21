@@ -922,12 +922,10 @@ If you didn't request this, please ignore this email or contact Media Cloud
 support at www.mediacloud.org.
 EOF
 
-    if ( !MediaWords::Util::Mail::send( $email, $email_subject, $email_message ) )
+    unless ( MediaWords::Util::Mail::send( $email, $email_subject, $email_message ) )
     {
-        return 'The password has been changed, but I was unable to send an email notifying you about the change.';
+        die 'The password has been changed, but I was unable to send an email notifying you about the change.';
     }
-
-    return '';
 }
 
 # send password reset link in email to a new user
@@ -962,12 +960,10 @@ about your account or other private questions email info\@mediacloud.org.
 
 EOF
 
-    if ( !MediaWords::Util::Mail::send( $email, $email_subject, $email_message ) )
+    unless ( MediaWords::Util::Mail::send( $email, $email_subject, $email_message ) )
     {
-        return 'The user was created, but I was unable to send you an activation email.';
+        die 'The user was created, but I was unable to send you an activation email.';
     }
-
-    return '';
 }
 
 # Prepare for password reset by emailing the password reset token; returns error
@@ -1049,9 +1045,21 @@ SQL
       $password_reset_link . '?email=' . uri_escape( $email ) . '&token=' . uri_escape( $password_reset_token );
     INFO "Full password reset link: $password_reset_link";
 
-    return $new_user
-      ? _send_new_user_email( $email, $password_reset_link )
-      : _send_password_reset_email( $email, $password_reset_link );
+    eval {
+        if ( $new_user )
+        {
+            _send_new_user_email( $email, $password_reset_link );
+        }
+        else
+        {
+            _send_password_reset_email( $email, $password_reset_link );
+        }
+    };
+    if ( $@ )
+    {
+        my $error_message = "Unable to send email to user: $@";
+        return $error_message;
+    }
 
     # Success
     return '';
