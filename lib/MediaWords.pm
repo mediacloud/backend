@@ -304,22 +304,22 @@ sub create_form
 # Redirect unauthenticated users to login page
 sub acl_access_denied
 {
-    my ( $c, $class, $action, $err ) = @_;
+    my ( $self, $class, $action, $err ) = @_;
 
-    if ( $c->user_exists )
+    if ( $self->user_exists )
     {
-        $c->log->debug( 'User has been found, is not allowed to access page /' . $action );
+        $self->log->debug( 'User has been found, is not allowed to access page /' . $action );
 
         # Show the "unauthorized" message
-        $c->res->body( 'You are not allowed to access page /' . $action );
-        $c->res->status( 403 );
+        $self->res->body( 'You are not allowed to access page /' . $action );
+        $self->res->status( 403 );
     }
     else
     {
-        $c->log->debug( 'User not found, forwarding to /login' );
+        $self->log->debug( 'User not found, forwarding to /login' );
 
         # Redirect the user to the login page
-        $c->response->redirect( $c->uri_for( '/login', { url => $c->req->uri } ) );
+        $self->response->redirect( $self->uri_for( '/login', { url => $self->req->uri } ) );
     }
 
     # Continue denying access
