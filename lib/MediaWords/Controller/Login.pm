@@ -229,11 +229,13 @@ sub reset : Local
     my $password_new        = $form->param_value( 'password_new' );
     my $password_new_repeat = $form->param_value( 'password_new_repeat' );
 
-    my $error_message =
-      MediaWords::DBI::Auth::change_password_via_token_or_return_error_message( $c->dbis, $email, $password_reset_token,
-        $password_new, $password_new_repeat );
-    if ( $error_message ne '' )
+    eval {
+        MediaWords::DBI::Auth::change_password_via_token( $c->dbis, $email, $password_reset_token, $password_new,
+            $password_new_repeat );
+    };
+    if ( $@ )
     {
+        my $error_message = "Unable to change password: $@";
 
         # Pass the parameters further
         $form->default_values(

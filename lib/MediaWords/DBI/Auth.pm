@@ -565,20 +565,20 @@ SQL
     }
 }
 
-# Change password with a password token sent by email; returns error message on failure, empty string on success
-sub change_password_via_token_or_return_error_message($$$$$)
+# Change password with a password token sent by email; die()s on error
+sub change_password_via_token($$$$$)
 {
     my ( $db, $email, $password_reset_token, $password_new, $password_new_repeat ) = @_;
 
-    if ( !$password_reset_token )
+    unless ( $password_reset_token )
     {
-        return 'Password reset token is empty.';
+        die 'Password reset token is empty.';
     }
 
     # Validate the token once more (was pre-validated in controller)
-    if ( !password_reset_token_is_valid( $db, $email, $password_reset_token ) )
+    unless ( password_reset_token_is_valid( $db, $email, $password_reset_token ) )
     {
-        return 'Password reset token is invalid.';
+        die 'Password reset token is invalid.';
     }
 
     # Execute the change
@@ -586,14 +586,11 @@ sub change_password_via_token_or_return_error_message($$$$$)
     if ( $@ )
     {
         my $error_message = "Unable to change password: $@";
-        return $error_message;
+        die $error_message;
     }
 
     # Unset the password reset token
     post_successful_login( $db, $email );
-
-    # Success
-    return '';
 }
 
 # Change password with a password token sent by email; returns error message on failure, empty string on success
