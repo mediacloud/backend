@@ -123,11 +123,12 @@ sub regenerate_api_token : Local
     }
 
     # Delete user
-    my $regenerate_api_token_error_message =
-      MediaWords::DBI::Auth::regenerate_api_token_or_return_error_message( $db, $email );
-    if ( $regenerate_api_token_error_message )
+    eval { MediaWords::DBI::Auth::regenerate_api_token( $db, $email ); };
+    if ( $@ )
     {
-        $c->response->redirect( $c->uri_for( '/admin/profile', { error_msg => $regenerate_api_token_error_message } ) );
+        my $error_message = "Unable to regenerate API token: $@";
+
+        $c->response->redirect( $c->uri_for( '/admin/profile', { error_msg => $error_message } ) );
         return;
     }
 

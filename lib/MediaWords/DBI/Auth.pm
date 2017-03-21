@@ -1061,14 +1061,14 @@ SQL
     }
 }
 
-# Regenerate API token
-sub regenerate_api_token_or_return_error_message($$)
+# Regenerate API token; die()s on error
+sub regenerate_api_token($$)
 {
     my ( $db, $email ) = @_;
 
-    if ( !$email )
+    unless ( $email )
     {
-        return 'Email address is empty.';
+        die 'Email address is empty.';
     }
 
     # Check if user exists
@@ -1076,7 +1076,7 @@ sub regenerate_api_token_or_return_error_message($$)
     eval { $userinfo = user_info( $db, $email ); };
     if ( $@ or ( !$userinfo ) )
     {
-        return "User with email address '$email' does not exist.";
+        die "User with email address '$email' does not exist.";
     }
 
     # Regenerate API token
@@ -1089,9 +1089,6 @@ sub regenerate_api_token_or_return_error_message($$)
 SQL
         $email
     );
-
-    # Success
-    return '';
 }
 
 1;
