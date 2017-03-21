@@ -312,12 +312,11 @@ sub activate : Local
 
     # At this point the token has been validated and the form has been submitted.
 
-    my $error_message =
-      MediaWords::DBI::Auth::activate_user_via_token_or_return_error_message( $c->dbis, $email, $password_reset_token );
-    if ( $error_message ne '' )
+    eval { MediaWords::DBI::Auth::activate_user_via_token( $c->dbis, $email, $password_reset_token ); };
+    if ( $@ )
     {
+        my $error_message = "Unable to activate user: $@";
 
-        #$c->stash->{ form }  = $form;
         $c->stash->{ c } = $c;
         $c->stash( template  => 'auth/reset.tt2' );
         $c->stash( error_msg => $error_message );

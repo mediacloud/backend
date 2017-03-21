@@ -593,20 +593,20 @@ sub change_password_via_token($$$$$)
     post_successful_login( $db, $email );
 }
 
-# Change password with a password token sent by email; returns error message on failure, empty string on success
-sub activate_user_via_token_or_return_error_message($$$)
+# Change password with a password token sent by email; die()s on error
+sub activate_user_via_token($$$)
 {
     my ( $db, $email, $password_reset_token ) = @_;
 
-    if ( !$password_reset_token )
+    unless ( $password_reset_token )
     {
-        return 'Password reset token is empty.';
+        die 'Password reset token is empty.';
     }
 
     # Validate the token once more (was pre-validated in controller)
-    if ( !password_reset_token_is_valid( $db, $email, $password_reset_token ) )
+    unless ( password_reset_token_is_valid( $db, $email, $password_reset_token ) )
     {
-        return 'Password reset token is invalid.';
+        die 'Password reset token is invalid.';
     }
 
     # Set the password hash
@@ -621,8 +621,6 @@ SQL
 
     # Unset the password reset token
     post_successful_login( $db, $email );
-
-    return '';
 }
 
 # Fetch and return a list of users and their roles; returns an arrayref
