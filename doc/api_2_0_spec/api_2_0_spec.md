@@ -697,22 +697,22 @@ the returned data would look like:
 
 ```json
 {
-	"word_matrix":
+  "word_matrix":
     {
-		"1": {
-			"0": 1,
-			"1": 2
-		},
-		"2": {
-			"0": 3,
-			"1": 1
-		}
-	},
-	"word_list":
+    "1": {
+      "0": 1,
+      "1": 2
+    },
+    "2": {
+      "0": 3,
+      "1": 1
+    }
+  },
+  "word_list":
     [
-		["foo", "foo"],
-		["bar", "bars"]
-	]
+    ["foo", "foo"],
+    ["bar", "bars"]
+  ]
 }
 ```
 
@@ -1379,8 +1379,8 @@ URL: https://api.mediacloud.org/api/v2/auth/profile
   "created_date": "2014-12-10 13:36:29.537007",
   "auth_roles":
   [
-  	"media-edit",
-  	"stories-edit"
+    "media-edit",
+    "stories-edit"
   ]
 }
 ```
@@ -1415,13 +1415,13 @@ URL: https://api.mediacloud.org/api/v2/stats/list
 
 ```json
 {
-  	"total_stories": 516145344,
-  	"total_downloads": 941078656,
+    "total_stories": 516145344,
+    "total_downloads": 941078656,
     "total_sentences": 6899028480,
-  	"active_crawled_media": 123,
-  	"active_crawled_feeds": 123,
+    "active_crawled_media": 123,
+    "active_crawled_feeds": 123,
     "daily_stories": 123,
-  	"daily_downloads": 123,
+    "daily_downloads": 123,
 }
 ```
 
@@ -1459,7 +1459,7 @@ while True:
       data = r.json()
 
       if len(data) == 0:
-      	 break
+         break
 
       start += rows
       media.extend( data )
@@ -1511,7 +1511,7 @@ while True:
       stories = r.json()
 
       if len(stories) == 0:
-      	 break
+         break
 
       start = stories[ -1 ][ 'processed_stories_id' ]
 
@@ -1547,7 +1547,7 @@ while True:
       stories = r.json()
 
       if len(stories) == 0:
-      	 break
+         break
 
       start = stories[ -1 ][ 'processed_stories_id' ]
 

@@ -388,7 +388,7 @@ Response:
               "description": "major US mainstream media sources"
           }
       ]
-	}
+   }
   ]
 }
 ```
@@ -448,7 +448,7 @@ Response:
               "description": "major US mainstream media sources"
           }
       ]
-	}
+   }
   ]
 }
 ```
@@ -747,7 +747,7 @@ Response:
     {
       "email": "hroberts@cyber.law.harvard.edu",
       "topics_id": 1390,
-	  "permission": "admin"
+     "permission": "admin"
     }
   ]
 }
@@ -782,12 +782,12 @@ Response:
     {
       "email": "hroberts@cyber.law.harvard.edu",
       "topics_id": 1390,
-	  "permission": "admin"
+     "permission": "admin"
     },
    {
       "email": "foo@foo.bar",
       "topics_id": 1390,
-	  "permission": "read"
+     "permission": "read"
     }
 
   ]
@@ -843,7 +843,7 @@ Response:
    {
       "email": "foo@foo.bar",
       "topics_id": 1390,
-	  "permission": "read"
+     "permission": "read"
     }
   ]
 }
