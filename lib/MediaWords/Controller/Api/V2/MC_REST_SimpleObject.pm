@@ -659,14 +659,14 @@ SQL
 }
 
 # process put_tags command for the current table.  see api docs for stories/put_tags.
-# json format.
+# JSON format.
 sub process_put_tags($$)
 {
     my ( $self, $c ) = @_;
 
     my $data = $c->req->data;
 
-    die( "no json input" ) unless ( $data );
+    die( "no JSON input" ) unless ( $data );
 
     die( "json must be a list" ) unless ( ref( $data ) eq ref( [] ) );
 

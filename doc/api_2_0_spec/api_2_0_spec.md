@@ -178,7 +178,7 @@ The following language are supported (by 2 letter language code):
 
 ## Errors
 
-The Media Cloud returns an appropriate HTTP status code for any error, along with a json document in the following format:
+The Media Cloud returns an appropriate HTTP status code for any error, along with a JSON document in the following format:
 
 ```json
 { "error": "error message" }

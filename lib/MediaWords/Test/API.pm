@@ -39,7 +39,7 @@ sub get_test_api_key()
     return $_test_api_key;
 }
 
-# test that all fields with purely number responses return json numbers
+# test that all fields with purely number responses return JSON numbers
 sub validate_number_fields($$)
 {
     my ( $label, $json ) = @_;
@@ -53,7 +53,7 @@ sub validate_number_fields($$)
 }
 
 #  test that we got a valid response,
-# that the response is valid json, and that the json response is not an error response.  Return
+# that the response is valid json, and that the JSON response is not an error response.  Return
 # the decoded json.  If $expect_error is true, test for expected error response.
 sub test_request_response($$;$)
 {
@@ -69,7 +69,7 @@ sub test_request_response($$;$)
 
     my $data = eval { MediaWords::Util::JSON::decode_json( $response->decoded_content ) };
 
-    ok( $data, "decoded json for $label (json error: $@)" );
+    ok( $data, "decoded JSON for $label (json error: $@)" );
 
     validate_number_fields( $label, $response->decoded_content );
 
@@ -88,8 +88,8 @@ sub test_request_response($$;$)
     return $data;
 }
 
-# execute Catalyst::Test::request() with an HTTP request with the given data as json content.
-# call test_request_response() on the result and return the decoded json data
+# execute Catalyst::Test::request() with an HTTP request with the given data as JSON content.
+# call test_request_response() on the result and return the decoded JSON data
 sub test_data_request($$$;$)
 {
     my ( $method, $url, $data, $expect_error ) = @_;
@@ -127,7 +127,7 @@ sub test_post($$;$)
 }
 
 # execute Catalyst::Test::request() on the given url with the given params and then call test_request_response()
-# to test and return the decode json data
+# to test and return the decode JSON data
 sub test_get($;$$)
 {
     my ( $url, $params, $expect_error ) = @_;

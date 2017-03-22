@@ -310,7 +310,7 @@ sub test_topics_crud($)
 
     my $r = test_post( '/api/v2/topics/create', $input );
 
-    ok( $r->{ topics }, "$label json includes topics" );
+    ok( $r->{ topics }, "$label JSON includes topics" );
     my $got_topic = $r->{ topics }->[ 0 ];
 
     my $exists_in_db = $db->find_by_id( "topics", $got_topic->{ topics_id } );
@@ -351,7 +351,7 @@ sub test_topics_crud($)
 
     $r = test_put( "/api/v2/topics/$topics_id/update", $update );
 
-    ok( $r->{ topics }, "$label json includes topics" );
+    ok( $r->{ topics }, "$label JSON includes topics" );
     $got_topic = $r->{ topics }->[ 0 ];
 
     map { is( $got_topic->{ $_ }, $update->{ $_ }, "$label $_" ) } @{ $test_fields };

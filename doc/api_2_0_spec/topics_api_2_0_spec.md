@@ -312,7 +312,7 @@ When the system has reached the end of the results, it will return an empty list
 
 ## Examples
 
-The section for each end point includes an example call and response for that end point.  For end points that return multiple results, we generally only show a single result (for instance a single story) for the sake of documentation brevity.  All *Input* examples are json documents.
+The section for each end point includes an example call and response for that end point.  For end points that return multiple results, we generally only show a single result (for instance a single story) for the sake of documentation brevity.  All *Input* examples are JSON documents.
 
 ## Permissions
 
