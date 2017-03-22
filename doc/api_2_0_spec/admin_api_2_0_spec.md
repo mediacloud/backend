@@ -392,7 +392,7 @@ Output:
 
 ### Input Description
 
-See input description for stories/put_tags, but replace `stories_id` with `story_sentencs_id`.
+See input description for stories/put_tags, but replace `stories_id` with `story_sentences_id`.
 
 ### Example
 
