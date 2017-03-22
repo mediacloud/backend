@@ -5,9 +5,9 @@ This document provides an overview of the data processing flow for each story.
 
 The overall process is documented in [story_processing_flow.pdf](diagrams/story_processing_flow.pdf).
 
-The story processing flow consists of five components: the crawler, the extractor, the corenlp annotator, the solr
-import, the bitly fetcher, and the geotagger.  The crawler, extractor, corenlp annotator, and bitly fetchers all run via
-[supervisor](supervisor.markdown)  on the core media cloud server.  The extractor, corenlp annotator, and bitly fetchers
+The story processing flow consists of five components: the crawler, the extractor, the CoreNLP annotator, the solr
+import, the bitly fetcher, and the geotagger.  The crawler, extractor, CoreNLP annotator, and bitly fetchers all run via
+[supervisor](supervisor.markdown)  on the core media cloud server.  The extractor, CoreNLP annotator, and bitly fetchers
 all run as jobs. The geotagger runs from a separate codebase on a separate server.  The Solr import process runs from
 the same code base but from a separate machine in the production media cloud setup.
 
@@ -45,10 +45,10 @@ information in the extractor [here](extractor.markdown).
 CoreNLP Annotator
 -----------------
 
-The corenlp annotators are responsible for generating annotations using the stanford corenlp library for stories
-belonging to some media sources.  The extractor queues a corenlp annotation job for each extracted story in a media
-source marked for annotation. The actual corenlp generation is performed by a separate machine running a web service on
-top of the stanford corenlp libraries.  More information on the corenlp annotation process [here](corenlp.markdown).
+The CoreNLP annotators are responsible for generating annotations using the stanford CoreNLP library for stories
+belonging to some media sources.  The extractor queues a CoreNLP annotation job for each extracted story in a media
+source marked for annotation. The actual CoreNLP generation is performed by a separate machine running a web service on
+top of the stanford CoreNLP libraries.  More information on the CoreNLP annotation process [here](corenlp.markdown).
 
 Processed Stories ID
 --------------------
@@ -80,7 +80,7 @@ Geotagging Client
 =----------------
 The geotagging client adds a set of tags to each story that indicate that the story is about that location.  The
 geotagger operates entirely through the api.  It periodically calls the API to download all new stories in media sources
-that we want to geotag, including the corenlp annotation for each; generates the geotagging information based on the
-entity data in the corenlp annotation; and then writes any tags for each story back to the core system through the api.
+that we want to geotag, including the CoreNLP annotation for each; generates the geotagging information based on the
+entity data in the CoreNLP annotation; and then writes any tags for each story back to the core system through the api.
 The geotagger is run as a separate codebase, available
 [here](https://github.com/c4fcm/MediaCloud-GeoTag-Labeller/commits/master).

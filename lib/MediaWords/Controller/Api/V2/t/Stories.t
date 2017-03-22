@@ -39,7 +39,7 @@ sub test_stories_corenlp($)
 {
     my ( $db ) = @_;
 
-    # TODO add infrastructure to actually generate corenlp and test it
+    # TODO add infrastructure to actually generate CoreNLP and test it
 
     my $label = "stories/corenlp";
 
