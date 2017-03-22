@@ -13,7 +13,7 @@ and then report a summary of any failures.
 In addition, if you have touched anything that might impact the api, you should separately run
 `./api_test/run_api_test.sh`.  This command will run a small perl test suite against the api.
 
-To run more extensive api tests, set 'MEDIACLOUD_ENABLE_PYTHON_API_TESTS' before running run_api_test.sh.  This will
+To run more extensive API tests, set 'MEDIACLOUD_ENABLE_PYTHON_API_TESTS' before running run_api_test.sh.  This will
 make the test suite use the test suite developed for the Media Cloud python client.  Both the python client and the
 python client test suite are hosted in a separate github repo and so require some additional setup to run. See
 api_test/notes.txt for notes on that extra setup.

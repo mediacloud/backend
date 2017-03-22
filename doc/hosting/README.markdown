@@ -8,9 +8,9 @@ of a media cloud installation.
 
 The core machines of the media cloud hosting infrastructure are:
 
-* mcdb1 - runs core mc installation and postgres database
-* mcdb2 - will run replicant postgres database and one off processing jobs like topics (in development)
-* mcquery[1234] - run solr cluster that backs mc searches
+* mcdb1 - runs core mc installation and PostgreSQL database
+* mcdb2 - will run replicant PostgreSQL database and one off processing jobs like topics (in development)
+* mcquery[1234] - run Solr cluster that backs mc searches
 * mcnlp - runs a web service version of stanford corenlp, through which we generate corenlp annotations
 
 These machines are all within the media.mit.edu domain and all currently run ubuntu 12.04.  They are all 16 core,
