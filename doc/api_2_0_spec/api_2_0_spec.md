@@ -6,12 +6,11 @@ Table of Contents
    * [Overview](#overview)
       * [Authentication](#authentication)
          * [Example](#example)
-      * [Request Limits](#request-limits)
       * [Python Client](#python-client)
       * [API URLs](#api-urls)
       * [Supported Languages](#supported-languages)
       * [Errors](#errors)
-      * [Request Limits](#request-limits-1)
+      * [Request Limits](#request-limits)
    * [Media](#media)
       * [api/v2/media/single/](#apiv2mediasingle)
          * [Query Parameters](#query-parameters)
@@ -143,12 +142,6 @@ https://core.mediacloud.org/admin/profile
 ### Example
 
 https://api.mediacloud.org/api/v2/media/single/1?key=KRN4T5JGJ2A
-
-
-## Request Limits
-
-Each user is limited to 1,000 API calls and 20,000 stories returned in any 7 day period.  Requests submitted beyond this
-limit will result in a status 403 error.  Users who need access to more requests should email info@mediacloud.org.
 
 ## Python Client
 
