@@ -35,7 +35,7 @@ if [ ! -f "$MARKDOWN_FILE_PATH" ]; then
     exit 1
 fi
 
-GH_MD_TOC_PATH="$PWD/../github-markdown-toc/gh-md-toc"
+GH_MD_TOC_PATH="$PWD/github-markdown-toc/gh-md-toc"
 if [ ! -f "$GH_MD_TOC_PATH" ]; then
     echo "gh-md-toc was not found at $GH_MD_TOC_PATH."
     exit 1
