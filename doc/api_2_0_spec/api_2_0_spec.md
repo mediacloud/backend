@@ -1,120 +1,130 @@
-<!-- MDTOC maxdepth:6 firsth1:1 numbering:0 flatten:0 bullets:1 updateOnSave:1 -->
+<!-- MEDIACLOUD-TOC-START -->
 
-- [Overview](#overview)   
-   - [Authentication](#authentication)   
-      - [Example](#example)   
-   - [Request Limits](#request-limits)   
-   - [Python Client](#python-client)   
-   - [API URLs](#api-urls)   
-   - [Supported Languages](#supported-languages)   
-   - [Errors](#errors)   
-   - [Request Limits](#request-limits)   
-- [Media](#media)   
-   - [api/v2/media/single/](#apiv2mediasingle)   
-      - [Query Parameters](#query-parameters)   
-      - [Example](#example)   
-   - [api/v2/media/list/](#apiv2medialist)   
-      - [Query Parameters](#query-parameters)   
-      - [Example](#example)   
-   - [api/v2/media/submit_suggestion - POST](#apiv2mediasubmit_suggestion-post)   
-      - [Input Description](#input-description)   
-      - [Example](#example)   
-- [Media Health](#media-health)   
-   - [api/v2/mediahealth/list](#apiv2mediahealthlist)   
-      - [Query Parameters](#query-parameters)   
-      - [Output description](#output-description)   
-      - [Example](#example)   
-- [Feeds](#feeds)   
-   - [api/v2/feeds/single](#apiv2feedssingle)   
-      - [Query Parameters](#query-parameters)   
-      - [Example](#example)   
-   - [api/v2/feeds/list](#apiv2feedslist)   
-      - [Query Parameters](#query-parameters)   
-      - [Example](#example)   
-- [Stories](#stories)   
-   - [Output description](#output-description)   
-   - [api/v2/stories_public/single](#apiv2stories_publicsingle)   
-      - [Example](#example)   
-   - [api/v2/stories_public/list](#apiv2stories_publiclist)   
-      - [Query Parameters](#query-parameters)   
-      - [Example](#example)   
-   - [api/v2/stories_public/count](#apiv2stories_publiccount)   
-      - [Query Parameters](#query-parameters)   
-      - [Example](#example)   
-   - [api/v2/stories_public/word_matrix](#apiv2stories_publicword_matrix)   
-      - [Query Parameters](#query-parameters)   
-      - [Output Description](#output-description)   
-- [Sentences](#sentences)   
-   - [api/v2/sentences/count](#apiv2sentencescount)   
-      - [Query Parameters](#query-parameters)   
-      - [Example](#example)   
-   - [api/v2/sentences/field\_count](#apiv2sentencesfield_count)   
-      - [Query Parameters](#query-parameters)   
-      - [Example](#example)   
-- [Tags and Tag Sets](#tags-and-tag-sets)   
-   - [api/v2/tags/single/](#apiv2tagssingle)   
-      - [Query Parameters](#query-parameters)   
-      - [Output description](#output-description)   
-      - [Example](#example)   
-   - [api/v2/tags/list/](#apiv2tagslist)   
-      - [Query Parameters](#query-parameters)   
-      - [Example](#example)   
-   - [api/v2/tag_sets/single/](#apiv2tag_setssingle)   
-      - [Query Parameters](#query-parameters)   
-      - [Output description](#output-description)   
-      - [Example](#example)   
-   - [api/v2/tag_sets/list/](#apiv2tag_setslist)   
-      - [Query Parameters](#query-parameters)   
-      - [Example](#example)   
-- [Topics](#topics)   
-   - [api/v2/topics/single/](#apiv2topicssingle)   
-      - [Query Parameters](#query-parameters)   
-      - [Example](#example)   
-   - [api/v2/topics/list/](#apiv2topicslist)   
-      - [Query Parameters](#query-parameters)   
-      - [Example](#example)   
-   - [api/v2/snapshots/single/](#apiv2snapshotssingle)   
-      - [Query Parameters](#query-parameters)   
-      - [Example](#example)   
-   - [api/v2/snapshots/list/](#apiv2snapshotslist)   
-      - [Query Parameters](#query-parameters)   
-      - [Example](#example)   
-   - [api/v2/timespans/single/](#apiv2timespanssingle)   
-      - [Query Parameters](#query-parameters)   
-      - [Example](#example)   
-   - [api/v2/timespans/list/](#apiv2timespanslist)   
-      - [Query Parameters](#query-parameters)   
-      - [Example](#example)   
-- [Auth](#auth)   
-   - [api/v2/auth/profile](#apiv2authprofile)   
-      - [Query Parameters](#query-parameters)   
-      - [Output Description](#output-description)   
-      - [Example](#example)   
-- [Stats](#stats)   
-   - [api/v2/stats/list](#apiv2statslist)   
-      - [Query Parameters](#query-parameters)   
-      - [Output Description](#output-description)   
-      - [Example](#example)   
-- [Extended Examples](#extended-examples)   
-   - [Output Format / JSON](#output-format-json)   
-   - [Create a CSV file with all media sources.](#create-a-csv-file-with-all-media-sources)   
-   - [Grab all processed stories from US Mainstream Media as a stream](#grab-all-processed-stories-from-us-mainstream-media-as-a-stream)   
-   - [Grab stories by querying stories_public/list](#grab-stories-by-querying-stories_publiclist)   
-   - [Grab all stories in The New York Times during October 2012](#grab-all-stories-in-the-new-york-times-during-october-2012)   
-      - [Find the `media_id` of The New York Times](#find-the-media_id-of-the-new-york-times)   
-      - [Grab stories by querying stories_public/list](#grab-stories-by-querying-stories_publiclist)   
-   - [Get word counts for top words for sentences matching 'trayvon' in US Mainstream Media during April 2012](#get-word-counts-for-top-words-for-sentences-matching-trayvon-in-us-mainstream-media-during-april-2012)   
-      - [Find the media collection](#find-the-media-collection)   
-      - [Make a request for the word counts based on `tags_id_media`, sentence text and date range](#make-a-request-for-the-word-counts-based-on-tags_id_media-sentence-text-and-date-range)   
-   - [Get word counts for top words for sentences with the tag `'odd'` in `tag_set = 'ts'`](#get-word-counts-for-top-words-for-sentences-with-the-tag-odd-in-tag_set-ts)   
-      - [Find the `tag_sets_id` for `'ts'`](#find-the-tag_sets_id-for-ts)   
-      - [Request a word count using the `tags_id`](#request-a-word-count-using-the-tags_id)   
-   - [Grab stories from 10 January 2014 with the tag `'foo:bar'`](#grab-stories-from-10-january-2014-with-the-tag-foobar)   
-      - [Find the `tag_sets_id` for `'foo'`](#find-the-tag_sets_id-for-foo)   
-      - [Find the `tags_id` for `'bar'` given the `tag_sets_id`](#find-the-tags_id-for-bar-given-the-tag_sets_id)   
-   - [Grab stories by querying stories_public/list](#grab-stories-by-querying-stories_publiclist)   
+Table of Contents
+=================
 
-<!-- /MDTOC -->
+   * [Overview](#overview)
+      * [Authentication](#authentication)
+         * [Example](#example)
+      * [Request Limits](#request-limits)
+      * [Python Client](#python-client)
+      * [API URLs](#api-urls)
+      * [Supported Languages](#supported-languages)
+      * [Errors](#errors)
+      * [Request Limits](#request-limits-1)
+   * [Media](#media)
+      * [api/v2/media/single/](#apiv2mediasingle)
+         * [Query Parameters](#query-parameters)
+         * [Example](#example-1)
+      * [api/v2/media/list/](#apiv2medialist)
+         * [Query Parameters](#query-parameters-1)
+         * [Example](#example-2)
+      * [api/v2/media/submit_suggestion - POST](#apiv2mediasubmit_suggestion---post)
+         * [Input Description](#input-description)
+         * [Example](#example-3)
+   * [Media Health](#media-health)
+      * [api/v2/mediahealth/list](#apiv2mediahealthlist)
+         * [Query Parameters](#query-parameters-2)
+         * [Output description](#output-description)
+         * [Example](#example-4)
+   * [Feeds](#feeds)
+      * [api/v2/feeds/single](#apiv2feedssingle)
+         * [Query Parameters](#query-parameters-3)
+         * [Example](#example-5)
+      * [api/v2/feeds/list](#apiv2feedslist)
+         * [Query Parameters](#query-parameters-4)
+         * [Example](#example-6)
+   * [Stories](#stories)
+      * [Output description](#output-description-1)
+      * [api/v2/stories_public/single](#apiv2stories_publicsingle)
+         * [Example](#example-7)
+      * [api/v2/stories_public/list](#apiv2stories_publiclist)
+         * [Query Parameters](#query-parameters-5)
+         * [Example](#example-8)
+      * [api/v2/stories_public/count](#apiv2stories_publiccount)
+         * [Query Parameters](#query-parameters-6)
+         * [Example](#example-9)
+      * [api/v2/stories_public/word_matrix](#apiv2stories_publicword_matrix)
+         * [Query Parameters](#query-parameters-7)
+         * [Output Description](#output-description-2)
+   * [Sentences](#sentences)
+      * [api/v2/sentences/count](#apiv2sentencescount)
+         * [Query Parameters](#query-parameters-8)
+         * [Example](#example-10)
+      * [api/v2/sentences/field_count](#apiv2sentencesfield_count)
+         * [Query Parameters](#query-parameters-9)
+         * [Example](#example-11)
+   * [Word Counting](#word-counting)
+      * [api/v2/wc/list](#apiv2wclist)
+         * [Query Parameters](#query-parameters-10)
+         * [Example](#example-12)
+   * [Tags and Tag Sets](#tags-and-tag-sets)
+      * [api/v2/tags/single/](#apiv2tagssingle)
+         * [Query Parameters](#query-parameters-11)
+         * [Output description](#output-description-3)
+         * [Example](#example-13)
+      * [api/v2/tags/list/](#apiv2tagslist)
+         * [Query Parameters](#query-parameters-12)
+         * [Example](#example-14)
+      * [api/v2/tag_sets/single/](#apiv2tag_setssingle)
+         * [Query Parameters](#query-parameters-13)
+         * [Output description](#output-description-4)
+         * [Example](#example-15)
+      * [api/v2/tag_sets/list/](#apiv2tag_setslist)
+         * [Query Parameters](#query-parameters-14)
+         * [Example](#example-16)
+   * [Topics](#topics)
+      * [api/v2/topics/single/](#apiv2topicssingle)
+         * [Query Parameters](#query-parameters-15)
+         * [Example](#example-17)
+      * [api/v2/topics/list/](#apiv2topicslist)
+         * [Query Parameters](#query-parameters-16)
+         * [Example](#example-18)
+      * [api/v2/snapshots/single/](#apiv2snapshotssingle)
+         * [Query Parameters](#query-parameters-17)
+         * [Example](#example-19)
+      * [api/v2/snapshots/list/](#apiv2snapshotslist)
+         * [Query Parameters](#query-parameters-18)
+         * [Example](#example-20)
+      * [api/v2/timespans/single/](#apiv2timespanssingle)
+         * [Query Parameters](#query-parameters-19)
+         * [Example](#example-21)
+      * [api/v2/timespans/list/](#apiv2timespanslist)
+         * [Query Parameters](#query-parameters-20)
+         * [Example](#example-22)
+   * [Auth](#auth)
+      * [api/v2/auth/profile](#apiv2authprofile)
+         * [Query Parameters](#query-parameters-21)
+         * [Output Description](#output-description-5)
+         * [Example](#example-23)
+   * [Stats](#stats)
+      * [api/v2/stats/list](#apiv2statslist)
+         * [Query Parameters](#query-parameters-22)
+         * [Output Description](#output-description-6)
+         * [Example](#example-24)
+   * [Extended Examples](#extended-examples)
+      * [Output Format / JSON](#output-format--json)
+      * [Create a CSV file with all media sources.](#create-a-csv-file-with-all-media-sources)
+      * [Grab all processed stories from US Mainstream Media as a stream](#grab-all-processed-stories-from-us-mainstream-media-as-a-stream)
+      * [Grab stories by querying stories_public/list](#grab-stories-by-querying-stories_publiclist)
+      * [Grab all stories in The New York Times during October 2012](#grab-all-stories-in-the-new-york-times-during-october-2012)
+         * [Find the media_id of The New York Times](#find-the-media_id-of-the-new-york-times)
+         * [Grab stories by querying stories_public/list](#grab-stories-by-querying-stories_publiclist-1)
+      * [Get word counts for top words for sentences matching 'trayvon' in US Mainstream Media during April 2012](#get-word-counts-for-top-words-for-sentences-matching-trayvon-in-us-mainstream-media-during-april-2012)
+         * [Find the media collection](#find-the-media-collection)
+         * [Make a request for the word counts based on tags_id_media, sentence text and date range](#make-a-request-for-the-word-counts-based-on-tags_id_media-sentence-text-and-date-range)
+      * [Get word counts for top words for sentences with the tag 'odd' in <code>tag_set = 'ts'</code>](#get-word-counts-for-top-words-for-sentences-with-the-tag-odd-in-tag_set--ts)
+         * [Find the tag_sets_id for <code>'ts'</code>](#find-the-tag_sets_id-for-ts)
+      * [Find the tags_id for <code>'odd'</code> given the <code>tag_sets_id</code>](#find-the-tags_id-for-odd-given-the-tag_sets_id)
+         * [Request a word count using the tags_id](#request-a-word-count-using-the-tags_id)
+      * [Grab stories from 10 January 2014 with the tag 'foo:bar'](#grab-stories-from-10-january-2014-with-the-tag-foobar)
+         * [Find the tag_sets_id for <code>'foo'</code>](#find-the-tag_sets_id-for-foo)
+         * [Find the tags_id for <code>'bar'</code> given the <code>tag_sets_id</code>](#find-the-tags_id-for-bar-given-the-tag_sets_id)
+      * [Grab stories by querying stories_public/list](#grab-stories-by-querying-stories_publiclist-2)
+
+----
+<!-- MEDIACLOUD-TOC-END -->
+
 
 # Overview
 
@@ -213,7 +223,7 @@ Response:
 ```json
 [
   {
-    "url": "http:\/\/nytimes.com",
+    "url": "http://nytimes.com",
     "name": "New York Times",
     "media_id": 1,
     "primary_language": "en",
@@ -443,7 +453,7 @@ URL: https://api.mediacloud.org/api/v2/feeds/single/1
 [
   {
     "name": "Bits",
-    "url": "http:\/\/bits.blogs.nytimes.com\/rss2.xml",
+    "url": "http://bits.blogs.nytimes.com/rss2.xml",
     "feeds_id": 1,
     "feed_type": "syndicated",
     "media_id": 1
@@ -516,12 +526,12 @@ URL: https://api.mediacloud.org/api/v2/stories_public/single/27456565
 [
   {
     "collect_date": "2010-11-24 15:33:39",
-    "url": "http:\/\/globalvoicesonline.org\/2010\/10\/26\/myanmars-new-flag-and-new-name\/comment-page-1\/#comment-1733161",
-    "guid": "http:\/\/globalvoicesonline.org\/?p=169660#comment-1733161",
+    "url": "http://globalvoicesonline.org/2010/10/26/myanmars-new-flag-and-new-name/comment-page-1/#comment-1733161",
+    "guid": "http://globalvoicesonline.org/?p=169660#comment-1733161",
     "publish_date": "2010-11-24 04:05:00",
     "media_id": 1144,
     "media_name": "Global Voices Online",
-    "media_url": "http:\/\/globalvoicesonline.org\/"
+    "media_url": "http://globalvoicesonline.org/",
     "stories_id": 27456565,
     "story_tags": [ 1234235 ],
   }
@@ -691,22 +701,22 @@ the returned data would look like:
 
 ```json
 {
-	"word_matrix":
+  "word_matrix":
     {
-		"1": {
-			"0": 1,
-			"1": 2
-		},
-		"2": {
-			"0": 3,
-			"1": 1
-		}
-	},
-	"word_list":
+    "1": {
+      "0": 1,
+      "1": 2
+    },
+    "2": {
+      "0": 3,
+      "1": 1
+    }
+  },
+  "word_list":
     [
-		["foo", "foo"],
-		["bar", "bars"]
-	]
+    ["foo", "foo"],
+    ["bar", "bars"]
+  ]
 }
 ```
 
@@ -823,9 +833,9 @@ Setting the 'stats' field to true changes includes the following fields in the r
 
 Gets the tag counts for all sentences containing the word `'obama'` in The New York Times
 
-URL:  https://api.mediacloud.org/api/v2/sentences/field_count?q=obama+AND+media_id:1
+URL: https://api.mediacloud.org/api/v2/sentences/field_count?q=obama+AND+media_id:1
 
-​```json
+```json
 [
     {
         "count": "68",
@@ -955,9 +965,9 @@ URL:  https://api.mediacloud.org/api/v2/wc/list?q=obama+AND+media_id:1&stats=1
 { "stats":
   {
      "num_words_returned":5123,
-     "num_sentences_returned":899
+     "num_sentences_returned":899,
      "num_sentences_found":899
-   }
+   },
    "words":
    [
      {
@@ -1201,7 +1211,7 @@ Response:
     "topics_id": 6,
     "description": "obama",
     "name": "obama",
-    "media_type_tag_sets_id": 18
+    "media_type_tag_sets_id": 18,
     "pattern": "[[:<:]]obama|obamacare[[:>:]]",
     "solr_seed_query": "obama OR obamacare",
     "solr_seed_query_run": 1,
@@ -1250,7 +1260,7 @@ Response:
     "snapshots_id": 5,
     "dump_date": "2014-07-30 16:32:15.479964",
     "end_date": "2015-01-01 00:00:00",
-    "note": null
+    "note": null,
     "start_date": "2014-01-01 00:00:00",
   }
 ]
@@ -1304,7 +1314,7 @@ Response:
     "model_r2_stddev": "0",
     "period": "overall",
     "tags_id": null,
-    "start_date": "2014-01-01 00:00:00"
+    "start_date": "2014-01-01 00:00:00",
     "story_count": 2148,
     "story_link_count": 731,
   }
@@ -1373,8 +1383,8 @@ URL: https://api.mediacloud.org/api/v2/auth/profile
   "created_date": "2014-12-10 13:36:29.537007",
   "auth_roles":
   [
-  	"media-edit",
-  	"stories-edit"
+    "media-edit",
+    "stories-edit"
   ]
 }
 ```
@@ -1409,13 +1419,13 @@ URL: https://api.mediacloud.org/api/v2/stats/list
 
 ```json
 {
-  	"total_stories": 516145344,
-  	"total_downloads": 941078656,
+    "total_stories": 516145344,
+    "total_downloads": 941078656,
     "total_sentences": 6899028480,
-  	"active_crawled_media": 123,
-  	"active_crawled_feeds": 123,
+    "active_crawled_media": 123,
+    "active_crawled_feeds": 123,
     "daily_stories": 123,
-  	"daily_downloads": 123,
+    "daily_downloads": 123,
 }
 ```
 
@@ -1453,7 +1463,7 @@ while True:
       data = r.json()
 
       if len(data) == 0:
-      	 break
+         break
 
       start += rows
       media.extend( data )
@@ -1505,7 +1515,7 @@ while True:
       stories = r.json()
 
       if len(stories) == 0:
-      	 break
+         break
 
       start = stories[ -1 ][ 'processed_stories_id' ]
 
@@ -1541,7 +1551,7 @@ while True:
       stories = r.json()
 
       if len(stories) == 0:
-      	 break
+         break
 
       start = stories[ -1 ][ 'processed_stories_id' ]
 
@@ -1560,13 +1570,13 @@ One way to appropriately restrict the data is by setting the `q` parameter to re
 
 Below `q` is set to `"sentence:trayvon"` and `fq` is set to `"tags_iud_media:8875027" and "publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]"`. (Note that ":", "[", and "]" are URL encoded.)
 
-```
+```bash
 curl 'https://api.mediacloud.org/api/v2/wc?q=sentence:trayvon&fq=tags_iud_media:8875027&fq=publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D'
 ```
 
 Alternatively, we could use a single large query by setting `q` to `"sentence:trayvon AND tags_id_media:8875027 AND publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]"`:
 
-```
+```bash
 curl 'https://api.mediacloud.org/api/v2/wc?q=sentence:trayvon+AND+tags_id_media:8875027+AND+publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D&fq=tags_id_media:8875027&fq=publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D'
 ```
 
@@ -1578,7 +1588,7 @@ curl 'https://api.mediacloud.org/api/v2/wc?q=sentence:trayvon+AND+tags_id_media:
 
 The user requests a list of all tag sets.
 
-```
+```bash
 curl https://api.mediacloud.org/api/v2/tag_sets/list
 ```
 
@@ -1588,7 +1598,7 @@ curl https://api.mediacloud.org/api/v2/tag_sets/list
     "tag_sets_id": 597,
     "name": "gv_country"
    },
-   // additional tag sets skipped for space
+   
   {
     "tag_sets_id": 800,
     "name": "ts"
@@ -1597,9 +1607,12 @@ curl https://api.mediacloud.org/api/v2/tag_sets/list
 ]
 ```
 
+*(Additional tag sets skipped for brevity.)*
+
 Looking through the output, the user sees that the `tag_sets_id` is 800.
 
-##Find the `tags_id` for `'odd'` given the `tag_sets_id`
+
+## Find the `tags_id` for `'odd'` given the `tag_sets_id`
 
 The following Python function shows how to find a `tags_id` given a `tag_sets_id`
 
@@ -1623,7 +1636,6 @@ def find_tags_id( tag_name, tag_sets_id):
           last_tags_id = max( tag[ 'tags_id' ], last_tags_id )
 
    return -1
-
 ```
 
 ### Request a word count using the `tags_id`
@@ -1631,7 +1643,7 @@ def find_tags_id( tag_name, tag_sets_id):
 Assume that the user determined that the `tags_id` was 12345678 using the above code.  The following will return
 the word count for all sentences in stories belonging to any media source associated with tag 12345678.
 
-```
+```bash
 curl 'https://api.mediacloud.org/api/v2/wc?q=tags_id_media:12345678'
 ```
 
@@ -1649,7 +1661,7 @@ See the "Get Word Counts for Top Words for Sentences with the Tag `'odd'` in `ta
 
 We assume the `tags_id` is 678910.
 
-```
+```python
 import requests
 
 start = 0

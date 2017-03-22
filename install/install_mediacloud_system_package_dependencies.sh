@@ -257,7 +257,6 @@ else
         make \
         netcat \
         openjdk-8-jdk \
-        pandoc \
         perl-doc \
         postgresql-server-dev-all \
         python-pip \
