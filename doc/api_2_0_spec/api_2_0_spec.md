@@ -219,7 +219,7 @@ Response:
 ```json
 [
   {
-    "url": "http:\/\/nytimes.com",
+    "url": "http://nytimes.com",
     "name": "New York Times",
     "media_id": 1,
     "primary_language": "en",
@@ -449,7 +449,7 @@ URL: https://api.mediacloud.org/api/v2/feeds/single/1
 [
   {
     "name": "Bits",
-    "url": "http:\/\/bits.blogs.nytimes.com\/rss2.xml",
+    "url": "http://bits.blogs.nytimes.com/rss2.xml",
     "feeds_id": 1,
     "feed_type": "syndicated",
     "media_id": 1
@@ -522,12 +522,12 @@ URL: https://api.mediacloud.org/api/v2/stories_public/single/27456565
 [
   {
     "collect_date": "2010-11-24 15:33:39",
-    "url": "http:\/\/globalvoicesonline.org\/2010\/10\/26\/myanmars-new-flag-and-new-name\/comment-page-1\/#comment-1733161",
-    "guid": "http:\/\/globalvoicesonline.org\/?p=169660#comment-1733161",
+    "url": "http://globalvoicesonline.org/2010/10/26/myanmars-new-flag-and-new-name/comment-page-1/#comment-1733161",
+    "guid": "http://globalvoicesonline.org/?p=169660#comment-1733161",
     "publish_date": "2010-11-24 04:05:00",
     "media_id": 1144,
     "media_name": "Global Voices Online",
-    "media_url": "http:\/\/globalvoicesonline.org\/",
+    "media_url": "http://globalvoicesonline.org/",
     "stories_id": 27456565,
     "story_tags": [ 1234235 ],
   }
