@@ -1566,13 +1566,13 @@ One way to appropriately restrict the data is by setting the `q` parameter to re
 
 Below `q` is set to `"sentence:trayvon"` and `fq` is set to `"tags_iud_media:8875027" and "publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]"`. (Note that ":", "[", and "]" are URL encoded.)
 
-```
+```bash
 curl 'https://api.mediacloud.org/api/v2/wc?q=sentence:trayvon&fq=tags_iud_media:8875027&fq=publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D'
 ```
 
 Alternatively, we could use a single large query by setting `q` to `"sentence:trayvon AND tags_id_media:8875027 AND publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]"`:
 
-```
+```bash
 curl 'https://api.mediacloud.org/api/v2/wc?q=sentence:trayvon+AND+tags_id_media:8875027+AND+publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D&fq=tags_id_media:8875027&fq=publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D'
 ```
 
@@ -1584,7 +1584,7 @@ curl 'https://api.mediacloud.org/api/v2/wc?q=sentence:trayvon+AND+tags_id_media:
 
 The user requests a list of all tag sets.
 
-```
+```bash
 curl https://api.mediacloud.org/api/v2/tag_sets/list
 ```
 
@@ -1629,7 +1629,6 @@ def find_tags_id( tag_name, tag_sets_id):
           last_tags_id = max( tag[ 'tags_id' ], last_tags_id )
 
    return -1
-
 ```
 
 ### Request a word count using the `tags_id`
@@ -1637,7 +1636,7 @@ def find_tags_id( tag_name, tag_sets_id):
 Assume that the user determined that the `tags_id` was 12345678 using the above code.  The following will return
 the word count for all sentences in stories belonging to any media source associated with tag 12345678.
 
-```
+```bash
 curl 'https://api.mediacloud.org/api/v2/wc?q=tags_id_media:12345678'
 ```
 
@@ -1655,7 +1654,7 @@ See the "Get Word Counts for Top Words for Sentences with the Tag `'odd'` in `ta
 
 We assume the `tags_id` is 678910.
 
-```
+```python
 import requests
 
 start = 0
