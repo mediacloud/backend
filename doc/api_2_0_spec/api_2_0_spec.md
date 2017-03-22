@@ -829,9 +829,9 @@ Setting the 'stats' field to true changes includes the following fields in the r
 
 Gets the tag counts for all sentences containing the word `'obama'` in The New York Times
 
-URL:  https://api.mediacloud.org/api/v2/sentences/field_count?q=obama+AND+media_id:1
+URL: https://api.mediacloud.org/api/v2/sentences/field_count?q=obama+AND+media_id:1
 
-​```json
+```json
 [
     {
         "count": "68",
@@ -961,9 +961,9 @@ URL:  https://api.mediacloud.org/api/v2/wc/list?q=obama+AND+media_id:1&stats=1
 { "stats":
   {
      "num_words_returned":5123,
-     "num_sentences_returned":899
+     "num_sentences_returned":899,
      "num_sentences_found":899
-   }
+   },
    "words":
    [
      {
@@ -1207,7 +1207,7 @@ Response:
     "topics_id": 6,
     "description": "obama",
     "name": "obama",
-    "media_type_tag_sets_id": 18
+    "media_type_tag_sets_id": 18,
     "pattern": "[[:<:]]obama|obamacare[[:>:]]",
     "solr_seed_query": "obama OR obamacare",
     "solr_seed_query_run": 1,
@@ -1256,7 +1256,7 @@ Response:
     "snapshots_id": 5,
     "dump_date": "2014-07-30 16:32:15.479964",
     "end_date": "2015-01-01 00:00:00",
-    "note": null
+    "note": null,
     "start_date": "2014-01-01 00:00:00",
   }
 ]
@@ -1310,7 +1310,7 @@ Response:
     "model_r2_stddev": "0",
     "period": "overall",
     "tags_id": null,
-    "start_date": "2014-01-01 00:00:00"
+    "start_date": "2014-01-01 00:00:00",
     "story_count": 2148,
     "story_link_count": 731,
   }
@@ -1594,7 +1594,7 @@ curl https://api.mediacloud.org/api/v2/tag_sets/list
     "tag_sets_id": 597,
     "name": "gv_country"
    },
-   // additional tag sets skipped for space
+   
   {
     "tag_sets_id": 800,
     "name": "ts"
@@ -1603,9 +1603,12 @@ curl https://api.mediacloud.org/api/v2/tag_sets/list
 ]
 ```
 
+*(Additional tag sets skipped for brevity.)*
+
 Looking through the output, the user sees that the `tag_sets_id` is 800.
 
-##Find the `tags_id` for `'odd'` given the `tag_sets_id`
+
+## Find the `tags_id` for `'odd'` given the `tag_sets_id`
 
 The following Python function shows how to find a `tags_id` given a `tag_sets_id`
 
