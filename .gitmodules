@@ -11,5 +11,5 @@
 	path = root/include/libs/tag-it
 	url = https://github.com/aehlke/tag-it.git
 [submodule "doc/github-markdown-toc"]
-	path = doc/github-markdown-toc
+	path = doc/api_2_0_spec/github-markdown-toc
 	url = https://github.com/ekalinin/github-markdown-toc.git
