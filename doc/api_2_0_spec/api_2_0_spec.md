@@ -527,7 +527,7 @@ URL: https://api.mediacloud.org/api/v2/stories_public/single/27456565
     "publish_date": "2010-11-24 04:05:00",
     "media_id": 1144,
     "media_name": "Global Voices Online",
-    "media_url": "http:\/\/globalvoicesonline.org\/"
+    "media_url": "http:\/\/globalvoicesonline.org\/",
     "stories_id": 27456565,
     "story_tags": [ 1234235 ],
   }
