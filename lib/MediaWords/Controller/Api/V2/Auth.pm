@@ -107,13 +107,11 @@ sub single_GET : PathPrefix( '/api' )
 
     $self->status_ok(
         $c,
-        entity => [
-            {
-                'result'  => 'found',     #
-                'token'   => $api_key,    # legacy; renamed to API key
-                'api_key' => $api_key,    #
-            }
-        ]
+        entity => {
+            'result'  => 'found',     #
+            'token'   => $api_key,    # legacy; renamed to API key
+            'api_key' => $api_key,    #
+        }
     );
 }
 

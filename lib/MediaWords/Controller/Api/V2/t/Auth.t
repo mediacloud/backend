@@ -61,8 +61,8 @@ sub test_auth_single($)
         LIMIT 1
 SQL
 
-    is( $r->[ 0 ]->{ token },   $db_api_key->{ api_key }, "$label token (legacy)" );
-    is( $r->[ 0 ]->{ api_key }, $db_api_key->{ api_key }, "$label API key" );
+    is( $r->{ token },   $db_api_key->{ api_key }, "$label token (legacy)" );
+    is( $r->{ api_key }, $db_api_key->{ api_key }, "$label API key" );
     is( $db_api_key->{ ip_address }, '127.0.0.1' );
 
     Readonly my $expect_error => 1;
