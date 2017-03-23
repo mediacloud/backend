@@ -1399,6 +1399,26 @@ URL: <https://api.mediacloud.org/api/v2/auth/single?username=foo@bar.baz&passwor
 | `api/v2/auth/single` | Alias for `api/v2/auth/login`. |
 
 
+
+### Example
+
+URL: <https://api.mediacloud.org/api/v2/auth/profile>
+
+```json
+{
+    "auth_users_id": 1,
+    "email": "hroberts@cyber.law.harvard.edu",
+    "full_name": "Hal Roberts",
+    "notes": "Media Cloud Geek",
+    "created_date": "2014-12-10 13:36:29.537007",
+    "auth_roles": [
+        "media-edit",
+        "stories-edit"
+    ]
+}
+```
+
+
 ### Output Description
 
 Returns basic profile information about the current user.  Includes a list of  authentication roles for the user that give the user permission to access various parts of the backend web interface and some of the private API functionality (that for example allow editing and administration of Media Cloud's sources).
