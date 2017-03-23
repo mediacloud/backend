@@ -12,7 +12,7 @@ use MediaWords::CommonLibs;
 
 use HTTP::HashServer;
 use Readonly;
-use Test::More tests => 20;
+use Test::More tests => 30;
 use Test::Deep;
 
 use MediaWords::Test::API;
@@ -39,35 +39,41 @@ SQL
     }
 }
 
-# test auth/single
-sub test_auth_single($)
+# test auth/login
+sub test_auth_login($)
 {
     my ( $db ) = @_;
 
-    my $label = "auth/single";
+    my $email    = 'test@auth.login';
+    my $password = 'authlogin';
 
-    my $email    = 'test@auth.single';
-    my $password = 'authsingle';
-
-    eval { MediaWords::DBI::Auth::add_user( $db, $email, 'auth single', '', [ 1 ], 1, $password, $password, 1000, 1000 ); };
+    eval { MediaWords::DBI::Auth::add_user( $db, $email, 'auth login', '', [ 1 ], 1, $password, $password, 1000, 1000 ); };
     ok( !$@, "Unable to add user: $@" );
 
-    my $r = test_get( '/api/v2/auth/single', { username => $email, password => $password } );
+    my $endpoints = [
+        '/api/v2/auth/login',
+        '/api/v2/auth/single',    # legacy
+    ];
 
-    my $db_api_key = $db->query( <<SQL )->hash;
-        SELECT *
-        FROM auth_user_ip_address_api_keys
-        ORDER BY auth_user_ip_address_api_keys_id DESC
-        LIMIT 1
+    for my $endpoint ( @{ $endpoints } )
+    {
+        my $r = test_get( $endpoint, { username => $email, password => $password } );
+
+        my $db_api_key = $db->query( <<SQL )->hash;
+            SELECT *
+            FROM auth_user_ip_address_api_keys
+            ORDER BY auth_user_ip_address_api_keys_id DESC
+            LIMIT 1
 SQL
 
-    is( $r->{ token },   $db_api_key->{ api_key }, "$label token (legacy)" );
-    is( $r->{ api_key }, $db_api_key->{ api_key }, "$label API key" );
-    is( $db_api_key->{ ip_address }, '127.0.0.1' );
+        is( $r->{ token },   $db_api_key->{ api_key }, "$endpoint token (legacy)" );
+        is( $r->{ api_key }, $db_api_key->{ api_key }, "$endpoint API key" );
+        is( $db_api_key->{ ip_address }, '127.0.0.1' );
 
-    Readonly my $expect_error => 1;
-    my $r_not_found = test_get( '/api/v2/auth/single', { username => $email, password => "$password FOO" }, $expect_error );
-    ok( $r_not_found->{ error } =~ /was not found or password/i, "$label status for wrong password" );
+        Readonly my $expect_error => 1;
+        my $r_not_found = test_get( $endpoint, { username => $email, password => "$password FOO" }, $expect_error );
+        ok( $r_not_found->{ error } =~ /was not found or password/i, "$endpoint status for wrong password" );
+    }
 }
 
 # test auth/* calls
@@ -78,7 +84,7 @@ sub test_auth($)
     MediaWords::Test::API::setup_test_api_key( $db );
 
     test_auth_profile( $db );
-    test_auth_single( $db );
+    test_auth_login( $db );
 }
 
 sub main

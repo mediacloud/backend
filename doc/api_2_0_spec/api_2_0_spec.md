@@ -1347,9 +1347,12 @@ URL: https://api.mediacloud.org/api/v2/timespans/list?snapshots_id=5
 ( none )
 ## api/v2/auth/single (GET)
 
+
+## api/v2/auth/login (GET)
+
 | URL                 | Function                                                           |
 | ------------------- | ------------------------------------------------------------------ |
-| `api/v2/auth/single` | Authenticate user with email + password and return user's API key. |
+| `api/v2/auth/login` | Authenticate user with email + password and return user's API key. |
 
 ### Query Parameters
 
@@ -1387,6 +1390,13 @@ URL: <https://api.mediacloud.org/api/v2/auth/single?username=foo@bar.baz&passwor
     'api_key': "bae132d8de0e0565cc9b84ec022e367f71f6dabf"
 }
 ```
+
+
+## api/v2/auth/single (GET)
+
+| URL                 | Function                        |
+| ------------------- | ------------------------------- |
+| `api/v2/auth/single` | Alias for `api/v2/auth/login`. |
 
 
 ### Output Description
