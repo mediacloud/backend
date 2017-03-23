@@ -12,7 +12,7 @@ use MediaWords::CommonLibs;
 
 use HTTP::HashServer;
 use Readonly;
-use Test::More tests => 21;
+use Test::More tests => 20;
 use Test::Deep;
 
 use MediaWords::Test::API;
@@ -61,14 +61,13 @@ sub test_auth_single($)
         LIMIT 1
 SQL
 
-    is( $r->[ 0 ]->{ result },  'found',                  "$label key found" );
     is( $r->[ 0 ]->{ token },   $db_api_key->{ api_key }, "$label token (legacy)" );
     is( $r->[ 0 ]->{ api_key }, $db_api_key->{ api_key }, "$label API key" );
     is( $db_api_key->{ ip_address }, '127.0.0.1' );
 
-    my $r_not_found = test_get( '/api/v2/auth/single', { username => $email, password => "$password FOO" } );
-
-    is( $r_not_found->[ 0 ]->{ result }, "not found", "$label status for wrong password" );
+    Readonly my $expect_error => 1;
+    my $r_not_found = test_get( '/api/v2/auth/single', { username => $email, password => "$password FOO" }, $expect_error );
+    ok( $r_not_found->{ error } =~ /was not found or password/i, "$label status for wrong password" );
 }
 
 # test auth/* calls

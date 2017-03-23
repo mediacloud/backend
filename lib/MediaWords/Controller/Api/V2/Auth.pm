@@ -100,10 +100,9 @@ sub single_GET : PathPrefix( '/api' )
 
     my $api_key = _login_and_get_ip_api_key_for_user( $c, $email, $password );
 
-    if ( !$api_key )
+    unless ( $api_key )
     {
-        $self->status_ok( $c, entity => [ { 'result' => 'not found' } ] );
-        return;
+        die "User '$email' was not found or password is incorrect.";
     }
 
     $self->status_ok(
