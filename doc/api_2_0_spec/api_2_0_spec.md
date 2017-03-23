@@ -1336,16 +1336,10 @@ URL: https://api.mediacloud.org/api/v2/timespans/list?snapshots_id=5
 
 # Auth
 
-## api/v2/auth/profile
 
-| URL                     | Function
-| ----------------------- | -----------------
-| `api/v2/auth/profile` | Return profile information about the requesting user
 
 ### Query Parameters
 
-( none )
-## api/v2/auth/single (GET)
 
 
 ## api/v2/auth/login (GET)
@@ -1400,6 +1394,33 @@ URL: <https://api.mediacloud.org/api/v2/auth/single?username=foo@bar.baz&passwor
 
 
 
+## api/v2/auth/profile (GET)
+
+| URL                     | Function                                             |
+| ----------------------- | ---------------------------------------------------- |
+| `api/v2/auth/profile`   | Return profile information about the requesting user |
+
+### Query Parameters
+
+None.
+
+### Output Description
+
+Returns basic profile information about the current user. Includes a list of authentication roles for the user that give the user permission to access various parts of the backend web interface and some of the private API functionality (that for example allow editing and administration of Media Cloud's sources).
+
+Media Cloud currently includes the following authentication roles:
+
+| Role             | Permission Granted                                               |
+| ---------------- | ---------------------------------------------------------------- |
+| `admin`          | Read and write every resource                                    |
+| `admin-readonly` | Read every resource                                              |
+| `media-edit`     | Edit media sources                                               |
+| `stories-edit`   | Edit stories                                                     |
+| `search`         | Access <https://core.mediacloud.org/search> page                 |
+| `tm`             | Access legacy topic mapper web interface                         |
+| `tm-readonly`    | Access legacy topic mapper web interface with editing privileges |
+
+
 ### Example
 
 URL: <https://api.mediacloud.org/api/v2/auth/profile>
@@ -1418,42 +1439,6 @@ URL: <https://api.mediacloud.org/api/v2/auth/profile>
 }
 ```
 
-
-### Output Description
-
-Returns basic profile information about the current user.  Includes a list of  authentication roles for the user that give the user permission to access various parts of the backend web interface and some of the private API functionality (that for example allow editing and administration of Media Cloud's sources).
-
-Media Cloud currently includes the following authentication roles:
-
-| Role | Permission Gratned |
-|-|-|
-| admin | read and write every resource |
-| admin-readonly | read every resource |
-| media-edit | edit media sources |
-| stories-edit | edit stories |
-| search | access core.mediacloud.org/search page |
-| tm | access legacy topic mapper web interface |
-| tm-readonly | access legacy topic mapper web interface with editing privileges |
-
-
-### Example
-
-URL: https://api.mediacloud.org/api/v2/auth/profile
-
-```json
-{
-  "email": "hroberts@cyber.law.harvard.edu",
-  "auth_users_id": 1,
-  "full_name": "Hal Roberts",
-  "notes": "Media Cloud Geek",
-  "created_date": "2014-12-10 13:36:29.537007",
-  "auth_roles":
-  [
-    "media-edit",
-    "stories-edit"
-  ]
-}
-```
 
 # Stats
 
