@@ -34,9 +34,9 @@ Nagios
 
 In addition to the munin monitoring, we monitor each of our mit servers using nagios.  Nagios monitors basic system
 health (disk space, free memory, load, etc) as well as some specific media cloud metrics (presence of java processes
-on solr servers, etc).  Nagios warning thresholds are monitored in the /etc/local/nagios/etc directory of each
+on Solr servers, etc).  Nagios warning thresholds are monitored in the /etc/local/nagios/etc directory of each
 monitored server.  Media labs necsys runs the nagios server, which includes a web interface to disable monitoring
-of specific hosts / servers as needed (ask a mc geek for the url and auth info).
+of specific hosts / servers as needed (ask a mc geek for the URL and auth info).
 
 The most common nagios report is a notice that we need to update packages on the ubuntu installation, which looks like
 this:

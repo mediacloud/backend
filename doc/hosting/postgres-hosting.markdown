@@ -1,18 +1,18 @@
 Postgres Notes
 ==============
 
-Following are helpful notes for dealing with our local postgres setup.
+Following are helpful notes for dealing with our local PostgreSQL setup.
 
 Server
 ------
 
-Our postgres server runs on mcdb1.  The  data is stored in /space/postresql.  The /space drive runs on an enclosure of
+Our PostgreSQL server runs on mcdb1.  The  data is stored in /space/postresql.  The /space drive runs on an enclosure of
 20 SSD drives (+ 2 warm spares in the enclosure) in RAID-10 via a PERC 810 card.
 
 Backups
 -------
 
-The postgres databse is backed up weekly by running pg_dump on a harvard machine (faith.law.harvard.edu) over an ssh
+The PostgreSQL databse is backed up weekly by running pg_dump on a harvard machine (faith.law.harvard.edu) over an ssh
 tunneled connection to mcdb1.
 
 Running Queries
@@ -29,7 +29,7 @@ hroberts@mcdb1:~$ pps
   7380 | mediacloud | active | 2016-05-25 12:53:39.948636-04 | INSERT INTO queue (priority, unique_key, function_name, d
  11042 | mediacloud | active | 2016-05-25 12:53:39.947215-04 | select stories_id from stories where url in ($1)
  11757 | mediacloud | active | 2016-05-25 12:53:39.906391-04 |  SELECT upsert_bitly_clicks_total($1, $2)
-  9689 | postgres   | active | 2016-05-25 09:56:49.546405-04 | autovacuum: VACUUM public.story_sentences (to prevent wra
+  9689 | PostgreSQL   | active | 2016-05-25 09:56:49.546405-04 | autovacuum: VACUUM public.story_sentences (to prevent wra
  ```
 
 `pps -l`  does not cut off each query at the wide of the terminal:
@@ -42,7 +42,7 @@ echo "select pid, usename, state, query_start, query from pg_stat_activity where
 cancel_pg_process()
 -------------------
 
-We have defined a function that runs with postgres superuser privileges that cancels any running postgres query.  So if
+We have defined a function that runs with PostgreSQL superuser privileges that cancels any running PostgreSQL query.  So if
 want to cancel the last query above, you run:
 
 ```

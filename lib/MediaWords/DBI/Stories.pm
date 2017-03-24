@@ -546,7 +546,7 @@ sub process_extracted_story($$$)
         else
         {
             # Story is not annotatable with CoreNLP; add to "processed_stories" right away
-            DEBUG "Will mark story $stories_id as processed because it's not annotatable with CoreNLP";
+            TRACE "Will mark story $stories_id as processed because it's not annotatable with CoreNLP";
             $mark_story_as_processed = 1;
         }
     }

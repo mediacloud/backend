@@ -5,7 +5,7 @@ package t::test_tm_mine;
 use strict;
 use warnings;
 
-# basic intergration test for cm spider
+# basic intergration test for topic mapper's spider
 
 BEGIN
 {
@@ -205,7 +205,7 @@ sub get_test_sites()
     return $sites;
 }
 
-# add a medium for each site so that the cm spider can find the medium that corresponds to each url
+# add a medium for each site so that the topic mapper's spider can find the medium that corresponds to each url
 sub add_site_media
 {
     my ( $db, $sites ) = @_;

@@ -179,7 +179,7 @@ SQL
         RETURNING story_sentences.sentence
 SQL
 
-    DEBUG "Adding advisory lock on media ID $media_id...";
+    TRACE "Adding advisory lock on media ID $media_id...";
     $db->query(
         <<EOF,
         SELECT pg_advisory_lock(?)
@@ -192,7 +192,7 @@ EOF
     # Insert sentences
     my $inserted_sentences = $db->query( $sql )->flat();
 
-    DEBUG "Removing advisory lock on media ID $media_id...";
+    TRACE "Removing advisory lock on media ID $media_id...";
     $db->query(
         <<EOF,
         SELECT pg_advisory_unlock(?)
@@ -325,12 +325,12 @@ sub update_story_sentences_and_language($$;$)
         }
         else
         {
-            DEBUG "Won't add $stories_id to CoreNLP annotation queue because it's not annotatable with CoreNLP";
+            TRACE "Won't add $stories_id to CoreNLP annotation queue because it's not annotatable with CoreNLP";
         }
     }
     else
     {
-        DEBUG "Won't add $stories_id to CoreNLP annotation queue because it's set be skipped";
+        TRACE "Won't add $stories_id to CoreNLP annotation queue because it's set be skipped";
     }
 }
 

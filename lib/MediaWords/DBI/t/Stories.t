@@ -106,7 +106,8 @@ sub test_story($$)
 
     for my $stem ( @{ $stems } )
     {
-        is( $got_stems->{ $stem } || 0, $expected_stems->{ $stem } || 0, "count for $stem for story $story->{ stories_id }" );
+        is( $got_stems->{ $stem } || 0, $expected_stems->{ $stem } || 0,
+            "count for $stem for story $story->{ stories_id }" );
     }
 
     map { delete( $got_stems->{ $_ } ) if ( !$got_stems->{ $_ } || $expected_stems->{ $_ } ) } @{ $stems };
@@ -114,7 +115,7 @@ sub test_story($$)
     ok( !scalar( keys( %{ $got_stems } ) ), "unexpected stem counts: " . Dumper( $got_stems ) );
 }
 
-sub run_tests
+sub test_get_story_word_matrix
 {
     my ( $db ) = @_;
 
@@ -142,7 +143,7 @@ sub main
             use Encode;
             my ( $db ) = @_;
 
-            run_tests( $db );
+            test_get_story_word_matrix( $db );
         }
     );
 

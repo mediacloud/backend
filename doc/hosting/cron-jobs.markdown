@@ -17,7 +17,7 @@ of each job.
 0 0   * * * nice /space/mediacloud/control_scripts/back_up_scripts.sh > /dev/null
 
 # web pages for the various topics respond better if they have been visited recently to prime the postgres
-# buffer with the relevant results.  this script just hits the main topic tables to prime the postgres buffers.
+# buffer with the relevant results.  this script just hits the main topic tables to prime the PostgreSQL buffers.
 42 * * * * /space/mediacloud/mediacloud/script/run_with_carton.sh /space/mediacloud/mediacloud/script/mediawords_cache_topic_web.pl &> /dev/null
 
 # we have long been plagued with a slow memory leak in the extrator system, so we restart it a couple times a day
@@ -34,7 +34,7 @@ of each job.
 # we use munin to monitor the process of our various system.
 */5 * * * * /space/mediacloud/munin/mediacloud-munin/munin-cron.sh &> /dev/null
 
-# we store our raw html content on amazon s3, but we cache 3 days worth of most recently access content in the local
+# we store our raw HTML content on Amazon S3, but we cache 3 days worth of most recently access content in the local
 # file system.  This script just deletes everything older than 3 days from that cache.
 0 * * * * /space/mediacloud/mediacloud/script/purge_local_s3_downloads_cache.sh
 
@@ -51,7 +51,7 @@ of each job.
 
 # Warning of problems
 
-# make sure postgres is up!  this is a paranoid extra check on top of nagios monitoring
+# make sure PostgreSQL is up!  this is a paranoid extra check on top of nagios monitoring
 * *  *  * * psql -At -c "-- test DB UP "
 0 20 * * * /space/mediacloud/vagrant_test_run/run_test.sh
 
@@ -60,7 +60,7 @@ of each job.
 
 # Informational
 
-# send us an email with the number of stories, downloads, download errors, and solr imports each day
+# send us an email with the number of stories, downloads, download errors, and Solr imports each day
 0 6,12   * * * psql -c "select * from daily_stats "
 
 # the next two jobs just log information about running processes and disk space that we can use to diagnose problems
@@ -70,7 +70,7 @@ of each job.
 # once a day, send an email with any queries that have lasted longer than a minute.  helps us spot very long queries
 34 3 * * * psql -c "select pid, usename, state, query_start, query from pg_stat_activity where state not like 'idle\%' and query_start < now() - '1 minute'::interval order by query_start asc"
 
-# the next two jobs print a summary of new user registrations and api usage for the last day and the last week
+# the next two jobs print a summary of new user registrations and API usage for the last day and the last week
 34 4 * * * /space/mediacloud/mediacloud/script/run_with_carton.sh /space/mediacloud/mediacloud/script/mediawords_generate_user_summary.pl
 22 5 * * sun /space/mediacloud/mediacloud/script/run_with_carton.sh /space/mediacloud/mediacloud/script/mediawords_generate_user_summary.pl --new 7 --activity 7 | mail -s "Weekly user report" mediacloud-dev@eon.law.harvard.edu
 ```

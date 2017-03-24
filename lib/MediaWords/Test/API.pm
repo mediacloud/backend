@@ -13,7 +13,7 @@ use MediaWords::Util::Web;
 
 require Exporter;
 our @ISA    = qw(Exporter);
-our @EXPORT = qw(test_request_response test_data_request test_get test_put test_post rows_match);
+our @EXPORT = qw(test_request_response test_data_request test_get test_put test_post rows_match validate_db_row);
 
 my $_test_api_key;
 
@@ -175,6 +175,20 @@ sub rows_match($$$$$)
 
 }
 
+# given the response from an api call, fetch the referred row from the given table in the database
+# and verify that the fields in the given input match what's in the database
+sub validate_db_row($$$$$)
+{
+    my ( $db, $table, $response, $input, $label ) = @_;
+
+    my $id_field = "${ table }_id";
+
+    ok( $response->{ $id_field } > 0, "$label $id_field returned" );
+    my $db_row = $db->find_by_id( $table, $response->{ $id_field } );
+    ok( $db_row, "$label row found in db" );
+    map { is( $db_row->{ $_ }, $input->{ $_ }, "$label field $_" ) } keys( %{ $input } );
+}
+
 # query the catalyst context to get a list of urls of all api end points
 sub get_api_urls()
 {
@@ -195,24 +209,6 @@ sub get_api_urls()
     my $api_urls = [ sort grep { m~/api/~ } ( @{ $path_urls }, @{ $chained_urls } ) ];
 
     return $api_urls;
-}
-
-# get list of urls matching the
-sub get_untested_api_urls()
-{
-    my $api_urls = get_api_urls();
-
-    # these are orphan methods that catalyst thinks are end points but are not
-    my $ignore_urls = [
-        '/api/v2/mc_rest_simpleobject/list', '/api/v2/mc_rest_simpleobject/single',
-        '/api/v2/storiesbase/list',          '/api/v2/storiesbase/single',
-        '/api/v2/storiesbase/count',         '/api/v2/storiesbase/word_matrix',
-        '/api/v2/mediahealth/single',        '/api/v2/sentences/single'
-    ];
-
-    map { $_api_requested_urls_lookup->{ $_ } = 1 } @{ $ignore_urls };
-
-    return [ grep { !$_api_requested_urls_lookup->{ $_ } } @{ $api_urls } ];
 }
 
 1;
