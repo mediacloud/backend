@@ -1893,8 +1893,8 @@ Output:
 
 ### `api/v2/auth/reset_api_key` (POST)
 
-| URL                    | Function                   |
-| ---------------------- | -------------------------- |
+| URL                         | Function              |
+| --------------------------- | --------------------- |
 | `api/v2/auth/reset_api_key` | Reset user's API key. |
 
 #### Output Description
