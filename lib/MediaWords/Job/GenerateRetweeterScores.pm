@@ -253,14 +253,17 @@ sub run_statefully($$;$)
 {
     my ( $self, $db, $args ) = @_;
 
-    map { LOGDIE( "$_ required" ) unless ( $args->{ $_ } ) } ( qw/topics_id name retweeted_users retweeted_users_b/ );
+    map { LOGDIE( "$_ required" ) unless ( $args->{ $_ } ) } ( qw/topics_id name retweeted_users_a retweeted_users_b/ );
 
     my $topic             = $db->require_by_id( 'topics', $args->{ topics_id } );
     my $name              = $args->{ name };
     my $retweeted_users_a = $args->{ retweeted_users_a };
     my $retweeted_users_b = $args->{ retweeted_users_b };
 
-    map { die( "$_ arg must be a list" ) unless ref( $_ ) eq ref( [] ) } ( qw/retweeted_users_a retweeted_users_b/ );
+    map { die( "$_ arg must be a list" ) unless ref( $args->{ $_ } ) eq ref( [] ) }
+      ( qw/retweeted_users_a retweeted_users_b/ );
+
+    die( "topic '$topic->{ topics_id }' must be a twitter topic" ) unless ( $topic->{ ch_monitor_id } );
 
     _generate_retweeter_scores( $db, $topic, $name, $retweeted_users_a, $retweeted_users_b );
 
