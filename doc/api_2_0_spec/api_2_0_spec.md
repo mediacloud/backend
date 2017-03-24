@@ -1411,7 +1411,7 @@ After successful registration, user can not immediately log in as the user needs
 
 ```json
 {
-    'success': 1
+    "success": 1
 }
 ```
 
@@ -1421,7 +1421,7 @@ After successful registraction, user is sent an email inviting him to open a lin
 
 ```json
 {
-    'error': 'Reason why the user can not be registered (e.g. duplicate email).'
+    "error": "Reason why the user can not be registered (e.g. duplicate email)."
 }
 ```
 
@@ -1446,7 +1446,7 @@ Output:
 
 ```json
 {
-    'success': 1
+    "success": 1
 }
 ```
 
@@ -1474,7 +1474,7 @@ Return the full profile information as in `auth/profile`.
 
 ```json
 {
-    'error': 'Reason why user activation has failed.'
+    "error": "Reason why user activation has failed."
 }
 ```
 
@@ -1515,7 +1515,7 @@ For the description of `activation_url`, see `auth/register`.
 
 ```json
 {
-    'success': 1
+    "success": 1
 }
 ```
 
@@ -1523,7 +1523,7 @@ For the description of `activation_url`, see `auth/register`.
 
 ```json
 {
-    'error': 'Reason why the activation email can not be resent.'
+    "error": "Reason why the activation email can not be resent."
 }
 ```
 
@@ -1544,7 +1544,7 @@ Output:
 
 ```json
 {
-    'success': 1
+    "success": 1
 }
 ```
 
@@ -1575,7 +1575,7 @@ User will be send an email with a link to `password_reset_url` and the following
 
 ```json
 {
-    'success': 1
+    "success": 1
 }
 ```
 
@@ -1586,7 +1586,7 @@ After successful send password reset API call, user is sent an email inviting hi
 
 ```json
 {
-    'error': 'Reason why the password reset link can not be sent.'
+    "error": "Reason why the password reset link can not be sent."
 }
 ```
 
@@ -1607,7 +1607,7 @@ Output:
 
 ```json
 {
-    'success': 1
+    "success": 1
 }
 ```
 
@@ -1632,7 +1632,7 @@ Output:
 
 ```json
 {
-    'success': 1
+    "success": 1
 }
 ```
 
@@ -1640,7 +1640,7 @@ Output:
 
 ```json
 {
-    'error': 'Reason why the password can not be reset.'
+    "error": "Reason why the password can not be reset."
 }
 ```
 
@@ -1662,7 +1662,7 @@ Output:
 
 ```json
 {
-    'success': 1
+    "success": 1
 }
 ```
 
@@ -1692,7 +1692,7 @@ Return the full profile information as in `auth/profile`.
 
 ```json
 {
-    'error': 'User was not found, password is incorrect or some other reason.'
+    "error": "User was not found, password is incorrect or some other reason."
 }
 ```
 
@@ -1702,7 +1702,7 @@ URL: <https://api.mediacloud.org/api/v2/auth/single?username=foo@bar.baz&passwor
 
 ```json
 {
-    'api_key': "bae132d8de0e0565cc9b84ec022e367f71f6dabf"
+    "api_key": "bae132d8de0e0565cc9b84ec022e367f71f6dabf"
 }
 ```
 
@@ -1728,7 +1728,7 @@ URL: <https://api.mediacloud.org/api/v2/auth/single?username=foo@bar.baz&passwor
 {
     "email": "(string) users@email.address",
     "full_name": "(string) User's Full Name",
-    'api_key': "(string) User's API key."
+    "api_key": "(string) User's API key."
     "notes": "(string) User's 'notes' field.",
     "created_date": "(ISO 8601 date) of when the user was created.",
     "active": "(integer) 1 if user is active (has activated account via email), 0 otherwise.",
@@ -1775,7 +1775,7 @@ URL: <https://api.mediacloud.org/api/v2/auth/profile>
 {
     "email": "hroberts@cyber.law.harvard.edu",
     "full_name": "Hal Roberts",
-    'api_key': "bae132d8de0e0565cc9b84ec022e367f71f6dabf"
+    "api_key": "bae132d8de0e0565cc9b84ec022e367f71f6dabf",
     "notes": "Media Cloud Geek",
     "created_date": "2017-03-24T03:23:47+00:00",
     "active": 1,
@@ -1803,8 +1803,8 @@ URL: <https://api.mediacloud.org/api/v2/auth/profile>
 
 ### `api/v2/auth/change_password` (POST)
 
-| URL                           | Function                                    |
-| ----------------------------- | ------------------------------------------- |
+| URL                           | Function                |
+| ----------------------------- | ----------------------- |
 | `api/v2/auth/change_password` | Change user's password. |
 
 #### Input Description
@@ -1822,7 +1822,7 @@ Asking user to re-enter password and comparing the two values is left to the cli
 
 ```json
 {
-    'success': 1
+    "success": 1
 }
 ```
 
@@ -1830,7 +1830,7 @@ Asking user to re-enter password and comparing the two values is left to the cli
 
 ```json
 {
-    'error': 'Reason why the password can not be changed.'
+    "error": "Reason why the password can not be changed."
 }
 ```
 
@@ -1842,8 +1842,8 @@ Input:
 
 ```json
 {
-    'old_password': 'qwerty1',
-    'new_password': 'qwerty1',
+    "old_password": "qwerty1",
+    "new_password": "qwerty1",
 }
 ```
 
@@ -1851,7 +1851,7 @@ Output:
 
 ```json
 {
-    'success': 1
+    "success": 1
 }
 ```
 
