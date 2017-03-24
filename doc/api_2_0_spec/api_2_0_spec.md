@@ -295,7 +295,7 @@ Output format is the same as for api/v2/media/single above.
 
 | URL                 | Function
 | ------------------- | -----------------------------
-| `api/v2/media/suggestions/submit` | Suggest a media source for Media Cloud to crawl
+| `api/v2/media/submit_suggestion` | Suggest a media source for Media Cloud to crawl
 
 This API end point allows the user to send a suggest a new media source to the Media Cloud team for regular crawling.
 
@@ -311,7 +311,7 @@ This API end point allows the user to send a suggest a new media source to the M
 
 ### Example
 
-URL: https://api.mediacloud.org/api/v2/media/suggestions/submit
+URL: https://api.mediacloud.org/api/v2/media/submit_suggestion
 
 Input:
 ```json
