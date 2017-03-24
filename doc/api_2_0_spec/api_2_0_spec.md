@@ -142,11 +142,16 @@ Table of Contents
                * [Changing the user's password was successful](#changing-the-users-password-was-successful)
                * [Changing the user's password has failed](#changing-the-users-password-has-failed)
             * [Example](#example-30)
+         * [api/v2/auth/reset_api_key (POST)](#apiv2authreset_api_key-post)
+            * [Output Description](#output-description-13)
+               * [Resetting user's API keywas successful](#resetting-users-api-keywas-successful)
+               * [Resetting user's API key has failed](#resetting-users-api-key-has-failed)
+            * [Example](#example-31)
    * [Stats](#stats)
       * [api/v2/stats/list](#apiv2statslist)
          * [Query Parameters](#query-parameters-22)
-         * [Output Description](#output-description-13)
-         * [Example](#example-31)
+         * [Output Description](#output-description-14)
+         * [Example](#example-32)
    * [Extended Examples](#extended-examples)
       * [Output Format / JSON](#output-format--json)
       * [Create a CSV file with all media sources.](#create-a-csv-file-with-all-media-sources)
@@ -1882,6 +1887,49 @@ Output:
 ```json
 {
     "success": 1
+}
+```
+
+
+### `api/v2/auth/reset_api_key` (POST)
+
+| URL                    | Function                   |
+| ---------------------- | -------------------------- |
+| `api/v2/auth/reset_api_key` | Reset user's API key. |
+
+#### Output Description
+
+##### Resetting user's API keywas successful
+
+```json
+{
+    "success": 1,
+    "profile": {
+        "Full profile information as in auth/profile, including the new API key."
+    }
+}
+```
+
+##### Resetting user's API key has failed
+
+```json
+{
+    "error": "Reason why resetting user's API key has failed."
+}
+```
+
+#### Example
+
+URL: <https://api.mediacloud.org/api/v2/auth/reset_api_key>
+
+Output:
+
+```json
+{
+    "success": 1,
+    "profile": {
+        "Full profile information as in auth/profile, including the new API key."
+    }
 }
 ```
 
