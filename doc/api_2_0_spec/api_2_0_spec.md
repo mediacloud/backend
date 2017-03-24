@@ -149,7 +149,7 @@ Table of Contents
             * [Example](#example-31)
          * [api/v2/auth/reset_api_key (POST)](#apiv2authreset_api_key-post)
             * [Output Description](#output-description-14)
-               * [Resetting user's API keywas successful](#resetting-users-api-keywas-successful)
+               * [Resetting user's API key was successful](#resetting-users-api-key-was-successful)
                * [Resetting user's API key has failed](#resetting-users-api-key-has-failed)
             * [Example](#example-32)
    * [Stats](#stats)
@@ -1952,7 +1952,7 @@ Output:
 
 #### Output Description
 
-##### Resetting user's API keywas successful
+##### Resetting user's API key was successful
 
 ```json
 {
