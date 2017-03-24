@@ -4,7 +4,7 @@ package MediaWords::Job::GenerateRetweeterScores;
 # Generate retweet polarization scores for media within a topic.
 #
 # A retweet score is a ratio between -1.0 and 1.0 that compares the numbers of times any story within
-# the media is shared by a user who has retweeted one of 2 gropus of users.  So a retweet polarization
+# the media is shared by a user who has retweeted one of 2 groups of users.  So a retweet polarization
 # score for the us presidential election twitter topic might measure the ratio for each media source of
 # story shares by clinton vs. trump retweeters.
 #
@@ -64,7 +64,7 @@ insert into retweeter_groups_users_map ( retweeter_scores_id, retweeter_groups_i
 SQL
     }
 
-    $retweeter_group->{ retweeted_useres } = $users;
+    $retweeter_group->{ retweeted_users } = $users;
 
     return $retweeter_group;
 }
@@ -76,7 +76,7 @@ SQL
 # users in each of the groups.  so calling this with 'hillaryclinton' in one group and 'realdonaltrump'
 # in another group will generate one row for each user who retweeted hillaryclinton at least once and
 # one row for each user who retweeted realdonaltrump at least once.
-sub _genrerate_retweeters($$$$)
+sub _generate_retweeters($$$$)
 {
     my ( $db, $score, $group_a, $group_b ) = @_;
 
@@ -85,11 +85,18 @@ sub _genrerate_retweeters($$$$)
 
     my $all_users = [ keys( %{ $all_users_lookup } ) ];
 
-    $db->query( "create temporary table retweeted_users ( user text )" );
-    map { $db->query( "insert into retweeted_users values ( ? )", $_ ) } @{ $all_users };
+    $db->query( "create temporary table ru ( u text )" );
+    map { $db->query( "insert into ru values ( ? )", $_ ) } @{ $all_users };
 
     $db->query( <<SQL, $score->{ retweeter_scores_id } );
 insert into retweeters ( retweeter_scores_id, twitter_user, retweeted_user )
+    select distinct rs.retweeter_scores_id, tt.twitter_user, tt.data->'tweet'->'retweeted_status'->'user'->>'screen_name'
+        from topic_tweets tt
+            join topic_tweet_days ttd using ( topic_tweet_days_id )
+            join retweeter_scores rs using ( topics_id )
+        where
+            rs.retweeter_scores_id = ? and
+            tt.data->'tweet'->'retweeted_status'->'user'->>'screen_name' in ( select u from ru )
 SQL
 }
 
@@ -114,6 +121,9 @@ insert into retweeter_stories ( retweeter_scores_id, stories_id, retweeted_user,
             join topic_tweets tt using ( topic_tweets_id )
             join retweeters r
                 on ( rs.retweeter_scores_id = r.retweeter_scores_id and r.twitter_user = tt.twitter_user )
+        where
+            rs.retweeter_scores_id = ? and
+            ttfu.stories_id is not null
         group by rs.retweeter_scores_id, ttfu.stories_id, r.retweeted_user
 SQL
 
@@ -128,32 +138,89 @@ sub _generate_retweeter_media($$)
 {
     my ( $db, $score ) = @_;
 
-    $db->query( <<SQL, $score, $score->{ retweeter_scores_id } );
-with media_counts as (
+    $db->query( <<SQL, $score->{ retweeter_scores_id } );
+insert into retweeter_media ( retweeter_scores_id, media_id, group_a_count, group_b_count, group_a_count_n, score )
+    with all_retweeter_stories as (
+        select distinct stories_id, retweeter_scores_id from retweeter_stories where retweeter_scores_id = ?
+    ),
+
+    mca as (
+        select
+                ars.retweeter_scores_id,
+                s.media_id,
+                sum( rst.share_count ) group_count
+            from
+                all_retweeter_stories ars
+                join retweeter_scores rs using ( retweeter_scores_id )
+                join stories s using ( stories_id )
+                join retweeter_stories rst using ( stories_id, retweeter_scores_id )
+                join retweeter_groups rg
+                    on ( rg.retweeter_groups_id = rs.group_a_id )
+                join retweeter_groups_users_map rgum
+                    on ( rgum.retweeter_groups_id = rg.retweeter_groups_id and
+                        rst.retweeted_user = rgum.retweeted_user )
+            group by ars.retweeter_scores_id, s.media_id
+    ),
+
+    mcb as (
+        select
+                ars.retweeter_scores_id,
+                s.media_id,
+                sum( rst.share_count ) group_count
+            from
+                all_retweeter_stories ars
+                join retweeter_scores rs using ( retweeter_scores_id )
+                join stories s using ( stories_id )
+                join retweeter_stories rst using ( stories_id, retweeter_scores_id )
+                join retweeter_groups rg
+                    on ( rg.retweeter_groups_id = rs.group_b_id )
+                join retweeter_groups_users_map rgum
+                    on ( rgum.retweeter_groups_id = rg.retweeter_groups_id and
+                        rst.retweeted_user = rgum.retweeted_user )
+            group by ars.retweeter_scores_id, s.media_id
+    ),
+
+    mc as (
+        select
+                coalesce( mca.retweeter_scores_id, mcb.retweeter_scores_id ) retweeter_scores_id,
+                coalesce( mca.media_id, mcb.media_id ) media_id,
+                coalesce( mca.group_count, 0 ) group_a_count,
+                coalesce( mcb.group_count, 0 ) group_b_count
+            from mca
+                full join mcb using ( media_id )
+    ),
+
+    mc_total as (
+        select sum( group_a_count ) group_a_total, sum( group_b_count ) group_b_total from mc
+    ),
+
+    mc_norm as (
+        select
+                mc.media_id,
+                case
+                    when mc_total.group_a_total = 0 then 0
+                    else mc.group_a_count * ( mc_total.group_b_total::float / mc_total.group_a_total )
+                end group_a_count_n
+            from mc
+                cross join mc_total
+    )
+
     select
-            s.media_id,
-            sum( rst_a.share_count ) group_a_count,
-            sum( rst_b.share_count ) group_b_count
-        from
-            retweeter_scores rs
-            join retweeter_groups rg_a on ( rs.group_a_id = rg_a.retweeter_groups_id )
-            join retweeter_stories rst_a on (
-
-insert into retweeter_media ( retweeter_scores_id, media_id, group_a_count, group_b_count, group_a_count_b, score )
-    select
-            rs.retweeter_scores_id,
-            s.media_id,
-            sum( a.share_count ) group_a_count,
-            sum( b.share_count ) group_b_count,
-            ( sum( a.share_count ) * ( sum( b.share_count )::float / ( sum( a.share_count )  + 1 ) ) group_a_count_n,
-
-
+            retweeter_scores_id,
+            media_id,
+            group_a_count,
+            group_b_count,
+            group_a_count_n,
+            1 - ( ( ( group_a_count_n::float / ( group_a_count_n::float + group_b_count::float ) ) - 0 ) * 2 )
+                score
+        from mc
+            join mc_norm using ( media_id )
 SQL
 
 }
 
 # run the queries necessary to mine thet tweets and stories for the polarization scores
-sub _generated_retweeter_scores($$$$$)
+sub _generate_retweeter_scores($$$$$)
 {
     my ( $db, $topic, $name, $retweeted_users_a, $retweeted_users_b ) = @_;
 
