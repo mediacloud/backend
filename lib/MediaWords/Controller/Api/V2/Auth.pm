@@ -21,12 +21,17 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
 __PACKAGE__->config(    #
     action => {         #
+        single  => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
         login   => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
         profile => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
-sub login : Local : ActionClass('MC_REST') : Path('login') : Path('single')
+sub login : Local : ActionClass('MC_REST')
+{
+}
+
+sub single : Local : ActionClass('MC_REST')
 {
 }
 
@@ -91,7 +96,7 @@ SQL
     return $auth_user_ip_api_key->{ api_key };
 }
 
-sub login_GET : PathPrefix( '/api' ) : Path('login') : Path('single')
+sub login_GET : PathPrefix( '/api' )
 {
     my ( $self, $c ) = @_;
 
@@ -113,6 +118,13 @@ sub login_GET : PathPrefix( '/api' ) : Path('login') : Path('single')
             'api_key' => $api_key,    #
         }
     );
+}
+
+sub single_GET : PathPrefix( '/api' )
+{
+    my ( $self, $c ) = @_;
+
+    return $self->login_GET( $c, @_ );
 }
 
 # return info about currently logged in user
