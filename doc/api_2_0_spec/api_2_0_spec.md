@@ -215,36 +215,36 @@ Response:
 
 ```json
 [
-  {
-    "url": "http://nytimes.com",
-    "name": "New York Times",
-    "media_id": 1,
-    "primary_language": "en",
-    "is_healthy": 1,
-    "is_monitored": 1,
-    "public_notes": "all the news that's fit to print",
-    "editor_nnotes": "first media source",
-    "media_source_tags": [
-         {
-           "tag_sets_id": 5,
-           "show_on_stories": null,
-           "tags_id": 8875027,
-           "show_on_media": 1,
-           "description": "Top U.S. mainstream media according Google Ad Planner's measure of unique monthly users.",
-           "tag_set": "collection",
-           "tag": "ap_english_us_top25_20100110",
-           "label": "U.S. Mainstream Media"
-         }
-    ],
-    "activities": [
-      {
-        "date": "2015-08-12 18:17:35.922523",
-        "field": "name",
-        "new_value": "New York Times",
-        "old_value": "nytimes.com"
-      }
-    ]
-  }
+    {
+        "url": "http://nytimes.com",
+        "name": "New York Times",
+        "media_id": 1,
+        "primary_language": "en",
+        "is_healthy": 1,
+        "is_monitored": 1,
+        "public_notes": "all the news that's fit to print",
+        "editor_nnotes": "first media source",
+        "media_source_tags": [
+            {
+                "tag_sets_id": 5,
+                "show_on_stories": null,
+                "tags_id": 8875027,
+                "show_on_media": 1,
+                "description": "Top U.S. mainstream media according Google Ad Planner's measure of unique monthly users.",
+                "tag_set": "collection",
+                "tag": "ap_english_us_top25_20100110",
+                "label": "U.S. Mainstream Media"
+            }
+        ],
+        "activities": [
+            {
+                "date": "2015-08-12 18:17:35.922523",
+                "field": "name",
+                "new_value": "New York Times",
+                "old_value": "nytimes.com"
+            }
+        ]
+    }
 ]
 ```
 
@@ -316,8 +316,8 @@ URL: https://api.mediacloud.org/api/v2/media/suggestions/submit
 Input:
 ```json
 {
-  "name": "Cameroon Tribue",
-  "url": "http://www.cameroon-tribune.cm"
+    "name": "Cameroon Tribue",
+    "url": "http://www.cameroon-tribune.cm"
 }
 ```
 
@@ -412,7 +412,7 @@ Response:
                 "expected_stories": "49.97",
                 "expected_sentences": "1166.22",
             }
-        ],
+        ]
     }
 ]
 ```
@@ -444,13 +444,13 @@ URL: https://api.mediacloud.org/api/v2/feeds/single/1
 
 ```json
 [
-  {
-    "name": "Bits",
-    "url": "http://bits.blogs.nytimes.com/rss2.xml",
-    "feeds_id": 1,
-    "feed_type": "syndicated",
-    "media_id": 1
-  }
+    {
+        "name": "Bits",
+        "url": "http://bits.blogs.nytimes.com/rss2.xml",
+        "feeds_id": 1,
+        "feed_type": "syndicated",
+        "media_id": 1
+    }
 ]
 ```
 
@@ -517,17 +517,17 @@ URL: https://api.mediacloud.org/api/v2/stories_public/single/27456565
 
 ```json
 [
-  {
-    "collect_date": "2010-11-24 15:33:39",
-    "url": "http://globalvoicesonline.org/2010/10/26/myanmars-new-flag-and-new-name/comment-page-1/#comment-1733161",
-    "guid": "http://globalvoicesonline.org/?p=169660#comment-1733161",
-    "publish_date": "2010-11-24 04:05:00",
-    "media_id": 1144,
-    "media_name": "Global Voices Online",
-    "media_url": "http://globalvoicesonline.org/",
-    "stories_id": 27456565,
-    "story_tags": [ 1234235 ],
-  }
+    {
+        "collect_date": "2010-11-24 15:33:39",
+        "url": "http://globalvoicesonline.org/2010/10/26/myanmars-new-flag-and-new-name/comment-page-1/#comment-1733161",
+        "guid": "http://globalvoicesonline.org/?p=169660#comment-1733161",
+        "publish_date": "2010-11-24 04:05:00",
+        "media_id": 1144,
+        "media_name": "Global Voices Online",
+        "media_url": "http://globalvoicesonline.org/",
+        "stories_id": 27456565,
+        "story_tags": [ 1234235 ],
+    }
 ]
 ```
 
@@ -646,7 +646,7 @@ URL: https://api.mediacloud.org/api/v2/stories_public/count?q=sentence:obama&fq=
 
 ```json
 {
-  "count": 960
+    "count": 960
 }
 ```
 
@@ -694,22 +694,20 @@ the returned data would look like:
 
 ```json
 {
-  "word_matrix":
-    {
-    "1": {
-      "0": 1,
-      "1": 2
+    "word_matrix": {
+        "1": {
+            "0": 1,
+            "1": 2
+        },
+        "2": {
+            "0": 3,
+            "1": 1
+        }
     },
-    "2": {
-      "0": 3,
-      "1": 1
-    }
-  },
-  "word_list":
-    [
-    ["foo", "foo"],
-    ["bar", "bars"]
-  ]
+    "word_list": [
+        ["foo", "foo"],
+        ["bar", "bars"]
+    ]
 }
 ```
 
@@ -756,7 +754,7 @@ URL: https://api.mediacloud.org/api/v2/sentences/count?q=sentence:obama&fq=media
 
 ```json
 {
-  "count": 96620
+    "count": 96620
 }
 ```
 
@@ -766,22 +764,21 @@ URL: https://api.mediacloud.org/api/v2/sentences/count?q=sentence:africa+AND+tag
 
 ```json
 {
-  "count": 236372,
-  "split":
-  {
-    "2014-01-01T00:00:00Z": 650,
-    "2014-01-08T00:00:00Z": 900,
-    "2014-01-15T00:00:00Z": 999,
-    "2014-01-22T00:00:00Z": 1047,
-    "2014-01-29T00:00:00Z": 1125,
-    "2014-02-05T00:00:00Z": 946,
-    "2014-02-12T00:00:00Z": 1126,
-    "2014-02-19T00:00:00Z": 1094,
-    "2014-02-26T00:00:00Z": 1218,
-    "gap": "+7DAYS",
-    "end": "2014-03-05T00:00:00Z",
-    "start": "2014-01-01T00:00:00Z"
-  }
+    "count": 236372,
+    "split": {
+        "2014-01-01T00:00:00Z": 650,
+        "2014-01-08T00:00:00Z": 900,
+        "2014-01-15T00:00:00Z": 999,
+        "2014-01-22T00:00:00Z": 1047,
+        "2014-01-29T00:00:00Z": 1125,
+        "2014-02-05T00:00:00Z": 946,
+        "2014-02-12T00:00:00Z": 1126,
+        "2014-02-19T00:00:00Z": 1094,
+        "2014-02-26T00:00:00Z": 1218,
+        "gap": "+7DAYS",
+        "end": "2014-03-05T00:00:00Z",
+        "start": "2014-01-01T00:00:00Z"
+    }
 }
 ```
 
@@ -914,37 +911,36 @@ URL:  https://api.mediacloud.org/api/v2/wc/list?q=obama+AND+media_id:1
 
 ```json
 [
-
-  {
-    "count":1014,
-    "stem":"obama",
-    "term":"obama"
-  },
-  {
-    "count":106,
-    "stem":"republican",
-    "term":"republican"
-  },
-  {
-    "count":78,
-    "stem":"campaign",
-    "term":"campaign"
-  },
-  {
-    "count":72,
-    "stem":"romney",
-    "term":"romney"
-  },
-  {
-    "count":59,
-    "stem":"washington",
-    "term":"washington"
-  },
-  {
-    "count":58,
-    "stem":"democrat",
-    "term":"democrats"
-  }
+    {
+        "count":1014,
+        "stem":"obama",
+        "term":"obama"
+    },
+    {
+        "count":106,
+        "stem":"republican",
+        "term":"republican"
+    },
+    {
+        "count":78,
+        "stem":"campaign",
+        "term":"campaign"
+    },
+    {
+        "count":72,
+        "stem":"romney",
+        "term":"romney"
+    },
+    {
+        "count":59,
+        "stem":"washington",
+        "term":"washington"
+    },
+    {
+        "count":58,
+        "stem":"democrat",
+        "term":"democrats"
+    }
 ]
 ```
 
@@ -955,47 +951,45 @@ URL:  https://api.mediacloud.org/api/v2/wc/list?q=obama+AND+media_id:1&stats=1
 
 ```json
 
-{ "stats":
-  {
-     "num_words_returned":5123,
-     "num_sentences_returned":899,
-     "num_sentences_found":899
-   },
-   "words":
-   [
-     {
-       "count":1014,
-       "stem":"obama",
-       "term":"obama"
-     },
-     {
-       "count":106,
-       "stem":"republican",
-       "term":"republican"
-     },
-     {
-       "count":78,
-       "stem":"campaign",
-       "term":"campaign"
-     },
-     {
-       "count":72,
-       "stem":"romney",
-       "term":"romney"
-     },
-     {
-       "count":59,
-       "stem":"washington",
-       "term":"washington"
-     },
-     {
-       "count":58,
-       "stem":"democrat",
-       "term":"democrats"
-     }
+{
+    "stats": {
+        "num_words_returned":5123,
+        "num_sentences_returned":899,
+        "num_sentences_found":899
+    },
+    "words": [
+        {
+            "count":1014,
+            "stem":"obama",
+            "term":"obama"
+        },
+        {
+            "count":106,
+            "stem":"republican",
+            "term":"republican"
+        },
+        {
+            "count":78,
+            "stem":"campaign",
+            "term":"campaign"
+        },
+        {
+            "count":72,
+            "stem":"romney",
+            "term":"romney"
+        },
+        {
+            "count":59,
+            "stem":"washington",
+            "term":"washington"
+        },
+        {
+            "count":58,
+            "stem":"democrat",
+            "term":"democrats"
+        }
    ]
 }
-
 ```
 
 # Tags and Tag Sets
@@ -1050,18 +1044,18 @@ Response:
 
 ```json
 [
-  {
-    "tag_sets_id": 5,
-    "show_on_stories": null,
-    "label": "U.S. Mainstream Media",
-    "tag": "ap_english_us_top25_20100110",
-    "tags_id": 8875027,
-    "show_on_media": 1,
-    "description": "Top U.S. mainstream media according Google Ad Planner's measure of unique monthly users.",
-    "tag_set_name": "collection",
-    "tag_set_label": "Collection",
-    "tag_set_description": "Curated collections of media sources"
-  },
+    {
+        "tag_sets_id": 5,
+        "show_on_stories": null,
+        "label": "U.S. Mainstream Media",
+        "tag": "ap_english_us_top25_20100110",
+        "tags_id": 8875027,
+        "show_on_media": 1,
+        "description": "Top U.S. mainstream media according Google Ad Planner's measure of unique monthly users.",
+        "tag_set_name": "collection",
+        "tag_set_label": "Collection",
+        "tag_set_description": "Curated collections of media sources"
+    }
 ]
 ```
 
@@ -1135,13 +1129,13 @@ Response:
 
 ```json
 [
-  {
-    "tag_sets_id": 5,
-    "show_on_stories": null,
-    "name": "collection",
-    "label": "Collections",
-    "show_on_media": null,
-    "description": "Curated collections of media sources.  This is our primary way of organizing our media sources -- almost every media source in our system is a member of one or more of these curated collections.  Some collections are manually curated, and others are generated using quantitative metrics."
+    {
+        "tag_sets_id": 5,
+        "show_on_stories": null,
+        "name": "collection",
+        "label": "Collections",
+        "show_on_media": null,
+        "description": "Curated collections of media sources.  This is our primary way of organizing our media sources -- almost every media source in our system is a member of one or more of these curated collections.  Some collections are manually curated, and others are generated using quantitative metrics."
     }
 ]
 ```
@@ -1200,15 +1194,15 @@ Response:
 
 ```json
 [
-  {
-    "topics_id": 6,
-    "description": "obama",
-    "name": "obama",
-    "media_type_tag_sets_id": 18,
-    "pattern": "[[:<:]]obama|obamacare[[:>:]]",
-    "solr_seed_query": "obama OR obamacare",
-    "solr_seed_query_run": 1,
-  }
+    {
+        "topics_id": 6,
+        "description": "obama",
+        "name": "obama",
+        "media_type_tag_sets_id": 18,
+        "pattern": "[[:<:]]obama|obamacare[[:>:]]",
+        "solr_seed_query": "obama OR obamacare",
+        "solr_seed_query_run": 1,
+    }
 ]
 ```
 
@@ -1248,14 +1242,14 @@ Response:
 
 ```json
 [
-  {
-    "topics_id": 6,
-    "snapshots_id": 5,
-    "dump_date": "2014-07-30 16:32:15.479964",
-    "end_date": "2015-01-01 00:00:00",
-    "note": null,
-    "start_date": "2014-01-01 00:00:00",
-  }
+    {
+        "topics_id": 6,
+        "snapshots_id": 5,
+        "dump_date": "2014-07-30 16:32:15.479964",
+        "end_date": "2015-01-01 00:00:00",
+        "note": null,
+        "start_date": "2014-01-01 00:00:00",
+    }
 ]
 ```
 
@@ -1295,22 +1289,22 @@ Response:
 
 ```json
 [
-  {
-    "snapshots_id": 5,
-    "timespans_id": 145,
-    "end_date": "2015-01-01 00:00:00",
-    "include_undateable_stories": 0,
-    "medium_count": 236,
-    "medium_link_count": 266,
-    "model_num_media": 17,
-    "model_r2_mean": "0.96",
-    "model_r2_stddev": "0",
-    "period": "overall",
-    "tags_id": null,
-    "start_date": "2014-01-01 00:00:00",
-    "story_count": 2148,
-    "story_link_count": 731,
-  }
+    {
+        "snapshots_id": 5,
+        "timespans_id": 145,
+        "end_date": "2015-01-01 00:00:00",
+        "include_undateable_stories": 0,
+        "medium_count": 236,
+        "medium_link_count": 266,
+        "model_num_media": 17,
+        "model_r2_mean": "0.96",
+        "model_r2_stddev": "0",
+        "period": "overall",
+        "tags_id": null,
+        "start_date": "2014-01-01 00:00:00",
+        "story_count": 2148,
+        "story_link_count": 731,
+    }
 ]
 ```
 
@@ -1496,7 +1490,11 @@ import pkg_resources
 import requests
 assert pkg_resources.get_distribution("requests").version >= '1.2.3'
 
-r = requests.get( 'https://api.mediacloud.org/api/v2/media/list', params = params, headers = { 'Accept': 'application/json'}, headers = { 'Accept': 'application/json'} )
+r = requests.get('https://api.mediacloud.org/api/v2/media/list',
+    params = params,
+    headers = { 'Accept': 'application/json'},
+    headers = { 'Accept': 'application/json'}
+)
 
 data = r.json()
 ```
@@ -1508,24 +1506,24 @@ media = []
 start = 0
 rows  = 100
 while True:
-      params = { 'start': start, 'rows': rows, 'key': MY_KEY }
-      print "start:{} rows:{}".format( start, rows)
-      r = requests.get( 'https://api.mediacloud.org/api/v2/media/list', params = params, headers = { 'Accept': 'application/json'} )
-      data = r.json()
+    params = { 'start': start, 'rows': rows, 'key': MY_KEY }
+    print "start:{} rows:{}".format( start, rows)
+    r = requests.get( 'https://api.mediacloud.org/api/v2/media/list', params = params, headers = { 'Accept': 'application/json'} )
+    data = r.json()
 
-      if len(data) == 0:
-         break
+    if len(data) == 0:
+        break
 
-      start += rows
-      media.extend( data )
+    start += rows
+    media.extend( data )
 
 fieldnames = [
- u'media_id',
- u'url',
- u'moderated',
- u'moderation_notes',
- u'name'
- ]
+    u'media_id',
+    u'url',
+    u'moderated',
+    u'moderation_notes',
+    u'name'
+]
 
 with open( '/tmp/media.csv', 'wb') as csvfile:
     print "open"
@@ -1559,18 +1557,18 @@ import requests
 start = 0
 rows  = 100
 while True:
-      params = { 'last_processed_stories_id': start, 'rows': rows, 'q': 'tags_id_media:8875027', 'key': MY_KEY }
+    params = { 'last_processed_stories_id': start, 'rows': rows, 'q': 'tags_id_media:8875027', 'key': MY_KEY }
 
-      print "Fetching {} stories starting from {}".format( rows, start)
-      r = requests.get( 'https://api.mediacloud.org/api/v2/stories_public/list/', params = params, headers = { 'Accept': 'application/json'} )
-      stories = r.json()
+    print "Fetching {} stories starting from {}".format( rows, start)
+    r = requests.get( 'https://api.mediacloud.org/api/v2/stories_public/list/', params = params, headers = { 'Accept': 'application/json'} )
+    stories = r.json()
 
-      if len(stories) == 0:
-         break
+    if len(stories) == 0:
+        break
 
-      start = stories[ -1 ][ 'processed_stories_id' ]
+    start = stories[ -1 ][ 'processed_stories_id' ]
 
-      process_stories( stories )
+    process_stories( stories )
 ```
 
 
@@ -1594,19 +1592,24 @@ import requests
 start = 0
 rows  = 100
 while True:
-      params = { 'last_processed_stories_id': start,
-      'rows': rows, 'q': 'media_id:1', 'fq': 'publish_date:[2010-10-01T00:00:00Z TO 2010-11-01T00:00:00Z]', 'key': MY_KEY  }
+    params = {
+        'last_processed_stories_id': start,
+        'rows': rows,
+        'q': 'media_id:1',
+        'fq': 'publish_date:[2010-10-01T00:00:00Z TO 2010-11-01T00:00:00Z]',
+        'key': MY_KEY
+    }
 
-      print "Fetching {} stories starting from {}".format( rows, start)
-      r = requests.get( 'https://api.mediacloud.org/api/v2/stories_public/list/', params = params, headers = { 'Accept': 'application/json'} )
-      stories = r.json()
+    print "Fetching {} stories starting from {}".format( rows, start)
+    r = requests.get( 'https://api.mediacloud.org/api/v2/stories_public/list/', params = params, headers = { 'Accept': 'application/json'} )
+    stories = r.json()
 
-      if len(stories) == 0:
-         break
+    if len(stories) == 0:
+        break
 
-      start = stories[ -1 ][ 'processed_stories_id' ]
+    start = stories[ -1 ][ 'processed_stories_id' ]
 
-      process_stories( stories )
+    process_stories( stories )
 ```
 
 ## Get word counts for top words for sentences matching 'trayvon' in US Mainstream Media during April 2012
@@ -1645,16 +1648,15 @@ curl https://api.mediacloud.org/api/v2/tag_sets/list
 
 ```json
 [
-  {
-    "tag_sets_id": 597,
-    "name": "gv_country"
-   },
+    {
+        "tag_sets_id": 597,
+        "name": "gv_country"
+    },
    
-  {
-    "tag_sets_id": 800,
-    "name": "ts"
-   },
-
+    {
+        "tag_sets_id": 800,
+        "name": "ts"
+    }
 ]
 ```
 
@@ -1669,24 +1671,24 @@ The following Python function shows how to find a `tags_id` given a `tag_sets_id
 
 ```python
 def find_tags_id( tag_name, tag_sets_id):
-   last_tags_id = 0
-   rows  = 100
-   while True:
-      params = { 'last_tags_id': last_tags_id, 'rows': rows, 'key': MY_KEY }
-      print "start:{} rows:{}".format( start, rows)
-      r = requests.get( 'https://api.mediacloud.org/api/v2/tags/list/' + tag_sets_id , params = params, headers = { 'Accept': 'application/json'} )
-      tags = r.json()
+    last_tags_id = 0
+    rows  = 100
+    while True:
+        params = { 'last_tags_id': last_tags_id, 'rows': rows, 'key': MY_KEY }
+        print "start:{} rows:{}".format( start, rows)
+        r = requests.get( 'https://api.mediacloud.org/api/v2/tags/list/' + tag_sets_id , params = params, headers = { 'Accept': 'application/json'} )
+        tags = r.json()
 
-      if len(tags) == 0:
-         break
+        if len(tags) == 0:
+            break
 
-      for tag in tags:
-          if tag['tag'] == tag_name:
-             return tag['tags_id']
+        for tag in tags:
+            if tag['tag'] == tag_name:
+                return tag['tags_id']
 
-          last_tags_id = max( tag[ 'tags_id' ], last_tags_id )
+            last_tags_id = max( tag[ 'tags_id' ], last_tags_id )
 
-   return -1
+    return -1
 ```
 
 ### Request a word count using the `tags_id`
@@ -1718,16 +1720,16 @@ import requests
 start = 0
 rows  = 100
 while True:
-      params = { 'last_processed_stories_id': start, 'rows': rows, 'q': 'tags_id_stories:678910', 'key': MY_KEY }
+    params = { 'last_processed_stories_id': start, 'rows': rows, 'q': 'tags_id_stories:678910', 'key': MY_KEY }
 
-      print "Fetching {} stories starting from {}".format( rows, start)
-      r = requests.get( 'https://api.mediacloud.org/api/v2/stories_public/list/', params = params, headers = { 'Accept': 'application/json'} )
-      stories = r.json()
+    print "Fetching {} stories starting from {}".format( rows, start)
+    r = requests.get( 'https://api.mediacloud.org/api/v2/stories_public/list/', params = params, headers = { 'Accept': 'application/json'} )
+    stories = r.json()
 
-      if len(stories) == 0:
-         break
+    if len(stories) == 0:
+       break
 
-      start = stories[ -1 ][ 'processed_stories_id' ]
+    start = stories[ -1 ][ 'processed_stories_id' ]
 
-      process_stories( stories )
+    process_stories( stories )
 ```
