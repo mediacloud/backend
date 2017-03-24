@@ -161,14 +161,15 @@ sub rows_match($$$$$)
 
     for my $got_row ( @{ $got_rows } )
     {
-        my $expected_row = $expected_row_lookup->{ $got_row->{ $id_field } };
+        my $id           = $got_row->{ $id_field };
+        my $expected_row = $expected_row_lookup->{ $id };
 
         # don't try to test individual fields if the row does not exist
         ok( $expected_row, "$label row with id $got_row->{ $id_field } is expected" ) || next;
 
         for my $field ( @{ $test_fields } )
         {
-            is( $got_row->{ $field }, $expected_row->{ $field }, "$label field $field" );
+            is( $got_row->{ $field }, $expected_row->{ $field }, "$label field $field ($id_field: $id)" );
         }
     }
 
