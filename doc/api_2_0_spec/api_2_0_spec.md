@@ -303,10 +303,10 @@ This API end point allows the user to send a suggest a new media source to the M
 
 | Field | Description |
 |------|------------ |
-| name | human readable name of media source (optional) |
 | url | URL of the media source home page (required) |
-| feed_url | URL of am rss, rdf, or atom  syndication feed for the source |
-| reason | reason media source should be added to the system (optional) |
+| name | Human readable name of media source (optional) |
+| feed_url | URL of RSS, RDF, or Atom syndication feed for the source (optional) |
+| reason | Reason media source should be added to the system (optional) |
 | tags_ids |  list of suggested tags to add to the source (optional ) |
 
 ### Example
