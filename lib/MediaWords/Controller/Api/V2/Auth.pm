@@ -100,8 +100,9 @@ sub login_GET : PathPrefix( '/api' )
 {
     my ( $self, $c ) = @_;
 
-    my $email    = $c->req->params->{ username };
-    my $password = $c->req->params->{ password };
+    my $data     = $c->req->data;
+    my $email    = $data->{ username };
+    my $password = $data->{ password };
 
     my $api_key = _login_and_get_ip_api_key_for_user( $c, $email, $password );
 
@@ -110,21 +111,25 @@ sub login_GET : PathPrefix( '/api' )
         die "User '$email' was not found or password is incorrect.";
     }
 
-    $self->status_ok(
-        $c,
-        entity => {
-            'result'  => 'found',     #
-            'token'   => $api_key,    # legacy; renamed to API key
-            'api_key' => $api_key,    #
-        }
-    );
+    $self->status_ok( $c, entity => { 'api_key' => $api_key } );
 }
 
 sub single_GET : PathPrefix( '/api' )
 {
     my ( $self, $c ) = @_;
 
-    return $self->login_GET( $c, @_ );
+    my $email    = $c->req->params->{ username };
+    my $password = $c->req->params->{ password };
+
+    my $api_key = _login_and_get_ip_api_key_for_user( $c, $email, $password );
+
+    unless ( $api_key )
+    {
+        $self->status_ok( $c, entity => [ { 'result' => 'not found' } ] );
+        return;
+    }
+
+    $self->status_ok( $c, entity => [ { 'result' => 'found', 'token' => $api_key } ] );
 }
 
 # return info about currently logged in user

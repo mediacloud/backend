@@ -125,33 +125,38 @@ Table of Contents
                * [Resetting the user's password has failed](#resetting-the-users-password-has-failed)
             * [Example](#example-27)
       * [Log in](#log-in)
-         * [api/v2/auth/login (GET)](#apiv2authlogin-get)
-            * [Query Parameters](#query-parameters-21)
+         * [api/v2/auth/login (POST)](#apiv2authlogin-post)
+            * [Input Description](#input-description-6)
             * [Output Description](#output-description-10)
                * [User was found](#user-was-found)
                * [User was not found](#user-was-not-found)
             * [Example](#example-28)
-         * [api/v2/auth/single (GET)](#apiv2authsingle-get)
+         * [(deprecated) api/v2/auth/single (GET)](#deprecated-apiv2authsingle-get)
+            * [Query Parameters](#query-parameters-21)
+            * [Output Description](#output-description-11)
+               * [User was found](#user-was-found-1)
+               * [User was not found](#user-was-not-found-1)
+            * [Example](#example-29)
       * [User Profile](#user-profile)
          * [api/v2/auth/profile (GET)](#apiv2authprofile-get)
-            * [Output Description](#output-description-11)
-            * [Example](#example-29)
-         * [api/v2/auth/change_password (POST)](#apiv2authchange_password-post)
-            * [Input Description](#input-description-6)
             * [Output Description](#output-description-12)
+            * [Example](#example-30)
+         * [api/v2/auth/change_password (POST)](#apiv2authchange_password-post)
+            * [Input Description](#input-description-7)
+            * [Output Description](#output-description-13)
                * [Changing the user's password was successful](#changing-the-users-password-was-successful)
                * [Changing the user's password has failed](#changing-the-users-password-has-failed)
-            * [Example](#example-30)
+            * [Example](#example-31)
          * [api/v2/auth/reset_api_key (POST)](#apiv2authreset_api_key-post)
-            * [Output Description](#output-description-13)
+            * [Output Description](#output-description-14)
                * [Resetting user's API keywas successful](#resetting-users-api-keywas-successful)
                * [Resetting user's API key has failed](#resetting-users-api-key-has-failed)
-            * [Example](#example-31)
+            * [Example](#example-32)
    * [Stats](#stats)
       * [api/v2/stats/list](#apiv2statslist)
          * [Query Parameters](#query-parameters-22)
-         * [Output Description](#output-description-14)
-         * [Example](#example-32)
+         * [Output Description](#output-description-15)
+         * [Example](#example-33)
    * [Extended Examples](#extended-examples)
       * [Output Format / JSON](#output-format--json)
       * [Create a CSV file with all media sources.](#create-a-csv-file-with-all-media-sources)
@@ -1690,18 +1695,18 @@ Output:
 
 ## Log in
 
-### `api/v2/auth/login` (GET)
+### `api/v2/auth/login` (POST)
 
-| URL                 | Function                                                           |
-| ------------------- | ------------------------------------------------------------------ |
-| `api/v2/auth/login` | Authenticate user with email + password and return user's API key. |
+| URL                 | Function                                                                       |
+| ------------------- | ------------------------------------------------------------------------------ |
+| `api/v2/auth/login` | Authenticate user with email + password and return user's API key and profile. |
 
-#### Query Parameters
+#### Input Description
 
-| Parameter  | Default | Notes                                 |
-| ---------- | ------- | ------------------------------------- |
-| `username` | null    | *(string)* Email address of the user. |
-| `password` | null    | *(string)* Password of the user.      |
+| Parameter  | Notes                                 |
+| ---------- | ------------------------------------- |
+| `username` | *(string)* Email address of the user. |
+| `password` | *(string)* Password of the user.      |
 
 #### Output Description
 
@@ -1726,11 +1731,14 @@ Output:
 
 #### Example
 
-URL: <https://api.mediacloud.org/api/v2/auth/single?username=foo@bar.baz&password=qwerty1>
+URL: <https://api.mediacloud.org/api/v2/auth/login>
+
+Input:
 
 ```json
 {
-    "api_key": "bae132d8de0e0565cc9b84ec022e367f71f6dabf"
+    "username": "user@email.com",
+    "password": "qwerty1"
 }
 ```
 
@@ -1746,11 +1754,56 @@ Output:
 ```
 
 
-### `api/v2/auth/single` (GET)
+### (deprecated) `api/v2/auth/single` (GET)
 
-| URL                  | Function                       |
-| -------------------- | ------------------------------ |
-| `api/v2/auth/single` | Alias for `api/v2/auth/login`. |
+| URL                  | Function                                                              |
+| -------------------- | --------------------------------------------------------------------- |
+| `api/v2/auth/single` | Authenticate the user with email and password and return its API key. |
+
+This API call is deprecated. Please use `auth/login` for new code.
+
+#### Query Parameters
+
+| Parameter  | Default | Notes                                 |
+| ---------- | ------- | ------------------------------------- |
+| `username` | null    | *(string)* Email address of the user. |
+| `password` | null    | *(string)* Password of the user.      |
+
+#### Output Description
+
+##### User was found
+
+```json
+[
+    {
+        "result": "found",
+        "token": "API key."
+    }
+]
+```
+
+##### User was not found
+
+```json
+[
+    {
+        "result": "not found"
+    }
+]
+```
+
+#### Example
+
+URL: <https://api.mediacloud.org/api/v2/auth/single?username=foo@bar.baz&password=qwerty1>
+
+Output:
+
+```json
+{
+    "result": "found",
+    "token": "bae132d8de0e0565cc9b84ec022e367f71f6dabf"
+}
+```
 
 
 ## User Profile

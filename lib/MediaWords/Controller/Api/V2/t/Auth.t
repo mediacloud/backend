@@ -12,7 +12,7 @@ use MediaWords::CommonLibs;
 
 use HTTP::HashServer;
 use Readonly;
-use Test::More tests => 30;
+use Test::More tests => 32;
 use Test::Deep;
 
 use MediaWords::Test::API;
@@ -50,30 +50,51 @@ sub test_auth_login($)
     eval { MediaWords::DBI::Auth::add_user( $db, $email, 'auth login', '', [ 1 ], 1, $password, $password, 1000, 1000 ); };
     ok( !$@, "Unable to add user: $@" );
 
-    my $endpoints = [
-        '/api/v2/auth/login',
-        '/api/v2/auth/single',    # legacy
-    ];
+    my $r = test_post( '/api/v2/auth/login', { username => $email, password => $password } );
 
-    for my $endpoint ( @{ $endpoints } )
-    {
-        my $r = test_get( $endpoint, { username => $email, password => $password } );
-
-        my $db_api_key = $db->query( <<SQL )->hash;
-            SELECT *
-            FROM auth_user_ip_address_api_keys
-            ORDER BY auth_user_ip_address_api_keys_id DESC
-            LIMIT 1
+    my $db_api_key = $db->query( <<SQL )->hash;
+        SELECT *
+        FROM auth_user_ip_address_api_keys
+        ORDER BY auth_user_ip_address_api_keys_id DESC
+        LIMIT 1
 SQL
 
-        is( $r->{ token },   $db_api_key->{ api_key }, "$endpoint token (legacy)" );
-        is( $r->{ api_key }, $db_api_key->{ api_key }, "$endpoint API key" );
-        is( $db_api_key->{ ip_address }, '127.0.0.1' );
+    is( $r->{ api_key }, $db_api_key->{ api_key }, "'/api/v2/auth/login' API key" );
+    is( $db_api_key->{ ip_address }, '127.0.0.1' );
 
-        Readonly my $expect_error => 1;
-        my $r_not_found = test_get( $endpoint, { username => $email, password => "$password FOO" }, $expect_error );
-        ok( $r_not_found->{ error } =~ /was not found or password/i, "$endpoint status for wrong password" );
-    }
+    Readonly my $expect_error => 1;
+    my $r_not_found = test_post( '/api/v2/auth/login', { username => $email, password => "$password FOO" }, $expect_error );
+    ok( $r_not_found->{ error } =~ /was not found or password/i, "'/api/v2/auth/login' status for wrong password" );
+}
+
+# test deprecated auth/single
+sub test_auth_single($)
+{
+    my ( $db ) = @_;
+
+    my $email    = 'test@auth.single';
+    my $password = 'authsingle';
+
+    eval { MediaWords::DBI::Auth::add_user( $db, $email, 'auth single', '', [ 1 ], 1, $password, $password, 1000, 1000 ); };
+    ok( !$@, "Unable to add user: $@" );
+
+    my $r = test_get( '/api/v2/auth/single', { username => $email, password => $password } );
+
+    my $db_api_key = $db->query( <<SQL )->hash;
+        SELECT *
+        FROM auth_user_ip_address_api_keys
+        ORDER BY auth_user_ip_address_api_keys_id DESC
+        LIMIT 1
+SQL
+
+    is( $r->[ 0 ]->{ token }, $db_api_key->{ api_key }, "'/api/v2/auth/single' token (legacy)" );
+    ok( !defined $r->[ 0 ]->{ api_key }, "'/api/v2/auth/single' api_key should be undefined" );
+    is( $db_api_key->{ ip_address }, '127.0.0.1' );
+
+    my $r_not_found = test_get( '/api/v2/auth/single', { username => $email, password => "$password FOO" } );
+    is( $r_not_found->[ 0 ]->{ result }, 'not found', "'/api/v2/auth/single' status for wrong password" );
+    ok( !defined $r_not_found->[ 0 ]->{ token },   "'/api/v2/auth/single' token is undefined" );
+    ok( !defined $r_not_found->[ 0 ]->{ api_key }, "'/api/v2/auth/single' api_key should be undefined" );
 }
 
 # test auth/* calls
@@ -85,6 +106,7 @@ sub test_auth($)
 
     test_auth_profile( $db );
     test_auth_login( $db );
+    test_auth_single( $db );
 }
 
 sub main
