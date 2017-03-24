@@ -271,7 +271,7 @@ Response:
 | `similar_media_id` | none | Return media with the most tags in common
 | `primary_language` | none | Return media with the given ISO 639-1 2 letter primary language codes (specify more than once for a list)
 
-If the name parameter is specified, the call returns only media sources that match a case insensitive search specified value.  If the specified value is less than 3 characters long, the call returns an empty list.  The name_or_tag parameter behaves identically, but it also searches for all media sources that either have a name that matches the search text or that are associated with a tag that matches the search text.
+If the name parameter is specified, the call returns only media sources that match a case insensitive search specified value.  If the specified value is less than 3 characters long, the call returns an empty list.
 
 By default, calls that specify a name parameter will only return media that are not duplicates of
 some other media source.  Media Cloud has many media sources that are either subsets of other media sources or are
