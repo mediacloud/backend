@@ -92,7 +92,7 @@ Table of Contents
          * [Query Parameters](#query-parameters-20)
          * [Example](#example-22)
    * [Registration and Authentication](#registration-and-authentication)
-      * [Registration](#registration)
+      * [Register](#register)
          * [api/v2/auth/register (POST)](#apiv2authregister-post)
             * [Input Description](#input-description-1)
             * [Output Description](#output-description-5)
@@ -1377,7 +1377,7 @@ URL: https://api.mediacloud.org/api/v2/timespans/list?snapshots_id=5
 
 # Registration and Authentication
 
-## Registration
+## Register
 
 ### `api/v2/auth/register` (POST)
 
