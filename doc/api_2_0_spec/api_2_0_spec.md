@@ -1395,6 +1395,8 @@ URL: https://api.mediacloud.org/api/v2/timespans/list?snapshots_id=5
 | ---------------------- | -------------------- |
 | `api/v2/auth/register` | Register a new user. |
 
+API call will be rate-limited.
+
 #### Input Description
 
 | Field                     | Description                                                             |
@@ -1526,6 +1528,8 @@ Output:
 | ------------------------------------ | -------------------------------------------------- |
 | `api/v2/auth/resend_activation_link` | Resend activation email for newly registered user. |
 
+API call will be rate-limited.
+
 #### Input Description
 
 | Field            | Description                                                                |
@@ -1582,6 +1586,8 @@ Output:
 | URL                                    | Function                                                 |
 | -------------------------------------- | -------------------------------------------------------- |
 | `api/v2/auth/send_password_reset_link` | Email a link to user to be used to reset their password. |
+
+API call will be rate-limited.
 
 #### Input Description
 
@@ -1701,6 +1707,8 @@ Output:
 | ------------------- | ------------------------------------------------------------------------------ |
 | `api/v2/auth/login` | Authenticate user with email + password and return user's API key and profile. |
 
+API call will be rate-limited.
+
 #### Input Description
 
 | Parameter  | Notes                                 |
@@ -1759,6 +1767,8 @@ Output:
 | URL                  | Function                                                              |
 | -------------------- | --------------------------------------------------------------------- |
 | `api/v2/auth/single` | Authenticate the user with email and password and return its API key. |
+
+API call will be rate-limited.
 
 This API call is deprecated. Please use `auth/login` for new code.
 
