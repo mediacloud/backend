@@ -1728,7 +1728,7 @@ URL: <https://api.mediacloud.org/api/v2/auth/single?username=foo@bar.baz&passwor
 {
     "email": "(string) users@email.address",
     "full_name": "(string) User's Full Name",
-    "api_key": "(string) User's API key."
+    "api_key": "(string) User's API key.",
     "notes": "(string) User's 'notes' field.",
     "created_date": "(ISO 8601 date) of when the user was created.",
     "active": "(integer) 1 if user is active (has activated account via email), 0 otherwise.",
@@ -1738,15 +1738,13 @@ URL: <https://api.mediacloud.org/api/v2/auth/single?username=foo@bar.baz&passwor
     ],
     "limits": {
         "weekly": {
-            {
-                "requests": {
-                    "used": "(integer) Weekly request count",
-                    "limit": "(integer) Weekly request limit; 0 if no limit"
-                },
-                "requested_items": {
-                    "used": "(integer) Weekly requested items count",
-                    "limit": "(integer) Weekly requested items limit; 0 if no limit"
-                },
+            "requests": {
+                "used": "(integer) Weekly request count",
+                "limit": "(integer) Weekly request limit; 0 if no limit"
+            },
+            "requested_items": {
+                "used": "(integer) Weekly requested items count",
+                "limit": "(integer) Weekly requested items limit; 0 if no limit"
             }
         }
     }
@@ -1785,15 +1783,13 @@ URL: <https://api.mediacloud.org/api/v2/auth/profile>
     ],
     "limits": {
         "weekly": {
-            {
-                "requests": {
-                    "used": 200,
-                    "limit": 0
-                },
-                "requested_items": {
-                    "used": 2000,
-                    "limit": 0
-                },
+            "requests": {
+                "used": 200,
+                "limit": 0
+            },
+            "requested_items": {
+                "used": 2000,
+                "limit": 0
             }
         }
     }
