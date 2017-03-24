@@ -1468,7 +1468,14 @@ Output:
 
 ##### Activating the user was successful
 
-Return the full profile information as in `auth/profile`.
+```json
+{
+    "success": 1,
+    "profile": {
+        "Full profile information as in auth/profile."
+    }
+}
+```
 
 ##### Activating the user has failed
 
@@ -1491,7 +1498,16 @@ Input:
 }
 ```
 
-Output: same as in `auth/profile`.
+Output:
+
+```json
+{
+    "success": 1,
+    "profile": {
+        "Full profile information as in auth/profile."
+    }
+}
+```
 
 
 ### `api/v2/auth/resend_activation_link` (POST)
@@ -1686,7 +1702,14 @@ Output:
 
 ##### User was found
 
-Return the full profile information as in `auth/profile`.
+```json
+{
+    "success": 1,
+    "profile": {
+        "Full profile information as in auth/profile."
+    }
+}
+```
 
 ##### User was not found
 
@@ -1703,6 +1726,17 @@ URL: <https://api.mediacloud.org/api/v2/auth/single?username=foo@bar.baz&passwor
 ```json
 {
     "api_key": "bae132d8de0e0565cc9b84ec022e367f71f6dabf"
+}
+```
+
+Output:
+
+```json
+{
+    "success": 1,
+    "profile": {
+        "Full profile information as in auth/profile."
+    }
 }
 ```
 
