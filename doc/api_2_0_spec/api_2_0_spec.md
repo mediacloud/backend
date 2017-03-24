@@ -91,16 +91,62 @@ Table of Contents
       * [api/v2/timespans/list/](#apiv2timespanslist)
          * [Query Parameters](#query-parameters-20)
          * [Example](#example-22)
-   * [Auth](#auth)
-      * [api/v2/auth/profile](#apiv2authprofile)
-         * [Query Parameters](#query-parameters-21)
-         * [Output Description](#output-description-5)
-         * [Example](#example-23)
+   * [Registration and Authentication](#registration-and-authentication)
+      * [Registration](#registration)
+         * [api/v2/auth/register (POST)](#apiv2authregister-post)
+            * [Input Description](#input-description-1)
+            * [Output Description](#output-description-5)
+               * [Registration was successful](#registration-was-successful)
+               * [Registration has failed](#registration-has-failed)
+            * [Example](#example-23)
+         * [api/v2/auth/activate (POST)](#apiv2authactivate-post)
+            * [Input Description](#input-description-2)
+            * [Output Description](#output-description-6)
+               * [Activating the user was successful](#activating-the-user-was-successful)
+               * [Activating the user has failed](#activating-the-user-has-failed)
+            * [Example](#example-24)
+         * [api/v2/auth/resend_activation_link (POST)](#apiv2authresend_activation_link-post)
+            * [Input Description](#input-description-3)
+            * [Output Description](#output-description-7)
+               * [Resending the activation email was successful](#resending-the-activation-email-was-successful)
+               * [Resending the activation email has failed](#resending-the-activation-email-has-failed)
+            * [Example](#example-25)
+      * [Reset password](#reset-password)
+         * [api/v2/auth/send_password_reset_link (POST)](#apiv2authsend_password_reset_link-post)
+            * [Input Description](#input-description-4)
+            * [Output Description](#output-description-8)
+               * [Sending the password reset link was successful](#sending-the-password-reset-link-was-successful)
+               * [Sending the password reset link has failed](#sending-the-password-reset-link-has-failed)
+            * [Example](#example-26)
+         * [api/v2/auth/reset_password (POST)](#apiv2authreset_password-post)
+            * [Input Description](#input-description-5)
+            * [Output Description](#output-description-9)
+               * [Resetting the user's password was successful](#resetting-the-users-password-was-successful)
+               * [Resetting the user's password has failed](#resetting-the-users-password-has-failed)
+            * [Example](#example-27)
+      * [Log in](#log-in)
+         * [api/v2/auth/login (GET)](#apiv2authlogin-get)
+            * [Query Parameters](#query-parameters-21)
+            * [Output Description](#output-description-10)
+               * [User was found](#user-was-found)
+               * [User was not found](#user-was-not-found)
+            * [Example](#example-28)
+         * [api/v2/auth/single (GET)](#apiv2authsingle-get)
+      * [User Profile](#user-profile)
+         * [api/v2/auth/profile (GET)](#apiv2authprofile-get)
+            * [Output Description](#output-description-11)
+            * [Example](#example-29)
+         * [api/v2/auth/change_password (POST)](#apiv2authchange_password-post)
+            * [Input Description](#input-description-6)
+            * [Output Description](#output-description-12)
+               * [Changing the user's password was successful](#changing-the-users-password-was-successful)
+               * [Changing the user's password has failed](#changing-the-users-password-has-failed)
+            * [Example](#example-30)
    * [Stats](#stats)
       * [api/v2/stats/list](#apiv2statslist)
          * [Query Parameters](#query-parameters-22)
-         * [Output Description](#output-description-6)
-         * [Example](#example-24)
+         * [Output Description](#output-description-13)
+         * [Example](#example-31)
    * [Extended Examples](#extended-examples)
       * [Output Format / JSON](#output-format--json)
       * [Create a CSV file with all media sources.](#create-a-csv-file-with-all-media-sources)
@@ -1328,39 +1374,321 @@ Response:
 
 URL: https://api.mediacloud.org/api/v2/timespans/list?snapshots_id=5
 
-# Auth
+
+# Registration and Authentication
+
+## Registration
+
+### `api/v2/auth/register` (POST)
+
+| URL                    | Function             |
+| ---------------------- | -------------------- |
+| `api/v2/auth/register` | Register a new user. |
+
+#### Input Description
+
+| Field                     | Description                                                             |
+| ------------------------- | ----------------------------------------------------------------------- |
+| `email`                   | *(string)* Email of new user.                                           |
+| `password`                | *(string)* Password of new user.                                        |
+| `full_name`               | *(string)* Full name of new user.                                       |
+| `notes`                   | *(string)* User's explanation on how user intends to use Media Cloud.   |
+| `subscribe_to_newsletter` | *(integer)* Whether or not user wants to subscribe to our mailing list. |
+| `activation_url`          | *(string)* Client's URL used for user account activation.               |
+
+Asking user to re-enter password and comparing the two values is left to the client.
+
+Client should prevent automated registrations with a CAPTCHA.
+
+After successful registration, user can not immediately log in as the user needs to activate their account via email first. User will be send an email with a link to `activation_url` and the following GET parameters:
+
+* `email` -- user's email to be used as a parameter to `auth/activate`;
+* `activation_token` -- user's activation token to be used as a parameter to `auth/activate`.
+
+#### Output Description
+
+##### Registration was successful
+
+```json
+{
+    'success': 1
+}
+```
+
+After successful registraction, user is sent an email inviting him to open a link `activation_url?email=...&activation_token=...`.
+
+##### Registration has failed
+
+```json
+{
+    'error': 'Reason why the user can not be registered (e.g. duplicate email).'
+}
+```
+
+#### Example
+
+URL: <https://api.mediacloud.org/api/v2/auth/register>
+
+Input:
+
+```json
+{
+    "email": "foo@bar.baz",
+    "password": "qwerty1",
+    "full_name": "Foo Bar",
+    "notes": "Just feeling like it.",
+    "subscribe_to_newsletter": 1,
+    "activation_url": "https://dashboard.mediacloud.org/activate"
+}
+```
+
+Output:
+
+```json
+{
+    'success': 1
+}
+```
 
 
+### `api/v2/auth/activate` (POST)
 
-### Query Parameters
+| URL                    | Function                                                                |
+| ---------------------- | ----------------------------------------------------------------------- |
+| `api/v2/auth/activate` | Activate user using email and activation token from registration email. |
+
+#### Input Description
+
+| Field              | Description                                |
+| ------------------ | ------------------------------------------ |
+| `email`            | *(string)* Email of user to be activated.  |
+| `activation_token` | *(string)* Activation token sent by email. |
+
+#### Output Description
+
+##### Activating the user was successful
+
+Return the full profile information as in `auth/profile`.
+
+##### Activating the user has failed
+
+```json
+{
+    'error': 'Reason why user activation has failed.'
+}
+```
+
+#### Example
+
+URL: <https://api.mediacloud.org/api/v2/auth/activate>
+
+Input:
+
+```json
+{
+    "email": "foo@bar.baz",
+    "activation_token": "3a0e7de3ba8e19227847b59e43f2ce54c98ec897"
+}
+```
+
+Output: same as in `auth/profile`.
 
 
+### `api/v2/auth/resend_activation_link` (POST)
 
-## api/v2/auth/login (GET)
+| URL                                  | Function                                           |
+| ------------------------------------ | -------------------------------------------------- |
+| `api/v2/auth/resend_activation_link` | Resend activation email for newly registered user. |
+
+#### Input Description
+
+| Field            | Description                                                                |
+| ---------------- | -------------------------------------------------------------------------- |
+| `email`          | *(string)* Email of newly created user to resend the activation email to.  |
+| `activation_url` | *(string)* Client's URL used for user account activation.                  |
+
+For the description of `activation_url`, see `auth/register`.
+
+#### Output Description
+
+##### Resending the activation email was successful
+
+```json
+{
+    'success': 1
+}
+```
+
+##### Resending the activation email has failed
+
+```json
+{
+    'error': 'Reason why the activation email can not be resent.'
+}
+```
+
+#### Example
+
+URL: <https://api.mediacloud.org/api/v2/auth/resend_activation_link>
+
+Input:
+
+```json
+{
+    "email": "foo@bar.baz",
+    "activation_url": "https://dashboard.mediacloud.org/activate"
+}
+```
+
+Output:
+
+```json
+{
+    'success': 1
+}
+```
+
+
+## Reset password
+
+### `api/v2/auth/send_password_reset_link` (POST)
+
+| URL                                    | Function                                                 |
+| -------------------------------------- | -------------------------------------------------------- |
+| `api/v2/auth/send_password_reset_link` | Email a link to user to be used to reset their password. |
+
+#### Input Description
+
+| Field                | Description                                                  |
+| -------------------- | ------------------------------------------------------------ |
+| `email`              | *(string)* Email of user to send the password reset link to. |
+| `password_reset_url` | *(string)* Client's URL used for setting new password.       |
+
+User will be send an email with a link to `password_reset_url` and the following GET parameters:
+
+* `email` -- user's email to be used as a parameter to `auth/reset_password`;
+* `password_reset_token` -- user's password reset token to be used as a parameter to `auth/reset_password`.
+
+#### Output Description
+
+##### Sending the password reset link was successful
+
+```json
+{
+    'success': 1
+}
+```
+
+After successful send password reset API call, user is sent an email inviting him to open a link `password_reset_url?email=...&password_reset_token=...`.
+
+
+##### Sending the password reset link has failed
+
+```json
+{
+    'error': 'Reason why the password reset link can not be sent.'
+}
+```
+
+#### Example
+
+URL: <https://api.mediacloud.org/api/v2/auth/send_password_reset_link>
+
+Input:
+
+```json
+{
+    "email": "foo@bar.baz",
+    "password_reset_url": "https://dashboard.mediacloud.org/reset_password"
+}
+```
+
+Output:
+
+```json
+{
+    'success': 1
+}
+```
+
+
+### `api/v2/auth/reset_password` (POST)
+
+| URL                          | Function                                                                                        |
+| ---------------------------- | ----------------------------------------------------------------------------------------------- |
+| `api/v2/auth/reset_password` | Reset user's password using their password reset token send by `auth/send_password_reset_link`. |
+
+#### Input Description
+
+| Field                  | Description                                        |
+| ---------------------- | -------------------------------------------------- |
+| `email`                | *(string)* Email of user to reset the password to. |
+| `password_reset_token` | *(string)* Password reset token sent by email.     |
+| `new_password`         | *(string)* User's new password.                    |
+
+#### Output Description
+
+##### Resetting the user's password was successful
+
+```json
+{
+    'success': 1
+}
+```
+
+##### Resetting the user's password has failed
+
+```json
+{
+    'error': 'Reason why the password can not be reset.'
+}
+```
+
+#### Example
+
+URL: <https://api.mediacloud.org/api/v2/auth/reset_password>
+
+Input:
+
+```json
+{
+    "email": "foo@bar.baz",
+    "password_reset_token": "3a0e7de3ba8e19227847b59e43f2ce54c98ec897",
+    "new_password": "qwerty1"
+}
+```
+
+Output:
+
+```json
+{
+    'success': 1
+}
+```
+
+
+## Log in
+
+### `api/v2/auth/login` (GET)
 
 | URL                 | Function                                                           |
 | ------------------- | ------------------------------------------------------------------ |
 | `api/v2/auth/login` | Authenticate user with email + password and return user's API key. |
 
-### Query Parameters
+#### Query Parameters
 
-| Parameter  | Default | Notes                      |
-| ---------- | ------- | -------------------------- |
-| `username` | null    | Email address of the user. |
-| `password` | null    | Password of the user.      |
+| Parameter  | Default | Notes                                 |
+| ---------- | ------- | ------------------------------------- |
+| `username` | null    | *(string)* Email address of the user. |
+| `password` | null    | *(string)* Password of the user.      |
 
-### Output Description
+#### Output Description
 
-#### User was found
+##### User was found
 
-```json
-{
-    'token': "User's API key.",
-    'api_key': "User's API key (the very same as in 'token')."
-}
-```
+Return the full profile information as in `auth/profile`.
 
-#### User was not found
+##### User was not found
 
 ```json
 {
@@ -1368,39 +1696,64 @@ URL: https://api.mediacloud.org/api/v2/timespans/list?snapshots_id=5
 }
 ```
 
-### Example
+#### Example
 
 URL: <https://api.mediacloud.org/api/v2/auth/single?username=foo@bar.baz&password=qwerty1>
 
 ```json
 {
-    'token': "bae132d8de0e0565cc9b84ec022e367f71f6dabf",
     'api_key': "bae132d8de0e0565cc9b84ec022e367f71f6dabf"
 }
 ```
 
 
-## api/v2/auth/single (GET)
+### `api/v2/auth/single` (GET)
 
-| URL                 | Function                        |
-| ------------------- | ------------------------------- |
+| URL                  | Function                       |
+| -------------------- | ------------------------------ |
 | `api/v2/auth/single` | Alias for `api/v2/auth/login`. |
 
 
+## User Profile
 
-## api/v2/auth/profile (GET)
+### `api/v2/auth/profile` (GET)
 
-| URL                     | Function                                             |
-| ----------------------- | ---------------------------------------------------- |
-| `api/v2/auth/profile`   | Return profile information about the requesting user |
+| URL                     | Function                                              |
+| ----------------------- | ----------------------------------------------------- |
+| `api/v2/auth/profile`   | Return profile information about the requesting user. |
 
-### Query Parameters
+#### Output Description
 
-None.
+```json
+{
+    "email": "(string) users@email.address",
+    "full_name": "(string) User's Full Name",
+    'api_key': "(string) User's API key."
+    "notes": "(string) User's 'notes' field.",
+    "created_date": "(ISO 8601 date) of when the user was created.",
+    "active": "(integer) 1 if user is active (has activated account via email), 0 otherwise.",
+    "auth_roles": [
+        "(string) user-role-1",
+        "(string) user-role-2"
+    ],
+    "limits": {
+        "weekly": {
+            {
+                "requests": {
+                    "used": "(integer) Weekly request count",
+                    "limit": "(integer) Weekly request limit; 0 if no limit"
+                },
+                "requested_items": {
+                    "used": "(integer) Weekly requested items count",
+                    "limit": "(integer) Weekly requested items limit; 0 if no limit"
+                },
+            }
+        }
+    }
+}
+```
 
-### Output Description
-
-Returns basic profile information about the current user. Includes a list of authentication roles for the user that give the user permission to access various parts of the backend web interface and some of the private API functionality (that for example allow editing and administration of Media Cloud's sources).
+Includes a list of authentication roles for the user that give the user permission to access various parts of the backend web interface and some of the private API functionality (that for example allow editing and administration of Media Cloud's sources).
 
 Media Cloud currently includes the following authentication roles:
 
@@ -1414,22 +1767,91 @@ Media Cloud currently includes the following authentication roles:
 | `tm`             | Access legacy topic mapper web interface                         |
 | `tm-readonly`    | Access legacy topic mapper web interface with editing privileges |
 
-
-### Example
+#### Example
 
 URL: <https://api.mediacloud.org/api/v2/auth/profile>
 
 ```json
 {
-    "auth_users_id": 1,
     "email": "hroberts@cyber.law.harvard.edu",
     "full_name": "Hal Roberts",
+    'api_key': "bae132d8de0e0565cc9b84ec022e367f71f6dabf"
     "notes": "Media Cloud Geek",
-    "created_date": "2014-12-10 13:36:29.537007",
+    "created_date": "2017-03-24T03:23:47+00:00",
+    "active": 1,
     "auth_roles": [
         "media-edit",
         "stories-edit"
-    ]
+    ],
+    "limits": {
+        "weekly": {
+            {
+                "requests": {
+                    "used": 200,
+                    "limit": 0
+                },
+                "requested_items": {
+                    "used": 2000,
+                    "limit": 0
+                },
+            }
+        }
+    }
+}
+```
+
+
+### `api/v2/auth/change_password` (POST)
+
+| URL                           | Function                                    |
+| ----------------------------- | ------------------------------------------- |
+| `api/v2/auth/change_password` | Change user's password. |
+
+#### Input Description
+
+| Field          | Description                     |
+| -------------- | ------------------------------- |
+| `old_password` | *(string)* User's old password. |
+| `new_password` | *(string)* User's new password. |
+
+Asking user to re-enter password and comparing the two values is left to the client.
+
+#### Output Description
+
+##### Changing the user's password was successful
+
+```json
+{
+    'success': 1
+}
+```
+
+##### Changing the user's password has failed
+
+```json
+{
+    'error': 'Reason why the password can not be changed.'
+}
+```
+
+#### Example
+
+URL: <https://api.mediacloud.org/api/v2/auth/change_password>
+
+Input:
+
+```json
+{
+    'old_password': 'qwerty1',
+    'new_password': 'qwerty1',
+}
+```
+
+Output:
+
+```json
+{
+    'success': 1
 }
 ```
 
