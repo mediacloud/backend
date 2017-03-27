@@ -30,7 +30,7 @@ If this script runs successfully, skip to the [Post Install](#post-install) sect
 
 We recommend that you read through this entire file. Nevertheless most users will be able to simply run the following commands from the Media Cloud root directory:
 
-    sudo ./install/install_mediacloud_package_dependencies.sh
+    sudo ./install/install_mediacloud_system_package_dependencies.sh
     sudo ./install/create_default_db_user_and_databases.sh 
     cp mediawords.yml.dist mediawords.yml
     ./install/install_mc_perlbrew_and_modules.sh
@@ -51,7 +51,7 @@ After you have successfully run the above commands, skip to the POST INSTALL sec
 
 1. Install the necessary Ubuntu deb packages. From the Media Cloud root directory, run:
 
-        sudo ./install/install_mediacloud_package_dependencies.sh
+        sudo ./install/install_mediacloud_system_package_dependencies.sh
 
     This will install PostgreSQL 9.1+ and a number of system libraries needed by CPAN modules.
 
