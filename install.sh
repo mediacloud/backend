@@ -19,7 +19,7 @@ if [ ! -f mediawords.yml ]; then
 fi
 
 ./install/install_postgresql_server_packages.sh
-./install/install_mediacloud_system_package_dependencies.sh
+./install/install_mediacloud_package_dependencies.sh
 ./install/install_python_dependencies.sh
 ./install/set_kernel_parameters.sh
 ./install/set_postgresql_parameters.sh

@@ -22,7 +22,7 @@ RABBITMQ_WEB_INTERFACE_PORT=15673
 
 # Erlang version to use on Ubuntu < 16.04:
 #
-# Update install_mediacloud_system_package_dependencies.sh too!
+# Update install_mediacloud_package_dependencies.sh too!
 #
 # Newest Erlang version (18.3 at the time of writing) has memory handling issues, see:
 # https://groups.google.com/forum/#!topic/rabbitmq-users/7K0Ac5tWUIY
@@ -31,7 +31,7 @@ ERLANG_OLD_UBUNTU_APT_VERSION="1:17.5.3"
 
 # RabbitMQ version to install on Ubuntu < 16.04:
 #
-# Update install_mediacloud_system_package_dependencies.sh too!
+# Update install_mediacloud_package_dependencies.sh too!
 #
 # Newest RabbitMQ version (3.6.6 at the time of writing) does not install on 12.04 anymore because:
 #
@@ -120,7 +120,7 @@ max_fd_limit_is_big_enough() {
 }
 
 print_rabbitmq_installation_instructions() {
-    log "Please install RabbitMQ by running 'install_mediacloud_system_package_dependencies.sh'"
+    log "Please install RabbitMQ by running 'install_mediacloud_package_dependencies.sh'"
 }
 
 kill_process_group() {
