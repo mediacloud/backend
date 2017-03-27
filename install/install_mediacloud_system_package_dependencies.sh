@@ -109,6 +109,8 @@ EOF
         hunspell \
         libyaml \
         logrotate \
+        mecab \
+        mecab-ipadic --charset=utf8 \
         netcat \
         openssl \
         python \
@@ -241,6 +243,7 @@ else
         liblist-allutils-perl \
         liblist-moreutils-perl \
         liblocale-maketext-lexicon-perl \
+        libmecab-dev \
         libopengl-perl \
         libreadonly-perl \
         libreadonly-xs-perl \
@@ -255,6 +258,8 @@ else
         libyaml-syck-perl \
         logrotate \
         make \
+        mecab \
+        mecab-ipadic-utf8 \
         netcat \
         openjdk-8-jdk \
         perl-doc \
