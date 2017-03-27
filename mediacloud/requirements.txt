@@ -12,6 +12,9 @@ coverage
 # Stemming Hausa words
 hausastemmer
 
+# Japanese language tokenizer, stemmer, etc.
+mecab-python3
+
 # Unit tests
 nose
 
