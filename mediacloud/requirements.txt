@@ -15,6 +15,9 @@ hausastemmer
 # Japanese language tokenizer, stemmer, etc.
 mecab-python3
 
+# Natural language processing, e.g. tokenization
+nltk
+
 # Unit tests
 nose
 
