@@ -20,8 +20,10 @@ Functions for querying the solr server.  More information about solr integration
 
 =cut
 
+use Encode;
 use List::Util;
 use Time::HiRes qw(gettimeofday tv_interval);
+use URI::Escape;
 
 use MediaWords::DB;
 use MediaWords::DBI::Stories;
@@ -243,9 +245,6 @@ sub query_encoded_json($$;$)
 
     # $params->{ fq } = MediaWords::Solr::PseudoQueries::transform_query( $params->{ fq } );
 
-    # Ensure that only UTF-8 strings get passed to Solr
-    my $encoded_params = MediaWords::Util::Text::recursively_encode_to_utf8( $params );
-
     my $url_action = $params->{ 'clustering.engine' } ? 'clustering' : 'select';
 
     my $url = sprintf( '%s/%s/%s', get_solr_url(), get_live_collection( $db ), $url_action );
@@ -256,13 +255,18 @@ sub query_encoded_json($$;$)
     $ua->set_max_size( undef );
 
     TRACE "Executing Solr query on $url ...";
-    TRACE 'Encoded parameters: ' . Dumper( $encoded_params );
-
+    TRACE 'Parameters: ' . Dumper( $params );
     my $t0 = [ gettimeofday ];
 
     my $request = MediaWords::Util::Web::UserAgent::Request->new( 'POST', $url );
     $request->set_content_type( 'application/x-www-form-urlencoded; charset=utf-8' );
-    $request->set_content( $encoded_params );
+
+    # passing the hash directly to set_content() messes up encoding, I think because LWP assumes somewhere that it is
+    # processing latin, despite the content-type above.  so we just manually create the cgi string with 1encoded values
+    my $post_content =
+      join( '&', map { encode_utf8( $_ ) . '=' . uri_escape( encode_utf8( $params->{ $_ } ) ) } keys( %{ $params } ) );
+
+    $request->set_content( $post_content );
 
     my $res = $ua->request( $request );
 
