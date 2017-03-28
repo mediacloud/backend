@@ -264,7 +264,7 @@ sub query_encoded_json($$;$)
     # passing the hash directly to set_content() messes up encoding, I think because LWP assumes somewhere that it is
     # processing latin, despite the content-type above.  so we just manually create the cgi string with 1encoded values
     my $post_content =
-      join( '&', map { encode_utf8( $_ ) . '=' . uri_escape( encode_utf8( $params->{ $_ } ) ) } keys( %{ $params } ) );
+      join( '&', map { encode_utf8( $_ ) . '=' . uri_escape( encode_utf8( $params->{ $_ } || '' ) ) } keys( %{ $params } ) );
 
     $request->set_content( $post_content );
 

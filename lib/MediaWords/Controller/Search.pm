@@ -8,12 +8,14 @@ use MediaWords::CommonLibs;
 
 use base 'Catalyst::Controller';
 
+use Encode;
+use Readonly;
+
 use MediaWords::TM::Mine;
 use MediaWords::Solr;
 use MediaWords::Solr::WordCounts;
 use MediaWords::Util::CSV;
 use MediaWords::ActionRole::Logged;
-use Readonly;
 
 =head1 NAME>
 
@@ -171,13 +173,17 @@ sub _match_stories_to_pattern
 
     $db->begin;
 
+    DEBUG( "pattern: '$pattern'" );
+
     my $topic = {
         name            => '_preview',
         description     => '_preview',
         solr_seed_query => '_preview',
-        pattern         => $pattern,
+        pattern         => encode_utf8( $pattern ),
         start_date      => '2000-01-01',
-        end_date        => '3000-01-01'
+        end_date        => '3000-01-01',
+        job_queue       => 'mc',
+        max_stories     => 1_000_000
     };
     $topic = $db->create( 'topics', $topic );
 

@@ -215,21 +215,22 @@ class TermNode(ParseNode):
 
     def get_re(self, operands: List[AbstractParseNode] = None) -> str:
         term = self.term
+
+        # we shouldn't need to escape special characters from the term regex because a term token should only include
+        # word characters
         if self.phrase:
             term = shlex.split(term)[0]
 
             # should already be lower case, but make sure
             term = term.lower()
 
-            # replace spaces with placeholder text so that we can replace it with [[:space:]] after re.escape
-            term = re.sub(r'\s+', 'SPACE', term)
-
-            term = re.escape(term)
-            term = re.sub('SPACE', '[[:space:]]+', term)
+            # replace spaces with placeholder text so that we can replace it with [[:space:]] after the re.sub below
+            term = re.sub(r'\s+', '[[:space:]]+', term)
 
             return '[[:<:]]' + term
         else:
-            return '[[:<:]]' + re.escape(term)
+            term = '[[:<:]]' + term
+            return term
 
     def _filter_node_children(self, filter_function: Callable[[AbstractParseNode], bool]) \
             -> Union[AbstractParseNode, None]:
