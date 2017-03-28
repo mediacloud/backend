@@ -216,20 +216,27 @@ class TermNode(ParseNode):
     def get_re(self, operands: List[AbstractParseNode] = None) -> str:
         term = self.term
 
-        # we shouldn't need to escape special characters from the term regex because a term token should only include
-        # word characters
         if self.phrase:
             term = shlex.split(term)[0]
 
             # should already be lower case, but make sure
             term = term.lower()
 
+            space_place_holder = 'SPACEPLACEHOLDER'
             # replace spaces with placeholder text so that we can replace it with [[:space:]] after the re.sub below
-            term = re.sub(r'\s+', '[[:space:]]+', term)
+            term = re.sub(r'\s+', space_place_holder, term)
+
+            # escape special characters.  re.escape() escapes everything that is not
+            # ascii alnum, which confuses the postgres reg ex engine
+            term = re.sub(r"\W", r"\\\g<0>", term)
+
+            term = re.sub(space_place_holder, '[[:space:]]+', term)
 
             return '[[:<:]]' + term
         else:
-            term = '[[:<:]]' + term
+            # escape special characters.  re.escape() escapes everything that is not
+            # ascii alnum, which confuses the postgres reg ex engine
+            term = '[[:<:]]' + re.sub(r"\W", r"\\\g<0>", term)
             return term
 
     def _filter_node_children(self, filter_function: Callable[[AbstractParseNode], bool]) \
