@@ -3,6 +3,9 @@ from unittest import TestCase
 from mediawords.languages.ja import *
 
 
+# FIXME text -> sentence tokenization with newlines
+# FIXME text -> sentence tokenization with lists
+
 # noinspection SpellCheckingInspection
 class TestJapaneseTokenizer(TestCase):
     __mecab = None
