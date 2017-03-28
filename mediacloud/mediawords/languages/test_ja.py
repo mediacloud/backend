@@ -77,6 +77,17 @@ class TestJapaneseTokenizer(TestCase):
                    "This is some more English text.",
                ]
 
+        # Japanese and English punctuation (with newlines)
+        assert self.__tokenizer.tokenize_text_to_sentences("""ジアゼパムはてんかんや興奮の治療に用いられる。
+This is some English text out of the blue. 
+また、有痛性筋痙攣（いわゆる“こむらがえり”）などの筋痙攣の治療にはベンゾジアゼピン類の中で最も有用であるとされている。
+This is some more English text.""") == [
+            "ジアゼパムはてんかんや興奮の治療に用いられる。",
+            "This is some English text out of the blue.",
+            "また、有痛性筋痙攣（いわゆる“こむらがえり”）などの筋痙攣の治療にはベンゾジアゼピン類の中で最も有用であるとされている。",
+            "This is some more English text.",
+        ]
+
     def test_tokenize_sentence_to_words(self):
         # noinspection PyTypeChecker
         assert self.__tokenizer.tokenize_sentence_to_words(None) == []

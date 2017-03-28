@@ -69,14 +69,17 @@ class McJapaneseTokenizer(object):
 
         # First split Japanese text
         japanese_sentences = self.__japanese_sentence_tokenizer.tokenize(text)
-        japanese_and_non_japanese_sentences = []
+        sentences = []
         for sentence in japanese_sentences:
             # ...then naively split non-Japanese text
             non_japanese_sentences = self.__non_japanese_sentence_tokenizer.tokenize(sentence)
 
-            japanese_and_non_japanese_sentences += non_japanese_sentences
+            sentences += non_japanese_sentences
 
-        return japanese_and_non_japanese_sentences
+        # Trim whitespace
+        sentences = [sentence.strip() for sentence in sentences]
+
+        return sentences
 
     def tokenize_sentence_to_words(self, sentence: str) -> list:
         """Tokenize Japanese sentence into words.
