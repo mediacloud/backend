@@ -283,7 +283,7 @@ else
         tar -xf "$MECAB_TEMP_FILE" -C "$MECAB_TEMP_DEST_DIR" --strip-components=1
         
         (cd "$MECAB_TEMP_DEST_DIR" && ./configure --prefix=/usr --with-charset=utf8)
-        (cd "$MECAB_TEMP_DEST_DIR" && make install -j `getconf _NPROCESSORS_ONLN`)
+        (cd "$MECAB_TEMP_DEST_DIR" && sudo make install -j `getconf _NPROCESSORS_ONLN`)
 
     else
         # Install Mecab normally
