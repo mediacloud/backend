@@ -13,6 +13,6 @@
 [submodule "doc/github-markdown-toc"]
 	path = doc/api_2_0_spec/github-markdown-toc
 	url = https://github.com/ekalinin/github-markdown-toc.git
-[submodule "lib/MediaWords/Languages/resources/ja/mecab-ipadic-neologd"]
+[submodule "lib/MediaWords/Languages/resources/ja/mecab-ipadic-neologd-dist"]
 	path = lib/MediaWords/Languages/resources/ja/mecab-ipadic-neologd-dist
 	url = https://github.com/neologd/mecab-ipadic-neologd.git
