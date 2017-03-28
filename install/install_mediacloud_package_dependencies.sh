@@ -110,7 +110,6 @@ EOF
         libyaml \
         logrotate \
         mecab \
-        mecab-ipadic --charset=utf8 \
         netcat \
         openssl \
         python \
@@ -259,7 +258,6 @@ else
         logrotate \
         make \
         mecab \
-        mecab-ipadic-utf8 \
         netcat \
         openjdk-8-jdk \
         perl-doc \
