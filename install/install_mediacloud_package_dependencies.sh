@@ -271,12 +271,19 @@ else
 
     echo "Installing MeCab..."
     if verlt "$DISTRIB_RELEASE" "16.04"; then
-        # Install Mecab 0.996 compiled for 12.04
-        MECAB_PACKAGE_URL="https://s3.amazonaws.com/mediacloud-mecab-precise64/mecab-0.996-precise64/mecab_0.996-0ubuntu1_amd64.deb"
-        MECAB_TEMP_FILE="`mktemp -d -t mecabXXXXX`/vagrant.deb"
 
-        wget --quiet -O "$MECAB_TEMP_FILE" "$MECAB_PACKAGE_URL"
-        sudo dpkg -i "$MECAB_TEMP_FILE"
+        # Compile Mecab 0.996 manually (12.04's package is too old)
+        MECAB_TARBALL_URL="https://distfiles.macports.org/mecab/mecab-0.996.tar.gz"
+        MECAB_TEMP_DIR=`mktemp -d -t mecabXXXXX`
+        MECAB_TEMP_FILE="$MECAB_TEMP_DIR/mecab.tar.gz"
+        MECAB_TEMP_DEST_DIR="$MECAB_TEMP_DIR/mecab/"
+
+        wget --quiet -O "$MECAB_TEMP_FILE" "$MECAB_TARBALL_URL"
+        mkdir -p "$MECAB_TEMP_DEST_DIR"
+        tar -xf "$MECAB_TEMP_FILE" -C "$MECAB_TEMP_DEST_DIR" --strip-components=1
+        
+        (cd "$MECAB_TEMP_DEST_DIR" && ./configure --prefix=/usr --with-charset=utf8)
+        (cd "$MECAB_TEMP_DEST_DIR" && make install -j `getconf _NPROCESSORS_ONLN`)
 
     else
         # Install Mecab normally
