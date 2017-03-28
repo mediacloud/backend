@@ -242,7 +242,6 @@ else
         liblist-allutils-perl \
         liblist-moreutils-perl \
         liblocale-maketext-lexicon-perl \
-        libmecab-dev \
         libopengl-perl \
         libreadonly-perl \
         libreadonly-xs-perl \
@@ -257,7 +256,6 @@ else
         libyaml-syck-perl \
         logrotate \
         make \
-        mecab \
         netcat \
         openjdk-8-jdk \
         perl-doc \
@@ -270,6 +268,23 @@ else
         realpath \
         unzip \
         #
+
+    # Mecab
+    if verlt "$DISTRIB_RELEASE" "16.04"; then
+        # Install Mecab 0.996 compiled for 12.04
+        MECAB_PACKAGE_URL="https://s3.amazonaws.com/mediacloud-mecab-precise64/mecab-0.996-precise64/mecab_0.996-0ubuntu1_amd64.deb"
+        MECAB_TEMP_FILE="`mktemp -d -t mecabXXXXX`/vagrant.deb"
+
+        wget --quiet -O "$MECAB_TEMP_FILE" "$MECAB_PACKAGE_URL"
+        sudo dpkg -i "/var/tmp/mecab.deb"
+
+    else
+        # Install Mecab normally
+        sudo apt-get --assume-yes install \
+            libmecab-dev \
+            mecab \
+            #
+    fi
 
     # Choose to use OpenJDK 8 by default
     PATH="$PATH:/usr/sbin"
