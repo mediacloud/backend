@@ -276,7 +276,7 @@ else
         MECAB_TEMP_FILE="`mktemp -d -t mecabXXXXX`/vagrant.deb"
 
         wget --quiet -O "$MECAB_TEMP_FILE" "$MECAB_PACKAGE_URL"
-        sudo dpkg -i "/var/tmp/mecab.deb"
+        sudo dpkg -i "$MECAB_TEMP_FILE"
 
     else
         # Install Mecab normally
