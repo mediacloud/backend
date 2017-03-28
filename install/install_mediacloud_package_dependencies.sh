@@ -269,6 +269,7 @@ else
         python2.7-dev \
         python3.5 \
         python3.5-dev \
+        realpath \
         unzip \
         #
 
