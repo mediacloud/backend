@@ -269,7 +269,7 @@ else
         unzip \
         #
 
-    # Mecab
+    echo "Installing MeCab..."
     if verlt "$DISTRIB_RELEASE" "16.04"; then
         # Install Mecab 0.996 compiled for 12.04
         MECAB_PACKAGE_URL="https://s3.amazonaws.com/mediacloud-mecab-precise64/mecab-0.996-precise64/mecab_0.996-0ubuntu1_amd64.deb"
