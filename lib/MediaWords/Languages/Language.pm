@@ -41,6 +41,7 @@ my @_enabled_languages = (
     'hi',    # Hindi
     'hu',    # Hungarian
     'it',    # Italian
+    'ja',    # Japanese
     'lt',    # Lithuanian
     'nl',    # Dutch
     'no',    # Norwegian
