@@ -10,37 +10,77 @@
 --
 -- You might need to import some additional schema diff files to reach the desired version.
 --
-
 --
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
-SET search_path = public, pg_catalog;
+-- definition of bipolar comparisons for retweeter polarization scores
+create table retweeter_scores (
+    retweeter_scores_id     serial primary key,
+    topics_id               int not null references topics on delete cascade,
+    group_a_id              int null,
+    group_b_id              int null,
+    name                    text not null,
+    state                   text not null default 'created but not queued',
+    message                 text null
+);
 
+-- group retweeters together so that we an compare, for example, sanders/warren retweeters to cruz/kasich retweeters
+create table retweeter_groups (
+    retweeter_groups_id     serial primary key,
+    retweeter_scores_id     int not null references retweeter_scores on delete cascade,
+    name                    text not null
+);
 
-ALTER FUNCTION generate_api_token()
-    RENAME TO generate_api_key;
+alter table retweeter_scores add constraint retweeter_scores_group_a
+    foreign key ( group_a_id ) references retweeter_groups on delete cascade;
+alter table retweeter_scores add constraint retweeter_scores_group_b
+    foreign key ( group_b_id ) references retweeter_groups on delete cascade;
 
-ALTER INDEX auth_users_token
-    RENAME TO auth_users_api_key;
+-- list of twitter users within a given topic that have retweeted the given user
+create table retweeters (
+    retweeters_id           serial primary key,
+    retweeter_scores_id     int not null references retweeter_scores on delete cascade,
+    twitter_user            varchar(1024) not null,
+    retweeted_user          varchar(1024) not null
+);
 
-ALTER INDEX auth_user_ip_tokens_token
-    RENAME TO auth_user_ip_tokens_api_key_ip_address;
+create unique index retweeters_user on retweeters( retweeter_scores_id, twitter_user, retweeted_user );
 
-ALTER TABLE auth_users
-    RENAME COLUMN api_token TO api_key;
+create table retweeter_groups_users_map (
+    retweeter_groups_id     int not null references retweeter_groups on delete cascade,
+    retweeter_scores_id     int not null references retweeter_scores on delete cascade,
+    retweeted_user          varchar(1024) not null
+);
 
-ALTER TABLE auth_user_ip_tokens
-    RENAME TO auth_user_ip_address_api_keys;
+-- count of shares by retweeters for each retweeted_user in retweeters
+create table retweeter_stories (
+    retweeter_shares_id     serial primary key,
+    retweeter_scores_id     int not null references retweeter_scores on delete cascade,
+    stories_id              int not null references stories on delete cascade,
+    retweeted_user          varchar(1024) not null,
+    share_count             int not null
+);
 
-ALTER TABLE auth_user_ip_address_api_keys
-    RENAME COLUMN auth_user_ip_tokens_id TO auth_user_ip_address_api_keys_id;
-ALTER TABLE auth_user_ip_address_api_keys
-    RENAME COLUMN api_token TO api_key;
+create unique index retweeter_stories_psu
+    on retweeter_stories ( retweeter_scores_id, stories_id, retweeted_user );
 
-ALTER INDEX auth_user_ip_tokens_api_key_ip_address
-    RENAME TO auth_user_ip_address_api_keys_api_key_ip_address;
+-- polarization scores for media within a topic for the given retweeter_scoresdefinition
+create table retweeter_media (
+    retweeter_media_id    serial primary key,
+    retweeter_scores_id   int not null references retweeter_scores on delete cascade,
+    media_id              int not null references media on delete cascade,
+    group_a_count         int not null,
+    group_b_count         int not null,
+    group_a_count_n       float not null,
+    score                 float not null
+);
 
+create unique index retweeter_media_score on retweeter_media ( retweeter_scores_id, media_id );
+
+--
+-- 2 of 2. Reset the database version.
+--
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
@@ -61,8 +101,4 @@ END;
 $$
 LANGUAGE 'plpgsql';
 
---
--- 2 of 2. Reset the database version.
---
 SELECT set_database_schema_version();
-

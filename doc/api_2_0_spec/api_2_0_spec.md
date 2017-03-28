@@ -327,7 +327,7 @@ Response:
 | `similar_media_id` | none | Return media with the most tags in common
 | `primary_language` | none | Return media with the given ISO 639-1 2 letter primary language codes (specify more than once for a list)
 
-If the name parameter is specified, the call returns only media sources that match a case insensitive search specified value.  If the specified value is less than 3 characters long, the call returns an empty list.  The name_or_tag parameter behaves identically, but it also searches for all media sources that either have a name that matches the search text or that are associated with a tag that matches the search text.
+If the name parameter is specified, the call returns only media sources that match a case insensitive search specified value.  If the specified value is less than 3 characters long, the call returns an empty list.
 
 By default, calls that specify a name parameter will only return media that are not duplicates of
 some other media source.  Media Cloud has many media sources that are either subsets of other media sources or are
@@ -351,7 +351,7 @@ Output format is the same as for api/v2/media/single above.
 
 | URL                 | Function
 | ------------------- | -----------------------------
-| `api/v2/media/suggestions/submit` | Suggest a media source for Media Cloud to crawl
+| `api/v2/media/submit_suggestion` | Suggest a media source for Media Cloud to crawl
 
 This API end point allows the user to send a suggest a new media source to the Media Cloud team for regular crawling.
 
@@ -359,15 +359,15 @@ This API end point allows the user to send a suggest a new media source to the M
 
 | Field | Description |
 |------|------------ |
-| name | human readable name of media source (optional) |
 | url | URL of the media source home page (required) |
-| feed_url | URL of am rss, rdf, or atom  syndication feed for the source |
-| reason | reason media source should be added to the system (optional) |
+| name | Human readable name of media source (optional) |
+| feed_url | URL of RSS, RDF, or Atom syndication feed for the source (optional) |
+| reason | Reason media source should be added to the system (optional) |
 | tags_ids |  list of suggested tags to add to the source (optional ) |
 
 ### Example
 
-URL: https://api.mediacloud.org/api/v2/media/suggestions/submit
+URL: https://api.mediacloud.org/api/v2/media/submit_suggestion
 
 Input:
 ```json

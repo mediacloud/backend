@@ -20,8 +20,10 @@ Functions for querying the solr server.  More information about solr integration
 
 =cut
 
+use Encode;
 use List::Util;
 use Time::HiRes qw(gettimeofday tv_interval);
+use URI::Escape;
 
 use MediaWords::DB;
 use MediaWords::DBI::Stories;
@@ -186,6 +188,26 @@ sub _uppercase_boolean_operators
     }
 }
 
+# given a params hash, generate a cgi post string.  we do this manually because the perl HTTP::Request::content()
+# function messes up utf8 encoding
+sub _get_encoded_post_data($)
+{
+    my ( $params ) = @_;
+
+    my $post_items = [];
+    for my $key ( keys( %{ $params } ) )
+    {
+        if ( defined( $params->{ $key } ) )
+        {
+            my $enc_key  = uri_escape( encode_utf8( $key ) );
+            my $enc_data = uri_escape( encode_utf8( $params->{ $key } ) );
+            push( @{ $post_items }, "$enc_key=$enc_data" );
+        }
+    }
+
+    return join( '&', @{ $post_items } );
+}
+
 =head2 query_encoded_json( $db, $params, $c )
 
 Execute a query on the solr server using the given params.  Return a maximum of 1 million sentences.
@@ -243,9 +265,6 @@ sub query_encoded_json($$;$)
 
     # $params->{ fq } = MediaWords::Solr::PseudoQueries::transform_query( $params->{ fq } );
 
-    # Ensure that only UTF-8 strings get passed to Solr
-    my $encoded_params = MediaWords::Util::Text::recursively_encode_to_utf8( $params );
-
     my $url_action = $params->{ 'clustering.engine' } ? 'clustering' : 'select';
 
     my $url = sprintf( '%s/%s/%s', get_solr_url(), get_live_collection( $db ), $url_action );
@@ -256,13 +275,17 @@ sub query_encoded_json($$;$)
     $ua->set_max_size( undef );
 
     TRACE "Executing Solr query on $url ...";
-    TRACE 'Encoded parameters: ' . Dumper( $encoded_params );
-
+    TRACE 'Parameters: ' . Dumper( $params );
     my $t0 = [ gettimeofday ];
 
     my $request = MediaWords::Util::Web::UserAgent::Request->new( 'POST', $url );
     $request->set_content_type( 'application/x-www-form-urlencoded; charset=utf-8' );
-    $request->set_content( $encoded_params );
+
+    # passing the hash directly to set_content() messes up encoding, I think because LWP assumes somewhere that it is
+    # processing latin, despite the content-type above.  so we just manually create the cgi string with 1encoded values
+    my $post_content = _get_encoded_post_data( $params );
+
+    $request->set_content( $post_content );
 
     my $res = $ua->request( $request );
 

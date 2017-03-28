@@ -237,6 +237,8 @@ sub create : Local
             max_iterations      => $c_max_iterations,
             start_date          => $c_start_date,
             end_date            => $c_end_date,
+            job_queue           => 'mc',
+            max_stories         => 200_000
         }
     );
 
