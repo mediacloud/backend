@@ -242,24 +242,6 @@ sub get_stop_stems_in_all_languages
     return $stopstems;
 }
 
-# return true if the stemmed version of any of the terms associated with the $stem in $stem_counts is in $stop_stems.
-# stem each of the terms using the $language object.
-sub stem_term_is_in_stop_stems
-{
-    my ( $stem, $stem_counts, $stop_stems, $language ) = @_;
-
-    my $terms = [ keys( %{ $stem_counts->{ $stem }->{ terms } } ) ];
-
-    my $stems = $language->stem( $terms );
-
-    for my $stem ( @{ $stems } )
-    {
-        return 1 if ( $stop_stems->{ $stem } );
-    }
-
-    return 0;
-}
-
 # remove stopwords from the $stem_counts
 sub prune_stopword_stems
 {
