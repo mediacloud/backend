@@ -139,16 +139,6 @@ around BUILDARGS => sub {
     return $class->$orig( $vals );
 };
 
-# set any duplicate lines blank.
-sub blank_dup_lines
-{
-    my ( $self, $lines ) = @_;
-
-    my $dup_lines = {};
-
-    map { $dup_lines->{ $_ } ? ( $_ = '' ) : ( $dup_lines->{ $_ } = 1 ); } grep { defined( $_ ) } @{ $lines };
-}
-
 # parse the text and return a count of stems and terms in the sentence in the
 # following format:
 # { $stem => { count =>  $stem_count, terms => { $term => $term_count, ... } } }
@@ -162,7 +152,9 @@ sub count_stems
 
     $self->set_language_objects();
 
-    $self->blank_dup_lines( $lines );
+    # set any duplicate lines blank.
+    my $dup_lines = {};
+    map { $dup_lines->{ $_ } ? ( $_ = '' ) : ( $dup_lines->{ $_ } = 1 ); } grep { defined( $_ ) } @{ $lines };
 
     # tokenize each line and add count to $words for each token
     my $words = {};
