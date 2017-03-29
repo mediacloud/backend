@@ -37,7 +37,7 @@ use MediaWords::Util::Text;
 Readonly my $MIN_LANGUAGE_LEVEL => 0.05;
 
 # Max. length of the sentence to tokenize
-Readonly my $MAX_SENTENCE_LENGTH => 256;
+Readonly my $MAX_SENTENCE_LENGTH => 1024;
 
 # mediawords.wc_cache_version from config
 my $_wc_cache_version;
