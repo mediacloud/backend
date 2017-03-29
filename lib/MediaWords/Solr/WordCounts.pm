@@ -162,35 +162,35 @@ around BUILDARGS => sub {
 # impacts
 sub count_stems
 {
-    my ( $self, $lines ) = @_;
+    my ( $self, $sentences ) = @_;
 
     $self->set_language_objects();
 
-    # set any duplicate lines blank.
-    my $dup_lines = {};
-    map { $dup_lines->{ $_ } ? ( $_ = '' ) : ( $dup_lines->{ $_ } = 1 ); } grep { defined( $_ ) } @{ $lines };
+    # Set any duplicate sentences blank
+    my $dup_sentences = {};
+    map { $dup_sentences->{ $_ } ? ( $_ = '' ) : ( $dup_sentences->{ $_ } = 1 ); } grep { defined( $_ ) } @{ $sentences };
 
-    # tokenize each line and add count to $words for each token
+    # Tokenize each sentence and add count to $words for each token
     my $words = {};
-    for my $line ( @{ $lines } )
+    for my $sentence ( @{ $sentences } )
     {
-        unless ( defined( $line ) )
+        unless ( defined( $sentence ) )
         {
             next;
         }
 
-        # very long lines tend to be noise -- html text and the like.
+        # very long sentences tend to be noise -- html text and the like.
         # lc here instead of individual word for better performance
-        $line = lc( substr( $line, 0, 256 ) );
+        $sentence = lc( substr( $sentence, 0, 256 ) );
 
-        # for some reason, encode( 'utf8', $line ) does not make \w match unicode letters,
+        # for some reason, encode( 'utf8', $sentence ) does not make \w match unicode letters,
         # but the following does
-        Encode::_utf8_on( $line );
+        Encode::_utf8_on( $sentence );
 
         # remove urls so they don't get tokenized into noise
-        $line =~ s~https?://[^\s]+~~g;
+        $sentence =~ s~https?://[^\s]+~~g;
 
-        while ( $line =~ /(\w+)/g )
+        while ( $sentence =~ /(\w+)/g )
         {
             my $word           = $1;
             my $word_no_digits = $word;
