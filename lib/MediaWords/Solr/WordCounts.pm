@@ -104,8 +104,10 @@ around BUILDARGS => sub {
     {
         my $cgi_params = $args->{ cgi_params };
 
-        $cgi_params->{ languages } = $cgi_params->{ l }
-          if ( exists( $cgi_params->{ l } ) && !exists( $cgi_params->{ languages } ) );
+        if ( exists( $cgi_params->{ l } ) && !exists( $cgi_params->{ languages } ) )
+        {
+            $cgi_params->{ languages } = $cgi_params->{ l };
+        }
 
         if ( !$cgi_params->{ languages } )
         {
@@ -120,20 +122,32 @@ around BUILDARGS => sub {
         my $keys = get_cgi_param_attributes;
         for my $key ( @{ $keys } )
         {
-            $vals->{ $key } = $cgi_params->{ $key } if ( exists( $cgi_params->{ $key } ) );
+            if ( exists( $cgi_params->{ $key } ) )
+            {
+                $vals->{ $key } = $cgi_params->{ $key };
+            }
         }
 
-        $vals->{ languages } = $cgi_params->{ l }
-          if ( exists( $cgi_params->{ l } ) && !exists( $cgi_params->{ languages } ) );
+        if ( exists( $cgi_params->{ l } ) && !exists( $cgi_params->{ languages } ) )
+        {
+            $vals->{ languages } = $cgi_params->{ l };
+        }
 
-        $vals->{ db } = $args->{ db } if ( $args->{ db } );
+        if ( $args->{ db } )
+        {
+            $vals->{ db } = $args->{ db };
+        }
     }
     else
     {
         $vals = $args;
     }
 
-    $vals->{ fq } = [ $vals->{ fq } ] if ( $vals->{ fq } && !ref( $vals->{ fq } ) );
+    if ( $vals->{ fq } && !ref( $vals->{ fq } ) )
+    {
+        $vals->{ fq } = [ $vals->{ fq } ];
+    }
+
     $vals->{ fq } ||= [];
 
     return $class->$orig( $vals );
@@ -160,7 +174,10 @@ sub count_stems
     my $words = {};
     for my $line ( @{ $lines } )
     {
-        next unless ( defined( $line ) );
+        unless ( defined( $line ) )
+        {
+            next;
+        }
 
         # very long lines tend to be noise -- html text and the like.
         # lc here instead of individual word for better performance
@@ -178,7 +195,11 @@ sub count_stems
             my $word           = $1;
             my $word_no_digits = $word;
             $word_no_digits =~ s/\d//g;
-            $words->{ $word }++ if ( length( $word_no_digits ) > 2 );
+
+            if ( length( $word_no_digits ) > 2 )
+            {
+                $words->{ $word }++;
+            }
         }
     }
 
@@ -246,7 +267,10 @@ sub prune_stopword_stems
 {
     my ( $self, $stem_counts ) = @_;
 
-    return if ( $self->include_stopwords );
+    if ( $self->include_stopwords )
+    {
+        return;
+    }
 
     my $stop_stems = $self->get_stop_stems_in_all_languages();
 
@@ -266,12 +290,18 @@ sub set_default_languages($$)
 {
     my ( $self, $sentences ) = @_;
 
-    return if ( $self->languages && @{ $self->languages } );
+    if ( $self->languages && @{ $self->languages } )
+    {
+        return;
+    }
 
     # our cld language detection mis-identifies english as other languages enough that we should always include 'en'
     my $language_lookup = { 'en' => 1 };
 
-    map { $language_lookup->{ $_ } = 1 } @{ $self->languages } if ( $self->languages );
+    if ( $self->languages )
+    {
+        map { $language_lookup->{ $_ } = 1 } @{ $self->languages };
+    }
 
     my $story_text = join( "\n", grep { $_ } @{ $sentences } );
     my $story_language = MediaWords::Util::IdentifyLanguage::language_code_for_text( $story_text );
@@ -282,13 +312,20 @@ sub set_default_languages($$)
     for my $sentence ( @{ $sentences } )
     {
         my $sentence_language = MediaWords::Util::IdentifyLanguage::language_code_for_text( $sentence );
-        $sentence_language_counts->{ $sentence_language }++ if ( $sentence_language );
+
+        if ( $sentence_language )
+        {
+            $sentence_language_counts->{ $sentence_language }++;
+        }
     }
 
     my $total_sentence_count = scalar( @{ $sentences } );
     while ( my ( $language, $language_count ) = each( %{ $sentence_language_counts } ) )
     {
-        $language_lookup->{ $language } = 1 if ( ( $language_count / $total_sentence_count ) > $MIN_LANGUAGE_LEVEL );
+        if ( ( $language_count / $total_sentence_count ) > $MIN_LANGUAGE_LEVEL )
+        {
+            $language_lookup->{ $language } = 1;
+        }
     }
 
     my $languages = [ keys( %{ $language_lookup } ) ];
@@ -304,14 +341,20 @@ sub set_language_objects
 {
     my ( $self ) = @_;
 
-    return if ( $self->language_objects );
+    if ( $self->language_objects )
+    {
+        return;
+    }
 
     my $language_objects = [];
     for my $language_code ( @{ $self->languages } )
     {
         my $language_object = MediaWords::Languages::Language::language_for_code( $language_code );
 
-        push( @{ $language_objects }, $language_object ) if ( $language_object );
+        if ( $language_object )
+        {
+            push( @{ $language_objects }, $language_object );
+        }
     }
 
     if ( !@{ $language_objects } )
@@ -345,7 +388,10 @@ sub get_words_from_solr_server
 {
     my ( $self ) = @_;
 
-    return [] unless ( $self->q() || ( $self->fq && @{ $self->fq } ) );
+    unless ( $self->q() || ( $self->fq && @{ $self->fq } ) )
+    {
+        return [];
+    }
 
     my $solr_params = {
         q    => $self->q(),
@@ -428,7 +474,11 @@ sub _get_remote_words
 
     my $url = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_wc_url };
     my $key = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_wc_key };
-    return undef unless ( $url && $key );
+
+    unless ( $url && $key )
+    {
+        return undef;
+    }
 
     my $ua = MediaWords::Util::Web::UserAgent->new();
 
@@ -445,11 +495,17 @@ sub _get_remote_words
 
     my $res = $ua->get( $uri, Accept => 'application/json' );
 
-    die( "error retrieving words from solr: " . $res->as_string ) unless ( $res->is_success );
+    unless ( $res->is_success )
+    {
+        die( "error retrieving words from solr: " . $res->as_string );
+    }
 
     my $words = MediaWords::Util::JSON::decode_json( $res->decoded_content );
 
-    die( "Unable to parse json" ) unless ( $words && ref( $words ) );
+    unless ( $words && ref( $words ) )
+    {
+        die( "Unable to parse json" );
+    }
 
     return $words;
 }
@@ -508,9 +564,15 @@ sub get_words
 
     my $words = $self->_get_cached_words;
 
-    return $words if ( $words );
+    if ( $words )
+    {
+        return $words;
+    }
 
-    $words = $self->_get_remote_words unless ( $self->no_remote );
+    unless ( $self->no_remote )
+    {
+        $words = $self->_get_remote_words;
+    }
 
     $words ||= $self->get_words_from_solr_server;
 
