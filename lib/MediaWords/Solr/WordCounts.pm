@@ -36,6 +36,9 @@ use MediaWords::Util::Text;
 # stopwords and stemming for that language
 Readonly my $MIN_LANGUAGE_LEVEL => 0.05;
 
+# Max. length of the sentence to tokenize
+Readonly my $MAX_SENTENCE_LENGTH => 256;
+
 # mediawords.wc_cache_version from config
 my $_wc_cache_version;
 
@@ -179,9 +182,11 @@ sub count_stems
             next;
         }
 
-        # very long sentences tend to be noise -- html text and the like.
+        # Very long sentences tend to be noise -- html text and the like.
+        $sentence = substr( $sentence, 0, $MAX_SENTENCE_LENGTH );
+
         # lc here instead of individual word for better performance
-        $sentence = lc( substr( $sentence, 0, 256 ) );
+        $sentence = lc( $sentence );
 
         # for some reason, encode( 'utf8', $sentence ) does not make \w match unicode letters,
         # but the following does
