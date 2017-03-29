@@ -867,21 +867,16 @@ Returns word frequency counts of the most common words in a randomly sampled set
 | ------------------- | ------- | ----------------------------------------------------------------
 | `q`                 | n/a     | `q` ("query") parameter which is passed directly to Solr
 | `fq`                | `null`  | `fq` ("filter query") parameter which is passed directly to Solr
-| `languages`         | `en`    | Space separated list of languages to use for stopwording and stemming
 | `num_words`         | 500     | Number of words to return
 | `sample_size`       | 1000    | Number of sentences to sample, max 100,000
-| `include_stopwords` | 0       | Set to 1 to include stopwords in the listed languages
+| `include_stopwords` | 0       | Set to 1 to disable stopword removal
 | `include_stats`     | 0       | Set to 1 to include stats about the request as a whole (such as total number of words)
 
 See above `/api/v2/stories_public/list` for Solr query syntax.
 
 To provide quick results, the API counts words in a randomly sampled set of sentences returned by the given query.  By default, the request will sample 1000 sentences and return 500 words.  You can make the API sample more sentences.  The system takes about one second to process each multiple of 1000 sentences.
 
-By default, the system stems and stopwords the list in English plus each of the supported languages it detects for either the entire block block of text or for at least 5% of the individual sentences within the query.  If you specify the 'languages' parameter, the system will stem and stopword the words by each of the listed languages plus english.
-
-Stemming for multiple languages is done by stemming each returned term in each language sequentially, ordered by the language code for each language.  This sequential stemming is likely to introduce some artifacts into the results.  If you want results in only a single language, include a `language:<code>` (for instance `language:en`) clause in your query to ensure only sentences of that language are returned.
-
-See [Supported Languages](#supported-languages) for a list of supported languages and their codes.
+Sentences are going to be tokenized into words by identifying each of the sentence's language and using this language's sentence splitting algorithm. Additionally, both English and the identified language's stopwords are going to be removed from results. See [Supported Languages](#supported-languages) for a list of supported languages and their codes.
 
 Setting the 'stats' field to true changes the structure of the response, as shown in the example below. Following fields are included in the stats response:
 
