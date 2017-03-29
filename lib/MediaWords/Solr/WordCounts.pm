@@ -31,6 +31,7 @@ use MediaWords::Solr;
 use MediaWords::Util::Config;
 use MediaWords::Util::IdentifyLanguage;
 use MediaWords::Util::JSON;
+use MediaWords::Util::Text;
 
 # minimum ratio of sentences in a given language to total sentences for a given query to include
 # stopwords and stemming for that language
@@ -199,22 +200,6 @@ sub count_stems
     $self->prune_stopword_stems( $stem_counts );
 
     return $stem_counts;
-}
-
-# Check whether the string is valid UTF-8
-sub is_valid_utf8
-{
-    my ( $self, $s ) = @_;
-
-    my $valid = 1;
-
-    Encode::_utf8_on( $s );
-
-    $valid = 0 unless ( utf8::valid( $s ) );
-
-    Encode::_utf8_off( $s );
-
-    return $valid;
 }
 
 # given a list of terms, apply stemming in all languages sequentially, with consistent results
@@ -425,7 +410,7 @@ sub get_words_from_solr_server
             }
         }
 
-        if ( !$self->is_valid_utf8( $w->[ 0 ] ) || !$self->is_valid_utf8( $max_term ) )
+        if ( !MediaWords::Util::Text::is_valid_utf8( $w->[ 0 ] ) || !MediaWords::Util::Text::is_valid_utf8( $max_term ) )
         {
             WARN "invalid utf8: $w->[ 0 ] / $max_term";
             next;
