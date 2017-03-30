@@ -274,7 +274,7 @@ SQL
 }
 
 # connect to solr server directly and count the words resulting from the query
-sub get_words_from_solr_server
+sub _get_words_from_solr_server($)
 {
     my ( $self ) = @_;
 
@@ -463,7 +463,7 @@ sub get_words
         $words = $self->_get_remote_words;
     }
 
-    $words ||= $self->get_words_from_solr_server;
+    $words ||= $self->_get_words_from_solr_server();
 
     $self->_set_cached_words( $words );
 
