@@ -1127,7 +1127,6 @@ sub get_story_word_matrix($$;$$)
         {
             my $wc = MediaWords::Solr::WordCounts->new( language => $story->{ language } );
             $wc->include_stopwords( 1 );
-            $wc->languages( [ $story->{ language } ] );
 
             my $stem_counts = $wc->count_stems( [ split( $sentence_separator, $story->{ story_text } ) ] );
 
