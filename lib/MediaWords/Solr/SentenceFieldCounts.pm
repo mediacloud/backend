@@ -40,21 +40,6 @@ sub get_cgi_param_attributes
     return [ qw(q fq sample_size include_stats field tag_sets_id) ];
 }
 
-# return hash of attributes for use as cgi params
-sub get_cgi_param_hash
-{
-    my ( $self ) = @_;
-
-    my $keys = get_cgi_param_attributes;
-
-    my $meta = $self->meta;
-
-    my $hash = {};
-    map { $hash->{ $_ } = $meta->get_attribute( $_ )->get_value( $self ) } @{ $keys };
-
-    return $hash;
-}
-
 # add support for constructor in this form:
 #   WordsCounts->new( cgi_params => $cgi_params )
 # where $cgi_params is a hash of cgi params directly from a web request
