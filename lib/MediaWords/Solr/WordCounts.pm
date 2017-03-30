@@ -57,7 +57,7 @@ sub get_cgi_param_attributes
 }
 
 # return hash of attributes for use as cgi params
-sub get_cgi_param_hash
+sub _get_cgi_param_hash($)
 {
     my ( $self ) = @_;
 
@@ -375,7 +375,7 @@ sub _get_remote_words
     $ua->set_max_size( undef );
 
     my $uri          = URI->new( $url );
-    my $query_params = $self->get_cgi_param_hash;
+    my $query_params = $self->_get_cgi_param_hash();
 
     $query_params->{ no_remote } = 1;
     $query_params->{ key }       = $key;
