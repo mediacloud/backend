@@ -3,6 +3,7 @@
 #
 # Sources:
 #     http://search.cpan.org/~creamyg/Lingua-StopWords-0.09/
+#     https://github.com/arc12/Text-Mining-Weak-Signals/wiki/Standard-set-of-english-stopwords
 #
 
 a
@@ -241,6 +242,7 @@ aside
 ask
 asked
 asking
+asks
 asleep
 aspect
 aspects
@@ -312,10 +314,13 @@ aware
 awareness
 away
 axis
+b
 baby
 back
 backed
 background
+backing
+backs
 backward
 bad
 badly
@@ -509,6 +514,7 @@ butter
 buy
 buying
 by
+c
 cafe
 calculated
 calendar
@@ -922,6 +928,7 @@ cut
 cuts
 cutting
 cycle
+d
 dad
 daily
 damage
@@ -1063,6 +1070,7 @@ differ
 difference
 differences
 different
+differently
 difficult
 difficulties
 difficulty
@@ -1141,6 +1149,9 @@ double
 doubt
 doubtful
 down
+downed
+downing
+downs
 downtown
 dozen
 draft
@@ -1185,6 +1196,7 @@ duties
 duty
 dying
 dynamic
+e
 each
 eager
 ear
@@ -1326,6 +1338,7 @@ evaluation
 eve
 even
 evening
+evenly
 event
 events
 eventually
@@ -1334,6 +1347,7 @@ every
 everybody
 everyone
 everything
+everywhere
 evidence
 evident
 evidently
@@ -1412,6 +1426,7 @@ extreme
 extremely
 eye
 eyes
+f
 fabrics
 face
 faced
@@ -1423,6 +1438,7 @@ factor
 factories
 factors
 factory
+facts
 faculty
 fail
 failed
@@ -1627,8 +1643,12 @@ furnish
 furnished
 furniture
 further
+furthered
+furthering
 furthermore
+furthers
 future
+g
 gain
 gained
 gains
@@ -1722,6 +1742,8 @@ gross
 ground
 grounds
 group
+grouped
+grouping
 groups
 grow
 growing
@@ -1742,6 +1764,7 @@ guns
 guy
 guys
 gyro
+h
 habit
 habits
 had
@@ -2052,6 +2075,7 @@ item
 items
 its
 itself
+j
 jacket
 jail
 jan
@@ -2082,6 +2106,7 @@ just
 justice
 justified
 justify
+k
 keep
 keeping
 keeps
@@ -2109,6 +2134,7 @@ knowing
 knowledge
 known
 knows
+l
 la
 label
 laboratory
@@ -2179,6 +2205,7 @@ less
 lesson
 let
 let's
+lets
 letter
 letters
 letting
@@ -2254,6 +2281,7 @@ long
 long-range
 long-term
 longer
+longest
 look
 looked
 looking
@@ -2281,6 +2309,7 @@ luncheon
 lungs
 luxury
 lying
+m
 ma
 machine
 machinery
@@ -2478,6 +2507,8 @@ moves
 movie
 movies
 moving
+mr
+mrs
 mst
 much
 mud
@@ -2500,6 +2531,7 @@ myself
 mysterious
 mystery
 myth
+n
 naked
 name
 named
@@ -2524,6 +2556,7 @@ necessity
 neck
 need
 needed
+needing
 needs
 negative
 negotiations
@@ -2542,6 +2575,7 @@ never
 nevertheless
 new
 newer
+newest
 newly
 news
 newspaper
@@ -2558,8 +2592,10 @@ noble
 nobody
 nodded
 noise
+non
 none
 noon
+noone
 nor
 normal
 normally
@@ -2588,6 +2624,7 @@ numbers
 numeral
 numerous
 nuts
+o
 object
 objective
 objectives
@@ -2635,6 +2672,7 @@ oh
 oil
 old
 older
+oldest
 on
 once
 one
@@ -2646,6 +2684,7 @@ open
 opened
 opening
 openly
+opens
 operate
 operated
 operating
@@ -2664,6 +2703,7 @@ oral
 orchestra
 order
 ordered
+ordering
 orderly
 orders
 organ
@@ -2700,6 +2740,7 @@ owners
 ownership
 oxidation
 oxygen
+p
 pace
 pack
 package
@@ -2731,6 +2772,7 @@ parking
 parks
 part
 part-time
+parted
 partially
 participate
 participation
@@ -2739,6 +2781,7 @@ particles
 particular
 particularly
 parties
+parting
 partisan
 partly
 partner
@@ -2940,6 +2983,7 @@ presence
 present
 presentation
 presented
+presenting
 presents
 preserve
 president
@@ -3065,6 +3109,7 @@ pushed
 put
 puts
 putting
+q
 qualified
 qualities
 quality
@@ -3086,6 +3131,7 @@ quietly
 quite
 quoted
 quotient
+r
 race
 races
 racial
@@ -3355,6 +3401,7 @@ runs
 rural
 rush
 rushed
+s
 sacred
 sacrifice
 sad
@@ -3430,6 +3477,7 @@ seek
 seeking
 seem
 seemed
+seeming
 seems
 seen
 sees
@@ -3602,6 +3650,7 @@ slow
 slowly
 small
 smaller
+smallest
 smart
 smell
 smile
@@ -3882,6 +3931,7 @@ sympathetic
 sympathy
 system
 systems
+t
 table
 tables
 tactics
@@ -4116,6 +4166,7 @@ two
 type
 types
 typical
+u
 ugly
 ultimate
 unable
@@ -4172,6 +4223,7 @@ usually
 utility
 utopian
 utterly
+v
 vacation
 vacuum
 valid
@@ -4233,6 +4285,7 @@ votes
 voting
 vowel
 vs
+w
 wage
 wages
 wagon
@@ -4247,6 +4300,7 @@ wall
 walls
 want
 wanted
+wanting
 wants
 war
 ward
@@ -4291,6 +4345,7 @@ weeks
 weight
 welcome
 well
+wells
 went
 were
 weren't
@@ -4401,7 +4456,9 @@ written
 wrong
 wrote
 www
+x
 xml
+y
 yard
 yards
 year
@@ -4421,9 +4478,11 @@ you're
 you've
 young
 younger
+youngest
 youngsters
 your
 yours
 yourself
 yourselves
+z
 zero
