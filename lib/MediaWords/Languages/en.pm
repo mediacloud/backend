@@ -18,10 +18,10 @@ sub get_language_code
     return 'en';
 }
 
-sub fetch_and_return_long_stop_words
+sub fetch_and_return_stop_words
 {
     my $self = shift;
-    return $self->_get_stop_words_from_file( 'lib/MediaWords/Languages/resources/en_stoplist_long.txt' );
+    return $self->_get_stop_words_from_file( 'lib/MediaWords/Languages/resources/en_stoplist.txt' );
 }
 
 sub stem

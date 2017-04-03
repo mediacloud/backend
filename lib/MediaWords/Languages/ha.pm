@@ -24,7 +24,7 @@ sub get_language_code
     return 'ha';
 }
 
-sub fetch_and_return_long_stop_words
+sub fetch_and_return_stop_words
 {
     my $self = shift;
     return $self->_get_stop_words_from_file( 'lib/MediaWords/Languages/resources/ha_stoplist.txt' );

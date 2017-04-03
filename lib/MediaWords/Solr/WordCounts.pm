@@ -146,8 +146,8 @@ sub _combine_stopwords($$$)
 
     unless ( defined $self->cached_combined_stopwords->{ $language_1 }->{ $language_2 } )
     {
-        my $lang_1_stopwords = $lang_1->get_long_stop_words();
-        my $lang_2_stopwords = $lang_1->get_long_stop_words();
+        my $lang_1_stopwords = $lang_1->get_stop_words();
+        my $lang_2_stopwords = $lang_1->get_stop_words();
 
         my $combined_stopwords = { ( %{ $lang_1_stopwords }, %{ $lang_2_stopwords } ) };
 
@@ -445,8 +445,8 @@ sub _set_cached_words
     return $self->_get_cache->set( $self->_get_cache_key, $value );
 }
 
-# get sorted list of most common words in sentences matching a solr query.  exclude stop words from the
-# long_stop_word list.  assumes english stemming and stopwording for now.
+# get sorted list of most common words in sentences matching a Solr query,
+# exclude stop words. Assumes english stemming and stopwording for now.
 sub get_words
 {
     my ( $self ) = @_;
