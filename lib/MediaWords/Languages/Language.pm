@@ -72,12 +72,12 @@ requires 'get_language_code';
 #         # ...
 #     }
 #
-# If you've decided to store a stoplist in an external file, you can use the module helper:
+# If you've decided to store a stopword list in an external file, you can use the module helper:
 #
 #   sub fetch_and_return_stop_words
 #   {
 #       my $self = shift;
-#       return $self->_get_stop_words_from_file( 'lib/MediaWords/Languages/resources/en_stoplist.txt' );
+#       return $self->_get_stop_words_from_file( 'lib/MediaWords/Languages/resources/en_stopwords.txt' );
 #   }
 #
 requires 'fetch_and_return_stop_words';
@@ -397,10 +397,10 @@ sub _get_stop_words_from_file
 
     my %stopwords;
 
-    # Read stoplist, ignore comments, ignore empty lines
+    # Read stopwords, ignore comments, ignore empty lines
     use open IN => ':utf8';
-    open STOPLIST, $filename or die "Unable to read '$filename': $!";
-    while ( my $line = <STOPLIST> )
+    open STOPWORDS, $filename or die "Unable to read '$filename': $!";
+    while ( my $line = <STOPWORDS> )
     {
 
         # Remove comments
@@ -413,7 +413,7 @@ sub _get_stop_words_from_file
             $stopwords{ $line } = 1;
         }
     }
-    close( STOPLIST );
+    close( STOPWORDS );
 
     return \%stopwords;
 }

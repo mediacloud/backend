@@ -50,7 +50,7 @@ sub get_language_code
 sub fetch_and_return_stop_words
 {
     my $self = shift;
-    return $self->_get_stop_words_from_file( 'lib/MediaWords/Languages/resources/ja_stoplist.txt' );
+    return $self->_get_stop_words_from_file( 'lib/MediaWords/Languages/resources/ja_stopwords.txt' );
 }
 
 sub stem
