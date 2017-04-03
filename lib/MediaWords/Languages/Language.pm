@@ -62,27 +62,29 @@ my @_enabled_languages = (
 # Returns a string ISO 639-1 language code (e.g. 'en')
 requires 'get_language_code';
 
-# Returns a hashref to a "tiny" (~200 entries) list of stop words for the language
-# where the keys are all stopwords and the values are all 1.
-#
-# If you've decided to store a stoplist in an external file, you can use the module helper:
-#
-#   sub fetch_and_return_tiny_stop_words
-#   {
-#       my $self = shift;
-#       return $self->_get_stop_words_from_file( 'lib/MediaWords/Languages/resources/en_stoplist_tiny.txt' );
-#   }
-#
-requires 'fetch_and_return_tiny_stop_words';
-
 # Returns a hashref to a "short" (~1000 entries) list of stop words for the language
 # where the keys are all stopwords and the values are all 1.
 # Also see a description of the available helpers above.
 requires 'fetch_and_return_short_stop_words';
 
 # Returns a hashref to a "long" (~4000+ entries) list of stop words for the language
-# where the keys are all stopwords and the values are all 1.
-# Also see a description of the available helpers above.
+# where the keys are all stopwords and the values are all 1:
+#
+#     {
+#         'stopword_1' => 1,
+#         'stopword_2' => 1,
+#         'stopword_3' => 1,
+#         # ...
+#     }
+#
+# If you've decided to store a stoplist in an external file, you can use the module helper:
+#
+#   sub fetch_and_return_long_stop_words
+#   {
+#       my $self = shift;
+#       return $self->_get_stop_words_from_file( 'lib/MediaWords/Languages/resources/en_stoplist_long.txt' );
+#   }
+#
 requires 'fetch_and_return_long_stop_words';
 
 # Returns a reference to an array of stemmed words (using Lingua::Stem::Snowball or some other way)
@@ -132,12 +134,10 @@ has 'sentence_tokenizer' => ( is => 'rw', default => 0 );
 has 'sentence_tokenizer_language' => ( is => 'rw', default => 0 );
 
 # Cached stopwords
-has 'cached_tiny_stop_words'  => ( is => 'rw', default => 0 );
 has 'cached_short_stop_words' => ( is => 'rw', default => 0 );
 has 'cached_long_stop_words'  => ( is => 'rw', default => 0 );
 
 # Cached stopword stems
-has 'cached_tiny_stop_word_stems'  => ( is => 'rw', default => 0 );
 has 'cached_short_stop_word_stems' => ( is => 'rw', default => 0 );
 has 'cached_long_stop_word_stems'  => ( is => 'rw', default => 0 );
 
@@ -238,19 +238,6 @@ sub enabled_languages
     return @_enabled_languages;
 }
 
-# Cached stop words
-sub get_tiny_stop_words
-{
-    my $self = shift;
-
-    if ( $self->cached_tiny_stop_words == 0 )
-    {
-        $self->cached_tiny_stop_words( $self->fetch_and_return_tiny_stop_words() );
-    }
-
-    return $self->cached_tiny_stop_words;
-}
-
 sub get_short_stop_words
 {
     my $self = shift;
@@ -273,29 +260,6 @@ sub get_long_stop_words
     }
 
     return $self->cached_long_stop_words;
-}
-
-# Get stop word stems
-sub get_tiny_stop_word_stems
-{
-    my $self = shift;
-
-    if ( $self->cached_tiny_stop_word_stems == 0 )
-    {
-        my $stems = [ keys( %{ $self->get_tiny_stop_words() } ) ];
-        my $hash;
-
-        $stems = $self->stem( @{ $stems } );
-
-        for my $stem ( @{ $stems } )
-        {
-            $hash->{ $stem } = 1;
-        }
-
-        $self->cached_tiny_stop_word_stems( $hash );
-    }
-
-    return $self->cached_tiny_stop_word_stems;
 }
 
 sub get_short_stop_word_stems
@@ -347,7 +311,6 @@ sub get_stop_word_stems($$)
 {
     my ( $self, $length ) = @_;
 
-    return $self->get_tiny_stop_word_stems  if ( $length eq 'tiny' );
     return $self->get_short_stop_word_stems if ( $length eq 'short' );
     return $self->get_long_stop_word_stems  if ( $length eq 'long' );
 

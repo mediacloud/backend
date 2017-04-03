@@ -1,6 +1,9 @@
 #
 # This is a "long" stop word list for the English language.
 #
+# Sources:
+#     http://search.cpan.org/~creamyg/Lingua-StopWords-0.09/
+#
 
 a
 abandoned
@@ -208,6 +211,7 @@ are
 area
 areas
 aren
+aren't
 argue
 argued
 argument
@@ -515,6 +519,7 @@ came
 camera
 camp
 can
+can't
 candidate
 candidates
 cannot
@@ -851,6 +856,7 @@ costs
 cottage
 cotton
 could
+couldn't
 council
 count
 counter
@@ -1047,6 +1053,7 @@ diameter
 dictionary
 did
 didn
+didn't
 die
 died
 diet
@@ -1114,6 +1121,7 @@ doctrine
 documents
 does
 doesn
+doesn't
 dog
 dogs
 doing
@@ -1123,6 +1131,7 @@ domestic
 dominant
 dominated
 don
+don't
 done
 door
 doors
@@ -1731,6 +1740,7 @@ gyro
 habit
 habits
 had
+hadn't
 hair
 half
 halign
@@ -1758,13 +1768,18 @@ harm
 harmony
 has
 hasn
+hasn't
 hat
 hate
 hated
 hatred
 have
+haven't
 having
 he
+he'd
+he'll
+he's
 head
 headed
 heading
@@ -1797,9 +1812,11 @@ hence
 her
 herd
 here
+here's
 heritage
 hero
 heroic
+hers
 herself
 hesitated
 hidden
@@ -1850,6 +1867,7 @@ household
 houses
 housing
 how
+how's
 however
 hr
 href
@@ -1869,6 +1887,11 @@ hurry
 husband
 hydrogen
 hypothalamic
+i
+i'd
+i'll
+i'm
+i've
 ice
 idea
 ideal
@@ -2012,11 +2035,13 @@ iron
 is
 island
 isn
+isn't
 isolated
 issue
 issued
 issues
 it
+it's
 item
 items
 its
@@ -2147,6 +2172,7 @@ lengths
 less
 lesson
 let
+let's
 letter
 letters
 letting
@@ -2459,6 +2485,7 @@ musician
 musicians
 must
 mustard
+mustn't
 mutual
 my
 myself
@@ -3452,6 +3479,7 @@ shadows
 shaking
 shall
 shame
+shan't
 shape
 shapes
 share
@@ -3461,6 +3489,9 @@ sharing
 sharp
 sharply
 she
+she'd
+she'll
+she's
 shear
 sheep
 sheet
@@ -3492,6 +3523,7 @@ should
 shoulder
 shoulders
 shouldn
+shouldn't
 shout
 shouted
 shouting
@@ -3899,6 +3931,7 @@ than
 thank
 thanks
 that
+that's
 the
 theater
 their
@@ -3912,12 +3945,17 @@ theoretical
 theories
 theory
 there
+there's
 thereafter
 thereby
 therefore
 thermal
 these
 they
+they'd
+they'll
+they're
+they've
 thick
 thickness
 thin
@@ -4203,6 +4241,7 @@ was
 wash
 washed
 washing
+wasn't
 waste
 watch
 watched
@@ -4214,6 +4253,10 @@ waves
 way
 ways
 we
+we'd
+we'll
+we're
+we've
 weak
 weakness
 wear
@@ -4231,14 +4274,18 @@ welcome
 well
 went
 were
+weren't
 west
 wet
 what
+what's
 whatever
 wheel
 wheels
 when
+when's
 where
+where's
 whereas
 whereby
 wherever
@@ -4250,11 +4297,13 @@ whisky
 whispered
 white
 who
+who's
 whole
 wholly
 whom
 whose
 why
+why's
 wide
 widely
 widespread
@@ -4293,6 +4342,7 @@ wives
 woman
 women
 won
+won't
 wonder
 wondered
 wonderful
@@ -4321,6 +4371,7 @@ worth
 worthy
 would
 wouldn
+wouldn't
 wound
 wounded
 write
@@ -4345,10 +4396,15 @@ yet
 yield
 york
 you
+you'd
+you'll
+you're
+you've
 young
 younger
 youngsters
 your
 yours
 yourself
+yourselves
 zero
