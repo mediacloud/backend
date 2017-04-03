@@ -12,7 +12,7 @@ BEGIN
 use Readonly;
 
 use Test::NoWarnings;
-use Test::More tests => 31;
+use Test::More tests => 30;
 use utf8;
 
 use MediaWords::Languages::en;
@@ -38,7 +38,6 @@ sub test_stopwords()
 
     is( $stop_word_stems_en->{ 'a' }, 1, "Stemmed stop words" );
 
-    ok( $lang->get_short_stop_word_stems(), 'get_short_stop_word_stems()' );
     ok( $lang->get_long_stop_word_stems(),  'get_long_stop_word_stems()' );
 }
 

@@ -216,6 +216,7 @@ argue
 argued
 argument
 arise
+arm
 around
 aroused
 arrange
@@ -921,6 +922,7 @@ cut
 cuts
 cutting
 cycle
+dad
 daily
 damage
 damn
@@ -1416,6 +1418,7 @@ faced
 faces
 facilities
 facing
+fact
 factor
 factories
 factors
@@ -1433,6 +1436,7 @@ fallen
 falling
 fallout
 familiar
+family
 famous
 fans
 fantastic
@@ -1592,6 +1596,7 @@ fraction
 fractions
 frame
 frames
+free
 freight
 frequencies
 frequency
@@ -1888,6 +1893,7 @@ husband
 hydrogen
 hypothalamic
 i
+I
 i'd
 i'll
 i'm
@@ -2262,6 +2268,7 @@ lost
 lot
 lots
 loud
+love
 low
 lower
 lowered
@@ -2445,6 +2452,7 @@ monthly
 months
 monument
 mood
+moon
 moral
 morality
 more
@@ -3394,6 +3402,7 @@ scholars
 scholarship
 school
 schools
+science
 scope
 score
 screen
@@ -3578,6 +3587,7 @@ skin
 skirt
 sky
 skywave
+slave
 sleep
 slender
 slept
@@ -3613,8 +3623,10 @@ soft
 softly
 soil
 sold
+soldier
 solely
 solid
+solution
 solve
 solved
 some
@@ -3643,6 +3655,7 @@ sources
 south
 sovereign
 sovereignty
+space
 span
 spare
 speak
@@ -3770,7 +3783,9 @@ structures
 struggle
 struggling
 stuck
+student
 studio
+study
 stuff
 stumbled
 stupid
@@ -3893,6 +3908,7 @@ task
 tasks
 taste
 taught
+teach
 team
 teams
 tears
@@ -4079,6 +4095,7 @@ troubled
 troubles
 truck
 trucks
+true
 truly
 trust
 truth
@@ -4161,6 +4178,7 @@ valid
 valign
 valley
 valuable
+value
 variable
 variables
 variation
@@ -4230,6 +4248,7 @@ walls
 want
 wanted
 wants
+war
 ward
 warfare
 warm

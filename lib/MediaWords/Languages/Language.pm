@@ -62,11 +62,6 @@ my @_enabled_languages = (
 # Returns a string ISO 639-1 language code (e.g. 'en')
 requires 'get_language_code';
 
-# Returns a hashref to a "short" (~1000 entries) list of stop words for the language
-# where the keys are all stopwords and the values are all 1.
-# Also see a description of the available helpers above.
-requires 'fetch_and_return_short_stop_words';
-
 # Returns a hashref to a "long" (~4000+ entries) list of stop words for the language
 # where the keys are all stopwords and the values are all 1:
 #
@@ -134,11 +129,9 @@ has 'sentence_tokenizer' => ( is => 'rw', default => 0 );
 has 'sentence_tokenizer_language' => ( is => 'rw', default => 0 );
 
 # Cached stopwords
-has 'cached_short_stop_words' => ( is => 'rw', default => 0 );
 has 'cached_long_stop_words'  => ( is => 'rw', default => 0 );
 
 # Cached stopword stems
-has 'cached_short_stop_word_stems' => ( is => 'rw', default => 0 );
 has 'cached_long_stop_word_stems'  => ( is => 'rw', default => 0 );
 
 # Cached noise strings regular expression
@@ -238,18 +231,6 @@ sub enabled_languages
     return @_enabled_languages;
 }
 
-sub get_short_stop_words
-{
-    my $self = shift;
-
-    if ( $self->cached_short_stop_words == 0 )
-    {
-        $self->cached_short_stop_words( $self->fetch_and_return_short_stop_words() );
-    }
-
-    return $self->cached_short_stop_words;
-}
-
 sub get_long_stop_words
 {
     my $self = shift;
@@ -260,28 +241,6 @@ sub get_long_stop_words
     }
 
     return $self->cached_long_stop_words;
-}
-
-sub get_short_stop_word_stems
-{
-    my $self = shift;
-
-    if ( $self->cached_short_stop_word_stems == 0 )
-    {
-        my $stems = [ keys( %{ $self->get_short_stop_words() } ) ];
-        my $hash;
-
-        $stems = $self->stem( @{ $stems } );
-
-        for my $stem ( @{ $stems } )
-        {
-            $hash->{ $stem } = 1;
-        }
-
-        $self->cached_short_stop_word_stems( $hash );
-    }
-
-    return $self->cached_short_stop_word_stems;
 }
 
 sub get_long_stop_word_stems
@@ -311,7 +270,6 @@ sub get_stop_word_stems($$)
 {
     my ( $self, $length ) = @_;
 
-    return $self->get_short_stop_word_stems if ( $length eq 'short' );
     return $self->get_long_stop_word_stems  if ( $length eq 'long' );
 
     die( "Unknown stop word length '$length'" );

@@ -24,12 +24,6 @@ sub get_language_code
     return 'ha';
 }
 
-sub fetch_and_return_short_stop_words
-{
-    my $self = shift;
-    return $self->fetch_and_return_long_stop_words();
-}
-
 sub fetch_and_return_long_stop_words
 {
     my $self = shift;
