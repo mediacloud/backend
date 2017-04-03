@@ -4,9 +4,11 @@
 # Sources:
 #     http://search.cpan.org/~creamyg/Lingua-StopWords-0.09/
 #     https://github.com/arc12/Text-Mining-Weak-Signals/wiki/Standard-set-of-english-stopwords
+#     https://www.link-assistant.com/seo-stop-words.html
 #
 
 a
+a's
 abandoned
 abbr
 ability
@@ -69,6 +71,7 @@ address
 addressed
 addresses
 adequate
+adj
 adjusted
 adjustment
 adjustments
@@ -96,6 +99,7 @@ afford
 afraid
 after
 afternoon
+afterwards
 again
 against
 age
@@ -112,6 +116,7 @@ aid
 aids
 aim
 aimed
+ain't
 air
 alert
 alienation
@@ -131,6 +136,7 @@ allows
 almost
 alone
 along
+alongside
 already
 also
 altered
@@ -142,7 +148,10 @@ am
 amazing
 ambiguous
 amendment
+amid
+amidst
 among
+amongst
 amount
 amounts
 an
@@ -175,6 +184,7 @@ anyhow
 anyone
 anything
 anyway
+anyways
 anywhere
 apart
 apartment
@@ -200,6 +210,7 @@ approach
 approached
 approaches
 approaching
+appropriate
 approval
 approved
 approximately
@@ -255,6 +266,7 @@ assist
 assistance
 assistant
 associate
+associated
 association
 assume
 assumed
@@ -313,6 +325,7 @@ award
 aware
 awareness
 away
+awfully
 axis
 b
 baby
@@ -322,6 +335,7 @@ background
 backing
 backs
 backward
+backwards
 bad
 badly
 bag
@@ -368,6 +382,7 @@ beef
 been
 beer
 before
+beforehand
 began
 begin
 beginning
@@ -515,6 +530,8 @@ buy
 buying
 by
 c
+c'mon
+c's
 cafe
 calculated
 calendar
@@ -530,12 +547,14 @@ can't
 candidate
 candidates
 cannot
+cant
 cap
 capabilities
 capable
 capacity
 capital
 captain
+caption
 car
 carbon
 card
@@ -670,6 +689,8 @@ clothing
 cloud
 clouds
 club
+co
+co.
 coach
 coast
 coat
@@ -784,6 +805,7 @@ conscious
 consciousness
 consequence
 consequences
+consequently
 consider
 considerable
 considerably
@@ -941,6 +963,7 @@ dancing
 danger
 dangerous
 dare
+daren't
 dark
 darkness
 data
@@ -1153,6 +1176,7 @@ downed
 downing
 downs
 downtown
+downwards
 dozen
 draft
 drama
@@ -1220,6 +1244,7 @@ edition
 editor
 editorial
 edt
+edu
 effect
 effective
 effectively
@@ -1235,6 +1260,7 @@ eggs
 eight
 eighteenth
 eighth
+eighty
 either
 elaborate
 elected
@@ -1330,6 +1356,7 @@ estimate
 estimated
 estimates
 et
+etc
 etc.
 eternal
 ethical
@@ -1343,6 +1370,7 @@ event
 events
 eventually
 ever
+evermore
 every
 everybody
 everyone
@@ -1352,6 +1380,7 @@ evidence
 evident
 evidently
 evil
+ex
 exact
 exactly
 examination
@@ -1708,6 +1737,7 @@ good
 goods
 gorton
 got
+gotten
 govern
 governing
 government
@@ -1735,6 +1765,7 @@ greatest
 greatly
 green
 greeted
+greetings
 grew
 grinned
 grip
@@ -1829,6 +1860,7 @@ height
 heights
 held
 hell
+hello
 help
 helped
 helpful
@@ -1841,12 +1873,17 @@ her
 herd
 here
 here's
+hereafter
+hereby
+herein
+hereupon
 heritage
 hero
 heroic
 hers
 herself
 hesitated
+hi
 hidden
 hide
 high
@@ -1864,6 +1901,7 @@ historic
 historical
 history
 hit
+hither
 hits
 hold
 holder
@@ -1880,6 +1918,7 @@ honor
 honored
 hope
 hoped
+hopefully
 hopes
 hoping
 horizon
@@ -1896,6 +1935,7 @@ houses
 housing
 how
 how's
+howbeit
 however
 hr
 href
@@ -1962,7 +2002,9 @@ improvements
 impulse
 in
 inadequate
+inasmuch
 inc
+inc.
 inch
 inches
 incident
@@ -2009,6 +2051,7 @@ inside
 insight
 insist
 insisted
+insofar
 inspection
 inspired
 installed
@@ -2060,6 +2103,7 @@ involve
 involved
 involves
 involving
+inward
 iron
 is
 island
@@ -2070,6 +2114,8 @@ issue
 issued
 issues
 it
+it'd
+it'll
 it's
 item
 items
@@ -2160,9 +2206,11 @@ larger
 largest
 last
 late
+lately
 later
 latest
 latter
+latterly
 laugh
 laughed
 laughing
@@ -2203,6 +2251,7 @@ length
 lengths
 less
 lesson
+lest
 let
 let's
 lets
@@ -2232,6 +2281,7 @@ like
 liked
 likely
 likes
+likewise
 limit
 limitations
 limited
@@ -2301,6 +2351,7 @@ low
 lower
 lowered
 loyalty
+ltd
 luck
 lucky
 lumber
@@ -2384,6 +2435,7 @@ maturity
 maximum
 may
 maybe
+mayn't
 mdt
 me
 meal
@@ -2394,6 +2446,8 @@ meaningful
 meanings
 means
 meant
+meantime
+meanwhile
 measure
 measured
 measurement
@@ -2436,6 +2490,7 @@ middle
 middle-class
 midnight
 might
+mightn't
 mighty
 mile
 miles
@@ -2452,6 +2507,7 @@ minimal
 minimum
 minor
 minority
+minus
 minute
 minutes
 mirror
@@ -2545,6 +2601,7 @@ natural
 naturally
 nature
 naval
+nd
 near
 nearby
 nearest
@@ -2557,6 +2614,7 @@ neck
 need
 needed
 needing
+needn't
 needs
 negative
 negotiations
@@ -2572,6 +2630,8 @@ net
 network
 neutral
 never
+neverf
+neverless
 nevertheless
 new
 newer
@@ -2586,14 +2646,17 @@ night
 nights
 nine
 nineteenth
+ninety
 ninth
 no
+no-one
 noble
 nobody
 nodded
 noise
 non
 none
+nonetheless
 noon
 noone
 nor
@@ -2611,6 +2674,7 @@ nothing
 notice
 noticed
 notion
+notwithstanding
 noun
 nov
 novel
@@ -2670,12 +2734,15 @@ officials
 often
 oh
 oil
+ok
+okay
 old
 older
 oldest
 on
 once
 one
+one's
 ones
 only
 onset
@@ -2718,6 +2785,7 @@ other
 others
 otherwise
 ought
+oughtn't
 our
 ours
 ourselves
@@ -2730,6 +2798,7 @@ outside
 outstanding
 over
 over-all
+overall
 overcome
 overseas
 overwhelming
@@ -3131,6 +3200,7 @@ quietly
 quite
 quoted
 quotient
+qv
 r
 race
 races
@@ -3162,6 +3232,8 @@ rather
 ratio
 rational
 raw
+rd
+re
 reach
 reached
 reaches
@@ -3228,6 +3300,9 @@ refund
 refused
 regard
 regarded
+regarding
+regardless
+regards
 regime
 regiment
 region
@@ -3461,6 +3536,7 @@ seat
 seated
 second
 secondary
+secondly
 seconds
 secret
 secretary
@@ -3490,11 +3566,13 @@ selection
 self
 sell
 selling
+selves
 senator
 send
 sending
 senior
 sense
+sensible
 sensitive
 sensitivity
 sent
@@ -3680,9 +3758,11 @@ solve
 solved
 some
 somebody
+someday
 somehow
 someone
 something
+sometime
 sometimes
 somewhat
 somewhere
@@ -3716,6 +3796,8 @@ species
 specific
 specifically
 specified
+specify
+specifying
 specimen
 spectacular
 speech
@@ -3840,6 +3922,7 @@ stumbled
 stupid
 style
 styles
+sub
 subject
 subjected
 subjects
@@ -3885,6 +3968,7 @@ summary
 summer
 sun
 sunday
+sup
 supervision
 supper
 supplement
@@ -3932,6 +4016,7 @@ sympathy
 system
 systems
 t
+t's
 table
 tables
 tactics
@@ -3993,11 +4078,16 @@ testing
 tests
 text
 textile
+th
 than
 thank
 thanks
+thanx
 that
+that'll
 that's
+that've
+thats
 the
 theater
 their
@@ -4006,15 +4096,23 @@ them
 theme
 themselves
 then
+thence
 theological
 theoretical
 theories
 theory
 there
+there'd
+there'll
+there're
 there's
+there've
 thereafter
 thereby
 therefore
+therein
+theres
+thereupon
 thermal
 these
 they
@@ -4051,6 +4149,7 @@ through
 throughout
 throw
 thrown
+thru
 thrust
 thursday
 thus
@@ -4058,6 +4157,7 @@ thyroid
 tie
 tied
 tight
+till
 time
 times
 tiny
@@ -4135,6 +4235,7 @@ trials
 triangle
 tribute
 tried
+tries
 trim
 trip
 trips
@@ -4169,6 +4270,7 @@ typical
 u
 ugly
 ultimate
+un
 unable
 uncertain
 uncle
@@ -4176,13 +4278,16 @@ unconscious
 under
 underground
 underlying
+underneath
 understand
 understanding
 understood
+undoing
 undoubtedly
 uneasy
 unexpected
 unfortunate
+unfortunately
 unhappy
 uniform
 union
@@ -4199,6 +4304,7 @@ unless
 unlike
 unlikely
 until
+unto
 unusual
 up
 update
@@ -4206,6 +4312,7 @@ upon
 upper
 upstairs
 upward
+upwards
 urban
 urge
 urged
@@ -4250,6 +4357,7 @@ verb
 verbal
 verse
 version
+versus
 very
 veteran
 via
@@ -4271,6 +4379,7 @@ visitors
 visual
 vital
 vivid
+viz
 vocational
 voice
 voices
@@ -4352,29 +4461,43 @@ weren't
 west
 wet
 what
+what'll
 what's
+what've
 whatever
 wheel
 wheels
 when
 when's
+whence
+whenever
 where
 where's
+whereafter
 whereas
 whereby
+wherein
+whereupon
 wherever
 whether
 which
+whichever
 while
+whilst
 whip
 whisky
 whispered
 white
+whither
 who
+who'd
+who'll
 who's
+whoever
 whole
 wholly
 whom
+whomever
 whose
 why
 why's
