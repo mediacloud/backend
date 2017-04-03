@@ -5,6 +5,7 @@
 #     http://search.cpan.org/~creamyg/Lingua-StopWords-0.09/
 #     https://github.com/arc12/Text-Mining-Weak-Signals/wiki/Standard-set-of-english-stopwords
 #     https://www.link-assistant.com/seo-stop-words.html
+#     some English non-breaking prefixes
 #
 
 a
@@ -75,6 +76,7 @@ adj
 adjusted
 adjustment
 adjustments
+adm
 administration
 admission
 admit
@@ -82,6 +84,7 @@ admitted
 adopted
 adult
 adults
+adv
 advance
 advanced
 advantage
@@ -118,6 +121,7 @@ aim
 aimed
 ain't
 air
+al
 alert
 alienation
 align
@@ -268,6 +272,7 @@ assistant
 associate
 associated
 association
+asst
 assume
 assumed
 assumption
@@ -351,6 +356,7 @@ barely
 barn
 barrel
 bars
+bart
 base
 baseball
 based
@@ -434,6 +440,7 @@ bitter
 black
 blame
 blanket
+bldg
 blind
 block
 blockquote
@@ -489,6 +496,7 @@ bridge
 bridges
 brief
 briefly
+brig
 bright
 brilliant
 bring
@@ -498,6 +506,7 @@ broad
 broke
 broken
 bronchial
+bros
 brother
 brought
 brown
@@ -553,6 +562,7 @@ capabilities
 capable
 capacity
 capital
+capt
 captain
 caption
 car
@@ -596,6 +606,7 @@ century
 certain
 certainly
 certainty
+cf
 chain
 chair
 chairman
@@ -689,6 +700,7 @@ clothing
 cloud
 clouds
 club
+cmdr
 co
 co.
 coach
@@ -698,6 +710,7 @@ coating
 cocktail
 code
 coffee
+col
 cold
 colleagues
 collect
@@ -717,6 +730,7 @@ com
 combat
 combination
 combined
+comdr
 come
 comedy
 comes
@@ -765,6 +779,7 @@ composer
 composition
 compromise
 computed
+con
 conceived
 concentrated
 concentration
@@ -877,6 +892,7 @@ copy
 core
 corn
 corner
+corp
 correct
 correspondence
 corresponding
@@ -906,6 +922,7 @@ covered
 covering
 covers
 cow
+cpl
 crack
 craft
 crash
@@ -1178,6 +1195,7 @@ downs
 downtown
 downwards
 dozen
+dr
 draft
 drama
 dramatic
@@ -1206,6 +1224,7 @@ driving
 drop
 dropped
 drove
+drs
 drug
 drugs
 drunk
@@ -1317,6 +1336,7 @@ enjoyed
 enjoyment
 enormous
 enough
+ens
 enter
 entered
 entering
@@ -1343,6 +1363,7 @@ era
 error
 errors
 escape
+esp
 especially
 essential
 essentially
@@ -1694,6 +1715,7 @@ gathering
 gave
 gay
 gear
+gen
 general
 generally
 generation
@@ -1738,6 +1760,7 @@ goods
 gorton
 got
 gotten
+gov
 govern
 governing
 government
@@ -1912,6 +1935,7 @@ holes
 hollywood
 home
 homes
+hon
 honest
 honey
 honor
@@ -1924,6 +1948,7 @@ hoping
 horizon
 horse
 horses
+hosp
 host
 hot
 hotels
@@ -2052,6 +2077,7 @@ insight
 insist
 insisted
 insofar
+insp
 inspection
 inspired
 installed
@@ -2136,6 +2162,7 @@ joint
 joke
 journey
 joy
+jr
 judges
 judgment
 judgments
@@ -2351,6 +2378,7 @@ low
 lower
 lowered
 loyalty
+lt
 ltd
 luck
 lucky
@@ -2382,6 +2410,7 @@ maintain
 maintained
 maintaining
 maintenance
+maj
 major
 majority
 make
@@ -2481,6 +2510,7 @@ merger
 merit
 mess
 message
+messrs
 met
 metal
 method
@@ -2520,7 +2550,9 @@ mistake
 mix
 mixed
 mixture
+mlle
 mm
+mme
 mobile
 mode
 model
@@ -2565,6 +2597,9 @@ movies
 moving
 mr
 mrs
+ms
+msgr
+mss
 mst
 much
 mud
@@ -2736,6 +2771,7 @@ oh
 oil
 ok
 okay
+okt
 old
 older
 oldest
@@ -2747,6 +2783,7 @@ ones
 only
 onset
 onto
+op
 open
 opened
 opening
@@ -2768,6 +2805,7 @@ optimal
 or
 oral
 orchestra
+ord
 order
 ordered
 ordering
@@ -2919,8 +2957,12 @@ perspective
 persuaded
 pertinent
 petitioner
+pfc
+ph
+ph.d
 phase
 phases
+phd
 phenomena
 phenomenon
 philosophical
@@ -3032,6 +3074,7 @@ powder
 power
 powerful
 powers
+pp
 practical
 practically
 practice
@@ -3106,6 +3149,7 @@ product
 production
 productive
 products
+prof
 profession
 professional
 profit
@@ -3178,6 +3222,7 @@ pushed
 put
 puts
 putting
+pvt
 q
 qualified
 qualities
@@ -3352,6 +3397,7 @@ removed
 rendered
 rent
 reorganization
+rep
 repair
 repeat
 repeated
@@ -3372,6 +3418,7 @@ represented
 representing
 represents
 reprint
+reps
 republic
 reputation
 request
@@ -3380,6 +3427,7 @@ required
 requirement
 requirements
 requires
+res
 research
 reserve
 reserved
@@ -3418,6 +3466,7 @@ return
 returned
 returning
 returns
+rev
 reveal
 revealed
 reveals
@@ -3465,6 +3514,7 @@ round
 route
 routine
 row
+rt
 rub
 rule
 ruled
@@ -3567,10 +3617,12 @@ self
 sell
 selling
 selves
+sen
 senator
 send
 sending
 senior
+sens
 sense
 sensible
 sensitive
@@ -3581,6 +3633,7 @@ sentiment
 sep
 separate
 separated
+sept
 september
 sequence
 sergeant
@@ -3609,6 +3662,8 @@ severe
 sewage
 sex
 sexual
+sfc
+sgt
 shade
 shadows
 shaking
@@ -3822,6 +3877,8 @@ spots
 spread
 spring
 square
+sr
+st
 stable
 staff
 stage
@@ -3980,10 +4037,12 @@ supported
 supporting
 suppose
 supposed
+supt
 sure
 surely
 surface
 surfaces
+surg
 surplus
 surprise
 surprised
