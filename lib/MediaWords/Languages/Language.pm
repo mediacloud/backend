@@ -134,9 +134,6 @@ has 'cached_stop_words' => ( is => 'rw', default => 0 );
 # Cached stopword stems
 has 'cached_stop_word_stems' => ( is => 'rw', default => 0 );
 
-# Cached noise strings regular expression
-has 'cached_noise_strings_regex' => ( is => 'rw', default => 0 );
-
 # Instances of each of the enabled languages (e.g. MediaWords::Languages::en, MediaWords::Languages::lt, ...)
 my $_lang_instances = lazy
 {
