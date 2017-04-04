@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4618;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4619;
 
 BEGIN
 
@@ -2172,15 +2172,6 @@ CREATE TABLE auth_users (
 );
 
 create index auth_users_email on auth_users( email );
-
-create table auth_registration_queue (
-    auth_registration_queue_id  serial  primary key,
-    name                        text    not null,
-    email                       text    not null,
-    organization                text    not null,
-    motivation                  text    not null,
-    approved                    boolean default false
-);
 
 
 -- Generate random API key
