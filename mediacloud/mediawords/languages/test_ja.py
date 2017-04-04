@@ -165,3 +165,12 @@ This is some more English text.""") == [
             "大好き",
             "です",
         ]
+
+        # Japanese punctuation
+        assert self.__tokenizer.tokenize_sentence_to_words(
+            "Badger、badger。Badger・Badger『badger』badger？Badger！Badger！？"
+            "Badger【badger】Badger～badger▽badger（badger）"
+        ) == [
+                   'Badger', 'badger', 'Badger', 'Badger', 'badger', 'badger', 'Badger', 'Badger', 'Badger', 'badger',
+                   'Badger', 'badger', 'badger', 'badger',
+               ]
