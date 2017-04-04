@@ -107,9 +107,6 @@ class McJapaneseTokenizer(object):
                 # "表層形\t品詞,品詞細分類1,品詞細分類2,品詞細分類3,活用型,活用形,原形,読み,発音"
                 # (https://taku910.github.io/mecab/)
                 primary_form_and_analysis_result = parsed_token_line.split("\t")
-                if len(primary_form_and_analysis_result) != 2:
-                    l.warning("Line '%s' does not contain expected number of tabs." % parsed_token_line)
-                    continue
 
                 primary_form = primary_form_and_analysis_result[0]
                 analysis_result = primary_form_and_analysis_result[1]
