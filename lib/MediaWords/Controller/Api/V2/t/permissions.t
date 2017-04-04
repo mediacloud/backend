@@ -356,9 +356,12 @@ sub find_or_add_test_user($$)
     my $email    = $role . '@foo.bar';
     my $password = '123456789';
 
-    my $user = $db->query( "select * from auth_users where email = ?", $email )->hash;
-
-    return $user if ( $user );
+    my $user;
+    eval { $user = MediaWords::DBI::Auth::user_info( $db, $email ); };
+    if ( ( !$@ ) and $user )
+    {
+        return $user;
+    }
 
     my $roles = $db->query( "select auth_roles_id from auth_roles where role = ?", $role )->flat;
 
@@ -370,7 +373,7 @@ sub find_or_add_test_user($$)
         die( "error adding $role user: $@" );
     }
 
-    return $db->query( "select * from auth_users where email = ?", $email )->hash;
+    return MediaWords::DBI::Auth::user_info( $db, $email );
 }
 
 # add and return a test user with the given permission for the given topic.

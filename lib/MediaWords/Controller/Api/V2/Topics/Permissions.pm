@@ -95,8 +95,9 @@ sub update_PUT
         die( "Unknown permission '$permission'" );
     }
 
-    my $auth_user = $db->query( "select * from auth_users where lower( email ) = \$1", $email )->hash;
-    if ( !$auth_user )
+    my $auth_user;
+    eval { $auth_user = MediaWords::DBI::Auth::user_info( $db, $email ); };
+    if ( $@ or ( !$auth_user ) )
     {
         $c->response->status( HTTP_BAD_REQUEST );
         die( "Unknown email '$email'" );
