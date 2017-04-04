@@ -326,9 +326,10 @@ sub create_test_user($$)
         LOGCONFESS "Adding new user failed: $@";
     }
 
-    my $api_key = $db->query( "select api_key from auth_users where email = ?", $email )->hash;
+    my $user_info = MediaWords::DBI::Auth::user_info( $db, $email );
+    my $api_key = $user_info->{ api_key };
 
-    return $api_key->{ api_key };
+    return $api_key;
 }
 
 # create test topic with a simple label.

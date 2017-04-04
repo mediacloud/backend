@@ -27,9 +27,12 @@ sub test_auth_profile($)
 
     my $expected_user = $db->query( <<SQL, $api_key )->hash;
         SELECT *
-        FROM auth_users au
-            JOIN auth_user_limits using ( auth_users_id )
-        WHERE api_key = \$1
+        FROM auth_users
+            INNER JOIN auth_user_api_keys USING (auth_users_id)
+            JOIN auth_user_limits USING (auth_users_id)
+        WHERE auth_user_api_keys.api_key = \$1
+          AND auth_user_api_keys.ip_address IS NULL
+        LIMIT 1
 SQL
     my $profile = test_get( "/api/v2/auth/profile" );
 
@@ -52,12 +55,21 @@ sub test_auth_login($)
 
     my $r = test_post( '/api/v2/auth/login', { username => $email, password => $password } );
 
-    my $db_api_key = $db->query( <<SQL )->hash;
+    my $db_api_key = $db->query(
+        <<SQL,
         SELECT *
-        FROM auth_user_ip_address_api_keys
-        ORDER BY auth_user_ip_address_api_keys_id DESC
+        FROM auth_user_api_keys
+        WHERE ip_address IS NOT NULL
+          AND auth_users_id = (
+            SELECT auth_users_id
+            FROM auth_users
+            WHERE email = ?
+          )
+        ORDER BY auth_user_api_keys_id DESC
         LIMIT 1
 SQL
+        $email
+    )->hash;
 
     is( $r->{ api_key }, $db_api_key->{ api_key }, "'/api/v2/auth/login' API key" );
     is( $db_api_key->{ ip_address }, '127.0.0.1' );
@@ -80,12 +92,21 @@ sub test_auth_single($)
 
     my $r = test_get( '/api/v2/auth/single', { username => $email, password => $password } );
 
-    my $db_api_key = $db->query( <<SQL )->hash;
+    my $db_api_key = $db->query(
+        <<SQL,
         SELECT *
-        FROM auth_user_ip_address_api_keys
-        ORDER BY auth_user_ip_address_api_keys_id DESC
+        FROM auth_user_api_keys
+        WHERE ip_address IS NOT NULL
+          AND auth_users_id = (
+            SELECT auth_users_id
+            FROM auth_users
+            WHERE email = ?
+          )
+        ORDER BY auth_user_api_keys_id DESC
         LIMIT 1
 SQL
+        $email
+    )->hash;
 
     is( $r->[ 0 ]->{ token }, $db_api_key->{ api_key }, "'/api/v2/auth/single' token (legacy)" );
     ok( !defined $r->[ 0 ]->{ api_key }, "'/api/v2/auth/single' api_key should be undefined" );

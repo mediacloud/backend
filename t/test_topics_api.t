@@ -433,15 +433,27 @@ sub test_topics_list($)
     {
         $label = "$label list only permitted topics";
         my $api_key = MediaWords::Test::API::get_test_api_key();
-        my $auth_user = $db->query( "select * from auth_users where api_key = ?", $api_key )->hash;
-        $db->query( "delete from auth_users_roles_map where auth_users_id = ?", $auth_user->{ auth_users_id } );
+
+        my $auth_user_api_key = MediaWords::Test::DB::create_test_user( $db, $label );
+        my $auth_user = $db->query(
+            <<SQL,
+            SELECT auth_users_id
+            FROM auth_user_api_keys
+            WHERE api_key = ?
+SQL
+            $auth_user_api_key
+        )->hash;
+        my $auth_users_id = $auth_user->{ auth_users_id };
+
+        $db->query( "delete from auth_users_roles_map where auth_users_id = ?", $auth_users_id );
 
         my $r               = test_get( "/api/v2/topics/list" );
         my $expected_topics = $db->query( "select * from topics where name % 'public ?'" )->hashes;
         ok( $r->{ topics }, "$label topics field present" );
+
         rows_match( $label, $r->{ topics }, $expected_topics, 'topics_id', $match_fields );
 
-        $db->query( <<SQL, $auth_user->{ auth_users_id }, $MediaWords::DBI::Auth::Roles::ADMIN );
+        $db->query( <<SQL, $auth_users_id, $MediaWords::DBI::Auth::Roles::ADMIN );
 insert into auth_users_roles_map ( auth_users_id, auth_roles_id )
     select ?, auth_roles_id from auth_roles where role = ?
 SQL

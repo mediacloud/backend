@@ -33,8 +33,15 @@ sub test_validate_max_stories($)
 
     my $label = "test_validate_max_stories";
 
-    my $auth_user_token = MediaWords::Test::DB::create_test_user( $db, $label );
-    my $auth_user = $db->query( "select * from auth_users where api_key = ?", $auth_user_token )->hash;
+    my $auth_user_api_key = MediaWords::Test::DB::create_test_user( $db, $label );
+    my $auth_user = $db->query(
+        <<SQL,
+        SELECT auth_users_id
+        FROM auth_user_api_keys
+        WHERE api_key = ?
+SQL
+        $auth_user_api_key
+    )->hash;
     my $auth_users_id = $auth_user->{ auth_users_id };
 
     $db->query( "delete from auth_users_roles_map" );
@@ -69,8 +76,15 @@ sub test_is_mc_queue_user($)
 
     my $label = "test_is_mc_queue_user";
 
-    my $auth_user_token = MediaWords::Test::DB::create_test_user( $db, $label );
-    my $auth_user = $db->query( "select * from auth_users where api_key = ?", $auth_user_token )->hash;
+    my $auth_user_api_key = MediaWords::Test::DB::create_test_user( $db, $label );
+    my $auth_user = $db->query(
+        <<SQL,
+        SELECT auth_users_id
+        FROM auth_user_api_keys
+        WHERE api_key = ?
+SQL
+        $auth_user_api_key
+    )->hash;
     my $auth_users_id = $auth_user->{ auth_users_id };
 
     $db->query( "delete from auth_users_roles_map where auth_users_id = ?", $auth_users_id );
@@ -97,8 +111,15 @@ sub test_get_user_public_queued_job($)
 
     my $label = "test_get_user_public_queued_job";
 
-    my $auth_user_token = MediaWords::Test::DB::create_test_user( $db, $label );
-    my $auth_user = $db->query( "select * from auth_users where api_key = ?", $auth_user_token )->hash;
+    my $auth_user_api_key = MediaWords::Test::DB::create_test_user( $db, $label );
+    my $auth_user = $db->query(
+        <<SQL,
+        SELECT auth_users_id
+        FROM auth_user_api_keys
+        WHERE api_key = ?
+SQL
+        $auth_user_api_key
+    )->hash;
     my $auth_users_id = $auth_user->{ auth_users_id };
 
     my $got_job_state = MediaWords::Controller::Api::V2::Topics::_get_user_public_queued_job( $db, $auth_users_id );

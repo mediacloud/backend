@@ -69,7 +69,7 @@ SQL
     return $auth_roles_id->{ auth_roles_id };
 }
 
-# Fetch a hash of basic user information (email, full name, notes); die() on error
+# Fetch a hash of basic user information (email, full name, notes, non-IP limited API key); die() on error
 sub user_info($$)
 {
     my ( $db, $email ) = @_;
@@ -85,22 +85,30 @@ sub user_info($$)
         SELECT auth_users.auth_users_id,
                auth_users.email,
                full_name,
-               api_key,
                notes,
                active,
+               auth_user_api_keys.api_key,
+               auth_user_api_keys.ip_address,
                weekly_requests_sum,
                weekly_requested_items_sum,
                weekly_requests_limit,
                weekly_requested_items_limit
         FROM auth_users
+            INNER JOIN auth_user_api_keys
+                ON auth_users.auth_users_id = auth_user_api_keys.auth_users_id
             INNER JOIN auth_user_limits
                 ON auth_users.auth_users_id = auth_user_limits.auth_users_id,
             auth_user_limits_weekly_usage( \$1 )
         WHERE auth_users.email = \$1
+
+          -- Return only non-IP limited API key
+          AND auth_user_api_keys.ip_address IS NULL
+
         LIMIT 1
 SQL
         $email
     )->hash;
+
     unless ( ref( $userinfo ) eq ref( {} ) and $userinfo->{ auth_users_id } )
     {
         LOGCONFESS "User with email '$email' was not found.";
@@ -204,18 +212,24 @@ sub user_for_api_key($$)
                auth_users.email,
                ARRAY_TO_STRING(ARRAY_AGG(role), ' ') AS roles
         FROM auth_users
+            INNER JOIN auth_user_api_keys
+                ON auth_users.auth_users_id = auth_user_api_keys.auth_users_id
             LEFT JOIN auth_users_roles_map
                 ON auth_users.auth_users_id = auth_users_roles_map.auth_users_id
             LEFT JOIN auth_roles
                 ON auth_users_roles_map.auth_roles_id = auth_roles.auth_roles_id
-        WHERE auth_users.api_key = LOWER(\$1) OR
-            LOWER(\$1) in (
-                SELECT api_key
-                    FROM auth_user_ip_address_api_keys
-                    WHERE
-                        auth_users.auth_users_id = auth_user_ip_address_api_keys.auth_users_id AND
-                        ip_address = \$2 )
+        WHERE
+            (
+                auth_user_api_keys.api_key = \$1 AND
+                (
+                    auth_user_api_keys.ip_address IS NULL
+                    OR
+                    auth_user_api_keys.ip_address = \$2
+                )
+            )
+
           AND active = true
+
         GROUP BY auth_users.auth_users_id,
                  auth_users.email
         ORDER BY auth_users.auth_users_id
@@ -598,11 +612,17 @@ sub add_user($$$$$$$$;$$)
     }
 
     # Check if user already exists
-    my $userinfo = undef;
-    eval { $userinfo = user_info( $db, $email ); };
-    if ( $userinfo )
+    my ( $user_exists ) = $db->query(
+        <<"SQL",
+        SELECT 1
+        FROM auth_users
+        WHERE email = ?
+SQL
+        $email
+    )->flat;
+    if ( $user_exists )
     {
-        die "User with email address '$email' already exists.";
+        die "User with email '$email' already exists.";
     }
 
     # Hash + validate the password
@@ -617,21 +637,24 @@ sub add_user($$$$$$$$;$$)
     $db->begin_work;
 
     # Create the user
-    $db->query(
-        <<"SQL",
-        INSERT INTO auth_users (email, password_hash, full_name, notes, active )
-        VALUES (?, ?, ?, ?, ? )
-SQL
-        $email, $password_hash, $full_name, $notes, normalize_boolean_for_db( $is_active )
+    $db->create(
+        'auth_users',
+        {
+            email         => $email,
+            password_hash => $password_hash,
+            full_name     => $full_name,
+            notes         => $notes,
+            active        => normalize_boolean_for_db( $is_active )
+        }
     );
 
     # Fetch the user's ID
-    $userinfo = undef;
+    my $userinfo = undef;
     eval { $userinfo = user_info( $db, $email ); };
     if ( $@ or ( !$userinfo ) )
     {
         $db->rollback;
-        die "I've attempted to create the user but it doesn't exist.";
+        die "I've attempted to create the user but it doesn't exist: $@";
     }
     my $auth_users_id = $userinfo->{ auth_users_id };
 
@@ -883,7 +906,8 @@ SQL
     }
 }
 
-# Regenerate API key; die()s on error
+# Regenerate API key -- creates new non-IP limited API key, removes all
+# IP-limited API keys; die()s on error
 sub regenerate_api_key($$)
 {
     my ( $db, $email ) = @_;
@@ -901,16 +925,41 @@ sub regenerate_api_key($$)
         die "User with email address '$email' does not exist.";
     }
 
-    # Regenerate API key
+    $db->begin;
+
+    # Purge all IP-limited API keys
     $db->query(
         <<SQL,
-        UPDATE auth_users
-        -- DEFAULT points to a generation function
-        SET api_key = DEFAULT
-        WHERE email = ?
+        DELETE FROM auth_user_api_keys
+        WHERE ip_address IS NOT NULL
+          AND auth_users_id = (
+            SELECT auth_users_id
+            FROM auth_users
+            WHERE email = ?
+          )
 SQL
         $email
     );
+
+    # Regenerate non-IP limited API key
+    $db->query(
+        <<SQL,
+        UPDATE auth_user_api_keys
+
+        -- DEFAULT points to a generation function
+        SET api_key = DEFAULT
+
+        WHERE ip_address IS NULL
+          AND auth_users_id = (
+            SELECT auth_users_id
+            FROM auth_users
+            WHERE email = ?
+          )        
+SQL
+        $email
+    );
+
+    $db->commit;
 }
 
 1;

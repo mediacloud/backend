@@ -83,15 +83,15 @@ sub _login_and_get_ip_api_key_for_user
     my $auth_user_ip_api_key = $db->query(
         <<SQL,
         SELECT *
-        FROM auth_user_ip_address_api_keys
-        WHERE auth_users_id = ?
-          AND ip_address = ?
+        FROM auth_user_api_keys
+        WHERE auth_users_id = \$1
+          AND ip_address = \$2
 SQL
         $user->{ auth_users_id }, $ip_address
     )->hash;
 
     my $auit_hash = { auth_users_id => $user->{ auth_users_id }, ip_address => $ip_address };
-    $auth_user_ip_api_key //= $db->create( 'auth_user_ip_address_api_keys', $auit_hash );
+    $auth_user_ip_api_key //= $db->create( 'auth_user_api_keys', $auit_hash );
 
     return $auth_user_ip_api_key->{ api_key };
 }
