@@ -89,11 +89,15 @@ EOF
 
     # Homebrew now installs Python 3.6 by default, so we need older Python 3.5 which is best installed as a .pkg
     command -v python3.5 >/dev/null 2>&1 || {
-        echo "Media Cloud requires Python 3.5.1."
+        echo "Media Cloud requires Python 3.5.+"
         echo
         echo "Please install the 'Mac OS X 64-bit/32-bit installer' manually from the following link:"
         echo
         echo "    https://www.python.org/downloads/release/python-351/"
+        echo
+        echo "Or if using pyenv, run:"
+        echo
+        echo "    pyenv install 3.5.3"
         echo
         exit 1
     }
@@ -104,21 +108,26 @@ EOF
         cpanminus \
         curl \
         gawk \
-        graphviz --with-bindings \
-        homebrew/dupes/tidy \
+        tidy-html5 \
         hunspell \
         libyaml \
         logrotate \
         netcat \
         openssl \
+        perl \
         python \
         rabbitmq \
         #
 
+    # using options when running brew install apply to all listed packages being installed
+    brew install graphviz --with-bindings
+
+    # Fixes: Can't locate XML/SAX.pm in @INC
+    # https://rt.cpan.org/Public/Bug/Display.html?id=62289
+    unset MAKEFLAGS
     echo "Installing Media Cloud dependencies with cpanm..."
-    sudo cpanm \
+    cpanm \
         Graph \
-        Graph::Writer::GraphViz \
         GraphViz \
         HTML::Entities \
         HTML::Parser \
@@ -140,8 +149,12 @@ EOF
         YAML::Syck \
         #
 
+    # fix failing outdated test on GraphViz preventing install
+    # https://rt.cpan.org/Public/Bug/Display.html?id=41776
+    cpanm --force Graph::Writer::GraphViz
+
    if [ ! "${SKIP_VAGRANT_TEST:+x}" ]; then
-        if [ ! -x /usr/bin/vagrant ]; then
+        if ! command -v vagrant > /dev/null 2>&1; then
             echo_vagrant_instructions
             exit 1
         fi
@@ -201,7 +214,7 @@ else
 
     #
     # OpenJDK:
-    
+
     if verlt "$DISTRIB_RELEASE" "16.04"; then
         # Solr 6+ requires Java 8 which is unavailable before 16.04
         echo "Adding Java 8 PPA repository to Ubuntu 12.04..."
