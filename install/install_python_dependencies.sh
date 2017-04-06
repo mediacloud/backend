@@ -23,9 +23,9 @@ if [ `uname` == 'Darwin' ]; then
     pip$PYTHON3_MAJOR_VERSION install --upgrade pip
 else
     # assume Ubuntu
-    wget https://bootstrap.pypa.io/get-pip.py -O - | $COMMAND_PREFIX python2.7 -
+    wget https://bootstrap.pypa.io/get-pip.py -O - | sudo python2.7 -
     sudo rm setuptools-*.zip || echo "No setuptools to cleanup"
-    wget https://bootstrap.pypa.io/get-pip.py -O - | $COMMAND_PREFIX python$PYTHON3_MAJOR_VERSION -
+    wget https://bootstrap.pypa.io/get-pip.py -O - | sudo python$PYTHON3_MAJOR_VERSION -
     sudo rm setuptools-*.zip || echo "No setuptools to cleanup"
 fi
 
