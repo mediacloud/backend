@@ -4,13 +4,17 @@ addons:
     postgresql: "9.3"
     hosts:
         - mediacloud.local
+os:
+  - linux
+  - osx
 matrix:
     include:
         - os: linux
-          perl: "5.22"
+          language: perl
+          perl: 5.22
         - os: osx
           language: generic
-      allow_failures:
+    allow_failures:
         - os: osx
 cache:
     directories:
