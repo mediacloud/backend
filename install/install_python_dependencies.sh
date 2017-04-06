@@ -16,9 +16,9 @@ function verlt() {
 PYTHON3_MAJOR_VERSION="3.5"
 
 if [ `uname` == 'Darwin' ]; then
-    COMMAND_PREFIX = ""
+    COMMAND_PREFIX=""
 else
-    COMMAND_PREFIX = "sudo"
+    COMMAND_PREFIX="sudo"
 fi
 
 echo "Installing (upgrading) Pip..."
