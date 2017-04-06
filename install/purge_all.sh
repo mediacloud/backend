@@ -11,3 +11,4 @@ cd "$MC_ROOT_DIR"
 ./install/purge_mediacloud_databases.sh
 ./install/purge_carton_install.sh
 ./install/purge_mc_perl_brew.sh
+rm -rf mc-venv
