@@ -12,19 +12,22 @@ function verlt() {
     [ "$1" = "$2" ] && return 1 || verlte "$1" "$2"
 }
 
-if [ `uname` == 'Darwin' ]; then
-    # Mac OS X
-    COMMAND_PREFIX=""    # doesn't need sudo as Python gets installed via Homebrew
-else
-    # assume Ubuntu
-    COMMAND_PREFIX="sudo"
-fi
+# TODO: test python 3.6
+PYTHON3_MAJOR_VERSION="3.5"
 
 echo "Installing (upgrading) Pip..."
-wget https://bootstrap.pypa.io/get-pip.py -O - | $COMMAND_PREFIX python2.7 -
-$COMMAND_PREFIX rm setuptools-*.zip || echo "No setuptools to cleanup"
-wget https://bootstrap.pypa.io/get-pip.py -O - | $COMMAND_PREFIX python3.5 -
-$COMMAND_PREFIX rm setuptools-*.zip || echo "No setuptools to cleanup"
+if [ `uname` == 'Darwin' ]; then
+    # doesn't need get-pip as python always comes with pip installed on Mac OS X
+    # should theoretically be pre-installed on all platforms from Python 2.7+
+    pip2.7 install --upgrade pip
+    pip$PYTHON3_MAJOR_VERSION install --upgrade pip
+else
+    # assume Ubuntu
+    wget https://bootstrap.pypa.io/get-pip.py -O - | $COMMAND_PREFIX python2.7 -
+    sudo rm setuptools-*.zip || echo "No setuptools to cleanup"
+    wget https://bootstrap.pypa.io/get-pip.py -O - | $COMMAND_PREFIX python$PYTHON3_MAJOR_VERSION -
+    sudo rm setuptools-*.zip || echo "No setuptools to cleanup"
+fi
 
 echo "Installing (upgrading) Supervisor..."
 # * change dir, otherwise the installer might think we're trying to install from the supervisor/ directory
@@ -33,14 +36,16 @@ echo "Installing (upgrading) Supervisor..."
 
 echo "Installing (upgrading) Virtualenv..."
 $COMMAND_PREFIX pip2.7 install --force-reinstall --upgrade virtualenv
-$COMMAND_PREFIX pip3.5 install --force-reinstall --upgrade virtualenv
+$COMMAND_PREFIX pip$PYTHON3_MAJOR_VERSION install --force-reinstall --upgrade virtualenv
 
 echo "Creating mc-venv virtualenv..."
-virtualenv --python=python3.5 mc-venv
+echo "$(which python$PYTHON3_MAJOR_VERSION)"
+echo "$(which virtualenv)"
+virtualenv --python=python$PYTHON3_MAJOR_VERSION mc-venv
 source mc-venv/bin/activate
 
 echo "Adding 'mediacloud/' to module search path..."
-SITE_PACKAGES_PATH="./mc-venv/lib/python3.5/site-packages/"
+SITE_PACKAGES_PATH="./mc-venv/lib/python$PYTHON3_MAJOR_VERSION/site-packages/"
 if [ ! -d "$SITE_PACKAGES_PATH" ]; then
     echo "'site-packages' at $SITE_PACKAGES_PATH does not exist."
     exit 1
@@ -52,9 +57,9 @@ cat > "$SITE_PACKAGES_PATH/mediacloud.pth" << EOF
 ../../../../mediacloud/
 EOF
 
-echo "Installing Python 3.5 dependencies..."
-pip3.5 install --upgrade -r mediacloud/requirements.txt || {
+echo "Installing Python $PYTHON3_MAJOR_VERSION dependencies..."
+pip$PYTHON3_MAJOR_VERSION install --upgrade -r mediacloud/requirements.txt || {
     # Sometimes fails with some sort of Setuptools error
-    echo "'pip3.5 install' failed the first time, retrying..."
-    pip3.5 install --upgrade -r mediacloud/requirements.txt
+    echo "'pip$PYTHON3_MAJOR_VERSION install' failed the first time, retrying..."
+    pip$PYTHON3_MAJOR_VERSION install --upgrade -r mediacloud/requirements.txt
 }
