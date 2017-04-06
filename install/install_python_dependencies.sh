@@ -15,6 +15,12 @@ function verlt() {
 # TODO: test python 3.6
 PYTHON3_MAJOR_VERSION="3.5"
 
+if [ `uname` == 'Darwin' ]; then
+    COMMAND_PREFIX = ""
+else
+    COMMAND_PREFIX = "sudo"
+fi
+
 echo "Installing (upgrading) Pip..."
 if [ `uname` == 'Darwin' ]; then
     # doesn't need get-pip as python always comes with pip installed on Mac OS X
@@ -23,10 +29,10 @@ if [ `uname` == 'Darwin' ]; then
     pip$PYTHON3_MAJOR_VERSION install --upgrade pip
 else
     # assume Ubuntu
-    wget https://bootstrap.pypa.io/get-pip.py -O - | sudo python2.7 -
-    sudo rm setuptools-*.zip || echo "No setuptools to cleanup"
-    wget https://bootstrap.pypa.io/get-pip.py -O - | sudo python$PYTHON3_MAJOR_VERSION -
-    sudo rm setuptools-*.zip || echo "No setuptools to cleanup"
+    wget https://bootstrap.pypa.io/get-pip.py -O - | $COMMAND_PREFIX python2.7 -
+    $COMMAND_PREFIX rm setuptools-*.zip || echo "No setuptools to cleanup"
+    wget https://bootstrap.pypa.io/get-pip.py -O - | $COMMAND_PREFIX python$PYTHON3_MAJOR_VERSION -
+    $COMMAND_PREFIX rm setuptools-*.zip || echo "No setuptools to cleanup"
 fi
 
 echo "Installing (upgrading) Supervisor..."
