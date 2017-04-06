@@ -20,8 +20,10 @@ else
     OPENSSL_PREFIX="/usr"
 fi
 
-# needed to install the https github links below
-./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm LWP::Protocol::https
+if [ `uname` == 'Darwin' ]; then
+    # needed to install the https github links below
+    ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm LWP::Protocol::https
+fi
 
 # OS X no longer provides OpenSSL headers and Net::AMQP::RabbitMQ doesn't care
 # about OPENSSL_PREFIX so we need to set CCFLAGS and install the module
