@@ -41,4 +41,25 @@ If this script runs successfully, skip to the [Post Install](#post-install) sect
   
 3. The [doc/](doc/) directory contains additional documentation. Refer to the README files in that directory for more information.
 
-4. Perform brilliant analysis, fix our broken code, document how the system works, and otherwise contribute to the project.
+4. If you would like to test out Media Cloud with a sample dataset, you can use our [Global Voices](https://globalvoices.org/) database dump available at:
+
+    <https://mediacloud-sample-dumps.s3.amazonaws.com/sample-dumps/mediacloud-globalvoices-unextracted-4616.sql.xz>
+
+    To load the dump, perform the following:
+
+        # Unextract the archive
+        xz -d sample-dump.sql.xz
+
+        # Recreate empty databases
+        dropdb mediacloud && dropdb mediacloud_test
+        ./install/create_default_db_user_and_databases.sh
+
+        # Load the dump into "mediacloud"
+        psql -f sample-dump.sql -d mediacloud
+
+        # Run the migrations to make the database up-to-date to the latest schema
+        ./script/run_with_carton.sh ./script/mediawords_upgrade_db.pl --import
+
+    Afterwards, you can log in to the web interface using the sample user credentials from `install.sh`, i.e. with username `jdoe@mediacloud.org` and password `mediacloud`.
+
+5. Perform brilliant analysis, fix our broken code, document how the system works, and otherwise contribute to the project.
