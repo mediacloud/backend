@@ -90,7 +90,7 @@ EOF
     set +u
     if [ "$CI" == "true" ]; then
         echo "CI mode. Installing Python 3.5.3 automatically using pyenv"
-        brew install pyenv
+        brew ls --versions pyenv && brew upgrade pyenv || brew install pyenv
         pyenv install --skip-existing 3.5.3
         pyenv local 3.5.3
         pyenv rehash
