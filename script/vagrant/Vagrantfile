@@ -34,9 +34,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # Ubuntu 16.04 (64 bit)
     config.vm.box = "ubuntu/xenial64"
 
-    # Access Media Cloud's 5000 port by opening localhost:5001
-    config.vm.network :forwarded_port, guest: 5000, host: 5001
-
     # Access Media Cloud's 3000 port by opening localhost:3001
     config.vm.network :forwarded_port, guest: 3000, host: 3001
 
