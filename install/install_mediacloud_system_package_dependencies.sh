@@ -125,6 +125,7 @@ EOF
     set -u
 
     echo "Installing Media Cloud dependencies with Homebrew..."
+    brew update
     brew_install_or_noop "coreutils"
     brew_install_or_noop "cpanminus"
     brew_install_or_noop "curl"
