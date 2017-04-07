@@ -67,6 +67,10 @@ function brew_install_or_upgrade() {
     brew ls --versions "$1" > /dev/null && echo brew upgrade "$1" || echo brew install "$@"
 }
 
+function brew_install_or_noop() {
+    brew ls --versions "$1" > /dev/null || echo brew install "$@"
+}
+
 echo "Installing Media Cloud system dependencies..."
 echo
 
@@ -121,19 +125,19 @@ EOF
     set -u
 
     echo "Installing Media Cloud dependencies with Homebrew..."
-    brew_install_or_upgrade "coreutils"
-    brew_install_or_upgrade "cpanminus"
-    brew_install_or_upgrade "curl"
-    brew_install_or_upgrade "gawk"
-    brew_install_or_upgrade "tidy-html5"
-    brew_install_or_upgrade "hunspell"
-    brew_install_or_upgrade "libyaml"
-    brew_install_or_upgrade "logrotate"
-    brew_install_or_upgrade "netcat"
-    brew_install_or_upgrade "openssl"
-    brew_install_or_upgrade "perl"
-    brew_install_or_upgrade "python"
-    brew_install_or_upgrade "rabbitmq"
+    brew_install_or_noop "coreutils"
+    brew_install_or_noop "cpanminus"
+    brew_install_or_noop "curl"
+    brew_install_or_noop "gawk"
+    brew_install_or_noop "tidy-html5"
+    brew_install_or_noop "hunspell"
+    brew_install_or_noop "libyaml"
+    brew_install_or_noop "logrotate"
+    brew_install_or_noop "netcat"
+    brew_install_or_noop "openssl"
+    brew_install_or_noop "perl"
+    brew_install_or_noop "python"
+    brew_install_or_noop "rabbitmq"
 
     # using options when running brew install apply to all listed packages being installed
     brew_install_or_upgrade "graphviz" --with-bindings

@@ -10,6 +10,8 @@ matrix:
         - os: linux
           language: perl
           perl: 5.22
+        - os: osx
+          language: generic
 cache:
     directories:
         # Carton dependencies
@@ -54,9 +56,6 @@ before_install:
     # Set up kernel and PostgreSQL parameters
     - ./install/set_kernel_parameters.sh
     - ./install/set_postgresql_parameters.sh
-    # Create + switch to the Media Cloud's Perlbrew library
-    - perlbrew lib create mediacloud
-    - perlbrew switch @mediacloud
     # Set up Perl and module dependencies (dependencies might be restored from
     # cache into "local/" already in which case we just check if Carton is
     # happy with the current setup)
