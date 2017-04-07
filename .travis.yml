@@ -7,7 +7,7 @@ addons:
 os:
   - linux
   - osx
-langauge: generic
+language: generic
 matrix:
     include:
         - os: linux
@@ -16,7 +16,8 @@ matrix:
         - os: osx
           language: generic
     exclude:
-        - language: ruby # no idea why this is needed
+        - os: linux
+          language: generic
     allow_failures:
         - os: osx
 cache:
