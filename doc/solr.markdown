@@ -21,7 +21,7 @@ is greater than the latest value in `solr_imports`.  Triggers in the PostgreSQL 
 medium tag, or story sentence tag is updated.
 
 The list of fields imported by Solr is configured in
-[solr/mediacloud/collections/_base_collection/conf/schema.xml](../solr/mediacloud/collections/_base_collection/conf/schema.xml).  As of this doc, we index the
+[solr/collections/_base_collection/conf/schema.xml](../solr/collections/_base_collection/conf/schema.xml).  As of this doc, we index the
 following fields:
 
 * `story_sentences_id` (stored; must look up the specific returned sentence)

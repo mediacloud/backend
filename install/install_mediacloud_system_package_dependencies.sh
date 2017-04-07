@@ -58,6 +58,14 @@ function verlt() {
     [ "$1" = "$2" ] && return 1 || verlte "$1" "$2"
 }
 
+# Use this function to deal with the Travis CI error
+# that occurs when installing a package that is already installed
+# but a lower version:
+# Error: coreutils-8.25 already installed
+# To install this version, first `brew unlink coreutils`
+function brew_install_or_upgrade() {
+    brew ls --versions "$1" > /dev/null && echo brew upgrade "$1" || echo brew install "$@"
+}
 
 echo "Installing Media Cloud system dependencies..."
 echo
@@ -87,38 +95,55 @@ EOF
         exit 1
     fi
 
-    # Homebrew now installs Python 3.6 by default, so we need older Python 3.5 which is best installed as a .pkg
-    command -v python3.5 >/dev/null 2>&1 || {
-        echo "Media Cloud requires Python 3.5.1."
-        echo
-        echo "Please install the 'Mac OS X 64-bit/32-bit installer' manually from the following link:"
-        echo
-        echo "    https://www.python.org/downloads/release/python-351/"
-        echo
-        exit 1
-    }
+    set +u
+    if [ "$CI" == "true" ]; then
+        echo "CI mode. Installing Python 3.5.3 automatically using pyenv"
+        brew_install_or_upgrade "pyenv"
+        pyenv install --skip-existing 3.5.3
+        pyenv local 3.5.3
+        pyenv rehash
+    else
+        # Homebrew now installs Python 3.6 by default, so we need older Python 3.5 which is best installed as a .pkg
+        command -v python3.5 >/dev/null 2>&1 || {
+            echo "Media Cloud requires Python 3.5.+"
+            echo
+            echo "Please install the 'Mac OS X 64-bit/32-bit installer' manually from the following link:"
+            echo
+            echo "    https://www.python.org/downloads/release/python-351/"
+            echo
+            echo "Or if using pyenv, run:"
+            echo
+            echo "    pyenv install 3.5.3"
+            echo
+            exit 1
+        }
+    fi
+    set -u
 
     echo "Installing Media Cloud dependencies with Homebrew..."
-    brew install \
-        coreutils \
-        cpanminus \
-        curl \
-        gawk \
-        graphviz --with-bindings \
-        homebrew/dupes/tidy \
-        hunspell \
-        libyaml \
-        logrotate \
-        netcat \
-        openssl \
-        python \
-        rabbitmq \
-        #
+    brew_install_or_upgrade "coreutils"
+    brew_install_or_upgrade "cpanminus"
+    brew_install_or_upgrade "curl"
+    brew_install_or_upgrade "gawk"
+    brew_install_or_upgrade "tidy-html5"
+    brew_install_or_upgrade "hunspell"
+    brew_install_or_upgrade "libyaml"
+    brew_install_or_upgrade "logrotate"
+    brew_install_or_upgrade "netcat"
+    brew_install_or_upgrade "openssl"
+    brew_install_or_upgrade "perl"
+    brew_install_or_upgrade "python"
+    brew_install_or_upgrade "rabbitmq"
 
+    # using options when running brew install apply to all listed packages being installed
+    brew_install_or_upgrade "graphviz" --with-bindings
+
+    # Fixes: Can't locate XML/SAX.pm in @INC
+    # https://rt.cpan.org/Public/Bug/Display.html?id=62289
+    unset MAKEFLAGS
     echo "Installing Media Cloud dependencies with cpanm..."
-    sudo cpanm \
+    cpanm \
         Graph \
-        Graph::Writer::GraphViz \
         GraphViz \
         HTML::Entities \
         HTML::Parser \
@@ -140,8 +165,12 @@ EOF
         YAML::Syck \
         #
 
+    # fix failing outdated test on GraphViz preventing install
+    # https://rt.cpan.org/Public/Bug/Display.html?id=41776
+    cpanm --force Graph::Writer::GraphViz
+
    if [ ! "${SKIP_VAGRANT_TEST:+x}" ]; then
-        if [ ! -x /usr/bin/vagrant ]; then
+        if ! command -v vagrant > /dev/null 2>&1; then
             echo_vagrant_instructions
             exit 1
         fi
@@ -201,7 +230,7 @@ else
 
     #
     # OpenJDK:
-    
+
     if verlt "$DISTRIB_RELEASE" "16.04"; then
         # Solr 6+ requires Java 8 which is unavailable before 16.04
         echo "Adding Java 8 PPA repository to Ubuntu 12.04..."

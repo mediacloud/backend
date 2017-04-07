@@ -4,7 +4,7 @@
 
 ### Translate strings coming from Perl to Python as `bytes`
 
-Perl strings reach Python code as `bytes` and not as `str`. Thus, encode them to `str` first by using `decode_object_from_bytes_if_needed()` helper:
+Perl strings [reach Python 3 code as `bytes` and not as `str`](http://search.cpan.org/~nine/Inline-Python/Python.pod#PORTING_YOUR_INLINE_PYTHON_CODE_FROM_2_TO_3). Thus, encode them to `str` first by using `decode_object_from_bytes_if_needed()` helper:
 
 ```python
 def foo(bar):

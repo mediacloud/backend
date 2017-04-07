@@ -37,7 +37,7 @@ for db_selector in "${DB_CREDENTIALS_SELECTORS[@]}"; do
 EOF
 )
     createuser_exec=`run_psql "$db_credentials_host" "$createuser_sql" postgres`
-    if [[ "$createuser_exec" == *"ERROR"* ]]; then
+    if [[ "$createuser_exec" == *"ERROR"* || "$createuser_exec" == *"FATAL"* ]]; then
         if [[ "$createuser_exec" == *"already exists"* ]]; then
             echo "        User '$db_credentials_user' already exists, skipping creation."
         elif [[ -n "$createuser_exec" ]]; then
@@ -53,7 +53,7 @@ EOF
     echo "    Creating database '$db_credentials_db' on host '$db_credentials_host' with owner '$db_credentials_user'..."
     createdb_exec=`run_createdb "$db_credentials_host" "$db_credentials_db" "$db_credentials_user"`
 
-    if [[ "$createdb_exec" == *"ERROR"* ]]; then
+    if [[ "$createdb_exec" == *"ERROR"* || "$createdb_exec" == *"FATAL"* ]]; then
         if [[ "$createdb_exec" == *"already exists"* ]]; then
             echo "        Database '$db_credentials_db' already exists, skipping creation."
             echo "        If you want to purge everything and start from scratch, run purge_mediacloud_databases.sh manually."
