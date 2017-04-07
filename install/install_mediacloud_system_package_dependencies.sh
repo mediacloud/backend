@@ -88,6 +88,8 @@ EOF
         exit 1
     fi
 
+    brew update
+
     if [ ! -x /usr/bin/gcc ]; then
         cat <<EOF
 As a dependency to Homebrew, you need to install Xcode (available as a free
@@ -125,7 +127,6 @@ EOF
     set -u
 
     echo "Installing Media Cloud dependencies with Homebrew..."
-    brew update
     brew_install_or_noop "coreutils"
     brew_install_or_noop "cpanminus"
     brew_install_or_noop "curl"
