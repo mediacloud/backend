@@ -13,7 +13,7 @@ def test_download_file():
     assert os.path.getsize(dst_path) > 0
 
     # Nonexistent URL
-    assert_raises(McDownloadFileException, download_file, 'http://mediacloud.org/should-not-exist.txt', dst_path)
+    assert_raises(McDownloadFileException, download_file, 'https://mediacloud.org/should-not-exist.txt', dst_path)
 
 
 def test_download_file_to_temp_path():
@@ -24,4 +24,4 @@ def test_download_file_to_temp_path():
 
     # Nonexistent URL
     assert_raises(McDownloadFileToTempPathException, download_file_to_temp_path,
-                  'http://mediacloud.org/should-not-exist.txt')
+                  'https://mediacloud.org/should-not-exist.txt')
