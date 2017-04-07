@@ -13,13 +13,14 @@ use MediaWords::CommonLibs;
 use Data::Dumper;
 use List::MoreUtils;
 use Readonly;
-use Test::More tests => 1343;
+use Test::More tests => 1376;
 
-use MediaWords::Job::GenerateRetweeterScores;
+use MediaWords::Util::CSV;
+use MediaWords::TM::RetweeterScores;
 use MediaWords::Test::API;
 use MediaWords::Test::DB;
 
-Readonly my $NUM_TWITTER_USERS   => 21;
+Readonly my $NUM_TWITTER_USERS   => 11;
 Readonly my $NUM_RETWEETED_USERS => 4;
 
 # cached test data
@@ -150,7 +151,8 @@ sub _add_tweets_to_stories($$)
     my $i = 0;
     for my $story ( @{ $stories } )
     {
-        $story->{ twitter_user }   = $twitter_users->[ $i % $NUM_TWITTER_USERS ];
+        # $story->{ twitter_user }   = $twitter_users->[ $i % $NUM_TWITTER_USERS ];
+        $story->{ twitter_user } = $twitter_users->[ $story->{ media_id } % $NUM_TWITTER_USERS ];
         $story->{ retweeted_user } = $retweeted_users->[ $i % $NUM_RETWEETED_USERS ];
 
         _add_topic_tweet( $db, $story, $story->{ twitter_user }, $story->{ retweeted_user } );
@@ -364,13 +366,50 @@ SQL
     rows_match( $label, $got_retweeter_media, $expected_retweeter_media, 'media_id', $fields );
 }
 
+sub _validate_media_csv($)
+{
+    my ( $db ) = @_;
+
+    my $retweeter_score = $db->query( "select * from retweeter_scores" )->hash || die( "no retweeter_scores found" );
+
+    my $csv = MediaWords::TM::RetweeterScores::generate_media_csv( $db, $retweeter_score );
+
+    my $got_rows = MediaWords::Util::CSV::get_csv_as_hashes( \$csv, 1 );
+
+    # just do sanity test of basic retweeter_media
+    my $expected_rows = $db->query( <<SQL, $retweeter_score->{ retweeter_scores_id } )->hashes;
+select * from retweeter_media where retweeter_scores_id = ?
+SQL
+
+    my $fields = [ qw/retweeter_scores_id media_id group_a_count group_b_count group_a_count_n score partition/ ];
+    rows_match( "generate_media_csv", $got_rows, $expected_rows, 'media_id', $fields );
+}
+
+sub _validate_matrix_csv($)
+{
+    my ( $db ) = @_;
+
+    my $retweeter_score = $db->query( "select * from retweeter_scores" )->hash || die( "no retweeter_scores found" );
+
+    my $csv = MediaWords::TM::RetweeterScores::generate_matrix_csv( $db, $retweeter_score );
+
+    my $got_rows = MediaWords::Util::CSV::get_csv_as_hashes( \$csv, 1 );
+
+    my $expected_rows = $db->query( <<SQL, $retweeter_score->{ retweeter_scores_id } )->hashes;
+select * from retweeter_partition_matrix where retweeter_scores_id = ?
+SQL
+
+    my $fields = [ qw/retweeter_scores_id retweeter_groups_id group_name share_count group_proportion partition/ ];
+    rows_match( "generate_matrix_csv", $got_rows, $expected_rows, 'retweeter_partition_matrix_id', $fields );
+}
+
 sub test_retweeter_scores($)
 {
     my ( $db ) = @_;
 
     my $label = "test_retweeter_scores";
 
-    my $data = MediaWords::Test::DB::create_test_story_stack_numerated( $db, 10, 1, 100, $label );
+    my $data = MediaWords::Test::DB::create_test_story_stack_numerated( $db, $NUM_TWITTER_USERS, 1, 100, $label );
 
     my $stories = [ grep { $_->{ stories_id } } values( %{ $data } ) ];
 
@@ -379,13 +418,16 @@ sub test_retweeter_scores($)
     my $topic = _get_topic( $db );
     my ( $rt_users_a, $rt_users_b ) = _get_retweeted_users();
 
-    MediaWords::Job::GenerateRetweeterScores::_generate_retweeter_scores( $db, $topic, $label, $rt_users_a, $rt_users_b );
+    MediaWords::TM::RetweeterScores::generate_retweeter_scores( $db, $topic, $label, $rt_users_a, $rt_users_b );
 
     _validate_retweeter_score( $db );
     _validate_retweeters( $db, $stories );
     _validate_retweeter_groups( $db );
     _validate_retweeter_stories( $db, $stories );
     _validate_retweeter_media( $db, $stories );
+
+    _validate_media_csv( $db );
+    _validate_matrix_csv( $db );
 }
 
 sub main
