@@ -15,94 +15,17 @@ If you're running Mac OS X, you'll need [Homebrew](http://mxcl.github.com/homebr
 **Warning:** The file path of the directory for Media Cloud cannot contain spaces. E.g. use `/home/bob/MySoftware/mediacloud`, not `/home/bob/My Software/mediacloud`.
 
 
-## Super Quick Start
+## Install
 
-We recommend that you first read through this entire file. However, users who are really impatient can just run a single script to execute the necessary commands to install media by running ./install.sh from the Media Cloud root directory:
+Users who are really impatient can just run a single script to execute the necessary commands to install media by running `./install.sh` from the Media Cloud root directory:
 
     ./install.sh
 
-This script simply runs the commands given in the quick start section below.
+You might consider running steps from `install.sh` individually too.
 
 If this script runs successfully, skip to the [Post Install](#post-install) section at the end of this file.
 
-
-## Quick Start
-
-We recommend that you read through this entire file. Nevertheless most users will be able to simply run the following commands from the Media Cloud root directory:
-
-    sudo ./install/install_mediacloud_package_dependencies.sh
-    sudo ./install/create_default_db_user_and_databases.sh 
-    cp mediawords.yml.dist mediawords.yml
-    ./install/install_mc_perlbrew_and_modules.sh
-    ./script/run_carton.sh exec prove -Ilib/ -r t/compile.t
-    ./script/run_with_carton.sh ./script/mediawords_create_db.pl
-    ./script/run_with_carton.sh ./script/mediawords_manage_users.pl \
-        --action=add \
-        --email="your@email.com" \
-        --full_name="Your Name" \
-        --notes="Media Cloud administrator" \
-        --roles="admin" \
-        --password="yourpassword123"
-
-After you have successfully run the above commands, skip to the POST INSTALL section at the end of this file.
-
-
-## Detailed Install
-
-1. Install the necessary Ubuntu deb packages. From the Media Cloud root directory, run:
-
-        sudo ./install/install_mediacloud_package_dependencies.sh
-
-    This will install PostgreSQL 9.1+ and a number of system libraries needed by CPAN modules.
-
-2. Create the default PostgreSQL user and databases for Media Cloud. From the Media Cloud root directory, run:
-
-        sudo ./install/create_default_db_user_and_databases.sh 
-
-    This will create a PostgreSQL user called `mediaclouduser` and two databases owned by this user: `mediacloud` and `mediacloud_test`.
-
-3. Copy `mediawords.yml.dist` to `mediawords.yml`.
-
-    * *Security note:* The PostgreSQL user created above has a default PostgreSQL password and will have administrative access to PostgreSQL. These instructions assume that Media Cloud is being installed on a system with firewalls that prevent remote access to PostgreSQL and that the local users are trustworthy. If you wish to change the password of the PostgreSQL `mediaclouduser` in PostgreSQL, you will also need to edit `mediawords.yml`.
-
-4. *Optional:* Update the database section in `mediawords.yml`. Most users can skip this step and use the defaults. However, if you have changed the password of the PostgreSQL's `mediaclouduser` or if you have a custom database setup, you must update `mediawords.yml`. NOTE: The label field for the test database must be `test` and the test database must be listed after the main database.
-
-5. *Optional:* Edit the other sections of `mediawords.yml` to suit your local configuration.  
-Note that if you uncomment a suboption, you also need to uncomment the parent option.  For example, if you uncomment `db_statement_timeout`, you should also uncomment `mediawords`.
-
-6. Run the `./install/install_mc_perlbrew_and_modules.sh` script. This scripts installs Perlbrew, carton and the required modules. Simply `cd` to the base directory of Media Cloud and run the following. Note that the script will take a long time to complete:
-
-        ./install/install_mc_perlbrew_and_modules.sh
-
-7. *Recommended:* Verify that the necessary modules are installed. Run the Media Cloud compile test to verify that all required modules have been installed:
-
-        ./script/run_carton.sh exec prove -Ilib/ -r t/compile.t
-
-    If there are errors, determine which modules are missing and install them by running `./script/run_carton.sh install`.
-
-8. Make sure that the directory in which Media Cloud is located can be read by the `postgres` user:
-
-        chmod +rx ~/
-
-9. Run the following:
-
-        ./script/run_with_carton.sh ./script/mediawords_create_db.pl
-
-    This will create create the necessary database tables and procedures within the database you specified above.  Answer 'yes' at the prompt since the database you created above should be empty.
-
-10. Create the initial administrator user so you can access the administration interface. Run the following:
-
-        ./script/run_with_carton.sh ./script/mediawords_manage_users.pl \
-            --action=add \
-            --email="your@email.com" \
-            --full_name="Your Name" \
-            --notes="Media Cloud administrator" \
-            --roles="admin" \
-            --password="yourpassword123"
-
-    Replace `email`, `full_name`, `notes` and `password` fields with the appropriate information (your email address, full name, ...)
-
-    Alternatively, you can skip the `--password=...` parameter so you can securely enter your password directly.
+**Note:** default Media Cloud installation is insecure as PostgreSQL users and databases get created with default hardcoded credentials. Make sure to not expose your Media Cloud instance to the public, firewall it accordingly, or change PostgreSQL credentials in `mediawords.yml` and remove default users before proceeding to making Media Cloud public.
 
 
 ## Post Install

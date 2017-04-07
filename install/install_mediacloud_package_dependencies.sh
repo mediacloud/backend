@@ -8,11 +8,8 @@ source "$PWD/set_mc_root_dir.inc.sh"
 
 cd "$MC_ROOT_DIR"
 
-echo "installing media cloud dependencies"
-echo
-
+echo "Installing PostgreSQL server packages..."
 ./install/install_postgresql_server_packages.sh
-./install/install_mediacloud_system_package_dependencies.sh
 
-echo
-echo "sucessfully installed media cloud dependencies"
+echo "Installing system package dependencies..."
+./install/install_mediacloud_system_package_dependencies.sh
