@@ -10,7 +10,7 @@ These instructions assume comfort with PostgreSQL and especially with Perl. You 
 
 If you're running macOS, you'll need [Homebrew](http://mxcl.github.com/homebrew/) to install the required packages. As a dependency of Homebrew, you will also need to install Xcode (available as a free download from Mac App Store or from <http://developer.apple.com/>) and Xcode's "Command Line Tools" (open Xcode, go to *Xcode* -> *Preferences...*, select *Downloads*, choose *Components*, click *Install* near the *Command Line Tools* entry, wait for a while).
 
-**Note:** We recommend you create a new user to run and install Media Cloud. (The new user should have administrator access.) These instructions assume that the user running media cloud does not already have Perlbrew installed. Creating a new user is the safest way to ensure this is the case.
+**Note:** We recommend you create a new user to run and install Media Cloud. (The new user should have administrator access.) These instructions assume that the user running Media Cloud does not already have Perlbrew installed. Creating a new user is the safest way to ensure this is the case.
 
 
 ## Install on Vagrant Instance
