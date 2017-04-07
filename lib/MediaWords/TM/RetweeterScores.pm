@@ -290,6 +290,56 @@ sub generate_retweeter_scores($$$$$;$)
     _generate_retweeter_media( $db, $score );
 
     _generate_retweeter_partition_matrix( $db, $score );
+
+    return $score;
+}
+
+# generate csv dump of retweeter_media rows for a given retweeter_score.  include metrics from snap.medium_link_counts
+# from the latest overall timespan if one exists.
+sub generate_media_csv($$)
+{
+    my ( $db, $score ) = @_;
+
+    my $timespan = MediaWords::TM::get_latest_overall_timespan( $db, $score->{ topics_id } );
+
+    my $retweeter_scores_id = int( $score->{ retweeter_scores_id } );
+    my $timespans_id = $timespan ? int( $timespan->{ timespans_id } ) : -1;
+
+    my $media_csv = MediaWords::Util::CSV::get_query_as_csv( $db, <<SQL );
+select
+        rm.*,
+        m.name media_name,
+        m.url media_url,
+        ga.name group_a_name,
+        gb.name group_b_name,
+        mlc.media_inlink_count,
+        mlc.story_count,
+        mlc.bitly_click_count,
+        mlc.simple_tweet_count
+    from retweeter_scores rs
+        join retweeter_media rm using ( retweeter_scores_id )
+        join media m using ( media_id )
+        join retweeter_groups ga on ( rs.group_a_id = ga.retweeter_groups_id )
+        join retweeter_groups gb on ( rs.group_b_id = gb.retweeter_groups_id )
+        left join snap.medium_link_counts mlc on
+            ( mlc.timespans_id = $timespans_id and mlc.media_id = rm.media_id )
+    where
+        rs.retweeter_scores_id = $retweeter_scores_id
+SQL
+
+    return $media_csv;
+}
+
+# generate csv from retweeter_partition_matrix
+sub generate_matrix_csv($$)
+{
+    my ( $db, $score ) = @_;
+
+    my $matrix_csv = MediaWords::Util::CSV::get_query_as_csv( $db, <<SQL, $score->{ retweeter_scores_id } );
+select rpm.* from retweeter_partition_matrix rpm where retweeter_scores_id = ? order by group_name, partition
+SQL
+
+    return $matrix_csv;
 }
 
 1;

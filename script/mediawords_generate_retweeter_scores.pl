@@ -16,6 +16,7 @@ BEGIN
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use File::Slurp;
 use Getopt::Long;
 
 use MediaWords::TM;
@@ -23,7 +24,7 @@ use MediaWords::Job::GenerateRetweeterScores;
 
 sub main
 {
-    my ( $topic_opt, $name_opt, $users_a_opt, $users_b_opt, $num_partitions_opt, $direct_job );
+    my ( $topic_opt, $name_opt, $users_a_opt, $users_b_opt, $num_partitions_opt, $direct_job, $csv_opt );
 
     binmode( STDOUT, 'utf8' );
     binmode( STDERR, 'utf8' );
@@ -38,8 +39,9 @@ sub main
         "name=s"           => \$name_opt,
         "users_a=s"        => $users_a_opt,
         "users_b=s"        => $users_b_opt,
-        "num_partitions=s" => $num_partitions_opt,
-        "direct_job!"      => \$direct_job
+        "num_partitions=s" => \$num_partitions_opt,
+        "direct_job!"      => \$direct_job,
+        "csv!"             => \$csv_opt
     ) || return;
 
     unless ( $topic_opt && $name_opt && @{ $users_a_opt } && @{ $users_b_opt } )
@@ -71,7 +73,23 @@ sub main
 
         if ( $direct_job )
         {
-            MediaWords::Job::GenerateRetweeterScores->run_locally( $args );
+            my $db = MediaWords::DB::connect_to_db;
+
+            my $topic = $db->require_by_id( 'topics', $topics_id );
+
+            my $score = MediaWords::TM::RetweeterScores::generate_retweeter_scores( $db, $topic, $name_opt, $users_a_opt,
+                $users_b_opt, $num_partitions_opt );
+
+            if ( $csv_opt )
+            {
+                my $media_csv = MediaWords::TM::RetweeterScores::generate_media_csv( $db, $score );
+                File::Slurp::write_file( 'retweeter_media_' . $topic->{ topics_id } . '.csv', $media_csv );
+
+                my $partition_matrix_csv = MediaWords::TM::RetweeterScores::generate_matrix_csv( $db, $score );
+                File::Slurp::write_file( 'retweeter_partition_matrix_' . $topic->{ topics_id } . '.csv',
+                    $partition_matrix_csv );
+            }
+
         }
         else
         {
