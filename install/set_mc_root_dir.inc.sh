@@ -10,4 +10,10 @@ if [ ! -f "$CANDIDATE_MC_ROOT_DIR/install.sh" ]; then
 	exit 1
 fi
 
+SPACE_PATTERN=" |'"
+if [[ $CANDIDATE_MC_ROOT_DIR =~ $SPACE_PATTERN ]]; then
+	echo "Path to Media Cloud ($CANDIDATE_MC_ROOT_DIR) contains spaces."
+	exit 1
+fi
+
 MC_ROOT_DIR="$CANDIDATE_MC_ROOT_DIR"

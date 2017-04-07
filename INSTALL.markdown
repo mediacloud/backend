@@ -12,8 +12,6 @@ If you're running macOS, you'll need [Homebrew](http://mxcl.github.com/homebrew/
 
 **Note:** We recommend you create a new user to run and install Media Cloud. (The new user should have administrator access.) These instructions assume that the user running media cloud does not already have Perlbrew installed. Creating a new user is the safest way to ensure this is the case.
 
-**Warning:** The file path of the directory for Media Cloud cannot contain spaces. E.g. use `/home/bob/MySoftware/mediacloud`, not `/home/bob/My Software/mediacloud`.
-
 
 ## Install
 
