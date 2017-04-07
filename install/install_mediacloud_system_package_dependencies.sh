@@ -87,20 +87,30 @@ EOF
         exit 1
     fi
 
-    # Homebrew now installs Python 3.6 by default, so we need older Python 3.5 which is best installed as a .pkg
-    command -v python3.5 >/dev/null 2>&1 || {
-        echo "Media Cloud requires Python 3.5.+"
-        echo
-        echo "Please install the 'Mac OS X 64-bit/32-bit installer' manually from the following link:"
-        echo
-        echo "    https://www.python.org/downloads/release/python-351/"
-        echo
-        echo "Or if using pyenv, run:"
-        echo
-        echo "    pyenv install 3.5.3"
-        echo
-        exit 1
-    }
+    set +u
+    if [ "$CI" == "true" ]; then
+        echo "CI mode. Installing Python 3.5.3 automatically using pyenv"
+        brew install pyenv
+        pyenv install --skip-existing 3.5.3
+        pyenv local 3.5.3
+        pyenv rehash
+    else
+        # Homebrew now installs Python 3.6 by default, so we need older Python 3.5 which is best installed as a .pkg
+        command -v python3.5 >/dev/null 2>&1 || {
+            echo "Media Cloud requires Python 3.5.+"
+            echo
+            echo "Please install the 'Mac OS X 64-bit/32-bit installer' manually from the following link:"
+            echo
+            echo "    https://www.python.org/downloads/release/python-351/"
+            echo
+            echo "Or if using pyenv, run:"
+            echo
+            echo "    pyenv install 3.5.3"
+            echo
+            exit 1
+        }
+    fi
+    set -u
 
     echo "Installing Media Cloud dependencies with Homebrew..."
     brew install \
