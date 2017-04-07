@@ -94,6 +94,15 @@ EOF
         pyenv install --skip-existing 3.5.3
         pyenv local 3.5.3
         pyenv rehash
+
+        # Install python because Travis CI has an older version already installed.
+        # Prevents this error:
+        # Error: python-2.7.12_1 already installed
+        # To install this version, first `brew unlink python`
+        #
+        # TODO: More broadly, should switch to a bash function to
+        # brew_install_or_upgrade or use brew bundle which handles this natively
+        brew ls --versions python && brew upgrade python || brew install python
     else
         # Homebrew now installs Python 3.6 by default, so we need older Python 3.5 which is best installed as a .pkg
         command -v python3.5 >/dev/null 2>&1 || {
