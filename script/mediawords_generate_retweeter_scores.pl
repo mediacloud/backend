@@ -23,7 +23,7 @@ use MediaWords::Job::GenerateRetweeterScores;
 
 sub main
 {
-    my ( $topic_opt, $name_opt, $users_a_opt, $users_b_opt, $direct_job );
+    my ( $topic_opt, $name_opt, $users_a_opt, $users_b_opt, $num_partitions_opt, $direct_job );
 
     binmode( STDOUT, 'utf8' );
     binmode( STDERR, 'utf8' );
@@ -34,11 +34,12 @@ sub main
     $users_b_opt = [];
 
     Getopt::Long::GetOptions(
-        "topic=s"     => \$topic_opt,
-        "name=s"      => \$name_opt,
-        "users_a=s"   => $users_a_opt,
-        "users_b=s"   => $users_b_opt,
-        "direct_job!" => \$direct_job
+        "topic=s"          => \$topic_opt,
+        "name=s"           => \$name_opt,
+        "users_a=s"        => $users_a_opt,
+        "users_b=s"        => $users_b_opt,
+        "num_partitions=s" => $num_partitions_opt,
+        "direct_job!"      => \$direct_job
     ) || return;
 
     unless ( $topic_opt && $name_opt && @{ $users_a_opt } && @{ $users_b_opt } )
@@ -65,6 +66,7 @@ sub main
             name              => $name_opt,
             retweeted_users_a => $users_a_opt,
             retweeted_users_b => $users_b_opt,
+            num_partitions    => $num_partitions_opt,
         };
 
         if ( $direct_job )
