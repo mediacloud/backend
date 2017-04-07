@@ -71,6 +71,9 @@ function brew_install_or_noop() {
     brew ls --versions "$1" > /dev/null || brew install "$@"
 }
 
+# TODO: test python 3.6
+PYTHON3_MAJOR_VERSION="3.5"
+
 echo "Installing Media Cloud system dependencies..."
 echo
 
@@ -103,15 +106,17 @@ EOF
 
     set +u
     if [ "$CI" == "true" ]; then
-        echo "CI mode. Installing Python 3.5.3 automatically using pyenv"
+        PYTHON3_FULL_VERSION="3.5.3"
+        echo "CI mode. Installing Python $PYTHON3_FULL_VERSION automatically using pyenv"
         brew_install_or_upgrade "pyenv"
-        pyenv install --skip-existing 3.5.3
-        pyenv local 3.5.3
+        pyenv install --skip-existing "$PYTHON3_FULL_VERSION"
+        pyenv local "$PYTHON3_FULL_VERSION"
         pyenv rehash
+        export C_INCLUDE_PATH="$HOME/.pyenv/versions/$PYTHON3_FULL_VERSION/include/python$PYTHON3_MAJOR_VERSIONm/"
     else
         # Homebrew now installs Python 3.6 by default, so we need older Python 3.5 which is best installed as a .pkg
-        command -v python3.5 >/dev/null 2>&1 || {
-            echo "Media Cloud requires Python 3.5.+"
+        command -v python$PYTHON3_MAJOR_VERSION >/dev/null 2>&1 || {
+            echo "Media Cloud requires Python $PYTHON3_MAJOR_VERSION"
             echo
             echo "Please install the 'Mac OS X 64-bit/32-bit installer' manually from the following link:"
             echo
@@ -247,8 +252,8 @@ else
 
     # Python version to install
     if verlt "$DISTRIB_RELEASE" "16.04"; then
-        # We require at least Python 3.5 (12.04 only has 3.2 which doesn't work with newest Pip)
-        echo "Adding Python 3.5 PPA repository to Ubuntu 12.04..."
+        # We require at least Python PYTHON3_MAJOR_VERSION (12.04 only has 3.2 which doesn't work with newest Pip)
+        echo "Adding Python $PYTHON3_MAJOR_VERSION PPA repository to Ubuntu 12.04..."
         sudo apt-get -y install python-software-properties
         sudo add-apt-repository -y ppa:fkrull/deadsnakes
         sudo apt-get update
@@ -297,8 +302,8 @@ else
         python-pip \
         python2.7 \
         python2.7-dev \
-        python3.5 \
-        python3.5-dev \
+        "python$PYTHON3_MAJOR_VERSION" \
+        "python$PYTHON3_MAJOR_VERSION-dev" \
         unzip \
         #
 
