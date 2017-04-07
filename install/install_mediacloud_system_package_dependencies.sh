@@ -64,11 +64,11 @@ function verlt() {
 # Error: coreutils-8.25 already installed
 # To install this version, first `brew unlink coreutils`
 function brew_install_or_upgrade() {
-    brew ls --versions "$1" > /dev/null && echo brew upgrade "$1" || echo brew install "$@"
+    brew ls --versions "$1" > /dev/null && brew upgrade "$1" || brew install "$@"
 }
 
 function brew_install_or_noop() {
-    brew ls --versions "$1" > /dev/null || echo brew install "$@"
+    brew ls --versions "$1" > /dev/null || brew install "$@"
 }
 
 echo "Installing Media Cloud system dependencies..."
