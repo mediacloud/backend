@@ -83,7 +83,7 @@ if [ `uname` == 'Darwin' ]; then
 
     if [ ! -x /usr/local/bin/brew ]; then
         cat <<EOF
-You'll need Homebrew <http://mxcl.github.com/homebrew/> to install the required
+You'll need Homebrew <https://brew.sh/> to install the required
 packages on Mac OS X. It might be possible to do that manually with
 Fink <http://www.finkproject.org/> or MacPorts <http://www.macports.org/>, but
 you're at your own here.
