@@ -154,7 +154,7 @@ EOF
     # https://rt.cpan.org/Public/Bug/Display.html?id=62289
     unset MAKEFLAGS
     echo "Installing Media Cloud dependencies with cpanm..."
-    cpanm \
+    cpanm --verbose \
         Graph \
         GraphViz \
         HTML::Entities \
