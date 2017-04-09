@@ -21,10 +21,9 @@ create table database_variables (
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
-
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4617;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4618;
 
 BEGIN
 
@@ -1259,6 +1258,7 @@ create table solr_imports (
     num_stories         bigint
 );
 
+create index solr_imports_date on solr_imports ( import_date );
 
 -- Extra stories to import into Solr, e.g.: for media with updated media.m.db_row_last_updated
 create table solr_import_extra_stories (
@@ -1266,8 +1266,14 @@ create table solr_import_extra_stories (
 );
 create index solr_import_extra_stories_story on solr_import_extra_stories ( stories_id );
 
+-- log of all stories import into solr, with the import date
+create table solr_imported_stories (
+    stories_id          int not null references stories on delete cascade,
+    import_date         timestamp not null
+);
 
-create index solr_imports_date on solr_imports ( import_date );
+create index solr_imported_stories_story on solr_imported_stories ( stories_id );
+create index solr_imported_stories_day on solr_imported_stories ( date_trunc( 'day', import_date ) );
 
 create type topics_job_queue_type AS ENUM ( 'mc', 'public' );
 
