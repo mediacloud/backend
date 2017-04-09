@@ -50,7 +50,6 @@ else
 fi
 
 for CONFIG_DIR in $CONFIG_DIRS; do
-
     POSTGRESQL_CONF_FILE_PATH="$CONFIG_DIR/postgresql.conf"
 
     if [ ! -f "$POSTGRESQL_CONF_FILE_PATH" ]; then
@@ -58,7 +57,7 @@ for CONFIG_DIR in $CONFIG_DIRS; do
         exit 1
     fi
 
-    # Create include directory to load configuration from
+    echo "Creating include directory to load configuration from..."
     CONF_D_DIR="$CONFIG_DIR/conf.d/"
     sudo mkdir -p "$CONF_D_DIR"
     sudo chown "$POSTGRESQL_USER" "$CONF_D_DIR"

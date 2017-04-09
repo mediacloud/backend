@@ -24,7 +24,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4616;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4617;
 
 BEGIN
 
@@ -3116,7 +3116,8 @@ create table retweeter_scores (
     group_b_id              int null,
     name                    text not null,
     state                   text not null default 'created but not queued',
-    message                 text null
+    message                 text null,
+    num_partitions          int not null
 );
 
 -- group retweeters together so that we an compare, for example, sanders/warren retweeters to cruz/kasich retweeters
@@ -3167,7 +3168,20 @@ create table retweeter_media (
     group_a_count         int not null,
     group_b_count         int not null,
     group_a_count_n       float not null,
-    score                 float not null
+    score                 float not null,
+    partition             int not null
 );
 
 create unique index retweeter_media_score on retweeter_media ( retweeter_scores_id, media_id );
+
+create table retweeter_partition_matrix (
+    retweeter_partition_matrix_id       serial primary key,
+    retweeter_scores_id                 int not null references retweeter_scores on delete cascade,
+    retweeter_groups_id                 int not null references retweeter_groups on delete cascade,
+    group_name                          text not null,
+    share_count                         int not null,
+    group_proportion                    float not null,
+    partition                           int not null
+);
+
+create index retweeter_partition_matrix_score on retweeter_partition_matrix ( retweeter_scores_id );

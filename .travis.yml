@@ -1,12 +1,15 @@
-language: perl
 # Installing up-to-date Erlang requires root
 sudo: true
-perl:
-    - "5.22"
 addons:
     postgresql: "9.3"
     hosts:
         - mediacloud.local
+language: generic
+matrix:
+    include:
+        - os: linux
+          language: perl
+          perl: 5.22
 cache:
     directories:
         # Carton dependencies
