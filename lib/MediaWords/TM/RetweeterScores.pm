@@ -115,9 +115,8 @@ insert into retweeter_stories ( retweeter_scores_id, stories_id, retweeted_user,
             count(*) share_count
         from retweeter_scores rs
             join topic_tweet_full_urls ttfu using ( topics_id )
-            join topic_tweets tt using ( topic_tweets_id )
             join retweeters r
-                on ( rs.retweeter_scores_id = r.retweeter_scores_id and r.twitter_user = tt.twitter_user )
+                on ( rs.retweeter_scores_id = r.retweeter_scores_id and r.twitter_user = ttfu.twitter_user )
             join stories s using ( stories_id )
             left join media_tags_map mtm on
                 ( mtm.media_id = s.media_id and mtm.tags_id = \$2 )
