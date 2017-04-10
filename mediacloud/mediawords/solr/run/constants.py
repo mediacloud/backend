@@ -1,8 +1,8 @@
 # Solr version to install and use
-MC_SOLR_VERSION = "6.3.0"
+MC_SOLR_VERSION = "6.5.0"
 
 # <luceneMatchVersion> value
-MC_SOLR_LUCENEMATCHVERSION = "6.3.0"
+MC_SOLR_LUCENEMATCHVERSION = "6.5.0"
 
 # Solr home directory (solr.home; relative to Media Cloud root; must already exist)
 MC_SOLR_HOME_DIR = "solr/"
