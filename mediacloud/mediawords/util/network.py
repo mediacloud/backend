@@ -29,6 +29,19 @@ def fqdn() -> str:
     hostname = hostname.lower()
     if hostname == 'localhost':
         l.warning("FQDN is 'localhost', are you sure that /etc/hosts is set up properly?")
+
+    # Solr (ZooKeeper?) somehow manages to translate underscore to something else, so something like:
+    #
+    #     ec2_solr_mcquery2
+    #
+    # becomes:
+    #
+    #     ec2/solr_mcquery2:7981/solr
+    #
+    # Can't explain that.
+    if '_' in hostname:
+        raise McFQDNException("FQDN contains underscore ('_') which might mess up Solr shard naming")
+
     if not hostname_resolves(hostname):
         raise McFQDNException("Hostname '%s' does not resolve." % hostname)
     return hostname
