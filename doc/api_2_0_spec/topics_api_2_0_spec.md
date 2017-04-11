@@ -935,6 +935,64 @@ Response:
 }
 ```
 
+## stories/facebook
+
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/facebook`
+
+Return the current facebook counts for all stories in the topic.  Note that this call returns the current
+facebook count data, which may change over time, rather than the snapshotted, static data returned by the
+stories/list call.
+
+### Query Parameters
+
+Standard parameters accepted : snapshots_id, foci_id, timespans_id, limit.
+
+### Output Description
+
+| Field | Description                |
+| ----- | -------------------------- |
+| stories_id | story id |
+| facebook_share_count | share count from facebook |
+| facebook_comment_count | comment count from facebook |
+| facebook_api_collect_date | data on which count data was collected from facebook |
+
+### Example
+
+Return the facebook counts for 3 stories in the given topic.
+
+`https://api.mediacloud.org/api/v2/topics/1404/stories/facebook?limit=3`
+
+Response:
+
+```json
+{
+   "counts" : [
+      {
+         "facebook_api_collect_date" : "2016-11-25 04:45:35.636022",
+         "facebook_comment_count" : 0,
+         "facebook" : 0,
+         "stories_id" : 737
+      },
+      {
+         "facebook_api_collect_date" : "2016-11-13 11:35:35.657778",
+         "facebook_comment_count" : 0,
+         "facebook" : 0,
+         "stories_id" : 2884
+      },
+      {
+         "facebook_api_collect_date" : "2016-11-13 11:35:35.783757",
+         "facebook_comment_count" : 0,
+         "facebook" : 0,
+         "stories_id" : 3994
+      }
+   ],
+   "link_ids" : {
+      "current" : 21797,
+      "next" : 21798
+   }
+}
+```
+
 ## stories/count
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/count`
@@ -1133,7 +1191,7 @@ Standard parameters accepted: snapshots_id, foci_id, timespans_id, limit, link_i
 | inlink_count         | sum of the inlink_count for each story in the medium |
 | outlink_count        | sum of the outlink_count for each story in the medium |
 | bitly_click_count    | sum of the bitly_click_count for each story in the medium |
-| facebook_share_count | sum of the facebook_share_count for each story in the medium |
+| facebook_share_count | sum of the facebook for each story in the medium |
 | focus_ids            | list of ids of foci to which this medium belongs |
 
 ### Example
@@ -1156,7 +1214,7 @@ Response:
             "inlink_count": 8454,
             "url": "http://twitter.com",
             "outlink_count": 72,
-            "facebook_share_count": 123
+            "facebook": 123
         }
     ],
     "link_ids":

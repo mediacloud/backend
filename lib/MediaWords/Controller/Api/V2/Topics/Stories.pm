@@ -21,8 +21,9 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
 __PACKAGE__->config(
     action => {
-        list  => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
-        count => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
+        list     => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
+        facebook => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
+        count    => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
@@ -212,6 +213,48 @@ SQL
     my $entity = { stories => $stories };
 
     MediaWords::DBI::ApiLinks::add_links_to_entity( $c, $entity, 'stories' );
+
+    $self->status_ok( $c, entity => $entity );
+
+}
+
+sub facebook : Chained('stories') : Args(0) : ActionClass('MC_REST')
+{
+}
+
+sub facebook_GET
+{
+    my ( $self, $c ) = @_;
+
+    my $timespan = MediaWords::TM::set_timespans_id_param( $c );
+
+    MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
+
+    my $db = $c->dbis;
+
+    $c->req->params->{ limit } ||= 1000;
+
+    my $timespans_id = $timespan->{ timespans_id };
+
+    my $limit  = $c->req->params->{ limit };
+    my $offset = $c->req->params->{ offset };
+
+    my $counts = $db->query( <<SQL, $timespans_id, $limit, $offset )->hashes;
+select
+        ss.stories_id,
+        ss.facebook_share_count,
+        ss.facebook_comment_count,
+        ss.facebook_api_collect_date
+    from snap.story_link_counts slc
+        join story_statistics ss using ( stories_id )
+    where slc.timespans_id = \$1
+    order by ss.stories_id
+    limit \$2 offset \$3
+SQL
+
+    my $entity = { counts => $counts };
+
+    MediaWords::DBI::ApiLinks::add_links_to_entity( $c, $entity, 'counts' );
 
     $self->status_ok( $c, entity => $entity );
 
