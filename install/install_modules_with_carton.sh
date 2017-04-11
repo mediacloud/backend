@@ -56,7 +56,7 @@ INLINE_PYTHON_EXECUTABLE=$INLINE_PYTHON_EXECUTABLE \
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
     --local-lib-contained local/ \
     --verbose \
-    "https://github.com/pypt/inline-python-pm.git@exception_traceback_memleak"
+    "https://github.com/berkmancenter/mediacloud-inline-python-pm.git@exception_traceback_memleak"
 
 # Fixes: Can't locate XML/SAX.pm in @INC
 # https://rt.cpan.org/Public/Bug/Display.html?id=62289
