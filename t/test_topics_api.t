@@ -496,6 +496,42 @@ sub test_snapshots($)
     test_snapshots_generate( $db );
 }
 
+# test stories/facebook list
+sub test_stories_facebook($)
+{
+    my ( $db ) = @_;
+
+    my $label = "stories/facebook";
+
+    my $topic   = $db->query( "select * from topics limit 1" )->hash;
+    my $stories = $db->query( "select * from snap.live_stories limit 10" )->hashes;
+
+    my $expected_ss = [];
+    for my $story ( @{ $stories } )
+    {
+        my $stories_id = $story->{ stories_id };
+        my $ss         = $db->create(
+            'story_statistics',
+            {
+                stories_id                => $stories_id,
+                facebook_share_count      => $stories_id + 1,
+                facebook_comment_count    => $stories_id + 2,
+                facebook_api_collect_date => $story->{ publish_date }
+            }
+        );
+
+        push( @{ $expected_ss }, $ss );
+    }
+
+    my $r = test_get( "/api/v2/topics/$topic->{ topics_id }/stories/facebook", {} );
+
+    my $got_ss = $r->{ counts };
+    ok( $got_ss, "$label counts field present" );
+
+    my $fields = [ qw/facebook_share_count facebook_comment_count facebook_api_collect_date/ ];
+    rows_match( $label, $got_ss, $expected_ss, 'stories_id', $fields );
+}
+
 sub test_topics_api
 {
     my $db = shift;
@@ -521,6 +557,7 @@ sub test_topics_api
     test_default_sort( $stories );
     test_social_sort( $stories );
     test_media_list( $stories );
+    test_stories_facebook( $db );
 
     test_topics( $db );
     test_snapshots( $db );
