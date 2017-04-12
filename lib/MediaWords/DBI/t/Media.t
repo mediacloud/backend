@@ -22,7 +22,7 @@ sub test_medium_language_tag($$$$)
 {
     my ( $label, $db, $medium, $code ) = @_;
 
-    my $tag_set = MediaWords::DBI::Media::_get_primary_language_tag_set( $db );
+    my $tag_set = MediaWords::DBI::Media::get_primary_language_tag_set( $db );
 
     my $tags = $db->query( <<SQL, $medium->{ media_id }, $tag_set->{ tag_sets_id } )->hashes;
 select t.*

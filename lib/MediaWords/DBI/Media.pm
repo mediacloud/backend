@@ -481,8 +481,13 @@ SQL
 
 }
 
-# get or create the primary_langauge tag set
-sub _get_primary_language_tag_set($)
+=head2 get_primary_language_tag_set( $db )
+
+Return the tag_set containing the primary language tags.
+
+=cut
+
+sub get_primary_language_tag_set($)
 {
     my ( $db ) = @_;
 
@@ -498,12 +503,17 @@ sub _get_primary_language_tag_set($)
     return $tag_set;
 }
 
-# return the tag for the given language code
-sub _get_primary_language_tag($$)
+=head2 return the tag for the given language code( $db, $language_code )
+
+Given a language code, returm the primary language tag corresponding to that language.
+
+=cut
+
+sub get_primary_language_tag($$)
 {
     my ( $db, $primary_language ) = @_;
 
-    my $tag_set = _get_primary_language_tag_set( $db );
+    my $tag_set = get_primary_language_tag_set( $db );
 
     my $tag = $db->query( <<SQL, $primary_language, $tag_set->{ tag_sets_id } )->hash;
 select t.*
@@ -543,7 +553,7 @@ sub get_primary_language_tag_for_medium($$)
 {
     my ( $db, $medium ) = @_;
 
-    my $tag_set = _get_primary_language_tag_set( $db );
+    my $tag_set = get_primary_language_tag_set( $db );
 
     my $tag = $db->query( <<SQL, $medium->{ media_id }, $tag_set->{ tag_sets_id } )->hash;
 select t.*
@@ -585,7 +595,7 @@ sub set_primary_language($$)
 
     my $primary_language = _detect_primary_language( $db, $medium );
 
-    my $tag_set = _get_primary_language_tag_set( $db );
+    my $tag_set = get_primary_language_tag_set( $db );
 
     if ( !defined( $primary_language ) )
     {
@@ -600,7 +610,7 @@ SQL
         return;
     }
 
-    my $new_tag = _get_primary_language_tag( $db, $primary_language );
+    my $new_tag = get_primary_language_tag( $db, $primary_language );
 
     my $existing_tag = get_primary_language_tag_for_medium( $db, $medium );
 
