@@ -304,4 +304,18 @@ sub language_is_supported($)
     return ( exists $language_codes_to_names{ $language_id } );
 }
 
+# return the human readable language name for a given code
+sub language_name_for_code($)
+{
+    my ( $code ) = @_;
+
+    my $name = $language_codes_to_names{ $code };
+    return undef unless ( $name );
+
+    $name =~ s/_/ /g;
+    $name =~ s/(\w+)/\u\L$1/g;
+
+    return $name;
+}
+
 1;
