@@ -100,6 +100,7 @@ require bytes;    # do not override length() and such
 use MediaWords::DB;
 use MediaWords::Util::Config;
 use MediaWords::Util::JSON;
+use MediaWords::Util::Paths;
 use MediaWords::Util::Web;
 use MediaWords::Solr;
 
@@ -1192,9 +1193,9 @@ sub _get_dump_file
 {
     my $data_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ data_dir };
 
-    my $dump_dir = "$data_dir/solr_dumps";
+    my $dump_dir = "$data_dir/solr_dumps/dumps";
 
-    mkdir( $dump_dir ) unless ( -d $dump_dir );
+    MediaWords::Util::Paths::mkdir_p( $dump_dir ) unless ( -d $dump_dir );
 
     my ( $fh, $filename ) = File::Temp::tempfile( 'solr-delta.csvXXXX', DIR => $dump_dir );
     close( $fh );

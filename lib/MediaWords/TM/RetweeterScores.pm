@@ -16,7 +16,24 @@ use MediaWords::CommonLibs;
 
 use Readonly;
 
+# default number of partitions to divide retweeter scores into
 Readonly my $NUM_PARTITIONS => 5;
+
+# tag used to identify and filter out social media platforms from retweeter results
+Readonly my $PLATFORM_TAG => 'platforms:all';
+
+# only media with a group_a_count + group_b_count greater than this num will be included in the matrix
+Readonly my $MIN_MATRIX_COUNT => 10;
+
+# get the tags_id of the tag that identies social media platforms; if the tag does not exist return -1
+sub _get_platform_tags_id($)
+{
+    my ( $db ) = @_;
+
+    my $tag = MediaWords::Util::Tags::lookup_tag( $db, $PLATFORM_TAG );
+
+    return $tag ? $tag->{ tags_id } : -1;
+}
 
 # generate retweeter_groups and retweeter_groups_users_map entries for the given scores and groups.  return
 # the resulting retweeter_groups row with the list of retweeted_users attached as a field
@@ -87,7 +104,9 @@ sub _generate_retweeter_stories($$)
 {
     my ( $db, $score ) = @_;
 
-    $db->query( <<SQL, $score->{ retweeter_scores_id } );
+    my $platform_tags_id = _get_platform_tags_id( $db );
+
+    $db->query( <<SQL, $score->{ retweeter_scores_id }, $platform_tags_id );
 insert into retweeter_stories ( retweeter_scores_id, stories_id, retweeted_user, share_count )
     select
             rs.retweeter_scores_id,
@@ -96,12 +115,15 @@ insert into retweeter_stories ( retweeter_scores_id, stories_id, retweeted_user,
             count(*) share_count
         from retweeter_scores rs
             join topic_tweet_full_urls ttfu using ( topics_id )
-            join topic_tweets tt using ( topic_tweets_id )
             join retweeters r
-                on ( rs.retweeter_scores_id = r.retweeter_scores_id and r.twitter_user = tt.twitter_user )
+                on ( rs.retweeter_scores_id = r.retweeter_scores_id and r.twitter_user = ttfu.twitter_user )
+            join stories s using ( stories_id )
+            left join media_tags_map mtm on
+                ( mtm.media_id = s.media_id and mtm.tags_id = \$2 )
         where
-            rs.retweeter_scores_id = ? and
-            ttfu.stories_id is not null
+            rs.retweeter_scores_id = \$1 and
+            ttfu.stories_id is not null and
+            mtm.tags_id is null -- eliminate platform stories
         group by rs.retweeter_scores_id, ttfu.stories_id, r.retweeted_user
 SQL
 
@@ -229,7 +251,9 @@ insert into retweeter_partition_matrix
                 join stories s using ( stories_id )
                 join retweeter_media rm
                     on ( s.media_id = rm.media_id and rm.retweeter_scores_id = rs.retweeter_scores_id )
-            where rs.retweeter_scores_id = ?
+            where
+                rs.retweeter_scores_id = ? and
+                ( rm.group_a_count + rm.group_b_count ) > $MIN_MATRIX_COUNT
             group by rs.retweeter_scores_id, rg.retweeter_groups_id, rm.partition
     ),
 
