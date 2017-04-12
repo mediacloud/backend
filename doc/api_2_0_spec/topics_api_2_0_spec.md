@@ -302,7 +302,7 @@ For example, the following is a paged response:
 }
 ```
 
-After receiving that reponse, you can use the following URL with no other parameters to fetch the next page of results:
+After receiving that response, you can use the following URL with no other parameters to fetch the next page of results:
 
 `https://api.mediacloud.org/api/v2/topics/1/stories/list?link_id=789123`
 
@@ -898,7 +898,7 @@ Standard parameters accepted: snapshots_id, foci_id, timespans_id, limit, link_i
 | outlink_count        | count of hyperlinks to stories in other media in this timespan |
 | bitly_click_count    | number of clicks on bitly links that resolve to this story's URL |
 | facebook_share_count | number of facebook shares for this story's URL |
-| focus_ids            | list of ids of foci to which this story belongs |
+| foci            | list of foci to which this story belongs |
 ### Example
 
 Fetch all stories in topic id 1344:
@@ -923,7 +923,15 @@ Response:
             "title": "Donald J. Trump (realDonaldTrump) on Twitter",
             "url": "https://twitter.com/realDonaldTrump",
             "outlink_count": 0,
-            "guid": "https://twitter.com/realDonaldTrump"
+            "guid": "https://twitter.com/realDonaldTrump",
+            "foci":
+            [
+                {
+                    "foci_id": 123,
+                    "name": "Trump",
+                    "focal_set_name": "Candidates"
+                }
+            ]
         }
     ],
     "link_ids":
