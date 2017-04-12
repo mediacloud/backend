@@ -21,7 +21,19 @@ sub main
 {
     my $db = MediaWords::DB::connect_to_db;
 
-    my $media = $db->query( "select * from media where primary_language is null order by media_id" )->hashes;
+    my $tag_set = MediaWords::DBI::Media::get_primary_language_tag_set( $db );
+
+    my $media = $db->query( <<SQL, $tag_set->{ tag_sets_id } )->hashes;
+select m.*
+    from media m
+        left join (
+            media_tags_map mtm
+            join tags t on ( t.tags_id = mtm.tags_id and t.tag_sets_id = \$1 )
+        ) using ( media_id )
+    where
+        mtm.tags_id is null
+SQL
+
     map { MediaWords::DBI::Media::set_primary_language( $db, $_ ) } @{ $media };
 
 }
