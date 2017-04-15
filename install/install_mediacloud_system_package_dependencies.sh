@@ -58,19 +58,6 @@ function verlt() {
     [ "$1" = "$2" ] && return 1 || verlte "$1" "$2"
 }
 
-# Use this function to deal with the Travis CI error
-# that occurs when installing a package that is already installed
-# but a lower version:
-# Error: coreutils-8.25 already installed
-# To install this version, first `brew unlink coreutils`
-function brew_install_or_upgrade() {
-    brew ls --versions "$1" > /dev/null && brew upgrade "$1" || brew install "$@"
-}
-
-function brew_install_or_noop() {
-    brew ls --versions "$1" > /dev/null || brew install "$@"
-}
-
 # TODO: test python 3.6
 PYTHON3_MAJOR_VERSION="3.5"
 
@@ -108,7 +95,7 @@ EOF
     if [ "$CI" == "true" ]; then
         PYTHON3_FULL_VERSION="3.5.3"
         echo "CI mode. Installing Python $PYTHON3_FULL_VERSION automatically using pyenv"
-        brew_install_or_upgrade "pyenv"
+        brew ls --versions "pyenv" > /dev/null && brew upgrade "pyenv" || brew install "pyenv"
         pyenv install --skip-existing "$PYTHON3_FULL_VERSION"
         pyenv local "$PYTHON3_FULL_VERSION"
         pyenv rehash
@@ -133,22 +120,7 @@ EOF
     set -u
 
     echo "Installing Media Cloud dependencies with Homebrew..."
-    brew_install_or_upgrade "coreutils"
-    brew_install_or_upgrade "cpanminus"
-    brew_install_or_upgrade "curl"
-    brew_install_or_upgrade "gawk"
-    brew_install_or_upgrade "tidy-html5"
-    brew_install_or_upgrade "hunspell"
-    brew_install_or_upgrade "libyaml"
-    brew_install_or_upgrade "logrotate"
-    brew_install_or_upgrade "netcat"
-    brew_install_or_upgrade "openssl"
-    brew_install_or_upgrade "perl"
-    brew_install_or_upgrade "python"
-    brew_install_or_upgrade "rabbitmq"
-
-    # using options when running brew install apply to all listed packages being installed
-    brew_install_or_upgrade "graphviz" --with-bindings
+    brew bundle --file=Brewfile
 
     # Fixes: Can't locate XML/SAX.pm in @INC
     # https://rt.cpan.org/Public/Bug/Display.html?id=62289
@@ -186,10 +158,15 @@ EOF
     # Configuring OpenGL-0.70 ... OK
     # Building and testing OpenGL-0.70 ... FAIL
     # ! Installing OpenGL failed. See /Users/travis/.cpanm/work/1492283314.57682/build.log for details. Retry with --force to force install it.
+    # PERL_DL_NONLAZY=1 "/usr/local/Cellar/perl/5.24.1/bin/perl" "-Iblib/lib" "-Iblib/arch" test.pl
+    # No matching pixelformats found, perhaps try using LIBGL_ALLOW_SOFTWARE
+    # make: *** [test_dynamic] Abort trap: 6
+    # FAIL
+    # ! Testing OpenGL-0.70 failed but installing it anyway.
     cpanm --force --verbose OpenGL
     echo "Finished force installing problem dependencies with cpanm..."
 
-   if [ ! "${SKIP_VAGRANT_TEST:+x}" ]; then
+    if [ ! "${SKIP_VAGRANT_TEST:+x}" ]; then
         if ! command -v vagrant > /dev/null 2>&1; then
             echo_vagrant_instructions
             exit 1
@@ -368,3 +345,5 @@ else
     fi
 
 fi
+
+echo "Finishing installing mediacloud system package dependencies"

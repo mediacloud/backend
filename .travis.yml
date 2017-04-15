@@ -48,6 +48,7 @@ env:
         - MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1
         # let tests know that they are running on travis
         - MC_SKIP_RABBIT_OPEN_FILES_LIMIT_CHECK=1
+        - SKIP_VAGRANT_TEST=1
 before_install:
     # Install APT packages (not PostgreSQL though)
     - ./install/install_mediacloud_system_package_dependencies.sh
