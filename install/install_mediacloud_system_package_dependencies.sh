@@ -162,7 +162,6 @@ EOF
         Lingua::Stem::Snowball \
         List::AllUtils \
         List::MoreUtils \
-        OpenGL \
         Perl::Tidy \
         Readonly \
         Readonly::XS \
@@ -176,14 +175,19 @@ EOF
         YAML::LibYAML \
         YAML::Syck \
         #
-
     echo "Finished installing Media Cloud dependencies with cpanm..."
 
-    echo "Force installing graphviz with cpanm..."
+    echo "Force installing problem dependencies with cpanm..."
     # fix failing outdated test on GraphViz preventing install
     # https://rt.cpan.org/Public/Bug/Display.html?id=41776
     cpanm --force Graph::Writer::GraphViz
-    echo "Finished force installing graphviz with cpanm..."
+    # --> Working on OpenGL
+    # Fetching http://www.cpan.org/authors/id/C/CH/CHM/OpenGL-0.70.tar.gz ... OK
+    # Configuring OpenGL-0.70 ... OK
+    # Building and testing OpenGL-0.70 ... FAIL
+    # ! Installing OpenGL failed. See /Users/travis/.cpanm/work/1492283314.57682/build.log for details. Retry with --force to force install it.
+    cpanm --force --verbose OpenGL
+    echo "Finished force installing problem dependencies with cpanm..."
 
    if [ ! "${SKIP_VAGRANT_TEST:+x}" ]; then
         if ! command -v vagrant > /dev/null 2>&1; then
