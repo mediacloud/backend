@@ -46,12 +46,6 @@ sub test_media_list_call($$)
         my $fields = [ qw/name url is_healthy is_monitored editor_notes public_notes/ ];
         map { ok( defined( $got_medium->{ $_ } ), "$label field $_ defined" ) } @{ $fields };
         map { is( $got_medium->{ $_ }, $expected_medium->{ $_ }, "$label field $_" ) } @{ $fields };
-
-        is(
-            $got_medium->{ primary_language }      || 'null',
-            $expected_medium->{ primary_language } || 'null',
-            "$label field primary language"
-        );
     }
 }
 
@@ -89,11 +83,6 @@ sub test_media_list($$)
     my $similar_medium = $test_stack_media->[ 2 ];
     $db->create( 'media_tags_map', { tags_id => $test_tag->{ tags_id }, media_id => $similar_medium->{ media_id } } );
     test_media_list_call( { similar_media_id => $tagged_medium->{ media_id } }, [ $similar_medium ] );
-
-    my $english_medium = $test_stack_media->[ 1 ];
-    $db->query( "update media set primary_language = 'en' where media_id = \$1", $english_medium->{ media_id } );
-    $english_medium->{ primary_language } = 'en';
-    test_media_list_call( { primary_language => 'en' }, [ $english_medium ] );
 }
 
 # wait for feed scraping to happen and verify that a valid feed has been discovered for each site

@@ -53,7 +53,8 @@ select timespan.*, snap.topics_id
        join snapshots snap on ( snap.snapshots_id = timespan.snapshots_id )
    where
        snap.topics_id = \$1 and
-       timespan.period = 'overall'
+       timespan.period = 'overall' and
+       timespan.foci_id is null
    order by snap.snapshot_date desc
 SQL
 

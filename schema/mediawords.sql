@@ -21,10 +21,9 @@ create table database_variables (
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
-
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4616;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4619;
 
 BEGIN
 
@@ -336,8 +335,6 @@ create table media (
 
     -- if true, indicates that media cloud closely monitors the health of this source
     is_monitored                boolean not null default false,
-
-    primary_language            varchar( 4 ) null,
 
     CONSTRAINT media_name_not_empty CHECK ( ( (name)::text <> ''::text ) ),
     CONSTRAINT media_self_dup CHECK ( dup_media_id IS NULL OR dup_media_id <> media_id )
@@ -1259,6 +1256,7 @@ create table solr_imports (
     num_stories         bigint
 );
 
+create index solr_imports_date on solr_imports ( import_date );
 
 -- Extra stories to import into Solr, e.g.: for media with updated media.m.db_row_last_updated
 create table solr_import_extra_stories (
@@ -1266,8 +1264,14 @@ create table solr_import_extra_stories (
 );
 create index solr_import_extra_stories_story on solr_import_extra_stories ( stories_id );
 
+-- log of all stories import into solr, with the import date
+create table solr_imported_stories (
+    stories_id          int not null references stories on delete cascade,
+    import_date         timestamp not null
+);
 
-create index solr_imports_date on solr_imports ( import_date );
+create index solr_imported_stories_story on solr_imported_stories ( stories_id );
+create index solr_imported_stories_day on solr_imported_stories ( date_trunc( 'day', import_date ) );
 
 create type topics_job_queue_type AS ENUM ( 'mc', 'public' );
 
@@ -3116,7 +3120,8 @@ create table retweeter_scores (
     group_b_id              int null,
     name                    text not null,
     state                   text not null default 'created but not queued',
-    message                 text null
+    message                 text null,
+    num_partitions          int not null
 );
 
 -- group retweeters together so that we an compare, for example, sanders/warren retweeters to cruz/kasich retweeters
@@ -3167,7 +3172,20 @@ create table retweeter_media (
     group_a_count         int not null,
     group_b_count         int not null,
     group_a_count_n       float not null,
-    score                 float not null
+    score                 float not null,
+    partition             int not null
 );
 
 create unique index retweeter_media_score on retweeter_media ( retweeter_scores_id, media_id );
+
+create table retweeter_partition_matrix (
+    retweeter_partition_matrix_id       serial primary key,
+    retweeter_scores_id                 int not null references retweeter_scores on delete cascade,
+    retweeter_groups_id                 int not null references retweeter_groups on delete cascade,
+    group_name                          text not null,
+    share_count                         int not null,
+    group_proportion                    float not null,
+    partition                           int not null
+);
+
+create index retweeter_partition_matrix_score on retweeter_partition_matrix ( retweeter_scores_id );

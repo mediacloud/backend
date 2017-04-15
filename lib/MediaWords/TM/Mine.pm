@@ -1482,8 +1482,6 @@ sub add_links_with_matching_stories
 
     map { add_to_topic_stories_if_match( $db, $topic, $_, $_->{ link } ) } @{ $extract_stories };
 
-    mine_topic_stories( $db, $topic );
-
     return $fetch_links;
 }
 
@@ -1604,8 +1602,6 @@ sub add_new_links_chunk($$$$)
 
     map { add_to_topic_stories_if_match( $db, $topic, $_, $_->{ link } ) } @{ $extract_stories };
 
-    mine_topic_stories( $db, $topic );
-
     $db->begin;
     for my $link ( @{ $new_links } )
     {
@@ -1663,6 +1659,8 @@ sub add_new_links($$$$)
         my $elapsed_time = time - $start_time;
         save_metrics( $db, $topic, $iteration, $end - $i, $elapsed_time );
     }
+
+    mine_topic_stories( $db, $topic );
 }
 
 # find any links for the topic of this iteration or less that have not already been spidered

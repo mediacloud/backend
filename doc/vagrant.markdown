@@ -68,10 +68,9 @@ To create a new Media Cloud instance on Vagrant using the Amazon EC2 provider:
         2. Click "Create Security Group", name it `default`.
         3. Allow "Inbound SSH traffic" from `0.0.0.0/0`.
         4. Allow "Inbound ICMP traffic" of type "All" from `0.0.0.0/0`.
-        5. Allow "Inbound TCP traffic" through Port Range "5000" from `0.0.0.0/0`.
-        6. Allow "Inbound TCP traffic" through Port Range "3000" from `0.0.0.0/0`.
-        7. Click "Apply Rule Changes".
-        8. `AWS_SECURITY_GROUP="default"`
+        5. Allow "Inbound TCP traffic" through Port Range "3000" from `0.0.0.0/0`.
+        6. Click "Apply Rule Changes".
+        7. `AWS_SECURITY_GROUP="default"`
 2. Run:
 
         # (Run once) Install the "vagrant-aws" plugin
@@ -132,16 +131,15 @@ To SSH to the guest machine, run:
 
 Port forwarding is set up as such:
 
-* Port `5000` on the guest machine is automatically forwarded to port `5001` on the host machine.
 * Port `3000` on the guest machine is automatically forwarded to port `3001` on the host machine.
 
 To start the Media Cloud web service, run:
 
     host$ vagrant ssh
     vagrant$ cd /mediacloud
-    vagrant$ ./script/start_mediacloud_server.sh
+    vagrant$ ./script/run_server_with_carton.sh
 
-and then open `http://127.0.0.1:5001/` on your *host* machine to access Media Cloud web interface on the guest machine.
+and then open `http://127.0.0.1:3001/` on your *host* machine to access Media Cloud web interface on the guest machine.
 
 #### On Amazon EC2
 
@@ -160,10 +158,10 @@ To start the Media Cloud web service:
 2. Start the Media Cloud web service:
 
         vagrant$ cd /mediacloud
-        vagrant$ ./script/start_mediacloud_server.sh
+        vagrant$ ./script/run_server_with_carton.sh
 
 3. Access the Media Cloud web service using its Public DNS.
-    * For example, if the Public DNS of the EC2 instance is `ec2-54-224-57-211.compute-1.amazonaws.com`, access the web service by opening `http://ec2-54-224-57-211.compute-1.amazonaws.com:5000/`.
+    * For example, if the Public DNS of the EC2 instance is `ec2-54-224-57-211.compute-1.amazonaws.com`, access the web service by opening `http://ec2-54-224-57-211.compute-1.amazonaws.com:3000/`.
 
 
 Testing Media Cloud with Vagrant

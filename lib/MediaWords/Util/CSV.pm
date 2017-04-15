@@ -58,7 +58,8 @@ sub get_csv_string_as_matrix
 
 # given a file name, open the file, parse it as a csv, and return a list of hashes.
 # assumes that the csv includes a header line.  If normalize_column_names is true,
-# lowercase and underline column names ( 'Media type' -> 'media_type' )
+# lowercase and underline column names ( 'Media type' -> 'media_type' ).  if the $file argument
+# is a reference to a string, this function will parse that string instead of opening a file.
 sub get_csv_as_hashes
 {
     my ( $file, $normalize_column_names ) = @_;
