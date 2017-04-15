@@ -1,10 +1,7 @@
 Solr
 ====
 
-Media Cloud uses Solr as its text indexing and search engine.
-
-The Media Cloud repository has a Solr 4.6 distribution included within it in the `solr/` directory.  For information on running
-the Solr engine, see the [hosting docs](hosting/solr-hosting.markdown).
+Media Cloud uses Solr as its text indexing and search engine. For information on running the Solr engine, see the [hosting docs](hosting/solr-hosting.markdown).
 
 We use sharding within Solr to host the data across multiple server processes on each server and across
 multiple servers.  Solr requires multiple shards in the same machine to take advantage of parallel processing
