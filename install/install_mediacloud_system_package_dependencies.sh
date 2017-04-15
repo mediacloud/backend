@@ -154,7 +154,7 @@ EOF
     # https://rt.cpan.org/Public/Bug/Display.html?id=62289
     unset MAKEFLAGS
     echo "Installing Media Cloud dependencies with cpanm..."
-    cpanm --verbose \
+    cpanm \
         Graph \
         GraphViz \
         HTML::Entities \
@@ -177,9 +177,13 @@ EOF
         YAML::Syck \
         #
 
+    echo "Finished installing Media Cloud dependencies with cpanm..."
+
+    echo "Force installing graphviz with cpanm..."
     # fix failing outdated test on GraphViz preventing install
     # https://rt.cpan.org/Public/Bug/Display.html?id=41776
     cpanm --force Graph::Writer::GraphViz
+    echo "Finished force installing graphviz with cpanm..."
 
    if [ ! "${SKIP_VAGRANT_TEST:+x}" ]; then
         if ! command -v vagrant > /dev/null 2>&1; then
@@ -323,7 +327,7 @@ else
 
     # Install an up-to-date version of Vagrant
     if [ ! "${SKIP_VAGRANT_TEST:+x}" ]; then
-        if [ ! -x /usr/bin/vagrant ]; then
+        if ! command -v vagrant > /dev/null 2>&1; then
 
             echo "Installing Vagrant..."
 
