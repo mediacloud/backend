@@ -97,7 +97,7 @@ EOF
         echo "CI mode. Installing Python $PYTHON3_FULL_VERSION automatically using pyenv"
         brew ls --versions "pyenv" > /dev/null && brew upgrade "pyenv" || brew install "pyenv"
         pyenv install --skip-existing "$PYTHON3_FULL_VERSION"
-        pyenv local "$PYTHON3_FULL_VERSION"
+        pyenv global "$PYTHON3_FULL_VERSION"
         pyenv rehash
         # yet another travis hack, see: https://github.com/travis-ci/travis-ci/issues/5301
         unset PYTHON_CFLAGS
