@@ -50,8 +50,8 @@ env:
         - MC_SKIP_RABBIT_OPEN_FILES_LIMIT_CHECK=1
         - SKIP_VAGRANT_TEST=1
 before_install:
-    # Install APT packages (not PostgreSQL though)
-    - ./install/install_mediacloud_system_package_dependencies.sh
+    # Install system packages (not PostgreSQL though)
+    - travis_wait 30 ./install/install_mediacloud_system_package_dependencies.sh
     # Install Python dependencies
     - travis_retry ./install/install_python_dependencies.sh
     # Set up kernel and PostgreSQL parameters
