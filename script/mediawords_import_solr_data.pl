@@ -28,6 +28,10 @@ use MediaWords::CommonLibs;
 use Getopt::Long;
 use MediaWords::Solr::Dump;
 use Data::Dumper;
+use Readonly;
+
+# File that gets created when Solr shards are being backed up offsite
+Readonly my $solr_backup_lock_file => '/tmp/solrbackup.lock';
 
 sub main
 {
@@ -43,7 +47,10 @@ sub main
         "jobs=i"      => \$jobs
     ) || return;
 
-    die( "Refusing to run while lock file /tmp/solrbackup.lock exists" ) if ( -f "/tmp/solrbackup.lock" );
+    if ( -f $solr_backup_lock_file )
+    {
+        die "Refusing to run while lock file $solr_backup_lock_file exists";
+    }
 
     if ( $file )
     {
