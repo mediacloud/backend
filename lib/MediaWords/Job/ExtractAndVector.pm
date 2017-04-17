@@ -54,6 +54,19 @@ sub run($$)
 
     my $db = MediaWords::DB::connect_to_db();
 
+    my $story = $db->require_by_id( 'stories', $stories_id );
+
+    if ( MediaWords::StoryVectors::medium_is_locked( $db, $story->{ media_id } ) )
+    {
+        WARN( "requeueing job for story $story->{ stories_id } in locked medium $story->{ media_id } ..." );
+
+        # prevent spamming these requeue events if the locked media source is the only one in the queue
+        sleep( 1 );
+
+        MediaWords::Job::ExtractAndVector->add_to_queue( $args, $MediaCloud::JobManager::Job::MJM_JOB_PRIORITY_LOW );
+        return 1;
+    }
+
     $db->begin;
 
     if ( exists $args->{ disable_story_triggers } and $args->{ disable_story_triggers } )
