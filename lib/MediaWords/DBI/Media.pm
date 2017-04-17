@@ -31,6 +31,10 @@ Readonly my $PRIMARY_LANGUAGE_TAG_SET_DESCRIPTION => <<END;
 Tags in this set indicate that the given media source has a majority of stories written in the given language.
 END
 
+# name of tag_set to use for geo tags
+Readonly my $GEOTAG_TAG_SET_NAME => 'mc-geocoder@media.mit.edu';
+Readonly my $GEOTAG_THRESHOLD    => 0.05;
+
 =head1 FUNCTIONS
 
 =cut
@@ -415,28 +419,40 @@ insert into media_tags_map ( media_id, tags_id )
 END
 }
 
-# detect the primary language of the media source, as described in set_primary_language below
-sub _detect_primary_language($$)
+=head2 medium_is_ready_for_analysis( $db, $medium )
+
+Return true if the media sources has enough stories or is old enough that we are ready to analyze it for
+primary language, geo tagging, etc.
+
+use the following rules to determine if the media source is ready:
+
+* return false if the medium has no active feeds or no stories;
+
+* return false if there are less than 100 stories in the medium and the greatest last_new_story_time of the
+medium's feeds is within a month;
+
+* return true if there are more than 100 stories in the medium;
+
+* return true if there are less than 100 stories in the medium but the greatest last_new_story_time of the
+medium's feeds is outside of a month;
+
+=cut
+
+sub medium_is_ready_for_analysis($$)
 {
     my ( $db, $medium ) = @_;
 
     my $media_id = $medium->{ media_id };
 
-    TRACE( "detect primary language for $medium->{ name } [$media_id] start" );
-
     my $active_feed = $db->query( "select 1 from feeds where feed_status = 'active' and media_id = \$1", $media_id )->hash;
 
-    return unless ( $active_feed );
-
-    TRACE( "detect primary language for $medium->{ name } [$media_id] found active feed" );
+    return 0 unless ( $active_feed );
 
     my $first_story = $db->query( <<SQL, $media_id )->hash;
 select * from stories where media_id = \$1 limit 1
 SQL
 
-    return unless ( $first_story );
-
-    TRACE( "detect primary language for $medium->{ name } [$media_id] found at least one story" );
+    return 0 unless ( $first_story );
 
     my $story_101 = $db->query( <<SQL, $media_id )->hash;
     select * from stories where media_id = \$1 offset 101 limit 1
@@ -444,17 +460,34 @@ SQL
 
     if ( !$story_101 )
     {
+        # use this goofy query format to prevent postgres from doing backward index scan on collect_date, which
+        # takes a Very Long Time for a media source with a collect_date far in the past.  we know that the media_stories
+        # cte should be small because we only get to this part of the code if there are < 100 stories in the medium.
         my $last_story = $db->query( <<SQL, $media_id )->hash;
-select * from stories where media_id = \$1 order by collect_date desc limit 1
+with media_stories as (
+    select * from stories where media_id = \$1
+)
+
+select * from media_stories order by collect_date desc limit 1;
 SQL
 
         my $story_epoch = MediaWords::Util::SQL::get_epoch_from_sql_date( $last_story->{ collect_date } );
 
-        TRACE(
-"detect primary language for $medium->{ name } [$media_id] latest date $last_story->{ collect_date } (epoch $story_epoch)"
-        );
-        return if ( ( time() - $story_epoch ) < ( 86400 * 30 ) );
+        return 0 if ( ( time() - $story_epoch ) < ( 86400 * 30 ) );
     }
+
+    return 1;
+
+}
+
+# detect the primary language of the media source, as described in set_primary_language below
+sub _detect_primary_language($$)
+{
+    my ( $db, $medium ) = @_;
+
+    return undef unless ( medium_is_ready_for_analysis( $db, $medium ) );
+
+    my $media_id = $medium->{ media_id };
 
     DEBUG( "detect primary language for $medium->{ name } [$media_id] ..." );
 
@@ -575,17 +608,11 @@ to tags in the $PRIMAY_LANGuAGE_TAG_SET_NAME tag_set if they do not match the ne
 
 Use the following rules to assign the primary language tag:
 
-* assign no tag if the medium has no active feeds or no stories;
+* assign no tag if medium_is_ready_for_analysis() returns false;
 
-* assign no tag if there are less than 100 stories in the medium and the greatest last_new_story_time of the
-medium's feeds is within a month;
+* assign the majority story language if medium_is_ready_for_analysis() returns true;
 
-* assign the majority story language if there are more than 100 stories in the medium;
-
-* assign the majority story language if there are less than 100 stories in the medium but the greatest
-last_new_story_time of the medium's feeds is outside of a month;
-
-* assign the language 'non' if there are more than 100 stories in the media source and no language is the majority.
+* assign 'none' if medium_is_ready_for_analysis() returns true and there is no majority story language.
 
 =cut
 
@@ -612,6 +639,7 @@ SQL
 
     my $new_tag = get_primary_language_tag( $db, $primary_language );
 
+    # make sure we only update the tag in the db if necessary; otherwise we will trigger solr re-imports unnecessarily
     my $existing_tag = get_primary_language_tag_for_medium( $db, $medium );
 
     return if ( $existing_tag && ( $existing_tag->{ tags_id } == $new_tag->{ tags_id } ) );
@@ -626,6 +654,82 @@ SQL
     $db->query( <<SQL, $new_tag->{ tags_id }, $medium->{ media_id } );
 insert into media_tags_map ( tags_id, media_id ) values ( \$1, \$2 )
 SQL
+
+}
+
+# return the geotag that should be associated with the give media source, as described in set_geotag below.
+sub _detect_geotag($$)
+{
+    my ( $db, $medium ) = @_;
+
+    return undef unless ( medium_is_ready_for_analysis( $db, $medium ) );
+
+    DEBUG( "detecting geotags for $medium->{ name } ..." );
+
+    my $tag_counts = $db->query( <<SQL, $medium->{ media_id }, $GEOTAG_TAG_SET_NAME )->hashes;
+with geotags as (
+    select
+            s.stories_id,
+            t.tags_id
+        from stories s
+            join stories_tags_map stm using ( stories_id )
+            join tags t using ( tags_id )
+            join tag_sets ts using ( tag_sets_id )
+        where
+            ts.name = \$2 and
+            s.media_id = \$1
+),
+
+geotag_counts as (
+    select count(*) tag_count, tags_id from geotags group by tags_id
+),
+
+geotag_stories_count as (
+    select count( distinct stories_id ) story_count from geotags
+)
+
+select
+        gc.tag_count,
+        ( gc.tag_count::float / gsc.story_count::float ) story_percent,
+        t.*
+    from geotag_counts gc
+        join tags t using ( tags_id )
+        cross join geotag_stories_count gsc
+    where
+        ( gc.tag_count::float / gsc.story_count::float ) > $GEOTAG_THRESHOLD
+    order by gc.tag_count desc
+SQL
+
+    my $geotag;
+
+    if ( !scalar( @{ $tag_counts } ) || ( $tag_counts->[ 0 ]->{ story_percent } < $GEOTAG_THRESHOLD ) )
+    {
+        $geotag = undef;
+    }
+    else
+    {
+        $geotag = $tag_counts->[ 0 ];
+    }
+
+    DEBUG( "geotag for $medium->{ name }: $geotag->{ label } [ $geotag->{ story_percent } ]" );
+
+    return $geotag;
+
+}
+
+=head2
+
+Assign to the media source the geo tag that is associated with the most stories.  If that tag is assocaited with
+fewer than GEOTAG_THRESHOLD proportion of tagged stories, or if media_is_ready_for_analysis() returns false,
+delete all geo tags from the media source.
+
+=cut
+
+sub set_geotag($$)
+{
+    my ( $db, $medium ) = @_;
+
+    my $new_geotag = _detect_geotag( $db, $medium );
 
 }
 
