@@ -82,6 +82,22 @@ sub _get_unique_sentences_in_story
     return $unique_sentences;
 }
 
+# use a new blocking check to see if the given media_id is locked by a postgres advisory lock (used within
+# _insert_story_sentences below).  return true if it is locked, false otherwise
+sub medium_is_locked($$)
+{
+    my ( $db, $media_id ) = @_;
+
+    # begin and commit transaction to make sure we immediately release the lock if we get it.
+    $db->begin;
+
+    my ( $got_lock ) = $db->query( "select pg_try_advisory_lock( ? )", $media_id )->flat;
+
+    $db->commit;
+
+    return !$got_lock;
+}
+
 # Insert the story sentences into the DB, optionally skipping duplicate
 # sentences by setting is_dup = 't' to the found duplicates that are already in
 # the table. Returns arrayref of sentences that were inserted into the table.
