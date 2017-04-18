@@ -2670,16 +2670,16 @@ sub do_mine_topic ($$;$)
 
         update_topic_state( $db, $topic, "merging duplicate stories" );
         find_and_merge_dup_stories( $db, $topic );
-    }
 
-    unless ( $options->{ import_only } )
-    {
         update_topic_state( $db, $topic, "merging foreign rss stories" );
         merge_foreign_rss_stories( $db, $topic );
 
         update_topic_state( $db, $topic, "adding redirect urls to topic stories" );
         add_redirect_urls_to_topic_stories( $db, $topic );
+    }
 
+    unless ( $options->{ import_only } )
+    {
         update_topic_state( $db, $topic, "running spider" );
         run_spider( $db, $topic );
 
