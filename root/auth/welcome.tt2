@@ -9,28 +9,28 @@ Your email address ( [% email | html %] ) has been validated and your account is
 </p>
 
 <p>
-The Media Cloud team is committed to providing open access to our <a href="https://github.com/berkmancenter/mediacloud">code</a>, 
-<a href="http://mediacloud.org/category/blog/tool-blog/">tools</a>, and <a href="http://mediacloud.org/api">data</a> so that others 
-can build on the work we have done to better understand how online media impacts our society.
+The Media Cloud team is committed to providing open access to our <a href="https://github.com/berkmancenter/mediacloud">code</a>,
+<a href="http://mediacloud.org/tools">tools</a>, and
+<a href="https://github.com/berkmancenter/mediacloud/blob/sources_api/doc/api_2_0_spec/api_2_0_spec.md">api</a> so that
+others  can build on the work we have done to better understand how online media impacts our society.
 </p>
 
 <p>
-You can use the user account you have just created to access Media Cloud tools like the
-<a href="http://dashboard.mediameter.org">Media Meter Dashboard</a> and to make calls 
-to the <a href="http://mediacloud.org/api">Media Cloud API</a>.  For information
-about our tools and API, visit <a href="http://mediacloud.org/get-involved">http://mediacloud.org/get-involved</a>.
+Media Cloud accounts do not require any kind of approval.  You can use your account immediately with the
+above tools and api.  We have relatively low user quotas by default but are usually happy to increase them
+just for asking.  We may ask to know more about what you are doing just to make sure you are using the platform
+efficiently (and because we are curious!).
 </p>
 
 <p>
-If you have any questions about the Media Cloud project, please join the 
-<a href="https://cyber.law.harvard.edu/lists/arc/mediacloud-users">mediacloud-users</a>
-mailing list.  We encourage you to join the mediacloud-users list just to share how you are using
-Media Cloud, even if you do not have any specific questions.  
+If you have any questions about the Media Cloud project, please join the
+<a href="https://groups.io/g/mediacloud">mediacloud group</a>.   We encourage you to join the group
+just to share how you are using Media Cloud with an amazing group of like minded media researchers,
+even if you do not have any specific questions.
 </p>
 
 <p>
-If you have questions 
-about your account or other private questions, 
+If you have questions about your account or other private questions,
 you can email <a href="mailto:info@mediacloud.org">info@mediacloud.org</a>.
 </p>
 
