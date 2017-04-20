@@ -1340,6 +1340,7 @@ sub generate_and_import_data
             generate_and_import_data( 1, 0, $staging );
         }
 
+        INFO( "committing solr index changes ..." );
         _solr_request( 'update', { 'commit' => 'true' }, $staging );
 
         map { unlink( $_ ) } @{ $dump_files };
