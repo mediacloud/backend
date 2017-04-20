@@ -11,7 +11,6 @@
     [% FOREACH iteration IN mining_status.stories_by_iteration %]
         <tr><td>[% iteration.iteration %]</td><td>[% iteration.count %]</td></tr>
     [% END %]
-    <tr><td colspan=2>[% mining_status.queued_urls %] urls queued</td></tr>
 </table>
 
 

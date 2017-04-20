@@ -279,16 +279,12 @@ SQL
 }
 
 # if there are pending topic_links, return a hash describing the status
-# of the mining process with the following fields: stories_by_iteration, queued_urls, recent_topic_spider_metrics
+# of the mining process with the following fields: stories_by_iteration, recent_topic_spider_metrics
 sub _get_mining_status
 {
     my ( $db, $topic ) = @_;
 
     my $cid = $topic->{ topics_id };
-
-    my $queued_urls = $db->query( <<END, $cid )->array->[ 0 ];
-select count(*) from topic_links where topics_id = ? and ref_stories_id is null
-END
 
     my $stories_by_iteration = $db->query( <<END, $cid )->hashes;
 select iteration, count(*) count
@@ -303,7 +299,6 @@ select * from topic_spider_metrics where topics_id = ? order by topic_spider_met
 SQL
 
     return {
-        queued_urls                 => $queued_urls,
         stories_by_iteration        => $stories_by_iteration,
         recent_topic_spider_metrics => $recent_topic_spider_metrics
     };
