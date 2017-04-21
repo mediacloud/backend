@@ -5,10 +5,7 @@ import os
 class Logger(object):
     """Logger class.
     
-    Supports setting custom logging level with an environment variable, e.g.:
-    
-    MC_LOGGING_LEVEL=DEBUG python3 script.py    
-    """
+    See doc/logging.markdown for usage example."""
 
     # Environment variable to read the custom logging level from
     __logging_level_env_variable = 'MC_LOGGING_LEVEL'
