@@ -67,6 +67,8 @@ class DatabaseResult(object):
             query_args_list[0] = query
             query_args = tuple(query_args_list)
 
+            l.debug("Running query: %s" % str(query_args))
+
             cursor.execute(*query_args)
 
         except psycopg2.Warning as ex:

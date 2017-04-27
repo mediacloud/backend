@@ -1,5 +1,30 @@
-Logging
-==============================
+# Logging
+
+## Python
+
+Logging facilities are located in [`mediawords.util.log`](https://github.com/berkmancenter/mediacloud/blob/master/mediacloud/mediawords/util/log.py). Import the `create_logger()` factory:
+
+```python
+from mediawords.util.log import create_logger
+
+l = create_logger(__name__)
+```
+
+...and then use various logger's helpers to log messages at various logging levels:
+
+```python
+l.info("This is an informational message")
+l.debug("This is a debugging print")
+# ...
+```
+
+Default logging level is `INFO`. You can set a different logging level by setting `MC_LOGGING_LEVEL` environment variable:
+
+```bash
+MC_LOGGING_LEVEL=DEBUG python3 script.py
+```
+
+## Perl
 
 We are using [`Log::Log4perl`](https://mschilli.github.io/log4perl/) (Log4perl) for all logging. The basic idea of Log4perl is to send every log message with a category and priority and to associate those categories / priorities to appenders in a configuration file.
 
