@@ -29,7 +29,10 @@ Readonly my $JOB_STATE_FIELD_LIST => "job_states_id, ( args->>'media_id' )::int 
 
 sub default_output_fields
 {
-    return [ qw ( name url media_id feeds_id feed_type ) ];
+    return [
+        qw ( name url media_id feeds_id feed_type feed_status last_new_story_time
+          last_attempted_download_time last_successful_download_time )
+    ];
 }
 
 sub get_table_name
