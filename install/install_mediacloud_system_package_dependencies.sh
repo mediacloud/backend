@@ -342,6 +342,9 @@ else
                 exit 1
             fi
 
+            # Temporary hack to overcome https://github.com/mitchellh/vagrant-aws/issues/510
+            vagrant plugin install --plugin-version 1.43 fog-core
+
             # Install AWS plugin (https://github.com/mitchellh/vagrant-aws)
             vagrant plugin install vagrant-aws
         fi
