@@ -73,41 +73,35 @@ sub _get_stories_ids_temporary_table
     return $table_name;
 }
 
-# attach the following fields to each sentence: sentence_number, media_id, publish_date, url, medium_name
+# attach the following fields to each sentence:
+# sentence_number, media_id, publish_date, url, medium_name, sentence, language
 sub _attach_data_to_sentences
 {
     my ( $db, $sentences ) = @_;
 
     return unless ( $sentences && @{ $sentences } );
 
-    my $temp_stories_ids = _get_stories_ids_temporary_table( $db, $sentences );
-
-    my $stories = $db->query( <<END )->hashes;
-select s.publish_date, s.stories_id, s.url, m.name medium_name, s.media_id, 0 as sentence_number
-    from stories s
-        join $temp_stories_ids q on ( s.stories_id = q.stories_id )
-        join media m on ( s.media_id = m.media_id )
-END
-
-    $db->query( "drop table $temp_stories_ids" );
-
-    my $story_lookup = {};
-    map { $story_lookup->{ $_->{ stories_id } } = $_ } @{ $stories };
-
     my $story_sentences_ids = [ map { int( $_->{ story_sentences_id } ) } @{ $sentences } ];
     my $temp_ss_ids         = $db->get_temporary_ids_table( $story_sentences_ids );
     my $story_sentences     = $db->query( <<SQL )->hashes;
-select story_sentences_id, sentence from story_sentences where story_sentences_id in ( select id from $temp_ss_ids )
+select
+        s.publish_date, s.stories_id, s.url, m.name medium_name, s.media_id,
+        ss.story_sentences_id, ss.sentence, ss.language, ss,sentence_number
+    from story_sentences ss
+        join stories s using ( stories_id )
+        join media m on ( s.media_id = m.media_id )
+    where
+        story_sentences_id in ( select id from $temp_ss_ids )
 SQL
 
     my $ss_lookup = {};
-    map { $ss_lookup->{ $_->{ story_sentences_id } } = $_->{ sentence } } @{ $story_sentences };
+    map { $ss_lookup->{ int( $_->{ story_sentences_id } ) } = $_ } @{ $story_sentences };
 
     for my $sentence ( @{ $sentences } )
     {
-        my $story = $story_lookup->{ $sentence->{ stories_id } };
-        map { $sentence->{ $_ } = $story->{ $_ } } qw/sentence_number media_id publish_date url medium_name/;
-        $sentence->{ sentence } = $ss_lookup->{ $sentence->{ story_sentences_id } } || '';
+        my $ss     = $ss_lookup->{ int( $sentence->{ story_sentences_id } ) };
+        my $fields = [ keys( %{ $ss } ) ];
+        map { $sentence->{ $_ } = $ss->{ $_ } } keys( %{ $ss } );
     }
 }
 

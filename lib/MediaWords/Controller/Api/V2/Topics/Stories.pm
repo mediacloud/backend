@@ -21,8 +21,9 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
 __PACKAGE__->config(
     action => {
-        list  => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
-        count => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
+        list     => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
+        facebook => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
+        count    => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
@@ -160,6 +161,39 @@ SQL
     return 'and ' . join( ' and ', map { "( $_ ) " } @{ $clauses } );
 }
 
+# add a foci list to each story that lists each focus to which the story belongs
+sub _add_foci_to_stories($$$)
+{
+    my ( $db, $timespan, $stories ) = @_;
+
+    my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
+
+    my $foci = $db->query( <<SQL, $timespan->{ timespans_id } )->hashes;
+select
+        slc.stories_id,
+        f.foci_id,
+        f.name,
+        fs.name focal_set_name
+    from snap.story_link_counts slc
+        join timespans a on ( a.timespans_id = slc.timespans_id )
+        join timespans b on
+            ( a.snapshots_id = b.snapshots_id and
+                a.start_date = b.start_date and
+                a.end_date = b.end_date and
+                a.period = b.period )
+        join foci f on ( f.foci_id = b.foci_id )
+        join focal_sets fs on ( f.focal_sets_id = fs.focal_sets_id )
+        join snap.story_link_counts slcb on
+            ( slcb.stories_id = slc.stories_id and
+                slcb.timespans_id = b.timespans_id )
+    where
+        slc.stories_id in ( select id from $ids_table ) and
+        a.timespans_id = \$1
+SQL
+
+    MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $foci, 'foci' );
+}
+
 sub list_GET
 {
     my ( $self, $c ) = @_;
@@ -202,6 +236,8 @@ select s.*, slc.*, m.name media_name
     limit \$3 offset \$4
 SQL
 
+    _add_foci_to_stories( $db, $timespan, $stories );
+
     MediaWords::DBI::Stories::GuessDate::add_date_is_reliable_to_stories( $db, $stories );
 
     MediaWords::DBI::Stories::GuessDate::add_undateable_to_stories( $db, $stories );
@@ -212,6 +248,48 @@ SQL
     my $entity = { stories => $stories };
 
     MediaWords::DBI::ApiLinks::add_links_to_entity( $c, $entity, 'stories' );
+
+    $self->status_ok( $c, entity => $entity );
+
+}
+
+sub facebook : Chained('stories') : Args(0) : ActionClass('MC_REST')
+{
+}
+
+sub facebook_GET
+{
+    my ( $self, $c ) = @_;
+
+    my $timespan = MediaWords::TM::set_timespans_id_param( $c );
+
+    MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
+
+    my $db = $c->dbis;
+
+    $c->req->params->{ limit } ||= 1000;
+
+    my $timespans_id = $timespan->{ timespans_id };
+
+    my $limit  = $c->req->params->{ limit };
+    my $offset = $c->req->params->{ offset };
+
+    my $counts = $db->query( <<SQL, $timespans_id, $limit, $offset )->hashes;
+select
+        ss.stories_id,
+        ss.facebook_share_count,
+        ss.facebook_comment_count,
+        ss.facebook_api_collect_date
+    from snap.story_link_counts slc
+        join story_statistics ss using ( stories_id )
+    where slc.timespans_id = \$1
+    order by ss.stories_id
+    limit \$2 offset \$3
+SQL
+
+    my $entity = { counts => $counts };
+
+    MediaWords::DBI::ApiLinks::add_links_to_entity( $c, $entity, 'counts' );
 
     $self->status_ok( $c, entity => $entity );
 

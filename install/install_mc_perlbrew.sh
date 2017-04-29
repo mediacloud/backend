@@ -75,7 +75,9 @@ if [ ! -f "$PERLBREW_ROOT/bin/cpanm" ]; then
 fi
 
 echo "Creating 'mediacloud' library..."
+set +e
 perlbrew lib create "perl-${MC_PERL_VERSION}@mediacloud"
+set -e
 
 echo "Switching to 'mediacloud' library..."
 perlbrew switch "perl-${MC_PERL_VERSION}@mediacloud"

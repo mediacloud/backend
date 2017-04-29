@@ -93,7 +93,7 @@ sub default_output_fields
 {
     my ( $self, $c ) = @_;
 
-    my $fields = [ qw ( name url media_id primary_language is_monitored public_notes ) ];
+    my $fields = [ qw ( name url media_id is_monitored public_notes ) ];
 
     push( @{ $fields }, qw ( inlink_count outlink_count story_count ) ) if ( $self->{ topic_media } );
 
@@ -205,15 +205,6 @@ SQL
         push( @{ $clauses }, <<SQL );
 and exists ( select 1 from media_health h where h.media_id = media.media_id and h.is_healthy = false )
 SQL
-    }
-
-    if ( my $languages = $c->req->params->{ primary_language } )
-    {
-        $languages = [ $languages ] unless ( ref( $languages ) );
-
-        my $languages_list = join( ',', map { $db->quote( $_ ) } @{ $languages } );
-
-        push( @{ $clauses }, "and primary_language in ( $languages_list )" );
     }
 
     if ( my $similar_media_id = $c->req->params->{ similar_media_id } )

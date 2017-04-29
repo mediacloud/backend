@@ -275,7 +275,6 @@ Response:
         "url": "http://nytimes.com",
         "name": "New York Times",
         "media_id": 1,
-        "primary_language": "en",
         "is_healthy": 1,
         "is_monitored": 1,
         "public_notes": "all the news that's fit to print",
@@ -325,7 +324,6 @@ Response:
 | `include_dups`     | 0       | Include duplicate media among the results
 | `unhealthy` | none | Only return media that are currently marked as unhealthy (see mediahealth/list)
 | `similar_media_id` | none | Return media with the most tags in common
-| `primary_language` | none | Return media with the given ISO 639-1 2 letter primary language codes (specify more than once for a list)
 
 If the name parameter is specified, the call returns only media sources that match a case insensitive search specified value.  If the specified value is less than 3 characters long, the call returns an empty list.
 
@@ -2215,7 +2213,6 @@ curl https://api.mediacloud.org/api/v2/tag_sets/list
         "tag_sets_id": 597,
         "name": "gv_country"
     },
-   
     {
         "tag_sets_id": 800,
         "name": "ts"

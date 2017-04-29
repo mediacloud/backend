@@ -5,6 +5,7 @@ use warnings;
 
 use Catalyst::Test 'MediaWords';
 use HTTP::Request;
+use Regexp::Common;
 use Test::More;
 use URI::Escape;
 
@@ -169,7 +170,28 @@ sub rows_match($$$$$)
 
         for my $field ( @{ $test_fields } )
         {
-            is( $got_row->{ $field }, $expected_row->{ $field }, "$label field $field ($id_field: $id)" );
+            my $got      = $got_row->{ $field };
+            my $expected = $expected_row->{ $field };
+
+            # if got and expected are both numers, test using number equality so that 4 == 4.0
+            if ( $expected =~ /^$RE{ num }{ real }$/ && $got =~ /^$RE{ num }{ real }$/ )
+            {
+                my $label = "$label field $field ($id_field: $id): got $got expected $expected";
+
+                # for ints, test equality; if one is a float, use a small delta so that 0.333333 == 0.33333
+                if ( $expected =~ /^$RE{ num }{ int }$/ && $got =~ /^$RE{ num }{ int }$/ )
+                {
+                    ok( $got == $expected, $label );
+                }
+                else
+                {
+                    ok( abs( $got - $expected ) < 0.00001, $label );
+                }
+            }
+            else
+            {
+                is( $got, $expected, "$label field $field ($id_field: $id)" );
+            }
         }
     }
 

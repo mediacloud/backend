@@ -81,13 +81,19 @@ You can use this user account to access user restricted Media Cloud tools like t
 Media Meter dashboard and to make calls to the Media Cloud API.  For information
 about our tools and API, visit:
 
-http://mediacloud.org/get-involved
+https://mediacloud.org/tools
 
-If you have any questions about the Media Cloud project, tools, or data, please join
-the mediacloud-users list described at the above link and ask them there.  We
-encourage you to join the mediacloud-users list just to share how you are using
-Media Cloud even if you do not have any specific questions.  If you have questions
-about your account or other private questions email info\@mediacloud.org.
+If you have any questions about the Media Cloud project, tools, or data, please ask them
+on the mediacloud group here:
+
+https://groups.io/g/mediacloud
+
+We encourage you to join the above group just to share how you are using
+Media Cloud with a community of folks working on interesting research about
+media systems, even if you do not have any specific questions.
+
+If you have questions about your account or other private questions email
+info\@mediacloud.org.
 
 EOF
 

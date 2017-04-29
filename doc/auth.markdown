@@ -20,7 +20,7 @@ described as "Media Cloud administrator", having an "admin" role and a
 
 To log in, open:
 
-    http://127.0.0.1:5000/login
+    http://127.0.0.1:3000/login
 
 
 User management
@@ -29,7 +29,7 @@ User management
 You can manage (add, remove, change various properties) users via two
 interfaces:
 
-1. Web interface that is available on http://127.0.0.1:5000/admin/users/list,
+1. Web interface that is available on http://127.0.0.1:3000/admin/users/list,
 2. CLI Perl script located at `./script/mediawords_manage_users.pl`.
 
 The user management web interface (click on the `Users` link at the top of every page on the web app)

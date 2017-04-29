@@ -9,7 +9,7 @@ VAGRANTFILE_API_VERSION = "2"
 
 # AMI (see https://cloud-images.ubuntu.com/locator/ec2/)
 # ("us-east-1 xenial 16.04 LTS amd64 hvm:ebs-ssd")
-AWS_AMI           = ENV['AWS_AMI']            || "ami-6edd3078"
+AWS_AMI           = ENV['AWS_AMI']            || "ami-4dd2575b"
 AWS_REGION        = ENV['AWS_REGION']         || "us-east-1"
 AWS_INSTANCE_NAME = ENV['AWS_INSTANCE_NAME']  || "Media Cloud Vagrant test box"
 
@@ -33,9 +33,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     # Ubuntu 16.04 (64 bit)
     config.vm.box = "ubuntu/xenial64"
-
-    # Access Media Cloud's 5000 port by opening localhost:5001
-    config.vm.network :forwarded_port, guest: 5000, host: 5001
 
     # Access Media Cloud's 3000 port by opening localhost:3001
     config.vm.network :forwarded_port, guest: 3000, host: 3001

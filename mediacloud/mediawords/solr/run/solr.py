@@ -13,7 +13,7 @@ from urllib.error import URLError
 from urllib.request import urlopen
 
 from mediawords.solr.run.constants import *
-from mediawords.util.compress import extract_tarball_to_directory, extract_zip_to_directory
+from mediawords.util.compress import extract_tarball_to_directory
 from mediawords.util.log import create_logger
 from mediawords.util.network import fqdn, hostname_resolves, wait_for_tcp_port_to_open, tcp_port_is_open
 from mediawords.util.paths import mkdir_p, resolve_absolute_path_under_mc_root, relative_symlink, lock_file, unlock_file
@@ -108,18 +108,10 @@ def __install_solr(dist_directory: str = MC_DIST_DIR, solr_version: str = MC_SOL
 
     # Solr needs its .war extracted first before ZkCLI is usable
     jetty_home_path = __jetty_home_path(dist_directory=dist_directory, solr_version=solr_version)
+
     solr_war_dest_dir = os.path.join(jetty_home_path, "solr-webapp", "webapp")
-
-    # Solr 5.5.2+ already has the .war extracted
     if not os.path.exists(os.path.join(solr_war_dest_dir, "index.html")):
-        solr_war_path = os.path.join(jetty_home_path, "webapps", "solr.war")
-        if not os.path.isfile(solr_war_path):
-            raise McSolrRunException("Solr's .war file does not exist at path %s" % solr_war_path)
-
-        solr_war_dest_dir = os.path.join(jetty_home_path, "solr-webapp", "webapp")
-        l.info("Extracting solr.war at '%s' to '%s'..." % (solr_war_path, solr_war_dest_dir))
-        mkdir_p(solr_war_dest_dir)
-        extract_zip_to_directory(archive_file=solr_war_path, dest_directory=solr_war_dest_dir)
+        raise McSolrRunException("Solr's .war is not extracted at path %s" % solr_war_dest_dir)
 
     l.info("Creating 'installed' file...")
     installed_file_path = __solr_installed_file_path(dist_directory=dist_directory, solr_version=solr_version)
@@ -141,21 +133,9 @@ def __solr_home_path(solr_home_dir: str = MC_SOLR_HOME_DIR) -> str:
 def __jetty_home_path(dist_directory: str = MC_DIST_DIR, solr_version: str = MC_SOLR_VERSION) -> str:
     solr_path = __solr_path(dist_directory=dist_directory, solr_version=solr_version)
 
-    jetty_home_path = None
-    jetty_home_dir_candidates = [
-        # Solr 4
-        "example",
-
-        # Solr 5+
-        "server",
-    ]
-    for candidate_dir in jetty_home_dir_candidates:
-        candidate_path = os.path.join(solr_path, candidate_dir)
-        if os.path.exists(os.path.join(candidate_path, "start.jar")):
-            l.debug("jetty.home found: %s" % candidate_path)
-            jetty_home_path = candidate_path
-    if jetty_home_path is None:
-        raise McSolrRunException("Unable to locate jetty.home among candidates: %s" % str(jetty_home_dir_candidates))
+    jetty_home_path = os.path.join(solr_path, "server")
+    if not os.path.exists(os.path.join(jetty_home_path, "start.jar")):
+        raise McSolrRunException("Unable to locate jetty.home: %s" % jetty_home_path)
 
     return jetty_home_path
 
@@ -293,25 +273,12 @@ def __run_solr_zkcli(zkcli_args: List[str],
     solr_path = __solr_path(dist_directory=dist_directory, solr_version=solr_version)
 
     jetty_home_path = __jetty_home_path(dist_directory=dist_directory, solr_version=solr_version)
+    log4j_properties_path = os.path.join(jetty_home_path, "scripts", "cloud-scripts", "log4j.properties")
 
-    log4j_properties_path = None
-    log4j_properties_expected_paths = [
-        # Solr 4.6
-        os.path.join(jetty_home_path, "cloud-scripts", "log4j.properties"),
-
-        # Solr 4.10+
-        os.path.join(jetty_home_path, "scripts", "cloud-scripts", "log4j.properties"),
-    ]
-
-    for expected_path in log4j_properties_expected_paths:
-        if os.path.isfile(expected_path):
-            log4j_properties_path = expected_path
-            break
-
-    if log4j_properties_path is None:
+    if not os.path.isfile(log4j_properties_path):
         raise McSolrRunException(
-            "Unable to find log4j.properties file for zkcli.sh script in paths: %s" %
-            str(log4j_properties_expected_paths)
+            "Unable to find log4j.properties file for zkcli.sh script at path: %s" %
+            log4j_properties_path
         )
 
     if not tcp_port_is_open(hostname=zookeeper_host, port=zookeeper_port):
@@ -322,7 +289,6 @@ def __run_solr_zkcli(zkcli_args: List[str],
     zkhost = "%s:%d" % (zookeeper_host, zookeeper_port)
 
     java_classpath_dirs = [
-        # Solr 4
         os.path.join(solr_path, "dist", "*"),
         os.path.join(jetty_home_path, "solr-webapp", "webapp", "WEB-INF", "lib", "*"),
         os.path.join(jetty_home_path, "lib", "ext", "*"),

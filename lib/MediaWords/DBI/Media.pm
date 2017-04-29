@@ -19,9 +19,17 @@ use MediaWords::Util::SQL;
 use MediaWords::Util::URL;
 
 use Encode;
+use Readonly;
 use Regexp::Common qw /URI/;
 use Text::Trim;
 use XML::FeedPP;
+
+# definition of tag set for media primary language
+Readonly my $PRIMARY_LANGUAGE_TAG_SET_NAME        => 'primary_language';
+Readonly my $PRIMARY_LANGUAGE_TAG_SET_LABEL       => 'Primary Language';
+Readonly my $PRIMARY_LANGUAGE_TAG_SET_DESCRIPTION => <<END;
+Tags in this set indicate that the given media source has a majority of stories written in the given language.
+END
 
 =head1 FUNCTIONS
 
@@ -407,25 +415,8 @@ insert into media_tags_map ( media_id, tags_id )
 END
 }
 
-=head2 set_primary_language( $db, $medium )
-
-Set the primary language of the media source as the language of the greatest number of stories in the media
-source as long as that language is more than 50% of the stories in the media source.
-
-Do nothing for the media source if it has no active feeds or no stories.
-
-If there are less than 100 stories in the medium and the greatest last_new_story_time of the medium's feeds
-is within a month, do nothing.
-
-If there are less than 100 stories in the medium but the greatest last_new_story_time of the medium's feeds
-is outside of a month, set the primary language to the majority story language.
-
-If there are more than 100 stories in the media source and no language is the majority langauge, set the
-language to 'none'.
-
-=cut
-
-sub set_primary_language($$)
+# detect the primary language of the media source, as described in set_primary_language below
+sub _detect_primary_language($$)
 {
     my ( $db, $medium ) = @_;
 
@@ -486,7 +477,156 @@ SQL
 
     DEBUG( "detect primary language for $medium->{ name } [$media_id] update to $primary_language" );
 
-    $db->update_by_id( 'media', $media_id, { primary_language => $primary_language } );
+    return $primary_language;
+
+}
+
+=head2 get_primary_language_tag_set( $db )
+
+Return the tag_set containing the primary language tags.
+
+=cut
+
+sub get_primary_language_tag_set($)
+{
+    my ( $db ) = @_;
+
+    my $tag_set = $db->find_or_create(
+        'tag_sets',
+        {
+            name        => $PRIMARY_LANGUAGE_TAG_SET_NAME,
+            label       => $PRIMARY_LANGUAGE_TAG_SET_LABEL,
+            description => $PRIMARY_LANGUAGE_TAG_SET_DESCRIPTION,
+        }
+    );
+
+    return $tag_set;
+}
+
+=head2 return the tag for the given language code( $db, $language_code )
+
+Given a language code, returm the primary language tag corresponding to that language.
+
+=cut
+
+sub get_primary_language_tag($$)
+{
+    my ( $db, $primary_language ) = @_;
+
+    my $tag_set = get_primary_language_tag_set( $db );
+
+    my $tag = $db->query( <<SQL, $primary_language, $tag_set->{ tag_sets_id } )->hash;
+select t.*
+    from tags t
+    where
+        t.tag = \$1 and
+        t.tag_sets_id = \$2
+SQL
+
+    if ( !$tag )
+    {
+        my $label = MediaWords::Util::IdentifyLanguage::language_name_for_code( $primary_language );
+        $label ||= $primary_language;
+
+        my $description = "Media sources for which the primary language is $label";
+        $tag = $db->create(
+            'tags',
+            {
+                tag         => $primary_language,
+                label       => $label,
+                description => $description,
+                tag_sets_id => $tag_set->{ tag_sets_id }
+            }
+        );
+    }
+
+    return $tag;
+}
+
+=head2 get_primary_language_tag( $db, $medium )
+
+Return the primary language tag associated with the given media source, or undef if none exists.
+
+=cut
+
+sub get_primary_language_tag_for_medium($$)
+{
+    my ( $db, $medium ) = @_;
+
+    my $tag_set = get_primary_language_tag_set( $db );
+
+    my $tag = $db->query( <<SQL, $medium->{ media_id }, $tag_set->{ tag_sets_id } )->hash;
+select t.*
+    from tags t
+        join media_tags_map mtm using ( tags_id )
+    where
+        mtm.media_id = \$1 and
+        t.tag_sets_id = \$2
+SQL
+
+    return $tag;
+}
+
+=head2 set_primary_language( $db, $medium )
+
+Assign a $PRIMAY_LANGuAGE_TAG_SET_NAME: tag to the media source as the language of the greatest number of stories in the
+source as long as that language is more than 50% of the stories in the media source.  Delete any existing associations
+to tags in the $PRIMAY_LANGuAGE_TAG_SET_NAME tag_set if they do not match the newly detected tag.
+
+Use the following rules to assign the primary language tag:
+
+* assign no tag if the medium has no active feeds or no stories;
+
+* assign no tag if there are less than 100 stories in the medium and the greatest last_new_story_time of the
+medium's feeds is within a month;
+
+* assign the majority story language if there are more than 100 stories in the medium;
+
+* assign the majority story language if there are less than 100 stories in the medium but the greatest
+last_new_story_time of the medium's feeds is outside of a month;
+
+* assign the language 'non' if there are more than 100 stories in the media source and no language is the majority.
+
+=cut
+
+sub set_primary_language($$)
+{
+    my ( $db, $medium ) = @_;
+
+    my $primary_language = _detect_primary_language( $db, $medium );
+
+    my $tag_set = get_primary_language_tag_set( $db );
+
+    if ( !defined( $primary_language ) )
+    {
+        $db->query( <<SQL, $medium->{ media_id }, $tag_set->{ tag_sets_id } );
+delete from media_tags_map mtm
+    using tags t
+    where
+        mtm.media_id = \$1 and
+        mtm.tags_id = t.tags_id and
+        t.tag_sets_id = \$2
+SQL
+        return;
+    }
+
+    my $new_tag = get_primary_language_tag( $db, $primary_language );
+
+    my $existing_tag = get_primary_language_tag_for_medium( $db, $medium );
+
+    return if ( $existing_tag && ( $existing_tag->{ tags_id } == $new_tag->{ tags_id } ) );
+
+    if ( $existing_tag )
+    {
+        $db->query( <<SQL, $existing_tag->{ tags_id }, $medium->{ media_id } );
+delete from media_tags_map where tags_id = \$1 and media_id = \$2
+SQL
+    }
+
+    $db->query( <<SQL, $new_tag->{ tags_id }, $medium->{ media_id } );
+insert into media_tags_map ( tags_id, media_id ) values ( \$1, \$2 )
+SQL
+
 }
 
 1;

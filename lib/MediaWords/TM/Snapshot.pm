@@ -1889,20 +1889,38 @@ SQL
     $db->update_by_id( 'snapshots', $cd->{ snapshots_id }, { searchable => 'f' } );
 }
 
-=head2 snapshot_topic( $db, $topics_id, $note, $bot_policy )
+# die if each of the $periods is not among the $allowed_periods
+sub _validate_periods($$)
+{
+    my ( $periods, $allowed_periods ) = @_;
+
+    for my $period ( @{ $allowed_periods } )
+    {
+        die( "uknown period: '$period'" ) unless ( grep { $period eq $_ } @{ $allowed_periods } );
+    }
+}
+
+=head2 snapshot_topic( $db, $topics_id, $note, $bot_policy, $periods )
 
 Create a snapshot for the given topic.  Optionally pass a note and/or a bot_policy field to the created snapshot.
 
 The bot_policy should be one of 'all', 'no bots', or 'only bots' indicating for twitter topics whether and how to
 filter for bots (a bot is defined as any user tweeting more than 200 post per day).
 
+The periods should be a list of periods to include in the snapshot, where the allowed periods are custom,
+overall, weekly, and monthly.  If periods is not specificied or is empty, all periods will be generated.
+
 =cut
 
-sub snapshot_topic ($$;$$)
+sub snapshot_topic ($$;$$$)
 {
-    my ( $db, $topics_id, $note, $bot_policy ) = @_;
+    my ( $db, $topics_id, $note, $bot_policy, $periods ) = @_;
 
-    my $periods = [ qw(custom overall weekly monthly) ];
+    my $allowed_periods = [ qw(custom overall weekly monthly) ];
+
+    $periods = $allowed_periods if ( !$periods || !@{ $periods } );
+
+    _validate_periods( $periods, $allowed_periods );
 
     my $topic = $db->find_by_id( 'topics', $topics_id )
       || die( "Unable to find topic '$topics_id'" );
