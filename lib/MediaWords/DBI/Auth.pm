@@ -962,4 +962,71 @@ SQL
     $db->commit;
 }
 
+# Try to login with the given email and password.
+# Returns email if login is successful, undef otherwise.
+sub _login
+{
+    my ( $db, $email, $password ) = @_;
+
+    unless ( $email and $password )
+    {
+        return undef;
+    }
+
+    my $userauth;
+    eval { $userauth = user_auth( $db, $email ); };
+    if ( $@ or ( !$userauth ) )
+    {
+        WARN "Unable to find authentication roles for email '$email'";
+        return undef;
+    }
+
+    unless ( $userauth->{ active } )
+    {
+        WARN "User with email '$email' is not active.";
+        return undef;
+    }
+
+    unless ( MediaWords::DBI::Auth::Password::password_hash_is_valid( $userauth->{ password_hash }, $password ) )
+    {
+        return undef;
+    }
+
+    return $userauth;
+}
+
+# Login and get an IP API key for the logged in user.
+# Returns API key if login is successful, undef otherwise.
+sub login_and_get_ip_api_key_for_user($$$$)
+{
+    my ( $db, $email, $password, $ip_address ) = @_;
+
+    unless ( $ip_address )
+    {
+        WARN "Unable to find IP address for request";
+        return undef;
+    }
+
+    my $user = _login( $db, $email, $password );
+    unless ( $user )
+    {
+        return undef;
+    }
+
+    my $auth_user_ip_api_key = $db->query(
+        <<SQL,
+        SELECT *
+        FROM auth_user_api_keys
+        WHERE auth_users_id = \$1
+          AND ip_address = \$2
+SQL
+        $user->{ auth_users_id }, $ip_address
+    )->hash;
+
+    my $auit_hash = { auth_users_id => $user->{ auth_users_id }, ip_address => $ip_address };
+    $auth_user_ip_api_key //= $db->create( 'auth_user_api_keys', $auit_hash );
+
+    return $auth_user_ip_api_key->{ api_key };
+}
+
 1;

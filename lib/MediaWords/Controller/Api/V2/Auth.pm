@@ -35,77 +35,18 @@ sub single : Local : ActionClass('MC_REST')
 {
 }
 
-# try to login with the given email and password.  return the email if login is successful.
-sub _login
-{
-    my ( $db, $email, $password ) = @_;
-
-    return 0 unless ( $email && $password );
-
-    my $userauth;
-    eval { $userauth = MediaWords::DBI::Auth::user_auth( $db, $email ); };
-    if ( $@ or ( !$userauth ) )
-    {
-        WARN "Unable to find authentication roles for email '$email'";
-        return 0;
-    }
-
-    unless ( $userauth->{ active } )
-    {
-        WARN "User with email '$email' is not active.";
-        return 0;
-    }
-
-    return 0 unless ( MediaWords::DBI::Auth::Password::password_hash_is_valid( $userauth->{ password_hash }, $password ) );
-
-    return $userauth;
-}
-
-# login and get an IP API key for the logged in user.  return 0 on error or failed login.
-sub _login_and_get_ip_api_key_for_user
-{
-    my ( $c, $email, $password ) = @_;
-
-    my $db = $c->dbis;
-
-    my $user = _login( $db, $email, $password );
-
-    return 0 unless ( $user );
-
-    my $ip_address = $c->request_ip_address();
-
-    unless ( $ip_address )
-    {
-        WARN "Unable to find IP address for request";
-        return 0;
-    }
-
-    my $auth_user_ip_api_key = $db->query(
-        <<SQL,
-        SELECT *
-        FROM auth_user_api_keys
-        WHERE auth_users_id = \$1
-          AND ip_address = \$2
-SQL
-        $user->{ auth_users_id }, $ip_address
-    )->hash;
-
-    my $auit_hash = { auth_users_id => $user->{ auth_users_id }, ip_address => $ip_address };
-    $auth_user_ip_api_key //= $db->create( 'auth_user_api_keys', $auit_hash );
-
-    return $auth_user_ip_api_key->{ api_key };
-}
-
 sub login_GET : PathPrefix( '/api' )
 {
     my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
 
     my $data     = $c->req->data;
     my $email    = $data->{ username };
     my $password = $data->{ password };
 
-    my $api_key = _login_and_get_ip_api_key_for_user( $c, $email, $password );
-
+    my $api_key =
+      MediaWords::DBI::Auth::login_and_get_ip_api_key_for_user( $db, $email, $password, $c->request_ip_address() );
     unless ( $api_key )
     {
         die "User '$email' was not found or password is incorrect.";
@@ -118,11 +59,13 @@ sub single_GET : PathPrefix( '/api' )
 {
     my ( $self, $c ) = @_;
 
+    my $db = $c->dbis;
+
     my $email    = $c->req->params->{ username };
     my $password = $c->req->params->{ password };
 
-    my $api_key = _login_and_get_ip_api_key_for_user( $c, $email, $password );
-
+    my $api_key =
+      MediaWords::DBI::Auth::login_and_get_ip_api_key_for_user( $db, $email, $password, $c->request_ip_address() );
     unless ( $api_key )
     {
         $self->status_ok( $c, entity => [ { 'result' => 'not found' } ] );
