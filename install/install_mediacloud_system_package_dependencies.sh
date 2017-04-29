@@ -253,7 +253,7 @@ else
         # Ruby >2.3 is needed by vagrant-aws plugin
         echo "Adding Ruby 2.3 repository to older Ubuntu..."
         sudo apt-get -y install python-software-properties
-        sudo add-apt-repository -y ppa:brightbox/ruby-ng
+        sudo add-apt-repository ppa:brightbox/ruby-ng
         sudo apt-get update
     fi
 
