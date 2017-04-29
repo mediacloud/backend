@@ -264,16 +264,7 @@ else
         hunspell \
         libdb-dev \
         libexpat1-dev \
-        libgraph-writer-graphviz-perl \
         libgraphviz-dev \
-        libgraphviz-perl \
-        liblist-allutils-perl \
-        liblist-moreutils-perl \
-        liblocale-maketext-lexicon-perl \
-        libopengl-perl \
-        libreadonly-perl \
-        libreadonly-xs-perl \
-        libtest-www-mechanize-perl \
         libtidy-dev \
         libxml2-dev \
         libxml2-dev \
@@ -281,7 +272,6 @@ else
         libxslt1-dev \
         libxslt1.1 \
         libyaml-dev \
-        libyaml-syck-perl \
         logrotate \
         make \
         netcat \
