@@ -56,7 +56,7 @@ sub new
             my $nr = shift;
 
             my $config = MediaWords::Util::Config::get_config;
-            my $ga_domain = $config->{ google_analytics } ? $config->{ google_analytics }->{ domainname } : '';
+            my $ga_domain = $config->{ google_analytics } ? $config->{ google_analytics }->{ domainname } : 'auto';
 
             $nr = $ga_domain;
 
