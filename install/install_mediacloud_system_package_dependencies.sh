@@ -236,7 +236,7 @@ else
         echo "Adding Java 8 PPA repository to older Ubuntu..."
         sudo apt-get -y install python-software-properties
         sudo add-apt-repository -y ppa:openjdk-r/ppa
-        sudo apt-get update
+        sudo apt-get -q update
     fi
 
     # Python version to install
@@ -245,7 +245,7 @@ else
         echo "Adding Python 3.5 PPA repository to older Ubuntu..."
         sudo apt-get -y install python-software-properties
         sudo add-apt-repository -y ppa:fkrull/deadsnakes
-        sudo apt-get update
+        sudo apt-get -q update
     fi
 
     # Install the rest of the packages
