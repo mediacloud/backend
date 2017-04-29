@@ -134,11 +134,6 @@ else
         log "'esl-erlang' package is not of the required version which is $ERLANG_OLD_UBUNTU_APT_VERSION."
         exit 1
     fi
-
-    if ! erlang_is_of_the_required_version; then
-        log "'esl-erlang' package is not of the required version which is $RABBITMQ_OLD_UBUNTU_APT_VERSION."
-        print_rabbitmq_installation_instructions
-        exit 1
     fi
 
     if ! max_fd_limit_is_big_enough; then
