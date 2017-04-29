@@ -656,14 +656,22 @@ Input:
   "name": "New New Times Feed",
   "url": "http://nytimes.com/new/feed",
   "feed_type": "syndicated",
-  "feed_stats": "active"
+  "feed_status": "active"
 }
 ```
 
 Output:
 
 ```json
-{ "success": 1 }
+{ "feed":
+    {
+      "media_id": 1,
+      "name": "New New Times Feed",
+      "url": "http://nytimes.com/new/feed",
+      "feed_type": "syndicated",
+      "feed_status": "active"
+    }    
+}
 ```
 
 ## api/v2/feeds/update (PUT)
@@ -694,7 +702,15 @@ Input:
 Output:
 
 ```json
-{ "success": 1 }
+{ "feed":
+    {
+      "media_id": 1,
+      "name": "New New Times Feed",
+      "url": "http://nytimes.com/new/feed",
+      "feed_type": "syndicated",
+      "feed_status": "inactive"
+    }    
+}
 ```
 
 
