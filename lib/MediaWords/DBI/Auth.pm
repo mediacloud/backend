@@ -345,7 +345,7 @@ SQL
 
 # Check if password complies with strength the requirements; returns empty
 # string on valid password, error message on invalid password
-sub _validate_password($$$)
+sub _validate_new_password($$$)
 {
     my ( $email, $password, $password_repeat ) = @_;
 
@@ -382,7 +382,7 @@ sub _change_password($$$$;$)
 {
     my ( $db, $email, $password_new, $password_new_repeat, $do_not_inform_via_email ) = @_;
 
-    my $password_validation_message = _validate_password( $email, $password_new, $password_new_repeat );
+    my $password_validation_message = _validate_new_password( $email, $password_new, $password_new_repeat );
     if ( $password_validation_message )
     {
         die "Unable to change password: $password_validation_message";
@@ -599,7 +599,7 @@ sub add_user($$$$$$$$;$$)
       ( defined $weekly_requests_limit ? $weekly_requests_limit : 'default' ) . ', weekly requested items limit: ' .
       ( defined $weekly_requested_items_limit ? $weekly_requested_items_limit : 'default' );
 
-    my $password_validation_message = _validate_password( $email, $password, $password_repeat );
+    my $password_validation_message = _validate_new_password( $email, $password, $password_repeat );
     if ( $password_validation_message )
     {
         die "Provided password is invalid: $password_validation_message";
