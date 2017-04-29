@@ -286,7 +286,6 @@ else
         make \
         netcat \
         openjdk-8-jdk \
-        perl-doc \
         postgresql-server-dev-all \
         python-pip \
         python2.7 \
