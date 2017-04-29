@@ -199,11 +199,13 @@ SQL
 # Fetch a hash of basic user information and an array of assigned roles based on the API key.
 # Only active users are fetched.
 # Returns 0 on error
-sub user_for_api_key($$)
+sub user_for_api_key_catalyst($)
 {
-    my ( $c, $api_key ) = @_;
+    my $c = shift;
 
-    my $db         = $c->dbis;
+    my $db = $c->dbis;
+
+    my $api_key    = $c->request->param( $API_KEY_PARAMETER . '' );
     my $ip_address = $c->request_ip_address();
 
     my $user = $db->query(
@@ -248,16 +250,6 @@ SQL
     $user->{ roles } = [ split( ' ', $user->{ roles } ) ];
 
     return $user;
-}
-
-# Same as above, just with the Catalyst's $c object
-sub user_for_api_key_catalyst($)
-{
-    my $c = shift;
-
-    my $api_key = $c->request->param( $API_KEY_PARAMETER . '' );
-
-    return user_for_api_key( $c, $api_key );
 }
 
 # Post-successful login database tasks
