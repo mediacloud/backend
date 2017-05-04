@@ -10,6 +10,7 @@ import subprocess
 import tempfile
 
 from mediawords.util.paths import mc_root_path
+from mediawords.util.process import run_alone
 from mediawords.util.log import create_logger
 
 # Max. size of a single log file (in bytes)
@@ -92,4 +93,4 @@ def rotate_http_request_log():
 
 
 if __name__ == '__main__':
-    rotate_http_request_log()
+    run_alone(rotate_http_request_log)
