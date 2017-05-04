@@ -233,7 +233,7 @@ else
 
     if verlt "$DISTRIB_RELEASE" "16.04"; then
         # Solr 6+ requires Java 8 which is unavailable before 16.04
-        echo "Adding Java 8 PPA repository to Ubuntu 12.04..."
+        echo "Adding Java 8 PPA repository to older Ubuntu..."
         sudo apt-get -y install python-software-properties
         sudo add-apt-repository -y ppa:openjdk-r/ppa
         sudo apt-get update
@@ -242,7 +242,7 @@ else
     # Python version to install
     if verlt "$DISTRIB_RELEASE" "16.04"; then
         # We require at least Python 3.5 (12.04 only has 3.2 which doesn't work with newest Pip)
-        echo "Adding Python 3.5 PPA repository to Ubuntu 12.04..."
+        echo "Adding Python 3.5 PPA repository to older Ubuntu..."
         sudo apt-get -y install python-software-properties
         sudo add-apt-repository -y ppa:fkrull/deadsnakes
         sudo apt-get update
@@ -341,6 +341,9 @@ else
                 echo_vagrant_instructions
                 exit 1
             fi
+
+            # Temporary hack to overcome https://github.com/mitchellh/vagrant-aws/issues/510
+            vagrant plugin install --plugin-version 1.43 fog-core
 
             # Install AWS plugin (https://github.com/mitchellh/vagrant-aws)
             vagrant plugin install vagrant-aws
