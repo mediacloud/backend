@@ -954,44 +954,17 @@ SQL
     $db->commit;
 }
 
-# Try to login with the given email and password.
-# Returns email if login is successful, undef otherwise.
-sub _login
-{
-    my ( $db, $email, $password ) = @_;
-
-    unless ( $email and $password )
-    {
-        return undef;
-    }
-
-    my $userauth;
-    eval { $userauth = user_auth( $db, $email ); };
-    if ( $@ or ( !$userauth ) )
-    {
-        WARN "Unable to find authentication roles for email '$email'";
-        return undef;
-    }
-
-    unless ( $userauth->{ active } )
-    {
-        WARN "User with email '$email' is not active.";
-        return undef;
-    }
-
-    unless ( MediaWords::DBI::Auth::Password::password_hash_is_valid( $userauth->{ password_hash }, $password ) )
-    {
-        return undef;
-    }
-
-    return $userauth;
-}
-
 # Login and get an IP API key for the logged in user.
 # Returns API key if login is successful, undef otherwise.
 sub login_and_get_ip_api_key_for_user($$$$)
 {
     my ( $db, $email, $password, $ip_address ) = @_;
+
+    unless ( $email and $password )
+    {
+        WARN "Email and password must be defined";
+        return undef;
+    }
 
     unless ( $ip_address )
     {
@@ -999,9 +972,23 @@ sub login_and_get_ip_api_key_for_user($$$$)
         return undef;
     }
 
-    my $user = _login( $db, $email, $password );
-    unless ( $user )
+    my $user;
+    eval { $user = user_auth( $db, $email ); };
+    if ( $@ or ( !$user ) )
     {
+        WARN "Unable to find authentication roles for email '$email'";
+        return undef;
+    }
+
+    unless ( $user->{ active } )
+    {
+        WARN "User with email '$email' is not active.";
+        return undef;
+    }
+
+    unless ( MediaWords::DBI::Auth::Password::password_hash_is_valid( $user->{ password_hash }, $password ) )
+    {
+        WARN "Password for user '$email' is invalid.";
         return undef;
     }
 
