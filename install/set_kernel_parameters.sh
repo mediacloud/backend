@@ -60,9 +60,6 @@ EOF
     echo "Rereading sysctl settings..."
     sudo service procps start
 
-    MEDIACLOUD_ULIMIT_VIRTUAL_MEMORY=33554432   # Each process is limited up to ~34 GB of memory
-    MEDIACLOUD_ULIMIT_OPEN_FILES=65536
-
     MEDIACLOUD_USER=`id -un`
     echo "Setting required kernel parameters via limits.conf for user '$MEDIACLOUD_USER'..."
 
@@ -73,18 +70,14 @@ EOF
 #
 
 # Each process is limited up to ~34 GB of memory
-$MEDIACLOUD_USER      hard    as            $MEDIACLOUD_ULIMIT_VIRTUAL_MEMORY
+$MEDIACLOUD_USER      hard    as            33554432
 
 # Increase the max. open files limit
-$MEDIACLOUD_USER      soft    nofile        $MEDIACLOUD_ULIMIT_OPEN_FILES
-$MEDIACLOUD_USER      hard    nofile        $MEDIACLOUD_ULIMIT_OPEN_FILES
+$MEDIACLOUD_USER      soft    nofile        65536
+$MEDIACLOUD_USER      hard    nofile        65536
 EOF
 
     echo "Done setting required kernel parameters via limits.conf."
-    
-    echo "Setting required kernel parameters directly via ulimit..."
-    ulimit -v $MEDIACLOUD_ULIMIT_VIRTUAL_MEMORY
-    ulimit -n $MEDIACLOUD_ULIMIT_OPEN_FILES
-    echo "Setting required kernel parameters directly via ulimit."
+    echo "Please relogin to the user '$MEDIACLOUD_USER' for the limits to be applied."
 
 fi
