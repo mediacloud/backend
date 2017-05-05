@@ -87,6 +87,4 @@ EOF
     ulimit -n $MEDIACLOUD_ULIMIT_OPEN_FILES
     echo "Setting required kernel parameters directly via ulimit."
 
-    echo "Current ulimit values:\n`ulimit -a`"
-
 fi
