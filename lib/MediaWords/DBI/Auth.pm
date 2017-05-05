@@ -936,34 +936,29 @@ sub login_and_get_ip_api_key_for_user($$$$)
 
     unless ( $email and $password )
     {
-        WARN "Email and password must be defined";
-        return undef;
+        die "Email and password must be defined";
     }
 
     unless ( $ip_address )
     {
-        WARN "Unable to find IP address for request";
-        return undef;
+        die "Unable to find IP address for request";
     }
 
     my $user;
     eval { $user = user_auth( $db, $email ); };
     if ( $@ or ( !$user ) )
     {
-        WARN "Unable to find authentication roles for email '$email'";
-        return undef;
+        die "Unable to find authentication roles for email '$email'";
     }
 
     unless ( $user->{ active } )
     {
-        WARN "User with email '$email' is not active.";
-        return undef;
+        die "User with email '$email' is not active.";
     }
 
     unless ( MediaWords::DBI::Auth::Password::password_hash_is_valid( $user->{ password_hash }, $password ) )
     {
-        WARN "Password for user '$email' is invalid.";
-        return undef;
+        die "Password for user '$email' is invalid.";
     }
 
     my $auth_user_ip_api_key = $db->query(

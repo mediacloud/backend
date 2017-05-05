@@ -45,9 +45,12 @@ sub login_GET : PathPrefix( '/api' )
     my $email    = $data->{ username };
     my $password = $data->{ password };
 
-    my $api_key =
-      MediaWords::DBI::Auth::login_and_get_ip_api_key_for_user( $db, $email, $password, $c->request_ip_address() );
-    unless ( $api_key )
+    my $api_key;
+    eval {
+        $api_key =
+          MediaWords::DBI::Auth::login_and_get_ip_api_key_for_user( $db, $email, $password, $c->request_ip_address() );
+    };
+    if ( $@ or ( !$api_key ) )
     {
         die "User '$email' was not found or password is incorrect.";
     }
@@ -64,9 +67,12 @@ sub single_GET : PathPrefix( '/api' )
     my $email    = $c->req->params->{ username };
     my $password = $c->req->params->{ password };
 
-    my $api_key =
-      MediaWords::DBI::Auth::login_and_get_ip_api_key_for_user( $db, $email, $password, $c->request_ip_address() );
-    unless ( $api_key )
+    my $api_key;
+    eval {
+        $api_key =
+          MediaWords::DBI::Auth::login_and_get_ip_api_key_for_user( $db, $email, $password, $c->request_ip_address() );
+    };
+    if ( $@ or ( !$api_key ) )
     {
         $self->status_ok( $c, entity => [ { 'result' => 'not found' } ] );
         return;
