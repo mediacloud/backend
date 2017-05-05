@@ -57,6 +57,8 @@ before_install:
     # Set up kernel and PostgreSQL parameters
     - ./install/set_kernel_parameters.sh
     - ./install/set_postgresql_parameters.sh
+    # Run RabbitMQ
+    - ./script/rabbitmq_wrapper.sh
     # Create + switch to the Media Cloud's Perlbrew library
     - perlbrew lib create mediacloud
     - perlbrew switch @mediacloud
@@ -66,4 +68,4 @@ before_install:
     - ./install/install_mc_perlbrew_and_modules.sh
 script:
     # Run RabbitMQ
-    - ./script/rabbitmq_wrapper.sh
+    - echo Hello
