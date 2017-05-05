@@ -199,14 +199,18 @@ SQL
 # Fetch a hash of basic user information and an array of assigned roles based on the API key.
 # Only active users are fetched.
 # Returns 0 on error
-sub user_for_api_key_catalyst($)
+sub user_for_api_key($$$)
 {
-    my $c = shift;
+    my ( $db, $api_key, $ip_address ) = @_;
 
-    my $db = $c->dbis;
-
-    my $api_key    = $c->request->param( $API_KEY_PARAMETER . '' );
-    my $ip_address = $c->request_ip_address();
+    unless ( $api_key )
+    {
+        die "API key is undefined.";
+    }
+    unless ( $ip_address )
+    {
+        die "IP address is undefined.";
+    }
 
     my $user = $db->query(
         <<"SQL",
@@ -250,6 +254,20 @@ SQL
     $user->{ roles } = [ split( ' ', $user->{ roles } ) ];
 
     return $user;
+}
+
+# Fetch a hash of basic user information and an array of assigned roles based on the API key.
+# Only active users are fetched.
+# Returns 0 on error
+sub user_for_api_key_catalyst($)
+{
+    my $c = shift;
+
+    my $db         = $c->dbis;
+    my $api_key    = $c->request->param( $API_KEY_PARAMETER . '' );
+    my $ip_address = $c->request_ip_address();
+
+    return user_for_api_key( $db, $api_key, $ip_address );
 }
 
 # Post-successful login database tasks
@@ -419,9 +437,9 @@ sub change_password_via_profile($$$$$)
         die 'Old and new passwords are the same.';
     }
 
-    # Validate old password (password hash is located in $c->user->password, but fetch
-    # the hash from the database again because that hash might be outdated (e.g. if the
-    # password has been changed already))
+    # Validate old password; fetch the hash from the database again because
+    # that hash might be outdated (e.g. if the password has been changed
+    # already)
     my $db_password_old = $db->query(
         <<"SQL",
         SELECT auth_users_id,
