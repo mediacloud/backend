@@ -134,7 +134,6 @@ else
         log "'esl-erlang' package is not of the required version which is $ERLANG_OLD_UBUNTU_APT_VERSION."
         exit 1
     fi
-    fi
 
     if ! max_fd_limit_is_big_enough; then
         log "Open file limit is less than $MIN_OPEN_FILES_LIMIT."
