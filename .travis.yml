@@ -1,5 +1,6 @@
 # Installing up-to-date Erlang requires root
 sudo: true
+dist: trusty
 addons:
     postgresql: "9.3"
     hosts:

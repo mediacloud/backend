@@ -15,9 +15,9 @@ In order to:
 
 Python seems to introduce some major changes between minor versions (e.g. 3.5 has type hinting, 3.6 introduced type annotations for variables, etc.) that have to be tested.
 
-Also, we develop / run Media Cloud from multiple configurations: Ubuntu 12.04 (ships with Python 3.2 by default), Ubuntu 16.04 (ships with Python 3.5 by default), and OS X (Homebrew ships with Python 3.6 at the time of writing).
+Also, we develop / run Media Cloud from multiple configurations: Ubuntu 14.04 on CI (Travis) runs (ships with Python 3.2 by default), Ubuntu 16.04 on production (ships with Python 3.5 by default), and OS X on development machines (Homebrew ships with Python 3.6 at the time of writing).
 
-To reduce confusion and speed up continuous integration runs, we hardcode and use Python 3.5 (patch version is not important).
+To reduce confusion and speed up CI runs, we hardcode and use Python 3.5 (patch version is not important).
 
 
 ## Use PyCharm
