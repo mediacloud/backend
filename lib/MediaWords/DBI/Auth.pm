@@ -12,6 +12,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::DBI::Auth::Mail;
 use MediaWords::DBI::Auth::Password;
+use MediaWords::DBI::Auth::Roles;
 use MediaWords::Util::Text;
 
 use Data::Dumper;
@@ -23,51 +24,6 @@ Readonly my $POST_UNSUCCESSFUL_LOGIN_DELAY => 1;
 
 # API key HTTP GET parameter
 Readonly my $API_KEY_PARAMETER => 'key';
-
-# Fetch a list of available user roles
-sub all_user_roles($)
-{
-    my ( $db ) = @_;
-
-    my $roles = $db->query(
-        <<"SQL"
-        SELECT auth_roles_id,
-               role,
-               description
-        FROM auth_roles
-        ORDER BY auth_roles_id
-SQL
-    )->hashes;
-
-    return $roles;
-}
-
-# Fetch a user role's ID for a role; die()s if no such role was found
-sub role_id_for_role($$)
-{
-    my ( $db, $role ) = @_;
-
-    if ( !$role )
-    {
-        LOGCONFESS "Role is empty.";
-    }
-
-    my $auth_roles_id = $db->query(
-        <<"SQL",
-        SELECT auth_roles_id
-        FROM auth_roles
-        WHERE role = ?
-        LIMIT 1
-SQL
-        $role
-    )->hash;
-    if ( !( ref( $auth_roles_id ) eq ref( {} ) and $auth_roles_id->{ auth_roles_id } ) )
-    {
-        LOGCONFESS "Role '$role' was not found.";
-    }
-
-    return $auth_roles_id->{ auth_roles_id };
-}
 
 # Fetch a hash of basic user information (email, full name, notes, non-IP limited API key); die() on error
 sub user_info($$)

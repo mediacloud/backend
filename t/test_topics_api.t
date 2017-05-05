@@ -453,7 +453,7 @@ SQL
 
         rows_match( $label, $r->{ topics }, $expected_topics, 'topics_id', $match_fields );
 
-        $db->query( <<SQL, $auth_users_id, $MediaWords::DBI::Auth::Roles::ADMIN );
+        $db->query( <<SQL, $auth_users_id, $MediaWords::DBI::Auth::Roles::List::ADMIN );
 insert into auth_users_roles_map ( auth_users_id, auth_roles_id )
     select ?, auth_roles_id from auth_roles where role = ?
 SQL

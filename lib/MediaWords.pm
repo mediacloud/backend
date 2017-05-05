@@ -158,10 +158,10 @@ sub setup_acl()
         __PACKAGE__->allow_access_if_any(
             $path,
             [
-                $MediaWords::DBI::Auth::Roles::ADMIN_READONLY,    #
-                $MediaWords::DBI::Auth::Roles::MEDIA_EDIT,        #
-                $MediaWords::DBI::Auth::Roles::STORIES_EDIT,      #
-                $MediaWords::DBI::Auth::Roles::TM,                #
+                $MediaWords::DBI::Auth::Roles::List::ADMIN_READONLY,    #
+                $MediaWords::DBI::Auth::Roles::List::MEDIA_EDIT,        #
+                $MediaWords::DBI::Auth::Roles::List::STORIES_EDIT,      #
+                $MediaWords::DBI::Auth::Roles::List::TM,                #
             ]
         );
     }
@@ -171,8 +171,8 @@ sub setup_acl()
         __PACKAGE__->allow_access_if_any(
             $path,
             [
-                $MediaWords::DBI::Auth::Roles::MEDIA_EDIT,        #
-                $MediaWords::DBI::Auth::Roles::TM,                #
+                $MediaWords::DBI::Auth::Roles::List::MEDIA_EDIT,        #
+                $MediaWords::DBI::Auth::Roles::List::TM,                #
             ]
         );
     }
@@ -182,8 +182,8 @@ sub setup_acl()
         __PACKAGE__->allow_access_if_any(
             $path,
             [
-                $MediaWords::DBI::Auth::Roles::STORIES_EDIT,      #
-                $MediaWords::DBI::Auth::Roles::TM,                #
+                $MediaWords::DBI::Auth::Roles::List::STORIES_EDIT,      #
+                $MediaWords::DBI::Auth::Roles::List::TM,                #
             ]
         );
     }
@@ -193,15 +193,15 @@ sub setup_acl()
         __PACKAGE__->allow_access_if_any(
             $path,
             [
-                $MediaWords::DBI::Auth::Roles::TM,                #
-                $MediaWords::DBI::Auth::Roles::TM_READONLY,       #
+                $MediaWords::DBI::Auth::Roles::List::TM,                #
+                $MediaWords::DBI::Auth::Roles::List::TM_READONLY,       #
             ]
         );
     }
 
     for my $path ( @acl_search )
     {
-        __PACKAGE__->allow_access_if_any( $path, [ $MediaWords::DBI::Auth::Roles::SEARCH ] );
+        __PACKAGE__->allow_access_if_any( $path, [ $MediaWords::DBI::Auth::Roles::List::SEARCH ] );
     }
 
     # ---
@@ -210,19 +210,19 @@ sub setup_acl()
     __PACKAGE__->allow_access_if_any(
         '/admin/profile',
         [
-            $MediaWords::DBI::Auth::Roles::ADMIN,             #
-            $MediaWords::DBI::Auth::Roles::ADMIN_READONLY,    #
-            $MediaWords::DBI::Auth::Roles::MEDIA_EDIT,        #
-            $MediaWords::DBI::Auth::Roles::STORIES_EDIT,      #
-            $MediaWords::DBI::Auth::Roles::TM,                #
-            $MediaWords::DBI::Auth::Roles::STORIES_API,       #
-            $MediaWords::DBI::Auth::Roles::SEARCH,            #
+            $MediaWords::DBI::Auth::Roles::List::ADMIN,             #
+            $MediaWords::DBI::Auth::Roles::List::ADMIN_READONLY,    #
+            $MediaWords::DBI::Auth::Roles::List::MEDIA_EDIT,        #
+            $MediaWords::DBI::Auth::Roles::List::STORIES_EDIT,      #
+            $MediaWords::DBI::Auth::Roles::List::TM,                #
+            $MediaWords::DBI::Auth::Roles::List::STORIES_API,       #
+            $MediaWords::DBI::Auth::Roles::List::SEARCH,            #
         ]
     );
 
     # Blanket rule for the rest of the administration controllers
-    __PACKAGE__->deny_access_unless_any( "/admin",  [ $MediaWords::DBI::Auth::Roles::ADMIN ] );
-    __PACKAGE__->deny_access_unless_any( "/search", [ $MediaWords::DBI::Auth::Roles::ADMIN ] );
+    __PACKAGE__->deny_access_unless_any( "/admin",  [ $MediaWords::DBI::Auth::Roles::List::ADMIN ] );
+    __PACKAGE__->deny_access_unless_any( "/search", [ $MediaWords::DBI::Auth::Roles::List::ADMIN ] );
 
     # Public interface
     __PACKAGE__->allow_access( "/login" );

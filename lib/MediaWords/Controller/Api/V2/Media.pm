@@ -97,7 +97,7 @@ sub default_output_fields
 
     push( @{ $fields }, qw ( inlink_count outlink_count story_count ) ) if ( $self->{ topic_media } );
 
-    if ( grep { $MediaWords::DBI::Auth::Roles::ADMIN eq $_ } @{ $c->stash->{ api_auth }->{ roles } } )
+    if ( grep { $MediaWords::DBI::Auth::Roles::List::ADMIN eq $_ } @{ $c->stash->{ api_auth }->{ roles } } )
     {
         push( @{ $fields }, 'editor_notes' );
     }

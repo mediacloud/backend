@@ -177,7 +177,7 @@ sub _validate_max_stories($$$)
 
     my $auth_user = $db->require_by_id( 'auth_users', $auth_users_id );
 
-    my $admin_roles = [ $MediaWords::DBI::Auth::Roles::ADMIN, $MediaWords::DBI::Auth::Roles::ADMIN_READONLY ];
+    my $admin_roles = [ $MediaWords::DBI::Auth::Roles::List::ADMIN, $MediaWords::DBI::Auth::Roles::List::ADMIN_READONLY ];
 
     $auth_users_id = int( $auth_users_id );
 
@@ -208,7 +208,7 @@ sub _is_mc_queue_user($$)
 
     $auth_users_id = int( $auth_users_id );
 
-    my $is_mc = $db->query( <<SQL, @{ $MediaWords::DBI::Auth::Roles::TOPIC_MC_QUEUE_ROLES } )->hash;
+    my $is_mc = $db->query( <<SQL, @{ $MediaWords::DBI::Auth::Roles::List::TOPIC_MC_QUEUE_ROLES } )->hash;
 select ar.role
     from auth_roles ar
         join auth_users_roles_map aurm using ( auth_roles_id )

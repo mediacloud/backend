@@ -52,7 +52,7 @@ SQL
     eval { MediaWords::Controller::Api::V2::Topics::_validate_max_stories( $db, 1000000, $auth_users_id ) };
     ok( $@, "$label max stories more than user setting: died" );
 
-    $db->query( <<SQL, $auth_users_id, $MediaWords::DBI::Auth::Roles::ADMIN );
+    $db->query( <<SQL, $auth_users_id, $MediaWords::DBI::Auth::Roles::List::ADMIN );
 insert into auth_users_roles_map ( auth_users_id, auth_roles_id )
     select ?, auth_roles_id from auth_roles where role = ?
 SQL
@@ -61,7 +61,7 @@ SQL
     ok( !$@, "$label admin user: validate $@" );
 
     $db->query( "delete from auth_users_roles_map" );
-    $db->query( <<SQL, $auth_users_id, $MediaWords::DBI::Auth::Roles::ADMIN_READONLY );
+    $db->query( <<SQL, $auth_users_id, $MediaWords::DBI::Auth::Roles::List::ADMIN_READONLY );
 insert into auth_users_roles_map ( auth_users_id, auth_roles_id )
     select ?, auth_roles_id from auth_roles where role = ?
 SQL
@@ -92,10 +92,10 @@ SQL
     my $got = MediaWords::Controller::Api::V2::Topics::_is_mc_queue_user( $db, $auth_users_id );
     ok( !$got, "$label default user should be public" );
 
-    for my $role ( @{ $MediaWords::DBI::Auth::Roles::TOPIC_MC_QUEUE_ROLES } )
+    for my $role ( @{ $MediaWords::DBI::Auth::Roles::List::TOPIC_MC_QUEUE_ROLES } )
     {
         $db->query( "delete from auth_users_roles_map where auth_users_id = ?", $auth_users_id );
-        $db->query( <<SQL, $auth_users_id, $MediaWords::DBI::Auth::Roles::ADMIN );
+        $db->query( <<SQL, $auth_users_id, $MediaWords::DBI::Auth::Roles::List::ADMIN );
 insert into auth_users_roles_map ( auth_users_id, auth_roles_id )
     select ?, auth_roles_id from auth_roles where role = ?
 SQL

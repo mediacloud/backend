@@ -60,8 +60,8 @@ SQL
 sub roles_exempt_from_user_limits()
 {
     return [
-        $MediaWords::DBI::Auth::Roles::ADMIN,             #
-        $MediaWords::DBI::Auth::Roles::ADMIN_READONLY,    #
+        $MediaWords::DBI::Auth::Roles::List::ADMIN,             #
+        $MediaWords::DBI::Auth::Roles::List::ADMIN_READONLY,    #
     ];
 }
 

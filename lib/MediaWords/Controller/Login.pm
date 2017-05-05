@@ -362,10 +362,11 @@ sub register : Local
 
     my $user_email = $form->param_value( 'email' );
 
-    my $search_role = $db->query( 'SELECT * FROM auth_roles WHERE role = ?', $MediaWords::DBI::Auth::Roles::SEARCH )->hash;
+    my $search_role =
+      $db->query( 'SELECT * FROM auth_roles WHERE role = ?', $MediaWords::DBI::Auth::Roles::List::SEARCH )->hash;
     unless ( $search_role )
     {
-        die 'Unable to find "' . $MediaWords::DBI::Auth::Roles::SEARCH . '" role';
+        die 'Unable to find "' . $MediaWords::DBI::Auth::Roles::List::SEARCH . '" role';
     }
 
     my $user_full_name                    = $form->param_value( 'full_name' );

@@ -29,7 +29,7 @@ sub list : Local
     my $users = MediaWords::DBI::Auth::all_users( $c->dbis );
 
     # Fetch role descriptions
-    my $roles = MediaWords::DBI::Auth::all_user_roles( $c->dbis );
+    my $roles = MediaWords::DBI::Auth::Roles::all_user_roles( $c->dbis );
     my %role_descriptions = map { $_->{ role } => $_->{ description } } @{ $roles };
 
     $c->stash->{ users }             = $users;
@@ -145,7 +145,7 @@ sub create : Local
     my $db = $c->dbis;
 
     # Set list of roles
-    my $available_roles = MediaWords::DBI::Auth::all_user_roles( $db );
+    my $available_roles = MediaWords::DBI::Auth::Roles::all_user_roles( $db );
     my @roles_options;
     for my $role ( @{ $available_roles } )
     {
@@ -330,7 +330,7 @@ sub edit : Local
     {
 
         # Fetch list of available roles
-        my $available_roles = MediaWords::DBI::Auth::all_user_roles( $db );
+        my $available_roles = MediaWords::DBI::Auth::Roles::all_user_roles( $db );
         my @roles_options;
         for my $role ( @{ $available_roles } )
         {
@@ -584,7 +584,7 @@ sub edit_tag_set_permissions : Local
     my %user_roles = map { $_ => 1 } @{ $userauth->{ roles } };
 
     # Fetch list of available roles
-    my $available_roles = MediaWords::DBI::Auth::all_user_roles( $db );
+    my $available_roles = MediaWords::DBI::Auth::Roles::all_user_roles( $db );
     my @roles_options;
     for my $role ( @{ $available_roles } )
     {
@@ -623,7 +623,7 @@ sub usage : Local
     my ( $self, $c ) = @_;
 
     my $users = MediaWords::DBI::Auth::all_users( $c->dbis );
-    my $roles = MediaWords::DBI::Auth::all_user_roles( $c->dbis );
+    my $roles = MediaWords::DBI::Auth::Roles::all_user_roles( $c->dbis );
 
     my $query = $c->request->param( 'query' );
 
