@@ -85,6 +85,6 @@ EOF
     echo "Setting required kernel parameters directly via ulimit..."
     ulimit -v $MEDIACLOUD_ULIMIT_VIRTUAL_MEMORY
     ulimit -n $MEDIACLOUD_ULIMIT_OPEN_FILES
-    echo "Setting required kernel parameters directly via ulimit."
+    echo "Done setting required kernel parameters directly via ulimit."
 
 fi
