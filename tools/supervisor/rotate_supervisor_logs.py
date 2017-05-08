@@ -14,6 +14,7 @@ import tempfile
 
 from mediawords.util.config import get_config as py_get_config  # MC_REWRITE_TO_PYTHON: rename back to get_config()
 from mediawords.util.paths import mc_root_path
+from mediawords.util.process import run_alone
 from mediawords.util.log import create_logger
 
 # Max. size of a single log file (in bytes)
@@ -77,4 +78,4 @@ def rotate_supervisor_logs():
 
 
 if __name__ == '__main__':
-    rotate_supervisor_logs()
+    run_alone(rotate_supervisor_logs)

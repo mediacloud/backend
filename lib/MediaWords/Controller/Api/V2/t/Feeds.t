@@ -39,7 +39,7 @@ sub test_feeds_list($)
 
     my $got_feeds = test_get( '/api/v2/feeds/list', { media_id => $medium->{ media_id } } );
 
-    my $fields = [ qw/name url feed_type media_id/ ];
+    my $fields = [ qw ( name url media_id feeds_id feed_type feed_status ) ];
     rows_match( $label, $got_feeds, $expected_feeds, "feeds_id", $fields );
 
     $label = "feeds/single";
@@ -59,7 +59,7 @@ sub test_feeds($)
 
     MediaWords::Test::DB::add_content_to_test_story_stack( $db, $media );
 
-    MediaWords::Test::Solr::setup_test_index( $db );
+    # MediaWords::Test::Solr::setup_test_index( $db );
 
     MediaWords::Test::API::setup_test_api_key( $db );
 
@@ -112,8 +112,7 @@ sub test_feeds($)
 
 sub main
 {
-    MediaWords::Test::Supervisor::test_with_supervisor( \&test_feeds,
-        [ 'solr_standalone', 'job_broker:rabbitmq', 'rescrape_media' ] );
+    MediaWords::Test::Supervisor::test_with_supervisor( \&test_feeds, [ 'job_broker:rabbitmq', 'rescrape_media' ] );
 
     done_testing();
 }

@@ -18,17 +18,6 @@ RABBITMQ_PACKAGECLOUD_SCRIPT="https://packagecloud.io/install/repositories/rabbi
 #
 ERLANG_OLD_UBUNTU_APT_VERSION="1:17.5.3"
 
-# RabbitMQ version to install on Ubuntu < 16.04:
-#
-# Update rabbitmq_wrapper.sh too!
-#
-# Newest RabbitMQ version (3.6.6 at the time of writing) does not install on 12.04 anymore because:
-#
-# The following packages have unmet dependencies:
-#  rabbitmq-server : Depends: init-system-helpers (>= 1.13~) but it is not installable
-#
-RABBITMQ_OLD_UBUNTU_APT_VERSION="3.6.2-1"
-
 
 function echo_vagrant_instructions {
     cat <<EOF
@@ -190,59 +179,29 @@ else
         }
     done
 
+    # RabbitMQ
     #
-    # Erlang:
-
-    if verlt "$DISTRIB_RELEASE" "14.04"; then
-        # Ubuntu < 14.04 APT's version of Erlang is too old (needed by RabbitMQ)
-        echo "Removing system package Erlang on Ubuntu 12.04 because it's too old..."
-        sudo apt-get -y remove erlang*
-
-        # Install and hold specific version of Erlang
-        echo "Installing Erlang from Erlang Solutions..."
-        curl "$ERLANG_APT_GPG_KEY_URL" | sudo apt-key add -
-        echo "deb $ERLANG_APT_REPOSITORY_URL precise contrib" | \
-            sudo tee -a /etc/apt/sources.list.d/erlang-solutions.list
-        sudo apt-get -y update
-
-        sudo apt-get -y install esl-erlang="$ERLANG_OLD_UBUNTU_APT_VERSION" erlang-mode="$ERLANG_OLD_UBUNTU_APT_VERSION"
-        sudo apt-mark hold erlang-mode esl-erlang
-    fi
-
-    #
-    # RabbitMQ:
-
     # Ubuntu (all versions) APT's version of RabbitMQ is too old
     # (we need 3.6.0+ to support priorities and lazy queues)
     echo "Adding RabbitMQ GPG key for Apt..."
     curl -s "$RABBITMQ_PACKAGECLOUD_SCRIPT" | sudo bash
 
-    if verlt "$DISTRIB_RELEASE" "14.04"; then
-        # Newest RabbitMQ does not work anymore on 12.04
-        sudo apt-get -y install rabbitmq-server="$RABBITMQ_OLD_UBUNTU_APT_VERSION"
-        sudo apt-mark hold rabbitmq-server
-    else
-        sudo apt-get -y install rabbitmq-server
-    fi
-
-    #
-    # OpenJDK:
-
+    # OpenJDK
     if verlt "$DISTRIB_RELEASE" "16.04"; then
         # Solr 6+ requires Java 8 which is unavailable before 16.04
-        echo "Adding Java 8 PPA repository to Ubuntu 12.04..."
+        echo "Adding Java 8 PPA repository to older Ubuntu..."
         sudo apt-get -y install python-software-properties
         sudo add-apt-repository -y ppa:openjdk-r/ppa
-        sudo apt-get update
+        sudo apt-get -q update
     fi
 
     # Python version to install
     if verlt "$DISTRIB_RELEASE" "16.04"; then
-        # We require at least Python PYTHON3_MAJOR_VERSION (12.04 only has 3.2 which doesn't work with newest Pip)
-        echo "Adding Python $PYTHON3_MAJOR_VERSION PPA repository to Ubuntu 12.04..."
+        # We require at least Python 3.5 (14.04 only has 3.4 which doesn't work with newest Pip)
+        echo "Adding Python 3.5 PPA repository to older Ubuntu..."
         sudo apt-get -y install python-software-properties
         sudo add-apt-repository -y ppa:fkrull/deadsnakes
-        sudo apt-get update
+        sudo apt-get -q update
     fi
 
     # Install the rest of the packages
@@ -261,16 +220,7 @@ else
         hunspell \
         libdb-dev \
         libexpat1-dev \
-        libgraph-writer-graphviz-perl \
         libgraphviz-dev \
-        libgraphviz-perl \
-        liblist-allutils-perl \
-        liblist-moreutils-perl \
-        liblocale-maketext-lexicon-perl \
-        libopengl-perl \
-        libreadonly-perl \
-        libreadonly-xs-perl \
-        libtest-www-mechanize-perl \
         libtidy-dev \
         libxml2-dev \
         libxml2-dev \
@@ -278,18 +228,17 @@ else
         libxslt1-dev \
         libxslt1.1 \
         libyaml-dev \
-        libyaml-syck-perl \
         logrotate \
         make \
         netcat \
         openjdk-8-jdk \
-        perl-doc \
         postgresql-server-dev-all \
         python-pip \
         python2.7 \
         python2.7-dev \
-        "python$PYTHON3_MAJOR_VERSION" \
-        "python$PYTHON3_MAJOR_VERSION-dev" \
+        python3.5 \
+        python3.5-dev \
+        rabbitmq-server \
         unzip \
         #
 
@@ -338,6 +287,9 @@ else
                 echo_vagrant_instructions
                 exit 1
             fi
+
+            # Temporary hack to overcome https://github.com/mitchellh/vagrant-aws/issues/510
+            vagrant plugin install --plugin-version 1.43 fog-core
 
             # Install AWS plugin (https://github.com/mitchellh/vagrant-aws)
             vagrant plugin install vagrant-aws
