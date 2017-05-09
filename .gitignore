@@ -47,3 +47,6 @@ script/vagrant/temp-vagrant-mediacloud
 
 # atom sync config
 .remote-sync.json
+
+# config for services the tagging architecture needs
+mediacloud/mediawords/tagging/tagging.config

@@ -32,3 +32,9 @@ readability-lxml==0.6.2
 
 # Normalizing URLs
 url_normalize
+
+# connects us to server to parse stories for places it is about
+mediameter-cliff
+
+# lets us easily hit urls for NYT tagging
+requests
