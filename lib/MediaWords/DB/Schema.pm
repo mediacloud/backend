@@ -222,7 +222,7 @@ EOF
     }
     if ( $current_schema_version > $target_schema_version )
     {
-        LOGIDE( "Current schema version is newer than the target schema version, please update the source code." );
+        LOGDIE( "Current schema version is newer than the target schema version, please update the source code." );
     }
 
     # Check if the SQL diff files that are needed for upgrade are present before doing anything else
