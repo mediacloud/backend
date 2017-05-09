@@ -25,7 +25,7 @@ __PACKAGE__->config(
     action => {
         list          => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         single        => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        create        => { Does => [ qw( ~MediaEditAuthenticated ~Throttled ~Logged ) ] },
+        create        => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         update        => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
         spider        => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
         spider_status => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
