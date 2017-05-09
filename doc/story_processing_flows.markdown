@@ -77,10 +77,20 @@ extracted.  The bitly fetcher calls the bitly API to find the number of bitly cl
 on the bitly fetching [here](bitly.markdown).
 
 Geotagging Client
-=----------------
+-----------------
 The geotagging client adds a set of tags to each story that indicate that the story is about that location.  The
-geotagger operates entirely through the api.  It periodically calls the API to download all new stories in media sources
+geotagger operates entirely through the API.  It periodically calls the API to download all new stories in media sources
 that we want to geotag, including the corenlp annotation for each; generates the geotagging information based on the
 entity data in the corenlp annotation; and then writes any tags for each story back to the core system through the api.
 The geotagger is run as a separate codebase, available
-[here](https://github.com/c4fcm/MediaCloud-GeoTag-Labeller/commits/master).
+[here](https://github.com/mitmedialab/MediaCloud-GeoCoder).  A separate service to rename the geotags more nicely runs independently, and is [available here](https://github.com/mitmedialab/MediaCloud-GeoTag-Labeller). It parses the text for tags using a separate run instance of the [CLIFF-CLAVIN geoparser](https://github.com/mitmedialab/MediaCloud-GeoCoder).
+
+NYT Themes
+----------
+The NYT theme client adds a set of tags to each story that indicates what them the story is about, based on a model of 
+themes trained on the NYT corpus. A "theme" is something like "politics", "education", etc. That tagger opearates entirely 
+through the API.  It periodically calls the API to download all new stories in media sources that we want to tag; generates
+the tagging information based on running the text through the trained model; and then writes any tags for each story back
+to the core system through the api.
+The tagger is run as a separate codebase, available
+[here](https://github.com/mitmedialab/MediaCloud-NewsLabeller).
