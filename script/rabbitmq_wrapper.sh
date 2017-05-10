@@ -29,18 +29,6 @@ RABBITMQ_WEB_INTERFACE_PORT=15673
 #
 ERLANG_OLD_UBUNTU_APT_VERSION="1:17.5.3"
 
-# RabbitMQ version to install on Ubuntu < 16.04:
-#
-# Update install_mediacloud_system_package_dependencies.sh too!
-#
-# Newest RabbitMQ version (3.6.6 at the time of writing) does not install on 12.04 anymore because:
-#
-# The following packages have unmet dependencies:
-#  rabbitmq-server : Depends: init-system-helpers (>= 1.13~) but it is not installable
-#
-RABBITMQ_OLD_UBUNTU_APT_VERSION="3.6.2-1"
-
-
 
 log() {
     # to STDERR
@@ -71,39 +59,6 @@ rabbitmq_is_installed() {
         return 0    # "true" in Bash
     else
         return 1    # "false" in Bash
-    fi
-}
-
-erlang_is_of_the_required_version() {
-    source /etc/lsb-release
-
-    if verlt "$DISTRIB_RELEASE" "16.04"; then
-        # 18.3 leaks memory and crashes
-        local required_version="$ERLANG_OLD_UBUNTU_APT_VERSION"
-        local actual_version=$(dpkg -s esl-erlang | grep Version | awk '{ print $2 }')
-
-        dpkg --compare-versions "$actual_version" eq "$required_version" || {
-            return 1    # "false" in Bash
-        }
-        return 0    # "true" in Bash
-
-    else
-        return 0    # "true" in Bash
-    fi
-}
-
-rabbitmq_is_of_the_required_version() {
-    if verlt "$DISTRIB_RELEASE" "16.04"; then
-        local required_version="$RABBITMQ_OLD_UBUNTU_APT_VERSION"
-        local actual_version=$(dpkg -s rabbitmq-server | grep Version | awk '{ print $2 }')
-
-        dpkg --compare-versions "$actual_version" eq "$required_version" || {
-            return 1    # "false" in Bash
-        }
-        return 0    # "true" in Bash
-
-    else
-        return 0    # "true" in Bash
     fi
 }
 
@@ -156,17 +111,6 @@ if [ `uname` == 'Darwin' ]; then
     :
 else
     # Ubuntu
-
-    if ! erlang_is_of_the_required_version; then
-        log "'esl-erlang' package is not of the required version which is $ERLANG_OLD_UBUNTU_APT_VERSION."
-        exit 1
-    fi
-
-    if ! erlang_is_of_the_required_version; then
-        log "'esl-erlang' package is not of the required version which is $RABBITMQ_OLD_UBUNTU_APT_VERSION."
-        print_rabbitmq_installation_instructions
-        exit 1
-    fi
 
     if ! max_fd_limit_is_big_enough; then
         log "Open file limit is less than $MIN_OPEN_FILES_LIMIT."

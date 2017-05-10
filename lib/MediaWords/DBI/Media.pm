@@ -12,6 +12,7 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use MediaWords::Util::IdentifyLanguage;
 use MediaWords::DBI::Media::Lookup;
 use MediaWords::DBI::Media::Rescrape;
 use MediaWords::Util::HTML;
