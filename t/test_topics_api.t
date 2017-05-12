@@ -434,14 +434,13 @@ sub test_topics_list($)
         $label = "$label list only permitted topics";
         my $api_key = MediaWords::Test::API::get_test_api_key();
 
-        my $auth_user_api_key = MediaWords::Test::DB::create_test_user( $db, $label );
         my $auth_user = $db->query(
             <<SQL,
             SELECT auth_users_id
             FROM auth_user_api_keys
             WHERE api_key = ?
 SQL
-            $auth_user_api_key
+            $api_key
         )->hash;
         my $auth_users_id = $auth_user->{ auth_users_id };
 
