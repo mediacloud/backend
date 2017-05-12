@@ -52,7 +52,7 @@ sub change_password($$$$;$)
 
     # Hash + validate the password
     my $password_new_hash;
-    eval { $password_new_hash = generate_secure_hash( $password_new ); };
+    eval { $password_new_hash = MediaWords::DBI::Auth::Password::generate_secure_hash( $password_new ); };
     if ( $@ or ( !$password_new_hash ) )
     {
         die "Unable to hash a new password: $@";
