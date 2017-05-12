@@ -51,19 +51,21 @@ sub test_auth_login($)
     my $password = 'authlogin';
 
     eval {
-        MediaWords::DBI::Auth::Register::add_user(
-            $db,             #
-            $email,          #
-            'auth login',    #
-            '',              #
-            [ 1 ],           #
-            1,               #
-            $password,       #
-            $password,       #
-            '',              # user is active, no need for activation URL
-            1000,            #
-            1000             #
+
+        my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
+            email                        => $email,
+            full_name                    => 'auth login',
+            notes                        => '',
+            role_ids                     => [ 1 ],
+            active                       => 1,
+            password                     => $password,
+            password_repeat              => $password,
+            activation_url               => '',             # user is active, no need for activation URL
+            weekly_requests_limit        => 1000,
+            weekly_requested_items_limit => 1000,
         );
+
+        MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
     };
     ok( !$@, "Unable to add user: $@" );
 
@@ -102,19 +104,21 @@ sub test_auth_single($)
     my $password = 'authsingle';
 
     eval {
-        MediaWords::DBI::Auth::Register::add_user(
-            $db,              #
-            $email,           #
-            'auth single',    #
-            '',               #
-            [ 1 ],            #
-            1,                #
-            $password,        #
-            $password,        #
-            '',               # user is active, no need for activation URL
-            1000,             #
-            1000              #
+
+        my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
+            email                        => $email,
+            full_name                    => 'auth single',
+            notes                        => '',
+            role_ids                     => [ 1 ],
+            active                       => 1,
+            password                     => $password,
+            password_repeat              => $password,
+            activation_url               => '',              # user is active, no need for activation URL
+            weekly_requests_limit        => 1000,
+            weekly_requested_items_limit => 1000,
         );
+
+        MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
     };
     ok( !$@, "Unable to add user: $@" );
 

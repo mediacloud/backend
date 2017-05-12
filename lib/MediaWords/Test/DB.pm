@@ -321,19 +321,20 @@ sub create_test_user($$)
     my $email = $label . '@em.ail';
 
     eval {
-        MediaWords::DBI::Auth::Register::add_user(
-            $db,           #
-            $email,        #
-            $label,        #
-            '',            #
-            [ 1 ],         #
-            1,             #
-            'testtest',    #
-            'testtest',    #
-            '',            # user is active, no need for activation URL
-            1000,          #
-            1000           #
+        my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
+            email                        => $email,
+            full_name                    => $label,
+            notes                        => '',
+            role_ids                     => [ 1 ],
+            active                       => 1,
+            password                     => 'testtest',
+            password_repeat              => 'testtest',
+            activation_url               => '',           # user is active, no need for activation URL
+            weekly_requests_limit        => 1000,
+            weekly_requested_items_limit => 1000,
         );
+
+        MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
     };
     if ( $@ )
     {

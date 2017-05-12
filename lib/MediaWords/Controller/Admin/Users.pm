@@ -185,18 +185,18 @@ sub create : Local
 
     # Form has been submitted
 
-    my $email                             = $form->param_value( 'email' );
-    my $user_full_name                    = $form->param_value( 'full_name' );
-    my $user_notes                        = $form->param_value( 'notes' );
-    my $user_roles                        = $form->param_array( 'roles' );
-    my $user_weekly_requests_limit        = $form->param_value( 'weekly_requests_limit' ) + 0;
-    my $user_weekly_requested_items_limit = $form->param_value( 'weekly_requested_items_limit' ) + 0;
-    my $user_password                     = '';
-    my $user_password_repeat              = '';
-    my $user_will_choose_password_himself = $form->param_value( 'password_chosen_by_user' );
+    my $user_email    = $form->param_value( 'email' );
+    my $user_role_ids = $form->param_value( 'roles' );
+    if ( ref( $user_role_ids ) ne ref( [] ) )
+    {
+        $user_role_ids = [ $user_role_ids ];
+    }
+
+    my ( $user_password, $user_password_repeat );
+
+    my $user_will_choose_password_himself = $form->param_value( 'password_chosen_by_user' ) + 0;
     if ( $user_will_choose_password_himself )
     {
-
         # Choose a random password that will be never used so as not to leave the 'password'
         # field in database empty
         $user_password        = MediaWords::Util::Text::random_string( 64 );
@@ -222,19 +222,21 @@ sub create : Local
 
     # Add user
     eval {
-        MediaWords::DBI::Auth::Register::add_user(
-            $db,                                  #
-            $email,                               #
-            $user_full_name,                      #
-            $user_notes,                          #
-            $user_roles,                          #
-            $user_is_active,                      #
-            $user_password,                       #
-            $user_password_repeat,                #
-            $user_activation_url,                 #
-            $user_weekly_requests_limit,          #
-            $user_weekly_requested_items_limit    #
+
+        my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
+            email                        => $user_email,
+            full_name                    => $form->param_value( 'full_name' ),
+            notes                        => $form->param_value( 'notes' ),
+            role_ids                     => $user_role_ids,
+            active                       => $user_is_active,
+            password                     => $user_password,
+            password_repeat              => $user_password_repeat,
+            activation_url               => $user_activation_url,
+            weekly_requests_limit        => $form->param_value( 'weekly_requests_limit' ) + 0,
+            weekly_requested_items_limit => $form->param_value( 'weekly_requested_items_limit' ) + 0,
         );
+
+        MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
     };
     if ( $@ )
     {
@@ -253,7 +255,7 @@ sub create : Local
         eval {
             MediaWords::DBI::Auth::ResetPassword::send_password_reset_token(
                 $db,                             #
-                $email,                          #
+                $user_email,                     #
                 $c->uri_for( '/login/reset' )    #
             );
         };
@@ -273,7 +275,7 @@ sub create : Local
     # her own password" field because those might be reused for creating another user
     $form->default_values(
         {
-            roles                   => $user_roles,
+            roles                   => $user_role_ids,
             active                  => $user_is_active,
             password_chosen_by_user => $user_will_choose_password_himself
         }
@@ -284,13 +286,14 @@ sub create : Local
     if ( $user_will_choose_password_himself )
     {
         $status_msg =
-          "User with email address '$email' has been created and the password reset " .
+          "User with email address '$user_email' has been created and the password reset " .
           "link has been sent to the email address provided.";
     }
     else
     {
         $status_msg =
-          "User with email address '$email' has been created with the password provided. " . "No emails have been sent.";
+          "User with email address '$user_email' has been created with the password provided. " .
+          "No emails have been sent.";
     }
     $status_msg .= " You may now create another user using the form below.";
 

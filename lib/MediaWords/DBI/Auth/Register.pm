@@ -16,7 +16,9 @@ use URI::Escape;
 use MediaWords::DBI::Auth::Login;
 use MediaWords::DBI::Auth::Password;
 use MediaWords::DBI::Auth::Profile;
+use MediaWords::DBI::Auth::User::NewUser;
 use MediaWords::Util::Mail;
+use MediaWords::Util::Log;
 use MediaWords::Util::Text;
 
 sub _send_new_user_email($$)
@@ -149,34 +151,20 @@ SQL
 }
 
 # Add new user; $role_ids is a arrayref to an array of role IDs; die()s on error
-sub add_user($$$$$$$$$;$$)
+sub add_user($$)
 {
-    my ( $db, $email, $full_name, $notes, $role_ids, $is_active, $password, $password_repeat,
-        $activation_url, $weekly_requests_limit, $weekly_requested_items_limit )
-      = @_;
+    my ( $db, $new_user ) = @_;
 
-    if ( ( $is_active and $activation_url ) or ( ( !$is_active ) and ( !$activation_url ) ) )
+    unless ( $new_user )
     {
-        die "Either make the user active or set the activation URL";
+        die "New user is undefined.";
+    }
+    unless ( ref( $new_user ) eq 'MediaWords::DBI::Auth::User::NewUser' )
+    {
+        die "New user is not MediaWords::DBI::Auth::User::NewUser.";
     }
 
-    INFO "Creating user with email: $email, full name: $full_name, notes: $notes, role IDs: " .
-      join( ',', @{ $role_ids } ) . ", is active: $is_active, weekly_requests_limit: " .
-      ( defined $weekly_requests_limit ? $weekly_requests_limit : 'default' ) . ', weekly requested items limit: ' .
-      ( defined $weekly_requested_items_limit ? $weekly_requested_items_limit : 'default' );
-
-    my $password_validation_message =
-      MediaWords::DBI::Auth::Password::validate_new_password( $email, $password, $password_repeat );
-    if ( $password_validation_message )
-    {
-        die "Provided password is invalid: $password_validation_message";
-    }
-
-    # Check if roles is an arrayref
-    if ( ref $role_ids ne 'ARRAY' )
-    {
-        die 'List of role IDs is not an array.';
-    }
+    INFO "Creating user: " . MediaWords::Util::Log::dump_terse( $new_user );
 
     # Check if user already exists
     my ( $user_exists ) = $db->query(
@@ -185,16 +173,16 @@ sub add_user($$$$$$$$$;$$)
         FROM auth_users
         WHERE email = ?
 SQL
-        $email
+        $new_user->email()
     )->flat;
     if ( $user_exists )
     {
-        die "User with email '$email' already exists.";
+        die "User with email '" . $new_user->email() . "' already exists.";
     }
 
     # Hash + validate the password
     my $password_hash;
-    eval { $password_hash = MediaWords::DBI::Auth::Password::generate_secure_hash( $password ); };
+    eval { $password_hash = MediaWords::DBI::Auth::Password::generate_secure_hash( $new_user->password() ); };
     if ( $@ or ( !$password_hash ) )
     {
         die 'Unable to hash a new password.';
@@ -207,17 +195,17 @@ SQL
     $db->create(
         'auth_users',
         {
-            email         => $email,
+            email         => $new_user->email(),
             password_hash => $password_hash,
-            full_name     => $full_name,
-            notes         => $notes,
-            active        => normalize_boolean_for_db( $is_active )
+            full_name     => $new_user->full_name(),
+            notes         => $new_user->notes(),
+            active        => normalize_boolean_for_db( $new_user->active() )
         }
     );
 
     # Fetch the user's ID
     my $userinfo = undef;
-    eval { $userinfo = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
+    eval { $userinfo = MediaWords::DBI::Auth::Profile::user_info( $db, $new_user->email() ); };
     if ( $@ or ( !$userinfo ) )
     {
         $db->rollback;
@@ -226,7 +214,7 @@ SQL
     my $auth_users_id = $userinfo->{ auth_users_id };
 
     # Create roles
-    for my $auth_roles_id ( @{ $role_ids } )
+    for my $auth_roles_id ( @{ $new_user->role_ids() } )
     {
         $db->query(
             <<SQL,
@@ -238,7 +226,7 @@ SQL
     }
 
     # Update limits (if they're defined)
-    if ( defined $weekly_requests_limit )
+    if ( defined $new_user->weekly_requests_limit() )
     {
         $db->query(
             <<SQL,
@@ -246,11 +234,11 @@ SQL
             SET weekly_requests_limit = ?
             WHERE auth_users_id = ?
 SQL
-            $weekly_requests_limit, $auth_users_id
+            $new_user->weekly_requests_limit(), $auth_users_id
         );
     }
 
-    if ( defined $weekly_requested_items_limit )
+    if ( defined $new_user->weekly_requested_items_limit() )
     {
         $db->query(
             <<SQL,
@@ -258,13 +246,13 @@ SQL
             SET weekly_requested_items_limit = ?
             WHERE auth_users_id = ?
 SQL
-            $weekly_requested_items_limit, $auth_users_id
+            $new_user->weekly_requested_items_limit(), $auth_users_id
         );
     }
 
-    unless ( $is_active )
+    unless ( $new_user->active() )
     {
-        _send_user_activation_token( $db, $email, $activation_url );
+        _send_user_activation_token( $db, $new_user->email(), $new_user->activation_url() );
     }
 
     # End transaction

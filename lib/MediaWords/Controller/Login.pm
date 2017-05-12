@@ -374,30 +374,21 @@ sub register : Local
         die 'Unable to find "' . $MediaWords::DBI::Auth::Roles::List::SEARCH . '" role';
     }
 
-    my $user_full_name                    = $form->param_value( 'full_name' );
-    my $user_notes                        = $form->param_value( 'notes' );
-    my $user_is_active                    = 0;
-    my $user_roles                        = [ $search_role->{ auth_roles_id } ];
-    my $user_weekly_requests_limit        = 1000;
-    my $user_weekly_requested_items_limit = 20000;
-    my $user_password                     = $form->param_value( 'password' );
-    my $user_password_repeat              = $form->param_value( 'password_repeat' );
-
     # Add user
     eval {
-        MediaWords::DBI::Auth::Register::add_user(
-            $db,                                  #
-            $user_email,                          #
-            $user_full_name,                      #
-            $user_notes,                          #
-            $user_roles,                          #
-            $user_is_active,                      #
-            $user_password,                       #
-            $user_password_repeat,                #
-            $c->uri_for( '/login/activate' ),     #
-            $user_weekly_requests_limit,          #
-            $user_weekly_requested_items_limit    #
+        my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
+            email                 => $user_email,
+            full_name             => $form->param_value( 'full_name' ),
+            notes                 => $form->param_value( 'notes' ),
+            role_ids              => [ $search_role->{ auth_roles_id } ],
+            active                => 0,                                         # user has to activate own account via email
+            password              => $form->param_value( 'password' ),
+            password_repeat       => $form->param_value( 'password_repeat' ),
+            activation_url        => $c->uri_for( '/login/activate' ),
+            weekly_requests_limit => 1000,
+            weekly_requested_items_limit => 20000,
         );
+        MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
     };
     if ( $@ )
     {

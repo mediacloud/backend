@@ -169,9 +169,9 @@ EOF
     die "$user_add_usage\n" unless ( $user_email and $user_full_name );
 
     # Roles array
-    my @user_roles = split( ',', $user_roles );
-    my @user_role_ids;
-    foreach my $user_role ( @user_roles )
+    $user_roles = [ split( ',', $user_roles ) ];
+    my $user_role_ids = [];
+    foreach my $user_role ( @{ $user_roles } )
     {
         my $user_role_id;
         eval { $user_role_id = MediaWords::DBI::Auth::Roles::role_id_for_role( $db, $user_role ); };
@@ -181,8 +181,23 @@ EOF
             return 1;
         }
 
-        push( @user_role_ids, $user_role_id );
+        push( @{ $user_role_ids }, $user_role_id );
     }
+
+    if ( scalar @{ $user_role_ids } == 0 )
+    {
+        my $default_roles_ids = $db->query(
+            <<SQL,
+            select auth_roles_id
+            from auth_roles
+            where role in ('search')
+SQL
+        )->flat;
+        $user_role_ids = $default_roles_ids;
+    }
+
+    $user_weekly_requests_limit        //= MediaWords::DBI::Auth::Limits::default_weekly_requests_limit( $db );
+    $user_weekly_requested_items_limit //= MediaWords::DBI::Auth::Limits::default_weekly_requested_items_limit( $db );
 
     # Read password if not set
     my $user_password_repeat = undef;
@@ -206,19 +221,20 @@ EOF
 
     # Add the user
     eval {
-        MediaWords::DBI::Auth::Register::add_user(
-            $db,                                  #
-            $user_email,                          #
-            $user_full_name,                      #
-            $user_notes,                          #
-            \@user_role_ids,                      #
-            1,                                    #
-            $user_password,                       #
-            $user_password_repeat,                #
-            '',                                   # user is active
-            $user_weekly_requests_limit,          #
-            $user_weekly_requested_items_limit    #
+        my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
+            email                        => $user_email,
+            full_name                    => $user_full_name,
+            notes                        => $user_notes,
+            role_ids                     => $user_role_ids,
+            active                       => 1,
+            password                     => $user_password,
+            password_repeat              => $user_password_repeat,
+            activation_url               => '',                                   # user is active
+            weekly_requests_limit        => $user_weekly_requests_limit,
+            weekly_requested_items_limit => $user_weekly_requested_items_limit,
         );
+
+        MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
     };
     if ( $@ )
     {
