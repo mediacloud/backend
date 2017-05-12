@@ -12,13 +12,11 @@
     function showOrHidePasswordInputFields(password_chosen_by_user)
     {
         if (password_chosen_by_user) {
-            $("fieldset#createUser div.password label").css("color", "#999");
-            $("fieldset#createUser div.password input").attr("readonly", "readonly")
-                                                       .attr("placeholder", "");
+            $("fieldset#createUser div.container_password").hide();
+            $("fieldset#createUser div.container_password_repeat").hide();
         } else {
-            $("fieldset#createUser div.password label").css("color", "inherit");
-            $("fieldset#createUser div.password input").attr("readonly", "")
-                                                       .attr("placeholder", "correct horse battery staple");
+            $("fieldset#createUser div.container_password").show();
+            $("fieldset#createUser div.container_password_repeat").show();
         }    
     }
 

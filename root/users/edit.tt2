@@ -46,7 +46,7 @@
     {
         $("fieldset#editUser input[type=button]#regenerate_api_key").click(function()
         {
-            if (confirm("Regenerate the API key?")) {
+            if (confirm("Regenerate the API key? Please note that per-IP API keys will be reset too.")) {
 
                 var url = "[% c.uri_for( '/admin/users/regenerate_api_key' ) %]?email=[% email | uri %]";
                 window.location.href = url;

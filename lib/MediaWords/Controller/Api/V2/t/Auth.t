@@ -50,7 +50,21 @@ sub test_auth_login($)
     my $email    = 'test@auth.login';
     my $password = 'authlogin';
 
-    eval { MediaWords::DBI::Auth::add_user( $db, $email, 'auth login', '', [ 1 ], 1, $password, $password, 1000, 1000 ); };
+    eval {
+        MediaWords::DBI::Auth::Register::add_user(
+            $db,             #
+            $email,          #
+            'auth login',    #
+            '',              #
+            [ 1 ],           #
+            1,               #
+            $password,       #
+            $password,       #
+            '',              # user is active, no need for activation URL
+            1000,            #
+            1000             #
+        );
+    };
     ok( !$@, "Unable to add user: $@" );
 
     my $r = test_post( '/api/v2/auth/login', { username => $email, password => $password } );
@@ -87,7 +101,21 @@ sub test_auth_single($)
     my $email    = 'test@auth.single';
     my $password = 'authsingle';
 
-    eval { MediaWords::DBI::Auth::add_user( $db, $email, 'auth single', '', [ 1 ], 1, $password, $password, 1000, 1000 ); };
+    eval {
+        MediaWords::DBI::Auth::Register::add_user(
+            $db,              #
+            $email,           #
+            'auth single',    #
+            '',               #
+            [ 1 ],            #
+            1,                #
+            $password,        #
+            $password,        #
+            '',               # user is active, no need for activation URL
+            1000,             #
+            1000              #
+        );
+    };
     ok( !$@, "Unable to add user: $@" );
 
     my $r = test_get( '/api/v2/auth/single', { username => $email, password => $password } );

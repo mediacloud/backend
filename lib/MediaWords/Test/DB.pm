@@ -320,13 +320,27 @@ sub create_test_user($$)
 
     my $email = $label . '@em.ail';
 
-    eval { MediaWords::DBI::Auth::add_user( $db, $email, $label, '', [ 1 ], 1, 'testtest', 'testtest', 1000, 1000 ); };
+    eval {
+        MediaWords::DBI::Auth::Register::add_user(
+            $db,           #
+            $email,        #
+            $label,        #
+            '',            #
+            [ 1 ],         #
+            1,             #
+            'testtest',    #
+            'testtest',    #
+            '',            # user is active, no need for activation URL
+            1000,          #
+            1000           #
+        );
+    };
     if ( $@ )
     {
         LOGCONFESS "Adding new user failed: $@";
     }
 
-    my $user_info = MediaWords::DBI::Auth::user_info( $db, $email );
+    my $user_info = MediaWords::DBI::Auth::Profile::user_info( $db, $email );
     my $api_key = $user_info->{ api_key };
 
     return $api_key;

@@ -37,7 +37,7 @@ sub find_user
 
     # Check if user has tried to log in unsuccessfully before and now is trying
     # again too fast
-    if ( MediaWords::DBI::Auth::user_is_trying_to_login_too_soon( $db, $email ) )
+    if ( MediaWords::DBI::Auth::Login::user_is_trying_to_login_too_soon( $db, $email ) )
     {
         WARN "User '$email' is trying to log in too soon after the last unsuccessful attempt.";
         return 0;
@@ -46,7 +46,7 @@ sub find_user
     # Check if user exists and is active; if so, fetch user info,
     # password hash and a list of roles
     my $userauth;
-    eval { $userauth = MediaWords::DBI::Auth::user_auth( $db, $email ); };
+    eval { $userauth = MediaWords::DBI::Auth::Profile::user_auth( $db, $email ); };
     if ( $@ or ( !$userauth ) )
     {
         WARN "User '$email' was not found.";

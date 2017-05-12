@@ -65,7 +65,7 @@ sub create_user
 
     # Add user
     eval {
-        MediaWords::DBI::Auth::add_user(
+        MediaWords::DBI::Auth::Register::add_user(
             $db,                                  #
             $user_email,                          #
             $user_full_name,                      #
@@ -74,6 +74,7 @@ sub create_user
             $user_is_active,                      #
             $user_password,                       #
             $user_password_repeat,                #
+            '',                                   # user is active
             $user_weekly_requests_limit,          #
             $user_weekly_requested_items_limit    #
         );
@@ -83,7 +84,13 @@ sub create_user
         die "error adding user '$email': $@";
     }
 
-    eval { MediaWords::DBI::Auth::send_password_reset_token( $db, $user_email, "$mc_url/login/reset", 1 ); };
+    eval {
+        MediaWords::DBI::Auth::ResetPassword::send_password_reset_token(
+            $db,                                  #
+            $user_email,                          #
+            "$mc_url/login/reset"                 #
+        );
+    };
     if ( $@ )
     {
         die "error resetting password '$user_email': $@";

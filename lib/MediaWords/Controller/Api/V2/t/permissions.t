@@ -359,7 +359,7 @@ sub find_or_add_test_user($$)
     my $password = '123456789';
 
     my $user;
-    eval { $user = MediaWords::DBI::Auth::user_info( $db, $email ); };
+    eval { $user = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
     if ( ( !$@ ) and $user )
     {
         return $user;
@@ -368,14 +368,26 @@ sub find_or_add_test_user($$)
     my $roles = $db->query( "select auth_roles_id from auth_roles where role = ?", $role )->flat;
 
     eval {
-        MediaWords::DBI::Auth::add_user( $db, $email, $role, $role, $roles, 1, $password, $password, 10000000, 10000000 );
+        MediaWords::DBI::Auth::Register::add_user(
+            $db,          #
+            $email,       #
+            $role,        #
+            $role,        #
+            $roles,       #
+            1,            #
+            $password,    #
+            $password,    #
+            '',           # user is active, no need for activation URL
+            10000000,     #
+            10000000      #
+        );
     };
     if ( $@ )
     {
         die( "error adding $role user: $@" );
     }
 
-    return MediaWords::DBI::Auth::user_info( $db, $email );
+    return MediaWords::DBI::Auth::Profile::user_info( $db, $email );
 }
 
 # add and return a test user with the given permission for the given topic.

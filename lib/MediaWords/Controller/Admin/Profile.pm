@@ -22,14 +22,14 @@ sub index : Path : Args(0)
     my $email = $c->user->username;
 
     my $userinfo;
-    eval { $userinfo = MediaWords::DBI::Auth::user_info( $db, $email ); };
+    eval { $userinfo = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
     if ( $@ or ( !$userinfo ) )
     {
         die "Unable to find user with email '$email'";
     }
 
     my $userauth;
-    eval { $userauth = MediaWords::DBI::Auth::user_auth( $db, $email ); };
+    eval { $userauth = MediaWords::DBI::Auth::Profile::user_auth( $db, $email ); };
     if ( $@ or ( !$userauth ) )
     {
         die "Unable to find authentication roles for email '$email'";
@@ -89,8 +89,13 @@ sub index : Path : Args(0)
     my $password_new_repeat = $form->param_value( 'password_new_repeat' );
 
     eval {
-        MediaWords::DBI::Auth::change_password_via_profile( $c->dbis, $c->user->username, $password_old, $password_new,
-            $password_new_repeat );
+        MediaWords::DBI::Auth::ChangePassword::change_password_with_old_password(
+            $c->dbis,               #
+            $c->user->username,     #
+            $password_old,          #
+            $password_new,          #
+            $password_new_repeat    #
+        );
     };
     if ( $@ )
     {
@@ -116,14 +121,14 @@ sub regenerate_api_key : Local
     my $email = $c->user->username;
 
     my $userinfo;
-    eval { $userinfo = MediaWords::DBI::Auth::user_info( $db, $email ); };
+    eval { $userinfo = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
     if ( $@ or ( !$userinfo ) )
     {
         die "Unable to find user with email '$email'";
     }
 
     # Delete user
-    eval { MediaWords::DBI::Auth::regenerate_api_key( $db, $email ); };
+    eval { MediaWords::DBI::Auth::APIKey::regenerate_api_key( $db, $email ); };
     if ( $@ )
     {
         my $error_message = "Unable to regenerate API key: $@";

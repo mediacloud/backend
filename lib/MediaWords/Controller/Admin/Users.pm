@@ -26,7 +26,7 @@ sub list : Local
     my ( $self, $c ) = @_;
 
     # Fetch list of users and their roles
-    my $users = MediaWords::DBI::Auth::all_users( $c->dbis );
+    my $users = MediaWords::DBI::Auth::Profile::all_users( $c->dbis );
 
     # Fetch role descriptions
     my $roles = MediaWords::DBI::Auth::Roles::all_user_roles( $c->dbis );
@@ -55,7 +55,7 @@ sub delete : Local
     }
 
     my $userinfo;
-    eval { $userinfo = MediaWords::DBI::Auth::user_info( $db, $email ); };
+    eval { $userinfo = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
     if ( $@ or ( !$userinfo ) )
     {
         die "Unable to find user with email '$email'";
@@ -81,7 +81,7 @@ sub regenerate_api_key : Local
     }
 
     # Delete user
-    eval { MediaWords::DBI::Auth::regenerate_api_key( $c->dbis, $email ); };
+    eval { MediaWords::DBI::Auth::APIKey::regenerate_api_key( $c->dbis, $email ); };
     if ( $@ )
     {
         my $error_message = "Unable to regenerate API key: $@";
@@ -108,7 +108,7 @@ sub delete_do : Local
     }
 
     # Delete user
-    eval { MediaWords::DBI::Auth::delete_user( $c->dbis, $email ); };
+    eval { MediaWords::DBI::Auth::Profile::delete_user( $c->dbis, $email ); };
     if ( $@ )
     {
         my $error_message = "Unable to delete user: $@";
@@ -188,7 +188,6 @@ sub create : Local
     my $email                             = $form->param_value( 'email' );
     my $user_full_name                    = $form->param_value( 'full_name' );
     my $user_notes                        = $form->param_value( 'notes' );
-    my $user_is_active                    = $form->param_value( 'active' );
     my $user_roles                        = $form->param_array( 'roles' );
     my $user_weekly_requests_limit        = $form->param_value( 'weekly_requests_limit' ) + 0;
     my $user_weekly_requested_items_limit = $form->param_value( 'weekly_requested_items_limit' ) + 0;
@@ -209,9 +208,21 @@ sub create : Local
         $user_password_repeat = $form->param_value( 'password_repeat' );
     }
 
+    my ( $user_is_active, $user_activation_url );
+    if ( $user_will_choose_password_himself )
+    {
+        $user_is_active      = 0;
+        $user_activation_url = $c->uri_for( '/login/activate' );
+    }
+    else
+    {
+        $user_is_active      = 1;
+        $user_activation_url = '';
+    }
+
     # Add user
     eval {
-        MediaWords::DBI::Auth::add_user(
+        MediaWords::DBI::Auth::Register::add_user(
             $db,                                  #
             $email,                               #
             $user_full_name,                      #
@@ -220,6 +231,7 @@ sub create : Local
             $user_is_active,                      #
             $user_password,                       #
             $user_password_repeat,                #
+            $user_activation_url,                 #
             $user_weekly_requests_limit,          #
             $user_weekly_requested_items_limit    #
         );
@@ -238,7 +250,13 @@ sub create : Local
     # Send the password reset link if needed
     if ( $user_will_choose_password_himself )
     {
-        eval { MediaWords::DBI::Auth::send_password_reset_token( $db, $email, $c->uri_for( '/login/reset' ), 1 ); };
+        eval {
+            MediaWords::DBI::Auth::ResetPassword::send_password_reset_token(
+                $db,                             #
+                $email,                          #
+                $c->uri_for( '/login/reset' )    #
+            );
+        };
         if ( $@ )
         {
             my $error_message = "Unable to send password reset token: $@";
@@ -309,14 +327,14 @@ sub edit : Local
 
     # Fetch information about the user and roles
     my $userinfo;
-    eval { $userinfo = MediaWords::DBI::Auth::user_info( $db, $email ); };
+    eval { $userinfo = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
     if ( $@ or ( !$userinfo ) )
     {
         die "Unable to find user with email '$email'";
     }
 
     my $userauth;
-    eval { $userauth = MediaWords::DBI::Auth::user_auth( $db, $email ); };
+    eval { $userauth = MediaWords::DBI::Auth::Profile::user_auth( $db, $email ); };
     if ( $@ or ( !$userauth ) )
     {
         die "Unable to find authentication roles for email '$email'";
@@ -411,7 +429,7 @@ sub edit : Local
 
     # Update user
     eval {
-        MediaWords::DBI::Auth::update_user(
+        MediaWords::DBI::Auth::Profile::update_user(
             $db,                                  #
             $email,                               #
             $user_full_name,                      #
@@ -493,14 +511,14 @@ sub tag_set_permissions_json : Local
     die "missing required param email" unless $email;
 
     my $userinfo;
-    eval { $userinfo = MediaWords::DBI::Auth::user_info( $db, $email ); };
+    eval { $userinfo = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
     if ( $@ or ( !$userinfo ) )
     {
         die "Unable to find user with email '$email'";
     }
 
     my $userauth;
-    eval { $userauth = MediaWords::DBI::Auth::user_auth( $db, $email ); };
+    eval { $userauth = MediaWords::DBI::Auth::Profile::user_auth( $db, $email ); };
     if ( $@ or ( !$userauth ) )
     {
         die "Unable to find authentication roles for email '$email'";
@@ -526,14 +544,14 @@ sub available_tag_sets_json : Local
     die "missing required param email" unless $email;
 
     my $userinfo;
-    eval { $userinfo = MediaWords::DBI::Auth::user_info( $db, $email ); };
+    eval { $userinfo = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
     if ( $@ or ( !$userinfo ) )
     {
         die "Unable to find user with email '$email'";
     }
 
     my $userauth;
-    eval { $userauth = MediaWords::DBI::Auth::user_auth( $db, $email ); };
+    eval { $userauth = MediaWords::DBI::Auth::Profile::user_auth( $db, $email ); };
     if ( $@ or ( !$userauth ) )
     {
         die "Unable to find authentication roles for email '$email'";
@@ -568,14 +586,14 @@ sub edit_tag_set_permissions : Local
 
     # Fetch information about the user and roles
     my $userinfo;
-    eval { $userinfo = MediaWords::DBI::Auth::user_info( $db, $email ); };
+    eval { $userinfo = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
     if ( $@ or ( !$userinfo ) )
     {
         die "Unable to find user with email '$email'";
     }
 
     my $userauth;
-    eval { $userauth = MediaWords::DBI::Auth::user_auth( $db, $email ); };
+    eval { $userauth = MediaWords::DBI::Auth::Profile::user_auth( $db, $email ); };
     if ( $@ or ( !$userauth ) )
     {
         die "Unable to find authentication roles for email '$email'";
@@ -622,7 +640,7 @@ sub usage : Local
 {
     my ( $self, $c ) = @_;
 
-    my $users = MediaWords::DBI::Auth::all_users( $c->dbis );
+    my $users = MediaWords::DBI::Auth::Profile::all_users( $c->dbis );
     my $roles = MediaWords::DBI::Auth::Roles::all_user_roles( $c->dbis );
 
     my $query = $c->request->param( 'query' );

@@ -89,7 +89,7 @@ sub index : Path : Args(0)
     {
 
         # Run post-successful login tasks
-        MediaWords::DBI::Auth::post_successful_login( $c->dbis, $email );
+        MediaWords::DBI::Auth::Login::post_successful_login( $c->dbis, $email );
 
         if ( $form->params->{ referer } )
         {
@@ -108,7 +108,7 @@ sub index : Path : Args(0)
     {
 
         # Run post-unsuccessful login tasks
-        MediaWords::DBI::Auth::post_unsuccessful_login( $c->dbis, $email );
+        MediaWords::DBI::Auth::Login::post_unsuccessful_login( $c->dbis, $email );
 
         # Show form again
         $c->stash->{ form } = $form;
@@ -124,14 +124,17 @@ sub forgot : Local
 {
     my ( $self, $c ) = @_;
 
+    my $default_values = {};
+
+    # in case 'email' was passed as a parameter:
+    $default_values->{ 'email' } = $c->request->param( 'email' );
+
     my $form = $c->create_form(
         {
             load_config_file => $c->path_to() . '/root/forms/auth/forgot.yml',
             method           => 'POST',
             action           => $c->uri_for( '/login/forgot' ),
-            default_values   => {
-                'email' => $c->request->param( 'email' )    # in case 'email' was passed as a parameter
-            }
+            default_values   => $default_values,
         }
     );
 
@@ -152,7 +155,13 @@ sub forgot : Local
     }
 
     my $email = $form->param_value( 'email' );
-    eval { MediaWords::DBI::Auth::send_password_reset_token( $c->dbis, $email, $c->uri_for( '/login/reset' ) ); };
+    eval {
+        MediaWords::DBI::Auth::ResetPassword::send_password_reset_token(
+            $c->dbis,                        #
+            $email,                          #
+            $c->uri_for( '/login/reset' )    #
+        );
+    };
     if ( $@ )
     {
         my $error_message = "Unable to send password reset token: $@";
@@ -192,46 +201,38 @@ sub reset : Local
     my $email                = $c->request->param( 'email' );
     my $password_reset_token = $c->request->param( 'token' );
 
-    # Check if the password token (a required parameter in all cases for this action) exists
-    my $token_is_valid = MediaWords::DBI::Auth::password_reset_token_is_valid( $c->dbis, $email, $password_reset_token );
-
     if ( !$form->submitted_and_valid() )
     {
-        if ( $token_is_valid )
-        {
+        # Show the reset form even if password reset token is invalid
+        $form->default_values(
+            {
+                email => $email,
+                token => $password_reset_token
+            }
+        );
 
-            # Pass the parameters further
-            $form->default_values(
-                {
-                    email => $email,
-                    token => $password_reset_token
-                }
-            );
-
-            $c->stash->{ email } = $email;
-            $c->stash->{ form }  = $form;
-        }
-        else
-        {
-
-            # Don't stash form (because the token is invalid)
-            $c->stash( error_msg => "Password reset token is invalid." );
-        }
-        $c->stash->{ c } = $c;
+        $c->stash->{ email } = $email;
+        $c->stash->{ form }  = $form;
+        $c->stash->{ c }     = $c;
         $c->stash( template => 'auth/reset.tt2' );
 
         return;
     }
 
-    # At this point the token has been validated and the form has been submitted.
+    # At this point the password reset form has been submitted
 
     # Change the password
     my $password_new        = $form->param_value( 'password_new' );
     my $password_new_repeat = $form->param_value( 'password_new_repeat' );
 
     eval {
-        MediaWords::DBI::Auth::change_password_via_token( $c->dbis, $email, $password_reset_token, $password_new,
-            $password_new_repeat );
+        MediaWords::DBI::Auth::ChangePassword::change_password_with_reset_token(
+            $c->dbis,                 #
+            $email,                   #
+            $password_reset_token,    #
+            $password_new,            #
+            $password_new_repeat      #
+        );
     };
     if ( $@ )
     {
@@ -275,12 +276,16 @@ sub activate : Local
     my $password_reset_token = $c->request->param( 'token' );
 
     # Check if the password token (a required parameter in all cases for this action) exists
-    my $token_is_valid = MediaWords::DBI::Auth::password_reset_token_is_valid( $c->dbis, $email, $password_reset_token );
+    my $token_is_valid = MediaWords::DBI::Auth::Password::password_reset_token_is_valid(
+        $c->dbis,                #
+        $email,                  #
+        $password_reset_token    #
+    );
 
     $c->stash->{ email } = $email;
 
     my $user_info;
-    eval { $user_info = MediaWords::DBI::Auth::user_info( $c->dbis, $email ); };
+    eval { $user_info = MediaWords::DBI::Auth::Profile::user_info( $c->dbis, $email ); };
     if ( $@ or ( !$user_info ) )
     {
         ERROR "User $email does not exist.";
@@ -312,7 +317,7 @@ sub activate : Local
 
     # At this point the token has been validated and the form has been submitted.
 
-    eval { MediaWords::DBI::Auth::activate_user_via_token( $c->dbis, $email, $password_reset_token ); };
+    eval { MediaWords::DBI::Auth::Register::activate_user_via_token( $c->dbis, $email, $password_reset_token ); };
     if ( $@ )
     {
         my $error_message = "Unable to activate user: $@";
@@ -380,7 +385,7 @@ sub register : Local
 
     # Add user
     eval {
-        MediaWords::DBI::Auth::add_user(
+        MediaWords::DBI::Auth::Register::add_user(
             $db,                                  #
             $user_email,                          #
             $user_full_name,                      #
@@ -389,6 +394,7 @@ sub register : Local
             $user_is_active,                      #
             $user_password,                       #
             $user_password_repeat,                #
+            $c->uri_for( '/login/activate' ),     #
             $user_weekly_requests_limit,          #
             $user_weekly_requested_items_limit    #
         );
@@ -401,30 +407,15 @@ sub register : Local
     }
     else
     {
-        eval {
-            MediaWords::DBI::Auth::send_password_reset_token( $c->dbis, $user_email, $c->uri_for( '/login/activate' ), 1 );
-        };
-        if ( $@ )
-        {
-            my $error_message = "Unable to send password reset token: $@";
+        $c->stash->{ c } = $c;
 
-            $c->stash( error_msg => $error_message );
-        }
-        else
-        {
-            INFO "email sent to $user_email";
+        # # Do not stash the form because the link has already been sent
+        # $c->stash( template => 'auth/forgot.tt2' );
+        # $c->stash( status_msg => "The password reset link was sent to email address '" .
+        #       $user_email . "' (given that such user exists in the user database)." );
 
-            $c->stash->{ c } = $c;
-
-            # # Do not stash the form because the link has already been sent
-            # $c->stash( template => 'auth/forgot.tt2' );
-            # $c->stash( status_msg => "The password reset link was sent to email address '" .
-            #       $user_email . "' (given that such user exists in the user database)." );
-
-            $c->stash->{ email }    = $user_email;
-            $c->stash->{ template } = 'auth/email_authentication_needed.tt2';
-        }
-
+        $c->stash->{ email }    = $user_email;
+        $c->stash->{ template } = 'auth/email_authentication_needed.tt2';
     }
 }
 

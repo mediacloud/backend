@@ -18,7 +18,6 @@
 #         --email=jdoe@cyber.law.harvard.edu \
 #         --full_name="John Doe" \
 #         --notes="Media Cloud developer." \
-#         [--inactive] \
 #         --roles="query-create,media-edit,stories-edit" \
 #         [--password="correct horse battery staple"] \
 #         [--weekly_requests_limit=2000] \
@@ -26,7 +25,6 @@
 #
 #     Notes:
 #     * Skip the `--password` parameter to read the password from STDIN.
-#     * Pass the `--inactive` parameter to make the user inactive initially.
 #
 # Modify user
 # -----------
@@ -143,7 +141,6 @@ sub user_add($)
     my $user_email                        = undef;
     my $user_full_name                    = '';
     my $user_notes                        = '';
-    my $user_is_inactive                  = 0;
     my $user_roles                        = '';
     my $user_password                     = undef;
     my $user_weekly_requests_limit        = undef;
@@ -154,7 +151,6 @@ Usage: $0 --action=add \
     --email=jdoe\@cyber.law.harvard.edu \
     --full_name="John Doe" \
     [--notes="Media Cloud developer."] \
-    [--inactive] \
     [--roles="query-create,media-edit,stories-edit"] \
     [--password="correct horse battery staple"] \
     [--weekly_requests_limit=2000] \
@@ -165,7 +161,6 @@ EOF
         'email=s'                        => \$user_email,
         'full_name=s'                    => \$user_full_name,
         'notes:s'                        => \$user_notes,
-        'inactive'                       => \$user_is_inactive,
         'roles:s'                        => \$user_roles,
         'password:s'                     => \$user_password,
         'weekly_requests_limit:i'        => \$user_weekly_requests_limit,
@@ -211,15 +206,16 @@ EOF
 
     # Add the user
     eval {
-        MediaWords::DBI::Auth::add_user(
+        MediaWords::DBI::Auth::Register::add_user(
             $db,                                  #
             $user_email,                          #
             $user_full_name,                      #
             $user_notes,                          #
             \@user_role_ids,                      #
-            ( !$user_is_inactive ),               #
+            1,                                    #
             $user_password,                       #
             $user_password_repeat,                #
+            '',                                   # user is active
             $user_weekly_requests_limit,          #
             $user_weekly_requested_items_limit    #
         );
@@ -277,7 +273,7 @@ EOF
 
     # Fetch default information about the user
     my $db_user;
-    eval { $db_user = MediaWords::DBI::Auth::user_info( $db, $user_email ); };
+    eval { $db_user = MediaWords::DBI::Auth::Profile::user_info( $db, $user_email ); };
     if ( $@ or ( !$db_user ) )
     {
         ERROR "Unable to find user with email '$user_email'";
@@ -285,7 +281,7 @@ EOF
     }
 
     my $db_user_roles;
-    eval { $db_user_roles = MediaWords::DBI::Auth::user_auth( $db, $user_email ); };
+    eval { $db_user_roles = MediaWords::DBI::Auth::Profile::user_auth( $db, $user_email ); };
     if ( $@ or ( !$db_user_roles ) )
     {
         ERROR "Unable to find authentication roles for email '$user_email'";
@@ -369,7 +365,7 @@ EOF
 
     # Modify (update) user
     eval {
-        MediaWords::DBI::Auth::update_user(
+        MediaWords::DBI::Auth::Profile::update_user(
             $db,                                  #
             $modified_user{ email },              #
             $modified_user{ full_name },          #
@@ -406,7 +402,7 @@ sub user_delete($)
     die "$user_delete_usage\n" unless ( $user_email );
 
     # Delete user
-    eval { MediaWords::DBI::Auth::delete_user( $db, $user_email ); };
+    eval { MediaWords::DBI::Auth::Profile::delete_user( $db, $user_email ); };
     if ( $@ )
     {
         ERROR "Error while trying to delete user: $@";
@@ -428,7 +424,7 @@ sub users_list($)
     GetOptions() or die "$user_list_usage\n";
 
     # Fetch list of users
-    my $users = MediaWords::DBI::Auth::all_users( $db );
+    my $users = MediaWords::DBI::Auth::Profile::all_users( $db );
 
     unless ( $users )
     {
@@ -458,7 +454,7 @@ sub user_show($)
 
     # Fetch information about the user
     my $db_user;
-    eval { $db_user = MediaWords::DBI::Auth::user_info( $db, $user_email ); };
+    eval { $db_user = MediaWords::DBI::Auth::Profile::user_info( $db, $user_email ); };
     if ( $@ or ( !$db_user ) )
     {
         ERROR "Unable to find user with email '$user_email'";
@@ -466,7 +462,7 @@ sub user_show($)
     }
 
     my $db_user_roles;
-    eval { $db_user_roles = MediaWords::DBI::Auth::user_auth( $db, $user_email ); };
+    eval { $db_user_roles = MediaWords::DBI::Auth::Profile::user_auth( $db, $user_email ); };
     if ( $@ or ( !$db_user_roles ) )
     {
         ERROR "Unable to find authentication roles for email '$user_email'";
