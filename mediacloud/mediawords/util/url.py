@@ -92,34 +92,6 @@ def is_http_url(url: str) -> bool:
     return True
 
 
-def is_shortened_url(url: str) -> bool:
-    """Returns true if URL is a shortened URL (e.g. with Bit.ly)."""
-    url = decode_object_from_bytes_if_needed(url)
-    if url is None:
-        l.debug("URL is None")
-        return False
-    if len(url) == 0:
-        l.debug("URL is empty")
-        return False
-    if not is_http_url(url):
-        l.debug("URL is not valid")
-        return False
-
-    uri = urlparse(url)
-
-    if uri.path is not None and uri.path in ['', '/']:
-        # Assume that most of the URL shorteners use something like
-        # bit.ly/abcdef, so if there's no path or if it's empty, it's not a
-        # shortened URL
-        return False
-
-    uri_host = uri.hostname.lower()
-    if uri_host in URL_SHORTENER_HOSTNAMES:
-        return True
-
-    return False
-
-
 def __canonical_url(url: str) -> str:
     """Make URL canonical (lowercase scheme and host, remove default port, etc.)"""
     return url_normalize.url_normalize(url)
@@ -332,6 +304,34 @@ def normalize_url_lossy(url: str) -> Optional[str]:
     return url
 
 
+def __is_shortened_url(url: str) -> bool:
+    """Returns true if URL is a shortened URL (e.g. with Bit.ly)."""
+    url = decode_object_from_bytes_if_needed(url)
+    if url is None:
+        l.debug("URL is None")
+        return False
+    if len(url) == 0:
+        l.debug("URL is empty")
+        return False
+    if not is_http_url(url):
+        l.debug("URL is not valid")
+        return False
+
+    uri = urlparse(url)
+
+    if uri.path is not None and uri.path in ['', '/']:
+        # Assume that most of the URL shorteners use something like
+        # bit.ly/abcdef, so if there's no path or if it's empty, it's not a
+        # shortened URL
+        return False
+
+    uri_host = uri.hostname.lower()
+    if uri_host in URL_SHORTENER_HOSTNAMES:
+        return True
+
+    return False
+
+
 def is_homepage_url(url: str) -> bool:
     """Returns true if URL is homepage (e.g. http://www.wired.com/) and not a child page
     (e.g. http://m.wired.com/threatlevel/2011/12/sopa-watered-down-amendment/)."""
@@ -356,7 +356,7 @@ def is_homepage_url(url: str) -> bool:
 
     # The shortened URL may lead to a homepage URL, but the shortened URL
     # itself is not a homepage URL
-    if is_shortened_url(url):
+    if __is_shortened_url(url):
         return False
 
     # If we still have something for a query of the URL after the

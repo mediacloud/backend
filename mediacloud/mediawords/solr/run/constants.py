@@ -1,8 +1,8 @@
 # Solr version to install and use
-MC_SOLR_VERSION = "6.3.0"
+MC_SOLR_VERSION = "6.5.0"
 
 # <luceneMatchVersion> value
-MC_SOLR_LUCENEMATCHVERSION = "6.3.0"
+MC_SOLR_LUCENEMATCHVERSION = "6.5.0"
 
 # Solr home directory (solr.home; relative to Media Cloud root; must already exist)
 MC_SOLR_HOME_DIR = "solr/"
@@ -57,7 +57,7 @@ MC_SOLR_CLUSTER_JVM_OPTS = [
 # ---
 
 # ZooKeeper version to install and use
-MC_ZOOKEEPER_VERSION = "3.4.9"
+MC_ZOOKEEPER_VERSION = "3.4.10"
 
 # Default ZooKeeper host to bind to, e.g. "localhost"
 MC_ZOOKEEPER_LISTEN = "0.0.0.0"

@@ -88,7 +88,7 @@ sub main
 
     if ( my $feeds_id = $opt->{ feeds_id } )
     {
-        my $feed = $db->find_by_id( 'feeds', $feeds_id ) || LOGIDE( "Unable to find feed: $feeds_id" );
+        my $feed = $db->find_by_id( 'feeds', $feeds_id ) || LOGDIE( "Unable to find feed: $feeds_id" );
         feedly_import( $db, { feeds_id => $feeds_id, media_id => $feed->{ media_id } } );
     }
 

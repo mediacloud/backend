@@ -11,6 +11,15 @@ In order to:
 ...on the best effort basis, we should:
 
 
+## Use Python 3.5
+
+Python seems to introduce some major changes between minor versions (e.g. 3.5 has type hinting, 3.6 introduced type annotations for variables, etc.) that have to be tested.
+
+Also, we develop / run Media Cloud from multiple configurations: Ubuntu 14.04 on CI (Travis) runs (ships with Python 3.2 by default), Ubuntu 16.04 on production (ships with Python 3.5 by default), and OS X on development machines (Homebrew ships with Python 3.6 at the time of writing).
+
+To reduce confusion and speed up CI runs, we hardcode and use Python 3.5 (patch version is not important).
+
+
 ## Use PyCharm
 
 [PyCharm](https://www.jetbrains.com/pycharm/) is (arguably) the best Python IDE around, and there's no reason to not use it. There's a Community Version available for free, and we might even consider applying for their [open source license](https://www.jetbrains.com/buy/opensource/) too.

@@ -16,19 +16,19 @@ Table of Contents
          * [Query Parameters](#query-parameters)
          * [Input Description](#input-description)
          * [Example](#example)
-      * [topics/~topics_id~/update (PUT)](#topicstopics_idupdate-put)
+      * [topics/<del>topics_id</del>/update (PUT)](#topicstopics_idupdate-put)
          * [Query Parameters](#query-parameters-1)
          * [Input Description](#input-description-1)
          * [Example](#example-1)
-      * [topics/~topics_id~/spider (POST)](#topicstopics_idspider-post)
+      * [topics/<del>topics_id</del>/spider (POST)](#topicstopics_idspider-post)
          * [Query Parameters](#query-parameters-2)
          * [Output Description](#output-description)
          * [Example](#example-2)
-      * [topics/~topics_id~/spider_status](#topicstopics_idspider_status)
+      * [topics/<del>topics_id</del>/spider_status](#topicstopics_idspider_status)
          * [Query Parameters](#query-parameters-3)
          * [Output Description](#output-description-1)
          * [Example](#example-3)
-      * [topics/~topics_id~/iterations/list - TODO](#topicstopics_iditerationslist---todo)
+      * [topics/<del>topics_id</del>/iterations/list - TODO](#topicstopics_iditerationslist---todo)
          * [Query Parameters](#query-parameters-4)
          * [Output Description](#output-description-2)
          * [Example](#example-4)
@@ -36,7 +36,7 @@ Table of Contents
          * [Query Parameters](#query-parameters-5)
          * [Output Description](#output-description-3)
          * [Example](#example-5)
-      * [topics/single/~topics_id~](#topicssingletopics_id)
+      * [topics/single/<del>topics_id</del>](#topicssingletopics_id)
          * [Query Parameters](#query-parameters-6)
          * [Output Description](#output-description-4)
          * [Example](#example-6)
@@ -45,11 +45,11 @@ Table of Contents
          * [Query Parameters](#query-parameters-7)
          * [Output Description](#output-description-5)
          * [Example](#example-7)
-      * [topics/~topics_id~/permissions/list DONE](#topicstopics_idpermissionslist-done)
+      * [topics/<del>topics_id</del>/permissions/list DONE](#topicstopics_idpermissionslist-done)
          * [Query Parameters](#query-parameters-8)
          * [Output Description](#output-description-6)
          * [Example](#example-8)
-      * [topics/~topics_id~/permissions/update (PUT) DONE](#topicstopics_idpermissionsupdate-put-done)
+      * [topics/<del>topics_id</del>/permissions/update (PUT) DONE](#topicstopics_idpermissionsupdate-put-done)
          * [Query Parameters](#query-parameters-9)
          * [Input Description](#input-description-2)
          * [Output Description](#output-description-7)
@@ -58,44 +58,47 @@ Table of Contents
       * [stories/list](#storieslist)
          * [Query Parameters](#query-parameters-10)
          * [Output Description](#output-description-8)
-         * [ Example](#example-10)
-      * [stories/count](#storiescount)
+      * [stories/facebook](#storiesfacebook)
          * [Query Parameters](#query-parameters-11)
          * [Output Description](#output-description-9)
-         * [Example](#example-11)
-      * [stories/~stories_id~/update (PUT) - TODO](#storiesstories_idupdate-put---todo)
+         * [Example](#example-10)
+      * [stories/count](#storiescount)
          * [Query Parameters](#query-parameters-12)
-         * [Input Description](#input-description-3)
          * [Output Description](#output-description-10)
-         * [Example](#example-12)
-      * [stories/~stories_id~/remove (PUT) - TODO](#storiesstories_idremove-put---todo)
+         * [Example](#example-11)
+      * [stories/<del>stories_id</del>/update (PUT) - TODO](#storiesstories_idupdate-put---todo)
          * [Query Parameters](#query-parameters-13)
+         * [Input Description](#input-description-3)
          * [Output Description](#output-description-11)
+         * [Example](#example-12)
+      * [stories/<del>stories_id</del>/remove (PUT) - TODO](#storiesstories_idremove-put---todo)
+         * [Query Parameters](#query-parameters-14)
+         * [Output Description](#output-description-12)
          * [Example](#example-13)
       * [stories/merge (PUT) - TODO](#storiesmerge-put---todo)
-         * [Query Parameters](#query-parameters-14)
+         * [Query Parameters](#query-parameters-15)
          * [Input Description](#input-description-4)
-         * [Output Description](#output-description-12)
+         * [Output Description](#output-description-13)
          * [Example](#example-14)
    * [Sentences](#sentences)
       * [sentences/count](#sentencescount)
    * [Media](#media)
       * [media/list](#medialist)
-         * [Query Parameters](#query-parameters-15)
-         * [Output Description](#output-description-13)
-         * [Example](#example-15)
-      * [media/map](#mediamap)
          * [Query Parameters](#query-parameters-16)
          * [Output Description](#output-description-14)
-         * [Example](#example-16)
-      * [media/~media_id~/remove (PUT) - TODO](#mediamedia_idremove-put---todo)
+         * [Example](#example-15)
+      * [media/map](#mediamap)
          * [Query Parameters](#query-parameters-17)
          * [Output Description](#output-description-15)
+         * [Example](#example-16)
+      * [media/<del>media_id</del>/remove (PUT) - TODO](#mediamedia_idremove-put---todo)
+         * [Query Parameters](#query-parameters-18)
+         * [Output Description](#output-description-16)
          * [Example](#example-17)
       * [media/merge (PUT) - TODO](#mediamerge-put---todo)
-         * [Query Parameters](#query-parameters-18)
+         * [Query Parameters](#query-parameters-19)
          * [Input Description](#input-description-5)
-         * [Output Description](#output-description-16)
+         * [Output Description](#output-description-17)
          * [Example](#example-18)
    * [Word Counts](#word-counts)
       * [wc/list](#wclist)
@@ -103,78 +106,78 @@ Table of Contents
       * [Focal Techniques](#focal-techniques)
          * [Focal Technique: Boolean Query](#focal-technique-boolean-query)
       * [focal_set_definitions/create (POST)](#focal_set_definitionscreate-post)
-         * [Query Parameters](#query-parameters-19)
+         * [Query Parameters](#query-parameters-20)
          * [Input Description](#input-description-6)
          * [Example](#example-19)
-      * [focal_set_definitions/~focal_set_definitions_id~/update (PUT)](#focal_set_definitionsfocal_set_definitions_idupdate-put)
-         * [Query Parameters](#query-parameters-20)
+      * [focal_set_definitions/<del>focal_set_definitions_id</del>/update (PUT)](#focal_set_definitionsfocal_set_definitions_idupdate-put)
+         * [Query Parameters](#query-parameters-21)
          * [Input Parameters](#input-parameters)
          * [Example](#example-20)
-      * [focal_set_definitions/~focal_set_definitions_id~/delete (PUT)](#focal_set_definitionsfocal_set_definitions_iddelete-put)
-         * [Query Parameters](#query-parameters-21)
-         * [Output Description](#output-description-17)
-         * [Example](#example-21)
-      * [focal_set_definitions/list](#focal_set_definitionslist)
+      * [focal_set_definitions/<del>focal_set_definitions_id</del>/delete (PUT)](#focal_set_definitionsfocal_set_definitions_iddelete-put)
          * [Query Parameters](#query-parameters-22)
          * [Output Description](#output-description-18)
-         * [Example](#example-22)
-      * [focal_sets/list](#focal_setslist)
+         * [Example](#example-21)
+      * [focal_set_definitions/list](#focal_set_definitionslist)
          * [Query Parameters](#query-parameters-23)
          * [Output Description](#output-description-19)
+         * [Example](#example-22)
+      * [focal_sets/list](#focal_setslist)
+         * [Query Parameters](#query-parameters-24)
+         * [Output Description](#output-description-20)
          * [Example](#example-23)
       * [focus_definitions/create (POST)](#focus_definitionscreate-post)
-         * [Query Parameters](#query-parameters-24)
+         * [Query Parameters](#query-parameters-25)
          * [Input Description](#input-description-7)
          * [Example](#example-24)
-      * [focus_definitions/~focus_definitions_id~/update (PUT)](#focus_definitionsfocus_definitions_idupdate-put)
-         * [Query Parameters](#query-parameters-25)
+      * [focus_definitions/<del>focus_definitions_id</del>/update (PUT)](#focus_definitionsfocus_definitions_idupdate-put)
+         * [Query Parameters](#query-parameters-26)
          * [Input Description](#input-description-8)
          * [Example](#example-25)
-      * [focus_definitions/~focus_definitions_id~/delete (PUT)](#focus_definitionsfocus_definitions_iddelete-put)
-         * [Query Parameters](#query-parameters-26)
-         * [Output Description](#output-description-20)
-         * [Example](#example-26)
-      * [focus_definitions/list](#focus_definitionslist)
+      * [focus_definitions/<del>focus_definitions_id</del>/delete (PUT)](#focus_definitionsfocus_definitions_iddelete-put)
          * [Query Parameters](#query-parameters-27)
          * [Output Description](#output-description-21)
+         * [Example](#example-26)
+      * [focus_definitions/list](#focus_definitionslist)
+         * [Query Parameters](#query-parameters-28)
+         * [Output Description](#output-description-22)
          * [Example](#example-27)
       * [foci/list](#focilist)
-         * [Query Parameters](#query-parameters-28)
+         * [Query Parameters](#query-parameters-29)
          * [Ouput Description](#ouput-description)
          * [Example](#example-28)
    * [Snapshots](#snapshots)
       * [snapshots/generate (POST)](#snapshotsgenerate-post)
-         * [Query Parameters](#query-parameters-29)
+         * [Query Parameters](#query-parameters-30)
          * [Input Description](#input-description-9)
-         * [Output Description](#output-description-22)
+         * [Output Description](#output-description-23)
          * [Example](#example-29)
       * [snapshots/generate_status](#snapshotsgenerate_status)
-         * [Query Parameters](#query-parameters-30)
+         * [Query Parameters](#query-parameters-31)
          * [Input Description](#input-description-10)
-         * [Output Description](#output-description-23)
+         * [Output Description](#output-description-24)
          * [Example](#example-30)
          * [snapshots/list](#snapshotslist)
          * [Query Paramaters](#query-paramaters)
-         * [Output Description](#output-description-24)
-         * [Example](#example-31)
-      * [snapshots/~snapshots_id~/update (PUT) - TODO](#snapshotssnapshots_idupdate-put---todo)
-         * [Query Parameters](#query-parameters-31)
-         * [Input Description](#input-description-11)
          * [Output Description](#output-description-25)
+         * [Example](#example-31)
+      * [snapshots/<del>snapshots_id</del>/update (PUT) - TODO](#snapshotssnapshots_idupdate-put---todo)
+         * [Query Parameters](#query-parameters-32)
+         * [Input Description](#input-description-11)
+         * [Output Description](#output-description-26)
          * [Example](#example-32)
    * [Timespans](#timespans)
       * [timespans/list](#timespanslist)
-         * [Query Parameters](#query-parameters-32)
-         * [Output Description](#output-description-26)
+         * [Query Parameters](#query-parameters-33)
+         * [Output Description](#output-description-27)
          * [Example](#example-33)
       * [timespans/add_dates (PUT) - TODO](#timespansadd_dates-put---todo)
-         * [Query Parameters](#query-parameters-33)
+         * [Query Parameters](#query-parameters-34)
          * [Input Description](#input-description-12)
-         * [Output Description](#output-description-27)
+         * [Output Description](#output-description-28)
          * [Example](#example-34)
       * [timespans/list_dates - TODO](#timespanslist_dates---todo)
-         * [Query Parameters](#query-parameters-34)
-         * [Output Description](#output-description-28)
+         * [Query Parameters](#query-parameters-35)
+         * [Output Description](#output-description-29)
          * [Example](#example-35)
 
 ----
@@ -302,7 +305,7 @@ For example, the following is a paged response:
 }
 ```
 
-After receiving that reponse, you can use the following URL with no other parameters to fetch the next page of results:
+After receiving that response, you can use the following URL with no other parameters to fetch the next page of results:
 
 `https://api.mediacloud.org/api/v2/topics/1/stories/list?link_id=789123`
 
@@ -898,7 +901,7 @@ Standard parameters accepted: snapshots_id, foci_id, timespans_id, limit, link_i
 | outlink_count        | count of hyperlinks to stories in other media in this timespan |
 | bitly_click_count    | number of clicks on bitly links that resolve to this story's URL |
 | facebook_share_count | number of facebook shares for this story's URL |
-| focus_ids            | list of ids of foci to which this story belongs |
+| foci            | list of foci to which this story belongs |
 ### Example
 
 Fetch all stories in topic id 1344:
@@ -923,7 +926,15 @@ Response:
             "title": "Donald J. Trump (realDonaldTrump) on Twitter",
             "url": "https://twitter.com/realDonaldTrump",
             "outlink_count": 0,
-            "guid": "https://twitter.com/realDonaldTrump"
+            "guid": "https://twitter.com/realDonaldTrump",
+            "foci":
+            [
+                {
+                    "foci_id": 123,
+                    "name": "Trump",
+                    "focal_set_name": "Candidates"
+                }
+            ]
         }
     ],
     "link_ids":
@@ -932,6 +943,64 @@ Response:
         "previous": 456789,
         "next": 789123
     }
+}
+```
+
+## stories/facebook
+
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/facebook`
+
+Return the current facebook counts for all stories in the topic.  Note that this call returns the current
+facebook count data, which may change over time, rather than the snapshotted, static data returned by the
+stories/list call.
+
+### Query Parameters
+
+Standard parameters accepted : snapshots_id, foci_id, timespans_id, limit.
+
+### Output Description
+
+| Field | Description                |
+| ----- | -------------------------- |
+| stories_id | story id |
+| facebook_share_count | share count from facebook |
+| facebook_comment_count | comment count from facebook |
+| facebook_api_collect_date | data on which count data was collected from facebook |
+
+### Example
+
+Return the facebook counts for 3 stories in the given topic.
+
+`https://api.mediacloud.org/api/v2/topics/1404/stories/facebook?limit=3`
+
+Response:
+
+```json
+{
+   "counts" : [
+      {
+         "facebook_api_collect_date" : "2016-11-25 04:45:35.636022",
+         "facebook_comment_count" : 0,
+         "facebook" : 0,
+         "stories_id" : 737
+      },
+      {
+         "facebook_api_collect_date" : "2016-11-13 11:35:35.657778",
+         "facebook_comment_count" : 0,
+         "facebook" : 0,
+         "stories_id" : 2884
+      },
+      {
+         "facebook_api_collect_date" : "2016-11-13 11:35:35.783757",
+         "facebook_comment_count" : 0,
+         "facebook" : 0,
+         "stories_id" : 3994
+      }
+   ],
+   "link_ids" : {
+      "current" : 21797,
+      "next" : 21798
+   }
 }
 ```
 
@@ -1133,7 +1202,7 @@ Standard parameters accepted: snapshots_id, foci_id, timespans_id, limit, link_i
 | inlink_count         | sum of the inlink_count for each story in the medium |
 | outlink_count        | sum of the outlink_count for each story in the medium |
 | bitly_click_count    | sum of the bitly_click_count for each story in the medium |
-| facebook_share_count | sum of the facebook_share_count for each story in the medium |
+| facebook_share_count | sum of the facebook for each story in the medium |
 | focus_ids            | list of ids of foci to which this medium belongs |
 
 ### Example
@@ -1156,7 +1225,7 @@ Response:
             "inlink_count": 8454,
             "url": "http://twitter.com",
             "outlink_count": 72,
-            "facebook_share_count": 123
+            "facebook": 123
         }
     ],
     "link_ids":

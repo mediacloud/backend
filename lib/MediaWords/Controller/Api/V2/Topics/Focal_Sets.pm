@@ -56,9 +56,9 @@ select foci_id, name, description, arguments->>'query' query, focal_sets_id
 SQL
 
     my $foci_lookup = {};
-    map { push( @{ $foci_lookup->{ $_->{ focal_sets_id } } }, $_ ) } @{ $foci };
+    map { push( @{ $foci_lookup->{ int( $_->{ focal_sets_id } ) } }, $_ ) } @{ $foci };
 
-    map { $_->{ foci } = $foci_lookup->{ $_->{ focal_sets_id } } || [] } @{ $focal_sets };
+    map { $_->{ foci } = $foci_lookup->{ int( $_->{ focal_sets_id } ) } || [] } @{ $focal_sets };
 
     $self->status_ok( $c, entity => { focal_sets => $focal_sets } );
 }

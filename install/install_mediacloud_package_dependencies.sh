@@ -4,7 +4,7 @@ set -u
 set -o errexit
 
 
-VAGRANT_URL_DEBIAN="https://releases.hashicorp.com/vagrant/1.9.1/vagrant_1.9.1_x86_64.deb"
+VAGRANT_URL_DEBIAN="https://releases.hashicorp.com/vagrant/1.9.3/vagrant_1.9.3_x86_64.deb"
 ERLANG_APT_GPG_KEY_URL="http://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc"
 ERLANG_APT_REPOSITORY_URL="http://packages.erlang-solutions.com/ubuntu"
 RABBITMQ_PACKAGECLOUD_SCRIPT="https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.deb.sh"
@@ -17,17 +17,6 @@ RABBITMQ_PACKAGECLOUD_SCRIPT="https://packagecloud.io/install/repositories/rabbi
 # https://groups.google.com/forum/#!topic/rabbitmq-users/7K0Ac5tWUIY
 #
 ERLANG_OLD_UBUNTU_APT_VERSION="1:17.5.3"
-
-# RabbitMQ version to install on Ubuntu < 16.04:
-#
-# Update rabbitmq_wrapper.sh too!
-#
-# Newest RabbitMQ version (3.6.6 at the time of writing) does not install on 12.04 anymore because:
-#
-# The following packages have unmet dependencies:
-#  rabbitmq-server : Depends: init-system-helpers (>= 1.13~) but it is not installable
-#
-RABBITMQ_OLD_UBUNTU_APT_VERSION="3.6.2-1"
 
 
 function echo_vagrant_instructions {
@@ -58,6 +47,14 @@ function verlt() {
     [ "$1" = "$2" ] && return 1 || verlte "$1" "$2"
 }
 
+# Use this function to deal with the Travis CI error
+# that occurs when installing a package that is already installed
+# but a lower version:
+# Error: coreutils-8.25 already installed
+# To install this version, first `brew unlink coreutils`
+function brew_install_or_upgrade() {
+    brew ls --versions "$1" > /dev/null && echo brew upgrade "$1" || echo brew install "$@"
+}
 
 echo "Installing Media Cloud system dependencies..."
 echo
@@ -87,39 +84,56 @@ EOF
         exit 1
     fi
 
-    # Homebrew now installs Python 3.6 by default, so we need older Python 3.5 which is best installed as a .pkg
-    command -v python3.5 >/dev/null 2>&1 || {
-        echo "Media Cloud requires Python 3.5.1."
-        echo
-        echo "Please install the 'Mac OS X 64-bit/32-bit installer' manually from the following link:"
-        echo
-        echo "    https://www.python.org/downloads/release/python-351/"
-        echo
-        exit 1
-    }
+    set +u
+    if [ "$CI" == "true" ]; then
+        echo "CI mode. Installing Python 3.5.3 automatically using pyenv"
+        brew_install_or_upgrade "pyenv"
+        pyenv install --skip-existing 3.5.3
+        pyenv local 3.5.3
+        pyenv rehash
+    else
+        # Homebrew now installs Python 3.6 by default, so we need older Python 3.5 which is best installed as a .pkg
+        command -v python3.5 >/dev/null 2>&1 || {
+            echo "Media Cloud requires Python 3.5.+"
+            echo
+            echo "Please install the 'Mac OS X 64-bit/32-bit installer' manually from the following link:"
+            echo
+            echo "    https://www.python.org/downloads/release/python-351/"
+            echo
+            echo "Or if using pyenv, run:"
+            echo
+            echo "    pyenv install 3.5.3"
+            echo
+            exit 1
+        }
+    fi
+    set -u
 
     echo "Installing Media Cloud dependencies with Homebrew..."
-    brew install \
-        coreutils \
-        cpanminus \
-        curl \
-        gawk \
-        graphviz --with-bindings \
-        homebrew/dupes/tidy \
-        hunspell \
-        libyaml \
-        logrotate \
-        mecab \
-        netcat \
-        openssl \
-        python \
-        rabbitmq \
-        #
+    brew_install_or_upgrade "coreutils"
+    brew_install_or_upgrade "cpanminus"
+    brew_install_or_upgrade "curl"
+    brew_install_or_upgrade "gawk"
+    brew_install_or_upgrade "tidy-html5"
+    brew_install_or_upgrade "hunspell"
+    brew_install_or_upgrade "libyaml"
+    brew_install_or_upgrade "logrotate"
+    brew_install_or_upgrade "mecab"
+    brew_install_or_upgrade "netcat"
+    brew_install_or_upgrade "openssl"
+    brew_install_or_upgrade "perl"
+    brew_install_or_upgrade "python"
+    brew_install_or_upgrade "rabbitmq"
 
+    # using options when running brew install apply to all listed packages being installed
+    brew_install_or_upgrade "graphviz" --with-bindings
+
+    # Fixes: Can't locate XML/SAX.pm in @INC
+    # https://rt.cpan.org/Public/Bug/Display.html?id=62289
+    unset MAKEFLAGS
     echo "Installing Media Cloud dependencies with cpanm..."
-    sudo cpanm \
+    cpanm \
         Graph \
-        Graph::Writer::GraphViz \
         GraphViz \
         HTML::Entities \
         HTML::Parser \
@@ -141,8 +155,12 @@ EOF
         YAML::Syck \
         #
 
+    # fix failing outdated test on GraphViz preventing install
+    # https://rt.cpan.org/Public/Bug/Display.html?id=41776
+    cpanm --force Graph::Writer::GraphViz
+
    if [ ! "${SKIP_VAGRANT_TEST:+x}" ]; then
-        if [ ! -x /usr/bin/vagrant ]; then
+        if ! command -v vagrant > /dev/null 2>&1; then
             echo_vagrant_instructions
             exit 1
         fi
@@ -165,59 +183,29 @@ else
         }
     done
 
+    # RabbitMQ
     #
-    # Erlang:
-
-    if verlt "$DISTRIB_RELEASE" "14.04"; then
-        # Ubuntu < 14.04 APT's version of Erlang is too old (needed by RabbitMQ)
-        echo "Removing system package Erlang on Ubuntu 12.04 because it's too old..."
-        sudo apt-get -y remove erlang*
-
-        # Install and hold specific version of Erlang
-        echo "Installing Erlang from Erlang Solutions..."
-        curl "$ERLANG_APT_GPG_KEY_URL" | sudo apt-key add -
-        echo "deb $ERLANG_APT_REPOSITORY_URL precise contrib" | \
-            sudo tee -a /etc/apt/sources.list.d/erlang-solutions.list
-        sudo apt-get -y update
-
-        sudo apt-get -y install esl-erlang="$ERLANG_OLD_UBUNTU_APT_VERSION" erlang-mode="$ERLANG_OLD_UBUNTU_APT_VERSION"
-        sudo apt-mark hold erlang-mode esl-erlang
-    fi
-
-    #
-    # RabbitMQ:
-
     # Ubuntu (all versions) APT's version of RabbitMQ is too old
     # (we need 3.6.0+ to support priorities and lazy queues)
     echo "Adding RabbitMQ GPG key for Apt..."
     curl -s "$RABBITMQ_PACKAGECLOUD_SCRIPT" | sudo bash
 
-    if verlt "$DISTRIB_RELEASE" "14.04"; then
-        # Newest RabbitMQ does not work anymore on 12.04
-        sudo apt-get -y install rabbitmq-server="$RABBITMQ_OLD_UBUNTU_APT_VERSION"
-        sudo apt-mark hold rabbitmq-server
-    else
-        sudo apt-get -y install rabbitmq-server
-    fi
-
-    #
-    # OpenJDK:
-    
+    # OpenJDK
     if verlt "$DISTRIB_RELEASE" "16.04"; then
         # Solr 6+ requires Java 8 which is unavailable before 16.04
-        echo "Adding Java 8 PPA repository to Ubuntu 12.04..."
+        echo "Adding Java 8 PPA repository to older Ubuntu..."
         sudo apt-get -y install python-software-properties
         sudo add-apt-repository -y ppa:openjdk-r/ppa
-        sudo apt-get update
+        sudo apt-get -q update
     fi
 
     # Python version to install
     if verlt "$DISTRIB_RELEASE" "16.04"; then
-        # We require at least Python 3.5 (12.04 only has 3.2 which doesn't work with newest Pip)
-        echo "Adding Python 3.5 PPA repository to Ubuntu 12.04..."
+        # We require at least Python 3.5 (14.04 only has 3.4 which doesn't work with newest Pip)
+        echo "Adding Python 3.5 PPA repository to older Ubuntu..."
         sudo apt-get -y install python-software-properties
         sudo add-apt-repository -y ppa:fkrull/deadsnakes
-        sudo apt-get update
+        sudo apt-get -q update
     fi
 
     # Install the rest of the packages
@@ -236,16 +224,7 @@ else
         hunspell \
         libdb-dev \
         libexpat1-dev \
-        libgraph-writer-graphviz-perl \
         libgraphviz-dev \
-        libgraphviz-perl \
-        liblist-allutils-perl \
-        liblist-moreutils-perl \
-        liblocale-maketext-lexicon-perl \
-        libopengl-perl \
-        libreadonly-perl \
-        libreadonly-xs-perl \
-        libtest-www-mechanize-perl \
         libtidy-dev \
         libxml2-dev \
         libxml2-dev \
@@ -253,19 +232,17 @@ else
         libxslt1-dev \
         libxslt1.1 \
         libyaml-dev \
-        libyaml-syck-perl \
         logrotate \
         make \
         netcat \
         openjdk-8-jdk \
-        perl-doc \
         postgresql-server-dev-all \
         python-pip \
         python2.7 \
         python2.7-dev \
         python3.5 \
         python3.5-dev \
-        realpath \
+        rabbitmq-server \
         unzip \
         #
 
@@ -338,6 +315,9 @@ else
                 echo_vagrant_instructions
                 exit 1
             fi
+
+            # Temporary hack to overcome https://github.com/mitchellh/vagrant-aws/issues/510
+            vagrant plugin install --plugin-version 1.43 fog-core
 
             # Install AWS plugin (https://github.com/mitchellh/vagrant-aws)
             vagrant plugin install vagrant-aws

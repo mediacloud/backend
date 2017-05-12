@@ -38,17 +38,11 @@ if [ `uname` == 'Darwin' ]; then
         initdb /usr/local/var/postgres -E utf8
     fi
 
-    # Upgrading?    
-    if [ -f ~/Library/LaunchAgents/org.postgresql.postgres.plist ]; then
-        launchctl unload -w ~/Library/LaunchAgents/homebrew.mxcl.postgresql.plist
-        ln -sfv /usr/local/opt/postgresql/*.plist ~/Library/LaunchAgents
-    fi
-
-    # Start PostgreSQL
-    launchctl load ~/Library/LaunchAgents/homebrew.mxcl.postgresql.plist
+    brew services restart postgresql
     sleep 5
     createdb || echo "User's database already exists, nothing to do."    # for the current user
     createuser postgres || echo "User 'postgres' already exists, nothing to do."
+    createuser --superuser --createdb --createrole --replication root || echo "User 'root' already exists, nothing to do."
 
 else
 

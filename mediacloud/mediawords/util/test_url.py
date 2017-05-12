@@ -45,15 +45,6 @@ def test_is_http_url():
     )
 
 
-def test_is_shortened_url():
-    # noinspection PyTypeChecker
-    assert not is_shortened_url(None)
-    assert not is_shortened_url('http://bit.ly')
-    assert not is_shortened_url('http://bit.ly/')
-
-    assert is_shortened_url('http://bit.ly/abc')
-
-
 # noinspection SpellCheckingInspection
 def test_normalize_url():
     # Bad URLs

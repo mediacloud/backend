@@ -1,17 +1,16 @@
 		</div>
 </article>
-					
-			
+
+
 			</div><!-- #content -->
 		</section><!-- #primary .site-content -->
 
 		<div id="secondary" class="widget-area" role="complementary">
-		    <aside id="recent-posts-2" class="widget widget_recent_entries">		
-				<h1 class="widget-title">Media Cloud</h1>		
+		    <aside id="recent-posts-2" class="widget widget_recent_entries">
+				<h1 class="widget-title">Media Cloud</h1>
 				<ul>
-					<li><a href="http://www.mediacloud.org">Media Cloud Home</a></li>
-					<li><a href="http://dashboard.mediameter.org">Media Cloud Dashboard</a></li>
-					<li><a href="http://mediacloud.org/api">Media Cloud API</a></li>
+					<li><a href="https://www.mediacloud.org">Media Cloud Home</a></li>
+					<li><a href="https://mediacloud.org/tools">Media Cloud Tools</a></li>
 					<li><a href="[% c.uri_for( '/admin/profile' ) %]">Media Cloud Profile</a></li>
 				</ul>
 		    </aside>
