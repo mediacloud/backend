@@ -598,7 +598,7 @@ sub set_primary_language($$)
 
     my $tag_set = get_primary_language_tag_set( $db );
 
-    if ( !defined( $primary_language ) )
+    if ( !$primary_language )
     {
         $db->query( <<SQL, $medium->{ media_id }, $tag_set->{ tag_sets_id } );
 delete from media_tags_map mtm
