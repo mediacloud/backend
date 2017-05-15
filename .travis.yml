@@ -11,6 +11,8 @@ matrix:
         - os: linux
           language: perl
           perl: 5.22
+        - os: osx
+          language: generic
 cache:
     directories:
         # Carton dependencies
@@ -47,17 +49,17 @@ env:
         - MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1
         # let tests know that they are running on travis
         - MC_SKIP_RABBIT_OPEN_FILES_LIMIT_CHECK=1
+        - SKIP_VAGRANT_TEST=1
 before_install:
-    # Install APT packages (not PostgreSQL though)
-    - ./install/install_mediacloud_system_package_dependencies.sh
+    # Install system packages (not PostgreSQL though)
+    - travis_wait 30 ./install/install_mediacloud_system_package_dependencies.sh
+    # Add pyenv to path when CI. Can't export env var changes from scripts in travis
+    - export PATH="$HOME/.pyenv/shims:$PATH"
     # Install Python dependencies
     - travis_retry ./install/install_python_dependencies.sh
     # Set up kernel and PostgreSQL parameters
     - ./install/set_kernel_parameters.sh
     - ./install/set_postgresql_parameters.sh
-    # Create + switch to the Media Cloud's Perlbrew library
-    - perlbrew lib create mediacloud
-    - perlbrew switch @mediacloud
     # Set up Perl and module dependencies (dependencies might be restored from
     # cache into "local/" already in which case we just check if Carton is
     # happy with the current setup)
