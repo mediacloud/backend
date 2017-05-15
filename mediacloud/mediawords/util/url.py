@@ -276,7 +276,7 @@ def normalize_url_lossy(url: str) -> Optional[str]:
     if 'r2.ly' not in url:
         url = re.sub(
             r'^(https?://)(m|beta|media|data|image|www?|cdn|topic|article|news|archive|blog|video|search|preview|'
-            + 'shop|sports?|act|donate|press|web|photos?|\d+?).?\.(.*\.)',
+            + 'login|shop|sports?|act|donate|press|web|photos?|\d+?).?\.(.*\.)',
             r"\1\3", url, re.I)
 
     # collapse the vast array of http://pronkraymond83483.podomatic.com/ urls into http://pronkpops.podomatic.com/
