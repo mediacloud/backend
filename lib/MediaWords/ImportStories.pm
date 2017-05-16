@@ -134,7 +134,7 @@ sub generate_story
         content      => $content
     };
 
-    my $date_guess = MediaWords::TM::GuessDate::guess_date( $db, $story, $content, 1 );
+    my $date_guess = MediaWords::TM::GuessDate::guess_date( $db, $story, $content );
     if ( $date_guess->{ result } eq $MediaWords::TM::GuessDate::Result::FOUND )
     {
         $story->{ publish_date } = $date_guess->{ date };
