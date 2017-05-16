@@ -14,6 +14,9 @@ To update our `mecab-ipadic-neologd` fork from the upstream:
 
     # Switch to submodule's "master" branch
     git checkout master
+    
+    # Fetch upstream
+    git fetch upstream
 
     # Merge new changes from upstream into submodule
     git merge upstream/master
