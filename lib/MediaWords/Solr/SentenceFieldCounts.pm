@@ -35,24 +35,9 @@ has 'include_stats' => ( is => 'rw', isa => 'Bool' );
 has 'db' => ( is => 'rw' );
 
 # list of all attribute names that should be exposed as cgi params
-sub get_cgi_param_attributes
+sub _get_cgi_param_attributes()
 {
     return [ qw(q fq sample_size include_stats field tag_sets_id) ];
-}
-
-# return hash of attributes for use as cgi params
-sub get_cgi_param_hash
-{
-    my ( $self ) = @_;
-
-    my $keys = get_cgi_param_attributes;
-
-    my $meta = $self->meta;
-
-    my $hash = {};
-    map { $hash->{ $_ } = $meta->get_attribute( $_ )->get_value( $self ) } @{ $keys };
-
-    return $hash;
 }
 
 # add support for constructor in this form:
@@ -82,7 +67,7 @@ around BUILDARGS => sub {
         my $cgi_params = $args->{ cgi_params };
 
         $vals = {};
-        my $keys = get_cgi_param_attributes;
+        my $keys = _get_cgi_param_attributes();
         for my $key ( @{ $keys } )
         {
             $vals->{ $key } = $cgi_params->{ $key } if ( exists( $cgi_params->{ $key } ) );
@@ -198,7 +183,7 @@ sub _get_cache_key
 
     my $meta = $self->meta;
 
-    my $keys = $self->get_cgi_param_attributes;
+    my $keys = _get_cgi_param_attributes();
 
     my $hash_key = "$_fc_cache_version:" . Dumper( map { $meta->get_attribute( $_ )->get_value( $self ) } @{ $keys } );
 

@@ -22,16 +22,13 @@ use Readonly;
 use Regexp::Common qw(time);
 use Time::Local;
 
-# threshold of number of days a guess date can be before the source link
-# story date without dropping the guess
-Readonly my $DATE_GUESS_THRESHOLD => 60;
-
 # Default hour to use when no time is present (minutes and seconds are going to both be 0)
 # (12:00:00 because it looks nice and more or less fits within the same day in both California and Moscow)
 Readonly my $DEFAULT_HOUR => 12;
 
-# only use the date from these guessing functions if the date is within $DATE_GUESS_THRESHOLD days
-# of the existing date for the story
+# the guessing process basically consists of calling these functions one by one in the order below
+# until one of them returns a valid date.  the 'name' of the function is assigned as as a date_guess_method:
+# tag to the story for the function that returned the date.
 my $_date_guess_functions = [
     {
         name     => 'guess_by_og_article_published_time',
@@ -359,6 +356,7 @@ sub _guess_by_url
     my ( $story, $html, $html_tree ) = @_;
 
     my $url = $story->{ url };
+
     my $redirect_url = $story->{ redirect_url } || $url;
 
     if ( ( $url =~ m~(20\d\d)[/-](\d\d)[/-](\d\d)~ ) || ( $redirect_url =~ m~(20\d\d)[/-](\d\d)[/-](\d\d)~ ) )
@@ -480,7 +478,6 @@ sub _results_from_matching_date_patterns($$)
             # Ignore timestamps that are later than "now" (because publication dates are in the past)
             if ( $time < time() )
             {
-
                 TRACE "Adding that one";
                 push( @matched_timestamps, $time );
             }
@@ -912,7 +909,7 @@ sub _guessing_is_inapplicable($$$)
 # returns MediaWords::TM::GuessDate::Result object
 sub guess_date_impl
 {
-    my ( $db, $story, $html, $use_threshold ) = @_;
+    my ( $db, $story, $html ) = @_;
 
     my $result = MediaWords::TM::GuessDate::Result->new();
 
@@ -930,15 +927,16 @@ sub guess_date_impl
     {
         my $date_guess = $date_guess_function->{ function }->( $story, $html, $html_tree );
 
+        TRACE( "$date_guess_function->{ name } guess: $date_guess" ) if ( $date_guess );
+
         if ( my $timestamp = _make_unix_timestamp( $date_guess ) )
         {
-            my $threshold = $DATE_GUESS_THRESHOLD * 86400;
-            next if ( $story_timestamp && $use_threshold && ( ( $timestamp - $story_timestamp ) > $threshold ) );
-
             $result->{ result }       = $MediaWords::TM::GuessDate::Result::FOUND;
             $result->{ guess_method } = $date_guess_function->{ name };
             $result->{ timestamp }    = $timestamp;
             $result->{ date }         = MediaWords::Util::SQL::get_sql_date_from_epoch( $timestamp );
+
+            TRACE( "found $date_guess_function->{ name }" );
 
             return $result;
         }
@@ -946,8 +944,6 @@ sub guess_date_impl
 
     if ( $story_timestamp )
     {
-
-        TRACE "SOURCE LINK";
         $result->{ result }       = $MediaWords::TM::GuessDate::Result::FOUND;
         $result->{ guess_method } = 'source_link';
         $result->{ timestamp }    = $story_timestamp;

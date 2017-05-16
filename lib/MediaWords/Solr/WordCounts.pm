@@ -14,6 +14,7 @@ Uses sampling to generate quick word counts from solr queries.
 
 use strict;
 use warnings;
+use utf8;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
@@ -21,7 +22,6 @@ use MediaWords::CommonLibs;
 use CHI;
 use Data::Dumper;
 use Encode;
-use Lingua::Stem::Snowball;
 use List::Util;
 use Readonly;
 use URI::Escape;
@@ -31,35 +31,34 @@ use MediaWords::Solr;
 use MediaWords::Util::Config;
 use MediaWords::Util::IdentifyLanguage;
 use MediaWords::Util::JSON;
+use MediaWords::Util::Text;
 
-# minimum ratio of sentences in a given language to total sentences for a given query to include
-# stopwords and stemming for that language
-Readonly my $MIN_LANGUAGE_LEVEL => 0.05;
+# Max. length of the sentence to tokenize
+Readonly my $MAX_SENTENCE_LENGTH => 1024;
 
 # mediawords.wc_cache_version from config
 my $_wc_cache_version;
 
 # Moose instance fields
 
-has 'q'                 => ( is => 'rw', isa => 'Str' );
-has 'fq'                => ( is => 'rw', isa => 'ArrayRef' );
-has 'num_words'         => ( is => 'rw', isa => 'Int', default => 500 );
-has 'sample_size'       => ( is => 'rw', isa => 'Int', default => 1000 );
-has 'languages'         => ( is => 'rw', isa => 'ArrayRef' );
-has 'language_objects'  => ( is => 'rw', isa => 'ArrayRef' );
-has 'include_stopwords' => ( is => 'rw', isa => 'Bool' );
-has 'no_remote'         => ( is => 'rw', isa => 'Bool' );
-has 'include_stats'     => ( is => 'rw', isa => 'Bool' );
+has 'q'                         => ( is => 'rw', isa => 'Str' );
+has 'fq'                        => ( is => 'rw', isa => 'ArrayRef' );
+has 'num_words'                 => ( is => 'rw', isa => 'Int', default => 500 );
+has 'sample_size'               => ( is => 'rw', isa => 'Int', default => 1000 );
+has 'include_stopwords'         => ( is => 'rw', isa => 'Bool' );
+has 'no_remote'                 => ( is => 'rw', isa => 'Bool' );
+has 'include_stats'             => ( is => 'rw', isa => 'Bool' );
+has 'cached_combined_stopwords' => ( is => 'rw', isa => 'HashRef' );
 has 'db' => ( is => 'rw' );
 
 # list of all attribute names that should be exposed as cgi params
 sub get_cgi_param_attributes
 {
-    return [ qw(q fq languages num_words sample_size include_stopwords include_stats no_remote) ];
+    return [ qw(q fq num_words sample_size include_stopwords include_stats no_remote) ];
 }
 
 # return hash of attributes for use as cgi params
-sub get_cgi_param_hash
+sub _get_cgi_param_hash($)
 {
     my ( $self ) = @_;
 
@@ -69,11 +68,6 @@ sub get_cgi_param_hash
 
     my $hash = {};
     map { $hash->{ $_ } = $meta->get_attribute( $_ )->get_value( $self ) } @{ $keys };
-
-    if ( $hash->{ languages } && ref( $hash->{ languages } ) )
-    {
-        $hash->{ languages } = join( " ", @{ $hash->{ languages } } );
-    }
 
     return $hash;
 }
@@ -104,264 +98,162 @@ around BUILDARGS => sub {
     {
         my $cgi_params = $args->{ cgi_params };
 
-        $cgi_params->{ languages } = $cgi_params->{ l }
-          if ( exists( $cgi_params->{ l } ) && !exists( $cgi_params->{ languages } ) );
-
-        if ( !$cgi_params->{ languages } )
-        {
-            $cgi_params->{ languages } = [];
-        }
-        elsif ( !ref( $cgi_params->{ languages } ) )
-        {
-            $cgi_params->{ languages } = [ split( /[\s,]/, $cgi_params->{ languages } ) ];
-        }
-
         $vals = {};
         my $keys = get_cgi_param_attributes;
         for my $key ( @{ $keys } )
         {
-            $vals->{ $key } = $cgi_params->{ $key } if ( exists( $cgi_params->{ $key } ) );
+            if ( exists( $cgi_params->{ $key } ) )
+            {
+                $vals->{ $key } = $cgi_params->{ $key };
+            }
         }
 
-        $vals->{ languages } = $cgi_params->{ l }
-          if ( exists( $cgi_params->{ l } ) && !exists( $cgi_params->{ languages } ) );
-
-        $vals->{ db } = $args->{ db } if ( $args->{ db } );
+        if ( $args->{ db } )
+        {
+            $vals->{ db } = $args->{ db };
+        }
     }
     else
     {
         $vals = $args;
     }
 
-    $vals->{ fq } = [ $vals->{ fq } ] if ( $vals->{ fq } && !ref( $vals->{ fq } ) );
+    if ( $vals->{ fq } && !ref( $vals->{ fq } ) )
+    {
+        $vals->{ fq } = [ $vals->{ fq } ];
+    }
+
     $vals->{ fq } ||= [];
 
     return $class->$orig( $vals );
 };
 
-# set any duplicate lines blank.
-sub blank_dup_lines
+# Cache merged hashes of stopwords for speed
+sub _combine_stopwords($$$)
 {
-    my ( $self, $lines ) = @_;
+    my ( $self, $lang_1, $lang_2 ) = @_;
 
-    my $dup_lines = {};
+    my $language_1 = $lang_1->get_language_code();
+    my $language_2 = $lang_2->get_language_code();
 
-    map { $dup_lines->{ $_ } ? ( $_ = '' ) : ( $dup_lines->{ $_ } = 1 ); } grep { defined( $_ ) } @{ $lines };
+    unless ( $self->cached_combined_stopwords() )
+    {
+        $self->cached_combined_stopwords( {} );
+    }
+    unless ( $self->cached_combined_stopwords->{ $language_1 } )
+    {
+        $self->cached_combined_stopwords->{ $language_1 } = {};
+    }
+
+    unless ( defined $self->cached_combined_stopwords->{ $language_1 }->{ $language_2 } )
+    {
+        my $lang_1_stopwords = $lang_1->get_stop_words();
+        my $lang_2_stopwords = $lang_2->get_stop_words();
+
+        my $combined_stopwords = { ( %{ $lang_1_stopwords }, %{ $lang_2_stopwords } ) };
+
+        $self->cached_combined_stopwords->{ $language_1 }->{ $language_2 } = $combined_stopwords;
+    }
+
+    return $self->cached_combined_stopwords->{ $language_1 }->{ $language_2 };
 }
 
 # parse the text and return a count of stems and terms in the sentence in the
 # following format:
-# { $stem => { count =>  $stem_count, terms => { $term => $term_count, ... } } }
+# { $stem => { count => $stem_count, terms => { $term => $term_count, ... } } }
 #
 # this function is where virtually all of the time in the script is spent, and
 # had been carefully tuned, so do not change anything without testing performance
 # impacts
 sub count_stems
 {
-    my ( $self, $lines ) = @_;
-
-    $self->set_language_objects();
-
-    $self->blank_dup_lines( $lines );
-
-    # tokenize each line and add count to $words for each token
-    my $words = {};
-    for my $line ( @{ $lines } )
-    {
-        next unless ( defined( $line ) );
-
-        # very long lines tend to be noise -- html text and the like.
-        # lc here instead of individual word for better performance
-        $line = lc( substr( $line, 0, 256 ) );
-
-        # for some reason, encode( 'utf8', $line ) does not make \w match unicode letters,
-        # but the following does
-        Encode::_utf8_on( $line );
-
-        # remove urls so they don't get tokenized into noise
-        $line =~ s~https?://[^\s]+~~g;
-
-        while ( $line =~ /(\w+)/g )
-        {
-            my $word           = $1;
-            my $word_no_digits = $word;
-            $word_no_digits =~ s/\d//g;
-            $words->{ $word }++ if ( length( $word_no_digits ) > 2 );
-        }
-    }
-
-    # now we need to stem the words.  It's faster to stem as a single set of words.  we
-    # don't want to use caching with the stemming because we are finding the unique
-    # words ourselves.
-    my @unique_words = keys( %{ $words } );
-
-    my $stems = $self->stem_in_all_languages( \@unique_words );
-
-    my $stem_counts = {};
-    for ( my $i = 0 ; $i < @{ $stems } ; $i++ )
-    {
-        $stem_counts->{ $stems->[ $i ] }->{ count } += $words->{ $unique_words[ $i ] };
-        $stem_counts->{ $stems->[ $i ] }->{ terms }->{ $unique_words[ $i ] } += $words->{ $unique_words[ $i ] };
-    }
-
-    $self->prune_stopword_stems( $stem_counts );
-
-    return $stem_counts;
-}
-
-# Check whether the string is valid UTF-8
-sub is_valid_utf8
-{
-    my ( $self, $s ) = @_;
-
-    my $valid = 1;
-
-    Encode::_utf8_on( $s );
-
-    $valid = 0 unless ( utf8::valid( $s ) );
-
-    Encode::_utf8_off( $s );
-
-    return $valid;
-}
-
-# given a list of terms, apply stemming in all languages sequentially, with consistent results
-sub stem_in_all_languages
-{
-    my ( $self, $stems ) = @_;
-
-    my $stems_all_languages = [ @{ $stems } ];
-
-    # sort the languages by code so that the merged stemming will always be consistent
-    my $ordered_languages = [ sort { $a->get_language_code cmp $b->get_language_code } @{ $self->language_objects } ];
-
-    map { $stems_all_languages = $_->stem( @{ $stems_all_languages } ) } @{ $ordered_languages };
-
-    return $stems_all_languages;
-}
-
-# got the stopwords from all language, stem the stopwords in all languages, then generate a single stop_stems
-# lookup hash.  we have to restem all words from all languages to make sure the stemming process of the counted
-# words is the same as the stemming process for the stopwords
-sub get_stop_stems_in_all_languages
-{
-    my ( $self ) = @_;
-
-    my $all_stopwords = [];
-    for my $language ( @{ $self->language_objects } )
-    {
-        my $stopwords = $language->get_long_stop_words;
-        TRACE "get stop words " . $language->get_language_code . " " . scalar( keys( %{ $stopwords } ) );
-        push( @{ $all_stopwords }, keys( %{ $stopwords } ) );
-    }
-
-    my $all_stopstems = $self->stem_in_all_languages( $all_stopwords );
-
-    my $stopstems = {};
-    map { $stopstems->{ $_ } = 1 } @{ $all_stopstems };
-
-    TRACE "stop stems size: " . scalar( keys( %{ $stopstems } ) );
-
-    return $stopstems;
-}
-
-# return true if the stemmed version of any of the terms associated with the $stem in $stem_counts is in $stop_stems.
-# stem each of the terms using the $language object.
-sub stem_term_is_in_stop_stems
-{
-    my ( $stem, $stem_counts, $stop_stems, $language ) = @_;
-
-    my $terms = [ keys( %{ $stem_counts->{ $stem }->{ terms } } ) ];
-
-    my $stems = $language->stem( $terms );
-
-    for my $stem ( @{ $stems } )
-    {
-        return 1 if ( $stop_stems->{ $stem } );
-    }
-
-    return 0;
-}
-
-# remove stopwords from the $stem_counts
-sub prune_stopword_stems
-{
-    my ( $self, $stem_counts ) = @_;
-
-    return if ( $self->include_stopwords );
-
-    my $stop_stems = $self->get_stop_stems_in_all_languages();
-
-    for my $stem ( keys( %{ $stem_counts } ) )
-    {
-        if ( ( length( $stem ) < 3 ) || $stop_stems->{ $stem } )
-        {
-            delete( $stem_counts->{ $stem } );
-        }
-    }
-}
-
-# guess the languages to be the language of the whole body of text plus all distinct languages for individual sentences.
-# if no language is detected for the text of any sentence, default to 'en'.  append these default languages to the
-# specified list of languages.
-sub set_default_languages($$)
-{
     my ( $self, $sentences ) = @_;
 
-    return if ( $self->languages && @{ $self->languages } );
+    # Set any duplicate sentences blank
+    my $dup_sentences = {};
+    map { $dup_sentences->{ $_ } ? ( $_ = '' ) : ( $dup_sentences->{ $_ } = 1 ); } grep { defined( $_ ) } @{ $sentences };
 
-    # our cld language detection mis-identifies english as other languages enough that we should always include 'en'
-    my $language_lookup = { 'en' => 1 };
-
-    map { $language_lookup->{ $_ } = 1 } @{ $self->languages } if ( $self->languages );
-
-    my $story_text = join( "\n", grep { $_ } @{ $sentences } );
-    my $story_language = MediaWords::Util::IdentifyLanguage::language_code_for_text( $story_text );
-
-    $language_lookup->{ $story_language } = 1;
-
-    my $sentence_language_counts = {};
+    # Tokenize each sentence and add count to $words for each token
+    my $stem_counts = {};
     for my $sentence ( @{ $sentences } )
     {
+        unless ( defined( $sentence ) )
+        {
+            next;
+        }
+
+        # Very long sentences tend to be noise -- html text and the like.
+        $sentence = substr( $sentence, 0, $MAX_SENTENCE_LENGTH );
+
+        # Remove urls so they don't get tokenized into noise
+        $sentence =~ s~https?://[^\s]+~~gi;
+
         my $sentence_language = MediaWords::Util::IdentifyLanguage::language_code_for_text( $sentence );
-        $sentence_language_counts->{ $sentence_language }++ if ( $sentence_language );
+        unless ( $sentence_language )
+        {
+            TRACE "Unable to determine sentence language for sentence '$sentence', falling back to default language";
+            $sentence_language = MediaWords::Languages::Language::default_language_code();
+        }
+        unless ( MediaWords::Languages::Language::language_is_enabled( $sentence_language ) )
+        {
+            TRACE "Language '$sentence_language' for sentence '$sentence' is not enabled, falling back to default language";
+            $sentence_language = MediaWords::Languages::Language::default_language_code();
+        }
+
+        # Language objects are cached in ::Languages::Language, no need to have a separate cache
+        my $lang_en = MediaWords::Languages::Language::default_language();
+        my $lang    = MediaWords::Languages::Language::language_for_code( $sentence_language );
+
+        # Tokenize into words
+        my $sentence_words = $lang->tokenize( $sentence );
+
+        # Remove stopwords;
+        # (don't stem stopwords first as they will usually be stemmed too much)
+        my $combined_stopwords = {};
+        unless ( $self->include_stopwords )
+        {
+            # Use both sentence's language and English stopwords
+            $combined_stopwords = $self->_combine_stopwords( $lang_en, $lang );
+        }
+
+        sub _word_is_valid_token($$)
+        {
+            my ( $word, $stopwords ) = @_;
+
+            # Remove numbers
+            if ( $word =~ /^\d+?$/ )
+            {
+                return 0;
+            }
+
+            # Remove stopwords
+            if ( $stopwords->{ $word } )
+            {
+                return 0;
+            }
+
+            return 1;
+        }
+
+        $sentence_words = [ grep { _word_is_valid_token( $_, $combined_stopwords ) } @{ $sentence_words } ];
+
+        # Stem using language's algorithm
+        my $sentence_word_stems = $lang->stem( @{ $sentence_words } );
+
+        for ( my $i = 0 ; $i < @{ $sentence_words } ; ++$i )
+        {
+            my $term = $sentence_words->[ $i ];
+            my $stem = $sentence_word_stems->[ $i ];
+
+            $stem_counts->{ $stem } //= {};
+            ++$stem_counts->{ $stem }->{ count };
+
+            $stem_counts->{ $stem }->{ terms } //= {};
+            ++$stem_counts->{ $stem }->{ terms }->{ $term };
+        }
     }
 
-    my $total_sentence_count = scalar( @{ $sentences } );
-    while ( my ( $language, $language_count ) = each( %{ $sentence_language_counts } ) )
-    {
-        $language_lookup->{ $language } = 1 if ( ( $language_count / $total_sentence_count ) > $MIN_LANGUAGE_LEVEL );
-    }
-
-    my $languages = [ keys( %{ $language_lookup } ) ];
-
-    TRACE "default_languages: " . join( ', ', @{ $languages } );
-
-    $self->languages( $languages );
-}
-
-# set langauge_objects to point to a list of MediaWords::Languages::Language objects for each language in
-# $self->languages
-sub set_language_objects
-{
-    my ( $self ) = @_;
-
-    return if ( $self->language_objects );
-
-    my $language_objects = [];
-    for my $language_code ( @{ $self->languages } )
-    {
-        my $language_object = MediaWords::Languages::Language::language_for_code( $language_code );
-
-        push( @{ $language_objects }, $language_object ) if ( $language_object );
-    }
-
-    if ( !@{ $language_objects } )
-    {
-        push( @{ $language_objects }, MediaWords::Languages::Language::language_for_code( 'en' ) );
-    }
-
-    $self->language_objects( $language_objects );
+    return $stem_counts;
 }
 
 # given the story_sentences_id in the results, fetch the sentences from postgres
@@ -383,11 +275,14 @@ SQL
 }
 
 # connect to solr server directly and count the words resulting from the query
-sub get_words_from_solr_server
+sub _get_words_from_solr_server($)
 {
     my ( $self ) = @_;
 
-    return [] unless ( $self->q() || ( $self->fq && @{ $self->fq } ) );
+    unless ( $self->q() || ( $self->fq && @{ $self->fq } ) )
+    {
+        return [];
+    }
 
     my $solr_params = {
         q    => $self->q(),
@@ -406,10 +301,9 @@ sub get_words_from_solr_server
 
     # my @sentences = map { $_->{ sentence } } @{ $data->{ response }->{ docs } };
 
-    $self->set_default_languages( $sentences );
-
     DEBUG( "counting sentences..." );
     my $words = $self->count_stems( $sentences );
+    DEBUG( "done counting sentences" );
 
     my @word_list;
     while ( my ( $stem, $count ) = each( %{ $words } ) )
@@ -433,7 +327,7 @@ sub get_words_from_solr_server
             }
         }
 
-        if ( !$self->is_valid_utf8( $w->[ 0 ] ) || !$self->is_valid_utf8( $max_term ) )
+        if ( !MediaWords::Util::Text::is_valid_utf8( $w->[ 0 ] ) || !MediaWords::Util::Text::is_valid_utf8( $max_term ) )
         {
             WARN "invalid utf8: $w->[ 0 ] / $max_term";
             next;
@@ -470,7 +364,11 @@ sub _get_remote_words
 
     my $url = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_wc_url };
     my $key = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_wc_key };
-    return undef unless ( $url && $key );
+
+    unless ( $url && $key )
+    {
+        return undef;
+    }
 
     my $ua = MediaWords::Util::Web::UserAgent->new();
 
@@ -478,7 +376,7 @@ sub _get_remote_words
     $ua->set_max_size( undef );
 
     my $uri          = URI->new( $url );
-    my $query_params = $self->get_cgi_param_hash;
+    my $query_params = $self->_get_cgi_param_hash();
 
     $query_params->{ no_remote } = 1;
     $query_params->{ key }       = $key;
@@ -487,11 +385,17 @@ sub _get_remote_words
 
     my $res = $ua->get( $uri, Accept => 'application/json' );
 
-    die( "error retrieving words from solr: " . $res->as_string ) unless ( $res->is_success );
+    unless ( $res->is_success )
+    {
+        die( "error retrieving words from solr: " . $res->as_string );
+    }
 
     my $words = MediaWords::Util::JSON::decode_json( $res->decoded_content );
 
-    die( "Unable to parse json" ) unless ( $words && ref( $words ) );
+    unless ( $words && ref( $words ) )
+    {
+        die( "Unable to parse json" );
+    }
 
     return $words;
 }
@@ -542,19 +446,25 @@ sub _set_cached_words
     return $self->_get_cache->set( $self->_get_cache_key, $value );
 }
 
-# get sorted list of most common words in sentences matching a solr query.  exclude stop words from the
-# long_stop_word list.  assumes english stemming and stopwording for now.
+# get sorted list of most common words in sentences matching a Solr query,
+# exclude stop words. Assumes english stemming and stopwording for now.
 sub get_words
 {
     my ( $self ) = @_;
 
     my $words = $self->_get_cached_words;
 
-    return $words if ( $words );
+    if ( $words )
+    {
+        return $words;
+    }
 
-    $words = $self->_get_remote_words unless ( $self->no_remote );
+    unless ( $self->no_remote )
+    {
+        $words = $self->_get_remote_words;
+    }
 
-    $words ||= $self->get_words_from_solr_server;
+    $words ||= $self->_get_words_from_solr_server();
 
     $self->_set_cached_words( $words );
 

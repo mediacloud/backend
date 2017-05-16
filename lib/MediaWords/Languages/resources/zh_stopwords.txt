@@ -1,5 +1,5 @@
 #
-# This is a "tiny" stop word list for the Chinese language.
+# This is a stop word list for the Chinese language.
 #
 
 啊

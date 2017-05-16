@@ -1056,21 +1056,21 @@ SQL
     return $cursor;
 }
 
-# remove stopwords from the $stem_count list, using the $language and stop word $length
-sub _remove_stopwords_from_stem_vector($$$)
+# remove stopwords from the $stem_count list, using the $language
+sub _remove_stopwords_from_stem_vector($$)
 {
-    my ( $stem_counts, $language_code, $length ) = @_;
+    my ( $stem_counts, $language_code ) = @_;
 
-    return unless ( $language_code && $length );
+    return unless ( $language_code );
 
     my $language = MediaWords::Languages::Language::language_for_code( $language_code ) || return;
 
-    my $stop_words = $language->get_stop_word_stems( $length );
+    my $stop_words = $language->get_stop_word_stems();
 
     map { delete( $stem_counts->{ $_ } ) if ( $stop_words->{ $_ } ) } keys( %{ $stem_counts } );
 }
 
-=head2 get_story_word_matrix_file( $db, $stories_ids, $max_words, $stopword_length )
+=head2 get_story_word_matrix_file( $db, $stories_ids, $max_words )
 
 Given a list of stories_ids, generate a matrix consisting of the vector of word stem counts for each stories_id on each
 line.  Return a hash of story word counts and a list of word stems.
@@ -1098,17 +1098,15 @@ has and and word list look like:
 The story_sentences for each story will be used for word counting. If $max_words is specified, only the most common
 $max_words will be used for each story.
 
-If $stopword_length is specified, a stopword list of size 'tiny', 'short', or 'long' is used for each story language.
-
 The function uses MediaWords::Util::IdentifyLanguage to identify the stemming and stopwording language for each story.
 If the language of a given story is not supported, stemming and stopwording become null operations.  For the list of
 languages supported, see @MediaWords::Langauges::Language::_supported_languages.
 
 =cut
 
-sub get_story_word_matrix($$;$$)
+sub get_story_word_matrix($$;$)
 {
-    my ( $db, $stories_ids, $max_words, $stopword_length ) = @_;
+    my ( $db, $stories_ids, $max_words ) = @_;
 
     my $word_index_lookup   = {};
     my $word_index_sequence = 0;
@@ -1127,11 +1125,10 @@ sub get_story_word_matrix($$;$$)
         {
             my $wc = MediaWords::Solr::WordCounts->new( language => $story->{ language } );
             $wc->include_stopwords( 1 );
-            $wc->languages( [ $story->{ language } ] );
 
             my $stem_counts = $wc->count_stems( [ split( $sentence_separator, $story->{ story_text } ) ] );
 
-            _remove_stopwords_from_stem_vector( $stem_counts, $story->{ language }, $stopword_length );
+            _remove_stopwords_from_stem_vector( $stem_counts, $story->{ language } );
 
             my $stem_count_list = [];
             while ( my ( $stem, $data ) = each( %{ $stem_counts } ) )
