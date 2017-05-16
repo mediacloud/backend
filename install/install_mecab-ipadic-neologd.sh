@@ -12,14 +12,21 @@ source "$PWD/set_mc_root_dir.inc.sh"
 
 cd "$MC_ROOT_DIR"
 
+if [ `uname` == 'Darwin' ]; then
+    # greadlink from coreutils
+    READLINK="greadlink"
+else
+    READLINK="readlink"
+fi
+
 MECAB_IPADIC_NEOLOGD_DIST_PATH="lib/MediaWords/Languages/resources/ja/mecab-ipadic-neologd-dist/"
 MECAB_IPADIC_NEOLOGD_TARGET_PATH="lib/MediaWords/Languages/resources/ja/mecab-ipadic-neologd/"
 
 # Set by Mecab install script itself, we just replicate it here
 MECAB_IPADIC_NEOLOGD_BUILD_DIR="$MECAB_IPADIC_NEOLOGD_DIST_PATH/build/"
 
-MECAB_IPADIC_NEOLOGD_DIST_PATH=`realpath $MECAB_IPADIC_NEOLOGD_DIST_PATH`
-MECAB_IPADIC_NEOLOGD_TARGET_PATH=`realpath $MECAB_IPADIC_NEOLOGD_TARGET_PATH`
+MECAB_IPADIC_NEOLOGD_DIST_PATH=`$READLINK -m $MECAB_IPADIC_NEOLOGD_DIST_PATH`
+MECAB_IPADIC_NEOLOGD_TARGET_PATH=`$READLINK -m $MECAB_IPADIC_NEOLOGD_TARGET_PATH`
 
 if [ ! -d "$MECAB_IPADIC_NEOLOGD_DIST_PATH/seed/" ]; then
     echo "Path does not look like it contains mecab-ipadic-neologd: $MECAB_IPADIC_NEOLOGD_DIST_PATH"
