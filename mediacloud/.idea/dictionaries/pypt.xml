@@ -13,11 +13,13 @@
       <w>dataset</w>
       <w>datatype</w>
       <w>dateutil</w>
+      <w>dicdir</w>
       <w>dropdb</w>
       <w>fqdn</w>
       <w>hausastemmer</w>
       <w>hostnames</w>
       <w>ilike</w>
+      <w>ipadic</w>
       <w>kanye</w>
       <w>kardashian</w>
       <w>linkconfig</w>
@@ -26,7 +28,9 @@
       <w>lucenematchversion</w>
       <w>lxml</w>
       <w>mcquery</w>
+      <w>mecab</w>
       <w>mogrified</w>
+      <w>neologd</w>
       <w>nytimes</w>
       <w>phpsessid</w>
       <w>pids</w>

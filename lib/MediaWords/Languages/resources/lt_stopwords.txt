@@ -3,9 +3,7 @@
 #
 # Sources:
 #     http://www.filewatcher.com/p/punbb-1.2.16.tbz.620109/www/punbb/lang/Lithuanian/stopwords.txt.html
-#     ./script/run_with_carton.sh ./script/mediawords_generate_stopwords.pl --type=idf --stoplist_threshold=90
-#     ./script/run_with_carton.sh ./script/mediawords_generate_stopwords.pl --type=nidf --stoplist_threshold=90
-#     ./script/run_with_carton.sh ./script/mediawords_generate_stopwords.pl --type=tf --stoplist_threshold=90
+#     auto-generated sources
 #
 
 a

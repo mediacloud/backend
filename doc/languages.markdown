@@ -9,7 +9,7 @@ Secondarily, the tokenizing, stemming, and stopwording are used for the word cou
 
 ## Requirements for adding a new language
 
-1. A list of stop words (a stoplist).
+1. A list of stop words.
 
 2. A stemmer.
 

@@ -25,17 +25,17 @@ sub test_stopwords()
 {
     my $lang = MediaWords::Languages::ru->new();
 
-    ok( $lang->get_tiny_stop_words(), 'lang_en_get_stop_words' );
+    ok( $lang->get_stop_words(), 'lang_en_get_stop_words' );
 
     # Stop words
-    my $stop_words_ru = $lang->get_tiny_stop_words();
+    my $stop_words_ru = $lang->get_stop_words();
     ok( scalar( keys( %{ $stop_words_ru } ) ) >= 140, "stop words (ru) count is correct" );
 
     is( $stop_words_ru->{ 'и' }, 1, "Russian test #1" );
     is( $stop_words_ru->{ 'я' }, 1, "Russian test #2" );
 
     # Stop word stems
-    my $stop_word_stems_ru = $lang->get_tiny_stop_word_stems();
+    my $stop_word_stems_ru = $lang->get_stop_word_stems();
     ok( scalar( keys( %{ $stop_word_stems_ru } ) ) >= 108, "stop word stem (ru) count is correct" );
 }
 

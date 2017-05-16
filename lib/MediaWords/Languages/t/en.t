@@ -12,7 +12,7 @@ BEGIN
 use Readonly;
 
 use Test::NoWarnings;
-use Test::More tests => 32;
+use Test::More tests => 30;
 use utf8;
 
 use MediaWords::Languages::en;
@@ -22,10 +22,10 @@ sub test_stopwords()
 {
     my $lang = MediaWords::Languages::en->new();
 
-    ok( $lang->get_tiny_stop_words(), 'lang_en_get_stop_words' );
+    ok( $lang->get_stop_words(), 'lang_en_get_stop_words' );
 
     # Stop words
-    my $stop_words_en = $lang->get_tiny_stop_words();
+    my $stop_words_en = $lang->get_stop_words();
     ok( scalar( keys( %{ $stop_words_en } ) ) >= 174, "stop words (en) count is correct" );
 
     is( $stop_words_en->{ 'the' }, 1, "English test #1" );
@@ -33,14 +33,12 @@ sub test_stopwords()
     is( $stop_words_en->{ 'is' },  1, "English test #3" );
 
     # Stop word stems
-    my $stop_word_stems_en = $lang->get_tiny_stop_word_stems();
+    my $stop_word_stems_en = $lang->get_stop_word_stems();
     ok( scalar( keys( %{ $stop_word_stems_en } ) ) >= 154, "stop word stem (en) count is correct" );
 
     is( $stop_word_stems_en->{ 'a' }, 1, "Stemmed stop words" );
 
-    ok( $lang->get_tiny_stop_word_stems(),  "get_tiny_stop_word_stems()" );
-    ok( $lang->get_short_stop_word_stems(), 'get_short_stop_word_stems()' );
-    ok( $lang->get_long_stop_word_stems(),  'get_long_stop_word_stems()' );
+    ok( $lang->get_stop_word_stems(), 'get_stop_word_stems()' );
 }
 
 sub test_get_sentences()

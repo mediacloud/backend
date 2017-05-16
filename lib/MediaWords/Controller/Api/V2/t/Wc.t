@@ -21,6 +21,7 @@ use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
 
 use MediaWords::Languages::Language;
+use MediaWords::Util::IdentifyLanguage;
 
 Readonly my $NUM_MEDIA            => 5;
 Readonly my $NUM_FEEDS_PER_MEDIUM => 2;
@@ -41,23 +42,36 @@ sub test_wc_list($)
 select sentence from story_sentences where stories_id = ?
 SQL
 
-    my $en = MediaWords::Languages::Language::language_for_code( 'en' );
-
     my $expected_word_counts = {};
     for my $sentence ( @{ $sentences } )
     {
-        my $words = [ grep { length( $_ ) > 2 } split( /\W+/, lc( $sentence ) ) ];
-        my $stems = $en->stem( @{ $words } );
+        my $sentence_language = MediaWords::Util::IdentifyLanguage::language_code_for_text( $sentence );
+        unless ( $sentence_language )
+        {
+            TRACE "Unable to determine sentence language for sentence '$sentence', falling back to English";
+            $sentence_language = 'en';
+        }
+        unless ( MediaWords::Languages::Language::language_is_enabled( $sentence_language ) )
+        {
+            TRACE "Language '$sentence_language' for sentence '$sentence' is not enabled, falling back to English";
+            $sentence_language = 'en';
+        }
+
+        my $lang = MediaWords::Languages::Language::language_for_code( $sentence_language );
+
+        my $words = $lang->tokenize( $sentence );
+        my $stems = $lang->stem( @{ $words } );
         map { $expected_word_counts->{ $_ }++ } @{ $stems };
     }
 
     my $got_word_counts = test_get(
         '/api/v2/wc/list',
         {
-            q                 => "stories_id:$story->{ stories_id }",
-            languages         => 'en',                                 # set to english so that we can know how to stem above
-            num_words         => 10000,
-            include_stopwords => 1                                     # don't try to test stopwording
+            q         => "stories_id:$story->{ stories_id }",
+            num_words => 10000,
+
+            # don't try to test stopwording
+            include_stopwords => 1,
         }
     );
 

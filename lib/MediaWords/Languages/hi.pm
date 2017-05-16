@@ -16,11 +16,12 @@ use MediaWords::CommonLibs;
 
 use Encode;
 use Readonly;
-use Scalar::Defer;
 use Text::Hunspell;
 
-my $_hunspell_hindi = lazy
+sub BUILD
 {
+    my ( $self, $args ) = @_;
+
     my $hunspell = Text::Hunspell->new(
         'lib/MediaWords/Languages/resources/hi/hindi-hunspell/dict-hi_IN/hi_IN.aff',    # Hunspell affix file
         'lib/MediaWords/Languages/resources/hi/hindi-hunspell/dict-hi_IN/hi_IN.dic'     # Hunspell dictionary file
@@ -41,30 +42,18 @@ running:
 EOF
     }
 
-    return $hunspell;
-};
+    $self->{ _hunspell_hindi } = $hunspell;
+}
 
 sub get_language_code
 {
     return 'hi';
 }
 
-sub fetch_and_return_tiny_stop_words
+sub fetch_and_return_stop_words
 {
     my $self = shift;
-    return $self->fetch_and_return_long_stop_words();
-}
-
-sub fetch_and_return_short_stop_words
-{
-    my $self = shift;
-    return $self->fetch_and_return_long_stop_words();
-}
-
-sub fetch_and_return_long_stop_words
-{
-    my $self = shift;
-    return $self->_get_stop_words_from_file( 'lib/MediaWords/Languages/resources/hi_stoplist.txt' );
+    return $self->_get_stop_words_from_file( 'lib/MediaWords/Languages/resources/hi_stopwords.txt' );
 }
 
 sub stem
@@ -84,7 +73,7 @@ sub stem
         }
         else
         {
-            my @encoded_stems = $_hunspell_hindi->stem( $token );
+            my @encoded_stems = $self->{ _hunspell_hindi }->stem( $token );
             TRACE "Encoded stems for '$token': " . Dumper( \@encoded_stems );
 
             if ( scalar @encoded_stems )
