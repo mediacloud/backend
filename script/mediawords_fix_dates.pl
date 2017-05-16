@@ -27,15 +27,14 @@ sub main
     {
         my $stories_id = int( $line );
 
+        WARN( "STORY $stories_id" );
+
         my $story = $db->require_by_id( 'stories', $stories_id );
 
-        my $content_ref = MediaWords::DBI::Stories::fetch_content( $db, $story );
-
-        WARN( "STORY $story->{ stories_id }" );
-
-        if ( !$$content_ref )
+        my $content_ref = eval { MediaWords::DBI::Stories::fetch_content( $db, $story ) };
+        if ( $@ || !$$content_ref )
         {
-            warn( "unable to fetch content for story $story->{ stories_id }" );
+            WARN( "ERROR FETCHING CONTENT: skipping" );
             next;
         }
 
