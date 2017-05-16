@@ -73,14 +73,17 @@ class McJapaneseTokenizer(object):
         sentences = []
         for sentence in japanese_sentences:
 
-            # Split paragraphs separated by two line breaks (because PunktSentenceTokenizer doesn't do that)
+            # Split paragraphs separated by two line breaks denoting a list
             paragraphs = re.split("\n\s*?\n", sentence)
             for paragraph in paragraphs:
 
-                # ...then naively split non-Japanese text
-                non_japanese_sentences = self.__non_japanese_sentence_tokenizer.tokenize(paragraph)
+                # Split lists separated by "* "
+                list_items = re.split("\n\s*?(?=\* )", paragraph)
+                for list_item in list_items:
+                    # Split non-Japanese text
+                    non_japanese_sentences = self.__non_japanese_sentence_tokenizer.tokenize(list_item)
 
-                sentences += non_japanese_sentences
+                    sentences += non_japanese_sentences
 
         # Trim whitespace
         sentences = [sentence.strip() for sentence in sentences]
