@@ -26,6 +26,9 @@ echo "Installing the necessary Ubuntu / OS X packages..."
 echo "Installing Python dependencies..."
 ./install/install_python_dependencies.sh
 
+echo "Installing MeCab..."
+./install/install_mecab-ipadic-neologd.sh
+
 echo "Setting kernel parameters..."
 ./install/set_kernel_parameters.sh
 

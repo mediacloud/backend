@@ -857,11 +857,7 @@ URL: https://api.mediacloud.org/api/v2/sentences/field_count?q=obama+AND+media_i
 
 ## api/v2/wc/list
 
-Returns word frequency counts of the most common words in a randomly sampled set of all sentences returned by querying
-Solr using the `q` and `fq` parameters, with stopwords removed by default.  Words are stemmed before being counted.  For
-each word, the call returns the stem and the full term most used with the given stem in the specified Solr query (for
-example, in the below example, 'democrat' is the stem that appeared 58 times and 'democrats' is the word that was most
-commonly stemmed into 'democract').
+Returns word frequency counts of the most common words in a randomly sampled set of all sentences returned by querying Solr using the `q` and `fq` parameters, with stopwords removed by default.  Words are stemmed before being counted.  For each word, the call returns the stem and the full term most used with the given stem in the specified Solr query (for example, in the below example, 'democrat' is the stem that appeared 58 times and 'democrats' is the word that was most commonly stemmed into 'democract').
 
 ### Query Parameters
 
@@ -869,131 +865,114 @@ commonly stemmed into 'democract').
 | ------------------- | ------- | ----------------------------------------------------------------
 | `q`                 | n/a     | `q` ("query") parameter which is passed directly to Solr
 | `fq`                | `null`  | `fq` ("filter query") parameter which is passed directly to Solr
-| `languages`         | `en`    | space separated list of languages to use for stopwording and stemming
-| `num_words`         | 500     | number of words to return
-| `sample_size`       | 1000    | number of sentences to sample, max 100,000
-| `include_stopwords` | 0       | set to 1 to include stopwords in the listed languages
-| `include_stats`     | 0       | set to 1 to include stats about the request as a whole (such as total number of words)
+| `num_words`         | 500     | Number of words to return
+| `sample_size`       | 1000    | Number of sentences to sample, max 100,000
+| `include_stopwords` | 0       | Set to 1 to disable stopword removal
+| `include_stats`     | 0       | Set to 1 to include stats about the request as a whole (such as total number of words)
 
-See above /api/v2/stories_public/list for Solr query syntax.
+See above `/api/v2/stories_public/list` for Solr query syntax.
 
-To provide quick results, the API counts words in a randomly sampled set of sentences returned
-by the given query.  By default, the request will sample 1000 sentences and return 500 words.  You
-can make the API sample more sentences.  The system takes about one second to process each multiple of
-1000 sentences.
+To provide quick results, the API counts words in a randomly sampled set of sentences returned by the given query.  By default, the request will sample 1000 sentences and return 500 words.  You can make the API sample more sentences.  The system takes about one second to process each multiple of 1000 sentences.
 
-By default, the system stems and stopwords the list in English plus each of the supported languages it detects for
-either the entire block block of text or for at least 5% of the individual sentences within the query.  If you specify the 'languages' parameter, the system will stem and stopword the words by each of the
-listed languages plus english.
+Sentences are going to be tokenized into words by identifying each of the sentence's language and using this language's sentence splitting algorithm. Additionally, both English and the identified language's stopwords are going to be removed from results. See [Supported Languages](#supported-languages) for a list of supported languages and their codes.
 
-Stemming for multiple languages is done by stemming each returned term in each language sequentially, ordered
-by the language code for each language.  This sequential stemming is likely to introduce some artifacts into the
-results.  If you want results in only a single language, include a `language:<code>` (for instance `language:en`)
-clause in your query to ensure only sentences of that language are returned.
+Setting the 'stats' field to true changes the structure of the response, as shown in the example below. Following fields are included in the stats response:
 
-See [Supported Languages](#supported-languages) for a list of supported languages and their codes.
-
-Setting the 'stats' field to true changes the structure of the response, as shown in the example below.
-Following fields are included in the stats response:
-
-| Field                        | Description
-| ---------------------------- | -------------------------------------------------------------------
-| num_words_returned           | The number of words returned by the call, up to num_words
-| num_sentences_returned       | The number of sentences returned by the call, up to sample_size
-| num_sentences_found          | The total number of sentences found by Solr to match the query
-| num_words_param              | The num_words param passed into the call, or the default value
-| sample_size_param            | The sample size passed into the call, or the default value
+| Field                    | Description
+| ------------------------ | -------------------------------------------------------------------
+| `num_words_returned`     | The number of words returned by the call, up to `num_words`
+| `num_sentences_returned` | The number of sentences returned by the call, up to `sample_size`
+| `num_sentences_found`    | The total number of sentences found by Solr to match the query
+| `num_words_param`        | The `num_words` param passed into the call, or the default value
+| `sample_size_param`      | The sample size passed into the call, or the default value
 
 ### Example
 
 Get word frequency counts for all sentences containing the word `'obama'` in The New York Times
 
-URL:  https://api.mediacloud.org/api/v2/wc/list?q=obama+AND+media_id:1
+URL: <https://api.mediacloud.org/api/v2/wc/list?q=obama+AND+media_id:1>
 
 ```json
 [
-
-  {
-    "count":1014,
-    "stem":"obama",
-    "term":"obama"
-  },
-  {
-    "count":106,
-    "stem":"republican",
-    "term":"republican"
-  },
-  {
-    "count":78,
-    "stem":"campaign",
-    "term":"campaign"
-  },
-  {
-    "count":72,
-    "stem":"romney",
-    "term":"romney"
-  },
-  {
-    "count":59,
-    "stem":"washington",
-    "term":"washington"
-  },
-  {
-    "count":58,
-    "stem":"democrat",
-    "term":"democrats"
-  }
+    {
+        "count": 1014,
+        "stem": "obama",
+        "term": "obama"
+    },
+    {
+        "count": 106,
+        "stem": "republican",
+        "term": "republican"
+    },
+    {
+        "count": 78,
+        "stem": "campaign",
+        "term": "campaign"
+    },
+    {
+        "count": 72,
+        "stem": "romney",
+        "term": "romney"
+    },
+    {
+        "count": 59,
+        "stem": "washington",
+        "term": "washington"
+    },
+    {
+        "count": 58,
+        "stem": "democrat",
+        "term": "democrats"
+    }
 ]
 ```
 
 Get word frequency counts for all sentences containing the word `'obama'` in The New York Times, with
 stats data included
 
-URL:  https://api.mediacloud.org/api/v2/wc/list?q=obama+AND+media_id:1&stats=1
+URL: <https://api.mediacloud.org/api/v2/wc/list?q=obama+AND+media_id:1&stats=1>
 
 ```json
 
-{ "stats":
-  {
-     "num_words_returned":5123,
-     "num_sentences_returned":899,
-     "num_sentences_found":899
-   },
-   "words":
-   [
-     {
-       "count":1014,
-       "stem":"obama",
-       "term":"obama"
-     },
-     {
-       "count":106,
-       "stem":"republican",
-       "term":"republican"
-     },
-     {
-       "count":78,
-       "stem":"campaign",
-       "term":"campaign"
-     },
-     {
-       "count":72,
-       "stem":"romney",
-       "term":"romney"
-     },
-     {
-       "count":59,
-       "stem":"washington",
-       "term":"washington"
-     },
-     {
-       "count":58,
-       "stem":"democrat",
-       "term":"democrats"
-     }
-   ]
+{
+    "stats": {
+        "num_words_returned": 5123,
+        "num_sentences_returned": 899,
+        "num_sentences_found": 899
+    },
+    "words": [
+        {
+            "count":1014,
+            "stem":"obama",
+            "term":"obama"
+        },
+        {
+            "count":106,
+            "stem":"republican",
+            "term":"republican"
+        },
+        {
+            "count":78,
+            "stem":"campaign",
+            "term":"campaign"
+        },
+        {
+            "count":72,
+            "stem":"romney",
+            "term":"romney"
+        },
+        {
+            "count":59,
+            "stem":"washington",
+            "term":"washington"
+        },
+        {
+            "count":58,
+            "stem":"democrat",
+            "term":"democrats"
+        }
+    ]
 }
-
 ```
 
 # Tags and Tag Sets
