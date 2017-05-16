@@ -14,6 +14,7 @@ Uses sampling to generate quick word counts from solr queries.
 
 use strict;
 use warnings;
+use utf8;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
