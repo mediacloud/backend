@@ -14,6 +14,7 @@ Uses sampling to generate quick word counts from solr queries.
 
 use strict;
 use warnings;
+use utf8;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
@@ -147,7 +148,7 @@ sub _combine_stopwords($$$)
     unless ( defined $self->cached_combined_stopwords->{ $language_1 }->{ $language_2 } )
     {
         my $lang_1_stopwords = $lang_1->get_stop_words();
-        my $lang_2_stopwords = $lang_1->get_stop_words();
+        my $lang_2_stopwords = $lang_2->get_stop_words();
 
         my $combined_stopwords = { ( %{ $lang_1_stopwords }, %{ $lang_2_stopwords } ) };
 
