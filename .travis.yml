@@ -1,5 +1,6 @@
 # Installing up-to-date Erlang requires root
 sudo: true
+dist: trusty
 addons:
     postgresql: "9.3"
     hosts:
@@ -48,7 +49,9 @@ env:
         - MC_SKIP_RABBIT_OPEN_FILES_LIMIT_CHECK=1
 before_install:
     # Install APT packages (not PostgreSQL though)
-    - ./install/install_mediacloud_system_package_dependencies.sh
+    - ./install/install_mediacloud_package_dependencies.sh
+    # Install Japanese language support library
+    - ./install/install_mecab-ipadic-neologd.sh
     # Install Python dependencies
     - travis_retry ./install/install_python_dependencies.sh
     # Set up kernel and PostgreSQL parameters

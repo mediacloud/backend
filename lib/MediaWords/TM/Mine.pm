@@ -693,7 +693,7 @@ END
         $story->{ publish_date } = $source_story->{ publish_date };
     }
 
-    my $date = MediaWords::TM::GuessDate::guess_date( $db, $story, $story_content, 1 );
+    my $date = MediaWords::TM::GuessDate::guess_date( $db, $story, $story_content );
     if ( $date->{ result } eq $MediaWords::TM::GuessDate::Result::FOUND )
     {
         return ( $date->{ guess_method }, $date->{ date } );
@@ -1632,19 +1632,13 @@ sub add_new_links($$$$)
 {
     my ( $db, $topic, $iteration, $new_links ) = @_;
 
+    return unless ( @{ $new_links } );
+
     # randomly shuffle the links because it is better for downloading (which has per medium throttling) and extraction
     # (which has per medium locking) to distribute urls from the same media source randomly among the list of links. the
     # link mining and solr seeding routines that feed most links to this function tend to naturally group links
     # from the same media source together.
-    my $shuffled_links = [
-
-        # a link is only required to have a url field, but it usually has a controversy_links_id; better to sort by
-        # id if possible so that identical urls do not get grouped
-        sort {
-            Digest::MD5::md5_hex( encode( 'utf-8', $a->{ topic_links_id } || $a->{ url } ) )
-              cmp Digest::MD5::md5_hex( encode( 'utf-8', $b->{ topic_links_id } || $b->{ url } ) )
-        } @{ $new_links }
-    ];
+    my $shuffled_links = [ List::Util::shuffle( @{ $new_links } ) ];
 
     for ( my $i = 0 ; $i < scalar( @{ $shuffled_links } ) ; $i += $ADD_NEW_LINKS_CHUNK_SIZE )
     {
@@ -1711,6 +1705,9 @@ END
 sub run_spider
 {
     my ( $db, $topic ) = @_;
+
+    # before we run the spider over links, we need to make sure links have been generated for all existing stories
+    mine_topic_stories( $db, $topic );
 
     my $num_iterations = $topic->{ max_iterations };
 
@@ -2667,29 +2664,22 @@ sub do_mine_topic ($$;$)
     update_topic_state( $db, $topic, "importing seed urls" );
     if ( import_seed_urls( $db, $topic ) )
     {
-
         # merge dup media and stories here to avoid redundant link processing for imported urls
         update_topic_state( $db, $topic, "merging duplicate media stories" );
         merge_dup_media_stories( $db, $topic );
 
         update_topic_state( $db, $topic, "merging duplicate stories" );
         find_and_merge_dup_stories( $db, $topic );
-    }
 
-    update_topic_state( $db, $topic, "mining topic stories" );
-    mine_topic_stories( $db, $topic );
-
-    unless ( $options->{ import_only } )
-    {
         update_topic_state( $db, $topic, "merging foreign rss stories" );
         merge_foreign_rss_stories( $db, $topic );
 
         update_topic_state( $db, $topic, "adding redirect urls to topic stories" );
         add_redirect_urls_to_topic_stories( $db, $topic );
+    }
 
-        update_topic_state( $db, $topic, "mining topic stories" );
-        mine_topic_stories( $db, $topic );
-
+    unless ( $options->{ import_only } )
+    {
         update_topic_state( $db, $topic, "running spider" );
         run_spider( $db, $topic );
 

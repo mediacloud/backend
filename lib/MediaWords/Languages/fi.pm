@@ -18,22 +18,10 @@ sub get_language_code
     return 'fi';
 }
 
-sub fetch_and_return_tiny_stop_words
+sub fetch_and_return_stop_words
 {
     my $self = shift;
-    return $self->_get_stop_words_from_file( 'lib/MediaWords/Languages/resources/fi_stoplist.txt' );
-}
-
-sub fetch_and_return_short_stop_words
-{
-    my $self = shift;
-    return $self->_get_stop_words_from_file( 'lib/MediaWords/Languages/resources/fi_stoplist.txt' );
-}
-
-sub fetch_and_return_long_stop_words
-{
-    my $self = shift;
-    return $self->_get_stop_words_from_file( 'lib/MediaWords/Languages/resources/fi_stoplist.txt' );
+    return $self->_get_stop_words_from_file( 'lib/MediaWords/Languages/resources/fi_stopwords.txt' );
 }
 
 sub stem

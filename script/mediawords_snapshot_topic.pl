@@ -24,17 +24,20 @@ use MediaWords::Job::TM::SnapshotTopic;
 
 sub main
 {
-    my ( $topic_opt, $direct_job, $note, $bot_policy );
+    my ( $topic_opt, $direct_job, $note, $bot_policy, $periods );
 
     binmode( STDOUT, 'utf8' );
     binmode( STDERR, 'utf8' );
     $| = 1;
 
+    $periods = [];
+
     Getopt::Long::GetOptions(
         "topic=s"      => \$topic_opt,
         "direct_job!"  => \$direct_job,
         "note=s"       => \$note,
-        "bot_policy=s" => \$bot_policy
+        "bot_policy=s" => \$bot_policy,
+        "period=s"     => $periods
     ) || return;
 
     die( "Usage: $0 --topic < id >" ) unless ( $topic_opt );
@@ -52,7 +55,8 @@ sub main
         my $args      = {
             topics_id  => $topics_id,
             note       => $note,
-            bot_policy => $bot_policy
+            bot_policy => $bot_policy,
+            periods    => $periods
         };
 
         if ( $direct_job )

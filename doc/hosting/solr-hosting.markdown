@@ -112,7 +112,7 @@ Usage:
 	# or
 	./upgrade_lucene_index.py --cluster
 
-After upgrading between major Solr versions (e.g. Solr 4 to Solr 5), you must run [`IndexUpgrader` tool](https://cwiki.apache.org/confluence/display/solr/IndexUpgrader+Tool) to upgrade Lucene indexes too. This tool will run the index upgrade to either a standalone Solr instance or all Solr shards residing in the data directory.
+After upgrading between major Solr versions (e.g. Solr 5 to Solr 6), you must run [`IndexUpgrader` tool](https://cwiki.apache.org/confluence/display/solr/IndexUpgrader+Tool) to upgrade Lucene indexes too. This tool will run the index upgrade to either a standalone Solr instance or all Solr shards residing in the data directory.
 
 
 ### Optimize indexes
