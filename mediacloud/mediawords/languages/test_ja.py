@@ -3,7 +3,6 @@ from unittest import TestCase
 from mediawords.languages.ja import *
 
 
-# FIXME text -> sentence tokenization with newlines
 # FIXME text -> sentence tokenization with lists
 
 # noinspection SpellCheckingInspection
@@ -86,12 +85,35 @@ class TestJapaneseTokenizer(TestCase):
         sentences = self.__tokenizer.tokenize_text_to_sentences("""ジアゼパムはてんかんや興奮の治療に用いられる。
 This is some English text out of the blue. 
 また、有痛性筋痙攣（いわゆる“こむらがえり”）などの筋痙攣の治療にはベンゾジアゼピン類の中で最も有用であるとされている。
-This is some more English text.""")
+This is some more English text.
+This is some more English text.
+dsds.
+""")
         assert sentences == [
             "ジアゼパムはてんかんや興奮の治療に用いられる。",
             "This is some English text out of the blue.",
             "また、有痛性筋痙攣（いわゆる“こむらがえり”）などの筋痙攣の治療にはベンゾジアゼピン類の中で最も有用であるとされている。",
             "This is some more English text.",
+            "This is some more English text.",
+            "dsds.",
+        ]
+
+        # Japanese and English sentences separates by double-newlines
+        # (test has extra whitespace between line breaks)
+        sentences = self.__tokenizer.tokenize_text_to_sentences("""
+ジアゼパムはてんかんや興奮の治療に用いられる
+  
+This is some English text out of the blue
+  
+また、有痛性筋痙攣（いわゆる“こむらがえり”）などの筋痙攣の治療にはベンゾジアゼピン類の中で最も有用であるとされている
+  
+This is some more English text
+""")
+        assert sentences == [
+            "ジアゼパムはてんかんや興奮の治療に用いられる",
+            "This is some English text out of the blue",
+            "また、有痛性筋痙攣（いわゆる“こむらがえり”）などの筋痙攣の治療にはベンゾジアゼピン類の中で最も有用であるとされている",
+            "This is some more English text",
         ]
 
     def test_tokenize_sentence_to_words(self):

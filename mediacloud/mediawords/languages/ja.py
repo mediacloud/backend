@@ -1,6 +1,7 @@
 import MeCab
 from nltk import RegexpTokenizer, PunktSentenceTokenizer
 import os
+import re
 
 from mediawords.util.log import create_logger
 from mediawords.util.paths import mc_root_path
@@ -71,10 +72,15 @@ class McJapaneseTokenizer(object):
         japanese_sentences = self.__japanese_sentence_tokenizer.tokenize(text)
         sentences = []
         for sentence in japanese_sentences:
-            # ...then naively split non-Japanese text
-            non_japanese_sentences = self.__non_japanese_sentence_tokenizer.tokenize(sentence)
 
-            sentences += non_japanese_sentences
+            # Split paragraphs separated by two line breaks (because PunktSentenceTokenizer doesn't do that)
+            paragraphs = re.split("\n\s*?\n", sentence)
+            for paragraph in paragraphs:
+
+                # ...then naively split non-Japanese text
+                non_japanese_sentences = self.__non_japanese_sentence_tokenizer.tokenize(paragraph)
+
+                sentences += non_japanese_sentences
 
         # Trim whitespace
         sentences = [sentence.strip() for sentence in sentences]
