@@ -1,4 +1,5 @@
 import MeCab
+from mediawords.util.text import random_string
 from nltk import RegexpTokenizer, PunktSentenceTokenizer
 import os
 import re
@@ -29,8 +30,22 @@ class McJapaneseTokenizer(object):
 
     __non_japanese_sentence_tokenizer = PunktSentenceTokenizer()
 
-    # MeCab-returned string that denotes that term is punctuation
-    __MECAB_POS_PUNCTUATION = "記号"
+    __MECAB_TOKEN_POS_SEPARATOR = random_string(length=16)  # for whatever reason tab doesn't work
+    __MECAB_EOS_MARK = 'EOS'
+
+    # Allowed parts of speech that carry meaning (see pos-id.def)
+    __MECAB_ALLOWED_POS_NUMBERS = {
+        36,  # noun-verbal
+        38,  # noun
+        40,  # adjectival nouns or quasi-adjectives
+        41,  # proper nouns
+        42,  # proper noun, names of people
+        43,  # proper noun, first name
+        44,  # proper noun, last name
+        45,  # proper noun, organization
+        46,  # proper noun in general
+        47,  # proper noun, country name
+    }
 
     def __init__(self):
         """Initialize MeCab tokenizer."""
@@ -50,7 +65,15 @@ class McJapaneseTokenizer(object):
                 """ % dictionary_path)
 
         try:
-            self.__mecab = MeCab.Tagger("--dicdir=%s" % dictionary_path)
+            self.__mecab = MeCab.Tagger(
+                '--dicdir=%(dictionary_path)s '
+                '--node-format=%%m%(token_pos_separator)s%%h\\n '
+                '--eos-format=%(eos_mark)s\\n' % {
+                    'token_pos_separator': self.__MECAB_TOKEN_POS_SEPARATOR,
+                    'eos_mark': self.__MECAB_EOS_MARK,
+                    'dictionary_path': dictionary_path
+                }
+            )
         except Exception as ex:
             raise McJapaneseTokenizerException("Unable to initialize MeCab: %s" % str(ex))
 
@@ -111,19 +134,18 @@ class McJapaneseTokenizer(object):
 
         words = []
         for parsed_token_line in parsed_tokens:
-            if "\t" in parsed_token_line:
+            if self.__MECAB_TOKEN_POS_SEPARATOR in parsed_token_line:
 
-                # "表層形\t品詞,品詞細分類1,品詞細分類2,品詞細分類3,活用型,活用形,原形,読み,発音"
-                # (https://taku910.github.io/mecab/)
-                primary_form_and_analysis_result = parsed_token_line.split("\t")
+                primary_form_and_pos_number = parsed_token_line.split(self.__MECAB_TOKEN_POS_SEPARATOR)
 
-                primary_form = primary_form_and_analysis_result[0]
-                analysis_result = primary_form_and_analysis_result[1]
+                primary_form = primary_form_and_pos_number[0]
+                pos_number = primary_form_and_pos_number[1]
 
-                part_of_speech = analysis_result.split(",")[0]
+                if pos_number.isdigit():
+                    pos_number = int(pos_number)
 
-                if part_of_speech != self.__MECAB_POS_PUNCTUATION:
-                    words.append(primary_form)
+                    if pos_number in self.__MECAB_ALLOWED_POS_NUMBERS:
+                        words.append(primary_form)
 
             else:
                 # Ignore all the "EOS" stuff

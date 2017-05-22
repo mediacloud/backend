@@ -184,37 +184,22 @@ This is some more English text
             "10日放送の「中居正広のミになる図書館」（テレビ朝日系）で、SMAPの中居正広が、篠原信一の過去の勘違いを明かす一幕があった。"
         )
         assert words == [
-            "10日",
-            "放送",
-            "の",
-            "中居正広のミになる図書館",
-            "テレビ朝日",
-            "系",
-            "で",
-            "SMAP",
-            "の",
-            "中居正広",
-            "が",
-            "篠原信一",
-            "の",
-            "過去",
-            "の",
-            "勘違い",
-            "を",
-            "明かす",
-            "一幕",
-            "が",
-            "あっ",
-            "た",
+            '10日',
+            '放送',
+            '中居正広のミになる図書館',
+            'テレビ朝日',
+            'SMAP',
+            '中居正広',
+            '篠原信一',
+            '勘違い',
+            '一幕',
         ]
 
         # Japanese + English sentence
         words = self.__tokenizer.tokenize_sentence_to_words("pythonが大好きです")
         assert words == [
             "python",
-            "が",
             "大好き",
-            "です",
         ]
 
         # Japanese punctuation

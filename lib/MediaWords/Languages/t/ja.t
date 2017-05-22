@@ -50,7 +50,7 @@ sub test_tokenize($)
     my $lang = shift;
 
     my $input_sentence = 'pythonが大好きです';
-    my $expected_words = [ 'python', 'が', '大好き', 'です', ];
+    my $expected_words = [ 'python', '大好き', ];
     my $actual_words   = $lang->tokenize( $input_sentence );
 
     cmp_deeply( $actual_words, $expected_words, 'tokenize()' );
