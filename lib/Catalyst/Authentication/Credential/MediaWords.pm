@@ -48,7 +48,10 @@ sub authenticate
     my $user_obj = $realm->find_user( $userfindauthinfo, $c );
     if ( ref( $user_obj ) )
     {
-        if ( $self->check_password( $user_obj, $authinfo ) )
+        my $password       = $authinfo->{ $password_field };
+        my $storedpassword = $user_obj->get( $password_field );
+
+        if ( MediaWords::DBI::Auth::Password::password_hash_is_valid( $storedpassword, $password ) )
         {
             return $user_obj;
         }
@@ -61,16 +64,6 @@ sub authenticate
         }
         return;
     }
-}
-
-sub check_password
-{
-    my ( $self, $user, $authinfo ) = @_;
-
-    my $password       = $authinfo->{ $password_field };
-    my $storedpassword = $user->get( $password_field );
-
-    return MediaWords::DBI::Auth::Password::password_hash_is_valid( $storedpassword, $password );
 }
 
 __PACKAGE__;
