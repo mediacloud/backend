@@ -28,7 +28,7 @@ sub BUILD
     # Quick self-test to make sure that MeCab, its dictionaries and Python
     # class are installed and working
     my @self_test_words = $tokenizer->tokenize_sentence_to_words( 'pythonが大好きです' );
-    if ( ( !$self_test_words[ 0 ] ) or $self_test_words[ 1 ] ne 'が' )
+    if ( ( !$self_test_words[ 0 ] ) or $self_test_words[ 1 ] ne '大好き' )
     {
         die <<EOF;
 MeCab self-test failed; make sure that MeCab is installed and dictionaries are accessible:
