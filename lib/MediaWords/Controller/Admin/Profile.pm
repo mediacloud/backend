@@ -28,14 +28,7 @@ sub index : Path : Args(0)
         die "Unable to find user with email '$email'";
     }
 
-    my $userauth;
-    eval { $userauth = MediaWords::DBI::Auth::Profile::user_auth( $db, $email ); };
-    if ( $@ or ( !$userauth ) )
-    {
-        die "Unable to find authentication roles for email '$email'";
-    }
-
-    my $roles = $userauth->{ roles };
+    my $roles = $userinfo->{ roles };
 
     my $weekly_requests_limit        = $userinfo->{ weekly_requests_limit } + 0;
     my $weekly_requested_items_limit = $userinfo->{ weekly_requested_items_limit } + 0;

@@ -34,10 +34,10 @@ sub login_and_get_ip_api_key_for_user($$$$)
     }
 
     my $user;
-    eval { $user = MediaWords::DBI::Auth::Profile::user_auth( $db, $email ); };
+    eval { $user = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
     if ( $@ or ( !$user ) )
     {
-        die "Unable to find authentication roles for email '$email'";
+        die "Unable to find user with email '$email'";
     }
 
     unless ( $user->{ active } )

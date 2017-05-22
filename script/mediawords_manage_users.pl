@@ -428,20 +428,12 @@ sub user_show($)
         return 1;
     }
 
-    my $db_user_roles;
-    eval { $db_user_roles = MediaWords::DBI::Auth::Profile::user_auth( $db, $user_email ); };
-    if ( $@ or ( !$db_user_roles ) )
-    {
-        ERROR "Unable to find authentication roles for email '$user_email'";
-        return 1;
-    }
-
     say "User ID:          " . $db_user->{ auth_users_id };
     say "Email (username): " . $db_user->{ email };
     say "Full name: " . $db_user->{ full_name };
     say "Notes:     " . $db_user->{ notes };
     say "Active:    " . ( $db_user->{ active } ? 'yes' : 'no' );
-    say "Roles:     " . join( ',', @{ $db_user_roles->{ roles } } );
+    say "Roles:     " . join( ',', @{ $db_user->{ roles } } );
     say "API key:   " . $db_user->{ api_key };
     say "Weekly requests limit:        " . $db_user->{ weekly_requests_limit };
     say "Weekly requested items limit: " . $db_user->{ weekly_requested_items_limit };

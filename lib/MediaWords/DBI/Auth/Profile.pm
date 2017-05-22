@@ -15,8 +15,13 @@ use Readonly;
 use MediaWords::DBI::Auth::Password;
 use MediaWords::DBI::Auth::User::ExistingUser;
 
-# Fetch a hash of basic user information (email, full name, notes, non-IP limited API key)
-# die() on error
+# Fetch a hash of basic user information (email, full name, notes, non-IP
+# limited API key)
+#
+# Fetches both active and deactivated users; checking whether or not the user
+# is active is left to the controller.
+#
+# die()s on error
 sub user_info($$)
 {
     my ( $db, $email ) = @_;
@@ -27,89 +32,72 @@ sub user_info($$)
     }
 
     # Fetch readonly information about the user
-    my $userinfo = $db->query(
-        <<"SQL",
-        SELECT auth_users.auth_users_id,
-               auth_users.email,
-               full_name,
-               notes,
-               active,
-               auth_user_api_keys.api_key,
-               auth_user_api_keys.ip_address,
-               weekly_requests_sum,
-               weekly_requested_items_sum,
-               weekly_requests_limit,
-               weekly_requested_items_limit
-        FROM auth_users
-            INNER JOIN auth_user_api_keys
-                ON auth_users.auth_users_id = auth_user_api_keys.auth_users_id
-            INNER JOIN auth_user_limits
-                ON auth_users.auth_users_id = auth_user_limits.auth_users_id,
-            auth_user_limits_weekly_usage( \$1 )
-        WHERE auth_users.email = \$1
+    my $userinfo;
+    eval {
+        $userinfo = $db->query(
+            <<"SQL",
+            SELECT auth_users.auth_users_id,
+                   auth_users.email,
+                   auth_users.password_hash,
+                   auth_users.full_name,
+                   auth_users.notes,
+                   auth_users.active,
+                   auth_user_api_keys.api_key,
+                   auth_user_api_keys.ip_address,
+                   weekly_requests_sum,
+                   weekly_requested_items_sum,
+                   auth_user_limits.weekly_requests_limit,
+                   auth_user_limits.weekly_requested_items_limit,
+                   ARRAY_TO_STRING(ARRAY_AGG(auth_roles.role), ' ') AS roles
 
-          -- Return only non-IP limited API key
-          AND auth_user_api_keys.ip_address IS NULL
+            FROM auth_users
+                INNER JOIN auth_user_api_keys
+                    ON auth_users.auth_users_id = auth_user_api_keys.auth_users_id
+                INNER JOIN auth_user_limits
+                    ON auth_users.auth_users_id = auth_user_limits.auth_users_id
+                LEFT JOIN auth_users_roles_map
+                    ON auth_users.auth_users_id = auth_users_roles_map.auth_users_id
+                LEFT JOIN auth_roles
+                    ON auth_users_roles_map.auth_roles_id = auth_roles.auth_roles_id,
+                auth_user_limits_weekly_usage( \$1 )
 
-        LIMIT 1
+            WHERE auth_users.email = \$1
+
+              -- Return only non-IP limited API key
+              AND auth_user_api_keys.ip_address IS NULL
+
+            GROUP BY auth_users.auth_users_id,
+                   auth_users.email,
+                   auth_users.password_hash,
+                   auth_users.full_name,
+                   auth_users.notes,
+                   auth_users.active,
+                   auth_user_api_keys.api_key,
+                   auth_user_api_keys.ip_address,
+                   weekly_requests_sum,
+                   weekly_requested_items_sum,
+                   auth_user_limits.weekly_requests_limit,
+                   auth_user_limits.weekly_requested_items_limit
+
+            LIMIT 1
 SQL
-        $email
-    )->hash;
+            $email
+        )->hash;
+    };
+    if ( $@ or ( !$userinfo ) )
+    {
+        LOGCONFESS "Unable to fetch user with email '$email': $@";
+    }
 
     unless ( ref( $userinfo ) eq ref( {} ) and $userinfo->{ auth_users_id } )
     {
         LOGCONFESS "User with email '$email' was not found.";
     }
 
-    return $userinfo;
-}
-
-# Fetch a hash of basic user information, password hash and an array of assigned roles.
-# Fetches both active and deactivated users; checking whether or not the user is active is left to the controller.
-# Returns 0 on error.
-# This subroutine is used by Catalyst::Authentication::Store::MediaWords for authenticating users
-sub user_auth($$)
-{
-    my ( $db, $email ) = @_;
-
-    unless ( $email )
-    {
-        LOGCONFESS "User email is not defined.";
-    }
-
-    # Check if user exists; if so, fetch user info, password hash and a list of roles.
-    my $user = $db->query(
-        <<"SQL",
-        SELECT auth_users.auth_users_id,
-               auth_users.email,
-               auth_users.password_hash,
-               auth_users.active,
-               ARRAY_TO_STRING(ARRAY_AGG(role), ' ') AS roles
-        FROM auth_users
-            LEFT JOIN auth_users_roles_map
-                ON auth_users.auth_users_id = auth_users_roles_map.auth_users_id
-            LEFT JOIN auth_roles
-                ON auth_users_roles_map.auth_roles_id = auth_roles.auth_roles_id
-        WHERE auth_users.email = ?
-        GROUP BY auth_users.auth_users_id,
-                 auth_users.email,
-                 auth_users.password_hash,
-                 auth_users.active
-        ORDER BY auth_users.auth_users_id
-        LIMIT 1
-SQL
-        $email
-    )->hash;
-
-    unless ( ref( $user ) eq ref( {} ) and $user->{ auth_users_id } )
-    {
-        LOGCONFESS "User with email '$email' was not found.";
-    }
-
     # Make an array out of list of roles
-    $user->{ roles } = [ split( ' ', $user->{ roles } ) ];
+    $userinfo->{ roles } = [ split( ' ', $userinfo->{ roles } ) ];
 
-    return $user;
+    return $userinfo;
 }
 
 # Fetch and return a list of users and their roles; returns an arrayref

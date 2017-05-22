@@ -46,7 +46,7 @@ sub find_user
     # Check if user exists and is active; if so, fetch user info,
     # password hash and a list of roles
     my $userauth;
-    eval { $userauth = MediaWords::DBI::Auth::Profile::user_auth( $db, $email ); };
+    eval { $userauth = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
     if ( $@ or ( !$userauth ) )
     {
         WARN "User '$email' was not found.";
