@@ -13,6 +13,7 @@ use MediaWords::CommonLibs;
 use Readonly;
 
 use MediaWords::DBI::Auth::Password;
+use MediaWords::DBI::Auth::User::ExistingUser;
 
 # Fetch a hash of basic user information (email, full name, notes, non-IP limited API key)
 # die() on error
@@ -177,40 +178,82 @@ SQL
     return $users;
 }
 
-# Update an existing user; die()s on error
-# ($password and $password_repeat are optional; if not provided, the password will not be changed)
-sub update_user($$$$$$;$$$$)
+# Update an existing user; die() on error
+# Undefined user fields won't be set.
+sub update_user($$)
 {
-    my ( $db, $email, $full_name, $notes, $roles, $is_active, $password, $password_repeat,
-        $weekly_requests_limit, $weekly_requested_items_limit )
-      = @_;
+    my ( $db, $existing_user ) = @_;
+
+    unless ( $existing_user )
+    {
+        die "Existing user is undefined.";
+    }
+    unless ( ref( $existing_user ) eq 'MediaWords::DBI::Auth::User::ExistingUser' )
+    {
+        die "Existing user is not MediaWords::DBI::Auth::User::ExistingUser.";
+    }
+
+    INFO "Modifying user: " . MediaWords::Util::Log::dump_terse( $existing_user );
 
     # Check if user exists
     my $userinfo;
-    eval { $userinfo = user_info( $db, $email ); };
+    eval { $userinfo = user_info( $db, $existing_user->email() ); };
     if ( $@ or ( !$userinfo ) )
     {
-        die "User with email address '$email' does not exist.";
+        die 'User with email address "' . $existing_user->email() . '" does not exist.';
     }
 
     # Begin transaction
     $db->begin_work;
 
-    # Update the user
-    $db->query(
-        <<"SQL",
-        UPDATE auth_users
-        SET full_name = ?,
-            notes = ?,
-            active = ?
-        WHERE email = ?
-SQL
-        $full_name, $notes, normalize_boolean_for_db( $is_active ), $email
-    );
-
-    if ( $password )
+    if ( defined( $existing_user->full_name() ) )
     {
-        eval { MediaWords::DBI::Auth::ChangePassword::change_password( $db, $email, $password, $password_repeat, 1 ); };
+        $db->query(
+            <<SQL,
+            UPDATE auth_users
+            SET full_name = ?
+            WHERE email = ?
+SQL
+            $existing_user->full_name(), $existing_user->email()
+        );
+    }
+
+    if ( defined( $existing_user->notes() ) )
+    {
+        $db->query(
+            <<SQL,
+            UPDATE auth_users
+            SET notes = ?
+            WHERE email = ?
+SQL
+            $existing_user->notes(), $existing_user->email()
+        );
+    }
+
+    if ( defined( $existing_user->active() ) )
+    {
+        $db->query(
+            <<SQL,
+            UPDATE auth_users
+            SET active = ?
+            WHERE email = ?
+SQL
+            normalize_boolean_for_db( $existing_user->active() ), $existing_user->email()
+        );
+    }
+
+    if ( defined $existing_user->password() )
+    {
+        eval {
+            Readonly my $do_not_inform_via_email => 1;
+            MediaWords::DBI::Auth::ChangePassword::change_password(
+                $db,
+                $existing_user->email(),
+                $existing_user->password(),
+                $existing_user->password_repeat(),
+                $do_not_inform_via_email
+            );
+        };
         if ( $@ )
         {
             my $error_message = "Unable to change password: $@";
@@ -220,7 +263,7 @@ SQL
         }
     }
 
-    if ( defined $weekly_requests_limit )
+    if ( defined( $existing_user->weekly_requests_limit() ) )
     {
         $db->query(
             <<SQL,
@@ -228,11 +271,11 @@ SQL
             SET weekly_requests_limit = ?
             WHERE auth_users_id = ?
 SQL
-            $weekly_requests_limit, $userinfo->{ auth_users_id }
+            $existing_user->weekly_requests_limit(), $userinfo->{ auth_users_id }
         );
     }
 
-    if ( defined $weekly_requested_items_limit )
+    if ( defined( $existing_user->weekly_requested_items_limit() ) )
     {
         $db->query(
             <<SQL,
@@ -240,26 +283,29 @@ SQL
             SET weekly_requested_items_limit = ?
             WHERE auth_users_id = ?
 SQL
-            $weekly_requested_items_limit, $userinfo->{ auth_users_id }
+            $existing_user->weekly_requested_items_limit(), $userinfo->{ auth_users_id }
         );
     }
 
-    # Update roles
-    $db->query(
-        <<SQL,
-        DELETE FROM auth_users_roles_map
-        WHERE auth_users_id = ?
-SQL
-        $userinfo->{ auth_users_id }
-    );
-    for my $auth_roles_id ( @{ $roles } )
+    if ( defined( $existing_user->role_ids() ) )
     {
+
         $db->query(
             <<SQL,
-            INSERT INTO auth_users_roles_map (auth_users_id, auth_roles_id) VALUES (?, ?)
+            DELETE FROM auth_users_roles_map
+            WHERE auth_users_id = ?
 SQL
-            $userinfo->{ auth_users_id }, $auth_roles_id
+            $userinfo->{ auth_users_id }
         );
+        for my $auth_roles_id ( @{ $existing_user->role_ids() } )
+        {
+            $db->query(
+                <<SQL,
+                INSERT INTO auth_users_roles_map (auth_users_id, auth_roles_id) VALUES (?, ?)
+SQL
+                $userinfo->{ auth_users_id }, $auth_roles_id
+            );
+        }
     }
 
     # End transaction

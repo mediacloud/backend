@@ -21,5 +21,6 @@ use MediaWords::DBI::Auth::ResetPassword;
 use MediaWords::DBI::Auth::Roles;
 use MediaWords::DBI::Auth::Roles::List;
 use MediaWords::DBI::Auth::User::NewUser;
+use MediaWords::DBI::Auth::User::ExistingUser;
 
 1;

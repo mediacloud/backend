@@ -1,7 +1,7 @@
 package MediaWords::DBI::Auth::User::NewUser;
 
 #
-# User object
+# New user object
 #
 
 use strict;
@@ -11,18 +11,26 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Moose;
-extends 'MediaWords::DBI::Auth::User::AbstractUser';
+extends 'MediaWords::DBI::Auth::User::NewOrExistingUser';
 
-use MediaWords::DBI::Auth::Password;
-
-has 'password'        => ( is => 'rw', isa => 'Str' );
-has 'password_repeat' => ( is => 'rw', isa => 'Str' );
-has 'activation_url'  => ( is => 'rw', isa => 'Str' );
+has 'activation_url' => ( is => 'rw', isa => 'Str' );
 
 sub BUILD
 {
     my $self = shift;
 
+    unless ( $self->full_name() )
+    {
+        LOGCONFESS "User full name is unset.";
+    }
+    unless ( defined $self->notes() )
+    {
+        LOGCONFESS "User notes are undefined (should be at least an empty string).";
+    }
+    unless ( ref $self->role_ids() eq ref( [] ) )
+    {
+        LOGCONFESS "List of role IDs is not an array: " . Dumper( $self->role_ids() );
+    }
     unless ( $self->password() )
     {
         LOGCONFESS "Password is unset.";
@@ -32,15 +40,7 @@ sub BUILD
         LOGCONFESS "Password repeat is unset.";
     }
 
-    my $password_validation_message = MediaWords::DBI::Auth::Password::validate_new_password(
-        $self->email(),             #
-        $self->password(),          #
-        $self->password_repeat()    #
-    );
-    if ( $password_validation_message )
-    {
-        LOGCONFESS "Password is invalid: $password_validation_message";
-    }
+    # Password will be verified by ::NewOrExistingUser
 
     # Either activate the user right away, or make it inactive and send out an email with activation link
     if ( ( $self->active() and $self->activation_url() ) or ( ( !$self->active() ) and ( !$self->activation_url() ) ) )

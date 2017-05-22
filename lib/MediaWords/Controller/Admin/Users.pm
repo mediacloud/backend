@@ -432,18 +432,18 @@ sub edit : Local
 
     # Update user
     eval {
-        MediaWords::DBI::Auth::Profile::update_user(
-            $db,                                  #
-            $email,                               #
-            $user_full_name,                      #
-            $user_notes,                          #
-            $user_roles,                          #
-            $user_is_active,                      #
-            $user_password,                       #
-            $user_password_repeat,                #
-            $user_weekly_requests_limit,          #
-            $user_weekly_requested_items_limit    #
+        my $existing_user = MediaWords::DBI::Auth::User::ExistingUser->new(
+            email                        => $email,
+            full_name                    => $user_full_name || undef,                       # don't update if not set
+            notes                        => $user_notes || undef,                           # don't update if not set
+            role_ids                     => $user_roles || undef,                           # don't update if not set
+            active                       => $user_is_active || undef,                       # don't update if not set
+            password                     => $user_password || undef,                        # don't update if not set
+            password_repeat              => $user_password_repeat || undef,                 # don't update if not set
+            weekly_requests_limit        => $user_weekly_requests_limit || undef,           # don't update if not set
+            weekly_requested_items_limit => $user_weekly_requested_items_limit || undef,    # don't update if not set
         );
+        MediaWords::DBI::Auth::Profile::update_user( $db, $existing_user );
     };
     if ( $@ )
     {
