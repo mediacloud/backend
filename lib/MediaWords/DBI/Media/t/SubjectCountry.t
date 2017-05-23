@@ -57,14 +57,27 @@ sub add_country_geo_tags($$$$)
     my $tag_sets_id = $tag_set->{ tag_sets_id };
     my $tag = $db->find_or_create( 'tags', { tag => $country, label => $country, tag_sets_id => $tag_sets_id } );
 
-    $db->query( <<SQL, $medium->{ media_id }, $tag->{ tags_id }, $num_stories );
-insert into stories_tags_map ( tags_id, stories_id )
-    select \$2, stories_id
-        from stories
-        where media_id = \$1
-        order by stories_id
-        limit \$3
+    my $stories = $db->query( "select * from stories where media_id = \$1", $medium->{ media_id } )->hashes;
+
+    my $i = 0;
+    for my $story ( @{ $stories } )
+    {
+        my $insert_tags_id;
+        if ( $i++ < $num_stories )
+        {
+            $insert_tags_id = $tag->{ tags_id };
+        }
+        else
+        {
+            my $t = $story->{ stories_id } . '';    # use stringified stories_id to make sure other tags are unique
+            my $other_tag = $db->find_or_create( 'tags', { tag => $t, label => $t, tag_sets_id => $tag_sets_id } );
+            $insert_tags_id = $other_tag->{ tags_id };
+        }
+
+        $db->query( <<SQL, $insert_tags_id, $story->{ stories_id } );
+insert into stories_tags_map ( tags_id, stories_id ) values ( \$1, \$2 )
 SQL
+    }
 }
 
 # test that the country gets set correctly by setting the given number of stories to the given country

@@ -78,7 +78,7 @@ subject_country_counts as (
 ),
 
 medium_stories_count as (
-    select count( * ) story_count from stories where media_id = \$1
+    select count( distinct stories_id ) story_count from subject_countries
 )
 
 select
