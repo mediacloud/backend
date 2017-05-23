@@ -181,7 +181,7 @@ sub update_user($$)
         die "Existing user is not MediaWords::DBI::Auth::User::ExistingUser.";
     }
 
-    INFO "Modifying user: " . MediaWords::Util::Log::dump_terse( $existing_user );
+    TRACE "Modifying user: " . MediaWords::Util::Log::dump_terse( $existing_user );
 
     # Check if user exists
     my $userinfo;

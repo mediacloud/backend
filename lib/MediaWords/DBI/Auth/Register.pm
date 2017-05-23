@@ -164,7 +164,7 @@ sub add_user($$)
         die "New user is not MediaWords::DBI::Auth::User::NewUser.";
     }
 
-    INFO "Creating user: " . MediaWords::Util::Log::dump_terse( $new_user );
+    TRACE "Creating user: " . MediaWords::Util::Log::dump_terse( $new_user );
 
     # Check if user already exists
     my ( $user_exists ) = $db->query(
