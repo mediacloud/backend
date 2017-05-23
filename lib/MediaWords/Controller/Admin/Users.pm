@@ -595,11 +595,11 @@ sub edit_tag_set_permissions : Local
         );
     }
 
-    $c->stash->{ auth_users_id } = $userinfo->{ auth_users_id };
-    $c->stash->{ email }         = $userinfo->{ email };
-    $c->stash->{ full_name }     = $userinfo->{ full_name };
-    $c->stash->{ notes }         = $userinfo->{ notes };
-    $c->stash->{ active }        = $userinfo->{ active };
+    $c->stash->{ auth_users_id } = $userinfo->id();
+    $c->stash->{ email }         = $userinfo->email();
+    $c->stash->{ full_name }     = $userinfo->full_name();
+    $c->stash->{ notes }         = $userinfo->notes();
+    $c->stash->{ active }        = $userinfo->active();
     $c->stash->{ c }             = $c;
 
     # $c->stash->{ form }          = $form;
