@@ -140,63 +140,27 @@ sub all_users($)
 {
     my ( $db ) = @_;
 
-    # List a full list of roles near each user because (presumably) one can then find out
-    # whether or not a particular user has a specific role faster.
-    my $users = $db->query(
+    # Start a transaction so that the list of users doesn't change while we run
+    # separate queries with user_info()
+    $db->begin;
+
+    my $user_emails = $db->query(
         <<"SQL"
-        SELECT
-            auth_users.auth_users_id,
-            auth_users.email,
-            auth_users.full_name,
-            auth_users.notes,
-            auth_users.active,
-
-            -- Role from a list of all roles
-            all_user_roles.role,
-
-            -- Boolean denoting whether the user has that particular role
-            ARRAY(
-                SELECT r_auth_roles.role
-                FROM auth_users AS r_auth_users
-                    INNER JOIN auth_users_roles_map AS r_auth_users_roles_map
-                        ON r_auth_users.auth_users_id = r_auth_users_roles_map.auth_users_id
-                    INNER JOIN auth_roles AS r_auth_roles
-                        ON r_auth_users_roles_map.auth_roles_id = r_auth_roles.auth_roles_id
-                WHERE auth_users.auth_users_id = r_auth_users.auth_users_id
-            ) @> ARRAY[all_user_roles.role] AS user_has_that_role
-
-        FROM auth_users,
-             (SELECT role FROM auth_roles ORDER BY auth_roles_id) AS all_user_roles
-
-        ORDER BY auth_users.auth_users_id
+            SELECT email
+            FROM auth_users
+            ORDER BY auth_users_id
 SQL
-    )->hashes;
+    )->flat;
 
-    my $unique_users = {};
+    my $users = [];
 
-    # Make a hash of unique users and their rules
-    for my $user ( @{ $users } )
+    foreach my $email ( @{ $user_emails } )
     {
-        my $auth_users_id = $user->{ auth_users_id } + 0;
-        $unique_users->{ $auth_users_id }->{ 'auth_users_id' } = $auth_users_id;
-        $unique_users->{ $auth_users_id }->{ 'email' }         = $user->{ email };
-        $unique_users->{ $auth_users_id }->{ 'full_name' }     = $user->{ full_name };
-        $unique_users->{ $auth_users_id }->{ 'notes' }         = $user->{ notes };
-        $unique_users->{ $auth_users_id }->{ 'active' }        = $user->{ active };
-
-        if ( !ref( $unique_users->{ $auth_users_id }->{ 'roles' } ) eq ref( {} ) )
-        {
-            $unique_users->{ $auth_users_id }->{ 'roles' } = {};
-        }
-
-        $unique_users->{ $auth_users_id }->{ 'roles' }->{ $user->{ role } } = $user->{ user_has_that_role };
+        my $user = user_info( $db, $email );
+        push( @{ $users }, $user );
     }
 
-    $users = [];
-    foreach my $auth_users_id ( sort { $a <=> $b } keys %{ $unique_users } )
-    {
-        push( @{ $users }, $unique_users->{ $auth_users_id } );
-    }
+    $db->commit;
 
     return $users;
 }
