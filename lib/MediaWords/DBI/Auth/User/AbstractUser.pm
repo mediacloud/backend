@@ -15,8 +15,7 @@ use Moose;
 has 'email'                        => ( is => 'rw', isa => 'Str' );
 has 'full_name'                    => ( is => 'rw', isa => 'Maybe[Str]' );
 has 'notes'                        => ( is => 'rw', isa => 'Maybe[Str]' );
-has 'role_ids'                     => ( is => 'rw', isa => 'Maybe[ArrayRef[Int]]' );
-has 'active'                       => ( is => 'rw', isa => 'Maybe[Int]' );             # boolean
+has 'active'                       => ( is => 'rw', isa => 'Maybe[Int]' );    # boolean
 has 'weekly_requests_limit'        => ( is => 'rw', isa => 'Maybe[Int]' );
 has 'weekly_requested_items_limit' => ( is => 'rw', isa => 'Maybe[Int]' );
 

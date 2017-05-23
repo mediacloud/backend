@@ -342,7 +342,7 @@ sub create_test_user($$)
     }
 
     my $user_info = MediaWords::DBI::Auth::Profile::user_info( $db, $email );
-    my $api_key = $user_info->{ api_key };
+    my $api_key = $user_info->global_api_key();
 
     return $api_key;
 }

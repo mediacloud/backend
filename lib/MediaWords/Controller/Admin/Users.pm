@@ -61,9 +61,9 @@ sub delete : Local
         die "Unable to find user with email '$email'";
     }
 
-    $c->stash->{ auth_users_id } = $userinfo->{ auth_users_id };
-    $c->stash->{ email }         = $userinfo->{ email };
-    $c->stash->{ full_name }     = $userinfo->{ full_name };
+    $c->stash->{ auth_users_id } = $userinfo->id();
+    $c->stash->{ email }         = $userinfo->email();
+    $c->stash->{ full_name }     = $userinfo->full_name();
     $c->stash->{ c }             = $c;
     $c->stash->{ template }      = 'users/delete.tt2';
 }
@@ -336,8 +336,6 @@ sub edit : Local
         die "Unable to find user with email '$email'";
     }
 
-    my %user_roles = map { $_ => 1 } @{ $userinfo->{ roles } };
-
     $form->process( $c->request );
 
     unless ( $form->submitted_and_valid() )
@@ -346,10 +344,10 @@ sub edit : Local
         # Fetch list of available roles
         my $available_roles = MediaWords::DBI::Auth::Roles::all_user_roles( $db );
         my @roles_options;
-        for my $role ( @{ $available_roles } )
+        for my $available_role ( @{ $available_roles } )
         {
             my $html_role_attributes = {};
-            if ( exists( $user_roles{ $role->{ role } } ) )
+            if ( $userinfo->has_role( $available_role->{ role } ) )
             {
                 $html_role_attributes = { checked => 'checked' };
             }
@@ -357,8 +355,8 @@ sub edit : Local
             push(
                 @roles_options,
                 {
-                    value      => $role->{ auth_roles_id },
-                    label      => $role->{ role } . ': ' . $role->{ description },
+                    value      => $available_role->{ auth_roles_id },
+                    label      => $available_role->{ role } . ': ' . $available_role->{ description },
                     attributes => $html_role_attributes
                 }
             );
@@ -368,16 +366,16 @@ sub edit : Local
         $el_roles->options( \@roles_options );
 
         my $el_regenerate_api_key = $form->get_element( { name => 'regenerate_api_key', type => 'Button' } );
-        $el_regenerate_api_key->comment( $userinfo->{ api_key } );
+        $el_regenerate_api_key->comment( $userinfo->global_api_key() );
 
         $form->default_values(
             {
                 email                        => $email,
-                full_name                    => $userinfo->{ full_name },
-                notes                        => $userinfo->{ notes },
-                active                       => $userinfo->{ active },
-                weekly_requests_limit        => $userinfo->{ weekly_requests_limit },
-                weekly_requested_items_limit => $userinfo->{ weekly_requested_items_limit }
+                full_name                    => $userinfo->full_name(),
+                notes                        => $userinfo->notes(),
+                active                       => $userinfo->active(),
+                weekly_requests_limit        => $userinfo->weekly_requests_limit(),
+                weekly_requested_items_limit => $userinfo->weekly_requested_items_limit(),
             }
         );
 
@@ -385,11 +383,11 @@ sub edit : Local
         $form->process( $c->request );
 
         # Show the form
-        $c->stash->{ auth_users_id } = $userinfo->{ auth_users_id };
-        $c->stash->{ email }         = $userinfo->{ email };
-        $c->stash->{ full_name }     = $userinfo->{ full_name };
-        $c->stash->{ notes }         = $userinfo->{ notes };
-        $c->stash->{ active }        = $userinfo->{ active };
+        $c->stash->{ auth_users_id } = $userinfo->id();
+        $c->stash->{ email }         = $userinfo->email();
+        $c->stash->{ full_name }     = $userinfo->full_name();
+        $c->stash->{ notes }         = $userinfo->notes();
+        $c->stash->{ active }        = $userinfo->active();
         $c->stash->{ c }             = $c;
         $c->stash->{ form }          = $form;
         $c->stash->{ template }      = 'users/edit.tt2';
@@ -409,13 +407,13 @@ sub edit : Local
     my $user_weekly_requested_items_limit = $form->param_value( 'weekly_requested_items_limit' );
 
     # Check if user is trying to deactivate oneself
-    if ( $userinfo->{ email } eq $c->user->username and ( !$user_is_active ) )
+    if ( $userinfo->email() eq $c->user->username and ( !$user_is_active ) )
     {
-        $c->stash->{ auth_users_id } = $userinfo->{ auth_users_id };
-        $c->stash->{ email }         = $userinfo->{ email };
-        $c->stash->{ full_name }     = $userinfo->{ full_name };
-        $c->stash->{ notes }         = $userinfo->{ notes };
-        $c->stash->{ active }        = $userinfo->{ active };
+        $c->stash->{ auth_users_id } = $userinfo->id();
+        $c->stash->{ email }         = $userinfo->email();
+        $c->stash->{ full_name }     = $userinfo->full_name();
+        $c->stash->{ notes }         = $userinfo->notes();
+        $c->stash->{ active }        = $userinfo->active();
         $c->stash->{ c }             = $c;
         $c->stash->{ form }          = $form;
         $c->stash->{ template }      = 'users/edit.tt2';
@@ -425,7 +423,7 @@ sub edit : Local
 
     # Update user
     eval {
-        my $existing_user = MediaWords::DBI::Auth::User::ExistingUser->new(
+        my $existing_user = MediaWords::DBI::Auth::User::ModifyUser->new(
             email                        => $email,
             full_name                    => $user_full_name || undef,                       # don't update if not set
             notes                        => $user_notes || undef,                           # don't update if not set
@@ -442,11 +440,11 @@ sub edit : Local
     {
         my $error_message = "Unable to update user: $@";
 
-        $c->stash->{ auth_users_id } = $userinfo->{ auth_users_id };
-        $c->stash->{ email }         = $userinfo->{ email };
-        $c->stash->{ full_name }     = $userinfo->{ full_name };
-        $c->stash->{ notes }         = $userinfo->{ notes };
-        $c->stash->{ active }        = $userinfo->{ active };
+        $c->stash->{ auth_users_id } = $userinfo->id();
+        $c->stash->{ email }         = $userinfo->email();
+        $c->stash->{ full_name }     = $userinfo->full_name();
+        $c->stash->{ notes }         = $userinfo->notes();
+        $c->stash->{ active }        = $userinfo->active();
         $c->stash->{ c }             = $c;
         $c->stash->{ form }          = $form;
         $c->stash->{ template }      = 'users/edit.tt2';
@@ -516,7 +514,7 @@ sub tag_set_permissions_json : Local
     my $auth_users_tag_set_permissions = $db->query(
 "SELECT autsp.*, ts.name as tag_set_name from auth_users_tag_sets_permissions autsp, tag_sets ts where auth_users_id = ? "
           . " AND ts.tag_sets_id = autsp.tag_sets_id ",
-        $userinfo->{ auth_users_id }
+        $userinfo->id()
     )->hashes();
 
     $c->res->body( MediaWords::Util::JSON::encode_json( $auth_users_tag_set_permissions ) );
@@ -541,7 +539,7 @@ sub available_tag_sets_json : Local
 
     my $available_tag_sets = $db->query(
 "SELECT * from tag_sets where tag_sets_id not in ( select tag_sets_id from auth_users_tag_sets_permissions where auth_users_id = ?)  ",
-        $userinfo->{ auth_users_id }
+        $userinfo->id()
     )->hashes();
 
     $c->res->body( MediaWords::Util::JSON::encode_json( $available_tag_sets ) );
@@ -579,10 +577,10 @@ sub edit_tag_set_permissions : Local
     # Fetch list of available roles
     my $available_roles = MediaWords::DBI::Auth::Roles::all_user_roles( $db );
     my @roles_options;
-    for my $role ( @{ $available_roles } )
+    for my $available_role ( @{ $available_roles } )
     {
         my $html_role_attributes = {};
-        if ( exists( $user_roles{ $role->{ role } } ) )
+        if ( $userinfo->has_role( $available_role->{ role } ) )
         {
             $html_role_attributes = { checked => 'checked' };
         }
@@ -590,8 +588,8 @@ sub edit_tag_set_permissions : Local
         push(
             @roles_options,
             {
-                value      => $role->{ auth_roles_id },
-                label      => $role->{ role } . ': ' . $role->{ description },
+                value      => $available_role->{ auth_roles_id },
+                label      => $available_role->{ role } . ': ' . $available_role->{ description },
                 attributes => $html_role_attributes
             }
         );

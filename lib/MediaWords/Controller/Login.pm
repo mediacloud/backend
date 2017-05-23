@@ -294,7 +294,7 @@ sub activate : Local
     }
 
     # Check if the user has already been activated
-    if ( $user_info->{ active } )
+    if ( $user_info->active() )
     {
         WARN "User $email has already been activated";
         $c->stash->{ template } = 'auth/welcome.tt2';

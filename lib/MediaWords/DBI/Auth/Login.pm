@@ -40,12 +40,12 @@ sub login_and_get_ip_api_key_for_user($$$$)
         die "Unable to find user with email '$email'";
     }
 
-    unless ( $user->{ active } )
+    unless ( $user->active() )
     {
         die "User with email '$email' is not active.";
     }
 
-    unless ( MediaWords::DBI::Auth::Password::password_hash_is_valid( $user->{ password_hash }, $password ) )
+    unless ( MediaWords::DBI::Auth::Password::password_hash_is_valid( $user->password_hash(), $password ) )
     {
         die "Password for user '$email' is invalid.";
     }
@@ -57,10 +57,10 @@ sub login_and_get_ip_api_key_for_user($$$$)
         WHERE auth_users_id = \$1
           AND ip_address = \$2
 SQL
-        $user->{ auth_users_id }, $ip_address
+        $user->id(), $ip_address
     )->hash;
 
-    my $auit_hash = { auth_users_id => $user->{ auth_users_id }, ip_address => $ip_address };
+    my $auit_hash = { auth_users_id => $user->id(), ip_address => $ip_address };
     $auth_user_ip_api_key //= $db->create( 'auth_user_api_keys', $auit_hash );
 
     return $auth_user_ip_api_key->{ api_key };

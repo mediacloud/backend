@@ -1,7 +1,7 @@
-package MediaWords::DBI::Auth::User::ExistingUser;
+package MediaWords::DBI::Auth::User::ModifyUser;
 
 #
-# Existing user object
+# User object for user to be modified by update_user()
 #
 
 use strict;
@@ -11,7 +11,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Moose;
-extends 'MediaWords::DBI::Auth::User::NewOrExistingUser';
+extends 'MediaWords::DBI::Auth::User::NewOrModifyUser';
 
 sub BUILD
 {

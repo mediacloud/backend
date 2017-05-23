@@ -118,7 +118,26 @@ select ar.role
     order by auth_roles_id
 SQL
 
-    return $self->status_ok( $c, entity => $userinfo );
+    my $user_role_names = [];
+    for my $user_role ( @{ $userinfo->roles() } )
+    {
+        push( @{ $user_role_names }, $user_role->role() );
+    }
+
+    my $user_hash = {
+        auth_users_id                => $userinfo->id(),
+        email                        => $userinfo->email(),
+        full_name                    => $userinfo->full_name(),
+        notes                        => $userinfo->notes(),
+        active                       => $userinfo->active(),
+        weekly_requests_sum          => $userinfo->weekly_requests_sum(),
+        weekly_requested_items_sum   => $userinfo->weekly_requested_items_sum(),
+        weekly_requests_limit        => $userinfo->weekly_requests_limit(),
+        weekly_requested_items_limit => $userinfo->weekly_requested_items_limit(),
+        roles                        => $user_role_names,
+    };
+
+    return $self->status_ok( $c, entity => $user_hash );
 }
 
 1;

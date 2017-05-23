@@ -28,31 +28,30 @@ sub index : Path : Args(0)
         die "Unable to find user with email '$email'";
     }
 
-    my $roles = $userinfo->{ roles };
-
-    my $weekly_requests_limit        = $userinfo->{ weekly_requests_limit } + 0;
-    my $weekly_requested_items_limit = $userinfo->{ weekly_requested_items_limit } + 0;
+    my $weekly_requests_limit        = $userinfo->weekly_requests_limit();
+    my $weekly_requested_items_limit = $userinfo->weekly_requested_items_limit();
 
     # Admin users are effectively unlimited
     my $roles_exempt_from_user_limits = MediaWords::DBI::Auth::Limits::roles_exempt_from_user_limits();
     foreach my $exempt_role ( @{ $roles_exempt_from_user_limits } )
     {
-        if ( any { $_ eq $exempt_role } @{ $roles } )
+        if ( $userinfo->has_role( $exempt_role ) )
         {
             $weekly_requests_limit        = 0;
             $weekly_requested_items_limit = 0;
+            last;
         }
     }
 
     # Prepare the template
     $c->stash->{ c }         = $c;
-    $c->stash->{ email }     = $userinfo->{ email };
-    $c->stash->{ full_name } = $userinfo->{ full_name };
-    $c->stash->{ api_key }   = $userinfo->{ api_key };
-    $c->stash->{ notes }     = $userinfo->{ notes };
+    $c->stash->{ email }     = $userinfo->email();
+    $c->stash->{ full_name } = $userinfo->full_name();
+    $c->stash->{ api_key }   = $userinfo->global_api_key();
+    $c->stash->{ notes }     = $userinfo->notes();
 
-    $c->stash->{ weekly_requests_sum }          = $userinfo->{ weekly_requests_sum } + 0;
-    $c->stash->{ weekly_requested_items_sum }   = $userinfo->{ weekly_requested_items_sum } + 0;
+    $c->stash->{ weekly_requests_sum }          = $userinfo->weekly_requests_sum();
+    $c->stash->{ weekly_requested_items_sum }   = $userinfo->weekly_requested_items_sum();
     $c->stash->{ weekly_requests_limit }        = $weekly_requests_limit;
     $c->stash->{ weekly_requested_items_limit } = $weekly_requested_items_limit;
 

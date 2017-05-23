@@ -1,4 +1,4 @@
-package MediaWords::DBI::Auth::User::NewOrExistingUser;
+package MediaWords::DBI::Auth::User::NewOrModifyUser;
 
 #
 # New or existing user object
@@ -15,6 +15,7 @@ extends 'MediaWords::DBI::Auth::User::AbstractUser';
 
 use MediaWords::DBI::Auth::Password;
 
+has 'role_ids'                     => ( is => 'rw', isa => 'Maybe[ArrayRef[Int]]' );
 has 'password'        => ( is => 'rw', isa => 'Maybe[Str]' );
 has 'password_repeat' => ( is => 'rw', isa => 'Maybe[Str]' );
 

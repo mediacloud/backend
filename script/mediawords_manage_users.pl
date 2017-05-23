@@ -332,7 +332,7 @@ EOF
 
     # Modify (update) user
     eval {
-        my $existing_user = MediaWords::DBI::Auth::User::ExistingUser->new(
+        my $existing_user = MediaWords::DBI::Auth::User::ModifyUser->new(
             email                        => $user_email,
             full_name                    => $user_full_name,
             notes                        => $user_notes,
@@ -428,15 +428,15 @@ sub user_show($)
         return 1;
     }
 
-    say "User ID:          " . $db_user->{ auth_users_id };
-    say "Email (username): " . $db_user->{ email };
-    say "Full name: " . $db_user->{ full_name };
-    say "Notes:     " . $db_user->{ notes };
-    say "Active:    " . ( $db_user->{ active } ? 'yes' : 'no' );
-    say "Roles:     " . join( ',', @{ $db_user->{ roles } } );
-    say "API key:   " . $db_user->{ api_key };
-    say "Weekly requests limit:        " . $db_user->{ weekly_requests_limit };
-    say "Weekly requested items limit: " . $db_user->{ weekly_requested_items_limit };
+    say "User ID:          " . $db_user->id();
+    say "Email (username): " . $db_user->email();
+    say "Full name: " . $db_user->full_name();
+    say "Notes:     " . $db_user->notes();
+    say "Active:    " . ( $db_user->active() ? 'yes' : 'no' );
+    say "Roles:     " . join( ',', [ map { $_->role() } @{ $db_user->roles() } ] );
+    say "Global API key:   " . $db_user->global_api_key();
+    say "Weekly requests limit:        " . $db_user->weekly_requests_limit();
+    say "Weekly requested items limit: " . $db_user->weekly_requested_items_limit();
 
     return 0;
 }

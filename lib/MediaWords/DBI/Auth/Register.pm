@@ -211,7 +211,7 @@ SQL
         $db->rollback;
         die "I've attempted to create the user but it doesn't exist: $@";
     }
-    my $auth_users_id = $userinfo->{ auth_users_id };
+    my $auth_users_id = $userinfo->id();
 
     # Create roles
     for my $auth_roles_id ( @{ $new_user->role_ids() } )

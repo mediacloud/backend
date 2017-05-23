@@ -13,15 +13,14 @@ use MediaWords::CommonLibs;
 use Readonly;
 
 use MediaWords::DBI::Auth::Password;
-use MediaWords::DBI::Auth::User::ExistingUser;
+use MediaWords::DBI::Auth::User::ModifyUser;
 
-# Fetch a hash of basic user information (email, full name, notes, non-IP
-# limited API key)
+# Fetch user information (email, full name, notes, API keys, password hash)
+#
+# Returns ::CurrentUser object or die()s on error.
 #
 # Fetches both active and deactivated users; checking whether or not the user
 # is active is left to the controller.
-#
-# die()s on error
 sub user_info($$)
 {
     my ( $db, $email ) = @_;
@@ -32,23 +31,24 @@ sub user_info($$)
     }
 
     # Fetch readonly information about the user
-    my $userinfo;
+    my $user_info;
     eval {
-        $userinfo = $db->query(
+        $user_info = $db->query(
             <<"SQL",
             SELECT auth_users.auth_users_id,
                    auth_users.email,
-                   auth_users.password_hash,
                    auth_users.full_name,
                    auth_users.notes,
                    auth_users.active,
+                   auth_users.password_hash,
                    auth_user_api_keys.api_key,
                    auth_user_api_keys.ip_address,
                    weekly_requests_sum,
                    weekly_requested_items_sum,
                    auth_user_limits.weekly_requests_limit,
                    auth_user_limits.weekly_requested_items_limit,
-                   ARRAY_TO_STRING(ARRAY_AGG(auth_roles.role), ' ') AS roles
+                   auth_roles.auth_roles_id,
+                   auth_roles.role
 
             FROM auth_users
                 INNER JOIN auth_user_api_keys
@@ -62,42 +62,77 @@ sub user_info($$)
                 auth_user_limits_weekly_usage( \$1 )
 
             WHERE auth_users.email = \$1
-
-              -- Return only non-IP limited API key
-              AND auth_user_api_keys.ip_address IS NULL
-
-            GROUP BY auth_users.auth_users_id,
-                   auth_users.email,
-                   auth_users.password_hash,
-                   auth_users.full_name,
-                   auth_users.notes,
-                   auth_users.active,
-                   auth_user_api_keys.api_key,
-                   auth_user_api_keys.ip_address,
-                   weekly_requests_sum,
-                   weekly_requested_items_sum,
-                   auth_user_limits.weekly_requests_limit,
-                   auth_user_limits.weekly_requested_items_limit
-
-            LIMIT 1
 SQL
             $email
-        )->hash;
+        )->hashes;
     };
-    if ( $@ or ( !$userinfo ) )
+    if ( $@ or ( !$user_info ) )
     {
         LOGCONFESS "Unable to fetch user with email '$email': $@";
     }
 
-    unless ( ref( $userinfo ) eq ref( {} ) and $userinfo->{ auth_users_id } )
+    unless ( ref( $user_info ) eq ref( [] ) and $user_info->[ 0 ] and $user_info->[ 0 ]->{ auth_users_id } )
     {
         LOGCONFESS "User with email '$email' was not found.";
     }
 
-    # Make an array out of list of roles
-    $userinfo->{ roles } = [ split( ' ', $userinfo->{ roles } ) ];
+    my $unique_api_keys = {};
+    my $unique_roles    = {};
 
-    return $userinfo;
+    foreach my $row ( @{ $user_info } )
+    {
+
+        # Should have at least one API key
+        $unique_api_keys->{ $row->{ api_key } } = $row->{ ip_address };
+
+        # Might have some roles
+        if ( defined $row->{ auth_roles_id } )
+        {
+            $unique_roles->{ $row->{ auth_roles_id } } = $row->{ role };
+        }
+    }
+
+    my $api_keys = [];
+    my $roles    = [];
+    foreach my $api_key ( keys %{ $unique_api_keys } )
+    {
+        push(
+            @{ $api_keys },
+            MediaWords::DBI::Auth::User::CurrentUser::APIKey->new(
+                api_key    => $api_key,
+                ip_address => $unique_api_keys->{ $api_key },
+            )
+        );
+    }
+    foreach my $role_id ( keys %{ $unique_roles } )
+    {
+        push(
+            @{ $roles },
+            MediaWords::DBI::Auth::User::CurrentUser::Role->new(
+                id   => $role_id,
+                role => $unique_roles->{ $role_id },
+            )
+        );
+    }
+
+    my $first_row = $user_info->[ 0 ];
+
+    my $user = MediaWords::DBI::Auth::User::CurrentUser->new(
+        id                           => $first_row->{ auth_users_id },
+        email                        => $email,
+        full_name                    => $first_row->{ full_name },
+        notes                        => $first_row->{ notes },
+        active                       => $first_row->{ active } + 0,
+        password_hash                => $first_row->{ password_hash },
+        roles                        => $roles,
+        api_keys                     => $api_keys,
+        weekly_requests_limit        => $first_row->{ weekly_requests_limit },
+        weekly_requested_items_limit => $first_row->{ weekly_requested_items_limit },
+        weekly_requests_sum          => $first_row->{ weekly_requests_sum },
+        weekly_requested_items_sum   => $first_row->{ weekly_requested_items_sum },
+    );
+
+    return $user;
 }
 
 # Fetch and return a list of users and their roles; returns an arrayref
@@ -176,9 +211,9 @@ sub update_user($$)
     {
         die "Existing user is undefined.";
     }
-    unless ( ref( $existing_user ) eq 'MediaWords::DBI::Auth::User::ExistingUser' )
+    unless ( ref( $existing_user ) eq 'MediaWords::DBI::Auth::User::ModifyUser' )
     {
-        die "Existing user is not MediaWords::DBI::Auth::User::ExistingUser.";
+        die "Existing user is not MediaWords::DBI::Auth::User::ModifyUser.";
     }
 
     TRACE "Modifying user: " . MediaWords::Util::Log::dump_terse( $existing_user );
@@ -259,7 +294,7 @@ SQL
             SET weekly_requests_limit = ?
             WHERE auth_users_id = ?
 SQL
-            $existing_user->weekly_requests_limit(), $userinfo->{ auth_users_id }
+            $existing_user->weekly_requests_limit(), $userinfo->id()
         );
     }
 
@@ -271,7 +306,7 @@ SQL
             SET weekly_requested_items_limit = ?
             WHERE auth_users_id = ?
 SQL
-            $existing_user->weekly_requested_items_limit(), $userinfo->{ auth_users_id }
+            $existing_user->weekly_requested_items_limit(), $userinfo->id()
         );
     }
 
@@ -283,7 +318,7 @@ SQL
             DELETE FROM auth_users_roles_map
             WHERE auth_users_id = ?
 SQL
-            $userinfo->{ auth_users_id }
+            $userinfo->id()
         );
         for my $auth_roles_id ( @{ $existing_user->role_ids() } )
         {
@@ -291,7 +326,7 @@ SQL
                 <<SQL,
                 INSERT INTO auth_users_roles_map (auth_users_id, auth_roles_id) VALUES (?, ?)
 SQL
-                $userinfo->{ auth_users_id }, $auth_roles_id
+                $userinfo->id(), $auth_roles_id
             );
         }
     }

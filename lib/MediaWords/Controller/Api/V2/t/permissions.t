@@ -199,7 +199,7 @@ sub request_all_methods_as_user($$)
 {
     my ( $url, $user ) = @_;
 
-    return request_all_methods( $url, { key => $user->{ api_key } } );
+    return request_all_methods( $url, { key => $user->global_api_key() } );
 }
 
 # test whether the user has permission to request the url; if $expect_pass is true, expect that the user is allowed
@@ -402,7 +402,7 @@ sub add_topic_user($$$)
         'topic_permissions',
         {
             topics_id     => $topic->{ topics_id },
-            auth_users_id => $user->{ auth_users_id },
+            auth_users_id => $user->id(),
             permission    => $permission
         }
     );
