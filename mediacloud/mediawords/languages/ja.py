@@ -127,7 +127,7 @@ class McJapaneseTokenizer(object):
     def tokenize_sentence_to_words(self, sentence: str) -> list:
         """Tokenize Japanese sentence into words.
         
-        Removes punctuation, leaves stopwords in-place."""
+        Removes punctuation and words that don't belong to part-of-speech whitelist."""
 
         sentence = decode_object_from_bytes_if_needed(sentence)
 
