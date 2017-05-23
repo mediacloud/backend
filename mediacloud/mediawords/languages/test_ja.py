@@ -211,3 +211,33 @@ This is some more English text
             'Badger', 'badger', 'Badger', 'Badger', 'badger', 'badger', 'Badger',
             'Badger', 'Badger', 'badger', 'Badger', 'badger', 'badger', 'badger',
         ]
+
+
+def test_mecab_pos_ids():
+    """Make sure hardcoded POS IDs point to expected (hardcoded) parts of speech."""
+    # noinspection PyProtectedMember
+    dictionary_path = McJapaneseTokenizer._MECAB_DICTIONARY_PATH
+    assert os.path.isdir(dictionary_path)
+
+    pos_id_path = os.path.join(dictionary_path, "pos-id.def")
+    assert os.path.isfile(pos_id_path)
+
+    pos_id_map = {}
+    with open(pos_id_path, 'r') as pos_id_file:
+        for line in pos_id_file:
+            line = line.strip()
+            if len(line) > 0:
+                pos_string, pos_number = line.split(' ')
+                assert pos_string
+                assert len(pos_string) > 0
+                assert pos_number
+                assert pos_number.isdigit()
+
+                pos_number = int(pos_number)
+                pos_id_map[pos_number] = pos_string
+
+    # noinspection PyProtectedMember
+    allowed_pos_ids = McJapaneseTokenizer._mecab_allowed_pos_ids()
+
+    for allowed_pos_id in allowed_pos_ids:
+        assert allowed_pos_ids[allowed_pos_id] == pos_id_map[allowed_pos_id]
