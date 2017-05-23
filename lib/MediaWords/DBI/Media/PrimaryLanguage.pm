@@ -12,30 +12,27 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use MediaWords::DBI::Media;
 use MediaWords::Util::IdentifyLanguage;
 
-use Encode;
 use Readonly;
-use Regexp::Common qw /URI/;
-use Text::Trim;
-use XML::FeedPP;
 
 # definition of tag set for media primary language
-Readonly my $PRIMARY_LANGUAGE_TAG_SET_NAME        => 'primary_language';
-Readonly my $PRIMARY_LANGUAGE_TAG_SET_LABEL       => 'Primary Language';
-Readonly my $PRIMARY_LANGUAGE_TAG_SET_DESCRIPTION => <<END;
-Tags in this set indicate that the given media source has a majority of stories written in the given language.
-END
+Readonly our $PRIMARY_LANGUAGE_TAG_SET => {
+    name        => 'primary_language',
+    label       => 'Primary Language',
+    description => 'Tags in this set indicate that most stories in the media source are in the language.'
+};
 
 # min num of stories that must be identified as a language for it to be the primary language of the medium
-Readonly my $PRIMARY_LANGUAGE_THRESHOLD => 0.50;
+Readonly our $PRIMARY_LANGUAGE_THRESHOLD => 0.50;
 
 =head1 FUNCTIONS
 
 =cut
 
 # detect the primary language of the media source, as described in set_primary_language below
-sub _detect_primary_language($$)
+sub detect_primary_language($$)
 {
     my ( $db, $medium ) = @_;
 
@@ -80,85 +77,14 @@ sub get_primary_language_tag_set($)
 {
     my ( $db ) = @_;
 
-    my $tag_set = $db->find_or_create(
-        'tag_sets',
-        {
-            name        => $PRIMARY_LANGUAGE_TAG_SET_NAME,
-            label       => $PRIMARY_LANGUAGE_TAG_SET_LABEL,
-            description => $PRIMARY_LANGUAGE_TAG_SET_DESCRIPTION,
-        }
-    );
+    my $tag_set = $db->find_or_create( 'tag_sets', $PRIMARY_LANGUAGE_TAG_SET );
 
     return $tag_set;
 }
 
-=head2 return the tag for the given language code( $db, $language_code )
-
-Given a language code, returm the primary language tag corresponding to that language.
-
-=cut
-
-sub get_primary_language_tag($$)
-{
-    my ( $db, $primary_language ) = @_;
-
-    my $tag_set = get_primary_language_tag_set( $db );
-
-    my $tag = $db->query( <<SQL, $primary_language, $tag_set->{ tag_sets_id } )->hash;
-select t.*
-    from tags t
-    where
-        t.tag = \$1 and
-        t.tag_sets_id = \$2
-SQL
-
-    if ( !$tag )
-    {
-        my $label = MediaWords::Util::IdentifyLanguage::language_name_for_code( $primary_language );
-        $label ||= $primary_language;
-
-        my $description = "Media sources for which the primary language is $label";
-        $tag = $db->create(
-            'tags',
-            {
-                tag         => $primary_language,
-                label       => $label,
-                description => $description,
-                tag_sets_id => $tag_set->{ tag_sets_id }
-            }
-        );
-    }
-
-    return $tag;
-}
-
-=head2 get_primary_language_tag( $db, $medium )
-
-Return the primary language tag associated with the given media source, or undef if none exists.
-
-=cut
-
-sub get_primary_language_tag_for_medium($$)
-{
-    my ( $db, $medium ) = @_;
-
-    my $tag_set = get_primary_language_tag_set( $db );
-
-    my $tag = $db->query( <<SQL, $medium->{ media_id }, $tag_set->{ tag_sets_id } )->hash;
-select t.*
-    from tags t
-        join media_tags_map mtm using ( tags_id )
-    where
-        mtm.media_id = \$1 and
-        t.tag_sets_id = \$2
-SQL
-
-    return $tag;
-}
-
 =head2 set_primary_language( $db, $medium )
 
-Assign a $PRIMAY_LANGuAGE_TAG_SET_NAME: tag to the media source as the language of the greatest number of stories in the
+Assign a $PRIMAY_LANGUAGE_TAG_SET_NAME: tag to the media source as the language of the greatest number of stories in the
 source as long as that language is more than 50% of the stories in the media source.  Delete any existing associations
 to tags in the $PRIMAY_LANGuAGE_TAG_SET_NAME tag_set if they do not match the newly detected tag.
 
@@ -176,41 +102,16 @@ sub set_primary_language($$)
 {
     my ( $db, $medium ) = @_;
 
-    my $primary_language = _detect_primary_language( $db, $medium );
+    my $primary_language = detect_primary_language( $db, $medium );
 
-    my $tag_set = get_primary_language_tag_set( $db );
+    my $label = MediaWords::Util::IdentifyLanguage::language_name_for_code( $primary_language );
+    $label ||= $primary_language;
 
-    if ( !$primary_language )
-    {
-        $db->query( <<SQL, $medium->{ media_id }, $tag_set->{ tag_sets_id } );
-delete from media_tags_map mtm
-    using tags t
-    where
-        mtm.media_id = \$1 and
-        mtm.tags_id = t.tags_id and
-        t.tag_sets_id = \$2
-SQL
-        return;
-    }
+    my $description = "Media sources for which the primary language is $label";
 
-    my $new_tag = get_primary_language_tag( $db, $primary_language );
+    my $tag = { tag => $primary_language, label => $label, description => $description };
 
-    # make sure we only update the tag in the db if necessary; otherwise we will trigger solr re-imports unnecessarily
-    my $existing_tag = get_primary_language_tag_for_medium( $db, $medium );
-
-    return if ( $existing_tag && ( $existing_tag->{ tags_id } == $new_tag->{ tags_id } ) );
-
-    if ( $existing_tag )
-    {
-        $db->query( <<SQL, $existing_tag->{ tags_id }, $medium->{ media_id } );
-delete from media_tags_map where tags_id = \$1 and media_id = \$2
-SQL
-    }
-
-    $db->query( <<SQL, $new_tag->{ tags_id }, $medium->{ media_id } );
-insert into media_tags_map ( tags_id, media_id ) values ( \$1, \$2 )
-SQL
-
+    MediaWords::Util::Tags::assign_singleton_tag_to_medium( $db, $medium, $PRIMARY_LANGUAGE_TAG_SET, $tag );
 }
 
 1;
