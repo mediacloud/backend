@@ -34,7 +34,7 @@ sub test_few_recent_stories($)
     ok( !MediaWords::DBI::Media::medium_is_ready_for_analysis( $db, $medium ), $label );
 }
 
-# test that medium_is_ready_for_analysis returns true when there is a single story if that story is old
+# test that medium_is_ready_for_analysis returns false when there is a single story if that story is old
 sub test_few_old_stories($)
 {
     my ( $db ) = @_;
@@ -51,7 +51,7 @@ sub test_few_old_stories($)
 update stories set publish_date = now() - '1 year'::interval  where media_id = \$1
 SQL
 
-    ok( MediaWords::DBI::Media::medium_is_ready_for_analysis( $db, $medium ), $label );
+    ok( !MediaWords::DBI::Media::medium_is_ready_for_analysis( $db, $medium ), $label );
 }
 
 # test that the medium_is_ready_for_analysis returns false when there are no stories

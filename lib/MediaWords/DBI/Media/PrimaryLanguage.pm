@@ -14,6 +14,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::DBI::Media;
 use MediaWords::Util::IdentifyLanguage;
+use MediaWords::Util::Tags;
 
 use Readonly;
 
@@ -56,6 +57,8 @@ SQL
 
     my $total_count = 0;
     map { $total_count += $_->{ count } } @{ $language_counts };
+
+    return 'none' unless ( $total_count > 0 );
 
     my $proportion = $first_language->{ count } / $total_count;
 
@@ -112,6 +115,32 @@ sub set_primary_language($$)
     my $tag = { tag => $primary_language, label => $label, description => $description };
 
     MediaWords::Util::Tags::assign_singleton_tag_to_medium( $db, $medium, $PRIMARY_LANGUAGE_TAG_SET, $tag );
+}
+
+=head2 get_untagged_media_ids( $db, $medium )
+
+Get list of media that have no primary language tag.
+
+=cut
+
+sub get_untagged_media_ids($)
+{
+    my ( $db ) = @_;
+
+    my $tag_set = get_primary_language_tag_set( $db );
+
+    my $media_ids = $db->query( <<SQL, $tag_set->{ tag_sets_id } )->flat;
+select m.media_id
+    from media m
+        left join (
+            media_tags_map mtm
+            join tags t on ( mtm.tags_id = t.tags_id and t.tag_sets_id = \$1 )
+        ) on ( m.media_id = mtm.media_id )
+    where
+        t.tags_id is null
+SQL
+
+    return $media_ids;
 }
 
 1;

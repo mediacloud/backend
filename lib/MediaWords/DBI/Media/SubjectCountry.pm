@@ -141,4 +141,30 @@ sub set_subject_country($$)
     MediaWords::Util::Tags::assign_singleton_tag_to_medium( $db, $medium, $SUBJECT_COUNTRY_TAG_SET, $tag );
 }
 
+=head2 get_untagged_media_ids( $db, $medium )
+
+Get list of media that have no subject county tag.
+
+=cut
+
+sub get_untagged_media_ids($)
+{
+    my ( $db ) = @_;
+
+    my $tag_set = get_subject_country_tag_set( $db );
+
+    my $media_ids = $db->query( <<SQL, $tag_set->{ tag_sets_id } )->flat;
+select m.media_id
+    from media m
+        left join (
+            media_tags_map mtm
+            join tags t on ( mtm.tags_id = t.tags_id and t.tag_sets_id = \$1 )
+        ) on ( m.media_id = mtm.media_id )
+    where
+        t.tags_id is null
+SQL
+
+    return $media_ids;
+}
+
 1;

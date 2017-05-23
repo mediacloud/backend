@@ -424,15 +424,9 @@ primary language, geo tagging, etc.
 
 use the following rules to determine if the media source is ready:
 
-* return false if the medium has no active feeds or no stories;
+* return true if the medium has an active feed and more than 100 stories;
 
-* return false if there are less than 100 stories in the medium and the greatest last_new_story_time of the
-medium's feeds is within a month;
-
-* return true if there are more than 100 stories in the medium;
-
-* return true if there are less than 100 stories in the medium but the greatest last_new_story_time of the
-medium's feeds is outside of a month;
+* return false otherwise
 
 =cut
 
@@ -456,26 +450,7 @@ SQL
     select * from stories where media_id = \$1 offset 101 limit 1
 SQL
 
-    if ( !$story_101 )
-    {
-        # use this goofy query format to prevent postgres from doing backward index scan on collect_date, which
-        # takes a Very Long Time for a media source with a collect_date far in the past.  we know that the media_stories
-        # cte should be small because we only get to this part of the code if there are < 100 stories in the medium.
-        my $last_story = $db->query( <<SQL, $media_id )->hash;
-with media_stories as (
-    select * from stories where media_id = \$1
-)
-
-select * from media_stories order by collect_date desc limit 1;
-SQL
-
-        my $story_epoch = MediaWords::Util::SQL::get_epoch_from_sql_date( $last_story->{ collect_date } );
-
-        return 0 if ( ( time() - $story_epoch ) < ( 86400 * 30 ) );
-    }
-
-    return 1;
-
+    return $story_101 ? 1 : 0;
 }
 
 1;
