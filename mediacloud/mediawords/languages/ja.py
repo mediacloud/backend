@@ -18,7 +18,7 @@ class McJapaneseTokenizerException(Exception):
 
 
 class McJapaneseTokenizer(object):
-    """Japanese language tagger that uses MeCab."""
+    """Japanese language tokenizer that uses MeCab."""
 
     # Path to MeCab dictionary
     # (protected and not private because used by the unit test)
