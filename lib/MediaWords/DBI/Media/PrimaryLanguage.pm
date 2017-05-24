@@ -107,6 +107,8 @@ sub set_primary_language($$)
 
     my $primary_language = detect_primary_language( $db, $medium );
 
+    return unless $primary_language;
+
     my $label = MediaWords::Util::IdentifyLanguage::language_name_for_code( $primary_language );
     $label ||= $primary_language;
 
