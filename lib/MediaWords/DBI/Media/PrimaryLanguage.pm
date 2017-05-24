@@ -66,7 +66,7 @@ SQL
 
     DEBUG( "detect primary language for $medium->{ name } [$media_id] update to $primary_language" );
 
-    return $primary_language;
+    return $primary_language || 'none';
 
 }
 
