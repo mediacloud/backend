@@ -12,11 +12,90 @@ use MediaWords::CommonLibs;
 
 use HTTP::HashServer;
 use Readonly;
-use Test::More tests => 32;
-use Test::Deep;
+use Test::More tests => 45;
 
 use MediaWords::Test::API;
 use MediaWords::Test::DB;
+
+sub test_auth_register($)
+{
+    my ( $db ) = @_;
+
+    my $email    = 'test@auth.register';
+    my $password = 'authregister';
+
+    # Register user
+    {
+        my $r = test_post(
+            '/api/v2/auth/register',
+            {
+                email                   => $email,
+                password                => $password,
+                full_name               => 'Full Name',
+                notes                   => '',
+                subscribe_to_newsletter => 1,
+                activation_url          => 'https://activate.com/',
+            }
+        );
+        is( $r->{ 'success' }, 1 );
+
+        # Confirm that we can't log in without activation
+        eval { MediaWords::DBI::Auth::Login::login_with_email_password( $db, $email, $password ); };
+        ok( $@ );
+
+        # Activate manually
+        $db->query(
+            <<SQL,
+            UPDATE auth_users
+            SET active = 't'
+            WHERE email = ?
+SQL
+            $email
+        );
+
+        # Confirm that we still can't log due to unsuccessful login delay
+        eval { MediaWords::DBI::Auth::Login::login_with_email_password( $db, $email, $password ); };
+        ok( $@ );
+
+        # Imposed delay after unsuccessful login
+        sleep( 2 );
+
+        # Confirm that we can log in after the delay
+        my $user;
+        eval { $user = MediaWords::DBI::Auth::Login::login_with_email_password( $db, $email, $password ); };
+        ok( !$@ );
+        is( $user->email(), $email );
+
+        # Confirm that user is subscribed to the newsletter
+        my ( $subscribed ) = $db->query(
+            <<SQL,
+            SELECT subscribe_to_newsletter
+            FROM auth_users
+            WHERE email = ?
+SQL
+            $email
+        )->flat;
+        ok( $subscribed );
+    }
+
+    # Try registering duplicate user
+    {
+        my $expect_error = 1;
+        my $r            = test_post(
+            '/api/v2/auth/register',
+            {
+                email                   => $email,
+                password                => $password,
+                full_name               => 'Full Name',
+                notes                   => '',
+                subscribe_to_newsletter => 1,
+                activation_url          => 'https://activate.com/',
+            },
+            $expect_error
+        );
+        ok( $r->{ 'error' } );
+    }
+}
 
 # test auth/profile call
 sub test_auth_profile($)
@@ -157,6 +236,7 @@ sub test_auth($)
 
     MediaWords::Test::API::setup_test_api_key( $db );
 
+    test_auth_register( $db );
     test_auth_profile( $db );
     test_auth_login( $db );
     test_auth_single( $db );

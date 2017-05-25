@@ -12,7 +12,7 @@ use base 'Catalyst::Controller';
 
 use MediaWords::Controller::Api::V2::MC_Controller_REST;
 use MediaWords::DBI::Auth;
-use MediaWords::DBI::Auth::Password;
+use MediaWords::Util::URL;
 
 use Moose;
 use namespace::autoclean;
@@ -21,11 +21,89 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
 __PACKAGE__->config(    #
     action => {         #
-        single  => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
-        login   => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
-        profile => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        register => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
+        single   => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
+        login    => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
+        profile  => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
     }
 );
+
+sub register : Local : ActionClass('MC_REST')
+{
+}
+
+sub register_GET : PathPrefix( '/api' )
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $data = $c->req->data;
+
+    my $email = $data->{ email };
+    unless ( $email )
+    {
+        die "'email' is not set.";
+    }
+
+    my $password = $data->{ password };
+    unless ( $password )
+    {
+        die "'password' is not set.";
+    }
+
+    my $full_name = $data->{ full_name };
+    unless ( $full_name )
+    {
+        die "'full_name' is not set.";
+    }
+
+    my $notes = $data->{ notes };
+    unless ( defined $notes )
+    {
+        die "'notes' is undefined (should be at least an empty string).";
+    }
+
+    my $subscribe_to_newsletter = $data->{ subscribe_to_newsletter };
+    unless ( defined $subscribe_to_newsletter )
+    {
+        die "'subscribe_to_newsletter' is undefined (should be at least an empty string).";
+    }
+
+    my $activation_url = $data->{ activation_url };
+    unless ( $activation_url )
+    {
+        die "'activation_url' is not set.";
+    }
+
+    unless ( MediaWords::Util::URL::is_http_url( $activation_url ) )
+    {
+        die "'activation_url' does not look like a HTTP URL.";
+    }
+
+    eval {
+        my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
+            email                   => $email,
+            full_name               => $full_name,
+            notes                   => $notes,
+            password                => $password,
+            password_repeat         => $password,
+            role_ids                => MediaWords::DBI::Auth::Roles::default_role_ids( $db ),
+            subscribe_to_newsletter => $subscribe_to_newsletter,
+
+            # User has to activate own account via email
+            active         => 0,
+            activation_url => $activation_url,
+        );
+        MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
+    };
+    if ( $@ )
+    {
+        die "Unable to add user: $@";
+    }
+
+    $self->status_ok( $c, entity => { 'success' => 1 } );
+}
 
 sub login : Local : ActionClass('MC_REST')
 {
