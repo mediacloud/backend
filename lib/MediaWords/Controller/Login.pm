@@ -367,25 +367,18 @@ sub register : Local
 
     my $user_email = $form->param_value( 'email' );
 
-    my $search_role =
-      $db->query( 'SELECT * FROM auth_roles WHERE role = ?', $MediaWords::DBI::Auth::Roles::List::SEARCH )->hash;
-    unless ( $search_role )
-    {
-        die 'Unable to find "' . $MediaWords::DBI::Auth::Roles::List::SEARCH . '" role';
-    }
-
     # Add user
     eval {
         my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
-            email                 => $user_email,
-            full_name             => $form->param_value( 'full_name' ),
-            notes                 => $form->param_value( 'notes' ),
-            role_ids              => [ $search_role->{ auth_roles_id } ],
-            active                => 0,                                         # user has to activate own account via email
-            password              => $form->param_value( 'password' ),
-            password_repeat       => $form->param_value( 'password_repeat' ),
-            activation_url        => $c->uri_for( '/login/activate' ),
-            weekly_requests_limit => 1000,
+            email     => $user_email,
+            full_name => $form->param_value( 'full_name' ),
+            notes     => $form->param_value( 'notes' ),
+            role_ids  => MediaWords::DBI::Auth::Roles::default_role_ids( $db ),
+            active    => 0,                                                      # user has to activate own account via email
+            password  => $form->param_value( 'password' ),
+            password_repeat              => $form->param_value( 'password_repeat' ),
+            activation_url               => $c->uri_for( '/login/activate' ),
+            weekly_requests_limit        => 1000,
             weekly_requested_items_limit => 20000,
         );
         MediaWords::DBI::Auth::Register::add_user( $db, $new_user );

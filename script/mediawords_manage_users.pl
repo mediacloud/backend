@@ -186,14 +186,7 @@ EOF
 
     if ( scalar @{ $user_role_ids } == 0 )
     {
-        my $default_roles_ids = $db->query(
-            <<SQL,
-            select auth_roles_id
-            from auth_roles
-            where role in ('search')
-SQL
-        )->flat;
-        $user_role_ids = $default_roles_ids;
+        $user_role_ids = MediaWords::DBI::Auth::Roles::default_role_ids( $db );
     }
 
     $user_weekly_requests_limit        //= MediaWords::DBI::Auth::Limits::default_weekly_requests_limit( $db );

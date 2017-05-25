@@ -45,8 +45,6 @@ sub create_user
         return;
     }
 
-    my $default_roles_ids = $db->query( "select auth_roles_id from auth_roles where role in ( 'search' ) " )->flat;
-
     my $default_weekly_requests_limit        = MediaWords::DBI::Auth::Limits::default_weekly_requests_limit( $db );
     my $default_weekly_requested_items_limit = MediaWords::DBI::Auth::Limits::default_weekly_requested_items_limit( $db );
 
@@ -59,11 +57,11 @@ sub create_user
             email                        => $email,
             full_name                    => $full_name,
             notes                        => $notes,
-            role_ids                     => $default_roles_ids,
+            role_ids                     => MediaWords::DBI::Auth::Roles::default_role_ids( $db ),
             active                       => 1,
             password                     => $user_password,
             password_repeat              => $user_password,
-            activation_url               => '',                                      # user is active
+            activation_url               => '',                                                      # user is active
             weekly_requests_limit        => $default_weekly_requested_items_limit,
             weekly_requested_items_limit => $default_weekly_requested_items_limit,
         );

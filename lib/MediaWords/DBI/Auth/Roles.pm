@@ -59,4 +59,26 @@ SQL
     return $auth_roles_id->{ auth_roles_id };
 }
 
+# List of role IDs to apply to new users
+sub default_role_ids($)
+{
+    my ( $db ) = @_;
+
+    my $default_role_ids = $db->query(
+        <<SQL,
+        SELECT auth_roles_id
+        FROM auth_roles
+        WHERE role = ?
+SQL
+        $MediaWords::DBI::Auth::Roles::List::SEARCH
+    )->flat;
+
+    unless ( scalar( @{ $default_role_ids } ) )
+    {
+        die 'Unable to find default role IDs';
+    }
+
+    return $default_role_ids;
+}
+
 1;
