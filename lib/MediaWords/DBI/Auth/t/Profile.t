@@ -19,6 +19,7 @@ use MediaWords::Test::DB;
 
 use MediaWords::DBI::Auth::Profile;
 use MediaWords::DBI::Auth::Register;
+use MediaWords::Util::Mail;
 
 sub test_user_info($)
 {
@@ -179,6 +180,9 @@ sub test_regenerate_api_key($)
 
 sub main
 {
+    # Don't actually send any emails
+    MediaWords::Util::Mail::test_mode( 1 );
+
     MediaWords::Test::DB::test_on_test_database(
         sub {
             my $db = shift;

@@ -22,6 +22,7 @@ use MediaWords::Test::DB;
 use MediaWords::DBI::Auth::ChangePassword;
 use MediaWords::DBI::Auth::Register;
 use MediaWords::DBI::Auth::ResetPassword;
+use MediaWords::Util::Mail;
 
 sub test_change_password($)
 {
@@ -324,6 +325,9 @@ SQL
 
 sub main
 {
+    # Don't actually send any emails
+    MediaWords::Util::Mail::test_mode( 1 );
+
     MediaWords::Test::DB::test_on_test_database(
         sub {
             my $db = shift;
