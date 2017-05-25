@@ -2,10 +2,12 @@ import MeCab
 from nltk import RegexpTokenizer, PunktSentenceTokenizer
 import os
 import re
+from typing import Dict
 
 from mediawords.util.log import create_logger
 from mediawords.util.paths import mc_root_path
 from mediawords.util.perl import decode_object_from_bytes_if_needed
+from mediawords.util.text import random_string
 
 l = create_logger(__name__)
 
@@ -16,41 +18,53 @@ class McJapaneseTokenizerException(Exception):
 
 
 class McJapaneseTokenizer(object):
-    """Japanese language tagger that uses MeCab."""
+    """Japanese language tokenizer that uses MeCab."""
+
+    # Path to MeCab dictionary
+    # (protected and not private because used by the unit test)
+    _MECAB_DICTIONARY_PATH = os.path.join(mc_root_path(), 'lib/MediaWords/Languages/resources/ja/mecab-ipadic-neologd/')
 
     # MeCab instance
     __mecab = None
 
+    # Text -> sentence tokenizer for Japanese text
     __japanese_sentence_tokenizer = RegexpTokenizer(
         r'([^！？。]*[！？。])',
         gaps=True,  # don't discard non-Japanese text
         discard_empty=True,
     )
 
+    # Text -> sentence tokenizer for non-Japanese (e.g. English) text
     __non_japanese_sentence_tokenizer = PunktSentenceTokenizer()
 
-    # MeCab-returned string that denotes that term is punctuation
-    __MECAB_POS_PUNCTUATION = "記号"
+    __MECAB_TOKEN_POS_SEPARATOR = random_string(length=16)  # for whatever reason tab doesn't work
+    __MECAB_EOS_MARK = 'EOS'
 
     def __init__(self):
         """Initialize MeCab tokenizer."""
 
-        dictionary_path = os.path.join(mc_root_path(), "lib/MediaWords/Languages/resources/ja/mecab-ipadic-neologd/")
-
-        if not os.path.isdir(dictionary_path):
+        if not os.path.isdir(self._MECAB_DICTIONARY_PATH):
             raise McJapaneseTokenizerException("""
                 MeCab dictionary directory was not found: %s
                 Maybe you forgot to initialize Git submodules?
-                """ % dictionary_path)
+                """ % self._MECAB_DICTIONARY_PATH)
 
-        if not os.path.isfile(os.path.join(dictionary_path, "sys.dic")):
+        if not os.path.isfile(os.path.join(self._MECAB_DICTIONARY_PATH, 'sys.dic')):
             raise McJapaneseTokenizerException("""
                 MeCab dictionary directory does not contain a dictionary: %s
                 Maybe you forgot to run ./install/install_mecab-ipadic-neologd.sh?
-                """ % dictionary_path)
+                """ % self._MECAB_DICTIONARY_PATH)
 
         try:
-            self.__mecab = MeCab.Tagger("--dicdir=%s" % dictionary_path)
+            self.__mecab = MeCab.Tagger(
+                '--dicdir=%(dictionary_path)s '
+                '--node-format=%%m%(token_pos_separator)s%%h\\n '
+                '--eos-format=%(eos_mark)s\\n' % {
+                    'token_pos_separator': self.__MECAB_TOKEN_POS_SEPARATOR,
+                    'eos_mark': self.__MECAB_EOS_MARK,
+                    'dictionary_path': self._MECAB_DICTIONARY_PATH,
+                }
+            )
         except Exception as ex:
             raise McJapaneseTokenizerException("Unable to initialize MeCab: %s" % str(ex))
 
@@ -90,10 +104,30 @@ class McJapaneseTokenizer(object):
 
         return sentences
 
+    @staticmethod
+    def _mecab_allowed_pos_ids() -> Dict[int, str]:
+        """Return allowed MeCab part-of-speech IDs and their definitions from pos-id.def.
+        
+        Definitions don't do much in the language module itself, they're used by unit tests to verify that pos-id.def
+        didn't change in some unexpected way and we're not missing out on newly defined POSes.
+        """
+        return {
+            36: '名詞,サ変接続,*,*',  # noun-verbal
+            38: '名詞,一般,*,*',  # noun
+            40: '名詞,形容動詞語幹,*,*',  # adjectival nouns or quasi-adjectives
+            41: '名詞,固有名詞,一般,*',  # proper nouns
+            42: '名詞,固有名詞,人名,一般',  # proper noun, names of people
+            43: '名詞,固有名詞,人名,姓',  # proper noun, first name
+            44: '名詞,固有名詞,人名,名',  # proper noun, last name
+            45: '名詞,固有名詞,組織,*',  # proper noun, organization
+            46: '名詞,固有名詞,地域,一般',  # proper noun in general
+            47: '名詞,固有名詞,地域,国',  # proper noun, country name
+        }
+
     def tokenize_sentence_to_words(self, sentence: str) -> list:
         """Tokenize Japanese sentence into words.
         
-        Removes punctuation, leaves stopwords in-place."""
+        Removes punctuation and words that don't belong to part-of-speech whitelist."""
 
         sentence = decode_object_from_bytes_if_needed(sentence)
 
@@ -109,21 +143,22 @@ class McJapaneseTokenizer(object):
         parsed_text = self.__mecab.parse(sentence).strip()
         parsed_tokens = parsed_text.split("\n")
 
+        allowed_pos_ids = self._mecab_allowed_pos_ids()
+
         words = []
         for parsed_token_line in parsed_tokens:
-            if "\t" in parsed_token_line:
+            if self.__MECAB_TOKEN_POS_SEPARATOR in parsed_token_line:
 
-                # "表層形\t品詞,品詞細分類1,品詞細分類2,品詞細分類3,活用型,活用形,原形,読み,発音"
-                # (https://taku910.github.io/mecab/)
-                primary_form_and_analysis_result = parsed_token_line.split("\t")
+                primary_form_and_pos_number = parsed_token_line.split(self.__MECAB_TOKEN_POS_SEPARATOR)
 
-                primary_form = primary_form_and_analysis_result[0]
-                analysis_result = primary_form_and_analysis_result[1]
+                primary_form = primary_form_and_pos_number[0]
+                pos_number = primary_form_and_pos_number[1]
 
-                part_of_speech = analysis_result.split(",")[0]
+                if pos_number.isdigit():
+                    pos_number = int(pos_number)
 
-                if part_of_speech != self.__MECAB_POS_PUNCTUATION:
-                    words.append(primary_form)
+                    if pos_number in allowed_pos_ids:
+                        words.append(primary_form)
 
             else:
                 # Ignore all the "EOS" stuff
