@@ -22,11 +22,37 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 __PACKAGE__->config(    #
     action => {         #
         register => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
+        activate => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
         single   => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
         login    => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
         profile  => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
     }
 );
+
+sub _user_profile_hash($$)
+{
+    my ( $db, $email ) = @_;
+
+    my $user;
+    eval { $user = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
+    if ( $@ or ( !$user ) )
+    {
+        die "Unable to fetch user profile for user '$email'.";
+    }
+
+    return {
+        auth_users_id                => $user->id(),
+        email                        => $user->email(),
+        full_name                    => $user->full_name(),
+        notes                        => $user->notes(),
+        active                       => $user->active(),
+        weekly_requests_sum          => $user->weekly_requests_sum(),
+        weekly_requested_items_sum   => $user->weekly_requested_items_sum(),
+        weekly_requests_limit        => $user->weekly_requests_limit(),
+        weekly_requested_items_limit => $user->weekly_requested_items_limit(),
+        roles                        => $user->role_names(),
+    };
+}
 
 sub register : Local : ActionClass('MC_REST')
 {
@@ -105,6 +131,41 @@ sub register_GET : PathPrefix( '/api' )
     $self->status_ok( $c, entity => { 'success' => 1 } );
 }
 
+sub activate : Local : ActionClass('MC_REST')
+{
+}
+
+sub activate_GET : PathPrefix( '/api' )
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $data = $c->req->data;
+
+    my $email = $data->{ email };
+    unless ( $email )
+    {
+        die "'email' is not set.";
+    }
+
+    my $activation_token = $data->{ activation_token };
+    unless ( $activation_token )
+    {
+        die "'activation_token' is not set.";
+    }
+
+    eval { MediaWords::DBI::Auth::Register::activate_user_via_token( $db, $email, $activation_token ); };
+    if ( $@ )
+    {
+        die "Unable to activate user: $@";
+    }
+
+    my $user_hash = _user_profile_hash( $db, $email );
+
+    $self->status_ok( $c, entity => { 'success' => 1, 'profile' => $user_hash } );
+}
+
 sub login : Local : ActionClass('MC_REST')
 {
 }
@@ -174,25 +235,8 @@ sub profile : Local
 
     my $db = $c->dbis;
 
-    my $userinfo;
-    eval { $userinfo = MediaWords::DBI::Auth::Profile::user_info( $db, $c->user->username ); };
-    if ( $@ or ( !$userinfo ) )
-    {
-        die "Unable to find user for given API key.";
-    }
-
-    my $user_hash = {
-        auth_users_id                => $userinfo->id(),
-        email                        => $userinfo->email(),
-        full_name                    => $userinfo->full_name(),
-        notes                        => $userinfo->notes(),
-        active                       => $userinfo->active(),
-        weekly_requests_sum          => $userinfo->weekly_requests_sum(),
-        weekly_requested_items_sum   => $userinfo->weekly_requested_items_sum(),
-        weekly_requests_limit        => $userinfo->weekly_requests_limit(),
-        weekly_requested_items_limit => $userinfo->weekly_requested_items_limit(),
-        roles                        => $userinfo->role_names(),
-    };
+    my $email = $c->user->username;
+    my $user_hash = _user_profile_hash( $db, $email );
 
     return $self->status_ok( $c, entity => $user_hash );
 }

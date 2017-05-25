@@ -12,7 +12,7 @@ use MediaWords::CommonLibs;
 
 use HTTP::HashServer;
 use Readonly;
-use Test::More tests => 45;
+use Test::More tests => 68;
 
 use MediaWords::Test::API;
 use MediaWords::Test::DB;
@@ -90,6 +90,85 @@ SQL
                 notes                   => '',
                 subscribe_to_newsletter => 1,
                 activation_url          => 'https://activate.com/',
+            },
+            $expect_error
+        );
+        ok( $r->{ 'error' } );
+    }
+}
+
+sub test_auth_activate($)
+{
+    my ( $db ) = @_;
+
+    my $email          = 'test@auth.activate';
+    my $password       = 'authactivate';
+    my $activation_url = 'http://activate.com/';
+
+    # Add inactive user
+    {
+        {
+            my $r = test_post(
+                '/api/v2/auth/register',
+                {
+                    email                   => $email,
+                    password                => $password,
+                    full_name               => 'Full Name',
+                    notes                   => '',
+                    subscribe_to_newsletter => 1,
+                    activation_url          => 'https://activate.com/',
+                }
+            );
+            is( $r->{ 'success' }, 1 );
+        }
+
+        {
+            # Confirm that we can't log in without activation
+            my $expect_error = 1;
+            my $login = test_post( '/api/v2/auth/login', { username => $email, password => $password }, $expect_error );
+            ok( $login->{ 'error' } );
+        }
+    }
+
+    # Imposed delay after unsuccessful login
+    sleep( 2 );
+
+    # Get activation token manually
+    my $final_activation_url =
+      MediaWords::DBI::Auth::Register::_generate_user_activation_token( $db, $email, $activation_url );
+
+    my $final_activation_uri = URI->new( $final_activation_url );
+    my $activation_token     = $final_activation_uri->query_param( 'activation_token' );
+    ok( $activation_token );
+    ok( length( $activation_token ) > 1 );
+
+    # Activate user
+    {
+        my $r = test_post(
+            '/api/v2/auth/activate',
+            {
+                email            => $email,
+                activation_token => $activation_token,
+            }
+        );
+        is( $r->{ 'success' },              1 );
+        is( $r->{ 'profile' }->{ 'email' }, $email );
+    }
+
+    # Test logging in
+    {
+        my $r = test_post( '/api/v2/auth/login', { username => $email, password => $password } );
+        is( $r->{ 'success' }, 1 );
+    }
+
+    # Try activating nonexistent user
+    {
+        my $expect_error = 1;
+        my $r            = test_post(
+            '/api/v2/auth/activate',
+            {
+                email            => 'totally_does_not_exist@gmail.com',
+                activation_token => $activation_token,
             },
             $expect_error
         );
@@ -237,6 +316,7 @@ sub test_auth($)
     MediaWords::Test::API::setup_test_api_key( $db );
 
     test_auth_register( $db );
+    test_auth_activate( $db );
     test_auth_profile( $db );
     test_auth_login( $db );
     test_auth_single( $db );
