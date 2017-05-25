@@ -433,7 +433,7 @@ sub user_show($)
     say "Full name: " . $db_user->full_name();
     say "Notes:     " . $db_user->notes();
     say "Active:    " . ( $db_user->active() ? 'yes' : 'no' );
-    say "Roles:     " . join( ',', [ map { $_->role() } @{ $db_user->roles() } ] );
+    say "Roles:     " . join( ',', @{ $db_user->role_names() } );
     say "Global API key:   " . $db_user->global_api_key();
     say "Weekly requests limit:        " . $db_user->weekly_requests_limit();
     say "Weekly requested items limit: " . $db_user->weekly_requested_items_limit();

@@ -113,7 +113,7 @@ sub profile : Local
         weekly_requested_items_sum   => $userinfo->weekly_requested_items_sum(),
         weekly_requests_limit        => $userinfo->weekly_requests_limit(),
         weekly_requested_items_limit => $userinfo->weekly_requested_items_limit(),
-        roles                        => [ map { $_->role() } @{ $userinfo->roles() } ],
+        roles                        => $userinfo->role_names(),
     };
 
     return $self->status_ok( $c, entity => $user_hash );

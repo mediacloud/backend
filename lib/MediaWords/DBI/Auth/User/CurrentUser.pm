@@ -119,6 +119,14 @@ sub has_role($$)
     return defined $self->_roles_to_role_ids()->{ $role };
 }
 
+# Shorthand for getting an arrayref of role names
+sub role_names($)
+{
+    my ( $self ) = @_;
+
+    return [ map { $_->role() } @{ $self->roles() } ];
+}
+
 no Moose;    # gets rid of scaffolding
 
 1;

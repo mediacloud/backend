@@ -115,7 +115,7 @@ sub _user_email_and_roles($$)
         if ( $api_auth )
         {
             $user_email = $api_auth->email();
-            @user_roles = map { $_->role() } @{ $api_auth->roles() };
+            @user_roles = @{ $api_auth->role_names() };
 
             $c->stash->{ api_auth } = $api_auth;
         }
