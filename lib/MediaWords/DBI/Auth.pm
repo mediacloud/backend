@@ -10,7 +10,6 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use MediaWords::DBI::Auth::APIKey;
 use MediaWords::DBI::Auth::ChangePassword;
 use MediaWords::DBI::Auth::Limits;
 use MediaWords::DBI::Auth::Login;

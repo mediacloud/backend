@@ -81,7 +81,7 @@ sub regenerate_api_key : Local
     }
 
     # Delete user
-    eval { MediaWords::DBI::Auth::APIKey::regenerate_api_key( $c->dbis, $email ); };
+    eval { MediaWords::DBI::Auth::Profile::regenerate_api_key( $c->dbis, $email ); };
     if ( $@ )
     {
         my $error_message = "Unable to regenerate API key: $@";

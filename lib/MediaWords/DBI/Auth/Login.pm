@@ -14,6 +14,9 @@ use Readonly;
 
 use MediaWords::DBI::Auth::Profile;
 
+# API key HTTP GET parameter
+Readonly my $API_KEY_PARAMETER => 'key';
+
 # Post-unsuccessful login delay (in seconds)
 Readonly my $POST_UNSUCCESSFUL_LOGIN_DELAY => 1;
 
@@ -169,6 +172,90 @@ sub login_with_email_password_get_ip_api_key($$$$)
     }
 
     return $api_key_for_ip_address;
+}
+
+# Fetch user object for the API key.
+# Only active users are fetched.
+# die()s on error
+sub login_with_api_key($$$)
+{
+    my ( $db, $api_key, $ip_address ) = @_;
+
+    unless ( $api_key )
+    {
+        die "API key is undefined.";
+    }
+    unless ( $ip_address )
+    {
+        # Even if provided API key is the global one, we want the IP address
+        die "IP address is undefined.";
+    }
+
+    my $api_key_user = $db->query(
+        <<"SQL",
+        SELECT auth_users.email
+        FROM auth_users
+            INNER JOIN auth_user_api_keys
+                ON auth_users.auth_users_id = auth_user_api_keys.auth_users_id
+        WHERE
+            (
+                auth_user_api_keys.api_key = \$1 AND
+                (
+                    auth_user_api_keys.ip_address IS NULL
+                    OR
+                    auth_user_api_keys.ip_address = \$2
+                )
+            )
+
+        GROUP BY auth_users.auth_users_id,
+                 auth_users.email
+        ORDER BY auth_users.auth_users_id
+        LIMIT 1
+SQL
+        $api_key,
+        $ip_address
+    )->hash;
+
+    unless ( ref( $api_key_user ) eq ref( {} ) and $api_key_user->{ email } )
+    {
+        die "Unable to find user for API key '$api_key' and IP address '$ip_address'";
+    }
+
+    my $email = $api_key_user->{ email };
+
+    # Check if user has tried to log in unsuccessfully before and now is trying
+    # again too fast
+    if ( _user_is_trying_to_login_too_soon( $db, $email ) )
+    {
+        die "User '$email' is trying to log in too soon after the last unsuccessful attempt.";
+    }
+
+    my $user = MediaWords::DBI::Auth::Profile::user_info( $db, $email );
+    unless ( $user )
+    {
+        die "Unable to fetch user '$email' for API key '$api_key'";
+    }
+
+    unless ( $user->active() )
+    {
+        die "User '$email' for API key '$api_key' is not active.";
+    }
+
+    return $user;
+}
+
+# Fetch user object for the API key, using Catalyst's object.
+# Only active users are fetched.
+# die()s on error
+sub login_with_api_key_catalyst($)
+{
+    my $c = shift;
+
+    my $db         = $c->dbis;
+    my $api_key    = $c->request->param( $API_KEY_PARAMETER . '' );
+    my $ip_address = $c->request_ip_address();
+
+    return login_with_api_key( $db, $api_key, $ip_address );
 }
 
 1;

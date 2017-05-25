@@ -322,4 +322,60 @@ SQL
     );
 }
 
+# Regenerate API key -- creates new non-IP limited API key, removes all
+# IP-limited API keys; die()s on error
+sub regenerate_api_key($$)
+{
+    my ( $db, $email ) = @_;
+
+    unless ( $email )
+    {
+        die 'Email address is empty.';
+    }
+
+    # Check if user exists
+    my $userinfo;
+    eval { $userinfo = user_info( $db, $email ); };
+    if ( $@ or ( !$userinfo ) )
+    {
+        die "User with email address '$email' does not exist.";
+    }
+
+    $db->begin;
+
+    # Purge all IP-limited API keys
+    $db->query(
+        <<SQL,
+        DELETE FROM auth_user_api_keys
+        WHERE ip_address IS NOT NULL
+          AND auth_users_id = (
+            SELECT auth_users_id
+            FROM auth_users
+            WHERE email = ?
+          )
+SQL
+        $email
+    );
+
+    # Regenerate non-IP limited API key
+    $db->query(
+        <<SQL,
+        UPDATE auth_user_api_keys
+
+        -- DEFAULT points to a generation function
+        SET api_key = DEFAULT
+
+        WHERE ip_address IS NULL
+          AND auth_users_id = (
+            SELECT auth_users_id
+            FROM auth_users
+            WHERE email = ?
+          )        
+SQL
+        $email
+    );
+
+    $db->commit;
+}
+
 1;

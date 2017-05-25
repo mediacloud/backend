@@ -109,7 +109,7 @@ sub _user_email_and_roles($$)
         }
         else
         {
-            $api_auth = MediaWords::DBI::Auth::APIKey::user_for_api_key_catalyst( $c );
+            $api_auth = MediaWords::DBI::Auth::Login::login_with_api_key_catalyst( $c );
         }
 
         if ( $api_auth )
