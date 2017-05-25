@@ -21,12 +21,13 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
 __PACKAGE__->config(    #
     action => {         #
-        register               => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
-        activate               => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
-        resend_activation_link => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
-        single                 => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
-        login                  => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
-        profile                => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        register                 => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
+        activate                 => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
+        resend_activation_link   => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
+        send_password_reset_link => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
+        single                   => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
+        login                    => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
+        profile                  => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
@@ -200,6 +201,44 @@ sub resend_activation_link_GET : PathPrefix( '/api' )
     if ( $@ )
     {
         die "Unable to resend activation link: $@";
+    }
+
+    $self->status_ok( $c, entity => { 'success' => 1 } );
+}
+
+sub send_password_reset_link : Local : ActionClass('MC_REST')
+{
+}
+
+sub send_password_reset_link_GET : PathPrefix( '/api' )
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $data = $c->req->data;
+
+    my $email = $data->{ email };
+    unless ( $email )
+    {
+        die "'email' is not set.";
+    }
+
+    my $password_reset_url = $data->{ password_reset_url };
+    unless ( $password_reset_url )
+    {
+        die "'password_reset_url' is not set.";
+    }
+
+    unless ( MediaWords::Util::URL::is_http_url( $password_reset_url ) )
+    {
+        die "'password_reset_url' does not look like a HTTP URL.";
+    }
+
+    eval { MediaWords::DBI::Auth::ResetPassword::send_password_reset_token( $db, $email, $password_reset_url ); };
+    if ( $@ )
+    {
+        die "Unable to send password reset link: $@";
     }
 
     $self->status_ok( $c, entity => { 'success' => 1 } );
