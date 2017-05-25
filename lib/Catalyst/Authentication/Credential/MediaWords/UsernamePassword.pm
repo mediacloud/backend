@@ -1,9 +1,7 @@
-package Catalyst::Authentication::Credential::MediaWords;
+package Catalyst::Authentication::Credential::MediaWords::UsernamePassword;
 
 #
-# Media Cloud Catalyst credentials package, uses ::DBI::Auth to do the authentication.
-#
-# Adapted from Catalyst::Authentication::Credential::Password.
+# Authenticate users with username and password.
 #
 
 use strict;
@@ -42,23 +40,20 @@ sub authenticate
 
     my $db = $c->dbis;
 
-    ## because passwords may be in a hashed format, we have to make sure that we remove the
-    ## password_field before we pass it to the user routine, as some auth modules use
-    ## all data passed to them to find a matching user...
-    my $userfindauthinfo = { %{ $authinfo } };
-    delete( $userfindauthinfo->{ $PASSWORD_FIELD } );
+    my $username = $authinfo->{ $USERNAME_FIELD };
+    my $password = $authinfo->{ $PASSWORD_FIELD };
 
-    my $user_obj = $realm->find_user( $userfindauthinfo, $c );
-    if ( ref( $user_obj ) )
-    {
-        my $username = $authinfo->{ $USERNAME_FIELD };
-        my $password = $authinfo->{ $PASSWORD_FIELD };
+    if ( $username and $password ) {
 
         my $user;
         eval { $user = MediaWords::DBI::Auth::Login::login_with_email_password( $c->dbis, $username, $password ); };
         unless ( $@ or ( !$user ) )
         {
-            return $user_obj;
+            my $user_obj = $realm->find_user( { username => $user->email() }, $c );
+            if ( ref( $user_obj ) )
+            {
+                return $user_obj;
+            }
         }
     }
 

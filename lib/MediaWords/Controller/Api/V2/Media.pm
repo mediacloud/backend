@@ -494,7 +494,7 @@ sub submit_suggestion_GET
     my $feed_url = $data->{ feed_url } || 'none';
     my $reason   = $data->{ reason } || 'none';
 
-    my $user          = MediaWords::DBI::Auth::Login::login_with_api_key_catalyst( $c );
+    my $user = MediaWords::DBI::Auth::Profile::user_info( $db, $c->user->username );
     my $auth_users_id = $user->id();
 
     $db->begin;
@@ -586,7 +586,7 @@ sub mark_suggestion_PUT
 
     my $db = $c->dbis;
 
-    my $user          = MediaWords::DBI::Auth::Login::login_with_api_key_catalyst( $c );
+    my $user = MediaWords::DBI::Auth::Profile::user_info( $db, $c->user->username );
     my $auth_users_id = $user->id();
 
     die( "status must be pending, approved, or rejected" )

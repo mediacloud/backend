@@ -14,6 +14,7 @@ use MediaWords::Util::Config;
 use MediaWords::DBI::Auth::Roles;
 
 use Net::IP;
+use Readonly;
 use URI;
 
 # Set flags and add plugins for the application
@@ -54,15 +55,23 @@ use HTML::FormFu::Unicode;
 
 my $config = __PACKAGE__->config( -name => 'MediaWords' );
 
+# Authentication realms
+Readonly our $AUTH_REALM_USERNAME_PASSWORD => 'mc_auth_realm_username_password';
+Readonly our $AUTH_REALM_API_KEY           => 'mc_auth_realm_api_key';
+
 # Configure authentication scheme
 __PACKAGE__->config( 'Plugin::Static::Simple' => { dirs => [ 'gexf', 'nv' ] } );
 __PACKAGE__->config(
     'Plugin::Authentication' => {
-        'default_realm' => 'users',
-        'users'         => {
-            'credential' => { 'class' => 'MediaWords' },
+        'default_realm'               => $AUTH_REALM_USERNAME_PASSWORD,
+        $AUTH_REALM_USERNAME_PASSWORD => {
+            'credential' => { 'class' => 'MediaWords::UsernamePassword' },
             'store'      => { 'class' => 'MediaWords' }
-        }
+        },
+        $AUTH_REALM_API_KEY => {
+            'credential' => { 'class' => 'MediaWords::APIKey' },
+            'store'      => { 'class' => 'MediaWords' }
+        },
     }
 );
 

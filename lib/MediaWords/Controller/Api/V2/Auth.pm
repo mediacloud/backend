@@ -97,7 +97,7 @@ sub profile : Local
     my $db = $c->dbis;
 
     my $userinfo;
-    eval { $userinfo = MediaWords::DBI::Auth::Login::login_with_api_key_catalyst( $c ); };
+    eval { $userinfo = MediaWords::DBI::Auth::Profile::user_info( $db, $c->user->username ); };
     if ( $@ or ( !$userinfo ) )
     {
         die "Unable to find user for given API key.";

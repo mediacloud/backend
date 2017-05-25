@@ -14,9 +14,6 @@ use Readonly;
 
 use MediaWords::DBI::Auth::Profile;
 
-# API key HTTP GET parameter
-Readonly my $API_KEY_PARAMETER => 'key';
-
 # Post-unsuccessful login delay (in seconds)
 Readonly my $POST_UNSUCCESSFUL_LOGIN_DELAY => 1;
 
@@ -242,20 +239,6 @@ SQL
     }
 
     return $user;
-}
-
-# Fetch user object for the API key, using Catalyst's object.
-# Only active users are fetched.
-# die()s on error
-sub login_with_api_key_catalyst($)
-{
-    my $c = shift;
-
-    my $db         = $c->dbis;
-    my $api_key    = $c->request->param( $API_KEY_PARAMETER . '' );
-    my $ip_address = $c->request_ip_address();
-
-    return login_with_api_key( $db, $api_key, $ip_address );
 }
 
 1;

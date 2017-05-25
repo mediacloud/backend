@@ -85,7 +85,15 @@ sub index : Path : Args(0)
     }
 
     # Attempt to log the user in
-    if ( $c->authenticate( { username => $email, password => $password } ) )
+    if (
+        $c->authenticate(
+            {
+                username => $email,
+                password => $password,
+            },
+            $MediaWords::AUTH_REALM_USERNAME_PASSWORD
+        )
+      )
     {
         if ( $form->params->{ referer } )
         {
