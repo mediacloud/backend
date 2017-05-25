@@ -17,100 +17,9 @@ use MediaWords::DBI::Auth::Profile;
 # Post-unsuccessful login delay (in seconds)
 Readonly my $POST_UNSUCCESSFUL_LOGIN_DELAY => 1;
 
-# Login and get an IP API key for the logged in user.
-# Returns API key if login is successful, undef otherwise.
-sub login_and_get_ip_api_key_for_user($$$$)
-{
-    my ( $db, $email, $password, $ip_address ) = @_;
-
-    unless ( $email and $password )
-    {
-        die "Email and password must be defined";
-    }
-
-    unless ( $ip_address )
-    {
-        die "Unable to find IP address for request";
-    }
-
-    my $user;
-    eval { $user = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
-    if ( $@ or ( !$user ) )
-    {
-        die "Unable to find user with email '$email'";
-    }
-
-    unless ( $user->active() )
-    {
-        die "User with email '$email' is not active.";
-    }
-
-    unless ( MediaWords::DBI::Auth::Password::password_hash_is_valid( $user->password_hash(), $password ) )
-    {
-        die "Password for user '$email' is invalid.";
-    }
-
-    my $auth_user_ip_api_key = $db->query(
-        <<SQL,
-        SELECT *
-        FROM auth_user_api_keys
-        WHERE auth_users_id = \$1
-          AND ip_address = \$2
-SQL
-        $user->id(), $ip_address
-    )->hash;
-
-    my $auit_hash = { auth_users_id => $user->id(), ip_address => $ip_address };
-    $auth_user_ip_api_key //= $db->create( 'auth_user_api_keys', $auit_hash );
-
-    return $auth_user_ip_api_key->{ api_key };
-}
-
-# Post-successful login database tasks
-sub post_successful_login($$)
-{
-    my ( $db, $email ) = @_;
-
-    # Reset the password reset token (if any)
-    $db->query(
-        <<"SQL",
-        UPDATE auth_users
-        SET password_reset_token_hash = NULL
-        WHERE email = ?
-SQL
-        $email
-    );
-}
-
-# Post-unsuccessful login database tasks
-sub post_unsuccessful_login($$)
-{
-    my ( $db, $email ) = @_;
-
-    INFO "Login failed for $email, will delay any successive login attempt for $POST_UNSUCCESSFUL_LOGIN_DELAY seconds.";
-
-    # Set the unsuccessful login timestamp
-    # (TIMESTAMP 'now' returns "current transaction's start time", so using LOCALTIMESTAMP instead)
-    $db->query(
-        <<"SQL",
-        UPDATE auth_users
-        SET last_unsuccessful_login_attempt = LOCALTIMESTAMP
-        WHERE email = ?
-SQL
-        $email
-    );
-
-    # It might make sense to sleep() here for the duration of $POST_UNSUCCESSFUL_LOGIN_DELAY seconds
-    # to prevent legitimate users from trying to log in too fast.
-    # However, when being actually brute-forced through multiple HTTP connections, this approach might
-    # end up creating a lot of processes that would sleep() and take up memory.
-    # So, let's return the error page ASAP and hope that a legitimate user won't be able to reenter
-    # his / her password before the $POST_UNSUCCESSFUL_LOGIN_DELAY amount of seconds pass.
-}
-
 # Check if user is trying to log in too soon after last unsuccessful attempt to do that
 # Returns 1 if too soon, 0 otherwise
-sub user_is_trying_to_login_too_soon($$)
+sub _user_is_trying_to_login_too_soon($$)
 {
     my ( $db, $email ) = @_;
 
@@ -137,6 +46,129 @@ SQL
     {
         return 0;
     }
+}
+
+# Log in with username and password
+# Return ExistingUser object if login is successful, die() otherwise
+sub login_with_email_password($$$)
+{
+    my ( $db, $email, $password ) = @_;
+
+    my $user;
+
+    eval {
+
+        unless ( $email and $password )
+        {
+            die "Email and password must be defined";
+        }
+
+        eval { $user = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
+        if ( $@ or ( !$user ) )
+        {
+            die "Unable to find user with email '$email'";
+        }
+
+        # Check if user has tried to log in unsuccessfully before and now is trying
+        # again too fast
+        if ( _user_is_trying_to_login_too_soon( $db, $email ) )
+        {
+            die "User '$email' is trying to log in too soon after the last unsuccessful attempt.";
+        }
+
+        unless ( $user->active() )
+        {
+            die "User with email '$email' is not active.";
+        }
+
+        unless ( MediaWords::DBI::Auth::Password::password_hash_is_valid( $user->password_hash(), $password ) )
+        {
+            die "Password for user '$email' is invalid.";
+        }
+
+        # Reset password reset token (if any)
+        $db->query(
+            <<"SQL",
+            UPDATE auth_users
+            SET password_reset_token_hash = NULL
+            WHERE email = ?
+SQL
+            $email
+        );
+
+    };
+    if ( $@ or ( !$user ) )
+    {
+
+        INFO "Login failed for $email, will delay any successive login attempt for $POST_UNSUCCESSFUL_LOGIN_DELAY seconds.";
+
+        # Set the unsuccessful login timestamp
+        # (TIMESTAMP 'now' returns "current transaction's start time", so using LOCALTIMESTAMP instead)
+        $db->query(
+            <<"SQL",
+            UPDATE auth_users
+            SET last_unsuccessful_login_attempt = LOCALTIMESTAMP
+            WHERE email = ?
+SQL
+            $email
+        );
+
+        # It might make sense to sleep() here for the duration of $POST_UNSUCCESSFUL_LOGIN_DELAY seconds
+        # to prevent legitimate users from trying to log in too fast.
+        # However, when being actually brute-forced through multiple HTTP connections, this approach might
+        # end up creating a lot of processes that would sleep() and take up memory.
+        # So, let's return the error page ASAP and hope that a legitimate user won't be able to reenter
+        # his / her password before the $POST_UNSUCCESSFUL_LOGIN_DELAY amount of seconds pass.
+
+        # Don't give out a specific reason for the user to not be able to find
+        # out which user emails are registered
+        die "Login for user '$email' has failed.";
+    }
+
+    return $user;
+}
+
+# Login and get an IP API key for the logged in user.
+# Returns API key if login is successful, die() otherwise
+sub login_with_email_password_get_ip_api_key($$$$)
+{
+    my ( $db, $email, $password, $ip_address ) = @_;
+
+    unless ( $ip_address )
+    {
+        die "Unable to find IP address for request";
+    }
+
+    my $user;
+    eval { $user = login_with_email_password( $db, $email, $password ); };
+    if ( $@ or ( !$user ) )
+    {
+        die "Unable to log user '$email' in with provided credentials: $@";
+    }
+
+    my $api_key_for_ip_address = $user->api_key_for_ip_address( $ip_address );
+
+    unless ( $api_key_for_ip_address )
+    {
+        $db->create(
+            'auth_user_api_keys',
+            {
+                auth_users_id => $user->id(),    #
+                ip_address    => $ip_address,    #
+            }
+        );
+
+        # Fetch user again
+        $user = login_with_email_password( $db, $email, $password );
+        $api_key_for_ip_address = $user->api_key_for_ip_address( $ip_address );
+
+        unless ( $api_key_for_ip_address )
+        {
+            die "Unable to create per-IP API key for IP address $ip_address.";
+        }
+    }
+
+    return $api_key_for_ip_address;
 }
 
 1;

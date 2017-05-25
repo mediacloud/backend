@@ -111,9 +111,11 @@ SQL
     $db_password_old = $db_password_old->{ password_hash };
 
     # Validate the password
-    unless ( MediaWords::DBI::Auth::Password::password_hash_is_valid( $db_password_old, $password_old ) )
+    my $user;
+    eval { $user = MediaWords::DBI::Login::login_with_email_password( $db, $email, $password_old ); };
+    if ( $@ or ( !$user ) )
     {
-        die 'Old password is incorrect.';
+        die "Old password is incorrect: $@";
     }
 
     # Execute the change
@@ -150,7 +152,14 @@ sub change_password_with_reset_token($$$$$)
     }
 
     # Unset the password reset token
-    MediaWords::DBI::Auth::Login::post_successful_login( $db, $email );
+    $db->query(
+        <<"SQL",
+        UPDATE auth_users
+        SET password_reset_token_hash = NULL
+        WHERE email = ?
+SQL
+        $email
+    );
 }
 
 1;

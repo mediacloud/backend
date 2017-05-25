@@ -286,7 +286,14 @@ SQL
     );
 
     # Unset the password reset token
-    MediaWords::DBI::Auth::Login::post_successful_login( $db, $email );
+    $db->query(
+        <<"SQL",
+        UPDATE auth_users
+        SET password_reset_token_hash = NULL
+        WHERE email = ?
+SQL
+        $email
+    );
 }
 
 1;

@@ -47,7 +47,7 @@ sub login_GET : PathPrefix( '/api' )
 
     my $api_key;
     eval {
-        $api_key = MediaWords::DBI::Auth::Login::login_and_get_ip_api_key_for_user(
+        $api_key = MediaWords::DBI::Auth::Login::login_with_email_password_get_ip_api_key(
             $db,                        #
             $email,                     #
             $password,                  #
@@ -73,7 +73,7 @@ sub single_GET : PathPrefix( '/api' )
 
     my $api_key;
     eval {
-        $api_key = MediaWords::DBI::Auth::Login::login_and_get_ip_api_key_for_user(
+        $api_key = MediaWords::DBI::Auth::Login::login_with_email_password_get_ip_api_key(
             $db,                        #
             $email,                     #
             $password,                  #

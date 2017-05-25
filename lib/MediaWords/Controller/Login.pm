@@ -87,10 +87,6 @@ sub index : Path : Args(0)
     # Attempt to log the user in
     if ( $c->authenticate( { username => $email, password => $password } ) )
     {
-
-        # Run post-successful login tasks
-        MediaWords::DBI::Auth::Login::post_successful_login( $c->dbis, $email );
-
         if ( $form->params->{ referer } )
         {
             $c->response->redirect( $form->params->{ referer } );
@@ -106,10 +102,6 @@ sub index : Path : Args(0)
     }
     else
     {
-
-        # Run post-unsuccessful login tasks
-        MediaWords::DBI::Auth::Login::post_unsuccessful_login( $c->dbis, $email );
-
         # Show form again
         $c->stash->{ form } = $form;
         $c->stash->{ c }    = $c;
