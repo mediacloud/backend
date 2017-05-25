@@ -199,7 +199,7 @@ sub reset : Local
     $form->process( $c->request );
 
     my $email                = $c->request->param( 'email' );
-    my $password_reset_token = $c->request->param( 'token' );
+    my $password_reset_token = $c->request->param( 'password_reset_token' );
 
     if ( !$form->submitted_and_valid() )
     {
@@ -272,14 +272,14 @@ sub activate : Local
 {
     my ( $self, $c ) = @_;
 
-    my $email                = $c->request->param( 'email' );
-    my $password_reset_token = $c->request->param( 'token' );
+    my $email            = $c->request->param( 'email' );
+    my $activation_token = $c->request->param( 'activation_token' );
 
     # Check if the password token (a required parameter in all cases for this action) exists
     my $token_is_valid = MediaWords::DBI::Auth::Password::password_reset_token_is_valid(
-        $c->dbis,                #
-        $email,                  #
-        $password_reset_token    #
+        $c->dbis,            #
+        $email,              #
+        $activation_token    #
     );
 
     $c->stash->{ email } = $email;
@@ -317,7 +317,7 @@ sub activate : Local
 
     # At this point the token has been validated and the form has been submitted.
 
-    eval { MediaWords::DBI::Auth::Register::activate_user_via_token( $c->dbis, $email, $password_reset_token ); };
+    eval { MediaWords::DBI::Auth::Register::activate_user_via_token( $c->dbis, $email, $activation_token ); };
     if ( $@ )
     {
         my $error_message = "Unable to activate user: $@";

@@ -139,7 +139,7 @@ SQL
     }
 
     $password_reset_link =
-      $password_reset_link . '?email=' . uri_escape( $email ) . '&token=' . uri_escape( $password_reset_token );
+      $password_reset_link . '?email=' . uri_escape( $email ) . '&activation_token=' . uri_escape( $password_reset_token );
     INFO "Full password reset link: $password_reset_link";
 
     eval { _send_new_user_email( $email, $password_reset_link ); };
@@ -262,17 +262,17 @@ SQL
 # Change password with a password token sent by email; die()s on error
 sub activate_user_via_token($$$)
 {
-    my ( $db, $email, $password_reset_token ) = @_;
+    my ( $db, $email, $activation_token ) = @_;
 
-    unless ( $password_reset_token )
+    unless ( $activation_token )
     {
         die 'Password reset token is empty.';
     }
 
     # Validate the token once more (was pre-validated in controller)
-    unless ( MediaWords::DBI::Auth::Password::password_reset_token_is_valid( $db, $email, $password_reset_token ) )
+    unless ( MediaWords::DBI::Auth::Password::password_reset_token_is_valid( $db, $email, $activation_token ) )
     {
-        die 'Password reset token is invalid.';
+        die 'Activation token is invalid.';
     }
 
     # Set the password hash

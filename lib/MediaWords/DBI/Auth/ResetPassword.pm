@@ -115,7 +115,8 @@ SQL
     }
 
     $password_reset_link =
-      $password_reset_link . '?email=' . uri_escape( $email ) . '&token=' . uri_escape( $password_reset_token );
+      $password_reset_link .
+      '?email=' . uri_escape( $email ) . '&password_reset_token=' . uri_escape( $password_reset_token );
     INFO "Full password reset link: $password_reset_link";
 
     eval { _send_password_reset_email( $email, $password_reset_link ); };
