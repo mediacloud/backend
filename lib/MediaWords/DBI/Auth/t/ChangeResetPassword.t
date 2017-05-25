@@ -12,7 +12,7 @@ use MediaWords::CommonLibs;
 
 use HTTP::HashServer;
 use Readonly;
-use Test::More tests => 40;
+use Test::More tests => 41;
 use Test::Deep;
 use URI;
 use URI::QueryParam;
@@ -323,6 +323,41 @@ SQL
     }
 }
 
+sub test_send_password_reset_token($)
+{
+    my ( $db ) = @_;
+
+    my $email               = 'test@user.login';
+    my $password            = 'userlogin123';
+    my $password_reset_link = 'http://password-reset.com/';
+
+    eval {
+
+        my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
+            email                        => $email,
+            full_name                    => 'Test user login',
+            notes                        => 'Test test test',
+            role_ids                     => [ 1 ],
+            active                       => 1,
+            password                     => $password,
+            password_repeat              => $password,
+            activation_url               => '',                  # user is active, no need for activation URL
+            weekly_requests_limit        => 123,
+            weekly_requested_items_limit => 456,
+        );
+
+        MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
+    };
+    ok( !$@, "Unable to add user: $@" );
+
+    # Existing user
+    MediaWords::DBI::Auth::ResetPassword::send_password_reset_token( $db, $email, $password_reset_link );
+
+    # Nonexisting user (call shouldn't fail because we don't want to reveal
+    # which users are in the system so we pretend that we've sent the email)
+    MediaWords::DBI::Auth::ResetPassword::send_password_reset_token( $db, 'does@not.exist', $password_reset_link );
+}
+
 sub main
 {
     # Don't actually send any emails
@@ -346,6 +381,13 @@ sub main
         sub {
             my $db = shift;
             test_change_password_with_reset_token( $db );
+        }
+    );
+
+    MediaWords::Test::DB::test_on_test_database(
+        sub {
+            my $db = shift;
+            test_send_password_reset_token( $db );
         }
     );
 }

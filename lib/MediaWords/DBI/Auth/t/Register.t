@@ -12,7 +12,7 @@ use MediaWords::CommonLibs;
 
 use HTTP::HashServer;
 use Readonly;
-use Test::More tests => 26;
+use Test::More tests => 27;
 use Test::Deep;
 use URI;
 use URI::QueryParam;
@@ -294,6 +294,41 @@ SQL
     }
 }
 
+sub test_send_user_activation_token($)
+{
+    my ( $db ) = @_;
+
+    my $email          = 'test@user.login';
+    my $password       = 'userlogin123';
+    my $activation_url = 'http://activate.com/';
+
+    eval {
+
+        my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
+            email                        => $email,
+            full_name                    => 'Test user login',
+            notes                        => 'Test test test',
+            role_ids                     => [ 1 ],
+            active                       => 1,
+            password                     => $password,
+            password_repeat              => $password,
+            activation_url               => '',                  # user is active, no need for activation URL
+            weekly_requests_limit        => 123,
+            weekly_requested_items_limit => 456,
+        );
+
+        MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
+    };
+    ok( !$@, "Unable to add user: $@" );
+
+    # Existing user
+    MediaWords::DBI::Auth::Register::send_user_activation_token( $db, $email, $activation_url );
+
+    # Nonexisting user (call shouldn't fail because we don't want to reveal
+    # which users are in the system so we pretend that we've sent the email)
+    MediaWords::DBI::Auth::Register::send_user_activation_token( $db, 'does@not.exist', $activation_url );
+}
+
 sub main
 {
     # Don't actually send any emails
@@ -310,6 +345,13 @@ sub main
         sub {
             my $db = shift;
             test_activate_user_via_token( $db );
+        }
+    );
+
+    MediaWords::Test::DB::test_on_test_database(
+        sub {
+            my $db = shift;
+            test_send_user_activation_token( $db );
         }
     );
 }

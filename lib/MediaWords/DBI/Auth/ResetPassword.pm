@@ -42,6 +42,7 @@ EOF
 
 # Generate password reset token
 # Kept in a separate subroutine for easier testing.
+# Returns undef if user was not found.
 sub _generate_password_reset_token($$$)
 {
     my ( $db, $email, $password_reset_link ) = @_;
@@ -108,19 +109,15 @@ SQL
         $password_reset_token_hash, $email
     );
 
-    # If we didn't find an email address in the database, we return here imitating success
-    # (again, due to timing attacks)
-    unless ( length( $email ) > 0 )
+    if ( $email )
     {
-        return;
+        return $password_reset_link .
+          '?email=' . uri_escape( $email ) . '&password_reset_token=' . uri_escape( $password_reset_token );
     }
-
-    $password_reset_link =
-      $password_reset_link .
-      '?email=' . uri_escape( $email ) . '&password_reset_token=' . uri_escape( $password_reset_token );
-    INFO "Full password reset link: $password_reset_link";
-
-    return $password_reset_link;
+    else
+    {
+        return undef;
+    }
 }
 
 # Prepare for password reset by emailing the password reset token; die()s on error
@@ -129,6 +126,13 @@ sub send_password_reset_token($$$)
     my ( $db, $email, $password_reset_link ) = @_;
 
     $password_reset_link = _generate_password_reset_token( $db, $email, $password_reset_link );
+
+    # If user was not found, send an email to a random address anyway to avoid timing attach
+    unless ( $password_reset_link )
+    {
+        $email               = 'nowhere@mediacloud.org';
+        $password_reset_link = 'password reset link';
+    }
 
     eval { _send_password_reset_email( $email, $password_reset_link ); };
     if ( $@ )

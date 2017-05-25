@@ -66,6 +66,7 @@ EOF
 
 # Generate user activation token
 # Kept in a separate subroutine for easier testing.
+# Returns undef if user was not found.
 sub _generate_user_activation_token($$$)
 {
     my ( $db, $email, $activation_link ) = @_;
@@ -132,18 +133,14 @@ SQL
         $activation_token_hash, $email
     );
 
-    # If we didn't find an email address in the database, we return here imitating success
-    # (again, due to timing attacks)
-    unless ( length( $email ) > 0 )
+    if ( $email )
     {
-        return;
+        return $activation_link . '?email=' . uri_escape( $email ) . '&activation_token=' . uri_escape( $activation_token );
     }
-
-    $activation_link =
-      $activation_link . '?email=' . uri_escape( $email ) . '&activation_token=' . uri_escape( $activation_token );
-    INFO "Full activation link: $activation_link";
-
-    return $activation_link;
+    else
+    {
+        return undef;
+    }
 }
 
 # Prepare for activation by emailing the activation token; die()s on error
@@ -152,6 +149,13 @@ sub send_user_activation_token($$$)
     my ( $db, $email, $activation_link ) = @_;
 
     $activation_link = _generate_user_activation_token( $db, $email, $activation_link );
+
+    # If user was not found, send an email to a random address anyway to avoid timing attach
+    unless ( $activation_link )
+    {
+        $email           = 'nowhere@mediacloud.org';
+        $activation_link = 'activation link';
+    }
 
     eval { _send_new_user_email( $email, $activation_link ); };
     if ( $@ )
