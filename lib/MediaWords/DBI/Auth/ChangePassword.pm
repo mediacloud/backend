@@ -112,7 +112,7 @@ SQL
 
     # Validate the password
     my $user;
-    eval { $user = MediaWords::DBI::Login::login_with_email_password( $db, $email, $password_old ); };
+    eval { $user = MediaWords::DBI::Auth::Login::login_with_email_password( $db, $email, $password_old ); };
     if ( $@ or ( !$user ) )
     {
         die "Old password is incorrect: $@";
