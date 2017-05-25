@@ -40,8 +40,9 @@ EOF
     }
 }
 
-# Prepare for password reset by emailing the password reset token; die()s on error
-sub send_password_reset_token($$$)
+# Generate password reset token
+# Kept in a separate subroutine for easier testing.
+sub _generate_password_reset_token($$$)
 {
     my ( $db, $email, $password_reset_link ) = @_;
 
@@ -118,6 +119,16 @@ SQL
       $password_reset_link .
       '?email=' . uri_escape( $email ) . '&password_reset_token=' . uri_escape( $password_reset_token );
     INFO "Full password reset link: $password_reset_link";
+
+    return $password_reset_link;
+}
+
+# Prepare for password reset by emailing the password reset token; die()s on error
+sub send_password_reset_token($$$)
+{
+    my ( $db, $email, $password_reset_link ) = @_;
+
+    $password_reset_link = _generate_password_reset_token( $db, $email, $password_reset_link );
 
     eval { _send_password_reset_email( $email, $password_reset_link ); };
     if ( $@ )
