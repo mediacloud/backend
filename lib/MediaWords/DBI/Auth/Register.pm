@@ -206,11 +206,12 @@ SQL
     $db->create(
         'auth_users',
         {
-            email         => $new_user->email(),
-            password_hash => $password_hash,
-            full_name     => $new_user->full_name(),
-            notes         => $new_user->notes(),
-            active        => normalize_boolean_for_db( $new_user->active() )
+            email                   => $new_user->email(),
+            password_hash           => $password_hash,
+            full_name               => $new_user->full_name(),
+            notes                   => $new_user->notes(),
+            active                  => normalize_boolean_for_db( $new_user->active() ),
+            subscribe_to_newsletter => normalize_boolean_for_db( $new_user->subscribe_to_newsletter() ),
         }
     );
 

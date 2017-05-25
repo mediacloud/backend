@@ -13,7 +13,8 @@ use MediaWords::CommonLibs;
 use Moose;
 extends 'MediaWords::DBI::Auth::User::NewOrModifyUser';
 
-has 'activation_url' => ( is => 'rw', isa => 'Str' );
+has 'subscribe_to_newsletter' => ( is => 'rw', isa => 'Int' );
+has 'activation_url'          => ( is => 'rw', isa => 'Str' );
 
 sub BUILD
 {
