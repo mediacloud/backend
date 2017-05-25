@@ -137,7 +137,7 @@ sub login_GET : PathPrefix( '/api' )
         die "User '$email' was not found or password is incorrect.";
     }
 
-    $self->status_ok( $c, entity => { 'api_key' => $api_key } );
+    $self->status_ok( $c, entity => { 'success' => 1, 'api_key' => $api_key } );
 }
 
 sub single_GET : PathPrefix( '/api' )
