@@ -17,6 +17,7 @@ use Test::More tests => 80;
 use MediaWords::Test::API;
 use MediaWords::Test::DB;
 
+use MediaWords::DBI::Auth;
 use MediaWords::Util::Mail;
 
 sub test_auth_register($)
