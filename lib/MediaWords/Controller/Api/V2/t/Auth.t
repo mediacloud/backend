@@ -17,6 +17,8 @@ use Test::More tests => 80;
 use MediaWords::Test::API;
 use MediaWords::Test::DB;
 
+use MediaWords::Util::Mail;
+
 sub test_auth_register($)
 {
     my ( $db ) = @_;
@@ -375,6 +377,9 @@ sub test_auth($)
 
 sub main
 {
+    # Don't actually send any emails
+    MediaWords::Util::Mail::test_mode( 1 );
+
     MediaWords::Test::DB::test_on_test_database( \&test_auth );
 }
 
