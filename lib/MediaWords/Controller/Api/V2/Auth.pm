@@ -96,32 +96,11 @@ sub profile : Local
 
     my $db = $c->dbis;
 
-    my $user  = MediaWords::DBI::Auth::APIKey::user_for_api_key_catalyst( $c );
-    my $email = $user->{ email };
-
     my $userinfo;
-    eval { $userinfo = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
+    eval { $userinfo = MediaWords::DBI::Auth::APIKey::user_for_api_key_catalyst( $c ); };
     if ( $@ or ( !$userinfo ) )
     {
-        die "Unable to find user with email '$email'";
-    }
-
-    delete $userinfo->{ api_key };
-
-    $userinfo->{ auth_roles } = $db->query( <<SQL, $email )->flat;
-select ar.role
-    from auth_roles ar
-        join auth_users_roles_map aurm using ( auth_roles_id )
-        join auth_users au using ( auth_users_id )
-    where
-        au.email = \$1
-    order by auth_roles_id
-SQL
-
-    my $user_role_names = [];
-    for my $user_role ( @{ $userinfo->roles() } )
-    {
-        push( @{ $user_role_names }, $user_role->role() );
+        die "Unable to find user for given API key.";
     }
 
     my $user_hash = {
@@ -134,7 +113,7 @@ SQL
         weekly_requested_items_sum   => $userinfo->weekly_requested_items_sum(),
         weekly_requests_limit        => $userinfo->weekly_requests_limit(),
         weekly_requested_items_limit => $userinfo->weekly_requested_items_limit(),
-        roles                        => $user_role_names,
+        roles                        => [ map { $_->role() } @{ $userinfo->roles() } ],
     };
 
     return $self->status_ok( $c, entity => $user_hash );

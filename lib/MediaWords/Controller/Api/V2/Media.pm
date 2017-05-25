@@ -495,7 +495,7 @@ sub submit_suggestion_GET
     my $reason   = $data->{ reason } || 'none';
 
     my $user          = MediaWords::DBI::Auth::APIKey::user_for_api_key_catalyst( $c );
-    my $auth_users_id = $user->{ auth_users_id };
+    my $auth_users_id = $user->id();
 
     $db->begin;
 
@@ -587,7 +587,7 @@ sub mark_suggestion_PUT
     my $db = $c->dbis;
 
     my $user          = MediaWords::DBI::Auth::APIKey::user_for_api_key_catalyst( $c );
-    my $auth_users_id = $user->{ auth_users_id };
+    my $auth_users_id = $user->id();
 
     die( "status must be pending, approved, or rejected" )
       unless ( grep { $_ eq $data->{ status } } ( qw/pending approved rejected/ ) );

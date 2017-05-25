@@ -15,9 +15,9 @@ use MediaWords::DBI::Auth::Profile;
 # API key HTTP GET parameter
 Readonly my $API_KEY_PARAMETER => 'key';
 
-# Fetch a hash of basic user information and an array of assigned roles based on the API key.
+# Fetch user object for the API key.
 # Only active users are fetched.
-# Returns 0 on error
+# die()s on error
 sub user_for_api_key($$$)
 {
     my ( $db, $api_key, $ip_address ) = @_;
@@ -28,21 +28,16 @@ sub user_for_api_key($$$)
     }
     unless ( $ip_address )
     {
+        # Even if provided API key is the global one, we want the IP address
         die "IP address is undefined.";
     }
 
-    my $user = $db->query(
+    my $api_key_user = $db->query(
         <<"SQL",
-        SELECT auth_users.auth_users_id,
-               auth_users.email,
-               ARRAY_TO_STRING(ARRAY_AGG(role), ' ') AS roles
+        SELECT auth_users.email
         FROM auth_users
             INNER JOIN auth_user_api_keys
                 ON auth_users.auth_users_id = auth_user_api_keys.auth_users_id
-            LEFT JOIN auth_users_roles_map
-                ON auth_users.auth_users_id = auth_users_roles_map.auth_users_id
-            LEFT JOIN auth_roles
-                ON auth_users_roles_map.auth_roles_id = auth_roles.auth_roles_id
         WHERE
             (
                 auth_user_api_keys.api_key = \$1 AND
@@ -53,8 +48,6 @@ sub user_for_api_key($$$)
                 )
             )
 
-          AND active = true
-
         GROUP BY auth_users.auth_users_id,
                  auth_users.email
         ORDER BY auth_users.auth_users_id
@@ -64,20 +57,29 @@ SQL
         $ip_address
     )->hash;
 
-    if ( !( ref( $user ) eq ref( {} ) and $user->{ auth_users_id } ) )
+    unless ( ref( $api_key_user ) eq ref( {} ) and $api_key_user->{ email } )
     {
-        return 0;
+        die "Unable to find user for API key '$api_key' and IP address '$ip_address'";
     }
 
-    # Make an array out of list of roles
-    $user->{ roles } = [ split( ' ', $user->{ roles } ) ];
+    my $email = $api_key_user->{ email };
+    my $user = MediaWords::DBI::Auth::Profile::user_info( $db, $email );
+    unless ( $user )
+    {
+        die "Unable to fetch user '$email' for API key '$api_key'";
+    }
+
+    unless ( $user->active() )
+    {
+        die "User '$email' for API key '$api_key' is not active.";
+    }
 
     return $user;
 }
 
-# Fetch a hash of basic user information and an array of assigned roles based on the API key.
+# Fetch user object for the API key, using Catalyst's object.
 # Only active users are fetched.
-# Returns 0 on error
+# die()s on error
 sub user_for_api_key_catalyst($)
 {
     my $c = shift;
