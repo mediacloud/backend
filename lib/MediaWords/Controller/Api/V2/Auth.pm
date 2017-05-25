@@ -170,10 +170,6 @@ sub login : Local : ActionClass('MC_REST')
 {
 }
 
-sub single : Local : ActionClass('MC_REST')
-{
-}
-
 sub login_GET : PathPrefix( '/api' )
 {
     my ( $self, $c ) = @_;
@@ -199,6 +195,10 @@ sub login_GET : PathPrefix( '/api' )
     }
 
     $self->status_ok( $c, entity => { 'success' => 1, 'api_key' => $api_key } );
+}
+
+sub single : Local : ActionClass('MC_REST')
+{
 }
 
 sub single_GET : PathPrefix( '/api' )
