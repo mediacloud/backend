@@ -12,7 +12,7 @@ use MediaWords::CommonLibs;
 
 use HTTP::HashServer;
 use Readonly;
-use Test::More tests => 68;
+use Test::More tests => 80;
 
 use MediaWords::Test::API;
 use MediaWords::Test::DB;
@@ -176,6 +176,56 @@ sub test_auth_activate($)
     }
 }
 
+sub test_resend_activation_link($)
+{
+    my ( $db ) = @_;
+
+    my $email          = 'test@auth.reactivate';
+    my $password       = 'authreactivate';
+    my $activation_url = 'https://activate.com/';
+
+    # Register user
+    {
+        my $r = test_post(
+            '/api/v2/auth/register',
+            {
+                email                   => $email,
+                password                => $password,
+                full_name               => 'Full Name',
+                notes                   => '',
+                subscribe_to_newsletter => 1,
+                activation_url          => $activation_url,
+            }
+        );
+        is( $r->{ 'success' }, 1 );
+    }
+
+    # Resend activation link
+    {
+        my $r = test_post(
+            '/api/v2/auth/resend_activation_link',
+            {
+                email          => $email,
+                activation_url => $activation_url,
+            }
+        );
+        is( $r->{ 'success' }, 1 );
+    }
+
+    # Try sending for nonexistent user (should not fail in order to not reveal
+    # whether or not a particular user exists)
+    {
+        my $r = test_post(
+            '/api/v2/auth/resend_activation_link',
+            {
+                email          => 'totally_does_not_exist@gmail.com',
+                activation_url => $activation_url,
+            }
+        );
+        is( $r->{ 'success' }, 1 );
+    }
+}
+
 # test auth/profile call
 sub test_auth_profile($)
 {
@@ -317,6 +367,7 @@ sub test_auth($)
 
     test_auth_register( $db );
     test_auth_activate( $db );
+    test_resend_activation_link( $db );
     test_auth_profile( $db );
     test_auth_login( $db );
     test_auth_single( $db );

@@ -21,11 +21,12 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
 __PACKAGE__->config(    #
     action => {         #
-        register => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
-        activate => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
-        single   => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
-        login    => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
-        profile  => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        register               => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
+        activate               => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
+        resend_activation_link => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
+        single                 => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
+        login                  => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
+        profile                => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
@@ -164,6 +165,44 @@ sub activate_GET : PathPrefix( '/api' )
     my $user_hash = _user_profile_hash( $db, $email );
 
     $self->status_ok( $c, entity => { 'success' => 1, 'profile' => $user_hash } );
+}
+
+sub resend_activation_link : Local : ActionClass('MC_REST')
+{
+}
+
+sub resend_activation_link_GET : PathPrefix( '/api' )
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $data = $c->req->data;
+
+    my $email = $data->{ email };
+    unless ( $email )
+    {
+        die "'email' is not set.";
+    }
+
+    my $activation_url = $data->{ activation_url };
+    unless ( $activation_url )
+    {
+        die "'activation_url' is not set.";
+    }
+
+    unless ( MediaWords::Util::URL::is_http_url( $activation_url ) )
+    {
+        die "'activation_url' does not look like a HTTP URL.";
+    }
+
+    eval { MediaWords::DBI::Auth::Register::send_user_activation_token( $db, $email, $activation_url ); };
+    if ( $@ )
+    {
+        die "Unable to resend activation link: $@";
+    }
+
+    $self->status_ok( $c, entity => { 'success' => 1 } );
 }
 
 sub login : Local : ActionClass('MC_REST')
