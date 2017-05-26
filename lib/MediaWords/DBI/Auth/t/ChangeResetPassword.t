@@ -12,7 +12,7 @@ use MediaWords::CommonLibs;
 
 use HTTP::HashServer;
 use Readonly;
-use Test::More tests => 41;
+use Test::More tests => 42;
 use Test::Deep;
 use URI;
 use URI::QueryParam;
@@ -235,7 +235,8 @@ SQL
     like( $final_password_reset_url, qr/\Q$password_reset_url\E/ );
 
     my $final_password_reset_uri = URI->new( $final_password_reset_url );
-    my $password_reset_token     = $final_password_reset_uri->query_param( 'password_reset_token' );
+    ok( $final_password_reset_uri->query_param( 'email' ) . '' );
+    my $password_reset_token = $final_password_reset_uri->query_param( 'password_reset_token' );
     ok( $password_reset_token );
     ok( length( $password_reset_token ) > 1 );
 

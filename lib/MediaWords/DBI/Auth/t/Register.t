@@ -12,7 +12,7 @@ use MediaWords::CommonLibs;
 
 use HTTP::HashServer;
 use Readonly;
-use Test::More tests => 27;
+use Test::More tests => 28;
 use Test::Deep;
 use URI;
 use URI::QueryParam;
@@ -231,7 +231,8 @@ SQL
     like( $final_activation_url, qr/\Qactivation_token\E/ );
 
     my $final_activation_uri = URI->new( $final_activation_url );
-    my $activation_token     = $final_activation_uri->query_param( 'activation_token' );
+    ok( $final_activation_uri->query_param( 'email' ) . '' );
+    my $activation_token = $final_activation_uri->query_param( 'activation_token' );
     ok( $activation_token );
     ok( length( $activation_token ) > 1 );
 
