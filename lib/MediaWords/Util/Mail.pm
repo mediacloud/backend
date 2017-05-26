@@ -18,14 +18,9 @@ use Email::Sender::Simple;
 my $_test_mode = 0;
 
 # Send email to someone; returns 1 on success, 0 on failure
-sub send($$$;$)
+sub send($$$)
 {
-    my ( $to_email, $subject, $message_body, $replyto_email ) = @_;
-
-    if ( !$replyto_email )
-    {
-        $replyto_email = $to_email;
-    }
+    my ( $to_email, $subject, $message_body ) = @_;
 
     my $config = MediaWords::Util::Config::get_config;
 
@@ -33,7 +28,6 @@ sub send($$$;$)
         header_str => [
             From    => $config->{ mail }->{ from_address },
             To      => $to_email,
-            ReplyTo => $replyto_email,
             Subject => '[Media Cloud] ' . $subject,
         ],
         attributes => {
