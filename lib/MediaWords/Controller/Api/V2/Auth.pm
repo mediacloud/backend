@@ -29,6 +29,7 @@ __PACKAGE__->config(    #
         single                   => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
         login                    => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
         profile                  => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        change_password          => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
@@ -369,6 +370,44 @@ sub profile : Local
     my $user_hash = _user_profile_hash( $db, $email );
 
     return $self->status_ok( $c, entity => $user_hash );
+}
+
+sub change_password : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $email = $c->user->username;
+    unless ( $email )
+    {
+        die "User is not logged in.";
+    }
+
+    my $data = $c->req->data;
+
+    my $old_password = $data->{ old_password };
+    unless ( $old_password )
+    {
+        die "'old_password' is not set.";
+    }
+
+    my $new_password = $data->{ new_password };
+    unless ( $new_password )
+    {
+        die "'new_password' is not set.";
+    }
+
+    eval {
+        MediaWords::DBI::Auth::ChangePassword::change_password_with_old_password( $db, $email, $old_password,
+            $new_password, $new_password );
+    };
+    if ( $@ )
+    {
+        die "Unable to change password: $@";
+    }
+
+    $self->status_ok( $c, entity => { 'success' => 1 } );
 }
 
 1;

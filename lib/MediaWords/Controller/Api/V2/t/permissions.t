@@ -32,6 +32,7 @@ my $_topic_b;
 # this hash maps each api end point to the kind of permission it should have: public, admin_read, or topics
 my $_url_permission_types = {
     '/api/v2/auth/activate'                       => 'admin',
+    '/api/v2/auth/change_password'                => 'public',
     '/api/v2/auth/login'                          => 'admin_read',
     '/api/v2/auth/profile'                        => 'public',
     '/api/v2/auth/register'                       => 'admin',

@@ -12,7 +12,7 @@ use MediaWords::CommonLibs;
 
 use HTTP::HashServer;
 use Readonly;
-use Test::More tests => 119;
+use Test::More tests => 134;
 use Test::Deep;
 
 use URI;
@@ -495,6 +495,64 @@ SQL
     ok( !defined $r_not_found->[ 0 ]->{ api_key }, "'/api/v2/auth/single' api_key should be undefined" );
 }
 
+sub test_change_password($)
+{
+    my ( $db ) = @_;
+
+    my $email    = 'test@auth.change_password';
+    my $password = 'auth_change_password';
+
+    eval {
+
+        my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
+            email                        => $email,
+            full_name                    => 'auth change_password',
+            notes                        => '',
+            role_ids                     => [ 1 ],
+            active                       => 1,
+            password                     => $password,
+            password_repeat              => $password,
+            activation_url               => '',                       # user is active, no need for activation URL
+            weekly_requests_limit        => 1000,
+            weekly_requested_items_limit => 1000,
+        );
+
+        MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
+    };
+    ok( !$@, "Unable to add user: $@" );
+
+    # Test whether we can log in with old password
+    my $api_key;
+    {
+        my $r = test_post( '/api/v2/auth/login', { username => $email, password => $password } );
+        is( $r->{ success }, 1 );
+        $api_key = $r->{ profile }->{ api_key };
+        ok( $api_key );
+    }
+
+    my $new_password = 'this is a brand new password';
+
+    # Change password
+    {
+        my $r = test_post(
+            '/api/v2/auth/change_password?key=' . $api_key,
+            {
+                old_password => $password,
+                new_password => $new_password,
+            }
+        );
+        is( $r->{ 'success' }, 1 );
+    }
+
+    # Test whether we can log in with new password
+    {
+        my $r = test_post( '/api/v2/auth/login', { username => $email, password => $new_password } );
+        is( $r->{ success }, 1 );
+        $api_key = $r->{ profile }->{ api_key };
+        ok( $api_key );
+    }
+}
+
 # test auth/* calls
 sub test_auth($)
 {
@@ -510,6 +568,7 @@ sub test_auth($)
     test_profile( $db );
     test_login( $db );
     test_single( $db );
+    test_change_password( $db );
 }
 
 sub main

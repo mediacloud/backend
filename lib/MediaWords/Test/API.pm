@@ -98,7 +98,8 @@ sub test_data_request($$$;$)
     my ( $method, $url, $data, $expect_error ) = @_;
 
     my $uri = URI->new( $url );
-    unless ( $uri->query_param('key') ) {
+    unless ( $uri->query_param( 'key' ) )
+    {
         $uri->query_param( 'key', get_test_api_key() );
     }
     $url = $uri->as_string;
@@ -139,15 +140,17 @@ sub test_get($;$$)
 
     my $uri = URI->new( $url );
 
-    foreach my $param_key (keys %{ $params }) {
+    foreach my $param_key ( keys %{ $params } )
+    {
         my $param_value = $params->{ $param_key };
         $uri->query_param( $param_key, $param_value );
     }
 
-    unless ( $uri->query_param('key') ) {
+    unless ( $uri->query_param( 'key' ) )
+    {
         $uri->query_param( 'key', get_test_api_key() );
     }
-    
+
     $url = $uri->as_string;
 
     # Catalyst::Test::request()
