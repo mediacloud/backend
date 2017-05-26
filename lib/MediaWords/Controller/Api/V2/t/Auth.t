@@ -21,7 +21,7 @@ use MediaWords::Test::DB;
 use MediaWords::DBI::Auth;
 use MediaWords::Util::Mail;
 
-sub test_auth_register($)
+sub test_register($)
 {
     my ( $db ) = @_;
 
@@ -101,7 +101,7 @@ SQL
     }
 }
 
-sub test_auth_activate($)
+sub test_activate($)
 {
     my ( $db ) = @_;
 
@@ -352,7 +352,7 @@ sub test_reset_password($)
 }
 
 # test auth/profile call
-sub test_auth_profile($)
+sub test_profile($)
 {
     my ( $db ) = @_;
 
@@ -386,8 +386,7 @@ sub test_auth_profile($)
         $expected_profile->weekly_requested_items_limit() );
 }
 
-# test auth/login
-sub test_auth_login($)
+sub test_login($)
 {
     my ( $db ) = @_;
 
@@ -439,8 +438,7 @@ SQL
     ok( $r_not_found->{ error } =~ /was not found or password/i, "'/api/v2/auth/login' status for wrong password" );
 }
 
-# test deprecated auth/single
-sub test_auth_single($)
+sub test_single($)
 {
     my ( $db ) = @_;
 
@@ -501,14 +499,14 @@ sub test_auth($)
 
     MediaWords::Test::API::setup_test_api_key( $db );
 
-    test_auth_register( $db );
-    test_auth_activate( $db );
+    test_register( $db );
+    test_activate( $db );
     test_resend_activation_link( $db );
     test_send_password_reset_link( $db );
     test_reset_password( $db );
-    test_auth_profile( $db );
-    test_auth_login( $db );
-    test_auth_single( $db );
+    test_profile( $db );
+    test_login( $db );
+    test_single( $db );
 }
 
 sub main
