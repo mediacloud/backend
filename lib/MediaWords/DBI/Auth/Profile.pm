@@ -95,7 +95,7 @@ SQL
 
     my $api_keys = [];
     my $roles    = [];
-    foreach my $api_key ( keys %{ $unique_api_keys } )
+    foreach my $api_key ( sort( keys %{ $unique_api_keys } ) )
     {
         push(
             @{ $api_keys },
@@ -105,7 +105,7 @@ SQL
             )
         );
     }
-    foreach my $role_id ( keys %{ $unique_roles } )
+    foreach my $role_id ( sort( keys %{ $unique_roles } ) )
     {
         push(
             @{ $roles },
