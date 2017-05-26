@@ -70,11 +70,7 @@ sub _user_profile_hash($$)
     };
 }
 
-sub register : Local : ActionClass('MC_REST')
-{
-}
-
-sub register_GET : PathPrefix( '/api' )
+sub register : Local
 {
     my ( $self, $c ) = @_;
 
@@ -147,11 +143,7 @@ sub register_GET : PathPrefix( '/api' )
     $self->status_ok( $c, entity => { 'success' => 1 } );
 }
 
-sub activate : Local : ActionClass('MC_REST')
-{
-}
-
-sub activate_GET : PathPrefix( '/api' )
+sub activate : Local
 {
     my ( $self, $c ) = @_;
 
@@ -182,11 +174,7 @@ sub activate_GET : PathPrefix( '/api' )
     $self->status_ok( $c, entity => { 'success' => 1, 'profile' => $user_hash } );
 }
 
-sub resend_activation_link : Local : ActionClass('MC_REST')
-{
-}
-
-sub resend_activation_link_GET : PathPrefix( '/api' )
+sub resend_activation_link : Local
 {
     my ( $self, $c ) = @_;
 
@@ -220,11 +208,7 @@ sub resend_activation_link_GET : PathPrefix( '/api' )
     $self->status_ok( $c, entity => { 'success' => 1 } );
 }
 
-sub send_password_reset_link : Local : ActionClass('MC_REST')
-{
-}
-
-sub send_password_reset_link_GET : PathPrefix( '/api' )
+sub send_password_reset_link : Local
 {
     my ( $self, $c ) = @_;
 
@@ -258,11 +242,7 @@ sub send_password_reset_link_GET : PathPrefix( '/api' )
     $self->status_ok( $c, entity => { 'success' => 1 } );
 }
 
-sub reset_password : Local : ActionClass('MC_REST')
-{
-}
-
-sub reset_password_GET : PathPrefix( '/api' )
+sub reset_password : Local
 {
     my ( $self, $c ) = @_;
 
@@ -300,11 +280,7 @@ sub reset_password_GET : PathPrefix( '/api' )
     $self->status_ok( $c, entity => { 'success' => 1 } );
 }
 
-sub login : Local : ActionClass('MC_REST')
-{
-}
-
-sub login_GET : PathPrefix( '/api' )
+sub login : Local
 {
     my ( $self, $c ) = @_;
 
@@ -328,11 +304,7 @@ sub login_GET : PathPrefix( '/api' )
     $self->status_ok( $c, entity => { 'success' => 1, 'profile' => $user_hash } );
 }
 
-sub single : Local : ActionClass('MC_REST')
-{
-}
-
-sub single_GET : PathPrefix( '/api' )
+sub single : Local
 {
     my ( $self, $c ) = @_;
 
