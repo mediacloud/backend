@@ -30,6 +30,7 @@ __PACKAGE__->config(    #
         login                    => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
         profile                  => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         change_password          => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        reset_api_key            => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
@@ -408,6 +409,29 @@ sub change_password : Local
     }
 
     $self->status_ok( $c, entity => { 'success' => 1 } );
+}
+
+sub reset_api_key : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $email = $c->user->username;
+    unless ( $email )
+    {
+        die "User is not logged in.";
+    }
+
+    eval { MediaWords::DBI::Auth::Profile::regenerate_api_key( $db, $email ); };
+    if ( $@ )
+    {
+        die "Unable to reset API key: $@";
+    }
+
+    my $user_hash = _user_profile_hash( $db, $email );
+
+    $self->status_ok( $c, entity => { 'success' => 1, 'profile' => $user_hash } );
 }
 
 1;

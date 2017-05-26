@@ -12,7 +12,7 @@ use MediaWords::CommonLibs;
 
 use HTTP::HashServer;
 use Readonly;
-use Test::More tests => 134;
+use Test::More tests => 158;
 use Test::Deep;
 
 use URI;
@@ -553,6 +553,71 @@ sub test_change_password($)
     }
 }
 
+sub test_reset_api_key($)
+{
+    my ( $db ) = @_;
+
+    my $email    = 'test@auth.reset_api_key';
+    my $password = 'auth_reset_api_key';
+
+    eval {
+
+        my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
+            email                        => $email,
+            full_name                    => 'auth reset_api_key',
+            notes                        => '',
+            role_ids                     => [ 1 ],
+            active                       => 1,
+            password                     => $password,
+            password_repeat              => $password,
+            activation_url               => '',                     # user is active, no need for activation URL
+            weekly_requests_limit        => 1000,
+            weekly_requested_items_limit => 1000,
+        );
+
+        MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
+    };
+    ok( !$@, "Unable to add user: $@" );
+
+    # Get API key
+    my $api_key;
+    {
+        my $r = test_post( '/api/v2/auth/login', { username => $email, password => $password } );
+        is( $r->{ success }, 1 );
+        $api_key = $r->{ profile }->{ api_key };
+        ok( $api_key );
+    }
+
+    # Test whether we can use old API key
+    {
+        my $r = test_post( '/api/v2/auth/profile?key=' . $api_key, {} );
+        is( $r->{ 'email' },   $email );
+        is( $r->{ 'api_key' }, $api_key );
+    }
+
+    # Reset API key
+    my $new_api_key;
+    {
+        my $r = test_post( '/api/v2/auth/reset_api_key?key=' . $api_key, {} );
+        is( $r->{ 'success' }, 1 );
+        $new_api_key = $r->{ profile }->{ api_key };
+    }
+
+    # Test whether we can use new API key
+    {
+        my $r = test_post( '/api/v2/auth/profile?key=' . $new_api_key, {} );
+        is( $r->{ 'email' },   $email );
+        is( $r->{ 'api_key' }, $new_api_key );
+    }
+
+    # Ensure that the old API key is invalid
+    {
+        my $expect_error = 1;
+        my $r = test_post( '/api/v2/auth/profile?key=' . $api_key, {}, $expect_error );
+        ok( $r->{ 'error' } );
+    }
+}
+
 # test auth/* calls
 sub test_auth($)
 {
@@ -569,6 +634,7 @@ sub test_auth($)
     test_login( $db );
     test_single( $db );
     test_change_password( $db );
+    test_reset_api_key( $db );
 }
 
 sub main
