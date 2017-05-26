@@ -12,7 +12,7 @@ use MediaWords::CommonLibs;
 
 use HTTP::HashServer;
 use Readonly;
-use Test::More tests => 118;
+use Test::More tests => 119;
 use Test::Deep;
 
 use MediaWords::Test::API;
@@ -364,8 +364,9 @@ sub test_auth_profile($)
     ok( $expected_profile );
     is( $expected_profile->global_api_key(), $api_key );
 
-    # We expect the per-IP API key to be returned
-    my $expected_api_key = $expected_profile->api_key_for_ip_address( $ip_address );
+    # We expect global API key to be returned
+    my $expected_api_key = $expected_profile->global_api_key();
+    ok( $expected_api_key );
 
     my $actual_profile = test_get( '/api/v2/auth/profile' );
     ok( $actual_profile );
@@ -413,12 +414,13 @@ sub test_auth_login($)
     ok( !$@, "Unable to add user: $@" );
 
     my $r = test_post( '/api/v2/auth/login', { username => $email, password => $password } );
+    is( $r->{ success }, 1 );
 
     my $db_api_key = $db->query(
         <<SQL,
         SELECT *
         FROM auth_user_api_keys
-        WHERE ip_address IS NOT NULL
+        WHERE ip_address IS NULL
           AND auth_users_id = (
             SELECT auth_users_id
             FROM auth_users
@@ -430,8 +432,7 @@ SQL
         $email
     )->hash;
 
-    is( $r->{ api_key }, $db_api_key->{ api_key }, "'/api/v2/auth/login' API key" );
-    is( $db_api_key->{ ip_address }, '127.0.0.1' );
+    is( $r->{ profile }->{ api_key }, $db_api_key->{ api_key }, "'/api/v2/auth/login' API key" );
 
     Readonly my $expect_error => 1;
     my $r_not_found = test_post( '/api/v2/auth/login', { username => $email, password => "$password FOO" }, $expect_error );

@@ -32,9 +32,9 @@ __PACKAGE__->config(    #
     }
 );
 
-sub _user_profile_hash($$$)
+sub _user_profile_hash($$)
 {
-    my ( $db, $email, $ip_address ) = @_;
+    my ( $db, $email ) = @_;
 
     my $user;
     eval { $user = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
@@ -44,9 +44,13 @@ sub _user_profile_hash($$$)
     }
 
     return {
-        'email'        => $user->email(),
-        'full_name'    => $user->full_name(),
-        'api_key'      => $user->api_key_for_ip_address( $ip_address ),
+        'email'     => $user->email(),
+        'full_name' => $user->full_name(),
+
+        # Always return global (non-IP limited) API key because we don't know who is requesting
+        # the profile (dashboard or the user itself)
+        'api_key' => $user->global_api_key(),
+
         'notes'        => $user->notes(),
         'created_date' => $user->created_date(),
         'active'       => $user->active(),
@@ -173,8 +177,7 @@ sub activate_GET : PathPrefix( '/api' )
         die "Unable to activate user: $@";
     }
 
-    my $ip_address = $c->request_ip_address();
-    my $user_hash = _user_profile_hash( $db, $email, $ip_address );
+    my $user_hash = _user_profile_hash( $db, $email );
 
     $self->status_ok( $c, entity => { 'success' => 1, 'profile' => $user_hash } );
 }
@@ -311,21 +314,18 @@ sub login_GET : PathPrefix( '/api' )
     my $email    = $data->{ username };
     my $password = $data->{ password };
 
-    my $api_key;
-    eval {
-        $api_key = MediaWords::DBI::Auth::Login::login_with_email_password_get_ip_api_key(
-            $db,                        #
-            $email,                     #
-            $password,                  #
-            $c->request_ip_address()    #
-        );
-    };
-    if ( $@ or ( !$api_key ) )
+    my $ip_address = $c->request_ip_address();
+
+    my $user;
+    eval { $user = MediaWords::DBI::Auth::Login::login_with_email_password( $db, $email, $password ); };
+    if ( $@ or ( !$user ) )
     {
         die "User '$email' was not found or password is incorrect.";
     }
 
-    $self->status_ok( $c, entity => { 'success' => 1, 'api_key' => $api_key } );
+    my $user_hash = _user_profile_hash( $db, $email );
+
+    $self->status_ok( $c, entity => { 'success' => 1, 'profile' => $user_hash } );
 }
 
 sub single : Local : ActionClass('MC_REST')
@@ -366,10 +366,9 @@ sub profile : Local
 
     my $db = $c->dbis;
 
-    my $email      = $c->user->username;
-    my $ip_address = $c->request_ip_address();
+    my $email = $c->user->username;
 
-    my $user_hash = _user_profile_hash( $db, $email, $ip_address );
+    my $user_hash = _user_profile_hash( $db, $email );
 
     return $self->status_ok( $c, entity => $user_hash );
 }
