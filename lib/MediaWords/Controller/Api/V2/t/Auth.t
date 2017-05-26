@@ -12,7 +12,8 @@ use MediaWords::CommonLibs;
 
 use HTTP::HashServer;
 use Readonly;
-use Test::More tests => 110;
+use Test::More tests => 118;
+use Test::Deep;
 
 use MediaWords::Test::API;
 use MediaWords::Test::DB;
@@ -357,21 +358,31 @@ sub test_auth_profile($)
 
     my $api_key = MediaWords::Test::API::get_test_api_key();
 
-    my $expected_user = $db->query( <<SQL, $api_key )->hash;
-        SELECT *
-        FROM auth_users
-            INNER JOIN auth_user_api_keys USING (auth_users_id)
-            JOIN auth_user_limits USING (auth_users_id)
-        WHERE auth_user_api_keys.api_key = \$1
-          AND auth_user_api_keys.ip_address IS NULL
-        LIMIT 1
-SQL
-    my $profile = test_get( "/api/v2/auth/profile" );
+    my $ip_address = '127.0.0.1';
 
-    for my $field ( qw/email auth_users_id weekly_request_items_limit notes active weekly_requests_limit/ )
-    {
-        is( $profile->{ $field }, $expected_user->{ $field }, "auth profile $field" );
-    }
+    my $expected_profile = MediaWords::DBI::Auth::Login::login_with_api_key( $db, $api_key, $ip_address );
+    ok( $expected_profile );
+    is( $expected_profile->global_api_key(), $api_key );
+
+    # We expect the per-IP API key to be returned
+    my $expected_api_key = $expected_profile->api_key_for_ip_address( $ip_address );
+
+    my $actual_profile = test_get( '/api/v2/auth/profile' );
+    ok( $actual_profile );
+
+    is( $actual_profile->{ email },                  $expected_profile->email() );
+    is( $actual_profile->{ full_name },              $expected_profile->full_name() );
+    is( $actual_profile->{ api_key },                $expected_api_key );
+    is( $actual_profile->{ notes },                  $expected_profile->notes() );
+    is( length( $actual_profile->{ created_date } ), length( 'YYYY-MM-DDTHH:mm:ss' ) );
+    is( $actual_profile->{ active },                 $expected_profile->active() );
+    cmp_deeply( $actual_profile->{ auth_roles }, $expected_profile->role_names() );
+    is( $actual_profile->{ limits }->{ weekly }->{ requests }->{ used },  $expected_profile->weekly_requests_sum() );
+    is( $actual_profile->{ limits }->{ weekly }->{ requests }->{ limit }, $expected_profile->weekly_requests_limit() );
+    is( $actual_profile->{ limits }->{ weekly }->{ requested_items }->{ used },
+        $expected_profile->weekly_requested_items_sum() );
+    is( $actual_profile->{ limits }->{ weekly }->{ requested_items }->{ limit },
+        $expected_profile->weekly_requested_items_limit() );
 }
 
 # test auth/login

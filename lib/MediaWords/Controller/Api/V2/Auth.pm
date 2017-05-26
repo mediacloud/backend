@@ -32,9 +32,9 @@ __PACKAGE__->config(    #
     }
 );
 
-sub _user_profile_hash($$)
+sub _user_profile_hash($$$)
 {
-    my ( $db, $email ) = @_;
+    my ( $db, $email, $ip_address ) = @_;
 
     my $user;
     eval { $user = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
@@ -44,16 +44,25 @@ sub _user_profile_hash($$)
     }
 
     return {
-        auth_users_id                => $user->id(),
-        email                        => $user->email(),
-        full_name                    => $user->full_name(),
-        notes                        => $user->notes(),
-        active                       => $user->active(),
-        weekly_requests_sum          => $user->weekly_requests_sum(),
-        weekly_requested_items_sum   => $user->weekly_requested_items_sum(),
-        weekly_requests_limit        => $user->weekly_requests_limit(),
-        weekly_requested_items_limit => $user->weekly_requested_items_limit(),
-        roles                        => $user->role_names(),
+        'email'        => $user->email(),
+        'full_name'    => $user->full_name(),
+        'api_key'      => $user->api_key_for_ip_address( $ip_address ),
+        'notes'        => $user->notes(),
+        'created_date' => $user->created_date(),
+        'active'       => $user->active(),
+        'auth_roles'   => $user->role_names(),
+        'limits'       => {
+            'weekly' => {
+                'requests' => {
+                    'used'  => $user->weekly_requests_sum(),
+                    'limit' => $user->weekly_requests_limit(),
+                },
+                'requested_items' => {
+                    'used'  => $user->weekly_requested_items_sum(),
+                    'limit' => $user->weekly_requested_items_limit(),
+                }
+            }
+        }
     };
 }
 
@@ -164,7 +173,8 @@ sub activate_GET : PathPrefix( '/api' )
         die "Unable to activate user: $@";
     }
 
-    my $user_hash = _user_profile_hash( $db, $email );
+    my $ip_address = $c->request_ip_address();
+    my $user_hash = _user_profile_hash( $db, $email, $ip_address );
 
     $self->status_ok( $c, entity => { 'success' => 1, 'profile' => $user_hash } );
 }
@@ -356,8 +366,10 @@ sub profile : Local
 
     my $db = $c->dbis;
 
-    my $email = $c->user->username;
-    my $user_hash = _user_profile_hash( $db, $email );
+    my $email      = $c->user->username;
+    my $ip_address = $c->request_ip_address();
+
+    my $user_hash = _user_profile_hash( $db, $email, $ip_address );
 
     return $self->status_ok( $c, entity => $user_hash );
 }
