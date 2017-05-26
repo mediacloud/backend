@@ -33,6 +33,10 @@ my $_topic_b;
 my $_url_permission_types = {
     '/api/v2/auth/login'                          => 'admin_read',
     '/api/v2/auth/profile'                        => 'public',
+    '/api/v2/auth/register'                       => 'admin',
+    '/api/v2/auth/activate'                       => 'admin',
+    '/api/v2/auth/resend_activation_link'         => 'admin',
+    '/api/v2/auth/send_password_reset_link'       => 'admin',
     '/api/v2/auth/single'                         => 'admin_read',
     '/api/v2/controversies/list'                  => 'public',
     '/api/v2/controversies/single'                => 'public',
