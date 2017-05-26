@@ -286,9 +286,19 @@ sub login : Local
 
     my $db = $c->dbis;
 
-    my $data     = $c->req->data;
-    my $email    = $data->{ username };
+    my $data = $c->req->data;
+
+    my $email = $data->{ username };
+    unless ( $email )
+    {
+        die "'email' is not set.";
+    }
+
     my $password = $data->{ password };
+    unless ( $password )
+    {
+        die "'password' is not set.";
+    }
 
     my $ip_address = $c->request_ip_address();
 
@@ -310,8 +320,18 @@ sub single : Local
 
     my $db = $c->dbis;
 
-    my $email      = $c->req->params->{ username };
-    my $password   = $c->req->params->{ password };
+    my $email = $c->req->params->{ username };
+    unless ( $email )
+    {
+        die "'email' is not set.";
+    }
+
+    my $password = $c->req->params->{ password };
+    unless ( $password )
+    {
+        die "'password' is not set.";
+    }
+
     my $ip_address = $c->request_ip_address();
 
     my $api_key;
