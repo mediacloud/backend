@@ -7,7 +7,9 @@ use Catalyst::Test 'MediaWords';
 use HTTP::Request;
 use Regexp::Common;
 use Test::More;
-use URI::Escape;
+
+use URI;
+use URI::QueryParam;
 
 use MediaWords::CommonLibs;
 use MediaWords::Util::Web;
@@ -95,9 +97,11 @@ sub test_data_request($$$;$)
 {
     my ( $method, $url, $data, $expect_error ) = @_;
 
-    my $api_key = get_test_api_key();
-
-    $url = ( index( $url, '?' ) > 0 ) ? "$url&key=$api_key" : "$url?key=$api_key";
+    my $uri = URI->new( $url );
+    unless ( $uri->query_param('key') ) {
+        $uri->query_param( 'key', get_test_api_key() );
+    }
+    $url = $uri->as_string;
 
     my $json = MediaWords::Util::JSON::encode_json( $data );
 
@@ -133,17 +137,21 @@ sub test_get($;$$)
 {
     my ( $url, $params, $expect_error ) = @_;
 
-    my $api_key = get_test_api_key();
+    my $uri = URI->new( $url );
 
-    $params //= {};
-    $params->{ key } //= $api_key;
+    foreach my $param_key (keys %{ $params }) {
+        my $param_value = $params->{ $param_key };
+        $uri->query_param( $param_key, $param_value );
+    }
 
-    my $encoded_params = join( "&", map { $_ . '=' . uri_escape( $params->{ $_ } ) } keys( %{ $params } ) );
-
-    my $full_url = ( index( $url, '?' ) > 0 ) ? "$url&$encoded_params" : "$url?$encoded_params";
+    unless ( $uri->query_param('key') ) {
+        $uri->query_param( 'key', get_test_api_key() );
+    }
+    
+    $url = $uri->as_string;
 
     # Catalyst::Test::request()
-    return test_request_response( $full_url, request( $full_url ), $expect_error );
+    return test_request_response( $url, request( $url ), $expect_error );
 }
 
 # test that got_rows matches expected_rows by checking for the same number of elements, the matching up rows in
