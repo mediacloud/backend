@@ -50,9 +50,9 @@ SQL
 
 # Log in with username and password
 # Return ExistingUser object if login is successful, die() otherwise
-sub login_with_email_password($$$)
+sub login_with_email_password($$$;$)
 {
-    my ( $db, $email, $password ) = @_;
+    my ( $db, $email, $password, $ip_address ) = @_;
 
     my $user;
 
@@ -96,6 +96,30 @@ SQL
             $email
         );
 
+        if ( $ip_address )
+        {
+
+            unless ( $user->api_key_for_ip_address( $ip_address ) )
+            {
+                $db->create(
+                    'auth_user_api_keys',
+                    {
+                        auth_users_id => $user->id(),    #
+                        ip_address    => $ip_address,    #
+                    }
+                );
+
+                # Fetch user again
+                $user = MediaWords::DBI::Auth::Profile::user_info( $db, $email );
+
+                unless ( $user->api_key_for_ip_address( $ip_address ) )
+                {
+                    die "Unable to create per-IP API key for IP $ip_address";
+                }
+            }
+
+        }
+
     };
     if ( $@ or ( !$user ) )
     {
@@ -126,49 +150,6 @@ SQL
     }
 
     return $user;
-}
-
-# Login and get an IP API key for the logged in user.
-# Returns API key if login is successful, die() otherwise
-sub login_with_email_password_get_ip_api_key($$$$)
-{
-    my ( $db, $email, $password, $ip_address ) = @_;
-
-    unless ( $ip_address )
-    {
-        die "Unable to find IP address for request";
-    }
-
-    my $user;
-    eval { $user = login_with_email_password( $db, $email, $password ); };
-    if ( $@ or ( !$user ) )
-    {
-        die "Unable to log user '$email' in with provided credentials: $@";
-    }
-
-    my $api_key_for_ip_address = $user->api_key_for_ip_address( $ip_address );
-
-    unless ( $api_key_for_ip_address )
-    {
-        $db->create(
-            'auth_user_api_keys',
-            {
-                auth_users_id => $user->id(),    #
-                ip_address    => $ip_address,    #
-            }
-        );
-
-        # Fetch user again
-        $user = login_with_email_password( $db, $email, $password );
-        $api_key_for_ip_address = $user->api_key_for_ip_address( $ip_address );
-
-        unless ( $api_key_for_ip_address )
-        {
-            die "Unable to create per-IP API key for IP address $ip_address.";
-        }
-    }
-
-    return $api_key_for_ip_address;
 }
 
 # Fetch user object for the API key.

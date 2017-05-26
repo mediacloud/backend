@@ -139,14 +139,13 @@ sub test_regenerate_api_key($)
     # Get sample API keys
     my ( $before_global_api_key, $before_per_ip_api_key );
     {
-        my $user = MediaWords::DBI::Auth::Login::login_with_email_password( $db, $email, $password );
+        my $user = MediaWords::DBI::Auth::Login::login_with_email_password( $db, $email, $password, $ip_address );
         ok( $user );
         $before_global_api_key = $user->global_api_key();
         ok( $before_global_api_key );
         ok( length( $before_global_api_key ) > 1 );
 
-        $before_per_ip_api_key =
-          MediaWords::DBI::Auth::Login::login_with_email_password_get_ip_api_key( $db, $email, $password, $ip_address );
+        $before_per_ip_api_key = $user->api_key_for_ip_address( $ip_address );
         ok( $before_per_ip_api_key );
         ok( length( $before_per_ip_api_key ) > 1 );
 
@@ -159,14 +158,13 @@ sub test_regenerate_api_key($)
     # Get sample API keys again
     my ( $after_global_api_key, $after_per_ip_api_key );
     {
-        my $user = MediaWords::DBI::Auth::Login::login_with_email_password( $db, $email, $password );
+        my $user = MediaWords::DBI::Auth::Login::login_with_email_password( $db, $email, $password, $ip_address );
         ok( $user );
         $after_global_api_key = $user->global_api_key();
         ok( $after_global_api_key );
         ok( length( $after_global_api_key ) > 1 );
 
-        $after_per_ip_api_key =
-          MediaWords::DBI::Auth::Login::login_with_email_password_get_ip_api_key( $db, $email, $password, $ip_address );
+        $after_per_ip_api_key = $user->api_key_for_ip_address( $ip_address );
         ok( $after_per_ip_api_key );
         ok( length( $after_per_ip_api_key ) > 1 );
 

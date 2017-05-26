@@ -338,17 +338,19 @@ sub single_GET : PathPrefix( '/api' )
 
     my $db = $c->dbis;
 
-    my $email    = $c->req->params->{ username };
-    my $password = $c->req->params->{ password };
+    my $email      = $c->req->params->{ username };
+    my $password   = $c->req->params->{ password };
+    my $ip_address = $c->request_ip_address();
 
     my $api_key;
     eval {
-        $api_key = MediaWords::DBI::Auth::Login::login_with_email_password_get_ip_api_key(
-            $db,                        #
-            $email,                     #
-            $password,                  #
-            $c->request_ip_address()    #
+        my $user = MediaWords::DBI::Auth::Login::login_with_email_password(
+            $db,           #
+            $email,        #
+            $password,     #
+            $ip_address    #
         );
+        $api_key = $user->api_key_for_ip_address( $ip_address );
     };
     if ( $@ or ( !$api_key ) )
     {
