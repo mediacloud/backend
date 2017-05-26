@@ -15,6 +15,9 @@ use Readonly;
 use Test::More tests => 119;
 use Test::Deep;
 
+use URI;
+use URI::QueryParam;
+
 use MediaWords::Test::API;
 use MediaWords::Test::DB;
 
