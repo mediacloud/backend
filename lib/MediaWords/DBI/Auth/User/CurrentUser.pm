@@ -13,6 +13,8 @@ use MediaWords::CommonLibs;
 use Moose;
 extends 'MediaWords::DBI::Auth::User::AbstractUser';
 
+use DateTime;
+
 use MediaWords::DBI::Auth::User::CurrentUser::APIKey;
 use MediaWords::DBI::Auth::User::CurrentUser::Role;
 
@@ -20,6 +22,7 @@ has 'id'                         => ( is => 'rw', isa => 'Int' );
 has 'password_hash'              => ( is => 'rw', isa => 'Str' );
 has 'api_keys'                   => ( is => 'rw', isa => 'ArrayRef[MediaWords::DBI::Auth::User::CurrentUser::APIKey]' );
 has 'roles'                      => ( is => 'rw', isa => 'ArrayRef[MediaWords::DBI::Auth::User::CurrentUser::Role]' );
+has 'created_timestamp'          => ( is => 'rw', isa => 'Int' );
 has 'weekly_requests_sum'        => ( is => 'rw', isa => 'Int' );
 has 'weekly_requested_items_sum' => ( is => 'rw', isa => 'Int' );
 
@@ -44,6 +47,10 @@ sub BUILD
     unless ( defined $self->notes() )
     {
         LOGCONFESS "User's notes are undefined (should be at least an empty string).";
+    }
+    unless ( defined $self->created_timestamp() )
+    {
+        LOGCONFESS "User's creation timestamp is undefined.";
     }
     unless ( ref $self->roles() eq ref( [] ) )
     {
@@ -109,6 +116,14 @@ sub api_key_for_ip_address($$)
     my ( $self, $ip_address ) = @_;
 
     return $self->_ip_addresses_to_api_keys()->{ $ip_address };
+}
+
+# User's creation date (ISO 8601 format)
+sub created_date($)
+{
+    my ( $self ) = @_;
+
+    return DateTime->from_epoch( epoch => $self->created_timestamp() )->iso8601();
 }
 
 # Tests whether role is enabled for user
