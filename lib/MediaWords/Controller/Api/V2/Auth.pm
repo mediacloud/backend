@@ -341,6 +341,10 @@ sub profile : Local
     my $db = $c->dbis;
 
     my $email = $c->user->username;
+    unless ( $email )
+    {
+        die "User is not logged in.";
+    }
 
     my $user_hash = _user_profile_hash( $db, $email );
 
