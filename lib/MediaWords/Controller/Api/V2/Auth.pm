@@ -25,6 +25,7 @@ __PACKAGE__->config(    #
         activate                 => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
         resend_activation_link   => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
         send_password_reset_link => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
+        reset_password           => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
         single                   => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
         login                    => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
         profile                  => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
@@ -239,6 +240,48 @@ sub send_password_reset_link_GET : PathPrefix( '/api' )
     if ( $@ )
     {
         die "Unable to send password reset link: $@";
+    }
+
+    $self->status_ok( $c, entity => { 'success' => 1 } );
+}
+
+sub reset_password : Local : ActionClass('MC_REST')
+{
+}
+
+sub reset_password_GET : PathPrefix( '/api' )
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $data = $c->req->data;
+
+    my $email = $data->{ email };
+    unless ( $email )
+    {
+        die "'email' is not set.";
+    }
+
+    my $password_reset_token = $data->{ password_reset_token };
+    unless ( $password_reset_token )
+    {
+        die "'password_reset_token' is not set.";
+    }
+
+    my $new_password = $data->{ new_password };
+    unless ( $new_password )
+    {
+        die "'new_password' is not set.";
+    }
+
+    eval {
+        MediaWords::DBI::Auth::ChangePassword::change_password_with_reset_token( $db, $email, $password_reset_token,
+            $new_password, $new_password );
+    };
+    if ( $@ )
+    {
+        die "Unable to reset password: $@";
     }
 
     $self->status_ok( $c, entity => { 'success' => 1 } );

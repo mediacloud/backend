@@ -12,7 +12,7 @@ use MediaWords::CommonLibs;
 
 use HTTP::HashServer;
 use Readonly;
-use Test::More tests => 92;
+use Test::More tests => 110;
 
 use MediaWords::Test::API;
 use MediaWords::Test::DB;
@@ -253,7 +253,7 @@ sub test_send_password_reset_link($)
         is( $r->{ 'success' }, 1 );
     }
 
-    # Resend activation link
+    # Resend password reset link
     {
         my $r = test_post(
             '/api/v2/auth/send_password_reset_link',
@@ -275,6 +275,77 @@ sub test_send_password_reset_link($)
                 password_reset_url => $password_reset_url,
             }
         );
+        is( $r->{ 'success' }, 1 );
+    }
+}
+
+sub test_reset_password($)
+{
+    my ( $db ) = @_;
+
+    my $email              = 'test@auth.reset_password';
+    my $password           = 'authresetpassword';
+    my $password_reset_url = 'http://reset-password.com/';
+
+    # Add active user
+    MediaWords::DBI::Auth::Register::add_user(
+        $db,
+        MediaWords::DBI::Auth::User::NewUser->new(
+            email           => $email,
+            full_name       => 'Full Name',
+            notes           => '',
+            role_ids        => MediaWords::DBI::Auth::Roles::default_role_ids( $db ),
+            active          => 1,
+            password        => $password,
+            password_repeat => $password,
+        )
+    );
+
+    # Test logging in
+    {
+        my $r = test_post( '/api/v2/auth/login', { username => $email, password => $password } );
+        is( $r->{ 'success' }, 1 );
+    }
+
+    # Send password reset link
+    {
+        my $r = test_post(
+            '/api/v2/auth/send_password_reset_link',
+            {
+                email              => $email,
+                password_reset_url => $password_reset_url,
+            }
+        );
+        is( $r->{ 'success' }, 1 );
+    }
+
+    # Get activation token manually
+    my $final_password_reset_url =
+      MediaWords::DBI::Auth::ResetPassword::_generate_password_reset_token( $db, $email, $password_reset_url );
+
+    my $final_password_reset_uri = URI->new( $final_password_reset_url );
+    my $password_reset_token     = $final_password_reset_uri->query_param( 'password_reset_token' );
+    ok( $password_reset_token );
+    ok( length( $password_reset_token ) > 1 );
+
+    my $new_password = 'totally new password';
+
+    # Reset user's password
+    {
+        my $r = test_post(
+            '/api/v2/auth/reset_password',
+            {
+                email                => $email,
+                password_reset_token => $password_reset_token,
+                new_password         => $new_password,
+            }
+        );
+        is( $r->{ 'success' }, 1 );
+    }
+
+    # Test logging in
+    {
+        my $r = test_post( '/api/v2/auth/login', { username => $email, password => $new_password } );
         is( $r->{ 'success' }, 1 );
     }
 }
@@ -422,6 +493,7 @@ sub test_auth($)
     test_auth_activate( $db );
     test_resend_activation_link( $db );
     test_send_password_reset_link( $db );
+    test_reset_password( $db );
     test_auth_profile( $db );
     test_auth_login( $db );
     test_auth_single( $db );
