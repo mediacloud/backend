@@ -2398,7 +2398,7 @@ CREATE INDEX auth_users_tag_sets_permissions_tag_sets          on  auth_users_ta
 -- Users to subscribe to groups.io mailing list
 CREATE TABLE auth_users_subscribe_to_newsletter (
     auth_users_subscribe_to_newsletter_id SERIAL  PRIMARY KEY,
-    auth_users_id                         INTEGER REFERENCES auth_users NOT NULL ON DELETE CASCADE
+    auth_users_id                         INTEGER NOT NULL REFERENCES auth_users (auth_users_id) ON DELETE CASCADE
 );
 
 

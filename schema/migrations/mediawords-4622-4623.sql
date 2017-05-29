@@ -20,7 +20,7 @@ SET search_path = public, pg_catalog;
 
 CREATE TABLE auth_users_subscribe_to_newsletter (
     auth_users_subscribe_to_newsletter_id SERIAL  PRIMARY KEY,
-    auth_users_id                         INTEGER REFERENCES auth_users NOT NULL ON DELETE CASCADE
+    auth_users_id                         INTEGER NOT NULL REFERENCES auth_users (auth_users_id) ON DELETE CASCADE
 );
 
 
