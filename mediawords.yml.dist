@@ -293,8 +293,25 @@ facebook:
 
 ### Email configuration
 mail:
+
     # "From:" email address that is being set in emails sent by Media Cloud
     from_address: "noreply@mediacloud.org"
+
+    ### (optional) SMTP configuration
+    smtp:
+
+        ### SMTP host
+        host: "localhost"
+
+        ### SMTP port
+        port: 25
+
+        ### Use STARTTLS? If you enable that, you probably want to change the port to 587.
+        starttls: no
+
+        ### (optional) SMTP login credentials
+        username: ""
+        password: ""
 
 ### everything below is optional.  the system should work out of the box without
 ### touching any of these other than calais_key for tagging

@@ -12,7 +12,11 @@ use MediaWords::CommonLibs;
 
 use MediaWords::Util::Config;
 use Email::MIME;
-use Email::Sender::Simple;
+use Email::Sender::Simple qw(sendmail);
+use Email::Sender::Transport::Print;
+use Email::Sender::Transport::SMTP;
+
+use IO::Handle;
 
 # used by test_mode() below to make send() only print out messages rather than sending them
 my $_test_mode = 0;
@@ -24,35 +28,48 @@ sub send($$$)
 
     my $config = MediaWords::Util::Config::get_config;
 
-    my $message = Email::MIME->create(
-        header_str => [
-            From    => $config->{ mail }->{ from_address },
-            To      => $to_email,
-            Subject => '[Media Cloud] ' . $subject,
-        ],
-        attributes => {
-            encoding => 'quoted-printable',
-            charset  => 'UTF-8',
-        },
-        body_str => <<"EOF"
-Hello,
+    eval {
 
-$message_body
+        my $message = Email::MIME->create(
+            header_str => [
+                From    => $config->{ mail }->{ from_address },
+                To      => $to_email,
+                Subject => '[Media Cloud] ' . $subject,
+            ],
+            attributes => {
+                encoding => 'quoted-printable',
+                charset  => 'UTF-8',
+            },
+            body_str => <<"EOF"
+    Hello,
 
---
-Media Cloud (www.mediacloud.org)
+    $message_body
+
+    --
+    Media Cloud (www.mediacloud.org)
 
 EOF
+        );
 
-    );
+        my $transport = Email::Sender::Transport::SMTP->new(
+            {
+                host          => $config->{ mail }->{ smtp }->{ host },
+                port          => $config->{ mail }->{ smtp }->{ port },
+                ssl           => ( $config->{ mail }->{ smtp }->{ starttls } ? 'starttls' : 0 ),
+                sasl_username => $config->{ mail }->{ smtp }->{ username },
+                sasl_password => $config->{ mail }->{ smtp }->{ username },
+            }
+        );
 
-    if ( $_test_mode )
-    {
-        TRACE( "send mail to $to_email: " . $message->body_raw );
-        return 1;
-    }
+        if ( $_test_mode )
+        {
+            my $io = IO::Handle->new_from_fd( fileno( STDERR ), 'w' );
+            $transport = Email::Sender::Transport::Print->new( { fh => $io } );
+        }
 
-    eval { Email::Sender::Simple->send( $message ) };
+        sendmail( $message, { transport => $transport } );
+    };
+
     if ( $@ )
     {
         ERROR( "Unable to send email to $to_email: $@" );
