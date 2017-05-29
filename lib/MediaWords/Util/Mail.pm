@@ -11,8 +11,9 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::Util::Config;
-use Email::MIME;
-use Email::Sender::Simple qw(sendmail);
+use MediaWords::Util::Mail::Message;
+
+use Email::Stuffer;
 use Email::Sender::Transport::Print;
 use Email::Sender::Transport::SMTP;
 
@@ -33,34 +34,47 @@ sub disable_test_mode()
 }
 
 # Send email to someone; returns 1 on success, 0 on failure
-sub send_text_email($$$)
+sub send_email($)
 {
-    my ( $to_email, $subject, $message_body ) = @_;
+    my $message = shift;
 
-    my $config = MediaWords::Util::Config::get_config;
+    if ( ref( $message ) ne 'MediaWords::Util::Mail::Message' )
+    {
+        die "Message is not MediaWords::Util::Mail::Message";
+    }
+
+    unless ( $message->from() )
+    {
+        die "'from' is unset.";
+    }
+    if ( $message->to() and ref( $message->to() ) ne ref [] )
+    {
+        die "'to' is not arrayref.";
+    }
+    if ( $message->cc() and ref( $message->cc() ) ne ref [] )
+    {
+        die "'cc' is not arrayref.";
+    }
+    if ( $message->bcc() and ref( $message->bcc() ) ne ref [] )
+    {
+        die "'bcc' is not arrayref.";
+    }
+    unless ( scalar( @{ $message->to() } ) or scalar( @{ $message->cc() } ) or scalar( @{ $message->bcc() } ) )
+    {
+        die "No one to send the email to.";
+    }
+    unless ( $message->subject() )
+    {
+        die "'subject' is unset.";
+    }
+    unless ( $message->text_body() or $message->html_body() )
+    {
+        die "No message body.";
+    }
 
     eval {
 
-        my $message = Email::MIME->create(
-            header_str => [
-                From    => $config->{ mail }->{ from_address },
-                To      => $to_email,
-                Subject => '[Media Cloud] ' . $subject,
-            ],
-            attributes => {
-                encoding => 'quoted-printable',
-                charset  => 'UTF-8',
-            },
-            body_str => <<"EOF"
-    Hello,
-
-    $message_body
-
-    --
-    Media Cloud (www.mediacloud.org)
-
-EOF
-        );
+        my $config = MediaWords::Util::Config::get_config;
 
         my $transport = Email::Sender::Transport::SMTP->new(
             {
@@ -79,16 +93,47 @@ EOF
             $transport = Email::Sender::Transport::Print->new( { fh => $io } );
         }
 
-        sendmail( $message, { transport => $transport } );
+        my $to  = $message->to()  ? join( ', ', @{ $message->to() } )  : '';
+        my $cc  = $message->cc()  ? join( ', ', @{ $message->cc() } )  : '';
+        my $bcc = $message->bcc() ? join( ', ', @{ $message->bcc() } ) : '';
+
+        Email::Stuffer->from( $message->from() )->to( $to )->cc( $cc )->bcc( $bcc )
+          ->subject( '[Media Cloud] ' . $message->subject() )->text_body( $message->text_body() )
+          ->html_body( $message->html_body() )->header( 'Content-Type', 'text/html; charset=UTF-8' )
+          ->transport( $transport )->send();
     };
 
     if ( $@ )
     {
-        ERROR( "Unable to send email to $to_email: $@" );
+        ERROR( "Unable to send message to " . join( ', ', @{ $message->to() } ) . ": $@" );
         return 0;
     }
 
     return 1;
+}
+
+# Send text email to someone; returns 1 on success, 0 on failure
+sub send_text_email($$$)
+{
+    my ( $to_email, $subject, $message_body ) = @_;
+
+    my $message = MediaWords::Util::Mail::Message->new(
+        {
+            to        => $to_email,
+            subject   => $subject,
+            text_body => <<"EOF",
+    Hello,
+
+    $message_body
+
+    --
+    Media Cloud (www.mediacloud.org)
+
+EOF
+        }
+    );
+
+    return send_email( $message );
 }
 
 1;
