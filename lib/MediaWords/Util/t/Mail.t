@@ -25,7 +25,7 @@ sub test_send()
 
 sub main()
 {
-    MediaWords::Util::Mail::test_mode( 1 );
+    MediaWords::Util::Mail::enable_test_mode();
 
     test_send();
 }

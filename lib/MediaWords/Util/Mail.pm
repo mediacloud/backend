@@ -17,9 +17,20 @@ use Email::Sender::Transport::Print;
 use Email::Sender::Transport::SMTP;
 
 use IO::Handle;
+use Readonly;
 
-# used by test_mode() below to make send() only print out messages rather than sending them
-my $_test_mode = 0;
+# Environment variable that, when set, will prevent the package from actually sending the email
+Readonly our $ENV_MAIL_DO_NO_SEND => 'MEDIACLOUD_MAIL_DO_NOT_SEND';
+
+sub enable_test_mode()
+{
+    $ENV{ $ENV_MAIL_DO_NO_SEND } = 1;
+}
+
+sub disable_test_mode()
+{
+    delete $ENV{ $ENV_MAIL_DO_NO_SEND };
+}
 
 # Send email to someone; returns 1 on success, 0 on failure
 sub send($$$)
@@ -61,8 +72,9 @@ EOF
             }
         );
 
-        if ( $_test_mode )
+        if ( $ENV{ $ENV_MAIL_DO_NO_SEND } )
         {
+            INFO "Test mode is enabled, not actually sending any email";
             my $io = IO::Handle->new_from_fd( fileno( STDERR ), 'w' );
             $transport = Email::Sender::Transport::Print->new( { fh => $io } );
         }
@@ -77,15 +89,6 @@ EOF
     }
 
     return 1;
-}
-
-# return the value of test_mode for this module.  if an argument is specified and defined, set test_mode
-# to be the new value first.  while test_mode is true, send() will print emails using TRACE instead of sending them.
-sub test_mode(;$)
-{
-    $_test_mode = $_[ 0 ] if ( defined( $_[ 0 ] ) );
-
-    return $_test_mode;
 }
 
 1;

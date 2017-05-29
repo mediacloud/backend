@@ -362,7 +362,7 @@ sub test_send_password_reset_token($)
 sub main
 {
     # Don't actually send any emails
-    MediaWords::Util::Mail::test_mode( 1 );
+    MediaWords::Util::Mail::enable_test_mode();
 
     MediaWords::Test::DB::test_on_test_database(
         sub {
