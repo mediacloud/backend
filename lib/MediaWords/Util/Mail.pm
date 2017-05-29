@@ -82,7 +82,7 @@ sub send_email($)
                 port          => $config->{ mail }->{ smtp }->{ port },
                 ssl           => ( $config->{ mail }->{ smtp }->{ starttls } ? 'starttls' : 0 ),
                 sasl_username => $config->{ mail }->{ smtp }->{ username },
-                sasl_password => $config->{ mail }->{ smtp }->{ username },
+                sasl_password => $config->{ mail }->{ smtp }->{ password },
             }
         );
 
