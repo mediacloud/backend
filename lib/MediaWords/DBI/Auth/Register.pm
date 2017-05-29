@@ -210,12 +210,11 @@ SQL
     $db->create(
         'auth_users',
         {
-            email                   => $new_user->email(),
-            password_hash           => $password_hash,
-            full_name               => $new_user->full_name(),
-            notes                   => $new_user->notes(),
-            active                  => normalize_boolean_for_db( $new_user->active() ),
-            subscribe_to_newsletter => normalize_boolean_for_db( $new_user->subscribe_to_newsletter() ),
+            email         => $new_user->email(),
+            password_hash => $password_hash,
+            full_name     => $new_user->full_name(),
+            notes         => $new_user->notes(),
+            active        => normalize_boolean_for_db( $new_user->active() ),
         }
     );
 
@@ -263,6 +262,18 @@ SQL
             WHERE auth_users_id = ?
 SQL
             $new_user->weekly_requested_items_limit(), $auth_users_id
+        );
+    }
+
+    # Subscribe to newsletter
+    if ( $new_user->subscribe_to_newsletter() )
+    {
+        $db->query(
+            <<SQL,
+            INSERT INTO auth_users_subscribe_to_newsletter (auth_users_id)
+            VALUES (?)
+SQL
+            $auth_users_id
         );
     }
 

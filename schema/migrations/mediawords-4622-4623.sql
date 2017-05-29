@@ -18,8 +18,10 @@
 SET search_path = public, pg_catalog;
 
 
-ALTER TABLE auth_users
-    ADD COLUMN subscribe_to_newsletter BOOLEAN   NULL DEFAULT false;
+CREATE TABLE auth_users_subscribe_to_newsletter (
+    auth_users_subscribe_to_newsletter_id SERIAL  PRIMARY KEY,
+    auth_users_id                         INTEGER REFERENCES auth_users NOT NULL ON DELETE CASCADE
+);
 
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$

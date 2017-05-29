@@ -2172,8 +2172,6 @@ CREATE TABLE auth_users (
 
     created_date                        timestamp not null default now(),
 
-    subscribe_to_newsletter   BOOLEAN   NULL DEFAULT false,
-
     max_topic_stories                   int not null default 100000
 );
 
@@ -2395,6 +2393,14 @@ CREATE TABLE auth_users_tag_sets_permissions (
 CREATE UNIQUE INDEX auth_users_tag_sets_permissions_auth_user_tag_set on  auth_users_tag_sets_permissions( auth_users_id , tag_sets_id );
 CREATE INDEX auth_users_tag_sets_permissions_auth_user         on  auth_users_tag_sets_permissions( auth_users_id );
 CREATE INDEX auth_users_tag_sets_permissions_tag_sets          on  auth_users_tag_sets_permissions( tag_sets_id );
+
+
+-- Users to subscribe to groups.io mailing list
+CREATE TABLE auth_users_subscribe_to_newsletter (
+    auth_users_subscribe_to_newsletter_id SERIAL  PRIMARY KEY,
+    auth_users_id                         INTEGER REFERENCES auth_users NOT NULL ON DELETE CASCADE
+);
+
 
 --
 -- Activity log
