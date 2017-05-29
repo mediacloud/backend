@@ -32,7 +32,7 @@ If you did not request this change, please contact Media Cloud support at
 www.mediacloud.org.
 EOF
 
-    unless ( MediaWords::Util::Mail::send( $email, $email_subject, $email_message ) )
+    unless ( MediaWords::Util::Mail::send_text_email( $email, $email_subject, $email_message ) )
     {
         die 'The password has been changed, but I was unable to send an email notifying you about the change.';
     }

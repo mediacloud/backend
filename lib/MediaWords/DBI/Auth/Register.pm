@@ -58,7 +58,7 @@ info\@mediacloud.org.
 
 EOF
 
-    unless ( MediaWords::Util::Mail::send( $email, $email_subject, $email_message ) )
+    unless ( MediaWords::Util::Mail::send_text_email( $email, $email_subject, $email_message ) )
     {
         die 'The user was created, but I was unable to send you an activation email.';
     }

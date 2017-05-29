@@ -33,7 +33,7 @@ sub disable_test_mode()
 }
 
 # Send email to someone; returns 1 on success, 0 on failure
-sub send($$$)
+sub send_text_email($$$)
 {
     my ( $to_email, $subject, $message_body ) = @_;
 

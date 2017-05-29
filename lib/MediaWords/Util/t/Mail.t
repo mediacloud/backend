@@ -20,7 +20,7 @@ sub test_send()
     my $subject = 'Hello!';
     my $message = 'This is my message.';
 
-    ok( MediaWords::Util::Mail::send( $to, $subject, $message ) );
+    ok( MediaWords::Util::Mail::send_text_email( $to, $subject, $message ) );
 }
 
 sub main()
