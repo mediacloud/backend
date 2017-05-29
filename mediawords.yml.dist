@@ -310,9 +310,6 @@ mail:
 #      account: "<ACOUNT>"
 #      domainname: "<DOMAIN>"
 
-# smtp:
-#     test: "yes" # if set to 'yes', use TRACE() to print emails instead of sending them
-
 mediawords:
     ### defaults to http://$hostname:$port/.
     #base_url: "http://your.mediacloud.server/and/path"
