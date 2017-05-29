@@ -76,9 +76,11 @@ SQL
         # Confirm that user is subscribed to the newsletter
         my ( $subscribed ) = $db->query(
             <<SQL,
-            SELECT subscribe_to_newsletter
-            FROM auth_users
-            WHERE email = ?
+            SELECT 1
+            FROM auth_users_subscribe_to_newsletter
+                INNER JOIN auth_users
+                    ON auth_users_subscribe_to_newsletter.auth_users_id = auth_users.auth_users_id
+            WHERE auth_users.email = ?
 SQL
             $email
         )->flat;
