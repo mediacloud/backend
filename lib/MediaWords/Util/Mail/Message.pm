@@ -9,7 +9,7 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-import_python_module( __PACKAGE__, 'mediawords.util.mail.message' );
+import_python_module( __PACKAGE__, 'mediawords.util.mail' );
 
 sub new
 {
@@ -19,7 +19,7 @@ sub new
     bless $self, $class;
 
     # Create Python object (::Message::Message)
-    $self->{ _python_message } = MediaWords::Util::Mail::Message::Message->new(
+    $self->{ python_message } = MediaWords::Util::Mail::Message::Message->new(
         $args->{ to },
         $args->{ subject },
         $args->{ text_body },
@@ -34,49 +34,49 @@ sub new
 sub from($)
 {
     my $self         = shift;
-    my $return_value = $self->{ _python_message }->{ from_ };    # note the underscore
+    my $return_value = $self->{ python_message }->{ from_ };    # note the underscore
     return python_deep_copy( $return_value );
 }
 
 sub to($)
 {
     my $self         = shift;
-    my $return_value = $self->{ _python_message }->{ to };
+    my $return_value = $self->{ python_message }->{ to };
     return python_deep_copy( $return_value );
 }
 
 sub cc($)
 {
     my $self         = shift;
-    my $return_value = $self->{ _python_message }->{ cc };
+    my $return_value = $self->{ python_message }->{ cc };
     return python_deep_copy( $return_value );
 }
 
 sub bcc($)
 {
     my $self         = shift;
-    my $return_value = $self->{ _python_message }->{ bcc };
+    my $return_value = $self->{ python_message }->{ bcc };
     return python_deep_copy( $return_value );
 }
 
 sub subject($)
 {
     my $self         = shift;
-    my $return_value = $self->{ _python_message }->{ subject };
+    my $return_value = $self->{ python_message }->{ subject };
     return python_deep_copy( $return_value );
 }
 
 sub text_body($)
 {
     my $self         = shift;
-    my $return_value = $self->{ _python_message }->{ text_body };
+    my $return_value = $self->{ python_message }->{ text_body };
     return python_deep_copy( $return_value );
 }
 
 sub html_body($)
 {
     my $self         = shift;
-    my $return_value = $self->{ _python_message }->{ html_body };
+    my $return_value = $self->{ python_message }->{ html_body };
     return python_deep_copy( $return_value );
 }
 
