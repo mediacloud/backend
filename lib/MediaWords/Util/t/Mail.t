@@ -20,7 +20,7 @@ sub test_send_email()
         {
             to      => 'nowhere@mediacloud.org',
             cc      => 'nowhere+cc@mediacloud.org',
-            cc      => 'nowhere+bcc@mediacloud.org',
+            bcc     => 'nowhere+bcc@mediacloud.org',
             subject => 'Hello!',
             text_body =>
 'Text message 𝖜𝖎𝖙𝖍 𝖘𝖔𝖒𝖊 𝖀𝖓𝖎𝖈𝖔𝖉𝖊 𝖈𝖍𝖆𝖗𝖆𝖈𝖙𝖊𝖗𝖘.',
