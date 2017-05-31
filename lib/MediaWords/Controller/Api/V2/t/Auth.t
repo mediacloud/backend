@@ -134,7 +134,7 @@ sub test_activate($)
         {
             # Confirm that we can't log in without activation
             my $expect_error = 1;
-            my $login = test_post( '/api/v2/auth/login', { username => $email, password => $password }, $expect_error );
+            my $login = test_post( '/api/v2/auth/login', { email => $email, password => $password }, $expect_error );
             ok( $login->{ 'error' } );
         }
     }
@@ -166,7 +166,7 @@ sub test_activate($)
 
     # Test logging in
     {
-        my $r = test_post( '/api/v2/auth/login', { username => $email, password => $password } );
+        my $r = test_post( '/api/v2/auth/login', { email => $email, password => $password } );
         is( $r->{ 'success' }, 1 );
     }
 
@@ -309,7 +309,7 @@ sub test_reset_password($)
 
     # Test logging in
     {
-        my $r = test_post( '/api/v2/auth/login', { username => $email, password => $password } );
+        my $r = test_post( '/api/v2/auth/login', { email => $email, password => $password } );
         is( $r->{ 'success' }, 1 );
     }
 
@@ -351,7 +351,7 @@ sub test_reset_password($)
 
     # Test logging in
     {
-        my $r = test_post( '/api/v2/auth/login', { username => $email, password => $new_password } );
+        my $r = test_post( '/api/v2/auth/login', { email => $email, password => $new_password } );
         is( $r->{ 'success' }, 1 );
     }
 }
@@ -417,7 +417,7 @@ sub test_login($)
     };
     ok( !$@, "Unable to add user: $@" );
 
-    my $r = test_post( '/api/v2/auth/login', { username => $email, password => $password } );
+    my $r = test_post( '/api/v2/auth/login', { email => $email, password => $password } );
     is( $r->{ success }, 1 );
 
     my $db_api_key = $db->query(
@@ -439,7 +439,7 @@ SQL
     is( $r->{ profile }->{ api_key }, $db_api_key->{ api_key }, "'/api/v2/auth/login' API key" );
 
     Readonly my $expect_error => 1;
-    my $r_not_found = test_post( '/api/v2/auth/login', { username => $email, password => "$password FOO" }, $expect_error );
+    my $r_not_found = test_post( '/api/v2/auth/login', { email => $email, password => "$password FOO" }, $expect_error );
     ok( $r_not_found->{ error } =~ /was not found or password/i, "'/api/v2/auth/login' status for wrong password" );
 }
 
@@ -526,7 +526,7 @@ sub test_change_password($)
     # Test whether we can log in with old password
     my $api_key;
     {
-        my $r = test_post( '/api/v2/auth/login', { username => $email, password => $password } );
+        my $r = test_post( '/api/v2/auth/login', { email => $email, password => $password } );
         is( $r->{ success }, 1 );
         $api_key = $r->{ profile }->{ api_key };
         ok( $api_key );
@@ -548,7 +548,7 @@ sub test_change_password($)
 
     # Test whether we can log in with new password
     {
-        my $r = test_post( '/api/v2/auth/login', { username => $email, password => $new_password } );
+        my $r = test_post( '/api/v2/auth/login', { email => $email, password => $new_password } );
         is( $r->{ success }, 1 );
         $api_key = $r->{ profile }->{ api_key };
         ok( $api_key );
@@ -584,7 +584,7 @@ sub test_reset_api_key($)
     # Get API key
     my $api_key;
     {
-        my $r = test_post( '/api/v2/auth/login', { username => $email, password => $password } );
+        my $r = test_post( '/api/v2/auth/login', { email => $email, password => $password } );
         is( $r->{ success }, 1 );
         $api_key = $r->{ profile }->{ api_key };
         ok( $api_key );
