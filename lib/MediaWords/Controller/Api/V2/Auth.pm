@@ -290,7 +290,7 @@ sub login : Local
 
     my $data = $c->req->data;
 
-    my $email = $data->{ username };
+    my $email = $data->{ email };
     unless ( $email )
     {
         die "'email' is not set.";

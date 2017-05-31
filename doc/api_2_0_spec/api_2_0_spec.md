@@ -1721,7 +1721,7 @@ API call is rate-limited.
 
 | Parameter  | Notes                                 |
 | ---------- | ------------------------------------- |
-| `username` | *(string)* Email address of the user. |
+| `email`    | *(string)* Email address of the user. |
 | `password` | *(string)* Password of the user.      |
 
 #### Output Description
@@ -1753,7 +1753,7 @@ Input:
 
 ```json
 {
-    "username": "user@email.com",
+    "email": "user@email.com",
     "password": "qwerty1"
 }
 ```
