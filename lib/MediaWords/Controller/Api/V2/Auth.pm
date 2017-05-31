@@ -325,7 +325,7 @@ sub single : Local
     my $email = $c->req->params->{ username };
     unless ( $email )
     {
-        die "'email' is not set.";
+        die "'username' is not set.";
     }
 
     my $password = $c->req->params->{ password };
