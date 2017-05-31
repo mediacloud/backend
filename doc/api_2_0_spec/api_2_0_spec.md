@@ -94,18 +94,21 @@ Table of Contents
    * [Registration and Authentication](#registration-and-authentication)
       * [Register](#register)
          * [api/v2/auth/register (POST)](#apiv2authregister-post)
+            * [Required role](#required-role)
             * [Input Description](#input-description-1)
             * [Output Description](#output-description-5)
                * [Registration was successful](#registration-was-successful)
                * [Registration has failed](#registration-has-failed)
             * [Example](#example-23)
          * [api/v2/auth/activate (POST)](#apiv2authactivate-post)
+            * [Required role](#required-role-1)
             * [Input Description](#input-description-2)
             * [Output Description](#output-description-6)
                * [Activating the user was successful](#activating-the-user-was-successful)
                * [Activating the user has failed](#activating-the-user-has-failed)
             * [Example](#example-24)
          * [api/v2/auth/resend_activation_link (POST)](#apiv2authresend_activation_link-post)
+            * [Required role](#required-role-2)
             * [Input Description](#input-description-3)
             * [Output Description](#output-description-7)
                * [Resending the activation email was successful](#resending-the-activation-email-was-successful)
@@ -113,12 +116,14 @@ Table of Contents
             * [Example](#example-25)
       * [Reset password](#reset-password)
          * [api/v2/auth/send_password_reset_link (POST)](#apiv2authsend_password_reset_link-post)
+            * [Required role](#required-role-3)
             * [Input Description](#input-description-4)
             * [Output Description](#output-description-8)
                * [Sending the password reset link was successful](#sending-the-password-reset-link-was-successful)
                * [Sending the password reset link has failed](#sending-the-password-reset-link-has-failed)
             * [Example](#example-26)
          * [api/v2/auth/reset_password (POST)](#apiv2authreset_password-post)
+            * [Required role](#required-role-4)
             * [Input Description](#input-description-5)
             * [Output Description](#output-description-9)
                * [Resetting the user's password was successful](#resetting-the-users-password-was-successful)
@@ -126,12 +131,14 @@ Table of Contents
             * [Example](#example-27)
       * [Log in](#log-in)
          * [api/v2/auth/login (POST)](#apiv2authlogin-post)
+            * [Required role](#required-role-5)
             * [Input Description](#input-description-6)
             * [Output Description](#output-description-10)
                * [User was found](#user-was-found)
                * [User was not found](#user-was-not-found)
             * [Example](#example-28)
          * [(deprecated) api/v2/auth/single (GET)](#deprecated-apiv2authsingle-get)
+            * [Required role](#required-role-6)
             * [Query Parameters](#query-parameters-21)
             * [Output Description](#output-description-11)
                * [User was found](#user-was-found-1)
@@ -139,15 +146,18 @@ Table of Contents
             * [Example](#example-29)
       * [User Profile](#user-profile)
          * [api/v2/auth/profile (GET)](#apiv2authprofile-get)
+            * [Required role](#required-role-7)
             * [Output Description](#output-description-12)
             * [Example](#example-30)
          * [api/v2/auth/change_password (POST)](#apiv2authchange_password-post)
+            * [Required role](#required-role-8)
             * [Input Description](#input-description-7)
             * [Output Description](#output-description-13)
                * [Changing the user's password was successful](#changing-the-users-password-was-successful)
                * [Changing the user's password has failed](#changing-the-users-password-has-failed)
             * [Example](#example-31)
          * [api/v2/auth/reset_api_key (POST)](#apiv2authreset_api_key-post)
+            * [Required role](#required-role-9)
             * [Output Description](#output-description-14)
                * [Resetting user's API key was successful](#resetting-users-api-key-was-successful)
                * [Resetting user's API key has failed](#resetting-users-api-key-has-failed)
@@ -1375,7 +1385,9 @@ URL: https://api.mediacloud.org/api/v2/timespans/list?snapshots_id=5
 | ---------------------- | -------------------- |
 | `api/v2/auth/register` | Register a new user. |
 
-API call will be rate-limited.
+#### Required role
+
+`admin`.
 
 #### Input Description
 
@@ -1449,6 +1461,10 @@ Output:
 | ---------------------- | ----------------------------------------------------------------------- |
 | `api/v2/auth/activate` | Activate user using email and activation token from registration email. |
 
+#### Required role
+
+`admin`.
+
 #### Input Description
 
 | Field              | Description                                |
@@ -1508,7 +1524,9 @@ Output:
 | ------------------------------------ | -------------------------------------------------- |
 | `api/v2/auth/resend_activation_link` | Resend activation email for newly registered user. |
 
-API call will be rate-limited.
+#### Required role
+
+`admin`.
 
 #### Input Description
 
@@ -1567,7 +1585,9 @@ Output:
 | -------------------------------------- | -------------------------------------------------------- |
 | `api/v2/auth/send_password_reset_link` | Email a link to user to be used to reset their password. |
 
-API call will be rate-limited.
+#### Required role
+
+`admin`.
 
 #### Input Description
 
@@ -1630,6 +1650,10 @@ Output:
 | ---------------------------- | ----------------------------------------------------------------------------------------------- |
 | `api/v2/auth/reset_password` | Reset user's password using their password reset token send by `auth/send_password_reset_link`. |
 
+#### Required role
+
+`admin`.
+
 #### Input Description
 
 | Field                  | Description                                        |
@@ -1687,7 +1711,11 @@ Output:
 | ------------------- | ------------------------------------------------------------------------------ |
 | `api/v2/auth/login` | Authenticate user with email + password and return user's API key and profile. |
 
-API call will be rate-limited.
+API call is rate-limited.
+
+#### Required role
+
+`admin-read`.
 
 #### Input Description
 
@@ -1748,9 +1776,13 @@ Output:
 | -------------------- | --------------------------------------------------------------------- |
 | `api/v2/auth/single` | Authenticate the user with email and password and return its API key. |
 
-API call will be rate-limited.
-
 This API call is deprecated. Please use `auth/login` for new code.
+
+API call is rate-limited.
+
+#### Required role
+
+`admin-read`.
 
 #### Query Parameters
 
@@ -1803,6 +1835,10 @@ Output:
 | URL                     | Function                                              |
 | ----------------------- | ----------------------------------------------------- |
 | `api/v2/auth/profile`   | Return profile information about the requesting user. |
+
+#### Required role
+
+`search`.
 
 #### Output Description
 
@@ -1885,6 +1921,10 @@ URL: <https://api.mediacloud.org/api/v2/auth/profile>
 | ----------------------------- | ----------------------- |
 | `api/v2/auth/change_password` | Change user's password. |
 
+#### Required role
+
+`search`.
+
 #### Input Description
 
 | Field          | Description                     |
@@ -1939,6 +1979,10 @@ Output:
 | URL                         | Function              |
 | --------------------------- | --------------------- |
 | `api/v2/auth/reset_api_key` | Reset user's API key. |
+
+#### Required role
+
+`search`.
 
 #### Output Description
 
