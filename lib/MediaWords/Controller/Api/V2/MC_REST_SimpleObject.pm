@@ -354,18 +354,16 @@ sub _die_unless_tag_set_matches_user_email
     die "Undefined tag_set for tags_id: $tags_id" unless defined( $tag_set );
 
     die "Illegal tag_set name '$tag_set', tag_set must be user email "
-      unless $c->stash->{ api_auth }->{ email } eq $tag_set;
+      unless $c->stash->{ api_auth }->email() eq $tag_set;
 }
 
 sub _get_user_tag_set_permissions
 {
     my ( $api_auth, $tag_set, $dbis ) = @_;
 
-    my $permissions = $dbis->query(
-        "SELECT * from  auth_users_tag_sets_permissions where auth_users_id = ? and tag_sets_id = ? ",
-        $api_auth->{ auth_users_id },
-        $tag_set->{ tag_sets_id }
-    )->hashes()->[ 0 ];
+    my $permissions =
+      $dbis->query( "SELECT * from  auth_users_tag_sets_permissions where auth_users_id = ? and tag_sets_id = ? ",
+        $api_auth->id(), $tag_set->{ tag_sets_id } )->hashes()->[ 0 ];
 
     return $permissions;
 }
@@ -376,7 +374,7 @@ sub _die_unless_user_can_apply_tag_set_tags
 {
     my ( $self, $c, $tag_set ) = @_;
 
-    return if $c->stash->{ api_auth }->{ email } eq $tag_set->{ name };
+    return if $c->stash->{ api_auth }->email() eq $tag_set->{ name };
 
     my $permissions = _get_user_tag_set_permissions( $c->stash->{ api_auth }, $tag_set, $c->dbis );
 
@@ -389,7 +387,7 @@ sub _die_unless_user_can_create_tag_set_tags
 {
     my ( $self, $c, $tag_set ) = @_;
 
-    return if $c->stash->{ api_auth }->{ email } eq $tag_set->{ name };
+    return if $c->stash->{ api_auth }->email() eq $tag_set->{ name };
 
     my $permissions = _get_user_tag_set_permissions( $c->stash->{ api_auth }, $tag_set, $c->dbis );
 
@@ -403,13 +401,13 @@ sub die_unless_user_can_edit_tag_set_descriptors
 {
     my ( $self, $c, $tag_set ) = @_;
 
-    return if $c->stash->{ api_auth }->{ email } eq $tag_set->{ name };
+    return if $c->stash->{ api_auth }->email() eq $tag_set->{ name };
 
     my $permissions = _get_user_tag_set_permissions( $c->stash->{ api_auth }, $tag_set, $c->dbis );
 
     #TRACE Dumper( $permissions );
 
-    die "User " . $c->stash->{ api_auth }->{ email } .
+    die "User " . $c->stash->{ api_auth }->email() .
       " doesn't have permission to edit tag set descriptors for tag set id " . $tag_set->{ tag_sets_id }
       unless defined( $permissions ) && $permissions->{ edit_tag_set_descriptors };
 }
@@ -418,13 +416,13 @@ sub die_unless_user_can_edit_tag_set_tag_descriptors
 {
     my ( $self, $c, $tag_set ) = @_;
 
-    return if $c->stash->{ api_auth }->{ email } eq $tag_set->{ name };
+    return if $c->stash->{ api_auth }->email() eq $tag_set->{ name };
 
     my $permissions = _get_user_tag_set_permissions( $c->stash->{ api_auth }, $tag_set, $c->dbis );
 
     #TRACE Dumper( $permissions );
 
-    die "User " . $c->stash->{ api_auth }->{ email } .
+    die "User " . $c->stash->{ api_auth }->email() .
       " doesn't have permission to edit tag descriptors in tag set id " . $tag_set->{ tag_sets_id }
       unless defined( $permissions ) && $permissions->{ edit_tag_descriptors };
 }
@@ -445,7 +443,7 @@ sub _get_tags_id
         my ( $tag_set_name, $tag_name ) = split ':', $tag_string;
 
         #TRACE Dumper( $c->stash );
-        my $user_email = $c->stash->{ api_auth }->{ email };
+        my $user_email = $c->stash->{ api_auth }->email();
 
         my $tag_sets = $c->dbis->query( "SELECT * from tag_sets where name = ?", $tag_set_name )->hashes;
 
@@ -659,14 +657,14 @@ SQL
 }
 
 # process put_tags command for the current table.  see api docs for stories/put_tags.
-# json format.
+# JSON format.
 sub process_put_tags($$)
 {
     my ( $self, $c ) = @_;
 
     my $data = $c->req->data;
 
-    die( "no json input" ) unless ( $data );
+    die( "no JSON input" ) unless ( $data );
 
     die( "json must be a list" ) unless ( ref( $data ) eq ref( [] ) );
 

@@ -320,13 +320,31 @@ sub create_test_user($$)
 
     my $email = $label . '@em.ail';
 
-    my $add_user_error_message =
-      MediaWords::DBI::Auth::add_user_or_return_error_message( $db, $email, $label, '', [ 1 ], 1,
-        'testtest', 'testtest', 1000, 1000 );
+    eval {
+        my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
+            email                        => $email,
+            full_name                    => $label,
+            notes                        => '',
+            role_ids                     => [ 1 ],
+            active                       => 1,
+            password                     => 'testtest',
+            password_repeat              => 'testtest',
+            activation_url               => '',           # user is active, no need for activation URL
+            weekly_requests_limit        => 1000,
+            weekly_requested_items_limit => 1000,
+        );
 
-    my $api_key = $db->query( "select api_token from auth_users where email = ?", $email )->hash;
+        MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
+    };
+    if ( $@ )
+    {
+        LOGCONFESS "Adding new user failed: $@";
+    }
 
-    return $api_key->{ api_token };
+    my $user_info = MediaWords::DBI::Auth::Profile::user_info( $db, $email );
+    my $api_key = $user_info->global_api_key();
+
+    return $api_key;
 }
 
 # create test topic with a simple label.

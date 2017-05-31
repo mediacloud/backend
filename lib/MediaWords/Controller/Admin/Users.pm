@@ -9,6 +9,7 @@ use MediaWords::CommonLibs;
 use parent 'Catalyst::Controller';
 
 use MediaWords::DBI::Auth;
+use MediaWords::DBI::Auth::Limits;
 use MediaWords::Util::Config;
 use MediaWords::Util::JSON;
 use MediaWords::Util::Text;
@@ -25,10 +26,10 @@ sub list : Local
     my ( $self, $c ) = @_;
 
     # Fetch list of users and their roles
-    my $users = MediaWords::DBI::Auth::all_users( $c->dbis );
+    my $users = MediaWords::DBI::Auth::Profile::all_users( $c->dbis );
 
     # Fetch role descriptions
-    my $roles = MediaWords::DBI::Auth::all_user_roles( $c->dbis );
+    my $roles = MediaWords::DBI::Auth::Roles::all_user_roles( $c->dbis );
     my %role_descriptions = map { $_->{ role } => $_->{ description } } @{ $roles };
 
     $c->stash->{ users }             = $users;
@@ -42,6 +43,8 @@ sub delete : Local
 {
     my ( $self, $c ) = @_;
 
+    my $db = $c->dbis;
+
     my $email = $c->request->param( 'email' );
     if ( !$email )
     {
@@ -51,22 +54,22 @@ sub delete : Local
         return;
     }
 
-    # Fetch readonly information about the user
-    my $userinfo = MediaWords::DBI::Auth::user_info( $c->dbis, $email );
-    if ( !$userinfo )
+    my $userinfo;
+    eval { $userinfo = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
+    if ( $@ or ( !$userinfo ) )
     {
-        die "Unable to find user '$email' in the database.";
+        die "Unable to find user with email '$email'";
     }
 
-    $c->stash->{ auth_users_id } = $userinfo->{ auth_users_id };
-    $c->stash->{ email }         = $userinfo->{ email };
-    $c->stash->{ full_name }     = $userinfo->{ full_name };
+    $c->stash->{ auth_users_id } = $userinfo->id();
+    $c->stash->{ email }         = $userinfo->email();
+    $c->stash->{ full_name }     = $userinfo->full_name();
     $c->stash->{ c }             = $c;
     $c->stash->{ template }      = 'users/delete.tt2';
 }
 
-# regenerate API token
-sub regenerate_api_token : Local
+# regenerate API key
+sub regenerate_api_key : Local
 {
     my ( $self, $c ) = @_;
 
@@ -78,17 +81,17 @@ sub regenerate_api_token : Local
     }
 
     # Delete user
-    my $regenerate_api_token_error_message =
-      MediaWords::DBI::Auth::regenerate_api_token_or_return_error_message( $c->dbis, $email );
-    if ( $regenerate_api_token_error_message )
+    eval { MediaWords::DBI::Auth::Profile::regenerate_api_key( $c->dbis, $email ); };
+    if ( $@ )
     {
-        $c->response->redirect(
-            $c->uri_for( '/admin/users/edit', { email => $email, error_msg => $regenerate_api_token_error_message } ) );
+        my $error_message = "Unable to regenerate API key: $@";
+
+        $c->response->redirect( $c->uri_for( '/admin/users/edit', { email => $email, error_msg => $error_message } ) );
         return;
     }
 
     $c->response->redirect(
-        $c->uri_for( '/admin/users/edit', { email => $email, status_msg => "API token has been regenerated." } ) );
+        $c->uri_for( '/admin/users/edit', { email => $email, status_msg => "API key has been regenerated." } ) );
 
 }
 
@@ -105,10 +108,12 @@ sub delete_do : Local
     }
 
     # Delete user
-    my $delete_user_error_message = MediaWords::DBI::Auth::delete_user_or_return_error_message( $c->dbis, $email );
-    if ( $delete_user_error_message )
+    eval { MediaWords::DBI::Auth::Profile::delete_user( $c->dbis, $email ); };
+    if ( $@ )
     {
-        $c->response->redirect( $c->uri_for( '/admin/users/list', { error_msg => $delete_user_error_message } ) );
+        my $error_message = "Unable to delete user: $@";
+
+        $c->response->redirect( $c->uri_for( '/admin/users/list', { error_msg => $error_message } ) );
         return;
     }
 
@@ -137,8 +142,10 @@ sub create : Local
         }
     );
 
+    my $db = $c->dbis;
+
     # Set list of roles
-    my $available_roles = MediaWords::DBI::Auth::all_user_roles( $c->dbis );
+    my $available_roles = MediaWords::DBI::Auth::Roles::all_user_roles( $db );
     my @roles_options;
     for my $role ( @{ $available_roles } )
     {
@@ -153,13 +160,11 @@ sub create : Local
     my $el_roles = $form->get_element( { name => 'roles', type => 'Checkboxgroup' } );
     $el_roles->options( \@roles_options );
 
-    my $default_roles_ids = $c->dbis->query( "select auth_roles_id from auth_roles where role in ( 'search' ) " )->flat;
-
     $form->default_values(
         {
-            weekly_requests_limit        => MediaWords::DBI::Auth::default_weekly_requests_limit( $c->dbis ),
-            weekly_requested_items_limit => MediaWords::DBI::Auth::default_weekly_requested_items_limit( $c->dbis ),
-            roles                        => $default_roles_ids,
+            weekly_requests_limit        => MediaWords::DBI::Auth::Limits::default_weekly_requests_limit( $db ),
+            weekly_requested_items_limit => MediaWords::DBI::Auth::Limits::default_weekly_requested_items_limit( $db ),
+            roles                        => MediaWords::DBI::Auth::Roles::default_role_ids( $db ),
         }
     );
 
@@ -178,19 +183,18 @@ sub create : Local
 
     # Form has been submitted
 
-    my $user_email                        = $form->param_value( 'email' );
-    my $user_full_name                    = $form->param_value( 'full_name' );
-    my $user_notes                        = $form->param_value( 'notes' );
-    my $user_is_active                    = $form->param_value( 'active' );
-    my $user_roles                        = $form->param_array( 'roles' );
-    my $user_weekly_requests_limit        = $form->param_value( 'weekly_requests_limit' ) + 0;
-    my $user_weekly_requested_items_limit = $form->param_value( 'weekly_requested_items_limit' ) + 0;
-    my $user_password                     = '';
-    my $user_password_repeat              = '';
-    my $user_will_choose_password_himself = $form->param_value( 'password_chosen_by_user' );
+    my $user_email    = $form->param_value( 'email' );
+    my $user_role_ids = $form->param_value( 'roles' );
+    if ( ref( $user_role_ids ) ne ref( [] ) )
+    {
+        $user_role_ids = [ $user_role_ids ];
+    }
+
+    my ( $user_password, $user_password_repeat );
+
+    my $user_will_choose_password_himself = $form->param_value( 'password_chosen_by_user' ) + 0;
     if ( $user_will_choose_password_himself )
     {
-
         # Choose a random password that will be never used so as not to leave the 'password'
         # field in database empty
         $user_password        = MediaWords::Util::Text::random_string( 64 );
@@ -202,32 +206,65 @@ sub create : Local
         $user_password_repeat = $form->param_value( 'password_repeat' );
     }
 
-    # Add user
-    my $add_user_error_message =
-      MediaWords::DBI::Auth::add_user_or_return_error_message( $c->dbis, $user_email, $user_full_name,
-        $user_notes, $user_roles, $user_is_active, $user_password, $user_password_repeat,
-        $user_weekly_requests_limit, $user_weekly_requested_items_limit );
-    if ( $add_user_error_message )
+    my ( $user_is_active, $user_activation_url );
+    if ( $user_will_choose_password_himself )
     {
+        $user_is_active      = 0;
+        $user_activation_url = $c->uri_for( '/login/activate' );
+    }
+    else
+    {
+        $user_is_active      = 1;
+        $user_activation_url = '';
+    }
+
+    # Add user
+    eval {
+
+        my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
+            email                        => $user_email,
+            full_name                    => $form->param_value( 'full_name' ),
+            notes                        => $form->param_value( 'notes' ),
+            role_ids                     => $user_role_ids,
+            active                       => $user_is_active,
+            password                     => $user_password,
+            password_repeat              => $user_password_repeat,
+            activation_url               => $user_activation_url,
+            weekly_requests_limit        => $form->param_value( 'weekly_requests_limit' ) + 0,
+            weekly_requested_items_limit => $form->param_value( 'weekly_requested_items_limit' ) + 0,
+        );
+
+        MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
+    };
+    if ( $@ )
+    {
+        my $error_message = "Unable to add user: $@";
+
         $c->stash->{ c }    = $c;
         $c->stash->{ form } = $form;
         $c->stash( template  => 'users/create.tt2' );
-        $c->stash( error_msg => $add_user_error_message );
+        $c->stash( error_msg => $error_message );
         return;
     }
 
     # Send the password reset link if needed
     if ( $user_will_choose_password_himself )
     {
-        my $reset_password_error_message =
-          MediaWords::DBI::Auth::send_password_reset_token_or_return_error_message( $c->dbis, $user_email,
-            $c->uri_for( '/login/reset' ), 1 );
-        if ( $reset_password_error_message )
+        eval {
+            MediaWords::DBI::Auth::ResetPassword::send_password_reset_token(
+                $db,                             #
+                $user_email,                     #
+                $c->uri_for( '/login/reset' )    #
+            );
+        };
+        if ( $@ )
         {
+            my $error_message = "Unable to send password reset token: $@";
+
             $c->stash->{ c }    = $c;
             $c->stash->{ form } = $form;
             $c->stash( template  => 'users/create.tt2' );
-            $c->stash( error_msg => $reset_password_error_message );
+            $c->stash( error_msg => $error_message );
             return;
         }
     }
@@ -236,7 +273,7 @@ sub create : Local
     # her own password" field because those might be reused for creating another user
     $form->default_values(
         {
-            roles                   => $user_roles,
+            roles                   => $user_role_ids,
             active                  => $user_is_active,
             password_chosen_by_user => $user_will_choose_password_himself
         }
@@ -269,6 +306,8 @@ sub edit : Local
 {
     my ( $self, $c ) = @_;
 
+    my $db = $c->dbis;
+
     my $form = $c->create_form(
         {
             load_config_file => $c->path_to() . '/root/forms/users/edit.yml',
@@ -277,8 +316,8 @@ sub edit : Local
         }
     );
 
-    my $user_email = $c->request->param( 'email' );
-    if ( !$user_email )
+    my $email = $c->request->param( 'email' );
+    if ( !$email )
     {
         $c->stash( error_msg => "Empty email." );
         $c->stash->{ c }        = $c;
@@ -288,14 +327,12 @@ sub edit : Local
     }
 
     # Fetch information about the user and roles
-    my $userinfo = MediaWords::DBI::Auth::user_info( $c->dbis, $user_email );
-    my $roles = MediaWords::DBI::Auth::user_auth( $c->dbis, $user_email );
-    unless ( $userinfo and $roles )
+    my $userinfo;
+    eval { $userinfo = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
+    if ( $@ or ( !$userinfo ) )
     {
-        die "Unable to find user '$user_email' in the database.";
+        die "Unable to find user with email '$email'";
     }
-
-    my %user_roles = map { $_ => 1 } @{ $roles->{ roles } };
 
     $form->process( $c->request );
 
@@ -303,12 +340,12 @@ sub edit : Local
     {
 
         # Fetch list of available roles
-        my $available_roles = MediaWords::DBI::Auth::all_user_roles( $c->dbis );
+        my $available_roles = MediaWords::DBI::Auth::Roles::all_user_roles( $db );
         my @roles_options;
-        for my $role ( @{ $available_roles } )
+        for my $available_role ( @{ $available_roles } )
         {
             my $html_role_attributes = {};
-            if ( exists( $user_roles{ $role->{ role } } ) )
+            if ( $userinfo->has_role( $available_role->{ role } ) )
             {
                 $html_role_attributes = { checked => 'checked' };
             }
@@ -316,8 +353,8 @@ sub edit : Local
             push(
                 @roles_options,
                 {
-                    value      => $role->{ auth_roles_id },
-                    label      => $role->{ role } . ': ' . $role->{ description },
+                    value      => $available_role->{ auth_roles_id },
+                    label      => $available_role->{ role } . ': ' . $available_role->{ description },
                     attributes => $html_role_attributes
                 }
             );
@@ -326,17 +363,17 @@ sub edit : Local
         my $el_roles = $form->get_element( { name => 'roles', type => 'Checkboxgroup' } );
         $el_roles->options( \@roles_options );
 
-        my $el_regenerate_api_token = $form->get_element( { name => 'regenerate_api_token', type => 'Button' } );
-        $el_regenerate_api_token->comment( $userinfo->{ api_token } );
+        my $el_regenerate_api_key = $form->get_element( { name => 'regenerate_api_key', type => 'Button' } );
+        $el_regenerate_api_key->comment( $userinfo->global_api_key() );
 
         $form->default_values(
             {
-                email                        => $user_email,
-                full_name                    => $userinfo->{ full_name },
-                notes                        => $userinfo->{ notes },
-                active                       => $userinfo->{ active },
-                weekly_requests_limit        => $userinfo->{ weekly_requests_limit },
-                weekly_requested_items_limit => $userinfo->{ weekly_requested_items_limit }
+                email                        => $email,
+                full_name                    => $userinfo->full_name(),
+                notes                        => $userinfo->notes(),
+                active                       => $userinfo->active(),
+                weekly_requests_limit        => $userinfo->weekly_requests_limit(),
+                weekly_requested_items_limit => $userinfo->weekly_requested_items_limit(),
             }
         );
 
@@ -344,11 +381,11 @@ sub edit : Local
         $form->process( $c->request );
 
         # Show the form
-        $c->stash->{ auth_users_id } = $userinfo->{ auth_users_id };
-        $c->stash->{ email }         = $userinfo->{ email };
-        $c->stash->{ full_name }     = $userinfo->{ full_name };
-        $c->stash->{ notes }         = $userinfo->{ notes };
-        $c->stash->{ active }        = $userinfo->{ active };
+        $c->stash->{ auth_users_id } = $userinfo->id();
+        $c->stash->{ email }         = $userinfo->email();
+        $c->stash->{ full_name }     = $userinfo->full_name();
+        $c->stash->{ notes }         = $userinfo->notes();
+        $c->stash->{ active }        = $userinfo->active();
         $c->stash->{ c }             = $c;
         $c->stash->{ form }          = $form;
         $c->stash->{ template }      = 'users/edit.tt2';
@@ -368,13 +405,13 @@ sub edit : Local
     my $user_weekly_requested_items_limit = $form->param_value( 'weekly_requested_items_limit' );
 
     # Check if user is trying to deactivate oneself
-    if ( $userinfo->{ email } eq $c->user->username and ( !$user_is_active ) )
+    if ( $userinfo->email() eq $c->user->username and ( !$user_is_active ) )
     {
-        $c->stash->{ auth_users_id } = $userinfo->{ auth_users_id };
-        $c->stash->{ email }         = $userinfo->{ email };
-        $c->stash->{ full_name }     = $userinfo->{ full_name };
-        $c->stash->{ notes }         = $userinfo->{ notes };
-        $c->stash->{ active }        = $userinfo->{ active };
+        $c->stash->{ auth_users_id } = $userinfo->id();
+        $c->stash->{ email }         = $userinfo->email();
+        $c->stash->{ full_name }     = $userinfo->full_name();
+        $c->stash->{ notes }         = $userinfo->notes();
+        $c->stash->{ active }        = $userinfo->active();
         $c->stash->{ c }             = $c;
         $c->stash->{ form }          = $form;
         $c->stash->{ template }      = 'users/edit.tt2';
@@ -383,25 +420,37 @@ sub edit : Local
     }
 
     # Update user
-    my $update_user_error_message =
-      MediaWords::DBI::Auth::update_user_or_return_error_message( $c->dbis, $user_email, $user_full_name,
-        $user_notes, $user_roles, $user_is_active, $user_password, $user_password_repeat,
-        $user_weekly_requests_limit, $user_weekly_requested_items_limit );
-    if ( $update_user_error_message )
+    eval {
+        my $existing_user = MediaWords::DBI::Auth::User::ModifyUser->new(
+            email                        => $email,
+            full_name                    => $user_full_name || undef,                       # don't update if not set
+            notes                        => $user_notes || undef,                           # don't update if not set
+            role_ids                     => $user_roles || undef,                           # don't update if not set
+            active                       => $user_is_active || undef,                       # don't update if not set
+            password                     => $user_password || undef,                        # don't update if not set
+            password_repeat              => $user_password_repeat || undef,                 # don't update if not set
+            weekly_requests_limit        => $user_weekly_requests_limit || undef,           # don't update if not set
+            weekly_requested_items_limit => $user_weekly_requested_items_limit || undef,    # don't update if not set
+        );
+        MediaWords::DBI::Auth::Profile::update_user( $db, $existing_user );
+    };
+    if ( $@ )
     {
-        $c->stash->{ auth_users_id } = $userinfo->{ auth_users_id };
-        $c->stash->{ email }         = $userinfo->{ email };
-        $c->stash->{ full_name }     = $userinfo->{ full_name };
-        $c->stash->{ notes }         = $userinfo->{ notes };
-        $c->stash->{ active }        = $userinfo->{ active };
+        my $error_message = "Unable to update user: $@";
+
+        $c->stash->{ auth_users_id } = $userinfo->id();
+        $c->stash->{ email }         = $userinfo->email();
+        $c->stash->{ full_name }     = $userinfo->full_name();
+        $c->stash->{ notes }         = $userinfo->notes();
+        $c->stash->{ active }        = $userinfo->active();
         $c->stash->{ c }             = $c;
         $c->stash->{ form }          = $form;
         $c->stash->{ template }      = 'users/edit.tt2';
-        $c->stash( error_msg => $update_user_error_message );
+        $c->stash( error_msg => $error_message );
         return;
     }
 
-    my $status_msg = "User information for user '$user_email' has been saved.";
+    my $status_msg = "User information for user '$email' has been saved.";
     if ( $user_password )
     {
         $status_msg .= " Additionaly, the user's password has been changed.";
@@ -447,17 +496,23 @@ sub tag_set_permissions_json : Local
 {
     my ( $self, $c ) = @_;
 
-    my $user_email = $c->request->param( 'email' );
+    my $db = $c->dbis;
 
-    die "missing required param user_email" unless $user_email;
+    my $email = $c->request->param( 'email' );
 
-    my $userinfo = MediaWords::DBI::Auth::user_info( $c->dbis, $user_email );
-    my $roles = MediaWords::DBI::Auth::user_auth( $c->dbis, $user_email );
+    die "missing required param email" unless $email;
 
-    my $auth_users_tag_set_permissions = $c->dbis->query(
+    my $userinfo;
+    eval { $userinfo = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
+    if ( $@ or ( !$userinfo ) )
+    {
+        die "Unable to find user with email '$email'";
+    }
+
+    my $auth_users_tag_set_permissions = $db->query(
 "SELECT autsp.*, ts.name as tag_set_name from auth_users_tag_sets_permissions autsp, tag_sets ts where auth_users_id = ? "
           . " AND ts.tag_sets_id = autsp.tag_sets_id ",
-        $userinfo->{ auth_users_id }
+        $userinfo->id()
     )->hashes();
 
     $c->res->body( MediaWords::Util::JSON::encode_json( $auth_users_tag_set_permissions ) );
@@ -467,16 +522,22 @@ sub available_tag_sets_json : Local
 {
     my ( $self, $c ) = @_;
 
-    my $user_email = $c->request->param( 'email' );
+    my $db = $c->dbis;
 
-    die "missing required param user_email" unless $user_email;
+    my $email = $c->request->param( 'email' );
 
-    my $userinfo = MediaWords::DBI::Auth::user_info( $c->dbis, $user_email );
-    my $roles = MediaWords::DBI::Auth::user_auth( $c->dbis, $user_email );
+    die "missing required param email" unless $email;
 
-    my $available_tag_sets = $c->dbis->query(
+    my $userinfo;
+    eval { $userinfo = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
+    if ( $@ or ( !$userinfo ) )
+    {
+        die "Unable to find user with email '$email'";
+    }
+
+    my $available_tag_sets = $db->query(
 "SELECT * from tag_sets where tag_sets_id not in ( select tag_sets_id from auth_users_tag_sets_permissions where auth_users_id = ?)  ",
-        $userinfo->{ auth_users_id }
+        $userinfo->id()
     )->hashes();
 
     $c->res->body( MediaWords::Util::JSON::encode_json( $available_tag_sets ) );
@@ -487,8 +548,10 @@ sub edit_tag_set_permissions : Local
 {
     my ( $self, $c ) = @_;
 
-    my $user_email = $c->request->param( 'email' );
-    if ( !$user_email )
+    my $db = $c->dbis;
+
+    my $email = $c->request->param( 'email' );
+    if ( !$email )
     {
         $c->stash( error_msg => "Empty email." );
         $c->stash->{ c } = $c;
@@ -500,22 +563,22 @@ sub edit_tag_set_permissions : Local
     }
 
     # Fetch information about the user and roles
-    my $userinfo = MediaWords::DBI::Auth::user_info( $c->dbis, $user_email );
-    my $roles = MediaWords::DBI::Auth::user_auth( $c->dbis, $user_email );
-    unless ( $userinfo and $roles )
+    my $userinfo;
+    eval { $userinfo = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
+    if ( $@ or ( !$userinfo ) )
     {
-        die "Unable to find user '$user_email' in the database.";
+        die "Unable to find user with email '$email'";
     }
 
-    my %user_roles = map { $_ => 1 } @{ $roles->{ roles } };
+    my %user_roles = map { $_ => 1 } @{ $userinfo->{ roles } };
 
     # Fetch list of available roles
-    my $available_roles = MediaWords::DBI::Auth::all_user_roles( $c->dbis );
+    my $available_roles = MediaWords::DBI::Auth::Roles::all_user_roles( $db );
     my @roles_options;
-    for my $role ( @{ $available_roles } )
+    for my $available_role ( @{ $available_roles } )
     {
         my $html_role_attributes = {};
-        if ( exists( $user_roles{ $role->{ role } } ) )
+        if ( $userinfo->has_role( $available_role->{ role } ) )
         {
             $html_role_attributes = { checked => 'checked' };
         }
@@ -523,18 +586,18 @@ sub edit_tag_set_permissions : Local
         push(
             @roles_options,
             {
-                value      => $role->{ auth_roles_id },
-                label      => $role->{ role } . ': ' . $role->{ description },
+                value      => $available_role->{ auth_roles_id },
+                label      => $available_role->{ role } . ': ' . $available_role->{ description },
                 attributes => $html_role_attributes
             }
         );
     }
 
-    $c->stash->{ auth_users_id } = $userinfo->{ auth_users_id };
-    $c->stash->{ email }         = $userinfo->{ email };
-    $c->stash->{ full_name }     = $userinfo->{ full_name };
-    $c->stash->{ notes }         = $userinfo->{ notes };
-    $c->stash->{ active }        = $userinfo->{ active };
+    $c->stash->{ auth_users_id } = $userinfo->id();
+    $c->stash->{ email }         = $userinfo->email();
+    $c->stash->{ full_name }     = $userinfo->full_name();
+    $c->stash->{ notes }         = $userinfo->notes();
+    $c->stash->{ active }        = $userinfo->active();
     $c->stash->{ c }             = $c;
 
     # $c->stash->{ form }          = $form;
@@ -548,8 +611,8 @@ sub usage : Local
 {
     my ( $self, $c ) = @_;
 
-    my $users = MediaWords::DBI::Auth::all_users( $c->dbis );
-    my $roles = MediaWords::DBI::Auth::all_user_roles( $c->dbis );
+    my $users = MediaWords::DBI::Auth::Profile::all_users( $c->dbis );
+    my $roles = MediaWords::DBI::Auth::Roles::all_user_roles( $c->dbis );
 
     my $query = $c->request->param( 'query' );
 

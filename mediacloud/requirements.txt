@@ -12,6 +12,9 @@ coverage
 # Stemming Hausa words
 hausastemmer
 
+# Parsing email templates
+Jinja2
+
 # Japanese language tokenizer, stemmer, etc.
 mecab-python3
 

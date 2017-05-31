@@ -45,11 +45,7 @@ use XML::LibXML;
 #     <default_realm>users</default_realm>
 #     <users>
 #       <credential>
-#         <class>Password</class>
-#         <password_field>password</password_field>
-#         <password_hash_type>SHA-256</password_hash_type>
-#         <password_salt_len>64</password_salt_len>
-#         <password_type>salted_hash</password_type>
+#         <class>MediaWords</class>
 #       </credential>
 #       <store>
 #         <class>MediaWords</class>
@@ -165,16 +161,19 @@ sub main
 
     TRACE Dumper( $config );
 
-    $config = for_every_hash_value( $config, sub {
-        my ( $key, $value ) = @_;
+    $config = for_every_hash_value(
+        $config,
+        sub {
+            my ( $key, $value ) = @_;
 
-        if ( ref $value and ref $value ne ref [] and ref $value ne ref {} )
-        {
-            # Convert unknown objects into scalars
-            $value = $value . '';
+            if ( ref $value and ref $value ne ref [] and ref $value ne ref {} )
+            {
+                # Convert unknown objects into scalars
+                $value = $value . '';
+            }
+            return $value;
         }
-        return $value;
-    } );
+    );
 
     # Convert the configuration hash to an XML object so that we can use XPath
     # queries against it

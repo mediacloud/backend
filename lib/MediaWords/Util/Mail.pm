@@ -10,74 +10,55 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use MediaWords::Util::Config;
-use Email::MIME;
-use Email::Sender::Simple;
+use MediaWords::Util::Mail::Message;
 
-# used by test_mode() below to make send() only print out messages rather than sending them
-my $_test_mode = 0;
-
-# Send email to someone; returns 1 on success, 0 on failure
-sub send($$$;$)
 {
-    my ( $to_email, $subject, $message_body, $replyto_email ) = @_;
 
-    if ( !$replyto_email )
-    {
-        $replyto_email = $to_email;
-    }
+    package MediaWords::Util::Mail::PythonProxy;
 
-    my $config = MediaWords::Util::Config::get_config;
+    #
+    # Proxy to util/mail.py; used to be able to proxy native Python object ("python_message")
+    #
 
-    my $message = Email::MIME->create(
-        header_str => [
-            From    => $config->{ mail }->{ from_address },
-            To      => $to_email,
-            ReplyTo => $replyto_email,
-            Subject => '[Media Cloud] ' . $subject,
-        ],
-        attributes => {
-            encoding => 'quoted-printable',
-            charset  => 'UTF-8',
-        },
-        body_str => <<"EOF"
-Hello,
+    use strict;
+    use warnings;
 
-$message_body
+    use Modern::Perl "2015";
+    use MediaWords::CommonLibs;
 
---
-Media Cloud (www.mediacloud.org)
+    import_python_module( __PACKAGE__, 'mediawords.util.mail' );
 
-EOF
-
-    );
-
-    my $smtp = $config->{ smtp };
-
-    if ( $_test_mode || ( $smtp && $smtp->{ test } && ( $smtp->{ test } eq 'yes' ) ) )
-    {
-        TRACE( "send mail to $to_email: " . $message->body_raw );
-        return 1;
-    }
-
-    eval { Email::Sender::Simple->send( $message ) };
-    if ( $@ )
-    {
-        ERROR( "Unable to send email to $to_email: $@" );
-        return 0;
-    }
-
-    return 1;
+    1;
 }
 
-# return the value of test_mode for this module.  if an argument is specified and defined, set test_mode
-# to be the new value first.  while test_mode is true, send() will print emails using TRACE instead of sending them,
-# which the same behavior as setting smtp.test to 'yes' in mediawords.yml.
-sub test_mode(;$)
+sub enable_test_mode()
 {
-    $_test_mode = $_[ 0 ] if ( defined( $_[ 0 ] ) );
+    return MediaWords::Util::Mail::PythonProxy::enable_test_mode();
+}
 
-    return $_test_mode;
+sub disable_test_mode()
+{
+    return MediaWords::Util::Mail::PythonProxy::disable_test_mode();
+}
+
+sub send_email($)
+{
+    my $message = shift;
+
+    my $python_message = $message->{ python_message };
+    unless ( $python_message )
+    {
+        die "python_message is unset.";
+    }
+
+    return MediaWords::Util::Mail::PythonProxy::send_email( $python_message );
+}
+
+sub send_text_email($$$)
+{
+    my ( $to_email, $subject, $message_body ) = @_;
+
+    return MediaWords::Util::Mail::PythonProxy::send_text_email( $to_email, $subject, $message_body );
 }
 
 1;

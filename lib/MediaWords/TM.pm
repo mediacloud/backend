@@ -195,7 +195,7 @@ SQL
 
     for my $email ( @{ $emails } )
     {
-        MediaWords::Util::Mail::send( $email, "Topic Spider Update for $topic->{ name }", <<EMAIL );
+        MediaWords::Util::Mail::send_text_email( $email, "Topic Spider Update for $topic->{ name }", <<EMAIL );
 This is an update email for a Media Cloud topic spidering job.
 
 Topic: $topic->{ name }

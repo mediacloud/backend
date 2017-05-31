@@ -97,7 +97,7 @@ sub default_output_fields
 
     push( @{ $fields }, qw ( inlink_count outlink_count story_count ) ) if ( $self->{ topic_media } );
 
-    if ( grep { $MediaWords::DBI::Auth::Roles::ADMIN eq $_ } @{ $c->stash->{ api_auth }->{ roles } } )
+    if ( grep { $MediaWords::DBI::Auth::Roles::List::ADMIN eq $_ } @{ $c->stash->{ api_auth }->role_names() } )
     {
         push( @{ $fields }, 'editor_notes' );
     }
@@ -494,8 +494,8 @@ sub submit_suggestion_GET
     my $feed_url = $data->{ feed_url } || 'none';
     my $reason   = $data->{ reason } || 'none';
 
-    my $user          = MediaWords::DBI::Auth::user_for_api_token_catalyst( $c );
-    my $auth_users_id = $user->{ auth_users_id };
+    my $user = MediaWords::DBI::Auth::Profile::user_info( $db, $c->user->username );
+    my $auth_users_id = $user->id();
 
     $db->begin;
 
@@ -586,8 +586,8 @@ sub mark_suggestion_PUT
 
     my $db = $c->dbis;
 
-    my $user          = MediaWords::DBI::Auth::user_for_api_token_catalyst( $c );
-    my $auth_users_id = $user->{ auth_users_id };
+    my $user = MediaWords::DBI::Auth::Profile::user_info( $db, $c->user->username );
+    my $auth_users_id = $user->id();
 
     die( "status must be pending, approved, or rejected" )
       unless ( grep { $_ eq $data->{ status } } ( qw/pending approved rejected/ ) );

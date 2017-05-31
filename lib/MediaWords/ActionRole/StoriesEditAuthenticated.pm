@@ -23,8 +23,8 @@ use MediaWords::DBI::Auth::Roles ( ':all' );
 sub _get_auth_roles
 {
     return [
-        $MediaWords::DBI::Auth::Roles::ADMIN, $MediaWords::DBI::Auth::Roles::STORIES_EDIT,
-        $MediaWords::DBI::Auth::Roles::MEDIA_EDIT,
+        $MediaWords::DBI::Auth::Roles::List::ADMIN, $MediaWords::DBI::Auth::Roles::List::STORIES_EDIT,
+        $MediaWords::DBI::Auth::Roles::List::MEDIA_EDIT,
     ];
 }
 

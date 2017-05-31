@@ -1,7 +1,7 @@
 package MediaWords::DBI::Auth::Roles;
 
 #
-# Authentication roles (keep in sync with "auth_roles" table)
+# Authentication role helpers
 #
 
 use strict;
@@ -12,31 +12,73 @@ use MediaWords::CommonLibs;
 
 use Readonly;
 
-# Do everything, including editing users
-Readonly our $ADMIN => 'admin';
+use MediaWords::DBI::Auth::Roles::List;
 
-# Read-only access to admin interface
-Readonly our $ADMIN_READONLY => 'admin-readonly';
+# Fetch a list of available user roles
+sub all_user_roles($)
+{
+    my ( $db ) = @_;
 
-# Add / edit media; includes feeds
-Readonly our $MEDIA_EDIT => 'media-edit';
+    my $roles = $db->query(
+        <<"SQL"
+        SELECT auth_roles_id,
+               role,
+               description
+        FROM auth_roles
+        ORDER BY auth_roles_id
+SQL
+    )->hashes;
 
-# Add / edit stories
-Readonly our $STORIES_EDIT => 'stories-edit';
+    return $roles;
+}
 
-# Topic mapper; includes media and story editing
-Readonly our $TM => 'tm';
+# Fetch a user role's ID for a role; die()s if no such role was found
+sub role_id_for_role($$)
+{
+    my ( $db, $role ) = @_;
 
-# topic mapper; excludes media and story editing
-Readonly our $TM_READONLY => 'tm-readonly';
+    if ( !$role )
+    {
+        LOGCONFESS "Role is empty.";
+    }
 
-# Access to the stories API
-Readonly our $STORIES_API => 'stories-api';
+    my $auth_roles_id = $db->query(
+        <<"SQL",
+        SELECT auth_roles_id
+        FROM auth_roles
+        WHERE role = ?
+        LIMIT 1
+SQL
+        $role
+    )->hash;
+    if ( !( ref( $auth_roles_id ) eq ref( {} ) and $auth_roles_id->{ auth_roles_id } ) )
+    {
+        LOGCONFESS "Role '$role' was not found.";
+    }
 
-# Access to the /search pages
-Readonly our $SEARCH => 'search';
+    return $auth_roles_id->{ auth_roles_id };
+}
 
-# roles that are allows to queue a topic into the 'mc' queue instead of the 'public' queue
-Readonly::Scalar our $TOPIC_MC_QUEUE_ROLES => [ $ADMIN, $ADMIN_READONLY, $MEDIA_EDIT, $STORIES_EDIT, $TM ];
+# List of role IDs to apply to new users
+sub default_role_ids($)
+{
+    my ( $db ) = @_;
+
+    my $default_role_ids = $db->query(
+        <<SQL,
+        SELECT auth_roles_id
+        FROM auth_roles
+        WHERE role = ?
+SQL
+        $MediaWords::DBI::Auth::Roles::List::SEARCH
+    )->flat;
+
+    unless ( scalar( @{ $default_role_ids } ) )
+    {
+        die 'Unable to find default role IDs';
+    }
+
+    return $default_role_ids;
+}
 
 1;

@@ -157,11 +157,7 @@ def __set_dynamic_defaults(config: dict) -> dict:
             "default_realm": 'users',
             "users": {
                 "credential": {
-                    "class": 'Password',
-                    "password_field": 'password',
-                    "password_type": 'salted_hash',
-                    "password_hash_type": 'SHA-256',
-                    "password_salt_len": 64,
+                    "class": 'MediaWords'
                 },
                 "store": {
                     "class": 'MediaWords'

@@ -8,6 +8,7 @@ use namespace::autoclean;
 
 use MediaWords::Util::Config;
 use MediaWords::DBI::Auth;
+use MediaWords::DBI::Auth::Limits;
 
 use List::MoreUtils qw/ any /;
 
@@ -17,38 +18,40 @@ sub index : Path : Args(0)
 {
     my ( $self, $c ) = @_;
 
-    # Fetch readonly information about the user
-    my $userinfo = MediaWords::DBI::Auth::user_info( $c->dbis, $c->user->username );
-    my $userauth = MediaWords::DBI::Auth::user_auth( $c->dbis, $c->user->username );
-    unless ( $userinfo and $userauth )
-    {
-        die 'Unable to find currently logged in user in the database.';
-    }
-    my $roles = $userauth->{ roles };
+    my $db    = $c->dbis;
+    my $email = $c->user->username;
 
-    my $weekly_requests_limit        = $userinfo->{ weekly_requests_limit } + 0;
-    my $weekly_requested_items_limit = $userinfo->{ weekly_requested_items_limit } + 0;
+    my $userinfo;
+    eval { $userinfo = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
+    if ( $@ or ( !$userinfo ) )
+    {
+        die "Unable to find user with email '$email'";
+    }
+
+    my $weekly_requests_limit        = $userinfo->weekly_requests_limit();
+    my $weekly_requested_items_limit = $userinfo->weekly_requested_items_limit();
 
     # Admin users are effectively unlimited
-    my $roles_exempt_from_user_limits = MediaWords::DBI::Auth::roles_exempt_from_user_limits();
+    my $roles_exempt_from_user_limits = MediaWords::DBI::Auth::Limits::roles_exempt_from_user_limits();
     foreach my $exempt_role ( @{ $roles_exempt_from_user_limits } )
     {
-        if ( any { $_ eq $exempt_role } @{ $roles } )
+        if ( $userinfo->has_role( $exempt_role ) )
         {
             $weekly_requests_limit        = 0;
             $weekly_requested_items_limit = 0;
+            last;
         }
     }
 
     # Prepare the template
     $c->stash->{ c }         = $c;
-    $c->stash->{ email }     = $userinfo->{ email };
-    $c->stash->{ full_name } = $userinfo->{ full_name };
-    $c->stash->{ api_token } = $userinfo->{ api_token };
-    $c->stash->{ notes }     = $userinfo->{ notes };
+    $c->stash->{ email }     = $userinfo->email();
+    $c->stash->{ full_name } = $userinfo->full_name();
+    $c->stash->{ api_key }   = $userinfo->global_api_key();
+    $c->stash->{ notes }     = $userinfo->notes();
 
-    $c->stash->{ weekly_requests_sum }          = $userinfo->{ weekly_requests_sum } + 0;
-    $c->stash->{ weekly_requested_items_sum }   = $userinfo->{ weekly_requested_items_sum } + 0;
+    $c->stash->{ weekly_requests_sum }          = $userinfo->weekly_requests_sum();
+    $c->stash->{ weekly_requested_items_sum }   = $userinfo->weekly_requested_items_sum();
     $c->stash->{ weekly_requests_limit }        = $weekly_requests_limit;
     $c->stash->{ weekly_requested_items_limit } = $weekly_requested_items_limit;
 
@@ -77,11 +80,19 @@ sub index : Path : Args(0)
     my $password_new        = $form->param_value( 'password_new' );
     my $password_new_repeat = $form->param_value( 'password_new_repeat' );
 
-    my $error_message =
-      MediaWords::DBI::Auth::change_password_via_profile_or_return_error_message( $c->dbis, $c->user->username,
-        $password_old, $password_new, $password_new_repeat );
-    if ( $error_message ne '' )
+    eval {
+        MediaWords::DBI::Auth::ChangePassword::change_password_with_old_password(
+            $c->dbis,               #
+            $c->user->username,     #
+            $password_old,          #
+            $password_new,          #
+            $password_new_repeat    #
+        );
+    };
+    if ( $@ )
     {
+        my $error_message = "Unable to change password: $@";
+
         $c->stash->{ form } = $form;
         $c->stash( error_msg => $error_message );
     }
@@ -93,30 +104,32 @@ sub index : Path : Args(0)
     }
 }
 
-# regenerate API token
-sub regenerate_api_token : Local
+# Regenerate API key
+sub regenerate_api_key : Local
 {
     my ( $self, $c ) = @_;
 
-    # Fetch readonly information about the user
-    my $userinfo = MediaWords::DBI::Auth::user_info( $c->dbis, $c->user->username );
-    if ( !$userinfo )
-    {
-        die 'Unable to find currently logged in user in the database.';
-    }
-
+    my $db    = $c->dbis;
     my $email = $c->user->username;
 
-    # Delete user
-    my $regenerate_api_token_error_message =
-      MediaWords::DBI::Auth::regenerate_api_token_or_return_error_message( $c->dbis, $email );
-    if ( $regenerate_api_token_error_message )
+    my $userinfo;
+    eval { $userinfo = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
+    if ( $@ or ( !$userinfo ) )
     {
-        $c->response->redirect( $c->uri_for( '/admin/profile', { error_msg => $regenerate_api_token_error_message } ) );
+        die "Unable to find user with email '$email'";
+    }
+
+    # Delete user
+    eval { MediaWords::DBI::Auth::Profile::regenerate_api_key( $db, $email ); };
+    if ( $@ )
+    {
+        my $error_message = "Unable to regenerate API key: $@";
+
+        $c->response->redirect( $c->uri_for( '/admin/profile', { error_msg => $error_message } ) );
         return;
     }
 
-    $c->response->redirect( $c->uri_for( '/admin/profile', { status_msg => "API token has been regenerated." } ) );
+    $c->response->redirect( $c->uri_for( '/admin/profile', { status_msg => "API key has been regenerated." } ) );
 
 }
 

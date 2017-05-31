@@ -29,7 +29,7 @@
     <option>---</option>
 
     [% FOREACH user IN users %]
-        [% option_value = "user=" _ user.auth_users_id %]
+        [% option_value = "user=" _ user.id %]
         [% option_label = user.email _ " (" _ user.full_name _ ")" %]
 
         [% IF option_value == query %]

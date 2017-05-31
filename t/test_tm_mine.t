@@ -539,7 +539,7 @@ sub test_spider
     # we pseudo-randomly generate test data, but we want repeatable tests
     srand( 3 );
 
-    MediaWords::Util::Mail::test_mode( 1 );
+    MediaWords::Util::Mail::enable_test_mode();
 
     my $sites = get_test_sites();
 

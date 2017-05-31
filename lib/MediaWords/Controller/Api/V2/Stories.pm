@@ -112,7 +112,7 @@ sub corenlp : Local
         my $story = $db->find_by_id( 'stories', $stories_id );
         if ( !$story )
         {
-            # mostly useful for testing this end point without triggering a fatal error because corenlp is not enabled
+            # mostly useful for testing this end point without triggering a fatal error because CoreNLP is not enabled
             $json = '"story does not exist"';
         }
         else

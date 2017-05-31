@@ -40,10 +40,10 @@ elements:
     rows: 10
 
   - type: Button
-    id: regenerate_api_token
-    name: regenerate_api_token
-    label: API token
-    default: Regenerate API token
+    id: regenerate_api_key
+    name: regenerate_api_key
+    label: API key
+    default: Regenerate API key
     size: 64
 
   - type: Checkbox

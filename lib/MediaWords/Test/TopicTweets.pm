@@ -91,7 +91,7 @@ sub get_random_test_date
     return $test_dates->[ int( rand( @{ $test_dates } ) ) ];
 }
 
-# return the json in one of the ch-posts-$data.json files, where files are available for 2016-01-0[12345];
+# return the JSON in one of the ch-posts-$data.json files, where files are available for 2016-01-0[12345];
 # chop out all posts other than the first $MOCK_TWEETS_PER_DAY from each file
 sub get_test_data
 {
@@ -248,7 +248,7 @@ $json
 HTTP
 }
 
-# verify that topic_tweet_urls match what's in the tweet json data as saved in topic_tweets
+# verify that topic_tweet_urls match what's in the tweet JSON data as saved in topic_tweets
 sub validate_topic_tweet_urls($$)
 {
     my ( $db, $topic ) = @_;
@@ -288,11 +288,11 @@ SQL
         }
     }
 
-    is( $total_json_urls, $num_urls, "num of urls in json vs. num of urls in database" );
+    is( $total_json_urls, $num_urls, "num of urls in JSON vs. num of urls in database" );
 }
 
 # validate that snap.story_links is what it should be by rebuilding the topic links directly from the
-# ch + twitter json data stored in topic_tweets and generating a link list using perl
+# ch + twitter JSON data stored in topic_tweets and generating a link list using perl
 sub validate_story_links
 {
     my ( $db, $topic, $timespan ) = @_;

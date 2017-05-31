@@ -29,12 +29,12 @@ sub main
     my $db = MediaWords::DB::connect_to_db;
 
     my ( $key ) = $db->query( <<SQL )->flat;
-select api_token
-    from auth_users
-        join auth_users_roles_map using ( auth_users_id )
-        join auth_roles using ( auth_roles_id )
-    where
-        role = 'admin'
+        SELECT api_key
+        FROM auth_roles
+            INNER JOIN auth_user_api_keys USING (auth_users_id)
+        WHERE auth_roles.role = 'admin'
+          AND auth_user_api_keys.ip_address IS NULL
+        LIMIT 1
 SQL
 
     my $stories_count = 0;

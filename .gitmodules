@@ -16,3 +16,6 @@
 [submodule "lib/MediaWords/Languages/resources/ja/mecab-ipadic-neologd-dist"]
 	path = lib/MediaWords/Languages/resources/ja/mecab-ipadic-neologd-dist
 	url = https://github.com/berkmancenter/mediacloud-mecab-ipadic-neologd.git
+[submodule "lib/MediaWords/Util/Mail/email-templates"]
+	path = lib/MediaWords/Util/Mail/email-templates
+	url = https://github.com/berkmancenter/mediacloud-email-templates.git

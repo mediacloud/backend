@@ -91,7 +91,7 @@ END
     $db->commit;
 }
 
-# for each story, add the corenlp anno
+# for each story, add the CoreNLP anno
 sub _add_corenlp
 {
     my ( $db, $stories, $ids_table ) = @_;
@@ -112,7 +112,7 @@ sub _add_corenlp
 
         my $json_data = MediaWords::Util::JSON::decode_json( encode( 'utf8', $json ) );
 
-        die( "unable to parse corenlp json for story '$stories_id'" )
+        die( "unable to parse CoreNLP JSON for story '$stories_id'" )
           unless ( $json_data && $json_data->{ _ }->{ corenlp } );
 
         $story->{ corenlp } = $json_data;

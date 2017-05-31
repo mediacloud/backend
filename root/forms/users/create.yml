@@ -39,12 +39,6 @@ elements:
     cols: 30
     rows: 10
 
-  - type: Checkbox
-    id: active
-    name: active
-    label: User is active
-    default: 1
-
   - type: Checkboxgroup
     id: roles
     name: roles
@@ -88,18 +82,20 @@ elements:
     name: password
     label: Password
     size: 40
+    container_attributes:
+      class: container_password
     attributes:
       placeholder: correct horse battery staple
-      readonly: readonly
 
   - type: Password
     id: password_repeat
     name: password_repeat
     label: Repeat password
     size: 40
+    container_attributes:
+      class: container_password_repeat
     attributes:
       placeholder: correct horse battery staple
-      readonly: readonly
 
   - type: Submit
     name: submit
