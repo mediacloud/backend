@@ -221,7 +221,7 @@ The query ($params->{ q }) is transformed into two ways -- lower case boolean op
 solr recognize them as boolean queries and psuedo queries (see the api docs at mediacloud.org/api and PseudoQueries.pm)
 are translated into solr clauses.
 
-Return the raw encoded json from solr in the format described here:
+Return the raw encoded JSON from solr in the format described here:
 
 https://wiki.apache.org/solr/SolJSON
 

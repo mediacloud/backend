@@ -122,7 +122,7 @@ The following table describes the meaning and origin of fields returned by the a
 | `raw_1st_download`           | 0       | If non-zero, include the full HTML of the first page of the story.
 | `sentences`                  | 0       | If non-zero, include the `story_sentences` field described above in the output.
 | `text`                       | 0       | If non-zero, include the `story_text` field described above in the output.
-| `corenlp`                    | 0       | If non-zero, include the corenlp json document with each story and each sentence
+| `corenlp`                    | 0       | If non-zero, include the CoreNLP JSON document with each story and each sentence
 | `q`                          | null    | If specified, return only results that match the given Solr query.  Only one `q` parameter may be included.
 | `fq`                         | null    | If specified, filter results by the given Solr query.  More than one `fq` parameter may be included.
 
@@ -346,7 +346,7 @@ These calls allow users to edit tag data, including both the metadata of the tag
 
 ### Input Description
 
-Input for this call should be a json document with a list of records, each with a `stories_id` key and tag keys (see bwlow).  Each record may also contain an `action` key which can have the value of either `add` or `remove`; if not specified, the default `action` is `add`.
+Input for this call should be a JSON document with a list of records, each with a `stories_id` key and tag keys (see bwlow).  Each record may also contain an `action` key which can have the value of either `add` or `remove`; if not specified, the default `action` is `add`.
 
 To associate a story with more than one tag, include multiple different records with that story's id.
 A single call can include multiple stories as well as multiple tags.  Users are encouraged to batch writes for multiple stories into a single call to avoid the web server overhead of many small web service calls.
@@ -392,7 +392,7 @@ Output:
 
 ### Input Description
 
-See input description for stories/put_tags, but replace `stories_id` with `story_sentencs_id`.
+See input description for stories/put_tags, but replace `stories_id` with `story_sentences_id`.
 
 ### Example
 
@@ -847,7 +847,7 @@ This call will create one or more media sources with the given information, if n
 | public_notes      | notes about the source for public consumption ( default none) |
 | is_monitored      | true if the source is manually monitored for completeness by the Media Cloud team (default false) |
 
-The end point accepts either a single json record in the above format or a list of records in the same format.
+The end point accepts either a single JSON record in the above format or a list of records in the same format.
 
 The only required field for a media source is the URL.  The name will be assigned to the HTML title at the media source URL if no name is provided.  A feed scraping job will be queued if no feeds are specified.
 

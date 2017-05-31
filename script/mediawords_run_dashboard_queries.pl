@@ -105,7 +105,7 @@ SQL
     }
 
     my $key = $db->query( <<SQL )->flat;
-select api_token
+select api_key
     from auth_users
         join auth_users_roles_map using ( auth_users_id )
         join auth_roles using ( auth_roles_id )
@@ -113,7 +113,7 @@ select api_token
         role in ( 'admin-readonly', 'admin' )
     limit 1
 SQL
-    die( "Unable to find admin api_token in auth_users" ) unless ( $key );
+    die( "Unable to find admin api_key in auth_users" ) unless ( $key );
 
     $_key = $key;
 

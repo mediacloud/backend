@@ -527,7 +527,7 @@ END
     return $sorted_media;
 }
 
-# generate a json of the weekly counts for any medium in the top
+# generate a JSON of the weekly counts for any medium in the top
 # ten media in any week
 sub view_snapshot_media_over_time_json : Local
 {
@@ -568,7 +568,7 @@ sub nv : Local
     $c->stash->{ template }    = 'nv/nv.tt2';
 }
 
-# get json config file for network visualization.
+# get JSON config file for network visualization.
 # nv implemented in root/nv from the gephi sigma export template
 sub nv_config : Local
 {

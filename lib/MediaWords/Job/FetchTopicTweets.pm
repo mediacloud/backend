@@ -65,7 +65,7 @@ sub _fetch_ch_posts ($$)
     my $data;
     eval { $data = MediaWords::Util::JSON::decode_json( $decoded_content ); };
 
-    LOGDIE( "Unable to parse json from url $url: $@ " . substr( $decoded_content, 0, 1024 ) . " ..." ) unless ( $data );
+    LOGDIE( "Unable to parse JSON from url $url: $@ " . substr( $decoded_content, 0, 1024 ) . " ..." ) unless ( $data );
 
     LOGDIE( "Unknown response status: '$data->{ status }'" ) unless ( $data->{ status } eq 'success' );
 
@@ -231,7 +231,7 @@ sub _fetch_tweets_for_day($$$$)
 
     my $ch_posts_data = $topic_tweet_day->{ ch_posts };
 
-    LOGDIE( "no 'posts' field found in json result for topic $topic->{ topics_id } day $topic_tweet_day->{ day }" )
+    LOGDIE( "no 'posts' field found in JSON result for topic $topic->{ topics_id } day $topic_tweet_day->{ day }" )
       unless ( $ch_posts_data->{ posts } );
 
     my $ch_posts = $ch_posts_data->{ posts };

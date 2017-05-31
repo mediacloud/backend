@@ -91,16 +91,72 @@ Table of Contents
       * [api/v2/timespans/list/](#apiv2timespanslist)
          * [Query Parameters](#query-parameters-20)
          * [Example](#example-22)
-   * [Auth](#auth)
-      * [api/v2/auth/profile](#apiv2authprofile)
-         * [Query Parameters](#query-parameters-21)
-         * [Output Description](#output-description-5)
-         * [Example](#example-23)
+   * [Registration and Authentication](#registration-and-authentication)
+      * [Register](#register)
+         * [api/v2/auth/register (POST)](#apiv2authregister-post)
+            * [Input Description](#input-description-1)
+            * [Output Description](#output-description-5)
+               * [Registration was successful](#registration-was-successful)
+               * [Registration has failed](#registration-has-failed)
+            * [Example](#example-23)
+         * [api/v2/auth/activate (POST)](#apiv2authactivate-post)
+            * [Input Description](#input-description-2)
+            * [Output Description](#output-description-6)
+               * [Activating the user was successful](#activating-the-user-was-successful)
+               * [Activating the user has failed](#activating-the-user-has-failed)
+            * [Example](#example-24)
+         * [api/v2/auth/resend_activation_link (POST)](#apiv2authresend_activation_link-post)
+            * [Input Description](#input-description-3)
+            * [Output Description](#output-description-7)
+               * [Resending the activation email was successful](#resending-the-activation-email-was-successful)
+               * [Resending the activation email has failed](#resending-the-activation-email-has-failed)
+            * [Example](#example-25)
+      * [Reset password](#reset-password)
+         * [api/v2/auth/send_password_reset_link (POST)](#apiv2authsend_password_reset_link-post)
+            * [Input Description](#input-description-4)
+            * [Output Description](#output-description-8)
+               * [Sending the password reset link was successful](#sending-the-password-reset-link-was-successful)
+               * [Sending the password reset link has failed](#sending-the-password-reset-link-has-failed)
+            * [Example](#example-26)
+         * [api/v2/auth/reset_password (POST)](#apiv2authreset_password-post)
+            * [Input Description](#input-description-5)
+            * [Output Description](#output-description-9)
+               * [Resetting the user's password was successful](#resetting-the-users-password-was-successful)
+               * [Resetting the user's password has failed](#resetting-the-users-password-has-failed)
+            * [Example](#example-27)
+      * [Log in](#log-in)
+         * [api/v2/auth/login (POST)](#apiv2authlogin-post)
+            * [Input Description](#input-description-6)
+            * [Output Description](#output-description-10)
+               * [User was found](#user-was-found)
+               * [User was not found](#user-was-not-found)
+            * [Example](#example-28)
+         * [(deprecated) api/v2/auth/single (GET)](#deprecated-apiv2authsingle-get)
+            * [Query Parameters](#query-parameters-21)
+            * [Output Description](#output-description-11)
+               * [User was found](#user-was-found-1)
+               * [User was not found](#user-was-not-found-1)
+            * [Example](#example-29)
+      * [User Profile](#user-profile)
+         * [api/v2/auth/profile (GET)](#apiv2authprofile-get)
+            * [Output Description](#output-description-12)
+            * [Example](#example-30)
+         * [api/v2/auth/change_password (POST)](#apiv2authchange_password-post)
+            * [Input Description](#input-description-7)
+            * [Output Description](#output-description-13)
+               * [Changing the user's password was successful](#changing-the-users-password-was-successful)
+               * [Changing the user's password has failed](#changing-the-users-password-has-failed)
+            * [Example](#example-31)
+         * [api/v2/auth/reset_api_key (POST)](#apiv2authreset_api_key-post)
+            * [Output Description](#output-description-14)
+               * [Resetting user's API key was successful](#resetting-users-api-key-was-successful)
+               * [Resetting user's API key has failed](#resetting-users-api-key-has-failed)
+            * [Example](#example-32)
    * [Stats](#stats)
       * [api/v2/stats/list](#apiv2statslist)
          * [Query Parameters](#query-parameters-22)
-         * [Output Description](#output-description-6)
-         * [Example](#example-24)
+         * [Output Description](#output-description-15)
+         * [Example](#example-33)
    * [Extended Examples](#extended-examples)
       * [Output Format / JSON](#output-format--json)
       * [Create a CSV file with all media sources.](#create-a-csv-file-with-all-media-sources)
@@ -178,7 +234,7 @@ The following language are supported (by 2 letter language code):
 
 ## Errors
 
-The Media Cloud returns an appropriate HTTP status code for any error, along with a json document in the following format:
+The Media Cloud returns an appropriate HTTP status code for any error, along with a JSON document in the following format:
 
 ```json
 { "error": "error message" }
@@ -215,35 +271,35 @@ Response:
 
 ```json
 [
-  {
-    "url": "http://nytimes.com",
-    "name": "New York Times",
-    "media_id": 1,
-    "is_healthy": 1,
-    "is_monitored": 1,
-    "public_notes": "all the news that's fit to print",
-    "editor_nnotes": "first media source",
-    "media_source_tags": [
-         {
-           "tag_sets_id": 5,
-           "show_on_stories": null,
-           "tags_id": 8875027,
-           "show_on_media": 1,
-           "description": "Top U.S. mainstream media according Google Ad Planner's measure of unique monthly users.",
-           "tag_set": "collection",
-           "tag": "ap_english_us_top25_20100110",
-           "label": "U.S. Mainstream Media"
-         }
-    ],
-    "activities": [
-      {
-        "date": "2015-08-12 18:17:35.922523",
-        "field": "name",
-        "new_value": "New York Times",
-        "old_value": "nytimes.com"
-      }
-    ]
-  }
+    {
+        "url": "http://nytimes.com",
+        "name": "New York Times",
+        "media_id": 1,
+        "is_healthy": 1,
+        "is_monitored": 1,
+        "public_notes": "all the news that's fit to print",
+        "editor_nnotes": "first media source",
+        "media_source_tags": [
+            {
+                "tag_sets_id": 5,
+                "show_on_stories": null,
+                "tags_id": 8875027,
+                "show_on_media": 1,
+                "description": "Top U.S. mainstream media according Google Ad Planner's measure of unique monthly users.",
+                "tag_set": "collection",
+                "tag": "ap_english_us_top25_20100110",
+                "label": "U.S. Mainstream Media"
+            }
+        ],
+        "activities": [
+            {
+                "date": "2015-08-12 18:17:35.922523",
+                "field": "name",
+                "new_value": "New York Times",
+                "old_value": "nytimes.com"
+            }
+        ]
+    }
 ]
 ```
 
@@ -314,8 +370,8 @@ URL: https://api.mediacloud.org/api/v2/media/submit_suggestion
 Input:
 ```json
 {
-  "name": "Cameroon Tribue",
-  "url": "http://www.cameroon-tribune.cm"
+    "name": "Cameroon Tribue",
+    "url": "http://www.cameroon-tribune.cm"
 }
 ```
 
@@ -410,7 +466,7 @@ Response:
                 "expected_stories": "49.97",
                 "expected_sentences": "1166.22",
             }
-        ],
+        ]
     }
 ]
 ```
@@ -442,13 +498,13 @@ URL: https://api.mediacloud.org/api/v2/feeds/single/1
 
 ```json
 [
-  {
-    "name": "Bits",
-    "url": "http://bits.blogs.nytimes.com/rss2.xml",
-    "feeds_id": 1,
-    "feed_type": "syndicated",
-    "media_id": 1
-  }
+    {
+        "name": "Bits",
+        "url": "http://bits.blogs.nytimes.com/rss2.xml",
+        "feeds_id": 1,
+        "feed_type": "syndicated",
+        "media_id": 1
+    }
 ]
 ```
 
@@ -515,17 +571,17 @@ URL: https://api.mediacloud.org/api/v2/stories_public/single/27456565
 
 ```json
 [
-  {
-    "collect_date": "2010-11-24 15:33:39",
-    "url": "http://globalvoicesonline.org/2010/10/26/myanmars-new-flag-and-new-name/comment-page-1/#comment-1733161",
-    "guid": "http://globalvoicesonline.org/?p=169660#comment-1733161",
-    "publish_date": "2010-11-24 04:05:00",
-    "media_id": 1144,
-    "media_name": "Global Voices Online",
-    "media_url": "http://globalvoicesonline.org/",
-    "stories_id": 27456565,
-    "story_tags": [ 1234235 ],
-  }
+    {
+        "collect_date": "2010-11-24 15:33:39",
+        "url": "http://globalvoicesonline.org/2010/10/26/myanmars-new-flag-and-new-name/comment-page-1/#comment-1733161",
+        "guid": "http://globalvoicesonline.org/?p=169660#comment-1733161",
+        "publish_date": "2010-11-24 04:05:00",
+        "media_id": 1144,
+        "media_name": "Global Voices Online",
+        "media_url": "http://globalvoicesonline.org/",
+        "stories_id": 27456565,
+        "story_tags": [ 1234235 ],
+    }
 ]
 ```
 
@@ -644,7 +700,7 @@ URL: https://api.mediacloud.org/api/v2/stories_public/count?q=sentence:obama&fq=
 
 ```json
 {
-  "count": 960
+    "count": 960
 }
 ```
 
@@ -692,22 +748,20 @@ the returned data would look like:
 
 ```json
 {
-  "word_matrix":
-    {
-    "1": {
-      "0": 1,
-      "1": 2
+    "word_matrix": {
+        "1": {
+            "0": 1,
+            "1": 2
+        },
+        "2": {
+            "0": 3,
+            "1": 1
+        }
     },
-    "2": {
-      "0": 3,
-      "1": 1
-    }
-  },
-  "word_list":
-    [
-    ["foo", "foo"],
-    ["bar", "bars"]
-  ]
+    "word_list": [
+        ["foo", "foo"],
+        ["bar", "bars"]
+    ]
 }
 ```
 
@@ -754,7 +808,7 @@ URL: https://api.mediacloud.org/api/v2/sentences/count?q=sentence:obama&fq=media
 
 ```json
 {
-  "count": 96620
+    "count": 96620
 }
 ```
 
@@ -764,22 +818,21 @@ URL: https://api.mediacloud.org/api/v2/sentences/count?q=sentence:africa+AND+tag
 
 ```json
 {
-  "count": 236372,
-  "split":
-  {
-    "2014-01-01T00:00:00Z": 650,
-    "2014-01-08T00:00:00Z": 900,
-    "2014-01-15T00:00:00Z": 999,
-    "2014-01-22T00:00:00Z": 1047,
-    "2014-01-29T00:00:00Z": 1125,
-    "2014-02-05T00:00:00Z": 946,
-    "2014-02-12T00:00:00Z": 1126,
-    "2014-02-19T00:00:00Z": 1094,
-    "2014-02-26T00:00:00Z": 1218,
-    "gap": "+7DAYS",
-    "end": "2014-03-05T00:00:00Z",
-    "start": "2014-01-01T00:00:00Z"
-  }
+    "count": 236372,
+    "split": {
+        "2014-01-01T00:00:00Z": 650,
+        "2014-01-08T00:00:00Z": 900,
+        "2014-01-15T00:00:00Z": 999,
+        "2014-01-22T00:00:00Z": 1047,
+        "2014-01-29T00:00:00Z": 1125,
+        "2014-02-05T00:00:00Z": 946,
+        "2014-02-12T00:00:00Z": 1126,
+        "2014-02-19T00:00:00Z": 1094,
+        "2014-02-26T00:00:00Z": 1218,
+        "gap": "+7DAYS",
+        "end": "2014-03-05T00:00:00Z",
+        "start": "2014-01-01T00:00:00Z"
+    }
 }
 ```
 
@@ -1027,18 +1080,18 @@ Response:
 
 ```json
 [
-  {
-    "tag_sets_id": 5,
-    "show_on_stories": null,
-    "label": "U.S. Mainstream Media",
-    "tag": "ap_english_us_top25_20100110",
-    "tags_id": 8875027,
-    "show_on_media": 1,
-    "description": "Top U.S. mainstream media according Google Ad Planner's measure of unique monthly users.",
-    "tag_set_name": "collection",
-    "tag_set_label": "Collection",
-    "tag_set_description": "Curated collections of media sources"
-  },
+    {
+        "tag_sets_id": 5,
+        "show_on_stories": null,
+        "label": "U.S. Mainstream Media",
+        "tag": "ap_english_us_top25_20100110",
+        "tags_id": 8875027,
+        "show_on_media": 1,
+        "description": "Top U.S. mainstream media according Google Ad Planner's measure of unique monthly users.",
+        "tag_set_name": "collection",
+        "tag_set_label": "Collection",
+        "tag_set_description": "Curated collections of media sources"
+    }
 ]
 ```
 
@@ -1112,13 +1165,13 @@ Response:
 
 ```json
 [
-  {
-    "tag_sets_id": 5,
-    "show_on_stories": null,
-    "name": "collection",
-    "label": "Collections",
-    "show_on_media": null,
-    "description": "Curated collections of media sources.  This is our primary way of organizing our media sources -- almost every media source in our system is a member of one or more of these curated collections.  Some collections are manually curated, and others are generated using quantitative metrics."
+    {
+        "tag_sets_id": 5,
+        "show_on_stories": null,
+        "name": "collection",
+        "label": "Collections",
+        "show_on_media": null,
+        "description": "Curated collections of media sources.  This is our primary way of organizing our media sources -- almost every media source in our system is a member of one or more of these curated collections.  Some collections are manually curated, and others are generated using quantitative metrics."
     }
 ]
 ```
@@ -1177,15 +1230,15 @@ Response:
 
 ```json
 [
-  {
-    "topics_id": 6,
-    "description": "obama",
-    "name": "obama",
-    "media_type_tag_sets_id": 18,
-    "pattern": "[[:<:]]obama|obamacare[[:>:]]",
-    "solr_seed_query": "obama OR obamacare",
-    "solr_seed_query_run": 1,
-  }
+    {
+        "topics_id": 6,
+        "description": "obama",
+        "name": "obama",
+        "media_type_tag_sets_id": 18,
+        "pattern": "[[:<:]]obama|obamacare[[:>:]]",
+        "solr_seed_query": "obama OR obamacare",
+        "solr_seed_query_run": 1,
+    }
 ]
 ```
 
@@ -1225,14 +1278,14 @@ Response:
 
 ```json
 [
-  {
-    "topics_id": 6,
-    "snapshots_id": 5,
-    "dump_date": "2014-07-30 16:32:15.479964",
-    "end_date": "2015-01-01 00:00:00",
-    "note": null,
-    "start_date": "2014-01-01 00:00:00",
-  }
+    {
+        "topics_id": 6,
+        "snapshots_id": 5,
+        "dump_date": "2014-07-30 16:32:15.479964",
+        "end_date": "2015-01-01 00:00:00",
+        "note": null,
+        "start_date": "2014-01-01 00:00:00",
+    }
 ]
 ```
 
@@ -1272,22 +1325,22 @@ Response:
 
 ```json
 [
-  {
-    "snapshots_id": 5,
-    "timespans_id": 145,
-    "end_date": "2015-01-01 00:00:00",
-    "include_undateable_stories": 0,
-    "medium_count": 236,
-    "medium_link_count": 266,
-    "model_num_media": 17,
-    "model_r2_mean": "0.96",
-    "model_r2_stddev": "0",
-    "period": "overall",
-    "tags_id": null,
-    "start_date": "2014-01-01 00:00:00",
-    "story_count": 2148,
-    "story_link_count": 731,
-  }
+    {
+        "snapshots_id": 5,
+        "timespans_id": 145,
+        "end_date": "2015-01-01 00:00:00",
+        "include_undateable_stories": 0,
+        "medium_count": 236,
+        "medium_link_count": 266,
+        "model_num_media": 17,
+        "model_r2_mean": "0.96",
+        "model_r2_stddev": "0",
+        "period": "overall",
+        "tags_id": null,
+        "start_date": "2014-01-01 00:00:00",
+        "story_count": 2148,
+        "story_link_count": 731,
+    }
 ]
 ```
 
@@ -1311,53 +1364,618 @@ Response:
 
 URL: https://api.mediacloud.org/api/v2/timespans/list?snapshots_id=5
 
-# Auth
 
-## api/v2/auth/profile
+# Registration and Authentication
 
-| URL                     | Function
-| ----------------------- | -----------------
-| `api/v2/auth/profile` | Return profile information about the requesting user
+## Register
 
-### Query Parameters
+### `api/v2/auth/register` (POST)
 
-( none )
+| URL                    | Function             |
+| ---------------------- | -------------------- |
+| `api/v2/auth/register` | Register a new user. |
 
-### Output Description
+API call will be rate-limited.
 
-Returns basic profile information about the current user.  Includes a list of  authentication roles for the user that give the user permission to access various parts of the backend web interface and some of the private API functionality (that for example allow editing and administration of Media Cloud's sources).
+#### Input Description
 
-Media Cloud currently includes the following authentication roles:
+| Field                     | Description                                                             |
+| ------------------------- | ----------------------------------------------------------------------- |
+| `email`                   | *(string)* Email of new user.                                           |
+| `password`                | *(string)* Password of new user.                                        |
+| `full_name`               | *(string)* Full name of new user.                                       |
+| `notes`                   | *(string)* User's explanation on how user intends to use Media Cloud.   |
+| `subscribe_to_newsletter` | *(integer)* Whether or not user wants to subscribe to our mailing list. |
+| `activation_url`          | *(string)* Client's URL used for user account activation.               |
 
-| Role | Permission Gratned |
-|-|-|
-| admin | read and write every resource |
-| admin-readonly | read every resource |
-| media-edit | edit media sources |
-| stories-edit | edit stories |
-| search | access core.mediacloud.org/search page |
-| tm | access legacy topic mapper web interface |
-| tm-readonly | access legacy topic mapper web interface with editing privileges |
+Asking user to re-enter password and comparing the two values is left to the client.
 
+Client should prevent automated registrations with a CAPTCHA.
 
-### Example
+After successful registration, user can not immediately log in as the user needs to activate their account via email first. User will be send an email with a link to `activation_url` and the following GET parameters:
 
-URL: https://api.mediacloud.org/api/v2/auth/profile
+* `email` -- user's email to be used as a parameter to `auth/activate`;
+* `activation_token` -- user's activation token to be used as a parameter to `auth/activate`.
+
+#### Output Description
+
+##### Registration was successful
 
 ```json
 {
-  "email": "hroberts@cyber.law.harvard.edu",
-  "auth_users_id": 1,
-  "full_name": "Hal Roberts",
-  "notes": "Media Cloud Geek",
-  "created_date": "2014-12-10 13:36:29.537007",
-  "auth_roles":
-  [
-    "media-edit",
-    "stories-edit"
-  ]
+    "success": 1
 }
 ```
+
+After successful registraction, user is sent an email inviting him to open a link `activation_url?email=...&activation_token=...`.
+
+##### Registration has failed
+
+```json
+{
+    "error": "Reason why the user can not be registered (e.g. duplicate email)."
+}
+```
+
+#### Example
+
+URL: <https://api.mediacloud.org/api/v2/auth/register>
+
+Input:
+
+```json
+{
+    "email": "foo@bar.baz",
+    "password": "qwerty1",
+    "full_name": "Foo Bar",
+    "notes": "Just feeling like it.",
+    "subscribe_to_newsletter": 1,
+    "activation_url": "https://dashboard.mediacloud.org/activate"
+}
+```
+
+Output:
+
+```json
+{
+    "success": 1
+}
+```
+
+
+### `api/v2/auth/activate` (POST)
+
+| URL                    | Function                                                                |
+| ---------------------- | ----------------------------------------------------------------------- |
+| `api/v2/auth/activate` | Activate user using email and activation token from registration email. |
+
+#### Input Description
+
+| Field              | Description                                |
+| ------------------ | ------------------------------------------ |
+| `email`            | *(string)* Email of user to be activated.  |
+| `activation_token` | *(string)* Activation token sent by email. |
+
+#### Output Description
+
+##### Activating the user was successful
+
+```json
+{
+    "success": 1,
+    "profile": {
+        "Full profile information as in auth/profile."
+    }
+}
+```
+
+##### Activating the user has failed
+
+```json
+{
+    "error": "Reason why user activation has failed."
+}
+```
+
+#### Example
+
+URL: <https://api.mediacloud.org/api/v2/auth/activate>
+
+Input:
+
+```json
+{
+    "email": "foo@bar.baz",
+    "activation_token": "3a0e7de3ba8e19227847b59e43f2ce54c98ec897"
+}
+```
+
+Output:
+
+```json
+{
+    "success": 1,
+    "profile": {
+        "Full profile information as in auth/profile."
+    }
+}
+```
+
+
+### `api/v2/auth/resend_activation_link` (POST)
+
+| URL                                  | Function                                           |
+| ------------------------------------ | -------------------------------------------------- |
+| `api/v2/auth/resend_activation_link` | Resend activation email for newly registered user. |
+
+API call will be rate-limited.
+
+#### Input Description
+
+| Field            | Description                                                                |
+| ---------------- | -------------------------------------------------------------------------- |
+| `email`          | *(string)* Email of newly created user to resend the activation email to.  |
+| `activation_url` | *(string)* Client's URL used for user account activation.                  |
+
+For the description of `activation_url`, see `auth/register`.
+
+#### Output Description
+
+##### Resending the activation email was successful
+
+```json
+{
+    "success": 1
+}
+```
+
+##### Resending the activation email has failed
+
+```json
+{
+    "error": "Reason why the activation email can not be resent."
+}
+```
+
+#### Example
+
+URL: <https://api.mediacloud.org/api/v2/auth/resend_activation_link>
+
+Input:
+
+```json
+{
+    "email": "foo@bar.baz",
+    "activation_url": "https://dashboard.mediacloud.org/activate"
+}
+```
+
+Output:
+
+```json
+{
+    "success": 1
+}
+```
+
+
+## Reset password
+
+### `api/v2/auth/send_password_reset_link` (POST)
+
+| URL                                    | Function                                                 |
+| -------------------------------------- | -------------------------------------------------------- |
+| `api/v2/auth/send_password_reset_link` | Email a link to user to be used to reset their password. |
+
+API call will be rate-limited.
+
+#### Input Description
+
+| Field                | Description                                                  |
+| -------------------- | ------------------------------------------------------------ |
+| `email`              | *(string)* Email of user to send the password reset link to. |
+| `password_reset_url` | *(string)* Client's URL used for setting new password.       |
+
+User will be send an email with a link to `password_reset_url` and the following GET parameters:
+
+* `email` -- user's email to be used as a parameter to `auth/reset_password`;
+* `password_reset_token` -- user's password reset token to be used as a parameter to `auth/reset_password`.
+
+#### Output Description
+
+##### Sending the password reset link was successful
+
+```json
+{
+    "success": 1
+}
+```
+
+After successful send password reset API call, user is sent an email inviting him to open a link `password_reset_url?email=...&password_reset_token=...`.
+
+
+##### Sending the password reset link has failed
+
+```json
+{
+    "error": "Reason why the password reset link can not be sent."
+}
+```
+
+#### Example
+
+URL: <https://api.mediacloud.org/api/v2/auth/send_password_reset_link>
+
+Input:
+
+```json
+{
+    "email": "foo@bar.baz",
+    "password_reset_url": "https://dashboard.mediacloud.org/reset_password"
+}
+```
+
+Output:
+
+```json
+{
+    "success": 1
+}
+```
+
+
+### `api/v2/auth/reset_password` (POST)
+
+| URL                          | Function                                                                                        |
+| ---------------------------- | ----------------------------------------------------------------------------------------------- |
+| `api/v2/auth/reset_password` | Reset user's password using their password reset token send by `auth/send_password_reset_link`. |
+
+#### Input Description
+
+| Field                  | Description                                        |
+| ---------------------- | -------------------------------------------------- |
+| `email`                | *(string)* Email of user to reset the password to. |
+| `password_reset_token` | *(string)* Password reset token sent by email.     |
+| `new_password`         | *(string)* User's new password.                    |
+
+#### Output Description
+
+##### Resetting the user's password was successful
+
+```json
+{
+    "success": 1
+}
+```
+
+##### Resetting the user's password has failed
+
+```json
+{
+    "error": "Reason why the password can not be reset."
+}
+```
+
+#### Example
+
+URL: <https://api.mediacloud.org/api/v2/auth/reset_password>
+
+Input:
+
+```json
+{
+    "email": "foo@bar.baz",
+    "password_reset_token": "3a0e7de3ba8e19227847b59e43f2ce54c98ec897",
+    "new_password": "qwerty1"
+}
+```
+
+Output:
+
+```json
+{
+    "success": 1
+}
+```
+
+
+## Log in
+
+### `api/v2/auth/login` (POST)
+
+| URL                 | Function                                                                       |
+| ------------------- | ------------------------------------------------------------------------------ |
+| `api/v2/auth/login` | Authenticate user with email + password and return user's API key and profile. |
+
+API call will be rate-limited.
+
+#### Input Description
+
+| Parameter  | Notes                                 |
+| ---------- | ------------------------------------- |
+| `username` | *(string)* Email address of the user. |
+| `password` | *(string)* Password of the user.      |
+
+#### Output Description
+
+##### User was found
+
+```json
+{
+    "success": 1,
+    "profile": {
+        "Full profile information as in auth/profile."
+    }
+}
+```
+
+##### User was not found
+
+```json
+{
+    "error": "User was not found, password is incorrect or some other reason."
+}
+```
+
+#### Example
+
+URL: <https://api.mediacloud.org/api/v2/auth/login>
+
+Input:
+
+```json
+{
+    "username": "user@email.com",
+    "password": "qwerty1"
+}
+```
+
+Output:
+
+```json
+{
+    "success": 1,
+    "profile": {
+        "Full profile information as in auth/profile."
+    }
+}
+```
+
+
+### (deprecated) `api/v2/auth/single` (GET)
+
+| URL                  | Function                                                              |
+| -------------------- | --------------------------------------------------------------------- |
+| `api/v2/auth/single` | Authenticate the user with email and password and return its API key. |
+
+API call will be rate-limited.
+
+This API call is deprecated. Please use `auth/login` for new code.
+
+#### Query Parameters
+
+| Parameter  | Default | Notes                                 |
+| ---------- | ------- | ------------------------------------- |
+| `username` | null    | *(string)* Email address of the user. |
+| `password` | null    | *(string)* Password of the user.      |
+
+#### Output Description
+
+##### User was found
+
+```json
+[
+    {
+        "result": "found",
+        "token": "API key."
+    }
+]
+```
+
+##### User was not found
+
+```json
+[
+    {
+        "result": "not found"
+    }
+]
+```
+
+#### Example
+
+URL: <https://api.mediacloud.org/api/v2/auth/single?username=foo@bar.baz&password=qwerty1>
+
+Output:
+
+```json
+{
+    "result": "found",
+    "token": "bae132d8de0e0565cc9b84ec022e367f71f6dabf"
+}
+```
+
+
+## User Profile
+
+### `api/v2/auth/profile` (GET)
+
+| URL                     | Function                                              |
+| ----------------------- | ----------------------------------------------------- |
+| `api/v2/auth/profile`   | Return profile information about the requesting user. |
+
+#### Output Description
+
+```json
+{
+    "email": "(string) users@email.address",
+    "full_name": "(string) User's Full Name",
+    "api_key": "(string) User's API key.",
+    "notes": "(string) User's 'notes' field.",
+    "created_date": "(ISO 8601 date) of when the user was created.",
+    "active": "(integer) 1 if user is active (has activated account via email), 0 otherwise.",
+    "auth_roles": [
+        "(string) user-role-1",
+        "(string) user-role-2"
+    ],
+    "limits": {
+        "weekly": {
+            "requests": {
+                "used": "(integer) Weekly request count",
+                "limit": "(integer) Weekly request limit; 0 if no limit"
+            },
+            "requested_items": {
+                "used": "(integer) Weekly requested items count",
+                "limit": "(integer) Weekly requested items limit; 0 if no limit"
+            }
+        }
+    }
+}
+```
+
+Includes a list of authentication roles for the user that give the user permission to access various parts of the backend web interface and some of the private API functionality (that for example allow editing and administration of Media Cloud's sources).
+
+Media Cloud currently includes the following authentication roles:
+
+| Role             | Permission Granted                                               |
+| ---------------- | ---------------------------------------------------------------- |
+| `admin`          | Read and write every resource                                    |
+| `admin-readonly` | Read every resource                                              |
+| `media-edit`     | Edit media sources                                               |
+| `stories-edit`   | Edit stories                                                     |
+| `search`         | Access <https://core.mediacloud.org/search> page                 |
+| `tm`             | Access legacy topic mapper web interface                         |
+| `tm-readonly`    | Access legacy topic mapper web interface with editing privileges |
+
+#### Example
+
+URL: <https://api.mediacloud.org/api/v2/auth/profile>
+
+```json
+{
+    "email": "hroberts@cyber.law.harvard.edu",
+    "full_name": "Hal Roberts",
+    "api_key": "bae132d8de0e0565cc9b84ec022e367f71f6dabf",
+    "notes": "Media Cloud Geek",
+    "created_date": "2017-03-24T03:23:47+00:00",
+    "active": 1,
+    "auth_roles": [
+        "media-edit",
+        "stories-edit"
+    ],
+    "limits": {
+        "weekly": {
+            "requests": {
+                "used": 200,
+                "limit": 0
+            },
+            "requested_items": {
+                "used": 2000,
+                "limit": 0
+            }
+        }
+    }
+}
+```
+
+
+### `api/v2/auth/change_password` (POST)
+
+| URL                           | Function                |
+| ----------------------------- | ----------------------- |
+| `api/v2/auth/change_password` | Change user's password. |
+
+#### Input Description
+
+| Field          | Description                     |
+| -------------- | ------------------------------- |
+| `old_password` | *(string)* User's old password. |
+| `new_password` | *(string)* User's new password. |
+
+Asking user to re-enter password and comparing the two values is left to the client.
+
+#### Output Description
+
+##### Changing the user's password was successful
+
+```json
+{
+    "success": 1
+}
+```
+
+##### Changing the user's password has failed
+
+```json
+{
+    "error": "Reason why the password can not be changed."
+}
+```
+
+#### Example
+
+URL: <https://api.mediacloud.org/api/v2/auth/change_password>
+
+Input:
+
+```json
+{
+    "old_password": "qwerty1",
+    "new_password": "qwerty1",
+}
+```
+
+Output:
+
+```json
+{
+    "success": 1
+}
+```
+
+
+### `api/v2/auth/reset_api_key` (POST)
+
+| URL                         | Function              |
+| --------------------------- | --------------------- |
+| `api/v2/auth/reset_api_key` | Reset user's API key. |
+
+#### Output Description
+
+##### Resetting user's API key was successful
+
+```json
+{
+    "success": 1,
+    "profile": {
+        "Full profile information as in auth/profile, including the new API key."
+    }
+}
+```
+
+##### Resetting user's API key has failed
+
+```json
+{
+    "error": "Reason why resetting user's API key has failed."
+}
+```
+
+#### Example
+
+URL: <https://api.mediacloud.org/api/v2/auth/reset_api_key>
+
+Output:
+
+```json
+{
+    "success": 1,
+    "profile": {
+        "Full profile information as in auth/profile, including the new API key."
+    }
+}
+```
+
 
 # Stats
 
@@ -1415,7 +2033,11 @@ import pkg_resources
 import requests
 assert pkg_resources.get_distribution("requests").version >= '1.2.3'
 
-r = requests.get( 'https://api.mediacloud.org/api/v2/media/list', params = params, headers = { 'Accept': 'application/json'}, headers = { 'Accept': 'application/json'} )
+r = requests.get('https://api.mediacloud.org/api/v2/media/list',
+    params = params,
+    headers = { 'Accept': 'application/json'},
+    headers = { 'Accept': 'application/json'}
+)
 
 data = r.json()
 ```
@@ -1427,24 +2049,24 @@ media = []
 start = 0
 rows  = 100
 while True:
-      params = { 'start': start, 'rows': rows, 'key': MY_KEY }
-      print "start:{} rows:{}".format( start, rows)
-      r = requests.get( 'https://api.mediacloud.org/api/v2/media/list', params = params, headers = { 'Accept': 'application/json'} )
-      data = r.json()
+    params = { 'start': start, 'rows': rows, 'key': MY_KEY }
+    print "start:{} rows:{}".format( start, rows)
+    r = requests.get( 'https://api.mediacloud.org/api/v2/media/list', params = params, headers = { 'Accept': 'application/json'} )
+    data = r.json()
 
-      if len(data) == 0:
-         break
+    if len(data) == 0:
+        break
 
-      start += rows
-      media.extend( data )
+    start += rows
+    media.extend( data )
 
 fieldnames = [
- u'media_id',
- u'url',
- u'moderated',
- u'moderation_notes',
- u'name'
- ]
+    u'media_id',
+    u'url',
+    u'moderated',
+    u'moderation_notes',
+    u'name'
+]
 
 with open( '/tmp/media.csv', 'wb') as csvfile:
     print "open"
@@ -1478,18 +2100,18 @@ import requests
 start = 0
 rows  = 100
 while True:
-      params = { 'last_processed_stories_id': start, 'rows': rows, 'q': 'tags_id_media:8875027', 'key': MY_KEY }
+    params = { 'last_processed_stories_id': start, 'rows': rows, 'q': 'tags_id_media:8875027', 'key': MY_KEY }
 
-      print "Fetching {} stories starting from {}".format( rows, start)
-      r = requests.get( 'https://api.mediacloud.org/api/v2/stories_public/list/', params = params, headers = { 'Accept': 'application/json'} )
-      stories = r.json()
+    print "Fetching {} stories starting from {}".format( rows, start)
+    r = requests.get( 'https://api.mediacloud.org/api/v2/stories_public/list/', params = params, headers = { 'Accept': 'application/json'} )
+    stories = r.json()
 
-      if len(stories) == 0:
-         break
+    if len(stories) == 0:
+        break
 
-      start = stories[ -1 ][ 'processed_stories_id' ]
+    start = stories[ -1 ][ 'processed_stories_id' ]
 
-      process_stories( stories )
+    process_stories( stories )
 ```
 
 
@@ -1513,19 +2135,24 @@ import requests
 start = 0
 rows  = 100
 while True:
-      params = { 'last_processed_stories_id': start,
-      'rows': rows, 'q': 'media_id:1', 'fq': 'publish_date:[2010-10-01T00:00:00Z TO 2010-11-01T00:00:00Z]', 'key': MY_KEY  }
+    params = {
+        'last_processed_stories_id': start,
+        'rows': rows,
+        'q': 'media_id:1',
+        'fq': 'publish_date:[2010-10-01T00:00:00Z TO 2010-11-01T00:00:00Z]',
+        'key': MY_KEY
+    }
 
-      print "Fetching {} stories starting from {}".format( rows, start)
-      r = requests.get( 'https://api.mediacloud.org/api/v2/stories_public/list/', params = params, headers = { 'Accept': 'application/json'} )
-      stories = r.json()
+    print "Fetching {} stories starting from {}".format( rows, start)
+    r = requests.get( 'https://api.mediacloud.org/api/v2/stories_public/list/', params = params, headers = { 'Accept': 'application/json'} )
+    stories = r.json()
 
-      if len(stories) == 0:
-         break
+    if len(stories) == 0:
+        break
 
-      start = stories[ -1 ][ 'processed_stories_id' ]
+    start = stories[ -1 ][ 'processed_stories_id' ]
 
-      process_stories( stories )
+    process_stories( stories )
 ```
 
 ## Get word counts for top words for sentences matching 'trayvon' in US Mainstream Media during April 2012
@@ -1564,16 +2191,14 @@ curl https://api.mediacloud.org/api/v2/tag_sets/list
 
 ```json
 [
-  {
-    "tag_sets_id": 597,
-    "name": "gv_country"
-   },
-
-  {
-    "tag_sets_id": 800,
-    "name": "ts"
-   },
-
+    {
+        "tag_sets_id": 597,
+        "name": "gv_country"
+    },
+    {
+        "tag_sets_id": 800,
+        "name": "ts"
+    }
 ]
 ```
 
@@ -1588,24 +2213,24 @@ The following Python function shows how to find a `tags_id` given a `tag_sets_id
 
 ```python
 def find_tags_id( tag_name, tag_sets_id):
-   last_tags_id = 0
-   rows  = 100
-   while True:
-      params = { 'last_tags_id': last_tags_id, 'rows': rows, 'key': MY_KEY }
-      print "start:{} rows:{}".format( start, rows)
-      r = requests.get( 'https://api.mediacloud.org/api/v2/tags/list/' + tag_sets_id , params = params, headers = { 'Accept': 'application/json'} )
-      tags = r.json()
+    last_tags_id = 0
+    rows  = 100
+    while True:
+        params = { 'last_tags_id': last_tags_id, 'rows': rows, 'key': MY_KEY }
+        print "start:{} rows:{}".format( start, rows)
+        r = requests.get( 'https://api.mediacloud.org/api/v2/tags/list/' + tag_sets_id , params = params, headers = { 'Accept': 'application/json'} )
+        tags = r.json()
 
-      if len(tags) == 0:
-         break
+        if len(tags) == 0:
+            break
 
-      for tag in tags:
-          if tag['tag'] == tag_name:
-             return tag['tags_id']
+        for tag in tags:
+            if tag['tag'] == tag_name:
+                return tag['tags_id']
 
-          last_tags_id = max( tag[ 'tags_id' ], last_tags_id )
+            last_tags_id = max( tag[ 'tags_id' ], last_tags_id )
 
-   return -1
+    return -1
 ```
 
 ### Request a word count using the `tags_id`
@@ -1637,16 +2262,16 @@ import requests
 start = 0
 rows  = 100
 while True:
-      params = { 'last_processed_stories_id': start, 'rows': rows, 'q': 'tags_id_stories:678910', 'key': MY_KEY }
+    params = { 'last_processed_stories_id': start, 'rows': rows, 'q': 'tags_id_stories:678910', 'key': MY_KEY }
 
-      print "Fetching {} stories starting from {}".format( rows, start)
-      r = requests.get( 'https://api.mediacloud.org/api/v2/stories_public/list/', params = params, headers = { 'Accept': 'application/json'} )
-      stories = r.json()
+    print "Fetching {} stories starting from {}".format( rows, start)
+    r = requests.get( 'https://api.mediacloud.org/api/v2/stories_public/list/', params = params, headers = { 'Accept': 'application/json'} )
+    stories = r.json()
 
-      if len(stories) == 0:
-         break
+    if len(stories) == 0:
+       break
 
-      start = stories[ -1 ][ 'processed_stories_id' ]
+    start = stories[ -1 ][ 'processed_stories_id' ]
 
-      process_stories( stories )
+    process_stories( stories )
 ```

@@ -20,6 +20,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::DB;
 use MediaWords::DBI::Auth;
+use MediaWords::DBI::Auth::Limits;
 use MediaWords::Util::CSV;
 use MediaWords::Util::Text;
 
@@ -44,38 +45,47 @@ sub create_user
         return;
     }
 
-    my $default_roles_ids = $db->query( "select auth_roles_id from auth_roles where role in ( 'search' ) " )->flat;
-    my $default_weekly_requests_limit          = MediaWords::DBI::Auth::default_weekly_requests_limit( $db ),
-      my $default_weekly_requested_items_limit = MediaWords::DBI::Auth::default_weekly_requested_items_limit( $db ),
+    my $default_weekly_requests_limit        = MediaWords::DBI::Auth::Limits::default_weekly_requests_limit( $db );
+    my $default_weekly_requested_items_limit = MediaWords::DBI::Auth::Limits::default_weekly_requested_items_limit( $db );
 
-      my $user_email = $email;
-    my $user_full_name                    = $full_name;
-    my $user_notes                        = $notes;
-    my $user_is_active                    = 1;
-    my $user_roles                        = $default_roles_ids;
-    my $user_weekly_requests_limit        = $default_weekly_requests_limit;
-    my $user_weekly_requested_items_limit = $default_weekly_requested_items_limit;
-    my $user_password                     = MediaWords::Util::Text::random_string( 64 );
-    my $user_password_repeat              = $user_password;
-
-    INFO "Adding user: " .
-      Dumper( $mc_url, $user_email, $user_full_name, $user_notes, $user_roles, $user_is_active,
-        $user_password, $user_password_repeat, $user_weekly_requests_limit, $user_weekly_requested_items_limit );
+    my $user_password = MediaWords::Util::Text::random_string( 64 );
 
     # Add user
-    my $add_user_error_message =
-      MediaWords::DBI::Auth::add_user_or_return_error_message( $db, $user_email, $user_full_name,
-        $user_notes, $user_roles, $user_is_active, $user_password, $user_password_repeat,
-        $user_weekly_requests_limit, $user_weekly_requested_items_limit );
+    eval {
 
-    if ( $add_user_error_message )
+        my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
+            email                        => $email,
+            full_name                    => $full_name,
+            notes                        => $notes,
+            role_ids                     => MediaWords::DBI::Auth::Roles::default_role_ids( $db ),
+            active                       => 1,
+            password                     => $user_password,
+            password_repeat              => $user_password,
+            activation_url               => '',                                                      # user is active
+            weekly_requests_limit        => $default_weekly_requested_items_limit,
+            weekly_requested_items_limit => $default_weekly_requested_items_limit,
+        );
+
+        INFO "Adding user: " . Dumper( $new_user );
+
+        MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
+    };
+    if ( $@ )
     {
-        die( "error adding user '$email': $add_user_error_message" );
+        die "error adding user '$email': $@";
     }
 
-    my $reset_password_error_message =
-      MediaWords::DBI::Auth::send_password_reset_token_or_return_error_message( $db, $user_email, "$mc_url/login/reset", 1 );
-    die( "error resetting password '$user_email': $reset_password_error_message" ) if ( $reset_password_error_message );
+    eval {
+        MediaWords::DBI::Auth::ResetPassword::send_password_reset_token(
+            $db,                     #
+            $email,                  #
+            "$mc_url/login/reset"    #
+        );
+    };
+    if ( $@ )
+    {
+        die "error resetting password '$email': $@";
+    }
 }
 
 sub main

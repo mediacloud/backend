@@ -16,6 +16,7 @@ use namespace::autoclean;
 use Data::Dumper;
 use HTTP::Status qw(:constants);
 
+use Catalyst::Authentication::Credential::MediaWords::APIKey;
 use MediaWords::DBI::Auth;
 
 # test whether the authenticated user has $permission_type access to the topic in the path of the currently requested
@@ -94,12 +95,16 @@ sub _user_email_and_roles($$)
 {
     my ( $self, $c ) = @_;
 
+    my $db = $c->dbis;
+
     my $user_email = undef;
     my @user_roles;
 
-    # 1. If the request has the "key" parameter, force authenticating via API
+    my $api_key_param = $Catalyst::Authentication::Credential::MediaWords::APIKey::API_KEY_FIELD;
+
+    # 1. If the request has the API key parameter, force authenticating via API
     #    key (even if the user is logged in)
-    if ( $c->request->param( 'key' ) )
+    if ( $c->request->param( $api_key_param ) )
     {
 
         my $api_auth = undef;
@@ -109,13 +114,16 @@ sub _user_email_and_roles($$)
         }
         else
         {
-            $api_auth = MediaWords::DBI::Auth::user_for_api_token_catalyst( $c );
+            if ( $c->authenticate( { key => $c->request->param( $api_key_param ) }, $MediaWords::AUTH_REALM_API_KEY ) )
+            {
+                $api_auth = MediaWords::DBI::Auth::Profile::user_info( $db, $c->user->username );
+            }
         }
 
         if ( $api_auth )
         {
-            $user_email = $api_auth->{ email };
-            @user_roles = @{ $api_auth->{ roles } };
+            $user_email = $api_auth->email();
+            @user_roles = @{ $api_auth->role_names() };
 
             $c->stash->{ api_auth } = $api_auth;
         }

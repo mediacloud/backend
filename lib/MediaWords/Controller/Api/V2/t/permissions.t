@@ -14,8 +14,6 @@ BEGIN
 use MediaWords::CommonLibs;
 use Modern::Perl "2015";
 
-use List::MoreUtils "uniq";
-use List::Util "shuffle";
 use Readonly;
 use Test::More;
 use URI::Escape;
@@ -33,63 +31,72 @@ my $_topic_b;
 
 # this hash maps each api end point to the kind of permission it should have: public, admin_read, or topics
 my $_url_permission_types = {
-    '/api/v2/auth/single'                         => 'admin_read',
+    '/api/v2/auth/activate'                       => 'admin',
+    '/api/v2/auth/change_password'                => 'public',
+    '/api/v2/auth/login'                          => 'admin_read',
     '/api/v2/auth/profile'                        => 'public',
+    '/api/v2/auth/register'                       => 'admin',
+    '/api/v2/auth/reset_password'                 => 'admin',
+    '/api/v2/auth/resend_activation_link'         => 'admin',
+    '/api/v2/auth/reset_api_key'                  => 'public',
+    '/api/v2/auth/send_password_reset_link'       => 'admin',
+    '/api/v2/auth/single'                         => 'admin_read',
     '/api/v2/controversies/list'                  => 'public',
     '/api/v2/controversies/single'                => 'public',
-    '/api/v2/controversy_dumps/list'              => 'public',
-    '/api/v2/controversy_dumps/single'            => 'public',
     '/api/v2/controversy_dump_time_slices/list'   => 'public',
     '/api/v2/controversy_dump_time_slices/single' => 'public',
+    '/api/v2/controversy_dumps/list'              => 'public',
+    '/api/v2/controversy_dumps/single'            => 'public',
     '/api/v2/downloads/list'                      => 'admin_read',
     '/api/v2/downloads/single'                    => 'admin_read',
+    '/api/v2/feeds/create'                        => 'media_edit',
     '/api/v2/feeds/list'                          => 'public',
     '/api/v2/feeds/scrape'                        => 'media_edit',
     '/api/v2/feeds/scrape_status'                 => 'media_edit',
     '/api/v2/feeds/single'                        => 'public',
-    '/api/v2/feeds/create'                        => 'media_edit',
     '/api/v2/feeds/update'                        => 'media_edit',
     '/api/v2/mc_rest_simpleobject/list'           => 'public',
     '/api/v2/mc_rest_simpleobject/single'         => 'public',
+    '/api/v2/media/create'                        => 'media_edit',
+    '/api/v2/media/list'                          => 'public',
+    '/api/v2/media/list_suggestions'              => 'media_edit',
+    '/api/v2/media/mark_suggestion'               => 'media_edit',
+    '/api/v2/media/put_tags'                      => 'media_edit',
+    '/api/v2/media/single'                        => 'public',
+    '/api/v2/media/submit_suggestion'             => 'public',
+    '/api/v2/media/update'                        => 'media_edit',
     '/api/v2/mediahealth/list'                    => 'public',
     '/api/v2/mediahealth/single'                  => 'public',
-    '/api/v2/media/list'                          => 'public',
-    '/api/v2/media/single'                        => 'public',
-    '/api/v2/media/create'                        => 'media_edit',
-    '/api/v2/media/put_tags'                      => 'media_edit',
-    '/api/v2/media/update'                        => 'media_edit',
-    '/api/v2/media/mark_suggestion'               => 'media_edit',
-    '/api/v2/media/list_suggestions'              => 'media_edit',
-    '/api/v2/media/submit_suggestion'             => 'public',
     '/api/v2/sentences/count'                     => 'public',
     '/api/v2/sentences/field_count'               => 'public',
     '/api/v2/sentences/list'                      => 'admin_read',
     '/api/v2/sentences/put_tags'                  => 'stories_edit',
     '/api/v2/sentences/single'                    => 'admin_read',
     '/api/v2/stats/list'                          => 'public',
-    '/api/v2/storiesbase/count'                   => 'public',
-    '/api/v2/storiesbase/list'                    => 'public',
-    '/api/v2/storiesbase/single'                  => 'public',
-    '/api/v2/storiesbase/word_matrix'             => 'public',
     '/api/v2/stories/corenlp'                     => 'admin_read',
     '/api/v2/stories/count'                       => 'public',
     '/api/v2/stories/fetch_bitly_clicks'          => 'admin_read',
     '/api/v2/stories/list'                        => 'admin_read',
+    '/api/v2/stories/put_tags'                    => 'stories_edit',
+    '/api/v2/stories/single'                      => 'admin_read',
+    '/api/v2/stories/word_matrix'                 => 'public',
     '/api/v2/stories_public/count'                => 'public',
     '/api/v2/stories_public/list'                 => 'public',
     '/api/v2/stories_public/single'               => 'public',
     '/api/v2/stories_public/word_matrix'          => 'public',
-    '/api/v2/stories/put_tags'                    => 'stories_edit',
-    '/api/v2/stories/single'                      => 'admin_read',
-    '/api/v2/stories/word_matrix'                 => 'public',
+    '/api/v2/storiesbase/count'                   => 'public',
+    '/api/v2/storiesbase/list'                    => 'public',
+    '/api/v2/storiesbase/single'                  => 'public',
+    '/api/v2/storiesbase/word_matrix'             => 'public',
+    '/api/v2/tag_sets/create'                     => 'admin',
     '/api/v2/tag_sets/list'                       => 'public',
     '/api/v2/tag_sets/single'                     => 'public',
     '/api/v2/tag_sets/update'                     => 'admin',
-    '/api/v2/tag_sets/create'                     => 'admin',
+    '/api/v2/tags/create'                         => 'admin',
     '/api/v2/tags/list'                           => 'public',
     '/api/v2/tags/single'                         => 'public',
     '/api/v2/tags/update'                         => 'admin',
-    '/api/v2/tags/create'                         => 'admin',
+    '/api/v2/topics/create'                       => 'public',
     '/api/v2/topics/focal_set_definitions/create' => 'topics_write',
     '/api/v2/topics/focal_set_definitions/delete' => 'topics_write',
     '/api/v2/topics/focal_set_definitions/list'   => 'topics_read',
@@ -108,17 +115,16 @@ my $_url_permission_types = {
     '/api/v2/topics/permissions/user_list'        => 'public',
     '/api/v2/topics/sentences/count'              => 'topics_read',
     '/api/v2/topics/single'                       => 'public',
-    '/api/v2/topics/create'                       => 'public',
-    '/api/v2/topics/spider'                       => 'topics_write',
-    '/api/v2/topics/spider_status'                => 'public',
-    '/api/v2/topics/update'                       => 'topics_write',
     '/api/v2/topics/snapshots/generate'           => 'topics_write',
     '/api/v2/topics/snapshots/generate_status'    => 'topics_read',
     '/api/v2/topics/snapshots/list'               => 'topics_read',
+    '/api/v2/topics/spider'                       => 'topics_write',
+    '/api/v2/topics/spider_status'                => 'public',
     '/api/v2/topics/stories/count'                => 'topics_read',
     '/api/v2/topics/stories/facebook'             => 'topics_read',
     '/api/v2/topics/stories/list'                 => 'topics_read',
     '/api/v2/topics/timespans/list'               => 'topics_read',
+    '/api/v2/topics/update'                       => 'topics_write',
     '/api/v2/topics/wc/list'                      => 'topics_read',
     '/api/v2/wc/list'                             => 'public',
 };
@@ -200,7 +206,7 @@ sub request_all_methods_as_user($$)
 {
     my ( $url, $user ) = @_;
 
-    return request_all_methods( $url, { key => $user->{ api_token } } );
+    return request_all_methods( $url, { key => $user->global_api_key() } );
 }
 
 # test whether the user has permission to request the url; if $expect_pass is true, expect that the user is allowed
@@ -359,18 +365,37 @@ sub find_or_add_test_user($$)
     my $email    = $role . '@foo.bar';
     my $password = '123456789';
 
-    my $user = $db->query( "select * from auth_users where email = ?", $email )->hash;
-
-    return $user if ( $user );
+    my $user;
+    eval { $user = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
+    if ( ( !$@ ) and $user )
+    {
+        return $user;
+    }
 
     my $roles = $db->query( "select auth_roles_id from auth_roles where role = ?", $role )->flat;
 
-    my $error = MediaWords::DBI::Auth::add_user_or_return_error_message( $db, $email, $role, $role, $roles, 1,
-        $password, $password, 10000000, 10000000 );
+    eval {
+        my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
+            email                        => $email,
+            full_name                    => $role,
+            notes                        => $role,
+            role_ids                     => $roles,
+            active                       => 1,
+            password                     => $password,
+            password_repeat              => $password,
+            activation_url               => '',          # user is active, no need for activation URL
+            weekly_requests_limit        => 10000000,
+            weekly_requested_items_limit => 10000000,
+        );
 
-    die( "error adding $role user: $error" ) if ( $error );
+        MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
+    };
+    if ( $@ )
+    {
+        die( "error adding $role user: $@" );
+    }
 
-    return $db->query( "select * from auth_users where email = ?", $email )->hash;
+    return MediaWords::DBI::Auth::Profile::user_info( $db, $email );
 }
 
 # add and return a test user with the given permission for the given topic.
@@ -384,7 +409,7 @@ sub add_topic_user($$$)
         'topic_permissions',
         {
             topics_id     => $topic->{ topics_id },
-            auth_users_id => $user->{ auth_users_id },
+            auth_users_id => $user->id(),
             permission    => $permission
         }
     );

@@ -33,8 +33,15 @@ sub test_validate_max_stories($)
 
     my $label = "test_validate_max_stories";
 
-    my $auth_user_token = MediaWords::Test::DB::create_test_user( $db, $label );
-    my $auth_user = $db->query( "select * from auth_users where api_token = ?", $auth_user_token )->hash;
+    my $auth_user_api_key = MediaWords::Test::DB::create_test_user( $db, $label );
+    my $auth_user = $db->query(
+        <<SQL,
+        SELECT auth_users_id
+        FROM auth_user_api_keys
+        WHERE api_key = ?
+SQL
+        $auth_user_api_key
+    )->hash;
     my $auth_users_id = $auth_user->{ auth_users_id };
 
     $db->query( "delete from auth_users_roles_map" );
@@ -45,7 +52,7 @@ sub test_validate_max_stories($)
     eval { MediaWords::Controller::Api::V2::Topics::_validate_max_stories( $db, 1000000, $auth_users_id ) };
     ok( $@, "$label max stories more than user setting: died" );
 
-    $db->query( <<SQL, $auth_users_id, $MediaWords::DBI::Auth::Roles::ADMIN );
+    $db->query( <<SQL, $auth_users_id, $MediaWords::DBI::Auth::Roles::List::ADMIN );
 insert into auth_users_roles_map ( auth_users_id, auth_roles_id )
     select ?, auth_roles_id from auth_roles where role = ?
 SQL
@@ -54,7 +61,7 @@ SQL
     ok( !$@, "$label admin user: validate $@" );
 
     $db->query( "delete from auth_users_roles_map" );
-    $db->query( <<SQL, $auth_users_id, $MediaWords::DBI::Auth::Roles::ADMIN_READONLY );
+    $db->query( <<SQL, $auth_users_id, $MediaWords::DBI::Auth::Roles::List::ADMIN_READONLY );
 insert into auth_users_roles_map ( auth_users_id, auth_roles_id )
     select ?, auth_roles_id from auth_roles where role = ?
 SQL
@@ -69,8 +76,15 @@ sub test_is_mc_queue_user($)
 
     my $label = "test_is_mc_queue_user";
 
-    my $auth_user_token = MediaWords::Test::DB::create_test_user( $db, $label );
-    my $auth_user = $db->query( "select * from auth_users where api_token = ?", $auth_user_token )->hash;
+    my $auth_user_api_key = MediaWords::Test::DB::create_test_user( $db, $label );
+    my $auth_user = $db->query(
+        <<SQL,
+        SELECT auth_users_id
+        FROM auth_user_api_keys
+        WHERE api_key = ?
+SQL
+        $auth_user_api_key
+    )->hash;
     my $auth_users_id = $auth_user->{ auth_users_id };
 
     $db->query( "delete from auth_users_roles_map where auth_users_id = ?", $auth_users_id );
@@ -78,10 +92,10 @@ sub test_is_mc_queue_user($)
     my $got = MediaWords::Controller::Api::V2::Topics::_is_mc_queue_user( $db, $auth_users_id );
     ok( !$got, "$label default user should be public" );
 
-    for my $role ( @{ $MediaWords::DBI::Auth::Roles::TOPIC_MC_QUEUE_ROLES } )
+    for my $role ( @{ $MediaWords::DBI::Auth::Roles::List::TOPIC_MC_QUEUE_ROLES } )
     {
         $db->query( "delete from auth_users_roles_map where auth_users_id = ?", $auth_users_id );
-        $db->query( <<SQL, $auth_users_id, $MediaWords::DBI::Auth::Roles::ADMIN );
+        $db->query( <<SQL, $auth_users_id, $MediaWords::DBI::Auth::Roles::List::ADMIN );
 insert into auth_users_roles_map ( auth_users_id, auth_roles_id )
     select ?, auth_roles_id from auth_roles where role = ?
 SQL
@@ -97,8 +111,15 @@ sub test_get_user_public_queued_job($)
 
     my $label = "test_get_user_public_queued_job";
 
-    my $auth_user_token = MediaWords::Test::DB::create_test_user( $db, $label );
-    my $auth_user = $db->query( "select * from auth_users where api_token = ?", $auth_user_token )->hash;
+    my $auth_user_api_key = MediaWords::Test::DB::create_test_user( $db, $label );
+    my $auth_user = $db->query(
+        <<SQL,
+        SELECT auth_users_id
+        FROM auth_user_api_keys
+        WHERE api_key = ?
+SQL
+        $auth_user_api_key
+    )->hash;
     my $auth_users_id = $auth_user->{ auth_users_id };
 
     my $got_job_state = MediaWords::Controller::Api::V2::Topics::_get_user_public_queued_job( $db, $auth_users_id );

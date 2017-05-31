@@ -42,8 +42,6 @@ requires 'Devel::Cover::Report::Coveralls', '0.11';
 requires 'Devel::NYTProf';
 requires 'Dir::Self';
 requires 'Domain::PublicSuffix';
-requires 'Email::MIME';
-requires 'Email::Sender::Simple';
 requires 'Encode::HanConvert';
 requires 'ExtUtils::MakeMaker';
 requires 'FCGI';

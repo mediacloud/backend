@@ -50,7 +50,7 @@ has 'scraped_feeds_ids' => ( is => 'rw' );
 
 =cut
 
-# accept a hash generated from the feedly json response and return the list of story candidates.
+# accept a hash generated from the feedly JSON response and return the list of story candidates.
 # return only stories within the date range.  push any stories found onto the array ref $stories.
 # create a new array ref for $stories if $stories is undef.
 sub _push_stories_from_json_data($$$)
@@ -99,7 +99,7 @@ sub _push_stories_from_json_data($$$)
     return $stories;
 }
 
-# try to get the json data from feedly.  retry on a backoff timing if there are problems with feedly decoding,
+# try to get the JSON data from feedly.  retry on a backoff timing if there are problems with feedly decoding,
 # because sometimes we get partial data from feedly.
 sub _get_feedly_json_data_deteremined($$)
 {

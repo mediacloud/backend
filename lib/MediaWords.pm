@@ -13,6 +13,8 @@ use v5.22;
 use MediaWords::Util::Config;
 use MediaWords::DBI::Auth::Roles;
 
+use Net::IP;
+use Readonly;
 use URI;
 
 # Set flags and add plugins for the application
@@ -53,21 +55,23 @@ use HTML::FormFu::Unicode;
 
 my $config = __PACKAGE__->config( -name => 'MediaWords' );
 
+# Authentication realms
+Readonly our $AUTH_REALM_USERNAME_PASSWORD => 'mc_auth_realm_username_password';
+Readonly our $AUTH_REALM_API_KEY           => 'mc_auth_realm_api_key';
+
 # Configure authentication scheme
 __PACKAGE__->config( 'Plugin::Static::Simple' => { dirs => [ 'gexf', 'nv' ] } );
 __PACKAGE__->config(
     'Plugin::Authentication' => {
-        'default_realm' => 'users',
-        'users'         => {
-            'credential' => {
-                'class'              => 'Password',
-                'password_field'     => 'password',
-                'password_type'      => 'salted_hash',
-                'password_hash_type' => 'SHA-256',
-                'password_salt_len'  => 64,
-            },
-            'store' => { 'class' => 'MediaWords' }
-        }
+        'default_realm'               => $AUTH_REALM_USERNAME_PASSWORD,
+        $AUTH_REALM_USERNAME_PASSWORD => {
+            'credential' => { 'class' => 'MediaWords::UsernamePassword' },
+            'store'      => { 'class' => 'MediaWords' }
+        },
+        $AUTH_REALM_API_KEY => {
+            'credential' => { 'class' => 'MediaWords::APIKey' },
+            'store'      => { 'class' => 'MediaWords' }
+        },
     }
 );
 
@@ -163,10 +167,10 @@ sub setup_acl()
         __PACKAGE__->allow_access_if_any(
             $path,
             [
-                $MediaWords::DBI::Auth::Roles::ADMIN_READONLY,    #
-                $MediaWords::DBI::Auth::Roles::MEDIA_EDIT,        #
-                $MediaWords::DBI::Auth::Roles::STORIES_EDIT,      #
-                $MediaWords::DBI::Auth::Roles::TM,                #
+                $MediaWords::DBI::Auth::Roles::List::ADMIN_READONLY,    #
+                $MediaWords::DBI::Auth::Roles::List::MEDIA_EDIT,        #
+                $MediaWords::DBI::Auth::Roles::List::STORIES_EDIT,      #
+                $MediaWords::DBI::Auth::Roles::List::TM,                #
             ]
         );
     }
@@ -176,8 +180,8 @@ sub setup_acl()
         __PACKAGE__->allow_access_if_any(
             $path,
             [
-                $MediaWords::DBI::Auth::Roles::MEDIA_EDIT,        #
-                $MediaWords::DBI::Auth::Roles::TM,                #
+                $MediaWords::DBI::Auth::Roles::List::MEDIA_EDIT,        #
+                $MediaWords::DBI::Auth::Roles::List::TM,                #
             ]
         );
     }
@@ -187,8 +191,8 @@ sub setup_acl()
         __PACKAGE__->allow_access_if_any(
             $path,
             [
-                $MediaWords::DBI::Auth::Roles::STORIES_EDIT,      #
-                $MediaWords::DBI::Auth::Roles::TM,                #
+                $MediaWords::DBI::Auth::Roles::List::STORIES_EDIT,      #
+                $MediaWords::DBI::Auth::Roles::List::TM,                #
             ]
         );
     }
@@ -198,15 +202,15 @@ sub setup_acl()
         __PACKAGE__->allow_access_if_any(
             $path,
             [
-                $MediaWords::DBI::Auth::Roles::TM,                #
-                $MediaWords::DBI::Auth::Roles::TM_READONLY,       #
+                $MediaWords::DBI::Auth::Roles::List::TM,                #
+                $MediaWords::DBI::Auth::Roles::List::TM_READONLY,       #
             ]
         );
     }
 
     for my $path ( @acl_search )
     {
-        __PACKAGE__->allow_access_if_any( $path, [ $MediaWords::DBI::Auth::Roles::SEARCH ] );
+        __PACKAGE__->allow_access_if_any( $path, [ $MediaWords::DBI::Auth::Roles::List::SEARCH ] );
     }
 
     # ---
@@ -215,19 +219,19 @@ sub setup_acl()
     __PACKAGE__->allow_access_if_any(
         '/admin/profile',
         [
-            $MediaWords::DBI::Auth::Roles::ADMIN,             #
-            $MediaWords::DBI::Auth::Roles::ADMIN_READONLY,    #
-            $MediaWords::DBI::Auth::Roles::MEDIA_EDIT,        #
-            $MediaWords::DBI::Auth::Roles::STORIES_EDIT,      #
-            $MediaWords::DBI::Auth::Roles::TM,                #
-            $MediaWords::DBI::Auth::Roles::STORIES_API,       #
-            $MediaWords::DBI::Auth::Roles::SEARCH,            #
+            $MediaWords::DBI::Auth::Roles::List::ADMIN,             #
+            $MediaWords::DBI::Auth::Roles::List::ADMIN_READONLY,    #
+            $MediaWords::DBI::Auth::Roles::List::MEDIA_EDIT,        #
+            $MediaWords::DBI::Auth::Roles::List::STORIES_EDIT,      #
+            $MediaWords::DBI::Auth::Roles::List::TM,                #
+            $MediaWords::DBI::Auth::Roles::List::STORIES_API,       #
+            $MediaWords::DBI::Auth::Roles::List::SEARCH,            #
         ]
     );
 
     # Blanket rule for the rest of the administration controllers
-    __PACKAGE__->deny_access_unless_any( "/admin",  [ $MediaWords::DBI::Auth::Roles::ADMIN ] );
-    __PACKAGE__->deny_access_unless_any( "/search", [ $MediaWords::DBI::Auth::Roles::ADMIN ] );
+    __PACKAGE__->deny_access_unless_any( "/admin",  [ $MediaWords::DBI::Auth::Roles::List::ADMIN ] );
+    __PACKAGE__->deny_access_unless_any( "/search", [ $MediaWords::DBI::Auth::Roles::List::ADMIN ] );
 
     # Public interface
     __PACKAGE__->allow_access( "/login" );
@@ -239,6 +243,32 @@ sub setup_acl()
 }
 
 setup_acl();
+
+# Get the ip address of the given catalyst request, using the x-forwarded-for header
+# if present and ip address is localhost
+sub request_ip_address($)
+{
+    my ( $self ) = @_;
+
+    my $headers     = $self->req->headers;
+    my $req_address = $self->req->address;
+
+    my $forwarded_ip = $headers->header( 'X-Real-IP' ) || $headers->header( 'X-Forwarded-For' );
+
+    if ( $forwarded_ip )
+    {
+        my $net_ip = new Net::IP( $req_address ) or die( Net::IP::Error() );
+        my $iptype = uc( $net_ip->iptype() );
+
+        # 127.0.0.1 / ::1, 10.0.0.0/8, 172.16.0.0/12 or 192.168.0.0/16?
+        if ( $iptype eq 'PRIVATE' or $iptype eq 'LOOPBACK' )
+        {
+            return $forwarded_ip;
+        }
+    }
+
+    return $req_address;
+}
 
 # Checks if current user can visit a specified action
 # (similar to can_visit() from Catalyst::ActionRole::ACL)
@@ -304,22 +334,22 @@ sub create_form
 # Redirect unauthenticated users to login page
 sub acl_access_denied
 {
-    my ( $c, $class, $action, $err ) = @_;
+    my ( $self, $class, $action, $err ) = @_;
 
-    if ( $c->user_exists )
+    if ( $self->user_exists )
     {
-        $c->log->debug( 'User has been found, is not allowed to access page /' . $action );
+        $self->log->debug( 'User has been found, is not allowed to access page /' . $action );
 
         # Show the "unauthorized" message
-        $c->res->body( 'You are not allowed to access page /' . $action );
-        $c->res->status( 403 );
+        $self->res->body( 'You are not allowed to access page /' . $action );
+        $self->res->status( 403 );
     }
     else
     {
-        $c->log->debug( 'User not found, forwarding to /login' );
+        $self->log->debug( 'User not found, forwarding to /login' );
 
         # Redirect the user to the login page
-        $c->response->redirect( $c->uri_for( '/login', { url => $c->req->uri } ) );
+        $self->response->redirect( $self->uri_for( '/login', { url => $self->req->uri } ) );
     }
 
     # Continue denying access

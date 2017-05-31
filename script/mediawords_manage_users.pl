@@ -18,7 +18,6 @@
 #         --email=jdoe@cyber.law.harvard.edu \
 #         --full_name="John Doe" \
 #         --notes="Media Cloud developer." \
-#         [--inactive] \
 #         --roles="query-create,media-edit,stories-edit" \
 #         [--password="correct horse battery staple"] \
 #         [--weekly_requests_limit=2000] \
@@ -26,7 +25,6 @@
 #
 #     Notes:
 #     * Skip the `--password` parameter to read the password from STDIN.
-#     * Pass the `--inactive` parameter to make the user inactive initially.
 #
 # Modify user
 # -----------
@@ -143,7 +141,6 @@ sub user_add($)
     my $user_email                        = undef;
     my $user_full_name                    = '';
     my $user_notes                        = '';
-    my $user_is_inactive                  = 0;
     my $user_roles                        = '';
     my $user_password                     = undef;
     my $user_weekly_requests_limit        = undef;
@@ -154,7 +151,6 @@ Usage: $0 --action=add \
     --email=jdoe\@cyber.law.harvard.edu \
     --full_name="John Doe" \
     [--notes="Media Cloud developer."] \
-    [--inactive] \
     [--roles="query-create,media-edit,stories-edit"] \
     [--password="correct horse battery staple"] \
     [--weekly_requests_limit=2000] \
@@ -165,7 +161,6 @@ EOF
         'email=s'                        => \$user_email,
         'full_name=s'                    => \$user_full_name,
         'notes:s'                        => \$user_notes,
-        'inactive'                       => \$user_is_inactive,
         'roles:s'                        => \$user_roles,
         'password:s'                     => \$user_password,
         'weekly_requests_limit:i'        => \$user_weekly_requests_limit,
@@ -174,19 +169,28 @@ EOF
     die "$user_add_usage\n" unless ( $user_email and $user_full_name );
 
     # Roles array
-    my @user_roles = split( ',', $user_roles );
-    my @user_role_ids;
-    foreach my $user_role ( @user_roles )
+    $user_roles = [ split( ',', $user_roles ) ];
+    my $user_role_ids = [];
+    foreach my $user_role ( @{ $user_roles } )
     {
-        my $user_role_id = MediaWords::DBI::Auth::role_id_for_role( $db, $user_role );
-        if ( !$user_role_id )
+        my $user_role_id;
+        eval { $user_role_id = MediaWords::DBI::Auth::Roles::role_id_for_role( $db, $user_role ); };
+        if ( $@ or ( !$user_role_id ) )
         {
             ERROR "Role '$user_role' was not found.";
             return 1;
         }
 
-        push( @user_role_ids, $user_role_id );
+        push( @{ $user_role_ids }, $user_role_id );
     }
+
+    if ( scalar @{ $user_role_ids } == 0 )
+    {
+        $user_role_ids = MediaWords::DBI::Auth::Roles::default_role_ids( $db );
+    }
+
+    $user_weekly_requests_limit        //= MediaWords::DBI::Auth::Limits::default_weekly_requests_limit( $db );
+    $user_weekly_requested_items_limit //= MediaWords::DBI::Auth::Limits::default_weekly_requested_items_limit( $db );
 
     # Read password if not set
     my $user_password_repeat = undef;
@@ -209,13 +213,25 @@ EOF
     }
 
     # Add the user
-    my $add_user_error_message =
-      MediaWords::DBI::Auth::add_user_or_return_error_message( $db, $user_email, $user_full_name,
-        $user_notes, \@user_role_ids, ( !$user_is_inactive ),
-        $user_password, $user_password_repeat, $user_weekly_requests_limit, $user_weekly_requested_items_limit );
-    if ( $add_user_error_message )
+    eval {
+        my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
+            email                        => $user_email,
+            full_name                    => $user_full_name,
+            notes                        => $user_notes,
+            role_ids                     => $user_role_ids,
+            active                       => 1,
+            password                     => $user_password,
+            password_repeat              => $user_password_repeat,
+            activation_url               => '',                                   # user is active
+            weekly_requests_limit        => $user_weekly_requests_limit,
+            weekly_requested_items_limit => $user_weekly_requested_items_limit,
+        );
+
+        MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
+    };
+    if ( $@ )
     {
-        ERROR "Error while trying to add user: $add_user_error_message";
+        ERROR "Error while trying to add user: $@";
         return 1;
     }
 
@@ -229,16 +245,18 @@ sub user_modify($)
 {
     my ( $db ) = @_;
 
-    my $user_email                        = undef;
-    my $user_full_name                    = undef;
-    my $user_notes                        = undef;
-    my $user_is_active                    = undef;
-    my $user_is_inactive                  = undef;
-    my $user_roles                        = undef;
-    my $user_password                     = undef;
-    my $user_set_password                 = undef;
-    my $user_weekly_requests_limit        = undef;
-    my $user_weekly_requested_items_limit = undef;
+    my (
+        $user_email,                          #
+        $user_full_name,                      #
+        $user_notes,                          #
+        $user_is_active,                      #
+        $user_is_inactive,                    #
+        $user_roles,                          #
+        $user_password,                       #
+        $user_set_password,                   #
+        $user_weekly_requests_limit,          #
+        $user_weekly_requested_items_limit    #
+    );
 
     my Readonly $user_modify_usage = <<"EOF";
 Usage: $0 --action=modify \
@@ -264,106 +282,65 @@ EOF
     ) or die "$user_modify_usage\n";
     die "$user_modify_usage\n" unless ( $user_email );
 
-    # Fetch default information about the user
-    my $db_user = MediaWords::DBI::Auth::user_info( $db, $user_email );
-    my $db_user_roles = MediaWords::DBI::Auth::user_auth( $db, $user_email );
-
-    unless ( $db_user and $db_user_roles )
+    my $user_role_ids = undef;
+    if ( defined $user_roles )
     {
-        ERROR "Unable to find user '$user_email' in the database.";
-        return 1;
-    }
 
-    # Check if anything has to be changed
-    unless ( defined $user_full_name
-        or defined $user_notes
-        or defined $user_is_active
-        or defined $user_is_inactive
-        or defined $user_roles
-        or defined $user_password
-        or defined $user_set_password
-        or defined $user_weekly_requests_limit
-        or defined $user_weekly_requested_items_limit )
-    {
-        ERROR "Nothing has to be changed.";
-        die "$user_modify_usage\n";
-    }
+        my $roles = [ split( ',', $user_roles ) ];
 
-    # Hash with user values that should be put back into database
-    my %modified_user;
-    $modified_user{ email } = $user_email;
-
-    # Overwrite the information if provided as parameters
-    $modified_user{ full_name } = ( $user_full_name ? $user_full_name : $db_user->{ full_name } );
-    $modified_user{ notes }     = ( $user_notes     ? $user_notes     : $db_user->{ notes } );
-
-    if ( defined $user_is_active )
-    {
-        $modified_user{ active } = 1;
-    }
-    elsif ( defined $user_is_inactive )
-    {
-        $modified_user{ active } = 0;
-    }
-    else
-    {
-        $modified_user{ active } = $db_user->{ active };
-    }
-
-    # Roles array
-    $modified_user{ roles } = ( $user_roles ? [ split( ',', $user_roles ) ] : $db_user_roles->{ roles } );
-
-    my @user_role_ids;
-    foreach my $user_role ( @{ $modified_user{ roles } } )
-    {
-        my $user_role_id = MediaWords::DBI::Auth::role_id_for_role( $db, $user_role );
-        if ( !$user_role_id )
+        $user_role_ids = [];
+        foreach my $user_role ( @{ $roles } )
         {
-            ERROR "Role '$user_role' was not found.";
-            return 1;
+            my $user_role_id;
+            eval { $user_role_id = MediaWords::DBI::Auth::Roles::role_id_for_role( $db, $user_role ); };
+            if ( $@ or ( !$user_role_id ) )
+            {
+                ERROR "Role '$user_role' was not found.";
+                return 1;
+            }
+
+            push( @{ $user_role_ids }, $user_role_id );
         }
-
-        push( @user_role_ids, $user_role_id );
     }
-    $modified_user{ role_ids } = \@user_role_ids;
 
-    # Set / read the password (if needed)
-    $modified_user{ password }        = '';
-    $modified_user{ password_repeat } = '';
-    if ( $user_password )
+    if ( defined $user_is_inactive )
     {
-        $modified_user{ password } = $modified_user{ password_repeat } = $user_password;
+        $user_is_active = 0;
     }
-    elsif ( $user_set_password )
+
+    my $user_password_repeat = $user_password;
+    if ( $user_set_password )
     {
-        while ( !$modified_user{ password } )
+        while ( !$user_password )
         {
             print "Enter password: ";
-            $modified_user{ password } = _read_password();
+            $user_password = _read_password();
         }
-        while ( !$modified_user{ password_repeat } )
+        while ( !$user_password_repeat )
         {
             print "Repeat password: ";
-            $modified_user{ password_repeat } = _read_password();
+            $user_password_repeat = _read_password();
         }
     }
 
     # Modify (update) user
-    my $update_user_error_message = MediaWords::DBI::Auth::update_user_or_return_error_message(
-        $db,
-        $modified_user{ email },
-        $modified_user{ full_name },
-        $modified_user{ notes },
-        $modified_user{ role_ids },
-        $modified_user{ active },
-        $modified_user{ password },
-        $modified_user{ password_repeat },
-        $user_weekly_requests_limit,
-        $user_weekly_requested_items_limit
-    );
-    if ( $update_user_error_message )
+    eval {
+        my $existing_user = MediaWords::DBI::Auth::User::ModifyUser->new(
+            email                        => $user_email,
+            full_name                    => $user_full_name,
+            notes                        => $user_notes,
+            role_ids                     => $user_role_ids,
+            active                       => $user_is_active,
+            password                     => $user_password,
+            password_repeat              => $user_password_repeat,
+            weekly_requests_limit        => $user_weekly_requests_limit,
+            weekly_requested_items_limit => $user_weekly_requested_items_limit,
+        );
+        MediaWords::DBI::Auth::Profile::update_user( $db, $existing_user );
+    };
+    if ( $@ )
     {
-        ERROR "Error while trying to modify user: $update_user_error_message";
+        ERROR "Error while trying to modify user: $@";
         return 1;
     }
 
@@ -384,12 +361,11 @@ sub user_delete($)
     GetOptions( 'email=s' => \$user_email, ) or die "$user_delete_usage\n";
     die "$user_delete_usage\n" unless ( $user_email );
 
-    # Add the user
     # Delete user
-    my $delete_user_error_message = MediaWords::DBI::Auth::delete_user_or_return_error_message( $db, $user_email );
-    if ( $delete_user_error_message )
+    eval { MediaWords::DBI::Auth::Profile::delete_user( $db, $user_email ); };
+    if ( $@ )
     {
-        ERROR "Error while trying to delete user: $delete_user_error_message";
+        ERROR "Error while trying to delete user: $@";
         return 1;
     }
 
@@ -408,7 +384,7 @@ sub users_list($)
     GetOptions() or die "$user_list_usage\n";
 
     # Fetch list of users
-    my $users = MediaWords::DBI::Auth::all_users( $db );
+    my $users = MediaWords::DBI::Auth::Profile::all_users( $db );
 
     unless ( $users )
     {
@@ -437,24 +413,23 @@ sub user_show($)
     die "$user_show_usage\n" unless ( $user_email );
 
     # Fetch information about the user
-    my $db_user = MediaWords::DBI::Auth::user_info( $db, $user_email );
-    my $db_user_roles = MediaWords::DBI::Auth::user_auth( $db, $user_email );
-
-    unless ( $db_user and $db_user_roles )
+    my $db_user;
+    eval { $db_user = MediaWords::DBI::Auth::Profile::user_info( $db, $user_email ); };
+    if ( $@ or ( !$db_user ) )
     {
-        ERROR "Unable to find user '$user_email' in the database.";
+        ERROR "Unable to find user with email '$user_email'";
         return 1;
     }
 
-    say "User ID:          " . $db_user->{ auth_users_id };
-    say "Email (username): " . $db_user->{ email };
-    say "Full name: " . $db_user->{ full_name };
-    say "Notes:     " . $db_user->{ notes };
-    say "Active:    " . ( $db_user->{ active } ? 'yes' : 'no' );
-    say "Roles:     " . join( ',', @{ $db_user_roles->{ roles } } );
-    say "API key:   " . $db_user->{ api_token };
-    say "Weekly requests limit:        " . $db_user->{ weekly_requests_limit };
-    say "Weekly requested items limit: " . $db_user->{ weekly_requested_items_limit };
+    say "User ID:          " . $db_user->id();
+    say "Email (username): " . $db_user->email();
+    say "Full name: " . $db_user->full_name();
+    say "Notes:     " . $db_user->notes();
+    say "Active:    " . ( $db_user->active() ? 'yes' : 'no' );
+    say "Roles:     " . join( ',', @{ $db_user->role_names() } );
+    say "Global API key:   " . $db_user->global_api_key();
+    say "Weekly requests limit:        " . $db_user->weekly_requests_limit();
+    say "Weekly requested items limit: " . $db_user->weekly_requested_items_limit();
 
     return 0;
 }
@@ -469,7 +444,7 @@ sub user_roles($)
     GetOptions() or die "$user_roles_usage\n";
 
     # Fetch roles
-    my $roles = MediaWords::DBI::Auth::all_user_roles( $db );
+    my $roles = MediaWords::DBI::Auth::Roles::all_user_roles( $db );
 
     unless ( $roles )
     {

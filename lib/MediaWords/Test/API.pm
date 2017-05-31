@@ -7,7 +7,9 @@ use Catalyst::Test 'MediaWords';
 use HTTP::Request;
 use Regexp::Common;
 use Test::More;
-use URI::Escape;
+
+use URI;
+use URI::QueryParam;
 
 use MediaWords::CommonLibs;
 use MediaWords::Util::Web;
@@ -40,7 +42,7 @@ sub get_test_api_key()
     return $_test_api_key;
 }
 
-# test that all fields with purely number responses return json numbers
+# test that all fields with purely number responses return JSON numbers
 sub validate_number_fields($$)
 {
     my ( $label, $json ) = @_;
@@ -54,7 +56,7 @@ sub validate_number_fields($$)
 }
 
 #  test that we got a valid response,
-# that the response is valid json, and that the json response is not an error response.  Return
+# that the response is valid json, and that the JSON response is not an error response.  Return
 # the decoded json.  If $expect_error is true, test for expected error response.
 sub test_request_response($$;$)
 {
@@ -70,7 +72,7 @@ sub test_request_response($$;$)
 
     my $data = eval { MediaWords::Util::JSON::decode_json( $response->decoded_content ) };
 
-    ok( $data, "decoded json for $label (json error: $@)" );
+    ok( $data, "decoded JSON for $label (json error: $@)" );
 
     validate_number_fields( $label, $response->decoded_content );
 
@@ -89,15 +91,18 @@ sub test_request_response($$;$)
     return $data;
 }
 
-# execute Catalyst::Test::request() with an HTTP request with the given data as json content.
-# call test_request_response() on the result and return the decoded json data
+# execute Catalyst::Test::request() with an HTTP request with the given data as JSON content.
+# call test_request_response() on the result and return the decoded JSON data
 sub test_data_request($$$;$)
 {
     my ( $method, $url, $data, $expect_error ) = @_;
 
-    my $api_token = get_test_api_key();
-
-    $url = ( index( $url, '?' ) > 0 ) ? "$url&key=$api_token" : "$url?key=$api_token";
+    my $uri = URI->new( $url );
+    unless ( $uri->query_param( 'key' ) )
+    {
+        $uri->query_param( 'key', get_test_api_key() );
+    }
+    $url = $uri->as_string;
 
     my $json = MediaWords::Util::JSON::encode_json( $data );
 
@@ -128,22 +133,28 @@ sub test_post($$;$)
 }
 
 # execute Catalyst::Test::request() on the given url with the given params and then call test_request_response()
-# to test and return the decode json data
+# to test and return the decode JSON data
 sub test_get($;$$)
 {
     my ( $url, $params, $expect_error ) = @_;
 
-    my $api_token = get_test_api_key();
+    my $uri = URI->new( $url );
 
-    $params //= {};
-    $params->{ key } //= $api_token;
+    foreach my $param_key ( keys %{ $params } )
+    {
+        my $param_value = $params->{ $param_key };
+        $uri->query_param( $param_key, $param_value );
+    }
 
-    my $encoded_params = join( "&", map { $_ . '=' . uri_escape( $params->{ $_ } ) } keys( %{ $params } ) );
+    unless ( $uri->query_param( 'key' ) )
+    {
+        $uri->query_param( 'key', get_test_api_key() );
+    }
 
-    my $full_url = ( index( $url, '?' ) > 0 ) ? "$url&$encoded_params" : "$url?$encoded_params";
+    $url = $uri->as_string;
 
     # Catalyst::Test::request()
-    return test_request_response( $full_url, request( $full_url ), $expect_error );
+    return test_request_response( $url, request( $url ), $expect_error );
 }
 
 # test that got_rows matches expected_rows by checking for the same number of elements, the matching up rows in

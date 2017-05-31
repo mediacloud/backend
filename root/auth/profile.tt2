@@ -55,13 +55,13 @@
 
 
 <header class="page-header">
-    <p class="page-title">API Token</p>
+    <p class="page-title">API Key</p>
 </header>
 
-    <div id="api_token" >
-        <span>[% api_token | html %]</span>
+    <div id="api_key" >
+        <span>[% api_key | html %]</span>
     </div>
-    <input type="button" name="regenerate_api_token" id="regenerate_api_token" value="Regenerate API token" />
+    <input type="button" name="regenerate_api_key" id="regenerate_api_key" value="Regenerate API key" />
     
 </div>
 
@@ -115,14 +115,14 @@
         });
     });
 
-    // Confirm the API token regeneration
+    // Confirm the API key regeneration
     jQuery(function()
     {
-        $("div.formNameValue input[type=button]#regenerate_api_token").click(function()
+        $("div.formNameValue input[type=button]#regenerate_api_key").click(function()
         {
             if (confirm("Regenerate the API key?")) {
 
-                var url = "[% c.uri_for( '/admin/profile/regenerate_api_token' ) %]";
+                var url = "[% c.uri_for( '/admin/profile/regenerate_api_key' ) %]";
                 window.location.href = url;
 
             }

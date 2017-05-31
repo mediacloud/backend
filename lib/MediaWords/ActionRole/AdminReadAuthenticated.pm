@@ -20,6 +20,9 @@ use MediaWords::Util::Config;
 
 use MediaWords::DBI::Auth::Roles ( ':all' );
 
-sub _get_auth_roles { return [ $MediaWords::DBI::Auth::Roles::ADMIN, $MediaWords::DBI::Auth::Roles::ADMIN_READONLY ] }
+sub _get_auth_roles
+{
+    return [ $MediaWords::DBI::Auth::Roles::List::ADMIN, $MediaWords::DBI::Auth::Roles::List::ADMIN_READONLY ];
+}
 
 1;

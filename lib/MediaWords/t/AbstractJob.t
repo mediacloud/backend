@@ -105,7 +105,7 @@ sub test_job_state($$$;$)
     is( $js->{ priority },   $MediaCloud::JobManager::Job::MJM_JOB_PRIORITY_NORMAL, "$label priority" );
 
     my $json_data = MediaWords::Util::JSON::decode_json( $js->{ args } );
-    is( $json_data->{ test }, $test, "$label args json test" );
+    is( $json_data->{ test }, $test, "$label args JSON test" );
 }
 
 # test the stateful job functinoality of AbstractJob
