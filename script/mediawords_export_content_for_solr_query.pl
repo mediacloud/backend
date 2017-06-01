@@ -22,7 +22,7 @@ use MediaWords::DB;
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
 
-Readonly my $MAX_ROWS => 100_000;
+Readonly my $MAX_ROWS => 10_000_000;
 
 # get the requested form of content for the story
 sub get_content
