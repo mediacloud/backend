@@ -57,6 +57,7 @@ use MediaWords::DBI::Media;
 use MediaWords::Job::TM::SnapshotTopic;
 use MediaWords::Solr;
 use MediaWords::TM::Model;
+use MediaWords::TM::Snapshot::GraphLayout;
 use MediaWords::Util::CSV;
 use MediaWords::Util::Colors;
 use MediaWords::Util::Config;
@@ -1122,6 +1123,30 @@ sub prune_links_to_min_size
     return $pruned_edges;
 }
 
+# call mediawords.tm.snapshot.graph_layout.layout_gexf
+sub layout_gexf($)
+{
+    my ( $gexf ) = @_;
+
+    my $xml = XML::Simple::XMLout( $gexf, XMLDecl => 1, RootName => 'gexf' );
+
+    my $layout = MediaWords::TM::Snapshot::GraphLayout::layout_gexf( $xml );
+
+    ERROR( Dumper( $layout ) );
+
+    my $nodes = $gexf->{ graph }->[ 0 ]->{ nodes }->{ node };
+
+    for my $node ( @{ $nodes } )
+    {
+        my $pos = $layout->{ $node->{ id } };
+        my ( $x, $y ) = $pos ? @{ $pos } : ( 0, 0 );
+        $node->{ 'viz:position' }->{ x } = $x;
+        $node->{ 'viz:position' }->{ y } = $y;
+    }
+
+    # scale_gexf_nodes( $gexf );
+}
+
 # add layout to gexf by calling graphviz
 sub layout_gexf_with_graphviz
 {
@@ -1265,7 +1290,7 @@ END
         'xmlns:xsi'          => "http://www.w3.org/2001/XMLSchema-instance",
         'xmlns:viz'          => "http://www.gexf.net/1.1draft/viz",
         'xsi:schemaLocation' => "http://www.gexf.net/1.2draft http://www.gexf.net/1.2draft/gexf.xsd",
-        'version'            => "1.2"
+        'version'            => "1.2",
     };
 
     my $meta = { 'lastmodifieddate' => Date::Format::time2str( '%Y-%m-%d', time ) };
@@ -1278,7 +1303,7 @@ END
 
     my $graph = {
         'mode'            => "static",
-        'defaultedgetype' => "directed",
+        'defaultedgetype' => "mutual",
     };
     push( @{ $gexf->{ graph } }, $graph );
 
@@ -1315,7 +1340,13 @@ END
         my $j = 0;
         while ( my ( $name, $type ) = each( %{ $_media_static_gexf_attribute_types } ) )
         {
-            push( @{ $node->{ attvalues }->{ attvalue } }, { for => $j++, value => $medium->{ $name } } );
+            my $value = $medium->{ $name };
+            if ( !defined( $value ) )
+            {
+                $value = ( $type eq 'integer' ) ? 0 : '';
+            }
+
+            push( @{ $node->{ attvalues }->{ attvalue } }, { for => $j++, value => $value } );
         }
 
         my $color_field = $options->{ color_field };
@@ -1327,10 +1358,12 @@ END
 
     scale_node_sizes( $graph->{ nodes }->{ node } );
 
-    layout_gexf_with_graphviz( $gexf );
-    my $layout_gexf = XML::Simple::XMLout( $gexf, XMLDecl => 1, RootName => 'gexf' );
+    layout_gexf( $gexf );
 
-    return $layout_gexf;
+    # layout_gexf_with_graphviz( $gexf );
+    my $xml = XML::Simple::XMLout( $gexf, XMLDecl => 1, RootName => 'gexf' );
+
+    return $xml;
 }
 
 # return true if there are any stories in the current topic_stories_snapshot_ table
