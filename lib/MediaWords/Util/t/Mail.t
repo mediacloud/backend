@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 12;
+use Test::More tests => 14;
 
 BEGIN
 {
@@ -101,6 +101,19 @@ sub test_email_templates()
             {
                 to        => $to,
                 full_name => $full_name,
+            }
+        );
+        ok( $message );
+        ok( MediaWords::Util::Mail::send_email( $message ) );
+    }
+
+    {
+        my $message = MediaWords::Util::Mail::Message::Templates::TopicSpiderUpdateMessage->new(
+            {
+                to                  => $to,
+                topic_name          => 'Test topic',
+                topic_url           => 'https://topics.com/topic/1',
+                topic_spider_status => 'Something new has happened.',
             }
         );
         ok( $message );

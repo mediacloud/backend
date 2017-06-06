@@ -11,5 +11,6 @@ use MediaWords::Util::Mail::Message::Templates::AuthActivationNeededMessage;
 use MediaWords::Util::Mail::Message::Templates::AuthAPIKeyResetMessage;
 use MediaWords::Util::Mail::Message::Templates::AuthPasswordChangedMessage;
 use MediaWords::Util::Mail::Message::Templates::AuthResetPasswordMessage;
+use MediaWords::Util::Mail::Message::Templates::TopicSpiderUpdateMessage;
 
 1;
