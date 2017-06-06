@@ -286,6 +286,8 @@ sub activate_user_via_token($$$)
         die 'Activation token is invalid.';
     }
 
+    $db->begin;
+
     # Set the password hash
     $db->query(
         <<"SQL",
@@ -305,6 +307,28 @@ SQL
 SQL
         $email
     );
+
+    eval {
+
+        my $user = MediaWords::DBI::Auth::Profile::user_info( $db, $email );
+
+        my $message = MediaWords::Util::Mail::Message::Templates::AuthActivatedMessage->new(
+            {
+                to        => $email,
+                full_name => $user->full_name(),
+            }
+        );
+        MediaWords::Util::Mail::send_email( $message );
+
+    };
+    if ( $@ )
+    {
+        $db->rollback;
+        WARN "Unable to send an email about activated user: $@";
+        die "Unable to send email about an activated user.";
+    }
+
+    $db->commit;
 }
 
 1;
