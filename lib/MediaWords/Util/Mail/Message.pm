@@ -11,6 +11,8 @@ use MediaWords::CommonLibs;
 
 import_python_module( __PACKAGE__, 'mediawords.util.mail' );
 
+# Doesn't import MediaWords::Util::Mail::Message::Templates to avoid circular dependency
+
 sub new
 {
     my ( $class, $args ) = @_;
