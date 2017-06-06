@@ -1,7 +1,6 @@
-from typing import Dict
-
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, Template
 import os
+from typing import Dict
 
 from mediawords.util.mail import Message
 from mediawords.util.paths import mc_root_path
@@ -21,26 +20,33 @@ class McMailTemplatesNotFound(McMailTemplatesException):
 class TemplateMessage(Message):
     """Generate email message using Jinja2 template."""
 
-    def __init__(self, to: str, subject: str, template_basename: str, attributes: Dict[str, str]):
+    def __init__(self, to: str, template_basename: str, attributes: Dict[str, str]):
 
         to = decode_object_from_bytes_if_needed(to)
-        subject = decode_object_from_bytes_if_needed(subject)
 
         if not to:
             raise McMailTemplatesException('"to" is not set.')
-        if not subject:
-            raise McMailTemplatesException('"subject" is not set.')
 
-        text_body = TemplateMessage.__jinja2_render(
+        text_template = TemplateMessage.__jinja2_template(
             template_filename='%s.txt' % template_basename,
-            attributes=attributes,
             autoescape=False,
         )
-        html_body = TemplateMessage.__jinja2_render(
+        html_template = TemplateMessage.__jinja2_template(
             template_filename='%s.html' % template_basename,
-            attributes=attributes,
             autoescape=True,
         )
+
+        # Parse subject out of text template's "content_body"
+        subject = TemplateMessage.__jinja2_content_title(
+            template=text_template,
+            attributes=attributes,
+        )
+        if not subject:
+            raise McMailTemplatesException('Unable to extract subject from template "%s"' % template_basename)
+
+        # Render content
+        text_body = text_template.render(attributes)
+        html_body = html_template.render(attributes)
 
         Message.__init__(
             self=self,
@@ -62,8 +68,8 @@ class TemplateMessage(Message):
         return email_templates_path
 
     @staticmethod
-    def __jinja2_render(template_filename: str, attributes: dict, autoescape: bool = True) -> str:
-        """Render Jinja2 template."""
+    def __jinja2_template(template_filename: str, autoescape: bool = True) -> Template:
+        """Render Jinja2 template body."""
 
         templates_path = TemplateMessage.__templates_path()
 
@@ -72,13 +78,36 @@ class TemplateMessage(Message):
 
         environment = Environment(loader=FileSystemLoader(templates_path), autoescape=autoescape)
         template = environment.get_template(template_filename)
-        return template.render(attributes)
+        return template
+
+    @staticmethod
+    def __jinja2_content_title(template: Template, attributes: dict) -> str:
+        """Extract 'content_title' from Jinja2 template."""
+        content_title_block_name = 'content_title'
+        # noinspection PyUnresolvedReferences
+        if content_title_block_name not in template.blocks:
+            raise McMailTemplatesException('"%s" block was not found in template.')
+        # noinspection PyUnresolvedReferences
+        content_title_block = template.blocks[content_title_block_name]
+        context = template.new_context(attributes)
+
+        lines = []
+        for line in content_title_block(context):
+            if len(line):
+                lines.append(line.strip())
+
+        if not len(lines) == 1:
+            raise McMailTemplatesException('"%s" spans across more than one line' % content_title_block_name)
+
+        content_title = lines[0].strip()
+        if len(content_title) == 0:
+            raise McMailTemplatesException('"%s" is empty.' % content_title_block_name)
+
+        return content_title
 
 
 class AuthActivationNeededMessage(TemplateMessage):
     """Generate and return "activation needed" email message."""
-
-    __EMAIL_SUBJECT = 'Activate your account'
 
     def __init__(self, to: str, full_name: str, activation_url: str, subscribe_to_newsletter: bool):
 
@@ -95,7 +124,6 @@ class AuthActivationNeededMessage(TemplateMessage):
         TemplateMessage.__init__(
             self=self,
             to=to,
-            subject=self.__EMAIL_SUBJECT,
             template_basename='activation_needed',
             attributes={
                 'full_name': full_name,
@@ -108,8 +136,6 @@ class AuthActivationNeededMessage(TemplateMessage):
 class AuthActivatedMessage(TemplateMessage):
     """Generate and return "activated" email message."""
 
-    __EMAIL_SUBJECT = 'Activated!'
-
     def __init__(self, to: str, full_name: str):
         if not full_name:
             raise McMailTemplatesException('"full_name" is not set.')
@@ -119,7 +145,6 @@ class AuthActivatedMessage(TemplateMessage):
         TemplateMessage.__init__(
             self=self,
             to=to,
-            subject=self.__EMAIL_SUBJECT,
             template_basename='activated',
             attributes={
                 'full_name': full_name,
@@ -129,8 +154,6 @@ class AuthActivatedMessage(TemplateMessage):
 
 class AuthResetPasswordMessage(TemplateMessage):
     """Generate and return "reset password" email message."""
-
-    __EMAIL_SUBJECT = 'Reset your password'
 
     def __init__(self, to: str, full_name: str, password_reset_url: str):
 
@@ -145,7 +168,6 @@ class AuthResetPasswordMessage(TemplateMessage):
         TemplateMessage.__init__(
             self=self,
             to=to,
-            subject=self.__EMAIL_SUBJECT,
             template_basename='reset_password_request',
             attributes={
                 'full_name': full_name,
@@ -157,8 +179,6 @@ class AuthResetPasswordMessage(TemplateMessage):
 class AuthPasswordChangedMessage(TemplateMessage):
     """Generate and return "password changed" email message."""
 
-    __EMAIL_SUBJECT = 'Password changed!'
-
     def __init__(self, to: str, full_name: str):
         if not full_name:
             raise McMailTemplatesException('"full_name" is not set.')
@@ -168,7 +188,6 @@ class AuthPasswordChangedMessage(TemplateMessage):
         TemplateMessage.__init__(
             self=self,
             to=to,
-            subject=self.__EMAIL_SUBJECT,
             template_basename='password_changed',
             attributes={
                 'full_name': full_name,
@@ -179,8 +198,6 @@ class AuthPasswordChangedMessage(TemplateMessage):
 class AuthAPIKeyResetMessage(TemplateMessage):
     """Generate and return "password changed" email message."""
 
-    __EMAIL_SUBJECT = 'API key reset!'
-
     def __init__(self, to: str, full_name: str):
         if not full_name:
             raise McMailTemplatesException('"full_name" is not set.')
@@ -190,7 +207,6 @@ class AuthAPIKeyResetMessage(TemplateMessage):
         TemplateMessage.__init__(
             self=self,
             to=to,
-            subject=self.__EMAIL_SUBJECT,
             template_basename='api_key_reset',
             attributes={
                 'full_name': full_name,

@@ -13,6 +13,9 @@ def test_auth_activation_needed_email():
         subscribe_to_newsletter=subscribe_to_newsletter,
     )
 
+    assert message.subject is not None
+    assert len(message.subject) > 3
+
     assert message.text_body is not None
     assert len(message.text_body) > 100
 
@@ -37,6 +40,9 @@ def test_auth_activated_email():
         full_name=full_name,
     )
 
+    assert message.subject is not None
+    assert len(message.subject) > 3
+
     assert message.text_body is not None
     assert len(message.text_body) > 100
 
@@ -57,6 +63,9 @@ def test_auth_reset_password_email():
         full_name=full_name,
         password_reset_url=password_reset_url,
     )
+
+    assert message.subject is not None
+    assert len(message.subject) > 3
 
     assert message.text_body is not None
     assert len(message.text_body) > 100
@@ -82,6 +91,9 @@ def test_auth_password_changed_email():
         full_name=full_name,
     )
 
+    assert message.subject is not None
+    assert len(message.subject) > 3
+
     assert message.text_body is not None
     assert len(message.text_body) > 100
 
@@ -100,6 +112,9 @@ def test_auth_api_key_reset_email():
         to='nowhere@mediacloud.org',
         full_name=full_name,
     )
+
+    assert message.subject is not None
+    assert len(message.subject) > 3
 
     assert message.text_body is not None
     assert len(message.text_body) > 100
