@@ -10,33 +10,9 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use POSIX qw(strftime);
-
 use MediaWords::DBI::Auth::Login;
 use MediaWords::DBI::Auth::Password;
 use MediaWords::Util::Mail;
-
-sub _send_password_changed_email($)
-{
-    my $email = shift;
-
-    # Send email
-    my $now           = strftime( "%a, %d %b %Y %H:%M:%S %z", localtime( time() ) );
-    my $email_subject = 'Your password has been changed';
-    my $email_message = <<"EOF";
-Your Media Cloud password has been changed on $now.
-
-If you made this change, no need to reply - you're all set.
-
-If you did not request this change, please contact Media Cloud support at
-www.mediacloud.org.
-EOF
-
-    unless ( MediaWords::Util::Mail::send_text_email( $email, $email_subject, $email_message ) )
-    {
-        die 'The password has been changed, but I was unable to send an email notifying you about the change.';
-    }
-}
 
 # Change password; die()s on failure
 sub change_password($$$$;$)
@@ -70,7 +46,27 @@ SQL
 
     unless ( $do_not_inform_via_email )
     {
-        _send_password_changed_email( $email );
+        my $user;
+        eval { $user = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
+        if ( $@ or ( !$user ) )
+        {
+            die "Unable to find user with email '$email'";
+        }
+
+        eval {
+            my $message = MediaWords::Util::Mail::Message::Templates::AuthPasswordChangedMessage->new(
+                {
+                    to        => $email,
+                    full_name => $user->full_name(),
+                }
+            );
+            MediaWords::Util::Mail::send_email( $message );
+        };
+        if ( $@ )
+        {
+            WARN "Unable to send email about changed password: $@";
+            die 'The password has been changed, but I was unable to send an email notifying you about the change.';
+        }
     }
 }
 
