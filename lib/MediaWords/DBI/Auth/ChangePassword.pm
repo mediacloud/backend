@@ -60,7 +60,10 @@ SQL
                     full_name => $user->full_name(),
                 }
             );
-            MediaWords::Util::Mail::send_email( $message );
+            unless ( MediaWords::Util::Mail::send_email( $message ) )
+            {
+                die "Unable to send email message.";
+            }
         };
         if ( $@ )
         {

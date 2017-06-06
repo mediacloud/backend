@@ -136,7 +136,10 @@ sub send_user_activation_token($$$;$)
                 subscribe_to_newsletter => $subscribe_to_newsletter,
             }
         );
-        MediaWords::Util::Mail::send_email( $message );
+        unless ( MediaWords::Util::Mail::send_email( $message ) )
+        {
+            die "Unable to send email message.";
+        }
     };
     if ( $@ )
     {
@@ -318,7 +321,10 @@ SQL
                 full_name => $user->full_name(),
             }
         );
-        MediaWords::Util::Mail::send_email( $message );
+        unless ( MediaWords::Util::Mail::send_email( $message ) )
+        {
+            die "Unable to send email message.";
+        }
 
     };
     if ( $@ )

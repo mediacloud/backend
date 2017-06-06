@@ -130,7 +130,10 @@ sub send_password_reset_token($$$)
                 password_reset_url => $password_reset_link,
             }
         );
-        MediaWords::Util::Mail::send_email( $message );
+        unless ( MediaWords::Util::Mail::send_email( $message ) )
+        {
+            die "Unable to send email message.";
+        }
 
     };
     if ( $@ )
