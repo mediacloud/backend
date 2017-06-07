@@ -10,6 +10,12 @@ l = create_logger(__name__)
 
 
 class McDownloadFileException(Exception):
+    """download_file() exception."""
+    pass
+
+
+class McDownloadFileToTempPathException(McDownloadFileException):
+    """download_file_to_temp_path() exception."""
     pass
 
 
@@ -39,10 +45,6 @@ def download_file(source_url: str, target_path: str) -> None:
                 'target_path': target_path,
                 'exception': str(ex),
             })
-
-
-class McDownloadFileToTempPathException(McDownloadFileException):
-    pass
 
 
 def download_file_to_temp_path(source_url: str) -> str:
