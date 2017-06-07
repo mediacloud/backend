@@ -299,9 +299,10 @@ sub test_send_user_activation_token($)
 {
     my ( $db ) = @_;
 
-    my $email          = 'test@user.login';
-    my $password       = 'userlogin123';
-    my $activation_url = 'http://activate.com/';
+    my $email                   = 'test@user.login';
+    my $password                = 'userlogin123';
+    my $activation_url          = 'http://activate.com/';
+    my $subscribe_to_newsletter = 1;
 
     eval {
 
@@ -323,11 +324,12 @@ sub test_send_user_activation_token($)
     ok( !$@, "Unable to add user: $@" );
 
     # Existing user
-    MediaWords::DBI::Auth::Register::send_user_activation_token( $db, $email, $activation_url );
+    MediaWords::DBI::Auth::Register::send_user_activation_token( $db, $email, $activation_url, $subscribe_to_newsletter );
 
     # Nonexisting user (call shouldn't fail because we don't want to reveal
     # which users are in the system so we pretend that we've sent the email)
-    MediaWords::DBI::Auth::Register::send_user_activation_token( $db, 'does@not.exist', $activation_url );
+    MediaWords::DBI::Auth::Register::send_user_activation_token( $db, 'does@not.exist', $activation_url,
+        $subscribe_to_newsletter );
 }
 
 sub main

@@ -11,6 +11,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::Util::Mail::Message;
+use MediaWords::Util::Mail::Message::Templates;
 
 {
 

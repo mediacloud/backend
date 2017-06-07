@@ -17,29 +17,6 @@ use MediaWords::Util::Mail;
 
 use URI::Escape;
 
-sub _send_password_reset_email($$)
-{
-    my ( $email, $password_reset_link ) = @_;
-
-    my $email_subject = 'Password reset link';
-    my $email_message = <<"EOF";
-Someone (hopefully that was you) has requested a link to change your password,
-and you can do this through the link below:
-
-$password_reset_link
-
-Your password won't change until you access the link above and create a new one.
-
-If you didn't request this, please ignore this email or contact Media Cloud
-support at www.mediacloud.org.
-EOF
-
-    unless ( MediaWords::Util::Mail::send_text_email( $email, $email_subject, $email_message ) )
-    {
-        die 'The password has been changed, but I was unable to send an email notifying you about the change.';
-    }
-}
-
 # Generate password reset token
 # Kept in a separate subroutine for easier testing.
 # Returns undef if user was not found.
@@ -125,20 +102,44 @@ sub send_password_reset_token($$$)
 {
     my ( $db, $email, $password_reset_link ) = @_;
 
-    $password_reset_link = _generate_password_reset_token( $db, $email, $password_reset_link );
+    my $full_name;
+    eval {
+        my $user = MediaWords::DBI::Auth::Profile::user_info( $db, $email );
+        $full_name = $user->full_name();
+    };
+    if ( $@ )
+    {
+        WARN "Unable to fetch user $email: $@";
+        $full_name = 'Nonexistent user';
+    }
 
     # If user was not found, send an email to a random address anyway to avoid timing attach
+    $password_reset_link = _generate_password_reset_token( $db, $email, $password_reset_link );
     unless ( $password_reset_link )
     {
         $email               = 'nowhere@mediacloud.org';
         $password_reset_link = 'password reset link';
     }
 
-    eval { _send_password_reset_email( $email, $password_reset_link ); };
+    eval {
+
+        my $message = MediaWords::Util::Mail::Message::Templates::AuthResetPasswordMessage->new(
+            {
+                to                 => $email,
+                full_name          => $full_name,
+                password_reset_url => $password_reset_link,
+            }
+        );
+        unless ( MediaWords::Util::Mail::send_email( $message ) )
+        {
+            die "Unable to send email message.";
+        }
+
+    };
     if ( $@ )
     {
-        my $error_message = "Unable to send email to user: $@";
-        die $error_message;
+        WARN "Unable to send password reset email: $@";
+        die 'Unable to send password reset email.';
     }
 }
 
