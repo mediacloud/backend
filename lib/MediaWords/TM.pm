@@ -195,18 +195,15 @@ SQL
 
     for my $email ( @{ $emails } )
     {
-        MediaWords::Util::Mail::send_text_email( $email, "Topic Spider Update for $topic->{ name }", <<EMAIL );
-This is an update email for a Media Cloud topic spidering job.
-
-Topic: $topic->{ name }
-Update: $message
-URL: https://topics.mediacloud.org/#/topics/$topic->{ topics_id }/summary
-
-You got this email because you have a user account on Media Cloud
-that has write or admin permission for the above topic.
-
-Thanks!
-EMAIL
+        my $message = MediaWords::Util::Mail::Message::Templates::TopicSpiderUpdateMessage->new(
+            {
+                to                  => $email,
+                topic_name          => $topic->{ name },
+                topic_url           => "https://topics.mediacloud.org/#/topics/$topic->{ topics_id }/summary",
+                topic_spider_status => $message,
+            }
+        );
+        MediaWords::Util::Mail::send_email( $message );
     }
 
 }

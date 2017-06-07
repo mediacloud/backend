@@ -11,7 +11,6 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Crypt::SaltedHash;
-use POSIX qw(strftime);
 use Readonly;
 
 use MediaWords::Util::Mail;
