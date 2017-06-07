@@ -61,7 +61,7 @@ class TemplateMessage(Message):
         """Return path to Jinja2 email templates."""
         root_path = mc_root_path()
         email_templates_path = os.path.join(
-            root_path, 'lib', 'MediaWords', 'Util', 'Mail', 'Message', 'templates', 'email-templates'
+            root_path, 'lib', 'MediaWords', 'Util', 'Mail', 'Message', 'Templates', 'email-templates'
         )
         if not os.path.isdir(email_templates_path):
             raise McMailTemplatesNotFound('Templates directory was not found at "%s".' % email_templates_path)
