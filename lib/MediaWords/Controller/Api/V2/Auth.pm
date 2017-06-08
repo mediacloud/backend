@@ -201,7 +201,11 @@ sub resend_activation_link : Local
         die "'activation_url' does not look like a HTTP URL.";
     }
 
-    eval { MediaWords::DBI::Auth::Register::send_user_activation_token( $db, $email, $activation_url ); };
+    my $subscribe_to_newsletter = 1;
+    eval {
+        MediaWords::DBI::Auth::Register::send_user_activation_token( $db, $email, $activation_url,
+            $subscribe_to_newsletter );
+    };
     if ( $@ )
     {
         die "Unable to resend activation link: $@";
