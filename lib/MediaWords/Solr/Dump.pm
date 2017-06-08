@@ -1230,6 +1230,8 @@ sub _delete_stories_from_import_queue
 {
     my ( $db, $delta, $stories_ids ) = @_;
 
+    INFO( "deleting stories from import queue ..." );
+
     if ( $delta )
     {
         return unless ( @{ $stories_ids } );
