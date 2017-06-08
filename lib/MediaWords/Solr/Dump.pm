@@ -155,14 +155,35 @@ sub _add_extra_stories_to_import
 
     my $max_queued_stories = List::Util::max( 0, $max_processed_stories - $num_delta_stories );
 
-    # order by stories_id so that we will tend to get story_sentences in chunked pages as much as possible; just using
-    # random stories_ids for collections of old stories (for instance queued to solr_import_extra_stories from a
-    # media tag update) can make this query a couple orders of magnitude slower
+    # first import any stories from snapshotted topics so that those snapshots become searchable ASAP.
+    # do this as a separate query because I couldn't figure out a single query that resulted in a reasonable
+    # postgres query plan given a very large solr_import_extra_stories table
     my $num_queued_stories = $db->query(
         <<"SQL",
         INSERT INTO delta_import_stories (stories_id)
+            SELECT distinct sies.stories_id
+            FROM solr_import_extra_stories sies
+                join snap.stories ss using ( stories_id )
+                join snapshots s on ( ss.snapshots_id = s.snapshots_id and not s.searchable )
+            WHERE MOD( sies.stories_id, $num_proc ) = ( $proc - 1 )
+            ORDER BY sies.stories_id
+            LIMIT ?
+SQL
+        $max_queued_stories
+    )->rows;
+
+    INFO "added $num_queued_stories topic stories to the import";
+
+    $max_queued_stories -= $num_queued_stories;
+
+    # order by stories_id so that we will tend to get story_sentences in chunked pages as much as possible; just using
+    # random stories_ids for collections of old stories (for instance queued to solr_import_extra_stories from a
+    # media tag update) can make this query a couple orders of magnitude slower
+    $num_queued_stories += $db->query(
+        <<"SQL",
+        INSERT INTO delta_import_stories (stories_id)
             SELECT stories_id
-            FROM solr_import_extra_stories
+            FROM solr_import_extra_stories s
             WHERE MOD( stories_id, $num_proc ) = ( $proc - 1 )
             ORDER BY stories_id
             LIMIT ?
@@ -172,6 +193,7 @@ SQL
 
     if ( $num_queued_stories > 0 )
     {
+        # use pg_class estimate to avoid expensive count(*) query
         my ( $total_queued_stories ) = $db->query(
             <<SQL
             SELECT reltuples::bigint
@@ -1207,6 +1229,8 @@ sub _get_dump_file
 sub _delete_stories_from_import_queue
 {
     my ( $db, $delta, $stories_ids ) = @_;
+
+    INFO( "deleting stories from import queue ..." );
 
     if ( $delta )
     {
