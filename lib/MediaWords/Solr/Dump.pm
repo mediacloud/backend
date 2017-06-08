@@ -163,10 +163,8 @@ sub _add_extra_stories_to_import
         INSERT INTO delta_import_stories (stories_id)
             SELECT distinct sies.stories_id
             FROM solr_import_extra_stories sies
-                left join (
-                    snap.stories ss
-                    join snapshots s on ( ss.snapshots_id = s.snapshots_id and not s.searchable )
-                ) using ( stories_id )
+                join snap.stories ss using ( stories_id )
+                join snapshots s on ( ss.snapshots_id = s.snapshots_id and not s.searchable )
             WHERE MOD( sies.stories_id, $num_proc ) = ( $proc - 1 )
             ORDER BY sies.stories_id
             LIMIT ?
