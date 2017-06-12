@@ -42,7 +42,6 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use Data::Dumper;
 use Date::Format;
 use Encode;
 use File::Temp;
@@ -1131,8 +1130,6 @@ sub layout_gexf($)
     my $xml = XML::Simple::XMLout( $gexf, XMLDecl => 1, RootName => 'gexf' );
 
     my $layout = MediaWords::TM::Snapshot::GraphLayout::layout_gexf( $xml );
-
-    ERROR( Dumper( $layout ) );
 
     my $nodes = $gexf->{ graph }->[ 0 ]->{ nodes }->{ node };
 
