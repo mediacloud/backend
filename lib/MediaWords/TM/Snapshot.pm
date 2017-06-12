@@ -734,18 +734,42 @@ END
 }
 
 # add tags, codes, partisanship and other extra data to all snapshot media for the purpose
-# of making a gexf or csv snapshot.  return the list of extra fields added.
+# of making a gexf or csv snapshot.  also add the data in the attribute_data list to the media.
+# add the names and types of extra fields to $_media_static_gexf_attribute_types.
+# return the list of extra fields added.
 sub add_extra_fields_to_snapshot_media
 {
-    my ( $db, $timespan, $media ) = @_;
+    my ( $db, $timespan, $media, $attribute_data ) = @_;
 
     my $partisan_field = add_partisan_code_to_snapshot_media( $db, $timespan, $media );
     my $partisan_retweet_field = add_partisan_retweet_to_snapshot_media( $db, $timespan, $media );
     my $fake_news_field = add_fake_news_to_snapshot_media( $db, $timespan, $media );
 
-    my $all_fields = [ $partisan_field, $partisan_retweet_field, $fake_news_field ];
+    my $media_lookup = {};
+    map { $media_lookup->{ $_->{ media_id } } = $_ } @{ $media };
 
-    map { $_media_static_gexf_attribute_types->{ $_ } = 'string'; } @{ $all_fields };
+    $attribute_data ||= [];
+
+    my $attribute_fields_lookup = {};
+
+    for my $row ( @{ $attribute_data } )
+    {
+        my $medium = $media_lookup->{ $row->{ media_id } };
+        next unless ( $medium );
+
+        map { $medium->{ $_ } = $row->{ $_ } } keys( %{ $row } );
+        map { $attribute_fields_lookup->{ $_ } } keys( %{ $row } );
+    }
+
+    my $attribute_fields = [ keys( %{ $attribute_fields_lookup } ) ];
+
+    my $all_fields = [ $partisan_field, $partisan_retweet_field, $fake_news_field, @{ $attribute_fields } ];
+
+    for my $field ( @{ $all_fields } )
+    {
+        my $type = ( $field =~ /(_id|_count)$/ ) ? 'integer' : 'string';
+        $_media_static_gexf_attribute_types->{ $field } = $type;
+    }
 
     return $all_fields;
 }
@@ -917,17 +941,19 @@ sub get_weighted_edges
 {
     my ( $db, $media, $options ) = @_;
 
-    my $max_media            = $options->{ max_media };
-    my $include_weights      = $options->{ include_weights } || 0;
+    my $include_weights      = $options->{ include_weights }      || 0;
     my $max_links_per_medium = $options->{ max_links_per_medium } || 1_000_000;
 
-    DEBUG(
-"get_weighted_edges: $max_media max media; $include_weights include_weights; $max_links_per_medium max_links_per_medium"
-    );
+    DEBUG( "get_weighted_edges: $include_weights include_weights; $max_links_per_medium max_links_per_medium" );
 
-    my $media_links = $db->query( <<END, $max_media, $max_links_per_medium )->hashes;
+    my $id_table = $db->get_temporary_ids_table( [ map { $_->{ media_id } } @{ $media } ] );
+
+    my $media_links = $db->query( <<END, $max_links_per_medium )->hashes;
 with top_media as (
-    select * from snapshot_medium_link_counts order by media_inlink_count desc limit \$1
+    select id media_id, coalesce( mlc.inlink_count, 0 ) inlink_count
+        from $id_table id
+            join snapshot_medium_link_counts mlc on ( mlc.media_id = id.id )
+        order by coalesce( media_inlink_count, 0 ) desc
 ),
 
 ranked_media as (
@@ -938,7 +964,7 @@ ranked_media as (
             join top_media rlc on ( l.ref_media_id = rlc.media_id )
 )
 
-select * from ranked_media where source_rank <= \$2
+select * from ranked_media where source_rank <= \$1
 END
 
     my $media_map = {};
@@ -1035,6 +1061,8 @@ sub scale_gexf_nodes
     for my $c ( qw(x y) )
     {
         my @defined_c = grep { defined( $_->{ 'viz:position' }->{ $c } ) } @{ $nodes };
+        return unless ( @defined_c );
+
         my $max = List::Util::max( map { $_->{ 'viz:position' }->{ $c } } @defined_c );
         my $min = List::Util::min( map { $_->{ 'viz:position' }->{ $c } } @defined_c );
 
@@ -1220,6 +1248,46 @@ END
     return $description;
 }
 
+sub _get_gexf_media
+{
+    my ( $db, $timespan, $options ) = @_;
+
+    my $exclude_media_ids_list = join( ',', map { int( $_ ) } ( @{ $options->{ exclude_media_ids } }, 0 ) );
+
+    my $media_ids = $db->query( <<SQL, $options->{ max_media } )->flat;
+select media_id
+    from snapshot_media m
+        join snapshot_medium_link_counts mlc using ( media_id )
+    order
+        by mlc.media_inlink_count desc
+    limit ?
+SQL
+
+    push( @{ $media_ids }, @{ $options->{ include_media_ids } } ) if ( $options->{ include_media_ids } );
+
+    my $id_table = $db->get_temporary_ids_table( $media_ids );
+
+    my $media = $db->query( <<SQL )->hashes;
+select
+        m.*,
+        coalesce( mlc.media_inlink_count, 0 ) inlink_count,
+        coalesce( mlc.story_count, 0 ) story_count,
+        coalesce( mlc.bitly_click_count, 0 ) bitly_click_count,
+        coalesce( mlc.facebook_share_count, 0 ) facebook_share_count,
+        coalesce( mlc.simple_tweet_count, 0 ) simple_tweet_count,
+        coalesce( mlc.normalized_tweet_count, 0 ) normalized_tweet_count
+    from snapshot_media_with_types m
+        join $id_table id on ( m.media_id = id.id )
+        left join snapshot_medium_link_counts mlc using ( media_id )
+    where
+        m.media_id not in ( $exclude_media_ids_list )
+    order
+        by mlc.media_inlink_count desc
+SQL
+
+    return $media;
+}
+
 =head2 get_gexf_snapshot( $db, $timespan, $options )
 
 Get a gexf snapshot of the graph described by the linked media sources within the given topic timespan.
@@ -1233,6 +1301,8 @@ Accepts these $options:
 * include_weights - if true, use weighted edges
 * max_links_per_medium - if set, only inclue the top $max_links_per_media out links from each medium, sorted by medium_link_counts.link_count and then inlink_count of the target medium
 * exclude_media_ids - list of media_ids to exclude
+* include_media_ids - list of media_ids to to the list
+* attribute_data - list of hashes with fields to include as attributes' each hash must include a media_id
 
 =cut
 
@@ -1243,27 +1313,9 @@ sub get_gexf_snapshot
     $options->{ max_media }   ||= $MAX_GEXF_MEDIA;
     $options->{ color_field } ||= 'media_type';
 
-    my $exclude_media_ids_list = join( ',', map { int( $_ ) } ( @{ $options->{ exclude_media_ids } }, 0 ) );
+    my $media = _get_gexf_media( $db, $timespan, $options );
 
-    my $media = $db->query( <<END, $options->{ max_media } )->hashes;
-select distinct
-        m.*,
-        mlc.media_inlink_count inlink_count,
-        mlc.story_count,
-        mlc.bitly_click_count,
-        mlc.facebook_share_count,
-        mlc.simple_tweet_count,
-        mlc.normalized_tweet_count
-    from snapshot_media_with_types m
-        join snapshot_medium_link_counts mlc using ( media_id )
-    where
-        m.media_id not in ( $exclude_media_ids_list )
-    order
-        by mlc.media_inlink_count desc
-    limit ?
-END
-
-    add_extra_fields_to_snapshot_media( $db, $timespan, $media );
+    add_extra_fields_to_snapshot_media( $db, $timespan, $media, $options->{ attribute_data } );
 
     my $gexf = {
         'xmlns'              => "http://www.gexf.net/1.2draft",
@@ -1302,12 +1354,13 @@ END
     my $edge_lookup;
     map { $edge_lookup->{ $_->{ source } } = 1; $edge_lookup->{ $_->{ target } } = 1; } @{ $edges };
 
-    my $total_link_count = 1;
-    map { $total_link_count += $_->{ inlink_count } } @{ $media };
-
     for my $medium ( @{ $media } )
     {
-        next unless ( $edge_lookup->{ $medium->{ media_id } } );
+        # delete any media that do not link to any other media, unless include_media_ids is specified
+        if ( $options->{ include_media_ids } && @{ $options->{ include_media_ids } } )
+        {
+            next unless ( $edge_lookup->{ $medium->{ media_id } } );
+        }
 
         my $node = {
             id    => $medium->{ media_id },
@@ -1332,7 +1385,7 @@ END
 
     scale_node_sizes( $graph->{ nodes }->{ node } );
 
-    layout_gexf_with_graphviz( $gexf );
+    # layout_gexf_with_graphviz( $gexf );
     my $layout_gexf = XML::Simple::XMLout( $gexf, XMLDecl => 1, RootName => 'gexf' );
 
     return $layout_gexf;
