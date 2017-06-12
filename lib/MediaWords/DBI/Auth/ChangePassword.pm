@@ -114,7 +114,7 @@ SQL
     eval { $user = MediaWords::DBI::Auth::Login::login_with_email_password( $db, $email, $password_old ); };
     if ( $@ or ( !$user ) )
     {
-        die "Old password is incorrect: $@";
+        die "Unable to log in with old password: $@";
     }
 
     # Execute the change

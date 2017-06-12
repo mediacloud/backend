@@ -12,7 +12,7 @@ use MediaWords::CommonLibs;
 
 use HTTP::HashServer;
 use Readonly;
-use Test::More tests => 158;
+use Test::More tests => 163;
 use Test::Deep;
 
 use URI;
@@ -60,14 +60,7 @@ SQL
             $email
         );
 
-        # Confirm that we still can't log due to unsuccessful login delay
-        eval { MediaWords::DBI::Auth::Login::login_with_email_password( $db, $email, $password ); };
-        ok( $@ );
-
-        # Imposed delay after unsuccessful login
-        sleep( 2 );
-
-        # Confirm that we can log in after the delay
+        # Confirm that we can log in after activation
         my $user;
         eval { $user = MediaWords::DBI::Auth::Login::login_with_email_password( $db, $email, $password ); };
         ok( !$@ );
@@ -138,9 +131,6 @@ sub test_activate($)
             ok( $login->{ 'error' } );
         }
     }
-
-    # Imposed delay after unsuccessful login
-    sleep( 2 );
 
     # Get activation token manually
     my $final_activation_url =
@@ -395,52 +385,87 @@ sub test_login($)
 {
     my ( $db ) = @_;
 
-    my $email    = 'test@auth.login';
-    my $password = 'authlogin';
+    {
+        my $email    = 'test@auth.login';
+        my $password = 'authlogin';
 
-    eval {
+        eval {
 
-        my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
-            email                        => $email,
-            full_name                    => 'auth login',
-            notes                        => '',
-            role_ids                     => [ 1 ],
-            active                       => 1,
-            password                     => $password,
-            password_repeat              => $password,
-            activation_url               => '',             # user is active, no need for activation URL
-            weekly_requests_limit        => 1000,
-            weekly_requested_items_limit => 1000,
-        );
+            my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
+                email                        => $email,
+                full_name                    => 'auth login',
+                notes                        => '',
+                role_ids                     => [ 1 ],
+                active                       => 1,
+                password                     => $password,
+                password_repeat              => $password,
+                activation_url               => '',             # user is active, no need for activation URL
+                weekly_requests_limit        => 1000,
+                weekly_requested_items_limit => 1000,
+            );
 
-        MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
-    };
-    ok( !$@, "Unable to add user: $@" );
+            MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
+        };
+        ok( !$@, "Unable to add user: $@" );
 
-    my $r = test_post( '/api/v2/auth/login', { email => $email, password => $password } );
-    is( $r->{ success }, 1 );
+        my $r = test_post( '/api/v2/auth/login', { email => $email, password => $password } );
+        is( $r->{ success }, 1 );
 
-    my $db_api_key = $db->query(
-        <<SQL,
-        SELECT *
-        FROM auth_user_api_keys
-        WHERE ip_address IS NULL
-          AND auth_users_id = (
-            SELECT auth_users_id
-            FROM auth_users
-            WHERE email = ?
-          )
-        ORDER BY auth_user_api_keys_id DESC
-        LIMIT 1
+        my $db_api_key = $db->query(
+            <<SQL,
+            SELECT *
+            FROM auth_user_api_keys
+            WHERE ip_address IS NULL
+              AND auth_users_id = (
+                SELECT auth_users_id
+                FROM auth_users
+                WHERE email = ?
+              )
+            ORDER BY auth_user_api_keys_id DESC
+            LIMIT 1
 SQL
-        $email
-    )->hash;
+            $email
+        )->hash;
 
-    is( $r->{ profile }->{ api_key }, $db_api_key->{ api_key }, "'/api/v2/auth/login' API key" );
+        is( $r->{ profile }->{ api_key }, $db_api_key->{ api_key }, "'/api/v2/auth/login' API key" );
 
-    Readonly my $expect_error => 1;
-    my $r_not_found = test_post( '/api/v2/auth/login', { email => $email, password => "$password FOO" }, $expect_error );
-    ok( $r_not_found->{ error } =~ /was not found or password/i, "'/api/v2/auth/login' status for wrong password" );
+        Readonly my $expect_error => 1;
+        my $r_not_found = test_post( '/api/v2/auth/login', { email => $email, password => "$password FOO" }, $expect_error );
+        ok( $r_not_found->{ error } =~ /was not found or password/i,
+            "'/api/v2/auth/login' status for wrong password: " . $r_not_found->{ error } );
+    }
+
+    # Inactive user
+    {
+        my $email    = 'test@auth.logininactive';
+        my $password = 'authlogininactive';
+
+        eval {
+
+            my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
+                email                        => $email,
+                full_name                    => 'auth login',
+                notes                        => '',
+                role_ids                     => [ 1 ],
+                active                       => 0,
+                password                     => $password,
+                password_repeat              => $password,
+                activation_url               => 'https://activate.com/activate.php',
+                weekly_requests_limit        => 1000,
+                weekly_requested_items_limit => 1000,
+            );
+
+            MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
+        };
+        ok( !$@, "Unable to add user: $@" );
+
+        my $expect_error = 1;
+        my $r = test_post( '/api/v2/auth/login', { email => $email, password => $password }, $expect_error );
+        ok( $r->{ error } );
+
+        # Make sure the error message explicitly states that login failed due to user not being active
+        like( $r->{ error }, qr/not active/i );
+    }
 }
 
 sub test_single($)
