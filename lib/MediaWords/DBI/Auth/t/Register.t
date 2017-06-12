@@ -12,7 +12,7 @@ use MediaWords::CommonLibs;
 
 use HTTP::HashServer;
 use Readonly;
-use Test::More tests => 28;
+use Test::More tests => 29;
 use Test::Deep;
 use URI;
 use URI::QueryParam;
@@ -207,7 +207,11 @@ sub test_activate_user_via_token($)
 
         # Test logging in
         eval { MediaWords::DBI::Auth::Login::login_with_email_password( $db, $email, $password ); };
-        ok( $@ );
+        my $error_message = $@;
+        ok( $error_message );
+
+        # Make sure the error message explicitly states that login failed due to user not being active
+        like( $error_message, qr/not active/i );
     }
 
     # Make sure activation token is set

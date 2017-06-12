@@ -1740,7 +1740,7 @@ API call is rate-limited.
 
 ```json
 {
-    "error": "User was not found, password is incorrect or some other reason."
+    "error": "User was not found, password is incorrect, user is inactive or some other reason."
 }
 ```
 

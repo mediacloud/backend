@@ -312,7 +312,7 @@ sub login : Local
     eval { $user = MediaWords::DBI::Auth::Login::login_with_email_password( $db, $email, $password ); };
     if ( $@ or ( !$user ) )
     {
-        die "User '$email' was not found or password is incorrect.";
+        die "Unable to log in: $@";
     }
 
     my $user_hash = _user_profile_hash( $db, $email );
