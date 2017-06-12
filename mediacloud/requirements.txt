@@ -9,9 +9,6 @@
 # Unit test coverage
 coverage
 
-# forceatlas2 network layout
-ForceAtlas2
-
 # Stemming Hausa words
 hausastemmer
 
