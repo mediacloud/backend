@@ -48,9 +48,9 @@ database:
         #secret_access_key  : "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
         #bucket_name        : "mediacloud-bitly-processing-results"
         #directory_name     : "json_blobs"
-
-        ### (optional) Local cache (relative to "$data_dir/cache/")
-        #cache_root_dir     : "bitly_processing_results/"
+        
+        ### Cache raw Bit.ly processing results locally?
+        #cache_bitly_processing_results : "no"
 
 ## Job manager (MediaCloud::JobManager) configuration
 job_manager:
@@ -127,6 +127,7 @@ supervisor:
 
         # other configurable supervisor programs
         #create_missing_partitions
+        #purge_object_caches
         #facebook_fetch_story_stats
         #process_bitly_schedule
         #extractor_python_readability_server
@@ -360,7 +361,7 @@ mediawords:
     ### doesn't exist in PostgreSQL storage, S3 will be tried instead)
     fallback_postgresql_downloads_to_s3 : "no"
 
-    ### Enable local (CHI-based) Amazon S3 download caching?
+    ### Enable local Amazon S3 download caching?
     cache_s3_downloads : "no"
 
     #controls the maximum time SQL queries can run for -- time is in ms

@@ -97,11 +97,11 @@ my $_store_amazon_s3 = lazy
     }
 
     my $store_package_name = 'MediaWords::KeyValueStore::AmazonS3';
-    my $cache_root_dir     = undef;
+    my $cache_table        = undef;
     if ( $config->{ mediawords }->{ cache_s3_downloads } eq 'yes' )
     {
         $store_package_name = 'MediaWords::KeyValueStore::CachedAmazonS3';
-        $cache_root_dir     = $config->{ mediawords }->{ data_dir } . '/cache/s3_downloads';
+        $cache_table        = 'cache.s3_raw_downloads_cache';
     }
 
     return $store_package_name->new(
@@ -110,7 +110,7 @@ my $_store_amazon_s3 = lazy
             secret_access_key => $config->{ amazon_s3 }->{ downloads }->{ secret_access_key },
             bucket_name       => $config->{ amazon_s3 }->{ downloads }->{ bucket_name },
             directory_name    => $config->{ amazon_s3 }->{ downloads }->{ directory_name },
-            cache_root_dir    => $cache_root_dir,
+            cache_table       => $cache_table,
         }
     );
 };
