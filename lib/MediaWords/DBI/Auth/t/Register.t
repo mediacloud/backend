@@ -12,7 +12,7 @@ use MediaWords::CommonLibs;
 
 use HTTP::HashServer;
 use Readonly;
-use Test::More tests => 28;
+use Test::More tests => 29;
 use Test::Deep;
 use URI;
 use URI::QueryParam;
@@ -207,7 +207,11 @@ sub test_activate_user_via_token($)
 
         # Test logging in
         eval { MediaWords::DBI::Auth::Login::login_with_email_password( $db, $email, $password ); };
-        ok( $@ );
+        my $error_message = $@;
+        ok( $error_message );
+
+        # Make sure the error message explicitly states that login failed due to user not being active
+        like( $error_message, qr/not active/i );
     }
 
     # Make sure activation token is set
@@ -299,9 +303,10 @@ sub test_send_user_activation_token($)
 {
     my ( $db ) = @_;
 
-    my $email          = 'test@user.login';
-    my $password       = 'userlogin123';
-    my $activation_url = 'http://activate.com/';
+    my $email                   = 'test@user.login';
+    my $password                = 'userlogin123';
+    my $activation_url          = 'http://activate.com/';
+    my $subscribe_to_newsletter = 1;
 
     eval {
 
@@ -323,11 +328,12 @@ sub test_send_user_activation_token($)
     ok( !$@, "Unable to add user: $@" );
 
     # Existing user
-    MediaWords::DBI::Auth::Register::send_user_activation_token( $db, $email, $activation_url );
+    MediaWords::DBI::Auth::Register::send_user_activation_token( $db, $email, $activation_url, $subscribe_to_newsletter );
 
     # Nonexisting user (call shouldn't fail because we don't want to reveal
     # which users are in the system so we pretend that we've sent the email)
-    MediaWords::DBI::Auth::Register::send_user_activation_token( $db, 'does@not.exist', $activation_url );
+    MediaWords::DBI::Auth::Register::send_user_activation_token( $db, 'does@not.exist', $activation_url,
+        $subscribe_to_newsletter );
 }
 
 sub main

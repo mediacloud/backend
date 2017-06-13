@@ -129,8 +129,9 @@ sub map_GET
     my $num_media            = $c->req->params->{ num_media } || 500;
     my $include_weights      = $c->req->params->{ include_weights } || 0;
     my $num_links_per_medium = $c->req->params->{ num_links_per_medium } || 1000;
+    my $exclude_media_ids    = $c->req->params->{ exclude_media_ids } || [];
 
-    MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
+    $exclude_media_ids = [ $exclude_media_ids ] unless ( ref( $exclude_media_ids ) eq ref( [] ) );
 
     my $db = $c->dbis;
 
@@ -142,9 +143,11 @@ sub map_GET
         max_media            => $num_media,
         color_field          => $color_field,
         include_weights      => $include_weights,
-        max_links_per_medium => $num_links_per_medium
+        max_links_per_medium => $num_links_per_medium,
+        exclude_media_ids    => $exclude_media_ids
     };
     my $gexf = MediaWords::TM::Snapshot::get_gexf_snapshot( $db, $timespan, $gexf_options );
+
     MediaWords::TM::Snapshot::discard_temp_tables( $db );
 
     my $base_url = $c->uri_for( '/' );

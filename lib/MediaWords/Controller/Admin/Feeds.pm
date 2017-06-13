@@ -170,7 +170,7 @@ sub invalid_syndicated_feed
     my $ua       = MediaWords::Util::Web::UserAgent->new();
     my $response = $ua->get( $feed->{ url } );
 
-    return "url fetch failed: " . $response->as_string if ( !$response->is_success );
+    return "url fetch for '$feed->{ url }' failed: " . $response->as_string if ( !$response->is_success );
 
     eval { XML::FeedPP->new( $response->decoded_content ) };
 

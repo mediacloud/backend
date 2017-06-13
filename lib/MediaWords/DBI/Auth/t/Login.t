@@ -12,7 +12,7 @@ use MediaWords::CommonLibs;
 
 use HTTP::HashServer;
 use Readonly;
-use Test::More tests => 24;
+use Test::More tests => 29;
 use Test::Deep;
 
 use MediaWords::Test::DB;
@@ -100,7 +100,11 @@ sub test_login_with_email_password($)
         ok( !$@, "Unable to add user: $@" );
 
         eval { MediaWords::DBI::Auth::Login::login_with_email_password( $db, $inactive_user_email, $password ); };
-        ok( $@ );
+        my $error_message = $@;
+        ok( $error_message );
+
+        # Make sure the error message explicitly states that login failed due to user not being active
+        like( $error_message, qr/not active/i );
     }
 }
 
@@ -164,6 +168,40 @@ sub test_login_with_api_key($)
         my $api_key_user = MediaWords::DBI::Auth::Login::login_with_api_key( $db, $per_ip_api_key, $ip_address );
         ok( $api_key_user );
         is( $api_key_user->email(), $email );
+    }
+
+    # Inactive user
+    {
+        my $inactive_user_email = 'inactive@user.com';
+
+        eval {
+            my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
+                email                        => $inactive_user_email,
+                full_name                    => $full_name,
+                notes                        => 'Test test test',
+                role_ids                     => [ 1 ],
+                active                       => 0,
+                password                     => $password,
+                password_repeat              => $password,
+                activation_url               => 'https://activate.com/activate',
+                weekly_requests_limit        => 123,
+                weekly_requested_items_limit => 456,
+            );
+
+            MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
+        };
+        ok( !$@, "Unable to add user: $@" );
+
+        my $user = MediaWords::DBI::Auth::Profile::user_info( $db, $inactive_user_email );
+        ok( $user );
+        my $global_api_key = $user->global_api_key();
+
+        eval { MediaWords::DBI::Auth::Login::login_with_api_key( $db, $global_api_key, $ip_address ); };
+        my $error_message = $@;
+        ok( $error_message );
+
+        # Make sure the error message explicitly states that login failed due to user not being active
+        like( $error_message, qr/not active/i );
     }
 }
 

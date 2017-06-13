@@ -11,8 +11,10 @@ local
 # Media Cloud virtualenv
 mc-venv/
 
-# Python bytecode files
+# Byte-compiled / optimized / DLL files
+__pycache__
 *.py[cod]
+*$py.class
 
 # Vim backup files
 [._]*.s[a-w][a-z]

@@ -12,20 +12,16 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::Util::Config;
-use CHI;
 use Readonly;
 
 # Default compression method for cache
 Readonly my $CACHE_DEFAULT_COMPRESSION_METHOD => $MediaWords::KeyValueStore::COMPRESSION_GZIP;
 
-# Configuration
-has '_conf_cache_root_dir' => ( is => 'rw' );
-
-# CHI
-has '_chi' => ( is => 'rw' );
-
 # Process PID (to prevent forks attempting to clone the Net::Amazon::S3 accessor objects)
 has '_pid' => ( is => 'rw', default => 0 );
+
+# Table to use for caching objects
+has '_conf_cache_table' => ( is => 'rw' );
 
 # Compression method to use
 has '_conf_cache_compression_method' => ( is => 'rw' );
@@ -35,68 +31,29 @@ sub BUILD($$)
 {
     my ( $self, $args ) = @_;
 
-    my $cache_root_dir = $args->{ cache_root_dir };
-    my $cache_compression_method = $args->{ cache_compression_method } || $CACHE_DEFAULT_COMPRESSION_METHOD;
+    my $cache_table = $args->{ cache_table };
+    unless ( $cache_table )
+    {
+        LOGCONFESS "Cache table is unset.";
+    }
 
-    unless ( $cache_root_dir )
-    {
-        LOGCONFESS "Please provide 'cache_root_dir' argument.";
-    }
-    unless ( -d $cache_root_dir )
-    {
-        unless ( mkdir( $cache_root_dir ) )
-        {
-            LOGCONFESS "Unable to create cache directory '$cache_root_dir': $!";
-        }
-    }
+    my $cache_compression_method = $args->{ cache_compression_method } || $CACHE_DEFAULT_COMPRESSION_METHOD;
     unless ( $self->compression_method_is_valid( $cache_compression_method ) )
     {
         LOGCONFESS "Unsupported cache compression method '$cache_compression_method'";
     }
 
-    $self->_conf_cache_root_dir( $cache_root_dir );
+    $self->_conf_cache_table( $cache_table );
     $self->_conf_cache_compression_method( $cache_compression_method );
 
     $self->_pid( $$ );
 }
 
-sub _initialize_chi_or_die($)
+sub _try_storing_object_in_cache($$$$)
 {
-    my ( $self ) = @_;
-
-    if ( $self->_pid == $$ and $self->_chi )
-    {
-        # Already initialized on the very same process
-        return;
-    }
-
-    $self->_chi(
-        CHI->new(
-            driver   => 'File',
-            root_dir => $self->_conf_cache_root_dir,
-
-            # No "expires_in", "cache_size" or "max_size" here because CHI's
-            # "File" driver sometimes throws assertions when trying to
-            # invalidate old objects. Instead, use:
-            #
-            #     find data/s3_downloads/ -type f -mtime +3 -exec rm {} \;
-        )
-    );
-
-    # Save PID
-    $self->_pid( $$ );
-
-    DEBUG "CachedAmazonS3: Initialized cached Amazon S3 storage for PID $$.";
-}
-
-sub _try_storing_object_in_cache($$$)
-{
-    my ( $self, $object_id, $content_ref ) = @_;
-
-    $self->_initialize_chi_or_die();
+    my ( $self, $db, $object_id, $content_ref ) = @_;
 
     eval {
-        # Compress
         my $content_to_store;
         eval {
             $content_to_store = $self->compress_data_for_method( $$content_ref, $self->_conf_cache_compression_method ); };
@@ -105,7 +62,16 @@ sub _try_storing_object_in_cache($$$)
             LOGCONFESS "Unable to compress object ID $object_id: $@";
         }
 
-        $self->_chi->set( $object_id, $content_to_store );
+        my $sth = $db->prepare(
+            <<"SQL",
+            SELECT cache.upsert_cache_object(?::VARCHAR, ?::BIGINT, ?::BYTEA)
+SQL
+        );
+        $sth->bind( 1, $self->_conf_cache_table );
+        $sth->bind( 2, $object_id );
+        $sth->bind_bytea( 3, $content_to_store );
+        $sth->execute();
+
     };
     if ( $@ )
     {
@@ -114,15 +80,29 @@ sub _try_storing_object_in_cache($$$)
     }
 }
 
-sub _try_retrieving_object_from_cache($$)
+sub _try_retrieving_object_from_cache($$$)
 {
-    my ( $self, $object_id ) = @_;
-
-    $self->_initialize_chi_or_die();
+    my ( $self, $db, $object_id ) = @_;
 
     my $decoded_content;
     eval {
-        my $compressed_content = $self->_chi->get( $object_id );
+
+        my $cache_table = $self->_conf_cache_table;
+        my ( $compressed_content ) = $db->query(
+            <<"SQL",
+            SELECT raw_data
+            FROM $cache_table
+            WHERE object_id = ?
+SQL
+            $object_id
+        )->flat;
+
+        # Inline::Python returns Python's 'bytes' as arrayref
+        if ( ref( $compressed_content ) eq ref( [] ) )
+        {
+            $compressed_content = join( '', @{ $compressed_content } );
+        }
+
         if ( defined $compressed_content )
         {
             # Uncompress
@@ -159,9 +139,7 @@ sub content_exists($$$;$)
 {
     my ( $self, $db, $object_id, $object_path ) = @_;
 
-    $self->_initialize_chi_or_die();
-
-    if ( defined $self->_try_retrieving_object_from_cache( $object_id ) )
+    if ( defined $self->_try_retrieving_object_from_cache( $db, $object_id ) )
     {
         # Key is cached, that means it exists on S3 too
         return 1;
@@ -177,9 +155,18 @@ sub remove_content($$$;$)
 {
     my ( $self, $db, $object_id, $object_path ) = @_;
 
-    $self->_initialize_chi_or_die();
+    eval {
 
-    eval { $self->_chi->remove( $object_id ); };
+        my $cache_table = $self->_conf_cache_table;
+        $db->query(
+            <<SQL,
+            DELETE FROM $cache_table
+            WHERE object_id = ?
+SQL
+            $object_id
+        );
+
+    };
     if ( $@ )
     {
         # Don't die() if we were unable to remove object from cache
@@ -194,13 +181,11 @@ sub store_content($$$$)
 {
     my ( $self, $db, $object_id, $content_ref ) = @_;
 
-    $self->_initialize_chi_or_die();
-
     my $path = $self->SUPER::store_content( $db, $object_id, $content_ref );
 
     # If we got to this point, object got stored in S3 successfully
 
-    $self->_try_storing_object_in_cache( $object_id, $content_ref );
+    $self->_try_storing_object_in_cache( $db, $object_id, $content_ref );
 
     return $path;
 }
@@ -210,9 +195,7 @@ sub fetch_content($$$;$)
 {
     my ( $self, $db, $object_id, $object_path ) = @_;
 
-    $self->_initialize_chi_or_die();
-
-    my $cached_content_ref = $self->_try_retrieving_object_from_cache( $object_id );
+    my $cached_content_ref = $self->_try_retrieving_object_from_cache( $db, $object_id );
     if ( defined $cached_content_ref )
     {
         return $cached_content_ref;
@@ -225,7 +208,7 @@ sub fetch_content($$$;$)
 
         if ( defined $content_ref )
         {
-            $self->_try_storing_object_in_cache( $object_id, $content_ref );
+            $self->_try_storing_object_in_cache( $db, $object_id, $content_ref );
         }
 
         return $content_ref;

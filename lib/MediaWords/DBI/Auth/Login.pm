@@ -54,14 +54,14 @@ sub login_with_email_password($$$;$)
 {
     my ( $db, $email, $password, $ip_address ) = @_;
 
+    unless ( $email and $password )
+    {
+        die "Email and password must be defined";
+    }
+
     my $user;
 
     eval {
-
-        unless ( $email and $password )
-        {
-            die "Email and password must be defined";
-        }
 
         eval { $user = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
         if ( $@ or ( !$user ) )
@@ -76,48 +76,9 @@ sub login_with_email_password($$$;$)
             die "User '$email' is trying to log in too soon after the last unsuccessful attempt.";
         }
 
-        unless ( $user->active() )
-        {
-            die "User with email '$email' is not active.";
-        }
-
         unless ( MediaWords::DBI::Auth::Password::password_hash_is_valid( $user->password_hash(), $password ) )
         {
             die "Password for user '$email' is invalid.";
-        }
-
-        # Reset password reset token (if any)
-        $db->query(
-            <<"SQL",
-            UPDATE auth_users
-            SET password_reset_token_hash = NULL
-            WHERE email = ?
-SQL
-            $email
-        );
-
-        if ( $ip_address )
-        {
-
-            unless ( $user->api_key_for_ip_address( $ip_address ) )
-            {
-                $db->create(
-                    'auth_user_api_keys',
-                    {
-                        auth_users_id => $user->id(),    #
-                        ip_address    => $ip_address,    #
-                    }
-                );
-
-                # Fetch user again
-                $user = MediaWords::DBI::Auth::Profile::user_info( $db, $email );
-
-                unless ( $user->api_key_for_ip_address( $ip_address ) )
-                {
-                    die "Unable to create per-IP API key for IP $ip_address";
-                }
-            }
-
         }
 
     };
@@ -146,7 +107,46 @@ SQL
 
         # Don't give out a specific reason for the user to not be able to find
         # out which user emails are registered
-        die "Login for user '$email' has failed.";
+        die "User '$email' was not found or password is incorrect.";
+    }
+
+    unless ( $user->active() )
+    {
+        die "User with email '$email' is not active.";
+    }
+
+    # Reset password reset token (if any)
+    $db->query(
+        <<"SQL",
+        UPDATE auth_users
+        SET password_reset_token_hash = NULL
+        WHERE email = ?
+SQL
+        $email
+    );
+
+    if ( $ip_address )
+    {
+
+        unless ( $user->api_key_for_ip_address( $ip_address ) )
+        {
+            $db->create(
+                'auth_user_api_keys',
+                {
+                    auth_users_id => $user->id(),    #
+                    ip_address    => $ip_address,    #
+                }
+            );
+
+            # Fetch user again
+            $user = MediaWords::DBI::Auth::Profile::user_info( $db, $email );
+
+            unless ( $user->api_key_for_ip_address( $ip_address ) )
+            {
+                die "Unable to create per-IP API key for IP $ip_address";
+            }
+        }
+
     }
 
     return $user;
@@ -213,6 +213,16 @@ SQL
     {
         die "Unable to fetch user '$email' for API key '$api_key'";
     }
+
+    # Reset password reset token (if any)
+    $db->query(
+        <<"SQL",
+        UPDATE auth_users
+        SET password_reset_token_hash = NULL
+        WHERE email = ?
+SQL
+        $email
+    );
 
     unless ( $user->active() )
     {

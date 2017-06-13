@@ -1254,6 +1254,7 @@ Accepts these $options:
 * max_media -  include only the $max_media media sources with the most inlinks in the timespan (default 500).
 * include_weights - if true, use weighted edges
 * max_links_per_medium - if set, only inclue the top $max_links_per_media out links from each medium, sorted by medium_link_counts.link_count and then inlink_count of the target medium
+* exclude_media_ids - list of media_ids to exclude
 
 =cut
 
@@ -1263,6 +1264,8 @@ sub get_gexf_snapshot
 
     $options->{ max_media }   ||= $MAX_GEXF_MEDIA;
     $options->{ color_field } ||= 'media_type';
+
+    my $exclude_media_ids_list = join( ',', map { int( $_ ) } ( @{ $options->{ exclude_media_ids } }, 0 ) );
 
     my $media = $db->query( <<END, $options->{ max_media } )->hashes;
 select distinct
@@ -1275,6 +1278,8 @@ select distinct
         mlc.normalized_tweet_count
     from snapshot_media_with_types m
         join snapshot_medium_link_counts mlc using ( media_id )
+    where
+        m.media_id not in ( $exclude_media_ids_list )
     order
         by mlc.media_inlink_count desc
     limit ?

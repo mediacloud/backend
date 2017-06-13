@@ -14,6 +14,7 @@ use Readonly;
 
 use MediaWords::DBI::Auth::Password;
 use MediaWords::DBI::Auth::User::ModifyUser;
+use MediaWords::Util::Mail;
 
 # Fetch user information (email, full name, notes, API keys, password hash)
 #
@@ -376,6 +377,27 @@ SQL
 SQL
         $email
     );
+
+    eval {
+
+        my $message = MediaWords::Util::Mail::Message::Templates::AuthAPIKeyResetMessage->new(
+            {
+                to        => $email,
+                full_name => $userinfo->full_name(),
+            }
+        );
+        unless ( MediaWords::Util::Mail::send_email( $message ) )
+        {
+            die "Unable to send email message.";
+        }
+
+    };
+    if ( $@ )
+    {
+        $db->rollback;
+        WARN "Unable to send email about reset API key: $@";
+        die "Unable to send email about reset API key.";
+    }
 
     $db->commit;
 }
