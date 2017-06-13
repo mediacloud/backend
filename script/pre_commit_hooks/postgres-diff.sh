@@ -7,7 +7,7 @@
 # 2) Run ./script/pre_commit_hooks/postgres-diff.sh before committing.
 # 3) The script will print out SQL diff to STDOUT and (optionally) some warnings to STDERR.
 
-PATH_TO_AGPDIFF="./script/pre_commit_hooks/apgdiff-2.4.jar"
+PATH_TO_AGPDIFF="./script/pre_commit_hooks/apgdiff-2.5-pre.jar"
 SCHEMA_FILE="schema/mediawords.sql"
 
 

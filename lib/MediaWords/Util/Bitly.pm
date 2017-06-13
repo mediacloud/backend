@@ -94,12 +94,14 @@ my $_results_store = lazy
             }
 
             my $store_package_name = 'MediaWords::KeyValueStore::AmazonS3';
-            my $cache_root_dir     = undef;
-            if ( $config->{ amazon_s3 }->{ bitly_processing_results }->{ cache_root_dir } )
+            my $cache_table        = undef;
+
+            my $cache_bitly_processing_results =
+              $config->{ amazon_s3 }->{ bitly_processing_results }->{ cache_bitly_processing_results };
+            if ( $cache_bitly_processing_results and $cache_bitly_processing_results eq 'yes' )
             {
                 $store_package_name = 'MediaWords::KeyValueStore::CachedAmazonS3';
-                $cache_root_dir     = $config->{ mediawords }->{ data_dir } .
-                  '/cache/' . $config->{ amazon_s3 }->{ bitly_processing_results }->{ cache_root_dir };
+                $cache_table        = 'cache.s3_bitly_processing_results_cache';
             }
 
             return $store_package_name->new(
@@ -108,7 +110,7 @@ my $_results_store = lazy
                     secret_access_key        => $config->{ amazon_s3 }->{ bitly_processing_results }->{ secret_access_key },
                     bucket_name              => $config->{ amazon_s3 }->{ bitly_processing_results }->{ bucket_name },
                     directory_name           => $config->{ amazon_s3 }->{ bitly_processing_results }->{ directory_name },
-                    cache_root_dir           => $cache_root_dir,
+                    cache_table              => $cache_table,
                     compression_method       => $compression_method,
                     cache_compression_method => $compression_method,
                 }
