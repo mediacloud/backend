@@ -24,7 +24,7 @@ sub s3_download_handler($)
     # We want to be able to run S3 tests in parallel
     my $test_suffix    = '-' . MediaWords::Util::Text::random_string( 64 );
     my $directory_name = $config->{ amazon_s3 }->{ test }->{ directory_name } . $test_suffix;
-    my $cache_root_dir = $config->{ mediawords }->{ data_dir } . '/cache/test_s3_downloads' . $test_suffix;
+    my $cache_table    = 'cache.s3_raw_downloads_cache';
 
     return $s3_handler_class->new(
         {
@@ -34,7 +34,7 @@ sub s3_download_handler($)
             directory_name    => $directory_name,
 
             # Used only for CachedAmazonS3
-            cache_root_dir => $cache_root_dir,
+            cache_table => $cache_table,
         }
     );
 }
