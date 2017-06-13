@@ -16,7 +16,7 @@ hausastemmer
 Jinja2
 
 # Japanese language tokenizer, stemmer, etc.
-#mecab-python3
+mecab-python3
 
 # network analysis, used for graph layout
 networkx

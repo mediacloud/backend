@@ -1305,7 +1305,7 @@ END
 
     my $graph = {
         'mode'            => "static",
-        'defaultedgetype' => "mutual",
+        'defaultedgetype' => "directed",
     };
     push( @{ $gexf->{ graph } }, $graph );
 
