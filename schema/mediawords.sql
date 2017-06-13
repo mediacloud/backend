@@ -23,7 +23,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4624;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4625;
 
 BEGIN
 
@@ -3297,13 +3297,13 @@ BEGIN
     RAISE NOTICE 'Purging "s3_raw_downloads_cache" table...';
     EXECUTE '
         DELETE FROM cache.s3_raw_downloads_cache
-        WHERE db_row_last_updated <= NOW() - INTERVAL ''7 days'';
+        WHERE db_row_last_updated <= NOW() - INTERVAL ''3 days'';
     ';
 
     RAISE NOTICE 'Purging "s3_bitly_processing_results_cache" table...';
     EXECUTE '
         DELETE FROM cache.s3_bitly_processing_results_cache
-        WHERE db_row_last_updated <= NOW() - INTERVAL ''7 days'';
+        WHERE db_row_last_updated <= NOW() - INTERVAL ''3 days'';
     ';
 
 END;
