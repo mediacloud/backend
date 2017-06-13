@@ -23,7 +23,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4625;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4626;
 
 BEGIN
 
@@ -3234,26 +3234,15 @@ DECLARE
     _cache_object_found INT;
 BEGIN
 
-    -- Unsure how to pass BYTEA objects as EXECUTE parameters
-    CREATE TEMPORARY TABLE cache_object_to_upsert (
-        object_id BIGINT NOT NULL,
-        raw_data BYTEA NOT NULL
-    ) ON COMMIT DROP;
-    INSERT INTO cache_object_to_upsert (object_id, raw_data)
-    VALUES (param_object_id, param_raw_data);
-
     LOOP
         -- Try UPDATing
         EXECUTE '
             UPDATE ' || param_table_name || '
-            SET raw_data = cache_object_to_upsert.raw_data
-            FROM (
-                SELECT object_id, raw_data
-                FROM cache_object_to_upsert
-            ) AS cache_object_to_upsert
-            WHERE ' || param_table_name || '.object_id = cache_object_to_upsert.object_id
+            SET raw_data = $2
+            WHERE object_id = $1
             RETURNING *
-        ' INTO _cache_object_found;
+        ' INTO _cache_object_found
+          USING param_object_id, param_raw_data;
 
         IF _cache_object_found IS NOT NULL THEN RETURN; END IF;
 
@@ -3262,8 +3251,8 @@ BEGIN
 
             EXECUTE '
                 INSERT INTO ' || param_table_name || ' (object_id, raw_data)
-                SELECT object_id, raw_data FROM cache_object_to_upsert
-            ';
+                VALUES ($1, $2)
+            ' USING param_object_id, param_raw_data;
 
             RETURN;
 
