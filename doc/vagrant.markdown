@@ -35,9 +35,6 @@ To create a new Media Cloud instance on Vagrant using the VirtualBox provider:
     # (Run once) Add Ubuntu 16.04 as a Vagrant box for later reuse
     vagrant box add ubuntu/xenial64
 
-    # (Run once on Windows host) Add plugin to be able to mount NFS shares on Windows
-    vagrant plugin install vagrant-winnfsd
-
     # Check out a *fresh* copy of Media Cloud from the Git repository
     git clone --recursive https://github.com/berkmancenter/mediacloud.git vagrant-mediacloud/
     cd vagrant-mediacloud/
@@ -46,6 +43,7 @@ To create a new Media Cloud instance on Vagrant using the VirtualBox provider:
     cd script/vagrant/
 
     # Power on the virtual machine
+    # (Note: if running from Windows, "vagrant up" will require Administrator privileges and (probably) a local account)
     vagrant up --provider=virtualbox
 
 

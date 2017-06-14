@@ -24,6 +24,27 @@ AWS_INSTANCE_NAME = ENV['AWS_INSTANCE_NAME']  || "Media Cloud Vagrant test box"
 # more RAM if you are about to use Media Cloud in production environments.
 AWS_INSTANCE_TYPE = ENV['AWS_AMI']            || "m3.medium"
 
+
+# OS detection (https://stackoverflow.com/questions/26811089/vagrant-how-to-have-host-platform-specific-provisioning-steps)
+module OS
+    def OS.windows?
+        (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil
+    end
+
+    def OS.mac?
+        (/darwin/ =~ RUBY_PLATFORM) != nil
+    end
+
+    def OS.unix?
+        !OS.windows?
+    end
+
+    def OS.linux?
+        OS.unix? and not OS.mac?
+    end
+end
+
+
 #
 # Main configuration
 #
@@ -49,17 +70,22 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # Ubuntu 16.04 (64 bit)
     override.vm.box = "ubuntu/xenial64"
 
-    # A private DHCP network is required for NFS to work (on Windows hosts, at least)
     override.vm.network "private_network", type: "dhcp"
 
     # Access Media Cloud's 3000 port by opening localhost:3001
     override.vm.network :forwarded_port, guest: 3000, host: 3001
 
     # On VirtualBox, mount Media Cloud's repository to /mediacloud
-    # NFS will work natively on Linux, but require vagrant-winnfsd plugin on Windows
     # Path is relative to ./script/vagrant
-    override.vm.synced_folder "../../", "/mediacloud",
-      type: "nfs"
+    if OS.windows?
+        # NFS on Windows (via vagrant-winnfsd) doesn't support symlinks properly
+        override.vm.synced_folder "../../", "/mediacloud",
+          type: "smb",
+          mount_options: ["vers=3.02", "mfsymlinks"]    # virtualenv will want to create symlinks
+    else
+        override.vm.synced_folder "../../", "/mediacloud",
+          type: "nfs"
+    end
 
   end
 
