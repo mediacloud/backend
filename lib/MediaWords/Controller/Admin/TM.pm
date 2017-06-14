@@ -1040,7 +1040,7 @@ END
         MediaWords::TM::Snapshot::setup_temporary_snapshot_tables( $db, $timespan, $topic, $l );
         my $gexf_options = {
             color_field          => $color_field,
-            num_media            => $num_media,
+            max_media            => $num_media,
             include_weights      => $include_weights,
             max_links_per_medium => $max_links_per_medium
         };

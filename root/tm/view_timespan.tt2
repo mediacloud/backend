@@ -109,8 +109,10 @@
             [% SET nv_config = c.uri_for( "/admin/tm/nv_config/$timespan.timespans_id/$live" ) %]
             [% SET nv_url_media_type = c.uri_for( '/admin/tm/nv' )  _ "?cf=media_type&timespan=${timespan.timespans_id}&l=${live}&config=${nv_config}/media_type" %]
             [% SET nv_url_partisan = c.uri_for( '/admin/tm/nv' )  _ "?cf=partisan_code&timespan=${timespan.timespans_id}&l=${live}&config=${nv_config}/partisan_code" %]
+            [% SET nv_url_partisan_rt = c.uri_for( '/admin/tm/nv' )  _ "?cf=partisan_retweet&timespan=${timespan.timespans_id}&l=${live}&config=${nv_config}/partisan_retweet" %]
             <p><a href="[% nv_url_media_type | html %]">Network Map - media types</a></p>
             <p><a href="[% nv_url_partisan | html %]">Network Map - partisan</a></p>
+            <p><a href="[% nv_url_partisan_rt | html %]">Network Map - partisan retweet</a></p>
         </fieldset>
 
 

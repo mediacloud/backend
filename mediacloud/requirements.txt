@@ -18,11 +18,17 @@ Jinja2
 # Japanese language tokenizer, stemmer, etc.
 mecab-python3
 
+# network analysis, used for graph layout
+networkx
+
 # Natural language processing, e.g. tokenization
 nltk
 
 # Unit tests
 nose
+
+# numerical processing, required by ForceAtlas2
+numpy
 
 # Finding out which Readability version we're using
 pip
@@ -38,6 +44,10 @@ python-dateutil
 
 # Extracting text from stories
 readability-lxml==0.6.2
+
+# math package for forceatlas implementation
+scipy
+
 
 # Normalizing URLs
 url_normalize

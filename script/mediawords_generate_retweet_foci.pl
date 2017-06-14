@@ -176,10 +176,12 @@ sub main
         $db->begin;
 
         $db->query( "delete from focal_set_definitions where topics_id = \$1", $topic->{ topics_id } );
+
         add_mass_market_focus( $db, $topic );
         add_no_twitter_focus( $db, $topic );
         add_clinton_foundation_focus( $db, $topic );
         add_quintile_foci( $db, $topic );
+
         add_leftright_foci( $db, $topic );
 
         $db->commit;
