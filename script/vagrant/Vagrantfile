@@ -44,6 +44,17 @@ module OS
     end
 end
 
+if OS.windows?
+  if not `reg query "HKU\\S-1-5-19"`  # https://stackoverflow.com/a/6691678
+    abort("Please run this Vagrant instance from Administrator (needed for creating symlinks).")
+  end
+end
+
+if `git config core.symlinks`.strip! != 'true'
+  # Probably running on Windows which have symlinks disabled by default (as they require Administrator privileges)
+  abort("Git's core.symlinks is set to false; please set to true and clone the repository again.")
+end
+
 
 #
 # Main configuration
@@ -77,15 +88,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     # On VirtualBox, mount Media Cloud's repository to /mediacloud
     # Path is relative to ./script/vagrant
-    if OS.windows?
-        # NFS on Windows (via vagrant-winnfsd) doesn't support symlinks properly
-        override.vm.synced_folder "../../", "/mediacloud",
-          type: "smb",
-          mount_options: ["vers=3.02", "mfsymlinks"]    # virtualenv will want to create symlinks
-    else
-        override.vm.synced_folder "../../", "/mediacloud",
-          type: "nfs"
-    end
+    override.vm.synced_folder "../../", "/mediacloud",
+      type: "virtualbox"
 
   end
 

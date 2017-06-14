@@ -43,7 +43,9 @@ To create a new Media Cloud instance on Vagrant using the VirtualBox provider:
     cd script/vagrant/
 
     # Power on the virtual machine
-    # (Note: if running from Windows, "vagrant up" will require Administrator privileges and (probably) a local account)
+    #
+    # (Note: if running from Windows, "vagrant up" will require to be run with
+    # Administrator privileges and Git's "config.symlinks" set to "true")
     vagrant up --provider=virtualbox
 
 
