@@ -17,7 +17,10 @@
 *.gitignore text eol=lf
 *.gitmodules text eol=lf
 *.htaccess_example text eol=lf
-*.html text eol=lf
+
+# HTML test input files might have CRLF
+#*.html text eol=lf
+
 *.js text eol=lf
 *.json text eol=lf
 *.LICENSE text eol=slf
