@@ -1,0 +1,4 @@
+*.txt text eol=lf
+*.pl text eol=lf
+*.pm text eol=lf
+*.sh text eol=lf
