@@ -1,24 +1,29 @@
-from scipy.sparse import spdiags, coo_matrix
-
 import io
 import networkx as nx
 import numpy as np
-import typing
+from scipy.sparse import coo_matrix
+from typing import Dict
 
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
 l = create_logger(__name__)
 
-# forceatlas2_layout function copied from https://github.com/tpoisot/nxfa2
-def forceatlas2_layout(G, iterations: int = 10, linlog: bool = False, pos: int = None, nohubs: bool = False,
-                       dim: int = 2, scale: float = 1) -> typing.Dict:
+
+# forceatlas2_layout function adapted from https://github.com/tpoisot/nxfa2
+def __forceatlas2_layout(graph: nx.Graph,
+                         iterations: int = 10,
+                         linlog: bool = False,
+                         pos: np.core.records.ndarray = None,
+                         nohubs: bool = False,
+                         dim: int = 2,
+                         scale: float = 1) -> Dict:
     """
     Options values are
-    G                The graph to layout
+    graph            The graph to layout
     iterations       Number of iterations to do
     linlog           Whether to use linear or log repulsion
-    nohubs           Wheter to use hub repulsion
+    nohubs           Whether to use hub repulsion
     dim              Num of dimensions
     scale            Scaling factor for size of map
     """
@@ -26,23 +31,24 @@ def forceatlas2_layout(G, iterations: int = 10, linlog: bool = False, pos: int =
     min_length = 0.001
 
     # We add attributes to store the current and previous convergence speed
-    for n in G:
-        G.node[n]['prevcs'] = 0
-        G.node[n]['currcs'] = 0
+    for n in graph:
+        graph.node[n]['prevcs'] = 0
+        graph.node[n]['currcs'] = 0
         # To numpy matrix
     # This comes from the spares FR layout in nx
-    A = nx.to_scipy_sparse_matrix(G, dtype='f')
-    nnodes, _ = A.shape
+    graph_adj_matrix = nx.to_scipy_sparse_matrix(graph, dtype='f')
+    nnodes, _ = graph_adj_matrix.shape
 
+    # noinspection PyBroadException
     try:
-        A = A.tolil()
-    except Exception as e:
-        A = (coo_matrix(A)).tolil()
+        graph_adj_matrix = graph_adj_matrix.tolil()
+    except Exception:
+        graph_adj_matrix = (coo_matrix(graph_adj_matrix)).tolil()
 
     if pos is None:
-        pos = np.asarray(np.random.random((nnodes, dim)), dtype=A.dtype)
+        pos = np.asarray(np.random.random((nnodes, dim)), dtype=graph_adj_matrix.dtype)
     else:
-        pos = pos.astype(A.dtype)
+        pos = pos.astype(graph_adj_matrix.dtype)
 
     k = np.sqrt(1.0 / nnodes)
 
@@ -57,7 +63,7 @@ def forceatlas2_layout(G, iterations: int = 10, linlog: bool = False, pos: int =
     for iteration in range(iterations):
         displacement *= 0
         # loop over rows
-        for i in range(A.shape[0]):
+        for i in range(graph_adj_matrix.shape[0]):
             # difference between this row's node position and all others
             delta = (pos[i] - pos).T
             # distance between points
@@ -65,15 +71,15 @@ def forceatlas2_layout(G, iterations: int = 10, linlog: bool = False, pos: int =
             # enforce minimum distance
             distance = np.where(distance < min_length, min_length, distance)
             # the adjacency matrix row
-            Ai = np.asarray(A.getrowview(i).toarray())
+            adj_matrix_row = np.asarray(graph_adj_matrix.getrowview(i).toarray())
             # displacement "force"
-            Dist = ( k * k / distance ** 2 ) * scale
+            displacement_force = (k * k / distance ** 2) * scale
             if nohubs:
-                Dist = Dist / float(Ai.sum(axis=1) + 1)
+                displacement_force = displacement_force / float(adj_matrix_row.sum(axis=1) + 1)
             if linlog:
-                Dist = np.log(Dist + 1)
+                displacement_force = np.log(displacement_force + 1)
             displacement[:, i] += \
-                (delta * (Dist - Ai * distance / k)).sum(axis=1)
+                (delta * (displacement_force - adj_matrix_row * distance / k)).sum(axis=1)
             # update positions
         length = np.sqrt((displacement ** 2).sum(axis=0))
         length = np.where(length < min_length, min_length, length)
@@ -82,22 +88,24 @@ def forceatlas2_layout(G, iterations: int = 10, linlog: bool = False, pos: int =
         t -= dt
 
     # Return the layout
-    return dict(zip(G, pos))
+    return dict(zip(graph, pos))
 
-#def postgres_regex_match(db: DatabaseHandler, strings: List[str], regex: str) -> bool:
-def layout_gexf(gexf: str) -> typing.Dict:
-    """Accept a gexg graph, run force atlas on it, return the resulting laid out graph."""
+
+def layout_gexf(gexf: str) -> Dict:
+    """Accept a gexf graph, run force atlas on it, return the resulting laid out graph."""
+
+    gexf = decode_object_from_bytes_if_needed(gexf)
 
     in_fh = io.StringIO(gexf)
     graph = nx.read_gexf(in_fh)
 
-    layout = forceatlas2_layout(G=graph, iterations=100, scale=1 )
+    layout = __forceatlas2_layout(graph=graph, iterations=100, scale=1)
 
     scale = 5000
 
     int_layout = dict()
-    for id in layout:
-        pos = layout[id]
-        int_layout[id] = (int(pos[0] * scale), int(pos[1] * scale))
+    for layout_id in layout:
+        pos = layout[layout_id]
+        int_layout[layout_id] = (int(pos[0] * scale), int(pos[1] * scale))
 
     return int_layout
