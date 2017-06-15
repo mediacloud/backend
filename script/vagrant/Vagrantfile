@@ -91,7 +91,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # On VirtualBox, mount Media Cloud's repository to /mediacloud
     # Path is relative to ./script/vagrant
     override.vm.synced_folder "../../", "/mediacloud",
-      type: "virtualbox"
+      type: "smb",                                # "virtualbox" type doesn't support moving files properly
+      mount_options: ["vers=3.02", "mfsymlinks"]  # enable SMB symlinks
 
   end
 
