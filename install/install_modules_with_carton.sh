@@ -49,7 +49,7 @@ fi
 # Inline::Python needs to use virtualenv's Python 3 instead of the default Python2
 set +u; source mc-venv/bin/activate; set -u
 INLINE_PYTHON_EXECUTABLE=`command -v python3`   # `which` is a liar
-echo "Installing Inline::Python with this python executable: $INLINE_PYTHON_EXECUTABLE"
+echo "Installing Inline::Python with Python executable: $INLINE_PYTHON_EXECUTABLE"
 
 # Install Inline::Python variant which die()s with tracebacks (stack traces)
 INLINE_PYTHON_EXECUTABLE=$INLINE_PYTHON_EXECUTABLE \
