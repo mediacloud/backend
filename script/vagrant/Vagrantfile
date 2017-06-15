@@ -45,14 +45,16 @@ module OS
 end
 
 if OS.windows?
+
   if not `reg query "HKU\\S-1-5-19"`  # https://stackoverflow.com/a/6691678
     abort("Please run this Vagrant instance from Administrator (needed for creating symlinks).")
   end
-end
 
-if `git config core.symlinks`.strip! != 'true'
-  # Probably running on Windows which have symlinks disabled by default (as they require Administrator privileges)
-  abort("Git's core.symlinks is set to false; please set to true and clone the repository again.")
+  if `git config core.symlinks`.strip! != 'true'
+    # Probably running on Windows which have symlinks disabled by default (as they require Administrator privileges)
+    abort("Git's core.symlinks is set to false; please set to true and clone the repository again.")
+  end
+
 end
 
 
