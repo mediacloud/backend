@@ -11,12 +11,15 @@
       <w>confdir</w>
       <w>confname</w>
       <w>createdb</w>
+      <w>currcs</w>
       <w>dataset</w>
       <w>datatype</w>
       <w>dateutil</w>
       <w>dicdir</w>
       <w>dropdb</w>
+      <w>forceatlas</w>
       <w>fqdn</w>
+      <w>gexf</w>
       <w>hausastemmer</w>
       <w>hostnames</w>
       <w>ilike</w>
@@ -24,6 +27,7 @@
       <w>kanye</w>
       <w>kardashian</w>
       <w>linkconfig</w>
+      <w>linlog</w>
       <w>logrotate</w>
       <w>lossy</w>
       <w>lucenematchversion</w>
@@ -32,7 +36,10 @@
       <w>mecab</w>
       <w>mogrified</w>
       <w>neologd</w>
+      <w>networkx</w>
       <w>nltk</w>
+      <w>nnodes</w>
+      <w>nohubs</w>
       <w>nytimes</w>
       <w>phpsessid</w>
       <w>pids</w>
@@ -40,6 +47,7 @@
       <w>plpgsql</w>
       <w>postgre</w>
       <w>postgresql</w>
+      <w>prevcs</w>
       <w>psql</w>
       <w>pyyaml</w>
       <w>reenable</w>
@@ -47,6 +55,7 @@
       <w>reimplement</w>
       <w>reindexed</w>
       <w>sbin</w>
+      <w>scipy</w>
       <w>shortener</w>
       <w>shorteners</w>
       <w>smtp</w>

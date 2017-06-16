@@ -1,0 +1,54 @@
+*.box binary
+*.gif binary
+*.ico binary
+*.jar binary
+*.jpg binary
+*.ods binary
+*.pdf binary
+*.png binary
+
+*.conf text eol=lf
+*.config text eol=lf
+*.cpanfile text eol=lf
+*.css text eol=lf
+*.csv text eol=lf
+*.enabled_plugins text eol=lf
+*.gitattributes text eol=lf
+*.gitignore text eol=lf
+*.gitmodules text eol=lf
+*.htaccess_example text eol=lf
+
+# HTML test input files might have CRLF
+#*.html text eol=lf
+
+*.js text eol=lf
+*.json text eol=lf
+*.LICENSE text eol=slf
+*.markdown text eol=lf
+*.md text eol=lf
+*.mdown text eol=lf
+*.media_source_list text eol=lf
+*.mediawords_perltidy_config_file text eol=lf
+*.mod text eol=lf
+*.pl text eol=lf
+*.pm text eol=lf
+*.pre-commit text eol=lf
+*.project text eol=lf
+*.properties text eol=lf
+*.psgi text eol=lf
+*.py text eol=lf
+*.rss text eol=lf
+*.sample text eol=lf
+*.sh text eol=lf
+*.snapshot text eol=lf
+*.sql text eol=lf
+*.t text eol=lf
+*.tt2 text eol=lf
+*.txt text eol=lf
+*.Vagrantfile text eol=lf
+*.vm text eol=lf
+*.xml text eol=lf
+*.xsl text eol=lf
+*.yml text eol=lf
+*.yml text eol=lf
+*.yml.dist text eol=lf

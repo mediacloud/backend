@@ -20,10 +20,17 @@ else
     OPENSSL_PREFIX="/usr"
 fi
 
-if [ `uname` == 'Darwin' ]; then
-    # needed to install the https github links below
-    ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm LWP::Protocol::https
-fi
+# needed to install the https github links below
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm Test::RequiresInternet
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
+    --local-lib-contained local/ \
+    --verbose \
+    Test::RequiresInternet
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm LWP::Protocol::https
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
+    --local-lib-contained local/ \
+    --verbose \
+    LWP::Protocol::https
 
 # OS X no longer provides OpenSSL headers and Net::AMQP::RabbitMQ doesn't care
 # about OPENSSL_PREFIX so we need to set CCFLAGS and install the module
@@ -49,7 +56,7 @@ fi
 # Inline::Python needs to use virtualenv's Python 3 instead of the default Python2
 set +u; source mc-venv/bin/activate; set -u
 INLINE_PYTHON_EXECUTABLE=`command -v python3`   # `which` is a liar
-echo "Installing Inline::Python with this python executable: $INLINE_PYTHON_EXECUTABLE"
+echo "Installing Inline::Python with Python executable: $INLINE_PYTHON_EXECUTABLE"
 
 # Install Inline::Python variant which die()s with tracebacks (stack traces)
 INLINE_PYTHON_EXECUTABLE=$INLINE_PYTHON_EXECUTABLE \

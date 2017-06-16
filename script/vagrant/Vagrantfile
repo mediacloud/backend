@@ -1,5 +1,9 @@
-# -*- mode: ruby -*-
-# vi: set ft=ruby :
+#
+# Media Cloud Vagrant configuration
+# ---
+#
+# For requirements and instructions, please see: FIXME
+#
 
 VAGRANTFILE_API_VERSION = "2"
 
@@ -20,22 +24,97 @@ AWS_INSTANCE_NAME = ENV['AWS_INSTANCE_NAME']  || "Media Cloud Vagrant test box"
 # more RAM if you are about to use Media Cloud in production environments.
 AWS_INSTANCE_TYPE = ENV['AWS_AMI']            || "m3.medium"
 
+
+# OS detection (https://stackoverflow.com/questions/26811089/vagrant-how-to-have-host-platform-specific-provisioning-steps)
+module OS
+    def OS.windows?
+        (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil
+    end
+
+    def OS.mac?
+        (/darwin/ =~ RUBY_PLATFORM) != nil
+    end
+
+    def OS.unix?
+        !OS.windows?
+    end
+
+    def OS.linux?
+        OS.unix? and not OS.mac?
+    end
+end
+
+if OS.windows?
+
+  if not `reg query "HKU\\S-1-5-19"`  # https://stackoverflow.com/a/6691678
+    abort("Please run this Vagrant instance from Administrator (needed for creating symlinks).")
+  end
+
+  if `git config core.symlinks`.strip! != 'true'
+    # Probably running on Windows which have symlinks disabled by default (as they require Administrator privileges)
+    abort("Git's core.symlinks is set to false; please set to true and clone the repository again.")
+  end
+
+end
+
+
 #
 # Main configuration
 #
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
+  # Hostname
+  config.vm.hostname = "mediacloud.local"
+
+
   #
   # on VirtualBox:
   #     vagrant up --provider=virtualbox
   #
-  config.vm.provider :virtualbox do |vb|
+  config.vm.provider :virtualbox do |vb, override|
+
+    # VM name
+    vm_name = "mediacloud"
+    vb.name = vm_name
+
+    # MeCAB needs more RAM than the default 1 GB
+    vb.memory = 2048
+    vb.cpus = 2
+
+    # Add some swap too to accommodate MeCAB
+    swap_vdisk_filename = 'mediacloud-swap.vdi'
+    unless File.exist?(swap_vdisk_filename)
+      vb.customize [
+        'createhd',
+        '--filename', swap_vdisk_filename,
+        '--size', 8 * 1024  # if you change this size, update add_swap.sh too
+      ]
+    end
+    vb.customize [
+      'storageattach', :id,
+      '--storagectl', 'SCSI',
+      '--port', 4,
+      '--device', 0,
+      '--type', 'hdd',
+      '--medium', swap_vdisk_filename
+    ]
+    override.vm.provision "shell", privileged: true, path: "add_swap.sh"
+    override.vm.provision "shell", privileged: true, path: "provision_root.sh"
+    override.vm.provision "shell", privileged: false, path: "provision_user.sh"
 
     # Ubuntu 16.04 (64 bit)
-    config.vm.box = "ubuntu/xenial64"
+    override.vm.box = "ubuntu/xenial64"
+
+    override.vm.network "private_network", type: "dhcp"
 
     # Access Media Cloud's 3000 port by opening localhost:3001
-    config.vm.network :forwarded_port, guest: 3000, host: 3001
+    override.vm.network :forwarded_port, guest: 3000, host: 3001
+
+    # On VirtualBox, mount Media Cloud's repository to /mediacloud
+    # Path is relative to ./script/vagrant
+    override.vm.synced_folder "../../", "/mediacloud",
+      type: "smb",                                # "virtualbox" type doesn't support moving files properly
+      mount_options: ["vers=3.02", "mfsymlinks"]  # enable SMB symlinks
 
   end
 
@@ -74,6 +153,9 @@ See doc/README.vagrant.markdown for instructions on how to set those variables.
     override.vm.box = "ubuntu_aws"
     override.vm.box_url = "aws_ec2_dummy.box"
 
+    override.vm.provision "shell", privileged: true, path: "provision_root.sh"
+    override.vm.provision "shell", privileged: false, path: "provision_user.sh"
+
     # default username of Ubuntu ABIs
     override.ssh.username = "ubuntu"
 
@@ -102,20 +184,12 @@ See doc/README.vagrant.markdown for instructions on how to set those variables.
 
     aws.security_groups = [ ENV["AWS_SECURITY_GROUP"] ]
 
+    # On EC2, copy over Media Cloud's repository to /mediacloud (do not mount to preserve symlinks on EC2)
+    # Path is relative to ./script/vagrant
+    override.vm.synced_folder "../../", "/mediacloud",
+        type: "rsync",
+        rsync__args: ["--verbose", "--archive", "--delete", "-z"]
+
   end
-
-  # Hostname
-  config.vm.hostname = "mediacloud.local"
-
-  # Copy over Media Cloud's repository to /mediacloud (do not mount to preserve
-  # symlinks on EC2)
-  # Path is relative to ./script/vagrant
-  config.vm.synced_folder "../../", "/mediacloud",
-      type: "rsync",
-      rsync__args: ["--verbose", "--archive", "--delete", "-z"]
-
-  # Provision scripts
-  config.vm.provision "shell", privileged: true, path: "provision_root.sh"
-  config.vm.provision "shell", privileged: false, path: "provision_user.sh"
 
 end
