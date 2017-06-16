@@ -23,7 +23,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4627;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4628;
 
 BEGIN
 
@@ -2260,44 +2260,6 @@ CREATE TABLE auth_user_request_daily_counts (
 
 -- Single index to enforce upsert uniqueness
 CREATE UNIQUE INDEX auth_user_request_daily_counts_email_day ON auth_user_request_daily_counts (email, day);
-
-
--- Helper to INSERT / UPDATE user's request daily counts
-CREATE OR REPLACE FUNCTION upsert_auth_user_request_daily_counts (
-    param_email TEXT,
-    param_requested_items_count INT
-) RETURNS VOID AS
-$$
-DECLARE
-    request_date DATE;
-BEGIN
-    request_date := DATE_TRUNC('day', LOCALTIMESTAMP)::DATE;
-
-    LOOP
-        -- Try UPDATing
-        UPDATE auth_user_request_daily_counts
-           SET requests_count = requests_count + 1,
-               requested_items_count = requested_items_count + param_requested_items_count
-         WHERE email = param_email
-           AND day = request_date;
-
-        IF FOUND THEN RETURN; END IF;
-
-        -- Nothing to UPDATE, try to INSERT a new record
-        BEGIN
-            INSERT INTO auth_user_request_daily_counts (email, day, requests_count, requested_items_count)
-            VALUES (param_email, request_date, 1, param_requested_items_count);
-            RETURN;
-        EXCEPTION WHEN UNIQUE_VIOLATION THEN
-            -- If someone else INSERTs the same key concurrently,
-            -- we will get a unique-key failure. In that case, do
-            -- nothing and loop to try the UPDATE again.
-        END;
-    END LOOP;
-END;
-$$
-LANGUAGE plpgsql;
-
 
 
 -- User limits for logged + throttled controller actions
