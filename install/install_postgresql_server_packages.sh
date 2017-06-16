@@ -49,7 +49,11 @@ else
     echo | sudo ./install/setup_postgresql_apt.sh
     # assume Ubuntu
     sudo apt-get --assume-yes install \
-        postgresql postgresql-client postgresql-contrib postgresql-server-dev-all
+        postgresql-9.6 \
+        postgresql-client-9.6 \
+        postgresql-contrib-9.6 \
+        postgresql-plperl-9.6 \
+        postgresql-server-dev-all
 
 fi
 
