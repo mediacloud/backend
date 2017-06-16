@@ -28,7 +28,6 @@ hroberts@mcdb1:~$ pps
  11059 | mediacloud | active | 2016-05-25 12:53:40.141334-04 | select stories_id from stories where url in ($1)
   7380 | mediacloud | active | 2016-05-25 12:53:39.948636-04 | INSERT INTO queue (priority, unique_key, function_name, d
  11042 | mediacloud | active | 2016-05-25 12:53:39.947215-04 | select stories_id from stories where url in ($1)
- 11757 | mediacloud | active | 2016-05-25 12:53:39.906391-04 |  SELECT upsert_bitly_clicks_total($1, $2)
   9689 | PostgreSQL   | active | 2016-05-25 09:56:49.546405-04 | autovacuum: VACUUM public.story_sentences (to prevent wra
  ```
 

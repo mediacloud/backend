@@ -23,7 +23,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4626;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4627;
 
 BEGIN
 
@@ -1642,14 +1642,19 @@ END;
 $$
 LANGUAGE plpgsql;
 
--- Insert row into correct partition
+-- Upsert row into correct partition
 CREATE OR REPLACE FUNCTION bitly_clicks_total_partition_by_stories_id_insert_trigger()
 RETURNS TRIGGER AS $$
 DECLARE
     target_table_name TEXT;       -- partition table name (e.g. "bitly_clicks_total_000001")
 BEGIN
     SELECT bitly_get_partition_name( NEW.stories_id, 'bitly_clicks_total' ) INTO target_table_name;
-    EXECUTE 'INSERT INTO ' || target_table_name || ' SELECT $1.*;' USING NEW;
+    EXECUTE '
+        INSERT INTO ' || target_table_name || '
+            SELECT $1.*
+        ON CONFLICT (stories_id) DO UPDATE
+            SET click_count = EXCLUDED.click_count
+        ' USING NEW;
     RETURN NULL;
 END;
 $$
@@ -1734,36 +1739,6 @@ LANGUAGE plpgsql;
 
 -- Create initial partitions for empty database
 SELECT bitly_clicks_total_create_partitions();
-
-
--- Helper to INSERT / UPDATE story's Bit.ly statistics
-CREATE OR REPLACE FUNCTION upsert_bitly_clicks_total (
-    param_stories_id INT,
-    param_click_count INT
-) RETURNS VOID AS
-$$
-BEGIN
-    LOOP
-        -- Try UPDATing
-        UPDATE bitly_clicks_total
-            SET click_count = param_click_count
-            WHERE stories_id = param_stories_id;
-        IF FOUND THEN RETURN; END IF;
-
-        -- Nothing to UPDATE, try to INSERT a new record
-        BEGIN
-            INSERT INTO bitly_clicks_total (stories_id, click_count)
-            VALUES (param_stories_id, param_click_count);
-            RETURN;
-        EXCEPTION WHEN UNIQUE_VIOLATION THEN
-            -- If someone else INSERTs the same key concurrently,
-            -- we will get a unique-key failure. In that case, do
-            -- nothing and loop to try the UPDATE again.
-        END;
-    END LOOP;
-END;
-$$
-LANGUAGE plpgsql;
 
 
 --
