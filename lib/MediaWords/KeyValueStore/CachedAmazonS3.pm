@@ -62,14 +62,17 @@ sub _try_storing_object_in_cache($$$$)
             LOGCONFESS "Unable to compress object ID $object_id: $@";
         }
 
-        my $sth = $db->prepare(
+        my $cache_table = $self->_conf_cache_table;
+        my $sth         = $db->prepare(
             <<"SQL",
-            SELECT cache.upsert_cache_object(?::VARCHAR, ?::BIGINT, ?::BYTEA)
+            INSERT INTO $cache_table (object_id, raw_data)
+            VALUES (?, ?)
+            ON CONFLICT (object_id) DO UPDATE
+                SET raw_data = EXCLUDED.raw_data
 SQL
         );
-        $sth->bind( 1, $self->_conf_cache_table );
-        $sth->bind( 2, $object_id );
-        $sth->bind_bytea( 3, $content_to_store );
+        $sth->bind( 1, $object_id );
+        $sth->bind_bytea( 2, $content_to_store );
         $sth->execute();
 
     };
