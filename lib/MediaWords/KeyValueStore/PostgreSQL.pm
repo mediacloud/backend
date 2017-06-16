@@ -59,41 +59,17 @@ sub store_content($$$$)
         LOGCONFESS "Unable to compress object ID $object_id: $@";
     }
 
-    my $use_transaction = !$db->in_transaction();
-
-    # "Upsert" the object
-    $db->begin_work if ( $use_transaction );
-
-    my $sth;
-
-    $sth = $db->prepare(
-        <<"EOF",
-    	UPDATE $table
-    	SET raw_data = ?
-    	WHERE object_id = ?
-EOF
-    );
-    $sth->bind_bytea( 1, $content_to_store );
-    $sth->bind( 2, $object_id );
-    $sth->execute();
-
-    $sth = $db->prepare(
-        <<"EOF",
-    	INSERT INTO $table (object_id, raw_data)
-			SELECT ?, ?
-			WHERE NOT EXISTS (
-				SELECT 1
-				FROM $table
-				WHERE object_id = ?
-			)
-EOF
+    my $sth = $db->prepare(
+        <<"SQL",
+        INSERT INTO $table (object_id, raw_data)
+        VALUES (?, ?)
+        ON CONFLICT (object_id) DO UPDATE
+            SET raw_data = EXCLUDED.raw_data
+SQL
     );
     $sth->bind( 1, $object_id );
     $sth->bind_bytea( 2, $content_to_store );
-    $sth->bind( 3, $object_id );
     $sth->execute();
-
-    $db->commit if ( $use_transaction );
 
     my $path = 'postgresql:' . $table;
     return $path;
