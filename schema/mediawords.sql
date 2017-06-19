@@ -23,7 +23,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4626;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4629;
 
 BEGIN
 
@@ -1642,14 +1642,19 @@ END;
 $$
 LANGUAGE plpgsql;
 
--- Insert row into correct partition
+-- Upsert row into correct partition
 CREATE OR REPLACE FUNCTION bitly_clicks_total_partition_by_stories_id_insert_trigger()
 RETURNS TRIGGER AS $$
 DECLARE
     target_table_name TEXT;       -- partition table name (e.g. "bitly_clicks_total_000001")
 BEGIN
     SELECT bitly_get_partition_name( NEW.stories_id, 'bitly_clicks_total' ) INTO target_table_name;
-    EXECUTE 'INSERT INTO ' || target_table_name || ' SELECT $1.*;' USING NEW;
+    EXECUTE '
+        INSERT INTO ' || target_table_name || '
+            SELECT $1.*
+        ON CONFLICT (stories_id) DO UPDATE
+            SET click_count = EXCLUDED.click_count
+        ' USING NEW;
     RETURN NULL;
 END;
 $$
@@ -1734,36 +1739,6 @@ LANGUAGE plpgsql;
 
 -- Create initial partitions for empty database
 SELECT bitly_clicks_total_create_partitions();
-
-
--- Helper to INSERT / UPDATE story's Bit.ly statistics
-CREATE OR REPLACE FUNCTION upsert_bitly_clicks_total (
-    param_stories_id INT,
-    param_click_count INT
-) RETURNS VOID AS
-$$
-BEGIN
-    LOOP
-        -- Try UPDATing
-        UPDATE bitly_clicks_total
-            SET click_count = param_click_count
-            WHERE stories_id = param_stories_id;
-        IF FOUND THEN RETURN; END IF;
-
-        -- Nothing to UPDATE, try to INSERT a new record
-        BEGIN
-            INSERT INTO bitly_clicks_total (stories_id, click_count)
-            VALUES (param_stories_id, param_click_count);
-            RETURN;
-        EXCEPTION WHEN UNIQUE_VIOLATION THEN
-            -- If someone else INSERTs the same key concurrently,
-            -- we will get a unique-key failure. In that case, do
-            -- nothing and loop to try the UPDATE again.
-        END;
-    END LOOP;
-END;
-$$
-LANGUAGE plpgsql;
 
 
 --
@@ -2285,44 +2260,6 @@ CREATE TABLE auth_user_request_daily_counts (
 
 -- Single index to enforce upsert uniqueness
 CREATE UNIQUE INDEX auth_user_request_daily_counts_email_day ON auth_user_request_daily_counts (email, day);
-
-
--- Helper to INSERT / UPDATE user's request daily counts
-CREATE OR REPLACE FUNCTION upsert_auth_user_request_daily_counts (
-    param_email TEXT,
-    param_requested_items_count INT
-) RETURNS VOID AS
-$$
-DECLARE
-    request_date DATE;
-BEGIN
-    request_date := DATE_TRUNC('day', LOCALTIMESTAMP)::DATE;
-
-    LOOP
-        -- Try UPDATing
-        UPDATE auth_user_request_daily_counts
-           SET requests_count = requests_count + 1,
-               requested_items_count = requested_items_count + param_requested_items_count
-         WHERE email = param_email
-           AND day = request_date;
-
-        IF FOUND THEN RETURN; END IF;
-
-        -- Nothing to UPDATE, try to INSERT a new record
-        BEGIN
-            INSERT INTO auth_user_request_daily_counts (email, day, requests_count, requested_items_count)
-            VALUES (param_email, request_date, 1, param_requested_items_count);
-            RETURN;
-        EXCEPTION WHEN UNIQUE_VIOLATION THEN
-            -- If someone else INSERTs the same key concurrently,
-            -- we will get a unique-key failure. In that case, do
-            -- nothing and loop to try the UPDATE again.
-        END;
-    END LOOP;
-END;
-$$
-LANGUAGE plpgsql;
-
 
 
 -- User limits for logged + throttled controller actions
@@ -3221,50 +3158,6 @@ create index retweeter_partition_matrix_score on retweeter_partition_matrix ( re
 CREATE SCHEMA cache;
 
 CREATE OR REPLACE LANGUAGE plpgsql;
-
-
--- Upsert helper to INSERT or UPDATE an object to object cache
-CREATE OR REPLACE FUNCTION cache.upsert_cache_object (
-    param_table_name VARCHAR,
-    param_object_id BIGINT,
-    param_raw_data BYTEA
-) RETURNS VOID AS
-$$
-DECLARE
-    _cache_object_found INT;
-BEGIN
-
-    LOOP
-        -- Try UPDATing
-        EXECUTE '
-            UPDATE ' || param_table_name || '
-            SET raw_data = $2
-            WHERE object_id = $1
-            RETURNING *
-        ' INTO _cache_object_found
-          USING param_object_id, param_raw_data;
-
-        IF _cache_object_found IS NOT NULL THEN RETURN; END IF;
-
-        -- Nothing to UPDATE, try to INSERT a new record
-        BEGIN
-
-            EXECUTE '
-                INSERT INTO ' || param_table_name || ' (object_id, raw_data)
-                VALUES ($1, $2)
-            ' USING param_object_id, param_raw_data;
-
-            RETURN;
-
-        EXCEPTION WHEN UNIQUE_VIOLATION THEN
-            -- If someone else INSERTs the same key concurrently,
-            -- we will get a unique-key failure. In that case, do
-            -- nothing and loop to try the UPDATE again.
-        END;
-    END LOOP;
-END;
-$$
-LANGUAGE plpgsql;
 
 
 -- Trigger to update "db_row_last_updated" for cache tables
