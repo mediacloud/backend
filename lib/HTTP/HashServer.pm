@@ -105,18 +105,16 @@ sub new
 
 # start the server running in the background.
 # setup up signal handler to kill the forked server if this process gets killed.
-sub start(;$)
+sub start($)
 {
-    my ( $self, $sleep ) = @_;
+    my ( $self ) = @_;
 
     DEBUG "Starting server on port $self->{ port }";
 
     $self->{ pid } = $self->background();
 
-    $sleep //= 1;
-
     # sometimes the server takes a brief time to startup
-    sleep( $sleep );
+    sleep( 1 );
 
     $SIG{ INT } = $SIG{ TERM } = sub { kill( 15, $self->{ pid } ); die( "caught ctl-c and killed HTTP::HashServer" ) };
 }

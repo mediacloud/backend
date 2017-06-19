@@ -241,7 +241,7 @@ sub start_hash_servers
 
         DEBUG "starting hash server $site->{ id }";
 
-        $hs->start( 0 );
+        $hs->start();
 
         push( @{ $hash_servers }, $hs );
     }
