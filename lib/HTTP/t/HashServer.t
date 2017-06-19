@@ -41,7 +41,7 @@ sub main
         '/404'       => { content => 'not found', http_status_code => 404 },
         '/callback'  => {
             callback => sub {
-                my ( $self, $cgi ) = @_;
+                my ( $params, $cookies ) = @_;
                 print "HTTP/1.0 200 OK\r\n";
                 print "Content-Type: text/plain\r\n";
                 print "\r\n";

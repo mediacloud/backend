@@ -13,11 +13,13 @@ package HTTP::HashServer;
 #     '/localhost' => { redirect => "http://localhost:$_port/" },
 #     '/127-foo' => { redirect => "http://127.0.0.1:$_port/foo", http_status_code => 303 },
 #     '/callback' => { callback => sub {
-#         my ( $self, $cgi ) = @_;
+#         my ( $params, $cookies ) = @_;
 #         print "HTTP/1.0 200 OK\r\n";
 #         print "Content-Type: text/plain\r\n";
 #         print "\r\n";
 #         print "This is callback.";
+#         print "Params hashref: " . Dumper( $params );
+#         print "Cookies hashref: " . Dumper( $cookies );
 #     }},
 #     '/auth' => { auth => 'user:password' }
 # };
@@ -259,7 +261,16 @@ sub handle_request
         {
             die "'callback' parameter exists but is not a subroutine reference.";
         }
-        $callback->( $self, $cgi );
+
+        my $params       = $cgi->Vars;
+        my $cookies      = {};
+        my @cookie_names = $cgi->cookie();
+        for my $cookie_name ( @cookie_names )
+        {
+            $cookies->{ $cookie_name } = $cgi->cookie( $cookie_name );
+        }
+
+        $callback->( $params, $cookies );
     }
     else
     {

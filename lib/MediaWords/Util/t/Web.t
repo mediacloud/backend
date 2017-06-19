@@ -63,7 +63,7 @@ sub test_lwp_user_agent_retries()
         # Page that doesn't respond in time
         '/buggy-page' => {
             callback => sub {
-                my ( $self, $cgi ) = @_;
+                my ( $params, $cookies ) = @_;
                 print "HTTP/1.0 200 OK\r\n";
                 print "Content-Type: text/plain\r\n";
                 print "\r\n";

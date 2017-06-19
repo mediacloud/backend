@@ -179,9 +179,9 @@ sub test_url_and_data_after_redirects_cookies()
     my $pages = {
         '/first' => {
             callback => sub {
-                my ( $self, $cgi ) = @_;
+                my ( $params, $cookies ) = @_;
 
-                my $received_cookie = $cgi->cookie( $COOKIE_NAME );
+                my $received_cookie = $cookies->{ $COOKIE_NAME };
 
                 if ( $received_cookie and $received_cookie eq $COOKIE_VALUE )
                 {
@@ -212,9 +212,9 @@ sub test_url_and_data_after_redirects_cookies()
         '/check_cookie' => {
             callback => sub {
 
-                my ( $self, $cgi ) = @_;
+                my ( $params, $cookies ) = @_;
 
-                my $received_cookie = $cgi->cookie( $COOKIE_NAME );
+                my $received_cookie = $cookies->{ $COOKIE_NAME };
 
                 if ( $received_cookie and $received_cookie eq $COOKIE_VALUE )
                 {
