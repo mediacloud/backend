@@ -64,9 +64,11 @@ sub run($;$)
     INFO "Story's $stories_id total click count: $total_click_count";
 
     $db->query(
-        <<EOF,
-        SELECT upsert_bitly_clicks_total(?, ?)
-EOF
+        <<SQL,
+        -- bitly_clicks_total_partition_by_stories_id_insert_trigger() trigger will do an upsert
+        INSERT INTO bitly_clicks_total (stories_id, click_count)
+        VALUES (?, ?)
+SQL
         $stories_id, $total_click_count
     );
 

@@ -48,6 +48,5 @@ readability-lxml==0.6.2
 # math package for forceatlas implementation
 scipy
 
-
 # Normalizing URLs
 url_normalize

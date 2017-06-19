@@ -1,5 +1,4 @@
-Media Cloud on Vagrant
-======================
+# Media Cloud on Vagrant
 
 You might want to run Media Cloud with [Vagrant](http://www.vagrantup.com/) in the following cases:
 
@@ -11,8 +10,7 @@ You might want to run Media Cloud with [Vagrant](http://www.vagrantup.com/) in t
 Media Cloud provides a lean `Vagrantfile` script located in `script/vagrant/` that you can use to set up a Media Cloud instance on Vagrant.
 
 
-Installing Vagrant and its dependencies
----------------------------------------
+## Installing Vagrant and its dependencies
 
 Download and install Vagrant 1.3+ from the [Vagrant Downloads page](http://downloads.vagrantup.com/). APT's version is too old at the time of writing.
 
@@ -22,27 +20,35 @@ You'll also need a Provider -- `x86_64` virtualization software package / servic
 * If you would like to set up and run Media Cloud instances remotely, use [Amazon EC2](https://console.aws.amazon.com/ec2/v2/home?region=us-east-1).
 
 
-Setting up Media Cloud on Vagrant
----------------------------------
+## Setting up Media Cloud on Vagrant
 
-Please note that the initial process of setting up Media Cloud may take a long time (~2 hours) as Vagrant will go about upgrading packages, installing a lot of dependencies, compiling and testing Perl, testing Media Cloud itself, etc.
+Please note that the initial process of setting up Media Cloud may take a long time (up to 2 hours) as Vagrant will go about upgrading packages, installing a lot of dependencies, compiling and testing Perl, testing Media Cloud itself, etc.
+
+Before running Media Cloud on one of Vagrant's providers (VirtualBox or EC2), do the following:
+
+    # Windows: check out submodules with LF line endings
+    git config --global core.eol lf
+    git config --global core.autocrlf input
+
+    # Windows: enable Git symlinks
+    git config --global config.symlinks true
+
+    # Check out a *fresh* copy of Media Cloud from the Git repository
+    git clone https://github.com/berkmancenter/mediacloud.git vagrant-mediacloud/
+    cd vagrant-mediacloud/
+    git submodule update --init --recursive
+
+    # Change to the directory in which "Vagrantfile" and other files are located
+    cd script/vagrant/
 
 
 ### On VirtualBox
 
 To create a new Media Cloud instance on Vagrant using the VirtualBox provider:
 
-    # (Run once) Add Ubuntu 16.04 as a Vagrant box for later reuse
-    vagrant box add ubuntu/xenial64
-
-    # Check out a *fresh* copy of Media Cloud from the Git repository
-    git clone --recursive https://github.com/berkmancenter/mediacloud.git vagrant-mediacloud/
-    cd vagrant-mediacloud/
-
-    # Change to the directory in which "Vagrantfile" and other files are located
-    cd script/vagrant/
-
     # Power on the virtual machine
+    #
+    # Windows: "vagrant up" is required to be run with Administrator privileges to be able to mount SMB shared folder
     vagrant up --provider=virtualbox
 
 
@@ -51,19 +57,15 @@ To create a new Media Cloud instance on Vagrant using the VirtualBox provider:
 To create a new Media Cloud instance on Vagrant using the Amazon EC2 provider:
 
 1. Find out the AWS credentials to be used by Vagrant:
-    * `AWS_ACCESS_KEY_ID`:
-        * Access Key ID.
-        * Available either at the [Your Security Credentials](https://console.aws.amazon.com/iam/home?#security_credential) or the [Security Credentials](https://portal.aws.amazon.com/gp/aws/securityCredentials) pages.
-    * `AWS_SECRET_ACCESS_KEY`:
-        * Secret Access Key.
-        * Available either at the [Your Security Credentials](https://console.aws.amazon.com/iam/home?#security_credential) or the [Security Credentials](https://portal.aws.amazon.com/gp/aws/securityCredentials) pages.
-    * `AWS_KEYPAIR_NAME` and `AWS_SSH_PRIVKEY`:
+    * `AWS_ACCESS_KEY_ID` -- Access Key ID; available either at the [Your Security Credentials](https://console.aws.amazon.com/iam/home?#security_credential) or the [Security Credentials](https://portal.aws.amazon.com/gp/aws/securityCredentials) pages.
+    * `AWS_SECRET_ACCESS_KEY` -- Secret Access Key; available either at the [Your Security Credentials](https://console.aws.amazon.com/iam/home?#security_credential) or the [Security Credentials](https://portal.aws.amazon.com/gp/aws/securityCredentials) pages.
+    * `AWS_KEYPAIR_NAME` and `AWS_SSH_PRIVKEY` -- SSH keypair for accessing the instance:
         1. Go to the [EC2 - Key Pairs](https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#KeyPairs:) page.
         2. Click "Create Key Pair", name it `development`.
         3. Download `development.pem`, save it as `~/path/to/development.pem`.
         4. `AWS_KEYPAIR_NAME="development"`
         5. `AWS_SSH_PRIVKEY="~/path/to/development.pem"`
-    * `AWS_SECURITY_GROUP`:
+    * `AWS_SECURITY_GROUP` -- security group to put the instance to:
         1. Go to the [EC2 - Security Groups](https://console.aws.amazon.com/ec2/home?region=us-east-1#s=SecurityGroups) page.
         2. Click "Create Security Group", name it `default`.
         3. Allow "Inbound SSH traffic" from `0.0.0.0/0`.
@@ -75,13 +77,6 @@ To create a new Media Cloud instance on Vagrant using the Amazon EC2 provider:
 
         # (Run once) Install the "vagrant-aws" plugin
         vagrant plugin install vagrant-aws
-
-        # Check out a *fresh* copy of Media Cloud from the Git repository
-        git clone --recursive https://github.com/berkmancenter/mediacloud.git vagrant-mediacloud/
-        cd vagrant-mediacloud/
-
-        # Change to the directory in which "Vagrantfile" and other files are located
-        cd script/vagrant/
 
         # (Run once) Add the "dummy" AWS box for later reuse
         vagrant box add ubuntu_aws aws_ec2_dummy.box
@@ -98,8 +93,7 @@ To create a new Media Cloud instance on Vagrant using the Amazon EC2 provider:
         vagrant up --provider=aws
 
 
-Running Media Cloud on Vagrant
-------------------------------
+## Running Media Cloud on Vagrant
 
 The Git repository that you have cloned previously is automatically mounted to `/mediacloud` directory on the virtual machine.
 
@@ -164,8 +158,7 @@ To start the Media Cloud web service:
     * For example, if the Public DNS of the EC2 instance is `ec2-54-224-57-211.compute-1.amazonaws.com`, access the web service by opening `http://ec2-54-224-57-211.compute-1.amazonaws.com:3000/`.
 
 
-Testing Media Cloud with Vagrant
---------------------------------
+## Testing Media Cloud with Vagrant
 
 Directory `script/vagrant/` contains a script `run_install_test_suite_on_vagrant.sh` that:
 
