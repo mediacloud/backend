@@ -161,7 +161,7 @@ sub header
 
 # if auth is required for this page and the auth was not supplied by the request,
 # print a 401 page and return 1; otherwise return 0.
-sub request_failed_authentication
+sub __request_failed_authentication
 {
     my ( $self, $page ) = @_;
 
@@ -235,7 +235,7 @@ sub handle_request
 
     $page = { content => $page } unless ( ref( $page ) );
 
-    return 0 if ( request_failed_authentication( $self, $page ) );
+    return 0 if ( $self->__request_failed_authentication( $page ) );
 
     if ( my $redirect = $page->{ redirect } )
     {
