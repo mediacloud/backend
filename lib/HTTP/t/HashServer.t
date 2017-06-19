@@ -3,7 +3,7 @@ use warnings;
 
 # test HTTP::HashServer
 
-use Test::More tests => 13;
+use Test::More tests => 14;
 
 use MediaWords::Util::Web;
 
@@ -16,7 +16,7 @@ my $_port = 8899;
 
 # verify that a request for the given page on the test server returns the
 # given content
-sub test_page
+sub __test_page
 {
     my ( $url, $expected_content ) = @_;
 
@@ -39,6 +39,15 @@ sub main
         '/127-foo'   => { redirect => "http://127.0.0.1:$_port/foo" },
         '/auth'      => { auth => 'foo:bar', content => 'foo bar' },
         '/404'       => { content => 'not found', http_status_code => 404 },
+        '/callback'  => {
+            callback => sub {
+                my ( $self, $cgi ) = @_;
+                print "HTTP/1.0 200 OK\r\n";
+                print "Content-Type: text/plain\r\n";
+                print "\r\n";
+                print "callback";
+            }
+        },
     };
 
     my $hs = HTTP::HashServer->new( $_port, $pages );
@@ -47,12 +56,13 @@ sub main
 
     $hs->start();
 
-    test_page( "http://localhost:$_port/",          'home' );
-    test_page( "http://localhost:$_port/foo",       'foo' );
-    test_page( "http://localhost:$_port/bar",       'bar' );
-    test_page( "http://localhost:$_port/foo-bar",   'bar' );
-    test_page( "http://127.0.0.1:$_port/localhost", 'home' );
-    test_page( "http://localhost:$_port/127-foo",   'foo' );
+    __test_page( "http://localhost:$_port/",          'home' );
+    __test_page( "http://localhost:$_port/foo",       'foo' );
+    __test_page( "http://localhost:$_port/bar",       'bar' );
+    __test_page( "http://localhost:$_port/foo-bar",   'bar' );
+    __test_page( "http://127.0.0.1:$_port/localhost", 'home' );
+    __test_page( "http://localhost:$_port/127-foo",   'foo' );
+    __test_page( "http://localhost:$_port/callback",  'callback' );
 
     my $ua = MediaWords::Util::Web::UserAgent->new();
 
