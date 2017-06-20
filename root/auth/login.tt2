@@ -4,8 +4,8 @@
 
 <p>
 <br />
-<a href="[% c.uri_for( '/login/register' ) %]">Register</a> |
-<a href="[% c.uri_for( '/login/forgot' ) %]">Recover Lost Password</a>
+<a href="https://tools.mediacloud.org/#/user/signup">Register</a> |
+<a href="https://tools.mediacloud.org/#/user/request-password-reset">Recover Lost Password</a>
 </p>
 
 [% INCLUDE 'include/auth/footer.tt2' %]
