@@ -149,12 +149,11 @@ sub mock_ch_posts
 
     my $new_json = MediaWords::Util::JSON::encode_json( $data );
 
-    return <<HTTP
-HTTP/1.1 200 OK
-Content-Type: application/json
-
-$new_json
-HTTP
+    my $response = "HTTP/1.1 200 OK\r\n";
+    $response .= "Content-Type: application/json\r\n";
+    $response .= "\r\n";
+    $response .= "$new_json\n";
+    return $response;
 }
 
 # send a simple text page for use mocking tweet url pages
@@ -177,14 +176,11 @@ sub mock_tweet_url
     }
 
     # just include the date as a literal string and the GuessDate module should find and assign that date to the story
-    return <<HTTP;
-HTTP/1.1 200 OK
-Content-Type: text/plain
-
-
-Sample page for tweet $id url $publish_date
-
-HTTP
+    my $response = "HTTP/1.1 200 OK\r\n";
+    $response .= "Content-Type: text/plain\r\n";
+    $response .= "\r\n";
+    $response .= "Sample page for tweet $id url $publish_date\n";
+    return $response;
 }
 
 sub mock_twitter_lookup
@@ -240,12 +236,11 @@ sub mock_twitter_lookup
 
     my $json = MediaWords::Util::JSON::encode_json( $tweets );
 
-    return <<HTTP;
-HTTP/1.1 200 OK
-Content-Type: application/json
-
-$json
-HTTP
+    my $response = "HTTP/1.1 200 OK\r\n";
+    $response .= "Content-Type: application/json\r\n";
+    $response .= "\r\n";
+    $response .= "$json\n";
+    return $response;
 }
 
 # verify that topic_tweet_urls match what's in the tweet JSON data as saved in topic_tweets
