@@ -17,11 +17,6 @@ class McHashServerException(Exception):
     pass
 
 
-class McHashServerDieRequestReceivedException(Exception):
-    """/die received exception."""
-    pass
-
-
 l = create_logger(__name__)
 
 
@@ -90,13 +85,6 @@ class HashServer(object):
             """Respond to a GET request."""
 
             path = urlparse(self.path).path
-
-            if path == '/die':
-                self.send_response(HTTPStatus.UNAUTHORIZED)
-                self.send_header("Content-Type", "text/plain")
-                self.end_headers()
-                self.__write_response_string("Killing server.")
-                raise McHashServerDieRequestReceivedException(HashServer._DIE_REQUEST_MESSAGE)
 
             if path not in self._pages:
                 self.send_response(401)
