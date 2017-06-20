@@ -149,7 +149,7 @@ sub mock_ch_posts
 
     my $new_json = MediaWords::Util::JSON::encode_json( $data );
 
-    print <<HTTP
+    return <<HTTP
 HTTP/1.1 200 OK
 Content-Type: application/json
 
@@ -177,7 +177,7 @@ sub mock_tweet_url
     }
 
     # just include the date as a literal string and the GuessDate module should find and assign that date to the story
-    print <<HTTP;
+    return <<HTTP;
 HTTP/1.1 200 OK
 Content-Type: text/plain
 
@@ -240,7 +240,7 @@ sub mock_twitter_lookup
 
     my $json = MediaWords::Util::JSON::encode_json( $tweets );
 
-    print <<HTTP;
+    return <<HTTP;
 HTTP/1.1 200 OK
 Content-Type: application/json
 

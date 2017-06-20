@@ -182,16 +182,17 @@ sub test_url_and_data_after_redirects_cookies()
                 my ( $params, $cookies ) = @_;
 
                 my $received_cookie = $cookies->{ $COOKIE_NAME };
+                my $response        = '';
 
                 if ( $received_cookie and $received_cookie eq $COOKIE_VALUE )
                 {
 
                     TRACE "Cookie was set previously, showing page";
 
-                    print "HTTP/1.0 200 OK\r\n";
-                    print "$DEFAULT_HEADER\r\n";
-                    print "\r\n";
-                    print $TEST_CONTENT;
+                    $response .= "HTTP/1.0 200 OK\r\n";
+                    $response .= "$DEFAULT_HEADER\r\n";
+                    $response .= "\r\n";
+                    $response .= $TEST_CONTENT;
 
                 }
                 else
@@ -199,13 +200,15 @@ sub test_url_and_data_after_redirects_cookies()
 
                     TRACE "Setting cookie, redirecting to /check_cookie";
 
-                    print "HTTP/1.0 302 Moved Temporarily\r\n";
-                    print "$DEFAULT_HEADER\r\n";
-                    print "Location: /check_cookie\r\n";
-                    print "Set-Cookie: $COOKIE_NAME=$COOKIE_VALUE\r\n";
-                    print "\r\n";
-                    print "Redirecting to the cookie check page...";
+                    $response .= "HTTP/1.0 302 Moved Temporarily\r\n";
+                    $response .= "$DEFAULT_HEADER\r\n";
+                    $response .= "Location: /check_cookie\r\n";
+                    $response .= "Set-Cookie: $COOKIE_NAME=$COOKIE_VALUE\r\n";
+                    $response .= "\r\n";
+                    $response .= "Redirecting to the cookie check page...";
                 }
+
+                return $response;
             }
         },
 
@@ -215,17 +218,18 @@ sub test_url_and_data_after_redirects_cookies()
                 my ( $params, $cookies ) = @_;
 
                 my $received_cookie = $cookies->{ $COOKIE_NAME };
+                my $response        = '';
 
                 if ( $received_cookie and $received_cookie eq $COOKIE_VALUE )
                 {
 
                     TRACE "Cookie was set previously, redirecting back to the initial page";
 
-                    print "HTTP/1.0 302 Moved Temporarily\r\n";
-                    print "$DEFAULT_HEADER\r\n";
-                    print "Location: $starting_url\r\n";
-                    print "\r\n";
-                    print "Cookie looks fine, redirecting you back to the article...";
+                    $response .= "HTTP/1.0 302 Moved Temporarily\r\n";
+                    $response .= "$DEFAULT_HEADER\r\n";
+                    $response .= "Location: $starting_url\r\n";
+                    $response .= "\r\n";
+                    $response .= "Cookie looks fine, redirecting you back to the article...";
 
                 }
                 else
@@ -233,12 +237,14 @@ sub test_url_and_data_after_redirects_cookies()
 
                     TRACE "Cookie wasn't found, redirecting you to the /no_cookies page...";
 
-                    print "HTTP/1.0 302 Moved Temporarily\r\n";
-                    print "$DEFAULT_HEADER\r\n";
-                    print "Location: /no_cookies\r\n";
-                    print "\r\n";
-                    print 'Cookie wasn\'t found, redirecting you to the "no cookies" page...';
+                    $response .= "HTTP/1.0 302 Moved Temporarily\r\n";
+                    $response .= "$DEFAULT_HEADER\r\n";
+                    $response .= "Location: /no_cookies\r\n";
+                    $response .= "\r\n";
+                    $response .= 'Cookie wasn\'t found, redirecting you to the "no cookies" page...';
                 }
+
+                return $response;
             }
         },
         '/no_cookies' => "No cookie support, go away, we don\'t like you."

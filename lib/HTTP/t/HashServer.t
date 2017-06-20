@@ -42,10 +42,12 @@ sub main
         '/callback'  => {
             callback => sub {
                 my ( $params, $cookies ) = @_;
-                print "HTTP/1.0 200 OK\r\n";
-                print "Content-Type: text/plain\r\n";
-                print "\r\n";
-                print "callback";
+                my $response = '';
+                $response .= "HTTP/1.0 200 OK\r\n";
+                $response .= "Content-Type: text/plain\r\n";
+                $response .= "\r\n";
+                $response .= "callback";
+                return $response;
             }
         },
     };

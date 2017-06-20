@@ -14,12 +14,14 @@ package HTTP::HashServer;
 #     '/127-foo' => { redirect => "http://127.0.0.1:$_port/foo", http_status_code => 303 },
 #     '/callback' => { callback => sub {
 #         my ( $params, $cookies ) = @_;
-#         print "HTTP/1.0 200 OK\r\n";
-#         print "Content-Type: text/plain\r\n";
-#         print "\r\n";
-#         print "This is callback.";
-#         print "Params hashref: " . Dumper( $params );
-#         print "Cookies hashref: " . Dumper( $cookies );
+#         my $response = '';
+#         $response .= "HTTP/1.0 200 OK\r\n";
+#         $response .= "Content-Type: text/plain\r\n";
+#         $response .= "\r\n";
+#         $response .= "This is callback.";
+#         $response .= "Params hashref: " . Dumper( $params );
+#         $response .= "Cookies hashref: " . Dumper( $cookies );
+#         return $response;
 #     }},
 #     '/auth' => { auth => 'user:password' }
 # };
@@ -270,7 +272,8 @@ sub handle_request
             $cookies->{ $cookie_name } = $cgi->cookie( $cookie_name );
         }
 
-        $callback->( $params, $cookies );
+        my $response = $callback->( $params, $cookies );
+        print $response;
     }
     else
     {

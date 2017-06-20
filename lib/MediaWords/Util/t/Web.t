@@ -64,9 +64,6 @@ sub test_lwp_user_agent_retries()
         '/buggy-page' => {
             callback => sub {
                 my ( $params, $cookies ) = @_;
-                print "HTTP/1.0 200 OK\r\n";
-                print "Content-Type: text/plain\r\n";
-                print "\r\n";
 
                 # Simulate read timeout
                 sleep;
