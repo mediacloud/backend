@@ -10,7 +10,7 @@ BEGIN
 use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 
-use HTTP::HashServer;
+use MediaWords::Test::HTTP::HashServer;
 use Readonly;
 use Test::More tests => 61;
 use Test::Deep;

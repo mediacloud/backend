@@ -15,7 +15,7 @@ use MediaWords::CommonLibs;
 
 use Test::More tests => 2;
 
-use HTTP::HashServer;
+use MediaWords::Test::HTTP::HashServer;
 use Readonly;
 
 use MediaWords::Crawler::Engine;
@@ -67,7 +67,7 @@ sub test_invalid_feed($)
         '/foo' => '<rss version="2.0"><kim_kardashian></rss>',
     };
 
-    my $hs = HTTP::HashServer->new( $HTTP_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $HTTP_PORT, $pages );
 
     $hs->start;
 

@@ -10,7 +10,7 @@ use Test::Deep;
 use Test::More tests => 38;
 
 use Readonly;
-use HTTP::HashServer;
+use MediaWords::Test::HTTP::HashServer;
 use HTTP::Status qw(:constants);
 use HTTP::Response;
 use URI::Escape;
@@ -48,7 +48,7 @@ sub test_url_and_data_after_redirects_http()
         '/fifth' => 'Seems to be working.'
     };
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my ( $url_after_redirects, $data_after_redirects ) =
@@ -68,7 +68,7 @@ sub test_url_and_data_after_redirects_nonexistent()
     # Nonexistent URL ("/first")
     my $pages = {};
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my ( $url_after_redirects, $data_after_redirects ) =
@@ -95,7 +95,7 @@ sub test_url_and_data_after_redirects_html()
         '/fifth'  => 'Seems to be working too.'
     };
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my ( $url_after_redirects, $data_after_redirects ) =
@@ -128,7 +128,7 @@ sub test_url_and_data_after_redirects_http_loop()
         '/third' => { redirect => '/second', http_status_code => HTTP_SEE_OTHER }
     };
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my ( $url_after_redirects, $data_after_redirects ) =
@@ -151,7 +151,7 @@ sub test_url_and_data_after_redirects_html_loop()
         '/third'  => '<meta http-equiv="refresh" content="0; URL=/second" />',
     };
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my ( $url_after_redirects, $data_after_redirects ) =
@@ -250,7 +250,7 @@ sub test_url_and_data_after_redirects_cookies()
         '/no_cookies' => "No cookie support, go away, we don\'t like you."
     };
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my ( $url_after_redirects, $data_after_redirects ) =
@@ -291,7 +291,7 @@ sub test_all_url_variants($)
         '/third'  => 'This is where the redirect chain should end.',
     };
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
     @actual_url_variants = MediaWords::Util::URL::all_url_variants( $db, $starting_url );
     $hs->stop();
@@ -310,7 +310,7 @@ sub test_all_url_variants($)
         '/third'  => '<link rel="canonical" href="' . $TEST_HTTP_SERVER_URL . '/fourth" />',
     };
 
-    $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
     @actual_url_variants = MediaWords::Util::URL::all_url_variants( $db, $starting_url );
     $hs->stop();
@@ -333,7 +333,7 @@ sub test_all_url_variants($)
         '/second' => '<meta http-equiv="refresh" content="0; URL=/',
     };
 
-    $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
     @actual_url_variants = MediaWords::Util::URL::all_url_variants( $db, $starting_url );
     $hs->stop();
@@ -540,7 +540,7 @@ sub test_get_meta_redirect_response()
 {
     my $label = "test_get_meta_redirect_response";
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, { '/foo' => 'foo bar' } );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, { '/foo' => 'foo bar' } );
     $hs->start;
 
     my $redirect_url = "http://localhost:$TEST_HTTP_SERVER_PORT/foo";

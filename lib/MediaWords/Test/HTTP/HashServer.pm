@@ -1,4 +1,4 @@
-package HTTP::HashServer;
+package MediaWords::Test::HTTP::HashServer;
 
 use strict;
 use warnings;
@@ -16,7 +16,7 @@ sub new
     bless $self, $class;
 
     # Create Python object (::HashServer::HashServer)
-    $self->{ python_hashserver } = HTTP::HashServer::HashServer->new( $port, $pages );
+    $self->{ python_hashserver } = MediaWords::Test::HTTP::HashServer::HashServer->new( $port, $pages );
 
     return $self;
 }

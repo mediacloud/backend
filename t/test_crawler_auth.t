@@ -15,7 +15,7 @@ use MediaWords::CommonLibs;
 
 use English '-no_match_vars';
 
-use HTTP::HashServer;
+use MediaWords::Test::HTTP::HashServer;
 use Test::More tests => 6;
 
 use MediaWords::Crawler::Engine;
@@ -51,7 +51,7 @@ sub test_auth
     my $port = 8899;
     my $pages = { '/auth' => { auth => 'foo:bar', content => 'foo bar' } };
 
-    my $hs = HTTP::HashServer->new( $port, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $port, $pages );
 
     ok( $hs, 'hashserver object returned' );
 

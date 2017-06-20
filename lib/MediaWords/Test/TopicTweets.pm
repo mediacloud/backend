@@ -14,7 +14,7 @@ use warnings;
 use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 
-use HTTP::HashServer;
+use MediaWords::Test::HTTP::HashServer;
 use Readonly;
 use Test::More;
 
@@ -577,7 +577,7 @@ sub run_tests_on_external_apis
 
 sub run_tests_on_mock_apis
 {
-    my $hs = HTTP::HashServer->new(
+    my $hs = MediaWords::Test::HTTP::HashServer->new(
         $PORT,
         {
             '/api/monitor/posts'    => { callback => \&mock_ch_posts },

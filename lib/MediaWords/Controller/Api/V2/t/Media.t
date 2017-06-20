@@ -10,7 +10,7 @@ BEGIN
 use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 
-use HTTP::HashServer;
+use MediaWords::Test::HTTP::HashServer;
 use Readonly;
 use Test::More;
 use Test::Deep;
@@ -151,7 +151,7 @@ ATOM
         $pages->{ "/$site_name/custom_feed" } = { header => 'Content-Type: application/atom+xml', content => $atom };
     }
 
-    my $hs = HTTP::HashServer->new( $port, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $port, $pages );
 
     $hs->start();
 

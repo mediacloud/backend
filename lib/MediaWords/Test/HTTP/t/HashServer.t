@@ -1,15 +1,13 @@
 use strict;
 use warnings;
 
-# test HTTP::HashServer
-
 use Test::More tests => 15;
 
 use MediaWords::Util::Web;
 
 BEGIN
 {
-    use_ok( 'HTTP::HashServer' );
+    use_ok( 'MediaWords::Test::HTTP::HashServer' );
 }
 
 my $_port = 8899;
@@ -52,7 +50,7 @@ sub main
         },
     };
 
-    my $hs = HTTP::HashServer->new( $_port, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $_port, $pages );
 
     ok( $hs, 'hashserver object returned' );
 
