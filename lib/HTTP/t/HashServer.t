@@ -68,7 +68,7 @@ sub main
 
     my $response_404 = $ua->get( "http://localhost:$_port/404" );
     ok( !$response_404->is_success, "404 response should not succeed" );
-    is( $response_404->status_line, "404 Not Found", "404 status line" );
+    is( $response_404->code, 404, "404 status line" );
 
     my $auth_url = "http://localhost:$_port/auth";
 
@@ -84,7 +84,7 @@ sub main
     $request->set_authorization_basic( 'foo', 'foo' );
     $response = $ua->request( $request );
 
-    is( $response->status_line, "401 Access Denied", 'fail auth / bad password' );
+    is( $response->code, 401, 'fail auth / bad password' );
 
     $hs->stop();
 }
