@@ -3,7 +3,7 @@ use warnings;
 
 # test HTTP::HashServer
 
-use Test::More tests => 14;
+use Test::More tests => 15;
 
 use MediaWords::Util::Web;
 
@@ -53,6 +53,8 @@ sub main
     my $hs = HTTP::HashServer->new( $_port, $pages );
 
     ok( $hs, 'hashserver object returned' );
+
+    is( $hs->page_url( '/foo' ), "http://localhost:$_port/foo" );
 
     $hs->start();
 
