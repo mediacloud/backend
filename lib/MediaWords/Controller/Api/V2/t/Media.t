@@ -114,12 +114,12 @@ sub test_for_scraped_feeds($$)
     }
 }
 
-# start a HTTP::HashServer with the following pages for each of the given site names:
+# start a MediaWords::Test::HTTP::HashServer with the following pages for each of the given site names:
 # * home page - http://localhost:$port/$site
 # * feed page - http://localhost:$port/$site/feed
 # * custom feed page - http://localhost:$port/$site/custom_feed
 #
-# return the HTTP::HashServer
+# return the MediaWords::Test::HTTP::HashServer instance
 sub _start_media_create_hash_server
 {
     my ( $site_names ) = @_;
