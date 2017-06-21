@@ -1,22 +1,20 @@
 use strict;
 use warnings;
 
-# test HTTP::HashServer
-
-use Test::More tests => 13;
+use Test::More tests => 15;
 
 use MediaWords::Util::Web;
 
 BEGIN
 {
-    use_ok( 'HTTP::HashServer' );
+    use_ok( 'MediaWords::Test::HTTP::HashServer' );
 }
 
 my $_port = 8899;
 
 # verify that a request for the given page on the test server returns the
 # given content
-sub test_page
+sub __test_page
 {
     my ( $url, $expected_content ) = @_;
 
@@ -39,26 +37,40 @@ sub main
         '/127-foo'   => { redirect => "http://127.0.0.1:$_port/foo" },
         '/auth'      => { auth => 'foo:bar', content => 'foo bar' },
         '/404'       => { content => 'not found', http_status_code => 404 },
+        '/callback'  => {
+            callback => sub {
+                my ( $params, $cookies ) = @_;
+                my $response = '';
+                $response .= "HTTP/1.0 200 OK\r\n";
+                $response .= "Content-Type: text/plain\r\n";
+                $response .= "\r\n";
+                $response .= "callback";
+                return $response;
+            }
+        },
     };
 
-    my $hs = HTTP::HashServer->new( $_port, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $_port, $pages );
 
     ok( $hs, 'hashserver object returned' );
 
+    is( $hs->page_url( '/foo' ), "http://localhost:$_port/foo" );
+
     $hs->start();
 
-    test_page( "http://localhost:$_port/",          'home' );
-    test_page( "http://localhost:$_port/foo",       'foo' );
-    test_page( "http://localhost:$_port/bar",       'bar' );
-    test_page( "http://localhost:$_port/foo-bar",   'bar' );
-    test_page( "http://127.0.0.1:$_port/localhost", 'home' );
-    test_page( "http://localhost:$_port/127-foo",   'foo' );
+    __test_page( "http://localhost:$_port/",          'home' );
+    __test_page( "http://localhost:$_port/foo",       'foo' );
+    __test_page( "http://localhost:$_port/bar",       'bar' );
+    __test_page( "http://localhost:$_port/foo-bar",   'bar' );
+    __test_page( "http://127.0.0.1:$_port/localhost", 'home' );
+    __test_page( "http://localhost:$_port/127-foo",   'foo' );
+    __test_page( "http://localhost:$_port/callback",  'callback' );
 
     my $ua = MediaWords::Util::Web::UserAgent->new();
 
     my $response_404 = $ua->get( "http://localhost:$_port/404" );
     ok( !$response_404->is_success, "404 response should not succeed" );
-    is( $response_404->status_line, "404 Not Found", "404 status line" );
+    is( $response_404->code, 404, "404 status line" );
 
     my $auth_url = "http://localhost:$_port/auth";
 
@@ -74,7 +86,7 @@ sub main
     $request->set_authorization_basic( 'foo', 'foo' );
     $response = $ua->request( $request );
 
-    is( $response->status_line, "401 Access Denied", 'fail auth / bad password' );
+    is( $response->code, 401, 'fail auth / bad password' );
 
     $hs->stop();
 }

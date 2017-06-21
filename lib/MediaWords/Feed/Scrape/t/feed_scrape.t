@@ -18,7 +18,7 @@ use MediaWords::Feed::Scrape;
 
 use utf8;
 
-use HTTP::HashServer;
+use MediaWords::Test::HTTP::HashServer;
 use Readonly;
 use HTML::Entities;
 use Encode;
@@ -154,7 +154,7 @@ HTML
         }
     ];
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
 
@@ -201,7 +201,7 @@ HTML
         }
     ];
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
 
@@ -245,7 +245,7 @@ HTML
         }
     ];
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
 
@@ -289,7 +289,7 @@ HTML
         }
     ];
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
 
@@ -333,7 +333,7 @@ HTML
         }
     ];
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
 
@@ -530,7 +530,7 @@ HTML
         },
     ];
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
 
@@ -894,7 +894,7 @@ sub test_gp_se()
         },
     ];
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
 
@@ -958,7 +958,7 @@ EOF
         }
     ];
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
     my $feed_links = MediaWords::Feed::Scrape::get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1 );
@@ -1024,8 +1024,8 @@ HTML
 
     my $medium = { url => $TEST_HTTP_SERVER_URL };
 
-    my $hs1 = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT,   $pages_1 );
-    my $hs2 = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT_2, $pages_2 );
+    my $hs1 = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT,   $pages_1 );
+    my $hs2 = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT_2, $pages_2 );
 
     $hs1->start();
     $hs2->start();
@@ -1103,8 +1103,8 @@ HTML
 
     my $medium = { url => $TEST_HTTP_SERVER_URL };
 
-    my $hs1 = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT,   $pages_1 );
-    my $hs2 = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT_2, $pages_2 );
+    my $hs1 = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT,   $pages_1 );
+    my $hs2 = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT_2, $pages_2 );
 
     $hs1->start();
     $hs2->start();
@@ -1188,7 +1188,7 @@ HTML
         }
     ];
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $feed_links = MediaWords::Feed::Scrape::get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1 );
@@ -1253,7 +1253,7 @@ HTML
         }
     ];
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $feed_links = MediaWords::Feed::Scrape::get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1 );
@@ -1318,7 +1318,7 @@ HTML
         }
     ];
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $feed_links = MediaWords::Feed::Scrape::get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1 );
@@ -1370,7 +1370,7 @@ HTML
 
     my $medium = { url => $TEST_HTTP_SERVER_URL };
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
@@ -1435,7 +1435,7 @@ HTML
 
     my $medium = { url => $TEST_HTTP_SERVER_URL };
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
@@ -1520,7 +1520,7 @@ XML
 
     my $medium = { url => $TEST_HTTP_SERVER_URL };
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
@@ -1581,7 +1581,7 @@ HTML
 
     my $medium = { url => $TEST_HTTP_SERVER_URL };
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
@@ -1621,7 +1621,7 @@ HTML
 
     my $expected_need_to_moderate = 0;
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );

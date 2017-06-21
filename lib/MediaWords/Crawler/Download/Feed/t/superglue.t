@@ -25,7 +25,7 @@ use Test::Deep;
 use MediaWords::DB;
 use MediaWords::Test::DB;
 use MediaWords::Crawler::Engine;
-use HTTP::HashServer;
+use MediaWords::Test::HTTP::HashServer;
 
 sub test_fetch_handle_download($$)
 {
@@ -233,7 +233,7 @@ BIBENDUM, LACINIA TORTOR.</description>
 XML
     };
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     test_superglue( $local_superglue_url );

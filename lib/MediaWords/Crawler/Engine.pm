@@ -431,8 +431,9 @@ sub crawl
 
                         if ( !@{ $queued_downloads } && $self->test_mode )
                         {
-                            INFO "exiting after 30 second wait because crawler is in test mode and queue is empty";
-                            sleep 30;
+                            my $wait = 5;
+                            INFO "exiting after $wait second wait because crawler is in test mode and queue is empty";
+                            sleep $wait;
                             INFO "exiting now.";
                             last MAINLOOP;
                         }
@@ -453,8 +454,10 @@ sub crawl
     );
 
     kill( 15, map { $_->{ pid } } @{ $self->{ fetchers } } );
-    INFO "waiting 5 seconds for children to exit ...";
-    sleep( 5 );
+
+    my $wait = 3;
+    INFO "waiting $wait seconds for children to exit ...";
+    sleep( $wait );
 
     INFO "using kill 9 to make sure children stop";
     kill( 9, map { $_->{ pid } } @{ $self->{ fetchers } } );

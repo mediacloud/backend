@@ -21,7 +21,7 @@ use English '-no_match_vars';
 
 use Data::Dumper;
 use Digest::MD5 qw(md5_hex);
-use HTTP::HashServer;
+use MediaWords::Test::HTTP::HashServer;
 use Readonly;
 use Test::More;
 use Text::Lorem::More;
@@ -237,11 +237,11 @@ sub start_hash_servers
 
         map { $site_hash->{ $_->{ path } } = $_->{ content } } @{ $site->{ pages } };
 
-        my $hs = HTTP::HashServer->new( $site->{ port }, $site_hash );
+        my $hs = MediaWords::Test::HTTP::HashServer->new( $site->{ port }, $site_hash );
 
         DEBUG "starting hash server $site->{ id }";
 
-        $hs->start( 0 );
+        $hs->start();
 
         push( @{ $hash_servers }, $hs );
     }

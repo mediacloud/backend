@@ -15,7 +15,7 @@ use MediaWords::CommonLibs;
 
 use English '-no_match_vars';
 
-use HTTP::HashServer;
+use MediaWords::Test::HTTP::HashServer;
 use Test::More tests => 6;
 
 use MediaWords::Crawler::Engine;
@@ -51,7 +51,7 @@ sub test_auth
     my $port = 8899;
     my $pages = { '/auth' => { auth => 'foo:bar', content => 'foo bar' } };
 
-    my $hs = HTTP::HashServer->new( $port, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $port, $pages );
 
     ok( $hs, 'hashserver object returned' );
 
@@ -71,10 +71,10 @@ sub test_auth
     my $auth_response   = fetch_response( $db, $feed, "http://localhost:$port/auth" );
 
     ok( !$noauth_response->is_success, "noauth response should fail" );
-    is( $noauth_response->status_line, "401 Access Denied", 'noauth response should return 401' );
+    is( $noauth_response->code, 401, 'noauth response should return 401' );
 
     ok( $auth_response->is_success, "auth response should succeed" );
-    is( $auth_response->status_line, "200 OK", 'auth response should return 200' );
+    is( $auth_response->code, 200, 'auth response should return 200' );
     is( $auth_response->decoded_content, $pages->{ '/auth' }->{ content }, "auth response content should match" );
 
     $hs->stop;
