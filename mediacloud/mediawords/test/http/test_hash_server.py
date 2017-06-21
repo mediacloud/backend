@@ -10,7 +10,7 @@ def test_http_hash_server():
     port = random_unused_port()
     base_url = 'http://localhost:%d' % port
 
-    def __sample_callback(params: dict, cookies: dict) -> str:
+    def __simple_callback(params: dict, cookies: dict) -> str:
         r = ""
         r += "HTTP/1.0 200 OK\r\n"
         r += "Content-Type: application/json; charset=UTF-8\r\n"
@@ -22,6 +22,17 @@ def test_http_hash_server():
         })
         return r
 
+    # noinspection PyUnusedLocal
+    def __callback_cookie_redirect(params: dict, cookies: dict) -> str:
+        r = ""
+        r += "HTTP/1.0 302 Moved Temporarily\r\n"
+        r += "Content-Type: text/html; charset=UTF-8\r\n"
+        r += "Location: /check_cookie\r\n"
+        r += "Set-Cookie: test_cookie=I'm a cookie and I know it!\r\n"
+        r += "\r\n"
+        r += "Redirecting to the cookie check page..."
+        return r
+
     pages = {
         '/': 'home',
         '/foo': 'foo',
@@ -31,7 +42,10 @@ def test_http_hash_server():
         '/127-foo': {'redirect': "http://127.0.0.1:%d/foo" % port},
         '/auth': {'auth': 'foo:bar', 'content': 'foo bar'},
         '/404': {'content': 'not found', 'http_status_code': 404},
-        '/callback': {'callback': __sample_callback},
+        '/callback': {'callback': __simple_callback},
+
+        # Test setting cookies, redirects
+        '/callback_cookie_redirect': {'callback': __callback_cookie_redirect},
     }
 
     hs = HashServer(port=port, pages=pages)
@@ -59,6 +73,10 @@ def test_http_hash_server():
             'cookie_name': 'cookie_value',
         },
     }
+
+    response = requests.get('%s/callback_cookie_redirect' % base_url, allow_redirects=False)
+    assert response.status_code == 302
+    assert response.headers['Location'] == '/check_cookie'
 
     response = requests.get("%s/404" % base_url)
     assert response.status_code == HTTPStatus.NOT_FOUND.value
