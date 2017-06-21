@@ -71,7 +71,7 @@ sub test_errors
 {
     my ( $db ) = @_;
 
-    my $port  = '8912';
+    my $port  = 8912;
     my $pages = {
         '/foo' => '<rss version="2.0"><channel /></rss>',
         '/404' => { content => 'not found', http_status_code => 404 },
