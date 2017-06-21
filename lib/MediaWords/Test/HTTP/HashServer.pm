@@ -15,6 +15,12 @@ sub new
     my $self = {};
     bless $self, $class;
 
+    # Make deep copies because (probably) HashServer implementation modifies
+    # the hashref in some way, making it unusable in Perl code afterwards
+    # (e.g. in Cache.t)
+    $port  = python_deep_copy( $port );
+    $pages = python_deep_copy( $pages );
+
     # Create Python object (::HashServer::HashServer)
     $self->{ python_hashserver } = MediaWords::Test::HTTP::HashServer::HashServer->new( $port, $pages );
 
