@@ -144,7 +144,7 @@ class HashServer(object):
                 for response_header in response_headers.split("\r\n"):
 
                     if response_header.startswith('HTTP/'):
-                        protocol, http_status_code, http_status_message = response_header.split(' ')
+                        protocol, http_status_code, http_status_message = response_header.split(' ', maxsplit=2)
                         self.send_response(code=int(http_status_code), message=http_status_message)
 
                     else:
