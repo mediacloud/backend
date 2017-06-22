@@ -13,7 +13,6 @@ use MediaWords::CommonLibs;    # set PYTHONPATH too
 
 import_python_module( __PACKAGE__, 'mediawords.util.web' );
 
-use MediaWords::Util::Paths;
 use MediaWords::Util::Web::UserAgent::Request;
 use MediaWords::Util::Web::UserAgent::Response;
 use MediaWords::Util::Web::UserAgent;
