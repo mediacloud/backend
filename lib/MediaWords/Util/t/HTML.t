@@ -48,7 +48,8 @@ sub test_new_lines_around_block_level_tags()
 
     my $lang = MediaWords::Languages::en->new();
     my $sentences =
-      $lang->get_sentences( html_strip( MediaWords::Util::HTML::_new_lines_around_block_level_tags( $test_text ) ) );
+      $lang->get_sentences(
+        MediaWords::Util::HTML::html_strip( MediaWords::Util::HTML::_new_lines_around_block_level_tags( $test_text ) ) );
 
     cmp_deeply( $sentences, [ 'Title', '1st sentence.', '2nd sentence.' ] );
 }

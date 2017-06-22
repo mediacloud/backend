@@ -26,7 +26,7 @@ sub new
     $self->{ template }->context->define_filter(
         html_strip => sub {
             my $nr = shift;
-            $nr = html_strip( $nr );
+            $nr = MediaWords::Util::HTML::html_strip( $nr );
         }
     );
 

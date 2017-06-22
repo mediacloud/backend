@@ -6,15 +6,6 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-# various functions for manipulating html
-
-require Exporter;
-
-our @ISA    = qw(Exporter);
-our @EXPORT = qw(html_strip);
-
-# various functions for editing feed and medium tags
-
 use HTML::Entities qw( decode_entities  );
 use Encode;
 use List::Util qw(min);

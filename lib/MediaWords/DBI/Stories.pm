@@ -50,7 +50,8 @@ sub _get_full_text_from_rss
 {
     my ( $db, $story ) = @_;
 
-    my $ret = html_strip( $story->{ title } || '' ) . "\n\n" . html_strip( $story->{ description } || '' );
+    my $ret = MediaWords::Util::HTML::html_strip( $story->{ title } || '' ) .
+      "\n\n" . MediaWords::Util::HTML::html_strip( $story->{ description } || '' );
 
     return $ret;
 }
@@ -67,9 +68,9 @@ sub combine_story_title_description_text($$$)
 
     return join(
         "\n***\n\n",
-        html_strip( $story_title       || '' ),    #
-        html_strip( $story_description || '' ),    #
-        @{ $download_texts }                       #
+        MediaWords::Util::HTML::html_strip( $story_title       || '' ),    #
+        MediaWords::Util::HTML::html_strip( $story_description || '' ),    #
+        @{ $download_texts }                                               #
     );
 }
 
@@ -142,11 +143,11 @@ sub get_text_for_word_counts
 
     if ( ( length( $story_text ) == 0 ) || ( length( $story_text ) < length( $story_description ) ) )
     {
-        $story_text = html_strip( $story->{ title } );
+        $story_text = MediaWords::Util::HTML::html_strip( $story->{ title } );
         if ( $story->{ description } )
         {
             $story_text .= '.' unless ( $story_text =~ /\.\s*$/ );
-            $story_text .= html_strip( $story->{ description } );
+            $story_text .= MediaWords::Util::HTML::html_strip( $story->{ description } );
         }
     }
 
@@ -873,7 +874,7 @@ sub _get_title_parts
     $title =~ s/^\s+//;
     $title =~ s/\s+$//;
 
-    $title = html_strip( $title ) if ( $title =~ /\</ );
+    $title = MediaWords::Util::HTML::html_strip( $title ) if ( $title =~ /\</ );
     $title = decode_entities( $title );
 
     my $title_parts;

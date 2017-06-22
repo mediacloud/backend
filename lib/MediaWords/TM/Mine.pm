@@ -995,7 +995,7 @@ sub potential_story_matches_topic_pattern
 
     return 1 if $match;
 
-    my $text_content = html_strip( $content, 1 );
+    my $text_content = MediaWords::Util::HTML::html_strip( $content, 1 );
 
     my $story_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $text_content, '' );
 
