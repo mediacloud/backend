@@ -40,7 +40,16 @@ around execute => sub {
 
         # Log the request
         my $db = $c->dbis;
-        $db->query( 'SELECT upsert_auth_user_request_daily_counts(?, ?)', $user_email, $requested_items_count );
+        $db->query(
+            <<SQL,
+            INSERT INTO auth_user_request_daily_counts (email, day, requests_count, requested_items_count)
+            VALUES (?, DATE_TRUNC('day', LOCALTIMESTAMP)::DATE, 1, ?)
+            ON CONFLICT (email, day) DO UPDATE
+                SET requests_count = auth_user_request_daily_counts.requests_count + 1,
+                    requested_items_count = auth_user_request_daily_counts.requested_items_count + EXCLUDED.requested_items_count
+SQL
+            $user_email, $requested_items_count
+        );
     };
 
     if ( $@ )
