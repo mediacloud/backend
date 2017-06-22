@@ -7,7 +7,7 @@ use lib "$FindBin::Bin/../lib";
 
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 5;
+use Test::More tests => 6;
 
 use Readonly;
 use Data::Dumper;
@@ -29,8 +29,6 @@ my Readonly $TEST_HTTP_SERVER_URL  = 'http://localhost:' . $TEST_HTTP_SERVER_POR
 # * non-UTF-8 response
 # * invalid encoding
 # * timeouts
-# * retries via ::Determined of specific HTTP status codes
-# * retry timing via ::Determined, plus custom timing
 # * custom before / after determined callbacks
 # * max. redirects
 # * whether or not cookies are being stored between redirects
@@ -92,15 +90,40 @@ sub test_parallel_get()
 
 sub test_lwp_user_agent_retries()
 {
+    my $request_count = 0;    # times the request has failed
+
     my $pages = {
 
-        # Page that doesn't respond in time
+        # Page that doesn't respond in time the first two times
         '/buggy-page' => {
             callback => sub {
                 my ( $params, $cookies ) = @_;
 
-                # Simulate read timeout
-                sleep;
+                my $response = '';
+
+                ++$request_count;
+                if ( $request_count < 3 )
+                {
+
+                    say STDERR "Simulating failure for $request_count time...";
+                    $response .= "HTTP/1.0 500 Internal Server Error\r\n";
+                    $response .= "Content-Type: text/plain\r\n";
+                    $response .= "\r\n";
+                    $response .= "something's wrong";
+
+                }
+                else
+                {
+
+                    say STDERR "Returning successful request...";
+                    $response .= "HTTP/1.0 200 OK\r\n";
+                    $response .= "Content-Type: text/plain\r\n";
+                    $response .= "\r\n";
+                    $response .= "success on request $request_count";
+                }
+
+                return $response;
+
             }
         }
     };
@@ -113,8 +136,8 @@ sub test_lwp_user_agent_retries()
     $ua->set_timing( '1,2,4' );
 
     my $response = $ua->get( $TEST_HTTP_SERVER_URL . '/buggy-page' );
-    ok( !$response->is_success, 'Request should fail' );
-    $response->decoded_content;
+    ok( $response->is_success, 'Request should fail' );
+    is( $response->decoded_content, "success on request 3" );
 
     $hs->stop();
 }
