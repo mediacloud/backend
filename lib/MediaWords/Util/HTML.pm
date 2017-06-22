@@ -4,7 +4,9 @@ use strict;
 use warnings;
 
 use Modern::Perl "2015";
-use MediaWords::CommonLibs;
+use MediaWords::CommonLibs;    # set PYTHONPATH too
+
+import_python_module( __PACKAGE__, 'mediawords.util.html' );
 
 use HTML::Entities qw( decode_entities  );
 use Encode;

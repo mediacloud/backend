@@ -8,6 +8,7 @@ use MediaWords::CommonLibs;    # set PYTHONPATH too
 
 import_python_module( __PACKAGE__, 'mediawords.util.url' );
 
+use MediaWords::Util::HTML;
 use HTML::TreeBuilder::LibXML;
 use List::MoreUtils qw/uniq/;
 use Readonly;
@@ -259,7 +260,8 @@ sub all_url_variants($$)
     # If <link rel="canonical" /> is present, try that one too
     if ( defined $data_after_redirects )
     {
-        my $url_link_rel_canonical = link_canonical_url_from_html( $data_after_redirects, $url_after_redirects );
+        my $url_link_rel_canonical =
+          MediaWords::Util::HTML::link_canonical_url_from_html( $data_after_redirects, $url_after_redirects );
         if ( $url_link_rel_canonical )
         {
             TRACE "Found <link rel=\"canonical\" /> for URL $url_after_redirects " .
@@ -380,7 +382,7 @@ sub original_url_from_archive_url($$)
 
     if ( $archive_site_url =~ m|^https?://archive\.is/(.+?)$|i )
     {
-        my $canonical_link = MediaWords::Util::URL::link_canonical_url_from_html( $content );
+        my $canonical_link = MediaWords::Util::HTML::link_canonical_url_from_html( $content );
         if ( $canonical_link =~ m|^https?://archive\.is/\d+?/(https?://.+?)$|i )
         {
             $original_url = $1;
