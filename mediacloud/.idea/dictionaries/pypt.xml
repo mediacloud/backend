@@ -63,11 +63,13 @@
       <w>sql</w>
       <w>starttls</w>
       <w>stdin</w>
+      <w>stringio</w>
       <w>supervisord</w>
       <w>unnest</w>
       <w>upconfig</w>
       <w>webapp</w>
       <w>webapps</w>
+      <w>webserver</w>
       <w>yyyy</w>
     </words>
   </dictionary>
