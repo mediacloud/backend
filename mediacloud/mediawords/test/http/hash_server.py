@@ -87,7 +87,7 @@ class HashServer(object):
             path = urlparse(self.path).path
 
             if path not in self._pages:
-                self.send_response(401)
+                self.send_response(404)
                 self.send_header("Content-Type", "text/plain")
                 self.end_headers()
                 self.__write_response_string("Not found :(")
