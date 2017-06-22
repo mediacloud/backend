@@ -7,7 +7,7 @@ use lib "$FindBin::Bin/../lib";
 
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 6;
+use Test::More tests => 7;
 
 use Readonly;
 use Data::Dumper;
@@ -88,24 +88,24 @@ sub test_parallel_get()
     $hs->stop();
 }
 
-sub test_lwp_user_agent_retries()
+sub test_determined_retries()
 {
-    my $request_count = 0;    # times the request has failed
+    my $temporarily_buggy_page_request_count = 0;    # times the request has failed
 
     my $pages = {
 
-        # Page that doesn't respond in time the first two times
-        '/buggy-page' => {
+        # Page that doesn't work the first two times
+        '/temporarily-buggy-page' => {
             callback => sub {
                 my ( $params, $cookies ) = @_;
 
                 my $response = '';
 
-                ++$request_count;
-                if ( $request_count < 3 )
+                ++$temporarily_buggy_page_request_count;
+                if ( $temporarily_buggy_page_request_count < 3 )
                 {
 
-                    say STDERR "Simulating failure for $request_count time...";
+                    say STDERR "Simulating failure for $temporarily_buggy_page_request_count time...";
                     $response .= "HTTP/1.0 500 Internal Server Error\r\n";
                     $response .= "Content-Type: text/plain\r\n";
                     $response .= "\r\n";
@@ -119,13 +119,30 @@ sub test_lwp_user_agent_retries()
                     $response .= "HTTP/1.0 200 OK\r\n";
                     $response .= "Content-Type: text/plain\r\n";
                     $response .= "\r\n";
-                    $response .= "success on request $request_count";
+                    $response .= "success on request $temporarily_buggy_page_request_count";
                 }
 
                 return $response;
 
             }
-        }
+        },
+
+        # Page that doesn't work at all
+        '/permanently-buggy-page' => {
+            callback => sub {
+                my ( $params, $cookies ) = @_;
+
+                my $response = '';
+                $response .= "HTTP/1.0 500 Internal Server Error\r\n";
+                $response .= "Content-Type: text/plain\r\n";
+                $response .= "\r\n";
+                $response .= "something's wrong";
+
+                return $response;
+
+            }
+        },
+
     };
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
@@ -135,9 +152,16 @@ sub test_lwp_user_agent_retries()
     $ua->set_timeout( 2 );    # time-out really fast
     $ua->set_timing( '1,2,4' );
 
-    my $response = $ua->get( $TEST_HTTP_SERVER_URL . '/buggy-page' );
-    ok( $response->is_success, 'Request should fail' );
-    is( $response->decoded_content, "success on request 3" );
+    {
+        my $response = $ua->get( $TEST_HTTP_SERVER_URL . '/temporarily-buggy-page' );
+        ok( $response->is_success, 'Request should ultimately succeed' );
+        is( $response->decoded_content, "success on request 3" );
+    }
+
+    {
+        my $response = $ua->get( $TEST_HTTP_SERVER_URL . '/permanently-buggy-page' );
+        ok( !$response->is_success, 'Request should fail' );
+    }
 
     $hs->stop();
 }
@@ -150,7 +174,7 @@ sub main()
     binmode $builder->todo_output,    ":utf8";
 
     test_parallel_get();
-    test_lwp_user_agent_retries();
+    test_determined_retries();
 }
 
 main();
