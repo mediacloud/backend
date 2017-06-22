@@ -7,7 +7,7 @@ use MediaWords::CommonLibs;
 
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 38;
+use Test::More tests => 41;
 
 use Readonly;
 use MediaWords::Test::HTTP::HashServer;
@@ -485,55 +485,94 @@ END
     }
 }
 
-# test _original_url_from_archive_url by passing the given url and a dummy response with the given content and
-# expecting the given url
-sub _test_archive_url_response($$$$)
+sub test_original_url_from_archive_org_url()
 {
-    my ( $label, $url, $content, $expected_url ) = @_;
+    is(
+        MediaWords::Util::URL::_original_url_from_archive_org_url(
+            undef,                                                                                     #
+            'https://web.archive.org/web/20150204024130/http://www.john-daly.com/hockey/hockey.htm'    #
+        ),
+        'http://www.john-daly.com/hockey/hockey.htm',                                                  #
+        'archive.org'                                                                                  #
+    );
 
-    my $got_url = MediaWords::Util::URL::_original_url_from_archive_url( $content, $url );
-    is( $got_url, $expected_url, "test _original_url_from_archive_url $label" );
+    is(
+        MediaWords::Util::URL::_original_url_from_archive_org_url(
+            undef,                                                                                     #
+            'http://www.john-daly.com/hockey/hockey.htm'                                               #
+        ),
+        undef,                                                                                         #
+        'archive.org with non-matching URL'                                                            #
+    );
 }
 
-sub test_original_url_from_archive_url()
+sub test_original_url_from_archive_is_url()
 {
-    _test_archive_url_response(
-        'archive.org', 'https://web.archive.org/web/20150204024130/http://www.john-daly.com/hockey/hockey.htm',
-        'foo',         'http://www.john-daly.com/hockey/hockey.htm'
+    is(
+        MediaWords::Util::URL::_original_url_from_archive_is_url(
+            '<link rel="canonical" href="https://archive.is/20170201/https://bar.com/foo/bar">',       #
+            'https://archive.is/20170201/https://bar.com/foo/bar'                                      #
+        ),
+        'https://bar.com/foo/bar',                                                                     #
+        'archive.is'                                                                                   #
     );
 
-    _test_archive_url_response(
-        'archive.is',
-        'https://archive.is/20170201/https://bar.com/foo/bar',
-        '<link rel="canonical" href="https://archive.is/20170201/https://bar.com/foo/bar">',
-        'https://bar.com/foo/bar'
+    is(
+        MediaWords::Util::URL::_original_url_from_archive_is_url(
+            '<link rel="canonical" href="https://archive.is/20170201/https://bar.com/foo/bar">',       #
+            'https://bar.com/foo/bar'                                                                  #
+        ),
+        undef,                                                                                         #
+        'archive.is with non-matching URL'                                                             #
+    );
+}
+
+sub test_original_url_from_linkis_com_url()
+{
+    is(
+        MediaWords::Util::URL::_original_url_from_linkis_com_url(
+            '<meta property="og:url" content="http://og.url/test"',                                    #
+            'https://linkis.com/foo.com/ASDF'                                                          #
+        ),
+        'http://og.url/test',                                                                          #
+        'linkis.com <meta>'                                                                            #
     );
 
-    # my $dom_maps = [
-    #     [ '//meta[@property="og:url"]', 'content' ],
-    #     [ '//a[@class="js-youtube-ln-event"]', 'href' ],
-    #     [ '//iframe[@id="source_site"]', 'src' ],
-
-    _test_archive_url_response(
-        'linkis og:url',                                        'https://linkis.com/foo.com/ASDF',
-        '<meta property="og:url" content="http://og.url/test"', 'http://og.url/test'
+    is(
+        MediaWords::Util::URL::_original_url_from_linkis_com_url(
+            '<a class="js-youtube-ln-event" href="http://you.tube/test"',                              #
+            'https://linkis.com/foo.com/ASDF'                                                          #
+        ),
+        'http://you.tube/test',                                                                        #
+        'linkis.com YouTube'                                                                           #
     );
 
-    _test_archive_url_response(
-        'linkis youtube',                                             'https://linkis.com/foo.com/ASDF',
-        '<a class="js-youtube-ln-event" href="http://you.tube/test"', 'http://you.tube/test'
+    is(
+        MediaWords::Util::URL::_original_url_from_linkis_com_url(
+            '<iframe id="source_site" src="http://source.site/test"',                                  #
+            'https://linkis.com/foo.com/ASDF'                                                          #
+        ),
+        'http://source.site/test',                                                                     #
+        'linkis.com <iframe>'                                                                          #
     );
 
-    _test_archive_url_response(
-        'linkis source_site',                                     'https://linkis.com/foo.com/ASDF',
-        '<iframe id="source_site" src="http://source.site/test"', 'http://source.site/test'
+    is(
+        MediaWords::Util::URL::_original_url_from_linkis_com_url(
+            '"longUrl":"http:\/\/java.script\/test"',                                                  #
+            'https://linkis.com/foo.com/ASDF'                                                          #
+        ),
+        'http://java.script/test',                                                                     #
+        'linkis.com JavaScript'                                                                        #
     );
 
-    _test_archive_url_response(
-        'linkis javascript',                      'https://linkis.com/foo.com/ASDF',
-        '"longUrl":"http:\/\/java.script\/test"', 'http://java.script/test'
+    is(
+        MediaWords::Util::URL::_original_url_from_archive_is_url(
+            '<meta property="og:url" content="http://og.url/test"',                                    #
+            'https://bar.com/foo/bar'                                                                  #
+        ),
+        undef,                                                                                         #
+        'linkis.com with non-matching URL'                                                             #
     );
-
 }
 
 sub test_get_meta_redirect_response()
@@ -584,7 +623,9 @@ sub main()
     test_url_and_data_after_redirects_http_loop();
     test_url_and_data_after_redirects_html_loop();
     test_url_and_data_after_redirects_cookies();
-    test_original_url_from_archive_url();
+    test_original_url_from_archive_org_url();
+    test_original_url_from_archive_is_url();
+    test_original_url_from_linkis_com_url();
     test_get_meta_redirect_response();
 
     MediaWords::Test::DB::test_on_test_database(
