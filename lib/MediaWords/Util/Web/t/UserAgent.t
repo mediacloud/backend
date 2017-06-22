@@ -7,7 +7,7 @@ use lib "$FindBin::Bin/../lib";
 
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 7;
+use Test::More tests => 11;
 
 use Readonly;
 use Data::Dumper;
@@ -63,11 +63,13 @@ sub test_parallel_get()
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my $urls = [];
-    foreach my $path ( keys %{ $pages } )
-    {
-        push( @{ $urls }, 'http://localhost:' . $TEST_HTTP_SERVER_PORT . $path );
-    }
+    my $base_url = 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
+    my $urls     = [
+        "$base_url/a",
+        "$base_url/b",
+        "$base_url/c",
+        "$base_url/does-not-exist",                                    # does not exist
+    ];
 
     my $ua        = MediaWords::Util::Web::UserAgent->new();
     my $responses = $ua->parallel_get( $urls );
@@ -75,15 +77,18 @@ sub test_parallel_get()
     ok( $responses );
     ok( scalar( @{ $responses } ) == scalar( @{ $urls } ) );
 
-    my $paths_and_contents = {};
+    my $path_responses = {};
     foreach my $response ( @{ $responses } )
     {
-        my $path    = URI->new( $response->request->url )->path;
-        my $content = $response->decoded_content;
-        $paths_and_contents->{ $path } = $content;
+        my $path = URI->new( $response->request->url )->path;
+        $path_responses->{ $path } = $response;
     }
 
-    cmp_deeply( $paths_and_contents, $pages );
+    is( $path_responses->{ '/a' }->decoded_content, $pages->{ '/a' } );
+    is( $path_responses->{ '/b' }->decoded_content, $pages->{ '/b' } );
+    is( $path_responses->{ '/c' }->decoded_content, $pages->{ '/c' } );
+    ok( !$path_responses->{ '/does-not-exist' }->is_success );
+    is( $path_responses->{ '/does-not-exist' }->code, 404 );
 
     $hs->stop();
 }
