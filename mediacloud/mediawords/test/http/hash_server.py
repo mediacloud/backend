@@ -75,6 +75,7 @@ class HashServer(object):
             return True
 
         def send_response(self, code: Union[int, HTTPStatus], message=None):
+            """Fill in HTTP status message if not set."""
             if message is None:
                 if isinstance(code, HTTPStatus):
                     message = code.phrase
@@ -87,7 +88,7 @@ class HashServer(object):
             path = urlparse(self.path).path
 
             if path not in self._pages:
-                self.send_response(404)
+                self.send_response(HTTPStatus.NOT_FOUND)
                 self.send_header("Content-Type", "text/plain")
                 self.end_headers()
                 self.__write_response_string("Not found :(")
@@ -100,7 +101,7 @@ class HashServer(object):
 
             # HTTP auth
             if not self.__request_passed_authentication(page=page):
-                self.send_response(401)
+                self.send_response(HTTPStatus.UNAUTHORIZED)
                 self.send_header("WWW-Authenticate", 'Basic realm="HashServer"')
                 self.end_headers()
                 return
