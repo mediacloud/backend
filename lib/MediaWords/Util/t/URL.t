@@ -485,14 +485,14 @@ END
     }
 }
 
-# test original_url_from_archive_url by passing the given url and a dummy response with the given content and
+# test _original_url_from_archive_url by passing the given url and a dummy response with the given content and
 # expecting the given url
 sub _test_archive_url_response($$$$)
 {
     my ( $label, $url, $content, $expected_url ) = @_;
 
-    my $got_url = MediaWords::Util::URL::original_url_from_archive_url( $content, $url );
-    is( $got_url, $expected_url, "test original_url_from_archive_url $label" );
+    my $got_url = MediaWords::Util::URL::_original_url_from_archive_url( $content, $url );
+    is( $got_url, $expected_url, "test _original_url_from_archive_url $label" );
 }
 
 sub test_original_url_from_archive_url()

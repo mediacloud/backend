@@ -363,13 +363,8 @@ sub _get_url_from_linkis_content($$)
     return $url;
 }
 
-=head2 original_url_from_archive_url( $content, $url )
-
-Given a url and content from one of the following url archiving sites, return the original url
-
-=cut
-
-sub original_url_from_archive_url($$)
+# Given a url and content from one of the following url archiving sites, return the original url
+sub _original_url_from_archive_url($$)
 {
     my ( $content, $archive_site_url ) = @_;
 
@@ -417,7 +412,7 @@ sub get_meta_redirect_response
 
     my $content = $response->decoded_content;
 
-    for my $f ( \&MediaWords::Util::HTML::meta_refresh_url_from_html, \&original_url_from_archive_url )
+    for my $f ( \&MediaWords::Util::HTML::meta_refresh_url_from_html, \&_original_url_from_archive_url )
     {
         my $redirect_url = $f->( $content, $url );
         next unless ( $redirect_url );
