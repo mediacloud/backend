@@ -9,6 +9,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::Feed::Parse;
+use MediaWords::Util::HTML;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 
@@ -640,7 +641,7 @@ sub _immediate_redirection_url_for_medium($)
     }
 
     my $html = $response->decoded_content || '';
-    $new_url = MediaWords::Util::URL::meta_refresh_url_from_html( $html );
+    $new_url = MediaWords::Util::HTML::meta_refresh_url_from_html( $html );
     if ( $new_url and $medium->{ url } ne $new_url )
     {
         DEBUG "New medium URL via HTML <meta/> refresh: $medium->{url} => $new_url";

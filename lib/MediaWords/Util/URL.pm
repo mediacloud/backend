@@ -8,7 +8,6 @@ use MediaWords::CommonLibs;    # set PYTHONPATH too
 
 import_python_module( __PACKAGE__, 'mediawords.util.url' );
 
-use MediaWords::Util::HTML;
 use HTML::TreeBuilder::LibXML;
 use List::MoreUtils qw/uniq/;
 use Readonly;
@@ -17,6 +16,7 @@ use URI::Escape;
 use URI::QueryParam;
 use URI;
 
+use MediaWords::Util::HTML;
 use MediaWords::Util::Web;
 
 # Regular expressions for invalid "variants" of the resolved URL
@@ -129,7 +129,7 @@ sub url_and_data_after_redirects($;$$)
             $base_uri->path_segments( @base_uri_path_segments );
         }
 
-        my $url_after_meta_redirect = meta_refresh_url_from_html( $html, $base_uri->as_string );
+        my $url_after_meta_redirect = MediaWords::Util::HTML::meta_refresh_url_from_html( $html, $base_uri->as_string );
         if ( $url_after_meta_redirect and $uri->as_string ne $url_after_meta_redirect )
         {
             TRACE "URL after <meta /> refresh: $url_after_meta_redirect";
@@ -417,7 +417,7 @@ sub get_meta_redirect_response
 
     my $content = $response->decoded_content;
 
-    for my $f ( \&meta_refresh_url_from_html, \&original_url_from_archive_url )
+    for my $f ( \&MediaWords::Util::HTML::meta_refresh_url_from_html, \&original_url_from_archive_url )
     {
         my $redirect_url = $f->( $content, $url );
         next unless ( $redirect_url );

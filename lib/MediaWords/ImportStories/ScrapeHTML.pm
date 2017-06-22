@@ -26,6 +26,7 @@ use HTML::LinkExtractor;
 use List::MoreUtils;
 
 use MediaWords::Util::Config;
+use MediaWords::Util::HTML;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 
@@ -93,7 +94,7 @@ sub _fetch_url
         $content = $response->decoded_content;
 
         if (   ( $refresh_loops++ < 10 )
-            && ( my $refresh_url = MediaWords::Util::URL::meta_refresh_url_from_html( $content, $url ) ) )
+            && ( my $refresh_url = MediaWords::Util::HTML::meta_refresh_url_from_html( $content, $url ) ) )
         {
             $url     = $refresh_url;
             $content = '';
