@@ -2,16 +2,18 @@ use strict;
 use warnings;
 use utf8;
 
-use FindBin;
-use lib "$FindBin::Bin/../lib";
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
 
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 11;
+use Test::More tests => 23;
 
+use HTTP::Status qw(:constants);
 use Readonly;
 use Data::Dumper;
 use URI;
+use URI::Escape;
 
 use MediaWords::Util::Web;
 use MediaWords::Test::HTTP::HashServer;
@@ -50,6 +52,240 @@ my Readonly $TEST_HTTP_SERVER_URL  = 'http://localhost:' . $TEST_HTTP_SERVER_POR
 # * response: get original request
 # * response: errors on client/server side
 # * get_string()
+
+sub test_get_follow_http_html_redirects_http()
+{
+    my $ua = MediaWords::Util::Web::UserAgent->new();
+
+    eval { $ua->get_follow_http_html_redirects( undef ); };
+    ok( $@, 'Undefined URL' );
+
+    eval { $ua->get_follow_http_html_redirects( 'gopher://gopher.floodgap.com/0/v2/vstat' ); };
+    ok( $@, 'Non-HTTP(S) URL' );
+
+    Readonly my $TEST_HTTP_SERVER_URL => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
+    my $starting_url = $TEST_HTTP_SERVER_URL . '/first';
+
+    # HTTP redirects
+    my $pages = {
+        '/first'  => { redirect => '/second',                        http_status_code => HTTP_MOVED_PERMANENTLY },
+        '/second' => { redirect => $TEST_HTTP_SERVER_URL . '/third', http_status_code => HTTP_FOUND },
+        '/third'  => { redirect => '/fourth',                        http_status_code => HTTP_SEE_OTHER },
+        '/fourth' => { redirect => $TEST_HTTP_SERVER_URL . '/fifth', http_status_code => HTTP_TEMPORARY_REDIRECT },
+        '/fifth' => 'Seems to be working.'
+    };
+
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my $response = $ua->get_follow_http_html_redirects( $starting_url );
+
+    $hs->stop();
+
+    is( $response->request()->url(),  $TEST_HTTP_SERVER_URL . '/fifth', 'URL after HTTP redirects' );
+    is( $response->decoded_content(), $pages->{ '/fifth' },             'Data after HTTP redirects' );
+}
+
+sub test_get_follow_http_html_redirects_nonexistent()
+{
+    Readonly my $TEST_HTTP_SERVER_URL => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
+    my $starting_url = $TEST_HTTP_SERVER_URL . '/first';
+
+    # Nonexistent URL ("/first")
+    my $pages = {};
+
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my $ua       = MediaWords::Util::Web::UserAgent->new();
+    my $response = $ua->get_follow_http_html_redirects( $starting_url );
+
+    $hs->stop();
+
+    ok( !$response->is_success );
+    is( $response->request()->url(), $starting_url, 'URL after unsuccessful HTTP redirects' );
+}
+
+sub test_get_follow_http_html_redirects_html()
+{
+    Readonly my $TEST_HTTP_SERVER_URL => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
+    my $starting_url = $TEST_HTTP_SERVER_URL . '/first';
+
+    # HTML redirects
+    my $pages = {
+        '/first'  => '<meta http-equiv="refresh" content="0; URL=/second" />',
+        '/second' => '<meta http-equiv="refresh" content="url=third" />',
+        '/third'  => '<META HTTP-EQUIV="REFRESH" CONTENT="10; URL=/fourth" />',
+        '/fourth' => '< meta content="url=fifth" http-equiv="refresh" >',
+        '/fifth'  => 'Seems to be working too.'
+    };
+
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my $ua       = MediaWords::Util::Web::UserAgent->new();
+    my $response = $ua->get_follow_http_html_redirects( $starting_url );
+
+    $hs->stop();
+
+    is( $response->request()->url(),  $TEST_HTTP_SERVER_URL . '/fifth', 'URL after HTML redirects' );
+    is( $response->decoded_content(), $pages->{ '/fifth' },             'Data after HTML redirects' );
+}
+
+sub test_get_follow_http_html_redirects_http_loop()
+{
+    Readonly my $TEST_HTTP_SERVER_URL => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
+    my $starting_url = $TEST_HTTP_SERVER_URL . '/first';
+
+    # "http://127.0.0.1:9998/third?url=http%3A%2F%2F127.0.0.1%2Fsecond"
+    my $third = '/third?url=' . uri_escape( $TEST_HTTP_SERVER_URL . '/second' );
+
+    # HTTP redirects
+    my $pages = {
+
+# e.g. http://rss.nytimes.com/c/34625/f/640350/s/3a08a24a/sc/1/l/0L0Snytimes0N0C20A140C0A50C0A40Cus0Cpolitics0Cobama0Ewhite0Ehouse0Ecorrespondents0Edinner0Bhtml0Dpartner0Frss0Gemc0Frss/story01.htm
+        '/first' => { redirect => '/second', http_status_code => HTTP_SEE_OTHER },
+
+        # e.g. http://www.nytimes.com/2014/05/04/us/politics/obama-white-house-correspondents-dinner.html?partner=rss&emc=rss
+        '/second' => { redirect => $third, http_status_code => HTTP_SEE_OTHER },
+
+# e.g. http://www.nytimes.com/glogin?URI=http%3A%2F%2Fwww.nytimes.com%2F2014%2F05%2F04%2Fus%2Fpolitics%2Fobama-white-house-correspondents-dinner.html%3Fpartner%3Drss%26emc%3Drss
+        '/third' => { redirect => '/second', http_status_code => HTTP_SEE_OTHER }
+    };
+
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my $ua       = MediaWords::Util::Web::UserAgent->new();
+    my $response = $ua->get_follow_http_html_redirects( $starting_url );
+
+    $hs->stop();
+
+    is( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/second', 'URL after HTTP redirect loop' );
+}
+
+sub test_get_follow_http_html_redirects_html_loop()
+{
+    Readonly my $TEST_HTTP_SERVER_URL => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
+    my $starting_url = $TEST_HTTP_SERVER_URL . '/first';
+
+    # HTML redirects
+    my $pages = {
+        '/first'  => '<meta http-equiv="refresh" content="0; URL=/second" />',
+        '/second' => '<meta http-equiv="refresh" content="0; URL=/third" />',
+        '/third'  => '<meta http-equiv="refresh" content="0; URL=/second" />',
+    };
+
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my $ua       = MediaWords::Util::Web::UserAgent->new();
+    my $response = $ua->get_follow_http_html_redirects( $starting_url );
+
+    $hs->stop();
+
+    is( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/first', 'URL after HTML redirect loop' );
+}
+
+# Test if the subroutine acts nicely when the server decides to ensure that the
+# client supports cookies (e.g.
+# http://www.dailytelegraph.com.au/news/world/charlie-hebdo-attack-police-close-in-on-two-armed-massacre-suspects-as-manhunt-continues-across-france/story-fni0xs63-1227178925700)
+sub test_get_follow_http_html_redirects_cookies()
+{
+    Readonly my $TEST_HTTP_SERVER_URL => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
+    my $starting_url = $TEST_HTTP_SERVER_URL . '/first';
+    Readonly my $TEST_CONTENT => 'This is the content.';
+
+    Readonly my $COOKIE_NAME    => "test_cookie";
+    Readonly my $COOKIE_VALUE   => "I'm a cookie and I know it!";
+    Readonly my $DEFAULT_HEADER => "Content-Type: text/html; charset=UTF-8";
+
+    # HTTP redirects
+    my $pages = {
+        '/first' => {
+            callback => sub {
+                my ( $params, $cookies ) = @_;
+
+                my $received_cookie = $cookies->{ $COOKIE_NAME };
+                my $response        = '';
+
+                if ( $received_cookie and $received_cookie eq $COOKIE_VALUE )
+                {
+
+                    TRACE "Cookie was set previously, showing page";
+
+                    $response .= "HTTP/1.0 200 OK\r\n";
+                    $response .= "$DEFAULT_HEADER\r\n";
+                    $response .= "\r\n";
+                    $response .= $TEST_CONTENT;
+
+                }
+                else
+                {
+
+                    TRACE "Setting cookie, redirecting to /check_cookie";
+
+                    $response .= "HTTP/1.0 302 Moved Temporarily\r\n";
+                    $response .= "$DEFAULT_HEADER\r\n";
+                    $response .= "Location: /check_cookie\r\n";
+                    $response .= "Set-Cookie: $COOKIE_NAME=$COOKIE_VALUE\r\n";
+                    $response .= "\r\n";
+                    $response .= "Redirecting to the cookie check page...";
+                }
+
+                return $response;
+            }
+        },
+
+        '/check_cookie' => {
+            callback => sub {
+
+                my ( $params, $cookies ) = @_;
+
+                my $received_cookie = $cookies->{ $COOKIE_NAME };
+                my $response        = '';
+
+                if ( $received_cookie and $received_cookie eq $COOKIE_VALUE )
+                {
+
+                    TRACE "Cookie was set previously, redirecting back to the initial page";
+
+                    $response .= "HTTP/1.0 302 Moved Temporarily\r\n";
+                    $response .= "$DEFAULT_HEADER\r\n";
+                    $response .= "Location: $starting_url\r\n";
+                    $response .= "\r\n";
+                    $response .= "Cookie looks fine, redirecting you back to the article...";
+
+                }
+                else
+                {
+
+                    TRACE "Cookie wasn't found, redirecting you to the /no_cookies page...";
+
+                    $response .= "HTTP/1.0 302 Moved Temporarily\r\n";
+                    $response .= "$DEFAULT_HEADER\r\n";
+                    $response .= "Location: /no_cookies\r\n";
+                    $response .= "\r\n";
+                    $response .= 'Cookie wasn\'t found, redirecting you to the "no cookies" page...';
+                }
+
+                return $response;
+            }
+        },
+        '/no_cookies' => "No cookie support, go away, we don\'t like you."
+    };
+
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my $ua       = MediaWords::Util::Web::UserAgent->new();
+    my $response = $ua->get_follow_http_html_redirects( $starting_url );
+
+    $hs->stop();
+
+    is( $response->request()->url(),  $starting_url, 'URL after HTTP redirects (cookie)' );
+    is( $response->decoded_content(), $TEST_CONTENT, 'Data after HTTP redirects (cookie)' );
+}
 
 sub test_parallel_get()
 {
@@ -177,6 +413,13 @@ sub main()
     binmode $builder->output,         ":utf8";
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
+
+    test_get_follow_http_html_redirects_nonexistent();
+    test_get_follow_http_html_redirects_http();
+    test_get_follow_http_html_redirects_html();
+    test_get_follow_http_html_redirects_http_loop();
+    test_get_follow_http_html_redirects_html_loop();
+    test_get_follow_http_html_redirects_cookies();
 
     test_parallel_get();
     test_determined_retries();

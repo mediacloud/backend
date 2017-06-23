@@ -9,7 +9,6 @@ use MediaWords::CommonLibs;    # set PYTHONPATH too
 import_python_module( __PACKAGE__, 'mediawords.util.url' );
 
 use HTML::TreeBuilder::LibXML;
-use List::MoreUtils qw/uniq/;
 use Readonly;
 use Regexp::Common qw /URI/;
 use URI::Escape;
@@ -25,128 +24,6 @@ Readonly my @INVALID_URL_VARIANT_REGEXES => (
     # Twitter's "suspended" accounts
     qr#^https?://twitter.com/account/suspended#i,
 );
-
-# Fetch the URL, evaluate HTTP / HTML redirects; return URL and data after all
-# those redirects; die() on error
-sub url_and_data_after_redirects($)
-{
-    my ( $orig_url ) = @_;
-
-    unless ( defined $orig_url )
-    {
-        die "URL is undefined.";
-    }
-
-    $orig_url = fix_common_url_mistakes( $orig_url );
-
-    unless ( is_http_url( $orig_url ) )
-    {
-        die "URL is not HTTP(s): $orig_url";
-    }
-
-    my $uri = URI->new( $orig_url )->canonical;
-
-    Readonly my $MAX_META_REDIRECTS => 7;
-
-    my $html = undef;
-
-    # Do HTTP request to the current URL
-    my $ua = MediaWords::Util::Web::UserAgent->new();
-    if ( $ua->max_redirect() == 0 )
-    {
-        die "User agent's max_redirect is 0, subroutine might loop indefinitely.";
-    }
-
-    for ( my $meta_redirect = 1 ; $meta_redirect <= $MAX_META_REDIRECTS ; ++$meta_redirect )
-    {
-        my $response = $ua->get( $uri->as_string );
-
-        unless ( $response->is_success )
-        {
-            my $redirects = $response->redirects();
-            if ( scalar @{ $redirects } + 1 >= $ua->max_redirect() )
-            {
-                my @urls_redirected_to;
-
-                my $error_message = "";
-                $error_message .= "Number of HTTP redirects (" . $ua->max_redirect() . ") exhausted; redirects:\n";
-                foreach my $redirect ( @{ $redirects } )
-                {
-                    push( @urls_redirected_to, $redirect->request()->url() );
-                    $error_message .= "* From: " . $redirect->request()->url() . "; ";
-                    $error_message .= "to: " . $redirect->header( 'Location' ) . "\n";
-                }
-
-                TRACE $error_message;
-
-                # Return the original URL (unless we find a URL being a substring of another URL, see below)
-                $uri = URI->new( $orig_url )->canonical;
-
-                # If one of the URLs that we've been redirected to contains another URLencoded URL, assume
-                # that we're hitting a paywall and the URLencoded URL is the right one
-                @urls_redirected_to = uniq @urls_redirected_to;
-                foreach my $url_redirected_to ( @urls_redirected_to )
-                {
-                    my $encoded_url_redirected_to = uri_escape( $url_redirected_to );
-
-                    if ( my ( $matched_url ) = grep /$encoded_url_redirected_to/, @urls_redirected_to )
-                    {
-                        TRACE
-"Encoded URL $encoded_url_redirected_to is a substring of another URL $matched_url, so I'll assume that $url_redirected_to is the correct one.";
-                        $uri = URI->new( $url_redirected_to )->canonical;
-                        last;
-
-                    }
-                }
-
-            }
-            else
-            {
-                TRACE "Request to " . $uri->as_string . " was unsuccessful: " . $response->status_line;
-
-                # Return the original URL and give up
-                $uri = URI->new( $orig_url )->canonical;
-            }
-
-            last;
-        }
-
-        my $new_uri = URI->new( $response->request()->url() )->canonical;
-        unless ( $uri->eq( $new_uri ) )
-        {
-            TRACE "New URI: " . $new_uri->as_string;
-            $uri = $new_uri;
-        }
-
-        # Check if the returned document contains <meta http-equiv="refresh" />
-        $html = $response->decoded_content || '';
-        my $base_uri = $uri->clone;
-        if ( $uri->as_string !~ /\/$/ )
-        {
-            # In "http://example.com/first/two" URLs, strip the "two" part (but not when it has a trailing slash)
-            my @base_uri_path_segments = $base_uri->path_segments;
-            pop @base_uri_path_segments;
-            $base_uri->path_segments( @base_uri_path_segments );
-        }
-
-        my $url_after_meta_redirect = MediaWords::Util::HTML::meta_refresh_url_from_html( $html, $base_uri->as_string );
-        if ( $url_after_meta_redirect and $uri->as_string ne $url_after_meta_redirect )
-        {
-            TRACE "URL after <meta /> refresh: $url_after_meta_redirect";
-            $uri = URI->new( $url_after_meta_redirect )->canonical;
-
-            # ...and repeat the HTTP redirect cycle here
-        }
-        else
-        {
-            # No <meta /> refresh, the current URL is the final one
-            last;
-        }
-
-    }
-
-    return ( $uri->as_string, $html );
-}
 
 # for a given set of stories, get all the stories that are source or target merged stories
 # in topic_merged_stories_map.  repeat recursively up to 10 times, or until no new stories are found.
@@ -240,7 +117,10 @@ sub all_url_variants($$)
     }
 
     # Get URL after HTTP / HTML redirects
-    my ( $url_after_redirects, $data_after_redirects ) = url_and_data_after_redirects( $url );
+    my $ua                   = MediaWords::Util::Web::UserAgent->new();
+    my $response             = $ua->get_follow_http_html_redirects( $url );
+    my $url_after_redirects  = $response->request()->url();
+    my $data_after_redirects = $response->decoded_content();
 
     my %urls = (
 

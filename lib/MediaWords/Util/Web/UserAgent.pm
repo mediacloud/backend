@@ -15,18 +15,23 @@ use Fcntl;
 use File::Temp;
 use FileHandle;
 use HTTP::Status qw(:constants);
+use List::MoreUtils qw/uniq/;
 use LWP::Protocol::https;
 use LWP::UserAgent::Determined;
 use Readonly;
 use Storable;
+use URI;
+use URI::Escape;
 
 use MediaWords::Util::Config;
 use MediaWords::Util::SQL;
+use MediaWords::Util::URL;
 use MediaWords::Util::Web::UserAgent::Request;
 use MediaWords::Util::Web::UserAgent::Response;
 
 Readonly my $MAX_DOWNLOAD_SIZE => 10 * 1024 * 1024;    # Superglue (TV) feeds could grow big
 Readonly my $MAX_REDIRECT      => 15;
+Readonly my $MAX_HTML_REDIRECT => 7;
 Readonly my $TIMEOUT           => 20;
 
 # On which HTTP codes should requests be retried (if retrying is enabled)
@@ -195,6 +200,129 @@ sub get($$)
     my ( $self, $url ) = @_;
     my $response = $self->{ _ua }->get( $url );
     return MediaWords::Util::Web::UserAgent::Response->new_from_http_response( $response );
+}
+
+# Fetch the URL, evaluate HTTP / HTML redirects
+# Returns response after all those redirects; die()s on error
+sub get_follow_http_html_redirects($)
+{
+    my ( $self, $url ) = @_;
+
+    unless ( defined $url )
+    {
+        die "URL is undefined.";
+    }
+
+    $url = MediaWords::Util::URL::fix_common_url_mistakes( $url );
+
+    unless ( MediaWords::Util::URL::is_http_url( $url ) )
+    {
+        die "URL is not HTTP(s): $url";
+    }
+
+    if ( $self->max_redirect() == 0 )
+    {
+        die "User agent's max_redirect is 0, subroutine might loop indefinitely.";
+    }
+
+    my $orig_response = undef;
+    for ( my $meta_redirect = 1 ; $meta_redirect <= $MAX_HTML_REDIRECT ; ++$meta_redirect )
+    {
+        my $response = $self->get( $url );
+        unless ( $orig_response )
+        {
+            # Save first response for later use
+            $orig_response = $response;
+        }
+
+        if ( $response->is_success )
+        {
+
+            my $new_url = $response->request()->url();
+            unless ( $url eq $new_url )
+            {
+                TRACE "New URL: " . $new_url;
+            }
+            $url = $new_url;
+
+            # Check if the returned document contains <meta http-equiv="refresh" />
+            my $base_uri = URI->new( $url )->canonical;
+            if ( $url !~ /\/$/ )
+            {
+                # In "http://example.com/first/two" URLs, strip the "two" part (but not when it has a trailing slash)
+                my @base_uri_path_segments = $base_uri->path_segments;
+                pop @base_uri_path_segments;
+                $base_uri->path_segments( @base_uri_path_segments );
+            }
+
+            my $url_after_meta_redirect =
+              MediaWords::Util::HTML::meta_refresh_url_from_html( $response->decoded_content(), $base_uri->as_string );
+            if ( $url_after_meta_redirect and $url ne $url_after_meta_redirect )
+            {
+                TRACE "URL after <meta /> refresh: $url_after_meta_redirect";
+                $url = $url_after_meta_redirect;
+
+                # ...and repeat the HTTP redirect cycle
+            }
+            else
+            {
+                # No <meta /> refresh, the current URL is the final one
+                return $response;
+            }
+
+        }
+        else
+        {
+
+            my $redirects = $response->redirects();
+            if ( scalar @{ $redirects } + 1 >= $self->max_redirect() )
+            {
+                my @urls_redirected_to;
+
+                my $error_message = "";
+                $error_message .= "Number of HTTP redirects (" . $self->max_redirect() . ") exhausted; redirects:\n";
+                foreach my $redirect ( @{ $redirects } )
+                {
+                    push( @urls_redirected_to, $redirect->request()->url() );
+                    $error_message .= "* From: " . $redirect->request()->url() . "; ";
+                    $error_message .= "to: " . $redirect->header( 'Location' ) . "\n";
+                }
+
+                TRACE $error_message;
+
+                # If one of the URLs that we've been redirected to contains another encoded URL, assume
+                # that we're hitting a paywall and the URLencoded URL is the right one
+                @urls_redirected_to = uniq @urls_redirected_to;
+                foreach my $redirect ( @{ $redirects } )
+                {
+                    my $url_redirected_to         = $redirect->request()->url();
+                    my $encoded_url_redirected_to = uri_escape( $url_redirected_to );
+
+                    if ( my ( $matched_url ) = grep /$encoded_url_redirected_to/, @urls_redirected_to )
+                    {
+                        TRACE "Encoded URL $encoded_url_redirected_to is a substring of " .
+                          "another URL $matched_url, so I'll assume that " . "$url_redirected_to is the correct one.";
+                        return $redirect;
+
+                    }
+                }
+
+                # Return the original URL (unless we find a URL being a substring of another URL, see below)
+                return $orig_response;
+
+            }
+            else
+            {
+                TRACE "Request to $url was unsuccessful: " . $response->status_line;
+
+                # Return the original URL and give up
+                return $orig_response;
+            }
+        }
+    }
+
+    # Fallback
+    return $orig_response;
 }
 
 # Get multiple URLs in parallel.
