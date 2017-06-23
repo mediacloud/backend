@@ -84,7 +84,6 @@ sub test_url_and_data_after_redirects_html()
 {
     Readonly my $TEST_HTTP_SERVER_URL => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
     my $starting_url = $TEST_HTTP_SERVER_URL . '/first';
-    Readonly my $MAX_META_REDIRECTS => 7;    # instead of default 3
 
     # HTML redirects
     my $pages = {
@@ -99,7 +98,7 @@ sub test_url_and_data_after_redirects_html()
     $hs->start();
 
     my ( $url_after_redirects, $data_after_redirects ) =
-      MediaWords::Util::URL::url_and_data_after_redirects( $starting_url, undef, $MAX_META_REDIRECTS );
+      MediaWords::Util::URL::url_and_data_after_redirects( $starting_url );
 
     $hs->stop();
 

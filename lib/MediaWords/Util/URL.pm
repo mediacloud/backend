@@ -28,9 +28,9 @@ Readonly my @INVALID_URL_VARIANT_REGEXES => (
 
 # Fetch the URL, evaluate HTTP / HTML redirects; return URL and data after all
 # those redirects; die() on error
-sub url_and_data_after_redirects($;$$)
+sub url_and_data_after_redirects($)
 {
-    my ( $orig_url, $max_http_redirect, $max_meta_redirect ) = @_;
+    my ( $orig_url ) = @_;
 
     unless ( defined $orig_url )
     {
@@ -46,30 +46,30 @@ sub url_and_data_after_redirects($;$$)
 
     my $uri = URI->new( $orig_url )->canonical;
 
-    $max_http_redirect //= 7;
-    $max_meta_redirect //= 3;
+    Readonly my $MAX_META_REDIRECTS => 7;
 
     my $html = undef;
 
-    for ( my $meta_redirect = 1 ; $meta_redirect <= $max_meta_redirect ; ++$meta_redirect )
+    # Do HTTP request to the current URL
+    my $ua = MediaWords::Util::Web::UserAgent->new();
+    if ( $ua->max_redirect() == 0 )
     {
+        die "User agent's max_redirect is 0, subroutine might loop indefinitely.";
+    }
 
-        # Do HTTP request to the current URL
-        my $ua = MediaWords::Util::Web::UserAgent->new();
-
-        $ua->set_max_redirect( $max_http_redirect );
-
+    for ( my $meta_redirect = 1 ; $meta_redirect <= $MAX_META_REDIRECTS ; ++$meta_redirect )
+    {
         my $response = $ua->get( $uri->as_string );
 
         unless ( $response->is_success )
         {
             my $redirects = $response->redirects();
-            if ( scalar @{ $redirects } + 1 >= $max_http_redirect )
+            if ( scalar @{ $redirects } + 1 >= $ua->max_redirect() )
             {
                 my @urls_redirected_to;
 
                 my $error_message = "";
-                $error_message .= "Number of HTTP redirects ($max_http_redirect) exhausted; redirects:\n";
+                $error_message .= "Number of HTTP redirects (" . $ua->max_redirect() . ") exhausted; redirects:\n";
                 foreach my $redirect ( @{ $redirects } )
                 {
                     push( @urls_redirected_to, $redirect->request()->url() );
