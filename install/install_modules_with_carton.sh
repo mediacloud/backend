@@ -20,6 +20,14 @@ else
     OPENSSL_PREFIX="/usr"
 fi
 
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
+    --verbose \
+    Test::Fatal File::Listing HTTP::Cookies HTTP::Daemon HTTP::Negotiate Net::HTTP WWW::RobotRules
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
+    --local-lib-contained local/ \
+    --verbose \
+    Test::Fatal File::Listing HTTP::Cookies HTTP::Daemon HTTP::Negotiate Net::HTTP WWW::RobotRules
+
 # needed to install the https github links below
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
     --verbose \
