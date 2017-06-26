@@ -22,11 +22,11 @@ fi
 
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
     --verbose \
-    Test::Fatal File::Listing HTTP::Cookies HTTP::Daemon HTTP::Negotiate Net::HTTP WWW::RobotRules Net::SSLeay
+    Test::Fatal File::Listing HTTP::Cookies HTTP::Daemon HTTP::Negotiate Net::HTTP WWW::RobotRules Net::SSLeay LWP::UserAgent
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
     --local-lib-contained local/ \
     --verbose \
-    Test::Fatal File::Listing HTTP::Cookies HTTP::Daemon HTTP::Negotiate Net::HTTP WWW::RobotRules Net::SSLeay
+    Test::Fatal File::Listing HTTP::Cookies HTTP::Daemon HTTP::Negotiate Net::HTTP WWW::RobotRules Net::SSLeay LWP::UserAgent
 
 # needed to install the https github links below
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
