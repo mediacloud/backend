@@ -30,6 +30,22 @@ fi
 
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
     --verbose \
+    Test::Fatal File::Listing HTTP::Cookies HTTP::Daemon HTTP::Negotiate Net::HTTP WWW::RobotRules Net::SSLeay
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
+    --local-lib-contained local/ \
+    --verbose \
+    Test::Fatal File::Listing HTTP::Cookies HTTP::Daemon HTTP::Negotiate Net::HTTP WWW::RobotRules Net::SSLeay
+
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
+    --verbose \
+    Test::RequiresInternet
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
+    --local-lib-contained local/ \
+    --verbose \
+    Test::RequiresInternet
+
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
+    --verbose \
     IO::Socket::SSL
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
     --local-lib-contained local/ \
@@ -38,20 +54,19 @@ fi
 
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
     --verbose \
-    Test::Fatal File::Listing HTTP::Cookies HTTP::Daemon HTTP::Negotiate Net::HTTP WWW::RobotRules Net::SSLeay LWP::UserAgent IO::Socket::SSL Net::SSL
+    LWP::UserAgent
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
     --local-lib-contained local/ \
     --verbose \
-    Test::Fatal File::Listing HTTP::Cookies HTTP::Daemon HTTP::Negotiate Net::HTTP WWW::RobotRules Net::SSLeay LWP::UserAgent IO::Socket::SSL Net::SSL
+    LWP::UserAgent
 
-# needed to install the https github links below
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
     --verbose \
-    Test::RequiresInternet
+    Net::SSL
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
     --local-lib-contained local/ \
     --verbose \
-    Test::RequiresInternet
+    Net::SSL
 
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
     --verbose \
