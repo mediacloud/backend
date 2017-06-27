@@ -891,7 +891,6 @@ DISTRIBUTIONS
       MooseX::Emulate::Class::Accessor::Fast 0.00903
       MooseX::Getopt 0.48
       MooseX::MethodAttributes::Role::AttrContainer::Inheritable 0.24
-      MooseX::Role::WithOverloading 0.09
       Path::Class 0.09
       Plack 0.9991
       Plack::Middleware::Conditional 0
@@ -1204,6 +1203,13 @@ DISTRIBUTIONS
       Module::Build 0.38
       URI::Escape 0
       perl 5.008001
+  Cpanel-JSON-XS-3.0233
+    pathname: R/RU/RURBAN/Cpanel-JSON-XS-3.0233.tar.gz
+    provides:
+      Cpanel::JSON::XS 3.0233
+    requirements:
+      ExtUtils::MakeMaker 0
+      Pod::Text 2.08
   Crypt-Random-Source-0.12
     pathname: E/ET/ETHER/Crypt-Random-Source-0.12.tar.gz
     provides:
@@ -2498,170 +2504,6 @@ DISTRIBUTIONS
       File::Spec 0
       Net::IDN::Encode 2.300
       Test::More 0.88
-  Email-Abstract-3.008
-    pathname: R/RJ/RJBS/Email-Abstract-3.008.tar.gz
-    provides:
-      Email::Abstract 3.008
-      Email::Abstract::EmailMIME 3.008
-      Email::Abstract::EmailSimple 3.008
-      Email::Abstract::MIMEEntity 3.008
-      Email::Abstract::MailInternet 3.008
-      Email::Abstract::MailMessage 3.008
-      Email::Abstract::Plugin 3.008
-    requirements:
-      Carp 0
-      Email::Simple 1.998
-      ExtUtils::MakeMaker 0
-      MRO::Compat 0
-      Module::Pluggable 1.5
-      Scalar::Util 0
-      perl 5.006
-      strict 0
-      warnings 0
-  Email-Address-1.908
-    pathname: R/RJ/RJBS/Email-Address-1.908.tar.gz
-    provides:
-      Email::Address 1.908
-    requirements:
-      ExtUtils::MakeMaker 0
-      overload 0
-      strict 0
-      warnings 0
-  Email-Date-Format-1.005
-    pathname: R/RJ/RJBS/Email-Date-Format-1.005.tar.gz
-    provides:
-      Email::Date::Format 1.005
-    requirements:
-      Exporter 5.57
-      ExtUtils::MakeMaker 0
-      Time::Local 0
-      strict 0
-      warnings 0
-  Email-MIME-1.940
-    pathname: R/RJ/RJBS/Email-MIME-1.940.tar.gz
-    provides:
-      Email::MIME 1.940
-      Email::MIME::Creator 1.940
-      Email::MIME::Encode 1.940
-      Email::MIME::Header 1.940
-      Email::MIME::Modifier 1.940
-    requirements:
-      Carp 0
-      Email::Address 0
-      Email::MIME::ContentType 1.016
-      Email::MIME::Encodings 1.314
-      Email::MessageID 0
-      Email::Simple 2.206
-      Email::Simple::Creator 0
-      Email::Simple::Header 0
-      Encode 1.9801
-      ExtUtils::MakeMaker 0
-      MIME::Base64 0
-      MIME::Types 1.13
-      Scalar::Util 0
-      parent 0
-      perl 5.008001
-      strict 0
-      warnings 0
-  Email-MIME-ContentType-1.018
-    pathname: R/RJ/RJBS/Email-MIME-ContentType-1.018.tar.gz
-    provides:
-      Email::MIME::ContentType 1.018
-    requirements:
-      Carp 0
-      Exporter 5.57
-      ExtUtils::MakeMaker 0
-      strict 0
-      warnings 0
-  Email-MIME-Encodings-1.315
-    pathname: R/RJ/RJBS/Email-MIME-Encodings-1.315.tar.gz
-    provides:
-      Email::MIME::Encodings 1.315
-    requirements:
-      Carp 0
-      ExtUtils::MakeMaker 6.30
-      MIME::Base64 3.05
-      MIME::QuotedPrint 3.05
-      strict 0
-      warnings 0
-  Email-MessageID-1.406
-    pathname: R/RJ/RJBS/Email-MessageID-1.406.tar.gz
-    provides:
-      Email::MessageID 1.406
-    requirements:
-      ExtUtils::MakeMaker 0
-      Sys::Hostname 0
-      overload 0
-      strict 0
-      warnings 0
-  Email-Sender-1.300031
-    pathname: R/RJ/RJBS/Email-Sender-1.300031.tar.gz
-    provides:
-      Email::Sender 1.300031
-      Email::Sender::Failure 1.300031
-      Email::Sender::Failure::Multi 1.300031
-      Email::Sender::Failure::Permanent 1.300031
-      Email::Sender::Failure::Temporary 1.300031
-      Email::Sender::Manual 1.300031
-      Email::Sender::Manual::QuickStart 1.300031
-      Email::Sender::Role::CommonSending 1.300031
-      Email::Sender::Role::HasMessage 1.300031
-      Email::Sender::Simple 1.300031
-      Email::Sender::Success 1.300031
-      Email::Sender::Success::Partial 1.300031
-      Email::Sender::Transport 1.300031
-      Email::Sender::Transport::DevNull 1.300031
-      Email::Sender::Transport::Failable 1.300031
-      Email::Sender::Transport::Maildir 1.300031
-      Email::Sender::Transport::Mbox 1.300031
-      Email::Sender::Transport::Print 1.300031
-      Email::Sender::Transport::SMTP 1.300031
-      Email::Sender::Transport::SMTP::Persistent 1.300031
-      Email::Sender::Transport::Sendmail 1.300031
-      Email::Sender::Transport::Test 1.300031
-      Email::Sender::Transport::Wrapper 1.300031
-      Email::Sender::Util 1.300031
-    requirements:
-      Carp 0
-      Email::Abstract 3.006
-      Email::Address 0
-      Email::Simple 1.998
-      ExtUtils::MakeMaker 0
-      Fcntl 0
-      File::Basename 0
-      File::Path 2.06
-      File::Spec 0
-      IO::File 1.11
-      IO::Handle 0
-      List::Util 1.45
-      Module::Runtime 0
-      Moo 2.000000
-      Moo::Role 0
-      MooX::Types::MooseLike 0.15
-      MooX::Types::MooseLike::Base 0
-      Net::SMTP 3.07
-      Scalar::Util 0
-      Sub::Exporter 0
-      Sub::Exporter::Util 0
-      Sys::Hostname 0
-      Throwable::Error 0.200003
-      Try::Tiny 0
-      strict 0
-      utf8 0
-      warnings 0
-  Email-Simple-2.213
-    pathname: R/RJ/RJBS/Email-Simple-2.213.tar.gz
-    provides:
-      Email::Simple 2.213
-      Email::Simple::Creator 2.213
-      Email::Simple::Header 2.213
-    requirements:
-      Carp 0
-      Email::Date::Format 0
-      ExtUtils::MakeMaker 0
-      perl 5.008
-      strict 0
-      warnings 0
   Email-Valid-1.202
     pathname: R/RJ/RJBS/Email-Valid-1.202.tar.gz
     provides:
@@ -2669,6 +2511,7 @@ DISTRIBUTIONS
     requirements:
       ExtUtils::MakeMaker 0
       Mail::Address 0
+      Net::DNS 0
       Scalar::Util 0
       Test::More 0
       perl 5.006
@@ -2679,7 +2522,7 @@ DISTRIBUTIONS
       Encode::HanConvert::Perl 0.06
     requirements:
       Encode 1.41
-      ExtUtils::MakeMaker 7.1002
+      ExtUtils::MakeMaker 7.24
   Encode-Locale-1.05
     pathname: G/GA/GAAS/Encode-Locale-1.05.tar.gz
     provides:
@@ -2815,51 +2658,6 @@ DISTRIBUTIONS
       File::Spec 0
       File::Temp 0
       Test::More 0
-      perl 5.006
-  ExtUtils-MakeMaker-7.24
-    pathname: B/BI/BINGOS/ExtUtils-MakeMaker-7.24.tar.gz
-    provides:
-      ExtUtils::Command 7.24
-      ExtUtils::Command::MM 7.24
-      ExtUtils::Liblist 7.24
-      ExtUtils::Liblist::Kid 7.24
-      ExtUtils::MM 7.24
-      ExtUtils::MM_AIX 7.24
-      ExtUtils::MM_Any 7.24
-      ExtUtils::MM_BeOS 7.24
-      ExtUtils::MM_Cygwin 7.24
-      ExtUtils::MM_DOS 7.24
-      ExtUtils::MM_Darwin 7.24
-      ExtUtils::MM_MacOS 7.24
-      ExtUtils::MM_NW5 7.24
-      ExtUtils::MM_OS2 7.24
-      ExtUtils::MM_QNX 7.24
-      ExtUtils::MM_UWIN 7.24
-      ExtUtils::MM_Unix 7.24
-      ExtUtils::MM_VMS 7.24
-      ExtUtils::MM_VOS 7.24
-      ExtUtils::MM_Win32 7.24
-      ExtUtils::MM_Win95 7.24
-      ExtUtils::MY 7.24
-      ExtUtils::MakeMaker 7.24
-      ExtUtils::MakeMaker::Config 7.24
-      ExtUtils::MakeMaker::Locale 7.24
-      ExtUtils::MakeMaker::_version 7.24
-      ExtUtils::MakeMaker::charstar 7.24
-      ExtUtils::MakeMaker::version 7.24
-      ExtUtils::MakeMaker::version::regex 7.24
-      ExtUtils::MakeMaker::version::vpp 7.24
-      ExtUtils::Mkbootstrap 7.24
-      ExtUtils::Mksymlists 7.24
-      ExtUtils::testlib 7.24
-      MM 7.24
-      MY 7.24
-    requirements:
-      Data::Dumper 0
-      Encode 0
-      File::Basename 0
-      File::Spec 0.8
-      Pod::Man 0
       perl 5.006
   FCGI-0.78
     pathname: E/ET/ETHER/FCGI-0.78.tar.gz
@@ -3652,20 +3450,21 @@ DISTRIBUTIONS
       HTTP::Date 0
       Module::Build::Tiny 0.035
       perl 5.008001
-  HTTP-Message-6.11
-    pathname: E/ET/ETHER/HTTP-Message-6.11.tar.gz
+  HTTP-Message-6.13
+    pathname: O/OA/OALDERS/HTTP-Message-6.13.tar.gz
     provides:
-      HTTP::Config 6.11
-      HTTP::Headers 6.11
-      HTTP::Headers::Auth 6.11
-      HTTP::Headers::ETag 6.11
-      HTTP::Headers::Util 6.11
-      HTTP::Message 6.11
-      HTTP::Request 6.11
-      HTTP::Request::Common 6.11
-      HTTP::Response 6.11
-      HTTP::Status 6.11
+      HTTP::Config 6.13
+      HTTP::Headers 6.13
+      HTTP::Headers::Auth 6.13
+      HTTP::Headers::ETag 6.13
+      HTTP::Headers::Util 6.13
+      HTTP::Message 6.13
+      HTTP::Request 6.13
+      HTTP::Request::Common 6.13
+      HTTP::Response 6.13
+      HTTP::Status 6.13
     requirements:
+      Carp 0
       Compress::Raw::Zlib 0
       Encode 2.21
       Encode::Locale 1
@@ -3683,8 +3482,12 @@ DISTRIBUTIONS
       LWP::MediaTypes 6
       MIME::Base64 2.1
       MIME::QuotedPrint 0
+      Storable 0
       URI 1.10
+      base 0
       perl 5.008001
+      strict 0
+      warnings 0
   HTTP-MultiPartParser-0.02
     pathname: C/CH/CHANSEN/HTTP-MultiPartParser-0.02.tar.gz
     provides:
@@ -3800,21 +3603,20 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 6.64
       File::Spec::Functions 0
       perl 5.008
-  IO-Socket-SSL-2.048
-    pathname: S/SU/SULLR/IO-Socket-SSL-2.048.tar.gz
+  IO-Socket-SSL-2.049
+    pathname: S/SU/SULLR/IO-Socket-SSL-2.049.tar.gz
     provides:
-      IO::Socket::SSL 2.048
+      IO::Socket::SSL 2.049
       IO::Socket::SSL::Intercept 2.014
-      IO::Socket::SSL::OCSP_Cache 2.048
-      IO::Socket::SSL::OCSP_Resolver 2.048
+      IO::Socket::SSL::OCSP_Cache 2.049
+      IO::Socket::SSL::OCSP_Resolver 2.049
       IO::Socket::SSL::PublicSuffix undef
-      IO::Socket::SSL::SSL_Context 2.048
-      IO::Socket::SSL::SSL_HANDLE 2.048
-      IO::Socket::SSL::Session_Cache 2.048
+      IO::Socket::SSL::SSL_Context 2.049
+      IO::Socket::SSL::SSL_HANDLE 2.049
+      IO::Socket::SSL::Session_Cache 2.049
       IO::Socket::SSL::Utils 2.014
     requirements:
       ExtUtils::MakeMaker 0
-      Mozilla::CA 0
       Net::SSLeay 1.46
       Scalar::Util 0
   IO-String-1.08
@@ -3903,6 +3705,7 @@ DISTRIBUTIONS
       JSON::MaybeXS 1.003009
     requirements:
       Carp 0
+      Cpanel::JSON::XS 2.3310
       ExtUtils::CBuilder 0.27
       ExtUtils::MakeMaker 0
       File::Spec 0
@@ -4429,28 +4232,28 @@ DISTRIBUTIONS
       perl 5.010
       strict 0
       warnings 0
-  Module-Build-0.4222
-    pathname: L/LE/LEONT/Module-Build-0.4222.tar.gz
+  Module-Build-0.4224
+    pathname: L/LE/LEONT/Module-Build-0.4224.tar.gz
     provides:
-      Module::Build 0.4222
-      Module::Build::Base 0.4222
-      Module::Build::Compat 0.4222
-      Module::Build::Config 0.4222
-      Module::Build::Cookbook 0.4222
-      Module::Build::Dumper 0.4222
-      Module::Build::Notes 0.4222
-      Module::Build::PPMMaker 0.4222
-      Module::Build::Platform::Default 0.4222
-      Module::Build::Platform::MacOS 0.4222
-      Module::Build::Platform::Unix 0.4222
-      Module::Build::Platform::VMS 0.4222
-      Module::Build::Platform::VOS 0.4222
-      Module::Build::Platform::Windows 0.4222
-      Module::Build::Platform::aix 0.4222
-      Module::Build::Platform::cygwin 0.4222
-      Module::Build::Platform::darwin 0.4222
-      Module::Build::Platform::os2 0.4222
-      Module::Build::PodParser 0.4222
+      Module::Build 0.4224
+      Module::Build::Base 0.4224
+      Module::Build::Compat 0.4224
+      Module::Build::Config 0.4224
+      Module::Build::Cookbook 0.4224
+      Module::Build::Dumper 0.4224
+      Module::Build::Notes 0.4224
+      Module::Build::PPMMaker 0.4224
+      Module::Build::Platform::Default 0.4224
+      Module::Build::Platform::MacOS 0.4224
+      Module::Build::Platform::Unix 0.4224
+      Module::Build::Platform::VMS 0.4224
+      Module::Build::Platform::VOS 0.4224
+      Module::Build::Platform::Windows 0.4224
+      Module::Build::Platform::aix 0.4224
+      Module::Build::Platform::cygwin 0.4224
+      Module::Build::Platform::darwin 0.4224
+      Module::Build::Platform::os2 0.4224
+      Module::Build::PodParser 0.4224
     requirements:
       CPAN::Meta 2.142060
       CPAN::Meta::YAML 0.003
@@ -4613,19 +4416,6 @@ DISTRIBUTIONS
       YAML::Tiny 1.38
       autodie 0
       perl 5.006
-  Module-Load-Conditional-0.68
-    pathname: B/BI/BINGOS/Module-Load-Conditional-0.68.tar.gz
-    provides:
-      Module::Load::Conditional 0.68
-    requirements:
-      ExtUtils::MakeMaker 0
-      Locale::Maketext::Simple 0
-      Module::CoreList 2.22
-      Module::Load 0.28
-      Module::Metadata 1.000005
-      Params::Check 0
-      Test::More 0
-      version 0.69
   Module-Pluggable-5.2
     pathname: S/SI/SIMONW/Module-Pluggable-5.2.tar.gz
     provides:
@@ -5267,30 +5057,6 @@ DISTRIBUTIONS
       perl 5.008001
       strict 0
       warnings 0
-  MooseX-Role-WithOverloading-0.17
-    pathname: E/ET/ETHER/MooseX-Role-WithOverloading-0.17.tar.gz
-    provides:
-      MooseX::Role::WithOverloading 0.17
-      MooseX::Role::WithOverloading::Meta::Role 0.17
-      MooseX::Role::WithOverloading::Meta::Role::Application 0.17
-      MooseX::Role::WithOverloading::Meta::Role::Application::Composite 0.17
-      MooseX::Role::WithOverloading::Meta::Role::Application::Composite::ToClass 0.17
-      MooseX::Role::WithOverloading::Meta::Role::Application::Composite::ToInstance 0.17
-      MooseX::Role::WithOverloading::Meta::Role::Application::Composite::ToRole 0.17
-      MooseX::Role::WithOverloading::Meta::Role::Application::FixOverloadedRefs 0.17
-      MooseX::Role::WithOverloading::Meta::Role::Application::ToClass 0.17
-      MooseX::Role::WithOverloading::Meta::Role::Application::ToInstance 0.17
-      MooseX::Role::WithOverloading::Meta::Role::Application::ToRole 0.17
-      MooseX::Role::WithOverloading::Meta::Role::Composite 0.17
-    requirements:
-      ExtUtils::MakeMaker 0
-      Moose 0.94
-      Moose::Exporter 0
-      Moose::Role 1.15
-      aliased 0
-      namespace::autoclean 0.16
-      namespace::clean 0.19
-      perl 5.006
   MooseX-Singleton-0.30
     pathname: E/ET/ETHER/MooseX-Singleton-0.30.tar.gz
     provides:
@@ -5528,13 +5294,125 @@ DISTRIBUTIONS
       XML::LibXML::XPathContext 0
       strict 0
       warnings 0
-  Net-HTTP-6.14
-    pathname: O/OA/OALDERS/Net-HTTP-6.14.tar.gz
+  Net-DNS-1.11
+    pathname: N/NL/NLNETLABS/Net-DNS-1.11.tar.gz
     provides:
-      Net::HTTP 6.14
-      Net::HTTP::Methods 6.14
-      Net::HTTP::NB 6.14
-      Net::HTTPS 6.14
+      Net::DNS 1.11
+      Net::DNS::Domain 1561
+      Net::DNS::DomainName 1558
+      Net::DNS::DomainName1035 1558
+      Net::DNS::DomainName2535 1558
+      Net::DNS::Header 1527
+      Net::DNS::Mailbox 1527
+      Net::DNS::Mailbox1035 1527
+      Net::DNS::Mailbox2535 1527
+      Net::DNS::Nameserver 1558
+      Net::DNS::Packet 1546
+      Net::DNS::Parameters 1571
+      Net::DNS::Question 1530
+      Net::DNS::RR 1569
+      Net::DNS::RR::A 1528
+      Net::DNS::RR::AAAA 1528
+      Net::DNS::RR::AFSDB 1528
+      Net::DNS::RR::APL 1548
+      Net::DNS::RR::APL::Item 1548
+      Net::DNS::RR::CAA 1561
+      Net::DNS::RR::CDNSKEY 1580
+      Net::DNS::RR::CDS 1580
+      Net::DNS::RR::CERT 1567
+      Net::DNS::RR::CNAME 1528
+      Net::DNS::RR::CSYNC 1561
+      Net::DNS::RR::DHCID 1567
+      Net::DNS::RR::DLV 1528
+      Net::DNS::RR::DNAME 1528
+      Net::DNS::RR::DNSKEY 1567
+      Net::DNS::RR::DS 1567
+      Net::DNS::RR::EUI48 1528
+      Net::DNS::RR::EUI64 1528
+      Net::DNS::RR::GPOS 1528
+      Net::DNS::RR::HINFO 1528
+      Net::DNS::RR::HIP 1528
+      Net::DNS::RR::IPSECKEY 1552
+      Net::DNS::RR::ISDN 1528
+      Net::DNS::RR::KEY 1528
+      Net::DNS::RR::KX 1528
+      Net::DNS::RR::L32 1528
+      Net::DNS::RR::L64 1528
+      Net::DNS::RR::LOC 1528
+      Net::DNS::RR::LP 1528
+      Net::DNS::RR::MB 1528
+      Net::DNS::RR::MG 1528
+      Net::DNS::RR::MINFO 1528
+      Net::DNS::RR::MR 1528
+      Net::DNS::RR::MX 1528
+      Net::DNS::RR::NAPTR 1528
+      Net::DNS::RR::NID 1528
+      Net::DNS::RR::NS 1528
+      Net::DNS::RR::NSEC 1528
+      Net::DNS::RR::NSEC3 1567
+      Net::DNS::RR::NSEC3PARAM 1528
+      Net::DNS::RR::NULL 1528
+      Net::DNS::RR::OPENPGPKEY 1528
+      Net::DNS::RR::OPT 1578
+      Net::DNS::RR::OPT::CHAIN 1578
+      Net::DNS::RR::OPT::CLIENT_SUBNET 1578
+      Net::DNS::RR::OPT::COOKIE 1578
+      Net::DNS::RR::OPT::DAU 1578
+      Net::DNS::RR::OPT::DHU 1578
+      Net::DNS::RR::OPT::EXPIRE 1578
+      Net::DNS::RR::OPT::KEY_TAG 1578
+      Net::DNS::RR::OPT::N3U 1578
+      Net::DNS::RR::OPT::PADDING 1578
+      Net::DNS::RR::OPT::TCP_KEEPALIVE 1578
+      Net::DNS::RR::PTR 1528
+      Net::DNS::RR::PX 1528
+      Net::DNS::RR::RP 1528
+      Net::DNS::RR::RRSIG 1567
+      Net::DNS::RR::RT 1528
+      Net::DNS::RR::SIG 1567
+      Net::DNS::RR::SMIMEA 1571
+      Net::DNS::RR::SOA 1546
+      Net::DNS::RR::SPF 1528
+      Net::DNS::RR::SRV 1528
+      Net::DNS::RR::SSHFP 1528
+      Net::DNS::RR::TKEY 1528
+      Net::DNS::RR::TLSA 1528
+      Net::DNS::RR::TSIG 1567
+      Net::DNS::RR::TXT 1528
+      Net::DNS::RR::URI 1528
+      Net::DNS::RR::X25 1528
+      Net::DNS::Resolver 1576
+      Net::DNS::Resolver::Base 1573
+      Net::DNS::Resolver::MSWin32 1568
+      Net::DNS::Resolver::Recurse 1555
+      Net::DNS::Resolver::UNIX 1573
+      Net::DNS::Resolver::android 1568
+      Net::DNS::Resolver::cygwin 1568
+      Net::DNS::Resolver::os2 1568
+      Net::DNS::Resolver::os390 1579
+      Net::DNS::Text 1561
+      Net::DNS::Update 1571
+      Net::DNS::ZoneFile 1526
+      Net::DNS::ZoneFile::Generator 1526
+      Net::DNS::ZoneFile::Text 1526
+    requirements:
+      Digest::HMAC 1.03
+      Digest::MD5 2.13
+      Digest::SHA 5.23
+      ExtUtils::MakeMaker 0
+      File::Spec 0.86
+      IO::Socket 1.16
+      MIME::Base64 2.11
+      Test::More 0.52
+      Time::Local 1.19
+      perl 5.006
+  Net-HTTP-6.16
+    pathname: O/OA/OALDERS/Net-HTTP-6.16.tar.gz
+    provides:
+      Net::HTTP 6.16
+      Net::HTTP::Methods 6.16
+      Net::HTTP::NB 6.16
+      Net::HTTPS 6.16
     requirements:
       Carp 0
       Compress::Raw::Zlib 0
@@ -5914,7 +5792,6 @@ DISTRIBUTIONS
       Parse::RecDescent::Token 1.967015
       Parse::RecDescent::UncondReject 1.967015
     requirements:
-      ExtUtils::MakeMaker 6.5702
       Test::More 0
       Text::Balanced 1.95
   Path-Class-0.37
@@ -6307,17 +6184,6 @@ DISTRIBUTIONS
       Class::InsideOut 0
       Exporter::Lite 0
       ExtUtils::MakeMaker 6.42
-  Scalar-List-Utils-1.47
-    pathname: P/PE/PEVANS/Scalar-List-Utils-1.47.tar.gz
-    provides:
-      List::Util 1.47
-      List::Util::XS 1.47
-      Scalar::Util 1.47
-      Sub::Util 1.47
-    requirements:
-      ExtUtils::MakeMaker 0
-      Test::More 0
-      perl 5.006
   Set-Array-0.30
     pathname: R/RS/RSAVAGE/Set-Array-0.30.tgz
     provides:
@@ -7025,6 +6891,15 @@ DISTRIBUTIONS
       Test::Builder::Module 0
       Test::More 0.47
       perl 5.006
+  Test-RequiresInternet-0.05
+    pathname: M/MA/MALLEN/Test-RequiresInternet-0.05.tar.gz
+    provides:
+      Test::RequiresInternet 0.05
+    requirements:
+      ExtUtils::MakeMaker 0
+      Socket 0
+      strict 0
+      warnings 0
   Test-SharedFork-0.35
     pathname: E/EX/EXODIST/Test-SharedFork-0.35.tar.gz
     provides:
@@ -7039,67 +6914,6 @@ DISTRIBUTIONS
       Test::Builder::Module 0
       Test::More 0.88
       perl 5.008_001
-  Test-Simple-1.302085
-    pathname: E/EX/EXODIST/Test-Simple-1.302085.tar.gz
-    provides:
-      Test2 1.302085
-      Test2::API 1.302085
-      Test2::API::Breakage 1.302085
-      Test2::API::Context 1.302085
-      Test2::API::Instance 1.302085
-      Test2::API::Stack 1.302085
-      Test2::Event 1.302085
-      Test2::Event::Bail 1.302085
-      Test2::Event::Diag 1.302085
-      Test2::Event::Encoding 1.302085
-      Test2::Event::Exception 1.302085
-      Test2::Event::Generic 1.302085
-      Test2::Event::Note 1.302085
-      Test2::Event::Ok 1.302085
-      Test2::Event::Plan 1.302085
-      Test2::Event::Skip 1.302085
-      Test2::Event::Subtest 1.302085
-      Test2::Event::TAP::Version 1.302085
-      Test2::Event::Waiting 1.302085
-      Test2::Formatter 1.302085
-      Test2::Formatter::TAP 1.302085
-      Test2::Hub 1.302085
-      Test2::Hub::Interceptor 1.302085
-      Test2::Hub::Interceptor::Terminator 1.302085
-      Test2::Hub::Subtest 1.302085
-      Test2::IPC 1.302085
-      Test2::IPC::Driver 1.302085
-      Test2::IPC::Driver::Files 1.302085
-      Test2::Tools::Tiny 1.302085
-      Test2::Util 1.302085
-      Test2::Util::ExternalMeta 1.302085
-      Test2::Util::HashBase 0.002
-      Test2::Util::Trace 1.302085
-      Test::Builder 1.302085
-      Test::Builder::Formatter 1.302085
-      Test::Builder::IO::Scalar 2.113
-      Test::Builder::Module 1.302085
-      Test::Builder::Tester 1.302085
-      Test::Builder::Tester::Color 1.302085
-      Test::Builder::Tester::Tie 1.302085
-      Test::Builder::TodoDiag 1.302085
-      Test::More 1.302085
-      Test::Simple 1.302085
-      Test::Tester 1.302085
-      Test::Tester::Capture 1.302085
-      Test::Tester::CaptureRunner 1.302085
-      Test::Tester::Delegate 1.302085
-      Test::use::ok 1.302085
-      ok 1.302085
-    requirements:
-      ExtUtils::MakeMaker 0
-      File::Spec 0
-      File::Temp 0
-      PerlIO 0
-      Scalar::Util 1.13
-      Storable 0
-      perl 5.008001
-      utf8 0
   Test-Strict-0.39
     pathname: M/MA/MANWAR/Test-Strict-0.39.tar.gz
     provides:
@@ -7261,7 +7075,7 @@ DISTRIBUTIONS
       Text::Lorem::More 0.13
       Text::Lorem::More::Source undef
     requirements:
-      ExtUtils::MakeMaker 7.1002
+      ExtUtils::MakeMaker 7.24
       Parse::RecDescent 0
       Test::More 0
       Test::Most 0
@@ -7352,22 +7166,6 @@ DISTRIBUTIONS
       XSLoader 0.02
       parent 0.221
       perl 5.008001
-  Throwable-0.200013
-    pathname: R/RJ/RJBS/Throwable-0.200013.tar.gz
-    provides:
-      StackTrace::Auto 0.200013
-      Throwable 0.200013
-      Throwable::Error 0.200013
-    requirements:
-      Carp 0
-      Devel::StackTrace 1.32
-      ExtUtils::MakeMaker 0
-      Module::Runtime 0.002
-      Moo 1.000001
-      Moo::Role 0
-      Scalar::Util 0
-      Sub::Quote 0
-      overload 0
   Tie-Cache-0.21
     pathname: C/CH/CHAMAS/Tie-Cache-0.21.tar.gz
     provides:
@@ -8242,17 +8040,6 @@ DISTRIBUTIONS
       Fcntl 0
       Scalar::Util 0
       perl 5.008001
-      strict 0
-      warnings 0
-  aliased-0.34
-    pathname: E/ET/ETHER/aliased-0.34.tar.gz
-    provides:
-      aliased 0.34
-    requirements:
-      Carp 0
-      Exporter 0
-      Module::Build::Tiny 0.039
-      perl 5.006
       strict 0
       warnings 0
   boolean-0.46
