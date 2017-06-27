@@ -52,7 +52,7 @@ my @_enabled_languages = (
     'tr',    # Turkish
 
     # Chinese disabled because of poor word segmentation
-    #'zh',                                  # Chinese
+    'zh',    # Chinese
 );
 
 #

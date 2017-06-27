@@ -43,7 +43,8 @@ sub authenticate
     my $username = $authinfo->{ $USERNAME_FIELD };
     my $password = $authinfo->{ $PASSWORD_FIELD };
 
-    if ( $username and $password ) {
+    if ( $username and $password )
+    {
 
         my $user;
         eval { $user = MediaWords::DBI::Auth::Login::login_with_email_password( $c->dbis, $username, $password ); };
