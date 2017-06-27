@@ -45,7 +45,9 @@ sub _fix_alarabiya_response
 
     if ( $response->decoded_content =~ /setCookie\('([^']+)', '([^']+)'/ )
     {
-        my $response = $ua->get( $download->{ url }, Cookie => "$1=$2" );
+        my $request = MediaWords::Util::Web::UserAgent::Request->new( 'GET', $download->{ url } );
+        $request->set_header( 'Cookie', "$1=$2" );
+        my $response = $ua->request( $request );
 
         return $response;
     }

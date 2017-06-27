@@ -383,7 +383,9 @@ sub _get_remote_words
 
     $uri->query_form( $query_params );
 
-    my $res = $ua->get( $uri, Accept => 'application/json' );
+    my $request = MediaWords::Util::Web::UserAgent::Request->new( 'GET', $uri->as_string );
+    $request->set_header( 'Accept', 'application/json' );
+    my $res = $ua->request( $request );
 
     unless ( $res->is_success )
     {
