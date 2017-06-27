@@ -11,12 +11,7 @@ l = create_logger(__name__)
 
 # URL regex (http://stackoverflow.com/a/7160778/200603)
 URL_REGEX = re.compile(
-    r'^(?:http|ftp)s?://'  # http:// or https://
-    r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
-    r'localhost|'  # localhost...
-    r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
-    r'(?::\d+)?'  # optional port
-    r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+    r'^https?://(www\.)?[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&/=]*)$', re.IGNORECASE)
 
 # Regular expressions for URL's path that, when matched, mean that the URL is a homepage URL
 __HOMEPAGE_URL_PATH_REGEXES = [

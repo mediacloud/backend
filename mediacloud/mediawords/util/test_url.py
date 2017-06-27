@@ -39,6 +39,9 @@ def test_is_http_url():
     assert is_http_url('http://cyber.law.harvard.edu/about')
     assert is_http_url('https://github.com/berkmancenter/mediacloud')
 
+    # URL with HTTP auth
+    assert is_http_url('https://username:password@domain.com/path?query=string#fragment')
+
     # URLs with mistakes fixable by fix_common_url_mistakes()
     assert not is_http_url(
         'http:/www.theinquirer.net/inquirer/news/2322928/net-neutrality-rules-lie-in-tatters-as-fcc-overruled'
