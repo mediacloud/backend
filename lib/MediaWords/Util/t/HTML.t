@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Test::More tests => 30;
+use Test::More tests => 21;
 use Test::NoWarnings;
 
 use Text::Trim;
@@ -132,96 +132,6 @@ EOF
     }
 }
 
-sub test_original_url_from_archive_is_url()
-{
-    is(
-        MediaWords::Util::HTML::original_url_from_archive_is_url(
-            '<link rel="canonical" href="https://archive.is/20170201/https://bar.com/foo/bar">',    #
-            'https://archive.is/20170201/https://bar.com/foo/bar'                                   #
-        ),
-        'https://bar.com/foo/bar',                                                                  #
-        'archive.is'                                                                                #
-    );
-
-    is(
-        MediaWords::Util::HTML::original_url_from_archive_is_url(
-            '<link rel="canonical" href="https://archive.is/20170201/https://bar.com/foo/bar">',    #
-            'https://bar.com/foo/bar'                                                               #
-        ),
-        undef,                                                                                      #
-        'archive.is with non-matching URL'                                                          #
-    );
-}
-
-sub test_original_url_from_archive_org_url()
-{
-    is(
-        MediaWords::Util::HTML::original_url_from_archive_org_url(
-            undef,                                                                                     #
-            'https://web.archive.org/web/20150204024130/http://www.john-daly.com/hockey/hockey.htm'    #
-        ),
-        'http://www.john-daly.com/hockey/hockey.htm',                                                  #
-        'archive.org'                                                                                  #
-    );
-
-    is(
-        MediaWords::Util::HTML::original_url_from_archive_org_url(
-            undef,                                                                                     #
-            'http://www.john-daly.com/hockey/hockey.htm'                                               #
-        ),
-        undef,                                                                                         #
-        'archive.org with non-matching URL'                                                            #
-    );
-}
-
-sub test_original_url_from_linkis_com_url()
-{
-    is(
-        MediaWords::Util::HTML::original_url_from_linkis_com_url(
-            '<meta property="og:url" content="http://og.url/test"',                                    #
-            'https://linkis.com/foo.com/ASDF'                                                          #
-        ),
-        'http://og.url/test',                                                                          #
-        'linkis.com <meta>'                                                                            #
-    );
-
-    is(
-        MediaWords::Util::HTML::original_url_from_linkis_com_url(
-            '<a class="js-youtube-ln-event" href="http://you.tube/test"',                              #
-            'https://linkis.com/foo.com/ASDF'                                                          #
-        ),
-        'http://you.tube/test',                                                                        #
-        'linkis.com YouTube'                                                                           #
-    );
-
-    is(
-        MediaWords::Util::HTML::original_url_from_linkis_com_url(
-            '<iframe id="source_site" src="http://source.site/test"',                                  #
-            'https://linkis.com/foo.com/ASDF'                                                          #
-        ),
-        'http://source.site/test',                                                                     #
-        'linkis.com <iframe>'                                                                          #
-    );
-
-    is(
-        MediaWords::Util::HTML::original_url_from_linkis_com_url(
-            '"longUrl":"http:\/\/java.script\/test"',                                                  #
-            'https://linkis.com/foo.com/ASDF'                                                          #
-        ),
-        'http://java.script/test',                                                                     #
-        'linkis.com JavaScript'                                                                        #
-    );
-
-    is(
-        MediaWords::Util::HTML::original_url_from_linkis_com_url(
-            '<meta property="og:url" content="http://og.url/test"',                                    #
-            'https://bar.com/foo/bar'                                                                  #
-        ),
-        undef,                                                                                         #
-        'linkis.com with non-matching URL'                                                             #
-    );
-}
-
 sub main()
 {
     my $builder = Test::More->builder;
@@ -233,9 +143,6 @@ sub main()
     test_new_lines_around_block_level_tags();
     test_html_strip();
     test_html_title();
-    test_original_url_from_archive_is_url();
-    test_original_url_from_archive_org_url();
-    test_original_url_from_linkis_com_url();
 }
 
 main();

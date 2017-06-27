@@ -24,9 +24,9 @@ use URI;
 use URI::Escape;
 
 use MediaWords::Util::Config;
-use MediaWords::Util::HTML;
 use MediaWords::Util::SQL;
 use MediaWords::Util::URL;
+use MediaWords::Util::Web::UserAgent::HTMLRedirects;
 use MediaWords::Util::Web::UserAgent::Request;
 use MediaWords::Util::Web::UserAgent::Response;
 
@@ -223,10 +223,10 @@ sub _get_follow_http_html_redirects_inner_follow_redirects($$$)
 
         my $url_after_meta_redirect;
         for my $f (
-            \&MediaWords::Util::HTML::meta_refresh_url_from_html,           #
-            \&MediaWords::Util::HTML::original_url_from_archive_org_url,    #
-            \&MediaWords::Util::HTML::original_url_from_archive_is_url,     #
-            \&MediaWords::Util::HTML::original_url_from_linkis_com_url,     #
+            \&MediaWords::Util::Web::UserAgent::HTMLRedirects::original_url_from_meta_refresh_url,    #
+            \&MediaWords::Util::Web::UserAgent::HTMLRedirects::original_url_from_archive_org_url,     #
+            \&MediaWords::Util::Web::UserAgent::HTMLRedirects::original_url_from_archive_is_url,      #
+            \&MediaWords::Util::Web::UserAgent::HTMLRedirects::original_url_from_linkis_com_url,      #
           )
         {
             $url_after_meta_redirect = $f->( $response->decoded_content, $base_url );
