@@ -176,9 +176,7 @@ sub main
             $i++;
             INFO "fetch [$i/$block_size/$total] : $request->{ url }";
 
-            my $response = $ua->get( $request->{ url } );
-
-            $response = MediaWords::Util::URL::get_meta_redirect_response( $response, $request->{ url } );
+            my $response = $ua->get_follow_http_html_redirects( $request->{ url } );
 
             INFO "got [$i/$block_size/$total]: $request->{ url }";
 

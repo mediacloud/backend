@@ -7,7 +7,7 @@ use MediaWords::CommonLibs;
 
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 29;
+use Test::More tests => 15;
 
 use Readonly;
 use MediaWords::Test::HTTP::HashServer;
@@ -250,142 +250,12 @@ END
     }
 }
 
-sub test_original_url_from_archive_org_url()
-{
-    is(
-        MediaWords::Util::URL::_original_url_from_archive_org_url(
-            undef,                                                                                     #
-            'https://web.archive.org/web/20150204024130/http://www.john-daly.com/hockey/hockey.htm'    #
-        ),
-        'http://www.john-daly.com/hockey/hockey.htm',                                                  #
-        'archive.org'                                                                                  #
-    );
-
-    is(
-        MediaWords::Util::URL::_original_url_from_archive_org_url(
-            undef,                                                                                     #
-            'http://www.john-daly.com/hockey/hockey.htm'                                               #
-        ),
-        undef,                                                                                         #
-        'archive.org with non-matching URL'                                                            #
-    );
-}
-
-sub test_original_url_from_archive_is_url()
-{
-    is(
-        MediaWords::Util::URL::_original_url_from_archive_is_url(
-            '<link rel="canonical" href="https://archive.is/20170201/https://bar.com/foo/bar">',       #
-            'https://archive.is/20170201/https://bar.com/foo/bar'                                      #
-        ),
-        'https://bar.com/foo/bar',                                                                     #
-        'archive.is'                                                                                   #
-    );
-
-    is(
-        MediaWords::Util::URL::_original_url_from_archive_is_url(
-            '<link rel="canonical" href="https://archive.is/20170201/https://bar.com/foo/bar">',       #
-            'https://bar.com/foo/bar'                                                                  #
-        ),
-        undef,                                                                                         #
-        'archive.is with non-matching URL'                                                             #
-    );
-}
-
-sub test_original_url_from_linkis_com_url()
-{
-    is(
-        MediaWords::Util::URL::_original_url_from_linkis_com_url(
-            '<meta property="og:url" content="http://og.url/test"',                                    #
-            'https://linkis.com/foo.com/ASDF'                                                          #
-        ),
-        'http://og.url/test',                                                                          #
-        'linkis.com <meta>'                                                                            #
-    );
-
-    is(
-        MediaWords::Util::URL::_original_url_from_linkis_com_url(
-            '<a class="js-youtube-ln-event" href="http://you.tube/test"',                              #
-            'https://linkis.com/foo.com/ASDF'                                                          #
-        ),
-        'http://you.tube/test',                                                                        #
-        'linkis.com YouTube'                                                                           #
-    );
-
-    is(
-        MediaWords::Util::URL::_original_url_from_linkis_com_url(
-            '<iframe id="source_site" src="http://source.site/test"',                                  #
-            'https://linkis.com/foo.com/ASDF'                                                          #
-        ),
-        'http://source.site/test',                                                                     #
-        'linkis.com <iframe>'                                                                          #
-    );
-
-    is(
-        MediaWords::Util::URL::_original_url_from_linkis_com_url(
-            '"longUrl":"http:\/\/java.script\/test"',                                                  #
-            'https://linkis.com/foo.com/ASDF'                                                          #
-        ),
-        'http://java.script/test',                                                                     #
-        'linkis.com JavaScript'                                                                        #
-    );
-
-    is(
-        MediaWords::Util::URL::_original_url_from_archive_is_url(
-            '<meta property="og:url" content="http://og.url/test"',                                    #
-            'https://bar.com/foo/bar'                                                                  #
-        ),
-        undef,                                                                                         #
-        'linkis.com with non-matching URL'                                                             #
-    );
-}
-
-sub test_get_meta_redirect_response()
-{
-    my $label = "test_get_meta_redirect_response";
-
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, { '/foo' => 'foo bar' } );
-    $hs->start;
-
-    my $redirect_url = "http://localhost:$TEST_HTTP_SERVER_PORT/foo";
-    my $original_url = "http://foo.bar";
-
-    my $meta_tag = '<meta http-equiv="refresh" content="0;URL=\'' . $redirect_url . '\'" />';
-    my $response =
-      MediaWords::Util::Web::UserAgent::Response->new_from_http_response( HTTP::Response->new( 200, 'OK', [], $meta_tag ) );
-    $response->set_request( MediaWords::Util::Web::UserAgent::Request->new( 'GET', $original_url ) );
-
-    my $got_response = MediaWords::Util::URL::get_meta_redirect_response( $response, $original_url );
-
-    ok( $got_response->is_success, "$label meta response succeeded" );
-
-    is( $got_response->decoded_content, 'foo bar', "label redirected content" );
-
-    # check that the response for the meta refresh redirected page got added to the end of the response chain
-    is( $got_response->request->url,           $redirect_url, "$label end url of response chain" );
-    is( $got_response->previous->request->url, $original_url, "$label previous url in response chain" );
-
-    $hs->stop;
-
-    $response =
-      MediaWords::Util::Web::UserAgent::Response->new_from_http_response(
-        HTTP::Response->new( 200, 'OK', [], 'no meta refresh' ) );
-    $got_response = MediaWords::Util::URL::get_meta_redirect_response( $response, $original_url );
-
-    is( $got_response, $response, "$label no meta same response" );
-}
-
 sub main()
 {
     my $builder = Test::More->builder;
     binmode $builder->output,         ":utf8";
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
-
-    test_original_url_from_archive_org_url();
-    test_original_url_from_archive_is_url();
-    test_original_url_from_linkis_com_url();
-    test_get_meta_redirect_response();
 
     MediaWords::Test::DB::test_on_test_database(
         sub {

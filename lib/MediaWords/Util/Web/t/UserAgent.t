@@ -7,7 +7,7 @@ use MediaWords::CommonLibs;
 
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 23;
+use Test::More tests => 45;
 
 use HTTP::Status qw(:constants);
 use Readonly;
@@ -287,6 +287,103 @@ sub test_get_follow_http_html_redirects_cookies()
     is( $response->decoded_content(), $TEST_CONTENT, 'Data after HTTP redirects (cookie)' );
 }
 
+sub test_get_follow_http_html_redirects_previous_responses()
+{
+    # HTTP redirect
+    sub _page_http_redirect($)
+    {
+        my $page = shift;
+
+        return {
+            callback => sub {
+                my ( $params, $cookies ) = @_;
+
+                my $response = '';
+                $response .= "HTTP/1.0 302 Moved Temporarily\r\n";
+                $response .= "Content-Type: text/plain; charset=UTF-8\r\n";
+                $response .= "Location: $page\r\n";
+                $response .= "\r\n";
+                $response .= "Redirect to $page...";
+
+                return $response;
+            }
+        };
+    }
+
+    # <meta> redirect
+    sub _page_html_redirect($)
+    {
+        my $page = shift;
+
+        return "<meta http-equiv='refresh' content='0; URL=$page' />";
+    }
+
+    # Various types of redirects mixed together to test setting previous()
+    my $pages = {
+
+        '/page_1' => _page_http_redirect( '/page_2' ),
+
+        '/page_2' => _page_html_redirect( '/page_3' ),
+
+        '/page_3' => _page_http_redirect( '/page_4' ),
+        '/page_4' => _page_http_redirect( '/page_5' ),
+
+        '/page_5' => _page_html_redirect( '/page_6' ),
+        '/page_6' => _page_html_redirect( '/page_7' ),
+
+        # Final page
+        '/page_7' => 'Finally!',
+
+    };
+
+    Readonly my $TEST_HTTP_SERVER_URL => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
+    my $starting_url = $TEST_HTTP_SERVER_URL . '/page_1';
+
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my $ua       = MediaWords::Util::Web::UserAgent->new();
+    my $response = $ua->get_follow_http_html_redirects( $starting_url );
+
+    $hs->stop();
+
+    ok( $response->is_success() );
+    is( $response->decoded_content(), 'Finally!' );
+    is( $response->request()->url(),  "$TEST_HTTP_SERVER_URL/page_7" );
+
+    $response = $response->previous();
+    ok( $response );
+    ok( $response->request() );
+    is( $response->request()->url(), "$TEST_HTTP_SERVER_URL/page_6" );
+
+    $response = $response->previous();
+    ok( $response );
+    ok( $response->request() );
+    is( $response->request()->url(), "$TEST_HTTP_SERVER_URL/page_5" );
+
+    $response = $response->previous();
+    ok( $response );
+    ok( $response->request() );
+    is( $response->request()->url(), "$TEST_HTTP_SERVER_URL/page_4" );
+
+    $response = $response->previous();
+    ok( $response );
+    ok( $response->request() );
+    is( $response->request()->url(), "$TEST_HTTP_SERVER_URL/page_3" );
+
+    $response = $response->previous();
+    ok( $response );
+    ok( $response->request() );
+    is( $response->request()->url(), "$TEST_HTTP_SERVER_URL/page_2" );
+
+    $response = $response->previous();
+    ok( $response );
+    ok( $response->request() );
+    is( $response->request()->url(), "$TEST_HTTP_SERVER_URL/page_1" );
+
+    ok( !$response->previous() );
+}
+
 sub test_parallel_get()
 {
     my $pages = {
@@ -420,6 +517,7 @@ sub main()
     test_get_follow_http_html_redirects_http_loop();
     test_get_follow_http_html_redirects_html_loop();
     test_get_follow_http_html_redirects_cookies();
+    test_get_follow_http_html_redirects_previous_responses();
 
     test_parallel_get();
     test_determined_retries();

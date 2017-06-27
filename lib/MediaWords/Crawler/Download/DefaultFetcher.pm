@@ -27,6 +27,8 @@ use MediaWords::Util::SQL;
 use MediaWords::Util::Web;
 use MediaWords::Util::URL;
 
+use URI;
+
 # alarabiya uses an interstitial that requires javascript.  if the download url
 # matches alarabiya and returns the 'requires JavaScript' page, manually parse
 # out the necessary cookie and add it to the $ua so that the request will work
@@ -73,18 +75,22 @@ sub _get_domain_http_auth_lookup
 }
 
 # if there are http auth credentials for the requested site, add them to the request
-sub _add_http_auth
+sub _add_http_auth($)
 {
-    my ( $download, $request ) = @_;
+    my ( $url ) = @_;
 
     my $auth_lookup ||= _get_domain_http_auth_lookup();
 
-    my $domain = MediaWords::Util::URL::get_url_distinctive_domain( $download->{ url } );
+    my $domain = MediaWords::Util::URL::get_url_distinctive_domain( $url );
 
     if ( my $auth = $auth_lookup->{ lc( $domain ) } )
     {
-        $request->set_authorization_basic( $auth->{ user }, $auth->{ password } );
+        my $uri = URI->new( $url )->canonical;
+        $uri->userinfo( $auth->{ user } . ':' . $auth->{ password } );
+        $url = $uri->as_string;
     }
+
+    return $url;
 }
 
 sub fetch_download($$$)
@@ -98,17 +104,14 @@ sub fetch_download($$$)
 
     my $ua = MediaWords::Util::Web::UserAgent->new();
 
-    my $url = MediaWords::Util::URL::fix_common_url_mistakes( $download->{ url } );
+    my $url = $download->{ url };
 
-    my $request = MediaWords::Util::Web::UserAgent::Request->new( 'GET', $url );
+    $url = MediaWords::Util::URL::fix_common_url_mistakes( $url );
+    $url = _add_http_auth( $url );
 
-    _add_http_auth( $download, $request );
-
-    my $response = $ua->request( $request );
+    my $response = $ua->get_follow_http_html_redirects( $url );
 
     $response = _fix_alarabiya_response( $download, $ua, $response );
-
-    $response = MediaWords::Util::URL::get_meta_redirect_response( $response, $request->url );
 
     return $response;
 }

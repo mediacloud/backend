@@ -101,14 +101,6 @@ sub as_string($)
     return $self->{ _response }->as_string();
 }
 
-# Alias for redirects(), returns arrayref instead of array though
-sub redirects($)
-{
-    my ( $self ) = @_;
-    my @redirects = $self->{ _response }->redirects();
-    return \@redirects;
-}
-
 # Alias for content_type()
 sub content_type($)
 {

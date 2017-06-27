@@ -24,6 +24,7 @@ use URI;
 use URI::Escape;
 
 use MediaWords::Util::Config;
+use MediaWords::Util::HTML;
 use MediaWords::Util::SQL;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web::UserAgent::Request;
@@ -202,6 +203,120 @@ sub get($$)
     return MediaWords::Util::Web::UserAgent::Response->new_from_http_response( $response );
 }
 
+sub _get_follow_http_html_redirects_inner($$$)
+{
+    my ( $self, $response, $meta_redirects_left ) = @_;
+
+    unless ( $response )
+    {
+        die "Response is undefined.";
+    }
+
+    if ( $meta_redirects_left > 0 )
+    {
+
+        if ( $response->is_success )
+        {
+            # Check if the returned document contains <meta http-equiv="refresh" />
+            my $base_uri = URI->new( $response->request()->url() )->canonical;
+            if ( $response->request()->url() !~ /\/$/ )
+            {
+                # In "http://example.com/first/two" URLs, strip the "two" part (but not when it has a trailing slash)
+                my @base_uri_path_segments = $base_uri->path_segments;
+                pop @base_uri_path_segments;
+                $base_uri->path_segments( @base_uri_path_segments );
+            }
+
+            my $base_url = $base_uri->as_string;
+
+            my $url_after_meta_redirect;
+            for my $f (
+                \&MediaWords::Util::HTML::meta_refresh_url_from_html,           #
+                \&MediaWords::Util::HTML::original_url_from_archive_org_url,    #
+                \&MediaWords::Util::HTML::original_url_from_archive_is_url,     #
+                \&MediaWords::Util::HTML::original_url_from_linkis_com_url,     #
+              )
+            {
+                $url_after_meta_redirect = $f->( $response->decoded_content, $base_url );
+                if ( $url_after_meta_redirect and $response->request()->url() ne $url_after_meta_redirect )
+                {
+                    TRACE "URL after <meta /> refresh: $url_after_meta_redirect";
+
+                    my $orig_redirect_response = $self->get( $url_after_meta_redirect );
+                    my $redirect_response      = $orig_redirect_response;
+
+                    # Response might have its previous() already set due to HTTP redirects,
+                    # so we have to find the initial response first
+                    my $previous = undef;
+                    for ( my $x = 0 ; $x <= $MAX_REDIRECT ; ++$x )
+                    {
+                        $previous = $redirect_response->previous();
+                        unless ( defined $previous )
+                        {
+                            last;
+                        }
+                        $redirect_response = $previous;
+                    }
+                    if ( defined $previous )
+                    {
+                        LOGCONFESS "Can't find the initial redirected response; URL: $url_after_meta_redirect";
+                    }
+
+                    TRACE "Setting previous of URL " .
+                      $redirect_response->request()->url() . " to " . $response->request()->url();
+                    $redirect_response->set_previous( $response );
+
+                    return $self->_get_follow_http_html_redirects_inner( $orig_redirect_response, --$meta_redirects_left );
+                }
+            }
+
+            # No <meta /> refresh, the current URL is the final one
+            return $response;
+
+        }
+        else
+        {
+            TRACE "Request to " . $response->request()->url() . " was unsuccessful: " . $response->status_line;
+
+            # Return the original URL and give up
+            return undef;
+        }
+
+    }
+    else
+    {
+
+        # If one of the URLs that we've been redirected to contains another encoded URL, assume
+        # that we're hitting a paywall and the URLencoded URL is the right one
+        my $urls_redirected_to = [];
+
+        my $previous = undef;
+        for ( my $x = 0 ; $x <= $MAX_REDIRECT ; ++$x )
+        {
+            $previous = $response->previous();
+            unless ( defined $previous )
+            {
+                last;
+            }
+
+            my $url_redirected_to         = $previous->request()->url();
+            my $encoded_url_redirected_to = uri_escape( $url_redirected_to );
+
+            if ( my ( $matched_url ) = grep /$encoded_url_redirected_to/, @{ $urls_redirected_to } )
+            {
+                TRACE "Encoded URL $encoded_url_redirected_to is a substring of " .
+                  "another URL $matched_url, so I'll assume that " . "$url_redirected_to is the correct one.";
+                return $previous;
+            }
+
+            push( @{ $urls_redirected_to }, $url_redirected_to );
+        }
+
+        # Return the original URL (unless we find a URL being a substring of another URL, see below)
+        return undef;
+    }
+}
+
 # Fetch the URL, evaluate HTTP / HTML redirects
 # Returns response after all those redirects; die()s on error
 sub get_follow_http_html_redirects($)
@@ -225,104 +340,19 @@ sub get_follow_http_html_redirects($)
         die "User agent's max_redirect is 0, subroutine might loop indefinitely.";
     }
 
-    my $orig_response = undef;
-    for ( my $meta_redirect = 1 ; $meta_redirect <= $MAX_HTML_REDIRECT ; ++$meta_redirect )
+    my $response = $self->get( $url );
+
+    my $response_after_redirects = $self->_get_follow_http_html_redirects_inner( $response, $MAX_HTML_REDIRECT );
+
+    if ( $response_after_redirects )
     {
-        my $response = $self->get( $url );
-        unless ( $orig_response )
-        {
-            # Save first response for later use
-            $orig_response = $response;
-        }
-
-        if ( $response->is_success )
-        {
-
-            my $new_url = $response->request()->url();
-            unless ( $url eq $new_url )
-            {
-                TRACE "New URL: " . $new_url;
-            }
-            $url = $new_url;
-
-            # Check if the returned document contains <meta http-equiv="refresh" />
-            my $base_uri = URI->new( $url )->canonical;
-            if ( $url !~ /\/$/ )
-            {
-                # In "http://example.com/first/two" URLs, strip the "two" part (but not when it has a trailing slash)
-                my @base_uri_path_segments = $base_uri->path_segments;
-                pop @base_uri_path_segments;
-                $base_uri->path_segments( @base_uri_path_segments );
-            }
-
-            my $url_after_meta_redirect =
-              MediaWords::Util::HTML::meta_refresh_url_from_html( $response->decoded_content(), $base_uri->as_string );
-            if ( $url_after_meta_redirect and $url ne $url_after_meta_redirect )
-            {
-                TRACE "URL after <meta /> refresh: $url_after_meta_redirect";
-                $url = $url_after_meta_redirect;
-
-                # ...and repeat the HTTP redirect cycle
-            }
-            else
-            {
-                # No <meta /> refresh, the current URL is the final one
-                return $response;
-            }
-
-        }
-        else
-        {
-
-            my $redirects = $response->redirects();
-            if ( scalar @{ $redirects } + 1 >= $self->max_redirect() )
-            {
-                my @urls_redirected_to;
-
-                my $error_message = "";
-                $error_message .= "Number of HTTP redirects (" . $self->max_redirect() . ") exhausted; redirects:\n";
-                foreach my $redirect ( @{ $redirects } )
-                {
-                    push( @urls_redirected_to, $redirect->request()->url() );
-                    $error_message .= "* From: " . $redirect->request()->url() . "; ";
-                    $error_message .= "to: " . $redirect->header( 'Location' ) . "\n";
-                }
-
-                TRACE $error_message;
-
-                # If one of the URLs that we've been redirected to contains another encoded URL, assume
-                # that we're hitting a paywall and the URLencoded URL is the right one
-                @urls_redirected_to = uniq @urls_redirected_to;
-                foreach my $redirect ( @{ $redirects } )
-                {
-                    my $url_redirected_to         = $redirect->request()->url();
-                    my $encoded_url_redirected_to = uri_escape( $url_redirected_to );
-
-                    if ( my ( $matched_url ) = grep /$encoded_url_redirected_to/, @urls_redirected_to )
-                    {
-                        TRACE "Encoded URL $encoded_url_redirected_to is a substring of " .
-                          "another URL $matched_url, so I'll assume that " . "$url_redirected_to is the correct one.";
-                        return $redirect;
-
-                    }
-                }
-
-                # Return the original URL (unless we find a URL being a substring of another URL, see below)
-                return $orig_response;
-
-            }
-            else
-            {
-                TRACE "Request to $url was unsuccessful: " . $response->status_line;
-
-                # Return the original URL and give up
-                return $orig_response;
-            }
-        }
+        return $response_after_redirects;
     }
-
-    # Fallback
-    return $orig_response;
+    else
+    {
+        # One of the redirects failed -- return original response
+        return $response;
+    }
 }
 
 # Get multiple URLs in parallel.
