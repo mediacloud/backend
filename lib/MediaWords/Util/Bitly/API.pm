@@ -14,6 +14,7 @@ use MediaWords::Util::Bitly;
 use MediaWords::Util::Process;
 use MediaWords::Util::Web;
 use MediaWords::Util::URL;
+use MediaWords::Util::URL::Variants;
 use MediaWords::Util::Config;
 use MediaWords::Util::JSON;
 use MediaWords::Util::DateTime;
@@ -598,7 +599,7 @@ sub bitly_link_lookup_hashref_all_variants($$)
         die "Bit.ly processing is not enabled.";
     }
 
-    my @urls = MediaWords::Util::URL::all_url_variants( $db, $url );
+    my @urls = MediaWords::Util::URL::Variants::all_url_variants( $db, $url );
     unless ( scalar @urls )
     {
         die "No URLs returned for URL $url";

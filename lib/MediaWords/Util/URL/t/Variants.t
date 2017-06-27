@@ -24,7 +24,7 @@ BEGIN
     use FindBin;
     use lib "$FindBin::Bin/../lib";
 
-    use_ok( 'MediaWords::Util::URL' );
+    use_ok( 'MediaWords::Util::URL::Variants' );
 }
 
 sub test_all_url_variants($)
@@ -35,12 +35,12 @@ sub test_all_url_variants($)
     my @expected_url_variants;
 
     # Undefined URL
-    eval { MediaWords::Util::URL::all_url_variants( $db, undef ); };
+    eval { MediaWords::Util::URL::Variants::all_url_variants( $db, undef ); };
     ok( $@, 'Undefined URL' );
 
     # Non-HTTP(S) URL
     Readonly my $gopher_url => 'gopher://gopher.floodgap.com/0/v2/vstat';
-    @actual_url_variants = MediaWords::Util::URL::all_url_variants( $db, $gopher_url );
+    @actual_url_variants = MediaWords::Util::URL::Variants::all_url_variants( $db, $gopher_url );
     @expected_url_variants = ( $gopher_url );
     is_deeply( [ sort @actual_url_variants ], [ sort @expected_url_variants ], 'Non-HTTP(S) URL' );
 
@@ -58,7 +58,7 @@ sub test_all_url_variants($)
 
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
-    @actual_url_variants = MediaWords::Util::URL::all_url_variants( $db, $starting_url );
+    @actual_url_variants = MediaWords::Util::URL::Variants::all_url_variants( $db, $starting_url );
     $hs->stop();
 
     @expected_url_variants = (
@@ -77,7 +77,7 @@ sub test_all_url_variants($)
 
     $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
-    @actual_url_variants = MediaWords::Util::URL::all_url_variants( $db, $starting_url );
+    @actual_url_variants = MediaWords::Util::URL::Variants::all_url_variants( $db, $starting_url );
     $hs->stop();
 
     @expected_url_variants = (
@@ -100,7 +100,7 @@ sub test_all_url_variants($)
 
     $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
-    @actual_url_variants = MediaWords::Util::URL::all_url_variants( $db, $starting_url );
+    @actual_url_variants = MediaWords::Util::URL::Variants::all_url_variants( $db, $starting_url );
     $hs->stop();
 
     @expected_url_variants = (
@@ -124,7 +124,7 @@ sub test_all_url_variants_invalid_variants($)
 
     # Invalid URL variant (suspended Twitter account)
     Readonly my $invalid_url_variant => 'https://twitter.com/Todd__Kincannon/status/518499096974614529';
-    @actual_url_variants = MediaWords::Util::URL::all_url_variants( $db, $invalid_url_variant );
+    @actual_url_variants = MediaWords::Util::URL::Variants::all_url_variants( $db, $invalid_url_variant );
     @expected_url_variants = ( $invalid_url_variant );
     is_deeply(
         [ sort @actual_url_variants ],
@@ -237,7 +237,7 @@ END
     ];
 
     my @test_urls = ( $story_1->{ url } );
-    my $url_variants = MediaWords::Util::URL::get_topic_url_variants( $db, \@test_urls );
+    my $url_variants = MediaWords::Util::URL::Variants::_get_topic_url_variants( $db, \@test_urls );
 
     $url_variants  = [ sort { $a cmp $b } @{ $url_variants } ];
     $expected_urls = [ sort { $a cmp $b } @{ $expected_urls } ];
