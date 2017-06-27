@@ -54,27 +54,19 @@ fi
 
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
     --verbose \
-    LWP::UserAgent
+    LWP::UserAgent~6.26
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
     --local-lib-contained local/ \
     --verbose \
-    LWP::UserAgent
+    LWP::UserAgent~6.26
 
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
     --verbose \
-    Net::SSL
+    LWP::Protocol::https~6.07
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
     --local-lib-contained local/ \
     --verbose \
-    Net::SSL
-
-./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
-    --verbose \
-    LWP::Protocol::https
-./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
-    --local-lib-contained local/ \
-    --verbose \
-    LWP::Protocol::https
+    LWP::Protocol::https~6.07
 
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
     --verbose \
