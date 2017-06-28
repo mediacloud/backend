@@ -67,7 +67,7 @@ sub test_auth
       [ { domain => 'localhost.localhost', user => 'foo', password => 'bar' } ];
     MediaWords::Util::Config::set_config( $new_config );
 
-    my $noauth_response = fetch_response( $db, $feed, "http://127.0.01:$port/auth" );
+    my $noauth_response = fetch_response( $db, $feed, "http://127.0.0.1:$port/auth" );
     my $auth_response   = fetch_response( $db, $feed, "http://localhost:$port/auth" );
 
     ok( !$noauth_response->is_success, "noauth response should fail" );
