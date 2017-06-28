@@ -48,6 +48,9 @@ python-dateutil
 # Extracting text from stories
 readability-lxml==0.6.2
 
+# Making HTTP requests
+requests
+
 # math package for forceatlas implementation
 scipy
 

@@ -397,29 +397,6 @@ sub print_model_matches
     # return $num_model_matches;
 }
 
-# create the index if it does not already exist
-sub create_index_if_not_exists
-{
-    my ( $db, $name, $index ) = @_;
-
-    my $exists = $db->query( 'select 1 from pg_class where relname = ?', $name )->hash;
-
-    return if ( $exists );
-
-    $db->query( "create index $name on $index" );
-}
-
-# create snapshot indexes if they do not already exist
-sub create_snapshot_indexes
-{
-    my ( $db ) = @_;
-
-    # these make the data tweaking process and other operations much faster
-    create_index_if_not_exists( $db, "snapshot_stories_story",          "snapshot_stories ( stories_id )" );
-    create_index_if_not_exists( $db, "snapshot_tags_tag",               "snapshot_tags ( tags_id )" );
-    create_index_if_not_exists( $db, "snapshot_stories_tags_map_story", "snapshot_stories_tags_map ( stories_id )" );
-}
-
 # run $config->{ mediawords }->{ topic_model_reps } models and return a list of ordered lists
 # of top_media, one list of top media for each model run
 sub get_all_models_top_media ($$)
@@ -433,7 +410,10 @@ sub get_all_models_top_media ($$)
 
     return undef unless ( $model_reps );
 
-    create_snapshot_indexes( $db );
+    # these make the data tweaking process and other operations much faster
+    $db->query( 'CREATE INDEX IF NOT EXISTS snapshot_stories_story ON snapshot_stories ( stories_id )' );
+    $db->query( 'CREATE INDEX IF NOT EXISTS snapshot_tags_tag ON snapshot_tags ( tags_id )' );
+    $db->query( 'CREATE INDEX IF NOT EXISTS snapshot_stories_tags_map_story ON snapshot_stories_tags_map ( stories_id )' );
 
     print "running models: ";
     my $all_models_top_media = [];

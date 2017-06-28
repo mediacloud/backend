@@ -10,7 +10,7 @@ use Test::Deep;
 use Test::More tests => 38;
 
 use Readonly;
-use HTTP::HashServer;
+use MediaWords::Test::HTTP::HashServer;
 use HTTP::Status qw(:constants);
 use HTTP::Response;
 use URI::Escape;
@@ -48,7 +48,7 @@ sub test_url_and_data_after_redirects_http()
         '/fifth' => 'Seems to be working.'
     };
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my ( $url_after_redirects, $data_after_redirects ) =
@@ -68,7 +68,7 @@ sub test_url_and_data_after_redirects_nonexistent()
     # Nonexistent URL ("/first")
     my $pages = {};
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my ( $url_after_redirects, $data_after_redirects ) =
@@ -95,7 +95,7 @@ sub test_url_and_data_after_redirects_html()
         '/fifth'  => 'Seems to be working too.'
     };
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my ( $url_after_redirects, $data_after_redirects ) =
@@ -128,7 +128,7 @@ sub test_url_and_data_after_redirects_http_loop()
         '/third' => { redirect => '/second', http_status_code => HTTP_SEE_OTHER }
     };
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my ( $url_after_redirects, $data_after_redirects ) =
@@ -151,7 +151,7 @@ sub test_url_and_data_after_redirects_html_loop()
         '/third'  => '<meta http-equiv="refresh" content="0; URL=/second" />',
     };
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my ( $url_after_redirects, $data_after_redirects ) =
@@ -179,19 +179,20 @@ sub test_url_and_data_after_redirects_cookies()
     my $pages = {
         '/first' => {
             callback => sub {
-                my ( $self, $cgi ) = @_;
+                my ( $params, $cookies ) = @_;
 
-                my $received_cookie = $cgi->cookie( $COOKIE_NAME );
+                my $received_cookie = $cookies->{ $COOKIE_NAME };
+                my $response        = '';
 
                 if ( $received_cookie and $received_cookie eq $COOKIE_VALUE )
                 {
 
                     TRACE "Cookie was set previously, showing page";
 
-                    print "HTTP/1.0 200 OK\r\n";
-                    print "$DEFAULT_HEADER\r\n";
-                    print "\r\n";
-                    print $TEST_CONTENT;
+                    $response .= "HTTP/1.0 200 OK\r\n";
+                    $response .= "$DEFAULT_HEADER\r\n";
+                    $response .= "\r\n";
+                    $response .= $TEST_CONTENT;
 
                 }
                 else
@@ -199,33 +200,36 @@ sub test_url_and_data_after_redirects_cookies()
 
                     TRACE "Setting cookie, redirecting to /check_cookie";
 
-                    print "HTTP/1.0 302 Moved Temporarily\r\n";
-                    print "$DEFAULT_HEADER\r\n";
-                    print "Location: /check_cookie\r\n";
-                    print "Set-Cookie: $COOKIE_NAME=$COOKIE_VALUE\r\n";
-                    print "\r\n";
-                    print "Redirecting to the cookie check page...";
+                    $response .= "HTTP/1.0 302 Moved Temporarily\r\n";
+                    $response .= "$DEFAULT_HEADER\r\n";
+                    $response .= "Location: /check_cookie\r\n";
+                    $response .= "Set-Cookie: $COOKIE_NAME=$COOKIE_VALUE\r\n";
+                    $response .= "\r\n";
+                    $response .= "Redirecting to the cookie check page...";
                 }
+
+                return $response;
             }
         },
 
         '/check_cookie' => {
             callback => sub {
 
-                my ( $self, $cgi ) = @_;
+                my ( $params, $cookies ) = @_;
 
-                my $received_cookie = $cgi->cookie( $COOKIE_NAME );
+                my $received_cookie = $cookies->{ $COOKIE_NAME };
+                my $response        = '';
 
                 if ( $received_cookie and $received_cookie eq $COOKIE_VALUE )
                 {
 
                     TRACE "Cookie was set previously, redirecting back to the initial page";
 
-                    print "HTTP/1.0 302 Moved Temporarily\r\n";
-                    print "$DEFAULT_HEADER\r\n";
-                    print "Location: $starting_url\r\n";
-                    print "\r\n";
-                    print "Cookie looks fine, redirecting you back to the article...";
+                    $response .= "HTTP/1.0 302 Moved Temporarily\r\n";
+                    $response .= "$DEFAULT_HEADER\r\n";
+                    $response .= "Location: $starting_url\r\n";
+                    $response .= "\r\n";
+                    $response .= "Cookie looks fine, redirecting you back to the article...";
 
                 }
                 else
@@ -233,18 +237,20 @@ sub test_url_and_data_after_redirects_cookies()
 
                     TRACE "Cookie wasn't found, redirecting you to the /no_cookies page...";
 
-                    print "HTTP/1.0 302 Moved Temporarily\r\n";
-                    print "$DEFAULT_HEADER\r\n";
-                    print "Location: /no_cookies\r\n";
-                    print "\r\n";
-                    print 'Cookie wasn\'t found, redirecting you to the "no cookies" page...';
+                    $response .= "HTTP/1.0 302 Moved Temporarily\r\n";
+                    $response .= "$DEFAULT_HEADER\r\n";
+                    $response .= "Location: /no_cookies\r\n";
+                    $response .= "\r\n";
+                    $response .= 'Cookie wasn\'t found, redirecting you to the "no cookies" page...';
                 }
+
+                return $response;
             }
         },
         '/no_cookies' => "No cookie support, go away, we don\'t like you."
     };
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my ( $url_after_redirects, $data_after_redirects ) =
@@ -285,7 +291,7 @@ sub test_all_url_variants($)
         '/third'  => 'This is where the redirect chain should end.',
     };
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
     @actual_url_variants = MediaWords::Util::URL::all_url_variants( $db, $starting_url );
     $hs->stop();
@@ -304,7 +310,7 @@ sub test_all_url_variants($)
         '/third'  => '<link rel="canonical" href="' . $TEST_HTTP_SERVER_URL . '/fourth" />',
     };
 
-    $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
     @actual_url_variants = MediaWords::Util::URL::all_url_variants( $db, $starting_url );
     $hs->stop();
@@ -327,7 +333,7 @@ sub test_all_url_variants($)
         '/second' => '<meta http-equiv="refresh" content="0; URL=/',
     };
 
-    $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
     @actual_url_variants = MediaWords::Util::URL::all_url_variants( $db, $starting_url );
     $hs->stop();
@@ -534,7 +540,7 @@ sub test_get_meta_redirect_response()
 {
     my $label = "test_get_meta_redirect_response";
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, { '/foo' => 'foo bar' } );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, { '/foo' => 'foo bar' } );
     $hs->start;
 
     my $redirect_url = "http://localhost:$TEST_HTTP_SERVER_PORT/foo";

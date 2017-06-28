@@ -249,8 +249,10 @@ sub restrict_period_stories_to_focus
 
         my $solr_q = $qs->{ query };
 
+        die( "focus boolean query '$solr_q' must include non-space character" ) unless ( $solr_q =~ /[^[:space:]]/ );
+
         my $stories_ids_list = join( ' ', @{ $chunk_stories_ids } );
-        $solr_q = "$solr_q and stories_id:( $stories_ids_list )";
+        $solr_q = "( $solr_q ) and stories_id:( $stories_ids_list )";
 
         my $solr_stories_ids =
           eval { MediaWords::Solr::search_for_stories_ids( $db, { rows => 1000000, q => $solr_q } ) };

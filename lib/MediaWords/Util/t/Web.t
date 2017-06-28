@@ -11,7 +11,7 @@ use Test::More tests => 5;
 
 use Readonly;
 use Data::Dumper;
-use HTTP::HashServer;
+use MediaWords::Test::HTTP::HashServer;
 use URI;
 
 use MediaWords::Util::Web;
@@ -28,7 +28,7 @@ sub test_parallel_get()
         '/b' => '𝕿𝖍𝖎𝖘 𝖎𝖘 𝖕𝖆𝖌𝖊 𝕭.',    #
         '/c' => '𝕋𝕙𝕚𝕤 𝕚𝕤 𝕡𝕒𝕘𝕖 ℂ.',     #
     };
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $urls = [];
@@ -63,17 +63,14 @@ sub test_lwp_user_agent_retries()
         # Page that doesn't respond in time
         '/buggy-page' => {
             callback => sub {
-                my ( $self, $cgi ) = @_;
-                print "HTTP/1.0 200 OK\r\n";
-                print "Content-Type: text/plain\r\n";
-                print "\r\n";
+                my ( $params, $cookies ) = @_;
 
                 # Simulate read timeout
                 sleep;
             }
         }
     };
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
 

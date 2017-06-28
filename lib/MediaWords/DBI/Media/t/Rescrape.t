@@ -18,7 +18,7 @@ use Test::Deep;
 use MediaWords::Test::DB;
 use MediaWords::DBI::Media;
 
-use HTTP::HashServer;
+use MediaWords::Test::HTTP::HashServer;
 use HTML::Entities;
 use Encode;
 use Readonly;
@@ -158,7 +158,7 @@ sub test_media_no_feeds($)
 {
     my $db = shift;
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_NO_FEEDS );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_NO_FEEDS );
     $hs->start();
 
     # Create a test media that doesn't need rescraping
@@ -206,7 +206,7 @@ sub test_media_single_feed($)
 {
     my $db = shift;
 
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_SINGLE_FEED );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_SINGLE_FEED );
     $hs->start();
 
     # Create a test media that doesn't need rescraping
@@ -268,7 +268,7 @@ sub test_media_no_feeds_then_single_feed($)
     #
     # Do initial scraping
     #
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_NO_FEEDS );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_NO_FEEDS );
     $hs->start();
     MediaWords::DBI::Media::Rescrape::rescrape_media( $db, $media_id );
     $hs->stop();
@@ -294,7 +294,7 @@ sub test_media_no_feeds_then_single_feed($)
     #
     # Do rescraping (with a RSS feed now present)
     #
-    $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_SINGLE_FEED );
+    $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_SINGLE_FEED );
     $hs->start();
     MediaWords::DBI::Media::Rescrape::rescrape_media( $db, $media_id );
     $hs->stop();
@@ -345,7 +345,7 @@ sub test_media_single_feed_then_no_feeds_then_single_feed_then_no_feeds_again($)
     #
     # Do initial scraping (with a single feed being present)
     #
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_SINGLE_FEED );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_SINGLE_FEED );
     $hs->start();
     MediaWords::DBI::Media::Rescrape::rescrape_media( $db, $media_id );
     $hs->stop();
@@ -372,7 +372,7 @@ sub test_media_single_feed_then_no_feeds_then_single_feed_then_no_feeds_again($)
     # Do rescraping with no syndicated feeds being available now (for example,
     # the site is in the "maintenance mode" at the moment)
     #
-    $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_NO_FEEDS );
+    $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_NO_FEEDS );
     $hs->start();
     MediaWords::DBI::Media::Rescrape::rescrape_media( $db, $media_id );
     $hs->stop();
@@ -406,7 +406,7 @@ sub test_media_single_feed_then_no_feeds_then_single_feed_then_no_feeds_again($)
     #
     # Rescrape once more, with syndicated feeds now being available once again
     #
-    $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_SINGLE_FEED );
+    $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_SINGLE_FEED );
     $hs->start();
     MediaWords::DBI::Media::Rescrape::rescrape_media( $db, $media_id );
     $hs->stop();
@@ -439,7 +439,7 @@ sub test_media_single_feed_then_no_feeds_then_single_feed_then_no_feeds_again($)
 
     #
     # Rescrape one last time with no feeds, to make sure "web_page" feed doesn't get added twice
-    $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_NO_FEEDS );
+    $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_NO_FEEDS );
     $hs->start();
     MediaWords::DBI::Media::Rescrape::rescrape_media( $db, $media_id );
     $hs->stop();
@@ -474,7 +474,7 @@ sub test_media_that_requires_moderation_with_same_set_of_feeds()
     my $media_id = $medium->{ media_id };
 
     # Do initial scraping for media that requires moderation
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_REQUIRES_MODERATION );
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_REQUIRES_MODERATION );
     $hs->start();
     MediaWords::DBI::Media::Rescrape::rescrape_media( $db, $media_id );
     $hs->stop();
@@ -514,7 +514,7 @@ EOF
 
     # Rescrape the media and expect it to stay moderated because we've already
     # moderated the very same set of feeds previously
-    $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_REQUIRES_MODERATION );
+    $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_REQUIRES_MODERATION );
     $hs->start();
     MediaWords::DBI::Media::Rescrape::rescrape_media( $db, $media_id );
     $hs->stop();

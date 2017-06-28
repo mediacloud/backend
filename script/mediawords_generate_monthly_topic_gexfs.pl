@@ -7,8 +7,6 @@ use forks;
 use strict;
 use warnings;
 
-use Sys::RunAlone;
-
 BEGIN
 {
     use FindBin;
@@ -23,6 +21,9 @@ use File::Slurp;
 
 use MediaWords::TM::Snapshot;
 use MediaWords::TM;
+
+Readonly my $EXCLUDE_MEDIA_IDS =>
+  [ 18362, 18346, 18370, 61164, 269331, 73449, 62926, 21936, 5816, 4429, 20448, 67324, 351789, 22299, 135076, 25373 ];
 
 sub main
 {
@@ -50,7 +51,7 @@ SQL
                 $timespan,
                 {
                     max_media         => 1000,
-                    exclude_media_ids => [ 18362, 18346, 18370, 61164, 269331, 73449, 62926, 21936, 5816, 4429, 20448 ],
+                    exclude_media_ids => $EXCLUDE_MEDIA_IDS,
                     color_field       => 'partisan_retweet',
                     include_weights   => 0
                 }

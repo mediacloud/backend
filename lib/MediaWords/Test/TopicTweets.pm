@@ -14,7 +14,7 @@ use warnings;
 use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 
-use HTTP::HashServer;
+use MediaWords::Test::HTTP::HashServer;
 use Readonly;
 use Test::More;
 
@@ -124,12 +124,12 @@ sub get_test_data
 # passed into the request plus an iterator that increases for each tweet returned.
 sub mock_ch_posts
 {
-    my ( $self, $cgi ) = @_;
+    my ( $params, $cookies ) = @_;
 
-    my $auth       = $cgi->param( 'auth' )  || LOGDIE( "missing auth param" );
-    my $id         = $cgi->param( 'id' )    || LOGDIE( "missing id param" );
-    my $start_date = $cgi->param( 'start' ) || LOGDIE( "missing start param" );
-    my $end_date   = $cgi->param( 'end' )   || LOGDIE( "missing end param" );
+    my $auth       = $params->{ 'auth' }  || LOGDIE( "missing auth param" );
+    my $id         = $params->{ 'id' }    || LOGDIE( "missing id param" );
+    my $start_date = $params->{ 'start' } || LOGDIE( "missing start param" );
+    my $end_date   = $params->{ 'end' }   || LOGDIE( "missing end param" );
 
     my $expected_end_date = MediaWords::Util::SQL::increment_day( $start_date );
     LOGDIE( "end_date expected to be '$expected_end_date' for mock api" ) unless ( $end_date eq $expected_end_date );
@@ -149,20 +149,19 @@ sub mock_ch_posts
 
     my $new_json = MediaWords::Util::JSON::encode_json( $data );
 
-    print <<HTTP
-HTTP/1.1 200 OK
-Content-Type: application/json
-
-$new_json
-HTTP
+    my $response = "HTTP/1.1 200 OK\r\n";
+    $response .= "Content-Type: application/json\r\n";
+    $response .= "\r\n";
+    $response .= "$new_json\n";
+    return $response;
 }
 
 # send a simple text page for use mocking tweet url pages
 sub mock_tweet_url
 {
-    my ( $self, $cgi ) = @_;
+    my ( $params, $cookies ) = @_;
 
-    my $id = $cgi->param( 'id' );
+    my $id = $params->{ 'id' };
 
     die( "id param must be specified" ) unless ( defined( $id ) );
 
@@ -177,21 +176,18 @@ sub mock_tweet_url
     }
 
     # just include the date as a literal string and the GuessDate module should find and assign that date to the story
-    print <<HTTP;
-HTTP/1.1 200 OK
-Content-Type: text/plain
-
-
-Sample page for tweet $id url $publish_date
-
-HTTP
+    my $response = "HTTP/1.1 200 OK\r\n";
+    $response .= "Content-Type: text/plain\r\n";
+    $response .= "\r\n";
+    $response .= "Sample page for tweet $id url $publish_date\n";
+    return $response;
 }
 
 sub mock_twitter_lookup
 {
-    my ( $self, $cgi ) = @_;
+    my ( $params, $cookies ) = @_;
 
-    my $id_list = $cgi->param( 'id' );
+    my $id_list = $params->{ 'id' };
 
     die( "id param must be specified" ) unless ( $id_list );
 
@@ -240,12 +236,11 @@ sub mock_twitter_lookup
 
     my $json = MediaWords::Util::JSON::encode_json( $tweets );
 
-    print <<HTTP;
-HTTP/1.1 200 OK
-Content-Type: application/json
-
-$json
-HTTP
+    my $response = "HTTP/1.1 200 OK\r\n";
+    $response .= "Content-Type: application/json\r\n";
+    $response .= "\r\n";
+    $response .= "$json\n";
+    return $response;
 }
 
 # verify that topic_tweet_urls match what's in the tweet JSON data as saved in topic_tweets
@@ -577,7 +572,7 @@ sub run_tests_on_external_apis
 
 sub run_tests_on_mock_apis
 {
-    my $hs = HTTP::HashServer->new(
+    my $hs = MediaWords::Test::HTTP::HashServer->new(
         $PORT,
         {
             '/api/monitor/posts'    => { callback => \&mock_ch_posts },
