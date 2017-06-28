@@ -12,7 +12,7 @@ from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.text import random_string
 
 #Chinese punctuation list
-punc = [",", ".", "\"", "/", "!", "?", "$", "%", "&", "(", ")",";","'","、", "。", "〈", "〉", "《", "》", "「", "」", "『", "』", "……", "！", "＃", "＄", "％", "＆", "（", "）", "＊", "＋", "，", "：", "；", "＜", "＞", "？", "＠", "［", "］", "｛", "｜", "｝", "～", "￥", "$"]
+punc = ["【", "】", "・", ",", ".", "\"", "/", "!", "?", "$", "%", "&", "(", ")",";","'","、", "。", "〈", "〉", "《", "》", "「", "」", "『", "』", "…", "！", "＃", "＄", "％", "＆", "（", "）", "＊", "＋", "，", "：", "；", "＜", "＞", "？", "＠", "［", "］", "｛", "｜", "｝", "～", "￥", "$"]
 
 l = create_logger(__name__)
 
@@ -125,7 +125,7 @@ class McChineseTokenizer(object):
         parsed_tokens = [x for x in parsed_text if x.strip()]
         words = []
         for parsed_token in parsed_tokens:
-            if parsed_token.encode('utf-8') not in punc:
+            if parsed_token not in punc:
                 words.append(parsed_token)
             else:
                 pass
