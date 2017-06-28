@@ -39,8 +39,9 @@ def test_is_http_url():
     assert is_http_url('http://cyber.law.harvard.edu/about')
     assert is_http_url('https://github.com/berkmancenter/mediacloud')
 
-    # URL with HTTP auth
-    assert is_http_url('https://username:password@domain.com/path?query=string#fragment')
+    # URLs with port, HTTP auth, localhost
+    assert is_http_url('https://username:password@domain.com:12345/path?query=string#fragment')
+    assert is_http_url('http://localhost:9998/feed')
 
     # URLs with mistakes fixable by fix_common_url_mistakes()
     assert not is_http_url(

@@ -53,3 +53,6 @@ scipy
 
 # Normalizing URLs
 url_normalize
+
+# URL, email, etc. validators
+validators
