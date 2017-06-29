@@ -20,17 +20,69 @@ else
     OPENSSL_PREFIX="/usr"
 fi
 
-# needed to install the https github links below
-./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm Test::RequiresInternet
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
+    --verbose \
+    Path::Class
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
+    --local-lib-contained local/ \
+    --verbose \
+    Path::Class
+
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
+    --verbose \
+    Test::Fatal File::Listing HTTP::Cookies HTTP::Daemon HTTP::Negotiate Net::HTTP WWW::RobotRules Net::SSLeay
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
+    --local-lib-contained local/ \
+    --verbose \
+    Test::Fatal File::Listing HTTP::Cookies HTTP::Daemon HTTP::Negotiate Net::HTTP WWW::RobotRules Net::SSLeay
+
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
+    --verbose \
+    Test::RequiresInternet
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
     --local-lib-contained local/ \
     --verbose \
     Test::RequiresInternet
-./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm LWP::Protocol::https
+
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
+    --verbose \
+    IO::Socket::SSL
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
+    --local-lib-contained local/ \
+    --verbose \
+    IO::Socket::SSL
+
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
+    --verbose \
+    LWP::UserAgent
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
+    --local-lib-contained local/ \
+    --verbose \
+    LWP::UserAgent
+
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
+    --verbose \
+    Net::SSL
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
+    --local-lib-contained local/ \
+    --verbose \
+    Net::SSL
+
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
+    --verbose \
+    LWP::Protocol::https
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
     --local-lib-contained local/ \
     --verbose \
     LWP::Protocol::https
+
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
+    --verbose \
+    Net::HTTP
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
+    --local-lib-contained local \
+    --verbose \
+    Net::HTTP
 
 # OS X no longer provides OpenSSL headers and Net::AMQP::RabbitMQ doesn't care
 # about OPENSSL_PREFIX so we need to set CCFLAGS and install the module
