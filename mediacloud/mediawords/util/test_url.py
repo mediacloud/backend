@@ -32,6 +32,9 @@ def test_is_http_url():
     assert not is_http_url('')
 
     assert not is_http_url('abc')
+    assert not is_http_url('/abc')
+    assert not is_http_url('//abc')
+    assert not is_http_url('///abc')
 
     assert not is_http_url('gopher://gopher.floodgap.com/0/v2/vstat')
     assert not is_http_url('ftp://ftp.freebsd.org/pub/FreeBSD/')
@@ -42,6 +45,11 @@ def test_is_http_url():
     # URLs with port, HTTP auth, localhost
     assert is_http_url('https://username:password@domain.com:12345/path?query=string#fragment')
     assert is_http_url('http://localhost:9998/feed')
+    assert is_http_url('http://127.0.0.1:12345/456789')
+    assert is_http_url('http://127.0.00000000.1:8899/tweet_url?id=47')
+
+    # Travis URL
+    assert is_http_url('http://testing-gce-286b4005-b1ae-4b1a-a0d8-faf85e39ca92:37873/gv/test.rss')
 
     # URLs with mistakes fixable by fix_common_url_mistakes()
     assert not is_http_url(

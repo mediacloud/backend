@@ -2,13 +2,14 @@ import re
 from typing import Optional
 from urllib.parse import urlparse, parse_qs, urlsplit, urlunsplit, urlencode
 import url_normalize
-import validators
 
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.url_shorteners import URL_SHORTENER_HOSTNAMES
 
 l = create_logger(__name__)
+
+__URL_REGEX = re.compile(r'^https?://[^\s/$.?#].[^\s]*$', re.IGNORECASE)
 
 # Regular expressions for URL's path that, when matched, mean that the URL is a homepage URL
 __HOMEPAGE_URL_PATH_REGEXES = [
@@ -69,8 +70,8 @@ def is_http_url(url: str) -> bool:
         l.debug("URL is empty")
         return False
 
-    if not validators.url(url):
-        l.debug('URL "%s" is not valid.' % url)
+    if not re.search(__URL_REGEX, url):
+        l.debug("URL '%s' does not match URL's regexp" % url)
         return False
 
     uri = urlparse(url)
