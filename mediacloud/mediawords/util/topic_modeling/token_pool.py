@@ -1,15 +1,11 @@
-import sys
-from os.path import dirname, abspath
-sys.path.append(dirname(dirname(dirname(dirname(abspath(__file__))))))
-
+import path_helper
 from mediawords.db import connect_to_db
 import json
 import re
 
 
 class TokenPool:
-    """ Fetch the sentences and break it down to words.
-    """
+    """ Fetch the sentences and break it down to words."""
     DB_QUERY = """SELECT stories_id, sentence FROM story_sentences"""
     STOP_WORDS = "lib/MediaWords/Languages/resources/en_stopwords.txt"
     DELIMITERS = "[^\w]"
@@ -68,43 +64,38 @@ class TokenPool:
         :param article_words: a list containing all words in an article
         :return: a list of all the meaningful words
         """
-        stopwords_file = self.fetch_stopwords()
-        # stopwords_package = get_stop_words('en')
+        stopwords = self.fetch_stopwords()
 
-        stemmed_tokens_via_file = [word for word in article_words
-                                   if ((len(word) > 1) and (word.lower() not in stopwords_file))]
+        stemmed_article_words = []
 
-        # stemmed_tokens_via_package = [word for word in article_words
-        #                               if ((len(word) > 1)
-        #                                   and (word.lower() not in stopwords_package))]
+        for sentence_words in article_words:
+            stemmed_sentence_tokens = [word for word in sentence_words
+                                       if ((len(word) > 1)
+                                           and (word.lower() not in stopwords))]
+            stemmed_article_words.append(stemmed_sentence_tokens)
 
-        # print(set(stemmed_tokens_via_file) - set(stemmed_tokens_via_package))
-        # print(set(stemmed_tokens_via_package) - set(stemmed_tokens_via_file))
+        return stemmed_article_words
 
-        return stemmed_tokens_via_file
-
-    def output_tokens(self):
+    def output_tokens(self, limit):
         """
         Go though each step to output the tokens of articles
+        :param limit: the number of stories to be output, 0 means all
         :return: a dictionary with key as the id of each article and value as the useful tokens
         """
         sentences = self.fetch_sentences()
         all_tokens = self.tokenize_sentence(sentences=sentences)
         stemmed_tokens = {}
 
-        print(all_tokens)
+        for article_id, article_tokens in all_tokens.items():
 
-        # counter = 0
-        # for article_id, article_tokens in all_tokens.items():
-        #
-        #     stemmed_tokens[article_id] = self.eliminate_stopwords(article_words=article_tokens)
-        #     counter += 1
-        #     if counter > 4:
-        #         break
+            stemmed_tokens[article_id] = self.eliminate_stopwords(article_words=article_tokens)
+            limit -= 1
+            if not limit:
+                break
 
         return stemmed_tokens
 
 
 # A sample output
-pool = TokenPool()
-print(pool.output_tokens())
+# pool = TokenPool()
+# print(pool.output_tokens(3))
