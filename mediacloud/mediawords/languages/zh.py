@@ -1,20 +1,16 @@
-# -*- coding: UTF-8 -*-
-import jieba, jieba.analyse
-import jieba.posseg as pseg
+from jieba import Tokenizer as JiebaTokenizer
 from nltk import RegexpTokenizer, PunktSentenceTokenizer
 import os
 import re
-from typing import Dict
 
 from mediawords.util.log import create_logger
 from mediawords.util.paths import mc_root_path
 from mediawords.util.perl import decode_object_from_bytes_if_needed
-from mediawords.util.text import random_string
+from mediawords.util.text import is_punctuation
 
-#Chinese punctuation list
-punc = ["【", "】", "・", ",", ".", "\"", "/", "!", "?", "$", "%", "&", "(", ")",";","'","、", "。", "〈", "〉", "《", "》", "「", "」", "『", "』", "…", "！", "＃", "＄", "％", "＆", "（", "）", "＊", "＋", "，", "：", "；", "＜", "＞", "？", "＠", "［", "］", "｛", "｜", "｝", "～", "￥", "$"]
 
 l = create_logger(__name__)
+
 
 class McChineseTokenizerException(Exception):
     """McChineseTokenizer class exception."""
@@ -25,8 +21,9 @@ class McChineseTokenizer(object):
     """Chinese language tokenizer that uses jieba."""
 
     # Path to jieba dictionary(ies)
-    # (protected and not private because used by the unit test)
-    _dict_path = os.path.join(mc_root_path(), 'lib/MediaWords/Languages/resources/zh/')
+    __dict_path = os.path.join(mc_root_path(), 'lib/MediaWords/Languages/resources/zh/')
+    __jieba_dict_path = os.path.join(self.__dict_path, 'dict.txt.big')
+    __jieba_userdict_path = os.path.join(self.__dict_path, 'userdict.txt')
 
     # jieba instance
     __jieba = None
@@ -44,28 +41,28 @@ class McChineseTokenizer(object):
     def __init__(self):
         """Initialize jieba tokenizer."""
 
-        if not os.path.isdir(self._dict_path):
+        self.__jieba = JiebaTokenizer()
+
+        if not os.path.isdir(self.__dict_path):
             raise McChineseTokenizerException("""
                 jieba dictionary directory was not found: %s
                 Maybe you forgot to initialize Git submodules?
-                """ % self._dict_path)
+                """ % self.__dict_path)
 
-        if not os.path.isfile(os.path.join(self._dict_path, 'dict.txt.big')):
+        if not os.path.isfile(self.__jieba_dict_path):
             raise McChineseTokenizerException("""
                 Default dictionary not found in jieba dictionary directory: %s
                 Maybe you forgot to run jieba installation script?
-                """ % self._dict_path)
-
-        if not os.path.isfile(os.path.join(self._dict_path, 'userdict.txt')):
+                """ % self.__dict_path)
+        if not os.path.isfile(self.__jieba_userdict_path):
             raise McChineseTokenizerException("""
                 User dictionary not found in jieba dictionary directory: %s
                 Maybe you forgot to run jieba installation script?
-                """ % self._dict_path)
+                """ % self.__dict_path)
         try:
-            jieba.initialize() #by default, jieba doesn't build the prefix dictionary unless it's necessary
-            #loading dictionary is part of the init process
-            jieba.set_dictionary(os.path.join(self._dict_path,'dict.txt.big'))
-            jieba.load_userdict(os.path.join(self._dict_path,'userdict.txt'))
+            # loading dictionary is part of the init process
+            self.__jieba.set_dictionary(os.path.join(self.__jieba_dict_path))
+            self.__jieba.load_userdict(os.path.join(self.__jieba_userdict_path))
         except Exception as ex:
             raise McChineseTokenizerException("Unable to initialize jieba: %s" % str(ex))
 
@@ -121,13 +118,12 @@ class McChineseTokenizer(object):
         if len(sentence) == 0:
             return []
 
-        parsed_text = jieba.lcut(sentence, cut_all=False)
+        parsed_text = self.__jieba.lcut(sentence, cut_all=False)
         parsed_tokens = [x for x in parsed_text if x.strip()]
         words = []
         for parsed_token in parsed_tokens:
-            if parsed_token not in punc:
+            if not is_punctuation(parsed_token):
                 words.append(parsed_token)
             else:
                 pass
-
         return words

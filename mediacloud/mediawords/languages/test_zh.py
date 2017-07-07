@@ -1,4 +1,3 @@
-# -*- coding: UTF-8 -*-
 from unittest import TestCase
 
 from mediawords.languages.zh import *
@@ -6,7 +5,6 @@ from mediawords.languages.zh import *
 
 # noinspection SpellCheckingInspection
 class TestChineseTokenizer(TestCase):
-    __jieba = None
 
     def setUp(self):
         self.__tokenizer = McChineseTokenizer()
@@ -185,7 +183,6 @@ This is some more English text
         words = self.__tokenizer.tokenize_sentence_to_words(
             "時任政務司長林鄭月娥被指在未有公開諮詢下，突然宣布西九文化區興建故宮博物館，並委聘建築師嚴迅奇擔任設計顧問，被立法會議員向廉政公署舉報。"
         )
-        print(words)
         assert words == [
             '時任',
             '政務司長',

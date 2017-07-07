@@ -1,4 +1,5 @@
 import random
+import re
 import string
 
 
@@ -16,3 +17,11 @@ def random_string(length: int) -> str:
     r = random.SystemRandom()
     rand_str = ''.join(r.choice(chars) for _ in range(length))
     return rand_str
+
+
+def is_punctuation(parsed_token: str) -> bool:
+    result = re.sub(u"[\p{P}\p{InHalfwidth_and_Fullwidth_Forms}\p{InCJK_Symbols_and_Punctuation}]+", "", parsed_token)
+    if not result:  # if result is not empty, i.e. it is not replaced with "", it is not a punctuation
+        return False
+    else:
+        return True
