@@ -6,6 +6,7 @@ import re
 from mediawords.util.log import create_logger
 from mediawords.util.paths import mc_root_path
 from mediawords.util.perl import decode_object_from_bytes_if_needed
+from mediawords.util.text import is_punctuation
 
 
 l = create_logger(__name__)
@@ -21,8 +22,8 @@ class McChineseTokenizer(object):
 
     # Path to jieba dictionary(ies)
     __dict_path = os.path.join(mc_root_path(), 'lib/MediaWords/Languages/resources/zh/')
-    __jieba_dict_path = os.path.join(__dict_path, 'dict.txt.big')
-    __jieba_userdict_path = os.path.join(__dict_path, 'userdict.txt')
+    __jieba_dict_path = os.path.join(self.__dict_path, 'dict.txt.big')
+    __jieba_userdict_path = os.path.join(self.__dict_path, 'userdict.txt')
 
     # jieba instance
     __jieba = None
@@ -121,7 +122,7 @@ class McChineseTokenizer(object):
         parsed_tokens = [x for x in parsed_text if x.strip()]
         words = []
         for parsed_token in parsed_tokens:
-            if re.search(r'\w+', parsed_token, flags=re.UNICODE) is not None:
+            if not is_punctuation(parsed_token):
                 words.append(parsed_token)
             else:
                 pass
