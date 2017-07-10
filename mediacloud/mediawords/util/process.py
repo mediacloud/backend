@@ -108,17 +108,17 @@ def gracefully_kill_child_process(child_pid: int, sigkill_timeout: int = 60) -> 
             l.warning("Even SIGKILL didn't do anything, kill child process with PID %d manually!" % child_pid)
 
 
-class McEnsureThatIAmRunningAloneException(Exception):
-    """Exception on ensure_that_i_am_running_alone()."""
+class McRunAloneException(Exception):
+    """Exception on run_alone()."""
     pass
 
 
-class McUnableToDetermineCaller(McEnsureThatIAmRunningAloneException):
-    """Exception thrown when ensure_that_i_am_running_alone() can not determine caller."""
+class McUnableToDetermineCaller(McRunAloneException):
+    """Exception thrown when run_alone() can not determine caller."""
     pass
 
 
-class McScriptInstanceIsAlreadyRunning(McEnsureThatIAmRunningAloneException):
+class McScriptInstanceIsAlreadyRunning(McRunAloneException):
     """Exception thrown when another instance of the caller script is already running."""
     pass
 
@@ -201,11 +201,11 @@ def run_alone(isolated_function: Callable, *args, **kwargs) -> Any:
         lock_file_path = '/var/run/lock'
 
     if not os.path.exists(lock_file_path):
-        raise McEnsureThatIAmRunningAloneException(
+        raise McRunAloneException(
             'Lock file location "%s" does not exist.' % lock_file_path
         )
     if not os.access(lock_file_path, os.W_OK):
-        raise McEnsureThatIAmRunningAloneException(
+        raise McRunAloneException(
             'Lock file location "%s" exists but is not writable.' % lock_file_path
         )
 
