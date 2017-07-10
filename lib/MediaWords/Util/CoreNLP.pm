@@ -258,35 +258,6 @@ sub _annotate_text($)
     $ua->set_timeout( $_corenlp_annotator_timeout );
     $ua->set_max_size( undef );
 
-    my $old_after_determined_callback = $ua->after_determined_callback;
-    $ua->set_after_determined_callback(
-        sub {
-            my ( $ua, $request, $response, $timing, $duration, $codes_to_determinate ) = @_;
-
-            my $url = $request->url;
-
-            unless ( $response->is_success )
-            {
-                DEBUG "Request failed: " . $response->decoded_content;
-
-                if ( lc( $response->status_line ) eq '500 read timeout' )
-                {
-                    # die() on request timeouts without retrying anything
-                    # because those usually mean that we posted something funky
-                    # to the CoreNLP annotator service and it got stuck
-                    die "The request timed out, giving up.";
-                }
-            }
-            else
-            {
-                DEBUG "Request succeeded.";
-            }
-
-            # Otherwise call the original callback subroutine
-            $old_after_determined_callback->( $ua, $request, $response, $timing, $duration, $codes_to_determinate );
-        }
-    );
-
     my $request = MediaWords::Util::Web::UserAgent::Request->new( 'POST', $_corenlp_annotator_url );
     $request->set_content_type( 'application/json; charset=utf8' );
     $request->set_content( $text_json_encoded );
@@ -302,14 +273,20 @@ sub _annotate_text($)
         default_charset => 'utf8'
     );
 
-    if ( $response->is_success )
-    {
-        # OK -- no-op
-    }
-    else
+    unless ( $response->is_success )
     {
         # Error; determine whether we should be blamed for making a malformed
         # request, or is it an extraction error
+
+        DEBUG "Request failed: " . $response->decoded_content;
+
+        if ( lc( $response->status_line ) eq '500 read timeout' )
+        {
+            # die() on request timeouts without retrying anything
+            # because those usually mean that we posted something funky
+            # to the CoreNLP annotator service and it got stuck
+            fatal_error( "The request timed out, giving up." );
+        }
 
         if ( $response->error_is_client_side() )
         {
