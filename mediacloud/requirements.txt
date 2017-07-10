@@ -12,6 +12,9 @@ coverage
 # Stemming Hausa words
 hausastemmer
 
+# Chinese language tokenizer, stemmer, etc.
+jieba
+
 # Parsing email templates
 Jinja2
 

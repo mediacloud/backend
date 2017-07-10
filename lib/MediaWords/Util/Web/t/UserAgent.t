@@ -31,7 +31,8 @@ my Readonly $TEST_HTTP_SERVER_URL  = 'http://localhost:' . $TEST_HTTP_SERVER_POR
 # * non-UTF-8 response
 # * invalid encoding
 # * timeouts
-# * custom before / after determined callbacks
+# * retries via ::Determined of specific HTTP status codes
+# * retry timing via ::Determined, plus custom timing
 # * max. redirects
 # * whether or not cookies are being stored between redirects
 # * blacklisted URLs

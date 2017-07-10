@@ -19,7 +19,6 @@ use List::MoreUtils qw/uniq/;
 use LWP::Protocol::https;
 use LWP::UserAgent::Determined;
 use Readonly;
-use Scalar::Util 'weaken';
 use Storable;
 use URI;
 use URI::Escape;
@@ -78,75 +77,49 @@ sub new
     my %http_codes_hr = map { $_ => 1 } @DETERMINED_HTTP_CODES;
     $ua->codes_to_determinate( \%http_codes_hr );
 
-    # Won't be called if timing() is unset
-    my $before_determined_callback = sub {
+    # Callbacks won't be called if timing() is unset
 
-        # Coming from LWP::UserAgent
-        my ( $ua, $timing, $duration, $codes_to_determinate, $lwp_args ) = @_;
-        my $request = MediaWords::Util::Web::UserAgent::Request->new_from_http_request( $lwp_args->[ 0 ] );
+    $ua->before_determined_callback(
+        sub {
 
-        if ( defined $self->{ _before_determined_callback } )
-        {
-            $self->{ _before_determined_callback }->( $self, $request, $timing, $duration, $codes_to_determinate );
+            # Coming from LWP::UserAgent
+            my ( $ua, $timing, $duration, $codes_to_determinate, $lwp_args ) = @_;
+
+            my $request = $lwp_args->[ 0 ];
+            my $url     = $request->url;
+
+            TRACE "Trying $url ...";
         }
-    };
-    my $after_determined_callback = sub {
+    );
 
-        # Coming from LWP::UserAgent
-        my ( $ua, $timing, $duration, $codes_to_determinate, $lwp_args, $response ) = @_;
+    $ua->after_determined_callback(
+        sub {
 
-        my $request = MediaWords::Util::Web::UserAgent::Request->new_from_http_request( $lwp_args->[ 0 ] );
-        $response = MediaWords::Util::Web::UserAgent::Response->new_from_http_response( $response );
+            # Coming from LWP::UserAgent
+            my ( $ua, $timing, $duration, $codes_to_determinate, $lwp_args, $response ) = @_;
 
-        if ( defined $self->{ _after_determined_callback } )
-        {
-            $self->{ _after_determined_callback }->( $self, $request, $response, $timing, $duration, $codes_to_determinate );
-        }
-    };
+            my $request = $lwp_args->[ 0 ];
+            my $url     = $request->url;
 
-    # Weaken references to $self to prevent memory leaks
-    weaken( $before_determined_callback );
-    weaken( $after_determined_callback );
-
-    $ua->before_determined_callback( $before_determined_callback );
-    $ua->after_determined_callback( $after_determined_callback );    # Won't be called if timing() is unset
-
-    # Default "before" callback
-    $self->{ _before_determined_callback } = sub {
-
-        # Coming from ::Web::UserAgent
-        my ( $ua, $request, $timing, $duration, $codes_to_determinate ) = @_;
-        my $url = $request->url;
-
-        TRACE "Trying $url ...";
-    };
-
-    # Default "after" callback
-    $self->{ _after_determined_callback } = sub {
-
-        # Coming from ::Web::UserAgent
-        my ( $ua, $request, $response, $timing, $duration, $codes_to_determinate ) = @_;
-
-        my $url = $request->url;
-
-        unless ( $response->is_success )
-        {
-            my $will_retry = 0;
-            if ( $codes_to_determinate->{ $response->code } )
+            unless ( $response->is_success )
             {
-                $will_retry = 1;
-            }
+                my $will_retry = 0;
+                if ( $codes_to_determinate->{ $response->code } )
+                {
+                    $will_retry = 1;
+                }
 
-            my $message = "Request to $url failed (" . $response->status_line . "), ";
-            if ( $response->error_is_client_side() )
-            {
-                $message .= 'error is on the client side, ';
-            }
+                my $message = "Request to $url failed (" . $response->status_line . "), ";
+                if ( $response->error_is_client_side() )
+                {
+                    $message .= 'error is on the client side, ';
+                }
 
-            DEBUG "$message " . ( ( $will_retry && $duration ) ? "retry in ${ duration }s" : "give up" );
-            TRACE "full response: " . $response->as_string;
+                DEBUG "$message " . ( ( $will_retry && $duration ) ? "retry in ${ duration }s" : "give up" );
+                TRACE "full response: " . $response->as_string;
+            }
         }
-    };
+    );
 
     $self->{ _ua } = $ua;
 
@@ -496,34 +469,6 @@ sub set_timeout($$)
 {
     my ( $self, $timeout ) = @_;
     $self->{ _ua }->timeout( $timeout );
-}
-
-# before_determined_callback() getter
-sub before_determined_callback($)
-{
-    my ( $self ) = @_;
-    return $self->{ _before_determined_callback };
-}
-
-# before_determined_callback() setter
-sub set_before_determined_callback($$)
-{
-    my ( $self, $before_determined_callback ) = @_;
-    $self->{ _before_determined_callback } = $before_determined_callback;
-}
-
-# after_determined_callback() getter
-sub after_determined_callback($)
-{
-    my ( $self ) = @_;
-    return $self->{ _after_determined_callback };
-}
-
-# after_determined_callback() setter
-sub set_after_determined_callback($$)
-{
-    my ( $self, $after_determined_callback ) = @_;
-    $self->{ _after_determined_callback } = $after_determined_callback;
 }
 
 # max_redirect() getter
