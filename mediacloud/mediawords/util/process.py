@@ -199,7 +199,9 @@ def run_alone(isolated_function: Callable, *args, **kwargs) -> Any:
         lock_file(path=function_lock_file, timeout=timeout)
         __run_alone_function_lock_file = function_lock_file
     except McLockFileException as ex:
-        raise McScriptInstanceIsAlreadyRunning("Instance of %s is already running: %s" % (str(function), str(ex)))
+        raise McScriptInstanceIsAlreadyRunning(
+            "Instance of %s is already running: %s" % (str(isolated_function), str(ex))
+        )
 
     # noinspection PyCallingNonCallable
     return_value = isolated_function(*args, **kwargs)
