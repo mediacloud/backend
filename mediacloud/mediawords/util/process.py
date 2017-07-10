@@ -193,7 +193,23 @@ def run_alone(isolated_function: Callable, *args, **kwargs) -> Any:
     signal.signal(signal.SIGTERM, __remove_run_alone_lock_file)
     atexit.register(__remove_run_alone_lock_file)
 
-    function_lock_file = os.path.join("/var", "tmp", function_unique_id_hash)
+    if sys.platform.lower() == 'darwin':
+        # OS X -- /var/run is not world-writable by default
+        lock_file_path = '/var/tmp'
+    else:
+        # Linux -- keep lock files in '/var/run/lock' as they will be removed after reboot
+        lock_file_path = '/var/run/lock'
+
+    if not os.path.exists(lock_file_path):
+        raise McEnsureThatIAmRunningAloneException(
+            'Lock file location "%s" does not exist.' % lock_file_path
+        )
+    if not os.access(lock_file_path, os.W_OK):
+        raise McEnsureThatIAmRunningAloneException(
+            'Lock file location "%s" exists but is not writable.' % lock_file_path
+        )
+
+    function_lock_file = os.path.join(lock_file_path, function_unique_id_hash)
 
     try:
         lock_file(path=function_lock_file, timeout=timeout)
