@@ -9,6 +9,7 @@ use MediaWords::CommonLibs;
 use MediaWords::DB::HandlerProxy;
 
 {
+
     package MediaWords::DB::PythonConnectToDB;
 
     use strict;
