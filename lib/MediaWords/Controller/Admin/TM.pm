@@ -1935,8 +1935,7 @@ sub merge_media : Local : FormConfig
 
     my $medium = _get_medium_from_snapshot_tables( $db, $media_id );
 
-    my $to_media_id = $c->req->param( 'to_media_id' ) // 0;
-    $to_media_id = $to_media_id + 0;
+    my $to_media_id = int( $c->req->param( 'to_media_id' ) ) // 0;
     my $to_medium = _get_medium_from_snapshot_tables( $db, $to_media_id ) if ( $to_media_id );
 
     MediaWords::TM::Snapshot::discard_temp_tables( $db );
@@ -2076,7 +2075,7 @@ sub merge_stories : Local : FormConfig
 
     my $story = $db->query( "select * from snapshot_stories where stories_id = ?", $stories_id )->hash;
 
-    my $to_stories_id = $c->req->param( 'to_stories_id' ) + 0;
+    my $to_stories_id = int( $c->req->param( 'to_stories_id' ) );
     my $to_story = $db->query( "select * from snapshot_stories where stories_id = ?", $to_stories_id )->hash
       if ( $to_stories_id );
 
