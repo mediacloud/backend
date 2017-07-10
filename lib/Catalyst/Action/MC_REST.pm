@@ -11,7 +11,6 @@ use base 'Catalyst::Action::REST';
 use Moose;
 use namespace::autoclean;
 
-
 =head1 NAME Catalyst::Action::MC_REST
 
 Media Cloud Rest Action
@@ -31,7 +30,8 @@ Dispath method using Catalyst::Action::REST after converting foo_POST to foo_GET
 
 =cut
 
-sub dispatch {
+sub dispatch
+{
     my $self = shift;
     my $c    = shift;
 
@@ -44,7 +44,8 @@ sub dispatch {
     return $self->SUPER::_dispatch_rest_method( $c, $rest_method );
 }
 
-sub get_allowed_methods {
+sub get_allowed_methods
+{
     my ( $self, $controller, $c, $name ) = @_;
 
     my $methods = $self->SUPER::get_allowed_methods( $controller, $c, $name );
@@ -52,6 +53,6 @@ sub get_allowed_methods {
     push( @{ $methods }, 'POST' ) unless ( grep { $_ eq 'POST' } @{ $methods } );
 
     return $methods;
-};
+}
 
 1;

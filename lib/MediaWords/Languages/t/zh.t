@@ -91,7 +91,7 @@ QUOTE
 
     my $t1 = "他说：";             # "He said:"
     my $t2 = "我们是中国人";    # "We are Chinese"
-    my $t3 = "中国人很好";       # "Chinese people good"
+    my $t3 = "中国人很好";       # "Chinese people are good"
 
     #
     # Sentence tokenizer: test 1
