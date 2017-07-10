@@ -120,7 +120,7 @@ class McChineseTokenizer(object):
         parsed_tokens = [x for x in parsed_text if x.strip()]
         words = []
         for parsed_token in parsed_tokens:
-            if re.search(r'\w+', parsed_token, flags = re.UNICODE) is not None:
+            if re.search(r'\w+', parsed_token, flags=re.UNICODE) is not None:
                 words.append(parsed_token)
             else:
                 pass
