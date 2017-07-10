@@ -79,8 +79,9 @@ sub new
             # Coming from LWP::UserAgent
             my ( $ua, $timing, $duration, $codes_to_determinate, $lwp_args ) = @_;
 
-            my $request = $lwp_args->[ 0 ];
-            my $url     = $request->url;
+            my $request = MediaWords::Util::Web::UserAgent::Request->new_from_http_request( $lwp_args->[ 0 ] );
+
+            my $url = $request->url;
 
             TRACE "Trying $url ...";
         }
@@ -92,8 +93,10 @@ sub new
             # Coming from LWP::UserAgent
             my ( $ua, $timing, $duration, $codes_to_determinate, $lwp_args, $response ) = @_;
 
-            my $request = $lwp_args->[ 0 ];
-            my $url     = $request->url;
+            my $request = MediaWords::Util::Web::UserAgent::Request->new_from_http_request( $lwp_args->[ 0 ] );
+            $response = MediaWords::Util::Web::UserAgent::Response->new_from_http_response( $response );
+
+            my $url = $request->url;
 
             unless ( $response->is_success )
             {
