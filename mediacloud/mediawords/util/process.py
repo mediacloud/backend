@@ -108,17 +108,17 @@ def gracefully_kill_child_process(child_pid: int, sigkill_timeout: int = 60) -> 
             l.warning("Even SIGKILL didn't do anything, kill child process with PID %d manually!" % child_pid)
 
 
-class McEnsureThatIAmRunningAloneException(Exception):
-    """Exception on ensure_that_i_am_running_alone()."""
+class McRunAloneException(Exception):
+    """Exception on run_alone()."""
     pass
 
 
-class McUnableToDetermineCaller(McEnsureThatIAmRunningAloneException):
-    """Exception thrown when ensure_that_i_am_running_alone() can not determine caller."""
+class McUnableToDetermineCaller(McRunAloneException):
+    """Exception thrown when run_alone() can not determine caller."""
     pass
 
 
-class McScriptInstanceIsAlreadyRunning(McEnsureThatIAmRunningAloneException):
+class McScriptInstanceIsAlreadyRunning(McRunAloneException):
     """Exception thrown when another instance of the caller script is already running."""
     pass
 
@@ -126,7 +126,7 @@ class McScriptInstanceIsAlreadyRunning(McEnsureThatIAmRunningAloneException):
 __run_alone_function_lock_file = None
 
 
-def run_alone(function: Callable, *args, **kwargs) -> Any:
+def run_alone(isolated_function: Callable, *args, **kwargs) -> Any:
     """Run function while making sure that only a single instance of it is running."""
 
     global __run_alone_function_lock_file
@@ -136,10 +136,10 @@ def run_alone(function: Callable, *args, **kwargs) -> Any:
 
         Retry locking for 5 seconds before giving up."""
 
-        module = inspect.getmodule(func)
-        signature = inspect.signature(func)
+        function_module = inspect.getmodule(func)
+        function_signature = inspect.signature(func)
 
-        module_path = module.__file__
+        module_path = function_module.__file__
         if not os.path.isfile(module_path):
             raise Exception("Module '%s' for function '%s' does not exist." % (module_path, str(func)))
 
@@ -147,8 +147,8 @@ def run_alone(function: Callable, *args, **kwargs) -> Any:
         if function_name is None or len(function_name) == 0:
             raise Exception("Unable to determine function name: %s" % str(func))
 
-        parameters_type = str(signature.parameters)
-        return_value_type = str(signature.return_annotation)
+        parameters_type = str(function_signature.parameters)
+        return_value_type = str(function_signature.return_annotation)
 
         unique_id = '%(module_path)s:%(function_name)s:%(parameters)s:%(return_value)s' % {
             'module_path': module_path,
@@ -175,7 +175,7 @@ def run_alone(function: Callable, *args, **kwargs) -> Any:
         sys.exit(signum)
 
     try:
-        function_unique_id = __function_unique_id(function)
+        function_unique_id = __function_unique_id(isolated_function)
     except Exception as ex:
         raise McUnableToDetermineCaller("Unable to determine caller script: %s" % str(ex))
 
@@ -193,16 +193,34 @@ def run_alone(function: Callable, *args, **kwargs) -> Any:
     signal.signal(signal.SIGTERM, __remove_run_alone_lock_file)
     atexit.register(__remove_run_alone_lock_file)
 
-    function_lock_file = os.path.join("/var", "tmp", function_unique_id_hash)
+    if sys.platform.lower() == 'darwin':
+        # OS X -- /var/run is not world-writable by default
+        lock_file_path = '/var/tmp'
+    else:
+        # Linux -- keep lock files in '/var/run/lock' as they will be removed after reboot
+        lock_file_path = '/var/run/lock'
+
+    if not os.path.exists(lock_file_path):
+        raise McRunAloneException(
+            'Lock file location "%s" does not exist.' % lock_file_path
+        )
+    if not os.access(lock_file_path, os.W_OK):
+        raise McRunAloneException(
+            'Lock file location "%s" exists but is not writable.' % lock_file_path
+        )
+
+    function_lock_file = os.path.join(lock_file_path, function_unique_id_hash)
 
     try:
         lock_file(path=function_lock_file, timeout=timeout)
         __run_alone_function_lock_file = function_lock_file
     except McLockFileException as ex:
-        raise McScriptInstanceIsAlreadyRunning("Instance of %s is already running: %s" % (str(function), str(ex)))
+        raise McScriptInstanceIsAlreadyRunning(
+            "Instance of %s is already running: %s" % (str(isolated_function), str(ex))
+        )
 
     # noinspection PyCallingNonCallable
-    return_value = function(*args, **kwargs)
+    return_value = isolated_function(*args, **kwargs)
 
     try:
         unlock_file(__run_alone_function_lock_file)
