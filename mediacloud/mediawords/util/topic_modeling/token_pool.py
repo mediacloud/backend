@@ -1,101 +1,144 @@
-import path_helper
-from mediawords.db import connect_to_db
+# import path_helper # uncomment this line if 'No module named XXX' error occurs
+import os
 import json
-import re
+
+from mediawords.util.paths import mc_root_path
+from nltk.stem import WordNetLemmatizer
+from nltk import word_tokenize
+
+
+# from textblob import TextBlob, Word
 
 
 class TokenPool:
     """ Fetch the sentences and break it down to words."""
-    DB_QUERY = """SELECT stories_id, sentence FROM story_sentences"""
-    STOP_WORDS = "lib/MediaWords/Languages/resources/en_stopwords.txt"
-    DELIMITERS = "[^\w]"
+    _LANGUAGE = 'english'
+    _STORY_ID = 'stories_id'
+    _SENTENCE = 'sentence'
+    _STORY_SENTENCE_TABLE = 'story_sentences'
+    _STORY_TABLE = 'stories'
+    _MAIN_QUERY \
+        = """SELECT {sentence_table}.{story_id}, {sentence_table}.{sentence} FROM {sentence_table}
+         INNER JOIN {story_table} ON {story_table}.{story_id} = {sentence_table}.{story_id}
+          WHERE {story_table}.language = 'en'
+           AND {sentence_table}.{story_id} IN
+           (SELECT DISTINCT {story_id} FROM {sentence_table}
+           ORDER BY {sentence_table}.{story_id})""" \
+        .format(story_id=_STORY_ID, sentence=_SENTENCE,
+                sentence_table=_STORY_SENTENCE_TABLE, story_table=_STORY_TABLE)
 
-    def __init__(self):
+    _STOP_WORDS \
+        = os.path.join(mc_root_path(), "lib/MediaWords/Languages/resources/en_stopwords.txt")
+    _MIN_TOKEN_LEN = 1
+
+    def __init__(self, db):
         """Initialisations"""
-        pass
+        self._stopwords = self._fetch_stopwords()
+        self._db = db
 
-    def fetch_sentences(self):
+    def _fetch_stories(self, limit, offset):
         """
         Fetch the sentence from DB
+        :param limit: the number of stories to be output, 0 means no limit
         :return: the sentences in json format
         """
-        db_connection = connect_to_db()
-        sentences_hash = db_connection.query(self.DB_QUERY).hashes()
-        sentences_json = json.loads(s=json.dumps(obj=sentences_hash))
-        db_connection.disconnect()
 
-        return sentences_json
+        query_cmd = self._MAIN_QUERY[:-1] + ' LIMIT {} OFFSET {})'.format(limit, offset) \
+            if limit else self._MAIN_QUERY
 
-    def tokenize_sentence(self, sentences):
+        sentences_hash = self._db.query(query_cmd).hashes()
+
+        stories_json = json.loads(s=json.dumps(obj=sentences_hash))
+
+        return stories_json
+
+    def _process_stories(self, stories):
         """
         Break the sentence down into tokens and group them by article ID
-        :param sentences: a json containing sentences and their article id
+        :param stories: a json containing sentences and their article id
         :return: a dictionary of articles and words in them
         """
         articles = {}
 
-        for sentence in sentences:
+        for sentence in stories:
+            processed_sentence = self._process_sentences(sentence=sentence)
+
+            if not processed_sentence:
+                continue
+
             if sentence['stories_id'] not in articles.keys():
                 articles[sentence['stories_id']] = []
-            articles[sentence['stories_id']]\
-                .append(self.eliminate_symbols(article_sentence=sentence['sentence']))
+
+            articles[sentence['stories_id']].append(processed_sentence)
 
         return articles
 
-    def eliminate_symbols(self, article_sentence):
+    def _process_sentences(self, sentence):
+        """
+        Eliminate symbols and stopwords
+        :param sentence: a raw sentence from article
+        :return: a cleaned up sentence
+        """
+        sentence_tokens = self._eliminate_symbols(article_sentence=sentence['sentence'])
+
+        # First elimination: save time in lemmatization
+        useful_tokens = self._eliminate_stopwords(sentence_tokens=sentence_tokens)
+
+        lemmatized_tokens \
+            = [WordNetLemmatizer().lemmatize(word=token.lower()) for token in useful_tokens]
+
+        del useful_tokens
+
+        # Second elimination:
+        # remove the words that are exact match of stop words after lemmatization
+        useful_tokens = self._eliminate_stopwords(sentence_tokens=lemmatized_tokens)
+
+        return useful_tokens
+
+    def _eliminate_symbols(self, article_sentence):
         """
         Remove symbols in the given list of words in article
         :param article_sentence: a sentence in an article
         :return: a list of non-symbol tokens
         """
-        return re.split(pattern=self.DELIMITERS, string=article_sentence)
+        sliced_sentence = word_tokenize(text=article_sentence, language=self._LANGUAGE)
+        return sliced_sentence
 
-    def fetch_stopwords(self):
+    def _fetch_stopwords(self):
         """
         Fetch the stopwords from file en_stopwords.txt
         :return: all stopwords in the file
         """
-        stopwords = [element[:-1] for element in open(self.STOP_WORDS).readlines()]
-        return stopwords
+        stop_words_file = open(self._STOP_WORDS)
+        predefined_stopwords = [element[:-1] for element in stop_words_file.readlines()]
+        stop_words_file.close()
 
-    def eliminate_stopwords(self, article_words):
+        return predefined_stopwords
+
+    def _eliminate_stopwords(self, sentence_tokens):
         """
         Remove stopwords in the given list of words in article
-        :param article_words: a list containing all words in an article
-        :return: a list of all the meaningful words
+        :param sentence_tokens: a list containing all tokens in a sentence
+        :return: a list of all the useful words
         """
-        stopwords = self.fetch_stopwords()
+        useful_sentence_tokens \
+            = [token for token in sentence_tokens
+               if ((len(token) > self._MIN_TOKEN_LEN) and (token.lower() not in self._stopwords))]
 
-        stemmed_article_words = []
+        return useful_sentence_tokens
 
-        for sentence_words in article_words:
-            stemmed_sentence_tokens = [word for word in sentence_words
-                                       if ((len(word) > 1)
-                                           and (word.lower() not in stopwords))]
-            stemmed_article_words.append(stemmed_sentence_tokens)
-
-        return stemmed_article_words
-
-    def output_tokens(self, limit):
+    def output_tokens(self, limit=0, offset=0):
         """
         Go though each step to output the tokens of articles
-        :param limit: the number of stories to be output, 0 means all
         :return: a dictionary with key as the id of each article and value as the useful tokens
         """
-        sentences = self.fetch_sentences()
-        all_tokens = self.tokenize_sentence(sentences=sentences)
-        stemmed_tokens = {}
+        stories_json = self._fetch_stories(limit=limit, offset=offset)
+        processed_stories = self._process_stories(stories=stories_json)
 
-        for article_id, article_tokens in all_tokens.items():
+        return processed_stories
 
-            stemmed_tokens[article_id] = self.eliminate_stopwords(article_words=article_tokens)
-            limit -= 1
-            if not limit:
-                break
-
-        return stemmed_tokens
-
-
-# A sample output
-# pool = TokenPool()
-# print(pool.output_tokens(3))
+# # A sample output
+# db_connection = connect_to_db()
+# pool = TokenPool(db_connection)
+# print(pool.output_tokens(1))
+# db_connection.disconnect()
