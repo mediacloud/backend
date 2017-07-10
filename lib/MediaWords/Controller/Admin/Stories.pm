@@ -565,9 +565,9 @@ sub stories_query_json : Local
 
     DEBUG "starting stories_query_json";
 
-    my $last_stories_id = $c->req->param( 'last_stories_id' );
+    my $last_stories_id = int( $c->req->param( 'last_stories_id' ) );
 
-    my $start_stories_id = $c->req->param( 'start_stories_id' );
+    my $start_stories_id = int( $c->req->param( 'start_stories_id' ) );
 
     my $show_raw_1st_download = $c->req->param( 'raw_1st_download' );
 
