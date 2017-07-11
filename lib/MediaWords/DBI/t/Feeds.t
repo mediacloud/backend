@@ -14,7 +14,6 @@ use Test::NoWarnings;
 use MediaWords::Test::DB;
 use MediaWords::DBI::Feeds;
 
-
 # test feed checksumming
 sub test_stories_checksum_matches_feed
 {

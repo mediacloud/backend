@@ -95,8 +95,8 @@ sub media : Local
 
     my $db = $c->dbis;
 
-    my $media_tags_id       = $c->request->param( 'media_tags_id' )       // 0;
-    my $skip_until_media_id = $c->request->param( 'skip_until_media_id' ) // 0;
+    my $media_tags_id       = int( $c->request->param( 'media_tags_id' ) )       // 0;
+    my $skip_until_media_id = int( $c->request->param( 'skip_until_media_id' ) ) // 0;
 
     $media_tags_id       = $media_tags_id + 0;
     $skip_until_media_id = $skip_until_media_id + 0;
@@ -105,7 +105,7 @@ sub media : Local
     if ( $c->request->param( 'moderate' ) )
     {
 
-        my $media_id = $c->request->param( 'media_id' ) + 0;
+        my $media_id = int( $c->request->param( 'media_id' ) );
         unless ( $media_id )
         {
             die "media_id is unset.";
@@ -297,7 +297,7 @@ sub merge : Local
 
     my $db = $c->dbis;
 
-    my $media_tags_id = $c->request->param( 'media_tags_id' ) || 0;
+    my $media_tags_id = int( $c->request->param( 'media_tags_id' ) );
 
     my $medium_a = $db->find_by_id( 'media', $media_id_a );
     my $medium_b = $db->find_by_id( 'media', $media_id_b );

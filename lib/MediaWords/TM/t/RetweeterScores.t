@@ -152,7 +152,7 @@ sub _add_tweets_to_stories($$)
     for my $story ( @{ $stories } )
     {
         # $story->{ twitter_user }   = $twitter_users->[ $i % $NUM_TWITTER_USERS ];
-        $story->{ twitter_user } = $twitter_users->[ $story->{ media_id } % $NUM_TWITTER_USERS ];
+        $story->{ twitter_user }   = $twitter_users->[ $story->{ media_id } % $NUM_TWITTER_USERS ];
         $story->{ retweeted_user } = $retweeted_users->[ $i % $NUM_RETWEETED_USERS ];
 
         _add_topic_tweet( $db, $story, $story->{ twitter_user }, $story->{ retweeted_user } );

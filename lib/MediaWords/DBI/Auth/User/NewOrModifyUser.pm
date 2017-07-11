@@ -15,7 +15,7 @@ extends 'MediaWords::DBI::Auth::User::AbstractUser';
 
 use MediaWords::DBI::Auth::Password;
 
-has 'role_ids'                     => ( is => 'rw', isa => 'Maybe[ArrayRef[Int]]' );
+has 'role_ids'        => ( is => 'rw', isa => 'Maybe[ArrayRef[Int]]' );
 has 'password'        => ( is => 'rw', isa => 'Maybe[Str]' );
 has 'password_repeat' => ( is => 'rw', isa => 'Maybe[Str]' );
 

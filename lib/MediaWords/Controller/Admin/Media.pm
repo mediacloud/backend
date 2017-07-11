@@ -311,7 +311,7 @@ sub edit_do : Local
         }
         else
         {
-            my $media_tags_id = $c->request->param( 'media_tags_id' ) || 0;
+            my $media_tags_id = int( $c->request->param( 'media_tags_id' ) ) || 0;
             $c->res->redirect(
                 $c->uri_for(
                     '/admin/media/moderate/' . ( $medium->{ media_id } - 1 ),
@@ -329,7 +329,7 @@ sub delete : Local
 
     my $db = $c->dbis;
 
-    my $media_tags_id = $c->request->param( 'media_tags_id' ) || 0;
+    my $media_tags_id = int( $c->request->param( 'media_tags_id' ) ) || 0;
 
     my $medium = $db->find_by_id( 'media', $id );
 

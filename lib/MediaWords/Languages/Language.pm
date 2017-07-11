@@ -50,9 +50,7 @@ my @_enabled_languages = (
     'ru',    # Russian
     'sv',    # Swedish
     'tr',    # Turkish
-
-    # Chinese disabled because of poor word segmentation
-    #'zh',                                  # Chinese
+    'zh',    # Chinese
 );
 
 #
