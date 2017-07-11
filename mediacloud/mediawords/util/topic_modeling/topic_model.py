@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Dict
 
 
 class BaseTopicModel(ABC):
@@ -7,7 +8,7 @@ class BaseTopicModel(ABC):
     """
 
     @abstractmethod
-    def add_stories(self, stories):
+    def add_stories(self, stories: dict) -> None:
         """
         Adding new stories into the model
         :param stories: a dictionary of new stories
@@ -15,7 +16,7 @@ class BaseTopicModel(ABC):
         pass
 
     @abstractmethod
-    def summarize_topic(self):
+    def summarize_topic(self) -> Dict[int, list]:
         """
         summarize the topic of each story based on the frequency of occurrence of each word
         :return: a dictionary of article_id : topics

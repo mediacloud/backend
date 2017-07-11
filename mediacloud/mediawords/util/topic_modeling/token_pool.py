@@ -1,13 +1,12 @@
-# import path_helper # uncomment this line if 'No module named XXX' error occurs
+# import path_helper  # uncomment this line if 'No module named XXX' error occurs
 import os
 import json
 
+from mediawords.db import connect_to_db, handler
 from mediawords.util.paths import mc_root_path
 from nltk.stem import WordNetLemmatizer
 from nltk import word_tokenize
-
-
-# from textblob import TextBlob, Word
+from typing import Dict, List
 
 
 class TokenPool:
@@ -31,12 +30,12 @@ class TokenPool:
         = os.path.join(mc_root_path(), "lib/MediaWords/Languages/resources/en_stopwords.txt")
     _MIN_TOKEN_LEN = 1
 
-    def __init__(self, db):
+    def __init__(self, db: handler.DatabaseHandler) -> None:
         """Initialisations"""
         self._stopwords = self._fetch_stopwords()
         self._db = db
 
-    def _fetch_stories(self, limit, offset):
+    def _fetch_stories(self, limit: int, offset: int) -> list:
         """
         Fetch the sentence from DB
         :param limit: the number of stories to be output, 0 means no limit
@@ -52,7 +51,7 @@ class TokenPool:
 
         return stories_json
 
-    def _process_stories(self, stories):
+    def _process_stories(self, stories: list) -> Dict[int, list]:
         """
         Break the sentence down into tokens and group them by article ID
         :param stories: a json containing sentences and their article id
@@ -73,7 +72,7 @@ class TokenPool:
 
         return articles
 
-    def _process_sentences(self, sentence):
+    def _process_sentences(self, sentence: dict) -> list:
         """
         Eliminate symbols and stopwords
         :param sentence: a raw sentence from article
@@ -95,16 +94,17 @@ class TokenPool:
 
         return useful_tokens
 
-    def _eliminate_symbols(self, article_sentence):
+    def _eliminate_symbols(self, article_sentence: str) -> list:
         """
         Remove symbols in the given list of words in article
         :param article_sentence: a sentence in an article
         :return: a list of non-symbol tokens
         """
         sliced_sentence = word_tokenize(text=article_sentence, language=self._LANGUAGE)
+
         return sliced_sentence
 
-    def _fetch_stopwords(self):
+    def _fetch_stopwords(self) -> list:
         """
         Fetch the stopwords from file en_stopwords.txt
         :return: all stopwords in the file
@@ -115,7 +115,7 @@ class TokenPool:
 
         return predefined_stopwords
 
-    def _eliminate_stopwords(self, sentence_tokens):
+    def _eliminate_stopwords(self, sentence_tokens: list) -> list:
         """
         Remove stopwords in the given list of words in article
         :param sentence_tokens: a list containing all tokens in a sentence
@@ -127,7 +127,7 @@ class TokenPool:
 
         return useful_sentence_tokens
 
-    def output_tokens(self, limit=0, offset=0):
+    def output_tokens(self, limit: int = 0, offset: int = 0) -> Dict[int, List[List[str]]]:
         """
         Go though each step to output the tokens of articles
         :return: a dictionary with key as the id of each article and value as the useful tokens
@@ -137,8 +137,9 @@ class TokenPool:
 
         return processed_stories
 
-# # A sample output
-# db_connection = connect_to_db()
-# pool = TokenPool(db_connection)
-# print(pool.output_tokens(1))
-# db_connection.disconnect()
+# A sample output
+if __name__ == '__main__':
+    db_connection = connect_to_db()
+    pool = TokenPool(db_connection)
+    print(pool.output_tokens(1))
+    db_connection.disconnect()

@@ -1,16 +1,19 @@
-# import path_helper # uncomment this line if 'No module named XXX' error occurs
+# import path_helper  # uncomment this line if 'No module named XXX' error occurs
 import lda
 import numpy as np
 import logging
 
-from topic_model import BaseTopicModel
+from mediawords.db import connect_to_db
+from mediawords.util.topic_modeling.token_pool import TokenPool
+from mediawords.util.topic_modeling.topic_model import BaseTopicModel
 from gensim import corpora
+from typing import Dict, List
 
 
 class ModelLDA(BaseTopicModel):
     """Generate topics of each story based on the LDA model"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialisations"""
         super().__init__()
         self._stories_ids = []
@@ -21,13 +24,11 @@ class ModelLDA(BaseTopicModel):
         self._random_state = 1
         logging.getLogger("lda").setLevel(logging.WARNING)
 
-    def add_stories(self, stories):
+    def add_stories(self, stories: Dict[int, List[List[str]]]) -> None:
         """
         Adding new stories into the model
         :param stories: a dictionary of new stories
         """
-        # stories_tokens.update(stories)
-        # self.story_number = len(stories_tokens)
         new_stories_tokens = []
 
         for story in stories.items():
@@ -41,14 +42,13 @@ class ModelLDA(BaseTopicModel):
         self._stories_number = len(self._stories_ids)
         self._recompute_matrix(new_stories_tokens=new_stories_tokens)
 
-    def _recompute_matrix(self, new_stories_tokens):
+    def _recompute_matrix(self, new_stories_tokens: list) -> None:
         """
         Recompute the token matrix based on new tokens in new stories
         :param new_stories_tokens: a list of new tokens
         """
-
         dictionary = corpora.Dictionary(new_stories_tokens)
-        # self.vocab = list(set(self.vocab) | set(dictionary.token2id.keys()))
+
         self.vocab = list(dictionary.token2id.keys())
 
         token_count = []
@@ -57,7 +57,8 @@ class ModelLDA(BaseTopicModel):
 
         self.token_matrix = np.array(token_count)
 
-    def summarize_topic(self, total_topic_num=0, topic_word_num=4, iteration_num=1000):
+    def summarize_topic(self, total_topic_num: int = 0,
+                        topic_word_num: int = 4, iteration_num: int = 1000) -> Dict[int, list]:
         """
         summarize the topic of each story based on the frequency of occurrence of each word
         :return: a dictionary of story id
@@ -88,9 +89,11 @@ class ModelLDA(BaseTopicModel):
 
         return story_topic
 
+
 # A sample output
-# model = ModelLDA()
-# pool = TokenPool(connect_to_db())
-# model.add_stories(pool.output_tokens(2, 0))
-# model.add_stories(pool.output_tokens(5, 2))
-# print(model.summarize_topic())
+if __name__ == '__main__':
+    model = ModelLDA()
+    pool = TokenPool(connect_to_db())
+    model.add_stories(pool.output_tokens(1, 0))
+    model.add_stories(pool.output_tokens(5, 2))
+    print(model.summarize_topic())

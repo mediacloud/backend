@@ -42,8 +42,5 @@ class TestModelGensim(unittest.TestCase):
                 expr=(article_id in topic_ids),
                 msg="Missing article id: {}".format(article_id))
 
-        unittest.TestCase.assertEqual(self=self, first=len(topic_ids), second=len(article_ids))
-
-
 if __name__ == '__main__':
     unittest.main()

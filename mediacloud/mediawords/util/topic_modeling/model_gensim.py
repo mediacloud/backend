@@ -1,22 +1,23 @@
-import path_helper
+# import path_helper  # uncomment this line if 'No module named XXX' error occurs
 import gensim
 
 from topic_model import BaseTopicModel
 from mediawords.util.topic_modeling.token_pool import TokenPool
 from mediawords.db import connect_to_db
+from typing import Dict, List
 
 
 class ModelGensim(BaseTopicModel):
     """Generate topics of each story based on the LDA model"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._story_number = 0
         self._stories_ids = []
         self._stories_tokens = []
         self._dictionary = None
         self._corpus = []
 
-    def add_stories(self, stories):
+    def add_stories(self, stories: Dict[int, List[List[str]]]) -> None:
         """
         Adding new stories into the model
         :param stories: a dictionary of new stories
@@ -29,7 +30,8 @@ class ModelGensim(BaseTopicModel):
 
         self._story_number = len(self._stories_ids)
 
-    def summarize_topic(self, topic_number=1, word_number=4, passes=100):
+    def summarize_topic(self, topic_number: int = 1,
+                        word_number: int = 4, passes: int = 100) -> Dict[int, list]:
         """
         summarize the topic of each story based on the frequency of occurrence of each word
         :return: a dictionary of story id
@@ -57,9 +59,10 @@ class ModelGensim(BaseTopicModel):
 
 
 # A sample output
-model = ModelGensim()
+if __name__ == '__main__':
+    model = ModelGensim()
 
-pool = TokenPool(connect_to_db())
-model.add_stories(pool.output_tokens(1, 0))
-model.add_stories(pool.output_tokens(5, 1))
-print(model.summarize_topic())
+    pool = TokenPool(connect_to_db())
+    model.add_stories(pool.output_tokens(1, 0))
+    model.add_stories(pool.output_tokens(5, 1))
+    print(model.summarize_topic())
