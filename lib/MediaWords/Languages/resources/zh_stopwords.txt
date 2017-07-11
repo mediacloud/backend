@@ -1,7 +1,7 @@
-# Sources:
-# http://github.com/stopwords-iso/stopwords-zh
-# http://blog.csdn.net/shijiebei2009/article/details/39696571
 # Appended Traditional Chinese characters (Note: This does not include all stopwords in Cantonese or Taiwanese Mandarin)
+# Sources:
+# http://blog.csdn.net/shijiebei2009/article/details/39696571
+# http://github.com/stopwords-iso/stopwords-zh
 !
 "
 #
@@ -423,6 +423,8 @@ sup
 今天
 今年
 今後
+今日
+今次
 介于
 介於
 仍
@@ -459,6 +461,7 @@ sup
 他是
 他的
 代替
+令
 以
 以上
 以下
@@ -913,6 +916,7 @@ sup
 呸
 呼哧
 呼啦
+咁
 咋
 和
 咚
@@ -987,6 +991,7 @@ sup
 嗬
 嗯
 嗳
+嘅
 嘍
 嘎
 嘎嘎
@@ -1242,6 +1247,7 @@ sup
 常言道
 幫助
 平素
+年
 年复一年
 年復一年
 并
@@ -1461,6 +1467,8 @@ sup
 抽冷子
 拦腰
 拿
+指
+指出
 按
 按时
 按時
@@ -1545,6 +1553,7 @@ sup
 既往
 既是
 既然
+日
 日复一日
 日復一日
 日渐
@@ -1553,6 +1562,7 @@ sup
 日臻
 日見
 日见
+时
 时候
 昂然
 明显
@@ -1566,6 +1576,7 @@ sup
 是的
 显然
 显著
+時
 時候
 普通
 普遍
@@ -1592,6 +1603,7 @@ sup
 最近
 最高
 會
+月
 有
 有些
 有关
@@ -1930,9 +1942,11 @@ sup
 离
 种
 积极
+称
 移动
 移動
 種
+稱
 積極
 究竟
 穷年累月
