@@ -24,6 +24,7 @@
       <w>hostnames</w>
       <w>ilike</w>
       <w>ipadic</w>
+      <w>jieba</w>
       <w>kanye</w>
       <w>kardashian</w>
       <w>linkconfig</w>
@@ -67,6 +68,7 @@
       <w>supervisord</w>
       <w>unnest</w>
       <w>upconfig</w>
+      <w>userdict</w>
       <w>webapp</w>
       <w>webapps</w>
       <w>webserver</w>

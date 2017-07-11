@@ -82,6 +82,9 @@ Readonly my $MAX_GEXF_MEDIA => 500;
 # number of tweets per day to use as a threshold for bot filtering
 Readonly my $BOT_TWEETS_PER_DAY => 200;
 
+# only layout the gexf export if there are fewer than this number of sources in the graph
+Readonly my $MAX_LAYOUT_SOURCES => 1000;
+
 # attributes to include in gexf snapshot
 my $_media_static_gexf_attribute_types = {
     url                    => 'string',
@@ -1129,11 +1132,22 @@ sub layout_gexf($)
 {
     my ( $gexf ) = @_;
 
-    my $xml = XML::Simple::XMLout( $gexf, XMLDecl => 1, RootName => 'gexf' );
-
-    my $layout = MediaWords::TM::Snapshot::GraphLayout::layout_gexf( $xml );
-
     my $nodes = $gexf->{ graph }->[ 0 ]->{ nodes }->{ node };
+
+    my $layout;
+
+    if ( scalar( @{ $nodes } ) < $MAX_LAYOUT_SOURCES )
+    {
+        DEBUG( "laying out grap with " . scalar( @{ $nodes } ) . " sources ..." );
+        my $xml = XML::Simple::XMLout( $gexf, XMLDecl => 1, RootName => 'gexf' );
+
+        $layout = MediaWords::TM::Snapshot::GraphLayout::layout_gexf( $xml );
+    }
+    else
+    {
+        WARN( "refusing to layout graph with more than $MAX_LAYOUT_SOURCES sources" );
+        $layout = {};
+    }
 
     for my $node ( @{ $nodes } )
     {

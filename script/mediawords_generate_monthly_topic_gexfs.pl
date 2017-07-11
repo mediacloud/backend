@@ -50,10 +50,10 @@ SQL
                 $db,
                 $timespan,
                 {
-                    max_media         => 1000,
+                    max_media         => 100_000,
                     exclude_media_ids => $EXCLUDE_MEDIA_IDS,
                     color_field       => 'partisan_retweet',
-                    include_weights   => 0
+                    include_weights   => 1
                 }
             );
 

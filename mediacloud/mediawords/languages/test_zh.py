@@ -5,7 +5,6 @@ from mediawords.languages.zh import *
 
 # noinspection SpellCheckingInspection
 class TestChineseTokenizer(TestCase):
-
     def setUp(self):
         self.__tokenizer = McChineseTokenizer()
 

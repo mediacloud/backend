@@ -318,7 +318,7 @@ sub list_GET
 
     my $last_id_param_name = $self->_get_list_last_id_param_name( $c );
 
-    my $last_id = $c->req->param( $last_id_param_name );
+    my $last_id = int( $c->req->param( $last_id_param_name ) );
     $last_id //= 0;
 
     # TRACE "last_id: $last_id";

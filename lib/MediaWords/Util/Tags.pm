@@ -98,7 +98,7 @@ sub save_tags
 
     for my $tag_set ( $c->dbis->query( "select * from tag_sets" )->hashes )
     {
-        if ( my $new_tag_string = $c->request->param( 'new_tags_' . $tag_set->{ tag_sets_id } ) )
+        if ( my $new_tag_string = int( $c->request->param( 'new_tags_' . $tag_set->{ tag_sets_id } ) ) )
         {
             for my $new_tag_name ( map { lc( $_ ) } split( /\s+/, $new_tag_string ) )
             {

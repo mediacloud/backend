@@ -25,7 +25,6 @@ Readonly my $PORT => 8899;
 # * timeouts
 # * retries via ::Determined of specific HTTP status codes
 # * retry timing via ::Determined, plus custom timing
-# * custom before / after determined callbacks
 # * max. redirects
 # * whether or not cookies are being stored between redirects
 # * blacklisted URLs

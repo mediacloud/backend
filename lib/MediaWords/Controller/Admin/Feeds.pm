@@ -145,7 +145,7 @@ sub create : Local
 {
     my ( $self, $c, $media_id ) = @_;
 
-    my $media_tags_id = $c->request->param( 'media_tags_id' ) || 0;
+    my $media_tags_id = int( $c->request->param( 'media_tags_id' ) ) || 0;
 
     $media_id += 0;
 
@@ -183,7 +183,7 @@ sub create_do : Local
 {
     my ( $self, $c, $media_id ) = @_;
 
-    my $media_tags_id = $c->request->param( 'media_tags_id' ) || 0;
+    my $media_tags_id = int( $c->request->param( 'media_tags_id' ) ) || 0;
 
     $media_id += 0;
 
