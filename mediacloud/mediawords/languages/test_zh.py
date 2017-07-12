@@ -212,6 +212,17 @@ This is some more English text
             '舉報',
         ]
 
+        # Tokenize names of top political figures or celebrities
+        words = self.__tokenizer.tokenize_sentence_to_words(
+            "習近平王毅黃毓民汤家骅"
+        )
+        assert words == [
+            "習近平",
+            "王毅",
+            "黃毓民",
+            "汤家骅",
+        ]
+
         # Chinese + English sentence
         words = self.__tokenizer.tokenize_sentence_to_words("他建議想學好英文，必須人格分裂、要代入外國人的思想（mindset）。")
         assert words == [
