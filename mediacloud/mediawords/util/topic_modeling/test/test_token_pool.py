@@ -56,9 +56,8 @@ class TestTokenPool(unittest.TestCase):
         """
         Test if the correct number of stories are tokenized
         """
-        unittest.TestCase.assertAlmostEqual(self=self,
-                                            first=self._LIMIT,
-                                            second=len(self._article_tokens))
+        unittest.TestCase.assertEqual(
+            self=self, first=self._LIMIT, second=len(self._article_tokens))
 
 
 if __name__ == '__main__':
