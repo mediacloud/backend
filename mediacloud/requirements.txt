@@ -62,6 +62,10 @@ url_normalize
 gensim
 lda
 
+# To eliminate the 'module' object has no attribute 'plugin' problem
+# while importing gensim
+google-compute-engine
+
 # Lemmatization requires WordNet, the simplest way to install is running :
 # python3.5 -m textblob.download_corpora with:
 textblob
