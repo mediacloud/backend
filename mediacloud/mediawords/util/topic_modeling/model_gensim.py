@@ -1,7 +1,7 @@
 # import path_helper  # uncomment this line if 'No module named XXX' error occurs
 import gensim
 
-from topic_model import BaseTopicModel
+from mediawords.util.topic_modeling.topic_model import BaseTopicModel
 from mediawords.util.topic_modeling.token_pool import TokenPool
 from mediawords.db import connect_to_db
 from typing import Dict, List
