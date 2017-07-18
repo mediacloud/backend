@@ -15,7 +15,7 @@ NYT_LABELS_TAG_SET_ID = 1963
 NYT_LABELS_TAG_SET_NAME = 'nyt_labels'
 
 # subjectively determined based on random experimentation
-RELEVANCE_THRESHOLD = 0.50
+RELEVANCE_THRESHOLD = 0.20
 
 l = create_logger(__name__)
 
