@@ -38,6 +38,8 @@ use List::MoreUtils qw ( uniq );
 
 use Time::HiRes;
 
+Readonly my $QUERY_HTTP_TIMEOUT => 900;
+
 # numFound from last query() call, accessible get get_last_num_found
 my $_last_num_found;
 
@@ -271,7 +273,7 @@ sub query_encoded_json($$;$)
 
     my $ua = MediaWords::Util::Web::UserAgent->new();
 
-    $ua->set_timeout( 300 );
+    $ua->set_timeout( $QUERY_HTTP_TIMEOUT );
     $ua->set_max_size( undef );
 
     TRACE "Executing Solr query on $url ...";
