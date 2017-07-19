@@ -113,7 +113,6 @@ SQL
            OR video_url = ''
            OR video_url NOT ILIKE 'http%'
            OR thumbnail_url IS NULL
-           OR thumbnail_url = ''
            OR thumbnail_url NOT ILIKE 'http%'
 SQL
     )->hashes;

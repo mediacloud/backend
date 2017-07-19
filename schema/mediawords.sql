@@ -847,7 +847,7 @@ CREATE TABLE stories_superglue_metadata (
     stories_superglue_metadata_id   SERIAL    PRIMARY KEY,
     stories_id                      INT       NOT NULL REFERENCES stories ON DELETE CASCADE,
     video_url                       VARCHAR   NOT NULL,
-    thumbnail_url                   VARCHAR   NOT NULL,
+    thumbnail_url                   VARCHAR   NOT NULL,   -- might be an empty string but not NULL
     segment_duration                NUMERIC   NOT NULL
 );
 
