@@ -89,7 +89,7 @@ END
             {
                 if ( $weekly_requests_sum >= $weekly_requests_limit )
                 {
-                    $c->response->status( HTTP_FORBIDDEN );
+                    $c->response->status( HTTP_TOO_MANY_REQUESTS );
                     die "User exceeded weekly requests limit of $weekly_requests_limit. $throttled_message";
                 }
             }
@@ -98,7 +98,7 @@ END
             {
                 if ( $weekly_requested_items_sum >= $weekly_requested_items_limit )
                 {
-                    $c->response->status( HTTP_FORBIDDEN );
+                    $c->response->status( HTTP_TOO_MANY_REQUESTS );
                     die
 "User exceeded weekly requested items (stories) limit of $weekly_requested_items_limit. $throttled_message";
                 }
