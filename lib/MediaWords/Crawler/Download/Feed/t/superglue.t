@@ -113,8 +113,7 @@ SQL
            OR video_url = ''
            OR video_url NOT ILIKE 'http%'
            OR thumbnail_url IS NULL
-           OR thumbnail_url = ''
-           OR thumbnail_url NOT ILIKE 'http%'
+           OR (thumbnail_url != '' AND thumbnail_url NOT ILIKE 'http%')
 SQL
     )->hashes;
     ok( scalar( @{ $bad_metadata } ) == 0, "Some metadata matched the 'bad metadata' query: " . Dumper( $bad_metadata ) );
