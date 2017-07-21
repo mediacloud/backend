@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Test::More tests => 11;
+use Test::More tests => 14;
 use Test::NoWarnings;
 
 use Text::Trim;
@@ -123,6 +123,50 @@ sub test_target_request_from_linkis_com_url()
     );
 }
 
+sub test_target_request_from_alarabiya_url()
+{
+    my $test_cookie_name  = 'YPF8827340282Jdskjhfiw_928937459182JAX666';
+    my $test_cookie_value = '78.60.231.222';
+    my $test_content      = <<"EOF";
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<script type="text/javascript">
+
+// ...
+
+setCookie('$test_cookie_name', '$test_cookie_value', 10);
+
+// ...
+
+</script>
+</head>
+<body>
+<noscript>This site requires JavaScript and Cookies to be enabled. Please change your browser settings or upgrade your browser.</noscript>
+</body>
+</html>
+EOF
+    my $test_url =
+'https://english.alarabiya.net/en/News/middle-east/2017/07/21/Israel-bars-Muslim-men-under-50-from-entering-Al-Aqsa-for-Friday-prayers.html';
+
+    my $test_target_request =
+      MediaWords::Util::Web::UserAgent::HTMLRedirects::target_request_from_alarabiya_url( $test_content, $test_url, );
+
+    is( $test_target_request->url(),              $test_url );
+    is( $test_target_request->header( 'Cookie' ), "$test_cookie_name=$test_cookie_value" );
+
+    # Non-Alarabiya URL
+    is(
+        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_request_from_linkis_com_url(
+            $test_content,                  #
+            'http://some-other-url.com/'    #
+        ),
+        undef
+    );
+}
+
 sub main()
 {
     my $builder = Test::More->builder;
@@ -134,6 +178,7 @@ sub main()
     test_target_request_from_archive_is_url();
     test_target_request_from_archive_org_url();
     test_target_request_from_linkis_com_url();
+    test_target_request_from_alarabiya_url();
 }
 
 main();

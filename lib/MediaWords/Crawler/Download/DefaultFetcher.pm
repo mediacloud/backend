@@ -29,35 +29,6 @@ use MediaWords::Util::URL;
 
 use URI;
 
-# alarabiya uses an interstitial that requires javascript.  if the download url
-# matches alarabiya and returns the 'requires JavaScript' page, manually parse
-# out the necessary cookie and add it to the $ua so that the request will work
-sub _fix_alarabiya_response
-{
-    my ( $download, $ua, $response ) = @_;
-
-    return $response unless ( $download->{ url } =~ /alarabiya/ );
-
-    if ( $response->decoded_content !~ /This site requires JavaScript and Cookies to be enabled/ )
-    {
-        return $response;
-    }
-
-    if ( $response->decoded_content =~ /setCookie\('([^']+)', '([^']+)'/ )
-    {
-        my $request = MediaWords::Util::Web::UserAgent::Request->new( 'GET', $download->{ url } );
-        $request->set_header( 'Cookie', "$1=$2" );
-        my $response = $ua->request( $request );
-
-        return $response;
-    }
-    else
-    {
-        WARN "Unable to parse cookie from alarabiya: " . $response->decoded_content;
-        return $response;
-    }
-}
-
 # cache domain http auth lookup from config
 my $_domain_http_auth_lookup;
 
@@ -112,8 +83,6 @@ sub fetch_download($$$)
     $url = _add_http_auth( $url );
 
     my $response = $ua->get_follow_http_html_redirects( $url );
-
-    $response = _fix_alarabiya_response( $download, $ua, $response );
 
     return $response;
 }

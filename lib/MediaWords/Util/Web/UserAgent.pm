@@ -206,6 +206,7 @@ sub _get_follow_http_html_redirects_inner_follow_redirects($$$)
             \&MediaWords::Util::Web::UserAgent::HTMLRedirects::target_request_from_archive_org_url,     #
             \&MediaWords::Util::Web::UserAgent::HTMLRedirects::target_request_from_archive_is_url,      #
             \&MediaWords::Util::Web::UserAgent::HTMLRedirects::target_request_from_linkis_com_url,      #
+            \&MediaWords::Util::Web::UserAgent::HTMLRedirects::target_request_from_alarabiya_url,       #
           )
         {
             $request_after_meta_redirect = $f->( $response->decoded_content, $base_url );

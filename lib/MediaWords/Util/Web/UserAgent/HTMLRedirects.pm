@@ -130,4 +130,34 @@ sub target_request_from_linkis_com_url($$)
     return undef;
 }
 
+# alarabiya uses an interstitial that requires javascript.  if the download url
+# matches alarabiya and returns the 'requires JavaScript' page, manually parse
+# out the necessary cookie and add it to the $ua so that the request will work
+sub target_request_from_alarabiya_url($$)
+{
+    my ( $content, $archive_site_url ) = @_;
+
+    unless ( $archive_site_url =~ /alarabiya/ )
+    {
+        return undef;
+    }
+
+    unless ( $content =~ /This site requires JavaScript and Cookies to be enabled/ )
+    {
+        return undef;
+    }
+
+    if ( $content =~ /setCookie\('([^']+)', '([^']+)'/ )
+    {
+        my $request = MediaWords::Util::Web::UserAgent::Request->new( 'GET', $archive_site_url );
+        $request->set_header( 'Cookie', "$1=$2" );
+        return $request;
+    }
+    else
+    {
+        WARN "Unable to parse cookie from alarabiya URL $archive_site_url: $content";
+        return undef;
+    }
+}
+
 1;
