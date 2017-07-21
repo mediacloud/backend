@@ -116,7 +116,7 @@ class HashServer(object):
 
             # MC_REWRITE_TO_PYTHON: Decode strings from Perl's bytes
             if b'redirect' in page:
-                page['redirect'] = page[b'redirect']
+                page['redirect'] = decode_object_from_bytes_if_needed(page[b'redirect'])
             if b'http_status_code' in page:
                 page['http_status_code'] = page[b'http_status_code']
             if b'callback' in page:
