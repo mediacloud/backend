@@ -131,7 +131,7 @@ sub new
 # Handler callback assigned to request_prepare().
 #
 # This handler logs all http requests to a file and also invalidates any
-# requests that match the regex in mediawords.yml->mediawords->blacklist_url_pattern.
+# requests that match the blacklist_url_pattern regex.
 sub _lwp_request_callback
 {
     my ( $request, $ua, $h ) = @_;
