@@ -44,10 +44,18 @@ class HashServer(object):
         _pages = {}
 
         def _set_pages(self, pages: dict):
+
+            # MC_REWRITE_TO_PYTHON: Decode page keys from bytes
+            pages = {decode_object_from_bytes_if_needed(k): v for k, v in pages.items()}
+
             self._pages = pages
 
-        def __write_response_string(self, response_string: str) -> None:
-            self.wfile.write(response_string.encode('utf-8'))
+        def __write_response_string(self, response_string: Union[str, bytes]) -> None:
+            if isinstance(response_string, str):
+                # If response is string, assume that it's UTF-8; otherwise, write plain bytes to support various
+                # encodings
+                response_string = response_string.encode('utf-8')
+            self.wfile.write(response_string)
 
         def __request_passed_authentication(self, page: dict) -> bool:
             if 'auth' not in page:
@@ -96,7 +104,7 @@ class HashServer(object):
 
             page = self._pages[path]
 
-            if isinstance(page, str):
+            if isinstance(page, str) or isinstance(page, bytes):
                 page = {'content': page}
 
             # HTTP auth
@@ -105,6 +113,18 @@ class HashServer(object):
                 self.send_header("WWW-Authenticate", 'Basic realm="HashServer"')
                 self.end_headers()
                 return
+
+            # MC_REWRITE_TO_PYTHON: Decode strings from Perl's bytes
+            if b'redirect' in page:
+                page['redirect'] = page[b'redirect']
+            if b'http_status_code' in page:
+                page['http_status_code'] = page[b'http_status_code']
+            if b'callback' in page:
+                page['callback'] = page[b'callback']
+            if b'content' in page:
+                page['content'] = page[b'content']
+            if b'header' in page:
+                page['header'] = decode_object_from_bytes_if_needed(page[b'header'])
 
             if 'redirect' in page:
                 redirect_url = page['redirect']
@@ -197,8 +217,8 @@ class HashServer(object):
             pages = {
 
                 # Simple static pages (served as text/plain)
-                '/': 'home',
-                '/foo': 'foo',
+                '/': 'home',    # str
+                '/foo': b'foo', # bytes
 
                 # Static page with additional HTTP header entries
                 '/bar': {
@@ -237,8 +257,6 @@ class HashServer(object):
                 },
             }
         """
-
-        pages = decode_object_from_bytes_if_needed(pages)
 
         if not port:
             raise McHashServerException("Port is not set.")

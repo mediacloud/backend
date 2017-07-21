@@ -35,13 +35,13 @@ def test_http_hash_server():
 
     pages = {
         '/': 'home',
-        '/foo': 'foo',
-        '/bar': 'bar',
+        '/foo': b'foo',
+        '/bar': 'bar ąą',
         '/foo-bar': {'redirect': '/bar'},
         '/localhost': {'redirect': "http://localhost:%d/" % port},
         '/127-foo': {'redirect': "http://127.0.0.1:%d/foo" % port},
-        '/auth': {'auth': 'foo:bar', 'content': 'foo bar'},
-        '/404': {'content': 'not found', 'http_status_code': 404},
+        '/auth': {'auth': 'foo:bar', 'content': b"foo bar \xf0\x90\x28\xbc"},
+        '/404': {'content': b'not found', 'http_status_code': 404},
         '/callback': {'callback': __simple_callback},
 
         # Test setting cookies, redirects
@@ -57,8 +57,8 @@ def test_http_hash_server():
 
     assert str(requests.get('%s/' % base_url).text) == 'home'
     assert str(requests.get('%s/foo' % base_url).text) == 'foo'
-    assert str(requests.get('%s/bar' % base_url).text) == 'bar'
-    assert str(requests.get('%s/foo-bar' % base_url).text) == 'bar'
+    assert str(requests.get('%s/bar' % base_url).text) == 'bar ąą'
+    assert str(requests.get('%s/foo-bar' % base_url).text) == 'bar ąą'
     assert str(requests.get('%s/localhost' % base_url).text) == 'home'
     assert str(requests.get('%s/127-foo' % base_url).text) == 'foo'
 
@@ -89,7 +89,7 @@ def test_http_hash_server():
 
     response = requests.get(auth_url, auth=('foo', 'bar'))
     assert response.status_code == HTTPStatus.OK
-    assert response.text == 'foo bar'
+    assert response.content == b"foo bar \xf0\x90\x28\xbc"
 
     assert hs.page_url('/callback?a=b&c=d') == 'http://localhost:%d/callback' % port
     assert_raises(McHashServerException, hs.page_url, '/does-not-exist')
