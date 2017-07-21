@@ -30,9 +30,9 @@ use MediaWords::Util::Web::UserAgent::HTMLRedirects;
 use MediaWords::Util::Web::UserAgent::Request;
 use MediaWords::Util::Web::UserAgent::Response;
 
-Readonly my $MAX_DOWNLOAD_SIZE => 10 * 1024 * 1024;    # Superglue (TV) feeds could grow big
-Readonly my $MAX_REDIRECT      => 15;
-Readonly my $TIMEOUT           => 20;
+Readonly my $DEFAULT_MAX_SIZE     => 10 * 1024 * 1024;    # Superglue (TV) feeds could grow big
+Readonly my $DEFAULT_MAX_REDIRECT => 15;
+Readonly my $TIMEOUT              => 20;
 
 # On which HTTP codes should requests be retried (if retrying is enabled)
 Readonly my @DETERMINED_HTTP_CODES => (
@@ -61,8 +61,8 @@ sub new
     $ua->agent( $config->{ mediawords }->{ user_agent } );
 
     $ua->timeout( $TIMEOUT );
-    $ua->max_size( $MAX_DOWNLOAD_SIZE );
-    $ua->max_redirect( $MAX_REDIRECT );
+    $ua->max_size( $DEFAULT_MAX_SIZE );
+    $ua->max_redirect( $DEFAULT_MAX_REDIRECT );
     $ua->env_proxy;
     $ua->cookie_jar( {} );    # temporary cookie jar for an object
     $ua->default_header( 'Accept-Charset' => 'utf-8' );
