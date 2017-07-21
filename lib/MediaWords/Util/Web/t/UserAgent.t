@@ -7,8 +7,9 @@ use MediaWords::CommonLibs;
 
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 90;
+use Test::More tests => 112;
 
+use File::Temp qw/ tempdir /;
 use HTTP::Status qw(:constants);
 use Readonly;
 use Data::Dumper;
@@ -25,19 +26,16 @@ my Readonly $TEST_HTTP_SERVER_URL  = 'http://localhost:' . $TEST_HTTP_SERVER_POR
 
 # FIXME things to test:
 #
-# * User-Agent: header
-# * From: header
-# * retries via ::Determined of specific HTTP status codes
-# * blacklisted URLs
-# * POST
-# * get(): authentication (username:password) in URL
+# * get(): "User-Agent" header
+# * get(): "From" header
 # * get(): authentication from config (crawler_authenticated_domains)
 # * get(): make sure preset authentication doesn't get overridden
-# * request(): custom METHOD
-# * request(): custom headers
-# * request(): custom content type
-# * request(): custom content (POST data) -- both hashref and string
-# * request(): authorization
+# * post()
+# * request: custom METHOD
+# * request: custom headers
+# * request: custom content type
+# * request: custom content (POST data) -- both hashref and string
+# * request: as_string()
 
 sub test_get()
 {
@@ -415,6 +413,147 @@ sub test_get_http_request_log()
 
     ok( $last_non_blank_line );
     like( $last_non_blank_line, qr/\Q$url\E/ );
+}
+
+sub test_get_blacklisted_url()
+{
+    my $tempdir = tempdir( CLEANUP => 1 );
+    ok( -e $tempdir );
+
+    my $whitelist_temp_file = $tempdir . '/whitelisted_url_opened.txt';
+    my $blacklist_temp_file = $tempdir . '/blacklisted_url_opened.txt';
+    ok( !-e $whitelist_temp_file );
+    ok( !-e $blacklist_temp_file );
+
+    my $pages = {
+        '/whitelisted' => {
+            callback => sub {
+                my ( $params, $cookies ) = @_;
+
+                open( my $fh, '>', $whitelist_temp_file );
+                print $fh "Whitelisted URL has been fetched.";
+                close $fh;
+
+                my $response = '';
+
+                $response .= "HTTP/1.0 200 OK\r\n";
+                $response .= "Content-Type: text/plain\r\n";
+                $response .= "\r\n";
+                $response .= "Whitelisted page (should be fetched).";
+
+                return $response;
+            }
+        },
+        '/blacklisted' => {
+            callback => sub {
+                my ( $params, $cookies ) = @_;
+
+                open( my $fh, '>', $blacklist_temp_file );
+                print $fh "Blacklisted URL has been fetched.";
+                close $fh;
+
+                my $response = '';
+
+                $response .= "HTTP/1.0 200 OK\r\n";
+                $response .= "Content-Type: text/plain\r\n";
+                $response .= "\r\n";
+                $response .= "Blacklisted page (should not be fetched).";
+
+                return $response;
+            }
+        },
+    };
+
+    my $whitelisted_url = $TEST_HTTP_SERVER_URL . "/whitelisted";
+    my $blacklisted_url = $TEST_HTTP_SERVER_URL . "/blacklisted";
+
+    my $config     = MediaWords::Util::Config::get_config;
+    my $new_config = python_deep_copy( $config );
+    $new_config->{ mediawords }->{ blacklist_url_pattern } = "$blacklisted_url";
+    MediaWords::Util::Config::set_config( $new_config );
+
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my $ua                   = MediaWords::Util::Web::UserAgent->new();
+    my $blacklisted_response = $ua->get( $blacklisted_url );
+    my $whitelisted_response = $ua->get( $whitelisted_url );
+
+    $hs->stop();
+
+    ok( !$blacklisted_response->is_success() );
+    ok( $blacklisted_response->error_is_client_side() );
+    isnt( $blacklisted_response->request()->url(), $blacklisted_url );
+
+    ok( $whitelisted_response->is_success() );
+    is( $whitelisted_response->request()->url(), $whitelisted_url );
+
+    ok( -e $whitelist_temp_file );
+    ok( !-e $blacklist_temp_file );
+}
+
+sub test_get_http_auth()
+{
+    my $pages = {
+        '/auth' => {
+            auth    => 'username1:password2',
+            content => 'Authenticated!',
+        }
+    };
+
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my $ua = MediaWords::Util::Web::UserAgent->new();
+
+    {
+        # No auth
+        my $no_auth_url      = $TEST_HTTP_SERVER_URL . "/auth";
+        my $no_auth_response = $ua->get( $no_auth_url );
+        ok( !$no_auth_response->is_success() );
+        is( $no_auth_response->code(), HTTP_UNAUTHORIZED );
+    }
+
+    {
+        # Invalid auth in URL
+        my $invalid_auth_url =
+          'http://incorrect_username1:incorrect_password2@localhost:' . $TEST_HTTP_SERVER_PORT . "/auth";
+        my $invalid_auth_response = $ua->get( $invalid_auth_url );
+        ok( !$invalid_auth_response->is_success() );
+        is( $invalid_auth_response->code(), HTTP_UNAUTHORIZED );
+    }
+
+    {
+        # Valid auth in URL
+        my $valid_auth_url      = 'http://username1:password2@localhost:' . $TEST_HTTP_SERVER_PORT . "/auth";
+        my $valid_auth_response = $ua->get( $valid_auth_url );
+        ok( $valid_auth_response->is_success() );
+        is( $valid_auth_response->code(),            HTTP_OK );
+        is( $valid_auth_response->decoded_content(), 'Authenticated!' );
+    }
+
+    my $base_auth_url = $TEST_HTTP_SERVER_URL . "/auth";
+
+    {
+        # Invalid auth in request
+        my $invalid_auth_request = MediaWords::Util::Web::UserAgent::Request->new( 'GET', $base_auth_url );
+        $invalid_auth_request->set_authorization_basic( 'incorrect_username1', 'incorrect_password2' );
+        my $invalid_auth_response = $ua->request( $invalid_auth_request );
+        ok( !$invalid_auth_response->is_success() );
+        is( $invalid_auth_response->code(), HTTP_UNAUTHORIZED );
+    }
+
+    {
+        # Valid auth in request
+        my $valid_auth_request = MediaWords::Util::Web::UserAgent::Request->new( 'GET', $base_auth_url );
+        $valid_auth_request->set_authorization_basic( 'username1', 'password2' );
+        my $valid_auth_response = $ua->request( $valid_auth_request );
+        ok( $valid_auth_response->is_success() );
+        is( $valid_auth_response->code(),            HTTP_OK );
+        is( $valid_auth_response->decoded_content(), 'Authenticated!' );
+    }
+
+    $hs->stop();
 }
 
 sub test_get_follow_http_html_redirects_http()
@@ -909,6 +1048,8 @@ sub main()
     test_get_response_content_type();
     test_get_response_as_string();
     test_get_http_request_log();
+    test_get_blacklisted_url();
+    test_get_http_auth();
 
     test_get_follow_http_html_redirects_nonexistent();
     test_get_follow_http_html_redirects_http();
