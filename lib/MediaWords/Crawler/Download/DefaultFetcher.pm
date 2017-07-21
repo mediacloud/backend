@@ -79,7 +79,6 @@ sub fetch_download($$$)
 
     my $url = $download->{ url };
 
-    $url = MediaWords::Util::URL::fix_common_url_mistakes( $url );
     $url = _add_http_auth( $url );
 
     my $response = $ua->get_follow_http_html_redirects( $url );

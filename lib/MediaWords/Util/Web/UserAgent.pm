@@ -178,7 +178,21 @@ sub _lwp_request_callback
 sub get($$)
 {
     my ( $self, $url ) = @_;
+
+    unless ( defined $url )
+    {
+        die "URL is undefined.";
+    }
+
+    $url = MediaWords::Util::URL::fix_common_url_mistakes( $url );
+
+    unless ( MediaWords::Util::URL::is_http_url( $url ) )
+    {
+        die "URL is not HTTP(s): $url";
+    }
+
     my $response = $self->{ _ua }->get( $url );
+
     return MediaWords::Util::Web::UserAgent::Response->new_from_http_response( $response );
 }
 
