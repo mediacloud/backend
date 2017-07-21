@@ -12,30 +12,38 @@ use MediaWords::CommonLibs;    # set PYTHONPATH too
 
 use MediaWords::Util::HTML;
 use MediaWords::Util::URL;
+use MediaWords::Util::Web::UserAgent::Request;
 use HTML::TreeBuilder::LibXML;
 
-# Given a url and content from one of the following url archiving sites, return the original url
-sub target_url_from_meta_refresh_url($$)
+# Given a url and content from one of the following url archiving sites, return a request for the original url
+sub target_request_from_meta_refresh_url($$)
 {
     my ( $content, $archive_site_url ) = @_;
 
-    return MediaWords::Util::HTML::meta_refresh_url_from_html( $content, $archive_site_url );
+    my $target_url = MediaWords::Util::HTML::meta_refresh_url_from_html( $content, $archive_site_url );
+    unless ( $target_url )
+    {
+        return undef;
+    }
+
+    return MediaWords::Util::Web::UserAgent::Request->new( 'GET', $target_url );
 }
 
-# Given a url and content from one of the following url archiving sites, return the original url
-sub target_url_from_archive_org_url($$)
+# Given a url and content from one of the following url archiving sites, return a request for the original url
+sub target_request_from_archive_org_url($$)
 {
     my ( $content, $archive_site_url ) = @_;
 
     if ( $archive_site_url =~ m|^https?://web\.archive\.org/web/(\d+?/)?(https?://.+?)$|i )
     {
-        return $2;
+        my $target_url = $2;
+        return MediaWords::Util::Web::UserAgent::Request->new( 'GET', $target_url );
     }
 
     return undef;
 }
 
-sub target_url_from_archive_is_url($$)
+sub target_request_from_archive_is_url($$)
 {
     my ( $content, $archive_site_url ) = @_;
 
@@ -44,7 +52,8 @@ sub target_url_from_archive_is_url($$)
         my $canonical_link = MediaWords::Util::HTML::link_canonical_url_from_html( $content );
         if ( $canonical_link =~ m|^https?://archive\.is/\d+?/(https?://.+?)$|i )
         {
-            return $1;
+            my $target_url = $1;
+            return MediaWords::Util::Web::UserAgent::Request->new( 'GET', $target_url );
         }
         else
         {
@@ -56,8 +65,8 @@ sub target_url_from_archive_is_url($$)
 }
 
 # given the content of a linkis.com web page, find the original url in the content, which may be in one of
-# serveral places in the DOM
-sub target_url_from_linkis_com_url($$)
+# serveral places in the DOM, and return a request for said URL
+sub target_request_from_linkis_com_url($$)
 {
     my ( $content, $archive_site_url ) = @_;
 
@@ -94,7 +103,7 @@ sub target_url_from_linkis_com_url($$)
                 my $url = $first_node->attr( $url_attribute );
                 if ( $url !~ m|^https?://linkis.com| )
                 {
-                    return $url;
+                    return MediaWords::Util::Web::UserAgent::Request->new( 'GET', $url );
                 }
             }
         }
@@ -111,7 +120,7 @@ sub target_url_from_linkis_com_url($$)
 
             if ( $url !~ m|^https?://linkis.com| )
             {
-                return $url;
+                return MediaWords::Util::Web::UserAgent::Request->new( 'GET', $url );
             }
         }
 

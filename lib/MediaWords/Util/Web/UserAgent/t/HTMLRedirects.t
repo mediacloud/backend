@@ -10,10 +10,10 @@ use Test::Deep;
 
 use MediaWords::Util::Web::UserAgent::HTMLRedirects;
 
-sub test_target_url_from_meta_refresh_url()
+sub test_target_request_from_meta_refresh_url()
 {
     is(
-        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_url_from_meta_refresh_url(
+        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_request_from_meta_refresh_url(
             <<EOF,
         <HTML>
         <HEAD>
@@ -27,25 +27,25 @@ sub test_target_url_from_meta_refresh_url()
         </HTML>
 EOF
             'http://example2.com/'
-        ),
+          )->url(),
         'http://example.com/',
         '<meta> refresh'
     );
 }
 
-sub test_target_url_from_archive_is_url()
+sub test_target_request_from_archive_is_url()
 {
     is(
-        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_url_from_archive_is_url(
+        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_request_from_archive_is_url(
             '<link rel="canonical" href="https://archive.is/20170201/https://bar.com/foo/bar">',    #
             'https://archive.is/20170201/https://bar.com/foo/bar'                                   #
-        ),
+          )->url(),
         'https://bar.com/foo/bar',                                                                  #
         'archive.is'                                                                                #
     );
 
     is(
-        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_url_from_archive_is_url(
+        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_request_from_archive_is_url(
             '<link rel="canonical" href="https://archive.is/20170201/https://bar.com/foo/bar">',    #
             'https://bar.com/foo/bar'                                                               #
         ),
@@ -54,19 +54,19 @@ sub test_target_url_from_archive_is_url()
     );
 }
 
-sub test_target_url_from_archive_org_url()
+sub test_target_request_from_archive_org_url()
 {
     is(
-        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_url_from_archive_org_url(
+        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_request_from_archive_org_url(
             undef,                                                                                     #
             'https://web.archive.org/web/20150204024130/http://www.john-daly.com/hockey/hockey.htm'    #
-        ),
+          )->url(),
         'http://www.john-daly.com/hockey/hockey.htm',                                                  #
         'archive.org'                                                                                  #
     );
 
     is(
-        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_url_from_archive_org_url(
+        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_request_from_archive_org_url(
             undef,                                                                                     #
             'http://www.john-daly.com/hockey/hockey.htm'                                               #
         ),
@@ -75,46 +75,46 @@ sub test_target_url_from_archive_org_url()
     );
 }
 
-sub test_target_url_from_linkis_com_url()
+sub test_target_request_from_linkis_com_url()
 {
     is(
-        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_url_from_linkis_com_url(
+        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_request_from_linkis_com_url(
             '<meta property="og:url" content="http://og.url/test"',                                    #
             'https://linkis.com/foo.com/ASDF'                                                          #
-        ),
+          )->url(),
         'http://og.url/test',                                                                          #
         'linkis.com <meta>'                                                                            #
     );
 
     is(
-        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_url_from_linkis_com_url(
+        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_request_from_linkis_com_url(
             '<a class="js-youtube-ln-event" href="http://you.tube/test"',                              #
             'https://linkis.com/foo.com/ASDF'                                                          #
-        ),
+          )->url(),
         'http://you.tube/test',                                                                        #
         'linkis.com YouTube'                                                                           #
     );
 
     is(
-        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_url_from_linkis_com_url(
+        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_request_from_linkis_com_url(
             '<iframe id="source_site" src="http://source.site/test"',                                  #
             'https://linkis.com/foo.com/ASDF'                                                          #
-        ),
+          )->url(),
         'http://source.site/test',                                                                     #
         'linkis.com <iframe>'                                                                          #
     );
 
     is(
-        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_url_from_linkis_com_url(
+        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_request_from_linkis_com_url(
             '"longUrl":"http:\/\/java.script\/test"',                                                  #
             'https://linkis.com/foo.com/ASDF'                                                          #
-        ),
+          )->url(),
         'http://java.script/test',                                                                     #
         'linkis.com JavaScript'                                                                        #
     );
 
     is(
-        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_url_from_linkis_com_url(
+        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_request_from_linkis_com_url(
             '<meta property="og:url" content="http://og.url/test"',                                    #
             'https://bar.com/foo/bar'                                                                  #
         ),
@@ -130,10 +130,10 @@ sub main()
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
-    test_target_url_from_meta_refresh_url();
-    test_target_url_from_archive_is_url();
-    test_target_url_from_archive_org_url();
-    test_target_url_from_linkis_com_url();
+    test_target_request_from_meta_refresh_url();
+    test_target_request_from_archive_is_url();
+    test_target_request_from_archive_org_url();
+    test_target_request_from_linkis_com_url();
 }
 
 main();

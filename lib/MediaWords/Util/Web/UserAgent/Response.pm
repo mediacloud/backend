@@ -15,6 +15,18 @@ use MediaWords::Util::Web::UserAgent::Request;
 use Data::Dumper;
 use HTTP::Response;
 
+sub new($$;$$$)
+{
+    my ( $class, $code, $msg, $header, $content ) = @_;
+
+    my $self = {};
+    bless $self, $class;
+
+    $self->{ _response } = HTTP::Response->new( $code, $msg, $header, $content );
+
+    return $self;
+}
+
 sub new_from_http_response
 {
     my ( $class, $response ) = @_;

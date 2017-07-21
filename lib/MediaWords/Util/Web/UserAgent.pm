@@ -200,20 +200,20 @@ sub _get_follow_http_html_redirects_inner_follow_redirects($$$)
 
         my $base_url = $base_uri->as_string;
 
-        my $url_after_meta_redirect;
+        my $request_after_meta_redirect;
         for my $f (
-            \&MediaWords::Util::Web::UserAgent::HTMLRedirects::target_url_from_meta_refresh_url,    #
-            \&MediaWords::Util::Web::UserAgent::HTMLRedirects::target_url_from_archive_org_url,     #
-            \&MediaWords::Util::Web::UserAgent::HTMLRedirects::target_url_from_archive_is_url,      #
-            \&MediaWords::Util::Web::UserAgent::HTMLRedirects::target_url_from_linkis_com_url,      #
+            \&MediaWords::Util::Web::UserAgent::HTMLRedirects::target_request_from_meta_refresh_url,    #
+            \&MediaWords::Util::Web::UserAgent::HTMLRedirects::target_request_from_archive_org_url,     #
+            \&MediaWords::Util::Web::UserAgent::HTMLRedirects::target_request_from_archive_is_url,      #
+            \&MediaWords::Util::Web::UserAgent::HTMLRedirects::target_request_from_linkis_com_url,      #
           )
         {
-            $url_after_meta_redirect = $f->( $response->decoded_content, $base_url );
-            if ( $url_after_meta_redirect and $response->request()->url() ne $url_after_meta_redirect )
+            $request_after_meta_redirect = $f->( $response->decoded_content, $base_url );
+            if ( $request_after_meta_redirect and $response->request()->url() ne $request_after_meta_redirect->url() )
             {
-                TRACE "URL after <meta /> refresh: $url_after_meta_redirect";
+                TRACE "URL after <meta /> refresh: " . $request_after_meta_redirect->url();
 
-                my $orig_redirect_response = $self->get( $url_after_meta_redirect );
+                my $orig_redirect_response = $self->request( $request_after_meta_redirect );
                 my $redirect_response      = $orig_redirect_response;
 
                 # Response might have its previous() already set due to HTTP redirects,
@@ -230,7 +230,7 @@ sub _get_follow_http_html_redirects_inner_follow_redirects($$$)
                 }
                 if ( defined $previous )
                 {
-                    LOGCONFESS "Can't find the initial redirected response; URL: $url_after_meta_redirect";
+                    LOGCONFESS "Can't find the initial redirected response; URL: " . $request_after_meta_redirect->url();
                 }
 
                 TRACE "Setting previous of URL " .
