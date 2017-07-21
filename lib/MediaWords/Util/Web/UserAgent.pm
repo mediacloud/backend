@@ -178,22 +178,21 @@ sub _lwp_request_callback
     $fh->close;
 }
 
-# cache domain http auth lookup from config
-my $_domain_http_auth_lookup;
-
 # read the mediawords.crawler_authenticated_domains list from mediawords.yml and generate a lookup hash
 # with the host domain as the key and the user:password credentials as the value.
 sub _get_domain_http_auth_lookup()
 {
-    return $_domain_http_auth_lookup if ( defined( $_domain_http_auth_lookup ) );
-
-    my $config = MediaWords::Util::Config::get_config;
+    my $config                  = MediaWords::Util::Config::get_config;
+    my $domain_http_auth_lookup = {};
 
     my $domains = $config->{ mediawords }->{ crawler_authenticated_domains };
 
-    map { $_domain_http_auth_lookup->{ lc( $_->{ domain } ) } = $_ } @{ $domains };
+    if ( $domains )
+    {
+        map { $domain_http_auth_lookup->{ lc( $_->{ domain } ) } = $_ } @{ $domains };
+    }
 
-    return $_domain_http_auth_lookup;
+    return $domain_http_auth_lookup;
 }
 
 # if there are http auth credentials for the requested site, add them to the request
