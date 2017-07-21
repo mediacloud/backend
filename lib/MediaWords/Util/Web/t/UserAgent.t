@@ -7,7 +7,7 @@ use MediaWords::CommonLibs;
 
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 112;
+use Test::More tests => 119;
 
 use File::Temp qw/ tempdir /;
 use HTTP::Status qw(:constants);
@@ -28,7 +28,6 @@ my Readonly $TEST_HTTP_SERVER_URL  = 'http://localhost:' . $TEST_HTTP_SERVER_POR
 #
 # * get(): "User-Agent" header
 # * get(): "From" header
-# * get(): authentication from config (crawler_authenticated_domains)
 # * get(): make sure preset authentication doesn't get overridden
 # * post()
 # * request: custom METHOD
@@ -556,6 +555,82 @@ sub test_get_http_auth()
     $hs->stop();
 }
 
+sub test_get_crawler_authenticated_domains()
+{
+    # This is what get_url_distinctive_domain() returns for whatever reason
+    my $domain   = 'localhost.localhost';
+    my $username = 'username1';
+    my $password = 'password2';
+
+    my $pages = {
+        '/auth' => {
+            auth    => "$username:$password",
+            content => 'Authenticated!',
+        }
+    };
+
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my $ua = MediaWords::Util::Web::UserAgent->new();
+
+    my $base_auth_url = $TEST_HTTP_SERVER_URL . "/auth";
+
+    {
+        # No auth
+        my $config     = MediaWords::Util::Config::get_config;
+        my $new_config = python_deep_copy( $config );
+        $new_config->{ mediawords }->{ crawler_authenticated_domains } = undef;
+        MediaWords::Util::Config::set_config( $new_config );
+
+        my $no_auth_response = $ua->get( $base_auth_url );
+        ok( !$no_auth_response->is_success() );
+        is( $no_auth_response->code(), HTTP_UNAUTHORIZED );
+    }
+
+    {
+        # No auth
+        my $config     = MediaWords::Util::Config::get_config;
+        my $new_config = python_deep_copy( $config );
+        $new_config->{ mediawords }->{ crawler_authenticated_domains }->[ 0 ] = {
+            'domain'   => $domain,
+            'user'     => 'incorrect_username1',
+            'password' => 'incorrect_password2',
+        };
+        MediaWords::Util::Config::set_config( $new_config );
+
+        # Invalid auth
+        my $invalid_auth_response = $ua->get( $base_auth_url );
+        ok( !$invalid_auth_response->is_success() );
+        is( $invalid_auth_response->code(), HTTP_UNAUTHORIZED );
+    }
+
+    {
+        # Valid auth
+        my $config     = MediaWords::Util::Config::get_config;
+        my $new_config = python_deep_copy( $config );
+        $new_config->{ mediawords }->{ crawler_authenticated_domains }->[ 0 ] = {
+            'domain'   => $domain,
+            'user'     => $username,
+            'password' => $password,
+        };
+        MediaWords::Util::Config::set_config( $new_config );
+
+        my $valid_auth_response = $ua->get( $base_auth_url );
+        ok( $valid_auth_response->is_success() );
+        is( $valid_auth_response->code(),            HTTP_OK );
+        is( $valid_auth_response->decoded_content(), 'Authenticated!' );
+    }
+
+    $hs->stop();
+
+    # Clear up test auth
+    my $config     = MediaWords::Util::Config::get_config;
+    my $new_config = python_deep_copy( $config );
+    $new_config->{ mediawords }->{ crawler_authenticated_domains } = undef;
+    MediaWords::Util::Config::set_config( $new_config );
+}
+
 sub test_get_follow_http_html_redirects_http()
 {
     my $ua = MediaWords::Util::Web::UserAgent->new();
@@ -1050,6 +1125,7 @@ sub main()
     test_get_http_request_log();
     test_get_blacklisted_url();
     test_get_http_auth();
+    test_get_crawler_authenticated_domains();
 
     test_get_follow_http_html_redirects_nonexistent();
     test_get_follow_http_html_redirects_http();
