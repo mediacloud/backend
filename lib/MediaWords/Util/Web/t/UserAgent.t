@@ -178,7 +178,13 @@ sub test_get_invalid_utf8_content()
 
     # https://en.wikipedia.org/wiki/Specials_(Unicode_block)#Replacement_character
     my $replacement_character = "\x{FFFD}";
-    is( $response->decoded_content(), "$replacement_character\x28$replacement_character" );
+    ok(
+        # OS X:
+        $response->decoded_content() eq "$replacement_character\x28$replacement_character" or
+
+          # Ubuntu:
+          $response->decoded_content() eq "$replacement_character$replacement_character\x28$replacement_character"
+    );
 }
 
 sub test_get_non_utf8_content()
