@@ -32,7 +32,6 @@ use MediaWords::Util::Web::UserAgent::Response;
 
 Readonly my $MAX_DOWNLOAD_SIZE => 10 * 1024 * 1024;    # Superglue (TV) feeds could grow big
 Readonly my $MAX_REDIRECT      => 15;
-Readonly my $MAX_HTML_REDIRECT => 7;
 Readonly my $TIMEOUT           => 20;
 
 # On which HTTP codes should requests be retried (if retrying is enabled)
@@ -274,7 +273,7 @@ sub _get_follow_http_html_redirects_inner_follow_redirects($$$)
                 # Response might have its previous() already set due to HTTP redirects,
                 # so we have to find the initial response first
                 my $previous = undef;
-                for ( my $x = 0 ; $x <= $MAX_REDIRECT ; ++$x )
+                for ( my $x = 0 ; $x <= $self->max_redirect() ; ++$x )
                 {
                     $previous = $redirect_response->previous();
                     unless ( defined $previous )
@@ -318,7 +317,7 @@ sub _get_follow_http_html_redirects_inner_redirects_exhausted($$)
     my $urls_redirected_to = [];
 
     my $previous = undef;
-    for ( my $x = 0 ; $x <= $MAX_REDIRECT ; ++$x )
+    for ( my $x = 0 ; $x <= $self->max_redirect() ; ++$x )
     {
         $previous = $response->previous();
         unless ( defined $previous )
@@ -387,7 +386,7 @@ sub get_follow_http_html_redirects($)
 
     my $response = $self->get( $url );
 
-    my $response_after_redirects = $self->_get_follow_http_html_redirects_inner( $response, $MAX_HTML_REDIRECT );
+    my $response_after_redirects = $self->_get_follow_http_html_redirects_inner( $response, $self->max_redirect() );
 
     if ( $response_after_redirects )
     {
