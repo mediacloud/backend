@@ -136,6 +136,11 @@ sub _lwp_request_callback
 {
     my ( $request, $ua, $h ) = @_;
 
+    unless ( ref( $request ) eq 'HTTP::Request' )
+    {
+        die "Request is not HTTP::Request: " . Dumper( $request );
+    }
+
     my $config = MediaWords::Util::Config::get_config();
 
     my $blacklist_url_pattern = $config->{ mediawords }->{ blacklist_url_pattern };
@@ -147,7 +152,7 @@ sub _lwp_request_callback
     my $blacklisted;
     if ( $blacklist_url_pattern && ( $url =~ $blacklist_url_pattern ) )
     {
-        $request->set_url( "http://blacklistedsite.localhost/$url" );
+        $request->url( "http://blacklistedsite.localhost/$url" );
         $blacklisted = 1;
     }
 
