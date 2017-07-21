@@ -44,10 +44,6 @@ class HashServer(object):
         _pages = {}
 
         def _set_pages(self, pages: dict):
-
-            # MC_REWRITE_TO_PYTHON: Decode page keys from bytes
-            pages = {decode_object_from_bytes_if_needed(k): v for k, v in pages.items()}
-
             self._pages = pages
 
         def __write_response_string(self, response_string: Union[str, bytes]) -> None:
@@ -272,6 +268,9 @@ class HashServer(object):
         if len(pages) == 0:
             l.warning("Pages dictionary is empty.")
 
+        # MC_REWRITE_TO_PYTHON: Decode page keys from bytes
+        pages = {decode_object_from_bytes_if_needed(k): v for k, v in pages.items()}
+
         self.__port = port
         self.__pages = pages
 
@@ -353,6 +352,6 @@ class HashServer(object):
         path = urlparse(path).path
 
         if path not in self.__pages:
-            raise McHashServerException('No page for path "%s".' % path)
+            raise McHashServerException('No page for path "%s" among pages %s.' % (path, str(self.__pages)))
 
         return 'http://localhost:%d%s' % (self.__port, path)
