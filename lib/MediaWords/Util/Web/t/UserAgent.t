@@ -7,7 +7,7 @@ use MediaWords::CommonLibs;
 
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 45;
+use Test::More tests => 67;
 
 use HTTP::Status qw(:constants);
 use Readonly;
@@ -16,6 +16,7 @@ use URI;
 use URI::Escape;
 
 use MediaWords::Util::Web;
+use MediaWords::Util::Text;
 use MediaWords::Test::HTTP::HashServer;
 
 my Readonly $TEST_HTTP_SERVER_PORT = 9998;
@@ -23,21 +24,12 @@ my Readonly $TEST_HTTP_SERVER_URL  = 'http://localhost:' . $TEST_HTTP_SERVER_POR
 
 # FIXME things to test:
 #
-# * max. download size
-# * max. redirects
+# * lowercase / uppercase headers
 # * User-Agent: header
 # * From: header
-# * UTF-8 response
-# * non-UTF-8 response
-# * invalid encoding
-# * timeouts
 # * retries via ::Determined of specific HTTP status codes
-# * retry timing via ::Determined, plus custom timing
-# * max. redirects
-# * whether or not cookies are being stored between redirects
 # * blacklisted URLs
 # * HTTP request log in data/logs/
-# * GET
 # * POST
 # * get(): authentication (username:password) in URL
 # * get(): authentication from config (crawler_authenticated_domains)
@@ -51,11 +43,229 @@ my Readonly $TEST_HTTP_SERVER_URL  = 'http://localhost:' . $TEST_HTTP_SERVER_POR
 # * response: HTTP headers
 # * response: content type
 # * response: decoded content (UTF-8, non-UTF-8, and invalid UTF-8)
-# * response: successful and unsuccessful responses
-# * response: redirects and previous
 # * response: get original request
-# * response: errors on client/server side
 # * get_string()
+
+sub test_get()
+{
+    eval {
+        my $ua = MediaWords::Util::Web::UserAgent->new();
+        $ua->get( undef );
+    };
+    ok( $@, 'Undefined URL' );
+
+    eval {
+        my $ua = MediaWords::Util::Web::UserAgent->new();
+        $ua->get( 'gopher://gopher.floodgap.com/0/v2/vstat' );
+    };
+    ok( $@, 'Non-HTTP(S) URL' );
+
+    # Basic GET
+    my $pages = { '/test' => 'Hello!', };
+
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my $ua       = MediaWords::Util::Web::UserAgent->new();
+    my $response = $ua->get( "$TEST_HTTP_SERVER_URL/test" );
+
+    $hs->stop();
+
+    is( $response->request()->url(),  $TEST_HTTP_SERVER_URL . '/test' );
+    is( $response->decoded_content(), 'Hello!' );
+}
+
+sub test_get_not_found()
+{
+    # HTTP redirects
+    my $pages = {
+        '/does-not-exist' => {
+            callback => sub {
+                my ( $params, $cookies ) = @_;
+
+                my $response = '';
+
+                $response .= "HTTP/1.0 404 Not Found\r\n";
+                $response .= "Content-Type: text/html; charset=UTF-8\r\n";
+                $response .= "\r\n";
+                $response .= "I do not exist.";
+
+                return $response;
+            }
+        }
+    };
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my $ua       = MediaWords::Util::Web::UserAgent->new();
+    my $response = $ua->get( "$TEST_HTTP_SERVER_URL/does-not-exist" );
+
+    $hs->stop();
+
+    is( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/does-not-exist' );
+    ok( !$response->is_success() );
+    is( $response->decoded_content(), 'I do not exist.' );
+}
+
+sub test_get_timeout()
+{
+    # HTTP redirects
+    my $pages = {
+        '/timeout' => {
+            callback => sub {
+                my ( $params, $cookies ) = @_;
+
+                my $response = '';
+
+                $response .= "HTTP/1.0 200 OK\r\n";
+                $response .= "Content-Type: text/html; charset=UTF-8\r\n";
+                $response .= "\r\n";
+                $response .= "And now we wait";
+
+                sleep( 10 );
+
+                return $response;
+            }
+        }
+    };
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my $ua = MediaWords::Util::Web::UserAgent->new();
+    $ua->set_timeout( 2 );
+    my $response = $ua->get( "$TEST_HTTP_SERVER_URL/timeout" );
+
+    $hs->stop();
+
+    ok( !$response->is_success() );
+    ok( $response->error_is_client_side() );
+}
+
+sub test_get_valid_utf8_content()
+{
+    # Valid UTF-8 content
+    my $pages = {
+        '/valid-utf-8' => {
+            header  => 'Content-Type: text/plain; charset=UTF-8',
+            content => '¡ollǝɥ',
+        },
+    };
+
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my $ua       = MediaWords::Util::Web::UserAgent->new();
+    my $response = $ua->get( "$TEST_HTTP_SERVER_URL/valid-utf-8" );
+
+    $hs->stop();
+
+    is( $response->request()->url(),  $TEST_HTTP_SERVER_URL . '/valid-utf-8' );
+    is( $response->decoded_content(), '¡ollǝɥ' );
+}
+
+sub test_get_invalid_utf8_content()
+{
+    # Invalid UTF-8 content
+    my $pages = {
+        '/invalid-utf-8' => {
+            header  => 'Content-Type: text/plain; charset=UTF-8',
+            content => "\xf0\x90\x28\xbc",
+        },
+    };
+
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my $ua       = MediaWords::Util::Web::UserAgent->new();
+    my $response = $ua->get( "$TEST_HTTP_SERVER_URL/invalid-utf-8" );
+
+    $hs->stop();
+
+    is( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/invalid-utf-8' );
+
+    # https://en.wikipedia.org/wiki/Specials_(Unicode_block)#Replacement_character
+    my $replacement_character = "\x{FFFD}";
+    is( $response->decoded_content(), "$replacement_character\x28$replacement_character" );
+}
+
+sub test_get_non_utf8_content()
+{
+    # Non-UTF-8 content
+    use bytes;
+
+    my $pages = {
+        '/non-utf-8' => {
+            header  => 'Content-Type: text/plain; charset=iso-8859-13',
+            content => "\xd0auk\xf0tai po piet\xf8.",
+        },
+    };
+
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my $ua       = MediaWords::Util::Web::UserAgent->new();
+    my $response = $ua->get( "$TEST_HTTP_SERVER_URL/non-utf-8" );
+
+    $hs->stop();
+
+    no bytes;
+
+    is( $response->request()->url(),  $TEST_HTTP_SERVER_URL . '/non-utf-8' );
+    is( $response->decoded_content(), 'Šaukštai po pietų.' );
+}
+
+sub test_get_max_size()
+{
+    my $test_content = MediaWords::Util::Text::random_string( 1024 * 10 );
+    my $max_size     = length( $test_content ) / 10;
+    my $pages        = { '/max-download-side' => $test_content, };
+
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my $ua = MediaWords::Util::Web::UserAgent->new();
+    $ua->set_max_size( $max_size );
+    is( $ua->max_size(), $max_size );
+
+    my $response = $ua->get( "$TEST_HTTP_SERVER_URL/max-download-side" );
+
+    $hs->stop();
+
+    is( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/max-download-side' );
+
+    # LWP::UserAgent truncates the response but still reports it as successful
+    ok( $response->is_success() );
+    ok( length( $response->decoded_content() ) >= $max_size );
+    ok( length( $response->decoded_content() ) < length( $test_content ) );
+}
+
+sub test_get_max_redirect()
+{
+    my $max_redirect = 3;
+    my $pages        = {
+        '/1' => { redirect => '/2' },
+        '/2' => { redirect => '/3' },
+        '/3' => { redirect => '/4' },
+        '/4' => { redirect => '/5' },
+        '/5' => { redirect => '/6' },
+        '/6' => { redirect => '/7' },
+        '/7' => { redirect => '/8' },
+        '/8' => "Shouldn't be able to get to this one.",
+    };
+
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my $ua = MediaWords::Util::Web::UserAgent->new();
+    $ua->set_max_redirect( $max_redirect );
+    is( $ua->max_redirect(), $max_redirect );
+
+    my $response = $ua->get( "$TEST_HTTP_SERVER_URL/1" );
+
+    $hs->stop();
+
+    ok( !$response->is_success() );
+}
 
 sub test_get_follow_http_html_redirects_http()
 {
@@ -67,7 +277,6 @@ sub test_get_follow_http_html_redirects_http()
     eval { $ua->get_follow_http_html_redirects( 'gopher://gopher.floodgap.com/0/v2/vstat' ); };
     ok( $@, 'Non-HTTP(S) URL' );
 
-    Readonly my $TEST_HTTP_SERVER_URL => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
     my $starting_url = $TEST_HTTP_SERVER_URL . '/first';
 
     # HTTP redirects
@@ -514,6 +723,15 @@ sub main()
     binmode $builder->output,         ":utf8";
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
+
+    test_get();
+    test_get_not_found();
+    test_get_timeout();
+    test_get_valid_utf8_content();
+    test_get_invalid_utf8_content();
+    test_get_non_utf8_content();
+    test_get_max_size();
+    test_get_max_redirect();
 
     test_get_follow_http_html_redirects_nonexistent();
     test_get_follow_http_html_redirects_http();
