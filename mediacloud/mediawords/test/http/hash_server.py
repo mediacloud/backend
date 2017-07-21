@@ -287,10 +287,7 @@ class HashServer(object):
 
             return _HTTPHandlerWithPages
 
-        l.info(
-            'Starting test web server %s:%d on PID %d with pages %s' % (
-                self.__host, self.__port, os.getpid(), str(self.__pages))
-        )
+        l.info('Starting test web server %s:%d on PID %d' % (self.__host, self.__port, os.getpid()))
         l.debug('Pages: %s' % str(self.__pages))
         server_address = (self.__host, self.__port,)
 
