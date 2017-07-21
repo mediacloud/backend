@@ -339,6 +339,12 @@ mediawords:
     user_agent: "mediawords bot (http://cyber.law.harvard.edu)"
     owner: "mediawords@cyber.law.harvard.edu"
 
+    ### Domains that might need HTTP auth credentials to work
+    #crawler_authenticated_domains:
+        #- domain: "ap.org"
+        #  user: "username"
+        #  password: "password"
+
     ### Uncomment one or more storage methods to store downloads in.
     ### Default is "postgresql" which stores downloads directly in the
     ### PostgreSQL database.
