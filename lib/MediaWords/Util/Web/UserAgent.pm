@@ -212,7 +212,7 @@ sub _get_follow_http_html_redirects_inner_follow_redirects($$$)
             $request_after_meta_redirect = $f->( $response->decoded_content, $base_url );
             if ( $request_after_meta_redirect and $response->request()->url() ne $request_after_meta_redirect->url() )
             {
-                TRACE "URL after <meta /> refresh: " . $request_after_meta_redirect->url();
+                TRACE "URL after HTML redirects: " . $request_after_meta_redirect->url();
 
                 my $orig_redirect_response = $self->request( $request_after_meta_redirect );
                 my $redirect_response      = $orig_redirect_response;
