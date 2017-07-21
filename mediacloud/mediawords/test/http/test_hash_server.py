@@ -10,7 +10,7 @@ def test_http_hash_server():
     port = random_unused_port()
     base_url = 'http://localhost:%d' % port
 
-    def __simple_callback(params: dict, cookies: dict) -> str:
+    def __simple_callback(params: dict, cookies: dict) -> Union[str, bytes]:
         r = ""
         r += "HTTP/1.0 200 OK\r\n"
         r += "Content-Type: application/json; charset=UTF-8\r\n"
@@ -20,7 +20,7 @@ def test_http_hash_server():
             'params': params,
             'cookies': cookies,
         })
-        return r
+        return str.encode(r)
 
     # noinspection PyUnusedLocal
     def __callback_cookie_redirect(params: dict, cookies: dict) -> str:
@@ -37,12 +37,12 @@ def test_http_hash_server():
         '/': 'home',
         '/foo': b'foo',
         '/bar': 'bar ąą',
-        '/foo-bar': {'redirect': '/bar'},
+        '/foo-bar': {b'redirect': b'/bar'},
         '/localhost': {'redirect': "http://localhost:%d/" % port},
-        '/127-foo': {'redirect': "http://127.0.0.1:%d/foo" % port},
-        '/auth': {'auth': 'foo:bar', 'content': b"foo bar \xf0\x90\x28\xbc"},
-        '/404': {'content': b'not found', 'http_status_code': 404},
-        '/callback': {'callback': __simple_callback},
+        b'/127-foo': {b'redirect': "http://127.0.0.1:%d/foo" % port},
+        '/auth': {b'auth': b'foo:bar', b'content': b"foo bar \xf0\x90\x28\xbc"},
+        '/404': {b'content': b'not found', b'http_status_code': 404},
+        '/callback': {b'callback': __simple_callback},
 
         # Test setting cookies, redirects
         '/callback_cookie_redirect': {'callback': __callback_cookie_redirect},

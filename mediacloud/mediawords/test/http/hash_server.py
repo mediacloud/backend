@@ -58,8 +58,13 @@ class HashServer(object):
             self.wfile.write(response_string)
 
         def __request_passed_authentication(self, page: dict) -> bool:
+            if b'auth' in page:
+                page['auth'] = page[b'auth']
+
             if 'auth' not in page:
                 return True
+
+            page['auth'] = decode_object_from_bytes_if_needed(page['auth'])
 
             auth_header = self.headers.get('Authorization', None)
             if auth_header is None:
@@ -154,24 +159,28 @@ class HashServer(object):
 
                 response = callback_function(params, cookies)
 
-                response = decode_object_from_bytes_if_needed(response)
+                if isinstance(response, str):
+                    response = str.encode(response)
 
                 l.debug("Raw callback response: %s" % str(response))
 
-                if "\r\n\r\n" not in response:
+                if b"\r\n\r\n" not in response:
                     raise McHashServerException("Response must include both HTTP headers and data, separated by CRLF.")
 
-                response_headers, response_content = response.split("\r\n\r\n", 1)
-                for response_header in response_headers.split("\r\n"):
+                response_headers, response_content = response.split(b"\r\n\r\n", 1)
+                for response_header in response_headers.split(b"\r\n"):
 
-                    if response_header.startswith('HTTP/'):
-                        protocol, http_status_code, http_status_message = response_header.split(' ', maxsplit=2)
-                        self.send_response(code=int(http_status_code), message=http_status_message)
+                    if response_header.startswith(b'HTTP/'):
+                        protocol, http_status_code, http_status_message = response_header.split(b' ', maxsplit=2)
+                        self.send_response(
+                            code=int(http_status_code.decode('utf-8')),
+                            message=http_status_message.decode('utf-8')
+                        )
 
                     else:
-                        header_name, header_value = response_header.split(':', 1)
+                        header_name, header_value = response_header.split(b':', 1)
                         header_value = header_value.strip()
-                        self.send_header(header_name, header_value)
+                        self.send_header(header_name.decode('utf-8'), header_value.decode('utf-8'))
 
                 self.end_headers()
                 self.__write_response_string(response_content)
@@ -206,7 +215,7 @@ class HashServer(object):
 
         Sample pages dictionary:
 
-            def __sample_callback(params: dict, cookies: dict) -> str:
+            def __sample_callback(params: dict, cookies: dict) -> Union[str, bytes]:
                 response = ""
                 response += "HTTP/1.0 200 OK\r\n"
                 response += "Content-Type: text/plain\r\n"
