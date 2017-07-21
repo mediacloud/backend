@@ -39,7 +39,9 @@ my Readonly $TEST_HTTP_SERVER_URL  = 'http://localhost:' . $TEST_HTTP_SERVER_POR
 # * HTTP request log in data/logs/
 # * GET
 # * POST
-# * get(): authorization in URL
+# * get(): authentication (username:password) in URL
+# * get(): authentication from config (crawler_authenticated_domains)
+# * get(): make sure preset authentication doesn't get overridden
 # * request(): custom METHOD
 # * request(): custom headers
 # * request(): custom content type

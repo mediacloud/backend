@@ -174,6 +174,43 @@ sub _lwp_request_callback
     $fh->close;
 }
 
+# cache domain http auth lookup from config
+my $_domain_http_auth_lookup;
+
+# read the mediawords.crawler_authenticated_domains list from mediawords.yml and generate a lookup hash
+# with the host domain as the key and the user:password credentials as the value.
+sub _get_domain_http_auth_lookup()
+{
+    return $_domain_http_auth_lookup if ( defined( $_domain_http_auth_lookup ) );
+
+    my $config = MediaWords::Util::Config::get_config;
+
+    my $domains = $config->{ mediawords }->{ crawler_authenticated_domains };
+
+    map { $_domain_http_auth_lookup->{ lc( $_->{ domain } ) } = $_ } @{ $domains };
+
+    return $_domain_http_auth_lookup;
+}
+
+# if there are http auth credentials for the requested site, add them to the request
+sub _url_with_http_auth($)
+{
+    my ( $url ) = @_;
+
+    my $auth_lookup ||= _get_domain_http_auth_lookup();
+
+    my $domain = MediaWords::Util::URL::get_url_distinctive_domain( $url );
+
+    if ( my $auth = $auth_lookup->{ lc( $domain ) } )
+    {
+        my $uri = URI->new( $url )->canonical;
+        $uri->userinfo( $auth->{ user } . ':' . $auth->{ password } );
+        $url = $uri->as_string;
+    }
+
+    return $url;
+}
+
 # Alias for get()
 sub get($$)
 {
@@ -190,6 +227,9 @@ sub get($$)
     {
         die "URL is not HTTP(s): $url";
     }
+
+    # Add HTTP authentication
+    $url = _url_with_http_auth( $url );
 
     my $response = $self->{ _ua }->get( $url );
 
