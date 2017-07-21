@@ -15,7 +15,7 @@ use MediaWords::Util::URL;
 use HTML::TreeBuilder::LibXML;
 
 # Given a url and content from one of the following url archiving sites, return the original url
-sub original_url_from_meta_refresh_url($$)
+sub target_url_from_meta_refresh_url($$)
 {
     my ( $content, $archive_site_url ) = @_;
 
@@ -23,7 +23,7 @@ sub original_url_from_meta_refresh_url($$)
 }
 
 # Given a url and content from one of the following url archiving sites, return the original url
-sub original_url_from_archive_org_url($$)
+sub target_url_from_archive_org_url($$)
 {
     my ( $content, $archive_site_url ) = @_;
 
@@ -35,7 +35,7 @@ sub original_url_from_archive_org_url($$)
     return undef;
 }
 
-sub original_url_from_archive_is_url($$)
+sub target_url_from_archive_is_url($$)
 {
     my ( $content, $archive_site_url ) = @_;
 
@@ -57,7 +57,7 @@ sub original_url_from_archive_is_url($$)
 
 # given the content of a linkis.com web page, find the original url in the content, which may be in one of
 # serveral places in the DOM
-sub original_url_from_linkis_com_url($$)
+sub target_url_from_linkis_com_url($$)
 {
     my ( $content, $archive_site_url ) = @_;
 

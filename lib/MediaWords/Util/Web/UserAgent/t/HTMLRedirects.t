@@ -10,10 +10,10 @@ use Test::Deep;
 
 use MediaWords::Util::Web::UserAgent::HTMLRedirects;
 
-sub test_original_url_from_meta_refresh_url()
+sub test_target_url_from_meta_refresh_url()
 {
     is(
-        MediaWords::Util::Web::UserAgent::HTMLRedirects::original_url_from_meta_refresh_url(
+        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_url_from_meta_refresh_url(
             <<EOF,
         <HTML>
         <HEAD>
@@ -33,10 +33,10 @@ EOF
     );
 }
 
-sub test_original_url_from_archive_is_url()
+sub test_target_url_from_archive_is_url()
 {
     is(
-        MediaWords::Util::Web::UserAgent::HTMLRedirects::original_url_from_archive_is_url(
+        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_url_from_archive_is_url(
             '<link rel="canonical" href="https://archive.is/20170201/https://bar.com/foo/bar">',    #
             'https://archive.is/20170201/https://bar.com/foo/bar'                                   #
         ),
@@ -45,7 +45,7 @@ sub test_original_url_from_archive_is_url()
     );
 
     is(
-        MediaWords::Util::Web::UserAgent::HTMLRedirects::original_url_from_archive_is_url(
+        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_url_from_archive_is_url(
             '<link rel="canonical" href="https://archive.is/20170201/https://bar.com/foo/bar">',    #
             'https://bar.com/foo/bar'                                                               #
         ),
@@ -54,10 +54,10 @@ sub test_original_url_from_archive_is_url()
     );
 }
 
-sub test_original_url_from_archive_org_url()
+sub test_target_url_from_archive_org_url()
 {
     is(
-        MediaWords::Util::Web::UserAgent::HTMLRedirects::original_url_from_archive_org_url(
+        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_url_from_archive_org_url(
             undef,                                                                                     #
             'https://web.archive.org/web/20150204024130/http://www.john-daly.com/hockey/hockey.htm'    #
         ),
@@ -66,7 +66,7 @@ sub test_original_url_from_archive_org_url()
     );
 
     is(
-        MediaWords::Util::Web::UserAgent::HTMLRedirects::original_url_from_archive_org_url(
+        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_url_from_archive_org_url(
             undef,                                                                                     #
             'http://www.john-daly.com/hockey/hockey.htm'                                               #
         ),
@@ -75,10 +75,10 @@ sub test_original_url_from_archive_org_url()
     );
 }
 
-sub test_original_url_from_linkis_com_url()
+sub test_target_url_from_linkis_com_url()
 {
     is(
-        MediaWords::Util::Web::UserAgent::HTMLRedirects::original_url_from_linkis_com_url(
+        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_url_from_linkis_com_url(
             '<meta property="og:url" content="http://og.url/test"',                                    #
             'https://linkis.com/foo.com/ASDF'                                                          #
         ),
@@ -87,7 +87,7 @@ sub test_original_url_from_linkis_com_url()
     );
 
     is(
-        MediaWords::Util::Web::UserAgent::HTMLRedirects::original_url_from_linkis_com_url(
+        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_url_from_linkis_com_url(
             '<a class="js-youtube-ln-event" href="http://you.tube/test"',                              #
             'https://linkis.com/foo.com/ASDF'                                                          #
         ),
@@ -96,7 +96,7 @@ sub test_original_url_from_linkis_com_url()
     );
 
     is(
-        MediaWords::Util::Web::UserAgent::HTMLRedirects::original_url_from_linkis_com_url(
+        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_url_from_linkis_com_url(
             '<iframe id="source_site" src="http://source.site/test"',                                  #
             'https://linkis.com/foo.com/ASDF'                                                          #
         ),
@@ -105,7 +105,7 @@ sub test_original_url_from_linkis_com_url()
     );
 
     is(
-        MediaWords::Util::Web::UserAgent::HTMLRedirects::original_url_from_linkis_com_url(
+        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_url_from_linkis_com_url(
             '"longUrl":"http:\/\/java.script\/test"',                                                  #
             'https://linkis.com/foo.com/ASDF'                                                          #
         ),
@@ -114,7 +114,7 @@ sub test_original_url_from_linkis_com_url()
     );
 
     is(
-        MediaWords::Util::Web::UserAgent::HTMLRedirects::original_url_from_linkis_com_url(
+        MediaWords::Util::Web::UserAgent::HTMLRedirects::target_url_from_linkis_com_url(
             '<meta property="og:url" content="http://og.url/test"',                                    #
             'https://bar.com/foo/bar'                                                                  #
         ),
@@ -130,10 +130,10 @@ sub main()
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
-    test_original_url_from_meta_refresh_url();
-    test_original_url_from_archive_is_url();
-    test_original_url_from_archive_org_url();
-    test_original_url_from_linkis_com_url();
+    test_target_url_from_meta_refresh_url();
+    test_target_url_from_archive_is_url();
+    test_target_url_from_archive_org_url();
+    test_target_url_from_linkis_com_url();
 }
 
 main();

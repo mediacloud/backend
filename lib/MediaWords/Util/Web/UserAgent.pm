@@ -202,10 +202,10 @@ sub _get_follow_http_html_redirects_inner_follow_redirects($$$)
 
         my $url_after_meta_redirect;
         for my $f (
-            \&MediaWords::Util::Web::UserAgent::HTMLRedirects::original_url_from_meta_refresh_url,    #
-            \&MediaWords::Util::Web::UserAgent::HTMLRedirects::original_url_from_archive_org_url,     #
-            \&MediaWords::Util::Web::UserAgent::HTMLRedirects::original_url_from_archive_is_url,      #
-            \&MediaWords::Util::Web::UserAgent::HTMLRedirects::original_url_from_linkis_com_url,      #
+            \&MediaWords::Util::Web::UserAgent::HTMLRedirects::target_url_from_meta_refresh_url,    #
+            \&MediaWords::Util::Web::UserAgent::HTMLRedirects::target_url_from_archive_org_url,     #
+            \&MediaWords::Util::Web::UserAgent::HTMLRedirects::target_url_from_archive_is_url,      #
+            \&MediaWords::Util::Web::UserAgent::HTMLRedirects::target_url_from_linkis_com_url,      #
           )
         {
             $url_after_meta_redirect = $f->( $response->decoded_content, $base_url );
