@@ -7,11 +7,12 @@ use MediaWords::CommonLibs;
 
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 67;
+use Test::More tests => 90;
 
 use HTTP::Status qw(:constants);
 use Readonly;
 use Data::Dumper;
+use File::ReadBackwards;
 use URI;
 use URI::Escape;
 
@@ -24,12 +25,10 @@ my Readonly $TEST_HTTP_SERVER_URL  = 'http://localhost:' . $TEST_HTTP_SERVER_POR
 
 # FIXME things to test:
 #
-# * lowercase / uppercase headers
 # * User-Agent: header
 # * From: header
 # * retries via ::Determined of specific HTTP status codes
 # * blacklisted URLs
-# * HTTP request log in data/logs/
 # * POST
 # * get(): authentication (username:password) in URL
 # * get(): authentication from config (crawler_authenticated_domains)
@@ -39,12 +38,6 @@ my Readonly $TEST_HTTP_SERVER_URL  = 'http://localhost:' . $TEST_HTTP_SERVER_POR
 # * request(): custom content type
 # * request(): custom content (POST data) -- both hashref and string
 # * request(): authorization
-# * response: HTTP status code, message, status line
-# * response: HTTP headers
-# * response: content type
-# * response: decoded content (UTF-8, non-UTF-8, and invalid UTF-8)
-# * response: get original request
-# * get_string()
 
 sub test_get()
 {
@@ -265,6 +258,157 @@ sub test_get_max_redirect()
     $hs->stop();
 
     ok( !$response->is_success() );
+}
+
+sub test_get_response_status()
+{
+    my $pages = {
+        '/test' => {
+            callback => sub {
+                my ( $params, $cookies ) = @_;
+
+                my $response = '';
+
+                $response .= "HTTP/1.0 418 Jestem czajniczek\r\n";
+                $response .= "Content-Type: text/html; charset=UTF-8\r\n";
+                $response .= "\r\n";
+                $response .= "☕";
+
+                return $response;
+            }
+        }
+    };
+
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my $ua       = MediaWords::Util::Web::UserAgent->new();
+    my $response = $ua->get( "$TEST_HTTP_SERVER_URL/test" );
+
+    $hs->stop();
+
+    is( $response->request()->url(),  $TEST_HTTP_SERVER_URL . '/test' );
+    is( $response->decoded_content(), '☕' );
+
+    # HTTP status cod and message
+    is( $response->code(),        418 );
+    is( $response->message(),     'Jestem czajniczek' );
+    is( $response->status_line(), '418 Jestem czajniczek' );
+}
+
+sub test_get_response_headers()
+{
+    my $pages = {
+        '/test' => {
+            header  => "Content-Type: text/plain; charset=UTF-8\r\nX-Media-Cloud: mediacloud",
+            content => "pnolɔ ɐıpǝɯ",
+        }
+    };
+
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my $ua       = MediaWords::Util::Web::UserAgent->new();
+    my $response = $ua->get( "$TEST_HTTP_SERVER_URL/test" );
+
+    $hs->stop();
+
+    is( $response->request()->url(),  $TEST_HTTP_SERVER_URL . '/test' );
+    is( $response->decoded_content(), 'pnolɔ ɐıpǝɯ' );
+
+    # Uppercase / lowercase headers
+    is( $response->header( 'X-Media-Cloud' ), 'mediacloud' );
+    is( $response->header( 'x-media-cloud' ), 'mediacloud' );
+}
+
+sub test_get_response_content_type()
+{
+    my $pages = {
+        '/test' => {
+            header  => "Content-Type: application/xhtml+xml; charset=UTF-8",
+            content => "pnolɔ ɐıpǝɯ",
+        }
+    };
+
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my $ua       = MediaWords::Util::Web::UserAgent->new();
+    my $response = $ua->get( "$TEST_HTTP_SERVER_URL/test" );
+
+    $hs->stop();
+
+    is( $response->request()->url(),  $TEST_HTTP_SERVER_URL . '/test' );
+    is( $response->decoded_content(), 'pnolɔ ɐıpǝɯ' );
+
+    is( $response->content_type(), 'application/xhtml+xml' );
+}
+
+sub test_get_response_as_string()
+{
+    my $pages = {
+        '/test' => {
+            header  => "Content-Type: application/xhtml+xml; charset=UTF-8\r\nX-Media-Cloud: mediacloud",
+            content => "media\ncloud\n",
+        }
+    };
+
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my $ua       = MediaWords::Util::Web::UserAgent->new();
+    my $response = $ua->get( "$TEST_HTTP_SERVER_URL/test" );
+
+    $hs->stop();
+
+    is( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/test' );
+
+    like(
+        $response->as_string(), qr|
+        HTTP/1.0\s200\sOK\n
+        Date:\s.+?\n
+        Server:\s.+?\n
+        Content-Type:\sapplication/xhtml\+xml;\scharset=UTF-8\n
+        Client-Date:\s.+?\n
+        .+?\n
+        X-Media-Cloud:\smediacloud\n
+        \n
+        media\n
+        cloud\n
+    |ixs
+    );
+}
+
+sub test_get_http_request_log()
+{
+    my $path = '/' . MediaWords::Util::Text::random_string( 16 );
+    my $pages = { $path => $path };
+
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my $ua       = MediaWords::Util::Web::UserAgent->new();
+    my $url      = $TEST_HTTP_SERVER_URL . $path;
+    my $response = $ua->get( $url );
+
+    $hs->stop();
+
+    is( $response->request()->url(), $url );
+    ok( $response->is_success() );
+
+    my $config                = MediaWords::Util::Config::get_config();
+    my $http_request_log_file = "$config->{ mediawords }->{ data_dir }/logs/http_request.log";
+    ok( -e $http_request_log_file );
+
+    my $backwards = File::ReadBackwards->new( $http_request_log_file );
+    my $last_non_blank_line;
+    do
+    {
+        $last_non_blank_line = $backwards->readline;
+    } until !defined $last_non_blank_line || $last_non_blank_line =~ /\S/;
+
+    ok( $last_non_blank_line );
+    like( $last_non_blank_line, qr/\Q$url\E/ );
 }
 
 sub test_get_follow_http_html_redirects_http()
@@ -564,6 +708,11 @@ sub test_get_follow_http_html_redirects_previous_responses()
     is( $response->decoded_content(), 'Finally!' );
     is( $response->request()->url(),  "$TEST_HTTP_SERVER_URL/page_7" );
 
+    # Test original_request()
+    ok( $response->original_request() );
+    is( $response->original_request()->url(), "$TEST_HTTP_SERVER_URL/page_1" );
+
+    # Test previous()
     $response = $response->previous();
     ok( $response );
     ok( $response->request() );
@@ -717,6 +866,23 @@ sub test_determined_retries()
     $hs->stop();
 }
 
+sub test_get_string()
+{
+    my $pages = { '/exists' => 'I do exist.', };
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my $ua = MediaWords::Util::Web::UserAgent->new();
+
+    my $exists_string         = $ua->get_string( "$TEST_HTTP_SERVER_URL/exists" );
+    my $does_not_exist_string = $ua->get_string( "$TEST_HTTP_SERVER_URL/does-not-exist" );
+
+    $hs->stop();
+
+    is( $exists_string,         'I do exist.' );
+    is( $does_not_exist_string, undef );
+}
+
 sub main()
 {
     my $builder = Test::More->builder;
@@ -732,6 +898,11 @@ sub main()
     test_get_non_utf8_content();
     test_get_max_size();
     test_get_max_redirect();
+    test_get_response_status();
+    test_get_response_headers();
+    test_get_response_content_type();
+    test_get_response_as_string();
+    test_get_http_request_log();
 
     test_get_follow_http_html_redirects_nonexistent();
     test_get_follow_http_html_redirects_http();
@@ -743,6 +914,7 @@ sub main()
 
     test_parallel_get();
     test_determined_retries();
+    test_get_string();
 }
 
 main();
