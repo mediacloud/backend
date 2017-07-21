@@ -39,6 +39,7 @@ my Readonly $TEST_HTTP_SERVER_URL  = 'http://localhost:' . $TEST_HTTP_SERVER_POR
 # * HTTP request log in data/logs/
 # * GET
 # * POST
+# * get(): authorization in URL
 # * request(): custom METHOD
 # * request(): custom headers
 # * request(): custom content type
