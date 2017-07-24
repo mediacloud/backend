@@ -1,4 +1,3 @@
-# import path_helper # uncomment this line if 'No module named XXX' error occurs
 import unittest
 
 from mediawords.util.topic_modeling.token_pool import TokenPool

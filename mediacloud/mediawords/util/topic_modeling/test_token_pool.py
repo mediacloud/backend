@@ -1,4 +1,3 @@
-# import path_helper # uncomment this line if 'No module named XXX' error occurs
 import unittest
 import os
 

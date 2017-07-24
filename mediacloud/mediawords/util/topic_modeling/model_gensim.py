@@ -1,4 +1,3 @@
-# import path_helper  # uncomment this line if 'No module named XXX' error occurs
 import gensim
 
 from mediawords.util.topic_modeling.topic_model import BaseTopicModel
