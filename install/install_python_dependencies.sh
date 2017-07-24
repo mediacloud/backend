@@ -69,3 +69,12 @@ pip$PYTHON3_MAJOR_VERSION install --upgrade -r mediacloud/requirements.txt || {
     echo "'pip$PYTHON3_MAJOR_VERSION install' failed the first time, retrying..."
     pip$PYTHON3_MAJOR_VERSION install --upgrade -r mediacloud/requirements.txt
 }
+
+# Installing WordNet with NLTK
+echo "Installing NLTK WordNet data..."
+if [ `uname` == 'Darwin' ]; then
+    NLTK_DATA_PATH=/usr/local/share/nltk_data
+else
+    NLTK_DATA_PATH=/usr/share/nltk_data
+fi
+$COMMAND_PREFIX python$PYTHON3_MAJOR_VERSION -m nltk.downloader all -d "$NLTK_DATA_PATH"
