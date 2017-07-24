@@ -9,6 +9,13 @@
 # Unit test coverage
 coverage
 
+# LDA models
+gensim
+
+# To eliminate the 'module' object has no attribute 'plugin' problem
+# while importing gensim
+google-compute-engine
+
 # Stemming Hausa words
 hausastemmer
 
@@ -17,6 +24,9 @@ jieba
 
 # Parsing email templates
 Jinja2
+
+# LDA models
+lda
 
 # Japanese language tokenizer, stemmer, etc.
 mecab-python3
@@ -51,25 +61,17 @@ readability-lxml==0.6.2
 # Making HTTP requests
 requests
 
+# To apply non-negative matrix factorization
+scikit-learn
+
 # math package for forceatlas implementation
 scipy
 
-# Normalizing URLs
-url_normalize
-
-
-# LDA models
-gensim
-lda
-
-# To eliminate the 'module' object has no attribute 'plugin' problem
-# while importing gensim
-google-compute-engine
-
-# Lemmatization requires WordNet, the simplest way to install is running :
+# Lemmatization requires WordNet, the simplest way to install is running:
 # python3.5 -m textblob.download_corpora with:
 textblob
 # Or manually select items from nltk.download()
 
-# To apply non-negative matrix factorization
-scikit-learn
+# Normalizing URLs
+url_normalize
+
