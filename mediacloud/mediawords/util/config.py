@@ -43,8 +43,9 @@ def __parse_yaml(config_file: str) -> dict:
     if not os.path.isfile(config_file):
         raise McConfigException("Configuration file '%s' was not found." % config_file)
 
-    yaml_file = open(config_file, 'r').read()
-    yaml_data = yaml.load(yaml_file, Loader=Loader)
+    yaml_file = open(config_file, 'r')
+    yaml_data = yaml.load(yaml_file.read(), Loader=Loader)
+    yaml_file.close()
     return yaml_data
 
 
