@@ -1,5 +1,6 @@
 # import path_helper # uncomment this line if 'No module named XXX' error occurs
 import unittest
+import logging
 
 from mediawords.util.topic_modeling.token_pool import TokenPool
 from mediawords.util.topic_modeling.model_lda import ModelLDA
@@ -25,6 +26,8 @@ class TestModelLDA(unittest.TestCase):
         self._lda_model = ModelLDA()
         self._lda_model.add_stories(self._story_tokens)
         self._topics = self._lda_model.summarize_topic()
+        logging.getLogger("lda").setLevel(logging.WARNING)
+        logging.getLogger("gensim").setLevel(logging.WARNING)
 
     def _flatten_story_tokens(self) -> Dict[int, List[str]]:
         """
@@ -63,29 +66,31 @@ class TestModelLDA(unittest.TestCase):
         """
         Test if each story contains at least one of the topic words
         """
-
         story_ids = self._story_tokens.keys()
 
         for story_id in story_ids:
+            # Due to the nature of this algorithm, if a story is too short, the words in it might
+            # not repeat enough times to be considered as a valid topic. Hence
+            if len(self._flat_story_tokens.get(story_id)) < 25:
+                return
             exist = False
             for topic in self._topics.get(story_id):
-                for word in topic:
-                    exist = word in self._flat_story_tokens.get(story_id)
-                    if exist:
-                        break
-                if not exist:
-                    raise ValueError("Story {id} does not contain any of its topic words: {topic}"
-                                     .format(id=story_ids, topic=self._topics.get(story_id)))
+                exist = topic in self._flat_story_tokens.get(story_id) or exist
+                if exist:
+                    break
+            if not exist:
+                raise ValueError("Story {id} does not contain any of its topic words: {topic}\n"
+                                 "Story tokens:\n {tokens}"
+                                 .format(id=story_id, topic=self._topics.get(story_id),
+                                         tokens=self._flat_story_tokens.get(story_id)))
 
     def test_default_topic_params(self):
-        default_topic_num = 1
         default_word_num = 4
         for topics in self._topics.values():
             unittest.TestCase.assertEqual(
-                self=self, first=default_topic_num, second=len(topics))
-            for topic in topics:
-                unittest.TestCase.assertEqual(
-                    self=self, first=default_word_num, second=len(topic))
+                self=self, first=default_word_num, second=len(topics),
+                msg="Default word number ({}) != word number ({})\nTopic = {}"
+                    .format(default_word_num, len(topics), topics))
 
 
 if __name__ == '__main__':
