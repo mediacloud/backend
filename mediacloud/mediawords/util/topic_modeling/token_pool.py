@@ -6,24 +6,28 @@ from mediawords.util.paths import mc_root_path
 from nltk.stem import WordNetLemmatizer
 from nltk import word_tokenize
 from typing import Dict, List
+import warnings
 
 
 class TokenPool:
     """ Fetch the sentences and break it down to words."""
     _LANGUAGE = 'english'
-    _STORY_ID = 'stories_id'
-    _SENTENCE = 'sentence'
     _STORY_SENTENCE_TABLE = 'story_sentences'
     _STORY_TABLE = 'stories'
     _MAIN_QUERY \
-        = """SELECT {sentence_table}.{story_id}, {sentence_table}.{sentence} FROM {sentence_table}
-         INNER JOIN {story_table} ON {story_table}.{story_id} = {sentence_table}.{story_id}
-          WHERE {story_table}.language = 'en'
-           AND {sentence_table}.{story_id} IN
-           (SELECT DISTINCT {story_id} FROM {sentence_table}
-           ORDER BY {sentence_table}.{story_id})""" \
-        .format(story_id=_STORY_ID, sentence=_SENTENCE,
-                sentence_table=_STORY_SENTENCE_TABLE, story_table=_STORY_TABLE)
+        = """SELECT story_sentences.stories_id, story_sentences.sentence FROM story_sentences
+         INNER JOIN stories ON stories.stories_id = story_sentences.stories_id
+         WHERE stories.language = 'en'
+         AND story_sentences.stories_id IN
+         (SELECT stories_id FROM story_sentences
+         ORDER BY story_sentences.stories_id)
+         ORDER BY story_sentences.sentence_number"""
+
+    # = """SELECT story_sentences.stories_id, story_sentences.sentence FROM stories
+    #  INNER JOIN story_sentences ON stories.stories_id = story_sentences.stories_id
+    #  WHERE stories.language = 'en'
+    #  ORDER BY stories.stories_id,
+    #  story_sentences.sentence_number"""
 
     _STOP_WORDS \
         = os.path.join(mc_root_path(), "lib/MediaWords/Languages/resources/en_stopwords.txt")
@@ -41,10 +45,16 @@ class TokenPool:
         :return: the sentences in json format
         """
 
-        query_cmd = self._MAIN_QUERY[:-1] + ' LIMIT {} OFFSET {})'.format(limit, offset) \
+        query_cmd \
+            = self._MAIN_QUERY[:-51] \
+            + ' LIMIT {} OFFSET {}'.format(limit, offset) \
+            + self._MAIN_QUERY[-51:] \
             if limit else self._MAIN_QUERY
 
+        # query_cmd = self._MAIN_QUERY
+
         sentence_dictionaries = self._db.query(query_cmd).hashes()
+        self._db.disconnect()
 
         return sentence_dictionaries
 
@@ -80,8 +90,10 @@ class TokenPool:
         # First elimination: save time in lemmatization
         useful_tokens = self._eliminate_stopwords(sentence_tokens=sentence_tokens)
 
-        lemmatized_tokens \
-            = [WordNetLemmatizer().lemmatize(word=token.lower()) for token in useful_tokens]
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            lemmatized_tokens \
+                = [WordNetLemmatizer().lemmatize(word=token.lower()) for token in useful_tokens]
 
         del useful_tokens
 
@@ -133,6 +145,7 @@ class TokenPool:
         processed_stories = self._bind_stories(sentences=sentence_dictionaries)
 
         return processed_stories
+
 
 # A sample output
 if __name__ == '__main__':
