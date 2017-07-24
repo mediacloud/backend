@@ -1,25 +1,29 @@
+import path_helper
 import unittest
 import os
 
 from mediawords.util.paths import mc_root_path
 from mediawords.util.topic_modeling.token_pool import TokenPool
-from mediawords.db import connect_to_db
 
 
 class TestTokenPool(unittest.TestCase):
     """
     Test the methods in ..token_pool.py
     """
+    _SAMPLE_STORIES \
+        = os.path.join(mc_root_path(),
+                       "mediacloud/mediawords/util/topic_modeling/sample_stories.txt")
 
     def setUp(self):
         """
         Prepare the token pool
         """
-        self._LIMIT = 5
+        self._LIMIT = 1
         self._OFFSET = 1
-        token_pool = TokenPool(connect_to_db())
+        sample_file = open(self._SAMPLE_STORIES)
+        token_pool = TokenPool(sample_file)
         self._article_tokens = token_pool.output_tokens(limit=self._LIMIT, offset=self._OFFSET)
-
+        sample_file.close()
         self._STOP_WORDS \
             = os.path.join(mc_root_path(), "lib/MediaWords/Languages/resources/en_stopwords.txt")
 
