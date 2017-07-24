@@ -1,8 +1,9 @@
 import unittest
+import os
 
 from mediawords.util.topic_modeling.token_pool import TokenPool
 from mediawords.util.topic_modeling.model_nmf import ModelNMF
-from mediawords.db import connect_to_db
+from mediawords.util.paths import mc_root_path
 from typing import Dict, List
 
 
@@ -11,6 +12,10 @@ class TestModelNMF(unittest.TestCase):
     Test the methods in ..model_gensim.py
     """
 
+    _SAMPLE_STORIES \
+        = os.path.join(mc_root_path(),
+                       "mediacloud/mediawords/util/topic_modeling/sample_stories.txt")
+
     def setUp(self):
         """
         Prepare the token pool
@@ -18,8 +23,10 @@ class TestModelNMF(unittest.TestCase):
         self.LIMIT = 5
         self.OFFSET = 1
 
-        token_pool = TokenPool(connect_to_db())
+        sample_file = open(self._SAMPLE_STORIES)
+        token_pool = TokenPool(sample_file)
         self._story_tokens = token_pool.output_tokens(limit=self.LIMIT, offset=self.OFFSET)
+        sample_file.close()
         self._flat_story_tokens = self._flatten_story_tokens()
         self._nmf_model = ModelNMF()
         self._nmf_model.add_stories(self._story_tokens)
