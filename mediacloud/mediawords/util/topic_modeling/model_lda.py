@@ -10,7 +10,16 @@ from typing import Dict, List
 
 
 class ModelLDA(BaseTopicModel):
-    """Generate topics of each story based on the LDA model"""
+    """Generate topics of each story based on the LDA model
+    ModelLDA operates on all stories.
+    It groups the words that often occur together among all stories into a topic
+    and assign that each story with the topic that has the closest match. This means:
+    1. We can only select the total number of topics among all stories
+    2. The number of topics for each story is not fixed. Theoretically speaking,
+    some stories' topic words might not be the best match of the content of that story.
+    (i.e. some times we might find two stories have exactly the same topic)
+    3. Since the topics are compared among all stories,
+    the difference between the topics are more significant than ModelGensim"""
 
     def __init__(self) -> None:
         """Initialisations"""

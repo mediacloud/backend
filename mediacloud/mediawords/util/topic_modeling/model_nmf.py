@@ -10,7 +10,12 @@ from typing import Dict, List
 
 
 class ModelNMF(BaseTopicModel):
-    """Generate topics of each story based on the LDA model"""
+    """Generate topics of each story based on the NMF model
+    ModelNMG applies non-negative matrix factorization.
+    Whereas LDA is a probabilistic model capable of expressing uncertainty about the
+    placement of topics across texts and the assignment of words to topics,
+    NMF is a deterministic algorithm which arrives at a single representation of the corpus.
+    Because of this, the topic it came up with might be slightly different from LDA."""
 
     def __init__(self) -> None:
         """Initialisations"""

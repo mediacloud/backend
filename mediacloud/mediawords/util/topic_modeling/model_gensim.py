@@ -7,7 +7,12 @@ from typing import Dict, List
 
 
 class ModelGensim(BaseTopicModel):
-    """Generate topics of each story based on the LDA model"""
+    """Generate topics of each story based on the LDA model
+    ModelGensim operates on a single story at a time
+    by comparing the occurrence of each token in all sentences of that story.
+    It does not consider the rest of stories. The benefits of this approach include:
+    1. Each story contains the word in the topics of that story
+    2. There is a fixed number of topics for each story"""
 
     def __init__(self) -> None:
         self._story_number = 0
