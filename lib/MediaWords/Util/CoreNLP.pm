@@ -285,7 +285,7 @@ sub _annotate_text($)
             # die() on request timeouts without retrying anything
             # because those usually mean that we posted something funky
             # to the CoreNLP annotator service and it got stuck
-            fatal_error( "The request timed out, giving up." );
+            LOGCONFESS "The request timed out, giving up; text length: " . bytes::length( $text ) . "; text: $text";
         }
 
         if ( $response->error_is_client_side() )

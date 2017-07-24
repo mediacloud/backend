@@ -31,10 +31,10 @@ env:
         # * MC_AMAZON_S3_TEST_SECRET_ACCESS_KEY
         # * MC_AMAZON_S3_TEST_BUCKET_NAME
         # * MC_AMAZON_S3_TEST_DIRECTORY_NAME
-        - secure: "DpYY9zJCMOABwBUhW5tTLRjWgKKNgkWBH/i5x2hJTSkY53erpaaqTPzs/loGbiV1Q+TUu0PWPqRQh9eovDKd2/l2taXECbQi+gY/VprlYK4rqruLXci9mxJepIp9imITiCwxZB9hYI3BDxQYBvPDx0coklEi5bG017HZNlwYQfg="
-        - secure: "ONqZb6dPH8uNcCVkLH722JPhP4Zua8QjbYcj24ob27LVrjh9UbSAUVMu+3XVczY0dERsGGcqH2bhaG3WYINAs0wnbyPfbAokHtRSrIcDfSfVkDfCzJkYl7jc1Dhc/lV/pe6ygqtGZQG+Whx/dKf6DpCJmpEekeHavwVDxzC1D+4="
-        - secure: "Y3poZS6KCMfAyXmAG4hvHhCtaUHLl3UwB2CYjDLp2ki86tDtG7JfEJp2Q/8C610nzBw6WlA8bdljM9dxNHR6aEGHPxLz1NsGMLw8xYZFoMrw6RMpRq6BLcraylAmVZAFC2GTClqzHMWfW6mCQ5a5OznUWsJ6n4tP0aoPLjRpUgw="
-        - secure: "GHU56Kl7zaE00MZeaPqie3e8xoxLaGnh3A03xZbG8/707tPtBsPLfPDaCSQf9PSstajVjPik+tUNuOTgyz9AD5ma3dwPdJ6VhpFNS/DD8+CDlojmgEfuvaVD7Bi3sLFuop/PWrNoi0pND45lv8O8shQ1WruHEWPgYxW10vd3Q7Y="
+        - secure: "IelWSZxbrcjBXqaFkw/ugygQFuYdBCbfyq1p1Bc1eJzIWtYh42tMLfhel3DZpnJeneWXybATBGEwc0ix++CgV+RFc/jgq1ZcyM2n8D6PAE+2OwTjntrAs6AefSraW2Iu750II5LVCagOrb6Lx9ay6Mp7UpAyw9RYBR9+O2sQMeY="
+        - secure: "AcGT3z62sVzrl/k5FGMj5FRvNs7KXPVVePmFfLBlkB1R2k3qlYrslKDy2xaNPejRdhuwOnXHU3hIvg0DtgGSKIDgaHu8kHiDqEvWJJ8SLHhjtu8Xc9e2fUhG4uJf2uQ6OvvxN1Igst82WMwSanaVD5l5QThVxCyFu22gizQbx6A="
+        - secure: "TsGZHum9sSNX24jZrEdG3GBk2Q6s4Q2kEM2pXaaw1iMXqPrTMRHGHNdkGGEZBNvmhdKflKJmiTPYfQqls4gp7kCOYgM9t0uv6kw89yFsJhbSATnQ1WyYXi/x/V2ae/WmoAGNwXPk65gJJ6d4iMhN0vcpEjdpK1Un6wz7CU/HZus="
+        - secure: "IsKrT4JqS/VgmQUj7j7EyyohAzq0fS4mDijaUFZuNmXxL8oSattpULIDtz3O71ivlDZTHeNWIQjdh2u7tLspdDE4/Iv4c9eItrpQlcBjO9SCkVl3QxMitg2GacMwjmQxcACJlLtG8J6UceWBCiTHDRzwQieC/r7T0ZoT5tNGmxQ="
         # Univision API test credentials:
         # * MC_UNIVISION_TEST_URL
         # * MC_UNIVISION_TEST_CLIENT_ID

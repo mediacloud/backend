@@ -260,8 +260,6 @@ sub create_GET
     my $num_stories = eval { MediaWords::Solr::count_stories( $db, { q => $full_solr_query } ) };
     die( "invalid solr query: $@" ) if ( $@ );
 
-    die( "number of stories from query ($num_stories) is more than the max (500,000)" ) if ( $num_stories > 500000 );
-
     $topic->{ job_queue } = _is_mc_queue_user( $db, $auth_users_id ) ? 'mc' : 'public';
 
     $db->begin;
@@ -328,8 +326,6 @@ sub update_PUT
         my $full_solr_query = MediaWords::TM::Mine::get_full_solr_query( $db, $topic, $media_ids, $media_tags_ids );
         my $num_stories = eval { MediaWords::Solr::count_stories( $db, { q => $full_solr_query } ) };
         die( "invalid solr query: $@" ) if ( $@ );
-
-        die( "number of stories from query ($num_stories) is more than the max (500,000)" ) if ( $num_stories > 500000 );
     }
 
     $update->{ is_public }           = normalize_boolean_for_db( $update->{ is_public } );
