@@ -67,11 +67,6 @@ scikit-learn
 # math package for forceatlas implementation
 scipy
 
-# Lemmatization requires WordNet, the simplest way to install is running:
-# python3.5 -m textblob.download_corpora with:
-textblob
-# Or manually select items from nltk.download()
-
 # Normalizing URLs
 url_normalize
 
