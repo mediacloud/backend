@@ -75,17 +75,19 @@ class TestModelGensim(unittest.TestCase):
                         break
                 if not exist:
                     raise ValueError("Story {id} does not contain any of its topic words: {topic}"
-                                     .format(id=story_ids, topic=self._topics.get(story_id)))
+                                     .format(id=story_id, topic=self._topics.get(story_id)))
 
     def test_default_topic_params(self):
         default_topic_num = 1
         default_word_num = 4
         for topics in self._topics.values():
             unittest.TestCase.assertEqual(
-                self=self, first=default_topic_num, second=len(topics))
+                self=self, first=default_topic_num, second=len(topics),
+                msg="topics = {}".format(topics))
             for topic in topics:
                 unittest.TestCase.assertEqual(
-                    self=self, first=default_word_num, second=len(topic))
+                    self=self, first=default_word_num, second=len(topic),
+                    msg="topic = {}".format(topic))
 
 
 if __name__ == '__main__':
