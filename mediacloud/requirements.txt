@@ -71,3 +71,5 @@ google-compute-engine
 textblob
 # Or manually select items from nltk.download()
 
+# To apply non-negative matrix factorization
+scikit-learn
