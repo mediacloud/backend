@@ -1,10 +1,12 @@
+import _io
 import os
+import ast
 
 from mediawords.db import connect_to_db, handler
 from mediawords.util.paths import mc_root_path
 from nltk.stem import WordNetLemmatizer
 from nltk import word_tokenize
-from typing import Dict, List
+from typing import Dict, List, Union
 import warnings
 
 
@@ -14,29 +16,32 @@ class TokenPool:
     _STORY_SENTENCE_TABLE = 'story_sentences'
     _STORY_TABLE = 'stories'
     _MAIN_QUERY \
-        = """SELECT story_sentences.stories_id, story_sentences.sentence FROM story_sentences
-         INNER JOIN stories ON stories.stories_id = story_sentences.stories_id
+        = """SELECT story_sentences.stories_id, story_sentences.sentence FROM stories
+         INNER JOIN story_sentences ON stories.stories_id = story_sentences.stories_id
          WHERE stories.language = 'en'
-         AND story_sentences.stories_id IN
-         (SELECT stories_id FROM story_sentences
-         ORDER BY story_sentences.stories_id)
-         ORDER BY story_sentences.sentence_number"""
+         ORDER BY stories.stories_id,
+         story_sentences.sentence_number"""
 
-    # = """SELECT story_sentences.stories_id, story_sentences.sentence FROM stories
-    #  INNER JOIN story_sentences ON stories.stories_id = story_sentences.stories_id
-    #  WHERE stories.language = 'en'
-    #  ORDER BY stories.stories_id,
-    #  story_sentences.sentence_number"""
+    # An alternative SQL
+    # the intention was trying to use LIMIT and OFFSET to allow better customization
+    # = """SELECT story_sentences.stories_id, story_sentences.sentence FROM story_sentences
+    #      INNER JOIN stories ON stories.stories_id = story_sentences.stories_id
+    #      WHERE stories.language = 'en'
+    #      AND story_sentences.stories_id IN
+    #      (SELECT stories_id FROM story_sentences
+    #      ORDER BY story_sentences.stories_id) -- nested SELECT statement to cooperate with LIMIT
+    #      ORDER BY story_sentences.sentence_number"""
 
     _STOP_WORDS \
         = os.path.join(mc_root_path(), "lib/MediaWords/Languages/resources/en_stopwords.txt")
     _MIN_TOKEN_LEN = 1
 
-    def __init__(self, db: handler.DatabaseHandler) -> None:
+    def __init__(self, db: Union[handler.DatabaseHandler, _io.TextIOWrapper]) -> None:
         """Initialisations"""
         self._stopwords = self._fetch_stopwords()
         self._db = db
 
+    # parameter limit and offset cannot fit in the current SQL query
     def _fetch_sentence_dictionaries(self, limit: int, offset: int) -> list:
         """
         Fetch the sentence from DB
@@ -44,16 +49,18 @@ class TokenPool:
         :return: the sentences in json format
         """
 
-        query_cmd \
-            = self._MAIN_QUERY[:-51] \
-            + ' LIMIT {} OFFSET {}'.format(limit, offset) \
-            + self._MAIN_QUERY[-51:] \
-            if limit else self._MAIN_QUERY
+        # insert LIMIT and OFFSET if needed, but cannot fit in the current SQL query
+        # query_cmd \
+        #     = self._MAIN_QUERY[:-51] \
+        #       + ' LIMIT {} OFFSET {}'.format(limit, offset) \
+        #       + self._MAIN_QUERY[-51:] \
+        #     if limit else self._MAIN_QUERY
 
-        # query_cmd = self._MAIN_QUERY
+        query_cmd = self._MAIN_QUERY
 
-        sentence_dictionaries = self._db.query(query_cmd).hashes()
-        self._db.disconnect()
+        sentence_dictionaries = self._db.query(query_cmd).hashes() \
+            if type(self._db) == handler.DatabaseHandler \
+            else ast.literal_eval(self._db.readlines()[0])
 
         return sentence_dictionaries
 
@@ -149,6 +156,14 @@ class TokenPool:
 # A sample output
 if __name__ == '__main__':
     db_connection = connect_to_db()
-    pool = TokenPool(db_connection)
+    # The following lines demonstrate an alternative way to use TokenPool
+    # (i.e. Use stories from file instead of Database)
+    #
+    # SAMPLE_STORIES \
+    #     = os.path.join(mc_root_path(),
+    #                    "mediacloud/mediawords/util/topic_modeling/sample_stories.txt")
+    # sample = open(SAMPLE_STORIES)
+
+    pool = TokenPool(connect_to_db())
     print(pool.output_tokens(1))
     db_connection.disconnect()
