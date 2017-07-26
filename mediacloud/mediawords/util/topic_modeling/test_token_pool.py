@@ -1,4 +1,3 @@
-import path_helper
 import unittest
 import os
 
