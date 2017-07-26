@@ -44,6 +44,21 @@ echo "Installing (upgrading) Virtualenv..."
 $COMMAND_PREFIX pip2.7 install --force-reinstall --upgrade virtualenv
 $COMMAND_PREFIX pip$PYTHON3_MAJOR_VERSION install --force-reinstall --upgrade virtualenv
 
+# Install system-wide NLTK because otherwise sudo is unable to find
+# NLTK installed in virtualenv on Travis
+echo "Installing (upgrading) NLTK to install NLTK's data afterwards..."
+$COMMAND_PREFIX pip$PYTHON3_MAJOR_VERSION install --force-reinstall --upgrade nltk
+
+# Installing WordNet with NLTK
+echo "Installing NLTK WordNet data..."
+if [ `uname` == 'Darwin' ]; then
+    NLTK_DATA_PATH=/usr/local/share/nltk_data
+else
+    NLTK_DATA_PATH=/usr/share/nltk_data
+fi
+$COMMAND_PREFIX python$PYTHON3_MAJOR_VERSION -m nltk.downloader all -d "$NLTK_DATA_PATH"
+
+
 echo "Creating mc-venv virtualenv..."
 echo "$(which python$PYTHON3_MAJOR_VERSION)"
 echo "$(which virtualenv)"
@@ -70,11 +85,5 @@ pip$PYTHON3_MAJOR_VERSION install --upgrade -r mediacloud/requirements.txt || {
     pip$PYTHON3_MAJOR_VERSION install --upgrade -r mediacloud/requirements.txt
 }
 
-# Installing WordNet with NLTK
-echo "Installing NLTK WordNet data..."
-if [ `uname` == 'Darwin' ]; then
-    NLTK_DATA_PATH=/usr/local/share/nltk_data
-else
-    NLTK_DATA_PATH=/usr/share/nltk_data
-fi
-$COMMAND_PREFIX python$PYTHON3_MAJOR_VERSION -m nltk.downloader all -d "$NLTK_DATA_PATH"
+
+
