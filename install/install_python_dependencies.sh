@@ -48,7 +48,7 @@ $COMMAND_PREFIX pip$PYTHON3_MAJOR_VERSION install --upgrade virtualenv
 # NLTK installed in virtualenv on Travis
 
 echo "Installing (upgrading) NLTK to install NLTK's data afterwards..."
-$COMMAND_PREFIX pip$PYTHON3_MAJOR_VERSION install --force-reinstall --upgrade nltk
+$COMMAND_PREFIX pip$PYTHON3_MAJOR_VERSION install --upgrade nltk
 
 # Installing WordNet with NLTK
 # (installing from own mirror on S3 to avoid hitting GitHub: https://github.com/nltk/nltk/issues/1787)
