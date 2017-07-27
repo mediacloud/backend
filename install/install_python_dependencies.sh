@@ -47,9 +47,8 @@ $COMMAND_PREFIX pip$PYTHON3_MAJOR_VERSION install --upgrade virtualenv
 # Install system-wide NLTK because otherwise sudo is unable to find
 # NLTK installed in virtualenv on Travis
 
-
-#echo "Installing (upgrading) NLTK to install NLTK's data afterwards..."
-#$COMMAND_PREFIX pip$PYTHON3_MAJOR_VERSION install --force-reinstall --upgrade nltk
+echo "Installing (upgrading) NLTK to install NLTK's data afterwards..."
+$COMMAND_PREFIX pip$PYTHON3_MAJOR_VERSION install --force-reinstall --upgrade nltk
 
 # Installing WordNet with NLTK
 echo "Installing NLTK WordNet data..."
@@ -59,11 +58,7 @@ else
     NLTK_DATA_PATH=/usr/share/nltk_data
 fi
 
-wget https://github.com/nltk/nltk_data/archive/gh-pages.zip
-
-unzip gh-pages.zip
-mv nltk_data-gh-pages/ $NLTK_DATA_PATH
-#$COMMAND_PREFIX python$PYTHON3_MAJOR_VERSION -m nltk.downloader all -d "$NLTK_DATA_PATH"
+$COMMAND_PREFIX python$PYTHON3_MAJOR_VERSION -m nltk.downloader all -d "$NLTK_DATA_PATH"
 
 $COMMAND_PREFIX python$PYTHON3_MAJOR_VERSION \
     -m nltk.downloader \
