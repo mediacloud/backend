@@ -63,7 +63,7 @@ $COMMAND_PREFIX python$PYTHON3_MAJOR_VERSION \
     -m nltk.downloader \
     -u https://s3.amazonaws.com/mediacloud-nltk-data/nltk_data/index.xml \
     -d "$NLTK_DATA_PATH" \
-    all
+    wordnet
 
 echo "Creating mc-venv virtualenv..."
 echo "$(which python$PYTHON3_MAJOR_VERSION)"
