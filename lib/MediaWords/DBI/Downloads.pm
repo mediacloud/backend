@@ -209,7 +209,7 @@ sub _download_store_for_writing($)
 {
     my $content_ref = shift;
 
-    if ( length( $$content_ref ) < $INLINE_CONTENT_LENGTH )
+    if ( ( length( $$content_ref ) < $INLINE_CONTENT_LENGTH ) && ( $$content_ref !~ /\0/ ) )
     {
         return force $_store_inline;
     }
