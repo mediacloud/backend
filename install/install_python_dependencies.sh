@@ -57,13 +57,12 @@ if [ `uname` == 'Darwin' ]; then
 else
     NLTK_DATA_PATH=/usr/share/nltk_data
 fi
-echo "  Download data with wget, this may take a while"
-wget -nv https://github.com/nltk/nltk_data/archive/gh-pages.zip
-echo "  Unzip data with unzip -n, preventing overwriting existing files this may take a while"
-unzip -n gh-pages.zip
-echo "  Move data to ideal directory"
-$COMMAND_PREFIX mv nltk_data-gh-pages/ $NLTK_DATA_PATH
 
+$COMMAND_PREFIX python$PYTHON3_MAJOR_VERSION \
+    -m nltk.downloader \
+    -u https://s3.amazonaws.com/mediacloud-nltk-data/nltk_data/index.xml \
+    -d "$NLTK_DATA_PATH" \
+    wordnet
 
 echo "Creating mc-venv virtualenv..."
 echo "$(which python$PYTHON3_MAJOR_VERSION)"
