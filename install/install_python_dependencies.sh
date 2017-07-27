@@ -59,7 +59,8 @@ else
     NLTK_DATA_PATH=/usr/share/nltk_data
 fi
 
-wget -nv https://github.com/nltk/nltk_data/archive/gh-pages.zip
+wget https://github.com/nltk/nltk_data/archive/gh-pages.zip
+
 unzip gh-pages.zip
 mv nltk_data-gh-pages/ $NLTK_DATA_PATH
 #$COMMAND_PREFIX python$PYTHON3_MAJOR_VERSION -m nltk.downloader all -d "$NLTK_DATA_PATH"
