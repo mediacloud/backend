@@ -41,9 +41,13 @@ echo "Installing (upgrading) Supervisor..."
 ( cd /tmp; $COMMAND_PREFIX pip2.7 install --upgrade supervisor )
 
 echo "Installing (upgrading) Virtualenv..."
-$COMMAND_PREFIX pip2.7 install --force-reinstall --upgrade virtualenv
-$COMMAND_PREFIX pip$PYTHON3_MAJOR_VERSION install --force-reinstall --upgrade virtualenv
+$COMMAND_PREFIX pip2.7 install --upgrade virtualenv
+$COMMAND_PREFIX pip$PYTHON3_MAJOR_VERSION install --upgrade virtualenv
 
+# Install system-wide NLTK because otherwise sudo is unable to find
+# NLTK installed in virtualenv on Travis
+echo "Installing (upgrading) NLTK to install NLTK's data afterwards..."
+$COMMAND_PREFIX pip$PYTHON3_MAJOR_VERSION install --upgrade nltk
 
 # Installing WordNet of NLTK with wget
 echo "Installing NLTK WordNet data..."
