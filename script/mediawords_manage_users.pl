@@ -20,8 +20,8 @@
 #         --notes="Media Cloud developer." \
 #         --roles="query-create,media-edit,stories-edit" \
 #         [--password="correct horse battery staple"] \
-#         [--weekly_requests_limit=2000] \
-#         [--weekly_requested_items_limit=10000]
+#         [--weekly_requests_limit=10000] \
+#         [--weekly_requested_items_limit=100000]
 #
 #     Notes:
 #     * Skip the `--password` parameter to read the password from STDIN.
@@ -37,8 +37,8 @@
 #         [--active|--inactive] \
 #         [--roles="query-create,media-edit,stories-edit"] \
 #         [--password="correct horse battery staple" | --set-password] \
-#         [--weekly_requests_limit=2000] \
-#         [--weekly_requested_items_limit=10000]
+#         [--weekly_requests_limit=10000] \
+#         [--weekly_requested_items_limit=100000]
 #
 #     Notes:
 #     * Pass only those parameters that you want to change; skip the ones that you want to leave inact.
@@ -153,8 +153,8 @@ Usage: $0 --action=add \
     [--notes="Media Cloud developer."] \
     [--roles="query-create,media-edit,stories-edit"] \
     [--password="correct horse battery staple"] \
-    [--weekly_requests_limit=2000] \
-    [--weekly_requested_items_limit=10000]
+    [--weekly_requests_limit=10000] \
+    [--weekly_requested_items_limit=100000]
 EOF
 
     GetOptions(

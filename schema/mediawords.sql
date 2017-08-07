@@ -23,7 +23,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4629;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4630;
 
 BEGIN
 
@@ -2272,11 +2272,11 @@ CREATE TABLE auth_user_limits (
 
     -- Request limit (0 or belonging to 'admin' / 'admin-readonly' group = no
     -- limit)
-    weekly_requests_limit           INTEGER     NOT NULL DEFAULT 1000,
+    weekly_requests_limit           INTEGER     NOT NULL DEFAULT 10000,
 
     -- Requested items (stories) limit (0 or belonging to 'admin' /
     -- 'admin-readonly' group = no limit)
-    weekly_requested_items_limit    INTEGER     NOT NULL DEFAULT 20000
+    weekly_requested_items_limit    INTEGER     NOT NULL DEFAULT 100000
 
 );
 
