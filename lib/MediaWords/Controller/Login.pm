@@ -376,10 +376,8 @@ sub register : Local
             role_ids  => MediaWords::DBI::Auth::Roles::default_role_ids( $db ),
             active    => 0,                                                      # user has to activate own account via email
             password  => $form->param_value( 'password' ),
-            password_repeat              => $form->param_value( 'password_repeat' ),
-            activation_url               => $c->uri_for( '/login/activate' ),
-            weekly_requests_limit        => 1000,
-            weekly_requested_items_limit => 20000,
+            password_repeat => $form->param_value( 'password_repeat' ),
+            activation_url  => $c->uri_for( '/login/activate' ),
         );
         MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
     };
