@@ -48,17 +48,6 @@ use MediaWords::Util::Paths;
 use MediaWords::Job::AnnotateWithCoreNLP;
 use MediaWords::Util::URL;
 
-# FCGI might be running from an unwritable path so we need to set a custom
-# path for Inline::Python to keep its "_Inline/".
-#
-# File::Temp doesn't quite work here because it's beneficial to reuse the
-# same directory in order to not recompile Python scripts.
-BEGIN
-{
-    mkdir( '/var/tmp/_Inline', 0777 );
-}
-use Inline ( Python => Config => DIRECTORY => '/var/tmp/_Inline' );
-
 # PostgreSQL table name for storing raw downloads
 Readonly my $RAW_DOWNLOADS_POSTGRESQL_KVS_TABLE_NAME => 'raw_downloads';
 
