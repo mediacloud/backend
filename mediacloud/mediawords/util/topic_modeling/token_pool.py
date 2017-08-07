@@ -1,7 +1,7 @@
 import os
 
 # from mediawords.db import connect_to_db
-from sample_handler import SampleHandler
+from mediawords.util.topic_modeling.sample_handler import SampleHandler
 from mediawords.db import handler
 from mediawords.util.paths import mc_root_path
 from nltk.stem import WordNetLemmatizer

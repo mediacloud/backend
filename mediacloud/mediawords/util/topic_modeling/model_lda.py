@@ -3,7 +3,7 @@ import numpy as np
 import logging
 
 # from mediawords.db import connect_to_db
-from sample_handler import SampleHandler
+from mediawords.util.topic_modeling.sample_handler import SampleHandler
 from mediawords.util.topic_modeling.token_pool import TokenPool
 from mediawords.util.topic_modeling.topic_model import BaseTopicModel
 from gensim import corpora

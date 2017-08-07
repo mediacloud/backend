@@ -1,6 +1,6 @@
 import unittest
 
-from sample_handler import SampleHandler
+from mediawords.util.topic_modeling.sample_handler import SampleHandler
 from mediawords.util.topic_modeling.token_pool import TokenPool
 from mediawords.util.topic_modeling.model_nmf import ModelNMF
 from typing import Dict, List
