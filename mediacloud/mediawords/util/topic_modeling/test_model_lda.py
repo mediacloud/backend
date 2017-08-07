@@ -1,10 +1,10 @@
 import unittest
 import logging
-import os
 
+# from mediawords.db import connect_to_db
+from sample_handler import SampleHandler
 from mediawords.util.topic_modeling.token_pool import TokenPool
 from mediawords.util.topic_modeling.model_lda import ModelLDA
-from mediawords.util.paths import mc_root_path
 from typing import Dict, List
 
 
@@ -13,20 +13,16 @@ class TestModelLDA(unittest.TestCase):
     Test the methods in ..model_lda.py
     """
 
-    _SAMPLE_STORIES \
-        = os.path.join(mc_root_path(),
-                       "mediacloud/mediawords/util/topic_modeling/sample_stories.txt")
-
     def setUp(self):
         """
         Prepare the token pool
         """
         self.LIMIT = 5
         self.OFFSET = 1
-        sample_file = open(self._SAMPLE_STORIES)
-        token_pool = TokenPool(sample_file)
-        self._story_tokens = token_pool.output_tokens(limit=self.LIMIT, offset=self.OFFSET)
-        sample_file.close()
+        # token_pool = TokenPool(connect_to_db())
+        token_pool = TokenPool(SampleHandler())
+        # self._story_tokens = token_pool.output_tokens(limit=self.LIMIT, offset=self.OFFSET)
+        self._story_tokens = token_pool.output_tokens()
         self._flat_story_tokens = self._flatten_story_tokens()
         self._lda_model = ModelLDA()
         self._lda_model.add_stories(self._story_tokens)
@@ -79,7 +75,7 @@ class TestModelLDA(unittest.TestCase):
             if len(self._flat_story_tokens.get(story_id)) < 25:
                 return
             exist = False
-            for topic in self._topics.get(story_id):
+            for topic in iter(self._topics.get(story_id)):
                 exist = topic in self._flat_story_tokens.get(story_id) or exist
                 if exist:
                     break

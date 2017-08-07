@@ -1,8 +1,9 @@
 import gensim
 
+# from mediawords.db import connect_to_db
+from sample_handler import SampleHandler
 from mediawords.util.topic_modeling.topic_model import BaseTopicModel
 from mediawords.util.topic_modeling.token_pool import TokenPool
-from mediawords.db import connect_to_db
 from typing import Dict, List
 
 
@@ -65,6 +66,11 @@ class ModelGensim(BaseTopicModel):
         return story_topic
 
     def _format_topics(self, raw_topics: List[tuple]) -> List[List[str]]:
+        """
+        Return topics in the desired format
+        :param raw_topics: un-formatted topics
+        :return: formatted topics
+        """
         formatted_topics = []
         for topic in raw_topics:
             words_str = topic[1]
@@ -82,7 +88,11 @@ class ModelGensim(BaseTopicModel):
 if __name__ == '__main__':
     model = ModelGensim()
 
-    pool = TokenPool(connect_to_db())
-    model.add_stories(pool.output_tokens(1, 0))
-    model.add_stories(pool.output_tokens(5, 1))
+    # pool = TokenPool(connect_db())
+    # model.add_stories(pool.output_tokens(1, 0))
+    # model.add_stories(pool.output_tokens(5, 1))
+
+    pool = TokenPool(SampleHandler())
+    model.add_stories(pool.output_tokens())
+
     print(model.summarize_topic())

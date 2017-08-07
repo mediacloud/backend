@@ -2,7 +2,8 @@ import numpy as np
 import logging
 from sklearn import decomposition
 
-from mediawords.db import connect_to_db
+# from mediawords.db import connect_to_db
+from sample_handler import SampleHandler
 from mediawords.util.topic_modeling.token_pool import TokenPool
 from mediawords.util.topic_modeling.topic_model import BaseTopicModel
 from gensim import corpora
@@ -100,7 +101,12 @@ class ModelNMF(BaseTopicModel):
 # A sample output
 if __name__ == '__main__':
     model = ModelNMF()
-    pool = TokenPool(connect_to_db())
-    model.add_stories(pool.output_tokens(1, 0))
-    model.add_stories(pool.output_tokens(5, 2))
+
+    # pool = TokenPool(connect_to_db())
+    # model.add_stories(pool.output_tokens(1, 0))
+    # model.add_stories(pool.output_tokens(5, 2))
+
+    pool = TokenPool(SampleHandler())
+    model.add_stories(pool.output_tokens())
+
     print(model.summarize_topic())

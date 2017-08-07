@@ -2,7 +2,8 @@ import lda
 import numpy as np
 import logging
 
-from mediawords.db import connect_to_db
+# from mediawords.db import connect_to_db
+from sample_handler import SampleHandler
 from mediawords.util.topic_modeling.token_pool import TokenPool
 from mediawords.util.topic_modeling.topic_model import BaseTopicModel
 from gensim import corpora
@@ -66,10 +67,11 @@ class ModelLDA(BaseTopicModel):
         self.token_matrix = np.array(token_count)
 
     def summarize_topic(self, total_topic_num: int = 0,
-                        topic_word_num: int = 4, iteration_num: int = 1000) -> Dict[int, list]:
+                        topic_word_num: int = 4, iteration_num: int = 1000) -> Dict[int, List[str]]:
         """
         summarize the topic of each story based on the frequency of occurrence of each word
         :return: a dictionary of story id
+        :rtype: list
         and corresponding list of TOPIC_NUMBER topics (each topic contains WORD_NUMBER words)
         """
         total_topic_num = total_topic_num if total_topic_num else self._stories_number
@@ -101,7 +103,9 @@ class ModelLDA(BaseTopicModel):
 # A sample output
 if __name__ == '__main__':
     model = ModelLDA()
-    pool = TokenPool(connect_to_db())
-    model.add_stories(pool.output_tokens(1, 0))
-    model.add_stories(pool.output_tokens(5, 2))
+    # pool = TokenPool(connect_to_db())
+    # model.add_stories(pool.output_tokens(1, 0))
+    # model.add_stories(pool.output_tokens(5, 2))
+    pool = TokenPool(SampleHandler())
+    model.add_stories(pool.output_tokens())
     print(model.summarize_topic())

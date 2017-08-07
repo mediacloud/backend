@@ -1,8 +1,8 @@
-import _io
 import os
-import ast
 
-from mediawords.db import connect_to_db, handler
+# from mediawords.db import connect_to_db
+from sample_handler import SampleHandler
+from mediawords.db import handler
 from mediawords.util.paths import mc_root_path
 from nltk.stem import WordNetLemmatizer
 from nltk import word_tokenize
@@ -22,9 +22,10 @@ class TokenPool:
          ORDER BY stories.stories_id,
          story_sentences.sentence_number"""
 
-    # An alternative SQL
-    # the intention was trying to use LIMIT and OFFSET to allow better customization
-    # = """SELECT story_sentences.stories_id, story_sentences.sentence FROM story_sentences
+    # # An alternative SQL
+    # # the intention was trying to use LIMIT and OFFSET to allow better customization
+    # _MAIN_QUERY \
+    #     = """SELECT story_sentences.stories_id, story_sentences.sentence FROM story_sentences
     #      INNER JOIN stories ON stories.stories_id = story_sentences.stories_id
     #      WHERE stories.language = 'en'
     #      AND story_sentences.stories_id IN
@@ -36,16 +37,17 @@ class TokenPool:
         = os.path.join(mc_root_path(), "lib/MediaWords/Languages/resources/en_stopwords.txt")
     _MIN_TOKEN_LEN = 1
 
-    def __init__(self, db: Union[handler.DatabaseHandler, _io.TextIOWrapper]) -> None:
+    def __init__(self, db: Union[handler.DatabaseHandler, SampleHandler]) -> None:
         """Initialisations"""
         self._stopwords = self._fetch_stopwords()
         self._db = db
 
     # parameter limit and offset cannot fit in the current SQL query
-    def _fetch_sentence_dictionaries(self, limit: int, offset: int) -> list:
+    # def _fetch_sentence_dictionaries(self, limit: int, offset: int) -> list:
+    def _fetch_sentence_dictionaries(self) -> list:
         """
         Fetch the sentence from DB
-        :param limit: the number of stories to be output, 0 means no limit
+        # :param limit: the number of stories to be output, 0 means no limit
         :return: the sentences in json format
         """
 
@@ -60,7 +62,7 @@ class TokenPool:
 
         sentence_dictionaries = self._db.query(query_cmd).hashes() \
             if type(self._db) == handler.DatabaseHandler \
-            else ast.literal_eval(self._db.readlines()[0])
+            else self._db.query()
 
         return sentence_dictionaries
 
@@ -142,12 +144,14 @@ class TokenPool:
 
         return useful_sentence_tokens
 
-    def output_tokens(self, limit: int = 0, offset: int = 0) -> Dict[int, List[List[str]]]:
+    # def output_tokens(self, limit: int = 0, offset: int = 0) -> Dict[int, List[List[str]]]:
+    def output_tokens(self) -> Dict[int, List[List[str]]]:
         """
         Go though each step to output the tokens of stories
         :return: a dictionary with key as the id of each story and value as the useful tokens
         """
-        sentence_dictionaries = self._fetch_sentence_dictionaries(limit=limit, offset=offset)
+        # sentence_dictionaries = self._fetch_sentence_dictionaries(limit=limit, offset=offset)
+        sentence_dictionaries = self._fetch_sentence_dictionaries()
         processed_stories = self._bind_stories(sentences=sentence_dictionaries)
 
         return processed_stories
@@ -155,15 +159,6 @@ class TokenPool:
 
 # A sample output
 if __name__ == '__main__':
-    db_connection = connect_to_db()
-    # The following lines demonstrate an alternative way to use TokenPool
-    # (i.e. Use stories from file instead of Database)
-    #
-    # SAMPLE_STORIES \
-    #     = os.path.join(mc_root_path(),
-    #                    "mediacloud/mediawords/util/topic_modeling/sample_stories.txt")
-    # sample = open(SAMPLE_STORIES)
-
-    pool = TokenPool(connect_to_db())
-    print(pool.output_tokens(1))
-    db_connection.disconnect()
+    # pool = TokenPool(connect_to_db())
+    pool = TokenPool(SampleHandler())
+    print(pool.output_tokens())
