@@ -16,6 +16,7 @@
     state: present
   with_items:
     - htop
+    - python-software-properties
   become: true
   tags:
     - common
