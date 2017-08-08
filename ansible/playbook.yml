@@ -2,7 +2,6 @@
 - name: Set up Media Cloud
   hosts: all
   any_errors_fatal: true
-  remote_user: root
   gather_facts: no
   pre_tasks:
     - name: Install Python 2.7 for Ansible on Ubuntu
