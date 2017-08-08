@@ -23,6 +23,8 @@ before_cache:
     - rm -f $HOME/.cache/pip/log/debug.log
 env:
     global:
+        # Ansible configuration file
+        - ANSIBLE_CONFIG=ansible/ansible.cfg
         # Facebook Graph API credentials for testing:
         # * MC_FACEBOOK_APP_ID
         # * MC_FACEBOOK_APP_SECRET
