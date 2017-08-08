@@ -19,4 +19,5 @@
       become_method: sudo
       when: ansible_distribution == 'Ubuntu'
   roles:
+    - update-packages
     - common

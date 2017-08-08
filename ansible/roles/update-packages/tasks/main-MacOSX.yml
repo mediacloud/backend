@@ -1,0 +1,8 @@
+---
+
+- name: Update and upgrade all Homebrew packages
+  homebrew:
+    update_homebrew: yes
+    upgrade_all: yes
+  tags:
+    - update-packages

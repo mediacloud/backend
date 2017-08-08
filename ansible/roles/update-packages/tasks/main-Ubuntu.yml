@@ -1,0 +1,24 @@
+---
+
+- name: Update and upgrade all APT packages
+  apt:
+    upgrade: yes
+    update_cache: yes
+    cache_valid_time: 86400 #One day
+  become: true
+  tags:
+    - update-packages
+
+- name: Remove useless packages from the cache
+  apt:
+    autoclean: yes
+  become: true
+  tags:
+    - update-packages
+
+- name: Autoremove APT packages
+  apt:
+    autoremove: yes
+  become: true
+  tags:
+    - update-packages
