@@ -1,15 +1,5 @@
 ---
 
-# https://github.com/ansible/ansible/issues/16884
-- name: Install Aptitude
-  raw: apt-get -y install python-minimal aptitude
-  become: true
-  become_user: root
-  become_method: sudo
-  when: ansible_distribution == 'Ubuntu'
-  tags:
-    - common
-
 - name: Install common utils
   apt:
     name: "{{item}}"

@@ -9,5 +9,11 @@
       raw: if [ `uname` != 'Darwin' ]; then sudo apt-get -y install python-simplejson; fi
     - name: Reload ansible_facts
       setup:
+    - name: Install Aptitude  # https://github.com/ansible/ansible/issues/16884
+      raw: apt-get -y install python-minimal aptitude
+      become: true
+      become_user: root
+      become_method: sudo
+      when: ansible_distribution == 'Ubuntu'
   roles:
     - common
