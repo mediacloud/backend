@@ -10,15 +10,6 @@
   tags:
     - common
 
-- name: Update and upgrade APT packages
-  apt:
-    upgrade: yes
-    update_cache: yes
-    cache_valid_time: 86400 # One day
-  become: true
-  tags:
-    - common
-
 - name: Install common utils
   apt:
     name: "{{item}}"

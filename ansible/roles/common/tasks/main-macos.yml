@@ -1,13 +1,5 @@
 ---
 
-- name: Update and upgrade Homebrew packages
-  homebrew:
-    update_homebrew: yes
-    upgrade_all: yes
-  become: false
-  tags:
-    - common
-
 - name: Install common utils
   homebrew:
     name: "{{ item }}"
