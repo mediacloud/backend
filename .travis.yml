@@ -1,15 +1,15 @@
 # Installing up-to-date Erlang requires root
 sudo: true
 dist: trusty
-addons:
-    postgresql: "9.6"
-    hosts:
-        - mediacloud.local
-language: generic
+language: python
+python: "2.7"
 matrix:
     include:
         - os: linux
           language: perl
+          perl: 5.22
+        - os: osx
+          language: generic
           perl: 5.22
 cache:
     directories:
@@ -50,31 +50,20 @@ env:
         # let tests know that they are running on travis
         - MC_SKIP_RABBIT_OPEN_FILES_LIMIT_CHECK=1
 before_install:
-    # Install APT packages (not PostgreSQL though)
-    - ./install/install_mediacloud_package_dependencies.sh
-    # Install Japanese language support library
-    - ./install/install_mecab-ipadic-neologd.sh
-    # Install Python dependencies
-    - travis_retry ./install/install_python_dependencies.sh
-    # Set up kernel and PostgreSQL parameters
-    - ./install/set_kernel_parameters.sh
-    - ./install/set_postgresql_parameters.sh
-    # Create the Media Cloud's Perlbrew library (might already exist)
-    - perlbrew lib create mediacloud || echo "Unable to create 'mediacloud' Perlbrew library, maybe already exists?."
-    # Switch to the Media Cloud's Perlbrew library
-    - perlbrew switch @mediacloud
-    # Set up Perl and module dependencies (dependencies might be restored from
-    # cache into "local/" already in which case we just check if Carton is
-    # happy with the current setup)
-    - ./install/install_mc_perlbrew_and_modules.sh
+    # Install Ansible
+    - pip install --upgrade ansible ansible-lint
+    # Check the role/playbook's syntax.
+    - ansible-playbook -i "localhost," -c local ansible/playbook.yml --syntax-check
 install:
+    # Run the role/playbook with ansible-playbook.
+    - ansible-playbook -i "localhost," -c local ansible/playbook.yml -vvv
     # Use default configuration
     - cp mediawords.yml.dist mediawords.yml
     # Create PostgreSQL database
-    - ./install/create_default_db_user_and_databases.sh
-before_script:
-    # Initialize PostgreSQL database
-    - ./script/run_with_carton.sh ./script/mediawords_create_db.pl
-script:
-    # Run Media Cloud's test suite, report test coverage to https://coveralls.io/r/berkmancenter/mediacloud
-    - ./script/run_test_suite_for_devel_cover.sh coveralls --destroy-solr
+    # - ./install/create_default_db_user_and_databases.sh
+# before_script:
+#     # Initialize PostgreSQL database
+#     - ./script/run_with_carton.sh ./script/mediawords_create_db.pl
+# script:
+#     # Run Media Cloud's test suite, report test coverage to https://coveralls.io/r/berkmancenter/mediacloud
+#     - ./script/run_test_suite_for_devel_cover.sh coveralls --destroy-solr

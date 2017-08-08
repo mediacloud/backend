@@ -1,0 +1,12 @@
+---
+- name: Set up Media Cloud
+  hosts: all
+  remote_user: root
+  gather_facts: no
+  pre_tasks:
+    - name: Install Python 2.7 for Ansible on Ubuntu
+      raw: if [ `uname` != 'Darwin' ]; then sudo apt-get -y install python-simplejson; fi
+    - name: Reload ansible_facts
+      setup:
+  roles:
+    - common
