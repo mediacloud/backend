@@ -51,7 +51,7 @@ env:
         - MC_SKIP_RABBIT_OPEN_FILES_LIMIT_CHECK=1
 before_install:
     # Install Ansible
-    - pip install --upgrade ansible ansible-lint
+    - sudo pip install --upgrade ansible ansible-lint
     # Check the role/playbook's syntax.
     - ansible-playbook -i "localhost," -c local ansible/playbook.yml --syntax-check
 install:
