@@ -15,6 +15,8 @@ cache:
     directories:
         # Carton dependencies
         - local/
+        # Pip dependencies (e.g. Ansible)
+        - $HOME/.cache/pip/
         # Perlbrew dependencies
         - $HOME/.perlbrew/libs/
 before_cache:
