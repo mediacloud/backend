@@ -21,3 +21,4 @@
   roles:
     - update-packages
     - common
+    - system-packages

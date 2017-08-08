@@ -1,0 +1,213 @@
+---
+
+- name: Add RabbitMQ APT key
+  apt_key:
+    url: "https://www.rabbitmq.com/rabbitmq-release-signing-key.asc"
+    state: present
+  become: true
+  tags:
+    - system-packages
+
+- name: Add RabbitMQ APT repository
+  apt_repository:
+    repo: "deb http://www.rabbitmq.com/debian/ testing main"
+    state: present
+    filename: rabbitmq
+    update_cache: yes
+  become: true
+  tags:
+    - system-packages
+
+# Solr 6+ requires Java 8 which is unavailable before 16.04
+- name: Add Java 8 APT repository
+  apt_repository:
+    repo: "ppa:openjdk-r/ppa"
+    update_cache: yes
+  when: ansible_lsb.major_release|int < 16
+  become: true
+  tags:
+    - system-packages
+
+# We require at least Python 3.5 (14.04 only has 3.4 which doesn't work with newest Pip)
+- name: Add Python 3.5 APT repository
+  apt_repository:
+    repo: "ppa:fkrull/deadsnakes"
+    update_cache: yes
+  when: ansible_lsb.major_release|int < 16
+  become: true
+  tags:
+    - system-packages
+
+- name: Install system packages
+  apt:
+    name: "{{item}}"
+    state: present
+  with_items:
+    - curl
+    - build-essential
+    - cpanminus
+    - curl
+    - expat
+    - g++
+    - gawk
+    - gcc
+    - graphviz
+    - graphviz-dev
+    - graphviz-doc
+    - hunspell
+    - libdb-dev
+    - libexpat1-dev
+    - libgraphviz-dev
+    - libtidy-dev
+    - libxml2-dev
+    - libxml2-dev
+    - libxslt1-dbg
+    - libxslt1-dev
+    - libxslt1.1
+    - libyaml-dev
+    - logrotate
+    - make
+    - netcat
+    - openjdk-8-jdk
+    - postgresql-server-dev-all
+    - python-pip
+    - python2.7
+    - python2.7-dev
+    - python3.5
+    - python3.5-dev
+    - rabbitmq-server
+    - unzip
+  become: true
+  tags:
+    - system-packages
+
+- name: Remove obsolete system packages
+  apt:
+    name: "{{item}}"
+    state: absent
+  with_items:
+    - supervisor
+  become: true
+  tags:
+    - system-packages
+
+- name: Stop and disable system RabbitMQ
+  service:
+    name: rabbitmq-server
+    enabled: yes
+    state: stopped
+  become: true
+  tags:
+    - system-packages
+
+- name: Use Java 8 by default
+  alternatives:
+    name: java
+    path: /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
+  become: true
+  tags:
+    - system-packages
+
+- name: Remove obsolete system packages
+  apt:
+    name: "{{item}}"
+    state: absent
+  with_items:
+    - supervisor
+  become: true
+  tags:
+    - system-packages
+
+- name: Install Supervisor via Pip
+  pip:
+    name: supervisor
+  become: true
+  tags:
+    - system-packages
+
+- name: Test if Vagrant is of the correct version
+  shell: "vagrant --version | awk '{ print $2 }'"
+  ignore_errors: true
+  register: vagrant_current_version
+  tags:
+    - system-packages
+
+- name: Install Vagrant
+  apt:
+    deb: "{{ vagrant_deb_url }}"
+    state: present
+  become: true
+  when: vagrant_current_version.stdout.find (vagrant_version) == -1
+  tags:
+    - system-packages
+
+- name: Test if MeCab is of the correct version
+  shell: "mecab-config --version"
+  ignore_errors: true
+  register: mecab_current_version
+  tags:
+    - system-packages
+
+# Compile MeCab manually (12.04's package is too old, 16.04 might have unpredictable version)
+- name: Install MeCab
+  block:
+
+    - name: Remove obsolete MeCab
+      apt:
+        name: "{{item}}"
+        state: absent
+      with_items:
+        - libmecab-dev
+        - mecab
+      become: true
+      tags:
+        - system-packages
+
+    - name: Create temporary directory for MeCab Source
+      tempfile:
+        state: directory
+        suffix: mecab-src
+      register: mecab_src_tempdir
+      tags:
+        - system-packages
+
+    - name: Download MeCab source
+      get_url:
+        url: "{{ mecab_tarball_url }}"
+        dest: "{{ mecab_src_tempdir.path }}/mecab-src.tar.gz"
+        checksum: "sha1:{{ mecab_sha1sum }}"
+      tags:
+        - system-packages
+
+    - name: Extract tarball with MeCab source
+      unarchive:
+        remote_src: true
+        src: "{{ mecab_src_tempdir.path }}/mecab-src.tar.gz"
+        dest: "{{ mecab_src_tempdir.path }}"
+        extra_opts: ["--strip-components=1"]
+      tags:
+        - system-packages
+
+    - name: Running ./configure for MeCab
+      command: ./configure --prefix=/usr --with-charset=utf8
+      args:
+        chdir: "{{ mecab_src_tempdir.path }}"
+      tags:
+        - system-packages
+
+    - name: Running make for MeCab
+      command: make
+      args:
+        chdir: "{{ mecab_src_tempdir.path }}"
+      tags:
+        - system-packages
+
+    - name: Running make install for MeCab
+      command: make install
+      args:
+        chdir: "{{ mecab_src_tempdir.path }}"
+      become: true
+      tags:
+        - system-packages
+
+  when: mecab_current_version.stdout.find (mecab_version) == -1

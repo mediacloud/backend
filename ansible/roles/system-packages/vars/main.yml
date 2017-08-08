@@ -1,0 +1,6 @@
+mecab_version: "0.996"
+mecab_tarball_url: "https://distfiles.macports.org/mecab/mecab-0.996.tar.gz"
+mecab_sha1sum: 15baca0983a61c1a49cffd4a919463a0a39ef127
+
+vagrant_version: "1.9.7"
+vagrant_deb_url: "https://releases.hashicorp.com/vagrant/1.9.7/vagrant_1.9.7_x86_64.deb"

@@ -1,0 +1,81 @@
+---
+
+- name: Test if GCC is installed
+  stat:
+    path: /usr/bin/gcc
+  register: have_gcc
+  tags:
+    - system-packages
+
+- name: Fail if GCC is not installed
+  fail:
+    msg: >
+      As a dependency to Homebrew, you need to install Xcode (available as a free
+      download from Mac App Store or from http://developer.apple.com/) and Xcode's
+      "Command Line Tools" (open Xcode, go to "Xcode" -> "Preferences...", select
+      "Downloads", choose "Components", click "Install" near the "Command Line Tools"
+      entry, wait for a while.
+  when: have_gcc.stat.executable is not defined or have_gcc.stat.executable == False
+  tags:
+    - system-packages
+
+- name: Install system packages
+  homebrew:
+    name: "{{ item.name }}"
+    install_options: "{{ item.install_options }}"
+    state: present
+  with_items:
+    - { name: coreutils, install_options: "" }
+    - { name: cpanminus, install_options: "" }
+    - { name: curl, install_options: "" }
+    - { name: gawk, install_options: "" }
+    - { name: graphviz, install_options: "with-bindings" }
+    - { name: hunspell, install_options: "" }
+    - { name: libyaml, install_options: "" }
+    - { name: logrotate, install_options: "" }
+    - { name: mecab, install_options: "" }
+    - { name: netcat, install_options: "" }
+    - { name: openssl, install_options: "" }
+    - { name: perl, install_options: "" }
+    - { name: python, install_options: "" }
+    - { name: python3, install_options: "" }
+    - { name: rabbitmq, install_options: "" }
+    - { name: tidy-html5, install_options: "" }
+  tags:
+    - system-packages
+
+- name: Install cpanm system-wide dependencies
+  cpanm:
+    name: "{{ item.name }}"
+    notest: "{{ item.notest }}"
+  with_items:
+    - { name: "Graph", notest: False }
+    - { name: "Graph::Writer::GraphViz", notest: True }  # https://rt.cpan.org/Public/Bug/Display.html?id=41776
+    - { name: "GraphViz", notest: False }
+    - { name: "HTML::Entities", notest: False }
+    - { name: "HTML::Parser", notest: False }
+    - { name: "Lingua::Stem::Snowball", notest: False }
+    - { name: "List::AllUtils", notest: False }
+    - { name: "List::MoreUtils", notest: False }
+    - { name: "OpenGL", notest: False }
+    - { name: "Perl::Tidy", notest: False }
+    - { name: "Readonly", notest: False }
+    - { name: "Readonly::XS", notest: False }
+    - { name: "Test::WWW::Mechanize", notest: False }
+    - { name: "version", notest: False }
+    - { name: "XML::LibXML", notest: False }
+    - { name: "XML::LibXML::Simple", notest: False }
+    - { name: "XML::Parser", notest: False }
+    - { name: "XML::SAX::Expat", notest: False }
+    - { name: "YAML", notest: False }
+    - { name: "YAML::LibYAML", notest: False }
+    - { name: "YAML::Syck", notest: False }
+  tags:
+    - system-packages
+
+- name: Install Vagrant
+  homebrew_cask:
+    name: vagrant
+    state: present
+  tags:
+    - system-packages

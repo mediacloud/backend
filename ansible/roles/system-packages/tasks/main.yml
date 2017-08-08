@@ -1,0 +1,20 @@
+- include: main-Ubuntu.yml
+  when: ansible_distribution == "Ubuntu"
+
+- include: main-MacOSX.yml
+  when: ansible_distribution == "MacOSX"
+
+# Temporary hack to overcome https://github.com/mitchellh/vagrant-aws/issues/510
+- name: Install Vagrant's fog-core
+  command: vagrant plugin install --plugin-version 1.43 fog-core
+  args:
+    creates: "{{ ansible_env.HOME }}/.vagrant.d/gems/*/gems/fog-core-1.43*"
+  tags:
+    - system-packages
+
+- name: Install Vagrant's vagrant-aws
+  command: vagrant plugin install vagrant-aws
+  args:
+    creates: "{{ ansible_env.HOME }}/.vagrant.d/gems/*/gems/vagrant-aws-*"
+  tags:
+    - system-packages
