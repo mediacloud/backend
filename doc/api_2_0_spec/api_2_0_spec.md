@@ -137,36 +137,29 @@ Table of Contents
                * [User was found](#user-was-found)
                * [User was not found](#user-was-not-found)
             * [Example](#example-28)
-         * [(deprecated) api/v2/auth/single (GET)](#deprecated-apiv2authsingle-get)
-            * [Required role](#required-role-6)
-            * [Query Parameters](#query-parameters-21)
-            * [Output Description](#output-description-11)
-               * [User was found](#user-was-found-1)
-               * [User was not found](#user-was-not-found-1)
-            * [Example](#example-29)
       * [User Profile](#user-profile)
          * [api/v2/auth/profile (GET)](#apiv2authprofile-get)
-            * [Required role](#required-role-7)
-            * [Output Description](#output-description-12)
-            * [Example](#example-30)
+            * [Required role](#required-role-6)
+            * [Output Description](#output-description-11)
+            * [Example](#example-29)
          * [api/v2/auth/change_password (POST)](#apiv2authchange_password-post)
-            * [Required role](#required-role-8)
+            * [Required role](#required-role-7)
             * [Input Description](#input-description-7)
-            * [Output Description](#output-description-13)
+            * [Output Description](#output-description-12)
                * [Changing the user's password was successful](#changing-the-users-password-was-successful)
                * [Changing the user's password has failed](#changing-the-users-password-has-failed)
-            * [Example](#example-31)
+            * [Example](#example-30)
          * [api/v2/auth/reset_api_key (POST)](#apiv2authreset_api_key-post)
-            * [Required role](#required-role-9)
-            * [Output Description](#output-description-14)
+            * [Required role](#required-role-8)
+            * [Output Description](#output-description-13)
                * [Resetting user's API key was successful](#resetting-users-api-key-was-successful)
                * [Resetting user's API key has failed](#resetting-users-api-key-has-failed)
-            * [Example](#example-32)
+            * [Example](#example-31)
    * [Stats](#stats)
       * [api/v2/stats/list](#apiv2statslist)
-         * [Query Parameters](#query-parameters-22)
-         * [Output Description](#output-description-15)
-         * [Example](#example-33)
+         * [Query Parameters](#query-parameters-21)
+         * [Output Description](#output-description-14)
+         * [Example](#example-32)
    * [Extended Examples](#extended-examples)
       * [Output Format / JSON](#output-format--json)
       * [Create a CSV file with all media sources.](#create-a-csv-file-with-all-media-sources)
@@ -1765,64 +1758,6 @@ Output:
     "profile": {
         "Full profile information as in auth/profile."
     }
-}
-```
-
-
-### (deprecated) `api/v2/auth/single` (GET)
-
-| URL                  | Function                                                              |
-| -------------------- | --------------------------------------------------------------------- |
-| `api/v2/auth/single` | Authenticate the user with email and password and return its API key. |
-
-This API call is deprecated. Please use `auth/login` for new code.
-
-API call is rate-limited.
-
-#### Required role
-
-`admin-read`.
-
-#### Query Parameters
-
-| Parameter  | Default | Notes                                 |
-| ---------- | ------- | ------------------------------------- |
-| `username` | null    | *(string)* Email address of the user. |
-| `password` | null    | *(string)* Password of the user.      |
-
-#### Output Description
-
-##### User was found
-
-```json
-[
-    {
-        "result": "found",
-        "token": "API key."
-    }
-]
-```
-
-##### User was not found
-
-```json
-[
-    {
-        "result": "not found"
-    }
-]
-```
-
-#### Example
-
-URL: <https://api.mediacloud.org/api/v2/auth/single?username=foo@bar.baz&password=qwerty1>
-
-Output:
-
-```json
-{
-    "result": "found",
-    "token": "bae132d8de0e0565cc9b84ec022e367f71f6dabf"
 }
 ```
 
