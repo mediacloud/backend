@@ -1,5 +1,5 @@
-- include: main-ubuntu.yml
+- include: main-Ubuntu.yml
   when: ansible_distribution == "Ubuntu"
 
-- include: main-macos.yml
+- include: main-MacOSX.yml
   when: ansible_distribution == "MacOSX"
