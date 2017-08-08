@@ -26,7 +26,6 @@ __PACKAGE__->config(    #
         resend_activation_link   => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
         send_password_reset_link => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
         reset_password           => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
-        single                   => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
         login                    => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
         profile                  => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         change_password          => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
@@ -318,45 +317,6 @@ sub login : Local
     my $user_hash = _user_profile_hash( $db, $email );
 
     $self->status_ok( $c, entity => { 'success' => 1, 'profile' => $user_hash } );
-}
-
-sub single : Local
-{
-    my ( $self, $c ) = @_;
-
-    my $db = $c->dbis;
-
-    my $email = $c->req->params->{ username };
-    unless ( $email )
-    {
-        die "'username' is not set.";
-    }
-
-    my $password = $c->req->params->{ password };
-    unless ( $password )
-    {
-        die "'password' is not set.";
-    }
-
-    my $ip_address = $c->request_ip_address();
-
-    my $api_key;
-    eval {
-        my $user = MediaWords::DBI::Auth::Login::login_with_email_password(
-            $db,           #
-            $email,        #
-            $password,     #
-            $ip_address    #
-        );
-        $api_key = $user->api_key_for_ip_address( $ip_address );
-    };
-    if ( $@ or ( !$api_key ) )
-    {
-        $self->status_ok( $c, entity => [ { 'result' => 'not found' } ] );
-        return;
-    }
-
-    $self->status_ok( $c, entity => [ { 'result' => 'found', 'token' => $api_key } ] );
 }
 
 # return info about currently logged in user
