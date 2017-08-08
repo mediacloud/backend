@@ -1,8 +1,4 @@
-- include: main-Ubuntu.yml
-  when: ansible_distribution == "Ubuntu"
-
-- include: main-MacOSX.yml
-  when: ansible_distribution == "MacOSX"
+- include: roles/system-packages/tasks/main-{{ ansible_distribution }}.yml
 
 # Temporary hack to overcome https://github.com/mitchellh/vagrant-aws/issues/510
 - name: Install Vagrant's fog-core
