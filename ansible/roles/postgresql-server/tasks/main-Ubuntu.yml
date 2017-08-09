@@ -1,0 +1,40 @@
+---
+
+- name: Add PostgreSQL APT key
+  apt_key:
+    url: "https://www.postgresql.org/media/keys/ACCC4CF8.asc"
+    state: present
+  become: true
+  tags:
+    - postgresql-server
+
+- name: Add PostgreSQL APT repository
+  apt_repository:
+    repo: "deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main"
+    state: present
+    filename: pgdg
+    update_cache: yes
+  become: true
+  tags:
+    - postgresql-server
+
+- name: Install PostgreSQL
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - "postgresql-{{ postgresql_version }}"
+    - "postgresql-client-{{ postgresql_version }}"
+    - "postgresql-contrib-{{ postgresql_version }}"
+    - "postgresql-plperl-{{ postgresql_version }}"
+    - "postgresql-server-dev-all"
+  become: true
+  tags:
+    - postgresql-server
+
+- name: Install psycopg2 for managing PostgreSQL users
+  pip:
+    name: psycopg2
+  become: yes
+  tags:
+    - postgresql-server

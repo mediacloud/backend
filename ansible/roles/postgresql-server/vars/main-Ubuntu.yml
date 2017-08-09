@@ -1,0 +1,3 @@
+postgresql_psql_become: true
+postgresql_psql_become_user: postgres
+postgresql_psql_login_user: postgres
