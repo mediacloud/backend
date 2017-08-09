@@ -10,3 +10,15 @@
   become: true
   tags:
     - common
+
+- name: Install Python packages for validating SSL certificates with SNI
+  pip:
+    name: supervisor
+  with_items:
+    - ndg-httpsclient
+    - pyasn1
+    - pyOpenSSL
+    - urllib3
+  become: true
+  tags:
+    - common
