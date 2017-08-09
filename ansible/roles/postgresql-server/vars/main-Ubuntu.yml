@@ -1,3 +1,6 @@
 postgresql_psql_become: true
 postgresql_psql_become_user: postgres
 postgresql_psql_login_user: postgres
+
+# Directory (or wildcard) with postgresql.conf
+postgresql_conf_dir: "/etc/postgresql/*/main/"

@@ -32,3 +32,127 @@
   become_user: "{{ postgresql_psql_become_user }}"
   tags:
     - postgresql-server
+
+- name: Resolve PostgreSQL configuration directory
+  shell: "ls -d {{ postgresql_conf_dir }}"
+  register: postgresql_resolved_conf_dir
+  tags:
+    - postgresql-server
+
+- name: Ensure that only one PostgreSQL configuration directory exists
+  assert:
+    that:
+      - "{{ postgresql_resolved_conf_dir.stdout_lines | count }} == 1"
+  tags:
+    - postgresql-server
+
+- name: Set PostgreSQL configuration directory
+  set_fact:
+    postgresql_resolved_conf_dir: "{{ postgresql_resolved_conf_dir.stdout }}"
+  tags:
+    - postgresql-server
+
+- name: Test if PostgreSQL configuration directory exists
+  stat:
+    path: "{{ postgresql_resolved_conf_dir }}"
+  register: postgresql_resolved_conf_dir_stat
+  tags:
+    - postgresql-server  
+
+- name: Ensure that PostgreSQL configuration path is a directory
+  assert:
+    that:
+      - "postgresql_resolved_conf_dir_stat.stat.isdir is defined and postgresql_resolved_conf_dir_stat.stat.isdir"
+  tags:
+    - postgresql-server
+
+- name: Set PostgreSQL configuration directory
+  set_fact:
+    postgresql_resolved_conf_file: "{{ postgresql_resolved_conf_dir }}/postgresql.conf"
+  tags:
+    - postgresql-server
+
+- name: Test if PostgreSQL main configuration file exists
+  stat:
+    path: "{{ postgresql_resolved_conf_file }}"
+  register: postgresql_resolved_conf_file_stat
+  tags:
+    - postgresql-server  
+
+- name: Ensure that PostgreSQL main configuration file is a file
+  assert:
+    that:
+      - "postgresql_resolved_conf_file_stat.stat.exists is defined and postgresql_resolved_conf_file_stat.stat.exists"
+  tags:
+    - postgresql-server
+
+- name: Print PostgreSQL configuration directory
+  debug:
+    msg: "PostgreSQL configuration directory: {{ postgresql_resolved_conf_dir }}"
+  tags:
+    - postgresql-server
+
+- name: Print PostgreSQL main configuration file
+  debug:
+    msg: "PostgreSQL main configuration file: {{ postgresql_resolved_conf_file }}"
+  tags:
+    - postgresql-server
+
+- name: Set PostgreSQL custom configuration directory
+  set_fact:
+    postgresql_custom_conf_dir: "conf.d"
+  tags:
+    - postgresql-server
+
+- name: Set PostgreSQL custom configuration path
+  set_fact:
+    postgresql_custom_conf_path: "{{ postgresql_resolved_conf_dir }}/{{ postgresql_custom_conf_dir }}"
+  tags:
+    - postgresql-server
+
+- name: Create custom configuration directory in PostgreSQL configuration directory
+  file:
+    path: "{{ postgresql_custom_conf_path }}"
+    owner: "{{ postgresql_psql_login_user }}"
+    group: "{{ postgresql_psql_login_user }}"
+    state: directory
+  become: true
+  tags:
+    - postgresql-server
+
+- name: Ensure that custom configuration gets included from main PostgreSQL configuration file
+  lineinfile:
+    dest: "{{ postgresql_resolved_conf_file }}"
+    regexp: "^include_dir\\s=\\s'{{ postgresql_custom_conf_dir }}'$"
+    line: "include_dir = '{{ postgresql_custom_conf_dir }}'"
+    state: present
+  become: true
+  notify:
+    - "Restart PostgreSQL (Ubuntu)"
+  tags:
+    - postgresql-server
+
+- name: Copy main Media Cloud PostgreSQL configuration file
+  copy:
+    src: "../files/postgresql_conf/01-mediacloud.conf"
+    dest: "{{ postgresql_custom_conf_path }}/01-mediacloud.conf"
+    owner: "{{ postgresql_psql_login_user }}"
+    group: "{{ postgresql_psql_login_user }}"
+  become: true
+  notify:
+    - "Restart PostgreSQL (Ubuntu)"
+  tags:
+    - postgresql-server
+
+- name: Copy production Media Cloud PostgreSQL configuration file
+  copy:
+    src: "../files/postgresql_conf/02-mediacloud-production.conf"
+    dest: "{{ postgresql_custom_conf_path }}/02-mediacloud-production.conf"
+    owner: "{{ postgresql_psql_login_user }}"
+    group: "{{ postgresql_psql_login_user }}"
+  when: "mediacloud_production is defined and mediacloud_production"
+  become: true
+  notify:
+    - "Restart PostgreSQL ({{ ansible_distribution }})"
+  tags:
+    - postgresql-server

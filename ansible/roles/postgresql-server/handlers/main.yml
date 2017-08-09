@@ -1,0 +1,14 @@
+# For whatever reason having handlers in separate per-OS files doesn't work in Ansible 2.3
+
+- name: Restart PostgreSQL (MacOSX)
+  command: "brew services restart postgresql"
+  tags:
+    - postgresql-server
+
+- name: "Restart PostgreSQL (Ubuntu)"
+  service: 
+    name: postgresql
+    state: restarted
+  become: true
+  tags:
+    - postgresql-server

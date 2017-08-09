@@ -31,9 +31,6 @@ echo "Installing Python dependencies..."
 echo "Installing MeCab..."
 ./install/install_mecab-ipadic-neologd.sh
 
-echo "Setting PostgreSQL parameters..."
-./install/set_postgresql_parameters.sh
-
 echo "Installing Perlbrew, Carton and the required modules..."
 echo "Note: that the script will take a long time to complete."
 ./install/install_mc_perlbrew_and_modules.sh

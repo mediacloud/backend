@@ -1,4 +1,14 @@
 ---
+
+#
+# Ansible configuration for Media Cloud
+# ---
+#
+# Variables:
+# 
+#   * "mediacloud_production" -- set when deploying to production
+#
+
 - name: Set up Media Cloud
   hosts: all
   any_errors_fatal: true
