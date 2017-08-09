@@ -74,7 +74,7 @@ class ModelLDA(BaseTopicModel):
         :rtype: list
         and corresponding list of TOPIC_NUMBER topics (each topic contains WORD_NUMBER words)
         """
-        total_topic_num = total_topic_num if total_topic_num else self._stories_number - 2
+        total_topic_num = total_topic_num if total_topic_num else self._stories_number
 
         # turn our token documents into a id <-> term dictionary
         self._model = lda.LDA(n_topics=total_topic_num,
