@@ -5,7 +5,6 @@
 - name: Create PostgreSQL user for current user
   postgresql_user:
     name: "{{ ansible_user }}"
-    db: "{{ ansible_user }}"
 
     login_user: "{{ postgresql_psql_login_user }}"
   become: "{{ postgresql_psql_become }}"
