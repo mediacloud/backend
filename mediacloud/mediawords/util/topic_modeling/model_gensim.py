@@ -55,11 +55,11 @@ class ModelGensim(BaseTopicModel):
             self._corpus = [self._dictionary.doc2bow(text) for text in self._stories_tokens[i]]
 
             # generate LDA model
-            lda_model = gensim.models.ldamodel.LdaModel(
+            self._model = gensim.models.ldamodel.LdaModel(
                 corpus=self._corpus, num_topics=topic_number,
                 id2word=self._dictionary, passes=passes)
 
-            raw_topics = lda_model.print_topics(num_topics=topic_number, num_words=word_number)
+            raw_topics = self._model.print_topics(num_topics=topic_number, num_words=word_number)
 
             story_topic[self._stories_ids[i]] = self._format_topics(raw_topics=raw_topics)
 
@@ -82,6 +82,9 @@ class ModelGensim(BaseTopicModel):
             formatted_topics.append(words)
 
         return formatted_topics
+
+    def evaluate(self):
+        pass
 
 
 # A sample output

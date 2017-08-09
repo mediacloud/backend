@@ -73,14 +73,14 @@ class ModelNMF(BaseTopicModel):
         """
         total_topic_num = total_topic_num if total_topic_num else self._stories_number
 
-        nmf_model = decomposition.NMF(
+        self._model = decomposition.NMF(
             n_components=total_topic_num,
             max_iter=iteration_num,
             random_state=self._random_state)
 
-        document_topic = nmf_model.fit_transform(self._token_matrix)
+        document_topic = self._model.fit_transform(self._token_matrix)
 
-        components = nmf_model.components_
+        components = self._model.components_
 
         topic_words_list = []
         for topic in components:
@@ -96,6 +96,9 @@ class ModelNMF(BaseTopicModel):
             story_topic[self._stories_ids[i]] = [topic_words_list[i] for i in top_topic_ids]
 
         return story_topic
+
+    def evaluate(self):
+        pass
 
 
 # A sample output

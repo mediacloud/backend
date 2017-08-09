@@ -2,8 +2,8 @@ import lda
 import numpy as np
 import logging
 
-# from mediawords.db import connect_to_db
-from mediawords.util.topic_modeling.sample_handler import SampleHandler
+from mediawords.db import connect_to_db
+# from mediawords.util.topic_modeling.sample_handler import SampleHandler
 from mediawords.util.topic_modeling.token_pool import TokenPool
 from mediawords.util.topic_modeling.topic_model import BaseTopicModel
 from gensim import corpora
@@ -74,15 +74,15 @@ class ModelLDA(BaseTopicModel):
         :rtype: list
         and corresponding list of TOPIC_NUMBER topics (each topic contains WORD_NUMBER words)
         """
-        total_topic_num = total_topic_num if total_topic_num else self._stories_number
+        total_topic_num = total_topic_num if total_topic_num else self._stories_number - 2
 
         # turn our token documents into a id <-> term dictionary
-        lda_model = lda.LDA(n_topics=total_topic_num,
-                            n_iter=iteration_num,
-                            random_state=self._random_state)
+        self._model = lda.LDA(n_topics=total_topic_num,
+                              n_iter=iteration_num,
+                              random_state=self._random_state)
 
-        lda_model.fit(self.token_matrix)
-        topic_word = lda_model.topic_word_
+        self._model.fit(self.token_matrix)
+        topic_word = self._model.topic_word_
         n_top_words = topic_word_num
 
         topic_words_list = []
@@ -90,7 +90,7 @@ class ModelLDA(BaseTopicModel):
             topic_words_list.append(
                 np.array(self.vocab)[np.argsort(topic_dist)][:-(n_top_words + 1):-1])
 
-        doc_topic = lda_model.doc_topic_
+        doc_topic = self._model.doc_topic_
 
         story_topic = {}
 
@@ -99,13 +99,18 @@ class ModelLDA(BaseTopicModel):
 
         return story_topic
 
+    def evaluate(self):
+        pass
+
 
 # A sample output
 if __name__ == '__main__':
     model = ModelLDA()
-    # pool = TokenPool(connect_to_db())
-    # model.add_stories(pool.output_tokens(1, 0))
-    # model.add_stories(pool.output_tokens(5, 2))
-    pool = TokenPool(SampleHandler())
+    pool = TokenPool(connect_to_db())
     model.add_stories(pool.output_tokens())
+
+    # pool = TokenPool(SampleHandler())
+    # model.add_stories(pool.output_tokens())
+
     print(model.summarize_topic())
+    print(model.evaluate())
