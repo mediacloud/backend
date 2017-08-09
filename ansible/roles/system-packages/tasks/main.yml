@@ -1,5 +1,14 @@
 - include: main-{{ ansible_distribution }}.yml
 
+- include_vars: ../vars/main-{{ ansible_distribution }}.yml
+
+- name: Install Supervisor via Pip
+  pip:
+    name: supervisor
+  become: "{{ pip_install_supervisor_become }}"
+  tags:
+    - system-packages
+
 # Temporary hack to overcome https://github.com/mitchellh/vagrant-aws/issues/510
 - name: Install Vagrant's fog-core
   command: vagrant plugin install --plugin-version 1.43 fog-core

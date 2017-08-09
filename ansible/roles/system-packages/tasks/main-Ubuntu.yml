@@ -118,13 +118,6 @@
   tags:
     - system-packages
 
-- name: Install Supervisor via Pip
-  pip:
-    name: supervisor
-  become: true
-  tags:
-    - system-packages
-
 - name: Test if Vagrant is of the correct version
   shell: "vagrant --version | awk '{ print $2 }'"
   ignore_errors: true
