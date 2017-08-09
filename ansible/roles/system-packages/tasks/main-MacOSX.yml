@@ -29,7 +29,6 @@
     - { name: cpanminus, install_options: "" }
     - { name: curl, install_options: "" }
     - { name: gawk, install_options: "" }
-    - { name: graphviz, install_options: "with-bindings" }
     - { name: hunspell, install_options: "" }
     - { name: libyaml, install_options: "" }
     - { name: logrotate, install_options: "" }
@@ -41,6 +40,13 @@
     - { name: python3, install_options: "" }
     - { name: rabbitmq, install_options: "" }
     - { name: tidy-html5, install_options: "" }
+  tags:
+    - system-packages
+
+- name: Install Graphviz with Perl bindings
+  command: "brew install --verbose graphviz --with-bindings"
+  args:
+    creates: "/usr/local/Cellar/graphviz/*/lib/graphviz/perl/libgv_perl.so"
   tags:
     - system-packages
 
