@@ -1,5 +1,5 @@
 mecab_version: "0.996"
-mecab_tarball_url: "https://distfiles.macports.org/mecab/mecab-0.996.tar.gz"
+mecab_tarball_url: "https://s3.amazonaws.com/mediacloud-mecab/mecab_src/mecab-0.996.tar.gz"
 mecab_sha1sum: 15baca0983a61c1a49cffd4a919463a0a39ef127
 
 vagrant_version: "1.9.7"
