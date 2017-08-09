@@ -1,0 +1,12 @@
+---
+
+- name: Install common utils
+  apt:
+    name: "{{item}}"
+    state: present
+  with_items:
+    - htop
+    - python-software-properties
+  become: true
+  tags:
+    - common
