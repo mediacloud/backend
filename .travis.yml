@@ -57,10 +57,10 @@ before_install:
     # Install Ansible
     - sudo pip install --upgrade ansible ansible-lint
     # Check the role/playbook's syntax.
-    - ansible-playbook -i "localhost," -c local ansible/playbook.yml --syntax-check
+    - cd ansible/ && ansible-playbook -i "localhost," -c local playbook.yml --syntax-check && cd ../
 install:
     # Run the role/playbook with ansible-playbook.
-    - ansible-playbook -i "localhost," -c local ansible/playbook.yml --skip-tags "update-packages" -vvv
+    - cd ansible/ && ansible-playbook -i "localhost," -c local playbook.yml --skip-tags "update-packages" -vvv && cd ../
     # Use default configuration
     - cp mediawords.yml.dist mediawords.yml
     # Create PostgreSQL database
