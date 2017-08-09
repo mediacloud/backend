@@ -18,13 +18,12 @@ if [ ! -f mediawords.yml ]; then
     cp mediawords.yml.dist mediawords.yml
 fi
 
-# This will install PostgreSQL 9.1+ and a number of system libraries needed by
-# CPAN modules
-echo "Installing the necessary Ubuntu / OS X packages..."
-./install/install_mediacloud_package_dependencies.sh
+echo "Installing Ansible..."
+sudo pip install --upgrade ansible ansible-lint
 
-echo "Installing PostgreSQL packages..."
-./install/install_postgresql_server_packages.sh
+echo "Setting up host using Ansible..."
+ANSIBLE_CONFIG=ansible/ansible.cfg \
+    ansible-playbook -i "localhost," -c local ansible/playbook.yml -vvv
 
 echo "Installing Python dependencies..."
 ./install/install_python_dependencies.sh
