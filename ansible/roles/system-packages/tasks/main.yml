@@ -1,6 +1,6 @@
-- include: main-{{ ansible_distribution }}.yml
-
 - include_vars: ../vars/main-{{ ansible_distribution }}.yml
+
+- include: main-{{ ansible_distribution }}.yml
 
 - name: Install Supervisor via Pip
   pip:
