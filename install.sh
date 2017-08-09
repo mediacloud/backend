@@ -31,9 +31,6 @@ echo "Installing Python dependencies..."
 echo "Installing MeCab..."
 ./install/install_mecab-ipadic-neologd.sh
 
-echo "Setting kernel parameters..."
-./install/set_kernel_parameters.sh
-
 echo "Setting PostgreSQL parameters..."
 ./install/set_postgresql_parameters.sh
 
