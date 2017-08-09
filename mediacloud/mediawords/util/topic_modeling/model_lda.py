@@ -100,7 +100,7 @@ class ModelLDA(BaseTopicModel):
         return story_topic
 
     def evaluate(self):
-        pass
+        return "{}:{}".format(self._model.n_topics, self._model.loglikelihood())
 
 
 # A sample output
