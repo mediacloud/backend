@@ -2,9 +2,57 @@
 
 - include: main-{{ ansible_distribution }}.yml
 
-- name: Install Supervisor via Pip
+- name: "Check to see if Pip 2.7 is already installed"
+  command: "pip2.7 --version"
+  ignore_errors: true
+  register: pip2_is_installed
+  changed_when: false
+  tags:
+    - system-packages
+
+- name: "Check to see if Pip {{ python_version }} is already installed"
+  command: "pip{{ python_version }} --version"
+  ignore_errors: true
+  register: pip3_is_installed
+  changed_when: false
+  tags:
+    - system-packages
+
+- block:
+
+    - name: Create temporary directory for get-pip.py
+      tempfile:
+        state: directory
+        suffix: get_pip
+      register: get_pip_tempdir
+      tags:
+        - system-packages
+
+    - name: Download get-pip.py
+      get_url:
+        url: https://bootstrap.pypa.io/get-pip.py
+        dest: "{{ get_pip_tempdir.path }}/get-pip.py"
+      tags:
+        - system-packages
+    
+    - name: "Install Pip 2.7"
+      command: "python2.7 {{ get_pip_tempdir.path }}/get-pip.py"
+      become: "{{ pip_system_install_become }}"
+      tags:
+        - system-packages
+
+    - name: "Install Pip {{ python_version }}"
+      command: "python{{ python_version }} {{ get_pip_tempdir.path }}/get-pip.py"
+      become: "{{ pip_system_install_become }}"
+      tags:
+        - system-packages
+    
+  when: pip2_is_installed.rc != 0 or pip3_is_installed.rc != 0
+
+- name: "Install Supervisor via Pip 2.7"
   pip:
     name: supervisor
+    executable: "pip2.7"
   become: "{{ pip_system_install_become }}"
   tags:
     - system-packages
@@ -12,7 +60,7 @@
 - name: "Install Virtualenv via Pip {{ python_version }}"
   pip:
     name: virtualenv
-    executable: "pip-{{ python_version }}"
+    executable: "pip{{ python_version }}"
   become: "{{ pip_system_install_become }}"
   tags:
     - system-packages
