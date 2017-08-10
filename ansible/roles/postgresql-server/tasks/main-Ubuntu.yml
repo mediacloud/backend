@@ -27,7 +27,7 @@
     - "postgresql-client-{{ postgresql_version }}"
     - "postgresql-contrib-{{ postgresql_version }}"
     - "postgresql-plperl-{{ postgresql_version }}"
-    - "postgresql-server-dev-all"
+    - "postgresql-server-dev-{{ postgresql_version }}"
   become: true
   tags:
     - postgresql-server
