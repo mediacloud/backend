@@ -82,10 +82,10 @@
 - name: Create custom configuration directory in PostgreSQL configuration directory
   file:
     path: "{{ postgresql_custom_conf_path }}"
-    owner: "{{ postgresql_psql_login_user }}"
-    group: "{{ postgresql_psql_login_user }}"
+    owner: "{{ postgresql_conf_user }}"
+    group: "{{ postgresql_conf_group }}"
     state: directory
-  become: true
+  become: "{{ postgresql_conf_become }}"
   tags:
     - postgresql-server
 
@@ -95,7 +95,7 @@
     regexp: "^include_dir\\s=\\s'{{ postgresql_custom_conf_dir }}'$"
     line: "include_dir = '{{ postgresql_custom_conf_dir }}'"
     state: present
-  become: true
+  become: "{{ postgresql_conf_become }}"
   notify:
     - "Restart PostgreSQL ({{ ansible_distribution }})"
   tags:
@@ -105,9 +105,9 @@
   copy:
     src: "../files/postgresql_conf/01-mediacloud.conf"
     dest: "{{ postgresql_custom_conf_path }}/01-mediacloud.conf"
-    owner: "{{ postgresql_psql_login_user }}"
-    group: "{{ postgresql_psql_login_user }}"
-  become: true
+    owner: "{{ postgresql_conf_user }}"
+    group: "{{ postgresql_conf_group }}"
+  become: "{{ postgresql_conf_become }}"
   notify:
     - "Restart PostgreSQL ({{ ansible_distribution }})"
   tags:
@@ -120,7 +120,7 @@
     owner: "{{ postgresql_psql_login_user }}"
     group: "{{ postgresql_psql_login_user }}"
   when: "mediacloud_production is defined and mediacloud_production"
-  become: true
+  become: "{{ postgresql_conf_become }}"
   notify:
     - "Restart PostgreSQL ({{ ansible_distribution }})"
   tags:
