@@ -60,7 +60,7 @@ before_install:
     - ansible-playbook -i "localhost," -c local ansible/playbook.yml --syntax-check
 install:
     # Run the role/playbook with ansible-playbook.
-    - ansible-playbook -i "localhost," -c local ansible/playbook.yml --skip-tags "update-packages" -vvv
+    - ansible-playbook -i "localhost," -c local ansible/playbook.yml -vvv
     # Use default configuration
     - cp mediawords.yml.dist mediawords.yml
     # Create PostgreSQL database
