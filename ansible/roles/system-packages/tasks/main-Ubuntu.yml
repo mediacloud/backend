@@ -69,7 +69,6 @@
     - make
     - netcat
     - openjdk-8-jdk
-    - postgresql-server-dev-all
     - python-pip
     - python2.7
     - python2.7-dev
