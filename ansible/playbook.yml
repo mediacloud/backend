@@ -23,7 +23,7 @@
     - name: Install Python 2.7 for Ansible on Ubuntu
       raw: if [ `uname` != 'Darwin' ]; then sudo apt-get -y install python-simplejson; fi
       register: install_python_2_7_result
-      changed_when: "'python-simplejson is already the newest version' not in install_python_2_7_result.stdout"
+      changed_when: "'python-simplejson is already the newest version' not in install_python_2_7_result.stdout and install_python_2_7_result.stdout != ''"
       tags:
         - pre-tasks
     - name: Reload ansible_facts
