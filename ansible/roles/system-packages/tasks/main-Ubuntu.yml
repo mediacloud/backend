@@ -121,6 +121,7 @@
 - name: Test if Vagrant is of the correct version
   shell: "vagrant --version | awk '{ print $2 }'"
   ignore_errors: true
+  changed_when: false
   register: vagrant_current_version
   tags:
     - system-packages
@@ -137,6 +138,7 @@
 - name: Test if MeCab is of the correct version
   shell: "mecab-config --version"
   ignore_errors: true
+  changed_when: false
   register: mecab_current_version
   tags:
     - system-packages
