@@ -14,7 +14,7 @@
   any_errors_fatal: true
   gather_facts: no
   pre_tasks:
-    - name: Verify Ansible meets Drupal VM's version requirements.
+    - name: Ensure that Ansible itself is up-to-date
       assert:
         that: "ansible_version.full | version_compare('2.3.2.0', '>=')"
         msg: "Please upgrade your Ansible to a newer version."
