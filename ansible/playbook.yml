@@ -9,7 +9,7 @@
 #   * "mediacloud_production" -- set when deploying to production
 #
 
-- name: Set up Media Cloud
+- name: Set up Media Cloud system
   hosts: all
   any_errors_fatal: true
   gather_facts: no
@@ -46,3 +46,14 @@
     - system-packages
     - postgresql-server
     - kernel-parameters
+
+- name: Check out Media Cloud repository
+
+  # Ungrouped hosts will have Media Cloud repository checked out because they
+  # don't have it yet; "localhost" is assumed to already have Media Cloud
+  # checked out (because how else are we running this Ansible script?)
+  hosts: ungrouped
+
+  any_errors_fatal: true
+  roles:
+    - git-repository

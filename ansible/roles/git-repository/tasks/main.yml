@@ -1,0 +1,9 @@
+---
+
+- name: Check out Media Cloud Git repository
+  git:
+    repo: "{{ git_repo_url }}"
+    dest: "{{ mediacloud_root }}"
+    version: "{{ git_clone_branch }}"
+  tags:
+    - git-repository
