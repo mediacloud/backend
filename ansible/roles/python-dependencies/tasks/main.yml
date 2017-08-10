@@ -1,0 +1,40 @@
+---
+
+- name: Install Media Cloud Python requirements
+  pip:
+    requirements: "{{ mediacloud_root }}/mediacloud/requirements.txt"
+    virtualenv: "{{ mediacloud_root }}/mc-venv/"
+    virtualenv_python: "python{{ python_version }}"
+  tags:
+    - python-dependencies
+
+- name: Set path to virtualenv's site-packages
+  set_fact:
+    virtualenv_site_packages_path: "{{ mediacloud_root }}/mc-venv/lib/python{{ python_version }}/site-packages/"
+  tags:
+    - python-dependencies
+
+- name: Test if virtualenv's site-packages directory exists
+  stat:
+    path: "{{ virtualenv_site_packages_path }}"
+  register: virtualenv_site_packages_path_stat
+  tags:
+    - python-dependencies
+
+- name: Ensure that virtualenv's site-packages directory exists
+  assert:
+    that:
+      - "virtualenv_site_packages_path_stat.stat.isdir is defined and virtualenv_site_packages_path_stat.stat.isdir"
+  tags:
+    - python-dependencies
+
+- name: Add path to mediacloud/ to the .pth file under virtualenv's site-packages directory
+  lineinfile:
+    dest: "{{ virtualenv_site_packages_path }}/mediacloud.pth"
+    regexp: '^\.\./\.\./\.\./\.\./mediacloud/$'
+    line: "../../../../mediacloud/"
+    create: true
+    state: present
+  become: true
+  tags:
+    - python-dependencies

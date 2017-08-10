@@ -25,9 +25,6 @@ echo "Setting up host using Ansible..."
 ANSIBLE_CONFIG=ansible/ansible.cfg \
     ansible-playbook -i "localhost," -c local ansible/playbook.yml -vvv
 
-echo "Installing Python dependencies..."
-./install/install_python_dependencies.sh
-
 echo "Installing MeCab..."
 ./install/install_mecab-ipadic-neologd.sh
 

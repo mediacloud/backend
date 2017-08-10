@@ -58,3 +58,10 @@
   any_errors_fatal: true
   roles:
     - git-repository
+
+
+- name: Install Media Cloud dependencies
+  hosts: all
+  any_errors_fatal: true
+  roles:
+    - python-dependencies
