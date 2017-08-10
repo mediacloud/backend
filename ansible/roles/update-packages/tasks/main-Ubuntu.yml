@@ -8,6 +8,7 @@
   become: true
   tags:
     - update-packages
+    - update-packages-ubuntu
 
 - name: Remove useless packages from the cache
   apt:
@@ -15,6 +16,7 @@
   become: true
   tags:
     - update-packages
+    - update-packages-ubuntu
 
 - name: Autoremove APT packages
   apt:
@@ -22,3 +24,4 @@
   become: true
   tags:
     - update-packages
+    - update-packages-ubuntu

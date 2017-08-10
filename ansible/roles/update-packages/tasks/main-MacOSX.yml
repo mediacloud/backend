@@ -6,3 +6,4 @@
     upgrade_all: yes
   tags:
     - update-packages
+    - update-packages-macosx
