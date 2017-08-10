@@ -2,5 +2,5 @@ postgresql_psql_become: false
 postgresql_psql_become_user: ""
 postgresql_psql_login_user: "{{ ansible_user }}"
 
-# Directory (or wildcard) with postgresql.conf
+# Directory with postgresql.conf
 postgresql_conf_dir: "/usr/local/var/postgres/"

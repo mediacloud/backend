@@ -33,42 +33,23 @@
   tags:
     - postgresql-server
 
-- name: Resolve PostgreSQL configuration directory
-  shell: "ls -d {{ postgresql_conf_dir }}"
-  register: postgresql_resolved_conf_dir
-  tags:
-    - postgresql-server
-
-- name: Ensure that only one PostgreSQL configuration directory exists
-  assert:
-    that:
-      - "{{ postgresql_resolved_conf_dir.stdout_lines | count }} == 1"
-  tags:
-    - postgresql-server
-
-- name: Set PostgreSQL configuration directory
-  set_fact:
-    postgresql_resolved_conf_dir: "{{ postgresql_resolved_conf_dir.stdout }}"
-  tags:
-    - postgresql-server
-
 - name: Test if PostgreSQL configuration directory exists
   stat:
-    path: "{{ postgresql_resolved_conf_dir }}"
-  register: postgresql_resolved_conf_dir_stat
+    path: "{{ postgresql_conf_dir }}"
+  register: postgresql_conf_dir_stat
   tags:
     - postgresql-server  
 
 - name: Ensure that PostgreSQL configuration path is a directory
   assert:
     that:
-      - "postgresql_resolved_conf_dir_stat.stat.isdir is defined and postgresql_resolved_conf_dir_stat.stat.isdir"
+      - "postgresql_conf_dir_stat.stat.isdir is defined and postgresql_conf_dir_stat.stat.isdir"
   tags:
     - postgresql-server
 
-- name: Set PostgreSQL configuration directory
+- name: Set PostgreSQL main configuration file
   set_fact:
-    postgresql_resolved_conf_file: "{{ postgresql_resolved_conf_dir }}/postgresql.conf"
+    postgresql_resolved_conf_file: "{{ postgresql_conf_dir }}/postgresql.conf"
   tags:
     - postgresql-server
 
@@ -86,18 +67,6 @@
   tags:
     - postgresql-server
 
-- name: Print PostgreSQL configuration directory
-  debug:
-    msg: "PostgreSQL configuration directory: {{ postgresql_resolved_conf_dir }}"
-  tags:
-    - postgresql-server
-
-- name: Print PostgreSQL main configuration file
-  debug:
-    msg: "PostgreSQL main configuration file: {{ postgresql_resolved_conf_file }}"
-  tags:
-    - postgresql-server
-
 - name: Set PostgreSQL custom configuration directory
   set_fact:
     postgresql_custom_conf_dir: "conf.d"
@@ -106,7 +75,7 @@
 
 - name: Set PostgreSQL custom configuration path
   set_fact:
-    postgresql_custom_conf_path: "{{ postgresql_resolved_conf_dir }}/{{ postgresql_custom_conf_dir }}"
+    postgresql_custom_conf_path: "{{ postgresql_conf_dir }}/{{ postgresql_custom_conf_dir }}"
   tags:
     - postgresql-server
 
