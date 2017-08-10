@@ -97,7 +97,7 @@
     state: present
   become: true
   notify:
-    - "Restart PostgreSQL (Ubuntu)"
+    - "Restart PostgreSQL ({{ ansible_distribution }})"
   tags:
     - postgresql-server
 
@@ -109,7 +109,7 @@
     group: "{{ postgresql_psql_login_user }}"
   become: true
   notify:
-    - "Restart PostgreSQL (Ubuntu)"
+    - "Restart PostgreSQL ({{ ansible_distribution }})"
   tags:
     - postgresql-server
 
