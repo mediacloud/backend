@@ -9,9 +9,10 @@
   tags:
     - system-packages
 
-- name: Install Virtualenv via Pip
+- name: "Install Virtualenv via Pip {{ python_version }}"
   pip:
     name: virtualenv
+    executable: "pip-{{ python_version }}"
   become: "{{ pip_system_install_become }}"
   tags:
     - system-packages

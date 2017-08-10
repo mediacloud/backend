@@ -29,7 +29,7 @@
     - system-packages
 
 # We require at least Python 3.5 (14.04 only has 3.4 which doesn't work with newest Pip)
-- name: Add Python 3.5 APT repository
+- name: Add Python 3.x APT repository
   apt_repository:
     repo: "ppa:fkrull/deadsnakes"
     update_cache: yes
@@ -72,8 +72,8 @@
     - python-pip
     - python2.7
     - python2.7-dev
-    - python3.5
-    - python3.5-dev
+    - "python{{ python_version }}"
+    - "python{{ python_version }}-dev"
     - rabbitmq-server
     - unzip
   become: true
