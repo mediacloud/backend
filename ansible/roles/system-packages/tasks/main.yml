@@ -8,6 +8,11 @@
   become: "{{ pip_system_install_become }}"
   tags:
     - system-packages
+
+- name: Install Virtualenv via Pip
+  pip:
+    name: virtualenv
+  become: "{{ pip_system_install_become }}"
   tags:
     - system-packages
 
