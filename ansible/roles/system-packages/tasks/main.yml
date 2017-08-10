@@ -18,7 +18,8 @@
   tags:
     - system-packages
 
-- block:
+- name: Install Pip for both Python versions
+  block:
 
     - name: Create temporary directory for get-pip.py
       tempfile:
