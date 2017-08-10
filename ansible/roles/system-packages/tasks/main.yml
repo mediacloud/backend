@@ -5,7 +5,9 @@
 - name: Install Supervisor via Pip
   pip:
     name: supervisor
-  become: "{{ pip_install_supervisor_become }}"
+  become: "{{ pip_system_install_become }}"
+  tags:
+    - system-packages
   tags:
     - system-packages
 
