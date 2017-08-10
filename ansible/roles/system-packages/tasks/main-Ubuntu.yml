@@ -107,16 +107,6 @@
   tags:
     - system-packages
 
-- name: Remove obsolete system packages
-  apt:
-    name: "{{item}}"
-    state: absent
-  with_items:
-    - supervisor
-  become: true
-  tags:
-    - system-packages
-
 - name: Test if Vagrant is of the correct version
   shell: "vagrant --version | awk '{ print $2 }'"
   ignore_errors: true
