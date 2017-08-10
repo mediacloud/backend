@@ -1,0 +1,4 @@
+---
+
+# By default (on "ungrouped" hosts), we expect to check out Media Cloud to ~/mediacloud/
+mediacloud_root: "{{ ansible_env.HOME }}/mediacloud"
