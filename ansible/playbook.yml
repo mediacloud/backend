@@ -65,3 +65,4 @@
   any_errors_fatal: true
   roles:
     - python-dependencies
+    - perlbrew
