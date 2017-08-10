@@ -31,20 +31,12 @@ use MediaWords::Util::CoreNLP;
 use MediaWords::DBI::Stories;
 use Readonly;
 
-# Having a global database object should be safe because
-# job workers don't fork()
-my $db = undef;
-
 # Run CoreNLP job
 sub run($;$)
 {
     my ( $self, $args ) = @_;
 
-    unless ( $db )
-    {
-        # Postpone connecting to the database so that compile test doesn't do that
-        $db = MediaWords::DB::connect_to_db();
-    }
+    my $db = MediaWords::DB::connect_to_db();
 
     my $stories_id = $args->{ stories_id } + 0;
     unless ( $stories_id )
