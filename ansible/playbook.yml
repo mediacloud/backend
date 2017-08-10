@@ -47,6 +47,7 @@
     - postgresql-server
     - kernel-parameters
 
+
 - name: Check out Media Cloud repository
 
   # Ungrouped hosts will have Media Cloud repository checked out because they
