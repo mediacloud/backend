@@ -1,9 +1,28 @@
 ---
 
-- name: Update and upgrade all Homebrew packages
+- name: Update Homebrew
   homebrew:
     update_homebrew: yes
-    upgrade_all: yes
+  tags:
+    - update-packages
+    - update-packages-macosx
+
+- name: Upgrade dependencies for Graphviz
+  homebrew:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - fontconfig
+    - freetype
+    - gd
+    - pcre
+    - perl
+    - pkg-config
+    - python
+    - python3
+    - ruby
+    - swig
+    - webp
   tags:
     - update-packages
     - update-packages-macosx
