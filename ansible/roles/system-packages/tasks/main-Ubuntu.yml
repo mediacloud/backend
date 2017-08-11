@@ -93,7 +93,7 @@
 - name: Stop and disable system RabbitMQ
   service:
     name: rabbitmq-server
-    enabled: yes
+    enabled: no
     state: stopped
   become: true
   tags:
