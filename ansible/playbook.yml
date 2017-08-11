@@ -30,6 +30,12 @@
       setup:
       tags:
         - pre-tasks
+    - name: Display all variables / facts known for a host
+      debug:
+        var: hostvars[inventory_hostname]
+        verbosity: 3
+      tags:
+        - pre-tasks
     - name: Install Aptitude  # https://github.com/ansible/ansible/issues/16884
       command: apt-get -y install python-minimal aptitude
       args:
