@@ -67,7 +67,8 @@ class ModelLDA(BaseTopicModel):
         self.token_matrix = np.array(token_count)
 
     def summarize_topic(self, total_topic_num: int = 0,
-                        topic_word_num: int = 4, iteration_num: int = 1000) -> Dict[int, List[str]]:
+                        topic_word_num: int = 4,
+                        iteration_num: int = 1000) -> Dict[int, List[str]]:
         """
         summarize the topic of each story based on the frequency of occurrence of each word
         :return: a dictionary of story id
@@ -99,8 +100,79 @@ class ModelLDA(BaseTopicModel):
 
         return story_topic
 
-    def evaluate(self):
+    def evaluate(self) -> str:
+        """
+        Show the log likelihood for the current model
+        :return: the log likelihood value
+        """
         return "{}:{}".format(self._model.n_topics, self._model.loglikelihood())
+
+    def train(self, topic_num: int, word_num: int = 4, unit_iteration_num: int = 1) -> float:
+        """
+        train the model iteratively until the result is stable
+        :param topic_num: total number of topics
+        :param word_num: number of words for each topic
+        :param unit_iteration_num: number of iteration for each time
+        :return: the final log likelihood value
+        """
+        prev_likelihood = None
+
+        while True:
+            print(prev_likelihood)
+            self.summarize_topic(
+                total_topic_num=topic_num,
+                topic_word_num=word_num,
+                iteration_num=unit_iteration_num)
+            if (type(prev_likelihood) == float) \
+                    and (prev_likelihood == self._model.loglikelihood()):
+                return prev_likelihood
+
+            prev_likelihood = self._model.loglikelihood()
+
+    def tune(self, topic_word_num: int = 4,
+             topic_num_range: List[int] = None,
+             expansion_factor: int = 2) -> int:
+        """Tune the model on total number of topics
+        until the optimal parameters are found"""
+
+        print(topic_num_range, expansion_factor)
+
+        topic_num_range = [1, len(self._stories_ids) * expansion_factor] \
+            if (not topic_num_range) else topic_num_range
+
+        if topic_num_range[0] == topic_num_range[1]:
+            print("topic_num_range < 1: {}".format(topic_num_range))
+            if topic_num_range[0] == (len(self._stories_ids) * expansion_factor):
+                expansion_factor += 1
+                print("topic_num expands: {}".format(expansion_factor))
+                return self.tune(
+                    topic_word_num=topic_word_num,
+                    topic_num_range=sorted([topic_num_range[0],
+                                            len(self._stories_ids) * expansion_factor]),
+                    expansion_factor=expansion_factor)
+
+            return topic_num_range[0]
+
+        score_dict = {}
+        print(topic_num_range)
+
+        for topic_num in iter(topic_num_range):
+            print(score_dict)
+            likelihood = self.train(topic_num=topic_num, word_num=topic_word_num)
+            score_dict[likelihood] = topic_num
+
+        sorted_scores = sorted(score_dict.keys())[::-1]
+        print(sorted_scores)
+        sorted_nums = [score_dict.get(score) for score in sorted_scores]
+        print(sorted_nums)
+        new_topic_num_boundary = int((sorted_nums[0] + sorted_nums[1]) / 2)
+
+        print("new_topic_num_boundary = {}".format(new_topic_num_boundary))
+
+        return self.tune(
+            topic_word_num=topic_word_num,
+            topic_num_range=sorted([new_topic_num_boundary, sorted_nums[0]]),
+            expansion_factor=expansion_factor)
 
 
 # A sample output
@@ -112,5 +184,5 @@ if __name__ == '__main__':
     pool = TokenPool(SampleHandler())
     model.add_stories(pool.output_tokens())
 
-    print(model.summarize_topic())
-    print(model.evaluate())
+    print(model.tune())
+    # print(model.evaluate())
