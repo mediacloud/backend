@@ -13,10 +13,12 @@ matrix:
           perl: 5.22
 cache:
     directories:
-        # Pip dependencies (e.g. Ansible)
+        # Pip cache
         - $HOME/.cache/pip/
-        # Perlbrew dependencies
-        - $HOME/.perlbrew/libs/
+        # Media Cloud installed Python dependencies (via Virtualenvwrapper)
+        - $HOME/.virtualenvs/
+        # Media Cloud installed Perl dependencies (via Perlbrew)
+        - $HOME/.perlbrew/
 before_cache:
     - rm -f $HOME/.cache/pip/log/debug.log
 env:

@@ -66,6 +66,14 @@
   tags:
     - system-packages
 
+- name: "Install Virtualenvwrapper via Pip {{ python_version }}"
+  pip:
+    name: virtualenvwrapper
+    executable: "pip{{ python_version }}"
+  become: "{{ pip_system_install_become }}"
+  tags:
+    - system-packages
+
 # Temporary hack to overcome https://github.com/mitchellh/vagrant-aws/issues/510
 - name: Install Vagrant's fog-core
   command: vagrant plugin install --plugin-version 1.43 fog-core

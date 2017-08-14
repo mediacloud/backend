@@ -14,7 +14,7 @@
   with_items:
 
     # Use correct Python with Inline::Python
-    - { name: "INLINE_PYTHON_EXECUTABLE", value: "{{ mediacloud_root }}/mc-venv/bin/python{{ python_version }}" }
+    - { name: "INLINE_PYTHON_EXECUTABLE", value: "{{ ansible_env.HOME }}/.virtualenvs/mediacloud/bin/python{{ python_version }}" }
 
     # OS X no longer provides OpenSSL headers and Net::AMQP::RabbitMQ doesn't care
     # about OPENSSL_PREFIX so we need to set CCFLAGS and install the module

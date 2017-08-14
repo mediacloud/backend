@@ -1,16 +1,25 @@
 ---
 
+- name: Initialize Virtualenvwrapper
+  command: "bash /usr/local/bin/virtualenvwrapper.sh"
+  args:
+    creates: "{{ ansible_env.HOME }}/.virtualenvs/initialize"
+  environment:
+    VIRTUALENVWRAPPER_PYTHON: "python{{ python_version }}"
+  tags:
+    - python-dependencies
+
 - name: Install Media Cloud Python requirements
   pip:
     requirements: "{{ mediacloud_root }}/mediacloud/requirements.txt"
-    virtualenv: "{{ mediacloud_root }}/mc-venv/"
+    virtualenv: "{{ ansible_env.HOME }}/.virtualenvs/mediacloud/"
     virtualenv_python: "python{{ python_version }}"
   tags:
     - python-dependencies
 
 - name: Set path to virtualenv's site-packages
   set_fact:
-    virtualenv_site_packages_path: "{{ mediacloud_root }}/mc-venv/lib/python{{ python_version }}/site-packages/"
+    virtualenv_site_packages_path: "{{ ansible_env.HOME }}/.virtualenvs/mediacloud/lib/python{{ python_version }}/site-packages/"
   tags:
     - python-dependencies
 
@@ -31,8 +40,8 @@
 - name: Add path to mediacloud/ to the .pth file under virtualenv's site-packages directory
   lineinfile:
     dest: "{{ virtualenv_site_packages_path }}/mediacloud.pth"
-    regexp: '^\.\./\.\./\.\./\.\./mediacloud/$'
-    line: "../../../../mediacloud/"
+    regexp: '.*?mediacloud.*?'
+    line: "{{ mediacloud_root }}/mediacloud/"
     create: true
     state: present
   tags:
