@@ -49,6 +49,11 @@
   tags:
     - system-packages
 
+- name: Switch to Python 3.5
+  command: brew switch python3 3.5.2_3
+  tags:
+    - system-packages
+
 - name: Install dependencies for Graphviz
   homebrew:
     name: "{{ item }}"
