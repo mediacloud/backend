@@ -37,9 +37,15 @@
     - { name: openssl, install_options: "" }
     - { name: perl, install_options: "" }
     - { name: python, install_options: "" }
-    - { name: python3, install_options: "" }
     - { name: rabbitmq, install_options: "" }
     - { name: tidy-html5, install_options: "" }
+  tags:
+    - system-packages
+
+- name: Install Python 3.5
+  command: "brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/ec545d45d4512ace3570782283df4ecda6bb0044/Formula/python3.rb"
+  args:
+    creates: "/usr/local/bin/python3.5"
   tags:
     - system-packages
 
