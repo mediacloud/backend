@@ -40,7 +40,7 @@
   args:
     chdir: "{{ mecab_ipadic_neologd_dist_path }}/bin/"
   # (Optionally) set by git-repository role
-  when: mecab_ipadic_neologd_target_sys_dic_stat.stat.exists == false or ( git_submodules_changed is not defined or git_submodules_changed == true)
+  when: mecab_ipadic_neologd_target_sys_dic_stat.stat.exists == false or ( git_submodules_changed is defined and git_submodules_changed == true)
   tags:
     - mecab-ipadic-neologd
 
