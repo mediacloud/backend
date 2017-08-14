@@ -63,6 +63,7 @@
     - libxslt1-dev
     - libxslt1.1
     - libyaml-dev
+    - libssl-dev  # OpenSSL headers
     - logrotate
     - make
     - netcat
