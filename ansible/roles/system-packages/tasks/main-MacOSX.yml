@@ -29,10 +29,12 @@
     - { name: cpanminus, install_options: "" }
     - { name: curl, install_options: "" }
     - { name: gawk, install_options: "" }
+    - { name: httpd24, install_options: "" }
     - { name: hunspell, install_options: "" }
     - { name: libyaml, install_options: "" }
     - { name: logrotate, install_options: "" }
     - { name: mecab, install_options: "" }
+    - { name: mod_fcgid, install_options: "" }
     - { name: netcat, install_options: "" }
     - { name: openssl, install_options: "" }
     - { name: perl, install_options: "" }
