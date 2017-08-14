@@ -1,4 +1,3 @@
-# Installing up-to-date Erlang requires root
 sudo: true
 dist: trusty
 language: python
