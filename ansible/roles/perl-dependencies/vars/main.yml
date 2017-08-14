@@ -79,7 +79,7 @@ perl_dependencies:
     - "Math::Prime::Util"
     - "Math::Random"
     - "Math::Random::Secure"
-    - "MediaCloud::JobManager~0.26"
+    - "MediaCloud::JobManager@0.27"
     - "Memoize"
     - "Modern::Perl~1.20150127"
     - "Module::Install"
