@@ -1,0 +1,53 @@
+---
+
+- name: Test if mecab-ipadic-neologd repository is checked out
+  stat:
+    path: "{{ mecab_ipadic_neologd_dist_path }}/seed/"
+  register: mecab_ipadic_neologd_seed_stat
+  tags:
+    - mecab-ipadic-neologd
+
+- name: Ensure that mecab-ipadic-neologd repository is checked out
+  assert:
+    that:
+      - "mecab_ipadic_neologd_seed_stat.stat.isdir is defined and mecab_ipadic_neologd_seed_stat.stat.isdir"
+  tags:
+    - mecab-ipadic-neologd
+
+- name: Test if mecab-ipadic-neologd target path exists
+  stat:
+    path: "{{ mecab_ipadic_neologd_target_path }}"
+  register: mecab_ipadic_neologd_target_path_stat
+  tags:
+    - mecab-ipadic-neologd
+
+- name: Ensure that mecab-ipadic-neologd target path exists
+  assert:
+    that:
+      - "mecab_ipadic_neologd_target_path_stat.stat.isdir is defined and mecab_ipadic_neologd_target_path_stat.stat.isdir"
+  tags:
+    - mecab-ipadic-neologd
+
+- name: Test if mecab-ipadic-neologd is already built
+  stat:
+    path: "{{ mecab_ipadic_neologd_target_path }}/sys.dic"
+  register: mecab_ipadic_neologd_target_sys_dic_stat
+  tags:
+    - mecab-ipadic-neologd
+
+- name: Build mecab-ipadic-neologd
+  command: "./install-mecab-ipadic-neologd --prefix {{ mecab_ipadic_neologd_target_path }} --forceyes"
+  args:
+    chdir: "{{ mecab_ipadic_neologd_dist_path }}/bin/"
+  # (Optionally) set by git-repository role
+  when: mecab_ipadic_neologd_target_sys_dic_stat.stat.exists == false or ( git_submodules_changed is not defined or git_submodules_changed == true)
+  tags:
+    - mecab-ipadic-neologd
+
+- name: Remove build directory
+  file:
+    path: "{{ mecab_ipadic_neologd_build_dir }}"
+    state: absent
+  tags:
+    - mecab-ipadic-neologd
+

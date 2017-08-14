@@ -25,10 +25,6 @@ echo "Setting up host using Ansible..."
 ANSIBLE_CONFIG=ansible/ansible.cfg \
     ansible-playbook -i "localhost," -c local ansible/playbook.yml -vvv
 
-# FIXME submodules_changed
-echo "Installing MeCab..."
-./install/install_mecab-ipadic-neologd.sh
-
 # This will create a PostgreSQL user called "mediaclouduser" and two databases
 # owned by this user: "mediacloud" and "mediacloud_test".
 #

@@ -5,5 +5,13 @@
     repo: "{{ git_repo_url }}"
     dest: "{{ mediacloud_root }}"
     version: "{{ git_clone_branch }}"
+  register: git_checkout_return_value
+  tags:
+    - git-repository
+
+- name: Note whether submodules have changed
+  set_fact:
+    # Will be tested by mecab-ipadic-neologd
+    git_submodules_changed: "{{ git_checkout_return_value.changed and git_checkout_return_value.submodules_changed }}"
   tags:
     - git-repository

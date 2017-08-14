@@ -52,7 +52,7 @@ class McJapaneseTokenizer(object):
         if not os.path.isfile(os.path.join(self._MECAB_DICTIONARY_PATH, 'sys.dic')):
             raise McJapaneseTokenizerException("""
                 MeCab dictionary directory does not contain a dictionary: %s
-                Maybe you forgot to run ./install/install_mecab-ipadic-neologd.sh?
+                Maybe you forgot to build mecab-ipadic-neologd with Ansible?
                 """ % self._MECAB_DICTIONARY_PATH)
 
         try:
