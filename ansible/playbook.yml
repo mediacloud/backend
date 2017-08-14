@@ -72,3 +72,4 @@
   roles:
     - python-dependencies
     - perlbrew
+    - perl-dependencies
