@@ -101,18 +101,21 @@ class ModelLDA(BaseTopicModel):
 
         return story_topic
 
-    def evaluate(self, topic_num: int=None) -> str:
+    def evaluate(self, topic_num: int=None) -> List:
         """
         Show the log likelihood for the current model
         :return: the log likelihood value
         """
         if not topic_num:
-            topic_num = self._stories_ids
+            topic_num = self._stories_number
+
+        if not self._model:
+            self.summarize_topic()
 
         if self._model.n_topics != topic_num:
             self.train(topic_num=topic_num)
 
-        return "{}:{}".format(self._model.n_topics, self._model.loglikelihood())
+        return [self._model.n_topics, self._model.loglikelihood()]
 
     def train(self, topic_num: int, word_num: int = 4, unit_iteration_num: int = 1) -> float:
         """
@@ -125,7 +128,6 @@ class ModelLDA(BaseTopicModel):
         prev_likelihood = None
 
         while True:
-            print(prev_likelihood)
             self.summarize_topic(
                 total_topic_num=topic_num,
                 topic_word_num=word_num,
@@ -143,16 +145,12 @@ class ModelLDA(BaseTopicModel):
         """Tune the model on total number of topics
         until the optimal parameters are found"""
 
-        print(topic_num_range, expansion_factor, score_dict)
-
         if not topic_num_range:
             topic_num_range = [1, len(self._stories_ids) * expansion_factor]
 
         if topic_num_range[0] == topic_num_range[1]:
-            print("topic_num_range < 1: {}".format(topic_num_range))
             if topic_num_range[0] == (len(self._stories_ids) * expansion_factor):
                 expansion_factor += 1
-                print("topic_num expands: {}".format(expansion_factor))
                 return self.tune_with_iteration(
                     topic_word_num=topic_word_num,
                     topic_num_range=sorted([topic_num_range[0],
@@ -165,23 +163,14 @@ class ModelLDA(BaseTopicModel):
         if not score_dict:
             score_dict = {}
 
-        print(topic_num_range)
-
         for topic_num in iter(topic_num_range):
-            print(score_dict)
-
             if topic_num not in score_dict.values():
                 likelihood = self.train(topic_num=topic_num, word_num=topic_word_num)
                 score_dict[likelihood] = topic_num
 
         sorted_scores = sorted(score_dict.keys())[::-1]
-        print(sorted_scores)
         sorted_nums = [score_dict.get(score) for score in sorted_scores]
-        print(sorted_nums)
         new_topic_num_boundary = int((sorted_nums[0] + sorted_nums[1]) / 2)
-
-        print("new_topic_num_boundary = {}, score dict = {}".format(
-            new_topic_num_boundary, score_dict))
 
         return self.tune_with_iteration(
             topic_word_num=topic_word_num,
@@ -190,40 +179,26 @@ class ModelLDA(BaseTopicModel):
             score_dict=score_dict)
 
     def tune_with_polynomial(self, topic_word_num: int = 4,
-                             topic_num_range: List[int] = None,
-                             expansion_factor: int = 2,
-                             score_dict: Dict[float, int] = None) -> int:
+                             topic_num_samples: List[int] = None) -> int:
         """Tune the model on total number of topics
         until the optimal parameters are found"""
 
-        print(topic_num_range, expansion_factor, score_dict)
-
-        if not topic_num_range:
-            topic_num_range = [2,
-                               len(self._stories_ids) + 10,
-                               len(self._stories_ids) + 20]
+        if not topic_num_samples:
+            # TODO: Find better initial sample values here
+            topic_num_samples = [1, len(self._stories_ids) + 10, len(self._stories_ids) + 20]
 
         score_dict = {}
 
-        for topic_num in iter(topic_num_range):
-            print(score_dict)
-
+        for topic_num in iter(topic_num_samples):
             if topic_num not in score_dict.values():
                 likelihood = self.train(topic_num=topic_num, word_num=topic_word_num)
                 score_dict[likelihood] = topic_num
 
-        sorted_scores = sorted(score_dict.keys())[::-1]
-        print("sorted_scores={}".format(sorted_scores))
-        sorted_nums = [score_dict.get(score) for score in sorted_scores]
-        print("sorted_nums={}".format(sorted_nums))
-
         optimal_topic_nums = OptimalFinder().find_extreme(
             x=list(score_dict.values()),
             y=list(score_dict.keys()))
-        print("optimal_topic_nums = {}".format(optimal_topic_nums))
 
         int_topic_nums = [1 if round(num) == 0 else round(num) for num in optimal_topic_nums]
-        print("int_topic_num = {}".format(int_topic_nums))
 
         for num in int_topic_nums:
             if num in score_dict.values():
@@ -232,8 +207,6 @@ class ModelLDA(BaseTopicModel):
             likelihood = self.train(topic_num=num, word_num=topic_word_num)
             score_dict[likelihood] = num
 
-        print(score_dict)
-
         optimal_topic_num = score_dict.get(max(score_dict.keys()))
 
         return optimal_topic_num
@@ -241,12 +214,14 @@ class ModelLDA(BaseTopicModel):
 # A sample output
 if __name__ == '__main__':
     model = ModelLDA()
+
     # pool = TokenPool(connect_to_db())
-    # model.add_stories(pool.output_tokens())
 
     pool = TokenPool(SampleHandler())
-    model.add_stories(pool.output_tokens())
 
+    model.add_stories(pool.output_tokens())
     topic_number = model.tune_with_polynomial()
     print(topic_number)
-    print(model.evaluate(topic_num=topic_number))
+    evaluation = model.evaluate(topic_num=topic_number)
+    print("Number of Topics = {}; Likelihood = {}".format(evaluation[0], evaluation[1]))
+    print(model.summarize_topic(total_topic_num=2))
