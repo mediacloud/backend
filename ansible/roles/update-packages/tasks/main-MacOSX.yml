@@ -19,7 +19,6 @@
     - perl
     - pkg-config
     - python
-    - python3
     - ruby
     - swig
     - webp
