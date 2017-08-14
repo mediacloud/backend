@@ -1,10 +1,7 @@
 log4perl.conf
-data.old
-matrix
 mediawords.yml
 mediawords-*.yml
 mediacloud.tmproj
-jons_stuff
 
 # Media Cloud virtualenv
 mc-venv/
