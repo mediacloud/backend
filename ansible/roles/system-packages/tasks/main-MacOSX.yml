@@ -66,35 +66,6 @@
   tags:
     - system-packages
 
-- name: Install cpanm system-wide dependencies
-  cpanm:
-    name: "{{ item.name }}"
-    notest: "{{ item.notest }}"
-  with_items:
-    - { name: "Graph", notest: False }
-    - { name: "Graph::Writer::GraphViz", notest: True }  # https://rt.cpan.org/Public/Bug/Display.html?id=41776
-    - { name: "GraphViz", notest: False }
-    - { name: "HTML::Entities", notest: False }
-    - { name: "HTML::Parser", notest: False }
-    - { name: "Lingua::Stem::Snowball", notest: False }
-    - { name: "List::AllUtils", notest: False }
-    - { name: "List::MoreUtils", notest: False }
-    - { name: "OpenGL", notest: False }
-    - { name: "Perl::Tidy", notest: False }
-    - { name: "Readonly", notest: False }
-    - { name: "Readonly::XS", notest: False }
-    - { name: "Test::WWW::Mechanize", notest: False }
-    - { name: "version", notest: False }
-    - { name: "XML::LibXML", notest: False }
-    - { name: "XML::LibXML::Simple", notest: False }
-    - { name: "XML::Parser", notest: False }
-    - { name: "XML::SAX::Expat", notest: False }
-    - { name: "YAML", notest: False }
-    - { name: "YAML::LibYAML", notest: False }
-    - { name: "YAML::Syck", notest: False }
-  tags:
-    - system-packages
-
 - name: Install Vagrant
   homebrew_cask:
     name: vagrant
