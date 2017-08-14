@@ -74,3 +74,4 @@
     - perlbrew
     - perl-dependencies
     - mecab-ipadic-neologd
+    - git-hooks
