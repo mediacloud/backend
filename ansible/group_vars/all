@@ -2,3 +2,6 @@
 
 # Python version to install and use
 python_version: 3.5
+
+perlbrew_root: "{{ ansible_env.HOME }}/perl5/perlbrew/"
+perlbrew_home: "{{ ansible_env.HOME }}/.perlbrew/"

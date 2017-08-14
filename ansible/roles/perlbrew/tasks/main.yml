@@ -1,17 +1,5 @@
 ---
 
-- name: Set perlbrew_root
-  set_fact:
-    perlbrew_root: "{{ ansible_env.HOME }}/perl5/perlbrew/"
-  tags:
-    - perlbrew
-
-- name: Set perlbrew_home
-  set_fact:
-    perlbrew_home: "{{ ansible_env.HOME }}/.perlbrew/"
-  tags:
-    - perlbrew
-
 - name: Test if Perlbrew is installed
   stat:
     path: "{{ perlbrew_root }}/bin/perlbrew"
