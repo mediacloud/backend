@@ -53,9 +53,7 @@
     - gcc
     - graphviz
     - graphviz-dev
-    - graphviz-doc
     - hunspell
-    - libdb-dev
     - libexpat1-dev
     - libgraphviz-dev
     - libtidy-dev
