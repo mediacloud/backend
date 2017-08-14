@@ -53,6 +53,8 @@ env:
         # let tests know that they are running on travis
         - MC_SKIP_RABBIT_OPEN_FILES_LIMIT_CHECK=1
 before_install:
+    # Uninstall Python 3.6+ on OS X to be able to install Python 3.5 later
+    - "if [ `uname` != 'Darwin' ]; then brew uninstall python3; fi"
     # Install Ansible
     - sudo pip install --upgrade ansible ansible-lint
     # Check the role/playbook's syntax.
