@@ -52,7 +52,7 @@ If this script runs successfully, skip to the [Post Install](#post-install) sect
 
         # Recreate empty databases
         dropdb mediacloud && dropdb mediacloud_test
-        ./install/create_default_db_user_and_databases.sh
+        ./tools/db/create_default_db_user_and_databases.sh
 
         # Load the dump into "mediacloud"
         psql -f sample-dump.sql -d mediacloud

@@ -31,7 +31,7 @@ ANSIBLE_CONFIG=ansible/ansible.cfg \
 # ("create_default_db_user_and_databases.sh" uses configuration mediawords.yml
 # so it needs a working Perl environment)
 echo "Creating default PostgreSQL user and databases for Media Cloud..."
-sudo ./install/create_default_db_user_and_databases.sh
+sudo ./tools/db/create_default_db_user_and_databases.sh
 
 echo "Initializing PostgreSQL database with Media Cloud schema..."
 ./script/run_in_env.sh ./script/mediawords_create_db.pl

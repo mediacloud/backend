@@ -65,7 +65,7 @@ install:
     # Use default configuration
     - cp mediawords.yml.dist mediawords.yml
     # Create PostgreSQL database
-    # - ./install/create_default_db_user_and_databases.sh
+    # - ./tools/db/create_default_db_user_and_databases.sh
 # before_script:
 #     # Initialize PostgreSQL database
 #     - ./script/run_in_env.sh ./script/mediawords_create_db.pl
