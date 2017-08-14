@@ -50,7 +50,7 @@ echo "Media Cloud install succeeded!"
 echo
 echo "See doc/ for more information on using Media Cloud."
 echo
-echo "Run ./script/run_server.sh to start the Media Cloud server."
+echo "Run ./script/run_dev_server.sh to start the Media Cloud server."
 echo
 echo "(Log in with email address 'jdoe@mediacloud.org' and password 'mediacloud')"
 echo

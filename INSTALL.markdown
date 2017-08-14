@@ -35,7 +35,7 @@ If this script runs successfully, skip to the [Post Install](#post-install) sect
 
 ## Post Install
   
-1. Run `./script/run_server.sh`. This should start up the web server. If the command line returns no errors, go to <http://localhost:3000> (or replace `localhost` with whatever host the system is on) to access the server.
+1. Run `./script/run_dev_server.sh`. This should start up the web server. If the command line returns no errors, go to <http://localhost:3000> (or replace `localhost` with whatever host the system is on) to access the server.
 
 2. To access the administration interface, go to <http://localhost:3000/login> and log in with the email address and password that you've provided before.  If you've used the `./install.sh` script, the default administrator's email address is `jdoe@mediacloud.org` and the password is `mediacloud`.
   
