@@ -8,7 +8,7 @@ set -e
 set -u
 
 PWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$PWD/set_mc_root_dir.inc.sh"
+source "$PWD/script/set_mc_root_dir.inc.sh"
 
 cd "$MC_ROOT_DIR"
 

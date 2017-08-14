@@ -13,8 +13,6 @@ matrix:
           perl: 5.22
 cache:
     directories:
-        # Carton dependencies
-        - local/
         # Pip dependencies (e.g. Ansible)
         - $HOME/.cache/pip/
         # Perlbrew dependencies
@@ -67,7 +65,7 @@ install:
     # - ./install/create_default_db_user_and_databases.sh
 # before_script:
 #     # Initialize PostgreSQL database
-#     - ./script/run_with_carton.sh ./script/mediawords_create_db.pl
+#     - ./script/run_in_env.sh ./script/mediawords_create_db.pl
 script:
     - echo "FIXME"
 #     # Run Media Cloud's test suite, report test coverage to https://coveralls.io/r/berkmancenter/mediacloud

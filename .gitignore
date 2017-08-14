@@ -5,8 +5,6 @@ mediawords.yml
 mediawords-*.yml
 mediacloud.tmproj
 jons_stuff
-.carton
-local
 
 # Media Cloud virtualenv
 mc-venv/

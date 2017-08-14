@@ -93,12 +93,12 @@ When you're ready to export:
 
 2. On backup crawler, export feed downloads to a CSV file:
 
-		backup-crawler$ ./script/run_with_carton.sh \
+		backup-crawler$ ./script/run_in_env.sh \
 			./script/export_import/export_feed_downloads_from_backup_crawler.pl \
 			> mediacloud-feed-downloads.csv
 
 3. On production machine, import feed downloads from CSV file:
 
-		production-machine$ ./script/run_with_carton.sh \
+		production-machine$ ./script/run_in_env.sh \
 			./script/export_import/import_feed_downloads_to_db.pl \
 			mediacloud-feed-downloads.csv

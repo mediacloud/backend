@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# PYTHONHOME might have been set by run_carton.sh to make use of Media Cloud's
+# PYTHONHOME might have been set by run_in_env.sh to make use of Media Cloud's
 # virtualenv under mc-venv. Supervisor doesn't support Python 3, to unset
 # PYTHONHOME for Supervisor's Python 2.7 to search for modules at correct
 # location.

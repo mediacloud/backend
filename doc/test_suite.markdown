@@ -34,11 +34,11 @@ run it a second time in this case.
 The above commands only report a summary of the errors.  If there are errors, it is usually useful to only run a single
 test to show the detailed errors. To run a single test, use:
 
-    ./script/run_carton.sh exec prove -Ilib/ -r <TEST_FILE_NAME>
+    ./script/run_in_env.sh prove -Ilib/ -r <TEST_FILE_NAME>
 
 e.g.:
 
-    ./script/run_carton.sh exec prove -Ilib/ -r t/compile.t
+    ./script/run_in_env.sh prove -Ilib/ -r t/compile.t
 
 ## Automated Testing
 

@@ -26,9 +26,9 @@ sub main
 {
     my $usage =
       "Usage:\n" .
-      "    ./script/run_with_carton.sh ./script/database_schema_version.pl ./schema/mediawords.sql # read from file\n" .
+      "    ./script/run_in_env.sh ./script/database_schema_version.pl ./schema/mediawords.sql # read from file\n" .
       "or\n" .
-"    cat ./schema/mediawords.sql | ./script/run_with_carton.sh ./script/database_schema_version.pl - # read from STDIN\n";
+"    cat ./schema/mediawords.sql | ./script/run_in_env.sh ./script/database_schema_version.pl - # read from STDIN\n";
 
     die $usage unless $#ARGV == 0;    # 1 argument
     my $sql_filename = $ARGV[ -1 ];

@@ -4,7 +4,7 @@ set -u
 set -o errexit
 
 PWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$PWD/set_mc_root_dir.inc.sh"
+source "$PWD/script/set_mc_root_dir.inc.sh"
 
 cd "$MC_ROOT_DIR"
 
@@ -12,7 +12,7 @@ cd "$MC_ROOT_DIR"
 source "$MC_ROOT_DIR/install/postgresql_helpers.inc.sh"
 
 #
-QUERY_CONFIG="$MC_ROOT_DIR/script/run_with_carton.sh $MC_ROOT_DIR/script/mediawords_query_config.pl"
+QUERY_CONFIG="$MC_ROOT_DIR/script/run_in_env.sh $MC_ROOT_DIR/script/mediawords_query_config.pl"
 
 
 echo "WARNING: This script will delete the following Media Cloud databases and users:"

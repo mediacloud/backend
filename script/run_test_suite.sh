@@ -55,15 +55,11 @@ fi
 cd `dirname $0`/../
 
 echo "Running Python unit tests..."
-set +u
-source mc-venv/bin/activate
-set -u
-nosetests --detailed-errors --where=mediacloud/
+./script/run_in_env.sh nosetests --detailed-errors --where=mediacloud/
 
 echo "Running Perl unit tests..."
 TEST_FILES=`find lib script t -name '*.t'`
-source ./script/set_perl_brew_environment.sh
-PERL5OPT=-MCarp::Always ./script/run_carton.sh exec prove -Ilib/ $* $TEST_FILES || {
+PERL5OPT=-MCarp::Always ./script/run_in_env.sh prove -Ilib/ $* $TEST_FILES || {
     echo "One or more unit tests have failed with error code $?."
     exit 1
 }

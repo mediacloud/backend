@@ -4,7 +4,7 @@ set -u
 set -o errexit
 
 PWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$PWD/install/set_mc_root_dir.inc.sh"
+source "$PWD/script/set_mc_root_dir.inc.sh"
 
 cd "$MC_ROOT_DIR"
 
@@ -25,26 +25,23 @@ echo "Setting up host using Ansible..."
 ANSIBLE_CONFIG=ansible/ansible.cfg \
     ansible-playbook -i "localhost," -c local ansible/playbook.yml -vvv
 
+# FIXME submodules_changed
 echo "Installing MeCab..."
 ./install/install_mecab-ipadic-neologd.sh
-
-echo "Installing Perlbrew, Carton and the required modules..."
-echo "Note: that the script will take a long time to complete."
-./install/install_mc_perlbrew_and_modules.sh
 
 # This will create a PostgreSQL user called "mediaclouduser" and two databases
 # owned by this user: "mediacloud" and "mediacloud_test".
 #
 # ("create_default_db_user_and_databases.sh" uses configuration mediawords.yml
-# so it needs a working Carton environment)
+# so it needs a working Perl environment)
 echo "Creating default PostgreSQL user and databases for Media Cloud..."
 sudo ./install/create_default_db_user_and_databases.sh
 
 echo "Initializing PostgreSQL database with Media Cloud schema..."
-./script/run_with_carton.sh ./script/mediawords_create_db.pl
+./script/run_in_env.sh ./script/mediawords_create_db.pl
 
 echo "Creating new administrator user 'jdoe@mediacloud.org' with password 'mediacloud'"
-./script/run_with_carton.sh ./script/mediawords_manage_users.pl \
+./script/run_in_env.sh ./script/mediawords_manage_users.pl \
     --action=add \
     --email="jdoe@mediacloud.org" \
     --full_name="John Doe" \

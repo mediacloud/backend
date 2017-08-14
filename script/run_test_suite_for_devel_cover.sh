@@ -49,6 +49,6 @@ HARNESS_PERL_SWITCHES="$HARNESS_PERL_SWITCHES" ./script/run_test_suite.sh
 
 
 echo "Generating '$REPORT' report..." 1>&2
-./script/run_carton.sh exec perl local/bin/cover --nogcov -report "$REPORT"
+./script/run_in_env.sh cover --nogcov -report "$REPORT"
 
 echo "Done." 1>&2

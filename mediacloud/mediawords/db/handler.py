@@ -191,7 +191,7 @@ class DatabaseHandler(object):
 
                 Please run:
 
-                    ./script/run_with_carton.sh ./script/mediawords_upgrade_db.pl --import
+                    ./script/run_in_env.sh ./script/mediawords_upgrade_db.pl --import
 
                 to automatically upgrade the database schema to the latest version.
 
@@ -202,7 +202,7 @@ class DatabaseHandler(object):
 
                 or
 
-                    %(IGNORE_SCHEMA_VERSION_ENV_VARIABLE)s=1 ./script/run_with_carton.sh ./script/your_script.pl
+                    %(IGNORE_SCHEMA_VERSION_ENV_VARIABLE)s=1 ./script/run_in_env.sh ./script/your_script.pl
 
                 ################################
 

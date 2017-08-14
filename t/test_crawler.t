@@ -10,7 +10,7 @@ use warnings;
 #
 # If you run t/test_crawler.t with the -d command it rewrites the files. E.g.:
 #
-#     ./script/run_with_carton.sh ./t/test_crawler.t  -d
+#     ./script/run_in_env.sh ./t/test_crawler.t  -d
 #
 # This changes the expected results so it's important to make sure that you're
 # not masking bugs in the code. Also it's a good idea to manually examine the

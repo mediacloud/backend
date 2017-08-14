@@ -8,6 +8,5 @@ source "$PWD/set_mc_root_dir.inc.sh"
 
 cd "$MC_ROOT_DIR"
 
-exec ./script/run_in_env.sh prove -Ilib/ -r t/compile.t
-
-
+echo "Running FCGI plackup on PID $$" >&2
+exec ./script/run_in_env.sh plackup -I lib -s FCGI --nproc 0 --manager MediaWords::MyFCgiManager

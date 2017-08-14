@@ -182,7 +182,7 @@ The hook should run just fine and an editor asking for a commit message should a
 
 If you happen to be a user who just have checked out the latest Media Cloud code and want to upgrade the database to the latest version, run:
 
-    ./script/run_with_carton.sh ./script/mediawords_upgrade_db.pl
+    ./script/run_in_env.sh ./script/mediawords_upgrade_db.pl
 
 The script will:
 
