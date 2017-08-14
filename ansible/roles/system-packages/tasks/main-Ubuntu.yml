@@ -43,7 +43,6 @@
     name: "{{item}}"
     state: present
   with_items:
-    - apache2
     - curl
     - build-essential
     - cpanminus
@@ -55,7 +54,6 @@
     - graphviz
     - graphviz-dev
     - hunspell
-    - libapache2-mod-fcgid
     - libexpat1-dev
     - libgraphviz-dev
     - libtidy-dev
