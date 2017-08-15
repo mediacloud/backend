@@ -52,22 +52,9 @@ env:
         - MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1
         # let tests know that they are running on travis
         - MC_SKIP_RABBIT_OPEN_FILES_LIMIT_CHECK=1
-before_install:
-    # Install Ansible
-    - sudo pip install --upgrade ansible ansible-lint
-    # Check the role/playbook's syntax.
-    - ansible-playbook -i "localhost," -c local ansible/playbook.yml --syntax-check
 install:
-    # Run the role/playbook with ansible-playbook.
-    - ansible-playbook -i "localhost," -c local ansible/playbook.yml --skip-tags "update-packages-ubuntu" -vvv
-    # Use default configuration
-    - cp mediawords.yml.dist mediawords.yml
-    # Create PostgreSQL database
-    # - ./tools/db/create_default_db_user_and_databases.sh
-# before_script:
-#     # Initialize PostgreSQL database
-#     - ./script/run_in_env.sh ./script/mediawords_create_db.pl
+    # Run the install script
+    - ./install.sh
 script:
-    - echo "FIXME"
-#     # Run Media Cloud's test suite, report test coverage to https://coveralls.io/r/berkmancenter/mediacloud
-#     - ./script/run_test_suite_for_devel_cover.sh coveralls --destroy-solr
+    # Run Media Cloud's test suite, report test coverage to https://coveralls.io/r/berkmancenter/mediacloud
+    - ./script/run_test_suite_for_devel_cover.sh coveralls --destroy-solr
