@@ -65,5 +65,7 @@ install:
     # Initialize PostgreSQL database
     - ./script/run_in_env.sh ./script/mediawords_create_db.pl
 script:
+    - ps ax | grep postgres
+    - cat /var/log/postgresql/postgresql-9.6-main.log
     # Run Media Cloud's test suite, report test coverage to https://coveralls.io/r/berkmancenter/mediacloud
     - ./script/run_test_suite_for_devel_cover.sh coveralls --destroy-solr
