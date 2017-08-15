@@ -85,15 +85,15 @@
   tags:
     - postgresql-server
 
-# - name: Create custom configuration directory in PostgreSQL configuration directory
-#   file:
-#     path: "{{ postgresql_custom_conf_path }}"
-#     owner: "{{ postgresql_conf_user }}"
-#     group: "{{ postgresql_conf_group }}"
-#     state: directory
-#   become: "{{ postgresql_conf_become }}"
-#   tags:
-#     - postgresql-server
+- name: Create custom configuration directory in PostgreSQL configuration directory
+  file:
+    path: "{{ postgresql_custom_conf_path }}"
+    owner: "{{ postgresql_conf_user }}"
+    group: "{{ postgresql_conf_group }}"
+    state: directory
+  become: "{{ postgresql_conf_become }}"
+  tags:
+    - postgresql-server
 
 # - name: Ensure that custom configuration gets included from main PostgreSQL configuration file
 #   lineinfile:
