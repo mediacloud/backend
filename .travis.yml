@@ -61,7 +61,7 @@ install:
     # Use default configuration
     - cp mediawords.yml.dist mediawords.yml
     # Install Media Cloud
-    - ansible-playbook --inventory="localhost," --connection=local --skip-tags "update-packages-ubuntu" -vvv ansible/playbook.yml
+    - ansible-playbook --inventory="localhost," --connection=local --skip-tags "update-packages-ubuntu" ansible/playbook.yml
     # Create PostgreSQL database
     - ./tools/db/create_default_db_user_and_databases.sh
     # Initialize PostgreSQL database
