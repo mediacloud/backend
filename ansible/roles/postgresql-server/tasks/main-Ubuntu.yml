@@ -66,6 +66,15 @@
   tags:
     - postgresql-server
 
+- name: Start and enable PostgreSQL
+  service:
+    name: postgresql
+    enabled: true
+    state: started
+  become: true
+  tags:
+    - postgresql-server
+
 - name: Install psycopg2 for managing PostgreSQL users
   pip:
     name: psycopg2
