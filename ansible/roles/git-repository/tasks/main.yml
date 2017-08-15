@@ -12,6 +12,6 @@
 - name: Note whether submodules have changed
   set_fact:
     # Will be tested by mecab-ipadic-neologd
-    git_submodules_changed: "{{ git_checkout_return_value.changed and git_checkout_return_value.submodules_changed }}"
+    git_submodules_changed: "{{ git_checkout_return_value.changed == true and git_checkout_return_value.submodules_changed is defined and git_checkout_return_value.submodules_changed == true }}"
   tags:
     - git-repository
