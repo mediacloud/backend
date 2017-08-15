@@ -62,9 +62,6 @@ install:
     - ansible-playbook --inventory="localhost," --connection=local --skip-tags "update-packages-ubuntu" ansible/playbook.yml
     # Create PostgreSQL database
     - ./tools/db/create_default_db_user_and_databases.sh
-    - ps ax | grep postgres
-    - sudo cat /var/log/postgresql/postgresql-9.6-main.log
-    - sudo cat /var/log/syslog
     # Initialize PostgreSQL database
     - ./script/run_in_env.sh ./script/mediawords_create_db.pl
 script:
