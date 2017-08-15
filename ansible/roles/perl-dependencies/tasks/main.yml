@@ -39,7 +39,8 @@
 
 - name: Install Media Cloud Perl dependencies with Cpanm
   cpanm:
-    name: "{{ item }}"
+    name: "{{ item.name }}"
+    version: "{{ item.min_version }}"
     notest: true # `carton install` didn't run tests either
   with_items: "{{ perl_dependencies }}"
   environment: "{{ perlbrew_environment_variables_copy }}"

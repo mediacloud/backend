@@ -13,106 +13,105 @@ perlbrew_environment_variables:
 
 # Dependencies to install
 perl_dependencies:
-    - "AI::DecisionTree"
-    - "Array::Compare"
-    - "Carp::Always"
-    - "Catalyst~5.90030"
-    - "Catalyst::Action::RenderView"
-    - "Catalyst::Action::REST"
-    - "Catalyst::Authentication::User::Hash"
-    - "Catalyst::Controller::HTML::FormFu"
-    - "Catalyst::Controller::REST"
-    - "Catalyst::Plugin::Authorization::ACL"
-    - "Catalyst::Plugin::Authorization::Roles"
-    - "Catalyst::Plugin::ConfigLoader"
-    - "Catalyst::Plugin::I18N"
-    - "Catalyst::Plugin::Session::Store::FastMmap"
-    - "Catalyst::Plugin::Session::Store::File"
-    - "Catalyst::Plugin::StackTrace"
-    - "Catalyst::Plugin::Static::Simple"
-    - "Catalyst::Plugin::Unicode"
-    - "Catalyst::Restarter"
-    - "Catalyst::Runtime~5.90030"
-    - "Catalyst::View::TT"
-    - "CGI"
-    - "CHI~0.60"
-    - "Color::Mix"
-    - "Crypt::SaltedHash"
-    - "Data::Dumper"
-    - "Data::Serializer"
-    - "Data::Sorting"
-    - "Date::Calc"
-    - "Devel::Cover~1.17"
-    - "Devel::Cover::Report::Coveralls~0.11"
-    - "Devel::NYTProf"
-    - "Dir::Self"
-    - "Domain::PublicSuffix"
-    - "Encode::HanConvert"
-    - "ExtUtils::MakeMaker"
-    - "FCGI"
-    - "FCGI::ProcManager"
-    - "File::ReadBackwards"
-    - "forks~0.34"
-    - "GraphViz"
-    - "GraphViz2"
-    - "HTML::Entities"
-    - "HTML::FormFu"
-    - "HTML::FormFu::Element::reCAPTCHA"
-    - "HTML::LinkExtractor"
-    - "HTML::TreeBuilder::LibXML"
-    - "Inline"
+    - { name: "AI::DecisionTree", min_version: "" }
+    - { name: "Array::Compare", min_version: "" }
+    - { name: "Carp::Always", min_version: "" }
+    - { name: "Catalyst", min_version: "5.90030" }
+    - { name: "Catalyst::Action::RenderView", min_version: "" }
+    - { name: "Catalyst::Action::REST", min_version: "" }
+    - { name: "Catalyst::Authentication::User::Hash", min_version: "" }
+    - { name: "Catalyst::Controller::HTML::FormFu", min_version: "" }
+    - { name: "Catalyst::Controller::REST", min_version: "" }
+    - { name: "Catalyst::Plugin::Authorization::ACL", min_version: "" }
+    - { name: "Catalyst::Plugin::Authorization::Roles", min_version: "" }
+    - { name: "Catalyst::Plugin::ConfigLoader", min_version: "" }
+    - { name: "Catalyst::Plugin::I18N", min_version: "" }
+    - { name: "Catalyst::Plugin::Session::Store::FastMmap", min_version: "" }
+    - { name: "Catalyst::Plugin::Session::Store::File", min_version: "" }
+    - { name: "Catalyst::Plugin::StackTrace", min_version: "" }
+    - { name: "Catalyst::Plugin::Static::Simple", min_version: "" }
+    - { name: "Catalyst::Plugin::Unicode", min_version: "" }
+    - { name: "Catalyst::Restarter", min_version: "" }
+    - { name: "Catalyst::Runtime", min_version: "5.90030" }
+    - { name: "Catalyst::View::TT", min_version: "" }
+    - { name: "CGI", min_version: "" }
+    - { name: "CHI", min_version: "0.60" }
+    - { name: "Color::Mix", min_version: "" }
+    - { name: "Crypt::SaltedHash", min_version: "" }
+    - { name: "Data::Dumper", min_version: "" }
+    - { name: "Data::Serializer", min_version: "" }
+    - { name: "Data::Sorting", min_version: "" }
+    - { name: "Date::Calc", min_version: "" }
+    - { name: "Devel::Cover", min_version: "1.17" }
+    - { name: "Devel::Cover::Report::Coveralls", min_version: "0.11" }
+    - { name: "Devel::NYTProf", min_version: "" }
+    - { name: "Dir::Self", min_version: "" }
+    - { name: "Domain::PublicSuffix", min_version: "" }
+    - { name: "Encode::HanConvert", min_version: "" }
+    - { name: "ExtUtils::MakeMaker", min_version: "" }
+    - { name: "FCGI", min_version: "" }
+    - { name: "FCGI::ProcManager", min_version: "" }
+    - { name: "File::ReadBackwards", min_version: "" }
+    - { name: "forks", min_version: "0.34" }
+    - { name: "GraphViz", min_version: "" }
+    - { name: "GraphViz2", min_version: "" }
+    - { name: "HTML::Entities", min_version: "" }
+    - { name: "HTML::FormFu", min_version: "" }
+    - { name: "HTML::FormFu::Element::reCAPTCHA", min_version: "" }
+    - { name: "HTML::LinkExtractor", min_version: "" }
+    - { name: "HTML::TreeBuilder::LibXML", min_version: "" }
+    - { name: "Inline", min_version: "" }
     # Patched version of Inline::Python gets installed separately
-    - "IO::Compress::Bzip2"
-    - "IO::Compress::Gzip"
-    - "JSON::XS"
-    - "Lingua::Identify::CLD~0.10"
-    - "Lingua::Sentence"
-    - "Lingua::Stem::Snowball"
-    - "Lingua::Stem::Snowball::Lt~0.02"
-    - "Lingua::ZH::WordSegmenter"
-    - "List::Compare"
-    - "List::MoreUtils~0.413"
-    - "Log::Log4perl"
-    - "LWP::Protocol::https"
-    - "LWP::UserAgent~6.15"
-    - "LWP::UserAgent::Determined"
-    - "Math::Prime::Util"
-    - "Math::Random"
-    - "Math::Random::Secure"
-    - "MediaCloud::JobManager@0.27"
-    - "Memoize"
-    - "Modern::Perl~1.20170117"
-    - "Module::Install"
-    - "Moose"
-    - "namespace::autoclean"
-    - "Net::Amazon::S3"
-    - "Net::AMQP::RabbitMQ"
-    - "Net::IP"
-    - "Net::Twitter"
-    - "Parallel::Fork::BossWorkerAsync"
-    - "Parallel::ForkManager"
-    - "Parse::BooleanLogic"
-    - "Perl::Tidy~20160302"
-    - "Readonly"
-    - "Readonly::XS"
-    - "Regexp::Common"
-    - "Regexp::Common::time"
-    - "Scalar::Defer"
-    - "Statistics::Basic"
-    - "Sys::RunAlone"
-    - "Template"
-    - "Term::Prompt"
-    - "Test::Differences"
-    - "Test::NoWarnings"
-    - "Test::Strict"
-    - "Text::CSV_XS~1.26"
-    - "Text::Hunspell"
-    - "Text::Lorem::More"
-    - "Text::Trim"
-    - "Text::WordDiff"
-    - "Tie::Cache"
-    - "XML::FeedPP"
-    - "XML::LibXML"
-    - "XML::Simple"
-    - "YAML::Syck"
-
+    - { name: "IO::Compress::Bzip2", min_version: "" }
+    - { name: "IO::Compress::Gzip", min_version: "" }
+    - { name: "JSON::XS", min_version: "" }
+    - { name: "Lingua::Identify::CLD", min_version: "0.10" }
+    - { name: "Lingua::Sentence", min_version: "" }
+    - { name: "Lingua::Stem::Snowball", min_version: "" }
+    - { name: "Lingua::Stem::Snowball::Lt", min_version: "0.02" }
+    - { name: "Lingua::ZH::WordSegmenter", min_version: "" }
+    - { name: "List::Compare", min_version: "" }
+    - { name: "List::MoreUtils", min_version: "0.413" }
+    - { name: "Log::Log4perl", min_version: "" }
+    - { name: "LWP::Protocol::https", min_version: "" }
+    - { name: "LWP::UserAgent", min_version: "6.15" }
+    - { name: "LWP::UserAgent::Determined", min_version: "" }
+    - { name: "Math::Prime::Util", min_version: "" }
+    - { name: "Math::Random", min_version: "" }
+    - { name: "Math::Random::Secure", min_version: "" }
+    - { name: "MediaCloud::JobManager", min_version: "0.27" }
+    - { name: "Memoize", min_version: "" }
+    - { name: "Modern::Perl", min_version: "1.20170117" }
+    - { name: "Module::Install", min_version: "" }
+    - { name: "Moose", min_version: "" }
+    - { name: "namespace::autoclean", min_version: "" }
+    - { name: "Net::Amazon::S3", min_version: "" }
+    - { name: "Net::AMQP::RabbitMQ", min_version: "" }
+    - { name: "Net::IP", min_version: "" }
+    - { name: "Net::Twitter", min_version: "" }
+    - { name: "Parallel::Fork::BossWorkerAsync", min_version: "" }
+    - { name: "Parallel::ForkManager", min_version: "" }
+    - { name: "Parse::BooleanLogic", min_version: "" }
+    - { name: "Perl::Tidy", min_version: "20160302" }
+    - { name: "Readonly", min_version: "" }
+    - { name: "Readonly::XS", min_version: "" }
+    - { name: "Regexp::Common", min_version: "" }
+    - { name: "Regexp::Common::time", min_version: "" }
+    - { name: "Scalar::Defer", min_version: "" }
+    - { name: "Statistics::Basic", min_version: "" }
+    - { name: "Sys::RunAlone", min_version: "" }
+    - { name: "Template", min_version: "" }
+    - { name: "Term::Prompt", min_version: "" }
+    - { name: "Test::Differences", min_version: "" }
+    - { name: "Test::NoWarnings", min_version: "" }
+    - { name: "Test::Strict", min_version: "" }
+    - { name: "Text::CSV_XS", min_version: "1.26" }
+    - { name: "Text::Hunspell", min_version: "" }
+    - { name: "Text::Lorem::More", min_version: "" }
+    - { name: "Text::Trim", min_version: "" }
+    - { name: "Text::WordDiff", min_version: "" }
+    - { name: "Tie::Cache", min_version: "" }
+    - { name: "XML::FeedPP", min_version: "" }
+    - { name: "XML::LibXML", min_version: "" }
+    - { name: "XML::Simple", min_version: "" }
+    - { name: "YAML::Syck", min_version: "" }
