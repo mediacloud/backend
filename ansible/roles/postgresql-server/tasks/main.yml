@@ -41,6 +41,8 @@
   stat:
     path: "{{ postgresql_conf_dir }}"
   register: postgresql_conf_dir_stat
+  notify:
+    - "Restart PostgreSQL ({{ ansible_distribution }})"
   tags:
     - postgresql-server  
 
