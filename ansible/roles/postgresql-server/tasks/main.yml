@@ -73,11 +73,11 @@
   tags:
     - postgresql-server
 
-# - name: Set PostgreSQL custom configuration directory
-#   set_fact:
-#     postgresql_custom_conf_dir: "conf.d"
-#   tags:
-#     - postgresql-server
+- name: Set PostgreSQL custom configuration directory
+  set_fact:
+    postgresql_custom_conf_dir: "conf.d"
+  tags:
+    - postgresql-server
 
 # - name: Set PostgreSQL custom configuration path
 #   set_fact:
