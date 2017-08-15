@@ -95,17 +95,17 @@
   tags:
     - postgresql-server
 
-# - name: Ensure that custom configuration gets included from main PostgreSQL configuration file
-#   lineinfile:
-#     dest: "{{ postgresql_resolved_conf_file }}"
-#     regexp: "^include_dir\\s=\\s'{{ postgresql_custom_conf_dir }}'$"
-#     line: "include_dir = '{{ postgresql_custom_conf_dir }}'"
-#     state: present
-#   become: "{{ postgresql_conf_become }}"
-#   notify:
-#     - "Restart PostgreSQL ({{ ansible_distribution }})"
-#   tags:
-#     - postgresql-server
+- name: Ensure that custom configuration gets included from main PostgreSQL configuration file
+  lineinfile:
+    dest: "{{ postgresql_resolved_conf_file }}"
+    regexp: "^include_dir\\s=\\s'{{ postgresql_custom_conf_dir }}'$"
+    line: "include_dir = '{{ postgresql_custom_conf_dir }}'"
+    state: present
+  become: "{{ postgresql_conf_become }}"
+  notify:
+    - "Restart PostgreSQL ({{ ansible_distribution }})"
+  tags:
+    - postgresql-server
 
 # - name: Copy main Media Cloud PostgreSQL configuration file
 #   copy:
