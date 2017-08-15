@@ -53,11 +53,11 @@
   tags:
     - postgresql-server
 
-# - name: Set PostgreSQL main configuration file
-#   set_fact:
-#     postgresql_resolved_conf_file: "{{ postgresql_conf_dir }}/postgresql.conf"
-#   tags:
-#     - postgresql-server
+- name: Set PostgreSQL main configuration file
+  set_fact:
+    postgresql_resolved_conf_file: "{{ postgresql_conf_dir }}/postgresql.conf"
+  tags:
+    - postgresql-server
 
 # - name: Test if PostgreSQL main configuration file exists
 #   stat:
