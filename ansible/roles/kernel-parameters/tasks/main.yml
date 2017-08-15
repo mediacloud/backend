@@ -1,3 +1,7 @@
 - include_vars: ../vars/main-{{ ansible_distribution }}.yml
+  tags:
+    - kernel-parameters
 
 - include: main-{{ ansible_distribution }}.yml
+  tags:
+    - kernel-parameters

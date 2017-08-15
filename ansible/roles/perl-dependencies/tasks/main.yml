@@ -1,6 +1,8 @@
 ---
 
 - include_vars: ../vars/main-{{ ansible_distribution }}.yml
+  tags:
+    - perl-dependencies
 
 - name: Copy Perlbrew environment variables
   set_fact:

@@ -1,6 +1,10 @@
 - include_vars: ../vars/main-{{ ansible_distribution }}.yml
+  tags:
+    - system-packages
 
 - include: main-{{ ansible_distribution }}.yml
+  tags:
+    - system-packages
 
 - name: "Check to see if Pip 2.7 is already installed"
   command: "pip2.7 --version"

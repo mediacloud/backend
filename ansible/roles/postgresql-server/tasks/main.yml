@@ -1,6 +1,10 @@
 - include_vars: ../vars/main-{{ ansible_distribution }}.yml
+  tags:
+    - postgresql-server
 
 - include: main-{{ ansible_distribution }}.yml
+  tags:
+    - postgresql-server
 
 - name: Create PostgreSQL user for current user
   postgresql_user:
