@@ -79,11 +79,11 @@
   tags:
     - postgresql-server
 
-# - name: Set PostgreSQL custom configuration path
-#   set_fact:
-#     postgresql_custom_conf_path: "{{ postgresql_conf_dir }}/{{ postgresql_custom_conf_dir }}"
-#   tags:
-#     - postgresql-server
+- name: Set PostgreSQL custom configuration path
+  set_fact:
+    postgresql_custom_conf_path: "{{ postgresql_conf_dir }}/{{ postgresql_custom_conf_dir }}"
+  tags:
+    - postgresql-server
 
 # - name: Create custom configuration directory in PostgreSQL configuration directory
 #   file:
