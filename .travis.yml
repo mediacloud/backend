@@ -60,8 +60,10 @@ before_install:
 install:
     # Install Media Cloud
     - ansible-playbook --inventory="localhost," --connection=local --skip-tags "update-packages-ubuntu" ansible/playbook.yml
+    - ps ax | grep postgres
     # Create PostgreSQL database
     - ./tools/db/create_default_db_user_and_databases.sh
+    - ps ax | grep postgres
     # Initialize PostgreSQL database
     - ./script/run_in_env.sh ./script/mediawords_create_db.pl
 script:
