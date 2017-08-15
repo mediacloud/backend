@@ -52,6 +52,7 @@
     - system-packages
     - postgresql-server
     - kernel-parameters
+    - mediawords-yml
 
 
 - name: Check out Media Cloud repository

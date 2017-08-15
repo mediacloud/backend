@@ -1,0 +1,10 @@
+---
+
+- name: Copy default mediawords.yml configuration
+  copy:
+    src: "{{ mediacloud_root }}/mediawords.yml.dist"
+    dest: "{{ mediacloud_root }}/mediawords.yml"
+    remote_src: true
+    force: no # Don't overwrite existing configuration
+  tags:
+    - mediawords-yml

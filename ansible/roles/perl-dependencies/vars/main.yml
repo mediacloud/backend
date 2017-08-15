@@ -81,7 +81,7 @@ perl_dependencies:
     - "Math::Random::Secure"
     - "MediaCloud::JobManager@0.27"
     - "Memoize"
-    - "Modern::Perl~1.20150127"
+    - "Modern::Perl~1.20170117"
     - "Module::Install"
     - "Moose"
     - "namespace::autoclean"

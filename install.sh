@@ -13,11 +13,6 @@ if [ `getconf LONG_BIT` != '64' ]; then
    exit 1
 fi
 
-echo "Copying configuration file 'mediawords.yml.dist' to 'mediawords.yml'..."
-if [ ! -f mediawords.yml ]; then
-    cp mediawords.yml.dist mediawords.yml
-fi
-
 echo "Installing Ansible..."
 sudo pip install --upgrade ansible ansible-lint
 
