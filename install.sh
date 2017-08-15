@@ -23,7 +23,11 @@ sudo pip install --upgrade ansible ansible-lint
 
 echo "Setting up host using Ansible..."
 ANSIBLE_CONFIG=ansible/ansible.cfg \
-    ansible-playbook -i "localhost," -c local ansible/playbook.yml -vvv
+    ansible-playbook \
+    --inventory="localhost,"
+    --connection=local \
+    --vvv \
+    ansible/playbook.yml
 
 # This will create a PostgreSQL user called "mediaclouduser" and two databases
 # owned by this user: "mediacloud" and "mediacloud_test".
