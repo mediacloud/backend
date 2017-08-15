@@ -59,19 +59,19 @@
   tags:
     - postgresql-server
 
-# - name: Test if PostgreSQL main configuration file exists
-#   stat:
-#     path: "{{ postgresql_resolved_conf_file }}"
-#   register: postgresql_resolved_conf_file_stat
-#   tags:
-#     - postgresql-server  
+- name: Test if PostgreSQL main configuration file exists
+  stat:
+    path: "{{ postgresql_resolved_conf_file }}"
+  register: postgresql_resolved_conf_file_stat
+  tags:
+    - postgresql-server  
 
-# - name: Ensure that PostgreSQL main configuration file is a file
-#   assert:
-#     that:
-#       - "postgresql_resolved_conf_file_stat.stat.exists is defined and postgresql_resolved_conf_file_stat.stat.exists"
-#   tags:
-#     - postgresql-server
+- name: Ensure that PostgreSQL main configuration file is a file
+  assert:
+    that:
+      - "postgresql_resolved_conf_file_stat.stat.exists is defined and postgresql_resolved_conf_file_stat.stat.exists"
+  tags:
+    - postgresql-server
 
 # - name: Set PostgreSQL custom configuration directory
 #   set_fact:
