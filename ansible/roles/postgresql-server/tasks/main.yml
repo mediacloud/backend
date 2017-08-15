@@ -119,15 +119,15 @@
   tags:
     - postgresql-server
 
-# - name: Copy production Media Cloud PostgreSQL configuration file
-#   copy:
-#     src: "../files/postgresql_conf/02-mediacloud-production.conf"
-#     dest: "{{ postgresql_custom_conf_path }}/02-mediacloud-production.conf"
-#     owner: "{{ postgresql_psql_login_user }}"
-#     group: "{{ postgresql_psql_login_user }}"
-#   when: "mediacloud_production is defined and mediacloud_production"
-#   become: "{{ postgresql_conf_become }}"
-#   notify:
-#     - "Restart PostgreSQL ({{ ansible_distribution }})"
-#   tags:
-#     - postgresql-server
+- name: Copy production Media Cloud PostgreSQL configuration file
+  copy:
+    src: "../files/postgresql_conf/02-mediacloud-production.conf"
+    dest: "{{ postgresql_custom_conf_path }}/02-mediacloud-production.conf"
+    owner: "{{ postgresql_psql_login_user }}"
+    group: "{{ postgresql_psql_login_user }}"
+  when: "mediacloud_production is defined and mediacloud_production"
+  become: "{{ postgresql_conf_become }}"
+  notify:
+    - "Restart PostgreSQL ({{ ansible_distribution }})"
+  tags:
+    - postgresql-server
