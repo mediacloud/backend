@@ -1,5 +1,5 @@
 postgresql_psql_become: false
-postgresql_psql_become_user: ""
+postgresql_psql_become_user: null
 postgresql_psql_login_user: "{{ ansible_user }}"
 
 # Directory with postgresql.conf

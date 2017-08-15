@@ -25,20 +25,20 @@
     install_options: "{{ item.install_options }}"
     state: present
   with_items:
-    - { name: coreutils, install_options: "" }
-    - { name: cpanminus, install_options: "" }
-    - { name: curl, install_options: "" }
-    - { name: gawk, install_options: "" }
-    - { name: hunspell, install_options: "" }
-    - { name: libyaml, install_options: "" }
-    - { name: logrotate, install_options: "" }
-    - { name: mecab, install_options: "" }
-    - { name: netcat, install_options: "" }
-    - { name: openssl, install_options: "" }
-    - { name: perl, install_options: "" }
-    - { name: python, install_options: "" }
-    - { name: rabbitmq, install_options: "" }
-    - { name: tidy-html5, install_options: "" }
+    - { name: coreutils, install_options: null }
+    - { name: cpanminus, install_options: null }
+    - { name: curl, install_options: null }
+    - { name: gawk, install_options: null }
+    - { name: hunspell, install_options: null }
+    - { name: libyaml, install_options: null }
+    - { name: logrotate, install_options: null }
+    - { name: mecab, install_options: null }
+    - { name: netcat, install_options: null }
+    - { name: openssl, install_options: null }
+    - { name: perl, install_options: null }
+    - { name: python, install_options: null }
+    - { name: rabbitmq, install_options: null }
+    - { name: tidy-html5, install_options: null }
   tags:
     - system-packages
 
