@@ -11,6 +11,14 @@
   tags:
     - common
 
+- name: Install Pip
+  apt:
+    name: python-pip
+    state: present
+  become: true
+  tags:
+    - common
+
 - name: Install Python packages for validating SSL certificates with SNI
   pip:
     name: supervisor
