@@ -15,4 +15,3 @@ source script/set_perlbrew_environment.sh
 source script/set_virtualenv_environment.sh
 
 exec "$@"
-
