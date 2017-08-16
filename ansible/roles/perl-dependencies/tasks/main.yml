@@ -31,6 +31,14 @@
   tags:
     - perl-dependencies
 
+- name: Install Inline module
+  cpanm:
+    name: "Inline"
+    notest: true
+  environment: "{{ perlbrew_environment_variables_copy }}"
+  tags:
+    - perl-dependencies
+
 - name: Install Inline::Python variant which die()s with tracebacks (stack traces)
   shell: "cpanm -v https://github.com/berkmancenter/mediacloud-inline-python-pm.git@exception_traceback_memleak"
   args:
