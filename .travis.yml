@@ -56,10 +56,10 @@ before_install:
     # Install Ansible
     - sudo pip install --upgrade ansible ansible-lint
     # Check Ansible playbook's syntax
-    - ansible-playbook --inventory="localhost," --connection=local --syntax-check ansible/playbook.yml
+    - ansible-playbook --inventory="localhost," --connection=local --syntax-check -vvv ansible/playbook.yml
 install:
     # Install Media Cloud
-    - ansible-playbook --inventory="localhost," --connection=local --skip-tags "update-packages-ubuntu" ansible/playbook.yml
+    - ansible-playbook --inventory="localhost," --connection=local --skip-tags "update-packages-ubuntu" -vvv ansible/playbook.yml
     - ps ax
     - ls -la /etc/postgresql/9.6/main/
     - ls -la /etc/postgresql/9.6/main/conf.d/
