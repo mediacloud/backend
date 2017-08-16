@@ -61,6 +61,10 @@ install:
     # Install Media Cloud
     - ansible-playbook --inventory="localhost," --connection=local --skip-tags "update-packages-ubuntu" ansible/playbook.yml
     - ps ax
+    - ls -la /etc/postgresql/9.6/main/
+    - ls -la /etc/postgresql/9.6/main/conf.d/
+    - cat /etc/postgresql/9.6/main/postgresql.conf
+    - cat /etc/postgresql/9.6/main/conf.d/*
     # Create PostgreSQL database
     - ./tools/db/create_default_db_user_and_databases.sh
     - ps ax
