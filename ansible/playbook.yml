@@ -52,7 +52,6 @@
     - system-packages
     - postgresql-server
     - kernel-parameters
-    - mediawords-yml
 
 
 - name: Check out Media Cloud repository
@@ -75,4 +74,11 @@
     - perlbrew
     - perl-dependencies
     - mecab-ipadic-neologd
+
+
+- name: Set up Media Cloud development environment
+  hosts: all
+  any_errors_fatal: true
+  roles:
+    - mediawords-yml
     - git-hooks
