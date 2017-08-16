@@ -47,7 +47,7 @@
         - system-packages
 
     - name: "Install Pip {{ python_version }}"
-      command: "python{{ python_version }} {{ get_pip_tempdir.path }}/get-pip.py"
+      command: "python{{ python_version }} {{ get_pip_tempdir.path }}/get-pip.py -U --force-reinstall -v"
       become: "{{ pip_system_install_become }}"
       tags:
         - system-packages
