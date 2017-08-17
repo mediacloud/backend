@@ -49,13 +49,7 @@ function run_psql {
         local run_psql_result=`/usr/local/bin/psql $PSQL_OPTIONS "$db_name" --command="$sql_command" 2>&1 || echo `
     else
         # assume Ubuntu
-        if [ -z ${TRAVIS+x} ]; then
-            # not Travis
-            local run_psql_result=`sudo su -l postgres -c "psql $PSQL_OPTIONS "$db_name" --command=\" $sql_command \" 2>&1 " || echo `
-        else
-            # Travis
-            local run_psql_result=`psql -U postgres $PSQL_OPTIONS "$db_name" --command="$sql_command " 2>&1 || echo `
-        fi
+        local run_psql_result=`sudo su -l postgres -c "psql $PSQL_OPTIONS "$db_name" --command=\" $sql_command \" 2>&1 " || echo `
     fi
     echo "$run_psql_result"
 }
