@@ -7,9 +7,9 @@ matrix:
         - os: linux
           language: perl
           perl: 5.22
-        - os: osx
-          language: generic
-          perl: 5.22
+        # - os: osx
+        #   language: generic
+        #   perl: 5.22
 cache:
     directories:
         # Pip cache
