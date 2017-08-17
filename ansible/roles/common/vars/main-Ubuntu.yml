@@ -1,2 +1,5 @@
 mediacloud_hostname: "mediacloud"
 mediacloud_domainname: "local"
+
+mediacloud_locale_lang: "en_US"
+mediacloud_locale_lang_variant: "UTF-8"

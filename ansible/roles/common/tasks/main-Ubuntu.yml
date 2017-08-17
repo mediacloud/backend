@@ -39,6 +39,35 @@
   tags:
     - common
 
+- name: Install locales package
+  apt:
+    name: locales
+    state: present
+  become: true
+  tags:
+    - common
+
+- name: Generate locales
+  locale_gen:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - "{{ mediacloud_locale_lang }}"
+    - "{{ mediacloud_locale_lang }}.{{ mediacloud_locale_lang_variant }}"
+  become: true
+  tags:
+    - common
+
+- name: Update locale
+  command: >
+    update-locale
+    LANG={{ mediacloud_locale_lang }}.{{ mediacloud_locale_lang_variant }}
+    LANGUAGE={{ mediacloud_locale_lang }}
+  become: true
+  changed_when: false
+  tags:
+    - common
+
 - name: Install common utils
   apt:
     name: "{{ item }}"
