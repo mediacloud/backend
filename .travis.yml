@@ -59,8 +59,8 @@ before_install:
     - sudo rm -rf /etc/postgresql-common
     - sudo rm -rf /var/lib/postgresql
     - sudo rm -rf /var/run/postgresql
-    - sudo userdel -r postgres
-    - sudo groupdel postgres
+    - sudo userdel -r postgres || echo "userdel failed, continuing."
+    - sudo groupdel postgres || echo "groupdel failed, continuing."
     - sudo apt-get remove -y --purge postgresql*
     # Install Ansible
     - sudo pip install --upgrade ansible ansible-lint
