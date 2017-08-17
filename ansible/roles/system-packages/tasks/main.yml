@@ -54,15 +54,15 @@
     
   when: pip2_is_installed.rc != 0 or pip3_is_installed.rc != 0
 
-- name: "Install Supervisor via Pip 2.7"
+- name: "Install Supervisor via Pip for Python 2.x"
   pip:
     name: supervisor
-    executable: "pip2.7"
+    executable: "pip2"
   become: "{{ pip_system_install_become }}"
   tags:
     - system-packages
 
-- name: "Install Virtualenv via Pip {{ python_version }}"
+- name: "Install Virtualenv via Pip for Python {{ python_version }}"
   pip:
     name: virtualenv
     executable: "pip{{ python_version }}"
