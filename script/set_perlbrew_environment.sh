@@ -9,10 +9,18 @@ export PERLBREW_HOME=$HOME/.perlbrew
 #echo source ${PERLBREW_ROOT}/etc/bashrc
 
 unset MANPATH
+
+# PERL5OPT might point to modules that are not available globally (e.g.
+# Carp::Always) but Perlbrew will try to use them, so we temporarily unset it
+OLD_PERL5OPT=$PERL5OPT
+unset PERL5OPT
+
 source ${PERLBREW_ROOT}/etc/bashrc
 
 # Switch to whatever version has the "mediacloud" library
 perlbrew use "perl-system@mediacloud"
+
+export PERL5OPT=$OLD_PERL5OPT
 
 # NOTE: We filter the useless MANPATH warning message this way because there was no good way to get rid of it.
 # perlbrew use will fail unless $MANPATH is set but then it generates this warning.
