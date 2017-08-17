@@ -2,7 +2,7 @@
 
 - name: Install common utils
   apt:
-    name: "{{item}}"
+    name: "{{ item }}"
     state: present
   with_items:
     - bash-completion
