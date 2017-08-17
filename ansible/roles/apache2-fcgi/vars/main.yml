@@ -1,0 +1,25 @@
+# ServerName (e.g. core.mediacloud.org)
+apache2_server_name: "{{ ansible_hostname }}"
+
+# ServerAdmin
+apache2_server_admin: "mediacloud@cyber.law.harvard.edu"
+
+
+# (optional) URL to redirect /login/register page to
+apache2_redirect_login_register_url: https://tools.mediacloud.org/#/user/signup
+
+# (optional) URL to redirect /login/forgot page to
+apache2_redirect_login_forgot_url: https://tools.mediacloud.org/#/user/request-password-reset
+
+
+# Serve Media Cloud webapp via SSL
+apache2_ssl_enabled: false
+
+# (required if SSL is enabled) SSL certificate path (must exist beforehand)
+apache2_ssl_cert_path: /etc/ssl/certs/ssl-cert-snakeoil.pem
+
+# (required if SSL is enabled) SSL private key path (must exist beforehand)
+apache2_ssl_cert_key_path: /etc/ssl/private/ssl-cert-snakeoil.key
+
+# (optional) SSL intermediate certificate path (must exist beforehand)
+# apache2_ssl_cert_chain_path: /etc/ssl/certs/mediacloud_interm.crt

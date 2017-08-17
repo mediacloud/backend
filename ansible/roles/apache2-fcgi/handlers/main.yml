@@ -1,0 +1,14 @@
+# For whatever reason having handlers in separate per-OS files doesn't work in Ansible 2.3
+
+- name: Restart Apache 2 (MacOSX)
+  command: "brew services restart homebrew/apache/httpd24"
+  tags:
+    - apache2-fcgi
+
+- name: "Restart Apache 2 (Ubuntu)"
+  service: 
+    name: apache2
+    state: restarted
+  become: true
+  tags:
+    - apache2-fcgi

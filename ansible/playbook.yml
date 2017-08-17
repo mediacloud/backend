@@ -82,3 +82,10 @@
   roles:
     - mediawords-yml
     - git-hooks
+
+
+- name: Set up Apache 2
+  hosts: all
+  any_errors_fatal: true
+  roles:
+    - apache2-fcgi
