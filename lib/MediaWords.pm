@@ -11,6 +11,7 @@ use v5.22;
 #use Catalyst::Runtime;
 
 use MediaWords::Util::Config;
+use MediaWords::Util::Paths;
 use MediaWords::DBI::Auth::Roles;
 
 use Net::IP;
@@ -58,6 +59,10 @@ my $config = __PACKAGE__->config( -name => 'MediaWords' );
 # Authentication realms
 Readonly our $AUTH_REALM_USERNAME_PASSWORD => 'mc_auth_realm_username_password';
 Readonly our $AUTH_REALM_API_KEY           => 'mc_auth_realm_api_key';
+
+# Set Catalyst home for path_to() to work and resolve .yml templates correctly
+__PACKAGE__->config( home => MediaWords::Util::Paths::mc_root_path() );
+__PACKAGE__->config( root => MediaWords::Util::Paths::mc_root_path() . '/root/' );
 
 # Configure authentication scheme
 __PACKAGE__->config( 'Plugin::Static::Simple' => { dirs => [ 'gexf', 'nv' ] } );
