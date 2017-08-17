@@ -53,6 +53,7 @@ env:
         # let tests know that they are running on travis
         - MC_SKIP_RABBIT_OPEN_FILES_LIMIT_CHECK=1
 before_install:
+    # Remove custom PostgreSQL installation on Travis
     - sudo pg_dropcluster --stop 9.6 main
     - sudo service postgresql stop
     - sudo rm -rf /etc/postgresql
@@ -69,16 +70,8 @@ before_install:
 install:
     # Install Media Cloud
     - ansible-playbook --inventory="localhost," --connection=local --skip-tags "update-packages-ubuntu" -vvv ansible/playbook.yml
-    - ps ax
-    - ls -la /etc/postgresql/9.6/main/
-    - ls -la /etc/postgresql/9.6/main/conf.d/
-    - cat /etc/postgresql/9.6/main/postgresql.conf
-    - cat /etc/postgresql/9.6/main/conf.d/*
-    - sudo service postgresql start
-    - ps ax
     # Create PostgreSQL database
     - ./tools/db/create_default_db_user_and_databases.sh
-    - ps ax
     # Initialize PostgreSQL database
     - ./script/run_in_env.sh ./script/mediawords_create_db.pl
 script:
