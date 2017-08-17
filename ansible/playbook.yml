@@ -76,12 +76,13 @@
     - mecab-ipadic-neologd
 
 
-- name: Set up Media Cloud development environment
+- name: Set up Media Cloud environment
   hosts: all
   any_errors_fatal: true
   roles:
     - mediawords-yml
     - git-hooks
+    - crontab
 
 
 - name: Set up Apache 2
