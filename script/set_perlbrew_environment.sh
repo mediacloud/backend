@@ -34,3 +34,6 @@ source "$PWD/set_mc_root_dir.inc.sh"
 
 # Inline::Python work directory
 export PERL_INLINE_DIRECTORY="$MC_ROOT_DIR/_Inline/"
+
+# Add lib/ to @INC
+export PERL5LIB="$MC_ROOT_DIR/lib:$PERL5LIB"
