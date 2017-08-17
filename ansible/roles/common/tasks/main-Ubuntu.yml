@@ -5,9 +5,11 @@
     name: "{{item}}"
     state: present
   with_items:
+    - bash-completion
     - git
     - htop
     - python-software-properties
+    - vim
   become: true
   tags:
     - common
