@@ -46,24 +46,14 @@ In those cases, we run a temporary version of the crawler that collects only fee
 
     **Note:** make sure to choose a safe EC2 security group (`AWS_SECURITY_GROUP`) for the backup crawler, "safe" meaning that one should allow inly incoming SSH (and maybe ICMP) traffic and nothing else. That's because Media Cloud's `install.sh` creates a demo user `jdoe@mediacloud.org` which could be accessed by anyone from outside.
 
-2. **Make sure that the time zone of your machine is set to Eastern Time.**
+2. Install Media Cloud on the machine (if it didn't get installed by Vagrant already).
 
-    Run `date`, if the result isn't EDT or EST, run:
-
-        sudo dpkg-reconfigure tzdata
-
-    and select `America/New_York`. Additionally, ensure that `America/New_York` is set in `/etc/timezone`.
-
-    **Be aware that AWS machines are often initially setup with UTC as the timezone instead of Eastern.** Vagrant should be able to do this automatically for you.
-
-3. Install Media Cloud on the machine (if it didn't get installed by Vagrant already).
-
-4. On production machine, export `media`, `feeds`, ... table data needed to run a backup crawler:
+3. On production machine, export `media`, `feeds`, ... table data needed to run a backup crawler:
 
 		production-machine$ ./tools/db/export_import/export_tables_to_backup_crawler.py \
 			> mediacloud-dump.sql
 
-5. On backup crawler, create database structure and import table data from production:
+4. On backup crawler, create database structure and import table data from production:
 
 		backup-crawler$ createdb mediacloud
 		backup-crawler$ psql -f script/mediawords.sql mediacloud
@@ -71,17 +61,17 @@ In those cases, we run a temporary version of the crawler that collects only fee
 			-f mediacloud-dump.sql \
 			-d mediacloud
 
-6. Uncomment `rabbitmq` section in `mediawords.yml` under `job_servers`.
+5. Uncomment `rabbitmq` section in `mediawords.yml` under `job_servers`.
 
-7. Start supervisor by running:
+6. Start supervisor by running:
 
         ./supervisor/supervisord.sh
 
-8. Optional: Stop the extractor workers by running:
+7. Optional: Stop the extractor workers by running:
 
         ./supervisor/supervisorctl.sh stop extract_and_vector
 
-9. Let the crawler on this machine run as long as desired.
+8. Let the crawler on this machine run as long as desired.
 
 ## Exporting
 

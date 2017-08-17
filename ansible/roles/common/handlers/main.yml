@@ -17,3 +17,11 @@
   when: ansible_service_mgr == 'systemd'
   tags:
     - common
+
+- name: Restart cron
+  service:
+    name: cron
+    state: restarted
+  become: true
+  tags:
+    - common

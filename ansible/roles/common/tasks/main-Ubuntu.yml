@@ -68,6 +68,15 @@
   tags:
     - common
 
+- name: Set timezone
+  timezone:
+    name: "{{ mediacloud_timezone }}"
+  become: true
+  notify:
+    - Restart cron  # for cron jobs to fire at the right time
+  tags:
+    - common
+
 - name: Install common utils
   apt:
     name: "{{ item }}"

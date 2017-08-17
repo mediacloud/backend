@@ -6,8 +6,6 @@
 # Tested on Ubuntu (64 bit)
 #
 
-MC_TIMEZONE="America/New_York"
-
 
 # Exit on error
 set -e
@@ -15,11 +13,6 @@ set -u
 set -o errexit
 
 export DEBIAN_FRONTEND=noninteractive
-
-echo "Setting timezone to ${MC_TIMEZONE}..."
-ln -sf "/usr/share/zoneinfo/${MC_TIMEZONE}" /etc/localtime
-echo -n "$MC_TIMEZONE" > /etc/timezone
-dpkg-reconfigure tzdata
 
 if [ -b /dev/sda ]; then
     echo "Installing GRUB so that APT doesn't complain..."
