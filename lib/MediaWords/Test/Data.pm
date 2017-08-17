@@ -5,19 +5,13 @@ package MediaWords::Test::Data;
 use strict;
 use warnings;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-    use lib $FindBin::Bin;
-}
-
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Encode;
 use File::Basename;
 use File::Slurp;
+use FindBin;
 
 use MediaWords::Util::DateTime;
 use MediaWords::Util::SQL;

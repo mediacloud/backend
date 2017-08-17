@@ -4,13 +4,6 @@ use utf8;
 
 use Test::More tests => 20 + 1;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../../lib";
-    use lib "$FindBin::Bin/../";
-}
-
 use MediaWords::KeyValueStore::PostgreSQL;
 use MediaWords::Test::DB;
 use Data::Dumper;

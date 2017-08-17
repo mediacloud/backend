@@ -1,13 +1,6 @@
 use strict;
 use warnings;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-    use lib $FindBin::Bin;
-}
-
 use Test::More;
 
 use Data::Dumper;

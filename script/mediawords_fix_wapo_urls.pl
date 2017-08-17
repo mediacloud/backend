@@ -10,12 +10,6 @@ package script::mediawords_fix_wapo_urls;
 use strict;
 use warnings;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-}
-
 use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 

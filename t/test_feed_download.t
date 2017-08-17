@@ -17,13 +17,6 @@ use warnings;
 # changes in t/data/test_feed_download_stories.pl before committing them.
 #
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-    use lib $FindBin::Bin;
-}
-
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
@@ -43,6 +36,7 @@ use MediaWords::Util::DateTime;
 
 use Data::Dumper;
 use Data::Sorting qw( :basics :arrays :extras );
+use FindBin;
 use MediaWords::StoryVectors;
 use Readonly;
 
@@ -170,8 +164,6 @@ sub get_crawler_data_directory
     my $crawler_data_location;
 
     {
-        use FindBin;
-
         my $bin = $FindBin::Bin;
         INFO "Bin = '$bin' ";
         $crawler_data_location = "$FindBin::Bin/data/crawler";

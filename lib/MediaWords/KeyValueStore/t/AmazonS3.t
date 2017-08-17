@@ -1,14 +1,6 @@
 use strict;
 use warnings;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../../lib";
-    use lib "$FindBin::Bin/../";
-    use lib "$FindBin::Bin/";
-}
-
 use MediaWords::KeyValueStore::AmazonS3;
 
 require 'helpers/amazon_s3_set_credentials_from_env.inc.pl';

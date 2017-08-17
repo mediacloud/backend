@@ -7,12 +7,6 @@ package script::mediawords_queue_jobs_from_query;
 use strict;
 use warnings;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-}
-
 use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 

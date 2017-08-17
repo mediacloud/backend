@@ -3,13 +3,7 @@
 use strict;
 use warnings;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-
-    $ENV{ CATALYST_SCRIPT_GEN } = 40;
-}
+$ENV{ CATALYST_SCRIPT_GEN } = 40;
 
 use Modern::Perl '2015';
 use MediaWords::CommonLibs;

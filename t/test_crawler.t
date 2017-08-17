@@ -17,13 +17,6 @@ use warnings;
 # changes in t/data/crawler_stories.pl before committing them.
 #
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-    use lib $FindBin::Bin;
-}
-
 use Test::More tests => 233;
 use Test::Differences;
 use Test::Deep;

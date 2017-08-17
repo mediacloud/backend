@@ -12,13 +12,8 @@ use MediaWords::Util::DateTime;
 use DateTime;
 use Time::Local;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
+use_ok( 'MediaWords::Util::DateTime' );
 
-    use_ok( 'MediaWords::Util::DateTime' );
-}
 
 sub test_local_timezone()
 {

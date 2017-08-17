@@ -12,12 +12,6 @@
 use strict;
 use warnings;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../../lib";
-}
-
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
@@ -25,6 +19,7 @@ use MediaWords::DB;
 use MediaWords::DBI::Downloads;
 
 use Data::Dumper;
+use FindBin;
 use Text::CSV_XS;
 
 require "$FindBin::Bin/raw_download_content_column.inc.pl";

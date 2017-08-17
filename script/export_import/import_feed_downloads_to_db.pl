@@ -12,12 +12,6 @@
 use strict;
 use warnings;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../../lib";
-}
-
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
@@ -25,6 +19,7 @@ use MediaWords::DB;
 use MediaWords::Crawler::Engine;
 
 use Data::Dumper;
+use FindBin;
 use Readonly;
 use Text::CSV_XS;
 

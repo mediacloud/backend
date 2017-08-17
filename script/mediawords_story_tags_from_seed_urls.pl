@@ -14,12 +14,7 @@
 use strict;
 use warnings;
 
-BEGIN
-{
-    $ENV{ MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION } = 1;
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-}
+$ENV{ MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION } = 1;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
