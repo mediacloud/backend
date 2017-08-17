@@ -33,3 +33,22 @@
   become: true
   tags:
     - common
+
+- name: Set Vim as default system-wide editor
+  command: update-alternatives --set editor /usr/bin/vim.basic
+  args:
+    creates: /etc/alternatives/editor
+  become: true
+  tags:
+    - common
+
+- name: Set Vim as default user editor
+  lineinfile:
+    dest: "{{ ansible_env.HOME }}/.selected_editor"
+    regexp: "^SELECTED_EDITOR=.+?$"
+    line: 'SELECTED_EDITOR="/usr/bin/vim.basic"'
+    create: true
+    state: present
+  become: false
+  tags:
+    - common
