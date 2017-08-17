@@ -8,6 +8,6 @@ source "$PWD/set_mc_root_dir.inc.sh"
 
 cd "$MC_ROOT_DIR"
 
-exec ./script/run_in_env.sh prove -Ilib/ -r t/compile.t
+exec ./script/run_in_env.sh prove -r t/compile.t
 
 
