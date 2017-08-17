@@ -54,15 +54,15 @@ env:
         - MC_SKIP_RABBIT_OPEN_FILES_LIMIT_CHECK=1
 before_install:
     # Remove custom PostgreSQL installation on Travis
-    - sudo pg_dropcluster --stop 9.6 main
-    - sudo service postgresql stop
-    - sudo rm -rf /etc/postgresql
-    - sudo rm -rf /etc/postgresql-common
-    - sudo rm -rf /var/lib/postgresql
-    - sudo rm -rf /var/run/postgresql
-    - sudo userdel -r postgres || echo "userdel failed, continuing."
-    - sudo groupdel postgres || echo "groupdel failed, continuing."
-    - sudo apt-get remove -y --purge postgresql*
+    - "if [ `uname` != 'Darwin' ]; then sudo pg_dropcluster --stop 9.6 main; fi"
+    - "if [ `uname` != 'Darwin' ]; then sudo service postgresql stop; fi"
+    - "if [ `uname` != 'Darwin' ]; then sudo rm -rf /etc/postgresql; fi"
+    - "if [ `uname` != 'Darwin' ]; then sudo rm -rf /etc/postgresql-common; fi"
+    - "if [ `uname` != 'Darwin' ]; then sudo rm -rf /var/lib/postgresql; fi"
+    - "if [ `uname` != 'Darwin' ]; then sudo rm -rf /var/run/postgresql; fi"
+    - "if [ `uname` != 'Darwin' ]; then sudo userdel -r postgres || echo 'userdel failed, continuing.'; fi"
+    - "if [ `uname` != 'Darwin' ]; then sudo groupdel postgres || echo 'groupdel failed, continuing.'; fi"
+    - "if [ `uname` != 'Darwin' ]; then sudo apt-get remove -y --purge postgresql*; fi"
     # Install Ansible
     - sudo pip install --upgrade ansible ansible-lint
     # Check Ansible playbook's syntax
