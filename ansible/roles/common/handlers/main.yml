@@ -1,0 +1,19 @@
+---
+
+- name: Restart hostname
+  service:
+    name: hostname
+    state: restarted
+  become: true
+  when: ansible_service_mgr != 'systemd'
+  tags:
+    - common
+
+- name: Restart systemd-logind
+  service:
+    name: systemd-logind
+    state: restarted
+  become: true
+  when: ansible_service_mgr == 'systemd'
+  tags:
+    - common

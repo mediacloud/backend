@@ -1,5 +1,44 @@
 ---
 
+- include_vars: ../vars/main-{{ ansible_distribution }}.yml
+  tags:
+    - common
+
+- name: Set FQDN
+  set_fact:
+    mediacloud_fqdn: "{{ mediacloud_hostname }}.{{ mediacloud_domainname }}"
+  tags:
+    - common
+
+- name: Set hostname
+  hostname:
+    name: "{{ mediacloud_hostname }}"
+  become: true
+  notify:
+    - Restart hostname
+    - Restart systemd-logind
+  tags:
+    - common
+
+- name: Add FQDN to /etc/hosts
+  lineinfile:
+    dest: /etc/hosts
+    regexp: "^127.0.0.1\\s+{{ mediacloud_fqdn }}\\s+{{ mediacloud_hostname }}"
+    line: "127.0.0.1 {{ mediacloud_fqdn }} {{ mediacloud_hostname }}"
+    state: present
+  become: true
+  notify:
+    - Restart hostname
+    - Restart systemd-logind
+  tags:
+    - common
+
+- name: Re-gather facts after setting hostname + domainname
+  action: setup
+  when: "ansible_fqdn != mediacloud_fqdn"
+  tags:
+    - common
+
 - name: Install common utils
   apt:
     name: "{{ item }}"

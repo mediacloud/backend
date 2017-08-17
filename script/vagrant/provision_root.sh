@@ -6,8 +6,6 @@
 # Tested on Ubuntu (64 bit)
 #
 
-MC_HOSTNAME="mediacloud"
-MC_DOMAINNAME="local"
 MC_LOCALE_LANG="en_US"
 MC_LOCALE_LANG_VARIANT="UTF-8"
 MC_TIMEZONE="America/New_York"
@@ -19,15 +17,6 @@ set -u
 set -o errexit
 
 export DEBIAN_FRONTEND=noninteractive
-
-FQ_HOSTNAME="$MC_HOSTNAME.$MC_DOMAINNAME"
-echo "Setting hostname to $FQ_HOSTNAME..."
-echo -n "$FQ_HOSTNAME" > /etc/hostname
-hostnamectl set-hostname "$FQ_HOSTNAME" || {
-	# pre-16.04 Ubuntus
-	service hostname restart	
-}
-echo "127.0.0.1 $MC_HOSTNAME $FQ_HOSTNAME" >> /etc/hosts
 
 echo "Setting timezone to ${MC_TIMEZONE}..."
 ln -sf "/usr/share/zoneinfo/${MC_TIMEZONE}" /etc/localtime
