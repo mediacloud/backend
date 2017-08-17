@@ -5,6 +5,8 @@ use utf8;
 use Test::NoWarnings;
 use Test::More tests => 31;
 
+use_ok( 'MediaWords::DB::Schema' );
+
 use Readonly;
 
 sub test_postgresql_response_line_is_expected()
