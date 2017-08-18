@@ -386,16 +386,14 @@ sub test_login($)
         eval {
 
             my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
-                email                        => $email,
-                full_name                    => 'auth login',
-                notes                        => '',
-                role_ids                     => [ 1 ],
-                active                       => 1,
-                password                     => $password,
-                password_repeat              => $password,
-                activation_url               => '',             # user is active, no need for activation URL
-                weekly_requests_limit        => 1000,
-                weekly_requested_items_limit => 1000,
+                email           => $email,
+                full_name       => 'auth login',
+                notes           => '',
+                role_ids        => [ 1 ],
+                active          => 1,
+                password        => $password,
+                password_repeat => $password,
+                activation_url  => '',             # user is active, no need for activation URL
             );
 
             MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
@@ -437,16 +435,14 @@ SQL
         eval {
 
             my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
-                email                        => $email,
-                full_name                    => 'auth login',
-                notes                        => '',
-                role_ids                     => [ 1 ],
-                active                       => 0,
-                password                     => $password,
-                password_repeat              => $password,
-                activation_url               => 'https://activate.com/activate.php',
-                weekly_requests_limit        => 1000,
-                weekly_requested_items_limit => 1000,
+                email           => $email,
+                full_name       => 'auth login',
+                notes           => '',
+                role_ids        => [ 1 ],
+                active          => 0,
+                password        => $password,
+                password_repeat => $password,
+                activation_url  => 'https://activate.com/activate.php',
             );
 
             MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
@@ -472,16 +468,14 @@ sub test_change_password($)
     eval {
 
         my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
-            email                        => $email,
-            full_name                    => 'auth change_password',
-            notes                        => '',
-            role_ids                     => [ 1 ],
-            active                       => 1,
-            password                     => $password,
-            password_repeat              => $password,
-            activation_url               => '',                       # user is active, no need for activation URL
-            weekly_requests_limit        => 1000,
-            weekly_requested_items_limit => 1000,
+            email           => $email,
+            full_name       => 'auth change_password',
+            notes           => '',
+            role_ids        => [ 1 ],
+            active          => 1,
+            password        => $password,
+            password_repeat => $password,
+            activation_url  => '',                       # user is active, no need for activation URL
         );
 
         MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
@@ -530,16 +524,14 @@ sub test_reset_api_key($)
     eval {
 
         my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
-            email                        => $email,
-            full_name                    => 'auth reset_api_key',
-            notes                        => '',
-            role_ids                     => [ 1 ],
-            active                       => 1,
-            password                     => $password,
-            password_repeat              => $password,
-            activation_url               => '',                     # user is active, no need for activation URL
-            weekly_requests_limit        => 1000,
-            weekly_requested_items_limit => 1000,
+            email           => $email,
+            full_name       => 'auth reset_api_key',
+            notes           => '',
+            role_ids        => [ 1 ],
+            active          => 1,
+            password        => $password,
+            password_repeat => $password,
+            activation_url  => '',                     # user is active, no need for activation URL
         );
 
         MediaWords::DBI::Auth::Register::add_user( $db, $new_user );

@@ -29,16 +29,14 @@ sub test_change_password($)
     eval {
 
         my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
-            email                        => $email,
-            full_name                    => $full_name,
-            notes                        => 'Test test test',
-            role_ids                     => [ 1 ],
-            active                       => 1,
-            password                     => $password,
-            password_repeat              => $password,
-            activation_url               => '',                 # user is active, no need for activation URL
-            weekly_requests_limit        => 123,
-            weekly_requested_items_limit => 456,
+            email           => $email,
+            full_name       => $full_name,
+            notes           => 'Test test test',
+            role_ids        => [ 1 ],
+            active          => 1,
+            password        => $password,
+            password_repeat => $password,
+            activation_url  => '',                 # user is active, no need for activation URL
         );
 
         MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
@@ -100,16 +98,14 @@ sub test_change_password_with_old_password($)
     eval {
 
         my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
-            email                        => $email,
-            full_name                    => $full_name,
-            notes                        => 'Test test test',
-            role_ids                     => [ 1 ],
-            active                       => 1,
-            password                     => $password,
-            password_repeat              => $password,
-            activation_url               => '',                 # user is active, no need for activation URL
-            weekly_requests_limit        => 123,
-            weekly_requested_items_limit => 456,
+            email           => $email,
+            full_name       => $full_name,
+            notes           => 'Test test test',
+            role_ids        => [ 1 ],
+            active          => 1,
+            password        => $password,
+            password_repeat => $password,
+            activation_url  => '',                 # user is active, no need for activation URL
         );
 
         MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
@@ -184,16 +180,14 @@ sub test_change_password_with_reset_token($)
     eval {
 
         my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
-            email                        => $email,
-            full_name                    => $full_name,
-            notes                        => 'Test test test',
-            role_ids                     => [ 1 ],
-            active                       => 1,
-            password                     => $password,
-            password_repeat              => $password,
-            activation_url               => '',                 # user is active, no need for activation URL
-            weekly_requests_limit        => 123,
-            weekly_requested_items_limit => 456,
+            email           => $email,
+            full_name       => $full_name,
+            notes           => 'Test test test',
+            role_ids        => [ 1 ],
+            active          => 1,
+            password        => $password,
+            password_repeat => $password,
+            activation_url  => '',                 # user is active, no need for activation URL
         );
 
         MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
@@ -329,16 +323,14 @@ sub test_send_password_reset_token($)
     eval {
 
         my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
-            email                        => $email,
-            full_name                    => 'Test user login',
-            notes                        => 'Test test test',
-            role_ids                     => [ 1 ],
-            active                       => 1,
-            password                     => $password,
-            password_repeat              => $password,
-            activation_url               => '',                  # user is active, no need for activation URL
-            weekly_requests_limit        => 123,
-            weekly_requested_items_limit => 456,
+            email           => $email,
+            full_name       => 'Test user login',
+            notes           => 'Test test test',
+            role_ids        => [ 1 ],
+            active          => 1,
+            password        => $password,
+            password_repeat => $password,
+            activation_url  => '',                  # user is active, no need for activation URL
         );
 
         MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
