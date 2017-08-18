@@ -25,8 +25,9 @@ sub store_content($$$$)
 {
     my ( $self, $db, $object_id, $content_ref ) = @_;
 
-    my $path = 'content:' . $$content_ref;
-    return $path;
+    LOGCONFESS "Do not write inline downloads for object ID $object_id.";
+
+    return 0;
 }
 
 # Moose method
@@ -48,11 +49,6 @@ sub fetch_content($$$$)
 sub remove_content($$$$)
 {
     my ( $self, $db, $object_id, $object_path ) = @_;
-
-    unless ( defined $object_path )
-    {
-        LOGCONFESS "Object path for object ID $object_id is undefined.";
-    }
 
     LOGCONFESS "Not sure how to remove inline content for object ID $object_id.";
 

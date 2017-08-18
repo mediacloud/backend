@@ -83,7 +83,7 @@ select t.topics_id, t.name, t.pattern, t.solr_seed_query, t.solr_seed_query_run,
         $id_clause
         $public_clause
         p.auth_users_id= \$1 and
-        t.name like \$2 and
+        t.name ilike \$2 and
         p.user_permission <> 'none'
     group by t.topics_id
     order by t.state = 'completed', t.state,  max( coalesce( snap.snapshot_date, '2000-01-01'::date ) ) desc

@@ -40,7 +40,6 @@ my $_url_permission_types = {
     '/api/v2/auth/resend_activation_link'         => 'admin',
     '/api/v2/auth/reset_api_key'                  => 'public',
     '/api/v2/auth/send_password_reset_link'       => 'admin',
-    '/api/v2/auth/single'                         => 'admin_read',
     '/api/v2/controversies/list'                  => 'public',
     '/api/v2/controversies/single'                => 'public',
     '/api/v2/controversy_dump_time_slices/list'   => 'public',
@@ -376,16 +375,14 @@ sub find_or_add_test_user($$)
 
     eval {
         my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
-            email                        => $email,
-            full_name                    => $role,
-            notes                        => $role,
-            role_ids                     => $roles,
-            active                       => 1,
-            password                     => $password,
-            password_repeat              => $password,
-            activation_url               => '',          # user is active, no need for activation URL
-            weekly_requests_limit        => 10000000,
-            weekly_requested_items_limit => 10000000,
+            email           => $email,
+            full_name       => $role,
+            notes           => $role,
+            role_ids        => $roles,
+            active          => 1,
+            password        => $password,
+            password_repeat => $password,
+            activation_url  => '',          # user is active, no need for activation URL
         );
 
         MediaWords::DBI::Auth::Register::add_user( $db, $new_user );

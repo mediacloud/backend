@@ -12,7 +12,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::Test::HTTP::HashServer;
 use Readonly;
-use Test::More tests => 163;
+use Test::More tests => 150;
 use Test::Deep;
 
 use URI;
@@ -392,16 +392,14 @@ sub test_login($)
         eval {
 
             my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
-                email                        => $email,
-                full_name                    => 'auth login',
-                notes                        => '',
-                role_ids                     => [ 1 ],
-                active                       => 1,
-                password                     => $password,
-                password_repeat              => $password,
-                activation_url               => '',             # user is active, no need for activation URL
-                weekly_requests_limit        => 1000,
-                weekly_requested_items_limit => 1000,
+                email           => $email,
+                full_name       => 'auth login',
+                notes           => '',
+                role_ids        => [ 1 ],
+                active          => 1,
+                password        => $password,
+                password_repeat => $password,
+                activation_url  => '',             # user is active, no need for activation URL
             );
 
             MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
@@ -443,16 +441,14 @@ SQL
         eval {
 
             my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
-                email                        => $email,
-                full_name                    => 'auth login',
-                notes                        => '',
-                role_ids                     => [ 1 ],
-                active                       => 0,
-                password                     => $password,
-                password_repeat              => $password,
-                activation_url               => 'https://activate.com/activate.php',
-                weekly_requests_limit        => 1000,
-                weekly_requested_items_limit => 1000,
+                email           => $email,
+                full_name       => 'auth login',
+                notes           => '',
+                role_ids        => [ 1 ],
+                active          => 0,
+                password        => $password,
+                password_repeat => $password,
+                activation_url  => 'https://activate.com/activate.php',
             );
 
             MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
@@ -468,60 +464,6 @@ SQL
     }
 }
 
-sub test_single($)
-{
-    my ( $db ) = @_;
-
-    my $email    = 'test@auth.single';
-    my $password = 'authsingle';
-
-    eval {
-
-        my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
-            email                        => $email,
-            full_name                    => 'auth single',
-            notes                        => '',
-            role_ids                     => [ 1 ],
-            active                       => 1,
-            password                     => $password,
-            password_repeat              => $password,
-            activation_url               => '',              # user is active, no need for activation URL
-            weekly_requests_limit        => 1000,
-            weekly_requested_items_limit => 1000,
-        );
-
-        MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
-    };
-    ok( !$@, "Unable to add user: $@" );
-
-    my $r = test_get( '/api/v2/auth/single', { username => $email, password => $password } );
-
-    my $db_api_key = $db->query(
-        <<SQL,
-        SELECT *
-        FROM auth_user_api_keys
-        WHERE ip_address IS NOT NULL
-          AND auth_users_id = (
-            SELECT auth_users_id
-            FROM auth_users
-            WHERE email = ?
-          )
-        ORDER BY auth_user_api_keys_id DESC
-        LIMIT 1
-SQL
-        $email
-    )->hash;
-
-    is( $r->[ 0 ]->{ token }, $db_api_key->{ api_key }, "'/api/v2/auth/single' token (legacy)" );
-    ok( !defined $r->[ 0 ]->{ api_key }, "'/api/v2/auth/single' api_key should be undefined" );
-    is( $db_api_key->{ ip_address }, '127.0.0.1' );
-
-    my $r_not_found = test_get( '/api/v2/auth/single', { username => $email, password => "$password FOO" } );
-    is( $r_not_found->[ 0 ]->{ result }, 'not found', "'/api/v2/auth/single' status for wrong password" );
-    ok( !defined $r_not_found->[ 0 ]->{ token },   "'/api/v2/auth/single' token is undefined" );
-    ok( !defined $r_not_found->[ 0 ]->{ api_key }, "'/api/v2/auth/single' api_key should be undefined" );
-}
-
 sub test_change_password($)
 {
     my ( $db ) = @_;
@@ -532,16 +474,14 @@ sub test_change_password($)
     eval {
 
         my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
-            email                        => $email,
-            full_name                    => 'auth change_password',
-            notes                        => '',
-            role_ids                     => [ 1 ],
-            active                       => 1,
-            password                     => $password,
-            password_repeat              => $password,
-            activation_url               => '',                       # user is active, no need for activation URL
-            weekly_requests_limit        => 1000,
-            weekly_requested_items_limit => 1000,
+            email           => $email,
+            full_name       => 'auth change_password',
+            notes           => '',
+            role_ids        => [ 1 ],
+            active          => 1,
+            password        => $password,
+            password_repeat => $password,
+            activation_url  => '',                       # user is active, no need for activation URL
         );
 
         MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
@@ -590,16 +530,14 @@ sub test_reset_api_key($)
     eval {
 
         my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
-            email                        => $email,
-            full_name                    => 'auth reset_api_key',
-            notes                        => '',
-            role_ids                     => [ 1 ],
-            active                       => 1,
-            password                     => $password,
-            password_repeat              => $password,
-            activation_url               => '',                     # user is active, no need for activation URL
-            weekly_requests_limit        => 1000,
-            weekly_requested_items_limit => 1000,
+            email           => $email,
+            full_name       => 'auth reset_api_key',
+            notes           => '',
+            role_ids        => [ 1 ],
+            active          => 1,
+            password        => $password,
+            password_repeat => $password,
+            activation_url  => '',                     # user is active, no need for activation URL
         );
 
         MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
@@ -659,7 +597,6 @@ sub test_auth($)
     test_reset_password( $db );
     test_profile( $db );
     test_login( $db );
-    test_single( $db );
     test_change_password( $db );
     test_reset_api_key( $db );
 }
