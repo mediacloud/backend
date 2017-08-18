@@ -4,7 +4,8 @@ use MediaWords::CommonLibs;
 
 =head1 NAME
 
-Mediawords::DBI::Downloads - various helper functions for downloads, including storing and fetching content
+Mediawords::DBI::Downloads - various helper functions for downloads, including
+storing and fetching content
 
 =head1 SYNOPSIS
 
@@ -20,13 +21,25 @@ Mediawords::DBI::Downloads - various helper functions for downloads, including s
 
 This module includes various helper function for dealing with downloads.
 
-Most importantly, this module has the store_content and fetch_content functions, which store and fetch content for a
-download from the pluggable content store.  The storage module is configured in mediawords.yml by the
-mediawords.download_storage_locations setting.  The three choices are databaseinline, which stores the content in the
-downloads table; postgres, which stores the content in a separate postgres table and optionally database; and amazon_s3,
-which stores the content in amazon_s3.  The default is postgres, and the production system uses amazon_s3.
+Most importantly, this module has the store_content and fetch_content
+functions, which store and fetch content for a download from the pluggable
+content store.
 
-This module also includes extract and related functions to handle download extraction.
+The storage module is configured in mediawords.yml by the
+mediawords.download_storage_locations setting.
+
+The three choices are:
+
+* 'postgresql', which stores the content in a separate postgres table and
+  optionally database;
+* 'amazon_s3', which stores the content in amazon_s3;
+* 'databaseinline', which stores the content in the downloads table; downloads
+  are no longer stored in `databaseinline', only read from.
+
+The default is 'postgresql', and the production system uses Amazon S3.
+
+This module also includes extract and related functions to handle download
+extraction.
 
 =cut
 
@@ -48,22 +61,8 @@ use MediaWords::Util::Paths;
 use MediaWords::Job::AnnotateWithCoreNLP;
 use MediaWords::Util::URL;
 
-# FCGI might be running from an unwritable path so we need to set a custom
-# path for Inline::Python to keep its "_Inline/".
-#
-# File::Temp doesn't quite work here because it's beneficial to reuse the
-# same directory in order to not recompile Python scripts.
-BEGIN
-{
-    mkdir( '/var/tmp/_Inline', 0777 );
-}
-use Inline ( Python => Config => DIRECTORY => '/var/tmp/_Inline' );
-
 # PostgreSQL table name for storing raw downloads
 Readonly my $RAW_DOWNLOADS_POSTGRESQL_KVS_TABLE_NAME => 'raw_downloads';
-
-# Database inline content length limit
-Readonly my $INLINE_CONTENT_LENGTH => 256;
 
 # Min. content length to extract (assuming that it has some HTML in it)
 Readonly my $MIN_CONTENT_LENGTH_TO_EXTRACT => 4096;
@@ -73,7 +72,8 @@ Readonly my $MIN_CONTENT_LENGTH_TO_EXTRACT => 4096;
 =cut
 
 # Inline download store
-# (downloads.path is prefixed with "content:", download is stored in downloads.path itself)
+# (downloads.path is prefixed with "content:", download is stored in downloads.path itself;
+# not used for storing downloads anymore, only for reading them)
 my $_store_inline = lazy
 {
     require MediaWords::KeyValueStore::DatabaseInline;
@@ -152,7 +152,7 @@ my $_store_postgresql = lazy
 };
 
 # (Multi)store for writing downloads
-my $_store_for_writing_non_inline_downloads = lazy
+my $_store_for_writing = lazy
 {
     require MediaWords::KeyValueStore::MultipleStores;
 
@@ -209,14 +209,7 @@ sub _download_store_for_writing($)
 {
     my $content_ref = shift;
 
-    if ( ( length( $$content_ref ) < $INLINE_CONTENT_LENGTH ) && ( $$content_ref !~ /\0/ ) )
-    {
-        return force $_store_inline;
-    }
-    else
-    {
-        return force $_store_for_writing_non_inline_downloads;
-    }
+    return force $_store_for_writing;
 }
 
 # Returns store to try fetching download from
