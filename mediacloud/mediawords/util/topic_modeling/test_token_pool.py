@@ -16,8 +16,8 @@ class TestTokenPool(unittest.TestCase):
         """
         Prepare the token pool
         """
-        self._LIMIT = 1
-        self._OFFSET = 1
+        self._LIMIT = 10
+        self._OFFSET = 0
 
         token_pool = TokenPool(SampleHandler())
         # self._article_tokens = token_pool.output_tokens(limit=self._LIMIT, offset=self._OFFSET)
