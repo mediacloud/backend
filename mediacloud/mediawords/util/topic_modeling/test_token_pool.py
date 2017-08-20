@@ -16,7 +16,7 @@ class TestTokenPool(unittest.TestCase):
         """
         Prepare the token pool
         """
-        self._LIMIT = 10
+        self._LIMIT = 0
         self._OFFSET = 0
 
         token_pool = TokenPool(SampleHandler())
@@ -57,8 +57,9 @@ class TestTokenPool(unittest.TestCase):
         """
         Test if the correct number of stories are tokenized
         """
-        unittest.TestCase.assertEqual(
-            self=self, first=self._LIMIT, second=len(self._article_tokens))
+        if self._LIMIT:
+            unittest.TestCase.assertEqual(
+                self=self, first=self._LIMIT, second=len(self._article_tokens))
 
 
 if __name__ == '__main__':
