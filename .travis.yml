@@ -17,8 +17,6 @@ cache:
         - local/
         # Perlbrew dependencies
         - $HOME/.perlbrew/libs/
-         # Cache WordNet of NLTK
-        - /usr/share/nltk_data
 before_cache:
     - rm -f $HOME/.cache/pip/log/debug.log
 env:
