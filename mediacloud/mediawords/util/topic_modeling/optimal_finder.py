@@ -1,4 +1,6 @@
 import numpy as np
+import logging
+
 from typing import List
 from numpy.polynomial import polynomial
 
@@ -8,8 +10,8 @@ class OptimalFinder:
     identify the best fit polynomial equation,
     and find the root point(s) which is the max/min value"""
 
-    def _identify_equation(self,
-                           x: List[int],
+    @staticmethod
+    def _identify_equation(x: List[int],
                            y: List[float],
                            degree: int=2,
                            accuracy: int=10) -> List[int]:
@@ -23,10 +25,11 @@ class OptimalFinder:
         """
         params = [round(number=param, ndigits=accuracy)
                   for param in np.polyfit(x=x, y=y, deg=degree)][::-1]
+        logging.warning(msg="Equation params = {}".format(params))
         return params
 
-    def _find_roots(self,
-                    params: List[int]=None,
+    @staticmethod
+    def _find_roots(params: List[int]=None,
                     accuracy: int=10) -> List[int]:
         """
         Find the root of a polynomial equation
@@ -36,7 +39,7 @@ class OptimalFinder:
         """
         roots = [round(number=root, ndigits=accuracy)
                  for root in np.roots(params)]
-
+        logging.warning(msg="Equation roots = {}".format(roots))
         return roots
 
     def find_extreme(self,
@@ -51,6 +54,7 @@ class OptimalFinder:
         :return: the list of extreme values
         """
         params = self._identify_equation(x=x, y=y, degree=degree)
-        first_der_params = [param for param in polynomial.polyder(params)]
+        first_der_params = [param for param in polynomial.polyder(params)][::-1]
+        logging.warning(msg="First Derivative Parameters = {}".format(first_der_params))
         roots = self._find_roots(params=first_der_params)
         return roots
