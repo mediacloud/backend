@@ -1,7 +1,7 @@
 import lda
 import numpy as np
 import logging
-import path_helper
+
 # from mediawords.db import connect_to_db
 from mediawords.util.topic_modeling.optimal_finder import OptimalFinder
 from mediawords.util.topic_modeling.sample_handler import SampleHandler
@@ -145,46 +145,6 @@ class ModelLDA(BaseTopicModel):
                     iteration_num=unit_iteration_num)
 
         return self._model.loglikelihood()
-
-    def tune_with_iteration(self, topic_word_num: int = 4,
-                            topic_num_range: List[int] = None,
-                            expansion_factor: int = 2,
-                            score_dict: Dict[float, int] = None) -> int:
-        """Tune the model on total number of topics
-        until the optimal parameters are found"""
-
-        if not topic_num_range:
-            topic_num_range = [1, len(self._stories_ids) * expansion_factor]
-
-        if topic_num_range[0] == topic_num_range[1]:
-            if topic_num_range[0] == (len(self._stories_ids) * expansion_factor):
-                expansion_factor += 1
-                return self.tune_with_iteration(
-                    topic_word_num=topic_word_num,
-                    topic_num_range=sorted([topic_num_range[0],
-                                            len(self._stories_ids) * expansion_factor]),
-                    expansion_factor=expansion_factor,
-                    score_dict=score_dict)
-
-            return topic_num_range[0]
-
-        if not score_dict:
-            score_dict = {}
-
-        for topic_num in iter(topic_num_range):
-            if topic_num not in score_dict.values():
-                likelihood = self._train(topic_num=topic_num, word_num=topic_word_num)
-                score_dict[likelihood] = topic_num
-
-        sorted_scores = sorted(score_dict.keys())[::-1]
-        sorted_nums = [score_dict.get(score) for score in sorted_scores]
-        new_topic_num_boundary = int((sorted_nums[0] + sorted_nums[1]) / 2)
-
-        return self.tune_with_iteration(
-            topic_word_num=topic_word_num,
-            topic_num_range=sorted([new_topic_num_boundary, sorted_nums[0]]),
-            expansion_factor=expansion_factor,
-            score_dict=score_dict)
 
     def tune_with_polynomial(self, topic_word_num: int = 4,
                              score_dict: Dict[float, int] = None) -> int:
