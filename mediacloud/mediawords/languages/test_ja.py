@@ -216,7 +216,8 @@ This is some more English text
 def test_mecab_pos_ids():
     """Make sure hardcoded POS IDs point to expected (hardcoded) parts of speech."""
     # noinspection PyProtectedMember
-    dictionary_path = McJapaneseTokenizer._MECAB_DICTIONARY_PATH
+    dictionary_path = McJapaneseTokenizer._mecab_ipadic_neologd_path()
+    assert dictionary_path is not None
     assert os.path.isdir(dictionary_path)
 
     pos_id_path = os.path.join(dictionary_path, "pos-id.def")

@@ -1,6 +1,0 @@
-mecab_ipadic_neologd_dist_path: "{{ mediacloud_root }}/lib/MediaWords/Languages/resources/ja/mecab-ipadic-neologd-dist/"
-
-mecab_ipadic_neologd_target_path: "{{ mediacloud_root }}/lib/MediaWords/Languages/resources/ja/mecab-ipadic-neologd/"
-
-# Set by Mecab install script itself, we just replicate it here
-mecab_ipadic_neologd_build_dir: "{{ mediacloud_root }}/lib/MediaWords/Languages/resources/ja/mecab-ipadic-neologd-dist/build/"

@@ -73,7 +73,6 @@
     - python-dependencies
     - perlbrew
     - perl-dependencies
-    - mecab-ipadic-neologd
 
 
 - name: Set up Media Cloud environment

@@ -8,6 +8,15 @@
   tags:
     - system-packages
 
+- name: Add Bintray.com GPG key
+  apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: 36A1D7869245C8950F966E92D8576A8BA88D21E9
+    state: present
+  become: true
+  tags:
+    - system-packages
+
 - name: Add RabbitMQ APT repository
   apt_repository:
     repo: "deb http://www.rabbitmq.com/debian/ testing main"
@@ -17,6 +26,16 @@
   become: true
   tags:
     - system-packages
+
+- name: Add mecab-ipadic-neologd APT repository
+  apt_repository:
+    repo: "deb https://dl.bintray.com/pypt/mecab-ipadic-neologd-deb xenial main"
+    state: present
+    filename: "bintray-pypt-mecab-ipadic-neologd"
+    update_cache: yes
+  become: true
+  tags:
+    - system-packages    
 
 # Solr 6+ requires Java 8 which is unavailable before 16.04
 - name: Add Java 8 APT repository
@@ -68,6 +87,7 @@
     - logrotate
     - make
     - mecab # Up-to-date enough on both Trusty and Xenial
+    - mecab-ipadic-neologd
     - netcat
     - openjdk-8-jdk
     - python-pip
