@@ -106,23 +106,6 @@
   tags:
     - system-packages
 
-- name: Test if Vagrant is of the correct version
-  shell: "vagrant --version | awk '{ print $2 }'"
-  ignore_errors: true
-  changed_when: false
-  register: vagrant_current_version
-  tags:
-    - system-packages
-
-- name: Install Vagrant
-  apt:
-    deb: "{{ vagrant_deb_url }}"
-    state: present
-  become: true
-  when: vagrant_current_version.stdout.find (vagrant_version) == -1
-  tags:
-    - system-packages
-
 - name: Test if MeCab is of the correct version
   shell: "mecab-config --version"
   ignore_errors: true
