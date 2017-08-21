@@ -96,6 +96,16 @@
       tags:
         - common
 
+    - name: Remove /etc/localtime
+      file:
+        path: /etc/localtime
+        state: absent
+      become: true
+      notify:
+        - Restart cron
+      tags:
+        - common
+
     - name: Symlink timezone to /etc/localtime
       file:
         src: "/usr/share/zoneinfo/{{ mediacloud_timezone }}"
