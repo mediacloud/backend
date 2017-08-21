@@ -10,7 +10,7 @@ class SampleHandler:
     """
     _SAMPLE_STORIES \
         = os.path.join(mc_root_path(),
-                       "mediacloud/mediawords/util/topic_modeling/sample_stories.txt")
+                       "mediacloud/mediawords/util/topic_modeling/sample_stories_10.txt")
 
     def query(self):
         """
