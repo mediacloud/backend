@@ -8,12 +8,11 @@
   tags:
     - system-packages
 
+# apt_key doesn't work for whatever reason
 - name: Add Bintray.com GPG key
-  apt_key:
-    keyserver: keyserver.ubuntu.com
-    id: 36A1D7869245C8950F966E92D8576A8BA88D21E9
-    state: present
+  command: apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61
   become: true
+  changed_when: false
   tags:
     - system-packages
 
