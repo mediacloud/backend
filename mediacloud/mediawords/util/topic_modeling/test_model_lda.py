@@ -1,6 +1,6 @@
 import unittest
 import logging
-
+import path_helper
 # from mediawords.db import connect_to_db
 from mediawords.util.topic_modeling.sample_handler import SampleHandler
 from mediawords.util.topic_modeling.token_pool import TokenPool
@@ -10,24 +10,31 @@ from typing import Dict, List
 
 class TestModelLDA(unittest.TestCase):
     """
-    Test the methods in ..model_lda.py
+    Test the methods in model_lda.py
     """
-
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         """
-        Prepare the token pool
+        Setting up the whole class (i.e. only need to run once)
+        """
+        cls.setup_test_data()
+
+    @classmethod
+    def setup_test_data(cls):
+        """
+        Prepare the token pool and other data
         """
         # token_pool = TokenPool(connect_to_db())
         token_pool = TokenPool(SampleHandler())
 
-        self._story_tokens = token_pool.output_tokens()
-        self._flat_story_tokens = self._flatten_story_tokens()
-        self._lda_model = ModelLDA()
-        self._lda_model.add_stories(self._story_tokens)
-        self._optimal_topic_num_poly = self._lda_model.tune_with_polynomial()
+        cls._story_tokens = token_pool.output_tokens()
+        cls._flat_story_tokens = cls._flatten_story_tokens(self=cls())
+        cls._lda_model = ModelLDA()
+        cls._lda_model.add_stories(cls._story_tokens)
+        cls._optimal_topic_num_poly = cls._lda_model.tune_with_polynomial()
 
-        self._topics_via_poly \
-            = self._lda_model.summarize_topic(total_topic_num=self._optimal_topic_num_poly)
+        cls._topics_via_poly \
+            = cls._lda_model.summarize_topic(total_topic_num=cls._optimal_topic_num_poly)
 
         logging.getLogger("lda").setLevel(logging.WARNING)
         logging.getLogger("gensim").setLevel(logging.WARNING)
@@ -111,11 +118,18 @@ class TestModelLDA(unittest.TestCase):
                     .format(default_word_num, len(topics), topics))
 
     def test_highest_likelihood(self):
+        """
+        Pass topic_num and the name of tuning method to _check_highest_likelihood
+        Designed in this way to allow extensibility
+        (i.e. append more topic_num-name_of_tuning pair)
+        """
         self._check_highest_likelihood(num=self._optimal_topic_num_poly, name="Polynomial")
 
     def _check_highest_likelihood(self, num: int, name: str):
         """
         Test if the result is the most accurate one
+        :param num: optimal topic_num found by polynomial
+        :param name: the name of training method used
         """
         optimal_likelihood = self._lda_model.evaluate(topic_num=num)[1]
         other_nums = [0, 1, num-1, num+1, num*2]
@@ -130,6 +144,15 @@ class TestModelLDA(unittest.TestCase):
                 b=other_likelihood,
                 msg="Topic num {} has a better likelihood {} than {}  with {}:{}"
                     .format(other_num, other_likelihood, name, num, optimal_likelihood))
+
+    def test_the_end(self):
+        """
+        Intended to throw an error to show the end of tests
+        Need this since Travis fails every time due to job exceeded the maximum time limit
+        """
+        unittest.TestCase.assertTrue(self=self,
+                                     expr=False,
+                                     msg="Reached the end of tests, indicating all tests passed")
 
 if __name__ == '__main__':
     unittest.main()
