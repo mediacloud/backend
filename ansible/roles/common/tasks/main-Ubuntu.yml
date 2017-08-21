@@ -9,6 +9,7 @@
     mediacloud_fqdn: "{{ mediacloud_hostname }}.{{ mediacloud_domainname }}"
   tags:
     - common
+    - set-hostname  # skipped on Docker
 
 - name: Set hostname
   hostname:
@@ -19,6 +20,7 @@
     - Restart systemd-logind
   tags:
     - common
+    - set-hostname  # skipped on Docker
 
 - name: Add FQDN to /etc/hosts
   lineinfile:
@@ -32,12 +34,14 @@
     - Restart systemd-logind
   tags:
     - common
+    - set-hostname  # skipped on Docker
 
 - name: Re-gather facts after setting hostname + domainname
   action: setup
   when: "ansible_fqdn != mediacloud_fqdn"
   tags:
     - common
+    - set-hostname  # skipped on Docker
 
 - name: Install locales package
   apt:
