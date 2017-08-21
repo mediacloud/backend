@@ -1,6 +1,6 @@
 ---
 
-- name: Add RabbitMQ APT key
+- name: Add RabbitMQ GPG key
   apt_key:
     url: "https://www.rabbitmq.com/rabbitmq-release-signing-key.asc"
     state: present
