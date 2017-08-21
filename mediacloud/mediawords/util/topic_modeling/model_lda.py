@@ -1,7 +1,7 @@
 import lda
 import numpy as np
 import logging
-import path_helper
+
 # from mediawords.db import connect_to_db
 from mediawords.util.topic_modeling.optimal_finder import OptimalFinder
 from mediawords.util.topic_modeling.sample_handler import SampleHandler
