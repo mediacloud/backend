@@ -6,6 +6,21 @@
   tags:
     - system-packages
 
+- name: Test if MeCab is of the correct version
+  shell: "mecab-config --version"
+  ignore_errors: true
+  changed_when: false
+  register: mecab_current_version
+  tags:
+    - system-packages
+
+- name: Ensure that Mecab is of the correct version
+  assert:
+    that:
+      - mecab_current_version.stdout.find (mecab_min_version) == -1
+  tags:
+    - system-packages
+
 - name: "Check to see if Pip 2.7 is already installed"
   command: "pip2.7 --version"
   ignore_errors: true
