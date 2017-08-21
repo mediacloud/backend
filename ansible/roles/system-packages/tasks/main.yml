@@ -14,10 +14,10 @@
   tags:
     - system-packages
 
-- name: Ensure that Mecab is of the correct version
+- name: Ensure that MeCab is of the correct version
   assert:
     that:
-      - mecab_current_version.stdout.find (mecab_min_version) == -1
+      - mecab_current_version.stdout | version_compare(mecab_min_version, '>=')
   tags:
     - system-packages
 
