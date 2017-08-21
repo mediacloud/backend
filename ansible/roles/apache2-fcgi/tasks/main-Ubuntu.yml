@@ -4,6 +4,7 @@
   apt:
     name: "{{ item }}"
     state: present
+    install_recommends: false
   with_items:
     - apache2
     - libapache2-mod-fcgid

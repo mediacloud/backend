@@ -4,7 +4,8 @@
   apt:
     upgrade: yes
     update_cache: yes
-    cache_valid_time: 86400 #One day
+    cache_valid_time: 86400 # One day
+    install_recommends: false
   become: true
   tags:
     - update-packages
@@ -13,6 +14,7 @@
 - name: Remove useless packages from the cache
   apt:
     autoclean: yes
+    install_recommends: false
   become: true
   tags:
     - update-packages
@@ -21,6 +23,7 @@
 - name: Autoremove APT packages
   apt:
     autoremove: yes
+    install_recommends: false
   become: true
   tags:
     - update-packages

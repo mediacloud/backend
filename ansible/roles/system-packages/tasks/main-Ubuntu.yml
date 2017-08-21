@@ -60,6 +60,7 @@
   apt:
     name: "{{item}}"
     state: present
+    install_recommends: false
   with_items:
     - curl
     - build-essential
@@ -104,6 +105,7 @@
   apt:
     name: "{{item}}"
     state: absent
+    install_recommends: false
   with_items:
     - supervisor
   become: true
