@@ -76,10 +76,3 @@
     creates: "/usr/local/Cellar/graphviz/*/lib/graphviz/perl/libgv_perl.so"
   tags:
     - system-packages
-
-- name: Install Vagrant
-  homebrew_cask:
-    name: vagrant
-    state: present
-  tags:
-    - system-packages
