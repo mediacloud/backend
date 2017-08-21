@@ -11,9 +11,11 @@
 
 - name: Install Media Cloud Python requirements
   pip:
-    requirements: "{{ mediacloud_root }}/mediacloud/requirements.txt"
+    name: "{{ item.name }}"
+    version: "{{ item.version }}"
     virtualenv: "{{ ansible_env.HOME }}/.virtualenvs/mediacloud/"
     virtualenv_python: "python{{ python_version }}"
+  with_items: "{{ python_dependencies }}"
   tags:
     - python-dependencies
 
