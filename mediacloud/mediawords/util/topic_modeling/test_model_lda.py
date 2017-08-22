@@ -1,6 +1,6 @@
 import unittest
 import logging
-import path_helper
+
 # from mediawords.db import connect_to_db
 from mediawords.util.topic_modeling.sample_handler import SampleHandler
 from mediawords.util.topic_modeling.token_pool import TokenPool
@@ -144,15 +144,6 @@ class TestModelLDA(unittest.TestCase):
                 b=other_likelihood,
                 msg="Topic num {} has a better likelihood {} than {}  with {}:{}"
                     .format(other_num, other_likelihood, name, num, optimal_likelihood))
-
-    def test_the_end(self):
-        """
-        Intended to throw an error to show the end of tests
-        Need this since Travis fails every time due to job exceeded the maximum time limit
-        """
-        unittest.TestCase.assertTrue(self=self,
-                                     expr=False,
-                                     msg="Reached the end of tests, indicating all tests passed")
 
 if __name__ == '__main__':
     unittest.main()
