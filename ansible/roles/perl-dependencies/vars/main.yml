@@ -11,6 +11,9 @@ perlbrew_environment_variables:
     PERLBREW_LIB: "mediacloud"
     PERL_MM_OPT: "INSTALL_BASE={{ perlbrew_home }}/libs/perl-system@mediacloud"
 
+# DarkPAN mirror URL
+perl_darkpan_url: "https://s3.amazonaws.com/mediacloud-darkpan/darkpan-20170822/"
+
 # Perl dependencies to install
 #
 # 1. Keep the list in alphabetical order
@@ -64,7 +67,7 @@ perl_dependencies:
     - { name: "HTML::LinkExtractor", min_version: null }
     - { name: "HTML::TreeBuilder::LibXML", min_version: null }
     - { name: "Inline", min_version: null }
-    # Patched version of Inline::Python gets installed separately
+    - { name: "Inline::Python", min_version: null } # patched version from DarkPAN
     - { name: "IO::Compress::Bzip2", min_version: null }
     - { name: "IO::Compress::Gzip", min_version: null }
     - { name: "JSON::XS", min_version: null }
