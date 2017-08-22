@@ -80,9 +80,9 @@ class ModelLDA(BaseTopicModel):
 
         iteration_num = iteration_num if iteration_num else self._max_iteration
 
-        # logging.warning(msg="total_topic_num={}".format(total_topic_num))
+        # logging.debug(msg="total_topic_num={}".format(total_topic_num))
         total_topic_num = total_topic_num if total_topic_num else self._stories_number
-        logging.warning(msg="total_topic_num={}".format(total_topic_num))
+        logging.debug(msg="total_topic_num={}".format(total_topic_num))
 
         # turn our token documents into a id <-> term dictionary
         self._model = lda.LDA(n_topics=total_topic_num,
@@ -110,19 +110,20 @@ class ModelLDA(BaseTopicModel):
     def evaluate(self, topic_num: int=None) -> List:
         """
         Show the log likelihood for the current model
+        :param topic_num: total number of topics
         :return: the log likelihood value
         """
         if not topic_num:
             topic_num = self._stories_number
 
         if not self._model:
-            logging.warning(msg="Model does not exist, "
-                                "train a new one with topic_num = {}".format(topic_num))
+            logging.debug(msg="Model does not exist, "
+                              "train a new one with topic_num = {}".format(topic_num))
             self._train(topic_num=topic_num)
 
         if self._model.n_topics != topic_num:
-            logging.warning(msg="model.n_topics({}) != desired topic_num ({})"
-                            .format(self._model.n_topics, topic_num))
+            logging.debug(msg="model.n_topics({}) != desired topic_num ({})"
+                          .format(self._model.n_topics, topic_num))
             self._train(topic_num=topic_num)
 
         return [self._model.n_topics, self._model.loglikelihood()]
@@ -151,34 +152,20 @@ class ModelLDA(BaseTopicModel):
         """Tune the model on total number of topics
         until the optimal parameters are found"""
 
-        logging.warning("pre  preparation score_dict:{}".format(score_dict))
+        logging.debug("pre  preparation score_dict:{}".format(score_dict))
 
         score_dict = self._prepare_sample_points(
             topic_word_num=topic_word_num, score_dict=score_dict)
 
-        logging.warning("post preparation score_dict:{}".format(score_dict))
+        logging.debug("post preparation score_dict:{}".format(score_dict))
 
-        max_topic_num = self._locate_max_point(score_dict=score_dict)
+        maximum_topic_num = self._locate_max_point(score_dict=score_dict)
         optimal_topic_num = score_dict.get(max(score_dict.keys()))
 
-        if max_topic_num != optimal_topic_num:
-
-            candidates = self._find_candidates(
-                optimal=optimal_topic_num,
-                maximum=max_topic_num,
-                checked=list(score_dict.values()))
-
-            if not candidates:
-                return optimal_topic_num
-
-            for candidate in candidates:
-                likelihood = self._train(topic_num=candidate, word_num=topic_word_num)
-                score_dict[likelihood] = candidate
-
-            return self.tune_with_polynomial(
-                topic_word_num=topic_word_num, score_dict=score_dict)
-
-        return optimal_topic_num
+        return self._resolve_conflict(optimal=optimal_topic_num,
+                                      maximum=maximum_topic_num,
+                                      topic_word_num=topic_word_num,
+                                      score_dict=score_dict)
 
     def _prepare_sample_points(self, topic_word_num: int = 4,
                                score_dict: Dict[float, int]=None) -> Dict[float, int]:
@@ -194,12 +181,12 @@ class ModelLDA(BaseTopicModel):
 
         score_dict = score_dict if score_dict else {}
 
-        logging.warning(topic_num_samples)
+        logging.debug(topic_num_samples)
 
         for topic_num in iter(topic_num_samples):
             if topic_num not in score_dict.values():
                 likelihood = self._train(topic_num=topic_num, word_num=topic_word_num)
-                logging.warning(msg="Num = {}, lh={}".format(topic_num, likelihood))
+                logging.debug(msg="Num = {}, lh={}".format(topic_num, likelihood))
                 score_dict[likelihood] = topic_num
 
         return score_dict
@@ -209,16 +196,50 @@ class ModelLDA(BaseTopicModel):
         """
         Use optimalFinder to identify the max point(s)
         and convert it to integer (as it is used as topic_num)
-        :param score_dict: score_dict: A dictionary of likelihood scores : topic_num
+        :param score_dict: A dictionary of likelihood scores : topic_num
         :return: topic_num that is predicted to have the max likelihood
         """
         max_point = OptimalFinder().find_extreme(
             x=list(score_dict.values()),
             y=list(score_dict.keys()))[0]
-        logging.warning(msg="topic_num before rounding={}".format(max_point))
+        logging.debug(msg="topic_num before rounding={}".format(max_point))
 
         int_max_point = 1 if int(round(max_point)) == 0 else int(round(max_point))
         return int_max_point
+
+    def _resolve_conflict(self, optimal: int, maximum: int,
+                          topic_word_num: int, score_dict: Dict[float, int]):
+        """
+        If maximum value != optimal value, try to resolve this conflict via iteration
+        :param optimal: the optimal value in the current score_dict
+        :param maximum: the maximum value predicted by polynomial model
+        :param topic_word_num: number of words in each topic
+        :param score_dict: A dictionary of likelihood scores : topic_num
+        :return:
+        """
+
+        if maximum == optimal:
+            # No conflict
+            return optimal
+
+        # Has conflict, expand sample set to refine polynomial model
+        candidates = self._find_candidates(
+            optimal=optimal,
+            maximum=maximum,
+            checked=list(score_dict.values()))
+
+        if not candidates:
+            # Cannot expand anymore, return current best value
+            return optimal
+
+        for candidate in candidates:
+            # compute more topic_num-likelihood pair to refine model
+            likelihood = self._train(topic_num=candidate, word_num=topic_word_num)
+            score_dict[likelihood] = candidate
+
+        # Iteratively tune with more data pairs
+        return self.tune_with_polynomial(
+            topic_word_num=topic_word_num, score_dict=score_dict)
 
     def _find_candidates(self, optimal: int, maximum: int, checked: List[int]) -> List[int]:
         """
