@@ -1,0 +1,46 @@
+---
+
+- include_vars: ../vars/main-{{ ansible_distribution }}.yml
+  tags:
+    - timezone
+
+# "timezone" doesn't work in Docker containers (due to the lack of systemd?)
+
+- name: Write timezone to /etc/timezone
+  copy:
+    content: "{{ mediacloud_timezone }}"
+    dest: /etc/timezone
+  become: true
+  notify:
+    - Restart cron  # for cron jobs to fire at the right time
+  tags:
+    - timezone
+
+- name: Remove /etc/localtime
+  file:
+    path: /etc/localtime
+    state: absent
+  become: true
+  notify:
+    - Restart cron
+  tags:
+    - timezone
+
+- name: Symlink timezone to /etc/localtime
+  file:
+    src: "/usr/share/zoneinfo/{{ mediacloud_timezone }}"
+    dest: /etc/localtime
+    state: link
+  become: true
+  notify:
+    - Restart cron
+  tags:
+    - timezone
+
+- name: Reconfigure locales
+  command: dpkg-reconfigure -f noninteractive tzdata
+  become: true
+  notify:
+    - Restart cron
+  tags:
+    - timezone
