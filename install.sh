@@ -21,7 +21,7 @@ ANSIBLE_CONFIG=ansible/ansible.cfg \
     ansible-playbook \
     --inventory="localhost,"
     --connection=local \
-    ansible/playbook.yml
+    ansible/mediacloud.yml
 
 # This will create a PostgreSQL user called "mediaclouduser" and two databases
 # owned by this user: "mediacloud" and "mediacloud_test".
