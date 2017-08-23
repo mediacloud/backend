@@ -47,11 +47,11 @@
       tags:
         - pre-tasks
   roles:
+    - update-packages
+    - common
     - hostname
     - locale
     - timezone
-    - update-packages
-    - common
     - system-packages
     - postgresql-server
     - kernel-parameters
