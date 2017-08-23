@@ -31,7 +31,7 @@ $CPANM CPAN~2.10
 # ./install/purge_carton_install.sh)
 $CPANM Carton~1.0.22
 
-$CPANM --verbose List::MoreUtils
+$CPANM --verbose "List::MoreUtils@0.419"
 
 # Always print stack traces when die()ing
 $CPANM Carp::Always
