@@ -24,6 +24,7 @@
     - system-packages
     - postgresql-server
     - kernel-parameters
+    - pam-limits
 
 
 - name: Check out Media Cloud repository

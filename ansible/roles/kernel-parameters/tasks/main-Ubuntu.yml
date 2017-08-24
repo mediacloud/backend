@@ -1,25 +1,5 @@
 ---
 
-- name: Add pam_limits.so to /etc/pam.d/common-session
-  lineinfile:
-    dest: /etc/pam.d/common-session
-    regexp: "^session\\s+required\\s+pam_limits.so$"
-    line: "session required pam_limits.so"
-    state: present
-  become: true
-  tags:
-    - kernel-parameters
-
-- name: Add pam_limits.so to /etc/pam.d/sudo
-  lineinfile:
-    dest: /etc/pam.d/sudo
-    regexp: "^session\\s+required\\s+pam_limits.so$"
-    line: "session required pam_limits.so"
-    state: present
-  become: true
-  tags:
-    - kernel-parameters
-
 # We connect to PgBouncer often, so it might run out of available connections
 # without TIME_WAIT socket reuse (http://dba.stackexchange.com/a/59709)
 - name: Add net.ipv4.tcp_tw_reuse=1 to sysctl's configuration
@@ -30,44 +10,6 @@
     sysctl_file: "{{ sysctl_conf_path }}"
     sysctl_set: yes
     reload: yes
-  become: true
-  tags:
-    - kernel-parameters
-
-- name: Ensure that pam_limits configuration file exists
-  copy:
-    content: ""
-    dest: "{{ limits_conf_path }}"
-    force: no
-    owner: root
-    group: root
-    mode: 0644
-  become: true
-  tags:
-    - kernel-parameters
-
-# Each process is limited up to ~34 GB of memory
-- name: Add hard virtual memory limit on pam_limits
-  pam_limits:
-    domain: "{{ ansible_user }}"
-    limit_type: hard
-    limit_item: as
-    value: 33554432
-    dest: "{{ limits_conf_path }}"
-  become: true
-  tags:
-    - kernel-parameters
-
-- name: Increase soft open files limit on pam_limits
-  pam_limits:
-    domain: "{{ ansible_user }}"
-    limit_type: "{{ item }}"
-    limit_item: nofile
-    value: 65536
-    dest: "{{ limits_conf_path }}"
-  with_items:
-    - "soft"
-    - "hard"
   become: true
   tags:
     - kernel-parameters
