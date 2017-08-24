@@ -194,6 +194,32 @@ SQL
     MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $foci, 'foci' );
 }
 
+# accept sort_param of inlink, social, bitly, facebook, or twitter and
+# return a sort clause for the story_link_counts table, aliased as 'slc',
+# that will sort by the relevant field
+sub _get_sort_clause
+{
+    my ( $sort_param ) = @_;
+
+    $sort_param ||= 'inlink';
+
+    my $sort_field_lookup = {
+        inlink            => 'slc.media_inlink_count',
+        inlink_count      => 'slc.media_inlink_count',
+        bitly             => 'slc.bitly_click_count',
+        bitly_click_count => 'slc.bitly_click_count',
+        social            => 'slc.bitly_click_count',
+        facebook          => 'slc.facebook_share_count',
+        twitter           => 'slc.simple_tweet_count'
+    };
+
+    my $sort_field = $sort_field_lookup->{ lc( $sort_param ) }
+      || die( "unknown sort value: '$sort_param'" );
+
+    # md5 hashing is to make tie breaks random but consistent
+    return "$sort_field desc nulls last, md5( slc.stories_id::text )";
+}
+
 sub list_GET
 {
     my ( $self, $c ) = @_;
@@ -207,13 +233,7 @@ sub list_GET
     $c->req->params->{ sort }  ||= 'inlink';
     $c->req->params->{ limit } ||= 1000;
 
-    my $sort_param = $c->req->params->{ sort };
-
-    # md5 hashing is to make tie breaks random but consistent
-    my $sort_clause =
-      ( $sort_param eq 'social' )
-      ? 'slc.bitly_click_count desc nulls last, md5( s.stories_id::text )'
-      : 'slc.media_inlink_count desc, md5( s.stories_id::text )';
+    my $sort_clause = _get_sort_clause( $c->req->params->{ sort } );
 
     my $timespans_id = $timespan->{ timespans_id };
     my $snapshots_id = $timespan->{ snapshots_id };
