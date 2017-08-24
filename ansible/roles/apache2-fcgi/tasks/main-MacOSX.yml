@@ -6,7 +6,7 @@
   tags:
     - apache2-fcgi
 
-- name: Install Apache 2
+- name: Install Apache
   homebrew:
     name: "{{ item }}"
     state: present

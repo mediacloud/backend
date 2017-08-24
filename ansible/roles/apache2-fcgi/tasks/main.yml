@@ -6,28 +6,28 @@
   tags:
     - apache2-fcgi
 
-- name: Test if Apache 2 configuration directory exists
+- name: Test if Apache configuration directory exists
   stat:
     path: "{{ apache2_conf_path }}"
   register: apache2_conf_path_stat
   tags:
     - apache2-fcgi
 
-- name: Ensure that Apache 2 configuration directory exists
+- name: Ensure that Apache configuration directory exists
   assert:
     that:
       - "apache2_conf_path_stat.stat.isdir is defined and apache2_conf_path_stat.stat.isdir"
   tags:
     - apache2-fcgi
 
-- name: Test if Apache 2 main configuration file exists
+- name: Test if Apache main configuration file exists
   stat:
     path: "{{ apache2_conf_httpd_conf_path }}"
   register: apache2_conf_httpd_conf_path_stat
   tags:
     - apache2-fcgi
 
-- name: Ensure that Apache 2 main configuration file exists
+- name: Ensure that Apache main configuration file exists
   assert:
     that:
       - "apache2_conf_httpd_conf_path_stat.stat.exists is defined and apache2_conf_httpd_conf_path_stat.stat.exists"
@@ -104,7 +104,7 @@
   tags:
     - apache2-fcgi
 
-- name: Add mods-enabled/*.load to Apache 2 main configuration file
+- name: Add mods-enabled/*.load to Apache main configuration file
   lineinfile:
     dest: "{{ apache2_conf_httpd_conf_path }}"
     regexp: "^IncludeOptional.+?mods-enabled/\\*\\.load$"
@@ -115,7 +115,7 @@
   tags:
     - apache2-fcgi
 
-- name: Add mods-enabled/*.conf to Apache 2 main configuration file
+- name: Add mods-enabled/*.conf to Apache main configuration file
   lineinfile:
     dest: "{{ apache2_conf_httpd_conf_path }}"
     regexp: "^IncludeOptional.+?mods-enabled/\\*\\.conf$"
@@ -126,7 +126,7 @@
   tags:
     - apache2-fcgi
 
-- name: Add conf-enabled/*.conf to Apache 2 main configuration file
+- name: Add conf-enabled/*.conf to Apache main configuration file
   lineinfile:
     dest: "{{ apache2_conf_httpd_conf_path }}"
     regexp: "^IncludeOptional.+?conf-enabled/\\*\\.conf$"
@@ -137,7 +137,7 @@
   tags:
     - apache2-fcgi
 
-- name: Add sites-enabled/*.conf to Apache 2 main configuration file
+- name: Add sites-enabled/*.conf to Apache main configuration file
   lineinfile:
     dest: "{{ apache2_conf_httpd_conf_path }}"
     regexp: "^IncludeOptional.+?sites-enabled/\\*\\.conf$"
@@ -215,7 +215,7 @@
   tags:
     - apache2-fcgi
 
-- name: Enable required Apache 2 modules  # don't use a2enmod because it's not available on OS X
+- name: Enable required Apache modules  # don't use a2enmod because it's not available on OS X
   file:
     src: "{{ apache2_conf_path }}/mods-available/{{ item }}.load"
     dest: "{{ apache2_conf_path }}/mods-enabled/{{ item }}.load"
@@ -228,11 +228,11 @@
     - rewrite
   become: "{{ apache2_conf_become }}"
   notify:
-    - "Restart Apache 2 ({{ ansible_distribution }})"
+    - "Restart Apache ({{ ansible_distribution }})"
   tags:
     - apache2-fcgi
 
-- name: Enable mod_ssl Apache 2 module
+- name: Enable mod_ssl Apache module
   file:
     src: "{{ apache2_conf_path }}/mods-available/ssl.load"
     dest: "{{ apache2_conf_path }}/mods-enabled/ssl.load"
@@ -240,7 +240,7 @@
   become: "{{ apache2_conf_become }}"
   when: apache2_ssl_enabled
   notify:
-    - "Restart Apache 2 ({{ ansible_distribution }})"
+    - "Restart Apache ({{ ansible_distribution }})"
   tags:
     - apache2-fcgi
 
@@ -250,27 +250,27 @@
     state: absent
   become: "{{ apache2_conf_become }}"
   notify:
-    - "Restart Apache 2 ({{ ansible_distribution }})"
+    - "Restart Apache ({{ ansible_distribution }})"
   tags:
     - apache2-fcgi
 
-- name: Copy Apache 2 Media Cloud site configuration
+- name: Copy Apache Media Cloud site configuration
   template:
     src: templates/001-mediacloud.conf.j2
     dest: "{{ apache2_conf_path }}/sites-available/001-mediacloud.conf"
   become: "{{ apache2_conf_become }}"
   notify:
-    - "Restart Apache 2 ({{ ansible_distribution }})"
+    - "Restart Apache ({{ ansible_distribution }})"
   tags:
     - apache2-fcgi
 
-- name: Enable Apache 2 Media Cloud site configuration  # don't use a2ensite because it's not available on OS X
+- name: Enable Apache Media Cloud site configuration  # don't use a2ensite because it's not available on OS X
   file:
     src: "{{ apache2_conf_path }}/sites-available/001-mediacloud.conf"
     dest: "{{ apache2_conf_path }}/sites-enabled/001-mediacloud.conf"
     state: link
   become: "{{ apache2_conf_become }}"
   notify:
-    - "Restart Apache 2 ({{ ansible_distribution }})"
+    - "Restart Apache ({{ ansible_distribution }})"
   tags:
     - apache2-fcgi

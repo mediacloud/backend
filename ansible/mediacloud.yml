@@ -57,7 +57,7 @@
     - crontab
 
 
-- name: Set up Apache 2
+- name: Set up Apache
   hosts: all
   any_errors_fatal: true
   roles:

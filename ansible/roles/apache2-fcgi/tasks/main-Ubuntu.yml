@@ -1,6 +1,6 @@
 ---
 
-- name: Install Apache 2
+- name: Install Apache
   apt:
     name: "{{ item }}"
     state: present
