@@ -204,11 +204,13 @@ sub _get_sort_clause
     $sort_param ||= 'inlink';
 
     my $sort_field_lookup = {
-        inlink   => 'slc.media_inlink_count',
-        bitly    => 'slc.bitly_click_count',
-        social   => 'slc.bitly_click_count',
-        facebook => 'slc.facebook_share_count',
-        twitter  => 'slc.simple_tweet_count'
+        inlink            => 'slc.media_inlink_count',
+        inlink_count      => 'slc.media_inlink_count',
+        bitly             => 'slc.bitly_click_count',
+        bitly_click_count => 'slc.bitly_click_count',
+        social            => 'slc.bitly_click_count',
+        facebook          => 'slc.facebook_share_count',
+        twitter           => 'slc.simple_tweet_count'
     };
 
     my $sort_field = $sort_field_lookup->{ lc( $sort_param ) }
