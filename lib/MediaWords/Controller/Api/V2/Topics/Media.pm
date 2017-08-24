@@ -79,14 +79,14 @@ sub _get_sort_clause
 
     $sort_param ||= 'inlink';
 
-    my $sort_field;
-
     my $sort_field_lookup = {
-        inlink   => 'mlc.media_inlink_count',
-        bitly    => 'mlc.bitly_click_count',
-        social   => 'mlc.bitly_click_count',
-        facebook => 'mlc.facebook_share_count',
-        twitter  => 'mlc.simple_tweet_count'
+        inlink            => 'mlc.media_inlink_count',
+        inlink_count      => 'mlc.media_inlink_count',
+        bitly             => 'mlc.bitly_click_count',
+        bitly_click_count => 'mlc.bitly_click_count',
+        social            => 'mlc.bitly_click_count',
+        facebook          => 'mlc.facebook_share_count',
+        twitter           => 'mlc.simple_tweet_count'
     };
 
     my $sort_field = $sort_field_lookup->{ lc( $sort_param ) }
