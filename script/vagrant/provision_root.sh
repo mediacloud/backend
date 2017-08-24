@@ -21,6 +21,5 @@ if [ -b /dev/sda ]; then
 fi
 
 echo "Installing swapspace to accommodate MeCab's memory requirements..."
-apt-get -y update
 apt-get -y install swapspace
 service swapspace start
