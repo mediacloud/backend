@@ -19,7 +19,7 @@ sudo pip install ansible ansible-lint
 echo "Setting up host using Ansible..."
 ANSIBLE_CONFIG=ansible/ansible.cfg \
     ansible-playbook \
-    --inventory="localhost,"
+    --inventory="localhost," \
     --connection=local \
     ansible/mediacloud.yml
 
