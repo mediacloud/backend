@@ -1,17 +1,43 @@
 # For whatever reason having handlers in separate per-OS files doesn't work in Ansible 2.3
 
-- name: Restart PostgreSQL (MacOSX)
-  command: "brew services restart postgresql"
-  tags:
-    - postgresql-server
+- name: "Restart PostgreSQL on MacOSX"
+  block:
 
-- name: "Restart PostgreSQL (Ubuntu)"
-  service: 
-    name: postgresql
-    state: restarted
-  become: true
-  tags:
-    - postgresql-server
+  - name: Restart PostgreSQL service (MacOSX)
+    command: "brew services restart postgresql"
+    listen: "Restart PostgreSQL (MacOSX)"
+    tags:
+      - postgresql-server
+
+  - name: "Test if PostgreSQL is running after restart (MacOSX)"
+    command: "pgrep postgres"
+    register: postgresql_status
+    failed_when: "postgresql_status.stdout_lines | count == 0"
+    changed_when: false
+    listen: "Restart PostgreSQL (MacOSX)"
+    tags:
+      - postgresql-server
+
+- name: "Restart PostgreSQL on Ubuntu"
+  block:
+
+  - name: "Restart PostgreSQL service (Ubuntu)"
+    service: 
+      name: postgresql
+      state: restarted
+    become: true
+    listen: "Restart PostgreSQL (Ubuntu)"
+    tags:
+      - postgresql-server
+
+  - name: "Test if PostgreSQL is running after restart (Ubuntu)"
+    command: "pgrep postgres"
+    register: postgresql_status
+    failed_when: "postgresql_status.stdout_lines | count == 0"
+    changed_when: false
+    listen: "Restart PostgreSQL (Ubuntu)"
+    tags:
+      - postgresql-server
 
 - name: restart postgresql
   debug:
