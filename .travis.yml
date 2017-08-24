@@ -92,29 +92,18 @@ install:
         docker exec -i -t
         -e ANSIBLE_CONFIG
         $MC_TRAVIS_DOCKER_CONTAINER
-        bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT &&
-            ansible-playbook
-            --inventory='localhost,'
-            --connection=local
-            --skip-tags='update-packages,hostname,kernel-parameters'
-            -vvv
-            ansible/mediacloud.yml
-        "
+        bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT && ansible-playbook --inventory='localhost,' --connection=local --skip-tags='update-packages,hostname,kernel-parameters' -vvv ansible/mediacloud.yml"
     # Create PostgreSQL databases on container
     - >
         docker exec -i -t
         $MC_TRAVIS_DOCKER_CONTAINER
-        bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT &&
-            ./tools/db/create_default_db_user_and_databases.sh
-        "
+        bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT && ./tools/db/create_default_db_user_and_databases.sh"
     # Initialize PostgreSQL databases with schema on container
     - >
         docker exec -i -t
         -e MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM
         $MC_TRAVIS_DOCKER_CONTAINER
-        bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT &&
-            ./script/run_in_env.sh ./script/mediawords_create_db.pl
-        "
+        bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT && ./script/run_in_env.sh ./script/mediawords_create_db.pl"
 
 script:
     # Run test suite on container
@@ -132,9 +121,7 @@ script:
         -e MC_SUPERGLUE_TEST_URL
         -e MC_SKIP_RABBIT_OPEN_FILES_LIMIT_CHECK
         $MC_TRAVIS_DOCKER_CONTAINER
-        bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT &&
-            ./script/run_test_suite_for_devel_cover.sh --destroy-solr
-        "
+        bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT && ./script/run_test_suite_for_devel_cover.sh --destroy-solr"
 
 after_success:
     # Copy Coveralls database back to Travis instance
