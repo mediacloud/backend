@@ -103,7 +103,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     override.vm.provision "shell", privileged: false, path: "provision_user.sh"
 
     # Ubuntu 16.04 (64 bit)
-    override.vm.box = "ubuntu/xenial64"
+    override.vm.box = "bento/ubuntu-16.04"
 
     override.vm.network "private_network", type: "dhcp"
 
