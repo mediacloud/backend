@@ -224,7 +224,7 @@ def test_mecab_pos_ids():
     assert os.path.isfile(pos_id_path)
 
     pos_id_map = {}
-    with open(pos_id_path, 'r') as pos_id_file:
+    with open(pos_id_path, 'r', encoding='utf-8') as pos_id_file:
         for line in pos_id_file:
             line = line.strip()
             if len(line) > 0:
