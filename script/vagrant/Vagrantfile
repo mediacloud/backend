@@ -81,6 +81,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     vb.memory = 2048
     vb.cpus = 2
 
+    override.vm.provision "shell", privileged: true, inline: "apt-get -y update"  # some packages might fail to install due to outdated APT listing
     override.vm.provision "shell", privileged: true, path: "provision_root.sh"
     override.vm.provision "shell", privileged: false, path: "provision_user.sh"
 
@@ -143,6 +144,7 @@ See doc/README.vagrant.markdown for instructions on how to set those variables.
     override.vm.box = "ubuntu_aws"
     override.vm.box_url = "aws_ec2_dummy.box"
 
+    override.vm.provision "shell", privileged: true, inline: "apt-get -y update"  # some packages might fail to install due to outdated APT listing
     override.vm.provision "shell", privileged: true, path: "provision_root.sh"
     override.vm.provision "shell", privileged: false, path: "provision_user.sh"
 
