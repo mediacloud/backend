@@ -36,26 +36,6 @@
   tags:
     - system-packages    
 
-# Solr 6+ requires Java 8 which is unavailable before 16.04
-- name: Add Java 8 APT repository
-  apt_repository:
-    repo: "ppa:openjdk-r/ppa"
-    update_cache: yes
-  when: ansible_lsb.major_release|int < 16
-  become: true
-  tags:
-    - system-packages
-
-# We require at least Python 3.5 (14.04 only has 3.4 which doesn't work with newest Pip)
-- name: Add Python 3.x APT repository
-  apt_repository:
-    repo: "ppa:fkrull/deadsnakes"
-    update_cache: yes
-  when: ansible_lsb.major_release|int < 16
-  become: true
-  tags:
-    - system-packages
-
 - name: Install system packages
   apt:
     name: "{{item}}"
@@ -74,7 +54,7 @@
     - graphviz-dev
     - hunspell
     - libexpat1-dev
-    - libmecab-dev # Up-to-date enough on both Trusty and Xenial
+    - libmecab-dev
     - libgraphviz-dev
     - libtidy-dev
     - libxml2-dev
@@ -86,7 +66,7 @@
     - libssl-dev  # OpenSSL headers
     - logrotate
     - make
-    - mecab # Up-to-date enough on both Trusty and Xenial
+    - mecab
     - mecab-ipadic-neologd
     - netcat
     - openjdk-8-jdk
