@@ -1,17 +1,43 @@
 # For whatever reason having handlers in separate per-OS files doesn't work in Ansible 2.3
 
-- name: "Restart Apache (MacOSX)"
-  command: "brew services restart homebrew/apache/httpd24"
-  tags:
-    - apache2-fcgi
+- name: "Restart Apache on MacOSX"
+  block:
 
-- name: "Restart Apache (Ubuntu)"
-  service: 
-    name: apache2
-    state: restarted
-  become: true
-  tags:
-    - apache2-fcgi
+  - name: "Restart Apache service (MacOSX)"
+    command: "brew services restart homebrew/apache/httpd24"
+    listen: "Restart Apache (MacOSX)"
+    tags:
+      - apache2-fcgi
+
+  - name: "Test if Apache is running after restart (MacOSX)"
+    command: "pgrep httpd"
+    register: apache_status
+    failed_when: "apache_status.stdout_lines | count == 0"
+    changed_when: false
+    listen: "Restart Apache (MacOSX)"
+    tags:
+      - apache2-fcgi
+
+- name: "Restart Apache on Ubuntu"
+  block:
+
+  - name: "Restart Apache service (Ubuntu)"
+    service: 
+      name: apache2
+      state: restarted
+    become: true
+    listen: "Restart Apache (Ubuntu)"
+    tags:
+      - apache2-fcgi
+
+  - name: "Test if Apache is running after restart (Ubuntu)"
+    command: "pgrep apache2"
+    register: apache_status
+    failed_when: "apache_status.stdout_lines | count == 0"
+    changed_when: false
+    listen: "Restart Apache (Ubuntu)"
+    tags:
+      - apache2-fcgi
 
 - name: restart apache
   debug:
