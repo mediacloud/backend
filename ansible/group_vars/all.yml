@@ -3,5 +3,12 @@
 # Python version to install and use
 python_version: 3.5
 
+# Repository URL
+git_repo_url: https://github.com/berkmancenter/mediacloud.git
+
+# Branch to clone
+git_clone_branch: release
+
+# Perlbrew variables
 perlbrew_root: "{{ ansible_env.HOME }}/perl5/perlbrew/"
 perlbrew_home: "{{ ansible_env.HOME }}/.perlbrew/"
