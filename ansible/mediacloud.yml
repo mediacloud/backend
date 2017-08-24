@@ -14,38 +14,7 @@
   any_errors_fatal: true
   gather_facts: no
   pre_tasks:
-    - name: Ensure that Ansible itself is up-to-date
-      assert:
-        that: "ansible_version.full | version_compare('2.3.2.0', '>=')"
-        msg: "Please upgrade your Ansible to a newer version."
-      tags:
-        - pre-tasks
-    - name: Install Python 2.7 for Ansible on Ubuntu
-      raw: if [ `uname` != 'Darwin' ]; then sudo apt-get -y install python-simplejson; fi
-      register: install_python_2_7_result
-      changed_when: "'python-simplejson is already the newest version' not in install_python_2_7_result.stdout and install_python_2_7_result.stdout != ''"
-      tags:
-        - pre-tasks
-    - name: Reload ansible_facts
-      setup:
-      tags:
-        - pre-tasks
-    - name: Display all variables / facts known for a host
-      debug:
-        var: hostvars[inventory_hostname]
-        verbosity: 3
-      tags:
-        - pre-tasks
-    - name: Install Aptitude  # https://github.com/ansible/ansible/issues/16884
-      command: apt-get -y install python-minimal aptitude
-      args:
-        warn: off # Disable "Consider using apt module rather than running apt-get" warning
-      become: true
-      register: install_aptitude_result
-      changed_when: "'aptitude is already the newest version' not in install_aptitude_result.stdout"
-      when: ansible_distribution == 'Ubuntu'
-      tags:
-        - pre-tasks
+    - include: pre-tasks.yml
   roles:
     - update-packages
     - common
