@@ -79,8 +79,6 @@ sub _get_sort_clause
 
     $sort_param ||= 'inlink';
 
-    my $sort_field;
-
     my $sort_field_lookup = {
         inlink   => 'mlc.media_inlink_count',
         bitly    => 'mlc.bitly_click_count',
