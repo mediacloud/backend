@@ -81,24 +81,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     vb.memory = 2048
     vb.cpus = 2
 
-    # Add some swap too to accommodate MeCAB
-    swap_vdisk_filename = 'mediacloud-swap.vdi'
-    unless File.exist?(swap_vdisk_filename)
-      vb.customize [
-        'createhd',
-        '--filename', swap_vdisk_filename,
-        '--size', 8 * 1024  # if you change this size, update add_swap.sh too
-      ]
-    end
-    vb.customize [
-      'storageattach', :id,
-      '--storagectl', 'IDE Controller',
-      '--port', 0,
-      '--device', 0,
-      '--type', 'hdd',
-      '--medium', swap_vdisk_filename
-    ]
-    override.vm.provision "shell", privileged: true, path: "add_swap.sh"
     override.vm.provision "shell", privileged: true, path: "provision_root.sh"
     override.vm.provision "shell", privileged: false, path: "provision_user.sh"
 
