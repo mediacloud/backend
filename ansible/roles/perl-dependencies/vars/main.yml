@@ -11,113 +11,113 @@ perlbrew_environment_variables:
     PERLBREW_LIB: "mediacloud"
     PERL_MM_OPT: "INSTALL_BASE={{ perlbrew_home }}/libs/perl-system@mediacloud"
 
-# DarkPAN mirror URL
-perl_darkpan_url: "https://s3.amazonaws.com/mediacloud-darkpan/darkpan-20170822/"
+# CPAN mirror URL (CPAN, DarkPan or MiniCPAN)
+perl_cpan_mirror: "https://s3.amazonaws.com/mediacloud-minicpan/minicpan-20170824/"
 
 # Perl dependencies to install
 #
 # 1. Keep the list in alphabetical order
 # 2. Write a short description for how this module is being used
 perl_dependencies:
-    - { name: "AI::DecisionTree", min_version: null }
-    - { name: "Array::Compare", min_version: null }
-    - { name: "Carp::Always", min_version: null }
-    - { name: "Catalyst", min_version: "5.90030" }
-    - { name: "Catalyst::Action::RenderView", min_version: null }
-    - { name: "Catalyst::Action::REST", min_version: null }
-    - { name: "Catalyst::Authentication::User::Hash", min_version: null }
-    - { name: "Catalyst::Controller::HTML::FormFu", min_version: null }
-    - { name: "Catalyst::Controller::REST", min_version: null }
-    - { name: "Catalyst::Plugin::Authorization::ACL", min_version: null }
-    - { name: "Catalyst::Plugin::Authorization::Roles", min_version: null }
-    - { name: "Catalyst::Plugin::ConfigLoader", min_version: null }
-    - { name: "Catalyst::Plugin::I18N", min_version: null }
-    - { name: "Catalyst::Plugin::Session::Store::FastMmap", min_version: null }
-    - { name: "Catalyst::Plugin::Session::Store::File", min_version: null }
-    - { name: "Catalyst::Plugin::StackTrace", min_version: null }
-    - { name: "Catalyst::Plugin::Static::Simple", min_version: null }
-    - { name: "Catalyst::Plugin::Unicode", min_version: null }
-    - { name: "Catalyst::Restarter", min_version: null }
-    - { name: "Catalyst::Runtime", min_version: "5.90030" }
-    - { name: "Catalyst::View::TT", min_version: null }
-    - { name: "CGI", min_version: null }
-    - { name: "CHI", min_version: "0.60" }
-    - { name: "Color::Mix", min_version: null }
-    - { name: "Crypt::SaltedHash", min_version: null }
-    - { name: "Data::Dumper", min_version: null }
-    - { name: "Data::Serializer", min_version: null }
-    - { name: "Data::Sorting", min_version: null }
-    - { name: "Date::Calc", min_version: null }
-    - { name: "Devel::Cover", min_version: "1.17" }
-    - { name: "Devel::Cover::Report::Coveralls", min_version: "0.11" }
-    - { name: "Devel::NYTProf", min_version: null }
-    - { name: "Dir::Self", min_version: null }
-    - { name: "Domain::PublicSuffix", min_version: null }
-    - { name: "Encode::HanConvert", min_version: null }
-    - { name: "ExtUtils::MakeMaker", min_version: null }
-    - { name: "FCGI", min_version: null }
-    - { name: "FCGI::ProcManager", min_version: null }
-    - { name: "File::ReadBackwards", min_version: null }
-    - { name: "forks", min_version: "0.34" }
-    - { name: "GraphViz", min_version: null }
-    - { name: "GraphViz2", min_version: null }
-    - { name: "HTML::Entities", min_version: null }
-    - { name: "HTML::FormFu", min_version: null }
-    - { name: "HTML::FormFu::Element::reCAPTCHA", min_version: null }
-    - { name: "HTML::LinkExtractor", min_version: null }
-    - { name: "HTML::TreeBuilder::LibXML", min_version: null }
-    - { name: "Inline", min_version: null }
-    - { name: "Inline::Python", min_version: null } # patched version from DarkPAN
-    - { name: "IO::Compress::Bzip2", min_version: null }
-    - { name: "IO::Compress::Gzip", min_version: null }
-    - { name: "JSON::XS", min_version: null }
-    - { name: "Lingua::Identify::CLD", min_version: "0.10" }
-    - { name: "Lingua::Sentence", min_version: null }
-    - { name: "Lingua::Stem::Snowball", min_version: null }
-    - { name: "Lingua::Stem::Snowball::Lt", min_version: "0.02" }
-    - { name: "Lingua::ZH::WordSegmenter", min_version: null }
-    - { name: "List::Compare", min_version: null }
-    - { name: "List::MoreUtils", min_version: "0.413" }
-    - { name: "Log::Log4perl", min_version: null }
-    - { name: "LWP::Protocol::https", min_version: null }
-    - { name: "LWP::UserAgent", min_version: "6.15" }
-    - { name: "LWP::UserAgent::Determined", min_version: null }
-    - { name: "Math::Prime::Util", min_version: null }
-    - { name: "Math::Random", min_version: null }
-    - { name: "Math::Random::Secure", min_version: null }
-    - { name: "MediaCloud::JobManager", min_version: "0.27" }
-    - { name: "Memoize", min_version: null }
-    - { name: "Modern::Perl", min_version: "1.20170117" }
-    - { name: "Module::Install", min_version: null }
-    - { name: "Moose", min_version: null }
-    - { name: "namespace::autoclean", min_version: null }
-    - { name: "Net::Amazon::S3", min_version: null }
-    - { name: "Net::AMQP::RabbitMQ", min_version: null }
-    - { name: "Net::IP", min_version: null }
-    - { name: "Net::Twitter", min_version: null }
-    - { name: "Parallel::Fork::BossWorkerAsync", min_version: null }
-    - { name: "Parallel::ForkManager", min_version: null }
-    - { name: "Parse::BooleanLogic", min_version: null }
-    - { name: "Perl::Tidy", min_version: "20160302" }
-    - { name: "Readonly", min_version: null }
-    - { name: "Readonly::XS", min_version: null }
-    - { name: "Regexp::Common", min_version: null }
-    - { name: "Regexp::Common::time", min_version: null }
-    - { name: "Scalar::Defer", min_version: null }
-    - { name: "Statistics::Basic", min_version: null }
-    - { name: "Sys::RunAlone", min_version: null }
-    - { name: "Template", min_version: null }
-    - { name: "Term::Prompt", min_version: null }
-    - { name: "Test::Differences", min_version: null }
-    - { name: "Test::NoWarnings", min_version: null }
-    - { name: "Test::Strict", min_version: null }
-    - { name: "Text::CSV_XS", min_version: "1.26" }
-    - { name: "Text::Hunspell", min_version: null }
-    - { name: "Text::Lorem::More", min_version: null }
-    - { name: "Text::Trim", min_version: null }
-    - { name: "Text::WordDiff", min_version: null }
-    - { name: "Tie::Cache", min_version: null }
-    - { name: "XML::FeedPP", min_version: null }
-    - { name: "XML::LibXML", min_version: null }
-    - { name: "XML::Simple", min_version: null }
-    - { name: "YAML::Syck", min_version: null }
+    - "AI::DecisionTree"
+    - "Array::Compare"
+    - "Carp::Always"
+    - "Catalyst"
+    - "Catalyst::Action::RenderView"
+    - "Catalyst::Action::REST"
+    - "Catalyst::Authentication::User::Hash"
+    - "Catalyst::Controller::HTML::FormFu"
+    - "Catalyst::Controller::REST"
+    - "Catalyst::Plugin::Authorization::ACL"
+    - "Catalyst::Plugin::Authorization::Roles"
+    - "Catalyst::Plugin::ConfigLoader"
+    - "Catalyst::Plugin::I18N"
+    - "Catalyst::Plugin::Session::Store::FastMmap"
+    - "Catalyst::Plugin::Session::Store::File"
+    - "Catalyst::Plugin::StackTrace"
+    - "Catalyst::Plugin::Static::Simple"
+    - "Catalyst::Plugin::Unicode"
+    - "Catalyst::Restarter"
+    - "Catalyst::Runtime"
+    - "Catalyst::View::TT"
+    - "CGI"
+    - "CHI"
+    - "Color::Mix"
+    - "Crypt::SaltedHash"
+    - "Data::Dumper"
+    - "Data::Serializer"
+    - "Data::Sorting"
+    - "Date::Calc"
+    - "Devel::Cover"
+    - "Devel::Cover::Report::Coveralls"
+    - "Devel::NYTProf"
+    - "Dir::Self"
+    - "Domain::PublicSuffix"
+    - "Encode::HanConvert"
+    - "ExtUtils::MakeMaker"
+    - "FCGI"
+    - "FCGI::ProcManager"
+    - "File::ReadBackwards"
+    - "forks"
+    - "GraphViz"
+    - "GraphViz2"
+    - "HTML::Entities"
+    - "HTML::FormFu"
+    - "HTML::FormFu::Element::reCAPTCHA"
+    - "HTML::LinkExtractor"
+    - "HTML::TreeBuilder::LibXML"
+    - "Inline"
+    # Patched version of Inline::Python gets installed separately
+    - "IO::Compress::Bzip2"
+    - "IO::Compress::Gzip"
+    - "JSON::XS"
+    - "Lingua::Identify::CLD"
+    - "Lingua::Sentence"
+    - "Lingua::Stem::Snowball"
+    - "Lingua::Stem::Snowball::Lt"
+    - "Lingua::ZH::WordSegmenter"
+    - "List::Compare"
+    - "List::MoreUtils"
+    - "Log::Log4perl"
+    - "LWP::Protocol::https"
+    - "LWP::UserAgent"
+    - "LWP::UserAgent::Determined"
+    - "Math::Prime::Util"
+    - "Math::Random"
+    - "Math::Random::Secure"
+    - "MediaCloud::JobManager"
+    - "Memoize"
+    - "Modern::Perl"
+    - "Module::Install"
+    - "Moose"
+    - "namespace::autoclean"
+    - "Net::Amazon::S3"
+    - "Net::AMQP::RabbitMQ"
+    - "Net::IP"
+    - "Net::Twitter"
+    - "Parallel::Fork::BossWorkerAsync"
+    - "Parallel::ForkManager"
+    - "Parse::BooleanLogic"
+    - "Perl::Tidy"
+    - "Readonly"
+    - "Readonly::XS"
+    - "Regexp::Common"
+    - "Regexp::Common::time"
+    - "Scalar::Defer"
+    - "Statistics::Basic"
+    - "Sys::RunAlone"
+    - "Template"
+    - "Term::Prompt"
+    - "Test::Differences"
+    - "Test::NoWarnings"
+    - "Test::Strict"
+    - "Text::CSV_XS"
+    - "Text::Hunspell"
+    - "Text::Lorem::More"
+    - "Text::Trim"
+    - "Text::WordDiff"
+    - "Tie::Cache"
+    - "XML::FeedPP"
+    - "XML::LibXML"
+    - "XML::Simple"
+    - "YAML::Syck"

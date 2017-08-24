@@ -31,12 +31,27 @@
   tags:
     - perl-dependencies
 
+- name: Install Inline module
+  cpanm:
+    name: "Inline"
+    notest: true
+  environment: "{{ perlbrew_environment_variables_copy }}"
+  tags:
+    - perl-dependencies
+
+- name: Install Inline::Python variant which die()s with tracebacks (stack traces)
+  shell: "cpanm -v https://github.com/berkmancenter/mediacloud-inline-python-pm.git@exception_traceback_memleak"
+  args:
+    creates: "{{ perlbrew_home }}/libs/perl-system@mediacloud/man/man3/Inline::Python.3*" # might be ".3" or ".3pm"
+  environment: "{{ perlbrew_environment_variables_copy }}"
+  tags:
+    - perl-dependencies
+
 - name: Install Media Cloud Perl dependencies with Cpanm
   cpanm:
-    name: "{{ item.name }}"
-    version: "{{ item.min_version }}"
+    name: "{{ item }}"
     notest: true # `carton install` didn't run tests either
-    mirror: "{{ perl_darkpan_url }}"
+    mirror: "{{ perl_cpan_mirror }}"
     mirror_only: true
   with_items: "{{ perl_dependencies }}"
   environment: "{{ perlbrew_environment_variables_copy }}"
