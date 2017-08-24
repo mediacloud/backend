@@ -14,7 +14,7 @@ if [ `getconf LONG_BIT` != '64' ]; then
 fi
 
 echo "Installing Ansible..."
-sudo pip install --upgrade ansible ansible-lint
+sudo pip install ansible ansible-lint
 
 echo "Setting up host using Ansible..."
 ANSIBLE_CONFIG=ansible/ansible.cfg \
