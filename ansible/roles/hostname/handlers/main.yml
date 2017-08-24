@@ -1,6 +1,6 @@
 ---
 
-- name: Restart hostname
+- name: restart hostname
   service:
     name: hostname
     state: restarted
@@ -9,7 +9,7 @@
   tags:
     - hostname
 
-- name: Restart systemd-logind
+- name: restart systemd-logind
   service:
     name: systemd-logind
     state: restarted

@@ -15,8 +15,8 @@
     name: "{{ mediacloud_hostname }}"
   become: true
   notify:
-    - Restart hostname
-    - Restart systemd-logind
+    - restart hostname
+    - restart systemd-logind
   tags:
     - hostname
 
@@ -28,8 +28,8 @@
     state: present
   become: true
   notify:
-    - Restart hostname
-    - Restart systemd-logind
+    - restart hostname
+    - restart systemd-logind
   tags:
     - hostname
 

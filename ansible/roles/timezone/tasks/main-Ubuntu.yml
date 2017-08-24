@@ -20,7 +20,7 @@
     dest: /etc/timezone
   become: true
   notify:
-    - Restart cron  # for cron jobs to fire at the right time
+    - restart cron  # for cron jobs to fire at the right time
   tags:
     - timezone
 
@@ -30,7 +30,7 @@
     state: absent
   become: true
   notify:
-    - Restart cron
+    - restart cron
   tags:
     - timezone
 
@@ -41,7 +41,7 @@
     state: link
   become: true
   notify:
-    - Restart cron
+    - restart cron
   tags:
     - timezone
 
@@ -49,6 +49,6 @@
   command: dpkg-reconfigure -f noninteractive tzdata
   become: true
   notify:
-    - Restart cron
+    - restart cron
   tags:
     - timezone

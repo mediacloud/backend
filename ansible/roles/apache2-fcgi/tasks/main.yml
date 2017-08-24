@@ -228,7 +228,7 @@
     - rewrite
   become: "{{ apache2_conf_become }}"
   notify:
-    - "Restart Apache ({{ ansible_distribution }})"
+    - "restart apache"
   tags:
     - apache2-fcgi
 
@@ -240,7 +240,7 @@
   become: "{{ apache2_conf_become }}"
   when: apache2_ssl_enabled
   notify:
-    - "Restart Apache ({{ ansible_distribution }})"
+    - "restart apache"
   tags:
     - apache2-fcgi
 
@@ -250,7 +250,7 @@
     state: absent
   become: "{{ apache2_conf_become }}"
   notify:
-    - "Restart Apache ({{ ansible_distribution }})"
+    - "restart apache"
   tags:
     - apache2-fcgi
 
@@ -260,7 +260,7 @@
     dest: "{{ apache2_conf_path }}/sites-available/001-mediacloud.conf"
   become: "{{ apache2_conf_become }}"
   notify:
-    - "Restart Apache ({{ ansible_distribution }})"
+    - "restart apache"
   tags:
     - apache2-fcgi
 
@@ -271,6 +271,6 @@
     state: link
   become: "{{ apache2_conf_become }}"
   notify:
-    - "Restart Apache ({{ ansible_distribution }})"
+    - "restart apache"
   tags:
     - apache2-fcgi

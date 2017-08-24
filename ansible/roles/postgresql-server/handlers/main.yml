@@ -12,3 +12,12 @@
   become: true
   tags:
     - postgresql-server
+
+- name: restart postgresql
+  debug:
+    msg: "restart postgresql"
+  notify:
+    - "Restart PostgreSQL ({{ ansible_distribution }})"
+  changed_when: true
+  tags:
+    - postgresql-server

@@ -101,7 +101,7 @@
     state: present
   become: "{{ postgresql_conf_become }}"
   notify:
-    - "Restart PostgreSQL ({{ ansible_distribution }})"
+    - "restart postgresql"
   tags:
     - postgresql-server
 
@@ -113,7 +113,7 @@
     group: "{{ postgresql_conf_group }}"
   become: "{{ postgresql_conf_become }}"
   notify:
-    - "Restart PostgreSQL ({{ ansible_distribution }})"
+    - "restart postgresql"
   tags:
     - postgresql-server
 
@@ -126,6 +126,6 @@
   when: "mediacloud_production is defined and mediacloud_production"
   become: "{{ postgresql_conf_become }}"
   notify:
-    - "Restart PostgreSQL ({{ ansible_distribution }})"
+    - "restart postgresql"
   tags:
     - postgresql-server
