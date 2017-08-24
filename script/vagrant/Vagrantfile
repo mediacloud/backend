@@ -92,8 +92,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
     vb.customize [
       'storageattach', :id,
-      '--storagectl', 'SCSI',
-      '--port', 4,
+      '--storagectl', 'IDE Controller',
+      '--port', 0,
       '--device', 0,
       '--type', 'hdd',
       '--medium', swap_vdisk_filename
