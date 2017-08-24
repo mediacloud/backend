@@ -6,6 +6,14 @@
 
 # "timezone" doesn't work in Docker containers (due to the lack of systemd?)
 
+- name: Install tzdata
+  apt:
+    name: tzdata
+    state: present
+  become: true
+  tags:
+    - timezone
+
 - name: Write timezone to /etc/timezone
   copy:
     content: "{{ mediacloud_timezone }}"
