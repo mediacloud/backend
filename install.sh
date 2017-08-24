@@ -14,6 +14,8 @@ if [ `getconf LONG_BIT` != '64' ]; then
 fi
 
 echo "Installing Ansible..."
+sudo apt-get -y install python-pip python-setuptools
+sudo pip install --upgrade pip
 sudo pip install ansible ansible-lint
 
 echo "Setting up host using Ansible..."
