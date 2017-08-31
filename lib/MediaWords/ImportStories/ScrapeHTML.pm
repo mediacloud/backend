@@ -34,7 +34,7 @@ use MediaWords::Util::Web;
 Readonly my $THROTTLE_SLEEP_TIME => 10;
 
 # keep track of last sleep time so that we can make sure we only fetch urls every $THROTTLE_SLEEP_TIME seconds
-my $_last_fetch_time;
+my $_next_fetch_time = 0;
 
 has 'start_url'         => ( is => 'rw', isa => 'Str', required => 1 );
 has 'page_url_pattern'  => ( is => 'rw', isa => 'Str', required => 1 );
@@ -74,49 +74,38 @@ sub _set_cached_url
 # fetch content from the url; print a warning and return '' if there is an error
 sub _fetch_url
 {
-    my ( $self, $original_url ) = @_;
+    my ( $self, $url ) = @_;
 
-    DEBUG( "fetch_url: $original_url" );
+    DEBUG( "fetch_url: $url" );
 
-    if ( my $content = $self->_get_cached_url( $original_url ) )
+    if ( my $content = $self->_get_cached_url( $url ) )
     {
         return $content;
     }
 
-    $_last_fetch_time ||= time;
-    if ( my $sleep_time = List::Util::min( time - $_last_fetch_time, $THROTTLE_SLEEP_TIME ) )
+    my $sleep_time = $_next_fetch_time - time;
+    if ( $sleep_time > 0 )
     {
         DEBUG( "sleeping $sleep_time seconds ..." );
         sleep( $sleep_time );
     }
+    $_next_fetch_time = time + $THROTTLE_SLEEP_TIME;
 
     my $ua = MediaWords::Util::Web::UserAgent->new();
 
-    my $content;
-    my $refresh_loops = 0;
-    my $url           = $original_url;
-    while ( !$content )
+    my $response = $ua->get( $url );
+
+    if ( !$response->is_success )
     {
-        DEBUG "fetch_url: $url";
-        my $response = $ua->get( $url );
-
-        if ( !$response->is_success )
-        {
-            WARN "Unable to fetch url '$url': " . $response->status_line;
-            return '';
-        }
-
-        $content = $response->decoded_content;
-
-        if (   ( $refresh_loops++ < 10 )
-            && ( my $refresh_url = MediaWords::Util::URL::meta_refresh_url_from_html( $content, $url ) ) )
-        {
-            $url     = $refresh_url;
-            $content = '';
-        }
+        WARN "Unable to fetch url '$url': " . $response->status_line;
+        return '';
     }
 
-    $self->_set_cached_url( $original_url, $content );
+    my $content = $response->decoded_content;
+
+    DEBUG( "content (" . length( $content ) . "): " . substr( $content, 0, 80 ) );
+
+    $self->_set_cached_url( $url, $content );
 
     return $content;
 }
