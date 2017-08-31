@@ -23,11 +23,18 @@ with 'MediaWords::ImportStories';
 use CHI;
 use Data::Dumper;
 use HTML::LinkExtractor;
+use List::Util;
 use List::MoreUtils;
 
 use MediaWords::Util::Config;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
+
+# seconds to sleep between each page url fetch
+Readonly my $THROTTLE_SLEEP_TIME => 10;
+
+# keep track of last sleep time so that we can make sure we only fetch urls every $THROTTLE_SLEEP_TIME seconds
+my $_last_fetch_time;
 
 has 'start_url'         => ( is => 'rw', isa => 'Str', required => 1 );
 has 'page_url_pattern'  => ( is => 'rw', isa => 'Str', required => 1 );
@@ -69,9 +76,18 @@ sub _fetch_url
 {
     my ( $self, $original_url ) = @_;
 
+    DEBUG( "fetch_url: $original_url" );
+
     if ( my $content = $self->_get_cached_url( $original_url ) )
     {
         return $content;
+    }
+
+    $_last_fetch_time ||= time;
+    if ( my $sleep_time = List::Util::min( time - $_last_fetch_time, $THROTTLE_SLEEP_TIME ) )
+    {
+        DEBUG( "sleeping $sleep_time seconds ..." );
+        sleep( $sleep_time );
     }
 
     my $ua = MediaWords::Util::Web::UserAgent->new();
@@ -81,7 +97,7 @@ sub _fetch_url
     my $url           = $original_url;
     while ( !$content )
     {
-        DEBUG "fetch_url: $url" if ( $self->debug );
+        DEBUG "fetch_url: $url";
         my $response = $ua->get( $url );
 
         if ( !$response->is_success )
@@ -165,15 +181,15 @@ sub _parse_urls_from_content
 
     for my $url ( @{ $urls } )
     {
-        my $nu = MediaWords::Util::URL::normalize_url( $url );
+        my $nu = eval { MediaWords::Util::URL::normalize_url( $url ) } || $url;
 
         push( @{ $story_urls }, $nu ) if ( $nu =~ /$story_url_pattern/i );
         push( @{ $page_urls },  $nu ) if ( $nu =~ /$page_url_pattern/i );
     }
 
-    DEBUG "page_urls: " . Dumper( $page_urls )                          if ( $self->debug );
-    DEBUG "story_urls: " . Dumper( $story_urls )                        if ( $self->debug );
-    DEBUG scalar( @{ $story_urls } ) . " story_urls found before dedup" if ( $self->debug );
+    DEBUG "page_urls: " . Dumper( $page_urls );
+    DEBUG "story_urls: " . Dumper( $story_urls );
+    DEBUG scalar( @{ $story_urls } ) . " story_urls found before dedup";
 
     return ( $story_urls, $page_urls );
 }
@@ -199,13 +215,13 @@ sub get_new_stories
 
         last if ( $i++ > $self->max_pages );
 
-        DEBUG "page_url: $page_url" if ( $self->debug );
-
+        DEBUG "page_url: $page_url";
         my $content = $self->_fetch_url( $page_url );
         my ( $new_story_urls, $new_page_urls ) = $self->_parse_urls_from_content( $page_url, $content );
 
         push( @{ $page_urls },  @{ $new_page_urls } );
         push( @{ $story_urls }, @{ $new_story_urls } );
+        sleep( $THROTTLE_SLEEP_TIME );
     }
 
     my $all_stories = $self->_get_stories_from_story_urls( $story_urls );
