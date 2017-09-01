@@ -119,11 +119,13 @@ def normalize_url(url: str) -> str:
     if len(url) == 0:
         raise McNormalizeURLException("URL is empty")
 
+    l.info( "normalize_url: " + url )
+
     url = fix_common_url_mistakes(url)
     url = __canonical_url(url)
 
     if not is_http_url(url):
-        raise McNormalizeURLException("URL is not valid")
+        raise McNormalizeURLException("URL is not valid: " + url)
 
     scheme, netloc, path, query_string, fragment = urlsplit(url)
     query = parse_qs(query_string, keep_blank_values=True)
