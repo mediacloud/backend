@@ -158,12 +158,13 @@ my $_lang_instances = lazy
             ( my $file = $module ) =~ s|::|/|g;
             require $file . '.pm';
             $module->import();
-            1;
-        } or do
+        };
+
+        if ( $@ )
         {
             my $error = $@;
             die( "Error while loading module for language '$language_to_load': $error" );
-        };
+        }
 
         # Initialize an instance of the particular language module
         $lang_instances->{ $language_to_load } = $module->new();
