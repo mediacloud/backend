@@ -2528,7 +2528,7 @@ sub import_solr_seed_query
 
     my $solr_query = get_full_solr_query( $db, $topic );
 
-    INFO "executing solr query: $topic->{ solr_seed_query }";
+    INFO "executing solr query: $solr_query";
     my $stories = MediaWords::Solr::search_for_stories( $db, { q => $solr_query, rows => $max_stories } );
 
     if ( scalar( @{ $stories } ) > $max_returned_stories )
