@@ -357,6 +357,8 @@ sub provide_downloads
     $self->_add_pending_downloads();
 
     my @downloads;
+    my $num_skips = 0;
+
   MEDIA_ID:
     for my $media_id ( @{ $self->{ downloads }->_get_download_media_ids } )
     {
@@ -365,7 +367,9 @@ sub provide_downloads
         if ( ( $self->engine->throttle > 1 ) && ( $media_id->{ time } > ( time() - $self->engine->throttle ) ) )
         {
 
-            DEBUG "provide downloads: skipping media id $media_id->{media_id} because of throttling";
+            TRACE "provide downloads: skipping media id $media_id->{media_id} because of throttling";
+
+            $num_skips++;
 
             #skip;
             next MEDIA_ID;
@@ -377,6 +381,7 @@ sub provide_downloads
         }
     }
 
+    DEBUG "skipped / throttled downloads: $num_skips" if ( $num_skips > 0 );
     DEBUG "provide downloads: " . scalar( @downloads ) . " downloads";
 
     if ( !@downloads )
