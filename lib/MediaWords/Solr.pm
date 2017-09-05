@@ -210,6 +210,56 @@ sub _get_encoded_post_data($)
     return join( '&', @{ $post_items } );
 }
 
+# transform any tags_id_media: or collections_id: clauses into media_id: clauses with the media_ids
+# that corresponds to the given tags
+sub _insert_collection_media_ids($$)
+{
+    my ( $db, $q ) = @_;
+
+    # given the argument of a tags_id_media: or collections_id: clause, return the corresponding media_ids.
+    sub _get_media_ids_clause($$)
+    {
+        my ( $db, $arg ) = @_;
+
+        my $tags_ids = [];
+        if ( $arg =~ /^\d+/ )
+        {
+            push( @{ $tags_ids }, $arg );
+        }
+        elsif ( $arg =~ /^\((.*)\)$/ )
+        {
+            my $list = $1;
+            $list =~ s/or/ /ig;
+            if ( $list =~ /[^\d\s]/ )
+            {
+                die( "only OR clauses allowed inside tags_id_media: or collections_id: clauses: '$arg'" );
+            }
+
+            push( @{ $tags_ids }, split( /\s/, $list ) );
+        }
+        elsif ( $arg =~ /^\[/ )
+        {
+            die( 'range queries not allowed for tags_id_media or collections_id: clauses' );
+        }
+        else
+        {
+            die( "unrecognized format of tags_id_media: or collections_id: clause: '$arg'" );
+        }
+
+        my $tags_ids_list = join( ',', @{ $tags_ids } );
+        my $media_ids = $db->query( <<SQL )->flat;
+select media_id from media_tags_map where tags_id in ($tags_ids_list) order by media_id
+SQL
+
+        # use sorted list and do not use consolidate_id_query to make tests for this more reliable
+        return 'media_id:(' . join( ' ', @{ $media_ids } ) . ')';
+    }
+
+    $q =~ s/(tags_id_media|collections_id)\:(\d+|\([^\)]*\)|\[[^\]]*\])/_get_media_ids_clause( $db, $2 )/eg;
+
+    return $q;
+}
+
 =head2 query_encoded_json( $db, $params, $c )
 
 Execute a query on the solr server using the given params.  Return a maximum of 1 million sentences.
@@ -264,6 +314,7 @@ sub query_encoded_json($$;$)
     # _uppercase_boolean_operators( $params->{ fq } );
 
     $params->{ q } = MediaWords::Solr::PseudoQueries::transform_query( $params->{ q } );
+    $params->{ q } = _insert_collection_media_ids( $db, $params->{ q } );
 
     # $params->{ fq } = MediaWords::Solr::PseudoQueries::transform_query( $params->{ fq } );
 
