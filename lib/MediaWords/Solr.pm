@@ -229,13 +229,17 @@ sub _insert_collection_media_ids($$)
         elsif ( $arg =~ /^\((.*)\)$/ )
         {
             my $list = $1;
+
             $list =~ s/or/ /ig;
+            $list =~ s/^\s+//;
+            $list =~ s/\s+$//;
+
             if ( $list =~ /[^\d\s]/ )
             {
                 die( "only OR clauses allowed inside tags_id_media: or collections_id: clauses: '$arg'" );
             }
 
-            push( @{ $tags_ids }, split( /\s/, $list ) );
+            push( @{ $tags_ids }, split( /\s+/, $list ) );
         }
         elsif ( $arg =~ /^\[/ )
         {
@@ -247,12 +251,18 @@ sub _insert_collection_media_ids($$)
         }
 
         my $tags_ids_list = join( ',', @{ $tags_ids } );
+
         my $media_ids = $db->query( <<SQL )->flat;
 select media_id from media_tags_map where tags_id in ($tags_ids_list) order by media_id
 SQL
 
+        # replace empty list with an id that will always return nothing from solr
+        $media_ids = [ -1 ] unless ( scalar( @{ $media_ids } > 0 ) );
+
         # use sorted list and do not use consolidate_id_query to make tests for this more reliable
-        return 'media_id:(' . join( ' ', @{ $media_ids } ) . ')';
+        my $media_clause = 'media_id:(' . join( ' ', @{ $media_ids } ) . ')';
+
+        return $media_clause;
     }
 
     $q =~ s/(tags_id_media|collections_id)\:(\d+|\([^\)]*\)|\[[^\]]*\])/_get_media_ids_clause( $db, $2 )/eg;

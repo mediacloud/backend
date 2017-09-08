@@ -209,7 +209,16 @@ sub test_collections_id_result($$$)
 
     my $tags_ids = [ map { $_->{ tags_id } } @{ $tags } ];
 
-    my $q_arg = ( scalar( @{ $tags_ids } ) > 1 ) ? '(' . join( ' ', @{ $tags_ids } ) . ')' : $tags_ids->[ 0 ];
+    my ( $q_arg, $q_or_arg );
+    if ( scalar( @{ $tags_ids } ) > 1 )
+    {
+        $q_arg    = "(" . join( ' ',    @{ $tags_ids } ) . ")";
+        $q_or_arg = "(" . join( ' or ', @{ $tags_ids } ) . ")";
+    }
+    else
+    {
+        $q_arg = $tags_ids->[ 0 ];
+    }
 
     my $expected_media_ids = [];
     for my $tag ( @{ $tags } )
@@ -228,7 +237,14 @@ sub test_collections_id_result($$$)
     is( $got_q, $expected_q, "$label (tags_id_media)" );
 
     $got_q = MediaWords::Solr::_insert_collection_media_ids( $db, "collections_id:$q_arg" );
-    is( $got_q, $expected_q, "$label (tags_id_media)" );
+    is( $got_q, $expected_q, "$label (collections_id)" );
+
+    if ( $q_or_arg )
+    {
+        $got_q = MediaWords::Solr::_insert_collection_media_ids( $db, "collections_id:$q_or_arg" );
+        is( $got_q, $expected_q, "$label (collections_id with ors)" );
+    }
+
 }
 
 sub test_collections_id_queries($)
