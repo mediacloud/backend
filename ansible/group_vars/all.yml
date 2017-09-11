@@ -12,3 +12,15 @@ git_clone_branch: release
 # Perlbrew variables
 perlbrew_root: "{{ ansible_env.HOME }}/perl5/perlbrew/"
 perlbrew_home: "{{ ansible_env.HOME }}/.perlbrew/"
+
+# Serve Media Cloud webapp via SSL
+apache2_ssl_enabled: false
+
+# (required if SSL is enabled) SSL certificate path (must exist beforehand)
+apache2_ssl_cert_path: /etc/ssl/certs/ssl-cert-snakeoil.pem
+
+# (required if SSL is enabled) SSL private key path (must exist beforehand)
+apache2_ssl_cert_key_path: /etc/ssl/private/ssl-cert-snakeoil.key
+
+# (optional) SSL intermediate certificate path (must exist beforehand)
+# apache2_ssl_cert_chain_path: /etc/ssl/certs/mediacloud_interm.crt
