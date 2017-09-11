@@ -43,6 +43,10 @@ my $_date_guess_functions = [
         function => \&_guess_by_url
     },
     {
+        name     => 'guess_by_canonical_url',
+        function => \&_guess_by_canonical_url
+    },
+    {
         name     => 'guess_by_dc_date_issued',
         function => \&_guess_by_dc_date_issued
     },
@@ -350,24 +354,58 @@ sub _guess_by_datetime_pubdate
     }
 }
 
+# given a list of urls, parse each for dates and return the first match
+sub _parse_date_from_urls
+{
+    my $urls = \@_;
+
+    # use two separate loops to check each url for the 2017/09/10 format before looking for the 20170910 format
+    for my $url ( @{ $urls } )
+    {
+        next unless ( $url );
+
+        if ( $url =~ m~(20\d\d)[/-](\d\d)[/-](\d\d)~ )
+        {
+            my $date = _validate_date_parts( $1, $2, $3 );
+            return $date if ( $date );
+        }
+    }
+
+    for my $url ( @{ $urls } )
+    {
+        next unless ( $url );
+
+        if ( $url =~ m~/(20\d\d)(\d\d)(\d\d)/~ )
+        {
+            return _validate_date_parts( $1, $2, $3 );
+        }
+    }
+
+    return undef;
+}
+
 # look for a date in the story url
 sub _guess_by_url
 {
     my ( $story, $html, $html_tree ) = @_;
 
-    my $url = $story->{ url };
-
-    my $redirect_url = $story->{ redirect_url } || $url;
-
-    if ( ( $url =~ m~(20\d\d)[/-](\d\d)[/-](\d\d)~ ) || ( $redirect_url =~ m~(20\d\d)[/-](\d\d)[/-](\d\d)~ ) )
+    if ( my $date = _parse_date_from_urls( $story->{ url }, $story->{ redirect_url } ) )
     {
-        my $date = _validate_date_parts( $1, $2, $3 );
-        return $date if ( $date );
+        return $date;
     }
 
-    if ( ( $url =~ m~/(20\d\d)(\d\d)(\d\d)/~ ) || ( $redirect_url =~ m~(20\d\d)(\d\d)(\d\d)~ ) )
+    return undef;
+}
+
+# look for a url date in the <link rel="canonical" /> element
+sub _guess_by_canonical_url
+{
+    my ( $story, $html, $html_tree ) = @_;
+
+    if ( my $node = _find_first_node( $html_tree, '//link[@rel="canonical"]' ) )
     {
-        return _validate_date_parts( $1, $2, $3 );
+        my $url = $node->attr( 'href' );
+        return _parse_date_from_urls( $url );
     }
 
     return undef;
@@ -811,14 +849,22 @@ sub _guessing_is_inapplicable($$$)
 
     unless ( $html )
     {
+        TRACE( "undateable: empty content" );
 
         # Empty page, nothing to date
         return 1;
     }
 
+    if ( $story->{ url } =~ /p=\d+/ )
+    {
+        TRACE( "undateable: skip for p=123" );
+        return 0;
+    }
+
     my $uri = URI->new( $story->{ url } );
     unless ( $uri )
     {
+        TRACE( "undateable: invalid url" );
 
         # Invalid URL
         return 1;
@@ -830,6 +876,7 @@ sub _guessing_is_inapplicable($$$)
 
     unless ( $uri->path =~ /[\w\d]/ )
     {
+        TRACE( "undateable: empty path" );
 
         # Empty path, frontpage of the website
         return 1;
@@ -846,6 +893,7 @@ sub _guessing_is_inapplicable($$$)
         and $host !~ /example\.(com|net|org)$/gi
         and $path_for_digit_check !~ /[0-9]/ )
     {
+        TRACE( "undateable: no number in path" );
 
         # Assume that a dateable story will have a numeric component in its URL's path
         # (either a part of the date like in WordPress's case, or a story ID or something).
@@ -855,6 +903,7 @@ sub _guessing_is_inapplicable($$$)
 
     if ( $host =~ /wikipedia\.org$/gi || $normalized_url =~ /wiki\/index.php/ )
     {
+        TRACE( "undateable: wiki" );
 
         # ignore wiki pages
         return 1;
@@ -868,6 +917,7 @@ sub _guessing_is_inapplicable($$$)
 
     if ( $host =~ /facebook\.com$/gi and $host ne 'blog.facebook.com' )
     {
+        TRACE( "undateable: facebook" );
 
         # Ignore Facebook pages
         return 1;
@@ -875,6 +925,7 @@ sub _guessing_is_inapplicable($$$)
 
     if ( $normalized_url =~ /viewforum\.php/ or $normalized_url =~ /viewtopic\.php/ or $normalized_url =~ /memberlist\.php/ )
     {
+        TRACE( "undateable: phpBB" );
 
         # Ignore phpBB forums
         return 1;
@@ -898,6 +949,7 @@ sub _guessing_is_inapplicable($$$)
         my $r = 0;
         if ( any { $_ eq $segment } @url_segments )
         {
+            TRACE( "undateable: matched '$segment'" );
             return 1;
         }
     }
