@@ -1,49 +1,38 @@
-# For whatever reason having handlers in separate per-OS files doesn't work in Ansible 2.3
+- include: apache2-stop.yml
 
-- name: "Restart Apache on MacOSX"
-  block:
+- include: apache2-start.yml
 
-  - name: "Restart Apache service (MacOSX)"
-    command: "brew services restart homebrew/apache/httpd24"
-    listen: "Restart Apache (MacOSX)"
-    tags:
-      - apache2-fcgi
+- name: stop apache
+  debug:
+    msg: "stop apache"
+  notify:
+    - "Stop Apache ({{ ansible_distribution }})"
+  changed_when: true
+  listen: stop apache
+  tags:
+    - apache2-fcgi
 
-  - name: "Test if Apache is running after restart (MacOSX)"
-    command: "pgrep httpd"
-    register: apache_status
-    failed_when: "apache_status.stdout_lines | count == 0"
-    changed_when: false
-    listen: "Restart Apache (MacOSX)"
-    tags:
-      - apache2-fcgi
+- name: stop apache right away
+  meta: flush_handlers
+  listen: stop apache
+  tags:
+    - apache2-fcgi
 
-- name: "Restart Apache on Ubuntu"
-  block:
-
-  - name: "Restart Apache service (Ubuntu)"
-    service: 
-      name: apache2
-      state: restarted
-    become: true
-    listen: "Restart Apache (Ubuntu)"
-    tags:
-      - apache2-fcgi
-
-  - name: "Test if Apache is running after restart (Ubuntu)"
-    command: "pgrep apache2"
-    register: apache_status
-    failed_when: "apache_status.stdout_lines | count == 0"
-    changed_when: false
-    listen: "Restart Apache (Ubuntu)"
-    tags:
-      - apache2-fcgi
+- name: start apache
+  debug:
+    msg: "start apache"
+  notify:
+    - "Start Apache ({{ ansible_distribution }})"
+  changed_when: true
+  tags:
+    - apache2-fcgi
 
 - name: restart apache
   debug:
     msg: "restart apache"
   notify:
-    - "Restart Apache ({{ ansible_distribution }})"
+    - "Stop Apache ({{ ansible_distribution }})"
+    - "Start Apache ({{ ansible_distribution }})"
   changed_when: true
   tags:
     - apache2-fcgi
