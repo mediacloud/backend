@@ -1,0 +1,16 @@
+---
+
+#
+# Deploy code updates
+#
+# FIXME run the whole install script
+#
+
+- name: Deploy code updates
+  hosts: all
+  any_errors_fatal: true
+  gather_facts: no
+  pre_tasks:
+    - include: pre-tasks.yml
+  roles:
+    - deploy
