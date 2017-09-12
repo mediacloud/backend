@@ -257,7 +257,7 @@ select media_id from media_tags_map where tags_id in ($tags_ids_list) order by m
 SQL
 
         # replace empty list with an id that will always return nothing from solr
-        $media_ids = [ -1 ] unless ( scalar( @{ $media_ids } > 0 ) );
+        $media_ids = [ -1 ] unless ( scalar( @{ $media_ids } ) > 0 );
 
         my $media_clause = consolidate_id_query( 'media_id', $media_ids );
 
@@ -869,8 +869,8 @@ sub consolidate_id_query
 
     $ids = [ sort { $a <=> $b } @{ $ids } ];
 
-    my $singletons = [ -2 ];
-    my $ranges = [ [ -2 ] ];
+    my $singletons = [ -10 ];
+    my $ranges = [ [ -10 ] ];
     for my $id ( @{ $ids } )
     {
         if ( $id == ( $ranges->[ -1 ]->[ -1 ] + 1 ) )
@@ -906,7 +906,7 @@ sub consolidate_id_query
     my $queries = [];
 
     push( @{ $queries }, map { "$field:[$_->[ 0 ] TO $_->[ -1 ]]" } @{ $long_ranges } );
-    push( @{ $queries }, "$field:(" . join( ' ', @{ $singletons } ) . ')' ) if ( @{ $singletons } );
+    push( @{ $queries }, "$field:(" . join( ' ', @{ $singletons } ) . ')' ) if ( scalar( @{ $singletons } ) > 0 );
 
     my $query = join( ' ', @{ $queries } );
 
