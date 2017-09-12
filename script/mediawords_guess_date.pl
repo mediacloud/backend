@@ -26,12 +26,8 @@ sub main
 
     my $db = MediaWords::DB::connect_to_db();
 
-    # my $story = $db->query( "select * from stories where stories_id = ?", $stories_id )->hash;
-    #die( "story '$stories_id' not found" ) unless ( $story );
-
-    my $stories = $db->query( <<SQL )->hashes;
-select s.* from stories s join scratch.sl_stories ss using ( stories_id ) order by random() limit 1000
-SQL
+    my $stories = $db->query( "select * from stories where stories_id = ?", $stories_id )->hashes;
+    die( "story '$stories_id' not found" ) unless ( @{ $stories } );
 
     for my $story ( @{ $stories } )
     {

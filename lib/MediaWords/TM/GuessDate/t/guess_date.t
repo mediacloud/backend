@@ -8,7 +8,7 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
-use Test::More tests => 43;
+use Test::More tests => 44;
 use Test::NoWarnings;
 use Test::Deep;
 
@@ -123,6 +123,8 @@ sub test_dates($)
 
     is( _gt( $db, '<p>Hello!</p>', 'http://www.example.com/news/2012/01/17/hello.html' ),
         $TIMESTAMP_12_00_GMT, 'guess_by_url' );
+    is( _gt( $db, '<link rel="canonical" href="http://foo.bar/2012/01/17/foo/bar" />' ),
+        $TIMESTAMP_12_00_GMT, 'guess_by_canonical_url' );
 
     # Expected to prefer the date in text, fallback to the date in URL
     is( _gt( $db, 'Jan 17th, 2012, 05:00 AM GMT', 'http://www.example.com/news/2012/01/17/hello.html' ),
@@ -142,6 +144,7 @@ sub test_dates($)
         $TIMESTAMP_12_00_EST, '_guess_by_abbr_published_updated_date' );
     is( _gt( $db, '<abbr class="published" title="2012-01-17T12:00:00-05:00">' ),
         $TIMESTAMP_12_00_EST, '_guess_by_abbr_published_updated_date' );
+
 }
 
 sub test_date_matching($)
@@ -308,4 +311,3 @@ sub main
 }
 
 main();
-
