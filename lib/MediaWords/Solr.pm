@@ -259,8 +259,7 @@ SQL
         # replace empty list with an id that will always return nothing from solr
         $media_ids = [ -1 ] unless ( scalar( @{ $media_ids } > 0 ) );
 
-        # use sorted list and do not use consolidate_id_query to make tests for this more reliable
-        my $media_clause = 'media_id:(' . join( ' ', @{ $media_ids } ) . ')';
+        my $media_clause = consolidate_id_query( 'media_id', $media_ids );
 
         return $media_clause;
     }

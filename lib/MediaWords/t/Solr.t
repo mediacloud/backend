@@ -229,9 +229,7 @@ sub test_collections_id_result($$$)
         }
     }
 
-    my $expected_media_ids_list = join( ' ', sort { $a <=> $b } @{ $expected_media_ids } );
-
-    my $expected_q = "media_id:($expected_media_ids_list)";
+    my $expected_q = MediaWords::Solr::consolidate_id_query( 'media_id', $expected_media_ids );
 
     my $got_q = MediaWords::Solr::_insert_collection_media_ids( $db, "tags_id_media:$q_arg" );
     is( $got_q, $expected_q, "$label (tags_id_media)" );
