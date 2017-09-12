@@ -890,7 +890,7 @@ sub _guessing_is_inapplicable($$$)
     $path_for_digit_check =~ s/201\d//;
 
     if (    $normalized_url
-        and $host !~ /example\.(com|net|org)$/gi
+        and $host !~ /(example\.(com|net|org)|buzzfeed\.com)$/gi
         and $path_for_digit_check !~ /[0-9]/ )
     {
         TRACE( "undateable: no number in path" );
