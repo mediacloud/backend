@@ -1,4 +1,5 @@
-- include_vars: ../vars/main-{{ ansible_distribution }}.yml
+- name: Include variables
+  include_vars: ../vars/main-{{ ansible_distribution }}.yml
   tags:
     - postgresql-server
 
@@ -42,7 +43,7 @@
     path: "{{ postgresql_conf_dir }}"
   register: postgresql_conf_dir_stat
   tags:
-    - postgresql-server  
+    - postgresql-server
 
 - name: Ensure that PostgreSQL configuration path is a directory
   assert:
@@ -62,7 +63,7 @@
     path: "{{ postgresql_resolved_conf_file }}"
   register: postgresql_resolved_conf_file_stat
   tags:
-    - postgresql-server  
+    - postgresql-server
 
 - name: Ensure that PostgreSQL main configuration file is a file
   assert:

@@ -16,7 +16,7 @@
     - postgresql-server
 
 - name: "Restart PostgreSQL service (Ubuntu)"
-  service: 
+  service:
     name: postgresql
     state: restarted
   become: true

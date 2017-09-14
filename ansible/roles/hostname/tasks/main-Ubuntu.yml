@@ -1,6 +1,7 @@
 ---
 
-- include_vars: ../vars/main-{{ ansible_distribution }}.yml
+- name: Include variables
+  include_vars: ../vars/main-{{ ansible_distribution }}.yml
   tags:
     - hostname
 

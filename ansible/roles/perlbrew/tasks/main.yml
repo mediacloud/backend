@@ -30,7 +30,7 @@
       become_user: "{{ mediacloud_user }}"
       tags:
         - perlbrew
-    
+
     - name: "Install Perlbrew"
       command: "bash {{ perlbrew_install_tempdir.path }}/perlbrew-install"
       args:
@@ -77,11 +77,12 @@
     - perlbrew
 
 - name: Get system binary Perl path
-  shell: "command -v perl"  # `whereis` usually gives looney results
+  command: "command -v perl"  # `whereis` usually gives looney results
   changed_when: false
   register: system_perl_binary_path
   tags:
     - perlbrew
+    - skip_ansible_lint # need actual shell for "command -v"
 
 - name: Create Perlbrew directory for system Perl
   file:

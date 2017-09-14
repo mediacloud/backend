@@ -1,4 +1,5 @@
-- include_vars: ../vars/main-{{ ansible_distribution }}.yml
+- name: Include variables
+  include_vars: ../vars/main-{{ ansible_distribution }}.yml
   tags:
     - system-packages
 
@@ -7,7 +8,7 @@
     - system-packages
 
 - name: Test if MeCab is of the correct version
-  shell: "mecab-config --version"
+  command: "mecab-config --version"
   ignore_errors: true
   changed_when: false
   register: mecab_current_version
@@ -58,7 +59,7 @@
       become_user: root
       tags:
         - system-packages
-    
+
     - name: "Install Pip 2.7"
       command: "python2.7 {{ get_pip_tempdir.path }}/get-pip.py -U --force-reinstall -v"
       become: "{{ pip_system_install_become }}"
@@ -72,7 +73,7 @@
       become_user: root
       tags:
         - system-packages
-    
+
   when: pip2_is_installed.rc != 0 or pip3_is_installed.rc != 0
 
 - name: "Install Supervisor via Pip 2.7"
