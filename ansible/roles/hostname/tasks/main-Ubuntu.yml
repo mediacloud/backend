@@ -14,6 +14,7 @@
   hostname:
     name: "{{ mediacloud_hostname }}"
   become: true
+  become_user: root
   notify:
     - restart hostname
     - restart systemd-logind
@@ -27,6 +28,7 @@
     line: "127.0.0.1 {{ mediacloud_fqdn }} {{ mediacloud_hostname }}"
     state: present
   become: true
+  become_user: root
   notify:
     - restart hostname
     - restart systemd-logind

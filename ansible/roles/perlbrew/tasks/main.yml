@@ -4,6 +4,8 @@
   stat:
     path: "{{ perlbrew_root }}/bin/perlbrew"
   register: have_perlbrew
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - perlbrew
 
@@ -15,6 +17,8 @@
         state: directory
         suffix: perlbrew_install
       register: perlbrew_install_tempdir
+      become: true
+      become_user: "{{ mediacloud_user }}"
       tags:
         - perlbrew
 
@@ -22,6 +26,8 @@
       get_url:
         url: https://install.perlbrew.pl/
         dest: "{{ perlbrew_install_tempdir.path }}/perlbrew-install"
+      become: true
+      become_user: "{{ mediacloud_user }}"
       tags:
         - perlbrew
     
@@ -29,6 +35,8 @@
       command: "bash {{ perlbrew_install_tempdir.path }}/perlbrew-install"
       args:
         creates: "{{ perlbrew_root }}/bin/perlbrew"
+      become: true
+      become_user: "{{ mediacloud_user }}"
       tags:
         - perlbrew
 
@@ -38,6 +46,8 @@
   command: "{{ perlbrew_root }}/bin/perlbrew install-cpanm"
   args:
     creates: "{{ perlbrew_root }}/bin/cpanm"
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - perlbrew
 
@@ -45,6 +55,8 @@
   command: "{{ perlbrew_root }}/bin/perlbrew install-patchperl"
   args:
     creates: "{{ perlbrew_root }}/bin/patchperl"
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - perlbrew
 
@@ -52,6 +64,8 @@
   command: "perl -e 'print substr( $^V, 1 )'"
   changed_when: false
   register: system_perl_version
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - perlbrew
 
@@ -73,6 +87,8 @@
   file:
     path: "{{ perlbrew_root }}/perls/perl-system/"
     state: directory
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - perlbrew
 
@@ -81,16 +97,20 @@
     src: "{{ system_perl_binary_path.stdout | dirname }}"
     dest: "{{ perlbrew_root }}/perls/perl-system/bin"
     state: link
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - perlbrew
 
 - name: Initialize system Perl in Perlbrew # to create library directory
   command: "{{ perlbrew_root }}/bin/perlbrew use perl-system"
   args:
-    creates: "{{ ansible_env.HOME }}/perl5/perlbrew/perls/perl-system/.version"
+    creates: "{{ mediacloud_home }}/perl5/perlbrew/perls/perl-system/.version"
   environment:
     PERLBREW_HOME: "{{ perlbrew_home }}"
     PERLBREW_ROOT: "{{ perlbrew_root }}"
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - perlbrew
 
@@ -102,6 +122,8 @@
   environment:
     PERLBREW_HOME: "{{ perlbrew_home }}"
     PERLBREW_ROOT: "{{ perlbrew_root }}"
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - perlbrew
 
@@ -112,5 +134,7 @@
   environment:
     PERLBREW_HOME: "{{ perlbrew_home }}"
     PERLBREW_ROOT: "{{ perlbrew_root }}"
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - perlbrew

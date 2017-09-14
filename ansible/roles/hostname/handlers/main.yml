@@ -5,6 +5,7 @@
     name: hostname
     state: restarted
   become: true
+  become_user: root
   when: ansible_service_mgr != 'systemd'
   tags:
     - hostname
@@ -14,6 +15,7 @@
     name: systemd-logind
     state: restarted
   become: true
+  become_user: root
   when: ansible_service_mgr == 'systemd'
   tags:
     - hostname

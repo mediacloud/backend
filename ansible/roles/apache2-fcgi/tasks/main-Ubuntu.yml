@@ -9,5 +9,6 @@
     - apache2
     - libapache2-mod-fcgid
   become: true
+  become_user: root
   tags:
     - apache2-fcgi

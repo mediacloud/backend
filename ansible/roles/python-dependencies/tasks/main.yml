@@ -3,9 +3,11 @@
 - name: Initialize Virtualenvwrapper
   command: "bash /usr/local/bin/virtualenvwrapper.sh"
   args:
-    creates: "{{ ansible_env.HOME }}/.virtualenvs/initialize"
+    creates: "{{ mediacloud_home }}/.virtualenvs/initialize"
   environment:
     VIRTUALENVWRAPPER_PYTHON: "python{{ python_version }}"
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - python-dependencies
 
@@ -13,15 +15,17 @@
   pip:
     name: "{{ item.name }}"
     version: "{{ item.version }}"
-    virtualenv: "{{ ansible_env.HOME }}/.virtualenvs/mediacloud/"
+    virtualenv: "{{ mediacloud_home }}/.virtualenvs/mediacloud/"
     virtualenv_python: "python{{ python_version }}"
   with_items: "{{ python_dependencies }}"
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - python-dependencies
 
 - name: Set path to virtualenv's site-packages
   set_fact:
-    virtualenv_site_packages_path: "{{ ansible_env.HOME }}/.virtualenvs/mediacloud/lib/python{{ python_version }}/site-packages/"
+    virtualenv_site_packages_path: "{{ mediacloud_home }}/.virtualenvs/mediacloud/lib/python{{ python_version }}/site-packages/"
   tags:
     - python-dependencies
 
@@ -29,6 +33,8 @@
   stat:
     path: "{{ virtualenv_site_packages_path }}"
   register: virtualenv_site_packages_path_stat
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - python-dependencies
 
@@ -46,5 +52,7 @@
     line: "{{ mediacloud_root }}/mediacloud/"
     create: true
     state: present
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - python-dependencies

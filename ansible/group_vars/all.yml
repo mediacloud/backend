@@ -10,8 +10,8 @@ git_repo_url: https://github.com/berkmancenter/mediacloud.git
 git_clone_branch: release
 
 # Perlbrew variables
-perlbrew_root: "{{ ansible_env.HOME }}/perl5/perlbrew/"
-perlbrew_home: "{{ ansible_env.HOME }}/.perlbrew/"
+perlbrew_root: "{{ mediacloud_home }}/perl5/perlbrew/"
+perlbrew_home: "{{ mediacloud_home }}/.perlbrew/"
 
 # Serve Media Cloud webapp via SSL
 apache2_ssl_enabled: false

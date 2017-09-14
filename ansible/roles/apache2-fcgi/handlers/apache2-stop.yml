@@ -2,6 +2,7 @@
   # "service apache2 stop" doesn't work on production 16.04 for whatever reason
   command: "apachectl stop"
   become: "{{ ansible_distribution == 'Ubuntu' }}"
+  become_user: root
   listen:
     - "Stop Apache (Ubuntu)"
     - "Stop Apache (MacOSX)"

@@ -10,7 +10,7 @@
 - name: Start and enable PostgreSQL
   command: brew services start postgresql
   args:
-    creates: "{{ ansible_env.HOME }}/Library/LaunchAgents/homebrew.mxcl.postgresql.plist"
+    creates: "{{ mediacloud_home }}/Library/LaunchAgents/homebrew.mxcl.postgresql.plist"
   tags:
     - postgresql-server
 

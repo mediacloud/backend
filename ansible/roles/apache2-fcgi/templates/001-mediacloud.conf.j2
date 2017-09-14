@@ -58,7 +58,7 @@
     # Inline::Python work directory
     FcgidInitialEnv PERL_INLINE_DIRECTORY {{ mediacloud_root }}/_Inline-webapp
 
-    FcgidInitialEnv HOME  {{ ansible_env.HOME }}
+    FcgidInitialEnv HOME  {{ mediacloud_home }}
     FcgidInitialEnv PATH  "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/X11R6/bin"
     FcgidInitialEnv SHELL /bin/bash
 

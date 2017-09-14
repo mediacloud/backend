@@ -11,5 +11,6 @@
     sysctl_set: yes
     reload: yes
   become: true
+  become_user: root
   tags:
     - kernel-parameters

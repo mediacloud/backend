@@ -12,6 +12,7 @@
     - python-software-properties
     - vim
   become: true
+  become_user: root
   tags:
     - common
 
@@ -21,6 +22,7 @@
     state: present
     install_recommends: false
   become: true
+  become_user: root
   tags:
     - common
 
@@ -29,16 +31,18 @@
   args:
     creates: /etc/alternatives/editor
   become: true
+  become_user: root
   tags:
     - common
 
 - name: Set Vim as default user editor
   lineinfile:
-    dest: "{{ ansible_env.HOME }}/.selected_editor"
+    dest: "{{ mediacloud_home }}/.selected_editor"
     regexp: "^SELECTED_EDITOR=.+?$"
     line: 'SELECTED_EDITOR="/usr/bin/vim.basic"'
     create: true
     state: present
-  become: false
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - common

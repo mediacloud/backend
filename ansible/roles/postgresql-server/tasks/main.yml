@@ -6,9 +6,9 @@
   tags:
     - postgresql-server
 
-- name: Create PostgreSQL user for current user
+- name: Create PostgreSQL user for Media Cloud user
   postgresql_user:
-    name: "{{ ansible_user }}"
+    name: "{{ mediacloud_user }}"
 
     login_user: "{{ postgresql_psql_login_user }}"
   become: "{{ postgresql_psql_become }}"
@@ -18,8 +18,8 @@
 
 - name: Create PostgreSQL database for current user
   postgresql_db:
-    name: "{{ ansible_user }}"
-    owner: "{{ ansible_user }}"
+    name: "{{ mediacloud_user }}"
+    owner: "{{ mediacloud_user }}"
 
     # Force UTF-8 encoding because some PostgreSQL installations default to
     # "LATIN1" and then LENGTH() and similar functions don't work correctly

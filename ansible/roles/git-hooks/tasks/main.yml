@@ -20,5 +20,7 @@
     dest: "{{ git_precommit_hook_target }}"
     mode: 0755
     state: link
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - git-hooks

@@ -5,6 +5,8 @@
     name: MAILTO
     env: true
     value: "{{ crontab_mailto | join(',') }}"
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - crontab
 
@@ -12,7 +14,9 @@
   cron:
     name: HOME
     env: true
-    value: "{{ ansible_env.HOME }}"
+    value: "{{ mediacloud_home }}"
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - crontab
 
@@ -21,6 +25,8 @@
     name: SHELL
     env: true
     value: "/bin/bash"
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - crontab
 
@@ -29,6 +35,8 @@
     name: PATH
     env: true
     value: "/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - crontab
 
@@ -37,6 +45,8 @@
     name: "supervisor"
     special_time: reboot
     job: "{{ mediacloud_root }}/supervisor/supervisord.sh"
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - crontab
 
@@ -51,6 +61,8 @@
       --delta
       --jobs {{ crontab_import_solr_data_jobs }}
       &> {{ crontab_import_solr_data_log_path }}
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - crontab
 
@@ -62,6 +74,8 @@
     job: >
       {{ mediacloud_root }}/script/run_in_env.sh
       {{ mediacloud_root }}/script/mediawords_generate_media_health.pl
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - crontab
 
@@ -74,6 +88,8 @@
       {{ mediacloud_root }}/script/run_in_env.sh
       {{ mediacloud_root }}/tools/supervisor/rotate_supervisor_logs.py
       &> {{ crontab_rotate_supervisor_logs_log_path }}
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - crontab
 
@@ -86,6 +102,8 @@
       {{ mediacloud_root }}/script/run_in_env.sh
       {{ mediacloud_root }}/tools/web/rotate_http_request_log.py
       &> {{ crontab_rotate_http_request_log_log_path }}
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - crontab
 
@@ -102,6 +120,8 @@
       {{ mediacloud_root }}/script/run_in_env.sh
       {{ mediacloud_root }}/script/mediawords_rescrape_due_media.pl
       &> {{ crontab_rescrape_due_media_log_path }}
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - crontab
 
@@ -113,6 +133,8 @@
     hour: "14"
     job: >
       psql -c "SELECT rescraping_changes(); SELECT update_feeds_from_yesterday()" 2>&1
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - crontab
 
@@ -124,6 +146,8 @@
     job: >
       {{ mediacloud_root }}/script/run_with_carton.sh
       {{ mediacloud_root }}/script/mediawords_generate_user_summary.pl
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - crontab
 
@@ -140,5 +164,7 @@
       {{ mediacloud_root }}/script/mediawords_generate_user_summary.pl
       --new 7
       --activity 7
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - crontab

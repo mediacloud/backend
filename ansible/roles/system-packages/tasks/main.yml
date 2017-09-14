@@ -45,6 +45,8 @@
         state: directory
         suffix: get_pip
       register: get_pip_tempdir
+      become: "{{ pip_system_install_become }}"
+      become_user: root
       tags:
         - system-packages
 
@@ -52,18 +54,22 @@
       get_url:
         url: https://bootstrap.pypa.io/get-pip.py
         dest: "{{ get_pip_tempdir.path }}/get-pip.py"
+      become: "{{ pip_system_install_become }}"
+      become_user: root
       tags:
         - system-packages
     
     - name: "Install Pip 2.7"
       command: "python2.7 {{ get_pip_tempdir.path }}/get-pip.py -U --force-reinstall -v"
       become: "{{ pip_system_install_become }}"
+      become_user: root
       tags:
         - system-packages
 
     - name: "Install Pip {{ python_version }}"
       command: "python{{ python_version }} {{ get_pip_tempdir.path }}/get-pip.py -U --force-reinstall -v"
       become: "{{ pip_system_install_become }}"
+      become_user: root
       tags:
         - system-packages
     
@@ -74,6 +80,7 @@
     name: supervisor
     executable: "pip2.7"
   become: "{{ pip_system_install_become }}"
+  become_user: root
   tags:
     - system-packages
 
@@ -82,6 +89,7 @@
     name: virtualenv
     executable: "pip{{ python_version }}"
   become: "{{ pip_system_install_become }}"
+  become_user: root
   tags:
     - system-packages
 
@@ -90,5 +98,6 @@
     name: virtualenvwrapper
     executable: "pip{{ python_version }}"
   become: "{{ pip_system_install_become }}"
+  become_user: root
   tags:
     - system-packages

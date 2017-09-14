@@ -6,5 +6,7 @@
     dest: "{{ mediacloud_root }}/mediawords.yml"
     remote_src: true
     force: no # Don't overwrite existing configuration
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - mediawords-yml

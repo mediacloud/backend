@@ -101,6 +101,7 @@
     - "{{ apache2_conf_path }}/sites-available/"
     - "{{ apache2_conf_path }}/sites-enabled/"
   become: "{{ apache2_conf_become }}"
+  become_user: root
   tags:
     - apache2-fcgi
 
@@ -112,6 +113,7 @@
     create: true  # might not exist on OS X
     state: present
   become: "{{ apache2_conf_become }}"
+  become_user: root
   tags:
     - apache2-fcgi
 
@@ -123,6 +125,7 @@
     create: true  # might not exist on OS X
     state: present
   become: "{{ apache2_conf_become }}"
+  become_user: root
   tags:
     - apache2-fcgi
 
@@ -134,6 +137,7 @@
     create: true  # might not exist on OS X
     state: present
   become: "{{ apache2_conf_become }}"
+  become_user: root
   tags:
     - apache2-fcgi
 
@@ -145,6 +149,7 @@
     create: true  # might not exist on OS X
     state: present
   become: "{{ apache2_conf_become }}"
+  become_user: root
   tags:
     - apache2-fcgi
 
@@ -156,6 +161,7 @@
     create: true  # might not exist on OS X
     state: present
   become: "{{ apache2_conf_become }}"
+  become_user: root
   tags:
     - apache2-fcgi
 
@@ -167,6 +173,7 @@
     create: true  # might not exist on OS X
     state: present
   become: "{{ apache2_conf_become }}"
+  become_user: root
   tags:
     - apache2-fcgi
 
@@ -178,6 +185,7 @@
     create: true  # might not exist on OS X
     state: present
   become: "{{ apache2_conf_become }}"
+  become_user: root
   tags:
     - apache2-fcgi
 
@@ -189,6 +197,7 @@
     create: true  # might not exist on OS X
     state: present
   become: "{{ apache2_conf_become }}"
+  become_user: root
   tags:
     - apache2-fcgi
 
@@ -200,6 +209,7 @@
     create: true  # might not exist on OS X
     state: present
   become: "{{ apache2_conf_become }}"
+  become_user: root
   tags:
     - apache2-fcgi
 
@@ -211,6 +221,7 @@
     create: true  # might not exist on OS X
     state: present
   become: "{{ apache2_conf_become }}"
+  become_user: root
   when: apache2_ssl_enabled
   tags:
     - apache2-fcgi
@@ -227,6 +238,7 @@
     - mime
     - rewrite
   become: "{{ apache2_conf_become }}"
+  become_user: root
   notify:
     - "restart apache"
   tags:
@@ -238,6 +250,7 @@
     dest: "{{ apache2_conf_path }}/mods-enabled/ssl.load"
     state: link
   become: "{{ apache2_conf_become }}"
+  become_user: root
   when: apache2_ssl_enabled
   notify:
     - "restart apache"
@@ -249,6 +262,7 @@
     path: "{{ apache2_conf_path }}/sites-enabled/000-default.conf"
     state: absent
   become: "{{ apache2_conf_become }}"
+  become_user: root
   notify:
     - "restart apache"
   tags:
@@ -259,6 +273,7 @@
     src: templates/001-mediacloud.conf.j2
     dest: "{{ apache2_conf_path }}/sites-available/001-mediacloud.conf"
   become: "{{ apache2_conf_become }}"
+  become_user: root
   notify:
     - "restart apache"
   tags:
@@ -270,6 +285,7 @@
     dest: "{{ apache2_conf_path }}/sites-enabled/001-mediacloud.conf"
     state: link
   become: "{{ apache2_conf_become }}"
+  become_user: root
   notify:
     - "restart apache"
   tags:

@@ -7,6 +7,7 @@
     cache_valid_time: 86400 # One day
     install_recommends: false
   become: true
+  become_user: root
   tags:
     - update-packages
     - update-packages-ubuntu
@@ -16,6 +17,7 @@
     autoclean: yes
     install_recommends: false
   become: true
+  become_user: root
   tags:
     - update-packages
     - update-packages-ubuntu
@@ -25,6 +27,7 @@
     autoremove: yes
     install_recommends: false
   become: true
+  become_user: root
   tags:
     - update-packages
     - update-packages-ubuntu

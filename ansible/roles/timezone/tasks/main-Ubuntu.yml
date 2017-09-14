@@ -11,6 +11,7 @@
     name: tzdata
     state: present
   become: true
+  become_user: root
   tags:
     - timezone
 
@@ -18,9 +19,10 @@
   copy:
     content: "{{ mediacloud_timezone }}"
     dest: /etc/timezone
-  become: true
   notify:
     - restart cron  # for cron jobs to fire at the right time
+  become: true
+  become_user: root
   tags:
     - timezone
 
@@ -28,9 +30,10 @@
   file:
     path: /etc/localtime
     state: absent
-  become: true
   notify:
     - restart cron
+  become: true
+  become_user: root
   tags:
     - timezone
 
@@ -39,16 +42,18 @@
     src: "/usr/share/zoneinfo/{{ mediacloud_timezone }}"
     dest: /etc/localtime
     state: link
-  become: true
   notify:
     - restart cron
+  become: true
+  become_user: root
   tags:
     - timezone
 
 - name: Reconfigure locales
   command: dpkg-reconfigure -f noninteractive tzdata
-  become: true
   notify:
     - restart cron
+  become: true
+  become_user: root
   tags:
     - timezone

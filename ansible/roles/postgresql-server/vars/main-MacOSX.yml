@@ -1,6 +1,6 @@
 postgresql_psql_become: false
 postgresql_psql_become_user: null
-postgresql_psql_login_user: "{{ ansible_user }}"
+postgresql_psql_login_user: "{{ mediacloud_user }}"
 
 # Directory with postgresql.conf
 postgresql_conf_dir: "/usr/local/var/postgres/"
@@ -9,5 +9,5 @@ postgresql_conf_dir: "/usr/local/var/postgres/"
 postgresql_conf_become: false
 
 # User, group for the conf.d directory and its contents
-postgresql_conf_user: "{{ ansible_user }}"
+postgresql_conf_user: "{{ mediacloud_user }}"
 postgresql_conf_group: "admin"

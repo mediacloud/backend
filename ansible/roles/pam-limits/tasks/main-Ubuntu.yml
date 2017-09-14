@@ -7,6 +7,7 @@
     line: "session required pam_limits.so"
     state: present
   become: true
+  become_user: root
   tags:
     - pam-limits
 
@@ -17,6 +18,7 @@
     line: "session required pam_limits.so"
     state: present
   become: true
+  become_user: root
   tags:
     - pam-limits
 
@@ -29,24 +31,26 @@
     group: root
     mode: 0644
   become: true
+  become_user: root
   tags:
     - pam-limits
 
 # Each process is limited up to ~34 GB of memory
 - name: Add hard virtual memory limit on pam_limits
   pam_limits:
-    domain: "{{ ansible_user }}"
+    domain: "{{ mediacloud_user }}"
     limit_type: hard
     limit_item: as
     value: 33554432
     dest: "{{ limits_conf_path }}"
   become: true
+  become_user: root
   tags:
     - pam-limits
 
 - name: Increase soft open files limit on pam_limits
   pam_limits:
-    domain: "{{ ansible_user }}"
+    domain: "{{ mediacloud_user }}"
     limit_type: "{{ item }}"
     limit_item: nofile
     value: 65536
@@ -55,5 +59,6 @@
     - "soft"
     - "hard"
   become: true
+  become_user: root
   tags:
     - pam-limits

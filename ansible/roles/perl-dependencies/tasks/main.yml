@@ -16,7 +16,7 @@
   with_items:
 
     # Use correct Python with Inline::Python
-    - { name: "INLINE_PYTHON_EXECUTABLE", value: "{{ ansible_env.HOME }}/.virtualenvs/mediacloud/bin/python{{ python_version }}" }
+    - { name: "INLINE_PYTHON_EXECUTABLE", value: "{{ mediacloud_home }}/.virtualenvs/mediacloud/bin/python{{ python_version }}" }
 
     # OS X no longer provides OpenSSL headers and Net::AMQP::RabbitMQ doesn't care
     # about OPENSSL_PREFIX so we need to set CCFLAGS and install the module
@@ -36,6 +36,8 @@
     name: "Inline"
     notest: true
   environment: "{{ perlbrew_environment_variables_copy }}"
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - perl-dependencies
 
@@ -44,6 +46,8 @@
   args:
     creates: "{{ perlbrew_home }}/libs/perl-system@mediacloud/man/man3/Inline::Python.3*" # might be ".3" or ".3pm"
   environment: "{{ perlbrew_environment_variables_copy }}"
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - perl-dependencies
 
@@ -55,5 +59,7 @@
     mirror_only: true
   with_items: "{{ perl_dependencies }}"
   environment: "{{ perlbrew_environment_variables_copy }}"
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - perl-dependencies

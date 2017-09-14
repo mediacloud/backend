@@ -10,6 +10,7 @@
     state: present
     install_recommends: false
   become: true
+  become_user: root
   tags:
     - locale
 
@@ -21,6 +22,7 @@
     - "{{ mediacloud_locale_lang }}"
     - "{{ mediacloud_locale_lang }}.{{ mediacloud_locale_lang_variant }}"
   become: true
+  become_user: root
   tags:
     - locale
 
@@ -29,7 +31,8 @@
     update-locale
     LANG={{ mediacloud_locale_lang }}.{{ mediacloud_locale_lang_variant }}
     LANGUAGE={{ mediacloud_locale_lang }}
-  become: true
   changed_when: false
+  become: true
+  become_user: root
   tags:
     - locale

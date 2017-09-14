@@ -6,6 +6,8 @@
     dest: "{{ mediacloud_root }}"
     version: "{{ git_clone_branch }}"
   register: git_checkout_return_value
+  become: true
+  become_user: "{{ mediacloud_user }}"
   tags:
     - git-repository
 

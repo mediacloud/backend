@@ -5,6 +5,7 @@
     url: "https://www.postgresql.org/media/keys/ACCC4CF8.asc"
     state: present
   become: true
+  become_user: root
   tags:
     - postgresql-server
 
@@ -15,6 +16,7 @@
     filename: pgdg
     update_cache: yes
   become: true
+  become_user: root
   tags:
     - postgresql-server
 
@@ -50,6 +52,7 @@
     - "postgresql-plperl-9.5"
     - "postgresql-server-dev-9.5"
   become: true
+  become_user: root
   tags:
     - postgresql-server
 
@@ -65,6 +68,7 @@
     - "postgresql-plperl-{{ postgresql_version }}"
     - "postgresql-server-dev-{{ postgresql_version }}"
   become: true
+  become_user: root
   tags:
     - postgresql-server
 
@@ -74,12 +78,14 @@
     enabled: true
     state: started
   become: true
+  become_user: root
   tags:
     - postgresql-server
 
 - name: Install psycopg2 for managing PostgreSQL users
   pip:
     name: psycopg2
-  become: yes
+  become: true
+  become_user: root
   tags:
     - postgresql-server
