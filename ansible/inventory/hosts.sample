@@ -1,6 +1,11 @@
 [all]
 
 ;
+; Localhost
+;
+localhost ansible_connection=local
+
+;
 ; Sample host to deploy to
 ;
 mcsample ansible_host=mcsample.media.mit.edu ansible_user=myuser ansible_ssh_private_key_file=~/.ssh/mcsample mediacloud_user=mediacloud mediacloud_home=/home/mediacloud mediacloud_root=/home/mediacloud/mediacloud

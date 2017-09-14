@@ -105,25 +105,12 @@
   tags:
     - postgresql-server
 
-- name: Copy main Media Cloud PostgreSQL configuration file
-  copy:
-    src: "../files/postgresql_conf/01-mediacloud.conf"
+- name: Copy PostgreSQL configuration file for Media Cloud
+  template:
+    src: templates/01-mediacloud.conf.j2
     dest: "{{ postgresql_custom_conf_path }}/01-mediacloud.conf"
     owner: "{{ postgresql_conf_user }}"
     group: "{{ postgresql_conf_group }}"
-  become: "{{ postgresql_conf_become }}"
-  notify:
-    - "restart postgresql"
-  tags:
-    - postgresql-server
-
-- name: Copy production Media Cloud PostgreSQL configuration file
-  copy:
-    src: "../files/postgresql_conf/02-mediacloud-production.conf"
-    dest: "{{ postgresql_custom_conf_path }}/02-mediacloud-production.conf"
-    owner: "{{ postgresql_psql_login_user }}"
-    group: "{{ postgresql_psql_login_user }}"
-  when: "mediacloud_production is defined and mediacloud_production"
   become: "{{ postgresql_conf_become }}"
   notify:
     - "restart postgresql"
