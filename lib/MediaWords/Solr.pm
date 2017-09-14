@@ -210,6 +210,65 @@ sub _get_encoded_post_data($)
     return join( '&', @{ $post_items } );
 }
 
+# transform any tags_id_media: or collections_id: clauses into media_id: clauses with the media_ids
+# that corresponds to the given tags
+sub _insert_collection_media_ids($$)
+{
+    my ( $db, $q ) = @_;
+
+    # given the argument of a tags_id_media: or collections_id: clause, return the corresponding media_ids.
+    sub _get_media_ids_clause($$)
+    {
+        my ( $db, $arg ) = @_;
+
+        my $tags_ids = [];
+        if ( $arg =~ /^\d+/ )
+        {
+            push( @{ $tags_ids }, $arg );
+        }
+        elsif ( $arg =~ /^\((.*)\)$/ )
+        {
+            my $list = $1;
+
+            $list =~ s/or/ /ig;
+            $list =~ s/^\s+//;
+            $list =~ s/\s+$//;
+
+            if ( $list =~ /[^\d\s]/ )
+            {
+                die( "only OR clauses allowed inside tags_id_media: or collections_id: clauses: '$arg'" );
+            }
+
+            push( @{ $tags_ids }, split( /\s+/, $list ) );
+        }
+        elsif ( $arg =~ /^\[/ )
+        {
+            die( 'range queries not allowed for tags_id_media or collections_id: clauses' );
+        }
+        else
+        {
+            die( "unrecognized format of tags_id_media: or collections_id: clause: '$arg'" );
+        }
+
+        my $tags_ids_list = join( ',', @{ $tags_ids } );
+
+        my $media_ids = $db->query( <<SQL )->flat;
+select media_id from media_tags_map where tags_id in ($tags_ids_list) order by media_id
+SQL
+
+        # replace empty list with an id that will always return nothing from solr
+        $media_ids = [ -1 ] unless ( scalar( @{ $media_ids } ) > 0 );
+
+        my $media_clause = consolidate_id_query( 'media_id', $media_ids );
+
+        return $media_clause;
+    }
+
+    $q =~ s/(tags_id_media|collections_id)\:(\d+|\([^\)]*\)|\[[^\]]*\])/_get_media_ids_clause( $db, $2 )/eg;
+
+    return $q;
+}
+
 =head2 query_encoded_json( $db, $params, $c )
 
 Execute a query on the solr server using the given params.  Return a maximum of 1 million sentences.
@@ -264,6 +323,7 @@ sub query_encoded_json($$;$)
     # _uppercase_boolean_operators( $params->{ fq } );
 
     $params->{ q } = MediaWords::Solr::PseudoQueries::transform_query( $params->{ q } );
+    $params->{ q } = _insert_collection_media_ids( $db, $params->{ q } );
 
     # $params->{ fq } = MediaWords::Solr::PseudoQueries::transform_query( $params->{ fq } );
 
@@ -809,8 +869,8 @@ sub consolidate_id_query
 
     $ids = [ sort { $a <=> $b } @{ $ids } ];
 
-    my $singletons = [ -2 ];
-    my $ranges = [ [ -2 ] ];
+    my $singletons = [ -10 ];
+    my $ranges = [ [ -10 ] ];
     for my $id ( @{ $ids } )
     {
         if ( $id == ( $ranges->[ -1 ]->[ -1 ] + 1 ) )
@@ -846,7 +906,7 @@ sub consolidate_id_query
     my $queries = [];
 
     push( @{ $queries }, map { "$field:[$_->[ 0 ] TO $_->[ -1 ]]" } @{ $long_ranges } );
-    push( @{ $queries }, "$field:(" . join( ' ', @{ $singletons } ) . ')' ) if ( @{ $singletons } );
+    push( @{ $queries }, "$field:(" . join( ' ', @{ $singletons } ) . ')' ) if ( scalar( @{ $singletons } ) > 0 );
 
     my $query = join( ' ', @{ $queries } );
 
