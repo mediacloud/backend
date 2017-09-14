@@ -1,0 +1,2 @@
+[all]
+mccore1 ansible_host=mctest.media.mit.edu ansible_user=myuser
