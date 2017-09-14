@@ -8,6 +8,7 @@
     msg: "Please upgrade your Ansible to a newer version."
   tags:
     - pre-tasks
+    - always
 
 - name: Install Python 2.7 for Ansible on Ubuntu
   raw: if [ `uname` != 'Darwin' ]; then sudo apt-get -y install python-simplejson; fi
@@ -15,11 +16,13 @@
   changed_when: "'python-simplejson is already the newest version' not in install_python_2_7_result.stdout and install_python_2_7_result.stdout != ''"
   tags:
     - pre-tasks
+    - always
 
 - name: Reload ansible_facts
   setup:
   tags:
     - pre-tasks
+    - always
 
 - name: Display all variables / facts known for a host
   debug:
@@ -27,6 +30,7 @@
     verbosity: 3
   tags:
     - pre-tasks
+    - always
 
 - name: Install Aptitude  # https://github.com/ansible/ansible/issues/16884
   command: apt-get -y install python-minimal aptitude
@@ -38,3 +42,4 @@
   when: ansible_distribution == 'Ubuntu'
   tags:
     - pre-tasks
+    - always
