@@ -196,11 +196,89 @@ SQL
 
 }
 
+sub test_collections_id_result($$$)
+{
+    my ( $db, $tags, $label ) = @_;
+
+    my $tags_ids = [ map { $_->{ tags_id } } @{ $tags } ];
+
+    my ( $q_arg, $q_or_arg );
+    if ( scalar( @{ $tags_ids } ) > 1 )
+    {
+        $q_arg    = "(" . join( ' ',    @{ $tags_ids } ) . ")";
+        $q_or_arg = "(" . join( ' or ', @{ $tags_ids } ) . ")";
+    }
+    else
+    {
+        $q_arg = $tags_ids->[ 0 ];
+    }
+
+    my $expected_media_ids = [];
+    for my $tag ( @{ $tags } )
+    {
+        for my $medium ( @{ $tag->{ media } } )
+        {
+            push( @{ $expected_media_ids }, $medium->{ media_id } );
+        }
+    }
+
+    my $expected_q = MediaWords::Solr::consolidate_id_query( 'media_id', $expected_media_ids );
+
+    my $got_q = MediaWords::Solr::_insert_collection_media_ids( $db, "tags_id_media:$q_arg" );
+    is( $got_q, $expected_q, "$label (tags_id_media)" );
+
+    $got_q = MediaWords::Solr::_insert_collection_media_ids( $db, "collections_id:$q_arg" );
+    is( $got_q, $expected_q, "$label (collections_id)" );
+
+    if ( $q_or_arg )
+    {
+        $got_q = MediaWords::Solr::_insert_collection_media_ids( $db, "collections_id:$q_or_arg" );
+        is( $got_q, $expected_q, "$label (collections_id with ors)" );
+    }
+
+}
+
+sub test_collections_id_queries($)
+{
+    my ( $db ) = @_;
+
+    my $num_tags          = 10;
+    my $num_media_per_tag = 10;
+
+    my $tag_set = $db->create( 'tag_sets', { name => 'test' } );
+
+    my $tags;
+
+    for my $tag_i ( 1 .. $num_tags )
+    {
+        my $tag = $db->create( 'tags', { tag_sets_id => $tag_set->{ tag_sets_id }, tag => "test_$tag_i" } );
+
+        $tag->{ media } = [];
+        for my $medium_i ( 1 .. $num_media_per_tag )
+        {
+            my $medium = MediaWords::Test::DB::create_test_medium( $db, "tag $tag_i medium $medium_i" );
+            $db->query( <<SQL, $tag->{ tags_id }, $medium->{ media_id } );
+insert into media_tags_map ( tags_id, media_id ) values ( ?, ? )
+SQL
+            push( @{ $tag->{ media } }, $medium );
+        }
+
+        push( @{ $tags }, $tag );
+    }
+
+    test_collections_id_result( $db, [ $tags->[ 0 ] ], "single tags_id" );
+    test_collections_id_result( $db, $tags, "all tags" );
+    test_collections_id_result( $db, [ $tags->[ 0 ], $tags->[ 1 ], $tags->[ 2 ] ], "three tags" );
+
+}
+
 sub main
 {
     test_solr_stories_only_query();
 
     MediaWords::Test::Supervisor::test_with_supervisor( \&test_queries, [ qw/solr_standalone/ ] );
+
+    MediaWords::Test::DB::test_on_test_database( \&test_collections_id_queries );
 
     done_testing();
 }
