@@ -1,7 +1,5 @@
----
-
 #
-# Ansible configuration for Media Cloud
+# Set up Media Cloud
 # ---
 #
 # Variables:
