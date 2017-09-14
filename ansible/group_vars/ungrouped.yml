@@ -1,7 +1,7 @@
 ---
 
 # User to become when installing Media Cloud
-mediacloud_user: "{{ ansible_user }}"
+mediacloud_user: "{{ ansible_user_id }}"
 
 # HOME of the Media Cloud user
 mediacloud_home: "{{ ansible_env.HOME }}"
