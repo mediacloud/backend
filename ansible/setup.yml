@@ -28,12 +28,7 @@
 
 
 - name: Check out Media Cloud repository
-
-  # Non-"localhost" hosts will have Media Cloud repository checked out because
-  # they don't have it yet; "localhost" is assumed to already have Media Cloud
-  # checked out (because how else are we running this Ansible script?)
-  hosts: "!localhost"
-
+  hosts: "git_repository"
   any_errors_fatal: true
   roles:
     - git-repository

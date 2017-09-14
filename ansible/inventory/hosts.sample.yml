@@ -41,3 +41,14 @@ postgresql_server:
   hosts:
     "localhost":
     "mcsample":
+
+# Hosts that need Media Cloud Git repository to be checked out
+git_repository:
+
+  # Non-"localhost" hosts need to have Media Cloud repository checked out
+  # because they don't have it yet.
+  #
+  # "localhost" is assumed to already have Media Cloud checked out (because how
+  # else are we running this Ansible script?)
+  hosts:
+    "mcsample"
