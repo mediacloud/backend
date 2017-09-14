@@ -1,5 +1,13 @@
 ---
 
+- name: Send notification about started deployment on Slack
+  slack:
+    token: "{{ slack_webhook_token }}"
+    msg: "Started deploying to {{ ansible_host }}"
+  when: slack_webhook_token is defined and slack_webhook_token
+  tags:
+    - deploy
+
 - name: Stop Apache
   tags:
     - deploy
@@ -231,3 +239,11 @@
           - "'Works!' in status_page.content"
       tags:
         - deploy
+
+- name: Send notification about finished deployment on Slack
+  slack:
+    token: "{{ slack_webhook_token }}"
+    msg: "Finished deploying to {{ ansible_host }}"
+  when: slack_webhook_token is defined and slack_webhook_token
+  tags:
+    - deploy
