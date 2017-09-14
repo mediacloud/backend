@@ -1,3 +1,4 @@
+# All hosts
 all:
 
   hosts:
@@ -33,3 +34,10 @@ all:
 
       # For more optional variables that you can set, please see "group_vars/" and
       # "host_vars/".
+
+# Hosts that should be running PostgreSQL server
+postgresql_server:
+
+  hosts:
+    "localhost":
+    "mcsample":

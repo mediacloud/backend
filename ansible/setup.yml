@@ -16,9 +16,15 @@
     - locale
     - timezone
     - system-packages
-    - postgresql-server
     - kernel-parameters
     - pam-limits
+
+
+- name: Set up PostgreSQL server
+  hosts: postgresql_server
+  any_errors_fatal: true
+  roles:
+    - postgresql-server
 
 
 - name: Check out Media Cloud repository
