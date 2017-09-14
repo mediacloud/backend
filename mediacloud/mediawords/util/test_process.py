@@ -50,6 +50,18 @@ def test_run_command_in_foreground():
         contents = f.read()
         assert test_env_variable not in contents
 
+    # cwd
+    test_file_with_cwd = os.path.join(temp_dir, 'cwd.txt')
+    test_file_without_cwd = os.path.join(temp_dir, 'no-cwd.txt')
+    run_command_in_foreground(['/bin/bash', '-c', 'pwd > %s' % test_file_with_cwd], cwd=temp_dir)
+    run_command_in_foreground(['/bin/bash', '-c', 'pwd > %s' % test_file_without_cwd])
+    with open(test_file_with_cwd, 'r') as f:
+        contents = f.read()
+        assert temp_dir in contents
+    with open(test_file_without_cwd, 'r') as f:
+        contents = f.read()
+        assert temp_dir not in contents
+
     # Faulty command
     assert_raises(McRunCommandInForegroundException, run_command_in_foreground, ['this_command_totally_doesnt_exist'])
 

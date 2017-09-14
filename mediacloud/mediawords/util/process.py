@@ -29,7 +29,7 @@ class McRunCommandInForegroundException(subprocess.SubprocessError):
     pass
 
 
-def run_command_in_foreground(command: List[str], env: Union[Dict[str, str], None] = None) -> None:
+def run_command_in_foreground(command: List[str], env: Union[Dict[str, str], None] = None, cwd: str = None) -> None:
     """Run command in foreground, raise McRunCommandInForegroundException if it fails."""
     l.debug("Running command: %s" % ' '.join(command))
 
@@ -54,7 +54,8 @@ def run_command_in_foreground(command: List[str], env: Union[Dict[str, str], Non
                                        stdout=subprocess.PIPE,
                                        stderr=subprocess.STDOUT,
                                        bufsize=line_buffered,
-                                       env=process_env)
+                                       env=process_env,
+                                       cwd=cwd)
             while True:
                 output = process.stdout.readline()
                 if len(output) == 0 and process.poll() is not None:
@@ -65,7 +66,7 @@ def run_command_in_foreground(command: List[str], env: Union[Dict[str, str], Non
                 raise McRunCommandInForegroundException("Process returned non-zero exit code %d" % rc)
         else:
             # assume Ubuntu
-            subprocess.check_call(command, env=process_env)
+            subprocess.check_call(command, env=process_env, cwd=cwd)
     except subprocess.CalledProcessError as ex:
         raise McRunCommandInForegroundException("Process returned non-zero exit code %d" % ex.returncode)
     except Exception as ex:
