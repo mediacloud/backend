@@ -16,14 +16,14 @@ The `ansible/inventory/` directory has a sample inventory file `hosts.sample` wi
 
 ## Set up
 
-To set up localhost with Media Cloud, run:
+To **set up localhost**, run:
 
 ```shell
 cd ansible/	# to read ansible.cfg
 ansible-playbook --limit localhost setup.yml
 ```
 
-To set up a remote host with Media Cloud, run:
+To **set up a remote host**, run:
 
 ```shell
 cd ansible/	# to read ansible.cfg
@@ -33,9 +33,28 @@ ansible-playbook --limit your-host setup.yml
 
 ## Deploy
 
-To deploy Media Cloud code updates on a remote host (together with Apache / Supervisor restarts, code pull, etc.), run:
+To **deploy code updates on a remote host** (together with Apache / Supervisor restarts, code pull, etc.), run:
 
 ```shell
 cd ansible/	# to read ansible.cfg
 ansible-playbook --limit your-host deploy.yml
+```
+
+
+## Tips
+
+All tasks in every Ansible role are tagged with the role's name, e.g. every task in `pam-limits` role is tagged with `pam-limits` tag.
+
+So, to **run only a single role**, you can use `--tags` parameter:
+
+```shell
+cd ansible/	# to read ansible.cfg
+ansible-playbook --limit your-host --tags pam-limits,kernel-parameters setup.yml
+```
+
+To **skip some roles from running**, you can use `--skip-tags` parameter:
+
+```shell
+cd ansible/	# to read ansible.cfg
+ansible-playbook --limit your-host --skip-tags pam-limits,kernel-parameters setup.yml
 ```
