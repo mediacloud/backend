@@ -4,6 +4,9 @@
 # 2. Write a short description for how this module is being used
 python_dependencies:
 
+    # Deployments
+    - { name: "ansible", version: "2.3.2.0" }
+
     # Unit test coverage
     - { name: "coverage", version: "4.4.1" }
 
