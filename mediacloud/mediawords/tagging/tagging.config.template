@@ -1,0 +1,7 @@
+[geotags]
+cliff_host = http://www.localhost
+cliff_port = 8080
+
+[nyttags]
+labeller_host = http://127.0.0.1
+labeller_port = 80
