@@ -1,2 +1,8 @@
 [all]
-mccore1 ansible_host=mctest.media.mit.edu ansible_user=myuser
+
+;
+; Sample host to deploy to
+;
+mcsample ansible_host=mcsample.media.mit.edu ansible_user=myuser
+
+
