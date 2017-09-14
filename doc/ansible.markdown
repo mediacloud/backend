@@ -9,9 +9,9 @@ Media Cloud uses [Ansible](https://www.ansible.com/) for:
 
 ## Configuration
 
-To use Ansible, you might want to set up an inventory file located at `ansible/inventory/hosts` with the hosts you would like to run Media Cloud on.
+To use Ansible, you might want to set up an inventory file located at `ansible/inventory/hosts.yml` with the hosts you would like to run Media Cloud on.
 
-The `ansible/inventory/` directory has a sample inventory file `hosts.sample` with some notes on optional variables that one can set.
+The `ansible/inventory/` directory has a sample inventory file `hosts.sample.yml` with some notes on optional variables that one can set. Additionally please see [`hosts.yml` syntax example](https://github.com/ansible/ansible/blob/devel/examples/hosts.yaml).
 
 
 ## Set up
