@@ -44,7 +44,7 @@ RUN \
     ansible-playbook \
     --inventory="localhost," \
     --connection=local \
-    -vvv mediacloud-travis.yml && \
+    -vvv travis.yml && \
     \
     sudo rm -rf /home/mediacloud/.cache/ && \
     sudo rm -rf /home/mediacloud/.cpanm/ && \
