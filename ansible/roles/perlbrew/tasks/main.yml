@@ -77,7 +77,7 @@
     - perlbrew
 
 - name: Get system binary Perl path
-  command: "command -v perl"  # `whereis` usually gives looney results
+  shell: "command -v perl"  # `whereis` usually gives looney results
   changed_when: false
   register: system_perl_binary_path
   tags:
