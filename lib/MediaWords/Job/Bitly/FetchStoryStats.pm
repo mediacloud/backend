@@ -39,12 +39,17 @@ Readonly my $BITLY_RATE_LIMIT_SECONDS_TO_WAIT => 60 * 10;    # every 10 minutes
 # How many times to try on rate limiting errors
 Readonly my $BITLY_RATE_LIMIT_TRIES => 7;                    # try fetching 7 times in total (70 minutes)
 
+# Having a global database object should be safe because
+# job workers don't fork()
+my $db = undef;
+
 # Run job
 sub run($;$)
 {
     my ( $self, $args ) = @_;
 
-    my $db = MediaWords::DB::connect_to_db();
+    # Postpone connecting to the database so that compile test doesn't do that
+    $db ||= MediaWords::DB::connect_to_db();
 
     my $stories_id      = $args->{ stories_id } or die "'stories_id' is not set.";
     my $start_timestamp = $args->{ start_timestamp };

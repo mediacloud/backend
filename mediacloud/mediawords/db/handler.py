@@ -239,8 +239,9 @@ class DatabaseHandler(object):
             raise McSchemaIsUpToDateException("Current schema version is 0")
 
         # Target schema version
-        sql = open(mc_sql_schema_path(), 'r').read()
-        target_schema_version = schema_version_from_lines(sql)
+        sql = open(mc_sql_schema_path(), 'r')
+        target_schema_version = schema_version_from_lines(sql.read())
+        sql.close()
         if not target_schema_version:
             raise McSchemaIsUpToDateException("Invalid target schema version.")
 
