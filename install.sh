@@ -16,7 +16,7 @@ fi
 echo "Installing Ansible..."
 sudo apt-get -y install python-pip python-setuptools
 sudo pip install --upgrade pip
-sudo pip install ansible ansible-lint
+sudo pip install ansible
 
 echo "Setting up host using Ansible..."
 ANSIBLE_CONFIG=ansible/ansible.cfg \

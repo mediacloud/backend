@@ -65,10 +65,16 @@ env:
         - MC_SKIP_RABBIT_OPEN_FILES_LIMIT_CHECK=1
 
 before_install:
+    # Install ansible-lint
+    - sudo pip install --upgrade ansible-lint
     # Install Coveralls utilities to be able to report test coverage
     - cpanm --notest Devel::Cover Devel::Cover::Report::Coveralls
 
 install:
+    # Lint Ansible playbooks
+    - ansible-lint ansible/setup.yml
+    - ansible-lint ansible/deploy.yml
+    - ansible-lint ansible/travis.yml
     # Pull Docker image with pre-installed Media Cloud dependencies
     - docker pull $MC_TRAVIS_DOCKER_IMAGE
     # Create test container

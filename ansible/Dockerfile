@@ -27,7 +27,7 @@ RUN \
     apt-get -y clean && \
     \
     pip install --upgrade pip && \
-    pip install --upgrade ansible ansible-lint && \
+    pip install --upgrade ansible && \
     rm -rf /root/.cache/ && \
     \
     useradd -ms /bin/bash mediacloud && \
