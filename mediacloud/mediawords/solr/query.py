@@ -176,7 +176,7 @@ class ParseNode(AbstractParseNode):
 
         return filtered_tree.get_tsquery()
 
-    def re(self) -> str:
+    def re(self, is_logogram=False) -> str:
         """Return a posix regex that represents the parse tree."""
 
         filtered_tree = self.filter_tree(filter_function=self.__node_is_field_or_noop_or_not)
@@ -184,7 +184,13 @@ class ParseNode(AbstractParseNode):
         if filtered_tree is None:
             raise McSolrQueryParseSyntaxException("query is empty without fields or ranges")
 
-        return filtered_tree.get_re()
+        re = filtered_tree.get_re()
+
+        # for logogram languages, remove the beginning word boundary because it breaks the re
+        if (is_logogram):
+            re = re.replace( '[[:<:]]', '' )
+
+        return re
 
 
 class TermNode(ParseNode):

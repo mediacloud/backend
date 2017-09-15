@@ -23,7 +23,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4630;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4631;
 
 BEGIN
 
@@ -1287,6 +1287,7 @@ create table topics (
     state                   text not null default 'created but not queued',
     message                 text null,
     is_public               boolean not null default false,
+    is_logogram             boolean not null default false,
     start_date              date not null,
     end_date                date not null,
 

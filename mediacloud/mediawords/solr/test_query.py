@@ -246,10 +246,10 @@ def test_re():
 
         return s
 
-    def __validate_re(solr_query, expected_re):
+    def __validate_re(solr_query, expected_re, is_logogram=False):
         """Validate that the re generated from the given solr query matches the expected re."""
 
-        got_re = parse(solr_query=solr_query).re()
+        got_re = parse(solr_query=solr_query).re(is_logogram)
 
         assert __normalize_re(got_re) == __normalize_re(expected_re)
 
@@ -578,4 +578,12 @@ def test_re():
         ':<:]]womens[[:space:]]+equality | [[:<:]]womens[[:space:]]+inequality | [[:<:]]sexual[[:space:]]+assault | ['
         '[:<:]]sexual[[:space:]]+harassment | [[:<:]]sex[[:space:]]+discrimination | [[:<:]]gender[[:space:]]+equity '
         ') ) )'
+    )
+
+    __validate_re(
+        'foo and ( bar baz )',
+
+        '(?: (?: foo .* (?: bar | baz ) ) | (?: (?: bar | baz ) .* foo ) )',
+
+        True
     )
