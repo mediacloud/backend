@@ -4,8 +4,8 @@ all:
   hosts:
 
     # Localhost
-    "localhost":
-      ansible_connection: local
+    #"localhost":
+    #  ansible_connection: local
 
     # Sample host to deploy to
     "mcsample":

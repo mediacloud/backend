@@ -50,7 +50,7 @@
   tags:
     - timezone
 
-- name: Reconfigure locales
+- name: Reconfigure timezones
   command: dpkg-reconfigure -f noninteractive tzdata
   notify:
     - restart cron

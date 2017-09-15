@@ -21,6 +21,12 @@
       tags:
         - deploy
 
+    - name: "Wait for Apache to stop"
+      pause:
+        seconds: 5
+      tags:
+        - deploy
+
     - name: "Test if Apache service is stopped"
       command: "pgrep {% if ansible_distribution == 'Ubuntu' %}apache2{% else %}httpd{% endif %}"
       register: apache_status
@@ -54,6 +60,12 @@
       command: "{{ mediacloud_root }}/supervisor/supervisorctl.sh shutdown"
       become: true
       become_user: "{{ mediacloud_user }}"
+      tags:
+        - deploy
+
+    - name: "Wait for Supervisor to stop"
+      pause:
+        seconds: 5
       tags:
         - deploy
 
@@ -112,7 +124,7 @@
   git:
     repo: "{{ git_repo_url }}"
     dest: "{{ mediacloud_root }}"
-    version: "ansible_provisioning"
+    version: "{{ git_clone_branch }}"
     clone: false
   become: true
   become_user: "{{ mediacloud_user }}"
@@ -149,6 +161,12 @@
       command: "{{ mediacloud_root }}/supervisor/supervisord.sh"
       become: true
       become_user: "{{ mediacloud_user }}"
+      tags:
+        - deploy
+
+    - name: "Wait for Supervisor to start"
+      pause:
+        seconds: 5
       tags:
         - deploy
 
@@ -217,6 +235,12 @@
       tags:
         - deploy
 
+    - name: "Wait for Apache to start"
+      pause:
+        seconds: 5
+      tags:
+        - deploy
+
     - name: "Test if Apache service is started"
       command: "pgrep {% if ansible_distribution == 'Ubuntu' %}apache2{% else %}httpd{% endif %}"
       register: apache_status
@@ -227,7 +251,7 @@
 
     - name: "Test if status page works"
       uri:
-        url: "{% if apache2_ssl_enabled %}https{% else %}http{% endif %}://localhost/status"
+        url: "{{ apache2_catalyst_status_page }}"
         return_content: yes
       register: status_page
       tags:
