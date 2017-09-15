@@ -1,0 +1,20 @@
+- name: "Start Apache service"
+  command: "apachectl start"
+  become: "{{ ansible_distribution == 'Ubuntu' }}"
+  become_user: root
+  listen:
+    - "Start Apache (Ubuntu)"
+    - "Start Apache (MacOSX)"
+  tags:
+    - apache2-fcgi
+
+- name: "Test if Apache service is started"
+  command: "pgrep {% if ansible_distribution == 'Ubuntu' %}apache2{% else %}httpd{% endif %}"
+  register: apache_status
+  failed_when: "apache_status.stdout_lines | count == 0"
+  changed_when: false
+  listen:
+    - "Start Apache (Ubuntu)"
+    - "Start Apache (MacOSX)"
+  tags:
+    - apache2-fcgi

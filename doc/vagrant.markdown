@@ -131,7 +131,7 @@ To start the Media Cloud web service, run:
 
     host$ vagrant ssh
     vagrant$ cd /mediacloud
-    vagrant$ ./script/run_server_with_carton.sh
+    vagrant$ ./script/run_dev_server.sh
 
 and then open `http://127.0.0.1:3001/` on your *host* machine to access Media Cloud web interface on the guest machine.
 
@@ -152,7 +152,7 @@ To start the Media Cloud web service:
 2. Start the Media Cloud web service:
 
         vagrant$ cd /mediacloud
-        vagrant$ ./script/run_server_with_carton.sh
+        vagrant$ ./script/run_dev_server.sh
 
 3. Access the Media Cloud web service using its Public DNS.
     * For example, if the Public DNS of the EC2 instance is `ec2-54-224-57-211.compute-1.amazonaws.com`, access the web service by opening `http://ec2-54-224-57-211.compute-1.amazonaws.com:3000/`.

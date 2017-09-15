@@ -7,13 +7,6 @@ use warnings;
 # does simple parsing of solr queries to find out if there is only a list of
 # stories_ids, in which case it just returns the story ids directly
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-    use lib $FindBin::Bin;
-}
-
 use MediaWords::CommonLibs;
 
 use English '-no_match_vars';

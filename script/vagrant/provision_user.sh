@@ -6,7 +6,7 @@
 #
 
 # Path to where Media Cloud's repository is mounted on Vagrant
-MEDIACLOUD_ROOT=/mediacloud
+MEDIACLOUD_ROOT=/home/ubuntu/mediacloud
 
 
 # Exit on error

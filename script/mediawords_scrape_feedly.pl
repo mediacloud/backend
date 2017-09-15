@@ -7,12 +7,6 @@ package script::mediawords_scrape_feedly;
 use strict;
 use warnings;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-}
-
 use Getopt::Long;
 
 use MediaWords::CommonLibs;

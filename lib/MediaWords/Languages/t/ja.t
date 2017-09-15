@@ -8,12 +8,6 @@ use strict;
 use warnings;
 use utf8;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-}
-
 use Test::More tests => 3;
 use Test::Deep;
 use Test::NoWarnings;

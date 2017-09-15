@@ -16,26 +16,6 @@ function hostname_help {
     echo "and then try again."
 }
 
-# Returns true (0) if the test suite is being run under Devel::Cover
-function running_under_devel_cover {
-
-    # HARNESS_PERL_SWITCHES=-MDevel::Cover make test
-    if [ "${HARNESS_PERL_SWITCHES+defined}" = defined ]; then
-        if [[ "${HARNESS_PERL_SWITCHES}" == *-MDevel::Cover* ]]; then
-            return 0    # true
-        fi
-    fi
-
-    # PERL5OPT=-MDevel::Cover make test
-    if [ "${PERL5OPT+defined}" = defined ]; then
-        if [[ "${PERL5OPT}" == *-MDevel::Cover* ]]; then
-            return 0    # true
-        fi
-    fi
-
-    return 1    # false
-}
-
 system_hostname=`hostname`
 shell_hostname="$HOSTNAME"      # internal bash variable
 if [[ -z "$system_hostname" || "$system_hostname" == "(none)"
@@ -55,15 +35,11 @@ fi
 cd `dirname $0`/../
 
 echo "Running Python unit tests..."
-set +u
-source mc-venv/bin/activate
-set -u
-nosetests --detailed-errors --where=mediacloud/
+./script/run_in_env.sh nosetests --detailed-errors --where=mediacloud/
 
 echo "Running Perl unit tests..."
 TEST_FILES=`find lib script t -name '*.t'`
-source ./script/set_perl_brew_environment.sh
-PERL5OPT=-MCarp::Always ./script/run_carton.sh exec prove -Ilib/ $* $TEST_FILES || {
+PERL5OPT=-MCarp::Always ./script/run_in_env.sh prove $* $TEST_FILES || {
     echo "One or more unit tests have failed with error code $?."
     exit 1
 }

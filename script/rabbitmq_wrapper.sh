@@ -5,7 +5,7 @@ set -e
 
 PWD="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-QUERY_CONFIG="$PWD/../script/run_with_carton.sh $PWD/../script/mediawords_query_config.pl"
+QUERY_CONFIG="$PWD/../script/run_in_env.sh $PWD/../script/mediawords_query_config.pl"
 
 # rabbitmq-server is likely to be in /usr/sbin, which will not be in a non-root path
 PATH="$PATH:/usr/sbin"
@@ -114,7 +114,6 @@ else
 
     if ! max_fd_limit_is_big_enough; then
         log "Open file limit is less than $MIN_OPEN_FILES_LIMIT."
-        log "Please rerun ./install/set_kernel_parameters.sh"
         exit 1
     fi
 fi

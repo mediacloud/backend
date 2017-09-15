@@ -20,13 +20,9 @@ use MediaWords::Test::DB;
 
 Readonly my $TEST_HTTP_SERVER_PORT => 9998;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
 
-    use_ok( 'MediaWords::Util::URL' );
-}
+use_ok( 'MediaWords::Util::URL' );
+
 
 sub test_url_and_data_after_redirects_http()
 {

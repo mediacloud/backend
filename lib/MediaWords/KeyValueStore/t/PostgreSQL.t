@@ -2,18 +2,11 @@ use strict;
 use warnings;
 use utf8;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../../lib";
-    use lib "$FindBin::Bin/../";
-    use lib "$FindBin::Bin/";
-}
-
+use FindBin;
 use MediaWords::KeyValueStore::PostgreSQL;
 use MediaWords::Test::DB;
 
-require 'helpers/postgresql_tests.inc.pl';
+require "$FindBin::Bin/helpers/postgresql_tests.inc.pl";
 
 MediaWords::Test::DB::test_on_test_database(
     sub {

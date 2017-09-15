@@ -5,12 +5,6 @@ use warnings;
 
 # test MediaWords::DBI::Stories::get_story_word_matrix
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-}
-
 use Data::Dumper;
 use Test::More;
 

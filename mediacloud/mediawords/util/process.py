@@ -6,7 +6,7 @@ import signal
 import sys
 import subprocess
 import time
-from typing import List, Callable, Any
+from typing import List, Callable, Any, Dict, Union
 
 from mediawords.util.log import create_logger
 from mediawords.util.paths import lock_file, McLockFileException, unlock_file, McUnlockFileException
@@ -29,15 +29,21 @@ class McRunCommandInForegroundException(subprocess.SubprocessError):
     pass
 
 
-def run_command_in_foreground(command: List[str]) -> None:
+def run_command_in_foreground(command: List[str], env: Union[Dict[str, str], None] = None, cwd: str = None) -> None:
     """Run command in foreground, raise McRunCommandInForegroundException if it fails."""
     l.debug("Running command: %s" % ' '.join(command))
+
+    if len(command) == 0:
+        raise McRunCommandInForegroundException('Command is empty.')
 
     command = decode_object_from_bytes_if_needed(command)
 
     # Add some more PATHs to look into
-    env_path = os.environ.copy()
-    env_path['PATH'] = '/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:' + env_path['PATH']
+    process_env = os.environ.copy()
+    process_env['PATH'] = '/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:' + process_env['PATH']
+
+    if env is not None:
+        process_env.update(env)
 
     # noinspection PyBroadException
     try:
@@ -48,7 +54,8 @@ def run_command_in_foreground(command: List[str]) -> None:
                                        stdout=subprocess.PIPE,
                                        stderr=subprocess.STDOUT,
                                        bufsize=line_buffered,
-                                       env=env_path)
+                                       env=process_env,
+                                       cwd=cwd)
             while True:
                 output = process.stdout.readline()
                 if len(output) == 0 and process.poll() is not None:
@@ -59,7 +66,7 @@ def run_command_in_foreground(command: List[str]) -> None:
                 raise McRunCommandInForegroundException("Process returned non-zero exit code %d" % rc)
         else:
             # assume Ubuntu
-            subprocess.check_call(command, env=env_path)
+            subprocess.check_call(command, env=process_env, cwd=cwd)
     except subprocess.CalledProcessError as ex:
         raise McRunCommandInForegroundException("Process returned non-zero exit code %d" % ex.returncode)
     except Exception as ex:

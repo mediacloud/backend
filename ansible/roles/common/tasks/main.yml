@@ -1,0 +1,3 @@
+- include: main-{{ ansible_distribution }}.yml
+  tags:
+    - common

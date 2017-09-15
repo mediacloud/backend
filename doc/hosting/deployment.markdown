@@ -18,9 +18,9 @@ Here is the process for deploying new code to the production server on mcdb1:
 
 6. Pull the latest release: `git pull`
 
-7. Check for and manually review PostgreSQL updates: `script/run_with_carton.sh script/mediawords_upgrade_db.pl`
+7. Check for and manually review PostgreSQL updates: `script/run_in_env.sh script/mediawords_upgrade_db.pl`
 
-8. Run PostgreSQL updates (see below): `script/run_with_carton.sh script/mediawords_upgrade_db.pl --import`
+8. Run PostgreSQL updates (see below): `script/run_in_env.sh script/mediawords_upgrade_db.pl --import`
 
 9. Start supervisor daemons: `supervisor/supervisord.sh`
 

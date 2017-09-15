@@ -8,13 +8,8 @@ use Test::More tests => 31;
 
 use Readonly;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
+use_ok( 'MediaWords::Util::IdentifyLanguage' );
 
-    use_ok( 'MediaWords::Util::IdentifyLanguage' );
-}
 
 Readonly my $english_text => 'The quick brown fox jumps over the lazy dog.';
 Readonly my $russian_text =>

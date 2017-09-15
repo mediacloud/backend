@@ -9,13 +9,8 @@ use Test::Deep;
 use Data::Dumper;
 use Encode;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
+use_ok( 'MediaWords::Util::JSON' );
 
-    use_ok( 'MediaWords::Util::JSON' );
-}
 
 sub test_encode_decode_json()
 {

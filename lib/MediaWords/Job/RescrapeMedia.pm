@@ -6,7 +6,7 @@ package MediaWords::Job::RescrapeMedia;
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/mjm_worker.pl lib/MediaWords/Job/RescrapeMedia.pm
+# ./script/run_in_env.sh mjm_worker.pl lib/MediaWords/Job/RescrapeMedia.pm
 #
 # FIXME some output of the job is still logged to STDOUT and not to the log:
 #
@@ -23,14 +23,6 @@ use warnings;
 
 use Moose;
 with 'MediaWords::AbstractJob';
-
-BEGIN
-{
-    use FindBin;
-
-    # "lib/" relative to "local/bin/mjm_worker.pl":
-    use lib "$FindBin::Bin/../../lib";
-}
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
