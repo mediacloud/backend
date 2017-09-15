@@ -21,6 +21,12 @@
       tags:
         - deploy
 
+    - name: "Wait for Apache to stop"
+      pause:
+        seconds: 5
+      tags:
+        - deploy
+
     - name: "Test if Apache service is stopped"
       command: "pgrep {% if ansible_distribution == 'Ubuntu' %}apache2{% else %}httpd{% endif %}"
       register: apache_status
@@ -54,6 +60,12 @@
       command: "{{ mediacloud_root }}/supervisor/supervisorctl.sh shutdown"
       become: true
       become_user: "{{ mediacloud_user }}"
+      tags:
+        - deploy
+
+    - name: "Wait for Supervisor to stop"
+      pause:
+        seconds: 5
       tags:
         - deploy
 
@@ -152,6 +164,12 @@
       tags:
         - deploy
 
+    - name: "Wait for Supervisor to start"
+      pause:
+        seconds: 5
+      tags:
+        - deploy
+
     - name: "Test if Supervisord is started"
       command: "pgrep supervisord"
       register: supervisor_status
@@ -214,6 +232,12 @@
       command: "apachectl start"
       become: "{{ ansible_distribution == 'Ubuntu' }}"
       become_user: root
+      tags:
+        - deploy
+
+    - name: "Wait for Apache to start"
+      pause:
+        seconds: 5
       tags:
         - deploy
 
