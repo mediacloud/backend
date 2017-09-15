@@ -35,7 +35,7 @@ If this script runs successfully, skip to the [Post Install](#post-install) sect
 
 ## Post Install
   
-1. Run `./script/run_server_with_carton.sh`. This should start up the web server. If the command line returns no errors, go to <http://localhost:3000> (or replace `localhost` with whatever host the system is on) to access the server.
+1. Run `./script/run_dev_server.sh`. This should start up the web server. If the command line returns no errors, go to <http://localhost:3000> (or replace `localhost` with whatever host the system is on) to access the server.
 
 2. To access the administration interface, go to <http://localhost:3000/login> and log in with the email address and password that you've provided before.  If you've used the `./install.sh` script, the default administrator's email address is `jdoe@mediacloud.org` and the password is `mediacloud`.
   
@@ -52,13 +52,13 @@ If this script runs successfully, skip to the [Post Install](#post-install) sect
 
         # Recreate empty databases
         dropdb mediacloud && dropdb mediacloud_test
-        ./install/create_default_db_user_and_databases.sh
+        ./tools/db/create_default_db_user_and_databases.sh
 
         # Load the dump into "mediacloud"
         psql -f sample-dump.sql -d mediacloud
 
         # Run the migrations to make the database up-to-date to the latest schema
-        ./script/run_with_carton.sh ./script/mediawords_upgrade_db.pl --import
+        ./script/run_in_env.sh ./script/mediawords_upgrade_db.pl --import
 
     Afterwards, you can log in to the web interface using the sample user credentials from `install.sh`, i.e. with username `jdoe@mediacloud.org` and password `mediacloud`.
 

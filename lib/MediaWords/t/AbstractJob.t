@@ -3,13 +3,6 @@ use warnings;
 
 # test AbstractJob functionality
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-    use lib $FindBin::Bin;
-}
-
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 use MediaWords::Test::Supervisor;

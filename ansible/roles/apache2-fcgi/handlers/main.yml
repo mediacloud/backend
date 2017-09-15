@@ -1,0 +1,38 @@
+- include: apache2-stop.yml
+
+- include: apache2-start.yml
+
+- name: stop apache
+  debug:
+    msg: "stop apache"
+  notify:
+    - "Stop Apache ({{ ansible_distribution }})"
+  changed_when: true
+  listen: stop apache
+  tags:
+    - apache2-fcgi
+
+- name: stop apache right away
+  meta: flush_handlers
+  listen: stop apache
+  tags:
+    - apache2-fcgi
+
+- name: start apache
+  debug:
+    msg: "start apache"
+  notify:
+    - "Start Apache ({{ ansible_distribution }})"
+  changed_when: true
+  tags:
+    - apache2-fcgi
+
+- name: restart apache
+  debug:
+    msg: "restart apache"
+  notify:
+    - "Stop Apache ({{ ansible_distribution }})"
+    - "Start Apache ({{ ansible_distribution }})"
+  changed_when: true
+  tags:
+    - apache2-fcgi

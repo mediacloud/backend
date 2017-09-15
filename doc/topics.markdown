@@ -26,7 +26,7 @@ Then run the following import data into Solr from PostgreSQL and verify existenc
 
 The process for running a topic in production is the same, but without the Solr import (the production Solr database will already have data).
 
-    ./script/run_with_carton.sh \
+    ./script/run_in_env.sh \
         ./script/mediawords_import_solr_data.pl \
         --delete_all
 
@@ -47,7 +47,7 @@ The process for running a topic in production is the same, but without the Solr 
 8. In a shell, go to your Media Cloud directory and run the following, replacing `<topics_id>` with the
 ID of the newly created topic (visible in the URL of the topic page after completion of step 7):
 
-        ./script/run_with_carton.sh \
+        ./script/run_in_env.sh \
             ./script/mediawords_mine_topic.pl \
             --topic <topics_id> \
             --direct_job
@@ -58,14 +58,14 @@ If you want it to complete faster, edit `mediawords->tm_spider_iterations` in `m
 10. Once the the mine has finished, run the following command and follow the instructions within the script
 to deduplicate the media discovered during the spidering process:
 
-        ./script/run_with_carton.sh \
+        ./script/run_in_env.sh \
             ./script/mediawords_dedup_topic_media.pl
 
 11. After all media have been deduplicated, run the command in step 8 again to make the miner process the stories in the media now marked as duplicated.
 
 12. Run the following to create a snapshot for the topic:
 
-        ./script/run_with_carton.sh \
+        ./script/run_in_env.sh \
             ./script/mediawords_snapshot_topic.pl \
             --topic <topics_id> \
             --direct_job

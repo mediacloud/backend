@@ -1,7 +1,4 @@
 #!/usr/bin/env perl
-#
-# Carton and plackup are the recommended way of starting Media Cloud.
-#
 
 use strict;
 use warnings;
@@ -10,4 +7,4 @@ use warnings;
 use File::Basename;
 my $dirname = dirname( __FILE__ );
 
-exec( "$dirname/run_fcgi_with_plackup_and_carton.sh" );
+exec( "$dirname/run_fcgi_with_plackup.sh" );

@@ -18,7 +18,7 @@ of each job.
 
 # web pages for the various topics respond better if they have been visited recently to prime the postgres
 # buffer with the relevant results.  this script just hits the main topic tables to prime the PostgreSQL buffers.
-42 * * * * /space/mediacloud/mediacloud/script/run_with_carton.sh /space/mediacloud/mediacloud/script/mediawords_cache_topic_web.pl &> /dev/null
+42 * * * * /space/mediacloud/mediacloud/script/run_in_env.sh /space/mediacloud/mediacloud/script/mediawords_cache_topic_web.pl &> /dev/null
 
 # we have long been plagued with a slow memory leak in the extrator system, so we restart it a couple times a day
 23 4,16 * * * /space/mediacloud/control_scripts/restart_extractor_if_running.sh >& /dev/null
@@ -29,7 +29,7 @@ of each job.
 24 2 * * * psql -c "vacuum analyze stories;" &> /dev/null
 
 # this is a daily script that generates health analytics for media sources in media_health
-32 2 * * * /space/mediacloud/mediacloud/script/run_with_carton.sh /space/mediacloud/mediacloud/script/mediawords_generate_media_health.pl
+32 2 * * * /space/mediacloud/mediacloud/script/run_in_env.sh /space/mediacloud/mediacloud/script/mediawords_generate_media_health.pl
 
 # we use munin to monitor the process of our various system.
 */5 * * * * /space/mediacloud/munin/mediacloud-munin/munin-cron.sh &> /dev/null
@@ -43,10 +43,10 @@ of each job.
 
 # every ten minutes, check for stories for which to add bitly processing jobs.  we send each story to bitly for
 # processing 3 and then 30 days after publication.
-*/10 * * * * /space/mediacloud/mediacloud/script/run_with_carton.sh /space/mediacloud/mediacloud/script/mediawords_process_bitly_schedule.pl &> /space/mediacloud/mediacloud/data/logs/mediawords_process_bitly_schedule.log
+*/10 * * * * /space/mediacloud/mediacloud/script/run_in_env.sh /space/mediacloud/mediacloud/script/mediawords_process_bitly_schedule.pl &> /space/mediacloud/mediacloud/data/logs/mediawords_process_bitly_schedule.log
 
 # we rescrape every media source for new feeds every 6 months
-0 3 * * *  /space/mediacloud/mediacloud/script/run_with_carton.sh /space/mediacloud/mediacloud/script/mediawords_rescrape_due_media.pl >> /space/mediacloud/mc_data/logs/rescrape_media.log 2>&1
+0 3 * * *  /space/mediacloud/mediacloud/script/run_in_env.sh /space/mediacloud/mediacloud/script/mediawords_rescrape_due_media.pl >> /space/mediacloud/mc_data/logs/rescrape_media.log 2>&1
 # comment out temporarily to make dump work 0 14 * * * psql -c "SELECT rescraping_changes(); SELECT update_feeds_from_yesterday()" 2>&1
 
 # Warning of problems
@@ -71,6 +71,6 @@ of each job.
 34 3 * * * psql -c "select pid, usename, state, query_start, query from pg_stat_activity where state not like 'idle\%' and query_start < now() - '1 minute'::interval order by query_start asc"
 
 # the next two jobs print a summary of new user registrations and API usage for the last day and the last week
-34 4 * * * /space/mediacloud/mediacloud/script/run_with_carton.sh /space/mediacloud/mediacloud/script/mediawords_generate_user_summary.pl
-22 5 * * sun /space/mediacloud/mediacloud/script/run_with_carton.sh /space/mediacloud/mediacloud/script/mediawords_generate_user_summary.pl --new 7 --activity 7 | mail -s "Weekly user report" mediacloud-dev@eon.law.harvard.edu
+34 4 * * * /space/mediacloud/mediacloud/script/run_in_env.sh /space/mediacloud/mediacloud/script/mediawords_generate_user_summary.pl
+22 5 * * sun /space/mediacloud/mediacloud/script/run_in_env.sh /space/mediacloud/mediacloud/script/mediawords_generate_user_summary.pl --new 7 --activity 7 | mail -s "Weekly user report" mediacloud-dev@eon.law.harvard.edu
 ```

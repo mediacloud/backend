@@ -5,7 +5,6 @@ import re
 from typing import Dict
 
 from mediawords.util.log import create_logger
-from mediawords.util.paths import mc_root_path
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.text import random_string
 
@@ -20,9 +19,18 @@ class McJapaneseTokenizerException(Exception):
 class McJapaneseTokenizer(object):
     """Japanese language tokenizer that uses MeCab."""
 
-    # Path to MeCab dictionary
-    # (protected and not private because used by the unit test)
-    _MECAB_DICTIONARY_PATH = os.path.join(mc_root_path(), 'lib/MediaWords/Languages/resources/ja/mecab-ipadic-neologd/')
+    # Paths where mecab-ipadic-neologd might be located
+    __MECAB_DICTIONARY_PATHS = [
+
+        # Ubuntu / Debian
+        '/var/lib/mecab/dic/ipadic-neologd',
+
+        # CentOS / Fedora
+        '/usr/lib64/mecab/dic/ipadic-neologd/',
+
+        # OS X
+        '/usr/local/opt/mecab-ipadic-neologd/lib/mecab/dic/ipadic-neologd/',
+    ]
 
     # MeCab instance
     __mecab = None
@@ -43,17 +51,7 @@ class McJapaneseTokenizer(object):
     def __init__(self):
         """Initialize MeCab tokenizer."""
 
-        if not os.path.isdir(self._MECAB_DICTIONARY_PATH):
-            raise McJapaneseTokenizerException("""
-                MeCab dictionary directory was not found: %s
-                Maybe you forgot to initialize Git submodules?
-                """ % self._MECAB_DICTIONARY_PATH)
-
-        if not os.path.isfile(os.path.join(self._MECAB_DICTIONARY_PATH, 'sys.dic')):
-            raise McJapaneseTokenizerException("""
-                MeCab dictionary directory does not contain a dictionary: %s
-                Maybe you forgot to run ./install/install_mecab-ipadic-neologd.sh?
-                """ % self._MECAB_DICTIONARY_PATH)
+        mecab_dictionary_path = McJapaneseTokenizer._mecab_ipadic_neologd_path()
 
         try:
             self.__mecab = MeCab.Tagger(
@@ -62,11 +60,30 @@ class McJapaneseTokenizer(object):
                 '--eos-format=%(eos_mark)s\\n' % {
                     'token_pos_separator': self.__MECAB_TOKEN_POS_SEPARATOR,
                     'eos_mark': self.__MECAB_EOS_MARK,
-                    'dictionary_path': self._MECAB_DICTIONARY_PATH,
+                    'dictionary_path': mecab_dictionary_path,
                 }
             )
         except Exception as ex:
             raise McJapaneseTokenizerException("Unable to initialize MeCab: %s" % str(ex))
+
+    @staticmethod
+    def _mecab_ipadic_neologd_path() -> str:  # (protected and not private because used by the unit test)
+        """Return path to mecab-ipadic-neologd dictionary installed on system."""
+        mecab_dictionary_path = None
+        candidate_paths = McJapaneseTokenizer.__MECAB_DICTIONARY_PATHS
+
+        for candidate_path in candidate_paths:
+            if os.path.isdir(candidate_path):
+                if os.path.isfile(os.path.join(candidate_path, 'sys.dic')):
+                    mecab_dictionary_path = candidate_path
+                    break
+
+        if mecab_dictionary_path is None:
+            raise McJapaneseTokenizerException(
+                "mecab-ipadic-neologd was not found in paths: %s" % str(candidate_paths)
+            )
+
+        return mecab_dictionary_path
 
     def tokenize_text_to_sentences(self, text: str) -> list:
         """Tokenize Japanese text into sentences."""

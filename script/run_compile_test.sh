@@ -1,17 +1,13 @@
 #!/bin/bash
 
-cmd_str="$1"
-shift
-
-working_dir=`dirname $0`
-
-cd $working_dir
-
 set -u
-set -o  errexit
+set -o errexit
 
-cd ..
+PWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$PWD/set_mc_root_dir.inc.sh"
 
-exec ./script/run_carton.sh exec prove -Ilib/ -r t/compile.t
+cd "$MC_ROOT_DIR"
+
+exec ./script/run_in_env.sh prove -r t/compile.t
 
 

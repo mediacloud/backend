@@ -30,13 +30,7 @@ sub BUILD
     my @self_test_words = $tokenizer->tokenize_sentence_to_words( 'pythonが大好きです' );
     if ( ( !$self_test_words[ 0 ] ) or $self_test_words[ 1 ] ne '大好き' )
     {
-        die <<EOF;
-MeCab self-test failed; make sure that MeCab is installed and dictionaries are accessible:
-
-    git submodule update --init --recursive
-    ./install/install_mecab-ipadic-neologd.sh
-
-EOF
+        die 'MeCab self-test failed; make sure that MeCab is built and dictionaries are accessible.';
     }
 
     $self->{ _japanese_tokenizer } = $tokenizer;

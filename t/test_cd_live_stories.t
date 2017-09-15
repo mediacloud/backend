@@ -3,13 +3,6 @@ use warnings;
 
 # test that inserts and updates on stories in topic_stories are correctly mirrored to snap.live_stories
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-    use lib $FindBin::Bin;
-}
-
 use English '-no_match_vars';
 
 use Test::More tests => 14;

@@ -3,12 +3,6 @@
 use strict;
 use warnings;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-}
-
 use Readonly;
 
 use Test::NoWarnings;

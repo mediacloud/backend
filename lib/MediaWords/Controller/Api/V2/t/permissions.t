@@ -3,13 +3,7 @@
 use strict;
 use warnings;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin";
-    use lib "$FindBin::Bin/../lib";
-    use Catalyst::Test 'MediaWords';
-}
+use Catalyst::Test 'MediaWords';
 
 use MediaWords::CommonLibs;
 use Modern::Perl "2015";

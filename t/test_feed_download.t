@@ -10,19 +10,12 @@ use warnings;
 #
 # If you run t/test_feed_download.t with the -d command it rewrites the files. E.g.:
 #
-#     ./script/run_with_carton.sh ./t/test_feed_download.t  -d
+#     ./script/run_in_env.sh ./t/test_feed_download.t  -d
 #
 # This changes the expected results so it's important to make sure that you're
 # not masking bugs in the code. Also it's a good idea to manually examine the
 # changes in t/data/test_feed_download_stories.pl before committing them.
 #
-
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-    use lib $FindBin::Bin;
-}
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
@@ -43,6 +36,7 @@ use MediaWords::Util::DateTime;
 
 use Data::Dumper;
 use Data::Sorting qw( :basics :arrays :extras );
+use FindBin;
 use MediaWords::StoryVectors;
 use Readonly;
 
@@ -170,8 +164,6 @@ sub get_crawler_data_directory
     my $crawler_data_location;
 
     {
-        use FindBin;
-
         my $bin = $FindBin::Bin;
         INFO "Bin = '$bin' ";
         $crawler_data_location = "$FindBin::Bin/data/crawler";

@@ -15,7 +15,6 @@ use MediaWords::Util::Paths;
 
 use Data::Dumper;
 use File::Slurp;
-use FindBin;
 
 # recreates all schemas
 sub _reset_all_schemas($)

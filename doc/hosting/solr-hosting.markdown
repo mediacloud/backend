@@ -150,7 +150,7 @@ The only thing the Media Cloud install is used for on these machines (other than
 
 The `mediacloud` account on `mcquery2` has the following entry, which runs an hourly incremental import of data into Solr from the main PostgreSQL server:
 
-	35 * * * * time /data/mediacloud/script/run_with_carton.sh /data/mediacloud/script/mediawords_import_solr_data.pl --delta --jobs 8
+	35 * * * * time /data/mediacloud/script/run_in_env.sh /data/mediacloud/script/mediawords_import_solr_data.pl --delta --jobs 8
 
 The full import is run by running `mediawords_generate_solr_dump.pl` on each of `mcquery[124]` to generate a set of CSVs and then `mediawords_import_solr_data.pl` on each machine to import those csvs.  TBD: details of full import.
 

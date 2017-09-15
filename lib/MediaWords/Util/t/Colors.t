@@ -7,13 +7,8 @@ use Test::More tests => 16;
 
 use MediaWords::Test::DB;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
+use_ok( 'MediaWords::Util::Colors' );
 
-    use_ok( 'MediaWords::Util::Colors' );
-}
 
 sub test_consistent_colors
 {

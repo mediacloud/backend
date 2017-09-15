@@ -14,7 +14,7 @@
 
 [program:[% program %]]
     [%- IF worker_module %]
-        [%- command = './script/run_with_carton.sh local/bin/mjm_worker.pl lib/MediaWords/Job/' _ worker_module %]
+        [%- command = './script/run_in_env.sh mjm_worker.pl lib/MediaWords/Job/' _ worker_module %]
     [%- END %]
     [%- nice = supervisor.programs.$program.nice || default_nice || 10 %]
     [%- IF nice %]
@@ -88,7 +88,7 @@ programs = crawler
 [%- crawler_numprocs = supervisor.programs.crawler.numprocs || 1 %]
 [% INCLUDE program_config
     program='crawler'
-    command="bash ./script/run_with_carton.sh ./script/mediawords_crawl.pl $crawler_numprocs"
+    command="bash ./script/run_in_env.sh ./script/mediawords_crawl.pl $crawler_numprocs"
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
@@ -99,7 +99,7 @@ programs = crawler
 
 [% INCLUDE program_config
     program='process_bitly_schedule'
-    command="bash ./script/run_with_carton.sh ./script/process_bitly_schedule.pl"
+    command="bash ./script/run_in_env.sh ./script/process_bitly_schedule.pl"
     default_stopasgroup='true'
     default_killasgroup='true'
     default_autorestart='false'
@@ -110,7 +110,7 @@ programs = crawler
 
 [% INCLUDE program_config
     program='queue_media_solr_exports'
-    command="bash ./script/run_with_carton.sh ./script/mediawords_queue_media_solr_exports.pl"
+    command="bash ./script/run_in_env.sh ./script/mediawords_queue_media_solr_exports.pl"
     default_stopasgroup='true'
     default_killasgroup='true'
     default_autorestart='false'
@@ -121,7 +121,7 @@ programs = crawler
 
 [% INCLUDE program_config
     program='create_missing_partitions'
-    command="./tools/supervisor/run_in_virtualenv.sh ./tools/db/create_missing_partitions.py"
+    command="./script/run_in_env.sh ./tools/db/create_missing_partitions.py"
     default_stopasgroup='true'
     default_killasgroup='true'
     default_autorestart='false'
@@ -132,7 +132,7 @@ programs = crawler
 
 [% INCLUDE program_config
     program='purge_object_caches'
-    command="./tools/supervisor/run_in_virtualenv.sh ./tools/db/purge_object_caches.py"
+    command="./script/run_in_env.sh ./tools/db/purge_object_caches.py"
     default_stopasgroup='true'
     default_killasgroup='true'
     default_autorestart='false'
@@ -251,7 +251,7 @@ programs = rabbitmq
 [%- solr_standalone_jvm_heap_size = supervisor_solr.standalone.jvm_heap_size || "256m" %]
 [% INCLUDE program_config
     program='solr_standalone'
-    command="./tools/supervisor/run_in_virtualenv.sh ./tools/solr/run/run_solr_standalone.py --jvm_heap_size $solr_standalone_jvm_heap_size"
+    command="./script/run_in_env.sh ./tools/solr/run/run_solr_standalone.py --jvm_heap_size $solr_standalone_jvm_heap_size"
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='true'
@@ -268,7 +268,7 @@ programs = rabbitmq
 [%- solr_cluster_zookeeper_port = supervisor_solr.cluster.zookeeper.port || 9983 %]
 [% INCLUDE program_config
     program='solr_cluster_zookeeper'
-    command="./tools/supervisor/run_in_virtualenv.sh ./tools/solr/run/run_zookeeper.py --listen $solr_cluster_zookeeper_listen --port $solr_cluster_zookeeper_port"
+    command="./script/run_in_env.sh ./tools/solr/run/run_zookeeper.py --listen $solr_cluster_zookeeper_listen --port $solr_cluster_zookeeper_port"
     default_stopasgroup='true'
     default_killasgroup='true'
     default_autorestart='false'
@@ -291,7 +291,7 @@ programs=solr_shard
 [%- solr_cluster_shards_zookeeper_port = supervisor_solr.cluster.shards.zookeeper_port %]
 [% INCLUDE program_config
     program='solr_shard'
-    command="./tools/supervisor/run_in_virtualenv.sh ./tools/solr/run/run_solr_shard.py --shard_index %(process_num)d --shard_count $solr_cluster_shards_cluster_shard_count --zookeeper_host $solr_cluster_shards_zookeeper_host --zookeeper_port $solr_cluster_shards_zookeeper_port --jvm_heap_size $solr_cluster_shards_jvm_heap_size"
+    command="./script/run_in_env.sh ./tools/solr/run/run_solr_shard.py --shard_index %(process_num)d --shard_count $solr_cluster_shards_cluster_shard_count --zookeeper_host $solr_cluster_shards_zookeeper_host --zookeeper_port $solr_cluster_shards_zookeeper_port --jvm_heap_size $solr_cluster_shards_jvm_heap_size"
     default_stopasgroup='true'
     default_killasgroup='true'
     default_autorestart='false'

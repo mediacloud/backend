@@ -10,12 +10,6 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 use MediaWords::Crawler::Download::Feed::Univision;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-}
-
 use Readonly;
 
 use Test::NoWarnings;

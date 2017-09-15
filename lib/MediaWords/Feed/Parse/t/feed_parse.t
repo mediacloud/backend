@@ -7,12 +7,6 @@ use MediaWords::CommonLibs;
 use Test::NoWarnings;
 use Test::More tests => 42;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../../../lib";
-}
-
 use_ok( 'MediaWords::Feed::Parse' );
 
 use Data::Dumper;

@@ -19,7 +19,7 @@ Here's a brief road map of the MC repository
 
 * `script/` - command line scripts that run the various aspects of the system.
 
-* `script/run_with_carton.sh` - shell script that should be used to run all perl scripts
+* `script/run_in_env.sh` - shell script that should be used to run all perl scripts
 
 * `script/mediawords_server.pl` - run the stand alone version of the catalyst
   web application (which as with any catalyst app can also run via cgi, fcgi,

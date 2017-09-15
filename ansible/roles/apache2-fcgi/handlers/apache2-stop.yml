@@ -1,0 +1,21 @@
+- name: "Stop Apache service"
+  # "service apache2 stop" doesn't work on production 16.04 for whatever reason
+  command: "apachectl stop"
+  become: "{{ ansible_distribution == 'Ubuntu' }}"
+  become_user: root
+  listen:
+    - "Stop Apache (Ubuntu)"
+    - "Stop Apache (MacOSX)"
+  tags:
+    - apache2-fcgi
+
+- name: "Test if Apache service is stopped"
+  command: "pgrep {% if ansible_distribution == 'Ubuntu' %}apache2{% else %}httpd{% endif %}"
+  register: apache_status
+  failed_when: "apache_status.stdout_lines | count > 0"
+  changed_when: false
+  listen:
+    - "Stop Apache (Ubuntu)"
+    - "Stop Apache (MacOSX)"
+  tags:
+    - apache2-fcgi

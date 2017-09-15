@@ -6,13 +6,8 @@ use Test::NoWarnings;
 use Test::More tests => 106;
 use Readonly;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
+use_ok( 'MediaWords::Util::Compress' );
 
-    use_ok( 'MediaWords::Util::Compress' );
-}
 
 sub test_gzip_encode($)
 {

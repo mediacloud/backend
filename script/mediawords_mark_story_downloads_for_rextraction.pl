@@ -2,12 +2,6 @@
 
 use strict;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-}
-
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 

@@ -5,18 +5,12 @@
 # Usage: on production machine (database that is being imported to ), run:
 #
 #     # Import feed downloads from "mediacloud-feed-downloads.csv"
-#     ./script/run_with_carton.sh \
+#     ./script/run_in_env.sh \
 #         ./script/export_import/import_feed_downloads_to_db.pl mediacloud-feed-downloads.csv
 #
 
 use strict;
 use warnings;
-
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../../lib";
-}
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
@@ -25,6 +19,7 @@ use MediaWords::DB;
 use MediaWords::Crawler::Engine;
 
 use Data::Dumper;
+use FindBin;
 use Readonly;
 use Text::CSV_XS;
 

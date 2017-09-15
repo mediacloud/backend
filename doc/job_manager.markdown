@@ -8,11 +8,11 @@ managing job queues.
 
 To start a single instance of a worker, run:
 
-    ./script/run_with_carton.sh local/bin/mjm_worker.pl lib/MediaWords/Job/RescrapeMedia.pm
+    ./script/run_in_env.sh mjm_worker.pl lib/MediaWords/Job/RescrapeMedia.pm
 
 To start a single instance of *all* workers in a subdirectory, run:
 
-    ./script/run_with_carton.sh local/bin/mjm_worker.pl lib/MediaWords/Job/
+    ./script/run_in_env.sh mjm_worker.pl lib/MediaWords/Job/
 
 
 ## Running a job
