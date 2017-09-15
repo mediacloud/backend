@@ -303,6 +303,7 @@ sub test_topics_crud($)
         start_date      => '2016-01-01',
         end_date        => '2017-01-01',
         is_public       => 1,
+        is_logogram     => 1,
         ch_monitor_id   => 123456,
         media_ids       => $media_ids,
         media_tags_ids  => $tags_ids
@@ -342,6 +343,7 @@ sub test_topics_crud($)
         start_date      => '2016-01-02',
         end_date        => '2017-01-02',
         is_public       => 0,
+        is_logogram     => 0,
         ch_monitor_id   => 1234567,
         media_ids       => $update_media_ids,
         media_tags_ids  => $update_tags_ids

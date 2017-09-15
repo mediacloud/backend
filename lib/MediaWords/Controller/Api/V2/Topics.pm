@@ -250,10 +250,12 @@ sub create_GET
 
     my $topic = { map { $_ => $data->{ $_ } } @{ $TOPICS_EDIT_FIELDS } };
 
-    $topic->{ pattern } = eval { MediaWords::Solr::Query::parse( $topic->{ solr_seed_query } )->re() };
+    $topic->{ pattern } =
+      eval { MediaWords::Solr::Query::parse( $topic->{ solr_seed_query } )->re( $topic->{ is_logogram } ) };
     die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
 
     $topic->{ is_public }           = normalize_boolean_for_db( $topic->{ is_public } );
+    $topic->{ is_logogram }         = normalize_boolean_for_db( $topic->{ is_logogram } );
     $topic->{ solr_seed_query_run } = normalize_boolean_for_db( $topic->{ solr_seed_query_run } );
 
     my $full_solr_query = MediaWords::TM::Mine::get_full_solr_query( $db, $topic, $media_ids, $media_tags_ids );
@@ -320,7 +322,8 @@ sub update_PUT
 
     if ( $update->{ solr_seed_query } && ( $topic->{ solr_seed_query } ne $update->{ solr_seed_query } ) )
     {
-        $update->{ pattern } = eval { MediaWords::Solr::Query::parse( $update->{ solr_seed_query } )->re() };
+        $update->{ pattern } =
+          eval { MediaWords::Solr::Query::parse( $update->{ solr_seed_query } )->re( $update->{ is_logogram } ) };
         die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
 
         my $full_solr_query = MediaWords::TM::Mine::get_full_solr_query( $db, $topic, $media_ids, $media_tags_ids );
@@ -329,6 +332,7 @@ sub update_PUT
     }
 
     $update->{ is_public }           = normalize_boolean_for_db( $update->{ is_public } );
+    $update->{ is_logogram }         = normalize_boolean_for_db( $update->{ is_logogram } );
     $update->{ solr_seed_query_run } = normalize_boolean_for_db( $update->{ solr_seed_query_run } );
 
     my $auth_users_id = $c->stash->{ api_auth }->id();
