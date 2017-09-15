@@ -112,7 +112,7 @@
   git:
     repo: "{{ git_repo_url }}"
     dest: "{{ mediacloud_root }}"
-    version: "ansible_provisioning"
+    version: "{{ git_clone_branch }}"
     clone: false
   become: true
   become_user: "{{ mediacloud_user }}"
