@@ -32,6 +32,10 @@ use MediaWords::Util::Process;
 use Readonly;
 use Data::Dumper;
 
+# Having a global database object should be safe because
+# job workers don't fork()
+my $db = undef;
+
 # Run job
 sub run($;$)
 {
@@ -43,7 +47,8 @@ sub run($;$)
         fatal_error( 'Facebook API processing is not enabled.' );
     }
 
-    my $db = MediaWords::DB::connect_to_db();
+    # Postpone connecting to the database so that compile test doesn't do that
+    $db ||= MediaWords::DB::connect_to_db();
 
     my $stories_id = $args->{ stories_id } or die "'stories_id' is not set.";
 

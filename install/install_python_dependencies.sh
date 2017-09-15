@@ -41,8 +41,29 @@ echo "Installing (upgrading) Supervisor..."
 ( cd /tmp; $COMMAND_PREFIX pip2.7 install --upgrade supervisor )
 
 echo "Installing (upgrading) Virtualenv..."
-$COMMAND_PREFIX pip2.7 install --force-reinstall --upgrade virtualenv
-$COMMAND_PREFIX pip$PYTHON3_MAJOR_VERSION install --force-reinstall --upgrade virtualenv
+$COMMAND_PREFIX pip2.7 install --upgrade virtualenv
+$COMMAND_PREFIX pip$PYTHON3_MAJOR_VERSION install --upgrade virtualenv
+
+# Install system-wide NLTK because otherwise sudo is unable to find
+# NLTK installed in virtualenv on Travis
+
+echo "Installing (upgrading) NLTK to install NLTK's data afterwards..."
+$COMMAND_PREFIX pip$PYTHON3_MAJOR_VERSION install --upgrade nltk
+
+# Installing WordNet with NLTK
+# (installing from own mirror on S3 to avoid hitting GitHub: https://github.com/nltk/nltk/issues/1787)
+echo "Installing NLTK WordNet data..."
+if [ `uname` == 'Darwin' ]; then
+    NLTK_DATA_PATH=/usr/local/share/nltk_data
+else
+    NLTK_DATA_PATH=/usr/share/nltk_data
+fi
+
+$COMMAND_PREFIX python$PYTHON3_MAJOR_VERSION \
+    -m nltk.downloader \
+    -u https://s3.amazonaws.com/mediacloud-nltk-data/nltk_data/index.xml \
+    -d "$NLTK_DATA_PATH" \
+    wordnet punkt
 
 echo "Creating mc-venv virtualenv..."
 echo "$(which python$PYTHON3_MAJOR_VERSION)"
@@ -69,3 +90,6 @@ pip$PYTHON3_MAJOR_VERSION install --upgrade -r mediacloud/requirements.txt || {
     echo "'pip$PYTHON3_MAJOR_VERSION install' failed the first time, retrying..."
     pip$PYTHON3_MAJOR_VERSION install --upgrade -r mediacloud/requirements.txt
 }
+
+
+
