@@ -24,3 +24,6 @@ apache2_ssl_cert_key_path: /etc/ssl/private/ssl-cert-snakeoil.key
 
 # (optional) SSL intermediate certificate path (must exist beforehand)
 # apache2_ssl_cert_chain_path: /etc/ssl/certs/mediacloud_interm.crt
+
+# Catalyst status page to test
+apache2_catalyst_status_page: http://localhost/status
