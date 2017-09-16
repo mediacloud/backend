@@ -3,11 +3,6 @@
 # ansible_hostname -- mcsample
 # ansible_host -- mcsample.media.mit.edu
 
-- name: Include variables
-  include_vars: ../vars/main-{{ ansible_distribution }}.yml
-  tags:
-    - hostname
-
 - name: Set hostname
   hostname:
     name: "{{ ansible_hostname }}"
