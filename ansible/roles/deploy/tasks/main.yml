@@ -83,13 +83,14 @@
       shell: "ps -ax | grep -s perl | grep -s mediawords_crawl.pl | grep -sv grep | awk '{ print $1 }'"
       register: crawler_pids
       changed_when: false
+      when: "'core_services' in group_names"  # only for hosts in 'core_services' group
       tags:
         - deploy
 
     - name: "Kill leftover crawler processes"
       command: "kill {{ item }}"
       with_items: "{{ crawler_pids.stdout_lines }}"
-      when: "crawler_pids.stdout_lines | count > 0"
+      when: "'core_services' in group_names and crawler_pids.stdout_lines | count > 0"
       failed_when: false
       become: true
       become_user: "{{ mediacloud_user }}"
@@ -103,6 +104,7 @@
         crawler_pids | failed or
         crawler_pids.stdout_lines | count > 0
       changed_when: false
+      when: "'core_services' in group_names"  # only for hosts in 'core_services' group
       tags:
         - deploy
 
@@ -118,6 +120,7 @@
     - deploy
 
 - name: Upgrade database schema
+  when: "'core_services' in group_names"  # only for hosts in 'core_services' group
   tags:
     - deploy
   block:
@@ -179,6 +182,7 @@
         port: 15673
         delay: 2
         timeout: 60
+      when: "'core_services' in group_names"  # only for hosts in 'core_services' group
       tags:
         - deploy
 
