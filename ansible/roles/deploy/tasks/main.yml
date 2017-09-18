@@ -9,6 +9,7 @@
     - deploy
 
 - name: Stop Apache
+  when: "'core_services' in group_names"  # only for hosts in 'core_services' group
   tags:
     - deploy
   block:
@@ -184,6 +185,7 @@
       changed_when: false
       become: true
       become_user: "{{ mediacloud_user }}"
+      when: "'core_services' in group_names"  # only for hosts in 'core_services' group
       tags:
         - deploy
 
@@ -224,6 +226,7 @@
         - deploy
 
 - name: Start Apache
+  when: "'core_services' in group_names"  # only for hosts in 'core_services' group
   tags:
     - deploy
   block:
