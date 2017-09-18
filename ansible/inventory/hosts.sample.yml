@@ -42,13 +42,16 @@ postgresql_server:
     "localhost":
     "mcsample":
 
-# Hosts that need Media Cloud Git repository to be checked out
-git_repository:
+# Hosts that should be running Media Cloud core services
+core_services:
 
-  # Non-"localhost" hosts need to have Media Cloud repository checked out
-  # because they don't have it yet.
-  #
-  # "localhost" is assumed to already have Media Cloud checked out (because how
-  # else are we running this Ansible script?)
+  hosts:
+    "mcsample":
+    # "test"
+
+# Hosts that should be running Solr shards
+solr_servers:
+
   hosts:
     "mcsample"
+    # "test"

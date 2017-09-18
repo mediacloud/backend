@@ -63,6 +63,7 @@
       &> {{ crontab_import_solr_data_log_path }}
   become: true
   become_user: "{{ mediacloud_user }}"
+  when: "'core_services' in group_names"  # only for hosts in 'core_services' group
   tags:
     - crontab
 
@@ -76,6 +77,7 @@
       {{ mediacloud_root }}/script/mediawords_generate_media_health.pl
   become: true
   become_user: "{{ mediacloud_user }}"
+  when: "'core_services' in group_names"  # only for hosts in 'core_services' group
   tags:
     - crontab
 
@@ -122,6 +124,7 @@
       &> {{ crontab_rescrape_due_media_log_path }}
   become: true
   become_user: "{{ mediacloud_user }}"
+  when: "'core_services' in group_names"  # only for hosts in 'core_services' group
   tags:
     - crontab
 
@@ -135,6 +138,7 @@
       psql -c "SELECT rescraping_changes(); SELECT update_feeds_from_yesterday()" 2>&1
   become: true
   become_user: "{{ mediacloud_user }}"
+  when: "'core_services' in group_names"  # only for hosts in 'core_services' group
   tags:
     - crontab
 
@@ -148,6 +152,7 @@
       {{ mediacloud_root }}/script/mediawords_generate_user_summary.pl
   become: true
   become_user: "{{ mediacloud_user }}"
+  when: "'core_services' in group_names"  # only for hosts in 'core_services' group
   tags:
     - crontab
 
@@ -166,5 +171,6 @@
       --activity 7
   become: true
   become_user: "{{ mediacloud_user }}"
+  when: "'core_services' in group_names"  # only for hosts in 'core_services' group
   tags:
     - crontab

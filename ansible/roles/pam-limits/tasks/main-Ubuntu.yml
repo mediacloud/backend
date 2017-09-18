@@ -45,6 +45,7 @@
     dest: "{{ limits_conf_path }}"
   become: true
   become_user: root
+  when: "'solr_servers' not in group_names"  # only for hosts that won't run Solr because Solr would OOM
   tags:
     - pam-limits
 

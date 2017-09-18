@@ -28,7 +28,12 @@
 
 
 - name: Check out Media Cloud repository
-  hosts: "git_repository"
+  # Non-"localhost" hosts need to have Media Cloud repository checked out
+  # because they don't have it yet.
+  #
+  # "localhost" is assumed to already have Media Cloud checked out (because how
+  # else are we running this Ansible script?)
+  hosts: "!localhost"
   any_errors_fatal: true
   roles:
     - git-repository
@@ -53,7 +58,7 @@
 
 
 - name: Set up Apache
-  hosts: all
+  hosts: "core_services"
   any_errors_fatal: true
   roles:
     - apache2-fcgi
