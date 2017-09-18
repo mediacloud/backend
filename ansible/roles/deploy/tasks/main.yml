@@ -106,21 +106,6 @@
       tags:
         - deploy
 
-- name: "Test if Media Cloud Git repository has uncommitted changes"
-  command: "git status --porcelain"
-  args:
-    chdir: "{{ mediacloud_root }}"
-  register: git_status
-  changed_when: false
-  failed_when: >
-    git_status | failed or
-    git_status.stdout_lines | count > 0
-  become: true
-  become_user: "{{ mediacloud_user }}"
-  tags:
-    - deploy
-    - skip_ansible_lint # no easier way to check for changes that I know of
-
 - name: Check out Media Cloud Git repository
   git:
     repo: "{{ git_repo_url }}"
