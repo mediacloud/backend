@@ -105,7 +105,8 @@ supervisor:
     ### Cloud's root; must already exist)
     childlogdir: "data/supervisor_logs/"
 
-    # if set to true, do not autostart any programs, regardless of the settings in the particular programs below.
+    # If set to true, do not autostart any programs unless the program is explicitly
+    # set to be autostarted below
     start_no_supervisor_programs: 'true'
 
     # configure supervisor settings for mediacloud background daemons here.
