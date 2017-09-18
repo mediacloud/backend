@@ -144,7 +144,7 @@
     minute: "34"
     hour: "4"
     job: >
-      {{ mediacloud_root }}/script/run_with_carton.sh
+      {{ mediacloud_root }}/script/run_in_env.sh
       {{ mediacloud_root }}/script/mediawords_generate_user_summary.pl
   become: true
   become_user: "{{ mediacloud_user }}"
@@ -160,7 +160,7 @@
 
     # Report will be sent to MAILTO
     job: >
-      {{ mediacloud_root }}/script/run_with_carton.sh
+      {{ mediacloud_root }}/script/run_in_env.sh
       {{ mediacloud_root }}/script/mediawords_generate_user_summary.pl
       --new 7
       --activity 7
