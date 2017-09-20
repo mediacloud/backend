@@ -184,13 +184,13 @@ class ParseNode(AbstractParseNode):
         if filtered_tree is None:
             raise McSolrQueryParseSyntaxException("query is empty without fields or ranges")
 
-        re = filtered_tree.get_re()
+        regexp = filtered_tree.get_re()
 
         # for logogram languages, remove the beginning word boundary because it breaks the re
-        if (is_logogram):
-            re = re.replace('[[:<:]]', '')
+        if is_logogram:
+            regexp = regexp.replace('[[:<:]]', '')
 
-        return re
+        return regexp
 
 
 class TermNode(ParseNode):
