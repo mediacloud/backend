@@ -8,7 +8,7 @@ from mediawords.util.config import \
     set_config as py_set_config  # MC_REWRITE_TO_PYTHON: rename back to get_config(), get_config()
 from mediawords.util.log import create_logger
 
-l = create_logger(__name__)
+log = create_logger(__name__)
 
 
 # noinspection SqlResolve,SpellCheckingInspection
@@ -17,7 +17,7 @@ class TestDatabaseHandler(TestDatabaseTestCase):
 
         TestDatabaseTestCase.setUp(self)
 
-        l.info("Preparing test table 'kardashians'...")
+        log.info("Preparing test table 'kardashians'...")
         self.db().query("DROP TABLE IF EXISTS kardashians")
         self.db().query("""
             CREATE TABLE kardashians (
@@ -41,7 +41,7 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         """)
 
     def tearDown(self):
-        l.info("Tearing down...")
+        log.info("Tearing down...")
         self.db().query("DROP TABLE IF EXISTS kardashians")
 
         # Test disconnect() too
