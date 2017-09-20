@@ -24,9 +24,9 @@ from mediawords.util.text import random_string
 l = create_logger(__name__)
 
 # Set to the module in addition to connection so that adapt() returns what it should
-# noinspection PyArgumentList
+# noinspection PyUnresolvedReferences
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
-# noinspection PyArgumentList
+# noinspection PyUnresolvedReferences
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
 
 
