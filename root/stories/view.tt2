@@ -195,6 +195,34 @@
         <!-- CLIFF annotation is not enabled in the configuration -->
     [% END %]
 
+    [% IF nytlabels_is_enabled %]
+        <tr>
+            <th>
+                NYTLabels annotation:</th>
+            <td>
+                [% IF nytlabels_story_is_annotatable %]
+                    [% IF nytlabels_story_is_annotated %]
+
+                        <iframe src="[% c.uri_for( '/admin/stories/nytlabels_json/' _ story.stories_id ) | html %]" style="width: 99%; height: 480px; background-color: white"></iframe>
+
+                        <p>
+                            <a href="[% c.uri_for( '/admin/stories/nytlabels_json/' _ story.stories_id ) | html %]" target="_blank">[open in new page]</a>
+                        </p>
+
+                        <p>[% jsonview_help %]</p>
+
+                    [% ELSE %]
+                        not annotated
+                    [% END %]
+                [% ELSE %]
+                    not annotatable (either it's not in English or has no sentences)
+                [% END %]
+            </td>
+        </tr>
+    [% ELSE %]
+        <!-- NYTLabels annotation is not enabled in the configuration -->
+    [% END %]
+
     [% IF bitly_is_enabled %]
         <tr>
             <th>

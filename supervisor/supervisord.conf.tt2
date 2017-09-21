@@ -259,6 +259,26 @@ programs = rabbitmq
 %]
 
 [% INCLUDE program_config
+    program='nytlabels_fetch_annotation'
+    worker_module='NYTLabels/FetchAnnotation.pm'
+    default_stopasgroup='false'
+    default_killasgroup='false'
+    default_autorestart='false'
+    default_autostart='true'
+    default_nice=10
+%]
+
+[% INCLUDE program_config
+    program='nytlabels_update_story_tags'
+    worker_module='NYTLabels/UpdateStoryTags.pm'
+    default_stopasgroup='false'
+    default_killasgroup='false'
+    default_autorestart='false'
+    default_autostart='true'
+    default_nice=10
+%]
+
+[% INCLUDE program_config
     program='facebook_fetch_story_stats'
     worker_module='Facebook/FetchStoryStats.pm'
     default_stopasgroup='false'

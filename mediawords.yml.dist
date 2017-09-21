@@ -285,6 +285,32 @@ cliff:
     ### under this tag set
     cliff_geonames_tag_set: "mc-geocoder@media.mit.edu"
 
+### NYTLabels annotator
+nytlabels:
+
+    ### Enable NYTLabels processing
+    ### If enabled, NYTLabels processing will happen after every "content"
+    ### download extraction
+    enabled: "yes"
+
+    ### Annotator URL (text parsing endpoint), e.g. "http://localhost/predict.json"
+    annotator_url: ""
+
+    ### Annotator timeout (in seconds)
+    ### If you annotate huge chunks of text or the NYTLabels annotator is busy in
+    ### general, you might want to increase this value even more because
+    ### otherwise the job worker will exit() often.
+    annotator_timeout: 600
+
+    ### NYTLabels version tag, e.g. "nytlabels_clavin_v2.3.0"; will be added under
+    ### "geocoder_version" tag set
+    nytlabels_version_tag: "nyt_labeller_v1.0.0"
+
+    ### NYTLabels geographical names tag set, e.g. "mc-geocoder@media.mit.edu";
+    ### tags with names such as "geonames_<countryGeoNameId>" will be added
+    ### under this tag set
+    nytlabels_labels_tag_set: "nyt_labels"
+
 ### Facebook API
 ### (see doc/README.facebook_api.markdown)
 facebook:
