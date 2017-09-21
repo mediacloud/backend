@@ -11,6 +11,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Data::Dumper;
+use Encode;
 use HTTP::Request;
 use URI::Escape;
 
@@ -151,9 +152,17 @@ sub set_content($$)
         {
             $key //= '';
             my $value = $content->{ $key } // '';
-            push( @pairs, join( '=', map { uri_escape( $_ ) } $key, $value ) );
+
+            $key   = uri_escape( encode_utf8( $key ) );
+            $value = uri_escape( encode_utf8( $value ) );
+
+            push( @pairs, $key . '=' . $value );
         }
         $content = join( '&', @pairs );
+    }
+    else
+    {
+        $content = encode_utf8( $content );
     }
 
     $self->{ _request }->content( $content );

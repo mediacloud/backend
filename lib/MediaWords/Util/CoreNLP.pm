@@ -240,18 +240,6 @@ sub _annotate_text($)
     }
     DEBUG "Done converting text to JSON request.";
 
-    # Text has to be encoded because MediaWords::Util::Web::UserAgent::Request
-    # only accepts bytes as POST data
-    DEBUG "Encoding JSON request...";
-    my $text_json_encoded;
-    eval { $text_json_encoded = Encode::encode_utf8( $text_json ); };
-    if ( $@ or ( !$text_json_encoded ) )
-    {
-        # Not critical, might happen to some stories, no need to shut down the annotator
-        die "Unable to encode_utf8() JSON text to be annotated: $@\nJSON: $text_json";
-    }
-    DEBUG "Done encoding JSON request.";
-
     # Make a request
     my $ua = MediaWords::Util::Web::UserAgent->new();
     $ua->set_timing( '1,2,4,8' );
@@ -260,9 +248,9 @@ sub _annotate_text($)
 
     my $request = MediaWords::Util::Web::UserAgent::Request->new( 'POST', $_corenlp_annotator_url );
     $request->set_content_type( 'application/json; charset=utf8' );
-    $request->set_content( $text_json_encoded );
+    $request->set_content( $text_json );
 
-    TRACE "Sending request to $_corenlp_annotator_url: $text_json_encoded";
+    TRACE "Sending request to $_corenlp_annotator_url: $text_json";
     my $response = $ua->request( $request );
     TRACE "Response received.";
 
