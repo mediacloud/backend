@@ -167,6 +167,34 @@
         <!-- CoreNLP annotation is not enabled in the configuration -->
     [% END %]
 
+    [% IF cliff_is_enabled %]
+        <tr>
+            <th>
+                CLIFF annotation:</th>
+            <td>
+                [% IF cliff_story_is_annotatable %]
+                    [% IF cliff_story_is_annotated %]
+
+                        <iframe src="[% c.uri_for( '/admin/stories/cliff_json/' _ story.stories_id ) | html %]" style="width: 99%; height: 480px; background-color: white"></iframe>
+
+                        <p>
+                            <a href="[% c.uri_for( '/admin/stories/cliff_json/' _ story.stories_id ) | html %]" target="_blank">[open in new page]</a>
+                        </p>
+
+                        <p>[% jsonview_help %]</p>
+
+                    [% ELSE %]
+                        not annotated
+                    [% END %]
+                [% ELSE %]
+                    not annotatable (either it's not in English or has no sentences)
+                [% END %]
+            </td>
+        </tr>
+    [% ELSE %]
+        <!-- CLIFF annotation is not enabled in the configuration -->
+    [% END %]
+
     [% IF bitly_is_enabled %]
         <tr>
             <th>

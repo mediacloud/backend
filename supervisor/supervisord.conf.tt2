@@ -239,6 +239,26 @@ programs = rabbitmq
 %]
 
 [% INCLUDE program_config
+    program='cliff_fetch_annotation'
+    worker_module='CLIFF/FetchAnnotation.pm'
+    default_stopasgroup='false'
+    default_killasgroup='false'
+    default_autorestart='false'
+    default_autostart='true'
+    default_nice=10
+%]
+
+[% INCLUDE program_config
+    program='cliff_update_story_tags'
+    worker_module='CLIFF/UpdateStoryTags.pm'
+    default_stopasgroup='false'
+    default_killasgroup='false'
+    default_autorestart='false'
+    default_autostart='true'
+    default_nice=10
+%]
+
+[% INCLUDE program_config
     program='facebook_fetch_story_stats'
     worker_module='Facebook/FetchStoryStats.pm'
     default_stopasgroup='false'

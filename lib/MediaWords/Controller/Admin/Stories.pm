@@ -17,6 +17,7 @@ use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::DBI::Activities;
 use MediaWords::Util::Bitly;
+use MediaWords::Util::CLIFF;
 use MediaWords::Util::CoreNLP;
 use MediaWords::Util::JSON;
 
@@ -185,6 +186,34 @@ END
         $c->stash->{ corenlp_is_enabled } = 0;
     }
 
+    # Show CLIFF JSON
+    if ( MediaWords::Util::CLIFF::cliff_is_enabled() )
+    {
+        $c->stash->{ cliff_is_enabled } = 1;
+
+        if ( MediaWords::Util::CLIFF::story_is_annotatable( $c->dbis, $story->{ stories_id } ) )
+        {
+            $c->stash->{ cliff_story_is_annotatable } = 1;
+
+            if ( MediaWords::Util::CLIFF::story_is_annotated( $c->dbis, $story->{ stories_id } ) )
+            {
+                $c->stash->{ cliff_story_is_annotated } = 1;
+            }
+            else
+            {
+                $c->stash->{ cliff_story_is_annotated } = 0;
+            }
+        }
+        else
+        {
+            $c->stash->{ cliff_story_is_annotatable } = 0;
+        }
+    }
+    else
+    {
+        $c->stash->{ cliff_is_enabled } = 0;
+    }
+
     # Show Bit.ly JSON
     if ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
     {
@@ -241,6 +270,51 @@ sub corenlp_json : Local
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
     return $c->res->body( encode( 'utf-8', $corenlp_json ) );
+}
+
+# view CLIFF JSON
+sub cliff_json : Local
+{
+    my ( $self, $c, $stories_id ) = @_;
+
+    unless ( $stories_id )
+    {
+        LOGCONFESS "No stories_id";
+    }
+
+    unless ( $c->dbis->find_by_id( 'stories', $stories_id ) )
+    {
+        LOGCONFESS "Story $stories_id does not exist.";
+    }
+
+    unless ( MediaWords::Util::CLIFF::cliff_is_enabled() )
+    {
+        LOGCONFESS "CLIFF annotator is not enabled in the configuration.";
+    }
+
+    unless ( MediaWords::Util::CLIFF::story_is_annotatable( $c->dbis, $stories_id ) )
+    {
+        LOGCONFESS "Story $stories_id is not annotatable (either it's not in English or has no sentences).";
+    }
+
+    unless ( MediaWords::Util::CLIFF::story_is_annotated( $c->dbis, $stories_id ) )
+    {
+        LOGCONFESS "Story $stories_id is not annotated.";
+    }
+
+    my $cliff_annotation = MediaWords::Util::CLIFF::fetch_annotation_for_story( $c->dbis, $stories_id );
+
+    # Encode back to JSON, prettifying the result
+    my $annotation_json;
+    eval { $annotation_json = MediaWords::Util::JSON::encode_json( $cliff_annotation, 1 ); };
+    if ( $@ or ( !$annotation_json ) )
+    {
+        die "Unable to encode story and its sentences annotation to JSON for story " .
+          $stories_id . ": $@\nHashref: " . Dumper( $cliff_annotation );
+    }
+
+    $c->response->content_type( 'application/json; charset=UTF-8' );
+    return $c->res->body( encode( 'utf-8', $annotation_json ) );
 }
 
 # view Bit.ly JSON
