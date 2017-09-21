@@ -163,7 +163,7 @@ sub annotate_text($)
 
     my $request = MediaWords::Util::Web::UserAgent::Request->new( 'POST', $_cliff_annotator_url );
     $request->set_content_type( 'application/x-www-form-urlencoded; charset=utf-8' );
-    $request->set_content( { q => $text } );
+    $request->set_content( { q => encode_utf8( $text ) } );
 
     TRACE "Sending request to $_cliff_annotator_url...";
     my $response = $ua->request( $request );
