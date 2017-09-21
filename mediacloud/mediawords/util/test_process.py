@@ -92,7 +92,7 @@ def test_run_alone():
         file.close()
 
         if sleep_forever_afterwards:
-            l.info("PID %d sleeping forever" % os.getpid())
+            log.info("PID %d sleeping forever" % os.getpid())
             while True:
                 time.sleep(1)
         else:

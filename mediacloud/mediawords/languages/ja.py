@@ -8,7 +8,7 @@ from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.text import random_string
 
-l = create_logger(__name__)
+log = create_logger(__name__)
 
 
 class McJapaneseTokenizerException(Exception):
@@ -91,7 +91,7 @@ class McJapaneseTokenizer(object):
         text = decode_object_from_bytes_if_needed(text)
 
         if text is None:
-            l.warning("Text to tokenize into sentences is None.")
+            log.warning("Text to tokenize into sentences is None.")
             return []
 
         text = text.strip()
@@ -149,7 +149,7 @@ class McJapaneseTokenizer(object):
         sentence = decode_object_from_bytes_if_needed(sentence)
 
         if sentence is None:
-            l.warning("Sentence to tokenize into words is None.")
+            log.warning("Sentence to tokenize into words is None.")
             return []
 
         sentence = sentence.strip()

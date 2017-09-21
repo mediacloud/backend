@@ -8,7 +8,7 @@ import readability.readability
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
-l = create_logger(__name__)
+log = create_logger(__name__)
 
 # Cached module versions
 __module_version_cache = {}
@@ -67,7 +67,7 @@ def extract_article_from_html(html: str) -> str:
         extracted_text = "%s\n\n%s" % (doc_title, doc_summary)
 
     except Exception as ex:
-        l.error('Exception raised while extracting HTML: %s' % str(ex))
+        log.error('Exception raised while extracting HTML: %s' % str(ex))
         extracted_text = ''
 
     return extracted_text

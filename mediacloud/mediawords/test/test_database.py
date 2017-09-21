@@ -4,7 +4,7 @@ from mediawords.util.config import \
     get_config as py_get_config  # MC_REWRITE_TO_PYTHON: rename back to get_config()
 from mediawords.util.log import create_logger
 
-l = create_logger(__name__)
+log = create_logger(__name__)
 
 
 class TestDatabaseTestCase(TestCase):
@@ -14,7 +14,7 @@ class TestDatabaseTestCase(TestCase):
 
     @staticmethod
     def _create_database_handler():
-        l.info("Looking for test database credentials...")
+        log.info("Looking for test database credentials...")
         test_database = None
         config = py_get_config()
         for database in config['database']:
@@ -23,7 +23,7 @@ class TestDatabaseTestCase(TestCase):
                 break
         assert test_database is not None
 
-        l.info("Connecting to test database '%s' via DatabaseHandler class..." % test_database['db'])
+        log.info("Connecting to test database '%s' via DatabaseHandler class..." % test_database['db'])
         db = DatabaseHandler(
             host=test_database['host'],
             port=test_database['port'],

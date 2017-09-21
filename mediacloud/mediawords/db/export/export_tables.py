@@ -4,7 +4,7 @@ import sys
 from mediawords.db.handler import DatabaseHandler
 from mediawords.util.log import create_logger
 
-l = create_logger(__name__)
+log = create_logger(__name__)
 
 
 class McValidateTableForeignKeysException(Exception):
@@ -43,7 +43,7 @@ def __validate_table_foreign_keys(db: DatabaseHandler, table: str) -> None:
     for foreign_key in foreign_keys:
         constraint_name = foreign_key['constraint_name']
 
-        l.info("Validating foreign key '%s' for table '%s'..." % (constraint_name, table))
+        log.info("Validating foreign key '%s' for table '%s'..." % (constraint_name, table))
 
         sql = """
             SELECT DISTINCT a.%(column_name)s
@@ -75,9 +75,9 @@ def __validate_table_foreign_keys(db: DatabaseHandler, table: str) -> None:
                 'sql': sql,
             }
             foreign_key_errors.append(error)
-            l.warning(error)
+            log.warning(error)
         else:
-            l.info("Foreign key '%s' for table '%s' looks fine." % (constraint_name, table))
+            log.info("Foreign key '%s' for table '%s' looks fine." % (constraint_name, table))
 
     if len(foreign_key_errors) > 0:
         raise McValidateTableForeignKeysException(
@@ -157,18 +157,18 @@ def print_exported_tables_to_backup_crawler(db: DatabaseHandler) -> None:
 
     db.begin()
 
-    l.info("Validating foreign keys...")
+    log.info("Validating foreign keys...")
     foreign_key_errors = []
 
     for table in tables:
-        l.info("Validating foreign keys for table '%s'..." % table)
+        log.info("Validating foreign keys for table '%s'..." % table)
 
         # Aggregate errors into array to be able to print a one huge complaint
         try:
             __validate_table_foreign_keys(db=db, table=table)
         except McValidateTableForeignKeysException as ex:
             error = str(ex)
-            l.warning("Validating foreign key for table '%s' failed: %s" % (table, error))
+            log.warning("Validating foreign key for table '%s' failed: %s" % (table, error))
             foreign_key_errors.append(error)
 
     if len(foreign_key_errors):
@@ -177,7 +177,7 @@ def print_exported_tables_to_backup_crawler(db: DatabaseHandler) -> None:
             str(foreign_key_errors)
         )
 
-    l.info("Done validating foreign keys.")
+    log.info("Done validating foreign keys.")
 
     print("""
 --
@@ -225,11 +225,11 @@ TRUNCATE tag_sets CASCADE;
 
     """)
 
-    l.info("Exporting tables...")
+    log.info("Exporting tables...")
     for table in tables:
-        l.info("Exporting table '%s'..." % table)
+        log.info("Exporting table '%s'..." % table)
         __print_table_csv_to_stdout(db=db, table=table)
-    l.info("Done exporting tables.")
+    log.info("Done exporting tables.")
 
     db.commit()
 
