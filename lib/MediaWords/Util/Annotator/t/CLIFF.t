@@ -274,7 +274,7 @@ SQL
     		INNER JOIN tag_sets
     			ON tags.tag_sets_id = tag_sets.tag_sets_id
     	WHERE stories_tags_map.stories_id = ?
-    	ORDER BY tags.tag, tag_sets.name
+    	ORDER BY tags.tag COLLATE "C", tag_sets.name COLLATE "C"
 SQL
         $stories_id
     )->hashes;
