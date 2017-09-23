@@ -131,7 +131,6 @@ supervisor:
         #purge_object_caches
         #facebook_fetch_story_stats
         #process_bitly_schedule
-        #extractor_python_readability_server
         #rabbitmq
         #rescrape_media
         #topic_mine
