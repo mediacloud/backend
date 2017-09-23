@@ -17,7 +17,7 @@ class McHashServerException(Exception):
     pass
 
 
-l = create_logger(__name__)
+log = create_logger(__name__)
 
 
 class HashServer(object):
@@ -58,18 +58,18 @@ class HashServer(object):
                 return False
 
             if not auth_header.startswith('Basic '):
-                l.warning('Invalid authentication header: %s' % auth_header)
+                log.warning('Invalid authentication header: %s' % auth_header)
                 return False
 
             auth_header = auth_header.strip()
             auth_header_name, auth_header_value_base64 = auth_header.split(' ')
             if len(auth_header_value_base64) == 0:
-                l.warning('Invalid authentication header: %s' % auth_header)
+                log.warning('Invalid authentication header: %s' % auth_header)
                 return False
 
             auth_header_value = base64.b64decode(auth_header_value_base64).decode('utf-8')
             if auth_header_value != page['auth']:
-                l.warning("Invalid authentication; expected: %s, actual: %s" % (page['auth'], auth_header_value))
+                log.warning("Invalid authentication; expected: %s, actual: %s" % (page['auth'], auth_header_value))
                 return False
 
             return True
@@ -140,7 +140,7 @@ class HashServer(object):
 
                 response = decode_object_from_bytes_if_needed(response)
 
-                l.debug("Raw callback response: %s" % str(response))
+                log.debug("Raw callback response: %s" % str(response))
 
                 if "\r\n\r\n" not in response:
                     raise McHashServerException("Response must include both HTTP headers and data, separated by CRLF.")
@@ -247,7 +247,7 @@ class HashServer(object):
         if not port:
             raise McHashServerException("Port is not set.")
         if len(pages) == 0:
-            l.warning("Pages dictionary is empty.")
+            log.warning("Pages dictionary is empty.")
 
         self.__port = port
         self.__pages = pages
@@ -265,8 +265,8 @@ class HashServer(object):
 
             return _HTTPHandlerWithPages
 
-        l.info('Starting test web server %s:%d on PID %d' % (self.__host, self.__port, os.getpid()))
-        l.debug('Pages: %s' % str(self.__pages))
+        log.info('Starting test web server %s:%d on PID %d' % (self.__host, self.__port, os.getpid()))
+        log.debug('Pages: %s' % str(self.__pages))
         server_address = (self.__host, self.__port,)
 
         handler_class = __make_http_handler_with_pages(pages=self.__pages)
@@ -295,15 +295,15 @@ class HashServer(object):
         """Stop the webserver."""
 
         if not tcp_port_is_open(port=self.__port):
-            l.warning("Port %d is not open." % self.__port)
+            log.warning("Port %d is not open." % self.__port)
             return
 
-        l.info('Stopping test web server %s:%d on PID %d' % (self.__host, self.__port, os.getpid()))
+        log.info('Stopping test web server %s:%d on PID %d' % (self.__host, self.__port, os.getpid()))
 
         # self.__http_server is initialized in a different process, so we're not touching it
 
         if self.__http_server_thread is None:
-            l.warning("HTTP server process is None.")
+            log.warning("HTTP server process is None.")
         else:
             self.__http_server_thread.join(timeout=1)
             self.__http_server_thread.terminate()

@@ -7,7 +7,7 @@ from mediawords.db.result.result import DatabaseResult
 from mediawords.util.log import create_logger
 from mediawords.util.perl import convert_dbd_pg_arguments_to_psycopg2_format, decode_object_from_bytes_if_needed
 
-l = create_logger(__name__)
+log = create_logger(__name__)
 
 
 class DatabaseStatement(object):

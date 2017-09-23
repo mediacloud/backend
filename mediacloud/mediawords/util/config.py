@@ -14,7 +14,7 @@ except ImportError:
     # noinspection PyPackageRequirements
     from yaml import Loader
 
-l = create_logger(__name__)
+log = create_logger(__name__)
 
 __CONFIG = None
 
@@ -70,7 +70,7 @@ def __merge_configs(config: dict, static_defaults: dict) -> dict:
                 elif a[key] == b[key]:
                     pass  # same leaf value
                 else:
-                    l.debug(
+                    log.debug(
                         "Overwriting '%(key)s' default value '%(default_value)s' with custom '%(custom_value)s" % {
                             'key': key,
                             'default_value': a[key],
@@ -92,7 +92,7 @@ def set_config(config: dict) -> None:
     global __CONFIG
 
     if __CONFIG is not None:
-        l.debug("config object already cached")
+        log.debug("config object already cached")
 
     # MC_REWRITE_TO_PYTHON: Catalyst::Test might want to set a couple of values which end up as being "binary"
     config = decode_object_from_bytes_if_needed(config)
@@ -120,7 +120,7 @@ def __verify_settings(config: dict) -> None:
 
     # Warn if there's a foreign database set for storing raw downloads
     if "raw_downloads" in config["database"]:
-        l.warning("""
+        log.warning("""
             You have a foreign database set for storing raw downloads as
             /database/label[raw_downloads].
 
@@ -130,10 +130,10 @@ def __verify_settings(config: dict) -> None:
 
     # Warn if no job brokers are configured
     if 'job_manager' not in config or config['job_manager'] is None:
-        l.warning('Please configure a job manager under "job_manager" root key in mediawords.yml.')
+        log.warning('Please configure a job manager under "job_manager" root key in mediawords.yml.')
     else:
         if 'rabbitmq' not in config['job_manager'] or config['job_manager']['rabbitmq'] is None:
-            l.warning('Please configure "rabbitmq" job manager under "job_manager" root key in mediawords.yml.')
+            log.warning('Please configure "rabbitmq" job manager under "job_manager" root key in mediawords.yml.')
 
 
 def __set_dynamic_defaults(config: dict) -> dict:

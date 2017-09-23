@@ -4,7 +4,7 @@ import time
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
-l = create_logger(__name__)
+log = create_logger(__name__)
 
 
 def hostname_resolves(hostname: str) -> bool:
@@ -28,7 +28,7 @@ def fqdn() -> str:
         raise McFQDNException("Unable to determine FQDN.")
     hostname = hostname.lower()
     if hostname == 'localhost':
-        l.warning("FQDN is 'localhost', are you sure that /etc/hosts is set up properly?")
+        log.warning("FQDN is 'localhost', are you sure that /etc/hosts is set up properly?")
 
     # Solr (ZooKeeper?) somehow manages to translate underscore to something else, so something like:
     #
@@ -65,9 +65,9 @@ def wait_for_tcp_port_to_open(port: int, hostname: str = 'localhost', retries: i
     port_is_open = False
     for retry in range(retries):
         if retry == 0:
-            l.info("Trying to connect to %s:%d" % (hostname, port))
+            log.info("Trying to connect to %s:%d" % (hostname, port))
         else:
-            l.info("Trying to connect to %s:%d, retry %d" % (hostname, port, retry))
+            log.info("Trying to connect to %s:%d, retry %d" % (hostname, port, retry))
 
         if tcp_port_is_open(port, hostname):
             port_is_open = True

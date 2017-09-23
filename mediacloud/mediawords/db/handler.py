@@ -21,12 +21,12 @@ from mediawords.util.perl import convert_dbd_pg_arguments_to_psycopg2_format, de
     McDecodeObjectFromBytesIfNeededException
 from mediawords.util.text import random_string
 
-l = create_logger(__name__)
+log = create_logger(__name__)
 
 # Set to the module in addition to connection so that adapt() returns what it should
-# noinspection PyArgumentList
+# noinspection PyUnresolvedReferences
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
-# noinspection PyArgumentList
+# noinspection PyUnresolvedReferences
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
 
 
@@ -151,8 +151,8 @@ class DatabaseHandler(object):
         if deadlock_timeout == 0:
             raise McConnectException("'deadlock_timeout' is 0, probably unable to read it")
         if deadlock_timeout < self.__MIN_DEADLOCK_TIMEOUT:
-            l.warning('"deadlock_timeout" is less than "%ds", expect deadlocks on high extractor load' %
-                      self.__MIN_DEADLOCK_TIMEOUT)
+            log.warning('"deadlock_timeout" is less than "%ds", expect deadlocks on high extractor load' %
+                        self.__MIN_DEADLOCK_TIMEOUT)
 
     def disconnect(self) -> None:
         """Disconnect from the database."""
@@ -175,13 +175,13 @@ class DatabaseHandler(object):
             config_ignore_schema_version = config["mediawords"]["ignore_schema_version"]
 
         if config_ignore_schema_version and self.__IGNORE_SCHEMA_VERSION_ENV_VARIABLE in os.environ:
-            l.warning("""
+            log.warning("""
                 The current Media Cloud database schema is older than the schema present in mediawords.sql,
                 but %s is set so continuing anyway.
             """ % self.__IGNORE_SCHEMA_VERSION_ENV_VARIABLE)
             return True
         else:
-            l.warning("""
+            log.warning("""
                 ################################
 
                 The current Media Cloud database schema is not the same as the schema present in mediawords.sql.
@@ -224,7 +224,8 @@ class DatabaseHandler(object):
             WHERE table_name = 'database_variables'
         """).flat()) > 0
         if not db_vars_table_exists:
-            l.info("Database table 'database_variables' does not exist, probably the database is empty at this point.")
+            log.info(
+                "Database table 'database_variables' does not exist, probably the database is empty at this point.")
             return True
 
         # Current schema version
@@ -320,7 +321,7 @@ class DatabaseHandler(object):
         try:
             self.run_block_with_large_work_mem(__execute_with_large_work_mem_subquery)
         except Exception as ex:
-            l.error("Error while running query with large work memory: %s" % str(ex))
+            log.error("Error while running query with large work memory: %s" % str(ex))
             exception = ex
 
         if exception is not None:
@@ -328,7 +329,7 @@ class DatabaseHandler(object):
 
     def run_block_with_large_work_mem(self, block: Callable[[], None]) -> None:
         """Run a block (function) with a large 'work_mem' setting set; does *not* return a result of any kind."""
-        l.debug("starting run_block_with_large_work_mem")
+        log.debug("starting run_block_with_large_work_mem")
 
         large_work_mem = self.__get_large_work_mem()
         old_work_mem = self.__get_current_work_mem()
@@ -336,18 +337,18 @@ class DatabaseHandler(object):
         if large_work_mem is not None:
             self.__set_work_mem(large_work_mem)
         else:
-            l.warning("Large work memory is unset, using default 'work_mem'")
+            log.warning("Large work memory is unset, using default 'work_mem'")
 
         exception = None
         try:
             block()
         except Exception as ex:
-            l.error("Error while running block with large work memory: %s" % str(ex))
+            log.error("Error while running block with large work memory: %s" % str(ex))
             exception = ex
 
         self.__set_work_mem(old_work_mem)
 
-        l.debug("exiting run_block_with_large_work_mem")
+        log.debug("exiting run_block_with_large_work_mem")
 
         if exception is not None:
             raise exception  # pass further
@@ -651,7 +652,7 @@ class DatabaseHandler(object):
 
     def __set_in_transaction(self, in_transaction: bool) -> None:
         if self.__in_manual_transaction == in_transaction:
-            l.warning("Setting self.__in_manual_transaction to the same value (%s)" % str(in_transaction))
+            log.warning("Setting self.__in_manual_transaction to the same value (%s)" % str(in_transaction))
         self.__in_manual_transaction = in_transaction
 
     def begin(self) -> None:
@@ -669,7 +670,7 @@ class DatabaseHandler(object):
     def commit(self) -> None:
         """Commit a transaction."""
         if not self.in_transaction():
-            l.debug("Not in transaction, nothing to COMMIT.")
+            log.debug("Not in transaction, nothing to COMMIT.")
         else:
             self.query('COMMIT')
             self.__set_in_transaction(False)
@@ -677,7 +678,7 @@ class DatabaseHandler(object):
     def rollback(self) -> None:
         """Rollback a transaction."""
         if not self.in_transaction():
-            l.warning("Not in transaction, nothing to ROLLBACK.")
+            log.warning("Not in transaction, nothing to ROLLBACK.")
         else:
             self.query('ROLLBACK')
             self.__set_in_transaction(False)
@@ -792,7 +793,7 @@ class DatabaseHandler(object):
 
         table_name = '_tmp_ids_%s' % random_string(length=16)
 
-        l.debug("Temporary IDs table: %s" % table_name)
+        log.debug("Temporary IDs table: %s" % table_name)
 
         primary_key_clause = ""
         if ordered:

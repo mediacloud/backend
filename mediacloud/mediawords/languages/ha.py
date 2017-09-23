@@ -8,7 +8,7 @@ import hausastemmer
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.log import create_logger
 
-l = create_logger(__name__)
+log = create_logger(__name__)
 
 
 def py_hausa_stem(token):
