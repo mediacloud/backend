@@ -95,16 +95,28 @@ sub _tags_for_annotation($$)
 
     my $config = MediaWords::Util::Config::get_config();
 
+    my $cliff_version_tag = $config->{ cliff }->{ cliff_version_tag };
+    unless ( $cliff_version_tag )
+    {
+        die "CLIFF version tag is unset in configuration.";
+    }
+
     my $cliff_geonames_tag_set = $config->{ cliff }->{ cliff_geonames_tag_set };
     unless ( $cliff_geonames_tag_set )
     {
         die "CLIFF geographical names tag set is unset in configuration.";
     }
 
-    my $cliff_version_tag = $config->{ cliff }->{ cliff_version_tag };
-    unless ( $cliff_version_tag )
+    my $cliff_organizations_tag_set = $config->{ cliff }->{ cliff_organizations_tag_set };
+    unless ( $cliff_organizations_tag_set )
     {
-        die "CLIFF version tag is unset in configuration.";
+        die "CLIFF organizations tag set is unset in configuration.";
+    }
+
+    my $cliff_people_tag_set = $config->{ cliff }->{ cliff_people_tag_set };
+    unless ( $cliff_people_tag_set )
+    {
+        die "CLIFF people tag set is unset in configuration.";
     }
 
     my $tags = [];
@@ -126,6 +138,50 @@ sub _tags_for_annotation($$)
     unless ( $results )
     {
         return $tags;
+    }
+
+    my $organizations = $results->{ organizations };
+    if ( $organizations )
+    {
+        foreach my $organization ( @{ $organizations } )
+        {
+            push(
+                @{ $tags },
+                MediaWords::Util::Annotator::AnnotatorTag->new(
+
+                    tag_sets_name        => $cliff_organizations_tag_set,
+                    tag_sets_label       => $cliff_organizations_tag_set,
+                    tag_sets_description => 'CLIFF organizations',
+
+                    # e.g. "United Nations"
+                    tags_name        => $organization->{ name },
+                    tags_label       => $organization->{ name },
+                    tags_description => $organization->{ name },
+                )
+            );
+        }
+    }
+
+    my $people = $results->{ people };
+    if ( $people )
+    {
+        foreach my $person ( @{ $people } )
+        {
+            push(
+                @{ $tags },
+                MediaWords::Util::Annotator::AnnotatorTag->new(
+
+                    tag_sets_name        => $cliff_people_tag_set,
+                    tag_sets_label       => $cliff_people_tag_set,
+                    tag_sets_description => 'CLIFF people',
+
+                    # e.g. "Einstein"
+                    tags_name        => $person->{ name },
+                    tags_label       => $person->{ name },
+                    tags_description => $person->{ name },
+                )
+            );
+        }
     }
 
     my $places = $results->{ places };
@@ -203,9 +259,40 @@ sub _tags_for_annotation($$)
         }
     }
 
+    my $cities = $focus->{ cities };
+    if ( $cities )
+    {
+        foreach my $city ( @{ $cities } )
+        {
+            push(
+                @{ $tags },
+                MediaWords::Util::Annotator::AnnotatorTag->new(
+                    tag_sets_name        => $cliff_geonames_tag_set,
+                    tag_sets_label       => $cliff_geonames_tag_set,
+                    tag_sets_description => 'CLIFF geographical names',
+
+                    # e.g. "geonames_4273857"
+                    tags_name => $CLIFF_GEONAMES_TAG_PREFIX . $city->{ id },
+
+                    # e.g. "Kansas"
+                    tags_label => $city->{ name },
+
+                    # e.g. "Kansas | A | KS | US"
+                    tags_description => sprintf(
+                        '%s | %s | %s | %s',        #
+                        $city->{ name },            #
+                        $city->{ featureClass },    #
+                        $city->{ stateCode },       #
+                        $city->{ countryCode },     #
+                    ),
+                )
+            );
+        }
+    }
+
     return $tags;
 }
 
-no Moose;                                            # gets rid of scaffolding
+no Moose;                                           # gets rid of scaffolding
 
 1;

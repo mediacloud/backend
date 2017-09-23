@@ -268,10 +268,19 @@ cliff:
     ### "geocoder_version" tag set
     cliff_version_tag: "cliff_clavin_v2.3.0"
 
-    ### CLIFF geographical names tag set, e.g. "mc-geocoder@media.mit.edu";
+    ### CLIFF geographical names tag set, e.g. "cliff_geonames";
     ### tags with names such as "geonames_<countryGeoNameId>" will be added
     ### under this tag set
-    cliff_geonames_tag_set: "mc-geocoder@media.mit.edu"
+    cliff_geonames_tag_set: "cliff_geonames"
+
+    ### CLIFF organizations tag set, e.g. "cliff_organizations"; tags with
+    ### names of organizations such as "United Nations" will be added under
+    ### this tag set
+    cliff_organizations_tag_set: "cliff_organizations"
+
+    ### CLIFF people tag set, e.g. "cliff_people"; tags with names of people
+    ### such as "Einstein" will be added under this tag set
+    cliff_people_tag_set: "cliff_people"
 
 ### NYTLabels annotator
 nytlabels:
