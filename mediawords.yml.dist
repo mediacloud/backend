@@ -279,9 +279,8 @@ nytlabels:
     ### "geocoder_version" tag set
     nytlabels_version_tag: "nyt_labeller_v1.0.0"
 
-    ### NYTLabels geographical names tag set, e.g. "mc-geocoder@media.mit.edu";
-    ### tags with names such as "geonames_<countryGeoNameId>" will be added
-    ### under this tag set
+    ### NYTLabels tag set, e.g. "nyt_labels"; tags with names such as
+    ### "hurricane" will be added under this tag set
     nytlabels_labels_tag_set: "nyt_labels"
 
 ### Facebook API
