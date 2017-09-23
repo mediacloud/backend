@@ -80,11 +80,6 @@ sub BUILD
 {
     my $self = shift;
 
-    unless ( $self->annotator_is_enabled() )
-    {
-        fatal_error( "Annotator is not enabled; why are you accessing this variable?" );
-    }
-
     my $kvs_table_name = $self->_postgresql_raw_annotations_table();
     unless ( $kvs_table_name )
     {
