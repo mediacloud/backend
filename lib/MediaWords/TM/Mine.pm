@@ -834,10 +834,9 @@ sub queue_extraction($$)
     return if ( $_test_mode );
 
     my $args = {
-        stories_id              => $story->{ stories_id },
-        skip_bitly_processing   => 1,
-        skip_corenlp_annotation => 1,
-        use_cache               => 1
+        stories_id            => $story->{ stories_id },
+        skip_bitly_processing => 1,
+        use_cache             => 1
     };
 
     my $priority = $MediaCloud::JobManager::Job::MJM_JOB_PRIORITY_HIGH;

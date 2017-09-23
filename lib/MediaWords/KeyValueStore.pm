@@ -1,8 +1,8 @@
 package MediaWords::KeyValueStore;
 
 #
-# Abstract class for storing / loading objects (raw downloads, CoreNLP
-# annotator results, ...) to / from various storage locations
+# Abstract class for storing / loading objects (raw downloads, annotator
+# results, ...) to / from various storage locations
 #
 
 #
@@ -59,8 +59,7 @@ package MediaWords::KeyValueStore;
 #
 # * lib/MediaWords/DBI/Downloads.pm -- storing / fetching raw downloads from
 #   various kinds of storage methods
-# * lib/MediaWords/Util/CoreNLP.pm -- storing / fetching CoreNLP annotator
-#   results
+# * lib/MediaWords/Util/Annotator/* -- storing / fetching annotator results
 #
 
 use strict;

@@ -14,7 +14,6 @@ use List::Compare;
 
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
-use MediaWords::Util::Annotator::CoreNLP;
 use MediaWords::Util::HTML;
 use MediaWords::Util::JSON;
 
@@ -91,48 +90,17 @@ END
     $db->commit;
 }
 
-# for each story, add the CoreNLP anno
-sub _add_corenlp
-{
-    my ( $db, $stories, $ids_table ) = @_;
-
-    my $corenlp = MediaWords::Util::Annotator::CoreNLP->new();
-
-    die( "corenlp annotator is not enabled" ) unless ( $corenlp->annotator_is_enabled );
-
-    for my $story ( @{ $stories } )
-    {
-        my $stories_id = $story->{ stories_id };
-
-        unless ( $corenlp->story_is_annotated( $db, $stories_id ) )
-        {
-            $story->{ corenlp } = { annotated => 'false' };
-            next;
-        }
-
-        my $json_data = $corenlp->fetch_annotation_for_story( $db, $stories_id );
-
-        die( "unable to parse CoreNLP JSON for story '$stories_id'" )
-          unless ( $json_data && $json_data->{ _ }->{ corenlp } );
-
-        $story->{ corenlp } = $json_data;
-    }
-}
-
 sub add_extra_data
 {
     my ( $self, $c, $stories ) = @_;
 
     my $raw_1st_download = $c->req->params->{ raw_1st_download };
-    my $corenlp          = $c->req->params->{ corenlp };
 
-    return $stories unless ( scalar @{ $stories } && ( $raw_1st_download || $corenlp ) );
+    return $stories unless ( scalar @{ $stories } && ( $raw_1st_download ) );
 
     my $db = $c->dbis;
 
     _add_raw_1st_download( $db, $stories ) if ( $raw_1st_download );
-
-    _add_corenlp( $db, $stories ) if ( $corenlp );
 
     return $stories;
 }

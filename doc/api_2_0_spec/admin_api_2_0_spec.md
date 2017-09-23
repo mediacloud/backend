@@ -122,7 +122,6 @@ The following table describes the meaning and origin of fields returned by the a
 | `raw_1st_download`           | 0       | If non-zero, include the full HTML of the first page of the story.
 | `sentences`                  | 0       | If non-zero, include the `story_sentences` field described above in the output.
 | `text`                       | 0       | If non-zero, include the `story_text` field described above in the output.
-| `corenlp`                    | 0       | If non-zero, include the CoreNLP JSON document with each story and each sentence
 | `q`                          | null    | If specified, return only results that match the given Solr query.  Only one `q` parameter may be included.
 | `fq`                         | null    | If specified, filter results by the given Solr query.  More than one `fq` parameter may be included.
 

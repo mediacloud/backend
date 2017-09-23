@@ -209,16 +209,6 @@ programs = rabbitmq
 %]
 
 [% INCLUDE program_config
-    program='annotate_with_corenlp'
-    worker_module='AnnotateWithCoreNLP.pm'
-    default_stopasgroup='false'
-    default_killasgroup='false'
-    default_autorestart='false'
-    default_autostart='true'
-    default_nice=10
-%]
-
-[% INCLUDE program_config
     program='bitly_fetch_story_stats'
     worker_module='Bitly/FetchStoryStats.pm'
     default_stopasgroup='false'

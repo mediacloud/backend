@@ -132,41 +132,6 @@
         </td>
     </tr>
 
-    [% IF corenlp_is_enabled %]
-        <tr>
-            <th>
-                CoreNLP annotation:</th>
-            <td>
-                [% IF corenlp_story_is_annotatable %]
-                    [% IF corenlp_story_is_annotated %]
-
-                        <iframe src="[% c.uri_for( '/admin/stories/corenlp_json/' _ story.stories_id ) | html %]" style="width: 99%; height: 480px; background-color: white"></iframe>
-
-                        <p>
-                            <a href="[% c.uri_for( '/admin/stories/corenlp_json/' _ story.stories_id ) | html %]" target="_blank">[open in new page]</a>
-                        </p>
-
-                        <p>
-                            <strong>Notes:</strong>
-                        </p>
-                        <ul>
-                            <li>Index "<code>[% corenlp_sentences_concatenation_index | html %]</code>" is concatenation of all sentences.</li>
-                        </ul>
-
-                        <p>[% jsonview_help %]</p>
-
-                    [% ELSE %]
-                        not annotated
-                    [% END %]
-                [% ELSE %]
-                    not annotatable (either it's not in English or has no sentences)
-                [% END %]
-            </td>
-        </tr>
-    [% ELSE %]
-        <!-- CoreNLP annotation is not enabled in the configuration -->
-    [% END %]
-
     [% IF cliff_is_enabled %]
         <tr>
             <th>

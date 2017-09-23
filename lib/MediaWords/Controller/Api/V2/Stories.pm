@@ -15,7 +15,6 @@ use Encode;
 
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
-use MediaWords::Util::Annotator::CoreNLP;
 use MediaWords::Util::Bitly;
 use MediaWords::Util::Bitly::API;
 use MediaWords::Util::JSON;
@@ -44,7 +43,6 @@ __PACKAGE__->config(
         list               => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
         put_tags           => { Does => [ qw( ~StoriesEditAuthenticated ~Throttled ~Logged ) ] },
         fetch_bitly_clicks => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
-        corenlp            => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
@@ -87,64 +85,6 @@ sub put_tags_PUT
     }
 
     return;
-}
-
-sub corenlp : Local
-{
-    my ( $self, $c ) = @_;
-
-    my $db = $c->dbis;
-
-    my $stories_ids = $c->req->params->{ stories_id };
-    unless ( $stories_ids )
-    {
-        die "One or more 'stories_id' is required.";
-    }
-
-    $stories_ids = [ $stories_ids ] unless ( ref( $stories_ids ) );
-
-    my $json_list = {};
-    for my $stories_id ( @{ $stories_ids } )
-    {
-        next if ( $json_list->{ $stories_id } );
-
-        my $annotation;
-
-        my $story = $db->find_by_id( 'stories', $stories_id );
-        if ( !$story )
-        {
-            # mostly useful for testing this end point without triggering a fatal error because CoreNLP is not enabled
-            $annotation = 'story does not exist';
-        }
-        else
-        {
-            my $corenlp = MediaWords::Util::Annotator::CoreNLP->new();
-            eval { $annotation = $corenlp->fetch_annotation_for_story( $db, $stories_id ) };
-            $annotation ||= '"story is not annotated"';
-        }
-
-        $json_list->{ $stories_id } = $annotation;
-
-    }
-
-    my $json_items = [];
-    for my $stories_id ( keys( %{ $json_list } ) )
-    {
-        my $json_item = {
-            stories_id => $stories_id,
-            corenlp    => $json_list->{ $stories_id },
-        };
-        push( @{ $json_items }, $json_item );
-    }
-
-    my $json = MediaWords::Util::JSON::encode_json( $json_items, 1 );
-
-    # Response might contain multibyte characters
-    $json = encode( 'utf-8', $json );
-
-    $c->response->content_type( 'application/json; charset=UTF-8' );
-    $c->response->content_length( bytes::length( $json ) );
-    $c->response->body( $json );
 }
 
 sub fetch_bitly_clicks : Local

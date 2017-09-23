@@ -135,7 +135,6 @@ supervisor:
         #rescrape_media
         #topic_mine
         #topic_snapshot
-        #annotate_with_corenlp
         #bitly_fetch_story_stats
         #bitly_aggregate_story_stats
 
@@ -185,22 +184,6 @@ supervisor_solr:
             # ZooKeeper host + port to connect shards to
             zookeeper_host: "localhost"
             zookeeper_port: 9983
-
-### CoreNLP annotator
-corenlp:
-
-    ### Enable CoreNLP processing
-    ### If enabled, CoreNLP processing will happen after every "content"
-    ### download extraction
-    enabled: "no"
-
-    ### Annotator URL, e.g. "http://www.example.com:8080/corenlp/annotator"
-    annotator_url: ""
-
-    ### CoreNLP annotator level; you might want to use this configuration
-    ### parameter to limit the scope of annotations returned from the service.
-    ### Default is an empty string; you might want to set it to "ner".
-    annotator_level: ""
 
 ### Bit.ly API
 bitly:

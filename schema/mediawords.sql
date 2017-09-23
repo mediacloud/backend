@@ -23,7 +23,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4634;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4635;
 
 BEGIN
 
@@ -2402,22 +2402,6 @@ BEGIN
 END;
 $$
 LANGUAGE 'plpgsql';
-
-
---
--- CoreNLP annotations
---
-CREATE TABLE corenlp_annotations (
-    corenlp_annotations_id  SERIAL    PRIMARY KEY,
-    object_id               INTEGER   NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
-    raw_data                BYTEA     NOT NULL
-);
-CREATE UNIQUE INDEX corenlp_annotations_object_id ON corenlp_annotations (object_id);
-
--- Don't (attempt to) compress BLOBs in "raw_data" because they're going to be
--- compressed already
-ALTER TABLE corenlp_annotations
-    ALTER COLUMN raw_data SET STORAGE EXTERNAL;
 
 
 --

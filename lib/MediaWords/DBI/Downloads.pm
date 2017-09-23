@@ -58,7 +58,6 @@ use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::ExtractorArguments;
 use MediaWords::StoryVectors;
 use MediaWords::Util::Paths;
-use MediaWords::Job::AnnotateWithCoreNLP;
 use MediaWords::Util::URL;
 
 # PostgreSQL table name for storing raw downloads
