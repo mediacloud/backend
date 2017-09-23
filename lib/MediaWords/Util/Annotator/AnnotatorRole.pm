@@ -75,7 +75,7 @@ Readonly my $ANNOTATOR_USE_BZIP2 => 1;
 # PostgreSQL key-value store
 has '_postgresql_store' => ( is => 'rw', isa => 'MediaWords::KeyValueStore::PostgreSQL' );
 
-# (Lazy-initialized) PostgreSQL key-value store shared by ::Util::CLIFF::* packages
+# (Lazy-initialized) PostgreSQL key-value store for storing raw annotations
 sub BUILD
 {
     my $self = shift;
@@ -307,7 +307,7 @@ sub story_is_annotated($$$)
 
     unless ( $self->annotator_is_enabled() )
     {
-        die "CLIFF annotator is not enabled in the configuration.";
+        die "Annotator is not enabled in the configuration.";
     }
 
     my $annotation_exists = undef;
@@ -391,7 +391,7 @@ EOF
     eval { $self->_postgresql_store()->store_content( $db, $stories_id, \$json_annotation ); };
     if ( $@ )
     {
-        fatal_error( "Unable to store CLIFF annotation result: $@" );
+        fatal_error( "Unable to store annotation result: $@" );
         return 0;
     }
     INFO "Done storing annotation results for story $stories_id.";
@@ -464,7 +464,7 @@ sub update_tags_for_story($$$)
     my $annotation = $self->fetch_annotation_for_story( $db, $stories_id );
     unless ( $annotation )
     {
-        die "Unable to fetch CLIFF annotation for story $stories_id";
+        die "Unable to fetch annotation for story $stories_id";
     }
 
     my $tags;
