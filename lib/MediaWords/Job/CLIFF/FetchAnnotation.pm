@@ -19,7 +19,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::DB;
 use MediaWords::Job::CLIFF::UpdateStoryTags;
-use MediaWords::Util::CLIFF;
+use MediaWords::Util::Annotator::CLIFF;
 
 use Readonly;
 use Data::Dumper;
@@ -40,7 +40,8 @@ sub run($;$)
     }
 
     # Annotate story with CLIFF
-    eval { MediaWords::Util::CLIFF::annotate_and_store_for_story( $db, $stories_id ); };
+    my $cliff = MediaWords::Util::Annotator::CLIFF->new();
+    eval { $cliff->annotate_and_store_for_story( $db, $stories_id ); };
     if ( $@ )
     {
         die "Unable to process story $stories_id with CLIFF: $@\n";

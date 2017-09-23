@@ -513,6 +513,8 @@ sub process_extracted_story($$$)
 
     MediaWords::DBI::Stories::ExtractorVersion::update_extractor_version_tag( $db, $story, $extractor_args );
 
+    my $corenlp = MediaWords::Util::Annotator::CoreNLP->new();
+
     my $mark_story_as_processed = 0;
     if ( $extractor_args->skip_corenlp_annotation() )
     {
@@ -522,8 +524,7 @@ sub process_extracted_story($$$)
     }
     else
     {
-        if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
-            and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
+        if ( $corenlp->annotator_is_enabled() and $corenlp->story_is_annotatable( $db, $stories_id ) )
         {
             if ( $extractor_args->no_vector() )
             {

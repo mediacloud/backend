@@ -16,10 +16,10 @@ use MediaWords::DBI::Activities;
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::DBI::Activities;
+use MediaWords::Util::Annotator::CoreNLP;
 use MediaWords::Util::Bitly;
-use MediaWords::Util::CLIFF;
-use MediaWords::Util::NYTLabels;
-use MediaWords::Util::CoreNLP;
+use MediaWords::Util::Annotator::CLIFF;
+use MediaWords::Util::Annotator::NYTLabels;
 use MediaWords::Util::JSON;
 
 =head1 NAME
@@ -157,20 +157,22 @@ END
 
     $c->stash->{ stories_id } = $stories_id;
 
+    my $corenlp = MediaWords::Util::Annotator::CoreNLP->new();
+
     # Show CoreNLP JSON
-    if ( MediaWords::Util::CoreNLP::annotator_is_enabled() )
+    if ( $corenlp->annotator_is_enabled() )
     {
         $c->stash->{ corenlp_is_enabled } = 1;
 
-        if ( MediaWords::Util::CoreNLP::story_is_annotatable( $c->dbis, $story->{ stories_id } ) )
+        if ( $corenlp->story_is_annotatable( $c->dbis, $story->{ stories_id } ) )
         {
             $c->stash->{ corenlp_story_is_annotatable } = 1;
 
-            if ( MediaWords::Util::CoreNLP::story_is_annotated( $c->dbis, $story->{ stories_id } ) )
+            if ( $corenlp->story_is_annotated( $c->dbis, $story->{ stories_id } ) )
             {
                 $c->stash->{ corenlp_story_is_annotated } = 1;
                 $c->stash->{ corenlp_sentences_concatenation_index } =
-                  MediaWords::Util::CoreNLP::sentences_concatenation_index();
+                  MediaWords::Util::Annotator::CoreNLP::sentences_concatenation_index();
             }
             else
             {
@@ -188,15 +190,16 @@ END
     }
 
     # Show CLIFF JSON
-    if ( MediaWords::Util::CLIFF::cliff_is_enabled() )
+    my $cliff = MediaWords::Util::Annotator::CLIFF->new();
+    if ( $cliff->annotator_is_enabled() )
     {
         $c->stash->{ cliff_is_enabled } = 1;
 
-        if ( MediaWords::Util::CLIFF::story_is_annotatable( $c->dbis, $story->{ stories_id } ) )
+        if ( $cliff->story_is_annotatable( $c->dbis, $story->{ stories_id } ) )
         {
             $c->stash->{ cliff_story_is_annotatable } = 1;
 
-            if ( MediaWords::Util::CLIFF::story_is_annotated( $c->dbis, $story->{ stories_id } ) )
+            if ( $cliff->story_is_annotated( $c->dbis, $story->{ stories_id } ) )
             {
                 $c->stash->{ cliff_story_is_annotated } = 1;
             }
@@ -216,15 +219,16 @@ END
     }
 
     # Show NYTLabels JSON
-    if ( MediaWords::Util::NYTLabels::nytlabels_is_enabled() )
+    my $nytlabels = MediaWords::Util::Annotator::NYTLabels->new();
+    if ( $nytlabels->annotator_is_enabled() )
     {
         $c->stash->{ nytlabels_is_enabled } = 1;
 
-        if ( MediaWords::Util::NYTLabels::story_is_annotatable( $c->dbis, $story->{ stories_id } ) )
+        if ( $nytlabels->story_is_annotatable( $c->dbis, $story->{ stories_id } ) )
         {
             $c->stash->{ nytlabels_story_is_annotatable } = 1;
 
-            if ( MediaWords::Util::NYTLabels::story_is_annotated( $c->dbis, $story->{ stories_id } ) )
+            if ( $nytlabels->story_is_annotated( $c->dbis, $story->{ stories_id } ) )
             {
                 $c->stash->{ nytlabels_story_is_annotated } = 1;
             }
@@ -280,25 +284,35 @@ sub corenlp_json : Local
         LOGCONFESS "Story $stories_id does not exist.";
     }
 
-    unless ( MediaWords::Util::CoreNLP::annotator_is_enabled() )
+    my $corenlp = MediaWords::Util::Annotator::CoreNLP->new();
+
+    unless ( $corenlp->annotator_is_enabled() )
     {
         LOGCONFESS "CoreNLP annotator is not enabled in the configuration.";
     }
 
-    unless ( MediaWords::Util::CoreNLP::story_is_annotatable( $c->dbis, $stories_id ) )
+    unless ( $corenlp->story_is_annotatable( $c->dbis, $stories_id ) )
     {
         LOGCONFESS "Story $stories_id is not annotatable (either it's not in English or has no sentences).";
     }
 
-    unless ( MediaWords::Util::CoreNLP::story_is_annotated( $c->dbis, $stories_id ) )
+    unless ( $corenlp->story_is_annotated( $c->dbis, $stories_id ) )
     {
         LOGCONFESS "Story $stories_id is not annotated.";
     }
 
-    my $corenlp_json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story( $c->dbis, $stories_id );
+    my $annotation = $corenlp->fetch_annotation_for_story( $c->dbis, $stories_id );
+
+    my $annotation_json;
+    eval { $annotation_json = MediaWords::Util::JSON::encode_json( $annotation, 1 ); };
+    if ( $@ or ( !$annotation_json ) )
+    {
+        die "Unable to encode story and its sentences annotation to JSON for story " .
+          $stories_id . ": $@\nHashref: " . Dumper( $annotation );
+    }
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
-    return $c->res->body( encode( 'utf-8', $corenlp_json ) );
+    return $c->res->body( encode( 'utf-8', $annotation_json ) );
 }
 
 # view CLIFF JSON
@@ -316,22 +330,23 @@ sub cliff_json : Local
         LOGCONFESS "Story $stories_id does not exist.";
     }
 
-    unless ( MediaWords::Util::CLIFF::cliff_is_enabled() )
+    my $cliff = MediaWords::Util::Annotator::CLIFF->new();
+    unless ( $cliff->annotator_is_enabled() )
     {
         LOGCONFESS "CLIFF annotator is not enabled in the configuration.";
     }
 
-    unless ( MediaWords::Util::CLIFF::story_is_annotatable( $c->dbis, $stories_id ) )
+    unless ( $cliff->story_is_annotatable( $c->dbis, $stories_id ) )
     {
         LOGCONFESS "Story $stories_id is not annotatable (either it's not in English or has no sentences).";
     }
 
-    unless ( MediaWords::Util::CLIFF::story_is_annotated( $c->dbis, $stories_id ) )
+    unless ( $cliff->story_is_annotated( $c->dbis, $stories_id ) )
     {
         LOGCONFESS "Story $stories_id is not annotated.";
     }
 
-    my $cliff_annotation = MediaWords::Util::CLIFF::fetch_annotation_for_story( $c->dbis, $stories_id );
+    my $cliff_annotation = $cliff->fetch_annotation_for_story( $c->dbis, $stories_id );
 
     # Encode back to JSON, prettifying the result
     my $annotation_json;
@@ -361,22 +376,23 @@ sub nytlabels_json : Local
         LOGCONFESS "Story $stories_id does not exist.";
     }
 
-    unless ( MediaWords::Util::NYTLabels::nytlabels_is_enabled() )
+    my $nytlabels = MediaWords::Util::Annotator::NYTLabels->new();
+    unless ( $nytlabels->annotator_is_enabled() )
     {
         LOGCONFESS "NYTLabels annotator is not enabled in the configuration.";
     }
 
-    unless ( MediaWords::Util::NYTLabels::story_is_annotatable( $c->dbis, $stories_id ) )
+    unless ( $nytlabels->story_is_annotatable( $c->dbis, $stories_id ) )
     {
         LOGCONFESS "Story $stories_id is not annotatable (either it's not in English or has no sentences).";
     }
 
-    unless ( MediaWords::Util::NYTLabels::story_is_annotated( $c->dbis, $stories_id ) )
+    unless ( $nytlabels->story_is_annotated( $c->dbis, $stories_id ) )
     {
         LOGCONFESS "Story $stories_id is not annotated.";
     }
 
-    my $nytlabels_annotation = MediaWords::Util::NYTLabels::fetch_annotation_for_story( $c->dbis, $stories_id );
+    my $nytlabels_annotation = $nytlabels->fetch_annotation_for_story( $c->dbis, $stories_id );
 
     # Encode back to JSON, prettifying the result
     my $annotation_json;

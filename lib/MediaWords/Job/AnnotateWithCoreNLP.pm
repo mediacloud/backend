@@ -19,7 +19,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::DB;
 
-use MediaWords::Util::CoreNLP;
+use MediaWords::Util::Annotator::CoreNLP;
 use MediaWords::DBI::Stories;
 use Readonly;
 
@@ -56,7 +56,8 @@ sub run($;$)
     }
 
     # Annotate story with CoreNLP
-    eval { MediaWords::Util::CoreNLP::annotate_and_store_for_story( $db, $stories_id ); };
+    my $corenlp = MediaWords::Util::Annotator::CoreNLP->new();
+    eval { $corenlp->annotate_and_store_for_story( $db, $stories_id ); };
     if ( $@ )
     {
         die "Unable to process story $stories_id with CoreNLP: $@\n";

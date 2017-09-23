@@ -18,7 +18,8 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;
-use MediaWords::Util::CLIFF::Tagger;
+use MediaWords::Util::Annotator::CLIFF;
+
 use Readonly;
 use Data::Dumper;
 
@@ -38,7 +39,8 @@ sub run($;$)
     }
 
     # Annotate story with CLIFF
-    eval { MediaWords::Util::CLIFF::Tagger::update_cliff_tags_for_story( $db, $stories_id ); };
+    my $cliff = MediaWords::Util::Annotator::CLIFF->new();
+    eval { $cliff->update_tags_for_story( $db, $stories_id ); };
     if ( $@ )
     {
         die "Unable to process story $stories_id with CLIFF: $@\n";

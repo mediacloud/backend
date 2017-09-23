@@ -13,9 +13,7 @@ use Test::NoWarnings;
 use Data::Dumper;
 use Readonly;
 
-use MediaWords::Util::NYTLabels;
-use MediaWords::Util::NYTLabels::Annotator;
-use MediaWords::Util::NYTLabels::Tagger;
+use MediaWords::Util::Annotator::NYTLabels;
 use MediaWords::Util::JSON;
 
 use MediaWords::Test::HTTP::HashServer;
@@ -152,7 +150,9 @@ sub test_nytlabels_annotator($)
     $new_config->{ nytlabels }->{ annotator_url } = $annotator_url;
     MediaWords::Util::Config::set_config( $new_config );
 
-    MediaWords::Util::NYTLabels::annotate_and_store_for_story( $db, $stories_id );
+    my $nytlabels = MediaWords::Util::Annotator::NYTLabels->new();
+
+    $nytlabels->annotate_and_store_for_story( $db, $stories_id );
 
     my ( $annotation_exists ) = $db->query(
         <<SQL,
@@ -164,7 +164,7 @@ SQL
     )->flat;
     ok( $annotation_exists );
 
-    MediaWords::Util::NYTLabels::Tagger::update_nytlabels_tags_for_story( $db, $stories_id );
+    $nytlabels->update_tags_for_story( $db, $stories_id );
 
     my $story_tags = $db->query(
         <<SQL,

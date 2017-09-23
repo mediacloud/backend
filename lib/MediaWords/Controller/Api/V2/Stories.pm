@@ -15,6 +15,7 @@ use Encode;
 
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
+use MediaWords::Util::Annotator::CoreNLP;
 use MediaWords::Util::Bitly;
 use MediaWords::Util::Bitly::API;
 use MediaWords::Util::JSON;
@@ -107,37 +108,36 @@ sub corenlp : Local
     {
         next if ( $json_list->{ $stories_id } );
 
-        my $json;
+        my $annotation;
 
         my $story = $db->find_by_id( 'stories', $stories_id );
         if ( !$story )
         {
             # mostly useful for testing this end point without triggering a fatal error because CoreNLP is not enabled
-            $json = '"story does not exist"';
+            $annotation = 'story does not exist';
         }
         else
         {
-            eval { $json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story( $db, $stories_id ) };
-            $json ||= '"story is not annotated"';
+            my $corenlp = MediaWords::Util::Annotator::CoreNLP->new();
+            eval { $annotation = $corenlp->fetch_annotation_for_story( $db, $stories_id ) };
+            $annotation ||= '"story is not annotated"';
         }
 
-        $json_list->{ $stories_id } = $json;
+        $json_list->{ $stories_id } = $annotation;
 
     }
 
     my $json_items = [];
     for my $stories_id ( keys( %{ $json_list } ) )
     {
-        my $json_item = <<"END";
-{
-  "stories_id": $stories_id,
-  "corenlp": $json_list->{ $stories_id }
-}
-END
+        my $json_item = {
+            stories_id => $stories_id,
+            corenlp    => $json_list->{ $stories_id },
+        };
         push( @{ $json_items }, $json_item );
     }
 
-    my $json = "[\n" . join( ",\n", @{ $json_items } ) . "\n]\n";
+    my $json = MediaWords::Util::JSON::encode_json( $json_items, 1 );
 
     # Response might contain multibyte characters
     $json = encode( 'utf-8', $json );

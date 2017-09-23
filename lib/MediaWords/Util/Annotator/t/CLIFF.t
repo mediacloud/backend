@@ -13,9 +13,7 @@ use Test::NoWarnings;
 use Data::Dumper;
 use Readonly;
 
-use MediaWords::Util::CLIFF;
-use MediaWords::Util::CLIFF::Annotator;
-use MediaWords::Util::CLIFF::Tagger;
+use MediaWords::Util::Annotator::CLIFF;
 use MediaWords::Util::JSON;
 
 use MediaWords::Test::HTTP::HashServer;
@@ -245,7 +243,9 @@ sub test_cliff_annotator($)
     $new_config->{ cliff }->{ annotator_url } = $annotator_url;
     MediaWords::Util::Config::set_config( $new_config );
 
-    MediaWords::Util::CLIFF::annotate_and_store_for_story( $db, $stories_id );
+    my $cliff = MediaWords::Util::Annotator::CLIFF->new();
+
+    $cliff->annotate_and_store_for_story( $db, $stories_id );
 
     my ( $annotation_exists ) = $db->query(
         <<SQL,
@@ -257,7 +257,7 @@ SQL
     )->flat;
     ok( $annotation_exists );
 
-    MediaWords::Util::CLIFF::Tagger::update_cliff_tags_for_story( $db, $stories_id );
+    $cliff->update_tags_for_story( $db, $stories_id );
 
     my $story_tags = $db->query(
         <<SQL,

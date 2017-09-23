@@ -14,7 +14,7 @@ use List::Compare;
 
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
-use MediaWords::Util::CoreNLP;
+use MediaWords::Util::Annotator::CoreNLP;
 use MediaWords::Util::HTML;
 use MediaWords::Util::JSON;
 
@@ -96,21 +96,21 @@ sub _add_corenlp
 {
     my ( $db, $stories, $ids_table ) = @_;
 
-    die( "corenlp annotator is not enabled" ) unless ( MediaWords::Util::CoreNLP::annotator_is_enabled );
+    my $corenlp = MediaWords::Util::Annotator::CoreNLP->new();
+
+    die( "corenlp annotator is not enabled" ) unless ( $corenlp->annotator_is_enabled );
 
     for my $story ( @{ $stories } )
     {
         my $stories_id = $story->{ stories_id };
 
-        if ( !MediaWords::Util::CoreNLP::story_is_annotated( $db, $stories_id ) )
+        unless ( $corenlp->story_is_annotated( $db, $stories_id ) )
         {
             $story->{ corenlp } = { annotated => 'false' };
             next;
         }
 
-        my $json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story( $db, $stories_id );
-
-        my $json_data = MediaWords::Util::JSON::decode_json( encode( 'utf8', $json ) );
+        my $json_data = $corenlp->fetch_annotation_for_story( $db, $stories_id );
 
         die( "unable to parse CoreNLP JSON for story '$stories_id'" )
           unless ( $json_data && $json_data->{ _ }->{ corenlp } );

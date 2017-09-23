@@ -198,12 +198,6 @@ corenlp:
     ### Annotator URL, e.g. "http://www.example.com:8080/corenlp/annotator"
     annotator_url: ""
 
-    ### Annotator timeout (in seconds)
-    ### If you annotate huge chunks of text or the CoreNLP annotator is busy in
-    ### general, you might want to increase this value even more because
-    ### otherwise the job worker will exit() often.
-    annotator_timeout: 600
-
     ### CoreNLP annotator level; you might want to use this configuration
     ### parameter to limit the scope of annotations returned from the service.
     ### Default is an empty string; you might want to set it to "ner".
@@ -270,12 +264,6 @@ cliff:
     ### Annotator URL (text parsing endpoint), e.g. "http://localhost:8080/cliff-2.3.0/parse/text"
     annotator_url: ""
 
-    ### Annotator timeout (in seconds)
-    ### If you annotate huge chunks of text or the CLIFF annotator is busy in
-    ### general, you might want to increase this value even more because
-    ### otherwise the job worker will exit() often.
-    annotator_timeout: 600
-
     ### CLIFF version tag, e.g. "cliff_clavin_v2.3.0"; will be added under
     ### "geocoder_version" tag set
     cliff_version_tag: "cliff_clavin_v2.3.0"
@@ -295,12 +283,6 @@ nytlabels:
 
     ### Annotator URL (text parsing endpoint), e.g. "http://localhost/predict.json"
     annotator_url: ""
-
-    ### Annotator timeout (in seconds)
-    ### If you annotate huge chunks of text or the NYTLabels annotator is busy in
-    ### general, you might want to increase this value even more because
-    ### otherwise the job worker will exit() often.
-    annotator_timeout: 600
 
     ### NYTLabels version tag, e.g. "nytlabels_clavin_v2.3.0"; will be added under
     ### "geocoder_version" tag set

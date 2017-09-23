@@ -18,7 +18,8 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;
-use MediaWords::Util::NYTLabels::Tagger;
+use MediaWords::Util::Annotator::NYTLabels;
+
 use Readonly;
 use Data::Dumper;
 
@@ -38,7 +39,8 @@ sub run($;$)
     }
 
     # Annotate story with NYTLabels
-    eval { MediaWords::Util::NYTLabels::Tagger::update_nytlabels_tags_for_story( $db, $stories_id ); };
+    my $nytlabels = MediaWords::Util::Annotator::NYTLabels->new();
+    eval { $nytlabels->update_tags_for_story( $db, $stories_id ); };
     if ( $@ )
     {
         die "Unable to process story $stories_id with NYTLabels: $@\n";

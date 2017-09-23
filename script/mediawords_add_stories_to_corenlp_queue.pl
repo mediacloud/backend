@@ -26,8 +26,8 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;
+use MediaWords::Util::Annotator::CoreNLP;
 use MediaWords::Util::Config;
-use MediaWords::Util::CoreNLP;
 use Getopt::Long;
 use MediaWords::Job::AnnotateWithCoreNLP;
 use Scalar::Util qw/looks_like_number/;
@@ -224,7 +224,7 @@ sub _write_stories_id_resume_log($$)
                 FROM stories
                     $left_joins_str
                 WHERE stories.stories_id > $resume_stories_id
-                  AND story_is_annotatable_with_corenlp(stories.stories_id) = 't'
+                  AND story_is_english_and_has_sentences(stories.stories_id) = 't'
                   $limit_by_conditions_str
                 ORDER BY stories.stories_id
                 LIMIT $chunk_size
@@ -249,7 +249,8 @@ EOF
                 # Write the offset
                 _write_stories_id_resume_log( $resume_stories_id_log, $stories_id );
 
-                if ( MediaWords::Util::CoreNLP::story_is_annotated( $db, $stories_id ) )
+                my $corenlp = MediaWords::Util::Annotator::CoreNLP->new();
+                if ( $corenlp->story_is_annotated( $db, $stories_id ) )
                 {
                     if ( $overwrite )
                     {
