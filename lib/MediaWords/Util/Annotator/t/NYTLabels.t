@@ -51,7 +51,7 @@ sub _sample_nytlabels_response()
             },
             {
                 "label" => "electric light and power",
-                "score" => "0.30210"
+                "score" => "0.10210"                     # should be skipped due to threshold
             }
         ],
         "descriptorsAndTaxonomies" => [

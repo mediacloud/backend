@@ -23,7 +23,7 @@ use MediaWords::Util::Web::UserAgent::Request;
 Readonly my $NYTLABELS_VERSION_TAG_SET => 'nyt_labels_version';
 
 # Story will be tagged with labels for which the score is above this threshold
-Readonly my $NYTLABELS_SCORE_THRESHOLD => 0.50;
+Readonly my $NYTLABELS_SCORE_THRESHOLD => 0.2;
 
 sub annotator_is_enabled($)
 {
