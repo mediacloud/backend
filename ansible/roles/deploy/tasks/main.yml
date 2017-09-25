@@ -243,7 +243,7 @@
 
     - name: "Test if status page works"
       uri:
-        url: "{{ apache2_catalyst_status_page }}"
+        url: "{% if apache2_ssl_enabled %}https{% else %}http{% endif %}://{{ apache2_server_name }}/status"
         return_content: yes
       register: status_page
       tags:

@@ -1,6 +1,3 @@
-# ServerName (e.g. core.mediacloud.org)
-apache2_server_name: "{{ ansible_hostname }}"
-
 # ServerAdmin
 apache2_server_admin: "mediacloud@cyber.law.harvard.edu"
 
