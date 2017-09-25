@@ -1,11 +1,12 @@
 #!/usr/bin/env perl
+
 use strict;
 use warnings;
 
-BEGIN
-{
-    $ENV{ CATALYST_SCRIPT_GEN } = 40;
-}
+$ENV{ CATALYST_SCRIPT_GEN } = 40;
+
+use Modern::Perl '2015';
+use MediaWords::CommonLibs;
 
 use Catalyst::ScriptRunner;
 Catalyst::ScriptRunner->run( 'MediaWords', 'Server' );

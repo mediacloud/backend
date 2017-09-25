@@ -7,13 +7,8 @@ use Readonly;
 use Test::More tests => 17;
 use Test::Deep;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
+use_ok( 'MediaWords::Util::Text' );
 
-    use_ok( 'MediaWords::Util::Text' );
-}
 
 sub test_encode_decode_utf8()
 {

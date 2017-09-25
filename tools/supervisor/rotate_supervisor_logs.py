@@ -23,23 +23,23 @@ __LOG_MAX_SIZE = 100 * 1024 * 1024
 # Number of old logs to keep
 __OLD_LOG_COUNT = 7
 
-l = create_logger(__name__)
+log = create_logger(__name__)
 
 
 # noinspection SpellCheckingInspection
 def rotate_supervisor_logs():
     root_path = mc_root_path()
-    l.debug('Media Cloud root path: %s' % root_path)
+    log.debug('Media Cloud root path: %s' % root_path)
 
     config = py_get_config()
     child_log_dir = config['supervisor']['childlogdir']
-    l.debug('Child log directory: %s' % child_log_dir)
+    log.debug('Child log directory: %s' % child_log_dir)
 
     supervisor_logs_dir = os.path.join(root_path, child_log_dir)
-    l.info('Supervisor logs path: %s' % supervisor_logs_dir)
+    log.info('Supervisor logs path: %s' % supervisor_logs_dir)
 
     logrotate_state_file = os.path.join(supervisor_logs_dir, 'logrotate.state')
-    l.debug('logrotate state file: %s' % logrotate_state_file)
+    log.debug('logrotate state file: %s' % logrotate_state_file)
 
     if not os.path.isdir(supervisor_logs_dir):
         raise Exception('Supervisor logs directory does not exist at path: %s' % supervisor_logs_dir)
@@ -60,12 +60,12 @@ def rotate_supervisor_logs():
     }
 
     logrotate_temp_fd, logrotate_temp_config_path = tempfile.mkstemp(suffix='.conf', prefix='logrotate')
-    l.debug('Temporary logtorate config path: %s' % logrotate_temp_config_path)
+    log.debug('Temporary logtorate config path: %s' % logrotate_temp_config_path)
 
     with os.fdopen(logrotate_temp_fd, 'w') as tmp:
         tmp.write(logrotate_config)
 
-    l.info('Running logrotate...')
+    log.info('Running logrotate...')
     subprocess.check_call([
         'logrotate',
         '--verbose',
@@ -73,7 +73,7 @@ def rotate_supervisor_logs():
         logrotate_temp_config_path
     ])
 
-    l.debug('Cleaning up temporary logrotate config...')
+    log.debug('Cleaning up temporary logrotate config...')
     os.unlink(logrotate_temp_config_path)
 
 

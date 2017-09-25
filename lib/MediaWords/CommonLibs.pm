@@ -61,7 +61,6 @@ sub import
 }
 
 use Log::Log4perl;
-use FindBin;
 
 # initialize the log once.  for some reason, the init doesn't take sometimes if we just
 # call it during module load.

@@ -7,7 +7,7 @@ from typing import Union
 
 from mediawords.util.log import create_logger
 
-l = create_logger(__name__)
+log = create_logger(__name__)
 
 
 class McDecodeObjectFromBytesIfNeededException(Exception):
@@ -169,7 +169,7 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
     if not skip_decoding:
         query_args = decode_object_from_bytes_if_needed(query_args)
 
-    l.debug("Query to convert: %s; with arguments: %s" % (query, query_args))
+    log.debug("Query to convert: %s; with arguments: %s" % (query, query_args))
 
     # If there are no query parameters, there's nothing more to do
     if len(query_args) == 0:
@@ -256,6 +256,6 @@ def convert_dbd_pg_arguments_to_psycopg2_format(*query_parameters: Union[list, t
     else:
         query_parameters = (query, query_args,)
 
-    l.debug("Converted to: %s" % str(query_parameters))
+    log.debug("Converted to: %s" % str(query_parameters))
 
     return query_parameters

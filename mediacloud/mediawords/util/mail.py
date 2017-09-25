@@ -10,7 +10,7 @@ from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.config import get_config as py_get_config
 from mediawords.util.log import create_logger
 
-l = create_logger(__name__)
+log = create_logger(__name__)
 
 # Environment variable that, when set, will prevent the package from actually sending the email
 __ENV_MAIL_DO_NO_SEND = 'MEDIACLOUD_MAIL_DO_NOT_SEND'
@@ -129,7 +129,7 @@ def send_email(message: Message) -> bool:
             mime_message.attach(message_part)
 
         if test_mode_is_enabled():
-            l.info("Test mode is enabled, not actually sending any email:\n\n%s" % mime_message.as_string())
+            log.info("Test mode is enabled, not actually sending any email:\n\n%s" % mime_message.as_string())
 
         else:
 
@@ -146,12 +146,12 @@ def send_email(message: Message) -> bool:
             # Send message
             refused_recipients = smtp.sendmail(mime_message['From'], mime_message['To'], mime_message.as_string())
             if len(refused_recipients):
-                l.warning("Unable to send email to the following recipients: %s" % str(refused_recipients))
+                log.warning("Unable to send email to the following recipients: %s" % str(refused_recipients))
 
             smtp.quit()
 
     except Exception as ex:
-        l.warning('Unable to send email to %s: %s' % (message.to, str(ex)))
+        log.warning('Unable to send email to %s: %s' % (message.to, str(ex)))
         return False
 
     return True

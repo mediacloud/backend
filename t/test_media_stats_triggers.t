@@ -5,12 +5,6 @@ use warnings;
 
 # test MediaWords::DBI::Stories::is_new
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-}
-
 use Data::Dumper;
 use Test::More;
 use Time::HiRes;

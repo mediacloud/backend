@@ -1,0 +1,2 @@
+# Whether to sudo when installing Pip system dependencies
+pip_system_install_become: true

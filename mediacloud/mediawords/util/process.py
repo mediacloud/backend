@@ -6,13 +6,13 @@ import signal
 import sys
 import subprocess
 import time
-from typing import List, Callable, Any
+from typing import List, Callable, Any, Dict, Union
 
 from mediawords.util.log import create_logger
 from mediawords.util.paths import lock_file, McLockFileException, unlock_file, McUnlockFileException
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
-l = create_logger(__name__)
+log = create_logger(__name__)
 
 
 def process_with_pid_is_running(pid: int) -> bool:
@@ -29,15 +29,21 @@ class McRunCommandInForegroundException(subprocess.SubprocessError):
     pass
 
 
-def run_command_in_foreground(command: List[str]) -> None:
+def run_command_in_foreground(command: List[str], env: Union[Dict[str, str], None] = None, cwd: str = None) -> None:
     """Run command in foreground, raise McRunCommandInForegroundException if it fails."""
-    l.debug("Running command: %s" % ' '.join(command))
+    log.debug("Running command: %s" % ' '.join(command))
+
+    if len(command) == 0:
+        raise McRunCommandInForegroundException('Command is empty.')
 
     command = decode_object_from_bytes_if_needed(command)
 
     # Add some more PATHs to look into
-    env_path = os.environ.copy()
-    env_path['PATH'] = '/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:' + env_path['PATH']
+    process_env = os.environ.copy()
+    process_env['PATH'] = '/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:' + process_env['PATH']
+
+    if env is not None:
+        process_env.update(env)
 
     # noinspection PyBroadException
     try:
@@ -48,18 +54,19 @@ def run_command_in_foreground(command: List[str]) -> None:
                                        stdout=subprocess.PIPE,
                                        stderr=subprocess.STDOUT,
                                        bufsize=line_buffered,
-                                       env=env_path)
+                                       env=process_env,
+                                       cwd=cwd)
             while True:
                 output = process.stdout.readline()
                 if len(output) == 0 and process.poll() is not None:
                     break
-                l.info(output.strip())
+                log.info(output.strip())
             rc = process.poll()
             if rc > 0:
                 raise McRunCommandInForegroundException("Process returned non-zero exit code %d" % rc)
         else:
             # assume Ubuntu
-            subprocess.check_call(command, env=env_path)
+            subprocess.check_call(command, env=process_env, cwd=cwd)
     except subprocess.CalledProcessError as ex:
         raise McRunCommandInForegroundException("Process returned non-zero exit code %d" % ex.returncode)
     except Exception as ex:
@@ -76,36 +83,36 @@ def gracefully_kill_child_process(child_pid: int, sigkill_timeout: int = 60) -> 
         raise McGracefullyKillChildProcessException("Child PID is unset.")
 
     if not process_with_pid_is_running(pid=child_pid):
-        l.warning("Child process with PID %d is not running, maybe it's dead already?" % child_pid)
+        log.warning("Child process with PID %d is not running, maybe it's dead already?" % child_pid)
     else:
-        l.info("Sending SIGKILL to child process with PID %d..." % child_pid)
+        log.info("Sending SIGKILL to child process with PID %d..." % child_pid)
 
         try:
             os.kill(child_pid, signal.SIGKILL)
         except OSError as e:
             # Might be already killed
-            l.warning("Unable to send SIGKILL to child PID %d: %s" % (child_pid, str(e)))
+            log.warning("Unable to send SIGKILL to child PID %d: %s" % (child_pid, str(e)))
 
         for retry in range(sigkill_timeout):
             if process_with_pid_is_running(pid=child_pid):
-                l.info("Child with PID %d is still up (retry %d)." % (child_pid, retry))
+                log.info("Child with PID %d is still up (retry %d)." % (child_pid, retry))
                 time.sleep(1)
             else:
                 break
 
         if process_with_pid_is_running(pid=child_pid):
-            l.warning("SIGKILL didn't work child process with PID %d, sending SIGTERM..." % child_pid)
+            log.warning("SIGKILL didn't work child process with PID %d, sending SIGTERM..." % child_pid)
 
             try:
                 os.kill(child_pid, signal.SIGTERM)
             except OSError as e:
                 # Might be already killed
-                l.warning("Unable to send SIGTERM to child PID %d: %s" % (child_pid, str(e)))
+                log.warning("Unable to send SIGTERM to child PID %d: %s" % (child_pid, str(e)))
 
             time.sleep(3)
 
         if process_with_pid_is_running(pid=child_pid):
-            l.warning("Even SIGKILL didn't do anything, kill child process with PID %d manually!" % child_pid)
+            log.warning("Even SIGKILL didn't do anything, kill child process with PID %d manually!" % child_pid)
 
 
 class McRunAloneException(Exception):
@@ -163,14 +170,14 @@ def run_alone(isolated_function: Callable, *args, **kwargs) -> Any:
         global __run_alone_function_lock_file
 
         if __run_alone_function_lock_file is not None:
-            l.info("Caught SIGTERM, unlocking '%s'..." % __run_alone_function_lock_file)
+            log.info("Caught SIGTERM, unlocking '%s'..." % __run_alone_function_lock_file)
             try:
                 unlock_file(__run_alone_function_lock_file)
             except McUnlockFileException as exception:
                 # Not critical, the lock file might have been removed by some other process
-                l.warning("Unlocking file failed: %s" % str(exception))
+                log.warning("Unlocking file failed: %s" % str(exception))
         else:
-            l.debug("Nothing to unlock.")
+            log.debug("Nothing to unlock.")
 
         sys.exit(signum)
 
@@ -181,10 +188,10 @@ def run_alone(isolated_function: Callable, *args, **kwargs) -> Any:
 
     timeout = 5
 
-    l.debug("Function unique ID: %s" % function_unique_id)
+    log.debug("Function unique ID: %s" % function_unique_id)
 
     function_unique_id_hash = hashlib.sha256(bytes(function_unique_id, 'utf-8')).hexdigest()
-    l.debug("Function unique ID hash: %s" % function_unique_id_hash)
+    log.debug("Function unique ID hash: %s" % function_unique_id_hash)
 
     # Catch SIGINTs and SIGTERMs while running the function to be able to remove lock file afterwards
     original_sigint_handler = signal.getsignal(signal.SIGINT)
@@ -226,7 +233,7 @@ def run_alone(isolated_function: Callable, *args, **kwargs) -> Any:
         unlock_file(__run_alone_function_lock_file)
     except McUnlockFileException as exc:
         # Not critical, the lock file might have been removed by some other process
-        l.warning("Unlocking file failed: %s" % str(exc))
+        log.warning("Unlocking file failed: %s" % str(exc))
 
     # Reset signal handlers
     atexit.unregister(__remove_run_alone_lock_file)

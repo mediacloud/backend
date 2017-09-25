@@ -3,13 +3,6 @@ use warnings;
 
 # tests for MediaWords::DBI::Media::Health
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-    use lib $FindBin::Bin;
-}
-
 use Readonly;
 use Test::More;
 

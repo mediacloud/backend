@@ -5,13 +5,6 @@ use warnings;
 
 # test MediaWords::TM::Mine::get_matching_story_from_db
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-    use lib $FindBin::Bin;
-}
-
 use English '-no_match_vars';
 
 use Test::More tests => 12;

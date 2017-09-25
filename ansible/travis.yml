@@ -1,0 +1,22 @@
+#
+# Pre-install Media Cloud dependencies for the Docker image used by Travis
+#
+
+- name: Set up host for running Media Cloud
+  hosts: all
+  any_errors_fatal: true
+  gather_facts: no
+  pre_tasks:
+    - include: pre-tasks.yml
+  roles:
+    - update-packages
+    - common
+    # Doesn't set hostname because Docker depends on setting it itself
+    - locale
+    - timezone
+    - system-packages
+    - postgresql-server
+    - pam-limits
+    - python-dependencies
+    - perlbrew
+    - perl-dependencies

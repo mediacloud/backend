@@ -5,8 +5,8 @@
 #  *or*
 # Upgrade the Media Cloud database to the latest schema version (--import parameter).
 #
-# Usage: ./script/run_with_carton.sh ./script/mediawords_upgrade_db.pl > schema-diff.sql
-#    or: ./script/run_with_carton.sh ./script/mediawords_upgrade_db.pl --import
+# Usage: ./script/run_in_env.sh ./script/mediawords_upgrade_db.pl > schema-diff.sql
+#    or: ./script/run_in_env.sh ./script/mediawords_upgrade_db.pl --import
 
 package script::mediawords_upgrade_db;
 
