@@ -605,6 +605,7 @@ The topics/list call is is only call that does not include a topics_id in the UR
 |-|-|-|
 | name | null | return only topics with a name including the parameter value |
 | public | null | return only topics for which is_public is true |
+| limit | 20 | number of topics to return for each call |
 
 Standard parameters accepted: link_id.
 
