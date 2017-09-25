@@ -50,6 +50,7 @@ postgresql_server:
 core_services:
 
   hosts:
+    "localhost"
     "mcsample":
     # "test"
 
