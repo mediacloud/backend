@@ -434,12 +434,7 @@ sub _reextract_download
     }
 
     eval {
-        my $extractor_args = MediaWords::DBI::Stories::ExtractorArguments->new(
-            {
-                no_dedup_sentences => 1,
-                no_vector          => 1,
-            }
-        );
+        my $extractor_args = MediaWords::DBI::Stories::ExtractorArguments->new( { no_dedup_sentences => 1, } );
         MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, $extractor_args );
     };
     if ( $@ )
@@ -505,10 +500,7 @@ sub process_extracted_story($$$)
 
     my $stories_id = $story->{ stories_id };
 
-    unless ( $extractor_args->no_vector() )
-    {
-        MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story, $extractor_args );
-    }
+    MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story, $extractor_args );
 
     _update_story_disable_triggers( $db, $story );
 
@@ -637,25 +629,6 @@ END
     {
         restore_download_content( $db, $download, $download->{ content } );
     }
-}
-
-=head2 add_missing_story_sentences( $db, $story )
-
-If no story_sentences exist for the story, add them.
-
-=cut
-
-sub add_missing_story_sentences
-{
-    my ( $db, $story ) = @_;
-
-    my $ss = $db->query( "select 1 from story_sentences ss where stories_id = ?", $story->{ stories_id } )->hash;
-
-    return if ( $ss );
-
-    INFO "ADD SENTENCES [$story->{ stories_id }]";
-
-    MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story );
 }
 
 =head2 get_all_sentences( $db, $story )

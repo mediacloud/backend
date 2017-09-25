@@ -576,15 +576,15 @@ sub process_download_for_extractor($$;$)
 SELECT downloads_id FROM downloads WHERE stories_id = ? AND extracted = 'f' AND type = 'content'
 SQL
 
-    if ( !$has_remaining_download )
+    if ( $has_remaining_download )
+    {
+        DEBUG "pending more downloads ...";
+    }
+    else
     {
         my $story = $db->find_by_id( 'stories', $stories_id );
 
         MediaWords::DBI::Stories::process_extracted_story( $db, $story, $extractor_args );
-    }
-    elsif ( !( $extractor_args->no_vector() ) )
-    {
-        DEBUG "pending more downloads ...";
     }
 }
 

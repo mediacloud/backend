@@ -102,7 +102,6 @@ my $_skip_self_linked_domain = {};
 # cache that indicates whether we should recheck a given url
 my $_no_potential_match_urls = {};
 
-my $_story_sentences_added = {};
 my $_link_extractor;
 
 # initialize static variables for each run
@@ -113,7 +112,6 @@ sub init_static_variables
     $_media_url_lookup        = undef;
     $_skip_self_linked_domain = {};
     $_no_potential_match_urls = {};
-    $_story_sentences_added   = {};
 }
 
 # update topics.state in the database
@@ -639,7 +637,6 @@ sub extract_download($$$)
     my $extractor_args = MediaWords::DBI::Stories::ExtractorArguments->new(
         {
             no_dedup_sentences => 0,
-            no_vector          => 1,
             use_cache          => 1,
         }
     );
@@ -649,10 +646,6 @@ sub extract_download($$$)
     if ( my $error = $@ )
     {
         WARN "extract error processing download $download->{ downloads_id }: $error";
-    }
-    else
-    {
-        add_missing_story_sentences( $db, $story );
     }
 }
 
@@ -1021,19 +1014,6 @@ sub url_failed_potential_match
     my ( $url ) = @_;
 
     return $url && $_no_potential_match_urls->{ $url };
-}
-
-# add missing story sentences, but only do so once per runtime so that we don't repeatedly try
-# to add sentences to stories with no sentences
-sub add_missing_story_sentences
-{
-    my ( $db, $story ) = @_;
-
-    return if ( $_story_sentences_added->{ $story->{ stories_id } } );
-
-    MediaWords::DBI::Stories::add_missing_story_sentences( $db, $story );
-
-    $_story_sentences_added->{ $story->{ stories_id } } = 1;
 }
 
 # return the type of match if the story title, url, description, or sentences match topic search pattern.

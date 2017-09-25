@@ -29,7 +29,6 @@ sub new($;$)
     }
 
     $self->{ _no_dedup_sentences }    = $args ? $args->{ no_dedup_sentences }    : 0;
-    $self->{ _no_vector }             = $args ? $args->{ no_vector }             : 0;
     $self->{ _no_delete }             = $args ? $args->{ no_delete }             : 0;
     $self->{ _skip_bitly_processing } = $args ? $args->{ skip_bitly_processing } : 0;
     $self->{ _use_cache }             = $args ? $args->{ use_cache }             : undef;
@@ -41,12 +40,6 @@ sub no_dedup_sentences($)
 {
     my $self = shift;
     return $self->{ _no_dedup_sentences };
-}
-
-sub no_vector($)
-{
-    my $self = shift;
-    return $self->{ _no_vector };
 }
 
 sub no_delete($)
