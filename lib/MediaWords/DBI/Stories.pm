@@ -504,7 +504,10 @@ sub process_extracted_story($$$)
 
     _update_story_disable_triggers( $db, $story );
 
-    MediaWords::DBI::Stories::ExtractorVersion::update_extractor_version_tag( $db, $story, $extractor_args );
+    unless ( $extractor_args->no_tag_extractor_version() )
+    {
+        MediaWords::DBI::Stories::ExtractorVersion::update_extractor_version_tag( $db, $story );
+    }
 
     unless ( mark_as_processed( $db, $stories_id ) )
     {
