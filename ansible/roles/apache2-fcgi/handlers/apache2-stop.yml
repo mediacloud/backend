@@ -1,6 +1,7 @@
 - name: "Stop Apache service"
-  # "service apache2 stop" doesn't work on production 16.04 for whatever reason
-  command: "apachectl stop"
+  service:
+    name: apache2
+    state: stopped
   become: "{{ ansible_distribution == 'Ubuntu' }}"
   become_user: root
   listen:
