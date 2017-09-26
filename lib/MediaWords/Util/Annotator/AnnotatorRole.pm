@@ -470,7 +470,7 @@ sub update_tags_for_story($$$)
         fatal_error( "Unable to fetch tags for story $stories_id: $@" );
     }
 
-    DEBUG "Tags for story $stories_id: " . Dumper( $tags );
+    TRACE "Tags for story $stories_id: " . Dumper( $tags );
 
     $db->begin;
 

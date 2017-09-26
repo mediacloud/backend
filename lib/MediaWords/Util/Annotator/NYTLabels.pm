@@ -169,7 +169,7 @@ sub _tags_for_annotation($$)
         }
         else
         {
-            DEBUG "Skipping label '$label' because its score $score is lower than the threshold $NYTLABELS_SCORE_THRESHOLD";
+            TRACE "Skipping label '$label' because its score $score is lower than the threshold $NYTLABELS_SCORE_THRESHOLD";
         }
     }
 
