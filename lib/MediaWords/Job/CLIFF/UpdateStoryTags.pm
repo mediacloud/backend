@@ -18,7 +18,10 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;
+use MediaWords::DBI::Stories;
+use MediaWords::Job::NYTLabels::FetchAnnotation;
 use MediaWords::Util::Annotator::CLIFF;
+use MediaWords::Util::Annotator::NYTLabels;
 
 use Readonly;
 use Data::Dumper;
@@ -44,6 +47,30 @@ sub run($;$)
     if ( $@ )
     {
         die "Unable to process story $stories_id with CLIFF: $@\n";
+    }
+
+    # Pass the story further to NYTLabels annotator
+    my $nytlabels = MediaWords::Util::Annotator::NYTLabels->new();
+
+    if ( $nytlabels->annotator_is_enabled() and $nytlabels->story_is_annotatable( $db, $stories_id ) )
+    {
+
+        # NYTLabels annotator will mark the story as processed after running
+        DEBUG "Adding story $stories_id to NYTLabels annotation queue...";
+        MediaWords::Job::NYTLabels::FetchAnnotation->add_to_queue( { stories_id => $stories_id } );
+
+    }
+    else
+    {
+
+        TRACE "Won't add $stories_id to NYTLabels annotation queue because it's not annotatable with NYTLabels";
+
+        # If NYTLabels is not enabled, mark the story as processed ourselves
+        TRACE "Marking the story as processed...";
+        unless ( MediaWords::DBI::Stories::mark_as_processed( $db, $stories_id ) )
+        {
+            die "Unable to mark story ID $stories_id as processed";
+        }
     }
 
     return 1;

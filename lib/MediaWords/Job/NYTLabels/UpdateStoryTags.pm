@@ -18,6 +18,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;
+use MediaWords::DBI::Stories;
 use MediaWords::Util::Annotator::NYTLabels;
 
 use Readonly;
@@ -44,6 +45,12 @@ sub run($;$)
     if ( $@ )
     {
         die "Unable to process story $stories_id with NYTLabels: $@\n";
+    }
+
+    TRACE "Marking the story as processed...";
+    unless ( MediaWords::DBI::Stories::mark_as_processed( $db, $stories_id ) )
+    {
+        die "Unable to mark story ID $stories_id as processed";
     }
 
     return 1;

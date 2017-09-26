@@ -30,9 +30,13 @@ use MediaWords::DB::StoryTriggers;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories::ExtractorVersion;
 use MediaWords::DBI::Stories::ExtractorArguments;
+use MediaWords::Job::CLIFF::FetchAnnotation;
+use MediaWords::Job::NYTLabels::FetchAnnotation;
 use MediaWords::Languages::Language;
 use MediaWords::Solr::WordCounts;
 use MediaWords::StoryVectors;
+use MediaWords::Util::Annotator::CLIFF;
+use MediaWords::Util::Annotator::NYTLabels;
 use MediaWords::Util::Bitly::Schedule;
 use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
@@ -509,11 +513,6 @@ sub process_extracted_story($$$)
         MediaWords::DBI::Stories::ExtractorVersion::update_extractor_version_tag( $db, $story );
     }
 
-    unless ( mark_as_processed( $db, $stories_id ) )
-    {
-        die "Unable to mark story ID $stories_id as processed";
-    }
-
     # Add to Bit.ly queue
     unless ( $extractor_args->skip_bitly_processing() )
     {
@@ -526,6 +525,48 @@ sub process_extracted_story($$$)
     else
     {
         DEBUG "Won't process story $stories_id with Bit.ly because it's set to be skipped";
+    }
+
+    my $cliff     = MediaWords::Util::Annotator::CLIFF->new();
+    my $nytlabels = MediaWords::Util::Annotator::NYTLabels->new();
+
+    # Extract -> CLIFF -> NYTLabels -> mark_as_processed() chain
+    if ( $cliff->annotator_is_enabled() and $cliff->story_is_annotatable( $db, $stories_id ) )
+    {
+        # If CLIFF annotator is enabled, ::CLIFF::UpdateStoryTags will check
+        # whether NYTLabels annotator is enabled, and if it is, will pass the
+        # story further to NYTLabels. NYTLabels, in turn, will mark the story
+        # as processed.
+        DEBUG "Adding story $stories_id to CLIFF annotation queue...";
+        MediaWords::Job::CLIFF::FetchAnnotation->add_to_queue( { stories_id => $stories_id } );
+    }
+    else
+    {
+
+        TRACE "Won't add $stories_id to CLIFF annotation queue because it's not annotatable with CLIFF";
+
+        if ( $nytlabels->annotator_is_enabled() and $nytlabels->story_is_annotatable( $db, $stories_id ) )
+        {
+
+            # If CLIFF annotator is disabled, pass the story to NYTLabels
+            # annotator which, if run, will mark the story as processed
+            DEBUG "Adding story $stories_id to NYTLabels annotation queue...";
+            MediaWords::Job::NYTLabels::FetchAnnotation->add_to_queue( { stories_id => $stories_id } );
+
+        }
+        else
+        {
+
+            TRACE "Won't add $stories_id to NYTLabels annotation queue because it's not annotatable with NYTLabels";
+
+            # If neither of the annotators are enabled, mark the story as processed ourselves
+            TRACE "Marking the story as processed...";
+            unless ( mark_as_processed( $db, $stories_id ) )
+            {
+                die "Unable to mark story ID $stories_id as processed";
+            }
+
+        }
     }
 }
 
