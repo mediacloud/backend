@@ -241,7 +241,7 @@ cliff:
     ### Enable CLIFF processing
     ### If enabled, CLIFF processing will happen after every "content"
     ### download extraction
-    enabled: "yes"
+    enabled: "no"
 
     ### Annotator URL (text parsing endpoint), e.g. "http://localhost:8080/cliff-2.3.0/parse/text"
     annotator_url: ""
@@ -270,7 +270,7 @@ nytlabels:
     ### Enable NYTLabels processing
     ### If enabled, NYTLabels processing will happen after every "content"
     ### download extraction
-    enabled: "yes"
+    enabled: "no"
 
     ### Annotator URL (text parsing endpoint), e.g. "http://localhost/predict.json"
     annotator_url: ""
