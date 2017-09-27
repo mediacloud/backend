@@ -23,7 +23,7 @@ RUN \
     apt-get -y --no-install-recommends install apt-transport-https && \
     apt-get -y --no-install-recommends install sudo && \
     apt-get -y --no-install-recommends install build-essential file python python-dev python-pip python-setuptools && \
-    apt-get -y --no-install-recommends install apache2 apache2-fcgi && \
+    apt-get -y --no-install-recommends install apache2 libapache2-mod-fcgid && \
     apt-get -y clean && \
     \
     pip install --upgrade pip && \
