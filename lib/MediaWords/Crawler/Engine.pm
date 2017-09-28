@@ -413,6 +413,9 @@ sub crawl
 
                 for my $s ( $socket_select->can_read() )
                 {
+                    # set timeout so that a single hung read / write will not hork the whole crawler
+                    $s->timeout( 5 );
+
                     my $fetcher_number = $s->getline();
 
                     if ( !defined( $fetcher_number ) )
@@ -441,7 +444,12 @@ sub crawl
 
                     if ( my $queued_download = shift( @{ $queued_downloads } ) )
                     {
-                        $s->printflush( $queued_download->{ downloads_id } . "\n" );
+                        if ( !$s->printflush( $queued_download->{ downloads_id } . "\n" ) )
+                        {
+                            WARN( "provider failed to write download id to fetcher" );
+                            unshift( @{ $queued_downloads }, $queued_download );
+                        }
+
                     }
                     else
                     {
