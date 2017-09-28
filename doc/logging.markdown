@@ -7,14 +7,14 @@ Logging facilities are located in [`mediawords.util.log`](https://github.com/ber
 ```python
 from mediawords.util.log import create_logger
 
-l = create_logger(__name__)
+log = create_logger(__name__)
 ```
 
 ...and then use various logger's helpers to log messages at various logging levels:
 
 ```python
-l.info("This is an informational message")
-l.debug("This is a debugging print")
+log.info("This is an informational message")
+log.debug("This is a debugging print")
 # ...
 ```
 

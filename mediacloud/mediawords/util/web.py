@@ -6,7 +6,7 @@ from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.process import run_command_in_foreground, McRunCommandInForegroundException
 
-l = create_logger(__name__)
+log = create_logger(__name__)
 
 
 class McDownloadFileException(Exception):

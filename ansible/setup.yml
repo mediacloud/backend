@@ -21,7 +21,7 @@
 
 
 - name: Set up PostgreSQL server
-  hosts: postgresql_server
+  hosts: "localhost,postgresql_server"
   any_errors_fatal: true
   roles:
     - postgresql-server
@@ -58,7 +58,7 @@
 
 
 - name: Set up Apache
-  hosts: "core_services"
+  hosts: "localhost,core_services"
   any_errors_fatal: true
   roles:
     - apache2-fcgi

@@ -13,7 +13,7 @@ from typing import List, Callable, Union
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
-l = create_logger(__name__)
+log = create_logger(__name__)
 
 
 class McSolrQueryException(Exception):
@@ -184,13 +184,13 @@ class ParseNode(AbstractParseNode):
         if filtered_tree is None:
             raise McSolrQueryParseSyntaxException("query is empty without fields or ranges")
 
-        re = filtered_tree.get_re()
+        regexp = filtered_tree.get_re()
 
         # for logogram languages, remove the beginning word boundary because it breaks the re
-        if (is_logogram):
-            re = re.replace( '[[:<:]]', '' )
+        if is_logogram:
+            regexp = regexp.replace('[[:<:]]', '')
 
-        return re
+        return regexp
 
 
 class TermNode(ParseNode):
@@ -403,7 +403,7 @@ def __parse_tokens(tokens: List[Token], want_type: List[TokenType] = None) -> Pa
                     str(checked_token), str(checked_want_type))
             )
 
-    l.debug("parse tree: " + str(tokens))
+    log.debug("parse tree: " + str(tokens))
 
     if want_type is None:
         want_type = [TokenType.OPEN, TokenType.PHRASE, TokenType.NOT, TokenType.TERM]
@@ -415,10 +415,10 @@ def __parse_tokens(tokens: List[Token], want_type: List[TokenType] = None) -> Pa
     while len(tokens) > 0:
 
         frame_depth = len(inspect.getouterframes(inspect.currentframe()))
-        l.debug("clause: %s [%s] [frame_depth: %s]" % (clause, type(clause), frame_depth))
+        log.debug("clause: %s [%s] [frame_depth: %s]" % (clause, type(clause), frame_depth))
 
         token = tokens.pop(0)
-        l.debug("parse token: " + str(token))
+        log.debug("parse token: " + str(token))
 
         if (token.token_type == TokenType.PLUS) and (not clause or (type(clause) in (AndNode, OrNode))):
             continue
@@ -431,11 +431,11 @@ def __parse_tokens(tokens: List[Token], want_type: List[TokenType] = None) -> Pa
                                               TokenType.TERM,
                                               TokenType.NOOP,
                                               TokenType.FIELD]):
-            l.debug("INSERT OR")
+            log.debug("INSERT OR")
             tokens.insert(0, token)
             token = Token(token_type=TokenType.OR, token_value='or')
         elif clause and (token.token_type in [TokenType.NOT]):
-            l.debug("INSERT AND")
+            log.debug("INSERT AND")
             tokens.insert(0, token)
             token = Token(token_type=TokenType.AND, token_value='and')
 
@@ -532,7 +532,7 @@ def __parse_tokens(tokens: List[Token], want_type: List[TokenType] = None) -> Pa
                     TokenType.NOOP
                 ])
 
-            l.debug("field operand for %s: %s" % (field_name, field_clause))
+            log.debug("field operand for %s: %s" % (field_name, field_clause))
 
             clause = FieldNode(field_name, field_clause)
 
@@ -568,7 +568,7 @@ def __parse_tokens(tokens: List[Token], want_type: List[TokenType] = None) -> Pa
         want_type += [TokenType.CLOSE]
 
         if boolean_clause:
-            l.debug("boolean append: %s <- %s" % (boolean_clause, clause))
+            log.debug("boolean append: %s <- %s" % (boolean_clause, clause))
             if type(boolean_clause) is type(clause):
                 boolean_clause.operands += clause.operands
             else:
@@ -578,9 +578,9 @@ def __parse_tokens(tokens: List[Token], want_type: List[TokenType] = None) -> Pa
 
     # noinspection PyBroadException
     try:
-        l.debug("parse result: " + str(clause))
+        log.debug("parse result: " + str(clause))
     except:
-        l.debug("parse_result: [" + str(type(clause)) + "]")
+        log.debug("parse_result: [" + str(type(clause)) + "]")
 
     return clause
 
@@ -642,13 +642,13 @@ def __get_tokens(query: str) -> List[Token]:
     # we want to include '*' at the end of field names, but tokenizer wants to make it a separate token
     query = re.sub(r'\*', WILD_PLACEHOLDER, query)
 
-    l.debug("filtered query: " + query)
+    log.debug("filtered query: " + query)
 
     raw_tokens = generate_tokens(readline=io.StringIO(query).readline)
 
     for raw_token in raw_tokens:
         token_value = raw_token[1]
-        l.debug("raw token '%s'" % token_value)
+        log.debug("raw token '%s'" % token_value)
         if len(token_value) > 0:
             token_type = __get_token_type(token=token_value)
             tokens.append(Token(token_value=token_value, token_type=token_type))
@@ -663,6 +663,6 @@ def parse(solr_query: str) -> ParseNode:
 
     tokens = __get_tokens(query=solr_query)
 
-    l.debug("Tokens: %s" % str(tokens))
+    log.debug("Tokens: %s" % str(tokens))
 
     return __parse_tokens(tokens=tokens)
