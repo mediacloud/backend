@@ -55,13 +55,12 @@ sub run($;$)
         die "Story with ID $stories_id was not found.";
     }
 
-    # temporarily comment this out so that we can run the job pool to get backlogged stories into solr - hal
-    # # Annotate story with CoreNLP
-    # eval { MediaWords::Util::CoreNLP::annotate_and_store_for_story( $db, $stories_id ); };
-    # if ( $@ )
-    # {
-    #     die "Unable to process story $stories_id with CoreNLP: $@\n";
-    # }
+    # Annotate story with CoreNLP
+    eval { MediaWords::Util::CoreNLP::annotate_and_store_for_story( $db, $stories_id ); };
+    if ( $@ )
+    {
+        die "Unable to process story $stories_id with CoreNLP: $@\n";
+    }
 
     # Mark the story as processed in "processed_stories" (which might contain duplicate records)
     unless ( MediaWords::DBI::Stories::mark_as_processed( $db, $stories_id ) )
