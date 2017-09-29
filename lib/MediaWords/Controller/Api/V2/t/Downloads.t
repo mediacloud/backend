@@ -50,7 +50,7 @@ sub test_downloads($)
 
     my $got_downloads = test_get( '/api/v2/downloads/list', { feeds_id => $feed->{ feeds_id } } );
 
-    my $fields = [ qw/feeds_id url guid type state priority sequence download_time host/ ];
+    my $fields = [ qw/feeds_id url type state priority sequence download_time host/ ];
     rows_match( $label, $got_downloads, $expected_downloads, "downloads_id", $fields );
 
     $label = "downloads/single";
