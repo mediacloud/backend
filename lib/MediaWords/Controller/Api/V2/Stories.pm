@@ -42,6 +42,7 @@ __PACKAGE__->config(
         single             => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
         list               => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
         put_tags           => { Does => [ qw( ~StoriesEditAuthenticated ~Throttled ~Logged ) ] },
+        update             => { Does => [ qw( ~StoriesEditAuthenticated ~Throttled ~Logged ) ] },
         fetch_bitly_clicks => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
         corenlp            => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
     }
@@ -260,6 +261,46 @@ sub fetch_bitly_clicks : Local
     $c->response->content_type( 'application/json; charset=UTF-8' );
     $c->response->content_length( bytes::length( $json ) );
     $c->response->body( $json );
+}
+
+sub update : Local : ActionClass('MC_REST')
+{
+}
+
+# update a single story
+sub update_PUT : Local
+{
+    my ( $self, $c, $stories_id ) = @_;
+
+    my $data = $c->req->data;
+
+    die( "input must be a hash" ) unless ( ref( $data ) eq ref( {} ) );
+
+    die( "input must include stories_id" ) unless ( $data->{ stories_id } );
+
+    my $db = $c->dbis;
+
+    my $story = $db->require_by_id( 'stories', $data->{ stories_id } );
+
+    my $confirm_date = MediaWords::DBI::Stories::GuessDate::date_is_confirmed( $db, $story );
+    my $undateable = MediaWords::DBI::Stories::GuessDate::is_undateable( $db, $story );
+
+    my $fields = [ qw/title publish_date language url guid description/ ];
+    my $update = {};
+    map { $update->{ $_ } = $data->{ $_ } if ( defined( $data->{ $_ } ) ) } @{ $fields };
+
+    $db->update_by_id( 'stories', $stories_id, $update );
+
+    if ( $confirm_date )
+    {
+        MediaWords::DBI::Stories::GuessDate::confirm_date( $db, $story );
+    }
+    else
+    {
+        MediaWords::DBI::Stories::GuessDate::unconfirm_date( $db, $story );
+    }
+
+    MediaWords::DBI::Stories::GuessDate::mark_undateable( $db, $story, $undateable );
 }
 
 =head1 AUTHOR
