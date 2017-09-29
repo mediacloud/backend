@@ -261,7 +261,7 @@ sub test_stories_update($$)
     test_put( '/api/v2/stories/update', [ { stories_id => 1 } ], 1 );
 
     my $media = MediaWords::Test::DB::create_test_story_stack( $db,
-        { { 'update_m1' => { 'update_f1' => [ 'update_s1', 'update_s2', 'update_s3' ] } } } );
+        { 'update_m1' => { 'update_f1' => [ 'update_s1', 'update_s2', 'update_s3' ] } } );
 
     my $story = $media->{ update_s1 };
 
@@ -269,13 +269,14 @@ sub test_stories_update($$)
 
     $story_data->{ stories_id } = $story->{ stories_id };
 
-    my $text_fields = [ qw/title url guid description/ ];
-    map { $story_data = $story->{ $_ } . "_update_$_" } @{ $text_fields };
+    # my $text_fields = [ qw/title url guid description/ ];
+    my $text_fields = [ qw/description/ ];
+    map { $story_data->{ $_ } = $story->{ $_ } . "_update_$_" } @{ $text_fields };
 
-    $story_data->{ publish_date } = '2015-06-01 01-09-01';
-    $story_data->{ language }     = 'zz';
-    $story_data->{ confirm_date } = 1;
-    $story_data->{ undateable }   = 1;
+    # $story_data->{ publish_date } = '2015-06-01 01:09:01';
+    # $story_data->{ language }     = 'zz';
+    # $story_data->{ confirm_date } = 1;
+    # $story_data->{ undateable }   = 1;
 
     my $r = test_put( '/api/v2/stories/update', $story_data );
     is( $r->{ success }, 1, "stories/update all success" );

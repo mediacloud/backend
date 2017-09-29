@@ -270,7 +270,7 @@ sub update : Local : ActionClass('MC_REST')
 # update a single story
 sub update_PUT : Local
 {
-    my ( $self, $c, $stories_id ) = @_;
+    my ( $self, $c ) = @_;
 
     my $data = $c->req->data;
 
@@ -289,7 +289,7 @@ sub update_PUT : Local
     my $update = {};
     map { $update->{ $_ } = $data->{ $_ } if ( defined( $data->{ $_ } ) ) } @{ $fields };
 
-    $db->update_by_id( 'stories', $stories_id, $update );
+    $db->update_by_id( 'stories', $data->{ stories_id }, $update );
 
     if ( $confirm_date )
     {
