@@ -282,8 +282,8 @@ sub update_PUT : Local
 
     my $story = $db->require_by_id( 'stories', $data->{ stories_id } );
 
-    my $confirm_date = MediaWords::DBI::Stories::GuessDate::date_is_confirmed( $db, $story );
-    my $undateable = MediaWords::DBI::Stories::GuessDate::is_undateable( $db, $story );
+    my $confirm_date = $data->{ confirm_date };
+    my $undateable   = $data->{ undateable };
 
     my $fields = [ qw/title publish_date language url guid description/ ];
     my $update = {};
@@ -301,6 +301,9 @@ sub update_PUT : Local
     }
 
     MediaWords::DBI::Stories::GuessDate::mark_undateable( $db, $story, $undateable );
+
+    $self->status_ok( $c, entity => { success => 1 } );
+
 }
 
 =head1 AUTHOR
