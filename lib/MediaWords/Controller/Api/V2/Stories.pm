@@ -268,7 +268,7 @@ sub update : Local : ActionClass('MC_REST')
 }
 
 # update a single story
-sub update_PUT : Local
+sub update_PUT
 {
     my ( $self, $c ) = @_;
 
