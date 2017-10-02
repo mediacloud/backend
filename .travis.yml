@@ -16,7 +16,7 @@ env:
         # ---
         #
         # Docker image to pull with pre-installed Media Cloud dependencies
-        - MC_TRAVIS_DOCKER_IMAGE=dockermediacloud/mediacloud-travis:20170824
+        - MC_TRAVIS_DOCKER_IMAGE=dockermediacloud/mediacloud-travis:20170928
 
         # Media Cloud root on Docker container
         - MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT=/home/mediacloud/mediacloud/
@@ -98,7 +98,7 @@ install:
         docker exec -i -t
         -e ANSIBLE_CONFIG
         $MC_TRAVIS_DOCKER_CONTAINER
-        bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT && ansible-playbook --inventory='localhost,' --connection=local --skip-tags='update-packages,hostname,kernel-parameters' ansible/setup.yml"
+        bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT && ansible-playbook --inventory='localhost,' --connection=local --skip-tags='hostname,kernel-parameters' ansible/setup.yml"
     # Create PostgreSQL databases on container
     - >
         docker exec -i -t

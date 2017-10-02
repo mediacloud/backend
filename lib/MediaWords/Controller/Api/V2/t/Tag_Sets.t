@@ -6,7 +6,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::Test::HTTP::HashServer;
 use Readonly;
-use Test::More tests => 61;
+use Test::More tests => 76;
 use Test::Deep;
 
 use MediaWords::Test::API;

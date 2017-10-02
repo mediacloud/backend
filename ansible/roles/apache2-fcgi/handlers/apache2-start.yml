@@ -1,5 +1,7 @@
 - name: "Start Apache service"
-  command: "apachectl start"
+  service:
+    name: apache2
+    state: started
   become: "{{ ansible_distribution == 'Ubuntu' }}"
   become_user: root
   listen:
