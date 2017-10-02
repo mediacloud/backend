@@ -29,6 +29,25 @@ sub _test_story_fields($$$)
     map { is( $story->{ $_ }, $expected_story->{ $_ }, "$label field '$_'" ) } @{ $fields };
 }
 
+sub test_stories_cliff($)
+{
+    my ( $db ) = @_;
+
+    # TODO add infrastructure to actually generate CLIFF and test it
+
+    my $label = "stories/cliff";
+
+    # pick a stories_id that does not exist so that we make the end point just tell us that the
+    # end point does not exist instead of triggering a fatal error
+    my $stories_id = -1;
+
+    my $r = test_get( '/api/v2/stories/cliff', { stories_id => $stories_id } );
+
+    is( scalar( @{ $r } ),         1,                      "$label num stories returned" );
+    is( $r->[ 0 ]->{ stories_id }, $stories_id,            "$label stories_id" );
+    is( $r->[ 0 ]->{ cliff },      "story does not exist", "$label does not exist message" );
+}
+
 sub test_stories_fetch_bitly_clicks($)
 {
     my ( $db ) = @_;
@@ -243,6 +262,7 @@ sub test_stories($)
 
     MediaWords::Test::API::setup_test_api_key( $db );
 
+    test_stories_cliff( $db );
     test_stories_fetch_bitly_clicks( $db );
     test_stories_list( $db );
     test_stories_single( $db );
