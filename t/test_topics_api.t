@@ -3,13 +3,7 @@
 use strict;
 use warnings;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin";
-    use lib "$FindBin::Bin/../lib";
-    use Catalyst::Test 'MediaWords';
-}
+use Catalyst::Test 'MediaWords';
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
@@ -303,6 +297,7 @@ sub test_topics_crud($)
         start_date      => '2016-01-01',
         end_date        => '2017-01-01',
         is_public       => 1,
+        is_logogram     => 1,
         ch_monitor_id   => 123456,
         media_ids       => $media_ids,
         media_tags_ids  => $tags_ids
@@ -342,6 +337,7 @@ sub test_topics_crud($)
         start_date      => '2016-01-02',
         end_date        => '2017-01-02',
         is_public       => 0,
+        is_logogram     => 0,
         ch_monitor_id   => 1234567,
         media_ids       => $update_media_ids,
         media_tags_ids  => $update_tags_ids
@@ -397,7 +393,7 @@ sub test_topics_list($)
 
     my $match_fields = [
         qw/name pattern solr_seed_query solr_seed_query_run description max_iterations start_date end_date state
-          message job_queue max_stories/
+          message job_queue max_stories is_logogram/
     ];
 
     my $topic_private_a = MediaWords::Test::DB::create_test_topic( $db, "label private a" );

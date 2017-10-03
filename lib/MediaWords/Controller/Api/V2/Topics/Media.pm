@@ -70,6 +70,32 @@ sub _get_extra_where_clause($$)
     return 'and ' . join( ' and ', map { "( $_ ) " } @{ $clauses } );
 }
 
+# accept sort_param of inlink, social, bitly, facebook, or twitter and
+# return a sort clause for the medium_link_counts table, aliased as 'mlc',
+# that will sort by the relevant field
+sub _get_sort_clause
+{
+    my ( $sort_param ) = @_;
+
+    $sort_param ||= 'inlink';
+
+    my $sort_field_lookup = {
+        inlink            => 'mlc.media_inlink_count',
+        inlink_count      => 'mlc.media_inlink_count',
+        bitly             => 'mlc.bitly_click_count',
+        bitly_click_count => 'mlc.bitly_click_count',
+        social            => 'mlc.bitly_click_count',
+        facebook          => 'mlc.facebook_share_count',
+        twitter           => 'mlc.simple_tweet_count'
+    };
+
+    my $sort_field = $sort_field_lookup->{ lc( $sort_param ) }
+      || die( "unknown sort value: '$sort_param'" );
+
+    # md5 hashing is to make tie breaks random but consistent
+    return "$sort_field desc nulls last, md5( mlc.media_id::text )";
+}
+
 sub list_GET
 {
     my ( $self, $c ) = @_;
@@ -82,11 +108,7 @@ sub list_GET
 
     my $sort_param = $c->req->params->{ sort } || 'inlink';
 
-    # md5 hashing is to make tie breaks random but consistent
-    my $sort_clause =
-      ( $sort_param eq 'social' )
-      ? 'mlc.bitly_click_count desc nulls last, md5( m.media_id::text )'
-      : 'mlc.media_inlink_count desc, md5( m.media_id::text )';
+    my $sort_clause = _get_sort_clause( $c->req->params->{ sort } );
 
     my $timespans_id = $timespan->{ timespans_id };
     my $snapshots_id = $timespan->{ snapshots_id };

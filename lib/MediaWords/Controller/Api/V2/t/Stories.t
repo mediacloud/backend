@@ -1,12 +1,6 @@
 use strict;
 use warnings;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../../lib";
-}
-
 use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 
@@ -35,23 +29,42 @@ sub _test_story_fields($$$)
     map { is( $story->{ $_ }, $expected_story->{ $_ }, "$label field '$_'" ) } @{ $fields };
 }
 
-sub test_stories_corenlp($)
+sub test_stories_cliff($)
 {
     my ( $db ) = @_;
 
-    # TODO add infrastructure to actually generate CoreNLP and test it
+    # TODO add infrastructure to actually generate CLIFF and test it
 
-    my $label = "stories/corenlp";
+    my $label = "stories/cliff";
 
     # pick a stories_id that does not exist so that we make the end point just tell us that the
     # end point does not exist instead of triggering a fatal error
     my $stories_id = -1;
 
-    my $r = test_get( '/api/v2/stories/corenlp', { stories_id => $stories_id } );
+    my $r = test_get( '/api/v2/stories/cliff', { stories_id => $stories_id } );
 
     is( scalar( @{ $r } ),         1,                      "$label num stories returned" );
     is( $r->[ 0 ]->{ stories_id }, $stories_id,            "$label stories_id" );
-    is( $r->[ 0 ]->{ corenlp },    "story does not exist", "$label does not exist message" );
+    is( $r->[ 0 ]->{ cliff },      "story does not exist", "$label does not exist message" );
+}
+
+sub test_stories_nytlabels($)
+{
+    my ( $db ) = @_;
+
+    # TODO add infrastructure to actually generate NYTLabels and test it
+
+    my $label = "stories/nytlabels";
+
+    # pick a stories_id that does not exist so that we make the end point just tell us that the
+    # end point does not exist instead of triggering a fatal error
+    my $stories_id = -1;
+
+    my $r = test_get( '/api/v2/stories/nytlabels', { stories_id => $stories_id } );
+
+    is( scalar( @{ $r } ),         1,                      "$label num stories returned" );
+    is( $r->[ 0 ]->{ stories_id }, $stories_id,            "$label stories_id" );
+    is( $r->[ 0 ]->{ nytlabels },  "story does not exist", "$label does not exist message" );
 }
 
 sub test_stories_fetch_bitly_clicks($)
@@ -93,7 +106,6 @@ SQL
         raw_1st_download => 1,
         sentences        => 1,
         text             => 1,
-        corenlp          => 0
     };
 
     my $got_stories = test_get( '/api/v2/stories/list', $params );
@@ -269,7 +281,8 @@ sub test_stories($)
 
     MediaWords::Test::API::setup_test_api_key( $db );
 
-    test_stories_corenlp( $db );
+    test_stories_cliff( $db );
+    test_stories_nytlabels( $db );
     test_stories_fetch_bitly_clicks( $db );
     test_stories_list( $db );
     test_stories_single( $db );

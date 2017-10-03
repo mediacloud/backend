@@ -7,7 +7,7 @@ from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.url_shorteners import URL_SHORTENER_HOSTNAMES
 
-l = create_logger(__name__)
+log = create_logger(__name__)
 
 __URL_REGEX = re.compile(r'^https?://[^\s/$.?#].[^\s]*$', re.IGNORECASE)
 
@@ -64,23 +64,23 @@ def is_http_url(url: str) -> bool:
     """Returns true if URL is in the "http" ("https") scheme."""
     url = decode_object_from_bytes_if_needed(url)
     if url is None:
-        l.debug("URL is None")
+        log.debug("URL is None")
         return False
     if len(url) == 0:
-        l.debug("URL is empty")
+        log.debug("URL is empty")
         return False
 
     if not re.search(__URL_REGEX, url):
-        l.debug("URL '%s' does not match URL's regexp" % url)
+        log.debug("URL '%s' does not match URL's regexp" % url)
         return False
 
     uri = urlparse(url)
 
     if not uri.scheme:
-        l.debug("Scheme is undefined for URL %s" % url)
+        log.debug("Scheme is undefined for URL %s" % url)
         return False
     if not uri.scheme.lower() in ['http', 'https']:
-        l.debug("Scheme is not HTTP(s) for URL %s" % url)
+        log.debug("Scheme is not HTTP(s) for URL %s" % url)
         return False
 
     return True
@@ -113,11 +113,13 @@ def normalize_url(url: str) -> str:
     if len(url) == 0:
         raise McNormalizeURLException("URL is empty")
 
+    log.info( "normalize_url: " + url )
+
     url = fix_common_url_mistakes(url)
     url = __canonical_url(url)
 
     if not is_http_url(url):
-        raise McNormalizeURLException("URL is not valid")
+        raise McNormalizeURLException("URL is not valid: " + url)
 
     scheme, netloc, path, query_string, fragment = urlsplit(url)
     query = parse_qs(query_string, keep_blank_values=True)
@@ -227,7 +229,7 @@ def normalize_url(url: str) -> str:
     # Remove cruft parameters
     for parameter in parameters_to_remove:
         if ' ' in parameter:
-            l.warning('Invalid cruft parameter "%s"' % parameter)
+            log.warning('Invalid cruft parameter "%s"' % parameter)
         query.pop(parameter, None)
 
     for name in list(query.keys()):  # copy of list to be able to delete
@@ -302,13 +304,13 @@ def __is_shortened_url(url: str) -> bool:
     """Returns true if URL is a shortened URL (e.g. with Bit.ly)."""
     url = decode_object_from_bytes_if_needed(url)
     if url is None:
-        l.debug("URL is None")
+        log.debug("URL is None")
         return False
     if len(url) == 0:
-        l.debug("URL is empty")
+        log.debug("URL is empty")
         return False
     if not is_http_url(url):
-        l.debug("URL is not valid")
+        log.debug("URL is not valid")
         return False
 
     uri = urlparse(url)
@@ -331,21 +333,21 @@ def is_homepage_url(url: str) -> bool:
     (e.g. http://m.wired.com/threatlevel/2011/12/sopa-watered-down-amendment/)."""
     url = decode_object_from_bytes_if_needed(url)
     if url is None:
-        l.debug("URL is None.")
+        log.debug("URL is None.")
         return False
     if len(url) == 0:
-        l.debug("URL is empty.")
+        log.debug("URL is empty.")
         return False
 
     if not is_http_url(url):
-        l.debug("URL '%s' is invalid." % url)
+        log.debug("URL '%s' is invalid." % url)
         return False
 
     # Remove cruft from the URL first
     try:
         url = normalize_url(url)
     except McNormalizeURLException as ex:
-        l.debug("Unable to normalize URL '%s' before checking if it's a homepage: %s" % (url, ex))
+        log.debug("Unable to normalize URL '%s' before checking if it's a homepage: %s" % (url, ex))
         return False
 
     # The shortened URL may lead to a homepage URL, but the shortened URL
@@ -432,7 +434,7 @@ def get_url_distinctive_domain(url: str) -> str:
         return domain.lower()
 
     except Exception as ex:
-        l.debug("get_url_distinctive_domain falling back to url: " + str(ex))
+        log.debug("get_url_distinctive_domain falling back to url: " + str(ex))
         return url.lower()
 
 

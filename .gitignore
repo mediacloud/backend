@@ -1,15 +1,7 @@
 log4perl.conf
-data.old
-matrix
 mediawords.yml
 mediawords-*.yml
 mediacloud.tmproj
-jons_stuff
-.carton
-local
-
-# Media Cloud virtualenv
-mc-venv/
 
 # Byte-compiled / optimized / DLL files
 __pycache__

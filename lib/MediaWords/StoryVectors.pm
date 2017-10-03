@@ -17,7 +17,6 @@ use MediaWords::DBI::Stories::AP;
 use MediaWords::Util::HTML;
 use MediaWords::Util::IdentifyLanguage;
 use MediaWords::Util::SQL;
-use MediaWords::Util::CoreNLP;
 
 use Data::Dumper;
 use Readonly;
@@ -328,25 +327,6 @@ sub update_story_sentences_and_language($$;$)
     if ( $db->in_transaction() )
     {
         $db->commit();
-    }
-
-    unless ( $extractor_args->skip_corenlp_annotation() )
-    {
-        if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
-            and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
-        {
-            # Add to CoreNLP job queue
-            DEBUG "Adding story $stories_id to CoreNLP annotation queue...";
-            MediaWords::Job::AnnotateWithCoreNLP->add_to_queue( { stories_id => $stories_id } );
-        }
-        else
-        {
-            TRACE "Won't add $stories_id to CoreNLP annotation queue because it's not annotatable with CoreNLP";
-        }
-    }
-    else
-    {
-        TRACE "Won't add $stories_id to CoreNLP annotation queue because it's set be skipped";
     }
 }
 

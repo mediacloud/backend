@@ -9,12 +9,6 @@
 use strict;
 use warnings;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-}
-
 use MediaWords::DB;
 use MediaWords::DBI::Media::Health;
 

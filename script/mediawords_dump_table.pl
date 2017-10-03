@@ -9,12 +9,6 @@ use warnings;
 
 use v5.10;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-}
-
 use Encode;
 use Fcntl qw(:flock);
 use Getopt::Long;

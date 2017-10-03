@@ -17,7 +17,8 @@ use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::DBI::Activities;
 use MediaWords::Util::Bitly;
-use MediaWords::Util::CoreNLP;
+use MediaWords::Util::Annotator::CLIFF;
+use MediaWords::Util::Annotator::NYTLabels;
 use MediaWords::Util::JSON;
 
 =head1 NAME
@@ -155,34 +156,62 @@ END
 
     $c->stash->{ stories_id } = $stories_id;
 
-    # Show CoreNLP JSON
-    if ( MediaWords::Util::CoreNLP::annotator_is_enabled() )
+    # Show CLIFF JSON
+    my $cliff = MediaWords::Util::Annotator::CLIFF->new();
+    if ( $cliff->annotator_is_enabled() )
     {
-        $c->stash->{ corenlp_is_enabled } = 1;
+        $c->stash->{ cliff_is_enabled } = 1;
 
-        if ( MediaWords::Util::CoreNLP::story_is_annotatable( $c->dbis, $story->{ stories_id } ) )
+        if ( $cliff->story_is_annotatable( $c->dbis, $story->{ stories_id } ) )
         {
-            $c->stash->{ corenlp_story_is_annotatable } = 1;
+            $c->stash->{ cliff_story_is_annotatable } = 1;
 
-            if ( MediaWords::Util::CoreNLP::story_is_annotated( $c->dbis, $story->{ stories_id } ) )
+            if ( $cliff->story_is_annotated( $c->dbis, $story->{ stories_id } ) )
             {
-                $c->stash->{ corenlp_story_is_annotated } = 1;
-                $c->stash->{ corenlp_sentences_concatenation_index } =
-                  MediaWords::Util::CoreNLP::sentences_concatenation_index();
+                $c->stash->{ cliff_story_is_annotated } = 1;
             }
             else
             {
-                $c->stash->{ corenlp_story_is_annotated } = 0;
+                $c->stash->{ cliff_story_is_annotated } = 0;
             }
         }
         else
         {
-            $c->stash->{ corenlp_story_is_annotatable } = 0;
+            $c->stash->{ cliff_story_is_annotatable } = 0;
         }
     }
     else
     {
-        $c->stash->{ corenlp_is_enabled } = 0;
+        $c->stash->{ cliff_is_enabled } = 0;
+    }
+
+    # Show NYTLabels JSON
+    my $nytlabels = MediaWords::Util::Annotator::NYTLabels->new();
+    if ( $nytlabels->annotator_is_enabled() )
+    {
+        $c->stash->{ nytlabels_is_enabled } = 1;
+
+        if ( $nytlabels->story_is_annotatable( $c->dbis, $story->{ stories_id } ) )
+        {
+            $c->stash->{ nytlabels_story_is_annotatable } = 1;
+
+            if ( $nytlabels->story_is_annotated( $c->dbis, $story->{ stories_id } ) )
+            {
+                $c->stash->{ nytlabels_story_is_annotated } = 1;
+            }
+            else
+            {
+                $c->stash->{ nytlabels_story_is_annotated } = 0;
+            }
+        }
+        else
+        {
+            $c->stash->{ nytlabels_story_is_annotatable } = 0;
+        }
+    }
+    else
+    {
+        $c->stash->{ nytlabels_is_enabled } = 0;
     }
 
     # Show Bit.ly JSON
@@ -207,8 +236,8 @@ END
     $c->stash->{ template } = 'stories/view.tt2';
 }
 
-# view CoreNLP JSON
-sub corenlp_json : Local
+# view CLIFF JSON
+sub cliff_json : Local
 {
     my ( $self, $c, $stories_id ) = @_;
 
@@ -222,25 +251,81 @@ sub corenlp_json : Local
         LOGCONFESS "Story $stories_id does not exist.";
     }
 
-    unless ( MediaWords::Util::CoreNLP::annotator_is_enabled() )
+    my $cliff = MediaWords::Util::Annotator::CLIFF->new();
+    unless ( $cliff->annotator_is_enabled() )
     {
-        LOGCONFESS "CoreNLP annotator is not enabled in the configuration.";
+        LOGCONFESS "CLIFF annotator is not enabled in the configuration.";
     }
 
-    unless ( MediaWords::Util::CoreNLP::story_is_annotatable( $c->dbis, $stories_id ) )
+    unless ( $cliff->story_is_annotatable( $c->dbis, $stories_id ) )
     {
         LOGCONFESS "Story $stories_id is not annotatable (either it's not in English or has no sentences).";
     }
 
-    unless ( MediaWords::Util::CoreNLP::story_is_annotated( $c->dbis, $stories_id ) )
+    unless ( $cliff->story_is_annotated( $c->dbis, $stories_id ) )
     {
         LOGCONFESS "Story $stories_id is not annotated.";
     }
 
-    my $corenlp_json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story( $c->dbis, $stories_id );
+    my $cliff_annotation = $cliff->fetch_annotation_for_story( $c->dbis, $stories_id );
+
+    # Encode back to JSON, prettifying the result
+    my $annotation_json;
+    eval { $annotation_json = MediaWords::Util::JSON::encode_json( $cliff_annotation, 1 ); };
+    if ( $@ or ( !$annotation_json ) )
+    {
+        die "Unable to encode story and its sentences annotation to JSON for story " .
+          $stories_id . ": $@\nHashref: " . Dumper( $cliff_annotation );
+    }
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
-    return $c->res->body( encode( 'utf-8', $corenlp_json ) );
+    return $c->res->body( encode( 'utf-8', $annotation_json ) );
+}
+
+# view NYTLabels JSON
+sub nytlabels_json : Local
+{
+    my ( $self, $c, $stories_id ) = @_;
+
+    unless ( $stories_id )
+    {
+        LOGCONFESS "No stories_id";
+    }
+
+    unless ( $c->dbis->find_by_id( 'stories', $stories_id ) )
+    {
+        LOGCONFESS "Story $stories_id does not exist.";
+    }
+
+    my $nytlabels = MediaWords::Util::Annotator::NYTLabels->new();
+    unless ( $nytlabels->annotator_is_enabled() )
+    {
+        LOGCONFESS "NYTLabels annotator is not enabled in the configuration.";
+    }
+
+    unless ( $nytlabels->story_is_annotatable( $c->dbis, $stories_id ) )
+    {
+        LOGCONFESS "Story $stories_id is not annotatable (either it's not in English or has no sentences).";
+    }
+
+    unless ( $nytlabels->story_is_annotated( $c->dbis, $stories_id ) )
+    {
+        LOGCONFESS "Story $stories_id is not annotated.";
+    }
+
+    my $nytlabels_annotation = $nytlabels->fetch_annotation_for_story( $c->dbis, $stories_id );
+
+    # Encode back to JSON, prettifying the result
+    my $annotation_json;
+    eval { $annotation_json = MediaWords::Util::JSON::encode_json( $nytlabels_annotation, 1 ); };
+    if ( $@ or ( !$annotation_json ) )
+    {
+        die "Unable to encode story and its sentences annotation to JSON for story " .
+          $stories_id . ": $@\nHashref: " . Dumper( $nytlabels_annotation );
+    }
+
+    $c->response->content_type( 'application/json; charset=UTF-8' );
+    return $c->res->body( encode( 'utf-8', $annotation_json ) );
 }
 
 # view Bit.ly JSON

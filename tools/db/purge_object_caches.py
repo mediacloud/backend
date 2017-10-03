@@ -9,7 +9,7 @@ from mediawords.db import connect_to_db
 from mediawords.util.log import create_logger
 from mediawords.util.process import run_alone
 
-l = create_logger(__name__)
+log = create_logger(__name__)
 
 
 def purge_object_caches():
@@ -18,15 +18,15 @@ def purge_object_caches():
     # Wait for an hour between attempts to purge object caches
     delay_between_attempts = 60 * 60
 
-    l.info("Starting to purge object caches...")
+    log.info("Starting to purge object caches...")
     while True:
-        l.info("Purging object caches...")
+        log.info("Purging object caches...")
 
         db = connect_to_db()
         db.query('SELECT cache.purge_object_caches()')
         db.disconnect()
 
-        l.info("Purged object caches, sleeping for %d seconds." % delay_between_attempts)
+        log.info("Purged object caches, sleeping for %d seconds." % delay_between_attempts)
         time.sleep(delay_between_attempts)
 
 

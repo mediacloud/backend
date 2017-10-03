@@ -45,6 +45,7 @@ has 'q'                         => ( is => 'rw', isa => 'Str' );
 has 'fq'                        => ( is => 'rw', isa => 'ArrayRef' );
 has 'num_words'                 => ( is => 'rw', isa => 'Int', default => 500 );
 has 'sample_size'               => ( is => 'rw', isa => 'Int', default => 1000 );
+has 'ngram_size'                => ( is => 'rw', isa => 'Int', default => 1 );
 has 'include_stopwords'         => ( is => 'rw', isa => 'Bool' );
 has 'no_remote'                 => ( is => 'rw', isa => 'Bool' );
 has 'include_stats'             => ( is => 'rw', isa => 'Bool' );
@@ -54,7 +55,7 @@ has 'db' => ( is => 'rw' );
 # list of all attribute names that should be exposed as cgi params
 sub get_cgi_param_attributes
 {
-    return [ qw(q fq num_words sample_size include_stopwords include_stats no_remote) ];
+    return [ qw(q fq num_words sample_size include_stopwords include_stats no_remote ngram_size) ];
 }
 
 # return hash of attributes for use as cgi params
@@ -160,11 +161,10 @@ sub _combine_stopwords($$$)
 
 # parse the text and return a count of stems and terms in the sentence in the
 # following format:
+#
 # { $stem => { count => $stem_count, terms => { $term => $term_count, ... } } }
 #
-# this function is where virtually all of the time in the script is spent, and
-# had been carefully tuned, so do not change anything without testing performance
-# impacts
+# if ngram_size is > 1, use the unstemmed phrases of ngram_size as the stems
 sub count_stems
 {
     my ( $self, $sentences ) = @_;
@@ -238,12 +238,15 @@ sub count_stems
         $sentence_words = [ grep { _word_is_valid_token( $_, $combined_stopwords ) } @{ $sentence_words } ];
 
         # Stem using language's algorithm
-        my $sentence_word_stems = $lang->stem( @{ $sentence_words } );
+        my $sentence_word_stems = ( $self->ngram_size > 1 ) ? $sentence_words : $lang->stem( @{ $sentence_words } );
 
-        for ( my $i = 0 ; $i < @{ $sentence_words } ; ++$i )
+        my $n          = $self->ngram_size;
+        my $num_ngrams = scalar( @{ $sentence_words } ) - $n + 1;
+
+        for ( my $i = 0 ; $i < $num_ngrams ; ++$i )
         {
-            my $term = $sentence_words->[ $i ];
-            my $stem = $sentence_word_stems->[ $i ];
+            my $term = join( ' ', @{ $sentence_words }[ $i ..      ( $i + $n - 1 ) ] );
+            my $stem = join( ' ', @{ $sentence_word_stems }[ $i .. ( $i + $n - 1 ) ] );
 
             $stem_counts->{ $stem } //= {};
             ++$stem_counts->{ $stem }->{ count };

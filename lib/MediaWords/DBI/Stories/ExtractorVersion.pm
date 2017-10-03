@@ -69,9 +69,9 @@ sub _get_current_extractor_version_tags_id($)
 }
 
 # add extractor version tag
-sub update_extractor_version_tag($$$)
+sub update_extractor_version_tag($$)
 {
-    my ( $db, $story, $extractor_args ) = @_;
+    my ( $db, $story ) = @_;
 
     my $tag_set = _get_extractor_version_tag_set( $db );
 

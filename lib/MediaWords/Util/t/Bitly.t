@@ -10,11 +10,6 @@ use Data::Dumper;
 
 use MediaWords::Util::Bitly;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-}
 
 sub test_merge_story_stats()
 {

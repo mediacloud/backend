@@ -121,6 +121,7 @@ SQL
         UPDATE auth_users
         SET password_reset_token_hash = NULL
         WHERE email = ?
+          AND password_reset_token_hash IS NOT NULL
 SQL
         $email
     );
@@ -220,6 +221,7 @@ SQL
         UPDATE auth_users
         SET password_reset_token_hash = NULL
         WHERE email = ?
+          AND password_reset_token_hash IS NOT NULL
 SQL
         $email
     );

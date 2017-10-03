@@ -194,25 +194,14 @@ sub _get_stories_in_date_range
     return $dated_stories;
 }
 
-# declare a cursor for the get_existing_stories query so that postgres can process the query while the underlying
-# module processes $self->get_new_stories()
-sub _declare_existing_stories_cursor
-{
-    my ( $self ) = @_;
-
-    $self->db->query( <<SQL, $self->{ media_id } );
-declare EXISTING_STORIES cursor for
-    select stories_id, media_id, publish_date, url, guid, title from stories where media_id = ?
-SQL
-
-}
-
 # get all stories belonging to the media source
 sub _get_existing_stories
 {
     my ( $self ) = @_;
 
-    my $stories = $self->db->query( "fetch all from EXISTING_STORIES" )->hashes;
+    my $stories = $self->db->query( <<SQL, $self->{ media_id } );
+select stories_id, media_id, publish_date, url, guid, title from stories where media_id = ?
+SQL
 
     return $stories;
 }
@@ -562,8 +551,6 @@ sub _get_module_and_existing_stories
     $self->db->begin;
 
     eval {
-        $self->_declare_existing_stories_cursor();
-
         $self->module_stories( $self->get_new_stories );
 
         $self->_eliminate_logogram_languages();

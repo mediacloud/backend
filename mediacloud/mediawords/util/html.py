@@ -6,7 +6,7 @@ from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.url import is_http_url
 
-l = create_logger(__name__)
+log = create_logger(__name__)
 
 
 def link_canonical_url_from_html(html: str, base_url: str = None) -> Optional[str]:
@@ -25,7 +25,7 @@ def link_canonical_url_from_html(html: str, base_url: str = None) -> Optional[st
                     if base_url is not None:
                         return urljoin(base=base_url, url=url)
                     else:
-                        l.debug("HTML <link rel=\"canonical\"/> found, but the new URL '%s' doesn't seem to be valid."
+                        log.debug("HTML <link rel=\"canonical\"/> found, but the new URL '%s' doesn't seem to be valid."
                                 % url)
                 else:
                     # Looks like URL, so return it

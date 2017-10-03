@@ -1,18 +1,12 @@
 use strict;
 use warnings;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../../lib";
-}
-
 use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 
 use MediaWords::Test::HTTP::HashServer;
 use Readonly;
-use Test::More tests => 61;
+use Test::More tests => 76;
 use Test::Deep;
 
 use MediaWords::Test::API;

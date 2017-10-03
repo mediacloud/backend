@@ -9,13 +9,8 @@ use Text::Trim;
 use Test::Deep;
 use MediaWords::Languages::en;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
+use_ok( 'MediaWords::Util::HTML' );
 
-    use_ok( 'MediaWords::Util::HTML' );
-}
 
 sub test_contains_block_level_tags()
 {

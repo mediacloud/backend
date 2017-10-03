@@ -3,13 +3,6 @@ use warnings;
 
 # test Handler::_handle_error()
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-    use lib $FindBin::Bin;
-}
-
 use English '-no_match_vars';
 
 use Data::Dumper;

@@ -3,13 +3,6 @@ use warnings;
 
 # test feed handler errors
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-    use lib $FindBin::Bin;
-}
-
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 

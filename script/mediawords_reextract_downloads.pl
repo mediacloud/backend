@@ -2,12 +2,6 @@
 
 use strict;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-}
-
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
@@ -32,10 +26,9 @@ sub queue_extraction($$)
     my ( $db, $stories_id ) = @_;
 
     my $args = {
-        stories_id              => $stories_id,
-        skip_bitly_processing   => 0,
-        skip_corenlp_annotation => 0,
-        use_cache               => 1
+        stories_id            => $stories_id,
+        skip_bitly_processing => 0,
+        use_cache             => 1
     };
 
     my $priority = $MediaCloud::JobManager::Job::MJM_JOB_PRIORITY_LOW;

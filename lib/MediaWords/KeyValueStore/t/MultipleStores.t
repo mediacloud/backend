@@ -2,15 +2,8 @@ use strict;
 use warnings;
 use utf8;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../../lib";
-    use lib "$FindBin::Bin/../";
-    use lib "$FindBin::Bin/";
-}
-
 use Test::More;
+use FindBin;
 use MediaWords::KeyValueStore::AmazonS3;
 use MediaWords::KeyValueStore::PostgreSQL;
 use MediaWords::KeyValueStore::MultipleStores;
@@ -36,7 +29,7 @@ sub main()
     );
 }
 
-require 'helpers/amazon_s3_set_credentials_from_env.inc.pl';
+require "$FindBin::Bin/helpers/amazon_s3_set_credentials_from_env.inc.pl";
 set_amazon_s3_test_credentials_from_env_if_needed();
 
 my $config = MediaWords::Util::Config::get_config;
@@ -46,8 +39,8 @@ unless ( defined( $config->{ amazon_s3 }->{ test } ) )
 }
 else
 {
-    require 'helpers/amazon_s3_tests.inc.pl';
-    require 'helpers/postgresql_tests.inc.pl';
+    require "$FindBin::Bin/helpers/amazon_s3_tests.inc.pl";
+    require "$FindBin::Bin/helpers/postgresql_tests.inc.pl";
 
     main();
 }

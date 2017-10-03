@@ -23,7 +23,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4630;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4635;
 
 BEGIN
 
@@ -1287,6 +1287,7 @@ create table topics (
     state                   text not null default 'created but not queued',
     message                 text null,
     is_public               boolean not null default false,
+    is_logogram             boolean not null default false,
     start_date              date not null,
     end_date                date not null,
 
@@ -2380,21 +2381,18 @@ CREATE INDEX activities_user_identifier ON activities (user_identifier);
 CREATE INDEX activities_object_id ON activities (object_id);
 
 
---
--- Returns true if the story can + should be annotated with CoreNLP
---
-CREATE OR REPLACE FUNCTION story_is_annotatable_with_corenlp(corenlp_stories_id INT)
+CREATE OR REPLACE FUNCTION story_is_english_and_has_sentences(param_stories_id INT)
 RETURNS boolean AS $$
 DECLARE
     story record;
 BEGIN
 
-    SELECT stories_id, media_id, language INTO story from stories where stories_id = corenlp_stories_id;
+    SELECT stories_id, media_id, language INTO story from stories where stories_id = param_stories_id;
 
     IF NOT ( story.language = 'en' or story.language is null ) THEN
         RETURN FALSE;
 
-    ELSEIF NOT EXISTS ( SELECT 1 FROM story_sentences WHERE stories_id = corenlp_stories_id ) THEN
+    ELSEIF NOT EXISTS ( SELECT 1 FROM story_sentences WHERE stories_id = param_stories_id ) THEN
         RETURN FALSE;
 
     END IF;
@@ -2404,22 +2402,6 @@ BEGIN
 END;
 $$
 LANGUAGE 'plpgsql';
-
-
---
--- CoreNLP annotations
---
-CREATE TABLE corenlp_annotations (
-    corenlp_annotations_id  SERIAL    PRIMARY KEY,
-    object_id               INTEGER   NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
-    raw_data                BYTEA     NOT NULL
-);
-CREATE UNIQUE INDEX corenlp_annotations_object_id ON corenlp_annotations (object_id);
-
--- Don't (attempt to) compress BLOBs in "raw_data" because they're going to be
--- compressed already
-ALTER TABLE corenlp_annotations
-    ALTER COLUMN raw_data SET STORAGE EXTERNAL;
 
 
 --
@@ -3249,3 +3231,37 @@ ALTER TABLE cache.s3_bitly_processing_results_cache
 CREATE TRIGGER s3_bitly_processing_results_cache_db_row_last_updated_trigger
     BEFORE INSERT OR UPDATE ON cache.s3_bitly_processing_results_cache
     FOR EACH ROW EXECUTE PROCEDURE cache.update_cache_db_row_last_updated();
+
+
+
+--
+-- CLIFF annotations
+--
+CREATE TABLE cliff_annotations (
+    cliff_annotations_id  SERIAL    PRIMARY KEY,
+    object_id             INTEGER   NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
+    raw_data              BYTEA     NOT NULL
+);
+CREATE UNIQUE INDEX cliff_annotations_object_id ON cliff_annotations (object_id);
+
+-- Don't (attempt to) compress BLOBs in "raw_data" because they're going to be
+-- compressed already
+ALTER TABLE cliff_annotations
+    ALTER COLUMN raw_data SET STORAGE EXTERNAL;
+
+
+
+--
+-- NYTLabels annotations
+--
+CREATE TABLE nytlabels_annotations (
+    nytlabels_annotations_id  SERIAL    PRIMARY KEY,
+    object_id                 INTEGER   NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
+    raw_data                  BYTEA     NOT NULL
+);
+CREATE UNIQUE INDEX nytlabels_annotations_object_id ON nytlabels_annotations (object_id);
+
+-- Don't (attempt to) compress BLOBs in "raw_data" because they're going to be
+-- compressed already
+ALTER TABLE nytlabels_annotations
+    ALTER COLUMN raw_data SET STORAGE EXTERNAL;

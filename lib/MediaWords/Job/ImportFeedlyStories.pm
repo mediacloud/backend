@@ -16,14 +16,6 @@ use warnings;
 use Moose;
 with 'MediaWords::AbstractJob';
 
-BEGIN
-{
-    use FindBin;
-
-    # "lib/" relative to "local/bin/mjm_worker.pl":
-    use lib "$FindBin::Bin/../../lib";
-}
-
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 

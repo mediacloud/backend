@@ -7,7 +7,7 @@ use MediaWords::CommonLibs;
 
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 15;
+use Test::More tests => 14;
 
 use Readonly;
 use MediaWords::Test::HTTP::HashServer;
@@ -15,17 +15,12 @@ use HTTP::Status qw(:constants);
 use HTTP::Response;
 use Data::Dumper;
 
+use MediaWords::Util::URL::Variants;
+
 use MediaWords::Test::DB;
 
 Readonly my $TEST_HTTP_SERVER_PORT => 9998;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-
-    use_ok( 'MediaWords::Util::URL::Variants' );
-}
 
 sub test_all_url_variants($)
 {

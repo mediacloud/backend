@@ -5,31 +5,13 @@
 #  *or*
 # Upgrade the Media Cloud database to the latest schema version (--import parameter).
 #
-# Usage: ./script/run_with_carton.sh ./script/mediawords_upgrade_db.pl > schema-diff.sql
-#    or: ./script/run_with_carton.sh ./script/mediawords_upgrade_db.pl --import
+# Usage: ./script/run_in_env.sh ./script/mediawords_upgrade_db.pl > schema-diff.sql
+#    or: ./script/run_in_env.sh ./script/mediawords_upgrade_db.pl --import
 
 package script::mediawords_upgrade_db;
 
 use strict;
 use warnings;
-
-BEGIN
-{
-    my $source_rt;
-
-    BEGIN
-    {
-        use File::Basename;
-        use File::Spec;
-        use Cwd qw( realpath );
-
-        my $file_dir = dirname( __FILE__ );
-
-        $source_rt = "$file_dir" . "/..";
-        $source_rt = realpath( File::Spec->canonpath( $source_rt ) );
-    }
-    use lib "$source_rt/lib";
-}
 
 use MediaWords::DB;
 use Modern::Perl "2015";

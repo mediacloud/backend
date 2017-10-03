@@ -10,7 +10,7 @@ from mediawords.db.exceptions.result import *
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
-l = create_logger(__name__)
+log = create_logger(__name__)
 
 
 class DatabaseResult(object):
@@ -67,15 +67,15 @@ class DatabaseResult(object):
             query_args_list[0] = query
             query_args = tuple(query_args_list)
 
-            l.debug("Running query: %s" % str(query_args))
+            log.debug("Running query: %s" % str(query_args))
 
             cursor.execute(*query_args)
 
         except psycopg2.Warning as ex:
             if print_warnings:
-                l.warning('Warning while running query: %s' % str(ex))
+                log.warning('Warning while running query: %s' % str(ex))
             else:
-                l.debug('Warning while running query: %s' % str(ex))
+                log.debug('Warning while running query: %s' % str(ex))
 
         except psycopg2.ProgrammingError as ex:
             raise McDatabaseResultException(

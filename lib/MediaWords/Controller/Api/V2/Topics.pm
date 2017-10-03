@@ -33,7 +33,7 @@ __PACKAGE__->config(
 );
 
 Readonly::Scalar my $TOPICS_EDIT_FIELDS => [
-    qw/name solr_seed_query description max_iterations start_date end_date is_public ch_monitor_id twitter_topics_id max_stories/
+    qw/name solr_seed_query description max_iterations start_date end_date is_public ch_monitor_id twitter_topics_id max_stories is_logogram/
 ];
 
 Readonly::Scalar my $JOB_STATE_FIELD_LIST =>
@@ -75,7 +75,7 @@ select t.topics_id, t.name, t.pattern, t.solr_seed_query, t.solr_seed_query_run,
         t.description, t.max_iterations, t.state,
         t.message, t.is_public, t.ch_monitor_id, t.twitter_topics_id, t.start_date, t.end_date,
         min( p.auth_users_id ) auth_users_id, min( p.user_permission ) user_permission,
-        t.job_queue, t.max_stories
+        t.job_queue, t.max_stories, t.is_logogram
     from topics t
         join topics_with_user_permission p using ( topics_id )
         left join snapshots snap on ( t.topics_id = snap.topics_id )
@@ -250,10 +250,12 @@ sub create_GET
 
     my $topic = { map { $_ => $data->{ $_ } } @{ $TOPICS_EDIT_FIELDS } };
 
-    $topic->{ pattern } = eval { MediaWords::Solr::Query::parse( $topic->{ solr_seed_query } )->re() };
+    $topic->{ pattern } =
+      eval { MediaWords::Solr::Query::parse( $topic->{ solr_seed_query } )->re( $topic->{ is_logogram } ) };
     die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
 
     $topic->{ is_public }           = normalize_boolean_for_db( $topic->{ is_public } );
+    $topic->{ is_logogram }         = normalize_boolean_for_db( $topic->{ is_logogram } );
     $topic->{ solr_seed_query_run } = normalize_boolean_for_db( $topic->{ solr_seed_query_run } );
 
     my $full_solr_query = MediaWords::TM::Mine::get_full_solr_query( $db, $topic, $media_ids, $media_tags_ids );
@@ -320,7 +322,8 @@ sub update_PUT
 
     if ( $update->{ solr_seed_query } && ( $topic->{ solr_seed_query } ne $update->{ solr_seed_query } ) )
     {
-        $update->{ pattern } = eval { MediaWords::Solr::Query::parse( $update->{ solr_seed_query } )->re() };
+        $update->{ pattern } =
+          eval { MediaWords::Solr::Query::parse( $update->{ solr_seed_query } )->re( $update->{ is_logogram } ) };
         die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
 
         my $full_solr_query = MediaWords::TM::Mine::get_full_solr_query( $db, $topic, $media_ids, $media_tags_ids );
@@ -329,6 +332,7 @@ sub update_PUT
     }
 
     $update->{ is_public }           = normalize_boolean_for_db( $update->{ is_public } );
+    $update->{ is_logogram }         = normalize_boolean_for_db( $update->{ is_logogram } );
     $update->{ solr_seed_query_run } = normalize_boolean_for_db( $update->{ solr_seed_query_run } );
 
     my $auth_users_id = $c->stash->{ api_auth }->id();

@@ -1,19 +1,12 @@
 use strict;
 use warnings;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-    use lib $FindBin::Bin;
-}
-
 use MediaWords::CommonLibs;
 
 use Data::Dumper;
 use List::MoreUtils;
 use Readonly;
-use Test::More tests => 1376;
+use Test::More tests => 1500;
 
 use MediaWords::Util::CSV;
 use MediaWords::TM::RetweeterScores;

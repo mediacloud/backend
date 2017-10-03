@@ -5,15 +5,9 @@ use utf8;
 use Test::NoWarnings;
 use Test::More tests => 31;
 
+use_ok( 'MediaWords::DB::Schema' );
+
 use Readonly;
-
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-
-    use_ok( 'MediaWords::DB::Schema' );
-}
 
 sub test_postgresql_response_line_is_expected()
 {

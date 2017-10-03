@@ -1,12 +1,6 @@
 use strict;
 use warnings;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../../lib";
-}
-
 use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 
@@ -57,7 +51,7 @@ SQL
 
     my $got_mhs = test_get( '/api/v2/mediahealth/list?' . $media_id_params, {} );
 
-    my $fields = [ qw/media_id is_health has_active_feed start_date end_date/, @{ $metrics } ];
+    my $fields = [ qw/media_id is_healthy has_active_feed start_date end_date/, @{ $metrics } ];
     rows_match( $label, $got_mhs, $expected_mhs, 'media_id', $fields );
 }
 

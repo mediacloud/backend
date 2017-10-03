@@ -18,7 +18,7 @@ package MediaWords::Job::TM::MineTopic;
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/mjm_worker.pl lib/MediaWords/Job/TM/MineTopic.pm
+# ./script/run_in_env.sh mjm_worker.pl lib/MediaWords/Job/TM/MineTopic.pm
 #
 
 use strict;
@@ -26,14 +26,6 @@ use warnings;
 
 use Moose;
 with 'MediaWords::AbstractJob';
-
-BEGIN
-{
-    use FindBin;
-
-    # "lib/" relative to "local/bin/mjm_worker.pl":
-    use lib "$FindBin::Bin/../../lib";
-}
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;

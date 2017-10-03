@@ -1,0 +1,13 @@
+---
+
+- name: Install common utils
+  homebrew:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - bash-completion
+    - git
+    - htop
+    - vim
+  tags:
+    - common
