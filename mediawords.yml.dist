@@ -275,7 +275,7 @@ nytlabels:
     ### Annotator URL (text parsing endpoint), e.g. "http://localhost/predict.json"
     annotator_url: ""
 
-    ### NYTLabels version tag, e.g. "nytlabels_clavin_v2.3.0"; will be added under
+    ### NYTLabels version tag, e.g. "nyt_labeller_v1.0.0"; will be added under
     ### "geocoder_version" tag set
     nytlabels_version_tag: "nyt_labeller_v1.0.0"
 
