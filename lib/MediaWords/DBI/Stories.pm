@@ -30,9 +30,13 @@ use MediaWords::DB::StoryTriggers;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories::ExtractorVersion;
 use MediaWords::DBI::Stories::ExtractorArguments;
+use MediaWords::Job::CLIFF::FetchAnnotation;
+use MediaWords::Job::NYTLabels::FetchAnnotation;
 use MediaWords::Languages::Language;
 use MediaWords::Solr::WordCounts;
 use MediaWords::StoryVectors;
+use MediaWords::Util::Annotator::CLIFF;
+use MediaWords::Util::Annotator::NYTLabels;
 use MediaWords::Util::Bitly::Schedule;
 use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
@@ -434,12 +438,7 @@ sub _reextract_download
     }
 
     eval {
-        my $extractor_args = MediaWords::DBI::Stories::ExtractorArguments->new(
-            {
-                no_dedup_sentences => 1,
-                no_vector          => 1,
-            }
-        );
+        my $extractor_args = MediaWords::DBI::Stories::ExtractorArguments->new( { no_dedup_sentences => 1, } );
         MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, $extractor_args );
     };
     if ( $@ )
@@ -493,8 +492,9 @@ sub _update_story_disable_triggers
 
 =head2 process_extracted_story( $db, $story, $extractor_args )
 
-Do post extraction story processing work: call MediaWords::StoryVectors::update_story_sentences_and_language() and queue
-corenlp annotation and bitly fetching tasks.
+Do post extraction story processing work: call
+MediaWords::StoryVectors::update_story_sentences_and_language() and queue bitly
+fetching tasks.
 
 =cut
 
@@ -504,59 +504,13 @@ sub process_extracted_story($$$)
 
     my $stories_id = $story->{ stories_id };
 
-    unless ( $extractor_args->no_vector() )
-    {
-        MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story, $extractor_args );
-    }
+    MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story, $extractor_args );
 
     _update_story_disable_triggers( $db, $story );
 
-    MediaWords::DBI::Stories::ExtractorVersion::update_extractor_version_tag( $db, $story, $extractor_args );
-
-    my $mark_story_as_processed = 0;
-    if ( $extractor_args->skip_corenlp_annotation() )
+    unless ( $extractor_args->no_tag_extractor_version() )
     {
-        # Story is not to be annotated with CoreNLP; add to "processed_stories" right away
-        DEBUG "Will mark story $stories_id as processed because it's set to be skipped for CoreNLP annotation";
-        $mark_story_as_processed = 1;
-    }
-    else
-    {
-        if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
-            and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
-        {
-            if ( $extractor_args->no_vector() )
-            {
-                # Story is annotatable with CoreNLP; add to CoreNLP processing queue
-                # (which will run mark_as_processed() on its own)
-                DEBUG "Adding story $stories_id to CoreNLP annotation queue...";
-                MediaWords::Job::AnnotateWithCoreNLP->add_to_queue( { stories_id => $stories_id } );
-
-                DEBUG "Won't mark story $stories_id as processed because CoreNLP worker will do that";
-                $mark_story_as_processed = 0;
-            }
-            else
-            {
-                # Story was just added to CoreNLP queue by update_story_sentences_and_language(),
-                # no need to duplicate the job -- noop
-                DEBUG "Won't mark story $stories_id as processed because CoreNLP worker will do that";
-                $mark_story_as_processed = 0;
-            }
-        }
-        else
-        {
-            # Story is not annotatable with CoreNLP; add to "processed_stories" right away
-            TRACE "Will mark story $stories_id as processed because it's not annotatable with CoreNLP";
-            $mark_story_as_processed = 1;
-        }
-    }
-
-    if ( $mark_story_as_processed )
-    {
-        unless ( mark_as_processed( $db, $stories_id ) )
-        {
-            die "Unable to mark story ID $stories_id as processed";
-        }
+        MediaWords::DBI::Stories::ExtractorVersion::update_extractor_version_tag( $db, $story );
     }
 
     # Add to Bit.ly queue
@@ -571,6 +525,48 @@ sub process_extracted_story($$$)
     else
     {
         DEBUG "Won't process story $stories_id with Bit.ly because it's set to be skipped";
+    }
+
+    my $cliff     = MediaWords::Util::Annotator::CLIFF->new();
+    my $nytlabels = MediaWords::Util::Annotator::NYTLabels->new();
+
+    # Extract -> CLIFF -> NYTLabels -> mark_as_processed() chain
+    if ( $cliff->annotator_is_enabled() and $cliff->story_is_annotatable( $db, $stories_id ) )
+    {
+        # If CLIFF annotator is enabled, ::CLIFF::UpdateStoryTags will check
+        # whether NYTLabels annotator is enabled, and if it is, will pass the
+        # story further to NYTLabels. NYTLabels, in turn, will mark the story
+        # as processed.
+        DEBUG "Adding story $stories_id to CLIFF annotation queue...";
+        MediaWords::Job::CLIFF::FetchAnnotation->add_to_queue( { stories_id => $stories_id } );
+    }
+    else
+    {
+
+        TRACE "Won't add $stories_id to CLIFF annotation queue because it's not annotatable with CLIFF";
+
+        if ( $nytlabels->annotator_is_enabled() and $nytlabels->story_is_annotatable( $db, $stories_id ) )
+        {
+
+            # If CLIFF annotator is disabled, pass the story to NYTLabels
+            # annotator which, if run, will mark the story as processed
+            DEBUG "Adding story $stories_id to NYTLabels annotation queue...";
+            MediaWords::Job::NYTLabels::FetchAnnotation->add_to_queue( { stories_id => $stories_id } );
+
+        }
+        else
+        {
+
+            TRACE "Won't add $stories_id to NYTLabels annotation queue because it's not annotatable with NYTLabels";
+
+            # If neither of the annotators are enabled, mark the story as processed ourselves
+            TRACE "Marking the story as processed...";
+            unless ( mark_as_processed( $db, $stories_id ) )
+            {
+                die "Unable to mark story ID $stories_id as processed";
+            }
+
+        }
     }
 }
 
@@ -677,25 +673,6 @@ END
     {
         restore_download_content( $db, $download, $download->{ content } );
     }
-}
-
-=head2 add_missing_story_sentences( $db, $story )
-
-If no story_sentences exist for the story, add them.
-
-=cut
-
-sub add_missing_story_sentences
-{
-    my ( $db, $story ) = @_;
-
-    my $ss = $db->query( "select 1 from story_sentences ss where stories_id = ?", $story->{ stories_id } )->hash;
-
-    return if ( $ss );
-
-    INFO "ADD SENTENCES [$story->{ stories_id }]";
-
-    MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story );
 }
 
 =head2 get_all_sentences( $db, $story )

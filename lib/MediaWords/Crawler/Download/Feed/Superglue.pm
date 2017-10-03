@@ -17,7 +17,6 @@ use MediaWords::Crawler::Engine;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Feeds;
 use MediaWords::DBI::Stories;
-use MediaWords::StoryVectors;
 
 use Data::Dumper;
 use Date::Parse;
@@ -87,7 +86,7 @@ sub add_stories_from_feed($$$$)
             # Superglue feeds are full text RSS
             full_text_rss => 't',
 
-            # 'language' will be set by update_story_sentences_and_language()
+            # 'language' will be set by process_extracted_story()
         };
         my $superglue_story = {
             video_url        => $video_url,
@@ -119,7 +118,13 @@ sub add_stories_from_feed($$$$)
         my $added_stories_id = $added_story->{ stories_id };
 
         # Fill "story_sentences", set story language etc.
-        MediaWords::StoryVectors::update_story_sentences_and_language( $db, $added_story );
+        my $extractor_args = MediaWords::DBI::Stories::ExtractorArguments->new(
+            {
+                # Readability not used because plain text feed provided
+                no_tag_extractor_version => 1
+            }
+        );
+        MediaWords::DBI::Stories::process_extracted_story( $db, $added_story, $extractor_args );
 
         # Record metadata
         $db->create(

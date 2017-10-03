@@ -21,7 +21,6 @@ Altogether, the extractor:
 * detects the language of each sentence
 * stores each sentence in `story_sentences`
 * runs an AP syndication detection algorithm on the story
-* queues a CoreNLP annotation for the story if the story is an media source that is marked for annotation
 
 
 ## Relevant Code
