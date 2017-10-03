@@ -44,9 +44,12 @@ sub _sample_nytlabels_response()
                 "score" => "0.17088"
             }
         ],
+
+        # Only "descriptors600" are to be used
         "descriptors600" => [
             {
-                "label" => "hurricanes and tropical storms",
+                # Newlines should be replaced to spaces, string should get trimmed
+                "label" => " hurricanes \n and\r\ntropical\n\nstorms   \r\n  \n",
                 "score" => "0.92481"
             },
             {
@@ -54,6 +57,7 @@ sub _sample_nytlabels_response()
                 "score" => "0.10210"                     # should be skipped due to threshold
             }
         ],
+
         "descriptorsAndTaxonomies" => [
             {
                 "label" => "top/news",
@@ -189,9 +193,9 @@ SQL
     my $expected_tags = [
         {
             'tag_sets_name'        => 'nyt_labels',
-            'tags_description'     => 'hurricanes and tropical storms',
+            'tags_description'     => " hurricanes \n and\r\ntropical\n\nstorms   \r\n  \n",
             'tag_sets_description' => 'NYTLabels labels',
-            'tags_label'           => 'hurricanes and tropical storms',
+            'tags_label'           => " hurricanes \n and\r\ntropical\n\nstorms   \r\n  \n",
             'tags_name'            => 'hurricanes and tropical storms',
             'tag_sets_label'       => 'nyt_labels'
         },
