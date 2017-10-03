@@ -1,6 +1,6 @@
 package MediaWords::KeyValueStore::AmazonS3;
 
-# class for storing / loading objects (raw downloads, CoreNLP annotator results, ...) to / from Amazon S3
+# class for storing / loading objects (raw downloads, annotator results, ...) to / from Amazon S3
 
 use strict;
 use warnings;

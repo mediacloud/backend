@@ -5,9 +5,9 @@ This document provides an overview of the data processing flow for each story.
 
 The overall process is documented in [story_processing_flow.pdf](diagrams/story_processing_flow.pdf).
 
-The story processing flow consists of five components: the crawler, the extractor, the CoreNLP annotator, the solr
-import, the bitly fetcher, and the geotagger.  The crawler, extractor, CoreNLP annotator, and bitly fetchers all run via
-[supervisor](supervisor.markdown)  on the core media cloud server.  The extractor, CoreNLP annotator, and bitly fetchers
+The story processing flow consists of five components: the crawler, the extractor, the solr
+import, the bitly fetcher, and the geotagger.  The crawler, extractor, and bitly fetchers all run via
+[supervisor](supervisor.markdown)  on the core media cloud server.  The extractor, and bitly fetchers
 all run as jobs. The geotagger runs from a separate codebase on a separate server.  The Solr import process runs from
 the same code base but from a separate machine in the production media cloud setup.
 
@@ -42,14 +42,6 @@ download_texts table.  The extractor also parses the download_text into sentence
 story_sentences table.  An extractor job is queued by the crawler handler for each story it downloads.  More
 information in the extractor [here](extractor.markdown).
 
-CoreNLP Annotator
------------------
-
-The CoreNLP annotators are responsible for generating annotations using the stanford CoreNLP library for stories
-belonging to some media sources.  The extractor queues a CoreNLP annotation job for each extracted story in a media
-source marked for annotation. The actual CoreNLP generation is performed by a separate machine running a web service on
-top of the stanford CoreNLP libraries.  More information on the CoreNLP annotation process [here](corenlp.markdown).
-
 Processed Stories ID
 --------------------
 Once all a story is crawled, extracted, and annotated, it is marked as ready for consumption by creating a
@@ -75,15 +67,6 @@ A bitly fetcher runs for each story 3 days after it is first created and then ag
 had each at least one bitly click on the first fetch.  The 3 day fetch is queued for the story when the story is
 extracted.  The bitly fetcher calls the bitly API to find the number of bitly clicks for each story.  More information
 on the bitly fetching [here](bitly.markdown).
-
-Geotagging Client
------------------
-The geotagging client adds a set of tags to each story that indicate that the story is about that location.  The
-geotagger operates entirely through the API.  It periodically calls the API to download all new stories in media sources
-that we want to geotag, including the CoreNLP annotation for each; generates the geotagging information based on the
-entity data in the CoreNLP annotation; and then writes any tags for each story back to the core system through the api.
-The geotagger is run as a separate codebase, available
-[here](https://github.com/mitmedialab/MediaCloud-GeoCoder).  A separate service to rename the geotags more nicely runs independently, and is [available here](https://github.com/mitmedialab/MediaCloud-GeoTag-Labeller). It parses the text for tags using a separate run instance of the [CLIFF-CLAVIN geoparser](https://github.com/mitmedialab/MediaCloud-GeoCoder).
 
 NYT Themes
 ----------
