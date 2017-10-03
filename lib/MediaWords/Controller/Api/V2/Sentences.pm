@@ -37,7 +37,6 @@ __PACKAGE__->config(
     action => {
         single      => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
         list        => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
-        put_tags    => { Does => [ qw( ~StoriesEditAuthenticated ~Throttled ~Logged ) ] },
         count       => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         field_count => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
     }
@@ -294,35 +293,6 @@ sub count_GET
     }
 
     $self->status_ok( $c, entity => $response );
-}
-
-sub put_tags : Local : ActionClass('MC_REST')
-{
-}
-
-sub put_tags_PUT
-{
-    my ( $self, $c ) = @_;
-
-    my $sentence_tag = $c->req->params->{ 'sentence_tag' };
-
-    # legacy support for sentence_tag= param
-    if ( $sentence_tag )
-    {
-        my $sentence_tags = ( ref $sentence_tag ) ? $sentence_tag : [ $sentence_tag ];
-
-        $self->_add_tags( $c, $sentence_tags );
-
-        $self->status_ok( $c, entity => $sentence_tags );
-    }
-    else
-    {
-        $self->process_put_tags( $c );
-
-        $self->status_ok( $c, entity => { success => 1 } );
-    }
-
-    return;
 }
 
 sub field_count : Local : ActionClass('MC_REST')
