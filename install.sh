@@ -13,6 +13,9 @@ if [ `getconf LONG_BIT` != '64' ]; then
    exit 1
 fi
 
+echo "Pulling submodules..."    # in case user forgot to do it
+git submodule update --init --recursive
+
 echo "Installing Ansible..."
 sudo apt-get -y install python-pip python-setuptools
 sudo pip install --upgrade pip
