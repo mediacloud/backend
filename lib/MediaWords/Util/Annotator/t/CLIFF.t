@@ -29,7 +29,9 @@ sub _sample_cliff_response()
             "organizations" => [
                 {
                     "count" => 2,
-                    "name"  => "Kansas Health Institute",
+
+                    # Newlines should be replaced to spaces, string should get trimmed
+                    "name" => " Kansas\nHealth\nInstitute   \n  ",
                 },
                 {
                     "count" => 3,
@@ -291,10 +293,10 @@ SQL
         {
             'tags_name'            => 'Kansas Health Institute',
             'tag_sets_name'        => 'cliff_organizations',
-            'tags_label'           => 'Kansas Health Institute',
+            'tags_label'           => " Kansas\nHealth\nInstitute   \n  ",
             'tag_sets_label'       => 'cliff_organizations',
             'tag_sets_description' => 'CLIFF organizations',
-            'tags_description'     => 'Kansas Health Institute'
+            'tags_description'     => " Kansas\nHealth\nInstitute   \n  "
         },
         {
             'tags_description'     => 'Tim Huelskamp',

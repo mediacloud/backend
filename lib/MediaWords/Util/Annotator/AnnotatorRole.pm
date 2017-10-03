@@ -444,6 +444,18 @@ sub fetch_annotation_for_story($$$)
     return $annotation;
 }
 
+sub _strip_linebreaks_and_whitespace($)
+{
+    my $string = shift;
+
+    # Tag name can't contain linebreaks
+    $string =~ s/[\r\n]/ /g;
+    $string =~ s/\s\s*/ /g;
+    $string =~ s/^\s+|\s+$//g;
+
+    return $string;
+}
+
 # Add version, country and story tags for story
 sub update_tags_for_story($$$)
 {
@@ -481,6 +493,8 @@ sub update_tags_for_story($$$)
             fatal_error( "Tag is not of MediaWords::Util::Annotator::AnnotatorTag type" );
         }
 
+        my $tag_sets_name = _strip_linebreaks_and_whitespace( $tag->tag_sets_name() );
+
         # Delete old tags the story might have under a given tag set
         $db->query(
             <<SQL,
@@ -491,23 +505,26 @@ sub update_tags_for_story($$$)
               AND stories_tags_map.stories_id = ?
               AND tag_sets.name = ?
 SQL
-            $stories_id, $tag->tag_sets_name()
+            $stories_id, $tag_sets_name
         );
     }
 
     foreach my $tag ( @{ $tags } )
     {
+        my $tag_sets_name = _strip_linebreaks_and_whitespace( $tag->tag_sets_name() );
+        my $tags_name     = _strip_linebreaks_and_whitespace( $tag->tags_name() );
+
         # Not using find_or_create() because tag set / tag might already exist
         # with slightly different label / description
 
         # Create tag set
-        my $db_tag_set = $db->select( 'tag_sets', '*', { name => $tag->tag_sets_name() } )->hash;
+        my $db_tag_set = $db->select( 'tag_sets', '*', { name => $tag_sets_name } )->hash;
         unless ( $db_tag_set )
         {
             $db_tag_set = $db->create(
                 'tag_sets',
                 {
-                    name        => $tag->tag_sets_name(),
+                    name        => $tag_sets_name,
                     label       => $tag->tag_sets_label(),
                     description => $tag->tag_sets_description(),
                 }
@@ -516,14 +533,14 @@ SQL
         my $tag_sets_id = $db_tag_set->{ tag_sets_id };
 
         # Create tag
-        my $db_tag = $db->select( 'tags', '*', { tag_sets_id => $tag_sets_id, tag => $tag->tags_name() } )->hash;
+        my $db_tag = $db->select( 'tags', '*', { tag_sets_id => $tag_sets_id, tag => $tags_name } )->hash;
         unless ( $db_tag )
         {
             $db_tag = $db->create(
                 'tags',
                 {
                     tag_sets_id => $tag_sets_id,
-                    tag         => $tag->tags_name(),
+                    tag         => $tags_name,
                     label       => $tag->tags_label(),
                     description => $tag->tags_description(),
                 }
