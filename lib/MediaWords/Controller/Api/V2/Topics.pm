@@ -33,7 +33,7 @@ __PACKAGE__->config(
 );
 
 Readonly::Scalar my $TOPICS_EDIT_FIELDS => [
-    qw/name solr_seed_query description max_iterations start_date end_date is_public ch_monitor_id twitter_topics_id max_stories/
+    qw/name solr_seed_query description max_iterations start_date end_date is_public ch_monitor_id twitter_topics_id max_stories is_logogram/
 ];
 
 Readonly::Scalar my $JOB_STATE_FIELD_LIST =>
@@ -75,7 +75,7 @@ select t.topics_id, t.name, t.pattern, t.solr_seed_query, t.solr_seed_query_run,
         t.description, t.max_iterations, t.state,
         t.message, t.is_public, t.ch_monitor_id, t.twitter_topics_id, t.start_date, t.end_date,
         min( p.auth_users_id ) auth_users_id, min( p.user_permission ) user_permission,
-        t.job_queue, t.max_stories
+        t.job_queue, t.max_stories, t.is_logogram
     from topics t
         join topics_with_user_permission p using ( topics_id )
         left join snapshots snap on ( t.topics_id = snap.topics_id )

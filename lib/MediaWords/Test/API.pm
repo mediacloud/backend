@@ -184,6 +184,8 @@ sub rows_match($$$$$)
             my $got      = $got_row->{ $field };
             my $expected = $expected_row->{ $field };
 
+            ok( exists( $got_row->{ $field } ), "$label field $field exists" );
+
             # if got and expected are both numers, test using number equality so that 4 == 4.0
             if ( $expected =~ /^$RE{ num }{ real }$/ && $got =~ /^$RE{ num }{ real }$/ )
             {
