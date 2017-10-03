@@ -497,28 +497,39 @@ SQL
 
     foreach my $tag ( @{ $tags } )
     {
+        # Not using find_or_create() because tag set / tag might already exist
+        # with slightly different label / description
+
         # Create tag set
-        my $tag_set = $db->find_or_create(
-            'tag_sets',
-            {
-                name        => $tag->tag_sets_name(),
-                label       => $tag->tag_sets_label(),
-                description => $tag->tag_sets_description(),
-            }
-        );
-        my $tag_sets_id = $tag_set->{ tag_sets_id };
+        my $db_tag_set = $db->select( 'tag_sets', '*', { name => $tag->tag_sets_name() } )->hash;
+        unless ( $db_tag_set )
+        {
+            $db_tag_set = $db->create(
+                'tag_sets',
+                {
+                    name        => $tag->tag_sets_name(),
+                    label       => $tag->tag_sets_label(),
+                    description => $tag->tag_sets_description(),
+                }
+            );
+        }
+        my $tag_sets_id = $db_tag_set->{ tag_sets_id };
 
         # Create tag
-        my $tag = $db->find_or_create(
-            'tags',
-            {
-                tag_sets_id => $tag_sets_id,
-                tag         => $tag->tags_name(),
-                label       => $tag->tags_label(),
-                description => $tag->tags_description(),
-            }
-        );
-        my $tags_id = $tag->{ tags_id };
+        my $db_tag = $db->select( 'tags', '*', { tag_sets_id => $tag_sets_id, tag => $tag->tags_name() } )->hash;
+        unless ( $db_tag )
+        {
+            $db_tag = $db->create(
+                'tags',
+                {
+                    tag_sets_id => $tag_sets_id,
+                    tag         => $tag->tags_name(),
+                    label       => $tag->tags_label(),
+                    description => $tag->tags_description(),
+                }
+            );
+        }
+        my $tags_id = $db_tag->{ tags_id };
 
         # Assign story to tag
         $db->create(
