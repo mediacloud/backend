@@ -243,12 +243,12 @@ cliff:
     ### download extraction
     enabled: "no"
 
-    ### Annotator URL (text parsing endpoint), e.g. "http://localhost:8080/cliff-2.3.0/parse/text"
+    ### Annotator URL (text parsing endpoint), e.g. "http://localhost:8080/cliff-2.4.1/parse/text"
     annotator_url: ""
 
-    ### CLIFF version tag, e.g. "cliff_clavin_v2.3.0"; will be added under
+    ### CLIFF version tag, e.g. "cliff_clavin_v2.4.1"; will be added under
     ### "geocoder_version" tag set
-    cliff_version_tag: "cliff_clavin_v2.3.0"
+    cliff_version_tag: "cliff_clavin_v2.4.1"
 
     ### CLIFF geographical names tag set, e.g. "cliff_geonames";
     ### tags with names such as "geonames_<countryGeoNameId>" will be added

@@ -166,7 +166,7 @@ sub _sample_cliff_response()
             ],
         },
         "status"  => "ok",
-        "version" => "2.3.0",
+        "version" => "2.4.1",
     };
 }
 
@@ -313,12 +313,12 @@ SQL
             'tags_description'     => 'a.k.a. Obamacare'
         },
         {
-            'tags_description'     => 'Story was tagged with \'cliff_clavin_v2.3.0\'',
+            'tags_description'     => 'Story was tagged with \'cliff_clavin_v2.4.1\'',
             'tag_sets_label'       => 'geocoder_version',
             'tag_sets_description' => 'CLIFF version the story was tagged with',
-            'tags_label'           => 'cliff_clavin_v2.3.0',
+            'tags_label'           => 'cliff_clavin_v2.4.1',
             'tag_sets_name'        => 'geocoder_version',
-            'tags_name'            => 'cliff_clavin_v2.3.0'
+            'tags_name'            => 'cliff_clavin_v2.4.1'
         },
         {
             'tags_label'           => 'Kansas',
