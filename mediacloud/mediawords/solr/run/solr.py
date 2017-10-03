@@ -362,7 +362,7 @@ def __kill_solr_process(signum: int = None, frame: int = None) -> None:
 
 def __run_solr(port: int,
                instance_data_dir: str,
-               hostname: str = fqdn(),
+               hostname: str = None,
                jvm_heap_size: str = None,
                start_jar_args: List[str] = None,
                jvm_opts: List[str] = None,
@@ -370,6 +370,8 @@ def __run_solr(port: int,
                dist_directory: str = MC_DIST_DIR,
                solr_version: str = MC_SOLR_VERSION) -> None:
     """Run Solr instance."""
+    if hostname is None:
+        hostname = fqdn()
     if jvm_opts is None:
         jvm_opts = MC_SOLR_STANDALONE_JVM_OPTS
 
@@ -556,13 +558,15 @@ instanceDir=%(instance_dir)s
         time.sleep(1)
 
 
-def run_solr_standalone(hostname: str = fqdn(),
+def run_solr_standalone(hostname: str = None,
                         port: int = MC_SOLR_STANDALONE_PORT,
                         base_data_dir: str = MC_SOLR_BASE_DATA_DIR,
                         dist_directory: str = MC_DIST_DIR,
                         solr_version: str = MC_SOLR_VERSION,
                         jvm_heap_size: str = MC_SOLR_STANDALONE_JVM_HEAP_SIZE):
     """Run standalone instance of Solr."""
+    if hostname is None:
+        hostname = fqdn()
     if not __solr_is_installed(dist_directory=dist_directory, solr_version=solr_version):
         log.info("Solr is not installed, installing...")
         __install_solr(dist_directory=dist_directory, solr_version=solr_version)
@@ -586,7 +590,7 @@ def run_solr_standalone(hostname: str = fqdn(),
 
 def run_solr_shard(shard_num: int,
                    shard_count: int,
-                   hostname: str = fqdn(),
+                   hostname: str = None,
                    starting_port: int = MC_SOLR_CLUSTER_STARTING_PORT,
                    base_data_dir: str = MC_SOLR_BASE_DATA_DIR,
                    dist_directory: str = MC_DIST_DIR,
@@ -603,6 +607,9 @@ def run_solr_shard(shard_num: int,
     if not __solr_is_installed(dist_directory=dist_directory, solr_version=solr_version):
         log.info("Solr is not installed, installing...")
         __install_solr(dist_directory=dist_directory, solr_version=solr_version)
+
+    if hostname is None:
+        hostname = fqdn()
 
     base_data_dir = resolve_absolute_path_under_mc_root(path=base_data_dir, must_exist=True)
 
