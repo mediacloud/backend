@@ -181,8 +181,8 @@ sub rows_match($$$$$)
 
         for my $field ( @{ $test_fields } )
         {
-            my $got      = $got_row->{ $field };
-            my $expected = $expected_row->{ $field };
+            my $got      = $got_row->{ $field }      // '';
+            my $expected = $expected_row->{ $field } // '';
 
             ok( exists( $got_row->{ $field } ), "$label field $field exists" );
 

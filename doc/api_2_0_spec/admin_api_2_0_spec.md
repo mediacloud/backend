@@ -10,60 +10,66 @@ Table of Contents
       * [api/v2/stories/list](#apiv2storieslist)
          * [Query Parameters](#query-parameters)
          * [Example](#example)
-   * [Sentences](#sentences)
-      * [api/v2/sentences/list](#apiv2sentenceslist)
+      * [api/v2/stories/cliff](#apiv2storiescliff)
          * [Query Parameters](#query-parameters-1)
          * [Example](#example-1)
+      * [api/v2/stories/nytlabels](#apiv2storiesnytlabels)
+         * [Query Parameters](#query-parameters-2)
+         * [Example](#example-2)
+   * [Sentences](#sentences)
+      * [api/v2/sentences/list](#apiv2sentenceslist)
+         * [Query Parameters](#query-parameters-3)
+         * [Example](#example-3)
    * [Downloads](#downloads)
       * [api/v2/downloads/single/](#apiv2downloadssingle)
-         * [Query Parameters](#query-parameters-2)
+         * [Query Parameters](#query-parameters-4)
       * [api/v2/downloads/list/](#apiv2downloadslist)
-      * [Query Parameters](#query-parameters-3)
+      * [Query Parameters](#query-parameters-5)
    * [Tags](#tags)
       * [api/v2/stories/put_tags (PUT)](#apiv2storiesput_tags-put)
-         * [Query Parameters](#query-parameters-4)
+         * [Query Parameters](#query-parameters-6)
          * [Input Description](#input-description)
-         * [Example](#example-2)
+         * [Example](#example-4)
       * [api/v2/tags/create (POST)](#apiv2tagscreate-post)
          * [Input Description](#input-description-1)
-         * [Example](#example-3)
+         * [Example](#example-5)
       * [api/v2/tags/update (PUT)](#apiv2tagsupdate-put)
          * [Input Description](#input-description-2)
-         * [Example](#example-4)
+         * [Example](#example-6)
       * [api/v2/tag_sets/create (POST)](#apiv2tag_setscreate-post)
          * [Input Description](#input-description-3)
-         * [Example](#example-5)
+         * [Example](#example-7)
       * [api/v2/tag_sets/update (PUT)](#apiv2tag_setsupdate-put)
          * [Input Description](#input-description-4)
-         * [Example](#example-6)
+         * [Example](#example-8)
    * [Feeds](#feeds)
       * [api/v2/feeds/create (POST)](#apiv2feedscreate-post)
          * [Input Description](#input-description-5)
-         * [Example](#example-7)
+         * [Example](#example-9)
       * [api/v2/feeds/update (PUT)](#apiv2feedsupdate-put)
          * [Input Description](#input-description-6)
-         * [Example](#example-8)
+         * [Example](#example-10)
       * [api/v2/feeds/scrape (POST)](#apiv2feedsscrape-post)
          * [Input Description](#input-description-7)
-         * [Example](#example-9)
+         * [Example](#example-11)
       * [api/v2/feeds/scrape_status](#apiv2feedsscrape_status)
          * [Input Description](#input-description-8)
          * [Output Description](#output-description-1)
-         * [Example](#example-10)
+         * [Example](#example-12)
    * [Media](#media)
       * [api/v2/media/create (POST)](#apiv2mediacreate-post)
          * [Input Description](#input-description-9)
          * [Output Description](#output-description-2)
-         * [Example](#example-11)
+         * [Example](#example-13)
       * [api/v2/media/update (PUT)](#apiv2mediaupdate-put)
          * [Input Description](#input-description-10)
-         * [Example](#example-12)
+         * [Example](#example-14)
       * [api/v2/media/list_suggestions](#apiv2medialist_suggestions)
-         * [Query Parameters](#query-parameters-5)
-         * [Example](#example-13)
+         * [Query Parameters](#query-parameters-7)
+         * [Example](#example-15)
       * [api/v2/media/mark_suggestion](#apiv2mediamark_suggestion)
          * [Input Description](#input-description-11)
-         * [Example](#example-14)
+         * [Example](#example-16)
 
 ----
 <!-- MEDIACLOUD-TOC-END -->
@@ -116,7 +122,6 @@ The following table describes the meaning and origin of fields returned by the a
 | `raw_1st_download`           | 0       | If non-zero, include the full HTML of the first page of the story.
 | `sentences`                  | 0       | If non-zero, include the `story_sentences` field described above in the output.
 | `text`                       | 0       | If non-zero, include the `story_text` field described above in the output.
-| `corenlp`                    | 0       | If non-zero, include the CoreNLP JSON document with each story and each sentence
 | `q`                          | null    | If specified, return only results that match the given Solr query.  Only one `q` parameter may be included.
 | `fq`                         | null    | If specified, filter results by the given Solr query.  More than one `fq` parameter may be included.
 
@@ -146,6 +151,112 @@ Return a stream of all stories processed by Media Cloud, greater than the `last_
 URL: https://api.mediacloud.org/api/v2/stories/list?last_processed_stories_id=2523432&q=sentence:obama+AND+media_id:1
 
 Return a stream of all stories from The New York Times mentioning `'obama'` greater than the given `last_processed_stories_id`.
+
+## api/v2/stories/cliff
+
+| URL                    | Function
+| ---------------------- | ------------------------------------------------------
+| `api/v2/stories/cliff` | Return raw CLIFF annotation for one or more stories
+
+### Query Parameters
+
+| Parameter     | Notes
+| ------------- | ------------------------------------------------------------------------------
+| `stories_id`  | One or more story ID for which to fetch raw CLIFF annotation.
+
+### Example
+
+Fetch raw CLIFF annotation for stories 1, 2 and a nonexistent story 3:
+
+URL:  https://api.mediacloud.org/api/v2/stories/cliff?stories_id=1&stories_id=2&stories_id=3
+
+Response:
+
+```json
+[
+  {
+    "stories_id": 1,
+    "cliff": {
+      "milliseconds": 231,
+      "results": {
+        "organizations": "..."
+      },
+      "status": "ok",
+      "version": "2.3.0"
+    }
+  },
+  {
+    "stories_id": 2,
+    "cliff": {
+      "milliseconds": 231,
+      "results": {
+        "organizations": "..."
+      },
+      "status": "ok",
+      "version": "2.3.0"
+    }
+  },
+  {
+    "stories_id": 3,
+    "cliff": "story does not exist"
+  }
+]
+```
+
+
+## api/v2/stories/nytlabels
+
+| URL                       | Function
+| -------------------------- | ------------------------------------------------------
+| `api/v2/stories/nytlabels` | Return raw NYTLabels annotation for one or more stories
+
+### Query Parameters
+
+| Parameter     | Notes
+| ------------- | ------------------------------------------------------------------------------
+| `stories_id`  | One or more story ID for which to fetch raw NYTLabels annotation.
+
+### Example
+
+Fetch raw NYTLabels annotation for stories 1, 2 and a nonexistent story 3:
+
+URL:  https://api.mediacloud.org/api/v2/stories/nytlabels?stories_id=1&stories_id=2&stories_id=3
+
+Response:
+
+```json
+[
+  {
+    "stories_id": 1,
+    "nytlabels": {
+      "allDescriptors": [
+        "..."
+      ],
+      "descriptors3000": [
+        "..."
+      ],
+      "...": "..."
+    }
+  },
+  {
+    "stories_id": 2,
+    "nytlabels": {
+      "allDescriptors": [
+        "..."
+      ],
+      "descriptors3000": [
+        "..."
+      ],
+      "...": "..."
+    }
+  },
+  {
+    "stories_id": 3,
+    "nytlabels": "story does not exist"
+  }
+]
+```
+
 
 # Sentences
 

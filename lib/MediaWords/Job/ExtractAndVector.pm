@@ -31,8 +31,6 @@ use MediaWords::DBI::Stories::ExtractorArguments;
 #              (probably skips updating db_row_last_updated?)
 # * (optional) skip_bitly_processing -- don't add extracted story to the Bit.ly
 #              processing queue
-# * (optional) skip_corenlp_annotation -- don't add extracted story to the
-#              CoreNLP annotation queue
 sub run($$)
 {
     my ( $self, $args ) = @_;
@@ -74,9 +72,8 @@ sub run($$)
 
     my $extractor_args = MediaWords::DBI::Stories::ExtractorArguments->new(
         {
-            skip_bitly_processing   => $args->{ skip_bitly_processing },
-            skip_corenlp_annotation => $args->{ skip_corenlp_annotation },
-            use_cache               => $args->{ use_cache }
+            skip_bitly_processing => $args->{ skip_bitly_processing },
+            use_cache             => $args->{ use_cache }
         }
     );
 

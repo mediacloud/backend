@@ -131,12 +131,10 @@ supervisor:
         #purge_object_caches
         #facebook_fetch_story_stats
         #process_bitly_schedule
-        #extractor_python_readability_server
         #rabbitmq
         #rescrape_media
         #topic_mine
         #topic_snapshot
-        #annotate_with_corenlp
         #bitly_fetch_story_stats
         #bitly_aggregate_story_stats
 
@@ -187,28 +185,6 @@ supervisor_solr:
             zookeeper_host: "localhost"
             zookeeper_port: 9983
 
-### CoreNLP annotator
-corenlp:
-
-    ### Enable CoreNLP processing
-    ### If enabled, CoreNLP processing will happen after every "content"
-    ### download extraction
-    enabled: "no"
-
-    ### Annotator URL, e.g. "http://www.example.com:8080/corenlp/annotator"
-    annotator_url: ""
-
-    ### Annotator timeout (in seconds)
-    ### If you annotate huge chunks of text or the CoreNLP annotator is busy in
-    ### general, you might want to increase this value even more because
-    ### otherwise the job worker will exit() often.
-    annotator_timeout: 600
-
-    ### CoreNLP annotator level; you might want to use this configuration
-    ### parameter to limit the scope of annotations returned from the service.
-    ### Default is an empty string; you might want to set it to "ner".
-    annotator_level: ""
-
 ### Bit.ly API
 bitly:
 
@@ -258,6 +234,54 @@ bitly:
             #- 295200
             ### 30 days from "stories.publish_date"
             #- 2952000
+
+### CLIFF annotator
+cliff:
+
+    ### Enable CLIFF processing
+    ### If enabled, CLIFF processing will happen after every "content"
+    ### download extraction
+    enabled: "no"
+
+    ### Annotator URL (text parsing endpoint), e.g. "http://localhost:8080/cliff-2.4.1/parse/text"
+    annotator_url: ""
+
+    ### CLIFF version tag, e.g. "cliff_clavin_v2.4.1"; will be added under
+    ### "geocoder_version" tag set
+    cliff_version_tag: "cliff_clavin_v2.4.1"
+
+    ### CLIFF geographical names tag set, e.g. "cliff_geonames";
+    ### tags with names such as "geonames_<countryGeoNameId>" will be added
+    ### under this tag set
+    cliff_geonames_tag_set: "cliff_geonames"
+
+    ### CLIFF organizations tag set, e.g. "cliff_organizations"; tags with
+    ### names of organizations such as "United Nations" will be added under
+    ### this tag set
+    cliff_organizations_tag_set: "cliff_organizations"
+
+    ### CLIFF people tag set, e.g. "cliff_people"; tags with names of people
+    ### such as "Einstein" will be added under this tag set
+    cliff_people_tag_set: "cliff_people"
+
+### NYTLabels annotator
+nytlabels:
+
+    ### Enable NYTLabels processing
+    ### If enabled, NYTLabels processing will happen after every "content"
+    ### download extraction
+    enabled: "no"
+
+    ### Annotator URL (text parsing endpoint), e.g. "http://localhost/predict.json"
+    annotator_url: ""
+
+    ### NYTLabels version tag, e.g. "nyt_labeller_v1.0.0"; will be added under
+    ### "geocoder_version" tag set
+    nytlabels_version_tag: "nyt_labeller_v1.0.0"
+
+    ### NYTLabels tag set, e.g. "nyt_labels"; tags with names such as
+    ### "hurricane" will be added under this tag set
+    nytlabels_labels_tag_set: "nyt_labels"
 
 ### Facebook API
 ### (see doc/README.facebook_api.markdown)

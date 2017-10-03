@@ -81,6 +81,11 @@ class HashServer(object):
                     code = code.value
             BaseHTTPRequestHandler.send_response(self, code=code, message=message)
 
+        def do_POST(self):
+            """Respond to a POST request."""
+            # Pretend it's a GET (most test pages return static content anyway)
+            return self.do_GET()
+
         def do_GET(self):
             """Respond to a GET request."""
 

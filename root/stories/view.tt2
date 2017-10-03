@@ -132,26 +132,19 @@
         </td>
     </tr>
 
-    [% IF corenlp_is_enabled %]
+    [% IF cliff_is_enabled %]
         <tr>
             <th>
-                CoreNLP annotation:</th>
+                CLIFF annotation:</th>
             <td>
-                [% IF corenlp_story_is_annotatable %]
-                    [% IF corenlp_story_is_annotated %]
+                [% IF cliff_story_is_annotatable %]
+                    [% IF cliff_story_is_annotated %]
 
-                        <iframe src="[% c.uri_for( '/admin/stories/corenlp_json/' _ story.stories_id ) | html %]" style="width: 99%; height: 480px; background-color: white"></iframe>
-
-                        <p>
-                            <a href="[% c.uri_for( '/admin/stories/corenlp_json/' _ story.stories_id ) | html %]" target="_blank">[open in new page]</a>
-                        </p>
+                        <iframe src="[% c.uri_for( '/admin/stories/cliff_json/' _ story.stories_id ) | html %]" style="width: 99%; height: 480px; background-color: white"></iframe>
 
                         <p>
-                            <strong>Notes:</strong>
+                            <a href="[% c.uri_for( '/admin/stories/cliff_json/' _ story.stories_id ) | html %]" target="_blank">[open in new page]</a>
                         </p>
-                        <ul>
-                            <li>Index "<code>[% corenlp_sentences_concatenation_index | html %]</code>" is concatenation of all sentences.</li>
-                        </ul>
 
                         <p>[% jsonview_help %]</p>
 
@@ -164,7 +157,35 @@
             </td>
         </tr>
     [% ELSE %]
-        <!-- CoreNLP annotation is not enabled in the configuration -->
+        <!-- CLIFF annotation is not enabled in the configuration -->
+    [% END %]
+
+    [% IF nytlabels_is_enabled %]
+        <tr>
+            <th>
+                NYTLabels annotation:</th>
+            <td>
+                [% IF nytlabels_story_is_annotatable %]
+                    [% IF nytlabels_story_is_annotated %]
+
+                        <iframe src="[% c.uri_for( '/admin/stories/nytlabels_json/' _ story.stories_id ) | html %]" style="width: 99%; height: 480px; background-color: white"></iframe>
+
+                        <p>
+                            <a href="[% c.uri_for( '/admin/stories/nytlabels_json/' _ story.stories_id ) | html %]" target="_blank">[open in new page]</a>
+                        </p>
+
+                        <p>[% jsonview_help %]</p>
+
+                    [% ELSE %]
+                        not annotated
+                    [% END %]
+                [% ELSE %]
+                    not annotatable (either it's not in English or has no sentences)
+                [% END %]
+            </td>
+        </tr>
+    [% ELSE %]
+        <!-- NYTLabels annotation is not enabled in the configuration -->
     [% END %]
 
     [% IF bitly_is_enabled %]
