@@ -30,52 +30,46 @@ Table of Contents
          * [Query Parameters](#query-parameters-6)
          * [Input Description](#input-description)
          * [Example](#example-4)
-      * [api/v2/sentences/put_tags (PUT)](#apiv2sentencesput_tags-put)
+      * [api/v2/tags/create (POST)](#apiv2tagscreate-post)
          * [Input Description](#input-description-1)
          * [Example](#example-5)
-      * [api/v2/media/put_tags (PUT)](#apiv2mediaput_tags-put)
+      * [api/v2/tags/update (PUT)](#apiv2tagsupdate-put)
          * [Input Description](#input-description-2)
          * [Example](#example-6)
-      * [api/v2/tags/create (POST)](#apiv2tagscreate-post)
+      * [api/v2/tag_sets/create (POST)](#apiv2tag_setscreate-post)
          * [Input Description](#input-description-3)
          * [Example](#example-7)
-      * [api/v2/tags/update (PUT)](#apiv2tagsupdate-put)
+      * [api/v2/tag_sets/update (PUT)](#apiv2tag_setsupdate-put)
          * [Input Description](#input-description-4)
          * [Example](#example-8)
-      * [api/v2/tag_sets/create (POST)](#apiv2tag_setscreate-post)
-         * [Input Description](#input-description-5)
-         * [Example](#example-9)
-      * [api/v2/tag_sets/update (PUT)](#apiv2tag_setsupdate-put)
-         * [Input Description](#input-description-6)
-         * [Example](#example-10)
    * [Feeds](#feeds)
       * [api/v2/feeds/create (POST)](#apiv2feedscreate-post)
+         * [Input Description](#input-description-5)
+         * [Example](#example-9)
+      * [api/v2/feeds/update (PUT)](#apiv2feedsupdate-put)
+         * [Input Description](#input-description-6)
+         * [Example](#example-10)
+      * [api/v2/feeds/scrape (POST)](#apiv2feedsscrape-post)
          * [Input Description](#input-description-7)
          * [Example](#example-11)
-      * [api/v2/feeds/update (PUT)](#apiv2feedsupdate-put)
-         * [Input Description](#input-description-8)
-         * [Example](#example-12)
-      * [api/v2/feeds/scrape (POST)](#apiv2feedsscrape-post)
-         * [Input Description](#input-description-9)
-         * [Example](#example-13)
       * [api/v2/feeds/scrape_status](#apiv2feedsscrape_status)
-         * [Input Description](#input-description-10)
+         * [Input Description](#input-description-8)
          * [Output Description](#output-description-1)
-         * [Example](#example-14)
+         * [Example](#example-12)
    * [Media](#media)
       * [api/v2/media/create (POST)](#apiv2mediacreate-post)
-         * [Input Description](#input-description-11)
+         * [Input Description](#input-description-9)
          * [Output Description](#output-description-2)
-         * [Example](#example-15)
+         * [Example](#example-13)
       * [api/v2/media/update (PUT)](#apiv2mediaupdate-put)
-         * [Input Description](#input-description-12)
-         * [Example](#example-16)
+         * [Input Description](#input-description-10)
+         * [Example](#example-14)
       * [api/v2/media/list_suggestions](#apiv2medialist_suggestions)
          * [Query Parameters](#query-parameters-7)
-         * [Example](#example-17)
+         * [Example](#example-15)
       * [api/v2/media/mark_suggestion](#apiv2mediamark_suggestion)
-         * [Input Description](#input-description-13)
-         * [Example](#example-18)
+         * [Input Description](#input-description-11)
+         * [Example](#example-16)
 
 ----
 <!-- MEDIACLOUD-TOC-END -->
@@ -485,76 +479,6 @@ Input:
     "stories_id": 123456,
     "tag": "japan",
     "tag_set": "gv_country"
-  }
-]
-```
-
-Output:
-
-```json
-{ "success": 1 }
-```
-
-## api/v2/sentences/put_tags (PUT)
-
-| URL                                  | Function
-| ------------------------------------ | -----------------------------------------------------------
-| `api/v2/sentences/put_tags`          | Add tags to a story sentence. Must be a PUT request.
-
-### Input Description
-
-See input description for stories/put_tags, but replace `stories_id` with `story_sentences_id`.
-
-### Example
-
-URL: https://api.mediacloud.org/aip/v2/story_sentences/put_tags
-
-Input:
-
-```json
-[
-  {
-    "story_sentences_id": 123456,
-    "tag": "gv_country:brazil"
-  }
-  {
-    "story_sentences_id": 123456,
-    "tag": "gv_country:jaapan"
-  }
-]
-```
-
-Output:
-
-```json
-{ "success": 1 }
-```
-
-## api/v2/media/put_tags (PUT)
-
-| URL                     | Function                  |
-| ----------------------- | ------------------------- |
-| `api/v2/media/put_tags` | add tags to media sources |
-
-### Input Description
-
-See input description for stories/put_tags, but replace `stories_id` with `media_id`.
-
-### Example
-
-URL: https://api.mediacloud.org/aip/v2/media/put_tags
-
-Input:
-
-```json
-[
-  {
-    "story_sentences_id": 123456,
-    "tag": "gv_country:brazil"
-  }
-  {
-    "story_sentences_id": 123456,
-    "tag": "gv_country:jaapan"
   }
 ]
 ```
