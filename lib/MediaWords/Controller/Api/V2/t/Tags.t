@@ -69,7 +69,7 @@ sub _get_put_tag_url($;$)
 {
     my ( $table, $clear ) = @_;
 
-    my $url = ( $table eq 'story_sentences' ) ? '/api/v2/sentences/put_tags' : "/api/v2/$table/put_tags";
+    my $url = "/api/v2/$table/put_tags";
 
     $url .= '?clear_tag_sets=1' if ( $clear );
 
@@ -362,7 +362,6 @@ sub test_tags($)
 
     # test put_tags calls on all tables
     test_put_tags( $db, 'stories' );
-    test_put_tags( $db, 'story_sentences' );
     test_put_tags( $db, 'media' );
 }
 
