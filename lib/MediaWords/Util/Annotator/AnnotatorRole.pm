@@ -549,7 +549,7 @@ SQL
         my $tags_id = $db_tag->{ tags_id };
 
         # Assign story to tag
-        $db->create(
+        $db->find_or_create(
             'stories_tags_map',
             {
                 tags_id    => $tags_id,

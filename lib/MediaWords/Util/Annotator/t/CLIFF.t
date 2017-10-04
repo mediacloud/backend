@@ -34,6 +34,12 @@ sub _sample_cliff_response()
                     "name" => " Kansas\nHealth\nInstitute   \n  ",
                 },
                 {
+                    "count" => 2,
+
+                    # Test whether tags that already exist get merged into one
+                    "name" => "Kansas Health Institute",
+                },
+                {
                     "count" => 3,
                     "name"  => "Census Bureau",
                 },
