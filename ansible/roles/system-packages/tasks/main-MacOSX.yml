@@ -29,6 +29,7 @@
     - { name: cpanminus, install_options: null }
     - { name: curl, install_options: null }
     - { name: gawk, install_options: null }
+    - { name: gnu-time, install_options: null }
     - { name: hunspell, install_options: null }
     - { name: libyaml, install_options: null }
     - { name: logrotate, install_options: null }
