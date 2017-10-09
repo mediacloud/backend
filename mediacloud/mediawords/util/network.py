@@ -55,6 +55,9 @@ def tcp_port_is_open(port: int, hostname: str = 'localhost') -> bool:
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.settimeout(2)
     result = sock.connect_ex((hostname, port))
+    if result == 0:
+        sock.shutdown(socket.SHUT_RDWR)
+    sock.close()
     return result == 0
 
 
