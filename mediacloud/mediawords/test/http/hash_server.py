@@ -65,6 +65,9 @@ class HashServer(object):
 
         def header(self, name: str) -> Union[str, None]:
             """Return header of a request."""
+
+            name = decode_object_from_bytes_if_needed(name)
+
             if name in self._headers:
                 return self._headers[name]
             else:
