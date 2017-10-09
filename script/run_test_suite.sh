@@ -39,16 +39,7 @@ echo "Running Python unit tests..."
 
 echo "Running Perl unit tests..."
 TEST_FILES=`find lib script t -name '*.t'`
-
-# We don't want limited built-in shell "time"
-if [ `uname` == 'Darwin' ]; then
-    TIME=/usr/local/bin/gtime
-else
-    TIME=/usr/bin/time
-fi
-TIME_FORMAT="Command: %C; benchmark: %Uuser %Ssystem %Eelapsed %PCPU (%Xtext+%Ddata %Mmax)k"
-
-echo "$TEST_FILES" | while read TEST_FILE; do
-    echo "Running $TEST_FILE..."
-    PERL5OPT=-MCarp::Always $TIME --format="$TIME_FORMAT" ./script/run_in_env.sh prove "$TEST_FILE"
-done
+PERL5OPT=-MCarp::Always ./script/run_in_env.sh prove $* $TEST_FILES || {
+    echo "One or more unit tests have failed with error code $?."
+    exit 1
+}
