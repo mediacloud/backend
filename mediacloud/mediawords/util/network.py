@@ -53,6 +53,7 @@ def tcp_port_is_open(port: int, hostname: str = 'localhost') -> bool:
     hostname = decode_object_from_bytes_if_needed(hostname)
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(2)
     result = sock.connect_ex((hostname, port))
     return result == 0
 
