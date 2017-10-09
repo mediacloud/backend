@@ -20,7 +20,7 @@ def test_tcp_port_is_open():
     # Open port
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind(('localhost', random_port))
-    s.listen(1)
+    s.listen()
     assert tcp_port_is_open(random_port) is True
 
     # Close port
@@ -35,7 +35,7 @@ def test_wait_for_tcp_port_to_open():
     # Open port
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind(('localhost', random_port))
-    s.listen(1)
+    s.listen()
     assert wait_for_tcp_port_to_open(port=random_port, retries=2) is True
 
     # Close port
