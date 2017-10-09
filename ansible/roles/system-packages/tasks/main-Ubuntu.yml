@@ -80,7 +80,6 @@
     - "python{{ python_version }}"
     - "python{{ python_version }}-dev"
     - rabbitmq-server
-    - time
     - unzip
   become: true
   become_user: root
