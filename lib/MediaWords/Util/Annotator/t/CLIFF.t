@@ -299,10 +299,10 @@ SQL
         {
             'tags_name'            => 'Kansas Health Institute',
             'tag_sets_name'        => 'cliff_organizations',
-            'tags_label'           => " Kansas\nHealth\nInstitute   \n  ",
+            'tags_label'           => "Kansas Health Institute",
             'tag_sets_label'       => 'cliff_organizations',
             'tag_sets_description' => 'CLIFF organizations',
-            'tags_description'     => " Kansas\nHealth\nInstitute   \n  "
+            'tags_description'     => "Kansas Health Institute"
         },
         {
             'tags_description'     => 'Tim Huelskamp',
