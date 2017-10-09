@@ -34,6 +34,9 @@ fi
 # Run test suite
 cd `dirname $0`/../
 
+echo "Running Python unit tests..."
+./script/run_in_env.sh nosetests --detailed-errors --where=mediacloud/
+
 echo "Running Perl unit tests..."
 TEST_FILES=`find lib script t -name '*.t'`
 
