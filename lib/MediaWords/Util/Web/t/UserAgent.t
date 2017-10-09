@@ -7,7 +7,7 @@ use MediaWords::CommonLibs;
 
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 119;
+use Test::More tests => 122;
 
 use File::Temp qw/ tempdir /;
 use HTTP::Status qw(:constants);
@@ -17,6 +17,7 @@ use File::ReadBackwards;
 use URI;
 use URI::Escape;
 
+use MediaWords::Util::JSON;
 use MediaWords::Util::Web;
 use MediaWords::Util::Text;
 use MediaWords::Test::HTTP::HashServer;
@@ -26,8 +27,6 @@ my Readonly $TEST_HTTP_SERVER_URL  = 'http://localhost:' . $TEST_HTTP_SERVER_POR
 
 # FIXME things to test:
 #
-# * get(): "User-Agent" header
-# * get(): "From" header
 # * get(): make sure preset authentication doesn't get overridden
 # * post()
 # * request: custom METHOD
@@ -63,6 +62,55 @@ sub test_get()
 
     is( $response->request()->url(),  $TEST_HTTP_SERVER_URL . '/test' );
     is( $response->decoded_content(), 'Hello!' );
+}
+
+sub test_get_user_agent_from_headers()
+{
+    # User-Agent: and From: headers
+    my $pages = {
+        '/user-agent-from-headers' => {
+            callback => sub {
+                my ( $request ) = @_;
+
+                my $response = '';
+
+                $response .= "HTTP/1.0 200 OK\r\n";
+                $response .= "Content-Type: application/json; charset=UTF-8\r\n";
+                $response .= "\r\n";
+                $response .= MediaWords::Util::JSON::encode_json(
+                    {
+                        'user-agent' => $request->header( 'User-Agent' ),
+                        'from'       => $request->header( 'From' ),
+                    }
+                );
+
+                return $response;
+            }
+        }
+    };
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my $ua       = MediaWords::Util::Web::UserAgent->new();
+    my $response = $ua->get( "$TEST_HTTP_SERVER_URL/user-agent-from-headers" );
+
+    $hs->stop();
+
+    ok( $response->is_success() );
+    is( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/user-agent-from-headers' );
+
+    my $config              = MediaWords::Util::Config::get_config();
+    my $expected_user_agent = $config->{ mediawords }->{ user_agent };
+    my $expected_from       = $config->{ mediawords }->{ owner };
+
+    my $decoded_json = MediaWords::Util::JSON::decode_json( $response->decoded_content() );
+    cmp_deeply(
+        $decoded_json,
+        {
+            'user-agent' => $expected_user_agent,
+            'from'       => $expected_from,
+        }
+    );
 }
 
 sub test_get_not_found()
@@ -1115,6 +1163,7 @@ sub main()
     binmode $builder->todo_output,    ":utf8";
 
     test_get();
+    test_get_user_agent_from_headers();
     test_get_not_found();
     test_get_timeout();
     test_get_valid_utf8_content();
