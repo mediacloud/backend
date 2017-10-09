@@ -528,7 +528,7 @@ sub _results_from_matching_date_patterns($$)
 # Matches a (likely) publication date(+time) in the HTML passed as a parameter; returns timestamp on success,
 # undef if no date(+time) was found
 # FIXME use return values of Regexp::Common::time to form a standardized date
-sub timestamp_from_html($)
+sub _timestamp_from_html($)
 {
     my $html = shift;
 
@@ -785,7 +785,7 @@ sub _guess_by_date_text
 {
     my ( $story, $html, $html_tree ) = @_;
 
-    return timestamp_from_html( $html );
+    return _timestamp_from_html( $html );
 }
 
 # if _guess_by_url returns a date, use _guess_by_date_text if the days agree
@@ -959,7 +959,7 @@ sub _guessing_is_inapplicable($$$)
 
 # guess the date for the story by cycling through the $_date_guess_functions one at a time.
 # returns MediaWords::TM::GuessDate::Result object
-sub guess_date_impl
+sub _guess_date_impl
 {
     my ( $db, $story, $html ) = @_;
 
@@ -1016,7 +1016,7 @@ sub guess_date($$$;$)
     # we have to wrap everything in an eval, because the xml treebuilder stuff is liable to dying
     # in unpredictable ways
     my $r;
-    eval { $r = guess_date_impl( @_ ) };
+    eval { $r = _guess_date_impl( @_ ) };
 
     return $r if ( $r );
 
