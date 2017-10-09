@@ -43,6 +43,21 @@ def test_wait_for_tcp_port_to_open():
     assert wait_for_tcp_port_to_open(port=random_port, retries=2) is False
 
 
+def test_wait_for_tcp_port_to_close():
+    random_port = random_unused_port()
+    assert wait_for_tcp_port_to_close(port=random_port, retries=2) is True
+
+    # Open port
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(('localhost', random_port))
+    s.listen()
+    assert wait_for_tcp_port_to_close(port=random_port, retries=2) is False
+
+    # Close port
+    s.close()
+    assert wait_for_tcp_port_to_close(port=random_port, retries=2) is True
+
+
 def test_random_unused_port():
     random_port = random_unused_port()
     assert tcp_port_is_open(random_port) is False
