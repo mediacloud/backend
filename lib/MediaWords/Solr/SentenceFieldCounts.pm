@@ -16,10 +16,7 @@ use MediaWords::Util::Config;
 
 # list of fields that can be queried.  the id field to return from solr.  the values from
 # the id_field are joined to the tag_map_table to return tags_id counts.
-my $_field_definitions = {
-    tags_id_stories         => { id_field => 'stories_id',         tag_map_table => 'stories_tags_map' },
-    tags_id_story_sentences => { id_field => 'story_sentences_id', tag_map_table => 'story_sentences_tags_map' }
-};
+my $_field_definitions = { tags_id_stories => { id_field => 'stories_id', tag_map_table => 'stories_tags_map' }, };
 
 # mediawords.fc_cache_version from config
 my $_fc_cache_version;
@@ -29,7 +26,7 @@ my $_fc_cache_version;
 has 'q'             => ( is => 'rw', isa => 'Str' );
 has 'fq'            => ( is => 'rw', isa => 'ArrayRef' );
 has 'sample_size'   => ( is => 'rw', isa => 'Int', default => 1000 );
-has 'field'         => ( is => 'rw', isa => 'Str', default => 'tags_id_story_sentences' );
+has 'field'         => ( is => 'rw', isa => 'Str', default => 'tags_id_stories' );
 has 'tag_sets_id'   => ( is => 'rw', isa => 'Int' );
 has 'include_stats' => ( is => 'rw', isa => 'Bool' );
 has 'db' => ( is => 'rw' );

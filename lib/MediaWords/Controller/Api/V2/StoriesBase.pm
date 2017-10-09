@@ -105,24 +105,6 @@ sub add_extra_data
     return $stories;
 }
 
-# the story_sentences query returns story_sentences_tags as a ; separated list.
-# this function splits the tags_list field of each sentence into a proper list
-# and reassigns the result to the tags field.  the tags_list field is deleted
-# after splitting.
-sub _split_sentence_tags_list
-{
-    my ( $stories ) = @_;
-
-    for my $story ( @{ $stories } )
-    {
-        for my $ss ( @{ $story->{ story_sentences } } )
-        {
-            $ss->{ tags } = [ split( ';', $ss->{ tags_list } || '' ) ];
-            delete( $ss->{ tags_list } );
-        }
-    }
-}
-
 # give the story ids in $ids_table, query the db for a list of stories_ids each with an
 # ap_stories_id present if the story is syndicated from some ap story
 sub _get_ap_stories_ids
@@ -236,27 +218,15 @@ END
 
     if ( $self->{ show_sentences } )
     {
-        # first create a temporary table so that postgres can generate a sane query plan that
-        # doesn't result in a seq scan on story_sentences_tags_map
-        $db->query( <<SQL );
-create temporary table attach_sentences as
-    select * from story_sentences where stories_id in ( select id from $ids_table );
-
-alter table attach_sentences add constraint pk primary key ( story_sentences_id )
-SQL
-
         my $sentences;
         $db->run_block_with_large_work_mem(
             sub {
                 $sentences = $db->query(
                     <<SQL
-                SELECT s.*,
-                       string_agg( sstm.tags_id::text, ';' ) AS tags_list
-                FROM attach_sentences AS s
-                    LEFT JOIN story_sentences_tags_map AS sstm
-                        ON s.story_sentences_id = sstm.story_sentences_id
-                GROUP BY s.story_sentences_id
-                ORDER BY s.sentence_number
+                        SELECT *
+                        FROM story_sentences
+                        WHERE stories_id IN ( SELECT id FROM $ids_table )
+                        ORDER BY sentence_number
 SQL
                 )->hashes;
             }
@@ -264,7 +234,6 @@ SQL
 
         MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $sentences, 'story_sentences' );
 
-        _split_sentence_tags_list( $stories );
     }
 
     if ( $self->{ show_ap_stories_id } )

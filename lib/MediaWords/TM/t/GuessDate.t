@@ -65,12 +65,12 @@ sub _gr_url($$;$)
     return _gr( $db, $html, $story_url, $story_publish_date );
 }
 
-# Shorthand for timestamp_from_html()
+# Shorthand for _timestamp_from_html()
 sub _ts_from_html($)
 {
     my $html = shift;
 
-    return MediaWords::TM::GuessDate::timestamp_from_html( $html );
+    return MediaWords::TM::GuessDate::_timestamp_from_html( $html );
 }
 
 # Shortcut for making UNIX timestamps out of RFC 822 dates

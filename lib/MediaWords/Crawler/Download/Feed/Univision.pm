@@ -179,8 +179,15 @@ sub _get_stories_from_univision_feed($$$)
     my @stories;
     for my $item ( @{ $items } )
     {
+        my $url = $item->{ 'url' };
+        unless ( $url )
+        {
+            # Some items in the feed don't have their URLs set
+            WARN "'url' for item is not set: " . Dumper( $item );
+            next;
+        }
+
         my $guid = $item->{ 'uid' } or die "Item does not have its 'uid' set.";
-        my $url  = $item->{ 'url' } or die "Item does not have its 'url' set.";
         my $title       = $item->{ 'title' }       // '(no title)';
         my $description = $item->{ 'description' } // '';
 
