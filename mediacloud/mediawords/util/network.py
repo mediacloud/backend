@@ -61,7 +61,10 @@ def tcp_port_is_open(port: int, hostname: str = 'localhost') -> bool:
     return result == 0
 
 
-def wait_for_tcp_port_to_open(port: int, hostname: str = 'localhost', retries: int = 60, delay: int = 1) -> bool:
+def wait_for_tcp_port_to_open(port: int,
+                              hostname: str = 'localhost',
+                              retries: int = 60,
+                              delay: Union[int, float] = 1) -> bool:
     """Try connecting to TCP port until it opens (or not); return True if managed to connect."""
 
     hostname = decode_object_from_bytes_if_needed(hostname)
