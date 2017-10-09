@@ -128,7 +128,7 @@ sub test_nytlabels_annotator($)
         # Mock annotator
         '/predict.json' => {
             callback => sub {
-                my ( $params, $cookies ) = @_;
+                my ( $request ) = @_;
                 my $response = '';
                 $response .= "HTTP/1.0 200 OK\r\n";
                 $response .= "Content-Type: application/json; charset=UTF-8\r\n";

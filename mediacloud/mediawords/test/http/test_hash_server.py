@@ -10,20 +10,23 @@ def test_http_hash_server():
     port = random_unused_port()
     base_url = 'http://localhost:%d' % port
 
-    def __simple_callback(params: dict, cookies: dict) -> Union[str, bytes]:
+    def __simple_callback(request: HashServer.Request) -> Union[str, bytes]:
         r = ""
         r += "HTTP/1.0 200 OK\r\n"
         r += "Content-Type: application/json; charset=UTF-8\r\n"
         r += "\r\n"
         r += json.dumps({
             'name': 'callback',
-            'params': params,
-            'cookies': cookies,
+            'method': request.method(),
+            'url': request.url(),
+            'content-type': request.content_type(),
+            'params': request.query_params(),
+            'cookies': request.cookies(),
         })
         return str.encode(r)
 
     # noinspection PyUnusedLocal
-    def __callback_cookie_redirect(params: dict, cookies: dict) -> str:
+    def __callback_cookie_redirect(request: HashServer.Request) -> str:
         r = ""
         r += "HTTP/1.0 302 Moved Temporarily\r\n"
         r += "Content-Type: text/html; charset=UTF-8\r\n"
@@ -32,6 +35,17 @@ def test_http_hash_server():
         r += "\r\n"
         r += "Redirecting to the cookie check page..."
         return r
+
+    def __callback_post(request: HashServer.Request) -> Union[str, bytes]:
+        r = ""
+        r += "HTTP/1.0 200 OK\r\n"
+        r += "Content-Type: application/json; charset=UTF-8\r\n"
+        r += "\r\n"
+        r += json.dumps({
+            'name': 'callback_post',
+            'post_data': request.content(),
+        })
+        return str.encode(r)
 
     pages = {
         '/': 'home',
@@ -46,6 +60,9 @@ def test_http_hash_server():
 
         # Test setting cookies, redirects
         '/callback_cookie_redirect': {'callback': __callback_cookie_redirect},
+
+        # POST data
+        '/callback_post': {'callback': __callback_post},
     }
 
     hs = HashServer(port=port, pages=pages)
@@ -65,6 +82,9 @@ def test_http_hash_server():
     response_json = requests.get('%s/callback?a=b&c=d' % base_url, cookies={'cookie_name': 'cookie_value'}).json()
     assert response_json == {
         'name': 'callback',
+        'method': 'GET',
+        'url': 'http://localhost:%d/callback?a=b&c=d' % port,
+        'content-type': None,
         'params': {
             'a': 'b',
             'c': 'd',
@@ -93,5 +113,11 @@ def test_http_hash_server():
 
     assert hs.page_url('/callback?a=b&c=d') == 'http://localhost:%d/callback' % port
     assert_raises(McHashServerException, hs.page_url, '/does-not-exist')
+
+    response_json = requests.post('%s/callback_post' % base_url, data='abc=def').json()
+    assert response_json == {
+        'name': 'callback_post',
+        'post_data': 'abc=def',
+    }
 
     hs.stop()

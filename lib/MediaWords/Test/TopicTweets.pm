@@ -124,7 +124,9 @@ sub get_test_data
 # passed into the request plus an iterator that increases for each tweet returned.
 sub mock_ch_posts
 {
-    my ( $params, $cookies ) = @_;
+    my ( $request ) = @_;
+
+    my $params = $request->query_params();
 
     my $auth       = $params->{ 'auth' }  || LOGDIE( "missing auth param" );
     my $id         = $params->{ 'id' }    || LOGDIE( "missing id param" );
@@ -159,7 +161,9 @@ sub mock_ch_posts
 # send a simple text page for use mocking tweet url pages
 sub mock_tweet_url
 {
-    my ( $params, $cookies ) = @_;
+    my ( $request ) = @_;
+
+    my $params = $request->query_params();
 
     my $id = $params->{ 'id' };
 
@@ -185,7 +189,9 @@ sub mock_tweet_url
 
 sub mock_twitter_lookup
 {
-    my ( $params, $cookies ) = @_;
+    my ( $request ) = @_;
+
+    my $params = $request->query_params();
 
     my $id_list = $params->{ 'id' };
 

@@ -71,7 +71,7 @@ sub test_get_not_found()
     my $pages = {
         '/does-not-exist' => {
             callback => sub {
-                my ( $params, $cookies ) = @_;
+                my ( $request ) = @_;
 
                 my $response = '';
 
@@ -103,7 +103,7 @@ sub test_get_timeout()
     my $pages = {
         '/timeout' => {
             callback => sub {
-                my ( $params, $cookies ) = @_;
+                my ( $request ) = @_;
 
                 my $response = '';
 
@@ -268,7 +268,7 @@ sub test_get_response_status()
     my $pages = {
         '/test' => {
             callback => sub {
-                my ( $params, $cookies ) = @_;
+                my ( $request ) = @_;
 
                 my $response = '';
 
@@ -427,7 +427,7 @@ sub test_get_blacklisted_url()
     my $pages = {
         '/whitelisted' => {
             callback => sub {
-                my ( $params, $cookies ) = @_;
+                my ( $request ) = @_;
 
                 open( my $fh, '>', $whitelist_temp_file );
                 print $fh "Whitelisted URL has been fetched.";
@@ -445,7 +445,7 @@ sub test_get_blacklisted_url()
         },
         '/blacklisted' => {
             callback => sub {
-                my ( $params, $cookies ) = @_;
+                my ( $request ) = @_;
 
                 open( my $fh, '>', $blacklist_temp_file );
                 print $fh "Blacklisted URL has been fetched.";
@@ -781,7 +781,9 @@ sub test_get_follow_http_html_redirects_cookies()
     my $pages = {
         '/first' => {
             callback => sub {
-                my ( $params, $cookies ) = @_;
+                my ( $request ) = @_;
+
+                my $cookies = $request->cookies();
 
                 my $received_cookie = $cookies->{ $COOKIE_NAME };
                 my $response        = '';
@@ -817,7 +819,9 @@ sub test_get_follow_http_html_redirects_cookies()
         '/check_cookie' => {
             callback => sub {
 
-                my ( $params, $cookies ) = @_;
+                my ( $request ) = @_;
+
+                my $cookies = $request->cookies();
 
                 my $received_cookie = $cookies->{ $COOKIE_NAME };
                 my $response        = '';
@@ -873,7 +877,7 @@ sub test_get_follow_http_html_redirects_previous_responses()
 
         return {
             callback => sub {
-                my ( $params, $cookies ) = @_;
+                my ( $request ) = @_;
 
                 my $response = '';
                 $response .= "HTTP/1.0 302 Moved Temporarily\r\n";
@@ -1017,7 +1021,7 @@ sub test_determined_retries()
         # Page that doesn't work the first two times
         '/temporarily-buggy-page' => {
             callback => sub {
-                my ( $params, $cookies ) = @_;
+                my ( $request ) = @_;
 
                 my $response = '';
 
@@ -1050,7 +1054,7 @@ sub test_determined_retries()
         # Page that doesn't work at all
         '/permanently-buggy-page' => {
             callback => sub {
-                my ( $params, $cookies ) = @_;
+                my ( $request ) = @_;
 
                 my $response = '';
                 $response .= "HTTP/1.0 500 Internal Server Error\r\n";

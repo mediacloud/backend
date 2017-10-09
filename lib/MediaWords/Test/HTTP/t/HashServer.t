@@ -39,7 +39,11 @@ sub main
         '/404'       => { content => 'not found', http_status_code => 404 },
         '/callback'  => {
             callback => sub {
-                my ( $params, $cookies ) = @_;
+                my ( $request ) = @_;
+
+                my $params  = $request->query_params();
+                my $cookies = $request->cookies();
+
                 my $response = '';
                 $response .= "HTTP/1.0 200 OK\r\n";
                 $response .= "Content-Type: text/plain\r\n";

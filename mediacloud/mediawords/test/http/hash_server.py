@@ -4,7 +4,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 import multiprocessing
 import os
 import time
-from typing import Union
+from typing import Union, Dict
 from urllib.parse import urlparse, parse_qs
 
 from mediawords.util.log import create_logger
@@ -38,10 +38,70 @@ class HashServer(object):
     __http_server = None
     __http_server_thread = None
 
+    class Request(object):
+        """Request sent to callback."""
+
+        def __init__(self, port: int, method: str, path: str, headers: Dict[str, str], content: str):
+            self._port = port
+            self._method = method
+            self._path = path
+            self._headers = headers
+            self._content = content
+
+        def method(self) -> str:
+            """Return method (GET, POST, ...) of a request."""
+            return self._method
+
+        def url(self) -> str:
+            """Return full URL of the request."""
+            return 'http://localhost:%(port)d%(path)s' % {
+                'port': self._port,
+                'path': self._path,
+            }
+
+        def headers(self) -> Dict[str, str]:
+            """Return all headers."""
+            return self._headers
+
+        def header(self, name: str) -> Union[str, None]:
+            """Return header of a request."""
+            if name in self._headers:
+                return self._headers[name]
+            else:
+                return None
+
+        def content_type(self) -> str:
+            """Return Content-Type of a request."""
+            return self.header('Content-Type')
+
+        def content(self) -> Union[str, None]:
+            """Return POST content of a request."""
+            return self._content
+
+        def cookies(self) -> Dict[str, str]:
+            """Return cookie dictionary of a request."""
+            cookies = {}
+            for header_name in self._headers:
+                header_value = self._headers[header_name]
+                if header_name.lower() == 'cookie':
+                    cookie_name, cookie_value = header_value.split('=', 1)
+                    cookies[cookie_name] = cookie_value
+            return cookies
+
+        def query_params(self) -> Dict[str, str]:
+            """Return URL query parameters of a request."""
+            params = parse_qs(urlparse(self._path).query, keep_blank_values=True)
+            for param_name in params:
+                if isinstance(params[param_name], list) and len(params[param_name]) == 1:
+                    # If parameter is present only once, return it as a string
+                    params[param_name] = params[param_name][0]
+            return params
+
     # noinspection PyPep8Naming
     class _HTTPHandler(BaseHTTPRequestHandler):
 
-        _pages = {}
+        def _set_port(self, port: int):
+            self._port = port
 
         def _set_pages(self, pages: dict):
             self._pages = pages
@@ -94,10 +154,14 @@ class HashServer(object):
         def do_POST(self):
             """Respond to a POST request."""
             # Pretend it's a GET (most test pages return static content anyway)
-            return self.do_GET()
+            return self.__handle_request()
 
         def do_GET(self):
             """Respond to a GET request."""
+            return self.__handle_request()
+
+        def __handle_request(self):
+            """Handle GET or POST request."""
 
             path = urlparse(self.path).path
 
@@ -122,14 +186,19 @@ class HashServer(object):
 
             # MC_REWRITE_TO_PYTHON: Decode strings from Perl's bytes
             if b'redirect' in page:
+                # noinspection PyTypeChecker
                 page['redirect'] = decode_object_from_bytes_if_needed(page[b'redirect'])
             if b'http_status_code' in page:
+                # noinspection PyTypeChecker
                 page['http_status_code'] = page[b'http_status_code']
             if b'callback' in page:
+                # noinspection PyTypeChecker
                 page['callback'] = page[b'callback']
             if b'content' in page:
+                # noinspection PyTypeChecker
                 page['content'] = page[b'content']
             if b'header' in page:
+                # noinspection PyTypeChecker
                 page['header'] = decode_object_from_bytes_if_needed(page[b'header'])
 
             if 'redirect' in page:
@@ -145,20 +214,19 @@ class HashServer(object):
             elif 'callback' in page:
                 callback_function = page['callback']
 
-                cookies = {}
-                for header_name in self.headers:
-                    header_value = self.headers[header_name]
-                    if header_name.lower() == 'cookie':
-                        cookie_name, cookie_value = header_value.split('=', 1)
-                        cookies[cookie_name] = cookie_value
+                post_data = None
+                if self.command.lower() == 'post':
+                    post_data = self.rfile.read(int(self.headers['Content-Length'])).decode('utf-8')
 
-                params = parse_qs(urlparse(self.path).query, keep_blank_values=True)
-                for param_name in params:
-                    if isinstance(params[param_name], list) and len(params[param_name]) == 1:
-                        # If parameter is present only once, return it as a string
-                        params[param_name] = params[param_name][0]
+                request = HashServer.Request(
+                    port=self._port,
+                    method=self.command,
+                    path=self.path,
+                    headers=dict(self.headers.items()),
+                    content=post_data,
+                )
 
-                response = callback_function(params, cookies)
+                response = callback_function(request)
 
                 if isinstance(response, str):
                     response = str.encode(response)
@@ -216,7 +284,7 @@ class HashServer(object):
 
         Sample pages dictionary:
 
-            def __sample_callback(params: dict, cookies: dict) -> Union[str, bytes]:
+            def __sample_callback(request: HashServer.Request) -> Union[str, bytes]:
                 response = ""
                 response += "HTTP/1.0 200 OK\r\n"
                 response += "Content-Type: text/plain\r\n"
@@ -284,9 +352,10 @@ class HashServer(object):
 
     def __start_web_server(self):
 
-        def __make_http_handler_with_pages(pages: dict):
+        def __make_http_handler_with_pages(port: int, pages: dict):
             class _HTTPHandlerWithPages(self._HTTPHandler):
                 def __init__(self, *args, **kwargs):
+                    self._set_port(port=port)
                     self._set_pages(pages=pages)
                     super(_HTTPHandlerWithPages, self).__init__(*args, **kwargs)
 
@@ -296,7 +365,7 @@ class HashServer(object):
         log.debug('Pages: %s' % str(self.__pages))
         server_address = (self.__host, self.__port,)
 
-        handler_class = __make_http_handler_with_pages(pages=self.__pages)
+        handler_class = __make_http_handler_with_pages(port=self.__port, pages=self.__pages)
 
         # Does not use ThreadingMixIn to be able to call Perl callbacks
         self.__http_server = HTTPServer(server_address, handler_class)
