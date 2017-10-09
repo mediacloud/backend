@@ -1,5 +1,6 @@
 import socket
 import time
+from typing import Union
 
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
