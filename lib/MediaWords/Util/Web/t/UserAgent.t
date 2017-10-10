@@ -7,7 +7,7 @@ use MediaWords::CommonLibs;
 
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 128;
+use Test::More tests => 131;
 
 use Encode;
 use File::Temp qw/ tempdir /;
@@ -29,7 +29,6 @@ my Readonly $TEST_HTTP_SERVER_URL  = 'http://localhost:' . $TEST_HTTP_SERVER_POR
 
 # FIXME things to test:
 #
-# * request: custom headers
 # * request: as_string()
 
 sub test_get()
@@ -306,6 +305,46 @@ sub test_get_max_redirect()
     $hs->stop();
 
     ok( !$response->is_success() );
+}
+
+sub test_get_request_headers()
+{
+    my $pages = {
+        '/test-custom-header' => {
+            callback => sub {
+                my ( $request ) = @_;
+
+                my $response = '';
+
+                $response .= "HTTP/1.0 200 OK\r\n";
+                $response .= "Content-Type: application/json; charset=UTF-8\r\n";
+                $response .= "\r\n";
+                $response .=
+                  MediaWords::Util::JSON::encode_json( { 'custom-header' => $request->header( 'X-Custom-Header' ), } );
+
+                return $response;
+            }
+        }
+    };
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my $ua        = MediaWords::Util::Web::UserAgent->new();
+    my $url       = "$TEST_HTTP_SERVER_URL/test-custom-header";
+    my $json_utf8 = 1;
+
+    my $request = MediaWords::Util::Web::UserAgent::Request->new( 'GET', $url );
+    $request->set_header( 'X-Custom-Header', 'foo' );
+
+    my $response = $ua->request( $request );
+
+    ok( $response->is_success() );
+    is( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/test-custom-header' );
+
+    my $decoded_json = MediaWords::Util::JSON::decode_json( $response->decoded_content(), $json_utf8 );
+    cmp_deeply( $decoded_json, { 'custom-header' => 'foo' } );
+
+    $hs->stop();
 }
 
 sub test_get_response_status()
@@ -1276,6 +1315,7 @@ sub main()
     test_get_non_utf8_content();
     test_get_max_size();
     test_get_max_redirect();
+    test_get_request_headers();
     test_get_response_status();
     test_get_response_headers();
     test_get_response_content_type();
