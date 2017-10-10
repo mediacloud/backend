@@ -1,6 +1,10 @@
-from nose.tools import assert_raises
+import os
+import tempfile
 
-from mediawords.util.web import *
+import pytest
+
+from mediawords.util.web import (download_file, download_file_to_temp_path,
+                                 McDownloadFileException, McDownloadFileToTempPathException)
 
 
 def test_download_file():
@@ -13,7 +17,8 @@ def test_download_file():
     assert os.path.getsize(dst_path) > 0
 
     # Nonexistent URL
-    assert_raises(McDownloadFileException, download_file, 'https://mediacloud.org/should-not-exist.txt', dst_path)
+    with pytest.raises(McDownloadFileException):
+        download_file('https://mediacloud.org/should-not-exist.txt', dst_path)
 
 
 def test_download_file_to_temp_path():
@@ -23,5 +28,5 @@ def test_download_file_to_temp_path():
     assert os.path.getsize(temp_file) > 0
 
     # Nonexistent URL
-    assert_raises(McDownloadFileToTempPathException, download_file_to_temp_path,
-                  'https://mediacloud.org/should-not-exist.txt')
+    with pytest.raises(McDownloadFileToTempPathException):
+        download_file_to_temp_path('https://mediacloud.org/should-not-exist.txt')

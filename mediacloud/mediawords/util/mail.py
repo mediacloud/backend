@@ -4,8 +4,6 @@ import os
 import smtplib
 from typing import List, Optional, Union
 
-from nose.tools import nottest
-
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.config import get_config as py_get_config
 from mediawords.util.log import create_logger
@@ -21,17 +19,14 @@ class McSendEmailException(Exception):
     pass
 
 
-@nottest
 def enable_test_mode():
     os.environ[__ENV_MAIL_DO_NO_SEND] = '1'
 
 
-@nottest
 def disable_test_mode():
     del os.environ[__ENV_MAIL_DO_NO_SEND]
 
 
-@nottest
 def test_mode_is_enabled() -> bool:
     return __ENV_MAIL_DO_NO_SEND in os.environ
 

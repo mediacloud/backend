@@ -406,7 +406,7 @@ sub generate_topic_links
                 topics_id  => $topic->{ topics_id }
             };
 
-            INFO "LINK: $link->{ url }";
+            TRACE "LINK: $link->{ url }";
         }
 
         push( @{ $topic_links }, values( %{ $link_lookup } ) );
@@ -763,7 +763,7 @@ sub generate_new_story_hash
     {
         my ( $date_guess_method, $publish_date ) = get_new_story_date( $db, $story, $story_content, $old_story, $link );
 
-        DEBUG "date guess: $date_guess_method: $publish_date";
+        TRACE "date guess: $date_guess_method: $publish_date";
 
         $story->{ publish_date } = $publish_date;
         return ( $story, $date_guess_method );
@@ -886,14 +886,14 @@ sub add_new_story
         $story_content = ${ MediaWords::DBI::Stories::fetch_content( $db, $old_story ) };
     }
 
-    INFO "add_new_story: $old_story->{ url }";
+    TRACE "add_new_story: $old_story->{ url }";
 
     # if neither the url nor the content match the pattern, it cannot be a match so return and don't add the story
     if (  !$link->{ assume_match }
         && $check_pattern
         && !potential_story_matches_topic_pattern( $db, $topic, $link->{ url }, $link->{ redirect_url }, $story_content ) )
     {
-        INFO( "SKIP - NO POTENTIAL MATCH" );
+        TRACE "SKIP - NO POTENTIAL MATCH";
         return;
     }
 
@@ -1434,7 +1434,7 @@ sub add_links_with_matching_stories
     for my $link ( @{ $new_links } )
     {
         $i++;
-        INFO "spidering [$i/$total_links] $link->{ url } ...";
+        TRACE "spidering [$i/$total_links] $link->{ url } ...";
 
         next if ( $link->{ ref_stories_id } );
 
@@ -1452,7 +1452,7 @@ sub add_links_with_matching_stories
         }
         else
         {
-            DEBUG( "add to fetch list ..." );
+            TRACE "add to fetch list ...";
             push( @{ $fetch_links }, $link );
         }
     }
@@ -1478,7 +1478,7 @@ sub get_stories_to_extract
     {
         next if ( $link->{ ref_stories_id } );
 
-        DEBUG( "fetch spidering $link->{ url } ..." );
+        TRACE "fetch spidering $link->{ url } ...";
 
         next if ( _skip_self_linked_domain( $db, $link ) );
 
@@ -1545,7 +1545,7 @@ sub extract_stories
 
     for my $story ( @{ $stories } )
     {
-        INFO "EXTRACT STORY: " . $story->{ url };
+        TRACE "EXTRACT STORY: " . $story->{ url };
         extract_download( $db, $story->{ download }, $story );
     }
 }
@@ -1565,7 +1565,7 @@ sub add_new_links_chunk($$$$)
           || url_failed_potential_match( $link->{ redirect_url } );
         if ( $skip_link )
         {
-            INFO "ALREADY SKIPPED LINK: $link->{ url }";
+            TRACE "ALREADY SKIPPED LINK: $link->{ url }";
         }
         else
         {
@@ -2213,7 +2213,7 @@ sub add_to_topic_stories_if_match
 {
     my ( $db, $topic, $story, $link, $assume_match ) = @_;
 
-    DEBUG "add story if match: $story->{ url }";
+    TRACE "add story if match: $story->{ url }";
 
     set_topic_link_ref_story( $db, $story, $link ) if ( $link->{ topic_links_id } );
 
@@ -2221,7 +2221,7 @@ sub add_to_topic_stories_if_match
 
     if ( $assume_match || $link->{ assume_match } || story_matches_topic_pattern( $db, $topic, $story ) )
     {
-        INFO "TOPIC MATCH: $link->{ url }";
+        TRACE "TOPIC MATCH: $link->{ url }";
         $link->{ iteration } ||= 0;
         add_to_topic_stories( $db, $topic, $story, $link->{ iteration } + 1, 0 );
     }

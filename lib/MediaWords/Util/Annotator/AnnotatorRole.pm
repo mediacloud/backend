@@ -517,32 +517,36 @@ SQL
         # Not using find_or_create() because tag set / tag might already exist
         # with slightly different label / description
 
-        # Create tag set (if doesn't exist yet)
-        my $db_tag_set = $db->query(
-            <<SQL,
-            INSERT INTO tag_sets (name, label, description)
-            VALUES (?, ?, ?)
-            ON CONFLICT (name) DO UPDATE
-                SET label = EXCLUDED.label,
-                    description = EXCLUDED.description
-            RETURNING *
+        # Create tag set
+        my $db_tag_set = $db->select( 'tag_sets', '*', { name => $tag_sets_name } )->hash;
+        unless ( $db_tag_set )
+        {
+            $db->query(
+                <<SQL,
+                INSERT INTO tag_sets (name, label, description)
+                VALUES (?, ?, ?)
+                ON CONFLICT (name) DO NOTHING
 SQL
-            $tag_sets_name, $tag->tag_sets_label(), $tag->tag_sets_description()
-        )->hash;
+                $tag_sets_name, $tag->tag_sets_label(), $tag->tag_sets_description()
+            );
+            $db_tag_set = $db->select( 'tag_sets', '*', { name => $tag_sets_name } )->hash;
+        }
         my $tag_sets_id = $db_tag_set->{ tag_sets_id };
 
-        # Create tag (if doesn't exist yet)
-        my $db_tag = $db->query(
-            <<SQL,
-            INSERT INTO tags (tag_sets_id, tag, label, description)
-            VALUES (?, ?, ?, ?)
-            ON CONFLICT (tag, tag_sets_id) DO UPDATE
-                SET label = EXCLUDED.label,
-                    description = EXCLUDED.description
-            RETURNING *
+        # Create tag
+        my $db_tag = $db->select( 'tags', '*', { tag_sets_id => $tag_sets_id, tag => $tags_name } )->hash;
+        unless ( $db_tag )
+        {
+            $db->query(
+                <<SQL,
+                INSERT INTO tags (tag_sets_id, tag, label, description)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT (tag, tag_sets_id) DO NOTHING
 SQL
-            $tag_sets_id, $tags_name, $tag->tags_label(), $tag->tags_description()
-        )->hash;
+                $tag_sets_id, $tags_name, $tag->tags_label(), $tag->tags_description()
+            );
+            $db_tag = $db->select( 'tags', '*', { tag_sets_id => $tag_sets_id, tag => $tags_name } )->hash;
+        }
         my $tags_id = $db_tag->{ tags_id };
 
         # Assign story to tag (if no such mapping exists yet)
