@@ -521,14 +521,15 @@ SQL
         my $db_tag_set = $db->select( 'tag_sets', '*', { name => $tag_sets_name } )->hash;
         unless ( $db_tag_set )
         {
-            $db_tag_set = $db->create(
-                'tag_sets',
-                {
-                    name        => $tag_sets_name,
-                    label       => $tag->tag_sets_label(),
-                    description => $tag->tag_sets_description(),
-                }
+            $db->query(
+                <<SQL,
+                INSERT INTO tag_sets (name, label, description)
+                VALUES (?, ?, ?)
+                ON CONFLICT (name) DO NOTHING
+SQL
+                $tag_sets_name, $tag->tag_sets_label(), $tag->tag_sets_description()
             );
+            $db_tag_set = $db->select( 'tag_sets', '*', { name => $tag_sets_name } )->hash;
         }
         my $tag_sets_id = $db_tag_set->{ tag_sets_id };
 
@@ -536,25 +537,26 @@ SQL
         my $db_tag = $db->select( 'tags', '*', { tag_sets_id => $tag_sets_id, tag => $tags_name } )->hash;
         unless ( $db_tag )
         {
-            $db_tag = $db->create(
-                'tags',
-                {
-                    tag_sets_id => $tag_sets_id,
-                    tag         => $tags_name,
-                    label       => $tag->tags_label(),
-                    description => $tag->tags_description(),
-                }
+            $db->query(
+                <<SQL,
+                INSERT INTO tags (tag_sets_id, tag, label, description)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT (tag, tag_sets_id) DO NOTHING
+SQL
+                $tag_sets_id, $tags_name, $tag->tags_label(), $tag->tags_description()
             );
+            $db_tag = $db->select( 'tags', '*', { tag_sets_id => $tag_sets_id, tag => $tags_name } )->hash;
         }
         my $tags_id = $db_tag->{ tags_id };
 
-        # Assign story to tag
-        $db->find_or_create(
-            'stories_tags_map',
-            {
-                tags_id    => $tags_id,
-                stories_id => $stories_id,
-            }
+        # Assign story to tag (if no such mapping exists yet)
+        $db->query(
+            <<SQL,
+            INSERT INTO stories_tags_map (stories_id, tags_id)
+            VALUES (?, ?)
+                ON CONFLICT (stories_id, tags_id) DO NOTHING
+SQL
+            $stories_id, $tags_id
         );
     }
 

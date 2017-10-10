@@ -1,6 +1,8 @@
-from nose.tools import assert_raises
+import re
 
-from mediawords.solr.query import *
+import pytest
+
+from mediawords.solr.query import parse, McSolrQueryParseSyntaxException
 
 
 # noinspection SpellCheckingInspection
@@ -26,12 +28,12 @@ def test_tsquery():
 
         assert __normalize_tsquery(got_tsquery) == __normalize_tsquery(expected_tsquery)
 
-    assert_raises(McSolrQueryParseSyntaxException, parse, "and")
-    assert_raises(McSolrQueryParseSyntaxException, lambda x: parse(solr_query=x).tsquery(), "media_id:1")
-    assert_raises(McSolrQueryParseSyntaxException, parse, '"foo bar"~3')
-    assert_raises(McSolrQueryParseSyntaxException, parse, '( foo bar )*')
-    assert_raises(McSolrQueryParseSyntaxException, parse, '*')
-    assert_raises(McSolrQueryParseSyntaxException, parse, '*foo')
+    for query in ('and', '"foo bar"~3', '( foo bar )*', '*', '*foo'):
+        with pytest.raises(McSolrQueryParseSyntaxException):
+            parse(query)
+
+    with pytest.raises(McSolrQueryParseSyntaxException):
+        parse(solr_query="media_id:1").tsquery()
 
     # single term
     __validate_tsquery('foo', 'foo')
@@ -313,7 +315,8 @@ def test_re():
 
     # not clauses should be filtered out
     # this should raise an error because filtering the not clause leaves an empty query
-    assert_raises(McSolrQueryParseSyntaxException, lambda x: parse(solr_query=x).re(), 'not ( foo bar )')
+    with pytest.raises(McSolrQueryParseSyntaxException):
+        parse(solr_query='not ( foo bar )').re()
     __validate_re('foo and !bar', '[[:<:]]foo')
     __validate_re('foo -( bar and bar )', '[[:<:]]foo')
 

@@ -268,6 +268,46 @@ sub test_stories_word_matrix($)
     ok( $r->{ word_list },   "$label word list present" );
 }
 
+sub test_stories_update($$)
+{
+    my ( $db ) = @_;
+
+    # test that request with no stories_id returns an error
+    test_put( '/api/v2/stories/update', {}, 1 );
+
+    # test that request with list returns an error
+    test_put( '/api/v2/stories/update', { stories_id => 1 }, 1 );
+
+    my $media = MediaWords::Test::DB::create_test_story_stack( $db,
+        { 'update_m1' => { 'update_f1' => [ 'update_s1', 'update_s2', 'update_s3' ] } } );
+
+    my $story = $media->{ update_s1 };
+
+    my $story_data = {};
+
+    $story_data->{ stories_id } = $story->{ stories_id };
+
+    # my $text_fields = [ qw/title url guid description/ ];
+    my $text_fields = [ qw/description/ ];
+    map { $story_data->{ $_ } = $story->{ $_ } . "_update_$_" } @{ $text_fields };
+
+    $story_data->{ publish_date } = '2015-06-01 01:09:01';
+    $story_data->{ language }     = 'zz';
+    $story_data->{ confirm_date } = 1;
+    $story_data->{ undateable }   = 1;
+
+    my $r = test_put( '/api/v2/stories/update', $story_data );
+    is( $r->{ success }, 1, "stories/update all success" );
+
+    my $updated_story = $db->require_by_id( 'stories', $story->{ stories_id } );
+
+    $updated_story->{ confirm_date } = MediaWords::DBI::Stories::GuessDate::date_is_confirmed( $db, $updated_story );
+    $updated_story->{ undateable } = MediaWords::DBI::Stories::GuessDate::is_undateable( $db, $updated_story );
+
+    my $all_fields = [ @{ $text_fields }, 'publish_date', 'language', 'confirm_date', 'undateable' ];
+    map { is( $updated_story->{ $_ }, $story_data->{ $_ }, "story update field $_" ) } @{ $all_fields };
+}
+
 sub test_stories($)
 {
     my ( $db ) = @_;
@@ -289,6 +329,7 @@ sub test_stories($)
     test_stories_public_list( $db, $media );
     test_stories_count( $db );
     test_stories_word_matrix( $db );
+    test_stories_update( $db, $media );
 }
 
 sub main
