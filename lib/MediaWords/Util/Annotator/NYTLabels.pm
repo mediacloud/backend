@@ -76,21 +76,9 @@ sub _request_for_text($$)
     }
     DEBUG "Done converting text to JSON request.";
 
-    # Text has to be encoded because MediaWords::Util::Web::UserAgent::Request
-    # only accepts bytes as POST data
-    DEBUG "Encoding JSON request...";
-    my $text_json_encoded;
-    eval { $text_json_encoded = encode_utf8( $text_json ); };
-    if ( $@ or ( !$text_json_encoded ) )
-    {
-        # Not critical, might happen to some stories, no need to shut down the annotator
-        die "Unable to encode_utf8() JSON text to be annotated: $@\nJSON: $text_json";
-    }
-    DEBUG "Done encoding JSON request.";
-
     my $request = MediaWords::Util::Web::UserAgent::Request->new( 'POST', $url );
     $request->set_content_type( 'application/json; charset=utf-8' );
-    $request->set_content( $text_json_encoded );
+    $request->set_content_utf8( $text_json );
 
     return $request;
 }

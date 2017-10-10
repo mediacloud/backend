@@ -11,6 +11,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Data::Dumper;
+use Encode;
 use HTTP::Request;
 use URI::Escape;
 
@@ -157,6 +158,33 @@ sub set_content($$)
     }
 
     $self->{ _request }->content( $content );
+}
+
+# Set content, encode it to UTF-8 first
+sub set_content_utf8($$)
+{
+    my ( $self, $content ) = @_;
+
+    if ( ref( $content ) eq ref( {} ) )
+    {
+        my $encoded_content = {};
+
+        for my $key ( keys %{ $content } )
+        {
+            $key //= '';
+            my $value = $content->{ $key } // '';
+
+            $encoded_content->{ encode_utf8( $key ) } = encode_utf8( $value );
+        }
+
+        $content = $encoded_content;
+    }
+    else
+    {
+        $content = encode_utf8( $content );
+    }
+
+    return $self->set_content( $content );
 }
 
 # No authorization_basic() getter
