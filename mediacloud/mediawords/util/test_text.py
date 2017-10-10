@@ -1,11 +1,13 @@
-from nose.tools import assert_raises
+import pytest
 
-from mediawords.util.text import *
+from mediawords.util.text import McRandomStringException, random_string
 
 
 def test_random_string():
-    assert_raises(McRandomStringException, random_string, 0)
-    assert_raises(McRandomStringException, random_string, -1)
+    with pytest.raises(McRandomStringException):
+        random_string(0)
+    with pytest.raises(McRandomStringException):
+        random_string(-1)
 
     length = 16
     string_1 = random_string(length=length)

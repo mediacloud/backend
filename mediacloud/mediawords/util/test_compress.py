@@ -1,10 +1,15 @@
+import os
 import tarfile
 import tempfile
 import zipfile
 
-from nose.tools import assert_raises
+import pytest
 
-from mediawords.util.compress import *
+from mediawords.util.compress import (extract_tarball_to_directory,
+                                      extract_zip_to_directory,
+                                      run_command_in_foreground,
+                                      McExtractTarballToDirectoryException,
+                                      McExtractZipToDirectoryException)
 
 
 def test_extract_tarball_to_directory():
@@ -12,20 +17,23 @@ def test_extract_tarball_to_directory():
     dst_temp_dir = tempfile.mkdtemp()
 
     # Nonexistent archive
-    assert_raises(McExtractTarballToDirectoryException, extract_tarball_to_directory,
-                  os.path.join(src_temp_dir, 'nonexistent-archive.tgz'), dst_temp_dir)
+    with pytest.raises(McExtractTarballToDirectoryException):
+        extract_tarball_to_directory(os.path.join(src_temp_dir, 'nonexistent-archive.tgz'),
+                                     dst_temp_dir)
 
     # Unsupported archive
     unsupported_archive_path = os.path.join(src_temp_dir, 'unsupported-archive.tar.bz2')
     run_command_in_foreground(['touch', unsupported_archive_path])
-    assert_raises(McExtractTarballToDirectoryException, extract_tarball_to_directory, unsupported_archive_path,
-                  dst_temp_dir)
+    with pytest.raises(McExtractTarballToDirectoryException):
+        extract_tarball_to_directory(unsupported_archive_path, dst_temp_dir)
 
     # Faulty archive
     faulty_archive_path = os.path.join(src_temp_dir, 'faulty-archive.tgz')
     with open(faulty_archive_path, 'w') as fh:
         fh.write('Totally not valid Gzip data.')
-    assert_raises(McExtractTarballToDirectoryException, extract_tarball_to_directory, faulty_archive_path, dst_temp_dir)
+
+    with pytest.raises(McExtractTarballToDirectoryException):
+        extract_tarball_to_directory(faulty_archive_path, dst_temp_dir)
 
     # .tar.gz archive
     tar_archive_path = os.path.join(src_temp_dir, 'tar-gz-archive.tar.gz')
@@ -53,19 +61,23 @@ def test_extract_zip_to_directory():
     dst_temp_dir = tempfile.mkdtemp()
 
     # Nonexistent archive
-    assert_raises(McExtractZipToDirectoryException, extract_zip_to_directory,
-                  os.path.join(src_temp_dir, 'nonexistent-archive.zip'), dst_temp_dir)
+    with pytest.raises(McExtractZipToDirectoryException):
+        extract_zip_to_directory(os.path.join(src_temp_dir, 'nonexistent-archive.zip'),
+                                 dst_temp_dir)
 
     # Unsupported archive
     unsupported_archive_path = os.path.join(src_temp_dir, 'unsupported-archive.rar')
     run_command_in_foreground(['touch', unsupported_archive_path])
-    assert_raises(McExtractZipToDirectoryException, extract_zip_to_directory, unsupported_archive_path, dst_temp_dir)
+    with pytest.raises(McExtractZipToDirectoryException):
+        extract_zip_to_directory(unsupported_archive_path, dst_temp_dir)
 
     # Faulty archive
     faulty_archive_path = os.path.join(src_temp_dir, 'faulty-archive.zip')
     with open(faulty_archive_path, 'w') as fh:
         fh.write('Totally not valid Zip data.')
-    assert_raises(McExtractZipToDirectoryException, extract_zip_to_directory, faulty_archive_path, dst_temp_dir)
+
+    with pytest.raises(McExtractZipToDirectoryException):
+        extract_zip_to_directory(faulty_archive_path, dst_temp_dir)
 
     # .zip archive
     zip_archive_path = os.path.join(src_temp_dir, 'zip-archive.zip')
