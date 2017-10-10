@@ -1,6 +1,6 @@
-from nose.tools import assert_raises
+import pytest
 
-from mediawords.db import *
+from mediawords.db import connect_to_db, McConnectToDBException
 
 
 def test_connect_to_db():
@@ -15,4 +15,5 @@ def test_connect_to_db():
     assert database_name['current_database'] == 'mediacloud_test'
 
     # Invalid label
-    assert_raises(McConnectToDBException, connect_to_db, 'NONEXISTENT_LABEL')
+    with pytest.raises(McConnectToDBException):
+        connect_to_db('NONEXISTENT_LABEL')

@@ -1,4 +1,4 @@
-from nose.tools import assert_raises
+import pytest
 
 from mediawords.db.exceptions.result import McDatabaseResultException
 from mediawords.db.handler import *
@@ -83,7 +83,8 @@ class TestDatabaseHandler(TestDatabaseTestCase):
     def test_query_error(self):
 
         # Bad query
-        assert_raises(McDatabaseResultException, self.db().query, "Badger badger badger badger")
+        with pytest.raises(McDatabaseResultException):
+            self.db().query("Badger badger badger badger")
 
     def test_query_percentage_sign_like(self):
 
@@ -463,7 +464,8 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         assert '_ignored_key' not in row_hash
 
         # Nonexistent column
-        assert_raises(McUpdateByIDException, self.db().update_by_id, 'kardashians', 4, {'does_not': 'exist'})
+        with pytest.raises(McUpdateByIDException):
+            self.db().update_by_id('kardashians', 4, {'does_not': 'exist'})
 
     def test_delete_by_id(self):
         self.db().delete_by_id(table='kardashians', object_id=4)
@@ -480,7 +482,8 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         assert str(row['dob']) == '1979-11-06'
 
         # Nonexistent column
-        assert_raises(McCreateException, self.db().create, 'kardashians', {'does_not': 'exist'})
+        with pytest.raises(McCreateException):
+            self.db().create('kardashians', {'does_not': 'exist'})
 
     def test_select(self):
         # One condition

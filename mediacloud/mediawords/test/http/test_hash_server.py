@@ -1,9 +1,11 @@
 import json
-from nose.tools import assert_raises
+
+import pytest
 import requests
 
 from mediawords.util.network import random_unused_port
-from mediawords.test.http.hash_server import *
+from mediawords.test.http.hash_server import (HashServer, tcp_port_is_open, HTTPStatus,
+                                              McHashServerException)
 
 
 def test_http_hash_server():
@@ -92,6 +94,7 @@ def test_http_hash_server():
     assert response.text == 'foo bar'
 
     assert hs.page_url('/callback?a=b&c=d') == 'http://localhost:%d/callback' % port
-    assert_raises(McHashServerException, hs.page_url, '/does-not-exist')
+    with pytest.raises(McHashServerException):
+        hs.page_url('/does-not-exist')
 
     hs.stop()
