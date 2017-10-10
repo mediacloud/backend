@@ -1,4 +1,5 @@
 import json
+from typing import Union
 
 import pytest
 import requests
