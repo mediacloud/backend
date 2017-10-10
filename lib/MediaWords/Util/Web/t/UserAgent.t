@@ -7,7 +7,7 @@ use MediaWords::CommonLibs;
 
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 131;
+use Test::More tests => 132;
 
 use Encode;
 use File::Temp qw/ tempdir /;
@@ -26,10 +26,6 @@ use MediaWords::Test::HTTP::HashServer;
 
 my Readonly $TEST_HTTP_SERVER_PORT = 9998;
 my Readonly $TEST_HTTP_SERVER_URL  = 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
-
-# FIXME things to test:
-#
-# * request: as_string()
 
 sub test_get()
 {
@@ -345,6 +341,25 @@ sub test_get_request_headers()
     cmp_deeply( $decoded_json, { 'custom-header' => 'foo' } );
 
     $hs->stop();
+}
+
+sub test_get_request_as_string()
+{
+    my $url = 'http://foo.com/bar';
+    my $request = MediaWords::Util::Web::UserAgent::Request->new( 'FOO', $url );
+    $request->set_header( 'X-Media-Cloud', 'mediacloud' );
+    $request->set_content( 'aaaaaaa' );
+    $request->set_authorization_basic( 'username', 'password' );
+
+    like(
+        $request->as_string(), qr|
+        FOO\shttp://foo.com/bar\n
+        Authorization:\sBasic\s.+?\n
+        X-Media-Cloud:\smediacloud\n
+        \n
+        aaaaaaa\n
+    |ixs
+    );
 }
 
 sub test_get_response_status()
@@ -1316,6 +1331,7 @@ sub main()
     test_get_max_size();
     test_get_max_redirect();
     test_get_request_headers();
+    test_get_request_as_string();
     test_get_response_status();
     test_get_response_headers();
     test_get_response_content_type();
