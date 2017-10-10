@@ -35,7 +35,7 @@ fi
 cd `dirname $0`/../
 
 echo "Running Python unit tests..."
-./script/run_in_env.sh pytest -v --where=mediacloud/
+./script/run_in_env.sh pytest -v mediacloud/
 
 echo "Running Perl unit tests..."
 TEST_FILES=`find lib script t -name '*.t'`
