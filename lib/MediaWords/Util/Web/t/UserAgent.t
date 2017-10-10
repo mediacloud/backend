@@ -7,8 +7,9 @@ use MediaWords::CommonLibs;
 
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 122;
+use Test::More tests => 128;
 
+use Encode;
 use File::Temp qw/ tempdir /;
 use HTTP::Status qw(:constants);
 use Readonly;
@@ -16,6 +17,7 @@ use Data::Dumper;
 use File::ReadBackwards;
 use URI;
 use URI::Escape;
+use URI::QueryParam;
 
 use MediaWords::Util::JSON;
 use MediaWords::Util::Web;
@@ -27,12 +29,7 @@ my Readonly $TEST_HTTP_SERVER_URL  = 'http://localhost:' . $TEST_HTTP_SERVER_POR
 
 # FIXME things to test:
 #
-# * get(): make sure preset authentication doesn't get overridden
-# * post()
-# * request: custom METHOD
 # * request: custom headers
-# * request: custom content type
-# * request: custom content (POST data) -- both hashref and string
 # * request: as_string()
 
 sub test_get()
@@ -1155,6 +1152,114 @@ sub test_get_string()
     is( $does_not_exist_string, undef );
 }
 
+sub test_post()
+{
+
+    sub _parse_query_string($)
+    {
+        my $query_string = shift;
+
+        my $uri    = URI->new( 'http://test/?' . $query_string );
+        my $params = $uri->query_form_hash();
+
+        my $params_decoded = {};
+        foreach my $key ( keys %{ $params } )
+        {
+            my $value = $params->{ $key };
+            $params_decoded->{ decode_utf8( $key ) } = decode_utf8( $value );
+        }
+
+        return $params_decoded;
+    }
+
+    # User-Agent: and From: headers
+    my $pages = {
+        '/test-post' => {
+            callback => sub {
+                my ( $request ) = @_;
+
+                my $response = '';
+
+                $response .= "HTTP/1.0 200 OK\r\n";
+                $response .= "Content-Type: application/json; charset=UTF-8\r\n";
+                $response .= "\r\n";
+                $response .= MediaWords::Util::JSON::encode_json(
+                    {
+                        'method'       => $request->method(),
+                        'content-type' => $request->content_type(),
+                        'content'      => _parse_query_string( $request->content() ),
+                    }
+                );
+
+                return $response;
+            }
+        }
+    };
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my $ua        = MediaWords::Util::Web::UserAgent->new();
+    my $url       = "$TEST_HTTP_SERVER_URL/test-post";
+    my $json_utf8 = 1;
+
+    # UTF-8 string request
+    {
+        my $request = MediaWords::Util::Web::UserAgent::Request->new( 'POST', $url );
+        $request->set_content_type( 'application/x-www-form-urlencoded; charset=utf-8' );
+        $request->set_content_utf8( 'ą=č&ė=ž' );
+
+        my $response = $ua->request( $request );
+
+        ok( $response->is_success() );
+        is( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/test-post' );
+
+        my $decoded_json = MediaWords::Util::JSON::decode_json( $response->decoded_content(), $json_utf8 );
+        cmp_deeply(
+            $decoded_json,
+            {
+                'method'       => 'POST',
+                'content-type' => 'application/x-www-form-urlencoded; charset=utf-8',
+                'content'      => {
+                    'ą' => 'č',
+                    'ė' => 'ž',
+                },
+            }
+        );
+    }
+
+    # UTF-8 hashref request
+    {
+        my $request = MediaWords::Util::Web::UserAgent::Request->new( 'POST', $url );
+        $request->set_content_type( 'application/x-www-form-urlencoded; charset=utf-8' );
+        $request->set_content_utf8(
+            {
+                'ą' => 'č',
+                'ė' => 'ž',
+            }
+        );
+
+        my $response = $ua->request( $request );
+
+        ok( $response->is_success() );
+        is( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/test-post' );
+
+        my $decoded_json = MediaWords::Util::JSON::decode_json( $response->decoded_content(), $json_utf8 );
+        cmp_deeply(
+            $decoded_json,
+            {
+                'method'       => 'POST',
+                'content-type' => 'application/x-www-form-urlencoded; charset=utf-8',
+                'content'      => {
+                    'ą' => 'č',
+                    'ė' => 'ž',
+                },
+            }
+        );
+    }
+
+    $hs->stop();
+}
+
 sub main()
 {
     my $builder = Test::More->builder;
@@ -1187,6 +1292,8 @@ sub main()
     test_get_follow_http_html_redirects_html_loop();
     test_get_follow_http_html_redirects_cookies();
     test_get_follow_http_html_redirects_previous_responses();
+
+    test_post();
 
     test_parallel_get();
     test_determined_retries();
