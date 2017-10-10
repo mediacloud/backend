@@ -3,12 +3,11 @@ from http import HTTPStatus
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import multiprocessing
 import os
-import time
 from typing import Union
 from urllib.parse import urlparse, parse_qs
 
 from mediawords.util.log import create_logger
-from mediawords.util.network import tcp_port_is_open
+from mediawords.util.network import tcp_port_is_open, wait_for_tcp_port_to_open, wait_for_tcp_port_to_close
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
 
@@ -286,9 +285,8 @@ class HashServer(object):
         self.__http_server_thread = multiprocessing.Process(target=self.__start_web_server)
         self.__http_server_thread.daemon = True
         self.__http_server_thread.start()
-        time.sleep(1)
 
-        if not tcp_port_is_open(port=self.__port):
+        if not wait_for_tcp_port_to_open(port=self.__port, retries=20, delay=0.1):
             raise McHashServerException("Port %d is not open." % self.__port)
 
     def stop(self):
@@ -308,9 +306,8 @@ class HashServer(object):
             self.__http_server_thread.join(timeout=1)
             self.__http_server_thread.terminate()
             self.__http_server_thread = None
-            time.sleep(1)
 
-        if tcp_port_is_open(port=self.__port):
+        if not wait_for_tcp_port_to_close(port=self.__port, retries=20, delay=0.1):
             raise McHashServerException("Port %d is still open." % self.__port)
 
     def page_url(self, path: str) -> str:
