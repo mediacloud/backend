@@ -411,6 +411,13 @@ sub parallel_get($$)
 
     return [] unless ( $urls && @{ $urls } );
 
+    my $config = MediaWords::Util::Config::get_config();
+
+    my $num_parallel = $config->{ mediawords }->{ web_store_num_parallel } or die "'web_store_num_parallel' is not set.";
+    my $timeout      = $config->{ mediawords }->{ web_store_timeout }      or die "'web_store_timeout' is not set.";
+    my $per_domain_timeout = $config->{ mediawords }->{ web_store_per_domain_timeout }
+      or die "'web_store_per_domain_timeout' is not set.";
+
     my $web_store_input;
     my $results;
     for my $url ( @{ $urls } )
@@ -424,6 +431,9 @@ sub parallel_get($$)
 
     my $mc_root_path = MediaWords::Util::Paths::mc_root_path();
     my $cmd          = "'$mc_root_path'/script/mediawords_web_store.pl";
+    $cmd .= " --num_parallel=$num_parallel";
+    $cmd .= " --timeout=$timeout";
+    $cmd .= " --per_domain_timeout=$per_domain_timeout";
 
     if ( !open( CMD, '|-', $cmd ) )
     {

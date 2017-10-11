@@ -422,9 +422,9 @@ mediawords:
     #ascii_hack_downloads_id: 123456789
 
     # settings for mediawords_web_store.pl script that does in process parallel fetching
-    # web_store_num_parallel: 10
-    # web_store_timeout: 90
-    # web_store_per_domain_timeout: 1
+    web_store_num_parallel: 10
+    web_store_timeout: 90
+    web_store_per_domain_timeout: 1
 
     # Fail all HTTP requests that match the following pattern
     # blacklist_url_pattern: "^https?://[^/]*some-website.com"

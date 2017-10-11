@@ -19,6 +19,7 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use Getopt::Long;
 use Parallel::ForkManager;
 use Storable;
 use Readonly;
@@ -26,18 +27,9 @@ use Readonly;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 
-# number of processes to run in parallel
-Readonly my $DEFAULT_NUM_PARALLEL => 10;
-
-# timeout any given request after this many seconds
-Readonly my $DEFAULT_TIMEOUT => 90;
-
-# number of seconds to wait before sending a new request to a given domain
-Readonly my $DEFAULT_PER_DOMAIN_TIMEOUT => 1;
-
-sub get_request_domain
+sub _get_request_domain($)
 {
-    my ( $request ) = @_;
+    my $request = shift;
 
     $request->{ url } =~ m~https?://([^/]*)~ || return $request;
 
@@ -68,7 +60,7 @@ sub get_request_domain
 
 # schedule the requests by adding a { time => $time } field to each request
 # to make sure we obey the $per_domain_timeout.  sort requests by ascending time.
-sub get_scheduled_requests
+sub _get_scheduled_requests($$)
 {
     my ( $requests, $per_domain_timeout ) = @_;
 
@@ -76,7 +68,7 @@ sub get_scheduled_requests
 
     for my $request ( @{ $requests } )
     {
-        my $domain = get_request_domain( $request );
+        my $domain = _get_request_domain( $request );
         push( @{ $domain_requests->{ $domain } }, $request );
     }
 
@@ -98,6 +90,19 @@ sub get_scheduled_requests
 
 sub main
 {
+    Readonly my $usage => <<"EOF";
+Usage: $0 --num_parallel=10 --timeout=90 --per_domain_timeout=1
+EOF
+
+    my ( $num_parallel, $timeout, $per_domain_timeout );
+    Getopt::Long::GetOptions(
+        "num_parallel=i"       => \$num_parallel,
+        "timeout=i"            => \$timeout,
+        "per_domain_timeout=i" => \$per_domain_timeout,
+    ) or die $usage;
+
+    die $usage unless ( $num_parallel, $timeout, $per_domain_timeout );
+
     my $requests;
 
     while ( my $line = <STDIN> )
@@ -119,22 +124,13 @@ sub main
         return;
     }
 
-    my $config = MediaWords::Util::Config::get_config;
-
-    my $num_parallel       = $config->{ mediawords }->{ web_store_num_parallel } || $DEFAULT_NUM_PARALLEL;
-    my $timeout            = $config->{ mediawords }->{ web_store_timeout };
-    my $per_domain_timeout = $config->{ mediawords }->{ web_store_per_domain_timeout };
-
-    $timeout            = $DEFAULT_TIMEOUT            unless ( defined( $timeout ) );
-    $per_domain_timeout = $DEFAULT_PER_DOMAIN_TIMEOUT unless ( defined( $per_domain_timeout ) );
-
     DEBUG "per_domain_timeout: $per_domain_timeout";
 
     my $pm = new Parallel::ForkManager( $num_parallel );
 
     my $ua = MediaWords::Util::Web::UserAgent->new();
 
-    $requests = get_scheduled_requests( $requests, $per_domain_timeout );
+    $requests = _get_scheduled_requests( $requests, $per_domain_timeout );
     my $start_time = time;
 
     my $request_stack = [ sort { $b->{ time } <=> $a->{ time } } @{ $requests } ];
