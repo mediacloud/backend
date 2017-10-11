@@ -1,8 +1,15 @@
 import multiprocessing
-from nose.tools import assert_raises
+import os
+import subprocess
 import tempfile
+import time
 
-from mediawords.util.process import *
+import pytest
+
+from mediawords.util.process import (process_with_pid_is_running, run_command_in_foreground,
+                                     run_alone, gracefully_kill_child_process,
+                                     McRunCommandInForegroundException,
+                                     McScriptInstanceIsAlreadyRunning, log)
 
 
 def test_process_with_pid_is_running():
@@ -20,9 +27,8 @@ def test_process_with_pid_is_running():
     test_process.terminate()
     test_process.kill()
 
-    # FIXME for whatever reason Python still "sees" this PID after killing it; maybe it's a thread PID and not a
-    # process one?
-    # assert process_with_pid_is_running(test_process_pid) is False
+    test_process.communicate()
+    assert process_with_pid_is_running(test_process_pid) is False
 
 
 def test_run_command_in_foreground():
@@ -41,7 +47,8 @@ def test_run_command_in_foreground():
     test_env_variable = 'MC_RUN_COMMAND_IN_FOREGROUND_ENV_TEST'
     test_file_with_env = os.path.join(temp_dir, 'env.txt')
     test_file_without_env = os.path.join(temp_dir, 'no-env.txt')
-    run_command_in_foreground(['/bin/bash', '-c', 'env > %s' % test_file_with_env], env={test_env_variable: '1'})
+    run_command_in_foreground(['/bin/bash', '-c', 'env > %s' % test_file_with_env],
+                              env={test_env_variable: '1'})
     run_command_in_foreground(['/bin/bash', '-c', 'env > %s' % test_file_without_env], env={})
     with open(test_file_with_env, 'r') as f:
         contents = f.read()
@@ -63,7 +70,8 @@ def test_run_command_in_foreground():
         assert temp_dir not in contents
 
     # Faulty command
-    assert_raises(McRunCommandInForegroundException, run_command_in_foreground, ['this_command_totally_doesnt_exist'])
+    with pytest.raises(McRunCommandInForegroundException):
+        run_command_in_foreground(['this_command_totally_doesnt_exist'])
 
 
 def test_gracefully_kill_child_process():
@@ -77,14 +85,13 @@ def test_gracefully_kill_child_process():
 
     gracefully_kill_child_process(child_pid=test_process_pid, sigkill_timeout=3)
 
-    # FIXME for whatever reason Python still "sees" this PID after killing it; maybe it's a thread PID and not a
-    # process one?
-    # assert process_with_pid_is_running(test_process_pid) is False
+    test_process.communicate()
+    assert process_with_pid_is_running(test_process_pid) is False
 
 
 def test_run_alone():
     # Basic usage
-    def create_file(file_to_create: str, sleep_forever_afterwards: bool):
+    def create_file(file_to_create, sleep_forever_afterwards):
         if os.path.exists(file_to_create):
             raise Exception("File '%s' already exists." % file_to_create)
         file = open(file_to_create, 'w+')
@@ -124,7 +131,9 @@ def test_run_alone():
     # Try running same function in foreground thread, make sure it fails
     foreground_thread_temp_file = os.path.join(tempfile.mkdtemp(), 'foreground_thread.dat')
     assert not os.path.exists(foreground_thread_temp_file)
-    assert_raises(McScriptInstanceIsAlreadyRunning, run_alone, create_file, foreground_thread_temp_file, True)
+    with pytest.raises(McScriptInstanceIsAlreadyRunning):
+        run_alone(create_file, foreground_thread_temp_file, True)
+
     assert not os.path.exists(foreground_thread_temp_file)
 
     # FIXME doesn't get properly killed it seems
@@ -133,7 +142,8 @@ def test_run_alone():
     background_thread.join(timeout=2)
 
     # Try running function again to make sure that the lock file got removed properly
-    another_foreground_thread_temp_file = os.path.join(tempfile.mkdtemp(), 'another_foreground_thread.dat')
+    another_foreground_thread_temp_file = os.path.join(tempfile.mkdtemp(),
+                                                       'another_foreground_thread.dat')
     assert not os.path.exists(another_foreground_thread_temp_file)
 
     run_alone(create_file, another_foreground_thread_temp_file, False)

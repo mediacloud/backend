@@ -1,6 +1,9 @@
 # Single story statistics
 package MediaWords::Util::Bitly::StoryStats;
 
+use strict;
+use warnings;
+
 sub new($$;$$)
 {
     my $class = shift;

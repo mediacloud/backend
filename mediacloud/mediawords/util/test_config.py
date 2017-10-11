@@ -1,8 +1,10 @@
+import os
 import tempfile
 
-from nose.tools import assert_raises
+import pytest
 
-from mediawords.util.config import *
+from mediawords.util.config import (get_config, mc_root_path, set_config, set_config_file,
+                                    McConfigException)
 
 
 def test_get_config():
@@ -36,5 +38,6 @@ def test_set_config_file_nonexistent():
     tempdir = tempfile.mkdtemp()
     nonexistent_config = os.path.join(tempdir, 'nonexistent_configuration.yml')
     assert os.path.exists(nonexistent_config) is False
-    assert_raises(McConfigException, set_config_file, nonexistent_config)
+    with pytest.raises(McConfigException):
+        set_config_file(nonexistent_config)
     set_config(old_config)
