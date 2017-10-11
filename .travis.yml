@@ -64,6 +64,16 @@ env:
         # Let tests know that they are running on Travis
         - MC_SKIP_RABBIT_OPEN_FILES_LIMIT_CHECK=1
 
+    matrix:
+
+        # Single Travis instance is too slow to run all Perl tests, so
+        # run_test_suite_for_devel_cover.sh will split the tests into 4
+        # different chunks and run them on separate instances
+        - MC_TEST_CHUNK=1
+        - MC_TEST_CHUNK=2
+        - MC_TEST_CHUNK=3
+        - MC_TEST_CHUNK=4
+
 before_install:
     # Install ansible-lint
     - sudo pip install --upgrade ansible-lint
@@ -126,6 +136,7 @@ script:
         -e MC_UNIVISION_TEST_CLIENT_SECRET
         -e MC_SUPERGLUE_TEST_URL
         -e MC_SKIP_RABBIT_OPEN_FILES_LIMIT_CHECK
+        -e MC_TEST_CHUNK
         $MC_TRAVIS_DOCKER_CONTAINER
         bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT && ./script/run_test_suite_for_devel_cover.sh --destroy-solr"
 
