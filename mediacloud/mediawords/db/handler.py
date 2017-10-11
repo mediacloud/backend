@@ -361,14 +361,12 @@ class DatabaseHandler(object):
         if table not in self.__primary_key_columns:
             # noinspection SqlResolve,SqlCheckUsingColumns
             primary_key_column = self.query("""
-                SELECT column_name
-                FROM information_schema.table_constraints
-                     JOIN information_schema.key_column_usage
-                         USING (constraint_catalog, constraint_schema, constraint_name,
-                                table_catalog, table_schema, table_name)
-                WHERE constraint_type = 'PRIMARY KEY'
-                  AND table_name = %(table_name)s
-                ORDER BY ordinal_position
+SELECT a.attname
+    FROM   pg_index i
+        JOIN   pg_attribute a ON a.attrelid = i.indrelid
+            AND a.attnum = ANY(i.indkey)
+    WHERE  i.indrelid = %(table_name)s::regclass
+        AND    i.indisprimary;
             """, {'table_name': table}).flat()
             if primary_key_column is None or len(primary_key_column) == 0:
                 raise McPrimaryKeyColumnException("Primary key for table '%s' was not found" % table)
