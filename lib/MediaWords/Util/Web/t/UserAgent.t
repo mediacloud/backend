@@ -7,7 +7,7 @@ use MediaWords::CommonLibs;
 
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 134;
+use Test::More tests => 135;
 
 use Encode;
 use File::Temp qw/ tempdir /;
@@ -1175,8 +1175,14 @@ sub test_determined_retries()
 
     my $ua = MediaWords::Util::Web::UserAgent->new();
     $ua->set_timeout( 2 );    # time-out really fast
-    $ua->set_timing( '1,2,4' );
-    ok( $ua->timing(), '1,2,4' );
+
+    # Try disabling retries
+    $ua->set_timing( undef );
+    is( $ua->timing(), undef );
+
+    # Reenable timing
+    $ua->set_timing( [ 1, 2, 4 ] );
+    cmp_deeply( $ua->timing(), [ 1, 2, 4 ] );
 
     {
         my $response = $ua->get( $TEST_HTTP_SERVER_URL . '/temporarily-buggy-page' );

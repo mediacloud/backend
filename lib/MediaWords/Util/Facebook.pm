@@ -122,7 +122,7 @@ sub api_request($$)
 
         # UserAgent object will retry on server-side errors; client-side errors
         # will be handled by this module
-        $ua->set_timing( join( ',', @FACEBOOK_RETRY_INTERVALS ) );
+        $ua->set_timing( \@FACEBOOK_RETRY_INTERVALS );
 
         my $response;
         eval { $response = $ua->get( $api_uri->as_string ); };

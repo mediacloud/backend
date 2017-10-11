@@ -490,18 +490,52 @@ sub request($$)
     return MediaWords::Util::Web::UserAgent::Response->new_from_http_response( $response );
 }
 
-# timing() getter
+# timing() getter; returns arrayref of integer seconds; if undef, retries are disabled
 sub timing($)
 {
     my ( $self ) = @_;
-    return $self->{ _ua }->timing();
+
+    my $str_timing = $self->{ _ua }->timing();
+
+    my $timing;
+
+    if ( $str_timing )
+    {
+        $timing = [ split( ',', $str_timing ) ];
+    }
+    else
+    {
+        $timing = undef;
+    }
+
+    return $timing;
 }
 
-# timing() setter
+# timing() setter; expects arrayref of integer seconds; if undef, retries are disabled
 sub set_timing($$)
 {
     my ( $self, $timing ) = @_;
-    $self->{ _ua }->timing( $timing );
+
+    my $str_timing;
+
+    if ( defined( $timing ) )
+    {
+        unless ( ref( $timing ) eq ref( [] ) )
+        {
+            LOGCONFESS "Timing must be an arrayref of integer seconds.";
+        }
+
+        $str_timing = join( ',', @{ $timing } );
+
+    }
+    else
+    {
+
+        $str_timing = '';
+
+    }
+
+    $self->{ _ua }->timing( $str_timing );
 }
 
 # timeout() getter
