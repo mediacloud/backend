@@ -35,10 +35,47 @@ fi
 cd `dirname $0`/../
 
 echo "Running Python unit tests..."
-./script/run_in_env.sh nosetests --detailed-errors --where=mediacloud/
+./script/run_in_env.sh pytest -v mediacloud/
 
-echo "Running Perl unit tests..."
-TEST_FILES=`find lib script t -name '*.t'`
+ALL_TEST_FILES=`find lib script t -name '*.t' | sort`
+
+if [ -z ${MC_TEST_CHUNK+x} ]; then
+    echo "Running all Perl unit tests..."
+    TEST_FILES="$ALL_TEST_FILES"
+
+else
+
+    if [ "$MC_TEST_CHUNK" -gt 4 ]; then
+        echo "Only up to 4 chunks are supported."
+        exit 1
+    fi
+
+    echo "Running chunk $MC_TEST_CHUNK of Perl unit tests..."
+
+    function join_by { local IFS="$1"; shift; echo "$*"; }
+    
+    current_chunk=1
+    TEST_FILES=()
+    while read test_file; do
+        if [ "$current_chunk" -eq "$MC_TEST_CHUNK" ]; then
+            TEST_FILES+=($test_file)
+        fi
+
+        current_chunk=$((current_chunk+1))
+        if [ "$current_chunk" -gt 4 ]; then
+            current_chunk=1
+        fi
+
+    done < <(echo "$ALL_TEST_FILES")
+
+    TEST_FILES=$(join_by $'\n' "${TEST_FILES[@]}")
+
+fi
+
+TEST_FILES="${TEST_FILES//$'\n'/ }"
+
+echo "Running Perl unit tests: $TEST_FILES..."
+
 PERL5OPT=-MCarp::Always ./script/run_in_env.sh prove $* $TEST_FILES || {
     echo "One or more unit tests have failed with error code $?."
     exit 1

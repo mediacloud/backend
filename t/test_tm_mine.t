@@ -249,7 +249,7 @@ sub test_page
 {
     my ( $label, $url, $expected_content ) = @_;
 
-    DEBUG( "test page: $label $url" );
+    TRACE "test page: $label $url";
 
     my $ua       = MediaWords::Util::Web::UserAgent->new();
     my $request  = MediaWords::Util::Web::UserAgent::Request->new( 'GET', $url );
@@ -259,7 +259,7 @@ sub test_page
 
     my $got_content = $response->decoded_content;
 
-    DEBUG( "got content" );
+    TRACE "got content";
 
     is( $got_content, $expected_content, "simple page test: $label" );
 }

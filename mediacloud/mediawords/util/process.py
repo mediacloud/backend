@@ -166,7 +166,9 @@ def run_alone(isolated_function: Callable, *args, **kwargs) -> Any:
         return unique_id
 
     # noinspection PyUnusedLocal
-    def __remove_run_alone_lock_file(signum: int = None, frame: int = None) -> None:
+    def __remove_run_alone_lock_file(signum: int = None,
+                                     frame: int = None,
+                                     no_exception: bool = False) -> None:
         global __run_alone_function_lock_file
 
         if __run_alone_function_lock_file is not None:
@@ -179,7 +181,10 @@ def run_alone(isolated_function: Callable, *args, **kwargs) -> Any:
         else:
             log.debug("Nothing to unlock.")
 
-        sys.exit(signum)
+        if no_exception:
+            os._exit(signum)
+        else:
+            sys.exit(signum)
 
     try:
         function_unique_id = __function_unique_id(isolated_function)
@@ -198,7 +203,7 @@ def run_alone(isolated_function: Callable, *args, **kwargs) -> Any:
     original_sigterm_handler = signal.getsignal(signal.SIGTERM)
     signal.signal(signal.SIGINT, __remove_run_alone_lock_file)
     signal.signal(signal.SIGTERM, __remove_run_alone_lock_file)
-    atexit.register(__remove_run_alone_lock_file)
+    atexit.register(__remove_run_alone_lock_file, signum=0, no_exception=True)
 
     if sys.platform.lower() == 'darwin':
         # OS X -- /var/run is not world-writable by default

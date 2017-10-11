@@ -1,10 +1,12 @@
-from nose.tools import assert_raises
+import pytest
 
-from mediawords.db.schema.version import *
+from mediawords.db.schema.version import (McSchemaVersionFromLinesException,
+                                          schema_version_from_lines)
 
 
 def test_schema_version_from_lines():
-    assert_raises(McSchemaVersionFromLinesException, schema_version_from_lines, 'no version')
+    with pytest.raises(McSchemaVersionFromLinesException):
+        schema_version_from_lines('no version')
 
     # noinspection SqlDialectInspection,SqlNoDataSourceInspection
     assert schema_version_from_lines("""
