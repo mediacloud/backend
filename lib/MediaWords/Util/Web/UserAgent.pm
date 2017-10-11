@@ -475,20 +475,6 @@ sub get_string($$)
     }
 }
 
-# Alias for post()
-sub post($$)
-{
-    my ( $self, $url, $form_params ) = @_;
-
-    unless ( ref( $form_params ) eq ref( {} ) )
-    {
-        LOGCONFESS "Form parameters is not a hashref: " . Dumper( $form_params );
-    }
-
-    my $response = $self->{ _ua }->post( $url, $form_params );
-    return MediaWords::Util::Web::UserAgent::Response->new_from_http_response( $response );
-}
-
 # Alias for request()
 sub request($$)
 {
