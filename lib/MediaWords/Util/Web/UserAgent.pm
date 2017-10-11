@@ -458,7 +458,7 @@ sub parallel_get($$)
         }
         else
         {
-            my $http_response = HTTP::Response->new( '500', "web store timeout for $result->{ url }" );
+            my $http_response = HTTP::Response->new( HTTP_REQUEST_TIMEOUT, "web store timeout for $result->{ url }" );
             $response = MediaWords::Util::Web::UserAgent::Response->new_from_http_response( $http_response );
             $response->set_request( MediaWords::Util::Web::UserAgent::Request->new( 'GET', $result->{ url } ) );
 
