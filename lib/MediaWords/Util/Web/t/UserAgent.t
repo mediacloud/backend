@@ -10,7 +10,8 @@ use Test::Deep;
 use Test::More tests => 135;
 
 use Encode;
-use File::Temp qw/ tempdir /;
+use File::Temp qw/ tempdir tempfile /;
+use File::Slurp;
 use HTTP::Status qw(:constants);
 use Readonly;
 use Data::Dumper;
@@ -1079,20 +1080,46 @@ sub test_parallel_get()
         '/a' => '𝘛𝘩𝘪𝘴 𝘪𝘴 𝘱𝘢𝘨𝘦 𝘈.',    #
         '/b' => '𝕿𝖍𝖎𝖘 𝖎𝖘 𝖕𝖆𝖌𝖊 𝕭.',    #
         '/c' => '𝕋𝕙𝕚𝕤 𝕚𝕤 𝕡𝕒𝕘𝕖 ℂ.',     #
+        '/timeout' => {
+            callback => sub {
+                my ( $request ) = @_;
+
+                my $response = '';
+
+                $response .= "HTTP/1.0 200 OK\r\n";
+                $response .= "Content-Type: text/html; charset=UTF-8\r\n";
+                $response .= "\r\n";
+                $response .= "And now we wait";
+
+                sleep( 10 );
+
+                return $response;
+            }
+        },
     };
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
-    $hs->start();
+
+    my $config     = MediaWords::Util::Config::get_config;
+    my $new_config = python_deep_copy( $config );
+    $new_config->{ mediawords }->{ web_store_timeout } = 2; # time out faster
+    MediaWords::Util::Config::set_config( $new_config );
 
     my $base_url = 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
     my $urls     = [
         "$base_url/a",
         "$base_url/b",
         "$base_url/c",
-        "$base_url/does-not-exist",                                    # does not exist
+        "$base_url/timeout",      # times out
+        "$base_url/does-not-exist", # does not exist
     ];
 
     my $ua        = MediaWords::Util::Web::UserAgent->new();
+
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
     my $responses = $ua->parallel_get( $urls );
+
+    $hs->stop();
 
     ok( $responses );
     ok( scalar( @{ $responses } ) == scalar( @{ $urls } ) );
@@ -1115,7 +1142,13 @@ sub test_parallel_get()
 
 sub test_determined_retries()
 {
-    my $temporarily_buggy_page_request_count = 0;    # times the request has failed
+    # We'll use temporary file for inter-process communication because callback
+    # will be run in a separate fork so won't be able to modify variable on
+    # main process
+    my ( $fh, $request_count_filename ) = tempfile();
+    close( $fh );
+
+    write_file( $request_count_filename, '0' );
 
     my $pages = {
 
@@ -1126,7 +1159,10 @@ sub test_determined_retries()
 
                 my $response = '';
 
+                my $temporarily_buggy_page_request_count = int( read_file( $request_count_filename ) );
                 ++$temporarily_buggy_page_request_count;
+                write_file( $request_count_filename, $temporarily_buggy_page_request_count );
+
                 if ( $temporarily_buggy_page_request_count < 3 )
                 {
 
