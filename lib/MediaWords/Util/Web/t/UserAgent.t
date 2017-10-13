@@ -7,7 +7,7 @@ use MediaWords::CommonLibs;
 
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 135;
+use Test::More tests => 145;
 
 use Encode;
 use File::Temp qw/ tempdir tempfile /;
@@ -1077,9 +1077,9 @@ sub test_parallel_get()
     my $pages = {
 
         # Test UTF-8 while we're at it
-        '/a' => '𝘛𝘩𝘪𝘴 𝘪𝘴 𝘱𝘢𝘨𝘦 𝘈.',    #
-        '/b' => '𝕿𝖍𝖎𝖘 𝖎𝖘 𝖕𝖆𝖌𝖊 𝕭.',    #
-        '/c' => '𝕋𝕙𝕚𝕤 𝕚𝕤 𝕡𝕒𝕘𝕖 ℂ.',     #
+        '/a'       => '𝘛𝘩𝘪𝘴 𝘪𝘴 𝘱𝘢𝘨𝘦 𝘈.',    #
+        '/b'       => '𝕿𝖍𝖎𝖘 𝖎𝖘 𝖕𝖆𝖌𝖊 𝕭.',    #
+        '/c'       => '𝕋𝕙𝕚𝕤 𝕚𝕤 𝕡𝕒𝕘𝕖 ℂ.',     #
         '/timeout' => {
             callback => sub {
                 my ( $request ) = @_;
@@ -1100,7 +1100,7 @@ sub test_parallel_get()
 
     my $config     = MediaWords::Util::Config::get_config;
     my $new_config = python_deep_copy( $config );
-    $new_config->{ mediawords }->{ web_store_timeout } = 2; # time out faster
+    $new_config->{ mediawords }->{ web_store_timeout } = 2;    # time out faster
     MediaWords::Util::Config::set_config( $new_config );
 
     my $base_url = 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
@@ -1108,11 +1108,11 @@ sub test_parallel_get()
         "$base_url/a",
         "$base_url/b",
         "$base_url/c",
-        "$base_url/timeout",      # times out
-        "$base_url/does-not-exist", # does not exist
+        "$base_url/timeout",                                   # times out
+        "$base_url/does-not-exist",                            # does not exist
     ];
 
-    my $ua        = MediaWords::Util::Web::UserAgent->new();
+    my $ua = MediaWords::Util::Web::UserAgent->new();
 
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
@@ -1131,13 +1131,25 @@ sub test_parallel_get()
         $path_responses->{ $path } = $response;
     }
 
+    ok( $path_responses->{ '/a' } );
+    ok( $path_responses->{ '/a' }->is_success );
     is( $path_responses->{ '/a' }->decoded_content, $pages->{ '/a' } );
+
+    ok( $path_responses->{ '/b' } );
+    ok( $path_responses->{ '/b' }->is_success );
     is( $path_responses->{ '/b' }->decoded_content, $pages->{ '/b' } );
+
+    ok( $path_responses->{ '/c' } );
+    ok( $path_responses->{ '/c' }->is_success );
     is( $path_responses->{ '/c' }->decoded_content, $pages->{ '/c' } );
+
+    ok( $path_responses->{ '/does-not-exist' } );
     ok( !$path_responses->{ '/does-not-exist' }->is_success );
     is( $path_responses->{ '/does-not-exist' }->code, 404 );
 
-    $hs->stop();
+    ok( $path_responses->{ '/timeout' } );
+    ok( !$path_responses->{ '/timeout' }->is_success );
+    is( $path_responses->{ '/timeout' }->code, 408 );
 }
 
 sub test_determined_retries()
