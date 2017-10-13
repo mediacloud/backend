@@ -39,5 +39,3 @@ def test_get_tag_checkers():
     tag_checkers = get_tag_checkers()
     for idx, tag_checker in enumerate(tag_checkers):
         assert tag_checker(soup) == str(idx)
-
-

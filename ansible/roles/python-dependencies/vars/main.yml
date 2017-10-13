@@ -4,8 +4,14 @@
 # 2. Write a short description for how this module is being used
 python_dependencies:
 
+    # Datetime parsing
+    - { name: "arrow", version: "2.3.2.0" }
+
     # Deployments
     - { name: "ansible", version: "2.3.2.0" }
+
+    # HTML parsing
+    - { name: "beautifulsoup4", version: "4.6.0" }
 
     # Unit test coverage
     - { name: "coverage", version: "4.4.1" }
