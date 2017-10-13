@@ -1,8 +1,9 @@
 import base64
 from http import HTTPStatus
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import BaseHTTPRequestHandler, HTTPServer
 import multiprocessing
 import os
+from socketserver import ForkingMixIn
 from typing import Union, Dict
 from urllib.parse import urlparse, parse_qs
 
@@ -98,6 +99,9 @@ class HashServer(object):
                     # If parameter is present only once, return it as a string
                     params[param_name] = params[param_name][0]
             return params
+
+    class _ForkingHTTPServer(ForkingMixIn, HTTPServer):
+        pass
 
     # noinspection PyPep8Naming
     class _HTTPHandler(BaseHTTPRequestHandler):
@@ -352,27 +356,15 @@ class HashServer(object):
     def __del__(self):
         self.stop()
 
-    def __start_web_server(self):
+    @staticmethod
+    def __make_http_handler_with_pages(port: int, pages: dict):
+        class _HTTPHandlerWithPages(HashServer._HTTPHandler):
+            def __init__(self, *args, **kwargs):
+                self._set_port(port=port)
+                self._set_pages(pages=pages)
+                super(_HTTPHandlerWithPages, self).__init__(*args, **kwargs)
 
-        def __make_http_handler_with_pages(port: int, pages: dict):
-            class _HTTPHandlerWithPages(self._HTTPHandler):
-                def __init__(self, *args, **kwargs):
-                    self._set_port(port=port)
-                    self._set_pages(pages=pages)
-                    super(_HTTPHandlerWithPages, self).__init__(*args, **kwargs)
-
-            return _HTTPHandlerWithPages
-
-        log.info('Starting test web server %s:%d on PID %d' % (self.__host, self.__port, os.getpid()))
-        log.debug('Pages: %s' % str(self.__pages))
-        server_address = (self.__host, self.__port,)
-
-        handler_class = __make_http_handler_with_pages(port=self.__port, pages=self.__pages)
-
-        # Does not use ThreadingMixIn to be able to call Perl callbacks
-        self.__http_server = HTTPServer(server_address, handler_class)
-
-        self.__http_server.serve_forever()
+        return _HTTPHandlerWithPages
 
     def start(self):
         """Start the webserver."""
@@ -380,8 +372,16 @@ class HashServer(object):
         if tcp_port_is_open(port=self.__port):
             raise McHashServerException("Port %d is already open." % self.__port)
 
+        log.info('Starting test web server %s:%d on PID %d' % (self.__host, self.__port, os.getpid()))
+        log.debug('Pages: %s' % str(self.__pages))
+        server_address = (self.__host, self.__port,)
+
+        handler_class = HashServer.__make_http_handler_with_pages(port=self.__port, pages=self.__pages)
+
+        self.__http_server = HashServer._ForkingHTTPServer(server_address, handler_class)
+
         # "threading.Thread()" doesn't work with Perl callers
-        self.__http_server_thread = multiprocessing.Process(target=self.__start_web_server)
+        self.__http_server_thread = multiprocessing.Process(target=self.__http_server.serve_forever)
         self.__http_server_thread.daemon = True
         self.__http_server_thread.start()
 
@@ -397,12 +397,17 @@ class HashServer(object):
 
         log.info('Stopping test web server %s:%d on PID %d' % (self.__host, self.__port, os.getpid()))
 
-        # self.__http_server is initialized in a different process, so we're not touching it
+        # FIXME shutdown() hangs, we probably want to call this in the right subprocess?
+        # self.__http_server.shutdown()
 
-        if self.__http_server_thread is None:
+        self.__http_server.socket.close()
+
+        if self.__http_server is None:
+            log.warning("HTTP server is None.")
+        elif self.__http_server_thread is None:
             log.warning("HTTP server process is None.")
         else:
-            self.__http_server_thread.join(timeout=1)
+            self.__http_server_thread.join(timeout=2)
             self.__http_server_thread.terminate()
             self.__http_server_thread = None
 
