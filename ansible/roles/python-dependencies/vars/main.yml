@@ -5,7 +5,7 @@
 python_dependencies:
 
     # Datetime parsing
-    - { name: "arrow", version: "2.3.2.0" }
+    - { name: "arrow", version: "0.10.0" }
 
     # Deployments
     - { name: "ansible", version: "2.3.2.0" }
