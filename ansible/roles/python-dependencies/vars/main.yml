@@ -52,6 +52,9 @@ python_dependencies:
     # Date parsing
     - { name: "python-dateutil", version: "2.6.1" }
 
+    # Timezone handling
+    - { name: "pytz", version: "2017.2" }
+
     # Extracting text from stories
     - { name: "readability-lxml", version: "0.6.2" }
 
