@@ -174,7 +174,7 @@ sub main
 
             $response = MediaWords::Util::URL::get_meta_redirect_response( $response, $request->{ url } );
 
-            INFO "got [$i/$block_size/$total]: $request->{ url }";
+            INFO "got [$i/$block_size/$total]: $request->{ url } (" . ref( $response ) . ")";
 
             Storable::store( $response, $request->{ file } );
 
