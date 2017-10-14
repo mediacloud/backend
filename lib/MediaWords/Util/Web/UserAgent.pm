@@ -216,6 +216,9 @@ sub parallel_get($$)
         if ( -f $result->{ file } )
         {
             $response = Storable::retrieve( $result->{ file } );
+
+            INFO( "parallel_get stored response: " . ref( $response ) );
+
             push( @{ $responses }, $response );
             unlink( $result->{ file } );
         }
