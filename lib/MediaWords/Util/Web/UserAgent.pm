@@ -228,6 +228,7 @@ sub parallel_get($$)
             else
             {
                 INFO( "undefined response for file $result->{ file }, skipping unlink" );
+                INFO( "url: $result->{ url }" );
             }
         }
         else

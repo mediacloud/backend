@@ -179,9 +179,11 @@ sub main
             Storable::store( $response, $request->{ file } );
 
             my $stored_response = Storable::retrieve( $request->{ file } );
-            if ( !$stored_response || ( ref( $stored_response ) eq ref( $response ) ) )
+            if ( !$stored_response || ( ref( $stored_response ) ne ref( $response ) ) )
             {
                 INFO "failed to store response for file $request->{ file }";
+                INFO "request: " . $request->as_string;
+                INFO "response: " . $response->as_string;
             }
 
             alarm( 0 );
