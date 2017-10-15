@@ -220,7 +220,15 @@ sub parallel_get($$)
             INFO( "parallel_get stored response: " . ref( $response ) );
 
             push( @{ $responses }, $response );
-            unlink( $result->{ file } );
+
+            if ( $response )
+            {
+                unlink( $result->{ file } );
+            }
+            else
+            {
+                INFO( "undefined response for file $result->{ file }, skipping unlink" );
+            }
         }
         else
         {
