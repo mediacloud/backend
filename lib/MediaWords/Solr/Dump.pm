@@ -615,6 +615,15 @@ sub _solr_request($$$;$$)
 
     my $timeout = 600;
 
+    # Remediate CVE-2017-12629
+    if ( $params->{ q })
+    {
+        if ( $params->{ q } =~ /xmlparser/i )
+        {
+            LOGCONFESS "XML queries are not supported.";
+        }
+    }
+
     TRACE "Requesting URL: $abs_url...";
 
     if ( $content )
