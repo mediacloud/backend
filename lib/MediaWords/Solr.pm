@@ -334,6 +334,15 @@ sub query_encoded_json($$;$)
     $ua->set_timeout( $QUERY_HTTP_TIMEOUT );
     $ua->set_max_size( undef );
 
+    # Remediate CVE-2017-12629
+    if ( $params->{ q })
+    {
+        if ( $params->{ q } =~ /xmlparser/i )
+        {
+            LOGCONFESS "XML queries are not supported.";
+        }
+    }
+
     TRACE "Executing Solr query on $url ...";
     TRACE 'Parameters: ' . Dumper( $params );
     my $t0 = [ gettimeofday ];
