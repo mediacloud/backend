@@ -528,6 +528,9 @@ instanceDir=%(instance_dir)s
         # needed for resolving paths to JARs in solrconfig.xml
         "-Dmediacloud.solr_dist_dir=%s" % solr_path,
         "-Dmediacloud.solr_webapp_dir=%s" % solr_webapp_path,
+
+        # Remediate CVE-2017-12629
+        "-Ddisable.configEdit=true",
     ]
     args += start_jar_args
     args += [
