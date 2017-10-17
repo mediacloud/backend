@@ -181,9 +181,9 @@ sub main
             my $stored_response = Storable::retrieve( $request->{ file } );
             if ( !$stored_response || ( ref( $stored_response ) ne ref( $response ) ) )
             {
-                INFO "failed to store response for file $request->{ file }";
-                INFO "request: " . $request->as_string;
-                INFO "response: " . $response->as_string;
+                WARN "failed to store response for file $request->{ file }";
+                WARN "failed request: " . $request->as_string;
+                WARN "failed response: " . $response->as_string;
             }
 
             alarm( 0 );
