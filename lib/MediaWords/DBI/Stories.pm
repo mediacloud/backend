@@ -594,6 +594,9 @@ sub download_is_broken($$)
 {
     my ( $db, $download ) = @_;
 
+    # don't try to fix error downloads
+    return 0 unless ( $download->{ state } eq 'success' );
+
     my $content_ref;
     eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download ); };
 
