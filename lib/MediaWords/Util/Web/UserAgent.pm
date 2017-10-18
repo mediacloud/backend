@@ -217,12 +217,18 @@ sub parallel_get($$)
         {
             $response = Storable::retrieve( $result->{ file } );
 
-            INFO( "parallel_get stored response: " . ref( $response ) );
-
-            push( @{ $responses }, $response );
-            unlink( $result->{ file } );
+            if ( $response )
+            {
+                push( @{ $responses }, $response );
+                unlink( $result->{ file } );
+            }
+            else
+            {
+                INFO( "undefined response for file $result->{ file } url $result->{ url }, skipping unlink" );
+            }
         }
-        else
+
+        if ( !$response )
         {
             my $http_response = HTTP::Response->new( '500', "web store timeout for $result->{ url }" );
             $response = MediaWords::Util::Web::UserAgent::Response->new_from_http_response( $http_response );
