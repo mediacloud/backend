@@ -755,6 +755,12 @@ sub generate_new_story_hash
         description  => ''
     };
 
+    # postgres refuses to insert text values with the null character
+    for my $field ( qw/url guid title/ )
+    {
+        $story->{ $field } =~ s/\x00//g;
+    }
+
     if ( $link->{ publish_date } )
     {
         return ( $story, 'manual' );
