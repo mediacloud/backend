@@ -29,7 +29,7 @@ class TestMultiDateParser(object):
         # should always handle ISO by default
         parsed_date, accuracy = self.multi_parser.parse(iso_date)
         assert parsed_date == datetime(2017, 10, 13, 12, 18, 24, tzinfo=pytz.utc)
-        assert accuracy is accuracy.DATETIME
+        assert accuracy is Accuracy.DATETIME
 
     def test_multiple_formats(self):
         self.multi_parser.formats = (
@@ -39,7 +39,7 @@ class TestMultiDateParser(object):
         test_cases = (
             ('2017-10-13', (datetime(2017, 10, 13, tzinfo=pytz.utc), Accuracy.DATE)),
             ('2017-10-13 01:23', (datetime(2017, 10, 13, 1, 23, tzinfo=pytz.utc),
-                                 Accuracy.DATETIME)),
+                                  Accuracy.DATETIME)),
             ('2017-10-13T12:18:24+00:00', (datetime(2017, 10, 13, tzinfo=pytz.utc), Accuracy.DATE))
         )
 
