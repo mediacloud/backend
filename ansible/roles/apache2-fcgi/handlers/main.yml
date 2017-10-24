@@ -1,6 +1,12 @@
-- include_tasks: apache2-stop.yml
+- name: Include Apache stop handlers
+  include_tasks: apache2-stop.yml
+  tags:
+    - apache2-fcgi
 
-- include_tasks: apache2-start.yml
+- name: Include Apache start handlers
+  include_tasks: apache2-start.yml
+  tags:
+    - apache2-fcgi
 
 - name: stop apache
   debug:
