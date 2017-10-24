@@ -109,6 +109,8 @@ sub cliff : Local
     my $json_list = {};
     for my $stories_id ( @{ $stories_ids } )
     {
+        $stories_id = $stories_id + 0;
+
         next if ( $json_list->{ $stories_id } );
 
         my $annotation;
@@ -134,7 +136,7 @@ sub cliff : Local
     for my $stories_id ( keys( %{ $json_list } ) )
     {
         my $json_item = {
-            stories_id => $stories_id,
+            stories_id => $stories_id + 0,
             cliff      => $json_list->{ $stories_id },
         };
         push( @{ $json_items }, $json_item );
@@ -167,6 +169,8 @@ sub nytlabels : Local
     my $json_list = {};
     for my $stories_id ( @{ $stories_ids } )
     {
+        $stories_id = $stories_id + 0;
+
         next if ( $json_list->{ $stories_id } );
 
         my $annotation;
@@ -192,7 +196,7 @@ sub nytlabels : Local
     for my $stories_id ( keys( %{ $json_list } ) )
     {
         my $json_item = {
-            stories_id => $stories_id,
+            stories_id => $stories_id + 0,
             nytlabels  => $json_list->{ $stories_id },
         };
         push( @{ $json_items }, $json_item );

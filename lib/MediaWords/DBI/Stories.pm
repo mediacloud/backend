@@ -502,7 +502,7 @@ sub process_extracted_story($$$)
 {
     my ( $db, $story, $extractor_args ) = @_;
 
-    my $stories_id = $story->{ stories_id };
+    my $stories_id = $story->{ stories_id } + 0;
 
     MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story, $extractor_args );
 
