@@ -31,7 +31,7 @@ sub run($;$)
 
     my $db = MediaWords::DB::connect_to_db();
 
-    my $stories_id = $args->{ stories_id } or die "'stories_id' is not set.";
+    my $stories_id = $args->{ stories_id } + 0 or die "'stories_id' is not set.";
 
     my $story = $db->find_by_id( 'stories', $stories_id );
     unless ( $story->{ stories_id } )
