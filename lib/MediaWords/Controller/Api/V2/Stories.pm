@@ -125,7 +125,7 @@ sub cliff : Local
         {
             my $cliff = MediaWords::Util::Annotator::CLIFF->new();
             eval { $annotation = $cliff->fetch_annotation_for_story( $db, $stories_id ) };
-            $annotation ||= '"story is not annotated"';
+            $annotation ||= 'story is not annotated';
         }
 
         $json_list->{ $stories_id } = $annotation;
@@ -185,7 +185,7 @@ sub nytlabels : Local
         {
             my $nytlabels = MediaWords::Util::Annotator::NYTLabels->new();
             eval { $annotation = $nytlabels->fetch_annotation_for_story( $db, $stories_id ) };
-            $annotation ||= '"story is not annotated"';
+            $annotation ||= 'story is not annotated';
         }
 
         $json_list->{ $stories_id } = $annotation;
