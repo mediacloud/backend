@@ -503,7 +503,7 @@ sub process_extracted_story($$$)
 {
     my ( $db, $story, $extractor_args ) = @_;
 
-    my $stories_id = $story->{ stories_id };
+    my $stories_id = $story->{ stories_id } + 0;
 
     MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story, $extractor_args );
 
@@ -594,6 +594,9 @@ Check to see whether the given download is broken
 sub download_is_broken($$)
 {
     my ( $db, $download ) = @_;
+
+    # don't try to fix error downloads
+    return 0 unless ( $download->{ state } eq 'success' );
 
     my $content_ref;
     eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download ); };

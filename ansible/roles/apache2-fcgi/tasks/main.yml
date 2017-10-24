@@ -3,7 +3,7 @@
   tags:
     - apache2-fcgi
 
-- include: main-{{ ansible_distribution }}.yml
+- include_tasks: main-{{ ansible_distribution }}.yml
   tags:
     - apache2-fcgi
 

@@ -13,6 +13,7 @@ use MediaWords::Test::API;
 use MediaWords::Test::DB;
 use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
+use MediaWords::Test::Types;
 
 Readonly my $NUM_MEDIA            => 5;
 Readonly my $NUM_FEEDS_PER_MEDIUM => 2;
@@ -43,9 +44,10 @@ sub test_stories_cliff($)
 
     my $r = test_get( '/api/v2/stories/cliff', { stories_id => $stories_id } );
 
-    is( scalar( @{ $r } ),         1,                      "$label num stories returned" );
-    is( $r->[ 0 ]->{ stories_id }, $stories_id,            "$label stories_id" );
-    is( $r->[ 0 ]->{ cliff },      "story does not exist", "$label does not exist message" );
+    is( scalar( @{ $r } ),         1,           "$label num stories returned" );
+    is( $r->[ 0 ]->{ stories_id }, $stories_id, "$label stories_id" );
+    MediaWords::Test::Types::is_integer( $r->[ 0 ]->{ stories_id }, "$label stories_id is_integer" );
+    is( $r->[ 0 ]->{ cliff }, "story does not exist", "$label does not exist message" );
 }
 
 sub test_stories_nytlabels($)
@@ -62,9 +64,10 @@ sub test_stories_nytlabels($)
 
     my $r = test_get( '/api/v2/stories/nytlabels', { stories_id => $stories_id } );
 
-    is( scalar( @{ $r } ),         1,                      "$label num stories returned" );
-    is( $r->[ 0 ]->{ stories_id }, $stories_id,            "$label stories_id" );
-    is( $r->[ 0 ]->{ nytlabels },  "story does not exist", "$label does not exist message" );
+    is( scalar( @{ $r } ),         1,           "$label num stories returned" );
+    is( $r->[ 0 ]->{ stories_id }, $stories_id, "$label stories_id" );
+    MediaWords::Test::Types::is_integer( $r->[ 0 ]->{ stories_id }, "$label stories_id is_integer" );
+    is( $r->[ 0 ]->{ nytlabels }, "story does not exist", "$label does not exist message" );
 }
 
 sub test_stories_fetch_bitly_clicks($)

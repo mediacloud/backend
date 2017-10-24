@@ -38,7 +38,7 @@ sub run($;$)
 
     my $db = MediaWords::DB::connect_to_db();
 
-    my $stories_id      = $args->{ stories_id } or die "'stories_id' is not set.";
+    my $stories_id      = $args->{ stories_id } + 0 or die "'stories_id' is not set.";
     my $start_timestamp = $args->{ start_timestamp };
     my $end_timestamp   = $args->{ end_timestamp };
 

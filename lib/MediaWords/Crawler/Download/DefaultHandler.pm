@@ -154,7 +154,7 @@ SQL
 
     foreach my $stories_id ( @{ $story_ids_to_extract } )
     {
-        my $args = { stories_id => $stories_id };
+        my $args = { stories_id => $stories_id + 0 };
 
         if ( $self->_extract_in_process() )
         {

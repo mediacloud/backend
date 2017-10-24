@@ -190,9 +190,14 @@ sub _store_tweet_and_urls($$$$)
       ? MediaWords::Util::SQL::get_sql_date_from_epoch( Date::Parse::str2time( $created_at ) )
       : MediaWords::UTil::SQL::sql_now();
 
+    my $data_json = MediaWords::Util::JSON::encode_json( $ch_post );
+
+    # null characters are not legal in json but for some reason get stuck in these tweets
+    $data_json =~ s/\x00//g;
+
     my $topic_tweet = {
         topic_tweet_days_id => $topic_tweet_day->{ topic_tweet_days_id },
-        data                => MediaWords::Util::JSON::encode_json( $ch_post ),
+        data                => $data_json,
         content             => $ch_post->{ tweet }->{ text },
         tweet_id            => $ch_post->{ tweet_id },
         publish_date        => $publish_date,

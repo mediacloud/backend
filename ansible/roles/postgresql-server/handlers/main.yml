@@ -1,4 +1,4 @@
-# For whatever reason having handlers in separate per-OS files doesn't work in Ansible 2.3
+# For whatever reason having handlers in separate per-OS files doesn't work in Ansible 2.4
 
 - name: Restart PostgreSQL service (MacOSX)
   command: "brew services restart postgresql"

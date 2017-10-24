@@ -152,7 +152,48 @@ URL: https://api.mediacloud.org/api/v2/stories/list?last_processed_stories_id=25
 
 Return a stream of all stories from The New York Times mentioning `'obama'` greater than the given `last_processed_stories_id`.
 
-<<<<<<< HEAD
+## api/v2/stories/update (PUT)
+
+| URL                 | Description                     |
+| ------------------- | ------------------------------- |
+| api/v2/stories/update | update an existing story |
+
+This call updates a single existing story.
+
+### Input Description
+
+| Field             | Description                              |
+| ----------------- | ---------------------------------------- |
+| title | story title |
+| url | story url     |
+| guid | story globally unique identifier |
+| language | story primary language, ISO 2 letter code |
+| description | plain text summary or full text of story |
+| publish_date | publication date of story, in ISO format: '2017-09-25 04:32:10' |
+| confirm_date | boolean indicating whether the story date has been manually confirmed as correct |
+| undateable | boolean indicating whether the story should be considered undateable (eg. a wikipedia page) |
+
+
+### Example
+
+URL: https://api.mediacloud.org/api/v2/stories/update
+
+Input:
+
+```json
+{
+  "stories_id": 123456,
+  "publish_date": "2017-09-25 04:32:10",
+  "confirm_date": 1
+}
+```
+
+Output:
+
+```json
+{ "success": 1 }
+```
+
 ## api/v2/stories/cliff
 
 | URL                    | Function
@@ -259,50 +300,6 @@ Response:
 ```
 
 
-=======
-## api/v2/stories/update (PUT)
-
-| URL                 | Description                     |
-| ------------------- | ------------------------------- |
-| api/v2/stories/update | update an existing story |
-
-This call updates a single existing story.
-
-### Input Description
-
-| Field             | Description                              |
-| ----------------- | ---------------------------------------- |
-| title | story title |
-| url | story url     |
-| guid | story globally unique identifier |
-| language | story primary language, ISO 2 letter code |
-| description | plain text summary or full text of story |
-| publish_date | publication date of story, in ISO format: '2017-09-25 04:32:10' |
-| confirm_date | boolean indicating whether the story date has been manually confirmed as correct |
-| undateable | boolean indicating whether the story should be considered undateable (eg. a wikipedia page) |
-
-
-### Example
-
-URL: https://api.mediacloud.org/api/v2/stories/update
-
-Input:
-
-```json
-{
-  "stories_id": 123456,
-  "publish_date": "2017-09-25 04:32:10",
-  "confirm_date": 1
-}
-```
-
-Output:
-
-```json
-{ "success": 1 }
-```
-
->>>>>>> stories_edit_api
 # Sentences
 
 The `story_text` of every story processed by Media Cloud is parsed into individual sentences.  Duplicate sentences within

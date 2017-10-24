@@ -199,7 +199,7 @@ sub _get_existing_stories
 {
     my ( $self ) = @_;
 
-    my $stories = $self->db->query( <<SQL, $self->{ media_id } );
+    my $stories = $self->db->query( <<SQL, $self->{ media_id } )->hashes;
 select stories_id, media_id, publish_date, url, guid, title from stories where media_id = ?
 SQL
 

@@ -168,9 +168,17 @@ EOF
 
             my $response = $ua->get_follow_http_html_redirects( $request->{ url } );
 
-            INFO "got [$i/$block_size/$total]: $request->{ url }";
+            INFO "got [$i/$block_size/$total]: $request->{ url } (" . ref( $response ) . ")";
 
             Storable::store( $response, $request->{ file } );
+
+            my $stored_response = Storable::retrieve( $request->{ file } );
+            if ( !$stored_response || ( ref( $stored_response ) ne ref( $response ) ) )
+            {
+                WARN "failed to store response for file $request->{ file }";
+                WARN "failed request: " . $request->as_string;
+                WARN "failed response: " . $response->as_string;
+            }
 
             alarm( 0 );
         }
