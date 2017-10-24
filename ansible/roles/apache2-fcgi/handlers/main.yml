@@ -1,6 +1,6 @@
-- include: apache2-stop.yml
+- include_tasks: apache2-stop.yml
 
-- include: apache2-start.yml
+- include_tasks: apache2-start.yml
 
 - name: stop apache
   debug:
