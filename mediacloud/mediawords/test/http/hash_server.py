@@ -3,7 +3,9 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import multiprocessing
 import os
+import signal
 from socketserver import ForkingMixIn
+import tempfile
 from typing import Union, Dict
 from urllib.parse import urlparse, parse_qs
 
@@ -101,7 +103,53 @@ class HashServer(object):
             return params
 
     class _ForkingHTTPServer(ForkingMixIn, HTTPServer):
-        pass
+
+        # Set to underlying TCPServer
+        allow_reuse_address = True
+
+        def __init__(self, server_address, request_handler_class, shutdown_canary_file: str):
+            """Initialize HTTP server.
+
+            Shutdown canary file is a temporary file that, when removed, will inform a forked HTTP server to kill all of
+            its children and stop processing requests. A gruesome temporary file is used because timeouts don't work
+            with long running callbacks.
+            """
+            if shutdown_canary_file is None:
+                raise McHashServerException('Shutdown canary file is not set.')
+            open(shutdown_canary_file, 'a').close()
+            self.__shutdown_canary_file = shutdown_canary_file
+
+            super().__init__(server_address, request_handler_class)
+
+        def __set_shutdown(self):
+            """Remove shutdown canary file."""
+            if self.__shutdown_canary_file is None:
+                raise McHashServerException('Shutdown canary file is not set.')
+            if os.path.exists(self.__shutdown_canary_file):
+                os.unlink(self.__shutdown_canary_file)
+
+        def __shutdown_is_set(self):
+            """Returns True if shutdown canary file is removed (and so the server should shut down)."""
+            if self.__shutdown_canary_file is None:
+                raise McHashServerException('Shutdown canary file is not set.')
+            return not os.path.exists(self.__shutdown_canary_file)
+
+        def serve_forever(self, _=0.5):
+            try:
+                while not self.__shutdown_is_set():
+                    self._handle_request_noblock()
+
+                self.service_actions()
+            finally:
+                self.__set_shutdown()
+
+                # Kill all children with SIGTERM that might still be waiting for something
+                if self.active_children is not None:
+                    for pid in self.active_children.copy():
+                        os.kill(pid, signal.SIGKILL)
+
+        def shutdown(self):
+            self.__set_shutdown()
 
     # noinspection PyPep8Naming
     class _HTTPHandler(BaseHTTPRequestHandler):
@@ -353,6 +401,9 @@ class HashServer(object):
         self.__port = port
         self.__pages = pages
 
+        # FIXME there definitely is a more sane way to do IPC than creating temporary files
+        self.__shutdown_canary_file = os.path.join(tempfile.mkdtemp(), 'shutdown-canary-file')
+
     def __del__(self):
         self.stop()
 
@@ -378,7 +429,11 @@ class HashServer(object):
 
         handler_class = HashServer.__make_http_handler_with_pages(port=self.__port, pages=self.__pages)
 
-        self.__http_server = HashServer._ForkingHTTPServer(server_address, handler_class)
+        self.__http_server = self._ForkingHTTPServer(
+            server_address=server_address,
+            request_handler_class=handler_class,
+            shutdown_canary_file=self.__shutdown_canary_file
+        )
 
         # "threading.Thread()" doesn't work with Perl callers
         self.__http_server_thread = multiprocessing.Process(target=self.__http_server.serve_forever)
@@ -397,8 +452,7 @@ class HashServer(object):
 
         log.info('Stopping test web server %s:%d on PID %d' % (self.__host, self.__port, os.getpid()))
 
-        # FIXME shutdown() hangs, we probably want to call this in the right subprocess?
-        # self.__http_server.shutdown()
+        self.__http_server.shutdown()
 
         self.__http_server.socket.close()
 

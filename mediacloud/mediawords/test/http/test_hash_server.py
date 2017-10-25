@@ -3,6 +3,7 @@ from typing import Union
 
 import pytest
 import requests
+import time
 
 from mediawords.util.network import random_unused_port
 from mediawords.test.http.hash_server import (HashServer, tcp_port_is_open, HTTPStatus,
@@ -125,3 +126,49 @@ def test_http_hash_server():
     }
 
     hs.stop()
+
+
+def test_http_hash_server_stop():
+    """Test if HTTP hash server gets stopped properly (including children)."""
+    port = random_unused_port()
+    base_url = 'http://localhost:%d' % port
+
+    # noinspection PyTypeChecker,PyUnusedLocal
+    def __callback_sleep_forever(request: HashServer.Request) -> Union[str, bytes]:
+        time.sleep(9999)
+
+    pages = {
+        '/simple-page': 'Works!',
+        '/sleep-forever': {'callback': __callback_sleep_forever},
+    }
+
+    hs = HashServer(port=port, pages=pages)
+    assert hs
+
+    hs.start()
+
+    assert tcp_port_is_open(port=port)
+
+    request_timed_out = False
+    try:
+        requests.get('%s/sleep-forever' % base_url, timeout=1)
+    except requests.exceptions.Timeout:
+        request_timed_out = True
+    assert request_timed_out is True
+
+    assert str(requests.get('%s/simple-page' % base_url).text) == 'Works!'
+
+    # Restart the server with the same port, make sure it works again, i.e. the server gets stopped properly, kills all
+    # its children and releases the port
+    hs.stop()
+
+    assert tcp_port_is_open(port=port) is False
+
+    hs = HashServer(port=port, pages=pages)
+    assert hs
+
+    hs.start()
+
+    assert tcp_port_is_open(port=port) is True
+
+    assert str(requests.get('%s/simple-page' % base_url).text) == 'Works!'
