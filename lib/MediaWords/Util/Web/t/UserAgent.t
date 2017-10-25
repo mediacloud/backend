@@ -328,9 +328,8 @@ sub test_get_request_headers()
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my $ua        = MediaWords::Util::Web::UserAgent->new();
-    my $url       = "$TEST_HTTP_SERVER_URL/test-custom-header";
-    my $json_utf8 = 1;
+    my $ua  = MediaWords::Util::Web::UserAgent->new();
+    my $url = "$TEST_HTTP_SERVER_URL/test-custom-header";
 
     my $request = MediaWords::Util::Web::UserAgent::Request->new( 'GET', $url );
     $request->set_header( 'X-Custom-Header', 'foo' );
@@ -340,7 +339,7 @@ sub test_get_request_headers()
     ok( $response->is_success() );
     is( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/test-custom-header' );
 
-    my $decoded_json = MediaWords::Util::JSON::decode_json( $response->decoded_content(), $json_utf8 );
+    my $decoded_json = MediaWords::Util::JSON::decode_json( $response->decoded_content() );
     cmp_deeply( $decoded_json, { 'custom-header' => 'foo' } );
 
     $hs->stop();
@@ -1309,9 +1308,8 @@ sub test_post()
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my $ua        = MediaWords::Util::Web::UserAgent->new();
-    my $url       = "$TEST_HTTP_SERVER_URL/test-post";
-    my $json_utf8 = 1;
+    my $ua  = MediaWords::Util::Web::UserAgent->new();
+    my $url = "$TEST_HTTP_SERVER_URL/test-post";
 
     # UTF-8 string request
     {
@@ -1324,7 +1322,7 @@ sub test_post()
         ok( $response->is_success() );
         is( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/test-post' );
 
-        my $decoded_json = MediaWords::Util::JSON::decode_json( $response->decoded_content(), $json_utf8 );
+        my $decoded_json = MediaWords::Util::JSON::decode_json( $response->decoded_content() );
         cmp_deeply(
             $decoded_json,
             {
@@ -1354,7 +1352,7 @@ sub test_post()
         ok( $response->is_success() );
         is( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/test-post' );
 
-        my $decoded_json = MediaWords::Util::JSON::decode_json( $response->decoded_content(), $json_utf8 );
+        my $decoded_json = MediaWords::Util::JSON::decode_json( $response->decoded_content() );
         cmp_deeply(
             $decoded_json,
             {

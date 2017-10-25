@@ -360,8 +360,7 @@ sub bitly_json : Local
     }
 
     Readonly my $json_pretty => 1;
-    Readonly my $json_utf8   => 1;
-    my $bitly_stats_json = MediaWords::Util::JSON::encode_json( $bitly_stats_hashref, $json_pretty, $json_utf8 );
+    my $bitly_stats_json = MediaWords::Util::JSON::encode_json( $bitly_stats_hashref, $json_pretty );
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
     return $c->res->body( $bitly_stats_json );
