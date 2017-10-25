@@ -1,11 +1,5 @@
 ---
 
-- name: Tap Homebrew Apache repository
-  homebrew_tap:
-    name: homebrew/apache
-  tags:
-    - apache2-fcgi
-
 - name: Install Apache
   homebrew:
     name: "{{ item }}"
