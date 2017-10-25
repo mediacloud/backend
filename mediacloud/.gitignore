@@ -41,3 +41,6 @@ crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 
+# pytest's cache
+.cache
+
