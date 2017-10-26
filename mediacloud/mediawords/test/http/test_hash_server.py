@@ -172,3 +172,5 @@ def test_http_hash_server_stop():
     assert tcp_port_is_open(port=port) is True
 
     assert str(requests.get('%s/simple-page' % base_url).text) == 'Works!'
+
+    hs.stop()
