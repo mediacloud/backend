@@ -174,3 +174,50 @@ def test_http_hash_server_stop():
     assert str(requests.get('%s/simple-page' % base_url).text) == 'Works!'
 
     hs.stop()
+
+
+def test_http_hash_server_multiple():
+    """Test running multiple hash servers at the same time."""
+
+    port_1 = random_unused_port()
+    port_2 = random_unused_port()
+
+    base_url_1 = 'http://localhost:%d' % port_1
+    base_url_2 = 'http://localhost:%d' % port_2
+
+    # noinspection PyTypeChecker,PyUnusedLocal
+    def __callback_sleep_forever(request: HashServer.Request) -> Union[str, bytes]:
+        time.sleep(9999)
+
+    pages = {
+        '/simple-page': 'Works!',
+        '/sleep-forever': {'callback': __callback_sleep_forever},
+    }
+
+    hs_1 = HashServer(port=port_1, pages=pages)
+    hs_2 = HashServer(port=port_2, pages=pages)
+
+    assert hs_1
+    assert hs_2
+
+    hs_1.start()
+    hs_2.start()
+
+    assert tcp_port_is_open(port=port_1)
+    assert tcp_port_is_open(port=port_2)
+
+    for base_url in [base_url_1, base_url_2]:
+        request_timed_out = False
+        try:
+            requests.get('%s/sleep-forever' % base_url, timeout=1)
+        except requests.exceptions.Timeout:
+            request_timed_out = True
+        assert request_timed_out is True
+
+        assert str(requests.get('%s/simple-page' % base_url).text) == 'Works!'
+
+    hs_1.stop()
+    hs_2.stop()
+
+    assert tcp_port_is_open(port=port_1) is False
+    assert tcp_port_is_open(port=port_2) is False
