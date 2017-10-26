@@ -78,7 +78,7 @@ sub _request_for_text($$)
 
     my $request = MediaWords::Util::Web::UserAgent::Request->new( 'POST', $url );
     $request->set_content_type( 'application/json; charset=utf-8' );
-    $request->set_content_utf8( $text_json );
+    $request->set_content( $text_json );
 
     return $request;
 }

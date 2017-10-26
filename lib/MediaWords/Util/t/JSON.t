@@ -7,7 +7,6 @@ use Readonly;
 use Test::More tests => 8;
 use Test::Deep;
 use Data::Dumper;
-use Encode;
 
 use_ok( 'MediaWords::Util::JSON' );
 
@@ -26,7 +25,7 @@ sub test_encode_decode_json()
     my ( $encoded_json, $decoded_json );
 
     $encoded_json = MediaWords::Util::JSON::encode_json( $object, $pretty );
-    is( $encoded_json, encode( 'utf-8', $expected_json ), 'encode_json()' );
+    is( $encoded_json, $expected_json, 'encode_json()' );
     $decoded_json = MediaWords::Util::JSON::decode_json( $encoded_json );
     cmp_deeply( $decoded_json, $object, 'decode_json()' );
 

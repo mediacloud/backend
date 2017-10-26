@@ -279,7 +279,7 @@ sub cliff_json : Local
     }
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
-    return $c->res->body( encode( 'utf-8', $annotation_json ) );
+    return $c->res->body( $annotation_json );
 }
 
 # view NYTLabels JSON
@@ -325,7 +325,7 @@ sub nytlabels_json : Local
     }
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
-    return $c->res->body( encode( 'utf-8', $annotation_json ) );
+    return $c->res->body( $annotation_json );
 }
 
 # view Bit.ly JSON

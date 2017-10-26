@@ -32,6 +32,22 @@ Light wrapper class over Catalyst::Controller::REST
 
 BEGIN { extends 'Catalyst::Controller::REST' }
 
+# Python functions for encoding / decoding JSON expect specific types of
+# parameters (e.g. boolean as second parameter), but Catalyst::Controller::REST
+# passes three parameters to serializers in all cases, so we define small
+# serialization wrappers here
+sub _encode_json($$$)
+{
+    my ( $object, $controller, $c ) = @_;
+    return MediaWords::Util::JSON::encode_json( $object );
+}
+
+sub _decode_json($$$)
+{
+    my ( $json, $controller, $c ) = @_;
+    return MediaWords::Util::JSON::decode_json( $json );
+}
+
 __PACKAGE__->config(
     'default'   => 'application/json; charset=UTF-8',
     'stash_key' => 'rest',
@@ -40,22 +56,22 @@ __PACKAGE__->config(
         'application/json' => [                 #
             'Callback',                         #
             {                                   #
-                serialize   => \&MediaWords::Util::JSON::encode_json,    #
-                deserialize => \&MediaWords::Util::JSON::decode_json,    #
+                serialize   => \&_encode_json,    #
+                deserialize => \&_decode_json,    #
             }    #
         ],       #
         'application/json; charset=UTF-8' => [    #
             'Callback',                           #
             {                                     #
-                serialize   => \&MediaWords::Util::JSON::encode_json,    #
-                deserialize => \&MediaWords::Util::JSON::decode_json,    #
+                serialize   => \&_encode_json,    #
+                deserialize => \&_decode_json,    #
             }    #
         ],       #
         'text/x-json' => [    #
             'Callback',       #
             {                 #
-                serialize   => \&MediaWords::Util::JSON::encode_json,    #
-                deserialize => \&MediaWords::Util::JSON::decode_json,    #
+                serialize   => \&_encode_json,    #
+                deserialize => \&_decode_json,    #
             }    #
         ],       #
     }
