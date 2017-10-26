@@ -107,6 +107,10 @@ class HashServer(object):
         # Set to underlying TCPServer
         allow_reuse_address = True
 
+        # Some tests (e.g. feed scrape test) request many pages at pretty much the same time, so with the default queue
+        # size some of those requests might time out
+        request_queue_size = 64
+
         def __init__(self, server_address, request_handler_class, shutdown_canary_file: str):
             """Initialize HTTP server.
 
