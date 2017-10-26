@@ -101,7 +101,7 @@ EOF
         "per_domain_timeout=i" => \$per_domain_timeout,
     ) or die $usage;
 
-    die $usage unless ( $num_parallel, $timeout, $per_domain_timeout );
+    die $usage unless ( $num_parallel and $timeout and $per_domain_timeout );
 
     my $requests;
 
