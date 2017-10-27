@@ -27,9 +27,6 @@ class HashServer(object):
 
     It is intended to make it easy to startup a simple server seeded with programmer defined content."""
 
-    # argument for die called by handle_response when a request with the path /die is received
-    _DIE_REQUEST_MESSAGE = 'received /die request'
-
     # Default HTTP status code for redirects ("301 Moved Permanently")
     _DEFAULT_REDIRECT_STATUS_CODE = HTTPStatus.MOVED_PERMANENTLY
 
