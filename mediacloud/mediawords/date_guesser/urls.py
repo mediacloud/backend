@@ -5,7 +5,7 @@ import re
 import arrow
 import pytz
 
-from .constants import LOCALE, Accuracy
+from .constants import LOCALE, Accuracy, Guess, GuessMethod
 
 
 # inspired by (MIT licensed) https://github.com/codelucas/newspaper
@@ -70,7 +70,8 @@ def parse_url_for_date(url):
             accuracy = Accuracy.DATE
 
         try:
-            return datetime.datetime(tzinfo=pytz.utc, **captures), accuracy
+            date_guess = datetime.datetime(tzinfo=pytz.utc, **captures)
+            return Guess(date_guess, accuracy, GuessMethod.URL)
         except ValueError:
             pass
-    return None, Accuracy.NONE
+    return Guess(None, Accuracy.NONE, GuessMethod.NONE)

@@ -3,7 +3,8 @@ import os
 
 import pytz
 
-from mediawords.date_guesser.urls import parse_url_for_date, Accuracy, url_date_generator
+from mediawords.date_guesser.constants import Accuracy, GuessMethod
+from mediawords.date_guesser.urls import parse_url_for_date, url_date_generator
 
 
 TEST_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -26,9 +27,10 @@ def test_parse_urls_with_date():
     )
     for date_str, url in test_urls:
         date = datetime.datetime.strptime(date_str, '%Y-%m-%d').replace(tzinfo=pytz.utc)
-        parsed, accuracy = parse_url_for_date(url)
-        assert parsed == date
-        assert accuracy is Accuracy.DATE
+        guess = parse_url_for_date(url)
+        assert guess.date == date
+        assert guess.accuracy is Accuracy.DATE
+        assert guess.method is GuessMethod.URL
 
 
 def test_parse_urls_with_partial_date():
@@ -40,9 +42,10 @@ def test_parse_urls_with_partial_date():
     )
     for date_str, url in test_urls:
         date = datetime.datetime.strptime(date_str, '%Y-%m-%d').replace(tzinfo=pytz.utc)
-        parsed, accuracy = parse_url_for_date(url)
-        assert parsed == date
-        assert accuracy is Accuracy.PARTIAL
+        guess = parse_url_for_date(url)
+        assert guess.date == date
+        assert guess.accuracy is Accuracy.PARTIAL
+        assert guess.method is GuessMethod.URL
 
 
 def test_parse_tricky_urls():
@@ -56,6 +59,7 @@ def test_parse_tricky_urls():
         'http://www.news.com/2013/02/29/beyonce-album_n_4453500.html',  # 2013 not a leap year
     )
     for url in test_urls_no_date:
-        parsed, accuracy = parse_url_for_date(url)
-        assert parsed is None
-        assert accuracy is Accuracy.NONE
+        guess = parse_url_for_date(url)
+        assert guess.date is None
+        assert guess.accuracy is Accuracy.NONE
+        assert guess.method is GuessMethod.NONE
