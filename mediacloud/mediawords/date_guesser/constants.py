@@ -12,12 +12,6 @@ class Accuracy(IntEnum):
     DATETIME = 3  # Has datetime level accuracy, ~1ms
 
 
-class GuessMethod(Enum):
-    """Store methods of making guesses"""
-    NONE = 'did not find anything'
-    URL = 'parsed from url'
-    HTML = 'extracted tag from html'
-    IMAGE = 'used the url of an og:image tag'
-
+NO_METHOD = 'Did not find anything'
 
 Guess = namedtuple('Guess', ('date', 'accuracy', 'method'))

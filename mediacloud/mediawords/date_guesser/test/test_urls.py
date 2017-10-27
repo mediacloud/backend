@@ -3,7 +3,7 @@ import os
 
 import pytz
 
-from mediawords.date_guesser.constants import Accuracy, GuessMethod
+from mediawords.date_guesser.constants import Accuracy, NO_METHOD
 from mediawords.date_guesser.urls import parse_url_for_date, url_date_generator
 
 
@@ -13,15 +13,15 @@ TEST_DIR = os.path.abspath(os.path.dirname(__file__))
 
 def test_url_date_generator():
     string_with_matches = '/2013/12/17/20140109/01_09_1985-02-05'
-    for captures in url_date_generator(string_with_matches):
+    for captures, method in url_date_generator(string_with_matches):
         for key in ('year', 'month', 'day'):
             assert key in captures
 
 
 def test_parse_urls_with_date():
     test_urls = (
-        ('2013-12-17', 'http //www.cnn.com/2013/12/17/politics/senate/index.html?hpt=hp_t1'),
-        ('2013-12-17', 'http //www.cnn.com/12/17/2013/politics/senate/index.html?hpt=hp_t1'),
+        ('2013-12-17', 'http://www.cnn.com/2013/12/17/politics/senate/index.html?hpt=hp_t1'),
+        ('2013-12-17', 'http://www.cnn.com/12/17/2013/politics/senate/index.html?hpt=hp_t1'),
         ('2013-12-16', 'http://www.news.com/20131216/beyonce-album_n_4453500.html'),
         ('2012-02-29', 'http://www.news.com/Feb/29/2012/beyonce-album_n_4453500.html'),
     )
@@ -30,7 +30,7 @@ def test_parse_urls_with_date():
         guess = parse_url_for_date(url)
         assert guess.date == date
         assert guess.accuracy is Accuracy.DATE
-        assert guess.method is GuessMethod.URL
+        assert 'url' in guess.method
 
 
 def test_parse_urls_with_partial_date():
@@ -45,7 +45,7 @@ def test_parse_urls_with_partial_date():
         guess = parse_url_for_date(url)
         assert guess.date == date
         assert guess.accuracy is Accuracy.PARTIAL
-        assert guess.method is GuessMethod.URL
+        assert 'url' in guess.method
 
 
 def test_parse_tricky_urls():
@@ -62,4 +62,4 @@ def test_parse_tricky_urls():
         guess = parse_url_for_date(url)
         assert guess.date is None
         assert guess.accuracy is Accuracy.NONE
-        assert guess.method is GuessMethod.NONE
+        assert guess.method is NO_METHOD

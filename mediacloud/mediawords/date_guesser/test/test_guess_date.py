@@ -3,7 +3,7 @@ from datetime import datetime
 import pytz
 
 from mediawords.date_guesser import DateGuesser
-from mediawords.date_guesser.constants import Accuracy, GuessMethod
+from mediawords.date_guesser.constants import Accuracy, NO_METHOD
 
 
 class TestDateGuesser(object):
@@ -18,7 +18,7 @@ class TestDateGuesser(object):
         guess = self.parser.guess_date(url, html)
         assert guess.date is None
         assert guess.accuracy is Accuracy.NONE
-        assert guess.method is GuessMethod.NONE
+        assert guess.method is NO_METHOD
 
     def test_parse_nyt(self):
         url = 'https://www.nytimes.com/2017/10/13/opinion/catalonia-spain-puigdemont.html'
@@ -27,7 +27,7 @@ class TestDateGuesser(object):
         guess = self.parser.guess_date(url, html)
         assert guess.date == datetime(2017, 10, 13, tzinfo=pytz.utc)
         assert guess.accuracy is Accuracy.DATE
-        assert guess.method is GuessMethod.URL
+        assert '2017/10/13' in guess.method
 
         html = '''
         <html><head>
@@ -39,4 +39,4 @@ class TestDateGuesser(object):
         guess = self.parser.guess_date(url, html)
         assert guess.date == datetime(2017, 10, 13, 8, 56, 54, tzinfo=pytz.utc)
         assert guess.accuracy is Accuracy.DATETIME
-        assert guess.method is GuessMethod.HTML
+        assert '2017-10-13T04:56:54-04:00' in guess.method

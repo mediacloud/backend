@@ -5,7 +5,7 @@ import re
 import arrow
 import pytz
 
-from .constants import LOCALE, Accuracy, Guess, GuessMethod
+from .constants import LOCALE, Accuracy, Guess, NO_METHOD
 
 
 # inspired by (MIT licensed) https://github.com/codelucas/newspaper
@@ -38,13 +38,14 @@ def url_date_generator(url):
     """
     matches = itertools.chain(URL_DATE_REGEX.finditer(url), URL_DATE_REGEX_BACKWARDS.finditer(url))
     for match in matches:
-        yield match.groupdict()
+        method = 'Found {} in url'.format(match.group())
+        yield match.groupdict(), method
 
 
 def parse_url_for_date(url):
     """Extracts a date from the url"""
     accuracy = Accuracy.NONE
-    for captures in url_date_generator(url):
+    for captures, method in url_date_generator(url):
         captures['year'] = int(captures['year'])
         if captures['year'] < 1990 or captures['year'] > 2030:
             continue
@@ -71,7 +72,7 @@ def parse_url_for_date(url):
 
         try:
             date_guess = datetime.datetime(tzinfo=pytz.utc, **captures)
-            return Guess(date_guess, accuracy, GuessMethod.URL)
+            return Guess(date_guess, accuracy, method)
         except ValueError:
             pass
-    return Guess(None, Accuracy.NONE, GuessMethod.NONE)
+    return Guess(None, Accuracy.NONE, NO_METHOD)

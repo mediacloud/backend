@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+from mediawords.date_guesser.constants import NO_METHOD
 from mediawords.date_guesser.html import get_tag_checkers, _make_tag_checker
 
 
@@ -6,10 +7,13 @@ def test__make_tag_checker():
     test_html = '<crazytown strange_class="strange_value" datestring="some_date"></crazytown>'
     tag_checker = _make_tag_checker({'strange_class': 'strange_value'}, attr='datestring')
     soup = BeautifulSoup(test_html, 'lxml')
-    assert tag_checker(soup) == 'some_date'
+
+    extracted, method = tag_checker(soup)
+    assert extracted == 'some_date'
+    assert 'crazytown' in method
 
     # Empty html should not extract anything
-    assert tag_checker(BeautifulSoup('', 'lxml')) is None
+    assert tag_checker(BeautifulSoup('', 'lxml')) == (None, NO_METHOD)
 
 
 def test_get_tag_checkers():
@@ -52,4 +56,5 @@ def test_get_tag_checkers():
     soup = BeautifulSoup(test_case, 'lxml')
     tag_checkers = get_tag_checkers()
     for idx, tag_checker in enumerate(tag_checkers):
-        assert tag_checker(soup) == str(idx)
+        extracted, method = tag_checker(soup)
+        assert extracted == str(idx)

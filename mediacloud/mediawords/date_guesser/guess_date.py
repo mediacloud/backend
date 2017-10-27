@@ -1,7 +1,7 @@
 import arrow
 from bs4 import BeautifulSoup
 
-from .constants import Accuracy, LOCALE, GuessMethod, Guess
+from .constants import Accuracy, LOCALE, NO_METHOD, Guess
 from .dates import MultiDateParser
 from .html import get_tag_checkers, get_image_url_checker
 from .urls import parse_url_for_date
@@ -56,21 +56,25 @@ class DateGuesser(object):
             In case a reasonable guess can be made, returns a datetime and Enum of accuracy
         """
         # default guess
-        guess = Guess(None, Accuracy.NONE, GuessMethod.NONE)
+        guess = Guess(None, Accuracy.NONE, NO_METHOD)
         # Try using the url
         guess = self._choose_better_guess(guess, parse_url_for_date(url))
 
         # Try looking for specific elements
         soup = BeautifulSoup(html, 'lxml')
         for tag_checker in self.tag_checkers:
-            date_string = tag_checker(soup)
+            date_string, method = tag_checker(soup)
             new_date, new_accuracy = self.parser.parse(date_string)
-            new_guess = Guess(new_date, new_accuracy, GuessMethod.HTML)
+            new_guess = Guess(new_date, new_accuracy, method)
             guess = self._choose_better_guess(guess, new_guess)
 
-        # Try og:image tag to extract a url with a date string
-        image_url = self.image_url_checker(soup)
-        if image_url is not None:
-            guess = self._choose_better_guess(guess, parse_url_for_date(image_url))
-
         return guess
+
+    def guess_date_from_image_tag(self, soup):
+        """Try to use images to extract a url with a date string"""
+        image_url, html_method = self.image_url_checker(soup)
+        if image_url is not None:
+            guess = parse_url_for_date(image_url)
+            if guess is not None:
+                return Guess(guess.date, guess.accuracy, ', '.join([html_method, guess.method]))
+        return Guess(None, Accuracy.NONE, NO_METHOD)

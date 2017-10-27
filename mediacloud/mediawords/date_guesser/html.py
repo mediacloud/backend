@@ -1,3 +1,6 @@
+from .constants import NO_METHOD
+
+
 def _make_tag_checker(element_kwargs, name=None, attr='content', text=False):
     """Build a function for extracting a date from a BeautifulSoup object.
 
@@ -40,8 +43,10 @@ def _make_tag_checker(element_kwargs, name=None, attr='content', text=False):
             else:
                 value = ele.get(attr)
             if value is not None:
-                return value
-        return None
+                ele_str = str(ele)[:200]  # just in case
+                method = 'Extracted from tag:\n{}'.format(ele_str)
+                return value, method
+        return None, NO_METHOD
     return tag_checker
 
 
