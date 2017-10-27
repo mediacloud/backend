@@ -48,6 +48,7 @@
   with_items:
     - curl
     - build-essential
+    - ca-certificates
     - cpanminus
     - curl
     - expat
