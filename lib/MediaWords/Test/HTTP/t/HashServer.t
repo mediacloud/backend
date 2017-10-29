@@ -1,5 +1,6 @@
 use strict;
 use warnings;
+use utf8;
 
 use Test::More tests => 15;
 
@@ -31,7 +32,7 @@ sub main
     my $pages = {
         '/'          => 'home',
         '/foo'       => 'foo',
-        '/bar'       => 'bar',
+        '/bar'       => '𝒃𝒂𝒓',                                        # UTF-8
         '/foo-bar'   => { redirect => '/bar' },
         '/localhost' => { redirect => "http://localhost:$_port/" },
         '/127-foo'   => { redirect => "http://127.0.0.1:$_port/foo" },
@@ -64,8 +65,8 @@ sub main
 
     __test_page( "http://localhost:$_port/",          'home' );
     __test_page( "http://localhost:$_port/foo",       'foo' );
-    __test_page( "http://localhost:$_port/bar",       'bar' );
-    __test_page( "http://localhost:$_port/foo-bar",   'bar' );
+    __test_page( "http://localhost:$_port/bar",       '𝒃𝒂𝒓' );
+    __test_page( "http://localhost:$_port/foo-bar",   '𝒃𝒂𝒓' );
     __test_page( "http://127.0.0.1:$_port/localhost", 'home' );
     __test_page( "http://localhost:$_port/127-foo",   'foo' );
     __test_page( "http://localhost:$_port/callback",  'callback' );
