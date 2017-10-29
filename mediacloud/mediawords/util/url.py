@@ -113,7 +113,7 @@ def normalize_url(url: str) -> str:
     if len(url) == 0:
         raise McNormalizeURLException("URL is empty")
 
-    log.info( "normalize_url: " + url )
+    log.info("normalize_url: " + url)
 
     url = fix_common_url_mistakes(url)
     url = __canonical_url(url)
@@ -290,8 +290,8 @@ def normalize_url_lossy(url: str) -> Optional[str]:
     # noinspection PyBroadException
     try:
         url = __canonical_url(url)
-    except:
-        pass
+    except Exception as ex:
+        log.warning("Unable to get canonical URL for URL %s: %s" % (url, str(ex),))
 
     # add trailing slash
     if re.search(r'https?://[^/]*$', url):
