@@ -52,6 +52,9 @@ python_dependencies:
     # Making HTTP requests
     - { name: "requests", version: "2.18.4" }
 
+    # Asynchronous (parallell / concurrent) HTTP requests
+    - { name: "requests-futures", version: "0.9.7" }
+
     # math package for forceatlas implementation
     - { name: "scipy", version: "0.19.1" }
 

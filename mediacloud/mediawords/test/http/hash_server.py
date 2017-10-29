@@ -5,7 +5,6 @@ import multiprocessing
 import os
 import signal
 from socketserver import ForkingMixIn
-import tempfile
 from typing import Union, Dict
 from urllib.parse import urlparse, parse_qs
 
@@ -25,17 +24,61 @@ log = create_logger(__name__)
 class HashServer(object):
     """Simple HTTP server that just serves a set of pages defined by a simple dictionary.
 
-    It is intended to make it easy to startup a simple server seeded with programmer defined content."""
+    It is intended to make it easy to startup a simple server seeded with programmer defined content.
 
-    # Default HTTP status code for redirects ("301 Moved Permanently")
-    _DEFAULT_REDIRECT_STATUS_CODE = HTTPStatus.MOVED_PERMANENTLY
+    Sample pages dictionary:
 
-    __host = '127.0.0.1'
-    __port = 0
-    __pages = {}
+        def __sample_callback(request: HashServer.Request) -> Union[str, bytes]:
+            response = ""
+            response += "HTTP/1.0 200 OK\r\n"
+            response += "Content-Type: text/plain\r\n"
+            response += "\r\n"
+            response += "This is callback."
+            return response
 
-    __http_server = None
-    __http_server_thread = None
+        pages = {
+
+            # Simple static pages (served as text/plain)
+            '/': 'home',    # str
+            '/foo': b'foo', # bytes
+
+            # Static page with additional HTTP header entries
+            '/bar': {
+                'content': '<html>bar</html>',
+                'header': 'Content-Type: text/html',
+            },
+            '/bar2': {
+                'content': '<html>bar</html>',
+                'header': [
+                    'Content-Type: text/html',
+                    'X-Media-Cloud: yes',
+                ]
+            },
+
+            # Redirects
+            '/foo-bar': {
+                'redirect': '/bar',
+            },
+            '/localhost': {
+                'redirect': "http://localhost:$_port/",
+            },
+            '/127-foo': {
+                'redirect': "http://127.0.0.1:$_port/foo",
+                'http_status_code': 303,
+            },
+
+            # Callback page
+            '/callback': {
+                'callback': __sample_callback,
+            },
+
+            # HTTP authentication
+            '/auth': {
+                'auth': 'user:password',
+                'content': '...',
+            },
+        }
+    """
 
     class Request(object):
         """Request sent to callback."""
@@ -99,7 +142,7 @@ class HashServer(object):
                     params[param_name] = params[param_name][0]
             return params
 
-    class _ForkingHTTPServer(ForkingMixIn, HTTPServer):
+    class __ForkingHTTPServer(ForkingMixIn, HTTPServer):
 
         # Set to underlying TCPServer
         allow_reuse_address = True
@@ -108,49 +151,9 @@ class HashServer(object):
         # size some of those requests might time out
         request_queue_size = 64
 
-        def __init__(self, server_address, request_handler_class, shutdown_canary_file: str):
-            """Initialize HTTP server.
-
-            Shutdown canary file is a temporary file that, when removed, will inform a forked HTTP server to kill all of
-            its children and stop processing requests. A gruesome temporary file is used because timeouts don't work
-            with long running callbacks.
-            """
-            if shutdown_canary_file is None:
-                raise McHashServerException('Shutdown canary file is not set.')
-            open(shutdown_canary_file, 'a').close()
-            self.__shutdown_canary_file = shutdown_canary_file
-
-            super().__init__(server_address, request_handler_class)
-
-        def __set_shutdown(self):
-            """Remove shutdown canary file."""
-            if self.__shutdown_canary_file is None:
-                raise McHashServerException('Shutdown canary file is not set.')
-            if os.path.exists(self.__shutdown_canary_file):
-                os.unlink(self.__shutdown_canary_file)
-
-        def __shutdown_is_set(self):
-            """Returns True if shutdown canary file is removed (and so the server should shut down)."""
-            if self.__shutdown_canary_file is None:
-                raise McHashServerException('Shutdown canary file is not set.')
-            return not os.path.exists(self.__shutdown_canary_file)
-
         def serve_forever(self, _=0.5):
-            try:
-                while not self.__shutdown_is_set():
-                    self._handle_request_noblock()
-
-                self.service_actions()
-            finally:
-                self.__set_shutdown()
-
-                # Kill all children with SIGTERM that might still be waiting for something
-                if self.active_children is not None:
-                    for pid in self.active_children.copy():
-                        os.kill(pid, signal.SIGKILL)
-
-        def shutdown(self):
-            self.__set_shutdown()
+            while True:
+                self.handle_request()
 
     # noinspection PyPep8Naming
     class _HTTPHandler(BaseHTTPRequestHandler):
@@ -160,6 +163,12 @@ class HashServer(object):
 
         def _set_pages(self, pages: dict):
             self._pages = pages
+
+        def _set_active_pids(self, active_pids: Dict[int, bool]):
+            self._active_pids = active_pids
+
+        def _set_active_pids_lock(self, active_pids_lock: multiprocessing.Lock):
+            self._active_pids_lock = active_pids_lock
 
         def __write_response_string(self, response_string: Union[str, bytes]) -> None:
             if isinstance(response_string, str):
@@ -209,11 +218,38 @@ class HashServer(object):
         def do_POST(self):
             """Respond to a POST request."""
             # Pretend it's a GET (most test pages return static content anyway)
-            return self.__handle_request()
+            self.__handle_request_pid_lock_wrapper()
 
         def do_GET(self):
             """Respond to a GET request."""
-            return self.__handle_request()
+            self.__handle_request_pid_lock_wrapper()
+
+        def __handle_request_pid_lock_wrapper(self):
+            """Handle request while taking note of the PID of the fork on which the request is running."""
+            try:
+                self._active_pids_lock.acquire()
+                self._active_pids[os.getpid()] = True
+            except Exception as ex:
+                log.error("Unable to set PID to True: %s" % str(ex))
+                raise ex
+            finally:
+                self._active_pids_lock.release()
+
+            try:
+                self.__handle_request()
+            except Exception as ex:
+                log.info("Request failed: %s" % str(ex))
+                raise ex
+            finally:
+
+                try:
+                    self._active_pids_lock.acquire()
+                    self._active_pids[os.getpid()] = False
+                except Exception as ex:
+                    log.error("Unable to set PID to False: %s" % str(ex))
+                    raise ex
+                finally:
+                    self._active_pids_lock.release()
 
         def __handle_request(self):
             """Handle GET or POST request."""
@@ -332,64 +368,28 @@ class HashServer(object):
                 return
 
             else:
+                log.info("Invalid page for path %s" % self.path)
                 raise McHashServerException('Invalid page: %s' % str(page))
 
+    # Default HTTP status code for redirects ("301 Moved Permanently")
+    _DEFAULT_REDIRECT_STATUS_CODE = HTTPStatus.MOVED_PERMANENTLY
+
+    __slots__ = [
+        '__host',
+        '__port',
+        '__pages',
+
+        '__http_server_thread',
+
+        '__http_server_active_pids',
+        '__http_server_active_pids_lock',
+    ]
+
     def __init__(self, port: int, pages: dict):
-        """HTTP server's constructor.
+        """HTTP server's constructor."""
 
-        Sample pages dictionary:
-
-            def __sample_callback(request: HashServer.Request) -> Union[str, bytes]:
-                response = ""
-                response += "HTTP/1.0 200 OK\r\n"
-                response += "Content-Type: text/plain\r\n"
-                response += "\r\n"
-                response += "This is callback."
-                return response
-
-            pages = {
-
-                # Simple static pages (served as text/plain)
-                '/': 'home',    # str
-                '/foo': b'foo', # bytes
-
-                # Static page with additional HTTP header entries
-                '/bar': {
-                    'content': '<html>bar</html>',
-                    'header': 'Content-Type: text/html',
-                },
-                '/bar2': {
-                    'content': '<html>bar</html>',
-                    'header': [
-                        'Content-Type: text/html',
-                        'X-Media-Cloud: yes',
-                    ]
-                },
-
-                # Redirects
-                '/foo-bar': {
-                    'redirect': '/bar',
-                },
-                '/localhost': {
-                    'redirect': "http://localhost:$_port/",
-                },
-                '/127-foo': {
-                    'redirect': "http://127.0.0.1:$_port/foo",
-                    'http_status_code': 303,
-                },
-
-                # Callback page
-                '/callback': {
-                    'callback': __sample_callback,
-                },
-
-                # HTTP authentication
-                '/auth': {
-                    'auth': 'user:password',
-                    'content': '...',
-                },
-            }
-        """
+        self.__host = '127.0.0.1'
+        self.__http_server_thread = None
 
         if not port:
             raise McHashServerException("Port is not set.")
@@ -402,21 +402,49 @@ class HashServer(object):
         self.__port = port
         self.__pages = pages
 
-        # FIXME there definitely is a more sane way to do IPC than creating temporary files
-        self.__shutdown_canary_file = os.path.join(tempfile.mkdtemp(), 'shutdown-canary-file')
+        self.__http_server_active_pids = multiprocessing.Manager().dict()
+        self.__http_server_active_pids_lock = multiprocessing.Lock()
 
     def __del__(self):
         self.stop()
 
     @staticmethod
-    def __make_http_handler_with_pages(port: int, pages: dict):
+    def __make_http_handler(port: int,
+                            pages: dict,
+                            active_pids: Dict[int, bool],
+                            active_pids_lock: multiprocessing.Lock):
         class _HTTPHandlerWithPages(HashServer._HTTPHandler):
             def __init__(self, *args, **kwargs):
                 self._set_port(port=port)
                 self._set_pages(pages=pages)
+                self._set_active_pids(active_pids=active_pids)
+                self._set_active_pids_lock(active_pids_lock=active_pids_lock)
                 super(_HTTPHandlerWithPages, self).__init__(*args, **kwargs)
 
         return _HTTPHandlerWithPages
+
+    @staticmethod
+    def __start_http_server(host: str,
+                            port: int,
+                            pages: dict,
+                            active_pids: Dict[int, bool],
+                            active_pids_lock: multiprocessing.Lock):
+        """(Run in a fork) Start listening to the port. """
+        server_address = (host, port,)
+
+        # Add server fork PID to the list of active PIDs to be killed later
+        active_pids[os.getpid()] = True
+
+        handler_class = HashServer.__make_http_handler(
+            port=port,
+            pages=pages,
+            active_pids=active_pids,
+            active_pids_lock=active_pids_lock,
+        )
+
+        http_server = HashServer.__ForkingHTTPServer(server_address, handler_class)
+
+        http_server.serve_forever()
 
     def start(self):
         """Start the webserver."""
@@ -424,20 +452,20 @@ class HashServer(object):
         if tcp_port_is_open(port=self.__port):
             raise McHashServerException("Port %d is already open." % self.__port)
 
-        log.info('Starting test web server %s:%d on PID %d' % (self.__host, self.__port, os.getpid()))
+        log.info('Starting test web server %s:%d' % (self.__host, self.__port,))
         log.debug('Pages: %s' % str(self.__pages))
-        server_address = (self.__host, self.__port,)
-
-        handler_class = HashServer.__make_http_handler_with_pages(port=self.__port, pages=self.__pages)
-
-        self.__http_server = self._ForkingHTTPServer(
-            server_address=server_address,
-            request_handler_class=handler_class,
-            shutdown_canary_file=self.__shutdown_canary_file
-        )
 
         # "threading.Thread()" doesn't work with Perl callers
-        self.__http_server_thread = multiprocessing.Process(target=self.__http_server.serve_forever)
+        self.__http_server_thread = multiprocessing.Process(
+            target=self.__start_http_server,
+            args=(
+                self.__host,
+                self.__port,
+                self.__pages,
+                self.__http_server_active_pids,
+                self.__http_server_active_pids_lock,
+            )
+        )
         self.__http_server_thread.daemon = True
         self.__http_server_thread.start()
 
@@ -451,20 +479,28 @@ class HashServer(object):
             log.warning("Port %d is not open." % self.__port)
             return
 
-        log.info('Stopping test web server %s:%d on PID %d' % (self.__host, self.__port, os.getpid()))
-
-        self.__http_server.shutdown()
-
-        self.__http_server.socket.close()
-
-        if self.__http_server is None:
-            log.warning("HTTP server is None.")
-        elif self.__http_server_thread is None:
+        if self.__http_server_thread is None:
             log.warning("HTTP server process is None.")
-        else:
-            self.__http_server_thread.join(timeout=2)
-            self.__http_server_thread.terminate()
-            self.__http_server_thread = None
+            return
+
+        log.info('Stopping test web server %s:%d' % (self.__host, self.__port,))
+
+        # HTTP server itself is running in a fork, and it creates forks for every request which, at the point of killing
+        # the server, might be in various states. So, we just SIGKILL all those PIDs in the most gruesome way.
+        self.__http_server_active_pids_lock.acquire()
+        for pid, value in self.__http_server_active_pids.items():
+            if value is True:
+                log.debug("Killing PID %d" % pid)
+                try:
+                    os.kill(pid, signal.SIGKILL)
+                    self.__http_server_active_pids[pid] = False
+                except OSError as ex:
+                    log.error("Unable to kill PID %d: %s" % (pid, str(ex),))
+        self.__http_server_active_pids_lock.release()
+
+        self.__http_server_thread.join()
+        self.__http_server_thread.terminate()
+        self.__http_server_thread = None
 
         if not wait_for_tcp_port_to_close(port=self.__port, retries=20, delay=0.1):
             raise McHashServerException("Port %d is still open." % self.__port)

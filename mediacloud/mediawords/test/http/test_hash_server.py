@@ -3,6 +3,7 @@ from typing import Union
 
 import pytest
 import requests
+from requests_futures.sessions import FuturesSession
 import time
 
 from mediawords.util.network import random_unused_port
@@ -176,7 +177,7 @@ def test_http_hash_server_stop():
     hs.stop()
 
 
-def test_http_hash_server_multiple():
+def test_http_hash_server_multiple_servers():
     """Test running multiple hash servers at the same time."""
 
     port_1 = random_unused_port()
@@ -221,3 +222,66 @@ def test_http_hash_server_multiple():
 
     assert tcp_port_is_open(port=port_1) is False
     assert tcp_port_is_open(port=port_2) is False
+
+
+def test_http_hash_server_multiple_clients():
+    """Test running hash server with multiple clients."""
+
+    port = random_unused_port()
+
+    # noinspection PyTypeChecker,PyUnusedLocal
+    def __callback_timeout(request: HashServer.Request) -> Union[str, bytes]:
+        r = ""
+        r += "HTTP/1.0 200 OK\r\n"
+        r += "Content-Type: text/html; charset=UTF-8\r\n"
+        r += "\r\n"
+        r += "And now we wait"
+        time.sleep(10)
+        return str.encode(r)
+
+    pages = {
+        '/a': '𝘛𝘩𝘪𝘴 𝘪𝘴 𝘱𝘢𝘨𝘦 𝘈.',
+        '/timeout': {'callback': __callback_timeout},
+        # '/does-not-exist': '404',
+        '/b': '𝕿𝖍𝖎𝖘 𝖎𝖘 𝖕𝖆𝖌𝖊 𝕭.',
+        '/c': '𝕋𝕙𝕚𝕤 𝕚𝕤 𝕡𝕒𝕘𝕖 ℂ.',
+    }
+
+    hs = HashServer(port=port, pages=pages)
+    assert hs
+
+    hs.start()
+
+    assert tcp_port_is_open(port=port)
+
+    base_url = 'http://localhost:%d' % port
+
+    session = FuturesSession(max_workers=10)
+
+    future_a = session.get('%s/a' % base_url, timeout=2)
+    future_timeout = session.get('%s/timeout' % base_url, timeout=2)
+    future_404 = session.get('%s/does-not-exist' % base_url, timeout=2)
+    future_b = session.get('%s/b' % base_url, timeout=2)
+    future_c = session.get('%s/c' % base_url, timeout=2)
+
+    response_a = future_a.result()
+
+    with pytest.raises(requests.Timeout):
+        future_timeout.result()
+
+    response_404 = future_404.result()
+    response_b = future_b.result()
+    response_c = future_c.result()
+
+    assert response_b.status_code == 200
+    assert response_b.text == '𝕿𝖍𝖎𝖘 𝖎𝖘 𝖕𝖆𝖌𝖊 𝕭.'
+
+    assert response_c.status_code == 200
+    assert response_c.text == '𝕋𝕙𝕚𝕤 𝕚𝕤 𝕡𝕒𝕘𝕖 ℂ.'
+
+    assert response_404.status_code == 404
+
+    assert response_a.status_code == 200
+    assert response_a.text == '𝘛𝘩𝘪𝘴 𝘪𝘴 𝘱𝘢𝘨𝘦 𝘈.'
+
+    hs.stop()
