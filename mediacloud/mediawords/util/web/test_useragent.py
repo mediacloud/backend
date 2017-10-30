@@ -39,11 +39,13 @@ class TestUserAgentTestCase(TestCase):
     def test_get(self):
         """Basic GET."""
 
+        # Undefined URL
         with pytest.raises(McUserAgentException):
             ua = UserAgent()
             # noinspection PyTypeChecker
             ua.get(url=None)
 
+        # Non-HTTP(S) URL
         with pytest.raises(McUserAgentException):
             ua = UserAgent()
             ua.get(url='gopher://gopher.floodgap.com/0/v2/vstat')
@@ -775,7 +777,7 @@ class TestUserAgentTestCase(TestCase):
         hs.stop()
 
         assert response.is_success() is False
-        assert response.request().url() == starting_url
+        assert response.request().url() == starting_url  # URL after unsuccessful HTTP redirects
 
     def test_get_follow_http_html_redirects_html(self):
         """HTML redirects."""
