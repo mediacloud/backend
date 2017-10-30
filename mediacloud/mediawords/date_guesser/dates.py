@@ -19,6 +19,7 @@ class MultiDateParser(object):
         DateFormat('MMM DD, YYYY, HH.mm A', Accuracy.DATETIME),
         DateFormat('dddd, DD MMMM, YYYY HH:mm:ss', Accuracy.DATETIME),
         DateFormat('YYYY-M-D H:m:s', Accuracy.DATETIME),
+        DateFormat('H:mm A - D MMM YYYY', Accuracy.DATETIME),
         DateFormat('MMM D, YYYY', Accuracy.DATE),
         DateFormat('MMM. D, YYYY', Accuracy.DATE),
         DateFormat('MMMM D, YYYY', Accuracy.DATE),

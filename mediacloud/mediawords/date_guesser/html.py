@@ -78,6 +78,8 @@ def get_tag_checkers():
         _make_tag_checker({'id': 'absdate'}, attr='value'), # pubmed
         _make_tag_checker({'name': 'Last-Modified'}),  # times of india
         _make_tag_checker({'class': 'byline'}, text=True),  # economic times
+        _make_tag_checker({'class': 'metadata'}, name='div', text=True),  # twitter
+        _make_tag_checker({'class': 'tweet-timestamp'}, attr='title'),  # twitter
         # The following are from (MIT Licensed) https://github.com/codelucas/newspaper
         _make_tag_checker({'property': 'rnews:datePublished'}),
         _make_tag_checker({'name': 'OriginalPublicationDate'}),

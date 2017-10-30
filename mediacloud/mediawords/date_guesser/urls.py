@@ -1,6 +1,7 @@
 import datetime
 import itertools
 import re
+from urllib.parse import urlparse
 
 import arrow
 import pytz
@@ -33,8 +34,9 @@ def url_date_generator(url):
 
     Yields
     ------
-    dict
+    (dict, str)
         dictionary with keys 'year', 'month', 'day'
+        string describing how the dictionary was found
     """
     matches = itertools.chain(URL_DATE_REGEX.finditer(url), URL_DATE_REGEX_BACKWARDS.finditer(url))
     for match in matches:
@@ -43,7 +45,16 @@ def url_date_generator(url):
 
 
 def parse_url_for_date(url):
-    """Extracts a date from the url"""
+    """Extracts a date from the url
+
+    Parameters
+    ----------
+    url: string
+
+    Returns
+    -------
+    mediawords.date_guesser.constants.Guess
+    """
     accuracy = Accuracy.NONE
     for captures, method in url_date_generator(url):
         captures['year'] = int(captures['year'])
@@ -76,3 +87,47 @@ def parse_url_for_date(url):
         except ValueError:
             pass
     return Guess(None, Accuracy.NONE, NO_METHOD)
+
+
+def filter_url_for_undateable(url):
+    """Common sense checks for a page not having a date.
+
+    Reasons for this include being a non-static page or being a login page.
+    Common examples are wikipedia, or a nytimes topics page.
+
+    Parameters
+    ----------
+    url: string
+
+    Returns
+    -------
+    mediawords.date_guesser.constants.Guess or None
+        guess describing why the page is undateable or None if it might be dateable
+    """
+    parsed = urlparse(url)
+	# url fragments that are likely to be undateable
+    invalid_paths = {
+        'search',
+        'tag',
+    }
+    path_parts = set(parsed.path.strip('/').split('/'))
+
+    hostname = parsed.hostname
+    if hostname is None:
+        return Guess(None, Accuracy.NONE, 'Invalid url ({})'.format(url[:200]))
+
+    elif hostname.endswith('wikipedia.org'):
+        return Guess(None, Accuracy.NONE, 'No date for wiki pages')
+
+    elif hostname.endswith('twitter.com') and ('status' not in path_parts):
+        return Guess(None, Accuracy.NONE, 'Twitter, but not a single tweet')
+
+    elif parsed.path.strip('/') == '':
+        return Guess(None, Accuracy.NONE,
+                    'Empty `path`, might be frontpage of {}'.format(hostname))
+    path_contains = invalid_paths.intersection(path_parts)
+    if path_contains:  # nonempty intersection is truthy
+        bad_parts = ', '.join(['"{}"' for segment in path_contains])
+        return Guess(None, Accuracy.NONE, 'URL ({}) contains {}'.format(url, bad_parts) )
+
+    return None

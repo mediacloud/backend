@@ -43,14 +43,16 @@ def test_get_tag_checkers():
     <meta id="absdate" value='21'>
     <meta name="Last-Modified" content='22'>
     <div class="byline">23</div>
-    <meta property="rnews:datePublished" content='24'>
-    <meta name="OriginalPublicationDate" content='25'>
-    <meta property="og:published_time" content='26'>
-    <meta name="article_date_original" content='27'>
-    <meta name="publication_date" content='28'>
-    <meta name="sailthru.date" content='29'>
-    <meta name="PublishDate" content='30'>
-    <meta name="pubdate" datetime='31'>
+    <div class="metadata">24</div>
+    <div class="tweet-timestamp" title=25></div>
+    <meta property="rnews:datePublished" content='26'>
+    <meta name="OriginalPublicationDate" content='27'>
+    <meta property="og:published_time" content='28'>
+    <meta name="article_date_original" content='29'>
+    <meta name="publication_date" content='30'>
+    <meta name="sailthru.date" content='31'>
+    <meta name="PublishDate" content='32'>
+    <meta name="pubdate" datetime='33'>
     </head></html>
     '''
     soup = BeautifulSoup(test_case, 'lxml')

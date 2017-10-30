@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 from .constants import Accuracy, LOCALE, NO_METHOD, Guess
 from .dates import MultiDateParser
 from .html import get_tag_checkers, get_image_url_checker
-from .urls import parse_url_for_date
+from .urls import parse_url_for_date, filter_url_for_undateable
 
 
 class DateGuesser(object):
@@ -55,6 +55,10 @@ class DateGuesser(object):
         (datetime or None, Accuracy)
             In case a reasonable guess can be made, returns a datetime and Enum of accuracy
         """
+        reason_to_skip = filter_url_for_undateable(url)
+        if reason_to_skip is not None:
+            return reason_to_skip
+
         # default guess
         guess = Guess(None, Accuracy.NONE, NO_METHOD)
         # Try using the url
@@ -67,6 +71,10 @@ class DateGuesser(object):
             new_date, new_accuracy = self.parser.parse(date_string)
             new_guess = Guess(new_date, new_accuracy, method)
             guess = self._choose_better_guess(guess, new_guess)
+
+        # Try using an image tag
+        new_guess = self.guess_date_from_image_tag(soup)
+        guess = self._choose_better_guess(guess, new_guess)
 
         return guess
 

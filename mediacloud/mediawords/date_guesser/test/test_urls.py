@@ -4,7 +4,8 @@ import os
 import pytz
 
 from mediawords.date_guesser.constants import Accuracy, NO_METHOD
-from mediawords.date_guesser.urls import parse_url_for_date, url_date_generator
+from mediawords.date_guesser.urls import (parse_url_for_date, url_date_generator,
+                                          filter_url_for_undateable)
 
 
 TEST_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -63,3 +64,21 @@ def test_parse_tricky_urls():
         assert guess.date is None
         assert guess.accuracy is Accuracy.NONE
         assert guess.method is NO_METHOD
+
+def test_filter_url_for_undateable():
+    test_urls_undateable = (
+        '/foo/bar/baz.html',  # no hostname
+        'https://new.project.in.en.wikipedia.org/other_stuff',  # any wikipedia subdomain
+        'https://twitter.com/',  # twitter homepage
+        'https://mobile.twitter.com/nytimes',  # twitter user feeds
+        'https://twitter.com/hashtag/MITLegalForum',  # twitter hashtag feeds
+        'https://foo.bar.com/',  # any front page
+        'https://www.google.es/search?q=chocolate',  # search terms
+        'http://www.medianama.com/tag/aadhaar-act',  # tag pages
+    )
+
+    for url in test_urls_undateable:
+        guess = filter_url_for_undateable(url)
+        assert not (guess is None)
+        assert guess.date is None
+        assert guess.accuracy is Accuracy.NONE
