@@ -62,7 +62,8 @@ def download_file_to_temp_path(source_url: str) -> str:
         uri = urlparse(source_url)
         url_path = uri.path
         temp_filename = os.path.basename(url_path)
-    except:
+    except Exception as ex:
+        log.warning("Unable to come up with filename for URL %s: %s" % (source_url, str(ex),))
         temp_filename = "temp.dat"
 
     dest_path = os.path.join(dest_dir, temp_filename)
