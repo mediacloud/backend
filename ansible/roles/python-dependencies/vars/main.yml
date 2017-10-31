@@ -19,6 +19,9 @@ python_dependencies:
     # Parsing email templates
     - { name: "Jinja2", version: "2.9.6" }
 
+    # XML manipulations, HTML parsing
+    - { name: "lxml", version: "4.1.0" }
+
     # Japanese language tokenizer, stemmer, etc.
     - { name: "mecab-python3", version: "0.7" }
 
