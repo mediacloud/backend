@@ -60,7 +60,11 @@ class Response(object):
         """Set HTTP status code, e.g. 200."""
         if isinstance(code, bytes):
             code = decode_object_from_bytes_if_needed(code)
+        if code is None:
+            raise McUserAgentResponseException("HTTP status code is None.")
+
         code = int(code)
+
         if code < 1:
             raise McUserAgentResponseException("HTTP status code is invalid: %s" % str(code))
         self.__code = int(code)
@@ -72,6 +76,8 @@ class Response(object):
     def __set_message(self, message: str) -> None:
         """Set HTTP status message, e.g. "OK"."""
         message = decode_object_from_bytes_if_needed(message)
+        if message is None:
+            raise McUserAgentResponseException("HTTP status message is None.")
         if len(message) == 0:
             raise McUserAgentResponseException("HTTP status message is empty.")
         self.__message = message
@@ -79,6 +85,8 @@ class Response(object):
     def header(self, name: str) -> Union[str, None]:
         """Return HTTP header, e.g. "text/html; charset=UTF-8' for "Content-Type" parameter."""
         name = decode_object_from_bytes_if_needed(name)
+        if name is None:
+            raise McUserAgentResponseException("Header's name is None.")
         if len(name) == 0:
             raise McUserAgentResponseException("Header's name is empty.")
         name = name.lower()  # All locally stored headers will be lowercase
@@ -91,8 +99,12 @@ class Response(object):
         """Set HTTP header, e.g. "Content-Type: text/html; charset=UTF-8."""
         name = decode_object_from_bytes_if_needed(name)
         value = decode_object_from_bytes_if_needed(value)
+        if name is None:
+            raise McUserAgentResponseException("Header's name is None.")
         if len(name) == 0:
             raise McUserAgentResponseException("Header's name is empty.")
+        if value is None:
+            raise McUserAgentResponseException("Header's value is None.")
         if len(value) == 0:
             raise McUserAgentResponseException("Header's value is empty.")
         name = name.lower()  # All locally stored headers will be lowercase
@@ -101,6 +113,8 @@ class Response(object):
     def __set_raw_headers(self, raw_headers: str) -> None:
         """Fill HTTP headers dictionary with raw ("\r\n"-separated) header string."""
         raw_headers = decode_object_from_bytes_if_needed(raw_headers)
+        if raw_headers is None:
+            raise McUserAgentResponseException("Raw headers is None.")
         for response_header in raw_headers.split("\r\n"):
             header_name, header_value = response_header.split(':', 1)
             header_value = header_value.strip()
@@ -147,10 +161,9 @@ class Response(object):
         """Return previous Response, the redirect of which has led to this Response."""
         return self.__previous_response
 
-    def set_previous(self, previous: 'Response') -> None:
+    def set_previous(self, previous: Union['Response', None]) -> None:
         """Set previous Response, the redirect of which has led to this Response."""
-        if previous is None:
-            raise McUserAgentResponseException("Previous response is None.")
+        #
         self.__previous_response = previous
 
     def request(self) -> Request:
