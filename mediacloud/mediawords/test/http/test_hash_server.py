@@ -224,6 +224,7 @@ def test_http_hash_server_multiple_servers():
     assert tcp_port_is_open(port=port_2) is False
 
 
+# noinspection PyUnresolvedReferences
 def test_http_hash_server_multiple_clients():
     """Test running hash server with multiple clients."""
 
