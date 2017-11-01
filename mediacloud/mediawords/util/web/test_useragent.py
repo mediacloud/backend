@@ -1099,7 +1099,7 @@ class TestUserAgentTestCase(TestCase):
         # We'll use temporary file for inter-process communication because callback
         # will be run in a separate fork so won't be able to modify variable on
         # main process
-        f = tempfile.NamedTemporaryFile(delete=False)
+        f = tempfile.NamedTemporaryFile(mode='w', delete=False)
         f.write('0')
         f.close()
         request_count_filename = f.name
