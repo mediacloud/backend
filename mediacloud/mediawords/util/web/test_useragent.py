@@ -700,8 +700,8 @@ class TestUserAgentTestCase(TestCase):
         new_config['mediawords']['crawler_authenticated_domains'] = [
             {
                 'domain': domain,
-                'user': 'incorrect_username1',
-                'password': 'incorrect_password2',
+                'user': username,
+                'password': password,
             }
         ]
         py_set_config(new_config)
