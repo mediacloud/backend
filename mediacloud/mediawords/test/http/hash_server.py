@@ -1,4 +1,5 @@
 import base64
+from furl import furl
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import multiprocessing
@@ -6,7 +7,6 @@ import os
 import signal
 from socketserver import ForkingMixIn
 from typing import Union, Dict
-from urllib.parse import urlparse, parse_qs
 
 from mediawords.util.log import create_logger
 from mediawords.util.network import tcp_port_is_open, wait_for_tcp_port_to_open, wait_for_tcp_port_to_close
@@ -135,12 +135,13 @@ class HashServer(object):
 
         def query_params(self) -> Dict[str, str]:
             """Return URL query parameters of a request."""
-            params = parse_qs(urlparse(self._path).query, keep_blank_values=True)
-            for param_name in params:
-                if isinstance(params[param_name], list) and len(params[param_name]) == 1:
-                    # If parameter is present only once, return it as a string
-                    params[param_name] = params[param_name][0]
-            return params
+            uri = furl(self._path)
+
+            # A bit naive because query params might repeat themselves, but it should do for the testing server that
+            # this is supposed to be
+            query_params = dict(uri.query.asdict()['params'])
+
+            return query_params
 
     class __ForkingHTTPServer(ForkingMixIn, HTTPServer):
 
@@ -254,7 +255,7 @@ class HashServer(object):
         def __handle_request(self):
             """Handle GET or POST request."""
 
-            path = urlparse(self.path).path
+            path = str(furl(self.path).path)
 
             if path not in self._pages:
                 self.send_response(HTTPStatus.NOT_FOUND)
@@ -516,7 +517,7 @@ class HashServer(object):
         if not path.startswith('/'):
             path = '/' + path
 
-        path = urlparse(path).path
+        path = str(furl(path).path)
 
         if path not in self.__pages:
             raise McHashServerException('No page for path "%s" among pages %s.' % (path, str(self.__pages)))

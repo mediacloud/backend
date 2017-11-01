@@ -1,6 +1,6 @@
+from furl import furl
 import re
 from typing import Optional
-from urllib.parse import urlparse, parse_qs, urlsplit, urlunsplit, urlencode
 import url_normalize
 
 from mediawords.util.log import create_logger
@@ -74,7 +74,7 @@ def is_http_url(url: str) -> bool:
         log.debug("URL '%s' does not match URL's regexp" % url)
         return False
 
-    uri = urlparse(url)
+    uri = furl(url)
 
     if not uri.scheme:
         log.debug("Scheme is undefined for URL %s" % url)
@@ -140,11 +140,10 @@ def normalize_url(url: str) -> str:
     if not is_http_url(url):
         raise McNormalizeURLException("URL is not valid: " + url)
 
-    scheme, netloc, path, query_string, fragment = urlsplit(url)
-    query = parse_qs(query_string, keep_blank_values=True)
+    uri = furl(url)
 
     # Remove #fragment
-    fragment = ''
+    uri.fragment.set(path='')
 
     parameters_to_remove = []
 
@@ -166,7 +165,7 @@ def normalize_url(url: str) -> str:
         '_openstat',
     ]
 
-    if 'facebook.com' in netloc.lower():
+    if 'facebook.com' in uri.host.lower():
         # Additional parameters specifically for the facebook.com host
         parameters_to_remove += [
             'ref',
@@ -174,7 +173,7 @@ def normalize_url(url: str) -> str:
             'hc_location',
         ]
 
-    if 'nytimes.com' in netloc.lower():
+    if 'nytimes.com' in uri.host.lower():
         # Additional parameters specifically for the nytimes.com host
         parameters_to_remove += [
             'emc',
@@ -192,14 +191,14 @@ def normalize_url(url: str) -> str:
             'abg',
         ]
 
-    if 'livejournal.com' in netloc.lower():
+    if 'livejournal.com' in uri.host.lower():
         # Additional parameters specifically for the livejournal.com host
         parameters_to_remove += [
             'thread',
             'nojs',
         ]
 
-    if 'google.' in netloc.lower():
+    if 'google.' in uri.host.lower():
         # Additional parameters specifically for the google.[com,lt,...] host
         parameters_to_remove += [
             'gws_rd',
@@ -236,8 +235,8 @@ def normalize_url(url: str) -> str:
     parameters_to_remove += ['sort']
 
     # Some Australian websites append the "nk" parameter with a tracking hash
-    if 'nk' in query:
-        for nk_value in query['nk']:
+    if 'nk' in uri.query.params:
+        for nk_value in uri.query.params['nk']:
             if re.search(r'^[0-9a-fA-F]+$', nk_value, re.I):
                 parameters_to_remove += ['nk']
                 break
@@ -249,22 +248,22 @@ def normalize_url(url: str) -> str:
     for parameter in parameters_to_remove:
         if ' ' in parameter:
             log.warning('Invalid cruft parameter "%s"' % parameter)
-        query.pop(parameter, None)
+        uri.query.params.pop(parameter, None)
 
-    for name in list(query.keys()):  # copy of list to be able to delete
+    for name in list(uri.query.params.keys()):  # copy of list to be able to delete
 
         # Remove parameters that start with '_' (e.g. '_cid') because they're
         # more likely to be the tracking codes
         if name.startswith('_'):
-            query.pop(name)
+            uri.query.params.pop(name, None)
 
         # Remove GA parameters, current and future (e.g. "utm_source",
         # "utm_medium", "ga_source", "ga_medium")
         # (https://support.google.com/analytics/answer/1033867?hl=en)
         if name.startswith('ga_') or name.startswith('utm_'):
-            query.pop(name)
+            uri.query.params.pop(name, None)
 
-    url = urlunsplit((scheme, netloc, path, urlencode(query, doseq=True), fragment))
+    url = uri.url
 
     # Remove empty values in query string, e.g. http://bash.org/?244321=
     url = url.replace('=&', '&')
@@ -332,15 +331,15 @@ def __is_shortened_url(url: str) -> bool:
         log.debug("URL is not valid")
         return False
 
-    uri = urlparse(url)
+    uri = furl(url)
 
-    if uri.path is not None and uri.path in ['', '/']:
+    if str(uri.path) is not None and str(uri.path) in ['', '/']:
         # Assume that most of the URL shorteners use something like
         # bit.ly/abcdef, so if there's no path or if it's empty, it's not a
         # shortened URL
         return False
 
-    uri_host = uri.hostname.lower()
+    uri_host = uri.host.lower()
     if uri_host in URL_SHORTENER_HOSTNAMES:
         return True
 
@@ -376,12 +375,12 @@ def is_homepage_url(url: str) -> bool:
 
     # If we still have something for a query of the URL after the
     # normalization, always assume that the URL is *not* a homepage
-    scheme, netloc, uri_path, query_string, fragment = urlsplit(url)
-    if len(query_string) > 0:
+    uri = furl(url)
+    if len(str(uri.query)) > 0:
         return False
 
     for homepage_url_path_regex in __HOMEPAGE_URL_PATH_REGEXES:
-        if re.search(homepage_url_path_regex, uri_path):
+        if re.search(homepage_url_path_regex, str(uri.path)):
             return True
 
     return False
@@ -401,9 +400,9 @@ def get_url_host(url: str) -> str:
 
     fixed_url = fix_common_url_mistakes(url)
 
-    uri = urlparse(fixed_url)
+    uri = furl(fixed_url)
 
-    host = uri.hostname
+    host = uri.host
 
     if host is not None and len(host) > 0:
         return host
@@ -492,5 +491,5 @@ def get_url_path_fast(url: str) -> str:
         return ''
 
     # Don't bother with the regex (Perl's version didn't work anyway)
-    uri = urlparse(url)
-    return uri.path
+    uri = furl(url)
+    return str(uri.path)

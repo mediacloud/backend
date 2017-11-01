@@ -1,6 +1,6 @@
+from furl import furl
 import os
 import tempfile
-from urllib.parse import urlparse
 
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
@@ -59,8 +59,8 @@ def download_file_to_temp_path(source_url: str) -> str:
     # Try to figure out a sensible name for the file
     # noinspection PyBroadException
     try:
-        uri = urlparse(source_url)
-        url_path = uri.path
+        uri = furl(source_url)
+        url_path = str(uri.path)
         temp_filename = os.path.basename(url_path)
     except Exception as ex:
         log.warning("Unable to come up with filename for URL %s: %s" % (source_url, str(ex),))

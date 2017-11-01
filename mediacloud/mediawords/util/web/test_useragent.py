@@ -1,4 +1,5 @@
 import base64
+from furl import furl
 from http import HTTPStatus
 import os
 import pytest
@@ -7,7 +8,7 @@ import tempfile
 import time
 from typing import Union
 from unittest import TestCase
-from urllib.parse import quote, urlparse, parse_qs
+from urllib.parse import quote, parse_qs
 
 from mediawords.test.http.hash_server import HashServer
 from mediawords.util.config import get_config as py_get_config, set_config as py_set_config
@@ -1068,7 +1069,8 @@ class TestUserAgentTestCase(TestCase):
 
         path_responses = {}
         for response in responses:
-            path = urlparse(response.request().url()).path
+            uri = furl(response.request().url())
+            path = str(uri.path)
             path_responses[path] = response
 
         assert '/a' in path_responses
