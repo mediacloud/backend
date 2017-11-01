@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Dict
 
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.web.ua.request import Request
@@ -21,12 +21,14 @@ class Response(object):
 
         '__previous_response',
         '__request',
+
+        '__error_is_client_side',
     ]
 
-    def __init__(self, code: int, message: str, raw_headers: str, data: str):
+    def __init__(self, code: int, message: str, headers: dict, data: str):
         """Constructor; expects headers and data encoded in UTF-8."""
         message = decode_object_from_bytes_if_needed(message)
-        raw_headers = decode_object_from_bytes_if_needed(raw_headers)
+        headers = decode_object_from_bytes_if_needed(headers)
         data = decode_object_from_bytes_if_needed(data)
 
         self.__code = None
@@ -37,9 +39,11 @@ class Response(object):
         self.__previous_response = None
         self.__request = None
 
+        self.__error_is_client_side = False
+
         self.__set_code(code)
         self.__set_message(message)
-        self.__set_raw_headers(raw_headers)
+        self.__set_headers(headers)
         self.__set_content(data)
 
     def __repr__(self):
@@ -82,6 +86,10 @@ class Response(object):
             raise McUserAgentResponseException("HTTP status message is empty.")
         self.__message = message
 
+    def headers(self) -> Dict[str, str]:
+        """Return all HTTP headers."""
+        return self.__headers
+
     def header(self, name: str) -> Union[str, None]:
         """Return HTTP header, e.g. "text/html; charset=UTF-8' for "Content-Type" parameter."""
         name = decode_object_from_bytes_if_needed(name)
@@ -110,15 +118,17 @@ class Response(object):
         name = name.lower()  # All locally stored headers will be lowercase
         self.__headers[name] = value
 
-    def __set_raw_headers(self, raw_headers: str) -> None:
-        """Fill HTTP headers dictionary with raw ("\r\n"-separated) header string."""
-        raw_headers = decode_object_from_bytes_if_needed(raw_headers)
-        if raw_headers is None:
-            raise McUserAgentResponseException("Raw headers is None.")
-        for response_header in raw_headers.split("\r\n"):
-            header_name, header_value = response_header.split(':', 1)
-            header_value = header_value.strip()
-            self.__set_header(name=header_name, value=header_value)
+    def __set_headers(self, headers: Dict[str, str]) -> None:
+        """Fill HTTP headers dictionary with headers."""
+        headers = decode_object_from_bytes_if_needed(headers)
+        if headers is None:
+            raise McUserAgentResponseException("Headers is None.")
+
+        # Convert requests's CaseInsensitiveDict to a native dictionary
+        for name, value in headers.items():
+            name = name.strip()
+            value = value.strip()
+            self.__set_header(name=name, value=value)
 
     def decoded_content(self) -> str:
         """Return content in UTF-8 encoding."""
@@ -143,7 +153,10 @@ class Response(object):
     def is_success(self) -> bool:
         """Return True if request was successful."""
         code = self.code()
-        return 200 <= code < 300
+        if code is not None:
+            return 200 <= code < 300
+        else:
+            return False
 
     def content_type(self) -> str:
         """Return "Content-Type" header."""
@@ -155,7 +168,14 @@ class Response(object):
         # FIXME
         if self.is_success():
             raise McUserAgentResponseException("Response was successful, but I have expected an error.")
-        return False
+        return self.__error_is_client_side
+
+    def set_error_is_client_side(self, error_is_client_side: bool) -> None:
+        """Set whether error is on the client side."""
+        if self.is_success():
+            raise McUserAgentResponseException("Response was successful, but I have expected an error.")
+        error_is_client_side = bool(error_is_client_side)
+        self.__error_is_client_side = error_is_client_side
 
     def previous(self) -> Union['Response', None]:
         """Return previous Response, the redirect of which has led to this Response."""
@@ -163,7 +183,6 @@ class Response(object):
 
     def set_previous(self, previous: Union['Response', None]) -> None:
         """Set previous Response, the redirect of which has led to this Response."""
-        #
         self.__previous_response = previous
 
     def request(self) -> Request:

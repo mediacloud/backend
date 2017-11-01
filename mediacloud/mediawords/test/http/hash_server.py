@@ -87,7 +87,12 @@ class HashServer(object):
             self._port = port
             self._method = method
             self._path = path
-            self._headers = headers
+
+            self._headers = dict()
+            for name, value in headers.items():
+                name = name.lower()
+                self._headers[name] = value
+
             self._content = content
 
         def method(self) -> str:
@@ -109,6 +114,8 @@ class HashServer(object):
             """Return header of a request."""
 
             name = decode_object_from_bytes_if_needed(name)
+
+            name = name.lower()
 
             if name in self._headers:
                 return self._headers[name]

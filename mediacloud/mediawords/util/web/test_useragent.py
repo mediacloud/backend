@@ -1,4 +1,5 @@
 import base64
+import copy
 from furl import furl
 from http import HTTPStatus
 import os
@@ -160,7 +161,10 @@ class TestUserAgentTestCase(TestCase):
         hs.start()
 
         ua = UserAgent()
-        test_url = '%s/does-not-exist' % self.__test_url
+        ua.set_timeout(2)
+        assert ua.timeout() == 2
+
+        test_url = '%s/timeout' % self.__test_url
         response = ua.get(test_url)
 
         hs.stop()
@@ -520,7 +524,7 @@ class TestUserAgentTestCase(TestCase):
                 break
 
         assert last_non_blank_line is not None
-        assert re.match(pattern=re.escape(test_url), string=last_non_blank_line)
+        assert test_url in last_non_blank_line
 
     def test_get_blacklisted_url(self):
         """Blacklisted URLs."""
@@ -564,7 +568,7 @@ class TestUserAgentTestCase(TestCase):
         blacklisted_url = '%s/blacklisted' % self.__test_url
 
         config = py_get_config()
-        new_config = config.copy()
+        new_config = copy.deepcopy(config)
         new_config['mediawords']['blacklist_url_pattern'] = blacklisted_url
         py_set_config(new_config)
 
@@ -618,7 +622,7 @@ class TestUserAgentTestCase(TestCase):
         assert invalid_auth_response.code() == HTTPStatus.UNAUTHORIZED.value
 
         # Valid auth in URL
-        valid_auth_url = 'http://username1:password2@localhost%d:/auth' % self.__test_port
+        valid_auth_url = 'http://username1:password2@localhost:%d/auth' % self.__test_port
         valid_auth_response = ua.get(valid_auth_url)
         assert valid_auth_response.is_success() is True
         assert valid_auth_response.code() == HTTPStatus.OK.value
@@ -665,7 +669,7 @@ class TestUserAgentTestCase(TestCase):
 
         # No auth
         config = py_get_config()
-        new_config = config.copy()
+        new_config = copy.deepcopy(config)
         new_config['mediawords']['crawler_authenticated_domains'] = None
         py_set_config(new_config)
 
@@ -677,7 +681,7 @@ class TestUserAgentTestCase(TestCase):
 
         # Invalid auth
         config = py_get_config()
-        new_config = config.copy()
+        new_config = copy.deepcopy(config)
         new_config['mediawords']['crawler_authenticated_domains'] = [
             {
                 'domain': domain,
@@ -695,7 +699,7 @@ class TestUserAgentTestCase(TestCase):
 
         # Valid auth
         config = py_get_config()
-        new_config = config.copy()
+        new_config = copy.deepcopy(config)
         new_config['mediawords']['crawler_authenticated_domains'] = [
             {
                 'domain': domain,
@@ -1042,7 +1046,7 @@ class TestUserAgentTestCase(TestCase):
         }
 
         config = py_get_config()
-        new_config = config.copy()
+        new_config = copy.deepcopy(config)
         new_config['mediawords']['web_store_timeout'] = 2  # time out faster
         py_set_config(new_config)
 
@@ -1209,7 +1213,7 @@ class TestUserAgentTestCase(TestCase):
         pages = {
             '/test-post': {'callback': __callback_post},
         }
-        test_url = '%s/test-post'
+        test_url = '%s/test-post' % self.__test_url
 
         hs = HashServer(port=self.__test_port, pages=pages)
         hs.start()

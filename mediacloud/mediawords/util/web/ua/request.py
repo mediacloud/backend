@@ -1,5 +1,5 @@
 from urllib.parse import urlencode
-from typing import Union
+from typing import Union, Dict
 
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
@@ -72,6 +72,10 @@ class Request(object):
             raise McUserAgentRequestException("URL is empty.")
         self.__url = url
 
+    def headers(self) -> Dict[str, str]:
+        """Return all HTTP headers."""
+        return self.__headers
+
     def header(self, name: str) -> Union[str, None]:
         """Return HTTP header, e.g. "utf-8' for "Accept-Encoding" parameter."""
         name = decode_object_from_bytes_if_needed(name)
@@ -136,16 +140,34 @@ class Request(object):
         """Set HTTP basic authorization credentials."""
         username = decode_object_from_bytes_if_needed(username)
         password = decode_object_from_bytes_if_needed(password)
+        self.set_auth_username(username)
+        self.set_auth_password(password)
+
+    def set_auth_username(self, username: str) -> None:
+        """Set HTTP authentication username."""
+        username = decode_object_from_bytes_if_needed(username)
         if username is None:
             raise McUserAgentRequestException("Username is None.")
         if len(username) == 0:
             raise McUserAgentRequestException("Username is empty.")
+        self.__auth_username = username
+
+    def auth_username(self) -> Union[str, None]:
+        """Return HTTP authentication username."""
+        return self.__auth_username
+
+    def set_auth_password(self, password: str) -> None:
+        """Return HTTP authentication password."""
+        password = decode_object_from_bytes_if_needed(password)
         if password is None:
             raise McUserAgentRequestException("Password is None.")
         if len(password) == 0:
             raise McUserAgentRequestException("Password is empty.")
-        self.__auth_username = username
         self.__auth_password = password
+
+    def auth_password(self):
+        """Return HTTP authentication password."""
+        return self.__auth_password
 
     def as_string(self) -> str:
         """Return string representation of the request."""
