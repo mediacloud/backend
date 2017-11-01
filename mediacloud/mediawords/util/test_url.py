@@ -57,6 +57,18 @@ def test_is_http_url():
     )
 
 
+def test_canonical_url():
+    with pytest.raises(mc_url.McCanonicalURLException):
+        # noinspection PyTypeChecker
+        mc_url.canonical_url(None)
+
+    with pytest.raises(mc_url.McCanonicalURLException):
+        # noinspection PyTypeChecker
+        mc_url.canonical_url('')
+
+    assert mc_url.canonical_url('HTTP://CYBER.LAW.HARVARD.EDU:80/node/9244') == 'http://cyber.law.harvard.edu/node/9244'
+
+
 # noinspection SpellCheckingInspection
 def test_normalize_url():
     # Bad URLs

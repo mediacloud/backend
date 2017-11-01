@@ -86,9 +86,28 @@ def is_http_url(url: str) -> bool:
     return True
 
 
-def __canonical_url(url: str) -> str:
+class McCanonicalURLException(Exception):
+    """canonical_url() exception."""
+    pass
+
+
+def canonical_url(url: str) -> str:
     """Make URL canonical (lowercase scheme and host, remove default port, etc.)"""
-    return url_normalize.url_normalize(url)
+    # FIXME maybe merge with normalize_url() as both do pretty much the same thing
+
+    url = decode_object_from_bytes_if_needed(url)
+
+    if url is None:
+        raise McCanonicalURLException("URL is None.")
+    if len(url) == 0:
+        raise McCanonicalURLException("URL is empty.")
+
+    try:
+        can_url = url_normalize.url_normalize(url)
+    except Exception as ex:
+        raise McCanonicalURLException("Failed to create canonical URL from URL %s: %s" % (url, str(ex),))
+
+    return can_url
 
 
 class McNormalizeURLException(Exception):
@@ -116,7 +135,7 @@ def normalize_url(url: str) -> str:
     log.info("normalize_url: " + url)
 
     url = fix_common_url_mistakes(url)
-    url = __canonical_url(url)
+    url = canonical_url(url)
 
     if not is_http_url(url):
         raise McNormalizeURLException("URL is not valid: " + url)
@@ -289,7 +308,7 @@ def normalize_url_lossy(url: str) -> Optional[str]:
     # canonical_url might raise an encoding error if url is not invalid; just skip the canonical url step in the case
     # noinspection PyBroadException
     try:
-        url = __canonical_url(url)
+        url = canonical_url(url)
     except Exception as ex:
         log.warning("Unable to get canonical URL for URL %s: %s" % (url, str(ex),))
 
