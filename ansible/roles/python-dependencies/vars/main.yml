@@ -10,6 +10,9 @@ python_dependencies:
     # Unit test coverage
     - { name: "coverage", version: "4.4.1" }
 
+    # URL manipulation
+    - { name: "furl", version: "1.0.1" }
+
     # Stemming Hausa words
     - { name: "hausastemmer", version: "1.0" }
 
