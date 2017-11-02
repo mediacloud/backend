@@ -1,4 +1,5 @@
 import email
+import requests
 from typing import Union, Dict
 
 from mediawords.util.perl import decode_object_from_bytes_if_needed
@@ -46,6 +47,19 @@ class Response(object):
         self.__set_message(message)
         self.__set_headers(headers)
         self.__set_content(data)
+
+    @staticmethod
+    def from_requests_response(requests_response: requests.Response, data: str = None):
+        """Create response from requests's Response object."""
+        if data is None:
+            data = requests_response.text
+
+        return Response(
+            code=requests_response.status_code,
+            message=requests_response.reason,
+            headers=requests_response.headers,
+            data=data,
+        )
 
     def __repr__(self):
 

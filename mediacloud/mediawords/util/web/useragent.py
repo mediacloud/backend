@@ -528,6 +528,10 @@ class UserAgent(object):
             )
             response.set_error_is_client_side(True)
 
+            # Previous request / response chain is not built for client-side errored requests
+
+            response.set_request(request)
+
         else:
 
             if requests_response is None:
@@ -545,14 +549,31 @@ class UserAgent(object):
                         log.warning("Data size exceeds %d for URL %s" % (max_size, url,))
                         break
 
-            response = Response(
-                code=requests_response.status_code,
-                message=requests_response.reason,
-                headers=requests_response.headers,
+            response = Response.from_requests_response(
+                requests_response=requests_response,
                 data=data,
             )
 
-        response.set_request(request)
+            # Build the previous request / response chain from the redirects
+            current_response = response
+            for previous_rq_response in reversed(requests_response.history):
+                previous_rq_request = previous_rq_response.request
+                previous_response_request = Request.from_requests_prepared_request(
+                    requests_prepared_request=previous_rq_request
+                )
+
+                previous_response = Response.from_requests_response(requests_response=previous_rq_response)
+                previous_response.set_request(request=previous_response_request)
+
+                current_response.set_previous(previous=previous_response)
+                current_response = previous_response
+
+            # Redirects might have happened, so we have to recreate the request object from the latest page that was
+            # redirected to
+            response_request = Request.from_requests_prepared_request(
+                requests_prepared_request=requests_response.request
+            )
+            response.set_request(response_request)
 
         return response
 

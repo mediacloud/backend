@@ -1,7 +1,7 @@
 import base64
 import email
-
 from furl import furl
+import requests
 from urllib.parse import urlencode
 from typing import Union, Dict
 
@@ -37,6 +37,23 @@ class Request(object):
 
         self.set_method(method)
         self.set_url(url)
+
+    @staticmethod
+    def from_requests_prepared_request(requests_prepared_request: requests.PreparedRequest):
+        """Create request from requests's PreparedRequest object."""
+        request = Request(
+            method=requests_prepared_request.method,
+            url=requests_prepared_request.url,
+        )
+        for name, value in requests_prepared_request.headers.items():
+            request.set_header(name=name, value=value)
+
+        if requests_prepared_request.body is not None:
+            request.set_content(requests_prepared_request.body)
+
+        # Authentication credentials (if any) are probably going to be contained in the URL itself
+
+        return request
 
     def __repr__(self) -> str:
         """Return something similar to what will be sent to the server for this request."""
