@@ -500,80 +500,107 @@ class UserAgent(object):
         data = request.content()
 
         try:
-            requests_response = self.__session.request(
+            requests_request = requests.Request(
                 method=method,
                 url=url,
                 data=data,
                 headers=headers,
                 auth=auth,
+            )
+            requests_prepared_request = self.__session.prepare_request(requests_request)
+
+        except Exception as ex:
+            raise McRequestException("Unable to prepare request %s: %s" % (str(request), str(ex),))
+
+        error_is_client_side = False
+
+        try:
+            requests_response = self.__session.send(
+                request=requests_prepared_request,
                 timeout=self.timeout(),
 
                 # To be able to enforce max_size
                 stream=True,
             )
 
+        except requests.TooManyRedirects as ex:
+
+            # On too many redirects, return the last fetched page (just like LWP::UserAgent does)
+            log.warning("Exceeded max. redirects for URL %s" % request.url())
+            requests_response = ex.response
+            response_data = str(ex)
+
         except Exception as ex:
 
             # Client-side error
-            error = str(ex)
-            log.warning("Client-side error while processing request %s: %s" % (str(request), error,))
-            response = Response(
-                code=HTTPStatus.BAD_REQUEST.value,
-                message="Client-side error",
-                headers={
-                    # LWP::UserAgent compatibility
-                    'Client-Warning': 'Client-side error',
-                },
-                data=error,
-            )
-            response.set_error_is_client_side(True)
+            log.warning("Client-side error while processing request %s: %s" % (str(request), str(ex),))
+
+            error_is_client_side = True
+
+            requests_response = requests.Response()
+            requests_response.status_code = HTTPStatus.BAD_REQUEST.value
+            requests_response.reason = "Client-side error"
+            requests_response.request = requests_prepared_request
 
             # Previous request / response chain is not built for client-side errored requests
+            requests_response.history = []
 
-            response.set_request(request)
+            requests_response.headers = {
+                # LWP::UserAgent compatibility
+                'Client-Warning': 'Client-side error',
+            }
+
+            response_data = str(ex)
 
         else:
 
-            if requests_response is None:
-                raise McRequestException("Response from 'requests' is None.")
-
-            data = ""
-            data_size = 0
+            response_data = ""
+            response_data_size = 0
             chunk_size = 1024 * 10
             max_size = self.max_size()
             for chunk in requests_response.iter_content(chunk_size=chunk_size, decode_unicode=True):
-                data += chunk
-                data_size += len(chunk)
+                response_data += chunk
+                response_data_size += len(chunk)
                 if max_size is not None:
-                    if data_size > max_size:
+                    if response_data_size > max_size:
                         log.warning("Data size exceeds %d for URL %s" % (max_size, url,))
                         break
 
-            response = Response.from_requests_response(
-                requests_response=requests_response,
-                data=data,
+        if requests_response is None:
+            raise McRequestException("Response from 'requests' is None.")
+
+        if response_data is None:
+            # Probably a programming error
+            raise McRequestException("Response data is None.")
+
+        response = Response.from_requests_response(
+            requests_response=requests_response,
+            data=response_data,
+        )
+
+        if error_is_client_side:
+            response.set_error_is_client_side(error_is_client_side=error_is_client_side)
+
+        # Build the previous request / response chain from the redirects
+        current_response = response
+        for previous_rq_response in reversed(requests_response.history):
+            previous_rq_request = previous_rq_response.request
+            previous_response_request = Request.from_requests_prepared_request(
+                requests_prepared_request=previous_rq_request
             )
 
-            # Build the previous request / response chain from the redirects
-            current_response = response
-            for previous_rq_response in reversed(requests_response.history):
-                previous_rq_request = previous_rq_response.request
-                previous_response_request = Request.from_requests_prepared_request(
-                    requests_prepared_request=previous_rq_request
-                )
+            previous_response = Response.from_requests_response(requests_response=previous_rq_response)
+            previous_response.set_request(request=previous_response_request)
 
-                previous_response = Response.from_requests_response(requests_response=previous_rq_response)
-                previous_response.set_request(request=previous_response_request)
+            current_response.set_previous(previous=previous_response)
+            current_response = previous_response
 
-                current_response.set_previous(previous=previous_response)
-                current_response = previous_response
-
-            # Redirects might have happened, so we have to recreate the request object from the latest page that was
-            # redirected to
-            response_request = Request.from_requests_prepared_request(
-                requests_prepared_request=requests_response.request
-            )
-            response.set_request(response_request)
+        # Redirects might have happened, so we have to recreate the request object from the latest page that was
+        # redirected to
+        response_request = Request.from_requests_prepared_request(
+            requests_prepared_request=requests_response.request
+        )
+        response.set_request(response_request)
 
         return response
 
