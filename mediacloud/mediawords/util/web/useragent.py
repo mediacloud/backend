@@ -367,17 +367,17 @@ class UserAgent(object):
 
         config = py_get_config()
 
-        num_parallel = config['mediawords'].get(['web_store_num_parallel'], None)
-        if num_parallel is None:
+        if 'web_store_num_parallel' not in config['mediawords']:
             raise McParallelGetException('"web_store_num_parallel" is not set.')
+        num_parallel = config['mediawords']['web_store_num_parallel']
 
-        timeout = config['mediawords'].get('web_store_timeout', None)
-        if timeout is None:
+        if 'web_store_timeout' not in config['mediawords']:
             raise McParallelGetException('"web_store_timeout" is not set.')
+        timeout = config['mediawords']['web_store_timeout']
 
-        per_domain_timeout = config['mediawords'].get('web_store_per_domain_timeout', None)
-        if per_domain_timeout is None:
+        if 'web_store_per_domain_timeout' not in config['mediawords']:
             raise McParallelGetException('"web_store_per_domain_timeout" is not set.')
+        per_domain_timeout = config['mediawords']['web_store_per_domain_timeout']
 
         # FIXME
         raise NotImplementedError
