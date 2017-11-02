@@ -1,3 +1,4 @@
+import email
 from typing import Union, Dict
 
 from mediawords.util.perl import decode_object_from_bytes_if_needed
@@ -47,12 +48,22 @@ class Response(object):
         self.__set_content(data)
 
     def __repr__(self):
-        return 'Response(%(code)d, %(message)s, %(headers)s, %(data)s)' % {
-            'code': self.__code,
-            'message': self.__message,
-            'headers': str(self.__headers),
-            'data': self.__data,
-        }
+
+        headers = ""
+        for key, value in sorted(self.headers().items()):
+            headers = headers + "%s: %s\r\n" % (key, value,)
+
+        return (
+                   "HTTP/1.0 %(code)d %(message)s\r\n"
+                   "%(headers)s"
+                   "\r\n"
+                   "%(data)s"
+               ) % {
+                   "code": self.code(),
+                   "message": self.message(),
+                   "headers": headers,
+                   "data": self.decoded_content(),
+               }
 
     __str__ = __repr__
 
@@ -158,9 +169,18 @@ class Response(object):
         else:
             return False
 
-    def content_type(self) -> str:
-        """Return "Content-Type" header."""
-        return self.header('Content-Type')
+    def content_type(self) -> Union[str, None]:
+        """Return "Content-Type" header; strip optional parameters, e.g. "charset"."""
+        content_type = self.header('Content-Type')
+
+        if content_type is None:
+            return None
+
+        # Parse "type/subtype" out of "type/subtype; param=value; ..."
+        header_parser = email.parser.HeaderParser()
+        message = header_parser.parsestr("Content-Type: %s" % content_type)
+        content_type = message.get_content_type()
+        return content_type
 
     # noinspection PyMethodMayBeStatic
     def error_is_client_side(self) -> bool:

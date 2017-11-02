@@ -516,7 +516,7 @@ class UserAgent(object):
 
             # Client-side error
             error = str(ex)
-            log.warning("Client-size error while processing request %s: %s" % (str(request), error,))
+            log.warning("Client-side error while processing request %s: %s" % (str(request), error,))
             response = Response(
                 code=HTTPStatus.BAD_REQUEST.value,
                 message="Client-side error",

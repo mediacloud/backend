@@ -1,3 +1,7 @@
+import base64
+import email
+
+from furl import furl
 from urllib.parse import urlencode
 from typing import Union, Dict
 
@@ -35,14 +39,38 @@ class Request(object):
         self.set_url(url)
 
     def __repr__(self) -> str:
-        return 'Request(%(method)s, %(url)s, %(auth_username)s:%(auth_password)s, %(headers)s, %(data)s)' % {
-            'method': self.__method,
-            'url': self.__url,
-            'auth_username': self.__auth_username,
-            'auth_password': self.__auth_password,
-            'headers': str(self.__headers),
-            'data': self.__data,
-        }
+        """Return something similar to what will be sent to the server for this request."""
+
+        uri = furl(self.url())
+
+        http_auth = ""
+        if self.auth_username() and self.auth_password():
+            base64_auth = base64.b64encode(
+                ('%s:%s' % (self.auth_username(), self.auth_password(),)).encode('ascii')
+            ).decode('ascii')
+            http_auth = "Authorization: Basic %s\r\n" % base64_auth
+
+        headers = ""
+        for key, value in sorted(self.headers().items()):
+            headers = headers + "%s: %s\r\n" % (key, value,)
+
+        return (
+                   "%(method)s %(path)s HTTP/1.0\r\n"
+                   "Host: %(host)s\r\n"
+                   "%(http_auth)s"
+                   "%(headers)s"
+                   "\r\n"
+                   "%(data)s"
+               ) % {
+                   "method": self.method(),
+                   "path": str(uri.path),
+                   "host": uri.host,
+                   "http_auth": http_auth,
+                   "headers": headers,
+
+                   # FIXME probably doesn't support non-UTF-8 POSTs
+                   "data": self.content().decode('utf-8', errors='replace') if self.content() is not None else "",
+               }
 
     __str__ = __repr__
 
@@ -105,8 +133,17 @@ class Request(object):
         self.__headers[name] = value
 
     def content_type(self) -> Union[str, None]:
-        """Return "Content-Type" header."""
-        return self.header('Content-Type')
+        """Return "Content-Type" header; strip optional parameters, e.g. "charset"."""
+        content_type = self.header('Content-Type')
+
+        if content_type is None:
+            return None
+
+        # Parse "type/subtype" out of "type/subtype; param=value; ..."
+        header_parser = email.parser.HeaderParser()
+        message = header_parser.parsestr("Content-Type: %s" % content_type)
+        content_type = message.get_content_type()
+        return content_type
 
     def set_content_type(self, content_type: str) -> None:
         """Set "Content-Type" header."""
@@ -121,16 +158,23 @@ class Request(object):
         """Get raw data sent as part of the POST request."""
         return self.__data
 
-    def set_content(self, content: Union[bytes, dict]) -> None:
+    def set_content(self, content: Union[bytes, Dict[bytes, bytes]]) -> None:
         """Set raw data sent as part of the POST request, in either raw bytes or dictionary form."""
-        # FIXME decode from bytes
-        content = decode_object_from_bytes_if_needed(content)
+        # FIXME POSTs probably won't work with non-UTF-8 targets
+
         if isinstance(content, dict):
-            content = urlencode(content, doseq=True)
+            # urlencode into string
+            content = urlencode(content)
+
+        if isinstance(content, str):
+            content = content.encode('utf-8')
+
+        if not isinstance(content, bytes):
+            raise McUserAgentRequestException("Content must be 'bytes' at this point: %s" % str(content))
 
         self.__data = content
 
-    def set_content_utf8(self, content: Union[str, dict]) -> None:
+    def set_content_utf8(self, content: Union[str, Dict[str, str]]) -> None:
         """Set raw data sent as part of the POST request, in either raw bytes or dictionary form; encode to UTF-8."""
         # FIXME UTF-8 coming from Perl?
         content = decode_object_from_bytes_if_needed(content)
