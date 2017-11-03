@@ -421,7 +421,7 @@ mediawords:
     # downloads id under which to strip all non-ascii characters
     #ascii_hack_downloads_id: 123456789
 
-    # settings for mediawords_web_store.pl script that does in process parallel fetching
+    # settings for parallel_get()
     web_store_num_parallel: 10
     web_store_timeout: 90
     web_store_per_domain_timeout: 1

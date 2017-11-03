@@ -275,7 +275,7 @@ sub test_get_max_size()
     # LWP::UserAgent truncates the response but still reports it as successful
     ok( $response->is_success() );
     ok( length( $response->decoded_content() ) >= $max_size );
-    ok( length( $response->decoded_content() ) < length( $test_content ) );
+    ok( length( $response->decoded_content() ) <= length( $test_content ) );
 }
 
 sub test_get_max_redirect()
@@ -355,11 +355,14 @@ sub test_get_request_as_string()
 
     like(
         $request->as_string(), qr|
-        FOO\shttp://foo.com/bar\n
-        Authorization:\sBasic\s.+?\n
-        X-Media-Cloud:\smediacloud\n
-        \n
-        aaaaaaa\n
+        ^
+        FOO\s/bar\sHTTP/1\.0\r\n
+        Host:\sfoo\.com\r\n
+        Authorization:\sBasic\s.+?\r\n
+        X-Media-Cloud:\smediacloud\r\n
+        \r\n
+        aaaaaaa
+        $
     |ixs
     );
 }
@@ -469,16 +472,16 @@ sub test_get_response_as_string()
 
     like(
         $response->as_string(), qr|
-        HTTP/1.0\s200\sOK\n
-        Date:\s.+?\n
-        Server:\s.+?\n
-        Content-Type:\sapplication/xhtml\+xml;\scharset=UTF-8\n
-        Client-Date:\s.+?\n
-        .+?\n
-        X-Media-Cloud:\smediacloud\n
-        \n
+        ^
+        HTTP/1.0\s200\sOK\r\n
+        Content-Type:\sapplication/xhtml\+xml;\scharset=UTF-8\r\n
+        Date:\s.+?\r\n
+        Server:\s.+?\r\n
+        X-Media-Cloud:\smediacloud\r\n
+        \r\n
         media\n
         cloud\n
+        $
     |ixs
     );
 }
@@ -1229,7 +1232,11 @@ sub test_determined_retries()
 
     # Reenable timing
     $ua->set_timing( [ 1, 2, 4 ] );
-    cmp_deeply( $ua->timing(), [ 1, 2, 4 ] );
+
+    # For whatever reason we have to assign current timing() value to a
+    # variable and only then we can cmp_deeply() it
+    my $timing = $ua->timing();
+    cmp_deeply( $timing, [ 1, 2, 4 ] );
 
     {
         my $response = $ua->get( $TEST_HTTP_SERVER_URL . '/temporarily-buggy-page' );
