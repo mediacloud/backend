@@ -229,146 +229,144 @@ class UserAgent(object):
 
         return self.request(request)
 
-    def __get_follow_http_html_redirects_inner_follow_redirects(self,
-                                                                response: Response,
-                                                                meta_redirects_left: int) -> Union[Response, None]:
+    def get_follow_http_html_redirects(self, url: str) -> Response:
+        """GET an URL while resolving HTTP / HTML redirects."""
 
-        from mediawords.util.web.ua.html_redirects import (
-            target_request_from_meta_refresh_url,
-            target_request_from_archive_org_url,
-            target_request_from_archive_is_url,
-            target_request_from_linkis_com_url,
-            target_request_from_alarabiya_url,
-        )
+        def __inner_follow_redirects(response_: Response, meta_redirects_left: int) -> Union[Response, None]:
 
-        if response is None:
-            raise McGetFollowHTTPHTMLRedirectsException("Response is None.")
-
-        if response.is_success():
-
-            # Check if the returned document contains <meta http-equiv="refresh" />
-            base_uri = furl(canonical_url(response.request().url()))
-            if response.request().url().endswith('/'):
-                # In "http://example.com/first/two" URLs, strip the "two" part (but not when it has a trailing slash)
-                base_uri_path_segments = base_uri.path.segments
-                del base_uri_path_segments[-1]
-                # noinspection PyProtectedMember
-                base_uri._replace(path='/' + '/'.join(base_uri_path_segments))
-
-            base_url = base_uri.url
-
-            html_redirect_functions = [
+            from mediawords.util.web.ua.html_redirects import (
                 target_request_from_meta_refresh_url,
                 target_request_from_archive_org_url,
                 target_request_from_archive_is_url,
                 target_request_from_linkis_com_url,
                 target_request_from_alarabiya_url,
-            ]
-            for html_redirect_function in html_redirect_functions:
-                request_after_meta_redirect = html_redirect_function(
-                    content=response.decoded_content(),
-                    archive_site_url=base_url,
-                )
-                if request_after_meta_redirect is not None:
-                    if response.request().url() != request_after_meta_redirect.url():
-
-                        log.debug("URL after HTML redirects: %s" % request_after_meta_redirect.url())
-
-                        orig_redirect_response = self.request(request=request_after_meta_redirect)
-                        redirect_response = orig_redirect_response
-
-                        # Response might have its previous() already set due to HTTP redirects,
-                        # so we have to find the initial response first
-                        previous = None
-                        for x in range(self.max_redirect() + 1):
-                            previous = redirect_response.previous()
-                            if previous is None:
-                                break
-                            redirect_response = previous
-
-                        if previous is not None:
-                            raise McGetFollowHTTPHTMLRedirectsException(
-                                "Can't find the initial redirected response; URL: %s" %
-                                request_after_meta_redirect.url()
-                            )
-
-                        log.debug("Setting previous of URL %(url)s to %(previous_url)s" % {
-                            'url': redirect_response.request().url(),
-                            'previous_url': response.request().url(),
-                        })
-                        redirect_response.set_previous(response)
-
-                        meta_redirects_left = meta_redirects_left - 1
-
-                        return self.__get_follow_http_html_redirects_inner(
-                            response=orig_redirect_response,
-                            meta_redirects_left=meta_redirects_left,
-                        )
-
-            # No <meta /> refresh, the current URL is the final one
-            return response
-
-        else:
-            log.debug("Request to %s was unsuccessful: %s" % (response.request().url(), response.status_line(),))
-
-            # Return the original URL and give up
-            return None
-
-    def __get_follow_http_html_redirects_inner_redirects_exhausted(self,
-                                                                   response: Response) -> Union[Response, None]:
-
-        if response is None:
-            raise McGetFollowHTTPHTMLRedirectsException("Response is None.")
-
-        # If one of the URLs that we've been redirected to contains another encoded URL, assume
-        # that we're hitting a paywall and the URLencoded URL is the right one
-        urls_redirected_to = []
-
-        for x in range(self.max_redirect() + 1):
-            previous = response.previous()
-            if previous is None:
-                break
-
-            url_redirected_to = previous.request().url()
-            encoded_url_redirected_to = quote(url_redirected_to)
-
-            for redir_url in urls_redirected_to:
-                if re.search(pattern=re.escape(encoded_url_redirected_to),
-                             string=redir_url,
-                             flags=re.IGNORECASE | re.UNICODE):
-                    log.debug("""
-                        Encoded URL %(encoded_url_redirected_to)s is a substring of another URL %(matched_url)s, so I'll
-                        assume that %(url_redirected_to)s is the correct one.
-                    """ % {
-                        'encoded_url_redirected_to': encoded_url_redirected_to,
-                        'matched_url': redir_url,
-                        'url_redirected_to': url_redirected_to,
-                    })
-                    return previous
-
-            urls_redirected_to.append(url_redirected_to)
-
-        # Return the original URL (unless we find a URL being a substring of another URL, see below)
-        return None
-
-    def __get_follow_http_html_redirects_inner(self,
-                                               response: Response,
-                                               meta_redirects_left: int) -> Union[Response, None]:
-
-        if response is None:
-            raise McGetFollowHTTPHTMLRedirectsException("Response is None.")
-
-        if meta_redirects_left > 0:
-            return self.__get_follow_http_html_redirects_inner_follow_redirects(
-                response=response,
-                meta_redirects_left=meta_redirects_left,
             )
 
-        else:
-            return self.__get_follow_http_html_redirects_inner_redirects_exhausted(response=response)
+            if response_ is None:
+                raise McGetFollowHTTPHTMLRedirectsException("Response is None.")
 
-    def get_follow_http_html_redirects(self, url: str) -> Response:
-        """GET an URL while resolving HTTP / HTML redirects."""
+            if response_.is_success():
+
+                # Check if the returned document contains <meta http-equiv="refresh" />
+                base_uri = furl(canonical_url(response_.request().url()))
+                if response_.request().url().endswith('/'):
+                    # In "http://example.com/first/two" URLs, strip the "two" part, but not when it has a trailing slash
+                    base_uri_path_segments = base_uri.path.segments
+                    del base_uri_path_segments[-1]
+                    # noinspection PyProtectedMember
+                    base_uri._replace(path='/' + '/'.join(base_uri_path_segments))
+
+                base_url = base_uri.url
+
+                html_redirect_functions = [
+                    target_request_from_meta_refresh_url,
+                    target_request_from_archive_org_url,
+                    target_request_from_archive_is_url,
+                    target_request_from_linkis_com_url,
+                    target_request_from_alarabiya_url,
+                ]
+                for html_redirect_function in html_redirect_functions:
+                    request_after_meta_redirect = html_redirect_function(
+                        content=response_.decoded_content(),
+                        archive_site_url=base_url,
+                    )
+                    if request_after_meta_redirect is not None:
+                        if response_.request().url() != request_after_meta_redirect.url():
+
+                            log.debug("URL after HTML redirects: %s" % request_after_meta_redirect.url())
+
+                            orig_redirect_response = self.request(request=request_after_meta_redirect)
+                            redirect_response = orig_redirect_response
+
+                            # Response might have its previous() already set due to HTTP redirects,
+                            # so we have to find the initial response first
+                            previous = None
+                            for x in range(self.max_redirect() + 1):
+                                previous = redirect_response.previous()
+                                if previous is None:
+                                    break
+                                redirect_response = previous
+
+                            if previous is not None:
+                                raise McGetFollowHTTPHTMLRedirectsException(
+                                    "Can't find the initial redirected response; URL: %s" %
+                                    request_after_meta_redirect.url()
+                                )
+
+                            log.debug("Setting previous of URL %(url)s to %(previous_url)s" % {
+                                'url': redirect_response.request().url(),
+                                'previous_url': response_.request().url(),
+                            })
+                            redirect_response.set_previous(response_)
+
+                            meta_redirects_left = meta_redirects_left - 1
+
+                            return __inner(
+                                response_=orig_redirect_response,
+                                meta_redirects_left=meta_redirects_left,
+                            )
+
+                # No <meta /> refresh, the current URL is the final one
+                return response_
+
+            else:
+                log.debug("Request to %s was unsuccessful: %s" % (response_.request().url(), response_.status_line(),))
+
+                # Return the original URL and give up
+                return None
+
+        def __inner_redirects_exhausted(response_: Response) -> Union[Response, None]:
+
+            if response_ is None:
+                raise McGetFollowHTTPHTMLRedirectsException("Response is None.")
+
+            # If one of the URLs that we've been redirected to contains another encoded URL, assume
+            # that we're hitting a paywall and the URLencoded URL is the right one
+            urls_redirected_to = []
+
+            for x in range(self.max_redirect() + 1):
+                previous = response_.previous()
+                if previous is None:
+                    break
+
+                url_redirected_to = previous.request().url()
+                encoded_url_redirected_to = quote(url_redirected_to)
+
+                for redir_url in urls_redirected_to:
+                    if re.search(pattern=re.escape(encoded_url_redirected_to),
+                                 string=redir_url,
+                                 flags=re.IGNORECASE | re.UNICODE):
+                        log.debug("""
+                            Encoded URL %(encoded_url_redirected_to)s is a substring of another URL %(matched_url)s, so
+                            I'll assume that %(url_redirected_to)s is the correct one.
+                        """ % {
+                            'encoded_url_redirected_to': encoded_url_redirected_to,
+                            'matched_url': redir_url,
+                            'url_redirected_to': url_redirected_to,
+                        })
+                        return previous
+
+                urls_redirected_to.append(url_redirected_to)
+
+            # Return the original URL (unless we find a URL being a substring of another URL, see below)
+            return None
+
+        def __inner(response_: Response, meta_redirects_left: int) -> Union[Response, None]:
+
+            if response_ is None:
+                raise McGetFollowHTTPHTMLRedirectsException("Response is None.")
+
+            if meta_redirects_left > 0:
+                return __inner_follow_redirects(
+                    response_=response_,
+                    meta_redirects_left=meta_redirects_left,
+                )
+
+            else:
+                return __inner_redirects_exhausted(response_=response_)
+
+        # ---
+
         url = decode_object_from_bytes_if_needed(url)
 
         if url is None:
@@ -386,8 +384,8 @@ class UserAgent(object):
 
         response = self.get(url)
 
-        response_after_redirects = self.__get_follow_http_html_redirects_inner(
-            response=response,
+        response_after_redirects = __inner(
+            response_=response,
             meta_redirects_left=self.max_redirect()
         )
         if response_after_redirects is None:
