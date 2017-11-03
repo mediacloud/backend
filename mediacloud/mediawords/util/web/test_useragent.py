@@ -1091,11 +1091,11 @@ class TestUserAgentTestCase(TestCase):
         assert path_responses['/c'].decoded_content() == pages['/c']
 
         assert '/does-not-exist' in path_responses
-        assert path_responses['/does-not-exist'] is False
+        assert path_responses['/does-not-exist'].is_success() is False
         assert path_responses['/does-not-exist'].code() == HTTPStatus.NOT_FOUND.value
 
         assert '/timeout' in path_responses
-        assert path_responses['/timeout'] is False
+        assert path_responses['/timeout'].is_success() is False
         assert path_responses['/timeout'].code() == HTTPStatus.REQUEST_TIMEOUT.value
 
     def test_determined_retries(self):
