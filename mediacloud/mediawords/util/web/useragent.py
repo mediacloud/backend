@@ -530,6 +530,22 @@ class UserAgent(object):
             requests_response = ex.response
             response_data = str(ex)
 
+        except requests.Timeout as ex:
+
+            log.warning("Timeout for URL %s" % request.url())
+
+            # We treat timeouts as client-side errors too because we can retry on them
+            error_is_client_side = True
+
+            requests_response = requests.Response()
+            requests_response.status_code = HTTPStatus.REQUEST_TIMEOUT.value
+            requests_response.reason = HTTPStatus.REQUEST_TIMEOUT.phrase
+            requests_response.request = requests_prepared_request
+
+            requests_response.history = []
+
+            response_data = str(ex)
+
         except Exception as ex:
 
             # Client-side error
