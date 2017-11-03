@@ -2,6 +2,7 @@ import errno
 import fcntl
 from furl import furl
 from http import HTTPStatus
+import multiprocessing
 import os
 import re
 import requests
@@ -16,7 +17,13 @@ from mediawords.util.config import get_config as py_get_config
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.sql import sql_now
-from mediawords.util.url import fix_common_url_mistakes, is_http_url, get_url_distinctive_domain, canonical_url
+from mediawords.util.url import (
+    fix_common_url_mistakes,
+    is_http_url,
+    get_url_distinctive_domain,
+    canonical_url,
+    get_url_host,
+)
 from mediawords.util.web.ua.request import Request
 from mediawords.util.web.ua.response import Response
 
@@ -51,6 +58,45 @@ class McParallelGetException(McUserAgentException):
 class McRequestException(McUserAgentException):
     """request() exception."""
     pass
+
+
+# In the module namespace because pickle is unable to serialize classes located in functions
+class _ParallelGetScheduledURL(object):
+    """URL scheduled to download in parallel_get()."""
+    __slots__ = [
+        'url',
+        'time',
+    ]
+
+    def __init__(self, url: str, time_: float):
+        self.url = url
+        self.time = time_
+
+
+# In the module namespace because pickle is unable to serialize functions located in other functions
+def _parallel_get_web_store(
+        urls: List[_ParallelGetScheduledURL],
+        start_time: float,
+        timeout: int
+) -> List[Response]:
+    """Download a list of URLs, return responses."""
+
+    responses = []
+
+    for url in urls:
+
+        time_increment = time.time() - start_time
+        if time_increment < url.time:
+            sleep_time = url.time - time_increment
+            time.sleep(sleep_time)
+
+        ua = UserAgent()
+        ua.set_timeout(timeout)
+
+        response = ua.get_follow_http_html_redirects(url=url.url)
+        responses.append(response)
+
+    return responses
 
 
 class UserAgent(object):
@@ -351,11 +397,62 @@ class UserAgent(object):
         else:
             return response_after_redirects
 
-    def parallel_get(self, urls: List[str]) -> List[Response]:
+    @staticmethod
+    def parallel_get(urls: List[str]) -> List[Response]:
         """GET multiple URLs in parallel."""
-        # FIXME per-domain limit?
-        # FIXME is "timeout" being used?
-        # FIXME is "per_domain_timeout" being used?
+
+        # FIXME doesn't respect timing() and other object properties
+
+        def __get_url_domain(url_: str) -> str:
+
+            if not is_http_url(url_):
+                return url_
+
+            host = get_url_host(url_)
+
+            name_parts = host.split('.')
+
+            n = len(name_parts) - 1
+
+            # for country domains, use last three parts of name
+            if re.search(pattern=r"\...$", string=host):
+                domain = '.'.join([name_parts[n - 2], name_parts[n - 1], name_parts[0]])
+
+            elif re.search(pattern=r"(localhost|blogspot\.com|wordpress\.com)", string=host):
+                domain = url_
+
+            else:
+                domain = '.'.join([name_parts[n - 1], name_parts[n]])
+
+            return domain.lower()
+
+        def __get_scheduled_urls(urls_: List[str], per_domain_timeout_: int) -> List[_ParallelGetScheduledURL]:
+            """Schedule the URLs by adding a { time => $time } field to each URL to make sure we obey the
+            'per_domain_timeout'. Sort requests by ascending time."""
+            domain_urls = {}
+
+            for url_ in urls_:
+                domain = __get_url_domain(url_=url_)
+                if domain not in domain_urls:
+                    domain_urls[domain] = []
+                domain_urls[domain].append(url_)
+
+            scheduled_urls = []
+
+            for domain, urls_in_domain in domain_urls.items():
+                time_ = 0
+                for domain_url in urls_in_domain:
+                    domain_url = _ParallelGetScheduledURL(url=domain_url, time_=time_)
+                    scheduled_urls.append(domain_url)
+
+                    if time_ % 5 == 0:  # FIXME why 5?
+                        time_ = time_ + per_domain_timeout_
+
+            scheduled_urls = sorted(scheduled_urls, key=lambda x: x.time)
+
+            return scheduled_urls
+
+        # ---
 
         urls = decode_object_from_bytes_if_needed(urls)
 
@@ -379,8 +476,37 @@ class UserAgent(object):
             raise McParallelGetException('"web_store_per_domain_timeout" is not set.')
         per_domain_timeout = config['mediawords']['web_store_per_domain_timeout']
 
-        # FIXME
-        raise NotImplementedError
+        url_stack = __get_scheduled_urls(urls_=urls, per_domain_timeout_=per_domain_timeout)
+
+        start_time = time.time()
+
+        url_blocks = {}
+        while len(url_stack) > 0:
+            block_i = len(url_stack) % num_parallel
+
+            if block_i not in url_blocks:
+                url_blocks[block_i] = []
+
+            url_blocks[block_i].append(url_stack.pop())
+
+        pool = multiprocessing.Pool(processes=num_parallel)
+
+        all_results = []
+        for i, url_block in url_blocks.items():
+            result = pool.apply_async(_parallel_get_web_store, args=(url_block, start_time, timeout,))
+            all_results.append(result)
+
+        all_responses = []
+        for result in all_results:
+            responses = result.get()
+            all_responses = all_responses + responses
+
+        # No timeouts here because we trust the workers to timeout by themselves (by UserAgent)
+        pool.close()
+        pool.join()
+        pool.terminate()
+
+        return all_responses
 
     def get_string(self, url: str) -> Union[str, None]:
         """Return URL content as string, None on error."""
