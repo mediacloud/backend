@@ -5,7 +5,7 @@
 python_dependencies:
 
     # Deployments
-    - { name: "ansible", version: "2.4.0.0" }
+    - { name: "ansible", version: "2.4.1.0" }
 
     # Unit test coverage
     - { name: "coverage", version: "4.4.1" }
