@@ -7,7 +7,9 @@
   any_errors_fatal: true
   gather_facts: no
   pre_tasks:
-    - include_tasks: pre-tasks.yml
+    - name: Include pre-tasks
+      include_tasks: pre-tasks.yml
+      tags: always
   roles:
     - update-packages
     - common
