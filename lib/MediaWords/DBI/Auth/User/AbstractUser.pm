@@ -19,6 +19,25 @@ has 'active'                       => ( is => 'rw', isa => 'Maybe[Int]' );    # 
 has 'weekly_requests_limit'        => ( is => 'rw', isa => 'Maybe[Int]' );
 has 'weekly_requested_items_limit' => ( is => 'rw', isa => 'Maybe[Int]' );
 
+# Make email lowercase
+# (haven't found a better way to do Moose's setters)
+around 'email' => sub {
+    my $next = shift;
+    my $self = shift;
+
+    unless ( @_ )
+    {
+        my $email = $self->$next;
+        $email = lc( $email );
+        return $email;
+    }
+
+    my $email = shift;
+    $email = lc( $email );
+
+    return $self->$next( $email );
+};
+
 sub BUILD
 {
     my $self = shift;

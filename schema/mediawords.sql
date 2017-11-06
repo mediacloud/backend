@@ -10,6 +10,7 @@ CREATE OR REPLACE LANGUAGE plpgsql;
 
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE EXTENSION IF NOT EXISTS citext;
 
 
 -- Database properties (variables) table
@@ -23,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4637;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4638;
 
 BEGIN
 
@@ -1522,6 +1523,7 @@ CREATE OR REPLACE LANGUAGE plpgsql;
 
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE EXTENSION IF NOT EXISTS citext;
 
 
 -- create a table for each of these tables to hold a snapshot of stories relevant
@@ -2101,7 +2103,9 @@ CREATE VIEW daily_stats AS
 -- List of users
 CREATE TABLE auth_users (
     auth_users_id   SERIAL  PRIMARY KEY,
-    email           TEXT    UNIQUE NOT NULL,
+
+    -- Emails are case-insensitive
+    email           CITEXT  UNIQUE NOT NULL,
 
     -- Salted hash of a password (with Crypt::SaltedHash, algorithm => 'SHA-256', salt_len=>64)
     password_hash   TEXT    NOT NULL CONSTRAINT password_hash_sha256 CHECK(LENGTH(password_hash) = 137),
@@ -2219,7 +2223,7 @@ CREATE TABLE auth_user_request_daily_counts (
 
     -- User's email (does *not* reference auth_users.email because the user
     -- might be deleted)
-    email                   TEXT    NOT NULL,
+    email                   CITEXT  NOT NULL,
 
     -- Day (request timestamp, date_truncated to a day)
     day                     DATE    NOT NULL,
@@ -2274,8 +2278,8 @@ CREATE TRIGGER auth_users_set_default_limits
 
 
 -- Add helper function to find out weekly request / request items usage for a user
-CREATE OR REPLACE FUNCTION auth_user_limits_weekly_usage(user_email TEXT)
-RETURNS TABLE(email TEXT, weekly_requests_sum BIGINT, weekly_requested_items_sum BIGINT) AS
+CREATE OR REPLACE FUNCTION auth_user_limits_weekly_usage(user_email CITEXT)
+RETURNS TABLE(email CITEXT, weekly_requests_sum BIGINT, weekly_requested_items_sum BIGINT) AS
 $$
 
     SELECT auth_users.email,
@@ -2331,7 +2335,7 @@ CREATE TABLE activities (
     --     * user's email from "auth_users.email" (e.g. "lvaliukas@cyber.law.harvard.edu", or
     --     * username that initiated the action (e.g. "system:lvaliukas")
     -- (store user's email instead of ID in case the user gets deleted)
-    user_identifier     VARCHAR(255)    NOT NULL,
+    user_identifier     CITEXT          NOT NULL,
 
     -- Indexed ID of the object that was modified in some way by the activity
     -- (e.g. media's ID "media_edit" or story's ID in "story_edit")
