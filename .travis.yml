@@ -98,6 +98,11 @@ install:
         docker exec -i -t
         $MC_TRAVIS_DOCKER_CONTAINER
         sudo chown -R mediacloud:mediacloud $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT
+    # Install (upgrade) Ansible on container
+    - >
+        docker exec -i -t
+        $MC_TRAVIS_DOCKER_CONTAINER
+        sudo pip install --upgrade ansible-lint
     # Start PostgreSQL service on container
     - >
         docker exec -i -t
