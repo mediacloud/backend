@@ -252,6 +252,43 @@ class TestUserAgentTestCase(TestCase):
         assert response.request().url() == test_url
         assert response.decoded_content() == 'Šaukštai po pietų.'
 
+    def test_get_non_utf8_content_html(self):
+        """Non-UTF-8 content where the content encoding is set in content and not the headers."""
+
+        # Perl's Encode had issues with GB2312, so let's see what requests has to offer
+        pages = {
+            '/non-utf-8-html': {
+
+                # No encoding in HTTP headers
+                'header': 'Content-Type: text/html',
+
+                # Encoding in HTML data's <meta> element
+                'content': b"""
+                <html>
+                <head>
+                    <title>\xca\xb1\xd5\xfe\x2d\x2d\xc8\xcb\xc3\xf1\xcd\xf8</title>
+                    <meta http-equiv="content-type" content="text/html;charset=GB2312"/>
+                </head>
+                <body>
+                </body>
+                </html>
+                """,
+            },
+        }
+
+        hs = HashServer(port=self.__test_port, pages=pages)
+        hs.start()
+
+        ua = UserAgent()
+        test_url = '%s/non-utf-8-html' % self.__test_url
+        response = ua.get(test_url)
+
+        hs.stop()
+
+        assert response.is_success() is True
+        assert response.request().url() == test_url
+        assert '时政--人民网' in response.decoded_content()
+
     def test_get_max_size(self):
         """Max. download size."""
 
