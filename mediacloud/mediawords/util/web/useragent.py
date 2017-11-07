@@ -694,6 +694,11 @@ class UserAgent(object):
                 if max_size is not None:
                     if response_data_size > max_size:
                         log.warning("Data size exceeds %d for URL %s" % (max_size, url,))
+
+                        # Release the response to return connection back to the pool
+                        # (http://docs.python-requests.org/en/master/user/advanced/#body-content-workflow)
+                        requests_response.close()
+
                         break
 
         if requests_response is None:
