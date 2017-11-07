@@ -810,15 +810,16 @@ class UserAgent(object):
             raise McUserAgentException("Max. redirect count is negative.")
         self.__session.max_redirects = max_redirect
 
-    def max_size(self) -> int:
-        """Return max. download size."""
+    def max_size(self) -> Union[int, None]:
+        """Return max. download size; if None, download size will not be limited."""
         return self.__max_size
 
-    def set_max_size(self, max_size: int) -> None:
-        """Set max. download size."""
+    def set_max_size(self, max_size: Union[int, None]) -> None:
+        """Set max. download size; if None, download size will not be limited."""
         if isinstance(max_size, bytes):
             max_size = decode_object_from_bytes_if_needed(max_size)
-        max_size = int(max_size)
-        if max_size <= 0:
-            raise McUserAgentException("Max. size is zero or negative.")
+        if max_size is not None:
+            max_size = int(max_size)
+            if max_size <= 0:
+                raise McUserAgentException("Max. size is zero or negative.")
         self.__max_size = max_size

@@ -255,7 +255,9 @@ class TestUserAgentTestCase(TestCase):
     def test_get_max_size(self):
         """Max. download size."""
 
-        test_content = random_string(length=(1024 * 10))
+        test_content_length = 1024 * 10
+
+        test_content = random_string(length=test_content_length)
         max_size = int(len(test_content) / 10)
         pages = {
             '/max-download-side': test_content,
@@ -277,6 +279,18 @@ class TestUserAgentTestCase(TestCase):
         assert response.is_success()
         assert len(response.decoded_content()) >= max_size
         assert len(response.decoded_content()) <= len(test_content)
+
+        # Test unlimited length responses
+        hs.start()
+
+        ua.set_max_size(None)
+        assert ua.max_size() is None
+        response = ua.get(test_url)
+
+        hs.stop()
+
+        assert response.is_success()
+        assert len(response.decoded_content()) == test_content_length
 
     def test_get_max_redirect(self):
         """Max. redirects."""
