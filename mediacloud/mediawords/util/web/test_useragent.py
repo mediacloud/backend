@@ -194,6 +194,31 @@ class TestUserAgentTestCase(TestCase):
         assert response.request().url() == test_url
         assert response.decoded_content() == '¡ollǝɥ'
 
+    def test_get_valid_utf8_content_no_charset(self):
+        """Valid UTF-8 content, no charset defined anywhere."""
+
+        pages = {
+            '/valid-utf-8-no-charset': {
+
+                # Let's see if UA manages to guess the encoding
+                'header': 'Content-Type: application/json',
+                'content': "{'text': '¡ollǝɥ'}",
+            },
+        }
+
+        hs = HashServer(port=self.__test_port, pages=pages)
+        hs.start()
+
+        ua = UserAgent()
+        test_url = '%s/valid-utf-8-no-charset' % self.__test_url
+        response = ua.get(test_url)
+
+        hs.stop()
+
+        assert response.is_success() is True
+        assert response.request().url() == test_url
+        assert response.decoded_content() == "{'text': '¡ollǝɥ'}"
+
     def test_get_invalid_utf8_content(self):
         """Invalid UTF-8 content."""
 
@@ -288,6 +313,31 @@ class TestUserAgentTestCase(TestCase):
         assert response.is_success() is True
         assert response.request().url() == test_url
         assert '时政--人民网' in response.decoded_content()
+
+    def test_get_non_utf8_content_no_charset(self):
+        """Valid non-UTF-8 content, no charset defined anywhere."""
+
+        pages = {
+            '/valid-non-utf-8-no-charset': {
+
+                # Let's see if UA manages to guess the encoding
+                'header': 'Content-Type: application/json',
+                'content': b"{'text': '\xca\xb1\xd5\xfe\x2d\x2d\xc8\xcb\xc3\xf1\xcd\xf8'}",
+            },
+        }
+
+        hs = HashServer(port=self.__test_port, pages=pages)
+        hs.start()
+
+        ua = UserAgent()
+        test_url = '%s/valid-non-utf-8-no-charset' % self.__test_url
+        response = ua.get(test_url)
+
+        hs.stop()
+
+        assert response.is_success() is True
+        assert response.request().url() == test_url
+        assert response.decoded_content() == "{'text': '时政--人民网'}"
 
     def test_get_max_size(self):
         """Max. download size."""
