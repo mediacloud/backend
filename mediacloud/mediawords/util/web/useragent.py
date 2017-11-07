@@ -798,17 +798,20 @@ class UserAgent(object):
                 raise McUserAgentException("Timeout is zero or negative.")
         self.__timeout = timeout
 
-    def max_redirect(self) -> int:
+    def max_redirect(self) -> Union[int, None]:
         """Return max. number of redirects."""
         return self.__session.max_redirects
 
-    def set_max_redirect(self, max_redirect: int) -> None:
+    def set_max_redirect(self, max_redirect: Union[int, None]) -> None:
         """Set max. number of redirects."""
         if isinstance(max_redirect, bytes):
             max_redirect = decode_object_from_bytes_if_needed(max_redirect)
-        max_redirect = int(max_redirect)
-        if max_redirect < 0:
-            raise McUserAgentException("Max. redirect count is negative.")
+        if max_redirect is not None:
+            max_redirect = int(max_redirect)
+            if max_redirect < 0:
+                raise McUserAgentException("Max. redirect count is negative.")
+
+        # Session objects support None values
         self.__session.max_redirects = max_redirect
 
     def max_size(self) -> Union[int, None]:

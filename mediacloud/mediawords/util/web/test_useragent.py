@@ -331,7 +331,9 @@ class TestUserAgentTestCase(TestCase):
 
         assert response.is_success() is False
 
-        # FIXME maybe test something else too
+        # Try setting to None
+        ua.set_max_redirect(None)
+        assert ua.max_redirect() is None
 
     def test_get_request_headers(self):
         """Set custom HTTP request headers."""
