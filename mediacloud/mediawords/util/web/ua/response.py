@@ -139,6 +139,7 @@ class Response(object):
         if value is None:
             raise McUserAgentResponseException("Header's value is None.")
         name = name.lower()  # All locally stored headers will be lowercase
+        value = str(value)  # E.g. Content-Length might get passed as int
         self.__headers[name] = value
 
     def __set_headers(self, headers: Dict[str, str]) -> None:

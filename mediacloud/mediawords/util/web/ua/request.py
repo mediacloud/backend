@@ -145,6 +145,7 @@ class Request(object):
         if value is None:
             raise McUserAgentRequestException("Header's value is None.")
         name = name.lower()  # All locally stored headers will be lowercase
+        value = str(value)  # E.g. Content-Length might get passed as int
         self.__headers[name] = value
 
     def content_type(self) -> Union[str, None]:
