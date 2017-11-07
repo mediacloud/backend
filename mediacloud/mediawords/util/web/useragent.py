@@ -143,6 +143,12 @@ class UserAgent(object):
             'From': config['mediawords']['owner'],
             'User-Agent': config['mediawords']['user_agent'],
             'Accept-Charset': 'utf-8',
+
+            # MC_REWRITE_TO_PYTHON:
+            #
+            # Disable keep-alive (and fancy requests' connection pooling) because rudimentary HTTP server used for Perl
+            # unit tests doesn't support it (but then maybe we don't want keep-alive anyway)
+            'Connection': 'close',
         })
 
         self.set_max_redirect(self.__DEFAULT_MAX_REDIRECT)
