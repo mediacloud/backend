@@ -1755,14 +1755,14 @@ END
     if ( $bot_policy eq $POLICY_NO_BOTS )
     {
         $bot_clause =
-          "and lower( ttfu.twitter_user ) not in ( select lower( twitter_user ) from scratch.twitter_bots where bot = 'f' )"
+          "and lower( u.twitter_user ) not in ( select lower( twitter_user ) from scratch.twitter_bots where bot = 'f' )"
 
           # $bot_clause = "and ( ( coalesce( tweets, 0 ) / coalesce( days, 1 ) ) < $BOT_TWEETS_PER_DAY )";
     }
     elsif ( $bot_policy eq $POLICY_ONLY_BOTS )
     {
         $bot_clause =
-          "and lower( ttfu.twitter_user ) not in ( select lower( twitter_user ) from scratch.twitter_bots where bot = 't' )"
+          "and lower( u.twitter_user ) not in ( select lower( twitter_user ) from scratch.twitter_bots where bot = 't' )"
 
           # $bot_clause = "and ( ( coalesce( tweets, 0 ) / coalesce( days, 1 ) ) >= $BOT_TWEETS_PER_DAY )";
     }
