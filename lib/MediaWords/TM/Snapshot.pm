@@ -1754,27 +1754,33 @@ END
     my $bot_policy = $snapshot->{ bot_policy } || $POLICY_NO_BOTS;
     if ( $bot_policy eq $POLICY_NO_BOTS )
     {
-        $bot_clause = "and ( ( coalesce( tweets, 0 ) / coalesce( days, 1 ) ) < $BOT_TWEETS_PER_DAY )";
+        $bot_clause =
+          "and lower( ttfu.twitter_user ) not in ( select lower( twitter_user ) from scratch.twitter_bots where bot = 'f' )"
+
+          # $bot_clause = "and ( ( coalesce( tweets, 0 ) / coalesce( days, 1 ) ) < $BOT_TWEETS_PER_DAY )";
     }
     elsif ( $bot_policy eq $POLICY_ONLY_BOTS )
     {
-        $bot_clause = "and ( ( coalesce( tweets, 0 ) / coalesce( days, 1 ) ) >= $BOT_TWEETS_PER_DAY )";
+        $bot_clause =
+          "and lower( ttfu.twitter_user ) not in ( select lower( twitter_user ) from scratch.twitter_bots where bot = 't' )"
+
+          # $bot_clause = "and ( ( coalesce( tweets, 0 ) / coalesce( days, 1 ) ) >= $BOT_TWEETS_PER_DAY )";
     }
 
     $db->query( <<SQL, $tweet_topics_id );
 create temporary table snapshot_tweet_stories as
-    with tweets_per_day as (
-        select topic_tweets_id,
-                ( tt.data->'tweet'->'user'->>'statuses_count' ) ::int tweets,
-                extract( day from now() - ( tt.data->'tweet'->'user'->>'created_at' )::date ) days
-            from topic_tweets tt
-                join topic_tweet_days ttd using ( topic_tweet_days_id )
-            where ttd.topics_id = \$1
-    )
+    -- with tweets_per_day as (
+    --     select topic_tweets_id,
+    --             ( tt.data->'tweet'->'user'->>'statuses_count' ) ::int tweets,
+    --             extract( day from now() - ( tt.data->'tweet'->'user'->>'created_at' )::date ) days
+    --         from topic_tweets tt
+    --             join topic_tweet_days ttd using ( topic_tweet_days_id )
+    --         where ttd.topics_id = \$1
+    -- )
 
     select topic_tweets_id, u.publish_date, twitter_user, stories_id, media_id, num_ch_tweets, tweet_count
         from topic_tweet_full_urls u
-            join tweets_per_day tpd using ( topic_tweets_id )
+            -- join tweets_per_day tpd using ( topic_tweets_id )
             join snapshot_stories using ( stories_id )
         where
             topics_id = \$1 $bot_clause
