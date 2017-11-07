@@ -1219,6 +1219,37 @@ class TestUserAgentTestCase(TestCase):
         assert path_responses['/timeout'].is_success() is False
         assert path_responses['/timeout'].code() == HTTPStatus.REQUEST_TIMEOUT.value
 
+    def test_parallel_get_many_urls(self):
+        """parallel_get() with many URLs (the number of which exceeds default web_store_num_parallel)."""
+
+        page_count = 40
+
+        pages = {}
+        urls = []
+        for x in range(page_count):
+            pages['/page-%02d' % x] = 'Page %02d.' % x
+            urls.append('%s/page-%02d' % (self.__test_url, x,))
+
+        hs = HashServer(port=self.__test_port, pages=pages)
+        hs.start()
+
+        ua = UserAgent()
+
+        responses = ua.parallel_get(urls)
+
+        hs.stop()
+
+        assert responses is not None
+        assert len(responses) == len(urls)
+
+        # Test order
+        for x in range(page_count):
+            response = responses[x]
+
+            assert response.is_success()
+            assert response.request().url().endswith('/page-%02d' % x)
+            assert response.decoded_content() == 'Page %02d.' % x
+
     def test_determined_retries(self):
         """Determined retries."""
 
