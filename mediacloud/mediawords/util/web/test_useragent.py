@@ -292,6 +292,17 @@ class TestUserAgentTestCase(TestCase):
         assert response.is_success()
         assert len(response.decoded_content()) == test_content_length
 
+    def test_set_timeout(self):
+        """Try to set timeout to various values (the actual timeout gets tested elsewhere)."""
+
+        ua = UserAgent()
+
+        ua.set_timeout(42)
+        assert ua.timeout() == 42
+
+        ua.set_timeout(None)
+        assert ua.timeout() is None
+
     def test_get_max_redirect(self):
         """Max. redirects."""
 

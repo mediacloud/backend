@@ -77,7 +77,7 @@ class _ParallelGetScheduledURL(object):
 def _parallel_get_web_store(
         urls: List[_ParallelGetScheduledURL],
         start_time: float,
-        timeout: int
+        timeout: Union[int, None]
 ) -> List[Response]:
     """Download a list of URLs, return responses."""
 
@@ -784,17 +784,18 @@ class UserAgent(object):
             for http_prefix in http_prefixes:
                 self.__session.mount(prefix=http_prefix, adapter=HTTPAdapter(max_retries=retries))
 
-    def timeout(self) -> int:
+    def timeout(self) -> Union[int, None]:
         """Return timeout."""
         return self.__timeout
 
-    def set_timeout(self, timeout: int) -> None:
+    def set_timeout(self, timeout: Union[int, None]) -> None:
         """Set timeout."""
         if isinstance(timeout, bytes):
             timeout = decode_object_from_bytes_if_needed(timeout)
-        timeout = int(timeout)
-        if timeout <= 0:
-            raise McUserAgentException("Timeout is zero or negative.")
+        if timeout is not None:
+            timeout = int(timeout)
+            if timeout <= 0:
+                raise McUserAgentException("Timeout is zero or negative.")
         self.__timeout = timeout
 
     def max_redirect(self) -> int:
