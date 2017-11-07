@@ -493,3 +493,30 @@ def get_url_path_fast(url: str) -> str:
     # Don't bother with the regex (Perl's version didn't work anyway)
     uri = furl(url)
     return str(uri.path)
+
+
+class McGetBaseURLException(Exception):
+    pass
+
+
+def get_base_url(url: str) -> str:
+    """Return base URL, e.g. http://example.com/base/ for http://example.com/base/index.html."""
+    # In "http://example.com/first/two" URLs, strip the "two" part, but not when it has a trailing slash
+
+    url = decode_object_from_bytes_if_needed(url)
+
+    if url is None:
+        raise McGetBaseURLException("URL is None.")
+
+    if not is_http_url(url):
+        raise McGetBaseURLException("URL is not HTTP.")
+
+    if url.endswith('/'):
+        base_url = url
+    else:
+        base_uri = furl(canonical_url(url))
+        base_uri_path_segments = base_uri.path.segments
+        del base_uri_path_segments[-1]
+        base_url = base_uri.url + '/'
+
+    return base_url

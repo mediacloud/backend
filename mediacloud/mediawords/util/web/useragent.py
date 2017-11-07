@@ -21,8 +21,8 @@ from mediawords.util.url import (
     fix_common_url_mistakes,
     is_http_url,
     get_url_distinctive_domain,
-    canonical_url,
     get_url_host,
+    get_base_url,
 )
 from mediawords.util.web.ua.request import Request
 from mediawords.util.web.ua.response import Response
@@ -247,16 +247,7 @@ class UserAgent(object):
 
             if response_.is_success():
 
-                # Check if the returned document contains <meta http-equiv="refresh" />
-                base_uri = furl(canonical_url(response_.request().url()))
-                if response_.request().url().endswith('/'):
-                    # In "http://example.com/first/two" URLs, strip the "two" part, but not when it has a trailing slash
-                    base_uri_path_segments = base_uri.path.segments
-                    del base_uri_path_segments[-1]
-                    # noinspection PyProtectedMember
-                    base_uri._replace(path='/' + '/'.join(base_uri_path_segments))
-
-                base_url = base_uri.url
+                base_url = get_base_url(response_.request().url())
 
                 html_redirect_functions = [
                     target_request_from_meta_refresh_url,

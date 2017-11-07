@@ -297,3 +297,19 @@ def test_http_urls_in_string():
 def test_get_url_path_fast():
     assert mc_url.get_url_path_fast('http://www.example.com/a/b/c') == '/a/b/c'
     assert mc_url.get_url_path_fast('not_an_url') == ''
+
+
+def test_get_base_url():
+    with pytest.raises(mc_url.McGetBaseURLException):
+        # noinspection PyTypeChecker
+        mc_url.get_base_url(None)
+
+    with pytest.raises(mc_url.McGetBaseURLException):
+        mc_url.get_base_url('')
+
+    with pytest.raises(mc_url.McGetBaseURLException):
+        mc_url.get_base_url('not_an_url')
+
+    assert mc_url.get_base_url('http://example.com/') == 'http://example.com/'
+    assert mc_url.get_base_url('http://example.com/base/') == 'http://example.com/base/'
+    assert mc_url.get_base_url('http://example.com/base/index.html') == 'http://example.com/base/'
