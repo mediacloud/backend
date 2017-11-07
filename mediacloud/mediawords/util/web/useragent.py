@@ -501,7 +501,23 @@ class UserAgent(object):
         pool.join()
         pool.terminate()
 
-        return all_responses
+        # Sort URLs in parameter order
+        # (if URLs weren't split into blocks, we could probably use map_async)
+        response_url_map = {}
+        for response in all_responses:
+            url = response.request().url()
+            response_url_map[url] = response
+
+        sorted_responses = []
+        for url in urls:
+            sorted_responses.append(response_url_map[url])
+
+        if len(urls) != len(sorted_responses):
+            raise McParallelGetException(
+                "Response count doesn't match URL count; responses: %s; URLs: %s" % (sorted_responses, urls,)
+            )
+
+        return sorted_responses
 
     def get_string(self, url: str) -> Union[str, None]:
         """Return URL content as string, None on error."""

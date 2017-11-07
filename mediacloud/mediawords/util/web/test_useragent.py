@@ -1186,6 +1186,13 @@ class TestUserAgentTestCase(TestCase):
         assert responses is not None
         assert len(responses) == len(urls)
 
+        # Test order (which some code relies on)
+        assert responses[0].request().url().endswith('/a')
+        assert responses[1].request().url().endswith('/b')
+        assert responses[2].request().url().endswith('/c')
+        assert responses[3].request().url().endswith('/timeout')
+        assert responses[4].request().url().endswith('/does-not-exist')
+
         path_responses = {}
         for response in responses:
             uri = furl(response.request().url())
