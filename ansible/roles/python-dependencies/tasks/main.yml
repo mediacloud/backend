@@ -13,11 +13,9 @@
 
 - name: Install Media Cloud Python requirements
   pip:
-    name: "{{ item.name }}"
-    version: "{{ item.version }}"
     virtualenv: "{{ mediacloud_home }}/.virtualenvs/mediacloud/"
     virtualenv_python: "python{{ python_version }}"
-  with_items: "{{ python_dependencies }}"
+    requirements: "{{ mediacloud_root }}/mediacloud/requirements.txt"
   become: true
   become_user: "{{ mediacloud_user }}"
   tags:
