@@ -755,12 +755,9 @@ class UserAgent(object):
 
         self.__timing = timing
 
-        http_prefixes = ['http://', 'https://']
-
         if timing is None:
             # Disable retries
-            for http_prefix in http_prefixes:
-                self.__session.mount(prefix=http_prefix, adapter=HTTPAdapter())
+            max_retries = requests.adapters.DEFAULT_RETRIES
 
         else:
             # Enable retries
@@ -772,13 +769,16 @@ class UserAgent(object):
             else:
                 backoff_factor = timing[1] - timing[0]
 
-            retries = Retry(
+            max_retries = Retry(
                 total=len(timing),
                 backoff_factor=backoff_factor,
                 status_forcelist=self.__DETERMINED_HTTP_CODES,
             )
-            for http_prefix in http_prefixes:
-                self.__session.mount(prefix=http_prefix, adapter=HTTPAdapter(max_retries=retries))
+
+        http_prefixes = ['http://', 'https://']
+
+        for http_prefix in http_prefixes:
+            self.__session.mount(prefix=http_prefix, adapter=HTTPAdapter(max_retries=max_retries))
 
     def timeout(self) -> Union[int, None]:
         """Return timeout."""
