@@ -696,9 +696,8 @@ class UserAgent(object):
 
             response_data = ""
             response_data_size = 0
-            chunk_size = 1024 * 10
             max_size = self.max_size()
-            for chunk in requests_response.iter_content(chunk_size=chunk_size, decode_unicode=True):
+            for chunk in requests_response.iter_content(chunk_size=None, decode_unicode=True):
                 response_data += chunk
                 response_data_size += len(chunk)
                 if max_size is not None:
