@@ -4,8 +4,14 @@
 # 2. Write a short description for how this module is being used
 python_dependencies:
 
+    # Datetime parsing
+    - { name: "arrow", version: "0.10.0" }
+
     # Deployments
     - { name: "ansible", version: "2.4.1.0" }
+
+    # HTML parsing
+    - { name: "beautifulsoup4", version: "4.6.0" }
 
     # Unit test coverage
     - { name: "coverage", version: "4.4.1" }
@@ -51,6 +57,9 @@ python_dependencies:
 
     # Date parsing
     - { name: "python-dateutil", version: "2.6.1" }
+
+    # Timezone handling
+    - { name: "pytz", version: "2017.2" }
 
     # Extracting text from stories
     - { name: "readability-lxml", version: "0.6.2" }
