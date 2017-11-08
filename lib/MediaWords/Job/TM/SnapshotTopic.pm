@@ -39,11 +39,12 @@ sub run_statefully($$;$)
     my $note       = $args->{ note };
     my $bot_policy = $args->{ bot_policy };
     my $periods    = $args->{ periods };
+    my $skip_foci  = $args->{ skip_foci };
 
     die( "'topics_id' is undefined" ) unless ( defined $topics_id );
 
     # No transaction started because apparently snapshot_topic() does start one itself
-    MediaWords::TM::Snapshot::snapshot_topic( $db, $topics_id, $note, $bot_policy, $periods );
+    MediaWords::TM::Snapshot::snapshot_topic( $db, $topics_id, $note, $bot_policy, $periods, $skip_foci );
 }
 
 no Moose;    # gets rid of scaffolding

@@ -1755,14 +1755,14 @@ END
     if ( $bot_policy eq $POLICY_NO_BOTS )
     {
         $bot_clause =
-          "and lower( u.twitter_user ) not in ( select lower( twitter_user ) from scratch.twitter_bots where bot = 'f' )"
+          "and lower( u.twitter_user ) in ( select lower( twitter_user ) from scratch.twitter_bots where bot = 'f' )"
 
           # $bot_clause = "and ( ( coalesce( tweets, 0 ) / coalesce( days, 1 ) ) < $BOT_TWEETS_PER_DAY )";
     }
     elsif ( $bot_policy eq $POLICY_ONLY_BOTS )
     {
         $bot_clause =
-          "and lower( u.twitter_user ) not in ( select lower( twitter_user ) from scratch.twitter_bots where bot = 't' )"
+          "and lower( u.twitter_user ) in ( select lower( twitter_user ) from scratch.twitter_bots where bot = 't' )"
 
           # $bot_clause = "and ( ( coalesce( tweets, 0 ) / coalesce( days, 1 ) ) >= $BOT_TWEETS_PER_DAY )";
     }
@@ -1969,9 +1969,9 @@ overall, weekly, and monthly.  If periods is not specificied or is empty, all pe
 
 =cut
 
-sub snapshot_topic ($$;$$$)
+sub snapshot_topic ($$;$$$$)
 {
-    my ( $db, $topics_id, $note, $bot_policy, $periods ) = @_;
+    my ( $db, $topics_id, $note, $bot_policy, $periods, $skip_foci ) = @_;
 
     my $allowed_periods = [ qw(custom overall weekly monthly) ];
 
@@ -2005,7 +2005,10 @@ sub snapshot_topic ($$;$$$)
     # generate null focus timespan snapshots
     map { generate_period_snapshot( $db, $snap, $_, undef ) } ( @{ $periods } );
 
-    generate_period_focus_snapshots( $db, $snap, $periods );
+    if ( !$skip_foci )
+    {
+        generate_period_focus_snapshots( $db, $snap, $periods );
+    }
 
     MediaWords::Job::TM::SnapshotTopic->update_job_state_message( $db, "finalizing snapshot" );
 
