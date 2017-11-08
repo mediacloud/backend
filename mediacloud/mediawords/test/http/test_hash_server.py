@@ -7,6 +7,7 @@ from requests_futures.sessions import FuturesSession
 import time
 
 from mediawords.util.network import random_unused_port
+from mediawords.util.url import urls_are_equal
 from mediawords.test.http.hash_server import (HashServer, tcp_port_is_open, HTTPStatus,
                                               McHashServerException)
 
@@ -116,7 +117,7 @@ def test_http_hash_server():
     assert response.status_code == HTTPStatus.OK
     assert response.content == b"foo bar \xf0\x90\x28\xbc"
 
-    assert hs.page_url('/callback?a=b&c=d') == 'http://localhost:%d/callback' % port
+    assert urls_are_equal(url1=hs.page_url('/callback?a=b&c=d'), url2='http://localhost:%d/callback' % port)
     with pytest.raises(McHashServerException):
         hs.page_url('/does-not-exist')
 

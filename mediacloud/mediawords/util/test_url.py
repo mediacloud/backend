@@ -19,10 +19,13 @@ def test_fix_common_url_mistakes():
 
     for orig_url, fixed_url in urls.items():
         # Fix once
-        assert mc_url.fix_common_url_mistakes(orig_url) == fixed_url
+        assert mc_url.urls_are_equal(url1=mc_url.fix_common_url_mistakes(orig_url), url2=fixed_url)
 
         # Try fixing the same URL twice, see what happens
-        assert mc_url.fix_common_url_mistakes(mc_url.fix_common_url_mistakes(orig_url)) == fixed_url
+        assert mc_url.urls_are_equal(
+            url1=mc_url.fix_common_url_mistakes(mc_url.fix_common_url_mistakes(orig_url)),
+            url2=fixed_url,
+        )
 
 
 # noinspection SpellCheckingInspection
@@ -66,6 +69,7 @@ def test_canonical_url():
         # noinspection PyTypeChecker
         mc_url.canonical_url('')
 
+    # No urls_are_equal() because we want to compare them as strings here
     assert mc_url.canonical_url('HTTP://CYBER.LAW.HARVARD.EDU:80/node/9244') == 'http://cyber.law.harvard.edu/node/9244'
 
 
@@ -79,6 +83,7 @@ def test_normalize_url():
         mc_url.normalize_url('gopher://gopher.floodgap.com/0/v2/vstat')
 
     # Basic
+    # (No urls_are_equal() because we want to compare them as strings here)
     assert mc_url.normalize_url('HTTP://CYBER.LAW.HARVARD.EDU:80/node/9244') == 'http://cyber.law.harvard.edu/node/9244'
     assert mc_url.normalize_url(
         'HTTP://WWW.GOCRICKET.COM/news/sourav-ganguly/Sourav-Ganguly-exclusive-MS-Dhoni-must-reinvent-himself'
@@ -88,7 +93,8 @@ def test_normalize_url():
 
     # Multiple fragments
     assert mc_url.normalize_url(
-        'HTTP://CYBER.LAW.HARVARD.EDU/node/9244#foo#bar') == 'http://cyber.law.harvard.edu/node/9244'
+        'HTTP://CYBER.LAW.HARVARD.EDU/node/9244#foo#bar'
+    ) == 'http://cyber.law.harvard.edu/node/9244'
 
     # URL in query
     assert mc_url.normalize_url('http://bash.org/?244321') == 'http://bash.org/?244321'
@@ -148,6 +154,7 @@ def test_normalize_url():
 # noinspection SpellCheckingInspection
 def test_normalize_url_lossy():
     # FIXME - some resulting URLs look funny, not sure if I can change them easily though
+    # (No urls_are_equal() because we want to compare them as strings here)
     assert mc_url.normalize_url_lossy(
         'HTTP://WWW.nytimes.COM/ARTICLE/12345/?ab=cd#def#ghi/'
     ) == 'http://nytimes.com/article/12345/?ab=cd'

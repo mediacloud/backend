@@ -634,7 +634,7 @@ sub _immediate_redirection_url_for_medium($)
     my $response = $ua->get( $medium->{ url } );
 
     my $new_url = $response->request->url;
-    if ( $new_url and $medium->{ url } ne $new_url )
+    if ( $new_url and ( !MediaWords::Util::URL::urls_are_equal( $medium->{ url }, $new_url ) ) )
     {
         DEBUG "New medium URL via HTTP redirect: $medium->{url} => $new_url";
         return $new_url;
@@ -642,7 +642,7 @@ sub _immediate_redirection_url_for_medium($)
 
     my $html = $response->decoded_content || '';
     $new_url = MediaWords::Util::HTML::meta_refresh_url_from_html( $html );
-    if ( $new_url and $medium->{ url } ne $new_url )
+    if ( $new_url and ( !MediaWords::Util::URL::urls_are_equal( $medium->{ url }, $new_url ) ) )
     {
         DEBUG "New medium URL via HTML <meta/> refresh: $medium->{url} => $new_url";
         return $new_url;

@@ -16,6 +16,7 @@ from mediawords.util.json import encode_json, decode_json
 from mediawords.util.log import create_logger
 from mediawords.util.network import random_unused_port
 from mediawords.util.text import random_string
+from mediawords.util.url import urls_are_equal
 from mediawords.util.web.ua.request import Request
 from mediawords.util.web.useragent import UserAgent, McUserAgentException, McGetFollowHTTPHTMLRedirectsException
 
@@ -61,7 +62,7 @@ class TestUserAgentTestCase(TestCase):
 
         hs.stop()
 
-        assert response.request().url() == test_url
+        assert urls_are_equal(url1=response.request().url(), url2=test_url)
         assert response.decoded_content() == 'Hello!'
 
     def test_get_user_agent_from_headers(self):
@@ -94,7 +95,7 @@ class TestUserAgentTestCase(TestCase):
         hs.stop()
 
         assert response.is_success() is True
-        assert response.request().url() == test_url
+        assert urls_are_equal(url1=response.request().url(), url2=test_url)
 
         config = py_get_config()
         expected_user_agent = config['mediawords']['user_agent']
@@ -133,7 +134,7 @@ class TestUserAgentTestCase(TestCase):
         hs.stop()
 
         assert response.is_success() is False
-        assert response.request().url() == test_url
+        assert urls_are_equal(url1=response.request().url(), url2=test_url)
         assert response.decoded_content() == 'I do not exist.'
 
     def test_get_timeout(self):
@@ -191,7 +192,7 @@ class TestUserAgentTestCase(TestCase):
         hs.stop()
 
         assert response.is_success() is True
-        assert response.request().url() == test_url
+        assert urls_are_equal(url1=response.request().url(), url2=test_url)
         assert response.decoded_content() == '¡ollǝɥ'
 
     def test_get_valid_utf8_content_no_charset(self):
@@ -216,7 +217,7 @@ class TestUserAgentTestCase(TestCase):
         hs.stop()
 
         assert response.is_success() is True
-        assert response.request().url() == test_url
+        assert urls_are_equal(url1=response.request().url(), url2=test_url)
         assert response.decoded_content() == "{'text': '¡ollǝɥ'}"
 
     def test_get_invalid_utf8_content(self):
@@ -239,7 +240,7 @@ class TestUserAgentTestCase(TestCase):
         hs.stop()
 
         assert response.is_success() is True
-        assert response.request().url() == test_url
+        assert urls_are_equal(url1=response.request().url(), url2=test_url)
 
         # https://en.wikipedia.org/wiki/Specials_(Unicode_block)#Replacement_character
         replacement_character = "\uFFFD"
@@ -274,7 +275,7 @@ class TestUserAgentTestCase(TestCase):
         hs.stop()
 
         assert response.is_success() is True
-        assert response.request().url() == test_url
+        assert urls_are_equal(url1=response.request().url(), url2=test_url)
         assert response.decoded_content() == 'Šaukštai po pietų.'
 
     def test_get_non_utf8_content_html(self):
@@ -311,7 +312,7 @@ class TestUserAgentTestCase(TestCase):
         hs.stop()
 
         assert response.is_success() is True
-        assert response.request().url() == test_url
+        assert urls_are_equal(url1=response.request().url(), url2=test_url)
         assert '时政--人民网' in response.decoded_content()
 
     def test_get_non_utf8_content_no_charset(self):
@@ -336,7 +337,7 @@ class TestUserAgentTestCase(TestCase):
         hs.stop()
 
         assert response.is_success() is True
-        assert response.request().url() == test_url
+        assert urls_are_equal(url1=response.request().url(), url2=test_url)
         assert response.decoded_content() == "{'text': '时政--人民网'}"
 
     def test_get_max_size(self):
@@ -455,7 +456,7 @@ class TestUserAgentTestCase(TestCase):
         hs.stop()
 
         assert response.is_success() is True
-        assert response.request().url() == test_url
+        assert urls_are_equal(url1=response.request().url(), url2=test_url)
 
         decoded_json = decode_json(response.decoded_content())
         assert decoded_json == {'custom-header': 'foo'}
@@ -515,7 +516,7 @@ class TestUserAgentTestCase(TestCase):
 
         hs.stop()
 
-        assert response.request().url() == test_url
+        assert urls_are_equal(url1=response.request().url(), url2=test_url)
         assert response.decoded_content() == '☕'
 
         assert response.code() == 418
@@ -541,7 +542,7 @@ class TestUserAgentTestCase(TestCase):
 
         hs.stop()
 
-        assert response.request().url() == test_url
+        assert urls_are_equal(url1=response.request().url(), url2=test_url)
         assert response.decoded_content() == 'pnolɔ ɐıpǝɯ'
 
         assert response.header(name='X-Media-Cloud') == 'mediacloud'
@@ -566,7 +567,7 @@ class TestUserAgentTestCase(TestCase):
 
         hs.stop()
 
-        assert response.request().url() == test_url
+        assert urls_are_equal(url1=response.request().url(), url2=test_url)
         assert response.decoded_content() == 'pnolɔ ɐıpǝɯ'
 
         assert response.content_type() == 'application/xhtml+xml'
@@ -590,7 +591,7 @@ class TestUserAgentTestCase(TestCase):
 
         hs.stop()
 
-        assert response.request().url() == test_url
+        assert urls_are_equal(url1=response.request().url(), url2=test_url)
 
         response_string = response.as_string()
         assert re.match(
@@ -626,7 +627,7 @@ class TestUserAgentTestCase(TestCase):
         hs.stop()
 
         assert response.is_success() is True
-        assert response.request().url() == test_url
+        assert urls_are_equal(url1=response.request().url(), url2=test_url)
 
         config = py_get_config()
         http_request_log_file = "%s/logs/http_request.log" % config['mediawords']['data_dir']
@@ -704,7 +705,7 @@ class TestUserAgentTestCase(TestCase):
         assert blacklisted_response.request().url() != blacklisted_url
 
         assert whitelisted_response.is_success() is True
-        assert whitelisted_response.request().url() == whitelisted_url
+        assert urls_are_equal(url1=whitelisted_response.request().url(), url2=whitelisted_url)
 
         assert os.path.isfile(whitelist_temp_file) is True
         assert os.path.isfile(blacklist_temp_file) is False
@@ -877,7 +878,7 @@ class TestUserAgentTestCase(TestCase):
 
         hs.stop()
 
-        assert response.request().url() == '%s/fifth' % self.__test_url
+        assert urls_are_equal(url1=response.request().url(), url2='%s/fifth' % self.__test_url)
         assert response.decoded_content() == pages['/fifth']
 
     def test_get_follow_http_html_redirects_nonexistent(self):
@@ -898,7 +899,7 @@ class TestUserAgentTestCase(TestCase):
         hs.stop()
 
         assert response.is_success() is False
-        assert response.request().url() == starting_url  # URL after unsuccessful HTTP redirects
+        assert urls_are_equal(url1=response.request().url(), url2=starting_url)  # URL after unsuccessful HTTP redirects
 
     def test_get_follow_http_html_redirects_html(self):
         """HTML redirects."""
@@ -923,7 +924,7 @@ class TestUserAgentTestCase(TestCase):
         hs.stop()
 
         assert response.is_success() is True
-        assert response.request().url() == '%s/fifth' % self.__test_url
+        assert urls_are_equal(url1=response.request().url(), url2='%s/fifth' % self.__test_url)
         assert response.decoded_content() == pages['/fifth']
 
     def test_get_follow_http_html_redirects_http_loop(self):
@@ -957,7 +958,7 @@ class TestUserAgentTestCase(TestCase):
 
         hs.stop()
 
-        assert response.request().url() == '%s/second' % self.__test_url
+        assert urls_are_equal(url1=response.request().url(), url2='%s/second' % self.__test_url)
 
     def test_get_follow_http_html_redirects_html_loop(self):
         """HTML redirects that end up in a loop."""
@@ -979,7 +980,7 @@ class TestUserAgentTestCase(TestCase):
 
         hs.stop()
 
-        assert response.request().url() == '%s/first' % self.__test_url
+        assert urls_are_equal(url1=response.request().url(), url2='%s/first' % self.__test_url)
 
     def test_get_follow_http_html_redirects_cookies(self):
         """Test if the method acts nicely when the server decides to ensure that the client supports cookies (e.g.
@@ -1056,7 +1057,7 @@ class TestUserAgentTestCase(TestCase):
 
         hs.stop()
 
-        assert response.request().url() == starting_url
+        assert urls_are_equal(url1=response.request().url(), url2=starting_url)
         assert response.decoded_content() == test_content
 
     def test_get_follow_http_html_redirects_previous_responses(self):
@@ -1099,43 +1100,43 @@ class TestUserAgentTestCase(TestCase):
 
         assert response.is_success() is True
         assert response.decoded_content() == 'Finally!'
-        assert response.request().url() == '%s/page_7' % self.__test_url
+        assert urls_are_equal(url1=response.request().url(), url2='%s/page_7' % self.__test_url)
 
         # Test original_request()
         assert response.original_request() is not None
-        assert response.original_request().url() == '%s/page_1' % self.__test_url
+        assert urls_are_equal(url1=response.original_request().url(), url2='%s/page_1' % self.__test_url)
 
         # Test previous()
         # FIXME optimize into some sort of a loop
         response = response.previous()
         assert response is not None
         assert response.request() is not None
-        assert response.request().url() == '%s/page_6' % self.__test_url
+        assert urls_are_equal(url1=response.request().url(), url2='%s/page_6' % self.__test_url)
 
         response = response.previous()
         assert response is not None
         assert response.request() is not None
-        assert response.request().url() == '%s/page_5' % self.__test_url
+        assert urls_are_equal(url1=response.request().url(), url2='%s/page_5' % self.__test_url)
 
         response = response.previous()
         assert response is not None
         assert response.request() is not None
-        assert response.request().url() == '%s/page_4' % self.__test_url
+        assert urls_are_equal(url1=response.request().url(), url2='%s/page_4' % self.__test_url)
 
         response = response.previous()
         assert response is not None
         assert response.request() is not None
-        assert response.request().url() == '%s/page_3' % self.__test_url
+        assert urls_are_equal(url1=response.request().url(), url2='%s/page_3' % self.__test_url)
 
         response = response.previous()
         assert response is not None
         assert response.request() is not None
-        assert response.request().url() == '%s/page_2' % self.__test_url
+        assert urls_are_equal(url1=response.request().url(), url2='%s/page_2' % self.__test_url)
 
         response = response.previous()
         assert response is not None
         assert response.request() is not None
-        assert response.request().url() == '%s/page_1' % self.__test_url
+        assert urls_are_equal(url1=response.request().url(), url2='%s/page_1' % self.__test_url)
 
         assert response.previous() is None
 
@@ -1382,7 +1383,7 @@ class TestUserAgentTestCase(TestCase):
         response = ua.request(request)
 
         assert response.is_success() is True
-        assert response.request().url() == test_url
+        assert urls_are_equal(url1=response.request().url(), url2=test_url)
 
         decoded_json = decode_json(response.decoded_content())
         assert decoded_json == {
@@ -1405,7 +1406,7 @@ class TestUserAgentTestCase(TestCase):
         response = ua.request(request)
 
         assert response.is_success() is True
-        assert response.request().url() == test_url
+        assert urls_are_equal(url1=response.request().url(), url2=test_url)
 
         decoded_json = decode_json(response.decoded_content())
         assert decoded_json == {

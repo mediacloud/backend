@@ -1,38 +1,46 @@
-from mediawords.util.web.ua.html_redirects import \
-    target_request_from_meta_refresh_url, \
-    target_request_from_archive_is_url, \
-    target_request_from_archive_org_url, \
-    target_request_from_linkis_com_url, \
-    target_request_from_alarabiya_url
+from mediawords.util.url import urls_are_equal
+from mediawords.util.web.ua.html_redirects import (
+    target_request_from_meta_refresh_url,
+    target_request_from_archive_is_url,
+    target_request_from_archive_org_url,
+    target_request_from_linkis_com_url,
+    target_request_from_alarabiya_url,
+)
 
 
 def test_target_request_from_meta_refresh_url():
     # <meta> refresh
-    assert target_request_from_meta_refresh_url(
-        content="""
-            <HTML>
-            <HEAD>
-                <TITLE>This is a test</TITLE>
-                <META HTTP-EQUIV="content-type" CONTENT="text/html; charset=UTF-8">
-                <META HTTP-EQUIV="refresh" CONTENT="0; URL=http://example.com/">
-            </HEAD>
-            <BODY>
-                <P>This is a test.</P>
-            </BODY>
-            </HTML>
-        """,
-        archive_site_url='http://example2.com/'
-    ).url() == 'http://example.com/'
+    assert urls_are_equal(
+        url1=target_request_from_meta_refresh_url(
+            content="""
+                <HTML>
+                <HEAD>
+                    <TITLE>This is a test</TITLE>
+                    <META HTTP-EQUIV="content-type" CONTENT="text/html; charset=UTF-8">
+                    <META HTTP-EQUIV="refresh" CONTENT="0; URL=http://example.com/">
+                </HEAD>
+                <BODY>
+                    <P>This is a test.</P>
+                </BODY>
+                </HTML>
+            """,
+            archive_site_url='http://example2.com/'
+        ).url(),
+        url2='http://example.com/',
+    )
 
 
 def test_target_request_from_archive_is_url():
     # archive.is
-    assert target_request_from_archive_is_url(
-        content="""
-            <link rel="canonical" href="https://archive.is/20170201/https://bar.com/foo/bar">
-        """,
-        archive_site_url='https://archive.is/20170201/https://bar.com/foo/bar'
-    ).url() == 'https://bar.com/foo/bar'
+    assert urls_are_equal(
+        url1=target_request_from_archive_is_url(
+            content="""
+                <link rel="canonical" href="https://archive.is/20170201/https://bar.com/foo/bar">
+            """,
+            archive_site_url='https://archive.is/20170201/https://bar.com/foo/bar'
+        ).url(),
+        url2='https://bar.com/foo/bar',
+    )
 
     # archive.is with non-matching URL
     assert target_request_from_archive_is_url(
@@ -45,10 +53,13 @@ def test_target_request_from_archive_is_url():
 
 def test_target_request_from_archive_org_url():
     # archive.org
-    assert target_request_from_archive_org_url(
-        content=None,
-        archive_site_url='https://web.archive.org/web/20150204024130/http://www.john-daly.com/hockey/hockey.htm'
-    ).url() == 'http://www.john-daly.com/hockey/hockey.htm'
+    assert urls_are_equal(
+        url1=target_request_from_archive_org_url(
+            content=None,
+            archive_site_url='https://web.archive.org/web/20150204024130/http://www.john-daly.com/hockey/hockey.htm'
+        ).url(),
+        url2='http://www.john-daly.com/hockey/hockey.htm',
+    )
 
     # archive.org with non-matching URL
     assert target_request_from_archive_org_url(
@@ -59,28 +70,40 @@ def test_target_request_from_archive_org_url():
 
 def test_target_request_from_linkis_com_url():
     # linkis.com <meta>
-    assert target_request_from_linkis_com_url(
-        content='<meta property="og:url" content="http://og.url/test"',
-        archive_site_url='https://linkis.com/foo.com/ASDF'
-    ).url() == 'http://og.url/test'
+    assert urls_are_equal(
+        url1=target_request_from_linkis_com_url(
+            content='<meta property="og:url" content="http://og.url/test"',
+            archive_site_url='https://linkis.com/foo.com/ASDF'
+        ).url(),
+        url2='http://og.url/test',
+    )
 
     # linkis.com YouTube
-    assert target_request_from_linkis_com_url(
-        content='<a class="js-youtube-ln-event" href="http://you.tube/test"',
-        archive_site_url='https://linkis.com/foo.com/ASDF'
-    ).url() == 'http://you.tube/test'
+    assert urls_are_equal(
+        url1=target_request_from_linkis_com_url(
+            content='<a class="js-youtube-ln-event" href="http://you.tube/test"',
+            archive_site_url='https://linkis.com/foo.com/ASDF'
+        ).url(),
+        url2='http://you.tube/test',
+    )
 
     # 'linkis.com <iframe>'
-    assert target_request_from_linkis_com_url(
-        content='<iframe id="source_site" src="http://source.site/test"',
-        archive_site_url='https://linkis.com/foo.com/ASDF'
-    ).url() == 'http://source.site/test'
+    assert urls_are_equal(
+        url1=target_request_from_linkis_com_url(
+            content='<iframe id="source_site" src="http://source.site/test"',
+            archive_site_url='https://linkis.com/foo.com/ASDF'
+        ).url(),
+        url2='http://source.site/test',
+    )
 
     # linkis.com JavaScript
-    assert target_request_from_linkis_com_url(
-        content='"longUrl":"http:\/\/java.script\/test"',
-        archive_site_url='https://linkis.com/foo.com/ASDF'
-    ).url() == 'http://java.script/test'
+    assert urls_are_equal(
+        url1=target_request_from_linkis_com_url(
+            content='"longUrl":"http:\/\/java.script\/test"',
+            archive_site_url='https://linkis.com/foo.com/ASDF'
+        ).url(),
+        url2='http://java.script/test',
+    )
 
     # linkis.com with non-matching URL
     assert target_request_from_linkis_com_url(
@@ -123,7 +146,7 @@ def test_target_request_from_alarabiya_url():
 
     test_target_request = target_request_from_alarabiya_url(content=test_content, archive_site_url=test_url)
 
-    assert test_target_request.url() == test_url
+    assert urls_are_equal(url1=test_target_request.url(), url2=test_url)
     assert test_target_request.header('Cookie') == "%s=%s" % (test_cookie_name, test_cookie_value,)
 
     # Non-Alarabiya URL

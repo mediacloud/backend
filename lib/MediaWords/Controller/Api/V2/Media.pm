@@ -275,7 +275,7 @@ sub _lookup_by_response_url($$)
     my $original_request = $response->original_request;
     my $url              = URI->new( $original_request->url );
 
-    map { return ( $_ ) if ( URI->new( $_->{ url } ) eq $url ) } @{ $list };
+    map { return ( $_ ) if ( MediaWords::Util::URL::urls_are_equal( $_->{ url }, $url ) ) } @{ $list };
 
     return undef;
 }

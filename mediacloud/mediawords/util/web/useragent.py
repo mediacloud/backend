@@ -23,6 +23,7 @@ from mediawords.util.url import (
     get_url_distinctive_domain,
     get_url_host,
     get_base_url,
+    urls_are_equal,
 )
 from mediawords.util.web.ua.request import Request
 from mediawords.util.web.ua.response import Response
@@ -282,7 +283,7 @@ class UserAgent(object):
                         archive_site_url=base_url,
                     )
                     if request_after_meta_redirect is not None:
-                        if response_.request().url() != request_after_meta_redirect.url():
+                        if not urls_are_equal(url1=response_.request().url(), url2=request_after_meta_redirect.url()):
 
                             log.debug("URL after HTML redirects: %s" % request_after_meta_redirect.url())
 

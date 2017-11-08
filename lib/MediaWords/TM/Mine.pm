@@ -398,7 +398,11 @@ sub generate_topic_links
         my $link_lookup = {};
         for my $link ( @{ $links } )
         {
-            next if ( ( $link->{ url } eq $story->{ url } ) || _skip_self_linked_domain( $db, $link ) );
+            if (   MediaWords::Util::URL::urls_are_equal( $link->{ url }, $story->{ url } )
+                || _skip_self_linked_domain( $db, $link ) )
+            {
+                next;
+            }
 
             $link_lookup->{ $link->{ url } } = {
                 stories_id => $story->{ stories_id },
@@ -728,7 +732,11 @@ sub ignore_redirect
 {
     my ( $db, $link ) = @_;
 
-    return 0 unless ( $link->{ redirect_url } && ( $link->{ redirect_url } ne $link->{ url } ) );
+    unless ( $link->{ redirect_url }
+        && ( !MediaWords::Util::URL::urls_are_equal( $link->{ redirect_url }, $link->{ url } ) ) )
+    {
+        return 0;
+    }
 
     my ( $medium_url, $medium_name ) = generate_medium_url_and_name_from_url( $link->{ redirect_url } );
 
