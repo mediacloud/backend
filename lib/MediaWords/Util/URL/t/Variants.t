@@ -18,9 +18,9 @@ use Data::Dumper;
 use MediaWords::Util::URL::Variants;
 
 use MediaWords::Test::DB;
+use MediaWords::Test::URLs;
 
 Readonly my $TEST_HTTP_SERVER_PORT => 9998;
-
 
 sub test_all_url_variants($)
 {
@@ -241,7 +241,7 @@ END
 
     for ( my $i = 0 ; $i < @{ $expected_urls } ; $i++ )
     {
-        is( $url_variants->[ $i ], $expected_urls->[ $i ], 'test_get_topic_url_variants: url variant match $i' );
+        is_urls( $url_variants->[ $i ], $expected_urls->[ $i ], 'test_get_topic_url_variants: url variant match $i' );
     }
 }
 

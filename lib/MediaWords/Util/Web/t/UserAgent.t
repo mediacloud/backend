@@ -24,6 +24,7 @@ use MediaWords::Util::JSON;
 use MediaWords::Util::Web;
 use MediaWords::Util::Text;
 use MediaWords::Test::HTTP::HashServer;
+use MediaWords::Test::URLs;
 
 my Readonly $TEST_HTTP_SERVER_PORT = 9998;
 my Readonly $TEST_HTTP_SERVER_URL  = 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
@@ -53,7 +54,7 @@ sub test_get()
 
     $hs->stop();
 
-    is( $response->request()->url(),  $TEST_HTTP_SERVER_URL . '/test' );
+    is_urls( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/test' );
     is( $response->decoded_content(), 'Hello!' );
 }
 
@@ -90,7 +91,7 @@ sub test_get_user_agent_from_headers()
     $hs->stop();
 
     ok( $response->is_success() );
-    is( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/user-agent-from-headers' );
+    is_urls( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/user-agent-from-headers' );
 
     my $config              = MediaWords::Util::Config::get_config();
     my $expected_user_agent = $config->{ mediawords }->{ user_agent };
@@ -133,7 +134,7 @@ sub test_get_not_found()
 
     $hs->stop();
 
-    is( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/does-not-exist' );
+    is_urls( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/does-not-exist' );
     ok( !$response->is_success() );
     is( $response->decoded_content(), 'I do not exist.' );
 }
@@ -192,7 +193,7 @@ sub test_get_valid_utf8_content()
 
     $hs->stop();
 
-    is( $response->request()->url(),  $TEST_HTTP_SERVER_URL . '/valid-utf-8' );
+    is_urls( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/valid-utf-8' );
     is( $response->decoded_content(), '¡ollǝɥ' );
 }
 
@@ -214,7 +215,7 @@ sub test_get_invalid_utf8_content()
 
     $hs->stop();
 
-    is( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/invalid-utf-8' );
+    is_urls( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/invalid-utf-8' );
 
     # https://en.wikipedia.org/wiki/Specials_(Unicode_block)#Replacement_character
     my $replacement_character = "\x{FFFD}";
@@ -249,7 +250,7 @@ sub test_get_non_utf8_content()
 
     no bytes;
 
-    is( $response->request()->url(),  $TEST_HTTP_SERVER_URL . '/non-utf-8' );
+    is_urls( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/non-utf-8' );
     is( $response->decoded_content(), 'Šaukštai po pietų.' );
 }
 
@@ -270,7 +271,7 @@ sub test_get_max_size()
 
     $hs->stop();
 
-    is( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/max-download-side' );
+    is_urls( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/max-download-side' );
 
     # LWP::UserAgent truncates the response but still reports it as successful
     ok( $response->is_success() );
@@ -337,7 +338,7 @@ sub test_get_request_headers()
     my $response = $ua->request( $request );
 
     ok( $response->is_success() );
-    is( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/test-custom-header' );
+    is_urls( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/test-custom-header' );
 
     my $decoded_json = MediaWords::Util::JSON::decode_json( $response->decoded_content() );
     cmp_deeply( $decoded_json, { 'custom-header' => 'foo' } );
@@ -394,7 +395,7 @@ sub test_get_response_status()
 
     $hs->stop();
 
-    is( $response->request()->url(),  $TEST_HTTP_SERVER_URL . '/test' );
+    is_urls( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/test' );
     is( $response->decoded_content(), '☕' );
 
     # HTTP status cod and message
@@ -420,7 +421,7 @@ sub test_get_response_headers()
 
     $hs->stop();
 
-    is( $response->request()->url(),  $TEST_HTTP_SERVER_URL . '/test' );
+    is_urls( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/test' );
     is( $response->decoded_content(), 'pnolɔ ɐıpǝɯ' );
 
     # Uppercase / lowercase headers
@@ -445,7 +446,7 @@ sub test_get_response_content_type()
 
     $hs->stop();
 
-    is( $response->request()->url(),  $TEST_HTTP_SERVER_URL . '/test' );
+    is_urls( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/test' );
     is( $response->decoded_content(), 'pnolɔ ɐıpǝɯ' );
 
     is( $response->content_type(), 'application/xhtml+xml' );
@@ -468,7 +469,7 @@ sub test_get_response_as_string()
 
     $hs->stop();
 
-    is( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/test' );
+    is_urls( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/test' );
 
     like(
         $response->as_string(), qr|
@@ -500,7 +501,7 @@ sub test_get_http_request_log()
 
     $hs->stop();
 
-    is( $response->request()->url(), $url );
+    is_urls( $response->request()->url(), $url );
     ok( $response->is_success() );
 
     my $config                = MediaWords::Util::Config::get_config();
@@ -586,10 +587,10 @@ sub test_get_blacklisted_url()
 
     ok( !$blacklisted_response->is_success() );
     ok( $blacklisted_response->error_is_client_side() );
-    isnt( $blacklisted_response->request()->url(), $blacklisted_url );
+    isnt_urls( $blacklisted_response->request()->url(), $blacklisted_url );
 
     ok( $whitelisted_response->is_success() );
-    is( $whitelisted_response->request()->url(), $whitelisted_url );
+    is_urls( $whitelisted_response->request()->url(), $whitelisted_url );
 
     ok( -e $whitelist_temp_file );
     ok( !-e $blacklist_temp_file );
@@ -763,8 +764,8 @@ sub test_get_follow_http_html_redirects_http()
 
     $hs->stop();
 
-    is( $response->request()->url(),  $TEST_HTTP_SERVER_URL . '/fifth', 'URL after HTTP redirects' );
-    is( $response->decoded_content(), $pages->{ '/fifth' },             'Data after HTTP redirects' );
+    is_urls( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/fifth', 'URL after HTTP redirects' );
+    is( $response->decoded_content(), $pages->{ '/fifth' }, 'Data after HTTP redirects' );
 }
 
 sub test_get_follow_http_html_redirects_nonexistent()
@@ -784,7 +785,7 @@ sub test_get_follow_http_html_redirects_nonexistent()
     $hs->stop();
 
     ok( !$response->is_success );
-    is( $response->request()->url(), $starting_url, 'URL after unsuccessful HTTP redirects' );
+    is_urls( $response->request()->url(), $starting_url, 'URL after unsuccessful HTTP redirects' );
 }
 
 sub test_get_follow_http_html_redirects_html()
@@ -809,8 +810,8 @@ sub test_get_follow_http_html_redirects_html()
 
     $hs->stop();
 
-    is( $response->request()->url(),  $TEST_HTTP_SERVER_URL . '/fifth', 'URL after HTML redirects' );
-    is( $response->decoded_content(), $pages->{ '/fifth' },             'Data after HTML redirects' );
+    is_urls( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/fifth', 'URL after HTML redirects' );
+    is( $response->decoded_content(), $pages->{ '/fifth' }, 'Data after HTML redirects' );
 }
 
 sub test_get_follow_http_html_redirects_http_loop()
@@ -842,7 +843,7 @@ sub test_get_follow_http_html_redirects_http_loop()
 
     $hs->stop();
 
-    is( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/second', 'URL after HTTP redirect loop' );
+    is_urls( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/second', 'URL after HTTP redirect loop' );
 }
 
 sub test_get_follow_http_html_redirects_html_loop()
@@ -865,7 +866,7 @@ sub test_get_follow_http_html_redirects_html_loop()
 
     $hs->stop();
 
-    is( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/first', 'URL after HTML redirect loop' );
+    is_urls( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/first', 'URL after HTML redirect loop' );
 }
 
 # Test if the subroutine acts nicely when the server decides to ensure that the
@@ -968,7 +969,7 @@ sub test_get_follow_http_html_redirects_cookies()
 
     $hs->stop();
 
-    is( $response->request()->url(),  $starting_url, 'URL after HTTP redirects (cookie)' );
+    is_urls( $response->request()->url(), $starting_url, 'URL after HTTP redirects (cookie)' );
     is( $response->decoded_content(), $TEST_CONTENT, 'Data after HTTP redirects (cookie)' );
 }
 
@@ -1034,42 +1035,42 @@ sub test_get_follow_http_html_redirects_previous_responses()
 
     ok( $response->is_success() );
     is( $response->decoded_content(), 'Finally!' );
-    is( $response->request()->url(),  "$TEST_HTTP_SERVER_URL/page_7" );
+    is_urls( $response->request()->url(), "$TEST_HTTP_SERVER_URL/page_7" );
 
     # Test original_request()
     ok( $response->original_request() );
-    is( $response->original_request()->url(), "$TEST_HTTP_SERVER_URL/page_1" );
+    is_urls( $response->original_request()->url(), "$TEST_HTTP_SERVER_URL/page_1" );
 
     # Test previous()
     $response = $response->previous();
     ok( $response );
     ok( $response->request() );
-    is( $response->request()->url(), "$TEST_HTTP_SERVER_URL/page_6" );
+    is_urls( $response->request()->url(), "$TEST_HTTP_SERVER_URL/page_6" );
 
     $response = $response->previous();
     ok( $response );
     ok( $response->request() );
-    is( $response->request()->url(), "$TEST_HTTP_SERVER_URL/page_5" );
+    is_urls( $response->request()->url(), "$TEST_HTTP_SERVER_URL/page_5" );
 
     $response = $response->previous();
     ok( $response );
     ok( $response->request() );
-    is( $response->request()->url(), "$TEST_HTTP_SERVER_URL/page_4" );
+    is_urls( $response->request()->url(), "$TEST_HTTP_SERVER_URL/page_4" );
 
     $response = $response->previous();
     ok( $response );
     ok( $response->request() );
-    is( $response->request()->url(), "$TEST_HTTP_SERVER_URL/page_3" );
+    is_urls( $response->request()->url(), "$TEST_HTTP_SERVER_URL/page_3" );
 
     $response = $response->previous();
     ok( $response );
     ok( $response->request() );
-    is( $response->request()->url(), "$TEST_HTTP_SERVER_URL/page_2" );
+    is_urls( $response->request()->url(), "$TEST_HTTP_SERVER_URL/page_2" );
 
     $response = $response->previous();
     ok( $response );
     ok( $response->request() );
-    is( $response->request()->url(), "$TEST_HTTP_SERVER_URL/page_1" );
+    is_urls( $response->request()->url(), "$TEST_HTTP_SERVER_URL/page_1" );
 
     ok( !$response->previous() );
 }
@@ -1327,7 +1328,7 @@ sub test_post()
         my $response = $ua->request( $request );
 
         ok( $response->is_success() );
-        is( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/test-post' );
+        is_urls( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/test-post' );
 
         my $decoded_json = MediaWords::Util::JSON::decode_json( $response->decoded_content() );
         cmp_deeply(
@@ -1357,7 +1358,7 @@ sub test_post()
         my $response = $ua->request( $request );
 
         ok( $response->is_success() );
-        is( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/test-post' );
+        is_urls( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/test-post' );
 
         my $decoded_json = MediaWords::Util::JSON::decode_json( $response->decoded_content() );
         cmp_deeply(
