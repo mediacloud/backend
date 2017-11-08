@@ -18,7 +18,7 @@ use MediaWords::Job::TM::SnapshotTopic;
 
 sub main
 {
-    my ( $topic_opt, $direct_job, $note, $bot_policy, $periods );
+    my ( $topic_opt, $direct_job, $note, $bot_policy, $skip_foci, $periods );
 
     binmode( STDOUT, 'utf8' );
     binmode( STDERR, 'utf8' );
@@ -31,6 +31,7 @@ sub main
         "direct_job!"  => \$direct_job,
         "note=s"       => \$note,
         "bot_policy=s" => \$bot_policy,
+        "skip_foci!"   => \$skip_foci,
         "period=s"     => $periods
     ) || return;
 
@@ -50,7 +51,8 @@ sub main
             topics_id  => $topics_id,
             note       => $note,
             bot_policy => $bot_policy,
-            periods    => $periods
+            periods    => $periods,
+            skip_foci  => $skip_foci
         };
 
         if ( $direct_job )
