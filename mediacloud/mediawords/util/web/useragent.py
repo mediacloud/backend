@@ -505,11 +505,14 @@ class UserAgent(object):
         # (if URLs weren't split into blocks, we could probably use map_async)
         response_url_map = {}
         for response in all_responses:
-            url = response.request().url()
+            url = response.original_request().url()
             response_url_map[url] = response
 
         sorted_responses = []
         for url in urls:
+            if url not in response_url_map:
+                raise McParallelGetException("URL %s is not in the response URL map %s." % (url, response_url_map,))
+
             sorted_responses.append(response_url_map[url])
 
         if len(urls) != len(sorted_responses):
