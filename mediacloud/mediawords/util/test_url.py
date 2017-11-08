@@ -313,3 +313,25 @@ def test_get_base_url():
     assert mc_url.get_base_url('http://example.com/') == 'http://example.com/'
     assert mc_url.get_base_url('http://example.com/base/') == 'http://example.com/base/'
     assert mc_url.get_base_url('http://example.com/base/index.html') == 'http://example.com/base/'
+
+
+def test_urls_are_equal():
+    with pytest.raises(mc_url.McURLsAreEqualException):
+        # noinspection PyTypeChecker
+        mc_url.urls_are_equal(url1=None, url2=None)
+    with pytest.raises(mc_url.McURLsAreEqualException):
+        # noinspection PyTypeChecker
+        mc_url.urls_are_equal(url1=None, url2='https://web.mit.edu/')
+    with pytest.raises(mc_url.McURLsAreEqualException):
+        # noinspection PyTypeChecker
+        mc_url.urls_are_equal(url1='https://web.mit.edu/', url2=None)
+
+    assert mc_url.urls_are_equal(url1='https://web.mit.edu/', url2='https://web.mit.edu/') is True
+    assert mc_url.urls_are_equal(url1='https://web.mit.edu/', url2='https://WEB.MIT.EDU/') is True
+    assert mc_url.urls_are_equal(url1='https://web.mit.edu/', url2='https://WEB.MIT.EDU//') is True
+    assert mc_url.urls_are_equal(url1='https://web.mit.edu/', url2='https://WEB.MIT.EDU:443') is True
+    assert mc_url.urls_are_equal(url1='https://web.mit.edu/', url2='https://WEB.MIT.EDU:443/') is True
+    assert mc_url.urls_are_equal(url1='https://web.mit.edu/', url2='https://WEB.MIT.EDU:443//') is True
+    assert mc_url.urls_are_equal(url1='http://web.mit.edu/', url2='http://WEB.MIT.EDU:80//') is True
+
+    assert mc_url.urls_are_equal(url1='https://web.mit.edu/', url2='https://WEB.MIT.EDU:443//page') is False

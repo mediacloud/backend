@@ -520,3 +520,32 @@ def get_base_url(url: str) -> str:
         base_url = base_uri.url + '/'
 
     return base_url
+
+
+class McURLsAreEqualException(Exception):
+    pass
+
+
+def urls_are_equal(url1: str, url2: str) -> bool:
+    """Returns True if (canonical) URLs are equal."""
+
+    url1 = decode_object_from_bytes_if_needed(url1)
+    url2 = decode_object_from_bytes_if_needed(url2)
+
+    if url1 is None:
+        raise McURLsAreEqualException("URL #1 is None.")
+    if url2 is None:
+        raise McURLsAreEqualException("URL #2 is None.")
+
+    if len(url1) == 0:
+        log.warning("URL #1 is empty.")
+    if len(url2) == 0:
+        log.warning("URL #2 is empty.")
+
+    url1 = fix_common_url_mistakes(url1)
+    url1 = canonical_url(url1)
+
+    url2 = fix_common_url_mistakes(url2)
+    url2 = canonical_url(url2)
+
+    return url1 == url2
