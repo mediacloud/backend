@@ -73,28 +73,42 @@ class _ParallelGetScheduledURL(object):
         self.time = time_
 
 
+# In the module namespace because pickle is unable to serialize classes located in functions
+class _ParallelGetResponse(object):
+    # Separate response object to keep the original requested URL intact (might be different in original_response())
+
+    __slots__ = [
+        'scheduled_url',
+        'response',
+    ]
+
+    def __init__(self, scheduled_url: _ParallelGetScheduledURL, response: Response):
+        self.scheduled_url = scheduled_url
+        self.response = response
+
+
 # In the module namespace because pickle is unable to serialize functions located in other functions
 def _parallel_get_web_store(
-        urls: List[_ParallelGetScheduledURL],
+        scheduled_urls: List[_ParallelGetScheduledURL],
         start_time: float,
         timeout: Union[int, None]
-) -> List[Response]:
+) -> List[_ParallelGetResponse]:
     """Download a list of URLs, return responses."""
 
     responses = []
 
-    for url in urls:
+    for scheduled_url in scheduled_urls:
 
         time_increment = time.time() - start_time
-        if time_increment < url.time:
-            sleep_time = url.time - time_increment
+        if time_increment < scheduled_url.time:
+            sleep_time = scheduled_url.time - time_increment
             time.sleep(sleep_time)
 
         ua = UserAgent()
         ua.set_timeout(timeout)
 
-        response = ua.get_follow_http_html_redirects(url=url.url)
-        responses.append(response)
+        response = ua.get_follow_http_html_redirects(url=scheduled_url.url)
+        responses.append(_ParallelGetResponse(scheduled_url=scheduled_url, response=response))
 
     return responses
 
@@ -505,8 +519,8 @@ class UserAgent(object):
         # (if URLs weren't split into blocks, we could probably use map_async)
         response_url_map = {}
         for response in all_responses:
-            url = response.original_request().url()
-            response_url_map[url] = response
+            url = response.scheduled_url.url
+            response_url_map[url] = response.response
 
         sorted_responses = []
         for url in urls:
