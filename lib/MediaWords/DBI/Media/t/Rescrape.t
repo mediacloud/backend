@@ -19,8 +19,8 @@ use Data::Dumper;
 
 # must contain a hostname ('localhost') because a foreign feed link test requires it
 Readonly my $TEST_HTTP_SERVER_PORT  => 9998;
-Readonly my $TEST_HTTP_SERVER_URL   => 'http://localhost:' . $TEST_HTTP_SERVER_PORT . '/';
-Readonly my $TEST_HTTP_SERVER_URL_2 => 'http://127.0.0.1:' . $TEST_HTTP_SERVER_PORT . '/';
+Readonly my $TEST_HTTP_SERVER_URL   => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
+Readonly my $TEST_HTTP_SERVER_URL_2 => 'http://127.0.0.1:' . $TEST_HTTP_SERVER_PORT;
 
 my Readonly $HTTP_CONTENT_TYPE_RSS = 'Content-Type: application/rss+xml; charset=UTF-8';
 
