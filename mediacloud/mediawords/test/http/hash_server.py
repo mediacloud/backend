@@ -263,7 +263,7 @@ class HashServer(object):
             """Handle GET or POST request."""
 
             # Normalize path (might look like "//xx/../page", we want "/page")
-            path = os.path.realpath(os.path.normpath(self.path))
+            path = os.path.realpath(os.path.normpath(str(furl(self.path).path)))
             if len(path) == 0:
                 raise McHashServerException("Path is empty after normalization; original path: %s" % self.path)
 
