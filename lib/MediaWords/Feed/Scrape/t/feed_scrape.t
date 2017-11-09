@@ -153,7 +153,7 @@ HTML
     my $actual_result = MediaWords::Feed::Scrape::_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } );
     $hs->stop();
 
-    is_deeply( $actual_result, $expected_result, 'Basic test' );
+    cmp_bag( $actual_result, $expected_result, 'Basic test' );
 }
 
 # Basic RSS feed URL scraping
@@ -199,7 +199,7 @@ HTML
     my $actual_result = MediaWords::Feed::Scrape::_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } );
     $hs->stop();
 
-    is_deeply( $actual_result, $expected_result, 'Basic test - UTF-8 title' );
+    cmp_bag( $actual_result, $expected_result, 'Basic test - UTF-8 title' );
 }
 
 # Basic RSS feed (entities in URLs)
@@ -242,7 +242,7 @@ HTML
     my $actual_result = MediaWords::Feed::Scrape::_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } );
     $hs->stop();
 
-    is_deeply( $actual_result, $expected_result, 'Basic test - entities in URLs' );
+    cmp_bag( $actual_result, $expected_result, 'Basic test - entities in URLs' );
 }
 
 # Basic RSS feed (short URLs)
@@ -285,7 +285,7 @@ HTML
     my $actual_result = MediaWords::Feed::Scrape::_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } );
     $hs->stop();
 
-    is_deeply( $actual_result, $expected_result, 'Basic test - short URLs' );
+    cmp_bag( $actual_result, $expected_result, 'Basic test - short URLs' );
 }
 
 # Basic RSS feed URL scraping (no RSS feed titles)
@@ -328,7 +328,7 @@ HTML
     my $actual_result = MediaWords::Feed::Scrape::_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } );
     $hs->stop();
 
-    is_deeply( $actual_result, $expected_result, 'Basic test - no RSS titles' );
+    cmp_bag( $actual_result, $expected_result, 'Basic test - no RSS titles' );
 }
 
 # More complex example (more HTML tags, HTML entities; from dagbladet.se)
@@ -524,7 +524,7 @@ HTML
     my $actual_result = MediaWords::Feed::Scrape::_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } );
     $hs->stop();
 
-    is_deeply( $actual_result, $expected_result, 'Dagbladet.se test' );
+    cmp_bag( $actual_result, $expected_result, 'Dagbladet.se test' );
 }
 
 # More complex example (relative URLs to RSS feeds; a lot of RSS feeds in a single line; from gp.se)
@@ -887,7 +887,7 @@ sub test_gp_se()
     my $actual_result = MediaWords::Feed::Scrape::_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } );
     $hs->stop();
 
-    is_deeply( $actual_result, $expected_result, 'GP.se test' );
+    cmp_bag( $actual_result, $expected_result, 'GP.se test' );
 }
 
 sub test_rss_simple_website()
@@ -950,7 +950,7 @@ EOF
     my $actual_links = MediaWords::Feed::Scrape::get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1 );
     $hs->stop();
 
-    is_deeply( $actual_links, $expected_links, 'test_rss_simple_website' );
+    cmp_bag( $actual_links, $expected_links, 'test_rss_simple_website' );
 }
 
 sub test_rss_immediate_redirect_via_http_header()
@@ -1020,7 +1020,7 @@ HTML
     $hs1->stop();
     $hs2->stop();
 
-    is_deeply( $feed_links, $expected_links, 'test_rss_immediate_redirect_via_http_header feed_links' );
+    cmp_bag( $feed_links, $expected_links, 'test_rss_immediate_redirect_via_http_header feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate, 'test_rss_immediate_redirect_via_http_header need_to_moderate' );
 }
 
@@ -1099,7 +1099,7 @@ HTML
     $hs1->stop();
     $hs2->stop();
 
-    is_deeply( $feed_links, $expected_links, 'test_rss_immediate_redirect_via_html_meta_refresh feed_links' );
+    cmp_bag( $feed_links, $expected_links, 'test_rss_immediate_redirect_via_html_meta_refresh feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate,
         'test_rss_immediate_redirect_via_html_meta_refresh need_to_moderate' );
 }
@@ -1179,7 +1179,7 @@ HTML
     my $feed_links = MediaWords::Feed::Scrape::get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1 );
     $hs->stop();
 
-    is_deeply( $feed_links, $expected_links, 'test_rss_base_href' );
+    cmp_bag( $feed_links, $expected_links, 'test_rss_base_href' );
 }
 
 sub test_rss_unlinked_urls()
@@ -1243,7 +1243,7 @@ HTML
     my $feed_links = MediaWords::Feed::Scrape::get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1 );
     $hs->stop();
 
-    is_deeply( $feed_links, $expected_links, 'test_rss_unlinked_urls' );
+    cmp_bag( $feed_links, $expected_links, 'test_rss_unlinked_urls' );
 }
 
 sub test_rss_image_link()
@@ -1307,7 +1307,7 @@ HTML
     my $feed_links = MediaWords::Feed::Scrape::get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1 );
     $hs->stop();
 
-    is_deeply( $feed_links, $expected_links, 'test_rss_image_link' );
+    cmp_bag( $feed_links, $expected_links, 'test_rss_image_link' );
 }
 
 sub test_rss_external_feeds()
@@ -1358,7 +1358,7 @@ HTML
     my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
     $hs->stop();
 
-    is_deeply( $feed_links, $expected_links, 'test_rss_external_feeds feed_links' );
+    cmp_bag( $feed_links, $expected_links, 'test_rss_external_feeds feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate, 'test_rss_external_feeds need_to_moderate' );
 }
 
@@ -1422,7 +1422,7 @@ HTML
     my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
     $hs->stop();
 
-    is_deeply( $feed_links, $expected_links, 'test_get_feed_links_and_need_to_moderate feed_links' );
+    cmp_bag( $feed_links, $expected_links, 'test_get_feed_links_and_need_to_moderate feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate, 'test_get_feed_links_and_need_to_moderate need_to_moderate' );
 }
 
@@ -1506,7 +1506,7 @@ XML
     my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
     $hs->stop();
 
-    is_deeply( $feed_links, $expected_links, 'test_feeds_with_common_prefix feed_links' );
+    cmp_bag( $feed_links, $expected_links, 'test_feeds_with_common_prefix feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate, 'test_feeds_with_common_prefix need_to_moderate' );
 }
 
@@ -1566,7 +1566,7 @@ HTML
     my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
     $hs->stop();
 
-    is_deeply( $feed_links, $expected_links, 'test_feed_aggregator_urls feed_links' );
+    cmp_bag( $feed_links, $expected_links, 'test_feed_aggregator_urls feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate, 'test_feed_aggregator_urls need_to_moderate' );
 }
 
@@ -1605,7 +1605,7 @@ HTML
     my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
     $hs->stop();
 
-    is_deeply( $feed_links, $expected_links, 'test_web_page_feed feed_links' );
+    cmp_bag( $feed_links, $expected_links, 'test_web_page_feed feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate, 'test_web_page_feed need_to_moderate' );
 }
 
