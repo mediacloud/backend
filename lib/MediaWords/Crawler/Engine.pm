@@ -414,7 +414,7 @@ sub crawl
                 for my $s ( $socket_select->can_read() )
                 {
                     # set timeout so that a single hung read / write will not hork the whole crawler
-                    $s->timeout( 5 );
+                    $s->timeout( 60 );
 
                     my $fetcher_number = $s->getline();
 
