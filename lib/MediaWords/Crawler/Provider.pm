@@ -346,7 +346,17 @@ sub provide_downloads
 {
     my ( $self ) = @_;
 
-    sleep( 1 );
+    # FIXME I wish I could explain what this sleep() from a commit in 2010 is for.
+    #
+    # It appears that the provider is sleep()ing while waiting for the "engine"
+    # to process a single download, and if the queue is not yet finished at the
+    # end of the sleep(), provider will refuse to provide any downloads.
+    #
+    # In its original iteration, provide_downloads() was sleeping for 1 second
+    # before continuing, but UserAgent()'s rewrite made fetch_download()
+    # + handle_download() slightly slower, so now the sleep() period has been
+    # slightly increased.
+    sleep( 5 );
 
     $self->_setup();
 
