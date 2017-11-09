@@ -1378,7 +1378,7 @@ class TestUserAgentTestCase(TestCase):
         # UTF-8 string request
         request = Request(method='POST', url=test_url)
         request.set_content_type('application/x-www-form-urlencoded; charset=utf-8')
-        request.set_content_utf8('ą=č&ė=ž')
+        request.set_content('ą=č&ė=ž')
 
         response = ua.request(request)
 
@@ -1398,7 +1398,7 @@ class TestUserAgentTestCase(TestCase):
         # UTF-8 dictionary request
         request = Request(method='POST', url=test_url)
         request.set_content_type('application/x-www-form-urlencoded; charset=utf-8')
-        request.set_content_utf8({
+        request.set_content({
             'ą': 'č',
             'ė': 'ž',
         })

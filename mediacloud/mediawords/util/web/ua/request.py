@@ -177,12 +177,12 @@ class Request(object):
         """Get raw data sent as part of the POST request."""
         return self.__data
 
-    def set_content(self, content: Union[bytes, Dict[bytes, bytes]]) -> None:
-        """Set raw data sent as part of the POST request, in either raw bytes or dictionary form."""
-        # FIXME POSTs probably won't work with non-UTF-8 targets
+    def set_content(self, content: Union[str, bytes, Dict[str, str], Dict[bytes, bytes]]) -> None:
+        """Set raw data sent as part of the POST request, in either a UTF-8 string, raw bytes, dictionary of UTF-8
+        strings, or dictionary of bytes."""
 
         if isinstance(content, dict):
-            # urlencode into string
+            # urlencode into string; urlencode() seems to work fine with both string and bytes dictionaries
             content = urlencode(content)
 
         if isinstance(content, str):
@@ -192,12 +192,6 @@ class Request(object):
             raise McUserAgentRequestException("Content must be 'bytes' at this point: %s" % str(content))
 
         self.__data = content
-
-    def set_content_utf8(self, content: Union[str, Dict[str, str]]) -> None:
-        """Set raw data sent as part of the POST request, in either raw bytes or dictionary form; encode to UTF-8."""
-        # FIXME UTF-8 coming from Perl?
-        content = decode_object_from_bytes_if_needed(content)
-        self.set_content(content=content)
 
     def set_authorization_basic(self, username: str, password: str) -> None:
         """Set HTTP basic authorization credentials."""

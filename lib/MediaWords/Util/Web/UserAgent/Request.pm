@@ -10,6 +10,9 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use Encode;
+use URI::Escape;
+
 {
 
     package MediaWords::Util::Web::UserAgent::Request::Proxy;
@@ -140,7 +143,30 @@ sub set_content_utf8($$)
 {
     my ( $self, $content ) = @_;
 
-    $self->{ _request }->set_content_utf8( $content );
+    # All strings in Python are Unicode already, so we'll need to do this
+    # encoding step only for Perl
+    if ( ref( $content ) eq ref( {} ) )
+    {
+
+        my $post_items = [];
+        for my $key ( keys( %{ $content } ) )
+        {
+            if ( defined( $content->{ $key } ) )
+            {
+                my $enc_key  = uri_escape( encode_utf8( $key ) );
+                my $enc_data = uri_escape( encode_utf8( $content->{ $key } ) );
+                push( @{ $post_items }, "$enc_key=$enc_data" );
+            }
+        }
+
+        $content = join( '&', @{ $post_items } );
+    }
+    else
+    {
+        $content = encode_utf8( $content );
+    }
+
+    $self->{ _request }->set_content( $content );
 }
 
 sub set_authorization_basic($$$)
