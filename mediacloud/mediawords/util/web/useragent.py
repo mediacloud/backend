@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import errno
 import fcntl
 from furl import furl
@@ -471,6 +472,14 @@ class UserAgent(object):
             return []
         if len(urls) == 0:
             return []
+
+        # Remove duplicates from list while maintaining order because:
+        # 1) We don't want to fetch the same URL twice
+        # 2) URLs are being used as unique dictionary IDs later on
+        urls_before_removing_duplicates = urls.copy()
+        urls = list(OrderedDict.fromkeys(urls))
+        if len(urls) != len(urls_before_removing_duplicates):
+            log.warning("Some of the URLs are duplicate; URLs: %s" % str(urls_before_removing_duplicates))
 
         config = py_get_config()
 

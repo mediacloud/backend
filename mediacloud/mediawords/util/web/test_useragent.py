@@ -1251,6 +1251,40 @@ class TestUserAgentTestCase(TestCase):
             assert response.request().url().endswith('/page-%02d' % x)
             assert response.decoded_content() == 'Page %02d.' % x
 
+    def test_parallel_get_duplicate_removal(self):
+        """parallel_get() with duplicate URLs."""
+
+        pages = {
+            '/a': 'A.',
+            '/b': 'B.',
+            '/c': 'C.',
+        }
+
+        # "/c", "/a", "/b" is the expected order
+        urls = [
+            '%s/c' % self.__test_url,
+            '%s/a' % self.__test_url,
+            '%s/c' % self.__test_url,  # duplicate
+            '%s/b' % self.__test_url,
+            '%s/b' % self.__test_url,  # duplicate
+            '%s/c' % self.__test_url,  # duplicate
+        ]
+
+        hs = HashServer(port=self.__test_port, pages=pages)
+        hs.start()
+
+        ua = UserAgent()
+
+        responses = ua.parallel_get(urls)
+
+        hs.stop()
+
+        assert responses is not None
+        assert len(responses) == 3
+        assert responses[0].request().url().endswith('/c')
+        assert responses[1].request().url().endswith('/a')
+        assert responses[2].request().url().endswith('/b')
+
     def test_determined_retries(self):
         """Determined retries."""
 
