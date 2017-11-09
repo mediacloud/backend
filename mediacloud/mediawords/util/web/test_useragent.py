@@ -465,7 +465,7 @@ class TestUserAgentTestCase(TestCase):
         """Request's as_string() method."""
         # FIXME move to a separate unit test file
 
-        url = 'http://foo.com/bar'
+        url = 'http://foo.com/bar?a=b'
         username = 'username'
         password = 'password'
 
@@ -478,7 +478,7 @@ class TestUserAgentTestCase(TestCase):
         assert re.search(
             pattern=r"""
                 ^
-                FOO\s/bar\sHTTP/1\.0\r\n
+                FOO\s/bar\?a=b\sHTTP/1\.0\r\n
                 Host:\sfoo\.com\r\n
                 Authorization:\sBasic\s.+?\r\n
                 X-Media-Cloud:\smediacloud\r\n

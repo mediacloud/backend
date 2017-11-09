@@ -59,6 +59,9 @@ class Request(object):
         """Return something similar to what will be sent to the server for this request."""
 
         uri = furl(self.url())
+        path_query = str(uri.path)
+        if len(str(uri.query)):
+            path_query += "?" + str(uri.query)
 
         http_auth = ""
         if self.auth_username() and self.auth_password():
@@ -72,7 +75,7 @@ class Request(object):
             headers = headers + "%s: %s\r\n" % (key, value,)
 
         return (
-                   "%(method)s %(path)s HTTP/1.0\r\n"
+                   "%(method)s %(path_query)s HTTP/1.0\r\n"
                    "Host: %(host)s\r\n"
                    "%(http_auth)s"
                    "%(headers)s"
@@ -80,7 +83,7 @@ class Request(object):
                    "%(data)s"
                ) % {
                    "method": self.method(),
-                   "path": str(uri.path),
+                   "path_query": path_query,
                    "host": uri.host,
                    "http_auth": http_auth,
                    "headers": headers,
