@@ -259,15 +259,44 @@ class HashServer(object):
                 finally:
                     self._active_pids_lock.release()
 
+        @staticmethod
+        def __normalize_path(path: str) -> str:
+            """Normalize URL path, e.g. convert "//xx/../page to "/page."""
+            if path is None:
+                raise McHashServerException("Path is None.")
+            if len(path) == 0:
+                raise McHashServerException("Path is empty.")
+
+            # Strip query string
+            path = str(furl('http://localhost/' + path).path)
+            path = os.path.normpath(path)
+            path = os.path.realpath(path)
+
+            if len(path) == 0:
+                raise McHashServerException("Path is empty after normalization; original path: %s" % path)
+
+            return path
+
         def __handle_request(self):
             """Handle GET or POST request."""
 
-            # Normalize path (might look like "//xx/../page", we want "/page")
-            path = os.path.realpath(os.path.normpath(str(furl(self.path).path)))
-            if len(path) == 0:
-                raise McHashServerException("Path is empty after normalization; original path: %s" % self.path)
+            path = self.__normalize_path(self.path)
 
-            if path not in self._pages:
+            # Try "/path" and "/path/"
+            paths_to_try = [path]
+            if path.endswith('/'):
+                paths_to_try.append(path[:-1])
+            else:
+                paths_to_try.append(path + '/')
+
+            page = None
+            for path_to_try in paths_to_try:
+                if path_to_try in self._pages:
+                    page = self._pages[path_to_try]
+                    path = path_to_try
+                    break
+
+            if page is None:
                 self.send_response(HTTPStatus.NOT_FOUND)
                 self.send_header("Content-Type", "text/plain")
                 self.end_headers()

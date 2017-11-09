@@ -85,6 +85,21 @@ def test_http_hash_server():
     assert str(requests.get('%s/localhost' % base_url).text) == 'home'
     assert str(requests.get('%s/127-foo' % base_url).text) == 'foo'
 
+    # Path normalization
+    assert str(requests.get('%s//' % base_url).text) == 'home'
+    assert str(requests.get('%s///' % base_url).text) == 'home'
+    assert str(requests.get('%s/something/../' % base_url).text) == 'home'
+    assert str(requests.get('%s/something/..//' % base_url).text) == 'home'
+    assert str(requests.get('%s/something/..///' % base_url).text) == 'home'
+    assert str(requests.get('%s/foo/' % base_url).text) == 'foo'
+    assert str(requests.get('%s/foo//' % base_url).text) == 'foo'
+    assert str(requests.get('%s/foo///' % base_url).text) == 'foo'
+    assert str(requests.get('%s/foo' % base_url).text) == 'foo'
+    assert str(requests.get('%s/bar/../foo' % base_url).text) == 'foo'
+    assert str(requests.get('%s/bar/../foo/' % base_url).text) == 'foo'
+    assert str(requests.get('%s/bar/../foo//' % base_url).text) == 'foo'
+    assert str(requests.get('%s/bar/../foo///' % base_url).text) == 'foo'
+
     response_json = requests.get('%s/callback?a=b&c=d' % base_url, cookies={'cookie_name': 'cookie_value'}).json()
     assert response_json == {
         'name': 'callback',
