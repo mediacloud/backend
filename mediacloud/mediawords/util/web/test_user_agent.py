@@ -18,7 +18,7 @@ from mediawords.util.network import random_unused_port
 from mediawords.util.text import random_string
 from mediawords.util.url import urls_are_equal
 from mediawords.util.web.ua.request import Request
-from mediawords.util.web.useragent import UserAgent, McUserAgentException, McGetFollowHTTPHTMLRedirectsException
+from mediawords.util.web.user_agent import UserAgent, McUserAgentException, McGetFollowHTTPHTMLRedirectsException
 
 log = create_logger(__name__)
 

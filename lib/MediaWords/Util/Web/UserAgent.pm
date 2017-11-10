@@ -23,7 +23,7 @@ use MediaWords::Util::Web::UserAgent::Response;
     use Modern::Perl "2015";
     use MediaWords::CommonLibs;    # set PYTHONPATH too
 
-    import_python_module( __PACKAGE__, 'mediawords.util.web.useragent' );
+    import_python_module( __PACKAGE__, 'mediawords.util.web.user_agent' );
 
     1;
 }
