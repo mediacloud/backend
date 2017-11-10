@@ -620,7 +620,12 @@ class UserAgent(object):
             fcntl.flock(f, fcntl.LOCK_UN)
 
         # Processes from various users (web service, workers, ...) will want to write to the same file
-        os.chmod(http_request_log_path, 0o666)
+        try:
+            os.chmod(http_request_log_path, 0o666)
+        except PermissionError as ex:
+            # Web server process might attempt at chmodding the file without the appropriate permissions
+            log.debug("Failed to chmod %s: %s" % (http_request_log_path, str(ex),))
+            pass
 
     def request(self, request: Request) -> Response:
         """Execute a request, return a response.
