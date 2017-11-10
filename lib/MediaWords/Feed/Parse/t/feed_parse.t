@@ -10,6 +10,7 @@ use Test::More tests => 42;
 use_ok( 'MediaWords::Feed::Parse' );
 
 use Data::Dumper;
+use MediaWords::Test::URLs;
 
 sub test_empty_feed()
 {
@@ -78,11 +79,11 @@ sub _test_feed_contents($)
     # publish_date_sql() is dependent on machine's timezone (which shouldn't be the case, but it is)
     like( $second_item->publish_date_sql(), qr/2016-12-1\d \d\d:\d\d:\d\d/ );
 
-    is( $second_item->guid(),                        'http://www.example.com/second_item.html' );
-    is( $second_item->guid_if_valid(),               'http://www.example.com/second_item.html' );
-    is( $second_item->description(),                 'This is a second item.' );
-    is( $second_item->get( 'segment:metadata' ),     '123.45' );
-    is( $second_item->get( 'segment:metadata@url' ), 'http://www.example.com/second_item.jpg' );
+    is( $second_item->guid(),                    'http://www.example.com/second_item.html' );
+    is( $second_item->guid_if_valid(),           'http://www.example.com/second_item.html' );
+    is( $second_item->description(),             'This is a second item.' );
+    is( $second_item->get( 'segment:metadata' ), '123.45' );
+    is_urls( $second_item->get( 'segment:metadata@url' ), 'http://www.example.com/second_item.jpg' );
 }
 
 sub test_rss_feed()

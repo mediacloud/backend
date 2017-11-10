@@ -50,13 +50,13 @@ postgresql_server:
 core_services:
 
   hosts:
-    "localhost"
+    "localhost":
     "mcsample":
-    # "test"
+    # "test":
 
 # Hosts that should be running Solr shards
 solr_servers:
 
   hosts:
-    "mcsample"
-    # "test"
+    "mcsample":
+    # "test":

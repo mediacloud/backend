@@ -364,6 +364,12 @@ mediawords:
     user_agent: "mediawords bot (http://cyber.law.harvard.edu)"
     owner: "mediawords@cyber.law.harvard.edu"
 
+    ### Domains that might need HTTP auth credentials to work
+    #crawler_authenticated_domains:
+        #- domain: "ap.org"
+        #  user: "username"
+        #  password: "password"
+
     ### Uncomment one or more storage methods to store downloads in.
     ### Default is "postgresql" which stores downloads directly in the
     ### PostgreSQL database.
@@ -415,10 +421,13 @@ mediawords:
     # downloads id under which to strip all non-ascii characters
     #ascii_hack_downloads_id: 123456789
 
-    # settings for mediawords_web_store.pl script that does in process parallel fetching
-    # web_store_num_parallel: 10
-    # web_store_timeout: 90
-    # web_store_per_domain_timeout: 1
+    # settings for parallel_get()
+    web_store_num_parallel: 10
+    web_store_timeout: 90
+    web_store_per_domain_timeout: 1
+
+    # Fail all HTTP requests that match the following pattern
+    # blacklist_url_pattern: "^https?://[^/]*some-website.com"
 
     # tablespace in which to create temporary tables -- defaults to the postgres default
     # temporary_table_tablespace: temporary_tablespace
