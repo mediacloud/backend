@@ -150,11 +150,10 @@ HTML
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
-
-    cmp_bag( MediaWords::Feed::Scrape::_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
-        $expected_result, 'Basic test' );
-
+    my $actual_result = MediaWords::Feed::Scrape::_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } );
     $hs->stop();
+
+    cmp_bag( $actual_result, $expected_result, 'Basic test' );
 }
 
 # Basic RSS feed URL scraping
@@ -197,11 +196,10 @@ HTML
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
-
     my $actual_result = MediaWords::Feed::Scrape::_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } );
-    cmp_bag( $actual_result, $expected_result, 'Basic test - UTF-8 title' );
-
     $hs->stop();
+
+    cmp_bag( $actual_result, $expected_result, 'Basic test - UTF-8 title' );
 }
 
 # Basic RSS feed (entities in URLs)
@@ -241,11 +239,10 @@ HTML
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
-
-    cmp_bag( MediaWords::Feed::Scrape::_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
-        $expected_result, 'Basic test - entities in URLs' );
-
+    my $actual_result = MediaWords::Feed::Scrape::_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } );
     $hs->stop();
+
+    cmp_bag( $actual_result, $expected_result, 'Basic test - entities in URLs' );
 }
 
 # Basic RSS feed (short URLs)
@@ -285,11 +282,10 @@ HTML
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
-
-    cmp_bag( MediaWords::Feed::Scrape::_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
-        $expected_result, 'Basic test - short URLs' );
-
+    my $actual_result = MediaWords::Feed::Scrape::_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } );
     $hs->stop();
+
+    cmp_bag( $actual_result, $expected_result, 'Basic test - short URLs' );
 }
 
 # Basic RSS feed URL scraping (no RSS feed titles)
@@ -329,11 +325,10 @@ HTML
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
-
-    cmp_bag( MediaWords::Feed::Scrape::_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
-        $expected_result, 'Basic test - no RSS titles' );
-
+    my $actual_result = MediaWords::Feed::Scrape::_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } );
     $hs->stop();
+
+    cmp_bag( $actual_result, $expected_result, 'Basic test - no RSS titles' );
 }
 
 # More complex example (more HTML tags, HTML entities; from dagbladet.se)
@@ -526,11 +521,10 @@ HTML
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
-
-    cmp_bag( MediaWords::Feed::Scrape::_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
-        $expected_result, 'Dagbladet.se test' );
-
+    my $actual_result = MediaWords::Feed::Scrape::_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } );
     $hs->stop();
+
+    cmp_bag( $actual_result, $expected_result, 'Dagbladet.se test' );
 }
 
 # More complex example (relative URLs to RSS feeds; a lot of RSS feeds in a single line; from gp.se)
@@ -890,11 +884,10 @@ sub test_gp_se()
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
-
-    cmp_bag( MediaWords::Feed::Scrape::_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } ),
-        $expected_result, 'GP.se test' );
-
+    my $actual_result = MediaWords::Feed::Scrape::_get_main_feed_urls_from_html( $TEST_HTTP_SERVER_URL, $pages->{ '/' } );
     $hs->stop();
+
+    cmp_bag( $actual_result, $expected_result, 'GP.se test' );
 }
 
 sub test_rss_simple_website()
@@ -954,11 +947,10 @@ EOF
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
-    my $feed_links = MediaWords::Feed::Scrape::get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1 );
-
+    my $actual_links = MediaWords::Feed::Scrape::get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1 );
     $hs->stop();
 
-    cmp_bag( $feed_links, $expected_links, 'test_rss_simple_website' );
+    cmp_bag( $actual_links, $expected_links, 'test_rss_simple_website' );
 }
 
 sub test_rss_immediate_redirect_via_http_header()
@@ -1182,10 +1174,9 @@ HTML
     ];
 
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+
     $hs->start();
-
     my $feed_links = MediaWords::Feed::Scrape::get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1 );
-
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_base_href' );
@@ -1247,10 +1238,9 @@ HTML
     ];
 
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+
     $hs->start();
-
     my $feed_links = MediaWords::Feed::Scrape::get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1 );
-
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_unlinked_urls' );
@@ -1312,10 +1302,9 @@ HTML
     ];
 
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+
     $hs->start();
-
     my $feed_links = MediaWords::Feed::Scrape::get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1 );
-
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_image_link' );
@@ -1364,10 +1353,9 @@ HTML
     my $medium = { url => $TEST_HTTP_SERVER_URL };
 
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+
     $hs->start();
-
     my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
-
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_external_feeds feed_links' );
@@ -1429,10 +1417,9 @@ HTML
     my $medium = { url => $TEST_HTTP_SERVER_URL };
 
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+
     $hs->start();
-
     my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
-
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_get_feed_links_and_need_to_moderate feed_links' );
@@ -1514,10 +1501,9 @@ XML
     my $medium = { url => $TEST_HTTP_SERVER_URL };
 
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+
     $hs->start();
-
     my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
-
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_feeds_with_common_prefix feed_links' );
@@ -1575,10 +1561,9 @@ HTML
     my $medium = { url => $TEST_HTTP_SERVER_URL };
 
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+
     $hs->start();
-
     my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
-
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_feed_aggregator_urls feed_links' );
@@ -1615,10 +1600,9 @@ HTML
     my $expected_need_to_moderate = 0;
 
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+
     $hs->start();
-
     my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
-
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_web_page_feed feed_links' );

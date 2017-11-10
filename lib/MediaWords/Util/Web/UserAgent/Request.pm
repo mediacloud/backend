@@ -1,7 +1,7 @@
 package MediaWords::Util::Web::UserAgent::Request;
 
 #
-# Wrapper around HTTP::Request
+# HTTP request
 #
 
 use strict;
@@ -10,80 +10,51 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use Data::Dumper;
-use HTTP::Request;
+use Encode;
 use URI::Escape;
+
+{
+
+    package MediaWords::Util::Web::UserAgent::Request::Proxy;
+
+    use strict;
+    use warnings;
+
+    use Modern::Perl "2015";
+    use MediaWords::CommonLibs;    # set PYTHONPATH too
+
+    import_python_module( __PACKAGE__, 'mediawords.util.web.ua.request' );
+
+    1;
+}
 
 sub new($$$)
 {
-    my ( $class, $method, $uri ) = @_;
+    my ( $class, $method, $url ) = @_;
 
     my $self = {};
     bless $self, $class;
 
-    if ( $uri )
-    {
-        if ( ref( $uri ) eq 'URI' )
-        {
-            LOGCONFESS "Please pass URL as string, not as URI object.";
-        }
-    }
-
-    $self->{ _request } = HTTP::Request->new( $method, $uri );
+    $self->{ _request } = MediaWords::Util::Web::UserAgent::Request::Proxy::Request->new(
+        $method,    #
+        $url
+    );
 
     return $self;
 }
 
-# Used internally to wrap HTTP::Request into this class
-sub new_from_http_request($$)
+sub from_python_request($$)
 {
-    my ( $class, $request ) = @_;
+    my ( $class, $python_request ) = @_;
 
-    unless ( ref( $request ) eq 'HTTP::Request' )
+    if ( $python_request )
     {
-        LOGCONFESS "Response is not HTTP::Request: " . Dumper( $request );
-    }
+        my $self = {};
+        bless $self, $class;
 
-    my $self = {};
-    bless $self, $class;
+        $self->{ _request } = $python_request;
 
-    $self->{ _request } = $request;
-
-    return $self;
-}
-
-# Used internally to return underlying HTTP::Request object
-sub http_request($)
-{
-    my ( $self ) = @_;
-    return $self->{ _request };
-}
-
-# method() getter
-sub method($)
-{
-    my ( $self, $method ) = @_;
-    return $self->{ _request }->method();
-}
-
-# method() setter
-sub set_method($$)
-{
-    my ( $self, $method ) = @_;
-    $self->{ _request }->method( $method );
-}
-
-# uri() is not aliased because it returns URI object which we won't reimplement in Web.pm
-
-# url() getter
-sub url($)
-{
-    my ( $self ) = @_;
-
-    my $uri = $self->{ _request }->uri();
-    if ( defined $uri )
-    {
-        return $uri->as_string;
+        return $self;
     }
     else
     {
@@ -91,44 +62,69 @@ sub url($)
     }
 }
 
-# url() setter
+sub python_request()
+{
+    my ( $self ) = @_;
+
+    return $self->{ _request };
+}
+
+sub method($)
+{
+    my ( $self, $method ) = @_;
+
+    return $self->{ _request }->method();
+}
+
+sub set_method($$)
+{
+    my ( $self, $method ) = @_;
+
+    $self->{ _request }->set_method( $method );
+}
+
+sub url($)
+{
+    my ( $self ) = @_;
+
+    return $self->{ _request }->url();
+}
+
 sub set_url($$)
 {
     my ( $self, $url ) = @_;
 
-    my $uri = URI->new( $url );
-    $self->{ _request }->uri( $uri );
+    $self->{ _request }->set_url( $url );
 }
 
-# header() getter
 sub header($$)
 {
     my ( $self, $field ) = @_;
+
     return $self->{ _request }->header( $field );
 }
 
-# header() setter
 sub set_header($$$)
 {
     my ( $self, $field, $value ) = @_;
-    $self->{ _request }->header( $field, $value );
+
+    $self->{ _request }->set_header( $field, $value );
 }
 
-# content_type() getter
 sub content_type($)
 {
     my ( $self ) = @_;
+
     return $self->{ _request }->content_type();
 }
 
-# content_type() setter
 sub set_content_type($$)
 {
     my ( $self, $content_type ) = @_;
-    $self->{ _request }->content_type( $content_type );
+
+    $self->{ _request }->set_content_type( $content_type );
 }
 
-# content() getter
 sub content($)
 {
     my ( $self ) = @_;
@@ -136,42 +132,54 @@ sub content($)
     return $self->{ _request }->content();
 }
 
-# content() setter
-#
-# If it's an hashref, URL-encode it first.
 sub set_content($$)
 {
     my ( $self, $content ) = @_;
 
+    $self->{ _request }->set_content( $content );
+}
+
+sub set_content_utf8($$)
+{
+    my ( $self, $content ) = @_;
+
+    # All strings in Python are Unicode already, so we'll need to do this
+    # encoding step only for Perl
     if ( ref( $content ) eq ref( {} ) )
     {
 
-        my @pairs;
-        for my $key ( keys %{ $content } )
+        my $post_items = [];
+        for my $key ( keys( %{ $content } ) )
         {
-            $key //= '';
-            my $value = $content->{ $key } // '';
-            push( @pairs, join( '=', map { uri_escape( $_ ) } $key, $value ) );
+            if ( defined( $content->{ $key } ) )
+            {
+                my $enc_key  = uri_escape( encode_utf8( $key ) );
+                my $enc_data = uri_escape( encode_utf8( $content->{ $key } ) );
+                push( @{ $post_items }, "$enc_key=$enc_data" );
+            }
         }
-        $content = join( '&', @pairs );
+
+        $content = join( '&', @{ $post_items } );
+    }
+    else
+    {
+        $content = encode_utf8( $content );
     }
 
-    $self->{ _request }->content( $content );
+    $self->{ _request }->set_content( $content );
 }
 
-# No authorization_basic() getter
-
-# authorization_basic() setter
 sub set_authorization_basic($$$)
 {
     my ( $self, $username, $password ) = @_;
-    $self->{ _request }->authorization_basic( $username, $password );
+
+    $self->{ _request }->set_authorization_basic( $username, $password );
 }
 
-# Alias for as_string()
 sub as_string($)
 {
     my ( $self ) = @_;
+
     return $self->{ _request }->as_string();
 }
 

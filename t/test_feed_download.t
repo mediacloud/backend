@@ -179,6 +179,15 @@ sub main
 
     my ( $dump ) = @ARGV;
 
+    # Errors might want to print out UTF-8 characters
+    binmode( STDERR, ':utf8' );
+    binmode( STDOUT, ':utf8' );
+    my $builder = Test::More->builder;
+
+    binmode $builder->output,         ":utf8";
+    binmode $builder->failure_output, ":utf8";
+    binmode $builder->todo_output,    ":utf8";
+
     MediaWords::Test::DB::test_on_test_database(
         sub {
             use Encode;

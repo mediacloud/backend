@@ -142,10 +142,8 @@ sub cliff : Local
         push( @{ $json_items }, $json_item );
     }
 
-    my $json = MediaWords::Util::JSON::encode_json( $json_items, 1 );
-
-    # Response might contain multibyte characters
-    $json = encode( 'utf-8', $json );
+    Readonly my $json_pretty => 1;
+    my $json = MediaWords::Util::JSON::encode_json( $json_items, $json_pretty );
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
     $c->response->content_length( bytes::length( $json ) );
@@ -202,10 +200,8 @@ sub nytlabels : Local
         push( @{ $json_items }, $json_item );
     }
 
-    my $json = MediaWords::Util::JSON::encode_json( $json_items, 1 );
-
-    # Response might contain multibyte characters
-    $json = encode( 'utf-8', $json );
+    Readonly my $json_pretty => 1;
+    my $json = MediaWords::Util::JSON::encode_json( $json_items, $json_pretty );
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
     $c->response->content_length( bytes::length( $json ) );
@@ -318,8 +314,7 @@ sub fetch_bitly_clicks : Local
     }
 
     Readonly my $json_pretty => 1;
-    Readonly my $json_utf8   => 1;
-    my $json = MediaWords::Util::JSON::encode_json( $response, $json_pretty, $json_utf8 );
+    my $json = MediaWords::Util::JSON::encode_json( $response, $json_pretty );
 
     $c->response->status( $http_status );
     $c->response->content_type( 'application/json; charset=UTF-8' );

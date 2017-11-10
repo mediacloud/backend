@@ -5,13 +5,6 @@ use warnings;
 
 # test MediaWords::Solr::WordCounts
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-    use lib $FindBin::Bin;
-}
-
 use MediaWords::CommonLibs;
 
 use English '-no_match_vars';

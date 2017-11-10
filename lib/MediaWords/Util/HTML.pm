@@ -4,16 +4,9 @@ use strict;
 use warnings;
 
 use Modern::Perl "2015";
-use MediaWords::CommonLibs;
+use MediaWords::CommonLibs;    # set PYTHONPATH too
 
-# various functions for manipulating html
-
-require Exporter;
-
-our @ISA    = qw(Exporter);
-our @EXPORT = qw(html_strip);
-
-# various functions for editing feed and medium tags
+import_python_module( __PACKAGE__, 'mediawords.util.html' );
 
 use HTML::Entities qw( decode_entities  );
 use Encode;
@@ -21,6 +14,7 @@ use List::Util qw(min);
 use Memoize;
 use Tie::Cache;
 use Text::Trim;
+use HTML::TreeBuilder::LibXML;
 
 my @_block_level_element_tags =
   qw/h1 h2 h3 h4 h5 h6 p div dl dt dd ol ul li dir menu address blockquote center div hr ins noscript pre/;

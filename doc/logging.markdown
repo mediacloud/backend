@@ -75,16 +75,6 @@ TRACE( sub {
 } )
 ```
 
-To set the category of a script or test to something other than `main`, use a `package` statement in the script.
-For example the following package statement at the top of `script/mediawords_web_store.pl` causes all log statements
-in the script to be logged under the category `script.mediawords_web_store`.
-
-```perl
-package script::mediawords_web_store;
-```
-
-For convention, use a `script::*` package for scripts and a `t::*` package for tests.
-
 Use the following guidelines when deciding which logging level to use:
 
 * `TRACE()` - detailed trace as low as line by line level, very noisy and generally useful only if a specific bit of code is giving trouble

@@ -487,7 +487,7 @@ sub _call_extractor_on_html($)
     my $content_ref = shift;
 
     my $extracted_html = MediaWords::Util::ExtractText::extract_article_from_html( $$content_ref );
-    my $extracted_text = html_strip( $extracted_html );
+    my $extracted_text = MediaWords::Util::HTML::html_strip( $extracted_html );
 
     return {
         'extracted_html' => $extracted_html,

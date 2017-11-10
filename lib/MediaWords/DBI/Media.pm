@@ -140,7 +140,7 @@ sub _get_url_medium_index_from_url
     for ( my $i = 0 ; $i < @{ $url_media } ; $i++ )
     {
         TRACE "'$url_media->[ $i ]->{ url }' eq '$url'";
-        if ( URI->new( $url_media->[ $i ]->{ url } ) eq URI->new( $url ) )
+        if ( MediaWords::Util::URL::urls_are_equal( $url_media->[ $i ]->{ url }, $url ) )
         {
             return $i;
         }

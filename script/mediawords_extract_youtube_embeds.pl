@@ -15,6 +15,7 @@ use Encode;
 
 use MediaWords::DB;
 use MediaWords::TM::Mine;
+use MediaWords::Util::URL;
 
 sub extract_links_for_story
 {
@@ -31,7 +32,7 @@ sub extract_links_for_story
     INFO "[ $story->{ stories_id } ] $story->{ url }:";
     for my $link ( @{ $youtube_links } )
     {
-        next if ( $link->{ url } eq $story->{ url } );
+        next if ( MediaWords::Util::URL::urls_are_equal( $link->{ url }, $story->{ url } ) );
 
         my $link_exists = $db->query(
             "select * from topic_links where stories_id = ? and url = ? and topics_id = ?",

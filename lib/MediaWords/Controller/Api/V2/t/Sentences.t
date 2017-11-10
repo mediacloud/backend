@@ -22,7 +22,7 @@ sub test_sentences_count($)
 {
     my ( $db ) = @_;
 
-    my $label = "setences/count";
+    my $label = "sentences/count";
 
     my $stories = $db->query( "select * from stories order by stories_id asc limit 10" )->hashes;
     my $stories_ids = [ map { $_->{ stories_id } } @{ $stories } ];
@@ -42,7 +42,7 @@ sub test_sentences_field_count($)
 {
     my ( $db ) = @_;
 
-    my $label = "setences/field_count";
+    my $label = "sentences/field_count";
 
     my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "$label:$label" );
 
@@ -74,7 +74,7 @@ sub test_sentences_list($)
 {
     my ( $db ) = @_;
 
-    my $label = "setences/list";
+    my $label = "sentences/list";
 
     my $stories     = $db->query( "select * from stories order by stories_id asc limit 10" )->hashes;
     my $stories_ids = [ map { $_->{ stories_id } } @{ $stories } ];

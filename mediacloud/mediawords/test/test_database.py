@@ -1,7 +1,8 @@
 from unittest import TestCase
 from mediawords.db.handler import DatabaseHandler
-from mediawords.util.config import \
-    get_config as py_get_config  # MC_REWRITE_TO_PYTHON: rename back to get_config()
+from mediawords.util.config import (
+    get_config as py_get_config,  # MC_REWRITE_TO_PYTHON: rename back to get_config()
+)
 from mediawords.util.log import create_logger
 
 log = create_logger(__name__)

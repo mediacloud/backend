@@ -17,8 +17,11 @@ from mediawords.db.schema.version import schema_version_from_lines
 from mediawords.util.config import get_config as py_get_config  # MC_REWRITE_TO_PYTHON: rename back to get_config()
 from mediawords.util.log import create_logger
 from mediawords.util.paths import mc_sql_schema_path
-from mediawords.util.perl import convert_dbd_pg_arguments_to_psycopg2_format, decode_object_from_bytes_if_needed, \
-    McDecodeObjectFromBytesIfNeededException
+from mediawords.util.perl import (
+    convert_dbd_pg_arguments_to_psycopg2_format,
+    decode_object_from_bytes_if_needed,
+    McDecodeObjectFromBytesIfNeededException,
+)
 from mediawords.util.text import random_string
 
 log = create_logger(__name__)

@@ -189,7 +189,11 @@ sub get_test_sites()
         {
             my $linked_page_id = int( rand( scalar( @{ $all_pages } ) ) );
             my $linked_page    = $all_pages->[ $linked_page_id ];
-            push( @{ $page->{ links } }, $linked_page ) unless ( $page->{ url } eq $linked_page->{ url } );
+
+            unless ( MediaWords::Util::URL::urls_are_equal( $page->{ url }, $linked_page->{ url } ) )
+            {
+                push( @{ $page->{ links } }, $linked_page );
+            }
         }
     }
 

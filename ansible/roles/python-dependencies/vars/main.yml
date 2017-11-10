@@ -16,6 +16,9 @@ python_dependencies:
     # Unit test coverage
     - { name: "coverage", version: "4.4.1" }
 
+    # URL manipulation
+    - { name: "furl", version: "1.0.1" }
+
     # Stemming Hausa words
     - { name: "hausastemmer", version: "1.0" }
 
@@ -24,6 +27,9 @@ python_dependencies:
 
     # Parsing email templates
     - { name: "Jinja2", version: "2.9.6" }
+
+    # XML manipulations, HTML parsing
+    - { name: "lxml", version: "4.1.0" }
 
     # Japanese language tokenizer, stemmer, etc.
     - { name: "mecab-python3", version: "0.7" }
@@ -61,8 +67,17 @@ python_dependencies:
     # Making HTTP requests
     - { name: "requests", version: "2.18.4" }
 
+    # Asynchronous (parallell / concurrent) HTTP requests
+    - { name: "requests-futures", version: "0.9.7" }
+
     # math package for forceatlas implementation
     - { name: "scipy", version: "0.19.1" }
 
     # Normalizing URLs
     - { name: "url_normalize", version: "1.3.3" }
+
+    # Low level HTTP requests (with SSL certificate verification)
+    - { name: "urllib3[secure]", version: "1.22" }
+
+    # URL, email, etc. validators
+    - { name: "validators", version: "0.12.0" }

@@ -13,24 +13,6 @@ package script::mediawords_upgrade_db;
 use strict;
 use warnings;
 
-BEGIN
-{
-    my $source_rt;
-
-    BEGIN
-    {
-        use File::Basename;
-        use File::Spec;
-        use Cwd qw( realpath );
-
-        my $file_dir = dirname( __FILE__ );
-
-        $source_rt = "$file_dir" . "/..";
-        $source_rt = realpath( File::Spec->canonpath( $source_rt ) );
-    }
-    use lib "$source_rt/lib";
-}
-
 use MediaWords::DB;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;

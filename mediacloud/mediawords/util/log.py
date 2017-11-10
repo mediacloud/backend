@@ -31,7 +31,9 @@ class Logger(object):
 
         self.__l = logging.getLogger(name)
         if not self.__l.handlers:
-            formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(module)s - %(message)s')
+            formatter = logging.Formatter(
+                fmt='%(asctime)s %(levelname)s %(name)s [%(process)d/%(threadName)s]: %(message)s'
+            )
 
             handler = logging.StreamHandler()
             handler.setFormatter(formatter)

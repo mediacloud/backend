@@ -346,7 +346,36 @@ sub provide_downloads
 {
     my ( $self ) = @_;
 
-    sleep( 1 );
+    # FIXME I wish I could explain what this sleep() from a commit in 2010 is for.
+    #
+    # "My guess is that this is related to the general awkwardness of testing
+    # the multi-process crawler. The provider works on schedules of periodic
+    # polling, so it will at times end up waiting for ten minutes until some
+    # queued download is provided to the fetchers."
+    #
+    # "This works well for normal operation of the crawler but breaks testing
+    # because we don't want to wait for the crawler to find some queued
+    # download ten minutes to test whether it has been processed correctly.
+    # There are some special configurations I added to the crawler to deal with
+    # some of these issues, but my guess is that in other places I added some
+    # brief waiting to make things work without special configuration."
+    #
+    # "The path of least immediate resistance is just to increase that sleep to
+    # the minimum value to make the crawler tests pass consistently. There will
+    # be some small impact on crawler performance in production because the
+    # provider is effectively a single threaded bottleneck on the whole crawler
+    # pool, so it's worth a little fiddling to make the wait as small as
+    # possible to make the tests pass consistently."
+    #
+    # It appears that the provider is sleep()ing while waiting for the "engine"
+    # to process a single download, and if the queue is not yet finished at the
+    # end of the sleep(), provider will refuse to provide any downloads.
+    #
+    # In its original iteration, provide_downloads() was sleeping for 1 second
+    # before continuing, but UserAgent()'s rewrite made fetch_download()
+    # + handle_download() slightly slower, so now the sleep() period has been
+    # slightly increased.
+    sleep( 5 );
 
     $self->_setup();
 
