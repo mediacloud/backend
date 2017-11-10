@@ -132,7 +132,7 @@ def normalize_url(url: str) -> str:
     if len(url) == 0:
         raise McNormalizeURLException("URL is empty")
 
-    log.info("normalize_url: " + url)
+    log.debug("normalize_url: " + url)
 
     url = fix_common_url_mistakes(url)
     url = canonical_url(url)
