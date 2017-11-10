@@ -13,6 +13,7 @@ use Moose;
 use namespace::autoclean;
 use List::Compare;
 use HTTP::Status qw(:constants);
+use Encode;
 
 =head1 NAME
 
@@ -39,7 +40,12 @@ BEGIN { extends 'Catalyst::Controller::REST' }
 sub _encode_json($$$)
 {
     my ( $object, $controller, $c ) = @_;
-    return MediaWords::Util::JSON::encode_json( $object );
+    my $json = MediaWords::Util::JSON::encode_json( $object );
+
+    # Catalyst expects bytes
+    $json = encode_utf8( $json );
+
+    return $json;
 }
 
 sub _decode_json($$$)

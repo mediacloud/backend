@@ -186,7 +186,7 @@ sub _request($$)
 
     my $ua = MediaWords::Util::Web::UserAgent->new();
     $ua->set_timing( [ 1, 2, 4, 8 ] );
-    $ua->set_timeout( $_bitly_timeout + 0 );
+    $ua->set_timeout( $_bitly_timeout );
     $ua->set_max_size( undef );
 
     my $response = $ua->get( $url );
