@@ -222,15 +222,6 @@ sub _annotate_text($$)
         die "Annotator returned nothing for text: " . $text;
     }
 
-    # Decode JSON response
-    DEBUG "Decoding response from UTF-8...";
-    eval { $results_string = Encode::decode_utf8( $results_string, Encode::FB_CROAK ); };
-    if ( $@ )
-    {
-        fatal_error( "Unable to decode string '$results_string': $@" );
-    }
-    DEBUG "Done decoding response from UTF-8.";
-
     # Parse resulting JSON
     DEBUG "Parsing response's JSON...";
     my $results_hashref;
