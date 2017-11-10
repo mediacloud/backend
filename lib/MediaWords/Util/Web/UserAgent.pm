@@ -106,6 +106,19 @@ sub set_timing($$)
 {
     my ( $self, $timing ) = @_;
 
+    if ( defined $timing )
+    {
+        if ( ref( $timing ) eq ref( [] ) )
+        {
+            my $int_timing = [];
+            foreach my $t ( @{ $timing } )
+            {
+                push( @{ $int_timing }, $t + 0 );
+            }
+            $timing = $int_timing;
+        }
+    }
+
     $self->{ _ua }->set_timing( $timing );
 }
 
@@ -119,6 +132,11 @@ sub timeout($)
 sub set_timeout($$)
 {
     my ( $self, $timeout ) = @_;
+
+    if ( defined $timeout )
+    {
+        $timeout = $timeout + 0;
+    }
 
     $self->{ _ua }->set_timeout( $timeout );
 }
@@ -134,6 +152,11 @@ sub set_max_redirect($$)
 {
     my ( $self, $max_redirect ) = @_;
 
+    if ( defined $max_redirect )
+    {
+        $max_redirect = $max_redirect + 0;
+    }
+
     $self->{ _ua }->set_max_redirect( $max_redirect );
 }
 
@@ -147,6 +170,11 @@ sub max_size($)
 sub set_max_size($$)
 {
     my ( $self, $max_size ) = @_;
+
+    if ( defined $max_size )
+    {
+        $max_size = $max_size + 0;
+    }
 
     $self->{ _ua }->set_max_size( $max_size );
 }

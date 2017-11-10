@@ -311,11 +311,11 @@ sub query_encoded_json($$;$)
 
     my $ua = MediaWords::Util::Web::UserAgent->new();
 
-    $ua->set_timeout( $QUERY_HTTP_TIMEOUT );
+    $ua->set_timeout( $QUERY_HTTP_TIMEOUT + 0 );
     $ua->set_max_size( undef );
 
     # Remediate CVE-2017-12629
-    if ( $params->{ q })
+    if ( $params->{ q } )
     {
         if ( $params->{ q } =~ /xmlparser/i )
         {
