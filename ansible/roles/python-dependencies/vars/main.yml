@@ -78,6 +78,3 @@ python_dependencies:
 
     # Low level HTTP requests (with SSL certificate verification)
     - { name: "urllib3[secure]", version: "1.22" }
-
-    # URL, email, etc. validators
-    - { name: "validators", version: "0.12.0" }
