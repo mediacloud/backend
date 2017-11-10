@@ -147,7 +147,7 @@ sub _annotate_text($$)
     # Make a request
     my $ua = MediaWords::Util::Web::UserAgent->new();
     $ua->set_timing( [ 1, 2, 4, 8 ] );
-    $ua->set_timeout( $ANNOTATOR_HTTP_TIMEOUT + 0 );
+    $ua->set_timeout( $ANNOTATOR_HTTP_TIMEOUT );
     $ua->set_max_size( undef );
 
     my $request;
