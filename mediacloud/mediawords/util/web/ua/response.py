@@ -99,7 +99,7 @@ class Response(object):
         self.__code = int(code)
 
     def message(self) -> str:
-        """Return HTTP status message, e.g. "OK"."""
+        """Return HTTP status message, e.g. "OK" or an empty string."""
         return self.__message
 
     def __set_message(self, message: str) -> None:
@@ -107,8 +107,6 @@ class Response(object):
         message = decode_object_from_bytes_if_needed(message)
         if message is None:
             raise McUserAgentResponseException("HTTP status message is None.")
-        if len(message) == 0:
-            raise McUserAgentResponseException("HTTP status message is empty.")
         self.__message = message
 
     def headers(self) -> Dict[str, str]:
