@@ -546,13 +546,23 @@ def urls_are_equal(url1: str, url2: str) -> bool:
     if len(url2) == 0:
         log.warning("URL #2 is empty.")
 
+    if not (is_http_url(url1) and is_http_url(url2)):
+        log.warning("One or both of URLs is not a HTTP URL; URL #1: %s; URL #2: %s" % (url1, url2,))
+        return False
+
     url1 = fix_common_url_mistakes(url1)
     url2 = fix_common_url_mistakes(url2)
 
     try:
         url1 = canonical_url(url1)
         url2 = canonical_url(url2)
-    except McCanonicalURLException:
+    except McCanonicalURLException as ex:
+        log.warning(
+            "Unable to get canonical URL for one or both of URLs: %(exception)s; URL #1: %(url1)s; URL #2: %(url2)s" % {
+                'exception': str(ex),
+                'url1': str(url1),
+                'url2': str(url2),
+            })
         return False
 
     return url1 == url2

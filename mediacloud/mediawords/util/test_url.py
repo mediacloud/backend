@@ -45,6 +45,10 @@ def test_is_http_url():
     assert mc_url.is_http_url('http://cyber.law.harvard.edu/about')
     assert mc_url.is_http_url('https://github.com/berkmancenter/mediacloud')
 
+    funky_url = ('http://Las%20Vegas%20mass%20shooting%20raises'
+                 '%20new%20doubts%20about%20safety%20of%20live%20entertainment')
+    assert mc_url.is_http_url(funky_url) is False
+
     # URLs with port, HTTP auth, localhost
     assert mc_url.is_http_url('https://username:password@domain.com:12345/path?query=string#fragment')
     assert mc_url.is_http_url('http://localhost:9998/feed')
@@ -323,6 +327,7 @@ def test_get_base_url():
 
 
 def test_urls_are_equal():
+    # Invalid input
     with pytest.raises(mc_url.McURLsAreEqualException):
         # noinspection PyTypeChecker
         mc_url.urls_are_equal(url1=None, url2=None)
@@ -332,6 +337,13 @@ def test_urls_are_equal():
     with pytest.raises(mc_url.McURLsAreEqualException):
         # noinspection PyTypeChecker
         mc_url.urls_are_equal(url1='https://web.mit.edu/', url2=None)
+
+    # Not URLs
+    assert mc_url.urls_are_equal(url1='Not an URL.', url2='Not an URL.') is False
+
+    funky_url = ('http://Las%20Vegas%20mass%20shooting%20raises%20new%20'
+                 'doubts%20about%20safety%20of%20live%20entertainment')
+    assert mc_url.urls_are_equal(url1=funky_url, url2=funky_url) is False
 
     assert mc_url.urls_are_equal(url1='https://web.mit.edu/', url2='https://web.mit.edu/') is True
     assert mc_url.urls_are_equal(url1='https://web.mit.edu/', url2='https://WEB.MIT.EDU/') is True
