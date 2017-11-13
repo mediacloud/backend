@@ -45,6 +45,9 @@ def fix_common_url_mistakes(url: str) -> Optional[str]:
     if url is None:
         return None
 
+    # Remove whitespace
+    url = url.strip()
+
     # Fix broken URLs that look like this: http://http://www.al-monitor.com/pulse
     url = re.sub(r'(https?://)https?:?//', r"\1", url, flags=re.I)
 
@@ -142,7 +145,11 @@ def normalize_url(url: str) -> str:
     log.debug("normalize_url: " + url)
 
     url = fix_common_url_mistakes(url)
-    url = canonical_url(url)
+
+    try:
+        url = canonical_url(url)
+    except Exception as ex:
+        raise McNormalizeURLException("Unable to get canonical URL: %s" % str(ex))
 
     if not is_http_url(url):
         raise McNormalizeURLException("URL is not valid: " + url)
