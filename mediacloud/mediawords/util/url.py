@@ -76,8 +76,8 @@ def is_http_url(url: str) -> bool:
 
     try:
         uri = furl(url)
-    except Exception:
-        log.debug("Cannot parse url with furl")
+    except Exception as ex:
+        log.debug("Cannot parse URL: %s" % str(ex))
         return False
 
     if not uri.scheme:
