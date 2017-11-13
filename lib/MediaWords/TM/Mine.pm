@@ -169,6 +169,8 @@ sub get_links_from_html
 
         next if ( $url =~ $_ignore_link_pattern );
 
+        next if ( !MediaWords::Util::URL::is_http_url( $url ) );
+
         $url =~ s/www[a-z0-9]+.nytimes/www.nytimes/i;
 
         push( @{ $links }, { url => $url } );
