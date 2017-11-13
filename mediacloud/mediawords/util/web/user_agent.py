@@ -481,6 +481,12 @@ class UserAgent(object):
         if len(urls) != len(urls_before_removing_duplicates):
             log.warning("Some of the URLs are duplicate; URLs: %s" % str(urls_before_removing_duplicates))
 
+        # Raise on one or more invalid URLs because we consider it a caller's problem; if URL at least looks valid,
+        # get() in a fork should be able to come up with a reasonable Response object for it
+        for url in urls:
+            if not is_http_url(url):
+                raise McParallelGetException("URL %s is not a valid URL; URLs: %s" % (url, str(urls),))
+
         config = py_get_config()
 
         if 'web_store_num_parallel' not in config['mediawords']:
