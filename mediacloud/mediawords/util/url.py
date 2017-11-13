@@ -74,7 +74,11 @@ def is_http_url(url: str) -> bool:
         log.debug("URL '%s' does not match URL's regexp" % url)
         return False
 
-    uri = furl(url)
+    try:
+        uri = furl(url)
+    except Exception:
+        log.debug("Cannot parse url with furl")
+        return False
 
     if not uri.scheme:
         log.debug("Scheme is undefined for URL %s" % url)
