@@ -18,7 +18,12 @@ from mediawords.util.network import random_unused_port
 from mediawords.util.text import random_string
 from mediawords.util.url import urls_are_equal
 from mediawords.util.web.ua.request import Request
-from mediawords.util.web.user_agent import UserAgent, McUserAgentException, McGetFollowHTTPHTMLRedirectsException
+from mediawords.util.web.user_agent import (
+    UserAgent,
+    McUserAgentException,
+    McGetFollowHTTPHTMLRedirectsException,
+    McParallelGetException,
+)
 
 log = create_logger(__name__)
 
@@ -1219,6 +1224,18 @@ class TestUserAgentTestCase(TestCase):
         assert '/timeout' in path_responses
         assert path_responses['/timeout'].is_success() is False
         assert path_responses['/timeout'].code() == HTTPStatus.REQUEST_TIMEOUT.value
+
+    def test_parallel_get_invalid_urls(self):
+        """parallel_get() with some / all invalid URLs."""
+
+        urls = [
+            'http://localhost/a',
+            'badger',  # One invalid URL
+        ]
+
+        with pytest.raises(McParallelGetException):
+            ua = UserAgent()
+            ua.parallel_get(urls)
 
     def test_parallel_get_many_urls(self):
         """parallel_get() with many URLs (the number of which exceeds default web_store_num_parallel)."""
