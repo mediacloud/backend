@@ -15,6 +15,10 @@ def test_fix_common_url_mistakes():
 
         # missing / before ?
         'http://foo.bar?baz=bat': 'http://foo.bar/?baz=bat',
+
+        # Whitespace
+        '  http://blogs.perl.org/users/domm/2010/11/posting-utf8-data-using-lwpuseragent.html  ':
+            'http://blogs.perl.org/users/domm/2010/11/posting-utf8-data-using-lwpuseragent.html',
     }
 
     for orig_url, fixed_url in urls.items():
