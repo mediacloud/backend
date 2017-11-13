@@ -543,9 +543,12 @@ def urls_are_equal(url1: str, url2: str) -> bool:
         log.warning("URL #2 is empty.")
 
     url1 = fix_common_url_mistakes(url1)
-    url1 = canonical_url(url1)
-
     url2 = fix_common_url_mistakes(url2)
-    url2 = canonical_url(url2)
+
+    try:
+        url1 = canonical_url(url1)
+        url2 = canonical_url(url2)
+    except McCanonicalURLException:
+        return False
 
     return url1 == url2
