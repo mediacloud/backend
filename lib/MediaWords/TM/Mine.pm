@@ -21,6 +21,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 import_python_module( __PACKAGE__, 'mediawords.tm.mine' );
+import_python_module( __PACKAGE__, 'mediawords.util.url' );
 
 use Carp::Always;
 use Data::Dumper;
@@ -168,6 +169,8 @@ sub get_links_from_html
         next if ( $url !~ /^http/i );
 
         next if ( $url =~ $_ignore_link_pattern );
+
+        next if ( !is_http_url( $url ) );
 
         $url =~ s/www[a-z0-9]+.nytimes/www.nytimes/i;
 
