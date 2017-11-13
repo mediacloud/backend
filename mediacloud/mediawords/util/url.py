@@ -106,6 +106,9 @@ def canonical_url(url: str) -> str:
     if len(url) == 0:
         raise McCanonicalURLException("URL is empty.")
 
+    if not is_http_url(url):
+        raise McCanonicalURLException("URL is not HTTP URL.")
+
     try:
         can_url = url_normalize.url_normalize(url)
     except Exception as ex:

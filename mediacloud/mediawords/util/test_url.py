@@ -65,6 +65,7 @@ def test_is_http_url():
 
 
 def test_canonical_url():
+    # Bad input
     with pytest.raises(mc_url.McCanonicalURLException):
         # noinspection PyTypeChecker
         mc_url.canonical_url(None)
@@ -72,6 +73,12 @@ def test_canonical_url():
     with pytest.raises(mc_url.McCanonicalURLException):
         # noinspection PyTypeChecker
         mc_url.canonical_url('')
+
+    # Invalid URL
+    with pytest.raises(mc_url.McCanonicalURLException):
+        funky_url = ('http://Las%20Vegas%20mass%20shooting%20raises%20new%20'
+                     'doubts%20about%20safety%20of%20live%20entertainment')
+        mc_url.canonical_url(funky_url)
 
     # No urls_are_equal() because we want to compare them as strings here
     assert mc_url.canonical_url('HTTP://CYBER.LAW.HARVARD.EDU:80/node/9244') == 'http://cyber.law.harvard.edu/node/9244'
