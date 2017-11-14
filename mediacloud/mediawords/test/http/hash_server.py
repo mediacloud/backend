@@ -371,7 +371,17 @@ class HashServer(object):
                 for response_header in response_headers.split(b"\r\n"):
 
                     if response_header.startswith(b'HTTP/'):
-                        protocol, http_status_code, http_status_message = response_header.split(b' ', maxsplit=2)
+                        first_response_line = response_header.split(b' ', maxsplit=2)
+                        if not 2 <= len(first_response_line) <= 3:
+                            raise McHashServerException("Unexpected response line: %s" % response_header)
+
+                        # protocol = first_response_line[0]
+                        http_status_code = first_response_line[1]
+                        if len(first_response_line) == 3:
+                            http_status_message = first_response_line[2]
+                        else:
+                            # Some responses might not have status message, e.g. respond with just "HTTP 200"
+                            http_status_message = b''
                         self.send_response(
                             code=int(http_status_code.decode('utf-8')),
                             message=http_status_message.decode('utf-8')
