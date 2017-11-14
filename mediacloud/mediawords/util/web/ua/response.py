@@ -107,6 +107,7 @@ class Response(object):
         message = decode_object_from_bytes_if_needed(message)
         if message is None:
             raise McUserAgentResponseException("HTTP status message is None.")
+        # HTTP message can be empty (e.g. "HTTP 200" instead of "HTTP 200 OK") but not None
         self.__message = message
 
     def headers(self) -> Dict[str, str]:
@@ -136,6 +137,7 @@ class Response(object):
             raise McUserAgentResponseException("Header's name is empty.")
         if value is None:
             raise McUserAgentResponseException("Header's value is None.")
+        # Header value can be empty string (e.g. "x-check: ") but not None
         name = name.lower()  # All locally stored headers will be lowercase
         value = str(value)  # E.g. Content-Length might get passed as int
         self.__headers[name] = value
