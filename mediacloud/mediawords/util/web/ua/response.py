@@ -171,8 +171,11 @@ class Response(object):
         self.__data = content
 
     def status_line(self) -> str:
-        """Return HTTP status line, e.g. "200 OK"."""
-        return "%d %s" % (self.code(), self.message(),)
+        """Return HTTP status line, e.g. "200 OK" or "418"."""
+        if self.message() == '':
+            return "%d" % self.code()
+        else:
+            return "%d %s" % (self.code(), self.message(),)
 
     def is_success(self) -> bool:
         """Return True if request was successful."""
