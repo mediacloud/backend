@@ -17,7 +17,7 @@ from mediawords.util.log import create_logger
 from mediawords.util.network import random_unused_port
 from mediawords.util.text import random_string
 from mediawords.util.url import urls_are_equal
-from mediawords.util.web.ua.request import Request
+from mediawords.util.web.ua.request import Request, McUserAgentRequestException
 from mediawords.util.web.user_agent import (
     UserAgent,
     McUserAgentException,
@@ -432,12 +432,18 @@ class TestUserAgentTestCase(TestCase):
         """Set custom HTTP request headers."""
 
         def __callback_get_request_headers(request: HashServer.Request) -> Union[str, bytes]:
+            none_header_is_defined = False
+            if 'X-None-Header' in request.headers():
+                none_header_is_defined = True
+
             r = ""
             r += "HTTP/1.0 200 OK\r\n"
             r += "Content-Type: application/json; charset=UTF-8\r\n"
             r += "\r\n"
             r += encode_json({
                 'custom-header': request.header('X-Custom-Header'),
+                'empty-header': request.header('X-Empty-Header'),
+                'none-header-is-defined': none_header_is_defined,
             })
             return r
 
@@ -455,6 +461,10 @@ class TestUserAgentTestCase(TestCase):
 
         rq = Request(method='GET', url=test_url)
         rq.set_header(name='X-Custom-Header', value='foo')
+        rq.set_header(name='X-Empty-Header', value='')
+        with pytest.raises(McUserAgentRequestException):
+            # noinspection PyTypeChecker
+            rq.set_header(name='X-None-Header', value=None)
 
         response = ua.request(rq)
 
@@ -464,7 +474,11 @@ class TestUserAgentTestCase(TestCase):
         assert urls_are_equal(url1=response.request().url(), url2=test_url)
 
         decoded_json = decode_json(response.decoded_content())
-        assert decoded_json == {'custom-header': 'foo'}
+        assert decoded_json == {
+            'custom-header': 'foo',
+            'empty-header': '',
+            'none-header-is-defined': False,
+        }
 
     def test_get_request_as_string(self):
         """Request's as_string() method."""
@@ -528,12 +542,49 @@ class TestUserAgentTestCase(TestCase):
         assert response.message() == 'Jestem czajniczek'
         assert response.status_line() == '418 Jestem czajniczek'
 
+    def test_get_response_status_empty(self):
+        """HTTP status code and empty message."""
+
+        def __callback_get_response_status_empty(_: HashServer.Request) -> Union[str, bytes]:
+            r = ""
+            r += "HTTP/1.0 451\r\n"
+            r += "Content-Type: text/html; charset=UTF-8\r\n"
+            r += "\r\n"
+            r += "👩‍⚖️"
+            return r
+
+        pages = {
+            '/test': {
+                'callback': __callback_get_response_status_empty,
+            }
+        }
+
+        hs = HashServer(port=self.__test_port, pages=pages)
+        hs.start()
+
+        ua = UserAgent()
+        test_url = '%s/test' % self.__test_url
+        response = ua.get(test_url)
+
+        hs.stop()
+
+        assert urls_are_equal(url1=response.request().url(), url2=test_url)
+        assert response.decoded_content() == '👩‍⚖️'
+
+        assert response.code() == 451
+        assert response.message() == ''
+        assert response.status_line() == '451'
+
     def test_get_response_headers(self):
         """Response's uppercase / lowercase headers."""
 
         pages = {
             '/test': {
-                'header': "Content-Type: text/plain; charset=UTF-8\r\nX-Media-Cloud: mediacloud",
+                'header': (
+                    "Content-Type: text/plain; charset=UTF-8\r\n"
+                    "X-Empty-Header: \r\n"
+                    "X-Media-Cloud: mediacloud"
+                ),
                 'content': "pnolɔ ɐıpǝɯ",
             },
         }
@@ -552,6 +603,11 @@ class TestUserAgentTestCase(TestCase):
 
         assert response.header(name='X-Media-Cloud') == 'mediacloud'
         assert response.header(name='x-media-cloud') == 'mediacloud'
+
+        assert response.header(name='X-Empty-Header') == ''
+        assert response.header(name='x-empty-header') == ''
+
+        assert response.header(name='x-nonexistent-header') is None
 
     def test_get_response_content_type(self):
         """Response's Content-Type."""

@@ -147,6 +147,7 @@ class Request(object):
             raise McUserAgentRequestException("Header's name is empty.")
         if value is None:
             raise McUserAgentRequestException("Header's value is None.")
+        # Header value can be empty string (e.g. "x-check: ") but not None
         name = name.lower()  # All locally stored headers will be lowercase
         value = str(value)  # E.g. Content-Length might get passed as int
         self.__headers[name] = value

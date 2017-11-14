@@ -46,18 +46,6 @@ sub cache_link_downloads
         my $url          = $link->{ url };
         my $redirect_url = $link->{ redirect_url };
 
-        unless ( MediaWords::Util::URL::is_http_url( $url ) )
-        {
-            WARN "Not caching link because URL $url is invalid.";
-            next;
-        }
-
-        if ( $redirect_url and ( !MediaWords::Util::URL::is_http_url( $redirect_url ) ) )
-        {
-            WARN "Not caching link because redirect URL $redirect_url is invalid.";
-            next;
-        }
-
         $link->{ _link_num } = $i++;
         $link->{ _fetch_url } = $redirect_url || $url;
     }
@@ -114,13 +102,14 @@ sub get_cached_link_download
     for ( my $i = 0 ; $links->[ $link_num + $i ] && $i < $LINK_CACHE_SIZE ; $i++ )
     {
         my $link = $links->[ $link_num + $i ];
-        my $u    = URI->new( $link->{ _fetch_url } )->as_string;
 
-        unless ( MediaWords::Util::URL::is_http_url( $u ) )
+        unless ( MediaWords::Util::URL::is_http_url( $link->{ _fetch_url } ) )
         {
-            WARN "Not caching link because URL $u is invalid.";
+            WARN "Not caching link because URL " . $link->{ _fetch_url } . " is invalid.";
             next;
         }
+
+        my $u = URI->new( $link->{ _fetch_url } )->as_string;
 
         # handle duplicate urls within the same set of urls
         push( @{ $urls }, $u ) unless ( $url_lookup->{ $u } );
@@ -175,20 +164,21 @@ sub get_cached_link_download_redirect_url
     my $url          = $link->{ url };
     my $redirect_url = $link->{ redirect_url };
 
-    my $uri      = URI->new( $link->{ url } )->as_string;
-    my $link_num = $link->{ _link_num };
-
     unless ( MediaWords::Util::URL::is_http_url( $url ) )
     {
         WARN "Not caching link because URL $url is invalid.";
-        return $uri;
+        return $url;
     }
 
     if ( $redirect_url and ( !MediaWords::Util::URL::is_http_url( $redirect_url ) ) )
     {
         WARN "Not caching link because redirect URL $redirect_url is invalid.";
-        return $uri;
+        return $url;
     }
+
+    $url = URI->new( $link->{ url } )->as_string;
+
+    my $link_num = $link->{ _link_num };
 
     # make sure the $_link_downloads_cache is setup correctly
     get_cached_link_download( $link );
@@ -201,7 +191,7 @@ sub get_cached_link_download_redirect_url
         }
     }
 
-    return $uri;
+    return $url;
 }
 
 1;
