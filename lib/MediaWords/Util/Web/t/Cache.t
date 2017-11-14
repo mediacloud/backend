@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 183;
+use Test::More tests => 184;
 
 use English '-no_match_vars';
 use List::Util;
@@ -57,6 +57,19 @@ sub main
     }
 
     $hs->stop();
+
+    # Invalid URL
+    my $bogus_url =
+      'http://Las%20Vegas%20mass%20shooting%20raises%20new%20doubts%20about%20safety%20of%20live%20entertainment';
+    my $bogus_urls = [
+        {
+            'url'          => $bogus_url,
+            'redirect_url' => $bogus_url,
+        },
+    ];
+    MediaWords::Util::Web::Cache::cache_link_downloads( $bogus_urls );
+    my $bogus_content = MediaWords::Util::Web::Cache::get_cached_link_download( $bogus_urls->[ 0 ] );
+    is( $bogus_content, '' );
 }
 
 main();
