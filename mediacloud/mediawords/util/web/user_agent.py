@@ -766,21 +766,38 @@ class UserAgent(object):
 
         else:
 
-            response_data = ""
-            response_data_size = 0
-            max_size = self.max_size()
-            for chunk in requests_response.iter_content(chunk_size=None, decode_unicode=True):
-                response_data += chunk
-                response_data_size += len(chunk)
-                if max_size is not None:
-                    if response_data_size > max_size:
-                        log.warning("Data size exceeds %d for URL %s" % (max_size, url,))
+            try:
+                response_data = ""
+                response_data_size = 0
+                max_size = self.max_size()
+                for chunk in requests_response.iter_content(chunk_size=None, decode_unicode=True):
+                    response_data += chunk
+                    response_data_size += len(chunk)
+                    if max_size is not None:
+                        if response_data_size > max_size:
+                            log.warning("Data size exceeds %d for URL %s" % (max_size, url,))
 
-                        # Release the response to return connection back to the pool
-                        # (http://docs.python-requests.org/en/master/user/advanced/#body-content-workflow)
-                        requests_response.close()
+                            # Release the response to return connection back to the pool
+                            # (http://docs.python-requests.org/en/master/user/advanced/#body-content-workflow)
+                            requests_response.close()
 
-                        break
+                            break
+
+            except requests.RequestException as ex:
+
+                log.warning("Error reading data for URL %s" % request.url())
+
+                # We treat timeouts as client-side errors too because we can retry on them
+                error_is_client_side = True
+
+                requests_response = requests.Response()
+                requests_response.status_code = HTTPStatus.REQUEST_TIMEOUT.value
+                requests_response.reason = HTTPStatus.REQUEST_TIMEOUT.phrase
+                requests_response.request = requests_prepared_request
+
+                requests_response.history = []
+
+                response_data = str(ex)
 
         if requests_response is None:
             raise McRequestException("Response from 'requests' is None.")
