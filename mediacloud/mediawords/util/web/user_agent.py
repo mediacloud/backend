@@ -768,24 +768,41 @@ class UserAgent(object):
 
             try:
 
-                # FIXME test if Content-Length header is present before bothering to download anything
-                # (right now we just fetch the data and see what we get because Content-Length might be missing / lying)
+                max_size = self.max_size()
 
                 response_data = ""
-                response_data_size = 0
-                max_size = self.max_size()
-                for chunk in requests_response.iter_content(chunk_size=None, decode_unicode=True):
-                    response_data += chunk
-                    response_data_size += len(chunk)
-                    if max_size is not None:
-                        if response_data_size > max_size:
-                            log.warning("Data size exceeds %d for URL %s" % (max_size, url,))
+                read_response_data = True
+
+                if max_size is not None:
+                    content_length = requests_response.headers.get('Content-Length', None)
+
+                    if content_length is not None:
+                        content_length = int(content_length)
+                        if content_length > max_size:
+                            log.warning("Content-Length exceeds %d for URL %s" % (max_size, url,))
 
                             # Release the response to return connection back to the pool
                             # (http://docs.python-requests.org/en/master/user/advanced/#body-content-workflow)
                             requests_response.close()
 
-                            break
+                            read_response_data = False
+
+                if read_response_data:
+                    response_data_size = 0
+                    for chunk in requests_response.iter_content(chunk_size=None, decode_unicode=True):
+                        response_data += chunk
+                        response_data_size += len(chunk)
+
+                        # Content-Length might be missing / lying, so we measure size while fetching the data too
+                        if max_size is not None:
+                            if response_data_size > max_size:
+                                log.warning("Data size exceeds %d for URL %s" % (max_size, url,))
+
+                                # Release the response to return connection back to the pool
+                                # (http://docs.python-requests.org/en/master/user/advanced/#body-content-workflow)
+                                requests_response.close()
+
+                                break
 
             except requests.RequestException as ex:
 
