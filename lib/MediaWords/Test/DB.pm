@@ -8,8 +8,6 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-import_python_module( __PACKAGE__, 'mediawords.test.db' );
-
 use File::Path;
 use Readonly;
 use Text::Lorem::More;
@@ -21,6 +19,93 @@ use MediaWords::Job::ExtractAndVector;
 use MediaWords::DB::Schema;
 use MediaWords::Util::Config;
 use MediaWords::Util::URL;
+
+{
+
+    package MediaWords::Test::DB::PythonProxy;
+
+    #
+    # Proxy to mediawords.test.db; used to make return values editable
+    #
+
+    use strict;
+    use warnings;
+
+    use Modern::Perl "2015";
+    use MediaWords::CommonLibs;
+
+    import_python_module( __PACKAGE__, 'mediawords.test.db' );
+
+    1;
+}
+
+sub force_using_test_database()
+{
+    MediaWords::Test::DB::PythonProxy::force_using_test_database();
+}
+
+sub using_test_database()
+{
+    return MediaWords::Test::DB::PythonProxy::using_test_database();
+}
+
+sub create_download_for_feed($$)
+{
+    my ( $db, $feed ) = @_;
+
+    my $return_value = MediaWords::Test::DB::PythonProxy::create_download_for_feed( $db, $feed );
+    return python_deep_copy( $return_value );
+}
+
+sub create_test_medium($$)
+{
+    my ( $db, $label ) = @_;
+
+    my $return_value = MediaWords::Test::DB::PythonProxy::create_test_medium( $db, $label );
+    return python_deep_copy( $return_value );
+}
+
+sub create_test_feed($$$)
+{
+    my ( $db, $label, $medium ) = @_;
+
+    my $return_value = MediaWords::Test::DB::PythonProxy::create_test_feed( $db, $label, $medium );
+    return python_deep_copy( $return_value );
+}
+
+sub create_test_story($$$)
+{
+    my ( $db, $label, $feed ) = @_;
+
+    my $return_value = MediaWords::Test::DB::PythonProxy::create_test_story( $db, $label, $feed );
+    return python_deep_copy( $return_value );
+}
+
+sub create_test_story_stack($$)
+{
+    my ( $db, $data ) = @_;
+
+    my $return_value = MediaWords::Test::DB::PythonProxy::create_test_story_stack( $db, $data );
+    return python_deep_copy( $return_value );
+}
+
+sub create_test_story_stack_numerated($$$$;$)
+{
+    my ( $db, $num_media, $num_feeds_per_medium, $num_stories_per_feed, $label ) = @_;
+
+    my $return_value =
+      MediaWords::Test::DB::PythonProxy::create_test_story_stack_numerated( $db, $num_media, $num_feeds_per_medium,
+        $num_stories_per_feed, $label );
+    return python_deep_copy( $return_value );
+}
+
+sub create_test_topic($$)
+{
+    my ( $db, $label ) = @_;
+
+    my $return_value = MediaWords::Test::DB::PythonProxy::create_test_topic( $db, $label );
+    return python_deep_copy( $return_value );
+}
 
 # run the given function on a temporary, clean database
 sub test_on_test_database
