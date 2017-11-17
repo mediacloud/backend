@@ -483,7 +483,8 @@ def http_urls_in_string(string: str) -> list:
     if string is None:
         raise McHTTPURLsInStringException("String is None")
     if len(string) == 0:
-        raise McHTTPURLsInStringException("String is empty")
+        log.warning("String is empty, no HTTP URLs here")
+        return []
 
     urls = re.findall(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', string, re.I)
     http_urls = []
