@@ -698,27 +698,6 @@ class UserAgent(object):
                 stream=True,
             )
 
-            # FIXME apparent_encoding reads the whole content of the response, thus making the max_size not work anymore
-            if requests_response.encoding is None:
-
-                if requests_response.apparent_encoding is None:
-                    # If encoding is not in HTTP headers nor can be determined from content itself, assume that it's
-                    # UTF-8
-                    requests_response.encoding = 'UTF-8'
-
-                else:
-                    # Test the encoding guesser's opinion, just like browsers do
-                    requests_response.encoding = requests_response.apparent_encoding
-
-            else:
-
-                # If "Content-Type" HTTP header contains a string "text" and doesn't have "charset" property, "requests"
-                # falls back to setting the encoding to ISO-8859-1, which is probably not right (encoding might have
-                # been defined in the HTML content itself via <meta> tag), so we use the "apparent encoding" instead
-                if requests_response.encoding.lower() == 'iso-8859-1':
-                    if requests_response.apparent_encoding is not None:
-                        requests_response.encoding = requests_response.apparent_encoding
-
         except requests.TooManyRedirects as ex:
 
             # On too many redirects, return the last fetched page (just like LWP::UserAgent does)
@@ -767,21 +746,64 @@ class UserAgent(object):
         else:
 
             try:
-                response_data = ""
-                response_data_size = 0
+
                 max_size = self.max_size()
-                for chunk in requests_response.iter_content(chunk_size=None, decode_unicode=True):
-                    response_data += chunk
-                    response_data_size += len(chunk)
-                    if max_size is not None:
-                        if response_data_size > max_size:
-                            log.warning("Data size exceeds %d for URL %s" % (max_size, url,))
+
+                response_data = ""
+                read_response_data = True
+
+                if max_size is not None:
+                    content_length = requests_response.headers.get('Content-Length', None)
+
+                    if content_length is not None:
+                        content_length = int(content_length)
+                        if content_length > max_size:
+                            log.warning("Content-Length exceeds %d for URL %s" % (max_size, url,))
 
                             # Release the response to return connection back to the pool
                             # (http://docs.python-requests.org/en/master/user/advanced/#body-content-workflow)
                             requests_response.close()
 
-                            break
+                            read_response_data = False
+
+                if read_response_data:
+
+                    if requests_response.encoding is None:
+
+                        if requests_response.apparent_encoding is None:
+                            # If encoding is not in HTTP headers nor can be determined from content itself, assume that
+                            # it's UTF-8
+                            requests_response.encoding = 'UTF-8'
+
+                        else:
+                            # Test the encoding guesser's opinion, just like browsers do
+                            requests_response.encoding = requests_response.apparent_encoding
+
+                    else:
+
+                        # If "Content-Type" HTTP header contains a string "text" and doesn't have "charset" property,
+                        # "requests" falls back to setting the encoding to ISO-8859-1, which is probably not right
+                        # (encoding might have been defined in the HTML content itself via <meta> tag), so we use the
+                        # "apparent encoding" instead
+                        if requests_response.encoding.lower() == 'iso-8859-1':
+                            if requests_response.apparent_encoding is not None:
+                                requests_response.encoding = requests_response.apparent_encoding
+
+                    response_data_size = 0
+                    for chunk in requests_response.iter_content(chunk_size=None, decode_unicode=True):
+                        response_data += chunk
+                        response_data_size += len(chunk)
+
+                        # Content-Length might be missing / lying, so we measure size while fetching the data too
+                        if max_size is not None:
+                            if response_data_size > max_size:
+                                log.warning("Data size exceeds %d for URL %s" % (max_size, url,))
+
+                                # Release the response to return connection back to the pool
+                                # (http://docs.python-requests.org/en/master/user/advanced/#body-content-workflow)
+                                requests_response.close()
+
+                                break
 
             except requests.RequestException as ex:
 
