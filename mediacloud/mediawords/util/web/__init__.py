@@ -22,8 +22,6 @@ class McDownloadFileToTempPathException(McDownloadFileException):
 def download_file(source_url: str, target_path: str) -> None:
     """Download URL to path."""
 
-    # FIXME reimplement using Python's "requests", don't use cURL
-
     source_url = decode_object_from_bytes_if_needed(source_url)
     target_path = decode_object_from_bytes_if_needed(target_path)
 
@@ -49,8 +47,6 @@ def download_file(source_url: str, target_path: str) -> None:
 
 def download_file_to_temp_path(source_url: str) -> str:
     """Download URL to temporary path, return that path."""
-
-    # FIXME reimplement using Python's "requests", don't use cURL
 
     source_url = decode_object_from_bytes_if_needed(source_url)
 
