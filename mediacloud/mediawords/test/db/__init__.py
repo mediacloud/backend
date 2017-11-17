@@ -171,27 +171,39 @@ def create_test_story_stack(db: DatabaseHandler, data: dict) -> dict:
 
     media = {}
     for medium_label, feeds in data.items():
+
+        medium_label = str(medium_label)
+
         if medium_label in media:
             raise McCreateTestStoryStack("%s medium label already used in story stack" % medium_label)
 
         medium = create_test_medium(db=db, label=medium_label)
         media[medium_label] = medium
+        media[medium_label]['feeds'] = {}
 
         if not isinstance(data, dict):
             raise McCreateTestStoryStack("invalid feeds data format")
 
         for feed_label, story_labels in feeds.items():
+
+            feed_label = str(feed_label)
+
             if feed_label in media:
                 raise McCreateTestStoryStack("%s feed label already used in story stack" % feed_label)
 
             feed = create_test_feed(db=db, label=feed_label, medium=medium)
             media[medium_label]['feeds'][feed_label] = feed
+            media[medium_label]['feeds'][feed_label]['stories'] = {}
             media[feed_label] = feed
+            media[feed_label]['stories'] = {}
 
             if not isinstance(story_labels, list):
                 raise McCreateTestStoryStack("invalid stories data format")
 
             for story_label in story_labels:
+
+                story_label = str(story_label)
+
                 if story_label in media:
                     raise McCreateTestStoryStack("%s story label already used in story stack" % story_label)
 
