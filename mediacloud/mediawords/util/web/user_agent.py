@@ -767,6 +767,10 @@ class UserAgent(object):
         else:
 
             try:
+
+                # FIXME test if Content-Length header is present before bothering to download anything
+                # (right now we just fetch the data and see what we get because Content-Length might be missing / lying)
+
                 response_data = ""
                 response_data_size = 0
                 max_size = self.max_size()
