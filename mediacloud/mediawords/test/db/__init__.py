@@ -26,11 +26,9 @@ def create_download_for_feed(db: DatabaseHandler, feed: dict) -> dict:
 
     host = get_url_host(url=feed['url'])
 
-    # MC_REWRITE_TO_PYTHON: use named parameters (which don't seem to work with Inline::Perl for whatever reason for
-    # this specific helper)
     return db.create(
-        'downloads',
-        {
+        table='downloads',
+        insert_hash={
             'feeds_id': int(feed['feeds_id']),
             'url': feed['url'],
             'host': host,
