@@ -345,16 +345,48 @@ class TestUserAgentTestCase(TestCase):
         assert urls_are_equal(url1=response.request().url(), url2=test_url)
         assert response.decoded_content() == "{'text': '时政--人民网'}"
 
-    def test_get_max_size(self):
-        """Max. download size."""
+    def test_get_max_size_with_content_length_header(self):
+        """Max. download size (with Content-Length header)."""
 
         test_content_length = 1024 * 10
-
         test_content = random_string(length=test_content_length)
-        max_size = int(len(test_content) / 10)
+
+        pages = {
+            '/max-download-side': {
+                'header': 'Content-Length: %d' % test_content_length,
+                'content': test_content,
+            },
+        }
+
+        max_size = int(test_content_length / 10)
+
+        hs = HashServer(port=self.__test_port, pages=pages)
+        hs.start()
+
+        ua = UserAgent()
+        ua.set_max_size(max_size)
+        assert ua.max_size() == max_size
+
+        test_url = '%s/max-download-side' % self.__test_url
+        response = ua.get(test_url)
+
+        hs.stop()
+
+        # LWP::UserAgent truncates the response but still reports it as successful
+        assert response.is_success()
+        assert len(response.decoded_content()) <= max_size
+
+    def test_get_max_size_without_content_length_header(self):
+        """Max. download size (without Content-Length header)."""
+
+        test_content_length = 1024 * 10
+        test_content = random_string(length=test_content_length)
+
         pages = {
             '/max-download-side': test_content,
         }
+
+        max_size = int(test_content_length / 10)
 
         hs = HashServer(port=self.__test_port, pages=pages)
         hs.start()
@@ -373,11 +405,26 @@ class TestUserAgentTestCase(TestCase):
         assert len(response.decoded_content()) >= max_size
         assert len(response.decoded_content()) <= len(test_content)
 
+    def test_get_max_size_unlimited(self):
+        """Max. download size (without max. size being set)."""
+
+        test_content_length = 1024 * 10
+        test_content = random_string(length=test_content_length)
+
+        pages = {
+            '/max-download-side': test_content,
+        }
+
+        hs = HashServer(port=self.__test_port, pages=pages)
+
         # Test unlimited length responses
         hs.start()
 
+        ua = UserAgent()
         ua.set_max_size(None)
         assert ua.max_size() is None
+
+        test_url = '%s/max-download-side' % self.__test_url
         response = ua.get(test_url)
 
         hs.stop()
