@@ -698,6 +698,27 @@ class UserAgent(object):
                 stream=True,
             )
 
+            # FIXME apparent_encoding reads the whole content of the response, thus making the max_size not work anymore
+            if requests_response.encoding is None:
+
+                if requests_response.apparent_encoding is None:
+                    # If encoding is not in HTTP headers nor can be determined from content itself, assume that it's
+                    # UTF-8
+                    requests_response.encoding = 'UTF-8'
+
+                else:
+                    # Test the encoding guesser's opinion, just like browsers do
+                    requests_response.encoding = requests_response.apparent_encoding
+
+            else:
+
+                # If "Content-Type" HTTP header contains a string "text" and doesn't have "charset" property, "requests"
+                # falls back to setting the encoding to ISO-8859-1, which is probably not right (encoding might have
+                # been defined in the HTML content itself via <meta> tag), so we use the "apparent encoding" instead
+                if requests_response.encoding.lower() == 'iso-8859-1':
+                    if requests_response.apparent_encoding is not None:
+                        requests_response.encoding = requests_response.apparent_encoding
+
         except requests.TooManyRedirects as ex:
 
             # On too many redirects, return the last fetched page (just like LWP::UserAgent does)
@@ -744,26 +765,6 @@ class UserAgent(object):
             response_data = str(ex)
 
         else:
-
-            if requests_response.encoding is None:
-
-                if requests_response.apparent_encoding is None:
-                    # If encoding is not in HTTP headers nor can be determined from content itself, assume that it's
-                    # UTF-8
-                    requests_response.encoding = 'UTF-8'
-
-                else:
-                    # Test the encoding guesser's opinion, just like browsers do
-                    requests_response.encoding = requests_response.apparent_encoding
-
-            else:
-
-                # If "Content-Type" HTTP header contains a string "text" and doesn't have "charset" property, "requests"
-                # falls back to setting the encoding to ISO-8859-1, which is probably not right (encoding might have
-                # been defined in the HTML content itself via <meta> tag), so we use the "apparent encoding" instead
-                if requests_response.encoding.lower() == 'iso-8859-1':
-                    if requests_response.apparent_encoding is not None:
-                        requests_response.encoding = requests_response.apparent_encoding
 
             response_data = ""
             response_data_size = 0
