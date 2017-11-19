@@ -19,6 +19,10 @@ def test_fix_common_url_mistakes():
         # Whitespace
         '  http://blogs.perl.org/users/domm/2010/11/posting-utf8-data-using-lwpuseragent.html  ':
             'http://blogs.perl.org/users/domm/2010/11/posting-utf8-data-using-lwpuseragent.html',
+
+        # Missing port
+        'https://www.gpo.gov:/fdsys/pkg/PLAW-107publ289/pdf/PLAW-107publ289.pdf':
+            'https://www.gpo.gov/fdsys/pkg/PLAW-107publ289/pdf/PLAW-107publ289.pdf'
     }
 
     for orig_url, fixed_url in urls.items():
