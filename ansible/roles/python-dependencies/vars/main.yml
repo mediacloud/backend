@@ -13,6 +13,9 @@ python_dependencies:
     # HTML parsing
     - { name: "beautifulsoup4", version: "4.6.0" }
 
+    # Amazon S3
+    - { name: "boto3", version: "1.4.7" }
+
     # Unit test coverage
     - { name: "coverage", version: "4.4.1" }
 
