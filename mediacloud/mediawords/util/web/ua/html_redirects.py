@@ -6,6 +6,7 @@ from typing import Union
 from mediawords.util.html import meta_refresh_url_from_html, link_canonical_url_from_html
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
+from mediawords.util.url import is_http_url
 from mediawords.util.web.ua.request import Request
 
 log = create_logger(__name__)
@@ -44,7 +45,11 @@ def target_request_from_archive_org_url(content: Union[str, None], archive_site_
     )
     if matches:
         target_url = matches.group('target_url')
-        return Request(method='GET', url=target_url)
+
+        if is_http_url(target_url):
+            return Request(method='GET', url=target_url)
+        else:
+            log.error("URL matched, but is not HTTP(s): %s" % target_url)
 
     return None
 
@@ -67,7 +72,12 @@ def target_request_from_archive_is_url(content: str, archive_site_url: str) -> U
             )
             if matches:
                 target_url = matches.group('target_url')
-                return Request(method='GET', url=target_url)
+
+                if is_http_url(target_url):
+                    return Request(method='GET', url=target_url)
+                else:
+                    log.error("URL matched, but is not HTTP(s): %s" % target_url)
+
             else:
                 log.error(
                     "Unable to parse original URL from archive.is response '%s': %s" %
@@ -117,7 +127,11 @@ def target_request_from_linkis_com_url(content: str, archive_site_url: str) -> U
                 matched_url = first_node.get(url_attribute)
                 if matched_url is not None:
                     if not re.match(pattern='^https?://linkis.com', string=matched_url, flags=re.IGNORECASE):
-                        return Request(method='GET', url=matched_url)
+
+                        if is_http_url(matched_url):
+                            return Request(method='GET', url=matched_url)
+                        else:
+                            log.error("URL matched, but is not HTTP(s): %s" % matched_url)
 
     except Exception as ex:
         log.warning("Unable to parse HTML for URL %s: %s" % (archive_site_url, str(ex),))
@@ -133,7 +147,10 @@ def target_request_from_linkis_com_url(content: str, archive_site_url: str) -> U
         target_url = target_url.replace('\\', '')
 
         if not re.match(pattern='^https?://linkis.com', string=target_url, flags=re.IGNORECASE):
-            return Request(method='GET', url=target_url)
+            if is_http_url(target_url):
+                return Request(method='GET', url=target_url)
+            else:
+                log.error("URL matched, but is not HTTP(s): %s" % target_url)
 
     log.warning("No URL found for linkis URL: %s" % archive_site_url)
 
@@ -147,6 +164,10 @@ def target_request_from_alarabiya_url(content: str, archive_site_url: str) -> Un
 
     content = decode_object_from_bytes_if_needed(content)
     archive_site_url = decode_object_from_bytes_if_needed(archive_site_url)
+
+    if not is_http_url(archive_site_url):
+        log.error("Archive site URL is not HTTP(s): %s" % archive_site_url)
+        return None
 
     if content is None:
         return None
