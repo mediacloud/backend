@@ -110,7 +110,7 @@ def canonical_url(url: str) -> str:
         raise McCanonicalURLException("URL is empty.")
 
     if not is_http_url(url):
-        raise McCanonicalURLException("URL is not HTTP URL.")
+        raise McCanonicalURLException("URL is not HTTP(s): %s" % url)
 
     try:
         can_url = url_normalize.url_normalize(url)
@@ -152,7 +152,7 @@ def normalize_url(url: str) -> str:
         raise McNormalizeURLException("Unable to get canonical URL: %s" % str(ex))
 
     if not is_http_url(url):
-        raise McNormalizeURLException("URL is not valid: " + url)
+        raise McNormalizeURLException("URL is not HTTP(s): %s" % url)
 
     uri = furl(url)
 
@@ -342,7 +342,7 @@ def __is_shortened_url(url: str) -> bool:
         log.debug("URL is empty")
         return False
     if not is_http_url(url):
-        log.debug("URL is not valid")
+        log.debug("URL is not HTTP(s): %s" % url)
         return False
 
     uri = furl(url)
@@ -524,7 +524,7 @@ def get_base_url(url: str) -> str:
         raise McGetBaseURLException("URL is None.")
 
     if not is_http_url(url):
-        raise McGetBaseURLException("URL is not HTTP.")
+        raise McGetBaseURLException("URL is not HTTP(S): %s" % url)
 
     if url.endswith('/'):
         base_url = url
