@@ -71,6 +71,9 @@ def meta_refresh_url_from_html(html: str, base_url: str = None) -> Optional[str]
     html = decode_object_from_bytes_if_needed(html)
     base_url = decode_object_from_bytes_if_needed(base_url)
 
+    if not is_http_url(base_url):
+        log.error("Base URL is not HTTP(s): %s" % base_url)
+
     tags = re.findall(r'(<\s*meta[^>]+>)', html, re.I)
     for tag in tags:
         url = __get_meta_refresh_url_from_tag(tag, base_url)
