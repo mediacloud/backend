@@ -23,7 +23,7 @@ sub BUILD($$)
 # Moose method
 sub store_content($$$$)
 {
-    my ( $self, $db, $object_id, $content_ref ) = @_;
+    my ( $self, $db, $object_id, $content ) = @_;
 
     LOGCONFESS "Do not write inline downloads for object ID $object_id.";
 
@@ -42,7 +42,7 @@ sub fetch_content($$$$)
 
     my $content = $object_path;
     $content =~ s/^content://;
-    return \$content;
+    return $content;
 }
 
 # Moose method

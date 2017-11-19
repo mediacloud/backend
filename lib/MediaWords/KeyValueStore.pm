@@ -26,14 +26,14 @@ package MediaWords::KeyValueStore;
 #     # In this case, "Vincent Van Furrball" is the key.
 #     # The *reference* to the contents of the file "vincent.jpg" is the value.
 #
-#     $store->store_content( $db, 'Vincent Van Furrball', \read_file('vincent.jpg') );
+#     $store->store_content( $db, 'Vincent Van Furrball', read_file('vincent.jpg') );
 #
 # Fetching data:
 #
 #     # In this case, "Mister Bigglesworth" is the key.
 #     # The *reference* to the contents of the file stored in the store is returned.
 #
-#     my $content_ref = $store->fetch_content( $db, 'Mister Bigglesworth' );
+#     my $content = $store->fetch_content( $db, 'Mister Bigglesworth' );
 #
 # Removing data:
 #

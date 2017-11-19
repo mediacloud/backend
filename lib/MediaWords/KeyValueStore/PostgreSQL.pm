@@ -47,13 +47,13 @@ sub BUILD($$)
 # Moose method
 sub store_content($$$$)
 {
-    my ( $self, $db, $object_id, $content_ref ) = @_;
+    my ( $self, $db, $object_id, $content ) = @_;
 
     my $table = $self->_conf_table;
 
     # Compress
     my $content_to_store;
-    eval { $content_to_store = $self->compress_data_for_method( $$content_ref, $self->_conf_compression_method ); };
+    eval { $content_to_store = $self->compress_data_for_method( $content, $self->_conf_compression_method ); };
     if ( $@ or ( !defined $content_to_store ) )
     {
         LOGCONFESS "Unable to compress object ID $object_id: $@";
@@ -132,7 +132,7 @@ EOF
         LOGCONFESS "Unable to uncompress object ID $object_id: $@";
     }
 
-    return \$decoded_content;
+    return $decoded_content;
 }
 
 # Moose method

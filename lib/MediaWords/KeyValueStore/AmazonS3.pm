@@ -227,7 +227,7 @@ sub remove_content($$$;$)
 # Moose method
 sub store_content($$$$)
 {
-    my ( $self, $db, $object_id, $content_ref ) = @_;
+    my ( $self, $db, $object_id, $content ) = @_;
 
     $self->_initialize_s3_or_die();
 
@@ -242,7 +242,7 @@ sub store_content($$$$)
 
     # Compress
     my $content_to_store;
-    eval { $content_to_store = $self->compress_data_for_method( $$content_ref, $self->_conf_compression_method ); };
+    eval { $content_to_store = $self->compress_data_for_method( $content, $self->_conf_compression_method ); };
     if ( $@ or ( !defined $content_to_store ) )
     {
         LOGCONFESS "Unable to compress object ID $object_id: $@";
@@ -343,7 +343,7 @@ sub fetch_content($$$;$)
         LOGCONFESS "Unable to uncompress object ID $object_id: $@";
     }
 
-    return \$decoded_content;
+    return $decoded_content;
 }
 
 no Moose;    # gets rid of scaffolding

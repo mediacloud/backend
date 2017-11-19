@@ -51,12 +51,11 @@ sub BUILD($$)
 
 sub _try_storing_object_in_cache($$$$)
 {
-    my ( $self, $db, $object_id, $content_ref ) = @_;
+    my ( $self, $db, $object_id, $content ) = @_;
 
     eval {
         my $content_to_store;
-        eval {
-            $content_to_store = $self->compress_data_for_method( $$content_ref, $self->_conf_cache_compression_method ); };
+        eval { $content_to_store = $self->compress_data_for_method( $content, $self->_conf_cache_compression_method ); };
         if ( $@ or ( !defined $content_to_store ) )
         {
             LOGCONFESS "Unable to compress object ID $object_id: $@";
@@ -182,13 +181,13 @@ SQL
 # Moose method
 sub store_content($$$$)
 {
-    my ( $self, $db, $object_id, $content_ref ) = @_;
+    my ( $self, $db, $object_id, $content ) = @_;
 
-    my $path = $self->SUPER::store_content( $db, $object_id, $content_ref );
+    my $path = $self->SUPER::store_content( $db, $object_id, $content );
 
     # If we got to this point, object got stored in S3 successfully
 
-    $self->_try_storing_object_in_cache( $db, $object_id, $content_ref );
+    $self->_try_storing_object_in_cache( $db, $object_id, $content );
 
     return $path;
 }
@@ -198,23 +197,23 @@ sub fetch_content($$$;$)
 {
     my ( $self, $db, $object_id, $object_path ) = @_;
 
-    my $cached_content_ref = $self->_try_retrieving_object_from_cache( $db, $object_id );
-    if ( defined $cached_content_ref )
+    my $cached_content = $self->_try_retrieving_object_from_cache( $db, $object_id );
+    if ( defined $cached_content )
     {
-        return $cached_content_ref;
+        return $cached_content;
     }
     else
     {
 
         # Cache the retrieved object because we might need it soon
-        my $content_ref = $self->SUPER::fetch_content( $db, $object_id, $object_path );
+        my $content = $self->SUPER::fetch_content( $db, $object_id, $object_path );
 
-        if ( defined $content_ref )
+        if ( defined $content )
         {
-            $self->_try_storing_object_in_cache( $db, $object_id, $content_ref );
+            $self->_try_storing_object_in_cache( $db, $object_id, $content );
         }
 
-        return $content_ref;
+        return $content;
     }
 }
 

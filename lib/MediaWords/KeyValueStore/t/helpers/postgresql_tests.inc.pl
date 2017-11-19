@@ -57,20 +57,20 @@ sub test_store_content($$)
     my $test_downloads_id   = $MOCK_DOWNLOADS_ID;
     my $test_downloads_path = undef;
     my $test_content        = 'Media Cloud - pnoןɔ ɐıpǝɯ';    # UTF-8
-    my $content_ref;
+    my $content;
 
     # Store content
     my $postgresql_id;
-    eval { $postgresql_id = $postgresql->store_content( $db, $test_downloads_id, \$test_content ); };
+    eval { $postgresql_id = $postgresql->store_content( $db, $test_downloads_id, $test_content ); };
     ok( ( !$@ ), "Storing content failed: $@" );
     ok( $postgresql_id,                                     'Object ID was returned' );
     ok( length( $postgresql_id ) > length( 'postgresql:' ), 'Object ID is of the valid size' );
 
     # Fetch content
-    eval { $content_ref = $postgresql->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
+    eval { $content = $postgresql->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
     ok( ( !$@ ), "Fetching download failed: $@" );
-    ok( $content_ref, "Fetching download did not die but no content was returned" );
-    is( $$content_ref, $test_content, "Content doesn't match." );
+    ok( defined $content, "Fetching download did not die but no content was returned" );
+    is( $content, $test_content, "Content doesn't match." );
 
     # Check if PostgreSQL thinks that the content exists
     ok(
@@ -80,11 +80,11 @@ sub test_store_content($$)
 
     # Remove content, try fetching again
     $postgresql->remove_content( $db, $test_downloads_id, $test_downloads_path );
-    $content_ref = undef;
-    eval { $content_ref = $postgresql->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
+    $content = undef;
+    eval { $content = $postgresql->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
     ok( $@, "Fetching download that does not exist should have failed" );
-    ok( ( !$content_ref ),
-        "Fetching download that does not exist failed (as expected) but the content reference was returned" );
+    ok( ( !defined $content ),
+        "Fetching download that does not exist failed (as expected) but the content was still returned" );
 
     # Check if PostgreSQL thinks that the content exists
     ok(
@@ -100,23 +100,23 @@ sub test_store_content_twice($$)
     my $test_downloads_id   = $MOCK_DOWNLOADS_ID;
     my $test_downloads_path = undef;
     my $test_content        = 'Loren ipsum dolor sit amet.';
-    my $content_ref;
+    my $content;
 
     # Store content
     my $postgresql_id;
     eval {
-        $postgresql_id = $postgresql->store_content( $db, $test_downloads_id, \$test_content );
-        $postgresql_id = $postgresql->store_content( $db, $test_downloads_id, \$test_content );
+        $postgresql_id = $postgresql->store_content( $db, $test_downloads_id, $test_content );
+        $postgresql_id = $postgresql->store_content( $db, $test_downloads_id, $test_content );
     };
     ok( ( !$@ ), "Storing content failed: $@" );
     ok( $postgresql_id,                                     'Object ID was returned' );
     ok( length( $postgresql_id ) > length( 'postgresql:' ), 'Object ID is of the valid size' );
 
     # Fetch content
-    eval { $content_ref = $postgresql->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
+    eval { $content = $postgresql->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
     ok( ( !$@ ), "Fetching download failed: $@" );
-    ok( $content_ref, "Fetching download did not die but no content was returned" );
-    is( $$content_ref, $test_content, "Content doesn't match." );
+    ok( defined $content, "Fetching download did not die but no content was returned" );
+    is( $content, $test_content, "Content doesn't match." );
 
     # Check if PostgreSQL thinks that the content exists
     ok(
@@ -126,11 +126,11 @@ sub test_store_content_twice($$)
 
     # Remove content, try fetching again
     $postgresql->remove_content( $db, $test_downloads_id, $test_downloads_path );
-    $content_ref = undef;
-    eval { $content_ref = $postgresql->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
+    $content = undef;
+    eval { $content = $postgresql->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
     ok( $@, "Fetching download that does not exist should have failed" );
-    ok( ( !$content_ref ),
-        "Fetching download that does not exist failed (as expected) but the content reference was returned" );
+    ok( ( !defined $content ),
+        "Fetching download that does not exist failed (as expected) but the content was still returned" );
 
     # Check if PostgreSQL thinks that the content exists
     ok(

@@ -64,7 +64,7 @@ sub BUILD($$)
 # die() if storing in one of the stores failed
 sub store_content($$$$)
 {
-    my ( $self, $db, $object_id, $content_ref ) = @_;
+    my ( $self, $db, $object_id, $content ) = @_;
 
     my $last_store_path;
 
@@ -76,7 +76,7 @@ sub store_content($$$$)
     foreach my $store ( @{ $self->_stores_for_writing } )
     {
         eval {
-            $last_store_path = $store->store_content( $db, $object_id, $content_ref );
+            $last_store_path = $store->store_content( $db, $object_id, $content );
             unless ( $last_store_path )
             {
                 LOGCONFESS "Storing object $object_id to " . ref( $store ) . " succeeded, but the returned path is empty.";
@@ -103,7 +103,7 @@ sub fetch_content($$$$)
 {
     my ( $self, $db, $object_id, $object_path ) = @_;
 
-    my $content_ref;
+    my $content;
 
     my @errors;
 
@@ -115,11 +115,11 @@ sub fetch_content($$$$)
     foreach my $store ( @{ $self->_stores_for_reading } )
     {
         eval {
-            $content_ref = $store->fetch_content( $db, $object_id, $object_path );
-            unless ( $content_ref )
+            $content = $store->fetch_content( $db, $object_id, $object_path );
+            unless ( defined $content )
             {
                 LOGCONFESS "Fetching object $object_id from " .
-                  ref( $store ) . " succeeded, but the returned content ref is empty.";
+                  ref( $store ) . " succeeded, but the returned content is undefined.";
             }
         };
         if ( $@ )
@@ -133,12 +133,12 @@ sub fetch_content($$$$)
         }
     }
 
-    unless ( $content_ref )
+    unless ( $content )
     {
         LOGCONFESS "All stores failed while fetching object $object_id; errors: " . join( "\n", @errors );
     }
 
-    return $content_ref;
+    return $content;
 }
 
 # Remove content from all of the stores

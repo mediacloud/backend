@@ -315,7 +315,7 @@ sub write_story_stats($$$)
     TRACE 'JSON length: ' . length( $json_stats );
 
     # Write to key-value store, index by stories_id
-    eval { ( force $_results_store)->store_content( $db, $stories_id, \$json_stats ); };
+    eval { ( force $_results_store)->store_content( $db, $stories_id, $json_stats ); };
     if ( $@ )
     {
         die "Unable to store Bit.ly result to store: $@";
@@ -351,16 +351,15 @@ sub read_story_stats($$)
     }
 
     # Fetch processing result
-    my $json_ref          = undef;
+    my $json;
     my $param_object_path = undef;
-    eval { $json_ref = ( force $_results_store)->fetch_content( $db, $stories_id, $param_object_path ); };
-    if ( $@ or ( !defined $json_ref ) )
+    eval { $json = ( force $_results_store)->fetch_content( $db, $stories_id, $param_object_path ); };
+    if ( $@ )
     {
         die "Storage died while fetching Bit.ly stats for story $stories_id: $@\n";
     }
 
-    my $json = $$json_ref;
-    unless ( $json )
+    unless ( defined $json )
     {
         die "Fetched stats are undefined or empty for story $stories_id.\n";
     }

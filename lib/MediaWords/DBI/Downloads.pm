@@ -312,11 +312,13 @@ sub fetch_content($$)
     }
 
     # Fetch content
-    my $content_ref = $store->fetch_content( $db, $download->{ downloads_id }, $download->{ path } );
-    unless ( $content_ref and ref( $content_ref ) eq 'SCALAR' )
+    my $content = $store->fetch_content( $db, $download->{ downloads_id }, $download->{ path } );
+    unless ( defined $content )
     {
         LOGCROAK "Unable to fetch content for download " . $download->{ downloads_id } . "; tried store: " . ref( $store );
     }
+
+    my $content_ref = \$content;
 
     # horrible hack to fix old content that is not stored in unicode
     my $config                  = MediaWords::Util::Config::get_config;
@@ -356,7 +358,7 @@ sub store_content($$$)
             LOGCROAK "No download store to write to.";
         }
 
-        $path = $store->store_content( $db, $download->{ downloads_id }, $content_ref );
+        $path = $store->store_content( $db, $download->{ downloads_id }, $$content_ref );
     };
     if ( $@ )
     {
