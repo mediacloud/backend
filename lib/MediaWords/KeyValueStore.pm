@@ -24,14 +24,12 @@ package MediaWords::KeyValueStore;
 # Storing data:
 #
 #     # In this case, "Vincent Van Furrball" is the key.
-#     # The *reference* to the contents of the file "vincent.jpg" is the value.
 #
 #     $store->store_content( $db, 'Vincent Van Furrball', read_file('vincent.jpg') );
 #
 # Fetching data:
 #
 #     # In this case, "Mister Bigglesworth" is the key.
-#     # The *reference* to the contents of the file stored in the store is returned.
 #
 #     my $content = $store->fetch_content( $db, 'Mister Bigglesworth' );
 #
@@ -83,7 +81,7 @@ use MediaWords::Util::Compress;
 # S3 bucket and path prefix) as an argument
 requires 'BUILD';
 
-# Fetch content; returns reference to content on success; returns empty string
+# Fetch content; returns content on success, undef if not found; returns empty string
 # and dies on error
 requires 'fetch_content';
 
