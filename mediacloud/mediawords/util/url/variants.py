@@ -112,15 +112,15 @@ def _get_topic_url_variants(db: DatabaseHandler, urls: List[str]) -> List[str]:
             SELECT redirect_url AS url
             FROM topic_links
             WHERE ref_stories_id = ANY(?)
-            
+
             UNION
-            
+
             SELECT url
             FROM topic_links
             WHERE ref_stories_id = ANY(?)
-            
+
             UNION
-            
+
             SELECT url
             FROM stories
             WHERE stories_id = ANY(?)
