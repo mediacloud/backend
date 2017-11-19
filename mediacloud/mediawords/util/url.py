@@ -109,6 +109,8 @@ def canonical_url(url: str) -> str:
     if len(url) == 0:
         raise McCanonicalURLException("URL is empty.")
 
+    url = fix_common_url_mistakes(url)
+
     if not is_http_url(url):
         raise McCanonicalURLException("URL is not HTTP(s): %s" % url)
 
@@ -371,6 +373,8 @@ def is_homepage_url(url: str) -> bool:
         log.debug("URL is empty.")
         return False
 
+    url = fix_common_url_mistakes(url)
+
     if not is_http_url(url):
         log.debug("URL '%s' is invalid." % url)
         return False
@@ -489,6 +493,9 @@ def http_urls_in_string(string: str) -> list:
     urls = re.findall(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', string, re.I)
     http_urls = []
     for url in urls:
+
+        url = fix_common_url_mistakes(url)
+
         if is_http_url(url):
             http_urls.append(url)
 
@@ -501,6 +508,8 @@ def http_urls_in_string(string: str) -> list:
 def get_url_path_fast(url: str) -> str:
     """Return URLs path."""
     url = decode_object_from_bytes_if_needed(url)
+
+    url = fix_common_url_mistakes(url)
 
     if not is_http_url(url):
         return ''
@@ -522,6 +531,8 @@ def get_base_url(url: str) -> str:
 
     if url is None:
         raise McGetBaseURLException("URL is None.")
+
+    url = fix_common_url_mistakes(url)
 
     if not is_http_url(url):
         raise McGetBaseURLException("URL is not HTTP(S): %s" % url)
@@ -557,12 +568,12 @@ def urls_are_equal(url1: str, url2: str) -> bool:
     if len(url2) == 0:
         log.warning("URL #2 is empty.")
 
+    url1 = fix_common_url_mistakes(url1)
+    url2 = fix_common_url_mistakes(url2)
+
     if not (is_http_url(url1) and is_http_url(url2)):
         log.warning("One or both of URLs is not a HTTP URL; URL #1: %s; URL #2: %s" % (url1, url2,))
         return False
-
-    url1 = fix_common_url_mistakes(url1)
-    url2 = fix_common_url_mistakes(url2)
 
     try:
         url1 = canonical_url(url1)
