@@ -57,6 +57,11 @@ def fix_common_url_mistakes(url: str) -> Optional[str]:
     # replace backslashes with forward
     url = re.sub(r'\\', r'/', url)
 
+    # Add missing port, e.g. "https://www.gpo.gov:/fdsys/pkg/PL<...>"
+    # (is_http_url() returns False on URLs with an empty port but "requests" manages to fetch them just fine, so let's
+    # fix it here)
+    url = re.sub(r'^(https?://[\w\d\-.]+):($|/)', r"\1\2", url, flags=re.I)
+
     # http://newsmachete.com?page=2 -> http://newsmachete.com/?page=2
     url = re.sub(r'(https?://[^/]+)\?', r"\1/?", url)
 
