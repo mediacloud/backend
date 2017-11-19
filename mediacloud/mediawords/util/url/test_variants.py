@@ -6,7 +6,7 @@ from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
 from mediawords.util.network import random_unused_port
 from mediawords.util.url import urls_are_equal
 # noinspection PyProtectedMember
-from mediawords.util.url_variants.variants import all_url_variants, McAllURLVariantsException, _get_topic_url_variants
+from mediawords.util.url.variants import all_url_variants, McAllURLVariantsException, _get_topic_url_variants
 
 
 class TestURLVariants(TestDatabaseWithSchemaTestCase):
