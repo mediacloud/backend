@@ -6,6 +6,7 @@ from urllib.parse import urlencode
 from typing import Union, Dict
 
 from mediawords.util.perl import decode_object_from_bytes_if_needed
+from mediawords.util.url import fix_common_url_mistakes, is_http_url
 
 
 class McUserAgentRequestException(Exception):
@@ -118,6 +119,13 @@ class Request(object):
             raise McUserAgentRequestException("URL is None.")
         if len(url) == 0:
             raise McUserAgentRequestException("URL is empty.")
+
+        # Might be coming from "requests" which managed to fetch a bogus URL but we deem it to be invalid
+        url = fix_common_url_mistakes(url)
+
+        if not is_http_url(url):
+            raise McUserAgentRequestException("URL is not HTTP(s): %s" % str(url))
+
         self.__url = url
 
     def headers(self) -> Dict[str, str]:
