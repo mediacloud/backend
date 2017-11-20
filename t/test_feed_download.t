@@ -201,7 +201,7 @@ sub main
 
             my $feed = add_test_feed( $db, $url_to_crawl );
 
-            my $download = MediaWords::Test::DB::create_download_for_feed( $feed, $db );
+            my $download = MediaWords::Test::DB::create_download_for_feed( $db, $feed );
 
             my $crawler = MediaWords::Crawler::Engine->new();
             $crawler->fetcher_number( 1 );
@@ -210,7 +210,7 @@ sub main
 
             $crawler->fetch_and_handle_single_download( $download );
 
-            my $redundant_feed_download = MediaWords::Test::DB::create_download_for_feed( $feed, $db );
+            my $redundant_feed_download = MediaWords::Test::DB::create_download_for_feed( $db, $feed );
 
             $crawler->fetch_and_handle_single_download( $redundant_feed_download );
 

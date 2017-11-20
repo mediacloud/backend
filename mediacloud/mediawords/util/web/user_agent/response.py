@@ -1,9 +1,10 @@
 import email
-import requests
 from typing import Union, Dict
 
+import requests
+
 from mediawords.util.perl import decode_object_from_bytes_if_needed
-from mediawords.util.web.ua.request import Request
+from mediawords.util.web.user_agent.request import Request
 
 
 class McUserAgentResponseException(Exception):

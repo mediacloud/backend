@@ -1,18 +1,19 @@
-from collections import OrderedDict
 import errno
 import fcntl
-from furl import furl
-from http import HTTPStatus
 import multiprocessing
 import os
 import re
+import time
+from collections import OrderedDict
+from http import HTTPStatus
+from typing import Dict, List, Union
+from urllib.parse import quote
+
 import requests
+from furl import furl
 from requests.adapters import HTTPAdapter
 from requests.auth import HTTPBasicAuth
-import time
-from typing import Dict, List, Union
 from urllib3 import Retry
-from urllib.parse import quote
 
 from mediawords.util.config import get_config as py_get_config
 from mediawords.util.log import create_logger
@@ -26,8 +27,8 @@ from mediawords.util.url import (
     get_base_url,
     urls_are_equal,
 )
-from mediawords.util.web.ua.request import Request
-from mediawords.util.web.ua.response import Response
+from mediawords.util.web.user_agent.request import Request
+from mediawords.util.web.user_agent.response import Response
 
 log = create_logger(__name__)
 
@@ -256,7 +257,7 @@ class UserAgent(object):
 
         def __inner_follow_redirects(response_: Response, meta_redirects_left: int) -> Union[Response, None]:
 
-            from mediawords.util.web.ua.html_redirects import (
+            from mediawords.util.web.user_agent.html_redirects import (
                 target_request_from_meta_refresh_url,
                 target_request_from_archive_org_url,
                 target_request_from_archive_is_url,
