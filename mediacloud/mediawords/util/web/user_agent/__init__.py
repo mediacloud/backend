@@ -1,3 +1,4 @@
+import codecs
 import errno
 import fcntl
 import multiprocessing
@@ -789,6 +790,15 @@ class UserAgent(object):
                         if requests_response.encoding.lower() == 'iso-8859-1':
                             if requests_response.apparent_encoding is not None:
                                 requests_response.encoding = requests_response.apparent_encoding
+
+                    # Some pages report some funky encoding; in that case, fallback to UTF-8
+                    try:
+                        codecs.lookup(requests_response.encoding)
+                    except LookupError:
+                        log.warning(
+                            "Invalid encoding %s for URL %s" % (requests_response.encoding, requests_response.url)
+                        )
+                        requests_response.encoding = 'UTF-8'
 
                     response_data_size = 0
                     for chunk in requests_response.iter_content(chunk_size=None, decode_unicode=True):
