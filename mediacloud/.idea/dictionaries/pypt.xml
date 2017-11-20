@@ -8,7 +8,10 @@
       <w>bitly</w>
       <w>bools</w>
       <w>boto</w>
+      <w>bunzip</w>
+      <w>bunzipped</w>
       <w>bytea</w>
+      <w>bzipped</w>
       <w>confdir</w>
       <w>confname</w>
       <w>createdb</w>
@@ -21,6 +24,9 @@
       <w>forceatlas</w>
       <w>fqdn</w>
       <w>gexf</w>
+      <w>gunzip</w>
+      <w>gunzipped</w>
+      <w>gzippped</w>
       <w>hausastemmer</w>
       <w>hostnames</w>
       <w>ilike</w>
@@ -67,6 +73,7 @@
       <w>stdin</w>
       <w>stringio</w>
       <w>supervisord</w>
+      <w>uncompression</w>
       <w>unnest</w>
       <w>upconfig</w>
       <w>userdict</w>
