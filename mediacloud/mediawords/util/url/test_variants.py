@@ -6,7 +6,7 @@ from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
 from mediawords.util.network import random_unused_port
 from mediawords.util.url import urls_are_equal
 # noinspection PyProtectedMember
-from mediawords.util.url.variants import all_url_variants, McAllURLVariantsException, _get_topic_url_variants
+from mediawords.util.url.variants import all_url_variants, McAllURLVariantsException
 
 
 class TestURLVariants(TestDatabaseWithSchemaTestCase):
@@ -206,10 +206,11 @@ class TestURLVariants(TestDatabaseWithSchemaTestCase):
             }
         )
 
-        test_urls = [story_1['url']]
+        test_url = story_1['url'] + self.CRUFT
 
         expected_urls = {
             story_1['url'],
+            story_1['url'] + self.CRUFT,
             story_2['url'],
             story_1['url'] + "/redirect_url",
             story_2['url'] + "/redirect_url",
@@ -217,7 +218,7 @@ class TestURLVariants(TestDatabaseWithSchemaTestCase):
             story_3['url'] + "/alternate",
         }
 
-        url_variants = _get_topic_url_variants(db=self.db(), urls=test_urls)
+        url_variants = all_url_variants(db=self.db(), url=test_url)
 
         assert len(expected_urls) == len(url_variants)
 

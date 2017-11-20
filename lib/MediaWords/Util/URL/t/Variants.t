@@ -7,7 +7,7 @@ use MediaWords::CommonLibs;
 
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 14;
+use Test::More tests => 15;
 
 use Readonly;
 use MediaWords::Test::HTTP::HashServer;
@@ -224,6 +224,7 @@ END
 
     my $expected_urls = [
         $story_1->{ url },
+        $story_1->{ url } . '?utm_source=A&utm_medium=B&utm_campaign=C',
         $story_2->{ url },
         $story_1->{ url } . "/redirect_url",
         $story_2->{ url } . "/redirect_url",
@@ -231,8 +232,8 @@ END
         $story_3->{ url } . "/alternate"
     ];
 
-    my @test_urls = ( $story_1->{ url } );
-    my $url_variants = MediaWords::Util::URL::Variants::_get_topic_url_variants( $db, \@test_urls );
+    my $test_url = $story_1->{ url } . '?utm_source=A&utm_medium=B&utm_campaign=C';
+    my $url_variants = MediaWords::Util::URL::Variants::all_url_variants( $db, $test_url );
 
     $url_variants  = [ sort { $a cmp $b } @{ $url_variants } ];
     $expected_urls = [ sort { $a cmp $b } @{ $expected_urls } ];

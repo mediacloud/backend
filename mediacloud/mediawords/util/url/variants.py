@@ -82,7 +82,7 @@ def __get_merged_stories_ids(db: DatabaseHandler, stories_ids: List[int], n: int
 
 
 # MC_REWRITE_TO_PYTHON: should return a set, not a list, but Perl doesn't support set
-def _get_topic_url_variants(db: DatabaseHandler, urls: List[str]) -> List[str]:
+def __get_topic_url_variants(db: DatabaseHandler, urls: List[str]) -> List[str]:
     """Get any alternative urls for the given url from topic_merged_stories or topic_links."""
 
     urls = decode_object_from_bytes_if_needed(urls)
@@ -207,10 +207,13 @@ def all_url_variants(db: DatabaseHandler, url: str) -> List[str]:
 
     distinct_urls = list(set(urls.values()))
 
-    all_urls = _get_topic_url_variants(db=db, urls=distinct_urls)
+    topic_urls = __get_topic_url_variants(db=db, urls=distinct_urls)
+
+    distinct_urls = distinct_urls + topic_urls
+    distinct_urls = list(set(distinct_urls))
 
     # Remove URLs that can't be variants of the initial URL
     for invalid_url_variant_regex in __INVALID_URL_VARIANT_REGEXES:
-        all_urls = [x for x in all_urls if not re.search(pattern=invalid_url_variant_regex, string=x)]
+        distinct_urls = [x for x in distinct_urls if not re.search(pattern=invalid_url_variant_regex, string=x)]
 
-    return all_urls
+    return distinct_urls
