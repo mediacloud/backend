@@ -24,7 +24,7 @@ from mediawords.util.web.user_agent import (
     McGetFollowHTTPHTMLRedirectsException,
     McParallelGetException,
 )
-from mediawords.util.web.user_agent.request import Request, McUserAgentRequestException
+from mediawords.util.web.user_agent.request.request import Request, McUserAgentRequestException
 
 log = create_logger(__name__)
 
@@ -345,6 +345,41 @@ class TestUserAgentTestCase(TestCase):
         assert response.is_success() is True
         assert urls_are_equal(url1=response.request().url(), url2=test_url)
         assert response.decoded_content() == "{'text': '时政--人民网'}"
+
+    def test_get_non_utf8_invalid_charset(self):
+        """Non-UTF-8 content with invalid encoding."""
+
+        pages = {
+            '/invalid-charset': {
+
+                # No encoding in HTTP headers
+                'header': 'Content-Type: text/html; charset=invalid-charset',
+
+                # Encoding in HTML data's <meta> element
+                'content': b"""
+                <html>
+                <head>
+                    <title>Page with invalid charset</title>
+                    <meta http-equiv="content-type" content="text/html;charset=invalid-charset"/>
+                </head>
+                <body>
+                </body>
+                </html>
+                """,
+            },
+        }
+
+        hs = HashServer(port=self.__test_port, pages=pages)
+        hs.start()
+
+        ua = UserAgent()
+        test_url = '%s/invalid-charset' % self.__test_url
+        response = ua.get(test_url)
+
+        hs.stop()
+
+        assert response.is_success() is True
+        assert urls_are_equal(url1=response.request().url(), url2=test_url)
 
     def test_get_max_size_with_content_length_header(self):
         """Max. download size (with Content-Length header)."""
