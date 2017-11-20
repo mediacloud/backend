@@ -128,7 +128,7 @@ SQL
     if ( defined $decoded_content )
     {
         # Something was found in cache
-        return \$decoded_content;
+        return $decoded_content;
     }
     else
     {
