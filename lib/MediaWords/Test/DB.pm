@@ -8,8 +8,6 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-import_python_module( __PACKAGE__, 'mediawords.test.db' );
-
 use File::Path;
 use Readonly;
 use Text::Lorem::More;
@@ -21,6 +19,93 @@ use MediaWords::Job::ExtractAndVector;
 use MediaWords::DB::Schema;
 use MediaWords::Util::Config;
 use MediaWords::Util::URL;
+
+{
+
+    package MediaWords::Test::DB::PythonProxy;
+
+    #
+    # Proxy to mediawords.test.db; used to make return values editable
+    #
+
+    use strict;
+    use warnings;
+
+    use Modern::Perl "2015";
+    use MediaWords::CommonLibs;
+
+    import_python_module( __PACKAGE__, 'mediawords.test.db' );
+
+    1;
+}
+
+sub force_using_test_database()
+{
+    MediaWords::Test::DB::PythonProxy::force_using_test_database();
+}
+
+sub using_test_database()
+{
+    return MediaWords::Test::DB::PythonProxy::using_test_database();
+}
+
+sub create_download_for_feed($$)
+{
+    my ( $db, $feed ) = @_;
+
+    my $return_value = MediaWords::Test::DB::PythonProxy::create_download_for_feed( $db, $feed );
+    return python_deep_copy( $return_value );
+}
+
+sub create_test_medium($$)
+{
+    my ( $db, $label ) = @_;
+
+    my $return_value = MediaWords::Test::DB::PythonProxy::create_test_medium( $db, $label );
+    return python_deep_copy( $return_value );
+}
+
+sub create_test_feed($$$)
+{
+    my ( $db, $label, $medium ) = @_;
+
+    my $return_value = MediaWords::Test::DB::PythonProxy::create_test_feed( $db, $label, $medium );
+    return python_deep_copy( $return_value );
+}
+
+sub create_test_story($$$)
+{
+    my ( $db, $label, $feed ) = @_;
+
+    my $return_value = MediaWords::Test::DB::PythonProxy::create_test_story( $db, $label, $feed );
+    return python_deep_copy( $return_value );
+}
+
+sub create_test_story_stack($$)
+{
+    my ( $db, $data ) = @_;
+
+    my $return_value = MediaWords::Test::DB::PythonProxy::create_test_story_stack( $db, $data );
+    return python_deep_copy( $return_value );
+}
+
+sub create_test_story_stack_numerated($$$$;$)
+{
+    my ( $db, $num_media, $num_feeds_per_medium, $num_stories_per_feed, $label ) = @_;
+
+    my $return_value =
+      MediaWords::Test::DB::PythonProxy::create_test_story_stack_numerated( $db, $num_media, $num_feeds_per_medium,
+        $num_stories_per_feed, $label );
+    return python_deep_copy( $return_value );
+}
+
+sub create_test_topic($$)
+{
+    my ( $db, $label ) = @_;
+
+    my $return_value = MediaWords::Test::DB::PythonProxy::create_test_topic( $db, $label );
+    return python_deep_copy( $return_value );
+}
 
 # run the given function on a temporary, clean database
 sub test_on_test_database
@@ -46,190 +131,8 @@ sub test_on_test_database
     }
 }
 
-sub create_download_for_feed
-{
-    my ( $feed, $dbs ) = @_;
-
-    my $priority = 0;
-    if ( !$feed->{ last_attempted_download_time } )
-    {
-        $priority = 10;
-    }
-
-    my $host     = MediaWords::Util::URL::get_url_host( $feed->{ url } );
-    my $download = $dbs->create(
-        'downloads',
-        {
-            feeds_id      => $feed->{ feeds_id },
-            url           => $feed->{ url },
-            host          => $host,
-            type          => 'feed',
-            sequence      => 1,
-            state         => 'pending',
-            priority      => $priority,
-            download_time => 'now()',
-            extracted     => 'f'
-        }
-    );
-
-    return $download;
-}
-
-# create test medium with a simple label
-sub create_test_medium
-{
-    my ( $db, $label ) = @_;
-
-    return $db->create(
-        'media',
-        {
-            name         => $label,
-            url          => "http://media.test/$label",
-            moderated    => 't',
-            is_monitored => 't',
-            public_notes => "$label public notes",
-            editor_notes => "$label editor notes"
-        }
-    );
-}
-
-# create test feed with a simple label belonging to $medium
-sub create_test_feed
-{
-    my ( $db, $label, $medium ) = @_;
-
-    return $db->create(
-        'feeds',
-        {
-            name     => $label,
-            url      => "http://feed.test/$label",
-            media_id => $medium->{ media_id }
-        }
-    );
-}
-
-# create test story with a simple label belonging to $feed
-sub create_test_story
-{
-    my ( $db, $label, $feed ) = @_;
-
-    my $story = $db->create(
-        'stories',
-        {
-            media_id      => $feed->{ media_id },
-            url           => "http://story.test/$label",
-            guid          => "guid://story.test/$label",
-            title         => "story $label",
-            description   => "description $label",
-            publish_date  => '2016-10-15 08:00:00',
-            collect_date  => '2016-10-15 10:00:00',
-            full_text_rss => 't'
-        }
-    );
-
-    $db->query( <<END, $feed->{ feeds_id }, $story->{ stories_id } );
-insert into feeds_stories_map ( feeds_id, stories_id ) values ( ?, ? )
-END
-
-    return $story;
-}
-
-# create structure of media, feeds, and stories from hash.
-# given a hash in this form:
-# my $data = {
-#     A => {
-#         B => [ 1, 2 ],
-#         C => [ 4 ]
-#     },
-# };
-# returns the list of media sources created, with a feeds field on each medium and
-# a stories field on each field, all referenced by the given labels, in this form:
-# { A => {
-#     $medium_a_hash,
-#     feeds => {
-#         B => {
-#             $feed_b_hash,
-#             stories => {
-#                 1 => { $story_1_hash },
-#                 2 => { $story_2_hash },
-#             }
-#         }
-#     },
-#   B => { $feed_b_hash },
-#   1 => { $story_1_hash },
-#   2 => { $story_2_hash }
-# }
-#
-# so, for example, story 2 can be accessed in the return value as either
-#   $data->{ A }->{ feeds }->{ B }->{ stories }->{ 2 }
-# or simply as
-#   $data->{ 2 }
-sub create_test_story_stack
-{
-    my ( $db, $data ) = @_;
-
-    die( "invalid media data format" ) unless ( ref( $data ) eq 'HASH' );
-
-    my $media = {};
-    while ( my ( $medium_label, $feeds ) = each( %{ $data } ) )
-    {
-        die( "$medium_label medium label already used in story stack" ) if ( $media->{ $medium_label } );
-        my $medium = create_test_medium( $db, $medium_label );
-        $media->{ $medium_label } = $medium;
-
-        die( "invalid feeds data format" ) unless ( ref( $feeds ) eq 'HASH' );
-
-        while ( my ( $feed_label, $story_labels ) = each( %{ $feeds } ) )
-        {
-            die( "$feed_label feed label already used in story stack" ) if ( $media->{ $feed_label } );
-            my $feed = create_test_feed( $db, $feed_label, $medium );
-            $medium->{ feeds }->{ $feed_label } = $feed;
-            $media->{ $feed_label } = $feed;
-
-            die( "invalid stories data format" ) unless ( ref( $story_labels ) eq 'ARRAY' );
-
-            for my $story_label ( @{ $story_labels } )
-            {
-                die( "$story_label story label already used in story stack" ) if ( $media->{ $story_label } );
-                my $story = create_test_story( $db, $story_label, $feed );
-                $feed->{ stories }->{ $story_label } = $story;
-                $media->{ $story_label } = $story;
-            }
-        }
-    }
-
-    return $media;
-}
-
-# call create_test_story_stack with $num_media, num_feeds_per_medium, $num_stories_per_feed instead of
-# explicit hash as described above
-sub create_test_story_stack_numerated($$$$;$)
-{
-    my ( $db, $num_media, $num_feeds_per_medium, $num_stories_per_feed, $label ) = @_;
-
-    my $feed_index  = 0;
-    my $story_index = 0;
-
-    $label ||= 'test';
-
-    my $def = {};
-    for my $i ( 0 .. $num_media - 1 )
-    {
-        my $feeds = {};
-        $def->{ "media_${ label }_${ i }" } = $feeds;
-
-        for my $j ( 0 .. $num_feeds_per_medium - 1 )
-        {
-            $feeds->{ "feed_${ label }_" . $feed_index++ } =
-              [ map { "story_" . $story_index++ } ( 0 .. $num_stories_per_feed - 1 ) ];
-        }
-    }
-
-    return create_test_story_stack( $db, $def );
-}
-
 # generated 1 - 10 paragraphs of 1 - 5 sentences of ipsem lorem.
-sub get_test_content
+sub _get_test_content
 {
     my $lorem = Text::Lorem::More->new();
 
@@ -249,12 +152,12 @@ sub get_test_content
 }
 
 # adds a 'download' and a 'content' field to each story in the test story stack.  stores the content in the download
-# store.  generates the content using get_test_content()
+# store.  generates the content using _get_test_content()
 sub add_content_to_test_story($$$)
 {
     my ( $db, $story, $feed ) = @_;
 
-    my $content = get_test_content();
+    my $content = _get_test_content();
 
     if ( $story->{ full_text_rss } )
     {
@@ -343,29 +246,6 @@ sub create_test_user($$)
     my $api_key = $user_info->global_api_key();
 
     return $api_key;
-}
-
-# create test topic with a simple label.
-sub create_test_topic($$)
-{
-    my ( $db, $label ) = @_;
-
-    my $topic = $db->create(
-        'topics',
-        {
-            name                => $label,
-            description         => $label,
-            pattern             => $label,
-            solr_seed_query     => $label,
-            solr_seed_query_run => 't',
-            start_date          => '2016-01-01',
-            end_date            => '2016-03-01',
-            job_queue           => 'mc',
-            max_stories         => 100_000
-        }
-    );
-
-    return $topic;
 }
 
 1;

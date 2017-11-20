@@ -1,5 +1,5 @@
 from mediawords.util.url import urls_are_equal
-from mediawords.util.web.ua.html_redirects import (
+from mediawords.util.web.user_agent.html_redirects import (
     target_request_from_meta_refresh_url,
     target_request_from_archive_is_url,
     target_request_from_archive_org_url,

@@ -1,14 +1,15 @@
 import copy
-from furl import furl
-from http import HTTPStatus
 import os
-import pytest
 import re
 import tempfile
 import time
+from http import HTTPStatus
 from typing import Union
 from unittest import TestCase
 from urllib.parse import quote, parse_qs
+
+import pytest
+from furl import furl
 
 from mediawords.test.http.hash_server import HashServer
 from mediawords.util.config import get_config as py_get_config, set_config as py_set_config
@@ -17,13 +18,13 @@ from mediawords.util.log import create_logger
 from mediawords.util.network import random_unused_port
 from mediawords.util.text import random_string
 from mediawords.util.url import urls_are_equal
-from mediawords.util.web.ua.request import Request, McUserAgentRequestException
 from mediawords.util.web.user_agent import (
     UserAgent,
     McUserAgentException,
     McGetFollowHTTPHTMLRedirectsException,
     McParallelGetException,
 )
+from mediawords.util.web.user_agent.request import Request, McUserAgentRequestException
 
 log = create_logger(__name__)
 

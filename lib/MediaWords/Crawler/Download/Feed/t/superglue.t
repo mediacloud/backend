@@ -44,7 +44,7 @@ sub test_fetch_handle_download($$)
         }
     );
 
-    my $download = MediaWords::Test::DB::create_download_for_feed( $feed, $db );
+    my $download = MediaWords::Test::DB::create_download_for_feed( $db, $feed );
 
     my $handler = MediaWords::Crawler::Engine::handler_for_download( $db, $download );
 
