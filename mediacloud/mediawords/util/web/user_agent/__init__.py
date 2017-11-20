@@ -28,8 +28,8 @@ from mediawords.util.url import (
     get_base_url,
     urls_are_equal,
 )
-from mediawords.util.web.user_agent.request import Request
-from mediawords.util.web.user_agent.response import Response
+from mediawords.util.web.user_agent.request.request import Request
+from mediawords.util.web.user_agent.response.response import Response
 
 log = create_logger(__name__)
 

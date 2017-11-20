@@ -24,7 +24,7 @@ from mediawords.util.web.user_agent import (
     McGetFollowHTTPHTMLRedirectsException,
     McParallelGetException,
 )
-from mediawords.util.web.user_agent.request import Request, McUserAgentRequestException
+from mediawords.util.web.user_agent.request.request import Request, McUserAgentRequestException
 
 log = create_logger(__name__)
 
