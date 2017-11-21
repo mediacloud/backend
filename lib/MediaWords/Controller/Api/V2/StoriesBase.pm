@@ -199,7 +199,7 @@ END
         {
             if ( $story_text_data->{ full_text_rss } )
             {
-                $story_text_data->{ story_text } = html_strip( $story_text_data->{ story_text } );
+                $story_text_data->{ story_text } = MediaWords::Util::HTML::html_strip( $story_text_data->{ story_text } );
             }
         }
 

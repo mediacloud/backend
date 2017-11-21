@@ -179,6 +179,15 @@ sub main
 
     my ( $dump ) = @ARGV;
 
+    # Errors might want to print out UTF-8 characters
+    binmode( STDERR, ':utf8' );
+    binmode( STDOUT, ':utf8' );
+    my $builder = Test::More->builder;
+
+    binmode $builder->output,         ":utf8";
+    binmode $builder->failure_output, ":utf8";
+    binmode $builder->todo_output,    ":utf8";
+
     MediaWords::Test::DB::test_on_test_database(
         sub {
             use Encode;
@@ -192,7 +201,7 @@ sub main
 
             my $feed = add_test_feed( $db, $url_to_crawl );
 
-            my $download = MediaWords::Test::DB::create_download_for_feed( $feed, $db );
+            my $download = MediaWords::Test::DB::create_download_for_feed( $db, $feed );
 
             my $crawler = MediaWords::Crawler::Engine->new();
             $crawler->fetcher_number( 1 );
@@ -201,7 +210,7 @@ sub main
 
             $crawler->fetch_and_handle_single_download( $download );
 
-            my $redundant_feed_download = MediaWords::Test::DB::create_download_for_feed( $feed, $db );
+            my $redundant_feed_download = MediaWords::Test::DB::create_download_for_feed( $db, $feed );
 
             $crawler->fetch_and_handle_single_download( $redundant_feed_download );
 

@@ -129,7 +129,7 @@ sub mark_canonical_url_duplicates
         {
             next if ( $a->{ media_id } == $b->{ media_id } || $b->{ dup_media_id } );
 
-            if ( $a->{ url_c } eq $b->{ url_c } )
+            if ( MediaWords::Util::URL::urls_are_equal( $a->{ url_c }, $b->{ url_c } ) )
             {
                 mark_medium_as_dup( $db, $b, $a );
             }

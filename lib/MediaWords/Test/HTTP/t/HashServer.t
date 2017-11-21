@@ -1,9 +1,11 @@
 use strict;
 use warnings;
+use utf8;
 
 use Test::More tests => 15;
 
 use MediaWords::Util::Web;
+use MediaWords::Test::URLs;
 
 BEGIN
 {
@@ -31,7 +33,7 @@ sub main
     my $pages = {
         '/'          => 'home',
         '/foo'       => 'foo',
-        '/bar'       => 'bar',
+        '/bar'       => '𝒃𝒂𝒓',                                        # UTF-8
         '/foo-bar'   => { redirect => '/bar' },
         '/localhost' => { redirect => "http://localhost:$_port/" },
         '/127-foo'   => { redirect => "http://127.0.0.1:$_port/foo" },
@@ -39,7 +41,11 @@ sub main
         '/404'       => { content => 'not found', http_status_code => 404 },
         '/callback'  => {
             callback => sub {
-                my ( $params, $cookies ) = @_;
+                my ( $request ) = @_;
+
+                my $params  = $request->query_params();
+                my $cookies = $request->cookies();
+
                 my $response = '';
                 $response .= "HTTP/1.0 200 OK\r\n";
                 $response .= "Content-Type: text/plain\r\n";
@@ -54,14 +60,14 @@ sub main
 
     ok( $hs, 'hashserver object returned' );
 
-    is( $hs->page_url( '/foo' ), "http://localhost:$_port/foo" );
+    is_urls( $hs->page_url( '/foo' ), "http://localhost:$_port/foo" );
 
     $hs->start();
 
     __test_page( "http://localhost:$_port/",          'home' );
     __test_page( "http://localhost:$_port/foo",       'foo' );
-    __test_page( "http://localhost:$_port/bar",       'bar' );
-    __test_page( "http://localhost:$_port/foo-bar",   'bar' );
+    __test_page( "http://localhost:$_port/bar",       '𝒃𝒂𝒓' );
+    __test_page( "http://localhost:$_port/foo-bar",   '𝒃𝒂𝒓' );
     __test_page( "http://127.0.0.1:$_port/localhost", 'home' );
     __test_page( "http://localhost:$_port/127-foo",   'foo' );
     __test_page( "http://localhost:$_port/callback",  'callback' );

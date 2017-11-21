@@ -646,7 +646,7 @@ sub nv_config : Local
         }
     };
 
-    my $config_json = MediaWords::Util::JSON::encode_json( $config_data, 1, 1 );
+    my $config_json = MediaWords::Util::JSON::encode_json( $config_data, 1 );
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
     $c->response->content_length( bytes::length( $config_json ) );

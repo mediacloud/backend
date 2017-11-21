@@ -1,10 +1,12 @@
 from unittest import TestCase
 
-from mediawords.util.mail import Message, \
-    send_email, \
-    send_text_email, \
-    enable_test_mode as enable_mail_test_mode, \
-    disable_test_mode as disable_mail_test_mode
+from mediawords.util.mail import (
+    Message,
+    send_email,
+    send_text_email,
+    enable_test_mode as enable_mail_test_mode,
+    disable_test_mode as disable_mail_test_mode,
+)
 
 
 class TestMail(TestCase):

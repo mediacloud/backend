@@ -41,3 +41,7 @@ script/vagrant/temp-vagrant-mediacloud
 
 # atom sync config
 .remote-sync.json
+
+# pytest cache
+.cache
+
