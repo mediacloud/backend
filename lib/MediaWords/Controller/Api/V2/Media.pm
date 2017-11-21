@@ -564,7 +564,9 @@ select u.email email, *
 SQL
 
     $media_suggestions = $db->attach_child_query( $media_suggestions, <<SQL, 'tags_ids', 'media_suggestions_id' );
-select tags_id, media_suggestions_id from media_suggestions_tags_map
+select t.tags_id, t.tag, t.label, t.description, mstm.media_suggestions_id
+    from media_suggestions_tags_map mstm
+        join tags t using ( tags_id )
 SQL
 
     $self->status_ok( $c, entity => { media_suggestions => $media_suggestions } );
