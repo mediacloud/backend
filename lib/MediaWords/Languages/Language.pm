@@ -31,6 +31,7 @@ Readonly my $MAX_TEXT_LENGTH => 1024 * 1024;
 # LIST OF ENABLED LANGUAGES
 #
 my @_enabled_languages = (
+    'ca',    # Catalan
     'da',    # Danish
     'de',    # German
     'en',    # English
