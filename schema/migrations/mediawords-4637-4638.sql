@@ -19,6 +19,23 @@ SET search_path = public, pg_catalog;
 
 
 -- Delete duplicate users (the non-lowercase emails)
+DELETE FROM auth_user_request_daily_counts
+WHERE email IN (
+    SELECT email
+    FROM auth_users
+    WHERE LOWER(email) IN (
+
+        -- Users with duplicate emails
+        SELECT LOWER(email)
+        FROM auth_users
+        GROUP BY LOWER(email)
+        HAVING COUNT(*) > 1
+    )
+
+      -- Emails that are not lowercase
+      AND email::text != lower(email)::text
+);
+
 DELETE FROM auth_users
 WHERE email IN (
     SELECT email
