@@ -63,7 +63,7 @@ sub get_extra_where_clause
     {
         $tag_sets_ids = ref( $tag_sets_ids ) ? $tag_sets_ids : [ $tag_sets_ids ];
         my $tag_sets_ids_list = join( ',', map { int( $_ ) } @{ $tag_sets_ids } );
-        push( @{ $clauses }, "tag_sets_id in ( $tag_sets_ids_list )" );
+        push( @{ $clauses }, "and tag_sets_id in ( $tag_sets_ids_list )" );
     }
 
     if ( my $similar_tags_id = $c->req->params->{ similar_tags_id } )
@@ -88,7 +88,7 @@ SQL
 
     if ( @{ $clauses } )
     {
-        return ' and ' . join( ' and ', @{ $clauses } );
+        return join( ' ', @{ $clauses } );
     }
 
     return '';
