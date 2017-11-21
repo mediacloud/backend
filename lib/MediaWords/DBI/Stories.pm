@@ -1095,7 +1095,19 @@ sub get_story_word_matrix($$;$)
             # Remove stopwords from the stems
             $wc->include_stopwords( 0 );
 
-            my $stem_counts = $wc->count_stems( [ split( $sentence_separator, $story->{ story_text } ) ] );
+            my $sentences_and_story_languages = [];
+            for my $sentence ( split( $sentence_separator, $story->{ story_text } ) )
+            {
+                push(
+                    @{ $sentences_and_story_languages },
+                    {
+                        'story_language' => $story->{ language },
+                        'sentence'       => $sentence,
+                    }
+                );
+            }
+
+            my $stem_counts = $wc->count_stems( $sentences_and_story_languages );
 
             my $stem_count_list = [];
             while ( my ( $stem, $data ) = each( %{ $stem_counts } ) )
