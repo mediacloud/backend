@@ -835,6 +835,8 @@ class DatabaseHandler(object):
 
         # FIXME get rid of this hard to understand reimplementation of JOIN which is here due to the sole reason that
         # _add_nested_data() is hard to refactor out and no one bothered to do it.
+        # HMR: the point of this thing is to be able to add nested data in only a single query, which vastly increases
+        # performance over performing one query per row for the nested data
 
         data = decode_object_from_bytes_if_needed(data)
         if not isinstance(data, list):
@@ -869,6 +871,12 @@ class DatabaseHandler(object):
         }
         children = self.query(sql).hashes()
 
+        # if we're appending lists, make sure each parent row has an empty list
+        if not single:
+            for parent in data:
+                if child_field not in parent:
+                    parent[child_field] = []
+
         for child in children:
             child_id = child[id_column]
             parent = parent_lookup[child_id]
@@ -876,8 +884,6 @@ class DatabaseHandler(object):
             if single:
                 parent[child_field] = child[child_field]
             else:
-                if child_field not in parent:
-                    parent[child_field] = []
                 parent[child_field].append(child)
 
         return data
