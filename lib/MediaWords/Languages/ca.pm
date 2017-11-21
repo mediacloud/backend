@@ -30,7 +30,7 @@ sub stem
 
     # Until the Catalan stemmer gets ported to Perl / Python, Spanish will have to do:
     #
-    # http://snowball.tartarus.org/algorithms/catalan/stemmer.html
+    # FIXME: add proper Catalan stemmer: http://snowball.tartarus.org/algorithms/catalan/stemmer.html
     return $self->_stem_with_lingua_stem_snowball( 'es', 'UTF-8', \@_ );
 }
 
