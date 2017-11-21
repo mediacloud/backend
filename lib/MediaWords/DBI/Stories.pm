@@ -1037,20 +1037,6 @@ SQL
     return $cursor;
 }
 
-# remove stopwords from the $stem_count list, using the $language
-sub _remove_stopwords_from_stem_vector($$)
-{
-    my ( $stem_counts, $language_code ) = @_;
-
-    return unless ( $language_code );
-
-    my $language = MediaWords::Languages::Language::language_for_code( $language_code ) || return;
-
-    my $stop_words = $language->get_stop_word_stems();
-
-    map { delete( $stem_counts->{ $_ } ) if ( $stop_words->{ $_ } ) } keys( %{ $stem_counts } );
-}
-
 =head2 get_story_word_matrix_file( $db, $stories_ids, $max_words )
 
 Given a list of stories_ids, generate a matrix consisting of the vector of word stem counts for each stories_id on each
@@ -1105,11 +1091,11 @@ sub get_story_word_matrix($$;$)
         for my $story ( @{ $stories } )
         {
             my $wc = MediaWords::Solr::WordCounts->new();
-            $wc->include_stopwords( 1 );
+
+            # Remove stopwords from the stems
+            $wc->include_stopwords( 0 );
 
             my $stem_counts = $wc->count_stems( [ split( $sentence_separator, $story->{ story_text } ) ] );
-
-            _remove_stopwords_from_stem_vector( $stem_counts, $story->{ language } );
 
             my $stem_count_list = [];
             while ( my ( $stem, $data ) = each( %{ $stem_counts } ) )
