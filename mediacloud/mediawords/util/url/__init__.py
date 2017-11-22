@@ -305,6 +305,10 @@ def normalize_url_lossy(url: str) -> Optional[str]:
 
     url = fix_common_url_mistakes(url)
 
+    if not is_http_url(url):
+        log.warning("URL is not HTTP(s): %s" % url)
+        return url
+
     url = url.lower()
 
     # r2.ly redirects through the hostname, ala http://543.r2.ly
