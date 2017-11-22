@@ -13,6 +13,11 @@ use utf8;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use Lingua::Stem::Snowball::Ca;
+
+# Lingua::Stem::Snowball::Ca instance (if needed), lazy-initialized in stem()
+has 'ca_stemmer' => ( is => 'rw', default => 0 );
+
 sub get_language_code
 {
     return 'ca';
@@ -28,10 +33,15 @@ sub stem
 {
     my $self = shift;
 
-    # Until the Catalan stemmer gets ported to Perl / Python, Spanish will have to do:
-    #
-    # FIXME: add proper Catalan stemmer: http://snowball.tartarus.org/algorithms/catalan/stemmer.html
-    return $self->_stem_with_lingua_stem_snowball( 'es', 'UTF-8', \@_ );
+    # (Re-)initialize stemmer if needed
+    if ( $self->ca_stemmer == 0 )
+    {
+        $self->ca_stemmer( Lingua::Stem::Snowball::Ca->new() );
+    }
+
+    my @stems = $self->ca_stemmer->stem( \@_ );
+
+    return \@stems;
 }
 
 sub get_sentences
