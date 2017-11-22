@@ -52,6 +52,16 @@
   tags:
     - perl-dependencies
 
+# FIXME install from local CPAN mirror
+- name: Install Lingua::Stem::Snowball::Ca module
+  cpanm:
+    name: "Lingua::Stem::Snowball::Ca"
+  environment: "{{ perlbrew_environment_variables_copy }}"
+  become: true
+  become_user: "{{ mediacloud_user }}"
+  tags:
+    - perl-dependencies
+
 - name: Install Media Cloud Perl dependencies with Cpanm
   cpanm:
     name: "{{ item }}"
