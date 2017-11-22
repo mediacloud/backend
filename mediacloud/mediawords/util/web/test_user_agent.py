@@ -412,6 +412,71 @@ class TestUserAgentTestCase(TestCase):
         assert response.is_success()
         assert len(response.decoded_content()) <= max_size
 
+    def test_get_max_size_with_duplicate_content_length_header(self):
+        """Max. download size (with duplicate Content-Length header)."""
+
+        test_content_length = 1024 * 10
+        test_content = random_string(length=test_content_length)
+
+        pages = {
+            '/max-download-side': {
+                'header': 'Content-Length: %(content_length)d, %(content_length)d' % {
+                    'content_length': test_content_length
+                },
+                'content': test_content,
+            },
+        }
+
+        max_size = int(test_content_length / 10)
+
+        hs = HashServer(port=self.__test_port, pages=pages)
+        hs.start()
+
+        ua = UserAgent()
+        ua.set_max_size(max_size)
+        assert ua.max_size() == max_size
+
+        test_url = '%s/max-download-side' % self.__test_url
+        response = ua.get(test_url)
+
+        hs.stop()
+
+        # LWP::UserAgent truncates the response but still reports it as successful
+        assert response.is_success()
+        assert len(response.decoded_content()) <= max_size
+
+    def test_get_max_size_with_bogus_content_length_header(self):
+        """Max. download size (with bogus Content-Length header)."""
+
+        test_content_length = 1024 * 10
+        test_content = random_string(length=test_content_length)
+
+        pages = {
+            '/max-download-side': {
+                'header': 'Content-Length: kim-kardashian',
+                'content': test_content,
+            },
+        }
+
+        max_size = int(test_content_length / 10)
+
+        hs = HashServer(port=self.__test_port, pages=pages)
+        hs.start()
+
+        ua = UserAgent()
+        ua.set_max_size(max_size)
+        assert ua.max_size() == max_size
+
+        test_url = '%s/max-download-side' % self.__test_url
+        response = ua.get(test_url)
+
+        hs.stop()
+
+        # LWP::UserAgent truncates the response but still reports it as successful
+        assert response.is_success()
+        assert len(response.decoded_content()) >= max_size
+        assert len(response.decoded_content()) <= len(test_content)
+
     def test_get_max_size_without_content_length_header(self):
         """Max. download size (without Content-Length header)."""
 
