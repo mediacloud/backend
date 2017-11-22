@@ -13,6 +13,7 @@ use MediaWords::Test::API;
 use MediaWords::Test::DB;
 use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
+use MediaWords::Test::URLs;
 
 use MediaWords::DBI::Media::Health;
 use MediaWords::Util::Tags;
@@ -102,9 +103,9 @@ sub test_for_scraped_feeds($$)
           || die( "unable to find medium for site $site->{ name }" );
         my $feed = $db->query( "select * from feeds where media_id = ?", $medium->{ media_id } )->hash;
         ok( $feed, "feed exists for site $site->{ name } media_id $medium->{ media_id }" );
-        is( $feed->{ feed_type },   'syndicated',        "$site->{ name } feed type" );
-        is( $feed->{ feed_status }, 'active',            "$site->{ name } feed status" );
-        is( $feed->{ url },         $site->{ feed_url }, "$site->{ name } feed url" );
+        is( $feed->{ feed_type },   'syndicated', "$site->{ name } feed type" );
+        is( $feed->{ feed_status }, 'active',     "$site->{ name } feed status" );
+        is_urls( $feed->{ url }, $site->{ feed_url }, "$site->{ name } feed url" );
     }
 }
 
@@ -164,7 +165,7 @@ sub test_media_create_update($$)
             {
                 url      => $_->{ url },
                 tags_ids => [ $tag->{ tags_id } ],
-                feeds    => [ $_->{ feed_url }, $_->{ custom_feed_url }, 'http://127.0.0.1:123456/456789/feed' ]
+                feeds    => [ $_->{ feed_url }, $_->{ custom_feed_url }, 'http://127.0.0.1:12345/456789/feed' ]
             }
         } @{ $sites }
     ];
@@ -181,8 +182,8 @@ sub test_media_create_update($$)
         my $feeds = $db->query( "select * from feeds where media_id = ? order by feeds_id", $medium->{ media_id } )->hashes;
         is( scalar( @{ $feeds } ), 2, "media/create update $site->{ name } num feeds" );
 
-        is( $feeds->[ 0 ]->{ url }, $site->{ feed_url },        "media/create update $site->{ name } default feed url" );
-        is( $feeds->[ 1 ]->{ url }, $site->{ custom_feed_url }, "media/create update $site->{ name } custom feed url" );
+        is_urls( $feeds->[ 0 ]->{ url }, $site->{ feed_url }, "media/create update $site->{ name } default feed url" );
+        is_urls( $feeds->[ 1 ]->{ url }, $site->{ custom_feed_url }, "media/create update $site->{ name } custom feed url" );
 
         for my $feed ( @{ $feeds } )
         {
@@ -275,22 +276,22 @@ sub test_media_create($)
     my $first_site = $sites->[ 0 ];
     my $r = test_post( '/api/v2/media/create', [ { url => $first_site->{ url } } ] );
 
-    is( scalar( @{ $r } ),     1,                    "media/create url number of statuses" );
-    is( $r->[ 0 ]->{ status }, 'new',                "media/create url status" );
-    is( $r->[ 0 ]->{ url },    $first_site->{ url }, "media/create url url" );
+    is( scalar( @{ $r } ),     1,     "media/create url number of statuses" );
+    is( $r->[ 0 ]->{ status }, 'new', "media/create url status" );
+    is_urls( $r->[ 0 ]->{ url }, $first_site->{ url }, "media/create url url" );
 
     my $first_medium = $db->query( "select * from media where name = \$1", $first_site->{ name } )->hash;
     ok( $first_medium, "media/create url found medium with matching title" );
 
     # test that create reuse the same media source we just created
     $r = test_post( '/api/v2/media/create', [ { url => $first_site->{ url } } ] );
-    is( scalar( @{ $r } ),       1,                           "media/create existing number of statuses" );
-    is( $r->[ 0 ]->{ status },   'existing',                  "media/create existing status" );
-    is( $r->[ 0 ]->{ url },      $first_site->{ url },        "media/create existing url" );
+    is( scalar( @{ $r } ),     1,          "media/create existing number of statuses" );
+    is( $r->[ 0 ]->{ status }, 'existing', "media/create existing status" );
+    is_urls( $r->[ 0 ]->{ url }, $first_site->{ url }, "media/create existing url" );
     is( $r->[ 0 ]->{ media_id }, $first_medium->{ media_id }, "media/create existing media_id" );
 
     # add all media sources in sites, plus one which should return a 404
-    my $input = [ map { { url => $_->{ url } } } ( @{ $sites }, { url => 'http://127.0.0.1:123456/456789' } ) ];
+    my $input = [ map { { url => $_->{ url } } } ( @{ $sites }, { url => 'http://127.0.0.1:12345/456789' } ) ];
     $r = test_post( '/api/v2/media/create', $input );
     my $status_media_ids = [ map { $_->{ media_id } } grep { $_->{ status } ne 'error' } @{ $r } ];
     my $status_errors    = [ map { $_->{ error } } grep    { $_->{ status } eq 'error' } @{ $r } ];

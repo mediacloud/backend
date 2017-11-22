@@ -616,7 +616,7 @@ sub _solr_request($$$;$$)
     my $timeout = 600;
 
     # Remediate CVE-2017-12629
-    if ( $params->{ q })
+    if ( $params->{ q } )
     {
         if ( $params->{ q } =~ /xmlparser/i )
         {

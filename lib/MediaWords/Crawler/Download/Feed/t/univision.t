@@ -89,8 +89,7 @@ sub test_api_request($$$)
     ok( $json_string, 'JSON response is not empty' );
 
     my $json;
-    Readonly my $json_utf8 => 1;
-    eval { $json = MediaWords::Util::JSON::decode_json( $json_string, $json_utf8 ) };
+    eval { $json = MediaWords::Util::JSON::decode_json( $json_string ) };
     ok( ( !$@ ), "JSON recoding of JSON succeeded: $json_string" );
 
     is( $json->{ 'status' }, 'success', "JSON response was successful: $json_string" );
@@ -120,7 +119,7 @@ sub test_fetch_handle_download($$)
         }
     );
 
-    my $download = MediaWords::Test::DB::create_download_for_feed( $feed, $db );
+    my $download = MediaWords::Test::DB::create_download_for_feed( $db, $feed );
 
     my $handler = MediaWords::Crawler::Engine::handler_for_download( $db, $download );
 

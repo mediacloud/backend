@@ -17,8 +17,11 @@ from mediawords.db.schema.version import schema_version_from_lines
 from mediawords.util.config import get_config as py_get_config  # MC_REWRITE_TO_PYTHON: rename back to get_config()
 from mediawords.util.log import create_logger
 from mediawords.util.paths import mc_sql_schema_path
-from mediawords.util.perl import convert_dbd_pg_arguments_to_psycopg2_format, decode_object_from_bytes_if_needed, \
-    McDecodeObjectFromBytesIfNeededException
+from mediawords.util.perl import (
+    convert_dbd_pg_arguments_to_psycopg2_format,
+    decode_object_from_bytes_if_needed,
+    McDecodeObjectFromBytesIfNeededException,
+)
 from mediawords.util.text import random_string
 
 log = create_logger(__name__)
@@ -832,6 +835,8 @@ class DatabaseHandler(object):
 
         # FIXME get rid of this hard to understand reimplementation of JOIN which is here due to the sole reason that
         # _add_nested_data() is hard to refactor out and no one bothered to do it.
+        # HMR: the point of this thing is to be able to add nested data in only a single query, which vastly increases
+        # performance over performing one query per row for the nested data
 
         data = decode_object_from_bytes_if_needed(data)
         if not isinstance(data, list):
@@ -866,6 +871,12 @@ class DatabaseHandler(object):
         }
         children = self.query(sql).hashes()
 
+        # if we're appending lists, make sure each parent row has an empty list
+        if not single:
+            for parent in data:
+                if child_field not in parent:
+                    parent[child_field] = []
+
         for child in children:
             child_id = child[id_column]
             parent = parent_lookup[child_id]
@@ -873,8 +884,6 @@ class DatabaseHandler(object):
             if single:
                 parent[child_field] = child[child_field]
             else:
-                if child_field not in parent:
-                    parent[child_field] = []
                 parent[child_field].append(child)
 
         return data

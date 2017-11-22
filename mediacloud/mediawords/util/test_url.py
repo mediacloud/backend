@@ -15,14 +15,25 @@ def test_fix_common_url_mistakes():
 
         # missing / before ?
         'http://foo.bar?baz=bat': 'http://foo.bar/?baz=bat',
+
+        # Whitespace
+        '  http://blogs.perl.org/users/domm/2010/11/posting-utf8-data-using-lwpuseragent.html  ':
+            'http://blogs.perl.org/users/domm/2010/11/posting-utf8-data-using-lwpuseragent.html',
+
+        # Missing port
+        'https://www.gpo.gov:/fdsys/pkg/PLAW-107publ289/pdf/PLAW-107publ289.pdf':
+            'https://www.gpo.gov/fdsys/pkg/PLAW-107publ289/pdf/PLAW-107publ289.pdf'
     }
 
     for orig_url, fixed_url in urls.items():
         # Fix once
-        assert mc_url.fix_common_url_mistakes(orig_url) == fixed_url
+        assert mc_url.urls_are_equal(url1=mc_url.fix_common_url_mistakes(orig_url), url2=fixed_url)
 
         # Try fixing the same URL twice, see what happens
-        assert mc_url.fix_common_url_mistakes(mc_url.fix_common_url_mistakes(orig_url)) == fixed_url
+        assert mc_url.urls_are_equal(
+            url1=mc_url.fix_common_url_mistakes(mc_url.fix_common_url_mistakes(orig_url)),
+            url2=fixed_url,
+        )
 
 
 # noinspection SpellCheckingInspection
@@ -32,6 +43,9 @@ def test_is_http_url():
     assert not mc_url.is_http_url('')
 
     assert not mc_url.is_http_url('abc')
+    assert not mc_url.is_http_url('/abc')
+    assert not mc_url.is_http_url('//abc')
+    assert not mc_url.is_http_url('///abc')
 
     assert not mc_url.is_http_url('gopher://gopher.floodgap.com/0/v2/vstat')
     assert not mc_url.is_http_url('ftp://ftp.freebsd.org/pub/FreeBSD/')
@@ -39,21 +53,56 @@ def test_is_http_url():
     assert mc_url.is_http_url('http://cyber.law.harvard.edu/about')
     assert mc_url.is_http_url('https://github.com/berkmancenter/mediacloud')
 
+    funky_url = ('http://Las%20Vegas%20mass%20shooting%20raises'
+                 '%20new%20doubts%20about%20safety%20of%20live%20entertainment')
+    assert mc_url.is_http_url(funky_url) is False
+
+    # URLs with port, HTTP auth, localhost
+    assert mc_url.is_http_url('https://username:password@domain.com:12345/path?query=string#fragment')
+    assert mc_url.is_http_url('http://localhost:9998/feed')
+    assert mc_url.is_http_url('http://127.0.0.1:12345/456789')
+    assert mc_url.is_http_url('http://127.0.00000000.1:8899/tweet_url?id=47')
+
+    # Travis URL
+    assert mc_url.is_http_url('http://testing-gce-286b4005-b1ae-4b1a-a0d8-faf85e39ca92:37873/gv/test.rss')
+
     # URLs with mistakes fixable by fix_common_url_mistakes()
     assert not mc_url.is_http_url(
         'http:/www.theinquirer.net/inquirer/news/2322928/net-neutrality-rules-lie-in-tatters-as-fcc-overruled'
     )
 
 
+def test_canonical_url():
+    # Bad input
+    with pytest.raises(mc_url.McCanonicalURLException):
+        # noinspection PyTypeChecker
+        mc_url.canonical_url(None)
+
+    with pytest.raises(mc_url.McCanonicalURLException):
+        # noinspection PyTypeChecker
+        mc_url.canonical_url('')
+
+    # Invalid URL
+    with pytest.raises(mc_url.McCanonicalURLException):
+        funky_url = ('http://Las%20Vegas%20mass%20shooting%20raises%20new%20'
+                     'doubts%20about%20safety%20of%20live%20entertainment')
+        mc_url.canonical_url(funky_url)
+
+    # No urls_are_equal() because we want to compare them as strings here
+    assert mc_url.canonical_url('HTTP://CYBER.LAW.HARVARD.EDU:80/node/9244') == 'http://cyber.law.harvard.edu/node/9244'
+
+
 # noinspection SpellCheckingInspection
 def test_normalize_url():
     # Bad URLs
     with pytest.raises(mc_url.McNormalizeURLException):
+        # noinspection PyTypeChecker
         mc_url.normalize_url(None)
     with pytest.raises(mc_url.McNormalizeURLException):
         mc_url.normalize_url('gopher://gopher.floodgap.com/0/v2/vstat')
 
     # Basic
+    # (No urls_are_equal() because we want to compare them as strings here)
     assert mc_url.normalize_url('HTTP://CYBER.LAW.HARVARD.EDU:80/node/9244') == 'http://cyber.law.harvard.edu/node/9244'
     assert mc_url.normalize_url(
         'HTTP://WWW.GOCRICKET.COM/news/sourav-ganguly/Sourav-Ganguly-exclusive-MS-Dhoni-must-reinvent-himself'
@@ -62,7 +111,9 @@ def test_normalize_url():
          + 'survive/articleshow_sg/40421328.cms'
 
     # Multiple fragments
-    assert mc_url.normalize_url('HTTP://CYBER.LAW.HARVARD.EDU/node/9244#foo#bar') == 'http://cyber.law.harvard.edu/node/9244'
+    assert mc_url.normalize_url(
+        'HTTP://CYBER.LAW.HARVARD.EDU/node/9244#foo#bar'
+    ) == 'http://cyber.law.harvard.edu/node/9244'
 
     # URL in query
     assert mc_url.normalize_url('http://bash.org/?244321') == 'http://bash.org/?244321'
@@ -101,7 +152,8 @@ def test_normalize_url():
     ) == 'http://www.nytimes.com/2014/08/20/upshot/data-on-transfer-of-military-gear-to-police-departments.html'
 
     # Facebook
-    assert mc_url.normalize_url('https://www.facebook.com/BerkmanCenter?ref=br_tf') == 'https://www.facebook.com/BerkmanCenter'
+    assert mc_url.normalize_url(
+        'https://www.facebook.com/BerkmanCenter?ref=br_tf') == 'https://www.facebook.com/BerkmanCenter'
 
     # LiveJournal
     assert mc_url.normalize_url(
@@ -121,6 +173,7 @@ def test_normalize_url():
 # noinspection SpellCheckingInspection
 def test_normalize_url_lossy():
     # FIXME - some resulting URLs look funny, not sure if I can change them easily though
+    # (No urls_are_equal() because we want to compare them as strings here)
     assert mc_url.normalize_url_lossy(
         'HTTP://WWW.nytimes.COM/ARTICLE/12345/?ab=cd#def#ghi/'
     ) == 'http://nytimes.com/article/12345/?ab=cd'
@@ -129,7 +182,8 @@ def test_normalize_url_lossy():
     ) == 'http://nytimes.com/article/12345/?ab=cd'
     assert mc_url.normalize_url_lossy('http://http://www.al-monitor.com/pulse') == 'http://al-monitor.com/pulse'
     assert mc_url.normalize_url_lossy('http://m.delfi.lt/foo') == 'http://delfi.lt/foo'
-    assert mc_url.normalize_url_lossy('http://blog.yesmeck.com/jquery-jsonview/') == 'http://yesmeck.com/jquery-jsonview/'
+    assert mc_url.normalize_url_lossy(
+        'http://blog.yesmeck.com/jquery-jsonview/') == 'http://yesmeck.com/jquery-jsonview/'
     assert mc_url.normalize_url_lossy('http://cdn.com.do/noticias/nacionales') == 'http://com.do/noticias/nacionales'
     assert mc_url.normalize_url_lossy('http://543.r2.ly') == 'http://543.r2.ly/'
 
@@ -209,6 +263,7 @@ def test_is_homepage_url():
 # noinspection SpellCheckingInspection
 def test_get_url_host():
     with pytest.raises(mc_url.McGetURLHostException):
+        # noinspection PyTypeChecker
         mc_url.get_url_host(None)
     assert mc_url.get_url_host('http://www.nytimes.com/') == 'www.nytimes.com'
     assert mc_url.get_url_host('http://obama:barack1@WHITEHOUSE.GOV/michelle.html') == 'whitehouse.gov'
@@ -230,176 +285,6 @@ def test_get_url_distinctive_domain():
 
     # "wordpress.com|blogspot|..." exception
     assert mc_url.get_url_distinctive_domain('https://en.blog.wordpress.com/') == 'en.blog.wordpress.com'
-
-
-# noinspection SpellCheckingInspection
-def test_meta_refresh_url_from_html():
-    # No <meta http-equiv="refresh" />
-    assert mc_url.meta_refresh_url_from_html(html="""
-        <html>
-        <head>
-            <title>This is a test</title>
-            <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-        </head>
-        <body>
-            <p>This is a test.</p>
-        </body>
-        </html>
-    """, base_url='http://example.com/') is None
-
-    # Basic HTML <meta http-equiv="refresh">
-    assert mc_url.meta_refresh_url_from_html(html="""
-        <HTML>
-        <HEAD>
-            <TITLE>This is a test</TITLE>
-            <META HTTP-EQUIV="content-type" CONTENT="text/html; charset=UTF-8">
-            <META HTTP-EQUIV="refresh" CONTENT="0; URL=http://example.com/">
-        </HEAD>
-        <BODY>
-            <P>This is a test.</P>
-        </BODY>
-        </HTML>
-    """, base_url='http://example.com/') == 'http://example.com/'
-
-    # Basic XHTML <meta http-equiv="refresh" />
-    assert mc_url.meta_refresh_url_from_html(html="""
-        <html>
-        <head>
-            <title>This is a test</title>
-            <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-            <meta http-equiv="refresh" content="0; url=http://example.com/" />
-        </head>
-        <body>
-            <p>This is a test.</p>
-        </body>
-        </html>
-    """, base_url='http://example.com/') == 'http://example.com/'
-
-    # Basic XHTML sans the seconds part
-    assert mc_url.meta_refresh_url_from_html(html="""
-        <html>
-        <head>
-            <title>This is a test</title>
-            <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-            <meta http-equiv="refresh" content="url=http://example.com/" />
-        </head>
-        <body>
-            <p>This is a test.</p>
-        </body>
-        </html>
-    """, base_url='http://example.com/') == 'http://example.com/'
-
-    # Basic XHTML with quoted url
-    assert mc_url.meta_refresh_url_from_html(html="""
-        <html>
-        <head>
-            <title>This is a test</title>
-            <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-            <meta http-equiv="refresh" content="url='http://example.com/'" />
-        </head>
-        <body>
-            <p>This is a test.</p>
-        </body>
-        </html>
-    """, base_url='http://example.com/') == 'http://example.com/'
-
-    # Basic XHTML with reverse quoted url
-    assert mc_url.meta_refresh_url_from_html(html="""
-        <html>
-        <head>
-            <title>This is a test</title>
-            <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-            <meta http-equiv="refresh" content='url="http://example.com/"' />
-        </head>
-        <body>
-            <p>This is a test.</p>
-        </body>
-        </html>
-    """, base_url='http://example.com/') == 'http://example.com/'
-
-    # Relative path (base URL with trailing slash)
-    assert mc_url.meta_refresh_url_from_html(html="""
-        <meta http-equiv="refresh" content="0; url=second/third/" />
-    """, base_url='http://example.com/first/') == 'http://example.com/first/second/third/'
-
-    # Relative path (base URL without trailing slash)
-    assert mc_url.meta_refresh_url_from_html(html="""
-        <meta http-equiv="refresh" content="0; url=second/third/" />
-    """, base_url='http://example.com/first') == 'http://example.com/second/third/'
-
-    # Absolute path
-    assert mc_url.meta_refresh_url_from_html(html="""
-        <meta http-equiv="refresh" content="0; url=/first/second/third/" />
-    """, base_url='http://example.com/fourth/fifth/') == 'http://example.com/first/second/third/'
-
-    # Invalid URL without base URL
-    assert mc_url.meta_refresh_url_from_html("""
-        <meta http-equiv="refresh" content="0; url=/first/second/third/" />
-    """) is None
-
-
-# noinspection SpellCheckingInspection
-def test_link_canonical_url_from_html():
-    # No <link rel="canonical" />
-    assert mc_url.link_canonical_url_from_html(html="""
-        <html>
-        <head>
-            <title>This is a test</title>
-            <link rel="stylesheet" type="text/css" href="theme.css" />
-        </head>
-        <body>
-            <p>This is a test.</p>
-        </body>
-        </html>
-    """, base_url='http://example.com/') is None
-
-    # Basic HTML <link rel="canonical">
-    assert mc_url.link_canonical_url_from_html(html="""
-        <HTML>
-        <HEAD>
-            <TITLE>This is a test</TITLE>
-            <LINK REL="stylesheet" TYPE="text/css" HREF="theme.css">
-            <LINK REL="canonical" HREF="http://example.com/">
-        </HEAD>
-        <BODY>
-            <P>This is a test.</P>
-        </BODY>
-        </HTML>
-    """, base_url='http://example.com/') == 'http://example.com/'
-
-    # Basic XHTML <meta http-equiv="refresh" />
-    assert mc_url.link_canonical_url_from_html(html="""
-        <html>
-        <head>
-            <title>This is a test</title>
-            <link rel="stylesheet" type="text/css" href="theme.css" />
-            <link rel="canonical" href="http://example.com/" />
-        </head>
-        <body>
-            <p>This is a test.</p>
-        </body>
-        </html>
-    """, base_url='http://example.com/') == 'http://example.com/'
-
-    # Relative path (base URL with trailing slash -- valid, but not a good practice)
-    assert mc_url.link_canonical_url_from_html(html="""
-        <link rel="canonical" href="second/third/" />
-    """, base_url='http://example.com/first/') == 'http://example.com/first/second/third/'
-
-    # Relative path (base URL without trailing slash -- valid, but not a good practice)
-    assert mc_url.link_canonical_url_from_html(html="""
-        <link rel="canonical" href="second/third/" />
-    """, base_url='http://example.com/first') == 'http://example.com/second/third/'
-
-    # Absolute path (valid, but not a good practice)
-    assert mc_url.link_canonical_url_from_html(html="""
-        <link rel="canonical" href="/first/second/third/" />
-    """, base_url='http://example.com/fourth/fifth/') == 'http://example.com/first/second/third/'
-
-    # Invalid URL without base URL
-    assert mc_url.link_canonical_url_from_html(html="""
-        <link rel="canonical" href="/first/second/third/" />
-    """) is None
 
 
 # noinspection SpellCheckingInspection
@@ -431,9 +316,56 @@ def test_http_urls_in_string():
 
     # Erroneous input
     with pytest.raises(mc_url.McHTTPURLsInStringException):
+        # noinspection PyTypeChecker
         mc_url.http_urls_in_string(None)
 
 
 def test_get_url_path_fast():
     assert mc_url.get_url_path_fast('http://www.example.com/a/b/c') == '/a/b/c'
     assert mc_url.get_url_path_fast('not_an_url') == ''
+
+
+def test_get_base_url():
+    with pytest.raises(mc_url.McGetBaseURLException):
+        # noinspection PyTypeChecker
+        mc_url.get_base_url(None)
+
+    with pytest.raises(mc_url.McGetBaseURLException):
+        mc_url.get_base_url('')
+
+    with pytest.raises(mc_url.McGetBaseURLException):
+        mc_url.get_base_url('not_an_url')
+
+    assert mc_url.get_base_url('http://example.com/') == 'http://example.com/'
+    assert mc_url.get_base_url('http://example.com/base/') == 'http://example.com/base/'
+    assert mc_url.get_base_url('http://example.com/base/index.html') == 'http://example.com/base/'
+
+
+def test_urls_are_equal():
+    # Invalid input
+    with pytest.raises(mc_url.McURLsAreEqualException):
+        # noinspection PyTypeChecker
+        mc_url.urls_are_equal(url1=None, url2=None)
+    with pytest.raises(mc_url.McURLsAreEqualException):
+        # noinspection PyTypeChecker
+        mc_url.urls_are_equal(url1=None, url2='https://web.mit.edu/')
+    with pytest.raises(mc_url.McURLsAreEqualException):
+        # noinspection PyTypeChecker
+        mc_url.urls_are_equal(url1='https://web.mit.edu/', url2=None)
+
+    # Not URLs
+    assert mc_url.urls_are_equal(url1='Not an URL.', url2='Not an URL.') is False
+
+    funky_url = ('http://Las%20Vegas%20mass%20shooting%20raises%20new%20'
+                 'doubts%20about%20safety%20of%20live%20entertainment')
+    assert mc_url.urls_are_equal(url1=funky_url, url2=funky_url) is False
+
+    assert mc_url.urls_are_equal(url1='https://web.mit.edu/', url2='https://web.mit.edu/') is True
+    assert mc_url.urls_are_equal(url1='https://web.mit.edu/', url2='https://WEB.MIT.EDU/') is True
+    assert mc_url.urls_are_equal(url1='https://web.mit.edu/', url2='https://WEB.MIT.EDU//') is True
+    assert mc_url.urls_are_equal(url1='https://web.mit.edu/', url2='https://WEB.MIT.EDU:443') is True
+    assert mc_url.urls_are_equal(url1='https://web.mit.edu/', url2='https://WEB.MIT.EDU:443/') is True
+    assert mc_url.urls_are_equal(url1='https://web.mit.edu/', url2='https://WEB.MIT.EDU:443//') is True
+    assert mc_url.urls_are_equal(url1='http://web.mit.edu/', url2='http://WEB.MIT.EDU:80//') is True
+
+    assert mc_url.urls_are_equal(url1='https://web.mit.edu/', url2='https://WEB.MIT.EDU:443//page') is False

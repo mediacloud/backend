@@ -63,7 +63,7 @@ sub _request_for_text($$)
 
     my $request = MediaWords::Util::Web::UserAgent::Request->new( 'POST', $url );
     $request->set_content_type( 'application/x-www-form-urlencoded; charset=utf-8' );
-    $request->set_content( { q => encode_utf8( $text ) } );
+    $request->set_content_utf8( { q => $text } );
 
     return $request;
 }

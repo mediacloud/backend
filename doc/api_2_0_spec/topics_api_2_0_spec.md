@@ -629,6 +629,7 @@ Standard parameters accepted: link_id.
 | user_permission     | permission for user submitting the API request: 'read', 'write', 'admin', or 'none' |
 | queue               | which job pool the topic runs in -- 'mc' for internal media cloud jobs and 'public' for public jobs |
 | max_stories         | max number of stories allowed in the topic |
+| owners              | list of users with 'admin' permissions for the topic |
 
 ### Example
 
@@ -659,6 +660,15 @@ Response:
             "user_permission": "admin",
             "queue": "mc",
             "max_stories": 100000,
+            "owners":
+            [
+                {
+                    "auth_users_id": 1,
+                    "email": "hroberts@cyber.law.harvard.edu",
+                    "full_name": "Hal Roberts",
+                    "topics_id": 672,
+                }
+            ]
         }
     ],
     "link_ids":
@@ -714,6 +724,15 @@ Response:
             "user_permission": "admin",
             "queue": "mc",
             "max_stories": 100000,
+            "owners":
+            [
+                {
+                    "auth_users_id": 1,
+                    "email": "hroberts@cyber.law.harvard.edu",
+                    "full_name": "Hal Roberts",
+                    "topics_id": 672,
+                }
+            ]
         }
     ]
 }
@@ -871,7 +890,7 @@ The stories list call returns stories in the topic.
 | Parameter            | Default | Notes                                    |
 | -------------------- | ------- | ---------------------------------------- |
 | q                    | null    | if specified, return only stories that match the given Solr query |
-| sort                 | inlink  | possible values: `inlink`, `bitly`, `facebook`, `twitter` |
+| sort                 | inlink  | possible values: `inlink`, `bitly`, `facebook`, `twitter`, `social` |
 | stories_id           | null    | return only stories matching these stories_ids |
 | link_to_stories_id   | null    | return only stories from other media that link to the given stories_id |
 | link_from_stories_id | null    | return only stories from other media that are linked from the given stories_id |

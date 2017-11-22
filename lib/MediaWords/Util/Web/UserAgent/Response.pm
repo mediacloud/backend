@@ -1,7 +1,7 @@
 package MediaWords::Util::Web::UserAgent::Response;
 
 #
-# Wrapper around HTTP::Response
+# HTTP response
 #
 
 use strict;
@@ -12,186 +12,203 @@ use MediaWords::CommonLibs;
 
 use MediaWords::Util::Web::UserAgent::Request;
 
-use Data::Dumper;
-use HTTP::Response;
-
-sub new_from_http_response
 {
-    my ( $class, $response ) = @_;
 
-    unless ( ref( $response ) eq 'HTTP::Response' )
-    {
-        LOGCONFESS "Response is not HTTP::Response: " . Dumper( $response );
-    }
+    package MediaWords::Util::Web::UserAgent::Response::Proxy;
+
+    use strict;
+    use warnings;
+
+    use Modern::Perl "2015";
+    use MediaWords::CommonLibs;    # set PYTHONPATH too
+
+    import_python_module( __PACKAGE__, 'mediawords.util.web.user_agent.response.response' );
+
+    1;
+}
+
+sub new($$;$$$)
+{
+    my ( $class, $code, $message, $headers, $data ) = @_;
 
     my $self = {};
     bless $self, $class;
 
-    $self->{ _response } = $response;
-
-    if ( $response->request() )
-    {
-        $self->{ _request } = MediaWords::Util::Web::UserAgent::Request->new_from_http_request( $response->request() );
-    }
-    if ( $response->previous() )
-    {
-        $self->{ _previous } =
-          MediaWords::Util::Web::UserAgent::Response->new_from_http_response( $response->previous() );
-    }
+    $self->{ _response } = MediaWords::Util::Web::UserAgent::Response::Proxy::Response->new(
+        $code,       #
+        $message,    #
+        $headers,    #
+        $data        #
+    );
 
     return $self;
 }
 
-# code() getter
+sub from_python_response($$)
+{
+    my ( $class, $python_response ) = @_;
+
+    if ( $python_response )
+    {
+        my $self = {};
+        bless $self, $class;
+
+        $self->{ _response } = $python_response;
+
+        return $self;
+    }
+    else
+    {
+        return undef;
+    }
+}
+
+sub python_response()
+{
+    my ( $self ) = @_;
+
+    return $self->{ _response };
+}
+
 sub code($)
 {
     my ( $self ) = @_;
+
     return $self->{ _response }->code();
 }
 
-# message() getter
 sub message($)
 {
     my ( $self ) = @_;
+
     return $self->{ _response }->message();
 }
 
-# header() getter
 sub header($$)
 {
     my ( $self, $field ) = @_;
+
     return $self->{ _response }->header( $field );
 }
 
-# decoded_content() getter
 sub decoded_content($)
 {
     my ( $self ) = @_;
+
     return $self->{ _response }->decoded_content();
 }
 
-# decoded_content() getter with enforced UTF-8 response
 sub decoded_utf8_content($)
 {
     my ( $self ) = @_;
-    return $self->{ _response }->decoded_content(
-        charset         => 'utf8',
-        default_charset => 'utf8'
-    );
+
+    return $self->{ _response }->decoded_utf8_content();
 }
 
-# status_line() getter
 sub status_line($)
 {
     my ( $self ) = @_;
+
     return $self->{ _response }->status_line();
 }
 
-# is_success() getter
 sub is_success($)
 {
     my ( $self ) = @_;
+
     return $self->{ _response }->is_success();
 }
 
-# Alias for as_string()
 sub as_string($)
 {
     my ( $self ) = @_;
+
     return $self->{ _response }->as_string();
 }
 
-# Alias for redirects(), returns arrayref instead of array though
-sub redirects($)
-{
-    my ( $self ) = @_;
-    my @redirects = $self->{ _response }->redirects();
-    return \@redirects;
-}
-
-# Alias for content_type()
 sub content_type($)
 {
     my ( $self ) = @_;
+
     return $self->{ _response }->content_type();
 }
 
-# previous() getter
 sub previous($)
 {
     my ( $self ) = @_;
-    return $self->{ _previous };
+
+    my $python_response = $self->{ _response }->previous();
+
+    if ( $python_response )
+    {
+        my $response = MediaWords::Util::Web::UserAgent::Response->from_python_response( $python_response );
+        return $response;
+    }
+    else
+    {
+        return undef;
+    }
 }
 
-# previous() setter
 sub set_previous($$)
 {
     my ( $self, $previous ) = @_;
 
-    unless ( ref( $previous ) eq 'MediaWords::Util::Web::UserAgent::Response' )
+    my $python_response;
+    if ( $previous )
     {
-        LOGCONFESS "Previous response is not MediaWords::Util::Web::UserAgent::Response: " . Dumper( $previous );
+        $python_response = $previous->{ _response };
     }
-    $self->{ _previous } = $previous;
+    else
+    {
+        $python_response = undef;
+    }
+
+    $self->{ _response }->set_previous( $python_response );
 }
 
-# request() getter
 sub request($)
 {
     my ( $self ) = @_;
-    return $self->{ _request };
+
+    my $python_request = $self->{ _response }->request();
+
+    my $request = MediaWords::Util::Web::UserAgent::Request->from_python_request( $python_request );
+    return $request;
 }
 
-# request() setter
 sub set_request($$)
 {
     my ( $self, $request ) = @_;
 
-    unless ( ref( $request ) eq 'MediaWords::Util::Web::UserAgent::Request' )
+    my $python_request;
+    if ( $request )
     {
-        LOGCONFESS "Request is not MediaWords::Util::Web::UserAgent::Request: " . Dumper( $request );
+        $python_request = $request->python_request();
     }
-    $self->{ _request } = $request;
+    else
+    {
+        $python_request = undef;
+    }
+
+    $self->{ _response }->set_request( $python_request );
 }
 
-# Walk back from the given response to get the original request that generated the response.
 sub original_request($)
 {
     my ( $self ) = @_;
 
-    my $original_response = $self;
-    while ( $original_response->previous() )
-    {
-        $original_response = $original_response->previous();
-    }
+    my $python_request = $self->{ _response }->original_request();
 
-    return $original_response->request();
+    my $request = MediaWords::Util::Web::UserAgent::Request->from_python_request( $python_request );
+    return $request;
 }
 
-# Return true if the response's error was generated by LWP itself and not by the server.
 sub error_is_client_side($)
 {
     my ( $self ) = @_;
 
-    if ( $self->is_success )
-    {
-        LOGCONFESS "Response was successful, but I have expected an error.";
-    }
-
-    my $header_client_warning = $self->header( 'Client-Warning' );
-    if ( defined $header_client_warning and $header_client_warning =~ /Internal response/ )
-    {
-        # Error was generated by LWP::UserAgent;
-        # likely we didn't reach server at all (timeout, unresponsive host,
-        # etc.)
-        #
-        # http://search.cpan.org/~gaas/libwww-perl-6.05/lib/LWP/UserAgent.pm#$ua->get(_$url_)
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
+    return $self->{ _response }->error_is_client_side();
 }
 
 1;

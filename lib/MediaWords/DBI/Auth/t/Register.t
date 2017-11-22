@@ -6,7 +6,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::Test::HTTP::HashServer;
 use Readonly;
-use Test::More tests => 29;
+use Test::More tests => 30;
 use Test::Deep;
 use URI;
 use URI::QueryParam;
@@ -63,6 +63,26 @@ sub test_add_user($)
                 $db,
                 MediaWords::DBI::Auth::User::NewUser->new(
                     email           => $email,
+                    full_name       => $full_name,
+                    notes           => 'Test test test',
+                    role_ids        => [ 1 ],
+                    active          => 1,
+                    password        => $password,
+                    password_repeat => $password,
+                    activation_url  => '',                 # user is active, no need for activation URL
+                )
+            );
+        };
+        ok( $@ );
+    }
+
+    # Existing user with uppercase email
+    {
+        eval {
+            MediaWords::DBI::Auth::Register::add_user(
+                $db,
+                MediaWords::DBI::Auth::User::NewUser->new(
+                    email           => uc( $email ),
                     full_name       => $full_name,
                     notes           => 'Test test test',
                     role_ids        => [ 1 ],

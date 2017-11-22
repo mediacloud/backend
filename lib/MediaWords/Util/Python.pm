@@ -53,7 +53,7 @@ sub import_python_module($$)
         }
         else
         {
-            WARN $warning;
+            warn $warning;
         }
     };
 

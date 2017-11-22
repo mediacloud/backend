@@ -54,7 +54,8 @@ sub _get_full_text_from_rss
 {
     my ( $db, $story ) = @_;
 
-    my $ret = html_strip( $story->{ title } || '' ) . "\n\n" . html_strip( $story->{ description } || '' );
+    my $ret = MediaWords::Util::HTML::html_strip( $story->{ title } || '' ) .
+      "\n\n" . MediaWords::Util::HTML::html_strip( $story->{ description } || '' );
 
     return $ret;
 }
@@ -71,9 +72,9 @@ sub combine_story_title_description_text($$$)
 
     return join(
         "\n***\n\n",
-        html_strip( $story_title       || '' ),    #
-        html_strip( $story_description || '' ),    #
-        @{ $download_texts }                       #
+        MediaWords::Util::HTML::html_strip( $story_title       || '' ),    #
+        MediaWords::Util::HTML::html_strip( $story_description || '' ),    #
+        @{ $download_texts }                                               #
     );
 }
 
@@ -146,11 +147,11 @@ sub get_text_for_word_counts
 
     if ( ( length( $story_text ) == 0 ) || ( length( $story_text ) < length( $story_description ) ) )
     {
-        $story_text = html_strip( $story->{ title } );
+        $story_text = MediaWords::Util::HTML::html_strip( $story->{ title } );
         if ( $story->{ description } )
         {
             $story_text .= '.' unless ( $story_text =~ /\.\s*$/ );
-            $story_text .= html_strip( $story->{ description } );
+            $story_text .= MediaWords::Util::HTML::html_strip( $story->{ description } );
         }
     }
 
@@ -853,7 +854,7 @@ sub _get_title_parts
     $title =~ s/^\s+//;
     $title =~ s/\s+$//;
 
-    $title = html_strip( $title ) if ( $title =~ /\</ );
+    $title = MediaWords::Util::HTML::html_strip( $title ) if ( $title =~ /\</ );
     $title = decode_entities( $title );
 
     my $title_parts;
@@ -1036,20 +1037,6 @@ SQL
     return $cursor;
 }
 
-# remove stopwords from the $stem_count list, using the $language
-sub _remove_stopwords_from_stem_vector($$)
-{
-    my ( $stem_counts, $language_code ) = @_;
-
-    return unless ( $language_code );
-
-    my $language = MediaWords::Languages::Language::language_for_code( $language_code ) || return;
-
-    my $stop_words = $language->get_stop_word_stems();
-
-    map { delete( $stem_counts->{ $_ } ) if ( $stop_words->{ $_ } ) } keys( %{ $stem_counts } );
-}
-
 =head2 get_story_word_matrix_file( $db, $stories_ids, $max_words )
 
 Given a list of stories_ids, generate a matrix consisting of the vector of word stem counts for each stories_id on each
@@ -1103,12 +1090,24 @@ sub get_story_word_matrix($$;$)
 
         for my $story ( @{ $stories } )
         {
-            my $wc = MediaWords::Solr::WordCounts->new( language => $story->{ language } );
-            $wc->include_stopwords( 1 );
+            my $wc = MediaWords::Solr::WordCounts->new();
 
-            my $stem_counts = $wc->count_stems( [ split( $sentence_separator, $story->{ story_text } ) ] );
+            # Remove stopwords from the stems
+            $wc->include_stopwords( 0 );
 
-            _remove_stopwords_from_stem_vector( $stem_counts, $story->{ language } );
+            my $sentences_and_story_languages = [];
+            for my $sentence ( split( $sentence_separator, $story->{ story_text } ) )
+            {
+                push(
+                    @{ $sentences_and_story_languages },
+                    {
+                        'story_language' => $story->{ language },
+                        'sentence'       => $sentence,
+                    }
+                );
+            }
+
+            my $stem_counts = $wc->count_stems( $sentences_and_story_languages );
 
             my $stem_count_list = [];
             while ( my ( $stem, $data ) = each( %{ $stem_counts } ) )

@@ -279,7 +279,7 @@ sub cliff_json : Local
     }
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
-    return $c->res->body( encode( 'utf-8', $annotation_json ) );
+    return $c->res->body( $annotation_json );
 }
 
 # view NYTLabels JSON
@@ -325,7 +325,7 @@ sub nytlabels_json : Local
     }
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
-    return $c->res->body( encode( 'utf-8', $annotation_json ) );
+    return $c->res->body( $annotation_json );
 }
 
 # view Bit.ly JSON
@@ -360,8 +360,7 @@ sub bitly_json : Local
     }
 
     Readonly my $json_pretty => 1;
-    Readonly my $json_utf8   => 1;
-    my $bitly_stats_json = MediaWords::Util::JSON::encode_json( $bitly_stats_hashref, $json_pretty, $json_utf8 );
+    my $bitly_stats_json = MediaWords::Util::JSON::encode_json( $bitly_stats_hashref, $json_pretty );
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
     return $c->res->body( $bitly_stats_json );

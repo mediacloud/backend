@@ -70,7 +70,6 @@ perl_dependencies:
     # Patched version of Inline::Python gets installed separately
     - "IO::Compress::Bzip2"
     - "IO::Compress::Gzip"
-    - "JSON::XS"
     - "Lingua::Identify::CLD"
     - "Lingua::Sentence"
     - "Lingua::Stem::Snowball"
@@ -81,7 +80,6 @@ perl_dependencies:
     - "Log::Log4perl"
     - "LWP::Protocol::https"
     - "LWP::UserAgent"
-    - "LWP::UserAgent::Determined"
     - "Math::Prime::Util"
     - "Math::Random"
     - "Math::Random::Secure"

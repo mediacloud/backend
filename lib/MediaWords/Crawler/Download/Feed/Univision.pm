@@ -154,8 +154,7 @@ sub _get_stories_from_univision_feed($$$)
     }
 
     my $feed_json;
-    Readonly my $json_utf8 => 1;
-    eval { $feed_json = MediaWords::Util::JSON::decode_json( $decoded_content, $json_utf8 ) };
+    eval { $feed_json = MediaWords::Util::JSON::decode_json( $decoded_content ) };
     if ( $@ )
     {
         die "Unable to decode Univision feed JSON: $@";

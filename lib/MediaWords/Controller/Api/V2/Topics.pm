@@ -71,6 +71,7 @@ sub _get_topics_list($$$)    # sql clause for fields to query from job_states fo
 
     my $topics = $db->query(
         <<END,
+
 select t.topics_id, t.name, t.pattern, t.solr_seed_query, t.solr_seed_query_run,
         t.description, t.max_iterations, t.state,
         t.message, t.is_public, t.ch_monitor_id, t.twitter_topics_id, t.start_date, t.end_date,
@@ -100,6 +101,14 @@ SQL
     $topics = $db->attach_child_query( $topics, <<SQL, 'media_tags', 'topics_id' );
 select t.tags_id, t.tag, t.label, t.description, tmtm.topics_id
     from tags t join topics_media_tags_map tmtm using ( tags_id )
+SQL
+
+    $topics = $db->attach_child_query( $topics, <<SQL, 'owners', 'topics_id' );
+select tp.topics_id, au.auth_users_id, au.email, au.full_name
+    from topic_permissions tp
+        join auth_users au using ( auth_users_id )
+    where
+        tp.permission = 'admin'
 SQL
 
     return $topics;

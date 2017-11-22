@@ -8,120 +8,13 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+import_python_module( __PACKAGE__, 'mediawords.db.schema.schema' );
+
 use MediaWords::DB::Schema::Version;
-use MediaWords::Languages::Language;
-use MediaWords::Util::Config;
 use MediaWords::Util::Paths;
 
 use Data::Dumper;
 use File::Slurp;
-
-# recreates all schemas
-sub _reset_all_schemas($)
-{
-    my ( $db ) = @_;
-
-    my $schemas = $db->query(
-        <<SQL
-        SELECT schema_name
-        FROM information_schema.schemata
-        WHERE schema_name NOT LIKE 'pg_%'
-          AND schema_name != 'information_schema'
-        ORDER BY schema_name
-SQL
-    )->flat;
-
-    # When dropping schemas, PostgreSQL spits out a lot of notices which break "no warnings" unit test
-    $db->query( 'SET client_min_messages=WARNING' );
-    foreach my $schema ( @{ $schemas } )
-    {
-        $db->query( "DROP SCHEMA IF EXISTS $schema CASCADE" );
-    }
-    $db->query( 'SET client_min_messages=NOTICE' );
-}
-
-# Given the PostgreSQL response line (notice) returned while importing schema,
-# return 1 if the response line is something that is likely to be in the
-# initial schema and 0 otherwise
-sub _postgresql_response_line_is_expected($)
-{
-    my $line = shift;
-
-    # Escape whitespace (" ") when adding new options below
-    my $expected_line_pattern = qr/
-          ^NOTICE:
-        | ^CREATE
-        | ^ALTER
-        | ^\SET
-        | ^COMMENT
-        | ^INSERT
-        | ^----------.*
-        | ^\s+
-        | ^\(\d+\ rows?\)
-        | ^$
-        | ^Time:
-        | ^DROP\ LANGUAGE
-        | ^DROP\ VIEW
-        | ^DROP\ TABLE
-        | ^DROP\ FUNCTION
-        | ^drop\ cascades\ to\ view\
-        | ^UPDATE\ \d+
-        | ^DROP\ TRIGGER
-        | ^Timing\ is\ on\.
-        | ^DROP\ INDEX
-        | ^psql.*:\ NOTICE:
-        | ^DELETE
-        | ^SELECT\ 0
-        | ^Pager\ usage\ is\ off
-    /x;
-
-    if ( $line =~ $expected_line_pattern )
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
-}
-
-# (Re)create database schema; die() on error
-sub recreate_db
-{
-    my ( $label ) = @_;
-
-    my $do_not_check_schema_version = 1;
-    my $db = MediaWords::DB::connect_to_db( $label, $do_not_check_schema_version );
-
-    DEBUG( 'Resetting all schemas...' );
-    _reset_all_schemas( $db );
-
-    my $root_path           = MediaWords::Util::Paths::mc_root_path();
-    my $mediawords_sql_path = "$root_path/schema/mediawords.sql";
-
-    my $mediawords_sql = read_file( $mediawords_sql_path );
-
-    $db->set_show_error_statement( 1 );
-
-    local $SIG{ __WARN__ } = sub {
-        my $message = shift;
-        if ( _postgresql_response_line_is_expected( $message ) )
-        {
-            TRACE( "PostgreSQL warning: $message" );
-        }
-        else
-        {
-            die "PostgreSQL error: $message";
-        }
-    };
-
-    DEBUG( "Importing from $mediawords_sql_path..." );
-    $db->query( $mediawords_sql );
-
-    local $SIG{ __WARN__ } = undef;
-
-    return 1;
-}
 
 # Upgrade database schema to the latest version
 # die()s on error

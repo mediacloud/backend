@@ -130,56 +130,99 @@ around BUILDARGS => sub {
 };
 
 # Cache merged hashes of stopwords for speed
-sub _combine_stopwords($$$)
+sub _combine_stopwords($$)
 {
-    my ( $self, $lang_1, $lang_2 ) = @_;
+    my ( $self, $languages ) = @_;
 
-    my $language_1 = $lang_1->get_language_code();
-    my $language_2 = $lang_2->get_language_code();
+    unless ( ref( $languages ) eq ref( [] ) )
+    {
+        die "Languages is not a hashref.";
+    }
+    unless ( scalar( @{ $languages } ) > 0 )
+    {
+        die "Languages should have at least one language set.";
+    }
+
+    my $language_codes = [];
+    foreach my $language ( @{ $languages } )
+    {
+        push( @{ $language_codes }, $language->get_language_code() );
+    }
+    $language_codes = [ sort( @{ $language_codes } ) ];
+
+    my $cache_key = join( '-', @{ $language_codes } );
 
     unless ( $self->cached_combined_stopwords() )
     {
         $self->cached_combined_stopwords( {} );
     }
-    unless ( $self->cached_combined_stopwords->{ $language_1 } )
+
+    unless ( defined $self->cached_combined_stopwords->{ $cache_key } )
     {
-        $self->cached_combined_stopwords->{ $language_1 } = {};
+        my $combined_stopwords = {};
+        foreach my $language ( @{ $languages } )
+        {
+            my $stopwords = $language->get_stop_words();
+            $combined_stopwords = { ( %{ $combined_stopwords }, %{ $stopwords } ) };
+        }
+
+        $self->cached_combined_stopwords->{ $cache_key } = $combined_stopwords;
     }
 
-    unless ( defined $self->cached_combined_stopwords->{ $language_1 }->{ $language_2 } )
-    {
-        my $lang_1_stopwords = $lang_1->get_stop_words();
-        my $lang_2_stopwords = $lang_2->get_stop_words();
-
-        my $combined_stopwords = { ( %{ $lang_1_stopwords }, %{ $lang_2_stopwords } ) };
-
-        $self->cached_combined_stopwords->{ $language_1 }->{ $language_2 } = $combined_stopwords;
-    }
-
-    return $self->cached_combined_stopwords->{ $language_1 }->{ $language_2 };
+    return $self->cached_combined_stopwords->{ $cache_key };
 }
 
+# Expects the following arrayref of hashrefs:
+#
+# [
+#     {
+#         'story_language' => '...',
+#         'sentence' => '...',
+#     },
+#     {
+#         'story_language' => '...',
+#         'sentence' => '...',
+#     },
+#     ...
+# ]
+#
 # parse the text and return a count of stems and terms in the sentence in the
 # following format:
 #
 # { $stem => { count => $stem_count, terms => { $term => $term_count, ... } } }
 #
 # if ngram_size is > 1, use the unstemmed phrases of ngram_size as the stems
-sub count_stems
+sub count_stems($$)
 {
-    my ( $self, $sentences ) = @_;
+    my ( $self, $sentences_and_story_languages ) = @_;
 
     # Set any duplicate sentences blank
     my $dup_sentences = {};
-    map { $dup_sentences->{ $_ } ? ( $_ = '' ) : ( $dup_sentences->{ $_ } = 1 ); } grep { defined( $_ ) } @{ $sentences };
+    map {
+        $dup_sentences->{ $_->{ 'sentence' } }
+          ? ( $_->{ 'sentence' } = '' )
+          : ( $dup_sentences->{ $_->{ 'sentence' } } = 1 );
+    } grep { defined( $_->{ 'sentence' } ) } @{ $sentences_and_story_languages };
 
     # Tokenize each sentence and add count to $words for each token
     my $stem_counts = {};
-    for my $sentence ( @{ $sentences } )
+    for my $sentence_and_story_language ( @{ $sentences_and_story_languages } )
     {
+        unless ( defined( $sentence_and_story_language ) )
+        {
+            next;
+        }
+
+        my $sentence = $sentence_and_story_language->{ 'sentence' };
         unless ( defined( $sentence ) )
         {
             next;
+        }
+
+        my $story_language = $sentence_and_story_language->{ 'story_language' };
+        unless ( defined( $story_language ) )
+        {
+            $story_language = '';
         }
 
         # Very long sentences tend to be noise -- html text and the like.
@@ -194,6 +237,11 @@ sub count_stems
             TRACE "Unable to determine sentence language for sentence '$sentence', falling back to default language";
             $sentence_language = MediaWords::Languages::Language::default_language_code();
         }
+        unless ( MediaWords::Languages::Language::language_is_enabled( $story_language ) )
+        {
+            TRACE "Language '$sentence_language' for story is not enabled, falling back to default language";
+            $story_language = MediaWords::Languages::Language::default_language_code();
+        }
         unless ( MediaWords::Languages::Language::language_is_enabled( $sentence_language ) )
         {
             TRACE "Language '$sentence_language' for sentence '$sentence' is not enabled, falling back to default language";
@@ -201,11 +249,12 @@ sub count_stems
         }
 
         # Language objects are cached in ::Languages::Language, no need to have a separate cache
-        my $lang_en = MediaWords::Languages::Language::default_language();
-        my $lang    = MediaWords::Languages::Language::language_for_code( $sentence_language );
+        my $lang_en       = MediaWords::Languages::Language::default_language();
+        my $lang_story    = MediaWords::Languages::Language::language_for_code( $story_language );
+        my $lang_sentence = MediaWords::Languages::Language::language_for_code( $sentence_language );
 
         # Tokenize into words
-        my $sentence_words = $lang->tokenize( $sentence );
+        my $sentence_words = $lang_sentence->tokenize( $sentence );
 
         # Remove stopwords;
         # (don't stem stopwords first as they will usually be stemmed too much)
@@ -213,7 +262,7 @@ sub count_stems
         unless ( $self->include_stopwords )
         {
             # Use both sentence's language and English stopwords
-            $combined_stopwords = $self->_combine_stopwords( $lang_en, $lang );
+            $combined_stopwords = $self->_combine_stopwords( [ $lang_en, $lang_story, $lang_sentence ] );
         }
 
         sub _word_is_valid_token($$)
@@ -237,8 +286,8 @@ sub count_stems
 
         $sentence_words = [ grep { _word_is_valid_token( $_, $combined_stopwords ) } @{ $sentence_words } ];
 
-        # Stem using language's algorithm
-        my $sentence_word_stems = ( $self->ngram_size > 1 ) ? $sentence_words : $lang->stem( @{ $sentence_words } );
+        # Stem using sentence language's algorithm
+        my $sentence_word_stems = ( $self->ngram_size > 1 ) ? $sentence_words : $lang_sentence->stem( @{ $sentence_words } );
 
         my $n          = $self->ngram_size;
         my $num_ngrams = scalar( @{ $sentence_words } ) - $n + 1;
@@ -259,28 +308,12 @@ sub count_stems
     return $stem_counts;
 }
 
-# given the story_sentences_id in the results, fetch the sentences from postgres
-sub _get_sentences_from_solr_results($$)
-{
-    my ( $self, $solr_data ) = @_;
-
-    my $db = $self->db;
-
-    my $story_sentences_ids = [ map { int( $_->{ story_sentences_id } ) } @{ $solr_data->{ response }->{ docs } } ];
-
-    my $ids_table = $db->get_temporary_ids_table( $story_sentences_ids );
-
-    my $sentences = $db->query( <<SQL )->flat;
-select sentence from story_sentences where story_sentences_id in ( select id from $ids_table )
-SQL
-
-    return $sentences;
-}
-
 # connect to solr server directly and count the words resulting from the query
 sub _get_words_from_solr_server($)
 {
     my ( $self ) = @_;
+
+    my $db = $self->db;
 
     unless ( $self->q() || ( $self->fq && @{ $self->fq } ) )
     {
@@ -297,15 +330,31 @@ sub _get_words_from_solr_server($)
 
     DEBUG( "executing solr query ..." );
     DEBUG Dumper( $solr_params );
-    my $data = MediaWords::Solr::query( $self->db, $solr_params );
 
-    my $sentences_found = $data->{ response }->{ numFound };
-    my $sentences       = $self->_get_sentences_from_solr_results( $data );
+    my $solr_data = MediaWords::Solr::query( $self->db, $solr_params );
 
-    # my @sentences = map { $_->{ sentence } } @{ $data->{ response }->{ docs } };
+    my $sentences_found = $solr_data->{ response }->{ numFound };
+
+    my $story_sentences_ids = [ map { int( $_->{ story_sentences_id } ) } @{ $solr_data->{ response }->{ docs } } ];
+
+    my $ids_table = $db->get_temporary_ids_table( $story_sentences_ids );
+
+    my $sentences_and_story_languages = $db->query(
+        <<SQL
+        SELECT sentence,
+               stories.language AS story_language
+        FROM story_sentences
+            INNER JOIN stories
+                ON story_sentences.stories_id = stories.stories_id
+        WHERE story_sentences_id IN (
+            SELECT id
+            FROM $ids_table
+        )
+SQL
+    )->hashes;
 
     DEBUG( "counting sentences..." );
-    my $words = $self->count_stems( $sentences );
+    my $words = $self->count_stems( $sentences_and_story_languages );
     DEBUG( "done counting sentences" );
 
     my @word_list;
@@ -346,7 +395,7 @@ sub _get_words_from_solr_server($)
         return {
             stats => {
                 num_words_returned     => scalar( @{ $counts } ),
-                num_sentences_returned => scalar( @{ $sentences } ),
+                num_sentences_returned => scalar( @{ $sentences_and_story_languages } ),
                 num_sentences_found    => $sentences_found,
                 num_words_param        => $self->num_words,
                 sample_size_param      => $self->sample_size
@@ -386,7 +435,9 @@ sub _get_remote_words
 
     $uri->query_form( $query_params );
 
-    my $res = $ua->get( $uri, Accept => 'application/json' );
+    my $request = MediaWords::Util::Web::UserAgent::Request->new( 'GET', $uri->as_string );
+    $request->set_header( 'Accept', 'application/json' );
+    my $res = $ua->request( $request );
 
     unless ( $res->is_success )
     {

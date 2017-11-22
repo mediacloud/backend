@@ -1,22 +1,15 @@
+from furl import furl
 import re
 from typing import Optional
-from urllib.parse import urlparse, parse_qs, urlsplit, urlunsplit, urlencode, urljoin
 import url_normalize
 
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
-from mediawords.util.url_shorteners import URL_SHORTENER_HOSTNAMES
+from mediawords.util.url.shorteners import URL_SHORTENER_HOSTNAMES
 
 log = create_logger(__name__)
 
-# URL regex (http://stackoverflow.com/a/7160778/200603)
-__URL_REGEX = re.compile(
-    r'^(?:http|ftp)s?://'  # http:// or https://
-    r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
-    r'localhost|'  # localhost...
-    r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
-    r'(?::\d+)?'  # optional port
-    r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+__URL_REGEX = re.compile(r'^https?://[^\s/$.?#].[^\s]*$', re.IGNORECASE)
 
 # Regular expressions for URL's path that, when matched, mean that the URL is a homepage URL
 __HOMEPAGE_URL_PATH_REGEXES = [
@@ -52,6 +45,9 @@ def fix_common_url_mistakes(url: str) -> Optional[str]:
     if url is None:
         return None
 
+    # Remove whitespace
+    url = url.strip()
+
     # Fix broken URLs that look like this: http://http://www.al-monitor.com/pulse
     url = re.sub(r'(https?://)https?:?//', r"\1", url, flags=re.I)
 
@@ -60,6 +56,11 @@ def fix_common_url_mistakes(url: str) -> Optional[str]:
 
     # replace backslashes with forward
     url = re.sub(r'\\', r'/', url)
+
+    # Add missing port, e.g. "https://www.gpo.gov:/fdsys/pkg/PL<...>"
+    # (is_http_url() returns False on URLs with an empty port but "requests" manages to fetch them just fine, so let's
+    # fix it here)
+    url = re.sub(r'^(https?://[\w\d\-.]+):($|/)', r"\1\2", url, flags=re.I)
 
     # http://newsmachete.com?page=2 -> http://newsmachete.com/?page=2
     url = re.sub(r'(https?://[^/]+)\?', r"\1/?", url)
@@ -76,11 +77,16 @@ def is_http_url(url: str) -> bool:
     if len(url) == 0:
         log.debug("URL is empty")
         return False
+
     if not re.search(__URL_REGEX, url):
         log.debug("URL '%s' does not match URL's regexp" % url)
         return False
 
-    uri = urlparse(url)
+    try:
+        uri = furl(url)
+    except Exception as ex:
+        log.debug("Cannot parse URL: %s" % str(ex))
+        return False
 
     if not uri.scheme:
         log.debug("Scheme is undefined for URL %s" % url)
@@ -92,9 +98,33 @@ def is_http_url(url: str) -> bool:
     return True
 
 
-def __canonical_url(url: str) -> str:
+class McCanonicalURLException(Exception):
+    """canonical_url() exception."""
+    pass
+
+
+def canonical_url(url: str) -> str:
     """Make URL canonical (lowercase scheme and host, remove default port, etc.)"""
-    return url_normalize.url_normalize(url)
+    # FIXME maybe merge with normalize_url() as both do pretty much the same thing
+
+    url = decode_object_from_bytes_if_needed(url)
+
+    if url is None:
+        raise McCanonicalURLException("URL is None.")
+    if len(url) == 0:
+        raise McCanonicalURLException("URL is empty.")
+
+    url = fix_common_url_mistakes(url)
+
+    if not is_http_url(url):
+        raise McCanonicalURLException("URL is not HTTP(s): %s" % url)
+
+    try:
+        can_url = url_normalize.url_normalize(url)
+    except Exception as ex:
+        raise McCanonicalURLException("Failed to create canonical URL from URL %s: %s" % (url, str(ex),))
+
+    return can_url
 
 
 class McNormalizeURLException(Exception):
@@ -119,19 +149,22 @@ def normalize_url(url: str) -> str:
     if len(url) == 0:
         raise McNormalizeURLException("URL is empty")
 
-    log.info( "normalize_url: " + url )
+    log.debug("normalize_url: " + url)
 
     url = fix_common_url_mistakes(url)
-    url = __canonical_url(url)
+
+    try:
+        url = canonical_url(url)
+    except Exception as ex:
+        raise McNormalizeURLException("Unable to get canonical URL: %s" % str(ex))
 
     if not is_http_url(url):
-        raise McNormalizeURLException("URL is not valid: " + url)
+        raise McNormalizeURLException("URL is not HTTP(s): %s" % url)
 
-    scheme, netloc, path, query_string, fragment = urlsplit(url)
-    query = parse_qs(query_string, keep_blank_values=True)
+    uri = furl(url)
 
     # Remove #fragment
-    fragment = ''
+    uri.fragment.set(path='')
 
     parameters_to_remove = []
 
@@ -153,7 +186,7 @@ def normalize_url(url: str) -> str:
         '_openstat',
     ]
 
-    if 'facebook.com' in netloc.lower():
+    if 'facebook.com' in uri.host.lower():
         # Additional parameters specifically for the facebook.com host
         parameters_to_remove += [
             'ref',
@@ -161,7 +194,7 @@ def normalize_url(url: str) -> str:
             'hc_location',
         ]
 
-    if 'nytimes.com' in netloc.lower():
+    if 'nytimes.com' in uri.host.lower():
         # Additional parameters specifically for the nytimes.com host
         parameters_to_remove += [
             'emc',
@@ -179,14 +212,14 @@ def normalize_url(url: str) -> str:
             'abg',
         ]
 
-    if 'livejournal.com' in netloc.lower():
+    if 'livejournal.com' in uri.host.lower():
         # Additional parameters specifically for the livejournal.com host
         parameters_to_remove += [
             'thread',
             'nojs',
         ]
 
-    if 'google.' in netloc.lower():
+    if 'google.' in uri.host.lower():
         # Additional parameters specifically for the google.[com,lt,...] host
         parameters_to_remove += [
             'gws_rd',
@@ -223,8 +256,8 @@ def normalize_url(url: str) -> str:
     parameters_to_remove += ['sort']
 
     # Some Australian websites append the "nk" parameter with a tracking hash
-    if 'nk' in query:
-        for nk_value in query['nk']:
+    if 'nk' in uri.query.params:
+        for nk_value in uri.query.params['nk']:
             if re.search(r'^[0-9a-fA-F]+$', nk_value, re.I):
                 parameters_to_remove += ['nk']
                 break
@@ -236,22 +269,22 @@ def normalize_url(url: str) -> str:
     for parameter in parameters_to_remove:
         if ' ' in parameter:
             log.warning('Invalid cruft parameter "%s"' % parameter)
-        query.pop(parameter, None)
+        uri.query.params.pop(parameter, None)
 
-    for name in list(query.keys()):  # copy of list to be able to delete
+    for name in list(uri.query.params.keys()):  # copy of list to be able to delete
 
         # Remove parameters that start with '_' (e.g. '_cid') because they're
         # more likely to be the tracking codes
         if name.startswith('_'):
-            query.pop(name)
+            uri.query.params.pop(name, None)
 
         # Remove GA parameters, current and future (e.g. "utm_source",
         # "utm_medium", "ga_source", "ga_medium")
         # (https://support.google.com/analytics/answer/1033867?hl=en)
         if name.startswith('ga_') or name.startswith('utm_'):
-            query.pop(name)
+            uri.query.params.pop(name, None)
 
-    url = urlunsplit((scheme, netloc, path, urlencode(query, doseq=True), fragment))
+    url = uri.url
 
     # Remove empty values in query string, e.g. http://bash.org/?244321=
     url = url.replace('=&', '&')
@@ -271,6 +304,10 @@ def normalize_url_lossy(url: str) -> Optional[str]:
         return None
 
     url = fix_common_url_mistakes(url)
+
+    if not is_http_url(url):
+        log.warning("URL is not HTTP(s): %s" % url)
+        return url
 
     url = url.lower()
 
@@ -295,9 +332,9 @@ def normalize_url_lossy(url: str) -> Optional[str]:
     # canonical_url might raise an encoding error if url is not invalid; just skip the canonical url step in the case
     # noinspection PyBroadException
     try:
-        url = __canonical_url(url)
-    except:
-        pass
+        url = canonical_url(url)
+    except Exception as ex:
+        log.warning("Unable to get canonical URL for URL %s: %s" % (url, str(ex),))
 
     # add trailing slash
     if re.search(r'https?://[^/]*$', url):
@@ -316,18 +353,18 @@ def __is_shortened_url(url: str) -> bool:
         log.debug("URL is empty")
         return False
     if not is_http_url(url):
-        log.debug("URL is not valid")
+        log.debug("URL is not HTTP(s): %s" % url)
         return False
 
-    uri = urlparse(url)
+    uri = furl(url)
 
-    if uri.path is not None and uri.path in ['', '/']:
+    if str(uri.path) is not None and str(uri.path) in ['', '/']:
         # Assume that most of the URL shorteners use something like
         # bit.ly/abcdef, so if there's no path or if it's empty, it's not a
         # shortened URL
         return False
 
-    uri_host = uri.hostname.lower()
+    uri_host = uri.host.lower()
     if uri_host in URL_SHORTENER_HOSTNAMES:
         return True
 
@@ -344,6 +381,8 @@ def is_homepage_url(url: str) -> bool:
     if len(url) == 0:
         log.debug("URL is empty.")
         return False
+
+    url = fix_common_url_mistakes(url)
 
     if not is_http_url(url):
         log.debug("URL '%s' is invalid." % url)
@@ -363,12 +402,12 @@ def is_homepage_url(url: str) -> bool:
 
     # If we still have something for a query of the URL after the
     # normalization, always assume that the URL is *not* a homepage
-    scheme, netloc, uri_path, query_string, fragment = urlsplit(url)
-    if len(query_string) > 0:
+    uri = furl(url)
+    if len(str(uri.query)) > 0:
         return False
 
     for homepage_url_path_regex in __HOMEPAGE_URL_PATH_REGEXES:
-        if re.search(homepage_url_path_regex, uri_path):
+        if re.search(homepage_url_path_regex, str(uri.path)):
             return True
 
     return False
@@ -388,9 +427,9 @@ def get_url_host(url: str) -> str:
 
     fixed_url = fix_common_url_mistakes(url)
 
-    uri = urlparse(fixed_url)
+    uri = furl(fixed_url)
 
-    host = uri.hostname
+    host = uri.host
 
     if host is not None and len(host) > 0:
         return host
@@ -444,76 +483,6 @@ def get_url_distinctive_domain(url: str) -> str:
         return url.lower()
 
 
-def meta_refresh_url_from_html(html: str, base_url: str = None) -> Optional[str]:
-    """From the provided HTML, determine the <meta http-equiv="refresh" /> URL (if any)."""
-
-    def __get_meta_refresh_url_from_tag(inner_tag: str, inner_base_url=None) -> Optional[str]:
-        """Given a <meta ...> tag, return the url from the content="url=XXX" attribute.  return undef if no such url is
-        found."""
-        if not re.search(r'http-equiv\s*?=\s*?["\']\s*?refresh\s*?["\']', inner_tag, re.I):
-            return None
-
-        # content="url='http://foo.bar'"
-        inner_url = None
-
-        match = re.search(r'content\s*?=\s*?"\d*?\s*?;?\s*?URL\s*?=\s*?\'(.+?)\'', inner_tag, re.I)
-        if match:
-            inner_url = match.group(1)
-        else:
-            # content="url='http://foo.bar'"
-            match = re.search(r'content\s*?=\s*?\'\d*?\s*?;?\s*?URL\s*?=\s*?"(.+?)"', inner_tag, re.I)
-            if match:
-                inner_url = match.group(1)
-            else:
-                # Fallback
-                match = re.search(r'content\s*?=\s*?["\']\d*?\s*?;?\s*?URL\s*?=\s*?(.+?)["\']', inner_tag, re.I)
-                if match:
-                    inner_url = match.group(1)
-
-        if is_http_url(inner_url):
-            return inner_url
-
-        if inner_base_url is not None:
-            return urljoin(base=inner_base_url, url=inner_url)
-
-        return None
-
-    html = decode_object_from_bytes_if_needed(html)
-    base_url = decode_object_from_bytes_if_needed(base_url)
-
-    tags = re.findall(r'(<\s*meta[^>]+>)', html, re.I)
-    for tag in tags:
-        url = __get_meta_refresh_url_from_tag(tag, base_url)
-        if url is not None:
-            return url
-
-    return None
-
-
-def link_canonical_url_from_html(html: str, base_url: str = None) -> Optional[str]:
-    """From the provided HTML, determine the <link rel="canonical" /> URL (if any)."""
-    html = decode_object_from_bytes_if_needed(html)
-    base_url = decode_object_from_bytes_if_needed(base_url)
-
-    link_elements = re.findall(r'(<\s*?link.+?>)', html, re.I)
-    for link_element in link_elements:
-        if re.search(r'rel\s*?=\s*?["\']\s*?canonical\s*?["\']', link_element, re.I):
-            url = re.search(r'href\s*?=\s*?["\'](.+?)["\']', link_element, re.I)
-            if url:
-                url = url.group(1)
-                if not re.search(__URL_REGEX, url):
-                    # Maybe it's absolute path?
-                    if base_url is not None:
-                        return urljoin(base=base_url, url=url)
-                    else:
-                        log.debug("HTML <link rel=\"canonical\"/> found, but the new URL '%s' doesn't seem to be valid."
-                                % url)
-                else:
-                    # Looks like URL, so return it
-                    return url
-    return None
-
-
 class McHTTPURLsInStringException(Exception):
     pass
 
@@ -527,11 +496,15 @@ def http_urls_in_string(string: str) -> list:
     if string is None:
         raise McHTTPURLsInStringException("String is None")
     if len(string) == 0:
-        raise McHTTPURLsInStringException("String is empty")
+        log.warning("String is empty, no HTTP URLs here")
+        return []
 
     urls = re.findall(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', string, re.I)
     http_urls = []
     for url in urls:
+
+        url = fix_common_url_mistakes(url)
+
         if is_http_url(url):
             http_urls.append(url)
 
@@ -545,9 +518,82 @@ def get_url_path_fast(url: str) -> str:
     """Return URLs path."""
     url = decode_object_from_bytes_if_needed(url)
 
+    url = fix_common_url_mistakes(url)
+
     if not is_http_url(url):
         return ''
 
     # Don't bother with the regex (Perl's version didn't work anyway)
-    uri = urlparse(url)
-    return uri.path
+    uri = furl(url)
+    return str(uri.path)
+
+
+class McGetBaseURLException(Exception):
+    pass
+
+
+def get_base_url(url: str) -> str:
+    """Return base URL, e.g. http://example.com/base/ for http://example.com/base/index.html."""
+    # In "http://example.com/first/two" URLs, strip the "two" part, but not when it has a trailing slash
+
+    url = decode_object_from_bytes_if_needed(url)
+
+    if url is None:
+        raise McGetBaseURLException("URL is None.")
+
+    url = fix_common_url_mistakes(url)
+
+    if not is_http_url(url):
+        raise McGetBaseURLException("URL is not HTTP(S): %s" % url)
+
+    if url.endswith('/'):
+        base_url = url
+    else:
+        base_uri = furl(canonical_url(url))
+        base_uri_path_segments = base_uri.path.segments
+        del base_uri_path_segments[-1]
+        base_url = base_uri.url + '/'
+
+    return base_url
+
+
+class McURLsAreEqualException(Exception):
+    pass
+
+
+def urls_are_equal(url1: str, url2: str) -> bool:
+    """Returns True if (canonical) URLs are equal."""
+
+    url1 = decode_object_from_bytes_if_needed(url1)
+    url2 = decode_object_from_bytes_if_needed(url2)
+
+    if url1 is None:
+        raise McURLsAreEqualException("URL #1 is None.")
+    if url2 is None:
+        raise McURLsAreEqualException("URL #2 is None.")
+
+    if len(url1) == 0:
+        log.warning("URL #1 is empty.")
+    if len(url2) == 0:
+        log.warning("URL #2 is empty.")
+
+    url1 = fix_common_url_mistakes(url1)
+    url2 = fix_common_url_mistakes(url2)
+
+    if not (is_http_url(url1) and is_http_url(url2)):
+        log.warning("One or both of URLs is not a HTTP URL; URL #1: %s; URL #2: %s" % (url1, url2,))
+        return False
+
+    try:
+        url1 = canonical_url(url1)
+        url2 = canonical_url(url2)
+    except McCanonicalURLException as ex:
+        log.warning(
+            "Unable to get canonical URL for one or both of URLs: %(exception)s; URL #1: %(url1)s; URL #2: %(url2)s" % {
+                'exception': str(ex),
+                'url1': str(url1),
+                'url2': str(url2),
+            })
+        return False
+
+    return url1 == url2

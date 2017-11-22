@@ -190,26 +190,6 @@ sub _uppercase_boolean_operators
     }
 }
 
-# given a params hash, generate a cgi post string.  we do this manually because the perl HTTP::Request::content()
-# function messes up utf8 encoding
-sub _get_encoded_post_data($)
-{
-    my ( $params ) = @_;
-
-    my $post_items = [];
-    for my $key ( keys( %{ $params } ) )
-    {
-        if ( defined( $params->{ $key } ) )
-        {
-            my $enc_key  = uri_escape( encode_utf8( $key ) );
-            my $enc_data = uri_escape( encode_utf8( $params->{ $key } ) );
-            push( @{ $post_items }, "$enc_key=$enc_data" );
-        }
-    }
-
-    return join( '&', @{ $post_items } );
-}
-
 # transform any tags_id_media: or collections_id: clauses into media_id: clauses with the media_ids
 # that corresponds to the given tags
 sub _insert_collection_media_ids($$)
@@ -335,7 +315,7 @@ sub query_encoded_json($$;$)
     $ua->set_max_size( undef );
 
     # Remediate CVE-2017-12629
-    if ( $params->{ q })
+    if ( $params->{ q } )
     {
         if ( $params->{ q } =~ /xmlparser/i )
         {
@@ -350,11 +330,7 @@ sub query_encoded_json($$;$)
     my $request = MediaWords::Util::Web::UserAgent::Request->new( 'POST', $url );
     $request->set_content_type( 'application/x-www-form-urlencoded; charset=utf-8' );
 
-    # passing the hash directly to set_content() messes up encoding, I think because LWP assumes somewhere that it is
-    # processing latin, despite the content-type above.  so we just manually create the cgi string with 1encoded values
-    my $post_content = _get_encoded_post_data( $params );
-
-    $request->set_content( $post_content );
+    $request->set_content_utf8( $params );
 
     my $res = $ua->request( $request );
 
@@ -699,6 +675,10 @@ sub search_for_processed_stories_ids($$$$$;$)
     if ( $sort and $sort eq 'bitly_click_count' )
     {
         $params->{ sort } = 'bitly_click_count desc';
+    }
+    elsif ( $sort and $sort eq 'random' )
+    {
+        $params->{ sort } = 'random_1 asc';
     }
 
     if ( $last_ps_id )

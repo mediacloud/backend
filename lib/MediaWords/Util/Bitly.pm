@@ -218,6 +218,10 @@ sub merge_story_stats($$)
 {
     my ( $old_stats, $new_stats ) = @_;
 
+    # Values returned from Python's decode_json() can't be modified
+    $old_stats = python_deep_copy( $old_stats );
+    $new_stats = python_deep_copy( $new_stats );
+
     if ( $old_stats->{ 'error' } )
     {
         DEBUG "Fetching old stats failed, overwriting with new stats";

@@ -35,7 +35,10 @@ fi
 cd `dirname $0`/../
 
 echo "Running Python unit tests..."
-./script/run_in_env.sh pytest -v mediacloud/
+./script/run_in_env.sh pytest -v mediacloud/ || {
+    echo "One or more Python tests have failed with error code $?."
+    exit 1
+}
 
 ALL_TEST_FILES=`find lib script t -name '*.t' | sort`
 
@@ -77,6 +80,6 @@ TEST_FILES="${TEST_FILES//$'\n'/ }"
 echo "Running Perl unit tests: $TEST_FILES..."
 
 PERL5OPT=-MCarp::Always ./script/run_in_env.sh prove $* $TEST_FILES || {
-    echo "One or more unit tests have failed with error code $?."
+    echo "One or more Perl tests have failed with error code $?."
     exit 1
 }

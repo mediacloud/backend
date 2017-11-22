@@ -9,6 +9,7 @@ use MediaWords::CommonLibs;
 use Readonly;
 use URI;
 
+use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 
 # list of downloads to precache downloads for
@@ -42,8 +43,11 @@ sub cache_link_downloads
     my $i = 0;
     for my $link ( @{ $links } )
     {
+        my $url          = $link->{ url };
+        my $redirect_url = $link->{ redirect_url };
+
         $link->{ _link_num } = $i++;
-        $link->{ _fetch_url } = $link->{ redirect_url } || $link->{ url };
+        $link->{ _fetch_url } = $redirect_url || $url;
     }
 }
 
@@ -69,6 +73,21 @@ sub get_cached_link_download
     die( "no { _link_num } field in $link->{ url }: did you call cache_link_downloads? " )
       unless ( defined( $link->{ _link_num } ) );
 
+    my $url          = $link->{ url };
+    my $redirect_url = $link->{ redirect_url };
+
+    unless ( MediaWords::Util::URL::is_http_url( $url ) )
+    {
+        WARN "Not caching link because URL $url is invalid.";
+        return '';
+    }
+
+    if ( $redirect_url and ( !MediaWords::Util::URL::is_http_url( $redirect_url ) ) )
+    {
+        WARN "Not caching link because redirect URL $redirect_url is invalid.";
+        return '';
+    }
+
     my $link_num = $link->{ _link_num };
 
     my $r = $_link_downloads_cache->{ $link_num };
@@ -83,7 +102,14 @@ sub get_cached_link_download
     for ( my $i = 0 ; $links->[ $link_num + $i ] && $i < $LINK_CACHE_SIZE ; $i++ )
     {
         my $link = $links->[ $link_num + $i ];
-        my $u    = URI->new( $link->{ _fetch_url } )->as_string;
+
+        unless ( MediaWords::Util::URL::is_http_url( $link->{ _fetch_url } ) )
+        {
+            WARN "Not caching link because URL " . $link->{ _fetch_url } . " is invalid.";
+            next;
+        }
+
+        my $u = URI->new( $link->{ _fetch_url } )->as_string;
 
         # handle duplicate urls within the same set of urls
         push( @{ $urls }, $u ) unless ( $url_lookup->{ $u } );
@@ -135,7 +161,23 @@ sub get_cached_link_download_redirect_url
 {
     my ( $link ) = @_;
 
-    my $url      = URI->new( $link->{ url } )->as_string;
+    my $url          = $link->{ url };
+    my $redirect_url = $link->{ redirect_url };
+
+    unless ( MediaWords::Util::URL::is_http_url( $url ) )
+    {
+        WARN "Not caching link because URL $url is invalid.";
+        return $url;
+    }
+
+    if ( $redirect_url and ( !MediaWords::Util::URL::is_http_url( $redirect_url ) ) )
+    {
+        WARN "Not caching link because redirect URL $redirect_url is invalid.";
+        return $url;
+    }
+
+    $url = URI->new( $link->{ url } )->as_string;
+
     my $link_num = $link->{ _link_num };
 
     # make sure the $_link_downloads_cache is setup correctly
