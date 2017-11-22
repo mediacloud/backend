@@ -757,8 +757,27 @@ class UserAgent(object):
                 if max_size is not None:
                     content_length = requests_response.headers.get('Content-Length', None)
 
+                    try:
+                        if content_length is not None:
+
+                            # HTTP spec allows one to combine multiple headers into one so Content-Length might look
+                            # like "Content-Length: 123, 456"
+                            if ',' in content_length:
+                                content_length = content_length.split(',')
+                                content_length = list(map(int, content_length))
+                                content_length = max(content_length)
+
+                            content_length = int(content_length)
+
+                    except Exception as ex:
+                        log.warning(
+                            "Unable to read Content-Length for URL '%(url)s': %(exception)s" % {
+                                'url': url,
+                                'exception': str(ex),
+                            })
+                        content_length = None
+
                     if content_length is not None:
-                        content_length = int(content_length)
                         if content_length > max_size:
                             log.warning("Content-Length exceeds %d for URL %s" % (max_size, url,))
 
