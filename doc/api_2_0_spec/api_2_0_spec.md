@@ -216,6 +216,7 @@ available [here]( https://github.com/c4fcm/MediaCloud-API-Client ).
 
 The following language are supported (by 2 letter language code):
 
+* `ca` (Catalan)
 * `da` (Danish)
 * `de` (German)
 * `en` (English)
