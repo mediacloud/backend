@@ -210,7 +210,8 @@ sub _get_sort_clause
         bitly_click_count => 'slc.bitly_click_count',
         social            => 'slc.bitly_click_count',
         facebook          => 'slc.facebook_share_count',
-        twitter           => 'slc.simple_tweet_count'
+        twitter           => 'slc.simple_tweet_count',
+        random            => 'random()'
     };
 
     my $sort_field = $sort_field_lookup->{ lc( $sort_param ) }

@@ -16,7 +16,7 @@ env:
         # ---
         #
         # Docker image to pull with pre-installed Media Cloud dependencies
-        - MC_TRAVIS_DOCKER_IMAGE=dockermediacloud/mediacloud-travis:20170928
+        - MC_TRAVIS_DOCKER_IMAGE=dockermediacloud/mediacloud-travis:20171123
 
         # Media Cloud root on Docker container
         - MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT=/home/mediacloud/mediacloud/

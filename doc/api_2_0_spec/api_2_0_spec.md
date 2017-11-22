@@ -216,6 +216,7 @@ available [here]( https://github.com/c4fcm/MediaCloud-API-Client ).
 
 The following language are supported (by 2 letter language code):
 
+* `ca` (Catalan)
 * `da` (Danish)
 * `de` (German)
 * `en` (English)
@@ -603,7 +604,10 @@ URL: https://api.mediacloud.org/api/v2/stories_public/single/27456565
 | `feeds_id` | null | Return only stories that match the given feeds_id, sorted my descending publish date |
 | `q`  | null  | If specified, return only results that match the given Solr query.  Only one `q` parameter may be included. |
 | `fq`             | null    | If specified, file results by the given Solr query.  More than one `fq` parameter may be included. |
-| `sort`                       | `processed_stories_id` | Returned results sort order. Supported values: <ul><li><code>processed_stories_id</code> - order results by processed stories ID (ascending);</li><li><code>bitly_click_count</code> - order results by Bit.ly click count (descending).</ul> |
+| `sort`                       | `processed_stories_id` | Returned results sort order. Supported values: <ul><li><code>processed_stories_id</code> - order results by processed stories ID (ascending);</li>
+<li><code>bitly_click_count</code> - order results by Bit.ly click count (descending)</li>
+<li><code>random</code> - order results randomly but consistently for a given search</li>
+</ul> |
 | `wc` | 0 | if set to 1, include a 'word_count' field with each story that includes a count of the most common words in the story |
 | `show_feeds` | if set to 1, include a 'feeds' field with a list of the feeds associated with this story |
 
@@ -1106,14 +1110,13 @@ Response:
 | Parameter       | Default    | Notes
 | --------------- | ---------- | -----------------------------------------------------------------
 | `last_tags_id`  | 0          | Return tags with a `tags_id` is greater than this value
-| `tag_sets_id`   | none       | Return tags belonging to the given tag set.  The most useful tag set is tag set 5.
+| `tag_sets_id`   | none       | Return tags belonging to the given tag sets.  The most useful tag set is tag set 5.  Can be passed multiple times to return any tag belonging to any of the tag sets.
 | `rows`          | 20         | Number of tags to return. Cannot be larger than 100
 | `public`        | none       | If public=1, return only public tags (see below)
 | `search`        | none       | Search for tags by text (see below)
 | `similar_tags_id` |  none |  return list of tags with a similar
 
-If set to 1, the public parameter will return only tags that are generally useful for public consumption.  Those
-tags are defined as tags for which show_on_media or show_on_stories is set to true for either the tag
+If set to 1, the public parameter will return only tags that are generally useful for public consumption.  Those tags are defined as tags for which show_on_media or show_on_stories is set to true for either the tag
 or the tag's parent tag_set.  As described below in tags/single, a public tag can be usefully searched
 using the Solr tags_id_media field if show_on_media is true and by the tags_id_stories field if
 show_on_stories is true.

@@ -53,21 +53,25 @@ sub get_table_name
     return "tags";
 }
 
-sub list_optional_query_filter_field
-{
-    return 'tag_sets_id';
-}
-
 sub get_extra_where_clause
 {
     my ( $self, $c ) = @_;
+
+    my $clauses = [];
+
+    if ( my $tag_sets_ids = $c->req->params->{ tag_sets_id } )
+    {
+        $tag_sets_ids = ref( $tag_sets_ids ) ? $tag_sets_ids : [ $tag_sets_ids ];
+        my $tag_sets_ids_list = join( ',', map { int( $_ ) } @{ $tag_sets_ids } );
+        push( @{ $clauses }, "and tag_sets_id in ( $tag_sets_ids_list )" );
+    }
 
     if ( my $similar_tags_id = $c->req->params->{ similar_tags_id } )
     {
         # make sure this is an int
         $similar_tags_id += 0;
 
-        my $clause = <<SQL;
+        push( @{ $clauses }, <<SQL );
 and tags_id in (
     select b.tags_id
         from media_tags_map a
@@ -80,8 +84,11 @@ and tags_id in (
         limit 100
 )
 SQL
+    }
 
-        return $clause;
+    if ( @{ $clauses } )
+    {
+        return join( ' ', @{ $clauses } );
     }
 
     return '';

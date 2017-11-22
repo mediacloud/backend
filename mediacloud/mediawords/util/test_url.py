@@ -71,6 +71,14 @@ def test_is_http_url():
         'http:/www.theinquirer.net/inquirer/news/2322928/net-neutrality-rules-lie-in-tatters-as-fcc-overruled'
     )
 
+    # UTF-8 in paths
+    assert mc_url.is_http_url('http://www.example.com/šiaurė.html')
+
+    # IDN
+    assert mc_url.is_http_url('http://www.šiaurė.lt/šiaurė.html')
+    assert mc_url.is_http_url('http://www.xn--iaur-yva35b.lt/šiaurė.html')
+    assert mc_url.is_http_url('http://.xn--iaur-yva35b.lt') is False  # Invalid Punycode
+
 
 def test_canonical_url():
     # Bad input

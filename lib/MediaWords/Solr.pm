@@ -676,6 +676,10 @@ sub search_for_processed_stories_ids($$$$$;$)
     {
         $params->{ sort } = 'bitly_click_count desc';
     }
+    elsif ( $sort and $sort eq 'random' )
+    {
+        $params->{ sort } = 'random_1 asc';
+    }
 
     if ( $last_ps_id )
     {

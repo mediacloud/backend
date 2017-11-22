@@ -1,3 +1,4 @@
+import codecs
 import errno
 import fcntl
 import multiprocessing
@@ -27,8 +28,8 @@ from mediawords.util.url import (
     get_base_url,
     urls_are_equal,
 )
-from mediawords.util.web.user_agent.request import Request
-from mediawords.util.web.user_agent.response import Response
+from mediawords.util.web.user_agent.request.request import Request
+from mediawords.util.web.user_agent.response.response import Response
 
 log = create_logger(__name__)
 
@@ -756,8 +757,27 @@ class UserAgent(object):
                 if max_size is not None:
                     content_length = requests_response.headers.get('Content-Length', None)
 
+                    try:
+                        if content_length is not None:
+
+                            # HTTP spec allows one to combine multiple headers into one so Content-Length might look
+                            # like "Content-Length: 123, 456"
+                            if ',' in content_length:
+                                content_length = content_length.split(',')
+                                content_length = list(map(int, content_length))
+                                content_length = max(content_length)
+
+                            content_length = int(content_length)
+
+                    except Exception as ex:
+                        log.warning(
+                            "Unable to read Content-Length for URL '%(url)s': %(exception)s" % {
+                                'url': url,
+                                'exception': str(ex),
+                            })
+                        content_length = None
+
                     if content_length is not None:
-                        content_length = int(content_length)
                         if content_length > max_size:
                             log.warning("Content-Length exceeds %d for URL %s" % (max_size, url,))
 
@@ -789,6 +809,15 @@ class UserAgent(object):
                         if requests_response.encoding.lower() == 'iso-8859-1':
                             if requests_response.apparent_encoding is not None:
                                 requests_response.encoding = requests_response.apparent_encoding
+
+                    # Some pages report some funky encoding; in that case, fallback to UTF-8
+                    try:
+                        codecs.lookup(requests_response.encoding)
+                    except LookupError:
+                        log.warning(
+                            "Invalid encoding %s for URL %s" % (requests_response.encoding, requests_response.url)
+                        )
+                        requests_response.encoding = 'UTF-8'
 
                     response_data_size = 0
                     for chunk in requests_response.iter_content(chunk_size=None, decode_unicode=True):
