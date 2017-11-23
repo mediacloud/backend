@@ -83,6 +83,10 @@ class AmazonS3Store(KeyValueStore):
         if directory_name is None:
             raise McAmazonS3StoreException("Directory name is None.")
 
+        # MC_REWRITE_TO_PYTHON: remove after rewrite to Perl
+        if compression_method is None or len(str(compression_method)) == 0:
+            compression_method = self._DEFAULT_COMPRESSION_METHOD
+
         if not self._compression_method_is_valid(compression_method):
             raise McAmazonS3StoreException("Unsupported compression method: %s" % compression_method)
 

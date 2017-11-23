@@ -50,7 +50,9 @@ class MultipleStoresStore(KeyValueStore):
         for store in self.__stores_for_reading:
 
             try:
-                content = store.fetch_content(db=db, object_id=object_id, object_path=object_path)
+
+                # MC_REWRITE_TO_PYTHON: use named parameters after Python rewrite
+                content = store.fetch_content(db, object_id, object_path)
                 if content is None:
                     raise McMultipleStoresStoreException((
                                                              "Fetching object ID %d from store %s succeeded, "
@@ -92,7 +94,8 @@ class MultipleStoresStore(KeyValueStore):
         for store in self.__stores_for_writing:
 
             try:
-                last_store_path = store.store_content(db=db, object_id=object_id, content=content)
+                # MC_REWRITE_TO_PYTHON: use named parameters after Python rewrite
+                last_store_path = store.store_content(db, object_id, content)
                 if last_store_path is None:
                     raise McMultipleStoresStoreException(
                         "Storing object ID %d to %s succeeded, but the returned path is empty." % (object_id, store,)
@@ -126,7 +129,8 @@ class MultipleStoresStore(KeyValueStore):
         for store in self.__stores_for_writing:
 
             try:
-                store.remove_content(db=db, object_id=object_id, object_path=object_path)
+                # MC_REWRITE_TO_PYTHON: use named parameters after Python rewrite
+                store.remove_content(db, object_id, object_path)
 
             except Exception as ex:
                 raise McMultipleStoresStoreException(
@@ -150,7 +154,8 @@ class MultipleStoresStore(KeyValueStore):
         for store in self.__stores_for_reading:
 
             try:
-                exists = store.content_exists(db=db, object_id=object_id, object_path=object_path)
+                # MC_REWRITE_TO_PYTHON: use named parameters after Python rewrite
+                exists = store.content_exists(db, object_id, object_path)
 
             except Exception as ex:
                 raise McMultipleStoresStoreException(

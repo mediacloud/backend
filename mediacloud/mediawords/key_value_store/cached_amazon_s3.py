@@ -44,8 +44,12 @@ class CachedAmazonS3Store(AmazonS3Store):
         if cache_table is None or len(cache_table) == 0:
             raise McCachedAmazonS3StoreException("Cache table is unset.")
 
-        if not self._compression_method_is_valid(compression_method):
-            raise McCachedAmazonS3StoreException("Unsupported compression method: %s" % compression_method)
+        # MC_REWRITE_TO_PYTHON: remove after rewrite to Perl
+        if cache_compression_method is None or len(str(cache_compression_method)) == 0:
+            cache_compression_method = self._DEFAULT_CACHE_COMPRESSION_METHOD
+
+        if not self._compression_method_is_valid(cache_compression_method):
+            raise McCachedAmazonS3StoreException("Unsupported cache compression method: %s" % cache_compression_method)
 
         self.__cache_table = cache_table
         self.__cache_compression_method = cache_compression_method
@@ -85,12 +89,19 @@ class CachedAmazonS3Store(AmazonS3Store):
             sql += "FROM %s " % self.__cache_table  # interpolated by Python
             sql += "WHERE object_id = %(object_id)s"  # interpolated by psycopg2
 
-            content = db.query(sql, {'object_id': object_id}).flat()
+            content = db.query(sql, {'object_id': object_id}).hash()
 
-            if len(content) < 1:
+            if content is None or len(content) == 0:
                 raise McCachedAmazonS3StoreException("Object with ID %d was not found." % object_id)
 
-            content = content[0]
+            content = content['raw_data']
+
+            # MC_REWRITE_TO_PYTHON: Perl database handler returns value as array of bytes
+            if isinstance(content, list):
+                content = b''.join(content)
+
+            if isinstance(content, memoryview):
+                content = content.tobytes()
 
             if not isinstance(content, bytes):
                 raise McCachedAmazonS3StoreException("Content is not bytes for object %d." % object_id)

@@ -32,9 +32,9 @@ sub s3_download_handler($)
     );
 }
 
-sub test_amazon_s3($)
+sub test_amazon_s3($;$)
 {
-    my $s3_handler_class = shift;
+    my ( $s3_handler_class, $create_mock_download ) = @_;
 
     my $config = MediaWords::Util::Config::get_config;
     unless ( defined( $config->{ amazon_s3 }->{ test } ) )
@@ -52,10 +52,16 @@ sub test_amazon_s3($)
 
             ok( $db, "PostgreSQL initialized " );
 
+            my $test_downloads_id = 12345;
+            if ( $create_mock_download )
+            {
+                require "$FindBin::Bin/helpers/create_mock_download.inc.pl";
+                $test_downloads_id = create_mock_download( $db );
+            }
+
             my $s3 = s3_download_handler( $s3_handler_class );
             ok( $s3, "Amazon S3 initialized" );
 
-            my $test_downloads_id   = 999999999999999;
             my $test_downloads_path = undef;
             my $test_content        = 'Loren ipsum dolor sit amet.';
             my $content;

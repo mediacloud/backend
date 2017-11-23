@@ -87,7 +87,6 @@ perl_dependencies:
     - "Module::Install"
     - "Moose"
     - "namespace::autoclean"
-    - "Net::Amazon::S3"
     - "Net::AMQP::RabbitMQ"
     - "Net::IP"
     - "Net::Twitter"

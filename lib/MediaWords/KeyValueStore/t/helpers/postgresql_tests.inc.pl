@@ -9,52 +9,17 @@ use MediaWords::Test::DB;
 use Data::Dumper;
 use Readonly;
 
-Readonly my $MOCK_DOWNLOADS_ID => 12345;
+require "$FindBin::Bin/helpers/create_mock_download.inc.pl";
 
 BEGIN
 {
     use_ok( 'MediaWords::DB' );
 }
 
-sub _create_mock_download($$)
+sub test_store_content($$$)
 {
-    my ( $db, $downloads_id ) = @_;
+    my ( $db, $postgresql, $test_downloads_id ) = @_;
 
-    $db->query(
-        <<EOF
-		INSERT INTO media (media_id, url, name, moderated)
-		VALUES (1, 'http://', 'Test Media', 't')
-EOF
-    );
-
-    $db->query(
-        <<EOF
-		INSERT INTO feeds(feeds_id, media_id, name, url)
-		VALUES (1, 1, 'Test Feed', 'http://')
-EOF
-    );
-
-    $db->query(
-        <<EOF
-		INSERT INTO stories (stories_id, media_id, url, guid, title, publish_date, collect_date)
-		VALUES (1, 1, 'http://', 'guid', 'Test Story', now(), now());
-EOF
-    );
-
-    $db->query(
-        <<EOF,
-		INSERT INTO downloads (downloads_id, feeds_id, stories_id, url, host, download_time, type, state, priority, sequence)
-		VALUES (?, 1, 1, 'http://', '', now(), 'content', 'pending', 0, 0);
-EOF
-        $downloads_id
-    );
-}
-
-sub test_store_content($$)
-{
-    my ( $db, $postgresql ) = @_;
-
-    my $test_downloads_id   = $MOCK_DOWNLOADS_ID;
     my $test_downloads_path = undef;
     my $test_content        = 'Media Cloud - pnoןɔ ɐıpǝɯ';    # UTF-8
     my $content;
@@ -93,11 +58,10 @@ sub test_store_content($$)
     );
 }
 
-sub test_store_content_twice($$)
+sub test_store_content_twice($$$)
 {
-    my ( $db, $postgresql ) = @_;
+    my ( $db, $postgresql, $test_downloads_id ) = @_;
 
-    my $test_downloads_id   = $MOCK_DOWNLOADS_ID;
     my $test_downloads_path = undef;
     my $test_content        = 'Loren ipsum dolor sit amet.';
     my $content;
@@ -152,8 +116,8 @@ sub test_postgresql($$)
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
-    _create_mock_download( $db, $MOCK_DOWNLOADS_ID );
+    my $test_downloads_id = create_mock_download( $db );
 
-    test_store_content( $db, $postgresql_handler );
-    test_store_content_twice( $db, $postgresql_handler );
+    test_store_content( $db, $postgresql_handler, $test_downloads_id );
+    test_store_content_twice( $db, $postgresql_handler, $test_downloads_id );
 }

@@ -29,6 +29,10 @@ class PostgreSQLStore(KeyValueStore):
         if table is None or len(table) == 0:
             raise McPostgreSQLStoreException("Database table to store objects in is unset.")
 
+        # MC_REWRITE_TO_PYTHON: remove after rewrite to Perl
+        if compression_method is None or len(str(compression_method)) == 0:
+            compression_method = self._DEFAULT_COMPRESSION_METHOD
+
         if not self._compression_method_is_valid(compression_method):
             raise McPostgreSQLStoreException("Unsupported compression method: %s" % compression_method)
 
@@ -44,13 +48,17 @@ class PostgreSQLStore(KeyValueStore):
         sql += "FROM %s " % self.__table  # interpolated by Python
         sql += "WHERE object_id = %(object_id)s"  # interpolated by psycopg2
 
-        content = db.query(sql, {'object_id': object_id}).flat()
+        content = db.query(sql, {'object_id': object_id}).hash()
 
-        if len(content) < 1:
+        if content is None or len(content) == 0:
             # Clients are expected to do content_exists() before attempting to fetch content that might not exist
             raise McPostgreSQLStoreException("Object with ID %d was not found." % object_id)
 
-        content = content[0]
+        content = content['raw_data']
+
+        # MC_REWRITE_TO_PYTHON: Perl database handler returns value as array of bytes
+        if isinstance(content, list):
+            content = b''.join(content)
 
         if isinstance(content, memoryview):
             content = content.tobytes()
@@ -117,9 +125,9 @@ class PostgreSQLStore(KeyValueStore):
         sql += "FROM %s " % self.__table  # interpolated by Python
         sql += "WHERE object_id = %(object_id)s"  # interpolated by psycopg2
 
-        object_exists = db.query(sql, {'object_id': object_id}).flat()
+        object_exists = db.query(sql, {'object_id': object_id}).hash()
 
-        if len(object_exists) > 0:
+        if object_exists is not None and len(object_exists) > 0:
             return True
         else:
             return False
