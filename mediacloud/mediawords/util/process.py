@@ -182,6 +182,7 @@ def run_alone(isolated_function: Callable, *args, **kwargs) -> Any:
             log.debug("Nothing to unlock.")
 
         if no_exception:
+            # noinspection PyProtectedMember
             os._exit(signum)
         else:
             sys.exit(signum)
