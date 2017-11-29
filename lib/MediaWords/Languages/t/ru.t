@@ -9,7 +9,7 @@ use warnings;
 use Readonly;
 
 use Test::NoWarnings;
-use Test::More tests => 16;
+use Test::More tests => 15;
 use utf8;
 
 use MediaWords::Languages::ru;
@@ -27,10 +27,6 @@ sub test_stopwords()
 
     is( $stop_words_ru->{ 'и' }, 1, "Russian test #1" );
     is( $stop_words_ru->{ 'я' }, 1, "Russian test #2" );
-
-    # Stop word stems
-    my $stop_word_stems_ru = $lang->get_stop_word_stems();
-    ok( scalar( keys( %{ $stop_word_stems_ru } ) ) >= 108, "stop word stem (ru) count is correct" );
 }
 
 sub test_get_sentences()

@@ -240,29 +240,6 @@ sub get_stop_words
     return $self->cached_stop_words;
 }
 
-# Return stop word stems.
-sub get_stop_word_stems($)
-{
-    my $self = shift;
-
-    if ( $self->cached_stop_word_stems == 0 )
-    {
-        my $stems = [ keys( %{ $self->get_stop_words() } ) ];
-        my $hash;
-
-        $stems = $self->stem( @{ $stems } );
-
-        for my $stem ( @{ $stems } )
-        {
-            $hash->{ $stem } = 1;
-        }
-
-        $self->cached_stop_word_stems( $hash );
-    }
-
-    return $self->cached_stop_word_stems;
-}
-
 around 'stem' => sub {
     my $orig = shift;
     my $self = shift;
