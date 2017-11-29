@@ -20,9 +20,9 @@ use Lingua::Stem::Snowball;
 use Lingua::Sentence;
 use Scalar::Defer;
 
-use File::Basename ();
-use Cwd            ();
 use Readonly;
+
+use MediaWords::Util::Paths;
 
 # Max. text length to try to split into sentences
 Readonly my $MAX_TEXT_LENGTH => 1024 * 1024;
@@ -354,26 +354,18 @@ sub _tokenize_text_with_lingua_sentence
     return \@sentences;
 }
 
-# Returns the root directory
-sub _base_dir
-{
-    my $relative_path = '../../../';    # Path to base of project relative to the current file
-    my $base_dir = Cwd::realpath( File::Basename::dirname( __FILE__ ) . '/' . $relative_path );
-    return $base_dir;
-}
-
 # Returns stopwords read from a file
 sub _get_stop_words_from_file
 {
     my ( $self, $filename ) = @_;
 
-    $filename = _base_dir() . '/' . $filename;
+    my $path = MediaWords::Util::Paths::mc_root_path() . '/' . $filename;
 
     my %stopwords;
 
     # Read stopwords, ignore comments, ignore empty lines
     use open IN => ':utf8';
-    open STOPWORDS, $filename or die "Unable to read '$filename': $!";
+    open STOPWORDS, $path or die "Unable to read '$filename' from '$path': $!";
     while ( my $line = <STOPWORDS> )
     {
 
