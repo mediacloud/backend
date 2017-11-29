@@ -46,9 +46,9 @@ sub store_content($$$$)
 {
     my ( $self, $db, $object_id, $content ) = @_;
 
-    my $encoded_content = MediaWords::Util::Text::encode_to_utf8( $content );
+    # Python handler will encode Perl's strings itself
 
-    return $self->_python_store->store_content( $db, $object_id, $encoded_content );
+    return $self->_python_store->store_content( $db, $object_id, $content );
 }
 
 sub fetch_content($$$;$)
