@@ -22,7 +22,10 @@ def test_fix_common_url_mistakes():
 
         # Missing port
         'https://www.gpo.gov:/fdsys/pkg/PLAW-107publ289/pdf/PLAW-107publ289.pdf':
-            'https://www.gpo.gov/fdsys/pkg/PLAW-107publ289/pdf/PLAW-107publ289.pdf'
+            'https://www.gpo.gov/fdsys/pkg/PLAW-107publ289/pdf/PLAW-107publ289.pdf',
+
+        # Non-URLencoded space
+        'http://www.ldeo.columbia.edu/~peter/ site/Home.html': 'http://www.ldeo.columbia.edu/~peter/%20site/Home.html',
     }
 
     for orig_url, fixed_url in urls.items():
