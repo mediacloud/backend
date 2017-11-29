@@ -18,7 +18,7 @@ use Lingua::Stem::Snowball::Ca;
 # Lingua::Stem::Snowball::Ca instance (if needed), lazy-initialized in stem()
 has 'ca_stemmer' => ( is => 'rw', default => 0 );
 
-sub get_language_code
+sub language_code
 {
     return 'ca';
 }

@@ -146,7 +146,7 @@ sub _combine_stopwords($$)
     my $language_codes = [];
     foreach my $language ( @{ $languages } )
     {
-        push( @{ $language_codes }, $language->get_language_code() );
+        push( @{ $language_codes }, $language->language_code() );
     }
     $language_codes = [ sort( @{ $language_codes } ) ];
 

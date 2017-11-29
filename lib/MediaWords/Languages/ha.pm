@@ -19,7 +19,7 @@ import_python_module( __PACKAGE__, 'mediawords.languages.ha' );
 
 use Readonly;
 
-sub get_language_code
+sub language_code
 {
     return 'ha';
 }

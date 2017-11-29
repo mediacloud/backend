@@ -18,7 +18,7 @@ use Lingua::Stem::Snowball::Lt;
 # Lingua::Stem::Snowball::Lt instance (if needed), lazy-initialized in stem()
 has 'lt_stemmer' => ( is => 'rw', default => 0 );
 
-sub get_language_code
+sub language_code
 {
     return 'lt';
 }

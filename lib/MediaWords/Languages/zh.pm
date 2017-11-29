@@ -41,7 +41,7 @@ EOF
     $self->{ _chinese_tokenizer } = $tokenizer;
 }
 
-sub get_language_code
+sub language_code
 {
     return 'zh';
 }

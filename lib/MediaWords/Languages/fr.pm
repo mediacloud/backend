@@ -13,7 +13,7 @@ use utf8;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-sub get_language_code
+sub language_code
 {
     return 'fr';
 }

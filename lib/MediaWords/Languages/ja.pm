@@ -36,7 +36,7 @@ sub BUILD
     $self->{ _japanese_tokenizer } = $tokenizer;
 }
 
-sub get_language_code
+sub language_code
 {
     return 'ja';
 }

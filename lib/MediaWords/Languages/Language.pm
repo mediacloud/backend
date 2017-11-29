@@ -59,7 +59,7 @@ my @_enabled_languages = (
 #
 
 # Returns a string ISO 639-1 language code (e.g. 'en')
-requires 'get_language_code';
+requires 'language_code';
 
 # Returns a hashref of stop words for the language where the keys are all
 # stopwords and the values are all 1:
