@@ -33,8 +33,6 @@ END
 
     delete( $live_story->{ topics_id } );
     delete( $live_story->{ topic_stories_id } );
-    delete( $live_story->{ disable_triggers } );
-    delete( $story->{ disable_triggers } );
 
     $live_story->{ publish_date } =~ s/T/ /g;
     $live_story->{ collect_date } =~ s/T/ /g;

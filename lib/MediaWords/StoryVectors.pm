@@ -9,8 +9,6 @@ use utf8;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use MediaWords::DB::StoryTriggers;
-
 use MediaWords::Languages::Language;
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::AP;
@@ -50,11 +48,6 @@ sub _get_db_escaped_story_sentence_refs
         $sentence_ref->{ stories_id }      = $story->{ stories_id };
         $sentence_ref->{ media_id }        = $story->{ media_id };
         $sentence_ref->{ publish_date }    = $db->quote_timestamp( $story->{ publish_date } );
-
-        my $allow_null = 1;
-        $sentence_ref->{ disable_triggers } =
-          $db->quote_bool(
-            normalize_boolean_for_db( MediaWords::DB::StoryTriggers::story_triggers_disabled(), $allow_null ) );
 
         push( @{ $sentence_refs }, $sentence_ref );
     }
@@ -137,8 +130,7 @@ SQL
         # be later skipped on INSERT of new sentences
         $dedup_sentences_statement = <<"SQL";
             UPDATE story_sentences
-            SET is_dup = 't',
-                disable_triggers = 't'
+            SET is_dup = 't'
             FROM new_sentences
             WHERE half_md5(story_sentences.sentence) = half_md5(new_sentences.sentence)
               AND week_start_date( story_sentences.publish_date::date )

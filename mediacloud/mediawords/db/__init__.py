@@ -84,21 +84,4 @@ def connect_to_db(label: str = None, do_not_check_schema_version: bool = False) 
 
         ret.query('SET statement_timeout TO %(db_statement_timeout)s' % {'db_statement_timeout': db_statement_timeout})
 
-    # Reset the session variable in case the database connection is being reused due to pooling
-    ret.query("""
-        DO $$
-        BEGIN
-        PERFORM enable_story_triggers();
-        EXCEPTION
-        WHEN undefined_function THEN
-            -- This exception will be raised if the database is uninitialized at this point.
-            -- So, don't emit any kind of error because of an non-existent function.
-            NULL;
-        WHEN OTHERS THEN
-            -- Forward the exception
-            RAISE;
-        END
-        $$;
-    """)
-
     return ret
