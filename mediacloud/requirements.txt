@@ -1,0 +1,1 @@
+../ansible/roles/python-dependencies/files/requirements.txt

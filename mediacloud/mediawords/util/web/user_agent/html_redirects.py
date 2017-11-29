@@ -29,6 +29,10 @@ def target_request_from_meta_refresh_url(content: str, archive_site_url: str) ->
     if target_url is None:
         return None
 
+    if not is_http_url(target_url):
+        log.error("URL matched, but is not HTTP(s): %s" % target_url)
+        return None
+
     return Request(method='GET', url=target_url)
 
 

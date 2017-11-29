@@ -65,6 +65,9 @@ def fix_common_url_mistakes(url: str) -> Optional[str]:
     # http://newsmachete.com?page=2 -> http://newsmachete.com/?page=2
     url = re.sub(r'(https?://[^/]+)\?', r"\1/?", url)
 
+    # URLencode spaces
+    url = re.sub(r' ', r'%20', url)
+
     return url
 
 

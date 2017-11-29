@@ -22,7 +22,10 @@ def test_fix_common_url_mistakes():
 
         # Missing port
         'https://www.gpo.gov:/fdsys/pkg/PLAW-107publ289/pdf/PLAW-107publ289.pdf':
-            'https://www.gpo.gov/fdsys/pkg/PLAW-107publ289/pdf/PLAW-107publ289.pdf'
+            'https://www.gpo.gov/fdsys/pkg/PLAW-107publ289/pdf/PLAW-107publ289.pdf',
+
+        # Non-URLencoded space
+        'http://www.ldeo.columbia.edu/~peter/ site/Home.html': 'http://www.ldeo.columbia.edu/~peter/%20site/Home.html',
     }
 
     for orig_url, fixed_url in urls.items():
@@ -70,6 +73,14 @@ def test_is_http_url():
     assert not mc_url.is_http_url(
         'http:/www.theinquirer.net/inquirer/news/2322928/net-neutrality-rules-lie-in-tatters-as-fcc-overruled'
     )
+
+    # UTF-8 in paths
+    assert mc_url.is_http_url('http://www.example.com/šiaurė.html')
+
+    # IDN
+    assert mc_url.is_http_url('http://www.šiaurė.lt/šiaurė.html')
+    assert mc_url.is_http_url('http://www.xn--iaur-yva35b.lt/šiaurė.html')
+    assert mc_url.is_http_url('http://.xn--iaur-yva35b.lt') is False  # Invalid Punycode
 
 
 def test_canonical_url():
