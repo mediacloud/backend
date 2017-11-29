@@ -384,14 +384,6 @@ sub _get_stop_words_from_file
     return \%stopwords;
 }
 
-# Converts an array into hashref (for a list of stop words)
-sub _array_to_hashref
-{
-    my $self = shift;
-    my %hash = map { $_ => 1 } @_;
-    return \%hash;
-}
-
 # Tokenizes a sentence with spaces (for Latin languages)
 sub _tokenize_with_spaces
 {
