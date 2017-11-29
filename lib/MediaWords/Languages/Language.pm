@@ -95,7 +95,7 @@ requires 'fetch_and_return_stop_words';
 requires 'stem';
 
 # Returns a list of sentences from a story text (tokenizes text into sentences)
-requires 'get_sentences';
+requires 'split_text_to_sentences';
 
 # Returns a reference to an array with a tokenized sentence for the language
 #

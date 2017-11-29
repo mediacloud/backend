@@ -30,7 +30,7 @@ sub stem
     return $self->_stem_with_lingua_stem_snowball( 'it', 'UTF-8', \@_ );
 }
 
-sub get_sentences
+sub split_text_to_sentences
 {
     my ( $self, $story_text ) = @_;
     return $self->_tokenize_text_with_lingua_sentence( 'it',

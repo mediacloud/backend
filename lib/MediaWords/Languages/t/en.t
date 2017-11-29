@@ -27,7 +27,7 @@ sub test_stopwords()
     is( $stop_words_en->{ 'is' },  1, "English test #3" );
 }
 
-sub test_get_sentences()
+sub test_split_text_to_sentences()
 {
     my $test_string;
     my $expected_sentences;
@@ -45,7 +45,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -62,7 +62,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -79,7 +79,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -96,7 +96,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -113,7 +113,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -132,7 +132,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -152,7 +152,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -171,7 +171,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -191,7 +191,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -211,7 +211,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -231,7 +231,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -313,7 +313,7 @@ sub main()
     binmode $builder->todo_output,    ":utf8";
 
     test_stopwords();
-    test_get_sentences();
+    test_split_text_to_sentences();
     test_tokenize();
     test_stem();
 }

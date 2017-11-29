@@ -8,15 +8,15 @@ class TestChineseTokenizer(TestCase):
     def setUp(self):
         self.__tokenizer = McChineseTokenizer()
 
-    def test_tokenize_text_to_sentences(self):
+    def test_split_text_to_sentences(self):
         # noinspection PyTypeChecker
-        assert self.__tokenizer.tokenize_text_to_sentences(None) == []
-        assert self.__tokenizer.tokenize_text_to_sentences("") == []
-        assert self.__tokenizer.tokenize_text_to_sentences(" ") == []
-        assert self.__tokenizer.tokenize_text_to_sentences(".") == ["."]
+        assert self.__tokenizer.split_text_to_sentences(None) == []
+        assert self.__tokenizer.split_text_to_sentences("") == []
+        assert self.__tokenizer.split_text_to_sentences(" ") == []
+        assert self.__tokenizer.split_text_to_sentences(".") == ["."]
 
         # English-only punctuation
-        sentences = self.__tokenizer.tokenize_text_to_sentences(
+        sentences = self.__tokenizer.split_text_to_sentences(
             "Hello. How do you do? I'm doing okay."
         )
         assert sentences == [
@@ -26,7 +26,7 @@ class TestChineseTokenizer(TestCase):
         ]
 
         # English-only punctuation, no period at the end of sentence
-        sentences = self.__tokenizer.tokenize_text_to_sentences(
+        sentences = self.__tokenizer.split_text_to_sentences(
             "Hello. How do you do? I'm doing okay"
         )
         assert sentences == [
@@ -36,7 +36,7 @@ class TestChineseTokenizer(TestCase):
         ]
 
         # Chinese-only punctuation
-        sentences = self.__tokenizer.tokenize_text_to_sentences(
+        sentences = self.__tokenizer.split_text_to_sentences(
             "問責制既不能吸引政治人才加入政府。"
             "時任政務司長林鄭月娥被指在未有公開諮詢下，突然宣布西九文化區興建故宮博物館，並委聘建築師嚴迅奇擔任設計顧問，被立法會議員向廉政公署舉報。"
             "她一出生就被父母遺棄，住在八里愛心教養院。"
@@ -50,7 +50,7 @@ class TestChineseTokenizer(TestCase):
         ]
 
         # Chinese-only punctuation, no EOS at the end of the sentence
-        sentences = self.__tokenizer.tokenize_text_to_sentences(
+        sentences = self.__tokenizer.split_text_to_sentences(
             "問責制既不能吸引政治人才加入政府。"
             "時任政務司長林鄭月娥被指在未有公開諮詢下，突然宣布西九文化區興建故宮博物館，並委聘建築師嚴迅奇擔任設計顧問，被立法會議員向廉政公署舉報。"
             "她一出生就被父母遺棄，住在八里愛心教養院。"
@@ -64,7 +64,7 @@ class TestChineseTokenizer(TestCase):
         ]
 
         # Chinese and English punctuation
-        sentences = self.__tokenizer.tokenize_text_to_sentences(
+        sentences = self.__tokenizer.split_text_to_sentences(
             "問責制既不能吸引政治人才加入政府。"
             "This is some English text out of the blue. "
             "時任政務司長林鄭月娥被指在未有公開諮詢下，突然宣布西九文化區興建故宮博物館，並委聘建築師嚴迅奇擔任設計顧問，被立法會議員向廉政公署舉報。"
@@ -78,7 +78,7 @@ class TestChineseTokenizer(TestCase):
         ]
 
         # Chinese and English punctuation (with newlines)
-        sentences = self.__tokenizer.tokenize_text_to_sentences("""問責制既不能吸引政治人才加入政府。
+        sentences = self.__tokenizer.split_text_to_sentences("""問責制既不能吸引政治人才加入政府。
 This is some English text out of the blue. 
 時任政務司長林鄭月娥被指在未有公開諮詢下，突然宣布西九文化區興建故宮博物館，並委聘建築師嚴迅奇擔任設計顧問，被立法會議員向廉政公署舉報。
 This is some more English text.
@@ -96,7 +96,7 @@ dsds.
 
         # Chinese and English sentences separates by double-newlines
         # (test has extra whitespace between line breaks)
-        sentences = self.__tokenizer.tokenize_text_to_sentences("""
+        sentences = self.__tokenizer.split_text_to_sentences("""
 問責制既不能吸引政治人才加入政府
   
 This is some English text out of the blue
@@ -114,7 +114,7 @@ This is some more English text
 
         # Chinese and English sentences in a list
         # (test has extra whitespace between line breaks)
-        sentences = self.__tokenizer.tokenize_text_to_sentences("""
+        sentences = self.__tokenizer.split_text_to_sentences("""
 問責制既不能吸引政治人才加入政府
 
 * This is some English text out of the blue. Some more English text.

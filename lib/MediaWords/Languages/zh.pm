@@ -60,11 +60,11 @@ sub stem
     return \@_;
 }
 
-sub get_sentences
+sub split_text_to_sentences
 {
     my ( $self, $story_text ) = @_;
 
-    my $sentences = $self->{ _chinese_tokenizer }->tokenize_text_to_sentences( $story_text );
+    my $sentences = $self->{ _chinese_tokenizer }->split_text_to_sentences( $story_text );
 
     return $sentences;
 }

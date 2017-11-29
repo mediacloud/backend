@@ -10,15 +10,15 @@ class TestJapaneseTokenizer(TestCase):
     def setUp(self):
         self.__tokenizer = McJapaneseTokenizer()
 
-    def test_tokenize_text_to_sentences(self):
+    def test_split_text_to_sentences(self):
         # noinspection PyTypeChecker
-        assert self.__tokenizer.tokenize_text_to_sentences(None) == []
-        assert self.__tokenizer.tokenize_text_to_sentences("") == []
-        assert self.__tokenizer.tokenize_text_to_sentences(" ") == []
-        assert self.__tokenizer.tokenize_text_to_sentences(".") == ["."]
+        assert self.__tokenizer.split_text_to_sentences(None) == []
+        assert self.__tokenizer.split_text_to_sentences("") == []
+        assert self.__tokenizer.split_text_to_sentences(" ") == []
+        assert self.__tokenizer.split_text_to_sentences(".") == ["."]
 
         # English-only punctuation
-        sentences = self.__tokenizer.tokenize_text_to_sentences(
+        sentences = self.__tokenizer.split_text_to_sentences(
             "Hello. How do you do? I'm doing okay."
         )
         assert sentences == [
@@ -28,7 +28,7 @@ class TestJapaneseTokenizer(TestCase):
         ]
 
         # English-only punctuation, no period at the end of sentence
-        sentences = self.__tokenizer.tokenize_text_to_sentences(
+        sentences = self.__tokenizer.split_text_to_sentences(
             "Hello. How do you do? I'm doing okay"
         )
         assert sentences == [
@@ -38,7 +38,7 @@ class TestJapaneseTokenizer(TestCase):
         ]
 
         # Japanese-only punctuation
-        sentences = self.__tokenizer.tokenize_text_to_sentences(
+        sentences = self.__tokenizer.split_text_to_sentences(
             "ジアゼパムはてんかんや興奮の治療に用いられる。"
             "また、有痛性筋痙攣（いわゆる“こむらがえり”）などの筋痙攣の治療にはベンゾジアゼピン類の中で最も有用であるとされている。"
             "鎮静作用を生かし手術などの前投薬にも用いられる。"
@@ -52,7 +52,7 @@ class TestJapaneseTokenizer(TestCase):
         ]
 
         # Japanese-only punctuation, no EOS at the end of the sentence
-        sentences = self.__tokenizer.tokenize_text_to_sentences(
+        sentences = self.__tokenizer.split_text_to_sentences(
             "ジアゼパムはてんかんや興奮の治療に用いられる。"
             "また、有痛性筋痙攣（いわゆる“こむらがえり”）などの筋痙攣の治療にはベンゾジアゼピン類の中で最も有用であるとされている。"
             "鎮静作用を生かし手術などの前投薬にも用いられる。"
@@ -66,7 +66,7 @@ class TestJapaneseTokenizer(TestCase):
         ]
 
         # Japanese and English punctuation
-        sentences = self.__tokenizer.tokenize_text_to_sentences(
+        sentences = self.__tokenizer.split_text_to_sentences(
             "ジアゼパムはてんかんや興奮の治療に用いられる。"
             "This is some English text out of the blue. "
             "また、有痛性筋痙攣（いわゆる“こむらがえり”）などの筋痙攣の治療にはベンゾジアゼピン類の中で最も有用であるとされている。"
@@ -80,7 +80,7 @@ class TestJapaneseTokenizer(TestCase):
         ]
 
         # Japanese and English punctuation (with newlines)
-        sentences = self.__tokenizer.tokenize_text_to_sentences("""ジアゼパムはてんかんや興奮の治療に用いられる。
+        sentences = self.__tokenizer.split_text_to_sentences("""ジアゼパムはてんかんや興奮の治療に用いられる。
 This is some English text out of the blue. 
 また、有痛性筋痙攣（いわゆる“こむらがえり”）などの筋痙攣の治療にはベンゾジアゼピン類の中で最も有用であるとされている。
 This is some more English text.
@@ -98,7 +98,7 @@ dsds.
 
         # Japanese and English sentences separates by double-newlines
         # (test has extra whitespace between line breaks)
-        sentences = self.__tokenizer.tokenize_text_to_sentences("""
+        sentences = self.__tokenizer.split_text_to_sentences("""
 ジアゼパムはてんかんや興奮の治療に用いられる
   
 This is some English text out of the blue
@@ -116,7 +116,7 @@ This is some more English text
 
         # Japanese and English sentences in a list
         # (test has extra whitespace between line breaks)
-        sentences = self.__tokenizer.tokenize_text_to_sentences("""
+        sentences = self.__tokenizer.split_text_to_sentences("""
 ジアゼパムはてんかんや興奮の治療に用いられる
 
 * This is some English text out of the blue. Some more English text.

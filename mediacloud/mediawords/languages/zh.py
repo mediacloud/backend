@@ -64,7 +64,7 @@ class McChineseTokenizer(object):
         except Exception as ex:
             raise McChineseTokenizerException("Unable to initialize jieba: %s" % str(ex))
 
-    def tokenize_text_to_sentences(self, text: str) -> list:
+    def split_text_to_sentences(self, text: str) -> list:
         """Tokenize Chinese text into sentences."""
 
         text = decode_object_from_bytes_if_needed(text)

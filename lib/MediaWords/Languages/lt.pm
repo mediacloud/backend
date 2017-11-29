@@ -44,7 +44,7 @@ sub stem
     return \@stems;
 }
 
-sub get_sentences
+sub split_text_to_sentences
 {
     my ( $self, $story_text ) = @_;
     return $self->_tokenize_text_with_lingua_sentence( 'lt',

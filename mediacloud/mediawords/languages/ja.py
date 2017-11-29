@@ -85,7 +85,7 @@ class McJapaneseTokenizer(object):
 
         return mecab_dictionary_path
 
-    def tokenize_text_to_sentences(self, text: str) -> list:
+    def split_text_to_sentences(self, text: str) -> list:
         """Tokenize Japanese text into sentences."""
 
         text = decode_object_from_bytes_if_needed(text)
