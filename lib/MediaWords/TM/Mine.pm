@@ -129,22 +129,40 @@ sub update_topic_state($$$;$)
 # fetch each link and add a { redirect_url } field if the { url } field redirects to another url
 sub add_redirect_links
 {
-    my ( $db, $links ) = @_;
+    my ( $db, $stories ) = @_;
 
-    my $urls = [ map { URI->new( $_->{ url } )->as_string } @{ $links } ];
+    my $urls         = [];
+    my $story_lookup = {};
+
+    for my $story ( @{ $stories } )
+    {
+        my $story_url = URI->new( $story->{ url } )->as_string;
+
+        unless ( MediaWords::Util::URL::is_http_url( $story_url ) )
+        {
+            WARN "Story URL $story_url is not HTTP(s) URL";
+            next;
+        }
+
+        push( @{ $urls }, $story_url );
+        $story_lookup->{ $story_url } = $story;
+    }
 
     my $ua        = MediaWords::Util::Web::UserAgent->new();
     my $responses = $ua->parallel_get( $urls );
-
-    my $link_lookup = {};
-    map { $link_lookup->{ URI->new( $_->{ url } )->as_string } = $_ } @{ $links };
 
     for my $response ( @{ $responses } )
     {
         my $original_url = $response->original_request->url;
         my $final_url    = $response->request->url;
-        my $link         = $link_lookup->{ $original_url };
-        $link->{ redirect_url } = $final_url;
+        if ( $story_lookup->{ $original_url } )
+        {
+            $story_lookup->{ $original_url }->{ redirect_url } = $final_url;
+        }
+        else
+        {
+            WARN "Original URL $original_url was not found in story lookup hash";
+        }
     }
 }
 
