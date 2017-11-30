@@ -21,13 +21,25 @@ sub BUILD($$)
 {
     my ( $self, $args ) = @_;
 
-    my $stores_for_reading = $args->{ stores_for_reading };
-    my $stores_for_writing = $args->{ stores_for_writing };
+    my $perl_stores_for_reading = $args->{ stores_for_reading };
+    my $perl_stores_for_writing = $args->{ stores_for_writing };
+
+    my $stores_for_reading = [];
+    my $stores_for_writing = [];
+
+    foreach my $store ( @{ $perl_stores_for_reading } )
+    {
+        push( @{ $stores_for_reading }, $store->_python_store );
+    }
+    foreach my $store ( @{ $perl_stores_for_writing } )
+    {
+        push( @{ $stores_for_writing }, $store->_python_store );
+    }
 
     $self->_python_store(
         MediaWords::KeyValueStore::MultipleStores::MultipleStoresStore->new(
             $stores_for_reading,    #
-            $stores_for_writing     #
+            $stores_for_writing,    #
         )
     );
 }
