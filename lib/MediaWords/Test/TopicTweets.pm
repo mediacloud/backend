@@ -22,7 +22,6 @@ use MediaWords::TM;
 use MediaWords::Job::TM::MineTopic;
 use MediaWords::Test::DB;
 use MediaWords::Test::Data;
-use MediaWords::Test::ExternalAPI;
 use MediaWords::Test::Supervisor;
 use MediaWords::Util::Config;
 use MediaWords::Util::JSON;

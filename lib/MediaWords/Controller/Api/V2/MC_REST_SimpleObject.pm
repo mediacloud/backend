@@ -11,7 +11,6 @@ use Moose;
 use namespace::autoclean;
 use List::Compare;
 use Readonly;
-use MediaWords::DB::StoryTriggers;
 
 =head1 NAME
 
@@ -510,20 +509,6 @@ sub _clear_tags
     {
         my $tags_ids_list = join( ',', @{ $tags_ids } );
 
-        if ( grep { $self->get_table_name eq $_ } qw/stories story_sentences/ )
-        {
-            my $allow_null = 1;
-            $c->dbis->query(
-                <<SQL,
-UPDATE $table_name set disable_triggers = \$1
-       where $table_id_name = \$2 and
-            ( (disable_triggers is null) or (disable_triggers <> \$1 ) )
-SQL
-                normalize_boolean_for_db( MediaWords::DB::StoryTriggers::story_triggers_disabled(), $allow_null ),
-                $id
-            );
-        }
-
         $c->dbis->query( <<END, $id );
 delete from $tags_map_table stm
     using tags keep_tags, tags delete_tags
@@ -552,11 +537,6 @@ sub _add_tags
 
     my $table_name = $self->get_table_name();
 
-    # DRL 3/18/2015 this is a hack to make sure that triggers are enabled so that changes reach solr
-    # This is needed because we use connection pooling in production and db connections with triggers disabled are reused
-    # We;re also explicitly enabling story triggers when the database is created, which should be enough but isn't
-    $c->dbis->query( "SELECT enable_story_triggers() " );
-
     foreach my $story_tag ( @$story_tags )
     {
         # TRACE "story_tag $story_tag";
@@ -572,16 +552,6 @@ sub _add_tags
         $self->_die_unless_user_can_apply_tag_set_tags( $c, $tag_set );
 
         # TRACE "$id, $tags_id";
-
-        my $disable_triggers_query = <<END;
-UPDATE $table_name set disable_triggers = \$1
-               where $table_id_name = \$2 and
-                    ( (disable_triggers is null) or (disable_triggers <> \$1 ) )
-END
-
-        my $allow_null = 1;
-        $c->dbis->query( $disable_triggers_query,
-            normalize_boolean_for_db( MediaWords::DB::StoryTriggers::story_triggers_disabled(), $allow_null ), $id );
 
         my $query = <<END;
 INSERT INTO $tags_map_table ( $table_id_name, tags_id)
@@ -669,11 +639,6 @@ sub process_put_tags($$)
     die( "json must be a list" ) unless ( ref( $data ) eq ref( [] ) );
 
     $c->dbis->begin;
-
-    # DRL 3/18/2015 this is a hack to make sure that triggers are enabled so that changes reach solr
-    # This is needed because we use connection pooling in production and db connections with triggers disabled are reused
-    # We;re also explicitly enabling story triggers when the database is created, which should be enough but isn't
-    $c->dbis->query( "SELECT enable_story_triggers() " );
 
     my $put_tags = [ map { $self->_process_single_put_tag( $c, $_ ) } @{ $data } ];
 

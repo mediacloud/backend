@@ -122,7 +122,7 @@ class CachedAmazonS3Store(AmazonS3Store):
                     "Content is not bytes after uncompression for object ID %d" % object_id)
 
         except Exception as ex:
-            log.warning("Unable to retrieve object ID %d from cache: %s" % (object_id, str(ex),))
+            log.debug("Unable to retrieve object ID %d from cache: %s" % (object_id, str(ex),))
             return None
 
         else:
