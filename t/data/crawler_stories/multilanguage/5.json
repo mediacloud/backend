@@ -3,7 +3,6 @@
    "content" : "<p>\n    This RSS feed is used to test whether the story language gets identified\n    correctly.\n</p>\n",
    "db_row_last_updated" : "2017-03-09 00:32:07.936745+08:00",
    "description" : null,
-   "disable_triggers" : null,
    "extracted_text" : "(no title)\n***\n\n\n***\n\n\n\n  \n\n  \n\n \n    This RSS feed is used to test whether the story language gets identified\n    correctly.\n \n\n\n  \n\n  ",
    "feed_type" : "web_page",
    "full_text_rss" : 0,
@@ -15,7 +14,6 @@
    "story_sentences" : [
       {
          "db_row_last_updated" : "2017-03-09 00:32:07.936745+08:00",
-         "disable_triggers" : 0,
          "is_dup" : null,
          "language" : "en",
          "media_id" : 1,

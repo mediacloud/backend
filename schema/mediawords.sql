@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4638;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4639;
 
 BEGIN
 
@@ -117,194 +117,68 @@ $$
 $$
 LANGUAGE 'plpgsql';
 
--- Store whether story triggers should be enable in PRIVATE.use_story_triggers
--- This variable is session based. If it's not set, set it to enable triggers and return true
-CREATE OR REPLACE FUNCTION  story_triggers_enabled() RETURNS boolean  LANGUAGE  plpgsql AS $$
-BEGIN
 
-    BEGIN
-       IF current_setting('PRIVATE.use_story_triggers') = '' THEN
-          perform enable_story_triggers();
-       END IF;
-       EXCEPTION when undefined_object then
-        perform enable_story_triggers();
+CREATE OR REPLACE FUNCTION last_updated_trigger() RETURNS trigger AS $$
 
-     END;
-
-    return true;
-    return current_setting('PRIVATE.use_story_triggers') = 'yes';
-END$$;
-
-CREATE OR REPLACE FUNCTION  enable_story_triggers() RETURNS void LANGUAGE  plpgsql AS $$
 DECLARE
-BEGIN
-        perform set_config('PRIVATE.use_story_triggers', 'yes', false );
-END$$;
+    path_change boolean;
 
-CREATE OR REPLACE FUNCTION  disable_story_triggers() RETURNS void LANGUAGE  plpgsql AS $$
+BEGIN
+    IF (TG_OP = 'UPDATE') OR (TG_OP = 'INSERT') then
+        NEW.db_row_last_updated = NOW();
+    END IF;
+
+    RETURN NEW;
+END;
+
+$$ LANGUAGE 'plpgsql';
+
+
+CREATE OR REPLACE FUNCTION update_story_sentences_updated_time_trigger() RETURNS trigger AS $$
+
 DECLARE
+    path_change boolean;
+
 BEGIN
-        perform set_config('PRIVATE.use_story_triggers', 'no', false );
-END$$;
+    UPDATE story_sentences
+    SET db_row_last_updated = NOW()
+    WHERE stories_id = NEW.stories_id
+      AND before_last_solr_import( db_row_last_updated );
 
-CREATE OR REPLACE FUNCTION last_updated_trigger () RETURNS trigger AS
-$$
-   DECLARE
-      path_change boolean;
-      table_with_trigger_column  boolean default false;
-   BEGIN
-      -- RAISE NOTICE 'BEGIN ';
-        IF TG_TABLE_NAME in ( 'processed_stories', 'stories', 'story_sentences') THEN
-           table_with_trigger_column = true;
-        ELSE
-           table_with_trigger_column = false;
-        END IF;
+    RETURN NULL;
+END;
 
-	IF table_with_trigger_column THEN
-	   IF ( ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') ) AND NEW.disable_triggers THEN
-     	       RETURN NEW;
-           END IF;
-      END IF;
+$$ LANGUAGE 'plpgsql';
 
-      IF ( story_triggers_enabled() ) AND ( ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') ) then
 
-      	 NEW.db_row_last_updated = now();
+CREATE OR REPLACE FUNCTION update_stories_updated_time_by_stories_id_trigger() RETURNS trigger AS $$
 
-      END IF;
+DECLARE
+    path_change boolean;
+    reference_stories_id integer default null;
 
-      RETURN NEW;
-   END;
-$$
-LANGUAGE 'plpgsql';
+BEGIN
 
-CREATE OR REPLACE FUNCTION update_story_sentences_updated_time_trigger () RETURNS trigger AS
-$$
-   DECLARE
-      path_change boolean;
-   BEGIN
+    IF TG_OP = 'INSERT' THEN
+        -- The "old" record doesn't exist
+        reference_stories_id = NEW.stories_id;
+    ELSIF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'DELETE') THEN
+        reference_stories_id = OLD.stories_id;
+    ELSE
+        RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
+    END IF;
 
-        IF NOT story_triggers_enabled() THEN
-           RETURN NULL;
-        END IF;
+    UPDATE stories
+    SET db_row_last_updated = now()
+    WHERE stories_id = reference_stories_id
+      AND before_last_solr_import( db_row_last_updated );
+    
+    RETURN NULL;
 
-        IF NEW.disable_triggers THEN
-           RETURN NULL;
-        END IF;
+END;
 
-	UPDATE story_sentences set db_row_last_updated = now()
-        where stories_id = NEW.stories_id and before_last_solr_import( db_row_last_updated );
-	RETURN NULL;
-   END;
-$$
-LANGUAGE 'plpgsql';
+$$ LANGUAGE 'plpgsql';
 
-CREATE OR REPLACE FUNCTION update_stories_updated_time_by_stories_id_trigger () RETURNS trigger AS
-$$
-    DECLARE
-        path_change boolean;
-        table_with_trigger_column  boolean default false;
-        reference_stories_id integer default null;
-    BEGIN
-
-       IF NOT story_triggers_enabled() THEN
-           RETURN NULL;
-        END IF;
-
-        IF TG_TABLE_NAME in ( 'processed_stories', 'stories', 'story_sentences') THEN
-           table_with_trigger_column = true;
-        ELSE
-           table_with_trigger_column = false;
-        END IF;
-
-	IF table_with_trigger_column THEN
-	   IF TG_OP = 'INSERT' AND NEW.disable_triggers THEN
-	       RETURN NULL;
-	   ELSEIF ( ( TG_OP = 'UPDATE' ) OR (TG_OP = 'DELETE') ) AND OLD.disable_triggers THEN
-     	       RETURN NULL;
-           END IF;
-       END IF;
-
-        IF TG_OP = 'INSERT' THEN
-            -- The "old" record doesn't exist
-            reference_stories_id = NEW.stories_id;
-        ELSIF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'DELETE') THEN
-            reference_stories_id = OLD.stories_id;
-        ELSE
-            RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
-        END IF;
-
-	IF table_with_trigger_column THEN
-            UPDATE stories
-               SET db_row_last_updated = now()
-               WHERE stories_id = reference_stories_id
-                and before_last_solr_import( db_row_last_updated );
-            RETURN NULL;
-        ELSE
-            UPDATE stories
-               SET db_row_last_updated = now()
-               WHERE stories_id = reference_stories_id and (disable_triggers is NOT true)
-                and before_last_solr_import( db_row_last_updated );
-            RETURN NULL;
-        END IF;
-   END;
-$$
-LANGUAGE 'plpgsql';
-
-CREATE OR REPLACE FUNCTION update_story_sentences_updated_time_by_story_sentences_id_trigger () RETURNS trigger AS
-$$
-    DECLARE
-        path_change boolean;
-        table_with_trigger_column  boolean default false;
-        reference_story_sentences_id bigint default null;
-    BEGIN
-
-       IF NOT story_triggers_enabled() THEN
-           RETURN NULL;
-        END IF;
-
-       IF NOT story_triggers_enabled() THEN
-           RETURN NULL;
-        END IF;
-
-        IF TG_TABLE_NAME in ( 'processed_stories', 'stories', 'story_sentences') THEN
-           table_with_trigger_column = true;
-        ELSE
-           table_with_trigger_column = false;
-        END IF;
-
-	IF table_with_trigger_column THEN
-	   IF TG_OP = 'INSERT' AND NEW.disable_triggers THEN
-	       RETURN NULL;
-	   ELSEIF ( ( TG_OP = 'UPDATE' ) OR (TG_OP = 'DELETE') ) AND OLD.disable_triggers THEN
-     	       RETURN NULL;
-           END IF;
-       END IF;
-
-        IF TG_OP = 'INSERT' THEN
-            -- The "old" record doesn't exist
-            reference_story_sentences_id = NEW.story_sentences_id;
-        ELSIF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'DELETE') THEN
-            reference_story_sentences_id = OLD.story_sentences_id;
-        ELSE
-            RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
-        END IF;
-
-	IF table_with_trigger_column THEN
-            UPDATE story_sentences
-              SET db_row_last_updated = now()
-              WHERE story_sentences_id = reference_story_sentences_id
-                and before_last_solr_import( db_row_last_updated );
-            RETURN NULL;
-        ELSE
-            UPDATE story_sentences
-              SET db_row_last_updated = now()
-              WHERE story_sentences_id = reference_story_sentences_id and (disable_triggers is NOT true)
-                and before_last_solr_import( db_row_last_updated );
-            RETURN NULL;
-        END IF;
-   END;
-$$
-LANGUAGE 'plpgsql';
 
 create table media (
     media_id            serial          primary key,
@@ -812,8 +686,7 @@ create table stories (
     collect_date                timestamp       not null default now(),
     full_text_rss               boolean         not null default 'f',
     db_row_last_updated                timestamp with time zone,
-    language                    varchar(3)      null,   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
-    disable_triggers            boolean         null
+    language                    varchar(3)      null   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
 );
 
 create index stories_media_id on stories (media_id);
@@ -1062,7 +935,6 @@ create table story_sentences (
        publish_date                 timestamp       not null,
        db_row_last_updated          timestamp with time zone, -- time this row was last updated
        language                     varchar(3)      null,      -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
-       disable_triggers             boolean         null,
        is_dup                       boolean         null
 );
 
@@ -1088,140 +960,170 @@ CREATE TRIGGER story_sentences_last_updated_trigger
 
 
 -- update media stats table for new story sentence.
-create function insert_ss_media_stats() returns trigger as $$
-begin
+CREATE FUNCTION insert_ss_media_stats() RETURNS trigger AS $$
+BEGIN
 
+    UPDATE media_stats
+    SET num_sentences = num_sentences + 1
+    WHERE media_id = NEW.media_id
+      AND stat_date = date_trunc( 'day', NEW.publish_date );
 
-    IF NOT story_triggers_enabled() THEN
-      RETURN NULL;
-    END IF;
-
-    update media_stats set num_sentences = num_sentences + 1
-        where media_id = NEW.media_id and stat_date = date_trunc( 'day', NEW.publish_date );
-
-    return NEW;
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+
 create trigger ss_insert_story_media_stats after insert
     on story_sentences for each row execute procedure insert_ss_media_stats();
 
+
 -- update media stats table for updated story_sentence date
-create function update_ss_media_stats() returns trigger as $$
-declare
-    new_date date;
-    old_date date;
-begin
+CREATE FUNCTION update_ss_media_stats() RETURNS trigger AS $$
 
-    IF NOT story_triggers_enabled() THEN
-       RETURN NULL;
+DECLARE
+    new_date DATE;
+    old_date DATE;
+
+BEGIN
+    SELECT date_trunc( 'day', NEW.publish_date ) INTO new_date;
+    SELECT date_trunc( 'day', OLD.publish_date ) INTO old_date;
+
+    IF ( new_date != old_date ) THEN
+
+        UPDATE media_stats
+        SET num_sentences = num_sentences - 1
+        WHERE media_id = NEW.media_id
+          AND stat_date = old_date;
+
+        UPDATE media_stats
+        SET num_sentences = num_sentences + 1
+        WHERE media_id = NEW.media_id
+          AND stat_date = new_date;
+
     END IF;
 
-    select date_trunc( 'day', NEW.publish_date ) into new_date;
-    select date_trunc( 'day', OLD.publish_date ) into old_date;
-
-    IF ( new_date <> old_date ) THEN
-        update media_stats set num_sentences = num_sentences - 1
-            where media_id = NEW.media_id and stat_date = old_date;
-        update media_stats set num_sentences = num_sentences + 1
-            where media_id = NEW.media_id and stat_date = new_date;
-    END IF;
-
-    return NEW;
+    RETURN NEW;
 END;
+
 $$ LANGUAGE plpgsql;
+
+
 create trigger ss_update_story_media_stats after update
     on story_sentences for each row execute procedure update_ss_media_stats();
 
+
 -- update media stats table for deleted story sentence
-create function delete_ss_media_stats() returns trigger as $$
-begin
+CREATE FUNCTION delete_ss_media_stats() RETURNS trigger AS $$
+BEGIN
 
-    IF NOT story_triggers_enabled() THEN
-       RETURN NULL;
-    END IF;
+    UPDATE media_stats
+    SET num_sentences = num_sentences - 1
+    WHERE media_id = OLD.media_id
+      AND stat_date = date_trunc( 'day', OLD.publish_date );
 
-    update media_stats set num_sentences = num_sentences - 1
-    where media_id = OLD.media_id and stat_date = date_trunc( 'day', OLD.publish_date );
+    RETURN NEW;
 
-    return NEW;
 END;
+
 $$ LANGUAGE plpgsql;
+
+
 create trigger story_delete_ss_media_stats after delete
     on story_sentences for each row execute procedure delete_ss_media_stats();
 
 -- update media stats table for new story. create the media / day row if needed.
-create or replace function insert_story_media_stats() returns trigger as $insert_story_media_stats$
-begin
+CREATE OR REPLACE FUNCTION insert_story_media_stats() RETURNS trigger AS $$
+BEGIN
 
-    IF NOT story_triggers_enabled() THEN
-       RETURN NULL;
-    END IF;
+    INSERT INTO media_stats ( media_id, num_stories, num_sentences, stat_date )
+        SELECT NEW.media_id, 0, 0, date_trunc( 'day', NEW.publish_date )
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM media_stats
+            WHERE media_id = NEW.media_id
+              AND stat_date = date_trunc( 'day', NEW.publish_date )
+        );
 
-    insert into media_stats ( media_id, num_stories, num_sentences, stat_date )
-        select NEW.media_id, 0, 0, date_trunc( 'day', NEW.publish_date )
-            where not exists (
-                select 1 from media_stats where media_id = NEW.media_id and stat_date = date_trunc( 'day', NEW.publish_date ) );
+    UPDATE media_stats
+    SET num_stories = num_stories + 1
+    WHERE media_id = NEW.media_id
+      AND stat_date = date_trunc( 'day', NEW.publish_date );
 
-    update media_stats set num_stories = num_stories + 1
-        where media_id = NEW.media_id and stat_date = date_trunc( 'day', NEW.publish_date );
+    RETURN NEW;
 
-    return NEW;
 END;
-$insert_story_media_stats$ LANGUAGE plpgsql;
+
+$$ LANGUAGE plpgsql;
+
+
 create trigger stories_insert_story_media_stats after insert
     on stories for each row execute procedure insert_story_media_stats();
 
 
 -- update media stats and story_sentences tables for updated story date
-create function update_story_media_stats() returns trigger as $update_story_media_stats$
-declare
-    new_date date;
-    old_date date;
-begin
+CREATE FUNCTION update_story_media_stats() RETURNS trigger AS $$
 
-    IF NOT story_triggers_enabled() THEN
-       RETURN NULL;
+DECLARE
+    new_date DATE;
+    old_date DATE;
+
+BEGIN
+
+    SELECT date_trunc( 'day', NEW.publish_date ) INTO new_date;
+    SELECT date_trunc( 'day', OLD.publish_date ) INTO old_date;
+
+    IF ( new_date != old_date ) THEN
+
+        UPDATE media_stats
+        SET num_stories = num_stories - 1
+        WHERE media_id = NEW.media_id
+          AND stat_date = old_date;
+
+        INSERT INTO media_stats ( media_id, num_stories, num_sentences, stat_date )
+            SELECT NEW.media_id, 0, 0, date_trunc( 'day', NEW.publish_date )
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM media_stats
+                WHERE media_id = NEW.media_id
+                  AND stat_date = date_trunc( 'day', NEW.publish_date )
+            );
+
+        UPDATE media_stats
+        SET num_stories = num_stories + 1
+        WHERE media_id = NEW.media_id
+          AND stat_date = new_date;
+
+        UPDATE story_sentences
+        SET publish_date = new_date
+        WHERE stories_id = OLD.stories_id;
+
     END IF;
 
-    select date_trunc( 'day', NEW.publish_date ) into new_date;
-    select date_trunc( 'day', OLD.publish_date ) into old_date;
-
-    IF ( new_date <> old_date ) THEN
-        update media_stats set num_stories = num_stories - 1
-            where media_id = NEW.media_id and stat_date = old_date;
-
-        insert into media_stats ( media_id, num_stories, num_sentences, stat_date )
-            select NEW.media_id, 0, 0, date_trunc( 'day', NEW.publish_date )
-                where not exists (
-                    select 1 from media_stats where media_id = NEW.media_id and stat_date = date_trunc( 'day', NEW.publish_date ) );
-
-        update media_stats set num_stories = num_stories + 1
-            where media_id = NEW.media_id and stat_date = new_date;
-
-        update story_sentences set publish_date = new_date where stories_id = OLD.stories_id;
-    END IF;
-
-    return NEW;
+    RETURN NEW;
 END;
-$update_story_media_stats$ LANGUAGE plpgsql;
+
+$$ LANGUAGE plpgsql;
+
+
 create trigger stories_update_story_media_stats after update
     on stories for each row execute procedure update_story_media_stats();
 
 
 -- update media stats table for deleted story
-create function delete_story_media_stats() returns trigger as $delete_story_media_stats$
-begin
+CREATE FUNCTION delete_story_media_stats() RETURNS trigger AS $$
+BEGIN
 
-    IF NOT story_triggers_enabled() THEN
-       RETURN NULL;
-    END IF;
+    UPDATE media_stats
+    SET num_stories = num_stories - 1
+    WHERE media_id = OLD.media_id
+      AND stat_date = date_trunc( 'day', OLD.publish_date );
 
-    update media_stats set num_stories = num_stories - 1
-    where media_id = OLD.media_id and stat_date = date_trunc( 'day', OLD.publish_date );
+    RETURN NEW;
 
-    return NEW;
 END;
-$delete_story_media_stats$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
+
+
 create trigger story_delete_story_media_stats after delete
     on stories for each row execute procedure delete_story_media_stats();
 
@@ -2017,8 +1919,7 @@ create trigger stories_update_live_story after update on stories
 
 create table processed_stories (
     processed_stories_id        bigserial          primary key,
-    stories_id                  int             not null references stories on delete cascade,
-    disable_triggers            boolean  null
+    stories_id                  int             not null references stories on delete cascade
 );
 
 create index processed_stories_story on processed_stories ( stories_id );
@@ -2065,7 +1966,12 @@ create table topic_query_story_searches_imported_stories_map (
 create index cqssism_c on topic_query_story_searches_imported_stories_map ( topics_id );
 create index cqssism_s on topic_query_story_searches_imported_stories_map ( stories_id );
 
-CREATE VIEW stories_collected_in_past_day as select * from stories where collect_date > now() - interval '1 day';
+
+CREATE VIEW stories_collected_in_past_day AS
+    SELECT *
+    FROM stories
+    WHERE collect_date > now() - interval '1 day';
+
 
 CREATE VIEW downloads_to_be_extracted as select * from downloads where extracted = 'f' and state = 'success' and type = 'content';
 

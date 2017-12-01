@@ -26,7 +26,6 @@ use HTML::Entities;
 use List::Compare;
 use List::Util;
 
-use MediaWords::DB::StoryTriggers;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories::ExtractorVersion;
 use MediaWords::DBI::Stories::ExtractorArguments;
@@ -472,25 +471,6 @@ SQL
     $db->commit;
 }
 
-# update disable_triggers for given story if needed
-sub _update_story_disable_triggers
-{
-    my ( $db, $story ) = @_;
-
-    my $config_disable_triggers = MediaWords::DB::StoryTriggers::story_triggers_disabled() ? 1 : 0;
-    my $story_disable_triggers = $story->{ disable_triggers } ? 1 : 0;
-
-    if ( $config_disable_triggers != $story_disable_triggers )
-    {
-        my $allow_null = 1;
-        $db->query(
-            "UPDATE stories SET disable_triggers  = ? WHERE stories_id = ?",
-            normalize_boolean_for_db( MediaWords::DB::StoryTriggers::story_triggers_disabled(), $allow_null ),
-            $story->{ stories_id }
-        );
-    }
-}
-
 =head2 process_extracted_story( $db, $story, $extractor_args )
 
 Do post extraction story processing work: call
@@ -506,8 +486,6 @@ sub process_extracted_story($$$)
     my $stories_id = $story->{ stories_id } + 0;
 
     MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story, $extractor_args );
-
-    _update_story_disable_triggers( $db, $story );
 
     unless ( $extractor_args->no_tag_extractor_version() )
     {
@@ -744,17 +722,7 @@ sub mark_as_processed($$)
 {
     my ( $db, $stories_id ) = @_;
 
-    eval {
-        my $allow_null = 1;
-        $db->insert(
-            'processed_stories',
-            {
-                stories_id => $stories_id,    #
-                disable_triggers =>
-                  normalize_boolean_for_db( MediaWords::DB::StoryTriggers::story_triggers_disabled(), $allow_null ),    #
-            }
-        );
-    };
+    eval { $db->insert( 'processed_stories', { stories_id => $stories_id } ); };
     if ( $@ )
     {
         WARN "Unable to insert story ID $stories_id into 'processed_stories': $@";
