@@ -1,8 +1,5 @@
 package MediaWords::KeyValueStore::DatabaseInline;
 
-# class for storing / loading very short downloads directly in the
-# "downloads.path" column
-
 use strict;
 use warnings;
 
@@ -12,68 +9,59 @@ with 'MediaWords::KeyValueStore';
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-# Constructor
+use MediaWords::Util::Text;
+
+# Import DatabaseInlineStore class
+import_python_module( __PACKAGE__, 'mediawords.key_value_store.database_inline' );
+
+# DatabaseInlineStore instance
+has '_python_store' => ( is => 'rw' );
+
 sub BUILD($$)
 {
     my ( $self, $args ) = @_;
 
-    # DEBUG "New database inline storage.";
+    $self->_python_store( MediaWords::KeyValueStore::DatabaseInline::DatabaseInlineStore->new() );
 }
 
-# Moose method
 sub store_content($$$$)
 {
-    my ( $self, $db, $object_id, $content_ref ) = @_;
+    my ( $self, $db, $object_id, $content ) = @_;
 
-    LOGCONFESS "Do not write inline downloads for object ID $object_id.";
+    # Python handler will encode Perl's strings itself
 
-    return 0;
+    return $self->_python_store->store_content( $db, $object_id, $content );
 }
 
-# Moose method
-sub fetch_content($$$$)
+sub fetch_content($$$;$)
 {
     my ( $self, $db, $object_id, $object_path ) = @_;
 
-    unless ( defined $object_path )
+    my $content = $self->_python_store->fetch_content( $db, $object_id, $object_path );
+
+    # Inline::Python returns Python's 'bytes' as arrayref
+    if ( ref( $content ) eq ref( [] ) )
     {
-        LOGCONFESS "Object path for object ID $object_id is undefined.";
+        $content = join( '', @{ $content } );
     }
 
-    my $content = $object_path;
-    $content =~ s/^content://;
-    return \$content;
+    my $decoded_content = MediaWords::Util::Text::decode_from_utf8( $content );
+
+    return $decoded_content;
 }
 
-# Moose method
-sub remove_content($$$$)
+sub remove_content($$$;$)
 {
     my ( $self, $db, $object_id, $object_path ) = @_;
 
-    LOGCONFESS "Not sure how to remove inline content for object ID $object_id.";
-
-    return 0;
+    return $self->_python_store->remove_content( $db, $object_id, $object_path );
 }
 
-# Moose method
-sub content_exists($$$$)
+sub content_exists($$$;$)
 {
     my ( $self, $db, $object_id, $object_path ) = @_;
 
-    unless ( defined $object_path )
-    {
-        ERROR "Object path for object ID $object_id is undefined.";
-        return 0;
-    }
-
-    if ( $object_path =~ /^content:/ )
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
+    return $self->_python_store->content_exists( $db, $object_id, $object_path );
 }
 
 no Moose;    # gets rid of scaffolding

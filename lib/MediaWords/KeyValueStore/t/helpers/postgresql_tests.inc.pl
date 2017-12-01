@@ -9,68 +9,33 @@ use MediaWords::Test::DB;
 use Data::Dumper;
 use Readonly;
 
-Readonly my $MOCK_DOWNLOADS_ID => 12345;
+require "$FindBin::Bin/helpers/create_mock_download.inc.pl";
 
 BEGIN
 {
     use_ok( 'MediaWords::DB' );
 }
 
-sub _create_mock_download($$)
+sub test_store_content($$$)
 {
-    my ( $db, $downloads_id ) = @_;
+    my ( $db, $postgresql, $test_downloads_id ) = @_;
 
-    $db->query(
-        <<EOF
-		INSERT INTO media (media_id, url, name, moderated)
-		VALUES (1, 'http://', 'Test Media', 't')
-EOF
-    );
-
-    $db->query(
-        <<EOF
-		INSERT INTO feeds(feeds_id, media_id, name, url)
-		VALUES (1, 1, 'Test Feed', 'http://')
-EOF
-    );
-
-    $db->query(
-        <<EOF
-		INSERT INTO stories (stories_id, media_id, url, guid, title, publish_date, collect_date)
-		VALUES (1, 1, 'http://', 'guid', 'Test Story', now(), now());
-EOF
-    );
-
-    $db->query(
-        <<EOF,
-		INSERT INTO downloads (downloads_id, feeds_id, stories_id, url, host, download_time, type, state, priority, sequence)
-		VALUES (?, 1, 1, 'http://', '', now(), 'content', 'pending', 0, 0);
-EOF
-        $downloads_id
-    );
-}
-
-sub test_store_content($$)
-{
-    my ( $db, $postgresql ) = @_;
-
-    my $test_downloads_id   = $MOCK_DOWNLOADS_ID;
     my $test_downloads_path = undef;
     my $test_content        = 'Media Cloud - pnoןɔ ɐıpǝɯ';    # UTF-8
-    my $content_ref;
+    my $content;
 
     # Store content
     my $postgresql_id;
-    eval { $postgresql_id = $postgresql->store_content( $db, $test_downloads_id, \$test_content ); };
+    eval { $postgresql_id = $postgresql->store_content( $db, $test_downloads_id, $test_content ); };
     ok( ( !$@ ), "Storing content failed: $@" );
     ok( $postgresql_id,                                     'Object ID was returned' );
     ok( length( $postgresql_id ) > length( 'postgresql:' ), 'Object ID is of the valid size' );
 
     # Fetch content
-    eval { $content_ref = $postgresql->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
+    eval { $content = $postgresql->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
     ok( ( !$@ ), "Fetching download failed: $@" );
-    ok( $content_ref, "Fetching download did not die but no content was returned" );
-    is( $$content_ref, $test_content, "Content doesn't match." );
+    ok( defined $content, "Fetching download did not die but no content was returned" );
+    is( $content, $test_content, "Content doesn't match." );
 
     # Check if PostgreSQL thinks that the content exists
     ok(
@@ -80,11 +45,11 @@ sub test_store_content($$)
 
     # Remove content, try fetching again
     $postgresql->remove_content( $db, $test_downloads_id, $test_downloads_path );
-    $content_ref = undef;
-    eval { $content_ref = $postgresql->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
+    $content = undef;
+    eval { $content = $postgresql->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
     ok( $@, "Fetching download that does not exist should have failed" );
-    ok( ( !$content_ref ),
-        "Fetching download that does not exist failed (as expected) but the content reference was returned" );
+    ok( ( !defined $content ),
+        "Fetching download that does not exist failed (as expected) but the content was still returned" );
 
     # Check if PostgreSQL thinks that the content exists
     ok(
@@ -93,30 +58,29 @@ sub test_store_content($$)
     );
 }
 
-sub test_store_content_twice($$)
+sub test_store_content_twice($$$)
 {
-    my ( $db, $postgresql ) = @_;
+    my ( $db, $postgresql, $test_downloads_id ) = @_;
 
-    my $test_downloads_id   = $MOCK_DOWNLOADS_ID;
     my $test_downloads_path = undef;
     my $test_content        = 'Loren ipsum dolor sit amet.';
-    my $content_ref;
+    my $content;
 
     # Store content
     my $postgresql_id;
     eval {
-        $postgresql_id = $postgresql->store_content( $db, $test_downloads_id, \$test_content );
-        $postgresql_id = $postgresql->store_content( $db, $test_downloads_id, \$test_content );
+        $postgresql_id = $postgresql->store_content( $db, $test_downloads_id, $test_content );
+        $postgresql_id = $postgresql->store_content( $db, $test_downloads_id, $test_content );
     };
     ok( ( !$@ ), "Storing content failed: $@" );
     ok( $postgresql_id,                                     'Object ID was returned' );
     ok( length( $postgresql_id ) > length( 'postgresql:' ), 'Object ID is of the valid size' );
 
     # Fetch content
-    eval { $content_ref = $postgresql->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
+    eval { $content = $postgresql->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
     ok( ( !$@ ), "Fetching download failed: $@" );
-    ok( $content_ref, "Fetching download did not die but no content was returned" );
-    is( $$content_ref, $test_content, "Content doesn't match." );
+    ok( defined $content, "Fetching download did not die but no content was returned" );
+    is( $content, $test_content, "Content doesn't match." );
 
     # Check if PostgreSQL thinks that the content exists
     ok(
@@ -126,11 +90,11 @@ sub test_store_content_twice($$)
 
     # Remove content, try fetching again
     $postgresql->remove_content( $db, $test_downloads_id, $test_downloads_path );
-    $content_ref = undef;
-    eval { $content_ref = $postgresql->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
+    $content = undef;
+    eval { $content = $postgresql->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
     ok( $@, "Fetching download that does not exist should have failed" );
-    ok( ( !$content_ref ),
-        "Fetching download that does not exist failed (as expected) but the content reference was returned" );
+    ok( ( !defined $content ),
+        "Fetching download that does not exist failed (as expected) but the content was still returned" );
 
     # Check if PostgreSQL thinks that the content exists
     ok(
@@ -152,8 +116,8 @@ sub test_postgresql($$)
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
-    _create_mock_download( $db, $MOCK_DOWNLOADS_ID );
+    my $test_downloads_id = create_mock_download( $db );
 
-    test_store_content( $db, $postgresql_handler );
-    test_store_content_twice( $db, $postgresql_handler );
+    test_store_content( $db, $postgresql_handler, $test_downloads_id );
+    test_store_content_twice( $db, $postgresql_handler, $test_downloads_id );
 }

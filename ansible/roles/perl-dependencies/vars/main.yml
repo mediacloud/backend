@@ -68,8 +68,6 @@ perl_dependencies:
     - "HTML::TreeBuilder::LibXML"
     - "Inline"
     # Patched version of Inline::Python gets installed separately
-    - "IO::Compress::Bzip2"
-    - "IO::Compress::Gzip"
     - "Lingua::Identify::CLD"
     - "Lingua::Sentence"
     - "Lingua::Stem::Snowball"
@@ -89,7 +87,6 @@ perl_dependencies:
     - "Module::Install"
     - "Moose"
     - "namespace::autoclean"
-    - "Net::Amazon::S3"
     - "Net::AMQP::RabbitMQ"
     - "Net::IP"
     - "Net::Twitter"
