@@ -14,6 +14,8 @@ class McCachedAmazonS3StoreException(McKeyValueStoreException):
     pass
 
 
+# FIXME merge with MultipleStoresStore because both do essentially the same thing (except that the "cached" store
+# doesn't raise if it's unable to store the object in one of the stores)
 class CachedAmazonS3Store(AmazonS3Store):
     """Cached Amazon S3 key-value store."""
 
