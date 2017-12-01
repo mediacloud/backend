@@ -9,7 +9,6 @@ from psycopg2.extensions import adapt as psycopg2_adapt
 from mediawords.db.copy.copy_from import CopyFrom
 from mediawords.db.copy.copy_to import CopyTo
 from mediawords.db.exceptions.handler import *
-from mediawords.db.statement.statement import DatabaseStatement
 from mediawords.db.pages.pages import DatabasePages
 from mediawords.db.result.result import DatabaseResult
 from mediawords.db.schema.version import schema_version_from_lines
@@ -286,17 +285,6 @@ class DatabaseHandler(object):
                               query_args=query_params,
                               double_percentage_sign_marker=self.__double_percentage_sign_marker,
                               print_warnings=self.__print_warnings)
-
-    def prepare(self, sql: str) -> DatabaseStatement:
-        """Return a prepared statement."""
-        # MC_REWRITE_TO_PYTHON get rid of it because it was useful only for writing BYTEA cells; psycopg2 can just
-        # use 'bytes' arguments
-
-        sql = decode_object_from_bytes_if_needed(sql)
-
-        return DatabaseStatement(cursor=self.__db,
-                                 sql=sql,
-                                 double_percentage_sign_marker=self.__double_percentage_sign_marker)
 
     def __get_current_work_mem(self) -> str:
         current_work_mem = self.query("SHOW work_mem").flat()[0]

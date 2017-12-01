@@ -288,46 +288,6 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         assert len(hashes[1]) == 5
         assert hashes[1]['name'] == 'Kris'
 
-    def test_prepare(self):
-
-        # Basic
-        statement = self.db().prepare("""
-            UPDATE kardashians
-            SET surname = ?
-            WHERE name = ?
-              AND surname = ?
-        """)
-        statement.bind(1, 'Kardashian-West')
-        statement.bind(2, 'Kim')
-        statement.bind(3, 'Kardashian')
-        statement.execute()
-
-        row_hash = self.db().query("SELECT * FROM kardashians WHERE name = ?", 'Kim').hash()
-        assert row_hash['surname'] == 'Kardashian-West'
-
-        # BYTEA
-        random_bytes = os.urandom(10 * 1024)
-        self.db().query("""
-            CREATE TEMPORARY TABLE table_with_bytea_column (
-                id INT NOT NULL,
-                surname VARCHAR NOT NULL,
-                bytea_data BYTEA NOT NULL
-            )
-        """)
-        statement = self.db().prepare("""
-            INSERT INTO table_with_bytea_column (id, surname, bytea_data)
-            VALUES (?, ?, ?)
-        """)
-        statement.bind(1, 42)
-        statement.bind(2, 'Kardashian')
-        statement.bind_bytea(3, random_bytes)
-        statement.execute()
-
-        row_hash = self.db().query("SELECT id, surname, bytea_data FROM table_with_bytea_column").hash()
-        assert row_hash['id'] == 42
-        assert row_hash['surname'] == 'Kardashian'
-        assert bytes(row_hash['bytea_data']) == random_bytes
-
     def test_execute_with_large_work_mem(self):
         normal_work_mem = 256  # MB
         large_work_mem = 512  # MB
