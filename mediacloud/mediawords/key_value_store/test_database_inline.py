@@ -25,7 +25,7 @@ class TestDatabaseInlineStoreTestCase(TestKeyValueStoreTestCase):
             # noinspection PyTypeChecker
             self.store().fetch_content(db=self.db(), object_id=self._TEST_OBJECT_ID_NONEXISTENT, object_path='')
 
-        test_content_path = '%s:%s' % (self._expected_path_prefix(), self._TEST_CONTENT_UTF_8_STRING,)
+        test_content_path = '%s%s' % (self._expected_path_prefix(), self._TEST_CONTENT_UTF_8_STRING,)
         content = self.store().fetch_content(db=self.db(),
                                              object_id=self._TEST_OBJECT_ID,
                                              object_path=test_content_path)
