@@ -3,6 +3,7 @@ use warnings;
 
 use FindBin;
 use MediaWords::KeyValueStore::CachedAmazonS3;
+use Readonly;
 
 require "$FindBin::Bin/helpers/amazon_s3_set_credentials_from_env.inc.pl";
 set_amazon_s3_test_credentials_from_env_if_needed();
@@ -10,4 +11,5 @@ set_amazon_s3_test_credentials_from_env_if_needed();
 require "$FindBin::Bin/helpers/amazon_s3_tests.inc.pl";
 
 my $s3_handler_class = 'MediaWords::KeyValueStore::CachedAmazonS3';
-test_amazon_s3( $s3_handler_class );
+Readonly my $create_mock_download => 1;
+test_amazon_s3( $s3_handler_class, $create_mock_download );

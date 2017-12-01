@@ -7,6 +7,9 @@ arrow==0.10.0
 # HTML parsing
 beautifulsoup4==4.6.0
 
+# Amazon S3
+boto3==1.4.7
+
 # Unit test coverage
 coverage==4.4.1
 

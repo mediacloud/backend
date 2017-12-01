@@ -32,9 +32,9 @@ sub s3_download_handler($)
     );
 }
 
-sub test_amazon_s3($)
+sub test_amazon_s3($;$)
 {
-    my $s3_handler_class = shift;
+    my ( $s3_handler_class, $create_mock_download ) = @_;
 
     my $config = MediaWords::Util::Config::get_config;
     unless ( defined( $config->{ amazon_s3 }->{ test } ) )
@@ -52,20 +52,26 @@ sub test_amazon_s3($)
 
             ok( $db, "PostgreSQL initialized " );
 
+            my $test_downloads_id = 12345;
+            if ( $create_mock_download )
+            {
+                require "$FindBin::Bin/helpers/create_mock_download.inc.pl";
+                $test_downloads_id = create_mock_download( $db );
+            }
+
             my $s3 = s3_download_handler( $s3_handler_class );
             ok( $s3, "Amazon S3 initialized" );
 
-            my $test_downloads_id   = 999999999999999;
             my $test_downloads_path = undef;
             my $test_content        = 'Loren ipsum dolor sit amet.';
-            my $content_ref;
+            my $content;
 
             #
             # Store content
             #
 
             my $s3_path;
-            eval { $s3_path = $s3->store_content( $db, $test_downloads_id, \$test_content ); };
+            eval { $s3_path = $s3->store_content( $db, $test_downloads_id, $test_content ); };
             ok( ( !$@ ), "Storing content failed: $@" );
             ok( $s3_path, 'Object ID was returned' );
             like( $s3_path, qr#^s3:.+?/\Q$test_downloads_id\E$#, 'Object ID matches' );
@@ -74,21 +80,21 @@ sub test_amazon_s3($)
             # Fetch content, compare
             #
 
-            eval { $content_ref = $s3->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
+            eval { $content = $s3->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
             ok( ( !$@ ), "Fetching download failed: $@" );
-            ok( $content_ref, "Fetching download did not die but no content was returned" );
-            is( $$content_ref, $test_content, "Content doesn't match." );
+            ok( defined $content, "Fetching download did not die but no content was returned" );
+            is( $content, $test_content, "Content doesn't match." );
 
             #
             # Remove content, try fetching again
             #
 
             $s3->remove_content( $db, $test_downloads_id, $test_downloads_path );
-            $content_ref = undef;
-            eval { $content_ref = $s3->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
+            $content = undef;
+            eval { $content = $s3->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
             ok( $@, "Fetching download that does not exist should have failed" );
-            ok( ( !$content_ref ),
-                "Fetching download that does not exist failed (as expected) but the content reference was returned" );
+            ok( ( !defined $content ),
+                "Fetching download that does not exist failed (as expected) but the content was still returned" );
 
             #
             # Check if Amazon S3 thinks that the content exists
@@ -104,26 +110,26 @@ sub test_amazon_s3($)
 
             $s3_path = undef;
             eval {
-                $s3_path = $s3->store_content( $db, $test_downloads_id, \$test_content );
-                $s3_path = $s3->store_content( $db, $test_downloads_id, \$test_content );
+                $s3_path = $s3->store_content( $db, $test_downloads_id, $test_content );
+                $s3_path = $s3->store_content( $db, $test_downloads_id, $test_content );
             };
             ok( ( !$@ ), "Storing content twice failed: $@" );
             ok( $s3_path, 'Object ID was returned' );
             like( $s3_path, qr#^s3:.+?/\Q$test_downloads_id\E$#, 'Object ID matches' );
 
             # Fetch content again, compare
-            eval { $content_ref = $s3->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
+            eval { $content = $s3->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
             ok( ( !$@ ), "Fetching download failed: $@" );
-            ok( $content_ref, "Fetching download did not die but no content was returned" );
-            is( $$content_ref, $test_content, "Content doesn't match." );
+            ok( defined $content, "Fetching download did not die but no content was returned" );
+            is( $content, $test_content, "Content doesn't match." );
 
             # Remove content, try fetching again
             $s3->remove_content( $db, $test_downloads_id, $test_downloads_path );
-            $content_ref = undef;
-            eval { $content_ref = $s3->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
+            $content = undef;
+            eval { $content = $s3->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
             ok( $@, "Fetching download that does not exist should have failed" );
-            ok( ( !$content_ref ),
-                "Fetching download that does not exist failed (as expected) but the content reference was returned" );
+            ok( ( !defined $content ),
+                "Fetching download that does not exist failed (as expected) but the content was still returned" );
 
             # Check if Amazon S3 thinks that the content exists
             ok(
