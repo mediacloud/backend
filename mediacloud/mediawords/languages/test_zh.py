@@ -131,15 +131,15 @@ This is some more English text
             "This is some more English text",
         ]
 
-    def test_tokenize_sentence_to_words(self):
+    def test_split_sentence_to_words(self):
         # noinspection PyTypeChecker
-        assert self.__tokenizer.tokenize_sentence_to_words(None) == []
-        assert self.__tokenizer.tokenize_sentence_to_words("") == []
-        assert self.__tokenizer.tokenize_sentence_to_words(" ") == []
-        assert self.__tokenizer.tokenize_sentence_to_words(".") == []
+        assert self.__tokenizer.split_sentence_to_words(None) == []
+        assert self.__tokenizer.split_sentence_to_words("") == []
+        assert self.__tokenizer.split_sentence_to_words(" ") == []
+        assert self.__tokenizer.split_sentence_to_words(".") == []
 
         # English sentence
-        words = self.__tokenizer.tokenize_sentence_to_words("How do you do?")
+        words = self.__tokenizer.split_sentence_to_words("How do you do?")
         assert words == [
             "How",
             "do",
@@ -148,7 +148,7 @@ This is some more English text
         ]
 
         # English sentence, no period at the end of the sentence
-        words = self.__tokenizer.tokenize_sentence_to_words("How do you do")
+        words = self.__tokenizer.split_sentence_to_words("How do you do")
         assert words == [
             "How",
             "do",
@@ -157,7 +157,7 @@ This is some more English text
         ]
 
         # English sentence, literal string "EOS"
-        words = self.__tokenizer.tokenize_sentence_to_words("EOS this, EOS that.")
+        words = self.__tokenizer.split_sentence_to_words("EOS this, EOS that.")
         assert words == [
             "EOS",
             "this",
@@ -166,7 +166,7 @@ This is some more English text
         ]
 
         # English sentence; tab, newline and comma characters
-        words = self.__tokenizer.tokenize_sentence_to_words(
+        words = self.__tokenizer.split_sentence_to_words(
             "Something\tSomething else\nSomething, completely, different."
         )
         assert words == [
@@ -179,7 +179,7 @@ This is some more English text
         ]
 
         # Chinese sentence
-        words = self.__tokenizer.tokenize_sentence_to_words(
+        words = self.__tokenizer.split_sentence_to_words(
             "時任政務司長林鄭月娥被指在未有公開諮詢下，突然宣布西九文化區興建故宮博物館，並委聘建築師嚴迅奇擔任設計顧問，被立法會議員向廉政公署舉報。"
         )
         assert words == [
@@ -213,7 +213,7 @@ This is some more English text
         ]
 
         # Tokenize names of top political figures or celebrities
-        words = self.__tokenizer.tokenize_sentence_to_words(
+        words = self.__tokenizer.split_sentence_to_words(
             "習近平王毅黃毓民汤家骅"
         )
         assert words == [
@@ -224,7 +224,7 @@ This is some more English text
         ]
 
         # Chinese + English sentence
-        words = self.__tokenizer.tokenize_sentence_to_words("他建議想學好英文，必須人格分裂、要代入外國人的思想（mindset）。")
+        words = self.__tokenizer.split_sentence_to_words("他建議想學好英文，必須人格分裂、要代入外國人的思想（mindset）。")
         assert words == [
             "他",
             "建議",
@@ -242,7 +242,7 @@ This is some more English text
         ]
 
         # Chinese punctuation
-        words = self.__tokenizer.tokenize_sentence_to_words(
+        words = self.__tokenizer.split_sentence_to_words(
             "Badger、badger。Badger・Badger『badger』「Badger」badger？Badger！Badger！？"
             "Badger【badger】Badger～badger（badger）《Badger》，badger；badger……badger：badger"
         )

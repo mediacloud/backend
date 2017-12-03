@@ -46,7 +46,7 @@ sub test_tokenize()
         "i",        "l'autoritat", "bancària",  "europea", "a",        "amsterdam",
         "i",        "parís",      "respectivament"
     ];
-    is_deeply( $lang->tokenize( $input_string ), $expected_words );
+    is_deeply( $lang->split_sentence_to_words( $input_string ), $expected_words );
 }
 
 sub test_stem()

@@ -202,7 +202,8 @@ QUOTE
     ];
 
     {
-        is( join( '||', @{ $lang->tokenize( $test_string ) } ), join( '||', @{ $expected_words } ), "tokenize" );
+        is( join( '||', @{ $lang->split_sentence_to_words( $test_string ) } ),
+            join( '||', @{ $expected_words } ), "tokenize" );
     }
 }
 
@@ -220,13 +221,13 @@ __END_TEST_CASE__
 
     ok( utf8::is_utf8( $stemmer_test_ru_text ), "is_utf8" );
 
-    my @split_words = @{ $lang->tokenize( $stemmer_test_ru_text ) };
+    my @split_words = @{ $lang->split_sentence_to_words( $stemmer_test_ru_text ) };
 
     utf8::upgrade( $stemmer_test_ru_text );
 
     my $temp = $stemmer_test_ru_text;
 
-    @split_words = @{ $lang->tokenize( $temp ) };
+    @split_words = @{ $lang->split_sentence_to_words( $temp ) };
 
     my $lingua_stem = Lingua::Stem::Snowball->new( lang => 'ru', encoding => 'UTF-8' );
 
@@ -239,7 +240,7 @@ __END_TEST_CASE__
 
     isnt(
         join( "_", @$mw_stem_result ),
-        join( "_", @{ $lang->tokenize( lc $stemmer_test_ru_text ) } ),
+        join( "_", @{ $lang->split_sentence_to_words( lc $stemmer_test_ru_text ) } ),
         "Stemmer compare with no stemming test"
     );
 }

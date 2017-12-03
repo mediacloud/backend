@@ -254,7 +254,7 @@ sub count_stems($$)
         my $lang_sentence = MediaWords::Languages::Language::language_for_code( $sentence_language );
 
         # Tokenize into words
-        my $sentence_words = $lang_sentence->tokenize( $sentence );
+        my $sentence_words = $lang_sentence->split_sentence_to_words( $sentence );
 
         # Remove stopwords;
         # (don't stem stopwords first as they will usually be stemmed too much)

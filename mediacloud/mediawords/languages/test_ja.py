@@ -133,15 +133,15 @@ This is some more English text
             "This is some more English text",
         ]
 
-    def test_tokenize_sentence_to_words(self):
+    def test_split_sentence_to_words(self):
         # noinspection PyTypeChecker
-        assert self.__tokenizer.tokenize_sentence_to_words(None) == []
-        assert self.__tokenizer.tokenize_sentence_to_words("") == []
-        assert self.__tokenizer.tokenize_sentence_to_words(" ") == []
-        assert self.__tokenizer.tokenize_sentence_to_words(".") == []
+        assert self.__tokenizer.split_sentence_to_words(None) == []
+        assert self.__tokenizer.split_sentence_to_words("") == []
+        assert self.__tokenizer.split_sentence_to_words(" ") == []
+        assert self.__tokenizer.split_sentence_to_words(".") == []
 
         # English sentence
-        words = self.__tokenizer.tokenize_sentence_to_words("How do you do?")
+        words = self.__tokenizer.split_sentence_to_words("How do you do?")
         assert words == [
             "How",
             "do",
@@ -150,7 +150,7 @@ This is some more English text
         ]
 
         # English sentence, no period at the end of the sentence
-        words = self.__tokenizer.tokenize_sentence_to_words("How do you do")
+        words = self.__tokenizer.split_sentence_to_words("How do you do")
         assert words == [
             "How",
             "do",
@@ -159,7 +159,7 @@ This is some more English text
         ]
 
         # English sentence, literal string "EOS"
-        words = self.__tokenizer.tokenize_sentence_to_words("EOS this, EOS that.")
+        words = self.__tokenizer.split_sentence_to_words("EOS this, EOS that.")
         assert words == [
             "EOS",
             "this",
@@ -168,7 +168,7 @@ This is some more English text
         ]
 
         # English sentence; tab, newline and comma characters
-        words = self.__tokenizer.tokenize_sentence_to_words(
+        words = self.__tokenizer.split_sentence_to_words(
             "Something\tSomething else\nSomething, completely, different."
         )
         assert words == [
@@ -180,7 +180,7 @@ This is some more English text
         ]
 
         # Japanese sentence
-        words = self.__tokenizer.tokenize_sentence_to_words(
+        words = self.__tokenizer.split_sentence_to_words(
             "10日放送の「中居正広のミになる図書館」（テレビ朝日系）で、SMAPの中居正広が、篠原信一の過去の勘違いを明かす一幕があった。"
         )
         assert words == [
@@ -196,14 +196,14 @@ This is some more English text
         ]
 
         # Japanese + English sentence
-        words = self.__tokenizer.tokenize_sentence_to_words("pythonが大好きです")
+        words = self.__tokenizer.split_sentence_to_words("pythonが大好きです")
         assert words == [
             "python",
             "大好き",
         ]
 
         # Japanese punctuation
-        words = self.__tokenizer.tokenize_sentence_to_words(
+        words = self.__tokenizer.split_sentence_to_words(
             "Badger、badger。Badger・Badger『badger』badger？Badger！Badger！？"
             "Badger【badger】Badger～badger▽badger（badger）"
         )

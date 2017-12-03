@@ -102,13 +102,13 @@ requires 'split_text_to_sentences';
 # If the words in a sentence are separated by spaces (as with most of the languages with
 # a Latin-derived alphabet), you can use the module helper:
 #
-#   sub tokenize
+#   sub split_sentence_to_words
 #   {
 #       my ( $self, $sentence ) = @_;
 #       return $self->_tokenize_with_spaces( $sentence );
 #   }
 #
-requires 'tokenize';
+requires 'split_sentence_to_words';
 
 #
 # END OF THE SUBCLASS INTERFACE

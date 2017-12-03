@@ -123,7 +123,8 @@ sub test_tokenize()
     my $expected_words = [ '主任', '强调', '指出', '错误', '的', '地方' ];
 
     {
-        is( join( '||', @{ $lang->tokenize( $test_string ) } ), join( '||', @{ $expected_words } ), "word_split" );
+        is( join( '||', @{ $lang->split_sentence_to_words( $test_string ) } ),
+            join( '||', @{ $expected_words } ), "word_split" );
     }
 }
 

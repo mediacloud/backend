@@ -141,7 +141,7 @@ class McJapaneseTokenizer(object):
             47: '名詞,固有名詞,地域,国',  # proper noun, country name
         }
 
-    def tokenize_sentence_to_words(self, sentence: str) -> list:
+    def split_sentence_to_words(self, sentence: str) -> list:
         """Tokenize Japanese sentence into words.
         
         Removes punctuation and words that don't belong to part-of-speech whitelist."""

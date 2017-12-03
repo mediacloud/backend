@@ -27,7 +27,7 @@ sub BUILD
 
     # Quick self-test to make sure that MeCab, its dictionaries and Python
     # class are installed and working
-    my @self_test_words = $tokenizer->tokenize_sentence_to_words( 'pythonが大好きです' );
+    my @self_test_words = $tokenizer->split_sentence_to_words( 'pythonが大好きです' );
     if ( ( !$self_test_words[ 0 ] ) or $self_test_words[ 1 ] ne '大好き' )
     {
         die 'MeCab self-test failed; make sure that MeCab is built and dictionaries are accessible.';
@@ -64,11 +64,11 @@ sub split_text_to_sentences
     return $sentences;
 }
 
-sub tokenize
+sub split_sentence_to_words
 {
     my ( $self, $sentence ) = @_;
 
-    my $words = $self->{ _japanese_tokenizer }->tokenize_sentence_to_words( $sentence );
+    my $words = $self->{ _japanese_tokenizer }->split_sentence_to_words( $sentence );
 
     return $words;
 }

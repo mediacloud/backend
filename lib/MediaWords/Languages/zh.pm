@@ -26,7 +26,7 @@ sub BUILD
 
     # Quick self-test to make sure that Jieba, its dictionaries and Python
     # class are installed and working
-    my @self_test_words = $tokenizer->tokenize_sentence_to_words( 'python課程' );
+    my @self_test_words = $tokenizer->split_sentence_to_words( 'python課程' );
     if ( ( !$self_test_words[ 0 ] ) or $self_test_words[ 1 ] ne '課程' )
     {
         die <<EOF;
@@ -69,11 +69,11 @@ sub split_text_to_sentences
     return $sentences;
 }
 
-sub tokenize
+sub split_sentence_to_words
 {
     my ( $self, $sentence ) = @_;
 
-    my $words = $self->{ _chinese_tokenizer }->tokenize_sentence_to_words( $sentence );
+    my $words = $self->{ _chinese_tokenizer }->split_sentence_to_words( $sentence );
 
     return $words;
 }

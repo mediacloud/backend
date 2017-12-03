@@ -247,22 +247,22 @@ sub test_tokenize()
     # Normal apostrophe (')
     $input_string = "It's always sunny in Philadelphia.";
     $expected_words = [ "it's", "always", "sunny", "in", "philadelphia" ];
-    is_deeply( $lang->tokenize( $input_string ), $expected_words, 'Tokenization with normal apostrophe' );
+    is_deeply( $lang->split_sentence_to_words( $input_string ), $expected_words, 'Tokenization with normal apostrophe' );
 
     # Right single quotation mark (’), normalized to apostrophe (')
     $input_string = "It’s always sunny in Philadelphia.";
     $expected_words = [ "it's", "always", "sunny", "in", "philadelphia" ];
-    is_deeply( $lang->tokenize( $input_string ), $expected_words, 'Tokenization with fancy apostrophe' );
+    is_deeply( $lang->split_sentence_to_words( $input_string ), $expected_words, 'Tokenization with fancy apostrophe' );
 
     # Hyphen without split
     $input_string = "near-total secrecy";
     $expected_words = [ "near-total", "secrecy" ];
-    is_deeply( $lang->tokenize( $input_string ), $expected_words, 'Tokenization with hyphen (no split)' );
+    is_deeply( $lang->split_sentence_to_words( $input_string ), $expected_words, 'Tokenization with hyphen (no split)' );
 
     # Hyphen with split (where it's being used as a dash)
     $input_string = "A Pythagorean triple - named for the ancient Greek Pythagoras";
     $expected_words = [ 'a', 'pythagorean', 'triple', 'named', 'for', 'the', 'ancient', 'greek', 'pythagoras' ];
-    is_deeply( $lang->tokenize( $input_string ), $expected_words, 'Tokenization with hyphen (split)' );
+    is_deeply( $lang->split_sentence_to_words( $input_string ), $expected_words, 'Tokenization with hyphen (split)' );
 
     # Quotes
     $input_string   = 'it was in the Guinness Book of World Records as the "most difficult mathematical problem"';
@@ -270,7 +270,7 @@ sub test_tokenize()
         'it',      'was', 'in',  'the',  'guinness',  'book',         'of', 'world',
         'records', 'as',  'the', 'most', 'difficult', 'mathematical', 'problem'
     ];
-    is_deeply( $lang->tokenize( $input_string ), $expected_words, 'Quote removal while tokenizing' );
+    is_deeply( $lang->split_sentence_to_words( $input_string ), $expected_words, 'Quote removal while tokenizing' );
 }
 
 sub test_stem()
@@ -287,7 +287,7 @@ sub test_stem()
     and other natural language processing problems.
 __END_TEST_CASE__
 
-    my @split_words = @{ $lang->tokenize( $stemmer_test_en_text ) };
+    my @split_words = @{ $lang->split_sentence_to_words( $stemmer_test_en_text ) };
 
     my $lingua_stem = Lingua::Stem::Snowball->new( lang => 'en', encoding => 'UTF-8' );
 

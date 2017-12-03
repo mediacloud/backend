@@ -70,7 +70,7 @@ sub split_text_to_sentences
     return $self->_tokenize_text_with_lingua_sentence( 'en', $nonbreaking_prefix_file, $story_text );
 }
 
-sub tokenize
+sub split_sentence_to_words
 {
     my ( $self, $sentence ) = @_;
     return $self->_tokenize_with_spaces( $sentence );

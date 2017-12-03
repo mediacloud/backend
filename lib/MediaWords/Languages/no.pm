@@ -37,7 +37,7 @@ sub split_text_to_sentences
         'lib/MediaWords/Languages/resources/no_nonbreaking_prefixes.txt', $story_text );
 }
 
-sub tokenize
+sub split_sentence_to_words
 {
     my ( $self, $sentence ) = @_;
     return $self->_tokenize_with_spaces( $sentence );
