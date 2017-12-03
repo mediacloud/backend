@@ -374,7 +374,7 @@ EOF
     INFO "Storing annotation results for story $stories_id...";
 
     # Write to PostgreSQL, index by stories_id
-    eval { $self->_postgresql_store()->store_content( $db, $stories_id, \$json_annotation ); };
+    eval { $self->_postgresql_store()->store_content( $db, $stories_id, $json_annotation ); };
     if ( $@ )
     {
         fatal_error( "Unable to store annotation result: $@" );
@@ -405,16 +405,15 @@ sub fetch_annotation_for_story($$$)
     }
 
     # Fetch annotation
-    my $json_ref          = undef;
+    my $json              = undef;
     my $param_object_path = undef;    # no such thing, objects are indexed by filename
-    eval { $json_ref = $self->_postgresql_store()->fetch_content( $db, $stories_id, $param_object_path ); };
-    if ( $@ or ( !defined $json_ref ) )
+    eval { $json = $self->_postgresql_store()->fetch_content( $db, $stories_id, $param_object_path ); };
+    if ( $@ )
     {
         die "Store died while fetching annotation for story $stories_id: $@\n";
     }
 
-    my $json = $$json_ref;
-    unless ( $json )
+    unless ( defined $json )
     {
         die "Fetched annotation is undefined or empty for story $stories_id.\n";
     }

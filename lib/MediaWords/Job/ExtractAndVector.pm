@@ -18,7 +18,6 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;
-use MediaWords::DB::StoryTriggers;
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::ExtractorArguments;
 
@@ -27,8 +26,6 @@ use MediaWords::DBI::Stories::ExtractorArguments;
 #
 # Arguments:
 # * stories_id -- story ID to extract
-# * (optional) disable_story_triggers -- disable triggers on "stories" table
-#              (probably skips updating db_row_last_updated?)
 # * (optional) skip_bitly_processing -- don't add extracted story to the Bit.ly
 #              processing queue
 sub run($$)
@@ -59,17 +56,6 @@ sub run($$)
 
     $db->begin;
 
-    if ( exists $args->{ disable_story_triggers } and $args->{ disable_story_triggers } )
-    {
-        $db->query( "SELECT disable_story_triggers(); " );
-        MediaWords::DB::StoryTriggers::disable_story_triggers();
-    }
-    else
-    {
-        $db->query( "SELECT enable_story_triggers(); " );
-        MediaWords::DB::StoryTriggers::enable_story_triggers();
-    }
-
     my $extractor_args = MediaWords::DBI::Stories::ExtractorArguments->new(
         {
             skip_bitly_processing => $args->{ skip_bitly_processing },
@@ -85,9 +71,6 @@ sub run($$)
         }
 
         MediaWords::DBI::Stories::extract_and_process_story( $db, $story, $extractor_args );
-
-        # Enable story triggers in case the connection is reused due to connection pooling
-        $db->query( "SELECT enable_story_triggers(); " );
     };
     if ( $@ )
     {

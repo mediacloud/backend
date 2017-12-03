@@ -28,9 +28,9 @@ sub test_download
 
     my $ret = {};
 
-    my ( $store_error, $content_ref );
-    eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download ); };
-    if ( $@ || !$content_ref )
+    my ( $store_error, $content );
+    eval { $content = MediaWords::DBI::Downloads::fetch_content( $db, $download ); };
+    if ( $@ || !$content )
     {
         ERROR "STORE ERROR: [$store] $@";
         $store_error = 1;
@@ -48,8 +48,8 @@ sub test_download
                 directory_name    => $config->{ amazon_s3 }->{ downloads }->{ directory_name }
             }
         );
-        eval { $content_ref = $_s3_store->fetch_content( $db, $download->{ downloads_id }, $download->{ path } ); };
-        if ( $@ || !$content_ref )
+        eval { $content = $_s3_store->fetch_content( $db, $download->{ downloads_id }, $download->{ path } ); };
+        if ( $@ || !$content )
         {
             ERROR "S3 ERROR: $@";
             $ret->{ s3_backup } = 1;
