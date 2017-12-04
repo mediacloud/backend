@@ -312,19 +312,27 @@ use MediaWords::Util::Config;
             $r = $self->run_statefully( $db, $args );
         };
 
-        if ( $@ && ( $@ =~ /\Q$DIE_WITHOUT_ERROR_TAG\E/ ) )
+        my $eval_error = $@;
+
+        if ( $eval_error && ( $eval_error =~ /\Q$DIE_WITHOUT_ERROR_TAG\E/ ) )
         {
             # do nothing -- this is to be able to test the module
+            $_current_job_states_id = undef;
+            return $r;
         }
-        elsif ( $@ )
-        {
-            WARN( "logged error in job_states: $@" );
-            $self->_update_job_state( $db, $STATE_ERROR, $@ );
-        }
-        else
-        {
-            $self->_update_job_state( $db, $STATE_COMPLETED );
-        }
+
+        # eval this so that we are sure that the $_current_job_states_id reset below happens
+        eval {
+            if ( $eval_error )
+            {
+                WARN( "logged error in job_states: $eval_error" );
+                $self->_update_job_state( $db, $STATE_ERROR, $eval_error );
+            }
+            else
+            {
+                $self->_update_job_state( $db, $STATE_COMPLETED );
+            }
+        };
 
         $_current_job_states_id = undef;
 
