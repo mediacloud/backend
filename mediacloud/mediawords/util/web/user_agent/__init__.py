@@ -10,6 +10,7 @@ from http import HTTPStatus
 from typing import Dict, List, Union
 from urllib.parse import quote
 
+import chardet
 import requests
 from furl import furl
 from requests.adapters import HTTPAdapter
@@ -789,40 +790,52 @@ class UserAgent(object):
 
                 if read_response_data:
 
-                    if requests_response.encoding is None:
+                    # requests's "apparent_encoding" is not used because chardet might OOM on big binary data responses
+                    encoding = requests_response.encoding
 
-                        if requests_response.apparent_encoding is None:
-                            # If encoding is not in HTTP headers nor can be determined from content itself, assume that
-                            # it's UTF-8
-                            requests_response.encoding = 'UTF-8'
-
-                        else:
-                            # Test the encoding guesser's opinion, just like browsers do
-                            requests_response.encoding = requests_response.apparent_encoding
-
-                    else:
+                    if encoding is not None:
 
                         # If "Content-Type" HTTP header contains a string "text" and doesn't have "charset" property,
                         # "requests" falls back to setting the encoding to ISO-8859-1, which is probably not right
                         # (encoding might have been defined in the HTML content itself via <meta> tag), so we use the
                         # "apparent encoding" instead
-                        if requests_response.encoding.lower() == 'iso-8859-1':
-                            if requests_response.apparent_encoding is not None:
-                                requests_response.encoding = requests_response.apparent_encoding
+                        if encoding.lower() == 'iso-8859-1':
+                            # Will try to auto-detect later
+                            encoding = None
 
                     # Some pages report some funky encoding; in that case, fallback to UTF-8
-                    try:
-                        codecs.lookup(requests_response.encoding)
-                    except LookupError:
-                        log.warning(
-                            "Invalid encoding %s for URL %s" % (requests_response.encoding, requests_response.url)
-                        )
-                        requests_response.encoding = 'UTF-8'
+                    if encoding is not None:
+                        try:
+                            codecs.lookup(encoding)
+                        except LookupError:
+                            log.warning(
+                                "Invalid encoding %s for URL %s" % (encoding, requests_response.url)
+                            )
+                            encoding = 'UTF-8'
 
+                    # 10 KB should be enough for for chardet to be able to detect something from the first fetched chunk
+                    chunk_size = 1024 * 10
+                    decoder = None
                     response_data_size = 0
-                    for chunk in requests_response.iter_content(chunk_size=None, decode_unicode=True):
-                        response_data += chunk
-                        response_data_size += len(chunk)
+
+                    for chunk in requests_response.raw.stream(chunk_size):
+
+                        if encoding is None:
+                            # Test the encoding guesser's opinion, just like browsers do
+                            encoding = chardet.detect(chunk)['encoding']
+
+                            # If encoding is not in HTTP headers nor can be determined from content itself, assume that
+                            # it's UTF-8
+                            if encoding is None:
+                                encoding = 'UTF-8'
+
+                        if decoder is None:
+                            decoder = codecs.getincrementaldecoder(encoding)(errors='replace')
+
+                        decoded_chunk = decoder.decode(chunk)
+
+                        response_data += decoded_chunk
+                        response_data_size += len(chunk)  # byte length, not string length
 
                         # Content-Length might be missing / lying, so we measure size while fetching the data too
                         if max_size is not None:
