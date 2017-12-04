@@ -341,15 +341,19 @@ sub _get_words_from_solr_server($)
 
     my $sentences_and_story_languages = $db->query(
         <<SQL
-        SELECT sentence,
+
+        SELECT story_sentences.sentence,
                stories.language AS story_language
-        FROM story_sentences
+
+        -- Select from temporary table and INNER JOIN afterwards because if
+        -- temporary table is empty, PostgreSQL decides to do sequential scan
+        -- on "stories" table
+        FROM $ids_table
+            INNER JOIN story_sentences
+              ON $ids_table.id = story_sentences.story_sentences_id
             INNER JOIN stories
                 ON story_sentences.stories_id = stories.stories_id
-        WHERE story_sentences_id IN (
-            SELECT id
-            FROM $ids_table
-        )
+
 SQL
     )->hashes;
 
