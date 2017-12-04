@@ -46,7 +46,13 @@ SQL
     elsif ( $content_type eq 'raw' )
     {
         my $story = $db->require_by_id( 'stories', $stories_id );
-        my $content_ref = MediaWords::DBI::Stories::get_content_for_first_download( $db, $story );
+        my $content_ref = eval { MediaWords::DBI::Stories::get_content_for_first_download( $db, $story ) };
+        if ( $@ )
+        {
+            WARN( "no content found for stories_id $stories_id" );
+            return '';
+        }
+
         return $$content_ref;
     }
     else
@@ -69,8 +75,16 @@ sub dump_stories_to_dir
     {
         DEBUG( "fetching content for $stories_id ..." );
 
+        my $file = "$dir/$stories_id.txt";
+
+        if ( -f $file )
+        {
+            WARN( "skipping stories_id $stories_id because file already exists" );
+            next;
+        }
+
         my $content = get_content( $db, $stories_id, $content_type ) || '';
-        File::Slurp::write_file( "$dir/$stories_id.txt", encode( 'utf8', $content ) );
+        File::Slurp::write_file( $file, encode( 'utf8', $content ) );
 
         DEBUG( "wrote content length " . length( $content ) );
     }
