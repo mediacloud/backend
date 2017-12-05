@@ -71,6 +71,25 @@ class TestUserAgentTestCase(TestCase):
         assert urls_are_equal(url1=response.request().url(), url2=test_url)
         assert response.decoded_content() == 'Hello!'
 
+    def test_get_big_file(self):
+        """Basic GET with 1 MB file (exceeding the chunk size)."""
+
+        test_content_length = 1024 * 1024
+        test_content = random_string(length=test_content_length)
+
+        pages = {'/test': test_content, }
+        hs = HashServer(port=self.__test_port, pages=pages)
+        hs.start()
+
+        ua = UserAgent()
+        test_url = '%s/test' % self.__test_url
+        response = ua.get(test_url)
+
+        hs.stop()
+
+        assert urls_are_equal(url1=response.request().url(), url2=test_url)
+        assert response.decoded_content() == test_content
+
     def test_get_user_agent_from_headers(self):
         """User-Agent: and From: headers."""
 
@@ -374,6 +393,32 @@ class TestUserAgentTestCase(TestCase):
 
         ua = UserAgent()
         test_url = '%s/invalid-charset' % self.__test_url
+        response = ua.get(test_url)
+
+        hs.stop()
+
+        assert response.is_success() is True
+        assert urls_are_equal(url1=response.request().url(), url2=test_url)
+
+    def test_get_big_file_no_charset(self):
+        """Big file, no charset set."""
+
+        test_content_length = 1024 * 1024 * 100  # 100 MB
+        test_content = b"\xfe" * test_content_length
+
+        pages = {
+            '/big_file_no_charset': {
+
+                'header': 'Content-Type: application/octet-stream',
+                'content': test_content,
+            },
+        }
+
+        hs = HashServer(port=self.__test_port, pages=pages)
+        hs.start()
+
+        ua = UserAgent()
+        test_url = '%s/big_file_no_charset' % self.__test_url
         response = ua.get(test_url)
 
         hs.stop()

@@ -175,6 +175,8 @@ sub _add_missing_media_from_urls
 
     my $fetch_urls = [ map { URI->new( $_->{ url } ) } grep { !( $_->{ medium } ) } @{ $url_media } ];
 
+    $fetch_urls = [ grep { MediaWords::Util::URL::is_http_url( $_ ) } @{ $fetch_urls } ];
+
     my $ua        = MediaWords::Util::Web::UserAgent->new();
     my $responses = $ua->parallel_get( $fetch_urls );
 
