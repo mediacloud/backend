@@ -824,7 +824,11 @@ class UserAgent(object):
 
                         if encoding is None:
                             # Test the encoding guesser's opinion, just like browsers do
-                            encoding = chardet.detect(chunk)['encoding']
+                            try:
+                                encoding = chardet.detect(chunk)['encoding']
+                            except Exception as ex:
+                                log.warning("Unable to detect encoding for URL %s: %s" % (url, str(ex),))
+                                encoding = None
 
                             # If encoding is not in HTTP headers nor can be determined from content itself, assume that
                             # it's UTF-8
