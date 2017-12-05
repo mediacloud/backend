@@ -295,7 +295,14 @@ sub _attach_media_to_input($$)
         }
         else
         {
-            push( @{ $fetch_urls }, $input_medium->{ url } );
+            if ( MediaWords::Util::URL::is_http_url( $input_medium->{ url } ) )
+            {
+                push( @{ $fetch_urls }, $input_medium->{ url } );
+            }
+            else
+            {
+                WARN "URL is not HTTP(s): " . $input_medium->{ url };
+            }
         }
     }
 
