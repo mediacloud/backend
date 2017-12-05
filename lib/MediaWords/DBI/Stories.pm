@@ -596,6 +596,8 @@ sub get_broken_download_content
 
     my $urls = [ map { URI->new( $_->{ url } )->as_string } @{ $downloads } ];
 
+    $urls = [ grep { MediaWords::Util::URL::is_http_url( $_ ) } @{ $urls } ];
+
     my $ua        = MediaWords::Util::Web::UserAgent->new();
     my $responses = $ua->parallel_get( $urls );
 
