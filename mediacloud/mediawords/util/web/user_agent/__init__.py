@@ -815,8 +815,8 @@ class UserAgent(object):
                             # Autodetect later
                             encoding = None
 
-                    # 10 KB should be enough for for chardet to be able to detect something from the first fetched chunk
-                    chunk_size = 1024 * 10
+                    # 100 KB should be enough for for chardet to be able to make an informed decision
+                    chunk_size = 1024 * 100
                     decoder = None
                     response_data_size = 0
 
