@@ -811,7 +811,9 @@ class UserAgent(object):
                             log.warning(
                                 "Invalid encoding %s for URL %s" % (encoding, requests_response.url)
                             )
-                            encoding = 'UTF-8'
+
+                            # Autodetect later
+                            encoding = None
 
                     # 10 KB should be enough for for chardet to be able to detect something from the first fetched chunk
                     chunk_size = 1024 * 10
