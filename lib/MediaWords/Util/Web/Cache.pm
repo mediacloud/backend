@@ -103,13 +103,13 @@ sub get_cached_link_download
     {
         my $link = $links->[ $link_num + $i ];
 
-        unless ( MediaWords::Util::URL::is_http_url( $link->{ _fetch_url } ) )
+        my $u = URI->new( $link->{ _fetch_url } )->as_string;
+
+        unless ( MediaWords::Util::URL::is_http_url( $u ) )
         {
-            WARN "Not caching link because URL " . $link->{ _fetch_url } . " is invalid.";
+            WARN "Not caching link because URL $u is invalid.";
             next;
         }
-
-        my $u = URI->new( $link->{ _fetch_url } )->as_string;
 
         # handle duplicate urls within the same set of urls
         push( @{ $urls }, $u ) unless ( $url_lookup->{ $u } );

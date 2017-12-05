@@ -73,6 +73,8 @@ sub _validate_and_name_feed_urls
 
     my $links = [];
 
+    $urls = [ grep { MediaWords::Util::URL::is_http_url( $_ ) } @{ $urls } ];
+
     my $ua        = MediaWords::Util::Web::UserAgent->new();
     my $responses = $ua->parallel_get( $urls );
 
@@ -225,6 +227,11 @@ sub _get_main_feed_urls_from_url($)
 {
     my $url = shift;
 
+    unless ( MediaWords::Util::URL::is_http_url( $url ) )
+    {
+        LOGCONFESS "URL is not HTTP(s): $url";
+    }
+
     my $ua = MediaWords::Util::Web::UserAgent->new();
     my $response = $ua->parallel_get( [ $url ] )->[ 0 ];
 
@@ -355,6 +362,8 @@ sub _recurse_get_valid_feeds_from_index_url($$$$)
     LOGCARP '$urls must be a reference ' unless ref( $urls );
 
     $#{ $urls } = List::Util::min( $#{ $urls }, $MAX_INDEX_URLS - 1 );
+
+    $urls = [ grep { MediaWords::Util::URL::is_http_url( $_ ) } @{ $urls } ];
 
     my $ua        = MediaWords::Util::Web::UserAgent->new();
     my $responses = $ua->parallel_get( $urls );
