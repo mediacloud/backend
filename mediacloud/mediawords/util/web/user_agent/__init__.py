@@ -820,7 +820,7 @@ class UserAgent(object):
                     decoder = None
                     response_data_size = 0
 
-                    for chunk in requests_response.raw.stream(chunk_size):
+                    for chunk in requests_response.raw.stream(chunk_size, decode_content=True):
 
                         if encoding is None:
                             # Test the encoding guesser's opinion, just like browsers do
