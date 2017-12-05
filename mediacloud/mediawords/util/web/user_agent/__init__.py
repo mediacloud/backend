@@ -808,9 +808,7 @@ class UserAgent(object):
                         try:
                             codecs.lookup(encoding)
                         except LookupError:
-                            log.warning(
-                                "Invalid encoding %s for URL %s" % (encoding, requests_response.url)
-                            )
+                            log.warning("Invalid encoding %s for URL %s" % (encoding, url,))
 
                             # Autodetect later
                             encoding = None
