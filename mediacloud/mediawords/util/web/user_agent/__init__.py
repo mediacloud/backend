@@ -3,6 +3,7 @@ import errno
 import fcntl
 import multiprocessing
 import os
+import io
 import re
 import time
 from collections import OrderedDict
@@ -10,6 +11,7 @@ from http import HTTPStatus
 from typing import Dict, List, Union
 from urllib.parse import quote
 
+import chardet
 import requests
 from furl import furl
 from requests.adapters import HTTPAdapter
@@ -635,19 +637,8 @@ class UserAgent(object):
             log.debug("Failed to chmod %s: %s" % (http_request_log_path, str(ex),))
             pass
 
-    def request(self, request: Request) -> Response:
-        """Execute a request, return a response.
-
-        All other helpers are supposed to use request() internally as it implements max. size, callbacks, blacklisted
-        URLs etc."""
-
-        if request is None:
-            raise McRequestException("Request is None.")
-
-        request = self.__blacklist_request_if_needed(request=request)
-
-        self.__log_request(request=request)
-
+    def __prepare_request(self, request: Request) -> requests.PreparedRequest:
+        """Create PreparedRequest from UserAgent's Request. Raises if one or more parameters are invalid."""
         method = request.method()
         if method is None:
             raise McRequestException("Request's method is None.")
@@ -689,7 +680,21 @@ class UserAgent(object):
         except Exception as ex:
             raise McRequestException("Unable to prepare request %s: %s" % (str(request), str(ex),))
 
-        error_is_client_side = False
+        return requests_prepared_request
+
+    class UserAgentResponse(object):
+        """Class carrying requests's Response object and a flag on whether error happened on the client size."""
+        __slots__ = [
+            'requests_response',
+            'error_is_client_side',
+        ]
+
+        def __init__(self, requests_response: requests.Response, error_is_client_side: bool):
+            self.requests_response = requests_response
+            self.error_is_client_side = error_is_client_side
+
+    def __execute_request(self, requests_prepared_request: requests.PreparedRequest) -> UserAgentResponse:
+        """Execute PreparedRequest. Returns UserAgentResponse independently on whether request succeeds or fails."""
 
         try:
             requests_response = self.__session.send(
@@ -703,16 +708,13 @@ class UserAgent(object):
         except requests.TooManyRedirects as ex:
 
             # On too many redirects, return the last fetched page (just like LWP::UserAgent does)
-            log.warning("Exceeded max. redirects for URL %s" % request.url())
-            requests_response = ex.response
-            response_data = str(ex)
+            log.warning("Exceeded max. redirects for URL %s" % requests_prepared_request.url)
+            response = UserAgent.UserAgentResponse(requests_response=ex.response,
+                                                   error_is_client_side=False)
 
         except requests.Timeout as ex:
 
-            log.warning("Timeout for URL %s" % request.url())
-
-            # We treat timeouts as client-side errors too because we can retry on them
-            error_is_client_side = True
+            log.warning("Timeout for URL %s" % requests_prepared_request.url)
 
             requests_response = requests.Response()
             requests_response.status_code = HTTPStatus.REQUEST_TIMEOUT.value
@@ -721,14 +723,18 @@ class UserAgent(object):
 
             requests_response.history = []
 
-            response_data = str(ex)
+            requests_response.raw = io.StringIO(str(ex))
+
+            # We treat timeouts as client-side errors too because we can retry on them
+            response = UserAgent.UserAgentResponse(requests_response=requests_response,
+                                                   error_is_client_side=True)
 
         except Exception as ex:
 
             # Client-side error
-            log.warning("Client-side error while processing request %s: %s" % (str(request), str(ex),))
-
-            error_is_client_side = True
+            log.warning(
+                "Client-side error while processing request %s: %s" % (str(requests_prepared_request), str(ex),)
+            )
 
             requests_response = requests.Response()
             requests_response.status_code = HTTPStatus.BAD_REQUEST.value
@@ -743,115 +749,165 @@ class UserAgent(object):
                 'Client-Warning': 'Client-side error',
             }
 
-            response_data = str(ex)
+            requests_response.raw = io.StringIO(str(ex))
+
+            response = UserAgent.UserAgentResponse(requests_response=requests_response,
+                                                   error_is_client_side=True)
 
         else:
 
+            response = UserAgent.UserAgentResponse(requests_response=requests_response,
+                                                   error_is_client_side=False)
+
+        return response
+
+    def __read_response_data(self, requests_response: requests.Response) -> str:
+        """Read data from Response object. Raises on read errors, callers are expected to catch exceptions."""
+        max_size = self.max_size()
+
+        response_data = ""
+        read_response_data = True
+
+        if max_size is not None:
+            content_length = requests_response.headers.get('Content-Length', None)
+
             try:
+                if content_length is not None:
 
-                max_size = self.max_size()
+                    # HTTP spec allows one to combine multiple headers into one so Content-Length might look
+                    # like "Content-Length: 123, 456"
+                    if ',' in content_length:
+                        content_length = content_length.split(',')
+                        content_length = list(map(int, content_length))
+                        content_length = max(content_length)
 
-                response_data = ""
-                read_response_data = True
+                    content_length = int(content_length)
 
-                if max_size is not None:
-                    content_length = requests_response.headers.get('Content-Length', None)
+            except Exception as ex:
+                log.warning(
+                    "Unable to read Content-Length for URL '%(url)s': %(exception)s" % {
+                        'url': requests_response.url,
+                        'exception': str(ex),
+                    })
+                content_length = None
 
+            if content_length is not None:
+                if content_length > max_size:
+                    log.warning("Content-Length exceeds %d for URL %s" % (max_size, requests_response.url,))
+
+                    # Release the response to return connection back to the pool
+                    # (http://docs.python-requests.org/en/master/user/advanced/#body-content-workflow)
+                    requests_response.close()
+
+                    read_response_data = False
+
+        if read_response_data:
+
+            # requests's "apparent_encoding" is not used because chardet might OOM on big binary data responses
+            encoding = requests_response.encoding
+
+            if encoding is not None:
+
+                # If "Content-Type" HTTP header contains a string "text" and doesn't have "charset" property,
+                # "requests" falls back to setting the encoding to ISO-8859-1, which is probably not right
+                # (encoding might have been defined in the HTML content itself via <meta> tag), so we use the
+                # "apparent encoding" instead
+                if encoding.lower() == 'iso-8859-1':
+                    # Will try to auto-detect later
+                    encoding = None
+
+            # Some pages report some funky encoding; in that case, fallback to UTF-8
+            if encoding is not None:
+                try:
+                    codecs.lookup(encoding)
+                except LookupError:
+                    log.warning("Invalid encoding %s for URL %s" % (encoding, requests_response.url,))
+
+                    # Autodetect later
+                    encoding = None
+
+            # 100 KB should be enough for for chardet to be able to make an informed decision
+            chunk_size = 1024 * 100
+            decoder = None
+            response_data_size = 0
+
+            for chunk in requests_response.raw.stream(chunk_size, decode_content=True):
+
+                if encoding is None:
+                    # Test the encoding guesser's opinion, just like browsers do
                     try:
-                        if content_length is not None:
-
-                            # HTTP spec allows one to combine multiple headers into one so Content-Length might look
-                            # like "Content-Length: 123, 456"
-                            if ',' in content_length:
-                                content_length = content_length.split(',')
-                                content_length = list(map(int, content_length))
-                                content_length = max(content_length)
-
-                            content_length = int(content_length)
-
+                        encoding = chardet.detect(chunk)['encoding']
                     except Exception as ex:
-                        log.warning(
-                            "Unable to read Content-Length for URL '%(url)s': %(exception)s" % {
-                                'url': url,
-                                'exception': str(ex),
-                            })
-                        content_length = None
+                        log.warning("Unable to detect encoding for URL %s: %s" % (requests_response.url, str(ex),))
+                        encoding = None
 
-                    if content_length is not None:
-                        if content_length > max_size:
-                            log.warning("Content-Length exceeds %d for URL %s" % (max_size, url,))
+                    # If encoding is not in HTTP headers nor can be determined from content itself, assume that
+                    # it's UTF-8
+                    if encoding is None:
+                        encoding = 'UTF-8'
 
-                            # Release the response to return connection back to the pool
-                            # (http://docs.python-requests.org/en/master/user/advanced/#body-content-workflow)
-                            requests_response.close()
+                if decoder is None:
+                    decoder = codecs.getincrementaldecoder(encoding)(errors='replace')
 
-                            read_response_data = False
+                decoded_chunk = decoder.decode(chunk)
 
-                if read_response_data:
+                response_data += decoded_chunk
+                response_data_size += len(chunk)  # byte length, not string length
 
-                    if requests_response.encoding is None:
+                # Content-Length might be missing / lying, so we measure size while fetching the data too
+                if max_size is not None:
+                    if response_data_size > max_size:
+                        log.warning("Data size exceeds %d for URL %s" % (max_size, requests_response.url,))
 
-                        if requests_response.apparent_encoding is None:
-                            # If encoding is not in HTTP headers nor can be determined from content itself, assume that
-                            # it's UTF-8
-                            requests_response.encoding = 'UTF-8'
+                        # Release the response to return connection back to the pool
+                        # (http://docs.python-requests.org/en/master/user/advanced/#body-content-workflow)
+                        requests_response.close()
 
-                        else:
-                            # Test the encoding guesser's opinion, just like browsers do
-                            requests_response.encoding = requests_response.apparent_encoding
+                        break
 
-                    else:
+        return response_data
 
-                        # If "Content-Type" HTTP header contains a string "text" and doesn't have "charset" property,
-                        # "requests" falls back to setting the encoding to ISO-8859-1, which is probably not right
-                        # (encoding might have been defined in the HTML content itself via <meta> tag), so we use the
-                        # "apparent encoding" instead
-                        if requests_response.encoding.lower() == 'iso-8859-1':
-                            if requests_response.apparent_encoding is not None:
-                                requests_response.encoding = requests_response.apparent_encoding
+    def request(self, request: Request) -> Response:
+        """Execute a request, return a response.
 
-                    # Some pages report some funky encoding; in that case, fallback to UTF-8
-                    try:
-                        codecs.lookup(requests_response.encoding)
-                    except LookupError:
-                        log.warning(
-                            "Invalid encoding %s for URL %s" % (requests_response.encoding, requests_response.url)
-                        )
-                        requests_response.encoding = 'UTF-8'
+        All other helpers are supposed to use request() internally as it implements max. size, callbacks, blacklisted
+        URLs etc."""
 
-                    response_data_size = 0
-                    for chunk in requests_response.iter_content(chunk_size=None, decode_unicode=True):
-                        response_data += chunk
-                        response_data_size += len(chunk)
+        if request is None:
+            raise McRequestException("Request is None.")
 
-                        # Content-Length might be missing / lying, so we measure size while fetching the data too
-                        if max_size is not None:
-                            if response_data_size > max_size:
-                                log.warning("Data size exceeds %d for URL %s" % (max_size, url,))
+        request = self.__blacklist_request_if_needed(request=request)
 
-                                # Release the response to return connection back to the pool
-                                # (http://docs.python-requests.org/en/master/user/advanced/#body-content-workflow)
-                                requests_response.close()
+        self.__log_request(request=request)
 
-                                break
+        try:
+            requests_prepared_request = self.__prepare_request(request)
+        except Exception as ex:
+            raise McRequestException("Unable to prepare request %s: %s" % (str(request), str(ex),))
 
-            except requests.RequestException as ex:
+        try:
+            user_agent_response = self.__execute_request(requests_prepared_request)
+        except Exception as ex:
+            raise McRequestException("Unable to execute request %s: %s" % (str(requests_prepared_request), str(ex),))
 
-                log.warning("Error reading data for URL %s" % request.url())
+        try:
+            response_data = self.__read_response_data(user_agent_response.requests_response)
+        except Exception as ex:
+            log.warning("Error reading data for URL %s" % request.url())
 
-                # We treat timeouts as client-side errors too because we can retry on them
-                error_is_client_side = True
+            user_agent_response.requests_response = requests.Response()
+            user_agent_response.requests_response.status_code = HTTPStatus.REQUEST_TIMEOUT.value
+            user_agent_response.requests_response.reason = HTTPStatus.REQUEST_TIMEOUT.phrase
+            user_agent_response.requests_response.request = requests_prepared_request
 
-                requests_response = requests.Response()
-                requests_response.status_code = HTTPStatus.REQUEST_TIMEOUT.value
-                requests_response.reason = HTTPStatus.REQUEST_TIMEOUT.phrase
-                requests_response.request = requests_prepared_request
+            user_agent_response.requests_response.history = []
 
-                requests_response.history = []
+            # We treat timeouts as client-side errors too because we can retry on them
+            user_agent_response.error_is_client_side = True
 
-                response_data = str(ex)
+            response_data = str(ex)
 
-        if requests_response is None:
+        if user_agent_response.requests_response is None:
             raise McRequestException("Response from 'requests' is None.")
 
         if response_data is None:
@@ -859,16 +915,16 @@ class UserAgent(object):
             raise McRequestException("Response data is None.")
 
         response = Response.from_requests_response(
-            requests_response=requests_response,
+            requests_response=user_agent_response.requests_response,
             data=response_data,
         )
 
-        if error_is_client_side:
-            response.set_error_is_client_side(error_is_client_side=error_is_client_side)
+        if user_agent_response.error_is_client_side is True:
+            response.set_error_is_client_side(error_is_client_side=user_agent_response.error_is_client_side)
 
         # Build the previous request / response chain from the redirects
         current_response = response
-        for previous_rq_response in reversed(requests_response.history):
+        for previous_rq_response in reversed(user_agent_response.requests_response.history):
             previous_rq_request = previous_rq_response.request
             previous_response_request = Request.from_requests_prepared_request(
                 requests_prepared_request=previous_rq_request
@@ -883,7 +939,7 @@ class UserAgent(object):
         # Redirects might have happened, so we have to recreate the request object from the latest page that was
         # redirected to
         response_request = Request.from_requests_prepared_request(
-            requests_prepared_request=requests_response.request
+            requests_prepared_request=user_agent_response.requests_response.request
         )
         response.set_request(response_request)
 
