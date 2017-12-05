@@ -47,7 +47,7 @@ SQL
     {
         my $story = $db->require_by_id( 'stories', $stories_id );
         my $content_ref = eval { MediaWords::DBI::Stories::get_content_for_first_download( $db, $story ) };
-        if ( $@ )
+        if ( !$content_ref )
         {
             WARN( "no content found for stories_id $stories_id" );
             return '';
