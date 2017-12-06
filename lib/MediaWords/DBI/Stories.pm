@@ -1182,6 +1182,7 @@ sub add_story($$$;$)
             %(language)s
         )
         ON CONFLICT ON CONSTRAINT stories_guid DO NOTHING
+        RETURNING *
 SQL
         {
             'media_id'      => $story->{ media_id },
