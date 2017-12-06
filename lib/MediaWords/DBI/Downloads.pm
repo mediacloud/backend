@@ -97,7 +97,7 @@ my $_store_amazon_s3 = lazy
 
     my $store_package_name = 'MediaWords::KeyValueStore::AmazonS3';
     my $cache_table        = undef;
-    if ( $config->{ mediawords }->{ cache_s3_downloads } eq 'yes' )
+    if ( $config->{ mediawords }->{ cache_s3_downloads } + 0 )
     {
         $store_package_name = 'MediaWords::KeyValueStore::CachedAmazonS3';
         $cache_table        = 'cache.s3_raw_downloads_cache';
@@ -128,7 +128,7 @@ my $_store_postgresql = lazy
       MediaWords::KeyValueStore::PostgreSQL->new( { table => $RAW_DOWNLOADS_POSTGRESQL_KVS_TABLE_NAME } );
 
     # Add Amazon S3 fallback storage if needed
-    if ( lc( $config->{ mediawords }->{ fallback_postgresql_downloads_to_s3 } eq 'yes' ) )
+    if ( $config->{ mediawords }->{ fallback_postgresql_downloads_to_s3 } + 0 )
     {
         my $amazon_s3_store = force $_store_amazon_s3;
         unless ( defined $amazon_s3_store )
@@ -271,8 +271,7 @@ sub _download_store_for_reading($)
     my $config = MediaWords::Util::Config::get_config;
 
     # All non-inline downloads have to be fetched from S3?
-    if ( $download_store ne force $_store_inline
-        and lc( $config->{ mediawords }->{ read_all_downloads_from_s3 } ) eq 'yes' )
+    if ( $download_store ne force $_store_inline and $config->{ mediawords }->{ read_all_downloads_from_s3 } + 0 )
     {
         $download_store = force $_store_amazon_s3;
     }

@@ -422,7 +422,7 @@ sub delete : Local
     }
     else
     {
-        if ( $confirm ne 'yes' )
+        unless ( $confirm + 0 )
         {
             $status_msg = 'Feed NOT marked for deletion.';
         }
