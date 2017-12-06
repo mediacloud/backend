@@ -30,9 +30,9 @@ sub annotator_is_enabled($)
     my ( $self ) = @_;
 
     my $config = MediaWords::Util::Config::get_config();
-    my $nytlabels_enabled = $config->{ nytlabels }->{ enabled } // '';
+    my $nytlabels_enabled = $config->{ nytlabels }->{ enabled } // 0;
 
-    if ( $nytlabels_enabled eq 'yes' )
+    if ( $nytlabels_enabled + 0 )
     {
         return 1;
     }
