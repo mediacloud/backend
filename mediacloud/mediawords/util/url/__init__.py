@@ -87,6 +87,10 @@ def is_http_url(url: str) -> bool:
 
     try:
         uri = furl(url)
+
+        # Some URLs have invalid paths that furl's constructor doesn't check
+        _ = uri.path
+
     except Exception as ex:
         log.debug("Cannot parse URL: %s" % str(ex))
         return False
