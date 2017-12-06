@@ -249,8 +249,8 @@ programs = rabbitmq
 %]
 
 [% INCLUDE program_config
-    program='nytlabels_fetch_annotation'
-    worker_module='NYTLabels/FetchAnnotation.pm'
+    program='nyt_labels_fetch_annotation'
+    command="./script/run_in_env.sh ./mediacloud/mediawords/job/nyt_labels/fetch_annotation.py"
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
@@ -259,8 +259,8 @@ programs = rabbitmq
 %]
 
 [% INCLUDE program_config
-    program='nytlabels_update_story_tags'
-    worker_module='NYTLabels/UpdateStoryTags.pm'
+    program='nyt_labels_update_story_tags'
+    command="./script/run_in_env.sh ./mediacloud/mediawords/job/nyt_labels/update_story_tags.py"
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
