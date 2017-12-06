@@ -30,7 +30,7 @@ sub run($;$)
     my ( $self, $args ) = @_;
 
     my $config = MediaWords::Util::Config::get_config();
-    unless ( $config->{ facebook }->{ enabled } eq 'yes' )
+    unless ( $config->{ facebook }->{ enabled } + 0 )
     {
         fatal_error( 'Facebook API processing is not enabled.' );
     }

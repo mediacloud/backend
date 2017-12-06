@@ -71,6 +71,22 @@ class TestUserAgentTestCase(TestCase):
         assert urls_are_equal(url1=response.request().url(), url2=test_url)
         assert response.decoded_content() == 'Hello!'
 
+    def test_get_utf8_url(self):
+        """Basic GET with UTF-8 URL."""
+
+        pages = {'/šiaurė': 'pietūs', }
+        hs = HashServer(port=self.__test_port, pages=pages)
+        hs.start()
+
+        ua = UserAgent()
+        test_url = '%s/šiaurė' % self.__test_url
+        response = ua.get(test_url)
+
+        hs.stop()
+
+        assert urls_are_equal(url1=response.request().url(), url2=test_url)
+        assert response.decoded_content() == 'pietūs'
+
     def test_get_big_file(self):
         """Basic GET with 1 MB file (exceeding the chunk size)."""
 

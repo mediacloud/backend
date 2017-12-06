@@ -46,7 +46,7 @@ function verlt() {
 
 rabbitmq_is_enabled() {
     local rabbitmq_is_enabled=`$QUERY_CONFIG "//job_manager/rabbitmq/server/enabled"`
-    if [ "$rabbitmq_is_enabled" == "yes" ]; then
+    if [ "$rabbitmq_is_enabled" == 1 ]; then
         return 0    # "true" in Bash
     else
         return 1    # "false" in Bash
@@ -96,7 +96,7 @@ kill_process_group() {
 echo "Testing environment..."
 if ! rabbitmq_is_enabled; then
     log "RabbitMQ is not enabled."
-    log "Please enable it in 'mediawords.yml' by setting /job_manager/rabbitmq/server/enabled to 'yes'."
+    log "Please enable it in 'mediawords.yml' by setting /job_manager/rabbitmq/server/enabled to 'yes' (without quotes)."
     exit 0
 fi
 

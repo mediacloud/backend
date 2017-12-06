@@ -29,9 +29,9 @@ sub annotator_is_enabled($)
     my ( $self ) = @_;
 
     my $config = MediaWords::Util::Config::get_config();
-    my $cliff_enabled = $config->{ cliff }->{ enabled } // '';
+    my $cliff_enabled = $config->{ cliff }->{ enabled } // 0;
 
-    if ( $cliff_enabled eq 'yes' )
+    if ( $cliff_enabled + 0 )
     {
         return 1;
     }
