@@ -81,6 +81,7 @@ def test_is_http_url():
     assert mc_url.is_http_url('http://www.šiaurė.lt/šiaurė.html')
     assert mc_url.is_http_url('http://www.xn--iaur-yva35b.lt/šiaurė.html')
     assert mc_url.is_http_url('http://.xn--iaur-yva35b.lt') is False  # Invalid Punycode
+    assert mc_url.is_http_url('http://ebola-search-expands-ohio-nurse-amber-vinson-visit-cleveland-akron/') is False
 
 
 def test_canonical_url():
@@ -334,6 +335,7 @@ def test_http_urls_in_string():
 def test_get_url_path_fast():
     assert mc_url.get_url_path_fast('http://www.example.com/a/b/c') == '/a/b/c'
     assert mc_url.get_url_path_fast('not_an_url') == ''
+    assert mc_url.get_url_path_fast('http://ebola-search-expands-ohio-nurse-amber-vinson-visit-cleveland-akron/') == ''
 
 
 def test_get_base_url():
