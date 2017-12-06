@@ -20,7 +20,20 @@ use utf8;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-MediaWords::Util::Python::import_python_module( __PACKAGE__, 'mediawords.dbi.stories' );
+{
+
+    package MediaWords::DBI::Stories::Proxy;
+
+    use strict;
+    use warnings;
+
+    use Modern::Perl "2015";
+    use MediaWords::CommonLibs;
+
+    MediaWords::Util::Python::import_python_module( __PACKAGE__, 'mediawords.dbi.stories' );
+
+    1;
+}
 
 use Encode;
 use File::Temp;
@@ -383,6 +396,13 @@ select dt.downloads_id, dt.download_texts_id
 END
 
     return join( "\n", map { MediaWords::DBI::DownloadTexts::get_extracted_html_from_db( $db, $_ ) } @{ $download_texts } );
+}
+
+sub is_new
+{
+    my ( $db, $story ) = @_;
+
+    return MediaWords::DBI::Stories::Proxy::is_new( $db, $story );
 }
 
 # re-extract the story for the given download
@@ -1083,6 +1103,28 @@ sub get_story_word_matrix($$;$)
     }
 
     return ( $word_matrix, $word_list );
+}
+
+sub add_story($$$;$)
+{
+    my ( $db, $story, $feeds_id, $skip_checking_if_new ) = @_;
+
+    $story = MediaWords::DBI::Stories::Proxy::add_story( $db, $story, $feeds_id, $skip_checking_if_new );
+
+    $story = python_deep_copy( $story );
+
+    return $story;
+}
+
+sub add_story_and_content_download
+{
+    my ( $db, $story, $parent_download ) = @_;
+
+    $story = MediaWords::DBI::Stories::Proxy::add_story_and_content_download( $db, $story, $parent_download );
+
+    $story = python_deep_copy( $story );
+
+    return $story;
 }
 
 1;
