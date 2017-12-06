@@ -1152,29 +1152,49 @@ sub add_story($$$;$)
         {
             $full_text_rss = 0;
         }
-        $story->{ full_text_rss } = normalize_boolean_for_db( $full_text_rss );
     }
     else
     {
         # Caller knows better -- no-op
     }
 
-    eval { $story = $db->create( 'stories', $story ); };
-
-    if ( $@ )
-    {
-        $db->rollback;
-
-        if ( $@ =~ /unique constraint \"stories_guid/ )
+    $story = $db->query(
+        <<SQL,
+        INSERT INTO stories (
+            media_id,
+            url,
+            guid,
+            title,
+            description,
+            publish_date,
+            collect_date,
+            full_text_rss,
+            language
+        ) VALUES (
+            %(media_id)s,
+            %(url)s,
+            %(guid)s,
+            %(title)s,
+            %(description)s,
+            %(publish_date)s,
+            %(collect_date)s,
+            %(full_text_rss)s,
+            %(language)s
+        )
+        ON CONFLICT ON CONSTRAINT stories_guid DO NOTHING
+SQL
         {
-            WARN "Failed to add story for '." . $story->{ url } . "' to guid conflict ( guid =  '" . $story->{ guid } . "')";
-            return undef;
+            'media_id'      => $story->{ media_id },
+            'url'           => $story->{ url },
+            'guid'          => $story->{ guid },
+            'title'         => $story->{ title },
+            'description'   => $story->{ description },
+            'publish_date'  => $story->{ publish_date },
+            'collect_date'  => ( $story->{ collect_date } ? $story->{ collect_date } : MediaWords::Util::SQL::sql_now() ),
+            'full_text_rss' => ( $story->{ full_text_rss } ? normalize_boolean_for_db( $story->{ full_text_rss } ) : 'f' ),
+            'language'      => $story->{ language },
         }
-        else
-        {
-            die( "error adding story: $@\n" . Dumper( $story ) );
-        }
-    }
+    );
 
     $db->find_or_create(
         'feeds_stories_map',
