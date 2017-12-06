@@ -13,15 +13,15 @@ def create_child_download_for_story(db: DatabaseHandler, story: dict, parent_dow
     parent_download = decode_object_from_bytes_if_needed(parent_download)
 
     download = {
-        'feeds_id': parent_download['feeds_id'],
-        'stories_id': story['stories_id'],
-        'parent': parent_download['downloads_id'],
+        'feeds_id': int(parent_download['feeds_id']),
+        'stories_id': int(story['stories_id']),
+        'parent': int(parent_download['downloads_id']),
         'url': story['url'],
         'host': get_url_host(story['url']),
         'type': 'content',
         'sequence': 1,
         'state': 'pending',
-        'priority': parent_download['priority'],
+        'priority': int(parent_download['priority']),
         'extracted': False,
     }
 
@@ -32,14 +32,12 @@ def create_child_download_for_story(db: DatabaseHandler, story: dict, parent_dow
     """, {'media_id': story['media_id']}).hash()
 
     if content_delay is not None:
-        content_delay = content_delay['content_delay']
+        content_delay = content_delay.get('content_delay', 0)
 
+    if content_delay:
         # delay download of content this many hours.  this is useful for sources that are likely to
         # significantly change content in the hours after it is first published.
         download_at_timestamp = time.time() + (int(content_delay) * 60 * 60)
         download['download_time'] = get_sql_date_from_epoch(download_at_timestamp)
 
-    db.create(
-        table='downloads',
-        insert_hash=download,
-    )
+    db.create(table='downloads', insert_hash=download)
