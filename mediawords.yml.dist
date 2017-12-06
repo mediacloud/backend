@@ -50,7 +50,7 @@ database:
         #directory_name     : "json_blobs"
         
         ### Cache raw Bit.ly processing results locally?
-        #cache_bitly_processing_results : "no"
+        #cache_bitly_processing_results : no
 
 ## Job manager (MediaCloud::JobManager) configuration
 job_manager:
@@ -76,8 +76,8 @@ job_manager:
         server:
 
             ## To disable your very own RabbitMQ instance managed by Supervisord,
-            ## set the below to "no". Default is "yes".
-            enabled: "yes"
+            ## set the below to "no" (without quotes). Default is "yes".
+            enabled: yes
 
             ## Host to listen to. You can set the above parameter to an empty string
             ## so that RabbitMQ will accept connections from anywhere; however, it is
@@ -189,7 +189,7 @@ supervisor_solr:
 bitly:
 
     ### Enable Bit.ly processing
-    enabled: "no"
+    enabled: no
 
     ### (Generic) Access Token
     ### Get one at: https://bitly.com/a/oauth_apps
@@ -219,7 +219,7 @@ bitly:
 
         ### Enable Bit.ly processing for all stories (not just the ones that
         ### belong to topics enabled for Bit.ly processing)
-        #enabled: "no"
+        #enabled: no
 
         ### Delay for which to postpone story processing since its
         ### "publish_date" / "collect_date"
@@ -241,7 +241,7 @@ cliff:
     ### Enable CLIFF processing
     ### If enabled, CLIFF processing will happen after every "content"
     ### download extraction
-    enabled: "no"
+    enabled: no
 
     ### Annotator URL (text parsing endpoint), e.g. "http://localhost:8080/cliff-2.4.1/parse/text"
     annotator_url: ""
@@ -270,7 +270,7 @@ nytlabels:
     ### Enable NYTLabels processing
     ### If enabled, NYTLabels processing will happen after every "content"
     ### download extraction
-    enabled: "no"
+    enabled: no
 
     ### Annotator URL (text parsing endpoint), e.g. "http://localhost/predict.json"
     annotator_url: ""
@@ -288,7 +288,7 @@ nytlabels:
 facebook:
 
     ### Enable Facebook processing
-    enabled: "no"
+    enabled: no
 
     ## App ID
     app_id: ""
@@ -386,14 +386,14 @@ mediawords:
         #- amazon_s3
 
     ### Read all non-inline ("content") downloads from S3
-    read_all_downloads_from_s3 : "no"
+    read_all_downloads_from_s3 : no
 
     ### Uncomment to fallback PostgreSQL downloads to Amazon S3 (if download
     ### doesn't exist in PostgreSQL storage, S3 will be tried instead)
-    fallback_postgresql_downloads_to_s3 : "no"
+    fallback_postgresql_downloads_to_s3 : no
 
     ### Enable local Amazon S3 download caching?
-    cache_s3_downloads : "no"
+    cache_s3_downloads : no
 
     #controls the maximum time SQL queries can run for -- time is in ms
     #uncomment to enable a 10 minute timeout
@@ -405,7 +405,7 @@ mediawords:
 
     # An experiment parameter to dump stack traces in error message even if not in debug mode
     # NOTE: may leak DB passwords and is not to be use in production
-    always_show_stack_traces: "no"
+    always_show_stack_traces: no
 
     # reCAPTCHA public key (used to prevent brute-force in the password reset form)
     # The default value was set up for http://127.0.0.1 and is a global key (should work across all domains)
@@ -461,8 +461,9 @@ mediawords:
         # Stories to import into Solr on a single run
         max_queued_stories: 100000
 
-    # set to "yes" to skip requirement to run on the correct database schema version
-    # ignore_schema_version: "no"
+    # set to "yes" (without quotes) to skip requirement to run on the correct
+    # database schema version
+    # ignore_schema_version: no
 
     # increment wc_cache_version to invalidate existing cache
     # wc_cache_version: 1
