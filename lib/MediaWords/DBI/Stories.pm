@@ -20,6 +20,8 @@ use utf8;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+MediaWords::Util::Python::import_python_module( __PACKAGE__, 'mediawords.dbi.stories' );
+
 use Encode;
 use File::Temp;
 use HTML::Entities;
@@ -381,48 +383,6 @@ select dt.downloads_id, dt.download_texts_id
 END
 
     return join( "\n", map { MediaWords::DBI::DownloadTexts::get_extracted_html_from_db( $db, $_ ) } @{ $download_texts } );
-}
-
-=head2 is_new( $db, $story )
-
-Return true if this story should be considered new for the given media source.
-This is used by ::Handler::Feed::Syndicated to determine whether to add a new
-story for a feed item url.
-
-A story is new if no story with the same url or guid exists in the same media
-source and if no story exists with the same title in the same media source in
-the same calendar day.
-
-=cut
-
-sub is_new
-{
-    my ( $dbs, $story ) = @_;
-
-    my $db_story = $dbs->query( <<"END", $story->{ guid }, $story->{ media_id } )->hash;
-SELECT * FROM stories WHERE guid = ? AND media_id = ?
-END
-
-    return 0 if ( $db_story || ( $story->{ title } eq '(no title)' ) );
-
-    # unicode hack to deal with unicode brokenness in XML::Feed
-    my $title = Encode::is_utf8( $story->{ title } ) ? $story->{ title } : decode( 'utf-8', $story->{ title } );
-
-    # we do the goofy " + interval '1 second'" to force postgres to use the stories_title_hash index
-    $db_story = $dbs->query( <<END, $title, $story->{ media_id }, $story->{ publish_date } )->hash;
-SELECT 1
-    FROM stories
-    WHERE
-        md5( title ) = md5( ? ) AND
-        media_id = ? AND
-        date_trunc( 'day', publish_date )  + interval '1 second' =
-            date_trunc( 'day', ?::date ) + interval '1 second'
-    FOR UPDATE
-END
-
-    return 0 if ( $db_story );
-
-    return 1;
 }
 
 # re-extract the story for the given download
