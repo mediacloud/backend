@@ -1,6 +1,7 @@
 from typing import Union
 
 from mediawords.db import DatabaseHandler
+from mediawords.dbi.downloads import create_child_download_for_story
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.sql import sql_now
@@ -125,5 +126,18 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int, skip_checking_if_
     })
 
     db.commit()
+
+    return story
+
+
+def add_story_and_content_download(db: DatabaseHandler, story: dict, parent_download: dict) -> dict:
+    """If the story is new, add it to the database and also add a pending download for the story content."""
+
+    story = decode_object_from_bytes_if_needed(story)
+
+    story = add_story(db=db, story=story, feeds_id=parent_download['feeds_id'])
+
+    if story is not None:
+        create_child_download_for_story(db=db, story=story, parent_download=parent_download)
 
     return story
