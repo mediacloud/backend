@@ -77,7 +77,7 @@ sub end : ActionClass('RenderView')
         map { $_ =~ s/at \/.*// } @{ $c->stash->{ errors } };
 
         my $config                   = MediaWords::Util::Config::get_config;
-        my $always_show_stack_traces = $config->{ mediawords }->{ always_show_stack_traces } eq 'yes';
+        my $always_show_stack_traces = $config->{ mediawords }->{ always_show_stack_traces } + 0;
 
         if ( $always_show_stack_traces )
         {

@@ -150,7 +150,7 @@ sub test_nytlabels_annotator($)
 
     # Inject NYTLabels credentials into configuration
     $new_config->{ nytlabels }                    = {};
-    $new_config->{ nytlabels }->{ enabled }       = 'yes';
+    $new_config->{ nytlabels }->{ enabled }       = 1;
     $new_config->{ nytlabels }->{ annotator_url } = $annotator_url;
     MediaWords::Util::Config::set_config( $new_config );
 
