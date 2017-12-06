@@ -609,7 +609,7 @@ class UserAgent(object):
 
         http_request_log_path = os.path.join(config['mediawords']['data_dir'], 'logs', 'http_request.log')
 
-        with open(http_request_log_path, 'a') as f:
+        with open(http_request_log_path, encoding='utf-8', mode='a') as f:
 
             while True:
                 try:

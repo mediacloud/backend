@@ -1,5 +1,5 @@
 import base64
-from furl import furl
+from furl import furl, unquote
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import multiprocessing
@@ -288,6 +288,12 @@ class HashServer(object):
                 paths_to_try.append(path[:-1])
             else:
                 paths_to_try.append(path + '/')
+
+            # Try URLdecoded versions too
+            unquoted_paths = []
+            for path_to_try in paths_to_try:
+                unquoted_paths.append(unquote(path_to_try))
+            paths_to_try = paths_to_try + unquoted_paths
 
             page = None
             for path_to_try in paths_to_try:
