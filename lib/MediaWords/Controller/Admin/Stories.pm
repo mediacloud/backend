@@ -482,7 +482,7 @@ sub delete_tag : Local
     }
     else
     {
-        unless ( $confirm + 0 )
+        if ( $confirm ne 'yes' )
         {
             $status_msg = 'Tag NOT deleted.';
         }

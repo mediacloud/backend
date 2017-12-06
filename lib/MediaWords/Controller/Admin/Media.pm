@@ -353,7 +353,7 @@ sub delete : Local
     }
     else
     {
-        unless ( $confirm + 0 )
+        if ( $confirm ne 'yes' )
         {
             $status_msg = 'Media source NOT marked for deletion.';
         }

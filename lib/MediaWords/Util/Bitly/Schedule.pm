@@ -114,9 +114,9 @@ sub story_processing_is_enabled()
     }
 
     my $config = MediaWords::Util::Config::get_config();
-    my $enabled = $config->{ bitly }->{ story_processing }->{ enabled } // 0;
+    my $enabled = $config->{ bitly }->{ story_processing }->{ enabled } // '';
 
-    return ( $enabled + 0 );
+    return ( $enabled eq 'yes' );
 }
 
 # Schedule a story to be processed with Bit.ly later

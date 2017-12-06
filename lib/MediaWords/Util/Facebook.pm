@@ -267,7 +267,7 @@ sub get_and_store_share_comment_counts
     my ( $db, $story ) = @_;
 
     my $config = MediaWords::Util::Config::get_config();
-    unless ( $config->{ facebook }->{ enabled } + 0 )
+    unless ( $config->{ facebook }->{ enabled } eq 'yes' )
     {
         fatal_error( 'Facebook API processing is not enabled.' );
     }

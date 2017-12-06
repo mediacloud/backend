@@ -302,9 +302,9 @@ sub merge : Local
     my $medium_a = $db->find_by_id( 'media', $media_id_a );
     my $medium_b = $db->find_by_id( 'media', $media_id_b );
 
-    $confirm //= 0;
+    $confirm ||= 'no';
 
-    if ( !$medium_a->{ moderated } && ( $confirm + 0 ) )
+    if ( !$medium_a->{ moderated } && ( $confirm eq 'yes' ) )
     {
         MediaWords::DBI::Media::Rescrape::merge_media_tags( $db, $medium_a, $medium_b );
 

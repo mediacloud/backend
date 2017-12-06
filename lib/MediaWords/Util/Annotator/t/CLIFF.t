@@ -247,7 +247,7 @@ sub test_cliff_annotator($)
 
     # Inject CLIFF credentials into configuration
     $new_config->{ cliff }                    = {};
-    $new_config->{ cliff }->{ enabled }       = 1;
+    $new_config->{ cliff }->{ enabled }       = 'yes';
     $new_config->{ cliff }->{ annotator_url } = $annotator_url;
     MediaWords::Util::Config::set_config( $new_config );
 

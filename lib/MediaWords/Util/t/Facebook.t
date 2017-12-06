@@ -102,7 +102,7 @@ sub test_store_result($)
 sub main()
 {
     my $config = MediaWords::Util::Config::get_config;
-    unless ($config->{ facebook }->{ enabled } + 0
+    unless ($config->{ facebook }->{ enabled } eq 'yes'
         and $config->{ facebook }->{ app_id }
         and $config->{ facebook }->{ app_secret } )
     {
@@ -116,7 +116,7 @@ sub main()
             {
                 $new_config->{ facebook } = {};
             }
-            $new_config->{ facebook }->{ enabled }    = 1;
+            $new_config->{ facebook }->{ enabled }    = 'yes';
             $new_config->{ facebook }->{ app_id }     = $ENV{ 'MC_FACEBOOK_APP_ID' };
             $new_config->{ facebook }->{ app_secret } = $ENV{ 'MC_FACEBOOK_APP_SECRET' };
 

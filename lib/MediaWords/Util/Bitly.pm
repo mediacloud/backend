@@ -98,7 +98,7 @@ my $_results_store = lazy
 
             my $cache_bitly_processing_results =
               $config->{ amazon_s3 }->{ bitly_processing_results }->{ cache_bitly_processing_results };
-            if ( $cache_bitly_processing_results + 0 )
+            if ( $cache_bitly_processing_results and $cache_bitly_processing_results eq 'yes' )
             {
                 $store_package_name = 'MediaWords::KeyValueStore::CachedAmazonS3';
                 $cache_table        = 'cache.s3_bitly_processing_results_cache';
@@ -154,7 +154,7 @@ sub bitly_processing_is_enabled()
     my $config = MediaWords::Util::Config::get_config();
     my $bitly_enabled = $config->{ bitly }->{ enabled } // '';
 
-    return $bitly_enabled + 0;
+    return ( $bitly_enabled eq 'yes' );
 }
 
 # Check if story is processed with Bit.ly (stats are fetched)
