@@ -694,28 +694,6 @@ END
     return $all_sentences;
 }
 
-=head2 mark_as_processed( $db, $stories_id )
-
-Mark the story as processed by inserting an entry into 'processed_stories'.  Return true on success, false on failure.
-
-=cut
-
-sub mark_as_processed($$)
-{
-    my ( $db, $stories_id ) = @_;
-
-    eval { $db->insert( 'processed_stories', { stories_id => $stories_id } ); };
-    if ( $@ )
-    {
-        WARN "Unable to insert story ID $stories_id into 'processed_stories': $@";
-        return 0;
-    }
-    else
-    {
-        return 1;
-    }
-}
-
 =head2 attach_story_data_to_stories( $stories, $story_data, $list_field )
 
 Given two lists of hashes, $stories and $story_data, each with
@@ -1125,6 +1103,13 @@ sub add_story_and_content_download
     $story = python_deep_copy( $story );
 
     return $story;
+}
+
+sub mark_as_processed
+{
+    my ( $db, $stories_id ) = @_;
+
+    return MediaWords::DBI::Stories::Proxy::mark_as_processed( $db, $stories_id );
 }
 
 1;

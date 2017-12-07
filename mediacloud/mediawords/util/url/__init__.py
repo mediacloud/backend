@@ -81,6 +81,8 @@ def is_http_url(url: str) -> bool:
         log.debug("URL is empty")
         return False
 
+    log.info("Testing if URL '%s' is HTTP(s) URL" % url)
+
     if not re.search(__URL_REGEX, url):
         log.debug("URL '%s' does not match URL's regexp" % url)
         return False
@@ -89,7 +91,7 @@ def is_http_url(url: str) -> bool:
         uri = furl(url)
 
         # Some URLs have invalid paths that furl's constructor doesn't check
-        _ = uri.path
+        _ = str(uri.path)
 
     except Exception as ex:
         log.debug("Cannot parse URL: %s" % str(ex))
@@ -524,6 +526,8 @@ def http_urls_in_string(string: str) -> list:
 def get_url_path_fast(url: str) -> str:
     """Return URLs path."""
     url = decode_object_from_bytes_if_needed(url)
+
+    log.info("Getting path from URL '%s'" % url)
 
     url = fix_common_url_mistakes(url)
 
