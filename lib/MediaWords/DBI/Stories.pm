@@ -20,20 +20,7 @@ use utf8;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-{
-
-    package MediaWords::DBI::Stories::Proxy;
-
-    use strict;
-    use warnings;
-
-    use Modern::Perl "2015";
-    use MediaWords::CommonLibs;
-
-    MediaWords::Util::Python::import_python_module( __PACKAGE__, 'mediawords.dbi.stories' );
-
-    1;
-}
+import_python_module( __PACKAGE__, 'mediawords.dbi.stories' );
 
 use Encode;
 use File::Temp;
@@ -398,11 +385,46 @@ END
     return join( "\n", map { MediaWords::DBI::DownloadTexts::get_extracted_html_from_db( $db, $_ ) } @{ $download_texts } );
 }
 
+=head2 is_new( $db, $story )
+
+Return true if this story should be considered new for the given media source.
+This is used by ::Handler::Feed::Syndicated to determine whether to add a new
+story for a feed item url.
+
+A story is new if no story with the same url or guid exists in the same media
+source and if no story exists with the same title in the same media source in
+the same calendar day.
+
+=cut
+
 sub is_new
 {
-    my ( $db, $story ) = @_;
+    my ( $dbs, $story ) = @_;
 
-    return MediaWords::DBI::Stories::Proxy::is_new( $db, $story );
+    my $db_story = $dbs->query( <<"END", $story->{ guid }, $story->{ media_id } )->hash;
+SELECT * FROM stories WHERE guid = ? AND media_id = ?
+END
+
+    return 0 if ( $db_story || ( $story->{ title } eq '(no title)' ) );
+
+    # unicode hack to deal with unicode brokenness in XML::Feed
+    my $title = Encode::is_utf8( $story->{ title } ) ? $story->{ title } : decode( 'utf-8', $story->{ title } );
+
+    # we do the goofy " + interval '1 second'" to force postgres to use the stories_title_hash index
+    $db_story = $dbs->query( <<END, $title, $story->{ media_id }, $story->{ publish_date } )->hash;
+SELECT 1
+    FROM stories
+    WHERE
+        md5( title ) = md5( ? ) AND
+        media_id = ? AND
+        date_trunc( 'day', publish_date )  + interval '1 second' =
+            date_trunc( 'day', ?::date ) + interval '1 second'
+    FOR UPDATE
+END
+
+    return 0 if ( $db_story );
+
+    return 1;
 }
 
 # re-extract the story for the given download
@@ -1083,33 +1105,83 @@ sub get_story_word_matrix($$;$)
     return ( $word_matrix, $word_list );
 }
 
+# If the story is new, add story to the database with the feed of the download as story feed.
+# Returns created story or undef if story wasn't created.
 sub add_story($$$;$)
 {
     my ( $db, $story, $feeds_id, $skip_checking_if_new ) = @_;
 
-    $story = MediaWords::DBI::Stories::Proxy::add_story( $db, $story, $feeds_id, $skip_checking_if_new );
+    $db->begin;
+    $db->query( "lock table stories in row exclusive mode" );
+    unless ( $skip_checking_if_new )
+    {
+        unless ( is_new( $db, $story ) )
+        {
+            DEBUG "Story '" . $story->{ url } . "' is not new";
+            $db->commit;
+            return undef;
+        }
+    }
 
-    $story = python_deep_copy( $story );
+    my $medium = $db->find_by_id( 'media', $story->{ media_id } );
+
+    unless ( defined $story->{ full_text_rss } )
+    {
+        my $full_text_rss = $medium->{ full_text_rss } // 0;
+        if ( defined( $story->{ description } ) and ( length( $story->{ description } ) == 0 ) )
+        {
+            $full_text_rss = 0;
+        }
+        $story->{ full_text_rss } = normalize_boolean_for_db( $full_text_rss );
+    }
+    else
+    {
+        # Caller knows better -- no-op
+    }
+
+    eval { $story = $db->create( 'stories', $story ); };
+
+    if ( $@ )
+    {
+        $db->rollback;
+
+        if ( $@ =~ /unique constraint \"stories_guid/ )
+        {
+            WARN "Failed to add story for '." . $story->{ url } . "' to guid conflict ( guid =  '" . $story->{ guid } . "')";
+            return undef;
+        }
+        else
+        {
+            die( "error adding story: $@\n" . Dumper( $story ) );
+        }
+    }
+
+    $db->find_or_create(
+        'feeds_stories_map',
+        {
+            stories_id => $story->{ stories_id },
+            feeds_id   => $feeds_id
+        }
+    );
+
+    $db->commit;
 
     return $story;
 }
 
+# if the story is new, add it to the database and also add a pending download for the story content
 sub add_story_and_content_download
 {
     my ( $db, $story, $parent_download ) = @_;
 
-    $story = MediaWords::DBI::Stories::Proxy::add_story_and_content_download( $db, $story, $parent_download );
+    $story = add_story( $db, $story, $parent_download->{ feeds_id } );
 
-    $story = python_deep_copy( $story );
+    if ( defined( $story ) )
+    {
+        MediaWords::DBI::Downloads::create_child_download_for_story( $db, $story, $parent_download );
+    }
 
     return $story;
-}
-
-sub mark_as_processed
-{
-    my ( $db, $stories_id ) = @_;
-
-    return MediaWords::DBI::Stories::Proxy::mark_as_processed( $db, $stories_id );
 }
 
 1;
