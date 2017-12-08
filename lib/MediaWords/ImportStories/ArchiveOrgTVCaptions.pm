@@ -14,7 +14,7 @@ In addition to ImportStories options, new accepts the following options:
 
 =item *
 
-directory_path - path to the listing of SRT files
+directory_glob - path (with wildcard) to the listing of SRT files
 
 =back
 
@@ -36,7 +36,7 @@ use MediaWords::Util::Web;
 use Data::Dumper;
 use File::Basename ();
 
-has 'directory_path' => ( is => 'rw' );
+has 'directory_glob' => ( is => 'rw' );
 
 =head2 get_new_stories( $self )
 
@@ -50,20 +50,15 @@ sub get_new_stories($)
 
     my $stories = [];
 
-    unless ( $self->directory_path )
+    unless ( $self->directory_glob )
     {
-        LOGCONFESS "'directory_path' is not set.";
+        LOGCONFESS "'directory_glob' is not set.";
     }
 
-    unless ( -d $self->directory_path )
-    {
-        LOGCONFESS 'Directory path "' . $self->directory_path . '" is not a directory.';
-    }
-
-    my $srt_files = [ glob $self->directory_path . '/*.srt' ];
+    my $srt_files = [ glob $self->directory_glob ];
     if ( scalar( @{ $srt_files } ) == 0 )
     {
-        LOGCONFESS 'No SRT files found in "' . $self->directory_path . '"';
+        LOGCONFESS 'No SRT files found in "' . $self->directory_glob . '"';
     }
 
     foreach my $srt_file ( @{ $srt_files } )
@@ -78,7 +73,7 @@ sub get_new_stories($)
 
         $episode_id =~ s/_tva$//;
 
-        INFO "Processing '$episode_id'...";
+        # INFO "Processing '$episode_id'...";
 
         my $archive_metadata_url = "https://archive.org/metadata/$episode_id";
 
@@ -110,6 +105,14 @@ sub get_new_stories($)
         {
             LOGCONFESS "Missing captions for '$episode_id': " . Dumper( $metadata );
         }
+
+        # ">>>" at the beginning of text probably means "new subject"
+        $show_captions =~ s/^>>>\s/\n\n/gs;
+        $show_captions =~ s/^>>\s/\n\n/gs;    # typo by the transcriber?
+
+        # ">>" probably means "new speaker"
+        $show_captions =~ s/\s>>\s/\n\n/gs;
+        $show_captions =~ s/\s>>>\s/\n\n/gs;    # typo by the transcriber?
 
         my $story = {
             url  => $archive_metadata_url,
