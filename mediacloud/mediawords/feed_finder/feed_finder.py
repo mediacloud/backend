@@ -1,3 +1,7 @@
+"""Class for finding the most likely url for an RSS/atom/other feed on a web page.
+
+See https://github.com/dfm/feedfinder2 for other approaches to the same task.
+"""
 from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
@@ -6,6 +10,20 @@ from mediawords.util.web.user_agent import UserAgent, McUserAgentException
 
 
 def _is_feed_url(url):
+    """Check if a url is a feed url with high confidence
+
+    Wraps custom logic for high probability checks.
+
+    Parameters
+    ----------
+    url : str
+          Url that may or may not be a feed
+
+    Returns
+    -------
+    boolean
+        True if the string is a feed with high probability, or else False
+    """
     endings = (
         '.rss',
         '.rdf',
@@ -17,6 +35,19 @@ def _is_feed_url(url):
 
 
 def _might_be_feed_url(url):
+    """Check if a url might be a feed with moderate confidence
+
+    A lower trust version of `_is_feed_url`
+    Parameters
+    ----------
+    url : str
+          Url that may or may not be a feed
+
+    Returns
+    -------
+    boolean
+        True if the string is a feed with reasonable probability, or else False
+    """
     substrings = (
         'rss',
         'rdf',
@@ -28,16 +59,63 @@ def _might_be_feed_url(url):
     return any(substring in url_lower for substring in substrings)
 
 
-class FeedFinder(object):
+def filter_to_feeds(url_generator):
+    """Helper to filter a url generator and remove non-feeds.
 
+    This loads each url from the generator and inspects the underlying html.  It is quite slow,
+    but accurate.
+
+    Parameters
+    ----------
+    url_generator : iterator of strings
+        Any iterator of strings that may be urls
+
+    Yields
+    ------
+    str
+        Any input string that resolves to a valid feed is yielded
+    """
+    for url in url_generator:
+        if FeedFinder(url).is_feed():
+            yield url
+
+
+class FeedFinder(object):
+    """A class to find possible RSS/Atom feeds on a web page.
+
+    Usually easier to use `find_feed_url` or `generate_feed_urls`.
+    The class defines a few methods for discovering links on a page, from
+    first looking for standard feed links, then looking for *any* link, and then
+    guessing at a few urls that are commonly used for feeds.  See
+    `find_link_feeds`, `find_anchor_feeds`, and `guess_feed_links`, respectively.
+
+    The class is used by either asking for a single feed, or all feeds.  All web
+    fetching is deferred until needed, so it is typically much faster to only
+    get a single feed, or to stop iterating over all feeds once a condition is
+    satisfied.
+    """
     def __init__(self, url, html=None):
+        """Initialization
+
+        Parameters
+        ----------
+        url : str
+              A url that resolves to the webpage in question
+
+        html : str (optional)
+              To save a second web fetch, the raw html can be supplied
+        """
         self.url = url
         self._html = html
         self._soup = None
 
     @property
     def html(self):
-        """String of the html of the underlying site."""
+        """String of the html of the underlying site.
+
+        If mediawords.util.web.user_agent.UserAgent.get throws an error, will
+        return an empty string.
+        """
         if self._html is None:
             ua = UserAgent()
             try:
@@ -57,7 +135,6 @@ class FeedFinder(object):
 
     def generate_feed_urls(self):
         """Generates an iterator of possible feeds, in rough order of likelihood."""
-
         if not self.html:
             return
 
@@ -65,8 +142,12 @@ class FeedFinder(object):
             yield self.url
             return
 
+        seen = set()
         for url_fn in (self.find_link_feeds, self.find_anchor_feeds, self.guess_feed_links):
-            yield from filter_to_feeds(url_fn())
+            for url in filter_to_feeds(url_fn()):
+                if url not in seen:
+                    seen.add(url)
+                    yield url
 
     def find_feed_url(self):
         """Fine the single most likely url as a feed for the page, or None."""
@@ -78,8 +159,7 @@ class FeedFinder(object):
     def is_feed(self):
         """Check if the site is a feed.
 
-        Logic is to make sure there is no <html></html> tag, and there is some
-        <rss></rss> tag or similar.
+        Logic is to make sure there is no <html> tag, and there is some <rss> tag or similar.
         """
         lower_html = self.html.lower()
 
@@ -91,7 +171,7 @@ class FeedFinder(object):
         return any('<{}'.format(tag) for tag in valid_tags)
 
     def find_link_feeds(self):
-        """Uses <link></link> tags to extract feeds
+        """Uses <link> tags to extract feeds
 
         for example:
             <link type="application/rss+xml" href="/might/be/relative.rss"></link>
@@ -129,6 +209,12 @@ class FeedFinder(object):
                     seen.add(url)
 
     def guess_feed_links(self):
+        """Iterates common locations to find feeds.  These urls probably do not exist, but might
+
+        Manual overrides should be added here.  For example, if foo.com has their rss feed at
+        foo.com/here/for/reasons.rss, add 'here/for/reasons.rss' to the suffixes (or
+        `foo.com/here/for/reasons.rss`, if you only want it to apply to the one domain).
+        """
         suffixes = (
             # Generic suffixes
             'index.xml', 'atom.xml', 'feeds', 'feeds/default', 'feed', 'feed/default',
@@ -146,15 +232,38 @@ class FeedFinder(object):
 
 
 def find_feed_url(url, html=None):
+    """Find the single most likely feed url for a page.
+
+    Parameters
+    ----------
+    url : str
+          A url that resolves to the webpage in question
+
+    html : str (optional)
+          To save a second web fetch, the raw html can be supplied
+
+    Returns
+    -------
+    str or None
+       A url pointing to the most likely feed, if it exists.
+    """
     return FeedFinder(url, html).find_feed_url()
 
 
 def generate_feed_urls(url, html=None):
+    """Find all feed urls for a page.
+
+    Parameters
+    ----------
+    url : str
+          A url that resolves to the webpage in question
+
+    html : str (optional)
+          To save a second web fetch, the raw html can be supplied
+
+    Yields
+    ------
+    str or None
+       A url pointing to a feed associated with the page
+    """
     return FeedFinder(url, html).generate_feed_urls()
-
-
-def filter_to_feeds(url_generator):
-    """Helper to filter a url generator and remove non-feeds."""
-    for url in url_generator:
-        if FeedFinder(url).is_feed():
-            yield url
