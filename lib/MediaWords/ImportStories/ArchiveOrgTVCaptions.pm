@@ -95,7 +95,7 @@ sub get_new_stories($)
         my $show_name        = $metadata->{ metadata }->{ title };
         my $show_description = $metadata->{ metadata }->{ description };
 
-        unless ( $channel_name and $show_date and $show_name and $show_description )
+        unless ( defined $channel_name and defined $show_date and defined $show_name and defined $show_description )
         {
             LOGCONFESS "Invalid metadata for '$episode_id': " . Dumper( $metadata );
         }
