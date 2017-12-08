@@ -21,16 +21,12 @@ class McFQDNException(Exception):
     pass
 
 
-def fqdn(hostname=None) -> str:
+def fqdn() -> str:
     """Return Fully Qualified Domain Name (hostname -f), e.g. mcquery2.media.mit.edu."""
     # socket.getfqdn() returns goofy results
-    if hostname is None:
-        # this might still return None
-        hostname = socket.getaddrinfo(socket.gethostname(), 0, flags=socket.AI_CANONNAME)[0][3]
-
-    if not hostname:
+    hostname = socket.getaddrinfo(socket.gethostname(), 0, flags=socket.AI_CANONNAME)[0][3]
+    if hostname is None or len(hostname) == 0:
         raise McFQDNException("Unable to determine FQDN.")
-
     hostname = hostname.lower()
     if hostname == 'localhost':
         log.warning("FQDN is 'localhost', are you sure that /etc/hosts is set up properly?")
