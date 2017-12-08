@@ -173,7 +173,7 @@ sub _add_missing_media_from_urls
 {
     my ( $dbis, $url_media ) = @_;
 
-    my $fetch_urls = [ map { URI->new( $_->{ url } ) } grep { !( $_->{ medium } ) } @{ $url_media } ];
+    my $fetch_urls = [ map { URI->new( $_->{ url } )->as_string } grep { !( $_->{ medium } ) } @{ $url_media } ];
 
     $fetch_urls = [ grep { MediaWords::Util::URL::is_http_url( $_ ) } @{ $fetch_urls } ];
 
