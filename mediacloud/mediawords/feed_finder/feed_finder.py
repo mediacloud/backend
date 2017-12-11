@@ -5,6 +5,7 @@ See https://github.com/dfm/feedfinder2 for other approaches to the same task.
 from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
+import requests
 
 from mediawords.util.web.user_agent import UserAgent, McUserAgentException
 
@@ -123,7 +124,10 @@ class FeedFinder(object):
             except McUserAgentException:
                 self._html = ''
             else:
-                self._html = response.as_string()
+                if response.is_success():
+                    self._html = response.decoded_content()
+                else:
+                    self._html = ''
         return self._html
 
     @property
@@ -161,14 +165,12 @@ class FeedFinder(object):
 
         Logic is to make sure there is no <html> tag, and there is some <rss> tag or similar.
         """
-        lower_html = self.html.lower()
-
-        invalid_tags = ('html',)
-        if any('<{}'.format(tag) in lower_html for tag in invalid_tags):
+        invalid_tags = ('head',)
+        if any(self.soup.find(tag) for tag in invalid_tags):
             return False
 
         valid_tags = ('rss', 'rdf', 'feed',)
-        return any('<{}'.format(tag) for tag in valid_tags)
+        return any(self.soup.find(tag) for tag in valid_tags)
 
     def find_link_feeds(self):
         """Uses <link> tags to extract feeds
@@ -212,8 +214,7 @@ class FeedFinder(object):
         """Iterates common locations to find feeds.  These urls probably do not exist, but might
 
         Manual overrides should be added here.  For example, if foo.com has their rss feed at
-        foo.com/here/for/reasons.rss, add 'here/for/reasons.rss' to the suffixes (or
-        `foo.com/here/for/reasons.rss`, if you only want it to apply to the one domain).
+        foo.com/here/for/reasons.rss, add 'here/for/reasons.rss' to the suffixes.
         """
         suffixes = (
             # Generic suffixes
@@ -228,7 +229,7 @@ class FeedFinder(object):
             'articles.rss', 'articles.atom',  # Patch.com RSS feeds
         )
         for suffix in suffixes:
-            yield urljoin(base=self.url, url=suffix)
+            yield '/'.join([self.url, suffix])
 
 
 def find_feed_url(url, html=None):
