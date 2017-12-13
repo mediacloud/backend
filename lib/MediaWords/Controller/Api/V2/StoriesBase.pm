@@ -39,7 +39,7 @@ __PACKAGE__->config(
     action => {
         count            => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         word_matrix      => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        is_syndicated_ap => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
+        is_syndicated_ap => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
