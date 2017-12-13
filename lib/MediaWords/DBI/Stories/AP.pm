@@ -52,6 +52,9 @@ use MediaWords::Util::CSV;
 
 use Digest::MD5 qw(md5);
 
+# cache ap media id
+my $_ap_media_id;
+
 sub _get_story_content
 {
     my ( $db, $story ) = @_;
@@ -88,11 +91,27 @@ SQL
     return $story->{ content };
 }
 
-sub _get_ap_dup_sentence_lengths
+sub get_ap_medium_name()
+{
+    return 'Associated Press - Full Feed';
+}
+
+sub _get_ap_media_id($)
+{
+    my ( $db ) = @_;
+
+    return $_ap_media_id if ( $_ap_media_id );
+
+    ( $_ap_media_id ) = $db->query( "select media_id from media where name = ?", get_ap_medium_name() )->flat;
+
+    return $_ap_media_id;
+}
+
+sub _get_ap_dup_sentence_lengths_from_db
 {
     my ( $db, $story ) = @_;
 
-    my ( $ap_media_id ) = $db->query( "select media_id from media where name = 'Associated Press - Full Feed'" )->flat;
+    my $ap_media_id = _get_ap_media_id( $db );
 
     return [] unless ( defined( $ap_media_id ) );
 
@@ -112,6 +131,58 @@ SQL
     my $sentence_lengths = [ map { length( $_->{ sentence } ) } @{ $sentences } ];
 
     return $sentence_lengths;
+}
+
+# given raw html content, extract the content and parse it into sentences using the existing mediacloud pipeline code
+sub _get_sentences_from_content($)
+{
+    my ( $story ) = @_;
+
+    my $content = $story->{ content };
+
+    my $text = MediaWords::DBI::Downloads::extract_content_ref( \$content )->{ extracted_text };
+
+    my $lang = MediaWords::Languages::Language::language_for_code( $story->{ language } )
+      || MediaWords::Languages::Language::default_language();
+
+    my $sentences = $lang->get_sentences( $text );
+
+    return $sentences;
+}
+
+sub _get_ap_dup_sentence_lengths_from_content($$)
+{
+    my ( $db, $story ) = @_;
+
+    my $ap_media_id = _get_ap_media_id( $db );
+
+    return [] unless ( defined( $ap_media_id ) );
+
+    my $sentences = _get_sentences_from_content( $story );
+
+    my $md5s = [ map { Digest::MD5::md5_hex( $_ ) } @{ $sentences } ];
+
+    my $md5_list = join( ',', map { $db->quote( $_ ) } @{ $md5s } );
+
+    my $sentence_lengths = $db->query( <<SQL )->flat;
+select length(sentence) len from story_sentences
+    where media_id = $ap_media_id and
+        md5( sentence ) in ( $md5_list );
+SQL
+
+    return $sentence_lengths;
+}
+
+sub _get_ap_dup_sentence_lengths
+{
+    my ( $db, $story ) = @_;
+
+    if ( $story->{ stories_id } )
+    {
+        return _get_ap_dup_sentence_lengths_from_db( $db, $story );
+    }
+
+    return _get_ap_dup_sentence_lengths_from_content( $db, $story );
 }
 
 sub _get_content_pattern_matches
@@ -145,7 +216,17 @@ sub _get_sentence_pattern_matches
 {
     my ( $db, $story, $pattern ) = @_;
 
-    my $sentences = $db->query( "select sentence from story_sentences where stories_id = ?", $story->{ stories_id } )->flat;
+    my $sentences;
+    if ( $story->{ stories_id } )
+    {
+        $sentences = $db->query( <<SQL, $story->{ stories_id } )->flat;
+select sentence from story_sentences where stories_id = ?
+SQL
+    }
+    else
+    {
+        $sentences = $story->{ sentences };
+    }
 
     my $text = join( ' ', @{ $sentences } );
 
@@ -199,6 +280,7 @@ sub _get_dup_sentences_32
     my ( $db, $story ) = @_;
 
     my $sentence_lengths = _get_ap_dup_sentence_lengths( $db, $story );
+
     my $num_sentences = scalar( grep { $_ >= 32 } @{ $sentence_lengths } );
 
     return 0 unless $num_sentences;
@@ -206,53 +288,48 @@ sub _get_dup_sentences_32
     return ( $num_sentences > 10 ) ? 2 : 1;
 }
 
-# set the value in the story->{ ap_features } hash
-sub _set_feature
-{
-    my ( $story, $name, $value, $set_features ) = @_;
-
-    return unless ( $set_features );
-
-    $story->{ ap_features }->{ $name } = $value;
-}
-
 # return 1 if the stories is syndicated by the ap, 0 otherwise.  uses the decision tree at the top of the module.
+#
+# the story object must have a title field and either a stories_id field or a content and a language field
 sub is_syndicated
 {
-    my ( $db, $story, $set_features ) = @_;
+    my ( $db, $story ) = @_;
+
+    if ( !$story->{ stories_id } && ( defined( $story->{ content } ) && defined( $story->{ language } ) ) )
+    {
+        die( '$story object must have a title field and either a stories_id field or a content and a language field' );
+    }
+
+    # shallow copy story so that we can cache data in the object with introducing side effects
+    $story = { %{ $story } };
+
+    # add a sentences field if this is an external story.  do this here so that we don't have to do it repeatedly below
+    if ( !$story->{ stories_id } )
+    {
+        $story->{ sentences } = _get_sentences_from_content( $story );
+    }
 
     my $ap_mentions_sentences = _get_sentence_pattern_matches( $db, $story, qr/\(ap\)/i );
-    _set_feature( $story, 'ap_mentions_sentences', $ap_mentions_sentences, $set_features );
     if ( $ap_mentions_sentences ) { return 1 }
     else
     {
         my $associated_press_mentions = _get_content_pattern_matches( $db, $story, qr/associated press/i );
-        _set_feature( $story, 'associated_press_mentions', $associated_press_mentions, $set_features );
         if ( $associated_press_mentions )
         {
-            my $quoted_associated_press_first_quarter_mentions =
+            my $quoted_associated_press_mentions =
               _get_content_pattern_matches( $db, $story, qr/["\'\|].{0,8}associated press.{0,8}["\'\|]/i );
-            _set_feature(
-                $story,
-                'quoted_associated_press_first_quarter_mentions',
-                $quoted_associated_press_first_quarter_mentions,
-                $set_features
-            );
-            if ( $quoted_associated_press_first_quarter_mentions ) { return 1 }
+            if ( $quoted_associated_press_mentions ) { return 1 }
             else
             {
                 my $dup_sentences_32 = _get_dup_sentences_32( $db, $story );
-                _set_feature( $story, 'dup_sentences_32', $dup_sentences_32, $set_features );
                 if ( $dup_sentences_32 == 1 ) { return 1 }
                 elsif ( $dup_sentences_32 == 0 )
                 {
                     my $associated_press_near_title = _get_associated_press_near_title( $db, $story );
-                    _set_feature( $story, 'associated_press_near_title', $associated_press_near_title, $set_features );
                     if ( $associated_press_near_title ) { return 1 }
                     else
                     {
                         my $ap_news_mentions = _get_content_pattern_matches( $db, $story, qr/ap news/i );
-                        _set_feature( $story, 'ap_news_mentions', $ap_news_mentions, $set_features );
                         if   ( $ap_news_mentions ) { return 1 }
                         else                       { return 0 }
                     }
@@ -260,18 +337,11 @@ sub is_syndicated
                 else    # $dup_sentences_32 == 2
                 {
                     my $associated_press_near_title = _get_associated_press_near_title( $db, $story );
-                    _set_feature( $story, 'associated_press_near_title', $associated_press_near_title, $set_features );
                     if ( $associated_press_near_title ) { return 1 }
                     else
                     {
                         my $associated_press_tag_mentions =
                           _get_content_pattern_matches( $db, $story, qr/\<[^\<\>]*associated press[^\<\>]*\>/i );
-                        _set_feature(
-                            $story,
-                            'associated_press_tag_mentions',
-                            $associated_press_tag_mentions,
-                            $set_features
-                        );
                         if   ( $associated_press_tag_mentions ) { return 0 }
                         else                                    { return 1 }
                     }
@@ -281,11 +351,9 @@ sub is_syndicated
         else
         {
             my $dup_sentences_32 = _get_dup_sentences_32( $db, $story );
-            _set_feature( $story, 'dup_sentences_32', $dup_sentences_32, $set_features );
             if ( $dup_sentences_32 == 1 )
             {
                 my $ap_mentions_uppercase_location = _get_text_pattern_matches( $db, $story, qr/[A-Z]+\s*\(AP\)/ );
-                _set_feature( $story, 'ap_mentions_uppercase_location', $ap_mentions_uppercase_location, $set_features );
                 if   ( $ap_mentions_uppercase_location ) { return 1 }
                 else                                     { return 0 }
             }
