@@ -10,6 +10,9 @@ beautifulsoup4==4.6.0
 # Amazon S3
 boto3==1.4.7
 
+# Job broker
+Celery==4.1.0
+
 # Unit test coverage
 coverage==4.4.1
 
