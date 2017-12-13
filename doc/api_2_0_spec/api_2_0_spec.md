@@ -771,6 +771,33 @@ the returned data would look like:
 }
 ```
 
+## api/v2/stories_public/is_syndicated_ap (POST)
+
+Detect whether a given block of content is likely to be ap syndicated content by looking for certain signals in the text
+(for example 'boston (ap)' and by comparing the text to the text of ap content in the Media Cloud database.
+
+### Query Parameters
+
+| Parameter          | Default          | Notes
+| ------------------ | ---------------- | ----------------------------------------------------------------
+| `content`          | n/a              | text or html content
+
+### Output Description
+
+| Field                        | Description
+| ---------------------------- | -----------------------------------------------------------------------------
+| is_syndicated                | 1 if the story is syndicated, 0 otherwise
+
+### Example
+
+URL: https://api.mediacloud.org/api/v2/stories_public/is_syndicated_ap?content=foo
+
+```json
+{
+    "is_syndicated": 0
+}
+```
+
 # Sentences
 
 The text of every story processed by Media Cloud is parsed into individual sentences.  Duplicate sentences within
