@@ -60,7 +60,7 @@ sub test_stories_is_syndicated_ap($)
     is( $r->{ is_syndicated }, 0, "$label: not syndicated" );
 
     $r = test_get( '/api/v2/stories_public/is_syndicated_ap', { content => '(ap)' } );
-    is( $r->{ is_syndicated }, 0, "$label: syndicated" );
+    is( $r->{ is_syndicated }, 1, "$label: syndicated" );
 
 }
 
