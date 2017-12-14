@@ -1038,12 +1038,9 @@ class TestUserAgentTestCase(TestCase):
         hs.stop()
 
     def test_get_request_invalid_url(self):
-        """request() with invalid URL."""
+        """request() with invalid IDNA URL."""
         with pytest.raises(McUserAgentRequestException):
-            Request(method='GET',
-
-                    # Invalid IDNA error
-                    url='http://michigan-state-football-sexual-assault-charges-arrest-players-names')
+            Request(method='GET', url='http://michigan-state-football-sexual-assault-charges-arrest-players-names')
 
     def test_get_crawler_authenticated_domains(self):
         """Crawler authenticated domains (configured in mediawords.yml)."""
