@@ -91,7 +91,7 @@ def is_http_url(url: str) -> bool:
         uri = furl(url)
 
         # Try stringifying URL back from the furl() object to try out all of its accessors
-        _ = str(furl)
+        _ = str(uri)
 
         # Some URLs become invalid when normalized (which is what "requests" will do), e.g.:
         #
