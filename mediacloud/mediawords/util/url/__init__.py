@@ -90,8 +90,18 @@ def is_http_url(url: str) -> bool:
     try:
         uri = furl(url)
 
-        # Some URLs have invalid paths that furl's constructor doesn't check
-        _ = str(uri.path)
+        # Try stringifying URL back from the furl() object to try out all of its accessors
+        _ = str(furl)
+
+        # Some URLs become invalid when normalized (which is what "requests" will do), e.g.:
+        #
+        #     http://michigan-state-football-sexual-assault-charges-arrest-players-names -- valid
+        #     http://michigan-state-football-sexual-assault-charges-arrest-players-names/ -- invalid (decoding error)
+        #
+        # ...so try the same with normalized URL
+        normalized_url = url_normalize.url_normalize(url)
+        normalized_uri = furl(normalized_url)
+        _ = str(normalized_uri)
 
     except Exception as ex:
         log.debug("Cannot parse URL: %s" % str(ex))

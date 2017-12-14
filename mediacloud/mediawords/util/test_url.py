@@ -66,6 +66,10 @@ def test_is_http_url():
     assert mc_url.is_http_url('http://127.0.0.1:12345/456789')
     assert mc_url.is_http_url('http://127.0.00000000.1:8899/tweet_url?id=47')
 
+    # Invalid IDNA
+    assert not mc_url.is_http_url('http://michigan-state-football-sexual-assault-charges-arrest-players-names')
+    assert not mc_url.is_http_url('http://michigan-state-football-sexual-assault-charges-arrest-players-names/')
+
     # Travis URL
     assert mc_url.is_http_url('http://testing-gce-286b4005-b1ae-4b1a-a0d8-faf85e39ca92:37873/gv/test.rss')
 
