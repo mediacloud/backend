@@ -81,7 +81,7 @@ def is_http_url(url: str) -> bool:
         log.debug("URL is empty")
         return False
 
-    log.info("Testing if URL '%s' is HTTP(s) URL" % url)
+    log.debug("Testing if URL '%s' is HTTP(s) URL" % url)
 
     if not re.search(__URL_REGEX, url):
         log.debug("URL '%s' does not match URL's regexp" % url)
