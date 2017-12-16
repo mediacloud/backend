@@ -162,7 +162,7 @@ sub _combine_stopwords($$)
         my $combined_stopwords = {};
         foreach my $language ( @{ $languages } )
         {
-            my $stopwords = $language->get_stop_words();
+            my $stopwords = $language->stop_words_map();
             $combined_stopwords = { ( %{ $combined_stopwords }, %{ $stopwords } ) };
         }
 

@@ -16,10 +16,10 @@ sub test_stopwords()
 {
     my $lang = MediaWords::Languages::en->new();
 
-    ok( $lang->get_stop_words(), 'lang_en_get_stop_words' );
+    ok( $lang->stop_words_map() );
 
     # Stop words
-    my $stop_words_en = $lang->get_stop_words();
+    my $stop_words_en = $lang->stop_words_map();
     ok( scalar( keys( %{ $stop_words_en } ) ) >= 174, "stop words (en) count is correct" );
 
     is( $stop_words_en->{ 'the' }, 1, "English test #1" );

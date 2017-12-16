@@ -19,10 +19,10 @@ sub test_stopwords()
 {
     my $lang = MediaWords::Languages::ru->new();
 
-    ok( $lang->get_stop_words(), 'lang_en_get_stop_words' );
+    ok( $lang->stop_words_map() );
 
     # Stop words
-    my $stop_words_ru = $lang->get_stop_words();
+    my $stop_words_ru = $lang->stop_words_map();
     ok( scalar( keys( %{ $stop_words_ru } ) ) >= 140, "stop words (ru) count is correct" );
 
     is( $stop_words_ru->{ 'и' }, 1, "Russian test #1" );

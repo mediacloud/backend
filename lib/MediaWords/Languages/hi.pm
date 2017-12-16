@@ -50,10 +50,10 @@ sub language_code
     return 'hi';
 }
 
-sub fetch_and_return_stop_words
+sub stop_words_map
 {
     my $self = shift;
-    return $self->_get_stop_words_from_file( 'lib/MediaWords/Languages/resources/hi_stopwords.txt' );
+    return $self->_stop_words_map_from_file( 'lib/MediaWords/Languages/resources/hi_stopwords.txt' );
 }
 
 sub stem

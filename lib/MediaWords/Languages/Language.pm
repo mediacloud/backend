@@ -73,13 +73,13 @@ requires 'language_code';
 #
 # If you've decided to store a stopword list in an external file, you can use the module helper:
 #
-#   sub fetch_and_return_stop_words
+#   sub stop_words_map
 #   {
 #       my $self = shift;
-#       return $self->_get_stop_words_from_file( 'lib/MediaWords/Languages/resources/en_stopwords.txt' );
+#       return $self->_stop_words_map_from_file( 'lib/MediaWords/Languages/resources/en_stopwords.txt' );
 #   }
 #
-requires 'fetch_and_return_stop_words';
+requires 'stop_words_map';
 
 # Returns a reference to an array of stemmed words (using Lingua::Stem::Snowball or some other way)
 # A parameter is an arrayref.
@@ -126,12 +126,6 @@ has 'sentence_tokenizer' => ( is => 'rw', default => 0 );
 
 # Lingua::Sentence language
 has 'sentence_tokenizer_language' => ( is => 'rw', default => 0 );
-
-# Cached stopwords
-has 'cached_stop_words' => ( is => 'rw', default => 0 );
-
-# Cached stopword stems
-has 'cached_stop_word_stems' => ( is => 'rw', default => 0 );
 
 # Instances of each of the enabled languages (e.g. MediaWords::Languages::en, MediaWords::Languages::lt, ...)
 my $_lang_instances = lazy
@@ -226,18 +220,6 @@ sub default_language_code
 sub enabled_languages
 {
     return @_enabled_languages;
-}
-
-sub get_stop_words
-{
-    my $self = shift;
-
-    if ( $self->cached_stop_words == 0 )
-    {
-        $self->cached_stop_words( $self->fetch_and_return_stop_words() );
-    }
-
-    return $self->cached_stop_words;
 }
 
 # Lingua::Stem::Snowball helper
@@ -341,7 +323,7 @@ sub _tokenize_text_with_lingua_sentence
 }
 
 # Returns stopwords read from a file
-sub _get_stop_words_from_file
+sub _stop_words_map_from_file
 {
     my ( $self, $filename ) = @_;
 
