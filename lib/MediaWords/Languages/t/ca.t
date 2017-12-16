@@ -53,7 +53,7 @@ sub test_stem()
 {
     my $lang = MediaWords::Languages::ca->new();
 
-    is_deeply( $lang->stem( qw/El Palau de la Música Catalana/ ), [ qw/ el pal de la music catal / ] );
+    is_deeply( $lang->stem( [ qw/El Palau de la Música Catalana/ ] ), [ qw/ el pal de la music catal / ] );
 }
 
 sub main()

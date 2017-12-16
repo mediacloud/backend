@@ -31,7 +31,7 @@ sub fetch_and_return_stop_words
 
 sub stem
 {
-    my $self = shift;
+    my ( $self, $words ) = @_;
 
     # (Re-)initialize stemmer if needed
     if ( $self->ca_stemmer == 0 )
@@ -39,9 +39,9 @@ sub stem
         $self->ca_stemmer( Lingua::Stem::Snowball::Ca->new() );
     }
 
-    my @stems = $self->ca_stemmer->stem( \@_ );
+    my $stems = [ $self->ca_stemmer->stem( $words ) ];
 
-    return \@stems;
+    return $stems;
 }
 
 sub split_text_to_sentences

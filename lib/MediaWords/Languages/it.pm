@@ -26,8 +26,8 @@ sub fetch_and_return_stop_words
 
 sub stem
 {
-    my $self = shift;
-    return $self->_stem_with_lingua_stem_snowball( 'it', 'UTF-8', \@_ );
+    my ( $self, $words ) = @_;
+    return $self->_stem_with_lingua_stem_snowball( 'it', 'UTF-8', $words );
 }
 
 sub split_text_to_sentences

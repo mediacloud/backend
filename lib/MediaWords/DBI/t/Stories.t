@@ -41,7 +41,7 @@ sub add_story_sentences_and_language
             my $word = $_possible_words->[ int( rand( @{ $_possible_words } ) ) ];
             $sentence .= "$word ";
 
-            my $stems = $language->stem( $word );
+            my $stems = $language->stem( [ $word ] );
             $stem_counts->{ $stems->[ 0 ] }++;
         }
 

@@ -54,7 +54,7 @@ SQL
         my $lang = MediaWords::Languages::Language::language_for_code( $sentence_language );
 
         my $words = $lang->split_sentence_to_words( $sentence );
-        my $stems = $lang->stem( @{ $words } );
+        my $stems = $lang->stem( $words );
         map { $expected_word_counts->{ $_ }++ } @{ $stems };
     }
 

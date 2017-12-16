@@ -58,10 +58,10 @@ sub fetch_and_return_stop_words
 
 sub stem
 {
-    my $self = shift;
+    my ( $self, $words ) = @_;
 
     my @stems;
-    for my $token ( @_ )
+    for my $token ( @{ $words } )
     {
         my $stem;
 

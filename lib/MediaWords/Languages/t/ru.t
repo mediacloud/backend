@@ -221,22 +221,22 @@ __END_TEST_CASE__
 
     ok( utf8::is_utf8( $stemmer_test_ru_text ), "is_utf8" );
 
-    my @split_words = @{ $lang->split_sentence_to_words( $stemmer_test_ru_text ) };
+    my $split_words = $lang->split_sentence_to_words( $stemmer_test_ru_text );
 
     utf8::upgrade( $stemmer_test_ru_text );
 
     my $temp = $stemmer_test_ru_text;
 
-    @split_words = @{ $lang->split_sentence_to_words( $temp ) };
+    $split_words = $lang->split_sentence_to_words( $temp );
 
     my $lingua_stem = Lingua::Stem::Snowball->new( lang => 'ru', encoding => 'UTF-8' );
 
-    my $lingua_stem_result = [ ( $lingua_stem->stem( \@split_words ) ) ];
-    my $mw_stem_result = $lang->stem( @split_words );
+    my $lingua_stem_result = [ $lingua_stem->stem( $split_words ) ];
+    my $mw_stem_result     = $lang->stem( $split_words );
 
     is_deeply( ( join "_", @{ $mw_stem_result } ), ( join "_", @{ $lingua_stem_result } ), "Stemmer compare test" );
 
-    is( $mw_stem_result->[ 0 ], lc $split_words[ 0 ], "first word" );
+    is( $mw_stem_result->[ 0 ], lc $split_words->[ 0 ], "first word" );
 
     isnt(
         join( "_", @$mw_stem_result ),

@@ -287,12 +287,12 @@ sub test_stem()
     and other natural language processing problems.
 __END_TEST_CASE__
 
-    my @split_words = @{ $lang->split_sentence_to_words( $stemmer_test_en_text ) };
+    my $split_words = $lang->split_sentence_to_words( $stemmer_test_en_text );
 
     my $lingua_stem = Lingua::Stem::Snowball->new( lang => 'en', encoding => 'UTF-8' );
 
-    my $lingua_stem_result = [ $lingua_stem->stem( \@split_words ) ];
-    my $stem_result        = $lang->stem( @split_words );
+    my $lingua_stem_result = [ $lingua_stem->stem( $split_words ) ];
+    my $stem_result        = $lang->stem( $split_words );
 
     is_deeply( $stem_result, $lingua_stem_result, "Stemmer compare test" );
 
@@ -300,8 +300,8 @@ __END_TEST_CASE__
     ok( length( $lingua_stem_result ) > 0, "Stemmed text is nonempty" );
 
     # Apostrophes
-    is_deeply( $lang->stem( qw/Katz's Delicatessen/ ), [ qw/ katz delicatessen / ], 'Stemming with normal apostrophe' );
-    is_deeply( $lang->stem( qw/it’s toasted/ ), [ qw/ it toast / ], 'Stemming with right single quotation mark' );
+    is_deeply( $lang->stem( [ "Katz's", "Delicatessen" ] ), [ 'katz', 'delicatessen' ], 'Stemming with normal apostrophe' );
+    is_deeply( $lang->stem( [ "it’s", "toasted" ] ), [ 'it', 'toast' ], 'Stemming with right single quotation mark' );
 }
 
 sub main()

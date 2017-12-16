@@ -54,10 +54,10 @@ sub fetch_and_return_stop_words
 
 sub stem
 {
-    my $self = shift;
+    my ( $self, $words ) = @_;
 
     # Jieba's sentence -> word tokenizer already returns "base forms" of every word
-    return \@_;
+    return $words;
 }
 
 sub split_text_to_sentences

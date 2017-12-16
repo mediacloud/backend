@@ -82,14 +82,14 @@ requires 'language_code';
 requires 'fetch_and_return_stop_words';
 
 # Returns a reference to an array of stemmed words (using Lingua::Stem::Snowball or some other way)
-# A parameter is an array.
+# A parameter is an arrayref.
 #
 # If Lingua::Stem::Snowball module supports the language you're about to add, you can use the module helper:
 #
-#   sub stem
+#   sub stem($$)
 #   {
-#       my $self = shift;
-#       return $self->_stem_with_lingua_stem_snowball( 'fr', 'UTF-8', \@_ );
+#       my ( $self, $words ) = @_;
+#       return $self->_stem_with_lingua_stem_snowball( 'fr', 'UTF-8', $words );
 #   }
 #
 requires 'stem';
@@ -244,14 +244,19 @@ around 'stem' => sub {
     my $orig = shift;
     my $self = shift;
 
-    my @words = @_;
+    my $words = shift;
+
+    unless ( ref( $words ) eq ref( [] ) )
+    {
+        die "Words is not an arrayref.";
+    }
 
     # Normalize apostrophe so that "it’s" and "it's" get treated identically
     # (it's being done in _tokenize_with_spaces() too but let's not assume that
     # all tokens that are to be stemmed go through sentence tokenization first)
-    s/’/'/g for @words;
+    s/’/'/g for @{ $words };
 
-    return $self->$orig( @words );
+    return $self->$orig( $words );
 };
 
 # Lingua::Stem::Snowball helper

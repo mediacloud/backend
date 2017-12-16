@@ -32,10 +32,10 @@ sub fetch_and_return_stop_words
 
 sub stem
 {
-    my $self = shift;
+    my ( $self, $words ) = @_;
 
-    my @stems;
-    for my $token ( @_ )
+    my $stems;
+    for my $token ( @{ $words } )
     {
         my $stem;
 
@@ -55,10 +55,10 @@ sub stem
             }
         }
 
-        push( @stems, $stem );
+        push( @{ $stems }, $stem );
     }
 
-    return \@stems;
+    return $stems;
 }
 
 sub split_text_to_sentences
