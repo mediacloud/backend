@@ -240,25 +240,6 @@ sub get_stop_words
     return $self->cached_stop_words;
 }
 
-around 'stem' => sub {
-    my $orig = shift;
-    my $self = shift;
-
-    my $words = shift;
-
-    unless ( ref( $words ) eq ref( [] ) )
-    {
-        die "Words is not an arrayref.";
-    }
-
-    # Normalize apostrophe so that "it’s" and "it's" get treated identically
-    # (it's being done in _tokenize_with_spaces() too but let's not assume that
-    # all tokens that are to be stemmed go through sentence tokenization first)
-    s/’/'/g for @{ $words };
-
-    return $self->$orig( $words );
-};
-
 # Lingua::Stem::Snowball helper
 sub _stem_with_lingua_stem_snowball
 {

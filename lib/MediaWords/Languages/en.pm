@@ -27,6 +27,12 @@ sub fetch_and_return_stop_words
 sub stem
 {
     my ( $self, $words ) = @_;
+
+    # Normalize apostrophe so that "it’s" and "it's" get treated identically
+    # (it's being done in _tokenize_with_spaces() too but let's not assume that
+    # all tokens that are to be stemmed go through sentence tokenization first)
+    s/’/'/g for @{ $words };
+
     return $self->_stem_with_lingua_stem_snowball( 'en', 'UTF-8', $words );
 }
 
