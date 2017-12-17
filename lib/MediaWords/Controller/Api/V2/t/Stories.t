@@ -347,7 +347,6 @@ sub test_stories($)
     test_stories_count( $db );
     test_stories_word_matrix( $db );
     test_stories_update( $db, $media );
-    test_stories_is_syndicated_ap( $db );
 }
 
 sub main
