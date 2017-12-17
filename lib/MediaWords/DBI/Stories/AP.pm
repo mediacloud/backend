@@ -52,9 +52,6 @@ use MediaWords::Util::CSV;
 
 use Digest::MD5 qw(md5);
 
-# cache ap media id
-my $_ap_media_id;
-
 sub _get_story_content
 {
     my ( $db, $story ) = @_;
@@ -100,11 +97,9 @@ sub _get_ap_media_id($)
 {
     my ( $db ) = @_;
 
-    return $_ap_media_id if ( $_ap_media_id );
+    my ( $ap_media_id ) = $db->query( "select media_id from media where name = ?", get_ap_medium_name() )->flat;
 
-    ( $_ap_media_id ) = $db->query( "select media_id from media where name = ?", get_ap_medium_name() )->flat;
-
-    return $_ap_media_id;
+    return $ap_media_id;
 }
 
 sub _get_ap_dup_sentence_lengths_from_db
