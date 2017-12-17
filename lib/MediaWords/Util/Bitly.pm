@@ -154,7 +154,7 @@ sub bitly_processing_is_enabled()
     my $config = MediaWords::Util::Config::get_config();
     my $bitly_enabled = $config->{ bitly }->{ enabled } // '';
 
-    return $bitly_enabled eq 'yes';
+    return $bitly_enabled ? 1 : 0;
 }
 
 # Check if story is processed with Bit.ly (stats are fetched)
