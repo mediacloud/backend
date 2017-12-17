@@ -58,6 +58,11 @@ class TestUserAgentTestCase(TestCase):
             ua = UserAgent()
             ua.get(url='gopher://gopher.floodgap.com/0/v2/vstat')
 
+        # URL with invalid IDNA
+        with pytest.raises(McUserAgentException):
+            ua = UserAgent()
+            ua.get('http://michigan-state-football-sexual-assault-charges-arrest-players-names')
+
         pages = {'/test': 'Hello!', }
         hs = HashServer(port=self.__test_port, pages=pages)
         hs.start()
@@ -1031,6 +1036,11 @@ class TestUserAgentTestCase(TestCase):
         assert valid_auth_response.decoded_content() == 'Authenticated!'
 
         hs.stop()
+
+    def test_get_request_invalid_url(self):
+        """request() with invalid IDNA URL."""
+        with pytest.raises(McUserAgentRequestException):
+            Request(method='GET', url='http://michigan-state-football-sexual-assault-charges-arrest-players-names')
 
     def test_get_crawler_authenticated_domains(self):
         """Crawler authenticated domains (configured in mediawords.yml)."""
