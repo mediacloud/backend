@@ -37,9 +37,8 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
 __PACKAGE__->config(
     action => {
-        count            => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        word_matrix      => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        is_syndicated_ap => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        count       => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        word_matrix => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
@@ -429,27 +428,6 @@ sub word_matrix_GET
 
     $self->status_ok( $c, entity => { word_matrix => $word_matrix, word_list => $word_list } );
 
-}
-
-sub is_syndicated_ap : Local : ActionClass('MC_REST')
-{
-}
-
-# update a single story
-sub is_syndicated_ap_GET
-{
-    my ( $self, $c ) = @_;
-
-    my $content = $c->req->params->{ content };
-
-    if ( !defined( $content ) )
-    {
-        die( "must include content parameter" );
-    }
-
-    my $is_syndicated = MediaWords::DBI::Stories::AP::is_syndicated( $c->dbis, { content => $content } );
-
-    $self->status_ok( $c, entity => { is_syndicated => $is_syndicated ? 1 : 0 } );
 }
 
 =head1 AUTHOR
