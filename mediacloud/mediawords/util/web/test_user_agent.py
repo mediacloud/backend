@@ -1410,6 +1410,36 @@ class TestUserAgentTestCase(TestCase):
 
         assert response.previous() is None
 
+    def test_get_follow_http_html_redirects_invalid_http_redirect_url(self):
+        """HTML redirects with invalid URL in HTTP redirect."""
+
+        pages = {
+            '/first': {
+                # Parsing this URL with requests / furl fails with:
+                #
+                #     UnicodeError: label empty or too long
+                #
+                'redirect': 'http://michigan-state-football-sexual-assault-charges-arrest-players-names.com',
+
+                'http_status_code': HTTPStatus.MOVED_PERMANENTLY.value,
+            },
+        }
+
+        starting_url = '%s/first' % self.__test_url
+
+        hs = HashServer(port=self.__test_port, pages=pages)
+        hs.start()
+
+        ua = UserAgent()
+
+        response = ua.get_follow_http_html_redirects(starting_url)
+
+        hs.stop()
+
+        assert response.is_success() is False
+        assert urls_are_equal(url1=response.request().url(), url2='%s/first' % self.__test_url)
+        assert "encoding with 'idna' codec failed" in response.decoded_content()
+
     def test_parallel_get(self):
         """parallel_get()."""
 

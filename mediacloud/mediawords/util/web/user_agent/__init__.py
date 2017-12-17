@@ -16,7 +16,7 @@ import requests
 from furl import furl
 from requests.adapters import HTTPAdapter
 from requests.auth import HTTPBasicAuth
-from urllib3 import Retry
+from urllib3 import Retry, HTTPResponse
 
 from mediawords.util.config import get_config as py_get_config
 from mediawords.util.log import create_logger
@@ -696,6 +696,16 @@ class UserAgent(object):
     def __execute_request(self, requests_prepared_request: requests.PreparedRequest) -> UserAgentResponse:
         """Execute PreparedRequest. Returns UserAgentResponse independently on whether request succeeds or fails."""
 
+        def urllib3_http_response_from_exception(exception: Exception) -> HTTPResponse:
+            """On exceptions, we want to create our own HTTPResponse with exception's message to set it to response.raw
+            to be read later."""
+            return HTTPResponse(
+                body=io.BytesIO(str(exception).encode('utf-8')),
+
+                # https://github.com/requests/requests/issues/2635#issuecomment-112270117
+                preload_content=False,
+            )
+
         try:
             requests_response = self.__session.send(
                 request=requests_prepared_request,
@@ -723,7 +733,7 @@ class UserAgent(object):
 
             requests_response.history = []
 
-            requests_response.raw = io.StringIO(str(ex))
+            requests_response.raw = urllib3_http_response_from_exception(ex)
 
             # We treat timeouts as client-side errors too because we can retry on them
             response = UserAgent.UserAgentResponse(requests_response=requests_response,
@@ -749,7 +759,7 @@ class UserAgent(object):
                 'Client-Warning': 'Client-side error',
             }
 
-            requests_response.raw = io.StringIO(str(ex))
+            requests_response.raw = urllib3_http_response_from_exception(ex)
 
             response = UserAgent.UserAgentResponse(requests_response=requests_response,
                                                    error_is_client_side=True)
