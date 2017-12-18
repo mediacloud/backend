@@ -1424,5 +1424,5 @@ zootech
 # Add NUMERIC_ONLY after the word for this function.
 # This case is mostly for the english "No." which can either be a sentence of its own,
 # or, if followed by a number, a non-breaking prefix.
-nr. #NUMERIC_ONLY# 
-Nr. #NUMERIC_ONLY# 
+nr. #NUMERIC_ONLY#
+Nr. #NUMERIC_ONLY#

@@ -10,7 +10,7 @@
 # indicate an end-of-sentence marker.
 # Special cases are included for prefixes that ONLY appear before 0-9 numbers.
 
-# Sources: http://nl.wikipedia.org/wiki/Lijst_van_afkortingen 
+# Sources: http://nl.wikipedia.org/wiki/Lijst_van_afkortingen
 #          http://nl.wikipedia.org/wiki/Aanspreekvorm
 #          http://nl.wikipedia.org/wiki/Titulatuur_in_het_Nederlands_hoger_onderwijs
 
@@ -167,7 +167,7 @@ v.w.t
 # Add NUMERIC_ONLY after the word for this function.
 # This case is mostly for the english "No." which can either be a sentence of its own, or
 # if followed by a number, a non-breaking prefix.
-Nr #NUMERIC_ONLY# 
-Nrs 
+Nr #NUMERIC_ONLY#
+Nrs
 nrs
 nr #NUMERIC_ONLY#

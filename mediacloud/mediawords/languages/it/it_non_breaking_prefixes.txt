@@ -110,11 +110,11 @@ Corp
 Co
 
 # http://www.chass.utoronto.ca/~ngargano/corsi/corrisp/abbreviazioni.html
-a.c 
-es 
-all 
-Amn 
-Arch 
+a.c
+es
+all
+Amn
+Arch
 Avv
 Bcc
 c.a

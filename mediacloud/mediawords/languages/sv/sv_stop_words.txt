@@ -56,11 +56,11 @@ gjort
 göra
 ha
 hade
-hade 
+hade
 han
-han 
+han
 hans
-hans 
+hans
 har
 hen
 henne
@@ -70,7 +70,7 @@ honom
 hur
 här
 i
-i 
+i
 icke
 igen
 ingen
@@ -89,7 +89,7 @@ mellan
 men
 mig
 min
-min 
+min
 mina
 mitt
 mot
@@ -121,8 +121,8 @@ sådana
 sådant
 sån
 till
-till 
-tills 
+till
+tills
 under
 upp
 ut

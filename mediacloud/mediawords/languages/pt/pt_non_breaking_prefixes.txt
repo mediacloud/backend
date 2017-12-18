@@ -247,7 +247,7 @@ e.g
 
 # This case is mostly for the english "No." which can either be a sentence of its own, or
 # if followed by a number, a non-breaking prefix.
-No #NUMERIC_ONLY# 
+No #NUMERIC_ONLY#
 Nos
 Art #NUMERIC_ONLY#
 Nr
@@ -292,7 +292,7 @@ assemb
 assoc
 astron
 át
-at.te 
+at.te
 atm
 atte
 aum
@@ -366,7 +366,7 @@ edif
 educ
 EE
 elem
-eletr. 
+eletr.
 eletrôn
 Ema
 Emb
@@ -395,7 +395,7 @@ fig
 fil
 filat
 filol
-filos 
+filos
 fís
 fisiol
 fl
@@ -408,7 +408,7 @@ Fr
 fs
 fs
 G
-G.M.T 
+G.M.T
 gal
 gen
 gên
@@ -427,7 +427,7 @@ I
 i.e
 ib
 id
-Ilmo 
+Ilmo
 impr
 índ
 inf
@@ -457,7 +457,7 @@ long
 Ltda
 m
 M
-M.T.S 
+M.T.S
 Maj
 maj
 Mal
@@ -469,12 +469,12 @@ méd
 méd.vet
 memo
 memor
-met 
-metal. 
+met
+metal.
 meteor
 mit
 mitol
-Mlle 
+Mlle
 MM
 mme
 mob
@@ -487,7 +487,7 @@ mus
 mús
 n
 N
-N. 
+N.
 N.E
 N.O
 N.S
@@ -506,7 +506,7 @@ of
 ópt
 org
 organiz
-oz 
+oz
 p
 P
 P.B
@@ -544,7 +544,7 @@ Profas
 profas
 Profs
 profs
-pron. 
+pron.
 psic
 psican
 psicol
@@ -553,7 +553,7 @@ Q.G
 ql
 quím
 R
-r.s.v.p 
+r.s.v.p
 Rdv
 ref
 reg
@@ -561,7 +561,7 @@ rel
 Rel
 relat
 Relg
-Remte. 
+Remte.
 Rep
 res
 Ret
@@ -596,7 +596,7 @@ secr
 sécs
 seg
 segs
-semin. 
+semin.
 Símb
 soc
 Sociol
@@ -604,7 +604,7 @@ Sr
 Sra
 Sras
 Srs
-Srta 
+Srta
 ss
 SS.AA
 sta
@@ -631,7 +631,7 @@ ton
 topogr
 trad
 transp
-Trav. 
+Trav.
 trig
 trigon
 trim
@@ -660,4 +660,3 @@ W
 X
 Y
 Z
-

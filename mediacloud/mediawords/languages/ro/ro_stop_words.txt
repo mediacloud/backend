@@ -24,11 +24,11 @@ cele
 celui
 celei
 celor
-             #  Possessive / genitival article 
+             #  Possessive / genitival article
 al             # of
 a
 ai
-ale 
+ale
            # PREPOSITION AND ADVERB
 pe             # on
 la             # at
@@ -42,13 +42,13 @@ de             # from
 din            # on
 lângă        # by
 pentru         # for
-peste          # over  
+peste          # over
 spre           # to
-prin           # through 
+prin           # through
 dintre         # between
 printre        # among
 până         # until
-după          # after  
+după          # after
 înspre        # towards
 ca             # as
            # ADJECTIVE
@@ -77,14 +77,14 @@ ea             # she
 noi            # we
 voi            # you
 ei             # they
-ele            # they 
+ele            # they
 mie            # me
 îmi
 mi
 mine
 mă
 m
-ţie           # you 
+ţie           # you
 îţi
 ţi
 tine
@@ -97,7 +97,7 @@ i
 nouă          # us
 ne
 ni
-vouă          # you  
+vouă          # you
 vă
 vi
 v
@@ -111,15 +111,15 @@ se             # himself
 îşi
 sie
 sieşi
-sine 
+sine
              # Pronoun of reinforcement
 însumi        # myself
 însămi
-însuţi       # youself 
+însuţi       # youself
 însăţi
-însuşi       # himself 
+însuşi       # himself
 însăşi      # herself
-înşine       # ourselves 
+înşine       # ourselves
 însene
 înşivă      # youselves
 însevă
@@ -131,7 +131,7 @@ meu            # mine
 mea
 mei
 mele
-tău           # yours 
+tău           # yours
 ta
 tăi
 tale
@@ -144,7 +144,7 @@ noastră
 noştri
 noastre
 vostru         # yours
-voastră 
+voastră
 voştri
 voastre
              # Demonstrative pronoun
@@ -206,29 +206,29 @@ celelalte
 celorlalte
              # Interrogative pronoun
 ce             # what
-cine           # who 
+cine           # who
 cui            # whom
-care           # which, what 
+care           # which, what
 cărui
 cărei
-căror 
+căror
 unde           # where
 când          # when
              # Indefinite pronoun
-cineva         # someone   
-cuiva 
+cineva         # someone
+cuiva
 altcineva      # someone else
-altcuiva 
+altcuiva
 oricine        # anyone
 oricui
 orice          # anything
-unul           # one 
+unul           # one
 una
 unii
 unele
 unuia
 uneia
-unora 
+unora
 altul          # other
 alta
 alţii
@@ -267,13 +267,13 @@ fiecăruia
 fiecăreia
 fiecărui
 fiecărei
-cât           # how, how many 
+cât           # how, how many
 câtă
 câţi
 câte
 câtora
 câtor
-atât          # this much  
+atât          # this much
 atâta
 atâţi
 atâţia
@@ -297,11 +297,11 @@ toate
 tuturor
 totul
 cutare         # that
-oarecare       # some 
+oarecare       # some
 ceva           # something
-altceva        # something else 
+altceva        # something else
              # Negative pronoun
-nimeni         # nobody   
+nimeni         # nobody
 nimănui
 nimic          # nothing
            # NUMERAL
@@ -309,20 +309,20 @@ nimic          # nothing
 unu            # one
 doi            # two
 doua
-trei           # three        
-patru          # four  
-cinci          # five  
-şase          # six  
+trei           # three
+patru          # four
+cinci          # five
+şase          # six
 şapte         # seven
 opt            # eight
-noua           # nine 
-zece           # ten 
+noua           # nine
+zece           # ten
              # Fractional numeral
 doime          # half
 treime         # third
 sutime         # hundredth
              # Collective numeral
-amândoi       # both 
+amândoi       # both
 amândouă
 amândurora
 amânduror
@@ -332,10 +332,10 @@ ambilor
 ambelor
              # Multiplicative numeral
 îndoit        # double
-întreit       # threefold 
+întreit       # threefold
 însutit       # hundred-fold
              # Ordinal numeral
-întâiul      # the first  
+întâiul      # the first
 întâia
 primul         # former
 prima
@@ -349,24 +349,24 @@ primelor
              # To be
 sunt           # (I) am
 s
-eşti          # (you) are  
-este           # (he/she) is 
+eşti          # (you) are
+este           # (he/she) is
 e
 suntem         # (we) are
-sunteţi       # (you) are 
-eram           # (I) were 
-erai           # (you) were 
+sunteţi       # (you) are
+eram           # (I) were
+erai           # (you) were
 era            # (he) was
 eraţi         # (you) were
-erau           # (they) were 
+erau           # (they) were
 fiu            # be
 fii
 fie
 fim
 fiţi
 fi
-fiind          # being  
-fost           # been 
+fiind          # being
+fost           # been
              # Auxiliary verb
 am             # to have  - all forms
 aţi
@@ -392,7 +392,7 @@ veţi
 vor
            # CONJUNCTION
 şi            # and
-nici           # neither 
+nici           # neither
 dar            # but
 însă
 iar            # and, but, while, again
@@ -403,7 +403,7 @@ deci           # so
 aşadar
 încât        # so that
 aşa           # such
-deşi          # although  
+deşi          # although
 totuşi        # though
 dacă          # if
 atunci         # then
@@ -415,9 +415,9 @@ nu             # no
  # deriving from a large sample of text.
 
 poate          # maybe
-ieri           # yesterday 
+ieri           # yesterday
 mare           # big
-doar           # just 
+doar           # just
 trebuie        # must
 spus           # said
 acum           # now
