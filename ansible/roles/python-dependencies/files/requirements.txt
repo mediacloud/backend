@@ -49,6 +49,9 @@ pip==9.0.1
 # PostgreSQL
 psycopg2==2.7.3
 
+# Snowball stemmer (NLTK's implementation doesn't support Turkish)
+PyStemmer==1.3.0
+
 # Unit tests
 pytest==3.2.2
 
