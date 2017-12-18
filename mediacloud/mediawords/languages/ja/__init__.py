@@ -124,7 +124,7 @@ class McJapaneseTokenizer(object):
     @staticmethod
     def _mecab_allowed_pos_ids() -> Dict[int, str]:
         """Return allowed MeCab part-of-speech IDs and their definitions from pos-id.def.
-        
+
         Definitions don't do much in the language module itself, they're used by unit tests to verify that pos-id.def
         didn't change in some unexpected way and we're not missing out on newly defined POSes.
         """
@@ -143,7 +143,7 @@ class McJapaneseTokenizer(object):
 
     def split_sentence_to_words(self, sentence: str) -> list:
         """Tokenize Japanese sentence into words.
-        
+
         Removes punctuation and words that don't belong to part-of-speech whitelist."""
 
         sentence = decode_object_from_bytes_if_needed(sentence)

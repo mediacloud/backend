@@ -102,7 +102,7 @@ class McChineseTokenizer(object):
 
     def split_sentence_to_words(self, sentence: str) -> list:
         """Tokenize Chinese sentence into words.
-        
+
         Removes punctuation."""
 
         sentence = decode_object_from_bytes_if_needed(sentence)
