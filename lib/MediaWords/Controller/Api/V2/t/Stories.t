@@ -50,6 +50,20 @@ sub test_stories_cliff($)
     is( $r->[ 0 ]->{ cliff }, "story does not exist", "$label does not exist message" );
 }
 
+sub test_stories_is_syndicated_ap($)
+{
+    my ( $db ) = @_;
+
+    my $label = "stories/is_syndicated_ap";
+
+    my $r = test_get( '/api/v2/stories_public/is_syndicated_ap', { content => 'foo' } );
+    is( $r->{ is_syndicated }, 0, "$label: not syndicated" );
+
+    $r = test_get( '/api/v2/stories_public/is_syndicated_ap', { content => '(ap)' } );
+    is( $r->{ is_syndicated }, 1, "$label: syndicated" );
+
+}
+
 sub test_stories_nytlabels($)
 {
     my ( $db ) = @_;

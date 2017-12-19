@@ -120,6 +120,7 @@ my $_url_permission_types = {
     '/api/v2/topics/timespans/list'               => 'topics_read',
     '/api/v2/topics/update'                       => 'topics_write',
     '/api/v2/topics/wc/list'                      => 'topics_read',
+    '/api/v2/util/is_syndicated_ap'               => 'public',
     '/api/v2/wc/list'                             => 'public',
 };
 

@@ -124,7 +124,8 @@ def send_email(message: Message) -> bool:
             mime_message.attach(message_part)
 
         if test_mode_is_enabled():
-            log.info("Test mode is enabled, not actually sending any email:\n\n%s" % mime_message.as_string())
+            log.info("Test mode is enabled, not actually sending any email.")
+            log.debug("Omitted email:\n\n%s" % mime_message.as_string())
 
         else:
 
