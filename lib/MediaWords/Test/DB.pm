@@ -152,12 +152,13 @@ sub _get_test_content
 }
 
 # adds a 'download' and a 'content' field to each story in the test story stack.  stores the content in the download
-# store.  generates the content using _get_test_content()
+# store.
+# uses the story->{ content } field if present or otherwise generates the content using _get_test_content()
 sub add_content_to_test_story($$$)
 {
     my ( $db, $story, $feed ) = @_;
 
-    my $content = _get_test_content();
+    my $content = defined( $story->{ content } ) ? $story->{ content } : _get_test_content();
 
     if ( $story->{ full_text_rss } )
     {

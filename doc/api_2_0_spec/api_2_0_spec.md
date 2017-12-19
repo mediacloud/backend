@@ -160,6 +160,11 @@ Table of Contents
          * [Query Parameters](#query-parameters-21)
          * [Output Description](#output-description-14)
          * [Example](#example-32)
+   * [Util](#util)
+      * [api/v2/util/is_syndicated_ap (POST)](#apiv2utilis_syndicated_ap-post)
+         * [Input Description](#input-description-8)
+         * [Output Description](#output-description-15)
+         * [Example](#example-33)
    * [Extended Examples](#extended-examples)
       * [Output Format / JSON](#output-format--json)
       * [Create a CSV file with all media sources.](#create-a-csv-file-with-all-media-sources)
@@ -1993,6 +1998,43 @@ URL: https://api.mediacloud.org/api/v2/stats/list
     "active_crawled_feeds": 123,
     "daily_stories": 123,
     "daily_downloads": 123,
+}
+```
+
+# Util
+
+## api/v2/util/is_syndicated_ap (POST)
+
+Detect whether a given block of content is likely to be ap syndicated content by looking for certain signals in the text
+(for example 'boston (ap)') and by comparing the text to the text of ap content in the Media Cloud database.
+
+### Input Description
+
+| Field         | Description
+| ------------------ | ----------------------------------------------------------------
+| `content`          | text or html content
+
+### Output Description
+
+| Field                        | Description
+| ---------------------------- | -----------------------------------------------------------------------------
+| is_syndicated                | 1 if the story is syndicated, 0 otherwise
+
+### Example
+
+URL: https://api.mediacloud.org/api/v2/util/is_syndicated_ap
+
+Input:
+
+```json
+{
+    "content": "WASHINGTON (AP) -- Republican Sen. Marco Rubio declared Thursday he will vote against the GOP'S sweeping tax package unless negotiators expand its child tax credit, jeopardizing the Republicans' razor-thin margin as they try to muscle the $1.5 trillion bill through Congress next week."
+}
+```
+
+```json
+{
+    "is_syndicated": 1
 }
 ```
 
