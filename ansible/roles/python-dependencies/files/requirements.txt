@@ -16,6 +16,9 @@ Celery==4.1.0
 # Unit test coverage
 coverage==4.4.1
 
+# Hindi stemming
+CyHunspell==1.2.1
+
 # URL manipulation
 furl==1.0.1
 
