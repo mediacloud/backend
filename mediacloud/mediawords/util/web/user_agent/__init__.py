@@ -940,7 +940,19 @@ class UserAgent(object):
                 requests_prepared_request=previous_rq_request
             )
 
-            previous_response = Response.from_requests_response(requests_response=previous_rq_response)
+            # Sometimes reading the (chunked?) previous response's data fails with:
+            #
+            #      AttributeError: 'NoneType' object has no attribute 'readline'
+            #
+            # Previous response's data is not that important, so fail rather silently.
+            try:
+                previous_rq_response_data = previous_rq_response.text
+            except Exception as ex:
+                log.warning("Reading previous response's data failed: %s" % str(ex))
+                previous_rq_response_data = ''
+
+            previous_response = Response.from_requests_response(requests_response=previous_rq_response,
+                                                                data=previous_rq_response_data)
             previous_response.set_request(request=previous_response_request)
 
             current_response.set_previous(previous=previous_response)
