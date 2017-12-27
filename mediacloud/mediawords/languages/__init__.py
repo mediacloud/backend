@@ -187,3 +187,50 @@ class SentenceSplitterMixIn(AbstractLanguage, metaclass=abc.ABCMeta):
                 non_empty_sentences.append(sentence)
 
         return non_empty_sentences
+
+
+class PyStemmerMixIn(AbstractLanguage, metaclass=abc.ABCMeta):
+    """Language which is supported by "PyStemmer" Python module."""
+
+    def __init__(self):
+        """Constructor."""
+        super().__init__()
+
+        # PyStemmer instance (lazy initialized)
+        self.__pystemmer = None
+
+    def stem(self, words: List[str]) -> List[str]:
+        """Stem list of words with PyStemmer."""
+        language_code = self.language_code()
+        words = decode_object_from_bytes_if_needed(words)
+
+        # Normalize apostrophe so that "it’s" and "it's" get treated identically (it's being done in
+        # _tokenize_with_spaces() too but let's not assume that all tokens that are to be stemmed go through sentence
+        # tokenization first)
+        words = [word.replace("’", "'") for word in words]
+
+        if language_code is None:
+            raise McLanguageException("Language code is None.")
+
+        if words is None:
+            raise McLanguageException("Words to stem is None.")
+
+        # (Re-)initialize stemmer if needed
+        if self.__pystemmer is None:
+
+            try:
+                self.__pystemmer = PyStemmer(language_code)
+            except Exception as ex:
+                raise McLanguageException(
+                    "Unable to initialize PyStemmer for language '%s': %s" % (language_code, str(ex),)
+                )
+
+        stems = self.__pystemmer.stemWords(words)
+
+        if len(words) != len(stems):
+            log.warning("Stem count is not the same as word count; words: %s; stems: %s" % (str(words), str(stems),))
+
+        # Perl's Snowball implementation used to return lowercase stems
+        stems = [stem.lower() for stem in stems]
+
+        return stems
