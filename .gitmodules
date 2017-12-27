@@ -16,3 +16,6 @@
 [submodule "lib/MediaWords/Util/Mail/Message/Templates/email-templates"]
 	path = lib/MediaWords/Util/Mail/Message/Templates/email-templates
 	url = https://github.com/berkmancenter/mediacloud-email-templates.git
+[submodule "mediacloud/snowball"]
+	path = mediacloud/snowball
+	url = https://github.com/snowballstem/snowball.git
