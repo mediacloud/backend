@@ -18,7 +18,7 @@ class TestChineseLanguage(TestCase):
         assert "not_a_stopword" not in stop_words
 
     def test_stem(self):
-        assert self.__tokenizer.stem(['abc']) == ['abc']
+        assert self.__tokenizer.stem_words(['abc']) == ['abc']
 
     def test_split_text_to_sentences(self):
         # noinspection PyTypeChecker

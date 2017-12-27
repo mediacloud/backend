@@ -224,7 +224,7 @@ sub test_stem()
         'исходн',       'слов'
     ];
 
-    my $mw_stem_result = $lang->stem( $split_words );
+    my $mw_stem_result = $lang->stem_words( $split_words );
 
     is_deeply( ( join "_", @{ $mw_stem_result } ), ( join "_", @{ $expected_stems } ), "Stemmer compare test" );
 

@@ -59,7 +59,7 @@ class HindiLanguage(StopWordsFromFileMixIn):
                 git submodule update --init --recursive
         """
         try:
-            test_stems = self.stem(['गुरुओं'])
+            test_stems = self.stem_words(['गुरुओं'])
         except Exception as _:
             raise McLanguageException(hunspell_exc_message)
         else:
@@ -70,7 +70,7 @@ class HindiLanguage(StopWordsFromFileMixIn):
     def language_code() -> str:
         return "hi"
 
-    def stem(self, words: List[str]) -> List[str]:
+    def stem_words(self, words: List[str]) -> List[str]:
         words = decode_object_from_bytes_if_needed(words)
         if words is None:
             raise McLanguageException("Words to stem is None.")

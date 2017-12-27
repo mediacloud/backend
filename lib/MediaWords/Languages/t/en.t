@@ -292,15 +292,20 @@ sub test_stem()
         'word',  'form',
     ];
 
-    my $stem_result = $lang->stem( $split_words );
+    my $stem_result = $lang->stem_words( $split_words );
 
     is_deeply( $stem_result, $expected_stems, "Stemmer compare test" );
 
     ok( length( $expected_stems ) > 0, "Stemmed text is nonempty" );
 
     # Apostrophes
-    is_deeply( $lang->stem( [ "Katz's", "Delicatessen" ] ), [ 'katz', 'delicatessen' ], 'Stemming with normal apostrophe' );
-    is_deeply( $lang->stem( [ "it’s", "toasted" ] ), [ 'it', 'toast' ], 'Stemming with right single quotation mark' );
+    is_deeply(
+        $lang->stem_words( [ "Katz's", "Delicatessen" ] ),
+        [ 'katz', 'delicatessen' ],
+        'Stemming with normal apostrophe'
+    );
+    is_deeply( $lang->stem_words( [ "it’s", "toasted" ] ), [ 'it', 'toast' ],
+        'Stemming with right single quotation mark' );
 }
 
 sub main()

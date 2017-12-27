@@ -287,7 +287,8 @@ sub count_stems($$)
         $sentence_words = [ grep { _word_is_valid_token( $_, $combined_stopwords ) } @{ $sentence_words } ];
 
         # Stem using sentence language's algorithm
-        my $sentence_word_stems = ( $self->ngram_size > 1 ) ? $sentence_words : $lang_sentence->stem( $sentence_words );
+        my $sentence_word_stems =
+          ( $self->ngram_size > 1 ) ? $sentence_words : $lang_sentence->stem_words( $sentence_words );
 
         my $n          = $self->ngram_size;
         my $num_ngrams = scalar( @{ $sentence_words } ) - $n + 1;

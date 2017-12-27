@@ -31,7 +31,7 @@ class CatalanLanguage(SpaceSeparatedWordsMixIn, SentenceSplitterMixIn, StopWords
     def language_code() -> str:
         return "ca"
 
-    def stem(self, words: List[str]) -> List[str]:
+    def stem_words(self, words: List[str]) -> List[str]:
         words = decode_object_from_bytes_if_needed(words)
         if words is None:
             raise McLanguageException("Words to stem is None.")

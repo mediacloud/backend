@@ -20,7 +20,7 @@ class TestHausaLanguage(TestCase):
     def test_stem(self):
         input_words = ["ababen", "abin", "abincin"]
         expected_stems = ["ababe", "abin", "abinci"]
-        actual_stems = self.__tokenizer.stem(input_words)
+        actual_stems = self.__tokenizer.stem_words(input_words)
         assert expected_stems == actual_stems
 
     def test_split_text_to_sentences(self):

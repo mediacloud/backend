@@ -56,8 +56,8 @@ sub test_stem($)
     for my $token ( keys %{ $tokens_and_stems } )
     {
         my $expected_stem = $tokens_and_stems->{ $token };
-        my $actual_stem = $lang->stem( [ $token ] )->[ 0 ];
-        is( $actual_stem, $expected_stem, "stem(): $token" );
+        my $actual_stem = $lang->stem_words( [ $token ] )->[ 0 ];
+        is( $actual_stem, $expected_stem, "stem_words(): $token" );
     }
 }
 

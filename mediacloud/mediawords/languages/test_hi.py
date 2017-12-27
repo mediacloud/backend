@@ -20,7 +20,7 @@ class TestHindiLanguage(TestCase):
     def test_stem(self):
         input_words = ["लडका", "लडके", "लडकों"]
         expected_stems = ["लडका", "लडके", "लडकों"]
-        actual_stems = self.__tokenizer.stem(input_words)
+        actual_stems = self.__tokenizer.stem_words(input_words)
         assert expected_stems == actual_stems
 
     def test_stem_lucene_set(self):
@@ -60,7 +60,7 @@ class TestHindiLanguage(TestCase):
         }
 
         for word, expected_stem in words_and_expected_stems.items():
-            actual_stem = self.__tokenizer.stem([word])[0]
+            actual_stem = self.__tokenizer.stem_words([word])[0]
             assert expected_stem == actual_stem
 
     def test_split_text_to_sentences(self):

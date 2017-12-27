@@ -80,7 +80,7 @@ class ChineseLanguage(StopWordsFromFileMixIn):
     def language_code() -> str:
         return "zh"
 
-    def stem(self, words: List[str]) -> List[str]:
+    def stem_words(self, words: List[str]) -> List[str]:
         words = decode_object_from_bytes_if_needed(words)
 
         # Jieba's sentence -> word tokenizer already returns "base forms" of every word

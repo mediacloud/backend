@@ -71,11 +71,11 @@ sub stop_words_map($)
     return $stop_words_map;
 }
 
-sub stem($$)
+sub stem_words($$)
 {
     my ( $self, $words ) = @_;
 
-    my $stems = $self->{ _python_lang }->stem( $words );
+    my $stems = $self->{ _python_lang }->stem_words( $words );
     return $stems;
 }
 

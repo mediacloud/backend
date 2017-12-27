@@ -69,7 +69,7 @@ class AbstractLanguage(object, metaclass=abc.ABCMeta):
         raise NotImplementedError("Abstract method.")
 
     @abc.abstractmethod
-    def stem(self, words: List[str]) -> List[str]:
+    def stem_words(self, words: List[str]) -> List[str]:
         """Return list of stems for a list of words.
 
         If PyStemmer module supports the language you're about to add, you can use self._stem_with_pystemmer() helper.
@@ -224,7 +224,7 @@ class PyStemmerMixIn(AbstractLanguage, metaclass=abc.ABCMeta):
         # PyStemmer instance (lazy initialized)
         self.__pystemmer = None
 
-    def stem(self, words: List[str]) -> List[str]:
+    def stem_words(self, words: List[str]) -> List[str]:
         """Stem list of words with PyStemmer."""
         language_code = self.language_code()
         words = decode_object_from_bytes_if_needed(words)

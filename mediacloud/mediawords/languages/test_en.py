@@ -20,21 +20,21 @@ class TestEnglishLanguage(TestCase):
     def test_stem(self):
         input_words = ["stemming"]
         expected_stems = ["stem"]
-        actual_stems = self.__tokenizer.stem(input_words)
+        actual_stems = self.__tokenizer.stem_words(input_words)
         assert expected_stems == actual_stems
 
     def test_stem_apostrophe_normal(self):
         """Stemming with normal apostrophe."""
         input_words = ["Katz's", "Delicatessen"]
         expected_stems = ['katz', 'delicatessen']
-        actual_stems = self.__tokenizer.stem(input_words)
+        actual_stems = self.__tokenizer.stem_words(input_words)
         assert expected_stems == actual_stems
 
     def test_stem_apostrophe_right_single_quotation_mark(self):
         """Stemming with right single quotation mark."""
         input_words = ["it’s", "toasted"]
         expected_stems = ['it', 'toast']
-        actual_stems = self.__tokenizer.stem(input_words)
+        actual_stems = self.__tokenizer.stem_words(input_words)
         assert expected_stems == actual_stems
 
     def test_split_text_to_sentences_period_in_number(self):
