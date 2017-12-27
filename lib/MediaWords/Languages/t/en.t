@@ -182,7 +182,7 @@ QUOTE
     # Non-breaking space
     #
     $test_string = <<"QUOTE";
-    American Current TV journalists Laura Ling and Euna Lee have been  sentenced  to 12 years of hard labor (according to CNN).\x{a0} Jillian York  rounded up blog posts  for Global Voices prior to the journalists' sentencing.
+    American Current TV journalists Laura Ling and Euna Lee have been  sentenced  to 12 years of hard labor (according to CNN).  Jillian York  rounded up blog posts  for Global Voices prior to the journalists' sentencing.
 QUOTE
 
     $expected_sentences = [
