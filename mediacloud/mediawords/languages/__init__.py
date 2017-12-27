@@ -234,3 +234,43 @@ class PyStemmerMixIn(AbstractLanguage, metaclass=abc.ABCMeta):
         stems = [stem.lower() for stem in stems]
 
         return stems
+
+
+class StopWordsFromFileMixIn(AbstractLanguage, metaclass=abc.ABCMeta):
+    """Language for which the stop words are being stored in "<language_code>/<language_code>_stop_words.txt" file."""
+
+    def __init__(self):
+        """Constructor."""
+
+        # Stop words map (lazy initialized)
+        self.__stop_words_map = None
+
+    def stop_words_map(self) -> Dict[str, bool]:
+        """Return stop word map read from a file."""
+        if self.__stop_words_map is None:
+
+            stop_words_path = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                self.language_code(),
+                '%s_stop_words.txt' % self.language_code(),
+            )
+            if stop_words_path is None:
+                raise McLanguageException("Stop words file path is None.")
+
+            if not os.path.isfile(stop_words_path):
+                raise McLanguageException("Stop words file does not exist at path '%s'." % stop_words_path)
+
+            stop_words = dict()
+            with open(stop_words_path, 'r', encoding='utf-8') as f:
+                for stop_word in f.readlines():
+                    # Remove comments
+                    stop_word = re.sub('\s*?#.*?$', '', stop_word)
+
+                    stop_word = stop_word.strip()
+
+                    if len(stop_word) > 0:
+                        stop_words[stop_word] = True
+
+            self.__stop_words_map = stop_words
+
+        return self.__stop_words_map
