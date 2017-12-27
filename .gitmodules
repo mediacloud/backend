@@ -1,4 +1,4 @@
-[submodule "lib/MediaWords/Languages/resources/hi/hindi-hunspell"]
+[submodule "mediacloud/mediawords/languages/hi/hindi-hunspell"]
 	path = mediacloud/mediawords/languages/hi/hindi-hunspell
 	url = https://github.com/Shreeshrii/hindi-hunspell.git
 [submodule "root/script/non-free/amcharts3"]
