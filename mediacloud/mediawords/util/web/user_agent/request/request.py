@@ -93,8 +93,6 @@ class Request(object):
                    "data": self.content().decode('utf-8', errors='replace') if self.content() is not None else "",
                }
 
-    __str__ = __repr__
-
     def method(self) -> str:
         """Return HTTP method, e.g. GET."""
         return self.__method

@@ -50,11 +50,8 @@ class Response(object):
         self.__set_content(data)
 
     @staticmethod
-    def from_requests_response(requests_response: requests.Response, data: str = None):
+    def from_requests_response(requests_response: requests.Response, data: str):
         """Create response from requests's Response object."""
-        if data is None:
-            data = requests_response.text
-
         return Response(
             code=requests_response.status_code,
             message=requests_response.reason,
@@ -62,7 +59,7 @@ class Response(object):
             data=data,
         )
 
-    def __repr__(self):
+    def __str__(self):
 
         headers = ""
         for key, value in sorted(self.headers().items()):
@@ -79,8 +76,6 @@ class Response(object):
                    "headers": headers,
                    "data": self.decoded_content(),
                }
-
-    __str__ = __repr__
 
     def code(self) -> int:
         """Return HTTP status code, e.g. 200."""
