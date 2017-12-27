@@ -62,7 +62,7 @@ class Response(object):
             data=data,
         )
 
-    def __repr__(self):
+    def __str__(self):
 
         headers = ""
         for key, value in sorted(self.headers().items()):
@@ -79,8 +79,6 @@ class Response(object):
                    "headers": headers,
                    "data": self.decoded_content(),
                }
-
-    __str__ = __repr__
 
     def code(self) -> int:
         """Return HTTP status code, e.g. 200."""
