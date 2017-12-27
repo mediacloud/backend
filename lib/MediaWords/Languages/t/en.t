@@ -6,12 +6,11 @@ use warnings;
 use Readonly;
 
 use Test::NoWarnings;
-use Test::More tests => 27;
+use Test::More tests => 26;
 use utf8;
 
 use MediaWords::Languages::en;
 use Data::Dumper;
-use Lingua::Stem::Snowball;
 
 sub test_stopwords()
 {
@@ -279,26 +278,25 @@ sub test_stem()
     my $lang = MediaWords::Languages::en->new();
 
     # from http://en.wikipedia.org/wiki/Stemming
-    my $stemmer_test_en_text = <<'__END_TEST_CASE__';
-    In linguistic morphology, stemming is the process for reducing inflected (or sometimes derived) words to their stem,
-    base or root form – generally a written word form. The stem need not be identical to the morphological root of the
-    word; it is usually sufficient that related words map to the same stem, even if this stem is not in itself a valid
-    root. The algorithm has been a long-standing problem in computer science; the first paper on the subject was published
-    in 1968. The process of stemming, often called conflation, is useful in search engines for query expansion or indexing
-    and other natural language processing problems.
-__END_TEST_CASE__
+    my $split_words = [
+        'In',       'linguistic', 'morphology', 'stemming',  'is',      'the',       'process', 'for',
+        'reducing', 'inflected',  'or',         'sometimes', 'derived', 'words',     'to',      'their',
+        'stem',     'base',       'or',         'root',      'form',    'generally', 'a',       'written',
+        'word',     'form',
+    ];
 
-    my $split_words = $lang->split_sentence_to_words( $stemmer_test_en_text );
+    my $expected_stems = [
+        'in',    'linguist', 'morpholog', 'stem',    'is',    'the',     'process', 'for',
+        'reduc', 'inflect',  'or',        'sometim', 'deriv', 'word',    'to',      'their',
+        'stem',  'base',     'or',        'root',    'form',  'general', 'a',       'written',
+        'word',  'form',
+    ];
 
-    my $lingua_stem = Lingua::Stem::Snowball->new( lang => 'en', encoding => 'UTF-8' );
+    my $stem_result = $lang->stem( $split_words );
 
-    my $lingua_stem_result = [ $lingua_stem->stem( $split_words ) ];
-    my $stem_result        = $lang->stem( $split_words );
+    is_deeply( $stem_result, $expected_stems, "Stemmer compare test" );
 
-    is_deeply( $stem_result, $lingua_stem_result, "Stemmer compare test" );
-
-    isnt( $lingua_stem_result, $stemmer_test_en_text, "Stemmed text is changed" );
-    ok( length( $lingua_stem_result ) > 0, "Stemmed text is nonempty" );
+    ok( length( $expected_stems ) > 0, "Stemmed text is nonempty" );
 
     # Apostrophes
     is_deeply( $lang->stem( [ "Katz's", "Delicatessen" ] ), [ 'katz', 'delicatessen' ], 'Stemming with normal apostrophe' );

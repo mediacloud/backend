@@ -9,12 +9,11 @@ use warnings;
 use Readonly;
 
 use Test::NoWarnings;
-use Test::More tests => 15;
+use Test::More tests => 13;
 use utf8;
 
 use MediaWords::Languages::ru;
 use Data::Dumper;
-use Lingua::Stem::Snowball;
 
 sub test_stopwords()
 {
@@ -213,37 +212,23 @@ sub test_stem()
     my $lang = MediaWords::Languages::ru->new();
 
     # from http://ru.wikipedia.org/
-    my $stemmer_test_ru_text = <<'__END_TEST_CASE__';
-        Сте́мминг — это процесс нахождения основы слова для заданного исходного слова. Основа слова необязательно
-        совпадает с морфологическим корнем слова. Алгоритм стемминга представляет собой давнюю проблему в области
-        компьютерных наук. Первый документ по этому вопросу был опубликован в 1968 году. Данный процесс применяется
-        в поиcковых системах для обобщения поискового запроса пользователя.
-__END_TEST_CASE__
+    my $split_words = [
+        'сте́мминг', 'это',     'процесс', 'нахождения',
+        'основы',       'слова', 'для',         'заданного',
+        'исходного', 'слова',
+    ];
 
-    ok( utf8::is_utf8( $stemmer_test_ru_text ), "is_utf8" );
+    my $expected_stems = [
+        'сте́мминг', 'эт',     'процесс', 'нахожден',
+        'основ',         'слов', 'для',         'зада',
+        'исходн',       'слов'
+    ];
 
-    my $split_words = $lang->split_sentence_to_words( $stemmer_test_ru_text );
+    my $mw_stem_result = $lang->stem( $split_words );
 
-    utf8::upgrade( $stemmer_test_ru_text );
-
-    my $temp = $stemmer_test_ru_text;
-
-    $split_words = $lang->split_sentence_to_words( $temp );
-
-    my $lingua_stem = Lingua::Stem::Snowball->new( lang => 'ru', encoding => 'UTF-8' );
-
-    my $lingua_stem_result = [ $lingua_stem->stem( $split_words ) ];
-    my $mw_stem_result     = $lang->stem( $split_words );
-
-    is_deeply( ( join "_", @{ $mw_stem_result } ), ( join "_", @{ $lingua_stem_result } ), "Stemmer compare test" );
+    is_deeply( ( join "_", @{ $mw_stem_result } ), ( join "_", @{ $expected_stems } ), "Stemmer compare test" );
 
     is( $mw_stem_result->[ 0 ], lc $split_words->[ 0 ], "first word" );
-
-    isnt(
-        join( "_", @$mw_stem_result ),
-        join( "_", @{ $lang->split_sentence_to_words( lc $stemmer_test_ru_text ) } ),
-        "Stemmer compare with no stemming test"
-    );
 }
 
 sub main()
