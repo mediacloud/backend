@@ -140,7 +140,7 @@ sub _get_sentences_from_content($)
     my $lang = MediaWords::Languages::Language::language_for_code( $story->{ language } )
       || MediaWords::Languages::Language::default_language();
 
-    my $sentences = $lang->get_sentences( $text );
+    my $sentences = $lang->split_text_to_sentences( $text );
 
     return $sentences;
 }
