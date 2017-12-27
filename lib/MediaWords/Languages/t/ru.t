@@ -14,6 +14,7 @@ use utf8;
 
 use MediaWords::Languages::ru;
 use Data::Dumper;
+use Lingua::Stem::Snowball;
 
 sub test_stopwords()
 {

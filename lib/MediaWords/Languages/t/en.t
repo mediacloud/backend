@@ -11,6 +11,7 @@ use utf8;
 
 use MediaWords::Languages::en;
 use Data::Dumper;
+use Lingua::Stem::Snowball;
 
 sub test_stopwords()
 {
