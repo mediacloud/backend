@@ -64,3 +64,35 @@ class AbstractLanguage(object, metaclass=abc.ABCMeta):
         alphabet), you can use self._split_sentence_to_words_using_spaces() helper.
         """
         raise NotImplementedError("Abstract method.")
+
+
+class SpaceSeparatedWordsMixIn(AbstractLanguage, metaclass=abc.ABCMeta):
+    """Language in which words are separated by spaces."""
+
+    def __init__(self):
+        super().__init__()
+        self.__tokenizer = TweetTokenizer(preserve_case=False)
+
+    def split_sentence_to_words(self, sentence: str) -> List[str]:
+        """Splits a sentence into words using spaces (for Latin languages)."""
+        sentence = decode_object_from_bytes_if_needed(sentence)
+        if sentence is None:
+            log.warning("Sentence is None.")
+            return []
+
+        # Normalize apostrophe so that "it’s" and "it's" get treated identically
+        sentence = sentence.replace("’", "'")
+
+        tokens = self.__tokenizer.tokenize(text=sentence)
+
+        def is_word(token_: str) -> bool:
+            """Returns True if token looks like a word."""
+            if re.match(pattern=r'\w', string=token_, flags=re.UNICODE):
+                return True
+            else:
+                return False
+
+        # TweetTokenizer leaves punctuation in-place
+        tokens = [token for token in tokens if is_word(token)]
+
+        return tokens
