@@ -1,12 +1,24 @@
 from unittest import TestCase
 
-from mediawords.languages.zh import *
+from mediawords.languages.zh import ChineseLanguage
 
 
 # noinspection SpellCheckingInspection
-class TestChineseTokenizer(TestCase):
+class TestChineseLanguage(TestCase):
+
     def setUp(self):
-        self.__tokenizer = McChineseTokenizer()
+        self.__tokenizer = ChineseLanguage()
+
+    def test_language_code(self):
+        assert self.__tokenizer.language_code() == "zh"
+
+    def test_stop_words_map(self):
+        stop_words = self.__tokenizer.stop_words_map()
+        assert "不勝" in stop_words
+        assert "not_a_stopword" not in stop_words
+
+    def test_stem(self):
+        assert self.__tokenizer.stem(['abc']) == ['abc']
 
     def test_split_text_to_sentences(self):
         # noinspection PyTypeChecker
@@ -47,6 +59,25 @@ class TestChineseTokenizer(TestCase):
             "時任政務司長林鄭月娥被指在未有公開諮詢下，突然宣布西九文化區興建故宮博物館，並委聘建築師嚴迅奇擔任設計顧問，被立法會議員向廉政公署舉報。",
             "她一出生就被父母遺棄，住在八里愛心教養院。",
             "堆填區個綠色真係靚，心曠神怡。",
+        ]
+
+        sentences = self.__tokenizer.split_text_to_sentences("""
+            范妮·伊姆利，是英国女权主义者玛丽·沃斯通克拉夫特与美国商人吉尔伯特·伊姆利的私生女。
+            在范妮出生不久，伊姆利便将沃斯通克拉夫特抛弃在了法国大革命日趋混乱的局势之中。
+            在经历了这次失意的爱情后，沃斯通克拉夫特与哲学家戈德温建立了亲密的关系，并最终与他结婚。
+            1797年，沃斯通克拉夫特死于产后并发症，将三岁的范妮与新生的玛丽·沃斯通克拉夫特·戈德温留给了戈德温一人抚育。
+            四年后，戈德温与第二任妻子结婚，范妮姐妹俩都不喜欢新的戈德温太太。
+            1814年，年少的玛丽与新戈德温太太带来的女儿克莱尔·克莱尔蒙特一同离家出走，并与浪漫主义诗人雪莱前往了欧洲大陆。
+            独自留下的范妮于1816年服毒自杀，时年22岁。
+        """)
+        assert sentences == [
+            '范妮·伊姆利，是英国女权主义者玛丽·沃斯通克拉夫特与美国商人吉尔伯特·伊姆利的私生女。',
+            '在范妮出生不久，伊姆利便将沃斯通克拉夫特抛弃在了法国大革命日趋混乱的局势之中。',
+            '在经历了这次失意的爱情后，沃斯通克拉夫特与哲学家戈德温建立了亲密的关系，并最终与他结婚。',
+            '1797年，沃斯通克拉夫特死于产后并发症，将三岁的范妮与新生的玛丽·沃斯通克拉夫特·戈德温留给了戈德温一人抚育。',
+            '四年后，戈德温与第二任妻子结婚，范妮姐妹俩都不喜欢新的戈德温太太。',
+            '1814年，年少的玛丽与新戈德温太太带来的女儿克莱尔·克莱尔蒙特一同离家出走，并与浪漫主义诗人雪莱前往了欧洲大陆。',
+            '独自留下的范妮于1816年服毒自杀，时年22岁。',
         ]
 
         # Chinese-only punctuation, no EOS at the end of the sentence

@@ -2,8 +2,9 @@ import MeCab
 from nltk import RegexpTokenizer, PunktSentenceTokenizer
 import os
 import re
-from typing import Dict
+from typing import List, Dict
 
+from mediawords.languages import McLanguageException, StopWordsFromFileMixIn
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.text import random_string
@@ -11,13 +12,8 @@ from mediawords.util.text import random_string
 log = create_logger(__name__)
 
 
-class McJapaneseTokenizerException(Exception):
-    """McJapaneseTokenizer class exception."""
-    pass
-
-
-class McJapaneseTokenizer(object):
-    """Japanese language tokenizer that uses MeCab."""
+class JapaneseLanguage(StopWordsFromFileMixIn):
+    """Japanese language support module."""
 
     # Paths where mecab-ipadic-neologd might be located
     __MECAB_DICTIONARY_PATHS = [
@@ -32,26 +28,72 @@ class McJapaneseTokenizer(object):
         '/usr/local/opt/mecab-ipadic-neologd/lib/mecab/dic/ipadic-neologd/',
     ]
 
-    # MeCab instance
-    __mecab = None
-
-    # Text -> sentence tokenizer for Japanese text
-    __japanese_sentence_tokenizer = RegexpTokenizer(
-        r'([^！？。]*[！？。])',
-        gaps=True,  # don't discard non-Japanese text
-        discard_empty=True,
-    )
-
-    # Text -> sentence tokenizer for non-Japanese (e.g. English) text
-    __non_japanese_sentence_tokenizer = PunktSentenceTokenizer()
-
     __MECAB_TOKEN_POS_SEPARATOR = random_string(length=16)  # for whatever reason tab doesn't work
     __MECAB_EOS_MARK = 'EOS'
 
-    def __init__(self):
-        """Initialize MeCab tokenizer."""
+    __slots__ = [
+        # MeCab instance
+        '__mecab',
 
-        mecab_dictionary_path = McJapaneseTokenizer._mecab_ipadic_neologd_path()
+        # Text -> sentence tokenizer for Japanese text
+        '__japanese_sentence_tokenizer',
+
+        # Text -> sentence tokenizer for non-Japanese (e.g. English) text
+        '__non_japanese_sentence_tokenizer',
+    ]
+
+    @staticmethod
+    def _mecab_ipadic_neologd_path() -> str:  # (protected and not private because used by the unit test)
+        """Return path to mecab-ipadic-neologd dictionary installed on system."""
+        mecab_dictionary_path = None
+        candidate_paths = JapaneseLanguage.__MECAB_DICTIONARY_PATHS
+
+        for candidate_path in candidate_paths:
+            if os.path.isdir(candidate_path):
+                if os.path.isfile(os.path.join(candidate_path, 'sys.dic')):
+                    mecab_dictionary_path = candidate_path
+                    break
+
+        if mecab_dictionary_path is None:
+            raise McLanguageException(
+                "mecab-ipadic-neologd was not found in paths: %s" % str(candidate_paths)
+            )
+
+        return mecab_dictionary_path
+
+    @staticmethod
+    def _mecab_allowed_pos_ids() -> Dict[int, str]:
+        """Return allowed MeCab part-of-speech IDs and their definitions from pos-id.def.
+
+        Definitions don't do much in the language module itself, they're used by unit tests to verify that pos-id.def
+        didn't change in some unexpected way and we're not missing out on newly defined POSes.
+        """
+        return {
+            36: '名詞,サ変接続,*,*',  # noun-verbal
+            38: '名詞,一般,*,*',  # noun
+            40: '名詞,形容動詞語幹,*,*',  # adjectival nouns or quasi-adjectives
+            41: '名詞,固有名詞,一般,*',  # proper nouns
+            42: '名詞,固有名詞,人名,一般',  # proper noun, names of people
+            43: '名詞,固有名詞,人名,姓',  # proper noun, first name
+            44: '名詞,固有名詞,人名,名',  # proper noun, last name
+            45: '名詞,固有名詞,組織,*',  # proper noun, organization
+            46: '名詞,固有名詞,地域,一般',  # proper noun in general
+            47: '名詞,固有名詞,地域,国',  # proper noun, country name
+        }
+
+    def __init__(self):
+        """Constructor."""
+        super().__init__()
+
+        self.__japanese_sentence_tokenizer = RegexpTokenizer(
+            r'([^！？。]*[！？。])',
+            gaps=True,  # don't discard non-Japanese text
+            discard_empty=True,
+        )
+
+        self.__non_japanese_sentence_tokenizer = PunktSentenceTokenizer()
+
+        mecab_dictionary_path = JapaneseLanguage._mecab_ipadic_neologd_path()
 
         try:
             self.__mecab = MeCab.Tagger(
@@ -64,34 +106,34 @@ class McJapaneseTokenizer(object):
                 }
             )
         except Exception as ex:
-            raise McJapaneseTokenizerException("Unable to initialize MeCab: %s" % str(ex))
+            raise McLanguageException("Unable to initialize MeCab: %s" % str(ex))
+
+        # Quick self-test to make sure that MeCab, its dictionaries and Python class are installed and working
+        mecab_exc_message = "MeCab self-test failed; make sure that MeCab is built and dictionaries are accessible."
+        try:
+            test_words = self.split_sentence_to_words('pythonが大好きです')
+        except Exception as _:
+            raise McLanguageException(mecab_exc_message)
+        else:
+            if len(test_words) < 2 or test_words[1] != '大好き':
+                raise McLanguageException(mecab_exc_message)
 
     @staticmethod
-    def _mecab_ipadic_neologd_path() -> str:  # (protected and not private because used by the unit test)
-        """Return path to mecab-ipadic-neologd dictionary installed on system."""
-        mecab_dictionary_path = None
-        candidate_paths = McJapaneseTokenizer.__MECAB_DICTIONARY_PATHS
+    def language_code() -> str:
+        return "ja"
 
-        for candidate_path in candidate_paths:
-            if os.path.isdir(candidate_path):
-                if os.path.isfile(os.path.join(candidate_path, 'sys.dic')):
-                    mecab_dictionary_path = candidate_path
-                    break
+    # noinspection PyMethodMayBeStatic
+    def stem(self, words: List[str]) -> List[str]:
+        words = decode_object_from_bytes_if_needed(words)
 
-        if mecab_dictionary_path is None:
-            raise McJapaneseTokenizerException(
-                "mecab-ipadic-neologd was not found in paths: %s" % str(candidate_paths)
-            )
+        # MeCab's sentence -> word tokenizer already returns "base forms" of every word
+        return words
 
-        return mecab_dictionary_path
-
-    def split_text_to_sentences(self, text: str) -> list:
+    def split_text_to_sentences(self, text: str) -> List[str]:
         """Tokenize Japanese text into sentences."""
-
         text = decode_object_from_bytes_if_needed(text)
-
         if text is None:
-            log.warning("Text to tokenize into sentences is None.")
+            log.warning("Text is None.")
             return []
 
         text = text.strip()
@@ -121,35 +163,14 @@ class McJapaneseTokenizer(object):
 
         return sentences
 
-    @staticmethod
-    def _mecab_allowed_pos_ids() -> Dict[int, str]:
-        """Return allowed MeCab part-of-speech IDs and their definitions from pos-id.def.
-
-        Definitions don't do much in the language module itself, they're used by unit tests to verify that pos-id.def
-        didn't change in some unexpected way and we're not missing out on newly defined POSes.
-        """
-        return {
-            36: '名詞,サ変接続,*,*',  # noun-verbal
-            38: '名詞,一般,*,*',  # noun
-            40: '名詞,形容動詞語幹,*,*',  # adjectival nouns or quasi-adjectives
-            41: '名詞,固有名詞,一般,*',  # proper nouns
-            42: '名詞,固有名詞,人名,一般',  # proper noun, names of people
-            43: '名詞,固有名詞,人名,姓',  # proper noun, first name
-            44: '名詞,固有名詞,人名,名',  # proper noun, last name
-            45: '名詞,固有名詞,組織,*',  # proper noun, organization
-            46: '名詞,固有名詞,地域,一般',  # proper noun in general
-            47: '名詞,固有名詞,地域,国',  # proper noun, country name
-        }
-
-    def split_sentence_to_words(self, sentence: str) -> list:
+    def split_sentence_to_words(self, sentence: str) -> List[str]:
         """Tokenize Japanese sentence into words.
 
         Removes punctuation and words that don't belong to part-of-speech whitelist."""
 
         sentence = decode_object_from_bytes_if_needed(sentence)
-
         if sentence is None:
-            log.warning("Sentence to tokenize into words is None.")
+            log.warning("Sentence is None.")
             return []
 
         sentence = sentence.strip()

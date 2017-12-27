@@ -2,75 +2,96 @@ from jieba import Tokenizer as JiebaTokenizer
 from nltk import RegexpTokenizer, PunktSentenceTokenizer
 import os
 import re
+from typing import List
 
+from mediawords.languages import McLanguageException, StopWordsFromFileMixIn
 from mediawords.util.log import create_logger
-from mediawords.util.paths import mc_root_path
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
 log = create_logger(__name__)
 
 
-class McChineseTokenizerException(Exception):
-    """McChineseTokenizer class exception."""
-    pass
-
-
-class McChineseTokenizer(object):
-    """Chinese language tokenizer that uses jieba."""
+class ChineseLanguage(StopWordsFromFileMixIn):
+    """Chinese language support module."""
 
     # Path to jieba dictionary(ies)
-    __dict_path = os.path.join(mc_root_path(), 'lib/MediaWords/Languages/resources/zh/')
-    __jieba_dict_path = os.path.join(__dict_path, 'dict.txt.big')
-    __jieba_userdict_path = os.path.join(__dict_path, 'userdict.txt')
+    __DICT_PATH = os.path.dirname(os.path.abspath(__file__))
+    __JIEBA_DICT_PATH = os.path.join(__DICT_PATH, 'dict.txt.big')
+    __JIEBA_USERDICT_PATH = os.path.join(__DICT_PATH, 'userdict.txt')
 
-    # jieba instance
-    __jieba = None
+    __slots__ = [
+        # Stop words map
+        '__stop_words_map',
 
-    # Text -> sentence tokenizer for Chinese text
-    __chinese_sentence_tokenizer = RegexpTokenizer(
-        r'([^！？。]*[！？。])',
-        gaps=True,  # don't discard non-Chinese text
-        discard_empty=True,
-    )
+        # Jieba instance
+        '__jieba',
 
-    # Text -> sentence tokenizer for non-Chinese (e.g. English) text
-    __non_chinese_sentence_tokenizer = PunktSentenceTokenizer()
+        # Text -> sentence tokenizer for Chinese text
+        '__chinese_sentence_tokenizer',
+
+        # Text -> sentence tokenizer for non-Chinese (e.g. English) text
+        '__non_chinese_sentence_tokenizer',
+    ]
 
     def __init__(self):
-        """Initialize jieba tokenizer."""
+        """Constructor."""
+        super().__init__()
+
+        # Text -> sentence tokenizer for Chinese text
+        self.__chinese_sentence_tokenizer = RegexpTokenizer(
+            r'([^！？。]*[！？。])',
+            gaps=True,  # don't discard non-Chinese text
+            discard_empty=True,
+        )
+
+        # Text -> sentence tokenizer for non-Chinese (e.g. English) text
+        self.__non_chinese_sentence_tokenizer = PunktSentenceTokenizer()
 
         self.__jieba = JiebaTokenizer()
 
-        if not os.path.isdir(self.__dict_path):
-            raise McChineseTokenizerException("""
-                jieba dictionary directory was not found: %s
-                Maybe you forgot to initialize Git submodules?
-                """ % self.__dict_path)
+        if not os.path.isdir(self.__DICT_PATH):
+            raise McLanguageException("Jieba dictionary directory was not found: %s" % self.__DICT_PATH)
 
-        if not os.path.isfile(self.__jieba_dict_path):
-            raise McChineseTokenizerException("""
-                Default dictionary not found in jieba dictionary directory: %s
-                Maybe you forgot to run jieba installation script?
-                """ % self.__dict_path)
-        if not os.path.isfile(self.__jieba_userdict_path):
-            raise McChineseTokenizerException("""
-                User dictionary not found in jieba dictionary directory: %s
-                Maybe you forgot to run jieba installation script?
-                """ % self.__dict_path)
+        if not os.path.isfile(self.__JIEBA_DICT_PATH):
+            raise McLanguageException(
+                "Default dictionary not found in Jieba dictionary directory: %s" % self.__DICT_PATH
+            )
+        if not os.path.isfile(self.__JIEBA_USERDICT_PATH):
+            raise McLanguageException(
+                "User dictionary not found in jieba dictionary directory: %s" % self.__DICT_PATH
+            )
         try:
-            # loading dictionary is part of the init process
-            self.__jieba.set_dictionary(os.path.join(self.__jieba_dict_path))
-            self.__jieba.load_userdict(os.path.join(self.__jieba_userdict_path))
+            self.__jieba.set_dictionary(os.path.join(self.__JIEBA_DICT_PATH))
+            self.__jieba.load_userdict(os.path.join(self.__JIEBA_USERDICT_PATH))
         except Exception as ex:
-            raise McChineseTokenizerException("Unable to initialize jieba: %s" % str(ex))
+            raise McLanguageException("Unable to initialize jieba: %s" % str(ex))
 
-    def split_text_to_sentences(self, text: str) -> list:
+        # Quick self-test to make sure that Jieba, its dictionaries and Python class are installed and working
+        jieba_exc_message = "Jieba self-test failed; make sure that MeCab is built and dictionaries are accessible."
+        try:
+            test_words = self.split_sentence_to_words('python課程')
+        except Exception as _:
+            raise McLanguageException(jieba_exc_message)
+        else:
+            if len(test_words) < 2 or test_words[1] != '課程':
+                raise McLanguageException(jieba_exc_message)
+
+    @staticmethod
+    def language_code() -> str:
+        return "zh"
+
+    def stem(self, words: List[str]) -> List[str]:
+        words = decode_object_from_bytes_if_needed(words)
+
+        # Jieba's sentence -> word tokenizer already returns "base forms" of every word
+        return words
+
+    def split_text_to_sentences(self, text: str) -> List[str]:
         """Tokenize Chinese text into sentences."""
 
         text = decode_object_from_bytes_if_needed(text)
-
         if text is None:
-            log.warning("Text to tokenize into sentences is None.")
+            log.warning("Text is None.")
             return []
 
         text = text.strip()
@@ -100,7 +121,7 @@ class McChineseTokenizer(object):
 
         return sentences
 
-    def split_sentence_to_words(self, sentence: str) -> list:
+    def split_sentence_to_words(self, sentence: str) -> List[str]:
         """Tokenize Chinese sentence into words.
 
         Removes punctuation."""
@@ -124,4 +145,5 @@ class McChineseTokenizer(object):
                 words.append(parsed_token)
             else:
                 pass
+
         return words

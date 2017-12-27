@@ -1,14 +1,26 @@
 from unittest import TestCase
 
-from mediawords.languages.ja import *
+import os
+
+from mediawords.languages.ja import JapaneseLanguage
 
 
 # noinspection SpellCheckingInspection
-class TestJapaneseTokenizer(TestCase):
-    __mecab = None
+class TestJapaneseLanguage(TestCase):
 
     def setUp(self):
-        self.__tokenizer = McJapaneseTokenizer()
+        self.__tokenizer = JapaneseLanguage()
+
+    def test_language_code(self):
+        assert self.__tokenizer.language_code() == "ja"
+
+    def test_stop_words_map(self):
+        stop_words = self.__tokenizer.stop_words_map()
+        assert "向こう" in stop_words
+        assert "not_a_stopword" not in stop_words
+
+    def test_stem(self):
+        assert self.__tokenizer.stem(['abc']) == ['abc']
 
     def test_split_text_to_sentences(self):
         # noinspection PyTypeChecker
@@ -216,7 +228,7 @@ This is some more English text
 def test_mecab_pos_ids():
     """Make sure hardcoded POS IDs point to expected (hardcoded) parts of speech."""
     # noinspection PyProtectedMember
-    dictionary_path = McJapaneseTokenizer._mecab_ipadic_neologd_path()
+    dictionary_path = JapaneseLanguage._mecab_ipadic_neologd_path()
     assert dictionary_path is not None
     assert os.path.isdir(dictionary_path)
 
@@ -238,7 +250,7 @@ def test_mecab_pos_ids():
                 pos_id_map[pos_number] = pos_string
 
     # noinspection PyProtectedMember
-    allowed_pos_ids = McJapaneseTokenizer._mecab_allowed_pos_ids()
+    allowed_pos_ids = JapaneseLanguage._mecab_allowed_pos_ids()
 
     for allowed_pos_id in allowed_pos_ids:
         assert allowed_pos_ids[allowed_pos_id] == pos_id_map[allowed_pos_id]
