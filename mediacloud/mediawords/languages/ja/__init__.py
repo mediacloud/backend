@@ -1,10 +1,11 @@
 import MeCab
-from nltk import RegexpTokenizer, PunktSentenceTokenizer
+from nltk import RegexpTokenizer
 import os
 import re
 from typing import List, Dict
 
 from mediawords.languages import McLanguageException, StopWordsFromFileMixIn
+from mediawords.languages.en import EnglishLanguage
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.text import random_string
@@ -38,8 +39,8 @@ class JapaneseLanguage(StopWordsFromFileMixIn):
         # Text -> sentence tokenizer for Japanese text
         '__japanese_sentence_tokenizer',
 
-        # Text -> sentence tokenizer for non-Japanese (e.g. English) text
-        '__non_japanese_sentence_tokenizer',
+        # English language instance for tokenizing non-Chinese (e.g. English) text
+        '__english_language',
     ]
 
     @staticmethod
@@ -91,7 +92,7 @@ class JapaneseLanguage(StopWordsFromFileMixIn):
             discard_empty=True,
         )
 
-        self.__non_japanese_sentence_tokenizer = PunktSentenceTokenizer()
+        self.__english_language = EnglishLanguage()
 
         mecab_dictionary_path = JapaneseLanguage._mecab_ipadic_neologd_path()
 
@@ -154,7 +155,7 @@ class JapaneseLanguage(StopWordsFromFileMixIn):
                 list_items = re.split("\n\s*?(?=\* )", paragraph)
                 for list_item in list_items:
                     # Split non-Japanese text
-                    non_japanese_sentences = self.__non_japanese_sentence_tokenizer.tokenize(list_item)
+                    non_japanese_sentences = self.__english_language.split_text_to_sentences(list_item)
 
                     sentences += non_japanese_sentences
 

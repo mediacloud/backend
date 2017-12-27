@@ -114,7 +114,7 @@ This is some English text out of the blue.
 時任政務司長林鄭月娥被指在未有公開諮詢下，突然宣布西九文化區興建故宮博物館，並委聘建築師嚴迅奇擔任設計顧問，被立法會議員向廉政公署舉報。
 This is some more English text.
 This is some more English text.
-dsds.
+Dsds.
 """)
         assert sentences == [
             "問責制既不能吸引政治人才加入政府。",
@@ -122,7 +122,7 @@ dsds.
             "時任政務司長林鄭月娥被指在未有公開諮詢下，突然宣布西九文化區興建故宮博物館，並委聘建築師嚴迅奇擔任設計顧問，被立法會議員向廉政公署舉報。",
             "This is some more English text.",
             "This is some more English text.",
-            "dsds.",
+            "Dsds.",
         ]
 
         # Chinese and English sentences separates by double-newlines

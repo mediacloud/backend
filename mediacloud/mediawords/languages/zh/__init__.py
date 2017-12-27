@@ -1,10 +1,11 @@
 from jieba import Tokenizer as JiebaTokenizer
-from nltk import RegexpTokenizer, PunktSentenceTokenizer
+from nltk import RegexpTokenizer
 import os
 import re
 from typing import List
 
 from mediawords.languages import McLanguageException, StopWordsFromFileMixIn
+from mediawords.languages.en import EnglishLanguage
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
@@ -29,8 +30,8 @@ class ChineseLanguage(StopWordsFromFileMixIn):
         # Text -> sentence tokenizer for Chinese text
         '__chinese_sentence_tokenizer',
 
-        # Text -> sentence tokenizer for non-Chinese (e.g. English) text
-        '__non_chinese_sentence_tokenizer',
+        # English language instance for tokenizing non-Chinese (e.g. English) text
+        '__english_language',
     ]
 
     def __init__(self):
@@ -44,8 +45,7 @@ class ChineseLanguage(StopWordsFromFileMixIn):
             discard_empty=True,
         )
 
-        # Text -> sentence tokenizer for non-Chinese (e.g. English) text
-        self.__non_chinese_sentence_tokenizer = PunktSentenceTokenizer()
+        self.__english_language = EnglishLanguage()
 
         self.__jieba = JiebaTokenizer()
 
@@ -112,7 +112,7 @@ class ChineseLanguage(StopWordsFromFileMixIn):
                 list_items = re.split("\n\s*?(?=\* )", paragraph)
                 for list_item in list_items:
                     # Split non-Chinese text
-                    non_chinese_sentences = self.__non_chinese_sentence_tokenizer.tokenize(list_item)
+                    non_chinese_sentences = self.__english_language.split_text_to_sentences(list_item)
 
                     sentences += non_chinese_sentences
 

@@ -97,7 +97,7 @@ This is some English text out of the blue.
 また、有痛性筋痙攣（いわゆる“こむらがえり”）などの筋痙攣の治療にはベンゾジアゼピン類の中で最も有用であるとされている。
 This is some more English text.
 This is some more English text.
-dsds.
+Dsds.
 """)
         assert sentences == [
             "ジアゼパムはてんかんや興奮の治療に用いられる。",
@@ -105,7 +105,7 @@ dsds.
             "また、有痛性筋痙攣（いわゆる“こむらがえり”）などの筋痙攣の治療にはベンゾジアゼピン類の中で最も有用であるとされている。",
             "This is some more English text.",
             "This is some more English text.",
-            "dsds.",
+            "Dsds.",
         ]
 
         # Japanese and English sentences separates by double-newlines
