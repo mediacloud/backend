@@ -700,7 +700,7 @@ class UserAgent(object):
             """On exceptions, we want to create our own HTTPResponse with exception's message to set it to response.raw
             to be read later."""
             return HTTPResponse(
-                body=io.BytesIO(str(exception).encode('utf-8')),
+                body=io.BytesIO(str(exception).encode('utf-8', errors='replace')),
 
                 # https://github.com/requests/requests/issues/2635#issuecomment-112270117
                 preload_content=False,

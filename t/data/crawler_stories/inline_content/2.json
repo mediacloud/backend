@@ -1,31 +1,31 @@
 {
-   "collect_date" : "2017-03-09 00:30:24.232121",
-   "content" : "<p>This is the second item.</p>\n",
-   "db_row_last_updated" : "2017-03-09 00:30:27.143249+08:00",
-   "description" : "RSS description of the second inline item.",
-   "extracted_text" : "Second inline item\n***\n\nRSS description of the second inline item.\n***\n\n\n\n \n\n This is the second item. \n\n\n ",
-   "feed_type" : "syndicated",
-   "full_text_rss" : 0,
-   "guid" : "http://www.example.com/inline_content/item_2.html",
-   "language" : "en",
-   "media_id" : 1,
-   "publish_date" : "2009-06-11 06:57:00",
-   "stories_id" : 2,
-   "story_sentences" : [
-      {
-         "db_row_last_updated" : "2017-03-09 00:30:27.143249+08:00",
-         "is_dup" : null,
-         "language" : "en",
-         "media_id" : 1,
-         "publish_date" : "2009-06-11 06:57:00",
-         "sentence" : "Second inline item.RSS description of the second inline item.",
-         "sentence_number" : 0,
-         "stories_id" : 2,
-         "story_sentences_id" : 3
-      }
-   ],
-   "tags" : [],
-   "timezone" : "America/New_York",
-   "title" : "Second inline item",
-   "url" : "http://tundra.local:63490/inline_content/item_2.html"
+    "collect_date":"2017-12-30 22:44:26.947654",
+    "content":"<p>This is the second item.</p>\n",
+    "db_row_last_updated":"2017-12-30 22:44:42.744189+08:00",
+    "description":"RSS description of the second inline item.",
+    "extracted_text":"Second inline item\n***\n\nRSS description of the second inline item.\n***\n\n\n\n \n\n This is the second item. \n\n\n ",
+    "feed_type":"syndicated",
+    "full_text_rss":false,
+    "guid":"http://www.example.com/inline_content/item_2.html",
+    "language":"en",
+    "media_id":1,
+    "publish_date":"2009-06-11 13:57:00",
+    "stories_id":2,
+    "story_sentences":[
+        {
+            "db_row_last_updated":"2017-12-30 22:44:42.744189+08:00",
+            "is_dup":null,
+            "language":"en",
+            "media_id":1,
+            "publish_date":"2009-06-11 13:57:00",
+            "sentence":"Second inline item.RSS description of the second inline item.",
+            "sentence_number":0,
+            "stories_id":2,
+            "story_sentences_id":3
+        }
+    ],
+    "tags":[],
+    "timezone":"Europe/Vilnius",
+    "title":"Second inline item",
+    "url":"http://tundra.local:60968/inline_content/item_2.html"
 }
