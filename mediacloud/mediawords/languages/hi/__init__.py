@@ -4,7 +4,7 @@ from typing import List
 
 # noinspection PyProtectedMember
 from hunspell import Hunspell
-import nltk
+from nltk import TreebankWordTokenizer
 
 from mediawords.languages import McLanguageException, StopWordsFromFileMixIn
 from mediawords.languages.en import EnglishLanguage
@@ -23,11 +23,16 @@ class HindiLanguage(StopWordsFromFileMixIn):
 
         # Hunspell instance
         '__hindi_hunspell',
+
+        # Word tokenizer
+        '__treebank_tokenizer',
     ]
 
     def __init__(self):
         """Constructor."""
         super().__init__()
+
+        self.__treebank_tokenizer = TreebankWordTokenizer()
 
         hunspell_dict_dir = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
@@ -126,8 +131,9 @@ class HindiLanguage(StopWordsFromFileMixIn):
         # Replace Hindi's "।" with line break to make tokenizer split on both "।" and period
         sentence = sentence.replace("।", ".")
 
-        # TweetTokenizer doesn't work with Hindi for whatever reason
-        tokens = nltk.word_tokenize(sentence, language='english')
+        # TweetTokenizer / sentence_splitter don't work with Hindi for whatever reason, and word_tokenize() would
+        # require NLTK data to be installed which is time consuming on Travis
+        tokens = self.__treebank_tokenizer.tokenize(sentence)
 
         def is_word(token_: str) -> bool:
             """Returns True if token looks like a word."""
