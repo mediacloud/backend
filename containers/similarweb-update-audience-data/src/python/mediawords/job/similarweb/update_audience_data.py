@@ -42,5 +42,5 @@ class SimilarWebUpdateAudienceDataJob(AbstractJob):
 
 
 if __name__ == '__main__':
-    app = JobBrokerApp(job_class=SimilarWebUpdateAudienceDataJob)
+    app = JobBrokerApp(queue_name=SimilarWebUpdateAudienceDataJob.queue_name())
     app.start_worker()

@@ -2,10 +2,11 @@ import re
 import html
 from typing import List
 
-import mediawords.util.parse_html
-import mediawords.util.sql
-
 from mediawords.util.log import create_logger
+from mediawords.util.parse_html import html_strip
+from mediawords.util.sql import get_epoch_from_sql_date
+from mediawords.util.url import get_url_path_fast, normalize_url_lossy
+
 log = create_logger(__name__)
 
 # common title prefixes that can be ignored for dup title matching
@@ -22,7 +23,7 @@ def _get_title_parts(title: str) -> List[str]:
     title = html.unescape(title).lower()
 
     if '<' in title:
-        title = mediawords.util.parse_html.html_strip(title)
+        title = html_strip(title)
 
     sep_chars_re = r'[\-\:\|]'
 
@@ -31,7 +32,6 @@ def _get_title_parts(title: str) -> List[str]:
     prefix_re = '(?:' + '|'.join(DUP_TITLE_PREFIXES) + ')'
     title = re.sub(r'^\s*' + prefix_re + r'\s*' + sep_chars_re + r'\s*', '', title)
 
-    title_parts = None
     if re.search(r'https?://[^ ]*', title):
         return [title]
     else:
@@ -42,14 +42,14 @@ def _get_title_parts(title: str) -> List[str]:
         title_parts.insert(0, title)
 
     title_parts = [re.sub(r'[[:punct:]]', '', t) for t in title_parts]
-    title_parts = [t.strip()for t in title_parts]
+    title_parts = [t.strip() for t in title_parts]
 
     return title_parts
 
 
-def _get_story_date_range(stories: List[dict]) -> List[dict]:
+def _get_story_date_range(stories: List[dict]) -> int:
     """Get the difference in seconds between the newest and oldest story in the list."""
-    epoch_dates = [mediawords.util.sql.get_epoch_from_sql_date(s['publish_date']) for s in stories]
+    epoch_dates = [get_epoch_from_sql_date(s['publish_date']) for s in stories]
 
     return max(epoch_dates) - min(epoch_dates)
 
@@ -77,7 +77,7 @@ def get_medium_dup_stories_by_title(stories: List, assume_no_home_pages: bool = 
     """
     title_part_counts = {}
     for story in stories:
-        if story['url'] and re.match(r'^https?:\/\/twitter\.com', story['url']):
+        if story['url'] and re.match(r'^https?://twitter\.com', story['url']):
             continue
 
         title_parts = _get_title_parts(story['title'])
@@ -85,14 +85,14 @@ def get_medium_dup_stories_by_title(stories: List, assume_no_home_pages: bool = 
         for i, title_part in enumerate(title_parts):
             if i == 0:
                 num_words = len(title_part.split())
-                uri_path = mediawords.util.url.get_url_path_fast(story['url'])
+                uri_path = get_url_path_fast(story['url'])
 
                 # solo title parts that are only a few words might just be the media source name
                 if num_words < 5 and not assume_no_home_pages:
                     continue
 
                 # likewise, a solo title of a story with a url with no path is probably the media source name
-                if re.match(r'^\/?$', uri_path) and not assume_no_home_pages:
+                if re.match(r'^/?$', uri_path) and not assume_no_home_pages:
                     continue
 
                 title_part_counts.setdefault(title_part, {})
@@ -137,10 +137,12 @@ def get_medium_dup_stories_by_url(stories: List[dict]) -> List[List]:
             log.warning("No URL in story: %s" % str(story))
             continue
 
-        nu = mediawords.util.url.normalize_url_lossy(story['url'])
+        nu = normalize_url_lossy(story['url'])
         story['normalized_url'] = nu
 
         url_lookup.setdefault(nu, [])
         url_lookup[nu].append(story)
 
-    return filter(lambda x: len(x) > 1 and len(x) < 6, url_lookup.values())
+    result = filter(lambda x: 1 < len(x) < 6, url_lookup.values())
+
+    return list(result)

@@ -24,14 +24,6 @@ class NYTLabelsAnnotator(JSONAnnotator):
     # Story will be tagged with labels for which the score is above this threshold
     __NYTLABELS_SCORE_THRESHOLD = 0.2
 
-    def annotator_is_enabled(self) -> bool:
-        config = py_get_config()
-
-        if config.get('nytlabels', {}).get('enabled', False):
-            return True
-        else:
-            return False
-
     def _postgresql_raw_annotations_table(self) -> str:
         return 'nytlabels_annotations'
 

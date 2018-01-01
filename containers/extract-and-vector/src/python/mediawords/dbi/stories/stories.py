@@ -2,7 +2,7 @@ import datetime
 from typing import Optional
 
 from mediawords.db import DatabaseHandler
-from mediawords.dbi.downloads import extract_and_create_download_text
+from mediawords.dbi.downloads.extract import extract_and_create_download_text
 from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
 from mediawords.dbi.stories.process import process_extracted_story
 from mediawords.util.log import create_logger

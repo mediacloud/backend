@@ -116,9 +116,9 @@ sub _add_timespans_to_stories
         my $timespan = pop( @{ $timespans } );
         unshift( @{ $timespans }, $timespan );
 
-        $db->query( <<SQL, $story->{ stories_id }, $timespan->{ timespans_id } );
+        $db->query( <<SQL, $timespan->{ timespans_id }, $story->{ stories_id } );
 insert into snap.story_link_counts ( timespans_id, stories_id, media_inlink_count, inlink_count, outlink_count )
-    values ( \$2, \$1, 1, 1, 1 );
+    values ( ?, ?, 1, 1, 1 );
 SQL
     }
 

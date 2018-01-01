@@ -62,5 +62,5 @@ class NYTLabelsFetchAnnotationJob(AbstractJob):
 
 
 if __name__ == '__main__':
-    app = JobBrokerApp(job_class=NYTLabelsFetchAnnotationJob)
+    app = JobBrokerApp(queue_name=NYTLabelsFetchAnnotationJob.queue_name())
     app.start_worker()

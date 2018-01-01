@@ -5,6 +5,7 @@ from typing import Union, List
 import re
 
 from mediawords.db import DatabaseHandler
+from mediawords.dbi.stories.postprocess import story_is_english_and_has_sentences
 from mediawords.key_value_store import KeyValueStore
 from mediawords.key_value_store.postgresql import PostgreSQLStore
 from mediawords.util.parse_json import decode_json, encode_json
@@ -51,11 +52,6 @@ class JSONAnnotator(metaclass=abc.ABCMeta):
             self.tags_name = tags_name
             self.tags_label = tags_label
             self.tags_description = tags_description
-
-    @abc.abstractmethod
-    def annotator_is_enabled(self) -> bool:
-        """Returns True if annotator is enabled (via configuration or some other means)."""
-        raise NotImplementedError
 
     @abc.abstractmethod
     def _postgresql_raw_annotations_table(self) -> str:
@@ -240,33 +236,8 @@ class JSONAnnotator(metaclass=abc.ABCMeta):
 
         return results
 
-    def story_is_annotatable(self, db: DatabaseHandler, stories_id: int) -> bool:
-        """Check if story can be annotated."""
-
-        if not self.annotator_is_enabled():
-            raise McJSONAnnotatorException("Annotator is not enabled in the configuration.")
-
-        # MC_REWRITE_TO_PYTHON: remove after rewrite to Python
-        if isinstance(stories_id, bytes):
-            stories_id = decode_object_from_bytes_if_needed(stories_id)
-
-        stories_id = int(stories_id)
-
-        story = db.query("""
-            SELECT story_is_english_and_has_sentences
-            FROM story_is_english_and_has_sentences(%(stories_id)s)
-        """, {'stories_id': stories_id}).hash()
-
-        if story is not None and int(story['story_is_english_and_has_sentences']) == 1:
-            return True
-        else:
-            return False
-
     def story_is_annotated(self, db: DatabaseHandler, stories_id: int) -> bool:
         """Check if story is annotated."""
-
-        if not self.annotator_is_enabled():
-            raise McJSONAnnotatorException("Annotator is not enabled in the configuration.")
 
         # MC_REWRITE_TO_PYTHON: remove after rewrite to Python
         if isinstance(stories_id, bytes):
@@ -282,9 +253,6 @@ class JSONAnnotator(metaclass=abc.ABCMeta):
     def annotate_and_store_for_story(self, db: DatabaseHandler, stories_id: int) -> None:
         """Run the annotation for the story, store results in key-value store."""
 
-        if not self.annotator_is_enabled():
-            fatal_error("Annotator is not enabled in the configuration.")
-
         # MC_REWRITE_TO_PYTHON: remove after rewrite to Python
         if isinstance(stories_id, bytes):
             stories_id = decode_object_from_bytes_if_needed(stories_id)
@@ -294,7 +262,7 @@ class JSONAnnotator(metaclass=abc.ABCMeta):
         if self.story_is_annotated(db=db, stories_id=stories_id):
             log.warning("Story %d is already annotated, so I will overwrite it." % stories_id)
 
-        if not self.story_is_annotatable(db=db, stories_id=stories_id):
+        if not story_is_english_and_has_sentences(db=db, stories_id=stories_id):
             log.warning("Story %d is not annotatable." % stories_id)
             return
 
@@ -341,9 +309,6 @@ class JSONAnnotator(metaclass=abc.ABCMeta):
 
     def fetch_annotation_for_story(self, db: DatabaseHandler, stories_id: int) -> Union[dict, list, None]:
         """Fetch the annotation from key-value store for the story, or None if story is not annotated."""
-
-        if not self.annotator_is_enabled():
-            fatal_error("Annotator is not enabled in the configuration.")
 
         # MC_REWRITE_TO_PYTHON: remove after rewrite to Python
         if isinstance(stories_id, bytes):
@@ -394,9 +359,6 @@ class JSONAnnotator(metaclass=abc.ABCMeta):
 
     def update_tags_for_story(self, db: DatabaseHandler, stories_id: int) -> None:
         """Add version, country and story tags for story."""
-
-        if not self.annotator_is_enabled():
-            fatal_error("Annotator is not enabled in the configuration.")
 
         # MC_REWRITE_TO_PYTHON: remove after rewrite to Python
         if isinstance(stories_id, bytes):

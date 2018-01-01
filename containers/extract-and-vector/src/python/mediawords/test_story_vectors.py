@@ -38,7 +38,7 @@ class TestStoryVectors(TestDatabaseWithSchemaTestCase):
     def test_medium_is_locked(self):
         media_id = self.test_medium['media_id']
 
-        db_locked_session = connect_to_db(label=self.TEST_DB_LABEL)
+        db_locked_session = connect_to_db()
 
         assert medium_is_locked(db=self.db(), media_id=media_id) is False
 

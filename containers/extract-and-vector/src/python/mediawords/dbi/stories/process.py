@@ -1,9 +1,7 @@
-from mediawords.annotator.cliff import CLIFFAnnotator
-from mediawords.annotator.nyt_labels import NYTLabelsAnnotator
 from mediawords.db import DatabaseHandler
 from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
 from mediawords.dbi.stories.extractor_version import update_extractor_version_tag
-from mediawords.dbi.stories.postprocess import mark_as_processed
+from mediawords.dbi.stories.postprocess import mark_as_processed, story_is_english_and_has_sentences
 from mediawords.job import JobManager
 from mediawords.story_vectors import update_story_sentences_and_language
 from mediawords.util.log import create_logger
@@ -31,8 +29,7 @@ def process_extracted_story(db: DatabaseHandler, story: dict, extractor_args: Py
         update_extractor_version_tag(db=db, story=story)
 
     # Extract -> CLIFF -> NYTLabels -> mark_as_processed() chain
-    cliff = CLIFFAnnotator()
-    if cliff.annotator_is_enabled() and cliff.story_is_annotatable(db=db, stories_id=stories_id):
+    if story_is_english_and_has_sentences(db=db, stories_id=stories_id):
         # If CLIFF annotator is enabled, cliff/update_story_tags job will check whether NYTLabels annotator is enabled,
         # and if it is, will pass the story further to NYTLabels. NYTLabels, in turn, will mark the story as processed.
         log.debug("Adding story {} to CLIFF annotation queue...".format(stories_id))
@@ -41,8 +38,7 @@ def process_extracted_story(db: DatabaseHandler, story: dict, extractor_args: Py
     else:
         log.debug("Won't add {} to CLIFF annotation queue because it's not annotatable with CLIFF".format(stories_id))
 
-        nytlabels = NYTLabelsAnnotator()
-        if nytlabels.annotator_is_enabled() and nytlabels.story_is_annotatable(db=db, stories_id=stories_id):
+        if story_is_english_and_has_sentences(db=db, stories_id=stories_id):
             # If CLIFF annotator is disabled, pass the story to NYTLabels annotator which, if run, will mark the story
             # as processed
             log.debug("Adding story {} to NYTLabels annotation queue...".format(stories_id))

@@ -63,5 +63,5 @@ class NYTLabelsUpdateStoryTagsJob(AbstractJob):
 
 
 if __name__ == '__main__':
-    app = JobBrokerApp(job_class=NYTLabelsUpdateStoryTagsJob)
+    app = JobBrokerApp(queue_name=NYTLabelsUpdateStoryTagsJob.queue_name())
     app.start_worker()

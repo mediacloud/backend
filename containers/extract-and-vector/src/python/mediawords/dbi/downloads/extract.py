@@ -5,9 +5,9 @@ from typing import Optional
 
 from mediawords.db import DatabaseHandler
 from mediawords.dbi.download_texts import create
+from mediawords.dbi.downloads.store import fetch_content
 from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
 from mediawords.dbi.stories.process import process_extracted_story
-import mediawords.util.config
 from mediawords.util.extract_text import extract_article_from_html
 from mediawords.util.parse_html import html_strip
 from mediawords.util.log import create_logger
@@ -218,4 +218,3 @@ def process_download_for_extractor(db: DatabaseHandler,
     else:
         story = db.find_by_id(table='stories', object_id=stories_id)
         process_extracted_story(db=db, story=story, extractor_args=extractor_args)
-

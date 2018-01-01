@@ -110,8 +110,5 @@ class FetchLinkJob(AbstractJob):
 
 
 if __name__ == '__main__':
-    try:
-        app = JobBrokerApp(job_class=FetchLinkJob)
-        app.start_worker()
-    except BaseException as e:
-        print(str(e))
+    app = JobBrokerApp(queue_name=FetchLinkJob.queue_name())
+    app.start_worker()

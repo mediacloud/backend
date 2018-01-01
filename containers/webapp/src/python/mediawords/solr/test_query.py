@@ -3,7 +3,10 @@ import re
 import pytest
 
 from mediawords.solr.query import (
-    parse, McSolrQueryParseSyntaxException, McSolrEmptyQueryException, WORD_BOUNDARY_REGEX
+    parse,
+    McSolrQueryParseSyntaxException,
+    McSolrEmptyQueryException,
+    WORD_BOUNDARY_REGEX,
 )
 
 

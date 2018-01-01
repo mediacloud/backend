@@ -629,7 +629,6 @@ sub run_job_sync($$$$)
     {
         # Message belongs to some other job -- requeue and skip
         DEBUG( "'correlation_id' ('$correlation_id') is not equal to job ID ('$celery_job_id')." );
-        next;
     }
 
     my $payload_json = $message->{ body };

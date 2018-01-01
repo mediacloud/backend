@@ -500,7 +500,7 @@ sub test_get_blacklisted_url()
     }
 
     my $default_ua_config = MediaWords::Util::Config::Common::user_agent();
-    my $blacklisted_url_ua_config = BlacklistedURLUserAgentConfig( $default_ua_config );
+    my $blacklisted_url_ua_config = BlacklistedURLUserAgentConfig->new( $default_ua_config );
     my $ua                   = MediaWords::Util::Web::UserAgent->new( $blacklisted_url_ua_config );
 
     my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
@@ -623,7 +623,7 @@ sub test_get_authenticated_domains()
         }
 
         my $default_ua_config = MediaWords::Util::Config::Common::user_agent();
-        my $no_auth_ua_config = NoAuthUserAgentConfig( $default_ua_config );
+        my $no_auth_ua_config = NoAuthUserAgentConfig->new( $default_ua_config );
         my $ua                = MediaWords::Util::Web::UserAgent->new( $no_auth_ua_config );
 
         my $no_auth_response = $ua->get( $base_auth_url );
@@ -659,7 +659,7 @@ sub test_get_authenticated_domains()
         }
 
         my $default_ua_config = MediaWords::Util::Config::Common::user_agent();
-        my $incorrect_auth_ua_config = NoAuthUserAgentConfig( $default_ua_config );
+        my $incorrect_auth_ua_config = NoAuthUserAgentConfig->new( $default_ua_config );
         my $ua                = MediaWords::Util::Web::UserAgent->new( $incorrect_auth_ua_config );
 
         my $invalid_auth_response = $ua->get( $base_auth_url );
@@ -695,7 +695,7 @@ sub test_get_authenticated_domains()
         }
 
         my $default_ua_config = MediaWords::Util::Config::Common::user_agent();
-        my $correct_auth_ua_config = NoAuthUserAgentConfig( $default_ua_config );
+        my $correct_auth_ua_config = NoAuthUserAgentConfig->new( $default_ua_config );
         my $ua                = MediaWords::Util::Web::UserAgent->new( $correct_auth_ua_config );
 
         my $valid_auth_response = $ua->get( $base_auth_url );
@@ -1089,7 +1089,7 @@ sub test_parallel_get()
     }
 
     my $default_ua_config = MediaWords::Util::Config::Common::user_agent();
-    my $timeout_faster_ua_config = TimeoutFasterUserAgentConfig( $default_ua_config );
+    my $timeout_faster_ua_config = TimeoutFasterUserAgentConfig->new( $default_ua_config );
     my $ua                   = MediaWords::Util::Web::UserAgent->new( $timeout_faster_ua_config );
 
     my $base_url = 'http://localhost:' . $TEST_HTTP_SERVER_PORT;

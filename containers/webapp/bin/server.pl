@@ -9,7 +9,7 @@ use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 
 use Catalyst::ScriptRunner;
-Catalyst::ScriptRunner->run( 'MediaWords', 'Server' );
+Catalyst::ScriptRunner->run('MediaWords', 'Server');
 
 1;
 

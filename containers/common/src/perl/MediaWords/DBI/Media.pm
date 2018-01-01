@@ -50,13 +50,13 @@ sub medium_is_ready_for_analysis($$)
     return 0 unless ( $active_feed );
 
     my $first_story = $db->query( <<SQL, $media_id )->hash;
-select * from stories where media_id = \$1 limit 1
+select * from stories where media_id = ? limit 1
 SQL
 
     return 0 unless ( $first_story );
 
     my $story_101 = $db->query( <<SQL, $media_id )->hash;
-    select * from stories where media_id = \$1 offset 101 limit 1
+    select * from stories where media_id = ? offset 101 limit 1
 SQL
 
     return $story_101 ? 1 : 0;

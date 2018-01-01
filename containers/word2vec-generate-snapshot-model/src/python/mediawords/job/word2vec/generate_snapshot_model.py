@@ -56,5 +56,5 @@ class Word2vecGenerateSnapshotModelJob(AbstractJob):
 
 
 if __name__ == '__main__':
-    app = JobBrokerApp(job_class=Word2vecGenerateSnapshotModelJob)
+    app = JobBrokerApp(queue_name=Word2vecGenerateSnapshotModelJob.queue_name())
     app.start_worker()

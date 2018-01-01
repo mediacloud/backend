@@ -33,20 +33,6 @@ sub new
     return $self;
 }
 
-sub annotator_is_enabled($)
-{
-    my $self = shift;
-
-    return $self->{ _annotator }->annotator_is_enabled();
-}
-
-sub story_is_annotatable($$$)
-{
-    my ( $self, $db, $stories_id ) = @_;
-
-    return $self->{ _annotator }->story_is_annotatable( $db, $stories_id );
-}
-
 sub story_is_annotated($$$)
 {
     my ( $self, $db, $stories_id ) = @_;

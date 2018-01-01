@@ -5,19 +5,24 @@ import hashlib
 import re
 from typing import List
 
+# noinspection PyProtectedMember
 from mediawords.dbi.stories.dup import (
-    _get_title_parts, _get_story_date_range, get_medium_dup_stories_by_title, get_medium_dup_stories_by_url)
+    _get_title_parts,
+    _get_story_date_range,
+    get_medium_dup_stories_by_title,
+    get_medium_dup_stories_by_url,
+)
 
 
 def test_get_title_parts() -> None:
     """Test get_title_parts()."""
-    assert(_get_title_parts("foo") == ["foo"])
-    assert(_get_title_parts("foo&amp;") == ["foo&"])
-    assert(_get_title_parts("FOO") == ["foo"])
-    assert(_get_title_parts("foo bar bat: bar bat foo") == ["foo bar bat: bar bat foo", "foo bar bat", "bar bat foo"])
-    assert(_get_title_parts("foo bar - bar foo") == ["foo bar : bar foo", "foo bar", "bar foo"])
-    assert(_get_title_parts("foo bar | bar foo") == ["foo bar : bar foo", "foo bar", "bar foo"])
-    assert(_get_title_parts("watch: foo") == ["foo"])
+    assert (_get_title_parts("foo") == ["foo"])
+    assert (_get_title_parts("foo&amp;") == ["foo&"])
+    assert (_get_title_parts("FOO") == ["foo"])
+    assert (_get_title_parts("foo bar bat: bar bat foo") == ["foo bar bat: bar bat foo", "foo bar bat", "bar bat foo"])
+    assert (_get_title_parts("foo bar - bar foo") == ["foo bar : bar foo", "foo bar", "bar foo"])
+    assert (_get_title_parts("foo bar | bar foo") == ["foo bar : bar foo", "foo bar", "bar foo"])
+    assert (_get_title_parts("watch: foo") == ["foo"])
 
 
 def test_get_story_date_range() -> None:
@@ -72,5 +77,6 @@ def test_get_medium_dup_stories_by_url() -> None:
     sd = _get_dup_story(4, 'bar')
     se = _get_dup_story(5, 'foo bar')
 
-    assert _checksum_stories(get_medium_dup_stories_by_url([sa, sb, sc, sd, se])) == \
-        _checksum_stories([[sa, sc], [sb, sd]])
+    assert _checksum_stories(
+        get_medium_dup_stories_by_url([sa, sb, sc, sd, se])
+    ) == _checksum_stories([[sa, sc], [sb, sd]])

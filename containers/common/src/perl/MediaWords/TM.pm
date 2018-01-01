@@ -47,7 +47,7 @@ select timespan.*, snap.topics_id
    from timespans timespan
        join snapshots snap on ( snap.snapshots_id = timespan.snapshots_id )
    where
-       snap.topics_id = \$1 and
+       snap.topics_id = ? and
        timespan.period = 'overall' and
        timespan.foci_id is null
    order by snap.snapshot_date desc
@@ -65,7 +65,7 @@ select timespan.*, snap.topics_id
     from timespans timespan
         join snapshots snap on (snap.snapshots_id = timespan.snapshots_id)
     where
-        timespan.timespans_id = \$1
+        timespan.timespans_id = ?
 SQL
     unless ( $timespan )
     {
@@ -82,7 +82,7 @@ select timespan.*, snap.topics_id
   from timespans timespan
   join snapshots snap on (snap.snapshots_id = timespan.snapshots_id)
   where
-    timespan.snapshots_id = \$1 and
+    timespan.snapshots_id = ? and
     timespan.period = 'overall' and
     timespan.foci_id is null
 SQL
@@ -100,7 +100,7 @@ select timespan.*, snap.topics_id
   from timespans timespan
   join snapshots snap on (snap.snapshots_id = timespan.snapshots_id)
   where
-    snap.topics_id = \$1 and
+    snap.topics_id = ? and
     timespan.period = 'overall' and
     timespan.foci_id is null
   order by snap.snapshot_date desc limit 1

@@ -18,6 +18,8 @@ use MediaWords::CommonLibs;
 use Moose::Role;
 with 'MediaWords::Crawler::HandlerRole';
 
+use MediaWords::JobManager::Job;
+
 # Handle download that was just fetched by preprocessing and storing it
 #
 # Returns arrayref of story IDs to be extracted, for example:
@@ -143,6 +145,7 @@ SQL
         my $args = { stories_id => $stories_id + 0 };
 
         TRACE "Adding story $stories_id for download $downloads_id to extraction queue...";
+        MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::ExtractAndVector', $args );
     }
 
     DEBUG "Handled download $downloads_id.";

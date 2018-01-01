@@ -5,6 +5,7 @@ import sys
 # noinspection PyProtectedMember
 from pip._internal import main as pip_main
 
+# noinspection PyPackageRequirements
 import readability.readability
 
 from mediawords.util.log import create_logger

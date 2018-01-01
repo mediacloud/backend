@@ -92,5 +92,5 @@ class ExtractAndVectorJob(AbstractJob):
 
 
 if __name__ == '__main__':
-    app = JobBrokerApp(job_class=ExtractAndVectorJob)
+    app = JobBrokerApp(queue_name=ExtractAndVectorJob.queue_name())
     app.start_worker()

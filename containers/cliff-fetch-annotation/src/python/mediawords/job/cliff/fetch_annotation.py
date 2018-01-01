@@ -60,5 +60,5 @@ class CLIFFFetchAnnotationJob(AbstractJob):
 
 
 if __name__ == '__main__':
-    app = JobBrokerApp(job_class=CLIFFFetchAnnotationJob)
+    app = JobBrokerApp(queue_name=CLIFFFetchAnnotationJob.queue_name())
     app.start_worker()

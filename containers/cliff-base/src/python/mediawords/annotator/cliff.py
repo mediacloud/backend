@@ -23,14 +23,6 @@ class CLIFFAnnotator(JSONAnnotator):
     # CLIFF geographical names tag prefix
     __CLIFF_GEONAMES_TAG_PREFIX = 'geonames_'
 
-    def annotator_is_enabled(self) -> bool:
-        config = py_get_config()
-
-        if config.get('cliff', {}).get('enabled', False):
-            return True
-        else:
-            return False
-
     def _postgresql_raw_annotations_table(self) -> str:
         return 'cliff_annotations'
 

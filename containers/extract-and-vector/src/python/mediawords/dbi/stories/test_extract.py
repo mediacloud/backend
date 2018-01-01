@@ -1,3 +1,4 @@
+# noinspection PyProtectedMember
 from mediawords.dbi.stories.extract import (
     _get_extracted_text,
     get_text_for_word_counts,

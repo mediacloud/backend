@@ -37,5 +37,5 @@ class FetchMediaPages(AbstractJob):
 
 
 if __name__ == '__main__':
-    app = JobBrokerApp(job_class=FetchMediaPages)
+    app = JobBrokerApp(queue_name=FetchMediaPages.queue_name())
     app.start_worker()

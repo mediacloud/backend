@@ -61,14 +61,12 @@ RUN \
     mkdir -p /var/www/ && \
     rm -rf /var/www/* && \
     true
-COPY src/root/ /var/www/root/
 
 # Copy Perl sources
 COPY src/perl/ /usr/share/perl5/
 
-# Session data
-RUN mkdir /var/lib/mediacloud-session/
-VOLUME /var/lib/mediacloud-session/
+# Copy Python sources
+COPY src/python/ /usr/lib/python3/dist-packages/
 
 # Static files
 RUN mkdir -p /mediacloud_webapp_static/rss_dumps/
@@ -80,4 +78,6 @@ VOLUME /mediacloud_webapp_static/rss_dumps/
 EXPOSE 80
 
 # Run Apache
-CMD ["apachectl", "-d", ".", "-f", "/etc/apache2/apache2.conf", "-e", "info", "-DFOREGROUND"]
+# FIXME
+#CMD ["apachectl", "-d", ".", "-f", "/etc/apache2/apache2.conf", "-e", "info", "-DFOREGROUND"]
+CMD ["bash", "-c", "while true; do echo webapp...; sleep 1; done"]

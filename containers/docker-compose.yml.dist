@@ -1115,7 +1115,6 @@ services:
             # Sends email to new / existing users
             - net_postfix
         volumes:
-            - vol_webapp_session_data:/var/lib/mediacloud-session/
             # Shared with "cron_generate_daily_rss_dumps" container:
             - vol_daily_rss_dumps:/mediacloud_webapp_static/rss_dumps/
         deploy:
@@ -1251,9 +1250,6 @@ volumes:
 
     # RabbitMQ data
     vol_rabbitmq_data: {}
-
-    # Webapp session data
-    vol_webapp_session_data: {}
 
     # Daily RSS dumps
     vol_daily_rss_dumps: {}

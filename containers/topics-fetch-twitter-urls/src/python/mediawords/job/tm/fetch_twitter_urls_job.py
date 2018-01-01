@@ -74,8 +74,5 @@ class FetchTwitterUrlsJob(AbstractJob):
 
 
 if __name__ == '__main__':
-    try:
-        app = JobBrokerApp(job_class=FetchTwitterUrlsJob)
-        app.start_worker()
-    except BaseException as e:
-        print(str(e))
+    app = JobBrokerApp(queue_name=FetchTwitterUrlsJob.queue_name())
+    app.start_worker()

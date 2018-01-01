@@ -99,7 +99,7 @@ sub assign_singleton_tag_to_medium
 
     # make sure we only update the tag in the db if necessary; otherwise we will trigger solr re-imports unnecessarily
     my $existing_tag = $db->query( <<SQL, $tag_set->{ tag_sets_id }, $medium->{ media_id } )->hash;
-select t.* from tags t join media_tags_map mtm using ( tags_id ) where t.tag_sets_id = \$1 and mtm.media_id = \$2
+select t.* from tags t join media_tags_map mtm using ( tags_id ) where t.tag_sets_id = ? and mtm.media_id = ?
 SQL
 
     return if ( $existing_tag && ( $existing_tag->{ tags_id } == $tag->{ tags_id } ) );
@@ -107,12 +107,12 @@ SQL
     if ( $existing_tag )
     {
         $db->query( <<SQL, $existing_tag->{ tags_id }, $medium->{ media_id } );
-delete from media_tags_map where tags_id = \$1 and media_id = \$2
+delete from media_tags_map where tags_id = ? and media_id = ?
 SQL
     }
 
     $db->query( <<SQL, $tag->{ tags_id }, $medium->{ media_id } );
-insert into media_tags_map ( tags_id, media_id ) values ( \$1, \$2 )
+insert into media_tags_map ( tags_id, media_id ) values ( ?, ? )
 SQL
 
 }
