@@ -68,7 +68,7 @@ sub store_test_data($$;$)
     my $file   = _get_data_file( $basename, $subdirectory );
     my $pretty = 1;
     my $json   = MediaWords::Util::JSON::encode_json( $data, $pretty );
-    write_file( $file, $json );
+    write_file( $file, { binmode => ':utf8' }, $json );
 }
 
 # Write the given data to disk under the given basename; split the data

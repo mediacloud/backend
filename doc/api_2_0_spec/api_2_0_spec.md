@@ -258,7 +258,7 @@ limit will result in a status 403 error.  Users who need access to more requests
 # Media
 
 The Media API calls provide information about media sources.  A media source is a publisher of content, such as the New York
-Times or Instapundit.  Every story belongs to a `single media source.  Each media source can have zero or more feeds.
+Times or Instapundit.  Every story belongs to a single media source.  Each media source can have zero or more feeds.
 
 ## api/v2/media/single/
 

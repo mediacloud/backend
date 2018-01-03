@@ -1,31 +1,31 @@
 {
-   "collect_date" : "2017-03-09 00:32:07.862000",
-   "content" : "<p>\n    This RSS feed is used to test whether the story language gets identified\n    correctly.\n</p>\n",
-   "db_row_last_updated" : "2017-03-09 00:32:07.936745+08:00",
-   "description" : null,
-   "extracted_text" : "(no title)\n***\n\n\n***\n\n\n\n  \n\n  \n\n \n    This RSS feed is used to test whether the story language gets identified\n    correctly.\n \n\n\n  \n\n  ",
-   "feed_type" : "web_page",
-   "full_text_rss" : 0,
-   "guid" : "1488990727:http://tundra.local:63660//multilanguage/home.html",
-   "language" : "en",
-   "media_id" : 1,
-   "publish_date" : "2017-03-08 11:32:07",
-   "stories_id" : 5,
-   "story_sentences" : [
-      {
-         "db_row_last_updated" : "2017-03-09 00:32:07.936745+08:00",
-         "is_dup" : null,
-         "language" : "en",
-         "media_id" : 1,
-         "publish_date" : "2017-03-08 11:32:07",
-         "sentence" : "This RSS feed is used to test whether the story language gets identified correctly.",
-         "sentence_number" : 0,
-         "stories_id" : 5,
-         "story_sentences_id" : 1
-      }
-   ],
-   "tags" : [],
-   "timezone" : "America/New_York",
-   "title" : "(no title)",
-   "url" : "http://tundra.local:63660//multilanguage/home.html"
+    "collect_date":"2017-12-30 22:46:59.633605",
+    "content":"<p>\n    This RSS feed is used to test whether the story language gets identified\n    correctly.\n</p>\n",
+    "db_row_last_updated":"2017-12-30 22:46:59.688294+08:00",
+    "description":null,
+    "extracted_text":"(no title)\n***\n\n\n***\n\n\n\n  \n\n  \n\n \n    This RSS feed is used to test whether the story language gets identified\n    correctly.\n \n\n\n  \n\n  ",
+    "feed_type":"web_page",
+    "full_text_rss":false,
+    "guid":"1514645219:http://tundra.local:61157//multilanguage/home.html",
+    "language":"en",
+    "media_id":1,
+    "publish_date":"2017-12-30 16:46:59",
+    "stories_id":5,
+    "story_sentences":[
+        {
+            "db_row_last_updated":"2017-12-30 22:46:59.688294+08:00",
+            "is_dup":null,
+            "language":"en",
+            "media_id":1,
+            "publish_date":"2017-12-30 16:46:59",
+            "sentence":"This RSS feed is used to test whether the story language gets identified correctly.",
+            "sentence_number":0,
+            "stories_id":5,
+            "story_sentences_id":1
+        }
+    ],
+    "tags":[],
+    "timezone":"Europe/Vilnius",
+    "title":"(no title)",
+    "url":"http://tundra.local:61157//multilanguage/home.html"
 }
