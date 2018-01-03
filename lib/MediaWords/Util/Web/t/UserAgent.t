@@ -7,7 +7,7 @@ use MediaWords::CommonLibs;
 
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 145;
+use Test::More tests => 142;
 
 use Encode;
 use File::Temp qw/ tempdir tempfile /;
@@ -346,28 +346,6 @@ sub test_get_request_headers()
     $hs->stop();
 }
 
-sub test_get_request_as_string()
-{
-    my $url = 'http://foo.com/bar';
-    my $request = MediaWords::Util::Web::UserAgent::Request->new( 'FOO', $url );
-    $request->set_header( 'X-Media-Cloud', 'mediacloud' );
-    $request->set_content( 'aaaaaaa' );
-    $request->set_authorization_basic( 'username', 'password' );
-
-    like(
-        $request->as_string(), qr|
-        ^
-        FOO\s/bar\sHTTP/1\.0\r\n
-        Host:\sfoo\.com\r\n
-        Authorization:\sBasic\s.+?\r\n
-        X-Media-Cloud:\smediacloud\r\n
-        \r\n
-        aaaaaaa
-        $
-    |ixs
-    );
-}
-
 sub test_get_response_status()
 {
     my $pages = {
@@ -450,41 +428,6 @@ sub test_get_response_content_type()
     is( $response->decoded_content(), 'pnolɔ ɐıpǝɯ' );
 
     is( $response->content_type(), 'application/xhtml+xml' );
-}
-
-sub test_get_response_as_string()
-{
-    my $pages = {
-        '/test' => {
-            header  => "Content-Type: application/xhtml+xml; charset=UTF-8\r\nX-Media-Cloud: mediacloud",
-            content => "media\ncloud\n",
-        }
-    };
-
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
-    $hs->start();
-
-    my $ua       = MediaWords::Util::Web::UserAgent->new();
-    my $response = $ua->get( "$TEST_HTTP_SERVER_URL/test" );
-
-    $hs->stop();
-
-    is_urls( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/test' );
-
-    like(
-        $response->as_string(), qr|
-        ^
-        HTTP/1.0\s200\sOK\r\n
-        Content-Type:\sapplication/xhtml\+xml;\scharset=UTF-8\r\n
-        Date:\s.+?\r\n
-        Server:\s.+?\r\n
-        X-Media-Cloud:\smediacloud\r\n
-        \r\n
-        media\n
-        cloud\n
-        $
-    |ixs
-    );
 }
 
 sub test_get_http_request_log()
@@ -1394,11 +1337,9 @@ sub main()
     test_get_max_size();
     test_get_max_redirect();
     test_get_request_headers();
-    test_get_request_as_string();
     test_get_response_status();
     test_get_response_headers();
     test_get_response_content_type();
-    test_get_response_as_string();
     test_get_http_request_log();
     test_get_blacklisted_url();
     test_get_http_auth();

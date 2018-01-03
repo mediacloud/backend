@@ -176,11 +176,4 @@ sub set_authorization_basic($$$)
     $self->{ _request }->set_authorization_basic( $username, $password );
 }
 
-sub as_string($)
-{
-    my ( $self ) = @_;
-
-    return $self->{ _request }->as_string();
-}
-
 1;

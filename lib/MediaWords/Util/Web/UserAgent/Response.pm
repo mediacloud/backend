@@ -119,13 +119,6 @@ sub is_success($)
     return $self->{ _response }->is_success();
 }
 
-sub as_string($)
-{
-    my ( $self ) = @_;
-
-    return $self->{ _response }->as_string();
-}
-
 sub content_type($)
 {
     my ( $self ) = @_;

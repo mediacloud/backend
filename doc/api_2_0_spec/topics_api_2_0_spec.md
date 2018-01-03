@@ -339,7 +339,7 @@ Create and return a new *topic*.
 
 ### Input Description
 
-The topics/create call accepts as input the following fields described in the Output Description of the topics/list call: name, solr_seed_query, description, max_iterations, start_date, end_date, is_public, is_logogram, ch_monitor_id, twitter_topics_id, media_ids, media_tags_ids. Required fields are: name, solr_seed_query, description, start_date, end_date, media_ids and media_tags_ids.  Either media_ids or media_tags_ids must be included and not be an empty list.
+The topics/create call accepts as input the following fields described in the Output Description of the topics/list call: name, solr_seed_query, description, max_iterations, start_date, end_date, is_public, is_logogram, ch_monitor_id, twitter_topics_id, media_ids, media_tags_ids, max_stories. Required fields are: name, solr_seed_query, description, start_date, end_date, media_ids and media_tags_ids.  Either media_ids or media_tags_ids must be included and not be an empty list.
 
 ### Example
 

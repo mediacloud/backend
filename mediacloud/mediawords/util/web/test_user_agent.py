@@ -1,6 +1,5 @@
 import copy
 import os
-import re
 import tempfile
 import time
 from http import HTTPStatus
@@ -694,35 +693,6 @@ class TestUserAgentTestCase(TestCase):
             'none-header-is-defined': False,
         }
 
-    def test_get_request_as_string(self):
-        """Request's as_string() method."""
-        # FIXME move to a separate unit test file
-
-        url = 'http://foo.com/bar?a=b'
-        username = 'username'
-        password = 'password'
-
-        request = Request(method='FOO', url=url)
-        request.set_header(name='X-Media-Cloud', value='mediacloud')
-        request.set_content(b'aaaaaaa')
-        request.set_authorization_basic(username=username, password=password)
-
-        request_string = request.as_string()
-        assert re.search(
-            pattern=r"""
-                ^
-                FOO\s/bar\?a=b\sHTTP/1\.0\r\n
-                Host:\sfoo\.com\r\n
-                Authorization:\sBasic\s.+?\r\n
-                X-Media-Cloud:\smediacloud\r\n
-                \r\n
-                aaaaaaa
-                $
-            """,
-            string=request_string,
-            flags=re.IGNORECASE | re.UNICODE | re.VERBOSE
-        )
-
     def test_get_response_status(self):
         """HTTP status code and message."""
 
@@ -846,45 +816,6 @@ class TestUserAgentTestCase(TestCase):
         assert response.decoded_content() == 'pnolɔ ɐıpǝɯ'
 
         assert response.content_type() == 'application/xhtml+xml'
-
-    def test_get_response_as_string(self):
-        """Response's as_string() method."""
-
-        pages = {
-            '/test': {
-                'header': "Content-Type: application/xhtml+xml; charset=UTF-8\r\nX-Media-Cloud: mediacloud",
-                'content': "media\ncloud\n",
-            },
-        }
-
-        hs = HashServer(port=self.__test_port, pages=pages)
-        hs.start()
-
-        ua = UserAgent()
-        test_url = '%s/test' % self.__test_url
-        response = ua.get(test_url)
-
-        hs.stop()
-
-        assert urls_are_equal(url1=response.request().url(), url2=test_url)
-
-        response_string = response.as_string()
-        assert re.match(
-            pattern=r"""
-                ^
-                HTTP/1.0\s200\sOK\r\n
-                Content-Type:\sapplication/xhtml\+xml;\scharset=UTF-8\r\n
-                Date:\s.+?\r\n
-                Server:\s.+?\r\n
-                X-Media-Cloud:\smediacloud\r\n
-                \r\n
-                media\n
-                cloud\n
-                $
-            """,
-            string=response_string,
-            flags=re.UNICODE | re.VERBOSE | re.IGNORECASE
-        )
 
     def test_get_http_request_log(self):
         """HTTP request log."""
