@@ -300,7 +300,8 @@ sub test_topics_crud($)
         is_logogram     => 1,
         ch_monitor_id   => 123456,
         media_ids       => $media_ids,
-        media_tags_ids  => $tags_ids
+        media_tags_ids  => $tags_ids,
+        max_stories     => 1234,
     };
 
     my $r = test_post( '/api/v2/topics/create', $input );
@@ -340,7 +341,8 @@ sub test_topics_crud($)
         is_logogram     => 0,
         ch_monitor_id   => 1234567,
         media_ids       => $update_media_ids,
-        media_tags_ids  => $update_tags_ids
+        media_tags_ids  => $update_tags_ids,
+        max_stories     => 2345
     };
 
     $label = 'update topic';
