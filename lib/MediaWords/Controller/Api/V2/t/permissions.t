@@ -214,7 +214,7 @@ sub test_user_permission
 
     my $expected_code = $expect_pass ? 200 : 403;
 
-    map { ok( $_->code == $expected_code, "$message - $url: " . $_->as_string ) } @{ $responses };
+    map { ok( $_->code == $expected_code, "$message - $url: " . $_->decoded_content ) } @{ $responses };
 }
 
 # test a page with one of the permission types in the $permission_roles hash below.  verify that only

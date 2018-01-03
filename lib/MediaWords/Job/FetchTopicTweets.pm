@@ -57,7 +57,7 @@ sub _fetch_ch_posts ($$)
 
     if ( !$response->is_success )
     {
-        LOGDIE( "error fetching posts: " . $response->as_string );
+        LOGDIE( "error fetching posts: " . $response->decoded_content );
     }
 
     my $decoded_content = $response->decoded_content;

@@ -25,7 +25,7 @@ sub main
 
     my $response = $ua->get( $url );
 
-    print $response->as_string;
+    print $response->decoded_content;
 }
 
 main();

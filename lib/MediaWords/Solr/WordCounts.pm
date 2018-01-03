@@ -445,7 +445,7 @@ sub _get_remote_words
 
     unless ( $res->is_success )
     {
-        die( "error retrieving words from solr: " . $res->as_string );
+        die( "error retrieving words from solr: " . $res->decoded_content );
     }
 
     my $words = MediaWords::Util::JSON::decode_json( $res->decoded_content );

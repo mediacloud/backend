@@ -68,7 +68,7 @@ sub test_request_response($$;$)
     $url_path =~ s/\/\d+//;
     $_api_requested_urls_lookup->{ $url_path } = 1;
 
-    is( $response->is_success, !$expect_error, "HTTP response status OK for $label:\n" . $response->as_string );
+    is( $response->is_success, !$expect_error, "HTTP response status OK for $label:\n" . $response->decoded_content );
 
     my $data = eval { MediaWords::Util::JSON::decode_json( $response->decoded_content ) };
 
@@ -110,7 +110,7 @@ sub test_data_request($$$;$)
     $request->header( 'Content-Type' => 'application/json' );
     $request->content( $json );
 
-    my $label = $request->as_string;
+    my $label = "method=$method URL=$url data=$json expect_error=$expect_error";
 
     # Catalyst::Test::request()
     return test_request_response( $label, request( $request ), $expect_error );

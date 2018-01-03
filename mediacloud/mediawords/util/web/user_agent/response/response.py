@@ -59,24 +59,6 @@ class Response(object):
             data=data,
         )
 
-    def __str__(self):
-
-        headers = ""
-        for key, value in sorted(self.headers().items()):
-            headers = headers + "%s: %s\r\n" % (key, value,)
-
-        return (
-                   "HTTP/1.0 %(code)d %(message)s\r\n"
-                   "%(headers)s"
-                   "\r\n"
-                   "%(data)s"
-               ) % {
-                   "code": self.code(),
-                   "message": self.message(),
-                   "headers": headers,
-                   "data": self.decoded_content(),
-               }
-
     def code(self) -> int:
         """Return HTTP status code, e.g. 200."""
         return self.__code
@@ -233,7 +215,3 @@ class Response(object):
         while original_response.previous():
             original_response = original_response.previous()
         return original_response.request()
-
-    def as_string(self) -> str:
-        """Return string representation of the response."""
-        return str(self)
