@@ -56,43 +56,6 @@ class Request(object):
 
         return request
 
-    def __repr__(self) -> str:
-        """Return something similar to what will be sent to the server for this request."""
-
-        uri = furl(self.url())
-        path_query = str(uri.path)
-        if len(str(uri.query)):
-            path_query += "?" + str(uri.query)
-
-        http_auth = ""
-        if self.auth_username() and self.auth_password():
-            base64_auth = base64.b64encode(
-                ('%s:%s' % (self.auth_username(), self.auth_password(),)).encode('ascii')
-            ).decode('ascii')
-            http_auth = "Authorization: Basic %s\r\n" % base64_auth
-
-        headers = ""
-        for key, value in sorted(self.headers().items()):
-            headers = headers + "%s: %s\r\n" % (key, value,)
-
-        return (
-                   "%(method)s %(path_query)s HTTP/1.0\r\n"
-                   "Host: %(host)s\r\n"
-                   "%(http_auth)s"
-                   "%(headers)s"
-                   "\r\n"
-                   "%(data)s"
-               ) % {
-                   "method": self.method(),
-                   "path_query": path_query,
-                   "host": uri.host,
-                   "http_auth": http_auth,
-                   "headers": headers,
-
-                   # FIXME probably doesn't support non-UTF-8 POSTs
-                   "data": self.content().decode('utf-8', errors='replace') if self.content() is not None else "",
-               }
-
     def method(self) -> str:
         """Return HTTP method, e.g. GET."""
         return self.__method
@@ -232,7 +195,3 @@ class Request(object):
     def auth_password(self):
         """Return HTTP authentication password."""
         return self.__auth_password
-
-    def as_string(self) -> str:
-        """Return string representation of the request."""
-        return str(self)

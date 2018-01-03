@@ -56,7 +56,7 @@ sub main
     if ( !$response->is_success )
     {
         $db->query( "update downloads set state = 'error' where downloads_id = ?", $download->{ downloads_id } );
-        die( "error fetching download: " . $response->as_string );
+        die( "error fetching download: " . $response->decoded_content );
     }
 
     $handler->handle_download( $db, $download, $response->decoded_content );
