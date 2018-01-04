@@ -53,8 +53,8 @@ SQL
 
         my $lang = MediaWords::Languages::Language::language_for_code( $sentence_language );
 
-        my $words = $lang->tokenize( $sentence );
-        my $stems = $lang->stem( @{ $words } );
+        my $words = $lang->split_sentence_to_words( $sentence );
+        my $stems = $lang->stem_words( $words );
         map { $expected_word_counts->{ $_ }++ } @{ $stems };
     }
 

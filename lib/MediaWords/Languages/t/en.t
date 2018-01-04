@@ -6,7 +6,7 @@ use warnings;
 use Readonly;
 
 use Test::NoWarnings;
-use Test::More tests => 30;
+use Test::More tests => 26;
 use utf8;
 
 use MediaWords::Languages::en;
@@ -16,26 +16,18 @@ sub test_stopwords()
 {
     my $lang = MediaWords::Languages::en->new();
 
-    ok( $lang->get_stop_words(), 'lang_en_get_stop_words' );
+    ok( $lang->stop_words_map() );
 
     # Stop words
-    my $stop_words_en = $lang->get_stop_words();
+    my $stop_words_en = $lang->stop_words_map();
     ok( scalar( keys( %{ $stop_words_en } ) ) >= 174, "stop words (en) count is correct" );
 
     is( $stop_words_en->{ 'the' }, 1, "English test #1" );
     is( $stop_words_en->{ 'a' },   1, "English test #2" );
     is( $stop_words_en->{ 'is' },  1, "English test #3" );
-
-    # Stop word stems
-    my $stop_word_stems_en = $lang->get_stop_word_stems();
-    ok( scalar( keys( %{ $stop_word_stems_en } ) ) >= 154, "stop word stem (en) count is correct" );
-
-    is( $stop_word_stems_en->{ 'a' }, 1, "Stemmed stop words" );
-
-    ok( $lang->get_stop_word_stems(), 'get_stop_word_stems()' );
 }
 
-sub test_get_sentences()
+sub test_split_text_to_sentences()
 {
     my $test_string;
     my $expected_sentences;
@@ -53,7 +45,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -70,7 +62,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -87,7 +79,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -104,7 +96,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -121,7 +113,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -140,7 +132,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -160,7 +152,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -179,7 +171,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -189,7 +181,7 @@ QUOTE
     # Non-breaking space
     #
     $test_string = <<"QUOTE";
-    American Current TV journalists Laura Ling and Euna Lee have been  sentenced  to 12 years of hard labor (according to CNN).\x{a0} Jillian York  rounded up blog posts  for Global Voices prior to the journalists' sentencing.
+    American Current TV journalists Laura Ling and Euna Lee have been  sentenced  to 12 years of hard labor (according to CNN).  Jillian York  rounded up blog posts  for Global Voices prior to the journalists' sentencing.
 QUOTE
 
     $expected_sentences = [
@@ -199,7 +191,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -219,7 +211,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -239,7 +231,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -255,22 +247,22 @@ sub test_tokenize()
     # Normal apostrophe (')
     $input_string = "It's always sunny in Philadelphia.";
     $expected_words = [ "it's", "always", "sunny", "in", "philadelphia" ];
-    is_deeply( $lang->tokenize( $input_string ), $expected_words, 'Tokenization with normal apostrophe' );
+    is_deeply( $lang->split_sentence_to_words( $input_string ), $expected_words, 'Tokenization with normal apostrophe' );
 
     # Right single quotation mark (’), normalized to apostrophe (')
     $input_string = "It’s always sunny in Philadelphia.";
     $expected_words = [ "it's", "always", "sunny", "in", "philadelphia" ];
-    is_deeply( $lang->tokenize( $input_string ), $expected_words, 'Tokenization with fancy apostrophe' );
+    is_deeply( $lang->split_sentence_to_words( $input_string ), $expected_words, 'Tokenization with fancy apostrophe' );
 
     # Hyphen without split
     $input_string = "near-total secrecy";
     $expected_words = [ "near-total", "secrecy" ];
-    is_deeply( $lang->tokenize( $input_string ), $expected_words, 'Tokenization with hyphen (no split)' );
+    is_deeply( $lang->split_sentence_to_words( $input_string ), $expected_words, 'Tokenization with hyphen (no split)' );
 
     # Hyphen with split (where it's being used as a dash)
     $input_string = "A Pythagorean triple - named for the ancient Greek Pythagoras";
     $expected_words = [ 'a', 'pythagorean', 'triple', 'named', 'for', 'the', 'ancient', 'greek', 'pythagoras' ];
-    is_deeply( $lang->tokenize( $input_string ), $expected_words, 'Tokenization with hyphen (split)' );
+    is_deeply( $lang->split_sentence_to_words( $input_string ), $expected_words, 'Tokenization with hyphen (split)' );
 
     # Quotes
     $input_string   = 'it was in the Guinness Book of World Records as the "most difficult mathematical problem"';
@@ -278,7 +270,7 @@ sub test_tokenize()
         'it',      'was', 'in',  'the',  'guinness',  'book',         'of', 'world',
         'records', 'as',  'the', 'most', 'difficult', 'mathematical', 'problem'
     ];
-    is_deeply( $lang->tokenize( $input_string ), $expected_words, 'Quote removal while tokenizing' );
+    is_deeply( $lang->split_sentence_to_words( $input_string ), $expected_words, 'Quote removal while tokenizing' );
 }
 
 sub test_stem()
@@ -286,30 +278,34 @@ sub test_stem()
     my $lang = MediaWords::Languages::en->new();
 
     # from http://en.wikipedia.org/wiki/Stemming
-    my $stemmer_test_en_text = <<'__END_TEST_CASE__';
-    In linguistic morphology, stemming is the process for reducing inflected (or sometimes derived) words to their stem,
-    base or root form – generally a written word form. The stem need not be identical to the morphological root of the
-    word; it is usually sufficient that related words map to the same stem, even if this stem is not in itself a valid
-    root. The algorithm has been a long-standing problem in computer science; the first paper on the subject was published
-    in 1968. The process of stemming, often called conflation, is useful in search engines for query expansion or indexing
-    and other natural language processing problems.
-__END_TEST_CASE__
+    my $split_words = [
+        'In',       'linguistic', 'morphology', 'stemming',  'is',      'the',       'process', 'for',
+        'reducing', 'inflected',  'or',         'sometimes', 'derived', 'words',     'to',      'their',
+        'stem',     'base',       'or',         'root',      'form',    'generally', 'a',       'written',
+        'word',     'form',
+    ];
 
-    my @split_words = @{ $lang->tokenize( $stemmer_test_en_text ) };
+    my $expected_stems = [
+        'in',    'linguist', 'morpholog', 'stem',    'is',    'the',     'process', 'for',
+        'reduc', 'inflect',  'or',        'sometim', 'deriv', 'word',    'to',      'their',
+        'stem',  'base',     'or',        'root',    'form',  'general', 'a',       'written',
+        'word',  'form',
+    ];
 
-    my $lingua_stem = Lingua::Stem::Snowball->new( lang => 'en', encoding => 'UTF-8' );
+    my $stem_result = $lang->stem_words( $split_words );
 
-    my $lingua_stem_result = [ $lingua_stem->stem( \@split_words ) ];
-    my $stem_result        = $lang->stem( @split_words );
+    is_deeply( $stem_result, $expected_stems, "Stemmer compare test" );
 
-    is_deeply( $stem_result, $lingua_stem_result, "Stemmer compare test" );
-
-    isnt( $lingua_stem_result, $stemmer_test_en_text, "Stemmed text is changed" );
-    ok( length( $lingua_stem_result ) > 0, "Stemmed text is nonempty" );
+    ok( length( $expected_stems ) > 0, "Stemmed text is nonempty" );
 
     # Apostrophes
-    is_deeply( $lang->stem( qw/Katz's Delicatessen/ ), [ qw/ katz delicatessen / ], 'Stemming with normal apostrophe' );
-    is_deeply( $lang->stem( qw/it’s toasted/ ), [ qw/ it toast / ], 'Stemming with right single quotation mark' );
+    is_deeply(
+        $lang->stem_words( [ "Katz's", "Delicatessen" ] ),
+        [ 'katz', 'delicatessen' ],
+        'Stemming with normal apostrophe'
+    );
+    is_deeply( $lang->stem_words( [ "it’s", "toasted" ] ), [ 'it', 'toast' ],
+        'Stemming with right single quotation mark' );
 }
 
 sub main()
@@ -321,7 +317,7 @@ sub main()
     binmode $builder->todo_output,    ":utf8";
 
     test_stopwords();
-    test_get_sentences();
+    test_split_text_to_sentences();
     test_tokenize();
     test_stem();
 }

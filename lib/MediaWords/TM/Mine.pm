@@ -1005,7 +1005,7 @@ sub _get_sentences_from_story_text
         $lang = MediaWords::Languages::Language::default_language();
     }
 
-    my $sentences = $lang->get_sentences( $story_text );
+    my $sentences = $lang->split_text_to_sentences( $story_text );
 
     return $sentences;
 }

@@ -17,7 +17,7 @@ use MediaWords::Languages::ja;
 use Data::Dumper;
 use Readonly;
 
-sub test_get_sentences($)
+sub test_split_text_to_sentences($)
 {
     my $lang = shift;
 
@@ -34,9 +34,9 @@ QUOTE
 'また、有痛性筋痙攣（いわゆる“こむらがえり”）などの筋痙攣の治療にはベンゾジアゼピン類の中で最も有用であるとされている。',
         'This is some more English text.',
     ];
-    my $actual_sentences = $lang->get_sentences( $input_text );
+    my $actual_sentences = $lang->split_text_to_sentences( $input_text );
 
-    cmp_deeply( $actual_sentences, $expected_sentences, 'get_sentences()' );
+    cmp_deeply( $actual_sentences, $expected_sentences );
 }
 
 sub test_tokenize($)
@@ -45,7 +45,7 @@ sub test_tokenize($)
 
     my $input_sentence = 'pythonが大好きです';
     my $expected_words = [ 'python', '大好き', ];
-    my $actual_words   = $lang->tokenize( $input_sentence );
+    my $actual_words   = $lang->split_sentence_to_words( $input_sentence );
 
     cmp_deeply( $actual_words, $expected_words, 'tokenize()' );
 }
@@ -59,7 +59,7 @@ sub main()
 
     my $lang = MediaWords::Languages::ja->new();
 
-    test_get_sentences( $lang );
+    test_split_text_to_sentences( $lang );
     test_tokenize( $lang );
 }
 

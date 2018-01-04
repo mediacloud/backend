@@ -1,23 +1,23 @@
 {
-    "collect_date":"2017-12-30 22:46:59.633605",
+    "collect_date":"2017-12-30 23:14:24.799429",
     "content":"<p>\n    This RSS feed is used to test whether the story language gets identified\n    correctly.\n</p>\n",
-    "db_row_last_updated":"2017-12-30 22:46:59.688294+08:00",
+    "db_row_last_updated":"2017-12-30 23:14:24.854176+08:00",
     "description":null,
     "extracted_text":"(no title)\n***\n\n\n***\n\n\n\n  \n\n  \n\n \n    This RSS feed is used to test whether the story language gets identified\n    correctly.\n \n\n\n  \n\n  ",
     "feed_type":"web_page",
     "full_text_rss":false,
-    "guid":"1514645219:http://tundra.local:61157//multilanguage/home.html",
+    "guid":"1514646864:http://tundra.local:62432//multilanguage/home.html",
     "language":"en",
     "media_id":1,
-    "publish_date":"2017-12-30 16:46:59",
+    "publish_date":"2017-12-30 17:14:24",
     "stories_id":5,
     "story_sentences":[
         {
-            "db_row_last_updated":"2017-12-30 22:46:59.688294+08:00",
+            "db_row_last_updated":"2017-12-30 23:14:24.854176+08:00",
             "is_dup":null,
             "language":"en",
             "media_id":1,
-            "publish_date":"2017-12-30 16:46:59",
+            "publish_date":"2017-12-30 17:14:24",
             "sentence":"This RSS feed is used to test whether the story language gets identified correctly.",
             "sentence_number":0,
             "stories_id":5,
@@ -27,5 +27,5 @@
     "tags":[],
     "timezone":"Europe/Vilnius",
     "title":"(no title)",
-    "url":"http://tundra.local:61157//multilanguage/home.html"
+    "url":"http://tundra.local:62432//multilanguage/home.html"
 }

@@ -146,7 +146,7 @@ sub _combine_stopwords($$)
     my $language_codes = [];
     foreach my $language ( @{ $languages } )
     {
-        push( @{ $language_codes }, $language->get_language_code() );
+        push( @{ $language_codes }, $language->language_code() );
     }
     $language_codes = [ sort( @{ $language_codes } ) ];
 
@@ -162,7 +162,7 @@ sub _combine_stopwords($$)
         my $combined_stopwords = {};
         foreach my $language ( @{ $languages } )
         {
-            my $stopwords = $language->get_stop_words();
+            my $stopwords = $language->stop_words_map();
             $combined_stopwords = { ( %{ $combined_stopwords }, %{ $stopwords } ) };
         }
 
@@ -254,7 +254,7 @@ sub count_stems($$)
         my $lang_sentence = MediaWords::Languages::Language::language_for_code( $sentence_language );
 
         # Tokenize into words
-        my $sentence_words = $lang_sentence->tokenize( $sentence );
+        my $sentence_words = $lang_sentence->split_sentence_to_words( $sentence );
 
         # Remove stopwords;
         # (don't stem stopwords first as they will usually be stemmed too much)
@@ -287,7 +287,8 @@ sub count_stems($$)
         $sentence_words = [ grep { _word_is_valid_token( $_, $combined_stopwords ) } @{ $sentence_words } ];
 
         # Stem using sentence language's algorithm
-        my $sentence_word_stems = ( $self->ngram_size > 1 ) ? $sentence_words : $lang_sentence->stem( @{ $sentence_words } );
+        my $sentence_word_stems =
+          ( $self->ngram_size > 1 ) ? $sentence_words : $lang_sentence->stem_words( $sentence_words );
 
         my $n          = $self->ngram_size;
         my $num_ngrams = scalar( @{ $sentence_words } ) - $n + 1;

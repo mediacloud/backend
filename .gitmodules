@@ -1,5 +1,5 @@
-[submodule "lib/MediaWords/Languages/resources/hi/hindi-hunspell"]
-	path = lib/MediaWords/Languages/resources/hi/hindi-hunspell
+[submodule "mediacloud/mediawords/languages/hi/hindi-hunspell"]
+	path = mediacloud/mediawords/languages/hi/hindi-hunspell
 	url = https://github.com/Shreeshrii/hindi-hunspell.git
 [submodule "root/script/non-free/amcharts3"]
 	path = root/script/non-free/amcharts3
@@ -16,3 +16,12 @@
 [submodule "lib/MediaWords/Util/Mail/Message/Templates/email-templates"]
 	path = lib/MediaWords/Util/Mail/Message/Templates/email-templates
 	url = https://github.com/berkmancenter/mediacloud-email-templates.git
+[submodule "mediacloud/snowball"]
+	path = mediacloud/snowball
+	url = https://github.com/snowballstem/snowball.git
+[submodule "mediacloud/mediawords/languages/ca/snowball_stemmer"]
+	path = mediacloud/mediawords/languages/ca/snowball_stemmer
+	url = https://github.com/berkmancenter/mediacloud-catalan-stemmer.git
+[submodule "mediacloud/mediawords/languages/lt/snowball_stemmer"]
+	path = mediacloud/mediawords/languages/lt/snowball_stemmer
+	url = https://github.com/berkmancenter/mediacloud-lithuanian-stemmer.git

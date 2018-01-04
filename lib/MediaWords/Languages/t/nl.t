@@ -15,7 +15,7 @@ use utf8;
 use MediaWords::Languages::nl;
 use Data::Dumper;
 
-sub test_get_sentences()
+sub test_split_text_to_sentences()
 {
     my $test_string;
     my $expected_sentences;
@@ -40,7 +40,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -72,7 +72,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -93,7 +93,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -108,7 +108,7 @@ sub main()
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
-    test_get_sentences();
+    test_split_text_to_sentences();
 }
 
 main();
