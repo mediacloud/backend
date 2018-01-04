@@ -11,7 +11,6 @@ use MediaWords::Languages::en;
 
 use_ok( 'MediaWords::Util::HTML' );
 
-
 sub test_contains_block_level_tags()
 {
     ok( !MediaWords::Util::HTML::_contains_block_level_tags( '<b> ' ), 'contains_block_level_tags' );
@@ -43,7 +42,7 @@ sub test_new_lines_around_block_level_tags()
 
     my $lang = MediaWords::Languages::en->new();
     my $sentences =
-      $lang->get_sentences(
+      $lang->split_text_to_sentences(
         MediaWords::Util::HTML::html_strip( MediaWords::Util::HTML::_new_lines_around_block_level_tags( $test_text ) ) );
 
     cmp_deeply( $sentences, [ 'Title', '1st sentence.', '2nd sentence.' ] );

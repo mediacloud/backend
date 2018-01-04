@@ -1,24 +1,36 @@
 from unittest import TestCase
 
-from mediawords.languages.ja import *
+import os
+
+from mediawords.languages.ja import JapaneseLanguage
 
 
 # noinspection SpellCheckingInspection
-class TestJapaneseTokenizer(TestCase):
-    __mecab = None
+class TestJapaneseLanguage(TestCase):
 
     def setUp(self):
-        self.__tokenizer = McJapaneseTokenizer()
+        self.__tokenizer = JapaneseLanguage()
 
-    def test_tokenize_text_to_sentences(self):
+    def test_language_code(self):
+        assert self.__tokenizer.language_code() == "ja"
+
+    def test_stop_words_map(self):
+        stop_words = self.__tokenizer.stop_words_map()
+        assert "向こう" in stop_words
+        assert "not_a_stopword" not in stop_words
+
+    def test_stem(self):
+        assert self.__tokenizer.stem_words(['abc']) == ['abc']
+
+    def test_split_text_to_sentences(self):
         # noinspection PyTypeChecker
-        assert self.__tokenizer.tokenize_text_to_sentences(None) == []
-        assert self.__tokenizer.tokenize_text_to_sentences("") == []
-        assert self.__tokenizer.tokenize_text_to_sentences(" ") == []
-        assert self.__tokenizer.tokenize_text_to_sentences(".") == ["."]
+        assert self.__tokenizer.split_text_to_sentences(None) == []
+        assert self.__tokenizer.split_text_to_sentences("") == []
+        assert self.__tokenizer.split_text_to_sentences(" ") == []
+        assert self.__tokenizer.split_text_to_sentences(".") == ["."]
 
         # English-only punctuation
-        sentences = self.__tokenizer.tokenize_text_to_sentences(
+        sentences = self.__tokenizer.split_text_to_sentences(
             "Hello. How do you do? I'm doing okay."
         )
         assert sentences == [
@@ -28,7 +40,7 @@ class TestJapaneseTokenizer(TestCase):
         ]
 
         # English-only punctuation, no period at the end of sentence
-        sentences = self.__tokenizer.tokenize_text_to_sentences(
+        sentences = self.__tokenizer.split_text_to_sentences(
             "Hello. How do you do? I'm doing okay"
         )
         assert sentences == [
@@ -38,7 +50,7 @@ class TestJapaneseTokenizer(TestCase):
         ]
 
         # Japanese-only punctuation
-        sentences = self.__tokenizer.tokenize_text_to_sentences(
+        sentences = self.__tokenizer.split_text_to_sentences(
             "ジアゼパムはてんかんや興奮の治療に用いられる。"
             "また、有痛性筋痙攣（いわゆる“こむらがえり”）などの筋痙攣の治療にはベンゾジアゼピン類の中で最も有用であるとされている。"
             "鎮静作用を生かし手術などの前投薬にも用いられる。"
@@ -52,7 +64,7 @@ class TestJapaneseTokenizer(TestCase):
         ]
 
         # Japanese-only punctuation, no EOS at the end of the sentence
-        sentences = self.__tokenizer.tokenize_text_to_sentences(
+        sentences = self.__tokenizer.split_text_to_sentences(
             "ジアゼパムはてんかんや興奮の治療に用いられる。"
             "また、有痛性筋痙攣（いわゆる“こむらがえり”）などの筋痙攣の治療にはベンゾジアゼピン類の中で最も有用であるとされている。"
             "鎮静作用を生かし手術などの前投薬にも用いられる。"
@@ -66,7 +78,7 @@ class TestJapaneseTokenizer(TestCase):
         ]
 
         # Japanese and English punctuation
-        sentences = self.__tokenizer.tokenize_text_to_sentences(
+        sentences = self.__tokenizer.split_text_to_sentences(
             "ジアゼパムはてんかんや興奮の治療に用いられる。"
             "This is some English text out of the blue. "
             "また、有痛性筋痙攣（いわゆる“こむらがえり”）などの筋痙攣の治療にはベンゾジアゼピン類の中で最も有用であるとされている。"
@@ -80,12 +92,12 @@ class TestJapaneseTokenizer(TestCase):
         ]
 
         # Japanese and English punctuation (with newlines)
-        sentences = self.__tokenizer.tokenize_text_to_sentences("""ジアゼパムはてんかんや興奮の治療に用いられる。
+        sentences = self.__tokenizer.split_text_to_sentences("""ジアゼパムはてんかんや興奮の治療に用いられる。
 This is some English text out of the blue. 
 また、有痛性筋痙攣（いわゆる“こむらがえり”）などの筋痙攣の治療にはベンゾジアゼピン類の中で最も有用であるとされている。
 This is some more English text.
 This is some more English text.
-dsds.
+Dsds.
 """)
         assert sentences == [
             "ジアゼパムはてんかんや興奮の治療に用いられる。",
@@ -93,12 +105,12 @@ dsds.
             "また、有痛性筋痙攣（いわゆる“こむらがえり”）などの筋痙攣の治療にはベンゾジアゼピン類の中で最も有用であるとされている。",
             "This is some more English text.",
             "This is some more English text.",
-            "dsds.",
+            "Dsds.",
         ]
 
         # Japanese and English sentences separates by double-newlines
         # (test has extra whitespace between line breaks)
-        sentences = self.__tokenizer.tokenize_text_to_sentences("""
+        sentences = self.__tokenizer.split_text_to_sentences("""
 ジアゼパムはてんかんや興奮の治療に用いられる
   
 This is some English text out of the blue
@@ -116,7 +128,7 @@ This is some more English text
 
         # Japanese and English sentences in a list
         # (test has extra whitespace between line breaks)
-        sentences = self.__tokenizer.tokenize_text_to_sentences("""
+        sentences = self.__tokenizer.split_text_to_sentences("""
 ジアゼパムはてんかんや興奮の治療に用いられる
 
 * This is some English text out of the blue. Some more English text.
@@ -133,15 +145,15 @@ This is some more English text
             "This is some more English text",
         ]
 
-    def test_tokenize_sentence_to_words(self):
+    def test_split_sentence_to_words(self):
         # noinspection PyTypeChecker
-        assert self.__tokenizer.tokenize_sentence_to_words(None) == []
-        assert self.__tokenizer.tokenize_sentence_to_words("") == []
-        assert self.__tokenizer.tokenize_sentence_to_words(" ") == []
-        assert self.__tokenizer.tokenize_sentence_to_words(".") == []
+        assert self.__tokenizer.split_sentence_to_words(None) == []
+        assert self.__tokenizer.split_sentence_to_words("") == []
+        assert self.__tokenizer.split_sentence_to_words(" ") == []
+        assert self.__tokenizer.split_sentence_to_words(".") == []
 
         # English sentence
-        words = self.__tokenizer.tokenize_sentence_to_words("How do you do?")
+        words = self.__tokenizer.split_sentence_to_words("How do you do?")
         assert words == [
             "How",
             "do",
@@ -150,7 +162,7 @@ This is some more English text
         ]
 
         # English sentence, no period at the end of the sentence
-        words = self.__tokenizer.tokenize_sentence_to_words("How do you do")
+        words = self.__tokenizer.split_sentence_to_words("How do you do")
         assert words == [
             "How",
             "do",
@@ -159,7 +171,7 @@ This is some more English text
         ]
 
         # English sentence, literal string "EOS"
-        words = self.__tokenizer.tokenize_sentence_to_words("EOS this, EOS that.")
+        words = self.__tokenizer.split_sentence_to_words("EOS this, EOS that.")
         assert words == [
             "EOS",
             "this",
@@ -168,7 +180,7 @@ This is some more English text
         ]
 
         # English sentence; tab, newline and comma characters
-        words = self.__tokenizer.tokenize_sentence_to_words(
+        words = self.__tokenizer.split_sentence_to_words(
             "Something\tSomething else\nSomething, completely, different."
         )
         assert words == [
@@ -180,7 +192,7 @@ This is some more English text
         ]
 
         # Japanese sentence
-        words = self.__tokenizer.tokenize_sentence_to_words(
+        words = self.__tokenizer.split_sentence_to_words(
             "10日放送の「中居正広のミになる図書館」（テレビ朝日系）で、SMAPの中居正広が、篠原信一の過去の勘違いを明かす一幕があった。"
         )
         assert words == [
@@ -196,14 +208,14 @@ This is some more English text
         ]
 
         # Japanese + English sentence
-        words = self.__tokenizer.tokenize_sentence_to_words("pythonが大好きです")
+        words = self.__tokenizer.split_sentence_to_words("pythonが大好きです")
         assert words == [
             "python",
             "大好き",
         ]
 
         # Japanese punctuation
-        words = self.__tokenizer.tokenize_sentence_to_words(
+        words = self.__tokenizer.split_sentence_to_words(
             "Badger、badger。Badger・Badger『badger』badger？Badger！Badger！？"
             "Badger【badger】Badger～badger▽badger（badger）"
         )
@@ -216,7 +228,7 @@ This is some more English text
 def test_mecab_pos_ids():
     """Make sure hardcoded POS IDs point to expected (hardcoded) parts of speech."""
     # noinspection PyProtectedMember
-    dictionary_path = McJapaneseTokenizer._mecab_ipadic_neologd_path()
+    dictionary_path = JapaneseLanguage._mecab_ipadic_neologd_path()
     assert dictionary_path is not None
     assert os.path.isdir(dictionary_path)
 
@@ -238,7 +250,7 @@ def test_mecab_pos_ids():
                 pos_id_map[pos_number] = pos_string
 
     # noinspection PyProtectedMember
-    allowed_pos_ids = McJapaneseTokenizer._mecab_allowed_pos_ids()
+    allowed_pos_ids = JapaneseLanguage._mecab_allowed_pos_ids()
 
     for allowed_pos_id in allowed_pos_ids:
         assert allowed_pos_ids[allowed_pos_id] == pos_id_map[allowed_pos_id]

@@ -69,10 +69,6 @@ perl_dependencies:
     - "Inline"
     # Patched version of Inline::Python gets installed separately
     - "Lingua::Identify::CLD"
-    - "Lingua::Sentence"
-    - "Lingua::Stem::Snowball"
-    - "Lingua::Stem::Snowball::Lt"
-    - "Lingua::ZH::WordSegmenter"
     - "List::Compare"
     - "List::MoreUtils"
     - "Log::Log4perl"

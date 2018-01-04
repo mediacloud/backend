@@ -1,23 +1,23 @@
 {
-    "collect_date":"2017-12-30 22:44:32.227417",
+    "collect_date":"2017-12-30 23:11:58.333492",
     "content":"<p>\n    This RSS feed is used to test whether very short downloads (stored directly\n    in the <code>downloads.path</code> as <code>\"content:...\"</code>) are being\n    stored / extracted / fetched correctly.\n</p>\n",
-    "db_row_last_updated":"2017-12-30 22:44:32.276500+08:00",
+    "db_row_last_updated":"2017-12-30 23:11:58.388153+08:00",
     "description":null,
     "extracted_text":"(no title)\n***\n\n\n***\n\n\n\n  \n\n  \n\n \n    This RSS feed is used to test whether very short downloads (stored directly\n    in the  downloads.path  as  \"content:...\" ) are being\n    stored / extracted / fetched correctly.\n \n\n\n  \n\n  ",
     "feed_type":"web_page",
     "full_text_rss":false,
-    "guid":"1514645072:http://tundra.local:60968//inline_content/home.html",
+    "guid":"1514646718:http://tundra.local:62245//inline_content/home.html",
     "language":"en",
     "media_id":1,
-    "publish_date":"2017-12-30 16:44:32",
+    "publish_date":"2017-12-30 17:11:58",
     "stories_id":4,
     "story_sentences":[
         {
-            "db_row_last_updated":"2017-12-30 22:44:32.276500+08:00",
+            "db_row_last_updated":"2017-12-30 23:11:58.388153+08:00",
             "is_dup":null,
             "language":"en",
             "media_id":1,
-            "publish_date":"2017-12-30 16:44:32",
+            "publish_date":"2017-12-30 17:11:58",
             "sentence":"This RSS feed is used to test whether very short downloads (stored directly in the downloads.path as \"content:...\" ) are being stored / extracted / fetched correctly.",
             "sentence_number":0,
             "stories_id":4,
@@ -27,5 +27,5 @@
     "tags":[],
     "timezone":"Europe/Vilnius",
     "title":"(no title)",
-    "url":"http://tundra.local:60968//inline_content/home.html"
+    "url":"http://tundra.local:62245//inline_content/home.html"
 }

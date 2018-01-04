@@ -46,11 +46,11 @@ sub store_preprocessed_result
     INFO "EXTRACTED HTML $extract_results->{ extracted_html }";
     INFO "EXTRACTED TEXT $extract_results->{ extracted_text }";
 
-    INFO "Starting get_sentences ";
+    INFO "Starting split_text_to_sentences ";
     my $lang = MediaWords::Languages::en->new();
-    my $sentences = $lang->get_sentences( $extract_results->{ extracted_text } ) || return;
+    my $sentences = $lang->split_text_to_sentences( $extract_results->{ extracted_text } ) || return;
 
-    INFO "Finished get_sentences ";
+    INFO "Finished split_text_to_sentences ";
 
     say Dumper( $sentences );
 

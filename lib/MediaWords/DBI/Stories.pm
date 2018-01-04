@@ -692,7 +692,7 @@ sub get_all_sentences
         return;
     }
 
-    my $raw_sentences = $lang->get_sentences( $text );
+    my $raw_sentences = $lang->split_text_to_sentences( $text );
     unless ( defined $raw_sentences )
     {
         die "Sentences for story " . $story->{ stories_id } . " are undefined.";

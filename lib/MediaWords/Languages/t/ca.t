@@ -15,7 +15,7 @@ use utf8;
 use MediaWords::Languages::ca;
 use Data::Dumper;
 
-sub test_get_sentences()
+sub test_split_text_to_sentences()
 {
     my $lang = MediaWords::Languages::ca->new();
 
@@ -31,7 +31,7 @@ QUOTE
 "Va ser projectat per l'arquitecte barceloní Lluís Domènech i Montaner, un dels màxims representants del modernisme català.",
     ];
 
-    is( join( '||', @{ $lang->get_sentences( $test_string ) } ), join( '||', @{ $expected_sentences } ) );
+    is( join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ), join( '||', @{ $expected_sentences } ) );
 }
 
 sub test_tokenize()
@@ -46,14 +46,14 @@ sub test_tokenize()
         "i",        "l'autoritat", "bancària",  "europea", "a",        "amsterdam",
         "i",        "parís",      "respectivament"
     ];
-    is_deeply( $lang->tokenize( $input_string ), $expected_words );
+    is_deeply( $lang->split_sentence_to_words( $input_string ), $expected_words );
 }
 
 sub test_stem()
 {
     my $lang = MediaWords::Languages::ca->new();
 
-    is_deeply( $lang->stem( qw/El Palau de la Música Catalana/ ), [ qw/ el pal de la music catal / ] );
+    is_deeply( $lang->stem_words( [ qw/El Palau de la Música Catalana/ ] ), [ qw/ el pal de la music catal / ] );
 }
 
 sub main()
@@ -64,7 +64,7 @@ sub main()
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
-    test_get_sentences();
+    test_split_text_to_sentences();
     test_tokenize();
     test_stem();
 }

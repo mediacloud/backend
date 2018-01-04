@@ -55,14 +55,13 @@ sub test_stem($)
 
     for my $token ( keys %{ $tokens_and_stems } )
     {
-        my $expected_stem  = $tokens_and_stems->{ $token };
-        my @tokens_to_stem = ( $token );
-        my $actual_stem    = $lang->stem( @tokens_to_stem )->[ 0 ];
-        is( $actual_stem, $expected_stem, "stem(): $token" );
+        my $expected_stem = $tokens_and_stems->{ $token };
+        my $actual_stem = $lang->stem_words( [ $token ] )->[ 0 ];
+        is( $actual_stem, $expected_stem, "stem_words(): $token" );
     }
 }
 
-sub test_get_sentences($)
+sub test_split_text_to_sentences($)
 {
     my $lang = shift;
 
@@ -84,9 +83,9 @@ QUOTE
 'यह चारों ओर से दक्षिणी महासागर से घिरा हुआ है।',
 'अपने 140 लाख वर्ग किलोमीटर (54 लाख वर्ग मील) क्षेत्रफल के साथ यह, एशिया, अफ्रीका, उत्तरी अमेरिका और दक्षिणी अमेरिका के बाद, पृथ्वी का पांचवां सबसे बड़ा महाद्वीप है, अंटार्कटिका का 98% भाग औसतन 1.6 किलोमीटर मोटी बर्फ से आच्छादित है।',
     ];
-    my $actual_sentences = $lang->get_sentences( $input_text );
+    my $actual_sentences = $lang->split_text_to_sentences( $input_text );
 
-    eq_or_diff( $actual_sentences, $expected_sentences, 'get_sentences()' );
+    eq_or_diff( $actual_sentences, $expected_sentences );
 }
 
 sub main()
@@ -100,7 +99,7 @@ sub main()
     my $lang = MediaWords::Languages::hi->new();
 
     test_stem( $lang );
-    test_get_sentences( $lang );
+    test_split_text_to_sentences( $lang );
 }
 
 main();

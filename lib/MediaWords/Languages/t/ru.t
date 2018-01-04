@@ -9,7 +9,7 @@ use warnings;
 use Readonly;
 
 use Test::NoWarnings;
-use Test::More tests => 16;
+use Test::More tests => 13;
 use utf8;
 
 use MediaWords::Languages::ru;
@@ -19,21 +19,17 @@ sub test_stopwords()
 {
     my $lang = MediaWords::Languages::ru->new();
 
-    ok( $lang->get_stop_words(), 'lang_en_get_stop_words' );
+    ok( $lang->stop_words_map() );
 
     # Stop words
-    my $stop_words_ru = $lang->get_stop_words();
+    my $stop_words_ru = $lang->stop_words_map();
     ok( scalar( keys( %{ $stop_words_ru } ) ) >= 140, "stop words (ru) count is correct" );
 
     is( $stop_words_ru->{ 'и' }, 1, "Russian test #1" );
     is( $stop_words_ru->{ 'я' }, 1, "Russian test #2" );
-
-    # Stop word stems
-    my $stop_word_stems_ru = $lang->get_stop_word_stems();
-    ok( scalar( keys( %{ $stop_word_stems_ru } ) ) >= 108, "stop word stem (ru) count is correct" );
 }
 
-sub test_get_sentences()
+sub test_split_text_to_sentences()
 {
     my $test_string;
     my $expected_sentences;
@@ -64,7 +60,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -81,7 +77,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -106,7 +102,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -128,7 +124,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -153,7 +149,7 @@ QUOTE
 
     {
         is(
-            join( '||', @{ $lang->get_sentences( $test_string ) } ),
+            join( '||', @{ $lang->split_text_to_sentences( $test_string ) } ),
             join( '||', @{ $expected_sentences } ),
             "sentence_split"
         );
@@ -181,8 +177,7 @@ QUOTE
           rod
           morgenstein
           род
-          19
-          04
+          19.04
           1953
           нью-йорк
           американский
@@ -196,7 +191,8 @@ QUOTE
           хеви-метал
           группой
           конца
-          80-х
+          80
+          х
           winger
           и
           джаз-фьюжн
@@ -206,7 +202,8 @@ QUOTE
     ];
 
     {
-        is( join( '||', @{ $lang->tokenize( $test_string ) } ), join( '||', @{ $expected_words } ), "tokenize" );
+        is( join( '||', @{ $lang->split_sentence_to_words( $test_string ) } ),
+            join( '||', @{ $expected_words } ), "tokenize" );
     }
 }
 
@@ -215,37 +212,23 @@ sub test_stem()
     my $lang = MediaWords::Languages::ru->new();
 
     # from http://ru.wikipedia.org/
-    my $stemmer_test_ru_text = <<'__END_TEST_CASE__';
-        Сте́мминг — это процесс нахождения основы слова для заданного исходного слова. Основа слова необязательно
-        совпадает с морфологическим корнем слова. Алгоритм стемминга представляет собой давнюю проблему в области
-        компьютерных наук. Первый документ по этому вопросу был опубликован в 1968 году. Данный процесс применяется
-        в поиcковых системах для обобщения поискового запроса пользователя.
-__END_TEST_CASE__
+    my $split_words = [
+        'сте́мминг', 'это',     'процесс', 'нахождения',
+        'основы',       'слова', 'для',         'заданного',
+        'исходного', 'слова',
+    ];
 
-    ok( utf8::is_utf8( $stemmer_test_ru_text ), "is_utf8" );
+    my $expected_stems = [
+        'сте́мминг', 'эт',     'процесс', 'нахожден',
+        'основ',         'слов', 'для',         'зада',
+        'исходн',       'слов'
+    ];
 
-    my @split_words = @{ $lang->tokenize( $stemmer_test_ru_text ) };
+    my $mw_stem_result = $lang->stem_words( $split_words );
 
-    utf8::upgrade( $stemmer_test_ru_text );
+    is_deeply( ( join "_", @{ $mw_stem_result } ), ( join "_", @{ $expected_stems } ), "Stemmer compare test" );
 
-    my $temp = $stemmer_test_ru_text;
-
-    @split_words = @{ $lang->tokenize( $temp ) };
-
-    my $lingua_stem = Lingua::Stem::Snowball->new( lang => 'ru', encoding => 'UTF-8' );
-
-    my $lingua_stem_result = [ ( $lingua_stem->stem( \@split_words ) ) ];
-    my $mw_stem_result = $lang->stem( @split_words );
-
-    is_deeply( ( join "_", @{ $mw_stem_result } ), ( join "_", @{ $lingua_stem_result } ), "Stemmer compare test" );
-
-    is( $mw_stem_result->[ 0 ], lc $split_words[ 0 ], "first word" );
-
-    isnt(
-        join( "_", @$mw_stem_result ),
-        join( "_", @{ $lang->tokenize( lc $stemmer_test_ru_text ) } ),
-        "Stemmer compare with no stemming test"
-    );
+    is( $mw_stem_result->[ 0 ], lc $split_words->[ 0 ], "first word" );
 }
 
 sub main()
@@ -257,7 +240,7 @@ sub main()
     binmode $builder->todo_output,    ":utf8";
 
     test_stopwords();
-    test_get_sentences();
+    test_split_text_to_sentences();
     test_tokenize();
     test_stem();
 }
