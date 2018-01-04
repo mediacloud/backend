@@ -13,6 +13,9 @@ boto3==1.4.7
 # Job broker
 Celery==4.1.0
 
+# Language identification
+cld2-cffi==0.1.4
+
 # Unit test coverage
 coverage==4.4.1
 
