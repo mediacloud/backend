@@ -25,6 +25,9 @@ flake8==3.5.0
 # URL manipulation
 furl==1.0.1
 
+# Word2vec topic models
+gensim==3.2.0
+
 # Stemming Hausa words
 hausastemmer==1.0
 
