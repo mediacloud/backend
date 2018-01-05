@@ -26,20 +26,22 @@ def rgb_to_hex(r: int, g: int, b: int) -> str:
     return '%02x%02x%02x' % (int(r), int(g), int(b),)
 
 
-def analogous_color(color: str, my_slices: int = 3, slices: int = 32) -> List[str]:
-    """Analogous color schemes are ones in which the colors lie next to each other on the color wheel.
+def analogous_color(color: str, return_slices: int = 4, split_slices: int = 12) -> List[str]:
+    """Generate analogous color scheme starting with the provided color.
 
-    By default this method splits up the colorwheel into 12 pieces and returns the next 3 pieces of the wheel. So using
-    this if you entered 0000ff (blue) then by default you would get back '80000ff' (purple), 'ff00ff' (pink) and
-    'ff0080' (hotpink) colors.
+    Analogous color scheme is the one in which the colors lie next to each other on the color wheel.
 
-    If you split the wheel up into 36 as in the example above you essentially reduce the range of the colors by 3. So
-    now if you entered 0000ff (blue) but added a parameter 3 (For number of colors you want returned) and 36 (To split
-    the wheel up into 36 pieces) then you would get back '2b00ff' (Blue), '5500ff' (Bluey Purple) and '8000ff' (Purple).
+    By default this method splits up the color wheel into 12 pieces and returns the original parameter color plus the
+    next 3 pieces of the wheel (4 colors in total). For example, by padding '0000ff' (blue) you would get back '0000ff'
+    (blue -- the original color) '80000ff' (purple), 'ff00ff' (pink) and 'ff0080' (hot pink) colors.
 
-    This gives and easy way to either limit or expand the range of the analogous color palette.
+    Ported from https://metacpan.org/pod/Color::Mix#analogous().
 
-    Ported from https://metacpan.org/pod/Color::Mix#analogous()."""
+    :param color: Starting color
+    :param return_slices: Number of color slices to return
+    :param split_slices: Number of slices to split the color wheel into
+    :return: Generated colors starting with the parameter color
+    """
     color = decode_object_from_bytes_if_needed(color)
 
     def shift_hue(hue: int, angle_: float) -> int:
@@ -57,10 +59,10 @@ def analogous_color(color: str, my_slices: int = 3, slices: int = 32) -> List[st
         b = int(b)
         return rgb_to_hex(r, g, b)
 
-    angle = 360 / slices
+    angle = 360 / split_slices
 
     colors = [color]
-    for x in range(1, my_slices + 1):
+    for x in range(1, return_slices):
         new_color = rotate_color(color_=color, angle_=angle * x)
         colors.append(new_color)
 
@@ -104,7 +106,7 @@ def get_consistent_color(db: DatabaseHandler, item_set: str, item_id: str) -> st
 
     # Otherwise, just generate a random color
     if new_color is None:
-        colors = analogous_color(color='0000ff', my_slices=255, slices=255)
+        colors = analogous_color(color='0000ff', return_slices=256, split_slices=255)
         new_color = random.choice(colors)
 
     db.create(table='color_sets', insert_hash={

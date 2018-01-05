@@ -17,7 +17,12 @@ def test_rgb_to_hex():
 
 def test_analogous_color():
     starting_color = '0000ff'
-    colors = analogous_color(color=starting_color, my_slices=255, slices=255)
+
+    colors = analogous_color(color=starting_color, return_slices=1, split_slices=255)
+    assert len(colors) == 1
+    assert colors[0].lower() == starting_color
+
+    colors = analogous_color(color=starting_color, return_slices=256, split_slices=255)
     assert len(colors) == 256
     assert colors[0].lower() == starting_color
     assert colors[1].lower() == '0400ff'
