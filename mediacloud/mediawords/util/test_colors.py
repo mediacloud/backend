@@ -78,6 +78,9 @@ class TestGetConsistentColorTestCase(TestDatabaseWithSchemaTestCase):
             assert len(color) == len('ffffff')
             unique_color_mapping[item_id] = color
 
+        # Make sure the first color is from the Media Cloud color palette
+        assert unique_color_mapping['color-0'] == '1f77b4'
+
         # Make sure that if we run it again, we'll get the same colors
         for x in range(50):
             item_id = 'color-%d' % x

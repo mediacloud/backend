@@ -98,7 +98,7 @@ def get_consistent_color(db: DatabaseHandler, item_set: str, item_id: str) -> st
     # Use the hard coded palette of 25 colors if possible
     new_color = None
     for color in __MC_COLORS:
-        if color in existing_colors:
+        if color not in existing_colors:
             new_color = color
             break
 
