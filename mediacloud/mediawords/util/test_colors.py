@@ -33,6 +33,7 @@ def test_analogous_color():
 class TestGetConsistentColorTestCase(TestDatabaseWithSchemaTestCase):
 
     def test_get_consistent_color(self):
+        # Colors that "color_sets" were prefilled with in mediawords.sql
         partisan_colors = {
             'partisan_2012_conservative': 'c10032',
             'partisan_2012_liberal': '00519b',
