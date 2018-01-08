@@ -7,7 +7,7 @@
     "feed_type":"syndicated",
     "full_text_rss":false,
     "guid":"http://www.example.com/multilanguage/hebrew.html",
-    "language":"he",
+    "language":"iw",
     "media_id":1,
     "publish_date":"2009-06-11 13:57:00",
     "stories_id":3,
@@ -15,7 +15,7 @@
         {
             "db_row_last_updated":"2017-12-30 23:14:39.950252+08:00",
             "is_dup":null,
-            "language":"he",
+            "language":"iw",
             "media_id":1,
             "publish_date":"2009-06-11 13:57:00",
             "sentence":"דג סקרן שט בים מאוכזב ולפתע מצא לו חברה איך הקליטה.",

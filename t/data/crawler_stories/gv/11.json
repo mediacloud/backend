@@ -48,7 +48,7 @@
         {
             "db_row_last_updated":"2017-12-30 23:13:35.264835+08:00",
             "is_dup":null,
-            "language":"da",
+            "language":"en",
             "media_id":1,
             "publish_date":"2009-06-07 00:37:36",
             "sentence":"It never arrived.",
@@ -125,7 +125,7 @@
         {
             "db_row_last_updated":"2017-12-30 23:13:35.264835+08:00",
             "is_dup":null,
-            "language":"en",
+            "language":"",
             "media_id":1,
             "publish_date":"2009-06-07 00:37:36",
             "sentence":"Ô corja!",
@@ -180,7 +180,7 @@
         {
             "db_row_last_updated":"2017-12-30 23:13:35.264835+08:00",
             "is_dup":null,
-            "language":"en",
+            "language":"",
             "media_id":1,
             "publish_date":"2009-06-07 00:37:36",
             "sentence":"Oh vultures!",
@@ -224,7 +224,7 @@
         {
             "db_row_last_updated":"2017-12-30 23:13:35.264835+08:00",
             "is_dup":null,
-            "language":"en",
+            "language":"",
             "media_id":1,
             "publish_date":"2009-06-07 00:37:36",
             "sentence":"Camerini , from blog Transbrasil [pt], states:",
@@ -378,7 +378,7 @@
         {
             "db_row_last_updated":"2017-12-30 23:13:35.264835+08:00",
             "is_dup":null,
-            "language":"it",
+            "language":"",
             "media_id":1,
             "publish_date":"2009-06-07 00:37:36",
             "sentence":"Gente, que absurdo!",
@@ -433,7 +433,7 @@
         {
             "db_row_last_updated":"2017-12-30 23:13:35.264835+08:00",
             "is_dup":null,
-            "language":"lv",
+            "language":"",
             "media_id":1,
             "publish_date":"2009-06-07 00:37:36",
             "sentence":"Vejam o absurdo:",
@@ -455,7 +455,7 @@
         {
             "db_row_last_updated":"2017-12-30 23:13:35.264835+08:00",
             "is_dup":null,
-            "language":"en",
+            "language":"",
             "media_id":1,
             "publish_date":"2009-06-07 00:37:36",
             "sentence":"Guys, how absurd!",
@@ -510,7 +510,7 @@
         {
             "db_row_last_updated":"2017-12-30 23:13:35.264835+08:00",
             "is_dup":null,
-            "language":"sq",
+            "language":"",
             "media_id":1,
             "publish_date":"2009-06-07 00:37:36",
             "sentence":"What a shame....",
@@ -1313,7 +1313,7 @@
         {
             "db_row_last_updated":"2017-12-30 23:13:35.264835+08:00",
             "is_dup":null,
-            "language":"fr",
+            "language":"",
             "media_id":1,
             "publish_date":"2009-06-07 00:37:36",
             "sentence":"L’annonce de cet accident me remplit de tristesse.",
