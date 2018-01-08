@@ -1,7 +1,5 @@
+from mediawords.languages.factory import LanguageFactory
 from mediawords.util.identify_language import *
-
-__ENGLISH_TEXT = 'The quick brown fox jumps over the lazy dog.'
-__RUSSIAN_TEXT = 'В чащах юга жил бы цитрус? Да, но фальшивый экземпляр!'
 
 
 def test_language_code_for_text():
@@ -9,13 +7,17 @@ def test_language_code_for_text():
     # noinspection PyTypeChecker
     assert language_code_for_text(text=None) == ''
 
-    assert language_code_for_text(text=__ENGLISH_TEXT) == 'en'
-    assert language_code_for_text(text=__RUSSIAN_TEXT) == 'ru'
+    enabled_languages = LanguageFactory.enabled_languages()
+    for language_code in enabled_languages:
+        language = LanguageFactory.language_for_code(language_code)
+        assert language_code == language_code_for_text(text=language.sample_sentence())
 
 
 def test_language_code_for_text_uppercase():
-    assert language_code_for_text(text=__ENGLISH_TEXT.upper()) == 'en'
-    assert language_code_for_text(text=__RUSSIAN_TEXT.upper()) == 'ru'
+    enabled_languages = LanguageFactory.enabled_languages()
+    for language_code in enabled_languages:
+        language = LanguageFactory.language_for_code(language_code)
+        assert language_code_for_text(text=language.sample_sentence().upper()) == language_code
 
 
 def test_language_code_for_text_invalid_utf8():
@@ -50,8 +52,10 @@ def test_identification_would_be_reliable():
     # noinspection PyTypeChecker
     assert identification_would_be_reliable(text=None) is False
 
-    assert identification_would_be_reliable(text=__ENGLISH_TEXT) is True
-    assert identification_would_be_reliable(text=__RUSSIAN_TEXT) is True
+    enabled_languages = LanguageFactory.enabled_languages()
+    for language_code in enabled_languages:
+        language = LanguageFactory.language_for_code(language_code)
+        assert identification_would_be_reliable(text=language.sample_sentence())
 
 
 def test_identification_would_be_reliable_digits():
