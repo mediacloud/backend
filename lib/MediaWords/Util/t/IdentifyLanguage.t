@@ -12,7 +12,7 @@ use_ok( 'MediaWords::Util::IdentifyLanguage' );
 
 Readonly my $english_text => 'The quick brown fox jumps over the lazy dog.';
 Readonly my $russian_text =>
-  'В чащах юга жил бы цитрус? Да, но фальшивый экземпляр!';
+'«Олл Блэкс» удерживали первую строчку в рейтинге сборных Международного совета регби дольше, чем все остальные команды вместе взятые.';
 
 sub test_language_code_for_text()
 {
