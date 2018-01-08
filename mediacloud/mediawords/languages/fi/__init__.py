@@ -7,3 +7,7 @@ class FinnishLanguage(SpaceSeparatedWordsMixIn, SentenceSplitterMixIn, PyStemmer
     @staticmethod
     def language_code() -> str:
         return "fi"
+
+    @staticmethod
+    def sample_sentence() -> str:
+        return "Hyvän lorun sangen pieneksi hyödyksi jäi suomen kirjaimet."
