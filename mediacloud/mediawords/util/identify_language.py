@@ -45,19 +45,13 @@ def __recode_utf8_string(utf8_string: str) -> str:
     return utf8_string.encode('utf-8', errors='replace').decode('utf-8', errors='replace')
 
 
-def language_code_for_text(text: str, tld: str = None, is_html: bool = None):
+def language_code_for_text(text: str):
     """Returns an ISO 690 language code for the plain text passed as a parameter.
 
     :param text: Text that should be identified
-    :param tld: (optional) Top-level domain that can help with the identification
-    :param is_html: (optional) True if the content is (X)HTML, False otherwise
     :return: ISO 690 language code (e.g. 'en') on successful identification, empty string ('') on failure
     """
     text = decode_object_from_bytes_if_needed(text)
-    tld = decode_object_from_bytes_if_needed(tld)
-    if isinstance(is_html, bytes):
-        is_html = decode_object_from_bytes_if_needed(is_html)
-        is_html = bool(is_html)
 
     if not text:
         return ''
@@ -66,18 +60,11 @@ def language_code_for_text(text: str, tld: str = None, is_html: bool = None):
         log.warning("Text is longer than %d, trimming..." % __MAX_TEXT_LENGTH)
         text = text[:__MAX_TEXT_LENGTH]
 
-    # Perl's Lingua::Identify::CLD didn't like undefined TLDs, maybe cld2-cffi is not a fan too
-    if tld is None:
-        tld = ''
-
     # We need to verify that the file can cleany encode and decode because CLD can segfault on bad UTF-8
     text = __recode_utf8_string(text)
 
     try:
-        is_reliable, text_bytes_found, details = cld2.detect(utf8Bytes=text,
-                                                             isPlainText=not is_html,
-                                                             hintTopLevelDomain=tld,
-                                                             useFullLangTables=True)
+        is_reliable, text_bytes_found, details = cld2.detect(utf8Bytes=text, useFullLangTables=True)
     except Exception as ex:
         log.error("Error while detecting language: %s" % str(ex))
         return ''
