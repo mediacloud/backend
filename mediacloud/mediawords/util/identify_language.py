@@ -76,7 +76,8 @@ def language_code_for_text(text: str, tld: str = None, is_html: bool = None):
     try:
         is_reliable, text_bytes_found, details = cld2.detect(utf8Bytes=text,
                                                              isPlainText=not is_html,
-                                                             hintTopLevelDomain=tld)
+                                                             hintTopLevelDomain=tld,
+                                                             useFullLangTables=True)
     except Exception as ex:
         log.error("Error while detecting language: %s" % str(ex))
         return ''
