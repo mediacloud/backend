@@ -395,11 +395,6 @@ sub spider_GET
     my $topic = $db->require_by_id( 'topics', $topics_id );
     my $auth_users_id = $c->stash->{ api_auth }->id();
 
-    if ( my $job_state = _get_user_public_queued_job( $db, $auth_users_id ) )
-    {
-        return $self->status_ok( $c, entity => { job_state => $job_state } );
-    }
-
     my $job_state = $db->query( <<SQL, $topics_id )->hash;
 select $JOB_STATE_FIELD_LIST
     from pending_job_states
