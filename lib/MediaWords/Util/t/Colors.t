@@ -3,12 +3,11 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 16;
+use Test::More tests => 166;
 
 use MediaWords::Test::DB;
 
 use_ok( 'MediaWords::Util::Colors' );
-
 
 sub test_consistent_colors
 {
@@ -58,12 +57,46 @@ sub test_consistent_colors
     is( $color_c_baz_2, $color_c_baz, 'color_a_baz is consistent' );
 }
 
+sub test_consistent_colors_create($)
+{
+    my ( $db ) = @_;
+
+    my $set = 'test_set';
+
+    my $unique_color_mapping = {};
+
+    # Test if helper is able to create new colors when it runs out of hardcoded set
+    for ( my $x = 0 ; $x < 50 ; ++$x )
+    {
+        my $id = "color-$x";
+        my $color = MediaWords::Util::Colors::get_consistent_color( $db, $set, $id );
+        is( length( $color ), length( 'ffffff' ) );
+        $unique_color_mapping->{ $id } = $color;
+    }
+
+    # Make sure that if we run it again, we'll get the same colors
+    for ( my $x = 0 ; $x < 50 ; ++$x )
+    {
+        my $id = "color-$x";
+        my $color = MediaWords::Util::Colors::get_consistent_color( $db, $set, $id );
+        is( length( $color ),               length( 'ffffff' ) );
+        is( $unique_color_mapping->{ $id }, $color );
+    }
+}
+
 sub main
 {
     MediaWords::Test::DB::test_on_test_database(
         sub {
             my ( $db ) = @_;
             test_consistent_colors( $db );
+        }
+    );
+
+    MediaWords::Test::DB::test_on_test_database(
+        sub {
+            my ( $db ) = @_;
+            test_consistent_colors_create( $db );
         }
     );
 }
