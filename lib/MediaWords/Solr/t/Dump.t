@@ -70,6 +70,61 @@ SQL
     }
 }
 
+sub add_processed_stories
+{
+    my ( $db, $stories ) = @_;
+
+    for my $story ( @{ $stories } )
+    {
+        $db->create( 'processed_stories', { stories_id => $story->{ stories_id } } );
+    }
+}
+
+sub add_timespans
+{
+    my ( $db, $stories ) = @_;
+
+    my $topic = MediaWords::Test::DB::create_test_topic( $db, "solr dump test" );
+
+    my $snapshot = {
+        topics_id     => $topic->{ topics_id },
+        snapshot_date => '2018-01-01',
+        start_date    => '2018-01-01',
+        end_date      => '2018-01-01'
+    };
+    $snapshot = $db->create( 'snapshots', $snapshot );
+
+    my $timespans = [];
+    for my $i ( 1 .. 5 )
+    {
+        my $timespan = {
+            snapshots_id      => $snapshot->{ snapshots_id },
+            start_date        => '2018-01-01',
+            end_date          => '2018-01-01',
+            story_count       => 1,
+            story_link_count  => 1,
+            medium_count      => 1,
+            medium_link_count => 1,
+            tweet_count       => 1,
+            period            => 'overall'
+
+        };
+        push( @{ $timespans }, $db->create( 'timespans', $timespan ) );
+    }
+
+    for my $story ( @{ $stories } )
+    {
+        my $timespan = pop( @{ $timespans } );
+        unshift( @{ $timespans }, $timespan );
+
+        $db->query( <<SQL, $story->{ stories_id }, $timespan->{ timespans_id } );
+insert into snap.story_link_counts ( timespans_id, stories_id, media_inlink_count, inlink_count, outlink_count )
+    values ( \$2, \$1, 1, 1, 1 );
+SQL
+    }
+
+}
+
 sub test_import
 {
     my ( $db ) = @_;
@@ -88,8 +143,10 @@ sub test_import
     # for a series of solr query tests
     my $test_stories = $db->query( "select * from stories order by md5( stories_id::text )" )->hashes;
 
-    # add tags to stories so that we can test tags_id_media and tags_id_storie
+    # add ancilliary data so that it can be queried in solr
     add_story_tags( $db, $test_stories );
+    add_processed_stories( $db, $test_stories );
+    add_timespans( $db, $test_stories );
 
     MediaWords::Test::Solr::setup_test_index( $db );
 
@@ -139,6 +196,21 @@ SQL
         test_query( $db, "tags_id_stories:$tags_id", $story );
     }
 
+    {
+        my $story = pop( @{ $test_stories } );
+        my ( $processed_stories_id ) = $db->query( <<SQL, $story->{ stories_id } )->flat;
+select processed_stories_id from processed_stories where stories_id = ?
+SQL
+        test_query( $db, "processed_stories_id:$processed_stories_id", $story );
+    }
+
+    {
+        my $story = pop( @{ $test_stories } );
+        my ( $timespans_id ) = $db->query( <<SQL, $story->{ stories_id } )->flat;
+select timespans_id from snap.story_link_counts where stories_id = ? limit 1
+SQL
+        test_query( $db, "timespans_id:$timespans_id", $story );
+    }
 }
 
 sub main
