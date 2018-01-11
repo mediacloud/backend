@@ -12,6 +12,9 @@ class TestEnglishLanguage(TestCase):
     def test_language_code(self):
         assert self.__tokenizer.language_code() == "en"
 
+    def test_sample_sentence(self):
+        assert len(self.__tokenizer.sample_sentence())
+
     def test_stop_words_map(self):
         stop_words = self.__tokenizer.stop_words_map()
         assert "the" in stop_words

@@ -147,7 +147,7 @@
         {
             "db_row_last_updated":"2017-12-30 23:13:44.469084+08:00",
             "is_dup":null,
-            "language":"fi",
+            "language":"",
             "media_id":1,
             "publish_date":"2009-06-05 23:54:35",
             "sentence":"Jonathan Sanchez @Maskus :",
@@ -180,7 +180,7 @@
         {
             "db_row_last_updated":"2017-12-30 23:13:44.469084+08:00",
             "is_dup":null,
-            "language":"en",
+            "language":"",
             "media_id":1,
             "publish_date":"2009-06-05 23:54:35",
             "sentence":"@xaxo6v :",
@@ -213,7 +213,7 @@
         {
             "db_row_last_updated":"2017-12-30 23:13:44.469084+08:00",
             "is_dup":null,
-            "language":"es",
+            "language":"",
             "media_id":1,
             "publish_date":"2009-06-05 23:54:35",
             "sentence":"Javier Vargas @javier_vargas :",
@@ -301,7 +301,7 @@
         {
             "db_row_last_updated":"2017-12-30 23:13:44.469084+08:00",
             "is_dup":null,
-            "language":"ro",
+            "language":"en",
             "media_id":1,
             "publish_date":"2009-06-05 23:54:35",
             "sentence":"Miguel Angel Tavera pe1us0 :",
@@ -345,7 +345,7 @@
         {
             "db_row_last_updated":"2017-12-30 23:13:44.469084+08:00",
             "is_dup":null,
-            "language":"ca",
+            "language":"",
             "media_id":1,
             "publish_date":"2009-06-05 23:54:35",
             "sentence":"Esto va a acabar mal.",
