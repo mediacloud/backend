@@ -158,7 +158,7 @@
         {
             "db_row_last_updated":"2017-12-30 23:13:15.347513+08:00",
             "is_dup":null,
-            "language":"af",
+            "language":"en",
             "media_id":1,
             "publish_date":"2009-06-08 23:27:40",
             "sentence":"“What if I met Obama?” wonders Mohamed Malouk.",
@@ -202,7 +202,7 @@
         {
             "db_row_last_updated":"2017-12-30 23:13:15.347513+08:00",
             "is_dup":null,
-            "language":"en",
+            "language":"",
             "media_id":1,
             "publish_date":"2009-06-08 23:27:40",
             "sentence":"Mohamed [Ar] continues:",
@@ -235,7 +235,7 @@
         {
             "db_row_last_updated":"2017-12-30 23:13:15.347513+08:00",
             "is_dup":null,
-            "language":"en",
+            "language":"",
             "media_id":1,
             "publish_date":"2009-06-08 23:27:40",
             "sentence":"Live-coverage",
@@ -323,7 +323,7 @@
         {
             "db_row_last_updated":"2017-12-30 23:13:15.347513+08:00",
             "is_dup":null,
-            "language":"en",
+            "language":"",
             "media_id":1,
             "publish_date":"2009-06-08 23:27:40",
             "sentence":"Analysis",
@@ -345,7 +345,7 @@
         {
             "db_row_last_updated":"2017-12-30 23:13:15.347513+08:00",
             "is_dup":null,
-            "language":"en",
+            "language":"",
             "media_id":1,
             "publish_date":"2009-06-08 23:27:40",
             "sentence":"He stated [Fr]:",
@@ -488,7 +488,7 @@
         {
             "db_row_last_updated":"2017-12-30 23:13:15.347513+08:00",
             "is_dup":null,
-            "language":"en",
+            "language":"",
             "media_id":1,
             "publish_date":"2009-06-08 23:27:40",
             "sentence":"He wrote :",
@@ -510,7 +510,7 @@
         {
             "db_row_last_updated":"2017-12-30 23:13:15.347513+08:00",
             "is_dup":null,
-            "language":"en",
+            "language":"",
             "media_id":1,
             "publish_date":"2009-06-08 23:27:40",
             "sentence":"Wait and see",
@@ -576,7 +576,7 @@
         {
             "db_row_last_updated":"2017-12-30 23:13:15.347513+08:00",
             "is_dup":null,
-            "language":"en",
+            "language":"",
             "media_id":1,
             "publish_date":"2009-06-08 23:27:40",
             "sentence":"The Skeptic",

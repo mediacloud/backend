@@ -7,3 +7,7 @@ class HungarianLanguage(SpaceSeparatedWordsMixIn, SentenceSplitterMixIn, PyStemm
     @staticmethod
     def language_code() -> str:
         return "hu"
+
+    @staticmethod
+    def sample_sentence() -> str:
+        return "Jó foxim és don Quijote húszwattos lámpánál ülve egy pár bűvös cipőt készít."

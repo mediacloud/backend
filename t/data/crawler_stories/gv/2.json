@@ -268,7 +268,7 @@
         {
             "db_row_last_updated":"2017-12-30 23:12:50.227734+08:00",
             "is_dup":null,
-            "language":"it",
+            "language":"",
             "media_id":1,
             "publish_date":"2009-06-10 20:22:14",
             "sentence":"The struggle continues...”?",
@@ -389,7 +389,7 @@
         {
             "db_row_last_updated":"2017-12-30 23:12:50.227734+08:00",
             "is_dup":null,
-            "language":"et",
+            "language":"",
             "media_id":1,
             "publish_date":"2009-06-10 20:22:14",
             "sentence":"Spiritual harm.",
@@ -565,7 +565,7 @@
         {
             "db_row_last_updated":"2017-12-30 23:12:50.227734+08:00",
             "is_dup":null,
-            "language":"en",
+            "language":"",
             "media_id":1,
             "publish_date":"2009-06-10 20:22:14",
             "sentence":"Count 1.",

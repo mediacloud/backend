@@ -7,3 +7,7 @@ class RussianLanguage(SpaceSeparatedWordsMixIn, SentenceSplitterMixIn, PyStemmer
     @staticmethod
     def language_code() -> str:
         return "ru"
+
+    @staticmethod
+    def sample_sentence() -> str:
+        return "а неправильный формат идентификатора дн назад"

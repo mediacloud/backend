@@ -75,6 +75,13 @@ class HindiLanguage(StopWordsFromFileMixIn):
     def language_code() -> str:
         return "hi"
 
+    @staticmethod
+    def sample_sentence() -> str:
+        return (
+            "ऋषियों को सताने वाले दुष्ट राक्षसों के राजा रावण का सर्वनाश करने वाले "
+            "विष्णुवतार भगवान श्रीराम, अयोध्या के महाराज दशरथ के बड़े सपुत्र थे।"
+        )
+
     def stem_words(self, words: List[str]) -> List[str]:
         words = decode_object_from_bytes_if_needed(words)
         if words is None:

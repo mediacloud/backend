@@ -158,7 +158,7 @@
         {
             "db_row_last_updated":"2017-12-30 23:12:59.994471+08:00",
             "is_dup":null,
-            "language":"tl",
+            "language":"en",
             "media_id":1,
             "publish_date":"2009-06-10 09:34:45",
             "sentence":"Over blocking",
@@ -499,7 +499,7 @@
         {
             "db_row_last_updated":"2017-12-30 23:12:59.994471+08:00",
             "is_dup":null,
-            "language":"en",
+            "language":"",
             "media_id":1,
             "publish_date":"2009-06-10 09:34:45",
             "sentence":"All LGBT content banned",
@@ -741,7 +741,7 @@
         {
             "db_row_last_updated":"2017-12-30 23:12:59.994471+08:00",
             "is_dup":null,
-            "language":"en",
+            "language":"",
             "media_id":1,
             "publish_date":"2009-06-10 09:34:45",
             "sentence":"Political concern",

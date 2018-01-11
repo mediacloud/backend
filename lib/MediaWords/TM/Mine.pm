@@ -1023,7 +1023,7 @@ sub potential_story_matches_topic_pattern
 
     my $text_content = MediaWords::Util::HTML::html_strip( $content, 1 );
 
-    my $story_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $text_content, '' );
+    my $story_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $text_content );
 
     # only match first MB of text to avoid running giant, usually binary, strings through the regex match
     $text_content = substr( $text_content, 0, 1024 * 1024 ) if ( length( $text_content ) > 1024 * 1024 );

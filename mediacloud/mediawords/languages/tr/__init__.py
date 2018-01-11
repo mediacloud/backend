@@ -7,3 +7,7 @@ class TurkishLanguage(SpaceSeparatedWordsMixIn, SentenceSplitterMixIn, PyStemmer
     @staticmethod
     def language_code() -> str:
         return "tr"
+
+    @staticmethod
+    def sample_sentence() -> str:
+        return "Pijamalı hasta yağız şoföre çabucak güvendi."
