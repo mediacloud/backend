@@ -107,9 +107,8 @@ use MediaWords::Solr;
 my $_solr_select_url;
 
 # order and names of fields exported to and imported from csv
-Readonly my @CSV_FIELDS =>
-  qw/stories_id media_id story_sentences_id solr_id publish_date publish_day sentence_number sentence title language
-  bitly_click_count processed_stories_id tags_id_media tags_id_stories tags_id_story_sentences timespans_id/;
+Readonly my @CSV_FIELDS => qw/stories_id media_id publish_date publish_day text title language
+  bitly_click_count processed_stories_id tags_id_stories timespans_id/;
 
 # numbner of lines in each chunk of csv to import
 Readonly my $CSV_CHUNK_LINES => 10_000;
@@ -207,68 +206,31 @@ SQL
 
 }
 
-# setup 'csr' cursor in postgres as the query to import the story_sentences.  we use a server side cursor so that
-# we can stream data to the csv as postgres fetches it from disk.
-sub _declare_sentences_cursor
+# setup 'csr' cursor in postgres as the query to import the stories data, including concatenated sentences as story text
+sub _declare_stories_cursor
 {
     my ( $db, $delta, $num_proc, $proc ) = @_;
 
     my $delta_clause = $delta ? 'and ss.stories_id in ( select stories_id from delta_import_stories )' : '';
 
-    # DO NOT ADD JOINS TO THIS QUERY! INSTEAD ADD ANY JOINED TABLES TO _get_data_lookup AND THEN ADD TO THE CSV
-    # IN _print_csv_to_file_from_csr. see pod description above for more info.
     $db->query( <<END );
 declare csr cursor for
-
-    select
-        ss.stories_id,
-        ss.media_id,
-        ss.story_sentences_id,
-        ss.stories_id || '!' || ss.story_sentences_id solr_id,
-        to_char( date_trunc( 'minute', publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_date,
-        to_char( date_trunc( 'hour', publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_day,
-        ss.sentence_number,
-        ss.sentence,
-        null title,
-        ss.language
-
-    from story_sentences ss
-
-    where (MOD(ss.stories_id, $num_proc) = $proc - 1)
-        $delta_clause
-END
-
-}
-
-# setup 'csr' cursor in postgres as the query to import the story titles.  we use a server side cursor so that
-# we can stream data to the csv as postgres fetches it from disk.
-sub _declare_titles_cursor
-{
-    my ( $db, $delta, $num_proc, $proc ) = @_;
-
-    my $delta_clause = $delta ? 'and s.stories_id in ( select stories_id from delta_import_stories )' : '';
-
-    # DO NOT ADD JOINS TO THIS QUERY! INSTEAD ADD ANY JOINED TABLES TO _get_data_lookup AND THEN ADD TO THE CSV
-    # IN _print_csv_to_file_from_csr. see pod description above for more info.
-    $db->query( <<END );
-declare csr cursor for
-
     select
         s.stories_id,
         s.media_id,
-        0 story_sentences_id,
-        s.stories_id || '!' || 0 solr_id,
         to_char( date_trunc( 'minute', s.publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_date,
-        to_char( date_trunc( 'hour', s.publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_day,
-        0 as sentence_number,
-        null sentence,
+        to_char( date_trunc( 'day', s.publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_day,
+        string_agg( ss.sentence, ' ' order by ss.sentence_number ) as text,
         s.title,
         s.language
 
-    from stories s
+    from story_sentences ss
+        join stories s using ( stories_id )
 
-    where MOD( s.stories_id, $num_proc ) = $proc - 1
+    where (MOD(ss.stories_id, $num_proc) = $proc - 1)
         $delta_clause
+
+    group by s.stories_id
 END
 
 }
@@ -300,39 +262,21 @@ sub _print_csv_to_file_from_csr
 
         foreach my $row ( @{ $rows } )
         {
-            my $stories_id         = $row->{ stories_id };
-            my $media_id           = $row->{ media_id };
-            my $story_sentences_id = $row->{ story_sentences_id };
+            my $stories_id = $row->{ stories_id };
+            WARN( "exporting story $stories_id" );
+            my $media_id = $row->{ media_id };
 
             my $processed_stories_id = $data_lookup->{ ps }->{ $stories_id };
             next unless ( $processed_stories_id );
 
             my $click_count       = $data_lookup->{ bitly_clicks }->{ $stories_id } || '';
-            my $media_tags_list   = $data_lookup->{ media_tags }->{ $media_id }     || '';
             my $stories_tags_list = $data_lookup->{ stories_tags }->{ $stories_id } || '';
             my $timespans_list    = $data_lookup->{ timespans }->{ $stories_id }    || '';
 
-            # replacing ss tags with stories tags because ss tags are killing performance of the import
-            # are we are switching to stories tags soon any way
-            my $ss_tags_list = $stories_tags_list;
-
             $csv->combine(
-                $stories_id,                  #
-                $media_id,                    #
-                $story_sentences_id,          #
-                $row->{ solr_id },            #
-                $row->{ publish_date },       #
-                $row->{ publish_day },        #
-                $row->{ sentence_number },    #
-                $row->{ sentence },           #
-                $row->{ title },              #
-                $row->{ language },           #
-                $click_count,                 #
-                $processed_stories_id,        #
-                $media_tags_list,             #
-                $stories_tags_list,           #
-                $ss_tags_list,                #
-                $timespans_list,              #
+                $stories_id,           $media_id,          $row->{ publish_date }, $row->{ publish_day },
+                $row->{ text },        $row->{ title },    $row->{ language },     $click_count,
+                $processed_stories_id, $stories_tags_list, $timespans_list,
             );
             $fh->print( encode( 'utf8', $csv->string . "\n" ) );
 
@@ -403,8 +347,7 @@ END
 
 }
 
-# Get the $data_lookup hash that has lookup tables for values to include for each of the processed_stories, media_tags,
-# stories_tags, and ss_tags fields for export to solr.
+# Get the $data_lookup hash that has lookup tables for values to include for non-stories tables.
 #
 # This is basically just a manual client side join that we do in perl because we can get postgres to stream results much
 # more quickly if we don't ask it to do this giant join on the server side.
@@ -423,11 +366,6 @@ select processed_stories_id, stories_id
         $delta_clause
 END
 
-    _set_lookup( $db, $data_lookup, 'media_tags', <<END );
-select string_agg( tags_id::text, ';' ) tag_list, media_id
-    from media_tags_map
-    group by media_id
-END
     _set_lookup( $db, $data_lookup, 'stories_tags', <<END );
 select string_agg( tags_id::text, ';' ) tag_list, stories_id
     from stories_tags_map
@@ -476,13 +414,9 @@ sub _print_csv_to_file_single_job
 
     $db->begin;
 
-    INFO "exporting sentences ...";
-    _declare_sentences_cursor( $db, $delta, $num_proc, $proc );
-    my $sentence_stories_ids = _print_csv_to_file_from_csr( $db, $fh, $data_lookup, 1 );
-
-    INFO "exporting titles ...";
-    _declare_titles_cursor( $db, $delta, $num_proc, $proc );
-    my $title_stories_ids = _print_csv_to_file_from_csr( $db, $fh, $data_lookup, 0 );
+    INFO "exporting stories ...";
+    _declare_stories_cursor( $db, $delta, $num_proc, $proc );
+    my $text_stories_ids = _print_csv_to_file_from_csr( $db, $fh, $data_lookup, 1 );
 
     $db->commit;
 
@@ -562,20 +496,20 @@ sub print_csv_to_file
     }
 }
 
-# query solr for the given story_sentences_id and return true if the story_sentences_id already exists in solr
-sub _sentence_exists_in_solr($$)
+# query solr for the given stories_id and return true if the story already exists in solr
+sub _story_exists_in_solr($$)
 {
-    my ( $story_sentences_id, $staging ) = @_;
+    my ( $stories_id, $staging ) = @_;
 
     my $json;
     eval {
-        my $params = { q => "story_sentences_id:$story_sentences_id", rows => 0, wt => 'json' };
+        my $params = { q => "stories_id:$stories_id", rows => 0, wt => 'json' };
         $json = _solr_request( 'select', $params, $staging );
     };
     if ( $@ )
     {
         my $error_message = $@;
-        WARN "Unable to query Solr for story_sentences_id $story_sentences_id: $error_message";
+        WARN "Unable to query Solr for stories_id $stories_id: $error_message";
         return 0;
     }
 
@@ -781,7 +715,7 @@ sub _get_encoded_csv_data_chunk
     my $line;
     my $i = 0;
 
-    my ( $first_story_sentences_id, $last_story_sentences_id );
+    my ( $first_stories_id, $last_stories_id );
     while ( ( $i < $CSV_CHUNK_LINES ) && ( $line = <$fh> ) )
     {
         # skip header line
@@ -789,10 +723,10 @@ sub _get_encoded_csv_data_chunk
 
         next if ( !$i && $line !~ /^\d+\,/ );
 
-        if ( !defined( $first_story_sentences_id ) )
+        if ( !defined( $first_stories_id ) )
         {
-            $line =~ /^\d+\,\d+\,(\d+)\,/;
-            $first_story_sentences_id = $1 || 0;
+            $line =~ /^(\d+)\,/;
+            $first_stories_id = $1 || 0;
         }
 
         $csv_data .= $line;
@@ -800,11 +734,11 @@ sub _get_encoded_csv_data_chunk
         $i++;
     }
 
-    $last_story_sentences_id = 0;
-    $last_story_sentences_id = $1 if ( $line && ( $line =~ /^\d+\,\d+\,(\d+)\,/ ) );
+    $last_stories_id = 0;
+    $last_stories_id = $1 if ( $line && ( $line =~ /^(\d+)\,/ ) );
 
     # find next valid csv record start, then backup to the beginning of that line
-    while ( defined( $fh ) && ( $line = <$fh> ) && ( $line !~ /^\d+\,\d+\,\d+\,/ ) )
+    while ( defined( $fh ) && ( $line = <$fh> ) && ( $line !~ /^\d+\,/ ) )
     {
         $csv_data .= $line;
     }
@@ -822,10 +756,10 @@ sub _get_encoded_csv_data_chunk
     $fh->close || die( "Unable to close file '$file': $!" );
 
     return {
-        csv                      => $csv_data,
-        pos                      => $pos,
-        first_story_sentences_id => $first_story_sentences_id,
-        last_story_sentences_id  => $last_story_sentences_id
+        csv              => $csv_data,
+        pos              => $pos,
+        first_stories_id => $first_stories_id,
+        last_stories_id  => $last_stories_id
     };
 }
 
@@ -835,19 +769,15 @@ sub _get_import_url_params
     my ( $delta ) = @_;
 
     my $url_params = {
-        'commit'                              => 'false',
-        'header'                              => 'false',
-        'fieldnames'                          => join( ',', @CSV_FIELDS ),
-        'overwrite'                           => ( $delta ? 'true' : 'false' ),
-        'f.tags_id_media.split'               => 'true',
-        'f.tags_id_media.separator'           => ';',
-        'f.tags_id_stories.split'             => 'true',
-        'f.tags_id_stories.separator'         => ';',
-        'f.tags_id_story_sentences.split'     => 'true',
-        'f.tags_id_story_sentences.separator' => ';',
-        'f.timespans_id.split'                => 'true',
-        'f.timespans_id.separator'            => ';',
-        'skip'                                => 'field_type,id,solr_import_date'
+        'commit'                      => 'false',
+        'header'                      => 'false',
+        'fieldnames'                  => join( ',', @CSV_FIELDS ),
+        'overwrite'                   => ( $delta ? 'true' : 'false' ),
+        'f.tags_id_stories.split'     => 'true',
+        'f.tags_id_stories.separator' => ';',
+        'f.timespans_id.split'        => 'true',
+        'f.timespans_id.separator'    => ';',
+        'skip'                        => 'field_type,id,solr_import_date'
     };
 
     return ( 'update/csv', $url_params );
@@ -915,12 +845,12 @@ sub _get_chunk_delta($$$)
 
     return 0 if ( defined( $last_chunk_delta ) && ( $last_chunk_delta == 0 ) );
 
-    unless ( _sentence_exists_in_solr( $chunk->{ first_story_sentences_id }, $staging ) )
+    unless ( _story_exists_in_solr( $chunk->{ first_stories_id }, $staging ) )
     {
         return 0;
     }
 
-    unless ( _sentence_exists_in_solr( $chunk->{ last_story_sentences_id }, $staging ) )
+    unless ( _story_exists_in_solr( $chunk->{ last_stories_id }, $staging ) )
     {
         return 1;
     }
@@ -935,19 +865,19 @@ sub _last_sentence_in_solr($$)
 
     my $bfh = File::ReadBackwards->new( $file ) || die( "Unable to open file '$file': $!" );
 
-    my $last_story_sentences_id;
+    my $last_stories_id;
     while ( my $line = $bfh->readline )
     {
-        if ( $line =~ /^\d+\,\d+\,(\d+)\,/ )
+        if ( $line =~ /^(\d+)\,/ )
         {
-            $last_story_sentences_id = $1;
+            $last_stories_id = $1;
             last;
         }
     }
 
-    return 0 unless ( $last_story_sentences_id );
+    return 0 unless ( $last_stories_id );
 
-    return _sentence_exists_in_solr( $last_story_sentences_id, $staging );
+    return _story_exists_in_solr( $last_stories_id, $staging );
 }
 
 # import a single csv dump file into solr using blocks
