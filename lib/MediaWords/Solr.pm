@@ -283,7 +283,7 @@ sub query_encoded_json($$;$)
 
     $params->{ wt } = 'json';
     $params->{ rows } //= 1000;
-    $params->{ df }   //= 'sentence';
+    $params->{ df }   //= 'text';
 
     # convert fq: parameters into ANDed q: clauses because fq: clauses can cause our solr cluster to oom
     if ( my $all_q = $params->{ fq } )
