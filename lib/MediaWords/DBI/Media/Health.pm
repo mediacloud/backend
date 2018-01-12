@@ -7,15 +7,6 @@ use MediaWords::CommonLibs;
 
 =head1 NAME MediaWords::DBI::Media::Health
 
-=head1 SYNOPSIS
-
-
-
-    my $results = MediaWords::Solr::query( $db, { q => 'obama' } );
-
-    my $sentences = $results->{ response }->{ docs };
-    map { say "found sentence id: $_->{ story_sentences_id }" } @{ $sentencs };
-
 =head1 DESCRIPTION
 
 generate media_health table, which contains denormalized results of analytical queries run on
