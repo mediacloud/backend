@@ -209,10 +209,61 @@ sub run_solr_tests($)
     my $test_stories = $db->query( "select * from stories order by md5( stories_id::text )" )->hashes;
 
     {
+        # basic query
         my $story = pop( @{ $test_stories } );
         test_story_query( $db, '*:*', $story, 'simple story' );
     }
 
+    {
+        # get_num_found
+        my ( $expected_num_stories ) = $db->query( "select count(*) from stories" )->flat;
+        my $got_num_stories = MediaWords::Solr::get_num_found( $db, { q => '*:*' } );
+        is( $got_num_stories, $expected_num_stories, 'get_num_found' );
+    }
+
+    {
+        # search_for_processed_stories_ids
+        my $first_story = $db->query( <<SQL )->hash;
+select * from processed_stories order by processed_stories_id asc limit 1
+SQL
+
+        my $got_processed_stories_ids = MediaWords::Solr::search_for_processed_stories_ids( $db, '*:*', undef, 0, 1 );
+        is( scalar( @{ $got_processed_stories_ids } ), 1, "search_for_processed_stories_ids count" );
+        is(
+            $got_processed_stories_ids->[ 0 ],
+            $first_story->{ processed_stories_id },
+            "search_for_processed_stories_ids id"
+        );
+    }
+
+    {
+        # search_for_stories_ids
+        my $story = pop( @{ $test_stories } );
+        my $got_stories_ids = MediaWords::Solr::search_for_stories_ids( $db, { q => "stories_id:$story->{ stories_id }" } );
+        is_deeply( $got_stories_ids, [ $story->{ stories_id } ], "search_for_stories_ids" );
+    }
+
+    {
+        # search_for_stories
+
+        # search for stories_id range to prevent search_for_stories_id from using the stories_id_only_params shortcut
+        my $expected_stories = $db->query( "select * from stories order by stories_id desc limit 10" )->hashes;
+        my $min_stories_id   = $expected_stories->[ -1 ]->{ stories_id };
+        my $got_stories      = MediaWords::Solr::search_for_stories( $db, { q => "stories_id:[$min_stories_id TO *]" } );
+
+        my $fields = [ qw/title publish_date url guid media_id language/ ];
+        rows_match( 'search_for_stories', $got_stories, $expected_stories, 'stories_id', $fields );
+    }
+
+    {
+        # search_for_media
+        my $media_id       = $test_stories->[ 0 ]->{ media_id };
+        my $expected_media = $db->query( "select * from media where media_id = ?", $media_id )->hashes;
+        my $got_media      = MediaWords::Solr::search_for_media( $db, { q => "media_id:$media_id" } );
+
+        my $fields = [ qw/url name/ ];
+        rows_match( 'search_for_media', $got_media, $expected_media, 'media_id', $fields );
+    }
 }
 
 sub test_collections_id_result($$$)
@@ -295,9 +346,9 @@ sub main
 {
     test_solr_stories_only_query();
 
-    MediaWords::Test::Supervisor::test_with_supervisor( \&run_solr_tests, [ qw/solr_standalone/ ] );
-
     MediaWords::Test::DB::test_on_test_database( \&test_collections_id_queries );
+
+    MediaWords::Test::Supervisor::test_with_supervisor( \&run_solr_tests, [ qw/solr_standalone/ ] );
 
     done_testing();
 }

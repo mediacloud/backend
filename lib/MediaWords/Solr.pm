@@ -43,9 +43,6 @@ Readonly my $QUERY_HTTP_TIMEOUT => 900;
 # numFound from last query() call, accessible get get_last_num_found
 my $_last_num_found;
 
-# mean number of sentences per story from the last search_stories() call
-my $_last_sentences_per_story;
-
 =head1 FUNCTIONS
 
 =head2 get_solr_url
@@ -135,19 +132,6 @@ query but instead just references a stored variable.
 sub get_last_num_found
 {
     return $_last_num_found;
-}
-
-=head2 get_last_sentences_per_story
-
-Get the ratio of sentences per story for the last search_stories call.  This function can be useful for generating very
-vague guesses of the number of stories matching query without having to do the slow solr query to get the exact count.
-This function does not perform a solr query but instead just references a stored variable.
-
-=cut
-
-sub get_last_sentences_per_story
-{
-    return $_last_sentences_per_story;
 }
 
 # set _last_num_found for get_last_num_found
@@ -594,34 +578,11 @@ sub search_for_stories_ids ($$)
         return $stories_ids;
     }
 
-    $p->{ fl }            = 'stories_id';
-    $p->{ group }         = 'true';
-    $p->{ 'group.field' } = 'stories_id';
+    $p->{ fl } = 'stories_id';
 
     my $response = query( $db, $p );
 
-    my $groups      = $response->{ grouped }->{ stories_id }->{ groups };
-    my $stories_ids = [];
-    for my $group ( @{ $groups } )
-    {
-        my $stories_id = $group->{ doclist }->{ docs }->[ 0 ]->{ stories_id };
-        LOGCONFESS( "Unable to find stories_id in group: " . Dumper( $group ) ) unless ( $stories_id );
-
-        push( @{ $stories_ids }, $stories_id );
-    }
-
-    my $sentence_counts = [ map { $_->{ doclist }->{ numFound } } @{ $groups } ];
-
-    if ( @{ $sentence_counts } > 0 )
-    {
-        $_last_sentences_per_story = List::Util::sum( @{ $sentence_counts } ) / scalar( @{ $sentence_counts } );
-    }
-    else
-    {
-        $_last_sentences_per_story = 0;
-    }
-
-    DEBUG "last_sentences_per_story: $_last_sentences_per_story";
+    my $stories_ids = [ map { $_->{ stories_id } } @{ $response->{ response }->{ docs } } ];
 
     return $stories_ids;
 }
@@ -651,8 +612,7 @@ sub search_for_stories ($$)
 =head2 search_for_processed_stories_ids( $db, $q, $fq, $last_ps_id, $num_stories, $sort )
 
 Return the first $num_stories processed_stories_id that match the given query, sorted by processed_stories_id and with
-processed_stories_id greater than $last_ps_id.   Returns at most $num_stories stories.  If $sort is specified as
-'bitly_click_count', tell solr to sort by 'bitly_click_count desc'.
+processed_stories_id greater than $last_ps_id.   Returns at most $num_stories stories.
 
 =cut
 
@@ -664,19 +624,13 @@ sub search_for_processed_stories_ids($$$$$;$)
 
     my $params;
 
-    $params->{ q }             = $q;
-    $params->{ fq }            = $fq;
-    $params->{ fl }            = 'processed_stories_id';
-    $params->{ rows }          = $num_stories;
-    $params->{ group }         = 'true';
-    $params->{ 'group.field' } = 'stories_id';
+    $params->{ q }    = $q;
+    $params->{ fq }   = $fq;
+    $params->{ fl }   = 'processed_stories_id';
+    $params->{ rows } = $num_stories;
 
     $params->{ sort } = 'processed_stories_id asc';
-    if ( $sort and $sort eq 'bitly_click_count' )
-    {
-        $params->{ sort } = 'bitly_click_count desc';
-    }
-    elsif ( $sort and $sort eq 'random' )
+    if ( $sort and $sort eq 'random' )
     {
         $params->{ sort } = 'random_1 asc';
     }
@@ -689,8 +643,7 @@ sub search_for_processed_stories_ids($$$$$;$)
 
     my $response = query( $db, $params );
 
-    my $groups = $response->{ grouped }->{ stories_id }->{ groups };
-    my $ps_ids = [ map { $_->{ doclist }->{ docs }->[ 0 ]->{ processed_stories_id } } @{ $groups } ];
+    my $ps_ids = [ map { $_->{ processed_stories_id } } @{ $response->{ response }->{ docs } } ];
 
     return $ps_ids;
 }
@@ -717,7 +670,7 @@ sub get_num_found ($$)
 
 Return all of the media ids that match the solr query by sampling solr results.
 
-Performs the query on solr and returns up to 200,000 randomly sorted sentences, then culls the list of media_ids from
+Performs the query on solr and returns up to 200,000 randomly sorted stories, then culls the list of media_ids from
 the list of sampled sentences.
 
 =cut
@@ -820,25 +773,6 @@ sub consolidate_id_query
     my $query = join( ' ', @{ $queries } );
 
     return $query;
-}
-
-=head2 count_stories( $db, $params )
-
-Count the number of stories matching the query.
-
-=cut
-
-sub count_stories
-{
-    my ( $db, $params ) = @_;
-
-    my $q = $params->{ q };
-    my $fq = $params->{ fq } || undef;
-
-    my $list = MediaWords::Solr::query( $db,
-        { q => $q, fq => $fq, group => "true", "group.field" => "stories_id", "group.ngroups" => "true" } );
-
-    return $list->{ grouped }->{ stories_id }->{ ngroups };
 }
 
 1;

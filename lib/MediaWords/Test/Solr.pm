@@ -77,17 +77,6 @@ SQL
     }
 }
 
-# add processed_stories rows for stories for indexing
-sub _add_processed_stories_to_stories
-{
-    my ( $db, $stories ) = @_;
-
-    for my $story ( @{ $stories } )
-    {
-        $db->create( 'processed_stories', { stories_id => $story->{ stories_id } } );
-    }
-}
-
 # add timespans to stories for solr indexing
 sub _add_timespans_to_stories
 {
@@ -154,7 +143,6 @@ sub create_indexed_test_story_stack($$)
 
     # add ancilliary data so that it can be queried in solr
     _add_story_tags_to_stories( $db, $test_stories );
-    _add_processed_stories_to_stories( $db, $test_stories );
     _add_timespans_to_stories( $db, $test_stories );
 
     MediaWords::Test::Solr::setup_test_index( $db );
