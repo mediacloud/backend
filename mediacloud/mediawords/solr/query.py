@@ -248,7 +248,7 @@ class TermNode(ParseNode):
                 term = re.sub(space_place_holder, '[[:space:]]+', term)
                 return '[[:<:]]' + term
             else:
-                # proximity searches do not care about order, so we need to change this to a an and node, which will
+                # proximity searches do not care about order, so we need to change this to an and node, which will
                 # generate the and regex permutations. we are just ignoring the actual proximity here for simplicity.
                 words = term.split(space_place_holder)
                 return AndNode(list(map(lambda x: TermNode(x), words))).get_re()
