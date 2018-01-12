@@ -53,7 +53,9 @@ sub setup_test_index($)
         $_swapped_live_collection = 1;
     }
 
-    MediaWords::Solr::Dump::generate_and_import_data( 0, 1 );
+    MediaWords::Solr::Dump::delete_all_stories( $db );
+    MediaWords::Solr::Dump::queue_all_stories( $db );
+    MediaWords::Solr::Dump::import_data( $db, { full => 1 } );
 }
 
 1;

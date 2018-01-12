@@ -150,8 +150,16 @@ sub test_import
 
     MediaWords::Test::Solr::setup_test_index( $db );
 
-    my $got_num_solr_stories = MediaWords::Solr::get_num_found( $db, { q => '*:*' } );
-    is( $got_num_solr_stories, 30, "total number of stories in solr" );
+    {
+        my $got_num_solr_stories = MediaWords::Solr::get_num_found( $db, { q => '*:*' } );
+        is( $got_num_solr_stories, scalar( @{ $test_stories } ), "total number of stories in solr" );
+
+        my $solr_import = $db->query( "select * from solr_imports" )->hash;
+        ok( $solr_import->{ full_import }, "solr_imports row created with full=true" );
+
+        my ( $num_solr_imported_stories ) = $db->query( "select count(*) from solr_imported_stories" )->flat;
+        is( $num_solr_imported_stories, scalar( @{ $test_stories } ), "number of rows in solr_imported_stories" );
+    }
 
     {
         my $story = pop( @{ $test_stories } );
@@ -211,6 +219,73 @@ select timespans_id from snap.story_link_counts where stories_id = ? limit 1
 SQL
         test_query( $db, "timespans_id:$timespans_id", $story );
     }
+
+    {
+        # test that import grabs updated story
+        my $story = pop( @{ $test_stories } );
+        $db->query( "update stories set language = 'up' where stories_id = ?", $story->{ stories_id } );
+        $db->commit();
+
+        MediaWords::Solr::Dump::import_data( $db );
+        test_query( $db, "language:up", $story );
+    }
+
+    {
+        # test delete_all, queue_all_stories, and stories_queue_table option of import_data
+        MediaWords::Solr::Dump::delete_all_stories( $db );
+        is( MediaWords::Solr::get_num_found( $db, { q => '*:*' } ), 0, "stories after deleting" );
+
+        $db->query( "create table test_stories_queue ( stories_id int )" );
+
+        MediaWords::Solr::Dump::queue_all_stories( $db, 'test_stories_queue' );
+
+        my ( $test_queue_size )   = $db->query( "select count(*) from test_stories_queue" )->flat;
+        my ( $test_stories_size ) = $db->query( "select count(*) from stories" )->flat;
+        is( $test_queue_size, $test_stories_size, "test queue size" );
+
+        my ( $pre_num_solr_imports )          = $db->query( "select count(*) from solr_imports" )->flat;
+        my ( $pre_num_solr_imported_stories ) = $db->query( "select count(*) from solr_imported_stories" )->flat;
+
+        MediaWords::Solr::Dump::import_data(
+            $db,
+            {
+                queue_only          => 1,
+                stories_queue_table => 'test_stories_queue',
+                skip_logging        => 1
+            }
+        );
+
+        is( MediaWords::Solr::get_num_found( $db, { q => '*:*' } ), $test_stories_size, "stories after queue import" );
+
+        my ( $post_num_solr_imports )          = $db->query( "select count(*) from solr_imports" )->flat;
+        my ( $post_num_solr_imported_stories ) = $db->query( "select count(*) from solr_imported_stories" )->flat;
+
+        is( $pre_num_solr_imports, $post_num_solr_imports, "solr_imports rows with skip_logging" );
+        is( $pre_num_solr_imported_stories, $post_num_solr_imported_stories,
+            "solr_imported_stories rows with skip_logging" );
+
+        my $story = pop( @{ $test_stories } );
+        test_query( $db, '*:*', $story );
+    }
+
+    {
+        # test threaded import
+        MediaWords::Solr::Dump::delete_all_stories( $db );
+        is( MediaWords::Solr::get_num_found( $db, { q => '*:*' } ), 0, "stories after deleting" );
+
+        MediaWords::Solr::Dump::queue_all_stories( $db );
+
+        MediaWords::Solr::Dump::import_data( $db, { full => 1, jobs => 3 } );
+
+        $db = MediaWords::DB::connect_to_db();
+
+        my ( $test_stories_size ) = $db->query( "select count(*) from stories" )->flat;
+        is( MediaWords::Solr::get_num_found( $db, { q => '*:*' } ), $test_stories_size, "stories threaded import" );
+
+        my $story = pop( @{ $test_stories } );
+        test_query( $db, "*:*", $story );
+    }
+
 }
 
 sub main
