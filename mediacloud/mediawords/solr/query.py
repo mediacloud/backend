@@ -15,9 +15,12 @@ from mediawords.util.perl import decode_object_from_bytes_if_needed
 
 log = create_logger(__name__)
 
-
 class McSolrQueryException(Exception):
     """Generic Solr query exception."""
+    pass
+
+class McSolrEmptyQueryException(Exception):
+    """Raise when filtering a query results in an entirely empty query."""
     pass
 
 
@@ -44,6 +47,7 @@ class TokenType(enum.Enum):
     PLUS = 'plus'
     MINUS = 'minus'
     NOOP = 'noop'
+    PROXIMITY = 'proximity'
 
 
 # this text will be considered a noop token
@@ -172,7 +176,7 @@ class ParseNode(AbstractParseNode):
         filtered_tree = self.filter_tree(filter_function=self.__node_is_field_or_noop)
 
         if filtered_tree is None:
-            raise McSolrQueryParseSyntaxException("query is empty without fields or ranges")
+            raise McSolrEmptyQueryException("filtered query is empty without fields or ranges")
 
         return filtered_tree.get_tsquery()
 
@@ -182,7 +186,7 @@ class ParseNode(AbstractParseNode):
         filtered_tree = self.filter_tree(filter_function=self.__node_is_field_or_noop_or_not)
 
         if filtered_tree is None:
-            raise McSolrQueryParseSyntaxException("query is empty without fields or ranges")
+            raise McSolrEmptyQueryException("filtered query is empty without fields or ranges")
 
         regexp = filtered_tree.get_re()
 
@@ -196,10 +200,12 @@ class ParseNode(AbstractParseNode):
 class TermNode(ParseNode):
     """Parse node type for a simple keyword."""
 
-    def __init__(self, term, wildcard=False, phrase=False):
+    def __init__(self, term, wildcard=False, phrase=False, proximity=None):
         self.term = term
         self.wildcard = wildcard
         self.phrase = phrase
+        self.proximity = proximity
+        log.info( "INIT PROX: " + str(proximity))
 
     def __repr__(self):
         return self.term if (not self.wildcard) else self.term + "*"
@@ -236,9 +242,16 @@ class TermNode(ParseNode):
             # ascii alnum, which confuses the postgres reg ex engine
             term = re.sub(r"\W", r"\\\g<0>", term)
 
-            term = re.sub(space_place_holder, '[[:space:]]+', term)
+            log.info("SELF PROX: " + str(self.proximity))
 
-            return '[[:<:]]' + term
+            if self.proximity is None:
+                term = re.sub(space_place_holder, '[[:space:]]+', term)
+                return '[[:<:]]' + term
+            else:
+                # proximity searches do not care about order, so we need to change this to a an and node, which will
+                # generate the and regex permutations. we are just ignoring the actual proximity here for simplicity.
+                words = term.split(space_place_holder)
+                return AndNode(list(map(lambda x: TermNode(x), words))).get_re()
         else:
             # escape special characters.  re.escape() escapes everything that is not
             # ascii alnum, which confuses the postgres reg ex engine
@@ -247,7 +260,7 @@ class TermNode(ParseNode):
 
     def _filter_node_children(self, filter_function: Callable[[AbstractParseNode], bool]) \
             -> Union[AbstractParseNode, None]:
-        return TermNode(self.term, wildcard=self.wildcard, phrase=self.phrase)
+        return TermNode(self.term, wildcard=self.wildcard, phrase=self.phrase, proximity=self.proximity)
 
 
 class BooleanNode(ParseNode):
@@ -485,8 +498,20 @@ def __parse_tokens(tokens: List[Token], want_type: List[TokenType] = None) -> Pa
 
         elif token.token_type == TokenType.PHRASE:
             want_type = [TokenType.CLOSE, TokenType.AND, TokenType.OR, TokenType.PLUS]
-            clause = TermNode(token.token_value, phrase=True)
-            # operands = []
+
+            log.info("TERM FOLLOWING TOKENS: " + str(tokens))
+
+            if ((len(tokens) >= 2) and
+                    (tokens[0].token_type == TokenType.PROXIMITY) and
+                    (tokens[1].token_type == TokenType.TERM) and
+                    (re.search('^\d+$', tokens[1].token_value))):
+                log.info('DETECT PROXIMITY')
+                tokens.pop(0)
+                distance_token = tokens.pop(0)
+                clause = TermNode(token.token_value, phrase=True, proximity=int(distance_token.token_value))
+                log.info('PROX TERM: ' + str(clause) + " PROX " + str(clause.proximity))
+            else:
+                clause = TermNode(token.token_value, phrase=True)
 
         elif token.token_type in (TokenType.AND, TokenType.PLUS, TokenType.OR):
             want_type = [
@@ -606,7 +631,7 @@ def __get_tokens(query: str) -> List[Token]:
         elif token == '+':
             return TokenType.PLUS
         elif token == '~':
-            raise McSolrQueryParseSyntaxException("proximity searches not supported")
+            return TokenType.PROXIMITY
         elif token == '/':
             raise McSolrQueryParseSyntaxException("regular expression searches not supported")
         elif (WILD_PLACEHOLDER in token) and not re.match(r'^\w+' + WILD_PLACEHOLDER + '$', token):

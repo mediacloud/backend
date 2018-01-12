@@ -2,7 +2,7 @@ import re
 
 import pytest
 
-from mediawords.solr.query import parse, McSolrQueryParseSyntaxException
+from mediawords.solr.query import parse, McSolrQueryParseSyntaxException, McSolrEmptyQueryException
 
 
 # noinspection SpellCheckingInspection
@@ -28,11 +28,11 @@ def test_tsquery():
 
         assert __normalize_tsquery(got_tsquery) == __normalize_tsquery(expected_tsquery)
 
-    for query in ('and', '"foo bar"~3', '( foo bar )*', '*', '*foo'):
+    for query in ('and', '( foo bar )*', '*', '*foo'):
         with pytest.raises(McSolrQueryParseSyntaxException):
             parse(query)
 
-    with pytest.raises(McSolrQueryParseSyntaxException):
+    with pytest.raises(McSolrEmptyQueryException):
         parse(solr_query="media_id:1").tsquery()
 
     # single term
@@ -255,6 +255,11 @@ def test_re():
 
         assert __normalize_re(got_re) == __normalize_re(expected_re)
 
+    # proximity as and query
+    __validate_re('"foo bar"~5', '(?: (?: [[:<:]]foo .* [[:<:]]bar ) | (?: [[:<:]]bar .* [[:<:]]foo ) )')
+
+    return
+
     # single term
     __validate_re('foo', '[[:<:]]foo')
     __validate_re('( foo )', '[[:<:]]foo')
@@ -274,6 +279,9 @@ def test_re():
     __validate_re('foo bar', '(?: [[:<:]]foo | [[:<:]]bar )')
     __validate_re('( foo bar )', '(?: [[:<:]]foo | [[:<:]]bar )')
     __validate_re('( 1 or 2 or 3 or 4 )', '(?: [[:<:]]1 | [[:<:]]2 | [[:<:]]3 | [[:<:]]4 )')
+
+    # proximity as and query
+    __validate_re('"foo bar"~5', '(?: (?: [[:<:]]foo .* [[:<:]]bar ) | (?: [[:<:]]bar .* [[:<:]]foo ) )')
 
     # more complex boolean
     __validate_re(
@@ -315,7 +323,7 @@ def test_re():
 
     # not clauses should be filtered out
     # this should raise an error because filtering the not clause leaves an empty query
-    with pytest.raises(McSolrQueryParseSyntaxException):
+    with pytest.raises(McSolrEmptyQueryException):
         parse(solr_query='not ( foo bar )').re()
     __validate_re('foo and !bar', '[[:<:]]foo')
     __validate_re('foo -( bar and bar )', '[[:<:]]foo')
