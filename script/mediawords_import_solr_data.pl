@@ -20,6 +20,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Getopt::Long;
+use MediaWords::DB;
 use MediaWords::Solr::Dump;
 use Data::Dumper;
 use Readonly;
@@ -29,36 +30,21 @@ Readonly my $solr_backup_lock_file => '/tmp/solrbackup.lock';
 
 sub main
 {
-    my ( $delta, $file, $delete_all, $staging, $jobs );
-
     $| = 1;
 
-    Getopt::Long::GetOptions(
-        "delta!"      => \$delta,
-        "file!"       => \$file,
-        "delete_all!" => \$delete_all,
-        "staging!"    => \$staging,
-        "jobs=i"      => \$jobs
-    ) || return;
+    my $options = {};
+
+    Getopt::Long::GetOptions( $options,
+        qw/queue_only! update! empty_queue! jobs=i throttle=i staging! full! stories_queue_table=s skip_logging!/ );
 
     if ( -f $solr_backup_lock_file )
     {
         die "Refusing to run while lock file $solr_backup_lock_file exists";
     }
 
-    if ( $file )
-    {
-        if ( $delete_all )
-        {
-            INFO "deleting all stories ...";
-            MediaWords::Solr::Dump::delete_all_sentences( $staging ) || die( "delete all sentences failed." );
-        }
-        MediaWords::Solr::Dump::import_csv_files( [ @ARGV ], $staging, $jobs );
-    }
-    else
-    {
-        MediaWords::Solr::Dump::generate_and_import_data( $delta, $delete_all, $staging, $jobs );
-    }
+    my $db = MediaWords::DB::connect_to_db;
+
+    MediaWords::Solr::Dump::import_data( $db, $options );
 }
 
 main();

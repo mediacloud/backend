@@ -109,7 +109,7 @@ Readonly my @CSV_FIELDS => qw/stories_id media_id publish_date publish_day text 
   processed_stories_id tags_id_stories timespans_id/;
 
 # how many sentences to fetch at a time from the postgres query
-Readonly my $FETCH_BLOCK_SIZE => 1_000;
+Readonly my $FETCH_BLOCK_SIZE => 100;
 
 # default stories queue table
 Readonly my $DEFAULT_STORIES_QUEUE_TABLE => 'solr_import_extra_stories';
@@ -181,8 +181,12 @@ SQL
     {
         my $stories_queue_table = _get_stories_queue_table();
 
+        # remove the schema if present
+        my $relname = _get_stories_queue_table();
+        $relname =~ s/.*\.//;
+
         # use pg_class estimate to avoid expensive count(*) query
-        my ( $total_queued_stories ) = $db->query( <<SQL, _get_stories_queue_table() )->flat;
+        my ( $total_queued_stories ) = $db->query( <<SQL, $relname )->flat;
 select reltuples::bigint from pg_class where relname = ?
 SQL
 
@@ -205,6 +209,7 @@ sub _get_stories_from_db_single
 
     while ( @{ $stories_ids } )
     {
+        INFO( "fetching stories from postgres (" . scalar( @{ $stories_ids } ) . " remaining)" );
         my $block_stories_ids = [];
         for my $i ( 1 .. $FETCH_BLOCK_SIZE )
         {
@@ -258,6 +263,8 @@ from block_processed_stories ps
 group by s.stories_id
 SQL
 
+        TRACE( "found " . scalar( @{ $stories } ) . " stories from " . scalar( @{ $block_stories_ids } ) . " ids" );
+
         push( @{ $all_stories }, @{ $stories } );
 
         last unless ( @{ $stories } );
@@ -282,7 +289,8 @@ sub _get_stories_from_db($$)
     require forks;
     my $threads = [];
 
-    my $iter = List::MoreUtils::natatime( $jobs, @{ $stories_ids } );
+    my $stories_per_job = int( scalar( @{ $stories_ids } ) / $jobs ) + 1;
+    my $iter = List::MoreUtils::natatime( $stories_per_job, @{ $stories_ids } );
     while ( my @thread_stories_ids = $iter->() )
     {
         my $thread = threads->create( \&_get_stories_from_db_single, undef, \@thread_stories_ids );
@@ -757,6 +765,14 @@ sub import_data($;$)
         $update      = 0;
         $empty_queue = 1;
         $throttle    = 1;
+    }
+
+    if ( $stories_queue_table ne $DEFAULT_STORIES_QUEUE_TABLE )
+    {
+        $skip_logging = 1;
+        $empty_queue  = 1;
+        $update       = 0;
+        $queue_only   = 1;
     }
 
     $_solr_use_staging    = $staging;
