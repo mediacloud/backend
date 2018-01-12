@@ -394,12 +394,9 @@ sub count_GET
     my $q  = $c->req->params->{ 'q' };
     my $fq = $c->req->params->{ 'fq' };
 
-    my $response;
-    my $list = MediaWords::Solr::query( $c->dbis,
-        { q => $q, fq => $fq, group => "true", "group.field" => "stories_id", "group.ngroups" => "true" }, $c );
-    $response = { count => $list->{ grouped }->{ stories_id }->{ ngroups } };
+    my $count = MediaWords::Solr::get_num_found( $c->dbis, { q => $q, fq => $fq } );
 
-    $self->status_ok( $c, entity => $response );
+    $self->status_ok( $c, entity => { count => $count } );
 }
 
 sub word_matrix : Local : ActionClass('MC_REST')
