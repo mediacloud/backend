@@ -15,24 +15,6 @@ use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
 use MediaWords::Util::Tags;
 
-sub test_query
-{
-    my ( $db, $q, $expected_story ) = @_;
-
-    my $expected_stories_id = $expected_story->{ stories_id };
-
-    my $r = MediaWords::Solr::query( $db, { q => "$q and stories_id:$expected_stories_id", rows => 1_000_000 } );
-
-    my $docs = $r->{ response }->{ docs };
-
-    die( "no response.docs found in solr results: " . Dumper( $r ) ) unless ( $docs );
-
-    my $got_stories_ids = [ map { $_->{ stories_id } } @{ $docs } ];
-
-    is_deeply( $got_stories_ids, [ $expected_stories_id ], "test query $q" );
-
-}
-
 sub get_solr_date_clause
 {
     my ( $sql_date ) = @_;
@@ -48,88 +30,11 @@ sub get_solr_date_clause
     return "publish_date:$date_range and publish_day:$date_range";
 }
 
-sub add_story_tags
-{
-    my ( $db, $stories ) = @_;
-
-    my $tags     = [];
-    my $num_tags = 5;
-
-    for my $i ( 1 .. $num_tags )
-    {
-        push( @{ $tags }, MediaWords::Util::Tags::lookup_or_create_tag( $db, "test:test_$i" ) );
-    }
-
-    for my $story ( @{ $stories } )
-    {
-        my $tag = pop( @{ $tags } );
-        unshift( @{ $tags }, $tag );
-        $db->query( <<SQL, $story->{ stories_id }, $tag->{ tags_id } );
-insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )
-SQL
-    }
-}
-
-sub add_processed_stories
-{
-    my ( $db, $stories ) = @_;
-
-    for my $story ( @{ $stories } )
-    {
-        $db->create( 'processed_stories', { stories_id => $story->{ stories_id } } );
-    }
-}
-
-sub add_timespans
-{
-    my ( $db, $stories ) = @_;
-
-    my $topic = MediaWords::Test::DB::create_test_topic( $db, "solr dump test" );
-
-    my $snapshot = {
-        topics_id     => $topic->{ topics_id },
-        snapshot_date => '2018-01-01',
-        start_date    => '2018-01-01',
-        end_date      => '2018-01-01'
-    };
-    $snapshot = $db->create( 'snapshots', $snapshot );
-
-    my $timespans = [];
-    for my $i ( 1 .. 5 )
-    {
-        my $timespan = {
-            snapshots_id      => $snapshot->{ snapshots_id },
-            start_date        => '2018-01-01',
-            end_date          => '2018-01-01',
-            story_count       => 1,
-            story_link_count  => 1,
-            medium_count      => 1,
-            medium_link_count => 1,
-            tweet_count       => 1,
-            period            => 'overall'
-
-        };
-        push( @{ $timespans }, $db->create( 'timespans', $timespan ) );
-    }
-
-    for my $story ( @{ $stories } )
-    {
-        my $timespan = pop( @{ $timespans } );
-        unshift( @{ $timespans }, $timespan );
-
-        $db->query( <<SQL, $story->{ stories_id }, $timespan->{ timespans_id } );
-insert into snap.story_link_counts ( timespans_id, stories_id, media_inlink_count, inlink_count, outlink_count )
-    values ( \$2, \$1, 1, 1, 1 );
-SQL
-    }
-
-}
-
 sub test_import
 {
     my ( $db ) = @_;
 
-    my $media = MediaWords::Test::DB::create_test_story_stack(
+    my $media = MediaWords::Test::Solr::create_indexed_test_story_stack(
         $db,
         {
             medium_1 => { feed_1 => [ map { "story_$_" } ( 1 .. 5 ) ] },
@@ -137,18 +42,8 @@ sub test_import
             medium_3 => { feed_3 => [ map { "story_$_" } ( 16 .. 30 ) ] },
         }
     );
-    MediaWords::Test::DB::add_content_to_test_story_stack( $db, $media );
 
-    # return a stack of randomly but consistently ordered stories that we can pop off one at a time
-    # for a series of solr query tests
     my $test_stories = $db->query( "select * from stories order by md5( stories_id::text )" )->hashes;
-
-    # add ancilliary data so that it can be queried in solr
-    add_story_tags( $db, $test_stories );
-    add_processed_stories( $db, $test_stories );
-    add_timespans( $db, $test_stories );
-
-    MediaWords::Test::Solr::setup_test_index( $db );
 
     {
         my $got_num_solr_stories = MediaWords::Solr::get_num_found( $db, { q => '*:*' } );
@@ -163,19 +58,19 @@ sub test_import
 
     {
         my $story = pop( @{ $test_stories } );
-        test_query( $db, "media_id:$story->{ media_id }", $story );
+        test_story_query( $db, "media_id:$story->{ media_id }", $story, 'media_id' );
     }
 
     {
         my $story = pop( @{ $test_stories } );
         my $title_clause = 'title:(' . join( ' and ', split( /\W/, $story->{ title } ) ) . ')';
-        test_query( $db, $title_clause, $story, "title" );
+        test_story_query( $db, $title_clause, $story, "title" );
     }
 
     {
         my $story       = pop( @{ $test_stories } );
         my $date_clause = get_solr_date_clause( $story->{ publish_date } );
-        test_query( $db, $date_clause, $story, "publish_date" );
+        test_story_query( $db, $date_clause, $story, "publish_date" );
     }
 
     {
@@ -187,12 +82,12 @@ SQL
         my $words = [ grep { $_ } ( split( /\W/, $text ) )[ 0 .. 10 ] ];
         my $text_clause = 'text: (' . join( ' and ', @{ $words } ) . ')';
 
-        test_query( $db, $text_clause, $story );
+        test_story_query( $db, $text_clause, $story, 'text clause' );
     }
 
     {
         my $story = pop( @{ $test_stories } );
-        test_query( $db, "language:$story->{ language }", $story );
+        test_story_query( $db, "language:$story->{ language }", $story, 'language' );
     }
 
     {
@@ -201,7 +96,7 @@ SQL
 select tags_id from stories_tags_map where stories_id = ?
 SQL
 
-        test_query( $db, "tags_id_stories:$tags_id", $story );
+        test_story_query( $db, "tags_id_stories:$tags_id", $story, 'tags_id_stories' );
     }
 
     {
@@ -209,7 +104,7 @@ SQL
         my ( $processed_stories_id ) = $db->query( <<SQL, $story->{ stories_id } )->flat;
 select processed_stories_id from processed_stories where stories_id = ?
 SQL
-        test_query( $db, "processed_stories_id:$processed_stories_id", $story );
+        test_story_query( $db, "processed_stories_id:$processed_stories_id", $story, 'processed_stories_id' );
     }
 
     {
@@ -217,7 +112,7 @@ SQL
         my ( $timespans_id ) = $db->query( <<SQL, $story->{ stories_id } )->flat;
 select timespans_id from snap.story_link_counts where stories_id = ? limit 1
 SQL
-        test_query( $db, "timespans_id:$timespans_id", $story );
+        test_story_query( $db, "timespans_id:$timespans_id", $story, 'timespans_id' );
     }
 
     {
@@ -226,8 +121,8 @@ SQL
         $db->query( "update stories set language = 'up' where stories_id = ?", $story->{ stories_id } );
         $db->commit();
 
-        MediaWords::Solr::Dump::import_data( $db );
-        test_query( $db, "language:up", $story );
+        MediaWords::Solr::Dump::import_data( $db, { throttle => 0 } );
+        test_story_query( $db, "language:up", $story, 'import updated story' );
     }
 
     {
@@ -251,7 +146,8 @@ SQL
             {
                 queue_only          => 1,
                 stories_queue_table => 'test_stories_queue',
-                skip_logging        => 1
+                skip_logging        => 1,
+                throttle            => 0,
             }
         );
 
@@ -265,7 +161,7 @@ SQL
             "solr_imported_stories rows with skip_logging" );
 
         my $story = pop( @{ $test_stories } );
-        test_query( $db, '*:*', $story );
+        test_story_query( $db, '*:*', $story, 'alternate stories queue table' );
     }
 
     {
@@ -275,7 +171,7 @@ SQL
 
         MediaWords::Solr::Dump::queue_all_stories( $db );
 
-        MediaWords::Solr::Dump::import_data( $db, { full => 1, jobs => 3 } );
+        MediaWords::Solr::Dump::import_data( $db, { full => 1, jobs => 3, throttle => 0 } );
 
         $db = MediaWords::DB::connect_to_db();
 
@@ -283,7 +179,7 @@ SQL
         is( MediaWords::Solr::get_num_found( $db, { q => '*:*' } ), $test_stories_size, "stories threaded import" );
 
         my $story = pop( @{ $test_stories } );
-        test_query( $db, "*:*", $story );
+        test_story_query( $db, "*:*", $story );
     }
 
 }
