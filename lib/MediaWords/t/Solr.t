@@ -142,56 +142,6 @@ SQL
     return $utf8_string;
 }
 
-# sub test_query($$$$)
-# {
-#     my ( $db, $solr_query, $expected_ss, $label ) = @_;
-#
-#     my $r = eval { MediaWords::Solr::query( $db, { q => $solr_query, rows => 1_000_000 } ) };
-#     ok( !$@, "$label query error: $@" );
-#
-#     my $fields = [ qw/stories_id/ ];
-#     rows_match( "$label sentences", $r->{ response }->{ docs }, $expected_ss, 'story_sentences_id', $fields );
-# }
-#
-# sub test_queries($)
-# {
-#     my ( $db ) = @_;
-#
-#     my $label = "test_queries";
-#
-#     my $test_data = MediaWords::Test::DB::create_test_story_stack_numerated( $db, 5, 1, 10 );
-#     MediaWords::Test::DB::add_content_to_test_story_stack( $db, $test_data );
-#
-#     my $stories      = [ grep { $_->{ stories_id } } values( %{ $test_data } ) ];
-#     my $utf8_stories = [ grep { !( $_->{ stories_id } % 3 ) } @{ $stories } ];
-#     my $utf8_string = append_utf8_string_to_stories( $db, $utf8_stories );
-#
-#     MediaWords::Test::Solr::setup_test_index( $db );
-#
-#     my $first_story = $stories->[ 0 ];
-#
-#     {
-#         my $expected = $db->query( <<SQL, $first_story->{ stories_id } )->hashes;
-# select * from story_sentences where stories_id = ?
-# SQL
-#         test_query( $db, "stories_id:$first_story->{ stories_id } and sentence:*", $expected, "$label stories_id" );
-#     }
-#     {
-#         my $media_id = $first_story->{ media_id };
-#         my $expected = $db->query( <<SQL, $media_id )->hashes;
-# select * from story_sentences where media_id = ?
-# SQL
-#         test_query( $db, "media_id:$media_id and sentence:*", $expected, "$label media_id" );
-#     }
-#     {
-#         my $expected = $db->query( <<SQL, encode_utf8( $utf8_string ) )->hashes;
-# select ss.* from story_sentences ss where sentence ilike '%' || ? || '%'
-# SQL
-#         test_query( $db, $utf8_string, $expected, "$label utf8_string" );
-#     }
-#
-# }
-
 # tests that require solr to be running
 sub run_solr_tests($)
 {
@@ -263,6 +213,38 @@ SQL
 
         my $fields = [ qw/url name/ ];
         rows_match( 'search_for_media', $got_media, $expected_media, 'media_id', $fields );
+    }
+
+    {
+        # query_matching_sentences
+        my $story = pop( @{ $test_stories } );
+        my $story_sentences = $db->query( <<SQL, $story->{ stories_id } )->hashes;
+select * from story_sentences where stories_id = ?
+SQL
+        my ( $first_word ) = split( ' ', $story_sentences->[ 0 ]->{ sentence } );
+
+        $first_word = lc( $first_word );
+
+        my $expected_sentences = [ grep { $_->{ sentence } =~ /$first_word/i } @{ $story_sentences } ];
+        my $query              = "$first_word* and stories_id:$story->{ stories_id }";
+        my $got_sentences      = MediaWords::Solr::query_matching_sentences( $db, { q => $query } );
+
+        my $fields = [ qw/stories_id sentence_number sentence media_id publish_date language is_dup/ ];
+        rows_match( 'query_matching_sentences', $got_sentences, $expected_sentences, 'story_sentences_id', $fields );
+    }
+
+    {
+        #query mmatching sentences with query with no text terms
+        my $story = pop( @{ $test_stories } );
+        my $story_sentences = $db->query( <<SQL, $story->{ stories_id } )->hashes;
+select * from story_sentences where stories_id = ?
+SQL
+        my $query = "stories_id:$story->{ stories_id }";
+        my $got_sentences = MediaWords::Solr::query_matching_sentences( $db, { q => $query } );
+
+        my $fields = [ qw/stories_id sentence_number sentence media_id publish_date language is_dup/ ];
+        rows_match( 'query_matching_sentences empty regex', $got_sentences, $story_sentences, 'story_sentences_id',
+            $fields );
     }
 }
 

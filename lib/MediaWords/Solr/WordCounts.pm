@@ -325,41 +325,16 @@ sub _get_words_from_solr_server($)
         q    => $self->q(),
         fq   => $self->fq,
         rows => $self->sample_size,
-        fl   => 'story_sentences_id',
         sort => 'random_1 asc'
     };
 
     DEBUG( "executing solr query ..." );
     DEBUG Dumper( $solr_params );
 
-    my $solr_data = MediaWords::Solr::query( $self->db, $solr_params );
-
-    my $sentences_found = $solr_data->{ response }->{ numFound };
-
-    my $story_sentences_ids = [ map { int( $_->{ story_sentences_id } ) } @{ $solr_data->{ response }->{ docs } } ];
-
-    my $ids_table = $db->get_temporary_ids_table( $story_sentences_ids );
-
-    my $sentences_and_story_languages = $db->query(
-        <<SQL
-
-        SELECT story_sentences.sentence,
-               stories.language AS story_language
-
-        -- Select from temporary table and INNER JOIN afterwards because if
-        -- temporary table is empty, PostgreSQL decides to do sequential scan
-        -- on "stories" table
-        FROM $ids_table
-            INNER JOIN story_sentences
-              ON $ids_table.id = story_sentences.story_sentences_id
-            INNER JOIN stories
-                ON story_sentences.stories_id = stories.stories_id
-
-SQL
-    )->hashes;
+    my $story_sentences = MediaWords::Solr::query_matching_sentences( $self->db, $solr_params );
 
     DEBUG( "counting sentences..." );
-    my $words = $self->count_stems( $sentences_and_story_languages );
+    my $words = $self->count_stems( $story_sentences );
     DEBUG( "done counting sentences" );
 
     my @word_list;
@@ -400,8 +375,7 @@ SQL
         return {
             stats => {
                 num_words_returned     => scalar( @{ $counts } ),
-                num_sentences_returned => scalar( @{ $sentences_and_story_languages } ),
-                num_sentences_found    => $sentences_found,
+                num_sentences_returned => scalar( @{ $story_sentences } ),
                 num_words_param        => $self->num_words,
                 sample_size_param      => $self->sample_size
             },

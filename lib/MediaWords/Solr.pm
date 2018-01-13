@@ -29,6 +29,7 @@ use MediaWords::DB;
 use MediaWords::DBI::Stories;
 use MediaWords::Languages::Language;
 use MediaWords::Solr::PseudoQueries;
+use MediaWords::Solr::Query;
 use MediaWords::Util::Config;
 use MediaWords::Util::JSON;
 use MediaWords::Util::Text;
@@ -409,6 +410,57 @@ sub query($$;$)
     _set_last_num_found( $data );
 
     return $data;
+}
+
+# lib/MediaWords/Controller/Api/V2/Sentences.pm
+# 192:    my $list = MediaWords::Solr::query( $c->dbis, $params, $c );
+# 249:    my $solr_response = MediaWords::Solr::query( $c->dbis, $params, $c );
+# 291:        my $list = MediaWords::Solr::query( $c->dbis, { q => $q, fq => $fq }, $c );
+#
+# lib/MediaWords/Solr/WordCounts.pm
+# 335:    my $solr_data = MediaWords::Solr::query( $self->db, $solr_params );
+#
+# lib/MediaWords/Solr/SentenceFieldCounts.pm
+# 136:    my $data = MediaWords::Solr::query( $self->db, $solr_params );
+sub query_matching_sentences($$)
+{
+    my ( $db, $params ) = @_;
+
+    my $stories_ids = search_for_stories_ids( $db, $params );
+
+    die( "too many stories (limit is 1,000,000)" ) if ( scalar( @{ $stories_ids } ) > 1_000_000 );
+
+    my $ids_table = $db->get_temporary_ids_table( $stories_ids );
+
+    my $re_clause = '';
+
+    my $re = eval { '(?isx)' . MediaWords::Solr::Query::parse( $params->{ q } )->inclusive_re() };
+    if ( $@ )
+    {
+        if ( $@ !~ /McSolrEmptyQueryException/ )
+        {
+            die( "Error translating solr query to regex: $@" );
+        }
+    }
+    else
+    {
+        $re_clause = "and sentence ~ " . $db->quote( $re );
+    }
+
+    my $story_sentences = $db->query( <<SQL )->hashes;
+select
+        ss.*,
+        s.language story_language
+    from
+        story_sentences ss
+        join stories s using ( stories_id )
+    where
+        ss.stories_id in ( select id from $ids_table )
+        $re_clause
+    order by stories_id, sentence_number
+SQL
+
+    return $story_sentences;
 }
 
 # given a list of array refs, each of which points to a list

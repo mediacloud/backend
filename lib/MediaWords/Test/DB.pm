@@ -152,8 +152,7 @@ sub _get_test_content
 }
 
 # adds a 'download' and a 'content' field to each story in the test story stack.  stores the content in the download
-# store.
-# uses the story->{ content } field if present or otherwise generates the content using _get_test_content()
+# store.  uses the story->{ content } field if present or otherwise generates the content using _get_test_content()
 sub add_content_to_test_story($$$)
 {
     my ( $db, $story, $feed ) = @_;
@@ -204,6 +203,9 @@ sub add_content_to_test_story_stack($$)
     my ( $db, $story_stack ) = @_;
 
     DEBUG( "adding content to test story stack ..." );
+
+    # we pseudo-randomly generate test content, but we want repeatable tests
+    srand( 3 );
 
     for my $medium ( values( %{ $story_stack } ) )
     {
