@@ -169,7 +169,7 @@ SQL
     $num_queued_stories += $db->query(
         <<"SQL",
         INSERT INTO delta_import_stories (stories_id)
-            SELECT stories_id
+            SELECT distinct stories_id
             FROM $stories_queue_table s
             ORDER BY stories_id
             LIMIT ?
@@ -221,6 +221,8 @@ sub _get_stories_from_db_single
 
         my $block_stories_ids_list = join( ',', @{ $block_stories_ids } );
 
+        TRACE( "fetching stories ids: $block_stories_ids_list" );
+
         my $stories = $db->query( <<SQL )->hashes;
 with block_processed_stories as (
     select processed_stories_id, stories_id
@@ -266,8 +268,6 @@ SQL
         TRACE( "found " . scalar( @{ $stories } ) . " stories from " . scalar( @{ $block_stories_ids } ) . " ids" );
 
         push( @{ $all_stories }, @{ $stories } );
-
-        last unless ( @{ $stories } );
     }
 
     return $all_stories;
@@ -371,6 +371,10 @@ SQL
     }
 
     _add_extra_stories_to_import( $db, $import_date, $num_delta_stories );
+
+    my $delta_stories_ids = $db->query( "select stories_id from delta_import_stories" )->flat;
+
+    return $delta_stories_ids;
 }
 
 # Send a request to MediaWords::Solr::get_solr_url. Return content on success, die() on error. If $staging is true, use
@@ -784,7 +788,9 @@ sub import_data($;$)
     {
         _mark_import_date( $db );
 
-        _create_delta_import_stories( $db, $queue_only );
+        my $delta_import_stories_ids = _create_delta_import_stories( $db, $queue_only );
+
+        last unless ( @{ $delta_import_stories_ids } );
 
         if ( $update )
         {
@@ -793,8 +799,6 @@ sub import_data($;$)
         }
 
         my $stories_ids = _import_stories( $db, $jobs ) || die( "dump failed." );
-
-        last unless ( @{ $stories_ids } );
 
         # have to reconnect becaue import_stories may have forked, ruining existing db handles
         $db = MediaWords::DB::connect_to_db if ( $jobs > 1 );
@@ -805,7 +809,7 @@ sub import_data($;$)
             _save_import_log( $db, $stories_ids );
         }
 
-        _delete_stories_from_import_queue( $db, $stories_ids );
+        _delete_stories_from_import_queue( $db, $delta_import_stories_ids );
 
         INFO( "committing solr index changes ..." );
         _solr_request( $db, 'update', { 'commit' => 'true' } );
