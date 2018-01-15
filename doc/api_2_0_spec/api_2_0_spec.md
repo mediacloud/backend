@@ -630,7 +630,7 @@ server provides full text search indexing of each sentence collected by Media Cl
 sentences.  The api/v2/stories_public/list call searches for sentences matching the `q` and / or `fq` parameters if specified and
 the stories that include at least one sentence returned by the specified query.
 
-The `q` and `fq` parameters are passed directly through to Solr.  Documentation of the format of the `q` and `fq` parameters is [here](https://cwiki.apache.org/confluence/display/solr/Common+Query+Parameters).  Below are the fields that may be used as Solr query parameters, for example 'sentence:obama AND media_id:1':
+The `q` and `fq` parameters are passed directly through to Solr.  Documentation of the format of the `q` and `fq` parameters is [here](https://cwiki.apache.org/confluence/display/solr/Common+Query+Parameters).  Below are the fields that may be used as Solr query parameters, for example 'text:obama AND media_id:1':
 
 | Field                        | Description
 | -------------------- | -----------------------------------------------------
@@ -685,7 +685,7 @@ URL: https://api.mediacloud.org/api/v2/stories_public/list?last_processed_storie
 
 Return a stream of all stories processed by Media Cloud, greater than the `last_processed_stories_id`.
 
-URL: https://api.mediacloud.org/api/v2/stories_public/list?last_processed_stories_id=2523432&q=sentence:obama+AND+media_id:1
+URL: https://api.mediacloud.org/api/v2/stories_public/list?last_processed_stories_id=2523432&q=text:obama+AND+media_id:1
 
 Return a stream of all stories from The New York Times mentioning `'obama'` greater than the given `last_processed_stories_id`.
 
@@ -697,21 +697,60 @@ Return a stream of all stories from The New York Times mentioning `'obama'` grea
 | ------------------ | ---------------- | ----------------------------------------------------------------
 | `q`                | n/a              | `q` ("query") parameter which is passed directly to Solr
 | `fq`               | `null`           | `fq` ("filter query") parameter which is passed directly to Solr
+| `split`            | `null`           | if set to 1 or true, split the counts into date ranges
+| `split_start_date` | `null`           | date on which to start date splits, in YYYY-MM-DD format
+| `split_end_date`   | `null`           | date on which to end date splits, in YYYY-MM-DD format
 
-The q and fq parameters are passed directly through to Solr (see description of q and fq parameters in
-api/v2/stories_public/list section above).
+The q and fq parameters are passed directly through to Solr (see description of q and fq parameters in api/v2/stories_public/list section above).
 
 The call returns the number of stories returned by Solr for the specified query.
+
+If split is specified, split the counts into regular date ranges for dates between split\_start\_date and
+split\_end\_date. The number of days in each date range depends on the total number of days between
+split\_start\_date and split\_end\_date:
+
+
+| Total Days | Days in each range
+| ---------- | ------------------
+| < 90       | 1 day
+| < 180      | 3 days
+| >= 180     | 7 days
+
+Note that the total count returned by a split query is for all stories found by the Solr query, which query might or might not include a date restriction.  So in the example africa query below, the overall count is for all stories matching africa, not just those within the split date range.
 
 ### Example
 
 Count stories containing the word 'obama' in The New York Times.
 
-URL: https://api.mediacloud.org/api/v2/stories_public/count?q=sentence:obama&fq=media_id:1
+URL: https://api.mediacloud.org/api/v2/stories_public/count?q=obama&fq=media_id:1
 
 ```json
 {
-    "count": 960
+    "count": 6620
+}
+```
+
+Count stories containing 'africa' in the U.S. Mainstream Media from 2014-01-01 to 2014-03-01:
+
+URL: https://api.mediacloud.org/api/v2/stories_public/count?q=africa+AND+tags\_id\_media:8875027&split=1&split\_start\_date=2014-01-01&split\_end\_date=2014-03-01
+
+```json
+{
+    "count": 23637,
+    "split": {
+        "2014-01-01T00:00:00Z": 65,
+        "2014-01-08T00:00:00Z": 90,
+        "2014-01-15T00:00:00Z": 99,
+        "2014-01-22T00:00:00Z": 107,
+        "2014-01-29T00:00:00Z": 115,
+        "2014-02-05T00:00:00Z": 96,
+        "2014-02-12T00:00:00Z": 126,
+        "2014-02-19T00:00:00Z": 194,
+        "2014-02-26T00:00:00Z": 118,
+        "gap": "+7DAYS",
+        "end": "2014-03-05T00:00:00Z",
+        "start": "2014-01-01T00:00:00Z"
+    }
 }
 ```
 
@@ -785,68 +824,7 @@ navigational snippets wrongly included in the extracted text by the extractor al
 
 ## api/v2/sentences/count
 
-### Query Parameters
-
-| Parameter          | Default          | Notes
-| ------------------ | ---------------- | ----------------------------------------------------------------
-| `q`                | n/a              | `q` ("query") parameter which is passed directly to Solr
-| `fq`               | `null`           | `fq` ("filter query") parameter which is passed directly to Solr
-| `split`            | `null`           | if set to 1 or true, split the counts into date ranges
-| `split_start_date` | `null`           | date on which to start date splits, in YYYY-MM-DD format
-| `split_end_date`   | `null`           | date on which to end date splits, in YYYY-MM-DD format
-
-The q and fq parameters are passed directly through to Solr (see description of q and fq parameters in api/v2/stories_public/list section above).
-
-The call returns the number of sentences returned by Solr for the specified query.
-
-If split is specified, split the counts into regular date ranges for dates between split\_start\_date and split\_end\_date.
-The number of days in each date range depends on the total number of days between split\_start\_date and split\_end\_date:
-
-| Total Days | Days in each range
-| ---------- | ------------------
-| < 90       | 1 day
-| < 180      | 3 days
-| >= 180     | 7 days
-
-Note that the total count returned by a split query is for all sentences found by the Solr query, which query might or might not
-include a date restriction.  So in the example africa query below, the 236372 count is for all sentences matching africa, not just those within the split date range.
-
-### Example
-
-Count sentences containing the word 'obama' in The New York Times.
-
-URL: https://api.mediacloud.org/api/v2/sentences/count?q=sentence:obama&fq=media_id:1
-
-```json
-{
-    "count": 96620
-}
-```
-
-Count sentences containing 'africa' in the U.S. Mainstream Media from 2014-01-01 to 2014-03-01:
-
-URL: https://api.mediacloud.org/api/v2/sentences/count?q=sentence:africa+AND+tags\_id\_media:8875027&split=1&split\_start\_date=2014-01-01&split\_end\_date=2014-03-01
-
-```json
-{
-    "count": 236372,
-    "split": {
-        "2014-01-01T00:00:00Z": 650,
-        "2014-01-08T00:00:00Z": 900,
-        "2014-01-15T00:00:00Z": 999,
-        "2014-01-22T00:00:00Z": 1047,
-        "2014-01-29T00:00:00Z": 1125,
-        "2014-02-05T00:00:00Z": 946,
-        "2014-02-12T00:00:00Z": 1126,
-        "2014-02-19T00:00:00Z": 1094,
-        "2014-02-26T00:00:00Z": 1218,
-        "gap": "+7DAYS",
-        "end": "2014-03-05T00:00:00Z",
-        "start": "2014-01-01T00:00:00Z"
-    }
-}
-```
-
+This call has been removed.  Consider using `api/v2/stories/count` instead.
 
 ## api/v2/sentences/field\_count
 
@@ -2186,16 +2164,16 @@ As above, find the tags_id of the US Mainstream Media collection (8875027).
 
 One way to appropriately restrict the data is by setting the `q` parameter to restrict by sentence content and then the `fq` parameter twice to restrict by `tags_id_media` and `publish_date`.
 
-Below `q` is set to `"sentence:trayvon"` and `fq` is set to `"tags_iud_media:8875027" and "publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]"`. (Note that ":", "[", and "]" are URL encoded.)
+Below `q` is set to `"text:trayvon"` and `fq` is set to `"tags_iud_media:8875027" and "publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]"`. (Note that ":", "[", and "]" are URL encoded.)
 
 ```bash
-curl 'https://api.mediacloud.org/api/v2/wc?q=sentence:trayvon&fq=tags_iud_media:8875027&fq=publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D'
+curl 'https://api.mediacloud.org/api/v2/wc?q=text:trayvon&fq=tags_iud_media:8875027&fq=publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D'
 ```
 
-Alternatively, we could use a single large query by setting `q` to `"sentence:trayvon AND tags_id_media:8875027 AND publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]"`:
+Alternatively, we could use a single large query by setting `q` to `"text:trayvon AND tags_id_media:8875027 AND publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]"`:
 
 ```bash
-curl 'https://api.mediacloud.org/api/v2/wc?q=sentence:trayvon+AND+tags_id_media:8875027+AND+publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D&fq=tags_id_media:8875027&fq=publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D'
+curl 'https://api.mediacloud.org/api/v2/wc?q=text:trayvon+AND+tags_id_media:8875027+AND+publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D&fq=tags_id_media:8875027&fq=publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D'
 ```
 
 

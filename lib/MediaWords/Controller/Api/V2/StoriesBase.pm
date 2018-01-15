@@ -14,6 +14,7 @@ use List::Compare;
 
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
+use MediaWords::Solr::StoryFieldCounts;
 use MediaWords::Util::HTML;
 use MediaWords::Util::JSON;
 
@@ -38,6 +39,7 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 __PACKAGE__->config(
     action => {
         count       => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        field_count => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         word_matrix => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
     }
 );
@@ -382,6 +384,68 @@ SQL
     return $stories;
 }
 
+# get the overall count for the given query, plus a split of counts divided by
+# date ranges.  The date range is either daily, every 3 days, weekly, or monthly
+# depending on the number of total days in the query
+sub _get_count_with_split
+{
+    my ( $self, $c ) = @_;
+
+    my $q           = $c->req->params->{ 'q' };
+    my $fq          = $c->req->params->{ 'fq' };
+    my $start_date  = $c->req->params->{ 'split_start_date' };
+    my $end_date    = $c->req->params->{ 'split_end_date' };
+    my $split_daily = $c->req->params->{ 'split_daily' };
+
+    die( "must include split_start_date and split_end_date of split is true" ) unless ( $start_date && $end_date );
+
+    die( "split_start_date must be in the format YYYY-MM-DD" ) unless ( $start_date =~ /(\d\d\d\d)-(\d\d)-(\d\d)/ );
+    my ( $sdy, $sdm, $sdd ) = ( $1, $2, $3 );
+
+    die( "split_end_date must be in the format YYYY-MM-DD" ) unless ( $end_date =~ /(\d\d\d\d)-(\d\d)-(\d\d)/ );
+    my ( $edy, $edm, $edd ) = ( $1, $2, $3 );
+
+    my $days = Date::Calc::Delta_Days( $sdy, $sdm, $sdd, $edy, $edm, $edd );
+
+    my $facet_date_gap;
+
+    if    ( $split_daily ) { $facet_date_gap = '+1DAY' }
+    elsif ( $days < 90 )   { $facet_date_gap = '+1DAY' }
+    elsif ( $days < 180 )  { $facet_date_gap = '+3DAYS' }
+    else                   { $facet_date_gap = '+7DAYS' }
+
+    my $params;
+    $params->{ q }                   = $q;
+    $params->{ fq }                  = $fq;
+    $params->{ facet }               = 'true';
+    $params->{ 'facet.range' }       = 'publish_day';
+    $params->{ 'facet.range.gap' }   = $facet_date_gap;
+    $params->{ 'facet.range.start' } = "${ start_date }T00:00:00Z";
+    $params->{ 'facet.range.end' }   = "${ end_date }T00:00:00Z";
+
+    my $solr_response = MediaWords::Solr::query( $c->dbis, $params, $c );
+
+    my $count        = $solr_response->{ response }->{ numFound } + 0;
+    my $facet_counts = $solr_response->{ facet_counts }->{ facet_ranges }->{ publish_day };
+
+    unless ( scalar( @{ $facet_counts->{ 'counts' } } ) % 2 == 0 )
+    {
+        die "Number of elements in 'counts' is not even.";
+    }
+
+    my %split = (
+        'start' => $facet_counts->{ 'start' },
+        'end'   => $facet_counts->{ 'end' },
+        'gap'   => $facet_counts->{ 'gap' },
+    );
+
+    # Remake array into date => count hashref
+    my %hash_counts = @{ $facet_counts->{ 'counts' } };
+    %split = ( %split, %hash_counts );
+
+    return { count => $count, split => \%split };
+}
+
 sub count : Local : ActionClass('MC_REST')
 {
 
@@ -391,12 +455,42 @@ sub count_GET
 {
     my ( $self, $c ) = @_;
 
-    my $q  = $c->req->params->{ 'q' };
-    my $fq = $c->req->params->{ 'fq' };
+    my $q     = $c->req->params->{ 'q' };
+    my $fq    = $c->req->params->{ 'fq' };
+    my $split = $c->req->params->{ 'split' };
 
-    my $count = MediaWords::Solr::get_num_found( $c->dbis, { q => $q, fq => $fq } );
+    my $response;
+    if ( $split )
+    {
+        $response = $self->_get_count_with_split( $c, $c->req->params );
+    }
+    else
+    {
+        my $num_found = MediaWords::Solr::get_num_found( $c->dbis, { q => $q, fq => $fq } );
+        $response = { count => $num_found };
+    }
 
-    $self->status_ok( $c, entity => { count => $count } );
+    $self->status_ok( $c, entity => $response );
+}
+
+sub field_count : Local : ActionClass('MC_REST')
+{
+}
+
+sub field_count_GET
+{
+    my ( $self, $c ) = @_;
+
+    if ( $c->req->params->{ sample_size } && ( $c->req->params->{ sample_size } > 100_000 ) )
+    {
+        $c->req->params->{ sample_size } = 100_000;
+    }
+
+    my $fc = MediaWords::Solr::StoryFieldCounts->new( { db => $c->dbis, cgi_params => $c->req->params } );
+
+    my $counts = $fc->get_counts;
+
+    $self->status_ok( $c, entity => $counts );
 }
 
 sub word_matrix : Local : ActionClass('MC_REST')
