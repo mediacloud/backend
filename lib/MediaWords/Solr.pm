@@ -455,6 +455,7 @@ select
         ss.stories_id,
         ss.story_sentences_id,
         ss.language,
+        ss.is_dup,
         s.language story_language
     from
         story_sentences ss

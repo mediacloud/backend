@@ -103,6 +103,7 @@ use MediaWords::Util::JSON;
 use MediaWords::Util::Paths;
 use MediaWords::Util::Web;
 use MediaWords::Solr;
+use MediaWords::Test::DB;
 
 # order and names of fields exported to and imported from csv
 Readonly my @CSV_FIELDS => qw/stories_id media_id publish_date publish_day text title language
@@ -724,6 +725,17 @@ sub _import_stories($$)
     return [ map { $_->{ stories_id } } @{ $stories } ];
 }
 
+# die if we are running on the testing databse but using the default solr index
+sub _validate_using_test_db_with_test_index()
+{
+    my ( $db ) = @_;
+
+    if ( MediaWords::Test::DB::using_test_database() && !MediaWords::Test::Solr::using_test_index() )
+    {
+        die( 'you are using a test database but not a test index.  call MediaWords::Test::Solr::setup_test_index()' );
+    }
+}
+
 =head2 import_data( $options )
 
 Import stories from postgres to solr.
@@ -750,6 +762,8 @@ this function.
 sub import_data($;$)
 {
     my ( $db, $options ) = @_;
+
+    _validate_using_test_db_with_test_index();
 
     $options //= {};
 
@@ -837,6 +851,8 @@ sub delete_all_stories($)
 {
     my ( $db ) = @_;
 
+    _validate_using_test_db_with_test_index();
+
     INFO "deleting all sentences ...";
 
     die( "Cowardly refusing to delete maybe production solr" ) if ( _maybe_production_solr( $db ) );
@@ -855,13 +871,15 @@ sub delete_all_stories($)
 
 =head2 queue_all_stories
 
-Insert stories_ids for all processed stories into the stories queue table.
+Insert stories_ids for all stories into the stories queue table.
 
 =cut
 
 sub queue_all_stories($;$)
 {
     my ( $db, $stories_queue_table ) = @_;
+
+    _validate_using_test_db_with_test_index();
 
     $stories_queue_table //= $DEFAULT_STORIES_QUEUE_TABLE;
 

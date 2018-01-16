@@ -18,8 +18,10 @@ use MediaWords;
 use MediaWords::TM::Snapshot;
 use MediaWords::DB::Schema;
 use MediaWords::DBI::Auth::Roles;
+use MediaWords::Solr::Dump;
 use MediaWords::Test::API;
 use MediaWords::Test::DB;
+use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
 use MediaWords::Util::Web;
 use MediaWords::Util::Config;
@@ -137,6 +139,10 @@ sub create_test_data
 
     MediaWords::Job::TM::SnapshotTopic->run_locally( { topics_id => $topic->{ topics_id } } );
 
+    # we need to add content to the stories for them to get indexed by solr
+    MediaWords::Test::DB::add_content_to_test_story_stack( $test_db, $topic_media_sources );
+
+    MediaWords::Test::Solr::setup_test_index( $test_db );
 }
 
 sub test_media_list
@@ -166,7 +172,7 @@ sub test_media_list
     }
 }
 
-sub test_story_count
+sub test_story_list_count
 {
 
     # The number of stories returned in stories/list matches the count in timespan
@@ -176,7 +182,6 @@ sub test_story_count
     my $actual_response = test_get( '/api/v2/topics/1/stories/list', { limit => $story_limit } );
 
     is( scalar @{ $actual_response->{ stories } }, $story_limit, "story limit" );
-
 }
 
 sub _get_story_link_counts
@@ -541,6 +546,33 @@ sub test_stories_facebook($)
     rows_match( $label, $got_ss, $expected_ss, 'stories_id', $fields );
 }
 
+sub test_stories_count
+{
+    my ( $db ) = @_;
+
+    my $timespan = $db->query( "select * from timespans t where t.period = 'overall' and t.foci_id is null" )->hash;
+    my $topic    = $db->query( "select * from topics limit 1" )->hash;
+
+    my ( $expected_count ) = $db->query( <<SQL, $timespan->{ timespans_id } )->flat;
+select count(*) from snap.story_link_counts slc where timespans_id = ?
+SQL
+
+    {
+        my $r = test_get( "/api/v2/topics/$topic->{ topics_id }/stories/count", {} );
+        is( $r->{ count }, $expected_count, "topics/stories/count" );
+    }
+
+    {
+        # test split functionality.  we already test the split counts in Api/V2/t/Stories.t, so just make sure
+        # the results include the split and the split start and end date are correct
+        my $label = "topics/stories/count with split";
+        my $r = test_get( "/api/v2/topics/$topic->{ topics_id }/stories/count", { split => 1 } );
+        ok( $r->{ split }, "$label - split present" );
+        is( substr( $r->{ split }->{ start }, 0, 10 ), substr( $timespan->{ start_date }, 0, 10 ), "$label - start" );
+        is( substr( $r->{ split }->{ end },   0, 10 ), substr( $timespan->{ end_date },   0, 10 ), "$label - end" );
+    }
+}
+
 sub test_topics_api
 {
     my $db = shift;
@@ -562,7 +594,7 @@ sub test_topics_api
     my $topic_media = create_stories( $db, $stories );
 
     create_test_data( $db, $topic_media );
-    test_story_count();
+    test_story_list_count();
     test_default_sort( $stories );
     test_social_sort( $stories );
     test_media_list( $stories );
@@ -570,6 +602,8 @@ sub test_topics_api
 
     test_topics( $db );
     test_snapshots( $db );
+
+    test_stories_count( $db );
 
 }
 

@@ -187,4 +187,15 @@ sub setup_test_index($)
     MediaWords::Solr::Dump::import_data( $db, { full => 1, throttle => 0 } );
 }
 
+=head2 using_test_index()
+
+Return true if setup_test_index() has been called to run on the staging index.
+
+=cut
+
+sub using_test_index()
+{
+    return $_swapped_live_collection;
+}
+
 1;
