@@ -10,7 +10,7 @@ from mediawords.util.config import get_config as py_get_config
 from mediawords.util.text import random_string
 
 
-def test_s3_credentials() -> Union[dict, None]:
+def get_test_s3_credentials() -> Union[dict, None]:
     """Return test Amazon S3 credentials as a dictionary or None if credentials are not configured."""
 
     config = py_get_config()
@@ -31,12 +31,13 @@ def test_s3_credentials() -> Union[dict, None]:
         credentials = copy.deepcopy(config['amazon_s3']['test'])
 
     # We want to be able to run S3 tests in parallel
-    credentials['directory_name'] = credentials['directory_name'] + '-' + random_string(64)
+    if credentials is not None:
+        credentials['directory_name'] = credentials['directory_name'] + '-' + random_string(64)
 
     return credentials
 
 
-test_credentials = test_s3_credentials()
+test_credentials = get_test_s3_credentials()
 
 pytest_amazon_s3_credentials_set = pytest.mark.skipif(
     test_credentials is None,
