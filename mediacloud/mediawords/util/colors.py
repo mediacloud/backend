@@ -90,6 +90,9 @@ def get_consistent_color(db: DatabaseHandler, item_set: str, item_id: str) -> st
     set_colors = db.query("""SELECT color FROM color_sets WHERE color_set = %(item_set)s""", {
         'item_set': item_set,
     }).flat()
+    if set_colors is not None:
+        if not isinstance(set_colors, list):
+            set_colors = [set_colors]
 
     existing_colors = set()
 
