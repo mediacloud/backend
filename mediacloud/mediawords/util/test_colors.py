@@ -33,17 +33,6 @@ def test_analogous_color():
 class TestGetConsistentColorTestCase(TestDatabaseWithSchemaTestCase):
 
     def test_get_consistent_color(self):
-        # Colors that "color_sets" were prefilled with in mediawords.sql
-        partisan_colors = {
-            'partisan_2012_conservative': 'c10032',
-            'partisan_2012_liberal': '00519b',
-            'partisan_2012_libertarian': '009543',
-        }
-
-        for color_id, color in partisan_colors.items():
-            got_color = get_consistent_color(db=self.db(), item_set='partisan_code', item_id=color_id)
-            assert got_color == color
-
         color_c_baz = get_consistent_color(db=self.db(), item_set='c', item_id='baz')
         color_b_baz = get_consistent_color(db=self.db(), item_set='b', item_id='baz')
         color_b_bar = get_consistent_color(db=self.db(), item_set='b', item_id='bar')
@@ -73,7 +62,19 @@ class TestGetConsistentColorTestCase(TestDatabaseWithSchemaTestCase):
         assert color_b_baz_2 == color_b_baz
         assert color_c_baz_2 == color_c_baz
 
-    def test_consistent_colors_create(self):
+    def test_get_consistent_color_partisan(self):
+        """Colors that "color_sets" were pre-filled with in mediawords.sql."""
+        partisan_colors = {
+            'partisan_2012_conservative': 'c10032',
+            'partisan_2012_liberal': '00519b',
+            'partisan_2012_libertarian': '009543',
+        }
+
+        for color_id, color in partisan_colors.items():
+            got_color = get_consistent_color(db=self.db(), item_set='partisan_code', item_id=color_id)
+            assert got_color == color
+
+    def test_get_consistent_color_create(self):
         item_set = 'test_set'
         unique_color_mapping = dict()
 
