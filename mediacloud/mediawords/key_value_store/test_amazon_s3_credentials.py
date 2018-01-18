@@ -10,7 +10,7 @@ from mediawords.util.config import get_config as py_get_config
 from mediawords.util.text import random_string
 
 
-def test_s3_credentials() -> Union[dict, None]:
+def get_test_s3_credentials() -> Union[dict, None]:
     """Return test Amazon S3 credentials as a dictionary or None if credentials are not configured."""
 
     config = py_get_config()
@@ -36,7 +36,7 @@ def test_s3_credentials() -> Union[dict, None]:
     return credentials
 
 
-test_credentials = test_s3_credentials()
+test_credentials = get_test_s3_credentials()
 
 pytest_amazon_s3_credentials_set = pytest.mark.skipif(
     test_credentials is None,
