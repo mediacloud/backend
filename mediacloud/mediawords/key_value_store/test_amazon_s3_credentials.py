@@ -31,7 +31,8 @@ def get_test_s3_credentials() -> Union[dict, None]:
         credentials = copy.deepcopy(config['amazon_s3']['test'])
 
     # We want to be able to run S3 tests in parallel
-    credentials['directory_name'] = credentials['directory_name'] + '-' + random_string(64)
+    if credentials is not None:
+        credentials['directory_name'] = credentials['directory_name'] + '-' + random_string(64)
 
     return credentials
 
