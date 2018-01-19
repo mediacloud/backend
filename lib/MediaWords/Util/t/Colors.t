@@ -9,21 +9,9 @@ use MediaWords::Test::DB;
 
 use_ok( 'MediaWords::Util::Colors' );
 
-sub test_consistent_colors
+sub test_get_consistent_color
 {
     my ( $db ) = @_;
-
-    my $partisan_colors = {
-        partisan_2012_conservative => 'c10032',
-        partisan_2012_liberal      => '00519b',
-        partisan_2012_libertarian  => '009543'
-    };
-
-    while ( my ( $id, $color ) = each( %{ $partisan_colors } ) )
-    {
-        my $got_color = MediaWords::Util::Colors::get_consistent_color( $db, 'partisan_code', $id );
-        is( $got_color, $color, "color for partisan id '$id'" );
-    }
 
     my $color_c_baz = MediaWords::Util::Colors::get_consistent_color( $db, 'c', 'baz' );
     my $color_b_baz = MediaWords::Util::Colors::get_consistent_color( $db, 'b', 'baz' );
@@ -57,7 +45,24 @@ sub test_consistent_colors
     is( $color_c_baz_2, $color_c_baz, 'color_a_baz is consistent' );
 }
 
-sub test_consistent_colors_create($)
+sub test_get_consistent_color_partisan
+{
+    my ( $db ) = @_;
+
+    my $partisan_colors = {
+        partisan_2012_conservative => 'c10032',
+        partisan_2012_liberal      => '00519b',
+        partisan_2012_libertarian  => '009543'
+    };
+
+    while ( my ( $id, $color ) = each( %{ $partisan_colors } ) )
+    {
+        my $got_color = MediaWords::Util::Colors::get_consistent_color( $db, 'partisan_code', $id );
+        is( $got_color, $color, "color for partisan id '$id'" );
+    }
+}
+
+sub test_get_consistent_color_create($)
 {
     my ( $db ) = @_;
 
@@ -89,14 +94,21 @@ sub main
     MediaWords::Test::DB::test_on_test_database(
         sub {
             my ( $db ) = @_;
-            test_consistent_colors( $db );
+            test_get_consistent_color( $db );
         }
     );
 
     MediaWords::Test::DB::test_on_test_database(
         sub {
             my ( $db ) = @_;
-            test_consistent_colors_create( $db );
+            test_get_consistent_color_partisan( $db );
+        }
+    );
+
+    MediaWords::Test::DB::test_on_test_database(
+        sub {
+            my ( $db ) = @_;
+            test_get_consistent_color_create( $db );
         }
     );
 }
