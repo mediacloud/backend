@@ -22,22 +22,20 @@ BEGIN { use_ok 'MediaWords::TM::GuessDate::Result' }
 BEGIN { use_ok 'Date::Parse' }
 
 # Returns URL dating result
-sub _gr($;$$)
+sub _gr($;$)
 {
-    my ( $html, $story_url, $story_publish_date ) = @_;
-    $story_url          ||= 'http://www.example.com/story.html';
-    $story_publish_date ||= 'unknown';
-    my $story = { url => $story_url, publish_date => $story_publish_date };
+    my ( $html, $story_url ) = @_;
+    $story_url ||= 'http://www.example.com/story.html';
 
-    return MediaWords::TM::GuessDate::guess_date( $story, $html );
+    return MediaWords::TM::GuessDate::guess_date( $story_url, $html );
 }
 
 # Returns timestamp of the page or undef
-sub _gt($;$$)
+sub _gt($;$)
 {
-    my ( $html, $story_url, $story_publish_date ) = @_;
+    my ( $html, $story_url ) = @_;
 
-    my $result = _gr( $html, $story_url, $story_publish_date );
+    my $result = _gr( $html, $story_url );
     if ( $result->{ result } eq $MediaWords::TM::GuessDate::Result::FOUND )
     {
         return $result->{ timestamp };
@@ -49,9 +47,9 @@ sub _gt($;$$)
 }
 
 # Returns dating result of the page; also fetches the URL
-sub _gr_url($;$)
+sub _gr_url($)
 {
-    my ( $story_url, $story_publish_date ) = @_;
+    my ( $story_url ) = @_;
 
     my $html = '';
     unless ( $story_url =~ /example\.(com|net|org)$/gi )
@@ -62,7 +60,7 @@ sub _gr_url($;$)
         $html = $ua->get_string( $story_url ) || '';
     }
 
-    return _gr( $html, $story_url, $story_publish_date );
+    return _gr( $html, $story_url );
 }
 
 # Shortcut for making UNIX timestamps out of RFC 822 dates

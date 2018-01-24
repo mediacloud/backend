@@ -26,10 +26,7 @@ use MediaWords::TM::GuessDate::Result;
 # Guess the date for the story. returns MediaWords::TM::GuessDate::Result object.
 sub guess_date($$)
 {
-    my ( $story, $html ) = @_;
-
-    # Python's guess_date() expects only an URL, not the whole story hash
-    my $story_url = $story->{ url };
+    my ( $story_url, $html ) = @_;
 
     my $python_result;
     eval { $python_result = MediaWords::TM::GuessDate::PythonProxy::guess_date( $story_url, $html ); };
