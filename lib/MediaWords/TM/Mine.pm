@@ -710,7 +710,7 @@ END
         $story->{ publish_date } = $source_story->{ publish_date };
     }
 
-    my $date = MediaWords::TM::GuessDate::guess_date( $db, $story, $story_content );
+    my $date = MediaWords::TM::GuessDate::guess_date( $story, $story_content );
     if ( $date->{ result } eq $MediaWords::TM::GuessDate::Result::FOUND )
     {
         return ( $date->{ guess_method }, $date->{ date } );

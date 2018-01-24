@@ -843,9 +843,9 @@ sub _make_unix_timestamp
 
 # Returns true if date guessing should not be done on this page
 # (404 Not Found, is a tag page, search page, wiki page, etc.)
-sub _guessing_is_inapplicable($$$)
+sub _guessing_is_inapplicable($$)
 {
-    my ( $db, $story, $html ) = @_;
+    my ( $story, $html ) = @_;
 
     unless ( $html )
     {
@@ -959,13 +959,13 @@ sub _guessing_is_inapplicable($$$)
 
 # guess the date for the story by cycling through the $_date_guess_functions one at a time.
 # returns MediaWords::TM::GuessDate::Result object
-sub _guess_date_impl($$$)
+sub _guess_date_impl($$)
 {
-    my ( $db, $story, $html ) = @_;
+    my ( $story, $html ) = @_;
 
     my $result = MediaWords::TM::GuessDate::Result->new();
 
-    if ( _guessing_is_inapplicable( $db, $story, $html ) )
+    if ( _guessing_is_inapplicable( $story, $html ) )
     {
         $result->{ result } = $MediaWords::TM::GuessDate::Result::NOT_FOUND;
         return $result;
@@ -1010,14 +1010,14 @@ sub _guess_date_impl($$$)
 
 # guess the date for the story by cycling through the $_date_guess_functions one at a time.
 # returns MediaWords::TM::GuessDate::Result object
-sub guess_date($$$)
+sub guess_date($$)
 {
-    my ( $db, $story, $content ) = @_;
+    my ( $story, $content ) = @_;
 
     # we have to wrap everything in an eval, because the xml treebuilder stuff is liable to dying
     # in unpredictable ways
     my $r;
-    eval { $r = _guess_date_impl( $db, $story, $content ) };
+    eval { $r = _guess_date_impl( $story, $content ) };
 
     return $r if ( $r );
 
