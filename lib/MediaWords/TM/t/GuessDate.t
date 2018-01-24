@@ -65,14 +65,6 @@ sub _gr_url($;$)
     return _gr( $html, $story_url, $story_publish_date );
 }
 
-# Shorthand for _timestamp_from_html()
-sub _ts_from_html($)
-{
-    my $html = shift;
-
-    return MediaWords::TM::GuessDate::_timestamp_from_html( $html );
-}
-
 # Shortcut for making UNIX timestamps out of RFC 822 dates
 sub _ts($)
 {
@@ -133,80 +125,6 @@ sub test_dates()
     is( _gt( '<abbr class="published" title="2012-01-17T12:00:00-05:00">' ),
         $TIMESTAMP_12_00_EST, '_guess_by_abbr_published_updated_date' );
 
-}
-
-sub test_date_matching()
-{
-    is(
-        _ts_from_html( '<p>Tue, 28 Aug 2012 21:24:00 GMT</p>' ),
-        _ts( 'Tue, 28 Aug 2012 21:24:00 GMT' ),
-        'date_matching: RFC 822'
-    );
-
-    is(
-        _ts_from_html( '<p>Thursday May 30, 2013 2:14 AM PT</p>' ),
-        _ts( 'Thu, 30 May 2013 02:14:00 PDT' ),
-        'date_matching: sfgate.com header'
-    );
-
-    is(
-        _ts_from_html( '<p>9:24 pm, Tuesday, August 28, 2012</p>' ),
-        _ts( 'Tue, 28 Aug 2012 21:24:00 GMT' ),
-        'date_matching: sfgate.com article'
-    );
-
-    is(
-        _ts_from_html( '<p>11.06.2012 11:56 p.m.</p>' ),
-        _ts( 'Tue, 6 Nov 2012 23:56:00 GMT' ),
-        'date_matching: noozhawk.com article'
-    );
-
-    is(
-        _ts_from_html( '<p>7th November 2012</p>' ),
-        _ts( 'Wed, 7 Nov 2012 12:00:00 GMT' ),
-        'date_matching: punkpedagogy.tumblr.com'
-    );
-
-    is(
-        _ts_from_html(
-            <<EOF
-            <div id="articleDate" class="articleDate">
-                Posted:
-                &nbsp;
-                11/06/2012 08:30:20 PM PST
-            </div>
-            <div id="articleDate" class="articleSecondaryDate">
-                <span class="updated" style="display:none;" title="2012-11-07T11:02:32Z">November 7, 2012 11:2 AM GMT</span>
-                Updated:
-                &nbsp;
-                11/07/2012 03:02:32 AM PST
-            </div>
-EOF
-        ),
-        _ts( 'Tue, 6 Nov 2012 20:30:20 PST' ),
-        'date_matching: mercurynews.com'
-    );
-
-    is(
-        _ts_from_html( '<div class="noted">11/10/12<br>11:29pm</div>' ),
-        _ts( 'Sat, 10 Nov 2012 23:29:00 GMT' ),
-        'date_matching: registerguard.com'
-    );
-
-    is(
-        _ts_from_html(
-            <<EOF
-            <p class="fontStyle21">
-                Posted: 11/05/2012
-                <br>
-                Last Updated:
-                207 days ago
-            </p>
-EOF
-        ),
-        _ts( 'Mon, 5 Nov 2012 12:00:00 GMT' ),
-        'date_matching: turnto23.com'
-    );
 }
 
 sub test_not_found()
@@ -276,7 +194,6 @@ sub main
     binmode $builder->todo_output,    ":utf8";
 
     test_dates();
-    test_date_matching();
     test_not_found();
 
     Test::NoWarnings::had_no_warnings();
