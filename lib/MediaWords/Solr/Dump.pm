@@ -763,8 +763,6 @@ sub import_data($;$)
 {
     my ( $db, $options ) = @_;
 
-    _validate_using_test_db_with_test_index();
-
     $options //= {};
 
     my $queue_only          = $options->{ queue_only }          // 0;
@@ -851,8 +849,6 @@ sub delete_all_stories($)
 {
     my ( $db ) = @_;
 
-    _validate_using_test_db_with_test_index();
-
     INFO "deleting all sentences ...";
 
     die( "Cowardly refusing to delete maybe production solr" ) if ( _maybe_production_solr( $db ) );
@@ -871,7 +867,7 @@ sub delete_all_stories($)
 
 =head2 queue_all_stories
 
-Insert stories_ids for all stories into the stories queue table.
+Insert stories_ids for all processed stories into the stories queue table.
 
 =cut
 

@@ -137,12 +137,14 @@ sub create_test_data
         }
     }
 
-    MediaWords::Job::TM::SnapshotTopic->run_locally( { topics_id => $topic->{ topics_id } } );
-
-    # we need to add content to the stories for them to get indexed by solr
     MediaWords::Test::DB::add_content_to_test_story_stack( $test_db, $topic_media_sources );
 
+    MediaWords::Job::TM::SnapshotTopic->run_locally( { topics_id => $topic->{ topics_id } } );
+
     MediaWords::Test::Solr::setup_test_index( $test_db );
+
+    MediaWords::Solr::Dump::import_data( $test_db, { throttle => 0 } );
+
 }
 
 sub test_media_list
@@ -550,12 +552,16 @@ sub test_stories_count
 {
     my ( $db ) = @_;
 
-    my $timespan = $db->query( "select * from timespans t where t.period = 'overall' and t.foci_id is null" )->hash;
-    my $topic    = $db->query( "select * from topics limit 1" )->hash;
-
-    my ( $expected_count ) = $db->query( <<SQL, $timespan->{ timespans_id } )->flat;
-select count(*) from snap.story_link_counts slc where timespans_id = ?
+    my ( $expected_count ) = $db->query( <<SQL )->flat;
+select count(*)
+    from snap.story_link_counts slc
+        join timespans t using ( timespans_id )
+    where
+        t.period = 'overall' and
+        t.foci_id is null
 SQL
+
+    my $topic = $db->query( "select * from topics limit 1" )->hash;
 
     {
         my $r = test_get( "/api/v2/topics/$topic->{ topics_id }/stories/count", {} );
@@ -563,13 +569,15 @@ SQL
     }
 
     {
-        # test split functionality.  we already test the split counts in Api/V2/t/Stories.t, so just make sure
-        # the results include the split and the split start and end date are correct
-        my $label = "topics/stories/count with split";
-        my $r = test_get( "/api/v2/topics/$topic->{ topics_id }/stories/count", { split => 1 } );
-        ok( $r->{ split }, "$label - split present" );
-        is( substr( $r->{ split }->{ start }, 0, 10 ), substr( $timespan->{ start_date }, 0, 10 ), "$label - start" );
-        is( substr( $r->{ split }->{ end },   0, 10 ), substr( $timespan->{ end_date },   0, 10 ), "$label - end" );
+        my $start_date = substr( $topic->{ start_date }, 0, 10 );
+        my $end_date   = substr( $topic->{ end_date },   0, 10 );
+        my $r          = test_get( "/api/v2/topics/$topic->{ topics_id }/stories/count",
+            { split => 1, split_start_date => $start_date, split_end_date => $end_date } );
+
+        is( $r->{ count }, $expected_count, "topics/stories/count split count" );
+        ok( $r->{ split }, "topics/stories/count split" );
+        is( substr( $r->{ split }->{ start }, 0, 10 ), $start_date, "topics/stories/count split start" );
+        is( substr( $r->{ split }->{ end },   0, 10 ), $end_date,   "topics/stories/count split end" );
     }
 }
 

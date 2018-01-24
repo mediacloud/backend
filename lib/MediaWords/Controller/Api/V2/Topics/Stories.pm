@@ -341,8 +341,8 @@ sub count_GET
 
     $c->req->params->{ q } = $q;
 
-    $c->req->params->{ split_start_date } ||= substr( $timespan->{ start_date }, 0, 10 );
-    $c->req->params->{ split_end_date }   ||= substr( $timespan->{ end_date },   0, 10 );
+    $c->req->params->{ split_start_date } ||= substr( $timespan->{ start_date }, 0, 12 );
+    $c->req->params->{ split_end_date }   ||= substr( $timespan->{ end_date },   0, 12 );
 
     return $c->controller( 'Api::V2::Stories_Public' )->count_GET( $c );
 

@@ -62,8 +62,6 @@ sub test_request_response($$;$)
 {
     my ( $label, $response, $expect_error ) = @_;
 
-    $expect_error ||= 0;
-
     my $url = $response->request->url;
 
     my $url_path = URI->new( $url )->path;
@@ -99,7 +97,7 @@ sub test_data_request($$$;$)
 {
     my ( $method, $url, $data, $expect_error ) = @_;
 
-    $expect_error ||= 0;
+    $expect_error //= 0;
 
     my $uri = URI->new( $url );
     unless ( $uri->query_param( 'key' ) )
