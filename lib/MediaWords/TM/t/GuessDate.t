@@ -216,70 +216,70 @@ EOF
     );
 }
 
-sub test_inapplicable($)
+sub test_not_found($)
 {
     my $db = shift;
 
     is(
         _gr_url( $db, 'http://www.easyvoterguide.org/propositions/' )->{ result },
-        $MediaWords::TM::GuessDate::Result::INAPPLICABLE,
-        'inapplicable: no digits in URL'
+        $MediaWords::TM::GuessDate::Result::NOT_FOUND,
+        'no digits in URL'
     );
     is(
         _gr_url( $db, 'http://www.calchannel.com/proposition-36-three-strikes-law/' )->{ result },
-        $MediaWords::TM::GuessDate::Result::INAPPLICABLE,
-        'inapplicable: 404 Not Found'
+        $MediaWords::TM::GuessDate::Result::NOT_FOUND,
+        '404 Not Found'
     );
     is(
         _gr_url( $db, 'http://www.15min.lt/////' )->{ result },
-        $MediaWords::TM::GuessDate::Result::INAPPLICABLE,
-        'inapplicable: no path in URL'
+        $MediaWords::TM::GuessDate::Result::NOT_FOUND,
+        'no path in URL'
     );
     is(
         _gr_url( $db, 'http://en.wikipedia.org/wiki/1980s_in_fashion' )->{ result },
-        $MediaWords::TM::GuessDate::Result::INAPPLICABLE,
-        'inapplicable: Wikipedia URL'
+        $MediaWords::TM::GuessDate::Result::NOT_FOUND,
+        'Wikipedia URL'
     );
     is(
         _gr_url( $db, 'https://www.phpbb.com/community/viewforum.php?f=14' )->{ result },
-        $MediaWords::TM::GuessDate::Result::INAPPLICABLE,
-        'inapplicable: phpBB forum'
+        $MediaWords::TM::GuessDate::Result::NOT_FOUND,
+        'phpBB forum'
     );
     is(
         _gr_url( $db, 'https://twitter.com/ladygaga' )->{ result },
-        $MediaWords::TM::GuessDate::Result::INAPPLICABLE,
-        'inapplicable: Twitter user URL'
+        $MediaWords::TM::GuessDate::Result::NOT_FOUND,
+        'Twitter user URL'
     );
     is(
         _gr_url( $db,
 'https://www.facebook.com/notes/facebook-engineering/adding-face-to-every-ip-celebrating-ipv6s-one-year-anniversary/10151492544578920'
           )->{ result },
-        $MediaWords::TM::GuessDate::Result::INAPPLICABLE,
-        'inapplicable: Facebook URL'
+        $MediaWords::TM::GuessDate::Result::NOT_FOUND,
+        'Facebook URL'
     );
     is(
         _gr_url( $db, 'http://vimeo.com/blog/archive/year:2013' )->{ result },
-        $MediaWords::TM::GuessDate::Result::INAPPLICABLE,
-        'inapplicable: looks like URL of archive'
+        $MediaWords::TM::GuessDate::Result::NOT_FOUND,
+        'looks like URL of archive'
     );
     is(
         _gr_url( $db,
             'http://www.timesunion.com/news/crime/article/3-strikes-law-reformed-fewer-harsh-sentences-4013514.php' )
           ->{ result },
-        $MediaWords::TM::GuessDate::Result::INAPPLICABLE,
-        'inapplicable: timesunion.com HTTP 404 Not Found'
+        $MediaWords::TM::GuessDate::Result::NOT_FOUND,
+        'timesunion.com HTTP 404 Not Found'
     );
     is(
         _gr_url( $db,
             'http://www.seattlepi.com/news/crime/article/ACLU-challenges-human-trafficking-initiative-4018819.php' )
           ->{ result },
-        $MediaWords::TM::GuessDate::Result::INAPPLICABLE,
-        'inapplicable: seattlepi.com HTTP 404 Not Found'
+        $MediaWords::TM::GuessDate::Result::NOT_FOUND,
+        'seattlepi.com HTTP 404 Not Found'
     );
     is(
         _gr_url( $db, 'http://www.kgoam810.com/Article.asp?id=2569360&spid=' )->{ result },
-        $MediaWords::TM::GuessDate::Result::INAPPLICABLE,
-        'inapplicable: kgoam810.com HTTP access denied'
+        $MediaWords::TM::GuessDate::Result::NOT_FOUND,
+        'kgoam810.com HTTP access denied'
     );
 }
 
@@ -296,7 +296,7 @@ sub main
 
             test_dates( $db );
             test_date_matching( $db );
-            test_inapplicable( $db );
+            test_not_found( $db );
 
             Test::NoWarnings::had_no_warnings();
         }

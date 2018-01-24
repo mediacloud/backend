@@ -967,7 +967,7 @@ sub _guess_date_impl
 
     if ( _guessing_is_inapplicable( $db, $story, $html ) )
     {
-        $result->{ result } = $MediaWords::TM::GuessDate::Result::INAPPLICABLE;
+        $result->{ result } = $MediaWords::TM::GuessDate::Result::NOT_FOUND;
         return $result;
     }
 
@@ -1021,7 +1021,7 @@ sub guess_date($$$;$)
     return $r if ( $r );
 
     $r = MediaWords::TM::GuessDate::Result->new();
-    $r->{ result } = $MediaWords::TM::GuessDate::Result::INAPPLICABLE;
+    $r->{ result } = $MediaWords::TM::GuessDate::Result::NOT_FOUND;
     return $r;
 }
 
