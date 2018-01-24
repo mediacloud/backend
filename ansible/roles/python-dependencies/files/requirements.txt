@@ -1,12 +1,6 @@
 # Deployments
 ansible==2.4.1.0
 
-# Datetime parsing
-arrow==0.10.0
-
-# HTML parsing
-beautifulsoup4==4.6.0
-
 # Amazon S3
 boto3==1.4.7
 
