@@ -22,6 +22,9 @@ coverage==4.4.1
 # Hindi stemming
 CyHunspell==1.2.1
 
+# Guessing publication dates of stories
+date_guesser==1.1.0
+
 # URL manipulation
 furl==1.0.1
 
