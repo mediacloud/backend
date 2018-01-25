@@ -537,8 +537,6 @@ def get_url_path_fast(url: str) -> str:
     """Return URLs path."""
     url = decode_object_from_bytes_if_needed(url)
 
-    log.info("Getting path from URL '%s'" % url)
-
     url = fix_common_url_mistakes(url)
 
     if not is_http_url(url):
