@@ -1,10 +1,12 @@
 import pytest
 
 from mediawords.key_value_store.amazon_s3 import AmazonS3Store
-from mediawords.key_value_store.test_amazon_s3_credentials import TestAmazonS3CredentialsTestCase, test_s3_credentials
+from mediawords.key_value_store.test_amazon_s3_credentials import (
+    TestAmazonS3CredentialsTestCase,
+    get_test_s3_credentials,
+)
 
-
-test_credentials = test_s3_credentials()
+test_credentials = get_test_s3_credentials()
 
 pytest_amazon_s3_credentials_set = pytest.mark.skipif(
     test_credentials is None,

@@ -710,17 +710,26 @@ END
         $story->{ publish_date } = $source_story->{ publish_date };
     }
 
-    my $date = MediaWords::TM::GuessDate::guess_date( $db, $story, $story_content );
+    my $date = MediaWords::TM::GuessDate::guess_date( $story->{ url }, $story_content );
     if ( $date->{ result } eq $MediaWords::TM::GuessDate::Result::FOUND )
     {
         return ( $date->{ guess_method }, $date->{ date } );
     }
-    elsif ( $date->{ result } eq $MediaWords::TM::GuessDate::Result::INAPPLICABLE )
+    elsif ( $date->{ result } eq $MediaWords::TM::GuessDate::Result::NOT_FOUND )
     {
-        return ( 'undateable', $source_story ? $source_story->{ publish_date } : MediaWords::Util::SQL::sql_now );
+        if ( $source_story )
+        {
+            return ( 'publish_date', $source_story->{ publish_date } );
+        }
+        else
+        {
+            return ( 'current_time', MediaWords::Util::SQL::sql_now() );
+        }
     }
-
-    return ( 'current_time', MediaWords::Util::SQL::sql_now );
+    else
+    {
+        die "MediaWords::TM::GuessDate::Result value is unknown.";
+    }
 }
 
 # recursively search for the medium pointed to by dup_media_id
@@ -1023,7 +1032,7 @@ sub potential_story_matches_topic_pattern
 
     my $text_content = MediaWords::Util::HTML::html_strip( $content, 1 );
 
-    my $story_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $text_content, '' );
+    my $story_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $text_content );
 
     # only match first MB of text to avoid running giant, usually binary, strings through the regex match
     $text_content = substr( $text_content, 0, 1024 * 1024 ) if ( length( $text_content ) > 1024 * 1024 );

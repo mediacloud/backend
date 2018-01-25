@@ -291,7 +291,7 @@ sub update_story_sentences_and_language($$;$)
 
     my $story_text = $story->{ story_text } || MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story ) || '';
 
-    my $story_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $story_text, '' );
+    my $story_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $story_text );
 
     my $sentences = _get_sentences_from_story_text( $story_text, $story_lang );
 

@@ -6,6 +6,7 @@
     state: present
     install_recommends: false
   with_items:
+    - acl
     - bash-completion
     - git
     - htop

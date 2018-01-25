@@ -7,3 +7,7 @@ class PortugueseLanguage(SpaceSeparatedWordsMixIn, SentenceSplitterMixIn, PyStem
     @staticmethod
     def language_code() -> str:
         return "pt"
+
+    @staticmethod
+    def sample_sentence() -> str:
+        return "Luís argüia à Júlia que «brações, fé, chá, óxido, pôr, zângão» eram palavras do português."

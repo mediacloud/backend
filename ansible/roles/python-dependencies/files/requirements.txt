@@ -1,23 +1,23 @@
 # Deployments
 ansible==2.4.1.0
 
-# Datetime parsing
-arrow==0.10.0
-
-# HTML parsing
-beautifulsoup4==4.6.0
-
 # Amazon S3
 boto3==1.4.7
 
 # Job broker
 Celery==4.1.0
 
+# Language identification
+cld2-cffi==0.1.4
+
 # Unit test coverage
 coverage==4.4.1
 
 # Hindi stemming
 CyHunspell==1.2.1
+
+# Guessing publication dates of stories
+date_guesser==2.0.0
 
 # URL manipulation
 furl==1.0.1

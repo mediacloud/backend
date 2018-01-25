@@ -7,3 +7,7 @@ class FrenchLanguage(SpaceSeparatedWordsMixIn, SentenceSplitterMixIn, PyStemmerM
     @staticmethod
     def language_code() -> str:
         return "fr"
+
+    @staticmethod
+    def sample_sentence() -> str:
+        return "Buvez de ce whisky que le patron juge fameux."

@@ -16,7 +16,7 @@ env:
         # ---
         #
         # Docker image to pull with pre-installed Media Cloud dependencies
-        - MC_TRAVIS_DOCKER_IMAGE=dockermediacloud/mediacloud-travis:20171123
+        - MC_TRAVIS_DOCKER_IMAGE=dockermediacloud/mediacloud-travis:20180125
 
         # Media Cloud root on Docker container
         - MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT=/home/mediacloud/mediacloud/
@@ -56,7 +56,10 @@ env:
         # Superglue test feed URL:
         #
         # * MC_SUPERGLUE_TEST_URL
-        - secure: "BzZcSjsuihkDowYPRz0F2HRiZ9LbEJkPXJpL8sRTBp1exbKAyfQ2+pXm3k2d34utp/gNiLlL+GFDmm7dr9wZ82DSqouBC8UJa3gaL/AeBrdXngaJbBeUqIWiDhsZFkf5F3V0J3r+7CxEAQVhU8hAPE7LB4VFjSYgXGZfoAMcdCw="
+        #
+        # (Disabled because Superglue live feeds are currently down)
+        #
+        #- secure: "BzZcSjsuihkDowYPRz0F2HRiZ9LbEJkPXJpL8sRTBp1exbKAyfQ2+pXm3k2d34utp/gNiLlL+GFDmm7dr9wZ82DSqouBC8UJa3gaL/AeBrdXngaJbBeUqIWiDhsZFkf5F3V0J3r+7CxEAQVhU8hAPE7LB4VFjSYgXGZfoAMcdCw="
 
         # Do not ask for confirmation when running ./script/mediawords_create_db.pl
         - MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1
@@ -103,17 +106,17 @@ install:
         docker exec -i -t
         $MC_TRAVIS_DOCKER_CONTAINER
         sudo pip install --upgrade ansible-lint
-    # Start PostgreSQL service on container
-    - >
-        docker exec -i -t
-        $MC_TRAVIS_DOCKER_CONTAINER
-        sudo service postgresql start
     # Run Ansible script on container
     - >
         docker exec -i -t
         -e ANSIBLE_CONFIG
         $MC_TRAVIS_DOCKER_CONTAINER
         bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT && ansible-playbook --inventory='localhost,' --connection=local --skip-tags='hostname,kernel-parameters' ansible/setup.yml"
+    # Start PostgreSQL service on container
+    - >
+        docker exec -i -t
+        $MC_TRAVIS_DOCKER_CONTAINER
+        sudo service postgresql start
     # Create PostgreSQL databases on container
     - >
         docker exec -i -t

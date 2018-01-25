@@ -7,3 +7,7 @@ class SpanishLanguage(SpaceSeparatedWordsMixIn, SentenceSplitterMixIn, PyStemmer
     @staticmethod
     def language_code() -> str:
         return "es"
+
+    @staticmethod
+    def sample_sentence() -> str:
+        return "Benjamín pidió una bebida de kiwi y fresa; Noé, sin vergüenza, la más exquisita champaña del menú."
