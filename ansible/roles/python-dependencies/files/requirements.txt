@@ -17,7 +17,7 @@ coverage==4.4.1
 CyHunspell==1.2.1
 
 # Guessing publication dates of stories
-date_guesser==1.1.0
+date_guesser==2.0.0
 
 # URL manipulation
 furl==1.0.1
