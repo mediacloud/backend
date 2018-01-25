@@ -106,17 +106,17 @@ install:
         docker exec -i -t
         $MC_TRAVIS_DOCKER_CONTAINER
         sudo pip install --upgrade ansible-lint
-    # Start PostgreSQL service on container
-    - >
-        docker exec -i -t
-        $MC_TRAVIS_DOCKER_CONTAINER
-        sudo service postgresql start
     # Run Ansible script on container
     - >
         docker exec -i -t
         -e ANSIBLE_CONFIG
         $MC_TRAVIS_DOCKER_CONTAINER
         bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT && ansible-playbook --inventory='localhost,' --connection=local --skip-tags='hostname,kernel-parameters' ansible/setup.yml"
+    # Start PostgreSQL service on container
+    - >
+        docker exec -i -t
+        $MC_TRAVIS_DOCKER_CONTAINER
+        sudo service postgresql start
     # Create PostgreSQL databases on container
     - >
         docker exec -i -t
