@@ -1,28 +1,28 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
-import pytest
 import sys
 
-from mediawords.tm.guess_date import guess_date, McGuessDateException
+from mediawords.tm.guess_date import guess_date
 
-def main():
-    if (len(sys.argv) < 2):
-        sys.stderr.write('usage: ' + sys.argv[0] + ' <directory of html files>')
-        exit()
 
-    directory = os.fsencode(sys.argv[1]).decode("utf-8")
+def benchmark_date_guessing():
+    """Benchmark Python date guessing code."""
+    if len(sys.argv) < 2:
+        sys.exit("Usage: %s <directory of html files>" % sys.argv[0])
+
+    directory = sys.argv[1]
 
     for file in os.listdir(directory):
         filename = os.fsdecode(file)
         if filename.endswith(".txt"):
-            fh = open(os.path.join(directory,filename))
+            fh = open(os.path.join(directory, filename))
             content = fh.read()
             print(filename + ": " + str(len(content)))
-            date_guess = guess_date(
-                url='http://dont.know.the.date/some/path.html',
-                html=content
-            )
+            date_guess = guess_date(url='http://dont.know.the.date/some/path.html',
+                                    html=content)
             print(date_guess.date)
 
-main()
+
+if __name__ == '__main__':
+    benchmark_date_guessing()
