@@ -463,9 +463,8 @@ Response:
 
 Start a topic spidering job.
 
-Topic spidering is asynchronous.  Once the topic has started spidering, you cannot start another spidering job until the current one is complete.  Public users can only have one pending job for any topic running at once.  A call to this
-end point when a job is pending (for any topic for which a public user has write or admin permission) will simply
-return the job_state for the existing pending job.
+Topic spidering is asynchronous.  Once the topic has started spidering, you cannot start another spidering job until the current one is complete. A call to this end point when a 'running' or 'queued' job already exists for the given topic
+will just return the state of the existing job.
 
 ### Query Parameters
 
