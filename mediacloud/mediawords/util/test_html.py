@@ -1,4 +1,4 @@
-from mediawords.util.html import *
+from mediawords.util.html import link_canonical_url_from_html, meta_refresh_url_from_html
 
 
 # noinspection SpellCheckingInspection

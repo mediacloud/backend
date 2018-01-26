@@ -4,7 +4,7 @@ import os
 
 class Logger(object):
     """Logger class.
-    
+
     See doc/logging.markdown for usage example."""
 
     # Environment variable to read the custom logging level from
