@@ -1,5 +1,7 @@
 from mediawords.languages.factory import LanguageFactory
-from mediawords.util.identify_language import *
+from mediawords.util.identify_language import (
+    language_code_for_text, identification_would_be_reliable, language_is_supported,
+    language_name_for_code)
 
 
 def test_language_code_for_text():
