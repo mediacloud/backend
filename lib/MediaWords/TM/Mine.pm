@@ -860,7 +860,11 @@ sub log_dead_link
         url        => $link->{ url }
     };
 
+    INFO "INSERTing into 'topic_dead_links': " . Dumper( $dead_link );
+
     $db->create( 'topic_dead_links', $dead_link );
+
+    INFO "INSERTed into 'topic_dead_links': " . Dumper( $dead_link );
 }
 
 # send story to the extraction queue in the hope that it will already be extracted by the time we get to the extraction
