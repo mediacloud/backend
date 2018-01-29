@@ -32,6 +32,8 @@ use HTML::Entities;
 use List::Util;
 use Parallel::ForkManager;
 use Readonly;
+use Time::Piece;
+use Time::Seconds;
 use URI;
 use URI::Escape;
 
@@ -2487,16 +2489,45 @@ sub insert_topic_seed_urls
     $copy_from->end();
 }
 
-# get the full solr query by combining the solr_seed_query with generated clauses for start and
-# end date from topics and media clauses from topics_media_map and topics_media_tags_map
-sub get_full_solr_query($$;$$)
+# for the given topic, get a solr publish_date clause that will return one month of the seed query,
+# starting at start_date and offset by $month_offset months.  return undef if $month_offset puts
+# the start date past the topic start date.
+sub get_solr_query_month_clause($$)
 {
-    my ( $db, $topic, $media_ids, $media_tags_ids ) = @_;
+    my ( $topic, $month_offset ) = @_;
 
-    my ( $sd, $ed ) = ( $topic->{ start_date }, $topic->{ end_date } );
-    map { die( "date '$_' must be in form YYYY-MM-DD" ) unless ( $_ =~ /^\s*\d\d\d\d-\d\d-\d\d\s*$/ ) } ( $sd, $ed );
+    my $topic_start = Time::Piece->strptime( $topic->{ start_date }, "%Y-%m-%d" );
+    my $topic_end   = Time::Piece->strptime( $topic->{ end_date },   "%Y-%m-%d" );
 
-    my $date_clause = "publish_date:[${ sd }T00:00:00Z TO ${ ed }T23:59:59Z]";
+    my $offset_start = $topic_start->add_months( $month_offset );
+    my $offset_end   = $offset_start->add_months( 1 );
+
+    return undef if ( $offset_start > $topic_end );
+
+    $offset_end = $topic_end if ( $offset_end > $topic_end );
+
+    my $solr_start = $offset_start->strftime( '%Y-%m-%d' ) . 'T00:00:00Z';
+    my $solr_end   = $offset_end->strftime( '%Y-%m-%d' ) . 'T23:59:59Z';
+
+    my $date_clause = "publish_date:[$solr_start TO $solr_end]";
+
+    return $date_clause;
+}
+
+# get the full solr query by combining the solr_seed_query with generated clauses for start and
+# end date from topics and media clauses from topics_media_map and topics_media_tags_map.
+# only return a query for up to a month of the given a query, using the zero indexed $month_offset to
+# fetch $month_offset to return months after the first.  return undef if the month_offset puts the
+# query start date beyond the topic end date
+sub get_full_solr_query($$;$$$$)
+{
+    my ( $db, $topic, $media_ids, $media_tags_ids, $month_offset ) = @_;
+
+    $month_offset ||= 0;
+
+    my $date_clause = get_solr_query_month_clause( $topic, $month_offset );
+
+    return undef unless ( $date_clause );
 
     my $solr_query = "( " . $topic->{ solr_seed_query } . " ) and $date_clause";
 
@@ -2533,14 +2564,10 @@ sub get_full_solr_query($$;$$)
     return $solr_query;
 }
 
-# import stories intro topic_seed_urls from solr by running
-# topic->{ solr_seed_query } against solr.  if the solr query has
-# already been imported, do nothing.
-sub import_solr_seed_query
+# import a single month of the solr seed query.  we do this to avoid giant queries that timeout in solr.
+sub import_solr_seed_query_month($$$)
 {
-    my ( $db, $topic ) = @_;
-
-    return if ( $topic->{ solr_seed_query_run } );
+    my ( $db, $topic, $month_offset ) = @_;
 
     my $max_stories = $topic->{ max_stories };
 
@@ -2550,6 +2577,10 @@ sub import_solr_seed_query
 
     my $solr_query = get_full_solr_query( $db, $topic );
 
+    # this should return undef once the month_offset gets too big
+    return undef unless ( $solr_query );
+
+    INFO "import solr seed query month offset $month_offset";
     INFO "executing solr query: $solr_query";
     my $stories = MediaWords::Solr::search_for_stories( $db, { q => $solr_query, rows => $max_stories } );
 
@@ -2581,6 +2612,20 @@ sub import_solr_seed_query
     $db->query( "update topics set solr_seed_query_run = 't' where topics_id = ?", $topic->{ topics_id } );
 
     $db->commit if $db->in_transaction();
+}
+
+# import stories intro topic_seed_urls from solr by running
+# topic->{ solr_seed_query } against solr.  if the solr query has
+# already been imported, do nothing.
+sub import_solr_seed_query
+{
+    my ( $db, $topic ) = @_;
+
+    return if ( $topic->{ solr_seed_query_run } );
+
+    my $month_offset = 0;
+    while ( import_solr_seed_query_moth( $db, $topic, $month_offset++ ) ) { }
+
 }
 
 # return true if there are fewer than $MAX_NULL_BITLY_STORIES stories without bitly data
