@@ -513,9 +513,13 @@ sub test_full_solr_query($)
 
     my ( $query, $start_date, $end_date, $media_ids_list, $tags_ids_list ) = @matches;
 
-    is( $topic->{ solr_seed_query }, $query,      "full solr query: solr_seed_query" );
-    is( $topic->{ start_date },      $start_date, "full solr query: start_date" );
-    is( $topic->{ end_date },        $end_date,   "full solr query: end_date" );
+    is( $topic->{ solr_seed_query }, $query, "full solr query: solr_seed_query" );
+
+    is( $topic->{ start_date }, $start_date, "full solr query: start_date" );
+
+    my $tp_start = Time::Piece->strptime( $topic->{ start_date }, '%Y-%m-%d' );
+    my $expected_end_date = $tp_start->add_months( 1 )->strftime( '%Y-%m-%d' );
+    is( $end_date, $expected_end_date, "full solr query: end_date" );
 
     my $got_media_ids_list = join( ',', sort( split( ' ', $media_ids_list ) ) );
     my $expected_media_ids = $db->query( "select media_id from topics_media_map where topics_id = ?", $topics_id )->flat;
@@ -527,6 +531,23 @@ sub test_full_solr_query($)
     my $expected_tags_ids_list = join( ',', sort( @{ $expected_tags_ids } ) );
     is( $got_tags_ids_list, $expected_tags_ids_list, "full solr query: media ids" );
 
+    my $offset_full_solr_query = MediaWords::TM::Mine::get_full_solr_query( $db, $topic, undef, undef, 1 );
+    @matches = $offset_full_solr_query =~
+/\( (.*) \) and publish_date\:\[(\d\d\d\d\-\d\d\-\d\d)T00:00:00Z TO (\d\d\d\d\-\d\d\-\d\d)T23:59:59Z\] and \( media_id:\( ([\d\s]+) \) or tags_id_media:\( ([\d\s]+) \) \)/;
+
+    ok( @matches, "offset solr query:  matches expected pattern: $got_full_solr_query" );
+
+    my ( undef, $offset_start_date, $offset_end_date ) = @matches;
+
+    $tp_start = Time::Piece->strptime( $topic->{ start_date }, '%Y-%m-%d' )->add_months( 1 );
+    my $expected_start_date = $tp_start->strftime( '%Y-%m-%d' );
+    is( $offset_start_date, $expected_start_date, "offset solr query: start_date" );
+
+    $expected_end_date = $tp_start->add_months( 1 )->strftime( '%Y-%m-%d' );
+    is( $offset_end_date, $expected_end_date, "offset solr query: end_date" );
+
+    my $undef_full_solr_query = MediaWords::TM::Mine::get_full_solr_query( $db, $topic, undef, undef, 3 );
+    ok( !$undef_full_solr_query, "solr query offset beyond end date is undef" );
 }
 
 sub test_spider
