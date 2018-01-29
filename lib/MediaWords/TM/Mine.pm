@@ -2613,8 +2613,6 @@ sub import_solr_seed_query_month($$$)
 
     insert_topic_seed_urls( $db, $topic_seed_urls );
 
-    $db->query( "update topics set solr_seed_query_run = 't' where topics_id = ?", $topic->{ topics_id } );
-
     $db->commit if $db->in_transaction();
 }
 
@@ -2630,6 +2628,7 @@ sub import_solr_seed_query
     my $month_offset = 0;
     while ( import_solr_seed_query_month( $db, $topic, $month_offset++ ) ) { }
 
+    $db->query( "update topics set solr_seed_query_run = 't' where topics_id = ?", $topic->{ topics_id } );
 }
 
 # return true if there are fewer than $MAX_NULL_BITLY_STORIES stories without bitly data
