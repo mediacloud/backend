@@ -2628,7 +2628,7 @@ sub import_solr_seed_query
     return if ( $topic->{ solr_seed_query_run } );
 
     my $month_offset = 0;
-    while ( import_solr_seed_query_moth( $db, $topic, $month_offset++ ) ) { }
+    while ( import_solr_seed_query_month( $db, $topic, $month_offset++ ) ) { }
 
 }
 
