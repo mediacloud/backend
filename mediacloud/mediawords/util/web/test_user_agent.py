@@ -290,15 +290,11 @@ class TestUserAgentTestCase(TestCase):
         # https://en.wikipedia.org/wiki/Specials_(Unicode_block)#Replacement_character
         replacement_character = "\uFFFD"
 
-        assert (
-            # OS X:
-            response.decoded_content() == "%(rc)s\x28%(rc)s" % {'rc': replacement_character}
-
-            or
-
-            # Ubuntu:
-            response.decoded_content() == "%(rc)s%(rc)s\x28%(rc)s" % {'rc': replacement_character}
+        expected_content = (
+            "%(rc)s\x28%(rc)s" % {'rc': replacement_character},  # OS X
+            "%(rc)s%(rc)s\x28%(rc)s" % {'rc': replacement_character}  # Ubuntu
         )
+        assert response.decoded_content() in expected_content
 
     def test_get_non_utf8_content(self):
         """Non-UTF-8 content."""

@@ -1,4 +1,8 @@
-from mediawords.util.network import *
+import socket
+
+from mediawords.util.network import (
+    hostname_resolves, fqdn, random_unused_port, tcp_port_is_open, wait_for_tcp_port_to_open,
+    wait_for_tcp_port_to_close)
 
 
 # noinspection SpellCheckingInspection

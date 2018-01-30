@@ -54,10 +54,10 @@ class MultipleStoresStore(KeyValueStore):
                 # MC_REWRITE_TO_PYTHON: use named parameters after Python rewrite
                 content = store.fetch_content(db, object_id, object_path)
                 if content is None:
-                    raise McMultipleStoresStoreException((
-                                                             "Fetching object ID %d from store %s succeeded, "
-                                                             "but the returned content is undefined."
-                                                         ) % (object_id, str(store),))
+                    raise McMultipleStoresStoreException("Fetching object ID %d from store %s succeeded, "
+                                                         "but the returned content is undefined." % (
+                                                             object_id, str(store),
+                                                         ))
 
             except Exception as ex:
                 # Silently skip through errors and die() only if content wasn't found anywhere

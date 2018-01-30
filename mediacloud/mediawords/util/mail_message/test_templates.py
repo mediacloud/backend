@@ -1,4 +1,6 @@
-from mediawords.util.mail_message.templates import *
+from mediawords.util.mail_message.templates import (
+    AuthActivationNeededMessage, AuthActivatedMessage, AuthResetPasswordMessage,
+    AuthAPIKeyResetMessage, TopicSpiderUpdateMessage, AuthPasswordChangedMessage)
 
 
 def test_auth_activation_needed_email():

@@ -59,6 +59,9 @@ fi
 # Run test suite
 cd `dirname $0`/../
 
+echo "Running Python linter"
+./script/run_in_env.sh flake8 mediacloud/mediawords
+
 echo "Running Python unit tests..."
 ./script/run_in_env.sh pytest $PYTEST_ARGS --verbose mediacloud/ || {
     echo "One or more Python tests have failed with error code $?."

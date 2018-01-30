@@ -19,6 +19,9 @@ CyHunspell==1.2.1
 # Guessing publication dates of stories
 date_guesser==2.1.1
 
+# Code conventions
+flake8==3.5.0
+
 # URL manipulation
 furl==1.0.1
 
