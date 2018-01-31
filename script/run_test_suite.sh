@@ -48,7 +48,7 @@ if [ ! -z ${MC_TEST_SUITE_REPORT_COVERAGE+x} ]; then
     export HARNESS_PERL_SWITCHES='-MDevel::Cover=+ignore,t/,+ignore,\.t$'
 
     # Enable Python's pytest coverage
-    PYTEST_ARGS="--cov=mediacloud/mediawords/"
+    PYTEST_ARGS="--cov=mediacloud/mediawords/ --cov-config=.coveragerc"
 
 else
 
@@ -63,7 +63,7 @@ echo "Running Python linter"
 ./script/run_in_env.sh flake8 mediacloud/mediawords
 
 echo "Running Python unit tests..."
-./script/run_in_env.sh pytest $PYTEST_ARGS -c mediacloud/setup.cfg --verbose mediacloud/ || {
+./script/run_in_env.sh pytest $PYTEST_ARGS --verbose mediacloud/ || {
     echo "One or more Python tests have failed with error code $?."
     exit 1
 }
