@@ -82,14 +82,13 @@ Table of Contents
       * [api/v2/snapshots/single/](#apiv2snapshotssingle)
          * [Query Parameters](#query-parameters-17)
          * [Example](#example-19)
-      * [api/v2/snapshots/list/](#apiv2snapshotslist)
-         * [Query Parameters](#query-parameters-18)
+      * [api/v2/topics/.../snapshots/list](#apiv2topicssnapshotslist)
          * [Example](#example-20)
       * [api/v2/timespans/single/](#apiv2timespanssingle)
-         * [Query Parameters](#query-parameters-19)
+         * [Query Parameters](#query-parameters-18)
          * [Example](#example-21)
       * [api/v2/timespans/list/](#apiv2timespanslist)
-         * [Query Parameters](#query-parameters-20)
+         * [Query Parameters](#query-parameters-19)
          * [Example](#example-22)
    * [Registration and Authentication](#registration-and-authentication)
       * [Register](#register)
@@ -157,7 +156,7 @@ Table of Contents
             * [Example](#example-31)
    * [Stats](#stats)
       * [api/v2/stats/list](#apiv2statslist)
-         * [Query Parameters](#query-parameters-21)
+         * [Query Parameters](#query-parameters-20)
          * [Output Description](#output-description-14)
          * [Example](#example-32)
    * [Util](#util)
@@ -1297,21 +1296,42 @@ Response:
 ]
 ```
 
-## api/v2/snapshots/list/
+## api/v2/topics/.../snapshots/list
 
-| URL                      | Function
-| ------------------------ | -------------------------------------------
-| `api/v2/snapshots/list`  | Return snapshots sorted by descending date
-
-### Query Parameters
-
-| Parameter   | Default    | Notes
-| ----------- | ---------- | ------------------------------------
-| `topics_id` | null       | Return dumps within the given topic
+| URL                                         | Function
+| ------------------------------------------- | -------------------------------------------
+| `api/v2/topics/<topics_id>/snapshots/list`  | Return snapshots sorted by descending date
 
 ### Example
 
-URL: https://api.mediacloud.org/api/v2/snapshots/list?topics_id=6
+List all snapshots of topic with ID 1.
+
+URL: https://api.mediacloud.org/api/v2/topics/1/snapshots/list
+
+Response:
+
+```json
+{
+    "snapshots": [
+        {
+            "message": null,
+            "note": null,
+            "searchable": true,
+            "snapshot_date": "2014-07-22 22:35:47.833098",
+            "snapshots_id": 557,
+            "state": "completed"
+        },
+        {
+            "message": null,
+            "note": null,
+            "searchable": true,
+            "snapshot_date": "2014-03-19 06:22:41.678700",
+            "snapshots_id": 365,
+            "state": "completed"
+        }
+    ]
+}
+```
 
 ## api/v2/timespans/single/
 
