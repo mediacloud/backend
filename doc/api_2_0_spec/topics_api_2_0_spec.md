@@ -327,6 +327,19 @@ Permssions for the authenticated user for a given topic are included in the topi
 
 # Topics
 
+Topics are collections of stories within some date range that match some pattern indicating that they belong to some topic.  Topics both stories matched from crawled Media Cloud content and stories discovered by spidering out from the links of those matched stories. For more information about topics and how they are generated, see:
+
+http://cyber.law.harvard.edu/publications/2013/social_mobilization_and_the_networked_public_sphere
+
+A single topic is the umbrella object that represents the whole topic.  A snapshot
+is a frozen version of the data within a topic that keeps a consistent view of a topic
+for researchers and also includes analytical results like link counts.  A timespan
+represents the set of stories active in a topic within a given date range.  Every timespan belongs to a snapshot.
+
+Topic data can be used to search stories and media sources as well.  Use the
+timespans_id param to list the media sources within a given timespan.  See the documentation for Solr pseudo queries for documentation of how to
+query for stories within a topic.
+
 ## topics/create (POST)
 
 `https://api.mediacloud.org/api/v2/topics/create`
