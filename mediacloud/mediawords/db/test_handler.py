@@ -389,6 +389,17 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         primary_key = self.db().primary_key_column('kardashians')
         assert primary_key == 'id'
 
+        # Different schema
+        self.db().query("CREATE SCHEMA IF NOT EXISTS test")
+        self.db().query("""
+            CREATE TABLE IF NOT EXISTS test.table_with_primary_key (
+                primary_key_column SERIAL PRIMARY KEY NOT NULL,
+                some_other_column TEXT NOT NULL
+            )
+        """)
+        primary_key = self.db().primary_key_column('test.table_with_primary_key')
+        assert primary_key == 'primary_key_column'
+
     def test_find_by_id(self):
         row_hash = self.db().find_by_id(table='kardashians', object_id=4)
         assert row_hash['name'] == 'Kim'
