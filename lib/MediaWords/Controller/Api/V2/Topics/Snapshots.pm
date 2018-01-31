@@ -46,12 +46,21 @@ sub list_GET
 
     my $topics_id = $c->stash->{ topics_id };
 
-    my $snapshots = $db->query( <<SQL, $topics_id )->hashes;
-select snapshots_id, snapshot_date, note, state, searchable, message
-    from snapshots
-    where topics_id = \$1
-    order by snapshots_id desc
+    my $snapshots = $db->query(
+        <<SQL,
+        SELECT
+            snapshots_id,
+            snapshot_date,
+            note,
+            state,
+            searchable,
+            message
+        FROM snapshots
+        WHERE topics_id = \$1
+        ORDER BY snapshots_id DESC
 SQL
+        $topics_id
+    )->hashes;
 
     $self->status_ok( $c, entity => { snapshots => $snapshots } );
 }
