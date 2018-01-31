@@ -79,17 +79,14 @@ Table of Contents
       * [api/v2/topics/list/](#apiv2topicslist)
          * [Query Parameters](#query-parameters-16)
          * [Example](#example-18)
-      * [api/v2/snapshots/single/](#apiv2snapshotssingle)
-         * [Query Parameters](#query-parameters-17)
-         * [Example](#example-19)
       * [api/v2/topics/.../snapshots/list](#apiv2topicssnapshotslist)
-         * [Example](#example-20)
+         * [Example](#example-19)
       * [api/v2/timespans/single/](#apiv2timespanssingle)
+         * [Query Parameters](#query-parameters-17)
+         * [Example](#example-20)
+      * [api/v2/timespans/list/](#apiv2timespanslist)
          * [Query Parameters](#query-parameters-18)
          * [Example](#example-21)
-      * [api/v2/timespans/list/](#apiv2timespanslist)
-         * [Query Parameters](#query-parameters-19)
-         * [Example](#example-22)
    * [Registration and Authentication](#registration-and-authentication)
       * [Register](#register)
          * [api/v2/auth/register (POST)](#apiv2authregister-post)
@@ -98,21 +95,21 @@ Table of Contents
             * [Output Description](#output-description-5)
                * [Registration was successful](#registration-was-successful)
                * [Registration has failed](#registration-has-failed)
-            * [Example](#example-23)
+            * [Example](#example-22)
          * [api/v2/auth/activate (POST)](#apiv2authactivate-post)
             * [Required role](#required-role-1)
             * [Input Description](#input-description-2)
             * [Output Description](#output-description-6)
                * [Activating the user was successful](#activating-the-user-was-successful)
                * [Activating the user has failed](#activating-the-user-has-failed)
-            * [Example](#example-24)
+            * [Example](#example-23)
          * [api/v2/auth/resend_activation_link (POST)](#apiv2authresend_activation_link-post)
             * [Required role](#required-role-2)
             * [Input Description](#input-description-3)
             * [Output Description](#output-description-7)
                * [Resending the activation email was successful](#resending-the-activation-email-was-successful)
                * [Resending the activation email has failed](#resending-the-activation-email-has-failed)
-            * [Example](#example-25)
+            * [Example](#example-24)
       * [Reset password](#reset-password)
          * [api/v2/auth/send_password_reset_link (POST)](#apiv2authsend_password_reset_link-post)
             * [Required role](#required-role-3)
@@ -120,14 +117,14 @@ Table of Contents
             * [Output Description](#output-description-8)
                * [Sending the password reset link was successful](#sending-the-password-reset-link-was-successful)
                * [Sending the password reset link has failed](#sending-the-password-reset-link-has-failed)
-            * [Example](#example-26)
+            * [Example](#example-25)
          * [api/v2/auth/reset_password (POST)](#apiv2authreset_password-post)
             * [Required role](#required-role-4)
             * [Input Description](#input-description-5)
             * [Output Description](#output-description-9)
                * [Resetting the user's password was successful](#resetting-the-users-password-was-successful)
                * [Resetting the user's password has failed](#resetting-the-users-password-has-failed)
-            * [Example](#example-27)
+            * [Example](#example-26)
       * [Log in](#log-in)
          * [api/v2/auth/login (POST)](#apiv2authlogin-post)
             * [Required role](#required-role-5)
@@ -135,35 +132,35 @@ Table of Contents
             * [Output Description](#output-description-10)
                * [User was found](#user-was-found)
                * [User was not found](#user-was-not-found)
-            * [Example](#example-28)
+            * [Example](#example-27)
       * [User Profile](#user-profile)
          * [api/v2/auth/profile (GET)](#apiv2authprofile-get)
             * [Required role](#required-role-6)
             * [Output Description](#output-description-11)
-            * [Example](#example-29)
+            * [Example](#example-28)
          * [api/v2/auth/change_password (POST)](#apiv2authchange_password-post)
             * [Required role](#required-role-7)
             * [Input Description](#input-description-7)
             * [Output Description](#output-description-12)
                * [Changing the user's password was successful](#changing-the-users-password-was-successful)
                * [Changing the user's password has failed](#changing-the-users-password-has-failed)
-            * [Example](#example-30)
+            * [Example](#example-29)
          * [api/v2/auth/reset_api_key (POST)](#apiv2authreset_api_key-post)
             * [Required role](#required-role-8)
             * [Output Description](#output-description-13)
                * [Resetting user's API key was successful](#resetting-users-api-key-was-successful)
                * [Resetting user's API key has failed](#resetting-users-api-key-has-failed)
-            * [Example](#example-31)
+            * [Example](#example-30)
    * [Stats](#stats)
       * [api/v2/stats/list](#apiv2statslist)
-         * [Query Parameters](#query-parameters-20)
+         * [Query Parameters](#query-parameters-19)
          * [Output Description](#output-description-14)
-         * [Example](#example-32)
+         * [Example](#example-31)
    * [Util](#util)
       * [api/v2/util/is_syndicated_ap (POST)](#apiv2utilis_syndicated_ap-post)
          * [Input Description](#input-description-8)
          * [Output Description](#output-description-15)
-         * [Example](#example-33)
+         * [Example](#example-32)
    * [Extended Examples](#extended-examples)
       * [Output Format / JSON](#output-format--json)
       * [Create a CSV file with all media sources.](#create-a-csv-file-with-all-media-sources)
@@ -1264,37 +1261,6 @@ Response:
 ### Example
 
 URL: https://api.mediacloud.org/api/v2/topics/list
-
-## api/v2/snapshots/single/
-
-| URL                              | Function
-| -------------------------------- | -------------------------
-| `api/v2/snapshots/single/<id>`   | Return a single snapshot
-
-### Query Parameters
-
-None.
-
-### Example
-
-Fetching information on the snapshot 5.
-
-URL: https://api.mediacloud.org/api/v2/snapshots/single/5
-
-Response:
-
-```json
-[
-    {
-        "topics_id": 6,
-        "snapshots_id": 5,
-        "dump_date": "2014-07-30 16:32:15.479964",
-        "end_date": "2015-01-01 00:00:00",
-        "note": null,
-        "start_date": "2014-01-01 00:00:00",
-    }
-]
-```
 
 ## api/v2/topics/.../snapshots/list
 
