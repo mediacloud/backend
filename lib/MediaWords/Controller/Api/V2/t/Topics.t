@@ -12,9 +12,11 @@ use MediaWords::Test::DB;
 use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
 
+use Catalyst::Test 'MediaWords';
 use Readonly;
 use MediaWords::Controller::Api::V2::Topics;
 use MediaWords::DBI::Auth::Roles;
+use MediaWords::Test::API;
 use MediaWords::Test::DB;
 
 Readonly my $NUM_MEDIA            => 5;
@@ -304,6 +306,73 @@ SQL
     rows_match( $label, $got_cdts, [ $expected_timespan ], 'controversy_dump_time_slices_id', $fields );
 }
 
+sub test_generate_fetch_word2vec_model($)
+{
+    my $db = shift;
+
+    my $topic = MediaWords::Test::DB::create_test_topic( $db, 'test_generate_word2vec_model' );
+    my $topics_id = $topic->{ topics_id };
+
+    $db->query(
+        <<SQL,
+        UPDATE topics
+        SET is_public = 't'
+        WHERE topics_id = ?
+SQL
+        $topics_id
+    );
+
+    $db->query(
+        <<SQL,
+        INSERT INTO topic_stories (topics_id, stories_id)
+        SELECT ?, stories_id FROM stories
+SQL
+        $topics_id
+    );
+
+    # Test that no models exist for topic
+    {
+        my $fetched_topic = test_get( "/api/v2/topics/single/$topics_id" );
+        ok( $fetched_topic->{ topics }->[ 0 ]->{ word2vec_models } );
+        is( ref $fetched_topic->{ topics }->[ 0 ]->{ word2vec_models }, ref( [] ) );
+        is( scalar( @{ $fetched_topic->{ topics }->[ 0 ]->{ word2vec_models } } ), 0 );
+    }
+
+    # Add model generation job
+    test_get( "/api/v2/topics/$topics_id/generate_word2vec_model" );
+
+    # Wait for model to appear
+    my $found_models_id = undef;
+    for ( my $retry = 1 ; $retry <= 10 ; ++$retry )
+    {
+        INFO "Trying to fetch generated topic model for $retry time...";
+
+        my $fetched_topic = test_get( "/api/v2/topics/single/$topics_id" );
+        if ( scalar( @{ $fetched_topic->{ topics }->[ 0 ]->{ word2vec_models } } ) > 0 )
+        {
+            $found_models_id = $fetched_topic->{ topics }->[ 0 ]->{ word2vec_models }->[ 0 ]->{ models_id };
+            last;
+        }
+
+        INFO "Model not found, will retry shortly";
+        sleep( 1 );
+    }
+
+    ok( defined $found_models_id, "Model's ID was not found after all of the retries" );
+
+    # Try fetching the model
+    my $path = "/api/v2/topics/$topics_id/word2vec_model/$found_models_id?key=" . MediaWords::Test::API::get_test_api_key();
+    my $response = request( $path );    # Catalyst::Test::request()
+    ok( $response->is_success );
+
+    my $model_data = $response->decoded_content;
+    ok( defined $model_data );
+
+    my $model_data_length = length( $model_data );
+    INFO "Model data length: $model_data_length";
+    ok( $model_data_length > 0 );
+}
+
 sub test_topics
 {
     my ( $db ) = @_;
@@ -324,12 +393,21 @@ sub test_topics
     test_controversies( $db );
     test_controversy_dumps( $db );
     test_controversy_dump_time_slices( $db );
+
+    test_generate_fetch_word2vec_model( $db );
 }
 
 sub main
 {
-    MediaWords::Test::Supervisor::test_with_supervisor( \&test_topics,
-        [ 'solr_standalone', 'job_broker:rabbitmq', 'rescrape_media' ] );
+    MediaWords::Test::Supervisor::test_with_supervisor(    #
+        \&test_topics,                                     #
+        [                                                  #
+            'solr_standalone',                             #
+            'job_broker:rabbitmq',                         #
+            'rescrape_media',                              #
+            'word2vec_generate_topic_model',               #
+        ]                                                  #
+    );
 
     done_testing();
 }

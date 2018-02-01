@@ -14,6 +14,8 @@ use Moose;
 use namespace::autoclean;
 
 use MediaWords::TM::Mine;
+use MediaWords::Util::Word2vec;
+use MediaWords::Job::Word2vec::GenerateTopicModel;
 
 BEGIN
 {
@@ -23,12 +25,14 @@ BEGIN
 
 __PACKAGE__->config(
     action => {
-        list          => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        single        => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        create        => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        update        => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
-        spider        => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
-        spider_status => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        list                    => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        single                  => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        create                  => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        update                  => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
+        spider                  => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
+        spider_status           => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        generate_word2vec_model => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
+        word2vec_model          => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
@@ -498,6 +502,64 @@ select $JOB_STATE_FIELD_LIST
 SQL
 
     $self->status_ok( $c, entity => { job_states => $job_states } );
+}
+
+sub generate_word2vec_model : Chained( 'apibase' ) : ActionClass( 'MC_REST' )
+{
+}
+
+sub generate_word2vec_model_GET
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $topics_id = int( $c->stash->{ topics_id } );
+    unless ( $topics_id )
+    {
+        die "topics_id is not set.";
+    }
+
+    MediaWords::Job::Word2vec::GenerateTopicModel->add_to_queue( { topics_id => $topics_id } );
+
+    my $message = "Model generation for topic $topics_id added to the job queue.";
+    $self->status_ok( $c, entity => { message => $message } );
+}
+
+sub word2vec_model : Chained( 'apibase' ) : ActionClass( 'MC_REST' )
+{
+}
+
+sub word2vec_model_GET
+{
+    my ( $self, $c, $models_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my $topics_id = int( $c->stash->{ topics_id } );
+    unless ( $topics_id )
+    {
+        die "topics_id is not set.";
+    }
+
+    unless ( $models_id )
+    {
+        die "models_id is not set.";
+    }
+
+    my $model_store = MediaWords::Util::Word2vec::TopicDatabaseModelStore->new( $db, $topics_id );
+    my $model_data = MediaWords::Util::Word2vec::load_word2vec_model( $model_store, $models_id );
+    unless ( defined $model_data )
+    {
+        die "Model data for topic $topics_id, model $models_id is undefined.";
+    }
+
+    my $filename = "word2vec-topic_$topics_id-model_$models_id.pickle";
+
+    $c->response->content_type( 'application/octet-stream' );
+    $c->response->header( 'Content-Disposition' => "attachment; filename=$filename" );
+    $c->response->content_length( bytes::length( $model_data ) );
+    return $c->res->body( $model_data );
 }
 
 1;
