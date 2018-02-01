@@ -16,25 +16,25 @@ Table of Contents
          * [Query Parameters](#query-parameters)
          * [Input Description](#input-description)
          * [Example](#example)
-      * [topics/<del>topics_id</del>/update (PUT)](#topicstopics_idupdate-put)
+      * [topics/&lt;topics_id&gt;/update (PUT)](#topicstopics_idupdate-put)
          * [Query Parameters](#query-parameters-1)
          * [Input Description](#input-description-1)
          * [Example](#example-1)
-      * [topics/<del>topics_id</del>/spider (POST)](#topicstopics_idspider-post)
+      * [topics/&lt;topics_id&gt;/spider (POST)](#topicstopics_idspider-post)
          * [Query Parameters](#query-parameters-2)
          * [Output Description](#output-description)
          * [Example](#example-2)
-      * [topics/<del>topics_id</del>/spider_status](#topicstopics_idspider_status)
+      * [topics/&lt;topics_id&gt;/spider_status](#topicstopics_idspider_status)
          * [Query Parameters](#query-parameters-3)
          * [Output Description](#output-description-1)
          * [Example](#example-3)
-      * [topics/<del>topics_id</del>/generate_word2vec_model (GET)](#topicstopics_idgenerate_word2vec_model-get)
+      * [topics/&lt;topics_id&gt;/generate_word2vec_model (GET)](#topicstopics_idgenerate_word2vec_model-get)
          * [Required role](#required-role)
          * [Output Description](#output-description-2)
             * [Model generation job added to the queue](#model-generation-job-added-to-the-queue)
             * [Failed to add model generation job to the queue](#failed-to-add-model-generation-job-to-the-queue)
          * [Example](#example-4)
-      * [topics/<del>topics_id</del>/word2vec_model/<del>models_id</del> (GET)](#topicstopics_idword2vec_modelmodels_id-get)
+      * [topics/&lt;topics_id&gt;/word2vec_model/&lt;models_id&gt; (GET)](#topicstopics_idword2vec_modelmodels_id-get)
          * [Required role](#required-role-1)
          * [Output Description](#output-description-3)
             * [Model was fetched](#model-was-fetched)
@@ -44,7 +44,7 @@ Table of Contents
          * [Query Parameters](#query-parameters-4)
          * [Output Description](#output-description-4)
          * [Example](#example-6)
-      * [topics/single/<del>topics_id</del>](#topicssingletopics_id)
+      * [topics/single/&lt;topics_id&gt;](#topicssingletopics_id)
          * [Query Parameters](#query-parameters-5)
          * [Output Description](#output-description-5)
          * [Example](#example-7)
@@ -53,11 +53,11 @@ Table of Contents
          * [Query Parameters](#query-parameters-6)
          * [Output Description](#output-description-6)
          * [Example](#example-8)
-      * [topics/<del>topics_id</del>/permissions/list](#topicstopics_idpermissionslist)
+      * [topics/&lt;topics_id&gt;/permissions/list](#topicstopics_idpermissionslist)
          * [Query Parameters](#query-parameters-7)
          * [Output Description](#output-description-7)
          * [Example](#example-9)
-      * [topics/<del>topics_id</del>/permissions/update (PUT)](#topicstopics_idpermissionsupdate-put)
+      * [topics/&lt;topics_id&gt;/permissions/update (PUT)](#topicstopics_idpermissionsupdate-put)
          * [Query Parameters](#query-parameters-8)
          * [Input Description](#input-description-2)
          * [Output Description](#output-description-8)
@@ -94,11 +94,11 @@ Table of Contents
          * [Query Parameters](#query-parameters-14)
          * [Input Description](#input-description-3)
          * [Example](#example-15)
-      * [focal_set_definitions/<del>focal_set_definitions_id</del>/update (PUT)](#focal_set_definitionsfocal_set_definitions_idupdate-put)
+      * [focal_set_definitions/&lt;focal_set_definitions_id&gt;/update (PUT)](#focal_set_definitionsfocal_set_definitions_idupdate-put)
          * [Query Parameters](#query-parameters-15)
          * [Input Parameters](#input-parameters)
          * [Example](#example-16)
-      * [focal_set_definitions/<del>focal_set_definitions_id</del>/delete (PUT)](#focal_set_definitionsfocal_set_definitions_iddelete-put)
+      * [focal_set_definitions/&lt;focal_set_definitions_id&gt;/delete (PUT)](#focal_set_definitionsfocal_set_definitions_iddelete-put)
          * [Query Parameters](#query-parameters-16)
          * [Output Description](#output-description-14)
          * [Example](#example-17)
@@ -114,11 +114,11 @@ Table of Contents
          * [Query Parameters](#query-parameters-19)
          * [Input Description](#input-description-4)
          * [Example](#example-20)
-      * [focus_definitions/<del>focus_definitions_id</del>/update (PUT)](#focus_definitionsfocus_definitions_idupdate-put)
+      * [focus_definitions/&lt;focus_definitions_id&gt;/update (PUT)](#focus_definitionsfocus_definitions_idupdate-put)
          * [Query Parameters](#query-parameters-20)
          * [Input Description](#input-description-5)
          * [Example](#example-21)
-      * [focus_definitions/<del>focus_definitions_id</del>/delete (PUT)](#focus_definitionsfocus_definitions_iddelete-put)
+      * [focus_definitions/&lt;focus_definitions_id&gt;/delete (PUT)](#focus_definitionsfocus_definitions_iddelete-put)
          * [Query Parameters](#query-parameters-21)
          * [Output Description](#output-description-17)
          * [Example](#example-22)
@@ -145,13 +145,13 @@ Table of Contents
          * [Query Paramaters](#query-paramaters)
          * [Output Description](#output-description-21)
          * [Example](#example-27)
-      * [snapshots/<del>snapshots_id</del>/generate_word2vec_model (GET)](#snapshotssnapshots_idgenerate_word2vec_model-get)
+      * [snapshots/&lt;snapshots_id&gt;/generate_word2vec_model (GET)](#snapshotssnapshots_idgenerate_word2vec_model-get)
          * [Required role](#required-role-2)
          * [Output Description](#output-description-22)
             * [Model generation job added to the queue](#model-generation-job-added-to-the-queue-1)
             * [Failed to add model generation job to the queue](#failed-to-add-model-generation-job-to-the-queue-1)
          * [Example](#example-28)
-      * [snapshots/<del>snapshots_id</del>/word2vec_model/<del>models_id</del> (GET)](#snapshotssnapshots_idword2vec_modelmodels_id-get)
+      * [snapshots/&lt;snapshots_id&gt;/word2vec_model/&lt;models_id&gt; (GET)](#snapshotssnapshots_idword2vec_modelmodels_id-get)
          * [Required role](#required-role-3)
          * [Output Description](#output-description-23)
             * [Model was fetched](#model-was-fetched-1)
@@ -209,7 +209,7 @@ data.
 
 All URLs in the topics API are in the form:
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/list`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/stories/list`
 
 For example, the following will return all stories in the latest snapshot of topic id 1344.
 
@@ -323,7 +323,7 @@ Topic data can be used to search stories and media sources as well.  Use the
 timespans_id param to list the media sources within a given timespan.  See the documentation for Solr pseudo queries for documentation of how to
 query for stories within a topic.
 
-## topics/create (POST)
+## `topics/create` (POST)
 
 `https://api.mediacloud.org/api/v2/topics/create`
 
@@ -393,9 +393,9 @@ Response:
 }
 ```
 
-## topics/~topics_id~/update (PUT)
+## `topics/<topics_id>/update` (PUT)
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/update`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/update`
 
 Edit an existing *topic*.
 
@@ -453,9 +453,9 @@ Response:
 }
 ```
 
-## topics/~topics_id~/spider (POST)
+## `topics/<topics_id>/spider` (POST)
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id/spider`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/spider`
 
 Start a topic spidering job.
 
@@ -498,9 +498,9 @@ Response:
 ```
 
 
-## topics/~topics_id~/spider_status
+## `topics/<topics_id>/spider_status`
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/spider_status`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/spider_status`
 
 Get a list all spidering jobs started for this topic.
 
@@ -541,11 +541,11 @@ Response:
 ```
 
 
-## topics/~topics_id~/generate_word2vec_model (GET)
+## `topics/<topics_id>/generate_word2vec_model` (GET)
 
 | URL                                          | Function                                       |
 | -------------------------------------------- | ---------------------------------------------- |
-| `topics/~topics_id~/generate_word2vec_model` | Add word2vec model job to a queue for a topic. |
+| `topics/<topics_id>/generate_word2vec_model` | Add word2vec model job to a queue for a topic. |
 
 ### Required role
 
@@ -582,11 +582,11 @@ Output:
 ```
 
 
-## topics/~topics_id~/word2vec_model/~models_id~ (GET)
+## `topics/<topics_id>/word2vec_model/<models_id>` (GET)
 
 | URL                                             | Function                         |
 | ----------------------------------------------- | -------------------------------- |
-| `topics/~topics_id~/word2vec_model/~models_id~` | Download topic's word2vec model. |
+| `topics/<topics_id>/word2vec_model/<models_id>` | Download topic's word2vec model. |
 
 ### Required role
 
@@ -617,7 +617,7 @@ URL: <https://api.mediacloud.org/api/v2/topics/6/word2vec_model/1>
 Output: `application/octet-stream` model data of topic with `topics_id=6`, word2vec model with `models_id=1`.
 
 
-## topics/list
+## `topics/list`
 
 `https://api.mediacloud.org/api/v2/topics/list`
 
@@ -716,9 +716,9 @@ Response:
 }
 ```
 
-## topics/single/~topics_id~
+## `topics/single/<topics_id>`
 
-`https://api.mediacloud.org/api/v2/topics/single/~topics_id~`
+`https://api.mediacloud.org/api/v2/topics/single/<topics_id>`
 
 The topics/single call returns a single topic, if the calling user has permission to read that topic.
 
@@ -780,7 +780,7 @@ Response:
 
 # Permissions
 
-## topics/permissions/user/list
+## `topics/permissions/user/list`
 
 `https://api.mediacloud.org/api/v2/topics/permissions/user/list`
 
@@ -819,9 +819,9 @@ Response:
 }
 ```
 
-## topics/~topics_id~/permissions/list
+## `topics/<topics_id>/permissions/list`
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/permissions/list`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/permissions/list`
 
 List all permissions for the given topic.
 
@@ -860,9 +860,9 @@ Response:
 }
 ```
 
-## topics/~topics_id~/permissions/update (PUT)
+## `topics/<topics_id>/permissions/update` (PUT)
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/permissions/update`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/permissions/update`
 
 Update permissions for a given user to a given topic.
 
@@ -887,7 +887,7 @@ On success, the new permission is returned in the same format as the permissions
 
 Update the permissions for a given user for a given topic:
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/permissions/update`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/permissions/update`
 
 Input:
 
@@ -919,9 +919,9 @@ Response:
 
 # Stories
 
-## stories/list
+## `stories/list`
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/list`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/stories/list`
 
 The stories list call returns stories in the topic.
 
@@ -1012,9 +1012,9 @@ Response:
 }
 ```
 
-## stories/facebook
+## `stories/facebook`
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/facebook`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/stories/facebook`
 
 Return the current facebook counts for all stories in the topic.  Note that this call returns the current
 facebook count data, which may change over time, rather than the snapshotted, static data returned by the
@@ -1070,9 +1070,9 @@ Response:
 }
 ```
 
-## stories/count
+## `stories/count`
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/count`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/stories/count`
 
 Return the number of stories that match the query.
 
@@ -1096,7 +1096,7 @@ Standard parameters accepted : snapshots_id, foci_id, timespans_id, limit.
 
 Return the number of stories that mention 'immigration' in the 'US Election' topic:
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/count?q=immigration`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/stories/count?q=immigration`
 
 Response:
 
@@ -1107,9 +1107,9 @@ Response:
 
 # Sentences
 
-## sentences/count
+## `sentences/count`
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/sentences/count`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/sentences/count`
 
 Return the numer of sentences that match the query, optionally split by date.
 
@@ -1122,9 +1122,9 @@ For details about this end point, including parameters, output, and examples, se
 
 # Media
 
-## media/list
+## `media/list`
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/media/list`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/media/list`
 
 The media list call returns the list of media in the topic.
 
@@ -1163,7 +1163,7 @@ Standard parameters accepted: snapshots_id, foci_id, timespans_id, limit, link_i
 
 Return all stories in the medium that match 'twitt':
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/media/list?name=twitt`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/media/list?name=twitt`
 
 Response:
 
@@ -1190,9 +1190,9 @@ Response:
     }
 }
 ```
-## media/map
+## `media/map`
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/media/map`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/media/map`
 
 The media list call returns a gexf formatted network map of the media in the topic / timespan.
 
@@ -1223,9 +1223,9 @@ Return the network map for topic id 12:
 
 # Word Counts
 
-## wc/list
+## `wc/list`
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/wc/list`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/wc/list`
 
 Returns sampled counts of the most prevalent words in a topic, optionally restricted to sentences that match a given query.
 
@@ -1262,9 +1262,9 @@ Details about each focal technique are below.  Among other properties, each foca
 
 The Boolean Query focal technique associates a focus with a story by matching that story with a Solr boolean query.  *focal sets* generated by the Boolean Query method are not exclusive.
 
-## focal_set_definitions/create (POST)
+## `focal_set_definitions/create` (POST)
 
-`https://api.mediacloud.org/api/topics/~topics_id~/focal_set_definitions/create`
+`https://api.mediacloud.org/api/topics/<topics_id>/focal_set_definitions/create`
 
 Create and return a new *focal set definiition*  within the given *topic*.
 
@@ -1313,9 +1313,9 @@ Response:
 }
 ```
 
-## focal_set_definitions/~focal_set_definitions_id~/update (PUT)
+## `focal_set_definitions/<focal_set_definitions_id>/update` (PUT)
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/focal_set_definitions/~focal_set_definitions_id~/update/`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/focal_set_definitions/<focal_set_definitions_id>/update/`
 
 Update the given focal set definition.
 
@@ -1360,9 +1360,9 @@ Response:
 }
 ```
 
-## focal_set_definitions/~focal_set_definitions_id~/delete (PUT)
+## `focal_set_definitions/<focal_set_definitions_id>/delete` (PUT)
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/focal_set_definitions/~focal_set_definitions_id~/delete`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/focal_set_definitions/<focal_set_definitions_id>/delete`
 
 Delete a focal set definition.
 
@@ -1380,7 +1380,7 @@ Delete a focal set definition.
 
 Delete focal_set_definitions_id 123:
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/focal_set_definitions/123/delete`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/focal_set_definitions/123/delete`
 
 Response:
 
@@ -1388,9 +1388,9 @@ Response:
 { "success": 1 }
 ```
 
-## focal_set_definitions/list
+## `focal_set_definitions/list`
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/focal_set_definitions/list`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/focal_set_definitions/list`
 
 Return a list of all focal set definitions belonging to the given topic.
 
@@ -1443,9 +1443,9 @@ Response:
 }
 ```
 
-## focal_sets/list
+## `focal_sets/list`
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/focal_sets/list`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/focal_sets/list`
 
 List all *focal sets* belonging to the specified *snapshot* in the given *topic*.
 
@@ -1500,9 +1500,9 @@ Response:
 ```
 
 
-## focus_definitions/create (POST)
+## `focus_definitions/create` (POST)
 
-`https://api.mediacloud.org/api/topics/~topics_id~/focus_definitions/create`
+`https://api.mediacloud.org/api/topics/<topics_id>/focus_definitions/create`
 
 Create and return a new *focus definition*  within the given *topic* and *focal set definition*.
 
@@ -1556,9 +1556,9 @@ Response:
 ```
 
 
-## focus_definitions/~focus_definitions_id~/update (PUT)
+## `focus_definitions/<focus_definitions_id>/update` (PUT)
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/focus_definitions/~focus_definitions_id~/update`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/focus_definitions/<focus_definitions_id>/update`
 
 Update the given focus definition.
 
@@ -1598,9 +1598,9 @@ Response:
 }
 ```
 
-## focus_definitions/~focus_definitions_id~/delete (PUT)
+## `focus_definitions/<focus_definitions_id>/delete` (PUT)
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/focus_definitions/~focus_definitions_id~/delete`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/focus_definitions/<focus_definitions_id>/delete`
 
 Delete a focus definition.
 
@@ -1618,7 +1618,7 @@ Delete a focus definition.
 
 Delete focus_definitions_id 123:
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/focus_definitions/123/delete`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/focus_definitions/123/delete`
 
 Response:
 
@@ -1626,9 +1626,9 @@ Response:
 { "success": 1 }
 ```
 
-## focus_definitions/list
+## `focus_definitions/list`
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/focus_definitions/~focal_set_definitions_id~/list`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/focus_definitions/<focal_set_definitions_id>/list`
 
 List all *focus definitions* belonging to the given *focal set definition*.
 
@@ -1672,9 +1672,9 @@ Response:
 }
 ```
 
-## foci/list
+## `foci/list`
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/foci/list`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/foci/list`
 
 Return a list of the *foci* belonging to the given *focal set*.
 
@@ -1721,9 +1721,9 @@ Response:
 
 Each *snapshot* contains a static copy of all data within a topic at the time the *snapshot* was made.  All data viewable by the Topics API must be viewed through a *snapshot*.
 
-## snapshots/generate (POST)
+## `snapshots/generate` (POST)
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/snapshots/generate`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/snapshots/generate`
 
 Generate a new *snapshot* for the given topic.  Note that `topics/spider` will generate a snapshot as part of its
 spidering process, so this end point only needs to be called to generate an additional snapshot of a topic
@@ -1766,9 +1766,9 @@ Response:
 }    
 ```
 
-## snapshots/generate_status
+## `snapshots/generate_status`
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/snapshots/generate_status`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/snapshots/generate_status`
 
 Return a list of snapshots job_states for the given snapshot;
 
@@ -1813,9 +1813,9 @@ Response:
 }    
 ```
 
-## snapshots/list
+## `snapshots/list`
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/snapshots/list`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/snapshots/list`
 
 Return a list of all completed *snapshots* in the given *topic*.
 
@@ -1870,11 +1870,11 @@ Response:
 ```
 
 
-## snapshots/~snapshots_id~/generate_word2vec_model (GET)
+## `snapshots/<snapshots_id>/generate_word2vec_model` (GET)
 
 | URL                                                                   | Function                                          |
 | --------------------------------------------------------------------- | ------------------------------------------------- |
-| `topics/~topics_id~/snapshots/~snapshots_id~/generate_word2vec_model` | Add word2vec model job to a queue for a snapshot. |
+| `topics/<topics_id>/snapshots/<snapshots_id>/generate_word2vec_model` | Add word2vec model job to a queue for a snapshot. |
 
 ### Required role
 
@@ -1911,11 +1911,11 @@ Output:
 ```
 
 
-## snapshots/~snapshots_id~/word2vec_model/~models_id~ (GET)
+## `snapshots/<snapshots_id>/word2vec_model/<models_id>` (GET)
 
 | URL                                                                      | Function                             |
 | ------------------------------------------------------------------------ | ------------------------------------ |
-| `topics/~topics_id~/snapshots/~snapshots_id~/word2vec_model/~models_id~` | Download snapshots's word2vec model. |
+| `topics/<topics_id>/snapshots/<snapshots_id>/word2vec_model/<models_id>` | Download snapshots's word2vec model. |
 
 ### Required role
 
@@ -1952,9 +1952,9 @@ Each *timespan* is a view of the *topic* that presents the topic as if it consis
 
 A *story* is included within a *timespan* if the publish_date of the story is within the *timespan* date range or if the *story* is linked to by a *story* that whose publish_date is within date range of the *timespan*.
 
-## timespans/list
+## `timespans/list`
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/timespans/list`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/timespans/list`
 
 Return a list of timespans in the current snapshot.
 
