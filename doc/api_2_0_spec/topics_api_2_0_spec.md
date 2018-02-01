@@ -699,7 +699,7 @@ Response:
             ],
             "word2vec_models": [
                {
-                  "models_id": 1
+                  "models_id": 1,
                   "creation_date": "2018-01-31 20:59:57.559360",
                }
             ]
@@ -769,7 +769,7 @@ Response:
             ],
             "word2vec_models": [
                {
-                  "models_id": 1
+                  "models_id": 1,
                   "creation_date": "2018-01-31 20:59:57.559360",
                }
             ]
@@ -1860,7 +1860,7 @@ Response:
             "state": "completed",
             "word2vec_models": [
                {
-                  "models_id": 1
+                  "models_id": 1,
                   "creation_date": "2018-01-31 20:59:57.559360",
                }
             ]
