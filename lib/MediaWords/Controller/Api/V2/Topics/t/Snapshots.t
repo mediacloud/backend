@@ -30,15 +30,26 @@ sub test_generate_fetch_word2vec_model($)
     my $topic = MediaWords::Test::DB::create_test_topic( $db, 'test_generate_word2vec_model' );
     my $topics_id = $topic->{ topics_id };
 
-    $db->query(
+    # Allow test user to "write" to this topic
+    my $auth_user = $db->query(
         <<SQL,
-        UPDATE topics
-        SET is_public = 't'
-        WHERE topics_id = ?
+        SELECT auth_users_id
+        FROM auth_user_api_keys
+        WHERE api_key = ?
 SQL
-        $topics_id
+        MediaWords::Test::API::get_test_api_key()
+    )->hash;
+    my $auth_users_id    = $auth_user->{ auth_users_id };
+    my $topic_permission = $db->create(
+        'topic_permissions',
+        {
+            auth_users_id => $auth_users_id,
+            topics_id     => $topics_id,
+            permission    => 'write'
+        }
     );
 
+    # Add all test stories to the test topic
     $db->query(
         <<SQL,
         INSERT INTO topic_stories (topics_id, stories_id)
