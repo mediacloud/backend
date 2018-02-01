@@ -32,6 +32,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::TM::Mine;
 use MediaWords::DB;
+use MediaWords::Job::Word2vec::GenerateTopicModel;
 
 sub use_job_state
 {
@@ -73,6 +74,8 @@ sub run_statefully($$;$)
 
     MediaWords::TM::Mine::mine_topic( $db, $topic, $options );
 
+    INFO "Adding a new word2vec model generation job for topic $topics_id...";
+    MediaWords::Job::Word2vec::GenerateTopicModel->add_to_queue( { topics_id => $topics_id } );
 }
 
 no Moose;    # gets rid of scaffolding
