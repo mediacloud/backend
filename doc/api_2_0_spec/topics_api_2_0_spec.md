@@ -129,7 +129,7 @@ Table of Contents
          * [Input Description](#input-description-7)
          * [Output Description](#output-description-18)
          * [Example](#example-24)
-         * [snapshots/list](#snapshotslist)
+      * [snapshots/list](#snapshotslist)
          * [Query Paramaters](#query-paramaters)
          * [Output Description](#output-description-19)
          * [Example](#example-25)
@@ -1713,7 +1713,7 @@ Response:
 }    
 ```
 
-### snapshots/list
+## snapshots/list
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/snapshots/list`
 
