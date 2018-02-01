@@ -1,5 +1,5 @@
 from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
-from mediawords.util.colors import *
+from mediawords.util.colors import hex_to_rgb, rgb_to_hex, analogous_color, get_consistent_color
 
 
 def test_hex_to_rgb():
