@@ -41,15 +41,15 @@ Table of Contents
          * [Output Description](#output-description-4)
          * [Example](#example-6)
    * [Permissions](#permissions-1)
-      * [topics/permissions/user/list DONE](#topicspermissionsuserlist-done)
+      * [topics/permissions/user/list](#topicspermissionsuserlist)
          * [Query Parameters](#query-parameters-7)
          * [Output Description](#output-description-5)
          * [Example](#example-7)
-      * [topics/<del>topics_id</del>/permissions/list DONE](#topicstopics_idpermissionslist-done)
+      * [topics/<del>topics_id</del>/permissions/list](#topicstopics_idpermissionslist)
          * [Query Parameters](#query-parameters-8)
          * [Output Description](#output-description-6)
          * [Example](#example-8)
-      * [topics/<del>topics_id</del>/permissions/update (PUT) DONE](#topicstopics_idpermissionsupdate-put-done)
+      * [topics/<del>topics_id</del>/permissions/update (PUT)](#topicstopics_idpermissionsupdate-put)
          * [Query Parameters](#query-parameters-9)
          * [Input Description](#input-description-2)
          * [Output Description](#output-description-7)
@@ -765,7 +765,7 @@ Response:
 
 # Permissions
 
-## topics/permissions/user/list DONE
+## topics/permissions/user/list
 
 `https://api.mediacloud.org/api/v2/topics/permissions/user/list`
 
@@ -804,7 +804,7 @@ Response:
 }
 ```
 
-## topics/~topics_id~/permissions/list DONE
+## topics/~topics_id~/permissions/list
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/permissions/list`
 
@@ -845,7 +845,7 @@ Response:
 }
 ```
 
-## topics/~topics_id~/permissions/update (PUT) DONE
+## topics/~topics_id~/permissions/update (PUT)
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/permissions/update`
 
