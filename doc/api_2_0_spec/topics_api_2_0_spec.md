@@ -28,157 +28,116 @@ Table of Contents
          * [Query Parameters](#query-parameters-3)
          * [Output Description](#output-description-1)
          * [Example](#example-3)
-      * [topics/<del>topics_id</del>/iterations/list - TODO](#topicstopics_iditerationslist---todo)
+      * [topics/list](#topicslist)
          * [Query Parameters](#query-parameters-4)
          * [Output Description](#output-description-2)
          * [Example](#example-4)
-      * [topics/list](#topicslist)
+      * [topics/single/<del>topics_id</del>](#topicssingletopics_id)
          * [Query Parameters](#query-parameters-5)
          * [Output Description](#output-description-3)
          * [Example](#example-5)
-      * [topics/single/<del>topics_id</del>](#topicssingletopics_id)
+   * [Permissions](#permissions-1)
+      * [topics/permissions/user/list](#topicspermissionsuserlist)
          * [Query Parameters](#query-parameters-6)
          * [Output Description](#output-description-4)
          * [Example](#example-6)
-   * [Permissions](#permissions-1)
-      * [topics/permissions/user/list](#topicspermissionsuserlist)
+      * [topics/<del>topics_id</del>/permissions/list](#topicstopics_idpermissionslist)
          * [Query Parameters](#query-parameters-7)
          * [Output Description](#output-description-5)
          * [Example](#example-7)
-      * [topics/<del>topics_id</del>/permissions/list](#topicstopics_idpermissionslist)
+      * [topics/<del>topics_id</del>/permissions/update (PUT)](#topicstopics_idpermissionsupdate-put)
          * [Query Parameters](#query-parameters-8)
+         * [Input Description](#input-description-2)
          * [Output Description](#output-description-6)
          * [Example](#example-8)
-      * [topics/<del>topics_id</del>/permissions/update (PUT)](#topicstopics_idpermissionsupdate-put)
-         * [Query Parameters](#query-parameters-9)
-         * [Input Description](#input-description-2)
-         * [Output Description](#output-description-7)
-         * [Example](#example-9)
    * [Stories](#stories)
       * [stories/list](#storieslist)
+         * [Query Parameters](#query-parameters-9)
+         * [Output Description](#output-description-7)
+      * [stories/facebook](#storiesfacebook)
          * [Query Parameters](#query-parameters-10)
          * [Output Description](#output-description-8)
-      * [stories/facebook](#storiesfacebook)
+         * [Example](#example-9)
+      * [stories/count](#storiescount)
          * [Query Parameters](#query-parameters-11)
          * [Output Description](#output-description-9)
          * [Example](#example-10)
-      * [stories/count](#storiescount)
-         * [Query Parameters](#query-parameters-12)
-         * [Output Description](#output-description-10)
-         * [Example](#example-11)
-      * [stories/<del>stories_id</del>/update (PUT) - TODO](#storiesstories_idupdate-put---todo)
-         * [Query Parameters](#query-parameters-13)
-         * [Input Description](#input-description-3)
-         * [Output Description](#output-description-11)
-         * [Example](#example-12)
-      * [stories/<del>stories_id</del>/remove (PUT) - TODO](#storiesstories_idremove-put---todo)
-         * [Query Parameters](#query-parameters-14)
-         * [Output Description](#output-description-12)
-         * [Example](#example-13)
-      * [stories/merge (PUT) - TODO](#storiesmerge-put---todo)
-         * [Query Parameters](#query-parameters-15)
-         * [Input Description](#input-description-4)
-         * [Output Description](#output-description-13)
-         * [Example](#example-14)
    * [Sentences](#sentences)
       * [sentences/count](#sentencescount)
    * [Media](#media)
       * [media/list](#medialist)
-         * [Query Parameters](#query-parameters-16)
-         * [Output Description](#output-description-14)
-         * [Example](#example-15)
+         * [Query Parameters](#query-parameters-12)
+         * [Output Description](#output-description-10)
+         * [Example](#example-11)
       * [media/map](#mediamap)
-         * [Query Parameters](#query-parameters-17)
-         * [Output Description](#output-description-15)
-         * [Example](#example-16)
-      * [media/<del>media_id</del>/remove (PUT) - TODO](#mediamedia_idremove-put---todo)
-         * [Query Parameters](#query-parameters-18)
-         * [Output Description](#output-description-16)
-         * [Example](#example-17)
-      * [media/merge (PUT) - TODO](#mediamerge-put---todo)
-         * [Query Parameters](#query-parameters-19)
-         * [Input Description](#input-description-5)
-         * [Output Description](#output-description-17)
-         * [Example](#example-18)
+         * [Query Parameters](#query-parameters-13)
+         * [Output Description](#output-description-11)
+         * [Example](#example-12)
    * [Word Counts](#word-counts)
       * [wc/list](#wclist)
    * [Foci](#foci)
       * [Focal Techniques](#focal-techniques)
          * [Focal Technique: Boolean Query](#focal-technique-boolean-query)
       * [focal_set_definitions/create (POST)](#focal_set_definitionscreate-post)
-         * [Query Parameters](#query-parameters-20)
-         * [Input Description](#input-description-6)
-         * [Example](#example-19)
+         * [Query Parameters](#query-parameters-14)
+         * [Input Description](#input-description-3)
+         * [Example](#example-13)
       * [focal_set_definitions/<del>focal_set_definitions_id</del>/update (PUT)](#focal_set_definitionsfocal_set_definitions_idupdate-put)
-         * [Query Parameters](#query-parameters-21)
+         * [Query Parameters](#query-parameters-15)
          * [Input Parameters](#input-parameters)
-         * [Example](#example-20)
+         * [Example](#example-14)
       * [focal_set_definitions/<del>focal_set_definitions_id</del>/delete (PUT)](#focal_set_definitionsfocal_set_definitions_iddelete-put)
-         * [Query Parameters](#query-parameters-22)
-         * [Output Description](#output-description-18)
-         * [Example](#example-21)
+         * [Query Parameters](#query-parameters-16)
+         * [Output Description](#output-description-12)
+         * [Example](#example-15)
       * [focal_set_definitions/list](#focal_set_definitionslist)
-         * [Query Parameters](#query-parameters-23)
-         * [Output Description](#output-description-19)
-         * [Example](#example-22)
+         * [Query Parameters](#query-parameters-17)
+         * [Output Description](#output-description-13)
+         * [Example](#example-16)
       * [focal_sets/list](#focal_setslist)
-         * [Query Parameters](#query-parameters-24)
-         * [Output Description](#output-description-20)
-         * [Example](#example-23)
+         * [Query Parameters](#query-parameters-18)
+         * [Output Description](#output-description-14)
+         * [Example](#example-17)
       * [focus_definitions/create (POST)](#focus_definitionscreate-post)
-         * [Query Parameters](#query-parameters-25)
-         * [Input Description](#input-description-7)
-         * [Example](#example-24)
+         * [Query Parameters](#query-parameters-19)
+         * [Input Description](#input-description-4)
+         * [Example](#example-18)
       * [focus_definitions/<del>focus_definitions_id</del>/update (PUT)](#focus_definitionsfocus_definitions_idupdate-put)
-         * [Query Parameters](#query-parameters-26)
-         * [Input Description](#input-description-8)
-         * [Example](#example-25)
+         * [Query Parameters](#query-parameters-20)
+         * [Input Description](#input-description-5)
+         * [Example](#example-19)
       * [focus_definitions/<del>focus_definitions_id</del>/delete (PUT)](#focus_definitionsfocus_definitions_iddelete-put)
-         * [Query Parameters](#query-parameters-27)
-         * [Output Description](#output-description-21)
-         * [Example](#example-26)
+         * [Query Parameters](#query-parameters-21)
+         * [Output Description](#output-description-15)
+         * [Example](#example-20)
       * [focus_definitions/list](#focus_definitionslist)
-         * [Query Parameters](#query-parameters-28)
-         * [Output Description](#output-description-22)
-         * [Example](#example-27)
+         * [Query Parameters](#query-parameters-22)
+         * [Output Description](#output-description-16)
+         * [Example](#example-21)
       * [foci/list](#focilist)
-         * [Query Parameters](#query-parameters-29)
+         * [Query Parameters](#query-parameters-23)
          * [Ouput Description](#ouput-description)
-         * [Example](#example-28)
+         * [Example](#example-22)
    * [Snapshots](#snapshots)
       * [snapshots/generate (POST)](#snapshotsgenerate-post)
-         * [Query Parameters](#query-parameters-30)
-         * [Input Description](#input-description-9)
-         * [Output Description](#output-description-23)
-         * [Example](#example-29)
+         * [Query Parameters](#query-parameters-24)
+         * [Input Description](#input-description-6)
+         * [Output Description](#output-description-17)
+         * [Example](#example-23)
       * [snapshots/generate_status](#snapshotsgenerate_status)
-         * [Query Parameters](#query-parameters-31)
-         * [Input Description](#input-description-10)
-         * [Output Description](#output-description-24)
-         * [Example](#example-30)
+         * [Query Parameters](#query-parameters-25)
+         * [Input Description](#input-description-7)
+         * [Output Description](#output-description-18)
+         * [Example](#example-24)
          * [snapshots/list](#snapshotslist)
          * [Query Paramaters](#query-paramaters)
-         * [Output Description](#output-description-25)
-         * [Example](#example-31)
-      * [snapshots/<del>snapshots_id</del>/update (PUT) - TODO](#snapshotssnapshots_idupdate-put---todo)
-         * [Query Parameters](#query-parameters-32)
-         * [Input Description](#input-description-11)
-         * [Output Description](#output-description-26)
-         * [Example](#example-32)
+         * [Output Description](#output-description-19)
+         * [Example](#example-25)
    * [Timespans](#timespans)
       * [timespans/list](#timespanslist)
-         * [Query Parameters](#query-parameters-33)
-         * [Output Description](#output-description-27)
-         * [Example](#example-33)
-      * [timespans/add_dates (PUT) - TODO](#timespansadd_dates-put---todo)
-         * [Query Parameters](#query-parameters-34)
-         * [Input Description](#input-description-12)
-         * [Output Description](#output-description-28)
-         * [Example](#example-34)
-      * [timespans/list_dates - TODO](#timespanslist_dates---todo)
-         * [Query Parameters](#query-parameters-35)
-         * [Output Description](#output-description-29)
-         * [Example](#example-35)
+         * [Query Parameters](#query-parameters-26)
+         * [Output Description](#output-description-20)
+         * [Example](#example-26)
 
 ----
 <!-- MEDIACLOUD-TOC-END -->
@@ -557,50 +516,6 @@ Response:
 }    
 ```
 
-## topics/~topics_id~/iterations/list - TODO
-
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/iterations/list`
-
-Return list of spider iterations with a story count for each
-
-### Query Parameters
-
-(no parameters)
-
-### Output Description
-
-| Field       | Description                    |
-| ----------- | ------------------------------ |
-| iteration   | number of iteration            |
-| story_count | number of stories in iteration |
-
-### Example
-
-Get the list of iterations for the 'U.S. 2016 Election' topic:
-
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/iterations/list`
-
-Response:
-
-```json
-{
-  "iterations":
-  [
-    {
-      "iteration": 0,
-      "count": 500,
-    },
-    {
-      "iteration": 1,
-      "count": 1000,
-    },
-    {
-      "iteration": 2,
-      "count": 300,
-    }
-  ]
-}
-```
 
 ## topics/list
 
@@ -1089,121 +1004,6 @@ Response:
 { "count": 123 }
 ```
 
-## stories/~stories_id~/update (PUT) - TODO
-
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/~stories_id~/update`
-
-Edit and return a story.  Editing a story changes that story for all topics.
-
-### Query Parameters
-
-(no parameters)
-
-### Input Description
-
-| Field        | Description                              |
-| ------------ | ---------------------------------------- |
-| stories_id   | id of story to edit; required            |
-| title        | story title                              |
-| publish_date | story publication date in this format: 2016-06-30 15:34:45Z or 'undateable' |
-
-### Output Description
-
-| Field   | Description                              |
-| ------- | ---------------------------------------- |
-| success | boolean indicating that the story was successfully edited. |
-
-### Example
-
-Edit the publish_date of story 123456:
-
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/~stories_id~/update`
-
-Input:
-
-```json
-{
-  "publish_date": "2016-05-30 15:34:45"
-}
-```
-
-Response:
-
-(see stories/list)
-
-## stories/~stories_id~/remove (PUT) - TODO
-
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/~stories_id~/remove`
-
-Remove the given story from the topic (but do not delete it from Media Cloud).
-
-### Query Parameters
-
-(no parameters)
-
-### Output Description
-
-| Field   | Description                              |
-| ------- | ---------------------------------------- |
-| success | boolean indicating that the story was removed |
-
-### Example
-
-Remove stories_id 12345 from topics_id 1340:
-
-`https://api.mediacloud.org/api/v2/topics/1340/stories/12345/remove`
-
-Response:
-
-```json
-{ "success": 1 }
-```
-
-## stories/merge (PUT) - TODO
-
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/merge`
-
-Merge one story into another story within this topic.
-
-### Query Parameters
-
-(no parameters)
-
-### Input Description
-
-| Field           | Description                              |
-| --------------- | ---------------------------------------- |
-| from_stories_id | id of the story to merge into to_stories_id; required |
-| to_stories_id   | id of the story into which from_stories_id will be merge; required |
-
-Merging from_stories_id into to_stories_id removes from_stories_id from the topic and merges the outlinks and inlinks of from_stories_id into to_stories_id.
-
-### Output Description
-
-| Field   | Description                              |
-| ------- | ---------------------------------------- |
-| success | boolean indicating that the story was successfully merged. |
-
-### Example
-
-Merge story 1234 into story 6789:
-
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/merge`
-
-Input:
-
-```json
-{
-  "from_stories_id": 1234,
-  "to_stories_id": 6789
-}
-```
-
-Response:
-
-```json
-{ "success": 1 }
-```
 
 # Sentences
 
@@ -1320,79 +1120,6 @@ Return the network map for topic id 12:
 
 `https://api.mediacloud.org/api/v2/topics/12/media/map`
 
-## media/~media_id~/remove (PUT) - TODO
-
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/media/~media_id~/remove`
-
-Remove the given medium from the topic (but do not delete it from Media Cloud).
-
-### Query Parameters
-
-(no parameters)
-
-### Output Description
-
-| Field   | Description                              |
-| ------- | ---------------------------------------- |
-| success | boolean indicating that the medium was removed |
-
-### Example
-
-Remove media_id 1 from the topics_id 1340:
-
-`https://api.mediacloud.org/api/v2/topics/1340/media/1/remove`
-
-Response:
-
-```json
-{ "success": 1 }
-```
-
-## media/merge (PUT) - TODO
-
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/media/merge`
-
-Merge all stories from one medium into another medium within this topic.
-
-### Query Parameters
-
-(no parameters)
-
-### Input Description
-
-| Field         | Description                              |
-| ------------- | ---------------------------------------- |
-| from_media_id | id of the medium to merge into to_media_id; required |
-| to_media_id   | id of the medium into which from_media_id will be merge; required |
-
-Mergin from_media_id into to_media_id merges all stories of from_media_it into to_media_id.  If a story with a matching URL or title already exists in to_media_id, the call merges those stories as described in stories/merge.  If no matching story exists in to_media_id, a new story is created.
-
-### Output Description
-
-| Field   | Description                              |
-| ------- | ---------------------------------------- |
-| success | boolean indicating that the story was successfully merged. |
-
-### Example
-
-Merge medium 1 into medium 2:
-
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/media/merge`
-
-Input:
-
-```json
-{
-  "from_media_id": 1,
-  "to_media_id": 2
-}
-```
-
-Response:
-
-```json
-{ "success": 1 }
-```
 
 # Word Counts
 
@@ -2042,45 +1769,6 @@ Response:
 }
 ```
 
-## snapshots/~snapshots_id~/update (PUT) - TODO
-
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/snapshots/~snapshots_id~/update`
-
-Edit and return the snapshot.
-
-### Query Parameters
-
-(no parameters)
-
-### Input Description
-
-| Field        | Description                        |
-| ------------ | ---------------------------------- |
-| snapshots_id | snapshot id; required              |
-| note         | short text note about the snapshot |
-
-### Output Description
-
-(see snapshots/list)
-
-### Example
-
-Edit the note for snapshot 4567:
-
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/snapshots/~snapshots_id~/update`
-
-Input:
-
-```json
-{
-  "snapshots_id": 4567,
-  "note": "final snapshot for paper analysis"
-}
-```
-
-Response:
-
-(see snapshots/list)
 
 # Timespans
 
@@ -2153,88 +1841,5 @@ Response:
             "snapshots_id": 456
         }
     ]
-}
-```
-
-## timespans/add_dates (PUT) - TODO
-
-`https://api.meiacloud.org/api/v1/topics/~topics_id~/timespans/add_dates`
-
-Add a date range for which to generate *timespans* for future *spanshots*.
-
-### Query Parameters
-
-(no parameters)
-
-### Input Description
-
-| Field      | Description         |
-| ---------- | ------------------- |
-| start_date | start of date range |
-| end_date   | end of date range   |
-
-### Output Description
-
-| Field   | Description                              |
-| ------- | ---------------------------------------- |
-| success | boolean indicating whether the spidering job was successfully queued. |
-
-### Example
-
-Add a new *timespan* date range to 'U.S. 2016 Election' *topic*:
-
-`https://api.mediacloud.org/api/v2/topics/1344/timespans/add_dates`
-
-Input:
-
-```json
-{
-    "start_date": "2016-02-01",
-    "end_date": "2016-05-01"
-}
-```
-
-Response:
-
-```json
-{ "success": 1 }
-```
-
-## timespans/list_dates - TODO
-
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/timespans/list_dates`
-
-List the dates for which timespans will be generated for each new snapshot.
-
-### Query Parameters
-
-(no parameters)
-
-### Output Description
-
-| Field      | Description                      |
-| ---------- | -------------------------------- |
-| start_date | start of timespan date range     |
-| end_date   | end of timespan date range       |
-| period     | 'weekly', 'monthly', or 'custom' |
-
-### Example
-
-List all timespans for the 'U.S. Election 2012' topic:
-
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/timespans/list_dates`
-
-Response:
-
-```json
-{
-  "dates":
-  [
-    {
-      "start_date": "2016-01-01",
-      "end_date": "2016-01-07",
-      "period": "weekly"
-    }
-  ]
 }
 ```
