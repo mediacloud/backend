@@ -1,4 +1,5 @@
-from mediawords.db import connect_to_db, DatabaseHandler
+import mediawords.db
+from mediawords.db.handler import DatabaseHandler
 from mediawords.util.log import create_logger
 from mediawords.util.paths import mc_sql_schema_path
 from mediawords.util.perl import decode_object_from_bytes_if_needed
@@ -32,7 +33,7 @@ def recreate_db(label: str = None) -> None:
 
     label = decode_object_from_bytes_if_needed(label)
 
-    db = connect_to_db(label=label, do_not_check_schema_version=True)
+    db = mediawords.db.connect_to_db(label=label, do_not_check_schema_version=True)
 
     log.info("Resetting all schemas...")
     reset_all_schemas(db_=db)

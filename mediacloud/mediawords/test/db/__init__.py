@@ -1,4 +1,8 @@
-from mediawords.db import DatabaseHandler
+from typing import Callable
+
+import mediawords.db
+from mediawords.db.handler import DatabaseHandler
+from mediawords.db.schema.schema import recreate_db
 from mediawords.test.db.env import (
     force_using_test_database as impl_force_using_test_database,
     using_test_database as impl_using_test_database,
@@ -269,3 +273,27 @@ def create_test_topic(db: DatabaseHandler, label: str) -> dict:
             'max_stories': 100000,
         }
     )
+
+
+def test_on_test_database(test_function: Callable) -> None:
+    """
+    Run the given function on a temporary, clean database.
+
+    This will only run on the 'test' db in mediawords.yml and will not run if there is not 'test' db configured
+    in mediawords.yml.
+
+    Arguments:
+    test_function - test_function to run that accepts a single mediawords.db.DatabaseHandler object
+
+    Return:
+    None
+    """
+    recreate_db('test')
+
+    db = mediawords.db.connect_to_db('test')
+
+    force_using_test_database()
+
+    test_function(db)
+
+    db.disconnect()
