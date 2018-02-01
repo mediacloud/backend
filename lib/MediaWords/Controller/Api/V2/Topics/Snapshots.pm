@@ -64,6 +64,21 @@ SQL
         $topics_id
     )->hashes;
 
+    $snapshots = $db->attach_child_query(
+        $snapshots, <<SQL,
+        SELECT
+            word2vec_models_id AS models_id,
+
+            -- FIXME snapshots_id gets into resulting hashes, not sure how to
+            -- get rid of it with attach_child_query()
+            object_id AS snapshots_id,
+
+            creation_date
+        FROM snap.word2vec_models
+SQL
+        'word2vec_models', 'snapshots_id'
+    );
+
     $self->status_ok( $c, entity => { snapshots => $snapshots } );
 }
 

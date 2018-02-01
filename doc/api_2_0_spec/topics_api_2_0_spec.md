@@ -642,6 +642,7 @@ Standard parameters accepted: link_id.
 | queue               | which job pool the topic runs in -- 'mc' for internal media cloud jobs and 'public' for public jobs |
 | max_stories         | max number of stories allowed in the topic |
 | owners              | list of users with 'admin' permissions for the topic |
+| word2vec_models     | List of word2vec models generated for the topic |
 
 ### Example
 
@@ -680,6 +681,12 @@ Response:
                     "full_name": "Hal Roberts",
                     "topics_id": 672,
                 }
+            ],
+            "word2vec_models": [
+               {
+                  "models_id": 1
+                  "creation_date": "2018-01-31 20:59:57.559360",
+               }
             ]
         }
     ],
@@ -744,6 +751,12 @@ Response:
                     "full_name": "Hal Roberts",
                     "topics_id": 672,
                 }
+            ],
+            "word2vec_models": [
+               {
+                  "models_id": 1
+                  "creation_date": "2018-01-31 20:59:57.559360",
+               }
             ]
         }
     ]
@@ -1985,14 +1998,15 @@ Return a list of all completed *snapshots* in the given *topic*.
 
 ### Output Description
 
-| Field         | Description                            |
-| ------------- | -------------------------------------- |
-| snapshots_id  | snapshot id                            |
-| snapshot_date | date on which the snapshot was created |
-| note          | short text note about the snapshot     |
-| state         | state of the snapshotting process      |
-| message       | more detailed message about the state of the snapshotting process |
-| searchable    | boolean indicating whether timespans are searchable yet |
+| Field           | Description                            |
+| --------------- | -------------------------------------- |
+| snapshots_id    | snapshot id                            |
+| snapshot_date   | date on which the snapshot was created |
+| note            | short text note about the snapshot     |
+| state           | state of the snapshotting process      |
+| message         | more detailed message about the state of the snapshotting process |
+| searchable      | boolean indicating whether timespans are searchable yet |
+| word2vec_models | List of word2vec models generated for the snapshot |
 
 The state indicates the state of the current snapshot process, including but not limited to 'completed' for a snapshot
 whose process has successfully completed and 'error' for a snapshot that failed for some reason.  
@@ -2016,7 +2030,13 @@ Response:
             "snapshots_id": 6789,
             "snapshot_date": "2016-09-29 18:14:47.481252",
             "note": "final snapshot for paper analysis",
-            "state": "completed"
+            "state": "completed",
+            "word2vec_models": [
+               {
+                  "models_id": 1
+                  "creation_date": "2018-01-31 20:59:57.559360",
+               }
+            ]
         }  
     ]
 }

@@ -152,6 +152,21 @@ SQL
         'owners', 'topics_id'
     );
 
+    $topics = $db->attach_child_query(
+        $topics, <<SQL,
+        SELECT
+            topic_word2vec_models_id AS models_id,
+
+            -- FIXME topics_id gets into resulting hashes, not sure how to
+            -- get rid of it with attach_child_query()
+            object_id AS topics_id,
+
+            creation_date
+        FROM topic_word2vec_models
+SQL
+        'word2vec_models', 'topics_id'
+    );
+
     return $topics;
 }
 
