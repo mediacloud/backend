@@ -26,14 +26,16 @@ Readonly my $JOB_STATE_FIELD_LIST =>
 sub apibase : Chained('/') : PathPart('api/v2/topics') : CaptureArgs(1)
 {
     my ( $self, $c, $topics_id ) = @_;
-    $c->stash->{ topics_id } = $topics_id;
+    $c->stash->{ topics_id } = int( $topics_id );
 }
 
-sub snapshots : Chained('apibase') : PathPart('snapshots') : CaptureArgs(0)
+sub snapshots : Chained('apibase') : PathPart('snapshots') : CaptureArgs(1)
 {
+    my ( $self, $c, $snapshots_id ) = @_;
+    $c->stash->{ snapshots_id } = int( $snapshots_id );
 }
 
-sub list : Chained('snapshots') : Args(0) : ActionClass('MC_REST')
+sub list : Chained('apibase') : PathPart( 'snapshots/list' ) : Args(0) : ActionClass('MC_REST')
 {
 
 }
@@ -65,7 +67,7 @@ SQL
     $self->status_ok( $c, entity => { snapshots => $snapshots } );
 }
 
-sub generate : Chained('snapshots') : Args(0) : ActionClass('MC_REST')
+sub generate : Chained('apibase') : PathPart( 'snapshots/generate' ) : Args(0) : ActionClass('MC_REST')
 {
 }
 
@@ -103,7 +105,7 @@ SQL
     return $self->status_ok( $c, entity => { job_state => $job_state } );
 }
 
-sub generate_status : Chained('snapshots') : Args(0) : ActionClass('MC_REST')
+sub generate_status : Chained('apibase') : PathPart( 'snapshots/generate_status' ) : Args(0) : ActionClass('MC_REST')
 {
 }
 
