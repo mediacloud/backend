@@ -1,11 +1,11 @@
 import pytest
 
 from mediawords.db.exceptions.result import McDatabaseResultException
-from mediawords.db.handler import *
+from mediawords.db.handler import McUpdateByIDException, McCreateException, McRequireByIDException
 from mediawords.test.test_database import TestDatabaseTestCase
 from mediawords.util.config import (
     get_config as py_get_config,
-    set_config as py_set_config,  # MC_REWRITE_TO_PYTHON: rename back to get_config(), get_config()
+    set_config as py_set_config,  # MC_REWRITE_TO_PYTHON: rename back to get_config(), set_config()
 )
 from mediawords.util.log import create_logger
 
@@ -16,7 +16,7 @@ log = create_logger(__name__)
 class TestDatabaseHandler(TestDatabaseTestCase):
     def setUp(self):
 
-        TestDatabaseTestCase.setUp(self)
+        super().setUp()
 
         log.info("Preparing test table 'kardashians'...")
         self.db().query("DROP TABLE IF EXISTS kardashians")
@@ -46,7 +46,7 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         self.db().query("DROP TABLE IF EXISTS kardashians")
 
         # Test disconnect() too
-        super(TestDatabaseTestCase, self).tearDown()
+        super().tearDown()
 
     def test_query_parameters(self):
 

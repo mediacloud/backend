@@ -45,3 +45,6 @@ script/vagrant/temp-vagrant-mediacloud
 # pytest cache
 .cache
 
+# Test coverage report
+.coverage
+coverage.json

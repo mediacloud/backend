@@ -1,4 +1,12 @@
 #!/bin/bash
+#
+# Run Media Cloud test suite (Perl and Python tests)
+#
+# If MC_TEST_SUITE_REPORT_COVERAGE environment variable is set, generate and
+# report test coverage.
+#
+
+# ---
 
 set -u
 set -e
@@ -31,11 +39,31 @@ if [[ "$system_hostname" =~ ^[0-9]+$ || "$shell_hostname" =~ ^[0-9]+$ ]] ; then
     exit 1
 fi
 
+if [ ! -z ${MC_TEST_SUITE_REPORT_COVERAGE+x} ]; then
+
+    echo "Removing old test coverage reports..."
+    rm -rf cover_db/ .coverage coverage.json
+
+    # Enable Perl's Devel::Cover
+    export HARNESS_PERL_SWITCHES='-MDevel::Cover=+ignore,t/,+ignore,\.t$'
+
+    # Enable Python's pytest coverage
+    PYTEST_ARGS="--cov=mediacloud/mediawords/ --cov-config=mediacloud/setup.cfg"
+
+else
+
+    PYTEST_ARGS=""
+
+fi
+
 # Run test suite
 cd `dirname $0`/../
 
+echo "Running Python linter"
+./script/run_in_env.sh flake8 mediacloud/mediawords
+
 echo "Running Python unit tests..."
-./script/run_in_env.sh pytest -v mediacloud/ || {
+./script/run_in_env.sh pytest $PYTEST_ARGS --verbose mediacloud/ || {
     echo "One or more Python tests have failed with error code $?."
     exit 1
 }

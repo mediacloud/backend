@@ -91,7 +91,7 @@ def is_http_url(url: str) -> bool:
         uri = furl(url)
 
         # Try stringifying URL back from the furl() object to try out all of its accessors
-        _ = str(uri)
+        str(uri)
 
         # Some URLs become invalid when normalized (which is what "requests" will do), e.g.:
         #
@@ -101,7 +101,7 @@ def is_http_url(url: str) -> bool:
         # ...so try the same with normalized URL
         normalized_url = url_normalize.url_normalize(url)
         normalized_uri = furl(normalized_url)
-        _ = str(normalized_uri)
+        str(normalized_uri)
 
     except Exception as ex:
         log.debug("Cannot parse URL: %s" % str(ex))
@@ -334,7 +334,7 @@ def normalize_url_lossy(url: str) -> Optional[str]:
     if 'r2.ly' not in url:
         url = re.sub(
             r'^(https?://)(m|beta|media|data|image|www?|cdn|topic|article|news|archive|blog|video|search|preview|'
-            + 'login|shop|sports?|act|donate|press|web|photos?|\d+?).?\.(.*\.)',
+            r'login|shop|sports?|act|donate|press|web|photos?|\d+?).?\.(.*\.)',
             r"\1\3", url, re.I)
 
     # collapse the vast array of http://pronkraymond83483.podomatic.com/ urls into http://pronkpops.podomatic.com/
@@ -486,8 +486,8 @@ def get_url_distinctive_domain(url: str) -> str:
             parts = [str(name_parts[n - 2]), str(name_parts[n - 1])]
             domain = '.'.join(parts)
         elif re.search(
-                        r'go.com|wordpress.com|blogspot|livejournal.com|privet.ru|wikia.com|feedburner.com'
-                        + '|24open.ru|patch.com|tumblr.com', host, re.I
+                r'go.com|wordpress.com|blogspot|livejournal.com|privet.ru|wikia.com|feedburner.com'
+                r'|24open.ru|patch.com|tumblr.com', host, re.I
         ):
             # identify sites in these domains as the whole host name (abcnews.go.com instead of go.com)
             domain = host
