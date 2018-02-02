@@ -11,7 +11,7 @@ Celery==4.1.0
 cld2-cffi==0.1.4
 
 # Unit test coverage
-coverage==4.4.1
+coverage==4.4.2
 
 # Hindi stemming
 CyHunspell==1.2.1

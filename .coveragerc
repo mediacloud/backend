@@ -1,2 +1,0 @@
-[report]
-omit = */test_*.py, */snowball/python/*.py
