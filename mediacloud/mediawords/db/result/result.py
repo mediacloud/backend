@@ -6,7 +6,7 @@ from typing import Dict, List, Any
 import psycopg2
 from psycopg2.extras import DictCursor
 
-from mediawords.db.exceptions.result import *
+from mediawords.db.exceptions.result import McDatabaseResultException, McDatabaseResultTextException
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 

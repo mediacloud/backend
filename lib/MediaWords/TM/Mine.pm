@@ -860,7 +860,11 @@ sub log_dead_link
         url        => $link->{ url }
     };
 
+    INFO "INSERTing into 'topic_dead_links': " . Dumper( $dead_link );
+
     $db->create( 'topic_dead_links', $dead_link );
+
+    INFO "INSERTed into 'topic_dead_links': " . Dumper( $dead_link );
 }
 
 # send story to the extraction queue in the hope that it will already be extracted by the time we get to the extraction
@@ -2627,7 +2631,6 @@ sub import_solr_seed_query
     while ( import_solr_seed_query_month( $db, $topic, $month_offset++ ) ) { }
 
     $db->query( "update topics set solr_seed_query_run = 't' where topics_id = ?", $topic->{ topics_id } );
-
 }
 
 # return true if there are fewer than $MAX_NULL_BITLY_STORIES stories without bitly data

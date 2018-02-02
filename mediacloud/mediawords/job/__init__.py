@@ -100,7 +100,7 @@ class AbstractJob(object, metaclass=abc.ABCMeta):
     def add_to_queue(cls: Type['AbstractJob'], *args, **kwargs) -> str:
         """Add job to queue, return job ID."""
 
-        app = JobBrokerApp(job_class=cls)
+        JobBrokerApp(job_class=cls)
 
         task = cls()
         result = task.celery_task().delay(*args, **kwargs)

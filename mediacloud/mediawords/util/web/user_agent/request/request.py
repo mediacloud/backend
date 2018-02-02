@@ -1,6 +1,4 @@
-import base64
 import email
-from furl import furl
 import requests
 from urllib.parse import urlencode
 from typing import Union, Dict
