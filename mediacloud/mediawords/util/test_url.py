@@ -122,9 +122,9 @@ def test_normalize_url():
     assert mc_url.normalize_url('HTTP://CYBER.LAW.HARVARD.EDU:80/node/9244') == 'http://cyber.law.harvard.edu/node/9244'
     assert mc_url.normalize_url(
         'HTTP://WWW.GOCRICKET.COM/news/sourav-ganguly/Sourav-Ganguly-exclusive-MS-Dhoni-must-reinvent-himself'
-        + '-to-survive/articleshow_sg/40421328.cms?utm_source=facebook.com&utm_medium=referral'
+        '-to-survive/articleshow_sg/40421328.cms?utm_source=facebook.com&utm_medium=referral'
     ) == 'http://www.gocricket.com/news/sourav-ganguly/Sourav-Ganguly-exclusive-MS-Dhoni-must-reinvent-himself-to-' \
-         + 'survive/articleshow_sg/40421328.cms'
+         'survive/articleshow_sg/40421328.cms'
 
     # Multiple fragments
     assert mc_url.normalize_url(
@@ -153,18 +153,18 @@ def test_normalize_url():
     # NYTimes
     assert mc_url.normalize_url(
         'http://boss.blogs.nytimes.com/2014/08/19/why-i-do-all-of-my-recruiting-through-linkedin/'
-        + '?smid=fb-nytimes&WT.z_sma=BU_WID_20140819&bicmp=AD&bicmlukp=WT.mc_id&bicmst=1388552400000'
-        + '&bicmet=1420088400000&_'
+        '?smid=fb-nytimes&WT.z_sma=BU_WID_20140819&bicmp=AD&bicmlukp=WT.mc_id&bicmst=1388552400000'
+        '&bicmet=1420088400000&_'
     ) == 'http://boss.blogs.nytimes.com/2014/08/19/why-i-do-all-of-my-recruiting-through-linkedin/'
     assert mc_url.normalize_url(
         'http://www.nytimes.com/2014/08/19/upshot/inequality-and-web-search-trends.html?smid=fb-nytimes&'
-        + 'WT.z_sma=UP_IOA_20140819&bicmp=AD&bicmlukp=WT.mc_id&bicmst=1388552400000&bicmet=1420088400000&_r=1&'
-        + 'abt=0002&abg=1'
+        'WT.z_sma=UP_IOA_20140819&bicmp=AD&bicmlukp=WT.mc_id&bicmst=1388552400000&bicmet=1420088400000&_r=1&'
+        'abt=0002&abg=1'
     ) == 'http://www.nytimes.com/2014/08/19/upshot/inequality-and-web-search-trends.html'
     assert mc_url.normalize_url(
         'http://www.nytimes.com/2014/08/20/upshot/data-on-transfer-of-military-gear-to-police-departments.html'
-        + '?smid=fb-nytimes&WT.z_sma=UP_DOT_20140819&bicmp=AD&bicmlukp=WT.mc_id&bicmst=1388552400000&'
-        + 'bicmet=1420088400000&_r=1&abt=0002&abg=1'
+        '?smid=fb-nytimes&WT.z_sma=UP_DOT_20140819&bicmp=AD&bicmlukp=WT.mc_id&bicmst=1388552400000&'
+        'bicmet=1420088400000&_r=1&abt=0002&abg=1'
     ) == 'http://www.nytimes.com/2014/08/20/upshot/data-on-transfer-of-military-gear-to-police-departments.html'
 
     # Facebook
@@ -179,8 +179,8 @@ def test_normalize_url():
     # "nk" parameter
     assert mc_url.normalize_url(
         'http://www.adelaidenow.com.au/news/south-australia/sa-court-told-prominent-adelaide-businessman-yasser'
-        + '-shahin-was-assaulted-by-police-officer-norman-hoy-in-september-2010-traffic-stop/story-fni6uo1m-'
-        + '1227184460050?nk=440cd48fd95a4e1f1c23bcd15df36da7'
+        '-shahin-was-assaulted-by-police-officer-norman-hoy-in-september-2010-traffic-stop/story-fni6uo1m-'
+        '1227184460050?nk=440cd48fd95a4e1f1c23bcd15df36da7'
     ) == 'http://www.adelaidenow.com.au/news/south-australia/sa-court-told-prominent-adelaide-businessman-yasser-' + \
          'shahin-was-assaulted-by-police-officer-norman-hoy-in-september-2010-traffic-stop/story-fni6uo1m-' + \
          '1227184460050'
@@ -241,7 +241,7 @@ def test_is_homepage_url():
     # DELFI article (article identifier as query parameter)
     assert not mc_url.is_homepage_url(
         'http://www.delfi.lt/news/daily/world/prancuzijoje-tukstanciai-pareigunu-sukuoja-apylinkes-blokuojami-'
-        + 'keliai.d?id=66850094'
+        'keliai.d?id=66850094'
     )
 
     # Bash.org quote (empty path, article identifier as query parameter)

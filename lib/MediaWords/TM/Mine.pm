@@ -2579,7 +2579,7 @@ sub import_solr_seed_query_month($$$)
     # assume that we hit the solr max if we are within 5% of the ma stories
     my $max_returned_stories = $max_stories * 0.95;
 
-    my $solr_query = get_full_solr_query( $db, $topic );
+    my $solr_query = get_full_solr_query( $db, $topic, undef, undef, $month_offset );
 
     # this should return undef once the month_offset gets too big
     return undef unless ( $solr_query );
@@ -2613,9 +2613,9 @@ sub import_solr_seed_query_month($$$)
 
     insert_topic_seed_urls( $db, $topic_seed_urls );
 
-    $db->query( "update topics set solr_seed_query_run = 't' where topics_id = ?", $topic->{ topics_id } );
-
     $db->commit if $db->in_transaction();
+
+    return 1;
 }
 
 # import stories intro topic_seed_urls from solr by running
@@ -2630,6 +2630,7 @@ sub import_solr_seed_query
     my $month_offset = 0;
     while ( import_solr_seed_query_month( $db, $topic, $month_offset++ ) ) { }
 
+    $db->query( "update topics set solr_seed_query_run = 't' where topics_id = ?", $topic->{ topics_id } );
 }
 
 # return true if there are fewer than $MAX_NULL_BITLY_STORIES stories without bitly data

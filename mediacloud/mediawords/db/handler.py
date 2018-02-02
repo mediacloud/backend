@@ -8,7 +8,11 @@ from psycopg2.extensions import adapt as psycopg2_adapt
 
 from mediawords.db.copy.copy_from import CopyFrom
 from mediawords.db.copy.copy_to import CopyTo
-from mediawords.db.exceptions.handler import *
+from mediawords.db.exceptions.handler import (
+    McConnectException, McDatabaseHandlerException, McSchemaIsUpToDateException, McQueryException,
+    McPrimaryKeyColumnException, McFindByIDException, McRequireByIDException, McUpdateByIDException,
+    McDeleteByIDException, McCreateException, McFindOrCreateException, McBeginException,
+    McQuoteException)
 from mediawords.db.pages.pages import DatabasePages
 from mediawords.db.result.result import DatabaseResult
 from mediawords.db.schema.version import schema_version_from_lines
