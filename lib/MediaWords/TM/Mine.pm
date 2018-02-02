@@ -2609,9 +2609,9 @@ sub import_solr_seed_query_month($$$)
 
     insert_topic_seed_urls( $db, $topic_seed_urls );
 
-    $db->query( "update topics set solr_seed_query_run = 't' where topics_id = ?", $topic->{ topics_id } );
-
     $db->commit if $db->in_transaction();
+
+    return 1;
 }
 
 # import stories intro topic_seed_urls from solr by running
@@ -2624,7 +2624,9 @@ sub import_solr_seed_query
     return if ( $topic->{ solr_seed_query_run } );
 
     my $month_offset = 0;
-    while ( import_solr_seed_query_moth( $db, $topic, $month_offset++ ) ) { }
+    while ( import_solr_seed_query_month( $db, $topic, $month_offset++ ) ) { }
+
+    $db->query( "update topics set solr_seed_query_run = 't' where topics_id = ?", $topic->{ topics_id } );
 
 }
 
