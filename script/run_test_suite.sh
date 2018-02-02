@@ -48,7 +48,7 @@ if [ ! -z ${MC_TEST_SUITE_REPORT_COVERAGE+x} ]; then
     export HARNESS_PERL_SWITCHES='-MDevel::Cover=+ignore,t/,+ignore,\.t$'
 
     # Enable Python's pytest coverage
-    PYTEST_ARGS="--cov=mediacloud/mediawords/ --cov-config=.coveragerc"
+    PYTEST_ARGS="--cov=mediacloud/mediawords/ --cov-config=mediacloud/setup.cfg"
 
 else
 
