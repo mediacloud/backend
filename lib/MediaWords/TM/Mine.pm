@@ -2575,7 +2575,7 @@ sub import_solr_seed_query_month($$$)
     # assume that we hit the solr max if we are within 5% of the ma stories
     my $max_returned_stories = $max_stories * 0.95;
 
-    my $solr_query = get_full_solr_query( $db, $topic );
+    my $solr_query = get_full_solr_query( $db, $topic, undef, undef, $month_offset );
 
     # this should return undef once the month_offset gets too big
     return undef unless ( $solr_query );
