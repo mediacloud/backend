@@ -391,9 +391,6 @@ def _add_topic_tweet_days(
     None
     """
     date = topic['start_date']
-    logger.info('START DATE')
-    logger.info(type(topic['start_date']))
-    logger.info(str(topic['start_date']))
     while date <= topic['end_date']:
         topic_tweet_day = _add_topic_tweet_single_day(db, topic, date, ch_class)
         if topic_tweet_day is not None:
