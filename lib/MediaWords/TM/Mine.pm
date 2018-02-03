@@ -40,9 +40,10 @@ use URI::Escape;
 use MediaWords::CommonLibs;
 
 use MediaWords::TM;
-use MediaWords::TM::Snapshot;
+use MediaWords::TM::FetchTopicTweets;
 use MediaWords::TM::GuessDate;
 use MediaWords::TM::GuessDate::Result;
+use MediaWords::TM::Snapshot;
 use MediaWords::DB;
 use MediaWords::DBI::Activities;
 use MediaWords::DBI::Media;
@@ -50,7 +51,6 @@ use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::Job::Bitly::FetchStoryStats;
 use MediaWords::Job::ExtractAndVector;
-use MediaWords::Job::FetchTopicTweets;
 use MediaWords::Job::Facebook::FetchStoryStats;
 use MediaCloud::JobManager::Job;
 use MediaWords::Languages::Language;
@@ -2923,11 +2923,7 @@ sub fetch_and_import_twitter_urls($$)
     # only add  twitter data if there is a ch_monitor_id
     return unless ( $topic->{ ch_monitor_id } );
 
-    eval { MediaWords::Job::FetchTopicTweets->run( { topics_id => $topic->{ topics_id } } ); };
-    if ( $@ )
-    {
-        LOGCONFESS "MediaWords::Job::FetchTopicTweets->run() failed: $@";
-    }
+    MediaWords::TM::FetchTopicTweets::fetch_topic_tweets( $db, $topic->{ topics_id } );
 
     seed_topic_with_tweet_urls( $db, $topic );
 }

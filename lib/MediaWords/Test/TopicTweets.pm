@@ -30,7 +30,7 @@ use MediaWords::Util::JSON;
 Readonly my $PORT => 8899;
 
 # id for valid monitor at CH (valid id needed only if MC_TEST_EXTERNAL_APIS set)
-Readonly my $CH_MONITOR_ID => 4488828184;
+Readonly my $CH_MONITOR_ID => 7937743397;
 
 # this is an estimate of the number of tweets per day included in the ch-posts-$date.json files
 # this should not be edited other than to provide a better estimate
@@ -58,15 +58,7 @@ my $_mock_story_dates = {};
 # return either 2016-01-01 - 2016-01-10 for external api tests or a 2016-01-01 + $LOCAL_DATE_RANGE - 1 for local tests
 sub get_test_date_range()
 {
-    if ( MediaWords::Job::FetchTopicTweets->_get_ch_api_url() =~ /localhost/ )
-    {
-        my $end_date = MediaWords::Util::SQL::increment_day( '2016-01-01', $LOCAL_DATE_RANGE - 1 );
-        return ( '2016-01-01', $end_date );
-    }
-    else
-    {
-        return ( '2016-01-01', '2016-01-30' );
-    }
+    return ( '2016-01-01', '2016-01-02' );
 }
 
 # return list of dates to test for
@@ -397,7 +389,7 @@ SQL
     {
         my $stories_id           = $slc->{ stories_id };
         my $expected_tweet_count = scalar( keys( %{ $expected_story_tweet_users->{ $stories_id } } ) );
-        is( $slc->{ simple_tweet_count }, $expected_tweet_count, "$label simple tweet count story $stories_id" );
+        is( $slc->{ simple_tweet_count } || 0, $expected_tweet_count, "$label simple tweet count story $stories_id" );
     }
 }
 
@@ -443,7 +435,8 @@ select t.*
     from timespans  t
         join snapshots s using ( snapshots_id )
     where
-        topics_id = \$1
+        topics_id = \$1 and
+        period = 'overall'
     order by start_date
 SQL
 
