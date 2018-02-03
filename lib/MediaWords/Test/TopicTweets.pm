@@ -568,35 +568,4 @@ sub run_tests_on_external_apis
     done_testing();
 }
 
-sub run_tests_on_mock_apis
-{
-    my $hs = MediaWords::Test::HTTP::HashServer->new(
-        $PORT,
-        {
-            '/api/monitor/posts'    => { callback => \&mock_ch_posts },
-            '/statuses/lookup.json' => { callback => \&mock_twitter_lookup },
-            '/tweet_url'            => { callback => \&mock_tweet_url }
-        }
-    );
-    $hs->start();
-
-    MediaWords::Job::FetchTopicTweets->set_api_host( "http://localhost:$PORT" );
-    my $config = MediaWords::Util::Config::get_config();
-
-    # set dummy values so that we can hit the mock apis without the underlying modules complaining
-    my $new_config = python_deep_copy( $config );
-    $new_config->{ crimson_hexagon }->{ key } = 'TEST';
-    map { $new_config->{ twitter }->{ $_ } = 'TEST' } qw/consumer_key consumer_secret access_token access_token_secret/;
-    MediaWords::Util::Config::set_config( $new_config );
-
-    eval { MediaWords::Test::Supervisor::test_with_supervisor( \&test_fetch_topic_tweets, [ 'job_broker:rabbitmq' ] ); };
-    my $test_error = $@;
-
-    $hs->stop();
-
-    die( $test_error ) if ( $test_error );
-
-    done_testing();
-}
-
 1;
