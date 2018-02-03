@@ -1,8 +1,10 @@
 """test fetch_topic_tweets."""
 
 import datetime
+import os
 import random
 import re
+import unittest
 
 from mediawords.db import DatabaseHandler
 import mediawords.test.db
@@ -25,18 +27,23 @@ MOCK_TWEETS_PER_USER = 20
 
 # max number of days difference between start and end dates for test topic -- this can edited for the desired
 # number of days for the local test
-LOCAL_DATE_RANGE = 5
+LOCAL_DATE_RANGE = 4
 
 # these should not be edited
 NUM_MOCK_URLS = int((LOCAL_DATE_RANGE * MOCK_TWEETS_PER_DAY) / MOCK_TWEETS_PER_URL)
 NUM_MOCK_USERS = int((LOCAL_DATE_RANGE * MOCK_TWEETS_PER_DAY) / MOCK_TWEETS_PER_USER)
+
+# arbitrary tests for tweets / users so that we don't have to use fixtures
+MIN_TEST_CH_POSTS = 500
+MIN_TEST_TWEET_LENGTH = 10
+MIN_TEST_TWITTER_USER_LENGTH = 3
 
 
 class MockCrimsonHexagon(mediawords.tm.fetch_topic_tweets.AbstractCrimsonHexagon):
     """Mock the CrimsonHexagon class in fetch_topic_tweets to return test data."""
 
     @staticmethod
-    def fetch_posts(ch_monitor_id: int, day: str) -> list:
+    def fetch_posts(ch_monitor_id: int, day: datetime) -> list:
         """
         Return a mock ch response to the posts end point.
 
@@ -69,7 +76,7 @@ class MockTwitter(mediawords.tm.fetch_topic_tweets.AbstractTwitter):
     """Mock the Twitter class in mediawords.tm.fetch_topic_tweets to return test data."""
 
     @staticmethod
-    def fetch_100_tweets(ids: int) -> list:
+    def fetch_100_tweets(ids: list) -> list:
         """Return mocked test tweets."""
         num_errors = (3 if (len(ids) > 10) else 0)
 
@@ -170,7 +177,7 @@ def run_fetch_topic_tweets_test(db: DatabaseHandler) -> None:
     mediawords.tm.fetch_topic_tweets.fetch_topic_tweets(db, topic['topics_id'], MockTwitter, MockCrimsonHexagon)
 
     topic_tweet_days = db.query("select * from topic_tweet_days").hashes()
-    assert len(topic_tweet_days) == LOCAL_DATE_RANGE
+    assert len(topic_tweet_days) == LOCAL_DATE_RANGE + 1
 
     start_date = datetime.datetime.strptime(topic['start_date'], '%Y-%m-%d')
     test_days = [start_date + datetime.timedelta(days=x) for x in range(0, LOCAL_DATE_RANGE)]
@@ -189,3 +196,91 @@ def run_fetch_topic_tweets_test(db: DatabaseHandler) -> None:
 def test_fetch_topic_tweets() -> None:
     """Generate test database and run tests."""
     mediawords.test.db.test_on_test_database(run_fetch_topic_tweets_test)
+
+
+@unittest.skipUnless(os.environ.get('MC_REMOTE_TESTS', False), "remote tests")
+def test_ch_api() -> None:
+    """Test CrimsonHexagon.fetch_posts() by hitting the remote ch api."""
+    config = mediawords.util.config.get_config()
+
+    assert 'crimson_hexagon' in config, "crimson_hexagon section present in mediawords.yml"
+    assert 'key' in config['crimson_hexagon'], "crimson_hexagon.key present in mediawords.yml"
+    assert 'test_monitor_id' in config['crimson_hexagon'], "crimson_hexagon.test_monitor_id present in mediawords.yml"
+    assert 'test_date' in config['crimson_hexagon'], "crimson_hexagon.test_date present in mediawords.yml"
+
+    test_monitor_id = config['crimson_hexagon']['test_monitor_id']
+    test_date = datetime.datetime.strptime(config['crimson_hexagon']['test_date'], '%Y-%m-%d')
+
+    got_data = mediawords.tm.fetch_topic_tweets.CrimsonHexagon.fetch_posts(test_monitor_id, test_date)
+
+    assert 'totalPostsAvailable' in got_data
+    assert got_data['totalPostsAvailable'] > 500
+
+    assert 'posts' in got_data
+    got_posts = got_data['posts']
+    assert len(got_posts) > MIN_TEST_CH_POSTS
+
+    for post in got_posts:
+        assert 'url' in post
+        assert re.search('status/\d+', post['url'])
+
+
+@unittest.skipUnless(os.environ.get('MC_REMOTE_TESTS', False), "remote tests")
+def test_twitter_api() -> None:
+    """Test Twitter.fetch_100_tweets() by hitting the remote twitter api."""
+    config = mediawords.util.config.get_config()
+
+    assert 'twitter' in config, "twitter section present in mediawords.yml"
+    for key in 'consumer_key consumer_secret access_token access_token_secret test_status_id'.split():
+        assert key in config['twitter'], "twitter." + key + " present in mediawords.yml"
+
+    got_tweets = mediawords.tm.fetch_topic_tweets.Twitter.fetch_100_tweets((config['twitter']['test_status_id'],))
+
+    assert len(got_tweets) == 1
+
+    got_tweet = got_tweets[0]
+
+    assert 'text' in got_tweet
+    assert len(got_tweet['text']) > MIN_TEST_TWEET_LENGTH
+    assert 'user' in got_tweet
+    assert 'screen_name' in got_tweet['user']
+    assert len(got_tweet['user']['screen_name']) > MIN_TEST_TWITTER_USER_LENGTH
+
+
+def run_test_remote_integration(db: DatabaseHandler) -> None:
+    """Run santity test on remote apis."""
+    config = mediawords.util.config.get_config()
+
+    topic = mediawords.test.db.create_test_topic(db, "test_remote_integration")
+    topic['ch_monitor_id'] = config['crimson_hexagon']['test_monitor_id']
+    db.update_by_id('topics', topic['topics_id'], topic)
+
+    ttd = mediawords.tm.fetch_topic_tweets._add_topic_tweet_single_day(
+        db,
+        topic,
+        datetime.datetime(year=2016, month=1, day=1),
+        mediawords.tm.fetch_topic_tweets.CrimsonHexagon)
+
+    max_tweets = 200
+    mediawords.tm.fetch_topic_tweets._fetch_tweets_for_day(
+        db,
+        mediawords.tm.fetch_topic_tweets.Twitter,
+        topic,
+        ttd,
+        max_tweets=max_tweets)
+
+    got_tts = db.query(
+        "select * from topic_tweets where topic_tweet_days_id = ?",
+        ttd['topic_tweet_days_id']).hashes()
+
+    # for old ch monitors, lots of the tweets may be deleted
+    assert len(got_tts) > max_tweets / 10
+
+    assert len(got_tts[0]['content']) > MIN_TEST_TWEET_LENGTH
+    assert len(got_tts[0]['twitter_user']) > MIN_TEST_TWITTER_USER_LENGTH
+
+
+@unittest.skipUnless(os.environ.get('MC_REMOTE_TESTS', False), "remote tests")
+def test_remote_integration() -> None:
+    """Do a sanity integration test with the two remote services to make sure everything is happy together."""
+    mediawords.test.db.test_on_test_database(run_test_remote_integration)
