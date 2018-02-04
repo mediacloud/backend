@@ -5,6 +5,7 @@
 # save typing for the simple obvious translations like function definitions and variable references.
 
 use strict;
+use warnings;
 
 # convert 'MediaWords::Foo::Bar' to 'mediawords.foo.bar'
 sub convert_perl_module_to_python_module($)
