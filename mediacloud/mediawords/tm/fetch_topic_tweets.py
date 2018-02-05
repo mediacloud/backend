@@ -390,8 +390,9 @@ def _add_topic_tweet_days(
     Return:
     None
     """
-    date = topic['start_date']
-    while date <= topic['end_date']:
+    date = datetime.datetime.strptime(topic['start_date'], '%Y-%m-%d')
+    end_date = datetime.datetime.strptime(topic['end_date'], '%Y-%m-%d')
+    while date <= end_date:
         topic_tweet_day = _add_topic_tweet_single_day(db, topic, date, ch_class)
         if topic_tweet_day is not None:
             _fetch_tweets_for_day(db, twitter_class, topic, topic_tweet_day)

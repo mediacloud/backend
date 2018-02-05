@@ -125,7 +125,11 @@ def validate_topic_tweets(db: DatabaseHandler, topic_tweet_day: dict) -> None:
     for topic_tweet in topic_tweets:
         tweet_data = mediawords.util.json.decode_json(topic_tweet['data'])
         assert 'assignedCategoryId' in tweet_data
-        assert topic_tweet['publish_date'] == datetime.datetime.strptime(tweet_data['tweet']['created_at'], '%Y-%m-%d')
+
+        expected_date = datetime.datetime.strptime(tweet_data['tweet']['created_at'], '%Y-%m-%d')
+        got_date = datetime.datetime.strptime(topic_tweet['publish_date'], '%Y-%m-%d 00:00:00')
+        assert got_date == expected_date
+
         assert topic_tweet['content'] == tweet_data['tweet']['text']
 
 
