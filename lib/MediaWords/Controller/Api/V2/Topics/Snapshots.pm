@@ -9,18 +9,16 @@ use Moose;
 use namespace::autoclean;
 
 use MediaWords::Job::TM::SnapshotTopic;
-use MediaWords::Job::Word2vec::GenerateSnapshotModel;
 use MediaWords::Util::Word2vec;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
 __PACKAGE__->config(
     action => {
-        list                    => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
-        generate                => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
-        generate_status         => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
-        generate_word2vec_model => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
-        word2vec_model          => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
+        list            => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
+        generate        => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
+        generate_status => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
+        word2vec_model  => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
@@ -150,34 +148,6 @@ select $JOB_STATE_FIELD_LIST
 SQL
 
     $self->status_ok( $c, entity => { job_states => $job_states } );
-}
-
-sub generate_word2vec_model : Chained('snapshots') : Args(0) : ActionClass('MC_REST')
-{
-}
-
-sub generate_word2vec_model_GET
-{
-    my ( $self, $c ) = @_;
-
-    my $db = $c->dbis;
-
-    my $topics_id = int( $c->stash->{ topics_id } );
-    unless ( $topics_id )
-    {
-        die "topics_id is not set.";
-    }
-
-    my $snapshots_id = int( $c->stash->{ snapshots_id } );
-    unless ( $snapshots_id )
-    {
-        die "snapshots_id is not set.";
-    }
-
-    MediaWords::Job::Word2vec::GenerateSnapshotModel->add_to_queue( { snapshots_id => $snapshots_id } );
-
-    my $message = "Model generation for snapshot $snapshots_id added to the job queue.";
-    $self->status_ok( $c, entity => { message => $message } );
 }
 
 sub word2vec_model : Chained('snapshots') : Args(1) : ActionClass('MC_REST')

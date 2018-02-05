@@ -18,6 +18,7 @@ use MediaWords::Controller::Api::V2::Topics;
 use MediaWords::DBI::Auth::Roles;
 use MediaWords::Test::API;
 use MediaWords::Test::DB;
+use MediaWords::Job::Word2vec::GenerateTopicModel;
 
 Readonly my $NUM_MEDIA            => 5;
 Readonly my $NUM_FEEDS_PER_MEDIUM => 2;
@@ -310,7 +311,7 @@ sub test_generate_fetch_word2vec_model($)
 {
     my $db = shift;
 
-    my $topic = MediaWords::Test::DB::create_test_topic( $db, 'test_generate_word2vec_model' );
+    my $topic = MediaWords::Test::DB::create_test_topic( $db, 'test_word2vec_model' );
     my $topics_id = $topic->{ topics_id };
 
     # Allow test user to "write" to this topic
@@ -350,7 +351,7 @@ SQL
     }
 
     # Add model generation job
-    test_get( "/api/v2/topics/$topics_id/generate_word2vec_model" );
+    MediaWords::Job::Word2vec::GenerateTopicModel->add_to_queue( { topics_id => $topics_id } );
 
     # Wait for model to appear
     my $found_models_id = undef;

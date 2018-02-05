@@ -28,63 +28,57 @@ Table of Contents
          * [Query Parameters](#query-parameters-3)
          * [Output Description](#output-description-1)
          * [Example](#example-3)
-      * [topics/&lt;topics_id&gt;/generate_word2vec_model (GET)](#topicstopics_idgenerate_word2vec_model-get)
+      * [topics/&lt;topics_id&gt;/word2vec_model/&lt;models_id&gt; (GET)](#topicstopics_idword2vec_modelmodels_id-get)
          * [Required role](#required-role)
          * [Output Description](#output-description-2)
-            * [Model generation job added to the queue](#model-generation-job-added-to-the-queue)
-            * [Failed to add model generation job to the queue](#failed-to-add-model-generation-job-to-the-queue)
-         * [Example](#example-4)
-      * [topics/&lt;topics_id&gt;/word2vec_model/&lt;models_id&gt; (GET)](#topicstopics_idword2vec_modelmodels_id-get)
-         * [Required role](#required-role-1)
-         * [Output Description](#output-description-3)
             * [Model was fetched](#model-was-fetched)
             * [Failed to fetch the model](#failed-to-fetch-the-model)
-         * [Example](#example-5)
+         * [Example](#example-4)
       * [topics/list](#topicslist)
          * [Query Parameters](#query-parameters-4)
-         * [Output Description](#output-description-4)
-         * [Example](#example-6)
+         * [Output Description](#output-description-3)
+         * [Example](#example-5)
       * [topics/single/&lt;topics_id&gt;](#topicssingletopics_id)
          * [Query Parameters](#query-parameters-5)
-         * [Output Description](#output-description-5)
-         * [Example](#example-7)
+         * [Output Description](#output-description-4)
+         * [Example](#example-6)
    * [Permissions](#permissions-1)
       * [topics/permissions/user/list](#topicspermissionsuserlist)
          * [Query Parameters](#query-parameters-6)
-         * [Output Description](#output-description-6)
-         * [Example](#example-8)
+         * [Output Description](#output-description-5)
+         * [Example](#example-7)
       * [topics/&lt;topics_id&gt;/permissions/list](#topicstopics_idpermissionslist)
          * [Query Parameters](#query-parameters-7)
-         * [Output Description](#output-description-7)
-         * [Example](#example-9)
+         * [Output Description](#output-description-6)
+         * [Example](#example-8)
       * [topics/&lt;topics_id&gt;/permissions/update (PUT)](#topicstopics_idpermissionsupdate-put)
          * [Query Parameters](#query-parameters-8)
          * [Input Description](#input-description-2)
-         * [Output Description](#output-description-8)
-         * [Example](#example-10)
+         * [Output Description](#output-description-7)
+         * [Example](#example-9)
    * [Stories](#stories)
       * [stories/list](#storieslist)
          * [Query Parameters](#query-parameters-9)
-         * [Output Description](#output-description-9)
+         * [Output Description](#output-description-8)
       * [stories/facebook](#storiesfacebook)
          * [Query Parameters](#query-parameters-10)
-         * [Output Description](#output-description-10)
-         * [Example](#example-11)
+         * [Output Description](#output-description-9)
+         * [Example](#example-10)
       * [stories/count](#storiescount)
          * [Query Parameters](#query-parameters-11)
-         * [Output Description](#output-description-11)
-         * [Example](#example-12)
+         * [Output Description](#output-description-10)
+         * [Example](#example-11)
    * [Sentences](#sentences)
       * [sentences/count](#sentencescount)
    * [Media](#media)
       * [media/list](#medialist)
          * [Query Parameters](#query-parameters-12)
-         * [Output Description](#output-description-12)
-         * [Example](#example-13)
+         * [Output Description](#output-description-11)
+         * [Example](#example-12)
       * [media/map](#mediamap)
          * [Query Parameters](#query-parameters-13)
-         * [Output Description](#output-description-13)
-         * [Example](#example-14)
+         * [Output Description](#output-description-12)
+         * [Example](#example-13)
    * [Word Counts](#word-counts)
       * [wc/list](#wclist)
    * [Foci](#foci)
@@ -93,75 +87,69 @@ Table of Contents
       * [focal_set_definitions/create (POST)](#focal_set_definitionscreate-post)
          * [Query Parameters](#query-parameters-14)
          * [Input Description](#input-description-3)
-         * [Example](#example-15)
+         * [Example](#example-14)
       * [focal_set_definitions/&lt;focal_set_definitions_id&gt;/update (PUT)](#focal_set_definitionsfocal_set_definitions_idupdate-put)
          * [Query Parameters](#query-parameters-15)
          * [Input Parameters](#input-parameters)
-         * [Example](#example-16)
+         * [Example](#example-15)
       * [focal_set_definitions/&lt;focal_set_definitions_id&gt;/delete (PUT)](#focal_set_definitionsfocal_set_definitions_iddelete-put)
          * [Query Parameters](#query-parameters-16)
-         * [Output Description](#output-description-14)
-         * [Example](#example-17)
+         * [Output Description](#output-description-13)
+         * [Example](#example-16)
       * [focal_set_definitions/list](#focal_set_definitionslist)
          * [Query Parameters](#query-parameters-17)
-         * [Output Description](#output-description-15)
-         * [Example](#example-18)
+         * [Output Description](#output-description-14)
+         * [Example](#example-17)
       * [focal_sets/list](#focal_setslist)
          * [Query Parameters](#query-parameters-18)
-         * [Output Description](#output-description-16)
-         * [Example](#example-19)
+         * [Output Description](#output-description-15)
+         * [Example](#example-18)
       * [focus_definitions/create (POST)](#focus_definitionscreate-post)
          * [Query Parameters](#query-parameters-19)
          * [Input Description](#input-description-4)
-         * [Example](#example-20)
+         * [Example](#example-19)
       * [focus_definitions/&lt;focus_definitions_id&gt;/update (PUT)](#focus_definitionsfocus_definitions_idupdate-put)
          * [Query Parameters](#query-parameters-20)
          * [Input Description](#input-description-5)
-         * [Example](#example-21)
+         * [Example](#example-20)
       * [focus_definitions/&lt;focus_definitions_id&gt;/delete (PUT)](#focus_definitionsfocus_definitions_iddelete-put)
          * [Query Parameters](#query-parameters-21)
-         * [Output Description](#output-description-17)
-         * [Example](#example-22)
+         * [Output Description](#output-description-16)
+         * [Example](#example-21)
       * [focus_definitions/list](#focus_definitionslist)
          * [Query Parameters](#query-parameters-22)
-         * [Output Description](#output-description-18)
-         * [Example](#example-23)
+         * [Output Description](#output-description-17)
+         * [Example](#example-22)
       * [foci/list](#focilist)
          * [Query Parameters](#query-parameters-23)
          * [Ouput Description](#ouput-description)
-         * [Example](#example-24)
+         * [Example](#example-23)
    * [Snapshots](#snapshots)
       * [snapshots/generate (POST)](#snapshotsgenerate-post)
          * [Query Parameters](#query-parameters-24)
          * [Input Description](#input-description-6)
-         * [Output Description](#output-description-19)
-         * [Example](#example-25)
+         * [Output Description](#output-description-18)
+         * [Example](#example-24)
       * [snapshots/generate_status](#snapshotsgenerate_status)
          * [Query Parameters](#query-parameters-25)
          * [Input Description](#input-description-7)
-         * [Output Description](#output-description-20)
-         * [Example](#example-26)
+         * [Output Description](#output-description-19)
+         * [Example](#example-25)
       * [snapshots/list](#snapshotslist)
          * [Query Paramaters](#query-paramaters)
-         * [Output Description](#output-description-21)
-         * [Example](#example-27)
-      * [snapshots/&lt;snapshots_id&gt;/generate_word2vec_model (GET)](#snapshotssnapshots_idgenerate_word2vec_model-get)
-         * [Required role](#required-role-2)
-         * [Output Description](#output-description-22)
-            * [Model generation job added to the queue](#model-generation-job-added-to-the-queue-1)
-            * [Failed to add model generation job to the queue](#failed-to-add-model-generation-job-to-the-queue-1)
-         * [Example](#example-28)
+         * [Output Description](#output-description-20)
+         * [Example](#example-26)
       * [snapshots/&lt;snapshots_id&gt;/word2vec_model/&lt;models_id&gt; (GET)](#snapshotssnapshots_idword2vec_modelmodels_id-get)
-         * [Required role](#required-role-3)
-         * [Output Description](#output-description-23)
+         * [Required role](#required-role-1)
+         * [Output Description](#output-description-21)
             * [Model was fetched](#model-was-fetched-1)
             * [Failed to fetch the model](#failed-to-fetch-the-model-1)
-         * [Example](#example-29)
+         * [Example](#example-27)
    * [Timespans](#timespans)
       * [timespans/list](#timespanslist)
          * [Query Parameters](#query-parameters-26)
-         * [Output Description](#output-description-24)
-         * [Example](#example-30)
+         * [Output Description](#output-description-22)
+         * [Example](#example-28)
 
 ----
 <!-- MEDIACLOUD-TOC-END -->
@@ -538,47 +526,6 @@ Response:
         }
     ]
 }    
-```
-
-
-## `topics/<topics_id>/generate_word2vec_model` (GET)
-
-| URL                                          | Function                                       |
-| -------------------------------------------- | ---------------------------------------------- |
-| `topics/<topics_id>/generate_word2vec_model` | Add word2vec model job to a queue for a topic. |
-
-### Required role
-
-`topics_write`.
-
-### Output Description
-
-#### Model generation job added to the queue
-
-```json
-{
-    "message": "Model generation for topic ... added to the job queue."
-}
-```
-
-#### Failed to add model generation job to the queue
-
-```json
-{
-    "error": "Reason why a model generation job can't be added to the queue."
-}
-```
-
-### Example
-
-URL: <https://api.mediacloud.org/api/v2/topics/6/generate_word2vec_model>
-
-Output:
-
-```json
-{
-    "message": "Model generation for topic ... added to the job queue."
-}
 ```
 
 
@@ -1866,47 +1813,6 @@ Response:
             ]
         }  
     ]
-}
-```
-
-
-## `snapshots/<snapshots_id>/generate_word2vec_model` (GET)
-
-| URL                                                                   | Function                                          |
-| --------------------------------------------------------------------- | ------------------------------------------------- |
-| `topics/<topics_id>/snapshots/<snapshots_id>/generate_word2vec_model` | Add word2vec model job to a queue for a snapshot. |
-
-### Required role
-
-`topics_write`.
-
-### Output Description
-
-#### Model generation job added to the queue
-
-```json
-{
-    "message": "Model generation for snapshot ... added to the job queue."
-}
-```
-
-#### Failed to add model generation job to the queue
-
-```json
-{
-    "error": "Reason why a model generation job can't be added to the queue."
-}
-```
-
-### Example
-
-URL: <https://api.mediacloud.org/api/v2/topics/6/snapshots/1/generate_word2vec_model>
-
-Output:
-
-```json
-{
-    "message": "Model generation for snapshot ... added to the job queue."
 }
 ```
 
