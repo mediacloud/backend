@@ -19,7 +19,7 @@ Here are a simple text flow chart in mermaid and the resulting rendered chart:
 
 [Topic Mining Chart Text](topic_mining.mermaid)
 
-[Topic Mining Char](topic_mining.png)
+[Topic Mining Chart](topic_mining.png)
 
 ### topic_run
 
