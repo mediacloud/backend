@@ -97,7 +97,7 @@ The story is routed forward in the pipeline according to this logic:
 ```
 if story_is_relevant(story):
     facebook_fetch_story_stats(story)
-    if story.iteration > topic.iteration:
+    if story.iteration < topic.max_iterations:
         topic_mine_story(story)
     else:
         end_pipeline()
