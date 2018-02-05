@@ -144,7 +144,7 @@ class DatabaseResult(object):
         if row_tuple is not None:
             row = list(row_tuple)
 
-            row = [self.__convert_datetime_objects_to_strings(_) for _ in row]
+            row = [self.__convert_datetime_objects_to_strings(item) for item in row]
         else:
             row = None
 
@@ -167,7 +167,7 @@ class DatabaseResult(object):
         all_rows = self.__cursor.fetchall()
         flat_rows = list(itertools.chain.from_iterable(all_rows))
 
-        flat_rows = [self.__convert_datetime_objects_to_strings(_) for _ in flat_rows]
+        flat_rows = [self.__convert_datetime_objects_to_strings(item) for item in flat_rows]
 
         return flat_rows
 
