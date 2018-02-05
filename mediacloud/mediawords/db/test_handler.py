@@ -251,6 +251,10 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         row = result.array()
         assert row[1] == 'Caitlyn'
 
+        # MC_REWRITE_TO_PYTHON: remove after __convert_datetime_objects_to_strings() gets removed and database handler
+        # is made to return datetime.datetime objects again
+        assert isinstance(row[3], str)
+
         row = result.array()
         assert row[1] == 'Kris'
 
@@ -266,6 +270,10 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         row = result.hash()
         assert row['name'] == 'Kris'
 
+        # MC_REWRITE_TO_PYTHON: remove after __convert_datetime_objects_to_strings() gets removed and database handler
+        # is made to return datetime.datetime objects again
+        assert isinstance(row['dob'], str)
+
         row = result.hash()
         assert row is None
 
@@ -275,6 +283,11 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         """).flat()
         assert len(flat_rows) == 5 * 2  # two rows, 5 columns each
         assert flat_rows[1] == 'Caitlyn'
+
+        # MC_REWRITE_TO_PYTHON: remove after __convert_datetime_objects_to_strings() gets removed and database handler
+        # is made to return datetime.datetime objects again
+        assert isinstance(flat_rows[3], str)
+        assert isinstance(flat_rows[8], str)
 
     def test_query_result_hashes(self):
         hashes = self.db().query("""
@@ -287,6 +300,11 @@ class TestDatabaseHandler(TestDatabaseTestCase):
 
         assert len(hashes[1]) == 5
         assert hashes[1]['name'] == 'Kris'
+
+        # MC_REWRITE_TO_PYTHON: remove after __convert_datetime_objects_to_strings() gets removed and database handler
+        # is made to return datetime.datetime objects again
+        assert isinstance(hashes[0]['dob'], str)
+        assert isinstance(hashes[1]['dob'], str)
 
     def test_execute_with_large_work_mem(self):
         normal_work_mem = 256  # MB
