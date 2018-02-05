@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4645;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4646;
 
 BEGIN
 
@@ -3383,3 +3383,15 @@ insert into domain_web_requests (domain) select domain_arg;
 return true;
 end
 $$ language plpgsql;
+
+
+--
+-- NYTLabels annotations
+--
+CREATE TABLE similarweb_metrics (
+    similarweb_metrics_id  SERIAL                   PRIMARY KEY,
+    domain                 VARCHAR(1024)            NOT NULL,
+    month                  DATE,
+    visits                 INTEGER,
+    update_date            TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
