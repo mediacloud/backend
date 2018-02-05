@@ -1,3 +1,5 @@
+import re
+
 import pytest
 
 from mediawords.db.exceptions.result import McDatabaseResultException
@@ -82,10 +84,26 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         assert rows[2]['name'] == 'Kylie'
 
     def test_query_error(self):
-
         # Bad query
         with pytest.raises(McDatabaseResultException):
             self.db().query("Badger badger badger badger")
+
+    # MC_REWRITE_TO_PYTHON: remove after __convert_datetime_objects_to_strings() gets removed and database handler
+    # is made to return datetime.datetime objects again
+    def test_query_datetime(self):
+        """Test that datetime objects are being stringified and returned as PostgreSQL-compatible dates."""
+
+        date = self.db().query("""SELECT NOW()::DATE AS date""").hash()
+        assert isinstance(date['date'], str)
+        assert re.match('^\d\d\d\d-\d\d-\d\d$', date['date'])
+
+        time = self.db().query("""SELECT NOW()::TIME AS time""").hash()
+        assert isinstance(time['time'], str)
+        assert re.match('^\d\d:\d\d:\d\d(\.\d+)?$', time['time'])
+
+        timestamp = self.db().query("""SELECT NOW()::TIMESTAMP AS timestamp""").hash()
+        assert isinstance(timestamp['timestamp'], str)
+        assert re.match('^\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d(\.\d+)?$', timestamp['timestamp'])
 
     def test_query_percentage_sign_like(self):
 
