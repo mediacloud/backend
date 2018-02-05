@@ -1,5 +1,4 @@
 import os
-import pickle
 import shutil
 import tempfile
 
@@ -44,7 +43,9 @@ def train_word2vec_model(sentence_iterator: AbstractSentenceIterator,
     del model
 
     log.info("Saving model to a temporary path '%s'..." % temp_model_path)
-    word_vectors.save(temp_model_path, pickle_protocol=pickle.HIGHEST_PROTOCOL)
+    # Clients will be loading the model using Python 2.7 which doesn't support protocols >= 3
+    pickle_protocol = 2
+    word_vectors.save(temp_model_path, pickle_protocol=pickle_protocol)
 
     if not os.path.isfile(temp_model_path):
         raise McWord2vecException("word2vec model not found at path: %s" % temp_model_path)
