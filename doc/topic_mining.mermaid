@@ -1,0 +1,12 @@
+graph LR;
+	topic_run ==story==> topic_add_story;
+	topic_run ==url==> topic_fetch_link;
+	topic_run --topic--> topic_snapshot;
+
+	topic_mine_story ==url==> topic_fetch_link;
+	topic_mine_story ==story==> topic_add_story;
+
+	topic_fetch_link --story--> topic_add_story;
+
+	topic_add_story --story--> topic_mine_story;
+	topic_add_story --story--> facebook_fetch_story_stats;
