@@ -43,7 +43,7 @@ class AbstractCrimsonHexagon(ABC):
 
         Arguments:
         ch_monitor_id - crimson hexagon monitor id
-        day - date in '2017-12-30' form
+        day - date for which to fetch posts
 
         Return:
         list of ch posts directly decoded from the ch api json response
@@ -100,7 +100,7 @@ class AbstractTwitter(ABC):
     @abstractmethod
     def fetch_100_tweets(tweet_ids: list) -> list:
         """
-        Fetch the up to 100 tweets from the twitter api.
+        Fetch up to 100 tweets from the twitter api.
 
         Throws a McFetchTopicTweetsError if more than 100 ids are in tweet_ids.
 
@@ -134,13 +134,13 @@ class Twitter(AbstractTwitter):
         auth = tweepy.OAuthHandler(config['twitter']['consumer_key'], config['twitter']['consumer_secret'])
         auth.set_access_token(config['twitter']['access_token'], config['twitter']['access_token_secret'])
 
-        api = tweepy.API(auth, parser=tweepy.parsers.JSONParser())
+        # the RawParser lets us directly decode from json to dict below
+        api = tweepy.API(auth, parser=tweepy.parsers.RawParser())
 
         # catch all errors and do backoff retries.  don't just catch rate limit errors because we want to be
-        # robust in the face of temporary network or service provider errors
+        # robust in the face of temporary network or service provider errors.
         tweets = None
         twitter_retries = 0
-        last_exception = None
         while (tweets is None and twitter_retries <= 10):
             last_exception = None
             try:
@@ -156,9 +156,9 @@ class Twitter(AbstractTwitter):
         if tweets is None:
             raise McFetchTopicTweetsDataException("unable to fetch tweets: " + str(last_exception))
 
-        tweets_json = mediawords.util.json.encode_json(tweets)
-
-        return mediawords.util.json.decode_json(tweets_json)
+        # it is hard to mock tweepy data directly, and the default tweepy objects are not json serializable,
+        # so just return a direct dict decoding of the raw twitter payload
+        return mediawords.util.json.decode_json(tweets)
 
 
 def _add_tweets_to_ch_posts(twitter_class: AbstractTwitter, ch_posts: list) -> None:
@@ -210,7 +210,6 @@ def _add_tweets_to_ch_posts(twitter_class: AbstractTwitter, ch_posts: list) -> N
     logger.debug("fetched " + str(len(tweets)) + " tweets")
 
     for tweet in tweets:
-        assert(tweet['id'] in ch_post_lookup)
         ch_post_lookup[tweet['id']]['tweet'] = tweet
 
     for ch_post in ch_posts:
@@ -255,7 +254,7 @@ def _store_tweet_and_urls(db: DatabaseHandler, topic: dict, topic_tweet_day: dic
         if url in urls_inserted:
             next
 
-        urls_inserted[url] = 1
+        urls_inserted[url] = True
 
         db.create(
             'topic_tweet_urls',
