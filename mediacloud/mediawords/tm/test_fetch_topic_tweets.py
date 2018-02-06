@@ -9,6 +9,7 @@ import unittest
 from mediawords.db import DatabaseHandler
 import mediawords.test.db
 import mediawords.tm.fetch_topic_tweets
+import mediawords.util.paths
 
 from mediawords.util.log import create_logger
 logger = create_logger(__name__)
@@ -52,7 +53,7 @@ class MockCrimsonHexagon(mediawords.tm.fetch_topic_tweets.AbstractCrimsonHexagon
         """
         assert MOCK_TWEETS_PER_DAY <= MAX_MOCK_TWEETS_PER_DAY
 
-        filename = 't/data/ch/ch-posts-' + day.strftime('%Y-%m-%d') + '.json'
+        filename = mediawords.util.paths.mc_root_path() + '/t/data/ch/ch-posts-' + day.strftime('%Y-%m-%d') + '.json'
         with open(filename, 'r') as fh:
             json = fh.read()
 
