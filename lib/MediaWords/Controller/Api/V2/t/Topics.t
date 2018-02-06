@@ -431,6 +431,59 @@ SQL
     is( get_respider_count( $db, $topic ), 2, "respider count query update" );
 }
 
+sub test_topics_reset
+{
+    my ( $db ) = @_;
+
+    my $topic = MediaWords::Test::DB::create_test_topic( $db, 'reset' );
+    my $topics_id = $topic->{ topics_id };
+
+    my $num_stories = 10;
+    my $story_stack = MediaWords::Test::DB::create_test_story_stack_numerated( $db, 1, 1, $num_stories, 'reset' );
+
+    $db->query( "update topics set solr_seed_query_run = 't' where topics_id = ?", $topics_id );
+
+    $db->query( <<SQL, $topics_id, $story_stack->{ media_reset_0 }->{ media_id } );
+insert into topic_stories ( topics_id, stories_id, iteration )
+    select \$1, stories_id, 2 from stories where media_id = \$2
+SQL
+
+    my ( $stories_count ) = $db->query( "select count(*) from topic_stories where topics_id = ?", $topics_id )->flat();
+    is( $stories_count, $num_stories, "topics reset: stories before reset" );
+
+    $db->query( <<SQL, $topics_id );
+insert into topic_links ( topics_id, stories_id, url )
+    select ts.topics_id, ts.stories_id, 'http://foo.bar'
+        from topic_stories ts
+        where ts.topics_id = \$1
+SQL
+
+    my ( $links_count ) = $db->query( "select count(*) from topic_links where topics_id = ?", $topics_id )->flat();
+    is( $links_count, $num_stories, "topics reset: links before reset" );
+
+    $db->query( <<SQL, $topics_id );
+insert into topic_seed_urls (topics_id, stories_id) select topics_id, stories_id from topic_stories where topics_id = ?
+SQL
+
+    my ( $seeds_count ) = $db->query( "select count(*) from topic_seed_urls where topics_id= ?", $topics_id )->flat();
+    is( $seeds_count, $num_stories, "topics reset: seed urls before reset" );
+
+    test_put( "/api/v2/topics/$topic->{ topics_id }/reset", {} );
+
+    my ( $got_stories_count ) = $db->query( "select count(*) from topic_stories where topics_id = ?", $topics_id )->flat;
+    is( $got_stories_count, 0, "topics reset: stories after reset" );
+
+    my ( $got_links_count ) = $db->query( "select count(*) from topic_links where topics_id = ?", $topics_id )->flat;
+    is( $got_links_count, 0, "topics reset: links after reset" );
+
+    my ( $got_seed_count ) = $db->query( "select count(*) from topic_seed_urls where topics_id = ?", $topics_id )->flat;
+    is( $got_seed_count, 0, "topics reset: seed urls after reset" );
+
+    my $reset_topic = $db->find_by_id( 'topics', $topics_id );
+
+    ok( !$reset_topic->{ solr_seed_query_run }, "topics reset: solr_seed_query_run false after reset" );
+}
+
 sub test_topics
 {
     my ( $db ) = @_;
@@ -439,6 +492,7 @@ sub test_topics
 
     test_update_query_scope( $db );
     test_set_stories_respidering( $db );
+    test_topics_reset( $db );
     test_validate_max_stories( $db );
     test_is_mc_queue_user( $db );
     test_get_user_public_queued_job( $db );

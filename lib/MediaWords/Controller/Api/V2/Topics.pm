@@ -29,6 +29,7 @@ __PACKAGE__->config(
         update        => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
         spider        => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
         spider_status => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        reset         => { Does => [ qw( ~TopicsAdminAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
@@ -528,6 +529,27 @@ select $JOB_STATE_FIELD_LIST
 SQL
 
     $self->status_ok( $c, entity => { job_states => $job_states } );
+}
+
+sub reset : Chained( 'apibase' ) : ActionClass( 'MC_REST' )
+{
+}
+
+sub reset_PUT
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $topics_id = int( $c->stash->{ topics_id } );
+
+    $db->query( "delete from topic_stories where topics_id = ?",                   $topics_id );
+    $db->query( "delete from topic_links where topics_id = ?",                     $topics_id );
+    $db->query( "delete from topic_dead_links where topics_id = ?",                $topics_id );
+    $db->query( "delete from topic_seed_urls where topics_id = ?",                 $topics_id );
+    $db->query( "update topics set solr_seed_query_run = 'f' where topics_id = ?", $topics_id );
+
+    $self->status_ok( $c, entity => { success => 1 } );
 }
 
 1;
