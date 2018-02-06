@@ -60,6 +60,7 @@ class MockCrimsonHexagon(mediawords.tm.fetch_topic_tweets.AbstractCrimsonHexagon
         data = mediawords.util.json.decode_json(json)
 
         assert 'posts' in data
+        assert len(data['posts']) >= MOCK_TWEETS_PER_DAY
 
         data['posts'] = data['posts'][0:MOCK_TWEETS_PER_DAY]
 
@@ -110,7 +111,7 @@ class MockTwitter(mediawords.tm.fetch_topic_tweets.AbstractTwitter):
 
 def get_test_date_range() -> list:
     """Return either 2016-01-01 - 2016-01-01 + LOCAL_DATE_RANGE - 1 for local tests."""
-    end_date = datetime.datetime.strptime('2016-01-01', '%Y-%m-%d') + datetime.timedelta(days=LOCAL_DATE_RANGE)
+    end_date = datetime.datetime(year=2016, month=1, day=1) + datetime.timedelta(days=LOCAL_DATE_RANGE)
     return ('2016-01-01', end_date.strftime('%Y-%m-%d'))
 
 
@@ -121,10 +122,14 @@ def validate_topic_tweets(db: DatabaseHandler, topic_tweet_day: dict) -> None:
         topic_tweet_day['topic_tweet_days_id']
     ).hashes()
 
+    # fetch_topic_tweets should have set num_ch_tweets to the total number of tweets
+    assert len(topic_tweets) > 0
     assert len(topic_tweets) == topic_tweet_day['num_ch_tweets']
 
     for topic_tweet in topic_tweets:
         tweet_data = mediawords.util.json.decode_json(topic_tweet['data'])
+
+        # random field that should be coming from twitter
         assert 'assignedCategoryId' in tweet_data
 
         expected_date = datetime.datetime.strptime(tweet_data['tweet']['created_at'], '%Y-%m-%d')
@@ -159,7 +164,7 @@ def validate_topic_tweet_urls(db: DatabaseHandler, topic: dict) -> None:
     for topic_tweet in topic_tweets:
 
         ch_post = mediawords.util.json.decode_json(topic_tweet['data'])
-        expected_urls = list(map(lambda x: x['expanded_url'], ch_post['tweet']['entities']['urls']))
+        expected_urls = [x['expanded_url'] for x in ch_post['tweet']['entities']['urls']]
         total_json_urls += len(expected_urls)
 
         for expected_url in expected_urls:
@@ -209,17 +214,18 @@ def test_ch_api() -> None:
     config = mediawords.util.config.get_config()
 
     assert 'crimson_hexagon' in config, "crimson_hexagon section present in mediawords.yml"
-    assert 'key' in config['crimson_hexagon'], "crimson_hexagon.key present in mediawords.yml"
-    assert 'test_monitor_id' in config['crimson_hexagon'], "crimson_hexagon.test_monitor_id present in mediawords.yml"
-    assert 'test_date' in config['crimson_hexagon'], "crimson_hexagon.test_date present in mediawords.yml"
+    for key in 'key test_monitor_id test_date'.split():
+        assert key in config['crimson_hexagon'], "crimson_hexagon." + key + " present in mediawords.yml"
 
     test_monitor_id = config['crimson_hexagon']['test_monitor_id']
     test_date = datetime.datetime.strptime(config['crimson_hexagon']['test_date'], '%Y-%m-%d')
 
     got_data = mediawords.tm.fetch_topic_tweets.CrimsonHexagon.fetch_posts(test_monitor_id, test_date)
 
+    # sanity test even though we don't know how many posts we should get back, but we want to make sure it is more
+    # than 500 to make CH is not limiting us to the default 500 in their api
     assert 'totalPostsAvailable' in got_data
-    assert got_data['totalPostsAvailable'] > 500
+    assert got_data['totalPostsAvailable'] > MIN_TEST_CH_POSTS
 
     assert 'posts' in got_data
     got_posts = got_data['posts']
@@ -253,7 +259,7 @@ def test_twitter_api() -> None:
 
 
 def run_test_remote_integration(db: DatabaseHandler) -> None:
-    """Run santity test on remote apis."""
+    """Run santity test on remote apis by calling the internal functions that integrate the CH and twitter data."""
     config = mediawords.util.config.get_config()
 
     topic = mediawords.test.db.create_test_topic(db, "test_remote_integration")
