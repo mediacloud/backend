@@ -54,7 +54,8 @@ class MockCrimsonHexagon(mediawords.tm.fetch_topic_tweets.AbstractCrimsonHexagon
         """
         assert MOCK_TWEETS_PER_DAY <= MAX_MOCK_TWEETS_PER_DAY
 
-        filename = mediawords.util.paths.mc_root_path() + '/mediacloud/test-data/ch/ch-posts-' + day.strftime('%Y-%m-%d') + '.json'
+        test_path = mediawords.util.paths.mc_root_path() + '/mediacloud/test-data/ch/'
+        filename = test_path + "ch-posts-" + day.strftime('%Y-%m-%d') + '.json'
         with open(filename, 'r') as fh:
             json = fh.read()
 
@@ -196,6 +197,7 @@ def test_twitter_api() -> None:
     assert 'screen_name' in got_tweet['user']
     assert len(got_tweet['user']['screen_name']) > MIN_TEST_TWITTER_USER_LENGTH
 
+
 @unittest.skipUnless(os.environ.get('MC_REMOTE_TESTS', False), "remote tests")
 def test_ch_api() -> None:
     """Test CrimsonHexagon.fetch_posts() by hitting the remote ch api."""
@@ -222,6 +224,7 @@ def test_ch_api() -> None:
     for post in got_posts:
         assert 'url' in post
         assert re.search('status/\d+', post['url'])
+
 
 class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
     """Run database tests."""

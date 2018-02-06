@@ -32,6 +32,7 @@ class McFetchTopicTweetsConfigException(Exception):
 
     pass
 
+
 class McFetchTopicTweetDateFetchedException(Exception):
     """exception indicating the topic tweets for the given day have already been fetched."""
 
