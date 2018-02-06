@@ -295,10 +295,16 @@ sub create_GET
     $self->status_ok( $c, entity => { topics => $topics } );
 }
 
-# return true if the update in $data removes media soures or dates from the query
+# return true if the topic has any topic_stories with iteration > 1 and the update in $data removes
+# media soures or dates from the query
 sub _update_decreases_query_scope($$$)
 {
     my ( $db, $topic, $data ) = @_;
+
+    my $spidered_story = $db->query( <<SQL, $topic->{ topics_id } )->hash;
+select * from topic_stories where iteration > 1 and topics_id = ? limit 1
+SQL
+    return 0 unless ( $spidered_story );
 
     return 1 if ( $data->{ start_date } && ( $data->{ start_date } gt $topic->{ start_date } ) );
 

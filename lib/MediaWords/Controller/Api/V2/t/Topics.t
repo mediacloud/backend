@@ -310,9 +310,18 @@ sub test_update_query_scope($)
 
     # for each call, just test whether or not an error is generated
 
-    test_put( "/api/v2/topics/$topic->{ topics_id }/update", { description => 'new query scope description' } );
+    # query change should not trigger error if there are no spidered topic stories yet
+    test_put( "/api/v2/topics/$topic->{ topics_id }/update", { start_date => '2010-01-01' } );
 
-    test_put( "/api/v2/topics/$topic->{ topics_id }/update", { start_date => $topic->{ start_date } } );
+    # insert some spidered stories so that we can check for the date and media conditions
+    my $story_stack = MediaWords::Test::DB::create_test_story_stack_numerated( $db, 1, 1, 1, 'query_scope' );
+    $db->query( <<SQL, $topic->{ topics_id }, $story_stack->{ media_query_scope_0 }->{ media_id } );
+insert into topic_stories ( topics_id, stories_id, iteration )
+    select \$1, stories_id, 2 from stories where media_id = \$2
+SQL
+
+    test_put( "/api/v2/topics/$topic->{ topics_id }/update", { description => 'new query scope description' } );
+    test_put( "/api/v2/topics/$topic->{ topics_id }/update", { end_date    => $topic->{ end_date } } );
 
     {
         my $update_start_date = MediaWords::Util::SQL::increment_day( $topic->{ start_date }, 1 );
