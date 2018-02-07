@@ -5,7 +5,7 @@ import datetime
 import re
 import time
 import tweepy
-from typing import Type
+import typing
 
 from mediawords.db import DatabaseHandler
 import mediawords.util.json
@@ -44,7 +44,7 @@ class AbstractCrimsonHexagon(ABC):
 
     @staticmethod
     @abstractmethod
-    def fetch_posts(ch_monitor_id: int, day: datetime) -> dict:
+    def fetch_posts(ch_monitor_id: int, day: datetime.datetime) -> dict:
         """
         Fetch the list of tweets from the ch api.
 
@@ -62,7 +62,7 @@ class CrimsonHexagon(AbstractCrimsonHexagon):
     """class that fech_posts() method that can list posts via the Crimson Hexagon api."""
 
     @staticmethod
-    def fetch_posts(ch_monitor_id: int, day: datetime) -> dict:
+    def fetch_posts(ch_monitor_id: int, day: datetime.datetime) -> dict:
         """Implement fetch_posts on ch api using the config data from mediawords.yml."""
         ua = UserAgent()
         ua.set_max_size(100 * 1024 * 1024)
@@ -92,7 +92,7 @@ class CrimsonHexagon(AbstractCrimsonHexagon):
 
         decoded_content = response.decoded_content()
 
-        data = mediawords.util.json.decode_json(decoded_content)
+        data = dict(mediawords.util.json.decode_json(decoded_content))
 
         if 'status' not in data or not data['status'] == 'success':
             raise McFetchTopicTweetsDataException("Unknown response status: " + str(data))
@@ -154,7 +154,7 @@ class Twitter(AbstractTwitter):
                 tweets = api.statuses_lookup(tweet_ids, include_entities=True, trim_user=False)
             except tweepy.TweepError as e:
                 sleep = 2 * (twitter_retries**2)
-                log.info("twitter fetch error.  waiting " + sleep + " seconds before retry ...")
+                log.info("twitter fetch error.  waiting " + str(sleep) + " seconds before retry ...")
                 time.sleep(sleep)
                 last_exception = e
 
@@ -165,10 +165,10 @@ class Twitter(AbstractTwitter):
 
         # it is hard to mock tweepy data directly, and the default tweepy objects are not json serializable,
         # so just return a direct dict decoding of the raw twitter payload
-        return mediawords.util.json.decode_json(tweets)
+        return list(mediawords.util.json.decode_json(tweets))
 
 
-def _add_tweets_to_ch_posts(twitter_class: Type[AbstractTwitter], ch_posts: list) -> None:
+def _add_tweets_to_ch_posts(twitter_class: typing.Type[AbstractTwitter], ch_posts: list) -> None:
     """
     Given a set of ch_posts, fetch data from twitter about each tweet and attach it under the ch['tweet'] field.
 
@@ -253,7 +253,7 @@ def _store_tweet_and_urls(db: DatabaseHandler, topic_tweet_day: dict, ch_post: d
 
     topic_tweet = db.create('topic_tweets', topic_tweet)
 
-    urls_inserted = {}
+    urls_inserted = {}  # type:typing.Dict[str, bool]
     for url_data in ch_post['tweet']['entities']['urls']:
 
         url = url_data['expanded_url']
@@ -273,10 +273,10 @@ def _store_tweet_and_urls(db: DatabaseHandler, topic_tweet_day: dict, ch_post: d
 
 def _fetch_tweets_for_day(
         db: DatabaseHandler,
-        twitter_class: Type[AbstractTwitter],
+        twitter_class: typing.Type[AbstractTwitter],
         topic: dict,
         topic_tweet_day: dict,
-        max_tweets: int=None) -> None:
+        max_tweets: typing.Optional[int]=None) -> None:
     """
     Fetch tweets for a single day.
 
@@ -332,8 +332,8 @@ def _fetch_tweets_for_day(
 def _add_topic_tweet_single_day(
         db: DatabaseHandler,
         topic: dict,
-        day: datetime,
-        ch_class: Type[AbstractCrimsonHexagon]) -> dict:
+        day: datetime.datetime,
+        ch_class: typing.Type[AbstractCrimsonHexagon]) -> dict:
     """
     Add a row to topic_tweet_day if it does not already exist.  fetch data for new row from CH.
 
@@ -381,8 +381,8 @@ def _add_topic_tweet_single_day(
 def _add_topic_tweet_days(
         db: DatabaseHandler,
         topic: dict,
-        twitter_class: Type[AbstractTwitter],
-        ch_class: Type[AbstractCrimsonHexagon]) -> None:
+        twitter_class: typing.Type[AbstractTwitter],
+        ch_class: typing.Type[AbstractCrimsonHexagon]) -> None:
     """
     For each day within the topic date range, find or create a topic_tweet_day row and fetch data for that row from CH.
 
@@ -410,8 +410,8 @@ def _add_topic_tweet_days(
 def fetch_topic_tweets(
         db: DatabaseHandler,
         topics_id: int,
-        twitter_class: Type[AbstractTwitter]=Twitter,
-        ch_class: Type[AbstractCrimsonHexagon]=CrimsonHexagon) -> None:
+        twitter_class: typing.Type[AbstractTwitter]=Twitter,
+        ch_class: typing.Type[AbstractCrimsonHexagon]=CrimsonHexagon) -> None:
     """
     Fetch list of tweets within a Crimson Hexagon monitor based on the ch_monitor_id of the given topic.
 

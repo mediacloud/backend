@@ -45,7 +45,7 @@ class MockCrimsonHexagon(mediawords.tm.fetch_topic_tweets.AbstractCrimsonHexagon
     """Mock the CrimsonHexagon class in fetch_topic_tweets to return test data."""
 
     @staticmethod
-    def fetch_posts(ch_monitor_id: int, day: datetime) -> dict:
+    def fetch_posts(ch_monitor_id: int, day: datetime.datetime) -> dict:
         """
         Return a mock ch response to the posts end point.
 
@@ -59,7 +59,7 @@ class MockCrimsonHexagon(mediawords.tm.fetch_topic_tweets.AbstractCrimsonHexagon
         with open(filename, 'r') as fh:
             json = fh.read()
 
-        data = mediawords.util.json.decode_json(json)
+        data = dict(mediawords.util.json.decode_json(json))
 
         assert 'posts' in data
         assert len(data['posts']) >= MOCK_TWEETS_PER_DAY
@@ -129,7 +129,7 @@ def validate_topic_tweets(db: DatabaseHandler, topic_tweet_day: dict) -> None:
     assert len(topic_tweets) == topic_tweet_day['num_ch_tweets']
 
     for topic_tweet in topic_tweets:
-        tweet_data = mediawords.util.json.decode_json(topic_tweet['data'])
+        tweet_data = dict(mediawords.util.json.decode_json(topic_tweet['data']))
 
         # random field that should be coming from twitter
         assert 'assignedCategoryId' in tweet_data
@@ -155,7 +155,7 @@ def validate_topic_tweet_urls(db: DatabaseHandler, topic: dict) -> None:
 
     expected_num_urls = 0
     for topic_tweet in topic_tweets:
-        data = mediawords.util.json.decode_json(topic_tweet['data'])
+        data = dict(mediawords.util.json.decode_json(topic_tweet['data']))
         expected_num_urls += len(data['tweet']['entities']['urls'])
 
     # first sanity check to make sure we got some urls
@@ -165,7 +165,7 @@ def validate_topic_tweet_urls(db: DatabaseHandler, topic: dict) -> None:
     total_json_urls = 0
     for topic_tweet in topic_tweets:
 
-        ch_post = mediawords.util.json.decode_json(topic_tweet['data'])
+        ch_post = dict(mediawords.util.json.decode_json(topic_tweet['data']))
         expected_urls = [x['expanded_url'] for x in ch_post['tweet']['entities']['urls']]
         total_json_urls += len(expected_urls)
 
@@ -185,7 +185,8 @@ def test_twitter_api() -> None:
     for key in 'consumer_key consumer_secret access_token access_token_secret test_status_id'.split():
         assert key in config['twitter'], "twitter." + key + " present in mediawords.yml"
 
-    got_tweets = mediawords.tm.fetch_topic_tweets.Twitter.fetch_100_tweets((config['twitter']['test_status_id'],))
+    test_status_id = int(config['twitter']['test_status_id'])
+    got_tweets = mediawords.tm.fetch_topic_tweets.Twitter.fetch_100_tweets([test_status_id])
 
     assert len(got_tweets) == 1
 
