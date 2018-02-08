@@ -2203,7 +2203,7 @@ CREATE TABLE auth_users (
     -- Emails are case-insensitive
     email           CITEXT  UNIQUE NOT NULL,
 
-    -- Salted hash of a password (with Crypt::SaltedHash, algorithm => 'SHA-256', salt_len=>64)
+    -- Salted hash of a password
     password_hash   TEXT    NOT NULL CONSTRAINT password_hash_sha256 CHECK(LENGTH(password_hash) = 137),
 
     full_name       TEXT    NOT NULL,
