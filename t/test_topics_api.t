@@ -312,7 +312,8 @@ sub test_topics_crud($)
     my $exists_in_db = $db->find_by_id( "topics", $got_topic->{ topics_id } );
     ok( $exists_in_db, "$label topic exists in db" );
 
-    my $test_fields = [ qw/name description solr_seed_query max_ierations start_date end_date is_public ch_monitor_id/ ];
+    my $test_fields =
+      [ qw/name description solr_seed_query max_ierations start_date end_date is_public ch_monitor_id max_stories/ ];
     map { is( $got_topic->{ $_ }, $input->{ $_ }, "$label $_" ) } @{ $test_fields };
 
     my $topics_id = $got_topic->{ topics_id };
@@ -359,6 +360,13 @@ sub test_topics_crud($)
 
     $got_tags_ids = [ map { $_->{ tags_id } } @{ $got_topic->{ media_tags } } ];
     is_deeply( [ sort @{ $got_tags_ids } ], [ sort @{ $update_tags_ids } ], "$label media tag ids" );
+
+    # verify fix for bug dealing with undef max_stories using most of the create topic data from $input above
+    $input->{ max_stories } = undef;
+    $input->{ name }        = 'null max stories';
+    $r = test_post( '/api/v2/topics/create', $input );
+
+    is( $r->{ topics }->[ 0 ]->{ max_stories }, 100_000 );
 }
 
 # test topics/spider call

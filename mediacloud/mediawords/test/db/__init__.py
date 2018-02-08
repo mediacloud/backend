@@ -1,4 +1,4 @@
-from mediawords.db import DatabaseHandler
+from mediawords.db.handler import DatabaseHandler
 from mediawords.test.db.env import (
     force_using_test_database as impl_force_using_test_database,
     using_test_database as impl_using_test_database,
