@@ -251,7 +251,6 @@ sub create_GET
     my $auth_users_id = $c->stash->{ api_auth }->id();
 
     _validate_max_stories( $db, $data->{ max_stories }, $auth_users_id );
-    $data->{ max_stories } ||= 100_000;
 
     if ( !( scalar( @{ $media_ids } ) || scalar( @{ $media_tags_ids } ) ) )
     {
@@ -259,6 +258,8 @@ sub create_GET
     }
 
     my $topic = { map { $_ => $data->{ $_ } } @{ $TOPICS_EDIT_FIELDS } };
+
+    $topic->{ max_stories } ||= 100_000;
 
     $topic->{ pattern } =
       eval { MediaWords::Solr::Query::parse( $topic->{ solr_seed_query } )->re( $topic->{ is_logogram } ) };
