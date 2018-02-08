@@ -83,7 +83,6 @@ perl_dependencies:
     - "namespace::autoclean"
     - "Net::AMQP::RabbitMQ"
     - "Net::IP"
-    - "Net::Twitter"
     - "Parallel::Fork::BossWorkerAsync"
     - "Parallel::ForkManager"
     - "Parse::BooleanLogic"
