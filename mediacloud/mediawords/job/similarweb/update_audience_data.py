@@ -13,11 +13,11 @@ log = create_logger(__name__)
 class SimilarWebUpdateAudienceDataJob(AbstractJob):
     """
 
-    Create / update story tags using CLIFF annotation
+    Create / update audience data using SimilarWeb
 
     Start this worker script by running:
 
-        ./script/run_in_env.sh ./mediacloud/mediawords/job/cliff/update_story_tags.py
+        ./script/run_in_env.sh ./mediacloud/mediawords/job/similarweb/update_audience_data.py
 
     """
 
