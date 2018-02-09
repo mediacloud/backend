@@ -53,5 +53,5 @@ generated schema/migrations/mediawords-4639-4640.sql and added it to git commit
 
 ```
 SELECT set_database_schema_version();
-+alter table media add awesome_score bigint not null
++alter table media add awesome_score bigint not null;
 ```

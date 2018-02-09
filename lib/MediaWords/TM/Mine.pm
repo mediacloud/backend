@@ -40,9 +40,10 @@ use URI::Escape;
 use MediaWords::CommonLibs;
 
 use MediaWords::TM;
-use MediaWords::TM::Snapshot;
+use MediaWords::TM::FetchTopicTweets;
 use MediaWords::TM::GuessDate;
 use MediaWords::TM::GuessDate::Result;
+use MediaWords::TM::Snapshot;
 use MediaWords::DB;
 use MediaWords::DBI::Activities;
 use MediaWords::DBI::Media;
@@ -50,7 +51,6 @@ use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::Job::Bitly::FetchStoryStats;
 use MediaWords::Job::ExtractAndVector;
-use MediaWords::Job::FetchTopicTweets;
 use MediaWords::Job::Facebook::FetchStoryStats;
 use MediaCloud::JobManager::Job;
 use MediaWords::Languages::Language;
@@ -860,11 +860,47 @@ sub log_dead_link
         url        => $link->{ url }
     };
 
-    INFO "INSERTing into 'topic_dead_links': " . Dumper( $dead_link );
+    eval { $db->create( 'topic_dead_links', $dead_link ); };
+    if ( $@ )
+    {
+        my $error_message = $@;
 
-    $db->create( 'topic_dead_links', $dead_link );
-
-    INFO "INSERTed into 'topic_dead_links': " . Dumper( $dead_link );
+        # MC_REWRITE_TO_PYTHON:
+        #
+        # Some calls to create() fail with:
+        #
+        #      UnicodeEncodeError: 'utf-8' codec can't encode character '\udf33' in position 26352: surrogates not allowed
+        #
+        # for insert hash:
+        #
+        #     {
+        #         'stories_id' => 629277868,
+        #         'url' => 'http://www.thatssomichelle.com/2011/11/pumpkin-mac-and-cheese.html',
+        #         'topics_id' => 2030,
+        #     }
+        #
+        # I wish I knew what's causing this, but I don't. Unable to reproduce
+        # either -- calling create() with a failing hash in an isolated script
+        # works fine, so maybe it's related to the caller somehow? No idea.
+        #
+        # So here we silently ignore one-off UnicodeEncodeError exceptions
+        # because "topic_dead_links" table is used for statistics, and it's not
+        # a big deal if some links fail at create() here.
+        #
+        # One should try removing this exception after this code gets rewritten
+        # to Python because it might be related to Inline::Python's memory
+        # management or exception handling.
+        if ( $error_message =~ /UnicodeEncodeError.+?surrogates not allowed/ )
+        {
+            WARN "Non-critical UnicodeEncodeError while trying to INSERT " .
+              Dumper( $dead_link ) . " into 'topic_dead_links': $error_message";
+        }
+        else
+        {
+            # die() on all other exceptions
+            LOGCONFESS "Failed INSERTing into 'topic_dead_links': $error_message";
+        }
+    }
 }
 
 # send story to the extraction queue in the hope that it will already be extracted by the time we get to the extraction
@@ -2579,7 +2615,7 @@ sub import_solr_seed_query_month($$$)
     # assume that we hit the solr max if we are within 5% of the ma stories
     my $max_returned_stories = $max_stories * 0.95;
 
-    my $solr_query = get_full_solr_query( $db, $topic );
+    my $solr_query = get_full_solr_query( $db, $topic, undef, undef, $month_offset );
 
     # this should return undef once the month_offset gets too big
     return undef unless ( $solr_query );
@@ -2614,6 +2650,8 @@ sub import_solr_seed_query_month($$$)
     insert_topic_seed_urls( $db, $topic_seed_urls );
 
     $db->commit if $db->in_transaction();
+
+    return 1;
 }
 
 # import stories intro topic_seed_urls from solr by running
@@ -2885,11 +2923,7 @@ sub fetch_and_import_twitter_urls($$)
     # only add  twitter data if there is a ch_monitor_id
     return unless ( $topic->{ ch_monitor_id } );
 
-    eval { MediaWords::Job::FetchTopicTweets->run( { topics_id => $topic->{ topics_id } } ); };
-    if ( $@ )
-    {
-        LOGCONFESS "MediaWords::Job::FetchTopicTweets->run() failed: $@";
-    }
+    MediaWords::TM::FetchTopicTweets::fetch_topic_tweets( $db, $topic->{ topics_id } );
 
     seed_topic_with_tweet_urls( $db, $topic );
 }
@@ -2905,7 +2939,10 @@ sub mine_topic ($$;$)
 
     $_test_mode = 1 if ( $options->{ test_mode } );
 
-    MediaWords::TM::send_topic_alert( $db, $topic, "started topic spidering" );
+    if ( $topic->{ state } ne 'running' )
+    {
+        MediaWords::TM::send_topic_alert( $db, $topic, "started topic spidering" );
+    }
 
     eval {
         do_mine_topic( $db, $topic );

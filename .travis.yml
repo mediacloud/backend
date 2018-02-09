@@ -67,11 +67,14 @@ env:
         # Let tests know that they are running on Travis
         - MC_SKIP_RABBIT_OPEN_FILES_LIMIT_CHECK=1
 
+        # Report test coverage after running tests
+        - MC_TEST_SUITE_REPORT_COVERAGE=1
+
     matrix:
 
         # Single Travis instance is too slow to run all Perl tests, so
-        # run_test_suite_for_devel_cover.sh will split the tests into 4
-        # different chunks and run them on separate instances
+        # run_test_suite.sh will split the tests into 4 different chunks and
+        # run them on separate instances
         - MC_TEST_CHUNK=1
         - MC_TEST_CHUNK=2
         - MC_TEST_CHUNK=3
@@ -80,8 +83,6 @@ env:
 before_install:
     # Install ansible-lint
     - sudo pip install --upgrade ansible-lint
-    # Install Coveralls utilities to be able to report test coverage
-    - cpanm --notest Devel::Cover Devel::Cover::Report::Coveralls
 
 install:
     # Lint Ansible playbooks
@@ -145,11 +146,38 @@ script:
         -e MC_SUPERGLUE_TEST_URL
         -e MC_SKIP_RABBIT_OPEN_FILES_LIMIT_CHECK
         -e MC_TEST_CHUNK
+        -e MC_TEST_SUITE_REPORT_COVERAGE
         $MC_TRAVIS_DOCKER_CONTAINER
-        bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT && ./script/run_test_suite_for_devel_cover.sh --destroy-solr"
+        bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT && ./script/run_test_suite.sh"
 
 after_success:
-    # Copy Coveralls database back to Travis instance
-    - docker cp $MC_TRAVIS_DOCKER_CONTAINER:$MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT/cover_db/ .
-    # Send out Coveralls report
-    - cover -report coveralls
+    # Generate and submit test coverage report to Coveralls.io
+    - > # Install Coveralls Perl utilities to be able to report test coverage
+        docker exec -i -t
+        $MC_TRAVIS_DOCKER_CONTAINER
+        bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT && ./script/run_in_env.sh cpanm --notest Devel::Cover Devel::Cover::Report::Coveralls"
+    - > # Install Coveralls Python utilities to be able to report test coverage
+        docker exec -i -t
+        $MC_TRAVIS_DOCKER_CONTAINER
+        bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT && ./script/run_in_env.sh pip install --upgrade coveralls"
+    - > # Generate Coveralls-compatible JSON report for Python code (./coverage.json)
+        docker exec -i -t
+        -e TRAVIS
+        -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID"
+        -e TRAVIS_BRANCH="$TRAVIS_BRANCH"
+        $MC_TRAVIS_DOCKER_CONTAINER
+        bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT && ./script/run_in_env.sh coveralls --output=coverage.json"
+    - > # Generate Coveralls-compatible JSON report for Perl code (./cover_db/coveralls.json)
+        docker exec -i -t
+        -e TRAVIS
+        -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID"
+        -e TRAVIS_BRANCH="$TRAVIS_BRANCH"
+        $MC_TRAVIS_DOCKER_CONTAINER
+        bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT && ./script/run_in_env.sh cover -report CoverallsJSON"
+    - > # Merge Perl report (./cover_db/coveralls.json) into Python report (./coverage.json), submit everything to Coveralls.io
+        docker exec -i -t
+        -e TRAVIS
+        -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID"
+        -e TRAVIS_BRANCH="$TRAVIS_BRANCH"
+        $MC_TRAVIS_DOCKER_CONTAINER
+        bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT && ./script/run_in_env.sh coveralls --merge=cover_db/coveralls.json"

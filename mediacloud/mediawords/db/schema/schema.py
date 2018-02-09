@@ -1,4 +1,5 @@
-from mediawords.db import connect_to_db, DatabaseHandler
+from mediawords.db import connect_to_db
+from mediawords.db.handler import DatabaseHandler
 from mediawords.util.log import create_logger
 from mediawords.util.paths import mc_sql_schema_path
 from mediawords.util.perl import decode_object_from_bytes_if_needed

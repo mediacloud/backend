@@ -11,7 +11,7 @@ Celery==4.1.0
 cld2-cffi==0.1.4
 
 # Unit test coverage
-coverage==4.4.1
+coverage==4.4.2
 
 # Hindi stemming
 CyHunspell==1.2.1
@@ -67,6 +67,9 @@ PyStemmer==1.3.0
 # Unit tests
 pytest==3.2.2
 
+# Test coverage
+pytest-cov==2.5.1
+
 # Date parsing
 python-dateutil==2.6.1
 
@@ -90,6 +93,9 @@ scipy==0.19.1
 
 # Splitting text into sentences using Lingua::Sentence's method
 sentence_splitter==1.2
+
+# twitter
+tweepy==3.5.0
 
 # Normalizing URLs
 url_normalize==1.3.3
