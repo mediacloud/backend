@@ -346,11 +346,12 @@ def _add_topic_tweet_single_day(
     Return:
     None
     """
+    # the perl-python layer was segfaulting until I added the str() around day below -hal
     topic_tweet_day = db.query(
         "select * from topic_tweet_days where topics_id = %(a)s and day = %(b)s",
-        {'a': topic['topics_id'], 'b': day}).hash()
+        {'a': topic['topics_id'], 'b': str(day)}).hash()
 
-    if topic_tweet_day is not None and 'tweets_fetched' in topic_tweet_day:
+    if topic_tweet_day is not None and topic_tweet_day['tweets_fetched']:
         raise McFetchTopicTweetDateFetchedException("tweets already fetched for day " + str(day))
 
     # if we have a ttd but had not finished fetching tweets, delete it and start over
