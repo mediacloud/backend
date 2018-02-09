@@ -121,7 +121,6 @@ my $_url_permission_types = {
     '/api/v2/topics/timespans/list'               => 'topics_read',
     '/api/v2/topics/update'                       => 'topics_write',
     '/api/v2/topics/wc/list'                      => 'topics_read',
-    '/api/v2/topics/word2vec_model'               => 'topics_read',
     '/api/v2/util/is_syndicated_ap'               => 'public',
     '/api/v2/wc/list'                             => 'public',
 };
@@ -157,7 +156,6 @@ my $_url_transformations = {
     '/api/v2/topics/update'                   => '/api/v2/topics/~topics_id~/update',
     '/api/v2/topics/spider'                   => '/api/v2/topics/~topics_id~/spider',
     '/api/v2/topics/spider_status'            => '/api/v2/topics/~topics_id~/spider_status',
-    '/api/v2/topics/word2vec_model'           => '/api/v2/topics/~topics_id~/word2vec_model/~dummy_id~',
     '/api/v2/topics/wc/list'                  => '/api/v2/topics/~topics_id~/wc/list',
 };
 

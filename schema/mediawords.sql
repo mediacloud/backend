@@ -2821,33 +2821,6 @@ create view topic_tweet_full_urls as
                 on ( tsu.topics_id = t.topics_id and ttu.url = tsu.url );
 
 
---
--- Topic word2vec models
---
-CREATE TABLE topic_word2vec_models (
-    topic_word2vec_models_id    SERIAL      PRIMARY KEY,
-    object_id                   INTEGER     NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    creation_date               TIMESTAMP   NOT NULL DEFAULT NOW()
-);
-
--- We'll need to find the latest word2vec model
-CREATE INDEX topic_word2vec_models_object_id_creation_date ON topic_word2vec_models (object_id, creation_date);
-
-CREATE TABLE topic_word2vec_models_data (
-    topic_word2vec_models_data_id   SERIAL      PRIMARY KEY,
-    object_id                       INTEGER     NOT NULL
-                                                    REFERENCES topic_word2vec_models (topic_word2vec_models_id)
-                                                    ON DELETE CASCADE,
-    raw_data                        BYTEA       NOT NULL
-);
-CREATE UNIQUE INDEX topic_word2vec_models_data_object_id ON topic_word2vec_models_data (object_id);
-
--- Don't (attempt to) compress BLOBs in "raw_data" because they're going to be
--- compressed already
-ALTER TABLE topic_word2vec_models_data
-    ALTER COLUMN raw_data SET STORAGE EXTERNAL;
-
-
 create table snap.timespan_tweets (
     topic_tweets_id     int not null references topic_tweets on delete cascade,
     timespans_id        int not null references timespans on delete cascade

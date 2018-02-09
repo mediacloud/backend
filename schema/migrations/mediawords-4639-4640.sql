@@ -45,33 +45,6 @@ ALTER TABLE snap.word2vec_models_data
     ALTER COLUMN raw_data SET STORAGE EXTERNAL;
 
 
---
--- Topic word2vec models
---
-CREATE TABLE topic_word2vec_models (
-    topic_word2vec_models_id    SERIAL      PRIMARY KEY,
-    object_id                   INTEGER     NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    creation_date               TIMESTAMP   NOT NULL DEFAULT NOW()
-);
-
--- We'll need to find the latest word2vec model
-CREATE INDEX topic_word2vec_models_object_id_creation_date ON topic_word2vec_models (object_id, creation_date);
-
-CREATE TABLE topic_word2vec_models_data (
-    topic_word2vec_models_data_id   SERIAL      PRIMARY KEY,
-    object_id                       INTEGER     NOT NULL
-                                                    REFERENCES topic_word2vec_models (topic_word2vec_models_id)
-                                                    ON DELETE CASCADE,
-    raw_data                        BYTEA       NOT NULL
-);
-CREATE UNIQUE INDEX topic_word2vec_models_data_object_id ON topic_word2vec_models_data (object_id);
-
--- Don't (attempt to) compress BLOBs in "raw_data" because they're going to be
--- compressed already
-ALTER TABLE topic_word2vec_models_data
-    ALTER COLUMN raw_data SET STORAGE EXTERNAL;
-
-
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)

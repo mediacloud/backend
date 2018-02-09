@@ -28,57 +28,51 @@ Table of Contents
          * [Query Parameters](#query-parameters-3)
          * [Output Description](#output-description-1)
          * [Example](#example-3)
-      * [topics/&lt;topics_id&gt;/word2vec_model/&lt;models_id&gt; (GET)](#topicstopics_idword2vec_modelmodels_id-get)
-         * [Required role](#required-role)
-         * [Output Description](#output-description-2)
-            * [Model was fetched](#model-was-fetched)
-            * [Failed to fetch the model](#failed-to-fetch-the-model)
-         * [Example](#example-4)
       * [topics/list](#topicslist)
          * [Query Parameters](#query-parameters-4)
-         * [Output Description](#output-description-3)
-         * [Example](#example-5)
+         * [Output Description](#output-description-2)
+         * [Example](#example-4)
       * [topics/single/&lt;topics_id&gt;](#topicssingletopics_id)
          * [Query Parameters](#query-parameters-5)
-         * [Output Description](#output-description-4)
-         * [Example](#example-6)
+         * [Output Description](#output-description-3)
+         * [Example](#example-5)
    * [Permissions](#permissions-1)
       * [topics/permissions/user/list](#topicspermissionsuserlist)
          * [Query Parameters](#query-parameters-6)
-         * [Output Description](#output-description-5)
-         * [Example](#example-7)
+         * [Output Description](#output-description-4)
+         * [Example](#example-6)
       * [topics/&lt;topics_id&gt;/permissions/list](#topicstopics_idpermissionslist)
          * [Query Parameters](#query-parameters-7)
-         * [Output Description](#output-description-6)
-         * [Example](#example-8)
+         * [Output Description](#output-description-5)
+         * [Example](#example-7)
       * [topics/&lt;topics_id&gt;/permissions/update (PUT)](#topicstopics_idpermissionsupdate-put)
          * [Query Parameters](#query-parameters-8)
          * [Input Description](#input-description-2)
-         * [Output Description](#output-description-7)
-         * [Example](#example-9)
+         * [Output Description](#output-description-6)
+         * [Example](#example-8)
    * [Stories](#stories)
       * [stories/list](#storieslist)
          * [Query Parameters](#query-parameters-9)
-         * [Output Description](#output-description-8)
+         * [Output Description](#output-description-7)
       * [stories/facebook](#storiesfacebook)
          * [Query Parameters](#query-parameters-10)
-         * [Output Description](#output-description-9)
-         * [Example](#example-10)
+         * [Output Description](#output-description-8)
+         * [Example](#example-9)
       * [stories/count](#storiescount)
          * [Query Parameters](#query-parameters-11)
-         * [Output Description](#output-description-10)
-         * [Example](#example-11)
+         * [Output Description](#output-description-9)
+         * [Example](#example-10)
    * [Sentences](#sentences)
       * [sentences/count](#sentencescount)
    * [Media](#media)
       * [media/list](#medialist)
          * [Query Parameters](#query-parameters-12)
-         * [Output Description](#output-description-11)
-         * [Example](#example-12)
+         * [Output Description](#output-description-10)
+         * [Example](#example-11)
       * [media/map](#mediamap)
          * [Query Parameters](#query-parameters-13)
-         * [Output Description](#output-description-12)
-         * [Example](#example-13)
+         * [Output Description](#output-description-11)
+         * [Example](#example-12)
    * [Word Counts](#word-counts)
       * [wc/list](#wclist)
    * [Foci](#foci)
@@ -87,69 +81,69 @@ Table of Contents
       * [focal_set_definitions/create (POST)](#focal_set_definitionscreate-post)
          * [Query Parameters](#query-parameters-14)
          * [Input Description](#input-description-3)
-         * [Example](#example-14)
+         * [Example](#example-13)
       * [focal_set_definitions/&lt;focal_set_definitions_id&gt;/update (PUT)](#focal_set_definitionsfocal_set_definitions_idupdate-put)
          * [Query Parameters](#query-parameters-15)
          * [Input Parameters](#input-parameters)
-         * [Example](#example-15)
+         * [Example](#example-14)
       * [focal_set_definitions/&lt;focal_set_definitions_id&gt;/delete (PUT)](#focal_set_definitionsfocal_set_definitions_iddelete-put)
          * [Query Parameters](#query-parameters-16)
-         * [Output Description](#output-description-13)
-         * [Example](#example-16)
+         * [Output Description](#output-description-12)
+         * [Example](#example-15)
       * [focal_set_definitions/list](#focal_set_definitionslist)
          * [Query Parameters](#query-parameters-17)
-         * [Output Description](#output-description-14)
-         * [Example](#example-17)
+         * [Output Description](#output-description-13)
+         * [Example](#example-16)
       * [focal_sets/list](#focal_setslist)
          * [Query Parameters](#query-parameters-18)
-         * [Output Description](#output-description-15)
-         * [Example](#example-18)
+         * [Output Description](#output-description-14)
+         * [Example](#example-17)
       * [focus_definitions/create (POST)](#focus_definitionscreate-post)
          * [Query Parameters](#query-parameters-19)
          * [Input Description](#input-description-4)
-         * [Example](#example-19)
+         * [Example](#example-18)
       * [focus_definitions/&lt;focus_definitions_id&gt;/update (PUT)](#focus_definitionsfocus_definitions_idupdate-put)
          * [Query Parameters](#query-parameters-20)
          * [Input Description](#input-description-5)
-         * [Example](#example-20)
+         * [Example](#example-19)
       * [focus_definitions/&lt;focus_definitions_id&gt;/delete (PUT)](#focus_definitionsfocus_definitions_iddelete-put)
          * [Query Parameters](#query-parameters-21)
-         * [Output Description](#output-description-16)
-         * [Example](#example-21)
+         * [Output Description](#output-description-15)
+         * [Example](#example-20)
       * [focus_definitions/list](#focus_definitionslist)
          * [Query Parameters](#query-parameters-22)
-         * [Output Description](#output-description-17)
-         * [Example](#example-22)
+         * [Output Description](#output-description-16)
+         * [Example](#example-21)
       * [foci/list](#focilist)
          * [Query Parameters](#query-parameters-23)
          * [Ouput Description](#ouput-description)
-         * [Example](#example-23)
+         * [Example](#example-22)
    * [Snapshots](#snapshots)
       * [snapshots/generate (POST)](#snapshotsgenerate-post)
          * [Query Parameters](#query-parameters-24)
          * [Input Description](#input-description-6)
-         * [Output Description](#output-description-18)
-         * [Example](#example-24)
+         * [Output Description](#output-description-17)
+         * [Example](#example-23)
       * [snapshots/generate_status](#snapshotsgenerate_status)
          * [Query Parameters](#query-parameters-25)
          * [Input Description](#input-description-7)
-         * [Output Description](#output-description-19)
-         * [Example](#example-25)
+         * [Output Description](#output-description-18)
+         * [Example](#example-24)
       * [snapshots/list](#snapshotslist)
          * [Query Paramaters](#query-paramaters)
-         * [Output Description](#output-description-20)
-         * [Example](#example-26)
+         * [Output Description](#output-description-19)
+         * [Example](#example-25)
       * [snapshots/&lt;snapshots_id&gt;/word2vec_model/&lt;models_id&gt; (GET)](#snapshotssnapshots_idword2vec_modelmodels_id-get)
-         * [Required role](#required-role-1)
-         * [Output Description](#output-description-21)
-            * [Model was fetched](#model-was-fetched-1)
-            * [Failed to fetch the model](#failed-to-fetch-the-model-1)
-         * [Example](#example-27)
+         * [Required role](#required-role)
+         * [Output Description](#output-description-20)
+            * [Model was fetched](#model-was-fetched)
+            * [Failed to fetch the model](#failed-to-fetch-the-model)
+         * [Example](#example-26)
    * [Timespans](#timespans)
       * [timespans/list](#timespanslist)
          * [Query Parameters](#query-parameters-26)
-         * [Output Description](#output-description-22)
-         * [Example](#example-28)
+         * [Output Description](#output-description-21)
+         * [Example](#example-27)
 
 ----
 <!-- MEDIACLOUD-TOC-END -->
@@ -529,41 +523,6 @@ Response:
 ```
 
 
-## `topics/<topics_id>/word2vec_model/<models_id>` (GET)
-
-| URL                                             | Function                         |
-| ----------------------------------------------- | -------------------------------- |
-| `topics/<topics_id>/word2vec_model/<models_id>` | Download topic's word2vec model. |
-
-### Required role
-
-`topics_read`.
-
-### Output Description
-
-#### Model was fetched
-
-Raw, [Pickle](https://docs.python.org/3/library/pickle.html)-serialized word2vec data is returned as `application/octet-stream`, to be later loaded with:
-
-```python
-model = KeyedVectors.load(path_to_model_data)
-```
-
-#### Failed to fetch the model
-
-```json
-{
-    "error": "Reason why the model can't be fetched."
-}
-```
-
-### Example
-
-URL: <https://api.mediacloud.org/api/v2/topics/6/word2vec_model/1>
-
-Output: `application/octet-stream` model data of topic with `topics_id=6`, word2vec model with `models_id=1`.
-
-
 ## `topics/list`
 
 `https://api.mediacloud.org/api/v2/topics/list`
@@ -604,7 +563,6 @@ Standard parameters accepted: link_id.
 | queue               | which job pool the topic runs in -- 'mc' for internal media cloud jobs and 'public' for public jobs |
 | max_stories         | max number of stories allowed in the topic |
 | owners              | list of users with 'admin' permissions for the topic |
-| word2vec_models     | List of word2vec models generated for the topic |
 
 ### Example
 
@@ -643,12 +601,6 @@ Response:
                     "full_name": "Hal Roberts",
                     "topics_id": 672,
                 }
-            ],
-            "word2vec_models": [
-               {
-                  "models_id": 1,
-                  "creation_date": "2018-01-31 20:59:57.559360"
-               }
             ]
         }
     ],
@@ -713,12 +665,6 @@ Response:
                     "full_name": "Hal Roberts",
                     "topics_id": 672,
                 }
-            ],
-            "word2vec_models": [
-               {
-                  "models_id": 1,
-                  "creation_date": "2018-01-31 20:59:57.559360"
-               }
             ]
         }
     ]

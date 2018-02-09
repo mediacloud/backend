@@ -99,24 +99,6 @@ class AbstractDatabaseModelStore(AbstractModelStore, metaclass=abc.ABCMeta):
         return model_data
 
 
-class TopicDatabaseModelStore(AbstractDatabaseModelStore):
-    """Database model storage for storing topic word2vec models."""
-
-    def __init__(self, db: DatabaseHandler, topics_id: int):
-        """Constructor.
-
-        :param db: Database handler
-        :param topics_id: Topic ID
-        """
-        super().__init__(db=db, object_id=topics_id)
-
-    def model_table(self) -> str:
-        return 'topic_word2vec_models'
-
-    def data_table(self) -> str:
-        return 'topic_word2vec_models_data'
-
-
 class SnapshotDatabaseModelStore(AbstractDatabaseModelStore):
     """Database model storage for storing snapshot word2vec models."""
 

@@ -7,7 +7,6 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::Util::Word2vec::SnapshotDatabaseModelStore;
-use MediaWords::Util::Word2vec::TopicDatabaseModelStore;
 
 {
 

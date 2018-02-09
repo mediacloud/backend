@@ -4,7 +4,7 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use Test::More tests => 5;
+use Test::More tests => 3;
 use Test::NoWarnings;
 use Test::Deep;
 
@@ -33,20 +33,6 @@ sub test_load_word2vec_model($)
     my $snapshots_id = $snapshot->{ snapshots_id };
 
     my $expected_model_data = "\x00\x01\x02";
-
-    # Topic
-    {
-        my $model_row = $db->create( 'topic_word2vec_models', { 'object_id' => $topics_id } );
-        my $models_id = $model_row->{ $db->primary_key_column( 'topic_word2vec_models' ) };
-
-        my $postgresql_store = MediaWords::KeyValueStore::PostgreSQL->new( { table => 'topic_word2vec_models_data' } );
-        $postgresql_store->store_content( $db, $models_id, $expected_model_data );
-
-        my $model_store = MediaWords::Util::Word2vec::TopicDatabaseModelStore->new( $db, $topics_id );
-        my $got_model_data = MediaWords::Util::Word2vec::load_word2vec_model( $model_store, $models_id );
-        ok( defined $got_model_data );
-        is( $got_model_data, $expected_model_data );
-    }
 
     # Snapshot
     {
