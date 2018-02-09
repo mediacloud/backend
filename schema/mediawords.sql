@@ -3386,12 +3386,25 @@ $$ language plpgsql;
 
 
 --
--- NYTLabels annotations
+-- SimilarWeb metrics
 --
 CREATE TABLE similarweb_metrics (
     similarweb_metrics_id  SERIAL                   PRIMARY KEY,
     domain                 VARCHAR(1024)            NOT NULL,
     month                  DATE,
     visits                 INTEGER,
-    update_date            TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    update_date            TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    UNIQUE (domain, month)
 );
+
+
+--
+-- Unnormalized table
+--
+CREATE TABLE similarweb_media_metrics (
+    media_id                       INTEGER                  PRIMARY KEY references media,
+    similarweb_domain              VARCHAR(1024)            NOT NULL,
+    domain_exact_match             BOOLEAN                  NOT NULL,
+    monthly_audience               INTEGER                  NOT NULL,
+    update_date                    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+)
