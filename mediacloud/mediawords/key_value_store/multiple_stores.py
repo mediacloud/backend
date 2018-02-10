@@ -34,6 +34,14 @@ class MultipleStoresStore(KeyValueStore):
         self.__stores_for_reading = stores_for_reading
         self.__stores_for_writing = stores_for_writing
 
+    def stores_for_reading(self) -> list:
+        """Return list of stores for reading."""
+        return self.__stores_for_reading
+
+    def stores_for_writing(self) -> list:
+        """Return list of stores for writing."""
+        return self.__stores_for_writing
+
     def fetch_content(self, db: DatabaseHandler, object_id: int, object_path: str = None) -> bytes:
         """Fetch content from any of the stores that might have it; raise if none of them do."""
 
