@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Test::More tests => 21;
+use Test::More tests => 9;
 use Test::NoWarnings;
 
 use Text::Trim;
@@ -10,43 +10,6 @@ use Test::Deep;
 use MediaWords::Languages::en;
 
 use_ok( 'MediaWords::Util::HTML' );
-
-sub test_contains_block_level_tags()
-{
-    ok( !MediaWords::Util::HTML::_contains_block_level_tags( '<b> ' ), 'contains_block_level_tags' );
-
-    ok( MediaWords::Util::HTML::_contains_block_level_tags( '<div class="translation"> ) ' ), 'contains_block_level_tags' );
-
-    ok( !MediaWords::Util::HTML::_contains_block_level_tags( '<divXXXXXX> ) ' ), 'contains_block_level_tags' );
-
-    ok( MediaWords::Util::HTML::_contains_block_level_tags( '<p> Foo ' ), 'contains_block_level_tags' );
-
-    ok( MediaWords::Util::HTML::_contains_block_level_tags( '<P> Foo ' ), 'contains_block_level_tags' );
-
-    ok( MediaWords::Util::HTML::_contains_block_level_tags( '<p> Foo </P> ' ), 'contains_block_level_tags' );
-
-    ok( MediaWords::Util::HTML::_contains_block_level_tags( ' Foo </P> ' ), 'contains_block_level_tags' );
-}
-
-sub test_new_lines_around_block_level_tags()
-{
-    is( MediaWords::Util::HTML::_new_lines_around_block_level_tags( "<p>foo</p>" ), "\n\n<p>foo</p>\n\n" );
-
-    is( MediaWords::Util::HTML::_new_lines_around_block_level_tags( "<h1>HEADERING</h1><p>foo</p>" ),
-        "\n\n<h1>HEADERING</h1>\n\n\n\n<p>foo</p>\n\n" );
-
-    is( MediaWords::Util::HTML::_new_lines_around_block_level_tags( "<p>foo<div>Bar</div></p>" ),
-        "\n\n<p>foo\n\n<div>Bar</div>\n\n</p>\n\n" );
-
-    my $test_text = "<h1>Title</h1>\n<p>1st sentence. 2nd sentence.</p>";
-
-    my $lang = MediaWords::Languages::en->new();
-    my $sentences =
-      $lang->split_text_to_sentences(
-        MediaWords::Util::HTML::html_strip( MediaWords::Util::HTML::_new_lines_around_block_level_tags( $test_text ) ) );
-
-    cmp_deeply( $sentences, [ 'Title', '1st sentence.', '2nd sentence.' ] );
-}
 
 sub test_html_strip()
 {
@@ -73,16 +36,9 @@ EOF
     {
         my $input_html      = '';
         my $fallback        = undef;
-        my $expected_output = undef;
+        my $expected_output = '';
         my $actual_output   = MediaWords::Util::HTML::html_title( $input_html, $fallback );
         is( $actual_output, $expected_output, 'html_title() - empty' )
-    }
-
-    {
-        my $input_html = undef;
-        my $fallback   = undef;
-        eval { MediaWords::Util::HTML::html_title( $input_html, $fallback ); };
-        ok( $@, 'html_title() - undef' );
     }
 
     {
@@ -133,8 +89,6 @@ sub main()
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
-    test_contains_block_level_tags();
-    test_new_lines_around_block_level_tags();
     test_html_strip();
     test_html_title();
 }
