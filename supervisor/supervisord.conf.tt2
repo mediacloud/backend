@@ -278,6 +278,16 @@ programs = rabbitmq
     default_nice=10
 %]
 
+[% INCLUDE program_config
+    program='extract_story_links'
+    command="./script/run_in_env.sh ./mediacloud/mediawords/job/tm/extract_story_links_job.py"
+    default_stopasgroup='false'
+    default_killasgroup='false'
+    default_autorestart='false'
+    default_autostart='true'
+    default_nice=10
+%]
+
 [%- solr_standalone_jvm_heap_size = supervisor_solr.standalone.jvm_heap_size || "256m" %]
 [% INCLUDE program_config
     program='solr_standalone'
