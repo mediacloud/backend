@@ -52,6 +52,15 @@ def decode_object_from_bytes_if_needed(obj: Union[dict, list, tuple, str, bytes,
     return result
 
 
+def decode_str_from_bytes_if_needed(obj: Union[bytes, str, None]) -> Union[str, None]:
+    """Call decode_object_from_bytes_if_needed by only accept bytes and strings and only output strings."""
+    decode = decode_object_from_bytes_if_needed(obj)
+    if type(decode) not in (type('foo'), type(None)):
+        raise McDecodeObjectFromBytesIfNeededException("decoded object type '%s' is not str or None" % (type(obj,)))
+
+    return str(decode) if decode is not None else None
+
+
 class McConvertDBDPgArgumentsToPsycopg2FormatException(Exception):
     pass
 
