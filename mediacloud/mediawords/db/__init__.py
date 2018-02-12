@@ -1,9 +1,11 @@
+import typing
+
 from mediawords.db.handler import DatabaseHandler
 from mediawords.test.db.env import using_test_database
 
 from mediawords.util.config import get_config as py_get_config
 from mediawords.util.log import create_logger
-from mediawords.util.perl import decode_object_from_bytes_if_needed
+from mediawords.util.perl import decode_str_from_bytes_if_needed
 
 log = create_logger(__name__)
 
@@ -13,10 +15,19 @@ class McConnectToDBException(Exception):
     pass
 
 
-def connect_to_db(label: str = None, do_not_check_schema_version: bool = False) -> DatabaseHandler:
-    """Connect to PostgreSQL."""
+def connect_to_db(
+        label: typing.Optional[str] = None,
+        do_not_check_schema_version: bool = False,
+        is_template: bool = False) -> DatabaseHandler:
+    """Connect to PostgreSQL.
 
-    label = decode_object_from_bytes_if_needed(label)
+    Arguments:
+    label - db config section label for mediawords.yml
+    do_no_check_schema_version - if false, throw an error if the versions in mediawords.ym and the db do not match
+    is_template - if true, connect to a db called <db_name>_template instead of <db_name>
+
+    """
+    label = decode_str_from_bytes_if_needed(label)
 
     # If this is Catalyst::Test run, force the label to the test database
     if using_test_database():
@@ -56,6 +67,9 @@ def connect_to_db(label: str = None, do_not_check_schema_version: bool = False) 
     username = settings['user']
     password = settings['pass']
     database = settings['db']
+
+    if is_template:
+        database = database + "_template"
 
     try:
         ret = DatabaseHandler(
