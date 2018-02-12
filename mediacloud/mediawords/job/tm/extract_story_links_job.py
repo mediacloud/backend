@@ -3,7 +3,7 @@
 
 from mediawords.db import connect_to_db
 from mediawords.job import AbstractJob, McAbstractJobException, JobBrokerApp
-import mediawords.tm
+import mediawords.tm.extract_story_links
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
@@ -47,7 +47,7 @@ class ExtractStoryLinksJob(AbstractJob):
             db = connect_to_db()
             story = db.require_by_id(table='stories', object_id=stories_id)
             topic = db.require_by_id(table='topics', object_id=topics_id)
-            mediawords.tm.extract_story_links.extract_links(db, story, topic)
+            mediawords.tm.extract_story_links.extract_links_for_topic_story(db, story, topic)
         except Exception as ex:
             raise McExtractStoryLinksJobException("Unable to process story $stories_id: %s" % str(ex))
 
