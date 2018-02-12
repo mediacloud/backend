@@ -223,25 +223,28 @@ def fetch_content(db: DatabaseHandler, download: dict) -> str:
     config = mediawords.util.config.get_config()
     ascii_hack_downloads_id = config['mediawords'].get('ascii_hack_downloads_id', 0)
     if download['downloads_id'] < ascii_hack_downloads_id:
-        content = re.sub('[^[:ascii:]]', ' ', content)
+        # this matches all non-printable-ascii characters.  python re does not support POSIX character
+        # classes like [[:ascii:]]
+        content = re.sub(r'[^ -~]', ' ', content)
 
     return content
 
 
 def store_content(db: DatabaseHandler, download: dict, content: str) -> dict:
     """Store the content for the download."""
-    new_state = 'success'
-    if download['state'] == 'feed_error':
-        new_state = download['state']
+    # feed_error state indicates that the download was successfull but that there was a problem
+    # parsing the feed afterward.  so we want to keep the feed_error state even if we redownload
+    # the content
+    new_state = 'success' if download['state'] != 'feed_error' else 'feed_error'
 
-    path = ''
-    error = ''
     try:
         path = _get_store_for_writing().store_content(db, download['downloads_id'], content)
+        error = ''
     except Exception as e:
-        raise McDBIDownloadsException("error while trying to store download %d: %s" % (download['download_id'], e))
+        raise McDBIDownloadsException("error while trying to store download %d: %s" % (download['downloads_id'], e))
         new_state = 'error'
         error = str(e)
+        path = ''
 
     if new_state == 'success':
         error = ''
@@ -328,9 +331,11 @@ def _parse_out_javascript_content(content: str) -> str:
     the original content or the content parsed from the javascript
 
     """
-    match = re.search('.*fbs_settings.content[^\}]*body\"\:\"([^"\\]*(\\.[^"\\]*)*)\".*/', content, flags=re.M | re.S)
+    match = re.search(r'.*fbs_settings.content[^\}]*body\"\:\"([^"\\]*(\\.[^"\\]*)*)\".*', content, flags=re.M | re.S)
     if match is None:
         return content
+
+    content = match.group(1)
 
     # kludge quoted javascript text into plain text
     content = re.sub(r'\\[rn]', ' ', content)
@@ -358,7 +363,7 @@ def extract_content(content: str) -> dict:
 
     """
     # Don't run through expensive extractor if the content is short and has no html
-    if len(content) < MIN_CONTENT_LENGTH_TO_EXTRACT and not re.match(r'\<.*\>', content):
+    if len(content) < MIN_CONTENT_LENGTH_TO_EXTRACT and re.search(r'<.*>', content) is None:
         log.info("Content length is less than MIN_CONTENT_LENGTH_TO_EXTRACT and has no HTML so skipping extraction")
         ret = {'extracted_html': content, 'extracted_text': content}
     else:
@@ -368,7 +373,6 @@ def extract_content(content: str) -> dict:
         if len(ret['extracted_text']) < 256:
             js_content = _parse_out_javascript_content(content)
             js_ret = _call_extractor_on_html(js_content)
-
             if len(js_ret['extracted_text']) > len(ret['extracted_text']):
                 ret = js_ret
 
