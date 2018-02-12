@@ -187,7 +187,7 @@ def _add_tweets_to_ch_posts(twitter_class: typing.Type[AbstractTwitter], ch_post
     ch_post_lookup = {}
     for ch_post in ch_posts:
         try:
-            tweet_id = int(re.search(r'/status/(\d+)', ch_post['url']).group(1))
+            tweet_id = int(re.search('/status/(\d+)', ch_post['url']).group(1))
         except AttributeError:
             raise McFetchTopicTweetsDataException("Unable to parse id from tweet url: " + ch_post['url'])
 
