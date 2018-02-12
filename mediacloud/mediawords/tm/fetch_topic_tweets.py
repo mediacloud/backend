@@ -5,13 +5,14 @@ import datetime
 import re
 import time
 import tweepy
+import typing
 
 from mediawords.db import DatabaseHandler
 import mediawords.util.json
 from mediawords.util.web.user_agent import UserAgent
 
 from mediawords.util.log import create_logger
-logger = create_logger(__name__)
+log = create_logger(__name__)
 
 
 class McFetchTopicTweetsException(Exception):
@@ -32,18 +33,24 @@ class McFetchTopicTweetsConfigException(Exception):
     pass
 
 
+class McFetchTopicTweetDateFetchedException(Exception):
+    """exception indicating the topic tweets for the given day have already been fetched."""
+
+    pass
+
+
 class AbstractCrimsonHexagon(ABC):
     """abstract class that fetches data from Crimson Hexagon."""
 
     @staticmethod
     @abstractmethod
-    def fetch_posts(ch_monitor_id: int, day: datetime) -> list:
+    def fetch_posts(ch_monitor_id: int, day: datetime.datetime) -> dict:
         """
         Fetch the list of tweets from the ch api.
 
         Arguments:
         ch_monitor_id - crimson hexagon monitor id
-        day - date in '2017-12-30' form
+        day - date for which to fetch posts
 
         Return:
         list of ch posts directly decoded from the ch api json response
@@ -55,7 +62,7 @@ class CrimsonHexagon(AbstractCrimsonHexagon):
     """class that fech_posts() method that can list posts via the Crimson Hexagon api."""
 
     @staticmethod
-    def fetch_posts(ch_monitor_id: int, day: datetime) -> list:
+    def fetch_posts(ch_monitor_id: int, day: datetime.datetime) -> dict:
         """Implement fetch_posts on ch api using the config data from mediawords.yml."""
         ua = UserAgent()
         ua.set_max_size(100 * 1024 * 1024)
@@ -73,19 +80,19 @@ class CrimsonHexagon(AbstractCrimsonHexagon):
         day_arg = day.strftime('%Y-%m-%d')
         next_day_arg = next_day.strftime('%Y-%m-%d')
 
-        url = ("https://api.crimsonhexagon.com/api/monitor/posts?auth=%s&id=%s&start=%s&end=%s&extendLimit=true" %
+        url = ("https://api.crimsonhexagon.com/api/monitor/posts?auth=%s&id=%d&start=%s&end=%s&extendLimit=true" %
                (key, ch_monitor_id, day_arg, next_day_arg))
 
-        logger.debug("crimson hexagon url: " + url)
+        log.debug("crimson hexagon url: " + url)
 
         response = ua.get(url)
 
-        if not response.is_success:
+        if not response.is_success():
             raise McFetchTopicTweetsDataException("error fetching posts: " + response.decoded_content())
 
         decoded_content = response.decoded_content()
 
-        data = mediawords.util.json.decode_json(decoded_content)
+        data = dict(mediawords.util.json.decode_json(decoded_content))
 
         if 'status' not in data or not data['status'] == 'success':
             raise McFetchTopicTweetsDataException("Unknown response status: " + str(data))
@@ -94,13 +101,13 @@ class CrimsonHexagon(AbstractCrimsonHexagon):
 
 
 class AbstractTwitter(ABC):
-    """abstract class that fetches data from Crimson Hexagon."""
+    """abstract class that fetches data from Twitter."""
 
     @staticmethod
     @abstractmethod
     def fetch_100_tweets(tweet_ids: list) -> list:
         """
-        Fetch the up to 100 tweets from the twitter api.
+        Fetch up to 100 tweets from the twitter api.
 
         Throws a McFetchTopicTweetsError if more than 100 ids are in tweet_ids.
 
@@ -134,20 +141,20 @@ class Twitter(AbstractTwitter):
         auth = tweepy.OAuthHandler(config['twitter']['consumer_key'], config['twitter']['consumer_secret'])
         auth.set_access_token(config['twitter']['access_token'], config['twitter']['access_token_secret'])
 
-        api = tweepy.API(auth, parser=tweepy.parsers.JSONParser())
+        # the RawParser lets us directly decode from json to dict below
+        api = tweepy.API(auth, parser=tweepy.parsers.RawParser())
 
         # catch all errors and do backoff retries.  don't just catch rate limit errors because we want to be
-        # robust in the face of temporary network or service provider errors
+        # robust in the face of temporary network or service provider errors.
         tweets = None
         twitter_retries = 0
-        last_exception = None
-        while (tweets is None and twitter_retries <= 10):
+        while tweets is None and twitter_retries <= 10:
             last_exception = None
             try:
                 tweets = api.statuses_lookup(tweet_ids, include_entities=True, trim_user=False)
             except tweepy.TweepError as e:
                 sleep = 2 * (twitter_retries**2)
-                logger.info("twitter fetch error.  waiting " + sleep + " seconds before retry ...")
+                log.info("twitter fetch error.  waiting " + str(sleep) + " seconds before retry ...")
                 time.sleep(sleep)
                 last_exception = e
 
@@ -156,12 +163,12 @@ class Twitter(AbstractTwitter):
         if tweets is None:
             raise McFetchTopicTweetsDataException("unable to fetch tweets: " + str(last_exception))
 
-        tweets_json = mediawords.util.json.encode_json(tweets)
+        # it is hard to mock tweepy data directly, and the default tweepy objects are not json serializable,
+        # so just return a direct dict decoding of the raw twitter payload
+        return list(mediawords.util.json.decode_json(tweets))
 
-        return mediawords.util.json.decode_json(tweets_json)
 
-
-def _add_tweets_to_ch_posts(twitter_class: AbstractTwitter, ch_posts: list) -> None:
+def _add_tweets_to_ch_posts(twitter_class: typing.Type[AbstractTwitter], ch_posts: list) -> None:
     """
     Given a set of ch_posts, fetch data from twitter about each tweet and attach it under the ch['tweet'] field.
 
@@ -173,9 +180,9 @@ def _add_tweets_to_ch_posts(twitter_class: AbstractTwitter, ch_posts: list) -> N
     None
     """
     # statuses_lookup below only works for up to 100 tweets
-    assert(len(ch_posts) <= 100)
+    assert len(ch_posts) <= 100
 
-    logger.debug("fetching tweets for " + str(len(ch_posts)) + " tweets")
+    log.debug("fetching tweets for " + str(len(ch_posts)) + " tweets")
 
     ch_post_lookup = {}
     for ch_post in ch_posts:
@@ -198,7 +205,7 @@ def _add_tweets_to_ch_posts(twitter_class: AbstractTwitter, ch_posts: list) -> N
             tweets = twitter_class.fetch_100_tweets(tweet_ids)
         except tweepy.TweepError as e:
             sleep = 2 * (twitter_retries**2)
-            logger.debug("twitter fetch error.  waiting sleep seconds before retry ...")
+            log.debug("twitter fetch error.  waiting sleep seconds before retry ...")
             time.sleep(sleep)
             last_exception = e
 
@@ -207,18 +214,17 @@ def _add_tweets_to_ch_posts(twitter_class: AbstractTwitter, ch_posts: list) -> N
     if tweets is None:
         raise McFetchTopicTweetsDataException("unable to fetch tweets: " + str(last_exception))
 
-    logger.debug("fetched " + str(len(tweets)) + " tweets")
+    log.debug("fetched " + str(len(tweets)) + " tweets")
 
     for tweet in tweets:
-        assert(tweet['id'] in ch_post_lookup)
         ch_post_lookup[tweet['id']]['tweet'] = tweet
 
     for ch_post in ch_posts:
         if 'tweet' not in ch_post:
-            logger.debug("no tweet fetched for url " + ch_post['url'])
+            log.debug("no tweet fetched for url " + ch_post['url'])
 
 
-def _store_tweet_and_urls(db: DatabaseHandler, topic: dict, topic_tweet_day: dict, ch_post: dict) -> None:
+def _store_tweet_and_urls(db: DatabaseHandler, topic_tweet_day: dict, ch_post: dict) -> None:
     """
     Store the tweet in topic_tweets and its urls in topic_tweet_urls, using the data in ch_post.
 
@@ -247,15 +253,15 @@ def _store_tweet_and_urls(db: DatabaseHandler, topic: dict, topic_tweet_day: dic
 
     topic_tweet = db.create('topic_tweets', topic_tweet)
 
-    urls_inserted = {}
+    urls_inserted = {}  # type:typing.Dict[str, bool]
     for url_data in ch_post['tweet']['entities']['urls']:
 
         url = url_data['expanded_url']
 
         if url in urls_inserted:
-            next
+            break
 
-        urls_inserted[url] = 1
+        urls_inserted[url] = True
 
         db.create(
             'topic_tweet_urls',
@@ -267,10 +273,10 @@ def _store_tweet_and_urls(db: DatabaseHandler, topic: dict, topic_tweet_day: dic
 
 def _fetch_tweets_for_day(
         db: DatabaseHandler,
-        twitter_class: AbstractTwitter,
+        twitter_class: typing.Type[AbstractTwitter],
         topic: dict,
         topic_tweet_day: dict,
-        max_tweets: int=None) -> None:
+        max_tweets: typing.Optional[int]=None) -> None:
     """
     Fetch tweets for a single day.
 
@@ -297,7 +303,7 @@ def _fetch_tweets_for_day(
     if (max_tweets is not None):
         ch_posts = ch_posts[0:max_tweets]
 
-    logger.debug("adding %s tweets for topic %s, day %s" % (len(ch_posts), topic['topics_id'], topic_tweet_day['day']))
+    log.debug("adding %d tweets for topic %s, day %s" % (len(ch_posts), topic['topics_id'], topic_tweet_day['day']))
 
     # we can only get 100 posts at a time from twitter
     for i in range(0, len(ch_posts), 100):
@@ -305,30 +311,29 @@ def _fetch_tweets_for_day(
 
     db.begin()
 
-    logger.debug("inserting into topic_tweets ...")
+    log.debug("inserting into topic_tweets ...")
 
     for ch_post in ch_posts:
         if 'tweet' in ch_post:
-            _store_tweet_and_urls(db, topic, topic_tweet_day, ch_post)
+            _store_tweet_and_urls(db, topic_tweet_day, ch_post)
 
     num_deleted_tweets = len(list(filter(lambda x: 'tweet' not in x, ch_posts)))
     topic_tweet_day['num_ch_tweets'] -= num_deleted_tweets
 
     db.query(
-        "update topic_tweet_days set tweets_fetched = true, num_ch_tweets = $2 where topic_tweet_days_id = $1",
-        topic_tweet_day['topic_tweet_days_id'],
-        topic_tweet_day['num_ch_tweets'])
+        "update topic_tweet_days set tweets_fetched = true, num_ch_tweets = %(a)s where topic_tweet_days_id = %(b)s",
+        {'a': topic_tweet_day['num_ch_tweets'], 'b': topic_tweet_day['topic_tweet_days_id']})
 
     db.commit()
 
-    logger.debug("done inserting into topic_tweets")
+    log.debug("done inserting into topic_tweets")
 
 
 def _add_topic_tweet_single_day(
         db: DatabaseHandler,
         topic: dict,
-        day: datetime,
-        ch_class: AbstractCrimsonHexagon) -> dict:
+        day: datetime.datetime,
+        ch_class: typing.Type[AbstractCrimsonHexagon]) -> dict:
     """
     Add a row to topic_tweet_day if it does not already exist.  fetch data for new row from CH.
 
@@ -341,12 +346,13 @@ def _add_topic_tweet_single_day(
     Return:
     None
     """
+    # the perl-python layer was segfaulting until I added the str() around day below -hal
     topic_tweet_day = db.query(
-        "select * from topic_tweet_days where topics_id = $1 and day = $2",
-        topic['topics_id'], day).hash()
+        "select * from topic_tweet_days where topics_id = %(a)s and day = %(b)s",
+        {'a': topic['topics_id'], 'b': str(day)}).hash()
 
-    if topic_tweet_day is not None and 'tweets_fetched' in topic_tweet_day:
-        return
+    if topic_tweet_day is not None and topic_tweet_day['tweets_fetched']:
+        raise McFetchTopicTweetDateFetchedException("tweets already fetched for day " + str(day))
 
     # if we have a ttd but had not finished fetching tweets, delete it and start over
     if topic_tweet_day is not None:
@@ -376,8 +382,8 @@ def _add_topic_tweet_single_day(
 def _add_topic_tweet_days(
         db: DatabaseHandler,
         topic: dict,
-        twitter_class: AbstractTwitter,
-        ch_class: AbstractCrimsonHexagon) -> None:
+        twitter_class: typing.Type[AbstractTwitter],
+        ch_class: typing.Type[AbstractCrimsonHexagon]) -> None:
     """
     For each day within the topic date range, find or create a topic_tweet_day row and fetch data for that row from CH.
 
@@ -390,11 +396,14 @@ def _add_topic_tweet_days(
     Return:
     None
     """
-    date = topic['start_date']
-    while date <= topic['end_date']:
-        topic_tweet_day = _add_topic_tweet_single_day(db, topic, date, ch_class)
-        if topic_tweet_day is not None:
+    date = datetime.datetime.strptime(topic['start_date'], '%Y-%m-%d')
+    end_date = datetime.datetime.strptime(topic['end_date'], '%Y-%m-%d')
+    while date <= end_date:
+        try:
+            topic_tweet_day = _add_topic_tweet_single_day(db, topic, date, ch_class)
             _fetch_tweets_for_day(db, twitter_class, topic, topic_tweet_day)
+        except McFetchTopicTweetDateFetchedException:
+            pass
 
         date = date + datetime.timedelta(days=1)
 
@@ -402,8 +411,8 @@ def _add_topic_tweet_days(
 def fetch_topic_tweets(
         db: DatabaseHandler,
         topics_id: int,
-        twitter_class: AbstractTwitter=Twitter,
-        ch_class: AbstractCrimsonHexagon=CrimsonHexagon) -> None:
+        twitter_class: typing.Type[AbstractTwitter]=Twitter,
+        ch_class: typing.Type[AbstractCrimsonHexagon]=CrimsonHexagon) -> None:
     """
     Fetch list of tweets within a Crimson Hexagon monitor based on the ch_monitor_id of the given topic.
 
@@ -431,13 +440,11 @@ def fetch_topic_tweets(
     Return:
     None
     """
-    db = mediawords.db.connect_to_db()
-
     topic = db.require_by_id('topics', topics_id)
     ch_monitor_id = topic['ch_monitor_id']
 
     if ch_monitor_id is None:
-        logger.debug("returning after noop because topic topics_id has a null ch_monitor_id")
+        log.debug("returning after noop because topic topics_id has a null ch_monitor_id")
         return
 
     _add_topic_tweet_days(db, topic, twitter_class, ch_class)

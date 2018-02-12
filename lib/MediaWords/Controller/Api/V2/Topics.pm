@@ -29,6 +29,7 @@ __PACKAGE__->config(
         update        => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
         spider        => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
         spider_status => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        reset         => { Does => [ qw( ~TopicsAdminAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
@@ -250,7 +251,6 @@ sub create_GET
     my $auth_users_id = $c->stash->{ api_auth }->id();
 
     _validate_max_stories( $db, $data->{ max_stories }, $auth_users_id );
-    $data->{ max_stories } ||= 100_000;
 
     if ( !( scalar( @{ $media_ids } ) || scalar( @{ $media_tags_ids } ) ) )
     {
@@ -258,6 +258,8 @@ sub create_GET
     }
 
     my $topic = { map { $_ => $data->{ $_ } } @{ $TOPICS_EDIT_FIELDS } };
+
+    $topic->{ max_stories } ||= 100_000;
 
     $topic->{ pattern } =
       eval { MediaWords::Solr::Query::parse( $topic->{ solr_seed_query } )->re( $topic->{ is_logogram } ) };
@@ -295,8 +297,87 @@ sub create_GET
     $self->status_ok( $c, entity => { topics => $topics } );
 }
 
-# sub stories : Chained('apibase') : PathPart('stories') : CaptureArgs(0)
-# sub list : Chained('stories') : Args(0) : ActionClass('MC_REST')
+# return true if the topic has any topic_stories with iteration > 1 and the update in $data removes
+# media soures or dates from the query
+sub _update_decreases_query_scope($$$)
+{
+    my ( $db, $topic, $data ) = @_;
+
+    my $spidered_story = $db->query( <<SQL, $topic->{ topics_id } )->hash;
+select * from topic_stories where iteration > 1 and topics_id = ? limit 1
+SQL
+    return 0 unless ( $spidered_story );
+
+    return 1 if ( $data->{ start_date } && ( $data->{ start_date } gt $topic->{ start_date } ) );
+
+    return 1 if ( $data->{ end_date } && ( $data->{ end_date } lt $topic->{ end_date } ) );
+
+    if ( my $update_media_ids = $data->{ media_ids } )
+    {
+        my $existing_media_ids = $db->query( <<SQL, $topic->{ topics_id } )->flat();
+select media_id from topics_media_map where topics_id = ?
+SQL
+
+        for my $existing_id ( @{ $existing_media_ids } )
+        {
+            return 1 if ( !grep { $_ eq $existing_id } @{ $update_media_ids } );
+        }
+    }
+
+    if ( my $update_media_tags_ids = $data->{ media_tags_ids } )
+    {
+        my $existing_media_tags_ids = $db->query( <<SQL, $topic->{ topics_id } )->flat;
+select tags_id from topics_media_tags_map where topics_id = ?
+SQL
+
+        for my $existing_id ( @{ $existing_media_tags_ids } )
+        {
+            return 1 if ( !grep { $_ eq $existing_id } @{ $update_media_tags_ids } );
+        }
+    }
+
+    return 0;
+}
+
+# if the query or dates have changed, set topic_stories.link_mined to false for the impacted stories so that
+# they will be respidered
+sub _set_stories_respidering($$$)
+{
+    my ( $db, $topic, $data ) = @_;
+
+    if ( $data->{ solr_seed_query } && ( $topic->{ solr_seed_query } ne $data->{ solr_seed_query } ) )
+    {
+        $db->query( "update topic_stories set link_mined = 'f' where topics_id = ?", $topic->{ topics_id } );
+        return;
+    }
+
+    my $update_start_date = $data->{ start_date } || $topic->{ start_date };
+    if ( $update_start_date ne $topic->{ start_date } )
+    {
+        $db->query( <<SQL, $update_start_date, $topic->{ start_date }, $topic->{ topics_id } );
+update topic_stories ts set link_mined = 'f'
+    from stories s
+    where
+        ts.stories_id = s.stories_id and
+        s.publish_date between \$1 and ( \$2::date - '1 second'::interval ) and
+        ts.topics_id = \$3
+SQL
+    }
+
+    my $update_end_date = $data->{ end_date } || $topic->{ end_date };
+    if ( $update_end_date ne $topic->{ end_date } )
+    {
+        $db->query( <<SQL, $update_end_date, $topic->{ end_date }, $topic->{ topics_id } );
+update topic_stories ts set link_mined = 'f'
+    from stories s
+    where
+        ts.stories_id = s.stories_id and
+        s.publish_date between ( \$2::date + '1 second'::interval) and \$1 and
+        ts.topics_id = \$3
+SQL
+    }
+
+}
 
 sub update : Chained( 'apibase' ) : ActionClass( 'MC_REST' )
 {
@@ -340,6 +421,11 @@ sub update_PUT
         die( "invalid solr query: $@" ) if ( $@ );
     }
 
+    if ( _update_decreases_query_scope( $db, $topic, $data ) )
+    {
+        die( "topic update cannot reduce the scope of the query" );
+    }
+
     $update->{ is_public }           = normalize_boolean_for_db( $update->{ is_public } );
     $update->{ is_logogram }         = normalize_boolean_for_db( $update->{ is_logogram } );
     $update->{ solr_seed_query_run } = normalize_boolean_for_db( $update->{ solr_seed_query_run } );
@@ -353,6 +439,8 @@ sub update_PUT
     $db->update_by_id( 'topics', $topic->{ topics_id }, $update );
 
     _set_topic_media( $db, $topic, $media_ids, $media_tags_ids );
+
+    _set_stories_respidering( $db, $topic, $data );
 
     $db->commit;
 
@@ -442,6 +530,27 @@ select $JOB_STATE_FIELD_LIST
 SQL
 
     $self->status_ok( $c, entity => { job_states => $job_states } );
+}
+
+sub reset : Chained( 'apibase' ) : ActionClass( 'MC_REST' )
+{
+}
+
+sub reset_PUT
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $topics_id = int( $c->stash->{ topics_id } );
+
+    $db->query( "delete from topic_stories where topics_id = ?",                   $topics_id );
+    $db->query( "delete from topic_links where topics_id = ?",                     $topics_id );
+    $db->query( "delete from topic_dead_links where topics_id = ?",                $topics_id );
+    $db->query( "delete from topic_seed_urls where topics_id = ?",                 $topics_id );
+    $db->query( "update topics set solr_seed_query_run = 'f' where topics_id = ?", $topics_id );
+
+    $self->status_ok( $c, entity => { success => 1 } );
 }
 
 1;

@@ -2939,7 +2939,10 @@ sub mine_topic ($$;$)
 
     $_test_mode = 1 if ( $options->{ test_mode } );
 
-    MediaWords::TM::send_topic_alert( $db, $topic, "started topic spidering" );
+    if ( $topic->{ state } ne 'running' )
+    {
+        MediaWords::TM::send_topic_alert( $db, $topic, "started topic spidering" );
+    }
 
     eval {
         do_mine_topic( $db, $topic );
