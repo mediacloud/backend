@@ -193,11 +193,11 @@ def test_html_strip() -> None:
     assert html_strip("&amp;&quot;") == '&"'
 
     html_path = mediawords.util.paths.mc_root_path() + '/mediacloud/test-data/html/strip.html'
-    with open(html_path, 'r') as fh:
+    with open(html_path, 'r', encoding='utf8') as fh:
         html = fh.read()
 
     text_path = mediawords.util.paths.mc_root_path() + '/mediacloud/test-data/html/strip.txt'
-    with open(text_path, 'r') as fh:
+    with open(text_path, 'r', encoding='utf8') as fh:
         text = fh.read()
 
     got_text = html_strip(html.strip())

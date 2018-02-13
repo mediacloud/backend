@@ -29,7 +29,7 @@ def test_get_links_from_html() -> None:
 
     # sanity test to make sure that we are able to get all of the links from a real html page
     filename = mediawords.util.paths.mc_root_path() + '/mediacloud/test-data/html/strip.html'
-    with open(filename, 'r') as fh:
+    with open(filename, 'r', encoding-'utf8') as fh:
         html = fh.read()
 
     links = mediawords.tm.extract_story_links.get_links_from_html(html)
