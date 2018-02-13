@@ -147,7 +147,7 @@ class TestDownloads(unittest.TestCase):
         """Test extract_count()."""
         results = mediawords.dbi.downloads.extract_content("<script>foo<</script><p>bar</p>")
         assert results['extracted_html'].strip() == '<body id="readabilityBody"><p>bar</p></body>'
-        assert results['extracted_text'].strip() == 'bar'
+        assert results['extracted_text'].strip() == 'bar.'
 
         results = mediawords.dbi.downloads.extract_content('foo')
         assert results['extracted_html'].strip() == 'foo'
@@ -156,7 +156,7 @@ class TestDownloads(unittest.TestCase):
         results = mediawords.dbi.downloads.extract_content(
             '<script>fbs_settings.content = { "body":"<p>foo</p>" }</script>')
         assert results['extracted_html'].strip() == '<body id="readabilityBody"><p>foo</p></body>'
-        assert results['extracted_text'].strip() == 'foo'
+        assert results['extracted_text'].strip() == 'foo.'
 
 
 class TestDownloadsDB(TestDatabaseWithSchemaTestCase):
@@ -259,11 +259,11 @@ class TestDownloadsDB(TestDatabaseWithSchemaTestCase):
         result = mediawords.dbi.downloads.extract(db, self.test_download)
 
         assert result['extracted_html'].strip() == '<body id="readabilityBody"><p>foo</p></body>'
-        assert result['extracted_text'].strip() == 'foo'
+        assert result['extracted_text'].strip() == 'foo.'
 
         mediawords.dbi.downloads.store_content(db, self.test_download, html)
         mediawords.dbi.downloads.extract(db, self.test_download, use_cache=True)
         mediawords.dbi.downloads.store_content(db, self.test_download, 'bar')
         result = mediawords.dbi.downloads.extract(db, self.test_download, use_cache=True)
         assert result['extracted_html'].strip() == '<body id="readabilityBody"><p>foo</p></body>'
-        assert result['extracted_text'].strip() == 'foo'
+        assert result['extracted_text'].strip() == 'foo.'

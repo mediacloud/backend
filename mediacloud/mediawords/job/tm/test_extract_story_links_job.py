@@ -19,7 +19,7 @@ class TestExtractStoryLinksJobDB(mediawords.test.test_database.TestDatabaseWithS
         download['stories_id'] = story['stories_id']
         db.update_by_id('downloads', download['downloads_id'], download)
 
-        mediawords.dbi.downloads.store_content(db, download, 'foo')
+        mediawords.dbi.downloads.store_content(db, download, '<p>foo</p>')
 
         self.test_story = story
         self.test_download = download

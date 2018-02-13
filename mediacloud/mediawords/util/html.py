@@ -90,6 +90,33 @@ def meta_refresh_url_from_html(html: str, base_url: Optional[str] = None) -> Opt
     return None
 
 
+def _sententize_block_level_tags(s: str) -> str:
+    """Add a double newline after each block level tag and a newline before the end of each block level tag.
+
+    Arguments:
+    s - html string
+
+    Returns:
+    string with tags replaced.
+
+    """
+    _BLOCK_LEVEL_ELEMENT_TAGS = \
+        ('title h1 h2 h3 h4 h5 h6 p div dl dt dd ol ul li dir menu address'
+         ' blockquote center div hr ins noscript pre').split()
+    _TAG_LIST = '|'.join(_BLOCK_LEVEL_ELEMENT_TAGS)
+    _BLOCK_LEVEL_START_TAG_RE = r'(<(' + _TAG_LIST + ')(>|\s))'
+    _BLOCK_LEVEL_END_TAG_RE = r'(</(' + _TAG_LIST + ')>)'
+
+    s = re.sub(_BLOCK_LEVEL_START_TAG_RE, "\n\n\\1", s, re.S | re.I)
+    s = re.sub(_BLOCK_LEVEL_END_TAG_RE, ".\\1\n\n", s, re.S | re.I)
+
+    # get rid of the some of the resulting repeat periods
+    s = re.sub(r'\.(\s*\.)+', '.', s, re.S)
+    s = re.sub(r'^\s*\.\s*', '', s, re.S)
+
+    return s
+
+
 def html_strip(s: str, include_title: bool=False) -> str:
     """Strip the html tags, html comments, any any text within TITLE, SCRIPT, APPLET, OBJECT, and STYLE tags.
 
@@ -100,6 +127,10 @@ def html_strip(s: str, include_title: bool=False) -> str:
     include_title - if true, the title text in the returned text
     """
     s = str(decode_object_from_bytes_if_needed(s))
+
+    # help the sentence parse understand headers as individual sentences
+    s = _sententize_block_level_tags(s)
+
     # Remove soft hyphen (&shy or 0xAD) character from text
     # (some news websites hyphenate their stories using this character so that the browser can lay it out more nicely)
     s = re.sub('\xAD', '', s, flags=re.S)
