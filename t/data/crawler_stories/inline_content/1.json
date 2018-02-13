@@ -1,9 +1,9 @@
 {
-    "collect_date":"2018-02-13 13:09:26.629583",
+    "collect_date":"2018-02-13 15:17:09.169568",
     "content":"<p>This is the first item.</p>\n",
-    "db_row_last_updated":"2018-02-13 13:09:37.250504-06:00",
+    "db_row_last_updated":"2018-02-13 15:17:19.823139-06:00",
     "description":"RSS description of the first inline item.",
-    "extracted_text":"First inline item\n***\n\nRSS description of the first inline item.\n***\n\nThis is the first item. .",
+    "extracted_text":"First inline item\n***\n\nRSS description of the first inline item.\n***\n\nThis is the first item.",
     "feed_type":"syndicated",
     "full_text_rss":false,
     "guid":"http://www.example.com/inline_content/item_1.html",
@@ -13,7 +13,7 @@
     "stories_id":1,
     "story_sentences":[
         {
-            "db_row_last_updated":"2018-02-13 13:09:37.250504-06:00",
+            "db_row_last_updated":"2018-02-13 15:17:19.823139-06:00",
             "is_dup":null,
             "language":"en",
             "media_id":1,
@@ -27,5 +27,5 @@
     "tags":[],
     "timezone":"America/Chicago",
     "title":"First inline item",
-    "url":"http://namshub:39391/inline_content/item_1.html"
+    "url":"http://namshub:40535/inline_content/item_1.html"
 }
