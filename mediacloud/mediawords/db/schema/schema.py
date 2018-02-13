@@ -6,7 +6,7 @@ from mediawords.db import connect_to_db
 from mediawords.db.handler import DatabaseHandler
 from mediawords.util.log import create_logger
 from mediawords.util.paths import mc_sql_schema_path
-from mediawords.util.perl import decode_object_from_bytes_if_needed
+from mediawords.util.perl import decode_str_from_bytes_if_needed
 
 log = create_logger(__name__)
 
@@ -47,7 +47,7 @@ def recreate_db(label: typing.Optional[str] = None, is_template: bool = False) -
 
     # ---
 
-    label = str(decode_object_from_bytes_if_needed(label))
+    label = decode_str_from_bytes_if_needed(label)
 
     db = connect_to_db(label=label, do_not_check_schema_version=True, is_template=is_template)
 
