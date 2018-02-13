@@ -307,7 +307,7 @@ def _fetch_tweets_for_day(
 
     # we can only get 100 posts at a time from twitter
     for i in range(0, len(ch_posts), 100):
-        _add_tweets_to_ch_posts(twitter_class, ch_posts[i:i+100])
+        _add_tweets_to_ch_posts(twitter_class, ch_posts[i:i + 100])
 
     db.begin()
 

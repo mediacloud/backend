@@ -3,6 +3,7 @@
 import mediawords.test.test_database
 import mediawords.job.tm.extract_story_links_job
 
+
 class TestExtractStoryLinksJobDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase):
     """Run tests that require database access."""
 

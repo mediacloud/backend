@@ -199,12 +199,12 @@ class TestDownloadsDB(TestDatabaseWithSchemaTestCase):
         store = mediawords.dbi.downloads._get_store_for_reading(self.test_download)
 
         content = 'foo bar'
-        store.store_content(db, self.test_download['downloads_id'],  content)
+        store.store_content(db, self.test_download['downloads_id'], content)
         got_content = mediawords.dbi.downloads.fetch_content(db, self.test_download)
         assert got_content == content
 
         content = b'foo bar'
-        store.store_content(db, self.test_download['downloads_id'],  content)
+        store.store_content(db, self.test_download['downloads_id'], content)
         got_content = mediawords.dbi.downloads.fetch_content(db, self.test_download)
         assert got_content == content.decode()
 
