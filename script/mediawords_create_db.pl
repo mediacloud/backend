@@ -22,7 +22,7 @@ Readonly my $MAX_STORIES => 1000;
 
 sub too_many_stories
 {
-    my $db = MediaWords::DB::connect_to_db;
+    my $db = MediaWords::DB::connect_to_db( undef, 1 );
 
     my ( $stories_exists ) = $db->query( "select 1 from pg_class where relname = 'stories'" )->flat;
 
