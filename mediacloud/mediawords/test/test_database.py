@@ -83,7 +83,7 @@ class TestDatabaseWithSchemaTestCase(TestCase):
         if not TestDatabaseWithSchemaTestCase._template_db_created:
             log.info("create test db template")
             # mediacloud_test should already exist, so we have to connect to it to create the template database
-            db = connect_to_db(label=test_db_label)
+            db = connect_to_db(label=test_db_label, do_not_check_schema_version=True)
             db.query("drop database if exists %s" % (template_db_name,))
             db.query("create database %s" % (template_db_name,))
             db.disconnect()
