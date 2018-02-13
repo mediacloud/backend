@@ -42,6 +42,7 @@ class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseWithSche
     """Run tests that require database access."""
 
     def setUp(self) -> None:
+        """Create test_story and test_download."""
         super().setUp()
         db = self.db()
 

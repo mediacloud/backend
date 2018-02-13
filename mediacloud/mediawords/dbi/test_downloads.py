@@ -159,7 +159,7 @@ class TestDownloads(unittest.TestCase):
         assert results['extracted_text'].strip() == 'foo'
 
 
-class TestDownloadsDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase):
+class TestDownloadsDB(TestDatabaseWithSchemaTestCase):
     """Run tests that require database access."""
 
     def setUp(self) -> None:
