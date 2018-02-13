@@ -107,12 +107,12 @@ def _sententize_block_level_tags(s: str) -> str:
     _BLOCK_LEVEL_START_TAG_RE = r'(<(' + _TAG_LIST + ')(>|\s))'
     _BLOCK_LEVEL_END_TAG_RE = r'(</(' + _TAG_LIST + ')>)'
 
-    s = re.sub(_BLOCK_LEVEL_START_TAG_RE, "\n\n\\1", s, re.S | re.I)
-    s = re.sub(_BLOCK_LEVEL_END_TAG_RE, ".\\1\n\n", s, re.S | re.I)
+    s = re.sub(_BLOCK_LEVEL_START_TAG_RE, "\n\n\\1", s, flags=re.S | re.I)
+    s = re.sub(_BLOCK_LEVEL_END_TAG_RE, ".\\1\n\n", s, flags=re.S | re.I)
 
-    # get rid of the some of the resulting repeat periods
-    s = re.sub(r'\.(\s*\.)+', '.', s, re.S)
-    s = re.sub(r'^\s*\.\s*', '', s, re.S)
+    # get rid of repeat periods
+    s = re.sub(r'\.(\s*\.)+', '.', s, flags=re.S)
+    s = re.sub(r'^(\s*\.\s)+', '', s, flags=re.S)
 
     return s
 
