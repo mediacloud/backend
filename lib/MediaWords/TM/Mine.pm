@@ -1998,6 +1998,8 @@ sub import_seed_urls
 {
     my ( $db, $topic ) = @_;
 
+    return if ( $topic->{ ch_monitor_id } );
+
     my $topics_id = $topic->{ topics_id };
 
     # take care of any seed urls with urls that we have already processed for this topic
