@@ -41,7 +41,7 @@ class ExtractStoryLinksJob(AbstractJob):
         stories_id = int(stories_id)
         topics_id = int(topics_id)
 
-        log.info("Fetching annotation for story ID %d..." % stories_id)
+        log.info("Start fetching extracting links for stories_id %d topics_id %d" % (stories_id, topics_id))
 
         try:
             db = connect_to_db()
