@@ -6,6 +6,7 @@ import typing
 
 from mediawords.db import DatabaseHandler
 import mediawords.dbi.downloads
+import mediawords.key_value_store.amazon_s3
 from mediawords.util.log import create_logger
 
 log = create_logger(__name__)
@@ -143,23 +144,27 @@ def get_links_from_story(db: DatabaseHandler, story: dict) -> typing.List[str]:
     list of urls
 
     """
-    extracted_html = get_extracted_html(db, story)
+    try:
+        extracted_html = get_extracted_html(db, story)
 
-    html_links = get_links_from_html(extracted_html)
-    text_links = get_links_from_story_text(db, story)
-    youtube_links = get_youtube_embed_links(db, story)
+        html_links = get_links_from_html(extracted_html)
+        text_links = get_links_from_story_text(db, story)
+        youtube_links = get_youtube_embed_links(db, story)
 
-    links = html_links + text_links + youtube_links
+        links = html_links + text_links + youtube_links
 
-    links = list(filter(lambda x: re.search(_IGNORE_LINK_PATTERN, x, flags=re.I) is None, links))
+        links = list(filter(lambda x: re.search(_IGNORE_LINK_PATTERN, x, flags=re.I) is None, links))
 
-    link_lookup = {}
-    for url in links:
-        link_lookup[mediawords.util.url.normalize_url_lossy(url)] = url
+        link_lookup = {}
+        for url in links:
+            link_lookup[mediawords.util.url.normalize_url_lossy(url)] = url
 
-    links = link_lookup.values()
+        links = link_lookup.values()
 
-    return links
+        return links
+    except mediawords.key_value_store.amazon_s3.McAmazonS3StoreException:
+        # we expect the fetch_content() to fail occasionally
+        return ()
 
 
 def extract_links_for_topic_story(db: DatabaseHandler, story: dict, topic: dict) -> None:
