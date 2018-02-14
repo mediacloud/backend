@@ -120,7 +120,8 @@ def get_links_from_story_text(db: DatabaseHandler, story: dict) -> typing.List[s
 
     story_text = ' '.join([dt['download_text'] for dt in download_texts])
 
-    story_text = ' '.join([str(s) for s in (story['title'], story['description'], story_text)])
+    story_text = story_text + str(story['title']) if story['title'] is not None else story_text
+    story_text = story_text + str(story['description']) if story['description'] is not None else story_text
 
     links = []
     for url in re.findall(r'https?://[^\s\")]+', story_text):
