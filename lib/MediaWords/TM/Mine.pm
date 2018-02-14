@@ -277,7 +277,14 @@ SQL
     my $queued_stories_ids = [];
     for my $story ( @{ $stories } )
     {
-        next unless ( story_within_topic_date_range( $db, $topic, $story ) );
+        if ( !story_within_topic_date_range( $db, $topic, $story ) )
+        {
+            # mark as mined so that we don't have to repeat this check every time
+            $db->query( <<SQL, $story->{ stories_id }, $topic->{ topics_id } );
+update topic_stories set link_mined = 't' where stories_id = ? and topics_id = ?
+SQL
+            next;
+        }
 
         push( @{ $queued_stories_ids }, $story->{ stories_id } );
 
