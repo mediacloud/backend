@@ -112,7 +112,7 @@ class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseWithSche
 
         links = mediawords.tm.extract_story_links.get_links_from_story_text(db, story)
 
-        assert links == 'http://title.com http://description.com http://download.text'.split()
+        assert sorted(links) == sorted('http://title.com http://description.com http://download.text'.split())
 
     def test_get_links_from_story(self) -> None:
         """Test get_links_from_story()."""
