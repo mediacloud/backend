@@ -274,9 +274,12 @@ sub generate_topic_links
 update topic_stories set link_mined = 'f' where stories_id in ( select id from $stories_ids_table ) and topics_id = ?
 SQL
 
+    my $queued_stories_ids = [];
     for my $story ( @{ $stories } )
     {
         next unless ( story_within_topic_date_range( $db, $topic, $story ) );
+
+        push( @{ $queued_stories_ids }, $story->{ stories_id } );
 
         MediaWords::Job::TM::ExtractStoryLinks->add_to_queue(
             { stories_id => $story->{ stories_id }, topics_id => $topic->{ topics_id } } );
@@ -285,6 +288,8 @@ SQL
     }
 
     INFO( "waiting for link extraction jobs to finish" );
+
+    my $queued_ids_table = $db->get_temporary_ids_table( $queued_stories_ids );
 
     # poll every $sleep_time seconds waiting for the jobs to complete.  die if the number of stories left to process
     # has not shrunk for $timeout seconds
@@ -298,7 +303,7 @@ SQL
 select count(*)
     from topic_stories
     where
-        stories_id in ( select id from $stories_ids_table ) and
+        stories_id in ( select id from $queued_ids_table ) and
         topics_id = ? and
         link_mined = 'f'
 SQL
@@ -316,6 +321,8 @@ SQL
         $prev_num_queued_stories = $num_queued_stories;
         sleep( $sleep_time );
     }
+
+    $db->query( "discard temp" );
 }
 
 # lookup or create the spidered:spidered tag
