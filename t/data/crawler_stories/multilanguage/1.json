@@ -1,7 +1,7 @@
 {
-    "collect_date":"2018-02-13 15:19:36.731983",
+    "collect_date":"2018-02-13 18:15:16.378244",
     "content":"<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"UTF-8\">\n</head>\n<body>\n<p>\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n</p>\n</body>\n</html>\n",
-    "db_row_last_updated":"2018-02-13 15:19:47.375345-06:00",
+    "db_row_last_updated":"2018-02-13 18:15:27.144404-06:00",
     "description":"English: The quick brown fox jumps over the lazy dog.",
     "extracted_text":"English: The quick brown fox jumps over the lazy dog\n***\n\nEnglish: The quick brown fox jumps over the lazy dog.\n***\n\nThe quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog.\n    The quick brown fox jumps over the lazy dog. .",
     "feed_type":"syndicated",
@@ -13,7 +13,7 @@
     "stories_id":1,
     "story_sentences":[
         {
-            "db_row_last_updated":"2018-02-13 15:19:47.375345-06:00",
+            "db_row_last_updated":"2018-02-13 18:15:27.144404-06:00",
             "is_dup":null,
             "language":"en",
             "media_id":1,
@@ -24,7 +24,7 @@
             "story_sentences_id":2
         },
         {
-            "db_row_last_updated":"2018-02-13 15:19:47.375345-06:00",
+            "db_row_last_updated":"2018-02-13 18:15:27.144404-06:00",
             "is_dup":null,
             "language":"en",
             "media_id":1,
@@ -38,5 +38,5 @@
     "tags":[],
     "timezone":"America/Chicago",
     "title":"English: The quick brown fox jumps over the lazy dog",
-    "url":"http://namshub:37209/multilanguage/english.html"
+    "url":"http://namshub:39991/multilanguage/english.html"
 }
