@@ -1,0 +1,191 @@
+"""Test mediawords.tm.extract_story_links."""
+
+import mediawords.test.test_database
+import mediawords.tm.extract_story_links
+
+
+def test_get_links_from_html() -> None:
+    """Test get_links_from_html()."""
+    def test_links(html: str, links: list) -> None:
+        assert mediawords.tm.extract_story_links.get_links_from_html(html) == links
+
+    test_links('<a href="http://foo.com">', ['http://foo.com'])
+    test_links('<link href="http://bar.com">', ['http://bar.com'])
+    test_links('<img src="http://img.tag">', [])
+
+    test_links('<a href="http://foo.com"/> <a href="http://bar.com"/>', ['http://foo.com', 'http://bar.com'])
+
+    # transform nyt urls
+    test_links('<a href="http://www3.nytimes.com/foo/bar">', ['http://www.nytimes.com/foo/bar'])
+
+    # ignore relative urls
+    test_links('<a href="/foo/bar">', [])
+
+    # ignore invalid urls
+    test_links(r'<a href="http:\\foo.bar">', [])
+
+    # ignore urls from ignore patternk
+    test_links('<a href="http://www.addtoany.com/http://foo.bar">', [])
+
+    # sanity test to make sure that we are able to get all of the links from a real html page
+    filename = mediawords.util.paths.mc_root_path() + '/mediacloud/test-data/html/strip.html'
+    with open(filename, 'r', encoding='utf8') as fh:
+        html = fh.read()
+
+    links = mediawords.tm.extract_story_links.get_links_from_html(html)
+    assert len(links) == 300
+    for link in links:
+        assert mediawords.util.url.is_http_url(link)
+
+
+class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase):
+    """Run tests that require database access."""
+
+    def setUp(self) -> None:
+        """Create test_story and test_download."""
+        super().setUp()
+        db = self.db()
+
+        media = mediawords.test.db.create_test_story_stack(db, {'A': {'B': [1]}})
+
+        story = media['A']['feeds']['B']['stories']['1']
+
+        download = mediawords.test.db.create_download_for_feed(db, media['A']['feeds']['B'])
+        download['stories_id'] = story['stories_id']
+        db.update_by_id('downloads', download['downloads_id'], download)
+
+        mediawords.dbi.downloads.store_content(db, download, '<p>foo</p>')
+
+        self.test_story = story
+        self.test_download = download
+
+    def test_get_youtube_embed_links(self) -> None:
+        """Test get_youtube_embed_links()."""
+        db = self.db()
+
+        story = self.test_story
+        download = self.test_download
+
+        youtube_html = """
+        <iframe src="http://youtube.com/embed/1234" />
+        <img src="http://foo.com/foo.png" />
+        <iframe src="http://youtube-embed.com/embed/3456" />
+        <iframe src="http://bar.com" />
+        """
+
+        mediawords.dbi.downloads.store_content(db, download, youtube_html)
+
+        links = mediawords.tm.extract_story_links.get_youtube_embed_links(db, story)
+
+        assert links == ['http://youtube.com/embed/1234', 'http://youtube.com/embed/3456']
+
+    def test_get_extracted_html(self) -> None:
+        """Test get_extracted_html()."""
+        db = self.db()
+
+        story = self.test_story
+        download = self.test_download
+
+        content = '<html><head><meta foo="bar" /></head><body>foo</body></html>'
+
+        mediawords.dbi.downloads.store_content(db, download, content)
+
+        extracted_html = mediawords.tm.extract_story_links.get_extracted_html(db, story)
+
+        assert extracted_html.strip() == '<body id="readabilityBody">foo</body>'
+
+    def test_get_links_from_story_text(self) -> None:
+        """Test get_links_from_story_text()."""
+        db = self.db()
+
+        story = self.test_story
+        download = self.test_download
+
+        story['title'] = 'http://title.com/'
+        story['description'] = 'http://description.com'
+        db.update_by_id('stories', story['stories_id'], story)
+
+        db.create('download_texts', {
+            'downloads_id': download['downloads_id'],
+            'download_text': 'http://download.text',
+            'download_text_length': 20})
+
+        links = mediawords.tm.extract_story_links.get_links_from_story_text(db, story)
+
+        assert links == 'http://title.com http://description.com http://download.text'.split()
+
+    def test_get_links_from_story(self) -> None:
+        """Test get_links_from_story()."""
+        db = self.db()
+
+        story = self.test_story
+        download = self.test_download
+
+        story['title'] = 'http://title.text'
+        story['description'] = '<a href="http://description.link" />http://description.text'
+        db.update_by_id('stories', story['stories_id'], story)
+
+        html_content = """
+        <p>Here is a content <a href="http://content.1.link">link</a>.</p>
+        <p>Here is another content <a href="http://content.2.link" />link</a>.</p>
+        <p>Here is a duplicate content <a href="http://content.2.link" />link</a>.</p>
+        <p>Here is a duplicate text <a href="http://link-text.dup" />link</a>.</p>
+        <p>Here is a youtube embed:</p>
+        <iframe src="http://youtube-embed.com/embed/123456" />
+        """
+
+        download_text = {}
+        download_text['downloads_id'] = download['downloads_id']
+        download_text['download_text'] = "http://text.1.link http://text.2.link http://text.2.link http://link-text.dup"
+        download_text['download_text_length'] = len(download_text['download_text'])
+        db.create('download_texts', download_text)
+
+        expected_links = """
+        http://content.1.link
+        http://content.2.link
+        http://youtube.com/embed/123456
+        http://title.text
+        http://description.link
+        http://description.text
+        http://text.1.link
+        http://text.2.link
+        http://link-text.dup
+        """.split()
+
+        mediawords.dbi.downloads.store_content(db, download, html_content)
+
+        links = mediawords.tm.extract_story_links.get_links_from_story(db, story)
+
+        assert sorted(links) == sorted(expected_links)
+
+    def test_extract_links_for_topic_story(self) -> None:
+        """Test extract_links_for_topic_story()."""
+        db = self.db()
+
+        story = self.test_story
+
+        story['description'] = 'http://foo.com http://bar.com'
+        db.update_by_id('stories', story['stories_id'], story)
+
+        topic = mediawords.test.db.create_test_topic(db, 'links')
+        db.create('topic_stories', {'topics_id': topic['topics_id'], 'stories_id': story['stories_id']})
+
+        mediawords.tm.extract_story_links.extract_links_for_topic_story(db, story, topic)
+
+        got_topic_links = db.query(
+            "select topics_id, stories_id, url from topic_links where topics_id = %(a)s order by url",
+            {'a': topic['topics_id']}).hashes()
+
+        expected_topic_links = [
+            {'topics_id': topic['topics_id'], 'stories_id': story['stories_id'], 'url': 'http://bar.com'},
+            {'topics_id': topic['topics_id'], 'stories_id': story['stories_id'], 'url': 'http://foo.com'}]
+
+        assert got_topic_links == expected_topic_links
+
+        got_topic_story = db.query(
+            "select topics_id, stories_id, link_mined from topic_stories where topics_id =%(a)s and stories_id = %(b)s",
+            {'a': topic['topics_id'], 'b': story['stories_id']}).hash()
+
+        expected_topic_story = {'topics_id': topic['topics_id'], 'stories_id': story['stories_id'], 'link_mined': True}
+
+        assert got_topic_story == expected_topic_story

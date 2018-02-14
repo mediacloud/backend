@@ -1,4 +1,14 @@
-from mediawords.util.html import link_canonical_url_from_html, meta_refresh_url_from_html
+"""tests for mediawords.util.html"""
+
+import re
+
+import mediawords.languages.en
+from mediawords.util.html import link_canonical_url_from_html, meta_refresh_url_from_html, html_strip
+from mediawords.util.log import create_logger
+import mediawords.util.html
+import mediawords.util.paths
+
+log = create_logger(__name__)
 
 
 # noinspection SpellCheckingInspection
@@ -169,3 +179,38 @@ def test_meta_refresh_url_from_html():
     assert meta_refresh_url_from_html("""
         <meta http-equiv="refresh" content="0; url=/first/second/third/" />
     """) is None
+
+
+def test_sententize_block_level_tags() -> None:
+    """Test _new_lines_around_block_level_tags()."""
+    assert mediawords.util.html._sententize_block_level_tags('<h1>foo</h1>') == '\n\n<h1>foo.</h1>\n\n'
+
+
+def test_html_strip() -> None:
+    """Test html_strip()."""
+    assert html_strip("<strong>Hellonot </strong>") == "Hellonot"
+
+    assert html_strip("<script>delete</script><p>body</p>") == "body."
+
+    assert html_strip("<title>delete</title><p>content</p>") == "content."
+
+    assert html_strip("<title>delete</title><p>content</p>", include_title=True) == "delete. content."
+
+    assert html_strip("<p>foo\xAD</p>") == "foo."
+
+    assert html_strip("&amp;&quot;") == '&"'
+
+    html_path = mediawords.util.paths.mc_root_path() + '/mediacloud/test-data/html/strip.html'
+    with open(html_path, 'r', encoding='utf8') as fh:
+        html = fh.read()
+
+    text_path = mediawords.util.paths.mc_root_path() + '/mediacloud/test-data/html/strip.txt'
+    with open(text_path, 'r', encoding='utf8') as fh:
+        text = fh.read()
+
+    got_text = html_strip(html.strip())
+
+    got_text = re.sub('\s+', ' ', got_text.strip())
+    text = re.sub('\s+', ' ', text.strip())
+
+    assert got_text == text

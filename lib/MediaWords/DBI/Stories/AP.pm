@@ -305,7 +305,7 @@ sub is_syndicated
     }
 
     my $ap_mentions_sentences = _get_sentence_pattern_matches( $db, $story, qr/\(ap\)/i );
-    if ( $ap_mentions_sentences ) { return 1 }
+    if ( $ap_mentions_sentences ) { TRACE( 'ap: ap_mentions_sentences' ); return 1 }
     else
     {
         my $associated_press_mentions = _get_content_pattern_matches( $db, $story, qr/associated press/i );
@@ -313,32 +313,32 @@ sub is_syndicated
         {
             my $quoted_associated_press_mentions =
               _get_content_pattern_matches( $db, $story, qr/["\'\|].{0,8}associated press.{0,8}["\'\|]/i );
-            if ( $quoted_associated_press_mentions ) { return 1 }
+            if ( $quoted_associated_press_mentions ) { TRACE( 'ap: quoted_associated_press' ); return 1 }
             else
             {
                 my $dup_sentences_32 = _get_dup_sentences_32( $db, $story );
-                if ( $dup_sentences_32 == 1 ) { return 1 }
+                if ( $dup_sentences_32 == 1 ) { TRACE( 'ap: assoc press -> dup_sentences_32' ); return 1 }
                 elsif ( $dup_sentences_32 == 0 )
                 {
                     my $associated_press_near_title = _get_associated_press_near_title( $db, $story );
-                    if ( $associated_press_near_title ) { return 1 }
+                    if ( $associated_press_near_title ) { TRACE( 'ap: assoc press -> near title' ); return 1 }
                     else
                     {
                         my $ap_news_mentions = _get_content_pattern_matches( $db, $story, qr/ap news/i );
-                        if   ( $ap_news_mentions ) { return 1 }
-                        else                       { return 0 }
+                        if   ( $ap_news_mentions ) { TRACE( 'ap: assoc press -> ap news' );    return 1 }
+                        else                       { TRACE( 'ap: assoc press -> no ap news' ); return 0 }
                     }
                 }
                 else    # $dup_sentences_32 == 2
                 {
                     my $associated_press_near_title = _get_associated_press_near_title( $db, $story );
-                    if ( $associated_press_near_title ) { return 1 }
+                    if ( $associated_press_near_title ) { TRACE( 'ap: assoc press near title' ); return 1 }
                     else
                     {
                         my $associated_press_tag_mentions =
                           _get_content_pattern_matches( $db, $story, qr/\<[^\<\>]*associated press[^\<\>]*\>/i );
-                        if   ( $associated_press_tag_mentions ) { return 0 }
-                        else                                    { return 1 }
+                        if   ( $associated_press_tag_mentions ) { TRACE( 'ap: assoc press title -> tag' );    return 0 }
+                        else                                    { TRACE( 'ap: assoc press title -> no tag' ); return 1 }
                     }
                 }
             }
@@ -349,14 +349,16 @@ sub is_syndicated
             if ( $dup_sentences_32 == 1 )
             {
                 my $ap_mentions_uppercase_location = _get_text_pattern_matches( $db, $story, qr/[A-Z]+\s*\(AP\)/ );
-                if   ( $ap_mentions_uppercase_location ) { return 1 }
-                else                                     { return 0 }
+                if   ( $ap_mentions_uppercase_location ) { TRACE( 'ap: single dup sentence -> ap upper' ); return 1 }
+                else                                     { TRACE( 'ap: single dup sentence -> no upper' ); return 0 }
             }
-            elsif ( $dup_sentences_32 == 0 ) { return 0 }
-            else                             { return 1 }    # $dup_sentences_32 == 2
+            elsif ( $dup_sentences_32 == 0 ) { TRACE( 'ap: no features' );        return 0 }
+            else                             { TRACE( 'ap: dup sentences > 10' ); return 1 }    # $dup_sentences_32 == 2
         }
     }
 
+    # should not get here -- all branches should be covered above
+    WARNING( 'is_syndicated: fell through decision tree' );
     return 0;
 }
 

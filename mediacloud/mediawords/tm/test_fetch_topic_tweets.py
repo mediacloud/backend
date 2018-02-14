@@ -56,7 +56,7 @@ class MockCrimsonHexagon(mediawords.tm.fetch_topic_tweets.AbstractCrimsonHexagon
 
         test_path = mediawords.util.paths.mc_root_path() + '/mediacloud/test-data/ch/'
         filename = test_path + "ch-posts-" + day.strftime('%Y-%m-%d') + '.json'
-        with open(filename, 'r') as fh:
+        with open(filename, 'r', encoding='utf-8') as fh:
             json = fh.read()
 
         data = dict(mediawords.util.json.decode_json(json))

@@ -1,18 +1,34 @@
+"""Functions handling management of the postgres database schema."""
+
+import typing
+
 from mediawords.db import connect_to_db
 from mediawords.db.handler import DatabaseHandler
 from mediawords.util.log import create_logger
 from mediawords.util.paths import mc_sql_schema_path
-from mediawords.util.perl import decode_object_from_bytes_if_needed
+from mediawords.util.perl import decode_str_from_bytes_if_needed
 
 log = create_logger(__name__)
 
 
-def recreate_db(label: str = None) -> None:
-    """(Re)create database schema."""
+class McSchemaException(Exception):
+    """Errors related to managing the database schema."""
 
+    pass
+
+
+def recreate_db(label: typing.Optional[str] = None, is_template: bool = False) -> None:
+    """(Re)create database schema.
+
+    This function drops all objects in all schemas and reruns the schema/mediawords.sql to recreate the schema
+    (and erase all data!) for the given database.
+
+    This function will refuse to run if there are more than 10 million stories in the database, under the assumption
+    that the database might be a production database in that case.
+
+    """
     def reset_all_schemas(db_: DatabaseHandler) -> None:
         """Recreate all schemas."""
-
         schemas = db_.query("""
             SELECT schema_name
             FROM information_schema.schemata
@@ -31,9 +47,9 @@ def recreate_db(label: str = None) -> None:
 
     # ---
 
-    label = decode_object_from_bytes_if_needed(label)
+    label = decode_str_from_bytes_if_needed(label)
 
-    db = connect_to_db(label=label, do_not_check_schema_version=True)
+    db = connect_to_db(label=label, do_not_check_schema_version=True, is_template=is_template)
 
     log.info("Resetting all schemas...")
     reset_all_schemas(db_=db)
