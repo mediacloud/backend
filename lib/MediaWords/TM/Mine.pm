@@ -277,14 +277,7 @@ SQL
     my $queued_stories_ids = [];
     for my $story ( @{ $stories } )
     {
-        if ( !story_within_topic_date_range( $db, $topic, $story ) )
-        {
-            # mark as mined so that we don't have to repeat this check every time
-            $db->query( <<SQL, $story->{ stories_id }, $topic->{ topics_id } );
-update topic_stories set link_mined = 't' where stories_id = ? and topics_id = ?
-SQL
-            next;
-        }
+        next unless ( story_within_topic_date_range( $db, $topic, $story ) );
 
         push( @{ $queued_stories_ids }, $story->{ stories_id } );
 
@@ -299,11 +292,15 @@ SQL
     my $queued_ids_table = $db->get_temporary_ids_table( $queued_stories_ids );
 
     # poll every $sleep_time seconds waiting for the jobs to complete.  die if the number of stories left to process
-    # has not shrunk for $timeout seconds
+    # has not shrunk for $large_timeout seconds.  warn but continue if the number of stories left to process
+    # is only 5% of the total and short_timeout has passed (this is to make the topic not hang entirely because
+    # of one link extractor job error).
     my $prev_num_queued_stories = scalar( @{ $stories } );
     my $last_change_time        = time();
     my $sleep_time              = 5;
-    my $timeout                 = 60 * 60;
+    my $long_timeout            = 60 * 60;
+    my $short_timeout           = 15;
+    my $max_errored_stories     = scalar( @{ $stories } ) / 20;
     while ( 1 )
     {
         my ( $num_queued_stories ) = $db->query( <<SQL, $topic->{ topics_id } )->flat();
@@ -318,9 +315,15 @@ SQL
         last if ( $num_queued_stories == 0 );
 
         $last_change_time = time() if ( $num_queued_stories != $prev_num_queued_stories );
-        if ( ( time() - $last_change_time ) > $timeout )
+        if ( ( time() - $last_change_time ) > $long_timeout )
         {
-            die( "Timed out waiting for story link extraction." );
+            LOGDIE( "Timed out waiting for story link extraction." );
+        }
+
+        if ( ( ( time() - $last_change_time ) > $short_timeout ) && ( $num_queued_stories < $max_errored_stories ) )
+        {
+            WARN( "Continuing after short timeout with $num_queued_stories remaining in link extraction pool" );
+            last;
         }
 
         INFO( "$num_queued_stories stories left in link extraction pool...." );
@@ -328,6 +331,15 @@ SQL
         $prev_num_queued_stories = $num_queued_stories;
         sleep( $sleep_time );
     }
+
+    # cleanup any out of date range or errored stories
+    $db->query( <<SQL, $topic->{ topics_id } );
+update topic_stories set link_mined = 't'
+    where
+        stories_id in ( select id from $queued_ids_table ) and
+        topics_id = ? and
+        link_mined = 'f'
+SQL
 
     $db->query( "discard temp" );
 }
