@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More;
+use Test::More tests => 13;
 use Test::NoWarnings;
 
 use MediaWords::CommonLibs;
@@ -131,8 +131,6 @@ STORY
 sub main()
 {
     MediaWords::Test::DB::test_on_test_database( \&test_ap_calls );
-
-    done_testing();
 }
 
 main();
