@@ -83,12 +83,14 @@ class AbstractDatabaseModelStore(AbstractModelStore, metaclass=abc.ABCMeta):
 
         primary_key_column = self.__db.primary_key_column(table=self.model_table())
 
-        model_metadata = self.__db.select(table=self.model_table(),
-                                          what_to_select='*',
-                                          condition_hash={
-                                              'object_id': self.__object_id,
-                                              primary_key_column: models_id,
-                                          }).hash()
+        model_metadata = self.__db.select(
+            table=self.model_table(),
+            what_to_select='*',
+            condition_hash={
+                'object_id': self.__object_id,
+                primary_key_column: models_id,
+            }
+        ).hash()
         if not model_metadata:
             raise McWord2vecException("Model with object ID %d was not found." % self.__object_id)
 
