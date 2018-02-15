@@ -1,23 +1,23 @@
 {
-    "collect_date":"2017-12-30 23:11:53.114108",
+    "collect_date":"2018-02-13 18:12:48.230072",
     "content":"<p>This is the second item.</p>\n",
-    "db_row_last_updated":"2017-12-30 23:12:08.191088+08:00",
+    "db_row_last_updated":"2018-02-13 18:13:04.005015-06:00",
     "description":"RSS description of the second inline item.",
-    "extracted_text":"Second inline item\n***\n\nRSS description of the second inline item.\n***\n\n\n\n \n\n This is the second item. \n\n\n ",
+    "extracted_text":"Second inline item\n***\n\nRSS description of the second inline item.\n***\n\nThis is the second item.",
     "feed_type":"syndicated",
     "full_text_rss":false,
     "guid":"http://www.example.com/inline_content/item_2.html",
     "language":"en",
     "media_id":1,
-    "publish_date":"2009-06-11 13:57:00",
+    "publish_date":"2009-06-11 05:57:00",
     "stories_id":2,
     "story_sentences":[
         {
-            "db_row_last_updated":"2017-12-30 23:12:08.191088+08:00",
+            "db_row_last_updated":"2018-02-13 18:13:04.005015-06:00",
             "is_dup":null,
             "language":"en",
             "media_id":1,
-            "publish_date":"2009-06-11 13:57:00",
+            "publish_date":"2009-06-11 05:57:00",
             "sentence":"Second inline item.RSS description of the second inline item.",
             "sentence_number":0,
             "stories_id":2,
@@ -25,7 +25,7 @@
         }
     ],
     "tags":[],
-    "timezone":"Europe/Vilnius",
+    "timezone":"America/Chicago",
     "title":"Second inline item",
-    "url":"http://tundra.local:62245/inline_content/item_2.html"
+    "url":"http://namshub:43783/inline_content/item_2.html"
 }

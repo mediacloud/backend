@@ -10,43 +10,60 @@
 --
 -- You might need to import some additional schema diff files to reach the desired version.
 --
-
 --
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
-SET search_path = public, pg_catalog;
-
-
---
--- Snapshot word2vec models
---
-CREATE TABLE snap.word2vec_models (
-    word2vec_models_id  SERIAL      PRIMARY KEY,
-    object_id           INTEGER     NOT NULL REFERENCES snapshots (snapshots_id) ON DELETE CASCADE,
-    creation_date       TIMESTAMP   NOT NULL DEFAULT NOW()
+-- keep track of per domain web requests so that we can throttle them using mediawords.util.web.user_agent.throttled.
+-- this is unlogged because we don't care about anything more than about 10 seconds old.  we don't have a primary
+-- key because we want it just to be a fast table for temporary storage.
+create unlogged table domain_web_requests (
+    domain          text not null,
+    request_time    timestamp not null default now()
 );
 
--- We'll need to find the latest word2vec model
-CREATE INDEX snap_word2vec_models_object_id_creation_date ON snap.word2vec_models (object_id, creation_date);
+create index domain_web_requests_domain on domain_web_requests ( domain );
 
-CREATE TABLE snap.word2vec_models_data (
-    word2vec_models_data_id SERIAL      PRIMARY KEY,
-    object_id               INTEGER     NOT NULL
-                                            REFERENCES snap.word2vec_models (word2vec_models_id)
-                                            ON DELETE CASCADE,
-    raw_data                BYTEA       NOT NULL
-);
-CREATE UNIQUE INDEX snap_word2vec_models_data_object_id ON snap.word2vec_models_data (object_id);
+-- return false if there is a request for the given domain within the last domain_timeout_arg seconds.  otherwise
+-- return true and insert a row into domain_web_request for the domain.  this function does not lock the table and
+-- so may allow some parallel requests through.
+create or replace function get_domain_web_requests_lock( domain_arg text, domain_timeout_arg int ) returns boolean as $$
+begin
 
--- Don't (attempt to) compress BLOBs in "raw_data" because they're going to be
--- compressed already
-ALTER TABLE snap.word2vec_models_data
-    ALTER COLUMN raw_data SET STORAGE EXTERNAL;
+-- we don't want this table to grow forever or to have to manage it externally, so just truncate about every
+-- 1 million requests.  only do this if there are more than 1000 rows in the table so that unit tests will not
+-- randomly fail.
+if ( select random() * 1000000 ) <  1 then
+    if exists ( select 1 from domain_web_requests offset 1000 ) then
+        truncate table domain_web_requests;
+    end if;
+end if;
 
+if exists (
+    select *
+        from domain_web_requests
+        where
+            domain = domain_arg and
+            extract( epoch from now() - request_time ) < domain_timeout_arg
+    ) then
+
+    return false;
+end if;
+
+delete from domain_web_requests where domain = domain_arg;
+insert into domain_web_requests (domain) select domain_arg;
+
+return true;
+end
+$$ language plpgsql;
+
+--
+-- 2 of 2. Reset the database version.
+--
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
+
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
     MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4640;
@@ -63,7 +80,4 @@ END;
 $$
 LANGUAGE 'plpgsql';
 
---
--- 2 of 2. Reset the database version.
---
 SELECT set_database_schema_version();

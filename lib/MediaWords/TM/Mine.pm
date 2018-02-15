@@ -52,6 +52,7 @@ use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::Job::Bitly::FetchStoryStats;
 use MediaWords::Job::ExtractAndVector;
 use MediaWords::Job::Facebook::FetchStoryStats;
+use MediaWords::Job::TM::ExtractStoryLinks;
 use MediaCloud::JobManager::Job;
 use MediaWords::Languages::Language;
 use MediaWords::Solr;
@@ -168,37 +169,6 @@ sub add_redirect_links
     }
 }
 
-# return a list of all links that appear in the html
-sub get_links_from_html
-{
-    my ( $html, $url ) = @_;
-
-    # use regex parsing here instead of html parsing because it is much faster than HTML::LinkExtor
-    # and does not generate broken unicode encoding like HTML::LinkExtractor does
-
-    my $links = [];
-    while ( $html =~ m~href\s*=\s*[\"\']?(https?://[^\s\"\')]+)~g )
-    {
-        my $url = $1;
-
-        $url = decode_entities( $url );
-
-        next if ( !$url );
-
-        next if ( $url !~ /^http/i );
-
-        next if ( $url =~ $_ignore_link_pattern );
-
-        next if ( !MediaWords::Util::URL::is_http_url( $url ) );
-
-        $url =~ s/www[a-z0-9]+.nytimes/www.nytimes/i;
-
-        push( @{ $links }, { url => $url } );
-    }
-
-    return $links;
-}
-
 sub get_cached_medium_by_id
 {
     my ( $db, $media_id ) = @_;
@@ -218,34 +188,6 @@ select *,
 SQL
 
     return $_media_cache->{ $media_id };
-}
-
-# get links at end of boingboing link
-sub get_boingboing_links
-{
-    my ( $db, $story ) = @_;
-
-    return [] unless ( $story->{ url } =~ /boingboing.org/ );
-
-    my $download = $db->query( "select * from downloads where stories_id = ?", $story->{ stories_id } )->hash;
-
-    my $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download );
-
-    my $content = ${ $content_ref };
-
-    if ( !( $content =~ s/((<div class="previously2">)|(class="sharePost")).*//ms ) )
-    {
-        WARN "Unable to find end pattern";
-        return [];
-    }
-
-    if ( !( $content =~ s/.*<a href[^>]*>[^<]*<\/a> at\s+\d+\://ms ) )
-    {
-        WARN "Unable to find begin pattern";
-        return [];
-    }
-
-    return get_links_from_html( $content, $story->{ url } );
 }
 
 # get the html for the first download of the story.  fix the story download by redownloading
@@ -269,92 +211,6 @@ END
     }
 
     return $content_ref ? $$content_ref : '';
-}
-
-# parse the full first download of the given story for youtube embeds
-sub get_youtube_embed_links
-{
-    my ( $db, $story ) = @_;
-
-    my $html = get_first_download_content( $db, $story );
-
-    my $links = [];
-    while ( $html =~ /src\=[\'\"]((http:)?\/\/(www\.)?youtube(-nocookie)?\.com\/[^\'\"]*)/g )
-    {
-        my $url = $1;
-
-        $url = "http:$url/" unless ( $url =~ /^http/ );
-
-        $url =~ s/\?.*//;
-        $url =~ s/\/$//;
-        $url =~ s/youtube-nocookie/youtube/i;
-
-        push( @{ $links }, { url => $url } );
-    }
-
-    return $links;
-}
-
-# get the extracted html for the story.  fix the story downloads by redownloading as necessary
-sub get_extracted_html
-{
-    my ( $db, $story ) = @_;
-
-    my $extracted_html;
-    eval { $extracted_html = MediaWords::DBI::Stories::get_extracted_html_from_db( $db, $story ); };
-    if ( $@ )
-    {
-        WARN( "extractor error: $@" );
-        MediaWords::DBI::Stories::fix_story_downloads_if_needed( $db, $story );
-        eval { $extracted_html = MediaWords::DBI::Stories::get_extracted_html_from_db( $db, $story ); };
-    }
-
-    return $extracted_html;
-}
-
-# get all urls that appear in the text or description of the story using a simple kludgy regex
-sub get_links_from_story_text
-{
-    my ( $db, $story ) = @_;
-
-    my $text = MediaWords::DBI::Stories::get_text( $db, $story );
-
-    my $links = [];
-    while ( $text =~ m~(https?://[^\s\")]+)~g )
-    {
-        my $url = $1;
-
-        $url =~ s/\W+$//;
-
-        push( @{ $links }, { url => $url } );
-    }
-
-    return $links;
-}
-
-# find any links in the extracted html or the description of the story.
-sub get_links_from_story
-{
-    my ( $db, $story ) = @_;
-
-    INFO "mining $story->{ title } [$story->{ url }] ...";
-
-    my $extracted_html = get_extracted_html( $db, $story );
-
-    my $links = get_links_from_html( $extracted_html, $story->{ url } );
-    my $text_links = get_links_from_story_text( $db, $story );
-    my $description_links = get_links_from_html( $story->{ description }, $story->{ url } );
-    my $boingboing_links = get_boingboing_links( $db, $story );
-    my $youtube_links = get_youtube_embed_links( $db, $story );
-
-    my @all_links = ( @{ $links }, @{ $text_links }, @{ $description_links }, @{ $boingboing_links } );
-
-    @all_links = grep { $_->{ url } !~ $_ignore_link_pattern } @all_links;
-
-    my $link_lookup = {};
-    map { $link_lookup->{ MediaWords::Util::URL::normalize_url_lossy( $_->{ url } ) } = $_ } @all_links;
-
-    return [ values( %{ $link_lookup } ) ];
 }
 
 # return true if the publish date of the story is within 7 days of the topic date range or if the
@@ -396,7 +252,8 @@ sub insert_topic_links
     $copy_from->end();
 }
 
-# for each story, return a list of the links found in either the extracted html or the story description
+# submit jobs to extract links from the given stories and then poll to wait for the stories to be processed within
+# the jobs pool
 sub generate_topic_links
 {
     my ( $db, $topic, $stories ) = @_;
@@ -411,45 +268,80 @@ sub generate_topic_links
         return;
     }
 
+    my $stories_ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
+
+    $db->query( <<SQL, $topic->{ topics_id } );
+update topic_stories set link_mined = 'f' where stories_id in ( select id from $stories_ids_table ) and topics_id = ?
+SQL
+
+    my $queued_stories_ids = [];
     for my $story ( @{ $stories } )
     {
         next unless ( story_within_topic_date_range( $db, $topic, $story ) );
 
-        my $links = get_links_from_story( $db, $story );
+        push( @{ $queued_stories_ids }, $story->{ stories_id } );
 
-        my $link_lookup = {};
-        for my $link ( @{ $links } )
-        {
-            if (   MediaWords::Util::URL::urls_are_equal( $link->{ url }, $story->{ url } )
-                || _skip_self_linked_domain( $db, $link ) )
-            {
-                next;
-            }
+        MediaWords::Job::TM::ExtractStoryLinks->add_to_queue(
+            { stories_id => $story->{ stories_id }, topics_id => $topic->{ topics_id } } );
 
-            $link_lookup->{ $link->{ url } } = {
-                stories_id => $story->{ stories_id },
-                url        => $link->{ url },
-                topics_id  => $topic->{ topics_id }
-            };
-
-            TRACE "LINK: $link->{ url }";
-        }
-
-        push( @{ $topic_links }, values( %{ $link_lookup } ) );
+        INFO( "queued link extraction for story $story->{ title } $story->{ url }." );
     }
 
-    insert_topic_links( $db, $topic_links );
+    INFO( "waiting for link extraction jobs to finish" );
 
-    my $ids_table = $db->get_temporary_ids_table( [ map { int( $_->{ stories_id } ) } @{ $stories } ] );
+    my $queued_ids_table = $db->get_temporary_ids_table( $queued_stories_ids );
 
-    $db->query( <<SQL );
-update topic_stories set link_mined = true
-    where stories_id in ( select id from $ids_table ) and
-        topics_id = $topic->{ topics_id }
+    # poll every $sleep_time seconds waiting for the jobs to complete.  die if the number of stories left to process
+    # has not shrunk for $large_timeout seconds.  warn but continue if the number of stories left to process
+    # is only 5% of the total and short_timeout has passed (this is to make the topic not hang entirely because
+    # of one link extractor job error).
+    my $prev_num_queued_stories = scalar( @{ $stories } );
+    my $last_change_time        = time();
+    my $sleep_time              = 5;
+    my $long_timeout            = 60 * 60;
+    my $short_timeout           = 15;
+    my $max_errored_stories     = scalar( @{ $stories } ) / 20;
+    while ( 1 )
+    {
+        my ( $num_queued_stories ) = $db->query( <<SQL, $topic->{ topics_id } )->flat();
+select count(*)
+    from topic_stories
+    where
+        stories_id in ( select id from $queued_ids_table ) and
+        topics_id = ? and
+        link_mined = 'f'
+SQL
+
+        last if ( $num_queued_stories == 0 );
+
+        $last_change_time = time() if ( $num_queued_stories != $prev_num_queued_stories );
+        if ( ( time() - $last_change_time ) > $long_timeout )
+        {
+            LOGDIE( "Timed out waiting for story link extraction." );
+        }
+
+        if ( ( ( time() - $last_change_time ) > $short_timeout ) && ( $num_queued_stories < $max_errored_stories ) )
+        {
+            WARN( "Continuing after short timeout with $num_queued_stories remaining in link extraction pool" );
+            last;
+        }
+
+        INFO( "$num_queued_stories stories left in link extraction pool...." );
+
+        $prev_num_queued_stories = $num_queued_stories;
+        sleep( $sleep_time );
+    }
+
+    # cleanup any out of date range or errored stories
+    $db->query( <<SQL, $topic->{ topics_id } );
+update topic_stories set link_mined = 't'
+    where
+        stories_id in ( select id from $queued_ids_table ) and
+        topics_id = ? and
+        link_mined = 'f'
 SQL
 
     $db->query( "discard temp" );
-
 }
 
 # lookup or create the spidered:spidered tag
@@ -1391,7 +1283,7 @@ END
 }
 
 # return true if this story is already a topic story or
-# if the story should be skipped for being a self linked story (see skup_self_linked_story())
+# if the story should be skipped for being a self linked story (see skip_self_linked_story())
 sub skip_topic_story
 {
     my ( $db, $topic, $story, $link ) = @_;
@@ -1416,10 +1308,10 @@ END
 
     my $cid = $topic->{ topics_id };
 
-    # these queries can be very slow, so we only try them every once in a while randomly, if they hit true
-    # once the result gets cached.  it's okay to get up to 100 too many stories from one source -- we're just
+    # these queries can be very slow, so we only try them every once in a while randomly. if they hit true
+    # once the result gets cached.  it's okay to get up to 1000 too many stories from one source -- we're just
     # trying to make sure we don't get many thousands of stories from the same source
-    return 0 if ( rand( 100 ) > 1 );
+    return 0 if ( rand( 1000 ) > 1 );
 
     my ( $num_stories ) = $db->query( <<END, $cid, $story->{ media_id }, $spidered_tag->{ tags_id } )->flat;
 select count(*)
@@ -1736,6 +1628,8 @@ select distinct cs.iteration, cl.* from topic_links cl, topic_stories cs
         cs.topics_id = \$2 and
         cl.topics_id = \$2
 END
+
+    $new_links = [ grep { !_skip_self_linked_domain( $db, $_ ) } @{ $new_links } ];
 
     add_new_links( $db, $topic, $iteration, $new_links );
 }
@@ -2608,6 +2502,8 @@ sub get_full_solr_query($$;$$$$)
 sub import_solr_seed_query_month($$$)
 {
     my ( $db, $topic, $month_offset ) = @_;
+
+    return if ( $topic->{ ch_monitor_id } );
 
     my $max_stories = $topic->{ max_stories };
 

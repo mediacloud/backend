@@ -109,12 +109,12 @@ sub main
     $code =~ s/\n[\s\{\}]+\n/\n\n/g;
 
     # python logging
-    $code =~ s/DEBUG\(/logger.debug\(/g;
-    $code =~ s/TRACE\(/logger.debug\(/g;
-    $code =~ s/INFO\(/logger.info\(/g;
-    $code =~ s/WARN\(/logger.warning\(/g;
-    $code =~ s/ERROR\(/logger.error\(/g;
-    $code = "from mediawords.util.log import create_logger\nlogger = create_logger(__name__)\n\n" . $code;
+    $code =~ s/DEBUG\(/log.debug\(/g;
+    $code =~ s/TRACE\(/log.debug\(/g;
+    $code =~ s/INFO\(/log.info\(/g;
+    $code =~ s/WARN\(/log.warning\(/g;
+    $code =~ s/ERROR\(/log.error\(/g;
+    $code = "from mediawords.util.log import create_logger\nlog = create_logger(__name__)\n\n" . $code;
 
     # add ()s to common get_config use
     $code =~ s/\.get_config\[/\.get_config\(\)\[/g;

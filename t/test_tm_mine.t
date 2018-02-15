@@ -492,10 +492,13 @@ sub test_full_solr_query($)
 {
     my ( $db ) = @_;
 
+    WARN( "BEGIN test_full_solr_query" );
+
     MediaWords::Test::DB::create_test_story_stack_numerated( $db, 10, 2, 2 );
 
     # just need some randomly named tags, so copying media names works as well as anything
     $db->query( "insert into tag_sets( name ) values ('foo' )" );
+
     $db->query( "insert into tags ( tag, tag_sets_id ) select media.name, tag_sets_id from media, tag_sets" );
 
     my $topic = MediaWords::Test::DB::create_test_topic( $db, 'full solr query' );
@@ -604,7 +607,7 @@ sub run_nonspider_tests($)
 sub main
 {
     MediaWords::Test::DB::test_on_test_database( \&run_nonspider_tests );
-    MediaWords::Test::Supervisor::test_with_supervisor( \&test_spider, [ 'job_broker:rabbitmq' ] );
+    MediaWords::Test::Supervisor::test_with_supervisor( \&test_spider, [ 'job_broker:rabbitmq', 'extract_story_links' ] );
 }
 
 main();

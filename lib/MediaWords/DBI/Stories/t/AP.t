@@ -4,6 +4,8 @@ use warnings;
 use Test::More tests => 13;
 use Test::NoWarnings;
 
+use MediaWords::CommonLibs;
+
 use Data::Dumper;
 use MediaWords::Test::DB;
 use MediaWords::DBI::Stories::AP;
@@ -57,6 +59,8 @@ sub get_ap_sentences()
         'AP sentence >= 32 #10 (with some more text to pad out the length to 32).',
         'AP sentence >= 32 #11 (with some more text to pad out the length to 32).',
         'AP sentence >= 32 #12 (with some more text to pad out the length to 32).',
+        'AP sentence >= 32 #13 (with some more text to pad out the length to 32).',
+        'AP sentence >= 32 #14 (with some more text to pad out the length to 32).',
     ];
 }
 
@@ -105,14 +109,14 @@ associated press.
 $ap_content_single_16_sentence
 STORY
 
-    test_story( $db, join( ' ', @{ $ap_sentences } ), 1, 'all ap sentences' );
-
     test_story( $db, $ap_content_single_32_sentence, 0, 'single ap sentence' );
 
     test_story( $db, <<STORY, 1, 'ap sentence and ap location' );
 Boston (AP)
 $ap_content_single_32_sentence
 STORY
+
+    test_story( $db, join( ' ', @{ $ap_sentences } ), 1, 'all ap sentences' );
 
     my $no_db_story = { content => 'foo' };
     is( MediaWords::DBI::Stories::AP::is_syndicated( $db, $no_db_story ), 0, 'no db story: simple story' );
