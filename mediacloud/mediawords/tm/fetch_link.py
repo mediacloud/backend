@@ -84,7 +84,7 @@ def _content_matches_topic(content: str, topic: dict, assume_match: bool=False) 
     True if the content matches the topic pattern
 
     """
-    if topic_fetch_url['assume_match']:
+    if assume_match:
         return True
 
     content = content[0:1024 * 1024]
@@ -135,7 +135,7 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int) -> None:
                 story = mediawords.tm.story.generate_story(
                     db=db,
                     content=content,
-                    url=topic_fetch_url['url'],
+                    url=topic_fetch_url['url'])
                 topic_fetch_url['state'] = 'story added'
                 topic_fetch_url['stories_id'] = story['stories_id']
             except mediawords.tm.story.McTMGenerateStoryDuplicate:
