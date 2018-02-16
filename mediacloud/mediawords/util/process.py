@@ -206,47 +206,56 @@ def run_alone(isolated_function: Callable, *args, **kwargs) -> Any:
     signal.signal(signal.SIGTERM, __remove_run_alone_lock_file)
     atexit.register(__remove_run_alone_lock_file, signum=0, no_exception=True)
 
-    if sys.platform.lower() == 'darwin':
-        # OS X -- /var/run is not world-writable by default
-        lock_file_path = '/var/tmp'
-    else:
-        # Linux -- keep lock files in '/var/run/lock' as they will be removed after reboot
-        lock_file_path = '/var/run/lock'
-
-    if not os.path.exists(lock_file_path):
-        raise McRunAloneException(
-            'Lock file location "%s" does not exist.' % lock_file_path
-        )
-    if not os.access(lock_file_path, os.W_OK):
-        raise McRunAloneException(
-            'Lock file location "%s" exists but is not writable.' % lock_file_path
-        )
-
-    function_lock_file = os.path.join(lock_file_path, function_unique_id_hash)
-
     try:
-        lock_file(path=function_lock_file, timeout=timeout)
-        __run_alone_function_lock_file = function_lock_file
-    except McLockFileException as ex:
-        raise McScriptInstanceIsAlreadyRunning(
-            "Instance of %s is already running: %s" % (str(isolated_function), str(ex))
-        )
 
-    # noinspection PyCallingNonCallable
-    return_value = isolated_function(*args, **kwargs)
+        if sys.platform.lower() == 'darwin':
+            # OS X -- /var/run is not world-writable by default
+            lock_file_path = '/var/tmp'
+        else:
+            # Linux -- keep lock files in '/var/run/lock' as they will be removed after reboot
+            lock_file_path = '/var/run/lock'
 
-    try:
-        unlock_file(__run_alone_function_lock_file)
-    except McUnlockFileException as exc:
-        # Not critical, the lock file might have been removed by some other process
-        log.warning("Unlocking file failed: %s" % str(exc))
+        if not os.path.exists(lock_file_path):
+            raise McRunAloneException(
+                'Lock file location "%s" does not exist.' % lock_file_path
+            )
+        if not os.access(lock_file_path, os.W_OK):
+            raise McRunAloneException(
+                'Lock file location "%s" exists but is not writable.' % lock_file_path
+            )
 
-    # Reset signal handlers
-    atexit.unregister(__remove_run_alone_lock_file)
-    signal.signal(signal.SIGINT, original_sigint_handler)
-    signal.signal(signal.SIGTERM, original_sigterm_handler)
+        function_lock_file = os.path.join(lock_file_path, function_unique_id_hash)
 
-    __run_alone_function_lock_file = None
+        try:
+            lock_file(path=function_lock_file, timeout=timeout)
+            __run_alone_function_lock_file = function_lock_file
+        except McLockFileException as ex:
+            raise McScriptInstanceIsAlreadyRunning(
+                "Instance of %s is already running: %s" % (str(isolated_function), str(ex))
+            )
+
+        # noinspection PyCallingNonCallable
+        return_value = isolated_function(*args, **kwargs)
+
+        try:
+            unlock_file(__run_alone_function_lock_file)
+        except McUnlockFileException as exc:
+            # Not critical, the lock file might have been removed by some other process
+            log.warning("Unlocking file failed: %s" % str(exc))
+
+    except Exception as ex:
+
+        raise ex
+
+    # We want to reset signal handlers no matter what because if they remain set, weird things happen (e.g. pytest
+    # doesn't exit(1) on failures)
+    finally:
+
+        atexit.unregister(__remove_run_alone_lock_file)
+        signal.signal(signal.SIGINT, original_sigint_handler)
+        signal.signal(signal.SIGTERM, original_sigterm_handler)
+
+        __run_alone_function_lock_file = None
 
     return return_value
 
