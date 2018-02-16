@@ -7,10 +7,17 @@ import typing
 
 from mediawords.db import DatabaseHandler
 from mediawords.tm.guess_date import guess_date, GuessDateResult
+import mediawords.tm.media
 from mediawords.util.log import create_logger
 import mediawords.util.url
 
 log = create_logger(__name__)
+
+# url and title length limits necessary to fit within postgres field
+_MAX_URL_LENGTH = 1024
+_MAX_TITLE_LENGTH = 1024
+
+_SPIDER_FEED_NAME = 'Spider Feed'
 
 
 # Giving up on porting the extraction stuff for now because it requires porting all the way down to StoryVectors.pm.
@@ -134,35 +141,6 @@ def get_preferred_story(db: DatabaseHandler, urls: list, stories: list) -> dict:
     return preferred_story
 
 
-def generate_medium_url_and_name_from_url(story_url: str) -> tuple:
-    """Derive the url and a media source name from a story url.
-
-    This function just returns the pathless normalized url as the medium_url and the host nane as the medium name.
-
-    Arguments:
-    url - story url
-
-    Returns:
-    tuple in the form (medium_url, medium_name)
-
-    """
-    normalized_url = mediawords.util.url.normalize_url_lossy(story_url)
-    if normalized_url is None:
-        return (story_url, story_url)
-
-    matches = re.search(r'(http.?://([^/]+))', normalized_url, flags=re.I)
-    if matches is None:
-        log.warning("Unable to find host name in url: normalized_url (%(a)s)" % story_url)
-        return (story_url, story_url)
-
-    (medium_url, medium_name) = (matches.group(1).lower(), matches.group(2).lower())
-
-    if not medium_url.endswith('/'):
-        medium_url += "/"
-
-    return (medium_url, medium_name)
-
-
 def ignore_redirect(db: DatabaseHandler, url: str, redirect_url: typing.Optional[str]) -> bool:
     """Return true if we should ignore redirects to the target media source.
 
@@ -170,7 +148,7 @@ def ignore_redirect(db: DatabaseHandler, url: str, redirect_url: typing.Optional
     if redirect_url is None or url == redirect_url:
         return False
 
-    medium_url = generate_medium_url_and_name_from_url(redirect_url)[0]
+    medium_url = mediawords.tm.media.generate_medium_url_and_name_from_url(redirect_url)[0]
 
     u = mediawords.util.url.normalize_url_lossy(medium_url)
 
@@ -187,7 +165,7 @@ def get_story_match(db: DatabaseHandler, url: str, redirect_url: typing.Optional
 
     If multiple stories are found, use get_preferred_story() to decide which story to return.
 
-    Only mach the first 1024 characters of the url / redirect_url.
+    Only mach the first _MAX_URL_LENGTH characters of the url / redirect_url.
 
     Arguments:
     db - db handle
@@ -198,11 +176,11 @@ def get_story_match(db: DatabaseHandler, url: str, redirect_url: typing.Optional
     the matched story or None
 
     """
-    u = url[0:1024]
+    u = url[0:_MAX_URL_LENGTH]
 
     ru = ''
     if not ignore_redirect(db, url, redirect_url):
-        ru = redirect_url[0:1024] if redirect_url is not None else u
+        ru = redirect_url[0:_MAX_URL_LENGTH] if redirect_url is not None else u
 
     nu = mediawords.util.url.normalize_url_lossy(u)
     nru = mediawords.util.url.normalize_url_lossy(ru)
@@ -300,6 +278,26 @@ def assign_date_guess_tag(
     db.create('stories_tags_map', {'stories_id': story['stories_id'], 'tags_id': t['tags_id']})
 
 
+def get_spider_feed(db: DatabaseHandler, medium: dict) -> dict:
+    """Find or create the 'Spider Feed' feed for the media source."""
+    feed = db.query(
+        """
+        select * from feeds
+            where
+                media_id = %(a)s and
+                url = %(b)s and
+                name = %(c)s
+        """,
+        {'a': medium['media_id'], 'b': medium['url'], 'c': _SPIDER_FEED_NAME}).hash()
+
+    if feed is not None:
+        return feed
+
+    feed = {'media_id': medium['media_id'], 'url': medium['url'], 'name': _SPIDER_FEED_NAME, 'feed_status': 'inactive'}
+
+    return db.create('feeds', feed)
+
+
 def add_new_story(
         db: DatabaseHandler,
         url: str,
@@ -317,12 +315,12 @@ def add_new_story(
     fallback_date - fallback to this date if the date guesser fails to find a date
     """
 
-    url = url[0:1024]
+    url = url[0:_MAX_URL_LENGTH]
 
-    medium = get_spider_medium(db, url)
+    medium = mediawords.tm.media.guess_medium(db, url)
     feed = get_spider_feed(db, medium)
-    spidered_tag = get_spidered_tag(db)
-    title = mediawords.util.html.html_title(content, url, 1024)
+    spidered_tag = mediawords.tm.media.get_spidered_tag(db)
+    title = mediawords.util.html.html_title(content, url, _MAX_TITLE_LENGTH)
 
     story = {
         'url': url,

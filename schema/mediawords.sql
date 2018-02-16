@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4640;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4641;
 
 BEGIN
 
@@ -222,6 +222,20 @@ create index media_db_row_last_updated on media( db_row_last_updated );
 
 CREATE INDEX media_name_trgm on media USING gin (name gin_trgm_ops);
 CREATE INDEX media_url_trgm on media USING gin (url gin_trgm_ops);
+
+--- allow lookup of media by mediawords.util.url.normalized_url_lossy.
+-- the data in this table is accessed and kept up to date by mediawords.tm.media.lookup_medium_by_url
+create table media_normalized_urls (
+    media_normalized_urls_id        serial primary key,
+    media_id                        int not null references media,
+    normalized_url                  varchar(1024) not null,
+
+    -- assigned the value of mediawords.util.url.normalized_url_lossy_version()
+    normalize_url_lossy_version    int not null
+);
+
+create unique index media_normalized_urls_medium on media_normalized_urls(normalize_url_lossy_version, media_id);
+create index media_normalized_urls_url on media_normalized_urls(normalized_url);
 
 -- list of media sources for which the stories should be updated to be at
 -- at least db_row_last_updated
@@ -877,7 +891,7 @@ create index feeds_stories_map_story on feeds_stories_map (stories_id);
 
 create table stories_tags_map
 (
-    stories_tags_map_id     serial  primary key,
+    stories_tags_map_id     bigserial  primary key,
     stories_id              int     not null references stories on delete cascade,
     tags_id                 int     not null references tags on delete cascade,
     db_row_last_updated                timestamp with time zone not null default now()
