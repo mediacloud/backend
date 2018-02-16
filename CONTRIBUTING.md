@@ -1,12 +1,12 @@
 # Guidelines for Contributing
 
-Media Cloud welcomes contributions from interested individuals or groups. These guidelines are provided to give potential contributors information to make their contribution compliant with the conventions of the PyMC3 project, and maximize the probability of such contributions to be merged as quickly and efficiently as possible.
+Media Cloud welcomes contributions from interested individuals or groups. These guidelines are provided to give potential contributors information to make their contribution compliant with the conventions of the Media Cloud project, and maximize the probability of such contributions to be merged as quickly and efficiently as possible.
 
-There are 4 main ways of contributing to the PyMC3 project (in descending order of difficulty or scope):
+There are 4 main ways of contributing to the Media Cloud project (in descending order of difficulty or scope):
 
 * [Adding new](https://github.com/berkmancenter/mediacloud/pulls) or improved functionality to the existing codebase
 * Fixing [outstanding issues](https://github.com/berkmancenter/mediacloud/issues) (bugs) with the existing codebase. They range from low-level software bugs to higher-level design problems.
-* Contributing or improving the documentation (`doc`)
+* Contributing or improving the documentation (in `doc/`)
 * Submitting [issues](https://github.com/berkmancenter/mediacloud/issues) related to bugs or desired enhancements
 
 # Python Quickstart
