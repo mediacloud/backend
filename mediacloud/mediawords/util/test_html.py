@@ -1,7 +1,5 @@
 """tests for mediawords.util.html"""
 
-import re
-
 import mediawords.languages.en
 from mediawords.util.html import link_canonical_url_from_html, meta_refresh_url_from_html, html_strip
 from mediawords.util.log import create_logger
