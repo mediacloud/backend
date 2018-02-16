@@ -10,8 +10,15 @@ import mediawords.util.url
 log = create_logger(__name__)
 
 # url and name length limits necessary to fit within postgres field
-_MAX_URL_LENGTH = 1024
-_MAX_NAME_LENGTH = 124
+MAX_URL_LENGTH = 1024
+MAX_NAME_LENGTH = 124
+
+# try appending this to urls to generate a unique url for get_unique_medium_url()
+URL_SPIDERED_SUFFIX = '#spider'
+
+# names for spidered tag and tag set
+SPIDERED_TAG_TAG = 'spidered'
+SPIDERED_TAG_SET = 'spidered'
 
 
 class McTopicMediaException(Exception):
@@ -20,20 +27,10 @@ class McTopicMediaException(Exception):
     pass
 
 
-class McTopicMediaNameException(McTopicMediaException):
-    """Exception raised when guess_medium is unable to find a unique name for a new media source."""
+class McTopicMediaUniqueException(McTopicMediaException):
+    """Exception raised when guess_medium is unable to find a unique name or url for a new media source."""
 
     pass
-
-
-class McTopicMediaUrlException(McTopicMediaException):
-    """Exception raised when guess_medium is unable to find a unique url for a new media source."""
-
-    pass
-
-
-# cache the spidered:spidered tag because it should never change
-_spidered_tag = None
 
 
 def _normalize_url(url: str) -> str:
@@ -42,7 +39,7 @@ def _normalize_url(url: str) -> str:
     if nu is None:
         nu = url
 
-    return nu[0:_MAX_URL_LENGTH]
+    return nu[0:MAX_URL_LENGTH]
 
 
 def generate_medium_url_and_name_from_url(story_url: str) -> tuple:
@@ -73,7 +70,11 @@ def generate_medium_url_and_name_from_url(story_url: str) -> tuple:
 
 
 def _normalized_urls_out_of_date(db: DatabaseHandler) -> bool:
-    """Return True if the media_normalized_urls table is out of date with the current normalize_url_lossy_verison()."""
+    """Return True if the media_normalized_urls table is out of date with the current normalize_url_lossy_verison().
+
+    This function is relatively quick to run because it just compares the max media_id and db_row_last_updated
+    of the media table with those of the current normalize_url_lossy_version rows in media_normalized_urls.
+    """
     version = mediawords.util.url.normalize_url_lossy_version()
 
     max_media_id = db.query("select max(media_id) from media").flat()[0]
@@ -88,7 +89,19 @@ def _normalized_urls_out_of_date(db: DatabaseHandler) -> bool:
     if max_normalized_media_id is None:
         return True
 
-    return max_normalized_media_id < max_media_id
+    last_media_update = db.query("select max(db_row_last_updated) from media").flat()[0]
+
+    last_mnu_update = db.query(
+        "select max(db_row_last_updated) from media_normalized_urls where normalize_url_lossy_version = %(a)s",
+        {'a': version}).flat()[0]
+
+    if last_media_update is None:
+        return False
+
+    if last_mnu_update is None:
+        return True
+
+    return max_normalized_media_id < max_media_id or last_mnu_update < last_media_update
 
 
 def _update_media_normalized_urls(db: DatabaseHandler) -> None:
@@ -120,7 +133,8 @@ def _update_media_normalized_urls(db: DatabaseHandler) -> None:
                 left join media_normalized_urls u on
                     ( m.media_id = u.media_id and u.normalize_url_lossy_version = %(a)s)
             where
-                u.normalized_url is null
+                u.normalized_url is null or
+                u.db_row_last_updated < m.db_row_last_updated
         """,
         {'a': version}).hashes()
 
@@ -129,6 +143,9 @@ def _update_media_normalized_urls(db: DatabaseHandler) -> None:
         if normalized_url is None:
             normalized_url = medium['url']
 
+        db.query(
+            "delete from media_normalized_urls where media_id = %(a)s and normalize_url_lossy_version = %(b)s",
+            {'a': medium['media_id'], 'b': version})
         db.create('media_normalized_urls', {
             'media_id': medium['media_id'],
             'normalized_url': normalized_url,
@@ -207,12 +224,12 @@ def lookup_medium(db: DatabaseHandler, url: str, name: str) -> typing.Optional[d
 def get_unique_medium_name(db: DatabaseHandler, names: list) -> str:
     """Return the first name in the names list that does not yet exist for a media source, or None."""
     for name in names:
-        name = name[0:_MAX_NAME_LENGTH]
+        name = name[0:MAX_NAME_LENGTH]
         name_exists = db.query("select 1 from media where lower(name) = lower(%(a)s)", {'a': name}).hash()
         if name_exists is None:
             return name
 
-    raise McTopicMediaNameException("Unable to find unique name among names: " + str(names))
+    raise McTopicMediaUniqueException("Unable to find unique name among names: " + str(names))
 
 
 def get_unique_medium_url(db: DatabaseHandler, urls: list) -> str:
@@ -220,34 +237,36 @@ def get_unique_medium_url(db: DatabaseHandler, urls: list) -> str:
 
     If no unique urls are found, trying appending '#spider' to each of the urls.
     """
-    spidered_urls = [u + "#spidered" for u in urls]
+    spidered_urls = [u + URL_SPIDERED_SUFFIX for u in urls]
     urls = urls + spidered_urls
 
     for url in urls:
-        url = url[0:_MAX_URL_LENGTH]
+        url = url[0:MAX_URL_LENGTH]
         url_exists = db.query("select 1 from media where url = %(a)s", {'a': url}).hash()
         if url_exists is None:
             return url
 
-    raise McTopicMediaUrlException("Unable to find unique url among urls: " + str(urls))
+    raise McTopicMediaUniqueException("Unable to find unique url among urls: " + str(urls))
 
 
 def get_spidered_tag(db: DatabaseHandler) -> dict:
     """Return the spidered:spidered tag dict."""
-    global _spidered_tag
+    spidered_tag = db.query(
+        """
+        select t.*
+            from tags t
+                join tag_sets ts using ( tag_sets_id )
+            where
+                t.tag = %(a)s and
+                ts.name = %(b)s
+        """,
+        {'a': SPIDERED_TAG_TAG, 'b': SPIDERED_TAG_SET}).hash()
 
-    if _spidered_tag is None:
-        _spidered_tag = db.query(
-            """
-            select t.*
-                from tags t
-                    join tag_sets ts using ( tag_sets_id )
-                where
-                    t.tag = 'spidered' and
-                    t.tag_sets_id = 'spidered'
-            """).hash()
+    if spidered_tag is None:
+        tag_set = db.find_or_create('tag_sets', {'name': SPIDERED_TAG_SET})
+        spidered_tag = db.create('tags', {'tag': SPIDERED_TAG_TAG, 'tag_sets_id': tag_set['tag_sets_id']})
 
-    return _spidered_tag
+    return spidered_tag
 
 
 def guess_medium(db: DatabaseHandler, story_url: str) -> dict:
@@ -258,12 +277,13 @@ def guess_medium(db: DatabaseHandler, story_url: str) -> dict:
     no appropriate media source exists, this function will create a new one and return it.
 
     """
+    log.warning('guess_medium: ' + story_url)
     (medium_url, medium_name) = generate_medium_url_and_name_from_url(story_url)
 
     medium = lookup_medium(db, medium_url, medium_name)
 
-    # if medium is not None:
-    #     return medium
+    if medium is not None:
+        return medium
 
     normalized_medium_url = _normalize_url(medium_url)
     normalized_story_url = _normalize_url(story_url)
@@ -271,7 +291,7 @@ def guess_medium(db: DatabaseHandler, story_url: str) -> dict:
 
     # avoid conflicts with existing media names and urls that are missed
     # by the above query b/c of dups feeds or foreign_rss_links
-    medium_name = get_unique_medium_name(db, medium_name + all_urls)
+    medium_name = get_unique_medium_name(db, [medium_name] + all_urls)
     medium_url = get_unique_medium_url(db, all_urls)
 
     medium = {
