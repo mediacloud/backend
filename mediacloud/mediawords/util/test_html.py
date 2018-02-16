@@ -1,7 +1,5 @@
 """tests for mediawords.util.html"""
 
-import re
-
 import mediawords.languages.en
 from mediawords.util.html import link_canonical_url_from_html, meta_refresh_url_from_html, html_strip
 from mediawords.util.log import create_logger
@@ -204,13 +202,7 @@ def test_html_strip() -> None:
     with open(html_path, 'r', encoding='utf8') as fh:
         html = fh.read()
 
-    text_path = mediawords.util.paths.mc_root_path() + '/mediacloud/test-data/html/strip.txt'
-    with open(text_path, 'r', encoding='utf8') as fh:
-        text = fh.read()
-
-    got_text = html_strip(html.strip())
-
-    got_text = re.sub('\s+', ' ', got_text.strip())
-    text = re.sub('\s+', ' ', text.strip())
-
-    assert got_text == text
+    # just santiy test here to make sure there are no errors without having to use a fixture
+    got_text = html_strip(html)
+    assert(len(got_text) > 0.05 * len(html))
+    assert '<' not in got_text
