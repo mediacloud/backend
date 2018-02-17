@@ -6,8 +6,10 @@ import re
 import typing
 
 from mediawords.db import DatabaseHandler
+import mediawords.dbi.downloads
 from mediawords.tm.guess_date import guess_date, GuessDateResult
 import mediawords.tm.media
+import mediawords.util.html
 from mediawords.util.log import create_logger
 import mediawords.util.url
 
@@ -17,7 +19,7 @@ log = create_logger(__name__)
 _MAX_URL_LENGTH = 1024
 _MAX_TITLE_LENGTH = 1024
 
-_SPIDER_FEED_NAME = 'Spider Feed'
+SPIDER_FEED_NAME = 'Spider Feed'
 
 
 class McTMStoriesException(Exception):
@@ -216,6 +218,9 @@ select distinct(s.*) from stories s
         """,
         {'a': urls}).hashes()
 
+    if len(stories) == 0:
+        return None
+
     story = get_preferred_story(db, stories)
 
     return story
@@ -249,7 +254,7 @@ def assign_date_guess_tag(
         fallback_date: typing.Optional[str]) -> None:
     """Assign a guess method tag to the story based on the date_guess result.
 
-    If date_guess found a result, assing a date_guess_method:guess_by_url, guess_by_tag_*, or guess_by_uknown tag.
+    If date_guess found a result, assign a date_guess_method:guess_by_url, guess_by_tag_*, or guess_by_uknown tag.
     Otherwise if there is a fallback_date, assign date_guess_metehod:fallback_date.  Else assign
     date_invalid:date_invalid.
 
@@ -262,9 +267,9 @@ def assign_date_guess_tag(
     None
 
     """
-    if date_guess.found():
-        tag_set = 'date_guess_method'
-        guess_method = date_guess.guess_method()
+    if date_guess.found:
+        tag_set = mediawords.tm.guess_date.GUESS_METHOD_TAG_SET
+        guess_method = date_guess.guess_method
         if guess_method.startswith('Extracted from url'):
             tag = 'guess_by_url'
         elif guess_method.startswith('Extracted from tag'):
@@ -274,15 +279,16 @@ def assign_date_guess_tag(
         else:
             tag = 'guess_by_unknown'
     elif fallback_date is not None:
-        tag_set = 'date_guess_method'
+        tag_set = mediawords.tm.guess_date.GUESS_METHOD_TAG_SET
         tag = 'fallback_date'
     else:
-        tag_set = 'date_invalid'
-        tag = 'date_invalid'
+        tag_set = mediawords.tm.guess_date.INVALID_TAG_SET
+        tag = mediawords.tm.guess_date.INVALID_TAG
 
     ts = db.find_or_create('tag_sets', {'name': tag_set})
     t = db.find_or_create('tags', {'tag': tag, 'tag_sets_id': ts['tag_sets_id']})
 
+    db.query("delete from stories_tags_map where stories_id = %(a)s", {'a': story['stories_id']})
     db.create('stories_tags_map', {'stories_id': story['stories_id'], 'tags_id': t['tags_id']})
 
 
@@ -296,17 +302,17 @@ def get_spider_feed(db: DatabaseHandler, medium: dict) -> dict:
                 url = %(b)s and
                 name = %(c)s
         """,
-        {'a': medium['media_id'], 'b': medium['url'], 'c': _SPIDER_FEED_NAME}).hash()
+        {'a': medium['media_id'], 'b': medium['url'], 'c': SPIDER_FEED_NAME}).hash()
 
     if feed is not None:
         return feed
 
-    feed = {'media_id': medium['media_id'], 'url': medium['url'], 'name': _SPIDER_FEED_NAME, 'feed_status': 'inactive'}
+    feed = {'media_id': medium['media_id'], 'url': medium['url'], 'name': SPIDER_FEED_NAME, 'feed_status': 'inactive'}
 
     return db.create('feeds', feed)
 
 
-def add_new_story(
+def generate_story(
         db: DatabaseHandler,
         url: str,
         content: str,
@@ -322,6 +328,8 @@ def add_new_story(
     content - story content
     fallback_date - fallback to this date if the date guesser fails to find a date
     """
+    if len(url) < 1:
+        raise McTMStoriesException("url must not be an empty string")
 
     url = url[0:_MAX_URL_LENGTH]
 
@@ -334,7 +342,6 @@ def add_new_story(
         'url': url,
         'guid': url,
         'media_id': medium['media_id'],
-        'collect_date': datetime.datetime.now(),
         'title': title,
         'description': ''
     }
@@ -344,7 +351,7 @@ def add_new_story(
         story[field] = re.sub('\x00', '', story[field])
 
     date_guess = guess_date(url, content)
-    story['publish_date'] = date_guess.date() if date_guess.found() else fallback_date
+    story['publish_date'] = date_guess.date if date_guess.found else fallback_date
     if story['publish_date'] is None:
         story['publish_date'] = datetime.datetime.now().isoformat()
 
