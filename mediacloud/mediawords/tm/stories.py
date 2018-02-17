@@ -20,6 +20,12 @@ _MAX_TITLE_LENGTH = 1024
 _SPIDER_FEED_NAME = 'Spider Feed'
 
 
+class McTMStoriesException(Exception):
+    """Defaut exception for package."""
+
+    pass
+
+
 # Giving up on porting the extraction stuff for now because it requires porting all the way down to StoryVectors.pm.
 # Will leave the extraction to the perl side Mine.pm code.
 # -hal
@@ -54,25 +60,28 @@ def _get_story_with_most_sentences(db: DatabaseHandler, stories: list) -> dict:
     if len(stories) == 1:
         return stories[0]
 
-    (stories_id) = db.query(
+    story = db.query(
         """
-        select stories_id
-            from story_sentences
-            where stories_id in (%(a)s)
-            group by stories_id
-            order by count(*) desc
-            limit 1
+        select s.*
+            from stories s
+            where stories_id in (
+                select stories_id
+                    from story_sentences
+                    where stories_id = any (%(a)s)
+                    group by stories_id
+                    order by count(*) desc
+                    limit 1
+            )
         """,
-        {'a', [s['stories_id'] for s in stories]}).flat()
+        {'a': [s['stories_id'] for s in stories]}).hash()
 
-    for story in stories:
-        if story['stories_id'] == stories_id:
-            return story
+    if story is not None:
+        return story
+    else:
+        return stories[0]
 
-    assert False, "unable to find stories_id in stories list"
 
-
-def _story_domain_matches_medium(db: DatabaseHandler, medium: dict, urls: list) -> bool:
+def _url_domain_matches_medium(medium: dict, urls: list) -> bool:
     """Return true if the domain of any of the story urls matches the domain of the medium url."""
     medium_domain = mediawords.util.url.get_url_distinctive_domain(medium['url'])
 
@@ -83,16 +92,16 @@ def _story_domain_matches_medium(db: DatabaseHandler, medium: dict, urls: list) 
     return len(matches) > 0
 
 
-def get_preferred_story(db: DatabaseHandler, urls: list, stories: list) -> dict:
+def get_preferred_story(db: DatabaseHandler, stories: list) -> dict:
     """Given a set of possible story matches, find the story that is likely the best to include in the topic.
 
     The best story is the one that first belongs to the media source that sorts first according to the following
     criteria, in descending order of importance:
 
-    * media pointed to by some dup_media_id
-    * media without a dup_media_id
-    * media whose url domain matches that of the story
-    * media with a lower media_id
+    * pointed to by some dup_media_id
+    * without a dup_media_id
+    * url domain matches that of the story
+    * lower media_id
 
     Within a media source, the preferred story is the one with the most sentences.
 
@@ -108,8 +117,6 @@ def get_preferred_story(db: DatabaseHandler, urls: list, stories: list) -> dict:
     """
     assert len(stories) > 0
 
-    stories = list(set(stories))
-
     if len(stories) == 1:
         return stories[0]
 
@@ -118,25 +125,26 @@ def get_preferred_story(db: DatabaseHandler, urls: list, stories: list) -> dict:
     media = db.query(
         """
         select *,
-                exists ( select 1 from media d where d.dup_media_id = m.media_id ) is_dup_target
-            from media
-            where media_id in (%(a)s)
+                exists ( select 1 from media d where d.dup_media_id = m.media_id ) as is_dup_target
+            from media m
+            where media_id = any(%(a)s)
         """,
-        {'a': [s['stories_id'] for s in stories]}).hashes()
+        {'a': [s['media_id'] for s in stories]}).hashes()
+
+    story_urls = [s['url'] for s in stories]
 
     for medium in media:
         # is_dup_target defined in query above
-        medium['is_not_dup_source'] = 0 if medium['dup_media_id'] else 1
-        medium['matches_domain'] = 1 if _story_domain_matches_medium(db, medium, urls) else 0
-        medium['stories'] = filter(lambda s: s['media_id'] == medium['media_id'], stories)
+        medium['is_dup_target'] = 0 if medium['is_dup_target'] else 1
+        medium['is_not_dup_source'] = 1 if medium['dup_media_id'] else 0
+        medium['matches_domain'] = 0 if _url_domain_matches_medium(medium, story_urls) else 1
+        medium['stories'] = list(filter(lambda s: s['media_id'] == medium['media_id'], stories))
 
     sorted_media = sorted(
         media,
-        key=operator.attrgetter('is_dup_target', 'is_not_dup_source', 'matches_domain', 'media_id'))
+        key=operator.itemgetter('is_dup_target', 'is_not_dup_source', 'matches_domain', 'media_id'))
 
     preferred_story = _get_story_with_most_sentences(db, sorted_media[0]['stories'])
-
-    log.debug("get_preferred_story done")
 
     return preferred_story
 
@@ -144,7 +152,7 @@ def get_preferred_story(db: DatabaseHandler, urls: list, stories: list) -> dict:
 def ignore_redirect(db: DatabaseHandler, url: str, redirect_url: typing.Optional[str]) -> bool:
     """Return true if we should ignore redirects to the target media source.
 
-    This is usually to avoid redirects to domainresellers for previously valid and important but now dead links"""
+    This is usually to avoid redirects to domain resellers for previously valid and important but now dead links."""
     if redirect_url is None or url == redirect_url:
         return False
 
@@ -193,8 +201,8 @@ def get_story_match(db: DatabaseHandler, url: str, redirect_url: typing.Optional
 select distinct(s.*) from stories s
         join media m on s.media_id = m.media_id
     where
-        ( ( s.url in ( %(a)s ) ) or
-            ( s.guid in ( %(a)s ) ) ) and
+        ( ( s.url = any( %(a)s ) ) or
+            ( s.guid = any ( %(a)s ) ) ) and
         m.foreign_rss_links = false
 
 union
@@ -203,12 +211,12 @@ select distinct(s.*) from stories s
         join media m on s.media_id = m.media_id
         join topic_seed_urls csu on s.stories_id = csu.stories_id
     where
-        csu.url in ( %(a)s ) and
+        csu.url = any ( %(a)s ) and
         m.foreign_rss_links = false
         """,
         {'a': urls}).hashes()
 
-    story = get_preferred_story(db, urls, stories)
+    story = get_preferred_story(db, stories)
 
     return story
 
