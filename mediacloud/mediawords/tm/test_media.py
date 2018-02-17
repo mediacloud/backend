@@ -56,7 +56,6 @@ class TestTMMediaDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase
 
         db.query("update media set url = 'http://update.url' where media_id in ( select media_id from media limit 1)")
 
-        # FIXME - need to add db_row_last_updated trigger to media
         assert mediawords.tm.media._normalized_urls_out_of_date(db)
 
     def test_update_media_normalized_urls(self) -> None:
