@@ -320,3 +320,22 @@ def testRandomPort() -> None:
         hss.append(hs)
 
     [hs.stop() for hs in hss]
+
+
+def testDelay() -> None:
+    """Test the delay= parameter to hs.start."""
+    hs = HashServer(port=0, pages={'/foo': 'bar'})
+
+    hs.start(delay=1)
+    caught_exception = False
+    try:
+        requests.get(hs.page_url('/foo'))
+    except requests.exceptions.ConnectionError:
+        caught_exception = True
+
+    assert caught_exception
+
+    time.sleep(2)
+    assert str(requests.get(hs.page_url('/foo')).text) == 'bar'
+
+    hs.stop()

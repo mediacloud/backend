@@ -6,6 +6,7 @@ import multiprocessing
 import os
 import signal
 from socketserver import ForkingMixIn
+import time
 from typing import Union, Dict
 
 from mediawords.util.log import create_logger
@@ -497,8 +498,10 @@ class HashServer(object):
                             port: int,
                             pages: dict,
                             active_pids: Dict[int, bool],
-                            active_pids_lock: multiprocessing.Lock):
+                            active_pids_lock: multiprocessing.Lock,
+                            delay: int):
         """(Run in a fork) Start listening to the port. """
+        time.sleep(delay)
         server_address = (host, port,)
 
         # Add server fork PID to the list of active PIDs to be killed later
@@ -515,8 +518,12 @@ class HashServer(object):
 
         http_server.serve_forever()
 
-    def start(self):
-        """Start the webserver."""
+    def start(self, delay: int=0):
+        """Start the webserver.
+
+        Arguments:
+        delay - number of seconds to delay before starting server
+        """
 
         if tcp_port_is_open(port=self.__port):
             raise McHashServerException("Port %d is already open." % self.__port)
@@ -533,13 +540,15 @@ class HashServer(object):
                 self.__pages,
                 self.__http_server_active_pids,
                 self.__http_server_active_pids_lock,
+                delay
             )
         )
         self.__http_server_thread.daemon = True
         self.__http_server_thread.start()
 
-        if not wait_for_tcp_port_to_open(port=self.__port, retries=20, delay=0.1):
-            raise McHashServerException("Port %d is not open." % self.__port)
+        if delay == 0:
+            if not wait_for_tcp_port_to_open(port=self.__port, retries=20, delay=0.1):
+                raise McHashServerException("Port %d is not open." % self.__port)
 
     def stop(self):
         """Stop the webserver."""

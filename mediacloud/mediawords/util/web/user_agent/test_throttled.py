@@ -5,7 +5,7 @@ import time
 from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
 from mediawords.test.http.hash_server import HashServer
 from mediawords.util.web.user_agent.throttled import ThrottledUserAgent
-from mediawords.util.web.user_agent.throttled import McThrottledUserAgentTimeoutException
+from mediawords.util.web.user_agent.throttled import McThrottledDomainException
 import mediawords.util.web.user_agent.throttled
 
 
@@ -27,14 +27,14 @@ class TestThrottledUserAgent(TestDatabaseWithSchemaTestCase):
         assert response.decoded_content() == 'Hello!'
 
         # fail because we're in the timeout
-        self.assertRaises(McThrottledUserAgentTimeoutException, ua.get, test_url)
+        self.assertRaises(McThrottledDomainException, ua.get, test_url)
 
         # succeed because it's a different domain
         response = ua.get('http://127.0.0.1:8888/test')
         assert response.decoded_content() == 'Hello!'
 
         # still fail within the timeout
-        self.assertRaises(McThrottledUserAgentTimeoutException, ua.get, test_url)
+        self.assertRaises(McThrottledDomainException, ua.get, test_url)
 
         time.sleep(2)
 
@@ -43,7 +43,7 @@ class TestThrottledUserAgent(TestDatabaseWithSchemaTestCase):
         assert response.decoded_content() == 'Hello!'
 
         # and then fail within the new timeout period
-        self.assertRaises(McThrottledUserAgentTimeoutException, ua.get, test_url)
+        self.assertRaises(McThrottledDomainException, ua.get, test_url)
 
         hs.stop()
 

@@ -15,7 +15,7 @@ log = create_logger(__name__)
 _DEFAULT_DOMAIN_TIMEOUT = 10
 
 
-class McThrottledUserAgentTimeoutException(Exception):
+class McThrottledDomainException(Exception):
     """Exception raised when a ThrottledUserAgent request fails to get a domain request lock."""
 
     pass
@@ -48,7 +48,7 @@ class ThrottledUserAgent(UserAgent):
         Execute domain throttled version of mediawords.util.web.user_agent.UserAgent.request.
 
         Before executing the request, the method will check whether a request has been made for this domain within the
-        last self.domain_timeout seconds.  If so, the call will raise a McThrottledUserAgentTimeoutException.
+        last self.domain_timeout seconds.  If so, the call will raise a McThrottledDomainException.
         Otherwise, the method will mark the time for this domain request in a postgres table and then execute
         UserAgent.request().
         """
@@ -62,6 +62,6 @@ class ThrottledUserAgent(UserAgent):
             (domain, self.domain_timeout)).flat()[0]
 
         if not got_domain_lock:
-            raise McThrottledUserAgentTimeoutException("domain " + str(domain) + " is locked.")
+            raise McThrottledDomainException("domain " + str(domain) + " is locked.")
 
         return super(ThrottledUserAgent, self).request(request)

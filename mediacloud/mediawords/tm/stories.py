@@ -6,6 +6,7 @@ import re
 import typing
 
 from mediawords.db import DatabaseHandler
+import mediawords.db.exceptions.handler
 import mediawords.dbi.downloads
 from mediawords.tm.guess_date import guess_date, GuessDateResult
 import mediawords.tm.media
@@ -24,6 +25,12 @@ SPIDER_FEED_NAME = 'Spider Feed'
 
 class McTMStoriesException(Exception):
     """Defaut exception for package."""
+
+    pass
+
+
+class McTMStoriesDuplicateException(Exception):
+    """Raised when generate_story tries to insert story with a url that is not unique for a media source."""
 
     pass
 
@@ -355,7 +362,13 @@ def generate_story(
     if story['publish_date'] is None:
         story['publish_date'] = datetime.datetime.now().isoformat()
 
-    story = db.create('stories', story)
+    try:
+        story = db.create('stories', story)
+    except mediawords.db.exceptions.handler.McCreateException as e:
+        if re.search(r'guid, media_id.*already exists', str(e)) is not None:
+            raise McTMStoriesDuplicateException("Attempt to insert duplicate story url %s" % url)
+        else:
+            raise McTMStoriesException("Error creating story: %s" % e)
 
     db.create('stories_tags_map', {'stories_id': story['stories_id'], 'tags_id': spidered_tag['tags_id']})
 
