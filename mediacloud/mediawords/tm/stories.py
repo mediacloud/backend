@@ -104,7 +104,7 @@ def _url_domain_matches_medium(medium: dict, urls: list) -> bool:
 def get_preferred_story(db: DatabaseHandler, stories: list) -> dict:
     """Given a set of possible story matches, find the story that is likely the best to include in the topic.
 
-    The best story is the one that first belongs to the media source that sorts first according to the following
+    The best story is the one that belongs to the media source that sorts first according to the following
     criteria, in descending order of importance:
 
     * pointed to by some dup_media_id
@@ -325,7 +325,6 @@ def generate_story(
         content: str,
         fallback_date: typing.Optional[datetime.datetime]=None) -> dict:
     """Add a new story to the database by guessing metadata using the given url and content.
-
 
     This function guesses the medium, feed, title, and date of the story from the url and content.
 

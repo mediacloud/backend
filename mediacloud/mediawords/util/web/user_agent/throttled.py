@@ -29,7 +29,7 @@ class ThrottledUserAgent(UserAgent):
         Add database handler and domain_timeout to UserAgent object.
 
         If domain_timeout is not specified, use mediawords.throttles_user_agent_domain_timeout from mediawords.yml.
-        If not present in mediawords.yml, use _DEFAULT_DOMAIN_TIMEOUT.
+        If not present in mediawords.yml or less than 1, use _DEFAULT_DOMAIN_TIMEOUT.
         """
         self.db = db
         self.domain_timeout = domain_timeout
@@ -41,7 +41,7 @@ class ThrottledUserAgent(UserAgent):
             if self.domain_timeout is None or self.domain_timeout < 1:
                 self.domain_timeout = _DEFAULT_DOMAIN_TIMEOUT
 
-        UserAgent.__init__(self)
+        super().__init__()
 
     def request(self, request: Request) -> Response:
         """
@@ -64,4 +64,4 @@ class ThrottledUserAgent(UserAgent):
         if not got_domain_lock:
             raise McThrottledDomainException("domain " + str(domain) + " is locked.")
 
-        return super(ThrottledUserAgent, self).request(request)
+        return super().request(request)

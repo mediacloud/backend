@@ -328,7 +328,7 @@ def normalize_url_lossy(url: str) -> Optional[str]:
     Normalization is "lossy" (makes the whole URL lowercase, removes subdomain parts "m.", "data.", "news.", ...
     in some cases).
 
-    See also normalize_url_lossy() above.
+    See also normalize_url_lossy_version() above.
     """
     url = decode_object_from_bytes_if_needed(url)
     if url is None:

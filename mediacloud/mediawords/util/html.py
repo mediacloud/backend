@@ -1,9 +1,10 @@
 """Various utility functions for handling html."""
 
-from bs4 import BeautifulSoup
 import re
 from urllib.parse import urljoin
 from typing import Optional
+
+from bs4 import BeautifulSoup
 
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
@@ -24,7 +25,7 @@ def link_canonical_url_from_html(html: str, base_url: Optional[str]= None) -> Op
         if re.search(r'rel\s*?=\s*?["\']\s*?canonical\s*?["\']', link_element, re.I):
             match = re.search(r'href\s*?=\s*?["\'](.+?)["\']', link_element, re.I)
             if match:
-                url = str(match.group(1))
+                url = match.group(1)
                 if not is_http_url(url):
                     # Maybe it's absolute path?
                     if base_url is not None:
@@ -44,33 +45,33 @@ def meta_refresh_url_from_html(html: str, base_url: Optional[str] = None) -> Opt
     def __get_meta_refresh_url_from_tag(inner_tag: str, inner_base_url: Optional[str]=None) -> Optional[str]:
         """Given a <meta ...> tag, return the url from the content="url=XXX" attribute.
 
-        return undef if no such url isfound.
+        Return None if no such url isfound.
         """
         if not re.search(r'http-equiv\s*?=\s*?["\']\s*?refresh\s*?["\']', inner_tag, re.I):
             return None
 
         # content="url='http://foo.bar'"
-        inner_url = None
+        inner_url = ''
 
         match = re.search(r'content\s*?=\s*?"\d*?\s*?;?\s*?URL\s*?=\s*?\'(.+?)\'', inner_tag, re.I)
         if match:
-            inner_url = str(match.group(1))
+            inner_url = match.group(1)
         else:
             # content="url='http://foo.bar'"
             match = re.search(r'content\s*?=\s*?\'\d*?\s*?;?\s*?URL\s*?=\s*?"(.+?)"', inner_tag, re.I)
             if match:
-                inner_url = str(match.group(1))
+                inner_url = match.group(1)
             else:
                 # Fallback
                 match = re.search(r'content\s*?=\s*?["\']\d*?\s*?;?\s*?URL\s*?=\s*?(.+?)["\']', inner_tag, re.I)
                 if match:
-                    inner_url = str(match.group(1))
+                    inner_url = match.group(1)
 
-        if is_http_url(str(inner_url)):
+        if is_http_url(inner_url):
             return inner_url
 
         if inner_base_url is not None:
-            return urljoin(base=str(inner_base_url), url=str(inner_url))
+            return urljoin(base=str(inner_base_url), url=inner_url)
 
         return None
 

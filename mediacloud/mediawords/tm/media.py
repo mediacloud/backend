@@ -89,6 +89,9 @@ def _normalized_urls_out_of_date(db: DatabaseHandler) -> bool:
     if max_normalized_media_id is None:
         return True
 
+    if max_normalized_media_id < max_media_id:
+        return True
+
     last_media_update = db.query("select max(db_row_last_updated) from media").flat()[0]
 
     last_mnu_update = db.query(
@@ -101,7 +104,7 @@ def _normalized_urls_out_of_date(db: DatabaseHandler) -> bool:
     if last_mnu_update is None:
         return True
 
-    return max_normalized_media_id < max_media_id or last_mnu_update < last_media_update
+    return last_mnu_update < last_media_update
 
 
 def _update_media_normalized_urls(db: DatabaseHandler) -> None:
@@ -194,10 +197,6 @@ def lookup_medium(db: DatabaseHandler, url: str, name: str) -> typing.Optional[d
     medium = db.query(lookup_query, {'a': nu, 'b': version}).hash()
 
     if medium is None:
-        _update_media_normalized_urls(db)
-        medium = db.query(lookup_query, {'a': nu, 'b': version}).hash()
-
-    if medium is None:
         medium = db.query(
             "select m.* from media m where lower(m.name) = lower(%(a)s) and m.foreign_rss_links = false",
             {'a': name}).hash()
@@ -277,7 +276,6 @@ def guess_medium(db: DatabaseHandler, story_url: str) -> dict:
     no appropriate media source exists, this function will create a new one and return it.
 
     """
-    log.warning('guess_medium: ' + story_url)
     (medium_url, medium_name) = generate_medium_url_and_name_from_url(story_url)
 
     medium = lookup_medium(db, medium_url, medium_name)

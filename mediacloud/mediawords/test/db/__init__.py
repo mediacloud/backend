@@ -221,7 +221,7 @@ def create_test_story_stack_numerated(db: DatabaseHandler,
                                       num_stories_per_feed: int,
                                       label: str = 'test'):
     """Call create_test_story_stack with num_media, num_feeds_per_medium, num_stories_per_feed instead of dict."""
-    if label is None:  # perl can bass undef / None explicitly so that label ends up without default
+    if label is None:  # perl can pass undef / None explicitly so that label ends up without default
         label = 'test'
     label = str(decode_str_from_bytes_if_needed(label))
 

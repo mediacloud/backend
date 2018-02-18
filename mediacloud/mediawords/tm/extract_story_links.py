@@ -48,7 +48,7 @@ def get_links_from_html(html: str) -> typing.List[str]:
         if not mediawords.util.url.is_http_url(url):
             continue
 
-        url = re.sub(r'www[a-z0-9]+.nytimes', 'www.nytimes', url, flags=re.I)
+        url = re.sub(r'(https)?://www[a-z0-9]+.nytimes', r'\1://www.nytimes', url, flags=re.I)
 
         links.append(url)
 
@@ -90,7 +90,7 @@ def get_youtube_embed_links(db: DatabaseHandler, story: dict) -> typing.List[str
 
         url = url.strip()
 
-        url = re.sub('youtube-embed', 'youtube', url)
+        url = url.replace('youtube-embed', 'youtube')
 
         links.append(url)
 
@@ -152,15 +152,13 @@ def get_links_from_story(db: DatabaseHandler, story: dict) -> typing.List[str]:
         text_links = get_links_from_story_text(db, story)
         youtube_links = get_youtube_embed_links(db, story)
 
-        links = html_links + text_links + youtube_links
-
-        links = list(filter(lambda x: re.search(_IGNORE_LINK_PATTERN, x, flags=re.I) is None, links))
+        all_links = html_links + text_links + youtube_links
 
         link_lookup = {}
-        for url in links:
+        for url in filter(lambda x: re.search(_IGNORE_LINK_PATTERN, x, flags=re.I) is None, all_links):
             link_lookup[mediawords.util.url.normalize_url_lossy(url)] = url
 
-        links = link_lookup.values()
+        links = list(link_lookup.values())
 
         return links
     except mediawords.key_value_store.amazon_s3.McAmazonS3StoreException:
