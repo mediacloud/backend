@@ -12,6 +12,9 @@ from mediawords.util.log import create_logger
 from mediawords.util.network import tcp_port_is_open, wait_for_tcp_port_to_open, wait_for_tcp_port_to_close
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
+# if no port is specified, start searching for an open port sequentially at this port
+START_RANDOM_PORT = 7777
+
 
 class McHashServerException(Exception):
     """HashServer exception."""
@@ -84,9 +87,9 @@ class HashServer(object):
         """Request sent to callback."""
 
         def __init__(self, port: int, method: str, path: str, headers: Dict[str, str], content: str):
-            self._port = port
             self._method = method
             self._path = path
+            self._port = port
 
             self._headers = dict()
             for name, value in headers.items():
@@ -442,20 +445,30 @@ class HashServer(object):
     ]
 
     def __init__(self, port: int, pages: dict):
-        """HTTP server's constructor."""
+        """HTTP server's constructor.
+
+        Arguments:
+        port - port to start server on (0 to choose random open port)
+        pages - dict describing pages to serve, as described in docstring above
+
+        """
 
         self.__host = '127.0.0.1'
         self.__http_server_thread = None
 
-        if not port:
-            raise McHashServerException("Port is not set.")
         if len(pages) == 0:
             log.warning("Pages dictionary is empty.")
+
+        if port == 0:
+            port = START_RANDOM_PORT
+            while tcp_port_is_open(port):
+                port += 1
+
+        self.__port = port
 
         # MC_REWRITE_TO_PYTHON: Decode page keys from bytes
         pages = {decode_object_from_bytes_if_needed(k): v for k, v in pages.items()}
 
-        self.__port = port
         self.__pages = pages
 
         self.__http_server_active_pids = multiprocessing.Manager().dict()
@@ -560,6 +573,10 @@ class HashServer(object):
 
         if not wait_for_tcp_port_to_close(port=self.__port, retries=20, delay=0.1):
             raise McHashServerException("Port %d is still open." % self.__port)
+
+    def port(self) -> int:
+        """Return the hash server port."""
+        return self.__port
 
     def page_url(self, path: str) -> str:
         """Return the URL for the given page on the test server or raise of the path does not exist."""
