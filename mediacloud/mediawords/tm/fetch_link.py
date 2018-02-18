@@ -33,6 +33,7 @@ FETCH_STATE_CONTENT_MATCH_FAILED = 'content match failed'
 FETCH_STATE_STORY_MATCH = 'story match'
 FETCH_STATE_STORY_ADDED = 'story added'
 FETCH_STATE_PYTHON_ERROR = 'python error'
+FETCH_STATE_REQUEUED = 'requeued'
 
 
 class McTMFetchLinkException(Exception):

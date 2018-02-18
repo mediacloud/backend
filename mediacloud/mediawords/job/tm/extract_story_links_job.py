@@ -1,6 +1,8 @@
 #!/usr/bin/env python3.5
 """Topic Maapper job that extracts links from a single story and inserts them into topic_links."""
 
+import traceback
+
 from mediawords.db import connect_to_db
 from mediawords.job import AbstractJob, McAbstractJobException, JobBrokerApp
 import mediawords.tm.extract_story_links
@@ -34,7 +36,7 @@ class ExtractStoryLinksJob(AbstractJob):
             raise McExtractStoryLinksJobException("'stories_id' is None.")
 
         if isinstance(topics_id, bytes):
-            topics_id = decode_object_from_bytes_if_needed(stories_id)
+            topics_id = decode_object_from_bytes_if_needed(topics_id)
         if topics_id is None:
             raise McExtractStoryLinksJobException("'topics_id' is None.")
 
@@ -49,7 +51,8 @@ class ExtractStoryLinksJob(AbstractJob):
             topic = db.require_by_id(table='topics', object_id=topics_id)
             mediawords.tm.extract_story_links.extract_links_for_topic_story(db, story, topic)
         except Exception as ex:
-            raise McExtractStoryLinksJobException("Unable to process story $stories_id: %s" % str(ex))
+            raise McExtractStoryLinksJobException(
+                "Unable to process story %d: %s" % (stories_id, traceback.format_exc()))
 
         log.info("Finished fetching extracting links for stories_id %d topics_id %d" % (stories_id, topics_id))
 

@@ -1,0 +1,46 @@
+"""Test mediawords.job.tm.fetch_link_job."""
+
+import mediawords.job.tm.fetch_link_job
+import mediawords.test.http.hash_server
+import mediawords.test.test_database
+
+
+class TestFetchLinJobkDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase):
+    """Run tests that require database access."""
+
+    def test_fetch_link_job(self) -> None:
+        db = self.db()
+
+        hs = mediawords.test.http.hash_server.HashServer(port=0, pages={'/foo': '<title>foo</title>'})
+        hs.start()
+
+        topic = mediawords.test.db.create_test_topic(db, 'foo')
+        topic['pattern'] = '.'
+        topic = db.update_by_id('topics', topic['topics_id'], topic)
+
+        fetch_url = hs.page_url('/foo')
+
+        #  basic sanity test for link fetching
+        tfu = db.create('topic_fetch_urls', {
+            'topics_id': topic['topics_id'],
+            'url': hs.page_url('/foo'),
+            'state': mediawords.tm.fetch_link.FETCH_STATE_PENDING})
+
+        mediawords.job.tm.fetch_link_job.FetchLinkJob.run_locally(tfu['topic_fetch_urls_id'])
+
+        tfu = db.require_by_id('topic_fetch_urls', tfu['topic_fetch_urls_id'])
+
+        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_STORY_ADDED
+        assert tfu['url'] == fetch_url
+        assert tfu['code'] == 200
+        assert tfu['stories_id'] is not None
+
+        new_story = db.require_by_id('stories', tfu['stories_id'])
+
+        assert new_story['url'] == fetch_url
+        assert new_story['title'] == 'foo'
+
+        # now make sure that the domain throttling sets
+        mediawords.job.tm.fetch_link_job.FetchLinkJob.run_locally(tfu['topic_fetch_urls_id'], dummy_requeue=True)
+        tfu = db.require_by_id('topic_fetch_urls', tfu['topic_fetch_urls_id'])
+        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_REQUEUED
