@@ -586,8 +586,8 @@ class UserAgent(object):
             blacklist_url_pattern = config['mediawords']['blacklist_url_pattern']
 
         if blacklist_url_pattern is not None and len(blacklist_url_pattern) > 0:
-            if re.search(pattern=blacklist_url_pattern, string=url, flags=re.IGNORECASE | re.UNICODE):
-                request.set_url("http://blacklistedsite.localhost/%s" % url)
+            if re.search(pattern=blacklist_url_pattern, string=url, flags=re.IGNORECASE | re.UNICODE) is not None:
+                request.set_url("http://0.0.0.1/%s" % url)
 
         return request
 
