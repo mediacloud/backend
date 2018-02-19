@@ -205,6 +205,7 @@ sub _verify_processes_status($$)
             }
             elsif ( $state eq 'STOPPED' )
             {
+                # might be a group or a single job, so just try both
                 _run_supervisorctl( "start $process" );
                 _run_supervisorctl( "start $process:" );
             }
