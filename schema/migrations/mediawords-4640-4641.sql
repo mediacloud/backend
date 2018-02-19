@@ -18,41 +18,39 @@
 SET search_path = public, pg_catalog;
 
 
---
--- Snapshot word2vec models
---
-CREATE TABLE snap.word2vec_models (
-    word2vec_models_id  SERIAL      PRIMARY KEY,
-    object_id           INTEGER     NOT NULL REFERENCES snapshots (snapshots_id) ON DELETE CASCADE,
-    creation_date       TIMESTAMP   NOT NULL DEFAULT NOW()
-);
+CREATE OR REPLACE FUNCTION table_exists(target_table_name VARCHAR) RETURNS BOOLEAN AS $$
+DECLARE
+    schema_position INT;
+    schema VARCHAR;
+BEGIN
 
--- We'll need to find the latest word2vec model
-CREATE INDEX snap_word2vec_models_object_id_creation_date ON snap.word2vec_models (object_id, creation_date);
+    SELECT POSITION('.' IN target_table_name) INTO schema_position;
 
-CREATE TABLE snap.word2vec_models_data (
-    word2vec_models_data_id SERIAL      PRIMARY KEY,
-    object_id               INTEGER     NOT NULL
-                                            REFERENCES snap.word2vec_models (word2vec_models_id)
-                                            ON DELETE CASCADE,
-    raw_data                BYTEA       NOT NULL
-);
-CREATE UNIQUE INDEX snap_word2vec_models_data_object_id ON snap.word2vec_models_data (object_id);
+    -- "." at string index 0 would return position 1
+    IF schema_position = 0 THEN
+        schema := CURRENT_SCHEMA();
+    ELSE
+        schema := SUBSTRING(target_table_name FROM 1 FOR schema_position - 1);
+        target_table_name := SUBSTRING(target_table_name FROM schema_position + 1);
+    END IF;
 
--- Don't (attempt to) compress BLOBs in "raw_data" because they're going to be
--- compressed already
-ALTER TABLE snap.word2vec_models_data
-    ALTER COLUMN raw_data SET STORAGE EXTERNAL;
+    RETURN EXISTS (
+        SELECT 1
+        FROM information_schema.tables
+        WHERE table_schema = schema
+          AND table_name = target_table_name
+    );
+
+END;
+$$
+LANGUAGE plpgsql;
 
 
---
--- 2 of 2. Reset the database version.
---
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4640;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4641;
 
 BEGIN
 
@@ -66,4 +64,8 @@ END;
 $$
 LANGUAGE 'plpgsql';
 
+--
+-- 2 of 2. Reset the database version.
+--
 SELECT set_database_schema_version();
+

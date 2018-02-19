@@ -886,7 +886,9 @@ sub add_new_story
 
     $story = safely_create_story( $db, $story );
 
-    $db->create( 'stories_tags_map', { stories_id => $story->{ stories_id }, tags_id => $spidered_tag->{ tags_id } } );
+    $db->query( <<SQL, $story->{ stories_id }, $spidered_tag->{ tags_id } );
+insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )
+SQL
 
     MediaWords::DBI::Stories::GuessDate::assign_date_guess_method( $db, $story, $date_guess_method, 1 );
 
@@ -1716,9 +1718,10 @@ SQL
 
     $db->query( <<SQL, $topic->{ topics_id } );
 update topic_links tl set ref_stories_id = null
-    from stories s
+    from snap.live_stories s
     where
         tl.ref_stories_id = s.stories_id and
+        tl.topics_id = s.topics_id and
         tl.topics_id = ? and
         s.media_id in ( $media_ids_list )
 SQL
