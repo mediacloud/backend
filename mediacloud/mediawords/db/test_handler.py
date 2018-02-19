@@ -3,7 +3,8 @@ import re
 import pytest
 
 from mediawords.db.exceptions.result import McDatabaseResultException
-from mediawords.db.handler import McUpdateByIDException, McCreateException, McRequireByIDException
+from mediawords.db.handler import (
+    McUpdateByIDException, McCreateException, McRequireByIDException, McUniqueConstraintException)
 from mediawords.test.test_database import TestDatabaseTestCase
 from mediawords.util.config import (
     get_config as py_get_config,
@@ -470,17 +471,22 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         assert row is None
 
     def test_create(self):
-        row = self.db().create(table='kardashians', insert_hash={
+        insert_hash = {
             'name': 'Lamar',
             'surname': 'Odom',
             'dob': '1979-11-06',
-        })
+        }
+        row = self.db().create(table='kardashians', insert_hash=insert_hash)
         assert row['surname'] == 'Odom'
         assert str(row['dob']) == '1979-11-06'
 
         # Nonexistent column
         with pytest.raises(McCreateException):
             self.db().create('kardashians', {'does_not': 'exist'})
+
+        # unique constraint
+        with pytest.raises(McUniqueConstraintException):
+            self.db().create('kardashians', insert_hash)
 
     def test_select(self):
         # One condition
