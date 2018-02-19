@@ -263,7 +263,7 @@ def get_spidered_tag(db: DatabaseHandler) -> dict:
 
     if spidered_tag is None:
         tag_set = db.find_or_create('tag_sets', {'name': SPIDERED_TAG_SET})
-        spidered_tag = db.create('tags', {'tag': SPIDERED_TAG_TAG, 'tag_sets_id': tag_set['tag_sets_id']})
+        spidered_tag = db.find_or_create('tags', {'tag': SPIDERED_TAG_TAG, 'tag_sets_id': tag_set['tag_sets_id']})
 
     return spidered_tag
 
@@ -298,12 +298,12 @@ def guess_medium(db: DatabaseHandler, story_url: str) -> dict:
         'moderated': 't'
     }
 
-    medium = db.create('media', medium)
+    medium = db.find_or_create('media', medium)
 
     log.info("add medium: %s / %s / %d" % (medium_name, medium_url, medium['media_id']))
 
     spidered_tag = get_spidered_tag(db)
 
-    db.create('media_tags_map', {'media_id': medium['media_id'], 'tags_id': spidered_tag['tags_id']})
+    db.find_or_create('media_tags_map', {'media_id': medium['media_id'], 'tags_id': spidered_tag['tags_id']})
 
     return medium

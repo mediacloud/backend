@@ -173,7 +173,7 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
                     url=response.request().url())
                 topic_fetch_url['state'] = FETCH_STATE_STORY_ADDED
                 topic_fetch_url['stories_id'] = story['stories_id']
-            except mediawords.tm.stories.McTMGenerateStoryDuplicate:
+            except mediawords.tm.stories.McTMStoriesDuplicateException:
                 # may get a unique constraint error for the story addition within the media source.  that's fine
                 # because it means the story is already in the database and we just need to match it again.
                 topic_fetch_url['state'] = FETCH_STATE_STORY_MATCH

@@ -301,22 +301,12 @@ def assign_date_guess_tag(
 
 def get_spider_feed(db: DatabaseHandler, medium: dict) -> dict:
     """Find or create the 'Spider Feed' feed for the media source."""
-    feed = db.query(
-        """
-        select * from feeds
-            where
-                media_id = %(a)s and
-                url = %(b)s and
-                name = %(c)s
-        """,
-        {'a': medium['media_id'], 'b': medium['url'], 'c': SPIDER_FEED_NAME}).hash()
-
-    if feed is not None:
-        return feed
-
-    feed = {'media_id': medium['media_id'], 'url': medium['url'], 'name': SPIDER_FEED_NAME, 'feed_status': 'inactive'}
-
-    return db.create('feeds', feed)
+    return db.find_or_create('feeds', {
+        'media_id': medium['media_id'],
+        'url': medium['url'],
+        'name': SPIDER_FEED_NAME,
+        'feed_status': 'inactive'
+    })
 
 
 def generate_story(
@@ -363,11 +353,8 @@ def generate_story(
 
     try:
         story = db.create('stories', story)
-    except mediawords.db.exceptions.handler.McCreateException as e:
-        if re.search(r'guid, media_id.*already exists', str(e)) is not None:
-            raise McTMStoriesDuplicateException("Attempt to insert duplicate story url %s" % url)
-        else:
-            raise McTMStoriesException("Error creating story: %s" % e)
+    except mediawords.db.exceptions.handler.McUnqieuConstraintEception as e:
+        raise McTMStoriesDuplicateException("Attempt to insert duplicate story url %s" % url)
 
     db.create('stories_tags_map', {'stories_id': story['stories_id'], 'tags_id': spidered_tag['tags_id']})
 
