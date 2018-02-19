@@ -353,7 +353,7 @@ def generate_story(
 
     try:
         story = db.create('stories', story)
-    except mediawords.db.exceptions.handler.McUnqieuConstraintEception as e:
+    except mediawords.db.exceptions.handler.McUniqueConstraintException as e:
         raise McTMStoriesDuplicateException("Attempt to insert duplicate story url %s" % url)
 
     db.create('stories_tags_map', {'stories_id': story['stories_id'], 'tags_id': spidered_tag['tags_id']})
