@@ -29,7 +29,7 @@ class ThrottledUserAgent(UserAgent):
         Add database handler and domain_timeout to UserAgent object.
 
         If domain_timeout is not specified, use mediawords.throttles_user_agent_domain_timeout from mediawords.yml.
-        If not present in mediawords.yml or less than 1, use _DEFAULT_DOMAIN_TIMEOUT.
+        If not present in mediawords.yml, use _DEFAULT_DOMAIN_TIMEOUT.
         """
         self.db = db
         self.domain_timeout = domain_timeout
@@ -38,7 +38,7 @@ class ThrottledUserAgent(UserAgent):
             config = mediawords.util.config.get_config()
             if 'throttled_user_agent_domain_timeout' in config['mediawords']:
                 self.domain_timeout = int(config['mediawords']['throttled_user_agent_domain_timeout'])
-            if self.domain_timeout is None or self.domain_timeout < 1:
+            if self.domain_timeout is None:
                 self.domain_timeout = _DEFAULT_DOMAIN_TIMEOUT
 
         super().__init__()

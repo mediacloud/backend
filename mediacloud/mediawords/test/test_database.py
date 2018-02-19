@@ -12,6 +12,8 @@ from mediawords.util.log import create_logger
 
 log = create_logger(__name__)
 
+_template_db_created = False
+
 
 class McTestDatabaseTestCaseException(Exception):
     """Errors arising from the setup or tear down of database test cases."""
@@ -82,6 +84,11 @@ class TestDatabaseWithSchemaTestCase(TestCase):
         cls.db_name = (db_config[0])['db']
         cls.template_db_name = cls.db_name + '_template'
 
+        # we only want to run this once per test suite for all database test cases, so this needs to be a global
+        global _template_db_created
+        if _template_db_created:
+            return
+
         # we insert this db name directly into sql, so be paranoid about what is in it
         if re.search('[^a-z0-9_]', cls.db_name, flags=re.I) is not None:
             raise McTestDatabaseTestCaseException("Illegal table name: " + cls.db_name)
@@ -92,6 +99,8 @@ class TestDatabaseWithSchemaTestCase(TestCase):
         db.query("create database %s" % (cls.template_db_name,))
         db.disconnect()
         recreate_db(label=cls.TEST_DB_LABEL, is_template=True)
+
+        _template_db_created = True
 
     def setUp(self) -> None:
         """Create a fresh testing database for each unit test.

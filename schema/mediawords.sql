@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4643;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4644;
 
 BEGIN
 
@@ -1346,6 +1346,8 @@ create table topic_fetch_urls(
     stories_id                  int references stories on delete cascade,
     assume_match                boolean not null default false
 );
+
+create index topic_fetch_urls_pending on topic_fetch_urls(topics_id) where state = 'pending';
 
 create table topic_ignore_redirects (
     topic_ignore_redirects_id     serial primary key,

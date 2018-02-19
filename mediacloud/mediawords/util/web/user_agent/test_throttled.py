@@ -57,6 +57,6 @@ class TestThrottledUserAgent(TestDatabaseWithSchemaTestCase):
         ua = ThrottledUserAgent(self.db())
         assert ua.domain_timeout == 200
 
-        config['mediawords']['throttled_user_agent_domain_timeout'] = 0
+        del config['mediawords']['throttled_user_agent_domain_timeout']
         ua = ThrottledUserAgent(self.db())
         assert ua.domain_timeout == mediawords.util.web.user_agent.throttled._DEFAULT_DOMAIN_TIMEOUT

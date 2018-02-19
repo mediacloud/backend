@@ -163,3 +163,21 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
             mediawords.tm.fetch_link.fetch_topic_url,
             db,
             tfu['topic_fetch_urls_id'])
+
+        # add test to make sure html redirects are followed and redirected url is used for story
+        assert False
+
+        # fix below test.
+        assert False
+
+        # # do nothing if state is not pending or requeued
+        # tfu = db.create('topic_fetch_urls', {
+        #     'topics_id': topic['topics_id'],
+        #     'url': hs.page_url('/404'),
+        #     'state': mediawords.tm.fetch_link.FETCH_STATE_STORY_MATCH})
+        #
+        # mediawords.tm.fetch_link.fetch_topic_url(db, tfu['topic_fetch_urls_id'], domain_timeout=0)
+        #
+        # tfu = db.require_by_id('topic_fetch_urls', tfu['topic_fetch_urls_id'])
+        #
+        # assert tfu['state'] == FETCH_STATE_STORY_MATCH

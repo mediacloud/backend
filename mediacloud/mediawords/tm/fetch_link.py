@@ -83,7 +83,7 @@ def fetch_url(
         ua = ThrottledUserAgent(db, domain_timeout=domain_timeout)
 
         try:
-            response = ua.get(url)
+            response = ua.get_follow_http_html_redirects(url)
         except mediawords.util.web.user_agent.McGetException:
             response = Response(400, 'bad url', {}, 'not a http url')
 
@@ -140,6 +140,11 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
 
     """
     topic_fetch_url = db.require_by_id('topic_fetch_urls', topic_fetch_urls_id)
+
+    # don't reprocess already processed urls
+    if topic_fetch_url['state'] not in (FETCH_STATE_PENDING, FETCH_STATE_REQUEUED):
+        return
+
     topic = db.require_by_id('topics', topic_fetch_url['topics_id'])
     topic_fetch_url['fetch_date'] = datetime.datetime.now()
 
@@ -165,7 +170,7 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
                 story = mediawords.tm.stories.generate_story(
                     db=db,
                     content=content,
-                    url=topic_fetch_url['url'])
+                    url=response.request().url())
                 topic_fetch_url['state'] = FETCH_STATE_STORY_ADDED
                 topic_fetch_url['stories_id'] = story['stories_id']
             except mediawords.tm.stories.McTMGenerateStoryDuplicate:
