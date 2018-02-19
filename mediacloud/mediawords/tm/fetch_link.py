@@ -84,7 +84,7 @@ def fetch_url(
 
         try:
             response = ua.get_follow_http_html_redirects(url)
-        except mediawords.util.web.user_agent.McGetException:
+        except mediawords.util.web.user_agent.McGetFollowHTTPHTMLRedirectsException:
             response = Response(400, 'bad url', {}, 'not a http url')
 
         if response.is_success():

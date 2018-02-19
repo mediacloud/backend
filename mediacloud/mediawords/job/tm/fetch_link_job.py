@@ -92,6 +92,8 @@ class FetchLinkJob(AbstractJob):
             raise McFetchLinkJobException(
                 "Unable to process topic_fetch_url %d: %s" % (topic_fetch_urls_id, traceback.format_exc()))
 
+        db.disconnect()
+
         log.info("Finished fetch for topic_fetch_url %d" % topic_fetch_urls_id)
 
     @classmethod
