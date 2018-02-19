@@ -444,9 +444,12 @@ def get_url_host(url: str) -> str:
     if len(url) == 0:
         raise McGetURLHostException("URL is empty")
 
-    fixed_url = fix_common_url_mistakes(url)
+    url = fix_common_url_mistakes(url)
 
-    uri = furl(fixed_url)
+    if not is_http_url(url):
+        return url
+
+    uri = furl(url)
 
     host = uri.host
 
