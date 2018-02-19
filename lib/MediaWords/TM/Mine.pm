@@ -285,7 +285,7 @@ SQL
         MediaWords::Job::TM::ExtractStoryLinks->add_to_queue(
             { stories_id => $story->{ stories_id }, topics_id => $topic->{ topics_id } } );
 
-        INFO( "queued link extraction for story $story->{ title } $story->{ url }." );
+        DEBUG( "queued link extraction for story $story->{ title } $story->{ url }." );
     }
 
     INFO( "waiting for link extraction jobs to finish" );
@@ -1550,6 +1550,10 @@ SQL
     # need some magic to keep assume_match field in the link field expected to be attached to each story
     map { $_->{ link }->{ assume_match } = $_->{ assume_match } } @{ $extract_stories };
 
+    # throw all of the stories into the exractor queue so that they will hopefully be cached by the time
+    # we do the extraction in process
+    map { queue_extraction( $db, $_ ) } @{ $extract_stories };
+
     INFO( "completed fetch link queue, returning " . scalar( @{ $extract_stories } ) . " stories" );
 
     return $extract_stories;
@@ -2230,7 +2234,7 @@ sub add_to_topic_stories_if_match
 {
     my ( $db, $topic, $story, $link, $assume_match ) = @_;
 
-    INFO "add story if match: $story->{ url } " . Dumper( $link );
+    INFO "add story if match: $story->{ url }";
 
     set_topic_link_ref_story( $db, $story, $link ) if ( $link->{ topic_links_id } );
 
