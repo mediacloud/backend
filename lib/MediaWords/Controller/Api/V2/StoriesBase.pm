@@ -246,9 +246,9 @@ SQL
     my $tag_data = $db->query( <<END )->hashes;
 select s.stories_id::int, t.tags_id, t.tag, ts.tag_sets_id, ts.name as tag_set
     from stories_tags_map s
+        join $ids_table i on ( s.stories_id = i.id )
         join tags t on ( t.tags_id = s.tags_id )
         join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id )
-    where s.stories_id in ( select id from $ids_table )
     order by t.tags_id
 END
     MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $tag_data, 'story_tags' );
@@ -330,7 +330,7 @@ sub _fetch_list($$$$$$)
     $self->{ show_feeds }         = $c->req->params->{ show_feeds };
 
     $rows //= 20;
-    $rows = List::Util::min( $rows, 10_000 );
+    $rows = List::Util::min( $rows, 1_000 );
 
     my $ps_ids = $self->_get_object_ids( $c, $last_id, $rows );
 
