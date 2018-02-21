@@ -27,7 +27,6 @@ DEFAULT_NETWORK_DOWN_PORT = 80
 
 # states indicating the result of fetch_topic_url
 FETCH_STATE_PENDING = 'pending'
-FETCH_STATE_PYTHON_ERROR = 'python error'
 FETCH_STATE_REQUEST_FAILED = 'request failed'
 FETCH_STATE_CONTENT_MATCH_FAILED = 'content match failed'
 FETCH_STATE_STORY_MATCH = 'story match'
@@ -131,7 +130,7 @@ def get_seeded_content(db: DatabaseHandler, topic_fetch_url: dict) -> typing.Opt
 
     """
     r = db.query(
-        "select content from topic_seed_urls where topics_id = %(a)s and url = %(b)s",
+        "select content from topic_seed_urls where topics_id = %(a)s and url = %(b)s and content is not null",
         {'a': topic_fetch_url['topics_id'], 'b': topic_fetch_url['url']}).flat()
 
     if len(r) == 0:
