@@ -78,7 +78,6 @@ def fetch_url(
     Response object
     """
     while True:
-        log.warning("try %s" % url)
         ua = ThrottledUserAgent(db, domain_timeout=domain_timeout)
 
         try:
@@ -172,6 +171,7 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
     """
     try:
         topic_fetch_url = db.require_by_id('topic_fetch_urls', topic_fetch_urls_id)
+        log.info("fetch_link: %s" % topic_fetch_url['url'])
 
         # don't reprocess already processed urls
         if topic_fetch_url['state'] not in (FETCH_STATE_PENDING, FETCH_STATE_REQUEUED):
@@ -183,6 +183,9 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
         response = get_seeded_content(db, topic_fetch_url)
         if response is None:
             response = fetch_url(db, topic_fetch_url['url'], domain_timeout=domain_timeout)
+            log.debug("%d response returned for url: %s" % (response.code(), topic_fetch_url['url']))
+        else:
+            log.debug("seeded content found for url: %s" % topic_fetch_url['url'])
 
         topic_fetch_url['code'] = response.code()
 
