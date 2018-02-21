@@ -177,6 +177,7 @@ sub _verify_processes_status($$)
 
     # first send 'start' to all processes so that any stopped ones are starting in parallel
     map { _run_supervisorctl( "start $_" ) } @{ $processes };
+    map { _run_supervisorctl( "start $_:" ) } @{ $processes };
 
     for my $process ( @{ $processes } )
     {
