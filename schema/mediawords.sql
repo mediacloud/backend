@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4642;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4643;
 
 BEGIN
 
@@ -905,7 +905,10 @@ LANGUAGE plpgsql IMMUTABLE;
 
 -- "Master" table (no indexes, no foreign keys as they'll be ineffective)
 CREATE TABLE stories_tags_map (
-    stories_tags_map_id     BIGSERIAL   NOT NULL,
+
+    -- PRIMARY KEY on master table needed for database handler's primary_key_column() method to work
+    stories_tags_map_id     BIGSERIAL   PRIMARY KEY NOT NULL,
+
     stories_id              INT         NOT NULL,
     tags_id                 INT         NOT NULL,
     db_row_last_updated     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
@@ -983,11 +986,11 @@ BEGIN
 
                     -- Foreign key to stories.stories_id
                     CONSTRAINT ' || REPLACE(target_table_name, '.', '_') || '_stories_id_fkey
-                        FOREIGN KEY (stories_id) REFERENCES stories (stories_id) MATCH FULL,
+                        FOREIGN KEY (stories_id) REFERENCES stories (stories_id) MATCH FULL ON DELETE CASCADE,
 
                     -- Foreign key to tags.tags_id
                     CONSTRAINT ' || REPLACE(target_table_name, '.', '_') || '_tags_id_fkey
-                        FOREIGN KEY (tags_id) REFERENCES tags (tags_id) MATCH FULL,
+                        FOREIGN KEY (tags_id) REFERENCES tags (tags_id) MATCH FULL ON DELETE CASCADE,
 
                     -- Unique duplets
                     CONSTRAINT ' || REPLACE(target_table_name, '.', '_') || '_stories_id_tags_id_unique
