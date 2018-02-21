@@ -151,9 +151,15 @@ if [ ! -d "$RABBITMQ_BASE" ]; then
     exit 1
 fi
 
-export RABBITMQ_CONFIG_FILE="${RABBITMQ_BASE}/rabbitmq"   # sans ".config" extension
-if [ ! -f "${RABBITMQ_CONFIG_FILE}.config" ]; then
+export RABBITMQ_CONFIG_FILE="${RABBITMQ_BASE}/rabbitmq.conf"
+if [ ! -f "${RABBITMQ_CONFIG_FILE}" ]; then
     log "RabbitMQ configuration file '$RABBITMQ_CONFIG_FILE' does not exist."
+    exit 1
+fi
+
+export RABBITMQ_ADVANCED_CONFIG_FILE="${RABBITMQ_BASE}/advanced.config"
+if [ ! -f "${RABBITMQ_ADVANCED_CONFIG_FILE}" ]; then
+    log "RabbitMQ advanced configuration file '$RABBITMQ_ADVANCED_CONFIG_FILE' does not exist."
     exit 1
 fi
 
