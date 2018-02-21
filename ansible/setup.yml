@@ -18,7 +18,6 @@
     - locale
     - timezone
     - system-packages
-    - kernel-parameters
     - pam-limits
 
 
