@@ -2,7 +2,7 @@
 
 - name: Add RabbitMQ GPG key
   apt_key:
-    url: "https://www.rabbitmq.com/rabbitmq-release-signing-key.asc"
+    url: "https://dl.bintray.com/rabbitmq/Keys/rabbitmq-release-signing-key.asc"
     state: present
   become: true
   become_user: root
@@ -18,11 +18,23 @@
   tags:
     - system-packages
 
-- name: Add RabbitMQ APT repository
+# rabbitmq.com APT repository is no longer supported
+- name: Remove obsolete RabbitMQ repository
   apt_repository:
     repo: "deb http://www.rabbitmq.com/debian/ testing main"
-    state: present
+    state: absent
     filename: rabbitmq
+    update_cache: yes
+  become: true
+  become_user: root
+  tags:
+    - system-packages
+
+- name: Add RabbitMQ APT repository
+  apt_repository:
+    repo: "deb https://dl.bintray.com/rabbitmq/debian {{ ansible_lsb.codename | lower }} main"
+    state: present
+    filename: "bintray-rabbitmq"
     update_cache: yes
   become: true
   become_user: root
