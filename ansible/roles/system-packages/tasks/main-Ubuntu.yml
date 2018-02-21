@@ -1,5 +1,14 @@
 ---
 
+- name: Add Erlang Solutions GPG key
+  apt_key:
+    url: "https://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc"
+    state: present
+  become: true
+  become_user: root
+  tags:
+    - system-packages
+
 - name: Add RabbitMQ GPG key
   apt_key:
     url: "https://dl.bintray.com/rabbitmq/Keys/rabbitmq-release-signing-key.asc"
@@ -13,6 +22,18 @@
 - name: Add Bintray.com GPG key
   command: apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61
   changed_when: false
+  become: true
+  become_user: root
+  tags:
+    - system-packages
+
+# RabbitMQ > 3.7 requires newer Erlang than is provided by Ubuntu 16.04
+- name: Add Erlang Solutions APT repository
+  apt_repository:
+    repo: "deb https://packages.erlang-solutions.com/ubuntu {{ ansible_lsb.codename | lower }} contrib"
+    state: present
+    filename: "erlang-solutions"
+    update_cache: yes
   become: true
   become_user: root
   tags:
