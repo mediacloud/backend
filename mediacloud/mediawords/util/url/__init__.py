@@ -113,6 +113,9 @@ def is_http_url(url: str) -> bool:
     if not uri.scheme.lower() in ['http', 'https']:
         log.debug("Scheme is not HTTP(s) for URL %s" % url)
         return False
+    if not uri.host:
+        log.debug("Host is undefined for URL %s" % url)
+        return False
 
     return True
 
@@ -444,9 +447,12 @@ def get_url_host(url: str) -> str:
     if len(url) == 0:
         raise McGetURLHostException("URL is empty")
 
-    fixed_url = fix_common_url_mistakes(url)
+    url = fix_common_url_mistakes(url)
 
-    uri = furl(fixed_url)
+    if not is_http_url(url):
+        return url
+
+    uri = furl(url)
 
     host = uri.host
 

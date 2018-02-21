@@ -87,6 +87,9 @@ def test_is_http_url():
     assert mc_url.is_http_url('http://.xn--iaur-yva35b.lt') is False  # Invalid Punycode
     assert mc_url.is_http_url('http://ebola-search-expands-ohio-nurse-amber-vinson-visit-cleveland-akron/') is False
 
+    # Some weirdo
+    assert mc_url.is_http_url('http://thomas.brown@') is False
+
 
 def test_canonical_url():
     # Bad input
@@ -181,9 +184,9 @@ def test_normalize_url():
         'http://www.adelaidenow.com.au/news/south-australia/sa-court-told-prominent-adelaide-businessman-yasser'
         '-shahin-was-assaulted-by-police-officer-norman-hoy-in-september-2010-traffic-stop/story-fni6uo1m-'
         '1227184460050?nk=440cd48fd95a4e1f1c23bcd15df36da7'
-    ) == 'http://www.adelaidenow.com.au/news/south-australia/sa-court-told-prominent-adelaide-businessman-yasser-' + \
-         'shahin-was-assaulted-by-police-officer-norman-hoy-in-september-2010-traffic-stop/story-fni6uo1m-' + \
-         '1227184460050'
+    ) == ('http://www.adelaidenow.com.au/news/south-australia/sa-court-told-prominent-adelaide-businessman-yasser-'
+          'shahin-was-assaulted-by-police-officer-norman-hoy-in-september-2010-traffic-stop/story-fni6uo1m-'
+          '1227184460050')
 
 
 # noinspection SpellCheckingInspection

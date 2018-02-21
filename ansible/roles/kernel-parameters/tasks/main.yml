@@ -1,9 +1,0 @@
-- name: Include variables
-  include_vars: ../vars/main-{{ ansible_distribution }}.yml
-  tags:
-    - kernel-parameters
-
-- name: Include tasks
-  include_tasks: main-{{ ansible_distribution }}.yml
-  tags:
-    - kernel-parameters
