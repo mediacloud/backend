@@ -109,7 +109,7 @@ install:
         docker exec -i -t
         -e ANSIBLE_CONFIG
         $MC_TRAVIS_DOCKER_CONTAINER
-        bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT && ansible-playbook --inventory='localhost,' --connection=local --skip-tags='hostname,kernel-parameters' ansible/setup.yml"
+        bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT && ansible-playbook --inventory='localhost,' --connection=local --skip-tags='hostname' ansible/setup.yml"
     # Start PostgreSQL service on container
     - >
         docker exec -i -t
