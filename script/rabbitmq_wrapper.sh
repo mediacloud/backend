@@ -20,15 +20,6 @@ MIN_OPEN_FILES_LIMIT=65536
 # Default web interface port
 RABBITMQ_WEB_INTERFACE_PORT=15673
 
-# Erlang version to use on Ubuntu < 16.04:
-#
-# Update install_mediacloud_system_package_dependencies.sh too!
-#
-# Newest Erlang version (18.3 at the time of writing) has memory handling issues, see:
-# https://groups.google.com/forum/#!topic/rabbitmq-users/7K0Ac5tWUIY
-#
-ERLANG_OLD_UBUNTU_APT_VERSION="1:17.5.3"
-
 
 log() {
     # to STDERR
