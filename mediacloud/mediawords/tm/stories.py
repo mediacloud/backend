@@ -12,6 +12,7 @@ from mediawords.tm.guess_date import guess_date, GuessDateResult
 import mediawords.tm.media
 import mediawords.util.html
 from mediawords.util.log import create_logger
+from mediawords.util.perl import decode_object_from_bytes_if_needed
 import mediawords.util.url
 
 log = create_logger(__name__)
@@ -369,3 +370,45 @@ def generate_story(
     download = mediawords.dbi.downloads.store_content(db, download, content)
 
     return story
+
+
+def merge_foreign_rss_stories(db: DatabaseHandler, topic: dict) -> None:
+    """Move all topic stories with a foreign_rss_links medium from topic_stories back to topic_seed_urls."""
+    topic = decode_object_from_bytes_if_needed(topic)
+
+    stories = db.query(
+        """
+        select s.*
+            from stories s, topic_stories ts, media m
+            where
+                s.stories_id = ts.stories_id and
+                s.media_id = m.media_id and
+                m.foreign_rss_links = true and
+                ts.topics_id = %(a)s and
+                not ts.valid_foreign_rss_story
+        """,
+        {'a': topic['topics_id']}).hashes()
+
+    for story in stories:
+        download = db.query(
+            "select * from downloads where stories_id = %(a)s order by downloads_id limit 1",
+            {'a': story['stories_id']}).hash()
+
+        content = ''
+        try:
+            content = mediawords.dbi.downloads.fetch_content(db, download)
+        except Exception:
+            pass
+
+        db.begin()
+        db.create('topic_seed_urls', {
+            'url': story['url'],
+            'topics_id': topic['topics_id'],
+            'source': 'merge_foreign_rss_stories',
+            'content': content
+        })
+
+        db.query(
+            "delete from topic_stories where stories_id = %(a)s and topics_id = %(b)s",
+            {'a': story['stories_id'], 'b': topic['topics_id']})
+        db.commit()
