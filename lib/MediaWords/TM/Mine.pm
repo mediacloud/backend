@@ -1045,9 +1045,10 @@ sub get_stories_to_extract
     INFO( "waiting for fetch link queue: $num_queued_links queued" );
 
     # now poll waiting for the queue to clear
-    my $start_time = time();
-    my $timeout    = 3600;
-    my $poll_wait  = 5;
+    my $timeout               = 60 * 10;
+    my $poll_wait             = 5;
+    my $last_pending_change   = time();
+    my $last_num_pending_urls = 0;
     while ( 1 )
     {
         my $num_pending_urls =
@@ -1058,10 +1059,11 @@ sub get_stories_to_extract
 
         last if ( $num_pending_urls < 1 );
 
-        if ( ( time() - $start_time ) > $timeout )
-        {
-            die( "Timed out waiting for fetch_link queue" );
-        }
+        die( "Timed out waiting for fetch_link queue" ) if ( ( time() - $last_pending_change ) > $timeout );
+
+        $last_pending_change = time() if ( $num_pending_urls < $last_num_pending_urls );
+
+        $last_num_pending_urls = $num_pending_urls;
 
         sleep( $poll_wait );
     }
@@ -1331,6 +1333,23 @@ delete from topic_stories ts
         s.media_id in ( $media_ids_list )
 SQL
 
+}
+
+# any topic_fetch_urls that have stories_ids and are in the last ADD_NEW_LINKS_CHUNK rows may not have been processed
+# so we to add them back to the pending state to reprocess
+sub cleanup_leftover_topic_fetch_urls
+{
+    my ( $db, $topic ) = @_;
+
+    $db->query( <<SQL, $topic->{ topics_id }, $ADD_NEW_LINKS_CHUNK_SIZE );
+update topic_fetch_urls tfu set state = 'pending'
+    where
+        topic_fetch_urls_id in (
+            select topic_fetch_urls_id from topic_fetch_urls order by topic_fetch_urls_id desc limit \$2
+        ) and
+        stories_id is not null and
+        not exists ( select 1 from topic_stories ts where ts.topics_id = \$1 and ts.stories_id = tfu.stories_id )
+SQL
 }
 
 # mine for links any stories in topic_stories for this topic that have not already been mined
@@ -2084,6 +2103,8 @@ sub do_mine_topic ($$;$)
 
     update_topic_state( $db, $topic, "fetching tweets" );
     fetch_and_import_twitter_urls( $db, $topic );
+
+    cleanup_leftover_topic_fetch_urls( $db, $topic );
 
     update_topic_state( $db, $topic, "importing solr seed query" );
     import_solr_seed_query( $db, $topic );
