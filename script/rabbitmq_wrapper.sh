@@ -154,6 +154,18 @@ if [ ! -f "${RABBITMQ_CONFIG_FILE}.config" ]; then
     exit 1
 fi
 
+export RABBITMQ_SCHEMA_DIR="${RABBITMQ_BASE}/schema"
+if [ ! -d "$RABBITMQ_SCHEMA_DIR" ]; then
+    log "RabbitMQ schema directory '$RABBITMQ_SCHEMA_DIR' does not exist."
+    exit 1
+fi
+
+export RABBITMQ_GENERATED_CONFIG_DIR="${RABBITMQ_BASE}/generated_config"
+if [ ! -d "$RABBITMQ_GENERATED_CONFIG_DIR" ]; then
+    log "RabbitMQ generated configuration directory '$RABBITMQ_GENERATED_CONFIG_DIR' does not exist."
+    exit 1
+fi
+
 export RABBITMQ_MNESIA_BASE="${RABBITMQ_BASE}/mnesia"
 if [ ! -d "$RABBITMQ_MNESIA_BASE" ]; then
     log "RabbitMQ Mnesia directory '$RABBITMQ_MNESIA_BASE' does not exist."
