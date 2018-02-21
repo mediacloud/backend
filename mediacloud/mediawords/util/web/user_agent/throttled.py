@@ -41,6 +41,8 @@ class ThrottledUserAgent(UserAgent):
             if self.domain_timeout is None:
                 self.domain_timeout = _DEFAULT_DOMAIN_TIMEOUT
 
+        self._use_throttling = True
+
         super().__init__()
 
     def request(self, request: Request) -> Response:
@@ -51,17 +53,28 @@ class ThrottledUserAgent(UserAgent):
         last self.domain_timeout seconds.  If so, the call will raise a McThrottledDomainException.
         Otherwise, the method will mark the time for this domain request in a postgres table and then execute
         UserAgent.request().
+
+        The throttling routine will not be applied after the first successful request, to allow for redirects and
+        other followup requests to succeed.  To ensure proper throttling, a new object should be create for each
+        top level request.
         """
-        domain = mediawords.util.url.get_url_distinctive_domain(request.url())
+        if self._use_throttling:
+            domain = mediawords.util.url.get_url_distinctive_domain(request.url())
 
-        # this postgres function returns true if we are allowed to make the request and false otherwise.
-        # this function does not use a table lock, so some extra requests might sneak through, but that's better than
-        # dealing with a lock.  we use a postgres function to make the the race condition as rare as possible.
-        got_domain_lock = self.db.query(
-            "select get_domain_web_requests_lock(%s, %s)",
-            (domain, self.domain_timeout)).flat()[0]
+            # this postgres function returns true if we are allowed to make the request and false otherwise. this
+            # function does not use a table lock, so some extra requests might sneak through, but that's better than
+            # dealing with a lock.  we use a postgres function to make the the race condition as rare as possible.
+            got_domain_lock = self.db.query(
+                "select get_domain_web_requests_lock(%s, %s)",
+                (domain, self.domain_timeout)).flat()[0]
 
-        if not got_domain_lock:
-            raise McThrottledDomainException("domain " + str(domain) + " is locked.")
+            log.debug("domain lock obtained for %s: %s" % (str(request.url()), str(got_domain_lock)))
+
+            if not got_domain_lock:
+                raise McThrottledDomainException("domain " + str(domain) + " is locked.")
+        else:
+            log.debug("domain lock obtained for %s: skipped" % str(request.url()))
+
+        self._use_throttling = False
 
         return super().request(request)
