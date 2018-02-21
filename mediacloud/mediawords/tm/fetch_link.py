@@ -119,6 +119,30 @@ def content_matches_topic(content: str, topic: dict, assume_match: bool=False) -
     return re.search(topic['pattern'], content, flags=re.I | re.X | re.S) is not None
 
 
+def get_seeded_content(db: DatabaseHandler, topic_fetch_url: dict) -> typing.Optional[str]:
+    """Return content for this url and topic in topic_seed_urls.
+
+    Arguments:
+    db - db handle
+    topic_fetch_url - topic_fetch_url dict from db
+
+    Returns:
+    dummy response object
+
+    """
+    r = db.query(
+        "select content from topic_seed_urls where topics_id = %(a)s and url = %(b)s",
+        {'a': topic_fetch_url['topics_id'], 'b': topic_fetch_url['url']}).flat()
+
+    if len(r) == 0:
+        return None
+
+    response = Response(code=200, message='OK', headers={}, data=r[0])
+    response.set_request(Request('GET', topic_fetch_url['url']))
+
+    return response
+
+
 def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeout: typing.Optional[int]=None) -> None:
     """Fetch a url for a topic and create a media cloud story from it if its content matches the topic pattern.
 
@@ -127,8 +151,16 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
     code - the status code of the http response
     fetch_date - the current time
     state - one of the FETCH_STATE_* constatnts
-    message - message related to the state (eg. full exception for FETCH_STATE_PYTHON_ERROR
+    message - message related to the state (eg. HTTP message for FETCH_STATE_REQUEST_FAILED)
     stories_id - the id of the story generated from the fetched content, or null if no story created'
+
+    If the state is anything but FETCH_STATE_PENDING or FETCH_STATE_REQUEUED, return without doing anything.
+
+    If there is content for the corresponding url and topics_id in topic_seed_urls, use that content instead of
+    fetching the url.
+
+    This function catches almost all possible exceptions and stashes them topic_fetch_urls along with a state of
+    FETCH_STATE_PYTHON_ERROR
 
     Arguments:
     db - db handle
@@ -139,17 +171,19 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
     None
 
     """
-    topic_fetch_url = db.require_by_id('topic_fetch_urls', topic_fetch_urls_id)
-
-    # don't reprocess already processed urls
-    if topic_fetch_url['state'] not in (FETCH_STATE_PENDING, FETCH_STATE_REQUEUED):
-        return
-
-    topic = db.require_by_id('topics', topic_fetch_url['topics_id'])
-    topic_fetch_url['fetch_date'] = datetime.datetime.now()
-
     try:
-        response = fetch_url(db, topic_fetch_url['url'], domain_timeout=domain_timeout)
+        topic_fetch_url = db.require_by_id('topic_fetch_urls', topic_fetch_urls_id)
+
+        # don't reprocess already processed urls
+        if topic_fetch_url['state'] not in (FETCH_STATE_PENDING, FETCH_STATE_REQUEUED):
+            return
+
+        topic = db.require_by_id('topics', topic_fetch_url['topics_id'])
+        topic_fetch_url['fetch_date'] = datetime.datetime.now()
+
+        response = get_seeded_content(db, topic_fetch_url)
+        if response is None:
+            response = fetch_url(db, topic_fetch_url['url'], domain_timeout=domain_timeout)
 
         topic_fetch_url['code'] = response.code()
 

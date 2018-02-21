@@ -82,6 +82,40 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
         assert response.decoded_content() == 'meta redirect target'
         assert response.request().url() == hs.page_url('/mr-foo')
 
+    def test_get_seeded_content(self) -> None:
+        """Test get_seeded_content()."""
+        db = self.db()
+
+        topic = mediawords.test.db.create_test_topic(db, 'foo')
+        tfu = db.create('topic_fetch_urls', {
+            'topics_id': topic['topics_id'],
+            'url': 'http://0.0.0.1/foo',
+            'assume_match': True,
+            'state': mediawords.tm.fetch_link.FETCH_STATE_PENDING})
+
+        assert mediawords.tm.fetch_link.get_seeded_content(db, tfu) is None
+
+        tsu_content = '<title>seeded content</title>'
+        db.create('topic_seed_urls', {'topics_id': topic['topics_id'], 'url': tfu['url'], 'content': tsu_content})
+
+        response = mediawords.tm.fetch_link.get_seeded_content(db, tfu)
+
+        assert response.decoded_content() == tsu_content
+        assert response.code() == 200
+        assert response.request().url() == tfu['url']
+
+        mediawords.tm.fetch_link.fetch_topic_url(db, tfu['topic_fetch_urls_id'], domain_timeout=0)
+
+        tfu = db.require_by_id('topic_fetch_urls', tfu['topic_fetch_urls_id'])
+
+        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_STORY_ADDED
+        assert tfu['code'] == 200
+        assert tfu['stories_id'] is not None
+
+        story = db.require_by_id('stories', tfu['stories_id'])
+
+        assert story['title'] == 'seeded content'
+
     def test_fetch_topic_url(self) -> None:
         """Test fetch_topic_url()."""
         db = self.db()
@@ -213,3 +247,25 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
         tfu = db.require_by_id('topic_fetch_urls', tfu['topic_fetch_urls_id'])
 
         assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_STORY_MATCH
+
+        # try passing some content through the topic_seed_urls table
+        tfu = db.create('topic_fetch_urls', {
+            'topics_id': topic['topics_id'],
+            'url': hs.page_url('/ignore'),
+            'assume_match': True,
+            'state': mediawords.tm.fetch_link.FETCH_STATE_PENDING})
+
+        tsu_content = '<title>seeded content</title>'
+        db.create('topic_seed_urls', {'topics_id': topic['topics_id'], 'url': tfu['url'], 'content': tsu_content})
+
+        mediawords.tm.fetch_link.fetch_topic_url(db, tfu['topic_fetch_urls_id'], domain_timeout=0)
+
+        tfu = db.require_by_id('topic_fetch_urls', tfu['topic_fetch_urls_id'])
+
+        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_STORY_ADDED
+        assert tfu['code'] == 200
+        assert tfu['stories_id'] is not None
+
+        story = db.require_by_id('stories', tfu['stories_id'])
+
+        assert story['title'] == 'seeded content'
