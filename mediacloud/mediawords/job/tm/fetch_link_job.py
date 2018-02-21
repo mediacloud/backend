@@ -18,7 +18,7 @@ log = create_logger(__name__)
 
 
 # after requeueing this many times in a rows, start sleeping one second before each requeue
-REQUEUES_UNTIL_SLEEP = 10
+REQUEUES_UNTIL_SLEEP = 100
 
 
 class McFetchLinkJobException(McAbstractJobException):
@@ -39,7 +39,7 @@ class FetchLinkJob(AbstractJob):
         ./script/run_in_env.sh ./mediacloud/mediawords/job/tm/fetch_link_job.py
     """
 
-    _consecutvie_requeues = 0
+    _consecutive_requeues = 0
 
     @classmethod
     def run_job(
@@ -78,7 +78,7 @@ class FetchLinkJob(AbstractJob):
 
             cls._consecutive_requeues += 1
             if cls._consecutive_requeues > REQUEUES_UNTIL_SLEEP:
-                log.info("sleeping after %d consecutive retries ...")
+                log.info("sleeping after %d consecutive retries ..." % cls._consecutive_requeues)
                 time.sleep(1)
 
             db.update_by_id(
