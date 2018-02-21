@@ -137,6 +137,9 @@ export RABBITMQ_NODE_IP_ADDRESS=`$QUERY_CONFIG "//job_manager/rabbitmq/server/li
 export RABBITMQ_NODE_PORT=`$QUERY_CONFIG "//job_manager/rabbitmq/server/port"`
 export RABBITMQ_NODENAME=`$QUERY_CONFIG "//job_manager/rabbitmq/server/node_name"`
 
+# Increase I/O thread pool size to accommodate for a bigger number of connections
+export RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS="+A 512"
+
 # Not exported, will be (re)created later
 RABBITMQ_USERNAME=`$QUERY_CONFIG "//job_manager/rabbitmq/server/username"`
 RABBITMQ_PASSWORD=`$QUERY_CONFIG "//job_manager/rabbitmq/server/password"`
