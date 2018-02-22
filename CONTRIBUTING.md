@@ -13,12 +13,23 @@ There are 4 main ways of contributing to the Media Cloud project (in descending 
 
 Media Cloud is transitioning from a Perl codebase to a Python one, and prefers new contributions to be written in Python. In order to get working, you may
 
+0. **Setting up**:
+	- Python 3! See [here](.python-version) for current production version, but relatively recent versions should work.
+   - Media Cloud uses and runs tests against [PostgreSQL](https://www.postgresql.org/), and assumes port 5432 by default.
+   - [Mecab](https://en.wikipedia.org/wiki/MeCab) is used for Japanese part of speech parsing.  On OS X,  `brew install mecab` or on (Debian based) Linux:
+
+       ```
+	   sudo apt-get install libmecab-dev
+	   sudo apt-get install mecab mecab-ipadic-utf8
+	   ```
+
 1. **Get the code**:
 
-	```bash
-	$ git clone git@github.com:berkmancenter/mediacloud.git
+    ```bash
+	$ git clone --recurse-submodules git@github.com:berkmancenter/mediacloud.git
 	$ cd mediacloud/
-	```
+    ```
+	(Note: if you forget to fetch submodules, `git submodule update --init --recursive` may be run later)
 
 2. **Install Python libraries**  Note that you likely want to be using something like [virtualenv](https://virtualenv.pypa.io/en/stable/), [conda](https://conda.io/docs/index.html), [pipenv](https://github.com/pypa/pipenv), or [pyenv](https://github.com/pyenv/pyenv) to isolate this environment.
 
@@ -26,7 +37,7 @@ Media Cloud is transitioning from a Perl codebase to a Python one, and prefers n
 	$ pip install -r mediacloud/requirements.txt
 	```
 
-3. **Set up database** Media Cloud uses and runs tests against [PostgreSQL](https://www.postgresql.org/), and assumes port 5432 by default.
+3. **Set up database** 
 
 	```bash
 	$ createuser --superuser mediaclouduser
@@ -34,7 +45,13 @@ Media Cloud is transitioning from a Perl codebase to a Python one, and prefers n
 	$ createdb mediacloud_test
 	```
 
-4. **Run tests** The test suite should now pass.
+4. **Set configuration**
+
+	```bash
+	$ cp mediawords.yml.dist mediawords.yml
+	```
+
+4. **Run tests** Most of the test suite should now pass (test failures are great places to start contributing).
 
 	```bash
 	$ py.test -v mediacloud/mediawords
