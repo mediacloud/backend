@@ -297,7 +297,9 @@ def assign_date_guess_tag(
     t = db.find_or_create('tags', {'tag': tag, 'tag_sets_id': ts['tag_sets_id']})
 
     db.query("delete from stories_tags_map where stories_id = %(a)s", {'a': story['stories_id']})
-    db.create('stories_tags_map', {'stories_id': story['stories_id'], 'tags_id': t['tags_id']})
+    db.query(
+        "insert into stories_tags_map (stories_id, tags_id) values (%(a)s, %(b)s)",
+        {'a': story['stories_id'], 'b': t['tags_id']})
 
 
 def get_spider_feed(db: DatabaseHandler, medium: dict) -> dict:
@@ -357,7 +359,9 @@ def generate_story(
     except mediawords.db.exceptions.handler.McUniqueConstraintException as e:
         raise McTMStoriesDuplicateException("Attempt to insert duplicate story url %s" % url)
 
-    db.create('stories_tags_map', {'stories_id': story['stories_id'], 'tags_id': spidered_tag['tags_id']})
+    db.query(
+        "insert into stories_tags_map (stories_id, tags_id) values (%(a)s, %(b)s)",
+        {'a': story['stories_id'], 'b': spidered_tag['tags_id']})
 
     assign_date_guess_tag(db, story, date_guess, fallback_date)
 
