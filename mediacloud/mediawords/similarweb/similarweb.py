@@ -1,8 +1,11 @@
 from http import HTTPStatus
-import re
 from urllib.parse import urlparse
 
+import backoff
 import requests
+
+from mediawords.util.url import normalize_url_lossy
+from mediawords.util.web.user_agent import DETERMINED_HTTP_CODES
 
 
 def generate_date_string_range(start_date, end_date):
@@ -99,22 +102,6 @@ class SimilarWebClient(object):
         return query_args
 
     @staticmethod
-    def tidy_url(url):
-        """Cleans up a url just a little, and removes the initial www (or similar)
-
-        Parameters
-        ----------
-        url : str
-            URL to lightly clean. Perhaps to check for an exact match?
-
-        Returns
-        -------
-        str, lightly cleaned url
-        """
-        tidied = url.lower().strip('/ ')
-        return re.sub(r'(www[0-9]*|m)\.', '', tidied)
-
-    @staticmethod
     def get_domain(url):
         """Edit URL to make it appropriate for SimilarWeb API
 
@@ -129,8 +116,13 @@ class SimilarWebClient(object):
         -------
             str: the domain of url
         """
-        return SimilarWebClient.tidy_url(urlparse(url).netloc)
+        return normalize_url_lossy(urlparse(url).netloc)
 
+    @backoff.on_exception(
+        backoff.expo,
+        DETERMINED_HTTP_CODES,
+        max_tries=8
+    )
     def make_get_request(self, url, params):
         """Makes API call to SimilarWeb.
 

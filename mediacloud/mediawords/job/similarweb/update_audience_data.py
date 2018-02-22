@@ -1,7 +1,7 @@
 #!/usr/bin/env python3.5
 
 from mediawords.db import connect_to_db
-from mediawords.job import AbstractJob, McAbstractJobException, JobBrokerApp
+from mediawords.job import AbstractJob, JobBrokerApp
 from mediawords.similarweb import get_similarweb_client
 from mediawords.similarweb.tasks import update
 from mediawords.util.log import create_logger

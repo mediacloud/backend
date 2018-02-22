@@ -1,5 +1,7 @@
 from mediawords.db import DatabaseHandler
+from mediawords.db.exceptions.handler import McRequireByIDException
 from mediawords.util.perl import decode_object_from_bytes_if_needed
+from mediawords.util.url import normalize_url_lossy
 from .similarweb import SimilarWebClient
 
 
@@ -25,7 +27,7 @@ def check_if_is_domain_exact_match(url: str, domain: str) -> bool:
     -------
     bool, whether the two urls are likely the same.
     """
-    return SimilarWebClient.tidy_url(url) == domain
+    return normalize_url_lossy(url) == domain
 
 
 def update(db: DatabaseHandler, media_id: int, client: SimilarWebClient):
@@ -47,8 +49,9 @@ def update(db: DatabaseHandler, media_id: int, client: SimilarWebClient):
         media_id = decode_object_from_bytes_if_needed(media_id)
 
     media_id = int(media_id)
-    media_data = db.find_by_id('media', media_id)
-    if media_data is None:
+    try:
+        media_data = db.require_by_id('media', media_id)
+    except McRequireByIDException:
         raise ValueError('No media found with id {}'.format(media_id))
 
     url = media_data['url']

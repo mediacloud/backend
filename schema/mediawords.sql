@@ -3402,7 +3402,8 @@ CREATE TABLE similarweb_metrics (
 -- Unnormalized table
 --
 CREATE TABLE similarweb_media_metrics (
-    media_id                       INTEGER                  PRIMARY KEY references media,
+    similarweb_media_metrics_id    SERIAL                   PRIMARY KEY,
+    media_id                       INTEGER                  UNIQUE NOT NULL references media,
     similarweb_domain              VARCHAR(1024)            NOT NULL,
     domain_exact_match             BOOLEAN                  NOT NULL,
     monthly_audience               INTEGER                  NOT NULL,
