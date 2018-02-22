@@ -9,6 +9,22 @@ from mediawords.util.web.user_agent.throttled import McThrottledDomainException
 import mediawords.util.web.user_agent.throttled
 
 
+def test_is_shortened_url() -> None:
+    """Test is_shortened_url."""
+    assert not mediawords.util.web.user_agent.throttled._is_shortened_url('http://google.com/')
+    assert not mediawords.util.web.user_agent.throttled._is_shortened_url('http://nytimes.com/2014/03/01/foo.html')
+    assert mediawords.util.web.user_agent.throttled._is_shortened_url('http://bit.ly/2eYIj4g')
+    assert mediawords.util.web.user_agent.throttled._is_shortened_url('https://t.co/mtaVvZ8mYF')
+    assert mediawords.util.web.user_agent.throttled._is_shortened_url('http://dlvr.it/NN7ZQS')
+    assert mediawords.util.web.user_agent.throttled._is_shortened_url('http://fb.me/8SXPGB68Z')
+    assert mediawords.util.web.user_agent.throttled._is_shortened_url('http://hill.cm/Dg9qAUD')
+    assert mediawords.util.web.user_agent.throttled._is_shortened_url('http://ift.tt/2fQKXoA')
+    assert mediawords.util.web.user_agent.throttled._is_shortened_url('https://goo.gl/fb/abZexj')
+    assert mediawords.util.web.user_agent.throttled._is_shortened_url('https://youtu.be/GFeRyRA7FPE')
+    assert mediawords.util.web.user_agent.throttled._is_shortened_url('http://wapo.st/2iBGdb9')
+    assert mediawords.util.web.user_agent.throttled._is_shortened_url('http://ln.is/DN0QN')
+
+
 class TestThrottledUserAgent(TestDatabaseWithSchemaTestCase):
     """test case for ThrottledUserAgent."""
 
