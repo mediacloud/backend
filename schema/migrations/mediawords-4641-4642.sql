@@ -153,7 +153,7 @@ BEGIN
     EXECUTE '
         INSERT INTO ' || target_table_name || '
             SELECT $1.*
-        ON CONFLICT (stories_id, tags_id) DO NOTHING 
+        ON CONFLICT (stories_id, tags_id) DO NOTHING
         ' USING NEW;
     RETURN NULL;
 END;
@@ -193,4 +193,3 @@ LANGUAGE 'plpgsql';
 -- 2 of 2. Reset the database version.
 --
 SELECT set_database_schema_version();
-

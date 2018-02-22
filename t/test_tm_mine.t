@@ -390,7 +390,7 @@ SQL
     is( scalar( keys( %{ $topic_pages_lookup } ) ),
         0, "missing topic story for topic pages: " . Dumper( values( %{ $topic_pages_lookup } ) ) );
 
-    my ( $dead_link_count ) = $db->query( "select count(*) from topic_dead_links" )->flat;
+    my ( $dead_link_count ) = $db->query( "select count(*) from topic_fetch_urls where state ='request failed'" )->flat;
     is( $dead_link_count, scalar( @{ $topic_pages } ), "dead link count" );
 }
 
@@ -607,7 +607,8 @@ sub run_nonspider_tests($)
 sub main
 {
     MediaWords::Test::DB::test_on_test_database( \&run_nonspider_tests );
-    MediaWords::Test::Supervisor::test_with_supervisor( \&test_spider, [ 'job_broker:rabbitmq', 'extract_story_links' ] );
+    MediaWords::Test::Supervisor::test_with_supervisor( \&test_spider,
+        [ 'job_broker:rabbitmq', 'extract_story_links', 'fetch_link' ] );
 }
 
 main();

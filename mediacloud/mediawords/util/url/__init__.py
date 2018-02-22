@@ -315,10 +315,24 @@ def normalize_url(url: str) -> str:
     return url
 
 
+def normalize_url_lossy_version() -> int:
+    """Return an integer that increments each time the output of normalize_url_lossy is changed.
+
+    Calls to normalize_url_lossy are guaranteed to return the same output for a given input as long as this
+    version number remains the same.
+    """
+    return 1
+
+
 # noinspection SpellCheckingInspection
 def normalize_url_lossy(url: str) -> Optional[str]:
-    """Do some simple transformations on a URL to make it match other equivalent URLs as well as possible; normalization
-    is "lossy" (makes the whole URL lowercase, removes subdomain parts "m.", "data.", "news.", ... in some cases)"""
+    """Do some simple transformations on a URL to make it match other equivalent URLs as well as possible.
+
+    Normalization is "lossy" (makes the whole URL lowercase, removes subdomain parts "m.", "data.", "news.", ...
+    in some cases).
+
+    See also normalize_url_lossy_version() above.
+    """
     url = decode_object_from_bytes_if_needed(url)
     if url is None:
         return None

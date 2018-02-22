@@ -286,6 +286,18 @@ programs = rabbitmq
     default_autorestart='false'
     default_autostart='true'
     default_nice=10
+    default_numprocs=5
+%]
+
+[% INCLUDE program_config
+    program='fetch_link'
+    command="./script/run_in_env.sh ./mediacloud/mediawords/job/tm/fetch_link_job.py"
+    default_stopasgroup='false'
+    default_killasgroup='false'
+    default_autorestart='false'
+    default_autostart='true'
+    default_nice=10
+    default_numprocs=5
 %]
 
 [%- solr_standalone_jvm_heap_size = supervisor_solr.standalone.jvm_heap_size || "256m" %]

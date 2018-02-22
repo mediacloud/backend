@@ -1,5 +1,6 @@
 import copy
 import os
+import re
 import tempfile
 import time
 from http import HTTPStatus
@@ -888,7 +889,7 @@ class TestUserAgentTestCase(TestCase):
 
         config = py_get_config()
         new_config = copy.deepcopy(config)
-        new_config['mediawords']['blacklist_url_pattern'] = blacklisted_url
+        new_config['mediawords']['blacklist_url_pattern'] = re.escape(blacklisted_url)
         py_set_config(new_config)
 
         hs = HashServer(port=self.__test_port, pages=pages)

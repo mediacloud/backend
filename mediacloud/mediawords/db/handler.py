@@ -12,7 +12,7 @@ from mediawords.db.exceptions.handler import (
     McConnectException, McDatabaseHandlerException, McSchemaIsUpToDateException, McQueryException,
     McPrimaryKeyColumnException, McFindByIDException, McRequireByIDException, McUpdateByIDException,
     McDeleteByIDException, McCreateException, McFindOrCreateException, McBeginException,
-    McQuoteException)
+    McQuoteException, McUniqueConstraintException)
 from mediawords.db.pages.pages import DatabasePages
 from mediawords.db.result.result import DatabaseResult
 from mediawords.db.schema.version import schema_version_from_lines
@@ -545,11 +545,18 @@ class DatabaseHandler(object):
         try:
             last_inserted_id = self.query(sql, insert_hash).flat()
         except Exception as ex:
-            raise McCreateException("Unable to INSERT into '%(table)s' data '%(data)s': %(exception)s" % {
-                'table': table,
-                'data': str(insert_hash),
-                'exception': str(ex),
-            })
+            if 'duplicate key value violates unique constraint' in str(ex):
+                raise McUniqueConstraintException("Unable to INSERT into '%(table)s' data '%(data)s': %(exception)s" % {
+                    'table': table,
+                    'data': str(insert_hash),
+                    'exception': str(ex),
+                })
+            else:
+                raise McCreateException("Unable to INSERT into '%(table)s' data '%(data)s': %(exception)s" % {
+                    'table': table,
+                    'data': str(insert_hash),
+                    'exception': str(ex),
+                })
 
         if last_inserted_id is None or len(last_inserted_id) == 0:
             raise McCreateException("Last inserted ID was not found")
@@ -617,7 +624,11 @@ class DatabaseHandler(object):
         if row is not None and row.rows() > 0:
             return row.hash()
         else:
-            return self.create(table=table, insert_hash=insert_hash)
+            # try to create it, but if some other process has created it because we don't have a lock, just use that one
+            try:
+                return self.create(table=table, insert_hash=insert_hash)
+            except McUniqueConstraintException:
+                return self.select(table=table, what_to_select='*', condition_hash=insert_hash).hash()
 
     # noinspection PyMethodMayBeStatic
     def show_error_statement(self) -> bool:

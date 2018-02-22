@@ -6,11 +6,15 @@ import multiprocessing
 import os
 import signal
 from socketserver import ForkingMixIn
+import time
 from typing import Union, Dict
 
 from mediawords.util.log import create_logger
 from mediawords.util.network import tcp_port_is_open, wait_for_tcp_port_to_open, wait_for_tcp_port_to_close
 from mediawords.util.perl import decode_object_from_bytes_if_needed
+
+# if no port is specified, start searching for an open port sequentially at this port
+START_RANDOM_PORT = 7777
 
 
 class McHashServerException(Exception):
@@ -84,9 +88,9 @@ class HashServer(object):
         """Request sent to callback."""
 
         def __init__(self, port: int, method: str, path: str, headers: Dict[str, str], content: str):
-            self._port = port
             self._method = method
             self._path = path
+            self._port = port
 
             self._headers = dict()
             for name, value in headers.items():
@@ -442,20 +446,30 @@ class HashServer(object):
     ]
 
     def __init__(self, port: int, pages: dict):
-        """HTTP server's constructor."""
+        """HTTP server's constructor.
+
+        Arguments:
+        port - port to start server on (0 to choose random open port)
+        pages - dict describing pages to serve, as described in docstring above
+
+        """
 
         self.__host = '127.0.0.1'
         self.__http_server_thread = None
 
-        if not port:
-            raise McHashServerException("Port is not set.")
         if len(pages) == 0:
             log.warning("Pages dictionary is empty.")
+
+        if port == 0:
+            port = START_RANDOM_PORT
+            while tcp_port_is_open(port):
+                port += 1
+
+        self.__port = port
 
         # MC_REWRITE_TO_PYTHON: Decode page keys from bytes
         pages = {decode_object_from_bytes_if_needed(k): v for k, v in pages.items()}
 
-        self.__port = port
         self.__pages = pages
 
         self.__http_server_active_pids = multiprocessing.Manager().dict()
@@ -484,8 +498,10 @@ class HashServer(object):
                             port: int,
                             pages: dict,
                             active_pids: Dict[int, bool],
-                            active_pids_lock: multiprocessing.Lock):
+                            active_pids_lock: multiprocessing.Lock,
+                            delay: int):
         """(Run in a fork) Start listening to the port. """
+        time.sleep(delay)
         server_address = (host, port,)
 
         # Add server fork PID to the list of active PIDs to be killed later
@@ -502,8 +518,12 @@ class HashServer(object):
 
         http_server.serve_forever()
 
-    def start(self):
-        """Start the webserver."""
+    def start(self, delay: int=0):
+        """Start the webserver.
+
+        Arguments:
+        delay - number of seconds to delay before starting server
+        """
 
         if tcp_port_is_open(port=self.__port):
             raise McHashServerException("Port %d is already open." % self.__port)
@@ -520,13 +540,15 @@ class HashServer(object):
                 self.__pages,
                 self.__http_server_active_pids,
                 self.__http_server_active_pids_lock,
+                delay
             )
         )
         self.__http_server_thread.daemon = True
         self.__http_server_thread.start()
 
-        if not wait_for_tcp_port_to_open(port=self.__port, retries=20, delay=0.1):
-            raise McHashServerException("Port %d is not open." % self.__port)
+        if delay == 0:
+            if not wait_for_tcp_port_to_open(port=self.__port, retries=20, delay=0.1):
+                raise McHashServerException("Port %d is not open." % self.__port)
 
     def stop(self):
         """Stop the webserver."""
@@ -560,6 +582,10 @@ class HashServer(object):
 
         if not wait_for_tcp_port_to_close(port=self.__port, retries=20, delay=0.1):
             raise McHashServerException("Port %d is still open." % self.__port)
+
+    def port(self) -> int:
+        """Return the hash server port."""
+        return self.__port
 
     def page_url(self, path: str) -> str:
         """Return the URL for the given page on the test server or raise of the path does not exist."""
