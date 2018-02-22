@@ -189,3 +189,18 @@ class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseWithSche
         expected_topic_story = {'topics_id': topic['topics_id'], 'stories_id': story['stories_id'], 'link_mined': True}
 
         assert got_topic_story == expected_topic_story
+
+        # generate an error and make sure that it gets saved to topic_stories
+        del story['url']
+        mediawords.tm.extract_story_links.extract_links_for_topic_story(db, story, topic)
+
+        got_topic_story = db.query(
+            """
+            select topics_id, stories_id, link_mined, link_mine_error
+                from topic_stories
+                where topics_id =%(a)s and stories_id = %(b)s
+            """,
+            {'a': topic['topics_id'], 'b': story['stories_id']}).hash()
+
+        assert "KeyError: 'url'" in got_topic_story['link_mine_error']
+        assert got_topic_story['link_mined']
