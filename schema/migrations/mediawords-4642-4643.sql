@@ -14,6 +14,7 @@
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
+alter table topic_stories add link_mine_error text;
 
 -- update media stats table for deleted story sentence
 CREATE FUNCTION update_media_db_row_last_updated() RETURNS trigger AS $$

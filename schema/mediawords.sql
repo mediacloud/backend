@@ -1259,7 +1259,8 @@ create table topic_stories (
     iteration                       int default 0,
     link_weight                     real,
     redirect_url                    text,
-    valid_foreign_rss_story         boolean default false
+    valid_foreign_rss_story         boolean default false,
+    link_mine_error                 text
 );
 
 create unique index topic_stories_sc on topic_stories ( stories_id, topics_id );
