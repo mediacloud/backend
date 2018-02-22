@@ -10,37 +10,11 @@
 --
 -- You might need to import some additional schema diff files to reach the desired version.
 --
-<<<<<<< HEAD
-=======
 
->>>>>>> master
 --
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
-<<<<<<< HEAD
---- allow lookup of media by mediawords.util.url.normalized_url_lossy.
--- the data in this table is accessed and kept up to date by mediawords.tm.media.lookup_medium_by_url
-create table media_normalized_urls (
-    media_normalized_urls_id        serial primary key,
-    media_id                        int not null references media,
-    normalized_url                  varchar(1024) not null,
-
-    -- assigned the value of mediawords.util.url.normalized_url_lossy_version()
-    normalize_url_lossy_version    int not null
-);
-
-create unique index media_normalized_urls_medium on media_normalized_urls(normalize_url_lossy_version, media_id);
-create index media_normalized_urls_url on media_normalized_urls(normalized_url);
-
---
--- 2 of 2. Reset the database version.
---
-
-CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
-DECLARE
-
-=======
 SET search_path = public, pg_catalog;
 
 
@@ -74,7 +48,6 @@ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
->>>>>>> master
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
     MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4641;
@@ -91,12 +64,7 @@ END;
 $$
 LANGUAGE 'plpgsql';
 
-<<<<<<< HEAD
-SELECT set_database_schema_version();
-=======
 --
 -- 2 of 2. Reset the database version.
 --
 SELECT set_database_schema_version();
-
->>>>>>> master

@@ -24,11 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-<<<<<<< HEAD
     MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4643;
-=======
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4642;
->>>>>>> master
 
 BEGIN
 
@@ -923,16 +919,6 @@ create table feeds_stories_map
 create unique index feeds_stories_map_feed on feeds_stories_map (feeds_id, stories_id);
 create index feeds_stories_map_story on feeds_stories_map (stories_id);
 
-<<<<<<< HEAD
-create table stories_tags_map
-(
-    stories_tags_map_id     bigserial  primary key,
-    stories_id              int     not null references stories on delete cascade,
-    tags_id                 int     not null references tags on delete cascade,
-    db_row_last_updated                timestamp with time zone not null default now()
-);
-=======
->>>>>>> master
 
 --
 -- Story -> tag map
@@ -1070,7 +1056,7 @@ BEGIN
     EXECUTE '
         INSERT INTO ' || target_table_name || '
             SELECT $1.*
-        ON CONFLICT (stories_id, tags_id) DO NOTHING 
+        ON CONFLICT (stories_id, tags_id) DO NOTHING
         ' USING NEW;
     RETURN NULL;
 END;
