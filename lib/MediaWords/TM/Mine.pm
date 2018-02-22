@@ -80,6 +80,15 @@ Readonly my $MAX_NULL_BITLY_STORIES => 0.02;
 # add new links in chunks of this size
 Readonly my $ADD_NEW_LINKS_CHUNK_SIZE => 1000;
 
+# die if the error rate for link fetch or link extract jobs is greater than this
+Readonly my $MAX_JOB_ERROR_RATE => 0.01;
+
+# timeout when polling for jobs to finish
+Readonly my $JOB_POLL_TIMEOUT => 3600;
+
+# number of seconds to wait when polling for jobs to finish
+Readonly my $JOB_POLL_WAIT => 5;
+
 # if mine_topic is run with the test_mode option, set this true and do not try to queue extractions
 my $_test_mode;
 
@@ -246,7 +255,7 @@ SQL
         MediaWords::Job::TM::ExtractStoryLinks->add_to_queue(
             { stories_id => $story->{ stories_id }, topics_id => $topic->{ topics_id } } );
 
-        DEBUG( "queued link extraction for story $story->{ title } $story->{ url }." );
+        TRACE( "queued link extraction for story $story->{ title } $story->{ url }." );
     }
 
     INFO( "waiting for " . scalar( @{ $queued_stories_ids } ) . " link extraction jobs to finish" );
@@ -259,10 +268,6 @@ SQL
     # of one link extractor job error).
     my $prev_num_queued_stories = scalar( @{ $stories } );
     my $last_change_time        = time();
-    my $sleep_time              = 5;
-    my $long_timeout            = 60 * 60;
-    my $short_timeout           = 15;
-    my $max_errored_stories     = scalar( @{ $stories } ) / 20;
     while ( 1 )
     {
         my ( $num_queued_stories ) = $db->query( <<SQL, $topic->{ topics_id } )->flat();
@@ -277,21 +282,15 @@ SQL
         last if ( $num_queued_stories == 0 );
 
         $last_change_time = time() if ( $num_queued_stories != $prev_num_queued_stories );
-        if ( ( time() - $last_change_time ) > $long_timeout )
+        if ( ( time() - $last_change_time ) > $JOB_POLL_TIMEOUT )
         {
             LOGDIE( "Timed out waiting for story link extraction." );
-        }
-
-        if ( ( ( time() - $last_change_time ) > $short_timeout ) && ( $num_queued_stories < $max_errored_stories ) )
-        {
-            WARN( "Continuing after short timeout with $num_queued_stories remaining in link extraction pool" );
-            last;
         }
 
         INFO( "$num_queued_stories stories left in link extraction pool...." );
 
         $prev_num_queued_stories = $num_queued_stories;
-        sleep( $sleep_time );
+        sleep( $JOB_POLL_WAIT );
     }
 
     # cleanup any out of date range or errored stories
@@ -1045,8 +1044,6 @@ sub get_stories_to_extract
     INFO( "waiting for fetch link queue: $num_queued_links queued" );
 
     # now poll waiting for the queue to clear
-    my $timeout               = 60 * 10;
-    my $poll_wait             = 5;
     my $last_pending_change   = time();
     my $last_num_pending_urls = 0;
     while ( 1 )
@@ -1059,13 +1056,13 @@ sub get_stories_to_extract
 
         last if ( $num_pending_urls < 1 );
 
-        die( "Timed out waiting for fetch_link queue" ) if ( ( time() - $last_pending_change ) > $timeout );
+        die( "Timed out waiting for fetch_link queue" ) if ( ( time() - $last_pending_change ) > $JOB_POLL_TIMEOUT );
 
         $last_pending_change = time() if ( $num_pending_urls < $last_num_pending_urls );
 
         $last_num_pending_urls = $num_pending_urls;
 
-        sleep( $poll_wait );
+        sleep( $JOB_POLL_WAIT );
     }
 
     my $tfu_ids = [ map { int( $_->{ topic_fetch_urls_id } ) } @{ $tfus } ];
@@ -2085,6 +2082,58 @@ sub merge_foreign_rss_stories($$)
     MediaWords::TM::Stories::merge_foreign_rss_stories( $db, $topic );
 }
 
+# die if the error rate for link extraction or link fetching is too high
+sub check_job_error_rate($$)
+{
+    my ( $db, $topic ) = @_;
+
+    my $fetch_stats = $db->query( <<SQL, $topic->{ topics_id } )->hashes();
+select count(*) num, ( state = 'python error' ) as error
+    from topic_fetch_urls
+        where topics_id = ?
+        group by ( state = 'python error' )
+SQL
+
+    my ( $num_fetch_errors, $num_fetch_successes ) = ( 0, 0 );
+    for my $s ( @{ $fetch_stats } )
+    {
+        if   ( $s->{ error } ) { $num_fetch_errors    += $s->{ num } }
+        else                   { $num_fetch_successes += $s->{ num } }
+    }
+
+    my $fetch_error_rate = $num_fetch_errors / ( $num_fetch_errors + $num_fetch_successes );
+
+    INFO( "Fetch error rate: $fetch_error_rate ($num_fetch_errors / $num_fetch_successes)" );
+
+    if ( $fetch_error_rate > $MAX_JOB_ERROR_RATE )
+    {
+        die( "Fetch error rate of $fetch_error_rate is great than max of $MAX_JOB_ERROR_RATE" );
+    }
+
+    my $link_stats = $db->query( <<SQL, $topic->{ topics_id } )->hashes();
+select count(*) num, ( length( link_mine_error) > 0 ) as error
+    from topic_stories
+        where topics_id = ?
+        group by ( length( link_mine_error ) > 0 )
+SQL
+
+    my ( $num_link_errors, $num_link_successes ) = ( 0, 0 );
+    for my $s ( @{ $link_stats } )
+    {
+        if   ( $s->{ error } ) { $num_link_errors    += $s->{ num } }
+        else                   { $num_link_successes += $s->{ num } }
+    }
+
+    my $link_error_rate = $num_link_errors / ( $num_link_errors + $num_link_successes );
+
+    INFO( "Link error rate: $link_error_rate ($num_link_errors / $num_link_successes)" );
+
+    if ( $link_error_rate > $MAX_JOB_ERROR_RATE )
+    {
+        die( "link error rate of $link_error_rate is great than max of $MAX_JOB_ERROR_RATE" );
+    }
+}
+
 # mine the given topic for links and to recursively discover new stories on the web.
 # options:
 #   import_only - only run import_seed_urls and import_solr_seed and exit
@@ -2127,6 +2176,8 @@ sub do_mine_topic ($$;$)
     {
         update_topic_state( $db, $topic, "running spider" );
         run_spider( $db, $topic );
+
+        check_job_error_rate( $db, $topic );
 
         # merge dup media and stories again to catch dups from spidering
         update_topic_state( $db, $topic, "merging duplicate media stories" );
