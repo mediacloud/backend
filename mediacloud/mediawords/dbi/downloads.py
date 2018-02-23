@@ -158,7 +158,7 @@ def _get_store_for_writing() -> KeyValueStore:
             raise McDBIDownloadsException("databaseinline location is not valid for storage")
         elif location == 'postgresql':
             store = PostgreSQLStore(table=RAW_DOWNLOADS_POSTGRESQL_KVS_TABLE_NAME)
-        elif location in ('s3', 'amazon'):
+        elif location in ('s3', 'amazon', 'amazon_s3'):
             store = _get_amazon_s3_store()
         else:
             raise McDBIDownloadsException("store location '" + location + "' is not valid")

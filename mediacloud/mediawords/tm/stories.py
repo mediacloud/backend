@@ -3,6 +3,7 @@
 import datetime
 import operator
 import re
+import traceback
 import typing
 
 from mediawords.db import DatabaseHandler
@@ -304,9 +305,17 @@ def assign_date_guess_tag(
 
 def get_spider_feed(db: DatabaseHandler, medium: dict) -> dict:
     """Find or create the 'Spider Feed' feed for the media source."""
+
+    feed = db.query(
+        "select * from feeds where media_id = %(a)s and name = %(b)s",
+        {'a': medium['media_id'], 'b': SPIDER_FEED_NAME}).hash()
+
+    if feed is not None:
+        return feed
+
     return db.find_or_create('feeds', {
         'media_id': medium['media_id'],
-        'url': medium['url'],
+        'url': medium['url'] + '#spiderfeed',
         'name': SPIDER_FEED_NAME,
         'feed_status': 'inactive'
     })
@@ -358,6 +367,8 @@ def generate_story(
         story = db.create('stories', story)
     except mediawords.db.exceptions.handler.McUniqueConstraintException as e:
         raise McTMStoriesDuplicateException("Attempt to insert duplicate story url %s" % url)
+    except Exception as e:
+        raise McTMStoriesException("Error adding story: %s" % traceback.format_exc())
 
     db.query(
         "insert into stories_tags_map (stories_id, tags_id) values (%(a)s, %(b)s)",

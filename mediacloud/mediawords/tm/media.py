@@ -127,6 +127,8 @@ def _update_media_normalized_urls(db: DatabaseHandler) -> None:
         db.commit()
         return
 
+    log.warning("updating media_normalized_urls ...")
+
     version = mediawords.util.url.normalize_url_lossy_version()
 
     media = db.query(
@@ -141,10 +143,15 @@ def _update_media_normalized_urls(db: DatabaseHandler) -> None:
         """,
         {'a': version}).hashes()
 
+    i = 0
+    total = len(media)
     for medium in media:
+        i += 1
         normalized_url = mediawords.util.url.normalize_url_lossy(medium['url'])
         if normalized_url is None:
             normalized_url = medium['url']
+
+        log.info("[%d/%d] adding %s (%s)" % (i, total, medium['name'], normalized_url))
 
         db.query(
             "delete from media_normalized_urls where media_id = %(a)s and normalize_url_lossy_version = %(b)s",

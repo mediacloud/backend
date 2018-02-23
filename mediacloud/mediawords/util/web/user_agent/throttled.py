@@ -27,7 +27,8 @@ class McThrottledDomainException(Exception):
 
 def _is_shortened_url(url: str) -> bool:
     """Return true if the url looks like a shortened url."""
-    if re.match(r'https?://(?:bit\.ly|t\.co|fb\.me|goo\.gl|youtu\.be)/', url, flags=re.I) is not None:
+    regex = r'https?://(?:bit\.ly|t\.co|fb\.me|goo\.gl|youtu\.be|ln\.is|wapo\.st|politi\.co)/'
+    if re.match(regex, url, flags=re.I) is not None:
         # anything with the domain of the one of the major shorteners gets a true
         return True
     elif re.match(r'https?://[a-z]{1,4}\.[a-z]{2}/([a-z0-9]){3,12}/?$', url, flags=re.I) is not None:

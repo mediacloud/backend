@@ -1089,8 +1089,12 @@ select s.*, tfu.assume_match
         tfu.topic_fetch_urls_id = any(?)
 SQL
 
-    # need some magic to keep assume_match field in the link field expected to be attached to each story
-    map { $_->{ link }->{ assume_match } = $_->{ assume_match } } @{ $extract_stories };
+    # need some magic to assign link field expected to be attached to each story
+    for my $story ( @{ $extract_stories } )
+    {
+        $story->{ link }->{ assume_match } = $story->{ assume_match };
+        $story->{ link }->{ url }          = $story->{ url };
+    }
 
     # throw all of the stories into the exractor queue so that they will hopefully be cached by the time
     # we do the extraction in process
@@ -1157,6 +1161,7 @@ sub add_new_links_chunk($$$$)
     my ( $db, $topic, $iteration, $new_links ) = @_;
 
     my $trimmed_links = [];
+    INFO( "add_new_links_chunk: trim links" );
     for my $link ( @{ $new_links } )
     {
         my $skip_link = url_failed_potential_match( $db, $topic, $link->{ url } )
@@ -1171,22 +1176,28 @@ sub add_new_links_chunk($$$$)
         }
     }
 
+    INFO( "add_new_links_chunk: add_linkes_with_matching_stories" );
     my $fetch_links = add_links_with_matching_stories( $db, $topic, $trimmed_links );
 
+    INFO( "add_new_links_chunk: get_stories_to_extact" );
     my $extract_stories = get_stories_to_extract( $db, $topic, $fetch_links );
 
+    INFO( "add_new_links_chunk: extract_stories" );
     extract_stories( $db, $extract_stories );
 
+    INFO( "add_new_links_chunk: add_to_topic_stories_if_match" );
     map { add_to_topic_stories_if_match( $db, $topic, $_, $_->{ link } ) } @{ $extract_stories };
 
-    $db->begin;
-    for my $link ( @{ $new_links } )
+    INFO( "add_new_links_chunk: delete from topic_links" );
+    my $link_ids = [ grep { $_ } map { $_->{ topic_links_id } } @{ $new_links } ];
+    if ( @{ $link_ids } )
     {
-        $db->query( <<END, $link->{ topic_links_id } ) if ( $link->{ topic_links_id } );
-delete from topic_links where topic_links_id = ? and ref_stories_id is null
-END
+        my $ids_table = $db->get_temporary_ids_table( $link_ids );
+        $db->query( <<SQL );
+delete from topic_links where ref_stories_id is null and topic_links_id in ( select id from $ids_table )
+SQL
     }
-    $db->commit;
+
 }
 
 # save a row in the topic_spider_metrics table to track performance of spider
@@ -1342,7 +1353,10 @@ sub cleanup_leftover_topic_fetch_urls
 update topic_fetch_urls tfu set state = 'pending'
     where
         topic_fetch_urls_id in (
-            select topic_fetch_urls_id from topic_fetch_urls order by topic_fetch_urls_id desc limit \$2
+            select topic_fetch_urls_id
+                from topic_fetch_urls
+                where topics_id = \$1
+                order by topic_fetch_urls_id desc limit \$2
         ) and
         stories_id is not null and
         not exists ( select 1 from topic_stories ts where ts.topics_id = \$1 and ts.stories_id = tfu.stories_id )
@@ -1624,6 +1638,16 @@ END
     while ( my @seed_urls_chunk = $iterator->() )
     {
         add_new_links( $db, $topic, 0, \@seed_urls_chunk );
+        my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ topic_seed_urls_id } } @seed_urls_chunk ] );
+        $db->query( <<SQL );
+update topic_seed_urls tsu
+    set stories_id = tfu.stories_id, processed = 'f'
+    from topic_fetch_urls tfu, $ids_table ids
+    where
+        tsu.topics_id = tfu.topics_id and
+        tsu.url = tfu.url and
+        tsu.topic_seed_urls_id = ids.id
+SQL
     }
 
     # cleanup any topic_seed_urls pointing to a merged story
@@ -2101,7 +2125,7 @@ SQL
         else                   { $num_fetch_successes += $s->{ num } }
     }
 
-    my $fetch_error_rate = $num_fetch_errors / ( $num_fetch_errors + $num_fetch_successes );
+    my $fetch_error_rate = $num_fetch_errors / ( $num_fetch_errors + $num_fetch_successes + 1 );
 
     INFO( "Fetch error rate: $fetch_error_rate ($num_fetch_errors / $num_fetch_successes)" );
 
@@ -2124,7 +2148,7 @@ SQL
         else                   { $num_link_successes += $s->{ num } }
     }
 
-    my $link_error_rate = $num_link_errors / ( $num_link_errors + $num_link_successes );
+    my $link_error_rate = $num_link_errors / ( $num_link_errors + $num_link_successes + 1 );
 
     INFO( "Link error rate: $link_error_rate ($num_link_errors / $num_link_successes)" );
 
@@ -2294,6 +2318,7 @@ SQL
                 FROM topic_seed_urls
                 WHERE topics_id = \$1
               )
+              AND not ttfu.url like 'https://twitter.com%'
 SQL
         $topic->{ topics_id }
     );
