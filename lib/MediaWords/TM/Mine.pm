@@ -2122,7 +2122,7 @@ SQL
         else                   { $num_fetch_successes += $s->{ num } }
     }
 
-    my $fetch_error_rate = $num_fetch_errors / ( $num_fetch_errors + $num_fetch_successes );
+    my $fetch_error_rate = $num_fetch_errors / ( $num_fetch_errors + $num_fetch_successes + 1 );
 
     INFO( "Fetch error rate: $fetch_error_rate ($num_fetch_errors / $num_fetch_successes)" );
 
@@ -2145,7 +2145,7 @@ SQL
         else                   { $num_link_successes += $s->{ num } }
     }
 
-    my $link_error_rate = $num_link_errors / ( $num_link_errors + $num_link_successes );
+    my $link_error_rate = $num_link_errors / ( $num_link_errors + $num_link_successes + 1 );
 
     INFO( "Link error rate: $link_error_rate ($num_link_errors / $num_link_successes)" );
 
