@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4644;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4645;
 
 BEGIN
 
@@ -265,6 +265,7 @@ create table media_normalized_urls (
 
 create unique index media_normalized_urls_medium on media_normalized_urls(normalize_url_lossy_version, media_id);
 create index media_normalized_urls_url on media_normalized_urls(normalized_url);
+create index media_normalized_urls_db_row_last_updated on media_normalized_urls(db_row_last_updated);
 
 
 -- list of media sources for which the stories should be updated to be at
