@@ -332,29 +332,6 @@ def extract(db: DatabaseHandler, download: dict, use_cache: bool=False) -> dict:
     return results
 
 
-def _parse_out_javascript_content(content: str) -> str:
-    """Parse html content out of javascript.
-
-    Forbes is putting all of its content into a javascript variable, causing our extractor to fall down.
-    this function returns the html assigned to the javascript variable.
-
-    Returns:
-    the original content or the content parsed from the javascript
-
-    """
-    match = re.search(r'.*fbs_settings.content[^\}]*body\"\:\"([^"\\]*(\\.[^"\\]*)*)\".*', content, flags=re.M | re.S)
-    if match is None:
-        return content
-
-    content = match.group(1)
-
-    # kludge quoted javascript text into plain text
-    content = re.sub(r'\\[rn]', ' ', content)
-    content = re.sub(r'\/[\w+ [^\]]*\/', ' ', content)
-
-    return content
-
-
 def _call_extractor_on_html(content: str) -> dict:
     """Call extractor on the content."""
     extracted_html = mediawords.util.extract_text.extract_article_from_html(content)
@@ -382,13 +359,6 @@ def extract_content(content: str) -> dict:
         ret = {'extracted_html': content, 'extracted_text': content}
     else:
         ret = _call_extractor_on_html(content)
-
-        # if we didn't get much text, try looking for content stored in the javascript
-        if len(ret['extracted_text']) < MIN_EXTRACTED_LENGTH_FOR_JS_EXTRACTION:
-            js_content = _parse_out_javascript_content(content)
-            js_ret = _call_extractor_on_html(js_content)
-            if len(js_ret['extracted_text']) > len(ret['extracted_text']):
-                ret = js_ret
 
     return ret
 
