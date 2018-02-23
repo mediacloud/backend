@@ -1161,6 +1161,7 @@ sub add_new_links_chunk($$$$)
     my ( $db, $topic, $iteration, $new_links ) = @_;
 
     my $trimmed_links = [];
+    INFO( "add_new_links_chunk: trim links" );
     for my $link ( @{ $new_links } )
     {
         my $skip_link = url_failed_potential_match( $db, $topic, $link->{ url } )
@@ -1175,22 +1176,28 @@ sub add_new_links_chunk($$$$)
         }
     }
 
+    INFO( "add_new_links_chunk: add_linkes_with_matching_stories" );
     my $fetch_links = add_links_with_matching_stories( $db, $topic, $trimmed_links );
 
+    INFO( "add_new_links_chunk: get_stories_to_extact" );
     my $extract_stories = get_stories_to_extract( $db, $topic, $fetch_links );
 
+    INFO( "add_new_links_chunk: extract_stories" );
     extract_stories( $db, $extract_stories );
 
+    INFO( "add_new_links_chunk: add_to_topic_stories_if_match" );
     map { add_to_topic_stories_if_match( $db, $topic, $_, $_->{ link } ) } @{ $extract_stories };
 
-    $db->begin;
-    for my $link ( @{ $new_links } )
+    INFO( "add_new_links_chunk: delete from topic_links" );
+    my $link_ids = [ grep { $_ } map { $_->{ topic_links_id } } @{ $new_links } ];
+    if ( @{ $link_ids } )
     {
-        $db->query( <<END, $link->{ topic_links_id } ) if ( $link->{ topic_links_id } );
-delete from topic_links where topic_links_id = ? and ref_stories_id is null
-END
+        my $ids_table = $db->get_temporary_ids_table( $link_ids );
+        $db->query( <<SQL );
+delete from topic_links where ref_stories_id is null and topic_links_id in ( select id from $ids_table )
+SQL
     }
-    $db->commit;
+
 }
 
 # save a row in the topic_spider_metrics table to track performance of spider
@@ -1628,6 +1635,16 @@ END
     while ( my @seed_urls_chunk = $iterator->() )
     {
         add_new_links( $db, $topic, 0, \@seed_urls_chunk );
+        my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ topic_seed_urls_id } } @seed_urls_chunk ] );
+        $db->query( <<SQL );
+update topic_seed_urls tsu
+    set stories_id = tfu.stories_id, processed = 'f'
+    from topic_fetch_urls tfu, $ids_table ids
+    where
+        tsu.topics_id = tfu.topics_id and
+        tsu.url = tfu.url and
+        tsu.topic_seed_urls_id = ids.id
+SQL
     }
 
     # cleanup any topic_seed_urls pointing to a merged story
