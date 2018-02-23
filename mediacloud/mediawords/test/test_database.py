@@ -27,7 +27,7 @@ class TestDatabaseTestCase(TestCase):
     __db = None
 
     @staticmethod
-    def _create_database_handler() -> DatabaseHandler:
+    def create_database_handler() -> DatabaseHandler:
         log.info("Looking for test database credentials...")
         test_database = None
         config = py_get_config()
@@ -49,7 +49,7 @@ class TestDatabaseTestCase(TestCase):
         return db
 
     def setUp(self):
-        self.__db = self._create_database_handler()
+        self.__db = self.create_database_handler()
 
     def tearDown(self):
         self.__db.disconnect()
