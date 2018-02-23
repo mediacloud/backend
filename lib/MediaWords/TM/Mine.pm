@@ -1089,8 +1089,12 @@ select s.*, tfu.assume_match
         tfu.topic_fetch_urls_id = any(?)
 SQL
 
-    # need some magic to keep assume_match field in the link field expected to be attached to each story
-    map { $_->{ link }->{ assume_match } = $_->{ assume_match } } @{ $extract_stories };
+    # need some magic to assign link field expected to be attached to each story
+    for my $story ( @{ $extract_stories } )
+    {
+        $story->{ link }->{ assume_match } = $story->{ assume_match };
+        $story->{ link }->{ url }          = $story->{ url };
+    }
 
     # throw all of the stories into the exractor queue so that they will hopefully be cached by the time
     # we do the extraction in process
@@ -2294,6 +2298,7 @@ SQL
                 FROM topic_seed_urls
                 WHERE topics_id = \$1
               )
+              AND not ttfu.url like 'https://twitter.com%'
 SQL
         $topic->{ topics_id }
     );
