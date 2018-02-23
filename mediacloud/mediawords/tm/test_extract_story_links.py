@@ -26,6 +26,8 @@ def test_get_links_from_html() -> None:
 
     # ignore urls from ignore patternk
     test_links('<a href="http://www.addtoany.com/http://foo.bar">', [])
+    test_links('<a href="https://en.unionpedia.org/c/SOE_F_Section_timeline/vs/Special_Operations_Executive">', [])
+    test_links('<a href="http://digg.com/submit/this">', [])
 
     # sanity test to make sure that we are able to get all of the links from a real html page
     filename = mediawords.util.paths.mc_root_path() + '/mediacloud/test-data/html/strip.html'

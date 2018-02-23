@@ -14,13 +14,17 @@ from mediawords.util.log import create_logger
 log = create_logger(__name__)
 
 
+# ignore any list that match the below patterns.  the sites below are most social sharing button links of
+# various kinds, along with some content spam sitesand a couple of sites that confuse the spider with too
+# many domain alternatives.
 _IGNORE_LINK_PATTERN = (
-    '(www.addtoany.com)|(novostimira.com)|(ads\.pheedo)|(www.dailykos.com\/user)|'
-    '(livejournal.com\/(tag|profile))|(sfbayview.com\/tag)|(absoluteastronomy.com)|'
-    '(\/share.*http)|(digg.com\/submit)|(facebook.com.*mediacontentsharebutton)|'
-    '(feeds.wordpress.com\/.*\/go)|(sharetodiaspora.github.io\/)|(iconosquare.com)|'
-    '(unz.com)|(answers.com)|(downwithtyranny.com\/search)|(scoop\.?it)|(sco\.lt)|'
-    '(pronk.*\.wordpress\.com\/(tag|category))|(wn\.com)|(pinterest\.com\/pin\/create)|(feedblitz\.com)|(atomz.com)')
+    r'(www.addtoany.com)|(novostimira.com)|(ads\.pheedo)|(www.dailykos.com\/user)|'
+    r'(livejournal.com\/(tag|profile))|(sfbayview.com\/tag)|(absoluteastronomy.com)|'
+    r'(\/share.*http)|(digg.com\/submit)|(facebook.com.*mediacontentsharebutton)|'
+    r'(feeds.wordpress.com\/.*\/go)|(sharetodiaspora.github.io\/)|(iconosquare.com)|'
+    r'(unz.com)|(answers.com)|(downwithtyranny.com\/search)|(scoop\.?it)|(sco\.lt)|'
+    r'(pronk.*\.wordpress\.com\/(tag|category))|(wn\.com)|(pinterest\.com\/pin\/create)|(feedblitz\.com)|(atomz.com)|'
+    r'(unionpedia.org\/)')
 
 
 def get_links_from_html(html: str) -> typing.List[str]:
