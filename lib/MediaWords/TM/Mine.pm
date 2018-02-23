@@ -1353,7 +1353,10 @@ sub cleanup_leftover_topic_fetch_urls
 update topic_fetch_urls tfu set state = 'pending'
     where
         topic_fetch_urls_id in (
-            select topic_fetch_urls_id from topic_fetch_urls order by topic_fetch_urls_id desc limit \$2
+            select topic_fetch_urls_id
+                from topic_fetch_urls
+                where topics_id = \$1
+                order by topic_fetch_urls_id desc limit \$2
         ) and
         stories_id is not null and
         not exists ( select 1 from topic_stories ts where ts.topics_id = \$1 and ts.stories_id = tfu.stories_id )
