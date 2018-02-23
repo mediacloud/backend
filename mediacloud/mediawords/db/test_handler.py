@@ -532,7 +532,7 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         assert row.rows() == 0
 
         # Create a separate database handler to test whether transactions are isolated
-        isolated_db = self._create_database_handler()
+        isolated_db = self.create_database_handler()
         row = isolated_db.query("SELECT * FROM kardashians WHERE name = 'Lamar'")
         assert row.rows() == 0
 
