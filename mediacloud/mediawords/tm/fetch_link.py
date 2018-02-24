@@ -226,10 +226,12 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
         else:
             log.debug("seeded content found for url: %s" % topic_fetch_url['url'])
 
+        response_url = response.request().url() if response.request() else None
+
         topic_fetch_url['code'] = response.code()
 
         story_match = mediawords.tm.stories.get_story_match(
-            db=db, url=topic_fetch_url['url'], redirect_url=response.request().url())
+            db=db, url=topic_fetch_url['url'], redirect_url=response_url)
         content = response.decoded_content()
 
         if not response.is_success():
@@ -254,7 +256,7 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
                 # because it means the story is already in the database and we just need to match it again.
                 topic_fetch_url['state'] = FETCH_STATE_STORY_MATCH
                 story_match = mediawords.tm.stories.get_story_match(
-                    db=db, url=topic_fetch_url['url'], redirect_url=response.request().url())
+                    db=db, url=topic_fetch_url['url'], redirect_url=response_url)
                 if story_match is None:
                     raise McTMFetchLinkException("Unable to find matching story after unique constraint error.")
                 topic_fetch_url['stories_id'] = story_match['stories_id']
