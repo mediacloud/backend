@@ -291,6 +291,14 @@ use MediaWords::Util::Config;
         return undef;
     }
 
+    # return the lock type from mediawords.db.locks to use for run once locking.  default to the class name.
+    sub get_run_lock_type()
+    {
+        my ( $self ) = @_;
+
+        return ref( $self );
+    }
+
     # set job state to $STATE_RUNNING, call run_statefully, either catch any errors and set state to $STATE_ERROR and save
     # the error or set state to $STATE_COMPLETED
     sub run($;$)
@@ -302,7 +310,8 @@ use MediaWords::Util::Config;
         # if a job for a run locked class is already running, exit without doinig anything.
         if ( my $run_lock_arg = $self->get_run_lock_arg() )
         {
-            if ( !MediaWords::DB::Locks::get_session_lock( $db, ref( $self ), $args->{ $run_lock_arg }, 0 ) )
+            my $lock_type = $self->get_run_lock_type();
+            if ( !MediaWords::DB::Locks::get_session_lock( $db, $lock_type, $args->{ $run_lock_arg }, 0 ) )
             {
                 WARN( "Job with $run_lock_arg = $args->{ $run_lock_arg } is already running.  Exiting." );
                 return;
