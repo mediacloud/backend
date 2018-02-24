@@ -11,9 +11,9 @@ use MediaWords::Test::DB;
 use MediaWords::Test::DB::HandlerProxy;
 
 # test whether calling hashes() or flat() returns a single row list or just the single value.
-sub test_single_row_list($)
+sub test_single_row_list()
 {
-    my ( $db ) = @_;
+    my $db = MediaWords::DB::connect_to_db( 'test' );
 
     my $hashes = MediaWords::Test::DB::HandlerProxy::get_single_row_hashes( $db );
 
@@ -23,19 +23,11 @@ sub test_single_row_list($)
 
     $r->[ 0 ]->{ foo } = 'bar';
     is( $r->[ 0 ]->{ foo }, 'bar', 'hashes results writeable' );
-
-}
-
-sub test_database($)
-{
-    my ( $db ) = @_;
-
-    test_single_row_list( $db );
 }
 
 sub main
 {
-    MediaWords::Test::DB::test_on_test_database( \&test_database );
+    test_single_row_list();
 }
 
 main();
