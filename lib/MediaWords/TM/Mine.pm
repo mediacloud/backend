@@ -42,6 +42,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::TM;
 use MediaWords::TM::FetchTopicTweets;
+use MediaWords::TM::FetchLink;
 use MediaWords::TM::GuessDate;
 use MediaWords::TM::GuessDate::Result;
 use MediaWords::TM::Snapshot;
@@ -523,6 +524,41 @@ sub _get_sentences_from_story_text
     my $sentences = $lang->split_text_to_sentences( $story_text );
 
     return $sentences;
+}
+
+# return the links in the list that do not have a fetch failure in topic_fetch_urls
+sub get_links_without_fetch_failures($$$)
+{
+    my ( $db, $topic, $links ) = @_;
+
+    my $lookup_urls;
+    for my $link ( @{ $links } )
+    {
+        $lookup_urls->{ $link->{ url } } = 1;
+        if ( $link->{ redirect_url } )
+        {
+            $lookup_urls->{ $link->{ redirect_url } } = 1;
+        }
+    }
+
+    my $all_urls = [ keys( %{ $lookup_urls } ) ];
+
+    my $failed_urls = MediaWords::TM::FetchLink::get_failed_urls( $db, $topic, $all_urls );
+    my $failed_url_lookup = {};
+    map { $failed_url_lookup->{ $_ } = 1 } @{ $failed_urls };
+
+    my $trimmed_urls;
+    for my $link ( @{ $links } )
+    {
+        my $url = $link->{ url };
+        my $redirect_url = $link->{ redirect_url } || 'no redirect';
+        if ( !( $failed_url_lookup->{ $url } || $failed_url_lookup->{ $redirect_url } ) )
+        {
+            push( @{ $trimmed_urls }, $link );
+        }
+    }
+
+    return $trimmed_urls;
 }
 
 # return true if this url already failed a potential match, so we don't have to download it again
@@ -1156,21 +1192,8 @@ sub add_new_links_chunk($$$$)
 {
     my ( $db, $topic, $iteration, $new_links ) = @_;
 
-    my $trimmed_links = [];
     INFO( "add_new_links_chunk: trim links" );
-    for my $link ( @{ $new_links } )
-    {
-        my $skip_link = url_failed_potential_match( $db, $topic, $link->{ url } )
-          || url_failed_potential_match( $db, $topic, $link->{ redirect_url } );
-        if ( $skip_link )
-        {
-            TRACE "ALREADY SKIPPED LINK: $link->{ url }";
-        }
-        else
-        {
-            push( @{ $trimmed_links }, $link );
-        }
-    }
+    my $trimmed_links = get_links_without_fetch_failures( $db, $topic, $new_links );
 
     INFO( "add_new_links_chunk: add_links_with_matching_stories" );
     my $fetch_links = add_links_with_matching_stories( $db, $topic, $trimmed_links );

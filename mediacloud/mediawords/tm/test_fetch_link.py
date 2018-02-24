@@ -269,3 +269,32 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
         story = db.require_by_id('stories', tfu['stories_id'])
 
         assert story['title'] == 'seeded content'
+
+    def test_get_failed_urls(self) -> None:
+        """Test get_failed_urls()."""
+        db = self.db()
+
+        topic = mediawords.test.db.create_test_topic(db, 'foo')
+
+        tfus = [
+            ['http://story.added', mediawords.tm.fetch_link.FETCH_STATE_STORY_ADDED],
+            ['http://story.matched', mediawords.tm.fetch_link.FETCH_STATE_STORY_MATCH],
+            ['http://request.failed', mediawords.tm.fetch_link.FETCH_STATE_REQUEST_FAILED],
+            ['http://content.match.failed', mediawords.tm.fetch_link.FETCH_STATE_CONTENT_MATCH_FAILED]
+        ]
+
+        for tfu in tfus:
+            db.create('topic_fetch_urls', {
+                'topics_id': topic['topics_id'],
+                'url': tfu[0],
+                'state': tfu[1]})
+
+        all_urls = ['http://un.fetched'] + [tfu[0] for tfu in tfus]
+
+        assert mediawords.tm.fetch_link.get_failed_urls(db, topic, all_urls) == \
+            ['http://request.failed', 'http://content.match.failed']
+
+        assert mediawords.tm.fetch_link.get_failed_urls(db, topic, ['http://request.failed']) == \
+            ['http://request.failed']
+
+        assert mediawords.tm.fetch_link.get_failed_urls(db, {'topics_id': 0}, all_urls) == []
