@@ -10,6 +10,7 @@ import typing
 from mediawords.db import DatabaseHandler
 import mediawords.tm.stories
 from mediawords.util.log import create_logger
+from mediawords.util.perl import decode_object_from_bytes_if_needed
 import mediawords.util.url
 from mediawords.util.web.user_agent.request.request import Request
 from mediawords.util.web.user_agent.response.response import Response
@@ -139,6 +140,44 @@ def get_seeded_content(db: DatabaseHandler, topic_fetch_url: dict) -> typing.Opt
     response.set_request(Request('GET', topic_fetch_url['url']))
 
     return response
+
+
+def get_failed_urls(db: DatabaseHandler, topic: dict, urls: list) -> list:
+    """Return the links from the set without FETCH_STATE_REQUEST_FAILED or FETCH_STATE_CONTENT_MATCH_FAILED states.
+
+    Arguments:
+    db - db handle
+    topic - topic dict from db
+    urls - string urls
+
+    Returns:
+    a list of the urls that do not have fetch failes
+    """
+    topic = decode_object_from_bytes_if_needed(topic)
+    urls = decode_object_from_bytes_if_needed(urls)
+
+    r = db.query(
+        """
+        select url
+            from topic_fetch_urls
+            where
+                topics_id = %(a)s and
+                state in (%(b)s, %(c)s) and
+                url = any(%(d)s)
+        """,
+        {
+            'a': topic['topics_id'],
+            'b': FETCH_STATE_REQUEST_FAILED,
+            'c': FETCH_STATE_CONTENT_MATCH_FAILED,
+            'd': urls
+        }).hashes()
+
+    if r is None:
+        return []
+
+    failed_urls = [u['url'] for u in r]
+
+    return failed_urls
 
 
 def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeout: typing.Optional[int]=None) -> None:
