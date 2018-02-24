@@ -392,6 +392,15 @@ SQL
 
     my ( $dead_link_count ) = $db->query( "select count(*) from topic_fetch_urls where state ='request failed'" )->flat;
     is( $dead_link_count, scalar( @{ $topic_pages } ), "dead link count" );
+
+    if ( $dead_link_count != scalar( @{ $topic_pages } ) )
+    {
+        my $fetch_states = $db->query( "select count(*), state from topic_fetch_urls group by state" )->hashes();
+        WARN( "fetch states: " . Dumper( $fetch_states ) );
+
+        my $fetch_errors = $db->query( "select * from topic_fetch_urls where state = 'python error'" )->hashes();
+        WARN( "fetch errors: " . Dumper( $fetch_errors ) );
+    }
 }
 
 sub test_topic_links

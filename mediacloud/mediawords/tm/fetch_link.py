@@ -242,10 +242,11 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
             topic_fetch_url['state'] = FETCH_STATE_CONTENT_MATCH_FAILED
         else:
             try:
+                url = response.request().url() if response.request() is not None else topic_fetch_url['url']
                 story = mediawords.tm.stories.generate_story(
                     db=db,
                     content=content,
-                    url=response.request().url())
+                    url=url)
                 topic_fetch_url['state'] = FETCH_STATE_STORY_ADDED
                 topic_fetch_url['stories_id'] = story['stories_id']
             except mediawords.tm.stories.McTMStoriesDuplicateException:
