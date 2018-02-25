@@ -249,4 +249,10 @@ sub normalize_boolean_for_db($;$)
     }
 }
 
+# return true if the caller is 'Inline::Python', which indicates the function was called from python
+sub called_from_python()
+{
+    return ( ( caller( 1 ) )[ 0 ] eq 'Inline::Python' );
+}
+
 1;

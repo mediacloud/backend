@@ -937,6 +937,34 @@ END
     return 0;
 }
 
+# given a set of links, add a { source_story_url } field to each that has the url of the story pointed to by
+# $link->{ stories_id }.  we preload this data because it is much faster to do it one big query than lots of little
+# ones
+sub _add_source_story_urls_to_links($$)
+{
+    my ( $db, $links ) = @_;
+
+    my $stories_ids_lookup = {};
+    for my $link ( @{ $links } )
+    {
+        $link->{ source_story_url } = undef;
+        next unless ( $link->{ stories_id } );
+
+        push( @{ $stories_ids_lookup->{ int( $link->{ stories_id } ) } }, $link );
+    }
+
+    my $ids_table = $db->get_temporary_ids_table( [ map { int( $_ ) } keys( %{ $stories_ids_lookup } ) ] );
+
+    my $source_urls =
+      $db->query( "select stories_id, url from stories where stories_id in ( select id from $ids_table )" )->hashes();
+
+    for my $source_url ( @{ $source_urls } )
+    {
+        my $sourced_links = $stories_ids_lookup->{ $source_url->{ stories_id } } || [];
+        map { $_->{ source_story_url } = $source_url->{ url } } @{ $sourced_links };
+    }
+}
+
 # return true if the domain of the linked url is the same
 # as the domain of the linking story and either the domain is in
 # $_skip_self_linked_domain or the linked url is a /tag or /category page
@@ -953,9 +981,16 @@ sub _skip_self_linked_domain
     # only skip if the media source of the linking story is the same as the media source of the linked story.  we can't
     # know the media source of the linked story without adding it first, though, which we want to skip because it's time
     # expensive to do so.  so we just compare the url domain as a proxy for media source instead.
-    my $source_story = $db->find_by_id( 'stories', int( $link->{ stories_id } ) );
+    my $source_story_url = $link->{ source_story_url };
+    if ( !defined( $source_story_url ) )
+    {
+        my $source_story = $db->find_by_id( 'stories', int( $link->{ stories_id } ) );
+        $source_story_url = $source_story->{ url };
+    }
 
-    my $source_domain = MediaWords::Util::URL::get_url_distinctive_domain( $source_story->{ url } );
+    return unless ( $source_story_url );
+
+    my $source_domain = MediaWords::Util::URL::get_url_distinctive_domain( $source_story_url );
 
     if ( $source_domain eq $domain )
     {
@@ -1279,6 +1314,8 @@ select distinct cs.iteration, cl.* from topic_links cl, topic_stories cs
         cs.topics_id = \$2 and
         cl.topics_id = \$2
 END
+
+    _add_source_story_urls_to_links( $db, $new_links );
 
     $new_links = [ grep { !_skip_self_linked_domain( $db, $_ ) } @{ $new_links } ];
 

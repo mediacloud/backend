@@ -29,9 +29,9 @@ use MediaWords::Util::Web;
 
 Readonly my $BASE_PORT => 8890;
 
-Readonly my $NUM_SITES          => 20;
-Readonly my $NUM_PAGES_PER_SITE => 20;
-Readonly my $NUM_LINKS_PER_PAGE => 5;
+Readonly my $NUM_SITES          => 5;
+Readonly my $NUM_PAGES_PER_SITE => 10;
+Readonly my $NUM_LINKS_PER_PAGE => 2;
 
 Readonly my $TOPIC_PATTERN => 'FOOBARBAZ';
 
