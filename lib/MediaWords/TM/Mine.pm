@@ -944,6 +944,8 @@ sub _add_source_story_urls_to_links($$)
 {
     my ( $db, $links ) = @_;
 
+    INFO( "add source story url to links: " . scalar( @{ $links } ) );
+
     my $stories_ids_lookup = {};
     for my $link ( @{ $links } )
     {
@@ -1317,6 +1319,7 @@ END
 
     _add_source_story_urls_to_links( $db, $new_links );
 
+    INFO( "filter for self linked domains" );
     $new_links = [ grep { !_skip_self_linked_domain( $db, $_ ) } @{ $new_links } ];
 
     add_new_links( $db, $topic, $iteration, $new_links );
