@@ -112,8 +112,10 @@ sub schema_is_up_to_date($)
 
     sub columns($)
     {
-        my $self           = shift;
-        my $return_value   = $self->{ _python_result }->columns();
+        my $self         = shift;
+        my $return_value = $self->{ _python_result }->columns();
+        return $return_value if MediaWords::Util::Python::called_from_python();
+
         my $writable_value = python_deep_copy( $return_value );
         return wantarray ? @{ $writable_value } : $writable_value;
     }
@@ -122,6 +124,8 @@ sub schema_is_up_to_date($)
     {
         my $self         = shift;
         my $return_value = $self->{ _python_result }->rows();
+        return $return_value if MediaWords::Util::Python::called_from_python();
+
         return python_deep_copy( $return_value );
     }
 
@@ -129,6 +133,8 @@ sub schema_is_up_to_date($)
     {
         my $self         = shift;
         my $return_value = $self->{ _python_result }->array();
+        return $return_value if MediaWords::Util::Python::called_from_python();
+
         return python_deep_copy( $return_value );
     }
 
@@ -136,21 +142,27 @@ sub schema_is_up_to_date($)
     {
         my $self         = shift;
         my $return_value = $self->{ _python_result }->hash();
+        return $return_value if MediaWords::Util::Python::called_from_python();
+
         return python_deep_copy( $return_value );
     }
 
     sub flat($)
     {
-        my $self           = shift;
-        my $return_value   = $self->{ _python_result }->flat();
+        my $self         = shift;
+        my $return_value = $self->{ _python_result }->flat();
+        return $return_value if MediaWords::Util::Python::called_from_python();
+
         my $writable_value = python_deep_copy( $return_value );
         return wantarray ? @{ $writable_value } : $writable_value;
     }
 
     sub hashes($)
     {
-        my $self           = shift;
-        my $return_value   = $self->{ _python_result }->hashes();
+        my $self         = shift;
+        my $return_value = $self->{ _python_result }->hashes();
+        return $return_value if MediaWords::Util::Python::called_from_python();
+
         my $writable_value = python_deep_copy( $return_value );
         return wantarray ? @{ $writable_value } : $writable_value;
     }
@@ -170,6 +182,8 @@ sub schema_is_up_to_date($)
         }
 
         my $return_value = $self->{ _python_result }->text( $text_type );
+        return $return_value if MediaWords::Util::Python::called_from_python();
+
         return python_deep_copy( $return_value );
     }
 
@@ -211,6 +225,8 @@ sub primary_key_column($$)
     }
 
     my $return_value = $self->{ _db }->primary_key_column( $table );
+    return $return_value if MediaWords::Util::Python::called_from_python();
+
     return python_deep_copy( $return_value );
 }
 
@@ -230,6 +246,8 @@ sub find_by_id($$$)
     }
 
     my $return_value = $self->{ _db }->find_by_id( $table, $object_id );
+    return $return_value if MediaWords::Util::Python::called_from_python();
+
     return python_deep_copy( $return_value );
 }
 
@@ -249,6 +267,8 @@ sub require_by_id($$$)
     }
 
     my $return_value = $self->{ _db }->require_by_id( $table, $object_id );
+    return $return_value if MediaWords::Util::Python::called_from_python();
+
     return python_deep_copy( $return_value );
 }
 
@@ -325,6 +345,8 @@ sub insert($$$)
     }
 
     my $return_value = $self->{ _db }->insert( $table, $insert_hash );
+    return $return_value if MediaWords::Util::Python::called_from_python();
+
     return python_deep_copy( $return_value );
 }
 
@@ -344,6 +366,8 @@ sub create($$$)
     }
 
     my $return_value = $self->{ _db }->create( $table, $insert_hash );
+    return $return_value if MediaWords::Util::Python::called_from_python();
+
     return python_deep_copy( $return_value );
 }
 
@@ -363,6 +387,8 @@ sub find_or_create($$$)
     }
 
     my $return_value = $self->{ _db }->find_or_create( $table, $insert_hash );
+    return $return_value if MediaWords::Util::Python::called_from_python();
+
     return python_deep_copy( $return_value );
 }
 
@@ -401,6 +427,8 @@ sub get_temporary_ids_table($$;$)
     }
 
     my $return_value = $self->{ _db }->get_temporary_ids_table( $ids, $ordered );
+    return $return_value if MediaWords::Util::Python::called_from_python();
+
     return python_deep_copy( $return_value );
 }
 
@@ -443,6 +471,8 @@ sub quote($$)
     }
 
     my $return_value = $self->{ _db }->quote( $value );
+    return $return_value if MediaWords::Util::Python::called_from_python();
+
     return python_deep_copy( $return_value );
 }
 
@@ -461,6 +491,8 @@ sub quote_bool($$)
     }
 
     my $return_value = $self->{ _db }->quote_bool( $value );
+    return $return_value if MediaWords::Util::Python::called_from_python();
+
     return python_deep_copy( $return_value );
 }
 
@@ -479,6 +511,8 @@ sub quote_varchar($$)
     }
 
     my $return_value = $self->{ _db }->quote_varchar( $value );
+    return $return_value if MediaWords::Util::Python::called_from_python();
+
     return python_deep_copy( $return_value );
 }
 
@@ -497,6 +531,8 @@ sub quote_date($$)
     }
 
     my $return_value = $self->{ _db }->quote_date( $value );
+    return $return_value if MediaWords::Util::Python::called_from_python();
+
     return python_deep_copy( $return_value );
 }
 
@@ -515,6 +551,8 @@ sub quote_timestamp($$)
     }
 
     my $return_value = $self->{ _db }->quote_timestamp( $value );
+    return $return_value if MediaWords::Util::Python::called_from_python();
+
     return python_deep_copy( $return_value );
 }
 
@@ -630,6 +668,8 @@ sub copy_from($$)
     {
         my $self         = shift;
         my $return_value = $self->{ _python_result }->get_line();
+        return $return_value if MediaWords::Util::Python::called_from_python();
+
         return python_deep_copy( $return_value );
     }
 
@@ -685,6 +725,8 @@ sub attach_child_query($$$$$;$)
         $id_column,      #
         $single          #
     );
+    return $return_value if MediaWords::Util::Python::called_from_python();
+
     return python_deep_copy( $return_value );
 }
 

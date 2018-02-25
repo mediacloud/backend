@@ -172,9 +172,6 @@ def get_failed_urls(db: DatabaseHandler, topic: dict, urls: list) -> list:
             'd': urls
         }).hashes()
 
-    if r is None:
-        return []
-
     failed_urls = [u['url'] for u in r]
 
     return failed_urls
