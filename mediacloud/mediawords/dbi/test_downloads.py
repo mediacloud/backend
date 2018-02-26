@@ -153,11 +153,6 @@ class TestDownloads(unittest.TestCase):
         assert results['extracted_html'].strip() == 'foo'
         assert results['extracted_text'].strip() == 'foo'
 
-        results = mediawords.dbi.downloads.extract_content(
-            '<script>fbs_settings.content = { "body":"<p>foo</p>" }</script>')
-        assert results['extracted_html'].strip() == '<body id="readabilityBody"><p>foo</p></body>'
-        assert results['extracted_text'].strip() == 'foo.'
-
 
 class TestDownloadsDB(TestDatabaseWithSchemaTestCase):
     """Run tests that require database access."""

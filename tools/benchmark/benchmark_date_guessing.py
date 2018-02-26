@@ -22,6 +22,7 @@ def benchmark_date_guessing():
             date_guess = guess_date(url='http://dont.know.the.date/some/path.html',
                                     html=content)
             print(date_guess.date)
+            print(date_guess.guess_method)
 
 
 if __name__ == '__main__':

@@ -5,8 +5,27 @@ import time
 from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
 from mediawords.test.http.hash_server import HashServer
 from mediawords.util.web.user_agent.throttled import ThrottledUserAgent
-from mediawords.util.web.user_agent.throttled import McThrottledUserAgentTimeoutException
+from mediawords.util.web.user_agent.throttled import McThrottledDomainException
 import mediawords.util.web.user_agent.throttled
+
+
+def test_is_shortened_url() -> None:
+    """Test is_shortened_url."""
+    assert not mediawords.util.web.user_agent.throttled._is_shortened_url('http://google.com/')
+    assert not mediawords.util.web.user_agent.throttled._is_shortened_url('http://nytimes.com/2014/03/01/foo.html')
+    assert mediawords.util.web.user_agent.throttled._is_shortened_url('http://bit.ly/2eYIj4g')
+    assert mediawords.util.web.user_agent.throttled._is_shortened_url('https://t.co/mtaVvZ8mYF')
+    assert mediawords.util.web.user_agent.throttled._is_shortened_url('http://dlvr.it/NN7ZQS')
+    assert mediawords.util.web.user_agent.throttled._is_shortened_url('http://fb.me/8SXPGB68Z')
+    assert mediawords.util.web.user_agent.throttled._is_shortened_url('http://hill.cm/Dg9qAUD')
+    assert mediawords.util.web.user_agent.throttled._is_shortened_url('http://ift.tt/2fQKXoA')
+    assert mediawords.util.web.user_agent.throttled._is_shortened_url('https://goo.gl/fb/abZexj')
+    assert mediawords.util.web.user_agent.throttled._is_shortened_url('https://youtu.be/GFeRyRA7FPE')
+    assert mediawords.util.web.user_agent.throttled._is_shortened_url('http://wapo.st/2iBGdb9')
+    assert mediawords.util.web.user_agent.throttled._is_shortened_url('http://ln.is/DN0QN')
+    assert mediawords.util.web.user_agent.throttled._is_shortened_url('http://twitter.com/status/foo')
+    fb_url = 'http://feeds.feedburner.com/~ff/businessinsider?a=AAU_77_kuWM:T_8wA0qh0C4:gIN9vFwOqvQ'
+    assert mediawords.util.web.user_agent.throttled._is_shortened_url(fb_url)
 
 
 class TestThrottledUserAgent(TestDatabaseWithSchemaTestCase):
@@ -27,23 +46,32 @@ class TestThrottledUserAgent(TestDatabaseWithSchemaTestCase):
         assert response.decoded_content() == 'Hello!'
 
         # fail because we're in the timeout
-        self.assertRaises(McThrottledUserAgentTimeoutException, ua.get, test_url)
+        ua = ThrottledUserAgent(self.db(), domain_timeout=2)
+        self.assertRaises(McThrottledDomainException, ua.get, test_url)
 
         # succeed because it's a different domain
+        ua = ThrottledUserAgent(self.db(), domain_timeout=2)
         response = ua.get('http://127.0.0.1:8888/test')
         assert response.decoded_content() == 'Hello!'
 
         # still fail within the timeout
-        self.assertRaises(McThrottledUserAgentTimeoutException, ua.get, test_url)
+        ua = ThrottledUserAgent(self.db(), domain_timeout=2)
+        self.assertRaises(McThrottledDomainException, ua.get, test_url)
 
         time.sleep(2)
 
         # now we're outside the timeout, so it should work
+        ua = ThrottledUserAgent(self.db(), domain_timeout=2)
         response = ua.get(test_url)
         assert response.decoded_content() == 'Hello!'
 
-        # and then fail within the new timeout period
-        self.assertRaises(McThrottledUserAgentTimeoutException, ua.get, test_url)
+        # and follow up request on the same ua object should work
+        response = ua.get(test_url)
+        assert response.decoded_content() == 'Hello!'
+
+        # but then fail within the new timeout period with a new object
+        ua = ThrottledUserAgent(self.db(), domain_timeout=2)
+        self.assertRaises(McThrottledDomainException, ua.get, test_url)
 
         hs.stop()
 
@@ -57,6 +85,6 @@ class TestThrottledUserAgent(TestDatabaseWithSchemaTestCase):
         ua = ThrottledUserAgent(self.db())
         assert ua.domain_timeout == 200
 
-        config['mediawords']['throttled_user_agent_domain_timeout'] = 0
+        del config['mediawords']['throttled_user_agent_domain_timeout']
         ua = ThrottledUserAgent(self.db())
         assert ua.domain_timeout == mediawords.util.web.user_agent.throttled._DEFAULT_DOMAIN_TIMEOUT

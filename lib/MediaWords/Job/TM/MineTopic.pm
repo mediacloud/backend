@@ -33,6 +33,18 @@ use MediaWords::CommonLibs;
 use MediaWords::TM::Mine;
 use MediaWords::DB;
 
+# only run one job for each topic at a time
+sub get_run_lock_arg
+{
+    return 'topics_id';
+}
+
+# define this here so that MineTopicPublic operates on the same lock
+sub get_run_lock_type
+{
+    return 'MediaWords::Job::TM::MineTopic';
+}
+
 sub use_job_state
 {
     return 1;

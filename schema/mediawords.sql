@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4643;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4646;
 
 BEGIN
 
@@ -238,6 +238,35 @@ create index media_db_row_last_updated on media( db_row_last_updated );
 
 CREATE INDEX media_name_trgm on media USING gin (name gin_trgm_ops);
 CREATE INDEX media_url_trgm on media USING gin (url gin_trgm_ops);
+
+
+-- update media stats table for deleted story sentence
+CREATE FUNCTION update_media_db_row_last_updated() RETURNS trigger AS $$
+BEGIN
+    NEW.db_row_last_updated = now();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+create trigger update_media_db_row_last_updated before update or insert
+    on media for each row execute procedure update_media_db_row_last_updated();
+
+--- allow lookup of media by mediawords.util.url.normalized_url_lossy.
+-- the data in this table is accessed and kept up to date by mediawords.tm.media.lookup_medium_by_url
+create table media_normalized_urls (
+    media_normalized_urls_id        serial primary key,
+    media_id                        int not null references media,
+    normalized_url                  varchar(1024) not null,
+    db_row_last_updated             timestamp not null default now(),
+
+    -- assigned the value of mediawords.util.url.normalized_url_lossy_version()
+    normalize_url_lossy_version    int not null
+);
+
+create unique index media_normalized_urls_medium on media_normalized_urls(normalize_url_lossy_version, media_id);
+create index media_normalized_urls_url on media_normalized_urls(normalized_url);
+create index media_normalized_urls_db_row_last_updated on media_normalized_urls(db_row_last_updated);
+
 
 -- list of media sources for which the stories should be updated to be at
 -- at least db_row_last_updated
@@ -905,7 +934,10 @@ LANGUAGE plpgsql IMMUTABLE;
 
 -- "Master" table (no indexes, no foreign keys as they'll be ineffective)
 CREATE TABLE stories_tags_map (
-    stories_tags_map_id     BIGSERIAL   NOT NULL,
+
+    -- PRIMARY KEY on master table needed for database handler's primary_key_column() method to work
+    stories_tags_map_id     BIGSERIAL   PRIMARY KEY NOT NULL,
+
     stories_id              INT         NOT NULL,
     tags_id                 INT         NOT NULL,
     db_row_last_updated     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
@@ -983,11 +1015,11 @@ BEGIN
 
                     -- Foreign key to stories.stories_id
                     CONSTRAINT ' || REPLACE(target_table_name, '.', '_') || '_stories_id_fkey
-                        FOREIGN KEY (stories_id) REFERENCES stories (stories_id) MATCH FULL,
+                        FOREIGN KEY (stories_id) REFERENCES stories (stories_id) MATCH FULL ON DELETE CASCADE,
 
                     -- Foreign key to tags.tags_id
                     CONSTRAINT ' || REPLACE(target_table_name, '.', '_') || '_tags_id_fkey
-                        FOREIGN KEY (tags_id) REFERENCES tags (tags_id) MATCH FULL,
+                        FOREIGN KEY (tags_id) REFERENCES tags (tags_id) MATCH FULL ON DELETE CASCADE,
 
                     -- Unique duplets
                     CONSTRAINT ' || REPLACE(target_table_name, '.', '_') || '_stories_id_tags_id_unique
@@ -1028,7 +1060,7 @@ BEGIN
     EXECUTE '
         INSERT INTO ' || target_table_name || '
             SELECT $1.*
-        ON CONFLICT (stories_id, tags_id) DO NOTHING 
+        ON CONFLICT (stories_id, tags_id) DO NOTHING
         ' USING NEW;
     RETURN NULL;
 END;
@@ -1372,7 +1404,8 @@ create table topic_stories (
     iteration                       int default 0,
     link_weight                     real,
     redirect_url                    text,
-    valid_foreign_rss_story         boolean default false
+    valid_foreign_rss_story         boolean default false,
+    link_mine_error                 text
 );
 
 create unique index topic_stories_sc on topic_stories ( stories_id, topics_id );
@@ -1447,6 +1480,20 @@ create table topic_seed_urls (
 create index topic_seed_urls_topic on topic_seed_urls( topics_id );
 create index topic_seed_urls_url on topic_seed_urls( url );
 create index topic_seed_urls_story on topic_seed_urls ( stories_id );
+
+create table topic_fetch_urls(
+    topic_fetch_urls_id         bigserial primary key,
+    topics_id                   int not null references topics on delete cascade,
+    url                         text not null,
+    code                        int,
+    fetch_date                  timestamp,
+    state                       text not null,
+    message                     text,
+    stories_id                  int references stories on delete cascade,
+    assume_match                boolean not null default false
+);
+
+create index topic_fetch_urls_pending on topic_fetch_urls(topics_id) where state = 'pending';
 
 create table topic_ignore_redirects (
     topic_ignore_redirects_id     serial primary key,

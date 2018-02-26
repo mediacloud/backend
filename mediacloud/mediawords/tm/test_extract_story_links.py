@@ -26,6 +26,8 @@ def test_get_links_from_html() -> None:
 
     # ignore urls from ignore patternk
     test_links('<a href="http://www.addtoany.com/http://foo.bar">', [])
+    test_links('<a href="https://en.unionpedia.org/c/SOE_F_Section_timeline/vs/Special_Operations_Executive">', [])
+    test_links('<a href="http://digg.com/submit/this">', [])
 
     # sanity test to make sure that we are able to get all of the links from a real html page
     filename = mediawords.util.paths.mc_root_path() + '/mediacloud/test-data/html/strip.html'
@@ -189,3 +191,18 @@ class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseWithSche
         expected_topic_story = {'topics_id': topic['topics_id'], 'stories_id': story['stories_id'], 'link_mined': True}
 
         assert got_topic_story == expected_topic_story
+
+        # generate an error and make sure that it gets saved to topic_stories
+        del story['url']
+        mediawords.tm.extract_story_links.extract_links_for_topic_story(db, story, topic)
+
+        got_topic_story = db.query(
+            """
+            select topics_id, stories_id, link_mined, link_mine_error
+                from topic_stories
+                where topics_id =%(a)s and stories_id = %(b)s
+            """,
+            {'a': topic['topics_id'], 'b': story['stories_id']}).hash()
+
+        assert "KeyError: 'url'" in got_topic_story['link_mine_error']
+        assert got_topic_story['link_mined']

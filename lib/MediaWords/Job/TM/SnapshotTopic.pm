@@ -21,6 +21,12 @@ use MediaWords::TM::Snapshot;
 use MediaWords::DB;
 use MediaWords::Job::Word2vec::GenerateSnapshotModel;
 
+# only run one job for each topic at a time
+sub get_run_lock_arg
+{
+    return 'topics_id';
+}
+
 sub use_job_state
 {
     return 1;

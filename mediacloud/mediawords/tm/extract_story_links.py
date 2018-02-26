@@ -1,8 +1,10 @@
 """Various functions for extracting links from stories and for storing them in topics."""
 
-from bs4 import BeautifulSoup
 import re
+import traceback
 import typing
+
+from bs4 import BeautifulSoup
 
 from mediawords.db import DatabaseHandler
 import mediawords.dbi.downloads
@@ -12,13 +14,17 @@ from mediawords.util.log import create_logger
 log = create_logger(__name__)
 
 
+# ignore any list that match the below patterns.  the sites below are most social sharing button links of
+# various kinds, along with some content spam sitesand a couple of sites that confuse the spider with too
+# many domain alternatives.
 _IGNORE_LINK_PATTERN = (
-    '(www.addtoany.com)|(novostimira.com)|(ads\.pheedo)|(www.dailykos.com\/user)|'
-    '(livejournal.com\/(tag|profile))|(sfbayview.com\/tag)|(absoluteastronomy.com)|'
-    '(\/share.*http)|(digg.com\/submit)|(facebook.com.*mediacontentsharebutton)|'
-    '(feeds.wordpress.com\/.*\/go)|(sharetodiaspora.github.io\/)|(iconosquare.com)|'
-    '(unz.com)|(answers.com)|(downwithtyranny.com\/search)|(scoop\.?it)|(sco\.lt)|'
-    '(pronk.*\.wordpress\.com\/(tag|category))|(wn\.com)|(pinterest\.com\/pin\/create)|(feedblitz\.com)|(atomz.com)')
+    r'(www.addtoany.com)|(novostimira.com)|(ads\.pheedo)|(www.dailykos.com\/user)|'
+    r'(livejournal.com\/(tag|profile))|(sfbayview.com\/tag)|(absoluteastronomy.com)|'
+    r'(\/share.*http)|(digg.com\/submit)|(facebook.com.*mediacontentsharebutton)|'
+    r'(feeds.wordpress.com\/.*\/go)|(sharetodiaspora.github.io\/)|(iconosquare.com)|'
+    r'(unz.com)|(answers.com)|(downwithtyranny.com\/search)|(scoop\.?it)|(sco\.lt)|'
+    r'(pronk.*\.wordpress\.com\/(tag|category))|(wn\.com)|(pinterest\.com\/pin\/create)|(feedblitz\.com)|(atomz.com)|'
+    r'(unionpedia.org\/)')
 
 
 def get_links_from_html(html: str) -> typing.List[str]:
@@ -48,7 +54,7 @@ def get_links_from_html(html: str) -> typing.List[str]:
         if not mediawords.util.url.is_http_url(url):
             continue
 
-        url = re.sub(r'www[a-z0-9]+.nytimes', 'www.nytimes', url, flags=re.I)
+        url = re.sub(r'(https)?://www[a-z0-9]+.nytimes', r'\1://www.nytimes', url, flags=re.I)
 
         links.append(url)
 
@@ -90,7 +96,7 @@ def get_youtube_embed_links(db: DatabaseHandler, story: dict) -> typing.List[str
 
         url = url.strip()
 
-        url = re.sub('youtube-embed', 'youtube', url)
+        url = url.replace('youtube-embed', 'youtube')
 
         links.append(url)
 
@@ -152,15 +158,13 @@ def get_links_from_story(db: DatabaseHandler, story: dict) -> typing.List[str]:
         text_links = get_links_from_story_text(db, story)
         youtube_links = get_youtube_embed_links(db, story)
 
-        links = html_links + text_links + youtube_links
-
-        links = list(filter(lambda x: re.search(_IGNORE_LINK_PATTERN, x, flags=re.I) is None, links))
+        all_links = html_links + text_links + youtube_links
 
         link_lookup = {}
-        for url in links:
+        for url in filter(lambda x: re.search(_IGNORE_LINK_PATTERN, x, flags=re.I) is None, all_links):
             link_lookup[mediawords.util.url.normalize_url_lossy(url)] = url
 
-        links = link_lookup.values()
+        links = list(link_lookup.values())
 
         return links
     except mediawords.key_value_store.amazon_s3.McAmazonS3StoreException:
@@ -175,6 +179,9 @@ def extract_links_for_topic_story(db: DatabaseHandler, story: dict, topic: dict)
     After the story is processed, set topic_stories.spidered to true for that story.  Calls get_links_from_story
     on each story.
 
+    Almost all errors are caught by this function saved in topic_stories.link_mine_error.  In the case of an error
+    topic_stories.link_mined is also set to true.
+
     Arguments:
     db - db handle
     story - story dict from db
@@ -184,19 +191,26 @@ def extract_links_for_topic_story(db: DatabaseHandler, story: dict, topic: dict)
     None
 
     """
-    log.info("mining %s %s for topic %s .." % (story['title'], story['url'], topic['name']))
+    try:
+        log.info("mining %s %s for topic %s .." % (story['title'], story['url'], topic['name']))
+        links = get_links_from_story(db, story)
 
-    links = get_links_from_story(db, story)
+        for link in links:
+            topic_link = {
+                'topics_id': topic['topics_id'],
+                'stories_id': story['stories_id'],
+                'url': link
+            }
 
-    for link in links:
-        topic_link = {
-            'topics_id': topic['topics_id'],
-            'stories_id': story['stories_id'],
-            'url': link
-        }
+            db.create('topic_links', topic_link)
 
-        db.create('topic_links', topic_link)
+        link_mine_error = ''
+    except Exception:
+        link_mine_error = traceback.format_exc()
 
     db.query(
-        "update topic_stories set link_mined = 't' where stories_id = %(a)s and topics_id = %(b)s",
-        {'a': story['stories_id'], 'b': topic['topics_id']})
+        """
+        update topic_stories set link_mined = 't', link_mine_error = %(c)s
+            where stories_id = %(a)s and topics_id = %(b)s
+        """,
+        {'a': story['stories_id'], 'b': topic['topics_id'], 'c': link_mine_error})

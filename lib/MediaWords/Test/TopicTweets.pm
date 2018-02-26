@@ -463,11 +463,12 @@ SQL
 
     my ( $num_dead_tweets ) = $db->query( <<SQL, $topic->{ topics_id } )->flat;
 select count(*)
-    from topic_dead_links tdl
+    from topic_fetch_urls tfu
         join topic_tweet_full_urls ttfu on
-            ( ttfu.topics_id = tdl.topics_id and tdl.url = ttfu.url )
+            ( ttfu.topics_id = tfu.topics_id and tfu.url = ttfu.url )
     where
-        tdl.topics_id = \$1
+        tfu.topics_id = \$1 and
+        tfu.state = 'request failed'
 SQL
 
     my ( $num_null_story_seed_urls ) = $db->query( <<SQL, $topic->{ topics_id } )->flat;
@@ -562,7 +563,8 @@ sub run_tests_on_external_apis
     }
     else
     {
-        MediaWords::Test::Supervisor::test_with_supervisor( \&test_fetch_topic_tweets, [ 'job_broker:rabbitmq' ] );
+        MediaWords::Test::Supervisor::test_with_supervisor( \&test_fetch_topic_tweets,
+            [ 'job_broker:rabbitmq', 'fetch_link' ] );
     }
 
     done_testing();

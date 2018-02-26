@@ -20,15 +20,6 @@ MIN_OPEN_FILES_LIMIT=65536
 # Default web interface port
 RABBITMQ_WEB_INTERFACE_PORT=15673
 
-# Erlang version to use on Ubuntu < 16.04:
-#
-# Update install_mediacloud_system_package_dependencies.sh too!
-#
-# Newest Erlang version (18.3 at the time of writing) has memory handling issues, see:
-# https://groups.google.com/forum/#!topic/rabbitmq-users/7K0Ac5tWUIY
-#
-ERLANG_OLD_UBUNTU_APT_VERSION="1:17.5.3"
-
 
 log() {
     # to STDERR
@@ -146,6 +137,9 @@ export RABBITMQ_NODE_IP_ADDRESS=`$QUERY_CONFIG "//job_manager/rabbitmq/server/li
 export RABBITMQ_NODE_PORT=`$QUERY_CONFIG "//job_manager/rabbitmq/server/port"`
 export RABBITMQ_NODENAME=`$QUERY_CONFIG "//job_manager/rabbitmq/server/node_name"`
 
+# Increase I/O thread pool size to accommodate for a bigger number of connections
+export RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS="+A 512"
+
 # Not exported, will be (re)created later
 RABBITMQ_USERNAME=`$QUERY_CONFIG "//job_manager/rabbitmq/server/username"`
 RABBITMQ_PASSWORD=`$QUERY_CONFIG "//job_manager/rabbitmq/server/password"`
@@ -157,9 +151,27 @@ if [ ! -d "$RABBITMQ_BASE" ]; then
     exit 1
 fi
 
-export RABBITMQ_CONFIG_FILE="${RABBITMQ_BASE}/rabbitmq"   # sans ".config" extension
-if [ ! -f "${RABBITMQ_CONFIG_FILE}.config" ]; then
+export RABBITMQ_CONFIG_FILE="${RABBITMQ_BASE}/rabbitmq.conf"
+if [ ! -f "${RABBITMQ_CONFIG_FILE}" ]; then
     log "RabbitMQ configuration file '$RABBITMQ_CONFIG_FILE' does not exist."
+    exit 1
+fi
+
+export RABBITMQ_ADVANCED_CONFIG_FILE="${RABBITMQ_BASE}/advanced.config"
+if [ ! -f "${RABBITMQ_ADVANCED_CONFIG_FILE}" ]; then
+    log "RabbitMQ advanced configuration file '$RABBITMQ_ADVANCED_CONFIG_FILE' does not exist."
+    exit 1
+fi
+
+export RABBITMQ_SCHEMA_DIR="${RABBITMQ_BASE}/schema"
+if [ ! -d "$RABBITMQ_SCHEMA_DIR" ]; then
+    log "RabbitMQ schema directory '$RABBITMQ_SCHEMA_DIR' does not exist."
+    exit 1
+fi
+
+export RABBITMQ_GENERATED_CONFIG_DIR="${RABBITMQ_BASE}/generated_config"
+if [ ! -d "$RABBITMQ_GENERATED_CONFIG_DIR" ]; then
+    log "RabbitMQ generated configuration directory '$RABBITMQ_GENERATED_CONFIG_DIR' does not exist."
     exit 1
 fi
 

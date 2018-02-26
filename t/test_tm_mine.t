@@ -29,9 +29,9 @@ use MediaWords::Util::Web;
 
 Readonly my $BASE_PORT => 8890;
 
-Readonly my $NUM_SITES          => 20;
-Readonly my $NUM_PAGES_PER_SITE => 20;
-Readonly my $NUM_LINKS_PER_PAGE => 5;
+Readonly my $NUM_SITES          => 5;
+Readonly my $NUM_PAGES_PER_SITE => 10;
+Readonly my $NUM_LINKS_PER_PAGE => 2;
 
 Readonly my $TOPIC_PATTERN => 'FOOBARBAZ';
 
@@ -390,8 +390,17 @@ SQL
     is( scalar( keys( %{ $topic_pages_lookup } ) ),
         0, "missing topic story for topic pages: " . Dumper( values( %{ $topic_pages_lookup } ) ) );
 
-    my ( $dead_link_count ) = $db->query( "select count(*) from topic_dead_links" )->flat;
+    my ( $dead_link_count ) = $db->query( "select count(*) from topic_fetch_urls where state ='request failed'" )->flat;
     is( $dead_link_count, scalar( @{ $topic_pages } ), "dead link count" );
+
+    if ( $dead_link_count != scalar( @{ $topic_pages } ) )
+    {
+        my $fetch_states = $db->query( "select count(*), state from topic_fetch_urls group by state" )->hashes();
+        WARN( "fetch states: " . Dumper( $fetch_states ) );
+
+        my $fetch_errors = $db->query( "select * from topic_fetch_urls where state = 'python error'" )->hashes();
+        WARN( "fetch errors: " . Dumper( $fetch_errors ) );
+    }
 }
 
 sub test_topic_links
@@ -607,7 +616,8 @@ sub run_nonspider_tests($)
 sub main
 {
     MediaWords::Test::DB::test_on_test_database( \&run_nonspider_tests );
-    MediaWords::Test::Supervisor::test_with_supervisor( \&test_spider, [ 'job_broker:rabbitmq', 'extract_story_links' ] );
+    MediaWords::Test::Supervisor::test_with_supervisor( \&test_spider,
+        [ 'job_broker:rabbitmq', 'extract_story_links', 'fetch_link' ] );
 }
 
 main();

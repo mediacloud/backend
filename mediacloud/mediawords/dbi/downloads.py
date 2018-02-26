@@ -29,6 +29,11 @@ import typing
 
 from mediawords.db import DatabaseHandler
 from mediawords.key_value_store import KeyValueStore
+from mediawords.key_value_store.amazon_s3 import AmazonS3Store
+from mediawords.key_value_store.cached_amazon_s3 import CachedAmazonS3Store
+from mediawords.key_value_store.database_inline import DatabaseInlineStore
+from mediawords.key_value_store.multiple_stores import MultipleStoresStore
+from mediawords.key_value_store.postgresql import PostgreSQLStore
 import mediawords.util.extract_text
 import mediawords.util.html
 from mediawords.util.log import create_logger
@@ -38,8 +43,14 @@ log = create_logger(__name__)
 # PostgreSQL table name for storing raw downloads
 RAW_DOWNLOADS_POSTGRESQL_KVS_TABLE_NAME = 'raw_downloads'
 
-# Min. content length to extract (assuming that it has some HTML in it)
+# PostgreSQL table name for storing the s3 raw downloads cache
+S3_RAW_DOWNLOADS_CACHE_TABLE_NAME = 'cache.s3_raw_downloads_cache'
+
+# Mininmum content length to extract (assuming that it has some HTML in it)
 MIN_CONTENT_LENGTH_TO_EXTRACT = 4096
+
+# If the extracted text length is less than this, try finding content in javascript variable
+MIN_EXTRACTED_LENGTH_FOR_JS_EXTRACTION = 256
 
 # these are initialized by calling the various get_*_story() functions below
 _inline_store = None
@@ -72,7 +83,6 @@ def _get_inline_store() -> KeyValueStore:
     if _inline_store is not None:
         return _inline_store
 
-    from mediawords.key_value_store.database_inline import DatabaseInlineStore
     _inline_store = DatabaseInlineStore()
 
     return _inline_store
@@ -84,9 +94,6 @@ def _get_amazon_s3_store() -> KeyValueStore:
 
     if _amazon_s3_store:
         return _amazon_s3_store
-
-    from mediawords.key_value_store.amazon_s3 import AmazonS3Store
-    from mediawords.key_value_store.cached_amazon_s3 import CachedAmazonS3Store
 
     config = mediawords.util.config.get_config()
 
@@ -101,7 +108,7 @@ def _get_amazon_s3_store() -> KeyValueStore:
     }
 
     if config['mediawords'].get('cache_s3_downloads', False):
-        store_params['cache_table'] = 'cache.s3_raw_downloads_cache'
+        store_params['cache_table'] = S3_RAW_DOWNLOADS_CACHE_TABLE_NAME
         _amazon_s3_store = CachedAmazonS3Store(**store_params)
     else:
         _amazon_s3_store = AmazonS3Store(**store_params)
@@ -115,9 +122,6 @@ def _get_postgresql_store() -> KeyValueStore:
 
     if _postgresql_store is not None:
         return _postgresql_store
-
-    from mediawords.key_value_store.postgresql import PostgreSQLStore
-    from mediawords.key_value_store.multiple_stores import MultipleStoresStore
 
     config = mediawords.util.config.get_config()
 
@@ -137,8 +141,6 @@ def _get_store_for_writing() -> KeyValueStore:
     if _store_for_writing is not None:
         return _store_for_writing
 
-    from mediawords.key_value_store.multiple_stores import MultipleStoresStore
-    from mediawords.key_value_store.postgresql import PostgreSQLStore
     config = mediawords.util.config.get_config()
 
     # Early sanity check on configuration
@@ -156,7 +158,7 @@ def _get_store_for_writing() -> KeyValueStore:
             raise McDBIDownloadsException("databaseinline location is not valid for storage")
         elif location == 'postgresql':
             store = PostgreSQLStore(table=RAW_DOWNLOADS_POSTGRESQL_KVS_TABLE_NAME)
-        elif location in ('s3', 'amazon'):
+        elif location in ('s3', 'amazon', 'amazon_s3'):
             store = _get_amazon_s3_store()
         else:
             raise McDBIDownloadsException("store location '" + location + "' is not valid")
@@ -273,17 +275,26 @@ def _get_cached_extractor_results(db: DatabaseHandler, download: dict) -> typing
 
 def _set_cached_extractor_results(db, download, results) -> None:
     """Store results in extractor cache and manage size of cache."""
+
+    # This cache is used as a backhanded way of extracting stories asynchronously in the topic spider.  Intead of
+    # submitting extractor jobs and then directly checking whether a given story has been extracted, we just
+    # throw extraction jobs in chunks into the extractor job and cache the results.  Then if we re-extract
+    # the same story shortly after, this cache will hit and the cost will be trivial.
+
     max_cache_entries = 1000 * 1000
 
-    # occasionally delete too old entries in the cache
+    # We only need this cache to be a few thousand rows in size for the above to work, but it is cheap
+    # to have up to a million or so rows. So just randomly clear the cache every million requests or so and
+    # avoid expensively keeping track of the size of the postgres table.
     if random.random() * (max_cache_entries / 10) < 1:
         db.query(
             """
             delete from cached_extractor_results
                 where cached_extractor_results_id in (
                     select cached_extractor_results_id from cached_extractor_results
-                        order by cached_extractor_results_id desc offset max_cache_entries )
-            """)
+                        order by cached_extractor_results_id desc offset %(a)s )
+            """,
+            {'a': max_cache_entries})
 
     cache = {
         'extracted_html': results['extracted_html'],
@@ -321,29 +332,6 @@ def extract(db: DatabaseHandler, download: dict, use_cache: bool=False) -> dict:
     return results
 
 
-def _parse_out_javascript_content(content: str) -> str:
-    """Parse html content out of javascript.
-
-    Forbes is putting all of its content into a javascript variable, causing our extractor to fall down.
-    this function returns the html assigned to the javascript variable.
-
-    Returns:
-    the original content or the content parsed from the javascript
-
-    """
-    match = re.search(r'.*fbs_settings.content[^\}]*body\"\:\"([^"\\]*(\\.[^"\\]*)*)\".*', content, flags=re.M | re.S)
-    if match is None:
-        return content
-
-    content = match.group(1)
-
-    # kludge quoted javascript text into plain text
-    content = re.sub(r'\\[rn]', ' ', content)
-    content = re.sub(r'\/[\w+ [^\]]*\/', ' ', content)
-
-    return content
-
-
 def _call_extractor_on_html(content: str) -> dict:
     """Call extractor on the content."""
     extracted_html = mediawords.util.extract_text.extract_article_from_html(content)
@@ -353,7 +341,10 @@ def _call_extractor_on_html(content: str) -> dict:
 
 
 def extract_content(content: str) -> dict:
-    """Accept a content_ref pointing to an HTML string.  Run the extractor on the HTMl and return the extracted text.
+    """Extract text and html from the provided HTML content.
+
+    Extraction means pulling the substantive text out of a web page, eliminating the navigation, ads, and other
+    boilerplate content.
 
     Arguments:
     content - html from which to extract
@@ -368,13 +359,6 @@ def extract_content(content: str) -> dict:
         ret = {'extracted_html': content, 'extracted_text': content}
     else:
         ret = _call_extractor_on_html(content)
-
-        # if we didn't get much text, try looking for content stored in the javascript
-        if len(ret['extracted_text']) < 256:
-            js_content = _parse_out_javascript_content(content)
-            js_ret = _call_extractor_on_html(js_content)
-            if len(js_ret['extracted_text']) > len(ret['extracted_text']):
-                ret = js_ret
 
     return ret
 

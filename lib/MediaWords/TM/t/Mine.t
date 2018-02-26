@@ -1,7 +1,10 @@
 use strict;
 use warnings;
 
-use Test::More tests => 10;
+use Test::Deep;
+use Test::More tests => 21;
+
+use MediaWords::CommonLibs;
 
 use MediaWords::Test::DB;
 use MediaWords::TM::Mine;
@@ -100,12 +103,77 @@ sub test_die_if_max_stories_exceeded($)
     ok( $@, "$label adding 2001 stories to a 1000 max_stories generates an error" );
 }
 
+sub test_get_links_without_fetch_failures($)
+{
+    my ( $db ) = @_;
+
+    my $topic = MediaWords::Test::DB::create_test_topic( $db, 'fetch_failures' );
+
+    $db->create(
+        'topic_fetch_urls',
+        {
+            'topics_id' => $topic->{ topics_id },
+            'url'       => 'http://foo.com',
+            'state'     => 'request failed'
+        }
+    );
+
+    $db->create(
+        'topic_fetch_urls',
+        {
+            'topics_id' => $topic->{ topics_id },
+            'url'       => 'http://bar.re',
+            'state'     => 'request failed'
+        }
+    );
+
+    my $links = [
+        { 'url' => 'http://foo.com', 'redirect_url' => 'http://foo.re' },
+        { 'url' => 'http://bar.com', 'redirect_url' => 'http://bar.re' },
+        { 'url' => 'http://baz.com', 'redirect_url' => 'http://baz.re' },
+        { 'url' => 'http://bat.com', 'redirect_url' => 'http://bat.re' }
+    ];
+
+    my $got_links = MediaWords::TM::Mine::get_links_without_fetch_failures( $db, $topic, $links );
+    shift( @{ $links } );
+    shift( @{ $links } );
+    cmp_deeply( $got_links, $links, 'trimmed links' );
+}
+
+sub test_add_source_story_urls_to_links($)
+{
+    my ( $db ) = @_;
+
+    my $topic = MediaWords::Test::DB::create_test_topic( $db, 'source_urls' );
+    my $medium = MediaWords::Test::DB::create_test_medium( $db, 'source_urls' );
+    my $feed = MediaWords::Test::DB::create_test_feed( $db, 'source_urls', $medium );
+
+    my $num_stories = 10;
+    my $stories     = [];
+    for my $i ( 1 .. $num_stories )
+    {
+        push( @{ $stories }, MediaWords::Test::DB::create_test_story( $db, "source url $i", $feed ) );
+    }
+
+    # all we need in the $links argument are the stories_ids, so we can just pass the stories
+    MediaWords::TM::Mine::_add_source_story_urls_to_links( $db, $stories );
+
+    for my $story ( @{ $stories } )
+    {
+        # the source_story_url lookup just looks up the url for the stories_id in the link, so the
+        # $story->{ source_story_url } and $story->{ url } should be the same
+        is( $story->{ source_story_url }, $story->{ url }, "source url" );
+    }
+}
+
 sub test_mine($)
 {
     my ( $db ) = @_;
 
     test_postgres_regex_match( $db );
     test_die_if_max_stories_exceeded( $db );
+    test_get_links_without_fetch_failures( $db );
+    test_add_source_story_urls_to_links( $db );
 }
 
 sub main

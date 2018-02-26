@@ -6,6 +6,11 @@ import pytz
 
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
+# tag set and tag names for guess method
+GUESS_METHOD_TAG_SET = 'date_guess_method'
+INVALID_TAG_SET = 'date_invalid'
+INVALID_TAG = 'date_invalid'
+
 
 class GuessDateResult(object):
     __slots__ = [
