@@ -238,6 +238,7 @@ class UserAgent(object):
 
     def get(self, url: str) -> Response:
         """GET an URL."""
+        log.debug("mediawords.util.web.user_agent.get: %s" % url)
         url = decode_object_from_bytes_if_needed(url)
 
         if url is None:
@@ -288,6 +289,8 @@ class UserAgent(object):
                         archive_site_url=base_url,
                     )
                     if request_after_meta_redirect is not None:
+                        log.warning(
+                            "meta redirect from %s: %s" % (html_redirect_function, request_after_meta_redirect.url()))
                         if not urls_are_equal(url1=response_.request().url(), url2=request_after_meta_redirect.url()):
 
                             log.debug("URL after HTML redirects: %s" % request_after_meta_redirect.url())

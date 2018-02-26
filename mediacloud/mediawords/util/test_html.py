@@ -178,6 +178,10 @@ def test_meta_refresh_url_from_html():
         <meta http-equiv="refresh" content="0; url=/first/second/third/" />
     """) is None
 
+    # No url
+    no_url_results = meta_refresh_url_from_html('<meta http-equiv="refresh" content="2700"/>', base_url='htt://foo.com')
+    assert no_url_results is None
+
 
 def test_sententize_block_level_tags() -> None:
     """Test _new_lines_around_block_level_tags()."""

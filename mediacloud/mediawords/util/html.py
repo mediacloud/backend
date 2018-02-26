@@ -51,7 +51,7 @@ def meta_refresh_url_from_html(html: str, base_url: Optional[str] = None) -> Opt
             return None
 
         # content="url='http://foo.bar'"
-        inner_url = ''
+        inner_url = None
 
         match = re.search(r'content\s*?=\s*?"\d*?\s*?;?\s*?URL\s*?=\s*?\'(.+?)\'', inner_tag, re.I)
         if match:
@@ -66,6 +66,9 @@ def meta_refresh_url_from_html(html: str, base_url: Optional[str] = None) -> Opt
                 match = re.search(r'content\s*?=\s*?["\']\d*?\s*?;?\s*?URL\s*?=\s*?(.+?)["\']', inner_tag, re.I)
                 if match:
                     inner_url = match.group(1)
+
+        if inner_url is None:
+            return None
 
         if is_http_url(inner_url):
             return inner_url
