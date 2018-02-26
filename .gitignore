@@ -19,6 +19,9 @@ Session.vim
 # OS X
 .DS_Store
 
+# Inline::* bytecode (there might be multiple directories that start with this prefix)
+_Inline*
+
 # Devel::NYTProf output
 nytprof*
 
