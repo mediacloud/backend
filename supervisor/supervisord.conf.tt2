@@ -296,7 +296,6 @@ programs = rabbitmq
     default_autorestart='false'
     default_autostart='true'
     default_nice=10
-    default_numprocs=5
 %]
 
 [% INCLUDE program_config
@@ -307,7 +306,6 @@ programs = rabbitmq
     default_autorestart='false'
     default_autostart='true'
     default_nice=10
-    default_numprocs=5
 %]
 
 [%- solr_standalone_jvm_heap_size = supervisor_solr.standalone.jvm_heap_size || "256m" %]
