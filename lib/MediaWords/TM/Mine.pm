@@ -236,7 +236,11 @@ sub generate_topic_links
     my $stories_ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
 
     $db->query( <<SQL, $topic->{ topics_id } );
-update topic_stories set link_mined = 'f' where stories_id in ( select id from $stories_ids_table ) and topics_id = ?
+update topic_stories set link_mined = 'f'
+        where
+            stories_id in ( select id from $stories_ids_table ) and
+            topics_id = ? and
+            link_mined = 't'
 SQL
 
     my $queued_stories_ids = [];
