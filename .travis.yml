@@ -1,29 +1,25 @@
 sudo: required
 dist: trusty
-services:
-    - docker
-language: perl
-perl: "5.22"
+language: default
 env:
     global:
 
-        # Ansible configuration file
-        - ANSIBLE_CONFIG=ansible/ansible.cfg
-
-
         #
-        # Docker test image configuration
+        # LXD test image configuration
         # ---
         #
-        # Docker image to pull with pre-installed Media Cloud dependencies
-        - MC_TRAVIS_DOCKER_IMAGE=dockermediacloud/mediacloud-travis:20180125
+        # LXD image to pull with pre-installed Media Cloud dependencies
+        - MC_LXD_IMAGE=ubuntu:xenial
 
-        # Media Cloud root on Docker container
-        - MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT=/home/mediacloud/mediacloud/
+        # Container name
+        - MC_LXD_CONTAINER=mediacloud-travis
+
+        # Unprivileged user on container (which can sudo)
+        - MC_LXD_USER=ubuntu
 
         #
         # Media Cloud-specific environment variables
-        # (Please copy them to "docker exec" below after adding a new one)
+        # (Please copy them to "./script/run_test_suite.sh" command below after adding a new one)
         # ---
         #
         # Facebook Graph API credentials for testing:
@@ -58,15 +54,6 @@ env:
         # * MC_SUPERGLUE_TEST_URL
         - secure: "BzZcSjsuihkDowYPRz0F2HRiZ9LbEJkPXJpL8sRTBp1exbKAyfQ2+pXm3k2d34utp/gNiLlL+GFDmm7dr9wZ82DSqouBC8UJa3gaL/AeBrdXngaJbBeUqIWiDhsZFkf5F3V0J3r+7CxEAQVhU8hAPE7LB4VFjSYgXGZfoAMcdCw="
 
-        # Do not ask for confirmation when running ./script/mediawords_create_db.pl
-        - MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1
-
-        # Let tests know that they are running on Travis
-        - MC_SKIP_RABBIT_OPEN_FILES_LIMIT_CHECK=1
-
-        # Report test coverage after running tests
-        - MC_TEST_SUITE_REPORT_COVERAGE=1
-
     matrix:
 
         # Single Travis instance is too slow to run all Perl tests, so
@@ -78,103 +65,13 @@ env:
         - MC_TEST_CHUNK=4
 
 before_install:
-    # Install ansible-lint
-    - sudo pip install --upgrade ansible-lint
+    - source .travis-before_install.sh
 
 install:
-    # Lint Ansible playbooks
-    - ansible-lint ansible/setup.yml
-    - ansible-lint ansible/deploy.yml
-    - ansible-lint ansible/travis.yml
-    # Pull Docker image with pre-installed Media Cloud dependencies
-    - docker pull $MC_TRAVIS_DOCKER_IMAGE
-    # Create test container
-    - MC_TRAVIS_DOCKER_CONTAINER=`docker create -t $MC_TRAVIS_DOCKER_IMAGE`
-    # Start test container
-    - docker start $MC_TRAVIS_DOCKER_CONTAINER
-    # Copy repository to container
-    - docker cp . $MC_TRAVIS_DOCKER_CONTAINER:$MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT
-    # Chown the just copied repository on container
-    - >
-        docker exec -i -t
-        $MC_TRAVIS_DOCKER_CONTAINER
-        sudo chown -R mediacloud:mediacloud $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT
-    # Install (upgrade) Ansible on container
-    - >
-        docker exec -i -t
-        $MC_TRAVIS_DOCKER_CONTAINER
-        sudo pip install --upgrade ansible-lint
-    # Run Ansible script on container
-    - >
-        docker exec -i -t
-        -e ANSIBLE_CONFIG
-        $MC_TRAVIS_DOCKER_CONTAINER
-        bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT && ansible-playbook --inventory='localhost,' --connection=local --skip-tags='hostname' ansible/setup.yml"
-    # Start PostgreSQL service on container
-    - >
-        docker exec -i -t
-        $MC_TRAVIS_DOCKER_CONTAINER
-        sudo service postgresql start
-    # Create PostgreSQL databases on container
-    - >
-        docker exec -i -t
-        $MC_TRAVIS_DOCKER_CONTAINER
-        bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT && ./tools/db/create_default_db_user_and_databases.sh"
-    # Initialize PostgreSQL databases with schema on container
-    - >
-        docker exec -i -t
-        -e MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM
-        $MC_TRAVIS_DOCKER_CONTAINER
-        bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT && ./script/run_in_env.sh ./script/mediawords_create_db.pl"
+    - source .travis-install.sh
 
 script:
-    # Run test suite on container
-    - >
-        docker exec -i -t
-        -e MC_FACEBOOK_APP_ID
-        -e MC_FACEBOOK_APP_SECRET
-        -e MC_AMAZON_S3_TEST_ACCESS_KEY_ID
-        -e MC_AMAZON_S3_TEST_SECRET_ACCESS_KEY
-        -e MC_AMAZON_S3_TEST_BUCKET_NAME
-        -e MC_AMAZON_S3_TEST_DIRECTORY_NAME
-        -e MC_UNIVISION_TEST_URL
-        -e MC_UNIVISION_TEST_CLIENT_ID
-        -e MC_UNIVISION_TEST_CLIENT_SECRET
-        -e MC_SUPERGLUE_TEST_URL
-        -e MC_SKIP_RABBIT_OPEN_FILES_LIMIT_CHECK
-        -e MC_TEST_CHUNK
-        -e MC_TEST_SUITE_REPORT_COVERAGE
-        $MC_TRAVIS_DOCKER_CONTAINER
-        bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT && ./script/run_test_suite.sh"
+    - source .travis-script.sh
 
 after_success:
-    # Generate and submit test coverage report to Coveralls.io
-    - > # Install Coveralls Perl utilities to be able to report test coverage
-        docker exec -i -t
-        $MC_TRAVIS_DOCKER_CONTAINER
-        bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT && ./script/run_in_env.sh cpanm --notest Devel::Cover Devel::Cover::Report::Coveralls"
-    - > # Install Coveralls Python utilities to be able to report test coverage
-        docker exec -i -t
-        $MC_TRAVIS_DOCKER_CONTAINER
-        bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT && ./script/run_in_env.sh pip install --upgrade coveralls"
-    - > # Generate Coveralls-compatible JSON report for Python code (./coverage.json)
-        docker exec -i -t
-        -e TRAVIS
-        -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID"
-        -e TRAVIS_BRANCH="$TRAVIS_BRANCH"
-        $MC_TRAVIS_DOCKER_CONTAINER
-        bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT && ./script/run_in_env.sh coveralls --output=coverage.json"
-    - > # Generate Coveralls-compatible JSON report for Perl code (./cover_db/coveralls.json)
-        docker exec -i -t
-        -e TRAVIS
-        -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID"
-        -e TRAVIS_BRANCH="$TRAVIS_BRANCH"
-        $MC_TRAVIS_DOCKER_CONTAINER
-        bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT && ./script/run_in_env.sh cover -report CoverallsJSON"
-    - > # Merge Perl report (./cover_db/coveralls.json) into Python report (./coverage.json), submit everything to Coveralls.io
-        docker exec -i -t
-        -e TRAVIS
-        -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID"
-        -e TRAVIS_BRANCH="$TRAVIS_BRANCH"
-        $MC_TRAVIS_DOCKER_CONTAINER
-        bash -c "cd $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT && ./script/run_in_env.sh coveralls --merge=cover_db/coveralls.json"
+    - source .travis-after_success.sh
