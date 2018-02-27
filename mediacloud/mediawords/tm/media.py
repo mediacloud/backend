@@ -307,6 +307,10 @@ def guess_medium(db: DatabaseHandler, story_url: str) -> dict:
 
     medium = db.find_or_create('media', medium)
 
+    if medium is None:
+        raise McTopicMediaUniqueException(
+            "Unable to find or create medium for %s / %s" % (medium_name, medium_url))
+
     log.info("add medium: %s / %s / %d" % (medium_name, medium_url, medium['media_id']))
 
     spidered_tag = get_spidered_tag(db)
