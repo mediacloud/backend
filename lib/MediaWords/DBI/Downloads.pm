@@ -512,7 +512,7 @@ sub extract_content_ref($)
     # Don't run through expensive extractor if the content is short and has no html
     if ( ( length( $$content_ref ) < $MIN_CONTENT_LENGTH_TO_EXTRACT ) and ( $$content_ref !~ /\<.*\>/ ) )
     {
-        INFO( "Content length is less than $MIN_CONTENT_LENGTH_TO_EXTRACT and has no HTML so skipping extraction" );
+        TRACE( "Content length is less than $MIN_CONTENT_LENGTH_TO_EXTRACT and has no HTML so skipping extraction" );
         $ret = {
             extracted_html => $$content_ref,
             extracted_text => $$content_ref,
@@ -547,7 +547,7 @@ sub extract_and_create_download_text($$$)
 
     my $downloads_id = $download->{ downloads_id };
 
-    DEBUG "Extracting download $downloads_id...";
+    TRACE "Extracting download $downloads_id...";
 
     my $extract = extract( $db, $download, $extractor_args );
     my $download_text = MediaWords::DBI::DownloadTexts::create( $db, $download, $extract );
@@ -570,7 +570,7 @@ sub process_download_for_extractor($$;$)
 
     my $stories_id = $download->{ stories_id };
 
-    INFO "extract: $download->{ downloads_id } $stories_id $download->{ url }";
+    TRACE "extract: $download->{ downloads_id } $stories_id $download->{ url }";
     my $download_text = MediaWords::DBI::Downloads::extract_and_create_download_text( $db, $download, $extractor_args );
 
     my $has_remaining_download = $db->query( <<SQL, $stories_id )->hash;

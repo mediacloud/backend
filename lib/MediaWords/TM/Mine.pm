@@ -823,7 +823,7 @@ sub story_is_topic_story
         $topic->{ topics_id }
     )->flat;
 
-    INFO "existing topic story: $story->{ url }" if ( $is_old );
+    TRACE "existing topic story: $story->{ url }" if ( $is_old );
 
     return $is_old;
 }
@@ -1819,7 +1819,7 @@ sub add_to_topic_stories_if_match
 {
     my ( $db, $topic, $story, $link, $assume_match ) = @_;
 
-    INFO "add story if match: $story->{ url }";
+    TRACE "add story if match: $story->{ url }";
 
     set_topic_link_ref_story( $db, $story, $link ) if ( $link->{ topic_links_id } );
 
@@ -1827,7 +1827,7 @@ sub add_to_topic_stories_if_match
 
     if ( $assume_match || $link->{ assume_match } || story_matches_topic_pattern( $db, $topic, $story ) )
     {
-        INFO "topic match: " . ( $link->{ url } || '' );
+        TRACE "topic match: " . ( $link->{ url } || '' );
         $link->{ iteration } ||= 0;
         add_to_topic_stories( $db, $topic, $story, $link->{ iteration } + 1, 0 );
     }

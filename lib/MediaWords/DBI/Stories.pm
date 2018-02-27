@@ -499,13 +499,13 @@ sub process_extracted_story($$$)
     {
         if ( MediaWords::Util::Bitly::Schedule::story_processing_is_enabled() )
         {
-            DEBUG "Adding story $stories_id to Bit.ly processing queue...";
+            TRACE "Adding story $stories_id to Bit.ly processing queue...";
             MediaWords::Util::Bitly::Schedule::add_to_processing_schedule( $db, $stories_id );
         }
     }
     else
     {
-        DEBUG "Won't process story $stories_id with Bit.ly because it's set to be skipped";
+        TRACE "Won't process story $stories_id with Bit.ly because it's set to be skipped";
     }
 
     my $cliff     = MediaWords::Util::Annotator::CLIFF->new();
@@ -518,7 +518,7 @@ sub process_extracted_story($$$)
         # whether NYTLabels annotator is enabled, and if it is, will pass the
         # story further to NYTLabels. NYTLabels, in turn, will mark the story
         # as processed.
-        DEBUG "Adding story $stories_id to CLIFF annotation queue...";
+        TRACE "Adding story $stories_id to CLIFF annotation queue...";
         MediaWords::Job::CLIFF::FetchAnnotation->add_to_queue( { stories_id => $stories_id } );
     }
     else
@@ -531,7 +531,7 @@ sub process_extracted_story($$$)
 
             # If CLIFF annotator is disabled, pass the story to NYTLabels
             # annotator which, if run, will mark the story as processed
-            DEBUG "Adding story $stories_id to NYTLabels annotation queue...";
+            TRACE "Adding story $stories_id to NYTLabels annotation queue...";
             MediaWords::Job::NYTLabels::FetchAnnotation->add_to_queue( { stories_id => $stories_id } );
 
         }
