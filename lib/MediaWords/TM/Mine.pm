@@ -932,7 +932,7 @@ END
 
     if ( $num_self_linked_stories > $MAX_SELF_LINKED_STORIES )
     {
-        INFO "skip self linked story: $story->{ url } [$num_self_linked_stories]";
+        TRACE "skip self linked story: $story->{ url } [$num_self_linked_stories]";
 
         my $medium_domain = MediaWords::Util::URL::get_url_distinctive_domain( $link->{ url } );
         $_skip_self_linked_domain->{ $medium_domain } = 1;
@@ -1002,7 +1002,7 @@ sub _skip_self_linked_domain
 
     if ( $source_domain eq $domain )
     {
-        INFO "skip self linked domain: $domain";
+        TRACE "skip self linked domain: $domain";
         return 1;
     }
 
@@ -1495,13 +1495,13 @@ sub merge_dup_story
 {
     my ( $db, $topic, $delete_story, $keep_story ) = @_;
 
-    INFO( <<END );
+    TRACE( <<END );
 dup $keep_story->{ title } [ $keep_story->{ stories_id } ] <- $delete_story->{ title } [ $delete_story->{ stories_id } ]
 END
 
     if ( $delete_story->{ stories_id } == $keep_story->{ stories_id } )
     {
-        INFO( "refusing to merge identical story" );
+        TRACE( "refusing to merge identical story" );
         return;
     }
 
@@ -1878,8 +1878,8 @@ END
 
     my $keep_story = shift( @{ $stories } );
 
-    INFO "duplicates: $keep_story->{ title } [$keep_story->{ url } $keep_story->{ stories_id }]";
-    map { INFO "\t$_->{ title } [$_->{ url } $_->{ stories_id }]"; } @{ $stories };
+    TRACE "duplicates: $keep_story->{ title } [$keep_story->{ url } $keep_story->{ stories_id }]";
+    map { TRACE "\t$_->{ title } [$_->{ url } $_->{ stories_id }]"; } @{ $stories };
 
     map { merge_dup_story( $db, $topic, $_, $keep_story ) } @{ $stories };
 }
