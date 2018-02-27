@@ -82,8 +82,6 @@ before_install:
     - sudo pip install --upgrade ansible-lint
 
 install:
-    # Print memory usage
-    - free -m
     # Lint Ansible playbooks
     - ansible-lint ansible/setup.yml
     - ansible-lint ansible/deploy.yml
@@ -101,11 +99,6 @@ install:
         docker exec -i -t
         $MC_TRAVIS_DOCKER_CONTAINER
         sudo chown -R mediacloud:mediacloud $MC_TRAVIS_DOCKER_MEDIACLOUD_ROOT
-    # Print memory usage
-    - >
-        docker exec -i -t
-        $MC_TRAVIS_DOCKER_CONTAINER
-        free -m
     # Install (upgrade) Ansible on container
     - >
         docker exec -i -t
