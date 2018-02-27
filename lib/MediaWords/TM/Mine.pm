@@ -398,6 +398,8 @@ sub extract_download($$$)
     {
         WARN "extract error processing download $download->{ downloads_id }: $error";
     }
+
+    return 1;
 }
 
 # recursively search for the medium pointed to by dup_media_id
@@ -1049,7 +1051,7 @@ sub add_links_with_matching_stories
         }
     }
 
-    INFO( "get links with matching stories: extract storis" );
+    INFO( "get links with matching stories: extract stories" );
     extract_stories( $db, $extract_stories );
 
     INFO( "get links with matching stories: add_to_topic_stories_if_match" );
@@ -1243,11 +1245,17 @@ sub extract_stories
 
     INFO "extract stories: " . scalar( @{ $stories } );
 
+    my $local_extracts = 0;
     for my $story ( @{ $stories } )
     {
         TRACE "extract story: " . $story->{ url };
-        extract_download( $db, $story->{ download }, $story );
+        if ( extract_download( $db, $story->{ download }, $story ) )
+        {
+            $local_extracts += 1;
+        }
     }
+
+    INFO "local extracts: " . $local_extracts;
 }
 
 # download any unmatched link in new_links, add it as a story, extract it, add any links to the topic_links list.
@@ -1862,7 +1870,7 @@ sub merge_dup_stories
 {
     my ( $db, $topic, $stories ) = @_;
 
-    INFO( "merge dup stories" );
+    TRACE( "merge dup stories" );
 
     my $stories_ids_list = join( ',', map { $_->{ stories_id } } @{ $stories } );
 
@@ -1910,16 +1918,22 @@ sub find_and_merge_dup_stories
     INFO( "find and merge dup stories" );
 
     for my $get_dup_stories (
-        \&MediaWords::DBI::Stories::get_medium_dup_stories_by_url,
-        \&MediaWords::DBI::Stories::get_medium_dup_stories_by_title
+        [ 'url',   \&MediaWords::DBI::Stories::get_medium_dup_stories_by_url ],
+        [ 'title', \&MediaWords::DBI::Stories::get_medium_dup_stories_by_title ]
       )
     {
+        my $f_name = $get_dup_stories->[ 0 ];
+        my $f      = $get_dup_stories->[ 1 ];
+
         # regenerate story list each time to capture previously merged stories
         my $media_lookup = get_topic_stories_by_medium( $db, $topic );
 
+        my $num_media = scalar( keys( %{ $media_lookup } ) );
+        my $i         = 0;
         while ( my ( $media_id, $stories ) = each( %{ $media_lookup } ) )
         {
-            my $dup_stories = $get_dup_stories->( $db, $stories );
+            INFO( "merging dup stories: media [$i / $num_media]" ) if ( ( $i++ % 1000 ) == 0 );
+            my $dup_stories = $f->( $db, $stories );
             map { merge_dup_stories( $db, $topic, $_ ) } @{ $dup_stories };
         }
     }
