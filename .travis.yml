@@ -5,21 +5,9 @@ env:
     global:
 
         #
-        # LXD test image configuration
-        # ---
-        #
-        # LXD image to pull with pre-installed Media Cloud dependencies
-        - MC_LXD_IMAGE=ubuntu:xenial
-
-        # Container name
-        - MC_LXD_CONTAINER=mediacloud-travis
-
-        # Unprivileged user on container (which can sudo)
-        - MC_LXD_USER=ubuntu
-
-        #
         # Media Cloud-specific environment variables
-        # (Please copy them to "./script/run_test_suite.sh" command below after adding a new one)
+        #
+        # (Please copy them to "./script/run_test_suite.sh" command in ".travis-script.sh" after adding a new one)
         # ---
         #
         # Facebook Graph API credentials for testing:
