@@ -185,6 +185,13 @@ supervisor_solr:
             zookeeper_host: "localhost"
             zookeeper_port: 9983
 
+### SimilarWeb API
+similarweb:
+
+    ### API key, costs money, see at https://developer.similarweb.com/
+    api_key: ""
+
+
 ### Bit.ly API
 bitly:
 
