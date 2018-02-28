@@ -1754,14 +1754,26 @@ END
         add_new_links_chunk( $db, $topic, 1, $seed_urls_chunk );
 
         my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ topic_seed_urls_id } } @{ $seed_urls_chunk } ] );
+
+        # update topic_seed_urls that were actually fetched
         $db->query( <<SQL );
 update topic_seed_urls tsu
-    set stories_id = tfu.stories_id, processed = 't'
+    set stories_id = tfu.stories_id
     from topic_fetch_urls tfu, $ids_table ids
     where
         tsu.topics_id = tfu.topics_id and
         tsu.url = tfu.url and
         tsu.topic_seed_urls_id = ids.id
+SQL
+
+        # now update the topic_seed_urls that were matched
+        $db->query( <<SQL );
+update topic_seed_urls tsu
+    set processed = 't'
+    from $ids_table ids
+    where
+        tsu.topic_seed_urls_id = ids.id and
+        processed = 'f'
 SQL
 
         my $elapsed_time = time - $start_time;
