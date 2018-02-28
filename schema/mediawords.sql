@@ -3397,7 +3397,6 @@ CREATE TABLE similarweb_metrics (
     UNIQUE (domain, month)
 );
 
-
 --
 -- Unnormalized table
 --
@@ -3408,4 +3407,4 @@ CREATE TABLE similarweb_media_metrics (
     domain_exact_match             BOOLEAN                  NOT NULL,
     monthly_audience               INTEGER                  NOT NULL,
     update_date                    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-)
+);
