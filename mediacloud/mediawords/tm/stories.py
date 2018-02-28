@@ -206,6 +206,9 @@ def get_story_match(db: DatabaseHandler, url: str, redirect_url: typing.Optional
 
     urls = list(set((u, ru, nu, nru)))
 
+    # for some reason some rare urls trigger a seq scan on the below query
+    db.query("set enable_seqscan=off")
+
     # look for matching stories, ignore those in foreign_rss_links media
     stories = db.query(
         """
@@ -226,6 +229,8 @@ select distinct(s.*) from stories s
         m.foreign_rss_links = false
         """,
         {'a': urls}).hashes()
+
+    db.query("set enable_seqscan=on")
 
     if len(stories) == 0:
         return None
