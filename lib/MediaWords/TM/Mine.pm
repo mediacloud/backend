@@ -83,6 +83,9 @@ Readonly my $MAX_NULL_BITLY_STORIES => 0.02;
 # add new links in chunks of this size
 Readonly my $ADD_NEW_LINKS_CHUNK_SIZE => 1000;
 
+# extract story links in chunks of this size
+Readonly my $EXTRACT_STORY_LINKS_CHUNK_SIZE => 10_000;
+
 # die if the error rate for link fetch or link extract jobs is greater than this
 Readonly my $MAX_JOB_ERROR_RATE => 0.01;
 
@@ -1466,17 +1469,30 @@ sub mine_topic_stories
         return;
     }
 
-    my $stories = $db->query( <<SQL, $topic->{ topics_id } )->hashes;
-select distinct s.*, cs.link_mined, cs.redirect_url
-    from snap.live_stories s
-        join topic_stories cs on ( s.stories_id = cs.stories_id and s.topics_id = cs.topics_id )
-    where
-        cs.link_mined = false and
-        cs.topics_id = ?
-    order by s.publish_date
+    # chunk the story extractions so that one big topic does not take over the entire queue
+    my $i = 0;
+    while ( 1 )
+    {
+        $i += $EXTRACT_STORY_LINKS_CHUNK_SIZE;
+        INFO( "mine topic stories: chunked $i ..." );
+        my $stories = $db->query( <<SQL, $topic->{ topics_id }, $EXTRACT_STORY_LINKS_CHUNK_SIZE )->hashes;
+    select distinct s.*, cs.link_mined, cs.redirect_url
+        from snap.live_stories s
+            join topic_stories cs on ( s.stories_id = cs.stories_id and s.topics_id = cs.topics_id )
+        where
+            cs.link_mined = false and
+            cs.topics_id = ?
+        limit ?
 SQL
 
-    generate_topic_links( $db, $topic, $stories );
+        my $num_stories = scalar( @{ $stories } );
+
+        last if ( $num_stories == 0 );
+
+        generate_topic_links( $db, $topic, $stories );
+
+        last if ( $num_stories < $EXTRACT_STORY_LINKS_CHUNK_SIZE );
+    }
 }
 
 # get the smaller iteration of the two stories
