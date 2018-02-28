@@ -34,6 +34,7 @@ FETCH_STATE_STORY_MATCH = 'story match'
 FETCH_STATE_STORY_ADDED = 'story added'
 FETCH_STATE_PYTHON_ERROR = 'python error'
 FETCH_STATE_REQUEUED = 'requeued'
+FETCH_STATE_KILLED = 'killed'
 
 
 class McTMFetchLinkException(Exception):

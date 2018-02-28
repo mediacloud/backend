@@ -5,6 +5,8 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 use MediaWords::Util::Config;
 
+use MediaWords::DB::Locks;
+
 {
 
     package MediaWords::AbstractJob::Configuration;

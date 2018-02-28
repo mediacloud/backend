@@ -1,6 +1,7 @@
 """Creating and finding media within topics."""
 
 import re
+import time
 import typing
 
 from mediawords.db import DatabaseHandler
@@ -19,6 +20,9 @@ URL_SPIDERED_SUFFIX = '#spider'
 # names for spidered tag and tag set
 SPIDERED_TAG_TAG = 'spidered'
 SPIDERED_TAG_SET = 'spidered'
+
+# retry query for new unique name to avoid race condition
+_GUESS_MEDIUM_RETRIES = 5
 
 
 class McTopicMediaException(Exception):
@@ -305,7 +309,18 @@ def guess_medium(db: DatabaseHandler, story_url: str) -> dict:
         'moderated': 't'
     }
 
-    medium = db.find_or_create('media', medium)
+    # a race condition with another thread can cause this to fail sometimes, but after the medium in the
+    # other process has been created, all should be fine
+    for i in range(_GUESS_MEDIUM_RETRIES):
+        medium = db.find_or_create('media', medium)
+        if medium is not None:
+            break
+        else:
+            time.sleep(1)
+
+    if medium is None:
+        raise McTopicMediaUniqueException(
+            "Unable to find or create medium for %s / %s" % (medium_name, medium_url))
 
     log.info("add medium: %s / %s / %d" % (medium_name, medium_url, medium['media_id']))
 

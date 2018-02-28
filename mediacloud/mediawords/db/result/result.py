@@ -2,6 +2,8 @@ import datetime
 import itertools
 import pprint
 import re
+import textwrap
+import time
 from typing import Dict, List, Any
 
 import psycopg2
@@ -70,7 +72,15 @@ class DatabaseResult(object):
 
             log.debug("Running query: %s" % str(query_args))
 
+            t = time.time()
+
             cursor.execute(*query_args)
+
+            query_time = time.time() - t
+            if (query_time >= 1):
+                query_text = textwrap.shorten(str(query_args[0]), width=80)
+                query_params = textwrap.shorten(str(query_args[1:]), width=80)
+                log.info("Slow query (%d seconds): %s, %s" % (query_time, query_text, query_params))
 
         except psycopg2.Warning as ex:
             if print_warnings:

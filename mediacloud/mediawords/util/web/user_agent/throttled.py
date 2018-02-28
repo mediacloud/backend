@@ -29,7 +29,7 @@ def _is_shortened_url(url: str) -> bool:
     """Return true if the url looks like a shortened url."""
     regex = (
         r'https?://(?:bit\.ly|t\.co|fb\.me|goo\.gl|youtu\.be|ln\.is|'
-        r'wapo\.st|politi\.co|[^/]*twitter\.com|[^/]*feedburner\.com)/'
+        r'wapo\.st|politi\.co|[^/]*twitter\.com|[^/]*feedburner\.com)/|archive.is/'
     )
     if re.match(regex, url, flags=re.I) is not None:
         # anything with the domain of the one of the major shorteners gets a true
