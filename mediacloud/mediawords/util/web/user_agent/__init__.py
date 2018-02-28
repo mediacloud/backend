@@ -35,6 +35,16 @@ from mediawords.util.web.user_agent.response.response import Response
 
 log = create_logger(__name__)
 
+# On which HTTP codes should requests be retried (if retrying is enabled)
+DETERMINED_HTTP_CODES = {
+    HTTPStatus.REQUEST_TIMEOUT.value,
+    HTTPStatus.INTERNAL_SERVER_ERROR.value,
+    HTTPStatus.BAD_GATEWAY.value,
+    HTTPStatus.SERVICE_UNAVAILABLE.value,
+    HTTPStatus.GATEWAY_TIMEOUT.value,
+    HTTPStatus.TOO_MANY_REQUESTS.value,
+}
+
 
 class McUserAgentException(Exception):
     """UserAgent exception."""
@@ -125,16 +135,6 @@ class UserAgent(object):
     __DEFAULT_MAX_SIZE = 10 * 1024 * 1024  # Superglue (TV) feeds could grow big
     __DEFAULT_MAX_REDIRECT = 15
     __DEFAULT_TIMEOUT = 20
-
-    # On which HTTP codes should requests be retried (if retrying is enabled)
-    __DETERMINED_HTTP_CODES = {
-        HTTPStatus.REQUEST_TIMEOUT.value,
-        HTTPStatus.INTERNAL_SERVER_ERROR.value,
-        HTTPStatus.BAD_GATEWAY.value,
-        HTTPStatus.SERVICE_UNAVAILABLE.value,
-        HTTPStatus.GATEWAY_TIMEOUT.value,
-        HTTPStatus.TOO_MANY_REQUESTS.value,
-    }
 
     __slots__ = [
 
@@ -1003,7 +1003,7 @@ class UserAgent(object):
             max_retries = Retry(
                 total=len(timing),
                 backoff_factor=backoff_factor,
-                status_forcelist=self.__DETERMINED_HTTP_CODES,
+                status_forcelist=DETERMINED_HTTP_CODES,
             )
 
         http_prefixes = ['http://', 'https://']

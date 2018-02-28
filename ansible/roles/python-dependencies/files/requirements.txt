@@ -1,6 +1,9 @@
 # Deployments
 ansible==2.4.1.0
 
+# retry http requests
+backoff==1.4.3
+
 # Amazon S3
 boto3==1.4.7
 
@@ -75,6 +78,9 @@ pyyaml==3.12
 
 # Extracting text from stories
 readability-lxml==0.6.2
+
+# Mocking HTTP requests
+responses==0.8.1
 
 # Making HTTP requests
 requests==2.18.4
