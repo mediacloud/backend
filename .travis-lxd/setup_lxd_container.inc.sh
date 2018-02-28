@@ -1,53 +1,28 @@
-#!/bin/bash
 #
-# Set up LXD base container
+# Set up LXD container
 #
 
 set -u
 set -e
 
-PWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$PWD/config.inc.sh"
-
-echo "Updating package list..."
-sudo apt-get -y update
-
-echo "Removing old LXD..."
-sudo apt-get -y remove lxd
-sudo apt-get -y autoremove
-
-echo "Installing Snap..."
-sudo apt-get -y install snapd
-echo "PATH=/snap/bin:$PATH" | sudo tee -a /etc/environment
-export PATH=/snap/bin:$PATH
-
-echo "Installing LXD from Snap (APT's version is too old)..."
-sudo snap install lxd
-
-echo "Waiting for LXD to start..."
-sudo snap start lxd
-sudo lxd waitready
-
-echo "Removing linuxcontainers.org repo..."
-sudo lxc remote remove images || echo "Not here?"
-
-if [ ! -f /var/lib/lxd/lxd.db ]; then
-    echo "Initializing LXD..."
-    sudo lxd init --auto --storage-backend=dir
+if [ -z "$MC_LXD_IMAGE" ]; then
+    echo "Please load the configuration first:"
+    echo
+    echo "    source ./.travis-lxd/config.inc.sh"
+    echo
+    echo "and set MC_LXD_IMAGE to the image that you want to set up, e.g.:"
+    echo
+    echo "    MC_LXD_IMAGE=$MC_LXD_IMAGE_UBUNTU_BASE"
+    echo
+    exit 1
 fi
 
-LXD_BRIDGE_INTERFACE=testbr0
-if [[ $(sudo lxc network list | grep $LXD_BRIDGE_INTERFACE | wc -l) -eq 0 ]]; then
-    echo "Setting up LXD networking..."
-    sudo lxc network create $LXD_BRIDGE_INTERFACE
-    sudo lxc network attach-profile $LXD_BRIDGE_INTERFACE default eth0
-fi
-
-LXD_PROFILE=travis
-if [[ $(sudo lxc profile list | grep $LXD_PROFILE | wc -l) -eq 0 ]]; then
-    echo "Creating LXD profile..."
-    sudo lxc profile copy default $LXD_PROFILE
-    sudo lxc profile set $LXD_PROFILE security.privileged true
+if [ -z "$LXD_PROFILE" ]; then
+    echo "Please run LXD setup first:"
+    echo
+    echo "    source ./.travis-lxd/setup_lxd.inc.sh"
+    echo
+    exit 1
 fi
 
 if [[ $(sudo lxc list | grep $MC_LXD_CONTAINER | wc -l) -ge 1 ]]; then
@@ -56,7 +31,7 @@ if [[ $(sudo lxc list | grep $MC_LXD_CONTAINER | wc -l) -ge 1 ]]; then
 fi
 
 echo "Launching container..."
-sudo lxc launch $MC_LXD_IMAGE $MC_LXD_CONTAINER --profile $LXD_PROFILE
+sudo lxc launch $MC_LXD_IMAGE $MC_LXD_CONTAINER --profile "$LXD_PROFILE"
 
 echo "Printing LXD image list..."
 sudo lxc image list

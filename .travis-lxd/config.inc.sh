@@ -2,8 +2,11 @@
 # Travis LXD container configuration
 #
 
-# LXD image to pull with pre-installed Media Cloud dependencies
-MC_LXD_IMAGE=ubuntu:xenial
+# URL of LXD image with pre-provisioned Media Cloud dependencies
+MC_LXD_IMAGE_PROVISIONED_URL=https://s3.amazonaws.com/mediacloud-travis-lxd-images/travis-lxd-images/mediacloud-travis-20180228.tar.gz
+
+# LXD image with base Ubuntu
+MC_LXD_IMAGE_UBUNTU_BASE=ubuntu:xenial
 
 # Container name
 MC_LXD_CONTAINER=mediacloud-travis

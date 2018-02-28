@@ -34,7 +34,7 @@
 #
 # 4) Copy and run the "aws s3 cp ..." command as instructed by the script.
 #
-# 5) Update MC_LXD_IMAGE_URL in .travis-lxd/config.inc.sh as instructed by the script.
+# 5) Update MC_LXD_IMAGE_PROVISIONED_URL in ./.travis-lxd/config.inc.sh as instructed by the script.
 #
 
 # ---
@@ -45,8 +45,14 @@ set -e
 PWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$PWD/config.inc.sh"
 
+source $PWD/config.inc.sh
+MC_LXD_IMAGE=MC_LXD_IMAGE_UBUNTU_BASE   # Set up LXD with Ubuntu's base image
+
+echo "Setting up LXD..."
+source $PWD/setup_lxd.inc.sh
+
 echo "Setting up LXD container..."
-source $PWD/setup_lxd_base.inc.sh
+source $PWD/setup_lxd_container.inc.sh
 
 echo "Copying Ansible configuration to container..."
 MC_LXD_USER_HOME=/home/$MC_LXD_USER/
@@ -87,7 +93,7 @@ echo "Now upload the newly created image to S3:"
 echo
 echo "    aws s3 cp --content-type application/gzip $MC_LXD_ALIAS.tar.gz s3://$S3_BUCKET_NAME/$S3_DIRECTORY_NAME/"
 echo
-echo "and update MC_LXD_IMAGE_URL in .travis-lxd/config.inc.sh:"
+echo "and update MC_LXD_IMAGE_PROVISIONED_URL in ./.travis-lxd/config.inc.sh:"
 echo
-echo "    MC_LXD_IMAGE_URL=https://s3.amazonaws.com/$S3_BUCKET_NAME/$S3_DIRECTORY_NAME/$MC_LXD_ALIAS.tar.gz"
+echo "    MC_LXD_IMAGE_PROVISIONED_URL=https://s3.amazonaws.com/$S3_BUCKET_NAME/$S3_DIRECTORY_NAME/$MC_LXD_ALIAS.tar.gz"
 echo

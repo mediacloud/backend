@@ -1,6 +1,10 @@
 sudo: required
 dist: trusty
 language: default
+cache:
+    directories:
+        - $HOME/.cache/pip/
+        - $HOME/.cache/mediacloud-travis-lxd/
 env:
     global:
 
