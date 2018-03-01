@@ -167,8 +167,7 @@ def get_failed_url(db: DatabaseHandler, topics_id: int, url: str) -> typing.Opti
             where
                 topics_id = %(a)s and
                 state in (%(b)s, %(c)s) and
-                url = any(%(d)s)
-            order by topic_fetch_urls_id
+                md5(url) = any(array(select md5(unnest(%(d)s))))
             limit 1
         """,
         {
