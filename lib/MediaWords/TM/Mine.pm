@@ -1302,7 +1302,7 @@ sub mine_topic_stories
         $i += $EXTRACT_STORY_LINKS_CHUNK_SIZE;
         INFO( "mine topic stories: chunked $i ..." );
         my $stories = $db->query( <<SQL, $topic->{ topics_id }, $EXTRACT_STORY_LINKS_CHUNK_SIZE )->hashes;
-    select distinct s.*, cs.link_mined, cs.redirect_url
+    select s.*, cs.link_mined, cs.redirect_url
         from snap.live_stories s
             join topic_stories cs on ( s.stories_id = cs.stories_id and s.topics_id = cs.topics_id )
         where

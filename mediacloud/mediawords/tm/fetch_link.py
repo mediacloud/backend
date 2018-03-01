@@ -143,6 +143,28 @@ def get_seeded_content(db: DatabaseHandler, topic_fetch_url: dict) -> typing.Opt
     return response
 
 
+def try_update_topic_link_ref_stories_id(db: DatabaseHandler, topic_fetch_url: dict) -> None:
+    """Update the given topic link to point to the given ref_stories_id.
+
+    Use the topic_fetch_url['topic_links_id'] as the id of the topic link to update and the
+    topic_fetch_url['stories_id'] as the ref_stories_id.
+
+    There is a unique constraint on topic_links(topics_id, stories_id, ref_stories_id).  This function just does the
+    update to topic_links and catches and ignores any errors from that constraint.  Trying and failing on the
+    constraint is faster and more reliable than checking before trying (and still maybe failing on the constraint).
+    """
+    try:
+        db.update_by_id(
+            'topic_links',
+            topic_fetch_url['topic_links_id'],
+            {'ref_stories_id': topic_fetch_url['stories_id']})
+    except mediawords.db.exceptions.handler.McUpdateByIDException as e:
+        # the query will throw a unique constraint error if stories_id,ref_stories already exists.  it's quicker
+        # to just catch and ignore the error than to try to avoid id
+        if 'unique constraint "topic_links_scr"' not in str(e):
+            raise e
+
+
 def get_failed_url(db: DatabaseHandler, topics_id: int, url: str) -> typing.Optional[dict]:
     """Return the links from the set without FETCH_STATE_REQUEST_FAILED or FETCH_STATE_CONTENT_MATCH_FAILED states.
 
@@ -292,10 +314,7 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
         _try_fetch_topic_url(db=db, topic_fetch_url=topic_fetch_url, domain_timeout=domain_timeout)
 
         if topic_fetch_url['topic_links_id'] and topic_fetch_url['stories_id']:
-            db.update_by_id(
-                'topic_links',
-                topic_fetch_url['topic_links_id'],
-                {'ref_stories_id': topic_fetch_url['stories_id']})
+            try_update_topic_link_ref_stories_id(db, topic_fetch_url)
 
     except McThrottledDomainException as e:
         raise e
