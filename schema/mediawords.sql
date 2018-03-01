@@ -1495,7 +1495,7 @@ create table topic_fetch_urls(
 );
 
 create index topic_fetch_urls_pending on topic_fetch_urls(topics_id) where state = 'pending';
-create index topic_fetch_urls_url on topic_fetch_urls(url);
+create index topic_fetch_urls_url on topic_fetch_urls(md5(url));
 
 create table topic_ignore_redirects (
     topic_ignore_redirects_id     serial primary key,
