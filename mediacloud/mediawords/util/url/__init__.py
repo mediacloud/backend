@@ -347,6 +347,11 @@ def normalize_url_lossy(url: str) -> Optional[str]:
 
     url = url.lower()
 
+    # make archive.is links look like the destination link
+    url = re.sub(r'^https://archive.is/[a-z0-9]/[a-z0-9]+/(.*)', r'\1', url, flags=re.I)
+    if not url.startswith('http'):
+        url = 'http://' + url
+
     # r2.ly redirects through the hostname, ala http://543.r2.ly
     if 'r2.ly' not in url:
         url = re.sub(
