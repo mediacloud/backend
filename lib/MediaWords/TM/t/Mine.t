@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::Deep;
-use Test::More tests => 21;
+use Test::More tests => 20;
 
 use MediaWords::CommonLibs;
 
@@ -103,43 +103,6 @@ sub test_die_if_max_stories_exceeded($)
     ok( $@, "$label adding 2001 stories to a 1000 max_stories generates an error" );
 }
 
-sub test_get_links_without_fetch_failures($)
-{
-    my ( $db ) = @_;
-
-    my $topic = MediaWords::Test::DB::create_test_topic( $db, 'fetch_failures' );
-
-    $db->create(
-        'topic_fetch_urls',
-        {
-            'topics_id' => $topic->{ topics_id },
-            'url'       => 'http://foo.com',
-            'state'     => 'request failed'
-        }
-    );
-
-    $db->create(
-        'topic_fetch_urls',
-        {
-            'topics_id' => $topic->{ topics_id },
-            'url'       => 'http://bar.re',
-            'state'     => 'request failed'
-        }
-    );
-
-    my $links = [
-        { 'url' => 'http://foo.com', 'redirect_url' => 'http://foo.re' },
-        { 'url' => 'http://bar.com', 'redirect_url' => 'http://bar.re' },
-        { 'url' => 'http://baz.com', 'redirect_url' => 'http://baz.re' },
-        { 'url' => 'http://bat.com', 'redirect_url' => 'http://bat.re' }
-    ];
-
-    my $got_links = MediaWords::TM::Mine::get_links_without_fetch_failures( $db, $topic, $links );
-    shift( @{ $links } );
-    shift( @{ $links } );
-    cmp_deeply( $got_links, $links, 'trimmed links' );
-}
-
 sub test_add_source_story_urls_to_links($)
 {
     my ( $db ) = @_;
@@ -172,7 +135,6 @@ sub test_mine($)
 
     test_postgres_regex_match( $db );
     test_die_if_max_stories_exceeded( $db );
-    test_get_links_without_fetch_failures( $db );
     test_add_source_story_urls_to_links( $db );
 }
 
