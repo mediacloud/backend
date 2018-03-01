@@ -26,6 +26,7 @@ def test_is_shortened_url() -> None:
     assert mediawords.util.web.user_agent.throttled._is_shortened_url('http://twitter.com/status/foo')
     fb_url = 'http://feeds.feedburner.com/~ff/businessinsider?a=AAU_77_kuWM:T_8wA0qh0C4:gIN9vFwOqvQ'
     assert mediawords.util.web.user_agent.throttled._is_shortened_url(fb_url)
+    assert mediawords.util.web.user_agent.throttled._is_shortened_url('https://archive.is/o/m1k2A/https://foo.com')
 
 
 class TestThrottledUserAgent(TestDatabaseWithSchemaTestCase):
