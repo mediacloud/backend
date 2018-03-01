@@ -11,7 +11,9 @@ class TestFetchLinJobkDB(mediawords.test.test_database.TestDatabaseWithSchemaTes
     def test_fetch_link_job(self) -> None:
         db = self.db()
 
-        hs = mediawords.test.http.hash_server.HashServer(port=0, pages={'/foo': '<title>foo</title>'})
+        hs = mediawords.test.http.hash_server.HashServer(port=0, pages={
+            '/foo': '<title>foo</title>',
+            '/throttle': '<title>throttle</title>'})
         hs.start()
 
         topic = mediawords.test.db.create_test_topic(db, 'foo')
@@ -43,7 +45,7 @@ class TestFetchLinJobkDB(mediawords.test.test_database.TestDatabaseWithSchemaTes
         # now make sure that the domain throttling sets
         tfu = db.create('topic_fetch_urls', {
             'topics_id': topic['topics_id'],
-            'url': hs.page_url('/foo'),
+            'url': hs.page_url('/throttle'),
             'state': mediawords.tm.fetch_link.FETCH_STATE_PENDING})
 
         mediawords.job.tm.fetch_link_job.FetchLinkJob.run_locally(tfu['topic_fetch_urls_id'], dummy_requeue=True)
