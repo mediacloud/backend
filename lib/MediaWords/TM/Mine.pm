@@ -95,6 +95,9 @@ Readonly my $JOB_POLL_TIMEOUT => 3600;
 # number of seconds to wait when polling for jobs to finish
 Readonly my $JOB_POLL_WAIT => 5;
 
+# if more than this many seed urls are imported, dedup stories before as well as after spidering
+Readonly my $MIN_SEED_IMPORT_FOR_PREDUP_STORIES => 50_000;
+
 # if mine_topic is run with the test_mode option, set this true and do not try to queue extractions
 my $_test_mode;
 
@@ -1618,7 +1621,7 @@ SQL
         $topic->{ topics_id }
     );
 
-    return 1;
+    return scalar( @{ $seed_urls } );
 }
 
 # look for any stories in the topic tagged with a date method of 'current_time' and
@@ -2130,7 +2133,7 @@ sub do_mine_topic ($$;$)
     # merge_foreign_rss_stories( $db, $topic );
 
     update_topic_state( $db, $topic, "importing seed urls" );
-    if ( import_seed_urls( $db, $topic ) )
+    if ( import_seed_urls( $db, $topic ) > $MIN_SEED_IMPORT_FOR_PREDUP_STORIES )
     {
         # merge dup stories before as well as after spidering to avoid extra spidering work
         update_topic_state( $db, $topic, "merging duplicate stories" );
