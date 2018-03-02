@@ -33,6 +33,11 @@ fi
 echo "Launching container..."
 sudo lxc launch $MC_LXD_IMAGE $MC_LXD_CONTAINER --profile "$LXD_PROFILE"
 
+# User list, network, ... doesn't get loaded right away after "lxc launch"
+# (FIXME maybe do some sort of polling here)
+echo "Waiting for everything to get launched..."
+sleep 10
+
 echo "Printing LXD image list..."
 sudo lxc image list
 
@@ -40,7 +45,6 @@ echo "Printing information about every LXD image..."
 sudo lxc image list --format csv | xargs -L1 echo | awk -F  "," '{ print $2 }' | xargs sudo lxc image info
 
 echo "Testing network..."
-sleep 5
 sudo lxc exec mediacloud-travis -- ping github.com -c 2
 
 export MC_LXD_USER_HOME=/home/$MC_LXD_USER/
