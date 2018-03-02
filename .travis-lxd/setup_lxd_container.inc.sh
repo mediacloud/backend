@@ -33,16 +33,33 @@ fi
 echo "Launching container..."
 sudo lxc launch $MC_LXD_IMAGE $MC_LXD_CONTAINER --profile "$LXD_PROFILE"
 
-# User list, network, ... doesn't get loaded right away after "lxc launch"
-# (FIXME maybe do some sort of polling here)
-echo "Waiting for everything to get launched..."
-sleep 10
+echo "Printing IP address of container (#1)..."
+sudo lxc exec $MC_LXD_CONTAINER -- ifconfig
+
+# https://github.com/lxc/lxd/issues/3700#issuecomment-323903679
+while :; do
+    sudo lxc exec $MC_LXD_CONTAINER -- getent passwd ubuntu && break
+    echo "Waiting for 'ubuntu' user to appear..."
+    sleep 1
+done
+
+echo "Printing IP address of container (#2)..."
+sudo lxc exec $MC_LXD_CONTAINER -- ifconfig
+
+while :; do
+    sudo lxc file pull $MC_LXD_CONTAINER/etc/resolv.conf - | grep -q nameserver && break
+    echo "Waiting for nameservers to appear in /etc/resolv.conf..."
+    sleep 1
+done
 
 echo "Printing LXD image list..."
 sudo lxc image list
 
 echo "Printing information about every LXD image..."
 sudo lxc image list --format csv | xargs -L1 echo | awk -F  "," '{ print $2 }' | xargs sudo lxc image info
+
+echo "Printing IP address of container (#3)..."
+sudo lxc exec $MC_LXD_CONTAINER -- ifconfig
 
 echo "Testing network..."
 sudo lxc exec mediacloud-travis -- ping github.com -c 2
