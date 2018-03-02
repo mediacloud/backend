@@ -4,7 +4,7 @@ set -u
 set -e
 
 echo "Running test suite on container..."
-sudo lxc exec $MC_LXD_CONTAINER -- sudo -H -u $MC_LXD_USER /bin/bash -c "\
+travis_wait sudo lxc exec $MC_LXD_CONTAINER -- sudo -H -u $MC_LXD_USER /bin/bash -c "\
 cd $MC_LXD_MEDIACLOUD_ROOT; \
     \
     export MC_FACEBOOK_APP_ID=$MC_FACEBOOK_APP_ID; \
