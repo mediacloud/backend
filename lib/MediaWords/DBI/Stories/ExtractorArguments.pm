@@ -33,6 +33,7 @@ sub new($;$)
     $self->{ _no_tag_extractor_version } = $args ? $args->{ no_tag_extractor_version } : 0;
     $self->{ _skip_bitly_processing }    = $args ? $args->{ skip_bitly_processing }    : 0;
     $self->{ _use_cache }                = $args ? $args->{ use_cache }                : undef;
+    $self->{ _use_existing }             = $args ? $args->{ use_existing }             : undef;
 
     return $self;
 }
@@ -65,6 +66,12 @@ sub use_cache($)
 {
     my $self = shift;
     return $self->{ _use_cache };
+}
+
+sub use_existing($)
+{
+    my $self = shift;
+    return $self->{ _use_existing };
 }
 
 1;

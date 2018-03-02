@@ -71,7 +71,7 @@
   become: true
   become_user: root
   tags:
-    - system-packages    
+    - system-packages
 
 - name: Install system packages
   apt:
@@ -95,6 +95,7 @@
     - libhunspell-dev
     - libmecab-dev
     - libgraphviz-dev
+    - libre2-dev
     - libtidy-dev
     - libxml2-dev
     - libxml2-dev

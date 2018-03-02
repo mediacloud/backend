@@ -394,6 +394,7 @@ sub extract_download($$$)
         {
             no_dedup_sentences => 0,
             use_cache          => 1,
+            use_existing       => 1,
         }
     );
 
@@ -1302,12 +1303,12 @@ sub mine_topic_stories
         $i += $EXTRACT_STORY_LINKS_CHUNK_SIZE;
         INFO( "mine topic stories: chunked $i ..." );
         my $stories = $db->query( <<SQL, $topic->{ topics_id }, $EXTRACT_STORY_LINKS_CHUNK_SIZE )->hashes;
-    select s.*, cs.link_mined, cs.redirect_url
+    select s.*, ts.link_mined, ts.redirect_url
         from snap.live_stories s
-            join topic_stories cs on ( s.stories_id = cs.stories_id and s.topics_id = cs.topics_id )
+            join topic_stories ts on ( s.stories_id = ts.stories_id and s.topics_id = ts.topics_id )
         where
-            cs.link_mined = false and
-            cs.topics_id = ?
+            ts.link_mined = false and
+            ts.topics_id = ?
         limit ?
 SQL
 
