@@ -1,7 +1,7 @@
 """This is the code backing the topic_fetch_link job, which fetches links and generates mc stories from them."""
 
 import datetime
-import re
+import re2 as re
 import socket
 import time
 import traceback
