@@ -550,7 +550,14 @@ sub extract_and_create_download_text($$$)
     TRACE "Extracting download $downloads_id...";
 
     my $extract = extract( $db, $download, $extractor_args );
-    my $download_text = MediaWords::DBI::DownloadTexts::create( $db, $download, $extract );
+    my $download_text;
+    if ( $extractor_args->use_existing() )
+    {
+        $download_text =
+          $db->query( "select * from download_texts where downloads_id = ?", $download->{ downloads_id } )->hash();
+    }
+
+    $download_text ||= MediaWords::DBI::DownloadTexts::create( $db, $download, $extract );
 
     return $download_text;
 }
