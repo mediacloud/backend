@@ -8,6 +8,7 @@ import traceback
 import typing
 
 from mediawords.db import DatabaseHandler
+import mediawords.tm.extract_story_links
 import mediawords.tm.stories
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
@@ -35,6 +36,7 @@ FETCH_STATE_STORY_ADDED = 'story added'
 FETCH_STATE_PYTHON_ERROR = 'python error'
 FETCH_STATE_REQUEUED = 'requeued'
 FETCH_STATE_KILLED = 'killed'
+FETCH_STATE_IGNORE = 'ignored'
 
 
 class McTMFetchLinkException(Exception):
@@ -207,9 +209,20 @@ def _try_fetch_topic_url(
         topic_fetch_url: dict,
         domain_timeout: typing.Optional[int]=None) -> None:
     """Implement the logic of fetch_topic_url without the try: or the topic_fetch_url update."""
+
+    log.warning("_try_fetch_topic_url: %s" % topic_fetch_url['url'])
+
     # don't reprocess already processed urls
     if topic_fetch_url['state'] not in (FETCH_STATE_PENDING, FETCH_STATE_REQUEUED):
         return
+
+    log.warning(mediawords.tm.extract_story_links.IGNORE_LINK_PATTERN)
+    if re.search(mediawords.tm.extract_story_links.IGNORE_LINK_PATTERN, topic_fetch_url['url'], flags=re.I) is not None:
+        topic_fetch_url['state'] = FETCH_STATE_IGNORE
+        topic_fetch_url['code'] = 403
+        return
+
+    log.warning("PASSED IGNORE")
 
     failed_url = get_failed_url(db, topic_fetch_url['topics_id'], topic_fetch_url['url'])
     if failed_url:

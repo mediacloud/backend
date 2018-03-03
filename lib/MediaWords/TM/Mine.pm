@@ -1114,7 +1114,7 @@ sub add_new_links_chunk($$$$)
     extract_fetched_stories( $db, $topic_fetch_urls );
 
     INFO( "add_new_links_chunk: add_to_topic_stories_if_match" );
-    map { add_to_topic_stories_if_match( $db, $topic, $_ ) } @{ $topic_fetch_urls };
+    map { add_to_topic_stories_if_match( $db, $topic, $_, $iteration ) } @{ $topic_fetch_urls };
 
     INFO( "add_new_links_chunk: mark topic links spidered" );
     my $link_ids_table = $db->get_temporary_ids_table( [ grep { $_ } map { $_->{ topic_links_id } } @{ $new_links } ] );
@@ -1678,9 +1678,9 @@ sub add_medium_url_to_ignore_redirects
 
 # given the completed topic_fetch_urls rows, add any fetched stories (in topic_fetch_urls.stories_id) to the topic
 # if they match they topic pattern.
-sub add_to_topic_stories_if_match($$$)
+sub add_to_topic_stories_if_match($$$$)
 {
-    my ( $db, $topic, $topic_fetch_url ) = @_;
+    my ( $db, $topic, $topic_fetch_url, $iteration ) = @_;
 
     TRACE "add story if match: $topic_fetch_url->{ url }";
 
@@ -1694,9 +1694,6 @@ sub add_to_topic_stories_if_match($$$)
     if ( $topic_fetch_url->{ assume_match } || story_matches_topic_pattern( $db, $topic, $story ) )
     {
         TRACE "topic match: " . ( $link->{ url } || '' );
-
-        my $iteration = $link->{ iteration } if ( $link );
-        $iteration = 0 unless ( $iteration );
 
         add_to_topic_stories( $db, $topic, $story, $iteration + 1, 0 );
     }
