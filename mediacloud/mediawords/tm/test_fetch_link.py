@@ -191,6 +191,19 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
         assert tfu['code'] == 404
         assert tfu['message'] == 'Not Found'
 
+        # ignore
+        tfu = db.create('topic_fetch_urls', {
+            'topics_id': topic['topics_id'],
+            'url': 'http://politicalgraveyard.com',
+            'state': mediawords.tm.fetch_link.FETCH_STATE_PENDING})
+
+        mediawords.tm.fetch_link.fetch_topic_url(db, tfu['topic_fetch_urls_id'], domain_timeout=0)
+
+        tfu = db.require_by_id('topic_fetch_urls', tfu['topic_fetch_urls_id'])
+
+        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_IGNORE
+        assert tfu['code'] == 403
+
         # story match
         tfu = db.create('topic_fetch_urls', {
             'topics_id': topic['topics_id'],

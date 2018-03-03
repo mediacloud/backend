@@ -17,14 +17,14 @@ log = create_logger(__name__)
 # ignore any list that match the below patterns.  the sites below are most social sharing button links of
 # various kinds, along with some content spam sitesand a couple of sites that confuse the spider with too
 # many domain alternatives.
-_IGNORE_LINK_PATTERN = (
-    r'(www.addtoany.com)|(novostimira.com)|(ads\.pheedo)|(www.dailykos.com\/user)|'
-    r'(livejournal.com\/(tag|profile))|(sfbayview.com\/tag)|(absoluteastronomy.com)|'
-    r'(\/share.*http)|(digg.com\/submit)|(facebook.com.*mediacontentsharebutton)|'
-    r'(feeds.wordpress.com\/.*\/go)|(sharetodiaspora.github.io\/)|(iconosquare.com)|'
-    r'(unz.com)|(answers.com)|(downwithtyranny.com\/search)|(scoop\.?it)|(sco\.lt)|'
-    r'(pronk.*\.wordpress\.com\/(tag|category))|(wn\.com)|(pinterest\.com\/pin\/create)|(feedblitz\.com)|(atomz.com)|'
-    r'(unionpedia.org\/)')
+IGNORE_LINK_PATTERN = (
+    r'(?:www.addtoany.com)|(?:novostimira.com)|(?:ads\.pheedo)|(?:www.dailykos.com\/user)|'
+    r'(?:livejournal.com\/(?:tag|profile))|(?:sfbayview.com\/tag)|(?:absoluteastronomy.com)|'
+    r'(?:\/share.*http)|(?:digg.com\/submit)|(?:facebook.com.*mediacontentsharebutton)|'
+    r'(?:feeds.wordpress.com\/.*\/go)|(?:sharetodiaspora.github.io\/)|(?:iconosquare.com)|'
+    r'(?:unz.com)|(?:answers.com)|(?:downwithtyranny.com\/search)|(?:scoop\.?it)|(?:sco\.lt)|'
+    r'(?:pronk.*\.wordpress\.com\/(?:tag|category))|(?:wn\.com)|(?:pinterest\.com\/pin\/create)|(?:feedblitz\.com)|'
+    r'(?:atomz.com)|(?:unionpedia.org)|(?:http://politicalgraveyard.com)')
 
 
 def get_links_from_html(html: str) -> typing.List[str]:
@@ -48,7 +48,7 @@ def get_links_from_html(html: str) -> typing.List[str]:
     for tag in soup.find_all(href=True):
         url = tag['href']
 
-        if re.search(_IGNORE_LINK_PATTERN, url, flags=re.I) is not None:
+        if re.search(IGNORE_LINK_PATTERN, url, flags=re.I) is not None:
             continue
 
         if not mediawords.util.url.is_http_url(url):
@@ -161,7 +161,7 @@ def get_links_from_story(db: DatabaseHandler, story: dict) -> typing.List[str]:
         all_links = html_links + text_links + youtube_links
 
         link_lookup = {}
-        for url in filter(lambda x: re.search(_IGNORE_LINK_PATTERN, x, flags=re.I) is None, all_links):
+        for url in filter(lambda x: re.search(IGNORE_LINK_PATTERN, x, flags=re.I) is None, all_links):
             link_lookup[mediawords.util.url.normalize_url_lossy(url)] = url
 
         links = list(link_lookup.values())
