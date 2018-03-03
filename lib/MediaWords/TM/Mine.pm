@@ -989,19 +989,26 @@ sub fetch_links
     my $last_num_pending_urls = 0;
     while ( 1 )
     {
-        my $num_pending_urls = $db->query( <<SQL )->flat()->[ 0 ];
-select count(*)
+        my $pending_url_ids = $db->query( <<SQL )->flat();
+select topic_fetch_urls_id
     from topic_fetch_urls
     where
         topic_fetch_urls_id in ( select id from $tfu_ids_table ) and
         state in ( 'pending', 'requeued' )
 SQL
 
+        my $num_pending_urls = scalar( @{ $pending_url_ids } );
+
         INFO( "waiting for fetch link queue: $num_pending_urls links remaining ..." );
 
         last if ( $num_pending_urls < 1 );
 
-        die( "Timed out waiting for fetch_link queue" ) if ( ( time() - $last_pending_change ) > $JOB_POLL_TIMEOUT );
+        if ( ( time() - $last_pending_change ) > $JOB_POLL_TIMEOUT )
+        {
+            splice( @{ $pending_url_ids }, 10 );
+            my $ids_list = join( ', ', @{ $pending_url_ids } );
+            die( "Timed out waiting for fetch_link queue ($ids_list)" );
+        }
 
         $last_pending_change = time() if ( $num_pending_urls < $last_num_pending_urls );
 
