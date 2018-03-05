@@ -2,7 +2,7 @@
 
 import datetime
 import operator
-import re
+import re2 as re
 import traceback
 import typing
 

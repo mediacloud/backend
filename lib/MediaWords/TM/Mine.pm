@@ -84,7 +84,7 @@ Readonly my $MAX_NULL_BITLY_STORIES => 0.02;
 Readonly my $ADD_NEW_LINKS_CHUNK_SIZE => 1000;
 
 # extract story links in chunks of this size
-Readonly my $EXTRACT_STORY_LINKS_CHUNK_SIZE => 10_000;
+Readonly my $EXTRACT_STORY_LINKS_CHUNK_SIZE => 1000;
 
 # die if the error rate for link fetch or link extract jobs is greater than this
 Readonly my $MAX_JOB_ERROR_RATE => 0.01;
@@ -94,6 +94,9 @@ Readonly my $JOB_POLL_TIMEOUT => 3600;
 
 # number of seconds to wait when polling for jobs to finish
 Readonly my $JOB_POLL_WAIT => 5;
+
+# if more than this many seed urls are imported, dedup stories before as well as after spidering
+Readonly my $MIN_SEED_IMPORT_FOR_PREDUP_STORIES => 50_000;
 
 # if mine_topic is run with the test_mode option, set this true and do not try to queue extractions
 my $_test_mode;
@@ -296,11 +299,10 @@ SQL
         sleep( $JOB_POLL_WAIT );
     }
 
-    # cleanup any out of date range or errored stories
     $db->query( <<SQL, $topic->{ topics_id } );
 update topic_stories set link_mined = 't'
     where
-        stories_id in ( select id from $queued_ids_table ) and
+        stories_id in ( select id from $stories_ids_table ) and
         topics_id = ? and
         link_mined = 'f'
 SQL
@@ -392,6 +394,7 @@ sub extract_download($$$)
         {
             no_dedup_sentences => 0,
             use_cache          => 1,
+            use_existing       => 1,
         }
     );
 
@@ -487,12 +490,12 @@ sub create_download_for_new_story
 # step later in add_new_links_chunk process.
 sub queue_extraction($$)
 {
-    my ( $db, $story ) = @_;
+    my ( $db, $stories_id ) = @_;
 
     return if ( $_test_mode );
 
     my $args = {
-        stories_id            => $story->{ stories_id },
+        stories_id            => $stories_id,
         skip_bitly_processing => 1,
         use_cache             => 1
     };
@@ -535,41 +538,6 @@ sub _get_sentences_from_story_text
     my $sentences = $lang->split_text_to_sentences( $story_text );
 
     return $sentences;
-}
-
-# return the links in the list that do not have a fetch failure in topic_fetch_urls
-sub get_links_without_fetch_failures($$$)
-{
-    my ( $db, $topic, $links ) = @_;
-
-    my $lookup_urls;
-    for my $link ( @{ $links } )
-    {
-        $lookup_urls->{ $link->{ url } } = 1;
-        if ( $link->{ redirect_url } )
-        {
-            $lookup_urls->{ $link->{ redirect_url } } = 1;
-        }
-    }
-
-    my $all_urls = [ keys( %{ $lookup_urls } ) ];
-
-    my $failed_urls = MediaWords::TM::FetchLink::get_failed_urls( $db, $topic, $all_urls );
-    my $failed_url_lookup = {};
-    map { $failed_url_lookup->{ $_ } = 1 } @{ $failed_urls };
-
-    my $trimmed_urls;
-    for my $link ( @{ $links } )
-    {
-        my $url = $link->{ url };
-        my $redirect_url = $link->{ redirect_url } || 'no redirect';
-        if ( !( $failed_url_lookup->{ $url } || $failed_url_lookup->{ $redirect_url } ) )
-        {
-            push( @{ $trimmed_urls }, $link );
-        }
-    }
-
-    return $trimmed_urls;
 }
 
 # return true if this url already failed a potential match, so we don't have to download it again
@@ -754,69 +722,6 @@ sub get_preferred_story
     return $preferred_story;
 }
 
-# look for a story matching the link stories_id, url,  in the db
-sub get_matching_story_from_db ($$;$)
-{
-    my ( $db, $link, $extract_policy ) = @_;
-
-    my $u = substr( $link->{ url }, 0, 1024 );
-
-    my $ru = '';
-    if ( !ignore_redirect( $db, $link ) )
-    {
-        $ru = $link->{ redirect_url } ? substr( $link->{ redirect_url }, 0, 1024 ) : $u;
-    }
-
-    my $nu  = MediaWords::Util::URL::normalize_url_lossy( $u );
-    my $nru = MediaWords::Util::URL::normalize_url_lossy( $ru );
-
-    my $url_lookup = {};
-    map { $url_lookup->{ $_ } = 1 } ( $u, $ru, $nu, $nru );
-    my $quoted_url_list = join( ',', map { "(" . $db->quote( $_ ) . ")" } keys( %{ $url_lookup } ) );
-
-    # TODO - only query stories_id and media_id initially
-
-    # look for matching stories, ignore those in foreign_rss_links media
-    my $stories = $db->query( <<END )->hashes;
-select distinct( s.* ) from stories s
-        join media m on s.media_id = m.media_id
-    where ( s.url = any( array( values $quoted_url_list ) ) or s.guid = any( array( values $quoted_url_list ) ) ) and
-        m.foreign_rss_links = false
-
-union
-
-select distinct( s.* ) from stories s
-        join media m on s.media_id = m.media_id
-        join topic_seed_urls csu on s.stories_id = csu.stories_id
-    where ( csu.url  = any( array( values $quoted_url_list ) ) ) and
-        m.foreign_rss_links = false
-END
-
-    my $story = get_preferred_story( $db, $u, $ru, $stories );
-
-    if ( $story )
-    {
-        $extract_policy ||= 'extract';
-        if ( $extract_policy eq 'defer' )
-        {
-            return $story;
-        }
-        elsif ( $extract_policy eq 'extract' )
-        {
-            my $downloads =
-              $db->query( "select * from downloads where stories_id = ? and extracted = 'f' order by downloads_id",
-                $story->{ stories_id } )->hashes;
-            map { extract_download( $db, $_, $story ) } @{ $downloads };
-        }
-        else
-        {
-            LOGCONFESS( "Unknown extract_policy: '$extract_policy'" );
-        }
-    }
-
-    return $story;
-}
-
 # return true if the story is already in topic_stories
 sub story_is_topic_story
 {
@@ -870,6 +775,8 @@ sub skip_topic_story
     my ( $db, $topic, $story, $link ) = @_;
 
     return 1 if ( story_is_topic_story( $db, $topic, $story ) );
+
+    return 0 unless ( $link );
 
     my $spidered_tag = get_spidered_tag( $db );
 
@@ -950,7 +857,7 @@ END
 
 # given a set of links, add a { source_story_url } field to each that has the url of the story pointed to by
 # $link->{ stories_id }.  we preload this data because it is much faster to do it one big query than lots of little
-# ones
+# ones.  this field is used by  _skip_self_linked_domain().
 sub _add_source_story_urls_to_links($$)
 {
     my ( $db, $links ) = @_;
@@ -1014,111 +921,40 @@ sub _skip_self_linked_domain
     return 0;
 }
 
-# check whether each link has a matching story already in db.  if so, add that story to the topic if it matches,
-# otherwise add the link to the list of links to fetch.  return the list of links to fetch.
-sub add_links_with_matching_stories
+# given a list of stories, add the link to each
+# given a list of stories and a list of links, assign a { link } field to each story based on the
+# { stories_id } field in the link
+sub add_links_to_stories($$)
 {
-    my ( $db, $topic, $new_links ) = @_;
+    my ( $stories, $links ) = @_;
 
-    my $fetch_links     = [];
-    my $extract_stories = [];
-    my $total_links     = scalar( @{ $new_links } );
-    my $i               = 0;
+    my $link_lookup = {};
+    map { $link_lookup->{ $_->{ stories_id } } = $_ } grep { $_->{ stories_id } } @{ $links };
 
-    INFO( "get links with matching stories" );
+    map { $_->{ link } = $link_lookup->{ $_->{ stories_id } } } @{ $stories };
 
-    # find all the links that we can find existing stories for without having to fetch anything
-    for my $link ( @{ $new_links } )
-    {
-        $i++;
-        TRACE "spidering [$i/$total_links] $link->{ url } ...";
+    WARN( Dumper( [ map { [ $_->{ stories_id }, $_->{ link } ] } @{ $stories } ] ) );
 
-        next if ( $link->{ ref_stories_id } );
-
-        next if ( _skip_self_linked_domain( $db, $link ) );
-
-        if ( my $story = get_matching_story_from_db( $db, $link, 'defer' ) )
-        {
-            push( @{ $extract_stories }, $story );
-            $link->{ story } = $story;
-            $story->{ link } = $link;
-
-            # we probably don't need the extraction here, but this will cache the content download, which will make
-            # the link mining below much faster
-            queue_extraction( $db, $story );
-        }
-        else
-        {
-            TRACE "add to fetch list ...";
-            push( @{ $fetch_links }, $link );
-        }
-    }
-
-    INFO( "get links with matching stories: extract stories" );
-    extract_stories( $db, $extract_stories );
-
-    INFO( "get links with matching stories: add_to_topic_stories_if_match" );
-    map { add_to_topic_stories_if_match( $db, $topic, $_, $_->{ link } ) } @{ $extract_stories };
-
-    return $fetch_links;
 }
 
-# given the list of links, add any stories that might match the topic (by matching against url
-# and raw html) and return that list of stories, none of which have been extracted.
-# this function now does most of its work by throwing jobs into the MediaWords::Job::TM::FetchLink queue
-# and then polling while we wait for the job queue to clear.
-sub get_stories_to_extract
+# create topic_fetch_urls rows correpsonding to the links and queue a FetchLink job for each.  return the tfu rows.
+sub create_and_queue_topic_fetch_urls($$$)
 {
     my ( $db, $topic, $fetch_links ) = @_;
 
-    INFO( "get stories to extract" );
-
     my $fetch_link_domain_timeout = $_test_mode ? 0 : undef;
 
-    # requeue any straggling urls for this topic
-    my $tfus = $db->query( "select * from topic_fetch_urls where topics_id = ? and state in ('pending', 'requeued')",
-        $topic->{ topics_id } )->hashes();
-    for my $tfu ( @{ $tfus } )
-    {
-        MediaWords::Job::TM::FetchLink->add_to_queue(
-            {
-                topic_fetch_urls_id => $tfu->{ topic_fetch_urls_id },
-                domain_timeout      => $fetch_link_domain_timeout
-            }
-        );
-    }
-
-    INFO( "get_stories_to_extract: skip or match links" );
-
-    # queue all stories that are not skipped or matched
-    my $queue_links = [];
+    my $tfus = [];
     for my $link ( @{ $fetch_links } )
-    {
-        next if ( $link->{ ref_stories_id } );
-
-        TRACE "fetch spidering $link->{ url } ...";
-
-        next if ( _skip_self_linked_domain( $db, $link ) );
-
-        if ( get_matching_story_from_db( $db, $link, 'defer' ) )
-        {
-            INFO( "found matching story" );
-            next;
-        }
-
-        push( @{ $queue_links }, $link );
-    }
-
-    INFO( "get_stories_to_extract: queue links" );
-    for my $link ( @{ $queue_links } )
     {
         my $tfu = $db->create(
             'topic_fetch_urls',
             {
-                topics_id    => $topic->{ topics_id },
-                url          => $link->{ url },
-                state        => 'pending',
-                assume_match => MediaWords::Util::Python::normalize_boolean_for_db( $link->{ assume_match } )
+                topics_id      => $topic->{ topics_id },
+                url            => $link->{ url },
+                state          => 'pending',
+                assume_match   => MediaWords::Util::Python::normalize_boolean_for_db( $link->{ assume_match } ),
+                topic_links_id => $link->{ topic_links_id },
             }
         );
         push( @{ $tfus }, $tfu );
@@ -1131,23 +967,48 @@ sub get_stories_to_extract
         );
     }
 
-    my $num_queued_links = scalar( @{ $queue_links } );
+    return $tfus;
+}
+
+# fetch the given links by creating topic_fetch_urls rows and sending them to the MediaWords::Job::TM::FetchLink queue
+# for processing.  wait for the queue to complete and returnt the resulting topic_fetch_urls.
+sub fetch_links
+{
+    my ( $db, $topic, $fetch_links ) = @_;
+
+    INFO( "fetch_links: queue links" );
+    my $tfus = create_and_queue_topic_fetch_urls( $db, $topic, $fetch_links );
+    my $num_queued_links = scalar( @{ $fetch_links } );
+
     INFO( "waiting for fetch link queue: $num_queued_links queued" );
+
+    my $tfu_ids_table = $db->get_temporary_ids_table( [ map { int( $_->{ topic_fetch_urls_id } ) } @{ $tfus } ] );
 
     # now poll waiting for the queue to clear
     my $last_pending_change   = time();
     my $last_num_pending_urls = 0;
     while ( 1 )
     {
-        my $num_pending_urls =
-          $db->query( "select count(*) from topic_fetch_urls where topics_id = ? and state in ( 'pending', 'requeued' )",
-            $topic->{ topics_id } )->flat()->[ 0 ];
+        my $pending_url_ids = $db->query( <<SQL )->flat();
+select topic_fetch_urls_id
+    from topic_fetch_urls
+    where
+        topic_fetch_urls_id in ( select id from $tfu_ids_table ) and
+        state in ( 'pending', 'requeued' )
+SQL
+
+        my $num_pending_urls = scalar( @{ $pending_url_ids } );
 
         INFO( "waiting for fetch link queue: $num_pending_urls links remaining ..." );
 
         last if ( $num_pending_urls < 1 );
 
-        die( "Timed out waiting for fetch_link queue" ) if ( ( time() - $last_pending_change ) > $JOB_POLL_TIMEOUT );
+        if ( ( time() - $last_pending_change ) > $JOB_POLL_TIMEOUT )
+        {
+            splice( @{ $pending_url_ids }, 10 );
+            my $ids_list = join( ', ', @{ $pending_url_ids } );
+            die( "Timed out waiting for fetch_link queue ($ids_list)" );
+        }
 
         $last_pending_change = time() if ( $num_pending_urls < $last_num_pending_urls );
 
@@ -1156,56 +1017,28 @@ sub get_stories_to_extract
         sleep( $JOB_POLL_WAIT );
     }
 
-    INFO( "get_stories_to_extract: update topic seed urls" );
-    my $tfu_ids = [ map { int( $_->{ topic_fetch_urls_id } ) } @{ $tfus } ];
-    if ( @{ $tfu_ids } )
-    {
-        my $tfu_ids_list = join( ',', @{ $tfu_ids } );
-
-        # update topic_seed_urls to reflect newly found stories
-        $db->query( <<SQL );
+    INFO( "fetch_links: update topic seed urls" );
+    $db->query( <<SQL );
 update topic_seed_urls tsu
     set stories_id = tfu.stories_id, processed = 't'
     from topic_fetch_urls tfu
     where
         tfu.url = tsu.url and
         tfu.stories_id is not null and
-        tfu.topic_fetch_urls_id in ($tfu_ids_list) and
+        tfu.topic_fetch_urls_id in ( select id from $tfu_ids_table ) and
         tfu.topics_id = tsu.topics_id
 SQL
-    }
 
-    INFO( "get stories to extract: get fetch link stories" );
-
-    # now get all the stories matched or generated by the fetch link jobs
-    my $extract_stories = $db->query( <<SQL, $tfu_ids )->hashes();
-select s.*, tfu.assume_match
-    from stories s
-        join topic_fetch_urls tfu using ( stories_id )
-    where
-        tfu.topic_fetch_urls_id = any(?)
+    my $completed_tfus = $db->query( <<SQL )->hashes();
+select * from topic_fetch_urls where topic_fetch_urls_id in ( select id from $tfu_ids_table )
 SQL
 
-    # need some magic to assign link field expected to be attached to each story
-    for my $story ( @{ $extract_stories } )
-    {
-        $story->{ link }->{ assume_match } = $story->{ assume_match };
-        $story->{ link }->{ url }          = $story->{ url };
-    }
+    INFO( "completed fetch link queue" );
 
-    INFO( "get stories to extract: queue extractions" );
-
-    # throw all of the stories into the exractor queue so that they will hopefully be cached by the time
-    # we do the extraction in process
-    map { queue_extraction( $db, $_ ) } @{ $extract_stories };
-
-    INFO( "completed fetch link queue, returning " . scalar( @{ $extract_stories } ) . " stories" );
-
-    return $extract_stories;
+    return $completed_tfus;
 }
 
-# return the stories from the list that have no download texts associated with them.  attach
-# a download to each story
+# return the stories from the list that have no download texts associated with them.  attach a download to each story
 sub filter_and_attach_downloads_to_extract_stories($$)
 {
     my ( $db, $stories ) = @_;
@@ -1235,12 +1068,24 @@ SQL
     return [ grep { $_->{ download } } @{ $stories } ];
 }
 
-# extract the stories
-sub extract_stories
+# extract new stories in the list of topic_fetch_urls
+sub extract_fetched_stories
 {
-    my ( $db, $stories ) = @_;
+    my ( $db, $tfus ) = @_;
 
-    INFO( "extract stories" );
+    INFO( "extract fetched stories" );
+
+    my $tfu_ids_table = $db->get_temporary_ids_table( [ map { $_->{ topic_fetch_urls_id } } @{ $tfus } ] );
+    my $stories = $db->query( <<SQL )->hashes();
+select s.*
+    from stories s
+        join topic_fetch_urls tfu using ( stories_id )
+    where
+        topic_fetch_urls_id in ( select id from $tfu_ids_table )
+SQL
+
+    # queue exrtactions first so that the extractor job pool can extract and cache some of the below extractions
+    map { queue_extraction( $db, $_->{ stories_id } ) } @{ $stories };
 
     INFO "possible extract stories: " . scalar( @{ $stories } );
 
@@ -1269,31 +1114,20 @@ sub add_new_links_chunk($$$$)
 {
     my ( $db, $topic, $iteration, $new_links ) = @_;
 
-    INFO( "add_new_links_chunk: trim links" );
-    my $trimmed_links = get_links_without_fetch_failures( $db, $topic, $new_links );
+    INFO( "add_new_links_chunk: fetch_links" );
+    my $topic_fetch_urls = fetch_links( $db, $topic, $new_links );
 
-    INFO( "add_new_links_chunk: add_links_with_matching_stories" );
-    my $fetch_links = add_links_with_matching_stories( $db, $topic, $trimmed_links );
-
-    INFO( "add_new_links_chunk: get_stories_to_extact" );
-    my $extract_stories = get_stories_to_extract( $db, $topic, $fetch_links );
-
-    INFO( "add_new_links_chunk: extract_stories" );
-    extract_stories( $db, $extract_stories );
+    INFO( "add_new_links_chunk: extract_fetched_stories" );
+    extract_fetched_stories( $db, $topic_fetch_urls );
 
     INFO( "add_new_links_chunk: add_to_topic_stories_if_match" );
-    map { add_to_topic_stories_if_match( $db, $topic, $_, $_->{ link } ) } @{ $extract_stories };
+    map { add_to_topic_stories_if_match( $db, $topic, $_, $iteration ) } @{ $topic_fetch_urls };
 
-    INFO( "add_new_links_chunk: delete from topic_links" );
-    my $link_ids = [ grep { $_ } map { $_->{ topic_links_id } } @{ $new_links } ];
-    if ( @{ $link_ids } )
-    {
-        my $ids_table = $db->get_temporary_ids_table( $link_ids );
-        $db->query( <<SQL );
-delete from topic_links where ref_stories_id is null and topic_links_id in ( select id from $ids_table )
+    INFO( "add_new_links_chunk: mark topic links spidered" );
+    my $link_ids_table = $db->get_temporary_ids_table( [ grep { $_ } map { $_->{ topic_links_id } } @{ $new_links } ] );
+    $db->query( <<SQL );
+update topic_links set link_spidered  = 't' where topic_links_id in ( select id from $link_ids_table )
 SQL
-    }
-
 }
 
 # save a row in the topic_spider_metrics table to track performance of spider
@@ -1354,13 +1188,13 @@ sub spider_new_links
     INFO( "spider new links" );
 
     my $new_links = $db->query( <<END, $iteration, $topic->{ topics_id } )->hashes;
-select distinct cs.iteration, cl.* from topic_links cl, topic_stories cs
+select distinct tl.* from topic_links tl, topic_stories ts
     where
-        cl.ref_stories_id is null and
-        cl.stories_id = cs.stories_id and
-        ( cs.iteration < \$1 or cs.iteration = 1000 ) and
-        cs.topics_id = \$2 and
-        cl.topics_id = \$2
+        tl.link_spidered = 'f' and
+        tl.stories_id = ts.stories_id and
+        ( ts.iteration < \$1 or ts.iteration = 1000 ) and
+        ts.topics_id = \$2 and
+        tl.topics_id = \$2
 END
 
     _add_source_story_urls_to_links( $db, $new_links );
@@ -1389,7 +1223,7 @@ select count(*) from topic_stories where topics_id = ? and iteration = ? - 1
 SQL
 
     my ( $queued_links ) = $db->query( <<SQL, $cid )->flat;
-select count(*) from topic_links where topics_id = ? and ref_stories_id is null
+select count(*) from topic_links where topics_id = ? and link_spidered = 'f'
 SQL
 
     return "spidering iteration: $iteration; stories last iteration / total: " .
@@ -1476,12 +1310,12 @@ sub mine_topic_stories
         $i += $EXTRACT_STORY_LINKS_CHUNK_SIZE;
         INFO( "mine topic stories: chunked $i ..." );
         my $stories = $db->query( <<SQL, $topic->{ topics_id }, $EXTRACT_STORY_LINKS_CHUNK_SIZE )->hashes;
-    select distinct s.*, cs.link_mined, cs.redirect_url
+    select s.*, ts.link_mined, ts.redirect_url
         from snap.live_stories s
-            join topic_stories cs on ( s.stories_id = cs.stories_id and s.topics_id = cs.topics_id )
+            join topic_stories ts on ( s.stories_id = ts.stories_id and s.topics_id = ts.topics_id )
         where
-            cs.link_mined = false and
-            cs.topics_id = ?
+            ts.link_mined = false and
+            ts.topics_id = ?
         limit ?
 SQL
 
@@ -1795,7 +1629,7 @@ SQL
         $topic->{ topics_id }
     );
 
-    return 1;
+    return scalar( @{ $seed_urls } );
 }
 
 # look for any stories in the topic tagged with a date method of 'current_time' and
@@ -1849,23 +1683,26 @@ sub add_medium_url_to_ignore_redirects
     $db->create( 'topic_ignore_redirects', { url => $url } );
 }
 
-# add to topic stories if the story is not already in the topic and it
-# assume_match is true or the story matches the topic pattern
-sub add_to_topic_stories_if_match
+# given the completed topic_fetch_urls rows, add any fetched stories (in topic_fetch_urls.stories_id) to the topic
+# if they match they topic pattern.
+sub add_to_topic_stories_if_match($$$$)
 {
-    my ( $db, $topic, $story, $link, $assume_match ) = @_;
+    my ( $db, $topic, $topic_fetch_url, $iteration ) = @_;
 
-    TRACE "add story if match: $story->{ url }";
+    TRACE "add story if match: $topic_fetch_url->{ url }";
 
-    set_topic_link_ref_story( $db, $story, $link ) if ( $link->{ topic_links_id } );
+    return unless ( $topic_fetch_url->{ stories_id } );
+
+    my $story = $db->require_by_id( 'stories', int( $topic_fetch_url->{ stories_id } ) );
+    my $link = $db->find_by_id( 'topic_links', int( $topic_fetch_url->{ topic_links_id } || 0 ) );
 
     return if ( skip_topic_story( $db, $topic, $story, $link ) );
 
-    if ( $assume_match || $link->{ assume_match } || story_matches_topic_pattern( $db, $topic, $story ) )
+    if ( $topic_fetch_url->{ assume_match } || story_matches_topic_pattern( $db, $topic, $story ) )
     {
         TRACE "topic match: " . ( $link->{ url } || '' );
-        $link->{ iteration } ||= 0;
-        add_to_topic_stories( $db, $topic, $story, $link->{ iteration } + 1, 0 );
+
+        add_to_topic_stories( $db, $topic, $story, $iteration + 1, 0 );
     }
 }
 
@@ -2301,7 +2138,7 @@ sub do_mine_topic ($$;$)
     # merge_foreign_rss_stories( $db, $topic );
 
     update_topic_state( $db, $topic, "importing seed urls" );
-    if ( import_seed_urls( $db, $topic ) )
+    if ( import_seed_urls( $db, $topic ) > $MIN_SEED_IMPORT_FOR_PREDUP_STORIES )
     {
         # merge dup stories before as well as after spidering to avoid extra spidering work
         update_topic_state( $db, $topic, "merging duplicate stories" );

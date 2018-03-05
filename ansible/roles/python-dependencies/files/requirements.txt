@@ -100,6 +100,9 @@ scipy==0.19.1
 # Splitting text into sentences using Lingua::Sentence's method
 sentence_splitter==1.2
 
+# python3 compatible version of google re2 library (requires libre2-dev system package)
+sw-re2==0.2.23
+
 # twitter
 tweepy==3.5.0
 
