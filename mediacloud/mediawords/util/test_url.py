@@ -227,6 +227,26 @@ def test_normalize_url_lossy():
         assert mc_url.normalize_url_lossy(input_url) == expected_output_url
 
 
+def test_is_shortened_url() -> None:
+    """Test is_shortened_url."""
+    assert not mc_url.is_shortened_url('http://google.com/')
+    assert not mc_url.is_shortened_url('http://nytimes.com/2014/03/01/foo.html')
+    assert mc_url.is_shortened_url('http://bit.ly/2eYIj4g')
+    assert mc_url.is_shortened_url('https://t.co/mtaVvZ8mYF')
+    assert mc_url.is_shortened_url('http://dlvr.it/NN7ZQS')
+    assert mc_url.is_shortened_url('http://fb.me/8SXPGB68Z')
+    assert mc_url.is_shortened_url('http://hill.cm/Dg9qAUD')
+    assert mc_url.is_shortened_url('http://ift.tt/2fQKXoA')
+    assert mc_url.is_shortened_url('https://goo.gl/fb/abZexj')
+    assert mc_url.is_shortened_url('https://youtu.be/GFeRyRA7FPE')
+    assert mc_url.is_shortened_url('http://wapo.st/2iBGdb9')
+    assert mc_url.is_shortened_url('http://ln.is/DN0QN')
+    assert mc_url.is_shortened_url(
+        'http://feeds.feedburner.com/~ff/businessinsider?a=AAU_77_kuWM:T_8wA0qh0C4:gIN9vFwOqvQ'
+    )
+    assert mc_url.is_shortened_url('https://archive.is/o/m1k2A/https://foo.com')
+
+
 # noinspection SpellCheckingInspection
 def test_is_homepage_url():
     # Bad input
