@@ -51,12 +51,6 @@ sub add_topic_link
 
 }
 
-sub add_bitly_count
-{
-    my ( $db, $id, $story, $click_count ) = @_;
-    $db->query( "insert into bitly_clicks_total values ( \$1,\$2,\$3 )", $id, $story->{ stories_id }, $click_count );
-}
-
 sub add_topic_story
 {
     my ( $db, $topic, $story ) = @_;
@@ -113,11 +107,6 @@ sub create_test_data
                     push @{ $topic_stories }, $story->{ stories_id };
                 }
                 $all_stories->{ int( $num ) } = $story->{ stories_id };
-
-                # modding by a different number than stories included in topics
-                # so that we will have bitly counts of 0
-
-                add_bitly_count( $test_db, $num, $story, $num % ( $TEST_MODULO - 1 ) );
             }
         }
     }
@@ -205,21 +194,6 @@ sub _get_story_link_counts
 
 }
 
-sub _get_expected_bitly_link_counts
-{
-    my $return_counts = {};
-
-    foreach my $m ( 1 .. 15 )
-    {
-        if ( $m % $TEST_MODULO )
-        {
-            $return_counts->{ "story " . $m } = $m % ( $TEST_MODULO - 1 );
-        }
-    }
-
-    return $return_counts;
-}
-
 sub test_default_sort
 {
 
@@ -233,20 +207,6 @@ sub test_default_sort
 
     _test_sort( $data, $expected_counts, $base_url, $sort_key );
 
-}
-
-sub test_social_sort
-{
-
-    my $data = shift;
-
-    my $base_url = '/api/v2/topics/1/stories/list';
-
-    my $sort_key = "bitly_click_count";
-
-    my $expected_counts = _get_expected_bitly_link_counts();
-
-    _test_sort( $data, $expected_counts, $base_url, $sort_key );
 }
 
 sub _test_sort
@@ -572,7 +532,6 @@ sub test_topics_api
     create_test_data( $db, $topic_media );
     test_story_count();
     test_default_sort( $stories );
-    test_social_sort( $stories );
     test_media_list( $stories );
     test_stories_facebook( $db );
 

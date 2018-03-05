@@ -92,7 +92,6 @@ my $_media_static_gexf_attribute_types = {
     story_count            => 'integer',
     view_medium            => 'string',
     media_type             => 'string',
-    bitly_click_count      => 'integer',
     facebook_share_count   => 'integer',
     simple_tweet_count     => 'integer',
     normalized_tweet_count => 'integer'
@@ -187,7 +186,7 @@ snapshot_story_links, snapshot_medium_link_counts, snapshot_story_link_counts.  
 
 snapshot_medium_links: source_media_id, ref_media_id
 
-snapshot_medium_link_counts: media_id, inlink_count, outlink_count, story_count, bitly_click_count
+snapshot_medium_link_counts: media_id, inlink_count, outlink_count, story_count
 
 snapshot_story_links: source_stories_id, ref_stories_id
 
@@ -528,7 +527,7 @@ sub get_stories_csv
 select distinct s.stories_id, s.title, s.url,
         case when ( stm.tags_id is null ) then s.publish_date::text else 'undateable' end as publish_date,
         m.name media_name, m.url media_url, m.media_id,
-        slc.media_inlink_count, slc.inlink_count, slc.outlink_count, slc.bitly_click_count, slc.facebook_share_count,
+        slc.media_inlink_count, slc.inlink_count, slc.outlink_count, slc.facebook_share_count,
         slc.simple_tweet_count, slc.normalized_tweet_count
 	from snapshot_stories s
 	    join snapshot_media m on ( s.media_id = m.media_id )
@@ -633,7 +632,6 @@ create temporary table snapshot_story_link_counts $_temporary_tablespace as
             coalesce( olc.outlink_count, 0 ) outlink_count,
             stc.simple_tweet_count,
             stc.normalized_tweet_count,
-            b.click_count bitly_click_count,
             ss.facebook_share_count facebook_share_count
         from snapshot_period_stories ps
             left join snapshot_story_media_link_counts smlc using ( stories_id )
@@ -653,8 +651,6 @@ create temporary table snapshot_story_link_counts $_temporary_tablespace as
                   where sl.ref_stories_id = ps.stories_id
                   group by sl.source_stories_id
                 ) olc on ( ps.stories_id = olc.stories_id )
-            left join bitly_clicks_total b
-                on ps.stories_id = b.stories_id
             left join story_statistics ss
                 on ss.stories_id = ps.stories_id
             left join snapshot_twitter_counts stc
@@ -808,7 +804,6 @@ create temporary table snapshot_medium_link_counts $_temporary_tablespace as
                sum( slc.inlink_count) inlink_count,
                sum( slc.outlink_count) outlink_count,
                count(*) story_count,
-               sum( slc.bitly_click_count ) bitly_click_count,
                sum( slc.facebook_share_count ) facebook_share_count,
                sum( slc.simple_tweet_count ) simple_tweet_count,
                sum( slc.normalized_tweet_count ) normalized_tweet_count
@@ -1288,7 +1283,6 @@ select distinct
         m.*,
         mlc.media_inlink_count inlink_count,
         mlc.story_count,
-        mlc.bitly_click_count,
         mlc.facebook_share_count,
         mlc.simple_tweet_count,
         mlc.normalized_tweet_count

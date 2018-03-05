@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# generate csv dump of any stories in the fake news collection that appear in the top ten by links, fb, bitly,
+# generate csv dump of any stories in the fake news collection that appear in the top ten by links, fb,
 # or twitter count of any given week of the election topic
 use strict;
 use warnings;

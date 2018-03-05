@@ -30,7 +30,7 @@ tag, or story sentence tag is updated.
 In addition to the incremental imports by db_row_last_updated, we import any stories in solr_import_extra_stories,
 in chunks up to 100k until the solr_import_extra_stories queue has been cleared.  In addition to using the queue to
 manually trigger updates for specific stories, we use it to queue updates for entire media sources whose tags have been
-changed and to queue updates for stories whose bitly data have been updated.
+changed.
 
 The module is carefully implemented to optimize the speed of querying from postgres in a few ways:
 
@@ -46,7 +46,7 @@ set into memory and return the whole set at once.
 
 In order to allow postgres to stream the results, we do all joins on the client side rather than on the postgres side.
 If you look at the implementation code, you'll see lots of references to data_lookups for various related tables
-(processed stories, stories tags, media tags, bitly clicks, etc).
+(processed stories, stories tags, media tags, etc).
 
 =item *
 
@@ -109,7 +109,7 @@ my $_solr_select_url;
 # order and names of fields exported to and imported from csv
 Readonly my @CSV_FIELDS =>
   qw/stories_id media_id story_sentences_id solr_id publish_date publish_day sentence_number sentence title language
-  bitly_click_count processed_stories_id tags_id_media tags_id_stories tags_id_story_sentences timespans_id/;
+  processed_stories_id tags_id_media tags_id_stories tags_id_story_sentences timespans_id/;
 
 # numbner of lines in each chunk of csv to import
 Readonly my $CSV_CHUNK_LINES => 10_000;
@@ -307,7 +307,6 @@ sub _print_csv_to_file_from_csr
             my $processed_stories_id = $data_lookup->{ ps }->{ $stories_id };
             next unless ( $processed_stories_id );
 
-            my $click_count       = $data_lookup->{ bitly_clicks }->{ $stories_id } || '';
             my $media_tags_list   = $data_lookup->{ media_tags }->{ $media_id }     || '';
             my $stories_tags_list = $data_lookup->{ stories_tags }->{ $stories_id } || '';
             my $timespans_list    = $data_lookup->{ timespans }->{ $stories_id }    || '';
@@ -327,7 +326,6 @@ sub _print_csv_to_file_from_csr
                 $row->{ sentence },           #
                 $row->{ title },              #
                 $row->{ language },           #
-                $click_count,                 #
                 $processed_stories_id,        #
                 $media_tags_list,             #
                 $stories_tags_list,           #
@@ -434,13 +432,6 @@ select string_agg( tags_id::text, ';' ) tag_list, stories_id
     where MOD(stories_id, $num_proc) = $proc - 1
         $delta_clause
     group by stories_id
-END
-
-    _set_lookup( $db, $data_lookup, 'bitly_clicks', <<END );
-select click_count, stories_id
-    from bitly_clicks_total
-    where MOD(stories_id, $num_proc) = $proc - 1
-        $delta_clause
 END
 
     _set_lookup( $db, $data_lookup, 'timespans', <<END );

@@ -163,11 +163,6 @@
    <!-- Language field from the story_sentences table - 2 letter code; query by language is a core function -->
    <field name="language" type="string" indexed="true" stored="false"/>
 
-   <!-- Bit.ly total click count (null if not known yet); we need this to be able to sort by bitly clicks,
-   which we need if we ever want to display influential stories list on the dashboard; I don't think we
-   need to store this, though -->
-   <field name="bitly_click_count" type="int" indexed="true" stored="true" required="false" multiValued="false" />
-
    <!-- Obsolete; we should get rid of it, but we don't actually write this to the db any more so it won't
    save any space -->
    <field name="media_sets_id" type="int" indexed="true" stored="false" multiValued="true" />

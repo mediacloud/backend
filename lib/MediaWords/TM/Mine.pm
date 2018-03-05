@@ -53,7 +53,6 @@ use MediaWords::DBI::Activities;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::GuessDate;
-use MediaWords::Job::Bitly::FetchStoryStats;
 use MediaWords::Job::ExtractAndVector;
 use MediaWords::Job::Facebook::FetchStoryStats;
 use MediaWords::Job::TM::ExtractStoryLinks;
@@ -69,16 +68,12 @@ use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 use MediaWords::Util::Web::Cache;
-use MediaWords::Util::Bitly;
 
 # max number of solely self linked stories to include
 Readonly my $MAX_SELF_LINKED_STORIES => 100;
 
 # total time to wait for fetching of social media metrics
 Readonly my $MAX_SOCIAL_MEDIA_FETCH_TIME => ( 60 * 60 * 24 );
-
-# max prooprtion of stories with no bitly metrics
-Readonly my $MAX_NULL_BITLY_STORIES => 0.02;
 
 # add new links in chunks of this size
 Readonly my $ADD_NEW_LINKS_CHUNK_SIZE => 1000;
@@ -495,9 +490,8 @@ sub queue_extraction($$)
     return if ( $_test_mode );
 
     my $args = {
-        stories_id            => $stories_id,
-        skip_bitly_processing => 1,
-        use_cache             => 1
+        stories_id => $stories_id,
+        use_cache  => 1
     };
 
     my $priority = $MediaCloud::JobManager::Job::MJM_JOB_PRIORITY_HIGH;
@@ -1968,35 +1962,6 @@ sub import_solr_seed_query
     $db->query( "update topics set solr_seed_query_run = 't' where topics_id = ?", $topic->{ topics_id } );
 }
 
-# return true if there are fewer than $MAX_NULL_BITLY_STORIES stories without bitly data
-sub all_bitly_data_fetched
-{
-    my ( $db, $topic ) = @_;
-
-    my ( $num_topic_stories ) = $db->query( <<SQL, $topic->{ topics_id } )->flat;
-select count(*) from topic_stories where topics_id = ?
-SQL
-
-    my $max_nulls = int( $MAX_NULL_BITLY_STORIES * $num_topic_stories ) + 1;
-
-    DEBUG( "all bitly data fetched: $num_topic_stories topic stories total, $max_nulls max nulls" );
-
-    my $null_bitly_story = $db->query( <<SQL, $topic->{ topics_id }, $max_nulls )->hash;
-select 1
-    from topic_stories cs
-        left join bitly_clicks_total b on ( cs.stories_id = b.stories_id )
-    where
-        cs.topics_id = ? and
-        b.click_count is null
-    limit 1
-    offset ?
-SQL
-
-    DEBUG( "all bitly data fetched: " . ( $null_bitly_story ? 'no' : 'yes' ) );
-
-    return !$null_bitly_story;
-}
-
 # return true if there are no stories without facebook data
 sub all_facebook_data_fetched
 {
@@ -2020,7 +1985,7 @@ SQL
     return !$null_facebook_story;
 }
 
-# send high priority jobs to fetch bitly and facebook data for all stories that don't yet have it
+# send high priority jobs to fetch facebook data for all stories that don't yet have it
 sub fetch_social_media_data ($$)
 {
     my ( $db, $topic ) = @_;
@@ -2032,7 +1997,6 @@ sub fetch_social_media_data ($$)
 
     my $cid = $topic->{ topics_id };
 
-    MediaWords::Job::Bitly::FetchStoryStats->add_topic_stories_to_queue( $db, $topic );
     MediaWords::Job::Facebook::FetchStoryStats->add_topic_stories_to_queue( $db, $topic );
 
     my $poll_wait = 30;
@@ -2040,7 +2004,7 @@ sub fetch_social_media_data ($$)
 
     for my $i ( 1 .. $retries )
     {
-        return if ( all_bitly_data_fetched( $db, $topic ) && all_facebook_data_fetched( $db, $topic ) );
+        return if ( all_facebook_data_fetched( $db, $topic ) );
         sleep $poll_wait;
     }
 

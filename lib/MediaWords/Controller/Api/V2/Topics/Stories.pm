@@ -194,7 +194,7 @@ SQL
     MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $foci, 'foci' );
 }
 
-# accept sort_param of inlink, social, bitly, facebook, or twitter and
+# accept sort_param of inlink, facebook, or twitter and
 # return a sort clause for the story_link_counts table, aliased as 'slc',
 # that will sort by the relevant field
 sub _get_sort_clause
@@ -204,14 +204,11 @@ sub _get_sort_clause
     $sort_param ||= 'inlink';
 
     my $sort_field_lookup = {
-        inlink            => 'slc.media_inlink_count',
-        inlink_count      => 'slc.media_inlink_count',
-        bitly             => 'slc.bitly_click_count',
-        bitly_click_count => 'slc.bitly_click_count',
-        social            => 'slc.bitly_click_count',
-        facebook          => 'slc.facebook_share_count',
-        twitter           => 'slc.simple_tweet_count',
-        random            => 'random()'
+        inlink       => 'slc.media_inlink_count',
+        inlink_count => 'slc.media_inlink_count',
+        facebook     => 'slc.facebook_share_count',
+        twitter      => 'slc.simple_tweet_count',
+        random       => 'random()'
     };
 
     my $sort_field = $sort_field_lookup->{ lc( $sort_param ) }

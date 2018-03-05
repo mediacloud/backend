@@ -652,7 +652,7 @@ sub search_for_stories ($$)
 
 Return the first $num_stories processed_stories_id that match the given query, sorted by processed_stories_id and with
 processed_stories_id greater than $last_ps_id.   Returns at most $num_stories stories.  If $sort is specified as
-'bitly_click_count', tell solr to sort by 'bitly_click_count desc'.
+'random', tell solr to sort results by random order.
 
 =cut
 
@@ -672,11 +672,7 @@ sub search_for_processed_stories_ids($$$$$;$)
     $params->{ 'group.field' } = 'stories_id';
 
     $params->{ sort } = 'processed_stories_id asc';
-    if ( $sort and $sort eq 'bitly_click_count' )
-    {
-        $params->{ sort } = 'bitly_click_count desc';
-    }
-    elsif ( $sort and $sort eq 'random' )
+    if ( $sort and $sort eq 'random' )
     {
         $params->{ sort } = 'random_1 asc';
     }

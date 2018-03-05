@@ -289,7 +289,6 @@ For example, the following is a paged response:
         {   
             "stories_id": 168326235,
             "media_id": 18047,
-            "bitly_click_count": 182,
             "collect_date": "2013-10-26 09:25:39",
             "publish_date": "2012-10-24 16:09:26",
             "inlink_count": 531,
@@ -933,7 +932,7 @@ The stories list call returns stories in the topic.
 | Parameter            | Default | Notes                                    |
 | -------------------- | ------- | ---------------------------------------- |
 | q                    | null    | if specified, return only stories that match the given Solr query |
-| sort                 | inlink  | possible values: `inlink`, `bitly`, `facebook`, `twitter`, `social` |
+| sort                 | inlink  | possible values: `inlink`, `facebook`, `twitter` |
 | stories_id           | null    | return only stories matching these stories_ids |
 | link_to_stories_id   | null    | return only stories from other media that link to the given stories_id |
 | link_from_stories_id | null    | return only stories from other media that are linked from the given stories_id |
@@ -968,7 +967,6 @@ Standard parameters accepted: snapshots_id, foci_id, timespans_id, limit, link_i
 | collect_date         | date the story was collected             |
 | inlink_count         | count of hyperlinks from stories in other media in this timespan |
 | outlink_count        | count of hyperlinks to stories in other media in this timespan |
-| bitly_click_count    | number of clicks on bitly links that resolve to this story's URL |
 | facebook_share_count | number of facebook shares for this story's URL |
 | foci            | list of foci to which this story belongs |
 ### Example
@@ -986,7 +984,6 @@ Response:
         {   
             "stories_id": 168326235,
             "media_id": 18047,
-            "bitly_click_count": 182,
             "collect_date": "2013-10-26 09:25:39",
             "publish_date": "2012-10-24 16:09:26",
             "date_guess_method": "guess_by_og_article_published_time",
@@ -1251,7 +1248,7 @@ The media list call returns the list of media in the topic.
 | Parameter | Default | Notes                                    |
 | --------- | ------- | ---------------------------------------- |
 | media_id  | null    | return only the specified media          |
-| sort      | inlink  | possible values: `inlink`, `bitly`, `facebook`, `twitter` |
+| sort      | inlink  | possible values: `inlink`, `facebook`, `twitter` |
 | name      | null    | search for media with the given name     |
 | limit     | 20      | return the given number of media         |
 | link_id   | null    | return media using the paging link       |
@@ -1273,7 +1270,6 @@ Standard parameters accepted: snapshots_id, foci_id, timespans_id, limit, link_i
 | story_count          | number of stories in medium              |
 | inlink_count         | sum of the inlink_count for each story in the medium |
 | outlink_count        | sum of the outlink_count for each story in the medium |
-| bitly_click_count    | sum of the bitly_click_count for each story in the medium |
 | facebook_share_count | sum of the facebook for each story in the medium |
 | focus_ids            | list of ids of foci to which this medium belongs |
 
@@ -1290,7 +1286,6 @@ Response:
     "media":
     [
         {
-            "bitly_click_count": 303,
             "media_id": 18346,
             "story_count": 3475,
             "name": "Twitter",

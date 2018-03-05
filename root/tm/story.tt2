@@ -124,9 +124,6 @@ page, and changes made since the snapshot will not be visible.
         <td>Story Outlinks</td><td>[% story.outlink_count %]</td>
     </tr>
     <tr>
-        <td>Bitly Clicks</td><td>[% story.bitly_count %]</td>
-    </tr>
-    <tr>
         <td>Facebook Shares</td><td>[% story.facebook_share_count %]</td>
     </tr>
     <tr>
