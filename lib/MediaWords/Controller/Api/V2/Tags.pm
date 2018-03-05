@@ -32,19 +32,30 @@ sub get_name_search_clause
 
     return 'and false' unless ( length( $v ) > 2 );
 
-    my $qv = $c->dbis->quote( '%' . $v . '%' );
+    my $temp_tag_sets = 'name_search_tag_sets';
+    my $temp_tags     = 'name_search_tags';
+
+    my $db = $c->dbis;
+
+    # create these as temp tables to force postgres planner to use tags fts index
+    $db->query( <<SQL, $v );
+create temporary table $temp_tag_sets as
+    select tag_sets_id
+        from tag_sets ts
+        where to_tsvector('english', ts.name || ' ' || coalesce(ts.label, '')) @@ plainto_tsquery(?)
+SQL
+
+    $db->query( <<SQL, $v );
+create temporary table $temp_tags as
+select tags_id
+    from tags t
+    where to_tsvector('english', t.tag || ' ' || t.label) @@ plainto_tsquery(?)
+SQL
 
     return <<END;
-and tags_id in (
-    select t.tags_id
-        from tags t
-            join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
-        where
-            t.tag ilike $qv or
-            t.label ilike $qv or
-            ts.name ilike $qv or
-            ts.label ilike $qv
-)
+and (
+    ( tag_sets_id in ( select tag_sets_id from $temp_tag_sets ) ) or
+    ( tags_id in ( select tags_id from $temp_tags ) ) )
 END
 }
 
