@@ -128,7 +128,7 @@ class AuthActivationNeededMessage(TemplateMessage):
             attributes={
                 'full_name': full_name,
                 'activation_url': activation_url,
-                'subscribe_to_newsletter': bool(subscribe_to_newsletter),
+                'subscribe_to_newsletter': bool(int(subscribe_to_newsletter)),
             }
         )
 

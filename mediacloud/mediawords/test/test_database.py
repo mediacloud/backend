@@ -9,6 +9,7 @@ from mediawords.util.config import (
     get_config as py_get_config,  # MC_REWRITE_TO_PYTHON: rename back to get_config()
 )
 from mediawords.util.log import create_logger
+from mediawords.util.mail import enable_test_mode, disable_test_mode
 
 log = create_logger(__name__)
 
@@ -135,3 +136,19 @@ class TestDatabaseWithSchemaTestCase(TestCase):
 
     def db(self) -> DatabaseHandler:
         return self.__db
+
+
+class TestDoNotSendEmails(TestCase):
+    """TestCase that disables email sending."""
+
+    def setUp(self):
+        super().setUp()
+
+        # Don't actually send any emails
+        enable_test_mode()
+
+    def tearDown(self):
+        super().tearDown()
+
+        # Reenable email sending
+        disable_test_mode()
