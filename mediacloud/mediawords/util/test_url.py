@@ -217,9 +217,9 @@ def test_normalize_url_lossy():
         ['http://foo.com/bar#baz', 'http://foo.com/bar'],
         ['http://foo.com/bar/baz//foo', 'http://foo.com/bar/baz/foo'],
         ['https://archive.is/o/vWkgm/www.huffingtonpost.com/lisa-bloom/why-the-new-child-rape-ca_b_10619944.html',
-            'http://huffingtonpost.com/lisa-bloom/why-the-new-child-rape-ca_b_10619944.html'],
+         'http://huffingtonpost.com/lisa-bloom/why-the-new-child-rape-ca_b_10619944.html'],
         ['https://archive.is/o/m1k2A/https://en.wikipedia.org/wiki/Gamergate_controversy%23cite_note-right_wing-130',
-            'http://en.wikipedia.org/wiki/gamergate_controversy#cite_note-right_wing-130']
+         'http://en.wikipedia.org/wiki/gamergate_controversy#cite_note-right_wing-130']
     ]
 
     for test in tests:
