@@ -1,6 +1,6 @@
 from mediawords.db import DatabaseHandler
 from mediawords.dbi.auth.login import login_with_email_password
-from mediawords.dbi.auth.password import validate_new_password, generate_password_hash, password_reset_token_is_valid
+from mediawords.dbi.auth.password import validate_new_password, generate_secure_hash, password_reset_token_is_valid
 from mediawords.dbi.auth.info import user_info
 from mediawords.util.mail import send_email
 from mediawords.util.mail_message.templates import AuthPasswordChangedMessage
@@ -42,7 +42,7 @@ def change_password(db: DatabaseHandler,
 
     # Hash + validate the password
     try:
-        password_new_hash = generate_password_hash(password=new_password)
+        password_new_hash = generate_secure_hash(password=new_password)
     except Exception as ex:
         raise McAuthChangePasswordException("Unable to hash a new password: %s" % str(ex))
 

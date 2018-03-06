@@ -4,7 +4,7 @@ from furl import furl
 
 from mediawords.db import DatabaseHandler
 from mediawords.dbi.auth.info import user_info
-from mediawords.dbi.auth.password import generate_password_hash, password_reset_token_is_valid
+from mediawords.dbi.auth.password import generate_secure_hash, password_reset_token_is_valid
 from mediawords.dbi.auth.profile import create_password_reset_token
 from mediawords.dbi.auth.user import NewUser
 from mediawords.util.log import create_logger
@@ -101,7 +101,7 @@ def add_user(db: DatabaseHandler, new_user: NewUser) -> None:
 
     # Hash + validate the password
     try:
-        password_hash = generate_password_hash(password=new_user.password)
+        password_hash = generate_secure_hash(password=new_user.password)
         if not password_hash:
             raise McAuthRegisterException("Password hash is empty.")
     except Exception as _:

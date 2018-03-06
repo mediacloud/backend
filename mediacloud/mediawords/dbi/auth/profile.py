@@ -3,7 +3,7 @@ from typing import List, Optional
 from mediawords.db import DatabaseHandler
 from mediawords.dbi.auth.change_password import change_password
 from mediawords.dbi.auth.info import user_info
-from mediawords.dbi.auth.password import generate_password_hash
+from mediawords.dbi.auth.password import generate_secure_hash
 from mediawords.dbi.auth.user import CurrentUser, ModifyUser
 from mediawords.util.mail import send_email
 from mediawords.util.mail_message.templates import AuthAPIKeyResetMessage
@@ -235,7 +235,7 @@ def create_password_reset_token(db: DatabaseHandler, email: str) -> Optional[str
         raise McAuthProfileException('Unable to generate an activation token.')
 
     # Hash + validate the activation token
-    password_reset_token_hash = generate_password_hash(password=password_reset_token)
+    password_reset_token_hash = generate_secure_hash(password=password_reset_token)
     if not password_reset_token_hash:
         raise McAuthProfileException("Unable to hash an activation token.")
 

@@ -73,7 +73,7 @@ def password_hash_is_valid(password_hash: str, password: str) -> bool:
         return False
 
 
-def generate_password_hash(password: str) -> str:
+def generate_secure_hash(password: str) -> str:
     """Hash a secure hash (password / password reset token) with a random salt.
 
     Ported from Crypt::SaltedHash: https://metacpan.org/pod/Crypt::SaltedHash

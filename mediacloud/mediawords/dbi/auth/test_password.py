@@ -2,7 +2,7 @@ import pytest
 
 from mediawords.dbi.auth.password import (
     password_hash_is_valid,
-    generate_password_hash,
+    generate_secure_hash,
     McAuthPasswordException,
     validate_new_password,
 )
@@ -62,8 +62,8 @@ def test_password_hash_is_valid():
         ), password='secret') is False
 
 
-def test_generate_password_hash():
-    salted_hash = generate_password_hash(password='secret')
+def test_generate_secure_hash():
+    salted_hash = generate_secure_hash(password='secret')
     assert len(salted_hash) == len((
         '{SSHA256}hddcAPBgxzuWWgs5UtzAjXdAjytpgeP129yCIQWWbel8WLWpj9fN4v/nFmecZd72MPtL4ckI+eYJ9qXfwW+q0ANMJi3qheHBtXkjx'
         'jAkK6KxIo+ZhbkwAS3opq+xVltM'
@@ -74,7 +74,7 @@ def test_generate_password_hash():
     assert password_hash_is_valid(password='invalid_password', password_hash=salted_hash) is False
 
     # Make sure every salted hash is unique
-    assert generate_password_hash(password='secret') != salted_hash
+    assert generate_secure_hash(password='secret') != salted_hash
 
 
 def test_validate_new_password():
