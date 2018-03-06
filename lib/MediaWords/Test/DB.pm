@@ -243,7 +243,7 @@ sub create_test_user($$)
         LOGCONFESS "Adding new user failed: $@";
     }
 
-    my $user_info = MediaWords::DBI::Auth::Profile::user_info( $db, $email );
+    my $user_info = MediaWords::DBI::Auth::Info::user_info( $db, $email );
     my $api_key = $user_info->global_api_key();
 
     return $api_key;

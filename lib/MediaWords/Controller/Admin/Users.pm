@@ -55,7 +55,7 @@ sub delete : Local
     }
 
     my $userinfo;
-    eval { $userinfo = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
+    eval { $userinfo = MediaWords::DBI::Auth::Info::user_info( $db, $email ); };
     if ( $@ or ( !$userinfo ) )
     {
         die "Unable to find user with email '$email'";
@@ -328,7 +328,7 @@ sub edit : Local
 
     # Fetch information about the user and roles
     my $userinfo;
-    eval { $userinfo = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
+    eval { $userinfo = MediaWords::DBI::Auth::Info::user_info( $db, $email ); };
     if ( $@ or ( !$userinfo ) )
     {
         die "Unable to find user with email '$email'";
@@ -503,7 +503,7 @@ sub tag_set_permissions_json : Local
     die "missing required param email" unless $email;
 
     my $userinfo;
-    eval { $userinfo = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
+    eval { $userinfo = MediaWords::DBI::Auth::Info::user_info( $db, $email ); };
     if ( $@ or ( !$userinfo ) )
     {
         die "Unable to find user with email '$email'";
@@ -529,7 +529,7 @@ sub available_tag_sets_json : Local
     die "missing required param email" unless $email;
 
     my $userinfo;
-    eval { $userinfo = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
+    eval { $userinfo = MediaWords::DBI::Auth::Info::user_info( $db, $email ); };
     if ( $@ or ( !$userinfo ) )
     {
         die "Unable to find user with email '$email'";
@@ -564,7 +564,7 @@ sub edit_tag_set_permissions : Local
 
     # Fetch information about the user and roles
     my $userinfo;
-    eval { $userinfo = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
+    eval { $userinfo = MediaWords::DBI::Auth::Info::user_info( $db, $email ); };
     if ( $@ or ( !$userinfo ) )
     {
         die "Unable to find user with email '$email'";

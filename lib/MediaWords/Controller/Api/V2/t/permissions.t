@@ -363,7 +363,7 @@ sub find_or_add_test_user($$)
     my $password = '123456789';
 
     my $user;
-    eval { $user = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
+    eval { $user = MediaWords::DBI::Auth::Info::user_info( $db, $email ); };
     if ( ( !$@ ) and $user )
     {
         return $user;
@@ -390,7 +390,7 @@ sub find_or_add_test_user($$)
         die( "error adding $role user: $@" );
     }
 
-    return MediaWords::DBI::Auth::Profile::user_info( $db, $email );
+    return MediaWords::DBI::Auth::Info::user_info( $db, $email );
 }
 
 # add and return a test user with the given permission for the given topic.

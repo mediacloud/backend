@@ -110,7 +110,7 @@ sub send_user_activation_token($$$;$)
     my $full_name;
 
     eval {
-        my $user = MediaWords::DBI::Auth::Profile::user_info( $db, $email );
+        my $user = MediaWords::DBI::Auth::Info::user_info( $db, $email );
         $full_name = $user->full_name();
     };
     if ( $@ )
@@ -203,7 +203,7 @@ SQL
 
     # Fetch the user's ID
     my $userinfo = undef;
-    eval { $userinfo = MediaWords::DBI::Auth::Profile::user_info( $db, $new_user->email() ); };
+    eval { $userinfo = MediaWords::DBI::Auth::Info::user_info( $db, $new_user->email() ); };
     if ( $@ or ( !$userinfo ) )
     {
         $db->rollback;
@@ -313,7 +313,7 @@ SQL
 
     eval {
 
-        my $user = MediaWords::DBI::Auth::Profile::user_info( $db, $email );
+        my $user = MediaWords::DBI::Auth::Info::user_info( $db, $email );
 
         my $message = MediaWords::Util::Mail::Message::Templates::AuthActivatedMessage->new(
             {

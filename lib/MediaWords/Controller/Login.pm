@@ -285,7 +285,7 @@ sub activate : Local
     $c->stash->{ email } = $email;
 
     my $user_info;
-    eval { $user_info = MediaWords::DBI::Auth::Profile::user_info( $c->dbis, $email ); };
+    eval { $user_info = MediaWords::DBI::Auth::Info::user_info( $c->dbis, $email ); };
     if ( $@ or ( !$user_info ) )
     {
         ERROR "User $email does not exist.";

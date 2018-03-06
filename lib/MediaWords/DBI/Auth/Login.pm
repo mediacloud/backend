@@ -63,7 +63,7 @@ sub login_with_email_password($$$;$)
 
     eval {
 
-        eval { $user = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
+        eval { $user = MediaWords::DBI::Auth::Info::user_info( $db, $email ); };
         if ( $@ or ( !$user ) )
         {
             die "Unable to find user with email '$email'";
@@ -140,7 +140,7 @@ SQL
             );
 
             # Fetch user again
-            $user = MediaWords::DBI::Auth::Profile::user_info( $db, $email );
+            $user = MediaWords::DBI::Auth::Info::user_info( $db, $email );
 
             unless ( $user->api_key_for_ip_address( $ip_address ) )
             {
@@ -209,7 +209,7 @@ SQL
         die "User '$email' is trying to log in too soon after the last unsuccessful attempt.";
     }
 
-    my $user = MediaWords::DBI::Auth::Profile::user_info( $db, $email );
+    my $user = MediaWords::DBI::Auth::Info::user_info( $db, $email );
     unless ( $user )
     {
         die "Unable to fetch user '$email' for API key '$api_key'";

@@ -96,7 +96,7 @@ sub update_PUT
     }
 
     my $auth_user;
-    eval { $auth_user = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
+    eval { $auth_user = MediaWords::DBI::Auth::Info::user_info( $db, $email ); };
     if ( $@ or ( !$auth_user ) )
     {
         $c->response->status( HTTP_BAD_REQUEST );

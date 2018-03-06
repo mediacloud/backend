@@ -38,7 +38,7 @@ sub _user_profile_hash($$)
     my ( $db, $email ) = @_;
 
     my $user;
-    eval { $user = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
+    eval { $user = MediaWords::DBI::Auth::Info::user_info( $db, $email ); };
     if ( $@ or ( !$user ) )
     {
         die "Unable to fetch user profile for user '$email'.";

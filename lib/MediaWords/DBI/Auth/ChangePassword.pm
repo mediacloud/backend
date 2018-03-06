@@ -47,7 +47,7 @@ SQL
     unless ( $do_not_inform_via_email )
     {
         my $user;
-        eval { $user = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
+        eval { $user = MediaWords::DBI::Auth::Info::user_info( $db, $email ); };
         if ( $@ or ( !$user ) )
         {
             die "Unable to find user with email '$email'";

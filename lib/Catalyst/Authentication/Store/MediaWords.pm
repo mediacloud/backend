@@ -37,7 +37,7 @@ sub find_user
 
     # Check if user exists and is active
     my $userauth;
-    eval { $userauth = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
+    eval { $userauth = MediaWords::DBI::Auth::Info::user_info( $db, $email ); };
     if ( $@ or ( !$userauth ) )
     {
         WARN "User '$email' was not found.";

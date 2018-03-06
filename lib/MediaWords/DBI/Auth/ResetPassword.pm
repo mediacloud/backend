@@ -104,7 +104,7 @@ sub send_password_reset_token($$$)
 
     my $full_name;
     eval {
-        my $user = MediaWords::DBI::Auth::Profile::user_info( $db, $email );
+        my $user = MediaWords::DBI::Auth::Info::user_info( $db, $email );
         $full_name = $user->full_name();
     };
     if ( $@ )
