@@ -16,8 +16,13 @@ log = create_logger(__name__)
 # default amount of time in between requests
 _DEFAULT_DOMAIN_TIMEOUT = 10
 
-# divide the normal domain timeout by this for shortened urls
-_SHORTENED_URL_ACCEL = 10
+# Domains (in addition to all shortened URLs) for which the throttling will be less intense
+_ACCELERATED_DOMAINS = {
+    'twitter.com',
+}
+
+# Divide the normal domain timeout by this for accelerated URLs
+_ACCELERATED_DOMAIN_SPEEDUP_FACTOR = 10
 
 
 class McThrottledDomainException(Exception):
@@ -63,15 +68,15 @@ class ThrottledUserAgent(UserAgent):
         other followup requests to succeed.  To ensure proper throttling, a new object should be create for each
         top level request.
 
-        If the domain_timeout is greater than 0, shortened links (eg. http://bit.ly/EFGDfrTg) divide the domain
-        timeout by _SHORTENED_URL_ACCEL, with a minimum of 1.
+        Accelerated domains and shortened links (eg. http://bit.ly/EFGDfrTg) get their timeout divided by
+        _ACCELERATED_DOMAIN_SPEEDUP_FACTOR.
         """
         if self._use_throttling:
             domain = mediawords.util.url.get_url_distinctive_domain(request.url())
 
             domain_timeout = self.domain_timeout
-            if domain_timeout > 1 and is_shortened_url(request.url()):
-                    domain_timeout = max(1, int(self.domain_timeout / _SHORTENED_URL_ACCEL))
+            if domain_timeout > 1 and (is_shortened_url(request.url() or domain in _ACCELERATED_DOMAINS)):
+                domain_timeout = max(1, int(self.domain_timeout / _ACCELERATED_DOMAIN_SPEEDUP_FACTOR))
 
             # this postgres function returns true if we are allowed to make the request and false otherwise. this
             # function does not use a table lock, so some extra requests might sneak through, but that's better than
