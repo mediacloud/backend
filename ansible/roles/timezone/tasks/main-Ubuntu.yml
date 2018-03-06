@@ -5,8 +5,6 @@
   tags:
     - timezone
 
-# "timezone" doesn't work in Docker containers (due to the lack of systemd?)
-
 - name: Install tzdata
   apt:
     name: tzdata
