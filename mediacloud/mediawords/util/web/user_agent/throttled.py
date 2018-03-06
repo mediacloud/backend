@@ -10,6 +10,7 @@ from mediawords.util.web.user_agent.request.request import Request
 from mediawords.util.web.user_agent.response.response import Response
 
 from mediawords.util.log import create_logger
+
 log = create_logger(__name__)
 
 # default amount of time in between requests
@@ -28,7 +29,7 @@ class McThrottledDomainException(Exception):
 class ThrottledUserAgent(UserAgent):
     """Add per domain throttling to mediawords.util.web.UserAgent."""
 
-    def __init__(self, db: mediawords.db.DatabaseHandler, domain_timeout: typing.Optional[int]=None) -> None:
+    def __init__(self, db: mediawords.db.DatabaseHandler, domain_timeout: typing.Optional[int] = None) -> None:
         """
         Add database handler and domain_timeout to UserAgent object.
 
