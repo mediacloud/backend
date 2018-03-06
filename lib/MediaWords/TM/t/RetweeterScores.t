@@ -6,7 +6,7 @@ use MediaWords::CommonLibs;
 use Data::Dumper;
 use List::MoreUtils;
 use Readonly;
-use Test::More tests => 407;
+use Test::More tests => 600;
 
 use MediaWords::Util::CSV;
 use MediaWords::TM::RetweeterScores;
@@ -404,7 +404,7 @@ sub test_retweeter_scores($)
 
     srand( 2 );
 
-    my $data = MediaWords::Test::DB::create_test_story_stack_numerated( $db, $NUM_TWITTER_USERS, 1, 10, $label );
+    my $data = MediaWords::Test::DB::create_test_story_stack_numerated( $db, $NUM_TWITTER_USERS, 1, 25, $label );
 
     my $stories = [ grep { $_->{ stories_id } } values( %{ $data } ) ];
 
