@@ -218,9 +218,10 @@ insert into retweeter_media
                 group_b_count,
                 group_a_count_n,
                 case
-                    when group_a_count_n + group_b_count = 0 then 0
+                    when group_a_count_n::float + group_b_count::float = 0 then 0
                     else
-                        1 - ( ( ( group_a_count_n::float / ( group_a_count_n::float + group_b_count::float ) ) - 0 ) * 2 )
+                        1 - ( ( ( group_a_count_n::float /
+                                  ( group_a_count_n::float + group_b_count::float ) ) - 0 ) * 2 )
                     end score
             from mc
                 join mc_norm using ( media_id )
@@ -306,6 +307,9 @@ sub generate_retweeter_scores($$$$$;$)
         num_partitions => $num_partitions
     };
     $score = $db->create( 'retweeter_scores', $score );
+
+    $retweeted_users_a = [ map { lc( $_ ) } @{ $retweeted_users_a } ];
+    $retweeted_users_b = [ map { lc( $_ ) } @{ $retweeted_users_b } ];
 
     my $group_a = _generate_retweeter_group( $db, $score, $retweeted_users_a );
     my $group_b = _generate_retweeter_group( $db, $score, $retweeted_users_b );
