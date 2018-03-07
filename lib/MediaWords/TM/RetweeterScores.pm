@@ -85,13 +85,16 @@ sub _generate_retweeters($$$$)
 
     $db->query( <<SQL, $score->{ retweeter_scores_id } );
 insert into retweeters ( retweeter_scores_id, twitter_user, retweeted_user )
-    select distinct rs.retweeter_scores_id, tt.twitter_user, tt.data->'tweet'->'retweeted_status'->'user'->>'screen_name'
+    select distinct
+            rs.retweeter_scores_id,
+            tt.twitter_user,
+            lower( tt.data->'tweet'->'retweeted_status'->'user'->>'screen_name' )
         from topic_tweets tt
             join topic_tweet_days ttd using ( topic_tweet_days_id )
             join retweeter_scores rs using ( topics_id )
         where
             rs.retweeter_scores_id = ? and
-            tt.data->'tweet'->'retweeted_status'->'user'->>'screen_name' in ( select u from ru )
+            lower( tt.data->'tweet'->'retweeted_status'->'user'->>'screen_name' ) in ( select lower( u ) from ru )
 SQL
 }
 

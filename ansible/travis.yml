@@ -1,5 +1,5 @@
 #
-# Pre-install Media Cloud dependencies for the Docker image used by Travis
+# Pre-install Media Cloud dependencies for the LXD image used by Travis
 #
 
 - name: Set up host for running Media Cloud
@@ -13,7 +13,6 @@
   roles:
     - update-packages
     - common
-    # Doesn't set hostname because Docker depends on setting it itself
     - locale
     - timezone
     - system-packages
