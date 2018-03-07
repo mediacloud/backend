@@ -258,8 +258,14 @@ SQL
 
         push( @{ $queued_stories_ids }, $story->{ stories_id } );
 
-        MediaWords::Job::TM::ExtractStoryLinks->add_to_queue(
-            { stories_id => $story->{ stories_id }, topics_id => $topic->{ topics_id } } );
+        do
+        {
+            eval {
+                MediaWords::Job::TM::ExtractStoryLinks->add_to_queue(
+                    { stories_id => $story->{ stories_id }, topics_id => $topic->{ topics_id } } );
+            };
+            ( sleep( 1 ) && DEBUG( 'waiting for rabbit ...' ) ) if ( error_is_amqp( $@ ) );
+        } until ( !error_is_amqp( $@ ) );
 
         TRACE( "queued link extraction for story $story->{ title } $story->{ url }." );
     }
@@ -937,6 +943,14 @@ sub add_links_to_stories($$)
 
 }
 
+# return true if the $@ error is defined and matches 'AMQP socket not connected'
+sub error_is_amqp($)
+{
+    my ( $error ) = @_;
+
+    return ( $error && ( $error =~ /AMQP socket not connected/ ) );
+}
+
 # create topic_fetch_urls rows correpsonding to the links and queue a FetchLink job for each.  return the tfu rows.
 sub create_and_queue_topic_fetch_urls($$$)
 {
@@ -959,12 +973,19 @@ sub create_and_queue_topic_fetch_urls($$$)
         );
         push( @{ $tfus }, $tfu );
 
-        MediaWords::Job::TM::FetchLink->add_to_queue(
-            {
-                topic_fetch_urls_id => $tfu->{ topic_fetch_urls_id },
-                domain_timeout      => $fetch_link_domain_timeout
-            }
-        );
+        do
+        {
+            eval {
+                MediaWords::Job::TM::FetchLink->add_to_queue(
+                    {
+                        topic_fetch_urls_id => $tfu->{ topic_fetch_urls_id },
+                        domain_timeout      => $fetch_link_domain_timeout
+                    }
+                );
+            };
+            ( sleep( 1 ) && DEBUG( 'waiting for rabbit ...' ) ) if ( error_is_amqp( $@ ) );
+        } until ( !error_is_amqp( $@ ) );
+
     }
 
     return $tfus;
