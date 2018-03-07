@@ -217,8 +217,11 @@ insert into retweeter_media
                 group_a_count,
                 group_b_count,
                 group_a_count_n,
-                1 - ( ( ( group_a_count_n::float / ( group_a_count_n::float + group_b_count::float ) ) - 0 ) * 2 )
-                    score
+                case
+                    when group_a_count_n + group_b_count = 0 then 0
+                    else
+                        1 - ( ( ( group_a_count_n::float / ( group_a_count_n::float + group_b_count::float ) ) - 0 ) * 2 )
+                    end score
             from mc
                 join mc_norm using ( media_id )
     )
