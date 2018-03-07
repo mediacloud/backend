@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4649;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4650;
 
 BEGIN
 
@@ -652,7 +652,8 @@ create index feeds_tags_map_tag on feeds_tags_map (tags_id);
 create table media_tags_map (
     media_tags_map_id    serial            primary key,
     media_id            int                not null references media on delete cascade,
-    tags_id                int                not null references tags on delete cascade
+    tags_id                int                not null references tags on delete cascade,
+    tagged_date         date null default now()
 );
 
 create unique index media_tags_map_media on media_tags_map (media_id, tags_id);
