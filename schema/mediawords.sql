@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4648;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4649;
 
 BEGIN
 
@@ -2060,6 +2060,8 @@ create table snap.live_stories (
 create index live_story_topic on snap.live_stories ( topics_id );
 create unique index live_stories_story on snap.live_stories ( topics_id, stories_id );
 create index live_stories_story_solo on snap.live_stories ( stories_id );
+create index live_stories_topic_story on snap.live_stories ( topic_stories_id );
+
 
 create function insert_live_story() returns trigger as $insert_live_story$
     begin
