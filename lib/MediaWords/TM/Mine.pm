@@ -1213,7 +1213,7 @@ select distinct tl.* from topic_links tl, topic_stories ts
     where
         tl.link_spidered = 'f' and
         tl.stories_id = ts.stories_id and
-        ( ts.iteration < \$1 or ts.iteration = 1000 ) and
+        ( ts.iteration <= \$1 or ts.iteration = 1000 ) and
         ts.topics_id = \$2 and
         tl.topics_id = \$2
 END
