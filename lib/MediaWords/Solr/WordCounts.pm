@@ -36,6 +36,9 @@ use MediaWords::Util::Text;
 # Max. length of the sentence to tokenize
 Readonly my $MAX_SENTENCE_LENGTH => 1024;
 
+# Max. number of times to count a word in a single sentence
+Readonly my $MAX_REPEATS_PER_SENTENCE => 3;
+
 # mediawords.wc_cache_version from config
 my $_wc_cache_version;
 
@@ -293,10 +296,17 @@ sub count_stems($$)
         my $n          = $self->ngram_size;
         my $num_ngrams = scalar( @{ $sentence_words } ) - $n + 1;
 
+        my $sentence_stem_counts = {};
+
         for ( my $i = 0 ; $i < $num_ngrams ; ++$i )
         {
             my $term = join( ' ', @{ $sentence_words }[ $i ..      ( $i + $n - 1 ) ] );
             my $stem = join( ' ', @{ $sentence_word_stems }[ $i .. ( $i + $n - 1 ) ] );
+
+            $sentence_stem_counts->{ $stem } //= {};
+            ++$sentence_stem_counts->{ $stem }->{ count };
+
+            next if ( $sentence_stem_counts->{ $stem }->{ count } > $MAX_REPEATS_PER_SENTENCE );
 
             $stem_counts->{ $stem } //= {};
             ++$stem_counts->{ $stem }->{ count };
