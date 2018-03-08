@@ -99,7 +99,7 @@ sub single_GET
     my ( $self, $c, $id ) = @_;
 
     my $items = $c->dbis->query( <<END, $id )->hashes();
-select t.tags_id, t.tag_sets_id, t.label, t.description, t.tag,
+select t.tags_id, t.tag_sets_id, t.label, t.description, t.tag, t.tagged_date,
         ts.name tag_set_name, ts.label tag_set_label, ts.description tag_set_description,
         t.show_on_media OR ts.show_on_media show_on_media,
         t.show_on_stories OR ts.show_on_stories show_on_stories,
