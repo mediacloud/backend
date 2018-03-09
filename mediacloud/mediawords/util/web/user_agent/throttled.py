@@ -19,6 +19,7 @@ _DEFAULT_DOMAIN_TIMEOUT = 10
 # Domains (in addition to all shortened URLs) for which the throttling will be less intense
 _ACCELERATED_DOMAINS = {
     'twitter.com',
+    'wikipedia.org',
 }
 
 # Divide the normal domain timeout by this for accelerated URLs
