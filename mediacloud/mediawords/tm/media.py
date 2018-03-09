@@ -303,16 +303,11 @@ def guess_medium(db: DatabaseHandler, story_url: str) -> dict:
     medium_name = get_unique_medium_name(db, [medium_name] + all_urls)
     medium_url = get_unique_medium_url(db, all_urls)
 
-    medium = {
-        'name': medium_name,
-        'url': medium_url,
-        'moderated': 't'
-    }
-
     # a race condition with another thread can cause this to fail sometimes, but after the medium in the
     # other process has been created, all should be fine
     for i in range(_GUESS_MEDIUM_RETRIES):
-        medium = db.find_or_create('media', medium)
+        medium = db.find_or_create('media', {'name': medium_name, 'url': medium_url, 'moderated': 't'})
+
         if medium is not None:
             break
         else:
