@@ -14,6 +14,9 @@
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
+create type retweeter_scores_match_type AS ENUM ( 'retweet', 'regex' );
+alter table retweeter_scores add match_type retweeter_scores_match_type not null default 'retweet';
+
 --
 -- 2 of 2. Reset the database version.
 --
@@ -38,5 +41,3 @@ $$
 LANGUAGE 'plpgsql';
 
 SELECT set_database_schema_version();
-
-
