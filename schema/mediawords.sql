@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4649;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4651;
 
 BEGIN
 
@@ -652,7 +652,8 @@ create index feeds_tags_map_tag on feeds_tags_map (tags_id);
 create table media_tags_map (
     media_tags_map_id    serial            primary key,
     media_id            int                not null references media on delete cascade,
-    tags_id                int                not null references tags on delete cascade
+    tags_id                int                not null references tags on delete cascade,
+    tagged_date         date null default now()
 );
 
 create unique index media_tags_map_media on media_tags_map (media_id, tags_id);
@@ -3134,6 +3135,8 @@ create index job_states_class_date on job_states( class, last_updated );
 
 create view pending_job_states as select * from job_states where state in ( 'running', 'queued' );
 
+create type retweeter_scores_match_type AS ENUM ( 'retweet', 'regex' );
+
 -- definition of bipolar comparisons for retweeter polarization scores
 create table retweeter_scores (
     retweeter_scores_id     serial primary key,
@@ -3143,7 +3146,8 @@ create table retweeter_scores (
     name                    text not null,
     state                   text not null default 'created but not queued',
     message                 text null,
-    num_partitions          int not null
+    num_partitions          int not null,
+    match_type              retweeter_scores_match_type not null default 'retweet'
 );
 
 -- group retweeters together so that we an compare, for example, sanders/warren retweeters to cruz/kasich retweeters

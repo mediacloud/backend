@@ -180,7 +180,7 @@ class DatabaseHandler(object):
         if 'ignore_schema_version' in config['mediawords']:
             config_ignore_schema_version = config["mediawords"]["ignore_schema_version"]
 
-        if config_ignore_schema_version and self.__IGNORE_SCHEMA_VERSION_ENV_VARIABLE in os.environ:
+        if config_ignore_schema_version or self.__IGNORE_SCHEMA_VERSION_ENV_VARIABLE in os.environ:
             log.warning("""
                 The current Media Cloud database schema is older than the schema present in mediawords.sql,
                 but %s is set so continuing anyway.

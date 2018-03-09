@@ -18,7 +18,7 @@ use MediaWords::Job::GenerateRetweeterScores;
 
 sub main
 {
-    my ( $topic_opt, $name_opt, $users_a_opt, $users_b_opt, $num_partitions_opt, $direct_job, $csv_opt );
+    my ( $topic_opt, $name_opt, $users_a_opt, $users_b_opt, $num_partitions_opt, $direct_job, $csv_opt, $match_type_opt );
 
     binmode( STDOUT, 'utf8' );
     binmode( STDERR, 'utf8' );
@@ -35,7 +35,8 @@ sub main
         "users_b=s"        => $users_b_opt,
         "num_partitions=s" => \$num_partitions_opt,
         "direct_job!"      => \$direct_job,
-        "csv!"             => \$csv_opt
+        "csv!"             => \$csv_opt,
+        "match_type=s"     => \$match_type_opt
     ) || return;
 
     unless ( $topic_opt && $name_opt && @{ $users_a_opt } && @{ $users_b_opt } )
@@ -63,6 +64,7 @@ sub main
             retweeted_users_a => $users_a_opt,
             retweeted_users_b => $users_b_opt,
             num_partitions    => $num_partitions_opt,
+            match_type        => $match_type_opt
         };
 
         if ( $direct_job )
@@ -72,7 +74,7 @@ sub main
             my $topic = $db->require_by_id( 'topics', $topics_id );
 
             my $score = MediaWords::TM::RetweeterScores::generate_retweeter_scores( $db, $topic, $name_opt, $users_a_opt,
-                $users_b_opt, $num_partitions_opt );
+                $users_b_opt, $num_partitions_opt, $match_type_opt );
 
             if ( $csv_opt )
             {

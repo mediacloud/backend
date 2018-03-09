@@ -16,6 +16,7 @@ use MediaWords::Test::Supervisor;
 use MediaWords::Test::URLs;
 
 use MediaWords::DBI::Media::Health;
+use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
 
 Readonly my $NUM_MEDIA            => 5;
@@ -32,6 +33,7 @@ sub test_media_list_call($$)
     my $label = "media/list with params " . $d->Dump;
 
     my $got_media = test_get( '/api/v2/media/list', $params );
+
     is( scalar( @{ $got_media } ), scalar( @{ $expected_media } ), "$label number of media" );
     for my $got_medium ( @{ $got_media } )
     {
@@ -41,6 +43,12 @@ sub test_media_list_call($$)
         my $fields = [ qw/name url is_healthy is_monitored editor_notes public_notes/ ];
         map { ok( defined( $got_medium->{ $_ } ), "$label field $_ defined" ) } @{ $fields };
         map { is( $got_medium->{ $_ }, $expected_medium->{ $_ }, "$label field $_" ) } @{ $fields };
+
+        if ( my $tag = $got_medium->{ media_source_tags }->[ 0 ] )
+        {
+            my $today = substr( MediaWords::Util::SQL::sql_now(), 0, 10 );
+            is( $tag->{ tagged_date }, $today, 'tagged date' );
+        }
     }
 }
 
