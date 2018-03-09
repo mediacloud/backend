@@ -364,7 +364,8 @@ sub _get_words_from_solr_server($)
               ON $ids_table.id = story_sentences.story_sentences_id
             INNER JOIN stories
                 ON story_sentences.stories_id = stories.stories_id
-
+        WHERE
+            not stories.url ilike '%.pdf' -- don't try to count words from pdfs
 SQL
     )->hashes;
 

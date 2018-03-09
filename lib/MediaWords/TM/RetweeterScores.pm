@@ -72,9 +72,9 @@ SQL
 # in another group will generate one row for each user who retweeted hillaryclinton at least once and
 # one row for each user who retweeted realdonaltrump at least once.
 #
-# if $use_regexes is true, mark as retweeters users who match one of the patterns instead of users who
+# if score->{ match_type } is 'regex', mark as retweeters users who match one of the patterns instead of users who
 # retweeted the given user.
-sub _generate_retweeters($$$$;$)
+sub _generate_retweeters($$$$)
 {
     my ( $db, $score, $group_a, $group_b, $use_regexes ) = @_;
 
