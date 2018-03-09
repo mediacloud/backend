@@ -1,22 +1,28 @@
 """Implement ThrottledUserAgent as a sub class of mediawords.util.web.UserAgent with per domain throttling."""
 
-import re
 import typing
 
 import mediawords.db
 import mediawords.util.config
+from mediawords.util.url import is_shortened_url
 from mediawords.util.web.user_agent import UserAgent
 from mediawords.util.web.user_agent.request.request import Request
 from mediawords.util.web.user_agent.response.response import Response
 
 from mediawords.util.log import create_logger
+
 log = create_logger(__name__)
 
 # default amount of time in between requests
 _DEFAULT_DOMAIN_TIMEOUT = 10
 
-# divide the normal domain timeout by this for shortened urls
-_SHORTENED_URL_ACCEL = 10
+# Domains (in addition to all shortened URLs) for which the throttling will be less intense
+_ACCELERATED_DOMAINS = {
+    'twitter.com',
+}
+
+# Divide the normal domain timeout by this for accelerated URLs
+_ACCELERATED_DOMAIN_SPEEDUP_FACTOR = 10
 
 
 class McThrottledDomainException(Exception):
@@ -25,26 +31,10 @@ class McThrottledDomainException(Exception):
     pass
 
 
-def _is_shortened_url(url: str) -> bool:
-    """Return true if the url looks like a shortened url."""
-    regex = (
-        r'https?://(?:bit\.ly|t\.co|fb\.me|goo\.gl|youtu\.be|ln\.is|'
-        r'wapo\.st|politi\.co|[^/]*twitter\.com|[^/]*feedburner\.com|archive\.is)/'
-    )
-    if re.match(regex, url, flags=re.I) is not None:
-        # anything with the domain of the one of the major shorteners gets a true
-        return True
-    elif re.match(r'https?://[a-z]{1,4}\.[a-z]{2}/([a-z0-9]){3,12}/?$', url, flags=re.I) is not None:
-        # otherwise match the typical https://wapo.st/4FGH5Re3 format
-        return True
-    else:
-        return False
-
-
 class ThrottledUserAgent(UserAgent):
     """Add per domain throttling to mediawords.util.web.UserAgent."""
 
-    def __init__(self, db: mediawords.db.DatabaseHandler, domain_timeout: typing.Optional[int]=None) -> None:
+    def __init__(self, db: mediawords.db.DatabaseHandler, domain_timeout: typing.Optional[int] = None) -> None:
         """
         Add database handler and domain_timeout to UserAgent object.
 
@@ -78,15 +68,15 @@ class ThrottledUserAgent(UserAgent):
         other followup requests to succeed.  To ensure proper throttling, a new object should be create for each
         top level request.
 
-        If the domain_timeout is greater than 0, shortened links (eg. http://bit.ly/EFGDfrTg) divide the domain
-        timeout by _SHORTENED_URL_ACCEL, with a minimum of 1.
+        Accelerated domains and shortened links (eg. http://bit.ly/EFGDfrTg) get their timeout divided by
+        _ACCELERATED_DOMAIN_SPEEDUP_FACTOR.
         """
         if self._use_throttling:
             domain = mediawords.util.url.get_url_distinctive_domain(request.url())
 
             domain_timeout = self.domain_timeout
-            if domain_timeout > 1 and _is_shortened_url(request.url()):
-                    domain_timeout = max(1, int(self.domain_timeout / _SHORTENED_URL_ACCEL))
+            if domain_timeout > 1 and (is_shortened_url(request.url() or domain in _ACCELERATED_DOMAINS)):
+                domain_timeout = max(1, int(self.domain_timeout / _ACCELERATED_DOMAIN_SPEEDUP_FACTOR))
 
             # this postgres function returns true if we are allowed to make the request and false otherwise. this
             # function does not use a table lock, so some extra requests might sneak through, but that's better than

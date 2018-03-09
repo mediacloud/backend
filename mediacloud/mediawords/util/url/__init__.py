@@ -384,7 +384,7 @@ def normalize_url_lossy(url: str) -> Optional[str]:
     return url
 
 
-def __is_shortened_url(url: str) -> bool:
+def is_shortened_url(url: str) -> bool:
     """Returns true if URL is a shortened URL (e.g. with Bit.ly)."""
     url = decode_object_from_bytes_if_needed(url)
     if url is None:
@@ -407,6 +407,10 @@ def __is_shortened_url(url: str) -> bool:
 
     uri_host = uri.host.lower()
     if uri_host in URL_SHORTENER_HOSTNAMES:
+        return True
+
+    # Otherwise match the typical https://wapo.st/4FGH5Re3 format
+    if re.match(r'https?://[a-z]{1,4}\.[a-z]{2}/([a-z0-9]){3,12}/?$', url, flags=re.IGNORECASE) is not None:
         return True
 
     return False
@@ -438,7 +442,7 @@ def is_homepage_url(url: str) -> bool:
 
     # The shortened URL may lead to a homepage URL, but the shortened URL
     # itself is not a homepage URL
-    if __is_shortened_url(url):
+    if is_shortened_url(url):
         return False
 
     # If we still have something for a query of the URL after the
