@@ -83,7 +83,7 @@ Readonly my $MAX_GEXF_MEDIA => 500;
 Readonly my $BOT_TWEETS_PER_DAY => 200;
 
 # only layout the gexf export if there are fewer than this number of sources in the graph
-Readonly my $MAX_LAYOUT_SOURCES => 1000;
+Readonly my $MAX_LAYOUT_SOURCES => 2000;
 
 # attributes to include in gexf snapshot
 my $_media_static_gexf_attribute_types = {
@@ -918,6 +918,25 @@ sub attach_stories_to_media
     map { push( @{ $media_lookup->{ $_->{ media_id } }->{ stories } }, $_ ) } @{ $stories };
 }
 
+# return only the $edges that are within the giant component of the network
+sub trim_to_giant_component($)
+{
+    my ( $edges ) = @_;
+
+    my $edge_pairs = [ map { [ $_->{ source }, $_->{ target } ] } @{ $edges } ];
+
+    my $trimmed_edges = MediaWords::TM::Snapshot::GraphLayout::giant_component( $edge_pairs );
+
+    my $edge_lookup = {};
+    map { $edge_lookup->{ $_->[ 0 ] }->{ $_->[ 1 ] } = 1 } @{ $trimmed_edges };
+
+    my $links = [ grep { $edge_lookup->{ $_->{ source } }->{ $_->{ target } } } @{ $edges } ];
+
+    DEBUG( "trim_to_giant_component: " . scalar( @{ $edges } ) . " -> " . scalar( @{ $links } ) );
+
+    return $links;
+}
+
 sub get_weighted_edges
 {
     my ( $db, $media, $options ) = @_;
@@ -963,6 +982,8 @@ END
 
         push( @{ $edges }, $edge );
     }
+
+    $edges = trim_to_giant_component( $edges );
 
     return $edges;
 }
@@ -1158,81 +1179,6 @@ sub layout_gexf($)
     }
 
     # scale_gexf_nodes( $gexf );
-}
-
-# add layout to gexf by calling graphviz
-sub layout_gexf_with_graphviz
-{
-    my ( $gexf ) = @_;
-
-    my $nodes = $gexf->{ graph }->[ 0 ]->{ nodes }->{ node };
-    my $edges = $gexf->{ graph }->[ 0 ]->{ edges }->{ edge };
-
-    # $edges = prune_links_to_top_nodes( $nodes, $edges, 5 );
-    # $edges = prune_links_to_min_size( $nodes, $edges, 5 );
-
-    my $graph_size       = 800;
-    my $graph_attributes = {
-        driver => '/usr/bin/neato',
-        height => $graph_size,
-        width  => $graph_size,
-        format => 'dot'
-    };
-
-    my $graph = GraphViz2->new( global => $graph_attributes );
-
-    my $node_lookup = {};
-    map { $node_lookup->{ $_->{ id } } = $_; $graph->add_node( name => $_->{ id } ) } @{ $nodes };
-    map { $graph->add_edge( from => $_->{ source }, to => $_->{ target } ) } @{ $edges };
-
-    $graph->run;
-    my $output = $graph->dot_output;
-
-    while ( $output =~ /(\d+) \[pos="(\d+(?:\.\d+)?),(\d+(?:\.\d+)?)"/g )
-    {
-        my ( $node_id, $x, $y ) = ( $1, $2, $3 );
-
-        $node_lookup->{ $node_id }->{ 'viz:position' }->{ x } = $x;
-        $node_lookup->{ $node_id }->{ 'viz:position' }->{ y } = $y;
-    }
-
-    scale_gexf_nodes( $gexf );
-}
-
-# add layout to gexf by calling graphviz
-sub layout_gexf_with_graphviz_1
-{
-    my ( $gexf ) = @_;
-
-    my $nodes = $gexf->{ graph }->[ 0 ]->{ nodes }->{ node };
-    my $edges = $gexf->{ graph }->[ 0 ]->{ edges }->{ edge };
-
-    # $edges = prune_links_to_top_nodes( $nodes, $edges, 5 );
-    # $edges = prune_links_to_min_size( $nodes, $edges, 5 );
-
-    my $graph_size = 800;
-    my $graph      = GraphViz->new(
-        layout => "/usr/bin/sfdp",
-        height => $graph_size,
-        width  => $graph_size,
-        k      => 10
-    );
-
-    my $node_lookup = {};
-    map { $node_lookup->{ $_->{ id } } = $_; $graph->add_node( $_->{ id } ) } @{ $nodes };
-    map { $graph->add_edge( $_->{ source }, $_->{ target } ) } @{ $edges };
-
-    my $output = $graph->as_text;
-
-    while ( $output =~ /label=(\d+), pos="(\d+(?:\.\d+)?),(\d+(?:\.\d+)?)"/g )
-    {
-        my ( $node_id, $x, $y ) = ( $1, $2, $3 );
-
-        $node_lookup->{ $node_id }->{ 'viz:position' }->{ x } = $x;
-        $node_lookup->{ $node_id }->{ 'viz:position' }->{ y } = $y;
-    }
-
-    scale_gexf_nodes( $gexf );
 }
 
 # get a descirption for the gexf file export

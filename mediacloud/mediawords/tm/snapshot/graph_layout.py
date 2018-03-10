@@ -109,3 +109,19 @@ def layout_gexf(gexf: str) -> Dict:
         int_layout[layout_id] = (int(pos[0] * scale), int(pos[1] * scale))
 
     return int_layout
+
+
+def giant_component(edges: list) -> list:
+    """Accept a list of edges as pairs of ids and return only the edges that are within the giant component."""
+    ids = []
+    for edge in edges:
+        ids += edge
+
+    graph = nx.DiGraph()
+
+    [graph.add_node(id) for id in ids]
+    [graph.add_edge(edge[0], edge[1]) for edge in edges]
+
+    graph = max(nx.weakly_connected_component_subgraphs(graph), key=len)
+
+    return list(graph.edges())
