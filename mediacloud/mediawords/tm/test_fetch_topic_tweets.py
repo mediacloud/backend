@@ -103,7 +103,7 @@ class MockTwitter(mediawords.tm.fetch_topic_tweets.AbstractTwitter):
                 {
                     'id': tweet_id,
                     'text': "sample tweet for id id",
-                    'created_at': '2017-01-01',
+                    'created_at': '2018-12-13',
                     'user': {'screen_name': "user-" + str(user_id)},
                     'entities': {'urls': [{'expanded_url': test_url}]}
                 })
