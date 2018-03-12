@@ -1617,7 +1617,7 @@ update topic_seed_urls tsu
     from topic_fetch_urls tfu, $ids_table ids
     where
         tsu.topics_id = tfu.topics_id and
-        tsu.url = tfu.url and
+        md5(tsu.url) = md5(tfu.url) and
         tsu.topic_seed_urls_id = ids.id
 SQL
 
