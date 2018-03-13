@@ -1,12 +1,12 @@
 --
 -- This is a Media Cloud PostgreSQL schema difference file (a "diff") between schema
--- versions 4647 and 4648.
+-- versions 4648 and 4649.
 --
 -- If you are running Media Cloud with a database that was set up with a schema version
--- 4647, and you would like to upgrade both the Media Cloud and the
--- database to be at version 4648, import this SQL file:
+-- 4648, and you would like to upgrade both the Media Cloud and the
+-- database to be at version 4649, import this SQL file:
 --
---     psql mediacloud < mediawords-4647-4648.sql
+--     psql mediacloud < mediawords-4648-4649.sql
 --
 -- You might need to import some additional schema diff files to reach the desired version.
 --
@@ -14,7 +14,7 @@
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
-create index topic_fetch_urls_link on topic_fetch_urls(topic_links_id);
+create index live_stories_topic_story on snap.live_stories ( topic_stories_id );
 
 --
 -- 2 of 2. Reset the database version.
@@ -25,7 +25,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4648;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4649;
 
 BEGIN
 

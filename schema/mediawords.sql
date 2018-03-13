@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4648;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4653;
 
 BEGIN
 
@@ -652,7 +652,8 @@ create index feeds_tags_map_tag on feeds_tags_map (tags_id);
 create table media_tags_map (
     media_tags_map_id    serial            primary key,
     media_id            int                not null references media on delete cascade,
-    tags_id                int                not null references tags on delete cascade
+    tags_id                int                not null references tags on delete cascade,
+    tagged_date         date null default now()
 );
 
 create unique index media_tags_map_media on media_tags_map (media_id, tags_id);
@@ -1496,6 +1497,7 @@ create table topic_fetch_urls(
 
 create index topic_fetch_urls_pending on topic_fetch_urls(topics_id) where state = 'pending';
 create index topic_fetch_urls_url on topic_fetch_urls(md5(url));
+create index topic_fetch_urls_link on topic_fetch_urls(topic_links_id);
 
 create table topic_ignore_redirects (
     topic_ignore_redirects_id     serial primary key,
@@ -2059,6 +2061,8 @@ create table snap.live_stories (
 create index live_story_topic on snap.live_stories ( topics_id );
 create unique index live_stories_story on snap.live_stories ( topics_id, stories_id );
 create index live_stories_story_solo on snap.live_stories ( stories_id );
+create index live_stories_topic_story on snap.live_stories ( topic_stories_id );
+
 
 create function insert_live_story() returns trigger as $insert_live_story$
     begin
@@ -3160,6 +3164,8 @@ create index job_states_class_date on job_states( class, last_updated );
 
 create view pending_job_states as select * from job_states where state in ( 'running', 'queued' );
 
+create type retweeter_scores_match_type AS ENUM ( 'retweet', 'regex' );
+
 -- definition of bipolar comparisons for retweeter polarization scores
 create table retweeter_scores (
     retweeter_scores_id     serial primary key,
@@ -3169,7 +3175,8 @@ create table retweeter_scores (
     name                    text not null,
     state                   text not null default 'created but not queued',
     message                 text null,
-    num_partitions          int not null
+    num_partitions          int not null,
+    match_type              retweeter_scores_match_type not null default 'retweet'
 );
 
 -- group retweeters together so that we an compare, for example, sanders/warren retweeters to cruz/kasich retweeters
@@ -3423,17 +3430,20 @@ CREATE TABLE similarweb_metrics (
     similarweb_metrics_id  SERIAL                   PRIMARY KEY,
     domain                 VARCHAR(1024)            NOT NULL,
     month                  DATE,
-    visits                 INTEGER,
-    update_date            TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    UNIQUE (domain, month)
+    visits                 BIGINT,
+    update_date            TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
+
+CREATE UNIQUE INDEX similarweb_metrics_domain_month
+    ON similarweb_metrics (domain, month);
+
 
 --
 -- Unnormalized table
 --
 CREATE TABLE similarweb_media_metrics (
     similarweb_media_metrics_id    SERIAL                   PRIMARY KEY,
-    media_id                       INTEGER                  UNIQUE NOT NULL references media,
+    media_id                       INTEGER                  NOT NULL UNIQUE references media,
     similarweb_domain              VARCHAR(1024)            NOT NULL,
     domain_exact_match             BOOLEAN                  NOT NULL,
     monthly_audience               INTEGER                  NOT NULL,

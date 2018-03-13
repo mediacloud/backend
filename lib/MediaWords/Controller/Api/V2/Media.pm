@@ -68,7 +68,7 @@ sub _add_nested_data
     {
         # TRACE "adding media_source tags ";
         $medium->{ media_source_tags } = $db->query( <<END, $medium->{ media_id } )->hashes;
-select t.tags_id, t.tag, t.label, t.description, ts.tag_sets_id, ts.name as tag_set,
+select t.tags_id, t.tag, t.label, t.description, mtm.tagged_date, ts.tag_sets_id, ts.name as tag_set,
         ( t.show_on_media or ts.show_on_media ) show_on_media,
         ( t.show_on_stories or ts.show_on_stories ) show_on_stories
     from media_tags_map mtm

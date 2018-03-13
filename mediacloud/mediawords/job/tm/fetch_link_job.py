@@ -76,21 +76,27 @@ class FetchLinkJob(AbstractJob):
             # if a domain has been throttled, just add it back to the end of the queue
             log.info("Fetch for topic_fetch_url %d domain throttled.  Requeueing ..." % topic_fetch_urls_id)
 
-            cls._consecutive_requeues += 1
-            if cls._consecutive_requeues > REQUEUES_UNTIL_SLEEP:
-                log.info("sleeping after %d consecutive retries ..." % cls._consecutive_requeues)
-                time.sleep(1)
-
             db.update_by_id(
                 'topic_fetch_urls',
                 topic_fetch_urls_id,
                 {'state': mediawords.tm.fetch_link.FETCH_STATE_REQUEUED, 'fetch_date': datetime.datetime.now()})
             if not dummy_requeue:
                 FetchLinkJob.add_to_queue(topic_fetch_urls_id)
+
+            cls._consecutive_requeues += 1
+            if cls._consecutive_requeues > REQUEUES_UNTIL_SLEEP:
+                log.info("sleeping after %d consecutive retries ..." % cls._consecutive_requeues)
+                time.sleep(1)
+
         except Exception as ex:
+            # all non throttled errors should get caught by the try: about, but catch again here just in case
             cls._consecutive_requeues = 0
-            raise McFetchLinkJobException(
-                "Unable to process topic_fetch_url %d: %s" % (topic_fetch_urls_id, traceback.format_exc()))
+            update = {
+                'state': mediawords.tm.fetch_link.FETCH_STATE_PYTHON_ERROR,
+                'fetch_date': datetime.datetime.now(),
+                'message': traceback.format_exc()
+            }
+            db.update_by_id('topic_fetch_urls', topic_fetch_urls_id, update)
 
         db.disconnect()
 
