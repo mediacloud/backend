@@ -426,6 +426,17 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         primary_key = self.db().primary_key_column('kardashians')
         assert primary_key == 'id'
 
+        # Different schema
+        self.db().query("CREATE SCHEMA IF NOT EXISTS test")
+        self.db().query("""
+            CREATE TABLE IF NOT EXISTS test.table_with_primary_key (
+                primary_key_column SERIAL PRIMARY KEY NOT NULL,
+                some_other_column TEXT NOT NULL
+            )
+        """)
+        primary_key = self.db().primary_key_column('test.table_with_primary_key')
+        assert primary_key == 'primary_key_column'
+
     def test_find_by_id(self):
         row_hash = self.db().find_by_id(table='kardashians', object_id=4)
         assert row_hash['name'] == 'Kim'
@@ -593,7 +604,7 @@ class TestDatabaseHandler(TestDatabaseTestCase):
     def test_copy_from(self):
         copy = self.db().copy_from(sql="COPY kardashians (name, surname, dob, married_to_kanye) FROM STDIN WITH CSV")
         copy.put_line("Lamar,Odom,1979-11-06,f\n")
-        copy.put_line("Sam Brody,Jenner,1983-08-21,f\n")
+        copy.put_line("Sam Brody,𝐽𝑒𝑛𝑛𝑒𝑟,1983-08-21,f\n")  # UTF-8
         copy.end()
 
         row = self.db().query("SELECT * FROM kardashians WHERE name = 'Lamar'").hash()
@@ -603,7 +614,7 @@ class TestDatabaseHandler(TestDatabaseTestCase):
 
         row = self.db().query("SELECT * FROM kardashians WHERE name = 'Sam Brody'").hash()
         assert row is not None
-        assert row['surname'] == 'Jenner'
+        assert row['surname'] == '𝐽𝑒𝑛𝑛𝑒𝑟'
         assert str(row['dob']) == '1983-08-21'
 
     def test_copy_to(self):
@@ -617,16 +628,28 @@ class TestDatabaseHandler(TestDatabaseTestCase):
 
         copy = self.db().copy_to(sql=sql)
         line = copy.get_line()
-        copy.end()
         assert line == "Kris,Jenner,1955-11-05,f\n"
+
+        # UTF-8
+        copy.get_line()  # Caitlyn Jenner
+        copy.get_line()  # Kourtney Kardashian
+        copy.get_line()  # Kim Kardashian
+        line = copy.get_line()
+        assert line == "Khloé,Kardashian,1984-06-27,f\n"
+
+        copy.end()
 
         # Test iterator
         copy = self.db().copy_to(sql=sql)
         count = 0
-        for _ in copy:
+        found_utf8_khloe = False
+        for line in copy:
             count += 1
+            if 'Khloé' in line:
+                found_utf8_khloe = True
         copy.end()
         assert count == 8
+        assert found_utf8_khloe is True
 
     def test_get_temporary_ids_table(self):
         ints = [1, 2, 3, 4, 5]

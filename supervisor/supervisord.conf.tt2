@@ -279,6 +279,16 @@ programs = rabbitmq
 %]
 
 [% INCLUDE program_config
+    program='word2vec_generate_snapshot_model'
+    command="./script/run_in_env.sh ./mediacloud/mediawords/job/word2vec/generate_snapshot_model.py"
+    default_stopasgroup='false'
+    default_killasgroup='false'
+    default_autorestart='false'
+    default_autostart='true'
+    default_nice=10
+%]
+
+[% INCLUDE program_config
     program='facebook_fetch_story_stats'
     worker_module='Facebook/FetchStoryStats.pm'
     default_stopasgroup='false'
@@ -296,7 +306,6 @@ programs = rabbitmq
     default_autorestart='false'
     default_autostart='true'
     default_nice=10
-    default_numprocs=5
 %]
 
 [% INCLUDE program_config
@@ -307,7 +316,6 @@ programs = rabbitmq
     default_autorestart='false'
     default_autostart='true'
     default_nice=10
-    default_numprocs=5
 %]
 
 [%- solr_standalone_jvm_heap_size = supervisor_solr.standalone.jvm_heap_size || "256m" %]

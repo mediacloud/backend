@@ -1907,6 +1907,8 @@ filter for bots (a bot is defined as any user tweeting more than 200 post per da
 The periods should be a list of periods to include in the snapshot, where the allowed periods are custom,
 overall, weekly, and monthly.  If periods is not specificied or is empty, all periods will be generated.
 
+Returns snapshot ID of a newly generated snapshot.
+
 =cut
 
 sub snapshot_topic ($$;$$$)
@@ -1960,6 +1962,8 @@ sub snapshot_topic ($$;$$$)
 
     # update this manually because snapshot_topic might be called directly from Mine::mine_topic()
     $db->update_by_id( 'snapshots', $snap->{ snapshots_id }, { state => $MediaWords::AbstractJob::STATE_COMPLETED } );
+
+    return $snap->{ snapshots_id };
 }
 
 1;

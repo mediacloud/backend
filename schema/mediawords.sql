@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4652;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4653;
 
 BEGIN
 
@@ -2111,6 +2111,34 @@ $update_live_story$ LANGUAGE plpgsql;
 create trigger stories_update_live_story after update on stories
     for each row execute procedure update_live_story();
 
+
+--
+-- Snapshot word2vec models
+--
+CREATE TABLE snap.word2vec_models (
+    word2vec_models_id  SERIAL      PRIMARY KEY,
+    object_id           INTEGER     NOT NULL REFERENCES snapshots (snapshots_id) ON DELETE CASCADE,
+    creation_date       TIMESTAMP   NOT NULL DEFAULT NOW()
+);
+
+-- We'll need to find the latest word2vec model
+CREATE INDEX snap_word2vec_models_object_id_creation_date ON snap.word2vec_models (object_id, creation_date);
+
+CREATE TABLE snap.word2vec_models_data (
+    word2vec_models_data_id SERIAL      PRIMARY KEY,
+    object_id               INTEGER     NOT NULL
+                                            REFERENCES snap.word2vec_models (word2vec_models_id)
+                                            ON DELETE CASCADE,
+    raw_data                BYTEA       NOT NULL
+);
+CREATE UNIQUE INDEX snap_word2vec_models_data_object_id ON snap.word2vec_models_data (object_id);
+
+-- Don't (attempt to) compress BLOBs in "raw_data" because they're going to be
+-- compressed already
+ALTER TABLE snap.word2vec_models_data
+    ALTER COLUMN raw_data SET STORAGE EXTERNAL;
+
+
 create table processed_stories (
     processed_stories_id        bigserial          primary key,
     stories_id                  int             not null references stories on delete cascade
@@ -2989,6 +3017,7 @@ create view topic_tweet_full_urls as
             join topic_tweet_urls ttu using ( topic_tweets_id )
             left join topic_seed_urls tsu
                 on ( tsu.topics_id = t.topics_id and ttu.url = tsu.url );
+
 
 create table snap.timespan_tweets (
     topic_tweets_id     int not null references topic_tweets on delete cascade,
