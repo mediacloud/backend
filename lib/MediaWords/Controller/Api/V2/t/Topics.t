@@ -10,9 +10,11 @@ use Test::More;
 use MediaWords::Test::API;
 use MediaWords::Test::DB;
 
+use Catalyst::Test 'MediaWords';
 use Readonly;
 use MediaWords::Controller::Api::V2::Topics;
 use MediaWords::DBI::Auth::Roles;
+use MediaWords::Test::API;
 use MediaWords::Test::DB;
 
 Readonly my $NUM_MEDIA            => 5;
