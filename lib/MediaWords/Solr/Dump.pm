@@ -1290,19 +1290,20 @@ sub _update_snapshot_solr_status
 {
     my ( $db ) = @_;
 
-    # the combination the searchable clause and the not exists which stops after the first hit should
-    # make this quite fast
+    # carefully tuned to perform well with large snap.story_link_counts and large solr_import_extra_stories
     $db->query( <<SQL );
-update snapshots s set searchable = true
-    where
-        searchable = false and
-        not exists (
-            select 1
-                from timespans t
-                    join snap.story_link_counts slc using ( timespans_id )
-                    join solr_import_extra_stories sies using ( stories_id )
-                where t.snapshots_id = s.snapshots_id
-        )
+update snapshots s
+	set searchable = true
+	where
+		searchable = false and
+		not exists (
+			select 1
+				from timespans t
+					join snap.story_link_counts slc using ( timespans_id )
+				where
+					t.snapshots_id = s.snapshots_id  and
+					exists ( select 1 from solr_import_extra_stories s where slc.stories_id = s.stories_id )
+		);
 SQL
 }
 
