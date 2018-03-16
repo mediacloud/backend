@@ -32,6 +32,7 @@ def test_get_links_from_html() -> None:
     test_links('<a href="http://api.bleacherreport.com/api/v1/tags/cm-punk.json">', [])
     test_links('<a href="http://apidomain.com">', ['http://apidomain.com'])
     test_links('<a href="http://www.rumormillnews.com/cgi-bin/forum.cgi?noframes;read=54990">', [])
+    test_links('<a href="http://tvtropes.org/pmwiki/pmwiki.php/Main/ClockTower">', [])
 
     # sanity test to make sure that we are able to get all of the links from a real html page
     filename = mediawords.util.paths.mc_root_path() + '/mediacloud/test-data/html/strip.html'
