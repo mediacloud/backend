@@ -568,8 +568,6 @@ sub story_matches_topic_pattern
 {
     my ( $db, $topic, $story, $metadata_only ) = @_;
 
-    return 'sentence' if ( !$metadata_only && ( story_sentence_matches_pattern( $db, $story, $topic ) ) );
-
     my $meta_values = [ map { $story->{ $_ } } qw/title description url redirect_url/ ];
 
     my $match = $db->query( <<SQL, $topic->{ topics_id }, @{ $meta_values } )->hash;
@@ -586,6 +584,8 @@ select 1
 SQL
 
     return 'meta' if $match;
+
+    return 'sentence' if ( !$metadata_only && ( story_sentence_matches_pattern( $db, $story, $topic ) ) );
 
     return 0;
 }
@@ -1617,7 +1617,7 @@ update topic_seed_urls tsu
     from topic_fetch_urls tfu, $ids_table ids
     where
         tsu.topics_id = tfu.topics_id and
-        tsu.url = tfu.url and
+        md5(tsu.url) = md5(tfu.url) and
         tsu.topic_seed_urls_id = ids.id
 SQL
 

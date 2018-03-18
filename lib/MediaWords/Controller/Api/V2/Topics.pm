@@ -71,46 +71,87 @@ sub _get_topics_list($$$)    # sql clause for fields to query from job_states fo
     }
 
     my $topics = $db->query(
-        <<END,
-
-select t.topics_id, t.name, t.pattern, t.solr_seed_query, t.solr_seed_query_run,
-        t.description, t.max_iterations, t.state,
-        t.message, t.is_public, t.ch_monitor_id, t.twitter_topics_id, t.start_date, t.end_date,
-        min( p.auth_users_id ) auth_users_id, min( p.user_permission ) user_permission,
-        t.job_queue, t.max_stories, t.is_logogram
-    from topics t
-        join topics_with_user_permission p using ( topics_id )
-        left join snapshots snap on ( t.topics_id = snap.topics_id )
-    where
-        $id_clause
-        $public_clause
-        p.auth_users_id= \$1 and
-        t.name ilike \$2 and
-        p.user_permission <> 'none'
-    group by t.topics_id
-    order by t.state = 'completed', t.state,  max( coalesce( snap.snapshot_date, '2000-01-01'::date ) ) desc
-    limit \$3 offset \$4
-END
+        <<SQL,
+            SELECT
+                t.topics_id,
+                t.name,
+                t.pattern,
+                t.solr_seed_query,
+                t.solr_seed_query_run,
+                t.description,
+                t.max_iterations,
+                t.state,
+                t.message,
+                t.is_public,
+                t.ch_monitor_id,
+                t.twitter_topics_id,
+                t.start_date,
+                t.end_date,
+                MIN(p.auth_users_id) AS auth_users_id,
+                MIN(p.user_permission) AS user_permission,
+                t.job_queue,
+                t.max_stories,
+                t.is_logogram
+            FROM topics AS t
+                JOIN topics_with_user_permission AS p USING (topics_id)
+                LEFT JOIN snapshots AS snap ON t.topics_id = snap.topics_id
+            WHERE
+                $id_clause
+                $public_clause
+                p.auth_users_id= \$1 AND
+                t.name ILIKE \$2 AND
+                p.user_permission != 'none'
+            GROUP BY t.topics_id
+            ORDER BY
+                t.state = 'completed',
+                t.state,
+                MAX(COALESCE(snap.snapshot_date, '2000-01-01'::date)) DESC
+            LIMIT \$3
+            OFFSET \$4
+SQL
         $auth_users_id, '%' . $name . '%', $limit, $offset
     )->hashes;
 
-    $topics = $db->attach_child_query( $topics, <<SQL, 'media', 'topics_id' );
-select m.media_id, m.name, tmm.topics_id
-    from media m join topics_media_map tmm using ( media_id )
+    $topics = $db->attach_child_query(
+        $topics, <<SQL,
+        SELECT
+            m.media_id,
+            m.name,
+            tmm.topics_id
+        FROM media AS m
+            JOIN topics_media_map AS tmm USING (media_id)
 SQL
+        'media', 'topics_id'
+    );
 
-    $topics = $db->attach_child_query( $topics, <<SQL, 'media_tags', 'topics_id' );
-select t.tags_id, t.tag, t.label, t.description, tmtm.topics_id
-    from tags t join topics_media_tags_map tmtm using ( tags_id )
+    $topics = $db->attach_child_query(
+        $topics, <<SQL,
+        SELECT
+            t.tags_id,
+            t.tag,
+            t.label,
+            t.description,
+            tmtm.topics_id
+        FROM tags AS t
+            JOIN topics_media_tags_map AS tmtm USING (tags_id)
 SQL
+        'media_tags', 'topics_id'
+    );
 
-    $topics = $db->attach_child_query( $topics, <<SQL, 'owners', 'topics_id' );
-select tp.topics_id, au.auth_users_id, au.email, au.full_name
-    from topic_permissions tp
-        join auth_users au using ( auth_users_id )
+    $topics = $db->attach_child_query(
+        $topics, <<SQL,
+        SELECT
+            tp.topics_id,
+            au.auth_users_id,
+            au.email,
+            au.full_name
+        FROM topic_permissions AS tp
+            JOIN auth_users AS au USING (auth_users_id)
     where
         tp.permission = 'admin'
 SQL
+        'owners', 'topics_id'
+    );
 
     return $topics;
 }
