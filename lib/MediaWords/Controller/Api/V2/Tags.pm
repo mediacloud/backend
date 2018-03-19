@@ -17,8 +17,8 @@ __PACKAGE__->config(
     action => {
         single => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         list   => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        update => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
-        create => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
+        update => { Does => [ qw( ~MediaEditAuthenticated ~Throttled ~Logged ) ] },
+        create => { Does => [ qw( ~MediaEditAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
