@@ -64,26 +64,33 @@ sub _add_nested_data
 
     my ( $self, $db, $media ) = @_;
 
-    foreach my $medium ( @{ $media } )
+    Readonly my $single => 1;
+    $media = $db->attach_child_query( $media, <<SQL, 'is_healthy', 'media_id', $single );
+select m.media_id, coalesce( h.is_healthy, true ) is_healthy from media m left join media_health h using ( media_id )
+SQL
+
+    for my $field ( qw/num_stories_90 num_sentences_90/ )
     {
-        # TRACE "adding media_source tags ";
-        $medium->{ media_source_tags } = $db->query( <<END, $medium->{ media_id } )->hashes;
-select t.tags_id, t.tag, t.label, t.description, mtm.tagged_date, ts.tag_sets_id, ts.name as tag_set,
+        $media = $db->attach_child_query( $media, <<SQL, $field, 'media_id', $single );
+select m.media_id, coalesce( h.$field, 0 )::float $field from media m left join media_health h using ( media_id )
+SQL
+    }
+
+    my $media_ids_list = join( ',', map { $_->{ media_id } } @{ $media } ) || '-1';
+    my $tags = $db->query( <<END )->hashes;
+select mtm.media_id, t.tags_id, t.tag, t.label, t.description, mtm.tagged_date, ts.tag_sets_id, ts.name as tag_set,
         ( t.show_on_media or ts.show_on_media ) show_on_media,
         ( t.show_on_stories or ts.show_on_stories ) show_on_stories
     from media_tags_map mtm
         join tags t on ( mtm.tags_id = t.tags_id )
         join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id )
-    where mtm.media_id = ?
+    where mtm.media_id in ( $media_ids_list )
     order by t.tags_id
 END
-    }
 
-    Readonly my $single => 1;
-    $media = $db->attach_child_query( $media, <<SQL, 'is_healthy', 'media_id', $single );
-select m.media_id, coalesce( h.is_healthy, true ) is_healthy
-    from media m left join media_health h using ( media_id )
-SQL
+    my $tags_lookup = {};
+    map { push( @{ $tags_lookup->{ $_->{ media_id } } }, $_ ) } @{ $tags };
+    map { $_->{ media_source_tags } = $tags_lookup->{ $_->{ media_id } } || [] } @{ $media };
 
     return $media;
 }
@@ -111,9 +118,26 @@ sub list_name_search_field
 
 sub order_by_clause
 {
-    my ( $self ) = @_;
+    my ( $self, $c ) = @_;
 
-    return $self->{ topic_media } ? 'inlink_count desc' : 'media_id asc';
+    my $sort = $c->req->params->{ sort } || 'id';
+
+    if ( $self->{ topic_media } )
+    {
+        return 'inlink_count desc';
+    }
+    elsif ( $sort eq 'id' )
+    {
+        return 'media_id asc';
+    }
+    elsif ( $sort eq 'num_stories' )
+    {
+        return '( select num_stories_90 from media_health mh where mh.media_id = media.media_id ) desc nulls last';
+    }
+    else
+    {
+        die( "Unknown sort param: '$sort'" );
+    }
 }
 
 # if topic_timespans_id is specified, create a temporary
