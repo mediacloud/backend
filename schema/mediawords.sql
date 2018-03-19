@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4653;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4654;
 
 BEGIN
 
@@ -1396,6 +1396,18 @@ create table topic_merged_stories_map (
 
 create index topic_merged_stories_map_source on topic_merged_stories_map ( source_stories_id );
 create index topic_merged_stories_map_story on topic_merged_stories_map ( target_stories_id );
+
+-- track self liks and all links for a given domain within a given topic
+create table topic_domains (
+    topic_domains_id        serial primary key,
+    topics_id               int not null
+    domain                  text not null,
+    self_links              int not null default 0,
+    all_links               int not null default 0
+)
+
+create unique index domain_topic_domain on topic_domains (topics_id, md5(domain));
+
 
 create table topic_stories (
     topic_stories_id          serial primary key,
