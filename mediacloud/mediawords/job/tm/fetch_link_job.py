@@ -6,8 +6,6 @@ import time
 import traceback
 import typing
 
-from pympler import muppy, summary
-
 from mediawords.db import connect_to_db
 from mediawords.job import AbstractJob, McAbstractJobException, JobBrokerApp
 import mediawords.tm.fetch_link
@@ -43,9 +41,6 @@ class FetchLinkJob(AbstractJob):
 
     _consecutive_requeues = 0
 
-    _last_memory_summary = None
-    _job_runs = 0
-
     @classmethod
     def run_job(
             cls,
@@ -69,8 +64,6 @@ class FetchLinkJob(AbstractJob):
             raise McFetchLinkJobException("'topic_fetch_urls_id' is None.")
 
         log.info("Start fetch for topic_fetch_url %d" % topic_fetch_urls_id)
-
-        cls._job_runs += 1
 
         try:
             db = connect_to_db()
@@ -108,18 +101,6 @@ class FetchLinkJob(AbstractJob):
         db.disconnect()
 
         log.info("Finished fetch for topic_fetch_url %d" % topic_fetch_urls_id)
-
-        if cls._job_runs % 100 == 0:
-            log.info("total memory stats:")
-
-            current_summary = summary.summarize(muppy.get_objects())
-            summary.print_(current_summary)
-
-            log.info("incremental memory stats:")
-            if (cls._last_memory_summary is not None):
-                summary.print_(summary.get_diff(current_summary, cls._last_memory_summary))
-
-            cls._last_memory_summary = current_summary
 
     @classmethod
     def queue_name(cls) -> str:
