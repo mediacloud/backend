@@ -275,6 +275,8 @@ Response:
         "is_monitored": 1,
         "public_notes": "all the news that's fit to print",
         "editor_nnotes": "first media source",
+        "num_stories_90": 123,
+        "num_sentences_90": 1234,
         "media_source_tags": [
             {
                 "tag_sets_id": 5,
@@ -320,8 +322,12 @@ Response:
 | `include_dups`     | 0       | Include duplicate media among the results
 | `unhealthy` | none | Only return media that are currently marked as unhealthy (see mediahealth/list)
 | `similar_media_id` | none | Return media with the most tags in common
+|  `sort`            | id   | sort order of media: `id`, or `num_stories` |
 
 If the name parameter is specified, the call returns only media sources that match a case insensitive search specified value.  If the specified value is less than 3 characters long, the call returns an empty list.
+
+By default, media are sorted by media_id.  If the sort parameter is set to 'num_stories', the media will be sorted
+by decreasing number of stories in the past 90 days.
 
 By default, calls that specify a name parameter will only return media that are not duplicates of
 some other media source.  Media Cloud has many media sources that are either subsets of other media sources or are

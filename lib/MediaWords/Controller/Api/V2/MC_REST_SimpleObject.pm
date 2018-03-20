@@ -267,7 +267,7 @@ sub _fetch_list($$$$$$)
     my $name_clause         = $self->get_name_search_clause( $c );
     my $filter_field_clause = $self->_get_filter_field_clause( $c );
     my $extra_where_clause  = $self->get_extra_where_clause( $c );
-    my $order_by_clause     = $self->order_by_clause || "$id_field asc";
+    my $order_by_clause     = $self->order_by_clause( $c ) || "$id_field asc";
 
     my $query = <<END;
 select *
