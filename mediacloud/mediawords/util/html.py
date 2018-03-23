@@ -170,15 +170,17 @@ def html_title(html: str, fallback: str, trim_to_length: int=0) -> Optional[str]
     fallback = '' if fallback_decode is None else str(fallback_decode)
     title = None
 
-    match = re.search("<meta property=\"og:title\" content=\"([^\"]+)\"", html, flags=re.S | re.I)
+    title_meta_re = r'(?:og:title|hdl|twitter:title|dc.title|dcterms.title|title)'
+
+    match = re.search(r"<meta (?:name|property)=.%s. content=\"([^\"]+)\"" % title_meta_re, html, flags=re.S | re.I)
     title = match.group(1) if match else None
 
     if title is None:
-        match = re.search("<meta property=\"og:title\" content=\'([^\']+)\'", html, flags=re.S | re.I)
+        match = re.search(r"<meta (?:name|property)=.%s. content=\'([^\']+)\'" % title_meta_re, html, flags=re.S | re.I)
         title = match.group(1) if match else None
 
     if title is None:
-        match = re.search("<title>(.*?)</title>", html, flags=re.S | re.I)
+        match = re.search(r"<title(?: [^>]*)?>(.*?)</title>", html, flags=re.S | re.I)
         title = match.group(1) if match else None
 
     if title:

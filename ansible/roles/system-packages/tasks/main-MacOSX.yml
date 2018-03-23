@@ -38,6 +38,7 @@
     - { name: perl, install_options: null }
     - { name: python, install_options: null }
     - { name: rabbitmq, install_options: null }
+    - { name: re2, install_options: null }
     - { name: tidy-html5, install_options: null }
   tags:
     - system-packages

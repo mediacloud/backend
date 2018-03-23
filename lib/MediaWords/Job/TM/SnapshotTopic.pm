@@ -19,6 +19,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::TM::Snapshot;
 use MediaWords::DB;
+use MediaWords::Job::Word2vec::GenerateSnapshotModel;
 
 # only run one job for each topic at a time
 sub get_run_lock_arg
@@ -49,7 +50,10 @@ sub run_statefully($$;$)
     die( "'topics_id' is undefined" ) unless ( defined $topics_id );
 
     # No transaction started because apparently snapshot_topic() does start one itself
-    MediaWords::TM::Snapshot::snapshot_topic( $db, $topics_id, $note, $bot_policy, $periods );
+    my $snapshots_id = MediaWords::TM::Snapshot::snapshot_topic( $db, $topics_id, $note, $bot_policy, $periods );
+
+    INFO "Adding a new word2vec model generation job for snapshot $snapshots_id...";
+    MediaWords::Job::Word2vec::GenerateSnapshotModel->add_to_queue( { snapshots_id => $snapshots_id } );
 }
 
 no Moose;    # gets rid of scaffolding

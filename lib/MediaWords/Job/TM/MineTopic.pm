@@ -84,7 +84,6 @@ sub run_statefully($$;$)
     };
 
     MediaWords::TM::Mine::mine_topic( $db, $topic, $options );
-
 }
 
 no Moose;    # gets rid of scaffolding

@@ -19,6 +19,9 @@ coverage==4.4.2
 # Hindi stemming
 CyHunspell==1.2.1
 
+# gensim parallelization
+Cython==0.27.3
+
 # Guessing publication dates of stories
 date_guesser==2.1.1
 
@@ -27,6 +30,9 @@ flake8==3.5.0
 
 # URL manipulation
 furl==1.0.1
+
+# Word2vec topic models
+gensim==3.2.0
 
 # Stemming Hausa words
 hausastemmer==1.0

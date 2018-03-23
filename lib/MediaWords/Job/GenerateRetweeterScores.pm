@@ -47,6 +47,7 @@ sub get_state_table_info
 # * retweeted_users_a -- list of twitter user handles to use for pole a
 # * retweeted_users_b -- list of twitter_user handles to use for pole b
 # * num_partitions -- number of partitions by equal score ranges into which to break the media (optional, default = 5)
+# * match_type -- match by retweeted user or by regex in tweet content (optional, default=retweet)
 sub run_statefully($$;$)
 {
     my ( $self, $db, $args ) = @_;
@@ -58,6 +59,7 @@ sub run_statefully($$;$)
     my $retweeted_users_a = $args->{ retweeted_users_a };
     my $retweeted_users_b = $args->{ retweeted_users_b };
     my $num_partitions    = $args->{ num_partitions };
+    my $match_type        = $args->{ match_type };
 
     map { die( "$_ arg must be a list" ) unless ref( $args->{ $_ } ) eq ref( [] ) }
       ( qw/retweeted_users_a retweeted_users_b/ );
@@ -65,7 +67,7 @@ sub run_statefully($$;$)
     die( "topic '$topic->{ topics_id }' must be a twitter topic" ) unless ( $topic->{ ch_monitor_id } );
 
     MediaWords::TM::RetweeterScores::generate_retweeter_scores( $db, $topic, $name, $retweeted_users_a, $retweeted_users_b,
-        $num_partitions );
+        $num_partitions, $match_type );
 
     return 1;
 }

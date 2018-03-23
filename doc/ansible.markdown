@@ -4,7 +4,7 @@ Media Cloud uses [Ansible](https://www.ansible.com/) for:
 
 * Initial host setup for running Media Cloud;
 * Automatic code deployments;
-* Maintenance of Docker image used on Travis tests.
+* Maintenance of LXD image used on Travis tests.
 
 
 ## Configuration
