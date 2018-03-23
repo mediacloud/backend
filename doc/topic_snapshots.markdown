@@ -52,7 +52,6 @@ Column              |  Type   | Modifiers
 `stories_id`        | integer | not null
 `inlink_count`      | integer | not null
 `outlink_count`     | integer | not null
-`bitly_click_count` | integer |
 
 At the time of this doc, we are generating the following analysis snapshot tables:
 
