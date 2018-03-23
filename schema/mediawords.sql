@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4653;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4654;
 
 BEGIN
 
@@ -529,9 +529,7 @@ create table tags (
 create index tags_tag_sets_id ON tags (tag_sets_id);
 create unique index tags_tag on tags (tag, tag_sets_id);
 create index tags_label on tags (label);
-create index tags_tag_1 on tags (split_part(tag, ' ', 1));
-create index tags_tag_2 on tags (split_part(tag, ' ', 2));
-create index tags_tag_3 on tags (split_part(tag, ' ', 3));
+create index tags_fts on tags using gin(to_tsvector('english'::regconfig, (tag::text || ' '::text) || label::text));
 
 create index tags_show_on_media on tags ( show_on_media );
 create index tags_show_on_stories on tags ( show_on_stories );
