@@ -84,21 +84,6 @@ sub test_stories_nytlabels($)
     is( $r->[ 0 ]->{ nytlabels }, "story does not exist", "$label does not exist message" );
 }
 
-sub test_stories_fetch_bitly_clicks($)
-{
-    my ( $db ) = @_;
-
-    # TODO add infrastructure to be able to test direct fetch from bitly
-
-    # barring ability to test bitly fetch, just request a non-existent stories_id
-    my $stories_id = -1;
-
-    my $params = { stories_id => $stories_id, start_timestamp => '2016-01-01', end_timestamp => '2017-01-01' };
-    my $r = test_get( '/api/v2/stories/fetch_bitly_clicks', $params, 1 );
-
-    is( $r->{ error }, "stories_id '-1' does not exist" );
-}
-
 sub test_stories_list($)
 {
     my ( $db ) = @_;
@@ -340,7 +325,6 @@ sub test_stories($)
 
     test_stories_cliff( $db );
     test_stories_nytlabels( $db );
-    test_stories_fetch_bitly_clicks( $db );
     test_stories_list( $db );
     test_stories_single( $db );
     test_stories_public_list( $db, $media );

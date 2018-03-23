@@ -359,7 +359,6 @@ select
         gb.name group_b_name,
         mlc.media_inlink_count,
         mlc.story_count,
-        mlc.bitly_click_count,
         mlc.simple_tweet_count
     from retweeter_scores rs
         join retweeter_media rm using ( retweeter_scores_id )

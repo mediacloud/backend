@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4654;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4655;
 
 BEGIN
 
@@ -411,10 +411,7 @@ create table feeds (
 
     -- Last time the feed provided a new story
     -- (null -- feed has never provided any stories)
-    last_new_story_time             timestamp with time zone,
-
-    -- if set to true, do not add stories associated with this feed to the story processing queue
-    skip_bitly_processing           boolean
+    last_new_story_time             timestamp with time zone
 
 );
 
@@ -1634,8 +1631,7 @@ create table snap.stories (
 );
 create index stories_id on snap.stories ( snapshots_id, stories_id );
 
--- stats for various externally dervied statistics about a story.  keeping this separate for now
--- from the bitly stats for simplicity sake during implementatino and testing
+-- stats for various externally dervied statistics about a story.
 create table story_statistics (
     story_statistics_id         serial      primary key,
     stories_id                  int         not null references stories on delete cascade,
@@ -1660,204 +1656,6 @@ create table story_statistics_twitter (
 );
 
 create unique index story_statistics_twitter_story on story_statistics_twitter ( stories_id );
-
-
--- stats for deprecated Bit.ly referrer counts
-create table story_statistics_bitly_referrers (
-    story_statistics_id         serial      primary key,
-    stories_id                  int         not null references stories on delete cascade,
-
-    bitly_referrer_count        int         null
-);
-
-create unique index story_statistics_bitly_referrers_story on story_statistics_bitly_referrers ( stories_id );
-
-
---
--- Bit.ly total story click counts
---
-
--- "Master" table (no indexes, no foreign keys as they'll be ineffective)
-CREATE TABLE bitly_clicks_total (
-    bitly_clicks_id   BIGSERIAL NOT NULL,
-    stories_id        INT       NOT NULL,
-
-    click_count       INT       NOT NULL
-);
-
-
-CREATE OR REPLACE FUNCTION bitly_partition_chunk_size()
-RETURNS integer AS $$
-BEGIN
-    RETURN 100 * 1000 * 1000;   -- 100m rows in each partition
-END; $$
-LANGUAGE plpgsql IMMUTABLE;
-
-CREATE OR REPLACE FUNCTION bitly_get_partition_name(stories_id INT, table_name TEXT)
-RETURNS TEXT AS $$
-DECLARE
-    to_char_format CONSTANT TEXT := '00';     -- Up to 100 partitions, suffixed as "_00", "_01" ..., "_99"
-                                              -- (having more of them is not feasible)
-    stories_id_chunk_number INT;
-
-    target_table_name TEXT;       -- partition table name (e.g. "bitly_clicks_total_000001")
-BEGIN
-    SELECT stories_id / bitly_partition_chunk_size() INTO stories_id_chunk_number;
-
-    SELECT table_name || '_' || trim(leading ' ' FROM to_char(stories_id_chunk_number, to_char_format))
-        INTO target_table_name;
-
-    RETURN target_table_name;
-END;
-$$
-LANGUAGE plpgsql;
-
--- Upsert row into correct partition
-CREATE OR REPLACE FUNCTION bitly_clicks_total_partition_by_stories_id_insert_trigger()
-RETURNS TRIGGER AS $$
-DECLARE
-    target_table_name TEXT;       -- partition table name (e.g. "bitly_clicks_total_000001")
-BEGIN
-    SELECT bitly_get_partition_name( NEW.stories_id, 'bitly_clicks_total' ) INTO target_table_name;
-    EXECUTE '
-        INSERT INTO ' || target_table_name || '
-            SELECT $1.*
-        ON CONFLICT (stories_id) DO UPDATE
-            SET click_count = EXCLUDED.click_count
-        ' USING NEW;
-    RETURN NULL;
-END;
-$$
-LANGUAGE plpgsql;
-
-CREATE TRIGGER bitly_clicks_total_partition_by_stories_id_insert_trigger
-    BEFORE INSERT ON bitly_clicks_total
-    FOR EACH ROW EXECUTE PROCEDURE bitly_clicks_total_partition_by_stories_id_insert_trigger();
-
-
--- Create missing Bit.ly partitions
-CREATE OR REPLACE FUNCTION bitly_clicks_total_create_partitions()
-RETURNS VOID AS
-$$
-DECLARE
-    chunk_size INT;
-    max_stories_id BIGINT;
-    partition_stories_id BIGINT;
-
-    target_table_name TEXT;       -- partition table name (e.g. "bitly_clicks_total_000001")
-    target_table_owner TEXT;      -- partition table owner (e.g. "mediaclouduser")
-
-    stories_id_start INT;         -- stories_id chunk lower limit, inclusive (e.g. 30,000,000)
-    stories_id_end INT;           -- stories_id chunk upper limit, exclusive (e.g. 31,000,000)
-BEGIN
-
-    SELECT bitly_partition_chunk_size() INTO chunk_size;
-
-    -- Create +1 partition for future insertions
-    SELECT COALESCE(MAX(stories_id), 0) + chunk_size FROM stories INTO max_stories_id;
-
-    FOR partition_stories_id IN 1..max_stories_id BY chunk_size LOOP
-        SELECT bitly_get_partition_name( partition_stories_id, 'bitly_clicks_total' ) INTO target_table_name;
-        IF table_exists(target_table_name) THEN
-            RAISE NOTICE 'Partition "%" for story ID % already exists.', target_table_name, partition_stories_id;
-        ELSE
-            RAISE NOTICE 'Creating partition "%" for story ID %', target_table_name, partition_stories_id;
-
-            SELECT (partition_stories_id / chunk_size) * chunk_size INTO stories_id_start;
-            SELECT ((partition_stories_id / chunk_size) + 1) * chunk_size INTO stories_id_end;
-
-            EXECUTE '
-                CREATE TABLE ' || target_table_name || ' (
-
-                    -- Primary key
-                    CONSTRAINT ' || target_table_name || '_pkey
-                        PRIMARY KEY (bitly_clicks_id),
-
-                    -- Partition by stories_id
-                    CONSTRAINT ' || target_table_name || '_stories_id CHECK (
-                        stories_id >= ''' || stories_id_start || '''
-                    AND stories_id <  ''' || stories_id_end   || '''),
-
-                    -- Foreign key to stories.stories_id
-                    CONSTRAINT ' || target_table_name || '_stories_id_fkey
-                        FOREIGN KEY (stories_id) REFERENCES stories (stories_id) MATCH FULL,
-
-                    -- Unique duplets
-                    CONSTRAINT ' || target_table_name || '_stories_id_unique
-                        UNIQUE (stories_id)
-
-                ) INHERITS (bitly_clicks_total);
-            ';
-
-            -- Update owner
-            SELECT u.usename AS owner
-            FROM information_schema.tables AS t
-                JOIN pg_catalog.pg_class AS c ON t.table_name = c.relname
-                JOIN pg_catalog.pg_user AS u ON c.relowner = u.usesysid
-            WHERE t.table_name = 'bitly_clicks_total'
-              AND t.table_schema = CURRENT_SCHEMA()
-            INTO target_table_owner;
-
-            EXECUTE 'ALTER TABLE ' || target_table_name || ' OWNER TO ' || target_table_owner || ';';
-
-        END IF;
-    END LOOP;
-
-END;
-$$
-LANGUAGE plpgsql;
-
--- Create initial partitions for empty database
-SELECT bitly_clicks_total_create_partitions();
-
-
---
--- Bit.ly processing schedule
---
-CREATE TABLE bitly_processing_schedule (
-    bitly_processing_schedule_id    BIGSERIAL NOT NULL,
-    stories_id                      INT       NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
-    fetch_at                        TIMESTAMP NOT NULL
-);
-
-CREATE INDEX bitly_processing_schedule_stories_id
-    ON bitly_processing_schedule (stories_id);
-CREATE INDEX bitly_processing_schedule_fetch_at
-    ON bitly_processing_schedule (fetch_at);
-
-
--- Helper to return a number of stories for which we don't have Bit.ly statistics yet
-CREATE FUNCTION num_topic_stories_without_bitly_statistics (param_topics_id INT) RETURNS INT AS
-$$
-DECLARE
-    topic_exists BOOL;
-    num_stories_without_bitly_statistics INT;
-BEGIN
-
-    SELECT 1 INTO topic_exists
-    FROM topics
-    WHERE topics_id = param_topics_id;
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'topic % does not exist or is not set up for Bit.ly processing.', param_topics_id;
-        RETURN FALSE;
-    END IF;
-
-    SELECT COUNT(stories_id) INTO num_stories_without_bitly_statistics
-    FROM topic_stories
-    WHERE topics_id = param_topics_id
-      AND stories_id NOT IN (
-        SELECT stories_id
-        FROM bitly_clicks_total
-    )
-    GROUP BY topics_id;
-    IF NOT FOUND THEN
-        num_stories_without_bitly_statistics := 0;
-    END IF;
-
-    RETURN num_stories_without_bitly_statistics;
-END;
-$$
-LANGUAGE plpgsql;
 
 
 create table snap.topic_stories (
@@ -1966,10 +1764,6 @@ create table snap.story_link_counts (
     inlink_count                            int not null,
     outlink_count                           int not null,
 
-    -- Bit.ly stats
-    -- (values can be NULL if Bit.ly is not enabled / configured for a topic)
-    bitly_click_count                       int null,
-
     facebook_share_count                    int null,
 
     simple_tweet_count                      int null,
@@ -1990,10 +1784,6 @@ create table snap.medium_link_counts (
     inlink_count                    int not null,
     outlink_count                   int not null,
     story_count                     int not null,
-
-    -- Bit.ly (aggregated) stats
-    -- (values can be NULL if Bit.ly is not enabled / configured for a topic)
-    bitly_click_count               int null,
 
     facebook_share_count            int null,
 
@@ -2507,26 +2297,6 @@ $$
 LANGUAGE 'plpgsql';
 
 
---
--- Bit.ly processing results
---
-CREATE TABLE bitly_processing_results (
-    bitly_processing_results_id   SERIAL    PRIMARY KEY,
-    object_id                     INTEGER   NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
-
-    -- (Last) data collection timestamp; NULL for Bit.ly click data that was collected for topics
-    collect_date                  TIMESTAMP NULL DEFAULT NOW(),
-
-    raw_data                      BYTEA     NOT NULL
-);
-CREATE UNIQUE INDEX bitly_processing_results_object_id ON bitly_processing_results (object_id);
-
--- Don't (attempt to) compress BLOBs in "raw_data" because they're going to be
--- compressed already
-ALTER TABLE bitly_processing_results
-    ALTER COLUMN raw_data SET STORAGE EXTERNAL;
-
-
 -- Helper to find corrupted sequences (the ones in which the primary key's sequence value > MAX(primary_key))
 CREATE OR REPLACE FUNCTION find_corrupted_sequences()
 RETURNS TABLE(tablename VARCHAR, maxid BIGINT, sequenceval BIGINT)
@@ -2873,13 +2643,11 @@ CREATE OR REPLACE FUNCTION create_missing_partitions()
 RETURNS VOID AS
 $$
 BEGIN
-    -- "bitly_clicks_total" table
-    RAISE NOTICE 'Creating partitions in "bitly_clicks_total" table...';
-    PERFORM bitly_clicks_total_create_partitions();
 
     -- "stories_tags_map" table
     RAISE NOTICE 'Creating partitions in "stories_tags_map" table...';
     PERFORM stories_tags_map_create_partitions();
+
 END;
 $$
 LANGUAGE plpgsql;
@@ -3275,12 +3043,6 @@ BEGIN
         WHERE db_row_last_updated <= NOW() - INTERVAL ''3 days'';
     ';
 
-    RAISE NOTICE 'Purging "s3_bitly_processing_results_cache" table...';
-    EXECUTE '
-        DELETE FROM cache.s3_bitly_processing_results_cache
-        WHERE db_row_last_updated <= NOW() - INTERVAL ''3 days'';
-    ';
-
 END;
 $$
 LANGUAGE plpgsql;
@@ -3313,36 +3075,6 @@ ALTER TABLE cache.s3_raw_downloads_cache
 CREATE TRIGGER s3_raw_downloads_cache_db_row_last_updated_trigger
     BEFORE INSERT OR UPDATE ON cache.s3_raw_downloads_cache
     FOR EACH ROW EXECUTE PROCEDURE cache.update_cache_db_row_last_updated();
-
-
---
--- Raw Bit.ly processing results from S3 cache
---
-
-CREATE UNLOGGED TABLE cache.s3_bitly_processing_results_cache (
-    s3_bitly_processing_results_cache_id  SERIAL    PRIMARY KEY,
-    object_id                             BIGINT    NOT NULL
-                                                        REFERENCES public.stories (stories_id)
-                                                        ON DELETE CASCADE,
-
-    -- Will be used to purge old cache objects;
-    -- don't forget to update cache.purge_object_caches()
-    db_row_last_updated       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-
-    raw_data                  BYTEA     NOT NULL
-);
-CREATE UNIQUE INDEX s3_bitly_processing_results_cache_object_id
-    ON cache.s3_bitly_processing_results_cache (object_id);
-CREATE INDEX s3_bitly_processing_results_cache_db_row_last_updated
-    ON cache.s3_bitly_processing_results_cache (db_row_last_updated);
-
-ALTER TABLE cache.s3_bitly_processing_results_cache
-    ALTER COLUMN raw_data SET STORAGE EXTERNAL;
-
-CREATE TRIGGER s3_bitly_processing_results_cache_db_row_last_updated_trigger
-    BEFORE INSERT OR UPDATE ON cache.s3_bitly_processing_results_cache
-    FOR EACH ROW EXECUTE PROCEDURE cache.update_cache_db_row_last_updated();
-
 
 
 --

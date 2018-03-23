@@ -6,9 +6,8 @@ This document provides an overview of the data processing flow for each story.
 The overall process is documented in [story_processing_flow.pdf](diagrams/story_processing_flow.pdf).
 
 The story processing flow consists of five components: the crawler, the extractor, the solr
-import, the bitly fetcher, and the geotagger.  The crawler, extractor, and bitly fetchers all run via
-[supervisor](supervisor.markdown)  on the core media cloud server.  The extractor, and bitly fetchers
-all run as jobs. The geotagger runs from a separate codebase on a separate server.  The Solr import process runs from
+import, and the geotagger.  The crawler and extractor all run via
+[supervisor](supervisor.markdown)  on the core media cloud server.  The extractor all run as jobs. The geotagger runs from a separate codebase on a separate server.  The Solr import process runs from
 the same code base but from a separate machine in the production media cloud setup.
 
 Media Cloud organizes its content collection around media sources, feeds, and stories.  Media sources are publications
@@ -23,8 +22,6 @@ Order of Operations
 The order of the operations described below is:
 
 crawl -> extract -> optional annotation -> Solr import
-
-As described below, bitly fetching happens 3 and 30 days after story publication, and each bitly fetch triggers another Solr import.
 
 Crawler
 -------
@@ -59,14 +56,6 @@ Solr Importer
 The Solr importer checks for any stories present in processed_stories that are new or have been updated
 in some way since the last update (in production, we run a Solr import hourly).  Solr imports stories with each
 story_sentence as a separate document.  More information on our Solr setup [here](solr.markdown).
-
-Bitly Fetcher
--------------
-
-A bitly fetcher runs for each story 3 days after it is first created and then again 30 days later for each story that
-had each at least one bitly click on the first fetch.  The 3 day fetch is queued for the story when the story is
-extracted.  The bitly fetcher calls the bitly API to find the number of bitly clicks for each story.  More information
-on the bitly fetching [here](bitly.markdown).
 
 NYT Themes
 ----------
