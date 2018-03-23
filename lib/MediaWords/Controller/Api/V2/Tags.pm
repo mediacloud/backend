@@ -39,22 +39,15 @@ sub get_name_search_clause
 
     # create these as temp tables to force postgres planner to use tags fts index
     $db->query( <<SQL, $v );
-create temporary table $temp_tag_sets as
-    select tag_sets_id
-        from tag_sets ts
-        where to_tsvector('english', ts.name || ' ' || coalesce(ts.label, '')) @@ plainto_tsquery(?)
-SQL
-
-    $db->query( <<SQL, $v );
 create temporary table $temp_tags as
 select tags_id
     from tags t
-    where to_tsvector('english', t.tag || ' ' || t.label) @@ plainto_tsquery(?)
+    where
+        to_tsvector('english', t.tag || ' ' || t.label) @@ plainto_tsquery(?)
 SQL
 
     return <<END;
 and (
-    ( tag_sets_id in ( select tag_sets_id from $temp_tag_sets ) ) or
     ( tags_id in ( select tags_id from $temp_tags ) ) )
 END
 }
