@@ -32,8 +32,6 @@ my $_consecutive_requeues = 0;
 #
 # Arguments:
 # * stories_id -- story ID to extract
-# * (optional) skip_bitly_processing -- don't add extracted story to the Bit.ly
-#              processing queue
 sub run($$)
 {
     my ( $self, $args ) = @_;
@@ -64,12 +62,7 @@ sub run($$)
 
     $db->begin;
 
-    my $extractor_args = MediaWords::DBI::Stories::ExtractorArguments->new(
-        {
-            skip_bitly_processing => $args->{ skip_bitly_processing },
-            use_cache             => $args->{ use_cache }
-        }
-    );
+    my $extractor_args = MediaWords::DBI::Stories::ExtractorArguments->new( { use_cache => $args->{ use_cache } } );
 
     eval {
         my $story = $db->find_by_id( 'stories', $stories_id );

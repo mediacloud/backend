@@ -26,9 +26,8 @@ sub queue_extraction($$)
     my ( $db, $stories_id ) = @_;
 
     my $args = {
-        stories_id            => $stories_id,
-        skip_bitly_processing => 0,
-        use_cache             => 1
+        stories_id => $stories_id,
+        use_cache  => 1
     };
 
     my $priority = $MediaCloud::JobManager::Job::MJM_JOB_PRIORITY_LOW;

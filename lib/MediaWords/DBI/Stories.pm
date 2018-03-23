@@ -38,7 +38,6 @@ use MediaWords::Solr::WordCounts;
 use MediaWords::StoryVectors;
 use MediaWords::Util::Annotator::CLIFF;
 use MediaWords::Util::Annotator::NYTLabels;
-use MediaWords::Util::Bitly::Schedule;
 use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
 use MediaWords::Util::SQL;
@@ -475,9 +474,8 @@ SQL
 
 =head2 process_extracted_story( $db, $story, $extractor_args )
 
-Do post extraction story processing work: call
-MediaWords::StoryVectors::update_story_sentences_and_language() and queue bitly
-fetching tasks.
+Do post extraction story processing work by calling
+MediaWords::StoryVectors::update_story_sentences_and_language()
 
 =cut
 
@@ -492,20 +490,6 @@ sub process_extracted_story($$$)
     unless ( $extractor_args->no_tag_extractor_version() )
     {
         MediaWords::DBI::Stories::ExtractorVersion::update_extractor_version_tag( $db, $story );
-    }
-
-    # Add to Bit.ly queue
-    unless ( $extractor_args->skip_bitly_processing() )
-    {
-        if ( MediaWords::Util::Bitly::Schedule::story_processing_is_enabled() )
-        {
-            TRACE "Adding story $stories_id to Bit.ly processing queue...";
-            MediaWords::Util::Bitly::Schedule::add_to_processing_schedule( $db, $stories_id );
-        }
-    }
-    else
-    {
-        TRACE "Won't process story $stories_id with Bit.ly because it's set to be skipped";
     }
 
     my $cliff     = MediaWords::Util::Annotator::CLIFF->new();

@@ -42,16 +42,6 @@ database:
         ### An unique random string will be appended to the directory name
         #directory_name     : "downloads_test"
 
-    ### Bucket for storing Bit.ly raw JSON responses
-    #bitly_processing_results:
-        #access_key_id      : "AKIAIOSFODNN7EXAMPLE"
-        #secret_access_key  : "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
-        #bucket_name        : "mediacloud-bitly-processing-results"
-        #directory_name     : "json_blobs"
-        
-        ### Cache raw Bit.ly processing results locally?
-        #cache_bitly_processing_results : false
-
 ## Job manager (MediaCloud::JobManager) configuration
 job_manager:
 
@@ -130,13 +120,10 @@ supervisor:
         #create_missing_partitions
         #purge_object_caches
         #facebook_fetch_story_stats
-        #process_bitly_schedule
         #rabbitmq
         #rescrape_media
         #topic_mine
         #topic_snapshot
-        #bitly_fetch_story_stats
-        #bitly_aggregate_story_stats
 
         # Standalone Solr instance
         #solr_standalone
@@ -191,56 +178,6 @@ similarweb:
     ### API key, costs money, see at https://developer.similarweb.com/
     api_key: ""
 
-
-### Bit.ly API
-bitly:
-
-    ### Enable Bit.ly processing
-    enabled: false
-
-    ### (Generic) Access Token
-    ### Get one at: https://bitly.com/a/oauth_apps
-    access_token: ""
-
-    ### API request timeout (in seconds)
-    timeout: 60
-
-    ### Locations to read raw JSON responses from
-    ### (default is just "postgresql")
-    json_read_stores:
-        ### Try "bitly_processing_results" table first
-        - postgresql
-        ### ...then fallback to Amazon S3
-        #- amazon_s3
-
-    ### Locations to write raw JSON responses to
-    ### (default is just "postgresql")
-    json_write_stores:
-        ### Write to "bitly_processing_results" table first
-        - postgresql
-        ### ...then to Amazon S3 too
-        #- amazon_s3
-
-    ### Bit.ly processing for all stories
-    #story_processing:
-
-        ### Enable Bit.ly processing for all stories (not just the ones that
-        ### belong to topics enabled for Bit.ly processing)
-        #enabled: false
-
-        ### Delay for which to postpone story processing since its
-        ### "publish_date" / "collect_date"
-        ###
-        ### For example, you might want to process the story against Bit.ly after:
-        ### * 295200 seconds (3 days), and
-        ### * 2952000 seconds (30 days)
-        ### from story's "publish_date" (or "collect_date" if "publish_date"
-        ### is invalid).
-        #schedule:
-            ### 3 days from "stories.publish_date"
-            #- 295200
-            ### 30 days from "stories.publish_date"
-            #- 2952000
 
 ### CLIFF annotator
 cliff:
