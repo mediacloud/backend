@@ -46,6 +46,12 @@ use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 use MediaWords::Util::Web::Cache;
 
+# common title prefixes that can be ignored for dup title matching
+Readonly my $DUP_TITLE_PREFIXES =>
+    [ qw/opinion analysis report perspective poll watch exclusive editorial reports breaking nyt/,
+      qw/subject source wapo sources video study photos cartoon cnn today wsj review timeline/,
+      qw/revealed gallup ap read experts op-ed commentary feature letters survey/ ];
+
 =head1 FUNCTIONS
 
 =cut
@@ -788,6 +794,13 @@ sub _get_title_parts
     $title = MediaWords::Util::HTML::html_strip( $title ) if ( $title =~ /\</ );
     $title = decode_entities( $title );
 
+    my $sep_chars = '\-\:\|';
+
+    # get rid of very common one word prefixes so that opinion: foo bar foo will match report - foo bar foo even if
+    # foo bar foo never appears as a solo title
+    my $prefix_re = '(?:' . join( '|', @{ $DUP_TITLE_PREFIXES } ) . ')';
+    $title =~ s/^(\s*$prefix_re\s*[$sep_chars]\s*)//;
+
     my $title_parts;
     if ( $title =~ m~https?://[^ ]*~ )
     {
@@ -796,7 +809,7 @@ sub _get_title_parts
     else
     {
         $title =~ s/(\w)\:/$1 :/g;
-        $title_parts = [ split( /\s*[-•:|]+\s*/, $title ) ];
+        $title_parts = [ split( /\s*[$sep_chars]+\s*/, $title ) ];
     }
 
     if ( @{ $title_parts } > 1 )
@@ -804,7 +817,7 @@ sub _get_title_parts
         unshift( @{ $title_parts }, $title );
     }
 
-    map { s/\s+/ /g; s/^\s+//; s/\s+$//; s/[[:punct:]]//g; } @{ $title_parts };
+    map { s/[[:punct:]]//g; s/\s+/ /g; s/^\s+//; s/\s+$//;  } @{ $title_parts };
 
     return $title_parts;
 }

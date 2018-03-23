@@ -6,7 +6,10 @@ use warnings;
 # test MediaWords::DBI::Stories::get_story_word_matrix
 
 use Data::Dumper;
+use Test::Deep;
 use Test::More;
+
+use MediaWords::DBI::Stories;
 
 BEGIN
 {
@@ -130,8 +133,27 @@ sub test_get_story_word_matrix
     map { test_story( $_, $word_list ) } @{ $stories };
 }
 
+sub test_get_title_parts
+{
+    cmp_deeply( MediaWords::DBI::Stories::_get_title_parts( 'foo' ),           [ 'foo' ] );
+    cmp_deeply( MediaWords::DBI::Stories::_get_title_parts( 'FOO: bar' ),      [ 'foo bar', 'foo', 'bar' ] );
+    cmp_deeply( MediaWords::DBI::Stories::_get_title_parts( 'FOO : bar' ),     [ 'foo bar', 'foo', 'bar' ] );
+    cmp_deeply( MediaWords::DBI::Stories::_get_title_parts( 'FOO - bar' ),     [ 'foo bar', 'foo', 'bar' ] );
+    cmp_deeply( MediaWords::DBI::Stories::_get_title_parts( 'FOO | bar' ),     [ 'foo bar', 'foo', 'bar' ] );
+    cmp_deeply( MediaWords::DBI::Stories::_get_title_parts( 'opinion: bar' ),  [ 'bar' ] );
+    cmp_deeply( MediaWords::DBI::Stories::_get_title_parts( 'subject: bar' ),  [ 'bar' ] );
+    cmp_deeply( MediaWords::DBI::Stories::_get_title_parts( 'revealed: bar' ), [ 'bar' ] );
+    cmp_deeply(
+        MediaWords::DBI::Stories::_get_title_parts( 'washington post: foo bar' ),
+        [ 'washington post foo bar', 'washington post', 'foo bar' ]
+    );
+    cmp_deeply( MediaWords::DBI::Stories::_get_title_parts( 'http://foo.com/foo/bar' ), [ 'http://foo.com/foo/bar' ] );
+}
+
 sub main
 {
+    test_get_title_parts();
+
     MediaWords::Test::DB::test_on_test_database(
         sub {
             use Encode;
