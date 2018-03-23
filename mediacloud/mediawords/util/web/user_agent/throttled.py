@@ -76,7 +76,7 @@ class ThrottledUserAgent(UserAgent):
             domain = mediawords.util.url.get_url_distinctive_domain(request.url())
 
             domain_timeout = self.domain_timeout
-            if domain_timeout > 1 and (is_shortened_url(request.url() or domain in _ACCELERATED_DOMAINS)):
+            if domain_timeout > 1 and (is_shortened_url(request.url()) or domain in _ACCELERATED_DOMAINS):
                 domain_timeout = max(1, int(self.domain_timeout / _ACCELERATED_DOMAIN_SPEEDUP_FACTOR))
 
             # this postgres function returns true if we are allowed to make the request and false otherwise. this
