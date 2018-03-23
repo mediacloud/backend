@@ -16,6 +16,8 @@ use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 
 use Readonly;
+
+use URI;
 use URI::QueryParam;
 use Data::Dumper;
 use List::MoreUtils qw/any/;

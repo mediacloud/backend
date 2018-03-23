@@ -253,8 +253,14 @@ SQL
 
         push( @{ $queued_stories_ids }, $story->{ stories_id } );
 
-        MediaWords::Job::TM::ExtractStoryLinks->add_to_queue(
-            { stories_id => $story->{ stories_id }, topics_id => $topic->{ topics_id } } );
+        do
+        {
+            eval {
+                MediaWords::Job::TM::ExtractStoryLinks->add_to_queue(
+                    { stories_id => $story->{ stories_id }, topics_id => $topic->{ topics_id } } );
+            };
+            ( sleep( 1 ) && DEBUG( 'waiting for rabbit ...' ) ) if ( error_is_amqp( $@ ) );
+        } until ( !error_is_amqp( $@ ) );
 
         TRACE( "queued link extraction for story $story->{ title } $story->{ url }." );
     }
@@ -556,8 +562,6 @@ sub story_matches_topic_pattern
 {
     my ( $db, $topic, $story, $metadata_only ) = @_;
 
-    return 'sentence' if ( !$metadata_only && ( story_sentence_matches_pattern( $db, $story, $topic ) ) );
-
     my $meta_values = [ map { $story->{ $_ } } qw/title description url redirect_url/ ];
 
     my $match = $db->query( <<SQL, $topic->{ topics_id }, @{ $meta_values } )->hash;
@@ -574,6 +578,8 @@ select 1
 SQL
 
     return 'meta' if $match;
+
+    return 'sentence' if ( !$metadata_only && ( story_sentence_matches_pattern( $db, $story, $topic ) ) );
 
     return 0;
 }
@@ -931,6 +937,14 @@ sub add_links_to_stories($$)
 
 }
 
+# return true if the $@ error is defined and matches 'AMQP socket not connected'
+sub error_is_amqp($)
+{
+    my ( $error ) = @_;
+
+    return ( $error && ( $error =~ /AMQP socket not connected/ ) );
+}
+
 # create topic_fetch_urls rows correpsonding to the links and queue a FetchLink job for each.  return the tfu rows.
 sub create_and_queue_topic_fetch_urls($$$)
 {
@@ -953,12 +967,19 @@ sub create_and_queue_topic_fetch_urls($$$)
         );
         push( @{ $tfus }, $tfu );
 
-        MediaWords::Job::TM::FetchLink->add_to_queue(
-            {
-                topic_fetch_urls_id => $tfu->{ topic_fetch_urls_id },
-                domain_timeout      => $fetch_link_domain_timeout
-            }
-        );
+        do
+        {
+            eval {
+                MediaWords::Job::TM::FetchLink->add_to_queue(
+                    {
+                        topic_fetch_urls_id => $tfu->{ topic_fetch_urls_id },
+                        domain_timeout      => $fetch_link_domain_timeout
+                    }
+                );
+            };
+            ( sleep( 1 ) && DEBUG( 'waiting for rabbit ...' ) ) if ( error_is_amqp( $@ ) );
+        } until ( !error_is_amqp( $@ ) );
+
     }
 
     return $tfus;
@@ -1186,7 +1207,7 @@ select distinct tl.* from topic_links tl, topic_stories ts
     where
         tl.link_spidered = 'f' and
         tl.stories_id = ts.stories_id and
-        ( ts.iteration < \$1 or ts.iteration = 1000 ) and
+        ( ts.iteration <= \$1 or ts.iteration = 1000 ) and
         ts.topics_id = \$2 and
         tl.topics_id = \$2
 END
@@ -1590,7 +1611,7 @@ update topic_seed_urls tsu
     from topic_fetch_urls tfu, $ids_table ids
     where
         tsu.topics_id = tfu.topics_id and
-        tsu.url = tfu.url and
+        md5(tsu.url) = md5(tfu.url) and
         tsu.topic_seed_urls_id = ids.id
 SQL
 

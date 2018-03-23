@@ -217,14 +217,34 @@ def test_normalize_url_lossy():
         ['http://foo.com/bar#baz', 'http://foo.com/bar'],
         ['http://foo.com/bar/baz//foo', 'http://foo.com/bar/baz/foo'],
         ['https://archive.is/o/vWkgm/www.huffingtonpost.com/lisa-bloom/why-the-new-child-rape-ca_b_10619944.html',
-            'http://huffingtonpost.com/lisa-bloom/why-the-new-child-rape-ca_b_10619944.html'],
+         'http://huffingtonpost.com/lisa-bloom/why-the-new-child-rape-ca_b_10619944.html'],
         ['https://archive.is/o/m1k2A/https://en.wikipedia.org/wiki/Gamergate_controversy%23cite_note-right_wing-130',
-            'http://en.wikipedia.org/wiki/gamergate_controversy#cite_note-right_wing-130']
+         'http://en.wikipedia.org/wiki/gamergate_controversy#cite_note-right_wing-130']
     ]
 
     for test in tests:
         input_url, expected_output_url = test
         assert mc_url.normalize_url_lossy(input_url) == expected_output_url
+
+
+def test_is_shortened_url() -> None:
+    """Test is_shortened_url."""
+    assert not mc_url.is_shortened_url('http://google.com/')
+    assert not mc_url.is_shortened_url('http://nytimes.com/2014/03/01/foo.html')
+    assert mc_url.is_shortened_url('http://bit.ly/2eYIj4g')
+    assert mc_url.is_shortened_url('https://t.co/mtaVvZ8mYF')
+    assert mc_url.is_shortened_url('http://dlvr.it/NN7ZQS')
+    assert mc_url.is_shortened_url('http://fb.me/8SXPGB68Z')
+    assert mc_url.is_shortened_url('http://hill.cm/Dg9qAUD')
+    assert mc_url.is_shortened_url('http://ift.tt/2fQKXoA')
+    assert mc_url.is_shortened_url('https://goo.gl/fb/abZexj')
+    assert mc_url.is_shortened_url('https://youtu.be/GFeRyRA7FPE')
+    assert mc_url.is_shortened_url('http://wapo.st/2iBGdb9')
+    assert mc_url.is_shortened_url('http://ln.is/DN0QN')
+    assert mc_url.is_shortened_url(
+        'http://feeds.feedburner.com/~ff/businessinsider?a=AAU_77_kuWM:T_8wA0qh0C4:gIN9vFwOqvQ'
+    )
+    assert mc_url.is_shortened_url('https://archive.is/o/m1k2A/https://foo.com')
 
 
 # noinspection SpellCheckingInspection

@@ -247,7 +247,7 @@ def _store_tweet_and_urls(db: DatabaseHandler, topic_tweet_day: dict, ch_post: d
         'data': data_json,
         'content': ch_post['tweet']['text'],
         'tweet_id': ch_post['tweet_id'],
-        'publish_date': '2017-01-01',
+        'publish_date': ch_post['tweet']['created_at'],
         'twitter_user': ch_post['tweet']['user']['screen_name']
     }
 

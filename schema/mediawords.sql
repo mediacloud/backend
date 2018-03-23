@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4648;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4655;
 
 BEGIN
 
@@ -526,9 +526,7 @@ create table tags (
 create index tags_tag_sets_id ON tags (tag_sets_id);
 create unique index tags_tag on tags (tag, tag_sets_id);
 create index tags_label on tags (label);
-create index tags_tag_1 on tags (split_part(tag, ' ', 1));
-create index tags_tag_2 on tags (split_part(tag, ' ', 2));
-create index tags_tag_3 on tags (split_part(tag, ' ', 3));
+create index tags_fts on tags using gin(to_tsvector('english'::regconfig, (tag::text || ' '::text) || label::text));
 
 create index tags_show_on_media on tags ( show_on_media );
 create index tags_show_on_stories on tags ( show_on_stories );
@@ -649,7 +647,8 @@ create index feeds_tags_map_tag on feeds_tags_map (tags_id);
 create table media_tags_map (
     media_tags_map_id    serial            primary key,
     media_id            int                not null references media on delete cascade,
-    tags_id                int                not null references tags on delete cascade
+    tags_id                int                not null references tags on delete cascade,
+    tagged_date         date null default now()
 );
 
 create unique index media_tags_map_media on media_tags_map (media_id, tags_id);
@@ -1493,6 +1492,7 @@ create table topic_fetch_urls(
 
 create index topic_fetch_urls_pending on topic_fetch_urls(topics_id) where state = 'pending';
 create index topic_fetch_urls_url on topic_fetch_urls(md5(url));
+create index topic_fetch_urls_link on topic_fetch_urls(topic_links_id);
 
 create table topic_ignore_redirects (
     topic_ignore_redirects_id     serial primary key,
@@ -1849,6 +1849,8 @@ create table snap.live_stories (
 create index live_story_topic on snap.live_stories ( topics_id );
 create unique index live_stories_story on snap.live_stories ( topics_id, stories_id );
 create index live_stories_story_solo on snap.live_stories ( stories_id );
+create index live_stories_topic_story on snap.live_stories ( topic_stories_id );
+
 
 create function insert_live_story() returns trigger as $insert_live_story$
     begin
@@ -1896,6 +1898,34 @@ $update_live_story$ LANGUAGE plpgsql;
 
 create trigger stories_update_live_story after update on stories
     for each row execute procedure update_live_story();
+
+
+--
+-- Snapshot word2vec models
+--
+CREATE TABLE snap.word2vec_models (
+    word2vec_models_id  SERIAL      PRIMARY KEY,
+    object_id           INTEGER     NOT NULL REFERENCES snapshots (snapshots_id) ON DELETE CASCADE,
+    creation_date       TIMESTAMP   NOT NULL DEFAULT NOW()
+);
+
+-- We'll need to find the latest word2vec model
+CREATE INDEX snap_word2vec_models_object_id_creation_date ON snap.word2vec_models (object_id, creation_date);
+
+CREATE TABLE snap.word2vec_models_data (
+    word2vec_models_data_id SERIAL      PRIMARY KEY,
+    object_id               INTEGER     NOT NULL
+                                            REFERENCES snap.word2vec_models (word2vec_models_id)
+                                            ON DELETE CASCADE,
+    raw_data                BYTEA       NOT NULL
+);
+CREATE UNIQUE INDEX snap_word2vec_models_data_object_id ON snap.word2vec_models_data (object_id);
+
+-- Don't (attempt to) compress BLOBs in "raw_data" because they're going to be
+-- compressed already
+ALTER TABLE snap.word2vec_models_data
+    ALTER COLUMN raw_data SET STORAGE EXTERNAL;
+
 
 create table processed_stories (
     processed_stories_id        bigserial          primary key,
@@ -2754,6 +2784,7 @@ create view topic_tweet_full_urls as
             left join topic_seed_urls tsu
                 on ( tsu.topics_id = t.topics_id and ttu.url = tsu.url );
 
+
 create table snap.timespan_tweets (
     topic_tweets_id     int not null references topic_tweets on delete cascade,
     timespans_id        int not null references timespans on delete cascade
@@ -2899,6 +2930,8 @@ create index job_states_class_date on job_states( class, last_updated );
 
 create view pending_job_states as select * from job_states where state in ( 'running', 'queued' );
 
+create type retweeter_scores_match_type AS ENUM ( 'retweet', 'regex' );
+
 -- definition of bipolar comparisons for retweeter polarization scores
 create table retweeter_scores (
     retweeter_scores_id     serial primary key,
@@ -2908,7 +2941,8 @@ create table retweeter_scores (
     name                    text not null,
     state                   text not null default 'created but not queued',
     message                 text null,
-    num_partitions          int not null
+    num_partitions          int not null,
+    match_type              retweeter_scores_match_type not null default 'retweet'
 );
 
 -- group retweeters together so that we an compare, for example, sanders/warren retweeters to cruz/kasich retweeters
@@ -3126,17 +3160,20 @@ CREATE TABLE similarweb_metrics (
     similarweb_metrics_id  SERIAL                   PRIMARY KEY,
     domain                 VARCHAR(1024)            NOT NULL,
     month                  DATE,
-    visits                 INTEGER,
-    update_date            TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    UNIQUE (domain, month)
+    visits                 BIGINT,
+    update_date            TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
+
+CREATE UNIQUE INDEX similarweb_metrics_domain_month
+    ON similarweb_metrics (domain, month);
+
 
 --
 -- Unnormalized table
 --
 CREATE TABLE similarweb_media_metrics (
     similarweb_media_metrics_id    SERIAL                   PRIMARY KEY,
-    media_id                       INTEGER                  UNIQUE NOT NULL references media,
+    media_id                       INTEGER                  NOT NULL UNIQUE references media,
     similarweb_domain              VARCHAR(1024)            NOT NULL,
     domain_exact_match             BOOLEAN                  NOT NULL,
     monthly_audience               INTEGER                  NOT NULL,

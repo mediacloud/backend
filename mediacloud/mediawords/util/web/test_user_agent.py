@@ -837,7 +837,7 @@ class TestUserAgentTestCase(TestCase):
         assert os.path.isfile(http_request_log_file)
 
         last_non_blank_line = None
-        for line in reversed(list(open(http_request_log_file))):
+        for line in reversed(list(open(http_request_log_file, mode='r', encoding='utf-8'))):
             line = line.strip()
             if len(line) > 0:
                 last_non_blank_line = line

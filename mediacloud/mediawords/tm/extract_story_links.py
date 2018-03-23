@@ -24,7 +24,8 @@ IGNORE_LINK_PATTERN = (
     r'(?:feeds.wordpress.com\/.*\/go)|(?:sharetodiaspora.github.io\/)|(?:iconosquare.com)|'
     r'(?:unz.com)|(?:answers.com)|(?:downwithtyranny.com\/search)|(?:scoop\.?it)|(?:sco\.lt)|'
     r'(?:pronk.*\.wordpress\.com\/(?:tag|category))|(?:wn\.com)|(?:pinterest\.com\/pin\/create)|(?:feedblitz\.com)|'
-    r'(?:atomz.com)|(?:unionpedia.org)|(?:http://politicalgraveyard.com)')
+    r'(?:atomz.com)|(?:unionpedia.org)|(?:http://politicalgraveyard.com)|(?:https?://api\.[^\/]+)|'
+    r'(?:www.rumormillnews.com)|(tvtropes.org/pmwiki)')
 
 
 def get_links_from_html(html: str) -> typing.List[str]:

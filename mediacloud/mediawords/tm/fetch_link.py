@@ -216,7 +216,6 @@ def _try_fetch_topic_url(
     if topic_fetch_url['state'] not in (FETCH_STATE_PENDING, FETCH_STATE_REQUEUED):
         return
 
-    log.warning(mediawords.tm.extract_story_links.IGNORE_LINK_PATTERN)
     if re.search(mediawords.tm.extract_story_links.IGNORE_LINK_PATTERN, topic_fetch_url['url'], flags=re.I) is not None:
         topic_fetch_url['state'] = FETCH_STATE_IGNORE
         topic_fetch_url['code'] = 403

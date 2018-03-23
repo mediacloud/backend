@@ -21,6 +21,12 @@ use MediaWords::DB;
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::ExtractorArguments;
 
+# sleep for one second if there are more than this number of consecutive requeues
+Readonly my $SLEEP_AFTER_REQUEUES => 100;
+
+# count the number of consecutive requeues
+my $_consecutive_requeues = 0;
+
 # Extract, vector and process a story; LOGDIE() and / or return
 # false on error.
 #
@@ -46,11 +52,13 @@ sub run($$)
         WARN( "requeueing job for story $story->{ stories_id } in locked medium $story->{ media_id } ..." );
 
         # prevent spamming these requeue events if the locked media source is the only one in the queue
-        sleep( 1 );
+        sleep( 1 ) if ( ++$_consecutive_requeues > $SLEEP_AFTER_REQUEUES );
 
         MediaWords::Job::ExtractAndVector->add_to_queue( $args, $MediaCloud::JobManager::Job::MJM_JOB_PRIORITY_LOW );
         return 1;
     }
+
+    $_consecutive_requeues = 0;
 
     $db->begin;
 

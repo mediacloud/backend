@@ -72,25 +72,12 @@ Table of Contents
       * [api/v2/tag_sets/list/](#apiv2tag_setslist)
          * [Query Parameters](#query-parameters-14)
          * [Example](#example-16)
-   * [Topics](#topics)
-      * [api/v2/topics/single/](#apiv2topicssingle)
+      * [api/v2/timespans/single/](#apiv2timespanssingle)
          * [Query Parameters](#query-parameters-15)
          * [Example](#example-17)
-      * [api/v2/topics/list/](#apiv2topicslist)
+      * [api/v2/timespans/list/](#apiv2timespanslist)
          * [Query Parameters](#query-parameters-16)
          * [Example](#example-18)
-      * [api/v2/snapshots/single/](#apiv2snapshotssingle)
-         * [Query Parameters](#query-parameters-17)
-         * [Example](#example-19)
-      * [api/v2/snapshots/list/](#apiv2snapshotslist)
-         * [Query Parameters](#query-parameters-18)
-         * [Example](#example-20)
-      * [api/v2/timespans/single/](#apiv2timespanssingle)
-         * [Query Parameters](#query-parameters-19)
-         * [Example](#example-21)
-      * [api/v2/timespans/list/](#apiv2timespanslist)
-         * [Query Parameters](#query-parameters-20)
-         * [Example](#example-22)
    * [Registration and Authentication](#registration-and-authentication)
       * [Register](#register)
          * [api/v2/auth/register (POST)](#apiv2authregister-post)
@@ -99,21 +86,21 @@ Table of Contents
             * [Output Description](#output-description-5)
                * [Registration was successful](#registration-was-successful)
                * [Registration has failed](#registration-has-failed)
-            * [Example](#example-23)
+            * [Example](#example-19)
          * [api/v2/auth/activate (POST)](#apiv2authactivate-post)
             * [Required role](#required-role-1)
             * [Input Description](#input-description-2)
             * [Output Description](#output-description-6)
                * [Activating the user was successful](#activating-the-user-was-successful)
                * [Activating the user has failed](#activating-the-user-has-failed)
-            * [Example](#example-24)
+            * [Example](#example-20)
          * [api/v2/auth/resend_activation_link (POST)](#apiv2authresend_activation_link-post)
             * [Required role](#required-role-2)
             * [Input Description](#input-description-3)
             * [Output Description](#output-description-7)
                * [Resending the activation email was successful](#resending-the-activation-email-was-successful)
                * [Resending the activation email has failed](#resending-the-activation-email-has-failed)
-            * [Example](#example-25)
+            * [Example](#example-21)
       * [Reset password](#reset-password)
          * [api/v2/auth/send_password_reset_link (POST)](#apiv2authsend_password_reset_link-post)
             * [Required role](#required-role-3)
@@ -121,14 +108,14 @@ Table of Contents
             * [Output Description](#output-description-8)
                * [Sending the password reset link was successful](#sending-the-password-reset-link-was-successful)
                * [Sending the password reset link has failed](#sending-the-password-reset-link-has-failed)
-            * [Example](#example-26)
+            * [Example](#example-22)
          * [api/v2/auth/reset_password (POST)](#apiv2authreset_password-post)
             * [Required role](#required-role-4)
             * [Input Description](#input-description-5)
             * [Output Description](#output-description-9)
                * [Resetting the user's password was successful](#resetting-the-users-password-was-successful)
                * [Resetting the user's password has failed](#resetting-the-users-password-has-failed)
-            * [Example](#example-27)
+            * [Example](#example-23)
       * [Log in](#log-in)
          * [api/v2/auth/login (POST)](#apiv2authlogin-post)
             * [Required role](#required-role-5)
@@ -136,35 +123,35 @@ Table of Contents
             * [Output Description](#output-description-10)
                * [User was found](#user-was-found)
                * [User was not found](#user-was-not-found)
-            * [Example](#example-28)
+            * [Example](#example-24)
       * [User Profile](#user-profile)
          * [api/v2/auth/profile (GET)](#apiv2authprofile-get)
             * [Required role](#required-role-6)
             * [Output Description](#output-description-11)
-            * [Example](#example-29)
+            * [Example](#example-25)
          * [api/v2/auth/change_password (POST)](#apiv2authchange_password-post)
             * [Required role](#required-role-7)
             * [Input Description](#input-description-7)
             * [Output Description](#output-description-12)
                * [Changing the user's password was successful](#changing-the-users-password-was-successful)
                * [Changing the user's password has failed](#changing-the-users-password-has-failed)
-            * [Example](#example-30)
+            * [Example](#example-26)
          * [api/v2/auth/reset_api_key (POST)](#apiv2authreset_api_key-post)
             * [Required role](#required-role-8)
             * [Output Description](#output-description-13)
                * [Resetting user's API key was successful](#resetting-users-api-key-was-successful)
                * [Resetting user's API key has failed](#resetting-users-api-key-has-failed)
-            * [Example](#example-31)
+            * [Example](#example-27)
    * [Stats](#stats)
       * [api/v2/stats/list](#apiv2statslist)
-         * [Query Parameters](#query-parameters-21)
+         * [Query Parameters](#query-parameters-17)
          * [Output Description](#output-description-14)
-         * [Example](#example-32)
+         * [Example](#example-28)
    * [Util](#util)
       * [api/v2/util/is_syndicated_ap (POST)](#apiv2utilis_syndicated_ap-post)
          * [Input Description](#input-description-8)
          * [Output Description](#output-description-15)
-         * [Example](#example-33)
+         * [Example](#example-29)
    * [Extended Examples](#extended-examples)
       * [Output Format / JSON](#output-format--json)
       * [Create a CSV file with all media sources.](#create-a-csv-file-with-all-media-sources)
@@ -288,6 +275,8 @@ Response:
         "is_monitored": 1,
         "public_notes": "all the news that's fit to print",
         "editor_nnotes": "first media source",
+        "num_stories_90": 123,
+        "num_sentences_90": 1234,
         "media_source_tags": [
             {
                 "tag_sets_id": 5,
@@ -333,8 +322,12 @@ Response:
 | `include_dups`     | 0       | Include duplicate media among the results
 | `unhealthy` | none | Only return media that are currently marked as unhealthy (see mediahealth/list)
 | `similar_media_id` | none | Return media with the most tags in common
+|  `sort`            | id   | sort order of media: `id`, or `num_stories` |
 
 If the name parameter is specified, the call returns only media sources that match a case insensitive search specified value.  If the specified value is less than 3 characters long, the call returns an empty list.
+
+By default, media are sorted by media_id.  If the sort parameter is set to 'num_stories', the media will be sorted
+by decreasing number of stories in the past 90 days.
 
 By default, calls that specify a name parameter will only return media that are not duplicates of
 some other media source.  Media Cloud has many media sources that are either subsets of other media sources or are
@@ -1200,116 +1193,6 @@ None.
 ### Example
 
 URL: https://api.mediacloud.org/api/v2/tag_sets/list
-
-# Topics
-
-Topics are collections of stories within some date range that match some pattern indicating that they belong to some topic.  Topics both stories matched from crawled Media Cloud content and stories discovered by spidering out from the links of those matched stories. For more information about topics and how they are generated, see:
-
-http://cyber.law.harvard.edu/publications/2013/social_mobilization_and_the_networked_public_sphere
-
-A single topic is the umbrella object that represents the whole topic.  A snapshot
-is a frozen version of the data within a topic that keeps a consistent view of a topic
-for researchers and also includes analytical results like link counts.  A timespan
-represents the set of stories active in a topic within a given date range.  Every timespan belongs to a snapshot.
-
-Topic data can be used to search stories and media sources as well.  Use the
-timespans_id param to list the media sources within a given timespan.  See the documentation for Solr pseudo queries for documentation of how to
-query for stories within a topic.
-
-## api/v2/topics/single/
-
-| URL                                | Function
-| ---------------------------------- | ----------------------
-| `api/v2/topics/single/<topics_id>` | Return a single topic
-
-### Query Parameters
-
-None.
-
-### Example
-
-Fetching information on topic 6.
-
-URL: https://api.mediacloud.org/api/v2/topics/single/6
-
-Response:
-
-```json
-[
-    {
-        "topics_id": 6,
-        "description": "obama",
-        "name": "obama",
-        "media_type_tag_sets_id": 18,
-        "pattern": "[[:<:]]obama|obamacare[[:>:]]",
-        "solr_seed_query": "obama OR obamacare",
-        "solr_seed_query_run": 1,
-    }
-]
-```
-
-## api/v2/topics/list/
-
-| URL                  | Function
-| -------------------- | --------------
-| `api/v2/topics/list` | Return topics
-
-### Query Parameters
-
-| Parameter       | Default    | Notes
-| --------------- | ---------- | ------------------------------------------------------
-| `name`          | null       | Search for topics with names including the given text
-
-### Example
-
-URL: https://api.mediacloud.org/api/v2/topics/list
-
-## api/v2/snapshots/single/
-
-| URL                              | Function
-| -------------------------------- | -------------------------
-| `api/v2/snapshots/single/<id>`   | Return a single snapshot
-
-### Query Parameters
-
-None.
-
-### Example
-
-Fetching information on the snapshot 5.
-
-URL: https://api.mediacloud.org/api/v2/snapshots/single/5
-
-Response:
-
-```json
-[
-    {
-        "topics_id": 6,
-        "snapshots_id": 5,
-        "dump_date": "2014-07-30 16:32:15.479964",
-        "end_date": "2015-01-01 00:00:00",
-        "note": null,
-        "start_date": "2014-01-01 00:00:00",
-    }
-]
-```
-
-## api/v2/snapshots/list/
-
-| URL                      | Function
-| ------------------------ | -------------------------------------------
-| `api/v2/snapshots/list`  | Return snapshots sorted by descending date
-
-### Query Parameters
-
-| Parameter   | Default    | Notes
-| ----------- | ---------- | ------------------------------------
-| `topics_id` | null       | Return dumps within the given topic
-
-### Example
-
-URL: https://api.mediacloud.org/api/v2/snapshots/list?topics_id=6
 
 ## api/v2/timespans/single/
 

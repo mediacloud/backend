@@ -323,6 +323,9 @@ sub query_encoded_json($$;$)
         }
     }
 
+    # disable caching entirely until story indexing in hopes of preventing crashes -hal
+    $params->{ q } = '{!cache=false} ' . $params->{ q };
+
     TRACE "Executing Solr query on $url ...";
     TRACE 'Parameters: ' . Dumper( $params );
     my $t0 = [ gettimeofday ];

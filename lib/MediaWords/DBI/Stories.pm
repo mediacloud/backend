@@ -784,9 +784,6 @@ sub _get_title_parts
     $title = decode_entities( $title );
 
     $title = lc( $title );
-    $title =~ s/\s+/ /g;
-    $title =~ s/^\s+//;
-    $title =~ s/\s+$//;
 
     $title = MediaWords::Util::HTML::html_strip( $title ) if ( $title =~ /\</ );
     $title = decode_entities( $title );
@@ -794,10 +791,11 @@ sub _get_title_parts
     my $title_parts;
     if ( $title =~ m~https?://[^ ]*~ )
     {
-        $title_parts = [ $title ];
+        return [ $title ];
     }
     else
     {
+        $title =~ s/(\w)\:/$1 :/g;
         $title_parts = [ split( /\s*[-•:|]+\s*/, $title ) ];
     }
 
@@ -806,7 +804,7 @@ sub _get_title_parts
         unshift( @{ $title_parts }, $title );
     }
 
-    map { s/^\s+//; s/\s+$//; s/[[:punct:]]//g; } @{ $title_parts };
+    map { s/\s+/ /g; s/^\s+//; s/\s+$//; s/[[:punct:]]//g; } @{ $title_parts };
 
     return $title_parts;
 }
@@ -845,7 +843,7 @@ sub get_medium_dup_stories_by_title
     my $title_part_counts = {};
     for my $story ( @{ $stories } )
     {
-        next if ( $story->{ url } && ( $story->{ url } =~ /https?:\/\/(twitter\.com|t\.co)/i ) );
+        next if ( $story->{ url } && ( $story->{ url } =~ /https?:\/\/(twitter\.com)/i ) );
 
         my $title_parts = _get_title_parts( $story->{ title } );
 
