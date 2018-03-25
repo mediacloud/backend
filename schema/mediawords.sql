@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4655;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4656;
 
 BEGIN
 
@@ -1126,79 +1126,6 @@ DROP TRIGGER IF EXISTS story_sentences_last_updated_trigger on story_sentences C
 CREATE TRIGGER story_sentences_last_updated_trigger
     BEFORE INSERT OR UPDATE ON story_sentences
     FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
-
-
--- update media stats table for new story sentence.
-CREATE FUNCTION insert_ss_media_stats() RETURNS trigger AS $$
-BEGIN
-
-    UPDATE media_stats
-    SET num_sentences = num_sentences + 1
-    WHERE media_id = NEW.media_id
-      AND stat_date = date_trunc( 'day', NEW.publish_date );
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-
-create trigger ss_insert_story_media_stats after insert
-    on story_sentences for each row execute procedure insert_ss_media_stats();
-
-
--- update media stats table for updated story_sentence date
-CREATE FUNCTION update_ss_media_stats() RETURNS trigger AS $$
-
-DECLARE
-    new_date DATE;
-    old_date DATE;
-
-BEGIN
-    SELECT date_trunc( 'day', NEW.publish_date ) INTO new_date;
-    SELECT date_trunc( 'day', OLD.publish_date ) INTO old_date;
-
-    IF ( new_date != old_date ) THEN
-
-        UPDATE media_stats
-        SET num_sentences = num_sentences - 1
-        WHERE media_id = NEW.media_id
-          AND stat_date = old_date;
-
-        UPDATE media_stats
-        SET num_sentences = num_sentences + 1
-        WHERE media_id = NEW.media_id
-          AND stat_date = new_date;
-
-    END IF;
-
-    RETURN NEW;
-END;
-
-$$ LANGUAGE plpgsql;
-
-
-create trigger ss_update_story_media_stats after update
-    on story_sentences for each row execute procedure update_ss_media_stats();
-
-
--- update media stats table for deleted story sentence
-CREATE FUNCTION delete_ss_media_stats() RETURNS trigger AS $$
-BEGIN
-
-    UPDATE media_stats
-    SET num_sentences = num_sentences - 1
-    WHERE media_id = OLD.media_id
-      AND stat_date = date_trunc( 'day', OLD.publish_date );
-
-    RETURN NEW;
-
-END;
-
-$$ LANGUAGE plpgsql;
-
-
-create trigger story_delete_ss_media_stats after delete
-    on story_sentences for each row execute procedure delete_ss_media_stats();
 
 -- update media stats table for new story. create the media / day row if needed.
 CREATE OR REPLACE FUNCTION insert_story_media_stats() RETURNS trigger AS $$

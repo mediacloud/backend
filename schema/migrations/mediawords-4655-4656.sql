@@ -14,6 +14,14 @@
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
+drop trigger ss_insert_story_media_stats on story_sentences;
+drop trigger ss_update_story_media_stats on story_sentences;
+drop trigger story_delete_ss_media_stats on story_sentences;
+
+drop function insert_ss_media_stats();
+drop function update_ss_media_stats();
+drop function delete_ss_media_stats();
+
 --
 -- 2 of 2. Reset the database version.
 --
@@ -38,5 +46,3 @@ $$
 LANGUAGE 'plpgsql';
 
 SELECT set_database_schema_version();
-
-
