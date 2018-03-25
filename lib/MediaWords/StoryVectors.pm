@@ -280,8 +280,6 @@ sub _delete_story_sentences($$)
 {
     my ( $db, $story, $extractor_args ) = @_;
 
-    $db->begin;
-
     my $num_deleted = $db->query( 'DELETE FROM story_sentences WHERE stories_id = ?', $story->{ stories_id } )->rows;
 
     if ( $num_deleted > 0 )
@@ -290,8 +288,6 @@ sub _delete_story_sentences($$)
 update media_stats set num_sentences = num_sentences - ? where media_id = ? and stat_date = ?::date
 SQL
     }
-
-    $db->commit;
 }
 
 # update story vectors for the given story, updating story_sentences
