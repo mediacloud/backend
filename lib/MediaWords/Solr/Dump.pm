@@ -1298,6 +1298,56 @@ update snapshots s
 SQL
 }
 
+# do the work for generate and import dump for a single dump file
+sub _generate_and_import_dump_file($$$$$$)
+{
+    my ( $delta, $delete, $staging, $jobs, $db, $dump_file ) = @_;
+
+    _mark_import_date( $db );
+
+    INFO "generating dump ...";
+    my $dump = print_csv_to_file( $db, $dump_file, $jobs, $delta ) || die( "dump failed." );
+
+    my $stories_ids = $dump->{ stories_ids };
+    my $dump_files  = $dump->{ files };
+
+    if ( $delta )
+    {
+        INFO "deleting updated stories ...";
+        delete_stories( $stories_ids, $staging ) || die( "delete stories failed." );
+    }
+    elsif ( $delete )
+    {
+        INFO "deleting all stories ...";
+        delete_all_sentences( $staging ) || die( "delete all sentences failed." );
+    }
+
+    _solr_request( 'update', { 'commit' => 'true' }, $staging );
+
+    INFO "importing dump ...";
+    import_csv_files( $dump_files, $staging, $jobs ) || die( "import failed." );
+
+    # have to reconnect becaue import_csv_files may have forked, ruining existing db handles
+    $db = MediaWords::DB::connect_to_db;
+
+    _save_import_date( $db, $delta, $stories_ids );
+    _save_import_log( $db, $stories_ids );
+    _delete_stories_from_import_queue( $db, $delta, $stories_ids );
+
+    # if we're doing a full import, do a delta to catchup with the data since the start of the import
+    if ( !$delta )
+    {
+        generate_and_import_data( 1, 0, $staging );
+    }
+
+    INFO( "committing solr index changes ..." );
+    _solr_request( 'update', { 'commit' => 'true' }, $staging );
+
+    map { unlink( $_ ) } @{ $dump_files };
+
+    _update_snapshot_solr_status( $db );
+}
+
 =head2 generate_and_import_data( $delta, $delete, $staging, $jobs )
 
 Generate and import dump.  If $delta is true, generate delta dump since beginning of last full or delta dump.  If $delta
@@ -1328,49 +1378,18 @@ sub generate_and_import_data
     {
         my $dump_file = _get_dump_file();
 
-        _mark_import_date( $db );
+        eval { _generate_and_import_dump_file( $delta, $delete, $staging, $jobs, $db, $dump_file ) };
+        my $error = $@;
 
-        INFO "generating dump ...";
-        my $dump = print_csv_to_file( $db, $dump_file, $jobs, $delta ) || die( "dump failed." );
-
-        my $stories_ids = $dump->{ stories_ids };
-        my $dump_files  = $dump->{ files };
-
-        if ( $delta )
+        if ( -f $dump_file )
         {
-            INFO "deleting updated stories ...";
-            delete_stories( $stories_ids, $staging ) || die( "delete stories failed." );
-        }
-        elsif ( $delete )
-        {
-            INFO "deleting all stories ...";
-            delete_all_sentences( $staging ) || die( "delete all sentences failed." );
+            unlink( $dump_file );
         }
 
-        _solr_request( 'update', { 'commit' => 'true' }, $staging );
-
-        INFO "importing dump ...";
-        import_csv_files( $dump_files, $staging, $jobs ) || die( "import failed." );
-
-        # have to reconnect becaue import_csv_files may have forked, ruining existing db handles
-        $db = MediaWords::DB::connect_to_db;
-
-        _save_import_date( $db, $delta, $stories_ids );
-        _save_import_log( $db, $stories_ids );
-        _delete_stories_from_import_queue( $db, $delta, $stories_ids );
-
-        # if we're doing a full import, do a delta to catchup with the data since the start of the import
-        if ( !$delta )
+        if ( $@ )
         {
-            generate_and_import_data( 1, 0, $staging );
+            die( "error during import: $@" );
         }
-
-        INFO( "committing solr index changes ..." );
-        _solr_request( 'update', { 'commit' => 'true' }, $staging );
-
-        map { unlink( $_ ) } @{ $dump_files };
-
-        _update_snapshot_solr_status( $db );
 
         last if ( _stories_queue_is_small( $db ) || ( ++$i > 100 ) );
 
