@@ -1381,9 +1381,9 @@ sub generate_and_import_data
         eval { _generate_and_import_dump_file( $delta, $delete, $staging, $jobs, $db, $dump_file ) };
         my $error = $@;
 
-        if ( -f $dump_file )
+        if ( unlink( $dump_file ) < 0 )
         {
-            unlink( $dump_file );
+            warn( "error deleting dump file '$dump_file': $!" );
         }
 
         if ( $@ )
