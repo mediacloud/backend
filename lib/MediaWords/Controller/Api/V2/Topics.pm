@@ -347,7 +347,7 @@ sub _update_decreases_query_scope($$$)
     my $spidered_story = $db->query( <<SQL, $topic->{ topics_id } )->hash;
 select * from topic_stories where iteration > 1 and topics_id = ? limit 1
 SQL
-    return 0 unless ( $spidered_story );
+    return 0 if ( !$spidered_story && $topic->{ state } ne 'running' );
 
     return 1 if ( $data->{ start_date } && ( $data->{ start_date } gt $topic->{ start_date } ) );
 
