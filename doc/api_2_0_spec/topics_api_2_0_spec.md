@@ -385,9 +385,9 @@ Response:
 Edit an existing *topic*.
 
 This api call will generate an error if update attempts to remove existing dates, media sources, or media source tags
-from a topic that has already started spidering content.  If the solr seed query, dates, media sources, or media
-source tags are updated (without generating an error), all impact stories will be marked for respidering during
-the next spidering run.
+from a topic that has spidered content or has a currently active spidering job.   If the solr seed query, dates, media
+sources, or media source tags are updated (without generating an error), all impacted stories will be marked for
+respidering during the next spidering run.
 
 Editing a query is allowed for a topic that has already started spidering, but editing a query to reduce its scope
 will not remove any stories from the existing topic and so will likely result in non-sensical results.
@@ -450,11 +450,14 @@ Response:
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/reset`
 
-Delete all existing stories, links, and seed urls from an existing *topic*.
+Delete all existing stories, links, and seed urls from an existing *topic*.  Set the topic state to
+'created but not queued' and the message to null.
 
 This call should be used with caution.  After executing this call, no stories or links will remain in the *topic*, so
 the *topic* will need to be entirely respidered before another snapshot is made.  Data in existing snapshots will
 not be impacted in any way by this call.
+
+This call will return an error if it is run on a *topic* with a state of 'running'.
 
 ### Query Parameters
 
