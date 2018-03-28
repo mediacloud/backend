@@ -585,11 +585,20 @@ sub reset_PUT
 
     my $topics_id = int( $c->stash->{ topics_id } );
 
+    my $topic = $db->require_by_id( 'topics', $topics_id );
+
+    if ( $topic->{ state } eq 'running' )
+    {
+        die( "Cannot reset running topic." );
+    }
+
     $db->query( "delete from topic_stories where topics_id = ?",                   $topics_id );
     $db->query( "delete from topic_links where topics_id = ?",                     $topics_id );
     $db->query( "delete from topic_dead_links where topics_id = ?",                $topics_id );
     $db->query( "delete from topic_seed_urls where topics_id = ?",                 $topics_id );
     $db->query( "update topics set solr_seed_query_run = 'f' where topics_id = ?", $topics_id );
+
+    $db->update_by_id( 'topics', $topic->{ topics_id }, { state => 'created but not queued', message => undef } );
 
     $self->status_ok( $c, entity => { success => 1 } );
 }
