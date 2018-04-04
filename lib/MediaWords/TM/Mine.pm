@@ -945,12 +945,31 @@ sub error_is_amqp($)
     return ( $error && ( $error =~ /AMQP socket not connected/ ) );
 }
 
+# add the topic_fetch_url to the fetch_link job queue.  try repeatedly on failure.
+sub queue_topic_fetch_url($)
+{
+    my ( $tfu ) = @_;
+
+    my $fetch_link_domain_timeout = $_test_mode ? 0 : undef;
+
+    do
+    {
+        eval {
+            MediaWords::Job::TM::FetchLink->add_to_queue(
+                {
+                    topic_fetch_urls_id => $tfu->{ topic_fetch_urls_id },
+                    domain_timeout      => $fetch_link_domain_timeout
+                }
+            );
+        };
+        ( sleep( 1 ) && DEBUG( 'waiting for rabbit ...' ) ) if ( error_is_amqp( $@ ) );
+    } until ( !error_is_amqp( $@ ) );
+}
+
 # create topic_fetch_urls rows correpsonding to the links and queue a FetchLink job for each.  return the tfu rows.
 sub create_and_queue_topic_fetch_urls($$$)
 {
     my ( $db, $topic, $fetch_links ) = @_;
-
-    my $fetch_link_domain_timeout = $_test_mode ? 0 : undef;
 
     my $tfus = [];
     for my $link ( @{ $fetch_links } )
@@ -967,19 +986,7 @@ sub create_and_queue_topic_fetch_urls($$$)
         );
         push( @{ $tfus }, $tfu );
 
-        do
-        {
-            eval {
-                MediaWords::Job::TM::FetchLink->add_to_queue(
-                    {
-                        topic_fetch_urls_id => $tfu->{ topic_fetch_urls_id },
-                        domain_timeout      => $fetch_link_domain_timeout
-                    }
-                );
-            };
-            ( sleep( 1 ) && DEBUG( 'waiting for rabbit ...' ) ) if ( error_is_amqp( $@ ) );
-        } until ( !error_is_amqp( $@ ) );
-
+        queue_topic_fetch_url( $tfu );
     }
 
     return $tfus;
@@ -1000,6 +1007,11 @@ sub fetch_links
     my $tfu_ids_table = $db->get_temporary_ids_table( [ map { int( $_->{ topic_fetch_urls_id } ) } @{ $tfus } ] );
 
     # now poll waiting for the queue to clear
+    my $requeues         = 0;
+    my $max_requeues     = 3;
+    my $max_requeue_jobs = 10;
+    my $requeue_timeout  = 300;
+
     my $last_pending_change   = time();
     my $last_num_pending_urls = 0;
     while ( 1 )
@@ -1018,7 +1030,21 @@ SQL
 
         last if ( $num_pending_urls < 1 );
 
-        if ( ( time() - $last_pending_change ) > $JOB_POLL_TIMEOUT )
+        my $time_since_change = time() - $last_pending_change;
+
+        # for some reason, the fetch_link queue is occasionally losing a small number of jobs.  until we can
+        # find the cause of the bug, just requeue stray jobs a few times
+        if (   ( $time_since_change > $requeue_timeout )
+            && ( $requeues < $max_requeues )
+            && ( $num_pending_urls < $max_requeue_jobs ) )
+        {
+            INFO( "requeueing fetch_link $num_pending_urls jobs ... [requeue $requeues]" );
+            map { queue_topic_fetch_url( $db->require_by_id( 'topic_fetch_urls', $_ ) ) } @{ $pending_url_ids };
+            ++$requeues;
+            $last_pending_change = time();
+        }
+
+        if ( $time_since_change > $JOB_POLL_TIMEOUT )
         {
             splice( @{ $pending_url_ids }, 10 );
             my $ids_list = join( ', ', @{ $pending_url_ids } );
