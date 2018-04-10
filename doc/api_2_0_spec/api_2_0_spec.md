@@ -277,6 +277,7 @@ Response:
         "editor_nnotes": "first media source",
         "num_stories_90": 123,
         "num_sentences_90": 1234,
+        "start_date": "2016-01-01",
         "media_source_tags": [
             {
                 "tag_sets_id": 5,
