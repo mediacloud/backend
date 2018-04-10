@@ -29,7 +29,7 @@ $$ LANGUAGE SQL;
 
 
 -- Generate random API key
-CREATE FUNCTION generate_api_key() RETURNS VARCHAR(64) LANGUAGE plpgsql AS $$
+CREATE OR REPLACE FUNCTION generate_api_key() RETURNS VARCHAR(64) LANGUAGE plpgsql AS $$
 DECLARE
     api_key VARCHAR(64);
 BEGIN
