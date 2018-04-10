@@ -76,6 +76,10 @@ select m.media_id, coalesce( h.$field, 0 )::float $field from media m left join 
 SQL
     }
 
+    $media = $db->attach_child_query( $media, <<SQL, 'start_date', 'media_id', $single );
+select m.media_id, coalesce( start_date,  now() )::date start_date from media m left join media_health h using ( media_id )
+SQL
+
     my $media_ids_list = join( ',', map { $_->{ media_id } } @{ $media } ) || '-1';
     my $tags = $db->query( <<END )->hashes;
 select mtm.media_id, t.tags_id, t.tag, t.label, t.description, mtm.tagged_date, ts.tag_sets_id, ts.name as tag_set,
