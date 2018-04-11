@@ -17,7 +17,8 @@ LOCK_TYPES = {
     'test-a': 10,
     'test-b': 11,
     'MediaWords::Job::TM::MineTopic': 12,
-    'MediaWords::Job::TM::SnapshotTopic': 13
+    'MediaWords::Job::TM::SnapshotTopic': 13,
+    'MediaWords::TM::Media::media_normalized_urls': 14
 }
 
 
