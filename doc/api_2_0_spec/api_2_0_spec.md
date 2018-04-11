@@ -72,12 +72,6 @@ Table of Contents
       * [api/v2/tag_sets/list/](#apiv2tag_setslist)
          * [Query Parameters](#query-parameters-14)
          * [Example](#example-16)
-      * [api/v2/timespans/single/](#apiv2timespanssingle)
-         * [Query Parameters](#query-parameters-15)
-         * [Example](#example-17)
-      * [api/v2/timespans/list/](#apiv2timespanslist)
-         * [Query Parameters](#query-parameters-16)
-         * [Example](#example-18)
    * [Registration and Authentication](#registration-and-authentication)
       * [Register](#register)
          * [api/v2/auth/register (POST)](#apiv2authregister-post)
@@ -1194,66 +1188,6 @@ None.
 ### Example
 
 URL: https://api.mediacloud.org/api/v2/tag_sets/list
-
-## api/v2/timespans/single/
-
-| URL                            | Function
-| ------------------------------ | -------------------------
-| `api/v2/timespans/single/<id>` | Return a single timespan
-
-### Query Parameters
-
-None.
-
-### Example
-
-Fetching information on the timespan 5.
-
-URL: https://api.mediacloud.org/api/v2/timespans/single/5
-
-Response:
-
-```json
-[
-    {
-        "snapshots_id": 5,
-        "timespans_id": 145,
-        "end_date": "2015-01-01 00:00:00",
-        "include_undateable_stories": 0,
-        "medium_count": 236,
-        "medium_link_count": 266,
-        "model_num_media": 17,
-        "model_r2_mean": "0.96",
-        "model_r2_stddev": "0",
-        "period": "overall",
-        "tags_id": null,
-        "start_date": "2014-01-01 00:00:00",
-        "story_count": 2148,
-        "story_link_count": 731,
-    }
-]
-```
-
-## api/v2/timespans/list/
-
-| URL                     | Function
-| ----------------------- | -----------------
-| `api/v2/timespans/list` | Return timespans
-
-### Query Parameters
-
-| Parameter      | Default | Notes
-| -------------- | ------- | -----------------------------------------------------------------
-| `snapshots_id` | null    | Return timespans within the dump
-| `tags_id`      | null    | Return timespans associated with the tag
-| `period`       | null    | Return timespans with the given period ('weekly', 'monthly', 'overall', or 'custom'
-| `start_date`   | null    | Return timespans that start on the given date (YYYY-MM-DD)
-| `end_date`     | null    | Return timespans that end on the given date (YYYY-MM-DD)
-
-### Example
-
-URL: https://api.mediacloud.org/api/v2/timespans/list?snapshots_id=5
-
 
 # Registration and Authentication
 
