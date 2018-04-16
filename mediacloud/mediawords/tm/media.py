@@ -140,11 +140,13 @@ def _update_media_normalized_urls(db: DatabaseHandler) -> None:
         """
         select m.*
             from media m
-                left join media_normalized_urls u on
-                    ( m.media_id = u.media_id and u.normalize_url_lossy_version = %(a)s)
             where
-                u.normalized_url is null or
-                u.db_row_last_updated < m.db_row_last_updated
+                m.media_id >
+                    ( select coalesce( max( media_id ), 0 )
+                        from media_normalized_urls where normalize_url_lossy_version = %(a)s ) or
+                m.db_row_last_updated >
+                    ( select coalesce( max( db_row_last_updated ), '1970-01-01'::date )
+                        from media_normalized_urls where normalize_url_lossy_version = %(a)s )
         """,
         {'a': version}).hashes()
 
