@@ -62,6 +62,16 @@ sudo lxc exec $MC_LXD_CONTAINER -- /bin/bash -c "apt-get -y update"
 sudo lxc exec $MC_LXD_CONTAINER -- /bin/bash -c "apt-get -y --no-install-recommends install build-essential file python python-dev python-pip python-setuptools"
 sudo lxc exec $MC_LXD_CONTAINER -- /bin/bash -c "pip install --upgrade pip"
 
+# Otherwise fails with:
+#
+#     ERROR! Unexpected Exception, this is probably a bug:
+#     (cryptography 1.2.3 (/usr/lib/python3/dist-packages),
+#     Requirement.parse('cryptography>=1.5'), {'paramiko'})
+#
+echo "Upgrading pyOpenSSL..."
+sudo lxc exec $MC_LXD_CONTAINER -- /bin/bash -c "apt-get --auto-remove --yes remove python-openssl"
+sudo lxc exec $MC_LXD_CONTAINER -- /bin/bash -c "pip install --upgrade pyOpenSSL"
+
 echo "Installing Ansible and ansible-lint..."
 sudo lxc exec $MC_LXD_CONTAINER -- /bin/bash -c "pip install --upgrade ansible"
 sudo lxc exec $MC_LXD_CONTAINER -- /bin/bash -c "pip install --upgrade ansible-lint"
