@@ -127,13 +127,12 @@
   tags:
     - system-packages
 
-- name: Remove obsolete system packages
+# APT's version is too old
+- name: Remove obsolete Supervisor
   apt:
-    name: "{{item}}"
+    name: supervisor
     state: absent
     install_recommends: false
-  with_items:
-    - supervisor
   become: true
   become_user: root
   tags:

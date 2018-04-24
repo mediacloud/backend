@@ -80,6 +80,7 @@
 - name: "Install Supervisor via Pip 2.7"
   pip:
     name: supervisor
+    version: "3.3.4"  # Has some performance improvements
     executable: "pip2.7"
   become: "{{ pip_system_install_become }}"
   become_user: root
