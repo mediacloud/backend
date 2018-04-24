@@ -98,17 +98,6 @@ programs = crawler
 %]
 
 [% INCLUDE program_config
-    program='queue_media_solr_exports'
-    command="bash ./script/run_in_env.sh ./script/mediawords_queue_media_solr_exports.pl"
-    default_stopasgroup='true'
-    default_killasgroup='true'
-    default_autorestart='false'
-    default_autostart='true'
-    priority=5
-    default_nice=12
-%]
-
-[% INCLUDE program_config
     program='create_missing_partitions'
     command="./script/run_in_env.sh ./tools/db/create_missing_partitions.py"
     default_stopasgroup='true'
