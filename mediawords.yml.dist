@@ -125,9 +125,6 @@ supervisor:
         #topic_mine
         #topic_snapshot
 
-        # Standalone Solr instance
-        #solr_standalone
-
         # Solr cluster: ZooKeeper instance
         #solr_cluster_zookeeper
 
@@ -137,12 +134,6 @@ supervisor:
 
 ### Solr server, when running as a Supervisor service
 supervisor_solr:
-
-    ### Standalone Solr instance
-    standalone:
-
-        # JVM heap size (-Xmx)
-        jvm_heap_size: "256m"
 
     ### Solr cluster
     cluster:
@@ -387,10 +378,7 @@ mediawords:
     # the list for each Solr query
     solr_url:
 
-        # Standalone Solr instance...
-        - http://localhost:8983/solr
-
-        # ...or SolrCloud shards
+        # Solr shards
         #- http://127.0.0.1:7981/solr
         #- http://127.0.0.1:7982/solr
         #- http://127.0.0.1:7983/solr

@@ -16,8 +16,7 @@ from mediawords.solr.run.constants import (
     MC_DIST_DIR, MC_SOLR_VERSION, MC_PACKAGE_INSTALLING_FILE, MC_PACKAGE_INSTALLED_FILE,
     MC_INSTALL_TIMEOUT, MC_SOLR_HOME_DIR, MC_SOLR_BASE_DATA_DIR, MC_SOLR_CLUSTER_STARTING_PORT,
     MC_SOLR_CLUSTER_ZOOKEEPER_HOST, MC_SOLR_CLUSTER_ZOOKEEPER_PORT, MC_SOLR_CLUSTER_ZOOKEEPER_TIMEOUT,
-    MC_SOLR_SIGKILL_TIMEOUT, MC_SOLR_STANDALONE_JVM_OPTS, MC_SOLR_LUCENEMATCHVERSION, MC_SOLR_STANDALONE_PORT,
-    MC_SOLR_STANDALONE_JVM_HEAP_SIZE, MC_SOLR_STANDALONE_CONNECT_RETRIES,
+    MC_SOLR_SIGKILL_TIMEOUT, MC_SOLR_LUCENEMATCHVERSION,
     MC_SOLR_CLUSTER_JVM_HEAP_SIZE, MC_SOLR_CLUSTER_ZOOKEEPER_CONNECT_RETRIES,
     MC_SOLR_CLUSTER_JVM_OPTS, MC_SOLR_CLUSTER_CONNECT_RETRIES)
 from mediawords.util.compress import extract_tarball_to_directory
@@ -174,13 +173,6 @@ def __collections(solr_home_dir: str = MC_SOLR_HOME_DIR) -> Dict[str, str]:
                 collections[name] = full_path
 
     return collections
-
-
-def __standalone_data_dir(base_data_dir: str = MC_SOLR_BASE_DATA_DIR) -> str:
-    """Return data directory for a standalone instance."""
-    if not os.path.isdir(base_data_dir):
-        raise McSolrRunException("Solr data directory '%s' does not exist." % base_data_dir)
-    return os.path.join(base_data_dir, "mediacloud-standalone")
 
 
 def __shard_data_dir(shard_num: int, base_data_dir: str = MC_SOLR_BASE_DATA_DIR) -> str:
@@ -372,15 +364,13 @@ def __run_solr(port: int,
                hostname: str = None,
                jvm_heap_size: str = None,
                start_jar_args: List[str] = None,
-               jvm_opts: List[str] = None,
+               jvm_opts: List[str] = [],
                connect_timeout: int = 120,
                dist_directory: str = MC_DIST_DIR,
                solr_version: str = MC_SOLR_VERSION) -> None:
     """Run Solr instance."""
     if hostname is None:
         hostname = fqdn()
-    if jvm_opts is None:
-        jvm_opts = MC_SOLR_STANDALONE_JVM_OPTS
 
     if start_jar_args is None:
         start_jar_args = []
@@ -569,36 +559,6 @@ instanceDir=%(instance_dir)s
         time.sleep(1)
 
 
-def run_solr_standalone(hostname: str = None,
-                        port: int = MC_SOLR_STANDALONE_PORT,
-                        base_data_dir: str = MC_SOLR_BASE_DATA_DIR,
-                        dist_directory: str = MC_DIST_DIR,
-                        solr_version: str = MC_SOLR_VERSION,
-                        jvm_heap_size: str = MC_SOLR_STANDALONE_JVM_HEAP_SIZE):
-    """Run standalone instance of Solr."""
-    if hostname is None:
-        hostname = fqdn()
-    if not __solr_is_installed(dist_directory=dist_directory, solr_version=solr_version):
-        log.info("Solr is not installed, installing...")
-        __install_solr(dist_directory=dist_directory, solr_version=solr_version)
-
-    base_data_dir = resolve_absolute_path_under_mc_root(path=base_data_dir, must_exist=True)
-    standalone_data_dir = __standalone_data_dir(base_data_dir=base_data_dir)
-
-    if tcp_port_is_open(port=port):
-        raise McSolrRunException("Port %d is already open on this machine." % port)
-
-    log.info("Starting standalone Solr instance on port %d..." % port)
-    __run_solr(hostname=hostname,
-               port=port,
-               instance_data_dir=standalone_data_dir,
-               jvm_heap_size=jvm_heap_size,
-               jvm_opts=MC_SOLR_STANDALONE_JVM_OPTS,
-               connect_timeout=MC_SOLR_STANDALONE_CONNECT_RETRIES,
-               dist_directory=dist_directory,
-               solr_version=solr_version)
-
-
 def run_solr_shard(shard_num: int,
                    shard_count: int,
                    hostname: str = None,
@@ -700,7 +660,7 @@ def reload_all_solr_shards(shard_count: int,
 
 
 def optimize_solr_index(host: str = "localhost",
-                        port: int = MC_SOLR_STANDALONE_PORT,
+                        port: int = MC_SOLR_CLUSTER_STARTING_PORT,
                         collections: List[str] = None):
     """Optimize collection indexes.
 
@@ -782,27 +742,6 @@ def __upgrade_lucene_index(instance_data_dir: str,
         ]
         run_command_in_foreground(args)
         log.info("Upgraded index at path '%s'." % index_path)
-
-
-def upgrade_lucene_standalone_index(base_data_dir: str = MC_SOLR_BASE_DATA_DIR,
-                                    dist_directory: str = MC_DIST_DIR,
-                                    solr_version: str = MC_SOLR_VERSION):
-    """Upgrade Lucene index using the IndexUpgrader tool to standalone instance."""
-
-    base_data_dir = resolve_absolute_path_under_mc_root(path=base_data_dir, must_exist=True)
-
-    log.info("Making sure standalone instance isn't running...")
-    port = MC_SOLR_STANDALONE_PORT
-    if tcp_port_is_open(port=port):
-        raise McSolrRunException("Solr standalone instance is running on port %d." % port)
-    log.info("Made sure standalone instance isn't running.")
-
-    log.info("Upgrading standalone instance indexes...")
-    standalone_data_dir = __standalone_data_dir(base_data_dir=base_data_dir)
-    __upgrade_lucene_index(instance_data_dir=standalone_data_dir,
-                           dist_directory=dist_directory,
-                           solr_version=solr_version)
-    log.info("Upgraded standalone instance indexes...")
 
 
 def upgrade_lucene_shards_indexes(base_data_dir: str = MC_SOLR_BASE_DATA_DIR,

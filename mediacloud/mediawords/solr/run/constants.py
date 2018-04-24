@@ -14,19 +14,6 @@ MC_SOLR_BASE_DATA_DIR = "data/solr/"
 # Seconds to wait for Solr to shutdown after SIGKILLing it; after the timeout, SIGTERM will be sent
 MC_SOLR_SIGKILL_TIMEOUT = 60
 
-# Solr port for running a standalone server
-MC_SOLR_STANDALONE_PORT = 8983
-
-# Seconds to wait for a standalone Solr instance to start
-MC_SOLR_STANDALONE_CONNECT_RETRIES = 2 * 60
-
-# Default JVM heap size (-Xmx) for a standalone instance
-MC_SOLR_STANDALONE_JVM_HEAP_SIZE = "256m"
-
-# Other JVM options to pass to Solr when running a standalone instance
-MC_SOLR_STANDALONE_JVM_OPTS = [
-]
-
 # Solr starting port for shards, e.g.:
 # * shard #1 will start on port MC_SOLR_CLUSTER_STARTING_PORT
 # * shard #2 will start on port MC_SOLR_CLUSTER_STARTING_PORT+1
