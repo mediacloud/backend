@@ -1,15 +1,5 @@
 ---
 
-- name: Initialize Virtualenvwrapper
-  command: "bash /usr/local/bin/virtualenvwrapper.sh"
-  args:
-    creates: "{{ mediacloud_home }}/.virtualenvs/initialize"
-  environment:
-    VIRTUALENVWRAPPER_PYTHON: "python{{ python_version }}"
-  become: true
-  become_user: "{{ mediacloud_user }}"
-  tags:
-    - python-dependencies
 
 - name: Create temporary directory for requirements.txt
   tempfile:

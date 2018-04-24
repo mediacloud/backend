@@ -5,12 +5,6 @@
   tags:
     - perl-dependencies
 
-- name: Copy Perlbrew environment variables
-  set_fact:
-    perlbrew_environment_variables_copy: "{{ perlbrew_environment_variables }}"
-  tags:
-    - perl-dependencies
-
 - name: Update Perlbrew environment variables
   set_fact:
     perlbrew_environment_variables_copy: "{{ perlbrew_environment_variables_copy | combine({ item.name: item.value }) }}"
@@ -29,26 +23,6 @@
     - { name: "LDFLAGS", value: "-L{{ openssl_prefix }}/lib" }
     - { name: "LD", value: "env cc" }
 
-  tags:
-    - perl-dependencies
-
-- name: Install Inline module
-  cpanm:
-    name: "Inline"
-    notest: true
-  environment: "{{ perlbrew_environment_variables_copy }}"
-  become: true
-  become_user: "{{ mediacloud_user }}"
-  tags:
-    - perl-dependencies
-
-- name: Install Inline::Python variant which die()s with tracebacks (stack traces)
-  command: "cpanm -v https://github.com/berkmancenter/mediacloud-inline-python-pm.git@exception_traceback_memleak"
-  args:
-    creates: "{{ perlbrew_home }}/libs/perl-system@mediacloud/man/man3/Inline::Python.3*" # might be ".3" or ".3pm"
-  environment: "{{ perlbrew_environment_variables_copy }}"
-  become: true
-  become_user: "{{ mediacloud_user }}"
   tags:
     - perl-dependencies
 
