@@ -72,7 +72,7 @@
 - name: Ensure that system Perl is of the correct version
   assert:
     that:
-      - system_perl_version.stdout | version_compare(perl_min_version, '>=')
+      - system_perl_version.stdout is version_compare(perl_min_version, '>=')
   tags:
     - perlbrew
 

@@ -18,9 +18,9 @@ git submodule update --init --recursive
 
 echo "Installing Ansible..."
 sudo apt-get -y install python-pip python-setuptools
-sudo pip install urllib3[secure]
+sudo pip install --upgrade urllib3[secure]
 sudo pip install --upgrade pip
-sudo pip install ansible
+sudo pip install --upgrade ansible
 
 echo "Setting up host using Ansible..."
 ANSIBLE_CONFIG=ansible/ansible.cfg \
