@@ -19,7 +19,7 @@
 - name: Ensure that MeCab is of the correct version
   assert:
     that:
-      - mecab_current_version.stdout | version_compare(mecab_min_version, '>=')
+      - mecab_current_version.stdout is version_compare(mecab_min_version, '>=')
   tags:
     - system-packages
 
