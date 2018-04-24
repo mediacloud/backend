@@ -1,2 +1,0 @@
-git_precommit_hook_source: "{{ mediacloud_root }}/script/pre_commit_hooks/pre-commit"
-git_precommit_hook_target: "{{ mediacloud_root }}/.git/hooks/pre-commit"

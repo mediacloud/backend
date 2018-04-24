@@ -1,4 +1,0 @@
-- name: Include tasks
-  include_tasks: main-{{ ansible_distribution }}.yml
-  tags:
-    - hostname
