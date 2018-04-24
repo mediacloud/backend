@@ -7,6 +7,11 @@ from mediawords.languages.lt import LithuanianLanguage
 
 class TestLanguageFactory(TestCase):
 
+    def test_enabled_languages(self):
+        assert 'lt' in LanguageFactory.enabled_languages()
+        assert 'en' in LanguageFactory.enabled_languages()
+        assert 'xx' not in LanguageFactory.enabled_languages()
+
     def test_language_is_enabled(self):
         assert LanguageFactory.language_is_enabled('en') is True
         assert LanguageFactory.language_is_enabled('lt') is True

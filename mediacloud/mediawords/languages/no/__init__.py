@@ -7,3 +7,7 @@ class NorwegianLanguage(SpaceSeparatedWordsMixIn, SentenceSplitterMixIn, PyStemm
     @staticmethod
     def language_code() -> str:
         return "no"
+
+    @staticmethod
+    def sample_sentence() -> str:
+        return "Vår sære Zulu fra badeøya spilte jo whist og quickstep i min taxi."

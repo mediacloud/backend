@@ -60,6 +60,11 @@ class LanguageFactory(object):
     __language_instances = dict()
 
     @staticmethod
+    def enabled_languages() -> set:
+        """Return set of enabled languages (their codes)."""
+        return set(LanguageFactory.__ENABLED_LANGUAGES.keys())
+
+    @staticmethod
     def language_is_enabled(language_code: str) -> bool:
         """Return True if language is supported + enabled, False if it's not."""
 

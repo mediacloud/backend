@@ -91,7 +91,7 @@ def is_http_url(url: str) -> bool:
         uri = furl(url)
 
         # Try stringifying URL back from the furl() object to try out all of its accessors
-        _ = str(uri)
+        str(uri)
 
         # Some URLs become invalid when normalized (which is what "requests" will do), e.g.:
         #
@@ -101,7 +101,7 @@ def is_http_url(url: str) -> bool:
         # ...so try the same with normalized URL
         normalized_url = url_normalize.url_normalize(url)
         normalized_uri = furl(normalized_url)
-        _ = str(normalized_uri)
+        str(normalized_uri)
 
     except Exception as ex:
         log.debug("Cannot parse URL: %s" % str(ex))
@@ -112,6 +112,9 @@ def is_http_url(url: str) -> bool:
         return False
     if not uri.scheme.lower() in ['http', 'https']:
         log.debug("Scheme is not HTTP(s) for URL %s" % url)
+        return False
+    if not uri.host:
+        log.debug("Host is undefined for URL %s" % url)
         return False
 
     return True
@@ -312,10 +315,24 @@ def normalize_url(url: str) -> str:
     return url
 
 
+def normalize_url_lossy_version() -> int:
+    """Return an integer that increments each time the output of normalize_url_lossy is changed.
+
+    Calls to normalize_url_lossy are guaranteed to return the same output for a given input as long as this
+    version number remains the same.
+    """
+    return 1
+
+
 # noinspection SpellCheckingInspection
 def normalize_url_lossy(url: str) -> Optional[str]:
-    """Do some simple transformations on a URL to make it match other equivalent URLs as well as possible; normalization
-    is "lossy" (makes the whole URL lowercase, removes subdomain parts "m.", "data.", "news.", ... in some cases)"""
+    """Do some simple transformations on a URL to make it match other equivalent URLs as well as possible.
+
+    Normalization is "lossy" (makes the whole URL lowercase, removes subdomain parts "m.", "data.", "news.", ...
+    in some cases).
+
+    See also normalize_url_lossy_version() above.
+    """
     url = decode_object_from_bytes_if_needed(url)
     if url is None:
         return None
@@ -330,11 +347,16 @@ def normalize_url_lossy(url: str) -> Optional[str]:
 
     url = url.lower()
 
+    # make archive.is links look like the destination link
+    url = re.sub(r'^https://archive.is/[a-z0-9]/[a-z0-9]+/(.*)', r'\1', url, flags=re.I)
+    if not url.startswith('http'):
+        url = 'http://' + url
+
     # r2.ly redirects through the hostname, ala http://543.r2.ly
     if 'r2.ly' not in url:
         url = re.sub(
             r'^(https?://)(m|beta|media|data|image|www?|cdn|topic|article|news|archive|blog|video|search|preview|'
-            + 'login|shop|sports?|act|donate|press|web|photos?|\d+?).?\.(.*\.)',
+            r'login|shop|sports?|act|donate|press|web|photos?|\d+?).?\.(.*\.)',
             r"\1\3", url, re.I)
 
     # collapse the vast array of http://pronkraymond83483.podomatic.com/ urls into http://pronkpops.podomatic.com/
@@ -362,7 +384,7 @@ def normalize_url_lossy(url: str) -> Optional[str]:
     return url
 
 
-def __is_shortened_url(url: str) -> bool:
+def is_shortened_url(url: str) -> bool:
     """Returns true if URL is a shortened URL (e.g. with Bit.ly)."""
     url = decode_object_from_bytes_if_needed(url)
     if url is None:
@@ -385,6 +407,10 @@ def __is_shortened_url(url: str) -> bool:
 
     uri_host = uri.host.lower()
     if uri_host in URL_SHORTENER_HOSTNAMES:
+        return True
+
+    # Otherwise match the typical https://wapo.st/4FGH5Re3 format
+    if re.match(r'https?://[a-z]{1,4}\.[a-z]{2}/([a-z0-9]){3,12}/?$', url, flags=re.IGNORECASE) is not None:
         return True
 
     return False
@@ -416,7 +442,7 @@ def is_homepage_url(url: str) -> bool:
 
     # The shortened URL may lead to a homepage URL, but the shortened URL
     # itself is not a homepage URL
-    if __is_shortened_url(url):
+    if is_shortened_url(url):
         return False
 
     # If we still have something for a query of the URL after the
@@ -444,9 +470,12 @@ def get_url_host(url: str) -> str:
     if len(url) == 0:
         raise McGetURLHostException("URL is empty")
 
-    fixed_url = fix_common_url_mistakes(url)
+    url = fix_common_url_mistakes(url)
 
-    uri = furl(fixed_url)
+    if not is_http_url(url):
+        return url
+
+    uri = furl(url)
 
     host = uri.host
 
@@ -486,8 +515,8 @@ def get_url_distinctive_domain(url: str) -> str:
             parts = [str(name_parts[n - 2]), str(name_parts[n - 1])]
             domain = '.'.join(parts)
         elif re.search(
-                        r'go.com|wordpress.com|blogspot|livejournal.com|privet.ru|wikia.com|feedburner.com'
-                        + '|24open.ru|patch.com|tumblr.com', host, re.I
+                r'go.com|wordpress.com|blogspot|livejournal.com|privet.ru|wikia.com|feedburner.com'
+                r'|24open.ru|patch.com|tumblr.com', host, re.I
         ):
             # identify sites in these domains as the whole host name (abcnews.go.com instead of go.com)
             domain = host
@@ -536,8 +565,6 @@ def http_urls_in_string(string: str) -> list:
 def get_url_path_fast(url: str) -> str:
     """Return URLs path."""
     url = decode_object_from_bytes_if_needed(url)
-
-    log.info("Getting path from URL '%s'" % url)
 
     url = fix_common_url_mistakes(url)
 

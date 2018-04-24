@@ -19,9 +19,6 @@ Session.vim
 # OS X
 .DS_Store
 
-# Inline::* bytecode (there might be multiple directories that start with this prefix)
-_Inline*
-
 # Devel::NYTProf output
 nytprof*
 
@@ -45,3 +42,6 @@ script/vagrant/temp-vagrant-mediacloud
 # pytest cache
 .cache
 
+# Test coverage report
+.coverage
+coverage.json

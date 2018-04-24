@@ -4,16 +4,15 @@ use warnings;
 use utf8;
 
 use Test::NoWarnings;
-use Test::More tests => 31;
+use Test::More tests => 30;
 
 use Readonly;
 
 use_ok( 'MediaWords::Util::IdentifyLanguage' );
 
-
 Readonly my $english_text => 'The quick brown fox jumps over the lazy dog.';
 Readonly my $russian_text =>
-  'В чащах юга жил бы цитрус? Да, но фальшивый экземпляр!';
+'«Олл Блэкс» удерживали первую строчку в рейтинге сборных Международного совета регби дольше, чем все остальные команды вместе взятые.';
 
 sub test_language_code_for_text()
 {
@@ -28,9 +27,6 @@ sub test_language_code_for_text()
     ok( !MediaWords::Util::IdentifyLanguage::identification_would_be_reliable( '0000000000000000000000' ), 'Digits' );
     ok( !MediaWords::Util::IdentifyLanguage::identification_would_be_reliable( '000000000000000aaaaaaa' ),
         'More digits than letters' );
-
-    is( MediaWords::Util::IdentifyLanguage::language_code_for_text( $russian_text, 'ru' ),
-        'ru', 'Russian text with TLD identified as Russian' );
 }
 
 sub test_identification_would_be_reliable()

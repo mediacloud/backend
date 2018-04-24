@@ -1,76 +1,12 @@
 # Python guidelines
 
-In order to:
+## Python Version
 
-* Keep our sanity intact
-* Make the codebase look like an unified body of work
-* Be able to eventually attract and hire someone new
-    * ...and not have to handhold him/her through the whole codebase for half a year
-* Reduce the amount of fires we have to extinguish daily instead of implementing features
+Tests are run on travis using Python 3.5, though improvements to keep up with modern Python are welcome.
 
-...on the best effort basis, we should:
+## Code Style
 
-
-## Use Python 3.5
-
-Python seems to introduce some major changes between minor versions (e.g. 3.5 has type hinting, 3.6 introduced type annotations for variables, etc.) that have to be tested.
-
-Also, we develop / run Media Cloud from multiple configurations: Ubuntu 16.04 on production (ships with Python 3.5 by default), and OS X on development machines (Homebrew ships with Python 3.6 at the time of writing).
-
-To reduce confusion and speed up CI runs, we hardcode and use Python 3.5 (patch version is not important).
-
-
-## Use PyCharm
-
-[PyCharm](https://www.jetbrains.com/pycharm/) is (arguably) the best Python IDE around, and there's no reason to not use it. There's a Community Version available for free, and we might even consider applying for their [open source license](https://www.jetbrains.com/buy/opensource/) too.
-
-
-## Format Code in PEP 8
-
-[PEP 8](https://www.python.org/dev/peps/pep-0008/) is the go-to style guide for Python code, so let's not reinvent the wheel.
-
-If using PyCharm (which you should), it's easy to reformat your code by pressing `⌥⌘L` on OS X or `Ctrl + Alt + L` on Linux. Also, PyCharm will help you fix other PEP 8 mistakes automatically.
-
-There's no annoying pre-commit hook which would slow you down by asking to format the code properly, so make it into a habit to press this shortcut early and often.
-
-
-## Write Code with No Warnings
-
-If using PyCharm, you'll see warnings on the top right corner of the editor view if you do something funny with your code:
-
-![PyCharm reporting a warning](coding_guidelines/pycharm-warning.png)
-
-Let's just not have those and target for a nice green arrow:
-
-![PyCharm reporting no warnings](coding_guidelines/pycharm-no-warnings.png)
-
-On one-off cases, you can disable a specific warning by adding an annotation for an IDE to suppress this particular warning:
-
-![PyCharm "suppress warning" menu](coding_guidelines/pycharm-suppress-warning.png)
-
-...however don't cheat and write good code instead (declare abstract methods, use preferred syntax, limit code lines to 120 characters, etc.)
-
-For added karma points, write code without speling errors and use Proper Casing (sentences and proper nouns start with a capital letter!)
-
-
-## Use Named Parameters
-
-Named parameters allow one to figure out what is being passed to the function without reading that function's definition.
-
-```python
-# BAD!
-do_something(42, True, True, False, -1.22, 'badger')
-```
-
-```python
-# GOOD!
-select(table='badgers',
-       what_to_select='*',
-       condition_hash={'name': 'Bob'})
-```
-
-Unless you pass a single parameter and it's absolutely trivial what it's about (e.g. `strip_html(html)`), use named parameters.
-
+Run `flake8 mediacloud/mediawords` to ensure your code follows our style guide. This is also run on travis.
 
 ## Declare Function Parameter and Return Value Types
 
@@ -175,7 +111,7 @@ def l(arg1: Callable[[str, int], bool]) -> None:
 ```
 
 
-## Write `docstring`s for Everything
+## Write documentation
 
 Describe what your functions / methods / classes / whatnot are doing **and why they're doing that**, so that others (including you in a couple of months) would be able to figure out what the code is all about without reading through the implementation. Start the docstring with a capital letter, end it with a period, wrap it around 120 lines as per PEP 8:
 
@@ -195,7 +131,6 @@ def do_stuff(param_1: int, obj: SomeSortOfObject, some_other_param: tuple) -> bo
     explanation of function's purpose in a bigger picture."""
     ...
 ```
-
 
 
 ## Use dictionary-style arguments for psycopg2 queries
@@ -354,7 +289,7 @@ def baz():
 Test file `test_badger.py`:
 
 ```python
-from badger import *
+from badger import foo, bar, baz
 
 
 def test_foo():
@@ -465,16 +400,6 @@ response_text = response.text()
 # (very likely yourself) a whole week of head bashing!
 
 ```
-
-
-## Use Python Booleans
-
-Unlike Perl, Python has native `bool` type, so use it instead of passing around `0` and `1` to denote "false" and "true".
-
-
-## Don't `import *` (except for in tests)
-
-Do not `from module import *` because it makes it hard to backtrack which external functions are actually being used.
 
 
 ----

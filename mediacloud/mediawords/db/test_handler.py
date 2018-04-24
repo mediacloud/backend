@@ -1,11 +1,14 @@
+import re
+
 import pytest
 
 from mediawords.db.exceptions.result import McDatabaseResultException
-from mediawords.db.handler import *
+from mediawords.db.handler import (
+    McUpdateByIDException, McCreateException, McRequireByIDException, McUniqueConstraintException)
 from mediawords.test.test_database import TestDatabaseTestCase
 from mediawords.util.config import (
     get_config as py_get_config,
-    set_config as py_set_config,  # MC_REWRITE_TO_PYTHON: rename back to get_config(), get_config()
+    set_config as py_set_config,  # MC_REWRITE_TO_PYTHON: rename back to get_config(), set_config()
 )
 from mediawords.util.log import create_logger
 
@@ -16,7 +19,7 @@ log = create_logger(__name__)
 class TestDatabaseHandler(TestDatabaseTestCase):
     def setUp(self):
 
-        TestDatabaseTestCase.setUp(self)
+        super().setUp()
 
         log.info("Preparing test table 'kardashians'...")
         self.db().query("DROP TABLE IF EXISTS kardashians")
@@ -46,7 +49,7 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         self.db().query("DROP TABLE IF EXISTS kardashians")
 
         # Test disconnect() too
-        super(TestDatabaseTestCase, self).tearDown()
+        super().tearDown()
 
     def test_query_parameters(self):
 
@@ -82,10 +85,26 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         assert rows[2]['name'] == 'Kylie'
 
     def test_query_error(self):
-
         # Bad query
         with pytest.raises(McDatabaseResultException):
             self.db().query("Badger badger badger badger")
+
+    # MC_REWRITE_TO_PYTHON: remove after __convert_datetime_objects_to_strings() gets removed and database handler
+    # is made to return datetime.datetime objects again
+    def test_query_datetime(self):
+        """Test that datetime objects are being stringified and returned as PostgreSQL-compatible dates."""
+
+        date = self.db().query("""SELECT NOW()::DATE AS date""").hash()
+        assert isinstance(date['date'], str)
+        assert re.match('^\d\d\d\d-\d\d-\d\d$', date['date'])
+
+        time = self.db().query("""SELECT NOW()::TIME AS time""").hash()
+        assert isinstance(time['time'], str)
+        assert re.match('^\d\d:\d\d:\d\d(\.\d+)?$', time['time'])
+
+        timestamp = self.db().query("""SELECT NOW()::TIMESTAMP AS timestamp""").hash()
+        assert isinstance(timestamp['timestamp'], str)
+        assert re.match('^\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d(\.\d+)?$', timestamp['timestamp'])
 
     def test_query_percentage_sign_like(self):
 
@@ -251,6 +270,10 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         row = result.array()
         assert row[1] == 'Caitlyn'
 
+        # MC_REWRITE_TO_PYTHON: remove after __convert_datetime_objects_to_strings() gets removed and database handler
+        # is made to return datetime.datetime objects again
+        assert isinstance(row[3], str)
+
         row = result.array()
         assert row[1] == 'Kris'
 
@@ -266,6 +289,10 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         row = result.hash()
         assert row['name'] == 'Kris'
 
+        # MC_REWRITE_TO_PYTHON: remove after __convert_datetime_objects_to_strings() gets removed and database handler
+        # is made to return datetime.datetime objects again
+        assert isinstance(row['dob'], str)
+
         row = result.hash()
         assert row is None
 
@@ -275,6 +302,11 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         """).flat()
         assert len(flat_rows) == 5 * 2  # two rows, 5 columns each
         assert flat_rows[1] == 'Caitlyn'
+
+        # MC_REWRITE_TO_PYTHON: remove after __convert_datetime_objects_to_strings() gets removed and database handler
+        # is made to return datetime.datetime objects again
+        assert isinstance(flat_rows[3], str)
+        assert isinstance(flat_rows[8], str)
 
     def test_query_result_hashes(self):
         hashes = self.db().query("""
@@ -287,6 +319,11 @@ class TestDatabaseHandler(TestDatabaseTestCase):
 
         assert len(hashes[1]) == 5
         assert hashes[1]['name'] == 'Kris'
+
+        # MC_REWRITE_TO_PYTHON: remove after __convert_datetime_objects_to_strings() gets removed and database handler
+        # is made to return datetime.datetime objects again
+        assert isinstance(hashes[0]['dob'], str)
+        assert isinstance(hashes[1]['dob'], str)
 
     def test_execute_with_large_work_mem(self):
         normal_work_mem = 256  # MB
@@ -389,6 +426,17 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         primary_key = self.db().primary_key_column('kardashians')
         assert primary_key == 'id'
 
+        # Different schema
+        self.db().query("CREATE SCHEMA IF NOT EXISTS test")
+        self.db().query("""
+            CREATE TABLE IF NOT EXISTS test.table_with_primary_key (
+                primary_key_column SERIAL PRIMARY KEY NOT NULL,
+                some_other_column TEXT NOT NULL
+            )
+        """)
+        primary_key = self.db().primary_key_column('test.table_with_primary_key')
+        assert primary_key == 'primary_key_column'
+
     def test_find_by_id(self):
         row_hash = self.db().find_by_id(table='kardashians', object_id=4)
         assert row_hash['name'] == 'Kim'
@@ -434,17 +482,22 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         assert row is None
 
     def test_create(self):
-        row = self.db().create(table='kardashians', insert_hash={
+        insert_hash = {
             'name': 'Lamar',
             'surname': 'Odom',
             'dob': '1979-11-06',
-        })
+        }
+        row = self.db().create(table='kardashians', insert_hash=insert_hash)
         assert row['surname'] == 'Odom'
         assert str(row['dob']) == '1979-11-06'
 
         # Nonexistent column
         with pytest.raises(McCreateException):
             self.db().create('kardashians', {'does_not': 'exist'})
+
+        # unique constraint
+        with pytest.raises(McUniqueConstraintException):
+            self.db().create('kardashians', insert_hash)
 
     def test_select(self):
         # One condition
@@ -490,7 +543,7 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         assert row.rows() == 0
 
         # Create a separate database handler to test whether transactions are isolated
-        isolated_db = self._create_database_handler()
+        isolated_db = self.create_database_handler()
         row = isolated_db.query("SELECT * FROM kardashians WHERE name = 'Lamar'")
         assert row.rows() == 0
 
@@ -551,7 +604,7 @@ class TestDatabaseHandler(TestDatabaseTestCase):
     def test_copy_from(self):
         copy = self.db().copy_from(sql="COPY kardashians (name, surname, dob, married_to_kanye) FROM STDIN WITH CSV")
         copy.put_line("Lamar,Odom,1979-11-06,f\n")
-        copy.put_line("Sam Brody,Jenner,1983-08-21,f\n")
+        copy.put_line("Sam Brody,𝐽𝑒𝑛𝑛𝑒𝑟,1983-08-21,f\n")  # UTF-8
         copy.end()
 
         row = self.db().query("SELECT * FROM kardashians WHERE name = 'Lamar'").hash()
@@ -561,7 +614,7 @@ class TestDatabaseHandler(TestDatabaseTestCase):
 
         row = self.db().query("SELECT * FROM kardashians WHERE name = 'Sam Brody'").hash()
         assert row is not None
-        assert row['surname'] == 'Jenner'
+        assert row['surname'] == '𝐽𝑒𝑛𝑛𝑒𝑟'
         assert str(row['dob']) == '1983-08-21'
 
     def test_copy_to(self):
@@ -575,16 +628,28 @@ class TestDatabaseHandler(TestDatabaseTestCase):
 
         copy = self.db().copy_to(sql=sql)
         line = copy.get_line()
-        copy.end()
         assert line == "Kris,Jenner,1955-11-05,f\n"
+
+        # UTF-8
+        copy.get_line()  # Caitlyn Jenner
+        copy.get_line()  # Kourtney Kardashian
+        copy.get_line()  # Kim Kardashian
+        line = copy.get_line()
+        assert line == "Khloé,Kardashian,1984-06-27,f\n"
+
+        copy.end()
 
         # Test iterator
         copy = self.db().copy_to(sql=sql)
         count = 0
-        for _ in copy:
+        found_utf8_khloe = False
+        for line in copy:
             count += 1
+            if 'Khloé' in line:
+                found_utf8_khloe = True
         copy.end()
         assert count == 8
+        assert found_utf8_khloe is True
 
     def test_get_temporary_ids_table(self):
         ints = [1, 2, 3, 4, 5]

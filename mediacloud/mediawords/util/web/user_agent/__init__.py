@@ -35,6 +35,16 @@ from mediawords.util.web.user_agent.response.response import Response
 
 log = create_logger(__name__)
 
+# On which HTTP codes should requests be retried (if retrying is enabled)
+DETERMINED_HTTP_CODES = {
+    HTTPStatus.REQUEST_TIMEOUT.value,
+    HTTPStatus.INTERNAL_SERVER_ERROR.value,
+    HTTPStatus.BAD_GATEWAY.value,
+    HTTPStatus.SERVICE_UNAVAILABLE.value,
+    HTTPStatus.GATEWAY_TIMEOUT.value,
+    HTTPStatus.TOO_MANY_REQUESTS.value,
+}
+
 
 class McUserAgentException(Exception):
     """UserAgent exception."""
@@ -125,16 +135,6 @@ class UserAgent(object):
     __DEFAULT_MAX_SIZE = 10 * 1024 * 1024  # Superglue (TV) feeds could grow big
     __DEFAULT_MAX_REDIRECT = 15
     __DEFAULT_TIMEOUT = 20
-
-    # On which HTTP codes should requests be retried (if retrying is enabled)
-    __DETERMINED_HTTP_CODES = {
-        HTTPStatus.REQUEST_TIMEOUT.value,
-        HTTPStatus.INTERNAL_SERVER_ERROR.value,
-        HTTPStatus.BAD_GATEWAY.value,
-        HTTPStatus.SERVICE_UNAVAILABLE.value,
-        HTTPStatus.GATEWAY_TIMEOUT.value,
-        HTTPStatus.TOO_MANY_REQUESTS.value,
-    }
 
     __slots__ = [
 
@@ -238,6 +238,7 @@ class UserAgent(object):
 
     def get(self, url: str) -> Response:
         """GET an URL."""
+        log.debug("mediawords.util.web.user_agent.get: %s" % url)
         url = decode_object_from_bytes_if_needed(url)
 
         if url is None:
@@ -288,6 +289,8 @@ class UserAgent(object):
                         archive_site_url=base_url,
                     )
                     if request_after_meta_redirect is not None:
+                        log.warning(
+                            "meta redirect from %s: %s" % (html_redirect_function, request_after_meta_redirect.url()))
                         if not urls_are_equal(url1=response_.request().url(), url2=request_after_meta_redirect.url()):
 
                             log.debug("URL after HTML redirects: %s" % request_after_meta_redirect.url())
@@ -586,8 +589,8 @@ class UserAgent(object):
             blacklist_url_pattern = config['mediawords']['blacklist_url_pattern']
 
         if blacklist_url_pattern is not None and len(blacklist_url_pattern) > 0:
-            if re.search(pattern=blacklist_url_pattern, string=url, flags=re.IGNORECASE | re.UNICODE):
-                request.set_url("http://blacklistedsite.localhost/%s" % url)
+            if re.search(pattern=blacklist_url_pattern, string=url, flags=re.IGNORECASE | re.UNICODE) is not None:
+                request.set_url("http://0.0.0.1/%s" % url)
 
         return request
 
@@ -1000,7 +1003,7 @@ class UserAgent(object):
             max_retries = Retry(
                 total=len(timing),
                 backoff_factor=backoff_factor,
-                status_forcelist=self.__DETERMINED_HTTP_CODES,
+                status_forcelist=DETERMINED_HTTP_CODES,
             )
 
         http_prefixes = ['http://', 'https://']

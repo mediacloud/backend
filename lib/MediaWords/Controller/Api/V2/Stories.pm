@@ -17,8 +17,6 @@ use MediaWords::DBI::Stories;
 use MediaWords::Solr;
 use MediaWords::Util::Annotator::CLIFF;
 use MediaWords::Util::Annotator::NYTLabels;
-use MediaWords::Util::Bitly;
-use MediaWords::Util::Bitly::API;
 use MediaWords::Util::JSON;
 
 =head1 NAME
@@ -41,13 +39,12 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::StoriesBase' }
 
 __PACKAGE__->config(
     action => {
-        single             => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
-        list               => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
-        put_tags           => { Does => [ qw( ~StoriesEditAuthenticated ~Throttled ~Logged ) ] },
-        update             => { Does => [ qw( ~StoriesEditAuthenticated ~Throttled ~Logged ) ] },
-        fetch_bitly_clicks => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
-        cliff              => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
-        nytlabels          => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
+        single    => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
+        list      => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
+        put_tags  => { Does => [ qw( ~StoriesEditAuthenticated ~Throttled ~Logged ) ] },
+        update    => { Does => [ qw( ~StoriesEditAuthenticated ~Throttled ~Logged ) ] },
+        cliff     => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
+        nytlabels => { Does => [ qw( ~AdminReadAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
@@ -203,120 +200,6 @@ sub nytlabels : Local
     Readonly my $json_pretty => 1;
     my $json = MediaWords::Util::JSON::encode_json( $json_items, $json_pretty );
 
-    $c->response->content_type( 'application/json; charset=UTF-8' );
-    $c->response->content_length( bytes::length( $json ) );
-    $c->response->body( $json );
-}
-
-sub fetch_bitly_clicks : Local
-{
-    my ( $self, $c ) = @_;
-
-    my $db = $c->dbis;
-
-    my $stories_id      = $c->req->params->{ stories_id } + 0;
-    my $stories_url     = $c->req->params->{ url };
-    my $start_timestamp = $c->req->params->{ start_timestamp };
-    my $end_timestamp   = $c->req->params->{ end_timestamp };
-
-    unless ( $stories_id xor $stories_url )
-    {
-        die "Either the story ID ('stories_id') or URL ('url') should be set.";
-    }
-    unless ( $start_timestamp and $end_timestamp )
-    {
-        die "Both 'start_timestamp' and 'end_timestamp' should be set.";
-    }
-
-    my $http_status = HTTP_OK;
-    my $response    = {};
-    if ( $stories_id )
-    {
-        $response->{ stories_id } = $stories_id;
-        my $story = $db->find_by_id( 'stories', $stories_id );
-        if ( !$story )
-        {
-            $self->status_bad_request( $c, message => "stories_id '$stories_id' does not exist" );
-            return;
-        }
-    }
-    elsif ( $stories_url )
-    {
-        $response->{ url } = $stories_url;
-    }
-
-    my ( $bitly_clicks, $total_click_count );
-    eval {
-
-        my ( $agg_stories_id, $agg_stories_url );
-
-        if ( $stories_id )
-        {
-
-            my $story = $db->find_by_id( 'stories', $stories_id );
-            unless ( $story )
-            {
-                die "Unable to find story $stories_id.";
-            }
-
-            $bitly_clicks =
-              MediaWords::Util::Bitly::fetch_stats_for_story( $db, $stories_id, $start_timestamp, $end_timestamp );
-
-            ( $agg_stories_id, $agg_stories_url ) = ( $stories_id, $story->{ url } );
-
-        }
-        elsif ( $stories_url )
-        {
-
-            $bitly_clicks =
-              MediaWords::Util::Bitly::API::fetch_stats_for_url( $db, $stories_url, $start_timestamp, $end_timestamp );
-
-            ( $agg_stories_id, $agg_stories_url ) = ( 0, $stories_url );
-
-        }
-
-        # die() on non-fatal errors so that eval{} could catch them
-        if ( $bitly_clicks->{ error } )
-        {
-            die $bitly_clicks->{ error };
-        }
-
-        # Aggregate stats and come up with a total click count for both
-        # convenience and the reason that the count could be different
-        # (e.g. because of homepage redirects being skipped)
-        my $stats = MediaWords::Util::Bitly::aggregate_story_stats( $agg_stories_id, $agg_stories_url, $bitly_clicks );
-        $total_click_count = $stats->total_click_count();
-    };
-    unless ( $@ )
-    {
-        $response->{ bitly_clicks }      = $bitly_clicks;
-        $response->{ total_click_count } = $total_click_count;
-    }
-    else
-    {
-        my $error_message = $@;
-        $response->{ error } = $error_message;
-
-        if ( MediaWords::Util::Bitly::API::error_is_rate_limit_exceeded( $error_message ) )
-        {
-            $http_status = HTTP_TOO_MANY_REQUESTS;
-
-        }
-        elsif ( $error_message =~ /NOT_FOUND/i )
-        {
-            $http_status = HTTP_NOT_FOUND;
-
-        }
-        else
-        {
-            $http_status = HTTP_INTERNAL_SERVER_ERROR;
-        }
-    }
-
-    Readonly my $json_pretty => 1;
-    my $json = MediaWords::Util::JSON::encode_json( $response, $json_pretty );
-
-    $c->response->status( $http_status );
     $c->response->content_type( 'application/json; charset=UTF-8' );
     $c->response->content_length( bytes::length( $json ) );
     $c->response->body( $json );

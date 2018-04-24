@@ -1,11 +1,8 @@
 # Deployments
 ansible==2.4.1.0
 
-# Datetime parsing
-arrow==0.10.0
-
-# HTML parsing
-beautifulsoup4==4.6.0
+# retry http requests
+backoff==1.4.3
 
 # Amazon S3
 boto3==1.4.7
@@ -13,14 +10,29 @@ boto3==1.4.7
 # Job broker
 Celery==4.1.0
 
+# Language identification
+cld2-cffi==0.1.4
+
 # Unit test coverage
-coverage==4.4.1
+coverage==4.4.2
 
 # Hindi stemming
 CyHunspell==1.2.1
 
+# gensim parallelization
+Cython==0.27.3
+
+# Guessing publication dates of stories
+date_guesser==2.1.1
+
+# Code conventions
+flake8==3.5.0
+
 # URL manipulation
 furl==1.0.1
+
+# Word2vec topic models
+gensim==3.2.0
 
 # Stemming Hausa words
 hausastemmer==1.0
@@ -58,6 +70,9 @@ PyStemmer==1.3.0
 # Unit tests
 pytest==3.2.2
 
+# Test coverage
+pytest-cov==2.5.1
+
 # Date parsing
 python-dateutil==2.6.1
 
@@ -70,6 +85,9 @@ pyyaml==3.12
 # Extracting text from stories
 readability-lxml==0.6.2
 
+# Mocking HTTP requests
+responses==0.8.1
+
 # Making HTTP requests
 requests==2.18.4
 
@@ -81,6 +99,12 @@ scipy==0.19.1
 
 # Splitting text into sentences using Lingua::Sentence's method
 sentence_splitter==1.2
+
+# python3 compatible version of google re2 library (requires libre2-dev system package)
+sw-re2==0.2.23
+
+# twitter
+tweepy==3.5.0
 
 # Normalizing URLs
 url_normalize==1.3.3

@@ -308,6 +308,9 @@ sub query_encoded_json($$;$)
         }
     }
 
+    # disable caching entirely until story indexing in hopes of preventing crashes -hal
+    $params->{ q } = '{!cache=false} ' . $params->{ q };
+
     TRACE "Executing Solr query on $url ...";
     TRACE 'Parameters: ' . Dumper( $params );
     my $t0 = [ gettimeofday ];
@@ -670,7 +673,8 @@ sub search_for_stories ($$)
 =head2 search_for_processed_stories_ids( $db, $q, $fq, $last_ps_id, $num_stories, $sort )
 
 Return the first $num_stories processed_stories_id that match the given query, sorted by processed_stories_id and with
-processed_stories_id greater than $last_ps_id.   Returns at most $num_stories stories.
+processed_stories_id greater than $last_ps_id.   Returns at most $num_stories stories.  If $sort is specified as
+'random', tell solr to sort results by random order.
 
 =cut
 

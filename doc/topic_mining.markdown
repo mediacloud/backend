@@ -1,145 +1,112 @@
 # Topic Mining
 
-The topic mining code in [`MediaWords::TM::Mine`](../lib/MediaWords/TM/Mine.pm) follows a relatively simple process described below but has been extensively tweaked over a few years to handle the many problems that arise when trying to make sense of the diverse data on the open web.  This document tries to explain both the basic flow of the spider and how it solves the problems we have encountered over the years.
+The Topic Mapper system uses link mining to provide richer data for a specific topic.  The topic is defined by a boolean query.  The topic mapper uses that boolean query to spider out from an initial set of seed stories found within the Media Cloud archive to discover more relevant stories on the open web and to add link network and social media metrics to set of stories matching that query.
 
+Below is detailed documentation our architecture for topic spider.
 
-## Basic Spider Flow
+## Topic Spidering Pipeline
 
-A topic is defined as:
+The topic spider uses a distributed architecture including the following jobs:
 
-* a Solr seed query, which specifies a date range, some media collections, and a text query,
-* a regex pattern for determining relevance,
-* a date range which bounds the timespans and restricts which stories are mined for links.
+* `topic_run`
+* `topic_mine_story`
+* `topic_fetch_link`
+* `topic_add_story`
+* `facebook_fetch_story_stats`
+* `topic_snapshot`
 
-The basic operation of the spider is:
+Here are a simple text flow chart in mermaid and the resulting rendered chart:
 
-1. Run the Solr query to get an initial set of matching stories from our archive.
-2. Add the URLs of those stories to the spider queue.
-3. For each story in the spider queue, try to match the URL against an existing media cloud story.
-4. If there is no match and the raw HTML content of the story matches the topic pattern, create a new story.
-5. If the sentence text or URL of the story (existing or created) matches the regex pattern, add it to the topic
-and add all URLs within the story text to the spider queue.
-6. Repeat steps 3. - 6. until the spider has completed 15 complete iterations (or the `max_iterations` set for the
-topic).
+[Topic Mining Chart Text](topic_mining.mermaid)
 
+[Topic Mining Chart](topic_mining.png)
 
-## Details
+### topic_run
 
-The above approach is sound because of the power law of the internet.  The spider is only following outgoing links, and linking on the web follows a power law (most links go to a small number of core sites).  So if we limit to a specific topic by doing regex pattern matching, the spider almost always finds virtually of the sites in the topic network defined by the starting seed set within 15 iterations.
+`topic_run` starts the process of running each topic and is responsible for running the single thread processes that need to happen before and after the distributed spidering process.
 
-Lots of problems arise when we try to get robust research data from the above approach, though.  Below are descriptions of those problems and the solutions we have implemented for them.
+Before the distributed spidering starts, this job imports seed urls / stories into the topic, mostly by running the solr seed query and inserting the resulting stories into the topic_seed_urls postgres table.  The bulk of this work is just running the solr query and then running a bunch of inserts into the postgres table.
 
+Each row in topic_seed_urls might contain a stories_id imported from solr or it might contain a url imported manually from a spreadsheet or from twitter scraping for a twitter topic.  The topic_seed_urls table acts as a helpful generic platform to start the spidering regardless of how the seed content comes into the system.
 
-## Lack of Content or Links
+After inserting each story into the topic_seed_urls table, the process will create a new job each individual url / story from the topic_seed_urls table according to this routing logic:
 
-The first and most serious problem that can happen with a topic is simply that there either is not enough relevant content in our archive to create a robust set, or that the content in the seed set does not have enough links to discover other relevant content and create an interesting link network.
+```
+if seed_has_stories_id(seed):
+    topic_add_story(stories_id)
+elif seed_url_matches_existing_story(seed):
+    topic_add_story(stories_id)
+else:
+    topic_fetch_link(url)
+````
 
-If the content and links simply do not exist, there obviously is no solution.  As a rule of thumb, we hope to find at least 1,000 stories and ideally at least 1 cross media link for every 3 stories to be able to say something meaningful about the topic.
+After inserting all of these seed jobs into the pipeline, `topic_run` sits around waiting for the pipeline to exhaust the recursive process described below.  To determine whether the pipeline has completed its work, `topic_run` polls the topic_stories.spidered and topic_links.fetched fields periodically.  To mitigate the risk that the states on some jobs get lost, we fail the topic if it has been stuck in the polling state without the size of its pipeline decreasing for too long.
 
-Approaches we have used in the past to add more content to a sparse topic include:
+After `topic_run` has determined that the distributed spidering is done, it does some post processing.  Most importantly, it runs story deduping and media deduping on all of the stories added to the topic.  Media deduping looks for any media for which dup_media_id points to another media source and merges those stories into the parent media source. The story insertion logic in `topic_add_story` uses that same logic to avoid adding stories to duplicate media, but the set of duplicate media can change between (or during) spidering runs, so we have to run the deduping with each spidering run to keep the topic update to date with the current media duplicates data.
 
-* editing the parameters of the query (keywords, dates, and / or sources) to find more seed stories;
-* adding and backfilling with feedly a new media collection with relevant sources;
-* manually creating a list of relevant seed URLs through google searches, manual curation, or other such methods;
-* mining Twitter for a list of links using Crimson Hexagon.
+The story deduping process looks for duplicate stories within each media source according to story dates and title part counts.  This process uses a big list of title parts to be able to figure out that 'Washington Post: Nunes Releases FISA Memo' is the same story as 'Nunes Releases FISA Memo'.  That list of title parts would be difficult and expensive to story in postgres, so we just do it in memory for each media source, but that means that we have to do the story deduping after we already have all of the stories present in the topic, so we have to do it in as a single thread.
 
+After the dedping is completed, `topic_run` again waits, this time for the `facebook_fetch_story_stats` pool to empty out by watching for story_statistics rows to be created for every topic in the story.  The `facebook_story_stats` jobs are added during the spidering process, so ideally there is little or no waiting at this step.
 
-## Story Matching
+Finally, the topic starts a `topic_snapshot` job.  The topic snapshotting process is basically a bunch of (expensive for large topics) analytical queries that build up from the topic_stories and topic_links tables. The `topic_snapshot` job is currently single threaded, but we could break it up into an individual job for each timespan for future work.
 
-*Problem:* Stories often do not match by the simple approach of matching URLs.
+### topic_mine_story
 
-The first problem with simple URL matching is that many pages link to redirecting URLs that eventually lead to the story in question.  We mitigate this problem by matching on both the original URL and the URL that the original URL redirects to.  We also try to match to the guid that we store for our RSS crawled stories, since that guid is sometimes an alternative URL for the story.
+`topic_mine_story` parses links out of the link of a story that has already been added to the topic.  
 
-In many cases, there are multiple, non-redirecting URLs for the same story.  Some of those URLs are small variations of a common URL (for example, with different '#...' anchors tagged onto the end, or with varying case).  Before matching URLs we use a lossy URL normalization process that pretty aggressively trims information out of URLs that is rarely useful in distinguishing stories (for example, we remove everything after '#' and lowercase all URLs).
+Links are parsed out of only the substantive content of the story and include both html tags, urls in clear text, and some special case links for specific sites.  Each link parsed out of the story will be matched against the urls of stories already in the Media Cloud database, and the job will create either a `topic_add_story` or `topic_fetch_link` job depending on the result of that match:
 
-For the full details of our URL matching, see [`MediaWords::DBI::Stories::get_medium_dup_stories_by_url()`](../lib/MediaWords/DBI/Stories.pm).
+```
+if not link_matches_existing_story(url):
+    topic_fetch_link(url)
+else:
+    if story_in_topic:
+        end_pipeline();
+    else:
+        topic_add_story(story)
+```
 
-Even with redirect URL matching and aggressive URL normalization, we still often miss duplicate stories, so we also deduplicate stories by title.  The basic approach of the title deduplication is to break the title of each story into parts by `[-:|]` and look for any such part that is the sole title part for any one story and is at least 4 words long and is not the title of a story with a path-less URL.  Any story in the same media source as that story that includes that title part becomes a duplicate.  The idea is that we often see duplicate stories not only by exact title but also in the form of *'Trayvon Martin case to go to grand jury' vs. 'Orlando Sentinel: Trayvon Martin case to go to grand jury'*.
+### topic_fetch_link
 
-For the full details of our title matching, see [`MediaWords::DBI::Stories::get_medium_dup_stories_by_title()`](../lib/MediaWords/DBI/Stories.pm).
+`topic_fetch_link` fetches a url, obeying per media source throttling, and forwards the content on to topic_add_story if it passes an initial topic relevance test.
 
-We use the same story matching algorithm for deduplicating Feeldy imported stories, for which we performed careful
-validation, described (here)[../validation/feedly_import/README.markdown].
+To impose the media source throttling, `topic_fetch_link` obeys a `seconds_per_media_fetch` minimum for how many seconds must pass between fetches to the given media source and keeps track of the last time a fetch was made to a given media source in the media_fetches postgres table.  If the time since the last fetch was less than `seconds_per_media_fetch`, `topic_fetch_link` just reinserts the current job back into the end of the job queue.  Each pool worker has a limit to how many reinserts it can perform in row, after which it will start sleeping between each reinsert to avoid bombing the hosting server.
 
+After fetching the content for a given url, `topic_fetch_url` tries to match the entire raw html (or whatever content type) against the topic relevancy pattern.  This is just a potential relevance check, whose intent is to eliminate the large of majority of downloads that cannot even potentially match the full relevancy check done in `topic_add_story`.
 
-## Media Source Assignment
+If the potential content match succeeded, `topic_fetch_url` generates a Media Cloud story for the content.  This story generation process includes guessing a media source based on the url, guessing a publication date based on the url and content, and guessing a title based on the html.  The resulting story is not yet added to the topic -- it is only added as a generic story within the Media Cloud database.  `topic_add_story` does the relevancy check and potentially adds the story to the topic.
 
-*Problem:* We want to do analysis of larger media sources that publish the stories, but in most web pages there is no structured data about the publisher.
+Based on the results of the relevancy check, the job is routed forward with the following logic:
 
-For URLs that match a story already in our database, we already have a media source for the story (because our
-platform assigns every RSS feed we crawl to a media source).  But for spidered stories that do not match an existing story, we need to assign the story to either an existing media source or a new one we create on the spot.
+```
+if content_matches(url):
+    topic_add_story(story)
+else:
+    end_pipeline()
+```
 
-We assign stories to media sources based on the URL host (e.g. for `http://www.nytimes.com/2016/03/11/us/politics/republican-debate.html` the domain is `www.nytimes.com`).  The same lossy URL normalization algorithm is used on the medium URL as is used on the URLs for story matching described above.  If a media source with the normalized URL does not already exist, we create a new one.
+### topic_add_story
 
-In many cases, media sources use URLs too different for the normalization algorithm to detect.  To treat those cases, we periodically run a manual media source deduplication script that presents to a human lists of topic media sources with the same media URL domain.  The human makes a judgment about whether media sources with the same URL domain are duplicates or not.  These media duplicate lists are then used for all future topic spider runs
-(including reruns on existing topics, in which case stories from duplicate media sources are merged).
+`topic_add_story` tests whether the story is relevant to the topic and, if so, adds it to the topic and then adds the story to `topic_mine_links` to continue the recursive spidering process.
 
-For implementation of media source assignment, see `lookup_medium_by_url()` in [`MediaWords::TM::Mine`](../lib/MediaWords/TM/Mine.pm).  For implementation of media source deduplication, see [`mediawords_dedup_topic_media.pl`](../script/mediawords_dedup_topic_media.pl).
+To test relevancy, `topic_add_story` matches the substantive content of the story against the topic pattern, which is a regular expression serviced from the topic solr_seed_query.  To be relevant to the topic, either the title, description, url, or concatenated sentences of the story must match the topic pattern.  Only the non-duplicate sentences within the stories (sentences that are not duplicates within the same media source in the same calendar week) are matched against the pattern.
 
+The topic spidering process is limited to topics.max_iterations (default: 15) iterations.  Each time a new story is added to a topic, it is given an iteration of one greater than the parent story from whose links the the new story was discovered.  The spider completes its spidering by either failing to find any new stories for a given iteration or by refusing to further process stories with an iteration greater than topics.max_iterations.
 
-## External Seed Sets
+The story is routed forward in the pipeline according to this logic:
+```
+if story_is_relevant(story):
+    facebook_fetch_story_stats(story)
+    if story.iteration < topic.max_iterations:
+        topic_mine_story(story)
+    else:
+        end_pipeline()
+else:
+    end_pipeline()
+```
 
-*Problem:* In some cases, the existing Media Cloud content does not provide a sufficient seed set to accurately reflect activity around the topic topic.
+### facebook_fetch_story_stats
 
-For these cases, we provide the option of adding an externally generated list of URLs to seed a topic.  Those URLs might come from manual Google searches, Twitter searches, or researcher curation.  When the topic has a list
-of external seed URLs, those URLs are simply added to the spider URL queue before running the spider.
+`facebook_fetch_story_stats` fetches share counts from the facebook api for the story and stores then in the story_statistics table.
 
-
-## Date Assignment
-
-*Problem:* We need publish dates for our analysis, but it is hard and error prone to guess dates from content discovered on the open web.
-
-For stories that we collect from RSS feeds, we assign the publish date from the feed item to the story, or the collection date / time if there is no publish date in the RSS feed.  These dates are often not accurate to the hour but are almost always accurate to the day.
-
-For spidered stories, we have no RSS date, so we have guess the date using just the HTML of the story.  There is no single format for including structured data about dates in html.  There are several different XML tags that various different publishers use, many of which may indicate the date of either the whole story or of some element related to the story (a comment, another story, the whole media source, etc).
-
-We have a date guessing method that assigns a date based on a series of about 15 different date parsing methods, including XML element methods like the `<meta article:published_time>` tag or other methods like a date in the URL (`http://foosource.com/2016/03/05/foo.html`).  The final date parsing method is simply to look for any text that looks like a date anywhere in the text of the HTML.  If date parsing fails altogether, the story is assigned the date of the first story discovered that linked to the story.
-
-When a date is guessed, we associate a `date_guess_method` tag with the story.  For an idea of how commonly various methods are used by the module, here are the date guess method counts for the net neutrality topic:
-
-
-| tag                                    | count |
-|----------------------------------------|-------|
-| `guess_by_span_published_updated_date` |     3 |
-| `guess_by_meta_item_publish_date`      |     4 |
-| `manual`                               |    33 |
-| `guess_by_meta_pubdate`                |    44 |
-| `guess_by_abbr_published_updated_date` |    53 |
-| `guess_by_datetime_pubdate`            |    61 |
-| `guess_by_storydate`                   |    84 |
-| `guess_by_datatime`                    |   106 |
-| `guess_by_meta_date`                   |   195 |
-| `guess_by_meta_publish_date`           |   217 |
-| `guess_by_sailthru_date`               |   231 |
-| `guess_by_dc_date_issued`              |   382 |
-| `guess_by_class_date`                  |   451 |
-| `guess_by_twitter_datatime`            |   465 |
-| `guess_by_og_article_published_time`   |  1479 |
-| `source_link`                          |  1709 |
-| `guess_by_url_and_date_text`           |  2098 |
-| `merged_story_rss`                     |  2110 |
-| `guess_by_date_text`                   |  2608 |
-
-For some stories, there is no single date that can be assigned to the page.  For instance, there is no single publish date for a Wikipedia page or the home page of an activist site.  Before guessing the date of a story, the date guessing tries to guess whether the story is undateable by looking at the URL.  For instance, URLs with no path are assumed undateable, as are URLs with no numbers in the path.
-
-When we validated this method, we found that dates guessed by some method other than guess_by_url_and_date_text (which are almost always correct) are accurate to the day in 87% of cases.  The above numbers are from a topic with 30,334 total stories, 3,254 of which were marked as undeateable and 8,125 of which were guessed using an 87% accurate method.
-
-We also allow the user to either edit the date or mark the date as correct, in which case we add a date_confirmed
-tag to the story.
-
-For implementation of date guessing, see [`MediaWords::TM::GuessDate`](../lib/MediaWords/TM/GuessDate.pm).
-
-
-## Date Accuracy Modeling
-
-*Problem:* Even though the absolute number of misdated stories is relatively small, that small number of misdated stories can badly distort findings for specific timespans that have a small number of stories relative to the larger topic.
-
-We worked hard to make the date guessing as accurate as possible, resulting for example in only about 1,000 misdated stories in the net neutrality debate.  But we found repeatedly in early topics that even that small number of misdated stories could badly distort results in weeks with small numbers just from the large number of stories that potentially might by misdated linking in to the small week.
-
-To mitigate this problem, we have timespan reliability modeling.  When we run a snapshot for a topic, we use the data generated from the date guessing validation to randomly perturb individual dates of the topic and then rerun the analysis of the most inlinked media sources for each timespan.  We then run a correlation between the set of media source rankings for each modeling run and the unperturbed rankings and store the mean and the stddev of the correlations (r2) between the perturbed rankings and the unperturbed ranking.  We mostly arbitrarily assign human readable labels to each timespan according to the following rubric:
-
-    reliable: mean - stddev > 0.85
-    somewhat: mean - stddev > 0.75
-    not: mean - stddev <= 0.75
-
-The date accuracy modeling is performed every time a snapshot is generated. For implementation of date accuracy modeling, see [`MediaWords::TM::Snapshot::Mine`](../lib/MediaWords/TM/Snapshot/Mine.pm).
+This job never routes the story forward in the pipeline -- it runs as an offshoot process in parallel with `topic_mine_story` for stories newly added to the topic.

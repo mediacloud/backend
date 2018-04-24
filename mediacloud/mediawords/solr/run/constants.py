@@ -44,6 +44,9 @@ MC_SOLR_CLUSTER_ZOOKEEPER_HOST = "localhost"
 # Default ZooKeeper port to connect to
 MC_SOLR_CLUSTER_ZOOKEEPER_PORT = 9983
 
+# Timeout in milliseconds at which solr shard disconnects from zookeeper
+MC_SOLR_CLUSTER_ZOOKEEPER_TIMEOUT = 300000
+
 # Seconds to wait for external ZooKeeper to start
 MC_SOLR_CLUSTER_ZOOKEEPER_CONNECT_RETRIES = 2 * 60
 

@@ -30,7 +30,7 @@ use MediaWords::Util::JSON;
 Readonly my $PORT => 8899;
 
 # id for valid monitor at CH (valid id needed only if MC_TEST_EXTERNAL_APIS set)
-Readonly my $CH_MONITOR_ID => 4488828184;
+Readonly my $CH_MONITOR_ID => 7937743397;
 
 # this is an estimate of the number of tweets per day included in the ch-posts-$date.json files
 # this should not be edited other than to provide a better estimate
@@ -58,15 +58,7 @@ my $_mock_story_dates = {};
 # return either 2016-01-01 - 2016-01-10 for external api tests or a 2016-01-01 + $LOCAL_DATE_RANGE - 1 for local tests
 sub get_test_date_range()
 {
-    if ( MediaWords::Job::FetchTopicTweets->_get_ch_api_url() =~ /localhost/ )
-    {
-        my $end_date = MediaWords::Util::SQL::increment_day( '2016-01-01', $LOCAL_DATE_RANGE - 1 );
-        return ( '2016-01-01', $end_date );
-    }
-    else
-    {
-        return ( '2016-01-01', '2016-01-30' );
-    }
+    return ( '2016-01-01', '2016-01-02' );
 }
 
 # return list of dates to test for
@@ -397,7 +389,7 @@ SQL
     {
         my $stories_id           = $slc->{ stories_id };
         my $expected_tweet_count = scalar( keys( %{ $expected_story_tweet_users->{ $stories_id } } ) );
-        is( $slc->{ simple_tweet_count }, $expected_tweet_count, "$label simple tweet count story $stories_id" );
+        is( $slc->{ simple_tweet_count } || 0, $expected_tweet_count, "$label simple tweet count story $stories_id" );
     }
 }
 
@@ -443,7 +435,8 @@ select t.*
     from timespans  t
         join snapshots s using ( snapshots_id )
     where
-        topics_id = \$1
+        topics_id = \$1 and
+        period = 'overall'
     order by start_date
 SQL
 
@@ -470,11 +463,12 @@ SQL
 
     my ( $num_dead_tweets ) = $db->query( <<SQL, $topic->{ topics_id } )->flat;
 select count(*)
-    from topic_dead_links tdl
+    from topic_fetch_urls tfu
         join topic_tweet_full_urls ttfu on
-            ( ttfu.topics_id = tdl.topics_id and tdl.url = ttfu.url )
+            ( ttfu.topics_id = tfu.topics_id and tfu.url = ttfu.url )
     where
-        tdl.topics_id = \$1
+        tfu.topics_id = \$1 and
+        tfu.state = 'request failed'
 SQL
 
     my ( $num_null_story_seed_urls ) = $db->query( <<SQL, $topic->{ topics_id } )->flat;
@@ -569,39 +563,9 @@ sub run_tests_on_external_apis
     }
     else
     {
-        MediaWords::Test::Supervisor::test_with_supervisor( \&test_fetch_topic_tweets, [ 'job_broker:rabbitmq' ] );
+        MediaWords::Test::Supervisor::test_with_supervisor( \&test_fetch_topic_tweets,
+            [ 'job_broker:rabbitmq', 'fetch_link' ] );
     }
-
-    done_testing();
-}
-
-sub run_tests_on_mock_apis
-{
-    my $hs = MediaWords::Test::HTTP::HashServer->new(
-        $PORT,
-        {
-            '/api/monitor/posts'    => { callback => \&mock_ch_posts },
-            '/statuses/lookup.json' => { callback => \&mock_twitter_lookup },
-            '/tweet_url'            => { callback => \&mock_tweet_url }
-        }
-    );
-    $hs->start();
-
-    MediaWords::Job::FetchTopicTweets->set_api_host( "http://localhost:$PORT" );
-    my $config = MediaWords::Util::Config::get_config();
-
-    # set dummy values so that we can hit the mock apis without the underlying modules complaining
-    my $new_config = python_deep_copy( $config );
-    $new_config->{ crimson_hexagon }->{ key } = 'TEST';
-    map { $new_config->{ twitter }->{ $_ } = 'TEST' } qw/consumer_key consumer_secret access_token access_token_secret/;
-    MediaWords::Util::Config::set_config( $new_config );
-
-    eval { MediaWords::Test::Supervisor::test_with_supervisor( \&test_fetch_topic_tweets, [ 'job_broker:rabbitmq' ] ); };
-    my $test_error = $@;
-
-    $hs->stop();
-
-    die( $test_error ) if ( $test_error );
 
     done_testing();
 }

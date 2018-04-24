@@ -31,6 +31,10 @@ class CatalanLanguage(SpaceSeparatedWordsMixIn, SentenceSplitterMixIn, StopWords
     def language_code() -> str:
         return "ca"
 
+    @staticmethod
+    def sample_sentence() -> str:
+        return "Jove xef, porti whisky amb quinze glaçons d’hidrogen, coi!"
+
     def stem_words(self, words: List[str]) -> List[str]:
         words = decode_object_from_bytes_if_needed(words)
         if words is None:

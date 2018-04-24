@@ -123,6 +123,10 @@ class JapaneseLanguage(StopWordsFromFileMixIn):
     def language_code() -> str:
         return "ja"
 
+    @staticmethod
+    def sample_sentence() -> str:
+        return "いろはにほへと ちりぬるを わかよたれそ つねならむ うゐのおくやま けふこえて あさきゆめみし ゑひもせす（ん）。"
+
     # noinspection PyMethodMayBeStatic
     def stem_words(self, words: List[str]) -> List[str]:
         words = decode_object_from_bytes_if_needed(words)

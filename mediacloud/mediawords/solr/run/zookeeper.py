@@ -5,7 +5,10 @@ import subprocess
 import sys
 import time
 
-from mediawords.solr.run.constants import *
+from mediawords.solr.run.constants import (
+    MC_DIST_DIR, MC_ZOOKEEPER_VERSION, MC_PACKAGE_INSTALLING_FILE, MC_PACKAGE_INSTALLED_FILE,
+    MC_INSTALL_TIMEOUT, MC_ZOOKEEPER_SIGKILL_TIMEOUT, MC_ZOOKEEPER_LISTEN, MC_ZOOKEEPER_PORT,
+    MC_SOLR_BASE_DATA_DIR, MC_SOLR_VERSION, MC_ZOOKEEPER_CONNECT_RETRIES)
 from mediawords.solr.run.solr import update_zookeeper_solr_configuration
 from mediawords.util.compress import extract_tarball_to_directory
 from mediawords.util.log import create_logger
@@ -69,8 +72,8 @@ def __zookeeper_dist_url(zookeeper_version: str = MC_ZOOKEEPER_VERSION) -> str:
     """Return URL to download ZooKeeper from."""
     zookeeper_dist_url = ("https://archive.apache.org/dist/zookeeper/zookeeper-%(zookeeper_version)s/"
                           "zookeeper-%(zookeeper_version)s.tar.gz") % {
-                             "zookeeper_version": zookeeper_version,
-                         }
+                              "zookeeper_version": zookeeper_version,
+    }
     return zookeeper_dist_url
 
 
@@ -175,10 +178,10 @@ clientPort=%(port)d
 dataDir=%(data_dir)s
 
 # Must be between zkClientTimeout / 2 and zkClientTimeout / 20
-tickTime=2000
+tickTime=30000
 
 initLimit=10
-syncLimit=5
+syncLimit=10
             """ % {
             "listen": listen,
             "port": port,

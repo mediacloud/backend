@@ -248,9 +248,9 @@ SQL
     my $tag_data = $db->query( <<END )->hashes;
 select s.stories_id::int, t.tags_id, t.tag, ts.tag_sets_id, ts.name as tag_set
     from stories_tags_map s
+        join $ids_table i on ( s.stories_id = i.id )
         join tags t on ( t.tags_id = s.tags_id )
         join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id )
-    where s.stories_id in ( select id from $ids_table )
     order by t.tags_id
 END
     MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $tag_data, 'story_tags' );
@@ -267,19 +267,6 @@ select f.name, f.url, f.media_id, f.feeds_id, f.feed_type, fsm.stories_id
 END
         MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $feed_data, 'feeds' );
     }
-
-    # Bit.ly total click counts
-    my $bitly_click_data = $db->query(
-        <<"EOF",
-        -- Return NULL for where click count is not yet present
-        SELECT $ids_table.id AS stories_id,
-               bitly_clicks_total.click_count AS bitly_click_count
-        FROM $ids_table
-            LEFT JOIN bitly_clicks_total
-                ON $ids_table.id = bitly_clicks_total.stories_id
-EOF
-    )->hashes;
-    MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $bitly_click_data );
 
     _attach_word_counts_to_stories( $db, $stories ) if ( $self->{ show_wc } );
 
@@ -332,7 +319,7 @@ sub _fetch_list($$$$$$)
     $self->{ show_feeds }         = $c->req->params->{ show_feeds };
 
     $rows //= 20;
-    $rows = List::Util::min( $rows, 10_000 );
+    $rows = List::Util::min( $rows, 1_000 );
 
     my $ps_ids = $self->_get_object_ids( $c, $last_id, $rows );
 

@@ -42,7 +42,6 @@ perl_dependencies:
     - "Catalyst::View::TT"
     - "CGI"
     - "CHI"
-    - "Color::Mix"
     - "Crypt::SaltedHash"
     - "Data::Dumper"
     - "Data::Serializer"
@@ -68,7 +67,6 @@ perl_dependencies:
     - "HTML::TreeBuilder::LibXML"
     - "Inline"
     # Patched version of Inline::Python gets installed separately
-    - "Lingua::Identify::CLD"
     - "List::Compare"
     - "List::MoreUtils"
     - "Log::Log4perl"
@@ -85,7 +83,6 @@ perl_dependencies:
     - "namespace::autoclean"
     - "Net::AMQP::RabbitMQ"
     - "Net::IP"
-    - "Net::Twitter"
     - "Parallel::Fork::BossWorkerAsync"
     - "Parallel::ForkManager"
     - "Parse::BooleanLogic"

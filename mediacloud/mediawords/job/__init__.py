@@ -100,7 +100,7 @@ class AbstractJob(object, metaclass=abc.ABCMeta):
     def add_to_queue(cls: Type['AbstractJob'], *args, **kwargs) -> str:
         """Add job to queue, return job ID."""
 
-        app = JobBrokerApp(job_class=cls)
+        JobBrokerApp(job_class=cls)
 
         task = cls()
         result = task.celery_task().delay(*args, **kwargs)
@@ -163,11 +163,13 @@ class JobBrokerApp(Celery):
 
         self.conf.broker_connection_timeout = int(rabbitmq_config['timeout'])
 
-        # Concurrency is done by Supervisor, not Celery itself
-        self.conf.worker_concurrency = 1
+        worker_concurrency = config.get('celery', {}).get(job_class.__name__, {}).get('worker_concurrency', 1)
+        self.conf.worker_concurrency = worker_concurrency
 
         # Fetch only one job at a time
         self.conf.worker_prefetch_multiplier = 1
+
+        self.conf.worker_max_tasks_per_child = 1000
 
         queue = Queue(name=queue_name,
                       exchange=Exchange(queue_name),

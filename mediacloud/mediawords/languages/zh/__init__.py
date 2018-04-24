@@ -80,6 +80,13 @@ class ChineseLanguage(StopWordsFromFileMixIn):
     def language_code() -> str:
         return "zh"
 
+    @staticmethod
+    def sample_sentence() -> str:
+        return (
+            "2010年宾夕法尼亚州联邦参议员选举民主党初选于2010年5月18日举行，联邦众议员乔·谢斯塔克战胜在任联邦参议员阿伦·斯佩克特，"
+            "为后者的连续5个参议员任期划上句点。"
+        )
+
     def stem_words(self, words: List[str]) -> List[str]:
         words = decode_object_from_bytes_if_needed(words)
 

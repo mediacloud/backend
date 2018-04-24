@@ -7,3 +7,7 @@ class EnglishLanguage(SpaceSeparatedWordsMixIn, SentenceSplitterMixIn, PyStemmer
     @staticmethod
     def language_code() -> str:
         return "en"
+
+    @staticmethod
+    def sample_sentence() -> str:
+        return "The quick brown fox jumps over the lazy dog."

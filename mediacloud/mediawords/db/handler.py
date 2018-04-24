@@ -8,7 +8,11 @@ from psycopg2.extensions import adapt as psycopg2_adapt
 
 from mediawords.db.copy.copy_from import CopyFrom
 from mediawords.db.copy.copy_to import CopyTo
-from mediawords.db.exceptions.handler import *
+from mediawords.db.exceptions.handler import (
+    McConnectException, McDatabaseHandlerException, McSchemaIsUpToDateException, McQueryException,
+    McPrimaryKeyColumnException, McFindByIDException, McRequireByIDException, McUpdateByIDException,
+    McDeleteByIDException, McCreateException, McFindOrCreateException, McBeginException,
+    McQuoteException, McUniqueConstraintException)
 from mediawords.db.pages.pages import DatabasePages
 from mediawords.db.result.result import DatabaseResult
 from mediawords.db.schema.version import schema_version_from_lines
@@ -41,7 +45,7 @@ class DatabaseHandler(object):
     # Min. "deadlock_timeout" to not cause problems under load (in seconds)
     __MIN_DEADLOCK_TIMEOUT = 5
 
-    # cache of table primary key columns
+    # cache of table primary key columns ([schema][table])
     __primary_key_columns = {}
 
     # PIDs for which the schema version has been checked
@@ -176,7 +180,7 @@ class DatabaseHandler(object):
         if 'ignore_schema_version' in config['mediawords']:
             config_ignore_schema_version = config["mediawords"]["ignore_schema_version"]
 
-        if config_ignore_schema_version and self.__IGNORE_SCHEMA_VERSION_ENV_VARIABLE in os.environ:
+        if config_ignore_schema_version or self.__IGNORE_SCHEMA_VERSION_ENV_VARIABLE in os.environ:
             log.warning("""
                 The current Media Cloud database schema is older than the schema present in mediawords.sql,
                 but %s is set so continuing anyway.
@@ -349,7 +353,15 @@ class DatabaseHandler(object):
 
         table = decode_object_from_bytes_if_needed(table)
 
-        if table not in self.__primary_key_columns:
+        if '.' in table:
+            schema, table = table.split('.', maxsplit=1)
+        else:
+            schema = 'public'
+
+        if schema not in self.__primary_key_columns:
+            self.__primary_key_columns[schema] = {}
+
+        if table not in self.__primary_key_columns[schema]:
             # noinspection SqlResolve,SqlCheckUsingColumns
             primary_key_column = self.query("""
                 SELECT column_name
@@ -358,22 +370,33 @@ class DatabaseHandler(object):
                          USING (constraint_catalog, constraint_schema, constraint_name,
                                 table_catalog, table_schema, table_name)
                 WHERE constraint_type = 'PRIMARY KEY'
+                  AND table_schema = %(table_schema)s
                   AND table_name = %(table_name)s
                 ORDER BY ordinal_position
-            """, {'table_name': table}).flat()
+            """, {
+                'table_schema': schema,
+                'table_name': table,
+            }).flat()
             if primary_key_column is None or len(primary_key_column) == 0:
-                raise McPrimaryKeyColumnException("Primary key for table '%s' was not found" % table)
+                raise McPrimaryKeyColumnException(
+                    "Primary key for schema '%s', table '%s' was not found" % (schema, table,)
+                )
+
             if len(primary_key_column) > 1:
                 raise McPrimaryKeyColumnException(
-                    "More than one primary key column was found for table '%(table)s': %(primary_key_columns)s" % {
+                    (
+                        "Multiple primary key column were found for schema '%(schema)s', "
+                        "table '%(table)s': %(primary_key_columns)s"
+                    ) % {
+                        'schema': schema,
                         'table': table,
                         'primary_key_columns': str(primary_key_column)
                     })
             primary_key_column = primary_key_column[0]
 
-            self.__primary_key_columns[table] = primary_key_column
+            self.__primary_key_columns[schema][table] = primary_key_column
 
-        return self.__primary_key_columns[table]
+        return self.__primary_key_columns[schema][table]
 
     def find_by_id(self, table: str, object_id: int) -> Union[Dict[str, Any], None]:
         """Do an ID lookup on the table and return a single row match if found."""
@@ -541,11 +564,18 @@ class DatabaseHandler(object):
         try:
             last_inserted_id = self.query(sql, insert_hash).flat()
         except Exception as ex:
-            raise McCreateException("Unable to INSERT into '%(table)s' data '%(data)s': %(exception)s" % {
-                'table': table,
-                'data': str(insert_hash),
-                'exception': str(ex),
-            })
+            if 'duplicate key value violates unique constraint' in str(ex):
+                raise McUniqueConstraintException("Unable to INSERT into '%(table)s' data '%(data)s': %(exception)s" % {
+                    'table': table,
+                    'data': str(insert_hash),
+                    'exception': str(ex),
+                })
+            else:
+                raise McCreateException("Unable to INSERT into '%(table)s' data '%(data)s': %(exception)s" % {
+                    'table': table,
+                    'data': str(insert_hash),
+                    'exception': str(ex),
+                })
 
         if last_inserted_id is None or len(last_inserted_id) == 0:
             raise McCreateException("Last inserted ID was not found")
@@ -613,7 +643,11 @@ class DatabaseHandler(object):
         if row is not None and row.rows() > 0:
             return row.hash()
         else:
-            return self.create(table=table, insert_hash=insert_hash)
+            # try to create it, but if some other process has created it because we don't have a lock, just use that one
+            try:
+                return self.create(table=table, insert_hash=insert_hash)
+            except McUniqueConstraintException:
+                return self.select(table=table, what_to_select='*', condition_hash=insert_hash).hash()
 
     # noinspection PyMethodMayBeStatic
     def show_error_statement(self) -> bool:

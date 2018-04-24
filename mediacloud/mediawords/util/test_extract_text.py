@@ -1,6 +1,6 @@
 import re
 
-from mediawords.util.extract_text import *
+from mediawords.util.extract_text import extractor_name, extract_article_from_html
 
 
 def test_extractor_name():

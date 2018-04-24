@@ -45,7 +45,7 @@ def test_target_request_from_archive_is_url():
     # archive.is with non-matching URL
     assert target_request_from_archive_is_url(
         content="""
-            <link rel="canonical" href="https://archive.is/20170201/https://bar.com/foo/bar">        
+            <link rel="canonical" href="https://archive.is/20170201/https://bar.com/foo/bar">
         """,
         archive_site_url='https://bar.com/foo/bar'
     ) is None
@@ -117,20 +117,20 @@ def test_target_request_from_alarabiya_url():
     test_cookie_name = 'YPF8827340282Jdskjhfiw_928937459182JAX666'
     test_cookie_value = '78.60.231.222'
     test_content = """
-    
+
         <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
         <html>
         <head>
         <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
         <meta http-equiv="Content-Script-Type" content="text/javascript">
         <script type="text/javascript">
-        
+
         // ...
-        
+
         setCookie('%(cookie_name)s', '%(cookie_value)s', 10);
-        
+
         // ...
-        
+
         </script>
         </head>
         <body>
@@ -138,7 +138,7 @@ def test_target_request_from_alarabiya_url():
         upgrade your browser.</noscript>
         </body>
         </html>
-    
+
     """ % {'cookie_name': test_cookie_name, 'cookie_value': test_cookie_value}
 
     test_url = ('https://english.alarabiya.net/en/News/middle-east/2017/07/21/Israel-bars-Muslim-men-under-50-from-'

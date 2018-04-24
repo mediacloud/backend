@@ -4,7 +4,7 @@ Media Cloud uses [Ansible](https://www.ansible.com/) for:
 
 * Initial host setup for running Media Cloud;
 * Automatic code deployments;
-* Maintenance of Docker image used on Travis tests.
+* Maintenance of LXD image used on Travis tests.
 
 
 ## Configuration
@@ -49,12 +49,12 @@ So, to **run only a single role**, you can use `--tags` parameter:
 
 ```shell
 cd ansible/	# to read ansible.cfg
-ansible-playbook --limit your-host --tags pam-limits,kernel-parameters setup.yml
+ansible-playbook --limit your-host --tags pam-limits setup.yml
 ```
 
 To **skip some roles from running**, you can use `--skip-tags` parameter:
 
 ```shell
 cd ansible/	# to read ansible.cfg
-ansible-playbook --limit your-host --skip-tags pam-limits,kernel-parameters setup.yml
+ansible-playbook --limit your-host --skip-tags pam-limits setup.yml
 ```

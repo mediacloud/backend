@@ -9,12 +9,12 @@ use Test::More;
 
 use MediaWords::Test::API;
 use MediaWords::Test::DB;
-use MediaWords::Test::Solr;
-use MediaWords::Test::Supervisor;
 
+use Catalyst::Test 'MediaWords';
 use Readonly;
 use MediaWords::Controller::Api::V2::Topics;
 use MediaWords::DBI::Auth::Roles;
+use MediaWords::Test::API;
 use MediaWords::Test::DB;
 
 Readonly my $NUM_MEDIA            => 5;
@@ -304,19 +304,206 @@ SQL
     rows_match( $label, $got_cdts, [ $expected_timespan ], 'controversy_dump_time_slices_id', $fields );
 }
 
+sub test_update_query_scope($)
+{
+    my ( $db ) = @_;
+
+    my $topic = MediaWords::Test::DB::create_test_topic( $db, 'query scope' );
+
+    # for each call, just test whether or not an error is generated
+
+    # query change should not trigger error if there are no spidered topic stories yet
+    test_put( "/api/v2/topics/$topic->{ topics_id }/update", { start_date => '2010-01-01' } );
+
+    # insert some spidered stories so that we can check for the date and media conditions
+    my $story_stack = MediaWords::Test::DB::create_test_story_stack_numerated( $db, 1, 1, 1, 'query_scope' );
+    $db->query( <<SQL, $topic->{ topics_id }, $story_stack->{ media_query_scope_0 }->{ media_id } );
+insert into topic_stories ( topics_id, stories_id, iteration )
+    select \$1, stories_id, 2 from stories where media_id = \$2
+SQL
+
+    test_put( "/api/v2/topics/$topic->{ topics_id }/update", { description => 'new query scope description' } );
+    test_put( "/api/v2/topics/$topic->{ topics_id }/update", { end_date    => $topic->{ end_date } } );
+
+    {
+        my $update_start_date = MediaWords::Util::SQL::increment_day( $topic->{ start_date }, 1 );
+        test_put( "/api/v2/topics/$topic->{ topics_id }/update", { start_date => $update_start_date }, 1 );
+    }
+
+    test_put( "/api/v2/topics/$topic->{ topics_id }/update", { end_date => $topic->{ end_date } } );
+
+    {
+        my $update_end_date = MediaWords::Util::SQL::increment_day( $topic->{ end_date }, -1 );
+        test_put( "/api/v2/topics/$topic->{ topics_id }/update", { end_date => $update_end_date }, 1 );
+    }
+
+    {
+        my $medium_a = MediaWords::Test::DB::create_test_medium( $db, 'query scope a' );
+        my $medium_b = MediaWords::Test::DB::create_test_medium( $db, 'query scope b' );
+        my $media_ids = [ map { $_->{ media_id } } ( $medium_a, $medium_b ) ];
+
+        test_put( "/api/v2/topics/$topic->{ topics_id }/update", { media_ids => $media_ids } );
+
+        test_put( "/api/v2/topics/$topic->{ topics_id }/update", { media_ids => [] }, 1 );
+        test_put( "/api/v2/topics/$topic->{ topics_id }/update", { media_ids => [ $medium_a->{ media_id } ] }, 1 );
+    }
+
+    {
+        my $tag_a = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'query_scope:tag_a' );
+        my $tag_b = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'query_scope:tag_b' );
+        my $tags_ids = [ map { $_->{ tags_id } } ( $tag_a, $tag_b ) ];
+
+        test_put( "/api/v2/topics/$topic->{ topics_id }/update", { media_tags_ids => $tags_ids } );
+
+        test_put( "/api/v2/topics/$topic->{ topics_id }/update", { media_tags_ids => [] }, 1 );
+        test_put( "/api/v2/topics/$topic->{ topics_id }/update", { media_tags_ids => [ $tag_a->{ tags_id } ] }, 1 );
+    }
+}
+
+# return number of topic_stories for the topic for which link_mined is false
+sub get_respider_count($$)
+{
+    my ( $db, $topic ) = @_;
+
+    my ( $count ) = $db->query( <<SQL, $topic->{ topics_id } )->flat();
+select count(*) from topic_stories where topics_id = ? and link_mined = 'f'
+SQL
+
+    return $count;
+}
+
+sub test_set_stories_respidering($)
+{
+    my ( $db ) = @_;
+
+    my $topic = MediaWords::Test::DB::create_test_topic( $db, 'respider' );
+
+    my $num_stories = 10;
+
+    my $media = MediaWords::Test::DB::create_test_story_stack_numerated( $db, 1, 1, $num_stories, 'respider' );
+
+    my $medium = $media->{ media_respider_0 };
+
+    $db->query( <<SQL, $topic->{ topics_id }, $medium->{ media_id } );
+insert into topics_media_map ( topics_id, media_id ) values ( \$1, \$2 )
+SQL
+
+    $db->query( <<SQL, $topic->{ topics_id }, $medium->{ media_id } );
+insert into topic_stories ( topics_id, stories_id, link_mined )
+    select t.topics_id, s.stories_id, 't'
+        from topics t, stories s
+        where
+            t.topics_id = \$1 and
+            s.media_id = \$2
+SQL
+
+    my $topic_stories = $db->query( "select * from topic_stories where topics_id = ?", $topic->{ topics_id } )->hashes;
+
+    is( scalar( @{ $topic_stories } ), $num_stories );
+
+    MediaWords::Controller::Api::V2::Topics::_set_stories_respidering( $db, $topic, { name => 'new respider name' } );
+    is( get_respider_count( $db, $topic ), 0, "respider count no scope update" );
+
+    MediaWords::Controller::Api::V2::Topics::_set_stories_respidering( $db, $topic,
+        { solr_seed_query => 'new respider name' } );
+    is( get_respider_count( $db, $topic ), $num_stories, "respider count query update" );
+
+    $db->query( "update topic_stories set link_mined = 't' where topics_id = ?", $topic->{ topics_id } );
+
+    my $start_date = '2017-01-01';
+    my $end_date   = '2017-02-01';
+    $topic = $db->update_by_id( 'topics', $topic->{ topics_id }, { start_date => $start_date, end_date => $end_date } );
+
+    $db->query( <<SQL, $start_date, $medium->{ media_id } );
+update stories set publish_date = \$1 where media_id = \$2
+SQL
+
+    $db->query( <<SQL, $medium->{ media_id } );
+update stories set publish_date = '2016-01-01'
+    where stories_id in ( select stories_id from stories where media_id = ? order by stories_id limit 1 )
+SQL
+
+    $db->query( <<SQL, $medium->{ media_id } );
+update stories set publish_date = '2018-01-01'
+    where stories_id in ( select stories_id from stories where media_id = ? order by stories_id desc limit 1 )
+SQL
+
+    MediaWords::Controller::Api::V2::Topics::_set_stories_respidering( $db, $topic,
+        { start_date => '2016-01-01', end_date => '2018-01-01' } );
+    is( get_respider_count( $db, $topic ), 2, "respider count query update" );
+}
+
+sub test_topics_reset
+{
+    my ( $db ) = @_;
+
+    my $topic = MediaWords::Test::DB::create_test_topic( $db, 'reset' );
+    my $topics_id = $topic->{ topics_id };
+
+    my $num_stories = 10;
+    my $story_stack = MediaWords::Test::DB::create_test_story_stack_numerated( $db, 1, 1, $num_stories, 'reset' );
+
+    $db->query( "update topics set solr_seed_query_run = 't' where topics_id = ?", $topics_id );
+
+    $db->query( <<SQL, $topics_id, $story_stack->{ media_reset_0 }->{ media_id } );
+insert into topic_stories ( topics_id, stories_id, iteration )
+    select \$1, stories_id, 2 from stories where media_id = \$2
+SQL
+
+    my ( $stories_count ) = $db->query( "select count(*) from topic_stories where topics_id = ?", $topics_id )->flat();
+    is( $stories_count, $num_stories, "topics reset: stories before reset" );
+
+    $db->query( <<SQL, $topics_id );
+insert into topic_links ( topics_id, stories_id, url )
+    select ts.topics_id, ts.stories_id, 'http://foo.bar'
+        from topic_stories ts
+        where ts.topics_id = \$1
+SQL
+
+    my ( $links_count ) = $db->query( "select count(*) from topic_links where topics_id = ?", $topics_id )->flat();
+    is( $links_count, $num_stories, "topics reset: links before reset" );
+
+    $db->query( <<SQL, $topics_id );
+insert into topic_seed_urls (topics_id, stories_id) select topics_id, stories_id from topic_stories where topics_id = ?
+SQL
+
+    my ( $seeds_count ) = $db->query( "select count(*) from topic_seed_urls where topics_id= ?", $topics_id )->flat();
+    is( $seeds_count, $num_stories, "topics reset: seed urls before reset" );
+
+    $db->update_by_id( 'topics', $topic->{ topics_id }, { state => 'running' } );
+
+    # this should generate an erro since the topic is running
+    test_put( "/api/v2/topics/$topic->{ topics_id }/reset", {}, 1 );
+
+    $db->update_by_id( 'topics', $topic->{ topics_id }, { state => 'error', message => 'test message' } );
+
+    test_put( "/api/v2/topics/$topic->{ topics_id }/reset", {} );
+
+    my ( $got_stories_count ) = $db->query( "select count(*) from topic_stories where topics_id = ?", $topics_id )->flat;
+    is( $got_stories_count, 0, "topics reset: stories after reset" );
+
+    my ( $got_links_count ) = $db->query( "select count(*) from topic_links where topics_id = ?", $topics_id )->flat;
+    is( $got_links_count, 0, "topics reset: links after reset" );
+
+    my ( $got_seed_count ) = $db->query( "select count(*) from topic_seed_urls where topics_id = ?", $topics_id )->flat;
+    is( $got_seed_count, 0, "topics reset: seed urls after reset" );
+
+    my $reset_topic = $db->find_by_id( 'topics', $topics_id );
+
+    ok( !$reset_topic->{ solr_seed_query_run }, "topics reset: solr_seed_query_run false after reset" );
+    is( $topic->{ state }, 'created but not queued', "topics_reset: state after rest" );
+    ok( !$topic->{ message }, "topics_reset: null message" );
+}
+
 sub test_topics
 {
     my ( $db ) = @_;
 
-    my $media = MediaWords::Test::DB::create_test_story_stack_numerated( $db, $NUM_MEDIA, $NUM_FEEDS_PER_MEDIUM,
-        $NUM_STORIES_PER_FEED );
-
-    MediaWords::Test::DB::add_content_to_test_story_stack( $db, $media );
-
-    MediaWords::Test::Solr::setup_test_index( $db );
-
     MediaWords::Test::API::setup_test_api_key( $db );
 
+    test_update_query_scope( $db );
+    test_set_stories_respidering( $db );
+    test_topics_reset( $db );
     test_validate_max_stories( $db );
     test_is_mc_queue_user( $db );
     test_get_user_public_queued_job( $db );
@@ -328,8 +515,7 @@ sub test_topics
 
 sub main
 {
-    MediaWords::Test::Supervisor::test_with_supervisor( \&test_topics,
-        [ 'solr_standalone', 'job_broker:rabbitmq', 'rescrape_media' ] );
+    MediaWords::Test::DB::test_on_test_database( \&test_topics );
 
     done_testing();
 }

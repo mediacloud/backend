@@ -7,3 +7,7 @@ class ItalianLanguage(SpaceSeparatedWordsMixIn, SentenceSplitterMixIn, PyStemmer
     @staticmethod
     def language_code() -> str:
         return "it"
+
+    @staticmethod
+    def sample_sentence() -> str:
+        return "Quel vituperabile xenofobo zelante assaggia il whisky ed esclama: alleluja!"

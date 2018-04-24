@@ -177,14 +177,20 @@ sub _verify_processes_status($$)
 
     # first send 'start' to all processes so that any stopped ones are starting in parallel
     map { _run_supervisorctl( "start $_" ) } @{ $processes };
+    map { _run_supervisorctl( "start $_:" ) } @{ $processes };
 
     for my $process ( @{ $processes } )
     {
         my $process_is_running = 0;
         for my $i ( 1 .. $SOLR_RUN_TIMEOUT )
         {
-            my $status     = _run_supervisorctl( "status $process" );
-            my $process_re = qr/(\Q${process}\E|\Q${process}\E:\Q${process}\E_\d\d)\s+([A-Z]+)/m;
+            my $status = _run_supervisorctl( "status $process" );
+            if ( $status =~ 'no such process' )
+            {
+                $status = _run_supervisorctl( "status $process:" );
+            }
+
+            my $process_re = qr/(\Q${process}\E|\Q${process}\E\:\Q${process}\E_\d\d)\s+([A-Z]+)/m;
 
             die( "no such process '$process'" ) unless ( $status =~ $process_re );
             my $state = $2;
@@ -200,7 +206,9 @@ sub _verify_processes_status($$)
             }
             elsif ( $state eq 'STOPPED' )
             {
+                # might be a group or a single job, so just try both
                 _run_supervisorctl( "start $process" );
+                _run_supervisorctl( "start $process:" );
             }
             else
             {

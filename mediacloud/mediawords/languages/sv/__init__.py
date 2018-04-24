@@ -7,3 +7,7 @@ class SwedishLanguage(SpaceSeparatedWordsMixIn, SentenceSplitterMixIn, PyStemmer
     @staticmethod
     def language_code() -> str:
         return "sv"
+
+    @staticmethod
+    def sample_sentence() -> str:
+        return "a bort objekt från google desktop post äldst meny öretag dress etaljer alternativ för vad är inne yaste"

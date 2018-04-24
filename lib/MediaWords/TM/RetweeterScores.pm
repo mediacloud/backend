@@ -71,9 +71,12 @@ SQL
 # users in each of the groups.  so calling this with 'hillaryclinton' in one group and 'realdonaltrump'
 # in another group will generate one row for each user who retweeted hillaryclinton at least once and
 # one row for each user who retweeted realdonaltrump at least once.
+#
+# if score->{ match_type } is 'regex', mark as retweeters users who match one of the patterns instead of users who
+# retweeted the given user.
 sub _generate_retweeters($$$$)
 {
-    my ( $db, $score, $group_a, $group_b ) = @_;
+    my ( $db, $score, $group_a, $group_b, $use_regexes ) = @_;
 
     my $all_users_lookup = {};
     map { $all_users_lookup->{ $_ } = 1 } ( @{ $group_a->{ retweeted_users } }, @{ $group_b->{ retweeted_users } } );
@@ -83,15 +86,24 @@ sub _generate_retweeters($$$$)
     $db->query( "create temporary table ru ( u text )" );
     map { $db->query( "insert into ru values ( ? )", $_ ) } @{ $all_users };
 
+    my $join_condition = "lower( tt.data->'tweet'->'retweeted_status'->'user'->>'screen_name' ) = lower( u )";
+    if ( $score->{ match_type } eq 'regex' )
+    {
+        $join_condition = "tt.content ~* ru.u";
+    }
+
     $db->query( <<SQL, $score->{ retweeter_scores_id } );
 insert into retweeters ( retweeter_scores_id, twitter_user, retweeted_user )
-    select distinct rs.retweeter_scores_id, tt.twitter_user, tt.data->'tweet'->'retweeted_status'->'user'->>'screen_name'
+    select distinct
+            rs.retweeter_scores_id,
+            tt.twitter_user,
+            lower( ru.u )
         from topic_tweets tt
             join topic_tweet_days ttd using ( topic_tweet_days_id )
             join retweeter_scores rs using ( topics_id )
+            join ru on ( $join_condition )
         where
-            rs.retweeter_scores_id = ? and
-            tt.data->'tweet'->'retweeted_status'->'user'->>'screen_name' in ( select u from ru )
+            rs.retweeter_scores_id = ?
 SQL
 }
 
@@ -214,8 +226,12 @@ insert into retweeter_media
                 group_a_count,
                 group_b_count,
                 group_a_count_n,
-                1 - ( ( ( group_a_count_n::float / ( group_a_count_n::float + group_b_count::float ) ) - 0 ) * 2 )
-                    score
+                case
+                    when group_a_count_n::float + group_b_count::float = 0 then 0
+                    else
+                        1 - ( ( ( group_a_count_n::float /
+                                  ( group_a_count_n::float + group_b_count::float ) ) - 0 ) * 2 )
+                    end score
             from mc
                 join mc_norm using ( media_id )
     )
@@ -288,18 +304,23 @@ SQL
 # * retweeted_users_a -- list of twitter user handles to use for pole a
 # * retweeted_users_b -- list of twitter_user handles to use for pole b
 # * num_partitions -- number of partitions by equal score ranges into which to break the media (optional, default = 5)
-sub generate_retweeter_scores($$$$$;$)
+# * match_type -- retweet or regex, default to regex
+sub generate_retweeter_scores($$$$$;$$)
 {
-    my ( $db, $topic, $name, $retweeted_users_a, $retweeted_users_b, $num_partitions ) = @_;
+    my ( $db, $topic, $name, $retweeted_users_a, $retweeted_users_b, $num_partitions, $match_type ) = @_;
 
     $num_partitions ||= $NUM_PARTITIONS;
 
     my $score = {
         topics_id      => $topic->{ topics_id },
         name           => $name,
-        num_partitions => $num_partitions
+        num_partitions => $num_partitions,
+        match_type     => $match_type || 'retweet'
     };
     $score = $db->create( 'retweeter_scores', $score );
+
+    $retweeted_users_a = [ map { lc( $_ ) } @{ $retweeted_users_a } ];
+    $retweeted_users_b = [ map { lc( $_ ) } @{ $retweeted_users_b } ];
 
     my $group_a = _generate_retweeter_group( $db, $score, $retweeted_users_a );
     my $group_b = _generate_retweeter_group( $db, $score, $retweeted_users_b );
@@ -338,7 +359,6 @@ select
         gb.name group_b_name,
         mlc.media_inlink_count,
         mlc.story_count,
-        mlc.bitly_click_count,
         mlc.simple_tweet_count
     from retweeter_scores rs
         join retweeter_media rm using ( retweeter_scores_id )

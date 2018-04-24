@@ -1,0 +1,81 @@
+# Overview
+
+This file documents performance of various strategies for matching a typical topic regular expression against consisten
+samples of stories from a us election topic.
+
+## default python re
+
+files: 50
+num_matches: 15
+total: 67.591470
+max: 21.760862
+median: 0.116435
+high median: 0.120507
+mean: 1.351829
+sd: 3.704603
+
+## default python re non-greedy
+
+files: 100
+num_matches: 24
+total: 392.886785
+max: 181.031491
+median: 0.216935
+high median: 0.221689
+mean: 3.928868
+sd: 19.578381
+
+## regex module
+
+files: 50
+num_matches: 15
+total: 28.192876
+max: 8.825131
+median: 0.061806
+high median: 0.068395
+mean: 0.563858
+sd: 1.373372
+
+## regex module non-greedy
+
+files: 100
+num_matches: 24
+total: 109.573047
+max: 46.371779
+median: 0.094707
+high median: 0.114575
+mean: 1.095730
+sd: 4.880588
+
+## sw-re2
+
+files: 100
+num_matches: 24
+total: 0.148595
+max: 0.011925
+median: 0.000806
+high median: 0.000815
+mean: 0.001486
+sd: 0.002131
+
+
+## sw-re2 module non-greedy
+
+num_matches: 24
+total: 0.174119
+max: 0.014333
+median: 0.001067
+high median: 0.001072
+mean: 0.001741
+sd: 0.002174
+
+## sw-re2 bigger sample
+
+files: 2099
+num_matches: 369
+total: 1.754177
+max: 0.015273
+median: 0.000566
+high median: 0.000566
+mean: 0.000836
+sd: 0.001088

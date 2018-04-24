@@ -207,6 +207,10 @@ EOF
         $media_id
     );
 
+    $db->query(
+        "update media_stats set num_sentences = num_sentences + ? where media_id = ? and stat_date = ?::date",
+        scalar( @{ $inserted_sentences } ), $story->{ media_id }, $story->{ publish_date } );
+
     return $inserted_sentences;
 }
 
@@ -271,6 +275,21 @@ SQL
     $story->{ ap_syndicated } = $ap_syndicated;
 }
 
+# delete any existing stories for the given story and also update media_stats to adjust for the deletion
+sub _delete_story_sentences($$)
+{
+    my ( $db, $story, $extractor_args ) = @_;
+
+    my $num_deleted = $db->query( 'DELETE FROM story_sentences WHERE stories_id = ?', $story->{ stories_id } )->rows;
+
+    if ( $num_deleted > 0 )
+    {
+        $db->query( <<SQL, $num_deleted, $story->{ media_id }, $story->{ publish_date } );
+update media_stats set num_sentences = num_sentences - ? where media_id = ? and stat_date = ?::date
+SQL
+    }
+}
+
 # update story vectors for the given story, updating story_sentences
 # if no_delete() is true, do not try to delete existing entries in the above table before creating new ones
 # (useful for optimization if you are very sure no story vectors exist for this story).  If
@@ -284,14 +303,11 @@ sub update_story_sentences_and_language($$;$)
 
     my $stories_id = $story->{ stories_id };
 
-    unless ( $extractor_args->no_delete() )
-    {
-        $db->query( 'DELETE FROM story_sentences WHERE stories_id = ?', $stories_id );
-    }
+    _delete_story_sentences( $db, $story ) unless ( $extractor_args->no_delete() );
 
     my $story_text = $story->{ story_text } || MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story ) || '';
 
-    my $story_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $story_text, '' );
+    my $story_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $story_text );
 
     my $sentences = _get_sentences_from_story_text( $story_text, $story_lang );
 

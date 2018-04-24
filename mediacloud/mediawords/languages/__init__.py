@@ -52,6 +52,19 @@ class AbstractLanguage(object, metaclass=abc.ABCMeta):
         """Return ISO 639-1 language code, e.g. 'en'."""
         raise NotImplemented("Abstract method.")
 
+    @staticmethod
+    @abc.abstractmethod
+    def sample_sentence() -> str:
+        """Return sample sentence to be used for language identification testing.
+
+        Sample sentences sources:
+
+        * pangrams, e.g. http://clagnut.com/blog/2380/.
+        * Wikipedia
+        * cld2-cffi's unit test: https://github.com/GregBowyer/cld2-cffi/blob/master/tests/test_cld.py
+        """
+        raise NotImplemented("Abstract method.")
+
     # MC_REWRITE_TO_PYTHON: use set after rewrite to Python
     @abc.abstractmethod
     def stop_words_map(self) -> Dict[str, bool]:

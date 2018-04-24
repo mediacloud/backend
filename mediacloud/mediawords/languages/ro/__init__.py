@@ -7,3 +7,7 @@ class RomanianLanguage(SpaceSeparatedWordsMixIn, SentenceSplitterMixIn, PyStemme
     @staticmethod
     def language_code() -> str:
         return "ro"
+
+    @staticmethod
+    def sample_sentence() -> str:
+        return "Ex-sportivul își fumează jucăuș țigara bând whisky cu tequila."

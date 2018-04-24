@@ -98,17 +98,6 @@ programs = crawler
 %]
 
 [% INCLUDE program_config
-    program='process_bitly_schedule'
-    command="bash ./script/run_in_env.sh ./script/process_bitly_schedule.pl"
-    default_stopasgroup='true'
-    default_killasgroup='true'
-    default_autorestart='false'
-    default_autostart='true'
-    priority=5
-    default_nice=12
-%]
-
-[% INCLUDE program_config
     program='queue_media_solr_exports'
     command="bash ./script/run_in_env.sh ./script/mediawords_queue_media_solr_exports.pl"
     default_stopasgroup='true'
@@ -209,26 +198,6 @@ programs = rabbitmq
 %]
 
 [% INCLUDE program_config
-    program='bitly_fetch_story_stats'
-    worker_module='Bitly/FetchStoryStats.pm'
-    default_stopasgroup='false'
-    default_killasgroup='false'
-    default_autorestart='false'
-    default_autostart='true'
-    default_nice=10
-%]
-
-[% INCLUDE program_config
-    program='bitly_aggregate_story_stats'
-    worker_module='Bitly/AggregateStoryStats.pm'
-    default_stopasgroup='false'
-    default_killasgroup='false'
-    default_autorestart='false'
-    default_autostart='true'
-    default_nice=10
-%]
-
-[% INCLUDE program_config
     program='cliff_fetch_annotation'
     command="./script/run_in_env.sh ./mediacloud/mediawords/job/cliff/fetch_annotation.py"
     default_stopasgroup='false'
@@ -269,8 +238,48 @@ programs = rabbitmq
 %]
 
 [% INCLUDE program_config
+    program='similarweb_update_audience_data'
+    command="./script/run_in_env.sh ./mediacloud/mediawords/job/similarweb/update_audience_data.py"
+    default_stopasgroup='false'
+    default_killasgroup='false'
+    default_autorestart='false'
+    default_autostart='true'
+    default_nice=10
+%]
+
+[% INCLUDE program_config
+    program='word2vec_generate_snapshot_model'
+    command="./script/run_in_env.sh ./mediacloud/mediawords/job/word2vec/generate_snapshot_model.py"
+    default_stopasgroup='false'
+    default_killasgroup='false'
+    default_autorestart='false'
+    default_autostart='true'
+    default_nice=10
+%]
+
+[% INCLUDE program_config
     program='facebook_fetch_story_stats'
     worker_module='Facebook/FetchStoryStats.pm'
+    default_stopasgroup='false'
+    default_killasgroup='false'
+    default_autorestart='false'
+    default_autostart='true'
+    default_nice=10
+%]
+
+[% INCLUDE program_config
+    program='extract_story_links'
+    command="./script/run_in_env.sh ./mediacloud/mediawords/job/tm/extract_story_links_job.py"
+    default_stopasgroup='false'
+    default_killasgroup='false'
+    default_autorestart='false'
+    default_autostart='true'
+    default_nice=10
+%]
+
+[% INCLUDE program_config
+    program='fetch_link'
+    command="./script/run_in_env.sh ./mediacloud/mediawords/job/tm/fetch_link_job.py"
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'

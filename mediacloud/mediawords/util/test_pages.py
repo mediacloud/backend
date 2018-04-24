@@ -1,4 +1,4 @@
-from mediawords.util.pages import *
+from mediawords.util.pages import Pages
 
 
 def test_pages():

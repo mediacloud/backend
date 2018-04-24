@@ -28,7 +28,22 @@ sub setup_test_api_key($)
 {
     my ( $db ) = @_;
 
-    $_test_api_key ||= MediaWords::Test::DB::create_test_user( $db, 'api_key' );
+    if ( !$_test_api_key )
+    {
+        $_test_api_key = MediaWords::Test::DB::create_test_user( $db, 'api_key' );
+
+        #         $db->query( <<SQL );
+        # insert into auth_users_roles_map ( auth_users_id, auth_roles_id )
+        #     select a.auth_users_id, r.auth_roles_id
+        #         from auth_users a, auth_roles r
+        #         where
+        #             a.full_name = 'api_key' and
+        #             r.role = 'admin' and
+        #             not exists
+        #             ( select 1 from auth_users_roles_map
+        #                 where auth_users_id = a.auth_users_id and auth_roles_id = r.auth_roles_id )
+        # SQL
+    }
 
     return $_test_api_key;
 }
@@ -61,6 +76,8 @@ sub validate_number_fields($$)
 sub test_request_response($$;$)
 {
     my ( $label, $response, $expect_error ) = @_;
+
+    $expect_error ||= 0;
 
     my $url = $response->request->url;
 
@@ -97,7 +114,7 @@ sub test_data_request($$$;$)
 {
     my ( $method, $url, $data, $expect_error ) = @_;
 
-    $expect_error //= 0;
+    $expect_error ||= 0;
 
     my $uri = URI->new( $url );
     unless ( $uri->query_param( 'key' ) )

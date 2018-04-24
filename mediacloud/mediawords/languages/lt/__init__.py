@@ -31,6 +31,10 @@ class LithuanianLanguage(SpaceSeparatedWordsMixIn, SentenceSplitterMixIn, StopWo
     def language_code() -> str:
         return "lt"
 
+    @staticmethod
+    def sample_sentence() -> str:
+        return "Įlinkdama fechtuotojo špaga sublykčiojusi pragręžė apvalų arbūzą."
+
     def stem_words(self, words: List[str]) -> List[str]:
         words = decode_object_from_bytes_if_needed(words)
         if words is None:

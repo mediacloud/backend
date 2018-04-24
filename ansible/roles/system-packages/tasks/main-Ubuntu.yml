@@ -1,8 +1,17 @@
 ---
 
+- name: Add Erlang Solutions GPG key
+  apt_key:
+    url: "https://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc"
+    state: present
+  become: true
+  become_user: root
+  tags:
+    - system-packages
+
 - name: Add RabbitMQ GPG key
   apt_key:
-    url: "https://www.rabbitmq.com/rabbitmq-release-signing-key.asc"
+    url: "https://dl.bintray.com/rabbitmq/Keys/rabbitmq-release-signing-key.asc"
     state: present
   become: true
   become_user: root
@@ -18,11 +27,35 @@
   tags:
     - system-packages
 
-- name: Add RabbitMQ APT repository
+# RabbitMQ > 3.7 requires newer Erlang than is provided by Ubuntu 16.04
+- name: Add Erlang Solutions APT repository
+  apt_repository:
+    repo: "deb https://packages.erlang-solutions.com/ubuntu {{ ansible_lsb.codename | lower }} contrib"
+    state: present
+    filename: "erlang-solutions"
+    update_cache: yes
+  become: true
+  become_user: root
+  tags:
+    - system-packages
+
+# rabbitmq.com APT repository is no longer supported
+- name: Remove obsolete RabbitMQ repository
   apt_repository:
     repo: "deb http://www.rabbitmq.com/debian/ testing main"
-    state: present
+    state: absent
     filename: rabbitmq
+    update_cache: yes
+  become: true
+  become_user: root
+  tags:
+    - system-packages
+
+- name: Add RabbitMQ APT repository
+  apt_repository:
+    repo: "deb https://dl.bintray.com/rabbitmq/debian {{ ansible_lsb.codename | lower }} main"
+    state: present
+    filename: "bintray-rabbitmq"
     update_cache: yes
   become: true
   become_user: root
@@ -31,14 +64,14 @@
 
 - name: Add mecab-ipadic-neologd APT repository
   apt_repository:
-    repo: "deb https://dl.bintray.com/pypt/mecab-ipadic-neologd-deb xenial main"
+    repo: "deb https://dl.bintray.com/pypt/mecab-ipadic-neologd-deb {{ ansible_lsb.codename | lower }} main"
     state: present
     filename: "bintray-pypt-mecab-ipadic-neologd"
     update_cache: yes
   become: true
   become_user: root
   tags:
-    - system-packages    
+    - system-packages
 
 - name: Install system packages
   apt:
@@ -59,8 +92,10 @@
     - graphviz-dev
     - hunspell
     - libexpat1-dev
+    - libhunspell-dev
     - libmecab-dev
     - libgraphviz-dev
+    - libre2-dev
     - libtidy-dev
     - libxml2-dev
     - libxml2-dev
@@ -75,12 +110,17 @@
     - mecab-ipadic-neologd
     - netcat
     - openjdk-8-jdk
+    - pkg-config
     - python-pip
     - python2.7
     - python2.7-dev
     - "python{{ python_version }}"
     - "python{{ python_version }}-dev"
-    - rabbitmq-server
+
+    # Some Erlang + RabbitMQ combinations have problems (e.g. OOM with many
+    # messages), so the version is pinned
+    - "rabbitmq-server=3.7.3*"
+
     - unzip
   become: true
   become_user: root
@@ -94,6 +134,15 @@
     install_recommends: false
   with_items:
     - supervisor
+  become: true
+  become_user: root
+  tags:
+    - system-packages
+
+- name: Prevent rabbitmq-server by being upgraded by APT
+  dpkg_selections:
+    name: rabbitmq-server
+    selection: hold
   become: true
   become_user: root
   tags:

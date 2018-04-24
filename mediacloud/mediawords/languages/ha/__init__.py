@@ -17,6 +17,10 @@ class HausaLanguage(SpaceSeparatedWordsMixIn, StopWordsFromFileMixIn):
     def language_code() -> str:
         return "ha"
 
+    @staticmethod
+    def sample_sentence() -> str:
+        return "a cikin a kan sakamako daga sakwannin a kan sakamako daga sakwannin daga ranar zuwa a kan sakamako"
+
     def stem_words(self, words: List[str]) -> List[str]:
         words = decode_object_from_bytes_if_needed(words)
         if words is None:

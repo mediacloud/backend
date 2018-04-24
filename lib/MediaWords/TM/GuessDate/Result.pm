@@ -8,11 +8,8 @@ use Readonly;
 # Date was found (page was dated)
 Readonly our $FOUND => 'found';
 
-# Date was not found on the page
+# Date was not found on the page or the page is undateable
 Readonly our $NOT_FOUND => 'not found';
-
-# Page should not be dated (responds with 404 Not Found, is a tag page, search page, wiki page, etc.)
-Readonly our $INAPPLICABLE => 'inapplicable';
 
 sub new
 {
@@ -20,7 +17,7 @@ sub new
     my $self  = {};
     bless $self, $class;
 
-    # Date guessing status ($FOUND, $NOT_FOUND or $INAPPLICABLE)
+    # Date guessing status ($FOUND OR $NOT_FOUND)
     $self->{ result } = undef;
 
     # Date guessing method used (string), if applicable

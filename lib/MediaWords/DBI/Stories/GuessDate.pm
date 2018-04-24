@@ -240,13 +240,12 @@ END
         }
     }
 
-    my $tag_set_name = ( $date_guess_method eq 'undateable' ) ? 'date_invalid' : 'date_guess_method';
-    my $tag_name = "$tag_set_name:$date_guess_method";
+    my $tag_name = ( $date_guess_method eq 'undateable' ) ? 'date_invalid:undateable' : 'date_guess_method:unknown';
 
     my $date_guess_method_tag = $_date_guess_method_tag_lookup->{ $tag_name };
     if ( !$date_guess_method_tag )
     {
-        $date_guess_method_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "$tag_set_name:$date_guess_method" );
+        $date_guess_method_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, $tag_name );
         $_date_guess_method_tag_lookup->{ $tag_name } = $date_guess_method_tag;
     }
 

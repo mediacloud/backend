@@ -7,3 +7,7 @@ class GermanLanguage(SpaceSeparatedWordsMixIn, SentenceSplitterMixIn, PyStemmerM
     @staticmethod
     def language_code() -> str:
         return "de"
+
+    @staticmethod
+    def sample_sentence() -> str:
+        return "Victor jagt zwölf Boxkämpfer quer über den großen Sylter Deich."

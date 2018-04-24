@@ -647,7 +647,7 @@ def __parse_tokens(tokens: List[Token], want_type: List[TokenType] = None) -> Pa
     # noinspection PyBroadException
     try:
         log.debug("parse result: " + str(clause))
-    except:
+    except: # noqa
         log.debug("parse_result: [" + str(type(clause)) + "]")
 
     return clause

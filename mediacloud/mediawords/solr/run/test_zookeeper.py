@@ -1,1 +1,1 @@
-import mediawords.solr.run.zookeeper
+import mediawords.solr.run.zookeeper  # noqa

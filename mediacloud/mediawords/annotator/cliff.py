@@ -184,15 +184,13 @@ class CLIFFAnnotator(JSONAnnotator):
                                                       tags_label=state['name'],
 
                                                       # e.g. "Kansas | A | KS | US"
-                                                      tags_description=(
-                                                                           '%(name)s | %(feature)s | '
-                                                                           '%(state)s | %(country)s'
-                                                                       ) % {
-                                                                           'name': state['name'],
-                                                                           'feature': state['featureClass'],
-                                                                           'state': state['stateCode'],
-                                                                           'country': state['countryCode'],
-                                                                       }))
+                                                      tags_description=('%(name)s | %(feature)s | '
+                                                                        '%(state)s | %(country)s') % {
+                                                                            'name': state['name'],
+                                                                            'feature': state['featureClass'],
+                                                                            'state': state['stateCode'],
+                                                                            'country': state['countryCode'],
+                                                      }))
 
                 cities = focus.get('cities', None)
                 if cities is not None:
@@ -209,14 +207,12 @@ class CLIFFAnnotator(JSONAnnotator):
                                                       tags_label=city['name'],
 
                                                       # e.g. "Kansas | A | KS | US"
-                                                      tags_description=(
-                                                                           '%(name)s | %(feature)s | '
-                                                                           '%(state)s | %(country)s'
-                                                                       ) % {
-                                                                           'name': city['name'],
-                                                                           'feature': city['featureClass'],
-                                                                           'state': city['stateCode'],
-                                                                           'country': city['countryCode'],
-                                                                       }))
+                                                      tags_description=('%(name)s | %(feature)s | '
+                                                                        '%(state)s | %(country)s') % {
+                                                                            'name': city['name'],
+                                                                            'feature': city['featureClass'],
+                                                                            'state': city['stateCode'],
+                                                                            'country': city['countryCode'],
+                                                      }))
 
         return tags

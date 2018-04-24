@@ -1,5 +1,6 @@
 import copy
 import os
+import re
 import tempfile
 import time
 from http import HTTPStatus
@@ -290,15 +291,11 @@ class TestUserAgentTestCase(TestCase):
         # https://en.wikipedia.org/wiki/Specials_(Unicode_block)#Replacement_character
         replacement_character = "\uFFFD"
 
-        assert (
-            # OS X:
-            response.decoded_content() == "%(rc)s\x28%(rc)s" % {'rc': replacement_character}
-
-            or
-
-            # Ubuntu:
-            response.decoded_content() == "%(rc)s%(rc)s\x28%(rc)s" % {'rc': replacement_character}
+        expected_content = (
+            "%(rc)s\x28%(rc)s" % {'rc': replacement_character},  # OS X
+            "%(rc)s%(rc)s\x28%(rc)s" % {'rc': replacement_character}  # Ubuntu
         )
+        assert response.decoded_content() in expected_content
 
     def test_get_non_utf8_content(self):
         """Non-UTF-8 content."""
@@ -840,7 +837,7 @@ class TestUserAgentTestCase(TestCase):
         assert os.path.isfile(http_request_log_file)
 
         last_non_blank_line = None
-        for line in reversed(list(open(http_request_log_file))):
+        for line in reversed(list(open(http_request_log_file, mode='r', encoding='utf-8'))):
             line = line.strip()
             if len(line) > 0:
                 last_non_blank_line = line
@@ -892,7 +889,7 @@ class TestUserAgentTestCase(TestCase):
 
         config = py_get_config()
         new_config = copy.deepcopy(config)
-        new_config['mediawords']['blacklist_url_pattern'] = blacklisted_url
+        new_config['mediawords']['blacklist_url_pattern'] = re.escape(blacklisted_url)
         py_set_config(new_config)
 
         hs = HashServer(port=self.__test_port, pages=pages)

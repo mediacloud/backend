@@ -1,12 +1,15 @@
+import datetime
 import itertools
 import pprint
 import re
+import textwrap
+import time
 from typing import Dict, List, Any
 
 import psycopg2
 from psycopg2.extras import DictCursor
 
-from mediawords.db.exceptions.result import *
+from mediawords.db.exceptions.result import McDatabaseResultException, McDatabaseResultTextException
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
@@ -69,7 +72,15 @@ class DatabaseResult(object):
 
             log.debug("Running query: %s" % str(query_args))
 
+            t = time.time()
+
             cursor.execute(*query_args)
+
+            query_time = time.time() - t
+            if (query_time >= 1):
+                query_text = textwrap.shorten(str(query_args[0]), width=80)
+                query_params = textwrap.shorten(str(query_args[1:]), width=80)
+                log.info("Slow query (%d seconds): %s, %s" % (query_time, query_text, query_params))
 
         except psycopg2.Warning as ex:
             if print_warnings:
@@ -112,6 +123,20 @@ class DatabaseResult(object):
 
         self.__cursor = cursor  # Cursor now holds results
 
+    @staticmethod
+    def __convert_datetime_objects_to_strings(item: Any) -> Any:
+        """Covert all datetime objects to strings to be consistent what Perl code will be receiving.
+
+        MC_REWRITE_TO_PYTHON: psycopg2 is nice enough to convert DATE / TIMESTAMP columns to datetime objects and return
+        to us, but due to deep copying result sets the Perl code is receiving only string representations of those
+        objects.
+
+        So, for the sake of consistency we're stringifying datetime objects to strings here too.
+        """
+        if isinstance(item, datetime.date) or isinstance(item, datetime.time) or isinstance(item, datetime.datetime):
+            item = str(item)
+        return item
+
     def columns(self) -> List[str]:
         """Return a list of column names."""
         column_names = [desc[0] for desc in self.__cursor.description]
@@ -128,8 +153,11 @@ class DatabaseResult(object):
         row_tuple = self.__cursor.fetchone()
         if row_tuple is not None:
             row = list(row_tuple)
+
+            row = [self.__convert_datetime_objects_to_strings(item) for item in row]
         else:
             row = None
+
         return row
 
     def hash(self) -> Dict[str, Any]:
@@ -137,19 +165,32 @@ class DatabaseResult(object):
         row_tuple = self.__cursor.fetchone()
         if row_tuple is not None:
             row = dict(row_tuple)
+
+            row = {k: self.__convert_datetime_objects_to_strings(v) for k, v in row.items()}
         else:
             row = None
+
         return row
 
     def flat(self) -> List[Any]:
         """Return a flattened list of all returned (remaining) rows."""
         all_rows = self.__cursor.fetchall()
         flat_rows = list(itertools.chain.from_iterable(all_rows))
+
+        flat_rows = [self.__convert_datetime_objects_to_strings(item) for item in flat_rows]
+
         return flat_rows
 
     def hashes(self) -> List[Dict[str, Any]]:
         """Return a list of dicts of all returned (remaining) rows, keyed by column name."""
-        rows = [dict(row) for row in self.__cursor.fetchall()]
+        rows = []
+        for row in self.__cursor.fetchall():
+            row = dict(row)
+
+            row = {k: self.__convert_datetime_objects_to_strings(v) for k, v in row.items()}
+
+            rows.append(row)
+
         return rows
 
     def text(self, text_type: str = 'neat') -> str:

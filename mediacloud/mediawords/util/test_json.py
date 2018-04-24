@@ -1,6 +1,7 @@
 import pytest
 
-from mediawords.util.json import *
+from mediawords.util.json import (encode_json, decode_json, McDecodeJSONException,
+                                  McEncodeJSONException)
 
 
 def test_encode_decode_json():

@@ -18,7 +18,6 @@ use MediaWords::Solr::WordCounts;
 use MediaWords::TM::Mine;
 use MediaWords::TM::Snapshot;
 use MediaWords::TM;
-use MediaWords::Util::Bitly;
 use MediaWords::Util::JSON;
 
 use Digest::MD5;
@@ -690,8 +689,7 @@ sub _get_top_media_for_timespan
                mlc.outlink_count,
                mlc.story_count,
                mlc.simple_tweet_count,
-               mlc.normalized_tweet_count,
-               mlc.bitly_click_count
+               mlc.normalized_tweet_count
         FROM snapshot_media_with_types AS m,
              snapshot_medium_link_counts AS mlc
         WHERE m.media_id = mlc.media_id
@@ -721,7 +719,6 @@ SELECT s.*,
        slc.outlink_count,
        slc.simple_tweet_count,
        slc.normalized_tweet_count,
-       slc.bitly_click_count,
        m.name as medium_name,
        m.media_type
 FROM snapshot_stories AS s,
@@ -1152,8 +1149,7 @@ SELECT s.*,
        slc.media_inlink_count,
        slc.outlink_count,
        slc.simple_tweet_count,
-       slc.normalized_tweet_count,
-       slc.bitly_click_count
+       slc.normalized_tweet_count
 FROM snapshot_stories AS s,
      snapshot_media_with_types AS m,
      snapshot_story_link_counts AS slc
@@ -1191,8 +1187,7 @@ SELECT DISTINCT s.*,
                 sslc.inlink_count,
                 sslc.outlink_count,
                 sslc.simple_tweet_count,
-                sslc.normalized_tweet_count,
-                sslc.bitly_click_count
+                sslc.normalized_tweet_count
 FROM inlink_stories AS s,
      snapshot_story_link_counts AS sslc,
      snapshot_media_with_types AS sm
@@ -1225,8 +1220,7 @@ SELECT DISTINCT r.*,
                 rslc.inlink_count,
                 rslc.outlink_count,
                 rslc.simple_tweet_count,
-                rslc.normalized_tweet_count,
-                rslc.bitly_click_count
+                rslc.normalized_tweet_count
 FROM outlink_stories AS r,
      snapshot_story_link_counts AS rslc,
      snapshot_media_with_types AS rm
@@ -1393,8 +1387,7 @@ SQL
                         sslc.media_inlink_count,
                         sslc.outlink_count,
                         sslc.simple_tweet_count,
-                        sslc.normalized_tweet_count,
-                        sslc.bitly_click_count
+                        sslc.normalized_tweet_count
         FROM snapshot_stories AS s,
              snapshot_story_link_counts AS sslc,
              snapshot_media_with_types AS sm,
@@ -1421,8 +1414,7 @@ END
                         rslc.media_inlink_count,
                         rslc.outlink_count,
                         rslc.simple_tweet_count,
-                        rslc.normalized_tweet_count,
-                        rslc.bitly_click_count
+                        rslc.normalized_tweet_count
         FROM snapshot_stories AS r,
              snapshot_story_link_counts AS rslc,
              snapshot_media_with_types AS rm,
@@ -1740,10 +1732,6 @@ sub search_stories : Local
     my $query = $c->req->params->{ q };
     my $search_query = _get_stories_id_search_query( $db, $query );
 
-    my $order = $c->req->params->{ order } || '';
-    my $order_clause =
-      $order eq 'bitly_click_count' ? 'slc.bitly_click_count desc nulls last' : 'slc.media_inlink_count desc';
-
     my $stories = $db->query(
         <<"END"
         SELECT s.*,
@@ -1753,15 +1741,14 @@ sub search_stories : Local
                slc.media_inlink_count,
                slc.outlink_count,
                slc.simple_tweet_count,
-               slc.normalized_tweet_count,
-               slc.bitly_click_count
+               slc.normalized_tweet_count
         FROM snapshot_stories AS s,
              snapshot_media_with_types AS m,
              snapshot_story_link_counts AS slc
         WHERE s.stories_id = slc.stories_id
           AND s.media_id = m.media_id
           AND s.stories_id IN ( $search_query )
-        ORDER BY $order_clause
+        ORDER BY slc.media_inlink_count DESC
         limit 1000
 END
     )->hashes;
@@ -1848,16 +1835,12 @@ sub search_media : Local
         $search_query = '';
     }
 
-    my $order = $c->req->params->{ order } || '';
-    my $order_clause = $order eq 'bitly_click_count' ? 'mlc.bitly_click_count desc' : 'mlc.media_inlink_count desc';
-
     my $media = $db->query(
         <<"END"
         SELECT DISTINCT m.*,
                         mlc.inlink_count,
                         mlc.media_inlink_count,
                         mlc.outlink_count,
-                        mlc.bitly_click_count,
                         mlc.simple_tweet_count,
                         mlc.normalized_tweet_count,
                         mlc.story_count
@@ -1865,7 +1848,7 @@ sub search_media : Local
              snapshot_medium_link_counts AS mlc
         WHERE m.media_id = mlc.media_id
           $search_query
-        ORDER BY $order_clause
+        ORDER BY mlc.media_inlink_count DESC
         limit 1000
 END
     )->hashes;

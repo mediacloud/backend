@@ -53,12 +53,6 @@ sub add_topic_link
 
 }
 
-sub add_bitly_count
-{
-    my ( $db, $id, $story, $click_count ) = @_;
-    $db->query( "insert into bitly_clicks_total values ( \$1,\$2,\$3 )", $id, $story->{ stories_id }, $click_count );
-}
-
 sub add_topic_story
 {
     my ( $db, $topic, $story ) = @_;
@@ -115,11 +109,6 @@ sub create_test_data
                     push @{ $topic_stories }, $story->{ stories_id };
                 }
                 $all_stories->{ int( $num ) } = $story->{ stories_id };
-
-                # modding by a different number than stories included in topics
-                # so that we will have bitly counts of 0
-
-                add_bitly_count( $test_db, $num, $story, $num % ( $TEST_MODULO - 1 ) );
             }
         }
     }
@@ -212,21 +201,6 @@ sub _get_story_link_counts
 
 }
 
-sub _get_expected_bitly_link_counts
-{
-    my $return_counts = {};
-
-    foreach my $m ( 1 .. 15 )
-    {
-        if ( $m % $TEST_MODULO )
-        {
-            $return_counts->{ "story " . $m } = $m % ( $TEST_MODULO - 1 );
-        }
-    }
-
-    return $return_counts;
-}
-
 sub test_default_sort
 {
 
@@ -240,20 +214,6 @@ sub test_default_sort
 
     _test_sort( $data, $expected_counts, $base_url, $sort_key );
 
-}
-
-sub test_social_sort
-{
-
-    my $data = shift;
-
-    my $base_url = '/api/v2/topics/1/stories/list';
-
-    my $sort_key = "bitly_click_count";
-
-    my $expected_counts = _get_expected_bitly_link_counts();
-
-    _test_sort( $data, $expected_counts, $base_url, $sort_key );
 }
 
 sub _test_sort
@@ -319,7 +279,8 @@ sub test_topics_crud($)
     my $exists_in_db = $db->find_by_id( "topics", $got_topic->{ topics_id } );
     ok( $exists_in_db, "$label topic exists in db" );
 
-    my $test_fields = [ qw/name description solr_seed_query max_ierations start_date end_date is_public ch_monitor_id/ ];
+    my $test_fields =
+      [ qw/name description solr_seed_query max_ierations start_date end_date is_public ch_monitor_id max_stories/ ];
     map { is( $got_topic->{ $_ }, $input->{ $_ }, "$label $_" ) } @{ $test_fields };
 
     my $topics_id = $got_topic->{ topics_id };
@@ -366,6 +327,13 @@ sub test_topics_crud($)
 
     $got_tags_ids = [ map { $_->{ tags_id } } @{ $got_topic->{ media_tags } } ];
     is_deeply( [ sort @{ $got_tags_ids } ], [ sort @{ $update_tags_ids } ], "$label media tag ids" );
+
+    # verify fix for bug dealing with undef max_stories using most of the create topic data from $input above
+    $input->{ max_stories } = undef;
+    $input->{ name }        = 'null max stories';
+    $r = test_post( '/api/v2/topics/create', $input );
+
+    is( $r->{ topics }->[ 0 ]->{ max_stories }, 100_000 );
 }
 
 # test topics/spider call
@@ -604,7 +572,6 @@ sub test_topics_api
     create_test_data( $db, $topic_media );
     test_story_list_count();
     test_default_sort( $stories );
-    test_social_sort( $stories );
     test_media_list( $stories );
     test_stories_facebook( $db );
 

@@ -12,7 +12,14 @@ from typing import Dict, List
 from urllib.error import URLError
 from urllib.request import urlopen
 
-from mediawords.solr.run.constants import *
+from mediawords.solr.run.constants import (
+    MC_DIST_DIR, MC_SOLR_VERSION, MC_PACKAGE_INSTALLING_FILE, MC_PACKAGE_INSTALLED_FILE,
+    MC_INSTALL_TIMEOUT, MC_SOLR_HOME_DIR, MC_SOLR_BASE_DATA_DIR, MC_SOLR_CLUSTER_STARTING_PORT,
+    MC_SOLR_CLUSTER_ZOOKEEPER_HOST, MC_SOLR_CLUSTER_ZOOKEEPER_PORT, MC_SOLR_CLUSTER_ZOOKEEPER_TIMEOUT,
+    MC_SOLR_SIGKILL_TIMEOUT, MC_SOLR_STANDALONE_JVM_OPTS, MC_SOLR_LUCENEMATCHVERSION, MC_SOLR_STANDALONE_PORT,
+    MC_SOLR_STANDALONE_JVM_HEAP_SIZE, MC_SOLR_STANDALONE_CONNECT_RETRIES,
+    MC_SOLR_CLUSTER_JVM_HEAP_SIZE, MC_SOLR_CLUSTER_ZOOKEEPER_CONNECT_RETRIES,
+    MC_SOLR_CLUSTER_JVM_OPTS, MC_SOLR_CLUSTER_CONNECT_RETRIES)
 from mediawords.util.compress import extract_tarball_to_directory
 from mediawords.util.log import create_logger
 from mediawords.util.network import fqdn, hostname_resolves, wait_for_tcp_port_to_open, tcp_port_is_open
@@ -226,11 +233,11 @@ def __raise_if_old_shards_exist() -> None:
     exc_message += "\n"
     exc_message += "# Create empty new shard directory structure for each shard:\n"
     for shard_num in range(1, num_shards + 1):
-        exc_message += ("./run_solr_shard.py --shard_num %(shard_num)d --shard_count %(shard_count)d " +
+        exc_message += ("./run_solr_shard.py --shard_num %(shard_num)d --shard_count %(shard_count)d "
                         "|| echo \"It's fine to fail at this point.\"\n") % {
-                           "shard_num": shard_num,
-                           "shard_count": num_shards,
-                       }
+                            "shard_num": shard_num,
+                            "shard_count": num_shards,
+        }
 
     exc_message += "\n"
     exc_message += "# Move data from old shards to new ones\n"
@@ -519,6 +526,7 @@ instanceDir=%(instance_dir)s
         "-Dsolr.solr.home=%s" % instance_data_dir,
         "-Dsolr.data.dir=%s" % instance_data_dir,
         "-Dhost=%s" % hostname,
+        "-DzkClientTimeout=%s" % MC_SOLR_CLUSTER_ZOOKEEPER_TIMEOUT,
         "-Dmediacloud.luceneMatchVersion=%s" % MC_SOLR_LUCENEMATCHVERSION,
 
         # write heap dump to data directory on OOM errors

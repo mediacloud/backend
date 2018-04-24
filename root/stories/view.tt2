@@ -188,30 +188,6 @@
         <!-- NYTLabels annotation is not enabled in the configuration -->
     [% END %]
 
-    [% IF bitly_is_enabled %]
-        <tr>
-            <th>
-                Bit.ly JSON:</th>
-            <td>
-                [% IF bitly_story_stats_are_fetched %]
-
-                    <iframe src="[% c.uri_for( '/admin/stories/bitly_json/' _ story.stories_id ) | html %]" style="width: 99%; height: 480px; background-color: white"></iframe>
-
-                    <p>
-                        <a href="[% c.uri_for( '/admin/stories/bitly_json/' _ story.stories_id ) | html %]" target="_blank">[open in new page]</a>
-                    </p>
-
-                    <p>[% jsonview_help %]</p>
-
-                [% ELSE %]
-                    stats not fetched
-                [% END %]
-            </td>
-        </tr>
-    [% ELSE %]
-        <!-- Bit.ly processing is not enabled in the configuration -->
-    [% END %]
-
 </table>
 
 <hr />

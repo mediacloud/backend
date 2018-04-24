@@ -1,7 +1,8 @@
 from io import StringIO
+import sys
 
 from mediawords.db import connect_to_db
-from mediawords.db.export.export_tables import *
+from mediawords.db.export.export_tables import print_exported_tables_to_backup_crawler
 
 
 def test_print_exported_tables_to_backup_crawler():
