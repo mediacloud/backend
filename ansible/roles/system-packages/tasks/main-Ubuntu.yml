@@ -19,7 +19,6 @@
   with_items:
     - build-essential
     - cpanminus
-    - curl
     - expat
     - g++
     - gawk
@@ -40,7 +39,6 @@
     - libxslt1.1
     - libyaml-dev
     - libssl-dev  # OpenSSL headers
-    - logrotate
     - make
     - mecab
     - mecab-ipadic-neologd
