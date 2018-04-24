@@ -1,9 +1,0 @@
-# Whether to sudo when installing Pip system dependencies
-pip_system_install_become: false
-
-# Path to where mecab-ipadic-neologd is expected to be found
-mecab_ipadic_neologd_path: "/usr/local/opt/mecab-ipadic-neologd/lib/mecab/dic/ipadic-neologd/"
-
-# URL and SHA1 of compiled mecab-ipadic-neologd tarball
-mecab_ipadic_neologd_url: "https://dl.bintray.com/pypt/mecab-ipadic-neologd-tgz/mecab-ipadic-neologd-20170814-1.tgz"
-mecab_ipadic_neologd_sha1sum: "b601c6b4ab2ab2de146ab69c76e769a9e1924f8c"
