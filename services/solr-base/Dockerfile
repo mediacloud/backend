@@ -1,0 +1,23 @@
+#
+# Solr base
+#
+
+FROM mediacloud-python-base:latest
+
+# Solr version
+ENV MEDIACLOUD_SOLR_VERSION "6.5.0"
+
+# Install Java
+RUN apt-get -y --no-install-recommends install openjdk-8-jre-headless
+
+# Download and extract Solr
+RUN \
+    curl -L "https://archive.apache.org/dist/lucene/solr/${MEDIACLOUD_SOLR_VERSION}/solr-${MEDIACLOUD_SOLR_VERSION}.tgz" \
+        > /var/tmp/solr.tgz && \
+    mkdir -p /opt/solr/ && \
+    tar -zxf /var/tmp/solr.tgz -C /opt/solr --strip 1 && \
+    rm /var/tmp/solr.tgz
+
+# Copy Solr configuration
+RUN mkdir -p /usr/src/
+COPY src/solr/ /usr/src/solr/
