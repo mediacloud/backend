@@ -32,12 +32,6 @@ RUN apt-get -y update
 # Install packages
 RUN \
     #
-    # Install Screen for running stuff in background
-    apt-get -y --no-install-recommends install screen && \
-    #
-    # Install Netcat for waiting for ports
-    apt-get -y --no-install-recommends install netcat && \
-    #
     # Install RabbitMQ
     # (Some Erlang + RabbitMQ combinations have problems (e.g. OOM with many messages), so the version is pinned)
     apt-get -y --no-install-recommends install "rabbitmq-server=3.7.3*" && \
@@ -50,6 +44,7 @@ VOLUME /var/lib/rabbitmq/mnesia/
 COPY --chown=rabbitmq:rabbitmq conf/* /etc/rabbitmq/
 
 # Run server once to configure it
+# FIXME move to wrapper script
 RUN \
     #
     # Start RabbitMQ, wait for it to start up
@@ -70,7 +65,7 @@ RUN \
     #
     # Stop after initial configuration
     rabbitmqctl -n "$RABBITMQ_NODENAME" stop && \
-    killall screen && \
+    pkill screen && \
     true
 
 # Server

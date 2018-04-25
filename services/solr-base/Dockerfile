@@ -8,7 +8,7 @@ FROM mediacloud-python-base:latest
 ENV MEDIACLOUD_SOLR_VERSION "6.5.0"
 
 # Install Java
-RUN apt-get -y --no-install-recommends install openjdk-8-jre-headless
+RUN apt-get -y --no-install-recommends install default-jre-headless
 
 # Download and extract Solr
 RUN \

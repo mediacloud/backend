@@ -43,34 +43,3 @@ MC_SOLR_CLUSTER_JVM_HEAP_SIZE = "256m"
 # Other JVM options to pass to each Solr shard in a cluster
 MC_SOLR_CLUSTER_JVM_OPTS = [
 ]
-
-# ---
-
-# ZooKeeper version to install and use
-MC_ZOOKEEPER_VERSION = "3.4.10"
-
-# Default ZooKeeper host to bind to, e.g. "localhost"
-MC_ZOOKEEPER_LISTEN = "0.0.0.0"
-
-# Default ZooKeeper port to listen to
-MC_ZOOKEEPER_PORT = MC_SOLR_CLUSTER_ZOOKEEPER_PORT
-
-# Seconds to wait for ZooKeeper to start
-MC_ZOOKEEPER_CONNECT_RETRIES = 2 * 60
-
-# Seconds to wait for ZooKeeper to shutdown after SIGKILLing it; after the timeout, SIGTERM will be sent
-MC_ZOOKEEPER_SIGKILL_TIMEOUT = 60
-
-# ---
-
-# Timeout for installations (in seconds)
-MC_INSTALL_TIMEOUT = 2 * 60
-
-# Where to extract software distributions (relative to Media Cloud root; must already exist)
-MC_DIST_DIR = "data/solr/dist/"
-
-# File placed in distribution directory which signifies that distribution is being installed right now
-MC_PACKAGE_INSTALLING_FILE = "mc-installing.txt"
-
-# File placed in distribution directory which signifies that distribution was installed and started successfully
-MC_PACKAGE_INSTALLED_FILE = "mc-installed.txt"
