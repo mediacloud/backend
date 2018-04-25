@@ -253,7 +253,6 @@ def test_re():
 
         assert __normalize_re(got_re) == __normalize_re(expected_re)
 
-
     # single term
     __validate_re('foo', '[[:<:]]foo')
     __validate_re('( foo )', '[[:<:]]foo')
@@ -598,6 +597,7 @@ def test_re():
         True
     )
 
+
 def test_inclusive_re():
     def __normalize_re(s):
         """Normalize tsquery by lowercasing and normalizing spaces."""
@@ -616,7 +616,6 @@ def test_inclusive_re():
 
         assert __normalize_re(got_re) == __normalize_re(expected_re)
 
-
     # single term
     __validate_inclusive_re('foo', '[[:<:]]foo')
     __validate_inclusive_re('( foo )', '[[:<:]]foo')
@@ -624,7 +623,7 @@ def test_inclusive_re():
     # simple boolean
     __validate_inclusive_re('foo and bar', '(?: [[:<:]]foo | [[:<:]]bar )')
     __validate_inclusive_re('( foo and bar )', '(?: [[:<:]]foo | [[:<:]]bar )')
-    __validate_inclusive_re('foo and bar and baz and bat','(?: [[:<:]]foo | [[:<:]]bar | [[:<:]]baz | [[:<:]]bat )')
+    __validate_inclusive_re('foo and bar and baz and bat', '(?: [[:<:]]foo | [[:<:]]bar | [[:<:]]baz | [[:<:]]bat )')
 
     __validate_inclusive_re('foo bar', '(?: [[:<:]]foo | [[:<:]]bar )')
     __validate_inclusive_re('( foo bar )', '(?: [[:<:]]foo | [[:<:]]bar )')
@@ -634,7 +633,7 @@ def test_inclusive_re():
     __validate_inclusive_re('"foo bar"~5', '(?: [[:<:]]foo | [[:<:]]bar )')
 
     # more complex boolean
-    __validate_inclusive_re('foo and ( bar baz )','(?: [[:<:]]foo | (?: [[:<:]]bar | [[:<:]]baz ) )')
+    __validate_inclusive_re('foo and ( bar baz )', '(?: [[:<:]]foo | (?: [[:<:]]bar | [[:<:]]baz ) )')
 
     __validate_inclusive_re(
         '( foo or bat ) and ( bar baz )',

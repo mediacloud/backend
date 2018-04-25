@@ -15,9 +15,11 @@ from mediawords.util.perl import decode_object_from_bytes_if_needed
 
 log = create_logger(__name__)
 
+
 class McSolrQueryException(Exception):
     """Generic Solr query exception."""
     pass
+
 
 class McSolrEmptyQueryException(Exception):
     """Raise when filtering a query results in an entirely empty query."""
@@ -221,6 +223,7 @@ class ParseNode(AbstractParseNode):
 
         return regexp
 
+
 class TermNode(ParseNode):
     """Parse node type for a simple keyword."""
 
@@ -347,7 +350,7 @@ class AndNode(BooleanNode):
             b = self.get_re(operands=operands[1:])
             return '(?: (?: %s .* %s ) | (?: %s .* %s ) )' % (a, b, b, a)
 
-    def get_inclusive_re(self, operands: List[AbstractParseNode] = None ) -> str:
+    def get_inclusive_re(self, operands: List[AbstractParseNode] = None) -> str:
         return OrNode(self.operands).get_inclusive_re()
 
 
@@ -365,6 +368,7 @@ class OrNode(BooleanNode):
 
     def get_inclusive_re(self, operands: List[AbstractParseNode] = None) -> str:
         return '(?: ' + ' | '.join(map(lambda x: x.get_inclusive_re(), self.operands)) + ' )'
+
 
 class NotNode(ParseNode):
     """Parse node for a NOT clause."""
