@@ -2,7 +2,7 @@
 # Solr base
 #
 
-FROM mediacloud-python-base:latest
+FROM mediacloud-base:latest
 
 # Solr version
 ENV MEDIACLOUD_SOLR_VERSION "6.5.0"

@@ -22,7 +22,6 @@ COPY conf/zoo.cfg /opt/zookeeper/conf/
 
 # ZooKeeper data
 VOLUME /var/lib/zookeeper/
-RUN mkdir -p /var/lib/zookeeper/
 
 # ZooKeeper client port
 EXPOSE 2181
