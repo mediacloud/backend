@@ -70,7 +70,7 @@ sub init_log
 {
     return if ( $_init_log );
 
-    Log::Log4perl::init( MediaWords::Util::Paths::mc_root_path() . "/log4perl.conf" );
+    Log::Log4perl::init( "/etc/log4perl.conf" );
 
     # makes default category be the calling package rather than mediawords.logger
     Log::Log4perl::wrapper_register( __PACKAGE__ );

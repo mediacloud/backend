@@ -37,22 +37,11 @@
     - libxslt1-dev
     - libxslt1.1
     - libyaml-dev
-    - libssl-dev  # OpenSSL headers
     - make
     - mecab
     - mecab-ipadic-neologd
-    - openjdk-8-jdk
     - pkg-config
     - unzip
-  become: true
-  become_user: root
-  tags:
-    - system-packages
-
-- name: Use Java 8 by default
-  alternatives:
-    name: java
-    path: /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
   become: true
   become_user: root
   tags:

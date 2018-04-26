@@ -73,8 +73,8 @@ RUN \
 RUN \
     echo "session required pam_limits.so" >> /etc/pam.d/common-session && \
     echo "session required pam_limits.so" >> /etc/pam.d/sudo && \
-    echo "root soft nofile 65536" >> /etc/security/limits.conf && \
-    echo "root hard nofile 65536" >> /etc/security/limits.conf && \
+    echo "* soft nofile 65536" >> /etc/security/limits.conf && \
+    echo "* hard nofile 65536" >> /etc/security/limits.conf && \
     true
 
 # Set Vim as default system-wide editor

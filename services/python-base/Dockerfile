@@ -16,4 +16,7 @@ RUN \
     true
 
 # Upgrade Pip
-RUN pip3 install --upgrade pip
+RUN \
+    pip3 install --upgrade pip && \
+    rm -rf /root/.cache/ && \
+    true
