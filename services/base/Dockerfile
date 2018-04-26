@@ -31,20 +31,29 @@ RUN \
 # Install common packages
 RUN \
     apt-get -y --no-install-recommends install \
+        # Quicker container debugging
         bash-completion \
+        # Some of the packages might want to use SSL
         ca-certificates \
         curl \
         htop \
         less \
         locales \
+        # Waiting for some port to open
         netcat \
-        python3-software-properties \
+        # Some packages insist on logging to syslog
+        rsyslog \
+        # add-apt-repository
         software-properties-common \
         tzdata \
+        # Editing stuff while debugging
         vim \
-        wget \
     && \
     true
+
+# Copy rsyslog configuration
+COPY conf/rsyslog.conf /etc/
+COPY bin/rsyslog.inc.sh /
 
 # Generate and set locale
 RUN \

@@ -5,10 +5,10 @@
 FROM mediacloud-base:latest
 
 # Add Erlang Solutions GPG key
-RUN wget -qO - https://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc | apt-key add -
+RUN curl -L https://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc | apt-key add -
 
 # Add RabbitMQ GPG key
-RUN wget -qO - https://dl.bintray.com/rabbitmq/Keys/rabbitmq-release-signing-key.asc | apt-key add -
+RUN curl -L https://dl.bintray.com/rabbitmq/Keys/rabbitmq-release-signing-key.asc | apt-key add -
 
 # Add Bintray.com GPG key
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61

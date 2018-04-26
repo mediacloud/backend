@@ -5,29 +5,25 @@
 FROM mediacloud-base:latest
 
 # Domain that we will be signing for
+# FIXME keep in sync with main-postfix-server?
 ENV MC_MAIL_OPENDKIM_DOMAIN "mediacloud.org"
 ENV MC_MAIL_OPENDKIM_HOSTNAME "mail"
 
 # Install packages
 RUN \
     #
-    # Install rsyslog
-    # (OpenDKIM is only able to log to syslog and not stdout / stderr)
-    apt-get -y --no-install-recommends install rsyslog && \
-    #
     # Install OpenDKIM
     apt-get -y --no-install-recommends install opendkim opendkim-tools && \
     true
 
 # Configure OpenDKIM socket
-RUN sed -i -e "s/SOCKET=.*/SOCKET='inet:12301@localhost'/" /etc/default/opendkim
+RUN sed -i -e "s/^SOCKET=.*/SOCKET='inet:12301@localhost'/" /etc/default/opendkim
 
 # Create OpenDKIM configuration directories
 RUN mkdir -p /etc/opendkim/keys/
 
 # Copy configuration
-COPY conf/opendkim/* /etc/opendkim/
-COPY conf/rsyslog/rsyslog.conf /etc/
+COPY conf/* /etc/opendkim/
 
 # Write some dynamic configuration
 RUN \

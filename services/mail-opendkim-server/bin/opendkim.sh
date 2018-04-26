@@ -3,13 +3,8 @@
 set -u
 set -e
 
-# Symlink syslog to Docker's STDOUT
-rm -f /var/log/syslog
-ln -s /dev/fd/1 /var/log/syslog
-chmod 666 /var/log/syslog
-
-# Start rsyslogd
-rsyslogd -n &
+# Set up rsyslog for logging
+source /rsyslog.inc.sh
 
 # Start OpenDKIM
 exec opendkim \
