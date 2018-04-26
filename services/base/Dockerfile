@@ -39,7 +39,6 @@ RUN \
         locales \
         netcat \
         python3-software-properties \
-        screen \
         software-properties-common \
         tzdata \
         vim \
