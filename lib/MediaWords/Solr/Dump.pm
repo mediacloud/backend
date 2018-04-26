@@ -136,7 +136,7 @@ sub _get_stories_queue_table
 # _get_maxed_queued_stories in delta_import_stories for each solr_import
 sub _add_extra_stories_to_import
 {
-    my ( $db, $import_date, $num_delta_stories ) = @_;
+    my ( $db, $import_date, $num_delta_stories, $queue_only ) = @_;
 
     my $config = MediaWords::Util::Config::get_config;
 
@@ -147,18 +147,22 @@ sub _add_extra_stories_to_import
     # first import any stories from snapshotted topics so that those snapshots become searchable ASAP.
     # do this as a separate query because I couldn't figure out a single query that resulted in a reasonable
     # postgres query plan given a very large stories queue table
-    my $num_queued_stories = $db->query(
-        <<"SQL",
-        INSERT INTO delta_import_stories (stories_id)
-            SELECT distinct sies.stories_id
-            FROM $stories_queue_table sies
-                join snap.stories ss using ( stories_id )
-                join snapshots s on ( ss.snapshots_id = s.snapshots_id and not s.searchable )
-            ORDER BY sies.stories_id
-            LIMIT ?
+    my $num_queued_stories = 0;
+    if ( !$queue_only )
+    {
+        my $num_queued_stories = $db->query(
+            <<"SQL",
+            INSERT INTO delta_import_stories (stories_id)
+                SELECT distinct sies.stories_id
+                FROM $stories_queue_table sies
+                    join snap.stories ss using ( stories_id )
+                    join snapshots s on ( ss.snapshots_id = s.snapshots_id and not s.searchable )
+                ORDER BY sies.stories_id
+                LIMIT ?
 SQL
-        $max_queued_stories
-    )->rows;
+            $max_queued_stories
+        )->rows;
+    }
 
     INFO "added $num_queued_stories topic stories to the import";
 
@@ -378,7 +382,7 @@ SQL
         _restrict_delta_import_stories_size( $db, $num_delta_stories );
     }
 
-    _add_extra_stories_to_import( $db, $import_date, $num_delta_stories );
+    _add_extra_stories_to_import( $db, $import_date, $num_delta_stories, $queue_only );
 
     my $delta_stories_ids = $db->query( "select stories_id from delta_import_stories" )->flat;
 
