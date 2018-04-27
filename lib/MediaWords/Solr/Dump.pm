@@ -85,6 +85,7 @@ use Data::Dumper;
 use Digest::MD5;
 use Encode;
 use FileHandle;
+use JSON::PP;
 use List::MoreUtils;
 use List::Util;
 use Readonly;
@@ -94,7 +95,6 @@ require bytes;    # do not override length() and such
 
 use MediaWords::DB;
 use MediaWords::Util::Config;
-use MediaWords::Util::JSON;
 use MediaWords::Util::Paths;
 use MediaWords::Util::Web;
 use MediaWords::Solr;
@@ -208,13 +208,15 @@ sub _get_stories_json_from_db_single
 
     my $all_stories = [];
 
-    while ( @{ $stories_ids } )
+    my $fetch_stories_ids = [ @{ $stories_ids } ];
+
+    while ( @{ $fetch_stories_ids } )
     {
-        INFO( "fetching stories from postgres (" . scalar( @{ $stories_ids } ) . " remaining)" );
+        INFO( "fetching stories from postgres (" . scalar( @{ $fetch_stories_ids } ) . " remaining)" );
         my $block_stories_ids = [];
         for my $i ( 1 .. $FETCH_BLOCK_SIZE )
         {
-            if ( my $stories_id = pop( @{ $stories_ids } ) )
+            if ( my $stories_id = pop( @{ $fetch_stories_ids } ) )
             {
                 push( @{ $block_stories_ids }, $stories_id );
             }
@@ -230,7 +232,8 @@ drop table if exists _block_processed_stories;
 create temporary table _block_processed_stories as
     select processed_stories_id, stories_id
         from processed_stories
-        where stories_id in ( $block_stories_ids_list )
+        where stories_id in ( $block_stories_ids_list );
+analyze _block_processed_stories;
 SQL
 
         $db->query( <<SQL );
@@ -239,7 +242,8 @@ create temporary table _timespan_stories as
     select  stories_id, array_agg( distinct timespans_id::text ) timespans_id
         from snap.story_link_counts slc
             join _block_processed_stories using ( stories_id )
-        group by stories_id
+        group by stories_id;
+analyze _timespan_stories;        
 SQL
 
         $db->query( <<SQL );
@@ -248,7 +252,8 @@ create temporary table _tag_stories as
     select stories_id, array_agg( distinct tags_id::text ) tags_id_stories
         from stories_tags_map
             join _block_processed_stories using ( stories_id )
-        group by stories_id
+        group by stories_id;
+analyze _tag_stories;
 SQL
 
         my $stories = $db->query( <<SQL )->hashes();
@@ -278,13 +283,12 @@ SQL
         push( @{ $all_stories }, @{ $stories } );
     }
 
+    DEBUG( "all_stories: " . ref( $all_stories ) );
     INFO( "encoding " . scalar( @{ $all_stories } ) . " stories for import into json" );
 
-    my $fetched_stories_ids = [ map { $_->{ stories_id } } @{ $all_stories } ];
-
-    my $stories_json = MediaWords::Util::JSON::encode_json( $all_stories );
-
-    return { stories_ids => $fetched_stories_ids, json => $stories_json };
+    # use JSON:PP here because python json is too slow and JSON::XS thinks that $all_stories is not an ARRAYREF
+    my $stories_json = JSON::PP->new()->utf8( 1 )->encode( $all_stories );
+    return { stories_ids => $stories_ids, json => $stories_json };
 }
 
 # get stories json for import from postgres.  this is a container function that handles threading calls to
@@ -703,7 +707,7 @@ sub _import_stories($$)
     my $stories_ids = [];
     for my $json ( @{ $stories_jsons } )
     {
-        DEBUG "importing " . scalar( @{ $json->{ stories_ids } } ) . " into solr ...";
+        DEBUG "importing " . scalar( @{ $json->{ stories_ids } } ) . " stories into solr ...";
         eval { _solr_request( $db, $import_url, $import_params, $json->{ json }, 'application/json' ); };
         die( "error importing to solr: $@" ) if ( $@ );
         push( @{ $stories_ids }, @{ $json->{ stories_ids } } );
