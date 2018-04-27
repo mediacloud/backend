@@ -311,6 +311,7 @@ sub _get_stories_jsons_from_db($$)
         push( @{ $threads }, $thread );
     }
 
+    DEBUG( "joining stories threads ..." );
     my $all_jsons = [ map { $_->join() } @{ $threads } ];
 
     return $all_jsons;
@@ -702,6 +703,7 @@ sub _import_stories($$)
     my $stories_ids = [];
     for my $json ( @{ $stories_jsons } )
     {
+        DEBUG "importing " . scalar( @{ $json->{ stories_ids } } ) . " into solr ...";
         eval { _solr_request( $db, $import_url, $import_params, $json->{ json }, 'application/json' ); };
         die( "error importing to solr: $@" ) if ( $@ );
         push( @{ $stories_ids }, @{ $json->{ stories_ids } } );
