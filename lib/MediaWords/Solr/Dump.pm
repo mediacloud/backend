@@ -81,18 +81,13 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use CHI;
 use Data::Dumper;
 use Digest::MD5;
 use Encode;
-use File::Basename;
-use File::ReadBackwards;
 use FileHandle;
 use List::MoreUtils;
 use List::Util;
-use Parallel::ForkManager;
 use Readonly;
-use Text::CSV_XS;
 use URI;
 
 require bytes;    # do not override length() and such
@@ -106,7 +101,7 @@ use MediaWords::Solr;
 use MediaWords::Test::DB;
 
 # order and names of fields exported to and imported from csv
-Readonly my @CSV_FIELDS => qw/stories_id media_id publish_date publish_day text title language
+Readonly my @SOLR_FIELDS => qw/stories_id media_id publish_date publish_day text title language
   processed_stories_id tags_id_stories timespans_id/;
 
 # how many sentences to fetch at a time from the postgres query
@@ -200,8 +195,9 @@ SQL
 
 }
 
-# query for stories to import, including concatenated sentences as story text and metadata joined in from other tables
-sub _get_stories_from_db_single
+# query for stories to import, including concatenated sentences as story text and metadata joined in from other tables.
+# return a hash in the form { json => $json_of_stories, stories_ids => $list_of_stories_ids }
+sub _get_stories_json_from_db_single
 {
     my ( $db, $stories_ids ) = @_;
 
@@ -240,7 +236,7 @@ SQL
         $db->query( <<SQL );
 drop table if exists _timespan_stories;
 create temporary table _timespan_stories as 
-    select  stories_id, string_agg( distinct timespans_id::text, ';' ) timespans_id
+    select  stories_id, array_agg( distinct timespans_id::text ) timespans_id
         from snap.story_link_counts slc
             join _block_processed_stories using ( stories_id )
         group by stories_id
@@ -249,7 +245,7 @@ SQL
         $db->query( <<SQL );
 drop table if exists _tag_stories;
 create temporary table _tag_stories as 
-    select stories_id, string_agg( distinct tags_id::text, ';' ) tags_id_stories
+    select stories_id, array_agg( distinct tags_id::text ) tags_id_stories
         from stories_tags_map
             join _block_processed_stories using ( stories_id )
         group by stories_id
@@ -282,12 +278,18 @@ SQL
         push( @{ $all_stories }, @{ $stories } );
     }
 
-    return $all_stories;
+    INFO( "encoding " . scalar( @{ $all_stories } ) . " stories for import into json" );
+
+    my $fetched_stories_ids = [ map { $_->{ stories_id } } @{ $all_stories } ];
+
+    my $stories_json = MediaWords::Util::JSON::encode_json( $all_stories );
+
+    return { stories_ids => $fetched_stories_ids, json => $stories_json };
 }
 
-# get stories for import from postgres.  this is a container function that handles threading calls to
-# get_stories_from_db_single, which does the substantive work
-sub _get_stories_from_db($$)
+# get stories json for import from postgres.  this is a container function that handles threading calls to
+# get_stories_json_from_db_single, which does the substantive work
+sub _get_stories_jsons_from_db($$)
 {
     my ( $db, $jobs ) = @_;
 
@@ -295,7 +297,7 @@ sub _get_stories_from_db($$)
 
     if ( $jobs == 1 )
     {
-        return _get_stories_from_db_single( $db, $stories_ids );
+        return [ _get_stories_json_from_db_single( $db, $stories_ids ) ];
     }
 
     require forks;
@@ -305,18 +307,13 @@ sub _get_stories_from_db($$)
     my $iter = List::MoreUtils::natatime( $stories_per_job, @{ $stories_ids } );
     while ( my @thread_stories_ids = $iter->() )
     {
-        my $thread = threads->create( \&_get_stories_from_db_single, undef, \@thread_stories_ids );
+        my $thread = threads->create( \&_get_stories_json_from_db_single, undef, \@thread_stories_ids );
         push( @{ $threads }, $thread );
     }
 
-    my $all_stories = [];
-    for my $thread ( @{ $threads } )
-    {
-        my $thread_stories = $thread->join();
-        push( @{ $all_stories }, @{ $thread_stories } );
-    }
+    my $all_jsons = [ map { $_->join() } @{ $threads } ];
 
-    return $all_stories;
+    return $all_jsons;
 }
 
 # limit delta_import_stories to max_queued_stories stories;  put excess stories in solr_extra_import_stories
@@ -477,18 +474,11 @@ sub _solr_request($$$;$$)
 sub _get_import_url_params
 {
     my $url_params = {
-        'commit'                      => 'false',
-        'header'                      => 'false',
-        'fieldnames'                  => join( ',', @CSV_FIELDS ),
-        'overwrite'                   => 'false',
-        'f.tags_id_stories.split'     => 'true',
-        'f.tags_id_stories.separator' => ';',
-        'f.timespans_id.split'        => 'true',
-        'f.timespans_id.separator'    => ';',
-        'skip'                        => 'field_type,id,solr_import_date'
+        'commit'    => 'false',
+        'overwrite' => 'false',
     };
 
-    return ( 'update/csv', $url_params );
+    return ( 'update', $url_params );
 }
 
 # store in memory the current date according to postgres
@@ -700,40 +690,24 @@ sub _import_stories($$)
 {
     my ( $db, $jobs ) = @_;
 
-    my $fields = \@CSV_FIELDS;
+    my $fields = \@SOLR_FIELDS;
 
-    my $csv_output;
+    my $stories_jsons = _get_stories_jsons_from_db( $db, $jobs );
 
-    my $csv = Text::CSV_XS->new( { binary => 1 } );
-
-    # $csv->combine( @{ $fields } );
-    # $csv_output .= $csv->string() . "\n";
-
-    my $stories = _get_stories_from_db( $db, $jobs );
-
+    # recreate db handle after threading done ub _get_stories_jsons_from_db
     $db = MediaWords::DB::connect_to_db();
-
-    INFO( "importing " . scalar( @{ $stories } ) . " stories ..." );
-
-    return [] unless ( @{ $stories } );
-
-    foreach my $story ( @{ $stories } )
-    {
-        my $values = [ map { $story->{ $_ } } @{ $fields } ];
-
-        $csv->combine( @{ $values } );
-        $csv_output .= $csv->string() . "\n";
-    }
 
     my ( $import_url, $import_params ) = _get_import_url_params();
 
-    eval { _solr_request( $db, $import_url, $import_params, $csv_output ); };
-    if ( $@ )
+    my $stories_ids = [];
+    for my $json ( @{ $stories_jsons } )
     {
-        die( "error importing to solr: $@" );
+        eval { _solr_request( $db, $import_url, $import_params, $json->{ json }, 'application/json' ); };
+        die( "error importing to solr: $@" ) if ( $@ );
+        push( @{ $stories_ids }, @{ $json->{ stories_ids } } );
     }
 
-    return [ map { $_->{ stories_id } } @{ $stories } ];
+    return $stories_ids;
 }
 
 # die if we are running on the testing databse but using the default solr index
