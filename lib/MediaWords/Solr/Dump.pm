@@ -283,12 +283,14 @@ SQL
         push( @{ $all_stories }, @{ $stories } );
     }
 
-    DEBUG( "all_stories: " . ref( $all_stories ) );
     INFO( "encoding " . scalar( @{ $all_stories } ) . " stories for import into json" );
+
+    my $all_stories_ids = [ map { $_->{ stories_id } } @{ $all_stories } ];
 
     # use JSON:PP here because python json is too slow and JSON::XS thinks that $all_stories is not an ARRAYREF
     my $stories_json = JSON::PP->new()->utf8( 1 )->encode( $all_stories );
-    return { stories_ids => $stories_ids, json => $stories_json };
+
+    return { stories_ids => $all_stories_ids, json => $stories_json };
 }
 
 # get stories json for import from postgres.  this is a container function that handles threading calls to
@@ -315,7 +317,6 @@ sub _get_stories_jsons_from_db($$)
         push( @{ $threads }, $thread );
     }
 
-    DEBUG( "joining stories threads ..." );
     my $all_jsons = [ map { $_->join() } @{ $threads } ];
 
     return $all_jsons;
@@ -625,7 +626,7 @@ sub _delete_stories_from_import_queue
 {
     my ( $db, $stories_ids ) = @_;
 
-    INFO( "deleting stories from import queue ..." );
+    INFO( "deleting " . scalar( @{ $stories_ids } ) . " stories from import queue ..." );
 
     my $stories_queue_table = _get_stories_queue_table();
 
