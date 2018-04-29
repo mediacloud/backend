@@ -235,8 +235,8 @@ with _block_processed_stories as (
         where stories_id in ( $block_stories_ids_list )
 ),
 
- _timespan_stories as  (
-    select  stories_id, array_agg( distinct timespans_id::text ) timespans_id
+_timespan_stories as  (
+    select  stories_id, array_agg( distinct timespans_id ) timespans_id
         from snap.story_link_counts slc
             join _block_processed_stories using ( stories_id )
         where
@@ -245,35 +245,40 @@ with _block_processed_stories as (
 ),
 
 _tag_stories as  (
-    select stories_id, array_agg( distinct tags_id::text ) tags_id_stories
+    select stories_id, array_agg( distinct tags_id ) tags_id_stories
         from stories_tags_map stm
             join _block_processed_stories bps using ( stories_id )
         where
             stm.stories_id in ( $block_stories_ids_list )
         group by stories_id
+),
+
+_import_stories as (
+    select
+        s.stories_id,
+        s.media_id,
+        to_char( date_trunc( 'minute', s.publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_date,
+        to_char( date_trunc( 'day', s.publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_day,
+        string_agg( ss.sentence, ' ' order by ss.sentence_number ) as text,
+        s.title,
+        s.language,
+        max( ps.processed_stories_id ) processed_stories_id,
+        min( stm.tags_id_stories ) tags_id_stories,
+        min( slc.timespans_id ) timespans_id
+
+    from _block_processed_stories ps
+        join story_sentences ss using ( stories_id )
+        join stories s using ( stories_id )
+        left join _tag_stories stm using ( stories_id )
+        left join _timespan_stories slc using ( stories_id )
+
+    where
+        s.stories_id in ( $block_stories_ids_list )
+    group by s.stories_id
 )
 
-select
-    s.stories_id,
-    s.media_id,
-    to_char( date_trunc( 'minute', s.publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_date,
-    to_char( date_trunc( 'day', s.publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_day,
-    string_agg( ss.sentence, ' ' order by ss.sentence_number ) as text,
-    s.title,
-    s.language,
-    max( ps.processed_stories_id ) processed_stories_id,
-    min( stm.tags_id_stories ) tags_id_stories,
-    min( slc.timespans_id ) timespans_id
 
-from _block_processed_stories ps
-    join story_sentences ss using ( stories_id )
-    join stories s using ( stories_id )
-    left join _tag_stories stm using ( stories_id )
-    left join _timespan_stories slc using ( stories_id )
-
-where
-    s.stories_id in ( $block_stories_ids_list )
-group by s.stories_id
+select stories_id, row_to_json( _import_stories ) as stories_json from _import_stories
 SQL
 
         TRACE( "found " . scalar( @{ $stories } ) . " stories from " . scalar( @{ $block_stories_ids } ) . " ids" );
@@ -281,12 +286,10 @@ SQL
         push( @{ $all_stories }, @{ $stories } );
     }
 
-    INFO( "encoding " . scalar( @{ $all_stories } ) . " stories for import into json" );
-
     my $all_stories_ids = [ map { $_->{ stories_id } } @{ $all_stories } ];
+    my $stories_json = '[' . join( ',', map { $_->{ stories_json } } @{ $all_stories } ) . ']';
 
-    # use JSON:PP here because python json is too slow and JSON::XS thinks that $all_stories is not an ARRAYREF
-    my $stories_json = JSON::PP->new()->utf8( 1 )->encode( $all_stories );
+    #DEBUG( $stories_json );
 
     return { stories_ids => $all_stories_ids, json => $stories_json };
 }
@@ -297,7 +300,7 @@ sub _get_stories_jsons_from_db($$)
 {
     my ( $db, $jobs ) = @_;
 
-    my $stories_ids = $db->query( "select stories_id from delta_import_stories" )->flat;
+    my $stories_ids = $db->query( "select distinct stories_id from delta_import_stories" )->flat;
 
     if ( $jobs == 1 )
     {
