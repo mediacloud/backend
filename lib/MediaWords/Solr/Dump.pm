@@ -81,6 +81,7 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+require Cpanel::JSON::XS;
 use Data::Dumper;
 use Digest::MD5;
 use Encode;
@@ -278,7 +279,7 @@ _import_stories as (
 )
 
 
-select stories_id, row_to_json( _import_stories ) as stories_json from _import_stories
+select * from _import_stories
 SQL
 
         TRACE( "found " . scalar( @{ $stories } ) . " stories from " . scalar( @{ $block_stories_ids } ) . " ids" );
@@ -287,7 +288,7 @@ SQL
     }
 
     my $all_stories_ids = [ map { $_->{ stories_id } } @{ $all_stories } ];
-    my $stories_json = '[' . join( ',', map { $_->{ stories_json } } @{ $all_stories } ) . ']';
+    my $stories_json = Cpanel::JSON::XS::encode_json( $all_stories );
 
     #DEBUG( $stories_json );
 
