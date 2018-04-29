@@ -105,7 +105,7 @@ Readonly my @SOLR_FIELDS => qw/stories_id media_id publish_date publish_day text
   processed_stories_id tags_id_stories timespans_id/;
 
 # how many sentences to fetch at a time from the postgres query
-Readonly my $FETCH_BLOCK_SIZE => 1000;
+Readonly my $FETCH_BLOCK_SIZE => 10;
 
 # default stories queue table
 Readonly my $DEFAULT_STORIES_QUEUE_TABLE => 'solr_import_extra_stories';
@@ -227,36 +227,31 @@ sub _get_stories_json_from_db_single
         TRACE( "fetching stories ids: $block_stories_ids_list" );
         $db->query( "SET LOCAL client_min_messages=warning" );
 
-        $db->query( <<SQL );
-drop table if exists _block_processed_stories;
-create temporary table _block_processed_stories as
+        my $stories = $db->query( <<SQL )->hashes();
+with _block_processed_stories as (
     select processed_stories_id, stories_id
         from processed_stories
-        where stories_id in ( $block_stories_ids_list );
-analyze _block_processed_stories;
-SQL
+        where stories_id in ( $block_stories_ids_list )
+),
 
-        $db->query( <<SQL );
-drop table if exists _timespan_stories;
-create temporary table _timespan_stories as 
+ _timespan_stories as  (
     select  stories_id, array_agg( distinct timespans_id::text ) timespans_id
         from snap.story_link_counts slc
             join _block_processed_stories using ( stories_id )
-        group by stories_id;
-analyze _timespan_stories;        
-SQL
+        where
+            slc.stories_id in ( $block_stories_ids_list )
+        group by stories_id
+),
 
-        $db->query( <<SQL );
-drop table if exists _tag_stories;
-create temporary table _tag_stories as 
+_tag_stories as  (
     select stories_id, array_agg( distinct tags_id::text ) tags_id_stories
-        from stories_tags_map
-            join _block_processed_stories using ( stories_id )
-        group by stories_id;
-analyze _tag_stories;
-SQL
+        from stories_tags_map stm
+            join _block_processed_stories bps using ( stories_id )
+        where
+            stm.stories_id in ( $block_stories_ids_list )
+        group by stories_id
+)
 
-        my $stories = $db->query( <<SQL )->hashes();
 select
     s.stories_id,
     s.media_id,
@@ -275,6 +270,8 @@ from _block_processed_stories ps
     left join _tag_stories stm using ( stories_id )
     left join _timespan_stories slc using ( stories_id )
 
+where
+    s.stories_id in ( $block_stories_ids_list )
 group by s.stories_id
 SQL
 
