@@ -210,9 +210,10 @@ sub _get_stories_json_from_db_single
 
     my $fetch_stories_ids = [ @{ $stories_ids } ];
 
+    INFO( "fetching stories from postgres (" . scalar( @{ $fetch_stories_ids } ) . " remaining)" );
+
     while ( @{ $fetch_stories_ids } )
     {
-        INFO( "fetching stories from postgres (" . scalar( @{ $fetch_stories_ids } ) . " remaining)" );
         my $block_stories_ids = [];
         for my $i ( 1 .. $FETCH_BLOCK_SIZE )
         {
