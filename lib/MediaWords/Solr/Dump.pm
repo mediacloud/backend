@@ -820,7 +820,10 @@ sub import_data($;$)
         INFO( "committing solr index changes ..." );
         _solr_request( $db, 'update', { 'commit' => 'true' } );
 
-        _update_snapshot_solr_status( $db );
+        if ( $skip_logging )
+        {
+            _update_snapshot_solr_status( $db );
+        }
 
         last if ( !$empty_queue && _stories_queue_is_small( $db ) );
 
