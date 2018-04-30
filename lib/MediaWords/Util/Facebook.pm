@@ -57,7 +57,7 @@ Readonly my @FACEBOOK_GRAPH_API_TEMPORARY_ERROR_CODES => (
 );
 
 # Seconds to wait for before retrying on temporary errors
-Readonly my @FACEBOOK_RETRY_INTERVALS => ( 1, 5, 30 );
+Readonly my @FACEBOOK_RETRY_INTERVALS => ( 1, 5, 30, 300 );
 
 # URL patterns for which we're sure we won't get correct results (so we won't even try)
 Readonly my @URL_PATTERNS_WHICH_WONT_WORK => (
