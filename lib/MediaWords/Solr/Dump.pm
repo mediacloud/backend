@@ -118,6 +118,10 @@ my $_import_date;
 my $_solr_use_staging;
 my $_stories_queue_table;
 
+# keep track of the max stories_id from the last time we queried the queue table so that we don't have to
+# page through a ton of dead rows when importing a big queue table
+my $_last_max_queue_stories_id;
+
 =head2 FUNCTIONS
 
 =cut
@@ -164,6 +168,15 @@ SQL
 
     $max_queued_stories -= $num_queued_stories;
 
+    # keep track of last max queued id so that we can search for only stories greater than that id below.  otherwise,
+    # the index scan from the query has to fetch all of the previously deleted rows from the heap and turn an instant
+    # query into a 10 second query after a couple million story imports
+    my $min_stories_id = 0;
+    if ( $queue_only && $_last_max_queue_stories_id )
+    {
+        $min_stories_id = $_last_max_queue_stories_id;
+    }
+
     # order by stories_id so that we will tend to get story_sentences in chunked pages as much as possible; just using
     # random stories_ids for collections of old stories (for instance queued to the stories queue table from a
     # media tag update) can make this query a couple orders of magnitude slower
@@ -172,9 +185,11 @@ SQL
         INSERT INTO delta_import_stories (stories_id)
             SELECT distinct stories_id
             FROM $stories_queue_table s
+            WHERE stories_id > ?
             ORDER BY stories_id
             LIMIT ?
 SQL
+        $min_stories_id,
         $max_queued_stories
     )->rows;
 
@@ -190,6 +205,8 @@ SQL
         my ( $total_queued_stories ) = $db->query( <<SQL, $relname )->flat;
 select reltuples::bigint from pg_class where relname = ?
 SQL
+
+        ( $_last_max_queue_stories_id ) = $db->query( "select max( stories_id ) from delta_import_stories" )->flat();
 
         INFO "added $num_queued_stories out of about $total_queued_stories queued stories to the import";
     }
@@ -785,8 +802,9 @@ sub import_data($;$)
         $queue_only   = 1;
     }
 
-    $_solr_use_staging    = $staging;
-    $_stories_queue_table = $stories_queue_table;
+    $_solr_use_staging          = $staging;
+    $_stories_queue_table       = $stories_queue_table;
+    $_last_max_queue_stories_id = 0;
 
     my $i = 0;
 
