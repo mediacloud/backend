@@ -915,6 +915,7 @@ Returns word frequency counts of the most common words in a randomly sampled set
 | `fq`                | `null`  | `fq` ("filter query") parameter which is passed directly to Solr
 | `num_words`         | 500     | Number of words to return
 | `sample_size`       | 1000    | Number of sentences to sample, max 100,000
+| `random_seed`       | 1       | Seed value to use when generating random sample
 | `include_stopwords` | 0       | Set to 1 to disable stopword removal
 | `include_stats`     | 0       | Set to 1 to include stats about the request as a whole (such as total number of words)
 
