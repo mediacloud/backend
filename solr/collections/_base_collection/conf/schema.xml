@@ -120,16 +120,16 @@
    <!--<field name="_root_" type="string" indexed="true" stored="false"/>-->
 
    <!-- Query by media_id is a core function -->
-   <field name="media_id" type="int" indexed="true" stored="false" required="true" multiValued="false" docValues="true"/>
+   <field name="media_id" type="int" indexed="false" stored="false" required="true" multiValued="false" docValues="true"/>
 
    <!-- Query by stories_id is a core function; we need to store this so that we can quickly process
    queries grouped by stories_id, otherwise we would have to get the ss_id back and then query the ss
    table for the stories_id values, which would slow things down a lot -->
-   <field name="stories_id" type="int" indexed="true" stored="true" required="true" multiValued="false" docValues="true"/>
+   <field name="stories_id" type="int" indexed="true" stored="false" required="true" multiValued="false" docValues="true"/>
 
    <!-- we need this indexed and stored to be able to implement the query streaming features in the api
    (last_processed_stories_id=) -->
-   <field name="processed_stories_id" type="tlong" indexed="true" stored="true" required="true" multiValued="false" docValues="true" />
+   <field name="processed_stories_id" type="tlong" indexed="false" stored="false" required="true" multiValued="false" docValues="true" />
 
    <!-- this is the core text field, which has the concatenated story_sentences for the story -->
    <field name="text"  type="text_general" indexed="true" stored="false" />
@@ -138,19 +138,22 @@
    <field name="title" type="text_general" indexed="true" stored="false" />
 
    <!-- Query by date is a core function -->
-   <field name="publish_date" type="tdate" indexed="true" stored="false" docValues="true"/>
+   <field name="publish_date" type="tdate" indexed="false" stored="false" docValues="true"/>
 
-   <!-- Faster version of publish_date for querying by day -->
-   <field name="publish_day" type="tdate" indexed="true" stored="false" docValues="true"/>
+   <!-- Faster version of publish_date for querying by increments. -->
+   <field name="publish_day" type="tdate" indexed="false" stored="false" docValues="true"/>
+   <field name="publish_week" type="tdate" indexed="false" stored="false" docValues="true"/>
+   <field name="publish_month" type="tdate" indexed="false" stored="false" docValues="true"/>
+   <field name="publish_year" type="tdate" indexed="false" stored="false" docValues="true"/>
 
    <!-- Language field from the stories table - 2 letter code; query by language is a core function -->
-   <field name="language" type="string" indexed="true" stored="false" docValues="true"/>
+   <field name="language" type="string" indexed="false" stored="false" docValues="true"/>
 
    <!-- Core query -->
-   <field name="tags_id_stories" type="int" indexed="true" stored="false" multiValued="true" docValues="true"/>
+   <field name="tags_id_stories" type="int" indexed="false" stored="false" multiValued="true" docValues="true"/>
 
    <!-- Core query; this allows us to search within topics -->
-   <field name="timespans_id" type="int" indexed="true" stored="false" multiValued="true" docValues="true"/>
+   <field name="timespans_id" type="int" indexed="false" stored="false" multiValued="true" docValues="true"/>
 
    <!-- Dynamic field definitions allow using convention over configuration
        for fields via the specification of patterns to match field names.
@@ -345,34 +348,12 @@
     <fieldType name="tlong" class="solr.TrieLongField" precisionStep="8" positionIncrementGap="0"/>
     <fieldType name="tdouble" class="solr.TrieDoubleField" precisionStep="8" positionIncrementGap="0"/>
 
-    <!-- The format for this date field is of the form 1995-12-31T23:59:59Z, and
-         is a more restricted form of the canonical representation of dateTime
-         http://www.w3.org/TR/xmlschema-2/#dateTime
-         The trailing "Z" designates UTC time and is mandatory.
-         Optional fractional seconds are allowed: 1995-12-31T23:59:59.999Z
-         All other components are mandatory.
-
-         Expressions can also be used to denote calculations that should be
-         performed relative to "NOW" to determine the value, ie...
-
-               NOW/HOUR
-                  ... Round to the start of the current hour
-               NOW-1DAY
-                  ... Exactly 1 day prior to now
-               NOW/DAY+6MONTHS+3DAYS
-                  ... 6 months and 3 days in the future from the start of
-                      the current day
-
-         Consult the TrieDateField javadocs for more information.
-      -->
     <fieldType name="date" class="solr.TrieDateField" precisionStep="0" positionIncrementGap="0"/>
+    <fieldType name="tdate" class="solr.TrieDateField" precisionStep="8" positionIncrementGap="0"/>
 
     <!-- KD-tree versions of date fields -->
     <fieldType name="pdate" class="solr.DatePointField" docValues="true"/>
     <fieldType name="pdates" class="solr.DatePointField" docValues="true" multiValued="true"/>
-
-
-    <fieldType name="tdate" class="solr.TrieDateField" precisionStep="6" positionIncrementGap="0"/>
 
 
     <!--Binary data type. The data should be sent/retrieved in as Base64 encoded Strings -->

@@ -102,8 +102,8 @@ use MediaWords::Solr;
 use MediaWords::Test::DB;
 
 # order and names of fields exported to and imported from csv
-Readonly my @SOLR_FIELDS => qw/stories_id media_id publish_date publish_day text title language
-  processed_stories_id tags_id_stories timespans_id/;
+Readonly my @SOLR_FIELDS => qw/stories_id media_id publish_date publish_day publish_week publish_month publish_year
+  text title language processed_stories_id tags_id_stories timespans_id/;
 
 # how many sentences to fetch at a time from the postgres query
 Readonly my $FETCH_BLOCK_SIZE => 10;
@@ -153,7 +153,7 @@ sub _add_extra_stories_to_import
         my $num_queued_stories = $db->query(
             <<"SQL",
             INSERT INTO delta_import_stories (stories_id)
-                SELECT distinct sies.stories_id
+                SELECT sies.stories_id
                 FROM $stories_queue_table sies
                     join snap.stories ss using ( stories_id )
                     join snapshots s on ( ss.snapshots_id = s.snapshots_id and not s.searchable )
@@ -183,7 +183,7 @@ SQL
     $num_queued_stories += $db->query(
         <<"SQL",
         INSERT INTO delta_import_stories (stories_id)
-            SELECT distinct stories_id
+            SELECT stories_id
             FROM $stories_queue_table s
             WHERE stories_id > ?
             ORDER BY stories_id
@@ -218,9 +218,6 @@ SQL
 sub _get_stories_json_from_db_single
 {
     my ( $db, $stories_ids ) = @_;
-
-    # if this is called as a threaded function, $db will be undef so that it can be recreated
-    $db //= MediaWords::DB::connect_to_db();
 
     # query in blocks of $FETCH_BLOCK_SIZE stories to encourage postgres to generate sane query plans.
 
@@ -277,6 +274,9 @@ _import_stories as (
         s.media_id,
         to_char( date_trunc( 'minute', s.publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_date,
         to_char( date_trunc( 'day', s.publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_day,
+        to_char( date_trunc( 'week', s.publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_week,
+        to_char( date_trunc( 'month', s.publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_month,
+        to_char( date_trunc( 'year', s.publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_year,
         string_agg( ss.sentence, ' ' order by ss.sentence_number ) as text,
         s.title,
         s.language,
@@ -312,9 +312,31 @@ SQL
     return { stories_ids => $all_stories_ids, json => $stories_json };
 }
 
-# get stories json for import from postgres.  this is a container function that handles threading calls to
-# get_stories_json_from_db_single, which does the substantive work
-sub _get_stories_jsons_from_db($$)
+# get stories_json for import from db and import the resulting stories into solr.  return the list of stories_ids
+# imported.
+sub _import_stories_from_db_single($$)
+{
+    my ( $db, $stories_ids ) = @_;
+
+    # if this is called as a threaded function, $db will be undef so that it can be recreated
+    $db //= MediaWords::DB::connect_to_db();
+
+    my $json = _get_stories_json_from_db_single( $db, $stories_ids );
+
+    my ( $import_url, $import_params ) = _get_import_url_params();
+
+    my $stories_ids = [];
+
+    DEBUG "importing " . scalar( @{ $json->{ stories_ids } } ) . " stories into solr ...";
+    eval { _solr_request( $db, $import_url, $import_params, $json->{ json }, 'application/json' ); };
+    die( "error importing to solr: $@" ) if ( $@ );
+
+    return $json->{ stories_ids };
+
+}
+
+# this function does the meat of the work of querying story data from postgres and importing that data to solr
+sub _import_stories($$)
 {
     my ( $db, $jobs ) = @_;
 
@@ -322,7 +344,7 @@ sub _get_stories_jsons_from_db($$)
 
     if ( $jobs == 1 )
     {
-        return [ _get_stories_json_from_db_single( $db, $stories_ids ) ];
+        return _import_stories_from_db_single( $db, $stories_ids );
     }
 
     require forks;
@@ -332,13 +354,16 @@ sub _get_stories_jsons_from_db($$)
     my $iter = List::MoreUtils::natatime( $stories_per_job, @{ $stories_ids } );
     while ( my @thread_stories_ids = $iter->() )
     {
-        my $thread = threads->create( \&_get_stories_json_from_db_single, undef, \@thread_stories_ids );
+        my $thread = threads->create( \&_import_stories_from_db_single, undef, \@thread_stories_ids );
         push( @{ $threads }, $thread );
     }
 
-    my $all_jsons = [ map { $_->join() } @{ $threads } ];
+    my $all_stories_ids = [ map { $_->join() } @{ $threads } ];
 
-    return $all_jsons;
+    my $imported_stories_ids = [];
+    map { push( @{ $imported_stories_ids }, @{ $_ } ) } @{ $all_stories_ids };
+
+    return $imported_stories_ids;
 }
 
 # limit delta_import_stories to max_queued_stories stories;  put excess stories in solr_extra_import_stories
@@ -708,32 +733,6 @@ update snapshots s set searchable = true
                 where t.snapshots_id = s.snapshots_id
         )
 SQL
-}
-
-# this function does the meat of the work of querying story data from postgres and importing that data to solr
-sub _import_stories($$)
-{
-    my ( $db, $jobs ) = @_;
-
-    my $fields = \@SOLR_FIELDS;
-
-    my $stories_jsons = _get_stories_jsons_from_db( $db, $jobs );
-
-    # recreate db handle after threading done ub _get_stories_jsons_from_db
-    $db = MediaWords::DB::connect_to_db();
-
-    my ( $import_url, $import_params ) = _get_import_url_params();
-
-    my $stories_ids = [];
-    for my $json ( @{ $stories_jsons } )
-    {
-        DEBUG "importing " . scalar( @{ $json->{ stories_ids } } ) . " stories into solr ...";
-        eval { _solr_request( $db, $import_url, $import_params, $json->{ json }, 'application/json' ); };
-        die( "error importing to solr: $@" ) if ( $@ );
-        push( @{ $stories_ids }, @{ $json->{ stories_ids } } );
-    }
-
-    return $stories_ids;
 }
 
 # die if we are running on the testing databse but using the default solr index
