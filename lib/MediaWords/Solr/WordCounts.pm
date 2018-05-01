@@ -48,6 +48,7 @@ has 'q'                         => ( is => 'rw', isa => 'Str' );
 has 'fq'                        => ( is => 'rw', isa => 'ArrayRef' );
 has 'num_words'                 => ( is => 'rw', isa => 'Int', default => 500 );
 has 'sample_size'               => ( is => 'rw', isa => 'Int', default => 1000 );
+has 'random_seed'               => ( is => 'rw', isa => 'Int', default => 1 );
 has 'ngram_size'                => ( is => 'rw', isa => 'Int', default => 1 );
 has 'include_stopwords'         => ( is => 'rw', isa => 'Bool' );
 has 'no_remote'                 => ( is => 'rw', isa => 'Bool' );
@@ -58,7 +59,7 @@ has 'db' => ( is => 'rw' );
 # list of all attribute names that should be exposed as cgi params
 sub get_cgi_param_attributes
 {
-    return [ qw(q fq num_words sample_size include_stopwords include_stats no_remote ngram_size) ];
+    return [ qw(q fq num_words sample_size random_seed include_stopwords include_stats no_remote ngram_size) ];
 }
 
 # return hash of attributes for use as cgi params
@@ -336,7 +337,7 @@ sub _get_words_from_solr_server($)
         fq   => $self->fq,
         rows => $self->sample_size,
         fl   => 'story_sentences_id',
-        sort => 'random_1 asc'
+        sort => 'random_' . $self->random_seed . ' asc'
     };
 
     DEBUG( "executing solr query ..." );
@@ -414,7 +415,8 @@ SQL
                 num_sentences_returned => scalar( @{ $sentences_and_story_languages } ),
                 num_sentences_found    => $sentences_found,
                 num_words_param        => $self->num_words,
-                sample_size_param      => $self->sample_size
+                sample_size_param      => $self->sample_size,
+                random_seed            => $self->random_seed
             },
             words => $counts
         };
