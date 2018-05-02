@@ -43,6 +43,11 @@ mediawords:
     ### CONTAINERS -- "common" configuration parameter
     # ignore_schema_version: true
 
+    # CONTAINERS -- "common" configuration parameter (array of dictionaries!)
+    #crawler_authenticated_domains:
+        #- domain: "ap.org"
+        #  user: "username"
+        #  password: "password"
 
 
 
@@ -204,17 +209,6 @@ mediawords:
 
     ## CONTAINERS -- "crawler" configuration parameter
     #client_secret: 7187037755de2dd77451f491d46b103b86fbcf79
-
-mediawords:
-
-    # CONTAINERS -- "crawler" configuration parameter (array of dictionaries!)
-    #crawler_authenticated_domains:
-        #- domain: "ap.org"
-        #  user: "username"
-        #  password: "password"
-
-
-
 
 
 
