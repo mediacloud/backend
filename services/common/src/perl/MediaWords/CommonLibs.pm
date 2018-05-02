@@ -15,20 +15,6 @@ use Readonly;
 use MediaWords::Util::Python;
 use MediaWords::Util::Paths;
 
-eval {
-    require MediaWords::Util::Config;
-    MediaWords::Util::Config->import();
-
-    # Search for Python modules under "mediacloud/"
-    $ENV{ PYTHONPATH } = MediaWords::Util::Config::get_mc_python_dir();
-
-    1;
-} or do
-{
-    my $error = $@;
-    die "Unable to load MediaWords::Util::Config: $@";
-};
-
 our @LOGGER = qw(FATAL ERROR WARN INFO DEBUG TRACE LOGDIE LOGWARN LOGCARP LOGCLUCK LOGCONFESS LOGCROAK);
 
 our @EXPORT = ( @Readonly::EXPORT, @Data::Dumper::EXPORT, @MediaWords::Util::Python::EXPORT, @LOGGER );

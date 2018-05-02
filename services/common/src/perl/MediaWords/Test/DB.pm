@@ -17,7 +17,6 @@ use MediaWords::DBI::Auth;
 use MediaWords::DBI::Downloads;
 use MediaWords::Job::ExtractAndVector;
 use MediaWords::DB::Schema;
-use MediaWords::Util::Config;
 use MediaWords::Util::URL;
 
 {
