@@ -89,6 +89,7 @@ use FileHandle;
 use JSON::PP;
 use List::MoreUtils;
 use List::Util;
+use Parallel::ForkManager;
 use Readonly;
 use URI;
 
@@ -325,14 +326,11 @@ sub _import_stories_from_db_single($$)
 
     my ( $import_url, $import_params ) = _get_import_url_params();
 
-    my $stories_ids = [];
-
     DEBUG "importing " . scalar( @{ $json->{ stories_ids } } ) . " stories into solr ...";
     eval { _solr_request( $db, $import_url, $import_params, $json->{ json }, 'application/json' ); };
     die( "error importing to solr: $@" ) if ( $@ );
 
     return $json->{ stories_ids };
-
 }
 
 # this function does the meat of the work of querying story data from postgres and importing that data to solr
@@ -344,26 +342,24 @@ sub _import_stories($$)
 
     if ( $jobs == 1 )
     {
-        return _import_stories_from_db_single( $db, $stories_ids );
+        _import_stories_from_db_single( $db, $stories_ids );
+        return;
     }
 
-    require forks;
-    my $threads = [];
+    my $pm = Parallel::ForkManager->new( $jobs );
 
     my $stories_per_job = int( scalar( @{ $stories_ids } ) / $jobs ) + 1;
     my $iter = List::MoreUtils::natatime( $stories_per_job, @{ $stories_ids } );
-    while ( my @thread_stories_ids = $iter->() )
+    while ( my @job_stories_ids = $iter->() )
     {
-        my $thread = threads->create( \&_import_stories_from_db_single, undef, \@thread_stories_ids );
-        push( @{ $threads }, $thread );
+        $pm->start() && next;
+        _import_stories_from_db_single( undef, \@job_stories_ids );
+        $pm->finish();
     }
 
-    my $all_stories_ids = [ map { $_->join() } @{ $threads } ];
+    $pm->wait_all_children();
 
-    my $imported_stories_ids = [];
-    map { push( @{ $imported_stories_ids }, @{ $_ } ) } @{ $all_stories_ids };
-
-    return $imported_stories_ids;
+    return;
 }
 
 # limit delta_import_stories to max_queued_stories stories;  put excess stories in solr_extra_import_stories
@@ -805,15 +801,16 @@ sub import_data($;$)
     $_stories_queue_table       = $stories_queue_table;
     $_last_max_queue_stories_id = 0;
 
-    my $i = 0;
+    my $i          = 0;
+    my $start_time = time();
 
     while ()
     {
         _mark_import_date( $db );
 
-        my $delta_import_stories_ids = _create_delta_import_stories( $db, $queue_only );
+        my $stories_ids = _create_delta_import_stories( $db, $queue_only );
 
-        last unless ( @{ $delta_import_stories_ids } );
+        last unless ( @{ $stories_ids } );
 
         if ( $update )
         {
@@ -821,7 +818,7 @@ sub import_data($;$)
             _delete_queued_stories( $db ) || die( "delete stories failed." );
         }
 
-        my $stories_ids = _import_stories( $db, $jobs ) || die( "dump failed." );
+        _import_stories( $db, $jobs );
 
         # have to reconnect becaue import_stories may have forked, ruining existing db handles
         $db = MediaWords::DB::connect_to_db if ( $jobs > 1 );
@@ -832,7 +829,7 @@ sub import_data($;$)
             _save_import_log( $db, $stories_ids );
         }
 
-        _delete_stories_from_import_queue( $db, $delta_import_stories_ids );
+        _delete_stories_from_import_queue( $db, $stories_ids );
 
         INFO( "committing solr index changes ..." );
         _solr_request( $db, 'update', { 'commit' => 'true' } );
@@ -841,6 +838,10 @@ sub import_data($;$)
         {
             _update_snapshot_solr_status( $db );
         }
+
+        my $num_stories = scalar( @{ $stories_ids } );
+        my $import_time = time() - $start_time;
+        INFO( "imported $num_stories stories in $import_time seconds" );
 
         last if ( !$empty_queue && _stories_queue_is_small( $db ) );
 
