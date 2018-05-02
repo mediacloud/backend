@@ -6,10 +6,7 @@ FROM mediacloud-base:latest
 
 # Copy source
 RUN mkdir -p /usr/src/
-COPY src/predict-news-labels/ /usr/src/predict-news-labels/
-
-# Copy logging configuration in order to log to STDOUT
-COPY src/logging.json /usr/src/predict-news-labels/config/
+COPY src/MediaCloud-NYT-News-Labeler/ /usr/src/predict-news-labels/
 
 # Install tagger
 RUN \
