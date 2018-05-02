@@ -8,6 +8,9 @@ FROM mediacloud-base:latest
 RUN mkdir -p /usr/src/
 COPY src/predict-news-labels/ /usr/src/predict-news-labels/
 
+# Copy logging configuration in order to log to STDOUT
+COPY src/logging.json /usr/src/predict-news-labels/config/
+
 # Install tagger
 RUN \
     #
@@ -41,7 +44,8 @@ RUN python2 -m nltk.downloader -d /usr/local/share/nltk_data punkt
 # Install models
 RUN \
     mkdir -p /usr/src/word2vec-GoogleNews-vectors/ && \
-    python2 /usr/src/predict-news-labels/download_models.py
+    python2 /usr/src/predict-news-labels/download_models.py && \
+    true
 
 # Tagger port
 EXPOSE 8080
