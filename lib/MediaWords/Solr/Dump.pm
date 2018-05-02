@@ -801,11 +801,11 @@ sub import_data($;$)
     $_stories_queue_table       = $stories_queue_table;
     $_last_max_queue_stories_id = 0;
 
-    my $i          = 0;
-    my $start_time = time();
+    my $i = 0;
 
     while ()
     {
+        my $start_time = time();
         _mark_import_date( $db );
 
         my $stories_ids = _create_delta_import_stories( $db, $queue_only );
