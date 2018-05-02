@@ -1,6 +1,3 @@
-[submodule "mediacloud/mediawords/languages/hi/hindi-hunspell"]
-	path = mediacloud/mediawords/languages/hi/hindi-hunspell
-	url = https://github.com/Shreeshrii/hindi-hunspell.git
 [submodule "root/script/non-free/amcharts3"]
 	path = services/webapp/src/root/script/non-free/amcharts3
 	url = https://github.com/amcharts/amcharts3.git
@@ -13,18 +10,21 @@
 [submodule "doc/github-markdown-toc"]
 	path = services/webapp/doc/api_2_0_spec/github-markdown-toc
 	url = https://github.com/ekalinin/github-markdown-toc.git
-[submodule "lib/MediaWords/Util/Mail/Message/Templates/email-templates"]
-	path = lib/MediaWords/Util/Mail/Message/Templates/email-templates
-	url = https://github.com/berkmancenter/mediacloud-email-templates.git
-[submodule "mediacloud/snowball"]
-	path = mediacloud/snowball
-	url = https://github.com/snowballstem/snowball.git
-[submodule "mediacloud/mediawords/languages/ca/snowball_stemmer"]
-	path = mediacloud/mediawords/languages/ca/snowball_stemmer
-	url = https://github.com/berkmancenter/mediacloud-catalan-stemmer.git
-[submodule "mediacloud/mediawords/languages/lt/snowball_stemmer"]
-	path = mediacloud/mediawords/languages/lt/snowball_stemmer
-	url = https://github.com/berkmancenter/mediacloud-lithuanian-stemmer.git
 [submodule "services/predict-news-labels/src"]
 	path = services/predict-news-labels/src/MediaCloud-NYT-News-Labeler
 	url = https://github.com/mitmedialab/MediaCloud-NYT-News-Labeler.git
+[submodule "services/common/src/python/mediawords/languages/hi/hindi-hunspell"]
+	path = services/common/src/python/mediawords/languages/hi/hindi-hunspell
+	url = https://github.com/Shreeshrii/hindi-hunspell.git
+[submodule "services/common/src/perl/MediaWords/Util/Mail/Message/Templates/email-templates"]
+	path = services/common/src/perl/MediaWords/Util/Mail/Message/Templates/email-templates
+	url = https://github.com/berkmancenter/mediacloud-email-templates.git
+[submodule "services/common/src/python/mediawords/languages/ca/snowball_stemmer"]
+	path = services/common/src/python/mediawords/languages/ca/snowball_stemmer
+	url = https://github.com/berkmancenter/mediacloud-catalan-stemmer.git
+[submodule "services/common/src/python/mediawords/languages/lt/snowball_stemmer"]
+	path = services/common/src/python/mediawords/languages/lt/snowball_stemmer
+	url = https://github.com/berkmancenter/mediacloud-lithuanian-stemmer.git
+[submodule "services/common/src/python/snowball"]
+	path = services/common/src/python/snowball
+	url = https://github.com/snowballstem/snowball.git

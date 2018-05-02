@@ -29,7 +29,6 @@ use Test::NoWarnings;
 use MediaWords::Crawler::Engine;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
-use MediaWords::StoryVectors;
 use MediaWords::Test::Data;
 use MediaWords::Test::DB;
 use MediaWords::Test::LocalServer;

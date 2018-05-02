@@ -27,7 +27,6 @@ use URI::Escape;
 
 use MediaWords::DB;
 use MediaWords::DBI::Stories;
-use MediaWords::Languages::Language;
 use MediaWords::Solr::PseudoQueries;
 use MediaWords::Util::Config;
 use MediaWords::Util::JSON;

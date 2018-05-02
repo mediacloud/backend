@@ -9,7 +9,6 @@ use MediaWords::CommonLibs;
 
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
-use MediaWords::StoryVectors;
 use MediaWords::Util::Process;
 
 use XML::LibXML;

@@ -13,7 +13,6 @@ use Data::Dumper;
 use MediaWords::DB;
 use MediaWords::DBI::Downloads;
 use MediaWords::Util::HTML;
-use MediaWords::StoryVectors;
 
 sub get_extractor_results_for_story
 {

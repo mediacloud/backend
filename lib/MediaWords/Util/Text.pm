@@ -11,7 +11,6 @@ use MediaWords::CommonLibs;    # set PYTHONPATH too
 
 import_python_module( __PACKAGE__, 'mediawords.util.text' );
 
-use MediaWords::Languages::Language;
 use List::Util qw(min);
 use Memoize;
 use Math::Random::Secure;

@@ -9,7 +9,6 @@ use Data::Dumper;
 use MediaWords::DB;
 use MediaWords::DBI::Downloads;
 use MediaWords::Util::HTML;
-use MediaWords::StoryVectors;
 
 sub main
 {

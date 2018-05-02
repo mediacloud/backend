@@ -37,7 +37,6 @@ use MediaWords::Util::DateTime;
 use Data::Dumper;
 use Data::Sorting qw( :basics :arrays :extras );
 use FindBin;
-use MediaWords::StoryVectors;
 use Readonly;
 
 # add a test media source and feed to the database
