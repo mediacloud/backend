@@ -14,6 +14,7 @@ RUN \
     # Install Python 2.7 (Python 3 not yet supported by the service)
     apt-get -y --no-install-recommends install \
         build-essential \
+        libhdf5-10 \
         python2.7 \
         python2.7-dev \
         python-pip \
@@ -39,7 +40,10 @@ RUN \
     true
 
 # Install NLTK data
-RUN python2 -m nltk.downloader -d /usr/local/share/nltk_data punkt
+RUN \
+    python2 -m nltk.downloader -d /usr/local/share/nltk_data punkt && \
+    rm /usr/local/share/nltk_data/punkt.zip && \
+    true
 
 # Install models
 RUN \
