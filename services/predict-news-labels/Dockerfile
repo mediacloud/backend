@@ -42,7 +42,7 @@ RUN \
 # Install NLTK data
 RUN \
     python2 -m nltk.downloader -d /usr/local/share/nltk_data punkt && \
-    rm /usr/local/share/nltk_data/punkt/punkt.zip && \
+    rm /usr/local/share/nltk_data/tokenizers/punkt.zip && \
     true
 
 # Install models
