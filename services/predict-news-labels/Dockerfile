@@ -22,6 +22,7 @@ RUN \
         python-pip \
         python-setuptools \
     && \
+    pip install --upgrade pip && \
     #
     # Install Python modules
     pip2 install -r /usr/src/predict-news-labels/requirements.txt && \
