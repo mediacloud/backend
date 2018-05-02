@@ -30,7 +30,8 @@ RUN \
         build-essential \
         python2.7-dev \
         python-pip \
-        python-setuptools \
+        # Don't uninstall python-setuptools because gunicorn uses it
+        # Don't uninstall unzip because it will be needed for unextracting models
     && \
     apt-get -y autoremove && \
     apt-get -y clean && \
