@@ -44,7 +44,7 @@ RUN python2 -m nltk.downloader -d /usr/local/share/nltk_data punkt
 
 # Install models
 RUN \
-    mkdir -p /usr/src/word2vec-GoogleNews-vectors/ && \
+    mkdir -p /usr/src/predict-news-labels/word2vec-GoogleNews-vectors/ && \
     python2 /usr/src/predict-news-labels/download_models.py && \
     true
 
