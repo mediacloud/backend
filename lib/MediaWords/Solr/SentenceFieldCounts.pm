@@ -14,10 +14,6 @@ use Data::Dumper;
 use MediaWords::Solr;
 use MediaWords::Util::Config;
 
-# list of fields that can be queried.  the id field to return from solr.  the values from
-# the id_field are joined to the tag_map_table to return tags_id counts.
-my $_field_definitions = { tags_id_stories => { id_field => 'stories_id', tag_map_table => 'stories_tags_map' }, };
-
 # Moose instance fields
 
 has 'q'             => ( is => 'rw', isa => 'Str' );
@@ -83,26 +79,32 @@ around BUILDARGS => sub {
 # given the list of ids, get the counts for the various related fields
 sub _get_postgresql_counts
 {
-    my ( $self, $ids, $field_definition ) = @_;
+    my ( $self, $ids ) = @_;
 
-    my $id_field      = $field_definition->{ id_field };
-    my $tag_map_table = $field_definition->{ tag_map_table };
-
-    my $tag_set_clause = $self->tag_sets_id ? "and t.tag_sets_id = " . ( $self->tag_sets_id + 0 ) : '';
+    my $tag_set_clause = $self->tag_sets_id ? "AND t.tag_sets_id = " . ( $self->tag_sets_id + 0 ) : '';
 
     $ids = [ map { int( $_ ) } @{ $ids } ];
 
     my $ids_table = $self->db->get_temporary_ids_table( $ids );
 
     my $counts = $self->db->query( <<SQL )->hashes;
-select
-        count(*) count, t.tags_id tags_id, t.tag, t.label, t.tag_sets_id
-    from $tag_map_table m
-        join tags t on ( m.tags_id = t.tags_id $tag_set_clause )
-    where
-        m.$id_field in ( select id from $ids_table )
-    group by t.tags_id
-    order by count(*) desc
+        SELECT
+            COUNT(*) AS count,
+            t.tags_id AS tags_id,
+            t.tag,
+            t.label,
+            t.tag_sets_id
+        FROM stories_tags_map AS m
+            JOIN tags AS t ON (
+                m.tags_id = t.tags_id
+                $tag_set_clause
+            )
+        WHERE m.stories_id IN (
+            SELECT id
+            FROM $ids_table
+        )
+        GROUP BY t.tags_id
+        ORDER BY COUNT(*) DESC
 SQL
 
     return $counts;
@@ -115,12 +117,12 @@ sub get_counts
 {
     my ( $self ) = @_;
 
-    my $field_definition = $_field_definitions->{ $self->{ field } };
-    die( "unknown field '" . $self->field . "'" ) unless ( $field_definition );
+    unless ( $self->{ field } eq 'tags_id_stories' )
+    {
+        die "Unknown field: " . $self->{ field };
+    }
 
     return [] unless ( $self->q() || ( $self->fq && @{ $self->fq } ) );
-
-    my $id_field = $field_definition->{ id_field };
 
     my $start_generation_time = time();
 
@@ -128,16 +130,16 @@ sub get_counts
         q    => $self->q(),
         fq   => $self->fq,
         rows => $self->sample_size,
-        fl   => $id_field,
+        fl   => 'stories_id',
         sort => 'random_1 asc'
     };
 
     my $data = MediaWords::Solr::query( $self->db, $solr_params );
 
     my $sentences_found = $data->{ response }->{ numFound };
-    my $ids = [ map { int( $_->{ $id_field } ) } @{ $data->{ response }->{ docs } } ];
+    my $ids = [ map { int( $_->{ 'stories_id' } ) } @{ $data->{ response }->{ docs } } ];
 
-    my $counts = $self->_get_postgresql_counts( $ids, $field_definition );
+    my $counts = $self->_get_postgresql_counts( $ids );
 
     if ( $self->include_stats )
     {
