@@ -45,7 +45,7 @@ sub get_counts($;$$$$$)
     my $sentences_found = $data->{ response }->{ numFound };
     my $ids = [ map { int( $_->{ 'stories_id' } ) } @{ $data->{ response }->{ docs } } ];
 
-    my $tag_set_clause = $tag_sets_id ? "AND t.tag_sets_id = $tag_sets_id" : '';
+    my $tag_set_clause = $tag_sets_id ? "tags.tag_sets_id = $tag_sets_id" : 'true';
 
     $ids = [ map { int( $_ ) } @{ $ids } ];
 
@@ -54,22 +54,27 @@ sub get_counts($;$$$$$)
     my $counts = $db->query(
         <<SQL
         SELECT
-            COUNT(*) AS count,
-            t.tags_id AS tags_id,
-            t.tag,
-            t.label,
-            t.tag_sets_id
-        FROM stories_tags_map AS stm
-            JOIN tags AS t ON (
-                stm.tags_id = t.tags_id
-                $tag_set_clause
-            )
-        WHERE stm.stories_id IN (
-            SELECT id
-            FROM $ids_table
-        )
-        GROUP BY t.tags_id
-        ORDER BY COUNT(*) DESC
+            story_tags.count,
+            tags.tags_id,
+            tags.tag,
+            tags.label,
+            tags.tag_sets_id
+        FROM tags
+            INNER JOIN (
+                SELECT
+                    tags_id AS tags_id,
+                    COUNT(*) AS count
+                FROM stories_tags_map
+                WHERE stories_id IN (
+                    SELECT id
+                    FROM $ids_table
+                )
+                GROUP BY tags_id
+
+            ) AS story_tags
+                ON tags.tags_id = story_tags.tags_id
+        WHERE $tag_set_clause
+        ORDER BY count DESC
 SQL
     )->hashes;
 
