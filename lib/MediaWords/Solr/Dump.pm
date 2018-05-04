@@ -330,6 +330,11 @@ sub _import_stories_from_db_single($$)
     eval { _solr_request( $db, $import_url, $import_params, $json->{ json }, 'application/json' ); };
     die( "error importing to solr: $@" ) if ( $@ );
 
+    INFO( "committing solr index changes ..." );
+    _solr_request( $db, 'update', { 'commit' => 'true' } );
+
+    _delete_stories_from_import_queue( $db, $stories_ids );
+
     return $json->{ stories_ids };
 }
 
@@ -828,11 +833,6 @@ sub import_data($;$)
             _save_import_date( $db, !$full, $stories_ids );
             _save_import_log( $db, $stories_ids );
         }
-
-        _delete_stories_from_import_queue( $db, $stories_ids );
-
-        INFO( "committing solr index changes ..." );
-        _solr_request( $db, 'update', { 'commit' => 'true' } );
 
         if ( !$skip_logging )
         {
