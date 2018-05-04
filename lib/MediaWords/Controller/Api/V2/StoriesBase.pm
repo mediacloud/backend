@@ -14,7 +14,7 @@ use List::Compare;
 
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
-use MediaWords::Solr::StoryFieldCounts;
+use MediaWords::Solr::TagCounts;
 use MediaWords::Util::HTML;
 use MediaWords::Util::JSON;
 
@@ -39,7 +39,7 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 __PACKAGE__->config(
     action => {
         count       => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        field_count => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        tag_count   => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         word_matrix => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
     }
 );
@@ -460,24 +460,17 @@ sub count_GET
     $self->status_ok( $c, entity => $response );
 }
 
-sub field_count : Local : ActionClass('MC_REST')
+sub tag_count : Local : ActionClass('MC_REST')
 {
 }
 
-sub field_count_GET
+sub tag_count_GET
 {
     my ( $self, $c ) = @_;
 
-    if ( $c->req->params->{ sample_size } && ( $c->req->params->{ sample_size } > 100_000 ) )
-    {
-        $c->req->params->{ sample_size } = 100_000;
-    }
+    my $tag_counts = MediaWords::Solr::TagCounts::query_tag_counts( $c->dbis, $c->req->params );
 
-    my $fc = MediaWords::Solr::StoryFieldCounts->new( { db => $c->dbis, cgi_params => $c->req->params } );
-
-    my $counts = $fc->get_counts;
-
-    $self->status_ok( $c, entity => $counts );
+    $self->status_ok( $c, entity => $tag_counts );
 }
 
 sub word_matrix : Local : ActionClass('MC_REST')

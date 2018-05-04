@@ -180,7 +180,7 @@ sub field_count_GET
 {
     my ( $self, $c ) = @_;
 
-    die( "The sentences/field_count call has been removed. Use stories/field_count or sentences/list instead." );
+    die( "The sentences/field_count call has been removed. Use stories/tag_count or sentences/list instead." );
 }
 
 # override
