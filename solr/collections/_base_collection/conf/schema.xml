@@ -120,7 +120,7 @@
    <!--<field name="_root_" type="string" indexed="true" stored="false"/>-->
 
    <!-- Query by media_id is a core function -->
-   <field name="media_id" type="int" indexed="false" stored="false" required="true" multiValued="false" docValues="true"/>
+   <field name="media_id" type="int" indexed="true" stored="false" required="true" multiValued="false" docValues="true"/>
 
    <!-- Query by stories_id is a core function; we need to store this so that we can quickly process
    queries grouped by stories_id, otherwise we would have to get the ss_id back and then query the ss
@@ -129,7 +129,7 @@
 
    <!-- we need this indexed and stored to be able to implement the query streaming features in the api
    (last_processed_stories_id=) -->
-   <field name="processed_stories_id" type="tlong" indexed="false" stored="false" required="true" multiValued="false" docValues="true" />
+   <field name="processed_stories_id" type="tlong" indexed="true" stored="false" required="true" multiValued="false" docValues="true" />
 
    <!-- this is the core text field, which has the concatenated story_sentences for the story -->
    <field name="text"  type="text_general" indexed="true" stored="false" />
@@ -138,22 +138,22 @@
    <field name="title" type="text_general" indexed="true" stored="false" />
 
    <!-- Query by date is a core function -->
-   <field name="publish_date" type="tdate" indexed="false" stored="false" docValues="true"/>
+   <field name="publish_date" type="tdate" indexed="true" stored="false" docValues="true"/>
 
    <!-- Faster version of publish_date for querying by increments. -->
-   <field name="publish_day" type="tdate" indexed="false" stored="false" docValues="true"/>
-   <field name="publish_week" type="tdate" indexed="false" stored="false" docValues="true"/>
-   <field name="publish_month" type="tdate" indexed="false" stored="false" docValues="true"/>
-   <field name="publish_year" type="tdate" indexed="false" stored="false" docValues="true"/>
+   <field name="publish_day" type="tdate" indexed="true" stored="false" docValues="true"/>
+   <field name="publish_week" type="tdate" indexed="true" stored="false" docValues="true"/>
+   <field name="publish_month" type="tdate" indexed="true" stored="false" docValues="true"/>
+   <field name="publish_year" type="tdate" indexed="true" stored="false" docValues="true"/>
 
    <!-- Language field from the stories table - 2 letter code; query by language is a core function -->
-   <field name="language" type="string" indexed="false" stored="false" docValues="true"/>
+   <field name="language" type="string" indexed="true" stored="false" docValues="true"/>
 
    <!-- Core query -->
-   <field name="tags_id_stories" type="int" indexed="false" stored="false" multiValued="true" docValues="true"/>
+   <field name="tags_id_stories" type="int" indexed="true" stored="false" multiValued="true" docValues="true"/>
 
    <!-- Core query; this allows us to search within topics -->
-   <field name="timespans_id" type="int" indexed="false" stored="false" multiValued="true" docValues="true"/>
+   <field name="timespans_id" type="int" indexed="true" stored="false" multiValued="true" docValues="true"/>
 
    <!-- Dynamic field definitions allow using convention over configuration
        for fields via the specification of patterns to match field names.
