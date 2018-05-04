@@ -330,7 +330,7 @@ sub _import_stories_from_db_single($$)
     eval { _solr_request( $db, $import_url, $import_params, $json->{ json }, 'application/json' ); };
     die( "error importing to solr: $@" ) if ( $@ );
 
-    INFO( "committing solr index changes ..." );
+    TRACE( "committing solr index changes ..." );
     _solr_request( $db, 'update', { 'commit' => 'true' } );
 
     _delete_stories_from_import_queue( $db, $stories_ids );
