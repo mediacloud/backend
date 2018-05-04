@@ -18,9 +18,6 @@ use MediaWords::Util::Config;
 # the id_field are joined to the tag_map_table to return tags_id counts.
 my $_field_definitions = { tags_id_stories => { id_field => 'stories_id', tag_map_table => 'stories_tags_map' }, };
 
-# mediawords.fc_cache_version from config
-my $_fc_cache_version;
-
 # Moose instance fields
 
 has 'q'             => ( is => 'rw', isa => 'Str' );
@@ -84,7 +81,7 @@ around BUILDARGS => sub {
 };
 
 # given the list of ids, get the counts for the various related fields
-sub _get_counts
+sub _get_postgresql_counts
 {
     my ( $self, $ids, $field_definition ) = @_;
 
@@ -111,8 +108,10 @@ SQL
     return $counts;
 }
 
-# connect to solr server to get list of ss ids and then generate various counts based on those ssids
-sub get_counts_from_solr_server
+# perform the solr query and collect the sentence ids.  query postgres for the sentences and associated tags
+# and return counts for each of the following fields:
+# publish_day, media_id, language, sentence_tags_id, media_tags_id, story_tags_id
+sub get_counts
 {
     my ( $self ) = @_;
 
@@ -138,7 +137,7 @@ sub get_counts_from_solr_server
     my $sentences_found = $data->{ response }->{ numFound };
     my $ids = [ map { int( $_->{ $id_field } ) } @{ $data->{ response }->{ docs } } ];
 
-    my $counts = $self->_get_counts( $ids, $field_definition );
+    my $counts = $self->_get_postgresql_counts( $ids, $field_definition );
 
     if ( $self->include_stats )
     {
@@ -155,70 +154,6 @@ sub get_counts_from_solr_server
     {
         return $counts;
     }
-}
-
-# return CHI cache for word counts
-sub _get_cache
-{
-    my $mediacloud_data_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ data_dir };
-
-    return CHI->new(
-        driver           => 'File',
-        expires_in       => '1 day',
-        expires_variance => '0.1',
-        root_dir         => "${ mediacloud_data_dir }/cache/sentence_field_counts",
-        cache_size       => '1g'
-    );
-}
-
-# return key that uniquely identifies the query
-sub _get_cache_key
-{
-    my ( $self ) = @_;
-
-    $_fc_cache_version //= MediaWords::Util::Config::get_config->{ mediawords }->{ fc_cache_version } || '1';
-
-    my $meta = $self->meta;
-
-    my $keys = _get_cgi_param_attributes();
-
-    my $hash_key = "$_fc_cache_version:" . Dumper( map { $meta->get_attribute( $_ )->get_value( $self ) } @{ $keys } );
-
-    return $hash_key;
-}
-
-# get a cached value for the given word count
-sub _get_cached_counts
-{
-    my ( $self ) = @_;
-
-    return $self->_get_cache->get( $self->_get_cache_key );
-}
-
-# set a cached value for the given word count
-sub _set_cached_counts
-{
-    my ( $self, $value ) = @_;
-
-    return $self->_get_cache->set( $self->_get_cache_key, $value );
-}
-
-# perform the solr query and collect the sentence ids.  query postgres for the sentences and associated tags
-# and return counts for each of the following fields:
-# publish_day, media_id, language, sentence_tags_id, media_tags_id, story_tags_id
-sub get_counts
-{
-    my ( $self ) = @_;
-
-    my $counts = $self->_get_cached_counts;
-
-    return $counts if ( $counts );
-
-    $counts = $self->get_counts_from_solr_server;
-
-    $self->_set_cached_counts( $counts );
-
-    return $counts;
 }
 
 1;
