@@ -333,7 +333,6 @@ sub _import_stories_from_db_single($$)
     INFO( "committing solr index changes ..." );
     _solr_request( $db, 'update', { 'commit' => 'true' } );
 
-    INFO "deleting " . scalar( @{ $stories_ids } ) . " stories ...";
     _delete_stories_from_import_queue( $db, $stories_ids );
 
     return $json->{ stories_ids };
@@ -670,7 +669,7 @@ sub _delete_stories_from_import_queue
 {
     my ( $db, $stories_ids ) = @_;
 
-    INFO( "deleting " . scalar( @{ $stories_ids } ) . " stories from import queue ..." );
+    TRACE( "deleting " . scalar( @{ $stories_ids } ) . " stories from import queue ..." );
 
     my $stories_queue_table = _get_stories_queue_table();
 
