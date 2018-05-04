@@ -333,6 +333,7 @@ sub _import_stories_from_db_single($$)
     INFO( "committing solr index changes ..." );
     _solr_request( $db, 'update', { 'commit' => 'true' } );
 
+    INFO "deleting " . scalar( @{ $stories_ids } ) . " stories ...";
     _delete_stories_from_import_queue( $db, $stories_ids );
 
     return $json->{ stories_ids };
@@ -635,8 +636,6 @@ sub _delete_queued_stories($)
     my $stories_ids = $db->query( "select stories_id from $stories_queue_table" )->flat;
 
     return 1 unless ( $stories_ids && scalar @{ $stories_ids } );
-
-    INFO "deleting " . scalar( @{ $stories_ids } ) . " stories ...";
 
     $stories_ids = [ sort { $a <=> $b } @{ $stories_ids } ];
 
