@@ -262,6 +262,9 @@ SQL
     # term is hard to test without reproducing lots of logic, and term counting is already tested above
     map { delete( $_->{ term } ) } @{ $got_counts };
 
+    $got_counts      = [ sort { $a->{ stem } cmp $b->{ stem } } @{ $got_counts } ];
+    $expected_counts = [ sort { $a->{ stem } cmp $b->{ stem } } @{ $expected_counts } ];
+
     is_deeply( $got_counts, $expected_counts, "get_words" );
 }
 
