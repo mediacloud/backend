@@ -705,9 +705,9 @@ URL: https://api.mediacloud.org/api/v2/stories_public/count?q=obama&fq=media_id:
 }
 ```
 
-Count stories containing 'africa' in the U.S. Mainstream Media for each dat from 2014-01-01 to 2014-03-01:
+Count stories containing 'africa' in the New York Times for each week from 2014-01-01 to 2014-03-01:
 
-URL: https://api.mediacloud.org/api/v2/stories_public/count?q=africa%20AND%20tags_id_media%3A8875027%20AND%20publish_day%3A%5B2014-01-01T00%3A00%3A00Z%20TO%202014-03-01T00%3A00%3A00Z%5D&split=1
+URL: https://api.mediacloud.org/api/v2/stories_public/count?split=1&split_period=week&q=africa%20AND%20media_id%3A1%20AND%20publish_day%3A%5B2014-01-01T00%3A00%3A00Z%20TO%202014-03-01T00%3A00%3A00Z%5D
 
 ```json
 {
