@@ -371,66 +371,45 @@ SQL
     return $stories;
 }
 
-# get the overall count for the given query, plus a split of counts divided by
-# date ranges.  The date range is either daily, every 3 days, weekly, or monthly
-# depending on the number of total days in the query
-sub _get_count_with_split
+# execute a query on solr and return a list of dates with a count of stories for each date
+sub _get_date_counts
 {
     my ( $self, $c ) = @_;
 
-    my $q           = $c->req->params->{ 'q' };
-    my $fq          = $c->req->params->{ 'fq' };
-    my $start_date  = $c->req->params->{ 'split_start_date' };
-    my $end_date    = $c->req->params->{ 'split_end_date' };
-    my $split_daily = $c->req->params->{ 'split_daily' };
+    my $q            = $c->req->params->{ 'q' };
+    my $fq           = $c->req->params->{ 'fq' };
+    my $split_period = lc( $c->req->params->{ 'split_period' } || 'day' );
 
-    die( "must include split_start_date and split_end_date of split is true" ) unless ( $start_date && $end_date );
+    die( "Unknown split_period '$split_period'" ) unless ( grep { $_ eq $split_period } qw/day week month year/ );
 
-    die( "split_start_date must be in the format YYYY-MM-DD" ) unless ( $start_date =~ /(\d\d\d\d)-(\d\d)-(\d\d)/ );
-    my ( $sdy, $sdm, $sdd ) = ( $1, $2, $3 );
-
-    die( "split_end_date must be in the format YYYY-MM-DD" ) unless ( $end_date =~ /(\d\d\d\d)-(\d\d)-(\d\d)/ );
-    my ( $edy, $edm, $edd ) = ( $1, $2, $3 );
-
-    my $days = Date::Calc::Delta_Days( $sdy, $sdm, $sdd, $edy, $edm, $edd );
-
-    my $facet_date_gap;
-
-    if    ( $split_daily ) { $facet_date_gap = '+1DAY' }
-    elsif ( $days < 90 )   { $facet_date_gap = '+1DAY' }
-    elsif ( $days < 180 )  { $facet_date_gap = '+3DAYS' }
-    else                   { $facet_date_gap = '+7DAYS' }
+    my $facet_field = "publish_$split_period";
 
     my $params;
-    $params->{ q }                   = $q;
-    $params->{ fq }                  = $fq;
-    $params->{ facet }               = 'true';
-    $params->{ 'facet.range' }       = 'publish_day';
-    $params->{ 'facet.range.gap' }   = $facet_date_gap;
-    $params->{ 'facet.range.start' } = "${ start_date }T00:00:00Z";
-    $params->{ 'facet.range.end' }   = "${ end_date }T00:00:00Z";
+    $params->{ q }                = $q;
+    $params->{ fq }               = $fq;
+    $params->{ facet }            = 'true';
+    $params->{ 'facet.field' }    = $facet_field;
+    $params->{ 'facet.limit' }    = -1;
+    $params->{ 'facet.mincount' } = 1;
+    $params->{ rows }             = 0;
 
     my $solr_response = MediaWords::Solr::query( $c->dbis, $params, $c );
 
-    my $count        = $solr_response->{ response }->{ numFound } + 0;
-    my $facet_counts = $solr_response->{ facet_counts }->{ facet_ranges }->{ publish_day };
+    my $facet_counts = $solr_response->{ facet_counts }->{ facet_fields }->{ $facet_field };
 
-    unless ( scalar( @{ $facet_counts->{ 'counts' } } ) % 2 == 0 )
+    die "Number of elements in 'counts' is not even." unless ( scalar( @{ $facet_counts } ) % 2 == 0 );
+
+    my $date_counts       = [];
+    my %date_count_lookup = @{ $facet_counts };
+    while ( my ( $date, $count ) = each( %date_count_lookup ) )
     {
-        die "Number of elements in 'counts' is not even.";
+        $date =~ s/(.*)T(.*)Z$/$1 $2/;
+        push( @{ $date_counts }, { date => $date, count => $count } );
     }
 
-    my %split = (
-        'start' => $facet_counts->{ 'start' },
-        'end'   => $facet_counts->{ 'end' },
-        'gap'   => $facet_counts->{ 'gap' },
-    );
+    $date_counts = [ sort { $a->{ date } cmp $b->{ date } } @{ $date_counts } ];
 
-    # Remake array into date => count hashref
-    my %hash_counts = @{ $facet_counts->{ 'counts' } };
-    %split = ( %split, %hash_counts );
-
-    return { count => $count, split => \%split };
+    return $date_counts;
 }
 
 sub count : Local : ActionClass('MC_REST')
@@ -449,7 +428,8 @@ sub count_GET
     my $response;
     if ( $split )
     {
-        $response = $self->_get_count_with_split( $c, $c->req->params );
+        my $date_counts = $self->_get_date_counts( $c, $c->req->params );
+        $response = { counts => $date_counts };
     }
     else
     {

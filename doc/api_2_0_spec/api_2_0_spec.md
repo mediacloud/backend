@@ -684,25 +684,14 @@ Return a stream of all stories from The New York Times mentioning `'obama'` grea
 | `q`                | n/a              | `q` ("query") parameter which is passed directly to Solr
 | `fq`               | `null`           | `fq` ("filter query") parameter which is passed directly to Solr
 | `split`            | `null`           | if set to 1 or true, split the counts into date ranges
-| `split_start_date` | `null`           | date on which to start date splits, in YYYY-MM-DD format
-| `split_end_date`   | `null`           | date on which to end date splits, in YYYY-MM-DD format
+| `split_period`     | `day`            | return counts for these date periods: day, week, month, year
 
 The q and fq parameters are passed directly through to Solr (see description of q and fq parameters in api/v2/stories_public/list section above).
 
 The call returns the number of stories returned by Solr for the specified query.
 
-If split is specified, split the counts into regular date ranges for dates between split\_start\_date and
-split\_end\_date. The number of days in each date range depends on the total number of days between
-split\_start\_date and split\_end\_date:
+If split is specified, split the counts into periods set by split_period.
 
-
-| Total Days | Days in each range
-| ---------- | ------------------
-| < 90       | 1 day
-| < 180      | 3 days
-| >= 180     | 7 days
-
-Note that the total count returned by a split query is for all stories found by the Solr query, which query might or might not include a date restriction.  So in the example africa query below, the overall count is for all stories matching africa, not just those within the split date range.
 
 ### Example
 
@@ -716,27 +705,50 @@ URL: https://api.mediacloud.org/api/v2/stories_public/count?q=obama&fq=media_id:
 }
 ```
 
-Count stories containing 'africa' in the U.S. Mainstream Media from 2014-01-01 to 2014-03-01:
+Count stories containing 'africa' in the U.S. Mainstream Media for each dat from 2014-01-01 to 2014-03-01:
 
-URL: https://api.mediacloud.org/api/v2/stories_public/count?q=africa+AND+tags\_id\_media:8875027&split=1&split\_start\_date=2014-01-01&split\_end\_date=2014-03-01
+URL: https://api.mediacloud.org/api/v2/stories_public/count?q=africa%20AND%20tags_id_media%3A8875027%20AND%20publish_day%3A%5B2014-01-01T00%3A00%3A00Z%20TO%202014-03-01T00%3A00%3A00Z%5D&split=1
 
 ```json
 {
-    "count": 23637,
-    "split": {
-        "2014-01-01T00:00:00Z": 65,
-        "2014-01-08T00:00:00Z": 90,
-        "2014-01-15T00:00:00Z": 99,
-        "2014-01-22T00:00:00Z": 107,
-        "2014-01-29T00:00:00Z": 115,
-        "2014-02-05T00:00:00Z": 96,
-        "2014-02-12T00:00:00Z": 126,
-        "2014-02-19T00:00:00Z": 194,
-        "2014-02-26T00:00:00Z": 118,
-        "gap": "+7DAYS",
-        "end": "2014-03-05T00:00:00Z",
-        "start": "2014-01-01T00:00:00Z"
+  "counts": [
+    {
+      "count": 25,
+      "date": "2013-12-30 00:00:00"
+    },
+    {
+      "count": 59,
+      "date": "2014-01-06 00:00:00"
+    },
+    {
+      "count": 70,
+      "date": "2014-01-13 00:00:00"
+    },
+    {
+      "count": 71,
+      "date": "2014-01-20 00:00:00"
+    },
+    {
+      "count": 80,
+      "date": "2014-01-27 00:00:00"
+    },
+    {
+      "count": 57,
+      "date": "2014-02-03 00:00:00"
+    },
+    {
+      "count": 54,
+      "date": "2014-02-10 00:00:00"
+    },
+    {
+      "count": 45,
+      "date": "2014-02-17 00:00:00"
+    },
+    {
+      "count": 44,
+      "date": "2014-02-24 00:00:00"
     }
+  ]
 }
 ```
 

@@ -266,18 +266,17 @@ SQL
     map { $date_count_lookup->{ $_->{ publish_date } } = $_->{ count } } @{ $date_counts };
 
     my $params = {
-        q                => '*:*',
-        split            => 1,
-        split_start_date => '2017-01-01',
-        split_end_date   => '2017-02-01',
+        q     => '*:*',
+        split => 1,
     };
 
     my $r = test_get( '/api/v2/stories/count', $params );
 
-    my $got_date_counts = $r->{ split };
-    while ( my ( $got_date, $got_count ) = each( %{ $got_date_counts } ) )
+    my $got_date_counts = $r->{ date_counts };
+    for my $got_date_count ( @{ $got_date_counts } )
     {
-        next if ( $got_date =~ /^[a-z]+$/i );
+        my $got_date  = $got_date_count->{ date };
+        my $got_count = $got_date_count->{ count };
 
         $got_date =~ /(\d\d\d\d-\d\d-\d\d)/ || die( "Unable to parse api returned date: '$got_date'" );
 
