@@ -270,6 +270,9 @@ sub query_encoded_json($$;$)
     $params->{ rows } //= 1000;
     $params->{ df }   //= 'text';
 
+    # allow wildcards in phrase and proximity searches
+    $params->{ defType } = 'complexphrase';
+
     # convert fq: parameters into ANDed q: clauses because fq: clauses can cause our solr cluster to oom
     if ( my $all_q = $params->{ fq } )
     {
@@ -307,9 +310,6 @@ sub query_encoded_json($$;$)
             LOGCONFESS "XML queries are not supported.";
         }
     }
-
-    # disable caching entirely until story indexing in hopes of preventing crashes -hal
-    $params->{ q } = '{!cache=false} ' . $params->{ q };
 
     TRACE "Executing Solr query on $url ...";
     TRACE 'Parameters: ' . Dumper( $params );
