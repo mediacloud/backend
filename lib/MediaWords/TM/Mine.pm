@@ -2129,6 +2129,12 @@ sub do_mine_topic ($$;$)
 {
     my ( $db, $topic, $options ) = @_;
 
+    # commenting this out until we deploy the story index
+    # if ( !$topic->{ is_story_index_ready } )
+    # {
+    #     die( "refusing to run topic because is_story_index_ready is false" );
+    # }
+
     map { $options->{ $_ } ||= 0 }
       qw/cache_broken_downloads import_only skip_outgoing_foreign_rss_links skip_post_processing test_mode/;
 
