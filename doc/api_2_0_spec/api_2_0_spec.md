@@ -213,6 +213,7 @@ The following language are supported (by 2 letter language code):
 * `hi` (Hindi)
 * `hu` (Hungarian)
 * `it` (Italian)
+* `ja` (Japanese)
 * `lt` (Lithuanian)
 * `nl` (Dutch)
 * `no` (Norwegian)
@@ -221,6 +222,7 @@ The following language are supported (by 2 letter language code):
 * `ru` (Russian)
 * `sv` (Swedish)
 * `tr` (Turkish)
+* `zh` (Chinese)
 
 ## Errors
 
