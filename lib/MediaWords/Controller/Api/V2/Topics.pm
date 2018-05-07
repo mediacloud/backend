@@ -34,7 +34,7 @@ __PACKAGE__->config(
 );
 
 Readonly::Scalar my $TOPICS_EDIT_FIELDS => [
-    qw/name solr_seed_query description max_iterations start_date end_date is_public ch_monitor_id twitter_topics_id max_stories is_logogram/
+    qw/name solr_seed_query description max_iterations start_date end_date is_public ch_monitor_id twitter_topics_id max_stories is_logogram is_story_index_ready/
 ];
 
 Readonly::Scalar my $JOB_STATE_FIELD_LIST =>
@@ -91,7 +91,8 @@ sub _get_topics_list($$$)    # sql clause for fields to query from job_states fo
                 MIN(p.user_permission) AS user_permission,
                 t.job_queue,
                 t.max_stories,
-                t.is_logogram
+                t.is_logogram,
+                t.is_story_index_ready
             FROM topics AS t
                 JOIN topics_with_user_permission AS p USING (topics_id)
                 LEFT JOIN snapshots AS snap ON t.topics_id = snap.topics_id
@@ -306,9 +307,10 @@ sub create_GET
       eval { MediaWords::Solr::Query::parse( $topic->{ solr_seed_query } )->re( $topic->{ is_logogram } ) };
     die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
 
-    $topic->{ is_public }           = normalize_boolean_for_db( $topic->{ is_public } );
-    $topic->{ is_logogram }         = normalize_boolean_for_db( $topic->{ is_logogram } );
-    $topic->{ solr_seed_query_run } = normalize_boolean_for_db( $topic->{ solr_seed_query_run } );
+    $topic->{ is_public }            = normalize_boolean_for_db( $topic->{ is_public } );
+    $topic->{ is_logogram }          = normalize_boolean_for_db( $topic->{ is_logogram } );
+    $topic->{ is_story_index_ready } = normalize_boolean_for_db( $topic->{ is_story_index_ready } );
+    $topic->{ solr_seed_query_run }  = normalize_boolean_for_db( $topic->{ solr_seed_query_run } );
 
     my $full_solr_query = MediaWords::TM::Mine::get_full_solr_query( $db, $topic, $media_ids, $media_tags_ids );
     my $num_stories = eval { MediaWords::Solr::get_num_found( $db, { q => $full_solr_query } ) };
@@ -467,9 +469,10 @@ sub update_PUT
         die( "topic update cannot reduce the scope of the query" );
     }
 
-    $update->{ is_public }           = normalize_boolean_for_db( $update->{ is_public } );
-    $update->{ is_logogram }         = normalize_boolean_for_db( $update->{ is_logogram } );
-    $update->{ solr_seed_query_run } = normalize_boolean_for_db( $update->{ solr_seed_query_run } );
+    $update->{ is_public }            = normalize_boolean_for_db( $update->{ is_public } );
+    $update->{ is_logogram }          = normalize_boolean_for_db( $update->{ is_logogram } );
+    $update->{ is_story_index_ready } = normalize_boolean_for_db( $update->{ is_story_index_ready } );
+    $update->{ solr_seed_query_run }  = normalize_boolean_for_db( $update->{ solr_seed_query_run } );
 
     my $auth_users_id = $c->stash->{ api_auth }->id();
 
