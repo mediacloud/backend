@@ -43,35 +43,34 @@ Table of Contents
       * [api/v2/stories_public/count](#apiv2stories_publiccount)
          * [Query Parameters](#query-parameters-6)
          * [Example](#example-9)
-      * [api/v2/stories_public/word_matrix](#apiv2stories_publicword_matrix)
+      * [api/v2/stories_public/tag_count](#apiv2stories_publictag_count)
          * [Query Parameters](#query-parameters-7)
+         * [Example](#example-10)
+      * [api/v2/stories_public/word_matrix](#apiv2stories_publicword_matrix)
+         * [Query Parameters](#query-parameters-8)
          * [Output Description](#output-description-2)
    * [Sentences](#sentences)
       * [api/v2/sentences/count](#apiv2sentencescount)
-         * [Query Parameters](#query-parameters-8)
-         * [Example](#example-10)
       * [api/v2/sentences/field_count](#apiv2sentencesfield_count)
-         * [Query Parameters](#query-parameters-9)
-         * [Example](#example-11)
    * [Word Counting](#word-counting)
       * [api/v2/wc/list](#apiv2wclist)
-         * [Query Parameters](#query-parameters-10)
-         * [Example](#example-12)
+         * [Query Parameters](#query-parameters-9)
+         * [Example](#example-11)
    * [Tags and Tag Sets](#tags-and-tag-sets)
       * [api/v2/tags/single/](#apiv2tagssingle)
-         * [Query Parameters](#query-parameters-11)
+         * [Query Parameters](#query-parameters-10)
          * [Output description](#output-description-3)
-         * [Example](#example-13)
+         * [Example](#example-12)
       * [api/v2/tags/list/](#apiv2tagslist)
-         * [Query Parameters](#query-parameters-12)
-         * [Example](#example-14)
+         * [Query Parameters](#query-parameters-11)
+         * [Example](#example-13)
       * [api/v2/tag_sets/single/](#apiv2tag_setssingle)
-         * [Query Parameters](#query-parameters-13)
+         * [Query Parameters](#query-parameters-12)
          * [Output description](#output-description-4)
-         * [Example](#example-15)
+         * [Example](#example-14)
       * [api/v2/tag_sets/list/](#apiv2tag_setslist)
-         * [Query Parameters](#query-parameters-14)
-         * [Example](#example-16)
+         * [Query Parameters](#query-parameters-13)
+         * [Example](#example-15)
    * [Registration and Authentication](#registration-and-authentication)
       * [Register](#register)
          * [api/v2/auth/register (POST)](#apiv2authregister-post)
@@ -80,21 +79,21 @@ Table of Contents
             * [Output Description](#output-description-5)
                * [Registration was successful](#registration-was-successful)
                * [Registration has failed](#registration-has-failed)
-            * [Example](#example-19)
+            * [Example](#example-16)
          * [api/v2/auth/activate (POST)](#apiv2authactivate-post)
             * [Required role](#required-role-1)
             * [Input Description](#input-description-2)
             * [Output Description](#output-description-6)
                * [Activating the user was successful](#activating-the-user-was-successful)
                * [Activating the user has failed](#activating-the-user-has-failed)
-            * [Example](#example-20)
+            * [Example](#example-17)
          * [api/v2/auth/resend_activation_link (POST)](#apiv2authresend_activation_link-post)
             * [Required role](#required-role-2)
             * [Input Description](#input-description-3)
             * [Output Description](#output-description-7)
                * [Resending the activation email was successful](#resending-the-activation-email-was-successful)
                * [Resending the activation email has failed](#resending-the-activation-email-has-failed)
-            * [Example](#example-21)
+            * [Example](#example-18)
       * [Reset password](#reset-password)
          * [api/v2/auth/send_password_reset_link (POST)](#apiv2authsend_password_reset_link-post)
             * [Required role](#required-role-3)
@@ -102,14 +101,14 @@ Table of Contents
             * [Output Description](#output-description-8)
                * [Sending the password reset link was successful](#sending-the-password-reset-link-was-successful)
                * [Sending the password reset link has failed](#sending-the-password-reset-link-has-failed)
-            * [Example](#example-22)
+            * [Example](#example-19)
          * [api/v2/auth/reset_password (POST)](#apiv2authreset_password-post)
             * [Required role](#required-role-4)
             * [Input Description](#input-description-5)
             * [Output Description](#output-description-9)
                * [Resetting the user's password was successful](#resetting-the-users-password-was-successful)
                * [Resetting the user's password has failed](#resetting-the-users-password-has-failed)
-            * [Example](#example-23)
+            * [Example](#example-20)
       * [Log in](#log-in)
          * [api/v2/auth/login (POST)](#apiv2authlogin-post)
             * [Required role](#required-role-5)
@@ -117,35 +116,35 @@ Table of Contents
             * [Output Description](#output-description-10)
                * [User was found](#user-was-found)
                * [User was not found](#user-was-not-found)
-            * [Example](#example-24)
+            * [Example](#example-21)
       * [User Profile](#user-profile)
          * [api/v2/auth/profile (GET)](#apiv2authprofile-get)
             * [Required role](#required-role-6)
             * [Output Description](#output-description-11)
-            * [Example](#example-25)
+            * [Example](#example-22)
          * [api/v2/auth/change_password (POST)](#apiv2authchange_password-post)
             * [Required role](#required-role-7)
             * [Input Description](#input-description-7)
             * [Output Description](#output-description-12)
                * [Changing the user's password was successful](#changing-the-users-password-was-successful)
                * [Changing the user's password has failed](#changing-the-users-password-has-failed)
-            * [Example](#example-26)
+            * [Example](#example-23)
          * [api/v2/auth/reset_api_key (POST)](#apiv2authreset_api_key-post)
             * [Required role](#required-role-8)
             * [Output Description](#output-description-13)
                * [Resetting user's API key was successful](#resetting-users-api-key-was-successful)
                * [Resetting user's API key has failed](#resetting-users-api-key-has-failed)
-            * [Example](#example-27)
+            * [Example](#example-24)
    * [Stats](#stats)
       * [api/v2/stats/list](#apiv2statslist)
-         * [Query Parameters](#query-parameters-17)
+         * [Query Parameters](#query-parameters-14)
          * [Output Description](#output-description-14)
-         * [Example](#example-28)
+         * [Example](#example-25)
    * [Util](#util)
       * [api/v2/util/is_syndicated_ap (POST)](#apiv2utilis_syndicated_ap-post)
          * [Input Description](#input-description-8)
          * [Output Description](#output-description-15)
-         * [Example](#example-29)
+         * [Example](#example-26)
    * [Extended Examples](#extended-examples)
       * [Output Format / JSON](#output-format--json)
       * [Create a CSV file with all media sources.](#create-a-csv-file-with-all-media-sources)
@@ -754,6 +753,81 @@ URL: https://api.mediacloud.org/api/v2/stories_public/count?split=1&split_period
 }
 ```
 
+## api/v2/stories_public/tag_count
+
+### Query Parameters
+
+| Parameter          | Default          | Notes
+| ------------------ | ---------------- | ----------------------------------------------------------------
+| `q`                | n/a              | `q` ("query") parameter which is passed directly to Solr
+| `fq`               | `null`           | `fq` ("filter query") parameter which is passed directly to Solr
+| `limit`            | 1000             | number of tags to fetch from Solr
+| `tag_sets_id`      | `null`           | return only tags belonging to this tag set
+
+The q and fq parameters are passed directly through to Solr (see description of q and fq parameters in api/v2/stories_public/list section above).
+
+The call returns list of the tags most commonly associated with stories that match the given query.  The limit parameter 
+s applied before the tag_sets_id parameter, so fewer than limit (or zero) results may be returned for a given tag set even if tags from that tag set are associated with stories matching the query.
+
+### Example
+
+Count stories containing the word 'obama' in The New York Times.
+
+URL: https://api.mediacloud.org/api/v2/stories_public/count?q=obama&fq=media_id:1
+
+```json
+{
+    "count": 6620
+}
+```
+
+Count stories containing 'africa' in the New York Times for each week from 2014-01-01 to 2014-03-01:
+
+URL: https://api.mediacloud.org/api/v2/stories_public/count?split=1&split_period=week&q=africa%20AND%20media_id%3A1%20AND%20publish_day%3A%5B2014-01-01T00%3A00%3A00Z%20TO%202014-03-01T00%3A00%3A00Z%5D
+
+```json
+{
+  "counts": [
+    {
+      "count": 25,
+      "date": "2013-12-30 00:00:00"
+    },
+    {
+      "count": 59,
+      "date": "2014-01-06 00:00:00"
+    },
+    {
+      "count": 70,
+      "date": "2014-01-13 00:00:00"
+    },
+    {
+      "count": 71,
+      "date": "2014-01-20 00:00:00"
+    },
+    {
+      "count": 80,
+      "date": "2014-01-27 00:00:00"
+    },
+    {
+      "count": 57,
+      "date": "2014-02-03 00:00:00"
+    },
+    {
+      "count": 54,
+      "date": "2014-02-10 00:00:00"
+    },
+    {
+      "count": 45,
+      "date": "2014-02-17 00:00:00"
+    },
+    {
+      "count": 44,
+      "date": "2014-02-24 00:00:00"
+    }
+  ]
+}
+```
+
 ## api/v2/stories_public/word_matrix
 
 ### Query Parameters
@@ -824,74 +898,11 @@ navigational snippets wrongly included in the extracted text by the extractor al
 
 ## api/v2/sentences/count
 
-This call has been removed.  Consider using `api/v2/stories/count` instead.
+This call has been removed.  Consider using `api/v2/stories_public/count` instead.
 
 ## api/v2/sentences/field\_count
 
-Returns the number of times a given field is associated with a given sentence.  Supported fields
-are currently `tags_id_stories`.
-
-### Query Parameters
-
-| Parameter       | Default           | Notes
-| --------------- | ----------------- | ----------------------------------------------------------------
-| `q`             | n/a               | `q` ("query") parameter which is passed directly to Solr
-| `fq`            | `null`            | `fq` ("filter query") parameter which is passed directly to Solr
-| `sample_size`   | 1000              | number of sentences to sample, max 100,000
-| `include_stats` | 0                 | include stats about the request as a whole
-| `field`         | `tags_id_stories` | field to count
-| `tag_sets_id`   | `null`            | return only tags belonging to the given tag set
-
-See above /api/v2/stories_public/list for Solr query syntax.
-
-If the field is set to `tags_id_stories`, the call returns all of the tags associated with
-story including a sentence matching the query along with a count of how many times each tag is associated with
-each matching story.
-
-To provide quick results, the API counts field values in a randomly sampled set of sentences returned
-by the given query.  By default, the request will sample 1000 sentences.  You can make the API sample
-more sentences (up to 100,000) at the cost of increased time.
-
-Setting the 'stats' field to true changes includes the following fields in the response:
-
-| Field                        | Description
-| ---------------------------- | -------------------------------------------------------------------
-| num_sentences_returned       | The number of sentences returned by the call, up to sample_size
-| num_sentences_found          | The total number of sentences found by Solr to match the query
-| sample_size_param            | The sample size passed into the call, or the default value
-
-### Example
-
-Gets the tag counts for all sentences containing the word `'obama'` in The New York Times
-
-URL: https://api.mediacloud.org/api/v2/sentences/field_count?q=obama+AND+media_id:1
-
-```json
-[
-    {
-        "count": "68",
-        "tag_sets_id": 1011,
-        "label": null,
-        "tag": "geonames_2306104",
-        "tags_id": 8881223
-    },
-    {
-        "count": "39",
-        "tag_sets_id": 1011,
-        "label": null,
-        "tag": "geonames_2300660",
-        "tags_id": 8879465
-    },
-    {
-        "count": "5",
-        "tag_sets_id": 1011,
-        "label": null,
-        "tag": "geonames_6252001",
-        "tags_id": 8878461
-    }
-]
-```
-
+This call has been removed.  Consider using `api/v2/stories_public/tag_count` instead.
 
 # Word Counting
 
