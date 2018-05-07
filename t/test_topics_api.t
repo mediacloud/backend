@@ -537,15 +537,9 @@ SQL
     }
 
     {
-        my $start_date = substr( $topic->{ start_date }, 0, 10 );
-        my $end_date   = substr( $topic->{ end_date },   0, 10 );
-        my $r          = test_get( "/api/v2/topics/$topic->{ topics_id }/stories/count",
-            { split => 1, split_start_date => $start_date, split_end_date => $end_date } );
+        my $r = test_get( "/api/v2/topics/$topic->{ topics_id }/stories/count" );
 
         is( $r->{ count }, $expected_count, "topics/stories/count split count" );
-        ok( $r->{ split }, "topics/stories/count split" );
-        is( substr( $r->{ split }->{ start }, 0, 10 ), $start_date, "topics/stories/count split start" );
-        is( substr( $r->{ split }->{ end },   0, 10 ), $end_date,   "topics/stories/count split end" );
     }
 }
 
