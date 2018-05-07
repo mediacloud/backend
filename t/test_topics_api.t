@@ -250,18 +250,19 @@ sub test_topics_crud($)
     my $tags_ids  = $db->query( "select tags_id from tags limit 5" )->flat;
 
     my $input = {
-        name            => "$label name ",
-        description     => "$label description",
-        solr_seed_query => "$label query",
-        max_iterations  => 12,
-        start_date      => '2016-01-01',
-        end_date        => '2017-01-01',
-        is_public       => 1,
-        is_logogram     => 1,
-        ch_monitor_id   => 123456,
-        media_ids       => $media_ids,
-        media_tags_ids  => $tags_ids,
-        max_stories     => 1234,
+        name                 => "$label name ",
+        description          => "$label description",
+        solr_seed_query      => "$label query",
+        max_iterations       => 12,
+        start_date           => '2016-01-01',
+        end_date             => '2017-01-01',
+        is_public            => 1,
+        is_logogram          => 1,
+        is_story_index_ready => 1,
+        ch_monitor_id        => 123456,
+        media_ids            => $media_ids,
+        media_tags_ids       => $tags_ids,
+        max_stories          => 1234,
     };
 
     my $r = test_post( '/api/v2/topics/create', $input );
@@ -292,18 +293,19 @@ sub test_topics_crud($)
     pop( @{ $update_tags_ids } );
 
     my $update = {
-        name            => "$label name update",
-        description     => "$label description update",
-        solr_seed_query => "$label query update",
-        max_iterations  => 22,
-        start_date      => '2016-01-02',
-        end_date        => '2017-01-02',
-        is_public       => 0,
-        is_logogram     => 0,
-        ch_monitor_id   => 1234567,
-        media_ids       => $update_media_ids,
-        media_tags_ids  => $update_tags_ids,
-        max_stories     => 2345
+        name                 => "$label name update",
+        description          => "$label description update",
+        solr_seed_query      => "$label query update",
+        max_iterations       => 22,
+        start_date           => '2016-01-02',
+        end_date             => '2017-01-02',
+        is_public            => 0,
+        is_logogram          => 0,
+        is_story_index_ready => 0,
+        ch_monitor_id        => 1234567,
+        media_ids            => $update_media_ids,
+        media_tags_ids       => $update_tags_ids,
+        max_stories          => 2345
     };
 
     $label = 'update topic';
@@ -363,7 +365,7 @@ sub test_topics_list($)
 
     my $match_fields = [
         qw/name pattern solr_seed_query solr_seed_query_run description max_iterations start_date end_date state
-          message job_queue max_stories is_logogram/
+          message job_queue max_stories is_logogram is_story_index_ready/
     ];
 
     my $topic_private_a = MediaWords::Test::DB::create_test_topic( $db, "label private a" );

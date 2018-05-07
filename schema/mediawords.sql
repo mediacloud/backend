@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4657;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4658;
 
 BEGIN
 
@@ -1276,7 +1276,10 @@ create table topics (
     max_stories             int not null,
 
     -- id of a twitter topic to use to generate snapshot twitter counts
-    twitter_topics_id int null references topics on delete set null
+    twitter_topics_id int null references topics on delete set null,
+
+    -- if false, we should refuse to spider this topic because the use has not confirmed the new story query syntax
+    is_story_index_ready     boolean not null default true
 
 );
 
