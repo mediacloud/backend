@@ -303,14 +303,17 @@ sub field_count_GET
 {
     my ( $self, $c ) = @_;
 
-    if ( $c->req->params->{ sample_size } && ( $c->req->params->{ sample_size } > 100_000 ) )
-    {
-        $c->req->params->{ sample_size } = 100_000;
-    }
+    my $db     = $c->dbis;
+    my $params = $c->req->params;
 
-    my $fc = MediaWords::Solr::SentenceFieldCounts->new( { db => $c->dbis, cgi_params => $c->req->params } );
-
-    my $counts = $fc->get_counts;
+    my $counts = MediaWords::Solr::SentenceFieldCounts::get_counts(
+        $db,                           #
+        $params->{ q },                #
+        $params->{ fq },               #
+        $params->{ sample_size },      #
+        $params->{ tag_sets_id },      #
+        $params->{ include_stats },    #
+    );
 
     $self->status_ok( $c, entity => $counts );
 }
