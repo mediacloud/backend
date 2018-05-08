@@ -766,66 +766,57 @@ URL: https://api.mediacloud.org/api/v2/stories_public/count?split=1&split_period
 
 The q and fq parameters are passed directly through to Solr (see description of q and fq parameters in api/v2/stories_public/list section above).
 
-The call returns list of the tags most commonly associated with stories that match the given query.  The limit parameter 
+The call returns list of the tags most commonly associated with stories that match the given query.  The limit parameter
 s applied before the tag_sets_id parameter, so fewer than limit (or zero) results may be returned for a given tag set even if tags from that tag set are associated with stories matching the query.
 
 ### Example
 
-Count stories containing the word 'obama' in The New York Times.
+Count tags in stories containing the word 'obama' in The New York Times.
 
-URL: https://api.mediacloud.org/api/v2/stories_public/count?q=obama&fq=media_id:1
-
-```json
-{
-    "count": 6620
-}
-```
-
-Count stories containing 'africa' in the New York Times for each week from 2014-01-01 to 2014-03-01:
-
-URL: https://api.mediacloud.org/api/v2/stories_public/count?split=1&split_period=week&q=africa%20AND%20media_id%3A1%20AND%20publish_day%3A%5B2014-01-01T00%3A00%3A00Z%20TO%202014-03-01T00%3A00%3A00Z%5D
+URL: https://api.mediacloud.org/api/v2/stories_public/tag_count?q=obama&fq=media_id:1&limit=3
 
 ```json
-{
-  "counts": [
-    {
-      "count": 25,
-      "date": "2013-12-30 00:00:00"
-    },
-    {
-      "count": 59,
-      "date": "2014-01-06 00:00:00"
-    },
-    {
-      "count": 70,
-      "date": "2014-01-13 00:00:00"
-    },
-    {
-      "count": 71,
-      "date": "2014-01-20 00:00:00"
-    },
-    {
-      "count": 80,
-      "date": "2014-01-27 00:00:00"
-    },
-    {
-      "count": 57,
-      "date": "2014-02-03 00:00:00"
-    },
-    {
-      "count": 54,
-      "date": "2014-02-10 00:00:00"
-    },
-    {
-      "count": 45,
-      "date": "2014-02-17 00:00:00"
-    },
-    {
-      "count": 44,
-      "date": "2014-02-24 00:00:00"
-    }
-  ]
-}
+[
+ {
+    "count": 20240,
+    "description": "politics and government",
+    "is_static": false,
+    "label": "politics and government",
+    "show_on_media": null,
+    "show_on_stories": null,
+    "tag": "politics and government",
+    "tag_set_label": "nyt_labels",
+    "tag_set_name": "nyt_labels",
+    "tag_sets_id": 1963,
+    "tags_id": 9360836
+  },
+  {
+    "count": 17491,
+    "description": "Obama",
+    "is_static": false,
+    "label": "Obama",
+    "show_on_media": null,
+    "show_on_stories": null,
+    "tag": "Obama",
+    "tag_set_label": "cliff_people",
+    "tag_set_name": "cliff_people",
+    "tag_sets_id": 2389,
+    "tags_id": 9362721
+  },
+  {
+    "count": 15904,
+    "description": "united states politics and government",
+    "is_static": false,
+    "label": "united states politics and government",
+    "show_on_media": null,
+    "show_on_stories": null,
+    "tag": "united states politics and government",
+    "tag_set_label": "nyt_labels",
+    "tag_set_name": "nyt_labels",
+    "tag_sets_id": 1963,
+    "tags_id": 9360846
+  } 
+]
 ```
 
 ## api/v2/stories_public/word_matrix
