@@ -102,7 +102,7 @@
       shell: "ps -ax | grep -s perl | grep -s mediawords_crawl.pl | grep -sv grep | awk '{ print $1 }'"
       register: crawler_pids
       failed_when: >
-        crawler_pids | failed or
+        crawler_pids is failed or
         crawler_pids.stdout_lines | count > 0
       changed_when: false
       when: "'core_services' in group_names"  # only for hosts in 'core_services' group
@@ -204,7 +204,7 @@
       command: "{{ mediacloud_root }}/supervisor/supervisorctl.sh status"
       register: supervisorctl_status
       failed_when: >
-        supervisorctl_status | failed or
+        supervisorctl_status is failed or
         'BACKOFF' in supervisorctl_status.stdout or
         'EXITED' in supervisorctl_status.stdout or
         'FATAL' in supervisorctl_status.stdout or
