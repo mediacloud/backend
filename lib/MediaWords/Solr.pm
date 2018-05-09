@@ -234,6 +234,16 @@ SQL
     return $q;
 }
 
+# replace all "foo bar" phrases in the query with {!complexphrase inOrder=False}"foo bar"
+# sub _insert_complexphrase($)
+# {
+#     my ( $q ) = @_;
+
+#     $q =~ s/("[^"]*")/{!complexphrase inOrder=false}$1/g;
+
+#     return $q;
+# }
+
 =head2 query_encoded_json( $db, $params, $c )
 
 Execute a query on the solr server using the given params.  Return a maximum of 1 million sentences.
@@ -270,9 +280,6 @@ sub query_encoded_json($$;$)
     $params->{ rows } //= 1000;
     $params->{ df }   //= 'text';
 
-    # allow wildcards in phrase and proximity searches
-    $params->{ defType } = 'complexphrase';
-
     # convert fq: parameters into ANDed q: clauses because fq: clauses can cause our solr cluster to oom
     if ( my $all_q = $params->{ fq } )
     {
@@ -292,6 +299,8 @@ sub query_encoded_json($$;$)
 
     $params->{ q } = MediaWords::Solr::PseudoQueries::transform_query( $params->{ q } );
     $params->{ q } = _insert_collection_media_ids( $db, $params->{ q } );
+
+    #$params->{ q } = _insert_complexphrase( $params->{ q } );
 
     # $params->{ fq } = MediaWords::Solr::PseudoQueries::transform_query( $params->{ fq } );
 
@@ -398,6 +407,8 @@ sub query($$;$)
 
     my $json = query_encoded_json( $db, $params, $c );
 
+    TRACE( "solr json: $json" );
+
     my $data;
     eval { $data = MediaWords::Util::JSON::decode_json( $json ) };
     if ( $@ )
@@ -432,9 +443,9 @@ sub query_matching_sentences($$)
 
     die( "too many stories (limit is 1,000,000)" ) if ( scalar( @{ $stories_ids } ) > 1_000_000 );
 
-    my $ids_table = $db->get_temporary_ids_table( $stories_ids );
+    my $stories_ids_list = join( ',', @{ $stories_ids } );
 
-    my $re_clause = '';
+    my $re_clause = 'true';
 
     my $re = eval { '(?isx)' . MediaWords::Solr::Query::parse( $params->{ q } )->inclusive_re() };
     if ( $@ )
@@ -446,7 +457,7 @@ sub query_matching_sentences($$)
     }
     else
     {
-        $re_clause = "and sentence ~ " . $db->quote( $re );
+        $re_clause = "sentence ~ " . $db->quote( $re );
     }
 
     my $story_sentences = $db->query( <<SQL )->hashes;
@@ -464,8 +475,8 @@ select
         story_sentences ss
         join stories s using ( stories_id )
     where
-        ss.stories_id in ( select id from $ids_table )
-        $re_clause
+        $re_clause and
+        ss.stories_id in ( $stories_ids_list )
     order by stories_id, sentence_number
 SQL
 
