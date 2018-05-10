@@ -7,9 +7,11 @@ use warnings;
 use base 'Catalyst::Controller';
 
 use Date::Calc;
+use Encode;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
 use namespace::autoclean;
+use JSON::PP;
 use List::Compare;
 
 use MediaWords::Solr;
@@ -156,9 +158,19 @@ sub list_GET
 
     my $sentences = MediaWords::Solr::query_matching_sentences( $c->dbis, $params );
 
+    # stories are random but sentences are in stories_id, sentence_number order
+    if ( $sort && ( $sort eq 'random' ) )
+    {
+        $sentences = [ List::Util::shuffle( @{ $sentences } ) ];
+    }
+
     MediaWords::Util::JSON::numify_fields( $sentences, [ qw/stories_id story_sentences_id/ ] );
 
-    $self->status_ok( $c, entity => $sentences );
+    #this uses inline python json, which is very slow for large objects
+    #$self->status_ok( $c, entity => $sentences );
+    #
+    $c->response->content_type( 'application/json; charset=UTF-8' );
+    $c->response->body( encode_utf8( JSON::PP::encode_json( $sentences ) ) );
 }
 
 sub count : Local : ActionClass('MC_REST')
