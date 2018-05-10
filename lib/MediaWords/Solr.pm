@@ -407,8 +407,6 @@ sub query($$;$)
 
     my $json = query_encoded_json( $db, $params, $c );
 
-    TRACE( "solr json: $json" );
-
     my $data;
     eval { $data = MediaWords::Util::JSON::decode_json( $json ) };
     if ( $@ )
@@ -469,7 +467,6 @@ select
         ss.stories_id,
         ss.story_sentences_id,
         ss.language,
-        ss.is_dup,
         s.language story_language
     from
         story_sentences ss

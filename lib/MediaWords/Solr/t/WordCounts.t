@@ -31,14 +31,17 @@ sub test_count_stems
             'sentence' =>
               'La Revolución mexicana fue un conflicto armado que se inició en México el 20 de noviembre de 1910.',
             'story_language' => 'es',
+            'language'       => 'es',
         },
         {
             'sentence'       => 'Kris Jenner, Caitlyn Jenner, Kourtney Kardashian, Kim Kardashian, Kim Kardashian again',
             'story_language' => 'en',
+            'language'       => 'en',
         },
         {
             'sentence'       => 'Khloé Kardashian, Rob Kardashian, Kendall Jenner, Kylie Jenner',
             'story_language' => 'en',
+            'language'       => 'en',
         }
     ];
 
