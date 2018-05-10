@@ -192,23 +192,7 @@ sub field_count_GET
 {
     my ( $self, $c ) = @_;
 
-<<<<<<< HEAD
     die( "The sentences/field_count call has been removed. Use stories/tag_count or sentences/list instead." );
-=======
-    my $db     = $c->dbis;
-    my $params = $c->req->params;
-
-    my $counts = MediaWords::Solr::SentenceFieldCounts::get_counts(
-        $db,                           #
-        $params->{ q },                #
-        $params->{ fq },               #
-        $params->{ sample_size },      #
-        $params->{ tag_sets_id },      #
-        $params->{ include_stats },    #
-    );
-
-    $self->status_ok( $c, entity => $counts );
->>>>>>> master
 }
 
 # override
