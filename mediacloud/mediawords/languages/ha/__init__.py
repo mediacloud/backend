@@ -34,15 +34,17 @@ class HausaLanguage(SpaceSeparatedWordsMixIn, StopWordsFromFileMixIn):
                 stem = word
             else:
 
-                stem = None
                 try:
-                    stem = hausastemmer.stem(word)
-                except Exception as ex:
-                    # Stemmer fails at certain words
-                    log.warning("Unable to stem word '{}': {}".format(word, str(ex)))
 
-                if stem is None or len(stem) == 0:
-                    log.debug("Unable to stem word '%s'" % word)
+                    # Stemmer might raise an exception
+                    stem = hausastemmer.stem(word)
+
+                    # ...or it might return an empty string / None
+                    if stem is None or len(stem) == 0:
+                        raise Exception("Stem is empty.")
+
+                except Exception as ex:
+                    log.warning("Unable to stem word '{}': {}".format(word, str(ex)))
                     stem = word
 
             stems.append(stem)
