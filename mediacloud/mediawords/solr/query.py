@@ -257,6 +257,9 @@ class TermNode(ParseNode):
         if self.phrase:
             term = shlex.split(term)[0]
 
+            # ignore wildcards, since the regex ignores the end of the word anyway
+            term = re.sub(re.escape(WILD_PLACEHOLDER), '', term)
+
             # should already be lower case, but make sure
             term = term.lower()
 
@@ -279,6 +282,8 @@ class TermNode(ParseNode):
                 # generate the and regex permutations. we are just ignoring the actual proximity here for simplicity.
                 words = term.split(space_place_holder)
                 return AndNode(list(map(lambda x: TermNode(x), words))).get_re()
+        elif term == '':
+            return '.*'
         else:
             # escape special characters.  re.escape() escapes everything that is not
             # ascii alnum, which confuses the postgres reg ex engine
@@ -681,8 +686,10 @@ def __get_tokens(query: str) -> List[Token]:
             return TokenType.PROXIMITY
         elif token == '/':
             raise McSolrQueryParseSyntaxException("regular expression searches not supported")
+        elif token == WILD_PLACEHOLDER:
+            return TokenType.TERM
         elif (WILD_PLACEHOLDER in token) and not re.match(r'^\w+' + WILD_PLACEHOLDER + '$', token):
-            raise McSolrQueryParseSyntaxException("* can only appear the end of a term: " + token)
+            raise McSolrQueryParseSyntaxException("* can only appear by itself or at the end of a term: " + token)
         elif token == NOOP_PLACEHOLDER:
             return TokenType.NOOP
         elif token.endswith(FIELD_PLACEHOLDER):

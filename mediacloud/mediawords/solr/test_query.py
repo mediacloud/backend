@@ -27,9 +27,12 @@ def test_tsquery():
 
         assert __normalize_tsquery(got_tsquery) == __normalize_tsquery(expected_tsquery)
 
-    for query in ('and', '( foo bar )*', '*', '*foo'):
-        with pytest.raises(McSolrQueryParseSyntaxException):
-            parse(query)
+    # for query in ('and', '( foo bar )*', '*foo'):
+    with pytest.raises(McSolrQueryParseSyntaxException):
+        parse('and')
+
+    with pytest.raises(McSolrQueryParseSyntaxException):
+        parse('*foo')
 
     with pytest.raises(McSolrEmptyQueryException):
         parse(solr_query="media_id:1").tsquery()
@@ -273,7 +276,14 @@ def test_re():
     __validate_re('( foo bar )', '(?: [[:<:]]foo | [[:<:]]bar )')
     __validate_re('( 1 or 2 or 3 or 4 )', '(?: [[:<:]]1 | [[:<:]]2 | [[:<:]]3 | [[:<:]]4 )')
 
-    # proximity as and query
+    # wildcard
+    __validate_re('foo*', '[[:<:]]foo')
+    __validate_re('*', '.*')
+    __validate_re(
+        '"foo bar*"~10',
+        '(?: (?: [[:<:]]foo .* [[:<:]]bar ) | (?: [[:<:]]bar .* [[:<:]]foo ) )')
+
+    # proximity query
     __validate_re('"foo bar"~5', '(?: (?: [[:<:]]foo .* [[:<:]]bar ) | (?: [[:<:]]bar .* [[:<:]]foo ) )')
 
     # more complex boolean
