@@ -22,7 +22,7 @@ use MediaWords::CommonLibs;
 
 import_python_module( __PACKAGE__, 'mediawords.tm.mine' );
 
-use Carp::Always;
+use Carp;
 use Data::Dumper;
 use DateTime;
 use Digest::MD5;
