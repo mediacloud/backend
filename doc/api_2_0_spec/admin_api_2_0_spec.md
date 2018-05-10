@@ -324,7 +324,9 @@ This call first fetches matching stories from solr and then returns all sentence
 match any of the keywords in the solr query.
 
 Other than 'sort', these parameters are passed directly through to Solr (see above).  The sort parameter must be
-one of the listed above and determines the order of the sentences returned.
+one of the listed above and determines the order of the sentences returned. The rows parameter determines the number
+of stories from which the stories are pulled, so the number of sentences returned should always be more than the
+rows parameter.
 
 ### Example
 
