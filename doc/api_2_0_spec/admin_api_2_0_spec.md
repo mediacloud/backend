@@ -320,6 +320,9 @@ navigational snippets wrongly included in the extracted text by the extractor al
 
 --------------------------------------------------------------------------------------------------------
 
+This call first fetches matching stories from solr and then returns all sentences belonging to those stories that
+match any of the keywords in the solr query.
+
 Other than 'sort', these parameters are passed directly through to Solr (see above).  The sort parameter must be
 one of the listed above and determines the order of the sentences returned.
 
