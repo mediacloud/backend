@@ -32,6 +32,7 @@ use MediaWords::Util::Config;
 use MediaWords::Util::IdentifyLanguage;
 use MediaWords::Util::JSON;
 use MediaWords::Util::Text;
+use MediaWords::Test::DB;
 
 # Max. length of the sentence to tokenize
 Readonly my $MAX_SENTENCE_LENGTH => 1024;
@@ -318,10 +319,7 @@ sub _get_words_from_solr_server($)
     DEBUG( "executing solr query ..." );
     DEBUG Dumper( $solr_params );
 
-    my $story_sentences = MediaWords::Solr::query_matching_sentences( $self->db, $solr_params );
-
-    $story_sentences = [ List::Util::shuffle( @{ $story_sentences } ) ];
-    splice( @{ $story_sentences }, $self->sample_size );
+    my $story_sentences = MediaWords::Solr::query_matching_sentences( $self->db, $solr_params, $self->sample_size );
 
     DEBUG( "counting sentences..." );
     my $words = $self->count_stems( $story_sentences );
@@ -476,7 +474,9 @@ sub get_words
 {
     my ( $self ) = @_;
 
-    my $words = $self->_get_cached_words;
+    my $words;
+
+    $words = $self->_get_cached_words unless ( MediaWords::Test::DB::using_test_database() );
 
     if ( $words )
     {

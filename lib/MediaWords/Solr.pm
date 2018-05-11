@@ -445,15 +445,18 @@ the the inclusive regex translation of the solr query.  The inclusive regex is t
 the solr boolean query into a flat list of ORs, so  [ ( foo and bar ) or baz ] would get translated first into
 [ foo or bar or baz ] and then into a regex.
 
-Order the sentences in the same order as the list of stories_ids returned by solr.
+Order the sentences in the same order as the list of stories_ids returned by solr unless $random_limit is specified.
+If $random_limit is specified, return at most $random_limit stories, randomly sorted.
 
 =cut
 
-sub query_matching_sentences($$)
+sub query_matching_sentences($$;$)
 {
-    my ( $db, $params ) = @_;
+    my ( $db, $params, $random_limit ) = @_;
 
     my $stories_ids = search_for_stories_ids( $db, $params );
+
+    return [] unless ( @{ $stories_ids } );
 
     die( "too many stories (limit is 1,000,000)" ) if ( scalar( @{ $stories_ids } ) > 1_000_000 );
 
@@ -474,6 +477,8 @@ sub query_matching_sentences($$)
         $re_clause = "sentence ~ " . $db->quote( $re );
     }
 
+    my $order_limit = $random_limit ? "order by random() limit $random_limit" : 'order by sentence_number';
+
     my $story_sentences = $db->query( <<SQL )->hashes;
 select
         ss.sentence,
@@ -490,10 +495,10 @@ select
     where
         $re_clause and
         ss.stories_id in ( $stories_ids_list )
-    order by sentence_number
+   $order_limit 
 SQL
 
-    return _order_sentences_by_stories_ids( $stories_ids, $story_sentences );
+    return $random_limit ? $story_sentences : _order_sentences_by_stories_ids( $stories_ids, $story_sentences );
 }
 
 # given a list of array refs, each of which points to a list
