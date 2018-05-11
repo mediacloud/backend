@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4662;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4663;
 
 BEGIN
 
@@ -135,11 +135,26 @@ $$
 LANGUAGE 'plpgsql';
 
 
+-- Update "db_row_last_updated" column to trigger Solr (re)imports for given
+-- row; no update gets done if "db_row_last_updated" is set explicitly in
+-- INSERT / UPDATE (e.g. when copying between tables)
 CREATE OR REPLACE FUNCTION last_updated_trigger() RETURNS trigger AS $$
 
 BEGIN
-    NEW.db_row_last_updated = NOW();
+
+    IF TG_OP = 'INSERT' THEN
+        IF NEW.db_row_last_updated IS NULL THEN
+            NEW.db_row_last_updated = NOW();
+        END IF;
+
+    ELSIF TG_OP = 'UPDATE' THEN
+        IF NEW.db_row_last_updated = OLD.db_row_last_updated THEN
+            NEW.db_row_last_updated = NOW();
+        END IF;
+    END IF;
+
     RETURN NEW;
+
 END;
 
 $$ LANGUAGE 'plpgsql';
