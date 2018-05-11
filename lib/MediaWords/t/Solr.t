@@ -229,7 +229,7 @@ SQL
         my $query              = "$first_word* and stories_id:$story->{ stories_id }";
         my $got_sentences      = MediaWords::Solr::query_matching_sentences( $db, { q => $query } );
 
-        my $fields = [ qw/stories_id sentence_number sentence media_id publish_date language is_dup/ ];
+        my $fields = [ qw/stories_id sentence_number sentence media_id publish_date language/ ];
         rows_match( 'query_matching_sentences', $got_sentences, $expected_sentences, 'story_sentences_id', $fields );
     }
 
@@ -242,7 +242,7 @@ SQL
         my $query = "stories_id:$story->{ stories_id }";
         my $got_sentences = MediaWords::Solr::query_matching_sentences( $db, { q => $query } );
 
-        my $fields = [ qw/stories_id sentence_number sentence media_id publish_date language is_dup/ ];
+        my $fields = [ qw/stories_id sentence_number sentence media_id publish_date language/ ];
         rows_match( 'query_matching_sentences empty regex', $got_sentences, $story_sentences, 'story_sentences_id',
             $fields );
     }
