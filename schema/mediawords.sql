@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4659;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4660;
 
 BEGIN
 
@@ -1099,7 +1099,7 @@ SELECT stories_tags_map_create_partitions();
 
 
 -- Upsert row into correct partition
-CREATE OR REPLACE FUNCTION stories_tags_map_partition_by_stories_id_insert_trigger()
+CREATE OR REPLACE FUNCTION stories_tags_map_partition_upsert_trigger()
 RETURNS TRIGGER AS $$
 DECLARE
     target_table_name TEXT;       -- partition table name (e.g. "stories_tags_map_01")
@@ -1115,9 +1115,9 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER stories_tags_map_partition_by_stories_id_insert_trigger
+CREATE TRIGGER stories_tags_map_partition_upsert_trigger
     BEFORE INSERT ON stories_tags_map
-    FOR EACH ROW EXECUTE PROCEDURE stories_tags_map_partition_by_stories_id_insert_trigger();
+    FOR EACH ROW EXECUTE PROCEDURE stories_tags_map_partition_upsert_trigger();
 
 
 
