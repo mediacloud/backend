@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4660;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4661;
 
 BEGIN
 
@@ -137,9 +137,6 @@ LANGUAGE 'plpgsql';
 
 CREATE OR REPLACE FUNCTION last_updated_trigger() RETURNS trigger AS $$
 
-DECLARE
-    path_change boolean;
-
 BEGIN
     IF (TG_OP = 'UPDATE') OR (TG_OP = 'INSERT') then
         NEW.db_row_last_updated = NOW();
@@ -152,9 +149,6 @@ $$ LANGUAGE 'plpgsql';
 
 
 CREATE OR REPLACE FUNCTION update_story_sentences_updated_time_trigger() RETURNS trigger AS $$
-
-DECLARE
-    path_change boolean;
 
 BEGIN
     UPDATE story_sentences
@@ -171,7 +165,6 @@ $$ LANGUAGE 'plpgsql';
 CREATE OR REPLACE FUNCTION update_stories_updated_time_by_stories_id_trigger() RETURNS trigger AS $$
 
 DECLARE
-    path_change boolean;
     reference_stories_id integer default null;
 
 BEGIN
