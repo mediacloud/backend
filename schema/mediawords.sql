@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4661;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4662;
 
 BEGIN
 
@@ -138,10 +138,7 @@ LANGUAGE 'plpgsql';
 CREATE OR REPLACE FUNCTION last_updated_trigger() RETURNS trigger AS $$
 
 BEGIN
-    IF (TG_OP = 'UPDATE') OR (TG_OP = 'INSERT') then
-        NEW.db_row_last_updated = NOW();
-    END IF;
-
+    NEW.db_row_last_updated = NOW();
     RETURN NEW;
 END;
 
@@ -735,12 +732,14 @@ create index stories_title_hash on stories( md5( title ) );
 create index stories_publish_day on stories( date_trunc( 'day', publish_date ) );
 
 DROP TRIGGER IF EXISTS stories_last_updated_trigger on stories CASCADE;
-CREATE TRIGGER stories_last_updated_trigger BEFORE INSERT OR UPDATE ON stories FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
-DROP TRIGGER IF EXISTS stories_update_story_sentences_last_updated_trigger on stories CASCADE;
+CREATE TRIGGER stories_last_updated_trigger
+    BEFORE INSERT OR UPDATE ON stories
+    FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger();
 
+DROP TRIGGER IF EXISTS stories_update_story_sentences_last_updated_trigger on stories CASCADE;
 CREATE TRIGGER stories_update_story_sentences_last_updated_trigger
     AFTER INSERT OR UPDATE ON stories
-    FOR EACH ROW EXECUTE PROCEDURE update_story_sentences_updated_time_trigger() ;
+    FOR EACH ROW EXECUTE PROCEDURE update_story_sentences_updated_time_trigger();
 
 create table stories_ap_syndicated (
     stories_ap_syndicated_id    serial primary key,
@@ -1159,10 +1158,9 @@ CREATE INDEX story_sentences_sentence_half_md5
     ON story_sentences (half_md5(sentence));
 
 DROP TRIGGER IF EXISTS story_sentences_last_updated_trigger on story_sentences CASCADE;
-
 CREATE TRIGGER story_sentences_last_updated_trigger
     BEFORE INSERT OR UPDATE ON story_sentences
-    FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
+    FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger();
 
 -- update media stats table for new story. create the media / day row if needed.
 CREATE OR REPLACE FUNCTION insert_story_media_stats() RETURNS trigger AS $$
