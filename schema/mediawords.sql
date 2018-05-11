@@ -1149,10 +1149,10 @@ ALTER TABLE download_texts add CONSTRAINT download_text_length_is_correct CHECK 
 
 create table story_sentences (
        story_sentences_id           bigserial       primary key,
-       stories_id                   int             not null, -- references stories on delete cascade,
+       stories_id                   int             not null references stories (stories_id) on delete cascade,
        sentence_number              int             not null,
        sentence                     text            not null,
-       media_id                     int             not null, -- references media on delete cascade,
+       media_id                     int             not null references media (media_id) on delete cascade,
        publish_date                 timestamp       not null,
        db_row_last_updated          timestamp with time zone, -- time this row was last updated
        language                     varchar(3)      null,      -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
@@ -1160,18 +1160,10 @@ create table story_sentences (
 );
 
 create index story_sentences_story on story_sentences (stories_id, sentence_number);
-create index story_sentences_db_row_last_updated    on story_sentences( db_row_last_updated );
+create index story_sentences_db_row_last_updated on story_sentences( db_row_last_updated );
 
 CREATE INDEX story_sentences_sentence_half_md5
     ON story_sentences (half_md5(sentence));
-
-ALTER TABLE story_sentences
-    ADD CONSTRAINT story_sentences_media_id_fkey
-        FOREIGN KEY (media_id) REFERENCES media(media_id) ON DELETE CASCADE;
-
-ALTER TABLE story_sentences
-    ADD CONSTRAINT story_sentences_stories_id_fkey
-        FOREIGN KEY (stories_id) REFERENCES stories(stories_id) ON DELETE CASCADE;
 
 DROP TRIGGER IF EXISTS story_sentences_last_updated_trigger on story_sentences CASCADE;
 
