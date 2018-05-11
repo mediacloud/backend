@@ -118,6 +118,7 @@ supervisor:
 
         # other configurable supervisor programs
         #create_missing_partitions
+        #copy_chunk_of_nonpartitioned_sentences_to_partitions
         #purge_object_caches
         #facebook_fetch_story_stats
         #rabbitmq
