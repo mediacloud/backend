@@ -1241,7 +1241,7 @@ BEGIN
                 ADD CONSTRAINT ' || REPLACE(partition, '.', '_') || '_media_id_fkey
                 FOREIGN KEY (media_id) REFERENCES media (media_id) MATCH FULL ON DELETE CASCADE;
 
-            CREATE INDEX ' || partition || '_stories_id_sentence_number
+            CREATE UNIQUE INDEX ' || partition || '_stories_id_sentence_number
                 ON ' || partition || ' (stories_id, sentence_number);
 
             CREATE INDEX ' || partition || '_db_row_last_updated
