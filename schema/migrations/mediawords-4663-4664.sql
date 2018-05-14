@@ -303,7 +303,7 @@ LANGUAGE plpgsql;
 -- This should help upgrade the dev environments by copying *all* sentences in
 -- small test datasets while not blocking the migration in production due to a
 -- small chunk size.
-SELECT copy_chunk_of_nonpartitioned_sentences_to_partitions(1000000);
+SELECT copy_chunk_of_nonpartitioned_sentences_to_partitions(100000);
 
 
 CREATE OR REPLACE FUNCTION create_missing_partitions() RETURNS VOID AS
