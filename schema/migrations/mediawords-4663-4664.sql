@@ -266,8 +266,10 @@ BEGIN
         )
         RETURNING story_sentences_nonpartitioned.*
     )
-    INSERT INTO story_sentences_partitioned (
-        story_sentences_partitioned_id,
+
+    -- INSERT into view to hit the partitioning trigger
+    INSERT INTO story_sentences (
+        story_sentences_id,
         stories_id,
         sentence_number,
         sentence,
