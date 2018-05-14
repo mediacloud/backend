@@ -274,8 +274,8 @@ BEGIN
 
     WITH rows_to_move AS (
         DELETE FROM story_sentences_nonpartitioned
-        WHERE ctid IN (
-            SELECT ctid
+        WHERE story_sentences_nonpartitioned_id IN (
+            SELECT story_sentences_nonpartitioned_id
             FROM story_sentences_nonpartitioned
             LIMIT chunk_size
         )
