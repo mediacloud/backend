@@ -18,6 +18,12 @@
 SET search_path = public, pg_catalog;
 
 
+-- Kill all autovacuums before proceeding with DDL changes
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker';
+
+
 DROP TRIGGER stories_last_updated_trigger ON stories;
 DROP TRIGGER stories_update_story_sentences_last_updated_trigger ON stories;
 DROP TRIGGER story_sentences_last_updated_trigger ON story_sentences;

@@ -18,6 +18,12 @@
 SET search_path = public, pg_catalog;
 
 
+-- Kill all autovacuums before proceeding with DDL changes
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker';
+
+
 ALTER TABLE story_sentences
     RENAME TO story_sentences_nonpartitioned;
 
