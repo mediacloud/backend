@@ -1267,7 +1267,7 @@ CREATE OR REPLACE VIEW story_sentences AS
 
     -- The following two columns guarantee uniqueness
     SELECT DISTINCT ON (stories_id, sentence_number)
-        story_sentences_id, -- Might not be unique
+        story_sentences_id,
         stories_id,
         sentence_number,
         sentence,
@@ -1421,7 +1421,7 @@ BEGIN
         RETURNING story_sentences_nonpartitioned.*
     )
     INSERT INTO story_sentences_partitioned (
-        -- Skip the primary key
+        story_sentences_partitioned_id,
         stories_id,
         sentence_number,
         sentence,
@@ -1432,6 +1432,7 @@ BEGIN
         is_dup
     )
     SELECT
+        story_sentences_nonpartitioned_id,
         stories_id,
         sentence_number,
         sentence,

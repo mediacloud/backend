@@ -69,6 +69,14 @@ CREATE TRIGGER story_sentences_partitioned_last_updated_trigger
     FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger();
 
 
+-- Make the partitioned table continue the sequence where the non-partitioned
+-- table left off
+SELECT setval(
+    pg_get_serial_sequence('story_sentences_partitioned', 'story_sentences_partitioned_id'),
+    SELECT MAX(story_sentences_nonpartitioned_id) FROM story_sentences_nonpartitioned
+);
+
+
 -- Create missing "story_sentences_partitioned" partitions
 CREATE OR REPLACE FUNCTION story_sentences_create_partitions()
 RETURNS VOID AS
@@ -115,7 +123,7 @@ CREATE OR REPLACE VIEW story_sentences AS
 
     -- The following two columns guarantee uniqueness
     SELECT DISTINCT ON (stories_id, sentence_number)
-        story_sentences_id, -- Might not be unique
+        story_sentences_id,
         stories_id,
         sentence_number,
         sentence,
@@ -268,7 +276,7 @@ BEGIN
         RETURNING story_sentences_nonpartitioned.*
     )
     INSERT INTO story_sentences_partitioned (
-        -- Skip the primary key
+        story_sentences_partitioned_id,
         stories_id,
         sentence_number,
         sentence,
@@ -279,6 +287,7 @@ BEGIN
         is_dup
     )
     SELECT
+        story_sentences_nonpartitioned_id,
         stories_id,
         sentence_number,
         sentence,
