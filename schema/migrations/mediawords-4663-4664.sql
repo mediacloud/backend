@@ -109,7 +109,7 @@ BEGIN
             CREATE INDEX ' || partition || '_db_row_last_updated
                 ON ' || partition || ' (db_row_last_updated);
 
-            CREATE INDEX ' || partition || '_sentence_half_md5_media_id_publish_week
+            CREATE INDEX ' || partition || '_sentence_media_week
                 ON ' || partition || ' (half_md5(sentence), media_id, week_start_date(publish_date::date));
         ';
 
