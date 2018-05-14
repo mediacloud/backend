@@ -1189,7 +1189,7 @@ CREATE TRIGGER story_sentences_nonpartitioned_last_updated_trigger
 -- "Master" table (no indexes, no foreign keys as they'll be ineffective)
 CREATE TABLE story_sentences_partitioned (
     story_sentences_partitioned_id      BIGSERIAL       PRIMARY KEY NOT NULL,
-    stories_id                          BIGINT          NOT NULL,
+    stories_id                          INT             NOT NULL,
     sentence_number                     INT             NOT NULL,
     sentence                            TEXT            NOT NULL,
     media_id                            INT             NOT NULL,
