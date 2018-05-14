@@ -1305,30 +1305,20 @@ ALTER VIEW story_sentences
 
 -- Trigger that implements INSERT / UPDATE / DELETE behavior on "story_sentences" view
 CREATE OR REPLACE FUNCTION story_sentences_view_insert_update_delete() RETURNS trigger AS $$
+
+DECLARE
+    target_table_name TEXT;       -- partition table name (e.g. "story_sentences_01")
+
 BEGIN
 
     IF (TG_OP = 'INSERT') THEN
 
         -- All new INSERTs go to partitioned table only
-        INSERT INTO story_sentences_partitioned (
-            stories_id,
-            sentence_number,
-            sentence,
-            media_id,
-            publish_date,
-            db_row_last_updated,
-            language,
-            is_dup
-        ) VALUES (
-            NEW.stories_id,
-            NEW.sentence_number,
-            NEW.sentence,
-            NEW.media_id,
-            NEW.publish_date,
-            NEW.db_row_last_updated,
-            NEW.language,
-            NEW.is_dup
-        );
+        SELECT stories_partition_name( 'story_sentences_partitioned', NEW.stories_id ) INTO target_table_name;
+        EXECUTE '
+            INSERT INTO ' || target_table_name || '
+                SELECT $1.*
+            ' USING NEW;
 
         RETURN NEW;
 
