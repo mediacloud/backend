@@ -156,6 +156,13 @@ CREATE OR REPLACE VIEW story_sentences AS
     ) AS ss;
 
 
+-- Make RETURNING work with partitioned tables
+-- (https://wiki.postgresql.org/wiki/INSERT_RETURNING_vs_Partitioning)
+ALTER VIEW story_sentences
+    ALTER COLUMN story_sentences_id
+    SET DEFAULT nextval('story_sentences_partitioned_story_sentences_partitioned_id_seq') + 1;
+
+
 -- Trigger that implements INSERT / UPDATE / DELETE behavior on "story_sentences" view
 CREATE OR REPLACE FUNCTION story_sentences_view_insert_update_delete() RETURNS trigger AS $$
 BEGIN
