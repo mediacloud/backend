@@ -127,19 +127,9 @@ SELECT story_sentences_create_partitions();
 -- being migrated
 CREATE OR REPLACE VIEW story_sentences AS
 
-    -- The following two columns guarantee uniqueness
-    SELECT DISTINCT ON (stories_id, sentence_number)
-        story_sentences_id,
-        stories_id,
-        sentence_number,
-        sentence,
-        media_id,
-        publish_date,
-        db_row_last_updated,
-        language,
-        is_dup
+    SELECT *
     FROM (
-        SELECT 1,
+        SELECT
             story_sentences_partitioned_id AS story_sentences_id,
             stories_id,
             sentence_number,
@@ -153,7 +143,7 @@ CREATE OR REPLACE VIEW story_sentences AS
 
         UNION ALL
 
-        SELECT 2,
+        SELECT
             story_sentences_nonpartitioned_id AS story_sentences_id,
             stories_id,
             sentence_number,
@@ -165,8 +155,6 @@ CREATE OR REPLACE VIEW story_sentences AS
             is_dup
         FROM story_sentences_nonpartitioned
 
-        -- Try partitioned table first
-        ORDER BY 1
     ) AS ss;
 
 
