@@ -251,6 +251,12 @@ BEGIN
 
     RAISE NOTICE 'Copying % rows to the partitioned table...', chunk_size;
 
+    -- Kill all autovacuums before proceeding with DDL changes
+    PERFORM pid
+    FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+    WHERE backend_type = 'autovacuum worker'
+      AND query LIKE '%story_sentences%';
+
     WITH rows_to_move AS (
         DELETE FROM story_sentences_nonpartitioned
         WHERE story_sentences_nonpartitioned_id IN (
