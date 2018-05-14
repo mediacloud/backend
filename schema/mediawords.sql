@@ -939,7 +939,7 @@ LANGUAGE plpgsql IMMUTABLE;
 
 
 -- Return partition table name for a given base table name and "stories_id"
-CREATE OR REPLACE FUNCTION stories_partition_name(base_table_name TEXT, stories_id BIGINT)
+CREATE OR REPLACE FUNCTION stories_partition_name(base_table_name TEXT, stories_id INT)
 RETURNS TEXT AS $$
 DECLARE
 
@@ -971,8 +971,8 @@ RETURNS SETOF TEXT AS
 $$
 DECLARE
     chunk_size INT;
-    max_stories_id BIGINT;
-    partition_stories_id BIGINT;
+    max_stories_id INT;
+    partition_stories_id INT;
 
     -- Partition table name (e.g. "stories_tags_map_01")
     target_table_name TEXT;

@@ -20,7 +20,7 @@ SET search_path = public, pg_catalog;
 
 DROP FUNCTION stories_tags_map_partition_chunk_size();
 
-DROP FUNCTION stories_tags_map_get_partition_name(stories_id BIGINT, table_name TEXT);
+DROP FUNCTION stories_tags_map_get_partition_name(stories_id INT, table_name TEXT);
 
 
 CREATE OR REPLACE FUNCTION stories_partition_chunk_size() RETURNS BIGINT AS $$
@@ -29,7 +29,7 @@ BEGIN
 END; $$
 LANGUAGE plpgsql IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION stories_partition_name(base_table_name TEXT, stories_id BIGINT) RETURNS TEXT AS $$
+CREATE OR REPLACE FUNCTION stories_partition_name(base_table_name TEXT, stories_id INT) RETURNS TEXT AS $$
 DECLARE
 
     -- Up to 100 partitions, suffixed as "_00", "_01" ..., "_99"
@@ -56,8 +56,8 @@ CREATE OR REPLACE FUNCTION stories_create_partitions(base_table_name TEXT) RETUR
 $$
 DECLARE
     chunk_size INT;
-    max_stories_id BIGINT;
-    partition_stories_id BIGINT;
+    max_stories_id INT;
+    partition_stories_id INT;
 
     -- Partition table name (e.g. "stories_tags_map_01")
     target_table_name TEXT;
