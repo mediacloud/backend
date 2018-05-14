@@ -79,7 +79,7 @@ CREATE TRIGGER story_sentences_partitioned_last_updated_trigger
 -- table left off
 SELECT setval(
     pg_get_serial_sequence('story_sentences_partitioned', 'story_sentences_partitioned_id'),
-    SELECT MAX(story_sentences_nonpartitioned_id) FROM story_sentences_nonpartitioned
+    (SELECT MAX(story_sentences_nonpartitioned_id) FROM story_sentences_nonpartitioned)
 );
 
 
