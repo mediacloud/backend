@@ -1312,7 +1312,7 @@ CREATE OR REPLACE VIEW story_sentences AS
 -- (https://wiki.postgresql.org/wiki/INSERT_RETURNING_vs_Partitioning)
 ALTER VIEW story_sentences
     ALTER COLUMN story_sentences_id
-    SET DEFAULT nextval('story_sentences_partitioned_story_sentences_partitioned_id_seq') + 1;
+    SET DEFAULT nextval(pg_get_serial_sequence('story_sentences_partitioned', 'story_sentences_partitioned_id')) + 1;
 
 
 -- Trigger that implements INSERT / UPDATE / DELETE behavior on "story_sentences" view
