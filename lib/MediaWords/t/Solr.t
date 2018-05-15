@@ -199,7 +199,7 @@ SQL
         # search for stories_id range to prevent search_for_stories_id from using the stories_id_only_params shortcut
         my $expected_stories = $db->query( "select * from stories order by stories_id desc limit 10" )->hashes;
         my $min_stories_id   = $expected_stories->[ -1 ]->{ stories_id };
-        my $got_stories      = MediaWords::Solr::search_for_stories( $db, { q => "stories_id:[$min_stories_id TO *]" } );
+        my $got_stories      = MediaWords::Solr::search_for_stories( $db, { fq => "stories_id:[$min_stories_id TO *]" } );
 
         my $fields = [ qw/title publish_date url guid media_id language/ ];
         rows_match( 'search_for_stories', $got_stories, $expected_stories, 'stories_id', $fields );
@@ -230,7 +230,8 @@ SQL
         my $got_sentences      = MediaWords::Solr::query_matching_sentences( $db, { q => $query } );
 
         my $fields = [ qw/stories_id sentence_number sentence media_id publish_date language/ ];
-        rows_match( 'query_matching_sentences', $got_sentences, $expected_sentences, 'story_sentences_id', $fields );
+        rows_match( "query_matching_sentences '$first_word'",
+            $got_sentences, $expected_sentences, 'story_sentences_id', $fields );
     }
 
     {
@@ -245,6 +246,11 @@ SQL
         my $fields = [ qw/stories_id sentence_number sentence media_id publish_date language/ ];
         rows_match( 'query_matching_sentences empty regex', $got_sentences, $story_sentences, 'story_sentences_id',
             $fields );
+    }
+
+    {
+        eval { MediaWords::Solr::query( $db, { q => "publish_date:[foo TO bar]" } ) };
+        ok( $@ =~ /range queries not allowed/, "range queries not allowed: '$@'" );
     }
 }
 
