@@ -22,7 +22,7 @@ SET search_path = public, pg_catalog;
 SELECT pid
 FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
-  AND query LIKE '%story_sentences%';
+  AND query ~ 'story_sentences';
 
 
 DROP TRIGGER stories_last_updated_trigger ON stories;

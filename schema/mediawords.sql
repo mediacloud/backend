@@ -1393,7 +1393,7 @@ BEGIN
     PERFORM pid
     FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
     WHERE backend_type = 'autovacuum worker'
-      AND query LIKE '%story_sentences%';
+      AND query ~ 'story_sentences';
 
     WITH rows_to_move AS (
         DELETE FROM story_sentences_nonpartitioned
