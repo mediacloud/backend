@@ -234,16 +234,6 @@ SQL
     return $q;
 }
 
-# replace all "foo bar" phrases in the query with {!complexphrase inOrder=False}"foo bar"
-# sub _insert_complexphrase($)
-# {
-#     my ( $q ) = @_;
-
-#     $q =~ s/("[^"]*")/{!complexphrase inOrder=false}$1/g;
-
-#     return $q;
-# }
-
 =head2 query_encoded_json( $db, $params, $c )
 
 Execute a query on the solr server using the given params.  Return a maximum of 1 million sentences.
@@ -280,29 +270,23 @@ sub query_encoded_json($$;$)
     $params->{ rows } //= 1000;
     $params->{ df }   //= 'text';
 
-    # convert fq: parameters into ANDed q: clauses because fq: clauses can cause our solr cluster to oom
-    if ( my $all_q = $params->{ fq } )
+    $params->{ rows } = List::Util::min( $params->{ rows }, 10_000_000 );
+
+    $params->{ q } //= '';
+
+    if ( $params->{ q } =~ /\:\[/ )
     {
-        $all_q = [ $all_q ] unless ( ref( $all_q ) );
-        push( @{ $all_q }, $params->{ q } ) if ( $params->{ q } && ( $params->{ q } !~ /\:\*$/ ) );
-
-        $params->{ q } = join( " AND ", map { "( $_ )" } grep { /[^[:space:]]/ } @{ $all_q } );
-
-        $params->{ fq } = undef;
+        die( "range queries are not allowed in the main query.  please use a filter query instead for range queries" );
     }
 
-    $params->{ rows } = List::Util::min( $params->{ rows }, 10_000_000 );
+    $params->{ q } = "{!complexphrase inOrder=false} $params->{ q }" if ( $params->{ q } );
 
     _uppercase_boolean_operators( $params->{ q } );
 
-    # _uppercase_boolean_operators( $params->{ fq } );
+    _uppercase_boolean_operators( $params->{ fq } );
 
     $params->{ q } = MediaWords::Solr::PseudoQueries::transform_query( $params->{ q } );
     $params->{ q } = _insert_collection_media_ids( $db, $params->{ q } );
-
-    #$params->{ q } = _insert_complexphrase( $params->{ q } );
-
-    # $params->{ fq } = MediaWords::Solr::PseudoQueries::transform_query( $params->{ fq } );
 
     my $url = sprintf( '%s/%s/select', get_solr_url(), get_live_collection( $db ) );
 
