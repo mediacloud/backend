@@ -617,7 +617,9 @@ server provides full text search indexing of each sentence collected by Media Cl
 sentences.  The api/v2/stories_public/list call searches for sentences matching the `q` and / or `fq` parameters if specified and
 the stories that include at least one sentence returned by the specified query.
 
-The `q` and `fq` parameters are passed directly through to Solr.  Documentation of the format of the `q` and `fq` parameters is [here](https://cwiki.apache.org/confluence/display/solr/Common+Query+Parameters).  Below are the fields that may be used as Solr query parameters, for example 'text:obama AND media_id:1':
+The `q` and `fq` parameters are passed directly through to Solr.  Documentation of the format of the `q` and `fq` parameters is [here](https://mediacloud.org/support/query-guide/).  
+
+Below are the fields that may be used as Solr query parameters, for example 'text:obama AND media_id:1':
 
 | Field                        | Description
 | -------------------- | -----------------------------------------------------
@@ -630,6 +632,9 @@ The `q` and `fq` parameters are passed directly through to Solr.  Documentation 
 | processed_stories_id | the processed_stories_id as returned by stories_public/list
 
 Be aware that ':' is usually replaced with '%3A' in programmatically generated URLs.
+
+Solr range queries may only be used within the fq parameter.  Using a range query in the main q query will result in
+an error.
 
 In addition, there following fields may be entered as pseudo queries within the Solr query:
 
