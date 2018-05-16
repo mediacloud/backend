@@ -50,6 +50,7 @@ sub query_tag_counts($$)
     my ( $db, $args ) = @_;
 
     my $q           = $args->{ q }           || die( "must specifify 'q' in \$args" );
+    my $fq          = $args->{ fq }          || '';
     my $limit       = $args->{ limit }       || $DEFAULT_LIMIT;
     my $tag_sets_id = $args->{ tag_sets_id } || 0;
 
@@ -57,6 +58,7 @@ sub query_tag_counts($$)
 
     my $solr_params = {};
     $solr_params->{ q }                = $q;
+    $solr_params->{ fq }               = $fq;
     $solr_params->{ rows }             = 0;
     $solr_params->{ facet }            = 'true';
     $solr_params->{ 'facet.field' }    = 'tags_id_stories';
