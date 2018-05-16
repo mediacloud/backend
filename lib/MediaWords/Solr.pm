@@ -304,6 +304,12 @@ sub query_encoded_json($$;$)
         }
     }
 
+    # make sure we're not sending fq=[] in the cgi post data
+    if ( $params->{ fq } && ( ref( $params->{ fq } ) eq ref( [] ) ) && !@{ $params->{ fq } } )
+    {
+        delete( $params->{ fq } );
+    }
+
     TRACE "Executing Solr query on $url ...";
     TRACE 'Parameters: ' . Dumper( $params );
     my $t0 = [ gettimeofday ];
