@@ -6,20 +6,18 @@ MediaWords::Solr::Dump - import story_sentences from postgres into solr
 
 =head1 SYNOPSIS
 
-    # generate dumped csv files and then import those csvs into solr
-    MediaWords::Solr::Dump::generate_and_import_data( $delta, $delete_all, $staging, $jobs );
+    # import updates stories into solr
+    import_data( $db );
 
-    # dump solr data from postgres into csvs
-    MediaWords::Solr::Dump::print_csv_to_file( $db, $file_spec, $jobs, $delta, $min_proc, $max_proc );
+    # regenerate entire solr database
+    queue_all_stories( $db );
+    delete_all_stories( $db );
+    import_data( $db, { full => 1 } );
 
-    # import already dumped csv files
-    MediaWords::Solr::Dump::import_csv_files( $files, $delta, $staging, $jobs );
 
 =head1 DESCRIPTION
 
-We import any updated story_sentences into solr from the postgres server by periodically script on the solr server.
-This module implements the functionality of that script, as well as functionality to just dump import csvs from
-postgres and to import already existing csvs into solr.
+This module implements the functionality to import data from postgres into solr.
 
 The module knows which sentences to import by keep track of db_row_last_updated fields on the stories, media, and
 story_sentences table.  The module queries story_sentences for all distinct stories for which the db_row_last_updated
@@ -752,11 +750,10 @@ Import stories from postgres to solr.
 Options:
 * queue_only -- only import stories from the stories queue table, ignoring db_row_last_updated (default false)
 * update -- delete each story from solr before importing it (default true)
-* delete_all -- delete all stories from solr (default false)
 * empty_queue -- keep running until stories queue table is entirely empty (default false)
 * jobs -- number of parallel import jobs to run (default 1)
 * throttle -- sleep this number of seconds between each block of stories (default 60)
-* full -- shortcut for: queue_only=true, update=false, delete_all=true, empty_queue=true
+* full -- shortcut for: queue_only=true, update=false, empty_queue=true, throttle=1
 * stories_queue_table -- table from which to pull stories to import (default solr_import_extra_stories)
 * skip_logging -- skip logging the import into the solr_import_stories or solr_imports tables (default=false)
 
