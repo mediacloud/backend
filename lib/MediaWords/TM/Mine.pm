@@ -384,7 +384,7 @@ sub extract_download($$$)
 {
     my ( $db, $download, $story ) = @_;
 
-    return if ( $download->{ url } =~ /jpg|pdf|doc|mp3|mp4|zip$/i );
+    return if ( $download->{ url } =~ /jpg|pdf|doc|mp3|mp4|zip|png|docx$/i );
 
     return if ( $download->{ url } =~ /livejournal.com\/(tag|profile)/i );
 
