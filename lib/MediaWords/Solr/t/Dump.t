@@ -26,8 +26,7 @@ sub get_solr_date_clause
 
     my ( $year, $month, $day ) = ( $1, $2, $3 );
 
-    my $date_range = "[$year-$month-${day}T00:00:00Z TO $year-$month-${day}T23:59:59Z]";
-    return "publish_date:$date_range and publish_day:$date_range";
+    return "publish_day:$year-$month-${day}T00\\:00\\:00Z";
 }
 
 sub test_import
