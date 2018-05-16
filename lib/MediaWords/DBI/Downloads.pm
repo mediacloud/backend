@@ -425,6 +425,10 @@ delete from cached_extractor_results
 SQL
     }
 
+    # replace any null characters in the given string with spaces to avoid postgres errors
+    $results->{ extracted_html } =~ tr/\0/ /;
+    $results->{ extracted_text } =~ tr/\0/ /;
+
     my $cache = {
         extracted_html => $results->{ extracted_html },
         extracted_text => $results->{ extracted_text },
