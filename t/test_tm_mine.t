@@ -518,12 +518,15 @@ sub test_full_solr_query($)
 
     my $got_full_solr_query = MediaWords::TM::Mine::get_full_solr_query( $db, $topic );
 
-    my @matches = $got_full_solr_query =~
-/\( (.*) \) and publish_date\:\[(\d\d\d\d\-\d\d\-\d\d)T00:00:00Z TO (\d\d\d\d\-\d\d\-\d\d)T23:59:59Z\] and \( media_id:\( ([\d\s]+) \) or tags_id_media:\( ([\d\s]+) \) \)/;
+    my @q_matches =
+      $got_full_solr_query->{ q } =~ /\( (.*) \) and \( media_id:\( ([\d\s]+) \) or tags_id_media:\( ([\d\s]+) \) \)/;
+    ok( @q_matches, "full solr query: q matches expected pattern: $got_full_solr_query->{ q }" );
+    my ( $query, $media_ids_list, $tags_ids_list ) = @q_matches;
 
-    ok( @matches, "full solr query:  matches expected pattern: $got_full_solr_query" );
-
-    my ( $query, $start_date, $end_date, $media_ids_list, $tags_ids_list ) = @matches;
+    my @fq_matches = $got_full_solr_query->{ fq } =~
+      /publish_day\:\[(\d\d\d\d\-\d\d\-\d\d)T00:00:00Z TO (\d\d\d\d\-\d\d\-\d\d)T23:59:59Z\]/;
+    ok( @fq_matches, "full solr query: fq matches expected pattern: $got_full_solr_query->{ fq }" );
+    my ( $start_date, $end_date ) = @fq_matches;
 
     is( $topic->{ solr_seed_query }, $query, "full solr query: solr_seed_query" );
 
@@ -544,12 +547,12 @@ sub test_full_solr_query($)
     is( $got_tags_ids_list, $expected_tags_ids_list, "full solr query: media ids" );
 
     my $offset_full_solr_query = MediaWords::TM::Mine::get_full_solr_query( $db, $topic, undef, undef, 1 );
-    @matches = $offset_full_solr_query =~
-/\( (.*) \) and publish_date\:\[(\d\d\d\d\-\d\d\-\d\d)T00:00:00Z TO (\d\d\d\d\-\d\d\-\d\d)T23:59:59Z\] and \( media_id:\( ([\d\s]+) \) or tags_id_media:\( ([\d\s]+) \) \)/;
+    @fq_matches = $offset_full_solr_query->{ fq } =~
+      /publish_day\:\[(\d\d\d\d\-\d\d\-\d\d)T00:00:00Z TO (\d\d\d\d\-\d\d\-\d\d)T23:59:59Z\]/;
 
-    ok( @matches, "offset solr query:  matches expected pattern: $got_full_solr_query" );
+    ok( @fq_matches, "offset solr query:  matches expected pattern: $got_full_solr_query->{ fq }" );
 
-    my ( undef, $offset_start_date, $offset_end_date ) = @matches;
+    my ( $offset_start_date, $offset_end_date ) = @fq_matches;
 
     $tp_start = Time::Piece->strptime( $topic->{ start_date }, '%Y-%m-%d' )->add_months( 1 );
     my $expected_start_date = $tp_start->strftime( '%Y-%m-%d' );

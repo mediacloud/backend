@@ -1885,7 +1885,7 @@ sub get_solr_query_month_clause($$)
     my $solr_start = $offset_start->strftime( '%Y-%m-%d' ) . 'T00:00:00Z';
     my $solr_end   = $offset_end->strftime( '%Y-%m-%d' ) . 'T23:59:59Z';
 
-    my $date_clause = "publish_date:[$solr_start TO $solr_end]";
+    my $date_clause = "publish_day:[$solr_start TO $solr_end]";
 
     return $date_clause;
 }
@@ -1894,7 +1894,7 @@ sub get_solr_query_month_clause($$)
 # end date from topics and media clauses from topics_media_map and topics_media_tags_map.
 # only return a query for up to a month of the given a query, using the zero indexed $month_offset to
 # fetch $month_offset to return months after the first.  return undef if the month_offset puts the
-# query start date beyond the topic end date
+# query start date beyond the topic end date. otherwise return hash in the form of { q => query, fq => filter_query }
 sub get_full_solr_query($$;$$$$)
 {
     my ( $db, $topic, $media_ids, $media_tags_ids, $month_offset ) = @_;
@@ -1905,7 +1905,7 @@ sub get_full_solr_query($$;$$$$)
 
     return undef unless ( $date_clause );
 
-    my $solr_query = "( " . $topic->{ solr_seed_query } . " ) and $date_clause";
+    my $solr_query = "( $topic->{ solr_seed_query } )";
 
     my $media_clauses = [];
     my $topics_id     = $topic->{ topics_id };
@@ -1935,9 +1935,11 @@ sub get_full_solr_query($$;$$$$)
         $solr_query .= " and ( $media_clause_list )";
     }
 
-    DEBUG( "full solr query: $solr_query" );
+    my $solr_params = { q => $solr_query, fq => $date_clause };
 
-    return $solr_query;
+    DEBUG( "full solr query: q = $solr_query, fq = $date_clause" );
+
+    return $solr_params;
 }
 
 # import a single month of the solr seed query.  we do this to avoid giant queries that timeout in solr.
@@ -1959,8 +1961,9 @@ sub import_solr_seed_query_month($$$)
     return undef unless ( $solr_query );
 
     INFO "import solr seed query month offset $month_offset";
-    INFO "executing solr query: $solr_query";
-    my $stories = MediaWords::Solr::search_for_stories( $db, { q => $solr_query, rows => $max_stories } );
+    $solr_query->{ rows } = $max_stories;
+
+    my $stories = MediaWords::Solr::search_for_stories( $db, $solr_query );
 
     if ( scalar( @{ $stories } ) > $max_returned_stories )
     {

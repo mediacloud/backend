@@ -313,7 +313,7 @@ sub create_GET
     $topic->{ solr_seed_query_run }  = normalize_boolean_for_db( $topic->{ solr_seed_query_run } );
 
     my $full_solr_query = MediaWords::TM::Mine::get_full_solr_query( $db, $topic, $media_ids, $media_tags_ids );
-    my $num_stories = eval { MediaWords::Solr::get_num_found( $db, { q => $full_solr_query } ) };
+    my $num_stories = eval { MediaWords::Solr::get_num_found( $db, $full_solr_query ) };
     die( "invalid solr query: $@" ) if ( $@ );
 
     $topic->{ job_queue } = _is_mc_queue_user( $db, $auth_users_id ) ? 'mc' : 'public';
@@ -460,7 +460,7 @@ sub update_PUT
         die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
 
         my $full_solr_query = MediaWords::TM::Mine::get_full_solr_query( $db, $topic, $media_ids, $media_tags_ids );
-        my $num_stories = eval { MediaWords::Solr::get_num_found( $db, { q => $full_solr_query } ) };
+        my $num_stories = eval { MediaWords::Solr::get_num_found( $db, $full_solr_query ) };
         die( "invalid solr query: $@" ) if ( $@ );
     }
 
