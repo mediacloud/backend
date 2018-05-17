@@ -594,9 +594,7 @@ sub _delete_queued_stories($)
 {
     my ( $db ) = @_;
 
-    my $stories_queue_table = _get_stories_queue_table();
-
-    my $stories_ids = $db->query( "select stories_id from $stories_queue_table" )->flat;
+    my $stories_ids = $db->query( "select stories_id from delta_import_stories" )->flat;
 
     return 1 unless ( $stories_ids && scalar @{ $stories_ids } );
 
