@@ -75,7 +75,7 @@ sub query_tag_counts($$)
         $tags_id_counts->{ $tags_id_counts_list->[ $i ] } = $tags_id_counts_list->[ $i + 1 ];
     }
 
-    my $tags_ids_list = join( ',', keys( %{ $tags_id_counts } ) );
+    my $tags_ids_list = join( ',', keys( %{ $tags_id_counts } ), -1 );
 
     my $tag_set_clause = '1=1';
     if ( $tag_sets_id )
