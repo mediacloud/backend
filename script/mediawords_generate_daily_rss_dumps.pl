@@ -37,8 +37,7 @@ select url, guid
         where
             collect_date >= \$1::date and
             collect_date < \$1::date + '1 day'::interval
-        --order by collect_date desc
-        limit 100
+        order by collect_date desc
 SQL
 
     INFO "exporting " . scalar( @{ $stories } ) . " urls ...";
