@@ -737,31 +737,32 @@ sub import_data($;$)
 
     $options //= {};
 
-    my $queue_only          = $options->{ queue_only }          // 0;
-    my $update              = $options->{ update }              // 1;
-    my $empty_queue         = $options->{ empty_queue }         // 0;
-    my $jobs                = $options->{ jobs }                // 1;
-    my $throttle            = $options->{ throttle }            // 60;
-    my $staging             = $options->{ staging }             // 0;
-    my $full                = $options->{ full }                // 0;
+    my $full = $options->{ full } // 0;
     my $stories_queue_table = $options->{ stories_queue_table } // $DEFAULT_STORIES_QUEUE_TABLE;
-    my $skip_logging        = $options->{ skip_logging }        // 0;
 
     if ( $full )
     {
-        $queue_only  = 1;
-        $update      = 0;
-        $empty_queue = 1;
-        $throttle    = 1;
+        $options->{ queue_only }  //= 1;
+        $options->{ update }      //= 0;
+        $options->{ empty_queue } //= 1;
+        $options->{ throttle }    //= 1;
     }
 
     if ( $stories_queue_table ne $DEFAULT_STORIES_QUEUE_TABLE )
     {
-        $skip_logging = 1;
-        $empty_queue  = 1;
-        $update       = 0;
-        $queue_only   = 1;
+        $options->{ skip_logging } //= 1;
+        $options->{ empty_queue }  //= 1;
+        $options->{ update }       //= 0;
+        $options->{ queue_only }   //= 1;
     }
+
+    my $queue_only   = $options->{ queue_only }   // 0;
+    my $update       = $options->{ update }       // 1;
+    my $empty_queue  = $options->{ empty_queue }  // 0;
+    my $jobs         = $options->{ jobs }         // 1;
+    my $throttle     = $options->{ throttle }     // 60;
+    my $staging      = $options->{ staging }      // 0;
+    my $skip_logging = $options->{ skip_logging } // 0;
 
     $_solr_use_staging          = $staging;
     $_stories_queue_table       = $stories_queue_table;
