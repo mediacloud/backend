@@ -384,7 +384,7 @@ sub extract_download($$$)
 {
     my ( $db, $download, $story ) = @_;
 
-    return if ( $download->{ url } =~ /jpg|pdf|doc|mp3|mp4|zip$/i );
+    return if ( $download->{ url } =~ /jpg|pdf|doc|mp3|mp4|zip|png|docx$/i );
 
     return if ( $download->{ url } =~ /livejournal.com\/(tag|profile)/i );
 
@@ -1626,7 +1626,7 @@ END
 
         my $end = List::Util::min( $i + $ADD_NEW_LINKS_CHUNK_SIZE - 1, $#{ $seed_urls } );
         my $seed_urls_chunk = [ @{ $seed_urls }[ $i .. $end ] ];
-        add_new_links_chunk( $db, $topic, 1, $seed_urls_chunk );
+        add_new_links_chunk( $db, $topic, 0, $seed_urls_chunk );
 
         my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ topic_seed_urls_id } } @{ $seed_urls_chunk } ] );
 
