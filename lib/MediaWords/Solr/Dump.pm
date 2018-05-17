@@ -30,42 +30,8 @@ in chunks up to 100k until the solr_import_extra_stories queue has been cleared.
 manually trigger updates for specific stories, we use it to queue updates for entire media sources whose tags have been
 changed and to queue updates for stories whose bitly data have been updated.
 
-The module is carefully implemented to optimize the speed of querying from postgres in a few ways:
-
-=over
-
-=item *
-
-The module is designed to be able to stream data from postgres using server side cursors, so that the script can write
-the csv lines for rows as they are read by postgres, rather than waiting for postgres to fetch its whole result
-set into memory and return the whole set at once.
-
-=item *
-
-In order to allow postgres to stream the results, we do all joins on the client side rather than on the postgres side.
-If you look at the implementation code, you'll see lots of references to data_lookups for various related tables
-(processed stories, stories tags, media tags, bitly clicks, etc).
-
-=item *
-
-When streaming large files like this, postgres is much faster running several streaming queries are once rather than
-just one.  This is why all of the csv dumping code is parallelized.  We run parallel queries by modding the stories_id
-to speed up the dump process.
-
-=item *
-
-For the import of the csvs, we use the /solr/update/csv solr web service end point.  But we feed the csv to the solr
-service through http rather than providing a local file so that we can track and resume the import process.
-
-=item *
-
-We track which parts of which csv files have already been imported so that we can resume an import process that failed
-or had an error in some part.  This is because production import of our entire database can take a few days, so it is
-important to be recover from an error without having to restart the whole process.
-
-The import functions in this module accept a $staging parameter.  If this parameter is set to true, the data is imported
-into the staging database rather than that production database.  MediaWords::Solr::swap_live_collection is used to
-swap the production and staging databases.
+This module has been carefully tuned to optimize performance.  Make sure you test the performance impacts of any
+changes you make to the module.
 
 =back
 
