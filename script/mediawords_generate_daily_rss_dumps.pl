@@ -1,9 +1,6 @@
 #!/usr/bin/env perl
 
-# query all story urls with a collect_date in the last N calendar days and
-# generate an rss feed with just the url for each story, sorted by collect_date
-
-# usage: $0 < num_days >
+# generate daily rss dumps for the past 30 days.  remove any existing rss dumps older than 30 days.
 
 use strict;
 use warnings;
@@ -12,40 +9,79 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Encode;
+use File::Slurp;
 use XML::FeedPP;
 
+use MediaWords::Util::SQL;
 use MediaWords::DB;
 
-sub main
+sub generate_daily_dump($$$)
 {
-    my ( $num_days ) = @ARGV;
+    my ( $db, $dir, $day ) = @_;
 
-    die( "usage: $0 < num_days >" ) unless ( $num_days );
+    die( "day '$day' should be in YYYY-MM-DD format" ) unless ( $day =~ /^\d\d\d\d-\d\d-\d\d$/ );
 
-    my $db = MediaWords::DB::connect_to_db;
+    my $file = "$dir/mc-$day.rss";
 
-    my @urls = $db->query( <<SQL )->flat;
-select url
+    if ( -f $file )
+    {
+        INFO( "$file already exists.  skipping ..." );
+        return;
+    }
+
+    INFO( "querying stories for $day ..." );
+
+    my $stories = $db->query( <<SQL, $day )->hashes;
+select url, guid
     from stories
         where
-            collect_date > date_trunc( 'day', now() - '$num_days days'::interval )  and
-            collect_date < date_trunc( 'day', now() )
-        order by collect_date desc
+            collect_date >= \$1::date and
+            collect_date < \$1::date + '1 day'::interval
+        --order by collect_date desc
+        limit 100
 SQL
 
+    INFO "exporting " . scalar( @{ $stories } ) . " urls ...";
+
     my $feed = XML::FeedPP::RSS->new();
-    $feed->title( "Media Cloud URL Snapshot" );
+    $feed->title( "Media Cloud URL Snapshot for $day" );
     $feed->link( "http://mediacloud.org/" );
     $feed->pubDate( time );
 
-    for my $url ( @urls )
+    map { $feed->add_item( link => $_->{ url }, guid => $_->{ guid } ) } @{ $stories };
+
+    File::Slurp::write_file( "$dir/mc-$day.rss", encode_utf8( $feed->to_string( indent => 4 ) ) );
+}
+
+sub main
+{
+    my ( $dir ) = @ARGV;
+
+    die( "usage: $0 < dir >" ) unless ( $dir );
+
+    die( "dir '$dir' does not exist" ) unless ( -d $dir );
+
+    my $db = MediaWords::DB::connect_to_db();
+
+    my $date = MediaWords::Util::SQL::sql_now();
+    for my $i ( 1 .. 30 )
     {
-        $feed->add_item( $url );
+        $date = MediaWords::Util::SQL::increment_day( $date, -1 );
+        DEBUG( $date );
+        my $day = substr( $date, 0, 10 );
+        generate_daily_dump( $db, $dir, $day );
     }
 
-    INFO "exporting " . scalar( @urls ) . " urls";
-
-    print encode( 'utf8', $feed->to_string( indent => 4 ) );
+    my $files = [ grep( /rss$/, File::Slurp::read_dir( $dir ) ) ];
+    for my $file ( @{ $files } )
+    {
+        my $path = "$dir/$file";
+        if ( ( stat( $path ) )[ 9 ] < ( time() - ( 30 * 86400 ) ) )
+        {
+            INFO( "deleting old file $path ..." );
+            unlink( $path );
+        }
+    }
 }
 
 main();
