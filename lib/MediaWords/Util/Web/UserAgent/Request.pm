@@ -151,11 +151,14 @@ sub set_content_utf8($$)
         my $post_items = [];
         for my $key ( keys( %{ $content } ) )
         {
-            if ( defined( $content->{ $key } ) )
+            my $enc_key = uri_escape( encode_utf8( $key ) );
+            my $data    = $content->{ $key };
+            next unless ( $data );
+            $data = [ $data ] unless ( ref( $data ) eq ref( [] ) );
+            for my $datum ( @{ $data } )
             {
-                my $enc_key  = uri_escape( encode_utf8( $key ) );
-                my $enc_data = uri_escape( encode_utf8( $content->{ $key } ) );
-                push( @{ $post_items }, "$enc_key=$enc_data" );
+                my $enc_datum = uri_escape( encode_utf8( $datum ) );
+                push( @{ $post_items }, "$enc_key=$enc_datum" );
             }
         }
 
