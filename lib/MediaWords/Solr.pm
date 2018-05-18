@@ -224,7 +224,8 @@ SQL
         # replace empty list with an id that will always return nothing from solr
         $media_ids = [ -1 ] unless ( scalar( @{ $media_ids } ) > 0 );
 
-        my $media_clause = consolidate_id_query( 'media_id', $media_ids );
+        #my $media_clause = consolidate_id_query( 'media_id', $media_ids );
+        my $media_clause = "media_id:(" . join( ' ', @{ $media_ids } ) . ")";
 
         return $media_clause;
     }
@@ -274,12 +275,15 @@ sub query_encoded_json($$;$)
 
     $params->{ q } //= '';
 
+    $params->{ fq } //= [];
+    $params->{ fq } = [ $params->{ fq } ] unless ( ref( $params->{ fq } ) eq ref( [] ) );
+
     if ( $params->{ q } =~ /\:\[/ )
     {
         die( "range queries are not allowed in the main query.  please use a filter query instead for range queries" );
     }
 
-    $params->{ q } = "{!complexphrase inOrder=false} $params->{ q }" if ( $params->{ q } );
+    #$params->{ q } = "{!complexphrase inOrder=false} $params->{ q }" if ( $params->{ q } );
 
     _uppercase_boolean_operators( $params->{ q } );
 
@@ -287,6 +291,8 @@ sub query_encoded_json($$;$)
 
     $params->{ q } = MediaWords::Solr::PseudoQueries::transform_query( $params->{ q } );
     $params->{ q } = _insert_collection_media_ids( $db, $params->{ q } );
+
+    $params->{ fq } = [ map { _insert_collection_media_ids( $db, $_ ) } @{ $params->{ fq } } ];
 
     my $url = sprintf( '%s/%s/select', get_solr_url(), get_live_collection( $db ) );
 
@@ -305,10 +311,7 @@ sub query_encoded_json($$;$)
     }
 
     # make sure we're not sending fq=[] in the cgi post data
-    if ( $params->{ fq } && ( ref( $params->{ fq } ) eq ref( [] ) ) && !@{ $params->{ fq } } )
-    {
-        delete( $params->{ fq } );
-    }
+    delete( $params->{ fq } ) unless ( @{ $params->{ fq } } );
 
     TRACE "Executing Solr query on $url ...";
     TRACE 'Parameters: ' . Dumper( $params );
