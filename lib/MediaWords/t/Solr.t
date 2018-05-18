@@ -222,16 +222,16 @@ SQL
         my $story_sentences = $db->query( <<SQL, $story->{ stories_id } )->hashes;
 select * from story_sentences where stories_id = ?
 SQL
-        my ( $first_word ) = split( ' ', $story_sentences->[ 0 ]->{ sentence } );
+        my ( $test_word ) = grep { length( $_ ) > 3 } split( ' ', $story_sentences->[ 0 ]->{ sentence } );
 
-        $first_word = lc( $first_word );
+        $test_word = lc( $test_word );
 
-        my $expected_sentences = [ grep { $_->{ sentence } =~ /$first_word/i } @{ $story_sentences } ];
-        my $query              = "$first_word* and stories_id:$story->{ stories_id }";
+        my $expected_sentences = [ grep { $_->{ sentence } =~ /$test_word/i } @{ $story_sentences } ];
+        my $query              = "$test_word* and stories_id:$story->{ stories_id }";
         my $got_sentences      = MediaWords::Solr::query_matching_sentences( $db, { q => $query } );
 
         my $fields = [ qw/stories_id sentence_number sentence media_id publish_date language/ ];
-        rows_match( "query_matching_sentences '$first_word'",
+        rows_match( "query_matching_sentences '$test_word'",
             $got_sentences, $expected_sentences, 'story_sentences_id', $fields );
     }
 
@@ -281,7 +281,7 @@ sub test_collections_id_result($$$)
         }
     }
 
-    my $expected_q = MediaWords::Solr::consolidate_id_query( 'media_id', $expected_media_ids );
+    my $expected_q = 'media_id:(' . join( ' ', @{ $expected_media_ids } ) . ')';
 
     my $got_q = MediaWords::Solr::_insert_collection_media_ids( $db, "tags_id_media:$q_arg" );
     is( $got_q, $expected_q, "$label (tags_id_media)" );
