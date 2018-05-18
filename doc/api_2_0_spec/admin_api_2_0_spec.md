@@ -148,7 +148,7 @@ URL: https://api.mediacloud.org/api/v2/stories/list?last_processed_stories_id=86
 
 Return a stream of all stories processed by Media Cloud, greater than the `last_processed_stories_id`.
 
-URL: https://api.mediacloud.org/api/v2/stories/list?last_processed_stories_id=2523432&q=sentence:obama+AND+media_id:1
+URL: https://api.mediacloud.org/api/v2/stories/list?last_processed_stories_id=2523432&q=text:obama+AND+media_id:1
 
 Return a stream of all stories from The New York Times mentioning `'obama'` greater than the given `last_processed_stories_id`.
 
@@ -320,127 +320,54 @@ navigational snippets wrongly included in the extracted text by the extractor al
 
 --------------------------------------------------------------------------------------------------------
 
+This call first fetches matching stories from solr and then returns all sentences belonging to those stories that
+match any of the keywords in the solr query.
+
 Other than 'sort', these parameters are passed directly through to Solr (see above).  The sort parameter must be
-one of the listed above and determines the order of the sentences returned.
+one of the listed above and determines the order of the sentences returned. The rows parameter determines the number
+of stories from which the stories are pulled, so the number of sentences returned should always be more than the
+rows parameter.
 
 ### Example
 
-Fetch 10 sentences containing the word 'obama' from The New York Times
+Fetch sentences containing the stem 'vaccin*'
 
-URL:  https://api.mediacloud.org/api/v2/sentences/list?q=sentence:obama&rows=10&fq=media_id:1
+URL:  https://api.mediacloud.org/api/v2/sentences/list?q=vaccin*
 
 ```json
-{
-  "responseHeader":{
-    "params":{
-      "sort":"random_1 asc",
-      "df":"sentence",
-      "wt":"json",
-      "q":"sentence:obama",
-      "fq":"media_id:1",
-      "rows":"10",
-      "start":"0"
+[
+    {
+        "language": "en",
+        "media_id": 13,
+        "publish_date": "2008-05-12 06:26:00",
+        "sentence": "Families will make case for vaccine link to autism",
+        "sentence_number": 0,
+        "stories_id": 22191,
+        "story_language": "en",
+        "story_sentences_id": 7905030540
     },
-    "status":0,
-    "QTime":20
-  },
-  "response":{
-    "numFound":94171,
-    "docs":[
-      {
-        "sentence":"Mr. Obama played golf on Sunday and again on Monday.",
-        "media_id":1,
-        "publish_date":"2013-08-13 00:55:48",
-        "sentence_number":3,
-        "stories_id":146975599,
-        "_version_":1465531175907885056,
-        "story_sentences_id":"1693567329"
-      },
-      {
-        "sentence":"Without mentioning them by name, it takes on Charles and David Koch, the wealthy conservative businessmen who have opposed Mr. Obama through the political advocacy group Americans for Prosperity.",
-        "media_id":1,
-        "publish_date":"2012-01-19 01:12:10",
-        "sentence_number":5,
-        "stories_id":51549022,
-        "_version_":1465513962638409730,
-        "story_sentences_id":"902231969"
-      },
-      {
-        "sentence":"Former presidential speechwriters said Lincoln’s few words would make it even more difficult for Mr. Obama to find ones that feel fresh.",
-        "media_id":1,
-        "publish_date":"2013-08-22 00:51:42",
-        "sentence_number":36,
-        "stories_id":149735751,
-        "_version_":1465531727373926400,
-        "story_sentences_id":"1723403496"
-      },
-      {
-        "sentence":"Though Mr. Obama is expected to address how the peace process fits into the broader changes in the Middle East, officials said they did not expect him to lay out a detailed American blueprint to revive the negotiations, which have been paralyzed since September.",
-        "media_id":1,
-        "publish_date":"2011-05-17 17:10:14",
-        "sentence_number":9,
-        "stories_id":36107537,
-        "_version_":1465517874643730432,
-        "story_sentences_id":"684054351"
-      },
-      {
-        "sentence":"“The reason I’m so animated about defeating Barack Obama is because he’s failed the American people,” Mr. Romney said, speaking outside at an energy company.",
-        "media_id":1,
-        "publish_date":"2012-06-14 13:17:37",
-        "sentence_number":68,
-        "stories_id":169631466,
-        "_version_":1465545382125633537,
-        "story_sentences_id":"2085799723"
-      },
-      {
-        "sentence":"Sarah Palin said Obama was guilty of “shuck and jive” on Benghazi.",
-        "media_id":1,
-        "publish_date":"2012-10-27 23:02:01",
-        "sentence_number":27,
-        "stories_id":92275227,
-        "_version_":1465520856365006849,
-        "story_sentences_id":"1060529064"
-      },
-      {
-        "sentence":"Still, Democrats openly worried that if Mr. Obama could not drive a harder bargain when he holds most of the cards, he will give up still more Democratic priorities in the coming weeks, when hard deadlines will raise the prospects of a government default first, then a government shutdown.",
-        "media_id":1,
-        "publish_date":"2013-01-01 02:10:42",
-        "sentence_number":24,
-        "stories_id":96795610,
-        "_version_":1465523519766921216,
-        "story_sentences_id":"1112283342"
-      },
-      {
-        "sentence":"Mr. Obama agreed to the far-reaching penalties after the White House negotiated language that would allow him to waive them against foreign financial institutions.",
-        "media_id":1,
-        "publish_date":"2012-02-06 17:07:35",
-        "sentence_number":12,
-        "stories_id":72982936,
-        "_version_":1465514836620214273,
-        "story_sentences_id":"908488464"
-      },
-      {
-        "sentence":"“We believe the Syrian government to be systematically persecuting its own people on a vast scale.” On Tuesday, the Obama administration added to the economic pressure on Mr. Assad’s government, freezing the United States assets of Foreign Minister Walid al-Moualem and two other officials.",
-        "media_id":1,
-        "publish_date":"2011-08-31 19:30:38",
-        "sentence_number":18,
-        "stories_id":40984774,
-        "_version_":1465516934096224256,
-        "story_sentences_id":"762139692"
-      },
-      {
-        "sentence":"Mr. Obama set the standard with the $745 million he raised in 2008 after opting not to participate in the post-Watergate public financing system, under which candidates received taxpayer funds in return for accepting limits on their spending.",
-        "media_id":1,
-        "publish_date":"2012-06-22 19:30:32",
-        "sentence_number":23,
-        "stories_id":83442616,
-        "_version_":1465520768804716544,
-        "story_sentences_id":"983218944"
-      }
-    ],
-    "start":0
-  }
-}
+    {
+        "language": "en",
+        "media_id": 13,
+        "publish_date": "2008-05-12 06:26:00",
+        "sentence": "WASHINGTON - The Institute of Medicine said in 2004 there was no credible evidence to show that vaccines containing the preservative thimerosal led to autism in children.",
+        "sentence_number": 1,
+        "stories_id": 22191,
+        "story_language": "en",
+        "story_sentences_id": 7905030541
+    },
+    {
+        "language": "en",
+        "media_id": 13,
+        "publish_date": "2008-05-12 06:26:00",
+        "sentence": "Attorneys for the boys will attempt to show the boys were happy, healthy and developing normally -- but, after being exposed to vaccines with thimerosal, they began to regress.",
+        "sentence_number": 5,
+        "stories_id": 22191,
+        "story_language": "en",
+        "story_sentences_id": 7905030545
+    },
+]
+
 ```
 
 # Downloads

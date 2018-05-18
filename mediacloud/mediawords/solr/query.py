@@ -21,6 +21,11 @@ class McSolrQueryException(Exception):
     pass
 
 
+class McSolrEmptyQueryException(Exception):
+    """Raise when filtering a query results in an entirely empty query."""
+    pass
+
+
 class McSolrQueryParseSyntaxException(McSolrQueryException):
     """Error class for syntax errors encountered when parsing."""
     pass
@@ -44,6 +49,7 @@ class TokenType(enum.Enum):
     PLUS = 'plus'
     MINUS = 'minus'
     NOOP = 'noop'
+    PROXIMITY = 'proximity'
 
 
 # this text will be considered a noop token
@@ -87,6 +93,10 @@ class AbstractParseNode(object):
         raise NotImplementedError("Abstract method")
 
     @abc.abstractmethod
+    def get_inclusive_re(self, operands: list = None) -> str:
+        raise NotImplementedError("Abstract method")
+
+    @abc.abstractmethod
     def get_tsquery(self) -> str:
         raise NotImplementedError("Abstract method")
 
@@ -106,11 +116,14 @@ class ParseNode(AbstractParseNode):
     def get_re(self, operands: List[AbstractParseNode] = None) -> str:
         raise NotImplementedError("Abstract method")
 
+    def get_inclusive_re(self, operands: List[AbstractParseNode] = None) -> str:
+        raise NotImplementedError("Abstract method")
+
     @staticmethod
     def __node_is_field_or_noop(node: AbstractParseNode) -> bool:
-        """Return true if the field is a non-sentence field or is a noop."""
+        """Return true if the field is a non-text field or is a noop."""
 
-        if (type(node) is FieldNode) and (node.field != 'sentence'):
+        if (type(node) is FieldNode) and (node.field != 'text'):
             return True
         elif type(node) is NoopNode:
             return True
@@ -119,9 +132,9 @@ class ParseNode(AbstractParseNode):
 
     @staticmethod
     def __node_is_field_or_noop_or_not(node: AbstractParseNode) -> bool:
-        """Return true if the field is a non-sentence field or is a noop."""
+        """Return true if the field is a non-text field or is a noop."""
 
-        if (type(node) is FieldNode) and (node.field != 'sentence'):
+        if (type(node) is FieldNode) and (node.field != 'text'):
             return True
         elif type(node) in (NoopNode, NotNode):
             return True
@@ -172,7 +185,7 @@ class ParseNode(AbstractParseNode):
         filtered_tree = self.filter_tree(filter_function=self.__node_is_field_or_noop)
 
         if filtered_tree is None:
-            raise McSolrQueryParseSyntaxException("query is empty without fields or ranges")
+            raise McSolrEmptyQueryException("filtered query is empty without fields or ranges")
 
         return filtered_tree.get_tsquery()
 
@@ -182,9 +195,27 @@ class ParseNode(AbstractParseNode):
         filtered_tree = self.filter_tree(filter_function=self.__node_is_field_or_noop_or_not)
 
         if filtered_tree is None:
-            raise McSolrQueryParseSyntaxException("query is empty without fields or ranges")
+            raise McSolrEmptyQueryException("filtered query is empty without fields or ranges")
 
         regexp = filtered_tree.get_re()
+
+        # for logogram languages, remove the beginning word boundary because it breaks the re
+        if is_logogram:
+            regexp = regexp.replace('[[:<:]]', '')
+
+        return regexp
+
+    def inclusive_re(self, is_logogram=False) -> str:
+        """Return a posix regex that represents the parse tree as an inclusive query, meaning
+           that it converts ANDs into ORs to match any possible term in the query
+        """
+
+        filtered_tree = self.filter_tree(filter_function=self.__node_is_field_or_noop_or_not)
+
+        if filtered_tree is None:
+            raise McSolrEmptyQueryException("filtered query is empty without fields or ranges")
+
+        regexp = filtered_tree.get_inclusive_re()
 
         # for logogram languages, remove the beginning word boundary because it breaks the re
         if is_logogram:
@@ -196,10 +227,11 @@ class ParseNode(AbstractParseNode):
 class TermNode(ParseNode):
     """Parse node type for a simple keyword."""
 
-    def __init__(self, term, wildcard=False, phrase=False):
+    def __init__(self, term, wildcard=False, phrase=False, proximity=None):
         self.term = term
         self.wildcard = wildcard
         self.phrase = phrase
+        self.proximity = proximity
 
     def __repr__(self):
         return self.term if (not self.wildcard) else self.term + "*"
@@ -219,11 +251,14 @@ class TermNode(ParseNode):
         else:
             return self.term if (not self.wildcard) else self.term + ":*"
 
-    def get_re(self, operands: List[AbstractParseNode] = None) -> str:
+    def get_re(self, operands: List[AbstractParseNode] = None, inclusive: bool = False) -> str:
         term = self.term
 
         if self.phrase:
             term = shlex.split(term)[0]
+
+            # ignore wildcards, since the regex ignores the end of the word anyway
+            term = re.sub(re.escape(WILD_PLACEHOLDER), '', term)
 
             # should already be lower case, but make sure
             term = term.lower()
@@ -236,18 +271,31 @@ class TermNode(ParseNode):
             # ascii alnum, which confuses the postgres reg ex engine
             term = re.sub(r"\W", r"\\\g<0>", term)
 
-            term = re.sub(space_place_holder, '[[:space:]]+', term)
-
-            return '[[:<:]]' + term
+            if inclusive:
+                words = term.split(space_place_holder)
+                return OrNode(list(map(lambda x: TermNode(x), words))).get_re()
+            elif self.proximity is None:
+                term = re.sub(space_place_holder, '[[:space:]]+', term)
+                return '[[:<:]]' + term
+            else:
+                # proximity searches do not care about order, so we need to change this to an and node, which will
+                # generate the and regex permutations. we are just ignoring the actual proximity here for simplicity.
+                words = term.split(space_place_holder)
+                return AndNode(list(map(lambda x: TermNode(x), words))).get_re()
+        elif term == '':
+            return '.*'
         else:
             # escape special characters.  re.escape() escapes everything that is not
             # ascii alnum, which confuses the postgres reg ex engine
             term = '[[:<:]]' + re.sub(r"\W", r"\\\g<0>", term)
             return term
 
+    def get_inclusive_re(self, operands: List[AbstractParseNode] = None) -> str:
+        return self.get_re(operands, inclusive=True)
+
     def _filter_node_children(self, filter_function: Callable[[AbstractParseNode], bool]) \
             -> Union[AbstractParseNode, None]:
-        return TermNode(self.term, wildcard=self.wildcard, phrase=self.phrase)
+        return TermNode(self.term, wildcard=self.wildcard, phrase=self.phrase, proximity=self.proximity)
 
 
 class BooleanNode(ParseNode):
@@ -279,6 +327,9 @@ class BooleanNode(ParseNode):
     def get_re(self, operands: List[AbstractParseNode] = None) -> str:
         raise NotImplementedError("FIXME not implemented!")
 
+    def get_inclusive_re(self, operands: List[AbstractParseNode] = None) -> str:
+        raise NotImplementedError("FIXME not implemented!")
+
     def _filter_node_children(self, filter_function: Callable[[AbstractParseNode], bool]) \
             -> Union[AbstractParseNode, None]:
         return self._filter_boolean_node_children(filter_function=filter_function)
@@ -304,6 +355,9 @@ class AndNode(BooleanNode):
             b = self.get_re(operands=operands[1:])
             return '(?: (?: %s .* %s ) | (?: %s .* %s ) )' % (a, b, b, a)
 
+    def get_inclusive_re(self, operands: List[AbstractParseNode] = None) -> str:
+        return OrNode(self.operands).get_inclusive_re()
+
 
 class OrNode(BooleanNode):
     """Parse node for an OR clause."""
@@ -316,6 +370,9 @@ class OrNode(BooleanNode):
 
     def get_re(self, operands: List[AbstractParseNode] = None) -> str:
         return '(?: ' + ' | '.join(map(lambda x: x.get_re(), self.operands)) + ' )'
+
+    def get_inclusive_re(self, operands: List[AbstractParseNode] = None) -> str:
+        return '(?: ' + ' | '.join(map(lambda x: x.get_inclusive_re(), self.operands)) + ' )'
 
 
 class NotNode(ParseNode):
@@ -333,6 +390,9 @@ class NotNode(ParseNode):
 
     def get_re(self, operands: List[AbstractParseNode] = None) -> str:
         raise McSolrQueryParseSyntaxException("not operations not supported for re()")
+
+    def get_inclusive_re(self, operands: List[AbstractParseNode] = None) -> str:
+        raise McSolrQueryParseSyntaxException("not operations not supported for inclusive_re()")
 
     def _filter_node_children(self, filter_function: Callable[[AbstractParseNode], bool]) \
             -> Union[AbstractParseNode, None]:
@@ -352,16 +412,22 @@ class FieldNode(ParseNode):
         return self.field + ':' + str(self.operand)
 
     def get_tsquery(self) -> str:
-        if self.field == 'sentence':
+        if self.field == 'text':
             return self.operand.get_tsquery()
         else:
-            raise McSolrImplementationException("non-sentence field nodes should have been filtered")
+            raise McSolrImplementationException("non-text field nodes should have been filtered")
 
     def get_re(self, operands: List[AbstractParseNode] = None) -> str:
-        if self.field == 'sentence':
+        if self.field == 'text':
             return self.operand.get_re()
         else:
-            raise McSolrImplementationException("non-sentence field nodes should have been filtered")
+            raise McSolrImplementationException("non-text field nodes should have been filtered")
+
+    def get_inclusive_re(self, operands: List[AbstractParseNode] = None) -> str:
+        if self.field == 'text':
+            return self.operand.get_inclusive_re()
+        else:
+            raise McSolrImplementationException("non-text field nodes should have been filtered")
 
     def _filter_node_children(self, filter_function: Callable[[AbstractParseNode], bool]) \
             -> Union[AbstractParseNode, None]:
@@ -385,6 +451,9 @@ class NoopNode(ParseNode):
         raise McSolrImplementationException("noop nodes should have been filtered")
 
     def get_re(self, operands: List[AbstractParseNode] = None) -> str:
+        raise McSolrImplementationException("noop nodes should have been filtered")
+
+    def get_inclusive_re(self, operands: List[AbstractParseNode] = None) -> str:
         raise McSolrImplementationException("noop nodes should have been filtered")
 
     def _filter_node_children(self, filter_function: Callable[[AbstractParseNode], bool]) \
@@ -485,8 +554,16 @@ def __parse_tokens(tokens: List[Token], want_type: List[TokenType] = None) -> Pa
 
         elif token.token_type == TokenType.PHRASE:
             want_type = [TokenType.CLOSE, TokenType.AND, TokenType.OR, TokenType.PLUS]
-            clause = TermNode(token.token_value, phrase=True)
-            # operands = []
+
+            if ((len(tokens) >= 2) and
+                    (tokens[0].token_type == TokenType.PROXIMITY) and
+                    (tokens[1].token_type == TokenType.TERM) and
+                    (re.search('^\d+$', tokens[1].token_value))):
+                tokens.pop(0)
+                distance_token = tokens.pop(0)
+                clause = TermNode(token.token_value, phrase=True, proximity=int(distance_token.token_value))
+            else:
+                clause = TermNode(token.token_value, phrase=True)
 
         elif token.token_type in (TokenType.AND, TokenType.PLUS, TokenType.OR):
             want_type = [
@@ -606,11 +683,13 @@ def __get_tokens(query: str) -> List[Token]:
         elif token == '+':
             return TokenType.PLUS
         elif token == '~':
-            raise McSolrQueryParseSyntaxException("proximity searches not supported")
+            return TokenType.PROXIMITY
         elif token == '/':
             raise McSolrQueryParseSyntaxException("regular expression searches not supported")
+        elif token == WILD_PLACEHOLDER:
+            return TokenType.TERM
         elif (WILD_PLACEHOLDER in token) and not re.match(r'^\w+' + WILD_PLACEHOLDER + '$', token):
-            raise McSolrQueryParseSyntaxException("* can only appear the end of a term: " + token)
+            raise McSolrQueryParseSyntaxException("* can only appear by itself or at the end of a term: " + token)
         elif token == NOOP_PLACEHOLDER:
             return TokenType.NOOP
         elif token.endswith(FIELD_PLACEHOLDER):
@@ -624,6 +703,9 @@ def __get_tokens(query: str) -> List[Token]:
 
     # normalize everything to lower case and make sure nothing conflicts with placeholders below
     query = query.lower()
+
+    # remove {!complexphrase foo=bar} type solr qualifiers
+    query = re.sub('\{\![^\}]*\}', '', query)
 
     # the tokenizer interprets as ! as a special character, which results in the ! and subsequent text disappearing.
     # we just replace it with the equivalent - to avoid this.

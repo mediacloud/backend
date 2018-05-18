@@ -98,7 +98,7 @@ sub edit : Local
 
     my $p = $form->params;
 
-    my $num_stories = eval { MediaWords::Solr::count_stories( $db, { q => $p->{ solr_seed_query } } ) };
+    my $num_stories = eval { MediaWords::Solr::get_num_found( $db, { q => $p->{ solr_seed_query } } ) };
     die( "invalid solr query: $@" ) if ( $@ );
 
     die( "number of stories from query ($num_stories) is more than the max (500,000)" ) if ( $num_stories > 500000 );
@@ -207,7 +207,7 @@ sub create : Local
     my $c_end_date        = $c->req->params->{ end_date };
     my $c_max_iterations  = $c->req->params->{ max_iterations };
 
-    my $num_stories = eval { MediaWords::Solr::count_stories( $db, { q => $c_solr_seed_query } ) };
+    my $num_stories = eval { MediaWords::Solr::get_num_found( $db, { q => $c_solr_seed_query } ) };
     die( "invalid solr query: $@" ) if ( $@ );
 
     die( "number of stories from query ($num_stories) is more than the max (500,000)" ) if ( $num_stories > 500000 );

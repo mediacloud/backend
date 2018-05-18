@@ -248,6 +248,47 @@ sub test_stories_count($)
     is( $r->{ count }, scalar( @{ $stories } ), "stories/count count" );
 }
 
+sub test_stories_count_split($)
+{
+    my ( $db ) = @_;
+
+    my $label = "stories/count split";
+
+    $db->query( <<SQL );
+update stories set publish_date = '2017-01-01'::date + ( ( stories_id % 27 )::text || ' days' )::interval
+SQL
+
+    MediaWords::Solr::Dump::import_data( $db, { throttle => 0 } );
+
+    my $date_counts = $db->query( "select publish_date, count(*) as count from stories group by publish_date" )->hashes;
+
+    my $date_count_lookup = {};
+    map { $date_count_lookup->{ $_->{ publish_date } } = $_->{ count } } @{ $date_counts };
+
+    my $params = {
+        q     => '*:*',
+        split => 1,
+    };
+
+    my $r = test_get( '/api/v2/stories/count', $params );
+
+    my $got_date_counts = $r->{ date_counts };
+    for my $got_date_count ( @{ $got_date_counts } )
+    {
+        my $got_date  = $got_date_count->{ date };
+        my $got_count = $got_date_count->{ count };
+
+        $got_date =~ /(\d\d\d\d-\d\d-\d\d)/ || die( "Unable to parse api returned date: '$got_date'" );
+
+        my $expected_date = "$1 00:00:00";
+
+        my $expected_count = $date_count_lookup->{ $expected_date } || 0;
+
+        is( $got_count, $expected_count, "$label: date count for $got_date" );
+    }
+
+}
+
 sub test_stories_word_matrix($)
 {
     my ( $db ) = @_;
@@ -310,6 +351,38 @@ sub test_stories_update($$)
     map { is( $updated_story->{ $_ }, $story_data->{ $_ }, "story update field $_" ) } @{ $all_fields };
 }
 
+sub test_stories_field_count($)
+{
+    my ( $db ) = @_;
+
+    my $label = "stories/field_count";
+
+    my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "$label:$label" );
+
+    my $stories = $db->query( "select * from stories order by stories_id asc limit 10" )->hashes;
+    my $tagged_stories = [ ( @{ $stories } )[ 1 .. 5 ] ];
+    for my $story ( @{ $tagged_stories } )
+    {
+        $db->query( <<SQL, $story->{ stories_id }, $tag->{ tags_id } );
+insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )
+SQL
+    }
+
+    my $stories_ids = [ map { $_->{ stories_id } } @{ $stories } ];
+    my $stories_ids_list = join( ' ', @{ $stories_ids } );
+
+    my $tagged_stories_ids = [ map { $_->{ stories_id } } @{ $tagged_stories } ];
+
+    my $r = test_get( '/api/v2/stories/field_count',
+        { field => 'tags_id_stories', q => "stories_id:($stories_ids_list)", tag_sets_id => $tag->{ tag_sets_id } } );
+
+    is( scalar( @{ $r } ), 1, "$label num of tags" );
+
+    my $got_tag = $r->[ 0 ];
+    is( $got_tag->{ count }, scalar( @{ $tagged_stories } ), "$label count" );
+    map { is( $got_tag->{ $_ }, $tag->{ $_ }, "$label field '$_'" ) } ( qw/tag tags_id label tag_sets_id/ );
+}
+
 sub test_stories($)
 {
     my ( $db ) = @_;
@@ -329,6 +402,7 @@ sub test_stories($)
     test_stories_single( $db );
     test_stories_public_list( $db, $media );
     test_stories_count( $db );
+    test_stories_count_split( $db );
     test_stories_word_matrix( $db );
     test_stories_update( $db, $media );
 }
