@@ -71,7 +71,7 @@ Readonly my @SOLR_FIELDS => qw/stories_id media_id publish_date publish_day publ
   text title language processed_stories_id tags_id_stories timespans_id/;
 
 # how many sentences to fetch at a time from the postgres query
-Readonly my $FETCH_BLOCK_SIZE => 100;
+Readonly my $FETCH_BLOCK_SIZE => 20;
 
 # default stories queue table
 Readonly my $DEFAULT_STORIES_QUEUE_TABLE => 'solr_import_extra_stories';
