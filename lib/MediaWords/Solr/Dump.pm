@@ -71,7 +71,7 @@ Readonly my @SOLR_FIELDS => qw/stories_id media_id publish_date publish_day publ
   text title language processed_stories_id tags_id_stories timespans_id/;
 
 # how many sentences to fetch at a time from the postgres query
-Readonly my $FETCH_BLOCK_SIZE => 20;
+Readonly my $FETCH_BLOCK_SIZE => 100;
 
 # default stories queue table
 Readonly my $DEFAULT_STORIES_QUEUE_TABLE => 'solr_import_extra_stories';
@@ -210,9 +210,10 @@ sub _get_stories_json_from_db_single
 
         my $stories = $db->query( <<SQL )->hashes();
 with _block_processed_stories as (
-    select processed_stories_id, stories_id
+    select max( processed_stories_id ) processed_stories_id, stories_id
         from processed_stories
         where stories_id in ( $block_stories_ids_list )
+        group by stories_id
 ),
 
 _timespan_stories as  (
@@ -245,7 +246,7 @@ _import_stories as (
         string_agg( ss.sentence, ' ' order by ss.sentence_number ) as text,
         s.title,
         s.language,
-        max( ps.processed_stories_id ) processed_stories_id,
+        min( ps.processed_stories_id ) processed_stories_id,
         min( stm.tags_id_stories ) tags_id_stories,
         min( slc.timespans_id ) timespans_id
 
