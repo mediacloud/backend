@@ -76,6 +76,12 @@ Readonly my $FETCH_BLOCK_SIZE => 100;
 # default stories queue table
 Readonly my $DEFAULT_STORIES_QUEUE_TABLE => 'solr_import_extra_stories';
 
+# default time sleep when there are less than MIN_STORIES_TO_PROCESS in daemon mode:
+Readonly my $DEFAULT_THROTTLE => 60;
+
+# if there are fewer stories than this, quit or (in daemon mode) sleep
+Readonly my $MIN_STORIES_TO_PROCESS => 1000;
+
 # mark date before generating dump for storing in solr_imports after successful import
 my $_import_date;
 
@@ -661,18 +667,6 @@ sub _maybe_production_solr
     return ( $num_sentences > 100_000_000 );
 }
 
-# return true if there are less than 100k rows in the stories queue table
-sub _stories_queue_is_small
-{
-    my ( $db ) = @_;
-
-    my $stories_queue_table = _get_stories_queue_table();
-
-    my $exist = $db->query( "select 1 from $stories_queue_table offset 100000 limit 1" )->hash;
-
-    return $exist ? 0 : 1;
-}
-
 # set snapshots.searchable to true for all snapshots that are currently false and
 # have no stories in the stories queue table
 sub _update_snapshot_solr_status
@@ -722,9 +716,11 @@ Options:
 * stories_queue_table -- table from which to pull stories to import (default solr_import_extra_stories)
 * skip_logging -- skip logging the import into the solr_import_stories or solr_imports tables (default=false)
 
-The import will run in blocks of config.mediawords.solr_import.max_queued_stories at a time.  It will always process
-one block, but by default it will exit once there are less than 100k stories left in the queue (to avoid endlessly
-running on very small queues).
+The import will run in blocks of config.mediawords.solr_import.max_queued_stories at a time.  It will 
+exit once there are less than $MIN_STORIES_TO_PROCESS stories left in the queue unless the daemon option is true.
+
+When run in daemon mode, the function will keep trying to find stories to import.  If there are less than
+$MIN_STORIES_TO_PROCESS stories to import, it will sleep for $throttle seconds and then look for more stories.
 
 If jobs is > 1, the database handle passed into this function will be corrupted and must not be used after calling
 this function.
@@ -758,10 +754,11 @@ sub import_data($;$)
     my $queue_only   = $options->{ queue_only }   // 0;
     my $update       = $options->{ update }       // 1;
     my $empty_queue  = $options->{ empty_queue }  // 0;
+    my $throttle     = $options->{ throttle }     // $DEFAULT_THROTTLE;
     my $jobs         = $options->{ jobs }         // 1;
-    my $throttle     = $options->{ throttle }     // 60;
     my $staging      = $options->{ staging }      // 0;
     my $skip_logging = $options->{ skip_logging } // 0;
+    my $daemon       = $options->{ deamon }       // 0;
 
     $_solr_use_staging          = $staging;
     $_stories_queue_table       = $stories_queue_table;
@@ -776,7 +773,21 @@ sub import_data($;$)
 
         my $stories_ids = _create_delta_import_stories( $db, $queue_only );
 
-        last unless ( @{ $stories_ids } );
+        my $num_stories = scalar( @{ $stories_ids } );
+        if ( $num_stories < $MIN_STORIES_TO_PROCESS )
+        {
+            if ( $daemon )
+            {
+                INFO( "too few stories ($num_stories/$MIN_STORIES_TO_PROCESS). sleeping $throttle seconds ..." );
+                sleep( $throttle );
+                next;
+            }
+            elsif ( !$num_stories || !$empty_queue )
+            {
+                INFO( "too few stories ($num_stories/$MIN_STORIES_TO_PROCESS). quitting." );
+                last;
+            }
+        }
 
         if ( $update )
         {
@@ -800,17 +811,8 @@ sub import_data($;$)
             _update_snapshot_solr_status( $db );
         }
 
-        my $num_stories = scalar( @{ $stories_ids } );
         my $import_time = time() - $start_time;
         INFO( "imported $num_stories stories in $import_time seconds" );
-
-        last if ( !$empty_queue && _stories_queue_is_small( $db ) );
-
-        if ( $throttle )
-        {
-            INFO( "sleeping for $throttle seconds to throttle ..." );
-            sleep( $throttle );
-        }
     }
 }
 
