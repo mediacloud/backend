@@ -120,7 +120,7 @@ SQL
         $db->query( "update stories set language = 'up' where stories_id = ?", $story->{ stories_id } );
         $db->commit();
 
-        MediaWords::Solr::Dump::import_data( $db, { throttle => 0 } );
+        MediaWords::Solr::Dump::import_data( $db, { empty_queue => 1, throttle => 0 } );
         test_story_query( $db, "language:up", $story, 'import updated story' );
     }
 
