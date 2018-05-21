@@ -20,7 +20,8 @@ SET search_path = public, pg_catalog;
 
 DROP FUNCTION stories_tags_map_partition_chunk_size();
 
-DROP FUNCTION stories_tags_map_get_partition_name(stories_id INT, table_name TEXT);
+DROP FUNCTION IF EXISTS stories_tags_map_get_partition_name(stories_id INT, table_name TEXT);
+DROP FUNCTION IF EXISTS stories_tags_map_get_partition_name(stories_id BIGINT, table_name TEXT);
 
 
 CREATE OR REPLACE FUNCTION stories_partition_chunk_size() RETURNS BIGINT AS $$
