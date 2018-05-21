@@ -321,24 +321,28 @@ sub count_GET
 {
     my ( $self, $c ) = @_;
 
-    my $timespan     = MediaWords::TM::set_timespans_id_param( $c );
-    my $timespans_id = $timespan->{ timespans_id };
-
     my $db = $c->dbis;
+
+    my $timespan = MediaWords::TM::require_timespan_for_topic(
+        $c->dbis,
+        $c->stash->{ topics_id },
+        $c->req->params->{ timespans_id },
+        $c->req->params->{ snapshots_id }
+    );
 
     my $q = $c->req->params->{ q };
 
-    if ( $q )
-    {
-        $c->req->params->{ q } = "timespans_id:$timespans_id and ( $q )";
-        return $c->controller( 'Api::V2::Stories_Public' )->count_GET( $c );
-    }
-    else
-    {
-        my ( $n ) =
-          $db->query( "select count(*) from snap.story_link_counts where timespans_id = \$1", $timespans_id )->flat;
-        $self->status_ok( $c, entity => { count => $n } );
-    }
+    my $timespan_clause = "timespans_id:$timespan->{ timespans_id }";
+
+    $q = $q ? "$timespan_clause and ( $q )" : $timespan_clause;
+
+    $c->req->params->{ q } = $q;
+
+    $c->req->params->{ split_start_date } ||= substr( $timespan->{ start_date }, 0, 12 );
+    $c->req->params->{ split_end_date }   ||= substr( $timespan->{ end_date },   0, 12 );
+
+    return $c->controller( 'Api::V2::Stories_Public' )->count_GET( $c );
+
 }
 
 1;

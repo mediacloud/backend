@@ -22,7 +22,7 @@ use MediaWords::CommonLibs;
 
 import_python_module( __PACKAGE__, 'mediawords.tm.mine' );
 
-use Carp::Always;
+use Carp;
 use Data::Dumper;
 use DateTime;
 use Digest::MD5;
@@ -80,6 +80,9 @@ Readonly my $ADD_NEW_LINKS_CHUNK_SIZE => 1000;
 
 # extract story links in chunks of this size
 Readonly my $EXTRACT_STORY_LINKS_CHUNK_SIZE => 1000;
+
+# query this many topic_links at a time to spider
+Readonly my $SPIDER_LINKS_CHUNK_SIZE => 100_000;
 
 # die if the error rate for link fetch or link extract jobs is greater than this
 Readonly my $MAX_JOB_ERROR_RATE => 0.01;
@@ -384,7 +387,7 @@ sub extract_download($$$)
 {
     my ( $db, $download, $story ) = @_;
 
-    return if ( $download->{ url } =~ /jpg|pdf|doc|mp3|mp4|zip$/i );
+    return if ( $download->{ url } =~ /jpg|pdf|doc|mp3|mp4|zip|png|docx$/i );
 
     return if ( $download->{ url } =~ /livejournal.com\/(tag|profile)/i );
 
@@ -1226,24 +1229,31 @@ sub spider_new_links
 {
     my ( $db, $topic, $iteration ) = @_;
 
-    INFO( "spider new links" );
+    for ( my $i = 0 ; ; $i++ )
+    {
+        INFO( "spider new links chunk: $i" );
 
-    my $new_links = $db->query( <<END, $iteration, $topic->{ topics_id } )->hashes;
-select distinct tl.* from topic_links tl, topic_stories ts
+        my $new_links = $db->query( <<END, $iteration, $topic->{ topics_id }, $SPIDER_LINKS_CHUNK_SIZE )->hashes;
+select tl.* from topic_links tl, topic_stories ts
     where
         tl.link_spidered = 'f' and
         tl.stories_id = ts.stories_id and
         ( ts.iteration <= \$1 or ts.iteration = 1000 ) and
         ts.topics_id = \$2 and
         tl.topics_id = \$2
+
+    limit \$3
 END
 
-    _add_source_story_urls_to_links( $db, $new_links );
+        last unless ( @{ $new_links } );
 
-    INFO( "filter for self linked domains" );
-    $new_links = [ grep { !_skip_self_linked_domain( $db, $_ ) } @{ $new_links } ];
+        _add_source_story_urls_to_links( $db, $new_links );
 
-    add_new_links( $db, $topic, $iteration, $new_links );
+        INFO( "filter for self linked domains" );
+        $new_links = [ grep { !_skip_self_linked_domain( $db, $_ ) } @{ $new_links } ];
+
+        add_new_links( $db, $topic, $iteration, $new_links );
+    }
 }
 
 # get short text description of spidering progress
@@ -1626,7 +1636,7 @@ END
 
         my $end = List::Util::min( $i + $ADD_NEW_LINKS_CHUNK_SIZE - 1, $#{ $seed_urls } );
         my $seed_urls_chunk = [ @{ $seed_urls }[ $i .. $end ] ];
-        add_new_links_chunk( $db, $topic, 1, $seed_urls_chunk );
+        add_new_links_chunk( $db, $topic, 0, $seed_urls_chunk );
 
         my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ topic_seed_urls_id } } @{ $seed_urls_chunk } ] );
 
@@ -1885,7 +1895,7 @@ sub get_solr_query_month_clause($$)
     my $solr_start = $offset_start->strftime( '%Y-%m-%d' ) . 'T00:00:00Z';
     my $solr_end   = $offset_end->strftime( '%Y-%m-%d' ) . 'T23:59:59Z';
 
-    my $date_clause = "publish_date:[$solr_start TO $solr_end]";
+    my $date_clause = "publish_day:[$solr_start TO $solr_end]";
 
     return $date_clause;
 }
@@ -1894,7 +1904,7 @@ sub get_solr_query_month_clause($$)
 # end date from topics and media clauses from topics_media_map and topics_media_tags_map.
 # only return a query for up to a month of the given a query, using the zero indexed $month_offset to
 # fetch $month_offset to return months after the first.  return undef if the month_offset puts the
-# query start date beyond the topic end date
+# query start date beyond the topic end date. otherwise return hash in the form of { q => query, fq => filter_query }
 sub get_full_solr_query($$;$$$$)
 {
     my ( $db, $topic, $media_ids, $media_tags_ids, $month_offset ) = @_;
@@ -1905,7 +1915,7 @@ sub get_full_solr_query($$;$$$$)
 
     return undef unless ( $date_clause );
 
-    my $solr_query = "( " . $topic->{ solr_seed_query } . " ) and $date_clause";
+    my $solr_query = "( $topic->{ solr_seed_query } )";
 
     my $media_clauses = [];
     my $topics_id     = $topic->{ topics_id };
@@ -1935,9 +1945,11 @@ sub get_full_solr_query($$;$$$$)
         $solr_query .= " and ( $media_clause_list )";
     }
 
-    DEBUG( "full solr query: $solr_query" );
+    my $solr_params = { q => $solr_query, fq => $date_clause };
 
-    return $solr_query;
+    DEBUG( "full solr query: q = $solr_query, fq = $date_clause" );
+
+    return $solr_params;
 }
 
 # import a single month of the solr seed query.  we do this to avoid giant queries that timeout in solr.
@@ -1959,8 +1971,9 @@ sub import_solr_seed_query_month($$$)
     return undef unless ( $solr_query );
 
     INFO "import solr seed query month offset $month_offset";
-    INFO "executing solr query: $solr_query";
-    my $stories = MediaWords::Solr::search_for_stories( $db, { q => $solr_query, rows => $max_stories } );
+    $solr_query->{ rows } = $max_stories;
+
+    my $stories = MediaWords::Solr::search_for_stories( $db, $solr_query );
 
     if ( scalar( @{ $stories } ) > $max_returned_stories )
     {

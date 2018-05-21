@@ -3,10 +3,6 @@
 use strict;
 use warnings;
 
-# test MediaWords::Solr::_get_stories_ids_from_stories_only_params, which
-# does simple parsing of solr queries to find out if there is only a list of
-# stories_ids, in which case it just returns the story ids directly
-
 use MediaWords::CommonLibs;
 
 use English '-no_match_vars';
@@ -167,54 +163,117 @@ SQL
     return $utf8_string;
 }
 
-sub test_query($$$$)
-{
-    my ( $db, $solr_query, $expected_ss, $label ) = @_;
-
-    my $r = eval { MediaWords::Solr::query( $db, { q => $solr_query, rows => 1_000_000 } ) };
-    ok( !$@, "$label query error: $@" );
-
-    my $fields = [ qw/stories_id/ ];
-    rows_match( "$label sentences", $r->{ response }->{ docs }, $expected_ss, 'story_sentences_id', $fields );
-}
-
-sub test_queries($)
+# tests that require solr to be running
+sub run_solr_tests($)
 {
     my ( $db ) = @_;
 
-    my $label = "test_queries";
+    my $media = MediaWords::Test::Solr::create_indexed_test_story_stack(
+        $db,
+        {
+            medium_1 => { feed_1 => [ map { "story_$_" } ( 1 .. 15 ) ] },
+            medium_2 => { feed_2 => [ map { "story_$_" } ( 16 .. 25 ) ] },
+            medium_3 => { feed_3 => [ map { "story_$_" } ( 26 .. 50 ) ] },
+        }
+    );
 
-    my $test_data = MediaWords::Test::DB::create_test_story_stack_numerated( $db, 5, 1, 10 );
-    MediaWords::Test::DB::add_content_to_test_story_stack( $db, $test_data );
-
-    my $stories      = [ grep { $_->{ stories_id } } values( %{ $test_data } ) ];
-    my $utf8_stories = [ grep { !( $_->{ stories_id } % 3 ) } @{ $stories } ];
-    my $utf8_string = append_utf8_string_to_stories( $db, $utf8_stories );
-
-    MediaWords::Test::Solr::setup_test_index( $db );
-
-    my $first_story = $stories->[ 0 ];
+    my $test_stories = $db->query( "select * from stories order by md5( stories_id::text )" )->hashes;
 
     {
-        my $expected = $db->query( <<SQL, $first_story->{ stories_id } )->hashes;
+        # basic query
+        my $story = pop( @{ $test_stories } );
+        test_story_query( $db, '*:*', $story, 'simple story' );
+    }
+
+    {
+        # get_num_found
+        my ( $expected_num_stories ) = $db->query( "select count(*) from stories" )->flat;
+        my $got_num_stories = MediaWords::Solr::get_num_found( $db, { q => '*:*' } );
+        is( $got_num_stories, $expected_num_stories, 'get_num_found' );
+    }
+
+    {
+        # search_for_processed_stories_ids
+        my $first_story = $db->query( <<SQL )->hash;
+select * from processed_stories order by processed_stories_id asc limit 1
+SQL
+
+        my $got_processed_stories_ids = MediaWords::Solr::search_for_processed_stories_ids( $db, '*:*', undef, 0, 1 );
+        is( scalar( @{ $got_processed_stories_ids } ), 1, "search_for_processed_stories_ids count" );
+        is(
+            $got_processed_stories_ids->[ 0 ],
+            $first_story->{ processed_stories_id },
+            "search_for_processed_stories_ids id"
+        );
+    }
+
+    {
+        # search_for_stories_ids
+        my $story = pop( @{ $test_stories } );
+        my $got_stories_ids = MediaWords::Solr::search_for_stories_ids( $db, { q => "stories_id:$story->{ stories_id }" } );
+        is_deeply( $got_stories_ids, [ $story->{ stories_id } ], "search_for_stories_ids" );
+    }
+
+    {
+        # search_for_stories
+
+        # search for stories_id range to prevent search_for_stories_id from using the stories_id_only_params shortcut
+        my $expected_stories = $db->query( "select * from stories order by stories_id desc limit 10" )->hashes;
+        my $min_stories_id   = $expected_stories->[ -1 ]->{ stories_id };
+        my $got_stories =
+          MediaWords::Solr::search_for_stories( $db, { q => '*:*', fq => "stories_id:[$min_stories_id TO *]" } );
+
+        my $fields = [ qw/title publish_date url guid media_id language/ ];
+        rows_match( 'search_for_stories', $got_stories, $expected_stories, 'stories_id', $fields );
+    }
+
+    {
+        # search_for_media
+        my $media_id       = $test_stories->[ 0 ]->{ media_id };
+        my $expected_media = $db->query( "select * from media where media_id = ?", $media_id )->hashes;
+        my $got_media      = MediaWords::Solr::search_for_media( $db, { q => "media_id:$media_id" } );
+
+        my $fields = [ qw/url name/ ];
+        rows_match( 'search_for_media', $got_media, $expected_media, 'media_id', $fields );
+    }
+
+    {
+        # query_matching_sentences
+        my $story = pop( @{ $test_stories } );
+        my $story_sentences = $db->query( <<SQL, $story->{ stories_id } )->hashes;
 select * from story_sentences where stories_id = ?
 SQL
-        test_query( $db, "stories_id:$first_story->{ stories_id } and sentence:*", $expected, "$label stories_id" );
-    }
-    {
-        my $media_id = $first_story->{ media_id };
-        my $expected = $db->query( <<SQL, $media_id )->hashes;
-select * from story_sentences where media_id = ?
-SQL
-        test_query( $db, "media_id:$media_id and sentence:*", $expected, "$label media_id" );
-    }
-    {
-        my $expected = $db->query( <<SQL, encode_utf8( $utf8_string ) )->hashes;
-select ss.* from story_sentences ss where sentence ilike '%' || ? || '%'
-SQL
-        test_query( $db, $utf8_string, $expected, "$label utf8_string" );
+        my ( $test_word ) = grep { length( $_ ) > 3 } split( ' ', $story_sentences->[ 0 ]->{ sentence } );
+
+        $test_word = lc( $test_word );
+
+        my $expected_sentences = [ grep { $_->{ sentence } =~ /$test_word/i } @{ $story_sentences } ];
+        my $query              = "$test_word* and stories_id:$story->{ stories_id }";
+        my $got_sentences      = MediaWords::Solr::query_matching_sentences( $db, { q => $query } );
+
+        my $fields = [ qw/stories_id sentence_number sentence media_id publish_date language/ ];
+        rows_match( "query_matching_sentences '$test_word'",
+            $got_sentences, $expected_sentences, 'story_sentences_id', $fields );
     }
 
+    {
+        #query mmatching sentences with query with no text terms
+        my $story = pop( @{ $test_stories } );
+        my $story_sentences = $db->query( <<SQL, $story->{ stories_id } )->hashes;
+select * from story_sentences where stories_id = ?
+SQL
+        my $query = "stories_id:$story->{ stories_id }";
+        my $got_sentences = MediaWords::Solr::query_matching_sentences( $db, { q => $query } );
+
+        my $fields = [ qw/stories_id sentence_number sentence media_id publish_date language/ ];
+        rows_match( 'query_matching_sentences empty regex', $got_sentences, $story_sentences, 'story_sentences_id',
+            $fields );
+    }
+
+    {
+        eval { MediaWords::Solr::query( $db, { q => "publish_date:[foo TO bar]" } ) };
+        ok( $@ =~ /range queries are not allowed/, "range queries not allowed: '$@'" );
+    }
 }
 
 sub test_collections_id_result($$$)
@@ -243,7 +302,7 @@ sub test_collections_id_result($$$)
         }
     }
 
-    my $expected_q = MediaWords::Solr::consolidate_id_query( 'media_id', $expected_media_ids );
+    my $expected_q = 'media_id:(' . join( ' ', @{ $expected_media_ids } ) . ')';
 
     my $got_q = MediaWords::Solr::_insert_collection_media_ids( $db, "tags_id_media:$q_arg" );
     is( $got_q, $expected_q, "$label (tags_id_media)" );
@@ -297,9 +356,9 @@ sub main
 {
     test_solr_stories_only_query();
 
-    MediaWords::Test::Supervisor::test_with_supervisor( \&test_queries, [ qw/solr_standalone/ ] );
-
     MediaWords::Test::DB::test_on_test_database( \&test_collections_id_queries );
+
+    MediaWords::Test::Supervisor::test_with_supervisor( \&run_solr_tests, [ qw/solr_standalone/ ] );
 
     done_testing();
 }

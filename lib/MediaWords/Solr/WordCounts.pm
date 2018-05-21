@@ -32,6 +32,7 @@ use MediaWords::Util::Config;
 use MediaWords::Util::IdentifyLanguage;
 use MediaWords::Util::JSON;
 use MediaWords::Util::Text;
+use MediaWords::Test::DB;
 
 # Max. length of the sentence to tokenize
 Readonly my $MAX_SENTENCE_LENGTH => 1024;
@@ -140,12 +141,25 @@ sub _combine_stopwords($$)
 
     unless ( ref( $languages ) eq ref( [] ) )
     {
-        die "Languages is not a hashref.";
+        die "Languages is not an arrayref.";
     }
     unless ( scalar( @{ $languages } ) > 0 )
     {
         die "Languages should have at least one language set.";
     }
+
+    my $language_lookup   = {};
+    my $deduped_languages = [];
+    for my $language ( @{ $languages } )
+    {
+        unless ( $language_lookup->{ $language->language_code() } )
+        {
+            push( @{ $deduped_languages }, $language );
+            $language_lookup->{ $language->language_code() } = 1;
+        }
+    }
+
+    $languages = $deduped_languages;
 
     my $language_codes = [];
     foreach my $language ( @{ $languages } )
@@ -176,19 +190,7 @@ sub _combine_stopwords($$)
     return $self->cached_combined_stopwords->{ $cache_key };
 }
 
-# Expects the following arrayref of hashrefs:
-#
-# [
-#     {
-#         'story_language' => '...',
-#         'sentence' => '...',
-#     },
-#     {
-#         'story_language' => '...',
-#         'sentence' => '...',
-#     },
-#     ...
-# ]
+# expects story_sentence hashes, with a story_language field.
 #
 # parse the text and return a count of stems and terms in the sentence in the
 # following format:
@@ -198,64 +200,39 @@ sub _combine_stopwords($$)
 # if ngram_size is > 1, use the unstemmed phrases of ngram_size as the stems
 sub count_stems($$)
 {
-    my ( $self, $sentences_and_story_languages ) = @_;
+    my ( $self, $story_sentences ) = @_;
 
     # Set any duplicate sentences blank
     my $dup_sentences = {};
-    map {
-        $dup_sentences->{ $_->{ 'sentence' } }
-          ? ( $_->{ 'sentence' } = '' )
-          : ( $dup_sentences->{ $_->{ 'sentence' } } = 1 );
-    } grep { defined( $_->{ 'sentence' } ) } @{ $sentences_and_story_languages };
 
     # Tokenize each sentence and add count to $words for each token
     my $stem_counts = {};
-    for my $sentence_and_story_language ( @{ $sentences_and_story_languages } )
+    for my $story_sentence ( @{ $story_sentences } )
     {
-        unless ( defined( $sentence_and_story_language ) )
-        {
-            next;
-        }
+        next unless ( defined( $story_sentence ) );
 
-        my $sentence = $sentence_and_story_language->{ 'sentence' };
-        unless ( defined( $sentence ) )
-        {
-            next;
-        }
+        my $sentence = $story_sentence->{ 'sentence' };
+        next unless ( defined( $sentence ) );
 
-        my $story_language = $sentence_and_story_language->{ 'story_language' };
-        unless ( defined( $story_language ) )
-        {
-            $story_language = '';
-        }
+        next if ( $dup_sentences->{ $sentence } );
+        $dup_sentences->{ $sentence } = 1;
 
         # Very long sentences tend to be noise -- html text and the like.
-        $sentence = substr( $sentence, 0, $MAX_SENTENCE_LENGTH );
+        $sentence = substr( $sentence, 0, $MAX_SENTENCE_LENGTH ) if ( length( $sentence ) > $MAX_SENTENCE_LENGTH );
 
         # Remove urls so they don't get tokenized into noise
-        $sentence =~ s~https?://[^\s]+~~gi;
+        if ( $sentence =~ m~https?://[^\s]+~i )
+        {
+            $sentence =~ s~https?://[^\s]+~~gi;
+        }
 
-        my $sentence_language = MediaWords::Util::IdentifyLanguage::language_code_for_text( $sentence );
-        unless ( $sentence_language )
-        {
-            TRACE "Unable to determine sentence language for sentence '$sentence', falling back to default language";
-            $sentence_language = MediaWords::Languages::Language::default_language_code();
-        }
-        unless ( MediaWords::Languages::Language::language_is_enabled( $story_language ) )
-        {
-            TRACE "Language '$sentence_language' for story is not enabled, falling back to default language";
-            $story_language = MediaWords::Languages::Language::default_language_code();
-        }
-        unless ( MediaWords::Languages::Language::language_is_enabled( $sentence_language ) )
-        {
-            TRACE "Language '$sentence_language' for sentence '$sentence' is not enabled, falling back to default language";
-            $sentence_language = MediaWords::Languages::Language::default_language_code();
-        }
+        my $story_language    = $story_sentence->{ 'story_language' } || 'en';
+        my $sentence_language = $story_sentence->{ language }         || 'en';
 
         # Language objects are cached in ::Languages::Language, no need to have a separate cache
         my $lang_en       = MediaWords::Languages::Language::default_language();
-        my $lang_story    = MediaWords::Languages::Language::language_for_code( $story_language );
-        my $lang_sentence = MediaWords::Languages::Language::language_for_code( $sentence_language );
+        my $lang_story    = MediaWords::Languages::Language::language_for_code( $story_language ) || $lang_en;
+        my $lang_sentence = MediaWords::Languages::Language::language_for_code( $sentence_language ) || $lang_en;
 
         # Tokenize into words
         my $sentence_words = $lang_sentence->split_sentence_to_words( $sentence );
@@ -336,42 +313,16 @@ sub _get_words_from_solr_server($)
         q    => $self->q(),
         fq   => $self->fq,
         rows => $self->sample_size,
-        fl   => 'story_sentences_id',
         sort => 'random_' . $self->random_seed . ' asc'
     };
 
     DEBUG( "executing solr query ..." );
     DEBUG Dumper( $solr_params );
 
-    my $solr_data = MediaWords::Solr::query( $self->db, $solr_params );
-
-    my $sentences_found = $solr_data->{ response }->{ numFound };
-
-    my $story_sentences_ids = [ map { int( $_->{ story_sentences_id } ) } @{ $solr_data->{ response }->{ docs } } ];
-
-    my $ids_table = $db->get_temporary_ids_table( $story_sentences_ids );
-
-    my $sentences_and_story_languages = $db->query(
-        <<SQL
-
-        SELECT story_sentences.sentence,
-               stories.language AS story_language
-
-        -- Select from temporary table and INNER JOIN afterwards because if
-        -- temporary table is empty, PostgreSQL decides to do sequential scan
-        -- on "stories" table
-        FROM $ids_table
-            INNER JOIN story_sentences
-              ON $ids_table.id = story_sentences.story_sentences_id
-            INNER JOIN stories
-                ON story_sentences.stories_id = stories.stories_id
-        WHERE
-            not stories.url ilike '%.pdf' -- don't try to count words from pdfs
-SQL
-    )->hashes;
+    my $story_sentences = MediaWords::Solr::query_matching_sentences( $self->db, $solr_params, $self->sample_size );
 
     DEBUG( "counting sentences..." );
-    my $words = $self->count_stems( $sentences_and_story_languages );
+    my $words = $self->count_stems( $story_sentences );
     DEBUG( "done counting sentences" );
 
     my @word_list;
@@ -412,8 +363,7 @@ SQL
         return {
             stats => {
                 num_words_returned     => scalar( @{ $counts } ),
-                num_sentences_returned => scalar( @{ $sentences_and_story_languages } ),
-                num_sentences_found    => $sentences_found,
+                num_sentences_returned => scalar( @{ $story_sentences } ),
                 num_words_param        => $self->num_words,
                 sample_size_param      => $self->sample_size,
                 random_seed            => $self->random_seed
@@ -524,7 +474,9 @@ sub get_words
 {
     my ( $self ) = @_;
 
-    my $words = $self->_get_cached_words;
+    my $words;
+
+    $words = $self->_get_cached_words unless ( MediaWords::Test::DB::using_test_database() );
 
     if ( $words )
     {
