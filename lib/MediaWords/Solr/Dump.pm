@@ -758,7 +758,7 @@ sub import_data($;$)
     my $jobs         = $options->{ jobs }         // 1;
     my $staging      = $options->{ staging }      // 0;
     my $skip_logging = $options->{ skip_logging } // 0;
-    my $daemon       = $options->{ deamon }       // 0;
+    my $daemon       = $options->{ daemon }       // 0;
 
     $_solr_use_staging          = $staging;
     $_stories_queue_table       = $stories_queue_table;
