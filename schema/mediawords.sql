@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4658;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4664;
 
 BEGIN
 
@@ -135,26 +135,32 @@ $$
 LANGUAGE 'plpgsql';
 
 
+-- Update "db_row_last_updated" column to trigger Solr (re)imports for given
+-- row; no update gets done if "db_row_last_updated" is set explicitly in
+-- INSERT / UPDATE (e.g. when copying between tables)
 CREATE OR REPLACE FUNCTION last_updated_trigger() RETURNS trigger AS $$
 
-DECLARE
-    path_change boolean;
-
 BEGIN
-    IF (TG_OP = 'UPDATE') OR (TG_OP = 'INSERT') then
-        NEW.db_row_last_updated = NOW();
+
+    IF TG_OP = 'INSERT' THEN
+        IF NEW.db_row_last_updated IS NULL THEN
+            NEW.db_row_last_updated = NOW();
+        END IF;
+
+    ELSIF TG_OP = 'UPDATE' THEN
+        IF NEW.db_row_last_updated = OLD.db_row_last_updated THEN
+            NEW.db_row_last_updated = NOW();
+        END IF;
     END IF;
 
     RETURN NEW;
+
 END;
 
 $$ LANGUAGE 'plpgsql';
 
 
 CREATE OR REPLACE FUNCTION update_story_sentences_updated_time_trigger() RETURNS trigger AS $$
-
-DECLARE
-    path_change boolean;
 
 BEGIN
     UPDATE story_sentences
@@ -171,7 +177,6 @@ $$ LANGUAGE 'plpgsql';
 CREATE OR REPLACE FUNCTION update_stories_updated_time_by_stories_id_trigger() RETURNS trigger AS $$
 
 DECLARE
-    path_change boolean;
     reference_stories_id integer default null;
 
 BEGIN
@@ -742,12 +747,14 @@ create index stories_title_hash on stories( md5( title ) );
 create index stories_publish_day on stories( date_trunc( 'day', publish_date ) );
 
 DROP TRIGGER IF EXISTS stories_last_updated_trigger on stories CASCADE;
-CREATE TRIGGER stories_last_updated_trigger BEFORE INSERT OR UPDATE ON stories FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
-DROP TRIGGER IF EXISTS stories_update_story_sentences_last_updated_trigger on stories CASCADE;
+CREATE TRIGGER stories_last_updated_trigger
+    BEFORE INSERT OR UPDATE ON stories
+    FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger();
 
+DROP TRIGGER IF EXISTS stories_update_story_sentences_last_updated_trigger on stories CASCADE;
 CREATE TRIGGER stories_update_story_sentences_last_updated_trigger
     AFTER INSERT OR UPDATE ON stories
-    FOR EACH ROW EXECUTE PROCEDURE update_story_sentences_updated_time_trigger() ;
+    FOR EACH ROW EXECUTE PROCEDURE update_story_sentences_updated_time_trigger();
 
 create table stories_ap_syndicated (
     stories_ap_syndicated_id    serial primary key,
@@ -919,15 +926,126 @@ create index feeds_stories_map_story on feeds_stories_map (stories_id);
 
 
 --
--- Story -> tag map
+-- Partitioning tools
 --
 
-CREATE OR REPLACE FUNCTION stories_tags_map_partition_chunk_size()
+-- Return partition size for every table that is partitioned by "stories_id"
+CREATE OR REPLACE FUNCTION stories_partition_chunk_size()
 RETURNS BIGINT AS $$
 BEGIN
     RETURN 100 * 1000 * 1000;   -- 100m stories in each partition
 END; $$
 LANGUAGE plpgsql IMMUTABLE;
+
+
+-- Return partition table name for a given base table name and "stories_id"
+CREATE OR REPLACE FUNCTION stories_partition_name(base_table_name TEXT, stories_id INT)
+RETURNS TEXT AS $$
+DECLARE
+
+    -- Up to 100 partitions, suffixed as "_00", "_01" ..., "_99"
+    -- (having more of them is not feasible)
+    to_char_format CONSTANT TEXT := '00';
+
+    -- Partition table name (e.g. "stories_tags_map_01")
+    table_name TEXT;
+
+    stories_id_chunk_number INT;
+
+BEGIN
+    SELECT stories_id / stories_partition_chunk_size() INTO stories_id_chunk_number;
+
+    SELECT base_table_name || '_' || TRIM(leading ' ' FROM TO_CHAR(stories_id_chunk_number, to_char_format))
+        INTO table_name;
+
+    RETURN table_name;
+END;
+$$
+LANGUAGE plpgsql IMMUTABLE;
+
+
+-- Create missing partitions for tables partitioned by "stories_id", returning
+-- a list of created partition tables
+CREATE OR REPLACE FUNCTION stories_create_partitions(base_table_name TEXT)
+RETURNS SETOF TEXT AS
+$$
+DECLARE
+    chunk_size INT;
+    max_stories_id INT;
+    partition_stories_id INT;
+
+    -- Partition table name (e.g. "stories_tags_map_01")
+    target_table_name TEXT;
+
+    -- Partition table owner (e.g. "mediaclouduser")
+    target_table_owner TEXT;
+
+    -- "stories_id" chunk lower limit, inclusive (e.g. 30,000,000)
+    stories_id_start BIGINT;
+
+    -- stories_id chunk upper limit, exclusive (e.g. 31,000,000)
+    stories_id_end BIGINT;
+BEGIN
+
+    SELECT stories_partition_chunk_size() INTO chunk_size;
+
+    -- Create +1 partition for future insertions
+    SELECT COALESCE(MAX(stories_id), 0) + chunk_size FROM stories INTO max_stories_id;
+
+    FOR partition_stories_id IN 1..max_stories_id BY chunk_size LOOP
+        SELECT stories_partition_name( base_table_name, partition_stories_id ) INTO target_table_name;
+        IF table_exists(target_table_name) THEN
+            RAISE NOTICE 'Partition "%" for story ID % already exists.', target_table_name, partition_stories_id;
+        ELSE
+            RAISE NOTICE 'Creating partition "%" for story ID %', target_table_name, partition_stories_id;
+
+            SELECT (partition_stories_id / chunk_size) * chunk_size INTO stories_id_start;
+            SELECT ((partition_stories_id / chunk_size) + 1) * chunk_size INTO stories_id_end;
+
+            EXECUTE '
+                CREATE TABLE ' || target_table_name || ' (
+
+                    PRIMARY KEY (' || base_table_name || '_id),
+
+                    -- Partition by stories_id
+                    CONSTRAINT ' || REPLACE(target_table_name, '.', '_') || '_stories_id CHECK (
+                        stories_id >= ''' || stories_id_start || '''
+                    AND stories_id <  ''' || stories_id_end   || '''),
+
+                    -- Foreign key to stories.stories_id
+                    CONSTRAINT ' || REPLACE(target_table_name, '.', '_') || '_stories_id_fkey
+                        FOREIGN KEY (stories_id) REFERENCES stories (stories_id) MATCH FULL ON DELETE CASCADE
+
+                ) INHERITS (' || base_table_name || ');
+            ';
+
+            -- Update owner
+            SELECT u.usename AS owner
+            FROM information_schema.tables AS t
+                JOIN pg_catalog.pg_class AS c ON t.table_name = c.relname
+                JOIN pg_catalog.pg_user AS u ON c.relowner = u.usesysid
+            WHERE t.table_name = base_table_name
+              AND t.table_schema = 'public'
+            INTO target_table_owner;
+
+            EXECUTE 'ALTER TABLE ' || target_table_name || ' OWNER TO ' || target_table_owner || ';';
+
+            -- Add created partition name to the list of returned partition names
+            RETURN NEXT target_table_name;
+
+        END IF;
+    END LOOP;
+
+    RETURN;
+
+END;
+$$
+LANGUAGE plpgsql;
+
+
+--
+-- Story -> tag map
+--
 
 -- "Master" table (no indexes, no foreign keys as they'll be ineffective)
 CREATE TABLE stories_tags_map (
@@ -949,111 +1067,51 @@ CREATE TRIGGER stories_tags_map_update_stories_last_updated_trigger
     FOR EACH ROW EXECUTE PROCEDURE update_stories_updated_time_by_stories_id_trigger();
 
 
-CREATE OR REPLACE FUNCTION stories_tags_map_get_partition_name(stories_id BIGINT, table_name TEXT)
-RETURNS TEXT AS $$
-DECLARE
-    to_char_format CONSTANT TEXT := '00';     -- Up to 100 partitions, suffixed as "_00", "_01" ..., "_99"
-                                              -- (having more of them is not feasible)
-    stories_id_chunk_number INT;
-
-    target_table_name TEXT;       -- partition table name (e.g. "stories_tags_map_01")
-BEGIN
-    SELECT stories_id / stories_tags_map_partition_chunk_size() INTO stories_id_chunk_number;
-
-    SELECT table_name || '_' || trim(leading ' ' FROM to_char(stories_id_chunk_number, to_char_format))
-        INTO target_table_name;
-
-    RETURN target_table_name;
-END;
-$$
-LANGUAGE plpgsql;
-
-
--- Create missing stories_tags_map partitions
+-- Create missing "stories_tags_map" partitions
 CREATE OR REPLACE FUNCTION stories_tags_map_create_partitions()
 RETURNS VOID AS
 $$
 DECLARE
-    chunk_size INT;
-    max_stories_id BIGINT;
-    partition_stories_id BIGINT;
-
-    target_table_name TEXT;       -- partition table name (e.g. "stories_tags_map_01")
-    target_table_owner TEXT;      -- partition table owner (e.g. "mediaclouduser")
-
-    stories_id_start INT;         -- stories_id chunk lower limit, inclusive (e.g. 30,000,000)
-    stories_id_end INT;           -- stories_id chunk upper limit, exclusive (e.g. 31,000,000)
+    created_partitions TEXT[];
+    partition TEXT;
 BEGIN
 
-    SELECT stories_tags_map_partition_chunk_size() INTO chunk_size;
+    created_partitions := ARRAY(SELECT stories_create_partitions('stories_tags_map'));
 
-    -- Create +1 partition for future insertions
-    SELECT COALESCE(MAX(stories_id), 0) + chunk_size FROM stories INTO max_stories_id;
+    FOREACH partition IN ARRAY created_partitions LOOP
 
-    FOR partition_stories_id IN 1..max_stories_id BY chunk_size LOOP
-        SELECT stories_tags_map_get_partition_name( partition_stories_id, 'stories_tags_map' ) INTO target_table_name;
-        IF table_exists(target_table_name) THEN
-            RAISE NOTICE 'Partition "%" for story ID % already exists.', target_table_name, partition_stories_id;
-        ELSE
-            RAISE NOTICE 'Creating partition "%" for story ID %', target_table_name, partition_stories_id;
+        RAISE NOTICE 'Altering created partition "%"...', partition;
+        
+        -- Add extra foreign keys / constraints to the newly created partitions
+        EXECUTE '
+            ALTER TABLE ' || partition || '
 
-            SELECT (partition_stories_id / chunk_size) * chunk_size INTO stories_id_start;
-            SELECT ((partition_stories_id / chunk_size) + 1) * chunk_size INTO stories_id_end;
+                -- Foreign key to tags.tags_id
+                ADD CONSTRAINT ' || REPLACE(partition, '.', '_') || '_tags_id_fkey
+                    FOREIGN KEY (tags_id) REFERENCES tags (tags_id) MATCH FULL ON DELETE CASCADE,
 
-            EXECUTE '
-                CREATE TABLE ' || target_table_name || ' (
+                -- Unique duplets
+                ADD CONSTRAINT ' || REPLACE(partition, '.', '_') || '_stories_id_tags_id_unique
+                    UNIQUE (stories_id, tags_id);
+        ';
 
-                    PRIMARY KEY (stories_tags_map_id),
-
-                    -- Partition by stories_id
-                    CONSTRAINT ' || REPLACE(target_table_name, '.', '_') || '_stories_id CHECK (
-                        stories_id >= ''' || stories_id_start || '''
-                    AND stories_id <  ''' || stories_id_end   || '''),
-
-                    -- Foreign key to stories.stories_id
-                    CONSTRAINT ' || REPLACE(target_table_name, '.', '_') || '_stories_id_fkey
-                        FOREIGN KEY (stories_id) REFERENCES stories (stories_id) MATCH FULL ON DELETE CASCADE,
-
-                    -- Foreign key to tags.tags_id
-                    CONSTRAINT ' || REPLACE(target_table_name, '.', '_') || '_tags_id_fkey
-                        FOREIGN KEY (tags_id) REFERENCES tags (tags_id) MATCH FULL ON DELETE CASCADE,
-
-                    -- Unique duplets
-                    CONSTRAINT ' || REPLACE(target_table_name, '.', '_') || '_stories_id_tags_id_unique
-                        UNIQUE (stories_id, tags_id)
-
-                ) INHERITS (stories_tags_map);
-            ';
-
-            -- Update owner
-            SELECT u.usename AS owner
-            FROM information_schema.tables AS t
-                JOIN pg_catalog.pg_class AS c ON t.table_name = c.relname
-                JOIN pg_catalog.pg_user AS u ON c.relowner = u.usesysid
-            WHERE t.table_name = 'stories_tags_map'
-              AND t.table_schema = 'public'
-            INTO target_table_owner;
-
-            EXECUTE 'ALTER TABLE ' || target_table_name || ' OWNER TO ' || target_table_owner || ';';
-
-        END IF;
     END LOOP;
 
 END;
 $$
 LANGUAGE plpgsql;
 
--- Create initial partitions for empty database
+-- Create initial "stories_tags_map" partitions for empty database
 SELECT stories_tags_map_create_partitions();
 
 
 -- Upsert row into correct partition
-CREATE OR REPLACE FUNCTION stories_tags_map_partition_by_stories_id_insert_trigger()
+CREATE OR REPLACE FUNCTION stories_tags_map_partition_upsert_trigger()
 RETURNS TRIGGER AS $$
 DECLARE
     target_table_name TEXT;       -- partition table name (e.g. "stories_tags_map_01")
 BEGIN
-    SELECT stories_tags_map_get_partition_name( NEW.stories_id, 'stories_tags_map' ) INTO target_table_name;
+    SELECT stories_partition_name( 'stories_tags_map', NEW.stories_id ) INTO target_table_name;
     EXECUTE '
         INSERT INTO ' || target_table_name || '
             SELECT $1.*
@@ -1064,9 +1122,9 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER stories_tags_map_partition_by_stories_id_insert_trigger
+CREATE TRIGGER stories_tags_map_partition_upsert_trigger
     BEFORE INSERT ON stories_tags_map
-    FOR EACH ROW EXECUTE PROCEDURE stories_tags_map_partition_by_stories_id_insert_trigger();
+    FOR EACH ROW EXECUTE PROCEDURE stories_tags_map_partition_upsert_trigger();
 
 
 
@@ -1096,37 +1154,287 @@ ALTER TABLE ONLY download_texts
 ALTER TABLE download_texts add CONSTRAINT download_text_length_is_correct CHECK (length(download_text)=download_text_length);
 
 
-create table story_sentences (
-       story_sentences_id           bigserial       primary key,
-       stories_id                   int             not null, -- references stories on delete cascade,
-       sentence_number              int             not null,
-       sentence                     text            not null,
-       media_id                     int             not null, -- references media on delete cascade,
-       publish_date                 timestamp       not null,
-       db_row_last_updated          timestamp with time zone, -- time this row was last updated
-       language                     varchar(3)      null,      -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
-       is_dup                       boolean         null
+
+--
+-- Individual sentences of every story
+--
+
+-- Intermediate table for migrating sentences to the partitioned table
+create table story_sentences_nonpartitioned (
+    story_sentences_nonpartitioned_id   BIGSERIAL       PRIMARY KEY,
+    stories_id                          INT             NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
+    sentence_number                     INT             NOT NULL,
+    sentence                            TEXT            NOT NULL,
+    media_id                            INT             NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
+    publish_date                        TIMESTAMP       NOT NULL,
+    db_row_last_updated                 TIMESTAMP WITH TIME ZONE,
+    language                            VARCHAR(3)      NULL,
+    is_dup                              BOOLEAN         NULL
 );
 
-create index story_sentences_story on story_sentences (stories_id, sentence_number);
-create index story_sentences_db_row_last_updated    on story_sentences( db_row_last_updated );
+CREATE INDEX story_sentences_nonpartitioned_story
+    ON story_sentences_nonpartitioned (stories_id, sentence_number);
 
-CREATE INDEX story_sentences_sentence_half_md5
-    ON story_sentences (half_md5(sentence));
+CREATE INDEX story_sentences_nonpartitioned_db_row_last_updated
+    ON story_sentences_nonpartitioned (db_row_last_updated);
 
-ALTER TABLE story_sentences
-    ADD CONSTRAINT story_sentences_media_id_fkey
-        FOREIGN KEY (media_id) REFERENCES media(media_id) ON DELETE CASCADE;
+CREATE INDEX story_sentences_nonpartitioned_sentence_half_md5
+    ON story_sentences_nonpartitioned (half_md5(sentence));
 
-ALTER TABLE story_sentences
-    ADD CONSTRAINT story_sentences_stories_id_fkey
-        FOREIGN KEY (stories_id) REFERENCES stories(stories_id) ON DELETE CASCADE;
+CREATE TRIGGER story_sentences_nonpartitioned_last_updated_trigger
+    BEFORE INSERT OR UPDATE ON story_sentences_nonpartitioned
+    FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger();
 
-DROP TRIGGER IF EXISTS story_sentences_last_updated_trigger on story_sentences CASCADE;
 
-CREATE TRIGGER story_sentences_last_updated_trigger
-    BEFORE INSERT OR UPDATE ON story_sentences
-    FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
+-- "Master" table (no indexes, no foreign keys as they'll be ineffective)
+CREATE TABLE story_sentences_partitioned (
+    story_sentences_partitioned_id      BIGSERIAL       PRIMARY KEY NOT NULL,
+    stories_id                          INT             NOT NULL,
+    sentence_number                     INT             NOT NULL,
+    sentence                            TEXT            NOT NULL,
+    media_id                            INT             NOT NULL,
+    publish_date                        TIMESTAMP       NOT NULL,
+
+    -- Time this row was last updated
+    db_row_last_updated                 TIMESTAMP WITH TIME ZONE,
+
+    -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
+    language                            VARCHAR(3)      NULL,
+
+    -- Set to 'true' for every sentence for which a duplicate sentence was
+    -- found in a future story (even though that duplicate sentence wasn't
+    -- added to the table)
+    --
+    -- "We only use is_dup in the topic spidering, but I think it is critical
+    -- there. It is there because the first time I tried to run a spider on a
+    -- broadly popular topic, it was unusable because of the amount of
+    -- irrelevant content. When I dug in, I found that stories were getting
+    -- included because of matches on boilerplate content that was getting
+    -- duped out of most stories but not the first time it appeared. So I added
+    -- the check to remove stories that match on a dup sentence, even if it is
+    -- the dup sentence, and things cleaned up."
+    is_dup                              BOOLEAN         NULL
+);
+
+CREATE TRIGGER story_sentences_partitioned_last_updated_trigger
+    BEFORE INSERT OR UPDATE ON story_sentences_partitioned
+    FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger();
+
+
+-- Create missing "story_sentences_partitioned" partitions
+CREATE OR REPLACE FUNCTION story_sentences_create_partitions()
+RETURNS VOID AS
+$$
+DECLARE
+    created_partitions TEXT[];
+    partition TEXT;
+BEGIN
+
+    created_partitions := ARRAY(SELECT stories_create_partitions('story_sentences_partitioned'));
+
+    FOREACH partition IN ARRAY created_partitions LOOP
+
+        RAISE NOTICE 'Altering created partition "%"...', partition;
+        
+        EXECUTE '
+            ALTER TABLE ' || partition || '
+                ADD CONSTRAINT ' || REPLACE(partition, '.', '_') || '_media_id_fkey
+                FOREIGN KEY (media_id) REFERENCES media (media_id) MATCH FULL ON DELETE CASCADE;
+
+            CREATE UNIQUE INDEX ' || partition || '_stories_id_sentence_number
+                ON ' || partition || ' (stories_id, sentence_number);
+
+            CREATE INDEX ' || partition || '_db_row_last_updated
+                ON ' || partition || ' (db_row_last_updated);
+
+            CREATE INDEX ' || partition || '_sentence_media_week
+                ON ' || partition || ' (half_md5(sentence), media_id, week_start_date(publish_date::date));
+        ';
+
+    END LOOP;
+
+END;
+$$
+LANGUAGE plpgsql;
+
+-- Create initial "story_sentences_partitioned" partitions for empty database
+SELECT story_sentences_create_partitions();
+
+
+-- View that joins the non-partitioned and partitioned tables while the data is
+-- being migrated
+CREATE OR REPLACE VIEW story_sentences AS
+
+    SELECT *
+    FROM (
+        SELECT
+            story_sentences_partitioned_id AS story_sentences_id,
+            stories_id,
+            sentence_number,
+            sentence,
+            media_id,
+            publish_date,
+            db_row_last_updated,
+            language,
+            is_dup
+        FROM story_sentences_partitioned
+
+        UNION ALL
+
+        SELECT
+            story_sentences_nonpartitioned_id AS story_sentences_id,
+            stories_id,
+            sentence_number,
+            sentence,
+            media_id,
+            publish_date,
+            db_row_last_updated,
+            language,
+            is_dup
+        FROM story_sentences_nonpartitioned
+
+    ) AS ss;
+
+
+-- Make RETURNING work with partitioned tables
+-- (https://wiki.postgresql.org/wiki/INSERT_RETURNING_vs_Partitioning)
+ALTER VIEW story_sentences
+    ALTER COLUMN story_sentences_id
+    SET DEFAULT nextval(pg_get_serial_sequence('story_sentences_partitioned', 'story_sentences_partitioned_id')) + 1;
+
+
+-- Trigger that implements INSERT / UPDATE / DELETE behavior on "story_sentences" view
+CREATE OR REPLACE FUNCTION story_sentences_view_insert_update_delete() RETURNS trigger AS $$
+
+DECLARE
+    target_table_name TEXT;       -- partition table name (e.g. "story_sentences_01")
+
+BEGIN
+
+    IF (TG_OP = 'INSERT') THEN
+
+        -- All new INSERTs go to partitioned table only
+        SELECT stories_partition_name( 'story_sentences_partitioned', NEW.stories_id ) INTO target_table_name;
+        EXECUTE '
+            INSERT INTO ' || target_table_name || '
+                SELECT $1.*
+            ' USING NEW;
+
+        RETURN NEW;
+
+    ELSIF (TG_OP = 'UPDATE') THEN
+
+        -- UPDATE on both tables
+
+        UPDATE story_sentences_partitioned
+            SET stories_id = NEW.stories_id,
+                sentence_number = NEW.sentence_number,
+                sentence = NEW.sentence,
+                media_id = NEW.media_id,
+                publish_date = NEW.publish_date,
+                db_row_last_updated = NEW.db_row_last_updated,
+                language = NEW.language,
+                is_dup = NEW.is_dup
+            WHERE stories_id = OLD.stories_id
+              AND sentence_number = OLD.sentence_number;
+
+        UPDATE story_sentences_nonpartitioned
+            SET stories_id = NEW.stories_id,
+                sentence_number = NEW.sentence_number,
+                sentence = NEW.sentence,
+                media_id = NEW.media_id,
+                publish_date = NEW.publish_date,
+                db_row_last_updated = NEW.db_row_last_updated,
+                language = NEW.language,
+                is_dup = NEW.is_dup
+            WHERE stories_id = OLD.stories_id
+              AND sentence_number = OLD.sentence_number;
+
+        RETURN NEW;
+
+    ELSIF (TG_OP = 'DELETE') THEN
+
+        -- DELETE from both tables
+
+        DELETE FROM story_sentences_partitioned
+            WHERE stories_id = OLD.stories_id
+              AND sentence_number = OLD.sentence_number;
+
+        DELETE FROM story_sentences_nonpartitioned
+            WHERE stories_id = OLD.stories_id
+              AND sentence_number = OLD.sentence_number;
+
+        -- Return deleted rows
+        RETURN OLD;
+
+    ELSE
+        RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
+
+    END IF;
+
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER story_sentences_view_insert_update_delete_trigger
+    INSTEAD OF INSERT OR UPDATE OR DELETE ON story_sentences
+    FOR EACH ROW EXECUTE PROCEDURE story_sentences_view_insert_update_delete();
+
+
+
+-- Copy a chunk of sentences from a non-partitioned "story_sentences" to a
+-- partitioned one; call this repeatedly to migrate all the data to the partitioned table
+CREATE OR REPLACE FUNCTION copy_chunk_of_nonpartitioned_sentences_to_partitions(chunk_size INT)
+RETURNS VOID AS $$
+BEGIN
+
+    RAISE NOTICE 'Copying % rows to the partitioned table...', chunk_size;
+
+    -- Kill all autovacuums before proceeding with DDL changes
+    PERFORM pid
+    FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+    WHERE backend_type = 'autovacuum worker'
+      AND query ~ 'story_sentences';
+
+    WITH rows_to_move AS (
+        DELETE FROM story_sentences_nonpartitioned
+        WHERE story_sentences_nonpartitioned_id IN (
+            SELECT story_sentences_nonpartitioned_id
+            FROM story_sentences_nonpartitioned
+            LIMIT chunk_size
+        )
+        RETURNING story_sentences_nonpartitioned.*
+    )
+
+    -- INSERT into view to hit the partitioning trigger
+    INSERT INTO story_sentences (
+        story_sentences_id,
+        stories_id,
+        sentence_number,
+        sentence,
+        media_id,
+        publish_date,
+        db_row_last_updated,
+        language,
+        is_dup
+    )
+    SELECT
+        story_sentences_nonpartitioned_id,
+        stories_id,
+        sentence_number,
+        sentence,
+        media_id,
+        publish_date,
+        db_row_last_updated,
+        language,
+        is_dup
+    FROM rows_to_move;
+
+    RAISE NOTICE 'Done copying % rows to the partitioned table.', chunk_size;
+
+END;
+$$
+LANGUAGE plpgsql;
+
 
 -- update media stats table for new story. create the media / day row if needed.
 CREATE OR REPLACE FUNCTION insert_story_media_stats() RETURNS trigger AS $$
@@ -2576,9 +2884,12 @@ RETURNS VOID AS
 $$
 BEGIN
 
-    -- "stories_tags_map" table
     RAISE NOTICE 'Creating partitions in "stories_tags_map" table...';
     PERFORM stories_tags_map_create_partitions();
+
+    RAISE NOTICE 'Creating partitions in "story_sentences_partitioned" table...';
+    PERFORM story_sentences_create_partitions();
+
 
 END;
 $$
