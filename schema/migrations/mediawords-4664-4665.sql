@@ -18,6 +18,8 @@
 SET search_path = public, pg_catalog;
 
 
+DROP FUNCTION copy_chunk_of_nonpartitioned_sentences_to_partitions(INT);
+
 -- Copy a chunk of story sentences from a non-partitioned "story_sentences" to a
 -- partitioned one; call this repeatedly to migrate all the data to the partitioned table
 CREATE OR REPLACE FUNCTION copy_chunk_of_nonpartitioned_sentences_to_partitions(story_chunk_size INT)
