@@ -129,14 +129,35 @@ sub append_utf8_string_to_stories($$)
         $story->{ title } = "$story->{ title } $utf8_string";
         $db->update_by_id( 'stories', $story->{ stories_id }, { title => $story->{ title } } );
 
-        $db->query( <<SQL, encode_utf8( $utf8_string ), $story->{ stories_id } );
-insert into story_sentences
-    ( stories_id, sentence_number, sentence, media_id, publish_date, db_row_last_updated, language, is_dup )
-    select
-            stories_id, 0, ?, media_id, publish_date, db_row_last_updated, language, false
-        from stories
-        where stories_id = ?
+        $db->query(
+            <<SQL,
+            INSERT INTO story_sentences (
+                stories_id,
+                sentence_number,
+                sentence,
+                media_id,
+                publish_date,
+                db_row_last_updated,
+                language,
+                is_dup
+            )
+            SELECT
+                stories_id,
+
+                -- Table seems to be prefilled with some stories already
+                100000 AS sentence_number,
+
+                ?,
+                media_id,
+                publish_date,
+                db_row_last_updated,
+                language,
+                false
+            FROM stories
+            WHERE stories_id = ?
 SQL
+            encode_utf8( $utf8_string ), $story->{ stories_id }
+        );
     }
 
     return $utf8_string;
