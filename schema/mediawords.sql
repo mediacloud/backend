@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4664;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4665;
 
 BEGIN
 
@@ -1381,13 +1381,13 @@ CREATE TRIGGER story_sentences_view_insert_update_delete_trigger
 
 
 
--- Copy a chunk of sentences from a non-partitioned "story_sentences" to a
+-- Copy a chunk of story sentences from a non-partitioned "story_sentences" to a
 -- partitioned one; call this repeatedly to migrate all the data to the partitioned table
-CREATE OR REPLACE FUNCTION copy_chunk_of_nonpartitioned_sentences_to_partitions(chunk_size INT)
+CREATE OR REPLACE FUNCTION copy_chunk_of_nonpartitioned_sentences_to_partitions(story_chunk_size INT)
 RETURNS VOID AS $$
 BEGIN
 
-    RAISE NOTICE 'Copying % rows to the partitioned table...', chunk_size;
+    RAISE NOTICE 'Copying sentences of up to % stories to the partitioned table...', story_chunk_size;
 
     -- Kill all autovacuums before proceeding with DDL changes
     PERFORM pid
@@ -1395,14 +1395,34 @@ BEGIN
     WHERE backend_type = 'autovacuum worker'
       AND query ~ 'story_sentences';
 
-    WITH rows_to_move AS (
+    WITH deleted_rows AS (
+
+        -- Fetch and delete sentences of selected stories
         DELETE FROM story_sentences_nonpartitioned
-        WHERE story_sentences_nonpartitioned_id IN (
-            SELECT story_sentences_nonpartitioned_id
+        WHERE stories_id IN (
+
+            -- Start with fetching a bunch of stories to copy between tables to
+            -- ensure that all of every story's sentences get copied in a single
+            -- chunk so that they could get deduplicated
+            SELECT stories_id
             FROM story_sentences_nonpartitioned
-            LIMIT chunk_size
+            LIMIT story_chunk_size
+
         )
         RETURNING story_sentences_nonpartitioned.*
+
+    ),
+
+    deduplicated_rows AS (
+
+        -- Deduplicate sentences (nonpartitioned table has weird duplicates)
+        SELECT DISTINCT ON (stories_id, sentence_number) *
+        FROM deleted_rows
+
+        -- Assume that the sentence with the biggest story_sentences_id is the
+        -- newest one and so is the one that we want
+        ORDER BY stories_id, sentence_number, story_sentences_nonpartitioned_id DESC
+
     )
 
     -- INSERT into view to hit the partitioning trigger
@@ -1427,9 +1447,9 @@ BEGIN
         db_row_last_updated,
         language,
         is_dup
-    FROM rows_to_move;
+    FROM deduplicated_rows;
 
-    RAISE NOTICE 'Done copying % rows to the partitioned table.', chunk_size;
+    RAISE NOTICE 'Done copying sentences of up to % stories to the partitioned table.', story_chunk_size;
 
 END;
 $$

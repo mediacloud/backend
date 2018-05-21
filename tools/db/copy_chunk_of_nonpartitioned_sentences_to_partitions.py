@@ -15,22 +15,25 @@ log = create_logger(__name__)
 def copy_chunk_of_nonpartitioned_sentences_to_partitions():
     """Call PostgreSQL function which creates missing table partitions (if any)."""
 
-    sentences_chunk_size = 1 * 1000 * 1000
+    stories_chunk_size = 100 * 1000
 
     # Wait for an hour between attempts to create new partitions
     delay_between_attempts = 1
 
     while True:
-        log.info("Copying {} sentences to a partitioned table...".format(sentences_chunk_size))
+        log.info("Copying sentences of {} stories to a partitioned table...".format(stories_chunk_size))
 
         db = connect_to_db()
         db.query(
-            'SELECT copy_chunk_of_nonpartitioned_sentences_to_partitions(%(chunk_size)s)',
-            {'chunk_size': sentences_chunk_size}
+            'SELECT copy_chunk_of_nonpartitioned_sentences_to_partitions(%(stories_chunk_size)s)',
+            {'stories_chunk_size': stories_chunk_size}
         )
         db.disconnect()
 
-        log.info("Copied {} sentences, sleeping for {} seconds.".format(sentences_chunk_size, delay_between_attempts))
+        log.info("Copied sentences of {} stories, sleeping for {} seconds.".format(
+            stories_chunk_size,
+            delay_between_attempts)
+        )
         time.sleep(delay_between_attempts)
 
 
