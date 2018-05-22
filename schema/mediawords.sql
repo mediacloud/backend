@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4669;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4670;
 
 BEGIN
 
@@ -1420,6 +1420,10 @@ CREATE TRIGGER story_sentences_view_insert_update_delete_trigger
 -- partitioned one; call this repeatedly to migrate all the data to the partitioned table
 CREATE OR REPLACE FUNCTION copy_chunk_of_nonpartitioned_sentences_to_partitions(story_chunk_size INT)
 RETURNS VOID AS $$
+
+DECLARE
+    copied_sentence_count INT;
+
 BEGIN
 
     RAISE NOTICE 'Copying sentences of up to % stories to the partitioned table...', story_chunk_size;
@@ -1505,7 +1509,9 @@ BEGIN
         is_dup
     FROM deduplicated_rows;
 
-    RAISE NOTICE 'Done copying sentences of up to % stories to the partitioned table.', story_chunk_size;
+    GET DIAGNOSTICS copied_sentence_count = ROW_COUNT;
+
+    RAISE NOTICE 'Copied % sentences to the partitioned table.', copied_sentence_count;
 
 END;
 $$
