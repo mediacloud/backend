@@ -10,7 +10,7 @@ log = create_logger(__name__)
 def copy_chunk_of_nonpartitioned_sentences_to_partitions():
     """Copy a chunk of sentences from "story_sentences_nonpartitioned" to "story_sentences_partitioned"."""
 
-    stories_chunk_size = 100 * 1000
+    stories_chunk_size = 10 * 1000
 
     while True:
         log.info("Copying sentences of {} stories to a partitioned table...".format(stories_chunk_size))
