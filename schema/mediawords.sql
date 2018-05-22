@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4666;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4667;
 
 BEGIN
 
@@ -1404,7 +1404,7 @@ BEGIN
             -- Start with fetching a bunch of stories to copy between tables to
             -- ensure that all of every story's sentences get copied in a single
             -- chunk so that they could get deduplicated
-            SELECT stories_id
+            SELECT DISTINCT stories_id
             FROM story_sentences_nonpartitioned
 
             -- Follow the insertion order to copy to the oldest (and less busy)
