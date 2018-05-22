@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4667;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4668;
 
 BEGIN
 
@@ -1401,17 +1401,31 @@ BEGIN
         DELETE FROM story_sentences_nonpartitioned
         WHERE stories_id IN (
 
-            -- Start with fetching a bunch of stories to copy between tables to
-            -- ensure that all of every story's sentences get copied in a single
-            -- chunk so that they could get deduplicated
+            -- Pick unique story IDs from the returned resultset
             SELECT DISTINCT stories_id
-            FROM story_sentences_nonpartitioned
+            FROM (
 
-            -- Follow the insertion order to copy to the oldest (and less busy)
-            -- partitions first
-            ORDER BY stories_id
+                -- "SELECT DISTINCT stories_ID ... ORDER BY stories_id" from
+                -- the non-partitioned table to copy them to the partitioned
+                -- one worked fine at first but then got superslow. My guess is
+                -- that it's because of the index bloat: the oldest story IDs
+                -- got removed from the table (their tuples were marked as
+                -- "deleted"), so after a while the database was struggling to
+                -- get through all the dead rows to get to the next chunk of
+                -- the live ones.
+                --
+                -- "SELECT DISTINCT" without the "ORDER BY" has a similar
+                -- effect, probably because it uses the very same index. At
+                -- least for now, the most effective strategy seems to do a
+                -- sequential scan with a LIMIT on the table, collect an
+                -- approximate amount of sentences for the given story count to
+                -- copy, and then DISTINCT them as a separate step.
+                SELECT stories_id
+                FROM story_sentences_nonpartitioned
 
-            LIMIT story_chunk_size
+                -- Assume that a single story has 10 sentences + add some leeway
+                LIMIT story_chunk_size * 15
+            ) AS stories_and_sentences
 
         )
         RETURNING story_sentences_nonpartitioned.*
@@ -1420,7 +1434,9 @@ BEGIN
 
     deduplicated_rows AS (
 
-        -- Deduplicate sentences (nonpartitioned table has weird duplicates)
+        -- Deduplicate sentences: nonpartitioned table has weird duplicates,
+        -- and the new index insists on (stories_id, sentence_number)
+        -- uniqueness (which is a logical assumption to make)
         SELECT DISTINCT ON (stories_id, sentence_number) *
         FROM deleted_rows
 
