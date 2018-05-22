@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4667;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4670;
 
 BEGIN
 
@@ -1306,19 +1306,54 @@ ALTER VIEW story_sentences
 -- Trigger that implements INSERT / UPDATE / DELETE behavior on "story_sentences" view
 CREATE OR REPLACE FUNCTION story_sentences_view_insert_update_delete() RETURNS trigger AS $$
 
-DECLARE
-    target_table_name TEXT;       -- partition table name (e.g. "story_sentences_01")
-
 BEGIN
 
     IF (TG_OP = 'INSERT') THEN
 
         -- All new INSERTs go to partitioned table only
-        SELECT stories_partition_name( 'story_sentences_partitioned', NEW.stories_id ) INTO target_table_name;
-        EXECUTE '
-            INSERT INTO ' || target_table_name || '
-                SELECT $1.*
-            ' USING NEW;
+
+        -- FIXME restore back to the version that uses stories_partition_name()
+
+        IF (NEW.stories_id >= 0 AND NEW.stories_id < 100000000) THEN
+            INSERT INTO story_sentences_partitioned_00 VALUES (NEW.*);
+
+        ELSIF (NEW.stories_id >= 100000000 AND NEW.stories_id < 200000000) THEN
+            INSERT INTO story_sentences_partitioned_01 VALUES (NEW.*);
+
+        ELSIF (NEW.stories_id >= 200000000 AND NEW.stories_id < 300000000) THEN
+            INSERT INTO story_sentences_partitioned_02 VALUES (NEW.*);
+
+        ELSIF (NEW.stories_id >= 300000000 AND NEW.stories_id < 400000000) THEN
+            INSERT INTO story_sentences_partitioned_03 VALUES (NEW.*);
+
+        ELSIF (NEW.stories_id >= 400000000 AND NEW.stories_id < 500000000) THEN
+            INSERT INTO story_sentences_partitioned_04 VALUES (NEW.*);
+
+        ELSIF (NEW.stories_id >= 500000000 AND NEW.stories_id < 600000000) THEN
+            INSERT INTO story_sentences_partitioned_05 VALUES (NEW.*);
+
+        ELSIF (NEW.stories_id >= 600000000 AND NEW.stories_id < 700000000) THEN
+            INSERT INTO story_sentences_partitioned_06 VALUES (NEW.*);
+
+        ELSIF (NEW.stories_id >= 700000000 AND NEW.stories_id < 800000000) THEN
+            INSERT INTO story_sentences_partitioned_07 VALUES (NEW.*);
+
+        ELSIF (NEW.stories_id >= 800000000 AND NEW.stories_id < 900000000) THEN
+            INSERT INTO story_sentences_partitioned_08 VALUES (NEW.*);
+
+        ELSIF (NEW.stories_id >= 900000000 AND NEW.stories_id < 1000000000) THEN
+            INSERT INTO story_sentences_partitioned_09 VALUES (NEW.*);
+
+        ELSIF (NEW.stories_id >= 1000000000 AND NEW.stories_id < 1100000000) THEN
+            INSERT INTO story_sentences_partitioned_10 VALUES (NEW.*);
+
+        ELSIF (NEW.stories_id >= 1100000000 AND NEW.stories_id < 1200000000) THEN
+            INSERT INTO story_sentences_partitioned_11 VALUES (NEW.*);
+
+        ELSE
+            RAISE EXCEPTION 'stories_id out of range: %', NEW.stories_id;
+
+        END IF;
 
         RETURN NEW;
 
@@ -1385,6 +1420,10 @@ CREATE TRIGGER story_sentences_view_insert_update_delete_trigger
 -- partitioned one; call this repeatedly to migrate all the data to the partitioned table
 CREATE OR REPLACE FUNCTION copy_chunk_of_nonpartitioned_sentences_to_partitions(story_chunk_size INT)
 RETURNS VOID AS $$
+
+DECLARE
+    copied_sentence_count INT;
+
 BEGIN
 
     RAISE NOTICE 'Copying sentences of up to % stories to the partitioned table...', story_chunk_size;
@@ -1401,17 +1440,31 @@ BEGIN
         DELETE FROM story_sentences_nonpartitioned
         WHERE stories_id IN (
 
-            -- Start with fetching a bunch of stories to copy between tables to
-            -- ensure that all of every story's sentences get copied in a single
-            -- chunk so that they could get deduplicated
+            -- Pick unique story IDs from the returned resultset
             SELECT DISTINCT stories_id
-            FROM story_sentences_nonpartitioned
+            FROM (
 
-            -- Follow the insertion order to copy to the oldest (and less busy)
-            -- partitions first
-            ORDER BY stories_id
+                -- "SELECT DISTINCT stories_ID ... ORDER BY stories_id" from
+                -- the non-partitioned table to copy them to the partitioned
+                -- one worked fine at first but then got superslow. My guess is
+                -- that it's because of the index bloat: the oldest story IDs
+                -- got removed from the table (their tuples were marked as
+                -- "deleted"), so after a while the database was struggling to
+                -- get through all the dead rows to get to the next chunk of
+                -- the live ones.
+                --
+                -- "SELECT DISTINCT" without the "ORDER BY" has a similar
+                -- effect, probably because it uses the very same index. At
+                -- least for now, the most effective strategy seems to do a
+                -- sequential scan with a LIMIT on the table, collect an
+                -- approximate amount of sentences for the given story count to
+                -- copy, and then DISTINCT them as a separate step.
+                SELECT stories_id
+                FROM story_sentences_nonpartitioned
 
-            LIMIT story_chunk_size
+                -- Assume that a single story has 10 sentences + add some leeway
+                LIMIT story_chunk_size * 15
+            ) AS stories_and_sentences
 
         )
         RETURNING story_sentences_nonpartitioned.*
@@ -1420,7 +1473,9 @@ BEGIN
 
     deduplicated_rows AS (
 
-        -- Deduplicate sentences (nonpartitioned table has weird duplicates)
+        -- Deduplicate sentences: nonpartitioned table has weird duplicates,
+        -- and the new index insists on (stories_id, sentence_number)
+        -- uniqueness (which is a logical assumption to make)
         SELECT DISTINCT ON (stories_id, sentence_number) *
         FROM deleted_rows
 
@@ -1454,7 +1509,9 @@ BEGIN
         is_dup
     FROM deduplicated_rows;
 
-    RAISE NOTICE 'Done copying sentences of up to % stories to the partitioned table.', story_chunk_size;
+    GET DIAGNOSTICS copied_sentence_count = ROW_COUNT;
+
+    RAISE NOTICE 'Copied % sentences to the partitioned table.', copied_sentence_count;
 
 END;
 $$
