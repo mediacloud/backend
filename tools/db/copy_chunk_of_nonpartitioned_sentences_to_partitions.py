@@ -1,9 +1,4 @@
 #!/usr/bin/env python3
-#
-# Copy a chunk of sentences from "story_sentences_nonpartitioned" to "story_sentences_partitioned"
-#
-
-import time
 
 from mediawords.db import connect_to_db
 from mediawords.util.log import create_logger
@@ -13,12 +8,9 @@ log = create_logger(__name__)
 
 
 def copy_chunk_of_nonpartitioned_sentences_to_partitions():
-    """Call PostgreSQL function which creates missing table partitions (if any)."""
+    """Copy a chunk of sentences from "story_sentences_nonpartitioned" to "story_sentences_partitioned"."""
 
     stories_chunk_size = 100 * 1000
-
-    # Wait for an hour between attempts to create new partitions
-    delay_between_attempts = 1
 
     while True:
         log.info("Copying sentences of {} stories to a partitioned table...".format(stories_chunk_size))
@@ -30,11 +22,7 @@ def copy_chunk_of_nonpartitioned_sentences_to_partitions():
         )
         db.disconnect()
 
-        log.info("Copied sentences of {} stories, sleeping for {} seconds.".format(
-            stories_chunk_size,
-            delay_between_attempts)
-        )
-        time.sleep(delay_between_attempts)
+        log.info("Copied sentences of {} stories.".format(stories_chunk_size))
 
 
 if __name__ == '__main__':
