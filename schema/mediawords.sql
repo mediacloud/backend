@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4668;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4669;
 
 BEGIN
 
@@ -1306,19 +1306,54 @@ ALTER VIEW story_sentences
 -- Trigger that implements INSERT / UPDATE / DELETE behavior on "story_sentences" view
 CREATE OR REPLACE FUNCTION story_sentences_view_insert_update_delete() RETURNS trigger AS $$
 
-DECLARE
-    target_table_name TEXT;       -- partition table name (e.g. "story_sentences_01")
-
 BEGIN
 
     IF (TG_OP = 'INSERT') THEN
 
         -- All new INSERTs go to partitioned table only
-        SELECT stories_partition_name( 'story_sentences_partitioned', NEW.stories_id ) INTO target_table_name;
-        EXECUTE '
-            INSERT INTO ' || target_table_name || '
-                SELECT $1.*
-            ' USING NEW;
+
+        -- FIXME restore back to the version that uses stories_partition_name()
+
+        IF (NEW.stories_id >= 0 AND NEW.stories_id < 100000000) THEN
+            INSERT INTO story_sentences_partitioned_00 VALUES (NEW.*);
+
+        ELSIF (NEW.stories_id >= 100000000 AND NEW.stories_id < 200000000) THEN
+            INSERT INTO story_sentences_partitioned_01 VALUES (NEW.*);
+
+        ELSIF (NEW.stories_id >= 200000000 AND NEW.stories_id < 300000000) THEN
+            INSERT INTO story_sentences_partitioned_02 VALUES (NEW.*);
+
+        ELSIF (NEW.stories_id >= 300000000 AND NEW.stories_id < 400000000) THEN
+            INSERT INTO story_sentences_partitioned_03 VALUES (NEW.*);
+
+        ELSIF (NEW.stories_id >= 400000000 AND NEW.stories_id < 500000000) THEN
+            INSERT INTO story_sentences_partitioned_04 VALUES (NEW.*);
+
+        ELSIF (NEW.stories_id >= 500000000 AND NEW.stories_id < 600000000) THEN
+            INSERT INTO story_sentences_partitioned_05 VALUES (NEW.*);
+
+        ELSIF (NEW.stories_id >= 600000000 AND NEW.stories_id < 700000000) THEN
+            INSERT INTO story_sentences_partitioned_06 VALUES (NEW.*);
+
+        ELSIF (NEW.stories_id >= 700000000 AND NEW.stories_id < 800000000) THEN
+            INSERT INTO story_sentences_partitioned_07 VALUES (NEW.*);
+
+        ELSIF (NEW.stories_id >= 800000000 AND NEW.stories_id < 900000000) THEN
+            INSERT INTO story_sentences_partitioned_08 VALUES (NEW.*);
+
+        ELSIF (NEW.stories_id >= 900000000 AND NEW.stories_id < 1000000000) THEN
+            INSERT INTO story_sentences_partitioned_09 VALUES (NEW.*);
+
+        ELSIF (NEW.stories_id >= 1000000000 AND NEW.stories_id < 1100000000) THEN
+            INSERT INTO story_sentences_partitioned_10 VALUES (NEW.*);
+
+        ELSIF (NEW.stories_id >= 1100000000 AND NEW.stories_id < 1200000000) THEN
+            INSERT INTO story_sentences_partitioned_11 VALUES (NEW.*);
+
+        ELSE
+            RAISE EXCEPTION 'stories_id out of range: %', NEW.stories_id;
+
+        END IF;
 
         RETURN NEW;
 
