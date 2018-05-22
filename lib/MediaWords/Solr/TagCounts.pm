@@ -24,7 +24,7 @@ Functions for counting tags associated with stories that match a solr query.
 
 use MediaWords::Solr;
 
-Readonly my $DEFAULT_LIMIT => 100;
+Readonly my $DEFAULT_LIMIT => 1000;
 
 =head1 FUNCTIONS
 
