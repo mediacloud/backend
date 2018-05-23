@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import time
+
 from mediawords.db import connect_to_db
 from mediawords.util.log import create_logger
 from mediawords.util.process import run_alone
@@ -43,6 +45,12 @@ def copy_nonpartitioned_sentences_to_partitions():
             start_stories_id,
             end_stories_id,
         ))
+
+        log.info("All done!")
+
+        # Weird, but otherwise Ansible deployments to mctest don't work due to this script exit(0)ing right away
+        while True:
+            time.sleep(1)
 
 
 if __name__ == '__main__':
