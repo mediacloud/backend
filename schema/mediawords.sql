@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4672;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4673;
 
 BEGIN
 
@@ -1382,16 +1382,55 @@ CREATE TRIGGER story_sentences_view_insert_update_delete_trigger
 
 
 -- Copy a chunk of story sentences from a non-partitioned "story_sentences" to a
--- partitioned one; call this repeatedly to migrate all the data to the partitioned table
-CREATE OR REPLACE FUNCTION copy_chunk_of_nonpartitioned_sentences_to_partitions(story_chunk_size INT)
-RETURNS VOID AS $$
+-- partitioned one:
+--
+-- * Expects starting and ending stories_id instead of a chunk size in order to
+--   avoid index bloat that would happen when copying sentences in sequential
+--   chunks
+-- * Copies directly to partitions to skip (slow) INSERT triggers on
+--   "story_sentences" view
+-- * Disables all triggers while copying to skip updating db_row_last_updated
+--
+-- Returns number of rows that were copied.
+--
+-- Call this repeatedly to migrate all the data to the partitioned table.
+CREATE OR REPLACE FUNCTION copy_chunk_of_nonpartitioned_sentences_to_partitions(start_stories_id INT, end_stories_id INT)
+RETURNS INT AS $$
 
 DECLARE
     copied_sentence_count INT;
 
+    -- Partition table names for both stories_id bounds
+    start_stories_id_table_name TEXT;
+    end_stories_id_table_name TEXT;
+
 BEGIN
 
-    RAISE NOTICE 'Copying sentences of up to % stories to the partitioned table...', story_chunk_size;
+    IF NOT (start_stories_id < end_stories_id) THEN
+        RAISE EXCEPTION '"end_stories_id" must be bigger than "start_stories_id".';
+    END IF;
+
+    SELECT stories_partition_name('story_sentences_partitioned', start_stories_id)
+        INTO start_stories_id_table_name;
+    IF NOT (table_exists(start_stories_id_table_name)) THEN
+        RAISE EXCEPTION
+            'Table "%" for "start_stories_id" = % does not exist.',
+            start_stories_id_table_name, start_stories_id;
+    END IF;
+
+    SELECT stories_partition_name('story_sentences_partitioned', end_stories_id)
+        INTO end_stories_id_table_name;
+    IF NOT (table_exists(end_stories_id_table_name)) THEN
+        RAISE EXCEPTION
+            'Table "%" for "end_stories_id" = % does not exist.',
+            end_stories_id_table_name, end_stories_id;
+    END IF;
+
+    IF NOT (start_stories_id_table_name = end_stories_id_table_name) THEN
+        RAISE EXCEPTION
+            '"start_stories_id" = % and "end_stories_id" = % must be within the same partition.',
+            start_stories_id, end_stories_id;
+    END IF;
 
     -- Kill all autovacuums before proceeding with DDL changes
     PERFORM pid
@@ -1399,84 +1438,83 @@ BEGIN
     WHERE backend_type = 'autovacuum worker'
       AND query ~ 'story_sentences';
 
-    WITH deleted_rows AS (
+    RAISE NOTICE
+        'Copying sentences of stories_id BETWEEN % AND % to the partitioned table...',
+        start_stories_id, end_stories_id;
 
-        -- Fetch and delete sentences of selected stories
-        DELETE FROM story_sentences_nonpartitioned
-        WHERE stories_id IN (
+    -- Disable all triggers to avoid hitting last_updated_trigger() -- the
+    -- copied rows don't need their db_row_last_updated to be updated
+    SET session_replication_role = REPLICA;
 
-            -- Pick unique story IDs from the returned resultset
-            SELECT DISTINCT stories_id
-            FROM (
+    BEGIN
 
-                -- "SELECT DISTINCT stories_ID ... ORDER BY stories_id" from
-                -- the non-partitioned table to copy them to the partitioned
-                -- one worked fine at first but then got superslow. My guess is
-                -- that it's because of the index bloat: the oldest story IDs
-                -- got removed from the table (their tuples were marked as
-                -- "deleted"), so after a while the database was struggling to
-                -- get through all the dead rows to get to the next chunk of
-                -- the live ones.
-                --
-                -- "SELECT DISTINCT" without the "ORDER BY" has a similar
-                -- effect, probably because it uses the very same index. At
-                -- least for now, the most effective strategy seems to do a
-                -- sequential scan with a LIMIT on the table, collect an
-                -- approximate amount of sentences for the given story count to
-                -- copy, and then DISTINCT them as a separate step.
-                SELECT stories_id
-                FROM story_sentences_nonpartitioned
+        EXECUTE '
 
-                -- Assume that a single story has 10 sentences + add some leeway
-                LIMIT story_chunk_size * 15
-            ) AS stories_and_sentences
+            -- Fetch and delete sentences within bounds
+            WITH deleted_rows AS (
+                DELETE FROM story_sentences_nonpartitioned
+                WHERE stories_id BETWEEN ' || start_stories_id || ' AND ' || end_stories_id || '
+                RETURNING story_sentences_nonpartitioned.*
+            ),
 
-        )
-        RETURNING story_sentences_nonpartitioned.*
+            -- Deduplicate sentences: nonpartitioned table has weird duplicates,
+            -- and the new index insists on (stories_id, sentence_number)
+            -- uniqueness (which is a logical assumption to make)
+            --
+            -- Assume that the sentence with the biggest story_sentences_id is the
+            -- newest one and so is the one that we want.
+            deduplicated_rows AS (
+                SELECT DISTINCT ON (stories_id, sentence_number) *
+                FROM deleted_rows
+                ORDER BY stories_id, sentence_number, story_sentences_nonpartitioned_id DESC
+            )
 
-    ),
+            -- INSERT directly into the partition to circumvent slow insertion
+            -- trigger on "story_sentences" view
+            INSERT INTO ' || start_stories_id_table_name || ' (
+                story_sentences_partitioned_id,
+                stories_id,
+                sentence_number,
+                sentence,
+                media_id,
+                publish_date,
+                db_row_last_updated,
+                language,
+                is_dup
+            )
+            SELECT
+                story_sentences_nonpartitioned_id,
+                stories_id,
+                sentence_number,
+                sentence,
+                media_id,
+                publish_date,
+                db_row_last_updated,
+                language,
+                is_dup
+            FROM deduplicated_rows;
 
-    deduplicated_rows AS (
+        ';
 
-        -- Deduplicate sentences: nonpartitioned table has weird duplicates,
-        -- and the new index insists on (stories_id, sentence_number)
-        -- uniqueness (which is a logical assumption to make)
-        SELECT DISTINCT ON (stories_id, sentence_number) *
-        FROM deleted_rows
+        GET DIAGNOSTICS copied_sentence_count = ROW_COUNT;
 
-        -- Assume that the sentence with the biggest story_sentences_id is the
-        -- newest one and so is the one that we want
-        ORDER BY stories_id, sentence_number, story_sentences_nonpartitioned_id DESC
+    EXCEPTION WHEN others THEN
 
-    )
+        -- Reenable all triggers
+        SET session_replication_role = DEFAULT;
 
-    -- INSERT into view to hit the partitioning trigger
-    INSERT INTO story_sentences (
-        story_sentences_id,
-        stories_id,
-        sentence_number,
-        sentence,
-        media_id,
-        publish_date,
-        db_row_last_updated,
-        language,
-        is_dup
-    )
-    SELECT
-        story_sentences_nonpartitioned_id,
-        stories_id,
-        sentence_number,
-        sentence,
-        media_id,
-        publish_date,
-        db_row_last_updated,
-        language,
-        is_dup
-    FROM deduplicated_rows;
+        RAISE EXCEPTION '% %', SQLERRM, SQLSTATE;
 
-    GET DIAGNOSTICS copied_sentence_count = ROW_COUNT;
+    END;
 
-    RAISE NOTICE 'Copied % sentences to the partitioned table.', copied_sentence_count;
+    -- Reenable all triggers
+    SET session_replication_role = DEFAULT;
+
+    RAISE NOTICE
+        'Finished copying sentences of stories_id BETWEEN % AND % to the partitioned table, copied % sentences.',
+        start_stories_id, end_stories_id, copied_sentence_count;
+
+    RETURN copied_sentence_count;
 
 END;
 $$
