@@ -109,8 +109,8 @@ programs = crawler
 %]
 
 [% INCLUDE program_config
-    program='copy_chunk_of_nonpartitioned_sentences_to_partitions'
-    command="./script/run_in_env.sh ./tools/db/copy_chunk_of_nonpartitioned_sentences_to_partitions.py"
+    program='copy_nonpartitioned_sentences_to_partitions'
+    command="./script/run_in_env.sh ./tools/db/copy_nonpartitioned_sentences_to_partitions.py"
     default_stopasgroup='true'
     default_killasgroup='true'
     default_autorestart='false'
