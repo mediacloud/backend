@@ -13,7 +13,7 @@ def copy_nonpartitioned_sentences_to_partitions():
     """Gradually copy sentences from "story_sentences_nonpartitioned" to "story_sentences_partitioned"."""
 
     # How many stories the sentences of which to copy at the same time
-    stories_chunk_size = 100 * 1000
+    stories_chunk_size = 50 * 1000
 
     db = connect_to_db()
 
