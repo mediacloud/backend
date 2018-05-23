@@ -46,11 +46,11 @@ def copy_nonpartitioned_sentences_to_partitions():
             end_stories_id,
         ))
 
-        log.info("All done!")
+    log.info("All done!")
 
-        # Weird, but otherwise Ansible deployments to mctest don't work due to this script exit(0)ing right away
-        while True:
-            time.sleep(1)
+    # Weird, but otherwise Ansible deployments to mctest don't work due to this script exit(0)ing right away
+    while True:
+        time.sleep(1)
 
 
 if __name__ == '__main__':
