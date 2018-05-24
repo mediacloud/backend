@@ -26,7 +26,7 @@ def copy_nonpartitioned_sentences_to_partitions():
 
     log.info("Max. stories ID: {}".format(max_stories_id))
 
-    for start_stories_id in range(0, max_stories_id + 1, stories_chunk_size):
+    for start_stories_id in range(44000000, max_stories_id + 1, stories_chunk_size):
         # There's an overlap of a single stories_id here but it doesn't matter that much
         end_stories_id = start_stories_id + stories_chunk_size
 
