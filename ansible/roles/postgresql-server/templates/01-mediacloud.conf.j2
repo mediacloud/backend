@@ -44,3 +44,9 @@ effective_io_concurrency = 20
 deadlock_timeout = 10s
 
 synchronous_commit = off
+
+# Attempt to fix:
+#
+#     out of shared memory HINT: You might need to increase max_locks_per_transaction. CONTEXT: parallel worker
+#
+max_locks_per_transaction = 1024
