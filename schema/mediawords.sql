@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4674;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4675;
 
 BEGIN
 
@@ -1442,73 +1442,55 @@ BEGIN
         'Copying sentences of stories_id BETWEEN % AND % to the partitioned table...',
         start_stories_id, end_stories_id;
 
-    -- Disable all triggers to avoid hitting last_updated_trigger() -- the
-    -- copied rows don't need their db_row_last_updated to be updated
-    SET session_replication_role = REPLICA;
+    EXECUTE '
 
-    BEGIN
+        -- Fetch and delete sentences within bounds
+        WITH deleted_rows AS (
+            DELETE FROM story_sentences_nonpartitioned
+            WHERE stories_id BETWEEN ' || start_stories_id || ' AND ' || end_stories_id || '
+            RETURNING story_sentences_nonpartitioned.*
+        ),
 
-        EXECUTE '
+        -- Deduplicate sentences: nonpartitioned table has weird duplicates,
+        -- and the new index insists on (stories_id, sentence_number)
+        -- uniqueness (which is a logical assumption to make)
+        --
+        -- Assume that the sentence with the biggest story_sentences_id is the
+        -- newest one and so is the one that we want.
+        deduplicated_rows AS (
+            SELECT DISTINCT ON (stories_id, sentence_number) *
+            FROM deleted_rows
+            ORDER BY stories_id, sentence_number, story_sentences_nonpartitioned_id DESC
+        )
 
-            -- Fetch and delete sentences within bounds
-            WITH deleted_rows AS (
-                DELETE FROM story_sentences_nonpartitioned
-                WHERE stories_id BETWEEN ' || start_stories_id || ' AND ' || end_stories_id || '
-                RETURNING story_sentences_nonpartitioned.*
-            ),
+        -- INSERT directly into the partition to circumvent slow insertion
+        -- trigger on "story_sentences" view
+        INSERT INTO ' || start_stories_id_table_name || ' (
+            story_sentences_partitioned_id,
+            stories_id,
+            sentence_number,
+            sentence,
+            media_id,
+            publish_date,
+            db_row_last_updated,
+            language,
+            is_dup
+        )
+        SELECT
+            story_sentences_nonpartitioned_id,
+            stories_id,
+            sentence_number,
+            sentence,
+            media_id,
+            publish_date,
+            db_row_last_updated,
+            language,
+            is_dup
+        FROM deduplicated_rows;
 
-            -- Deduplicate sentences: nonpartitioned table has weird duplicates,
-            -- and the new index insists on (stories_id, sentence_number)
-            -- uniqueness (which is a logical assumption to make)
-            --
-            -- Assume that the sentence with the biggest story_sentences_id is the
-            -- newest one and so is the one that we want.
-            deduplicated_rows AS (
-                SELECT DISTINCT ON (stories_id, sentence_number) *
-                FROM deleted_rows
-                ORDER BY stories_id, sentence_number, story_sentences_nonpartitioned_id DESC
-            )
+    ';
 
-            -- INSERT directly into the partition to circumvent slow insertion
-            -- trigger on "story_sentences" view
-            INSERT INTO ' || start_stories_id_table_name || ' (
-                story_sentences_partitioned_id,
-                stories_id,
-                sentence_number,
-                sentence,
-                media_id,
-                publish_date,
-                db_row_last_updated,
-                language,
-                is_dup
-            )
-            SELECT
-                story_sentences_nonpartitioned_id,
-                stories_id,
-                sentence_number,
-                sentence,
-                media_id,
-                publish_date,
-                db_row_last_updated,
-                language,
-                is_dup
-            FROM deduplicated_rows;
-
-        ';
-
-        GET DIAGNOSTICS copied_sentence_count = ROW_COUNT;
-
-    EXCEPTION WHEN others THEN
-
-        -- Reenable all triggers
-        SET session_replication_role = DEFAULT;
-
-        RAISE EXCEPTION '% %', SQLERRM, SQLSTATE;
-
-    END;
-
-    -- Reenable all triggers
-    SET session_replication_role = DEFAULT;
+    GET DIAGNOSTICS copied_sentence_count = ROW_COUNT;
 
     RAISE NOTICE
         'Finished copying sentences of stories_id BETWEEN % AND % to the partitioned table, copied % sentences.',
