@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4675;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4676;
 
 BEGIN
 
@@ -1216,9 +1216,37 @@ CREATE TABLE story_sentences_partitioned (
     is_dup                              BOOLEAN         NULL
 );
 
-CREATE TRIGGER story_sentences_partitioned_last_updated_trigger
+
+-- Update db_row_last_updated first, before hitting the partitioned INSERT
+-- trigger.
+--
+-- PostgreSQL runs triggers of the same event in alphabetical order, so this is
+-- why this trigger has "00" prefix.
+CREATE TRIGGER story_sentences_partitioned_00_last_updated_trigger
     BEFORE INSERT OR UPDATE ON story_sentences_partitioned
     FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger();
+
+
+-- Note: "INSERT ... RETURNING *" doesn't work with the trigger, please use
+-- "story_sentences" view instead
+CREATE OR REPLACE FUNCTION story_sentences_partitioned_insert_trigger()
+RETURNS TRIGGER AS $$
+DECLARE
+    target_table_name TEXT;       -- partition table name (e.g. "stories_tags_map_01")
+BEGIN
+    SELECT stories_partition_name('story_sentences_partitioned', NEW.stories_id ) INTO target_table_name;
+    EXECUTE '
+        INSERT INTO ' || target_table_name || '
+            SELECT $1.*
+        ' USING NEW;
+    RETURN NULL;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER story_sentences_partitioned_01_insert_trigger
+    BEFORE INSERT ON story_sentences_partitioned
+    FOR EACH ROW EXECUTE PROCEDURE story_sentences_partitioned_insert_trigger();
 
 
 -- Create missing "story_sentences_partitioned" partitions
@@ -1313,12 +1341,11 @@ BEGIN
 
     IF (TG_OP = 'INSERT') THEN
 
-        -- All new INSERTs go to partitioned table only
-        SELECT stories_partition_name( 'story_sentences_partitioned', NEW.stories_id ) INTO target_table_name;
-        EXECUTE '
-            INSERT INTO ' || target_table_name || '
-                SELECT $1.*
-            ' USING NEW;
+        -- All new INSERTs go to partitioned table only.
+        --
+        -- By INSERTing into the master table, we're letting triggers choose
+        -- the correct partition and update db_row_last_updated.
+        INSERT INTO story_sentences_partitioned SELECT NEW.*;
 
         RETURN NEW;
 
