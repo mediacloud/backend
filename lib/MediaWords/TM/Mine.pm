@@ -1250,9 +1250,28 @@ END
         _add_source_story_urls_to_links( $db, $new_links );
 
         INFO( "filter for self linked domains" );
-        $new_links = [ grep { !_skip_self_linked_domain( $db, $_ ) } @{ $new_links } ];
+        my ( $filtered_links, $skipped_links ) = ( [], [] );
+        for my $link ( @{ $new_links } )
+        {
+            if ( _skip_self_linked_domain( $db, $link ) )
+            {
+                push( @{ $skipped_links }, $link );
+            }
+            else
+            {
+                push( @{ $filtered_links }, $link );
+            }
+        }
 
-        add_new_links( $db, $topic, $iteration, $new_links );
+        if ( @{ $skipped_links } )
+        {
+            my $skipped_ids = join( ',', map { $_->{ topic_links_id } } @{ $skipped_links } );
+            $db->query( <<SQL );
+update topic_links set link_spidered  = 't' where topic_links_id in ( $skipped_ids )
+SQL
+        }
+
+        add_new_links( $db, $topic, $iteration, $filtered_links );
     }
 }
 
