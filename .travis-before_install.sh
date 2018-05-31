@@ -5,6 +5,19 @@ set -e
 
 source ./.travis-lxd/config.inc.sh
 
+echo "Fetching LXD image..."
+MC_LXD_IMAGE_PROVISIONED_CACHE_DIR="$HOME/.cache/mediacloud-travis-lxd/"
+mkdir -p $MC_LXD_IMAGE_PROVISIONED_CACHE_DIR
+
+MC_LXD_IMAGE_PROVISIONED_CACHE_FILENAME=$(basename $MC_LXD_IMAGE_PROVISIONED_URL)
+MC_LXD_IMAGE_PROVISIONED_CACHE_PATH="$MC_LXD_IMAGE_PROVISIONED_CACHE_DIR/$MC_LXD_IMAGE_PROVISIONED_CACHE_FILENAME"
+if [ ! -f "$MC_LXD_IMAGE_PROVISIONED_CACHE_PATH" ]; then
+    echo "Downloading $MC_LXD_IMAGE_PROVISIONED_URL to $MC_LXD_IMAGE_PROVISIONED_CACHE_PATH..."
+    wget -q -O "$MC_LXD_IMAGE_PROVISIONED_CACHE_PATH" "$MC_LXD_IMAGE_PROVISIONED_URL"
+else
+    echo "Using $MC_LXD_IMAGE_PROVISIONED_CACHE_PATH from cache."
+fi
+
 echo "Setting up LXD..."
 source ./.travis-lxd/setup_lxd.inc.sh
 
