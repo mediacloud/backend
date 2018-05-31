@@ -17,7 +17,7 @@ SKIP_SELF_LINK_RE = r'/(?:tag|category|author|search)'
 def increment_domain_links(db: DatabaseHandler, topic_link: dict) -> None:
     """Given a topic link, increment the self_links and all_links counts in the corresponding topic_domains row.
 
-    Increment self_links if the domain if the story at topic_links.stories_id is the same as the domain of
+    Increment self_links if the domain of the story at topic_links.stories_id is the same as the domain of
     topic_links.url or topic_links.redirect_url.  Always increment all_links.
     """
     story = db.require_by_id('stories', topic_link['stories_id'])
