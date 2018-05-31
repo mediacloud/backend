@@ -35,6 +35,15 @@ sudo lxc remote remove images || echo "Not here?"
 LXD_BRIDGE_INTERFACE=testbr0
 if [[ $(sudo lxc network list | grep $LXD_BRIDGE_INTERFACE | wc -l) -eq 0 ]]; then
     echo "Setting up LXD networking..."
+
+    # Sometimes profiles need to be recreated because otherwise we get:
+    #
+    #     Error: Device already exists: eth0
+    #
+    # when trying to attach pre-created profile to interface.
+    sudo lxc profile delete default || echo "Profile doesn't exist?"
+    sudo lxc profile create default || echo "Profile already exists?"
+
     sudo lxc network create $LXD_BRIDGE_INTERFACE
     sudo lxc network attach-profile $LXD_BRIDGE_INTERFACE default eth0
 fi
