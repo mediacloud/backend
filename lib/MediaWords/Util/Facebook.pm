@@ -122,10 +122,6 @@ sub api_request($$)
         my $ua = MediaWords::Util::Web::UserAgent->new();
         $ua->set_timeout( $config->{ facebook }->{ timeout } );
 
-        # UserAgent object will retry on server-side errors; client-side errors
-        # will be handled by this module
-        $ua->set_timing( \@FACEBOOK_RETRY_INTERVALS );
-
         my $response;
         eval { $response = $ua->get( $api_uri->as_string ); };
         if ( $@ )
