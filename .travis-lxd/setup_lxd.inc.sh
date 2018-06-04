@@ -24,10 +24,8 @@ echo "Waiting for LXD to start..."
 sudo snap start lxd
 sudo lxd waitready
 
-if [ ! -f /var/snap/lxd/common/lxd/database/local.db ]; then
-    echo "Initializing LXD..."
-    sudo lxd init --auto --storage-backend=dir
-fi
+echo "Initializing LXD..."
+sudo lxd init --auto --storage-backend=dir || echo "Already initialized?"
 
 echo "Removing linuxcontainers.org repo..."
 sudo lxc remote remove images || echo "Not here?"
