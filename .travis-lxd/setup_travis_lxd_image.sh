@@ -46,7 +46,7 @@ PWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$PWD/config.inc.sh"
 
 source $PWD/config.inc.sh
-MC_LXD_IMAGE=MC_LXD_IMAGE_UBUNTU_BASE   # Set up LXD with Ubuntu's base image
+MC_LXD_IMAGE=$MC_LXD_IMAGE_UBUNTU_BASE   # Set up LXD with Ubuntu's base image
 
 echo "Setting up LXD..."
 source $PWD/setup_lxd.inc.sh
