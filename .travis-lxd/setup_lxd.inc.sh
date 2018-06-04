@@ -48,9 +48,16 @@ if [[ $(sudo lxc network list | grep $LXD_BRIDGE_INTERFACE | wc -l) -eq 0 ]]; th
     sudo lxc network attach-profile $LXD_BRIDGE_INTERFACE default eth0
 fi
 
+LXD_STORAGE_POOL=travis
+if [[ $(sudo lxc storage list | grep $LXD_STORAGE_POOL | wc -l) -eq 0 ]]; then
+    echo "Setting up LXD storage pool..."
+    sudo lxc storage create $LXD_STORAGE_POOL dir
+fi
+
 LXD_PROFILE=travis
 if [[ $(sudo lxc profile list | grep $LXD_PROFILE | wc -l) -eq 0 ]]; then
     echo "Creating LXD profile..."
     sudo lxc profile copy default $LXD_PROFILE
     sudo lxc profile set $LXD_PROFILE security.privileged true
+    sudo lxc profile device add $LXD_PROFILE root disk path=/ pool=$LXD_STORAGE_POOL
 fi
