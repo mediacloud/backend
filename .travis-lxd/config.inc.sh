@@ -14,3 +14,7 @@ MC_LXD_CONTAINER=mediacloud-travis
 
 # Unprivileged user on container (which can sudo)
 MC_LXD_USER=ubuntu
+
+# Path to LXC binary
+# (we install LXD from Snap but an outdated lxd-tools might still be around)
+LXC_BIN=/snap/bin/lxc
