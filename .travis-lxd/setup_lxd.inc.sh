@@ -9,7 +9,7 @@ echo "Updating package list..."
 sudo apt-get -y update
 
 echo "Removing old LXD..."
-sudo apt-get -y remove lxd
+sudo apt-get -y remove lxd lxd-client
 sudo apt-get -y autoremove
 
 echo "Installing Snap..."
