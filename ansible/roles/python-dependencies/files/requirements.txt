@@ -8,7 +8,7 @@ backoff==1.4.3
 boto3==1.4.7
 
 # Job broker
-Celery==4.1.0
+Celery==4.1.1
 
 # Language identification
 cld2-cffi==0.1.4
