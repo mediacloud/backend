@@ -472,6 +472,8 @@ sub query_matching_sentences($$;$)
 
     my $order_limit = $random_limit ? "order by random() limit $random_limit" : 'order by sentence_number';
 
+    my $ids_table = $db->get_temporary_ids_table( $stories_ids );
+
     my $story_sentences = $db->query( <<SQL )->hashes;
 select
         ss.sentence,
@@ -485,9 +487,9 @@ select
     from
         story_sentences ss
         join stories s using ( stories_id )
+        join $ids_table ids on ( s.stories_id = ids.id )
     where
-        $re_clause and
-        ss.stories_id in ( $stories_ids_list )
+        $re_clause 
    $order_limit 
 SQL
 
