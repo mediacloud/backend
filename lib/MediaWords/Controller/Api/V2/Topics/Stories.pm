@@ -215,7 +215,7 @@ sub _get_sort_clause
       || die( "unknown sort value: '$sort_param'" );
 
     # md5 hashing is to make tie breaks random but consistent
-    return "$sort_field desc nulls last, md5( slc.stories_id::text )";
+    return "$sort_field desc nulls last";
 }
 
 sub list_GET
@@ -238,21 +238,31 @@ sub list_GET
 
     my $extra_clause = _get_extra_where_clause( $c, $timespans_id );
 
-    my $limit  = $c->req->params->{ limit };
-    my $offset = $c->req->params->{ offset };
+    my $limit = $c->req->params->{ limit };
+    my $offset = $c->req->params->{ offset } || 0;
 
-    my $stories = $db->query( <<SQL, $timespans_id, $snapshots_id, $limit, $offset )->hashes;
-select s.*, slc.*, m.name media_name
-    from snap.story_link_counts slc
-        join snap.stories s on slc.stories_id = s.stories_id
-        join snap.media m on s.media_id = m.media_id
-    where slc.timespans_id = \$1
-        and s.snapshots_id = \$2
-        and m.snapshots_id = \$2
-        $extra_clause
-    order by $sort_clause
-    limit \$3 offset \$4
+    $db->query( <<SQL, $timespans_id, $limit, $offset );
+create temporary table _slc as
+    select *
+        from snap.story_link_counts slc
+        where timespans_id = \$1
+        order by timespans_id, $sort_clause
+        limit \$2 offset \$3
 SQL
+
+    my $stories = $db->query( <<SQL, $snapshots_id, $limit, $offset )->hashes;
+select s.*, slc.*, m.name media_name
+    from _slc slc
+        join snap.stories s on slc.stories_id = s.stories_id        
+        join snap.media m on s.media_id = m.media_id    
+    where 
+        s.snapshots_id = \$1      
+        and m.snapshots_id = \$1
+    order by slc.timespans_id, $sort_clause, md5( slc.stories_id::text )    
+    limit \$2 offset \$3
+SQL
+
+    $db->query( "discard temp" );
 
     _add_foci_to_stories( $db, $timespan, $stories );
 
