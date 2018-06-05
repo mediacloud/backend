@@ -469,6 +469,7 @@ Output:
 | Field     | Description                                    |
 | ------------- | ---------------------------------------- |
 | `tag`         | New name for the tag.                    |
+| `tag_sets_id`         | Id of parent tag set.                    |
 | `label`       | New label for the tag.                   |
 | `description` | New description for the tag.             |
 | `show_on_media` | Show as an option for searching media sources |
@@ -488,7 +489,8 @@ Input:
     "description": "This is a sample tag for an API example.",
     "show_on_media": 0,
     "show_on_stories": 0,
-    "is_static": 0
+    "is_static": 0,
+    "tag_sets_id": 123
 }
 ```
 

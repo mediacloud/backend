@@ -143,7 +143,7 @@ END
 
 sub get_update_fields($)
 {
-    return [ qw/tag label description show_on_media show_on_stories is_static/ ];
+    return [ qw/tag label description show_on_media show_on_stories is_static tag_sets_id/ ];
 }
 
 sub update : Local : ActionClass('MC_REST')
