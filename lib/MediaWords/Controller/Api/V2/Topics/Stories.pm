@@ -250,7 +250,7 @@ create temporary table _slc as
         limit \$2 offset \$3
 SQL
 
-    my $stories = $db->query( <<SQL, $snapshots_id, $limit, $offset )->hashes;
+    my $stories = $db->query( <<SQL, $snapshots_id )->hashes;
 select s.*, slc.*, m.name media_name
     from _slc slc
         join snap.stories s on slc.stories_id = s.stories_id        
@@ -259,7 +259,6 @@ select s.*, slc.*, m.name media_name
         s.snapshots_id = \$1      
         and m.snapshots_id = \$1
     order by slc.timespans_id, $sort_clause, md5( slc.stories_id::text )    
-    limit \$2 offset \$3
 SQL
 
     $db->query( "discard temp" );
