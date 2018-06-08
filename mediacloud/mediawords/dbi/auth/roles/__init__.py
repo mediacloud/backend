@@ -30,7 +30,12 @@ def all_user_roles(db: DatabaseHandler) -> List[dict]:
         ORDER BY auth_roles_id
     """).hashes()
     if roles is None:
-        roles = dict()
+        roles = []
+
+    # MC_REWRITE_TO_PYTHON: if only a single item is to be returned, Perl doesn't bother to make it into a list
+    if isinstance(roles, dict):
+        roles = [roles]
+
     return roles
 
 
@@ -54,7 +59,7 @@ def role_id_for_role(db: DatabaseHandler, role: str) -> int:
     return int(auth_roles_id[0])
 
 
-def default_role_ids(db: DatabaseHandler) -> List[str]:
+def default_role_ids(db: DatabaseHandler) -> List[int]:
     """List of role IDs to apply to new users."""
     default_roles = db.query("""
         SELECT auth_roles_id
@@ -65,7 +70,9 @@ def default_role_ids(db: DatabaseHandler) -> List[str]:
         raise McRoleIDForRoleException('Unable to find default role IDs.')
     if default_roles is None:
         default_roles = []
-    elif isinstance(default_roles, int):
+
+    # MC_REWRITE_TO_PYTHON: if only a single item is to be returned, Perl doesn't bother to make it into a list
+    if isinstance(default_roles, int):
         default_roles = [default_roles]
 
     return default_roles

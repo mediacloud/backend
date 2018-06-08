@@ -160,11 +160,12 @@ sub create : Local
     my $el_roles = $form->get_element( { name => 'roles', type => 'Checkboxgroup' } );
     $el_roles->options( \@roles_options );
 
+    my $role_ids = MediaWords::DBI::Auth::Roles::default_role_ids( $db );
     $form->default_values(
         {
             weekly_requests_limit        => MediaWords::DBI::Auth::Limits::default_weekly_requests_limit( $db ),
             weekly_requested_items_limit => MediaWords::DBI::Auth::Limits::default_weekly_requested_items_limit( $db ),
-            roles                        => MediaWords::DBI::Auth::Roles::default_role_ids( $db ),
+            roles                        => $role_ids,
         }
     );
 

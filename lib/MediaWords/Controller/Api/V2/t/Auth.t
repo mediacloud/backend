@@ -278,13 +278,14 @@ sub test_reset_password($)
     my $password_reset_url = 'http://reset-password.com/';
 
     # Add active user
+    my $role_ids = MediaWords::DBI::Auth::Roles::default_role_ids( $db );
     MediaWords::DBI::Auth::Register::add_user(
         $db,
         MediaWords::DBI::Auth::User::NewUser->new(
             email           => $email,
             full_name       => 'Full Name',
             notes           => '',
-            role_ids        => MediaWords::DBI::Auth::Roles::default_role_ids( $db ),
+            role_ids        => $role_ids,
             active          => 1,
             password        => $password,
             password_repeat => $password,
