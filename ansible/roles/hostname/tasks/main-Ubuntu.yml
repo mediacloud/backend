@@ -6,6 +6,10 @@
 - name: Set hostname
   hostname:
     name: "{{ ansible_hostname }}"
+
+  # Doesn't work with LXD
+  when: ansible_virtualization_type != 'lxc'
+
   become: true
   become_user: root
   notify:

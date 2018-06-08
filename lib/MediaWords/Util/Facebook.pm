@@ -16,6 +16,8 @@ use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 
 use Readonly;
+
+use URI;
 use URI::QueryParam;
 use Data::Dumper;
 use List::MoreUtils qw/any/;
@@ -55,7 +57,7 @@ Readonly my @FACEBOOK_GRAPH_API_TEMPORARY_ERROR_CODES => (
 );
 
 # Seconds to wait for before retrying on temporary errors
-Readonly my @FACEBOOK_RETRY_INTERVALS => ( 1, 5, 30 );
+Readonly my @FACEBOOK_RETRY_INTERVALS => ( 1, 5, 30, 300 );
 
 # URL patterns for which we're sure we won't get correct results (so we won't even try)
 Readonly my @URL_PATTERNS_WHICH_WONT_WORK => (
@@ -119,10 +121,6 @@ sub api_request($$)
 
         my $ua = MediaWords::Util::Web::UserAgent->new();
         $ua->set_timeout( $config->{ facebook }->{ timeout } );
-
-        # UserAgent object will retry on server-side errors; client-side errors
-        # will be handled by this module
-        $ua->set_timing( \@FACEBOOK_RETRY_INTERVALS );
 
         my $response;
         eval { $response = $ua->get( $api_uri->as_string ); };

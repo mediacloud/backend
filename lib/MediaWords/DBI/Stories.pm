@@ -38,7 +38,6 @@ use MediaWords::Solr::WordCounts;
 use MediaWords::StoryVectors;
 use MediaWords::Util::Annotator::CLIFF;
 use MediaWords::Util::Annotator::NYTLabels;
-use MediaWords::Util::Bitly::Schedule;
 use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
 use MediaWords::Util::SQL;
@@ -46,6 +45,12 @@ use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 use MediaWords::Util::Web::Cache;
+
+# common title prefixes that can be ignored for dup title matching
+Readonly my $DUP_TITLE_PREFIXES =>
+    [ qw/opinion analysis report perspective poll watch exclusive editorial reports breaking nyt/,
+      qw/subject source wapo sources video study photos cartoon cnn today wsj review timeline/,
+      qw/revealed gallup ap read experts op-ed commentary feature letters survey/ ];
 
 =head1 FUNCTIONS
 
@@ -475,9 +480,8 @@ SQL
 
 =head2 process_extracted_story( $db, $story, $extractor_args )
 
-Do post extraction story processing work: call
-MediaWords::StoryVectors::update_story_sentences_and_language() and queue bitly
-fetching tasks.
+Do post extraction story processing work by calling
+MediaWords::StoryVectors::update_story_sentences_and_language()
 
 =cut
 
@@ -492,20 +496,6 @@ sub process_extracted_story($$$)
     unless ( $extractor_args->no_tag_extractor_version() )
     {
         MediaWords::DBI::Stories::ExtractorVersion::update_extractor_version_tag( $db, $story );
-    }
-
-    # Add to Bit.ly queue
-    unless ( $extractor_args->skip_bitly_processing() )
-    {
-        if ( MediaWords::Util::Bitly::Schedule::story_processing_is_enabled() )
-        {
-            TRACE "Adding story $stories_id to Bit.ly processing queue...";
-            MediaWords::Util::Bitly::Schedule::add_to_processing_schedule( $db, $stories_id );
-        }
-    }
-    else
-    {
-        TRACE "Won't process story $stories_id with Bit.ly because it's set to be skipped";
     }
 
     my $cliff     = MediaWords::Util::Annotator::CLIFF->new();
@@ -800,21 +790,26 @@ sub _get_title_parts
     $title = decode_entities( $title );
 
     $title = lc( $title );
-    $title =~ s/\s+/ /g;
-    $title =~ s/^\s+//;
-    $title =~ s/\s+$//;
 
     $title = MediaWords::Util::HTML::html_strip( $title ) if ( $title =~ /\</ );
     $title = decode_entities( $title );
 
+    my $sep_chars = '\-\:\|';
+
+    # get rid of very common one word prefixes so that opinion: foo bar foo will match report - foo bar foo even if
+    # foo bar foo never appears as a solo title
+    my $prefix_re = '(?:' . join( '|', @{ $DUP_TITLE_PREFIXES } ) . ')';
+    $title =~ s/^(\s*$prefix_re\s*[$sep_chars]\s*)//;
+
     my $title_parts;
     if ( $title =~ m~https?://[^ ]*~ )
     {
-        $title_parts = [ $title ];
+        return [ $title ];
     }
     else
     {
-        $title_parts = [ split( /\s*[-•:|]+\s*/, $title ) ];
+        $title =~ s/(\w)\:/$1 :/g;
+        $title_parts = [ split( /\s*[$sep_chars]+\s*/, $title ) ];
     }
 
     if ( @{ $title_parts } > 1 )
@@ -822,7 +817,7 @@ sub _get_title_parts
         unshift( @{ $title_parts }, $title );
     }
 
-    map { s/^\s+//; s/\s+$//; s/[[:punct:]]//g; } @{ $title_parts };
+    map { s/[[:punct:]]//g; s/\s+/ /g; s/^\s+//; s/\s+$//;  } @{ $title_parts };
 
     return $title_parts;
 }
@@ -861,7 +856,7 @@ sub get_medium_dup_stories_by_title
     my $title_part_counts = {};
     for my $story ( @{ $stories } )
     {
-        next if ( $story->{ url } && ( $story->{ url } =~ /https?:\/\/(twitter\.com|t\.co)/i ) );
+        next if ( $story->{ url } && ( $story->{ url } =~ /https?:\/\/(twitter\.com)/i ) );
 
         my $title_parts = _get_title_parts( $story->{ title } );
 

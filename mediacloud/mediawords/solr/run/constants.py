@@ -1,8 +1,8 @@
 # Solr version to install and use
-MC_SOLR_VERSION = "6.5.0"
+MC_SOLR_VERSION = "6.6.3"
 
 # <luceneMatchVersion> value
-MC_SOLR_LUCENEMATCHVERSION = "6.5.0"
+MC_SOLR_LUCENEMATCHVERSION = "6.6.3"
 
 # Solr home directory (solr.home; relative to Media Cloud root; must already exist)
 MC_SOLR_HOME_DIR = "solr/"
@@ -43,6 +43,9 @@ MC_SOLR_CLUSTER_ZOOKEEPER_HOST = "localhost"
 
 # Default ZooKeeper port to connect to
 MC_SOLR_CLUSTER_ZOOKEEPER_PORT = 9983
+
+# Timeout in milliseconds at which solr shard disconnects from zookeeper
+MC_SOLR_CLUSTER_ZOOKEEPER_TIMEOUT = 300000
 
 # Seconds to wait for external ZooKeeper to start
 MC_SOLR_CLUSTER_ZOOKEEPER_CONNECT_RETRIES = 2 * 60

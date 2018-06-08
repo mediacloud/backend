@@ -10,9 +10,11 @@ use Test::More;
 use MediaWords::Test::API;
 use MediaWords::Test::DB;
 
+use Catalyst::Test 'MediaWords';
 use Readonly;
 use MediaWords::Controller::Api::V2::Topics;
 use MediaWords::DBI::Auth::Roles;
+use MediaWords::Test::API;
 use MediaWords::Test::DB;
 
 Readonly my $NUM_MEDIA            => 5;
@@ -468,6 +470,13 @@ SQL
     my ( $seeds_count ) = $db->query( "select count(*) from topic_seed_urls where topics_id= ?", $topics_id )->flat();
     is( $seeds_count, $num_stories, "topics reset: seed urls before reset" );
 
+    $db->update_by_id( 'topics', $topic->{ topics_id }, { state => 'running' } );
+
+    # this should generate an erro since the topic is running
+    test_put( "/api/v2/topics/$topic->{ topics_id }/reset", {}, 1 );
+
+    $db->update_by_id( 'topics', $topic->{ topics_id }, { state => 'error', message => 'test message' } );
+
     test_put( "/api/v2/topics/$topic->{ topics_id }/reset", {} );
 
     my ( $got_stories_count ) = $db->query( "select count(*) from topic_stories where topics_id = ?", $topics_id )->flat;
@@ -482,6 +491,8 @@ SQL
     my $reset_topic = $db->find_by_id( 'topics', $topics_id );
 
     ok( !$reset_topic->{ solr_seed_query_run }, "topics reset: solr_seed_query_run false after reset" );
+    is( $topic->{ state }, 'created but not queued', "topics_reset: state after rest" );
+    ok( !$topic->{ message }, "topics_reset: null message" );
 }
 
 sub test_topics

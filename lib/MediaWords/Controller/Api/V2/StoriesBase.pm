@@ -14,6 +14,7 @@ use List::Compare;
 
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
+use MediaWords::Solr::TagCounts;
 use MediaWords::Util::HTML;
 use MediaWords::Util::JSON;
 
@@ -38,6 +39,7 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 __PACKAGE__->config(
     action => {
         count       => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        tag_count   => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         word_matrix => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
     }
 );
@@ -266,19 +268,6 @@ END
         MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $feed_data, 'feeds' );
     }
 
-    # Bit.ly total click counts
-    my $bitly_click_data = $db->query(
-        <<"EOF",
-        -- Return NULL for where click count is not yet present
-        SELECT $ids_table.id AS stories_id,
-               bitly_clicks_total.click_count AS bitly_click_count
-        FROM $ids_table
-            LEFT JOIN bitly_clicks_total
-                ON $ids_table.id = bitly_clicks_total.stories_id
-EOF
-    )->hashes;
-    MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $bitly_click_data );
-
     _attach_word_counts_to_stories( $db, $stories ) if ( $self->{ show_wc } );
 
     return $stories;
@@ -330,7 +319,7 @@ sub _fetch_list($$$$$$)
     $self->{ show_feeds }         = $c->req->params->{ show_feeds };
 
     $rows //= 20;
-    $rows = List::Util::min( $rows, 1_000 );
+    $rows = List::Util::min( $rows, 10_000 );
 
     my $ps_ids = $self->_get_object_ids( $c, $last_id, $rows );
 
@@ -382,6 +371,47 @@ SQL
     return $stories;
 }
 
+# execute a query on solr and return a list of dates with a count of stories for each date
+sub _get_date_counts
+{
+    my ( $self, $c ) = @_;
+
+    my $q            = $c->req->params->{ 'q' };
+    my $fq           = $c->req->params->{ 'fq' };
+    my $split_period = lc( $c->req->params->{ 'split_period' } || 'day' );
+
+    die( "Unknown split_period '$split_period'" ) unless ( grep { $_ eq $split_period } qw/day week month year/ );
+
+    my $facet_field = "publish_$split_period";
+
+    my $params;
+    $params->{ q }                = $q;
+    $params->{ fq }               = $fq;
+    $params->{ facet }            = 'true';
+    $params->{ 'facet.field' }    = $facet_field;
+    $params->{ 'facet.limit' }    = -1;
+    $params->{ 'facet.mincount' } = 1;
+    $params->{ rows }             = 0;
+
+    my $solr_response = MediaWords::Solr::query( $c->dbis, $params, $c );
+
+    my $facet_counts = $solr_response->{ facet_counts }->{ facet_fields }->{ $facet_field };
+
+    die "Number of elements in 'counts' is not even." unless ( scalar( @{ $facet_counts } ) % 2 == 0 );
+
+    my $date_counts       = [];
+    my %date_count_lookup = @{ $facet_counts };
+    while ( my ( $date, $count ) = each( %date_count_lookup ) )
+    {
+        $date =~ s/(.*)T(.*)Z$/$1 $2/;
+        push( @{ $date_counts }, { date => $date, count => $count } );
+    }
+
+    $date_counts = [ sort { $a->{ date } cmp $b->{ date } } @{ $date_counts } ];
+
+    return $date_counts;
+}
+
 sub count : Local : ActionClass('MC_REST')
 {
 
@@ -391,15 +421,36 @@ sub count_GET
 {
     my ( $self, $c ) = @_;
 
-    my $q  = $c->req->params->{ 'q' };
-    my $fq = $c->req->params->{ 'fq' };
+    my $q     = $c->req->params->{ 'q' };
+    my $fq    = $c->req->params->{ 'fq' };
+    my $split = $c->req->params->{ 'split' };
 
     my $response;
-    my $list = MediaWords::Solr::query( $c->dbis,
-        { q => $q, fq => $fq, group => "true", "group.field" => "stories_id", "group.ngroups" => "true" }, $c );
-    $response = { count => $list->{ grouped }->{ stories_id }->{ ngroups } };
+    if ( $split )
+    {
+        my $date_counts = $self->_get_date_counts( $c, $c->req->params );
+        $response = { counts => $date_counts };
+    }
+    else
+    {
+        my $num_found = MediaWords::Solr::get_num_found( $c->dbis, { q => $q, fq => $fq } );
+        $response = { count => $num_found };
+    }
 
     $self->status_ok( $c, entity => $response );
+}
+
+sub tag_count : Local : ActionClass('MC_REST')
+{
+}
+
+sub tag_count_GET
+{
+    my ( $self, $c ) = @_;
+
+    my $tag_counts = MediaWords::Solr::TagCounts::query_tag_counts( $c->dbis, $c->req->params );
+
+    $self->status_ok( $c, entity => $tag_counts );
 }
 
 sub word_matrix : Local : ActionClass('MC_REST')

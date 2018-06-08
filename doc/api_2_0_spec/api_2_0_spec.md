@@ -43,54 +43,34 @@ Table of Contents
       * [api/v2/stories_public/count](#apiv2stories_publiccount)
          * [Query Parameters](#query-parameters-6)
          * [Example](#example-9)
-      * [api/v2/stories_public/word_matrix](#apiv2stories_publicword_matrix)
+      * [api/v2/stories_public/tag_count](#apiv2stories_publictag_count)
          * [Query Parameters](#query-parameters-7)
+         * [Example](#example-10)
+      * [api/v2/stories_public/word_matrix](#apiv2stories_publicword_matrix)
+         * [Query Parameters](#query-parameters-8)
          * [Output Description](#output-description-2)
    * [Sentences](#sentences)
       * [api/v2/sentences/count](#apiv2sentencescount)
-         * [Query Parameters](#query-parameters-8)
-         * [Example](#example-10)
       * [api/v2/sentences/field_count](#apiv2sentencesfield_count)
-         * [Query Parameters](#query-parameters-9)
-         * [Example](#example-11)
    * [Word Counting](#word-counting)
       * [api/v2/wc/list](#apiv2wclist)
-         * [Query Parameters](#query-parameters-10)
-         * [Example](#example-12)
+         * [Query Parameters](#query-parameters-9)
+         * [Example](#example-11)
    * [Tags and Tag Sets](#tags-and-tag-sets)
       * [api/v2/tags/single/](#apiv2tagssingle)
-         * [Query Parameters](#query-parameters-11)
+         * [Query Parameters](#query-parameters-10)
          * [Output description](#output-description-3)
-         * [Example](#example-13)
+         * [Example](#example-12)
       * [api/v2/tags/list/](#apiv2tagslist)
-         * [Query Parameters](#query-parameters-12)
-         * [Example](#example-14)
+         * [Query Parameters](#query-parameters-11)
+         * [Example](#example-13)
       * [api/v2/tag_sets/single/](#apiv2tag_setssingle)
-         * [Query Parameters](#query-parameters-13)
+         * [Query Parameters](#query-parameters-12)
          * [Output description](#output-description-4)
-         * [Example](#example-15)
+         * [Example](#example-14)
       * [api/v2/tag_sets/list/](#apiv2tag_setslist)
-         * [Query Parameters](#query-parameters-14)
-         * [Example](#example-16)
-   * [Topics](#topics)
-      * [api/v2/topics/single/](#apiv2topicssingle)
-         * [Query Parameters](#query-parameters-15)
-         * [Example](#example-17)
-      * [api/v2/topics/list/](#apiv2topicslist)
-         * [Query Parameters](#query-parameters-16)
-         * [Example](#example-18)
-      * [api/v2/snapshots/single/](#apiv2snapshotssingle)
-         * [Query Parameters](#query-parameters-17)
-         * [Example](#example-19)
-      * [api/v2/snapshots/list/](#apiv2snapshotslist)
-         * [Query Parameters](#query-parameters-18)
-         * [Example](#example-20)
-      * [api/v2/timespans/single/](#apiv2timespanssingle)
-         * [Query Parameters](#query-parameters-19)
-         * [Example](#example-21)
-      * [api/v2/timespans/list/](#apiv2timespanslist)
-         * [Query Parameters](#query-parameters-20)
-         * [Example](#example-22)
+         * [Query Parameters](#query-parameters-13)
+         * [Example](#example-15)
    * [Registration and Authentication](#registration-and-authentication)
       * [Register](#register)
          * [api/v2/auth/register (POST)](#apiv2authregister-post)
@@ -99,21 +79,21 @@ Table of Contents
             * [Output Description](#output-description-5)
                * [Registration was successful](#registration-was-successful)
                * [Registration has failed](#registration-has-failed)
-            * [Example](#example-23)
+            * [Example](#example-16)
          * [api/v2/auth/activate (POST)](#apiv2authactivate-post)
             * [Required role](#required-role-1)
             * [Input Description](#input-description-2)
             * [Output Description](#output-description-6)
                * [Activating the user was successful](#activating-the-user-was-successful)
                * [Activating the user has failed](#activating-the-user-has-failed)
-            * [Example](#example-24)
+            * [Example](#example-17)
          * [api/v2/auth/resend_activation_link (POST)](#apiv2authresend_activation_link-post)
             * [Required role](#required-role-2)
             * [Input Description](#input-description-3)
             * [Output Description](#output-description-7)
                * [Resending the activation email was successful](#resending-the-activation-email-was-successful)
                * [Resending the activation email has failed](#resending-the-activation-email-has-failed)
-            * [Example](#example-25)
+            * [Example](#example-18)
       * [Reset password](#reset-password)
          * [api/v2/auth/send_password_reset_link (POST)](#apiv2authsend_password_reset_link-post)
             * [Required role](#required-role-3)
@@ -121,14 +101,14 @@ Table of Contents
             * [Output Description](#output-description-8)
                * [Sending the password reset link was successful](#sending-the-password-reset-link-was-successful)
                * [Sending the password reset link has failed](#sending-the-password-reset-link-has-failed)
-            * [Example](#example-26)
+            * [Example](#example-19)
          * [api/v2/auth/reset_password (POST)](#apiv2authreset_password-post)
             * [Required role](#required-role-4)
             * [Input Description](#input-description-5)
             * [Output Description](#output-description-9)
                * [Resetting the user's password was successful](#resetting-the-users-password-was-successful)
                * [Resetting the user's password has failed](#resetting-the-users-password-has-failed)
-            * [Example](#example-27)
+            * [Example](#example-20)
       * [Log in](#log-in)
          * [api/v2/auth/login (POST)](#apiv2authlogin-post)
             * [Required role](#required-role-5)
@@ -136,35 +116,35 @@ Table of Contents
             * [Output Description](#output-description-10)
                * [User was found](#user-was-found)
                * [User was not found](#user-was-not-found)
-            * [Example](#example-28)
+            * [Example](#example-21)
       * [User Profile](#user-profile)
          * [api/v2/auth/profile (GET)](#apiv2authprofile-get)
             * [Required role](#required-role-6)
             * [Output Description](#output-description-11)
-            * [Example](#example-29)
+            * [Example](#example-22)
          * [api/v2/auth/change_password (POST)](#apiv2authchange_password-post)
             * [Required role](#required-role-7)
             * [Input Description](#input-description-7)
             * [Output Description](#output-description-12)
                * [Changing the user's password was successful](#changing-the-users-password-was-successful)
                * [Changing the user's password has failed](#changing-the-users-password-has-failed)
-            * [Example](#example-30)
+            * [Example](#example-23)
          * [api/v2/auth/reset_api_key (POST)](#apiv2authreset_api_key-post)
             * [Required role](#required-role-8)
             * [Output Description](#output-description-13)
                * [Resetting user's API key was successful](#resetting-users-api-key-was-successful)
                * [Resetting user's API key has failed](#resetting-users-api-key-has-failed)
-            * [Example](#example-31)
+            * [Example](#example-24)
    * [Stats](#stats)
       * [api/v2/stats/list](#apiv2statslist)
-         * [Query Parameters](#query-parameters-21)
+         * [Query Parameters](#query-parameters-14)
          * [Output Description](#output-description-14)
-         * [Example](#example-32)
+         * [Example](#example-25)
    * [Util](#util)
       * [api/v2/util/is_syndicated_ap (POST)](#apiv2utilis_syndicated_ap-post)
          * [Input Description](#input-description-8)
          * [Output Description](#output-description-15)
-         * [Example](#example-33)
+         * [Example](#example-26)
    * [Extended Examples](#extended-examples)
       * [Output Format / JSON](#output-format--json)
       * [Create a CSV file with all media sources.](#create-a-csv-file-with-all-media-sources)
@@ -232,6 +212,7 @@ The following language are supported (by 2 letter language code):
 * `hi` (Hindi)
 * `hu` (Hungarian)
 * `it` (Italian)
+* `ja` (Japanese)
 * `lt` (Lithuanian)
 * `nl` (Dutch)
 * `no` (Norwegian)
@@ -240,6 +221,7 @@ The following language are supported (by 2 letter language code):
 * `ru` (Russian)
 * `sv` (Swedish)
 * `tr` (Turkish)
+* `zh` (Chinese)
 
 ## Errors
 
@@ -288,6 +270,9 @@ Response:
         "is_monitored": 1,
         "public_notes": "all the news that's fit to print",
         "editor_nnotes": "first media source",
+        "num_stories_90": 123,
+        "num_sentences_90": 1234,
+        "start_date": "2016-01-01",
         "media_source_tags": [
             {
                 "tag_sets_id": 5,
@@ -333,8 +318,12 @@ Response:
 | `include_dups`     | 0       | Include duplicate media among the results
 | `unhealthy` | none | Only return media that are currently marked as unhealthy (see mediahealth/list)
 | `similar_media_id` | none | Return media with the most tags in common
+|  `sort`            | id   | sort order of media: `id`, or `num_stories` |
 
 If the name parameter is specified, the call returns only media sources that match a case insensitive search specified value.  If the specified value is less than 3 characters long, the call returns an empty list.
+
+By default, media are sorted by media_id.  If the sort parameter is set to 'num_stories', the media will be sorted
+by decreasing number of stories in the past 90 days.
 
 By default, calls that specify a name parameter will only return media that are not duplicates of
 some other media source.  Media Cloud has many media sources that are either subsets of other media sources or are
@@ -561,7 +550,6 @@ The following table describes the meaning and origin of fields returned by both 
 | `guid`              | The GUID field in the RSS feed. Defaults to the URL if no GUID is specified in the RSS feed.
 | `language`          | The language of the story as detected by the chromium compact language detector library.
 | `title`             | The title of the story as found in the RSS feed.
-| `bitly_click_count` | The total Bit.ly click count within 30 days from the story's `publish_date` or `collect_date`, or `null` if the click count hasn't been collected yet.
 | `ap_syndicated`     | Whether our detection algorithm thinks that this is an English language syndicated AP story
 
 
@@ -610,7 +598,6 @@ URL: https://api.mediacloud.org/api/v2/stories_public/single/27456565
 | `q`  | null  | If specified, return only results that match the given Solr query.  Only one `q` parameter may be included. |
 | `fq`             | null    | If specified, file results by the given Solr query.  More than one `fq` parameter may be included. |
 | `sort`                       | `processed_stories_id` | Returned results sort order. Supported values: <ul><li><code>processed_stories_id</code> - order results by processed stories ID (ascending);</li>
-<li><code>bitly_click_count</code> - order results by Bit.ly click count (descending)</li>
 <li><code>random</code> - order results randomly but consistently for a given search</li>
 </ul> |
 | `wc` | 0 | if set to 1, include a 'word_count' field with each story that includes a count of the most common words in the story |
@@ -630,7 +617,9 @@ server provides full text search indexing of each sentence collected by Media Cl
 sentences.  The api/v2/stories_public/list call searches for sentences matching the `q` and / or `fq` parameters if specified and
 the stories that include at least one sentence returned by the specified query.
 
-The `q` and `fq` parameters are passed directly through to Solr.  Documentation of the format of the `q` and `fq` parameters is [here](https://cwiki.apache.org/confluence/display/solr/Common+Query+Parameters).  Below are the fields that may be used as Solr query parameters, for example 'sentence:obama AND media_id:1':
+The `q` and `fq` parameters are passed directly through to Solr.  Documentation of the format of the `q` and `fq` parameters is [here](https://mediacloud.org/support/query-guide/).  
+
+Below are the fields that may be used as Solr query parameters, for example 'text:obama AND media_id:1':
 
 | Field                        | Description
 | -------------------- | -----------------------------------------------------
@@ -643,6 +632,9 @@ The `q` and `fq` parameters are passed directly through to Solr.  Documentation 
 | processed_stories_id | the processed_stories_id as returned by stories_public/list
 
 Be aware that ':' is usually replaced with '%3A' in programmatically generated URLs.
+
+Solr range queries may only be used within the fq parameter.  Using a range query in the main q query will result in
+an error.
 
 In addition, there following fields may be entered as pseudo queries within the Solr query:
 
@@ -685,7 +677,7 @@ URL: https://api.mediacloud.org/api/v2/stories_public/list?last_processed_storie
 
 Return a stream of all stories processed by Media Cloud, greater than the `last_processed_stories_id`.
 
-URL: https://api.mediacloud.org/api/v2/stories_public/list?last_processed_stories_id=2523432&q=sentence:obama+AND+media_id:1
+URL: https://api.mediacloud.org/api/v2/stories_public/list?last_processed_stories_id=2523432&q=text:obama+AND+media_id:1
 
 Return a stream of all stories from The New York Times mentioning `'obama'` greater than the given `last_processed_stories_id`.
 
@@ -697,22 +689,139 @@ Return a stream of all stories from The New York Times mentioning `'obama'` grea
 | ------------------ | ---------------- | ----------------------------------------------------------------
 | `q`                | n/a              | `q` ("query") parameter which is passed directly to Solr
 | `fq`               | `null`           | `fq` ("filter query") parameter which is passed directly to Solr
+| `split`            | `null`           | if set to 1 or true, split the counts into date ranges
+| `split_period`     | `day`            | return counts for these date periods: day, week, month, year
 
-The q and fq parameters are passed directly through to Solr (see description of q and fq parameters in
-api/v2/stories_public/list section above).
+The q and fq parameters are passed directly through to Solr (see description of q and fq parameters in api/v2/stories_public/list section above).
 
 The call returns the number of stories returned by Solr for the specified query.
+
+If split is specified, split the counts into periods set by split_period.
+
 
 ### Example
 
 Count stories containing the word 'obama' in The New York Times.
 
-URL: https://api.mediacloud.org/api/v2/stories_public/count?q=sentence:obama&fq=media_id:1
+URL: https://api.mediacloud.org/api/v2/stories_public/count?q=obama&fq=media_id:1
 
 ```json
 {
-    "count": 960
+    "count": 6620
 }
+```
+
+Count stories containing 'africa' in the New York Times for each week from 2014-01-01 to 2014-03-01:
+
+URL: https://api.mediacloud.org/api/v2/stories_public/count?split=1&split_period=week&q=africa%20AND%20media_id%3A1%20AND%20publish_day%3A%5B2014-01-01T00%3A00%3A00Z%20TO%202014-03-01T00%3A00%3A00Z%5D
+
+```json
+{
+  "counts": [
+    {
+      "count": 25,
+      "date": "2013-12-30 00:00:00"
+    },
+    {
+      "count": 59,
+      "date": "2014-01-06 00:00:00"
+    },
+    {
+      "count": 70,
+      "date": "2014-01-13 00:00:00"
+    },
+    {
+      "count": 71,
+      "date": "2014-01-20 00:00:00"
+    },
+    {
+      "count": 80,
+      "date": "2014-01-27 00:00:00"
+    },
+    {
+      "count": 57,
+      "date": "2014-02-03 00:00:00"
+    },
+    {
+      "count": 54,
+      "date": "2014-02-10 00:00:00"
+    },
+    {
+      "count": 45,
+      "date": "2014-02-17 00:00:00"
+    },
+    {
+      "count": 44,
+      "date": "2014-02-24 00:00:00"
+    }
+  ]
+}
+```
+
+## api/v2/stories_public/tag_count
+
+### Query Parameters
+
+| Parameter          | Default          | Notes
+| ------------------ | ---------------- | ----------------------------------------------------------------
+| `q`                | n/a              | `q` ("query") parameter which is passed directly to Solr
+| `fq`               | `null`           | `fq` ("filter query") parameter which is passed directly to Solr
+| `limit`            | 1000             | number of tags to fetch from Solr
+| `tag_sets_id`      | `null`           | return only tags belonging to this tag set
+
+The q and fq parameters are passed directly through to Solr (see description of q and fq parameters in api/v2/stories_public/list section above).
+
+The call returns list of the tags most commonly associated with stories that match the given query.  The limit parameter
+s applied before the tag_sets_id parameter, so fewer than limit (or zero) results may be returned for a given tag set even if tags from that tag set are associated with stories matching the query.
+
+### Example
+
+Count tags in stories containing the word 'obama' in The New York Times.
+
+URL: https://api.mediacloud.org/api/v2/stories_public/tag_count?q=obama&fq=media_id:1&limit=3
+
+```json
+[
+ {
+    "count": 20240,
+    "description": "politics and government",
+    "is_static": false,
+    "label": "politics and government",
+    "show_on_media": null,
+    "show_on_stories": null,
+    "tag": "politics and government",
+    "tag_set_label": "nyt_labels",
+    "tag_set_name": "nyt_labels",
+    "tag_sets_id": 1963,
+    "tags_id": 9360836
+  },
+  {
+    "count": 17491,
+    "description": "Obama",
+    "is_static": false,
+    "label": "Obama",
+    "show_on_media": null,
+    "show_on_stories": null,
+    "tag": "Obama",
+    "tag_set_label": "cliff_people",
+    "tag_set_name": "cliff_people",
+    "tag_sets_id": 2389,
+    "tags_id": 9362721
+  },
+  {
+    "count": 15904,
+    "description": "united states politics and government",
+    "is_static": false,
+    "label": "united states politics and government",
+    "show_on_media": null,
+    "show_on_stories": null,
+    "tag": "united states politics and government",
+    "tag_set_label": "nyt_labels",
+    "tag_set_name": "nyt_labels",
+    "tag_sets_id": 1963,
+    "tags_id": 9360846
+  } 
+]
 ```
 
 ## api/v2/stories_public/word_matrix
@@ -785,135 +894,11 @@ navigational snippets wrongly included in the extracted text by the extractor al
 
 ## api/v2/sentences/count
 
-### Query Parameters
-
-| Parameter          | Default          | Notes
-| ------------------ | ---------------- | ----------------------------------------------------------------
-| `q`                | n/a              | `q` ("query") parameter which is passed directly to Solr
-| `fq`               | `null`           | `fq` ("filter query") parameter which is passed directly to Solr
-| `split`            | `null`           | if set to 1 or true, split the counts into date ranges
-| `split_start_date` | `null`           | date on which to start date splits, in YYYY-MM-DD format
-| `split_end_date`   | `null`           | date on which to end date splits, in YYYY-MM-DD format
-
-The q and fq parameters are passed directly through to Solr (see description of q and fq parameters in api/v2/stories_public/list section above).
-
-The call returns the number of sentences returned by Solr for the specified query.
-
-If split is specified, split the counts into regular date ranges for dates between split\_start\_date and split\_end\_date.
-The number of days in each date range depends on the total number of days between split\_start\_date and split\_end\_date:
-
-| Total Days | Days in each range
-| ---------- | ------------------
-| < 90       | 1 day
-| < 180      | 3 days
-| >= 180     | 7 days
-
-Note that the total count returned by a split query is for all sentences found by the Solr query, which query might or might not
-include a date restriction.  So in the example africa query below, the 236372 count is for all sentences matching africa, not just those within the split date range.
-
-### Example
-
-Count sentences containing the word 'obama' in The New York Times.
-
-URL: https://api.mediacloud.org/api/v2/sentences/count?q=sentence:obama&fq=media_id:1
-
-```json
-{
-    "count": 96620
-}
-```
-
-Count sentences containing 'africa' in the U.S. Mainstream Media from 2014-01-01 to 2014-03-01:
-
-URL: https://api.mediacloud.org/api/v2/sentences/count?q=sentence:africa+AND+tags\_id\_media:8875027&split=1&split\_start\_date=2014-01-01&split\_end\_date=2014-03-01
-
-```json
-{
-    "count": 236372,
-    "split": {
-        "2014-01-01T00:00:00Z": 650,
-        "2014-01-08T00:00:00Z": 900,
-        "2014-01-15T00:00:00Z": 999,
-        "2014-01-22T00:00:00Z": 1047,
-        "2014-01-29T00:00:00Z": 1125,
-        "2014-02-05T00:00:00Z": 946,
-        "2014-02-12T00:00:00Z": 1126,
-        "2014-02-19T00:00:00Z": 1094,
-        "2014-02-26T00:00:00Z": 1218,
-        "gap": "+7DAYS",
-        "end": "2014-03-05T00:00:00Z",
-        "start": "2014-01-01T00:00:00Z"
-    }
-}
-```
-
+This call has been removed.  Consider using `api/v2/stories_public/count` instead.
 
 ## api/v2/sentences/field\_count
 
-Returns the number of times a given field is associated with a given sentence.  Supported fields
-are currently `tags_id_stories`.
-
-### Query Parameters
-
-| Parameter       | Default           | Notes
-| --------------- | ----------------- | ----------------------------------------------------------------
-| `q`             | n/a               | `q` ("query") parameter which is passed directly to Solr
-| `fq`            | `null`            | `fq` ("filter query") parameter which is passed directly to Solr
-| `sample_size`   | 1000              | number of sentences to sample, max 100,000
-| `include_stats` | 0                 | include stats about the request as a whole
-| `field`         | `tags_id_stories` | field to count
-| `tag_sets_id`   | `null`            | return only tags belonging to the given tag set
-
-See above /api/v2/stories_public/list for Solr query syntax.
-
-If the field is set to `tags_id_stories`, the call returns all of the tags associated with
-story including a sentence matching the query along with a count of how many times each tag is associated with
-each matching story.
-
-To provide quick results, the API counts field values in a randomly sampled set of sentences returned
-by the given query.  By default, the request will sample 1000 sentences.  You can make the API sample
-more sentences (up to 100,000) at the cost of increased time.
-
-Setting the 'stats' field to true changes includes the following fields in the response:
-
-| Field                        | Description
-| ---------------------------- | -------------------------------------------------------------------
-| num_sentences_returned       | The number of sentences returned by the call, up to sample_size
-| num_sentences_found          | The total number of sentences found by Solr to match the query
-| sample_size_param            | The sample size passed into the call, or the default value
-
-### Example
-
-Gets the tag counts for all sentences containing the word `'obama'` in The New York Times
-
-URL: https://api.mediacloud.org/api/v2/sentences/field_count?q=obama+AND+media_id:1
-
-```json
-[
-    {
-        "count": "68",
-        "tag_sets_id": 1011,
-        "label": null,
-        "tag": "geonames_2306104",
-        "tags_id": 8881223
-    },
-    {
-        "count": "39",
-        "tag_sets_id": 1011,
-        "label": null,
-        "tag": "geonames_2300660",
-        "tags_id": 8879465
-    },
-    {
-        "count": "5",
-        "tag_sets_id": 1011,
-        "label": null,
-        "tag": "geonames_6252001",
-        "tags_id": 8878461
-    }
-]
-```
-
+This call has been removed.  Consider using `api/v2/stories_public/tag_count` instead.
 
 # Word Counting
 
@@ -929,6 +914,7 @@ Returns word frequency counts of the most common words in a randomly sampled set
 | `fq`                | `null`  | `fq` ("filter query") parameter which is passed directly to Solr
 | `num_words`         | 500     | Number of words to return
 | `sample_size`       | 1000    | Number of sentences to sample, max 100,000
+| `random_seed`       | 1       | Seed value to use when generating random sample
 | `include_stopwords` | 0       | Set to 1 to disable stopword removal
 | `include_stats`     | 0       | Set to 1 to include stats about the request as a whole (such as total number of words)
 
@@ -1202,176 +1188,6 @@ None.
 ### Example
 
 URL: https://api.mediacloud.org/api/v2/tag_sets/list
-
-# Topics
-
-Topics are collections of stories within some date range that match some pattern indicating that they belong to some topic.  Topics both stories matched from crawled Media Cloud content and stories discovered by spidering out from the links of those matched stories. For more information about topics and how they are generated, see:
-
-http://cyber.law.harvard.edu/publications/2013/social_mobilization_and_the_networked_public_sphere
-
-A single topic is the umbrella object that represents the whole topic.  A snapshot
-is a frozen version of the data within a topic that keeps a consistent view of a topic
-for researchers and also includes analytical results like link counts.  A timespan
-represents the set of stories active in a topic within a given date range.  Every timespan belongs to a snapshot.
-
-Topic data can be used to search stories and media sources as well.  Use the
-timespans_id param to list the media sources within a given timespan.  See the documentation for Solr pseudo queries for documentation of how to
-query for stories within a topic.
-
-## api/v2/topics/single/
-
-| URL                                | Function
-| ---------------------------------- | ----------------------
-| `api/v2/topics/single/<topics_id>` | Return a single topic
-
-### Query Parameters
-
-None.
-
-### Example
-
-Fetching information on topic 6.
-
-URL: https://api.mediacloud.org/api/v2/topics/single/6
-
-Response:
-
-```json
-[
-    {
-        "topics_id": 6,
-        "description": "obama",
-        "name": "obama",
-        "media_type_tag_sets_id": 18,
-        "pattern": "[[:<:]]obama|obamacare[[:>:]]",
-        "solr_seed_query": "obama OR obamacare",
-        "solr_seed_query_run": 1,
-    }
-]
-```
-
-## api/v2/topics/list/
-
-| URL                  | Function
-| -------------------- | --------------
-| `api/v2/topics/list` | Return topics
-
-### Query Parameters
-
-| Parameter       | Default    | Notes
-| --------------- | ---------- | ------------------------------------------------------
-| `name`          | null       | Search for topics with names including the given text
-
-### Example
-
-URL: https://api.mediacloud.org/api/v2/topics/list
-
-## api/v2/snapshots/single/
-
-| URL                              | Function
-| -------------------------------- | -------------------------
-| `api/v2/snapshots/single/<id>`   | Return a single snapshot
-
-### Query Parameters
-
-None.
-
-### Example
-
-Fetching information on the snapshot 5.
-
-URL: https://api.mediacloud.org/api/v2/snapshots/single/5
-
-Response:
-
-```json
-[
-    {
-        "topics_id": 6,
-        "snapshots_id": 5,
-        "dump_date": "2014-07-30 16:32:15.479964",
-        "end_date": "2015-01-01 00:00:00",
-        "note": null,
-        "start_date": "2014-01-01 00:00:00",
-    }
-]
-```
-
-## api/v2/snapshots/list/
-
-| URL                      | Function
-| ------------------------ | -------------------------------------------
-| `api/v2/snapshots/list`  | Return snapshots sorted by descending date
-
-### Query Parameters
-
-| Parameter   | Default    | Notes
-| ----------- | ---------- | ------------------------------------
-| `topics_id` | null       | Return dumps within the given topic
-
-### Example
-
-URL: https://api.mediacloud.org/api/v2/snapshots/list?topics_id=6
-
-## api/v2/timespans/single/
-
-| URL                            | Function
-| ------------------------------ | -------------------------
-| `api/v2/timespans/single/<id>` | Return a single timespan
-
-### Query Parameters
-
-None.
-
-### Example
-
-Fetching information on the timespan 5.
-
-URL: https://api.mediacloud.org/api/v2/timespans/single/5
-
-Response:
-
-```json
-[
-    {
-        "snapshots_id": 5,
-        "timespans_id": 145,
-        "end_date": "2015-01-01 00:00:00",
-        "include_undateable_stories": 0,
-        "medium_count": 236,
-        "medium_link_count": 266,
-        "model_num_media": 17,
-        "model_r2_mean": "0.96",
-        "model_r2_stddev": "0",
-        "period": "overall",
-        "tags_id": null,
-        "start_date": "2014-01-01 00:00:00",
-        "story_count": 2148,
-        "story_link_count": 731,
-    }
-]
-```
-
-## api/v2/timespans/list/
-
-| URL                     | Function
-| ----------------------- | -----------------
-| `api/v2/timespans/list` | Return timespans
-
-### Query Parameters
-
-| Parameter      | Default | Notes
-| -------------- | ------- | -----------------------------------------------------------------
-| `snapshots_id` | null    | Return timespans within the dump
-| `tags_id`      | null    | Return timespans associated with the tag
-| `period`       | null    | Return timespans with the given period ('weekly', 'monthly', 'overall', or 'custom'
-| `start_date`   | null    | Return timespans that start on the given date (YYYY-MM-DD)
-| `end_date`     | null    | Return timespans that end on the given date (YYYY-MM-DD)
-
-### Example
-
-URL: https://api.mediacloud.org/api/v2/timespans/list?snapshots_id=5
-
 
 # Registration and Authentication
 
@@ -2186,16 +2002,16 @@ As above, find the tags_id of the US Mainstream Media collection (8875027).
 
 One way to appropriately restrict the data is by setting the `q` parameter to restrict by sentence content and then the `fq` parameter twice to restrict by `tags_id_media` and `publish_date`.
 
-Below `q` is set to `"sentence:trayvon"` and `fq` is set to `"tags_iud_media:8875027" and "publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]"`. (Note that ":", "[", and "]" are URL encoded.)
+Below `q` is set to `"text:trayvon"` and `fq` is set to `"tags_iud_media:8875027" and "publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]"`. (Note that ":", "[", and "]" are URL encoded.)
 
 ```bash
-curl 'https://api.mediacloud.org/api/v2/wc?q=sentence:trayvon&fq=tags_iud_media:8875027&fq=publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D'
+curl 'https://api.mediacloud.org/api/v2/wc?q=text:trayvon&fq=tags_iud_media:8875027&fq=publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D'
 ```
 
-Alternatively, we could use a single large query by setting `q` to `"sentence:trayvon AND tags_id_media:8875027 AND publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]"`:
+Alternatively, we could use a single large query by setting `q` to `"text:trayvon AND tags_id_media:8875027 AND publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]"`:
 
 ```bash
-curl 'https://api.mediacloud.org/api/v2/wc?q=sentence:trayvon+AND+tags_id_media:8875027+AND+publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D&fq=tags_id_media:8875027&fq=publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D'
+curl 'https://api.mediacloud.org/api/v2/wc?q=text:trayvon+AND+tags_id_media:8875027+AND+publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D&fq=tags_id_media:8875027&fq=publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D'
 ```
 
 

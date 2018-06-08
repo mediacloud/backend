@@ -5,6 +5,7 @@ import time
 import typing
 
 from mediawords.db import DatabaseHandler
+import mediawords.db.locks
 from mediawords.util.log import create_logger
 import mediawords.util.url
 
@@ -125,7 +126,7 @@ def _update_media_normalized_urls(db: DatabaseHandler) -> None:
     # put a lock on this because the process of generating all media urls will take around 30 seconds, and we don't
     # want all workers to do the work
     db.begin()
-    db.query("lock media_normalized_urls in access exclusive mode")
+    mediawords.db.locks.get_session_lock(db, 'MediaWords::TM::Media::media_normalized_urls', 1, wait=True)
 
     if not _normalized_urls_out_of_date(db):
         db.commit()
@@ -303,16 +304,11 @@ def guess_medium(db: DatabaseHandler, story_url: str) -> dict:
     medium_name = get_unique_medium_name(db, [medium_name] + all_urls)
     medium_url = get_unique_medium_url(db, all_urls)
 
-    medium = {
-        'name': medium_name,
-        'url': medium_url,
-        'moderated': 't'
-    }
-
     # a race condition with another thread can cause this to fail sometimes, but after the medium in the
     # other process has been created, all should be fine
     for i in range(_GUESS_MEDIUM_RETRIES):
-        medium = db.find_or_create('media', medium)
+        medium = db.find_or_create('media', {'name': medium_name, 'url': medium_url, 'moderated': 't'})
+
         if medium is not None:
             break
         else:

@@ -31,7 +31,6 @@ following fields:
 * `publish_date`
 * `publish_day`
 * `language`
-* `bitly_click_count` (stored; must get `bitly_click_count` to efficiently query without hitting large `bitly_clicks_total` table)
 * `tags_id_stories`
 * `tags_id_media`
 * `tags_id_story_sentences`

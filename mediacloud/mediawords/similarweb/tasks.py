@@ -56,8 +56,9 @@ def update(db: DatabaseHandler, media_id: int, client: SimilarWebClient):
 
     url = media_data['url']
     similarweb_data = client.get(url)
+
     meta = similarweb_data['meta']
-    domain = meta['domain']
+    domain = meta['request']['domain']
     is_domain_exact_match = check_if_is_domain_exact_match(url, domain)
 
     if 'visits' in similarweb_data:

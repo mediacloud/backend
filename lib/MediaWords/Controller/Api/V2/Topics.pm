@@ -34,7 +34,7 @@ __PACKAGE__->config(
 );
 
 Readonly::Scalar my $TOPICS_EDIT_FIELDS => [
-    qw/name solr_seed_query description max_iterations start_date end_date is_public ch_monitor_id twitter_topics_id max_stories is_logogram/
+    qw/name solr_seed_query description max_iterations start_date end_date is_public ch_monitor_id twitter_topics_id max_stories is_logogram is_story_index_ready/
 ];
 
 Readonly::Scalar my $JOB_STATE_FIELD_LIST =>
@@ -71,46 +71,88 @@ sub _get_topics_list($$$)    # sql clause for fields to query from job_states fo
     }
 
     my $topics = $db->query(
-        <<END,
-
-select t.topics_id, t.name, t.pattern, t.solr_seed_query, t.solr_seed_query_run,
-        t.description, t.max_iterations, t.state,
-        t.message, t.is_public, t.ch_monitor_id, t.twitter_topics_id, t.start_date, t.end_date,
-        min( p.auth_users_id ) auth_users_id, min( p.user_permission ) user_permission,
-        t.job_queue, t.max_stories, t.is_logogram
-    from topics t
-        join topics_with_user_permission p using ( topics_id )
-        left join snapshots snap on ( t.topics_id = snap.topics_id )
-    where
-        $id_clause
-        $public_clause
-        p.auth_users_id= \$1 and
-        t.name ilike \$2 and
-        p.user_permission <> 'none'
-    group by t.topics_id
-    order by t.state = 'completed', t.state,  max( coalesce( snap.snapshot_date, '2000-01-01'::date ) ) desc
-    limit \$3 offset \$4
-END
+        <<SQL,
+            SELECT
+                t.topics_id,
+                t.name,
+                t.pattern,
+                t.solr_seed_query,
+                t.solr_seed_query_run,
+                t.description,
+                t.max_iterations,
+                t.state,
+                t.message,
+                t.is_public,
+                t.ch_monitor_id,
+                t.twitter_topics_id,
+                t.start_date,
+                t.end_date,
+                MIN(p.auth_users_id) AS auth_users_id,
+                MIN(p.user_permission) AS user_permission,
+                t.job_queue,
+                t.max_stories,
+                t.is_logogram,
+                t.is_story_index_ready
+            FROM topics AS t
+                JOIN topics_with_user_permission AS p USING (topics_id)
+                LEFT JOIN snapshots AS snap ON t.topics_id = snap.topics_id
+            WHERE
+                $id_clause
+                $public_clause
+                p.auth_users_id= \$1 AND
+                t.name ILIKE \$2 AND
+                p.user_permission != 'none'
+            GROUP BY t.topics_id
+            ORDER BY
+                t.state = 'completed',
+                t.state,
+                MAX(COALESCE(snap.snapshot_date, '2000-01-01'::date)) DESC
+            LIMIT \$3
+            OFFSET \$4
+SQL
         $auth_users_id, '%' . $name . '%', $limit, $offset
     )->hashes;
 
-    $topics = $db->attach_child_query( $topics, <<SQL, 'media', 'topics_id' );
-select m.media_id, m.name, tmm.topics_id
-    from media m join topics_media_map tmm using ( media_id )
+    $topics = $db->attach_child_query(
+        $topics, <<SQL,
+        SELECT
+            m.media_id,
+            m.name,
+            tmm.topics_id
+        FROM media AS m
+            JOIN topics_media_map AS tmm USING (media_id)
 SQL
+        'media', 'topics_id'
+    );
 
-    $topics = $db->attach_child_query( $topics, <<SQL, 'media_tags', 'topics_id' );
-select t.tags_id, t.tag, t.label, t.description, tmtm.topics_id
-    from tags t join topics_media_tags_map tmtm using ( tags_id )
+    $topics = $db->attach_child_query(
+        $topics, <<SQL,
+        SELECT
+            t.tags_id,
+            t.tag,
+            t.label,
+            t.description,
+            tmtm.topics_id
+        FROM tags AS t
+            JOIN topics_media_tags_map AS tmtm USING (tags_id)
 SQL
+        'media_tags', 'topics_id'
+    );
 
-    $topics = $db->attach_child_query( $topics, <<SQL, 'owners', 'topics_id' );
-select tp.topics_id, au.auth_users_id, au.email, au.full_name
-    from topic_permissions tp
-        join auth_users au using ( auth_users_id )
+    $topics = $db->attach_child_query(
+        $topics, <<SQL,
+        SELECT
+            tp.topics_id,
+            au.auth_users_id,
+            au.email,
+            au.full_name
+        FROM topic_permissions AS tp
+            JOIN auth_users AS au USING (auth_users_id)
     where
         tp.permission = 'admin'
 SQL
+        'owners', 'topics_id'
+    );
 
     return $topics;
 }
@@ -265,12 +307,13 @@ sub create_GET
       eval { MediaWords::Solr::Query::parse( $topic->{ solr_seed_query } )->re( $topic->{ is_logogram } ) };
     die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
 
-    $topic->{ is_public }           = normalize_boolean_for_db( $topic->{ is_public } );
-    $topic->{ is_logogram }         = normalize_boolean_for_db( $topic->{ is_logogram } );
-    $topic->{ solr_seed_query_run } = normalize_boolean_for_db( $topic->{ solr_seed_query_run } );
+    $topic->{ is_public }            = normalize_boolean_for_db( $topic->{ is_public } );
+    $topic->{ is_logogram }          = normalize_boolean_for_db( $topic->{ is_logogram } );
+    $topic->{ is_story_index_ready } = normalize_boolean_for_db( $topic->{ is_story_index_ready } );
+    $topic->{ solr_seed_query_run }  = normalize_boolean_for_db( $topic->{ solr_seed_query_run } );
 
     my $full_solr_query = MediaWords::TM::Mine::get_full_solr_query( $db, $topic, $media_ids, $media_tags_ids );
-    my $num_stories = eval { MediaWords::Solr::count_stories( $db, { q => $full_solr_query } ) };
+    my $num_stories = eval { MediaWords::Solr::get_num_found( $db, $full_solr_query ) };
     die( "invalid solr query: $@" ) if ( $@ );
 
     $topic->{ job_queue } = _is_mc_queue_user( $db, $auth_users_id ) ? 'mc' : 'public';
@@ -306,7 +349,7 @@ sub _update_decreases_query_scope($$$)
     my $spidered_story = $db->query( <<SQL, $topic->{ topics_id } )->hash;
 select * from topic_stories where iteration > 1 and topics_id = ? limit 1
 SQL
-    return 0 unless ( $spidered_story );
+    return 0 if ( !$spidered_story && $topic->{ state } ne 'running' );
 
     return 1 if ( $data->{ start_date } && ( $data->{ start_date } gt $topic->{ start_date } ) );
 
@@ -417,7 +460,7 @@ sub update_PUT
         die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
 
         my $full_solr_query = MediaWords::TM::Mine::get_full_solr_query( $db, $topic, $media_ids, $media_tags_ids );
-        my $num_stories = eval { MediaWords::Solr::count_stories( $db, { q => $full_solr_query } ) };
+        my $num_stories = eval { MediaWords::Solr::get_num_found( $db, $full_solr_query ) };
         die( "invalid solr query: $@" ) if ( $@ );
     }
 
@@ -426,9 +469,10 @@ sub update_PUT
         die( "topic update cannot reduce the scope of the query" );
     }
 
-    $update->{ is_public }           = normalize_boolean_for_db( $update->{ is_public } );
-    $update->{ is_logogram }         = normalize_boolean_for_db( $update->{ is_logogram } );
-    $update->{ solr_seed_query_run } = normalize_boolean_for_db( $update->{ solr_seed_query_run } );
+    $update->{ is_public }            = normalize_boolean_for_db( $update->{ is_public } );
+    $update->{ is_logogram }          = normalize_boolean_for_db( $update->{ is_logogram } );
+    $update->{ is_story_index_ready } = normalize_boolean_for_db( $update->{ is_story_index_ready } );
+    $update->{ solr_seed_query_run }  = normalize_boolean_for_db( $update->{ solr_seed_query_run } );
 
     my $auth_users_id = $c->stash->{ api_auth }->id();
 
@@ -544,11 +588,20 @@ sub reset_PUT
 
     my $topics_id = int( $c->stash->{ topics_id } );
 
+    my $topic = $db->require_by_id( 'topics', $topics_id );
+
+    if ( $topic->{ state } eq 'running' )
+    {
+        die( "Cannot reset running topic." );
+    }
+
     $db->query( "delete from topic_stories where topics_id = ?",                   $topics_id );
     $db->query( "delete from topic_links where topics_id = ?",                     $topics_id );
     $db->query( "delete from topic_dead_links where topics_id = ?",                $topics_id );
     $db->query( "delete from topic_seed_urls where topics_id = ?",                 $topics_id );
     $db->query( "update topics set solr_seed_query_run = 'f' where topics_id = ?", $topics_id );
+
+    $db->update_by_id( 'topics', $topic->{ topics_id }, { state => 'created but not queued', message => undef } );
 
     $self->status_ok( $c, entity => { success => 1 } );
 }

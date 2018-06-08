@@ -10,9 +10,9 @@ use MediaWords::DB;
 use MediaWords::DBI::Media::Health;
 use MediaWords::Test::DB;
 
-Readonly my $NUM_MEDIA            => 5;
-Readonly my $NUM_FEEDS_PER_MEDIUM => 2;
-Readonly my $NUM_STORIES_PER_FEED => 10;
+Readonly my $NUM_MEDIA            => 3;
+Readonly my $NUM_FEEDS_PER_MEDIUM => 1;
+Readonly my $NUM_STORIES_PER_FEED => 5;
 
 sub test_media_health
 {
@@ -27,6 +27,23 @@ sub test_media_health
 
     # move all stories to yesterday so that they get included in today's media_health stats
     $db->query( "update stories set publish_date = now() - interval '1 day'" );
+
+    $db->query( <<SQL );
+update media_stats ms set num_sentences = q.num_sentences, num_stories = q.num_stories
+    from (
+        select
+                count( distinct story_sentences_id ) num_sentences,
+                count( distinct stories_id ) num_stories,
+                media_id,
+                publish_date::date stat_date
+            from
+                story_sentences
+            group by media_id, publish_date::date
+        ) q
+    where
+        ms.media_id = q.media_id and
+        ms.stat_date = q.stat_date
+SQL
 
     MediaWords::DBI::Media::Health::generate_media_health( $db );
 

@@ -22,7 +22,7 @@ use MediaWords::CommonLibs;
 
 import_python_module( __PACKAGE__, 'mediawords.tm.mine' );
 
-use Carp::Always;
+use Carp;
 use Data::Dumper;
 use DateTime;
 use Digest::MD5;
@@ -53,7 +53,6 @@ use MediaWords::DBI::Activities;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::GuessDate;
-use MediaWords::Job::Bitly::FetchStoryStats;
 use MediaWords::Job::ExtractAndVector;
 use MediaWords::Job::Facebook::FetchStoryStats;
 use MediaWords::Job::TM::ExtractStoryLinks;
@@ -69,7 +68,6 @@ use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 use MediaWords::Util::Web::Cache;
-use MediaWords::Util::Bitly;
 
 # max number of solely self linked stories to include
 Readonly my $MAX_SELF_LINKED_STORIES => 100;
@@ -77,14 +75,14 @@ Readonly my $MAX_SELF_LINKED_STORIES => 100;
 # total time to wait for fetching of social media metrics
 Readonly my $MAX_SOCIAL_MEDIA_FETCH_TIME => ( 60 * 60 * 24 );
 
-# max prooprtion of stories with no bitly metrics
-Readonly my $MAX_NULL_BITLY_STORIES => 0.02;
-
 # add new links in chunks of this size
 Readonly my $ADD_NEW_LINKS_CHUNK_SIZE => 1000;
 
 # extract story links in chunks of this size
 Readonly my $EXTRACT_STORY_LINKS_CHUNK_SIZE => 1000;
+
+# query this many topic_links at a time to spider
+Readonly my $SPIDER_LINKS_CHUNK_SIZE => 100_000;
 
 # die if the error rate for link fetch or link extract jobs is greater than this
 Readonly my $MAX_JOB_ERROR_RATE => 0.01;
@@ -258,8 +256,14 @@ SQL
 
         push( @{ $queued_stories_ids }, $story->{ stories_id } );
 
-        MediaWords::Job::TM::ExtractStoryLinks->add_to_queue(
-            { stories_id => $story->{ stories_id }, topics_id => $topic->{ topics_id } } );
+        do
+        {
+            eval {
+                MediaWords::Job::TM::ExtractStoryLinks->add_to_queue(
+                    { stories_id => $story->{ stories_id }, topics_id => $topic->{ topics_id } } );
+            };
+            ( sleep( 1 ) && DEBUG( 'waiting for rabbit ...' ) ) if ( error_is_amqp( $@ ) );
+        } until ( !error_is_amqp( $@ ) );
 
         TRACE( "queued link extraction for story $story->{ title } $story->{ url }." );
     }
@@ -383,7 +387,7 @@ sub extract_download($$$)
 {
     my ( $db, $download, $story ) = @_;
 
-    return if ( $download->{ url } =~ /jpg|pdf|doc|mp3|mp4|zip$/i );
+    return if ( $download->{ url } =~ /jpg|pdf|doc|mp3|mp4|zip|png|docx$/i );
 
     return if ( $download->{ url } =~ /livejournal.com\/(tag|profile)/i );
 
@@ -495,9 +499,8 @@ sub queue_extraction($$)
     return if ( $_test_mode );
 
     my $args = {
-        stories_id            => $stories_id,
-        skip_bitly_processing => 1,
-        use_cache             => 1
+        stories_id => $stories_id,
+        use_cache  => 1
     };
 
     my $priority = $MediaCloud::JobManager::Job::MJM_JOB_PRIORITY_HIGH;
@@ -562,8 +565,6 @@ sub story_matches_topic_pattern
 {
     my ( $db, $topic, $story, $metadata_only ) = @_;
 
-    return 'sentence' if ( !$metadata_only && ( story_sentence_matches_pattern( $db, $story, $topic ) ) );
-
     my $meta_values = [ map { $story->{ $_ } } qw/title description url redirect_url/ ];
 
     my $match = $db->query( <<SQL, $topic->{ topics_id }, @{ $meta_values } )->hash;
@@ -580,6 +581,8 @@ select 1
 SQL
 
     return 'meta' if $match;
+
+    return 'sentence' if ( !$metadata_only && ( story_sentence_matches_pattern( $db, $story, $topic ) ) );
 
     return 0;
 }
@@ -937,12 +940,39 @@ sub add_links_to_stories($$)
 
 }
 
+# return true if the $@ error is defined and matches 'AMQP socket not connected'
+sub error_is_amqp($)
+{
+    my ( $error ) = @_;
+
+    return ( $error && ( $error =~ /AMQP socket not connected/ ) );
+}
+
+# add the topic_fetch_url to the fetch_link job queue.  try repeatedly on failure.
+sub queue_topic_fetch_url($)
+{
+    my ( $tfu ) = @_;
+
+    my $fetch_link_domain_timeout = $_test_mode ? 0 : undef;
+
+    do
+    {
+        eval {
+            MediaWords::Job::TM::FetchLink->add_to_queue(
+                {
+                    topic_fetch_urls_id => $tfu->{ topic_fetch_urls_id },
+                    domain_timeout      => $fetch_link_domain_timeout
+                }
+            );
+        };
+        ( sleep( 1 ) && DEBUG( 'waiting for rabbit ...' ) ) if ( error_is_amqp( $@ ) );
+    } until ( !error_is_amqp( $@ ) );
+}
+
 # create topic_fetch_urls rows correpsonding to the links and queue a FetchLink job for each.  return the tfu rows.
 sub create_and_queue_topic_fetch_urls($$$)
 {
     my ( $db, $topic, $fetch_links ) = @_;
-
-    my $fetch_link_domain_timeout = $_test_mode ? 0 : undef;
 
     my $tfus = [];
     for my $link ( @{ $fetch_links } )
@@ -959,12 +989,7 @@ sub create_and_queue_topic_fetch_urls($$$)
         );
         push( @{ $tfus }, $tfu );
 
-        MediaWords::Job::TM::FetchLink->add_to_queue(
-            {
-                topic_fetch_urls_id => $tfu->{ topic_fetch_urls_id },
-                domain_timeout      => $fetch_link_domain_timeout
-            }
-        );
+        queue_topic_fetch_url( $tfu );
     }
 
     return $tfus;
@@ -985,6 +1010,11 @@ sub fetch_links
     my $tfu_ids_table = $db->get_temporary_ids_table( [ map { int( $_->{ topic_fetch_urls_id } ) } @{ $tfus } ] );
 
     # now poll waiting for the queue to clear
+    my $requeues         = 0;
+    my $max_requeues     = 3;
+    my $max_requeue_jobs = 10;
+    my $requeue_timeout  = 300;
+
     my $last_pending_change   = time();
     my $last_num_pending_urls = 0;
     while ( 1 )
@@ -1003,7 +1033,21 @@ SQL
 
         last if ( $num_pending_urls < 1 );
 
-        if ( ( time() - $last_pending_change ) > $JOB_POLL_TIMEOUT )
+        my $time_since_change = time() - $last_pending_change;
+
+        # for some reason, the fetch_link queue is occasionally losing a small number of jobs.  until we can
+        # find the cause of the bug, just requeue stray jobs a few times
+        if (   ( $time_since_change > $requeue_timeout )
+            && ( $requeues < $max_requeues )
+            && ( $num_pending_urls < $max_requeue_jobs ) )
+        {
+            INFO( "requeueing fetch_link $num_pending_urls jobs ... [requeue $requeues]" );
+            map { queue_topic_fetch_url( $db->require_by_id( 'topic_fetch_urls', $_ ) ) } @{ $pending_url_ids };
+            ++$requeues;
+            $last_pending_change = time();
+        }
+
+        if ( $time_since_change > $JOB_POLL_TIMEOUT )
         {
             splice( @{ $pending_url_ids }, 10 );
             my $ids_list = join( ', ', @{ $pending_url_ids } );
@@ -1185,24 +1229,50 @@ sub spider_new_links
 {
     my ( $db, $topic, $iteration ) = @_;
 
-    INFO( "spider new links" );
+    for ( my $i = 0 ; ; $i++ )
+    {
+        INFO( "spider new links chunk: $i" );
 
-    my $new_links = $db->query( <<END, $iteration, $topic->{ topics_id } )->hashes;
-select distinct tl.* from topic_links tl, topic_stories ts
+        my $new_links = $db->query( <<END, $iteration, $topic->{ topics_id }, $SPIDER_LINKS_CHUNK_SIZE )->hashes;
+select tl.* from topic_links tl, topic_stories ts
     where
         tl.link_spidered = 'f' and
         tl.stories_id = ts.stories_id and
-        ( ts.iteration < \$1 or ts.iteration = 1000 ) and
+        ( ts.iteration <= \$1 or ts.iteration = 1000 ) and
         ts.topics_id = \$2 and
         tl.topics_id = \$2
+
+    limit \$3
 END
 
-    _add_source_story_urls_to_links( $db, $new_links );
+        last unless ( @{ $new_links } );
 
-    INFO( "filter for self linked domains" );
-    $new_links = [ grep { !_skip_self_linked_domain( $db, $_ ) } @{ $new_links } ];
+        _add_source_story_urls_to_links( $db, $new_links );
 
-    add_new_links( $db, $topic, $iteration, $new_links );
+        INFO( "filter for self linked domains" );
+        my ( $filtered_links, $skipped_links ) = ( [], [] );
+        for my $link ( @{ $new_links } )
+        {
+            if ( _skip_self_linked_domain( $db, $link ) )
+            {
+                push( @{ $skipped_links }, $link );
+            }
+            else
+            {
+                push( @{ $filtered_links }, $link );
+            }
+        }
+
+        if ( @{ $skipped_links } )
+        {
+            my $skipped_ids = join( ',', map { $_->{ topic_links_id } } @{ $skipped_links } );
+            $db->query( <<SQL );
+update topic_links set link_spidered  = 't' where topic_links_id in ( $skipped_ids )
+SQL
+        }
+
+        add_new_links( $db, $topic, $iteration, $filtered_links );
+    }
 }
 
 # get short text description of spidering progress
@@ -1585,7 +1655,7 @@ END
 
         my $end = List::Util::min( $i + $ADD_NEW_LINKS_CHUNK_SIZE - 1, $#{ $seed_urls } );
         my $seed_urls_chunk = [ @{ $seed_urls }[ $i .. $end ] ];
-        add_new_links_chunk( $db, $topic, 1, $seed_urls_chunk );
+        add_new_links_chunk( $db, $topic, 0, $seed_urls_chunk );
 
         my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ topic_seed_urls_id } } @{ $seed_urls_chunk } ] );
 
@@ -1596,7 +1666,7 @@ update topic_seed_urls tsu
     from topic_fetch_urls tfu, $ids_table ids
     where
         tsu.topics_id = tfu.topics_id and
-        tsu.url = tfu.url and
+        md5(tsu.url) = md5(tfu.url) and
         tsu.topic_seed_urls_id = ids.id
 SQL
 
@@ -1844,7 +1914,7 @@ sub get_solr_query_month_clause($$)
     my $solr_start = $offset_start->strftime( '%Y-%m-%d' ) . 'T00:00:00Z';
     my $solr_end   = $offset_end->strftime( '%Y-%m-%d' ) . 'T23:59:59Z';
 
-    my $date_clause = "publish_date:[$solr_start TO $solr_end]";
+    my $date_clause = "publish_day:[$solr_start TO $solr_end]";
 
     return $date_clause;
 }
@@ -1853,7 +1923,7 @@ sub get_solr_query_month_clause($$)
 # end date from topics and media clauses from topics_media_map and topics_media_tags_map.
 # only return a query for up to a month of the given a query, using the zero indexed $month_offset to
 # fetch $month_offset to return months after the first.  return undef if the month_offset puts the
-# query start date beyond the topic end date
+# query start date beyond the topic end date. otherwise return hash in the form of { q => query, fq => filter_query }
 sub get_full_solr_query($$;$$$$)
 {
     my ( $db, $topic, $media_ids, $media_tags_ids, $month_offset ) = @_;
@@ -1864,7 +1934,7 @@ sub get_full_solr_query($$;$$$$)
 
     return undef unless ( $date_clause );
 
-    my $solr_query = "( " . $topic->{ solr_seed_query } . " ) and $date_clause";
+    my $solr_query = "( $topic->{ solr_seed_query } )";
 
     my $media_clauses = [];
     my $topics_id     = $topic->{ topics_id };
@@ -1894,9 +1964,11 @@ sub get_full_solr_query($$;$$$$)
         $solr_query .= " and ( $media_clause_list )";
     }
 
-    DEBUG( "full solr query: $solr_query" );
+    my $solr_params = { q => $solr_query, fq => $date_clause };
 
-    return $solr_query;
+    DEBUG( "full solr query: q = $solr_query, fq = $date_clause" );
+
+    return $solr_params;
 }
 
 # import a single month of the solr seed query.  we do this to avoid giant queries that timeout in solr.
@@ -1918,8 +1990,9 @@ sub import_solr_seed_query_month($$$)
     return undef unless ( $solr_query );
 
     INFO "import solr seed query month offset $month_offset";
-    INFO "executing solr query: $solr_query";
-    my $stories = MediaWords::Solr::search_for_stories( $db, { q => $solr_query, rows => $max_stories } );
+    $solr_query->{ rows } = $max_stories;
+
+    my $stories = MediaWords::Solr::search_for_stories( $db, $solr_query );
 
     if ( scalar( @{ $stories } ) > $max_returned_stories )
     {
@@ -1968,35 +2041,6 @@ sub import_solr_seed_query
     $db->query( "update topics set solr_seed_query_run = 't' where topics_id = ?", $topic->{ topics_id } );
 }
 
-# return true if there are fewer than $MAX_NULL_BITLY_STORIES stories without bitly data
-sub all_bitly_data_fetched
-{
-    my ( $db, $topic ) = @_;
-
-    my ( $num_topic_stories ) = $db->query( <<SQL, $topic->{ topics_id } )->flat;
-select count(*) from topic_stories where topics_id = ?
-SQL
-
-    my $max_nulls = int( $MAX_NULL_BITLY_STORIES * $num_topic_stories ) + 1;
-
-    DEBUG( "all bitly data fetched: $num_topic_stories topic stories total, $max_nulls max nulls" );
-
-    my $null_bitly_story = $db->query( <<SQL, $topic->{ topics_id }, $max_nulls )->hash;
-select 1
-    from topic_stories cs
-        left join bitly_clicks_total b on ( cs.stories_id = b.stories_id )
-    where
-        cs.topics_id = ? and
-        b.click_count is null
-    limit 1
-    offset ?
-SQL
-
-    DEBUG( "all bitly data fetched: " . ( $null_bitly_story ? 'no' : 'yes' ) );
-
-    return !$null_bitly_story;
-}
-
 # return true if there are no stories without facebook data
 sub all_facebook_data_fetched
 {
@@ -2020,7 +2064,7 @@ SQL
     return !$null_facebook_story;
 }
 
-# send high priority jobs to fetch bitly and facebook data for all stories that don't yet have it
+# send high priority jobs to fetch facebook data for all stories that don't yet have it
 sub fetch_social_media_data ($$)
 {
     my ( $db, $topic ) = @_;
@@ -2032,7 +2076,6 @@ sub fetch_social_media_data ($$)
 
     my $cid = $topic->{ topics_id };
 
-    MediaWords::Job::Bitly::FetchStoryStats->add_topic_stories_to_queue( $db, $topic );
     MediaWords::Job::Facebook::FetchStoryStats->add_topic_stories_to_queue( $db, $topic );
 
     my $poll_wait = 30;
@@ -2040,7 +2083,7 @@ sub fetch_social_media_data ($$)
 
     for my $i ( 1 .. $retries )
     {
-        return if ( all_bitly_data_fetched( $db, $topic ) && all_facebook_data_fetched( $db, $topic ) );
+        return if ( all_facebook_data_fetched( $db, $topic ) );
         sleep $poll_wait;
     }
 
@@ -2117,6 +2160,12 @@ SQL
 sub do_mine_topic ($$;$)
 {
     my ( $db, $topic, $options ) = @_;
+
+    # commenting this out until we deploy the story index
+    # if ( !$topic->{ is_story_index_ready } )
+    # {
+    #     die( "refusing to run topic because is_story_index_ready is false" );
+    # }
 
     map { $options->{ $_ } ||= 0 }
       qw/cache_broken_downloads import_only skip_outgoing_foreign_rss_links skip_post_processing test_mode/;

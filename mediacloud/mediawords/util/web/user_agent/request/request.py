@@ -151,7 +151,7 @@ class Request(object):
 
         if isinstance(content, dict):
             # urlencode into string; urlencode() seems to work fine with both string and bytes dictionaries
-            content = urlencode(content)
+            content = urlencode(content, doseq=True)
 
         if isinstance(content, str):
             content = content.encode('utf-8')

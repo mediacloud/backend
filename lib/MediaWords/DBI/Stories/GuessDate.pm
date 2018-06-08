@@ -186,13 +186,19 @@ sub add_undateable_to_stories($$)
 
     my $ids_table = $db->get_temporary_ids_table( [ map { int( $_->{ stories_id } ) } @{ $stories } ] );
 
+    $db->query( <<SQL );
+create temporary table _stm as
+    select stories_id, tags_id
+        from stories_tags_map
+        where stories_id in ( select id from $ids_table )
+SQL
+
     my $undateable_stories_ids = $db->query( <<SQL )->flat;
 select stories_id
-    from stories_tags_map stm
+    from _stm stm
         join tags t on ( stm.tags_id = t.tags_id )
         join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
     where
-        stm.stories_id in ( select id from $ids_table ) and
         ts.name = 'date_invalid' and
         t.tag = 'undateable'
 SQL

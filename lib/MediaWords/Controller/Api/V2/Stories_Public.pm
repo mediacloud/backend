@@ -46,7 +46,6 @@ sub permissible_output_fields
           publish_date
           collect_date
           story_tags
-          bitly_click_count
           ap_syndicated
           word_count
           feeds

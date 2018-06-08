@@ -37,13 +37,13 @@ sub test_timespan_export
 
     MediaWords::Test::Solr::setup_test_index( $db );
 
-    my $num_solr_sentences = MediaWords::Solr::get_num_found( $db, { q => '*:*' } );
-    ok( $num_solr_sentences > 0, "total number of solr sentences is greater than 0" );
+    my $num_solr_stories = MediaWords::Solr::get_num_found( $db, { q => '*:*' } );
+    ok( $num_solr_stories > 0, "total number of solr stories is greater than 0" );
 
     my $topic_media_id = $media->{ medium_1 }->{ media_id };
 
-    my $num_topic_medium_sentences = MediaWords::Solr::get_num_found( $db, { q => "media_id:$topic_media_id" } );
-    ok( $num_topic_medium_sentences > 0, "number of topic medium sentences is greater than 0" );
+    my $num_topic_medium_stories = MediaWords::Solr::get_num_found( $db, { q => "media_id:$topic_media_id" } );
+    ok( $num_topic_medium_stories > 0, "number of topic medium stories is greater than 0" );
 
     $db->query( <<SQL, $topic->{ topics_id }, $topic_media_id );
 insert into topic_stories ( topics_id, stories_id )
@@ -52,19 +52,19 @@ SQL
 
     MediaWords::Job::TM::SnapshotTopic->run_locally( { topics_id => $topic->{ topics_id } } );
 
-    $num_solr_sentences = MediaWords::Solr::get_num_found( $db, { q => 'timespans_id:1' } );
-    is( $num_solr_sentences, 0, "number of solr sentences before snapshot import" );
+    $num_solr_stories = MediaWords::Solr::get_num_found( $db, { q => 'timespans_id:1' } );
+    is( $num_solr_stories, 0, "number of solr stories before snapshot import" );
 
     my ( $num_solr_exported_stories ) = $db->query( "select count(*) from solr_import_extra_stories" )->flat;
-    my $num_topic_medium_stories = scalar( values( %{ $media->{ medium_1 }->{ feeds }->{ feed_1 }->{ stories } } ) );
+    $num_topic_medium_stories = scalar( values( %{ $media->{ medium_1 }->{ feeds }->{ feed_1 }->{ stories } } ) );
     is( $num_solr_exported_stories, $num_topic_medium_stories, "number of stories added to solr export queue" );
 
     my $timespan = MediaWords::TM::get_latest_overall_timespan( $db, $topic->{ topics_id } );
 
-    MediaWords::Solr::Dump::generate_and_import_data( 1 );
+    MediaWords::Solr::Dump::import_data( $db, { empty_queue => 1 } );
 
-    my $num_topic_sentences = MediaWords::Solr::get_num_found( $db, { q => "timespans_id:$timespan->{ timespans_id }" } );
-    is( $num_topic_sentences, $num_topic_medium_sentences, "topic sentences after snapshot" );
+    my $num_topic_stories = MediaWords::Solr::get_num_found( $db, { q => "timespans_id:$timespan->{ timespans_id }" } );
+    is( $num_topic_stories, $num_topic_medium_stories, "topic stories after snapshot" );
 
     my $focus_stories_id = $media->{ story_1 }->{ stories_id };
 
@@ -77,7 +77,7 @@ insert into focus_definitions ( name, description, arguments, focal_set_definiti
 SQL
 
     MediaWords::Job::TM::SnapshotTopic->run_locally( { topics_id => $topic->{ topics_id } } );
-    MediaWords::Solr::Dump::generate_and_import_data( 1 );
+    MediaWords::Solr::Dump::import_data( $db, { empty_queue => 1 } );
 
     my ( $focus_timespans_id ) = $db->query( <<SQL )->flat;
 select *
@@ -88,14 +88,14 @@ select *
     order by timespans_id desc limit 1
 SQL
 
-    my $focus_story_sentences    = MediaWords::Solr::get_num_found( $db, { q => "stories_id:$focus_stories_id" } );
-    my $focus_timespan_sentences = MediaWords::Solr::get_num_found( $db, { q => "timespans_id:$focus_timespans_id" } );
+    my $focus_story_stories    = MediaWords::Solr::get_num_found( $db, { q => "stories_id:$focus_stories_id" } );
+    my $focus_timespan_stories = MediaWords::Solr::get_num_found( $db, { q => "timespans_id:$focus_timespans_id" } );
 
-    is( $focus_timespan_sentences, $focus_story_sentences, "focus timespan sentences" );
+    is( $focus_timespan_stories, $focus_story_stories, "focus timespan stories" );
 
-    my $psuedo_timespan_sentences = MediaWords::Solr::get_num_found( $db, { q => "{~ timespan:$focus_timespans_id }" } );
+    my $psuedo_timespan_stories = MediaWords::Solr::get_num_found( $db, { q => "{~ timespan:$focus_timespans_id }" } );
 
-    is( $psuedo_timespan_sentences, $focus_story_sentences, "focus timespan sentences" );
+    is( $psuedo_timespan_stories, $focus_story_stories, "focus timespan stories" );
 }
 
 sub main
