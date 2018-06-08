@@ -260,7 +260,8 @@ sub _is_mc_queue_user($$)
 
     $auth_users_id = int( $auth_users_id );
 
-    my $is_mc = $db->query( <<SQL, @{ $MediaWords::DBI::Auth::Roles::List::TOPIC_MC_QUEUE_ROLES } )->hash;
+    my $is_mc = $db->query(
+        <<SQL,
 select ar.role
     from auth_roles ar
         join auth_users_roles_map aurm using ( auth_roles_id )
@@ -269,6 +270,8 @@ select ar.role
         ar.role in ( ?? )
     limit 1
 SQL
+        @{ MediaWords::DBI::Auth::Roles::List::topic_mc_queue_roles() }
+    )->hash;
 
     return $is_mc;
 }

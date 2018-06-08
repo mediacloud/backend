@@ -1,7 +1,7 @@
 from typing import List
 
 from mediawords.db import DatabaseHandler
-from mediawords.dbi.auth.roles.list import ADMIN, ADMIN_READONLY
+from mediawords.dbi.auth.roles.list import UserRoles
 
 
 class McAuthLimitsException(Exception):
@@ -43,4 +43,4 @@ def default_weekly_requested_items_limit(db: DatabaseHandler) -> int:
 
 def roles_exempt_from_user_limits() -> List[str]:
     """User roles that are not limited by the weekly requests / requested items limits."""
-    return [ADMIN, ADMIN_READONLY]
+    return [UserRoles.admin(), UserRoles.admin_readonly()]

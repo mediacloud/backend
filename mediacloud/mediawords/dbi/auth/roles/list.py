@@ -1,32 +1,58 @@
-"""
-Authentication roles (keep in sync with "auth_roles" table).
-"""
+from typing import List
 
-# MC_REWRITE_TO_PYTHON: make into an enum?
 
-# Do everything, including editing users
-ADMIN = 'admin'
+class UserRoles(object):
+    """Authentication roles (keep in sync with "auth_roles" table)."""
 
-# Read-only access to admin interface
-ADMIN_READONLY = 'admin-readonly'
+    # MC_REWRITE_TO_PYTHON make it into an enum? Currently a list of stings to make the rewrite easier
 
-# Add / edit media; includes feeds
-MEDIA_EDIT = 'media-edit'
+    @staticmethod
+    def admin() -> str:
+        """Do everything, including editing users."""
+        return 'admin'
 
-# Add / edit stories
-STORIES_EDIT = 'stories-edit'
+    @staticmethod
+    def admin_readonly() -> str:
+        """Read-only access to admin interface."""
+        return 'admin-readonly'
 
-# Topic mapper; includes media and story editing
-TM = 'tm'
+    @staticmethod
+    def media_edit() -> str:
+        """Add / edit media; includes feeds."""
+        return 'media-edit'
 
-# topic mapper; excludes media and story editing
-TM_READONLY = 'tm-readonly'
+    @staticmethod
+    def stories_edit() -> str:
+        """Add / edit stories."""
+        return 'stories-edit'
 
-# Access to the stories API
-STORIES_API = 'stories-api'
+    @staticmethod
+    def tm() -> str:
+        """Topic mapper; includes media and story editing."""
+        return 'tm'
 
-# Access to the /search pages
-SEARCH = 'search'
+    @staticmethod
+    def tm_readonly() -> str:
+        """Topic mapper; excludes media and story editing."""
+        return 'tm-readonly'
 
-# roles that are allows to queue a topic into the 'mc' queue instead of the 'public' queue
-TOPIC_MC_QUEUE_ROLES = [ADMIN, ADMIN_READONLY, MEDIA_EDIT, STORIES_EDIT, TM]
+    @staticmethod
+    def stories_api() -> str:
+        """Access to the stories API."""
+        return 'stories-api'
+
+    @staticmethod
+    def search() -> str:
+        """Access to the /search pages."""
+        return 'search'
+
+
+def topic_mc_queue_roles() -> List[str]:
+    """Roles that are allows to queue a topic into the 'mc' queue instead of the 'public' queue."""
+    return [
+        UserRoles.admin(),
+        UserRoles.admin_readonly(),
+        UserRoles.media_edit(),
+        UserRoles.stories_edit(),
+        UserRoles.tm()
+    ]

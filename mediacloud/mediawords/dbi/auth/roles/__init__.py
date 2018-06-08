@@ -5,7 +5,7 @@ Authentication role helpers.
 from typing import List
 
 from mediawords.db import DatabaseHandler
-from mediawords.dbi.auth.roles.list import SEARCH
+from mediawords.dbi.auth.roles.list import UserRoles
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
 
@@ -60,7 +60,7 @@ def default_role_ids(db: DatabaseHandler) -> List[str]:
         SELECT auth_roles_id
         FROM auth_roles
         WHERE role = %(role)s
-    """, {'role': SEARCH}).flat()
+    """, {'role': UserRoles.search()}).flat()
     if (not default_roles) or (not len(default_roles)):
         raise McRoleIDForRoleException('Unable to find default role IDs.')
     if default_roles is None:
