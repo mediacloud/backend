@@ -1,34 +1,33 @@
 package MediaWords::DBI::Auth::User::ModifyUser;
 
-#
-# User object for user to be modified by update_user()
-#
-
 use strict;
 use warnings;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use Moose;
-extends 'MediaWords::DBI::Auth::User::NewOrModifyUser';
+use MediaWords::DBI::Auth::User::NewOrModifyUser;
+our @ISA = qw(MediaWords::DBI::Auth::User::NewOrModifyUser);
 
-sub BUILD
+sub new
 {
-    my $self = shift;
+    my ( $class, %args ) = @_;
 
-    # Don't require anything but email to be set -- if undef, values won't be changed
+    my $python_object = MediaWords::DBI::Auth::User::AbstractUser::PythonProxy::ModifyUser->new(
+        $args{ email },
+        $args{ full_name },
+        $args{ notes },
+        $args{ active },
+        $args{ weekly_requests_limit },
+        $args{ weekly_requested_items_limit },
+        $args{ password },
+        $args{ password_repeat },
+        $args{ role_ids },
+    );
 
-    if ( defined( $self->role_ids() ) )
-    {
-        unless ( ref $self->role_ids() eq ref( [] ) )
-        {
-            LOGCONFESS "List of role IDs is not an array: " . Dumper( $self->role_ids() );
-        }
-    }
+    my $self = $class->SUPER::new( python_object => $python_object );
 
+    return $self;
 }
-
-no Moose;    # gets rid of scaffolding
 
 1;

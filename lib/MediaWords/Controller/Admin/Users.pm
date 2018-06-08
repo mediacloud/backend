@@ -61,7 +61,7 @@ sub delete : Local
         die "Unable to find user with email '$email'";
     }
 
-    $c->stash->{ auth_users_id } = $userinfo->id();
+    $c->stash->{ auth_users_id } = $userinfo->user_id();
     $c->stash->{ email }         = $userinfo->email();
     $c->stash->{ full_name }     = $userinfo->full_name();
     $c->stash->{ c }             = $c;
@@ -382,7 +382,7 @@ sub edit : Local
         $form->process( $c->request );
 
         # Show the form
-        $c->stash->{ auth_users_id } = $userinfo->id();
+        $c->stash->{ auth_users_id } = $userinfo->user_id();
         $c->stash->{ email }         = $userinfo->email();
         $c->stash->{ full_name }     = $userinfo->full_name();
         $c->stash->{ notes }         = $userinfo->notes();
@@ -408,7 +408,7 @@ sub edit : Local
     # Check if user is trying to deactivate oneself
     if ( $userinfo->email() eq $c->user->username and ( !$user_is_active ) )
     {
-        $c->stash->{ auth_users_id } = $userinfo->id();
+        $c->stash->{ auth_users_id } = $userinfo->user_id();
         $c->stash->{ email }         = $userinfo->email();
         $c->stash->{ full_name }     = $userinfo->full_name();
         $c->stash->{ notes }         = $userinfo->notes();
@@ -439,7 +439,7 @@ sub edit : Local
     {
         my $error_message = "Unable to update user: $@";
 
-        $c->stash->{ auth_users_id } = $userinfo->id();
+        $c->stash->{ auth_users_id } = $userinfo->user_id();
         $c->stash->{ email }         = $userinfo->email();
         $c->stash->{ full_name }     = $userinfo->full_name();
         $c->stash->{ notes }         = $userinfo->notes();
@@ -513,7 +513,7 @@ sub tag_set_permissions_json : Local
     my $auth_users_tag_set_permissions = $db->query(
 "SELECT autsp.*, ts.name as tag_set_name from auth_users_tag_sets_permissions autsp, tag_sets ts where auth_users_id = ? "
           . " AND ts.tag_sets_id = autsp.tag_sets_id ",
-        $userinfo->id()
+        $userinfo->user_id()
     )->hashes();
 
     $c->res->body( MediaWords::Util::JSON::encode_json( $auth_users_tag_set_permissions ) );
@@ -538,7 +538,7 @@ sub available_tag_sets_json : Local
 
     my $available_tag_sets = $db->query(
 "SELECT * from tag_sets where tag_sets_id not in ( select tag_sets_id from auth_users_tag_sets_permissions where auth_users_id = ?)  ",
-        $userinfo->id()
+        $userinfo->user_id()
     )->hashes();
 
     $c->res->body( MediaWords::Util::JSON::encode_json( $available_tag_sets ) );
@@ -594,7 +594,7 @@ sub edit_tag_set_permissions : Local
         );
     }
 
-    $c->stash->{ auth_users_id } = $userinfo->id();
+    $c->stash->{ auth_users_id } = $userinfo->user_id();
     $c->stash->{ email }         = $userinfo->email();
     $c->stash->{ full_name }     = $userinfo->full_name();
     $c->stash->{ notes }         = $userinfo->notes();

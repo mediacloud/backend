@@ -408,7 +408,7 @@ sub add_topic_user($$$)
         'topic_permissions',
         {
             topics_id     => $topic->{ topics_id },
-            auth_users_id => $user->id(),
+            auth_users_id => $user->user_id(),
             permission    => $permission
         }
     );

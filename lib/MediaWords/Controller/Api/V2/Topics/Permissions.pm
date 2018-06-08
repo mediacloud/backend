@@ -32,7 +32,7 @@ sub user_list_GET
 {
     my ( $self, $c ) = @_;
 
-    my $permissions = $c->dbis->query( <<SQL, $c->stash->{ api_auth }->id() )->hashes;
+    my $permissions = $c->dbis->query( <<SQL, $c->stash->{ api_auth }->user_id() )->hashes;
 select u.email, tp.topics_id, tp.permission
     from topic_permissions tp join auth_users u using ( auth_users_id )
     where u.auth_users_id = ?
@@ -103,14 +103,14 @@ sub update_PUT
         die( "Unknown email '$email'" );
     }
 
-    $db->query( <<SQL, $auth_user->id(), $topics_id );
+    $db->query( <<SQL, $auth_user->user_id(), $topics_id );
 delete from topic_permissions tp where tp.topics_id = \$2 and tp.auth_users_id = \$1
 SQL
 
     my $permissions = [];
     if ( grep { $permission eq $_ } qw(read write admin) )
     {
-        my $tp = { permission => $permission, auth_users_id => $auth_user->id(), topics_id => $topics_id };
+        my $tp = { permission => $permission, auth_users_id => $auth_user->user_id(), topics_id => $topics_id };
         $db->create( 'topic_permissions', $tp );
         $permissions = [ $tp ];
     }

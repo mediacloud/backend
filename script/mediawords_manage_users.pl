@@ -415,7 +415,7 @@ sub user_show($)
         return 1;
     }
 
-    say "User ID:          " . $db_user->id();
+    say "User ID:          " . $db_user->user_id();
     say "Email (username): " . $db_user->email();
     say "Full name: " . $db_user->full_name();
     say "Notes:     " . $db_user->notes();

@@ -82,7 +82,7 @@ sub test_request_limit($)
             SET weekly_requests_limit = ?
             WHERE auth_users_id = ?
 SQL
-            $weekly_requests_limit, $user->id()
+            $weekly_requests_limit, $user->user_id()
         );
     }
 
