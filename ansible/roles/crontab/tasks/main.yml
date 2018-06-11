@@ -174,3 +174,19 @@
   when: "'core_services' in group_names"  # only for hosts in 'core_services' group
   tags:
     - crontab
+
+- name: Add refresh stats script
+  cron:
+    name: "refresh_mediacloud_stats"
+    minute: "46"
+    hour: "3"
+
+    # Report will be sent to MAILTO
+    job: >
+      {{ mediacloud_root }}/script/run_in_env.sh
+      {{ mediacloud_root }}/script/mediawords_refresh_mediacloud_stats.pl
+  become: true
+  become_user: "{{ mediacloud_user }}"
+  when: "'core_services' in group_names"  # only for hosts in 'core_services' group
+  tags:
+    - crontab
