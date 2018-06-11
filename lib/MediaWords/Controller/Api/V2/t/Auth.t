@@ -361,12 +361,15 @@ sub test_profile($)
     my $actual_profile = test_get( '/api/v2/auth/profile' );
     ok( $actual_profile );
 
-    is( $actual_profile->{ email },                  $expected_profile->email() );
-    is( $actual_profile->{ full_name },              $expected_profile->full_name() );
-    is( $actual_profile->{ api_key },                $expected_api_key );
-    is( $actual_profile->{ notes },                  $expected_profile->notes() );
-    is( length( $actual_profile->{ created_date } ), length( 'YYYY-MM-DDTHH:mm:ss' ) );
-    is( $actual_profile->{ active },                 $expected_profile->active() );
+    is( $actual_profile->{ email },     $expected_profile->email() );
+    is( $actual_profile->{ full_name }, $expected_profile->full_name() );
+    is( $actual_profile->{ api_key },   $expected_api_key );
+    is( $actual_profile->{ notes },     $expected_profile->notes() );
+
+    # Looks like ISO 8601 date?
+    like( $actual_profile->{ created_date }, qr/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/i );
+
+    is( $actual_profile->{ active }, $expected_profile->active() );
     cmp_deeply( $actual_profile->{ auth_roles }, $expected_profile->role_names() );
     is( $actual_profile->{ limits }->{ weekly }->{ requests }->{ used },  $expected_profile->weekly_requests_sum() );
     is( $actual_profile->{ limits }->{ weekly }->{ requests }->{ limit }, $expected_profile->weekly_requests_limit() );

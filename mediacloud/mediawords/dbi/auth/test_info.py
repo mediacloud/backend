@@ -1,3 +1,5 @@
+import re
+
 from mediawords.dbi.auth.info import user_info
 from mediawords.dbi.auth.register import add_user
 from mediawords.dbi.auth.user import NewUser, CurrentUser
@@ -5,6 +7,15 @@ from mediawords.test.test_database import TestDatabaseWithSchemaTestCase, TestDo
 
 
 class TestInfo(TestDatabaseWithSchemaTestCase, TestDoNotSendEmails):
+
+    @staticmethod
+    def __looks_like_iso8601_date(date: str) -> bool:
+        """Returns True if parameter date looks like ISO 8601 date, e.g. "2014-02-28T22:30:00+0200"."""
+        iso8601_regex = re.compile(r'^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$')
+        if iso8601_regex.match(date):
+            return True
+        else:
+            return False
 
     def test_user_info(self):
         email = 'test@user.info'
@@ -38,6 +49,8 @@ class TestInfo(TestDatabaseWithSchemaTestCase, TestDoNotSendEmails):
         assert user.weekly_requests_limit() == weekly_requests_limit
         assert user.weekly_requested_items_limit() == weekly_requested_items_limit
         assert user.active()
+        assert user.created_date()
+        assert self.__looks_like_iso8601_date(user.created_date())
         assert user.global_api_key()
         assert user.password_hash()
         assert user.has_role('admin')
