@@ -45,7 +45,7 @@ sub find_user
     }
 
     return Catalyst::Authentication::User::Hash->new(
-        'id'       => $userauth->user_id(),
+        'user_id'  => $userauth->user_id(),
         'username' => $userauth->email(),
 
         # List of roles get hashed into the user object and are refetched from the
