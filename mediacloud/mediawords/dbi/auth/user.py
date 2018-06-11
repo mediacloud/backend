@@ -420,6 +420,7 @@ class CurrentUser(BaseUser):
         return self.__weekly_requested_items_sum
 
     def api_key_for_ip_address(self, ip_address: str) -> Optional[str]:
+        ip_address = decode_object_from_bytes_if_needed(ip_address)
         return self.__ip_addresses_to_api_keys.get(ip_address, None)
 
     def created_date(self) -> str:
@@ -429,6 +430,7 @@ class CurrentUser(BaseUser):
 
     def has_role(self, role_name: str) -> bool:
         """Return True if role is enabled for user."""
+        role_name = decode_object_from_bytes_if_needed(role_name)
         return role_name in self.__roles_to_role_ids
 
     def role_names(self) -> List[str]:
