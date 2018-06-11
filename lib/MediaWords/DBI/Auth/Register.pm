@@ -23,6 +23,17 @@ use MediaWords::DBI::Auth::User::NewUser;
     1;
 }
 
+sub _generate_user_activation_token($$$)
+{
+    my ( $db, $email, $activation_link ) = @_;
+
+    MediaWords::DBI::Auth::Register::PythonProxy::_generate_user_activation_token(
+        $db,                 #
+        $email,              #
+        $activation_link,    #
+    );
+}
+
 sub send_user_activation_token($$$;$)
 {
     my ( $db, $email, $activation_link, $subscribe_to_newsletter ) = @_;
