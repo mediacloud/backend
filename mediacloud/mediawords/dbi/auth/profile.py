@@ -46,84 +46,84 @@ def update_user(db: DatabaseHandler, user_updates: ModifyUser) -> None:
 
     # Check if user exists
     try:
-        user = user_info(db=db, email=user_updates.email)
+        user = user_info(db=db, email=user_updates.email())
     except Exception as _:
-        raise McAuthProfileException('User with email address "%s" does not exist.' % user_updates.email)
+        raise McAuthProfileException('User with email address "%s" does not exist.' % user_updates.email())
 
     db.begin()
 
-    if user_updates.full_name is not None:
+    if user_updates.full_name() is not None:
         db.query("""
             UPDATE auth_users
             SET full_name = %(full_name)s
             WHERE email = %(email)s
         """, {
-            'full_name': user_updates.full_name,
-            'email': user_updates.email,
+            'full_name': user_updates.full_name(),
+            'email': user_updates.email(),
         })
 
-    if user_updates.notes is not None:
+    if user_updates.notes() is not None:
         db.query("""
             UPDATE auth_users
             SET notes = %(notes)s
             WHERE email = %(email)s
         """, {
-            'notes': user_updates.notes,
-            'email': user_updates.email,
+            'notes': user_updates.notes(),
+            'email': user_updates.email(),
         })
 
-    if user_updates.active is not None:
+    if user_updates.active() is not None:
         db.query("""
             UPDATE auth_users
             SET active = %(active)s
             WHERE email = %(email)s
         """, {
-            'active': bool(int(user_updates.active)),
-            'email': user_updates.email,
+            'active': bool(int(user_updates.active())),
+            'email': user_updates.email(),
         })
 
-    if user_updates.password is not None:
+    if user_updates.password() is not None:
         try:
             change_password(
                 db=db,
-                email=user_updates.email,
-                new_password=user_updates.password,
-                new_password_repeat=user_updates.password_repeat,
+                email=user_updates.email(),
+                new_password=user_updates.password(),
+                new_password_repeat=user_updates.password_repeat(),
                 do_not_inform_via_email=True,
             )
         except Exception as ex:
             db.rollback()
             raise McAuthProfileException("Unable to change password: %s" % str(ex))
 
-    if user_updates.weekly_requests_limit is not None:
+    if user_updates.weekly_requests_limit() is not None:
         db.query("""
             UPDATE auth_user_limits
             SET weekly_requests_limit = %(weekly_requests_limit)s
             WHERE auth_users_id = %(auth_users_id)s
         """, {
-            'weekly_requests_limit': user_updates.weekly_requests_limit,
-            'auth_users_id': user.user_id,
+            'weekly_requests_limit': user_updates.weekly_requests_limit(),
+            'auth_users_id': user.user_id(),
         })
 
-    if user_updates.weekly_requested_items_limit is not None:
+    if user_updates.weekly_requested_items_limit() is not None:
         db.query("""
             UPDATE auth_user_limits
             SET weekly_requested_items_limit = %(weekly_requested_items_limit)s
             WHERE auth_users_id = %(auth_users_id)s
         """, {
-            'weekly_requested_items_limit': user_updates.weekly_requested_items_limit,
-            'auth_users_id': user.user_id,
+            'weekly_requested_items_limit': user_updates.weekly_requested_items_limit(),
+            'auth_users_id': user.user_id(),
         })
 
-    if user_updates.role_ids is not None:
+    if user_updates.role_ids() is not None:
         db.query("""
             DELETE FROM auth_users_roles_map
             WHERE auth_users_id = %(auth_users_id)s
-        """, {'auth_users_id': user.user_id})
+        """, {'auth_users_id': user.user_id()})
 
-        for auth_roles_id in user_updates.role_ids:
+        for auth_roles_id in user_updates.role_ids():
             db.insert(table='auth_users_roles_map', insert_hash={
-                'auth_users_id': user.user_id,
+                'auth_users_id': user.user_id(),
                 'auth_roles_id': auth_roles_id,
             })
 
@@ -193,7 +193,7 @@ def regenerate_api_key(db: DatabaseHandler, email: str) -> None:
           )
     """, {'email': email})
 
-    message = AuthAPIKeyResetMessage(to=email, full_name=user.full_name)
+    message = AuthAPIKeyResetMessage(to=email, full_name=user.full_name())
     if not send_email(message):
         db.rollback()
         raise McAuthProfileException("Unable to send email about reset API key.")

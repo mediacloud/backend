@@ -61,7 +61,7 @@ def login_with_email_password(db: DatabaseHandler, email: str, password: str, ip
                 "User '%s' is trying to log in too soon after the last unsuccessful attempt." % email
             )
 
-        if not password_hash_is_valid(password_hash=user.password_hash, password=password):
+        if not password_hash_is_valid(password_hash=user.password_hash(), password=password):
             raise McAuthLoginException("Password for user '%s' is invalid." % email)
 
     except Exception as ex:
@@ -93,7 +93,7 @@ def login_with_email_password(db: DatabaseHandler, email: str, password: str, ip
         # out which user emails are registered
         raise McAuthLoginException("User '%s' was not found or password is incorrect." % email)
 
-    if not user.active:
+    if not user.active():
         raise McAuthLoginException("User with email '%s' is not active." % email)
 
     # Reset password reset token (if any)
@@ -109,7 +109,7 @@ def login_with_email_password(db: DatabaseHandler, email: str, password: str, ip
             db.create(
                 table='auth_user_api_keys',
                 insert_hash={
-                    'auth_users_id': user.user_id,
+                    'auth_users_id': user.user_id(),
                     'ip_address': ip_address,
                 })
 
@@ -180,7 +180,7 @@ def login_with_api_key(db: DatabaseHandler, api_key: str, ip_address: str) -> Cu
           AND password_reset_token_hash IS NOT NULL
     """, {'email': email})
 
-    if not user.active:
+    if not user.active():
         raise McAuthLoginException("User '%s' for API key '%s' is not active." % (email, api_key,))
 
     return user

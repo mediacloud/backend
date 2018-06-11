@@ -41,8 +41,8 @@ class TestChangePassword(TestDatabaseWithSchemaTestCase, TestDoNotSendEmails):
         user = login_with_email_password(db=self.db(), email=email, password=password)
         assert user
         assert isinstance(user, CurrentUser)
-        assert user.email == email
-        assert user.full_name == full_name
+        assert user.email() == email
+        assert user.full_name() == full_name
 
         # Change password
         new_password = 'this is a new password to set'
@@ -65,8 +65,8 @@ class TestChangePassword(TestDatabaseWithSchemaTestCase, TestDoNotSendEmails):
         user = login_with_email_password(db=self.db(), email=email, password=new_password)
         assert user
         assert isinstance(user, CurrentUser)
-        assert user.email == email
-        assert user.full_name == full_name
+        assert user.email() == email
+        assert user.full_name() == full_name
 
         # Changing for nonexistent user
         with pytest.raises(McAuthChangePasswordException):
@@ -111,8 +111,8 @@ class TestChangePassword(TestDatabaseWithSchemaTestCase, TestDoNotSendEmails):
         user = login_with_email_password(db=self.db(), email=email, password=password)
         assert user
         assert isinstance(user, CurrentUser)
-        assert user.email == email
-        assert user.full_name == full_name
+        assert user.email() == email
+        assert user.full_name() == full_name
 
         # Change password
         new_password = 'this is a new password to set'
@@ -135,8 +135,8 @@ class TestChangePassword(TestDatabaseWithSchemaTestCase, TestDoNotSendEmails):
         user = login_with_email_password(db=self.db(), email=email, password=new_password)
         assert user
         assert isinstance(user, CurrentUser)
-        assert user.email == email
-        assert user.full_name == full_name
+        assert user.email() == email
+        assert user.full_name() == full_name
 
         # Incorrect password
         with pytest.raises(McAuthChangePasswordException):
@@ -194,8 +194,8 @@ class TestChangePassword(TestDatabaseWithSchemaTestCase, TestDoNotSendEmails):
         user = login_with_email_password(db=self.db(), email=email, password=password)
         assert user
         assert isinstance(user, CurrentUser)
-        assert user.email == email
-        assert user.full_name == full_name
+        assert user.email() == email
+        assert user.full_name() == full_name
 
         # Make sure password reset token is not set
         password_reset_token_hash = self.db().query("""
@@ -256,8 +256,8 @@ class TestChangePassword(TestDatabaseWithSchemaTestCase, TestDoNotSendEmails):
         user = login_with_email_password(db=self.db(), email=email, password=new_password)
         assert user
         assert isinstance(user, CurrentUser)
-        assert user.email == email
-        assert user.full_name == full_name
+        assert user.email() == email
+        assert user.full_name() == full_name
 
         # Incorrect password reset token
         _generate_password_reset_token(

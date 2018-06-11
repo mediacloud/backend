@@ -32,12 +32,12 @@ class TestInfo(TestDatabaseWithSchemaTestCase, TestDoNotSendEmails):
         user = user_info(db=self.db(), email=email)
 
         assert isinstance(user, CurrentUser)
-        assert user.email == email
-        assert user.full_name == full_name
-        assert user.notes == notes
-        assert user.weekly_requests_limit == weekly_requests_limit
-        assert user.weekly_requested_items_limit == weekly_requested_items_limit
-        assert user.active
-        assert user.global_api_key
-        assert user.password_hash
+        assert user.email() == email
+        assert user.full_name() == full_name
+        assert user.notes() == notes
+        assert user.weekly_requests_limit() == weekly_requests_limit
+        assert user.weekly_requested_items_limit() == weekly_requested_items_limit
+        assert user.active()
+        assert user.global_api_key()
+        assert user.password_hash()
         assert user.has_role('admin')

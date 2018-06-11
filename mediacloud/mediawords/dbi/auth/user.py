@@ -13,6 +13,9 @@ class McAuthUserException(Exception):
 class BaseUser(object):
     """Base user class."""
 
+    # MC_REWRITE_TO_PYTHON: convert the following into @properties after the rewrite (Inline::Python doesn't play well
+    # with those)
+
     __slots__ = [
         '__email',
         '__full_name',
@@ -50,27 +53,21 @@ class BaseUser(object):
         self.__weekly_requests_limit = int(weekly_requests_limit or 0)
         self.__weekly_requested_items_limit = int(weekly_requested_items_limit or 0)
 
-    @property
     def email(self) -> str:
         return self.__email.lower()
 
-    @property
     def full_name(self) -> str:
         return self.__full_name
 
-    @property
     def notes(self) -> str:
         return self.__notes
 
-    @property
     def active(self) -> bool:
         return self.__active
 
-    @property
     def weekly_requests_limit(self) -> int:
         return self.__weekly_requests_limit
 
-    @property
     def weekly_requested_items_limit(self) -> int:
         return self.__weekly_requested_items_limit
 
@@ -108,7 +105,7 @@ class NewOrModifyUser(BaseUser):
 
         if password is not None and password_repeat is not None:
             password_validation_message = validate_new_password(
-                email=self.email,
+                email=self.email(),
                 password=password,
                 password_repeat=password_repeat
             )
@@ -119,15 +116,12 @@ class NewOrModifyUser(BaseUser):
         self.__password_repeat = password_repeat
         self.__role_ids = role_ids
 
-    @property
     def password(self) -> str:
         return self.__password
 
-    @property
     def password_repeat(self) -> str:
         return self.__password_repeat
 
-    @property
     def role_ids(self) -> List[int]:
         return self.__role_ids
 
@@ -228,11 +222,9 @@ class NewUser(NewOrModifyUser):
         self.__subscribe_to_newsletter = subscribe_to_newsletter
         self.__activation_url = activation_url
 
-    @property
     def subscribe_to_newsletter(self) -> bool:
         return self.__subscribe_to_newsletter
 
-    @property
     def activation_url(self) -> str:
         return self.__activation_url
 
@@ -255,11 +247,9 @@ class APIKey(object):
         self.__api_key = api_key
         self.__ip_address = ip_address
 
-    @property
     def api_key(self) -> str:
         return self.__api_key
 
-    @property
     def ip_address(self) -> Optional[str]:
         return self.__ip_address
 
@@ -285,11 +275,9 @@ class Role(object):
         self.__role_id = role_id
         self.__role_name = role_name
 
-    @property
     def role_id(self) -> int:
         return self.__role_id
 
-    @property
     def role_name(self) -> str:
         return self.__role_name
 
@@ -398,44 +386,36 @@ class CurrentUser(BaseUser):
 
         self.__ip_addresses_to_api_keys = dict()
         for api_key_object in api_keys:
-            if api_key_object.ip_address:
-                self.__ip_addresses_to_api_keys[api_key_object.ip_address] = api_key_object.api_key
+            if api_key_object.ip_address():
+                self.__ip_addresses_to_api_keys[api_key_object.ip_address()] = api_key_object.api_key()
             else:
-                self.__global_api_key = api_key_object.api_key
+                self.__global_api_key = api_key_object.api_key()
 
         self.__roles_to_role_ids = dict()
         for role_object in roles:
-            self.__roles_to_role_ids[role_object.role_name] = role_object.role_id
+            self.__roles_to_role_ids[role_object.role_name()] = role_object.role_id()
 
-    @property
     def user_id(self) -> int:
         return self.__user_id
 
-    @property
     def created_timestamp(self) -> int:
         return self.__created_timestamp
 
-    @property
     def roles(self) -> List[Role]:
         return self.__roles
 
-    @property
     def password_hash(self) -> str:
         return self.__password_hash
 
-    @property
     def api_keys(self) -> List[APIKey]:
         return self.__api_keys
 
-    @property
     def global_api_key(self) -> str:
         return self.__global_api_key
 
-    @property
     def weekly_requests_sum(self) -> int:
         return self.__weekly_requests_sum
 
-    @property
     def weekly_requested_items_sum(self) -> int:
         return self.__weekly_requested_items_sum
 
@@ -444,7 +424,7 @@ class CurrentUser(BaseUser):
 
     def created_date(self) -> str:
         """User's creation date (ISO 8601 format)."""
-        created_timestamp = datetime.datetime.utcfromtimestamp(self.created_timestamp)
+        created_timestamp = datetime.datetime.utcfromtimestamp(self.created_timestamp())
         return created_timestamp.replace(tzinfo=datetime.timezone.utc).isoformat()
 
     def has_role(self, role_name: str) -> bool:
@@ -453,4 +433,4 @@ class CurrentUser(BaseUser):
 
     def role_names(self) -> List[str]:
         """Return a list of role names."""
-        return [role.role_name for role in self.roles]
+        return [role.role_name() for role in self.roles()]

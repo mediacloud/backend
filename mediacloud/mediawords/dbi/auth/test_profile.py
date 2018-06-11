@@ -35,14 +35,14 @@ class TestProfile(TestDatabaseWithSchemaTestCase, TestDoNotSendEmails):
 
         user = users[0]
         assert isinstance(user, CurrentUser)
-        assert user.email == email
-        assert user.full_name == full_name
-        assert user.notes == notes
-        assert user.weekly_requests_limit == weekly_requests_limit
-        assert user.weekly_requested_items_limit == weekly_requested_items_limit
-        assert user.active
-        assert user.global_api_key
-        assert user.password_hash
+        assert user.email() == email
+        assert user.full_name() == full_name
+        assert user.notes() == notes
+        assert user.weekly_requests_limit() == weekly_requests_limit
+        assert user.weekly_requested_items_limit() == weekly_requested_items_limit
+        assert user.active()
+        assert user.global_api_key()
+        assert user.password_hash()
         assert user.has_role('admin')
 
     def test_regenerate_api_key(self):
@@ -69,7 +69,7 @@ class TestProfile(TestDatabaseWithSchemaTestCase, TestDoNotSendEmails):
         user = login_with_email_password(db=self.db(), email=email, password=password, ip_address=ip_address)
         assert user
 
-        before_global_api_key = user.global_api_key
+        before_global_api_key = user.global_api_key()
         assert before_global_api_key
 
         before_per_ip_api_key = user.api_key_for_ip_address(ip_address=ip_address)
@@ -84,7 +84,7 @@ class TestProfile(TestDatabaseWithSchemaTestCase, TestDoNotSendEmails):
         user = login_with_email_password(db=self.db(), email=email, password=password, ip_address=ip_address)
         assert user
 
-        after_global_api_key = user.global_api_key
+        after_global_api_key = user.global_api_key()
         assert after_global_api_key
 
         after_per_ip_api_key = user.api_key_for_ip_address(ip_address=ip_address)

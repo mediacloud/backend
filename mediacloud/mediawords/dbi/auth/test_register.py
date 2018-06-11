@@ -41,8 +41,8 @@ class TestRegister(TestDatabaseWithSchemaTestCase, TestDoNotSendEmails):
         user = login_with_email_password(db=self.db(), email=email, password=password)
         assert user
         assert isinstance(user, CurrentUser)
-        assert user.email == email
-        assert user.full_name == full_name
+        assert user.email() == email
+        assert user.full_name() == full_name
 
         # Faulty input
         with pytest.raises(McAuthRegisterException):
@@ -203,8 +203,8 @@ class TestRegister(TestDatabaseWithSchemaTestCase, TestDoNotSendEmails):
         user = login_with_email_password(db=self.db(), email=email, password=password)
         assert user
         assert isinstance(user, CurrentUser)
-        assert user.email == email
-        assert user.full_name == full_name
+        assert user.email() == email
+        assert user.full_name() == full_name
 
         # Make sure activation token is not set anymore
         activation_token_hash = self.db().query("""

@@ -50,7 +50,7 @@ def send_password_reset_token(db: DatabaseHandler, email: str, password_reset_li
     # Check if user exists
     try:
         user = user_info(db=db, email=email)
-        full_name = user.full_name
+        full_name = user.full_name()
 
     except Exception as ex:
         log.warning("Unable to fetch user profile for user '%s': %s" % (email, str(ex),))

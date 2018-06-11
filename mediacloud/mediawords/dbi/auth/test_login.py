@@ -33,8 +33,8 @@ class TestLogin(TestDatabaseWithSchemaTestCase, TestDoNotSendEmails):
         user = login_with_email_password(db=self.db(), email=email, password=password)
         assert user
         assert isinstance(user, CurrentUser)
-        assert user.email == email
-        assert user.full_name == full_name
+        assert user.email() == email
+        assert user.full_name() == full_name
 
         # Unsuccessful login
         with pytest.raises(McAuthLoginException):
@@ -49,8 +49,8 @@ class TestLogin(TestDatabaseWithSchemaTestCase, TestDoNotSendEmails):
         user = login_with_email_password(db=self.db(), email=email, password=password)
         assert user
         assert isinstance(user, CurrentUser)
-        assert user.email == email
-        assert user.full_name == full_name
+        assert user.email() == email
+        assert user.full_name() == full_name
 
     def test_login_with_email_password_inactive_user(self):
         """Inactive user logging in with username and password."""
@@ -104,7 +104,7 @@ class TestLogin(TestDatabaseWithSchemaTestCase, TestDoNotSendEmails):
         user = login_with_email_password(db=self.db(), email=email, password=password, ip_address=ip_address)
         assert user
 
-        global_api_key = user.global_api_key
+        global_api_key = user.global_api_key()
         assert global_api_key
 
         per_ip_api_key = user.api_key_for_ip_address(ip_address=ip_address)
@@ -119,13 +119,13 @@ class TestLogin(TestDatabaseWithSchemaTestCase, TestDoNotSendEmails):
         # Global API key
         user = login_with_api_key(db=self.db(), api_key=global_api_key, ip_address=ip_address)
         assert user
-        assert user.email == email
-        assert user.global_api_key == global_api_key
+        assert user.email() == email
+        assert user.global_api_key() == global_api_key
 
         # Per-IP API key
         user = login_with_api_key(db=self.db(), api_key=per_ip_api_key, ip_address=ip_address)
         assert user
-        assert user.email == email
+        assert user.email() == email
 
         # FIXME test logging in with per-IP API key from a wrong IP address
 
@@ -153,7 +153,7 @@ class TestLogin(TestDatabaseWithSchemaTestCase, TestDoNotSendEmails):
 
         user = user_info(db=self.db(), email=email)
         assert user
-        global_api_key = user.global_api_key
+        global_api_key = user.global_api_key()
 
         with pytest.raises(McAuthLoginException) as ex:
             login_with_api_key(db=self.db(), api_key=global_api_key, ip_address=ip_address)
