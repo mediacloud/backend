@@ -190,3 +190,19 @@
   when: "'core_services' in group_names"  # only for hosts in 'core_services' group
   tags:
     - crontab
+
+- name: Add set media tags script
+  cron:
+    name: "set_media_tags"
+    minute: "16"
+    hour: "2"
+
+    # Report will be sent to MAILTO
+    job: >
+      {{ mediacloud_root }}/script/run_in_env.sh
+      {{ mediacloud_root }}/script/mediawords_set_media_tags.pl
+  become: true
+  become_user: "{{ mediacloud_user }}"
+  when: "'core_services' in group_names"  # only for hosts in 'core_services' group
+  tags:
+    - crontab
