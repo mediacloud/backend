@@ -65,7 +65,7 @@ Readonly my @URL_IGNORE_PATTERNS => (
 
 # INTERNAL METHODS
 
-# given a list of urls, return a list of feeds in the form of { name => $name, url => $url, feed_type => 'syndicated' }
+# given a list of urls, return a list of feeds in the form of { name => $name, url => $url, type => 'syndicated' }
 # representing all of the links that refer to valid feeds (rss, rdf, or atom)
 sub _validate_and_name_feed_urls
 {
@@ -98,8 +98,8 @@ sub _validate_and_name_feed_urls
                 @{ $links },
                 {
                     name => $feed->title() || '',
-                    url => $url,
-                    feed_type => 'syndicated'
+                    url  => $url,
+                    type => 'syndicated'
                 }
             );
         }
@@ -443,7 +443,7 @@ sub _normalize_feed_url($)
 #
 # then assume that the first feed is the "main" feed containing all the stories.
 #
-# Returns a hashref to the main feed ({name => '...', url => '...', feed_type => 'syndicated'}) if such feed exists,
+# Returns a hashref to the main feed ({name => '...', url => '...', type => 'syndicated'}) if such feed exists,
 # undef if it doesn't at all or 2+ such feeds exist
 sub _main_feed_via_common_prefixed_feeds($)
 {
@@ -686,7 +686,7 @@ sub get_valid_feeds_from_index_url($$;$)
     return _recurse_get_valid_feeds_from_index_url( $urls, $ignore_patterns, [], $recurse_levels_left );
 }
 
-# give a list of urls, return a list of feeds in the form of { name => $name, url => $url, feed_type => 'syndicated' }
+# give a list of urls, return a list of feeds in the form of { name => $name, url => $url, type => 'syndicated' }
 # representing all of the links that refer to valid feeds (rss, rdf, or atom).
 # ignore urls that match one of the ignore patterns
 sub get_valid_feeds_from_urls($;$)
@@ -772,9 +772,9 @@ sub get_feed_links($)
         push(
             @{ $feed_links },
             {
-                name      => $medium->{ name },
-                url       => $medium->{ url },
-                feed_type => 'web_page'
+                name => $medium->{ name },
+                url  => $medium->{ url },
+                type => 'web_page'
             }
         );
     }

@@ -165,7 +165,7 @@ sub invalid_syndicated_feed
 {
     my ( $self, $c, $feed ) = @_;
 
-    return 0 unless ( $feed->{ feed_type } eq 'syndicated' );
+    return 0 unless ( $feed->{ type } eq 'syndicated' );
 
     my $ua       = MediaWords::Util::Web::UserAgent->new();
     my $response = $ua->get( $feed->{ url } );

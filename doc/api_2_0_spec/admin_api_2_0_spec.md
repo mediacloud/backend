@@ -643,10 +643,10 @@ Output:
 | media_id  | id of the parent medium (required)                                          |
 | name      | human readable name for the feed                                            |
 | url       | feed URL (required)                                                         |
-| feed_type | `syndicated` or `web_page`                                                  |
+| type      | Feed type, e.g. `syndicated` or `web_page`                                  |
 | active    | 1 if the feed is to be active (has to be fetched periodically), 0 otherwise |
 
-This call adds a new feed to an existing media source.  The `syndicated` feed_type should be used for RSS, RDF, and ATOM feeds.  The `web_page` feed_type will just download the given URL once a week and treat the URL as a new story each time.  The `active = 1` (the default) will cause the feed to be regularly crawled.  Feeds should be added with `active = 0` if they are functional and may have been crawled at one point but are no longer crawled now (for instance, feeds that have not had a new story in many months are sometimes marked as inactive).  Feeds should be given the `skipped` feed_type if they are being added merely to indicate to the automatic feed scraping process that the given URL should not be added to the given media source as a feed.
+This call adds a new feed to an existing media source.  The `syndicated` feed `type` should be used for RSS, RDF, and ATOM feeds.  The `web_page` feed `type` will just download the given URL once a week and treat the URL as a new story each time.  The `active = 1` (the default) will cause the feed to be regularly crawled.  Feeds should be added with `active = 0` if they are functional and may have been crawled at one point but are no longer crawled now (for instance, feeds that have not had a new story in many months are sometimes marked as inactive).  Feeds should be deactivated (`active` should be set to `0`) if they are being added merely to indicate to the automatic feed scraping process that the given URL should not be added to the given media source as a feed.
 
 ### Example
 
@@ -661,7 +661,7 @@ Input:
   "media_id": 1,
   "name": "New New Times Feed",
   "url": "http://nytimes.com/new/feed",
-  "feed_type": "syndicated",
+  "type": "syndicated",
   "active": 1
 }
 ```
@@ -674,7 +674,7 @@ Output:
       "media_id": 1,
       "name": "New New Times Feed",
       "url": "http://nytimes.com/new/feed",
-      "feed_type": "syndicated",
+      "type": "syndicated",
       "active": 1
     }    
 }
@@ -713,7 +713,7 @@ Output:
       "media_id": 1,
       "name": "New New Times Feed",
       "url": "http://nytimes.com/new/feed",
-      "feed_type": "syndicated",
+      "type": "syndicated",
       "active": 0
     }    
 }

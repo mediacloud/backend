@@ -258,7 +258,7 @@ END
     if ( $self->{ show_feeds } )
     {
         my $feed_data = $db->query( <<END )->hashes;
-select f.name, f.url, f.media_id, f.feeds_id, f.feed_type, fsm.stories_id
+select f.name, f.url, f.media_id, f.feeds_id, f.type, fsm.stories_id
     from feeds f
         join feeds_stories_map fsm using ( feeds_id )
     where

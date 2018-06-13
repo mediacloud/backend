@@ -375,7 +375,7 @@ update media_health mh set has_active_feed = 't'
                         join feeds_stories_map fsm on ( f.feeds_id = fsm.feeds_id )
                     where
                         active = 't' and
-                        feed_type = 'syndicated' and
+                        type = 'syndicated' and
                         f.media_id = mh.media_id
             )
         )

@@ -45,7 +45,7 @@
 		[% END %]
 	</td>
 	    
-	    <td>[% feed.feed_type | html %]</td>
+	    <td>[% feed.type | html %]</td>
 
         <td>
             <div style="font-size: 80%;">
