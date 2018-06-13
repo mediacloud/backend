@@ -1,34 +1,40 @@
 package MediaWords::DBI::Auth::User::CurrentUser::Role;
 
-#
-# API key object
-#
-
 use strict;
 use warnings;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use Moose;
-
-has 'id'   => ( is => 'rw', isa => 'Int' );
-has 'role' => ( is => 'rw', isa => 'Str' );
-
-sub BUILD
+sub new
 {
-    my $self = shift;
+    my ( $class, %args ) = @_;
 
-    unless ( $self->id() )
+    my $self = {};
+    bless $self, $class;
+
+    unless ( $args{ python_object } )
     {
-        LOGCONFESS "Role ID is unset.";
+        LOGCONFESS "Python role object is not set.";
     }
-    unless ( $self->role() )
-    {
-        LOGCONFESS "Role is unset.";
-    }
+
+    $self->{ _python_object } = $args{ python_object };
+
+    return $self;
 }
 
-no Moose;    # gets rid of scaffolding
+sub role_id($)
+{
+    my ( $self ) = @_;
+
+    return $self->{ _python_object }->role_id();
+}
+
+sub role($)
+{
+    my ( $self ) = @_;
+
+    return $self->{ _python_object }->role();
+}
 
 1;

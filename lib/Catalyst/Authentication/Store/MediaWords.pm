@@ -37,22 +37,23 @@ sub find_user
 
     # Check if user exists and is active
     my $userauth;
-    eval { $userauth = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
+    eval { $userauth = MediaWords::DBI::Auth::Info::user_info( $db, $email ); };
     if ( $@ or ( !$userauth ) )
     {
         WARN "User '$email' was not found.";
         return 0;
     }
 
-    return Catalyst::Authentication::User::Hash->new(
-        'id'       => $userauth->id(),
-        'username' => $userauth->email(),
+    # List of roles get hashed into the user object and are refetched from the
+    # database each and every time the user tries to access a page (via the
+    # from_session() subroutine). This is done because a list of roles might
+    # change while the user is still logged in.
+    my $role_names = $userauth->role_names();
 
-        # List of roles get hashed into the user object and are refetched from the
-        # database each and every time the user tries to access a page (via the
-        # from_session() subroutine). This is done because a list of roles might
-        # change while the user is still logged in.
-        'roles' => $userauth->role_names(),
+    return Catalyst::Authentication::User::Hash->new(
+        'user_id'  => $userauth->user_id(),
+        'username' => $userauth->email(),
+        'roles'    => $role_names,
     );
 }
 

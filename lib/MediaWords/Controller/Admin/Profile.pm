@@ -22,7 +22,7 @@ sub index : Path : Args(0)
     my $email = $c->user->username;
 
     my $userinfo;
-    eval { $userinfo = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
+    eval { $userinfo = MediaWords::DBI::Auth::Info::user_info( $db, $email ); };
     if ( $@ or ( !$userinfo ) )
     {
         die "Unable to find user with email '$email'";
@@ -113,7 +113,7 @@ sub regenerate_api_key : Local
     my $email = $c->user->username;
 
     my $userinfo;
-    eval { $userinfo = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
+    eval { $userinfo = MediaWords::DBI::Auth::Info::user_info( $db, $email ); };
     if ( $@ or ( !$userinfo ) )
     {
         die "Unable to find user with email '$email'";

@@ -9,6 +9,7 @@ from mediawords.util.config import (
     get_config as py_get_config,  # MC_REWRITE_TO_PYTHON: rename back to get_config()
 )
 from mediawords.util.log import create_logger
+from mediawords.util.mail import enable_test_mode, disable_test_mode
 
 log = create_logger(__name__)
 
@@ -49,9 +50,11 @@ class TestDatabaseTestCase(TestCase):
         return db
 
     def setUp(self):
+        super().setUp()
         self.__db = self.create_database_handler()
 
     def tearDown(self):
+        super().tearDown()
         self.__db.disconnect()
 
     def db(self) -> DatabaseHandler:
@@ -74,6 +77,8 @@ class TestDatabaseWithSchemaTestCase(TestCase):
         for each individual unit test.  Recreating from a template is much faster than creating a database from
         scratch from our large schema.
         """
+        super().setUpClass()
+
         log.info("create test db template")
 
         config = py_get_config()
@@ -108,7 +113,9 @@ class TestDatabaseWithSchemaTestCase(TestCase):
         This relies on an empty template existing, which should have been created in setUpClass() above.
         """
 
-        # now connect to the template database to execure the create command for the test database
+        super().setUp()
+
+        # Connect to the template database to execure the create command for the test database
         log.info("recreate test db template")
 
         db = connect_to_db(label=self.TEST_DB_LABEL, is_template=True)
@@ -124,7 +131,24 @@ class TestDatabaseWithSchemaTestCase(TestCase):
         self.__db = db
 
     def tearDown(self) -> None:
+        super().tearDown()
         self.__db.disconnect()
 
     def db(self) -> DatabaseHandler:
         return self.__db
+
+
+class TestDoNotSendEmails(TestCase):
+    """TestCase that disables email sending."""
+
+    def setUp(self):
+        super().setUp()
+
+        # Don't actually send any emails
+        enable_test_mode()
+
+    def tearDown(self):
+        super().tearDown()
+
+        # Reenable email sending
+        disable_test_mode()

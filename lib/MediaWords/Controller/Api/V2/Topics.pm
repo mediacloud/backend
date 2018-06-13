@@ -170,7 +170,7 @@ sub list_GET
 
     my $db = $c->dbis;
 
-    my $auth_users_id = $c->stash->{ api_auth }->id();
+    my $auth_users_id = $c->stash->{ api_auth }->user_id();
 
     my $topics = _get_topics_list( $db, $c->req->params, $auth_users_id );
 
@@ -189,7 +189,7 @@ sub single_GET
 {
     my ( $self, $c, $topics_id ) = @_;
 
-    my $auth_users_id = $c->stash->{ api_auth }->id();
+    my $auth_users_id = $c->stash->{ api_auth }->user_id();
 
     my $topics = _get_topics_list( $c->dbis, { topics_id => $topics_id }, $auth_users_id );
 
@@ -260,7 +260,8 @@ sub _is_mc_queue_user($$)
 
     $auth_users_id = int( $auth_users_id );
 
-    my $is_mc = $db->query( <<SQL, @{ $MediaWords::DBI::Auth::Roles::List::TOPIC_MC_QUEUE_ROLES } )->hash;
+    my $is_mc = $db->query(
+        <<SQL,
 select ar.role
     from auth_roles ar
         join auth_users_roles_map aurm using ( auth_roles_id )
@@ -269,6 +270,8 @@ select ar.role
         ar.role in ( ?? )
     limit 1
 SQL
+        @{ MediaWords::DBI::Auth::Roles::List::topic_mc_queue_roles() }
+    )->hash;
 
     return $is_mc;
 }
@@ -290,7 +293,7 @@ sub create_GET
     my $media_ids      = $data->{ media_ids }      || [];
     my $media_tags_ids = $data->{ media_tags_ids } || [];
 
-    my $auth_users_id = $c->stash->{ api_auth }->id();
+    my $auth_users_id = $c->stash->{ api_auth }->user_id();
 
     _validate_max_stories( $db, $data->{ max_stories }, $auth_users_id );
 
@@ -474,7 +477,7 @@ sub update_PUT
     $update->{ is_story_index_ready } = normalize_boolean_for_db( $update->{ is_story_index_ready } );
     $update->{ solr_seed_query_run }  = normalize_boolean_for_db( $update->{ solr_seed_query_run } );
 
-    my $auth_users_id = $c->stash->{ api_auth }->id();
+    my $auth_users_id = $c->stash->{ api_auth }->user_id();
 
     _validate_max_stories( $db, $data->{ max_stories }, $auth_users_id ) if ( defined( $data->{ max_stories } ) );
 
@@ -525,7 +528,7 @@ sub spider_GET
     my $db = $c->dbis;
 
     my $topic = $db->require_by_id( 'topics', $topics_id );
-    my $auth_users_id = $c->stash->{ api_auth }->id();
+    my $auth_users_id = $c->stash->{ api_auth }->user_id();
 
     my $job_state = $db->query( <<SQL, $topics_id )->hash;
 select $JOB_STATE_FIELD_LIST

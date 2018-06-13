@@ -528,8 +528,8 @@ sub submit_suggestion_GET
     my $feed_url = $data->{ feed_url } || 'none';
     my $reason   = $data->{ reason } || 'none';
 
-    my $user = MediaWords::DBI::Auth::Profile::user_info( $db, $c->user->username );
-    my $auth_users_id = $user->id();
+    my $user = MediaWords::DBI::Auth::Info::user_info( $db, $c->user->username );
+    my $auth_users_id = $user->user_id();
 
     $db->begin;
 
@@ -622,8 +622,8 @@ sub mark_suggestion_PUT
 
     my $db = $c->dbis;
 
-    my $user = MediaWords::DBI::Auth::Profile::user_info( $db, $c->user->username );
-    my $auth_users_id = $user->id();
+    my $user = MediaWords::DBI::Auth::Info::user_info( $db, $c->user->username );
+    my $auth_users_id = $user->user_id();
 
     die( "status must be pending, approved, or rejected" )
       unless ( grep { $_ eq $data->{ status } } ( qw/pending approved rejected/ ) );

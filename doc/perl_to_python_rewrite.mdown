@@ -59,6 +59,34 @@ This pretty much implies that procedures that edit a parameter variable by refer
 Values returned from the PostgreSQL database handler are already deep copied, so you don't need to run them through `python_deep_copy()` again.
 
 
+### Don't use `@property` in Python code that gets called by Perl
+
+`Inline::Perl` doesn't seem to support Python's native object properties:
+
+```python
+# BAD!
+#
+# Calling $bar->foo() from Perl will fail with:
+#
+#     Attempted to call non-method 'foo' at /Users/pypt/.perlbrew/libs/perl-system@mediacloud/lib/perl5/darwin-thread-multi-2level/Inline/Python.pm line 337.
+class Foo:
+
+    @property
+    def foo(self):
+        return self.__foo
+```
+
+Instead, use a simple method:
+
+```python
+# GOOD!
+class Foo:
+
+    def foo(self):
+        return self.__foo
+```
+
+
 ### Don't call Perl code from Python
 
 Don't call Perl code from Python code to keep this transition top-down (or, rather, down-up).
