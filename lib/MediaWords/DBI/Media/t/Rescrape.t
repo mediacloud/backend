@@ -4,7 +4,7 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use Test::More tests => 96;
+use Test::More tests => 77;
 use Test::NoWarnings;
 use Test::Deep;
 
@@ -95,8 +95,8 @@ EOF
     }
 };
 
-Readonly my $PAGES_REQUIRES_MODERATION_FEED_URL => $TEST_HTTP_SERVER_URL_2 . '/feed.xml';
-Readonly my $PAGES_REQUIRES_MODERATION          => {
+Readonly my $PAGES_MULTIPLE_FEED_URL => $TEST_HTTP_SERVER_URL_2 . '/feed.xml';
+Readonly my $PAGES_MULTIPLE          => {
 
     # Index page
     '/' => <<EOF,
@@ -112,8 +112,7 @@ EOF
     '/rss' => <<"EOF",
             <h1>Acme News</h1>
             <p>
-            Our RSS feeds (on an "external" host to confuse the scraper so that
-            it decides to require moderation):
+            Our RSS feeds (on an external host to confuse the scraper):
             </p>
             <ul>
                 <li><a href="$TEST_HTTP_SERVER_URL_2/feed1.xml">Acme News RSS feed 1</a></li>
@@ -124,7 +123,7 @@ EOF
             </ul>
 EOF
 
-    # RSS feeds (on a "different" host in order to trigger moderation)
+    # RSS feeds on an external host
     '/feed1.xml' => {
         header  => $HTTP_CONTENT_TYPE_RSS,
         content => _sample_rss_feed( $TEST_HTTP_SERVER_URL, 'Acme News RSS feed 1' ),
@@ -159,9 +158,8 @@ sub test_media_no_feeds($)
     Readonly my $urls_string => $TEST_HTTP_SERVER_URL;
     Readonly my $tags_string => '';
     my $medium = {
-        name      => 'Acme News',
-        url       => $TEST_HTTP_SERVER_URL,
-        moderated => 'f',
+        name => 'Acme News',
+        url  => $TEST_HTTP_SERVER_URL,
     };
     $medium = $db->create( 'media', $medium );
     my $media_id = $medium->{ media_id };
@@ -174,7 +172,6 @@ sub test_media_no_feeds($)
         $medium = $db->find_by_id( 'media', $media_id );
 
         TRACE 'Medium: ' . Dumper( $medium );
-        ok( $medium->{ moderated }, 'Media must be moderated after rescraping' );
 
         my $feeds = $db->query( 'SELECT * FROM feeds WHERE media_id = ?', $media_id )->hashes;
 
@@ -195,7 +192,7 @@ sub test_media_no_feeds($)
     $hs->stop();
 }
 
-# Media with a single (thus automatically moderated) feed that doesn't change when rescraping
+# Media with a single feed that doesn't change when rescraping
 sub test_media_single_feed($)
 {
     my $db = shift;
@@ -207,9 +204,8 @@ sub test_media_single_feed($)
     Readonly my $urls_string => $TEST_HTTP_SERVER_URL;
     Readonly my $tags_string => '';
     my $medium = {
-        name      => 'Acme News',
-        url       => $TEST_HTTP_SERVER_URL,
-        moderated => 'f',
+        name => 'Acme News',
+        url  => $TEST_HTTP_SERVER_URL,
     };
     $medium = $db->create( 'media', $medium );
     my $media_id = $medium->{ media_id };
@@ -222,8 +218,6 @@ sub test_media_single_feed($)
         $medium = $db->find_by_id( 'media', $media_id );
 
         TRACE 'Medium: ' . Dumper( $medium );
-        ok( $medium->{ moderated },
-            "Media must be moderated after rescraping (because there was only a single feed added)" );
 
         my $feeds = $db->query( 'SELECT * FROM feeds WHERE media_id = ?', $media_id )->hashes;
 
@@ -252,9 +246,8 @@ sub test_media_no_feeds_then_single_feed($)
     Readonly my $urls_string => $TEST_HTTP_SERVER_URL;
     Readonly my $tags_string => '';
     my $medium = {
-        name      => 'Acme News',
-        url       => $TEST_HTTP_SERVER_URL,
-        moderated => 'f',
+        name => 'Acme News',
+        url  => $TEST_HTTP_SERVER_URL,
     };
     $medium = $db->create( 'media', $medium );
     my $media_id = $medium->{ media_id };
@@ -270,7 +263,6 @@ sub test_media_no_feeds_then_single_feed($)
     $medium = $db->find_by_id( 'media', $media_id );
 
     TRACE 'Medium: ' . Dumper( $medium );
-    ok( $medium->{ moderated }, 'Media must be moderated after rescraping' );
 
     my $feeds = $db->query( 'SELECT * FROM feeds WHERE media_id = ?', $media_id )->hashes;
 
@@ -296,7 +288,6 @@ sub test_media_no_feeds_then_single_feed($)
     $medium = $db->find_by_id( 'media', $media_id );
 
     TRACE 'Medium: ' . Dumper( $medium );
-    ok( $medium->{ moderated }, 'Media must be (still) moderated after rescraping' );
 
     $feeds = $db->query( 'SELECT * FROM feeds WHERE media_id = ? ORDER BY feeds_id', $media_id )->hashes;
 
@@ -329,9 +320,8 @@ sub test_media_single_feed_then_no_feeds_then_single_feed_then_no_feeds_again($)
     Readonly my $urls_string => $TEST_HTTP_SERVER_URL;
     Readonly my $tags_string => '';
     my $medium = {
-        name      => 'Acme News',
-        url       => $TEST_HTTP_SERVER_URL,
-        moderated => 'f',
+        name => 'Acme News',
+        url  => $TEST_HTTP_SERVER_URL,
     };
     $medium = $db->create( 'media', $medium );
     my $media_id = $medium->{ media_id };
@@ -347,7 +337,6 @@ sub test_media_single_feed_then_no_feeds_then_single_feed_then_no_feeds_again($)
     $medium = $db->find_by_id( 'media', $media_id );
 
     TRACE 'Medium: ' . Dumper( $medium );
-    ok( $medium->{ moderated }, "Media must be moderated after rescraping (because there was only a single feed added)" );
 
     my $feeds = $db->query( 'SELECT * FROM feeds WHERE media_id = ?', $media_id )->hashes;
 
@@ -374,7 +363,6 @@ sub test_media_single_feed_then_no_feeds_then_single_feed_then_no_feeds_again($)
     $medium = $db->find_by_id( 'media', $media_id );
 
     TRACE 'Medium: ' . Dumper( $medium );
-    ok( $medium->{ moderated }, 'Media must be moderated after rescraping' );
 
     $feeds = $db->query( 'SELECT * FROM feeds WHERE media_id = ? ORDER BY feeds_id', $media_id )->hashes;
 
@@ -408,7 +396,6 @@ sub test_media_single_feed_then_no_feeds_then_single_feed_then_no_feeds_again($)
     $medium = $db->find_by_id( 'media', $media_id );
 
     TRACE 'Medium: ' . Dumper( $medium );
-    ok( $medium->{ moderated }, "Media must be moderated after rescraping (because there was only a single feed added)" );
 
     $feeds = $db->query( 'SELECT * FROM feeds WHERE media_id = ? ORDER BY feeds_id', $media_id )->hashes;
 
@@ -440,19 +427,14 @@ sub test_media_single_feed_then_no_feeds_then_single_feed_then_no_feeds_again($)
 
     $medium = $db->find_by_id( 'media', $media_id );
 
-    ok( $medium->{ moderated }, "Media must still be moderated after rescraping" );
-
     $feeds = $db->query( 'SELECT * FROM feeds WHERE media_id = ? ORDER BY feeds_id', $media_id )->hashes;
 
     TRACE 'Feeds: ' . Dumper( $feeds );
     is( scalar( @{ $feeds } ), 2, 'Two feeds must be present (like in the previous rescraping)' );
 }
 
-# Test cases when media would require moderation after each rescrape but the
-# scraper always comes up with the same set of feeds so we skip moderation in
-# those cases (because one can say that we already made a decision on that set
-# of feeds)
-sub test_media_that_requires_moderation_with_same_set_of_feeds()
+# Test cases when scraper always comes up with the same set of feeds
+sub test_media_with_same_set_of_feeds()
 {
     my $db = shift;
 
@@ -460,24 +442,20 @@ sub test_media_that_requires_moderation_with_same_set_of_feeds()
     Readonly my $urls_string => $TEST_HTTP_SERVER_URL;
     Readonly my $tags_string => '';
     my $medium = {
-        name      => 'Acme News',
-        url       => $TEST_HTTP_SERVER_URL,
-        moderated => 'f',
+        name => 'Acme News',
+        url  => $TEST_HTTP_SERVER_URL,
     };
     $medium = $db->create( 'media', $medium );
     my $media_id = $medium->{ media_id };
 
-    # Do initial scraping for media that requires moderation
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_REQUIRES_MODERATION );
+    # Do initial scraping for media
+    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_MULTIPLE );
     $hs->start();
     MediaWords::DBI::Media::Rescrape::rescrape_media( $db, $media_id );
     $hs->stop();
 
     $medium = $db->find_by_id( 'media', $media_id );
 
-    ok( !$medium->{ moderated }, "Media must *not* be moderated after initial scraping" );
-
-    # "Moderate" the media
     $db->query(
         <<EOF,
         INSERT INTO feeds (media_id, name, url, feed_type, feed_status)
@@ -494,27 +472,16 @@ EOF
 EOF
         $media_id
     );
-    $db->query(
-        <<EOF,
-        UPDATE media
-        SET moderated = 't'
-        WHERE media_id = ?
-EOF
-        $media_id
-    );
 
     $medium = $db->find_by_id( 'media', $media_id );
-    ok( $medium->{ moderated }, "Media must be moderated" );
 
-    # Rescrape the media and expect it to stay moderated because we've already
-    # moderated the very same set of feeds previously
-    $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_REQUIRES_MODERATION );
+    # Rescrape the media
+    $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_MULTIPLE );
     $hs->start();
     MediaWords::DBI::Media::Rescrape::rescrape_media( $db, $media_id );
     $hs->stop();
 
     $medium = $db->find_by_id( 'media', $media_id );
-    ok( $medium->{ moderated }, "Media must still be moderated" );
 
     my $feeds_after_rescraping = $db->query( 'SELECT * FROM feeds_after_rescraping WHERE media_id = ?', $media_id )->hashes;
     is( scalar( @{ $feeds_after_rescraping } ), 0, "'feeds_after_rescraping' table must be empty after rescraping" );
@@ -527,7 +494,7 @@ sub main()
         \&test_media_single_feed,                                                       #
         \&test_media_no_feeds_then_single_feed,                                         #
         \&test_media_single_feed_then_no_feeds_then_single_feed_then_no_feeds_again,    #
-        \&test_media_that_requires_moderation_with_same_set_of_feeds,                   #
+        \&test_media_with_same_set_of_feeds,                                            #
     );
 
     foreach my $test_subroutine_ref ( @test_subroutines )

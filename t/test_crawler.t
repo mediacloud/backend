@@ -49,8 +49,8 @@ sub _add_test_feed($$$$)
 
     my $test_medium = $db->query(
         <<EOF,
-        INSERT INTO media (name, url, moderated)
-        VALUES (?, ?, 'f')
+        INSERT INTO media (name, url)
+        VALUES (?, ?)
         RETURNING *
 EOF
         '_ Crawler Test', $url_to_crawl

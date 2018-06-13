@@ -52,26 +52,6 @@ END
     }
 }
 
-# (re-)add RescrapeMedia jobs for all unmoderated media
-# ("RescrapeMedia" job is "unique", so job broker will skip media
-# IDs that are already added)
-sub add_to_rescrape_media_queue_for_unmoderated_media($)
-{
-    my ( $db ) = @_;
-
-    my $media = $db->query(
-        <<EOF
-        SELECT *
-        FROM media
-        WHERE media_has_active_syndicated_feeds(media_id) = 'f'
-EOF
-    )->hashes;
-
-    map { add_to_rescrape_media_queue( $_ ) } @{ $media };
-
-    return 1;
-}
-
 # Move feed from "feeds_after_rescraping" to "feeds" table
 # Note: it doesn't create a transaction itself, so make sure to do that in a caller
 sub _move_rescraped_feed_to_feeds_table($$)
@@ -150,13 +130,11 @@ EOF
     );
 }
 
-# Search and add new feeds for unmoderated media (media sources that have not
-# had default feeds added to them).
+# Search and add new feeds for media.
 #
 # Look for feeds that are most likely to be real feeds.  If we find more than
-# one but no more than $MAX_DEFAULT_FEEDS of those feeds, use the first such one
-# and do not moderate the source.  Else, do a more expansive search and mark
-# for moderation.
+# one but no more than $MAX_DEFAULT_FEEDS of those feeds, use the first such
+# one. Otherwise, do a more expansive search.
 sub rescrape_media($$)
 {
     my ( $db, $media_id ) = @_;
@@ -167,7 +145,7 @@ sub rescrape_media($$)
         die "Media ID $media_id does not exist.";
     }
 
-    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
+    my $feed_links = MediaWords::Feed::Scrape::get_feed_links( $medium );
 
     $db->begin_work;
 
@@ -192,10 +170,8 @@ EOF
         $db->create( 'feeds_after_rescraping', $feed );
     }
 
-    # If we came up with the very same set of feeds after rescraping and the
-    # media would need moderation, but we have moderated the very same set of
-    # links before (i.e. made the decision about this particular set of feeds),
-    # just leave the current set of feeds intact
+    # If we came up with the very same set of feeds after rescraping, just
+    # leave the current set of feeds intact
     my $live_feeds = $db->query(
         <<EOF,
         SELECT media_id,
@@ -223,54 +199,23 @@ EOF
         $media_id
     )->hashes;
 
-    INFO "Media ID: " .
-      $media_id . "; moderated: " . $medium->{ moderated } . "; need to moderate: " . $need_to_moderate .
+    INFO "Media ID: " . $media_id .
       "; rescraped_feeds feeds: " . dump_terse( $rescraped_feeds ) . "; live feeds: " . dump_terse( $live_feeds );
 
-    if ( $need_to_moderate )
-    {
-        if ( $medium->{ moderated } and dump_terse( $rescraped_feeds ) eq dump_terse( $live_feeds ) )
-        {
-            INFO "Media $media_id would need rescraping but we have " .
-              "moderated the very same feeds previously so disabling moderation";
-
-            $db->query(
-                <<EOF,
-                DELETE FROM feeds_after_rescraping
-                WHERE media_id = ?
+    # Move all newly scraped feeds to "feeds" table
+    my $feeds_after_rescraping = $db->query(
+        <<EOF,
+        SELECT *
+        FROM feeds_after_rescraping
+        WHERE media_id = ?
 EOF
-                $media_id
-            );
-        }
-        else
-        {
-            # (Re)set moderated = 'f' so that the media shows up in the moderation page
-            INFO "Unmoderating media ID $media_id because rescraped feeds require moderation";
-            make_media_unmoderated( $db, $media_id );
-        }
-    }
-    else
+        $media_id
+    )->hashes;
+    foreach my $rescraped_feed ( @{ $feeds_after_rescraping } )
     {
-        # Move all newly scraped feeds to "feeds" table
-        my $feeds_after_rescraping = $db->query(
-            <<EOF,
-            SELECT *
-            FROM feeds_after_rescraping
-            WHERE media_id = ?
-EOF
-            $media_id
-        )->hashes;
-        foreach my $rescraped_feed ( @{ $feeds_after_rescraping } )
-        {
-            INFO "Moving rescraped feed from media ID $media_id to 'feeds' table; rescraped feed: " .
-              dump_terse( $rescraped_feed );
-            _move_rescraped_feed_to_feeds_table( $db, $rescraped_feed );
-        }
-
-        # Set moderated = 't' because maybe this is a new media item that
-        # didn't have any feeds previously
-        INFO "Making media $media_id moderated after moving all rescraped feeds to 'feeds' table";
-        make_media_moderated( $db, $media_id );
+        INFO "Moving rescraped feed from media ID $media_id to 'feeds' table; rescraped feed: " .
+          dump_terse( $rescraped_feed );
+        _move_rescraped_feed_to_feeds_table( $db, $rescraped_feed );
     }
 
     update_last_rescraped_time( $db, $media_id );
@@ -287,34 +232,6 @@ sub update_last_rescraped_time($$)
         <<EOF,
             UPDATE media_rescraping
             SET last_rescrape_time = NOW()
-            WHERE media_id = ?
-EOF
-        $media_id
-    );
-}
-
-sub make_media_unmoderated($$)
-{
-    my ( $db, $media_id ) = @_;
-
-    $db->query(
-        <<EOF,
-            UPDATE media
-            SET moderated = 'f'
-            WHERE media_id = ?
-EOF
-        $media_id
-    );
-}
-
-sub make_media_moderated($$)
-{
-    my ( $db, $media_id ) = @_;
-
-    $db->query(
-        <<EOF,
-            UPDATE media
-            SET moderated = 't'
             WHERE media_id = ?
 EOF
         $media_id

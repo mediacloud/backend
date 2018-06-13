@@ -101,7 +101,6 @@ sub main
             {
                 'name'          => $medium_name,
                 'url'           => $medium_url,
-                'moderated'     => 't',
                 'full_text_rss' => 't',
             }
         );

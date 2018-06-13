@@ -305,20 +305,8 @@ sub edit_do : Local
             $uri->query_param_append( 'status_msg' => $msg );
             $c->res->redirect( $uri->as_string );
         }
-        elsif ( $medium->{ moderated } )
-        {
-            $c->res->redirect( $c->uri_for( '/admin/feeds/list/' . $medium->{ media_id }, { status_msg => $msg } ) );
-        }
-        else
-        {
-            my $media_tags_id = int( $c->request->param( 'media_tags_id' ) ) || 0;
-            $c->res->redirect(
-                $c->uri_for(
-                    '/admin/media/moderate/' . ( $medium->{ media_id } - 1 ),
-                    { status_msg => $msg, media_tags_id => $media_tags_id }
-                )
-            );
-        }
+
+        $c->res->redirect( $c->uri_for( '/admin/feeds/list/' . $medium->{ media_id }, { status_msg => $msg } ) );
     }
 }
 
@@ -360,26 +348,11 @@ sub delete : Local
         else
         {
             $db->query( "insert into media_tags_map (tags_id, media_id) values (?, ?)", $deleteme_tags_id, $id );
-            $db->query( "update media set moderated = true where media_id = ?", $medium->{ media_id } );
 
             $status_msg = 'Media source marked for deletion.';
         }
 
-        TRACE "moderated: $medium->{ moderated }";
-
-        if ( $medium->{ moderated } )
-        {
-            $c->response->redirect( $c->uri_for( '/admin/media/list', { status_msg => $status_msg } ) );
-        }
-        else
-        {
-            $c->response->redirect(
-                $c->uri_for(
-                    '/admin/media/moderate/' . ( $medium->{ media_id } - 1 ),
-                    { status_msg => $status_msg, media_tags_id => $media_tags_id }
-                )
-            );
-        }
+        $c->response->redirect( $c->uri_for( '/admin/media/list', { status_msg => $status_msg } ) );
     }
 }
 

@@ -1900,8 +1900,6 @@ while True:
 fieldnames = [
     u'media_id',
     u'url',
-    u'moderated',
-    u'moderation_notes',
     u'name'
 ]
 

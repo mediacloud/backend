@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 28;
+use Test::More tests => 21;
 use Test::NoWarnings;
 use Test::Deep;
 
@@ -1005,7 +1005,6 @@ HTML
             'feed_type' => 'syndicated',
         }
     ];
-    my $expected_need_to_moderate = 0;
 
     my $medium = { url => $TEST_HTTP_SERVER_URL };
 
@@ -1015,13 +1014,12 @@ HTML
     $hs1->start();
     $hs2->start();
 
-    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
+    my $feed_links = MediaWords::Feed::Scrape::get_feed_links( $medium );
 
     $hs1->stop();
     $hs2->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_immediate_redirect_via_http_header feed_links' );
-    is( $need_to_moderate, $expected_need_to_moderate, 'test_rss_immediate_redirect_via_http_header need_to_moderate' );
 }
 
 sub test_rss_immediate_redirect_via_html_meta_refresh()
@@ -1084,7 +1082,6 @@ HTML
             'feed_type' => 'syndicated',
         }
     ];
-    my $expected_need_to_moderate = 0;
 
     my $medium = { url => $TEST_HTTP_SERVER_URL };
 
@@ -1094,14 +1091,12 @@ HTML
     $hs1->start();
     $hs2->start();
 
-    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
+    my $feed_links = MediaWords::Feed::Scrape::get_feed_links( $medium );
 
     $hs1->stop();
     $hs2->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_immediate_redirect_via_html_meta_refresh feed_links' );
-    is( $need_to_moderate, $expected_need_to_moderate,
-        'test_rss_immediate_redirect_via_html_meta_refresh need_to_moderate' );
 }
 
 # <base href="" />, like in http://www.thejakartaglobe.com
@@ -1348,21 +1343,19 @@ HTML
             'feed_type' => 'syndicated',
         },
     ];
-    my $expected_need_to_moderate = 0;
 
     my $medium = { url => $TEST_HTTP_SERVER_URL };
 
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
-    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
+    my $feed_links = MediaWords::Feed::Scrape::get_feed_links( $medium );
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_external_feeds feed_links' );
-    is( $need_to_moderate, $expected_need_to_moderate, 'test_rss_external_feeds need_to_moderate' );
 }
 
-sub test_get_feed_links_and_need_to_moderate()
+sub test_get_feed_links()
 {
     my $pages = {
 
@@ -1412,18 +1405,16 @@ HTML
             'feed_type' => 'syndicated',
         }
     ];
-    my $expected_need_to_moderate = 1;
 
     my $medium = { url => $TEST_HTTP_SERVER_URL };
 
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
-    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
+    my $feed_links = MediaWords::Feed::Scrape::get_feed_links( $medium );
     $hs->stop();
 
-    cmp_bag( $feed_links, $expected_links, 'test_get_feed_links_and_need_to_moderate feed_links' );
-    is( $need_to_moderate, $expected_need_to_moderate, 'test_get_feed_links_and_need_to_moderate need_to_moderate' );
+    cmp_bag( $feed_links, $expected_links, 'test_get_feed_links feed_links' );
 }
 
 sub test_feeds_with_common_prefix()
@@ -1496,18 +1487,15 @@ XML
         },
     ];
 
-    my $expected_need_to_moderate = 0;
-
     my $medium = { url => $TEST_HTTP_SERVER_URL };
 
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
-    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
+    my $feed_links = MediaWords::Feed::Scrape::get_feed_links( $medium );
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_feeds_with_common_prefix feed_links' );
-    is( $need_to_moderate, $expected_need_to_moderate, 'test_feeds_with_common_prefix need_to_moderate' );
 }
 
 sub test_feed_aggregator_urls()
@@ -1556,18 +1544,15 @@ HTML
         },
     ];
 
-    my $expected_need_to_moderate = 0;
-
     my $medium = { url => $TEST_HTTP_SERVER_URL };
 
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
-    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
+    my $feed_links = MediaWords::Feed::Scrape::get_feed_links( $medium );
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_feed_aggregator_urls feed_links' );
-    is( $need_to_moderate, $expected_need_to_moderate, 'test_feed_aggregator_urls need_to_moderate' );
 }
 
 sub test_web_page_feed()
@@ -1597,16 +1582,13 @@ HTML
         },
     ];
 
-    my $expected_need_to_moderate = 0;
-
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
-    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
+    my $feed_links = MediaWords::Feed::Scrape::get_feed_links( $medium );
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_web_page_feed feed_links' );
-    is( $need_to_moderate, $expected_need_to_moderate, 'test_web_page_feed need_to_moderate' );
 }
 
 sub main
@@ -1630,7 +1612,7 @@ sub main
     test_rss_unlinked_urls();
     test_rss_image_link();
     test_rss_external_feeds();
-    test_get_feed_links_and_need_to_moderate();
+    test_get_feed_links();
     test_feeds_with_common_prefix();
     test_feed_aggregator_urls();
     test_web_page_feed();

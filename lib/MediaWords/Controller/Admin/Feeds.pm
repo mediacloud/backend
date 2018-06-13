@@ -219,24 +219,9 @@ END
 
     $feed = $c->dbis->create( 'feeds', $feed );
 
-    if ( !$medium->{ moderated } )
-    {
-        $c->response->redirect(
-            $c->uri_for(
-                '/admin/media/moderate/' . ( $medium->{ media_id } - 1 ),
-                { status_msg => 'Feed added.', media_tags_id => $media_tags_id }
-            )
-        );
-    }
-    else
-    {
-        $c->response->redirect(
-            $c->uri_for(
-                '/admin/feeds/edit_tags/' . $feed->{ feeds_id },
-                { status_msg => 'Feed added.  Choose tags below.' }
-            )
-        );
-    }
+    $c->response->redirect(
+        $c->uri_for( '/admin/feeds/edit_tags/' . $feed->{ feeds_id }, { status_msg => 'Feed added.  Choose tags below.' } )
+    );
 }
 
 sub make_scrape_form

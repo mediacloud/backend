@@ -28,9 +28,8 @@ sub test_fetch_handle_download($$)
     my $medium = $db->create(
         'media',
         {
-            name      => "Media for test feed $superglue_url",
-            url       => 'http://www.example.com/',
-            moderated => 't',
+            name => "Media for test feed $superglue_url",
+            url  => 'http://www.example.com/',
         }
     );
 

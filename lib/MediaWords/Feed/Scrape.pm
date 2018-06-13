@@ -449,7 +449,7 @@ sub _main_feed_via_common_prefixed_feeds($)
 {
     my $feed_links = shift;
 
-    # If there's only one feed and it still has to be moderated, we should probably leave it that way
+    # If there's only one feed, we should probably leave it that way
     if ( scalar @{ $feed_links } == 1 )
     {
         return undef;
@@ -729,7 +729,7 @@ sub get_valid_feeds_from_urls($;$)
 
 # Add default feeds for the media by searching for them in the index page, then (if not found)
 # in a couple of child pages
-sub get_feed_links_and_need_to_moderate($)
+sub get_feed_links($)
 {
     my $medium = shift;
 
@@ -747,17 +747,15 @@ sub get_feed_links_and_need_to_moderate($)
 
     # otherwise do an expansive search
     my $feed_links;
-    my $need_to_moderate;
     if ( scalar @{ $default_feed_links } == 0 )
     {
-        $need_to_moderate = 1;
         $feed_links = get_valid_feeds_from_index_url( [ $medium->{ url } ], 1, [] );
 
         $default_feed_links = _default_feed_links( $medium, $feed_links );
     }
 
     # if there are more than 0 default feeds, use those.  If there are no more than
-    # $MAX_DEFAULT_FEEDS, use the first one and don't moderate.
+    # $MAX_DEFAULT_FEEDS, use the first one.
     if ( scalar @{ $default_feed_links } > 0 )
     {
         $default_feed_links = [ sort { length( $a->{ url } ) <=> length( $b->{ url } ) } @{ $default_feed_links } ];
@@ -765,11 +763,10 @@ sub get_feed_links_and_need_to_moderate($)
         {
             $default_feed_links = [ $default_feed_links->[ 0 ] ];
         }
-        $feed_links       = $default_feed_links;
-        $need_to_moderate = 0;
+        $feed_links = $default_feed_links;
     }
 
-    # If no feeds were found, add the 'web_page' feed to the feed-less website and don't moderate
+    # If no feeds were found, add the 'web_page' feed to the feed-less website
     if ( scalar @{ $feed_links } == 0 )
     {
         push(
@@ -780,10 +777,9 @@ sub get_feed_links_and_need_to_moderate($)
                 feed_type => 'web_page'
             }
         );
-        $need_to_moderate = 0;
     }
 
-    return ( $feed_links, $need_to_moderate );
+    return $feed_links;
 }
 
 1;

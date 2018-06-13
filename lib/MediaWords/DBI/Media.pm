@@ -216,7 +216,7 @@ sub _add_missing_media_from_urls
             else
             {
                 say STDERR "Medium to be added: $title $url";
-                $medium = $dbis->create( 'media', { name => $title, url => $url, moderated => 'f' } );
+                $medium = $dbis->create( 'media', { name => $title, url => $url } );
                 say STDERR "Medium that got added: " . Dumper( $medium );
 
                 MediaWords::DBI::Media::Rescrape::add_to_rescrape_media_queue( $medium );

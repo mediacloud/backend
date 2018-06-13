@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4677;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4678;
 
 BEGIN
 
@@ -206,8 +206,6 @@ create table media (
     media_id            serial          primary key,
     url                 varchar(1024)   not null,
     name                varchar(128)    not null,
-    moderated           boolean         not null,
-    moderation_notes    text            null,
     full_text_rss       boolean         null,
 
     -- It indicates that the media source includes a substantial number of
@@ -239,7 +237,6 @@ create table media (
 
 create unique index media_name on media(name);
 create unique index media_url on media(url);
-create index media_moderated on media(moderated);
 create index media_db_row_last_updated on media( db_row_last_updated );
 
 CREATE INDEX media_name_trgm on media USING gin (name gin_trgm_ops);
@@ -388,9 +385,7 @@ CREATE TYPE feed_feed_status AS ENUM (
     'active',
     -- Feed is (temporary) disabled (usually by hand), not being fetched
     'inactive',
-    -- Feed was moderated as the one that shouldn't be fetched, but is still kept around
-    -- to reduce the moderation queue next time the page is being scraped for feeds to find
-    -- new ones
+    -- Feed was shouldn't be fetched
     'skipped'
 );
 
@@ -694,8 +689,6 @@ CREATE VIEW media_with_collections AS
            m.media_id,
            m.url,
            m.name,
-           m.moderated,
-           m.moderation_notes,
            m.full_text_rss
     FROM media m,
          tags t,
@@ -2029,8 +2022,6 @@ create table snap.media (
     media_id                int,
     url                     varchar(1024)   not null,
     name                    varchar(128)    not null,
-    moderated               boolean         not null,
-    moderation_notes        text            null,
     full_text_rss           boolean,
     foreign_rss_links       boolean         not null default( false ),
     dup_media_id            int             null,
