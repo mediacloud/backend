@@ -322,7 +322,7 @@ def get_spider_feed(db: DatabaseHandler, medium: dict) -> dict:
         'media_id': medium['media_id'],
         'url': medium['url'] + '#spiderfeed',
         'name': SPIDER_FEED_NAME,
-        'feed_status': 'inactive'
+        'active': False,
     })
 
 

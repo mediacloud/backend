@@ -111,8 +111,8 @@ sub test_for_scraped_feeds($$)
           || die( "unable to find medium for site $site->{ name }" );
         my $feed = $db->query( "select * from feeds where media_id = ?", $medium->{ media_id } )->hash;
         ok( $feed, "feed exists for site $site->{ name } media_id $medium->{ media_id }" );
-        is( $feed->{ feed_type },   'syndicated', "$site->{ name } feed type" );
-        is( $feed->{ feed_status }, 'active',     "$site->{ name } feed status" );
+        is( $feed->{ feed_type }, 'syndicated', "$site->{ name } feed type" );
+        ok( $feed->{ active }, "$site->{ name } feed is active" );
         is_urls( $feed->{ url }, $site->{ feed_url }, "$site->{ name } feed url" );
     }
 }
@@ -195,8 +195,8 @@ sub test_media_create_update($$)
 
         for my $feed ( @{ $feeds } )
         {
-            is( $feed->{ feed_type },   'syndicated', "$site->{ name } feed type" );
-            is( $feed->{ feed_status }, 'active',     "$site->{ name } feed status" );
+            is( $feed->{ feed_type }, 'syndicated', "$site->{ name } feed type" );
+            ok( $feed->{ active }, "$site->{ name } feed is active" );
         }
 
         my ( $tag_exists ) = $db->query( <<SQL, $medium->{ media_id }, $tag->{ tags_id } )->flat;

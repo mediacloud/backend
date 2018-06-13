@@ -42,7 +42,7 @@ sub main
     my $media = $db->query( <<SQL, $num_media )->hashes;
 select *
     from media
-    where media_id in ( select media_id from feeds where feed_status = 'active' )
+    where media_id in ( select media_id from feeds where active = 't' )
     order by random()
     limit ? * 2
 SQL

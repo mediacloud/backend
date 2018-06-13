@@ -33,7 +33,7 @@ sub test_feeds_list($)
 
     my $got_feeds = test_get( '/api/v2/feeds/list', { media_id => $medium->{ media_id } } );
 
-    my $fields = [ qw ( name url media_id feeds_id feed_type feed_status ) ];
+    my $fields = [ qw ( name url media_id feeds_id feed_type active ) ];
     rows_match( $label, $got_feeds, $expected_feeds, "feeds_id", $fields );
 
     $label = "feeds/single";
@@ -65,11 +65,11 @@ sub test_feeds($)
 
     # simple tag creation
     my $create_input = {
-        media_id    => $medium->{ media_id },
-        name        => 'feed name',
-        url         => 'http://feed.create',
-        feed_type   => 'syndicated',
-        feed_status => 'active'
+        media_id  => $medium->{ media_id },
+        name      => 'feed name',
+        url       => 'http://feed.create',
+        feed_type => 'syndicated',
+        active    => 't',
     };
 
     my $r = test_post( '/api/v2/feeds/create', $create_input );
@@ -80,11 +80,11 @@ sub test_feeds($)
 
     # simple update
     my $update_input = {
-        feeds_id    => $r->{ feed }->{ feeds_id },
-        name        => 'feed name update',
-        url         => 'http://feed.create/update',
-        feed_type   => 'web_page',
-        feed_status => 'inactive'
+        feeds_id  => $r->{ feed }->{ feeds_id },
+        name      => 'feed name update',
+        url       => 'http://feed.create/update',
+        feed_type => 'web_page',
+        active    => 'f',
     };
 
     $r = test_put( '/api/v2/feeds/update', $update_input );

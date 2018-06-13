@@ -407,7 +407,7 @@ END
     {
         my $qph = $db->query_paged_hashes( <<END, $p, $ROWS_PER_PAGE );
 select * from media m
-    where not exists (select 1 from feeds f where f.media_id = m.media_id and feed_status = 'active')
+    where not exists (select 1 from feeds f where f.media_id = m.media_id and active = 't')
     order by media_id
 END
         $media = $qph->list();
@@ -437,7 +437,7 @@ EOF
             $m->{ media_id }
         )->flat;
         ( $m->{ feed_count } ) = $db->query( <<END, $m->{ media_id } )->flat;
-select count(*) from feeds where media_id = ? and feed_status = 'active'
+select count(*) from feeds where media_id = ? and active = 't'
 END
     }
 
@@ -647,7 +647,7 @@ sub find_likely_full_text_rss : Local
     for my $m ( @{ $media } )
     {
         ( $m->{ feed_count } ) = $db->query( <<END, $m->{ media_id } )->flat;
-select count(*) from feeds where media_id = ? and feed_status = 'active'
+select count(*) from feeds where media_id = ? and active = 't'
 END
     }
 

@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4678;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4679;
 
 BEGIN
 
@@ -344,7 +344,7 @@ BEGIN
         SELECT 1
         FROM feeds
         WHERE media_id = param_media_id
-          AND feed_status = 'active'
+          AND active = 't'
 
           -- Website might introduce RSS feeds later
           AND feed_type = 'syndicated'
@@ -378,17 +378,6 @@ create type feed_feed_type AS ENUM (
 
 );
 
--- Feed statuses that determine whether the feed will be fetched
--- or skipped
-CREATE TYPE feed_feed_status AS ENUM (
-    -- Feed is active, being fetched
-    'active',
-    -- Feed is (temporary) disabled (usually by hand), not being fetched
-    'inactive',
-    -- Feed was shouldn't be fetched
-    'skipped'
-);
-
 create table feeds (
     feeds_id            serial              primary key,
     media_id            int                 not null references media on delete cascade,
@@ -396,7 +385,10 @@ create table feeds (
     url                 varchar(1024)       not null,
     reparse             boolean             null,
     feed_type           feed_feed_type      not null default 'syndicated',
-    feed_status         feed_feed_status    not null default 'active',
+
+    -- Whether or not feed is active (should be periodically fetched for new stories)
+    active              BOOLEAN             NOT NULL DEFAULT 't',
+
     last_checksum       text                null,
 
     -- Last time the feed was *attempted* to be downloaded and parsed
@@ -2288,7 +2280,7 @@ create view feedly_unscraped_feeds as
                 ( f.feeds_id = sf.feeds_id and sf.import_module = 'MediaWords::ImportStories::Feedly' )
         where
             f.feed_type = 'syndicated' and
-            f.feed_status = 'active' and
+            f.active = 't' and
             sf.feeds_id is null;
 
 
@@ -2703,7 +2695,7 @@ CREATE TABLE feeds_from_yesterday (
     name                VARCHAR(512)        NOT NULL,
     url                 VARCHAR(1024)       NOT NULL,
     feed_type           feed_feed_type      NOT NULL,
-    feed_status         feed_feed_status    NOT NULL
+    active              BOOLEAN             NOT NULL
 );
 
 CREATE INDEX feeds_from_yesterday_feeds_id ON feeds_from_yesterday(feeds_id);
@@ -2718,8 +2710,8 @@ CREATE OR REPLACE FUNCTION update_feeds_from_yesterday() RETURNS VOID AS $$
 BEGIN
 
     DELETE FROM feeds_from_yesterday;
-    INSERT INTO feeds_from_yesterday (feeds_id, media_id, name, url, feed_type, feed_status)
-        SELECT feeds_id, media_id, name, url, feed_type, feed_status
+    INSERT INTO feeds_from_yesterday (feeds_id, media_id, name, url, feed_type, active)
+        SELECT feeds_id, media_id, name, url, feed_type, active
         FROM feeds;
 
 END;
@@ -2754,13 +2746,13 @@ BEGIN
             FROM (
                 -- Don't compare "name" because it's insignificant
                 (
-                    SELECT feeds_id, media_id, feed_type, feed_status, url FROM feeds_from_yesterday
+                    SELECT feeds_id, media_id, feed_type, active, url FROM feeds_from_yesterday
                     EXCEPT
-                    SELECT feeds_id, media_id, feed_type, feed_status, url FROM feeds
+                    SELECT feeds_id, media_id, feed_type, active, url FROM feeds
                 ) UNION ALL (
-                    SELECT feeds_id, media_id, feed_type, feed_status, url FROM feeds
+                    SELECT feeds_id, media_id, feed_type, active, url FROM feeds
                     EXCEPT
-                    SELECT feeds_id, media_id, feed_type, feed_status, url FROM feeds_from_yesterday
+                    SELECT feeds_id, media_id, feed_type, active, url FROM feeds_from_yesterday
                 )
             ) AS modified_feeds
         );
@@ -2796,12 +2788,12 @@ BEGIN
                feeds_before.name AS before_name,
                feeds_before.url AS before_url,
                feeds_before.feed_type AS before_feed_type,
-               feeds_before.feed_status AS before_feed_status,
+               feeds_before.active AS before_active,
 
                feeds_after.name AS after_name,
                feeds_after.url AS after_url,
                feeds_after.feed_type AS after_feed_type,
-               feeds_after.feed_status AS after_feed_status
+               feeds_after.active AS after_active
 
         FROM feeds_from_yesterday AS feeds_before
             INNER JOIN feeds AS feeds_after ON (
@@ -2810,7 +2802,7 @@ BEGIN
                     -- Don't compare "name" because it's insignificant
                     feeds_before.url != feeds_after.url
                  OR feeds_before.feed_type != feeds_after.feed_type
-                 OR feeds_before.feed_status != feeds_after.feed_status
+                 OR feeds_before.active != feeds_after.active
                 )
             )
 
@@ -2881,10 +2873,10 @@ BEGIN
             WHERE media_id = r_media.media_id
             ORDER BY feeds_id
         LOOP
-            RAISE NOTICE '    ADDED feed: feeds_id=%, feed_type=%, feed_status=%, name="%", url="%"',
+            RAISE NOTICE '    ADDED feed: feeds_id=%, feed_type=%, active=%, name="%", url="%"',
                 r_feed.feeds_id,
                 r_feed.feed_type,
-                r_feed.feed_status,
+                r_feed.active,
                 r_feed.name,
                 r_feed.url;
         END LOOP;
@@ -2896,10 +2888,10 @@ BEGIN
             WHERE media_id = r_media.media_id
             ORDER BY feeds_id
         LOOP
-            RAISE NOTICE '    DELETED feed: feeds_id=%, feed_type=%, feed_status=%, name="%", url="%"',
+            RAISE NOTICE '    DELETED feed: feeds_id=%, feed_type=%, active=%, name="%", url="%"',
                 r_feed.feeds_id,
                 r_feed.feed_type,
-                r_feed.feed_status,
+                r_feed.active,
                 r_feed.name,
                 r_feed.url;
         END LOOP;
@@ -2911,14 +2903,14 @@ BEGIN
             ORDER BY feeds_id
         LOOP
             RAISE NOTICE '    MODIFIED feed: feeds_id=%', r_feed.feeds_id;
-            RAISE NOTICE '        BEFORE: feed_type=%, feed_status=%, name="%", url="%"',
+            RAISE NOTICE '        BEFORE: feed_type=%, active=%, name="%", url="%"',
                 r_feed.before_feed_type,
-                r_feed.before_feed_status,
+                r_feed.before_active,
                 r_feed.before_name,
                 r_feed.before_url;
-            RAISE NOTICE '        AFTER:  feed_type=%, feed_status=%, name="%", url="%"',
+            RAISE NOTICE '        AFTER:  feed_type=%, active=%, name="%", url="%"',
                 r_feed.after_feed_type,
-                r_feed.after_feed_status,
+                r_feed.after_active,
                 r_feed.after_name,
                 r_feed.after_url;
         END LOOP;

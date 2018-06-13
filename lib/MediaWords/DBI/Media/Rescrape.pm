@@ -69,11 +69,11 @@ sub _move_rescraped_feed_to_feeds_table($$)
     }
 
     my $feed = {
-        media_id    => $feed_after_rescraping->{ media_id },
-        name        => $feed_after_rescraping->{ name },
-        url         => $feed_after_rescraping->{ url },
-        feed_type   => $feed_after_rescraping->{ feed_type },
-        feed_status => 'active',
+        media_id  => $feed_after_rescraping->{ media_id },
+        name      => $feed_after_rescraping->{ name },
+        url       => $feed_after_rescraping->{ url },
+        feed_type => $feed_after_rescraping->{ feed_type },
+        active    => 't',
     };
 
     my $existing_feed = $db->query(
@@ -109,7 +109,7 @@ EOF
             FROM feeds
             WHERE media_id = ?
               AND feed_type = 'web_page'
-              AND feed_status = 'active'
+              AND active = 't'
 EOF
             $feed->{ media_id }
         )->hashes;
@@ -281,17 +281,17 @@ sub add_feed_by_media_name_url_type($$)
         die "Feed hashref is not valid.";
     }
 
-    unless ( $feed->{ feed_status } )
+    unless ( defined $feed->{ active } )
     {
-        $feed->{ feed_status } = 'active';
+        $feed->{ active } = 't';
     }
 
     $db->query(
         <<EOF,
-        INSERT INTO feeds (media_id, name, url, feed_type, feed_status)
+        INSERT INTO feeds (media_id, name, url, feed_type, active)
         VALUES (?, ?, ?, ?, ?)
 EOF
-        $feed->{ media_id }, $feed->{ name }, $feed->{ url }, $feed->{ feed_type }, $feed->{ feed_status }
+        $feed->{ media_id }, $feed->{ name }, $feed->{ url }, $feed->{ feed_type }, $feed->{ active }
     );
 }
 

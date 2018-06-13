@@ -374,7 +374,7 @@ END
     return $feed if ( $feed );
 
     $db->query(
-        "insert into feeds ( media_id, url, name, feed_status ) " . "  values ( ?, ?, 'Spider Feed', 'inactive' )",
+        "insert into feeds ( media_id, url, name, active ) " . "  values ( ?, ?, 'Spider Feed', 'f' )",
         $medium->{ media_id },
         $medium->{ url }
     );

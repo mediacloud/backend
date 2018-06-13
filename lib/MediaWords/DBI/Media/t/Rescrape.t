@@ -297,7 +297,7 @@ sub test_media_no_feeds_then_single_feed($)
     $webpage_feed = $feeds->[ 0 ];
     is( $webpage_feed->{ feed_type }, 'web_page', "First feed's type must be 'web_page'" );
     is_urls( $webpage_feed->{ url }, $TEST_HTTP_SERVER_URL, "First feed's URL must be test server" );
-    is( $webpage_feed->{ feed_status }, 'inactive', "First feed should be deactivated (because we now have RSS feeds)" );
+    ok( !$webpage_feed->{ active }, "First feed should be deactivated (because we now have RSS feeds)" );
 
     my $rss_feed = $feeds->[ 1 ];
     is( $rss_feed->{ feed_type }, 'syndicated', "Second feed's type must be 'syndicated'" );
@@ -377,8 +377,8 @@ sub test_media_single_feed_then_no_feeds_then_single_feed_then_no_feeds_again($)
     my $webpage_feed = $feeds->[ 1 ];
     is( $webpage_feed->{ feed_type }, 'web_page', "Second feed's type must be 'web_page'" );
     is_urls( $webpage_feed->{ url }, $TEST_HTTP_SERVER_URL, "Second feed's URL must be test server" );
-    is( $webpage_feed->{ feed_status },
-        'active', "Second feed should be active (because no syndicated feeds are available at the moment)" );
+    ok( $webpage_feed->{ active },
+        "Second feed should be active (because no syndicated feeds are available at the moment)" );
 
     $feeds_after_rescraping = $db->query( 'SELECT * FROM feeds_after_rescraping WHERE media_id = ?', $media_id )->hashes;
 
@@ -410,8 +410,7 @@ sub test_media_single_feed_then_no_feeds_then_single_feed_then_no_feeds_again($)
     $webpage_feed = $feeds->[ 1 ];
     is( $webpage_feed->{ feed_type }, 'web_page', "Second feed's type must be 'web_page'" );
     is_urls( $webpage_feed->{ url }, $TEST_HTTP_SERVER_URL, "Second feed's URL must be test server" );
-    is( $webpage_feed->{ feed_status },
-        'inactive', "Second feed should be deactivated (because now RSS feeds are alive again)" );
+    ok( !$webpage_feed->{ active }, "Second feed should be deactivated (because now RSS feeds are alive again)" );
 
     $feeds_after_rescraping = $db->query( 'SELECT * FROM feeds_after_rescraping WHERE media_id = ?', $media_id )->hashes;
 
@@ -458,8 +457,8 @@ sub test_media_with_same_set_of_feeds()
 
     $db->query(
         <<EOF,
-        INSERT INTO feeds (media_id, name, url, feed_type, feed_status)
-            SELECT media_id, name, url, feed_type, 'active'
+        INSERT INTO feeds (media_id, name, url, feed_type, active)
+            SELECT media_id, name, url, feed_type, 't'
             FROM feeds_after_rescraping
             WHERE media_id = ?
 EOF

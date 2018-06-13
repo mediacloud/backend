@@ -38,14 +38,10 @@
         <td><a href="[% feed.url %]">view&nbsp;live</a></td>
 
 	<td>
-		[% IF feed.feed_status == 'active' %]
+		[% IF feed.active %]
 			<strong>active</strong>
-		[% END %]
-		[% IF feed.feed_status == 'inactive' %]
+		[% ELSE %]
 			inactive
-		[% END %]
-		[% IF feed.feed_status == 'skipped' %]
-			<span style="color: gray; font-style: italic">skipped</span>
 		[% END %]
 	</td>
 	    
@@ -85,9 +81,9 @@
 
 <p>
 [% IF ! showing_all_feeds %]
-	<a href="[% c.uri_for('/admin/feeds/list/') _ medium.media_id _ '?all=1' %]">Show inactive and skipped feeds</a>
+	<a href="[% c.uri_for('/admin/feeds/list/') _ medium.media_id _ '?all=1' %]">Show inactive feeds</a>
 [% ELSE %]
-	<a href="[% c.uri_for('/admin/feeds/list/') _ medium.media_id _ '' %]">Hide inactive and skipped feeds</a>
+	<a href="[% c.uri_for('/admin/feeds/list/') _ medium.media_id _ '' %]">Hide inactive feeds</a>
 [% END %]
 </p>
 

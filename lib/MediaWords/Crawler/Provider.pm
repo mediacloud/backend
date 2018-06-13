@@ -181,7 +181,7 @@ SQL
         SELECT feeds_id,
                url
         FROM feeds
-        WHERE feed_status = 'active'
+        WHERE active = 't'
           AND url ~ 'https?://'
           AND (
             -- Never attempted
