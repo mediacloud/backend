@@ -47,15 +47,16 @@ sub create_user
     # Add user
     eval {
 
+        my $role_ids = MediaWords::DBI::Auth::Roles::default_role_ids( $db );
         my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
             email                        => $email,
             full_name                    => $full_name,
             notes                        => $notes,
-            role_ids                     => MediaWords::DBI::Auth::Roles::default_role_ids( $db ),
+            role_ids                     => $role_ids,
             active                       => 1,
             password                     => $user_password,
             password_repeat              => $user_password,
-            activation_url               => '',                                                      # user is active
+            activation_url               => '',                                      # user is active
             weekly_requests_limit        => $default_weekly_requested_items_limit,
             weekly_requested_items_limit => $default_weekly_requested_items_limit,
         );

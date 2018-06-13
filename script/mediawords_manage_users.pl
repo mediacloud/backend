@@ -408,14 +408,14 @@ sub user_show($)
 
     # Fetch information about the user
     my $db_user;
-    eval { $db_user = MediaWords::DBI::Auth::Profile::user_info( $db, $user_email ); };
+    eval { $db_user = MediaWords::DBI::Auth::Info::user_info( $db, $user_email ); };
     if ( $@ or ( !$db_user ) )
     {
         ERROR "Unable to find user with email '$user_email'";
         return 1;
     }
 
-    say "User ID:          " . $db_user->id();
+    say "User ID:          " . $db_user->user_id();
     say "Email (username): " . $db_user->email();
     say "Full name: " . $db_user->full_name();
     say "Notes:     " . $db_user->notes();
