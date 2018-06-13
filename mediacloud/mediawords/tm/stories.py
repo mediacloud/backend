@@ -180,7 +180,7 @@ def get_story_match(db: DatabaseHandler, url: str, redirect_url: typing.Optional
     """Search for any story within the database that matches the given url.
 
     Searches for any story whose guid or url matches either the url or redirect_url or the
-    mediawords.util.url.normalized_url_lossy() version of either.
+    mediawords.util.url.normalize_url_lossy() version of either.
 
     If multiple stories are found, use get_preferred_story() to decide which story to return.
 
