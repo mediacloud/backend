@@ -2,7 +2,8 @@
 # Deploy code updates
 #
 
-- name: Deploy code updates
+# Rerun most of the stuff from setup.yml
+- name: Set up Media Cloud system
   hosts: all
   any_errors_fatal: true
   gather_facts: no
@@ -10,5 +11,48 @@
     - name: Include pre-tasks
       include_tasks: pre-tasks.yml
       tags: always
+  roles:
+    - user
+    # Skip "update-packages" as it's somewhat dangerous
+    - common
+    - hostname
+    - locale
+    - timezone
+    - system-packages
+    - pam-limits
+
+# Skip "git-repository" because "deploy" will update it itself
+
+- name: Set up PostgreSQL server
+  hosts: "localhost,postgresql_server"
+  any_errors_fatal: true
+  roles:
+    - postgresql-server
+
+- name: Install Media Cloud dependencies
+  hosts: all
+  any_errors_fatal: true
+  roles:
+    - python-dependencies
+    - perlbrew
+    - perl-dependencies
+
+- name: Set up Media Cloud environment
+  hosts: all
+  any_errors_fatal: true
+  roles:
+    # Skip "mediawords-yml" because it's probably already here
+    - git-hooks
+    - crontab
+
+- name: Set up Apache
+  hosts: "localhost,core_services"
+  any_errors_fatal: true
+  roles:
+    - apache2-fcgi
+
+- name: Deploy code updates
+  hosts: all
+  any_errors_fatal: true
   roles:
     - deploy
