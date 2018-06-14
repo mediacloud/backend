@@ -14,6 +14,7 @@
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
+<<<<<<< HEAD
 -- track self liks and all links for a given domain within a given topic
 create table topic_domains (
     topic_domains_id        serial primary key,
@@ -24,6 +25,13 @@ create table topic_domains (
 )
 
 create unique index domain_topic_domain on topic_domains (topics_id, md5(domain));
+=======
+create index tags_fts on tags using gin(to_tsvector('english'::regconfig, (tag::text || ' '::text) || label::text));
+
+drop index tags_tag_1;
+drop index tags_tag_2;
+drop index tags_tag_3;
+>>>>>>> master
 
 --
 -- 2 of 2. Reset the database version.

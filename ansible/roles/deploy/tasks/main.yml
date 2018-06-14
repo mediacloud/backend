@@ -102,7 +102,7 @@
       shell: "ps -ax | grep -s perl | grep -s mediawords_crawl.pl | grep -sv grep | awk '{ print $1 }'"
       register: crawler_pids
       failed_when: >
-        crawler_pids | failed or
+        crawler_pids is failed or
         crawler_pids.stdout_lines | count > 0
       changed_when: false
       when: "'core_services' in group_names"  # only for hosts in 'core_services' group
@@ -141,6 +141,30 @@
         var: mediawords_upgrade_db_status.stderr_lines
       tags:
         - deploy
+
+# 1. When deploying, we usually stop Supervisor and all of its managed services
+#    and restart them afterwards
+# 2. copy_nonpartitioned_sentences_to_partitions - the sentence chunk copier
+#    script - is one of the Supervisor services
+# 3. The script uses run_alone() because we want to run only a single instance
+#    of this script at any time
+# 4. run_alone() works by creating a lock file and subscribing to
+#    SIGINT / SIGTERM to clean up the lock file before exiting.
+# 5. Supervisor tries to stop the chunk copier script with SIGINT first before
+#    resorting to SIGKILL. The problem is, due to this bug (I think), if the
+#    script is waiting for a response from a SQL query made via psycopg2,
+#    run_alone()'s signal handlers don't get called.
+# 6. So, Supervisor kills the script with SIGKILL (i.e. no lock file cleanup
+#    gets done), and restarting the script fails because run_alone()'s lock
+#    file already exists.
+- name: Remove copy_nonpartitioned_sentences_to_partitions lock file
+  file:
+    path: "/var/run/lock/d49860781c55a8eb64bfeee811e126261ec8a60fe93794b5cfbfbfac68d0f9ca"
+    state: absent
+  become: true
+  become_user: "{{ mediacloud_user }}"
+  tags:
+    - deploy    
 
 - name: Start Supervisor
   tags:
@@ -204,7 +228,7 @@
       command: "{{ mediacloud_root }}/supervisor/supervisorctl.sh status"
       register: supervisorctl_status
       failed_when: >
-        supervisorctl_status | failed or
+        supervisorctl_status is failed or
         'BACKOFF' in supervisorctl_status.stdout or
         'EXITED' in supervisorctl_status.stdout or
         'FATAL' in supervisorctl_status.stdout or

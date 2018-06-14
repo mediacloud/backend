@@ -1,10 +1,9 @@
-#!/usr/bin/env python3.5
+#!/usr/bin/env python
 """Topic Maapper job that fetches a link and either matches it to an existing story or generates a story from it."""
 
 import datetime
 import time
 import traceback
-import tracemalloc
 import typing
 
 from mediawords.db import connect_to_db
@@ -42,8 +41,6 @@ class FetchLinkJob(AbstractJob):
 
     _consecutive_requeues = 0
 
-    _job_runs = 0
-
     @classmethod
     def run_job(
             cls,
@@ -67,12 +64,6 @@ class FetchLinkJob(AbstractJob):
             raise McFetchLinkJobException("'topic_fetch_urls_id' is None.")
 
         log.info("Start fetch for topic_fetch_url %d" % topic_fetch_urls_id)
-
-        if cls._job_runs == 0:
-            log.info("Start tracemalloc")
-            tracemalloc.start(10)
-
-        cls._job_runs += 1
 
         try:
             db = connect_to_db()
@@ -111,13 +102,6 @@ class FetchLinkJob(AbstractJob):
 
         log.info("Finished fetch for topic_fetch_url %d" % topic_fetch_urls_id)
 
-        if cls._job_runs % 100 == 0:
-            log.info("tracemalloc stats:")
-            snapshot = tracemalloc.take_snapshot()
-            stats = snapshot.statistics('lineno')
-
-            [log.info(stat) for stat in stats[:10]]
-
     @classmethod
     def queue_name(cls) -> str:
         """Set queue name."""
@@ -125,5 +109,8 @@ class FetchLinkJob(AbstractJob):
 
 
 if __name__ == '__main__':
-    app = JobBrokerApp(job_class=FetchLinkJob)
-    app.start_worker()
+    try:
+        app = JobBrokerApp(job_class=FetchLinkJob)
+        app.start_worker()
+    except BaseException as e:
+        print(str(e))

@@ -152,8 +152,7 @@ sub _get_test_content
 }
 
 # adds a 'download' and a 'content' field to each story in the test story stack.  stores the content in the download
-# store.
-# uses the story->{ content } field if present or otherwise generates the content using _get_test_content()
+# store.  uses the story->{ content } field if present or otherwise generates the content using _get_test_content()
 sub add_content_to_test_story($$$)
 {
     my ( $db, $story, $feed ) = @_;
@@ -205,6 +204,9 @@ sub add_content_to_test_story_stack($$)
 
     DEBUG( "adding content to test story stack ..." );
 
+    # we pseudo-randomly generate test content, but we want repeatable tests
+    srand( 3 );
+
     for my $medium ( values( %{ $story_stack } ) )
     {
         for my $feed ( values( %{ $medium->{ feeds } } ) )
@@ -243,7 +245,7 @@ sub create_test_user($$)
         LOGCONFESS "Adding new user failed: $@";
     }
 
-    my $user_info = MediaWords::DBI::Auth::Profile::user_info( $db, $email );
+    my $user_info = MediaWords::DBI::Auth::Info::user_info( $db, $email );
     my $api_key = $user_info->global_api_key();
 
     return $api_key;

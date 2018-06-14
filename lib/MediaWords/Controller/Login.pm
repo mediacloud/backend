@@ -285,7 +285,7 @@ sub activate : Local
     $c->stash->{ email } = $email;
 
     my $user_info;
-    eval { $user_info = MediaWords::DBI::Auth::Profile::user_info( $c->dbis, $email ); };
+    eval { $user_info = MediaWords::DBI::Auth::Info::user_info( $c->dbis, $email ); };
     if ( $@ or ( !$user_info ) )
     {
         ERROR "User $email does not exist.";
@@ -369,13 +369,14 @@ sub register : Local
 
     # Add user
     eval {
+        my $role_ids = MediaWords::DBI::Auth::Roles::default_role_ids( $db );
         my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
-            email     => $user_email,
-            full_name => $form->param_value( 'full_name' ),
-            notes     => $form->param_value( 'notes' ),
-            role_ids  => MediaWords::DBI::Auth::Roles::default_role_ids( $db ),
-            active    => 0,                                                      # user has to activate own account via email
-            password  => $form->param_value( 'password' ),
+            email           => $user_email,
+            full_name       => $form->param_value( 'full_name' ),
+            notes           => $form->param_value( 'notes' ),
+            role_ids        => $role_ids,
+            active          => 0,                                         # user has to activate own account via email
+            password        => $form->param_value( 'password' ),
             password_repeat => $form->param_value( 'password_repeat' ),
             activation_url  => $c->uri_for( '/login/activate' ),
         );

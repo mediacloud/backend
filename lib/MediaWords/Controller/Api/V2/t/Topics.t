@@ -86,7 +86,7 @@ SQL
     my $got = MediaWords::Controller::Api::V2::Topics::_is_mc_queue_user( $db, $auth_users_id );
     ok( !$got, "$label default user should be public" );
 
-    for my $role ( @{ $MediaWords::DBI::Auth::Roles::List::TOPIC_MC_QUEUE_ROLES } )
+    for my $role ( @{ MediaWords::DBI::Auth::Roles::List::topic_mc_queue_roles() } )
     {
         $db->query( "delete from auth_users_roles_map where auth_users_id = ?", $auth_users_id );
         $db->query( <<SQL, $auth_users_id, $MediaWords::DBI::Auth::Roles::List::ADMIN );
@@ -470,6 +470,13 @@ SQL
     my ( $seeds_count ) = $db->query( "select count(*) from topic_seed_urls where topics_id= ?", $topics_id )->flat();
     is( $seeds_count, $num_stories, "topics reset: seed urls before reset" );
 
+    $db->update_by_id( 'topics', $topic->{ topics_id }, { state => 'running' } );
+
+    # this should generate an erro since the topic is running
+    test_put( "/api/v2/topics/$topic->{ topics_id }/reset", {}, 1 );
+
+    $db->update_by_id( 'topics', $topic->{ topics_id }, { state => 'error', message => 'test message' } );
+
     test_put( "/api/v2/topics/$topic->{ topics_id }/reset", {} );
 
     my ( $got_stories_count ) = $db->query( "select count(*) from topic_stories where topics_id = ?", $topics_id )->flat;
@@ -484,6 +491,8 @@ SQL
     my $reset_topic = $db->find_by_id( 'topics', $topics_id );
 
     ok( !$reset_topic->{ solr_seed_query_run }, "topics reset: solr_seed_query_run false after reset" );
+    is( $topic->{ state }, 'created but not queued', "topics_reset: state after rest" );
+    ok( !$topic->{ message }, "topics_reset: null message" );
 }
 
 sub test_topics

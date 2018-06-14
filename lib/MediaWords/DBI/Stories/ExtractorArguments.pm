@@ -31,7 +31,6 @@ sub new($;$)
     $self->{ _no_dedup_sentences }       = $args ? $args->{ no_dedup_sentences }       : 0;
     $self->{ _no_delete }                = $args ? $args->{ no_delete }                : 0;
     $self->{ _no_tag_extractor_version } = $args ? $args->{ no_tag_extractor_version } : 0;
-    $self->{ _skip_bitly_processing }    = $args ? $args->{ skip_bitly_processing }    : 0;
     $self->{ _use_cache }                = $args ? $args->{ use_cache }                : undef;
     $self->{ _use_existing }             = $args ? $args->{ use_existing }             : undef;
 
@@ -54,12 +53,6 @@ sub no_tag_extractor_version($)
 {
     my $self = shift;
     return $self->{ _no_tag_extractor_version };
-}
-
-sub skip_bitly_processing($)
-{
-    my $self = shift;
-    return $self->{ _skip_bitly_processing };
 }
 
 sub use_cache($)

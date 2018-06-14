@@ -6,7 +6,8 @@ use warnings;
 use English '-no_match_vars';
 
 use Data::Dumper;
-use Test::More tests => 4;
+use Encode;
+use Test::More tests => 7;
 use Test::Deep;
 
 use MediaWords::StoryVectors;
@@ -78,18 +79,72 @@ sub test_dedup_sentences
     cmp_deeply( $story_a->{ ds }, $story_a->{ sentences }, 'story a' );
     cmp_deeply( $story_b->{ ds }, [ 'bar foo baz', 'foo bar baz' ], 'story b' );
     cmp_deeply( $story_c->{ ds }, $story_c->{ sentences }, 'story c' );
+
+    my ( $expected_stat_sentences ) = $db->query(
+        "select count(*) from story_sentences where media_id = ? and publish_date::date = ?::date",
+        $medium->{ media_id }, $story_a->{ publish_date } )->flat();
+
+    my ( $got_stat_sentences ) = $db->query(
+        "select num_sentences from media_stats where media_id = ? and stat_date = ?::date",
+        $medium->{ media_id }, $story_a->{ publish_date } )->flat();
+
+    is( $got_stat_sentences, $expected_stat_sentences, "insert story sentences: media_stats" );
+}
+
+sub test_delete_story_sentences($)
+{
+    my ( $db ) = @_;
+
+    my $label = 'delete_story_sentences';
+    my $medium = MediaWords::Test::DB::create_test_medium( $db, $label );
+    my $feed = MediaWords::Test::DB::create_test_feed( $db, $label, $medium );
+
+    my $stories = [ map { MediaWords::Test::DB::create_test_story( $db, "$label $_", $feed ) } ( 1 .. 10 ) ];
+
+    # make sure nothing breaks when there are not sentences for a story
+    MediaWords::StoryVectors::_delete_story_sentences( $db, $stories->[ 0 ] );
+
+    my $test_story = pop( @{ $stories } );
+    my $num_sentences = 12;
+    $db->query( <<SQL, $num_sentences, $test_story->{ stories_id } );
+insert into story_sentences (sentence, sentence_number, stories_id, media_id, publish_date )
+    select 'sentence ' || n::text, n, stories_id, media_id, publish_date
+        from stories s
+            cross join ( select generate_series(1, ?) as n ) a
+        where s.stories_id = ?
+SQL
+
+    my $start_num_sentences = 100;
+    $db->query(
+        "update media_stats set num_sentences = ? where media_id = ? and stat_date = ?::date",
+        $start_num_sentences, $test_story->{ media_id }, $test_story->{ publish_date }
+    );
+
+    MediaWords::StoryVectors::_delete_story_sentences( $db, $test_story );
+
+    my ( $got_num_sentences ) = $db->query(
+        "select count(*) from story_sentences where stories_id = ?", $test_story->{ stories_id } )->flat();
+
+    is ( $got_num_sentences, 0, "$label story_sentences count" );
+
+    my ( $got_stats_sentences ) = $db->query(
+        "select num_sentences from media_stats where media_id = ? and stat_date = ?::date",
+        $test_story->{ media_id }, $test_story->{ publish_date } )->flat();
+
+    is ( $got_stats_sentences, $start_num_sentences - $num_sentences, "$label media_stats" );
+}
+
+sub run_database_tests($)
+{
+    my ( $db ) = @_;
+
+    test_dedup_sentences( $db );
+    test_delete_story_sentences( $db );
 }
 
 sub main
 {
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            use Encode;
-            my ( $db ) = @_;
-
-            test_dedup_sentences( $db );
-        }
-    );
+    MediaWords::Test::DB::test_on_test_database( \&run_database_tests );
 }
 
 main();

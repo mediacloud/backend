@@ -32,19 +32,23 @@ sub get_name_search_clause
 
     return 'and false' unless ( length( $v ) > 2 );
 
-    my $qv = $c->dbis->quote( '%' . $v . '%' );
+    my $temp_tag_sets = 'name_search_tag_sets';
+    my $temp_tags     = 'name_search_tags';
+
+    my $db = $c->dbis;
+
+    # create these as temp tables to force postgres planner to use tags fts index
+    $db->query( <<SQL, $v );
+create temporary table $temp_tags as
+select tags_id
+    from tags t
+    where
+        to_tsvector('english', t.tag || ' ' || t.label) @@ plainto_tsquery(?)
+SQL
 
     return <<END;
-and tags_id in (
-    select t.tags_id
-        from tags t
-            join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
-        where
-            t.tag ilike $qv or
-            t.label ilike $qv or
-            ts.name ilike $qv or
-            ts.label ilike $qv
-)
+and (
+    ( tags_id in ( select tags_id from $temp_tags ) ) )
 END
 }
 
@@ -139,7 +143,7 @@ END
 
 sub get_update_fields($)
 {
-    return [ qw/tag label description show_on_media show_on_stories is_static/ ];
+    return [ qw/tag label description show_on_media show_on_stories is_static tag_sets_id/ ];
 }
 
 sub update : Local : ActionClass('MC_REST')

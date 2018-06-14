@@ -1,32 +1,40 @@
 package MediaWords::DBI::Auth::User::CurrentUser::APIKey;
 
-#
-# API key object
-#
-
 use strict;
 use warnings;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use Moose;
-
-has 'api_key'    => ( is => 'rw', isa => 'Str' );
-has 'ip_address' => ( is => 'rw', isa => 'Maybe[Str]' );
-
-sub BUILD
+sub new
 {
-    my $self = shift;
+    my ( $class, %args ) = @_;
 
-    unless ( $self->api_key() )
+    my $self = {};
+    bless $self, $class;
+
+    unless ( $args{ python_object } )
     {
-        LOGCONFESS "API key is unset.";
+        LOGCONFESS "Python API key object is not set.";
     }
 
-    # IP address might be undef, which means that it's global API key
+    $self->{ _python_object } = $args{ python_object };
+
+    return $self;
 }
 
-no Moose;    # gets rid of scaffolding
+sub api_key($)
+{
+    my ( $self ) = @_;
+
+    return $self->{ _python_object }->api_key();
+}
+
+sub ip_address($)
+{
+    my ( $self ) = @_;
+
+    return $self->{ _python_object }->ip_address();
+}
 
 1;

@@ -25,47 +25,57 @@ if [ -z "$LXD_PROFILE" ]; then
     exit 1
 fi
 
-if [[ $(sudo lxc list | grep $MC_LXD_CONTAINER | wc -l) -ge 1 ]]; then
+if [[ $(sudo $LXC_BIN list | grep $MC_LXD_CONTAINER | wc -l) -ge 1 ]]; then
     echo "Destroying old container..."
-    sudo lxc delete --force $MC_LXD_CONTAINER
+    sudo $LXC_BIN delete --force $MC_LXD_CONTAINER
 fi
 
 echo "Launching container..."
-sudo lxc launch $MC_LXD_IMAGE $MC_LXD_CONTAINER --profile "$LXD_PROFILE"
+sudo $LXC_BIN launch $MC_LXD_IMAGE $MC_LXD_CONTAINER --profile "$LXD_PROFILE"
 
 # https://github.com/lxc/lxd/issues/3700#issuecomment-323903679
 while :; do
-    sudo lxc exec $MC_LXD_CONTAINER -- getent passwd ubuntu && break
+    sudo $LXC_BIN exec $MC_LXD_CONTAINER -- getent passwd ubuntu && break
     echo "Waiting for 'ubuntu' user to appear..."
     sleep 1
 done
 
 # https://github.com/lxc/lxd/issues/3804#issuecomment-329998197
 while :; do
-    sudo lxc file pull $MC_LXD_CONTAINER/etc/resolv.conf - | grep -q nameserver && break
+    sudo $LXC_BIN file pull $MC_LXD_CONTAINER/etc/resolv.conf - | grep -q nameserver && break
     echo "Waiting for nameservers to appear in /etc/resolv.conf..."
     sleep 1
 done
 
 echo "Testing network..."
-sudo lxc exec mediacloud-travis -- ping github.com -c 2
+sudo $LXC_BIN exec mediacloud-travis -- ping github.com -c 2
 
 export MC_LXD_USER_HOME=/home/$MC_LXD_USER/
 export MC_LXD_MEDIACLOUD_ROOT=$MC_LXD_USER_HOME/mediacloud/
 
 echo "Creating test user on container..."
-sudo lxc exec $MC_LXD_CONTAINER -- /bin/bash -c "useradd -ms /bin/bash $MC_LXD_USER" || echo "User already exists?"
-echo "$MC_LXD_USER ALL=(ALL) NOPASSWD:ALL" | sudo lxc exec $MC_LXD_CONTAINER -- /bin/bash -c "tee -a /etc/sudoers"
+sudo $LXC_BIN exec $MC_LXD_CONTAINER -- /bin/bash -c "useradd -ms /bin/bash $MC_LXD_USER" || echo "User already exists?"
+echo "$MC_LXD_USER ALL=(ALL) NOPASSWD:ALL" | sudo $LXC_BIN exec $MC_LXD_CONTAINER -- /bin/bash -c "tee -a /etc/sudoers"
 
 echo "Installing some tools..."
-sudo lxc exec $MC_LXD_CONTAINER -- /bin/bash -c "apt-get -y update"
-sudo lxc exec $MC_LXD_CONTAINER -- /bin/bash -c "apt-get -y --no-install-recommends install build-essential file python python-dev python-pip python-setuptools"
-sudo lxc exec $MC_LXD_CONTAINER -- /bin/bash -c "pip install --upgrade pip"
+sudo $LXC_BIN exec $MC_LXD_CONTAINER -- /bin/bash -c "apt-get -y update"
+sudo $LXC_BIN exec $MC_LXD_CONTAINER -- /bin/bash -c "apt-get -y --no-install-recommends install build-essential file python python-dev python-pip python-setuptools"
+sudo $LXC_BIN exec $MC_LXD_CONTAINER -- /bin/bash -c "pip install --upgrade pip"
+
+# Otherwise fails with:
+#
+#     ERROR! Unexpected Exception, this is probably a bug:
+#     (cryptography 1.2.3 (/usr/lib/python3/dist-packages),
+#     Requirement.parse('cryptography>=1.5'), {'paramiko'})
+#
+echo "Upgrading pyOpenSSL..."
+sudo $LXC_BIN exec $MC_LXD_CONTAINER -- /bin/bash -c "apt-get --auto-remove --yes remove python-openssl"
+sudo $LXC_BIN exec $MC_LXD_CONTAINER -- /bin/bash -c "pip install --upgrade pyOpenSSL"
 
 echo "Installing Ansible and ansible-lint..."
-sudo lxc exec $MC_LXD_CONTAINER -- /bin/bash -c "pip install --upgrade ansible"
-sudo lxc exec $MC_LXD_CONTAINER -- /bin/bash -c "pip install --upgrade ansible-lint"
+sudo $LXC_BIN exec $MC_LXD_CONTAINER -- /bin/bash -c "pip install --upgrade ansible"
+sudo $LXC_BIN exec $MC_LXD_CONTAINER -- /bin/bash -c "pip install --upgrade ansible-lint"
 
 # travis.yml won't do it to Travis runs will waste time reinstalling it again and again
 echo "Installing Apache to container..."
-sudo lxc exec $MC_LXD_CONTAINER -- /bin/bash -c "apt-get -y --no-install-recommends install apache2 libapache2-mod-fcgid"
+sudo $LXC_BIN exec $MC_LXD_CONTAINER -- /bin/bash -c "apt-get -y --no-install-recommends install apache2 libapache2-mod-fcgid"

@@ -44,7 +44,10 @@ env:
         # Superglue test feed URL:
         #
         # * MC_SUPERGLUE_TEST_URL
-        - secure: "BzZcSjsuihkDowYPRz0F2HRiZ9LbEJkPXJpL8sRTBp1exbKAyfQ2+pXm3k2d34utp/gNiLlL+GFDmm7dr9wZ82DSqouBC8UJa3gaL/AeBrdXngaJbBeUqIWiDhsZFkf5F3V0J3r+7CxEAQVhU8hAPE7LB4VFjSYgXGZfoAMcdCw="
+        #
+        # (Disabled because Superglue live feeds are currently down)
+        #
+        #- secure: "BzZcSjsuihkDowYPRz0F2HRiZ9LbEJkPXJpL8sRTBp1exbKAyfQ2+pXm3k2d34utp/gNiLlL+GFDmm7dr9wZ82DSqouBC8UJa3gaL/AeBrdXngaJbBeUqIWiDhsZFkf5F3V0J3r+7CxEAQVhU8hAPE7LB4VFjSYgXGZfoAMcdCw="
 
     matrix:
 

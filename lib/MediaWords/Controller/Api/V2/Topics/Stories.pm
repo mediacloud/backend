@@ -194,7 +194,7 @@ SQL
     MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $foci, 'foci' );
 }
 
-# accept sort_param of inlink, social, bitly, facebook, or twitter and
+# accept sort_param of inlink, facebook, or twitter and
 # return a sort clause for the story_link_counts table, aliased as 'slc',
 # that will sort by the relevant field
 sub _get_sort_clause
@@ -204,21 +204,18 @@ sub _get_sort_clause
     $sort_param ||= 'inlink';
 
     my $sort_field_lookup = {
-        inlink            => 'slc.media_inlink_count',
-        inlink_count      => 'slc.media_inlink_count',
-        bitly             => 'slc.bitly_click_count',
-        bitly_click_count => 'slc.bitly_click_count',
-        social            => 'slc.bitly_click_count',
-        facebook          => 'slc.facebook_share_count',
-        twitter           => 'slc.simple_tweet_count',
-        random            => 'random()'
+        inlink       => 'slc.media_inlink_count',
+        inlink_count => 'slc.media_inlink_count',
+        facebook     => 'slc.facebook_share_count',
+        twitter      => 'slc.simple_tweet_count',
+        random       => 'random()'
     };
 
     my $sort_field = $sort_field_lookup->{ lc( $sort_param ) }
       || die( "unknown sort value: '$sort_param'" );
 
     # md5 hashing is to make tie breaks random but consistent
-    return "$sort_field desc nulls last, md5( slc.stories_id::text )";
+    return "$sort_field desc nulls last";
 }
 
 sub list_GET
@@ -241,21 +238,30 @@ sub list_GET
 
     my $extra_clause = _get_extra_where_clause( $c, $timespans_id );
 
-    my $limit  = $c->req->params->{ limit };
-    my $offset = $c->req->params->{ offset };
+    my $limit = $c->req->params->{ limit };
+    my $offset = $c->req->params->{ offset } || 0;
 
-    my $stories = $db->query( <<SQL, $timespans_id, $snapshots_id, $limit, $offset )->hashes;
-select s.*, slc.*, m.name media_name
-    from snap.story_link_counts slc
-        join snap.stories s on slc.stories_id = s.stories_id
-        join snap.media m on s.media_id = m.media_id
-    where slc.timespans_id = \$1
-        and s.snapshots_id = \$2
-        and m.snapshots_id = \$2
-        $extra_clause
-    order by $sort_clause
-    limit \$3 offset \$4
+    $db->query( <<SQL, $timespans_id, $limit, $offset );
+create temporary table _slc as
+    select *
+        from snap.story_link_counts slc
+        where timespans_id = \$1
+        order by timespans_id, $sort_clause
+        limit \$2 offset \$3
 SQL
+
+    my $stories = $db->query( <<SQL, $snapshots_id )->hashes;
+select s.*, slc.*, m.name media_name
+    from _slc slc
+        join snap.stories s on slc.stories_id = s.stories_id        
+        join snap.media m on s.media_id = m.media_id    
+    where 
+        s.snapshots_id = \$1      
+        and m.snapshots_id = \$1
+    order by slc.timespans_id, $sort_clause, md5( slc.stories_id::text )    
+SQL
+
+    $db->query( "discard temp" );
 
     _add_foci_to_stories( $db, $timespan, $stories );
 
@@ -324,24 +330,28 @@ sub count_GET
 {
     my ( $self, $c ) = @_;
 
-    my $timespan     = MediaWords::TM::set_timespans_id_param( $c );
-    my $timespans_id = $timespan->{ timespans_id };
-
     my $db = $c->dbis;
+
+    my $timespan = MediaWords::TM::require_timespan_for_topic(
+        $c->dbis,
+        $c->stash->{ topics_id },
+        $c->req->params->{ timespans_id },
+        $c->req->params->{ snapshots_id }
+    );
 
     my $q = $c->req->params->{ q };
 
-    if ( $q )
-    {
-        $c->req->params->{ q } = "timespans_id:$timespans_id and ( $q )";
-        return $c->controller( 'Api::V2::Stories_Public' )->count_GET( $c );
-    }
-    else
-    {
-        my ( $n ) =
-          $db->query( "select count(*) from snap.story_link_counts where timespans_id = \$1", $timespans_id )->flat;
-        $self->status_ok( $c, entity => { count => $n } );
-    }
+    my $timespan_clause = "timespans_id:$timespan->{ timespans_id }";
+
+    $q = $q ? "$timespan_clause and ( $q )" : $timespan_clause;
+
+    $c->req->params->{ q } = $q;
+
+    $c->req->params->{ split_start_date } ||= substr( $timespan->{ start_date }, 0, 12 );
+    $c->req->params->{ split_end_date }   ||= substr( $timespan->{ end_date },   0, 12 );
+
+    return $c->controller( 'Api::V2::Stories_Public' )->count_GET( $c );
+
 }
 
 1;

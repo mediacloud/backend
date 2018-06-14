@@ -8,13 +8,16 @@ backoff==1.4.3
 boto3==1.4.7
 
 # Job broker
-Celery==4.1.0
+Celery==4.1.1
 
 # Language identification
 cld2-cffi==0.1.4
 
 # Unit test coverage
 coverage==4.4.2
+
+# some modules require latest version of this
+cryptography==2.2.2
 
 # Hindi stemming
 CyHunspell==1.2.1

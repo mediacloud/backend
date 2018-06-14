@@ -76,6 +76,10 @@ select m.media_id, coalesce( h.$field, 0 )::float $field from media m left join 
 SQL
     }
 
+    $media = $db->attach_child_query( $media, <<SQL, 'start_date', 'media_id', $single );
+select m.media_id, coalesce( start_date,  now() )::date start_date from media m left join media_health h using ( media_id )
+SQL
+
     my $media_ids_list = join( ',', map { $_->{ media_id } } @{ $media } ) || '-1';
     my $tags = $db->query( <<END )->hashes;
 select mtm.media_id, t.tags_id, t.tag, t.label, t.description, mtm.tagged_date, ts.tag_sets_id, ts.name as tag_set,
@@ -524,8 +528,8 @@ sub submit_suggestion_GET
     my $feed_url = $data->{ feed_url } || 'none';
     my $reason   = $data->{ reason } || 'none';
 
-    my $user = MediaWords::DBI::Auth::Profile::user_info( $db, $c->user->username );
-    my $auth_users_id = $user->id();
+    my $user = MediaWords::DBI::Auth::Info::user_info( $db, $c->user->username );
+    my $auth_users_id = $user->user_id();
 
     $db->begin;
 
@@ -618,8 +622,8 @@ sub mark_suggestion_PUT
 
     my $db = $c->dbis;
 
-    my $user = MediaWords::DBI::Auth::Profile::user_info( $db, $c->user->username );
-    my $auth_users_id = $user->id();
+    my $user = MediaWords::DBI::Auth::Info::user_info( $db, $c->user->username );
+    my $auth_users_id = $user->user_id();
 
     die( "status must be pending, approved, or rejected" )
       unless ( grep { $_ eq $data->{ status } } ( qw/pending approved rejected/ ) );

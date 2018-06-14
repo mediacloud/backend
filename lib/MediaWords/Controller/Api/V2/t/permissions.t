@@ -67,7 +67,7 @@ my $_url_permission_types = {
     '/api/v2/stats/list'                          => 'public',
     '/api/v2/stories/cliff'                       => 'admin_read',
     '/api/v2/stories/count'                       => 'public',
-    '/api/v2/stories/fetch_bitly_clicks'          => 'admin_read',
+    '/api/v2/stories/tag_count'                   => 'public',
     '/api/v2/stories/list'                        => 'admin_read',
     '/api/v2/stories/nytlabels'                   => 'admin_read',
     '/api/v2/stories/put_tags'                    => 'stories_edit',
@@ -75,10 +75,12 @@ my $_url_permission_types = {
     '/api/v2/stories/update'                      => 'stories_edit',
     '/api/v2/stories/word_matrix'                 => 'public',
     '/api/v2/stories_public/count'                => 'public',
+    '/api/v2/stories_public/tag_count'            => 'public',
     '/api/v2/stories_public/list'                 => 'public',
     '/api/v2/stories_public/single'               => 'public',
     '/api/v2/stories_public/word_matrix'          => 'public',
     '/api/v2/storiesbase/count'                   => 'public',
+    '/api/v2/storiesbase/tag_count'               => 'public',
     '/api/v2/storiesbase/list'                    => 'public',
     '/api/v2/storiesbase/single'                  => 'public',
     '/api/v2/storiesbase/word_matrix'             => 'public',
@@ -365,7 +367,7 @@ sub find_or_add_test_user($$)
     my $password = '123456789';
 
     my $user;
-    eval { $user = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
+    eval { $user = MediaWords::DBI::Auth::Info::user_info( $db, $email ); };
     if ( ( !$@ ) and $user )
     {
         return $user;
@@ -392,7 +394,7 @@ sub find_or_add_test_user($$)
         die( "error adding $role user: $@" );
     }
 
-    return MediaWords::DBI::Auth::Profile::user_info( $db, $email );
+    return MediaWords::DBI::Auth::Info::user_info( $db, $email );
 }
 
 # add and return a test user with the given permission for the given topic.
@@ -406,7 +408,7 @@ sub add_topic_user($$$)
         'topic_permissions',
         {
             topics_id     => $topic->{ topics_id },
-            auth_users_id => $user->id(),
+            auth_users_id => $user->user_id(),
             permission    => $permission
         }
     );

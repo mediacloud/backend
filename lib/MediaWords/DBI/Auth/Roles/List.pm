@@ -1,9 +1,5 @@
 package MediaWords::DBI::Auth::Roles::List;
 
-#
-# Authentication roles (keep in sync with "auth_roles" table)
-#
-
 use strict;
 use warnings;
 
@@ -12,31 +8,26 @@ use MediaWords::CommonLibs;
 
 use Readonly;
 
-# Do everything, including editing users
-Readonly our $ADMIN => 'admin';
+import_python_module( __PACKAGE__, 'mediawords.dbi.auth.roles.list' );
 
-# Read-only access to admin interface
-Readonly our $ADMIN_READONLY => 'admin-readonly';
+# Inline::Perl doesn't seem to know how to call static methods
+my $user_roles = MediaWords::DBI::Auth::Roles::List::UserRoles->new();
 
-# Add / edit media; includes feeds
-Readonly our $MEDIA_EDIT => 'media-edit';
+# Pointers to Python variables
+Readonly our $ADMIN => $user_roles->admin();
 
-# Add / edit stories
-Readonly our $STORIES_EDIT => 'stories-edit';
+Readonly our $ADMIN_READONLY => $user_roles->admin_readonly();
 
-# Topic mapper; includes media and story editing
-Readonly our $TM => 'tm';
+Readonly our $MEDIA_EDIT => $user_roles->media_edit();
 
-# topic mapper; excludes media and story editing
-Readonly our $TM_READONLY => 'tm-readonly';
+Readonly our $STORIES_EDIT => $user_roles->stories_edit();
 
-# Access to the stories API
-Readonly our $STORIES_API => 'stories-api';
+Readonly our $TM => $user_roles->tm();
 
-# Access to the /search pages
-Readonly our $SEARCH => 'search';
+Readonly our $TM_READONLY => $user_roles->tm_readonly();
 
-# roles that are allows to queue a topic into the 'mc' queue instead of the 'public' queue
-Readonly::Scalar our $TOPIC_MC_QUEUE_ROLES => [ $ADMIN, $ADMIN_READONLY, $MEDIA_EDIT, $STORIES_EDIT, $TM ];
+Readonly our $STORIES_API => $user_roles->stories_api();
+
+Readonly our $SEARCH => $user_roles->search();
 
 1;
