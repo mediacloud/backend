@@ -1728,13 +1728,13 @@ create index topic_merged_stories_map_story on topic_merged_stories_map ( target
 -- track self liks and all links for a given domain within a given topic
 create table topic_domains (
     topic_domains_id        serial primary key,
-    topics_id               int not null
+    topics_id               int not null,
     domain                  text not null,
     self_links              int not null default 0,
     all_links               int not null default 0
-)
+);
 
-create unique index domain_topic_domain on topic_domains (topics_id, md5(domain));
+create unique index topic_domains_domain on topic_domains (topics_id, md5(domain));
 
 
 create table topic_stories (
