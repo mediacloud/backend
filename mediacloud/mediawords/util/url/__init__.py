@@ -528,7 +528,7 @@ def get_url_distinctive_domain(url: str) -> str:
 
     except Exception as ex:
         log.debug("get_url_distinctive_domain falling back to url: " + str(ex))
-        return url.lower()
+        return str(url).lower()
 
 
 class McHTTPURLsInStringException(Exception):

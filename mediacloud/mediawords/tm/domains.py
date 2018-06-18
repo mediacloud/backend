@@ -5,13 +5,13 @@ import re
 from mediawords.db.handler import DatabaseHandler
 import mediawords.util.log
 
-logger = mediawords.util.log.create_logger(__name__)
+log = mediawords.util.log.create_logger(__name__)
 
 # max number of self links from a single domain
-MAX_SELF_LINKS = 1000
+MAX_SELF_LINKS = 200
 
 # regex for urls that should always be skipped if the domain is linking to itself
-SKIP_SELF_LINK_RE = r'/(?:tag|category|author|search)'
+SKIP_SELF_LINK_RE = r'\/(?:tag|category|author|search)'
 
 
 def increment_domain_links(db: DatabaseHandler, topic_link: dict) -> None:
@@ -34,8 +34,10 @@ def increment_domain_links(db: DatabaseHandler, topic_link: dict) -> None:
         """
         insert into topic_domains (topics_id, domain, self_links, all_links)
             values(%(topics_id)s, %(domain)s, %(self_link)s, 1)
-            on conflict (topics_id, md5(domain))
-                do update set self_links = self_links + %(self_link)s, all_links = all_links + 1
+            on conflict (topics_id, domain)
+                do update set
+                    self_links = topic_domains.self_links + %(self_link)s,
+                    all_links = topic_domains.all_links + 1
         """,
         {'topics_id': topic_link['topics_id'], 'domain': redirect_url_domain, 'self_link': self_link})
 
@@ -50,7 +52,7 @@ def skip_self_linked_domain(db: DatabaseHandler, topic_fetch_url: dict) -> bool:
 
     Always return false if topic_fetch_url['topic_links_id'] is None.
     """
-    if topic_fetch_url['topic_links_id'] is None:
+    if 'topic_links_id' not in topic_fetch_url:
         return False
 
     topic_link = db.require_by_id('topic_links', topic_fetch_url['topic_links_id'])
@@ -63,17 +65,17 @@ def skip_self_linked_domain(db: DatabaseHandler, topic_fetch_url: dict) -> bool:
     redirect_url = topic_link.get('redirect_url', topic_link['url'])
     redirect_url_domain = mediawords.util.url.get_url_distinctive_domain(redirect_url)
 
-    link_domain = redirect_url_domain or url_domain
+    link_domain = redirect_url_domain if redirect_url_domain else url_domain
 
     if story_domain not in (url_domain, redirect_url_domain):
         return False
 
-    if re.search(SKIP_SELF_LINK_RE, link_domain, flags=re.I):
+    if re.search(SKIP_SELF_LINK_RE, topic_link['url'] + topic_link['redirect_url'], flags=re.I):
         return True
 
     topic_domain = db.query(
         "select * from topic_domains where topics_id = %(a)s and md5(domain) = md5(%(b)s)",
-        {'a': topic_fetch_url['topics_id'], 'b': link_domain}).hash
+        {'a': topic_fetch_url['topics_id'], 'b': link_domain}).hash()
 
     if topic_domain and topic_domain['self_links'] > MAX_SELF_LINKS:
         return True
