@@ -30,14 +30,14 @@ Readonly my $JOB_STATE_FIELD_LIST => "job_states_id, ( args->>'media_id' )::int 
 sub default_output_fields
 {
     return [
-        qw ( name url media_id feeds_id type feed_type active last_new_story_time
+        qw ( name url media_id feeds_id type feed_type active feed_status last_new_story_time
           last_attempted_download_time last_successful_download_time )
     ];
 }
 
 sub has_extra_data
 {
-    # Just to add deprecated "feed_type"
+    # Just to add deprecated "feed_type" and "feed_status"
     return 1;
 }
 
@@ -47,6 +47,9 @@ sub add_extra_data
 
     # Copy "type" to deprecated "feed_type"
     $feeds = [ map { $_->{ feed_type } = $_->{ type }; $_ } @{ $feeds } ];
+
+    # Copy "active" to deprecated "feed_status"
+    $feeds = [ map { $_->{ feed_status } = $_->{ active } ? 'active' : 'inactive'; $_ } @{ $feeds } ];
 
     return $feeds;
 }
@@ -63,7 +66,7 @@ sub list_query_filter_field
 
 sub get_update_fields($)
 {
-    return [ qw/name url type feed_type active/ ];
+    return [ qw/name url type feed_type active feed_status/ ];
 }
 
 sub update : Local : ActionClass('MC_REST')
@@ -87,6 +90,20 @@ sub update_PUT
     {
         $input->{ type } = $input->{ feed_type };
         delete $input->{ feed_type };
+    }
+
+    # Rename deprecated "feed_status" to "active"
+    if ( defined $input->{ feed_status } )
+    {
+        if ( $input->{ feed_status } eq 'active' )
+        {
+            $input->{ active } = 1;
+        }
+        else
+        {
+            $input->{ active } = 0;
+        }
+        delete $input->{ feed_status };
     }
 
     my $row = $c->dbis->update_by_id( 'feeds', $data->{ feeds_id }, $input );
@@ -114,6 +131,20 @@ sub create_GET
     {
         $input->{ type } = $input->{ feed_type };
         delete $input->{ feed_type };
+    }
+
+    # Rename deprecated "feed_status" to "active"
+    if ( defined $input->{ feed_status } )
+    {
+        if ( $input->{ feed_status } eq 'active' )
+        {
+            $input->{ active } = 1;
+        }
+        else
+        {
+            $input->{ active } = 0;
+        }
+        delete $input->{ feed_status };
     }
 
     my $row = $c->dbis->create( 'feeds', $input );

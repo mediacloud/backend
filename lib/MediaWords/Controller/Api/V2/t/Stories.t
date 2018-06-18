@@ -190,7 +190,11 @@ sub test_stories_public_list($$)
         <<SQL
         select
             feeds.*,
-            feeds.type AS feed_type
+            feeds.type AS feed_type,
+            CASE
+                WHEN feeds.active = 't' THEN 'active'
+                ELSE 'inactive'
+            END AS feed_status
         FROM feeds
         WHERE feeds_id IN (SELECT feeds_id FROM feeds_stories_map)
         LIMIT 1
@@ -209,7 +213,7 @@ SQL
         ok( $expected_story,
             "stories feed story $feed_story->{ stories_id } feed $feed->{ feeds_id } matches expected story" );
         is( scalar( @{ $feed_story->{ feeds } } ), 1, "stories feed one feed returned" );
-        for my $field ( qw/name url feeds_id media_id type feed_type/ )
+        for my $field ( qw/name url feeds_id media_id type feed_type feed_status/ )
         {
             is( $feed_story->{ feeds }->[ 0 ]->{ $field }, $feed->{ $field }, "feed story field $field" );
         }

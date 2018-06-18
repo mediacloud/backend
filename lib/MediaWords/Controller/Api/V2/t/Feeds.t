@@ -35,7 +35,13 @@ sub test_feeds_list($)
             feeds.*,
 
             -- Copy "type" to deprecated "feed_type"
-            feeds.type AS feed_type
+            feeds.type AS feed_type,
+
+            -- Copy "active" to deprecated "feed_status"
+            CASE
+                WHEN feeds.active = 't' THEN 'active'
+                ELSE 'inactive'
+            END AS feed_status
             
         FROM feeds
         WHERE media_id = ?
@@ -45,7 +51,7 @@ SQL
 
     my $got_feeds = test_get( '/api/v2/feeds/list', { media_id => $medium->{ media_id } } );
 
-    my $fields = [ qw ( name url media_id feeds_id type feed_type active ) ];
+    my $fields = [ qw ( name url media_id feeds_id type feed_type active feed_status ) ];
     rows_match( $label, $got_feeds, $expected_feeds, "feeds_id", $fields );
 
     $label = "feeds/single";
