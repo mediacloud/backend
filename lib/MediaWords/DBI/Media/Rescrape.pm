@@ -52,26 +52,6 @@ END
     }
 }
 
-# (re-)add RescrapeMedia jobs for all unmoderated media
-# ("RescrapeMedia" job is "unique", so job broker will skip media
-# IDs that are already added)
-sub add_to_rescrape_media_queue_for_unmoderated_media($)
-{
-    my ( $db ) = @_;
-
-    my $media = $db->query(
-        <<EOF
-        SELECT *
-        FROM media
-        WHERE media_has_active_syndicated_feeds(media_id) = 'f'
-EOF
-    )->hashes;
-
-    map { add_to_rescrape_media_queue( $_ ) } @{ $media };
-
-    return 1;
-}
-
 # Move feed from "feeds_after_rescraping" to "feeds" table
 # Note: it doesn't create a transaction itself, so make sure to do that in a caller
 sub _move_rescraped_feed_to_feeds_table($$)
