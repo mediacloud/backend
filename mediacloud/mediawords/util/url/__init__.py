@@ -37,11 +37,18 @@ __HOMEPAGE_URL_PATH_REGEXES = [
 ]
 
 
-# noinspection SpellCheckingInspection
 def fix_common_url_mistakes(url: str) -> Optional[str]:
     """Fixes common URL mistakes (mistypes, etc.)."""
     url = decode_object_from_bytes_if_needed(url)
 
+    return fix_common_url_mistakes_no_decode(url)
+
+
+# noinspection SpellCheckingInspection
+def fix_common_url_mistakes_no_decode(url: str) -> Optional[str]:
+    """Fixes common URL mistakes (mistypes, etc.).
+
+    Don't decode_object_from_bytes.  Only safe to call from python."""
     if url is None:
         return None
 
@@ -334,16 +341,21 @@ def normalize_url_lossy(url: str) -> Optional[str]:
     See also normalize_url_lossy_version() above.
     """
     url = decode_object_from_bytes_if_needed(url)
+
+    return normalize_url_lossy_no_decode(url)
+
+
+# noinspection SpellCheckingInspection
+def normalize_url_lossy_no_decode(url: str) -> Optional[str]:
+    """Implement normalize_url_lossy as described above without calling decode_object_from_bytes_if_needed.
+
+    Only call directly from python."""
     if url is None:
         return None
     if len(url) == 0:
         return None
 
-    url = fix_common_url_mistakes(url)
-
-    if not is_http_url(url):
-        log.warning("URL is not HTTP(s): %s" % url)
-        return url
+    url = fix_common_url_mistakes_no_decode(url)
 
     url = url.lower()
 
@@ -373,7 +385,7 @@ def normalize_url_lossy(url: str) -> Optional[str]:
     # canonical_url might raise an encoding error if url is not invalid; just skip the canonical url step in the case
     # noinspection PyBroadException
     try:
-        url = canonical_url(url)
+        url = url_normalize.url_normalize(url)
     except Exception as ex:
         log.warning("Unable to get canonical URL for URL %s: %s" % (url, str(ex),))
 
