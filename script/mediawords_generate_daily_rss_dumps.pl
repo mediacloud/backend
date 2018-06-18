@@ -62,7 +62,7 @@ sub main
 
     my $db = MediaWords::DB::connect_to_db();
 
-    my $date = MediaWords::Util::SQL::increment_day( MediaWords::Util::SQL::sql_now(), 0 );
+    my $date = substr( MediaWords::Util::SQL::sql_now(), 0, 10 );
     for my $i ( 1 .. 30 )
     {
         $date = MediaWords::Util::SQL::increment_day( $date, -1 );
