@@ -133,59 +133,61 @@ class McScriptInstanceIsAlreadyRunning(McRunAloneException):
 __run_alone_function_lock_file = None
 
 
+def __function_unique_id(func: Callable) -> str:
+    """Return unique signature of the function, consisting of its absolute path and a name.
+
+    Retry locking for 5 seconds before giving up."""
+
+    function_module = inspect.getmodule(func)
+    function_signature = inspect.signature(func)
+
+    module_path = function_module.__file__
+    if not os.path.isfile(module_path):
+        raise Exception("Module '%s' for function '%s' does not exist." % (module_path, str(func)))
+
+    function_name = func.__qualname__
+    if function_name is None or len(function_name) == 0:
+        raise Exception("Unable to determine function name: %s" % str(func))
+
+    parameters_type = str(function_signature.parameters)
+    return_value_type = str(function_signature.return_annotation)
+
+    unique_id = '%(module_path)s:%(function_name)s:%(parameters)s:%(return_value)s' % {
+        'module_path': module_path,
+        'function_name': function_name,
+        'parameters': parameters_type,
+        'return_value': return_value_type,
+    }
+    return unique_id
+
+
+# noinspection PyUnusedLocal
+def __remove_run_alone_lock_file(signum: int = None,
+                                 frame: int = None,
+                                 no_exception: bool = False) -> None:
+    global __run_alone_function_lock_file
+
+    if __run_alone_function_lock_file is not None:
+        log.info("Caught SIGTERM, unlocking '%s'..." % __run_alone_function_lock_file)
+        try:
+            unlock_file(__run_alone_function_lock_file)
+        except McUnlockFileException as exception:
+            # Not critical, the lock file might have been removed by some other process
+            log.warning("Unlocking file failed: %s" % str(exception))
+    else:
+        log.debug("Nothing to unlock.")
+
+    if no_exception:
+        # noinspection PyProtectedMember
+        os._exit(signum)
+    else:
+        sys.exit(signum)
+
+
 def run_alone(isolated_function: Callable, *args, **kwargs) -> Any:
     """Run function while making sure that only a single instance of it is running."""
 
     global __run_alone_function_lock_file
-
-    def __function_unique_id(func: Callable) -> str:
-        """Return unique signature of the function, consisting of its absolute path and a name.
-
-        Retry locking for 5 seconds before giving up."""
-
-        function_module = inspect.getmodule(func)
-        function_signature = inspect.signature(func)
-
-        module_path = function_module.__file__
-        if not os.path.isfile(module_path):
-            raise Exception("Module '%s' for function '%s' does not exist." % (module_path, str(func)))
-
-        function_name = func.__qualname__
-        if function_name is None or len(function_name) == 0:
-            raise Exception("Unable to determine function name: %s" % str(func))
-
-        parameters_type = str(function_signature.parameters)
-        return_value_type = str(function_signature.return_annotation)
-
-        unique_id = '%(module_path)s:%(function_name)s:%(parameters)s:%(return_value)s' % {
-            'module_path': module_path,
-            'function_name': function_name,
-            'parameters': parameters_type,
-            'return_value': return_value_type,
-        }
-        return unique_id
-
-    # noinspection PyUnusedLocal
-    def __remove_run_alone_lock_file(signum: int = None,
-                                     frame: int = None,
-                                     no_exception: bool = False) -> None:
-        global __run_alone_function_lock_file
-
-        if __run_alone_function_lock_file is not None:
-            log.info("Caught SIGTERM, unlocking '%s'..." % __run_alone_function_lock_file)
-            try:
-                unlock_file(__run_alone_function_lock_file)
-            except McUnlockFileException as exception:
-                # Not critical, the lock file might have been removed by some other process
-                log.warning("Unlocking file failed: %s" % str(exception))
-        else:
-            log.debug("Nothing to unlock.")
-
-        if no_exception:
-            # noinspection PyProtectedMember
-            os._exit(signum)
-        else:
-            sys.exit(signum)
 
     try:
         function_unique_id = __function_unique_id(isolated_function)
