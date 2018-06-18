@@ -56,30 +56,31 @@ def set_config_file(config_file: str) -> None:
     set_config(__parse_yaml(config_file))
 
 
+def __merge_configs_internal(a: dict, b: dict, path=None) -> dict:
+    """Merges b into a (http://stackoverflow.com/a/7205107/200603)"""
+    if path is None:
+        path = []
+    for key in b:
+        if key in a:
+            if isinstance(a[key], dict) and isinstance(b[key], dict):
+                __merge_configs_internal(a[key], b[key], path + [str(key)])
+            elif a[key] == b[key]:
+                pass  # same leaf value
+            else:
+                log.debug(
+                    "Overwriting '%(key)s' default value '%(default_value)s' with custom '%(custom_value)s" % {
+                        'key': key,
+                        'default_value': a[key],
+                        'custom_value': b[key]
+                    })
+                a[key] = b[key]
+        else:
+            a[key] = b[key]
+    return a
+
+
 def __merge_configs(config: dict, static_defaults: dict) -> dict:
     """Merge configs with precedence for the mediawords.yml config."""
-
-    def __merge_configs_internal(a: dict, b: dict, path=None) -> dict:
-        """Merges b into a (http://stackoverflow.com/a/7205107/200603)"""
-        if path is None:
-            path = []
-        for key in b:
-            if key in a:
-                if isinstance(a[key], dict) and isinstance(b[key], dict):
-                    __merge_configs_internal(a[key], b[key], path + [str(key)])
-                elif a[key] == b[key]:
-                    pass  # same leaf value
-                else:
-                    log.debug(
-                        "Overwriting '%(key)s' default value '%(default_value)s' with custom '%(custom_value)s" % {
-                            'key': key,
-                            'default_value': a[key],
-                            'custom_value': b[key]
-                        })
-                    a[key] = b[key]
-            else:
-                a[key] = b[key]
-        return a
 
     merged_config = static_defaults.copy()
     merged_config = __merge_configs_internal(merged_config, config)
