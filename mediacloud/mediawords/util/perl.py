@@ -56,7 +56,7 @@ def decode_str_from_bytes_if_needed(obj: Union[bytes, str, None]) -> Union[str, 
     """Call decode_object_from_bytes_if_needed by only accept bytes and strings and only output strings."""
     decode = decode_object_from_bytes_if_needed(obj)
     if type(decode) not in (type('foo'), type(None)):
-        raise McDecodeObjectFromBytesIfNeededException("decoded object type '%s' is not str or None" % (type(obj,)))
+        raise McDecodeObjectFromBytesIfNeededException("decoded object type '%s' is not str or None" % (type(obj, )))
 
     return str(decode) if decode is not None else None
 
