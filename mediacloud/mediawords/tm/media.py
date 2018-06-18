@@ -160,7 +160,7 @@ def _update_media_normalized_urls(db: DatabaseHandler) -> None:
     total = len(media)
     for medium in media:
         i += 1
-        normalized_url = mediawords.util.url.normalize_url_lossy_no_decode(medium['url'])
+        normalized_url = mediawords.util.url.normalize_url_lossy(medium['url'])
         if normalized_url is None:
             normalized_url = medium['url']
 
