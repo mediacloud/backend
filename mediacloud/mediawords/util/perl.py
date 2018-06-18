@@ -17,16 +17,9 @@ class McDecodeObjectFromBytesIfNeededException(Exception):
 # MC_REWRITE_TO_PYTHON: remove after porting all Perl code to Python
 def decode_object_from_bytes_if_needed(obj: Union[dict, list, tuple, str, bytes, None]) \
         -> Union[dict, list, tuple, str, None]:
-    """Convert object (dictionary, list or string) from 'bytes' string to 'unicode' if needed."""
+    """Convert object (dictionary, list or string) from 'bytes' string to 'unicode' if needed.
 
-    def __decode_string_from_bytes_if_needed(string: Union[int, str, bytes, None]) -> Union[int, str, None]:
-        """Convert 'bytes' string to 'unicode' if needed.
-        (http://search.cpan.org/dist/Inline-Python/Python.pod#PORTING_YOUR_INLINE_PYTHON_CODE_FROM_2_TO_3)"""
-        if string is not None:
-            if isinstance(string, bytes):
-                # mimic perl decode replace on error behavior
-                string = string.decode(encoding='utf-8', errors='replace')
-        return string
+    (http://search.cpan.org/dist/Inline-Python/Python.pod#PORTING_YOUR_INLINE_PYTHON_CODE_FROM_2_TO_3)"""
 
     if isinstance(obj, dict):
         result = dict()
@@ -46,7 +39,8 @@ def decode_object_from_bytes_if_needed(obj: Union[dict, list, tuple, str, bytes,
             result.append(v)
         result = tuple(result)
     elif isinstance(obj, bytes):
-        result = __decode_string_from_bytes_if_needed(obj)
+        # Mimic Perl decode replace on error behavior
+        result = obj.decode(encoding='utf-8', errors='replace')
     else:
         result = obj
     return result
