@@ -29,11 +29,23 @@ sub test_feeds_list($)
 
     map { MediaWords::Test::DB::create_test_feed( $db, "$label $_", $medium ) } ( 1 .. 10 );
 
-    my $expected_feeds = $db->query( "select * from feeds where media_id = ?", $medium->{ media_id } )->hashes;
+    my $expected_feeds = $db->query(
+        <<SQL,
+        SELECT
+            feeds.*,
+
+            -- Copy "type" to deprecated "feed_type"
+            feeds.type AS feed_type
+            
+        FROM feeds
+        WHERE media_id = ?
+SQL
+        $medium->{ media_id }
+    )->hashes;
 
     my $got_feeds = test_get( '/api/v2/feeds/list', { media_id => $medium->{ media_id } } );
 
-    my $fields = [ qw ( name url media_id feeds_id type active ) ];
+    my $fields = [ qw ( name url media_id feeds_id type feed_type active ) ];
     rows_match( $label, $got_feeds, $expected_feeds, "feeds_id", $fields );
 
     $label = "feeds/single";
