@@ -41,14 +41,6 @@ def fix_common_url_mistakes(url: str) -> Optional[str]:
     """Fixes common URL mistakes (mistypes, etc.)."""
     url = decode_object_from_bytes_if_needed(url)
 
-    return fix_common_url_mistakes_no_decode(url)
-
-
-# noinspection SpellCheckingInspection
-def fix_common_url_mistakes_no_decode(url: str) -> Optional[str]:
-    """Fixes common URL mistakes (mistypes, etc.).
-
-    Don't decode_object_from_bytes.  Only safe to call from python."""
     if url is None:
         return None
 
@@ -342,20 +334,12 @@ def normalize_url_lossy(url: str) -> Optional[str]:
     """
     url = decode_object_from_bytes_if_needed(url)
 
-    return normalize_url_lossy_no_decode(url)
-
-
-# noinspection SpellCheckingInspection
-def normalize_url_lossy_no_decode(url: str) -> Optional[str]:
-    """Implement normalize_url_lossy as described above without calling decode_object_from_bytes_if_needed.
-
-    Only call directly from python."""
     if url is None:
         return None
     if len(url) == 0:
         return None
 
-    url = fix_common_url_mistakes_no_decode(url)
+    url = fix_common_url_mistakes(url)
 
     url = url.lower()
 
