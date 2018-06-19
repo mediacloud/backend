@@ -57,7 +57,7 @@
     job: >
       nice -n {{ crontab_import_solr_data_nice }}
       {{ mediacloud_root }}/script/run_in_env.sh
-      {{ mediacloud_root }}/script/mediawords_import_solr_data.pl
+      {{ mediacloud_root }}/script/import_solr_data.pl
       --delta
       --jobs {{ crontab_import_solr_data_jobs }}
       &> {{ crontab_import_solr_data_log_path }}
@@ -74,7 +74,7 @@
     hour: "2"
     job: >
       {{ mediacloud_root }}/script/run_in_env.sh
-      {{ mediacloud_root }}/script/mediawords_generate_media_health.pl
+      {{ mediacloud_root }}/script/generate_media_health.pl
   become: true
   become_user: "{{ mediacloud_user }}"
   when: "'core_services' in group_names"  # only for hosts in 'core_services' group
@@ -120,7 +120,7 @@
     hour: "3"
     job: >
       {{ mediacloud_root }}/script/run_in_env.sh
-      {{ mediacloud_root }}/script/mediawords_rescrape_due_media.pl
+      {{ mediacloud_root }}/script/rescrape_due_media.pl
       &> {{ crontab_rescrape_due_media_log_path }}
   become: true
   become_user: "{{ mediacloud_user }}"
@@ -149,7 +149,7 @@
     hour: "4"
     job: >
       {{ mediacloud_root }}/script/run_in_env.sh
-      {{ mediacloud_root }}/script/mediawords_generate_user_summary.pl
+      {{ mediacloud_root }}/script/generate_user_summary.pl
   become: true
   become_user: "{{ mediacloud_user }}"
   when: "'core_services' in group_names"  # only for hosts in 'core_services' group
@@ -166,7 +166,7 @@
     # Report will be sent to MAILTO
     job: >
       {{ mediacloud_root }}/script/run_in_env.sh
-      {{ mediacloud_root }}/script/mediawords_generate_user_summary.pl
+      {{ mediacloud_root }}/script/generate_user_summary.pl
       --new 7
       --activity 7
   become: true
@@ -184,7 +184,7 @@
     # Report will be sent to MAILTO
     job: >
       {{ mediacloud_root }}/script/run_in_env.sh
-      {{ mediacloud_root }}/script/mediawords_refresh_mediacloud_stats.pl
+      {{ mediacloud_root }}/script/refresh_mediacloud_stats.pl
   become: true
   become_user: "{{ mediacloud_user }}"
   when: "'core_services' in group_names"  # only for hosts in 'core_services' group
@@ -200,7 +200,7 @@
     # Report will be sent to MAILTO
     job: >
       {{ mediacloud_root }}/script/run_in_env.sh
-      {{ mediacloud_root }}/script/mediawords_set_media_tags.pl
+      {{ mediacloud_root }}/script/set_media_tags.pl
   become: true
   become_user: "{{ mediacloud_user }}"
   when: "'core_services' in group_names"  # only for hosts in 'core_services' group

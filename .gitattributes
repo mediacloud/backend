@@ -28,7 +28,7 @@
 *.md text eol=lf
 *.mdown text eol=lf
 *.media_source_list text eol=lf
-*.mediawords_perltidy_config_file text eol=lf
+*.perltidy_config_file text eol=lf
 *.mod text eol=lf
 *.pl text eol=lf
 *.pm text eol=lf

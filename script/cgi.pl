@@ -10,7 +10,7 @@ Catalyst::ScriptRunner->run( 'MediaWords', 'CGI' );
 
 =head1 NAME
 
-mediawords_cgi.pl - Catalyst CGI
+cgi.pl - Catalyst CGI
 
 =head1 SYNOPSIS
 
@@ -30,4 +30,3 @@ This library is free software. You can redistribute it and/or modify
 it under the same terms as Perl itself.
 
 =cut
-

@@ -58,7 +58,7 @@ If this script runs successfully, skip to the [Post Install](#post-install) sect
         psql -f sample-dump.sql -d mediacloud
 
         # Run the migrations to make the database up-to-date to the latest schema
-        ./script/run_in_env.sh ./script/mediawords_upgrade_db.pl --import
+        ./script/run_in_env.sh ./script/upgrade_db.pl --import
 
     Afterwards, you can log in to the web interface using the sample user credentials from `install.sh`, i.e. with username `jdoe@mediacloud.org` and password `mediacloud`.
 

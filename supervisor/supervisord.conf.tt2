@@ -88,7 +88,7 @@ programs = crawler
 [%- crawler_numprocs = supervisor.programs.crawler.numprocs || 1 %]
 [% INCLUDE program_config
     program='crawler'
-    command="bash ./script/run_in_env.sh ./script/mediawords_crawl.pl $crawler_numprocs"
+    command="bash ./script/run_in_env.sh ./script/crawl.pl $crawler_numprocs"
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'

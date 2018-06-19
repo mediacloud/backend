@@ -4,7 +4,7 @@ use forks;
 
 # generate and import dumps of postgres data for solr
 #
-# usage: mediawords_import_solr_data.pl [ --delta ] [ --delete_all ] [ --solr_url ] [ --file <file 1> ... ]
+# usage: import_solr_data.pl [ --delta ] [ --delete_all ] [ --solr_url ] [ --file <file 1> ... ]
 #  --delta -- import stories that have changed since the last import
 #  --delete_all -- delete all existing data from solr, in an atomic transaction with the import
 #  --file -- import from a list of files rather than directly from postgres, files should be generated
