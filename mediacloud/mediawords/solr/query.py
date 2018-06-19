@@ -461,16 +461,17 @@ class NoopNode(ParseNode):
         return NoopNode()
 
 
+def __check_type(checked_token: Token, checked_want_type: List[TokenType]) -> None:
+    """Throw a McSolrQueryParseSyntaxException if the given type is not in the want_type list."""
+    if checked_token.token_type not in checked_want_type:
+        raise McSolrQueryParseSyntaxException(
+            "Token '%s' is not one of the following expected types: %s" % (
+                str(checked_token), str(checked_want_type))
+        )
+
+
 def __parse_tokens(tokens: List[Token], want_type: List[TokenType] = None) -> ParseNode:
     """Given a flat list of tokens, generate a boolean logic tree."""
-
-    def __check_type(checked_token: Token, checked_want_type: List[TokenType]) -> None:
-        """Throw a McSolrQueryParseSyntaxException if the given type is not in the want_type list."""
-        if checked_token.token_type not in checked_want_type:
-            raise McSolrQueryParseSyntaxException(
-                "Token '%s' is not one of the following expected types: %s" % (
-                    str(checked_token), str(checked_want_type))
-            )
 
     log.debug("parse tree: " + str(tokens))
 
@@ -656,48 +657,49 @@ def __parse_tokens(tokens: List[Token], want_type: List[TokenType] = None) -> Pa
     # noinspection PyBroadException
     try:
         log.debug("parse result: " + str(clause))
-    except: # noqa
+    except:  # noqa
         log.debug("parse_result: [" + str(type(clause)) + "]")
 
     return clause
 
 
+def __get_token_type(token: str) -> TokenType:
+    """Given some token text, return one of T_* as the type for that token."""
+
+    if token == '(':
+        return TokenType.OPEN
+    elif token == ')':
+        return TokenType.CLOSE
+    elif token[0] in "'\"":
+        return TokenType.PHRASE
+    elif token.lower() == 'and':
+        return TokenType.AND
+    elif token.lower() == 'or':
+        return TokenType.OR
+    elif token.lower() in ('not', '!', '-'):
+        return TokenType.NOT
+    elif token == '+':
+        return TokenType.PLUS
+    elif token == '~':
+        return TokenType.PROXIMITY
+    elif token == '/':
+        raise McSolrQueryParseSyntaxException("regular expression searches not supported")
+    elif token == WILD_PLACEHOLDER:
+        return TokenType.TERM
+    elif (WILD_PLACEHOLDER in token) and not re.match(r'^\w+' + WILD_PLACEHOLDER + '$', token):
+        raise McSolrQueryParseSyntaxException("* can only appear by itself or at the end of a term: " + token)
+    elif token == NOOP_PLACEHOLDER:
+        return TokenType.NOOP
+    elif token.endswith(FIELD_PLACEHOLDER):
+        return TokenType.FIELD
+    elif re.match('^\w+$', token):
+        return TokenType.TERM
+    else:
+        raise McSolrQueryParseSyntaxException("unrecognized token '%s'" % str(token))
+
+
 def __get_tokens(query: str) -> List[Token]:
     """Get a list of Token objects from the query."""
-
-    def __get_token_type(token: str) -> TokenType:
-        """Given some token text, return one of T_* as the type for that token."""
-
-        if token == '(':
-            return TokenType.OPEN
-        elif token == ')':
-            return TokenType.CLOSE
-        elif token[0] in "'\"":
-            return TokenType.PHRASE
-        elif token.lower() == 'and':
-            return TokenType.AND
-        elif token.lower() == 'or':
-            return TokenType.OR
-        elif token.lower() in ('not', '!', '-'):
-            return TokenType.NOT
-        elif token == '+':
-            return TokenType.PLUS
-        elif token == '~':
-            return TokenType.PROXIMITY
-        elif token == '/':
-            raise McSolrQueryParseSyntaxException("regular expression searches not supported")
-        elif token == WILD_PLACEHOLDER:
-            return TokenType.TERM
-        elif (WILD_PLACEHOLDER in token) and not re.match(r'^\w+' + WILD_PLACEHOLDER + '$', token):
-            raise McSolrQueryParseSyntaxException("* can only appear by itself or at the end of a term: " + token)
-        elif token == NOOP_PLACEHOLDER:
-            return TokenType.NOOP
-        elif token.endswith(FIELD_PLACEHOLDER):
-            return TokenType.FIELD
-        elif re.match('^\w+$', token):
-            return TokenType.TERM
-        else:
-            raise McSolrQueryParseSyntaxException("unrecognized token '%s'" % str(token))
 
     tokens = []
 

@@ -5,7 +5,7 @@ import time
 import typing
 
 from mediawords.db import DatabaseHandler
-import mediawords.db.locks
+from mediawords.db.locks import get_session_lock
 from mediawords.util.log import create_logger
 import mediawords.util.url
 
@@ -123,10 +123,18 @@ def _update_media_normalized_urls(db: DatabaseHandler) -> None:
     if not _normalized_urls_out_of_date(db):
         return
 
-    # put a lock on this because the process of generating all media urls will take around 30 seconds, and we don't
+    # put a lock on this because the process of generating all media urls will take a couple hours, and we don't
     # want all workers to do the work
-    db.begin()
-    mediawords.db.locks.get_session_lock(db, 'MediaWords::TM::Media::media_normalized_urls', 1, wait=True)
+    locked = False
+    while not locked:
+        db.begin()
+        # poll instead of block so that we can releae the transaction and see whether someone else has already
+        # updated all of the media
+        locked = get_session_lock(db, 'MediaWords::TM::Media::media_normalized_urls', 1, wait=False)
+        if not locked:
+            db.commit()
+            log.info("sleeping for media_normalized_urls lock...")
+            time.sleep(1)
 
     if not _normalized_urls_out_of_date(db):
         db.commit()
