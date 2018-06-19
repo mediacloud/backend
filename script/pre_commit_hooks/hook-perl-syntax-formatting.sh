@@ -73,14 +73,6 @@ if [ ${#FILES_THAT_HAVE_TO_BE_TIDIED[@]} -gt 0 ]; then
         fi
         echo
     done
-    echo "Alternatively, you can run:"
-    echo
-    echo "./script/mediawords_reformat_all_code.sh"
-    if [ "$REPOSITORY" == "git" ]; then
-        echo "git add -A"
-    fi
-    echo
-    echo "to reformat all Perl files that are placed in this repository."
     exit 1
 fi
 
