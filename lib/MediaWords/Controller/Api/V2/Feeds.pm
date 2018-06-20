@@ -30,25 +30,9 @@ Readonly my $JOB_STATE_FIELD_LIST => "job_states_id, ( args->>'media_id' )::int 
 sub default_output_fields
 {
     return [
-        qw ( name url media_id feeds_id type feed_type active last_new_story_time
+        qw ( name url media_id feeds_id type active last_new_story_time
           last_attempted_download_time last_successful_download_time )
     ];
-}
-
-sub has_extra_data
-{
-    # Just to add deprecated "feed_type"
-    return 1;
-}
-
-sub add_extra_data
-{
-    my ( $self, $c, $feeds ) = @_;
-
-    # Copy "type" to deprecated "feed_type"
-    $feeds = [ map { $_->{ feed_type } = $_->{ type }; $_ } @{ $feeds } ];
-
-    return $feeds;
 }
 
 sub get_table_name
@@ -63,7 +47,7 @@ sub list_query_filter_field
 
 sub get_update_fields($)
 {
-    return [ qw/name url type feed_type active/ ];
+    return [ qw/name url type active/ ];
 }
 
 sub update : Local : ActionClass('MC_REST')
@@ -81,13 +65,6 @@ sub update_PUT
     my $feed = $c->dbis->require_by_id( 'feeds', $data->{ feeds_id } );
 
     my $input = { map { $_ => $data->{ $_ } } grep { exists( $data->{ $_ } ) } @{ $self->get_update_fields } };
-
-    # Rename deprecated "feed_type" to "type"
-    if ( defined $input->{ feed_type } )
-    {
-        $input->{ type } = $input->{ feed_type };
-        delete $input->{ feed_type };
-    }
 
     my $row = $c->dbis->update_by_id( 'feeds', $data->{ feeds_id }, $input );
 
@@ -108,14 +85,6 @@ sub create_GET
 
     my $fields = [ 'media_id', @{ $self->get_update_fields } ];
     my $input = { map { $_ => $data->{ $_ } } grep { exists( $data->{ $_ } ) } @{ $fields } };
-
-    # Rename deprecated "feed_type" to "type"
-    if ( defined $input->{ feed_type } )
-    {
-        $input->{ type } = $input->{ feed_type };
-        delete $input->{ feed_type };
-    }
-
     my $row = $c->dbis->create( 'feeds', $input );
 
     return $self->status_ok( $c, entity => { feed => $row } );
