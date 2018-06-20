@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 28;
+use Test::More tests => 21;
 use Test::NoWarnings;
 use Test::Deep;
 
@@ -141,9 +141,9 @@ HTML
     };
     my $expected_result = [
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/feed/atom/',
-            'name'      => 'Sample Atom feed',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/feed/atom/',
+            'name' => 'Sample Atom feed',
+            'type' => 'syndicated',
         }
     ];
 
@@ -187,9 +187,9 @@ HTML
     };
     my $expected_result = [
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/feed/atom/',
-            'name'      => $utf8_title,
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/feed/atom/',
+            'name' => $utf8_title,
+            'type' => 'syndicated',
         }
     ];
 
@@ -230,9 +230,9 @@ HTML
     };
     my $expected_result = [
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/feed/atom/',
-            'name'      => 'Sample Atom feed',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/feed/atom/',
+            'name' => 'Sample Atom feed',
+            'type' => 'syndicated',
         }
     ];
 
@@ -273,9 +273,9 @@ HTML
     };
     my $expected_result = [
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/feed/atom/',
-            'name'      => 'Sample Atom feed',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/feed/atom/',
+            'name' => 'Sample Atom feed',
+            'type' => 'syndicated',
         }
     ];
 
@@ -316,9 +316,9 @@ HTML
     };
     my $expected_result = [
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/feed/atom/',
-            'name'      => 'Sample Atom feed',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/feed/atom/',
+            'name' => 'Sample Atom feed',
+            'type' => 'syndicated',
         }
     ];
 
@@ -442,79 +442,79 @@ HTML
     };
     my $expected_result = [
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.51407',
-            'name'      => 'Dagbladet.se Sundsvall',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.51407',
+            'name' => 'Dagbladet.se Sundsvall',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.51411',
-            'name'      => 'Dagbladet.se Timrå',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.51411',
+            'name' => 'Dagbladet.se Timrå',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.51412',
-            'name'      => 'Dagbladet.se Ånge',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.51412',
+            'name' => 'Dagbladet.se Ånge',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.51414',
-            'name'      => 'Inrikes',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.51414',
+            'name' => 'Inrikes',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.51415',
-            'name'      => 'Utrikes',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.51415',
+            'name' => 'Utrikes',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.122020',
-            'name'      => 'Dagbladet.se Sport',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.122020',
+            'name' => 'Dagbladet.se Sport',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.122021',
-            'name'      => 'Dagbladet.se Kultur & Nöje',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.122021',
+            'name' => 'Dagbladet.se Kultur & Nöje',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.2393965',
-            'name'      => 'Dagbladet.se Ishockey',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.2393965',
+            'name' => 'Dagbladet.se Ishockey',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.4123878',
-            'name'      => 'Nyheter',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.4123878',
+            'name' => 'Nyheter',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.4123892',
-            'name'      => 'Sport',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.4123892',
+            'name' => 'Sport',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.4124304',
-            'name'      => 'Ekonomi & prylar',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.4124304',
+            'name' => 'Ekonomi & prylar',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.4144811',
-            'name'      => 'AdaptLogic',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.4144811',
+            'name' => 'AdaptLogic',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.4390899',
-            'name'      => 'Dagbladet.se GIF-kollen',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.4390899',
+            'name' => 'Dagbladet.se GIF-kollen',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.4390938',
-            'name'      => 'Dagbladet.se TIK-kollen',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.4390938',
+            'name' => 'Dagbladet.se TIK-kollen',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.4761908',
-            'name'      => 'Dagbladet STIL',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.4761908',
+            'name' => 'Dagbladet STIL',
+            'type' => 'syndicated',
         },
     ];
 
@@ -710,174 +710,174 @@ sub test_gp_se()
     };
     my $expected_result = [
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.16560',
-            'name'      => 'GP',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.16560',
+            'name' => 'GP',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.215341',
-            'name'      => 'GP - Bohuslän',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.215341',
+            'name' => 'GP - Bohuslän',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.16562',
-            'name'      => 'GP - Bostad',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.16562',
+            'name' => 'GP - Bostad',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.315001',
-            'name'      => 'GP- Debatt',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.315001',
+            'name' => 'GP- Debatt',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.16555',
-            'name'      => 'GP - Ekonomi',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.16555',
+            'name' => 'GP - Ekonomi',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.4449',
-            'name'      => 'GP - Filmrecensioner',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.4449',
+            'name' => 'GP - Filmrecensioner',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.16942',
-            'name'      => 'GP - Göteborg',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.16942',
+            'name' => 'GP - Göteborg',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.291999',
-            'name'      => 'GP - Halland',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.291999',
+            'name' => 'GP - Halland',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.165654',
-            'name'      => 'GP - Hela nyhetsdygnet',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.165654',
+            'name' => 'GP - Hela nyhetsdygnet',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.16572',
-            'name'      => 'GP - Jobb & Studier',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.16572',
+            'name' => 'GP - Jobb & Studier',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.4445',
-            'name'      => 'GP - Konsertrecensioner',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.4445',
+            'name' => 'GP - Konsertrecensioner',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.4470',
-            'name'      => 'GP - Konst&Designrecensioner',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.4470',
+            'name' => 'GP - Konst&Designrecensioner',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.16558',
-            'name'      => 'GP - Konsument',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.16558',
+            'name' => 'GP - Konsument',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.16941',
-            'name'      => 'GP - Kultur & Nöje',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.16941',
+            'name' => 'GP - Kultur & Nöje',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.872491',
-            'name'      => 'GP - Ledare',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.872491',
+            'name' => 'GP - Ledare',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.4465',
-            'name'      => 'GP - Litteraturrecensioner',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.4465',
+            'name' => 'GP - Litteraturrecensioner',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.16571',
-            'name'      => 'GP - Mat & Dryck',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.16571',
+            'name' => 'GP - Mat & Dryck',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.4471',
-            'name'      => 'GP - Matrecept',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.4471',
+            'name' => 'GP - Matrecept',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.163662',
-            'name'      => 'GP - Miljöspaning',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.163662',
+            'name' => 'GP - Miljöspaning',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.4434',
-            'name'      => 'GP - Mode',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.4434',
+            'name' => 'GP - Mode',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.16570',
-            'name'      => 'GP - Motor',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.16570',
+            'name' => 'GP - Motor',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.4482',
-            'name'      => 'GP - Motortester',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.4482',
+            'name' => 'GP - Motortester',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.896286',
-            'name'      => 'GP - Mölndal/Härryda',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.896286',
+            'name' => 'GP - Mölndal/Härryda',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.16569',
-            'name'      => 'GP - Resor',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.16569',
+            'name' => 'GP - Resor',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.163656',
-            'name'      => 'GP - Rinkside',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.163656',
+            'name' => 'GP - Rinkside',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.4466',
-            'name'      => 'GP - Scenkonstrecensioner',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.4466',
+            'name' => 'GP - Scenkonstrecensioner',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.4438',
-            'name'      => 'GP - Skivrecensioner',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.4438',
+            'name' => 'GP - Skivrecensioner',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.4450',
-            'name'      => 'GP - Spelrecensioner',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.4450',
+            'name' => 'GP - Spelrecensioner',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.16542',
-            'name'      => 'GP - Sport',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.16542',
+            'name' => 'GP - Sport',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.16943',
-            'name'      => 'GP - Sverige',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.16943',
+            'name' => 'GP - Sverige',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.9146',
-            'name'      => 'GP - Tester',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.9146',
+            'name' => 'GP - Tester',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.4468',
-            'name'      => 'GP - Tv-recensioner',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.4468',
+            'name' => 'GP - Tv-recensioner',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.16944',
-            'name'      => 'GP - Världen',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.16944',
+            'name' => 'GP - Världen',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/1.970150',
-            'name'      => 'GP Nyheter',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/1.970150',
+            'name' => 'GP Nyheter',
+            'type' => 'syndicated',
         },
     ];
 
@@ -933,14 +933,14 @@ EOF
     };
     my $expected_links = [
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/feed2.xml',
-            'name'      => 'Sample RSS feed',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/feed2.xml',
+            'name' => 'Sample RSS feed',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/feed1.xml',
-            'name'      => 'Sample RSS feed',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/feed1.xml',
+            'name' => 'Sample RSS feed',
+            'type' => 'syndicated',
         }
     ];
 
@@ -1000,12 +1000,11 @@ HTML
     };
     my $expected_links = [
         {
-            'url'       => $TEST_HTTP_SERVER_URL_2 . '/feed.xml',
-            'name'      => 'Sample RSS feed',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL_2 . '/feed.xml',
+            'name' => 'Sample RSS feed',
+            'type' => 'syndicated',
         }
     ];
-    my $expected_need_to_moderate = 0;
 
     my $medium = { url => $TEST_HTTP_SERVER_URL };
 
@@ -1015,13 +1014,12 @@ HTML
     $hs1->start();
     $hs2->start();
 
-    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
+    my $feed_links = MediaWords::Feed::Scrape::get_feed_links( $medium );
 
     $hs1->stop();
     $hs2->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_immediate_redirect_via_http_header feed_links' );
-    is( $need_to_moderate, $expected_need_to_moderate, 'test_rss_immediate_redirect_via_http_header need_to_moderate' );
 }
 
 sub test_rss_immediate_redirect_via_html_meta_refresh()
@@ -1079,12 +1077,11 @@ HTML
     };
     my $expected_links = [
         {
-            'url'       => $TEST_HTTP_SERVER_URL_2 . '/feed.xml',
-            'name'      => 'Sample RSS feed',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL_2 . '/feed.xml',
+            'name' => 'Sample RSS feed',
+            'type' => 'syndicated',
         }
     ];
-    my $expected_need_to_moderate = 0;
 
     my $medium = { url => $TEST_HTTP_SERVER_URL };
 
@@ -1094,14 +1091,12 @@ HTML
     $hs1->start();
     $hs2->start();
 
-    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
+    my $feed_links = MediaWords::Feed::Scrape::get_feed_links( $medium );
 
     $hs1->stop();
     $hs2->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_immediate_redirect_via_html_meta_refresh feed_links' );
-    is( $need_to_moderate, $expected_need_to_moderate,
-        'test_rss_immediate_redirect_via_html_meta_refresh need_to_moderate' );
 }
 
 # <base href="" />, like in http://www.thejakartaglobe.com
@@ -1162,14 +1157,14 @@ HTML
     };
     my $expected_links = [
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/path_two/feed1.xml',
-            'name'      => 'Sample RSS feed',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/path_two/feed1.xml',
+            'name' => 'Sample RSS feed',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/path_two/feed2.xml',
-            'name'      => 'Sample RSS feed',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/path_two/feed2.xml',
+            'name' => 'Sample RSS feed',
+            'type' => 'syndicated',
         }
     ];
 
@@ -1226,14 +1221,14 @@ HTML
     };
     my $expected_links = [
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/feed2.xml',
-            'name'      => 'Sample RSS feed',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/feed2.xml',
+            'name' => 'Sample RSS feed',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/feed1.xml',
-            'name'      => 'Sample RSS feed',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/feed1.xml',
+            'name' => 'Sample RSS feed',
+            'type' => 'syndicated',
         }
     ];
 
@@ -1290,14 +1285,14 @@ HTML
     };
     my $expected_links = [
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/feed2.xml',
-            'name'      => 'Sample RSS feed',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/feed2.xml',
+            'name' => 'Sample RSS feed',
+            'type' => 'syndicated',
         },
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/feed1.xml',
-            'name'      => 'Sample RSS feed',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/feed1.xml',
+            'name' => 'Sample RSS feed',
+            'type' => 'syndicated',
         }
     ];
 
@@ -1343,26 +1338,24 @@ HTML
 
     my $expected_links = [
         {
-            'url'       => 'http://feeds2.feedburner.com/localhost',
-            'name'      => '127.0.0.1 » 127.0.0.1',
-            'feed_type' => 'syndicated',
+            'url'  => 'http://feeds2.feedburner.com/localhost',
+            'name' => '127.0.0.1 » 127.0.0.1',
+            'type' => 'syndicated',
         },
     ];
-    my $expected_need_to_moderate = 0;
 
     my $medium = { url => $TEST_HTTP_SERVER_URL };
 
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
-    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
+    my $feed_links = MediaWords::Feed::Scrape::get_feed_links( $medium );
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_external_feeds feed_links' );
-    is( $need_to_moderate, $expected_need_to_moderate, 'test_rss_external_feeds need_to_moderate' );
 }
 
-sub test_get_feed_links_and_need_to_moderate()
+sub test_get_feed_links()
 {
     my $pages = {
 
@@ -1402,28 +1395,26 @@ HTML
 
     my $expected_links = [
         {
-            'url'       => 'http://feeds.feedburner.com/feedburnerstatus',
-            'name'      => 'FeedBurner Status',
-            'feed_type' => 'syndicated',
+            'url'  => 'http://feeds.feedburner.com/feedburnerstatus',
+            'name' => 'FeedBurner Status',
+            'type' => 'syndicated',
         },
         {
-            'url'       => 'http://feeds.feedburner.com/thesartorialist',
-            'name'      => 'The Sartorialist',
-            'feed_type' => 'syndicated',
+            'url'  => 'http://feeds.feedburner.com/thesartorialist',
+            'name' => 'The Sartorialist',
+            'type' => 'syndicated',
         }
     ];
-    my $expected_need_to_moderate = 1;
 
     my $medium = { url => $TEST_HTTP_SERVER_URL };
 
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
-    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
+    my $feed_links = MediaWords::Feed::Scrape::get_feed_links( $medium );
     $hs->stop();
 
-    cmp_bag( $feed_links, $expected_links, 'test_get_feed_links_and_need_to_moderate feed_links' );
-    is( $need_to_moderate, $expected_need_to_moderate, 'test_get_feed_links_and_need_to_moderate need_to_moderate' );
+    cmp_bag( $feed_links, $expected_links, 'test_get_feed_links feed_links' );
 }
 
 sub test_feeds_with_common_prefix()
@@ -1490,24 +1481,21 @@ XML
     };
     my $expected_links = [
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/feed2.xml',
-            'name'      => 'Example.com',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/feed2.xml',
+            'name' => 'Example.com',
+            'type' => 'syndicated',
         },
     ];
-
-    my $expected_need_to_moderate = 0;
 
     my $medium = { url => $TEST_HTTP_SERVER_URL };
 
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
-    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
+    my $feed_links = MediaWords::Feed::Scrape::get_feed_links( $medium );
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_feeds_with_common_prefix feed_links' );
-    is( $need_to_moderate, $expected_need_to_moderate, 'test_feeds_with_common_prefix need_to_moderate' );
 }
 
 sub test_feed_aggregator_urls()
@@ -1550,24 +1538,21 @@ HTML
     };
     my $expected_links = [
         {
-            'url'       => $TEST_HTTP_SERVER_URL . '/feed.xml',
-            'name'      => 'Sample RSS feed',
-            'feed_type' => 'syndicated',
+            'url'  => $TEST_HTTP_SERVER_URL . '/feed.xml',
+            'name' => 'Sample RSS feed',
+            'type' => 'syndicated',
         },
     ];
-
-    my $expected_need_to_moderate = 0;
 
     my $medium = { url => $TEST_HTTP_SERVER_URL };
 
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
-    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
+    my $feed_links = MediaWords::Feed::Scrape::get_feed_links( $medium );
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_feed_aggregator_urls feed_links' );
-    is( $need_to_moderate, $expected_need_to_moderate, 'test_feed_aggregator_urls need_to_moderate' );
 }
 
 sub test_web_page_feed()
@@ -1591,22 +1576,19 @@ HTML
     };
     my $expected_links = [
         {
-            'url'       => $TEST_HTTP_SERVER_URL,
-            'name'      => $medium_name,
-            'feed_type' => 'web_page',
+            'url'  => $TEST_HTTP_SERVER_URL,
+            'name' => $medium_name,
+            'type' => 'web_page',
         },
     ];
-
-    my $expected_need_to_moderate = 0;
 
     my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
-    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
+    my $feed_links = MediaWords::Feed::Scrape::get_feed_links( $medium );
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_web_page_feed feed_links' );
-    is( $need_to_moderate, $expected_need_to_moderate, 'test_web_page_feed need_to_moderate' );
 }
 
 sub main
@@ -1630,7 +1612,7 @@ sub main
     test_rss_unlinked_urls();
     test_rss_image_link();
     test_rss_external_feeds();
-    test_get_feed_links_and_need_to_moderate();
+    test_get_feed_links();
     test_feeds_with_common_prefix();
     test_feed_aggregator_urls();
     test_web_page_feed();

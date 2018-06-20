@@ -48,7 +48,7 @@ sub disable_feed($$)
     $db->query(
         <<EOF,
         UPDATE feeds
-        SET feed_status = 'inactive'
+        SET active = 'f'
         WHERE feeds_id = ?
 EOF
         $feeds_id

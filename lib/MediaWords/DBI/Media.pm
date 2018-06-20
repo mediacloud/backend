@@ -216,7 +216,7 @@ sub _add_missing_media_from_urls
             else
             {
                 say STDERR "Medium to be added: $title $url";
-                $medium = $dbis->create( 'media', { name => $title, url => $url, moderated => 'f' } );
+                $medium = $dbis->create( 'media', { name => $title, url => $url } );
                 say STDERR "Medium that got added: " . Dumper( $medium );
 
                 MediaWords::DBI::Media::Rescrape::add_to_rescrape_media_queue( $medium );
@@ -438,7 +438,7 @@ sub medium_is_ready_for_analysis($$)
 
     my $media_id = $medium->{ media_id };
 
-    my $active_feed = $db->query( "select 1 from feeds where feed_status = 'active' and media_id = \$1", $media_id )->hash;
+    my $active_feed = $db->query( "select 1 from feeds where active = 't' and media_id = \$1", $media_id )->hash;
 
     return 0 unless ( $active_feed );
 

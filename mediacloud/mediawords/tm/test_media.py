@@ -140,7 +140,7 @@ class TestTMMediaDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase
         assert mediawords.tm.media.get_unique_medium_url(db, media_urls) == expected_url
 
         db.query(
-            "insert into media (name, url, moderated) select name || %(a)s, url || %(a)s, 't' from media",
+            "insert into media (name, url) select name || %(a)s, url || %(a)s from media",
             {'a': mediawords.tm.media.URL_SPIDERED_SUFFIX})
 
         self.assertRaises(

@@ -70,7 +70,7 @@ EOF
                 SELECT 1
                 FROM feeds
                 WHERE feeds.media_id = media_rescraping.media_id
-                AND feed_status = 'active'
+                AND active = 't'
             )
         )
 

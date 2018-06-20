@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4677;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4681;
 
 BEGIN
 
@@ -206,8 +206,6 @@ create table media (
     media_id            serial          primary key,
     url                 varchar(1024)   not null,
     name                varchar(128)    not null,
-    moderated           boolean         not null,
-    moderation_notes    text            null,
     full_text_rss       boolean         null,
 
     -- It indicates that the media source includes a substantial number of
@@ -223,8 +221,6 @@ create table media (
 
     db_row_last_updated         timestamp with time zone,
 
-    last_solr_import_date       timestamp with time zone not null default now(),
-
     -- notes for internal media cloud consumption (eg. 'added this for yochai')
     editor_notes                text null,
     -- notes for public consumption (eg. 'leading dissident paper in anatarctica')
@@ -239,11 +235,7 @@ create table media (
 
 create unique index media_name on media(name);
 create unique index media_url on media(url);
-create index media_moderated on media(moderated);
 create index media_db_row_last_updated on media( db_row_last_updated );
-
-CREATE INDEX media_name_trgm on media USING gin (name gin_trgm_ops);
-CREATE INDEX media_url_trgm on media USING gin (url gin_trgm_ops);
 
 
 -- update media stats table for deleted story sentence
@@ -347,10 +339,10 @@ BEGIN
         SELECT 1
         FROM feeds
         WHERE media_id = param_media_id
-          AND feed_status = 'active'
+          AND active = 't'
 
           -- Website might introduce RSS feeds later
-          AND feed_type = 'syndicated'
+          AND "type" = 'syndicated'
 
     ) THEN
         RETURN TRUE;
@@ -365,7 +357,7 @@ LANGUAGE 'plpgsql';
 
 create index media_stats_medium on media_stats( media_id );
 
-create type feed_feed_type AS ENUM (
+create type feed_type AS ENUM (
 
     -- Syndicated feed, e.g. RSS or Atom
     'syndicated',
@@ -381,27 +373,18 @@ create type feed_feed_type AS ENUM (
 
 );
 
--- Feed statuses that determine whether the feed will be fetched
--- or skipped
-CREATE TYPE feed_feed_status AS ENUM (
-    -- Feed is active, being fetched
-    'active',
-    -- Feed is (temporary) disabled (usually by hand), not being fetched
-    'inactive',
-    -- Feed was moderated as the one that shouldn't be fetched, but is still kept around
-    -- to reduce the moderation queue next time the page is being scraped for feeds to find
-    -- new ones
-    'skipped'
-);
-
 create table feeds (
     feeds_id            serial              primary key,
     media_id            int                 not null references media on delete cascade,
     name                varchar(512)        not null,
     url                 varchar(1024)       not null,
-    reparse             boolean             null,
-    feed_type           feed_feed_type      not null default 'syndicated',
-    feed_status         feed_feed_status    not null default 'active',
+
+    -- Feed type
+    type                feed_type           NOT NULL DEFAULT 'syndicated',
+
+    -- Whether or not feed is active (should be periodically fetched for new stories)
+    active              BOOLEAN             NOT NULL DEFAULT 't',
+
     last_checksum       text                null,
 
     -- Last time the feed was *attempted* to be downloaded and parsed
@@ -426,7 +409,6 @@ UPDATE feeds SET last_new_story_time = greatest( last_attempted_download_time, l
 create index feeds_media on feeds(media_id);
 create index feeds_name on feeds(name);
 create unique index feeds_url on feeds (url, media_id);
-create index feeds_reparse on feeds(reparse);
 create index feeds_last_attempted_download_time on feeds(last_attempted_download_time);
 create index feeds_last_successful_download_time on feeds(last_successful_download_time);
 
@@ -436,7 +418,7 @@ CREATE TABLE feeds_after_rescraping (
     media_id                    INT             NOT NULL REFERENCES media ON DELETE CASCADE,
     name                        VARCHAR(512)    NOT NULL,
     url                         VARCHAR(1024)   NOT NULL,
-    feed_type                   feed_feed_type  NOT NULL DEFAULT 'syndicated'
+    type                        feed_type       NOT NULL DEFAULT 'syndicated'
 );
 CREATE INDEX feeds_after_rescraping_media_id ON feeds_after_rescraping(media_id);
 CREATE INDEX feeds_after_rescraping_name ON feeds_after_rescraping(name);
@@ -545,102 +527,6 @@ insert into tag_sets ( name, label, description ) values (
     'High level topology for media sources for use across a variety of different topics'
 );
 
-create temporary table media_type_tags ( name text, label text, description text );
-insert into media_type_tags values
-    (
-        'Not Typed',
-        'Not Typed',
-        'The medium has not yet been typed.'
-    ),
-    (
-        'Other',
-        'Other',
-        'The medium does not fit in any listed type.'
-    ),
-    (
-        'Independent Group',
-        'Ind. Group',
-
-        -- Single multiline string
-        'An academic or nonprofit group that is not affiliated with the private sector or government, '
-        'such as the Electronic Frontier Foundation or the Center for Democracy and Technology)'
-    ),
-    (
-        'Social Linking Site',
-        'Social Linking',
-
-        -- Single multiline string
-        'A site that aggregates links based at least partially on user submissions and/or ranking, '
-        'such as Reddit, Digg, Slashdot, MetaFilter, StumbleUpon, and other social news sites'
-    ),
-    (
-        'Blog',
-        'Blog',
-
-        -- Single multiline string
-        'A web log, written by one or more individuals, that is not associated with a professional '
-        'or advocacy organization or institution'
-    ),
-    (
-        'General Online News Media',
-        'General News',
-
-        -- Single multiline string
-        'A site that is a mainstream media outlet, such as The New York Times and The Washington Post; '
-        'an online-only news outlet, such as Slate, Salon, or the Huffington Post; '
-        'or a citizen journalism or non-profit news outlet, such as Global Voices or ProPublica'
-    ),
-    (
-        'Issue Specific Campaign',
-        'Issue',
-        'A site specifically dedicated to campaigning for or against a single issue.'
-    ),
-    (
-        'News Aggregator',
-        'News Agg.',
-
-        -- Single multiline string
-        'A site that contains little to no original content and compiles news from other sites, '
-        'such as Yahoo News or Google News'
-    ),
-    (
-        'Tech Media',
-        'Tech Media',
-
-        -- Single multiline string
-        'A site that focuses on technological news and information produced by a news organization, '
-        'such as Arstechnica, Techdirt, or Wired.com'
-    ),
-    (
-        'Private Sector',
-        'Private Sec.',
-
-        -- Single multiline string
-        'A non-news media for-profit actor, including, for instance, trade organizations, industry '
-        'sites, and domain registrars'
-    ),
-    (
-        'Government',
-        'Government',
-
-        -- Single multiline string
-        'A site associated with and run by a government-affiliated entity, such as the DOJ website, '
-        'White House blog, or a U.S. Senator official website'
-    ),
-    (
-        'User-Generated Content Platform',
-        'User Gen.',
-
-        -- Single multiline string
-        'A general communication and networking platform or tool, like Wikipedia, YouTube, Twitter, '
-        'and Scribd, or a search engine like Google or speech platform like the Daily Kos'
-    );
-
-insert into tags ( tag_sets_id, tag, label, description )
-    select ts.tag_sets_id, mtt.name, mtt.name, mtt.description
-        from tag_sets ts cross join media_type_tags mtt
-        where ts.name = 'media_type';
-
 create table feeds_tags_map (
     feeds_tags_map_id    serial            primary key,
     feeds_id            int                not null references feeds on delete cascade,
@@ -673,39 +559,6 @@ create view media_with_media_types as
             join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id and ts.name = 'media_type' )
             join media_tags_map mtm on ( mtm.tags_id = t.tags_id )
         ) on ( m.media_id = mtm.media_id );
-
-
-create table media_rss_full_text_detection_data (
-    media_id            int references media on delete cascade,
-    max_similarity      real,
-    avg_similarity      double precision,
-    min_similarity      real,
-    avg_expected_length numeric,
-    avg_rss_length      numeric,
-    avg_rss_discription numeric,
-    count               bigint
-);
-
-create index media_rss_full_text_detection_data_media on media_rss_full_text_detection_data (media_id);
-
-
-CREATE VIEW media_with_collections AS
-    SELECT t.tag,
-           m.media_id,
-           m.url,
-           m.name,
-           m.moderated,
-           m.moderation_notes,
-           m.full_text_rss
-    FROM media m,
-         tags t,
-         tag_sets ts,
-         media_tags_map mtm
-    WHERE ts.name::text = 'collection'::text
-      AND ts.tag_sets_id = t.tag_sets_id
-      AND mtm.tags_id = t.tags_id
-      AND mtm.media_id = m.media_id
-    ORDER BY m.media_id;
 
 
 create table color_sets (
@@ -870,31 +723,9 @@ CREATE INDEX downloads_extracted_stories on downloads (stories_id) where type='c
 CREATE INDEX downloads_state_queued_or_fetching on downloads(state) where state='queued' or state='fetching';
 CREATE INDEX downloads_state_fetching ON downloads(state, downloads_id) where state = 'fetching';
 
-CREATE INDEX downloads_in_old_format
-    ON downloads USING btree (downloads_id)
-    WHERE state = 'success'::download_state
-      AND path ~~ 'content/%'::text;
-
 create view downloads_media as select d.*, f.media_id as _media_id from downloads d, feeds f where d.feeds_id = f.feeds_id;
 
 create view downloads_non_media as select d.* from downloads d where d.feeds_id is null;
-
-CREATE OR REPLACE FUNCTION site_from_host(host varchar)
-    RETURNS varchar AS
-$$
-BEGIN
-    RETURN regexp_replace(host, E'^(.)*?([^.]+)\\.([^.]+)$' ,E'\\2.\\3');
-END;
-$$
-LANGUAGE 'plpgsql' IMMUTABLE;
-
-CREATE INDEX downloads_sites_pending on downloads ( site_from_host( host ) ) where state='pending';
-
-CREATE UNIQUE INDEX downloads_sites_downloads_id_pending ON downloads ( site_from_host(host), downloads_id ) WHERE (state = 'pending');
-
--- CREATE INDEX downloads_sites_index_downloads_id on downloads (site_from_host( host ), downloads_id);
-
-CREATE VIEW downloads_sites as select site_from_host( host ) as site, * from downloads_media;
 
 
 --
@@ -2029,8 +1860,6 @@ create table snap.media (
     media_id                int,
     url                     varchar(1024)   not null,
     name                    varchar(128)    not null,
-    moderated               boolean         not null,
-    moderation_notes        text            null,
     full_text_rss           boolean,
     foreign_rss_links       boolean         not null default( false ),
     dup_media_id            int             null,
@@ -2296,8 +2125,8 @@ create view feedly_unscraped_feeds as
             left join scraped_feeds sf on
                 ( f.feeds_id = sf.feeds_id and sf.import_module = 'MediaWords::ImportStories::Feedly' )
         where
-            f.feed_type = 'syndicated' and
-            f.feed_status = 'active' and
+            f.type = 'syndicated' and
+            f.active = 't' and
             sf.feeds_id is null;
 
 
@@ -2711,8 +2540,8 @@ CREATE TABLE feeds_from_yesterday (
     media_id            INT                 NOT NULL,
     name                VARCHAR(512)        NOT NULL,
     url                 VARCHAR(1024)       NOT NULL,
-    feed_type           feed_feed_type      NOT NULL,
-    feed_status         feed_feed_status    NOT NULL
+    type                feed_type           NOT NULL,
+    active              BOOLEAN             NOT NULL
 );
 
 CREATE INDEX feeds_from_yesterday_feeds_id ON feeds_from_yesterday(feeds_id);
@@ -2727,8 +2556,8 @@ CREATE OR REPLACE FUNCTION update_feeds_from_yesterday() RETURNS VOID AS $$
 BEGIN
 
     DELETE FROM feeds_from_yesterday;
-    INSERT INTO feeds_from_yesterday (feeds_id, media_id, name, url, feed_type, feed_status)
-        SELECT feeds_id, media_id, name, url, feed_type, feed_status
+    INSERT INTO feeds_from_yesterday (feeds_id, media_id, name, url, type, active)
+        SELECT feeds_id, media_id, name, url, type, active
         FROM feeds;
 
 END;
@@ -2763,13 +2592,13 @@ BEGIN
             FROM (
                 -- Don't compare "name" because it's insignificant
                 (
-                    SELECT feeds_id, media_id, feed_type, feed_status, url FROM feeds_from_yesterday
+                    SELECT feeds_id, media_id, type, active, url FROM feeds_from_yesterday
                     EXCEPT
-                    SELECT feeds_id, media_id, feed_type, feed_status, url FROM feeds
+                    SELECT feeds_id, media_id, type, active, url FROM feeds
                 ) UNION ALL (
-                    SELECT feeds_id, media_id, feed_type, feed_status, url FROM feeds
+                    SELECT feeds_id, media_id, type, active, url FROM feeds
                     EXCEPT
-                    SELECT feeds_id, media_id, feed_type, feed_status, url FROM feeds_from_yesterday
+                    SELECT feeds_id, media_id, type, active, url FROM feeds_from_yesterday
                 )
             ) AS modified_feeds
         );
@@ -2804,13 +2633,13 @@ BEGIN
 
                feeds_before.name AS before_name,
                feeds_before.url AS before_url,
-               feeds_before.feed_type AS before_feed_type,
-               feeds_before.feed_status AS before_feed_status,
+               feeds_before.type AS before_type,
+               feeds_before.active AS before_active,
 
                feeds_after.name AS after_name,
                feeds_after.url AS after_url,
-               feeds_after.feed_type AS after_feed_type,
-               feeds_after.feed_status AS after_feed_status
+               feeds_after.type AS after_type,
+               feeds_after.active AS after_active
 
         FROM feeds_from_yesterday AS feeds_before
             INNER JOIN feeds AS feeds_after ON (
@@ -2818,8 +2647,8 @@ BEGIN
                 AND (
                     -- Don't compare "name" because it's insignificant
                     feeds_before.url != feeds_after.url
-                 OR feeds_before.feed_type != feeds_after.feed_type
-                 OR feeds_before.feed_status != feeds_after.feed_status
+                 OR feeds_before.type != feeds_after.type
+                 OR feeds_before.active != feeds_after.active
                 )
             )
 
@@ -2890,10 +2719,10 @@ BEGIN
             WHERE media_id = r_media.media_id
             ORDER BY feeds_id
         LOOP
-            RAISE NOTICE '    ADDED feed: feeds_id=%, feed_type=%, feed_status=%, name="%", url="%"',
+            RAISE NOTICE '    ADDED feed: feeds_id=%, type=%, active=%, name="%", url="%"',
                 r_feed.feeds_id,
-                r_feed.feed_type,
-                r_feed.feed_status,
+                r_feed.type,
+                r_feed.active,
                 r_feed.name,
                 r_feed.url;
         END LOOP;
@@ -2905,10 +2734,10 @@ BEGIN
             WHERE media_id = r_media.media_id
             ORDER BY feeds_id
         LOOP
-            RAISE NOTICE '    DELETED feed: feeds_id=%, feed_type=%, feed_status=%, name="%", url="%"',
+            RAISE NOTICE '    DELETED feed: feeds_id=%, type=%, active=%, name="%", url="%"',
                 r_feed.feeds_id,
-                r_feed.feed_type,
-                r_feed.feed_status,
+                r_feed.type,
+                r_feed.active,
                 r_feed.name,
                 r_feed.url;
         END LOOP;
@@ -2920,14 +2749,14 @@ BEGIN
             ORDER BY feeds_id
         LOOP
             RAISE NOTICE '    MODIFIED feed: feeds_id=%', r_feed.feeds_id;
-            RAISE NOTICE '        BEFORE: feed_type=%, feed_status=%, name="%", url="%"',
-                r_feed.before_feed_type,
-                r_feed.before_feed_status,
+            RAISE NOTICE '        BEFORE: type=%, active=%, name="%", url="%"',
+                r_feed.before_type,
+                r_feed.before_active,
                 r_feed.before_name,
                 r_feed.before_url;
-            RAISE NOTICE '        AFTER:  feed_type=%, feed_status=%, name="%", url="%"',
-                r_feed.after_feed_type,
-                r_feed.after_feed_status,
+            RAISE NOTICE '        AFTER:  type=%, active=%, name="%", url="%"',
+                r_feed.after_type,
+                r_feed.after_active,
                 r_feed.after_name,
                 r_feed.after_url;
         END LOOP;

@@ -28,19 +28,18 @@ sub test_fetch_handle_download($$)
     my $medium = $db->create(
         'media',
         {
-            name      => "Media for test feed $superglue_url",
-            url       => 'http://www.example.com/',
-            moderated => 't',
+            name => "Media for test feed $superglue_url",
+            url  => 'http://www.example.com/',
         }
     );
 
     my $feed = $db->create(
         'feeds',
         {
-            name      => 'feed',
-            feed_type => 'superglue',
-            url       => $superglue_url,
-            media_id  => $medium->{ media_id }
+            name     => 'feed',
+            type     => 'superglue',
+            url      => $superglue_url,
+            media_id => $medium->{ media_id }
         }
     );
 
@@ -57,8 +56,7 @@ sub test_fetch_handle_download($$)
 
     # We don't know how many stories will be in remote test feed and how will
     # they look like, so we just query for stories with bad patterns
-    my $non_superglue_feed_count =
-      $db->query( "SELECT COUNT(*) FROM feeds WHERE feed_type != 'superglue'" )->flat->[ 0 ] + 0;
+    my $non_superglue_feed_count = $db->query( "SELECT COUNT(*) FROM feeds WHERE type != 'superglue'" )->flat->[ 0 ] + 0;
     ok( $non_superglue_feed_count == 0, "All feeds must be 'superglue'" );
 
     my $story_count = $db->query( 'SELECT COUNT(*) FROM stories' )->flat->[ 0 ] + 0;

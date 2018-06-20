@@ -43,8 +43,7 @@ sub main
 
         say Dumper ( $feed );
 
-        $db->query( " UPDATE media set moderated = true, full_text_rss = true where media_id = ? ",
-            $twitter_media_source->{ media_id } );
+        $db->query( " UPDATE media set full_text_rss = true where media_id = ? ", $twitter_media_source->{ media_id } );
 
         #exit;
     }

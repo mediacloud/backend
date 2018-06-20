@@ -186,8 +186,20 @@ sub test_stories_public_list($$)
     # expect error when including q= and feeds_id=
     test_get( '/api/v2/stories_public/list', { q => 'foo', feeds_id => 1 }, 1 );
 
-    my $feed =
-      $db->query( "select * from feeds where feeds_id in ( select feeds_id from feeds_stories_map ) limit 1" )->hash;
+    my $feed = $db->query(
+        <<SQL
+        select
+            feeds.*,
+            feeds.type AS feed_type,
+            CASE
+                WHEN feeds.active = 't' THEN 'active'
+                ELSE 'inactive'
+            END AS feed_status
+        FROM feeds
+        WHERE feeds_id IN (SELECT feeds_id FROM feeds_stories_map)
+        LIMIT 1
+SQL
+    )->hash;
     my $feed_stories =
       test_get( '/api/v2/stories_public/list', { rows => 100000, feeds_id => $feed->{ feeds_id }, show_feeds => 1 } );
     my $expected_feed_stories = $db->query( <<SQL, $feed->{ feeds_id } )->hashes;
@@ -201,7 +213,7 @@ SQL
         ok( $expected_story,
             "stories feed story $feed_story->{ stories_id } feed $feed->{ feeds_id } matches expected story" );
         is( scalar( @{ $feed_story->{ feeds } } ), 1, "stories feed one feed returned" );
-        for my $field ( qw/name url feeds_id media_id feed_type/ )
+        for my $field ( qw/name url feeds_id media_id type feed_type feed_status/ )
         {
             is( $feed_story->{ feeds }->[ 0 ]->{ $field }, $feed->{ $field }, "feed story field $field" );
         }

@@ -500,7 +500,7 @@ URL: https://api.mediacloud.org/api/v2/feeds/single/1
         "name": "Bits",
         "url": "http://bits.blogs.nytimes.com/rss2.xml",
         "feeds_id": 1,
-        "feed_type": "syndicated",
+        "type": "syndicated",
         "media_id": 1
     }
 ]
@@ -1900,8 +1900,6 @@ while True:
 fieldnames = [
     u'media_id',
     u'url',
-    u'moderated',
-    u'moderation_notes',
     u'name'
 ]
 

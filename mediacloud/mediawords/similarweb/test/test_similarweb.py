@@ -128,7 +128,7 @@ class TestTasks(SimilarWebTestCase, TestDatabaseWithSchemaTestCase):
 
     @responses.activate
     def test_update_good(self):
-        media = self.db().create('media', {'url': self.good_url, 'name': 'a', 'moderated': True})
+        media = self.db().create('media', {'url': self.good_url, 'name': 'a'})
         client = self.get_test_client()
         tasks.update(self.db(), media['media_id'], client)
         result = self.db().find_by_id('similarweb_media_metrics', media['media_id'])
@@ -139,7 +139,7 @@ class TestTasks(SimilarWebTestCase, TestDatabaseWithSchemaTestCase):
 
     @responses.activate
     def test_update_bad(self):
-        media = self.db().create('media', {'url': self.bad_url, 'name': 'a', 'moderated': True})
+        media = self.db().create('media', {'url': self.bad_url, 'name': 'a'})
         client = self.get_test_client()
         tasks.update(self.db(), media['media_id'], client)
 
@@ -148,7 +148,7 @@ class TestTasks(SimilarWebTestCase, TestDatabaseWithSchemaTestCase):
 
     @responses.activate
     def test_multiple_update(self):
-        media = self.db().create('media', {'url': self.bad_url, 'name': 'a', 'moderated': True})
+        media = self.db().create('media', {'url': self.bad_url, 'name': 'a'})
         client = self.get_test_client()
         tasks.update(self.db(), media['media_id'], client)
 
