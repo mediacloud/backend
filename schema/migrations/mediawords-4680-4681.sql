@@ -134,6 +134,7 @@ WHERE (tag, label, description) IN (
     )
 );
 
+DELETE FROM tags WHERE tag_sets_id IN (SELECT tag_sets_id FROM tag_sets WHERE name = 'media_type');
 DELETE FROM tag_sets WHERE name = 'media_type';
 
 
