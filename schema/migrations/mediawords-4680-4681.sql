@@ -134,6 +134,8 @@ WHERE (tag, label, description) IN (
     )
 );
 
+DELETE FROM tag_sets WHERE name = 'media_type';
+
 
 create view media_with_media_types as
     select m.*, mtm.tags_id media_type_tags_id, t.label media_type
