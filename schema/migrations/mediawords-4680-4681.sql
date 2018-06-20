@@ -42,7 +42,7 @@ DROP FUNCTION site_from_host(varchar);
 
 
 -- Remove obsolete tags
-EXPLAIN DELETE FROM tags
+DELETE FROM tags
 WHERE (tag, label, description) IN (
     (
         'Not Typed',
