@@ -280,7 +280,7 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
 
         assert feed['name'] == mediawords.tm.stories.SPIDER_FEED_NAME
         assert feed['media_id'] == medium['media_id']
-        assert feed['feed_status'] == 'inactive'
+        assert feed['active'] is False
 
         assert mediawords.tm.stories.get_spider_feed(self.db(), medium)['feeds_id'] == feed['feeds_id']
 

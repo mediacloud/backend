@@ -369,7 +369,6 @@ sub _attach_media_to_input($$)
             editor_notes      => $input_medium->{ editor_notes },
             public_notes      => $input_medium->{ public_notes },
             is_monitored      => normalize_boolean_for_db( $input_medium->{ is_monitored } ),
-            moderated         => 't'
         };
         $input_medium->{ medium } = eval { $db->create( 'media', $create_medium ) };
         $input_medium->{ error } = "Error creating medium: $@" if ( $@ );

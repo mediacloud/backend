@@ -133,8 +133,6 @@ sub setup_acl()
       /admin/media/edit_do
       /admin/media/edit_tags
       /admin/media/edit_tags_do
-      /admin/media/moderate
-      /admin/media/moderate/merge
       /admin/health
       /admin/health/list
       /admin/health/tag

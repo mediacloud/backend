@@ -49,8 +49,8 @@ sub _add_test_feed($$$$)
 
     my $test_medium = $db->query(
         <<EOF,
-        INSERT INTO media (name, url, moderated)
-        VALUES (?, ?, 'f')
+        INSERT INTO media (name, url)
+        VALUES (?, ?)
         RETURNING *
 EOF
         '_ Crawler Test', $url_to_crawl
@@ -67,10 +67,10 @@ EOF
     my $web_page_feed = $db->create(
         'feeds',
         {
-            media_id  => $test_medium->{ media_id },
-            name      => '_ Crawler Test - Web Page Feed',
-            url       => "$url_to_crawl/$test_prefix/home.html",
-            feed_type => 'web_page'
+            media_id => $test_medium->{ media_id },
+            name     => '_ Crawler Test - Web Page Feed',
+            url      => "$url_to_crawl/$test_prefix/home.html",
+            type     => 'web_page'
         }
     );
 
@@ -105,7 +105,7 @@ sub _get_expanded_stories($)
     my $stories = $db->query(
         <<EOF
         SELECT s.*,
-               f.feed_type
+               f.type AS feed_type
         FROM stories s,
              feeds_stories_map fsm,
              feeds f
