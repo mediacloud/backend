@@ -75,50 +75,18 @@ def generate_medium_url_and_name_from_url(story_url: str) -> tuple:
 
 
 def _normalized_urls_out_of_date(db: DatabaseHandler) -> bool:
-    """Return True if the media_normalized_urls table is out of date with the current normalize_url_lossy_verison().
+    """Return True iff there is at least one medium with a null normalized_url."""
 
-    This function is relatively quick to run because it just compares the max media_id and db_row_last_updated
-    of the media table with those of the current normalize_url_lossy_version rows in media_normalized_urls.
-    """
-    version = mediawords.util.url.normalize_url_lossy_version()
+    null_medium = db.query( "select * from media where normalized_url is null limit 1" ).hash()
 
-    max_media_id = db.query("select max(media_id) from media").flat()[0]
-
-    max_normalized_media_id = db.query(
-        "select max(media_id) from media_normalized_urls where normalize_url_lossy_version = %(a)s",
-        {'a': version}).flat()[0]
-
-    if max_media_id is None:
-        return False
-
-    if max_normalized_media_id is None:
-        return True
-
-    if max_normalized_media_id < max_media_id:
-        return True
-
-    last_media_update = db.query("select max(db_row_last_updated) from media").flat()[0]
-
-    last_mnu_update = db.query(
-        "select max(db_row_last_updated) from media_normalized_urls where normalize_url_lossy_version = %(a)s",
-        {'a': version}).flat()[0]
-
-    if last_media_update is None:
-        return False
-
-    if last_mnu_update is None:
-        return True
-
-    return last_mnu_update < last_media_update
+    return null_medium is not None
 
 
 def _update_media_normalized_urls(db: DatabaseHandler) -> None:
-    """Keep media_normalized_urls table up to date.
+    """Keep normalized_url field in media table up to date.
 
-    This function compares the media and versions in media_normalized_urls against the version returned
-    by mediawords.util.url.normalize_url_lossy_version() and updates or inserts rows for any media that do not
-    have up to date versions.
-
+    Set the normalized_url field of any row in media for which it is null.  Take care to lock the process
+    so that only one process is doing this work at a time.
     """
     if not _normalized_urls_out_of_date(db):
         return
@@ -142,19 +110,7 @@ def _update_media_normalized_urls(db: DatabaseHandler) -> None:
 
     log.warning("updating media_normalized_urls ...")
 
-    version = mediawords.util.url.normalize_url_lossy_version()
-
-    media = db.query(
-        """
-        select m.*
-            from media m
-                left join media_normalized_urls u on
-                    ( m.media_id = u.media_id and u.normalize_url_lossy_version = %(a)s)
-            where
-                u.normalized_url is null or
-                u.db_row_last_updated < m.db_row_last_updated
-        """,
-        {'a': version}).hashes()
+    media = db.query("select * from media where normalized_url is null").hashes()
 
     i = 0
     total = len(media)
@@ -166,13 +122,7 @@ def _update_media_normalized_urls(db: DatabaseHandler) -> None:
 
         log.info("[%d/%d] adding %s (%s)" % (i, total, medium['name'], normalized_url))
 
-        db.query(
-            "delete from media_normalized_urls where media_id = %(a)s and normalize_url_lossy_version = %(b)s",
-            {'a': medium['media_id'], 'b': version})
-        db.create('media_normalized_urls', {
-            'media_id': medium['media_id'],
-            'normalized_url': normalized_url,
-            'normalize_url_lossy_version': version})
+        db.update_by_id('media', medium['media_id'], {'normalized_url': normalized_url})
 
     db.commit()
 
@@ -183,11 +133,9 @@ def lookup_medium(db: DatabaseHandler, url: str, name: str) -> typing.Optional[d
     Uses mediawords.util.url.normalize_url_lossy to normalize urls.  Returns the parent media for duplicate media
     sources and returns no media that are marked foreign_rss_links.
 
-    This function queries the media_normalized_urls table to find the matching urls.  Because the normalization
-    function is in python, we have to keep that denormalized table current from within python.  This function
-    is responsible for keeping the table up to date by comparing the normalize_url_lossy_version values
-    in the table with the current return value of mediawords.util.url.normalize_url_lossy_version().
-
+    This function queries the media.normalized_url field to find the matching urls.  Because the normalization
+    function is in python, we have to keep that denormalized_url field current from within python.  This function
+    is responsible for keeping the table up to date by filling the field for any media for which it is null.
     Arguments:
     db - db handle
     url - url to lookup
@@ -200,21 +148,18 @@ def lookup_medium(db: DatabaseHandler, url: str, name: str) -> typing.Optional[d
     _update_media_normalized_urls(db)
 
     nu = _normalize_url(url)
-    version = mediawords.util.url.normalize_url_lossy_version()
 
     lookup_query = \
         """
         select m.*
             from media m
-                join media_normalized_urls u using ( media_id )
             where
-                u.normalized_url = %(a)s and
-                u.normalize_url_lossy_version = %(b)s and
+                m.normalized_url = %(a)s and
                 foreign_rss_links = 'f'
             order by dup_media_id asc nulls last, media_id asc
         """
 
-    medium = db.query(lookup_query, {'a': nu, 'b': version}).hash()
+    medium = db.query(lookup_query, {'a': nu}).hash()
 
     if medium is None:
         medium = db.query(
