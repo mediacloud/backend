@@ -20,13 +20,13 @@ def copy_nonpartitioned_sentences_to_partitions():
     # With 512 MB, database can deduplicate (sort) sentences in memory instead of disk
     db.query("SET work_mem TO '512MB'")
 
-    max_stories_id = db.query("SELECT MAX(stories_id) FROM stories").flat()[0]
+    max_stories_id = db.query("SELECT MAX(stories_id) FROM story_sentences_nonpartitioned").flat()[0]
     if max_stories_id is None:
         raise Exception("Max. stories ID is None.")
 
     log.info("Max. stories ID: {}".format(max_stories_id))
 
-    for start_stories_id in range(469050000, max_stories_id + 1, stories_chunk_size):
+    for start_stories_id in range(486700000, max_stories_id + 1, stories_chunk_size):
         end_stories_id = start_stories_id + stories_chunk_size - 1
 
         log.info("Copying sentences of stories_id BETWEEN {} AND {} to the partitioned table...".format(

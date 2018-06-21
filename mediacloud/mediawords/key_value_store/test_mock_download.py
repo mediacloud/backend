@@ -10,8 +10,8 @@ class TestMockDownloadTestCase(TestKeyValueStoreTestCase, metaclass=abc.ABCMeta)
     @staticmethod
     def __create_mock_download(db: DatabaseHandler, downloads_id: int):
         db.query("""
-            INSERT INTO media (media_id, url, name, moderated)
-            VALUES (1, 'http://', 'Test Media', 't')
+            INSERT INTO media (media_id, url, name)
+            VALUES (1, 'http://', 'Test Media')
         """)
         db.query("""
             INSERT INTO feeds(feeds_id, media_id, name, url)
