@@ -77,7 +77,7 @@ def generate_medium_url_and_name_from_url(story_url: str) -> tuple:
 def _normalized_urls_out_of_date(db: DatabaseHandler) -> bool:
     """Return True iff there is at least one medium with a null normalized_url."""
 
-    null_medium = db.query( "select * from media where normalized_url is null limit 1" ).hash()
+    null_medium = db.query("select * from media where normalized_url is null limit 1").hash()
 
     return null_medium is not None
 

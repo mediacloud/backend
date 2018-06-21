@@ -62,7 +62,6 @@ class TestTMMediaDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase
             expected_nu = mediawords.util.url.normalize_url_lossy(medium['url'])
             assert(medium['url'] == expected_nu)
 
-
     def test_lookup_medium(self) -> None:
         """Test lookup_medium()."""
         db = self.db()
