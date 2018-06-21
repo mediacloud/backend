@@ -55,7 +55,7 @@ SQL
     $num_solr_stories = MediaWords::Solr::get_num_found( $db, { q => 'timespans_id:1' } );
     is( $num_solr_stories, 0, "number of solr stories before snapshot import" );
 
-    my ( $num_solr_exported_stories ) = $db->query( "select count(*) from solr_import_extra_stories" )->flat;
+    my ( $num_solr_exported_stories ) = $db->query( "select count(*) from solr_import_stories" )->flat;
     $num_topic_medium_stories = scalar( values( %{ $media->{ medium_1 }->{ feeds }->{ feed_1 }->{ stories } } ) );
     is( $num_solr_exported_stories, $num_topic_medium_stories, "number of stories added to solr export queue" );
 
