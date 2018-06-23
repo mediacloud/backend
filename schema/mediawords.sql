@@ -117,11 +117,8 @@ create table media (
     -- Delay content downloads for this media source this many hours
     content_delay       int             null,
 
-<<<<<<< HEAD
-=======
     db_row_last_updated         timestamp with time zone,
 
->>>>>>> master
     -- notes for internal media cloud consumption (eg. 'added this for yochai')
     editor_notes                text null,
     -- notes for public consumption (eg. 'leading dissident paper in anatarctica')
@@ -136,52 +133,7 @@ create table media (
 
 create unique index media_name on media(name);
 create unique index media_url on media(url);
-<<<<<<< HEAD
 create index media_normalized_url on media(normalized_url);
-create index media_moderated on media(moderated);
-
-CREATE INDEX media_name_trgm on media USING gin (name gin_trgm_ops);
-CREATE INDEX media_url_trgm on media USING gin (url gin_trgm_ops);
-=======
-create index media_db_row_last_updated on media( db_row_last_updated );
-
-
--- update media stats table for deleted story sentence
-CREATE FUNCTION update_media_db_row_last_updated() RETURNS trigger AS $$
-BEGIN
-    NEW.db_row_last_updated = now();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-create trigger update_media_db_row_last_updated before update or insert
-    on media for each row execute procedure update_media_db_row_last_updated();
-
---- allow lookup of media by mediawords.util.url.normalize_url_lossy.
--- the data in this table is accessed and kept up to date by mediawords.tm.media.lookup_medium_by_url
-create table media_normalized_urls (
-    media_normalized_urls_id        serial primary key,
-    media_id                        int not null references media,
-    normalized_url                  varchar(1024) not null,
-    db_row_last_updated             timestamp not null default now(),
-
-    -- assigned the value of mediawords.util.url.normalize_url_lossy_version()
-    normalize_url_lossy_version    int not null
-);
-
-create unique index media_normalized_urls_medium on media_normalized_urls(normalize_url_lossy_version, media_id);
-create index media_normalized_urls_url on media_normalized_urls(normalized_url);
-create index media_normalized_urls_db_row_last_updated on media_normalized_urls(db_row_last_updated);
-
-
--- list of media sources for which the stories should be updated to be at
--- at least db_row_last_updated
-create table media_update_time_queue (
-    media_id                    int         not null references media on delete cascade,
-    db_row_last_updated         timestamp with time zone not null
-);
-
->>>>>>> master
 
 -- Media feed rescraping state
 CREATE TABLE media_rescraping (
