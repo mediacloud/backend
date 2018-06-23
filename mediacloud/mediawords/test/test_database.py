@@ -13,8 +13,6 @@ from mediawords.util.mail import enable_test_mode, disable_test_mode
 
 log = create_logger(__name__)
 
-_template_db_created = False
-
 
 class McTestDatabaseTestCaseException(Exception):
     """Errors arising from the setup or tear down of database test cases."""
@@ -79,20 +77,22 @@ class TestDatabaseWithSchemaTestCase(TestCase):
         """
         super().setUpClass()
 
-        log.info("create test db template")
-
         config = py_get_config()
+
         db_config = list(filter(lambda x: x['label'] == cls.TEST_DB_LABEL, config['database']))
         if len(db_config) < 1:
             raise McTestDatabaseTestCaseException("Unable to find %s database in mediawords.yml" % cls.TEST_DB_LABEL)
 
         cls.db_name = (db_config[0])['db']
-        cls.template_db_name = cls.db_name + '_template'
 
-        # we only want to run this once per test suite for all database test cases, so this needs to be a global
-        global _template_db_created
-        if _template_db_created:
+        cls.template_db_name = config['mediawords'].get('test_template_db_name', None)
+        if cls.template_db_name is not None:
+            log.warning("use existing test db template: %s" % cls.template_db_name)
             return
+
+        log.info("create test db template")
+
+        cls.template_db_name = cls.db_name + '_template'
 
         # we insert this db name directly into sql, so be paranoid about what is in it
         if re.search('[^a-z0-9_]', cls.db_name, flags=re.I) is not None:
@@ -105,18 +105,15 @@ class TestDatabaseWithSchemaTestCase(TestCase):
         db.disconnect()
         recreate_db(label=cls.TEST_DB_LABEL, is_template=True)
 
-        _template_db_created = True
-
     def setUp(self) -> None:
         """Create a fresh testing database for each unit test.
 
         This relies on an empty template existing, which should have been created in setUpClass() above.
         """
-
         super().setUp()
 
         # Connect to the template database to execure the create command for the test database
-        log.info("recreate test db template")
+        log.warning("recreate test db from template: %s" % self.template_db_name)
 
         db = connect_to_db(label=self.TEST_DB_LABEL, is_template=True)
         db.query("drop database if exists %s" % (self.db_name,))
