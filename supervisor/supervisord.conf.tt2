@@ -97,6 +97,18 @@ programs = crawler
     default_nice=5
 %]
 
+[%- import_solr_data_numprocs = supervisor.programs.import_solr_data.numprocs || 1 %]
+[% INCLUDE program_config
+    program='import_solr_data'
+    command="./script/run_in_env.sh ./script/mediawords_import_solr_data.pl --daemon --jobs $import_solr_data_numprocs"
+    default_stopasgroup='false'
+    default_killasgroup='false'
+    default_autorestart='false'
+    default_autostart='true'
+    skip_numprocs=1
+    default_nice=12
+%]
+
 [% INCLUDE program_config
     program='create_missing_partitions'
     command="./script/run_in_env.sh ./tools/db/create_missing_partitions.py"
