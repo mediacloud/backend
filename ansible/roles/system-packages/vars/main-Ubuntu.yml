@@ -1,2 +1,39 @@
 # Whether to sudo when installing Pip system dependencies
 pip_system_install_become: true
+
+# Erlang and RabbitMQ version
+# (will be pinned by APT because not all version pairs are compatible; please
+# consult the compatibility table in https://www.rabbitmq.com/which-erlang.html
+# and check "apt-cache policy erlang-nox | rabbitmq-server" for available
+# versions)
+erlang_apt_package_version: "1:20.3-1"
+rabbitmq_apt_package_version: "3.7.3-1"
+
+# APT packages that make up Erlang
+# (installing a specific version of just "erlang-nox" fails in some instances)
+erlang_apt_packages:
+  - "erlang-asn1"
+  - "erlang-base"
+  - "erlang-crypto"
+  - "erlang-diameter"
+  - "erlang-edoc"
+  - "erlang-eldap"
+  - "erlang-erl-docgen"
+  - "erlang-eunit"
+  - "erlang-ic"
+  - "erlang-inets"
+  - "erlang-inviso"
+  - "erlang-mnesia"
+  - "erlang-nox"
+  - "erlang-odbc"
+  - "erlang-os-mon"
+  - "erlang-parsetools"
+  - "erlang-percept"
+  - "erlang-public-key"
+  - "erlang-runtime-tools"
+  - "erlang-snmp"
+  - "erlang-ssh"
+  - "erlang-ssl"
+  - "erlang-syntax-tools"
+  - "erlang-tools"
+  - "erlang-xmerl"
