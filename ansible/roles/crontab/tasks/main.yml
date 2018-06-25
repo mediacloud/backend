@@ -217,7 +217,7 @@
     # Report will be sent to MAILTO
     job: >
       {{ mediacloud_root }}/script/run_in_env.sh
-      {{ mediacloud_root }}/script/mediawords_generate_daily_rss_dumps.pl
+      {{ mediacloud_root }}/script/generate_daily_rss_dumps.pl
   become: true
   become_user: "{{ mediacloud_user }}"
   when: "'core_services' in group_names"  # only for hosts in 'core_services' group

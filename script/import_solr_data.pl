@@ -8,7 +8,7 @@ use forks;
 #  --delta -- import stories that have changed since the last import
 #  --delete_all -- delete all existing data from solr, in an atomic transaction with the import
 #  --file -- import from a list of files rather than directly from postgres, files should be generated
-#            with mediawords_generate_solr_dump.pl
+#            with generate_solr_dump.pl
 #  --solr_url -- use the given solr_url to import rather than the solr_url in mediawords.yml
 
 use strict;
