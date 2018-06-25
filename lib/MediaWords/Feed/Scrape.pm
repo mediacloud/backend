@@ -65,7 +65,7 @@ Readonly my @URL_IGNORE_PATTERNS => (
 
 # INTERNAL METHODS
 
-# given a list of urls, return a list of feeds in the form of { name => $name, url => $url, feed_type => 'syndicated' }
+# given a list of urls, return a list of feeds in the form of { name => $name, url => $url, type => 'syndicated' }
 # representing all of the links that refer to valid feeds (rss, rdf, or atom)
 sub _validate_and_name_feed_urls
 {
@@ -98,8 +98,8 @@ sub _validate_and_name_feed_urls
                 @{ $links },
                 {
                     name => $feed->title() || '',
-                    url => $url,
-                    feed_type => 'syndicated'
+                    url  => $url,
+                    type => 'syndicated'
                 }
             );
         }
@@ -443,13 +443,13 @@ sub _normalize_feed_url($)
 #
 # then assume that the first feed is the "main" feed containing all the stories.
 #
-# Returns a hashref to the main feed ({name => '...', url => '...', feed_type => 'syndicated'}) if such feed exists,
+# Returns a hashref to the main feed ({name => '...', url => '...', type => 'syndicated'}) if such feed exists,
 # undef if it doesn't at all or 2+ such feeds exist
 sub _main_feed_via_common_prefixed_feeds($)
 {
     my $feed_links = shift;
 
-    # If there's only one feed and it still has to be moderated, we should probably leave it that way
+    # If there's only one feed, we should probably leave it that way
     if ( scalar @{ $feed_links } == 1 )
     {
         return undef;
@@ -686,7 +686,7 @@ sub get_valid_feeds_from_index_url($$;$)
     return _recurse_get_valid_feeds_from_index_url( $urls, $ignore_patterns, [], $recurse_levels_left );
 }
 
-# give a list of urls, return a list of feeds in the form of { name => $name, url => $url, feed_type => 'syndicated' }
+# give a list of urls, return a list of feeds in the form of { name => $name, url => $url, type => 'syndicated' }
 # representing all of the links that refer to valid feeds (rss, rdf, or atom).
 # ignore urls that match one of the ignore patterns
 sub get_valid_feeds_from_urls($;$)
@@ -729,7 +729,7 @@ sub get_valid_feeds_from_urls($;$)
 
 # Add default feeds for the media by searching for them in the index page, then (if not found)
 # in a couple of child pages
-sub get_feed_links_and_need_to_moderate($)
+sub get_feed_links($)
 {
     my $medium = shift;
 
@@ -747,17 +747,15 @@ sub get_feed_links_and_need_to_moderate($)
 
     # otherwise do an expansive search
     my $feed_links;
-    my $need_to_moderate;
     if ( scalar @{ $default_feed_links } == 0 )
     {
-        $need_to_moderate = 1;
         $feed_links = get_valid_feeds_from_index_url( [ $medium->{ url } ], 1, [] );
 
         $default_feed_links = _default_feed_links( $medium, $feed_links );
     }
 
     # if there are more than 0 default feeds, use those.  If there are no more than
-    # $MAX_DEFAULT_FEEDS, use the first one and don't moderate.
+    # $MAX_DEFAULT_FEEDS, use the first one.
     if ( scalar @{ $default_feed_links } > 0 )
     {
         $default_feed_links = [ sort { length( $a->{ url } ) <=> length( $b->{ url } ) } @{ $default_feed_links } ];
@@ -765,25 +763,23 @@ sub get_feed_links_and_need_to_moderate($)
         {
             $default_feed_links = [ $default_feed_links->[ 0 ] ];
         }
-        $feed_links       = $default_feed_links;
-        $need_to_moderate = 0;
+        $feed_links = $default_feed_links;
     }
 
-    # If no feeds were found, add the 'web_page' feed to the feed-less website and don't moderate
+    # If no feeds were found, add the 'web_page' feed to the feed-less website
     if ( scalar @{ $feed_links } == 0 )
     {
         push(
             @{ $feed_links },
             {
-                name      => $medium->{ name },
-                url       => $medium->{ url },
-                feed_type => 'web_page'
+                name => $medium->{ name },
+                url  => $medium->{ url },
+                type => 'web_page'
             }
         );
-        $need_to_moderate = 0;
     }
 
-    return ( $feed_links, $need_to_moderate );
+    return $feed_links;
 }
 
 1;

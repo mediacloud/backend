@@ -58,7 +58,7 @@ SQL
 select count(*) active_crawled_feeds
     from feeds f
     where
-        f.feed_type = 'syndicated' and
+        f.type = 'syndicated' and
         f.last_new_story_time > now() - '180 days'::interval
 SQL
 
@@ -70,7 +70,7 @@ select count(*) active_crawled_media
             select media_id
                 from feeds f
                 where
-                    f.feed_type = 'syndicated' and
+                    f.type = 'syndicated' and
                     f.last_new_story_time > now() - '180 days'::interval
         )
 SQL

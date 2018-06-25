@@ -1,8 +1,7 @@
 package MediaWords::Job::RescrapeMedia;
 
 #
-# Search and add new feeds for unmoderated media (media sources that have not
-# had default feeds added to them).
+# Search and add new feeds for media without them.
 #
 # Start this worker script by running:
 #

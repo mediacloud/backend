@@ -53,6 +53,7 @@
 - name: Add Solr import script
   cron:
     name: "import_solr_data"
+    disabled: true  # Temporarily disabled because it has been started manually on mcquery1
     minute: "57"
     job: >
       nice -n {{ crontab_import_solr_data_nice }}

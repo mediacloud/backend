@@ -185,9 +185,8 @@ sub test_cliff_annotator($)
     my $media = $db->create(
         'media',
         {
-            name      => "test medium",
-            url       => "url://test/medium",
-            moderated => 't',
+            name => "test medium",
+            url  => "url://test/medium",
         }
     );
 
