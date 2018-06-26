@@ -93,11 +93,11 @@ programs = crawler
     default_nice=5
 %]
 
-; Sleep before starting the script to wait for Solr shards to go up
+; Solr shards take about 5,5 minutes to start (no idea why), so we wait for 7 minutes before starting the import
 [%- import_solr_data_numprocs = supervisor.programs.import_solr_data.numprocs || 1 %]
 [% INCLUDE program_config
     program='import_solr_data'
-    command="bash -c 'sleep 60 && ./script/run_in_env.sh ./script/mediawords_import_solr_data.pl --daemon --jobs $import_solr_data_numprocs'"
+    command="bash -c 'sleep 420 && ./script/run_in_env.sh ./script/mediawords_import_solr_data.pl --daemon --jobs $import_solr_data_numprocs'"
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
