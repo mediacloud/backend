@@ -161,6 +161,7 @@
   file:
     path: "/var/run/lock/d49860781c55a8eb64bfeee811e126261ec8a60fe93794b5cfbfbfac68d0f9ca"
     state: absent
+  when: "'core_services' in group_names"  # only for hosts in 'core_services' group
   become: true
   become_user: "{{ mediacloud_user }}"
   tags:
