@@ -426,10 +426,10 @@ the environment rather than being hard coded. Instead of `#!/usr/bin/perl` use `
 
 ## Code Formatting
 
-The git repository is set to automatically call `mediawords_reformat_code.pl` on every perl file before every commit.
+The git repository is set to automatically call `reformat_code.pl` on every perl file before every commit.
 
-`mediawords_reformat_code.pl` uses the `Perl::Tidy` module to automatically reformat the code according to a set of
-rules defined in the perltidy config file at `script/mediawords_perltidy_config_file`. This file along with the Perl
+`reformat_code.pl` uses the `Perl::Tidy` module to automatically reformat the code according to a set of
+rules defined in the perltidy config file at `script/perltidy_config_file`. This file along with the Perl
 Tidy documentation is considered the authoritative version of the code formating rules. Some of the rules defined in
 this file are use spaces instead of tabs, 125 character maximum line length, 4 character indentation, BSD/ANSI style in
 which braces appear on a line by themselves and code is indented inside braces.

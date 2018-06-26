@@ -8,16 +8,16 @@
 #
 # Usage:
 #
-# ./script/run_in_env.sh ./script/mediawords_query_config.pl "/mediawords/session/storage"
+# ./script/run_in_env.sh ./script/query_config.pl "/mediawords/session/storage"
 #
 # or
 #
-# ./script/run_in_env.sh ./script/mediawords_query_config.pl "//user_agent"
+# ./script/run_in_env.sh ./script/query_config.pl "//user_agent"
 #
 # or
 #
 # # multiple results:
-# ./script/run_in_env.sh ./script/mediawords_query_config.pl "//database[1]/db" | xargs createdb
+# ./script/run_in_env.sh ./script/query_config.pl "//database[1]/db" | xargs createdb
 #
 
 use strict;

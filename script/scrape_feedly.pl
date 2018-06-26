@@ -2,8 +2,6 @@
 
 # scrape stories from feedly for the specified feeds, or process all unscraped feeds one by one
 
-package script::mediawords_scrape_feedly;
-
 use strict;
 use warnings;
 
