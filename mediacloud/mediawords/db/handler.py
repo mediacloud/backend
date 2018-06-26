@@ -197,7 +197,7 @@ class DatabaseHandler(object):
 
                 Please run:
 
-                    ./script/run_in_env.sh ./script/mediawords_upgrade_db.pl --import
+                    ./script/run_in_env.sh ./script/upgrade_db.pl --import
 
                 to automatically upgrade the database schema to the latest version.
 

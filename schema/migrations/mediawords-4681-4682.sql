@@ -1,12 +1,12 @@
 --
 -- This is a Media Cloud PostgreSQL schema difference file (a "diff") between schema
--- versions 4561 and 4562.
+-- versions 4681 and 4682.
 --
 -- If you are running Media Cloud with a database that was set up with a schema version
--- 4561, and you would like to upgrade both the Media Cloud and the
--- database to be at version 4562, import this SQL file:
+-- 4681, and you would like to upgrade both the Media Cloud and the
+-- database to be at version 4682, import this SQL file:
 --
---     psql mediacloud < mediawords-4561-4562.sql
+--     psql mediacloud < mediawords-4681-4682.sql
 --
 -- You might need to import some additional schema diff files to reach the desired version.
 --
@@ -18,18 +18,14 @@
 SET search_path = public, pg_catalog;
 
 
-DROP FUNCTION create_initial_story_sentences_dup();
-
--- Drop indexes created by create_initial_story_sentences_dup() or index_story_sentence_dups.pl
-DROP INDEX IF EXISTS story_sentences_dup;
+DROP FUNCTION IF EXISTS find_corrupted_sequences();
 
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
-
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4562;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4682;
 
 BEGIN
 
@@ -47,4 +43,3 @@ LANGUAGE 'plpgsql';
 -- 2 of 2. Reset the database version.
 --
 SELECT set_database_schema_version();
-

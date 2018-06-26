@@ -224,7 +224,7 @@ Readonly::Hash my %ACTIVITIES => {
         parameters => {
             'topic_name' => {
                 description =>
-                  'Topic name that was passed as an argument to the "mediawords_search_and_tag_topic_stories.pl" script'
+                  'Topic name that was passed as an argument to the "search_and_tag_topic_stories.pl" script'
             }
         }
     },

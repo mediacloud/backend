@@ -19,7 +19,7 @@ echo "Initializing PostgreSQL databases with schema on container..."
 sudo lxc exec $MC_LXD_CONTAINER -- sudo -H -u $MC_LXD_USER /bin/bash -c "\
     cd $MC_LXD_MEDIACLOUD_ROOT; \
     export MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1; \
-    ./script/run_in_env.sh ./script/mediawords_create_db.pl \
+    ./script/run_in_env.sh ./script/create_db.pl \
     "
 
 # Travis's own scripts might have undefined variables or errors

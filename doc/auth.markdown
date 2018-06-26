@@ -10,7 +10,7 @@ To add a user with an email address "your@email.com", full name "Your Name",
 described as "Media Cloud administrator", having an "admin" role and a
 "yourpassword123" password, run:
 
-    ./script/run_in_env.sh ./script/mediawords_manage_users.pl \
+    ./script/run_in_env.sh ./script/manage_users.pl \
         --action=add \
         --email="your@email.com" \
         --full_name="Your Name" \
@@ -30,7 +30,7 @@ You can manage (add, remove, change various properties) users via two
 interfaces:
 
 1. Web interface that is available on http://127.0.0.1:3000/admin/users/list,
-2. CLI Perl script located at `./script/mediawords_manage_users.pl`.
+2. CLI Perl script located at `./script/manage_users.pl`.
 
 The user management web interface (click on the `Users` link at the top of every page on the web app)
 is mostly self explaining.
@@ -40,12 +40,12 @@ open script with a text editor and read the documentation on the top of the
 file. Alternatively, you can run:
 
     # user manager's help
-    ./script/run_in_env.sh ./script/mediawords_manage_users.pl --help
+    ./script/run_in_env.sh ./script/manage_users.pl --help
 
 or
 
     # user manager action's help
-    ./script/run_in_env.sh ./script/mediawords_manage_users.pl --action=...
+    ./script/run_in_env.sh ./script/manage_users.pl --action=...
 
 Authorization code
 -------------------

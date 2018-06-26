@@ -81,7 +81,7 @@
 
     # Supervisor doesn't always kill all crawler processes
     - name: "Test if crawler is stopped"
-      shell: "ps -ax | grep -s perl | grep -s mediawords_crawl.pl | grep -sv grep | awk '{ print $1 }'"
+      shell: "ps -ax | grep -s perl | grep -s crawl.pl | grep -sv grep | awk '{ print $1 }'"
       register: crawler_pids
       changed_when: false
       when: "'core_services' in group_names"  # only for hosts in 'core_services' group
@@ -99,7 +99,7 @@
         - deploy
 
     - name: "Test if crawler is stopped after killing leftover crawler processes"
-      shell: "ps -ax | grep -s perl | grep -s mediawords_crawl.pl | grep -sv grep | awk '{ print $1 }'"
+      shell: "ps -ax | grep -s perl | grep -s crawl.pl | grep -sv grep | awk '{ print $1 }'"
       register: crawler_pids
       failed_when: >
         crawler_pids is failed or
@@ -127,8 +127,8 @@
   block:
 
     - name: "Run database schema upgrade script"
-      command: "./script/run_in_env.sh ./script/mediawords_upgrade_db.pl --import"
-      register: mediawords_upgrade_db_status
+      command: "./script/run_in_env.sh ./script/upgrade_db.pl --import"
+      register: upgrade_db_status
       args:
         chdir: "{{ mediacloud_root }}"
       become: true
@@ -138,7 +138,7 @@
 
     - name: "Print database schema upgrade script output"
       debug:
-        var: mediawords_upgrade_db_status.stderr_lines
+        var: upgrade_db_status.stderr_lines
       tags:
         - deploy
 

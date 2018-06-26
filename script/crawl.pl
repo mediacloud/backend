@@ -3,7 +3,7 @@
 # start a daemon that crawls all feeds in the database.
 # see MediaWords::Crawler::Engine for details.
 
-# usage: mediawords_crawl.pl [ -t ] < num processes >
+# usage: crawl.pl [ -t ] < num processes >
 #
 # -t option makes the crawler run with a pending_check_interval of 1 second,
 # which is useful for testing environments to make a test crawler work quickly

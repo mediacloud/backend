@@ -15,11 +15,11 @@ Catalyst::ScriptRunner->run( 'MediaWords', 'Server' );
 
 =head1 NAME
 
-mediawords_server.pl - Catalyst Test Server
+server.pl - Catalyst Test Server
 
 =head1 SYNOPSIS
 
-mediawords_server.pl [options]
+server.pl [options]
 
    -d --debug           force debug mode
    -f --fork            handle each request in a new process
@@ -61,4 +61,3 @@ This library is free software. You can redistribute it and/or modify
 it under the same terms as Perl itself.
 
 =cut
-

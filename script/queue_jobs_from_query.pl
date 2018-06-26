@@ -2,8 +2,6 @@
 
 # queue the results of a postgres query as celery jobs
 
-package script::mediawords_queue_jobs_from_query;
-
 use strict;
 use warnings;
 
