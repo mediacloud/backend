@@ -302,16 +302,6 @@ SQL
                 f.media_id,
                 f.feeds_id,
                 f.type,
-
-                -- Copy "type" to deprecated "feed_type"
-                f.type AS feed_type,
-
-                -- Copy "active" to deprecated "feed_status"
-                CASE
-                    WHEN f.active = 't' THEN 'active'
-                    ELSE 'inactive'
-                END AS feed_status,
-
                 fsm.stories_id
             FROM feeds AS f
                 JOIN feeds_stories_map AS fsm USING (feeds_id)
