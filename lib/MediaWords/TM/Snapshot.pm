@@ -6,7 +6,7 @@ MediaWords::TM::Snapshot - Snapshot and analyze topic data
 
 =head1 SYNOPSIS
 
-    # generate a new topic snapshot -- this is run via mediawords_snapshot_topic.pl once or each snapshot
+    # generate a new topic snapshot -- this is run via snapshot_topic.pl once or each snapshot
     snapshot_topic( $db, $topics_id );
 
     # the rest of these examples are run each time we want to query topic data

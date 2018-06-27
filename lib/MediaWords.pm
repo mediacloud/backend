@@ -372,7 +372,7 @@ MediaWords - Catalyst based application
 
 =head1 SYNOPSIS
 
-    script/mediawords_server.pl
+    script/server.pl
 
 =head1 DESCRIPTION
 

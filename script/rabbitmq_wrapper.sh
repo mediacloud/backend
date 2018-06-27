@@ -5,7 +5,7 @@ set -e
 
 PWD="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-QUERY_CONFIG="$PWD/../script/run_in_env.sh $PWD/../script/mediawords_query_config.pl"
+QUERY_CONFIG="$PWD/../script/run_in_env.sh $PWD/../script/query_config.pl"
 
 # rabbitmq-server is likely to be in /usr/sbin, which will not be in a non-root path
 PATH="$PATH:/usr/sbin"

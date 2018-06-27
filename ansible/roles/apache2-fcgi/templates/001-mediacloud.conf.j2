@@ -40,7 +40,7 @@
     FcgidMaxRequestsPerProcess 1000
     FcgidMaxRequestLen         8388608
 
-    Alias / {{ mediacloud_root }}/script/mediawords_fastcgi.pl/
+    Alias / {{ mediacloud_root }}/script/fastcgi.pl/
 
     {% if apache2_redirect_login_register_url is defined or apache2_redirect_login_forgot_url is defined %}
     # Nicer registration and / or "forgot password" pages
