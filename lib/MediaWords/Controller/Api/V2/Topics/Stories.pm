@@ -65,8 +65,10 @@ sub _get_extra_where_clause($$)
         push( @{ $clauses }, <<SQL );
 slc.stories_id in (
     select s.stories_id
-        from stories s
-        where 
+        from snap.stories s
+            join timespans t using ( snapshots_id )
+        where
+            t.timespans_id = $timespans_id and
             s.media_id in ( $media_ids_list ) and
             s.stories_id = slc.stories_id
 )

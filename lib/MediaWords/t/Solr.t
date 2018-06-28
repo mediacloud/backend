@@ -137,7 +137,6 @@ sub append_utf8_string_to_stories($$)
                 sentence,
                 media_id,
                 publish_date,
-                db_row_last_updated,
                 language,
                 is_dup
             )
@@ -150,7 +149,6 @@ sub append_utf8_string_to_stories($$)
                 ?,
                 media_id,
                 publish_date,
-                db_row_last_updated,
                 language,
                 false
             FROM stories

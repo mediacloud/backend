@@ -37,26 +37,17 @@ class TestTMMediaDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase
 
         assert mediawords.tm.media._normalized_urls_out_of_date(db)
 
-        db.query(
-            """
-            insert into media_normalized_urls (media_id, normalized_url, normalize_url_lossy_version)
-                select media_id, url, %(a)s from media
-            """,
-            {'a': mediawords.util.url.normalize_url_lossy_version()})
+        db.query("update media set normalized_url = url")
 
         assert not mediawords.tm.media._normalized_urls_out_of_date(db)
 
-        db.query("update media_normalized_urls set normalize_url_lossy_version = normalize_url_lossy_version - 1")
+        db.query("update media set normalized_url = null where media_id in ( select media_id from media limit 1 )")
 
         assert mediawords.tm.media._normalized_urls_out_of_date(db)
 
-        db.query("update media_normalized_urls set normalize_url_lossy_version = normalize_url_lossy_version + 1")
+        db.query("update media set normalized_url = url")
 
         assert not mediawords.tm.media._normalized_urls_out_of_date(db)
-
-        db.query("update media set url = 'http://update.url' where media_id in ( select media_id from media limit 1)")
-
-        assert mediawords.tm.media._normalized_urls_out_of_date(db)
 
     def test_update_media_normalized_urls(self) -> None:
         """Test _update_media_normalized_urls()."""
@@ -66,22 +57,10 @@ class TestTMMediaDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase
 
         mediawords.tm.media._update_media_normalized_urls(db)
 
-        got_mnu = db.query(
-            """
-            select media_id, normalized_url, normalize_url_lossy_version
-                from media_normalized_urls
-                order by media_id
-            """).hashes()
-
-        media = db.query("select * from media order by media_id").hashes()
-        expected_mnu = list()  # type: list
+        media = db.query("select * from media").hashes()
         for medium in media:
-            mnu = {'media_id': medium['media_id']}
-            mnu['normalized_url'] = mediawords.tm.media._normalize_url(medium['url'])
-            mnu['normalize_url_lossy_version'] = mediawords.util.url.normalize_url_lossy_version()
-            expected_mnu.append(mnu)
-
-        assert got_mnu == expected_mnu
+            expected_nu = mediawords.util.url.normalize_url_lossy(medium['url'])
+            assert(medium['url'] == expected_nu)
 
     def test_lookup_medium(self) -> None:
         """Test lookup_medium()."""
@@ -89,6 +68,10 @@ class TestTMMediaDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase
 
         num_media = 5
         [mediawords.test.db.create_test_medium(db, str(i)) for i in range(num_media)]
+
+        # dummy call to lookup_medium to set normalized_urls
+        mediawords.tm.media.lookup_medium(db, 'foo', 'foo')
+
         media = db.query("select * from media order by media_id").hashes()
 
         assert mediawords.tm.media.lookup_medium(db, 'FAIL', 'FAIL') is None
@@ -188,6 +171,10 @@ class TestTMMediaDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase
 
         # the default test media do not have unique domains
         db.query("update media set url = 'http://media-' || media_id ||'.com'")
+
+        # dummy guess_medium call to assign normalized_urls
+        mediawords.tm.media.guess_medium(db, 'foo')
+
         media = db.query("select * from media order by media_id").hashes()
 
         # basic lookup of existing media

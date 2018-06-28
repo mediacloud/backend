@@ -1873,7 +1873,7 @@ sub _export_stories_to_solr($$)
 
     DEBUG( "queueing stories for solr import ..." );
     $db->query( <<SQL, $cd->{ snapshots_id } );
-insert into solr_import_extra_stories ( stories_id )
+insert into solr_import_stories ( stories_id )
     select distinct stories_id from snap.stories where snapshots_id = ?
 SQL
 

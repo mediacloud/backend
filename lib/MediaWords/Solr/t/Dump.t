@@ -125,6 +125,30 @@ SQL
     }
 
     {
+        # test that processed_stories update queues import
+        my $story = pop( @{ $test_stories } );
+        $db->create( 'processed_stories', { stories_id => $story->{ stories_id } } );
+        my $solr_import_story = $db->query( <<SQL, $story->{ stories_id } )->hash();
+select * from solr_import_stories where stories_id = ?
+SQL
+        ok( $solr_import_story, "queue story from processed_stories insert" );
+    }
+
+    {
+        # test that stories_tags_map update queues import
+        my $story = pop( @{ $test_stories } );
+        my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'import:test' );
+        $db->query( <<SQL, $story->{ stories_id }, $tag->{ tags_id } );
+insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )       
+SQL
+
+        my $solr_import_story = $db->query( <<SQL, $story->{ stories_id } )->hash();
+select * from solr_import_stories where stories_id = ?
+SQL
+        ok( $solr_import_story, "queue story from stories_tags_map insert" );
+    }
+
+    {
         # test delete_all, queue_all_stories, and stories_queue_table option of import_data
         MediaWords::Solr::Dump::delete_all_stories( $db );
         is( MediaWords::Solr::get_num_found( $db, { q => '*:*' } ), 0, "stories after deleting" );

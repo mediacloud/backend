@@ -19,16 +19,10 @@ MediaWords::Solr::Dump - import story_sentences from postgres into solr
 
 This module implements the functionality to import data from postgres into solr.
 
-The module knows which sentences to import by keep track of db_row_last_updated fields on the stories, media, and
-story_sentences table.  The module queries story_sentences for all distinct stories for which the db_row_last_updated
-value is greater than the latest value in solr_imports.  Triggers in the postgres database update the
-story_sentences.db_row_last_updated value on story_sentences whenever a related story, medium, story tag, story sentence
-tag, or story sentence tag is updated.
+This module just dumbly pulls stories from the solr_import_stories queue.  There are triggers postrgres that
+automatically add entries to that table whenever the stories or stories_tags_map table are changed.
 
-In addition to the incremental imports by db_row_last_updated, we import any stories in solr_import_extra_stories,
-in chunks up to 100k until the solr_import_extra_stories queue has been cleared.  In addition to using the queue to
-manually trigger updates for specific stories, we use it to queue updates for entire media sources whose tags have been
-changed and to queue updates for stories whose bitly data have been updated.
+Stories are imported in chunks of up to mediawords.yml->mediawords->solr->max_queued_stories (default 100k).
 
 This module has been carefully tuned to optimize performance.  Make sure you test the performance impacts of any
 changes you make to the module.
@@ -74,7 +68,7 @@ Readonly my @SOLR_FIELDS => qw/stories_id media_id publish_date publish_day publ
 Readonly my $FETCH_BLOCK_SIZE => 100;
 
 # default stories queue table
-Readonly my $DEFAULT_STORIES_QUEUE_TABLE => 'solr_import_extra_stories';
+Readonly my $DEFAULT_STORIES_QUEUE_TABLE => 'solr_import_stories';
 
 # default time sleep when there are less than MIN_STORIES_TO_PROCESS in daemon mode:
 Readonly my $DEFAULT_THROTTLE => 60;
@@ -105,9 +99,9 @@ sub _get_stories_queue_table
 
 # add enough stories from the stories queue table to the delta_import_stories table that there are up to
 # _get_maxed_queued_stories in delta_import_stories for each solr_import
-sub _add_extra_stories_to_import
+sub _add_stories_to_import
 {
-    my ( $db, $import_date, $num_delta_stories, $queue_only ) = @_;
+    my ( $db, $full ) = @_;
 
     my $config = MediaWords::Util::Config::get_config;
 
@@ -119,7 +113,7 @@ sub _add_extra_stories_to_import
     # do this as a separate query because I couldn't figure out a single query that resulted in a reasonable
     # postgres query plan given a very large stories queue table
     my $num_queued_stories = 0;
-    if ( !$queue_only )
+    if ( !$full )
     {
         my $num_queued_stories = $db->query(
             <<"SQL",
@@ -139,13 +133,19 @@ SQL
 
     $max_queued_stories -= $num_queued_stories;
 
-    # keep track of last max queued id so that we can search for only stories greater than that id below.  otherwise,
-    # the index scan from the query has to fetch all of the previously deleted rows from the heap and turn an instant
-    # query into a 10 second query after a couple million story imports
+    # by default, query for all stories and work from biggest stories_id to get latest stories first
     my $min_stories_id = 0;
-    if ( $queue_only && $_last_max_queue_stories_id )
+    my $sort_order = 'desc';
+    
+    # if we are doing a full import, work from the smallest stories_id up and
+    # keep track of last max queued id so that we can search for only stories
+    # greater than that id below.  otherwise, the index scan from the query has
+    # to fetch all of the previously deleted rows from the heap and turn an
+    # instant query into a 10 second query after a couple million story imports
+    if ( $full && $_last_max_queue_stories_id )
     {
         $min_stories_id = $_last_max_queue_stories_id;
+        $sort_order = 'asc';
     }
 
     # order by stories_id so that we will tend to get story_sentences in chunked pages as much as possible; just using
@@ -157,7 +157,7 @@ SQL
             SELECT stories_id
             FROM $stories_queue_table s
             WHERE stories_id > ?
-            ORDER BY stories_id
+            ORDER BY stories_id desc
             LIMIT ?
 SQL
         $min_stories_id,
@@ -166,6 +166,8 @@ SQL
 
     if ( $num_queued_stories > 0 )
     {
+        ( $_last_max_queue_stories_id ) = $db->query( "select max( stories_id ) from delta_import_stories" )->flat();
+
         my $stories_queue_table = _get_stories_queue_table();
 
         # remove the schema if present
@@ -176,8 +178,6 @@ SQL
         my ( $total_queued_stories ) = $db->query( <<SQL, $relname )->flat;
 select reltuples::bigint from pg_class where relname = ?
 SQL
-
-        ( $_last_max_queue_stories_id ) = $db->query( "select max( stories_id ) from delta_import_stories" )->flat();
 
         INFO "added $num_queued_stories out of about $total_queued_stories queued stories to the import";
     }
@@ -338,74 +338,20 @@ sub _import_stories($$)
     return;
 }
 
-# limit delta_import_stories to max_queued_stories stories;  put excess stories in solr_extra_import_stories
-sub _restrict_delta_import_stories_size ($$)
-{
-    my ( $db, $num_delta_stories ) = @_;
-
-    my $max_queued_stories = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_import }->{ max_queued_stories };
-
-    return if ( $num_delta_stories <= $max_queued_stories );
-
-    DEBUG( "cutting delta import stories from $num_delta_stories to $max_queued_stories stories" );
-
-    my $stories_queue_table = _get_stories_queue_table();
-
-    $db->query( <<SQL, $max_queued_stories );
-create temporary table keep_ids as
-    select * from delta_import_stories order by stories_id limit ?
-SQL
-
-    $db->query( "delete from delta_import_stories where stories_id in ( select stories_id from keep_ids )" );
-
-    $db->query( "insert into $stories_queue_table ( stories_id ) select stories_id from delta_import_stories" );
-
-    $db->query( "drop table delta_import_stories" );
-
-    $db->query( "alter table keep_ids rename to delta_import_stories" );
-
-}
-
-# get the delta clause that restricts the import of all subsequent queries to just the delta stories.  uses
-# a temporary table called delta_import_stories to list which stories should be imported.  we do this instead
-# of trying to query the date direclty because we need to restrict by this list in stand alone queries to various
-# manually joined tables, like stories_tags_map.
+# create the delta_import_stories temporary table and fill it from the stories_queue_table
 sub _create_delta_import_stories($$)
 {
-    my ( $db, $queue_only ) = @_;
-
-    my ( $import_date ) = $db->query( "select import_date from solr_imports order by import_date desc limit 1" )->flat;
+    my ( $db, $full ) = @_;
 
     $db->query( "drop table if exists delta_import_stories" );
 
-    my $num_delta_stories = 0;
-    if ( $queue_only )
-    {
-        $db->query( "create temporary table delta_import_stories ( stories_id int )" );
-    }
-    else
-    {
-        $import_date //= '2000-01-01';
+    $db->query( "create temporary table delta_import_stories ( stories_id int )" );
 
-        INFO "importing delta from $import_date...";
+    _add_stories_to_import( $db, $full );
 
-        $db->query( <<SQL, $import_date );
-create temporary table delta_import_stories as
-    select distinct stories_id
-        from story_sentences ss
-            where ss.db_row_last_updated > \$1
-SQL
-        ( $num_delta_stories ) = $db->query( "select count(*) from delta_import_stories" )->flat;
-        INFO "found $num_delta_stories stories for import ...";
+    my $stories_ids = $db->query( "select stories_id from delta_import_stories" )->flat();
 
-        _restrict_delta_import_stories_size( $db, $num_delta_stories );
-    }
-
-    _add_extra_stories_to_import( $db, $import_date, $num_delta_stories, $queue_only );
-
-    my $delta_stories_ids = $db->query( "select stories_id from delta_import_stories" )->flat;
-
-    return $delta_stories_ids;
+    return $stories_ids;
 }
 
 # Send a request to MediaWords::Solr::get_solr_url. Return content on success, die() on error. If $staging is true, use
@@ -707,13 +653,12 @@ sub _validate_using_test_db_with_test_index()
 Import stories from postgres to solr.
 
 Options:
-* queue_only -- only import stories from the stories queue table, ignoring db_row_last_updated (default false)
 * update -- delete each story from solr before importing it (default true)
 * empty_queue -- keep running until stories queue table is entirely empty (default false)
 * jobs -- number of parallel import jobs to run (default 1)
 * throttle -- sleep this number of seconds between each block of stories (default 60)
-* full -- shortcut for: queue_only=true, update=false, empty_queue=true, throttle=1
-* stories_queue_table -- table from which to pull stories to import (default solr_import_extra_stories)
+* full -- shortcut for: update=false, empty_queue=true, throttle=1; assume and optimize for static queue
+* stories_queue_table -- table from which to pull stories to import (default solr_import_stories)
 * skip_logging -- skip logging the import into the solr_import_stories or solr_imports tables (default=false)
 
 The import will run in blocks of config.mediawords.solr_import.max_queued_stories at a time.  It will 
@@ -737,7 +682,6 @@ sub import_data($;$)
 
     if ( $full )
     {
-        $options->{ queue_only }  //= 1;
         $options->{ update }      //= 0;
         $options->{ empty_queue } //= 1;
         $options->{ throttle }    //= 1;
@@ -748,10 +692,8 @@ sub import_data($;$)
         $options->{ skip_logging } //= 1;
         $options->{ empty_queue }  //= 1;
         $options->{ update }       //= 0;
-        $options->{ queue_only }   //= 1;
     }
 
-    my $queue_only   = $options->{ queue_only }   // 0;
     my $update       = $options->{ update }       // 1;
     my $empty_queue  = $options->{ empty_queue }  // 0;
     my $throttle     = $options->{ throttle }     // $DEFAULT_THROTTLE;
@@ -771,7 +713,7 @@ sub import_data($;$)
         my $start_time = time();
         _mark_import_date( $db );
 
-        my $stories_ids = _create_delta_import_stories( $db, $queue_only );
+        my $stories_ids = _create_delta_import_stories( $db, $full );
 
         my $num_stories = scalar( @{ $stories_ids } );
         if ( $num_stories < $MIN_STORIES_TO_PROCESS )

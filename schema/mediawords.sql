@@ -24,8 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4682;
-
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4683;
 BEGIN
 
     -- Update / set database schema version
@@ -99,112 +98,10 @@ END;
 $$
 LANGUAGE plpgsql;
 
-
- -- Returns true if the date is greater than the latest import date in solr_imports
- CREATE OR REPLACE FUNCTION before_last_solr_import(db_row_last_updated timestamp with time zone) RETURNS boolean AS $$
- BEGIN
-    RETURN ( ( db_row_last_updated is null ) OR
-             ( db_row_last_updated < ( select max( import_date ) from solr_imports ) ) );
-END;
-$$
-LANGUAGE 'plpgsql'
- ;
-
-CREATE OR REPLACE FUNCTION update_media_last_updated () RETURNS trigger AS
-$$
-   DECLARE
-   BEGIN
-
-      IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') THEN
-      	 update media set db_row_last_updated = now()
-             where media_id = NEW.media_id;
-      END IF;
-
-      IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'DELETE') THEN
-      	 update media set db_row_last_updated = now()
-              where media_id = OLD.media_id;
-      END IF;
-
-      IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') THEN
-        RETURN NEW;
-      ELSE
-        RETURN OLD;
-      END IF;
-   END;
-$$
-LANGUAGE 'plpgsql';
-
-
--- Update "db_row_last_updated" column to trigger Solr (re)imports for given
--- row; no update gets done if "db_row_last_updated" is set explicitly in
--- INSERT / UPDATE (e.g. when copying between tables)
-CREATE OR REPLACE FUNCTION last_updated_trigger() RETURNS trigger AS $$
-
-BEGIN
-
-    IF TG_OP = 'INSERT' THEN
-        IF NEW.db_row_last_updated IS NULL THEN
-            NEW.db_row_last_updated = NOW();
-        END IF;
-
-    ELSIF TG_OP = 'UPDATE' THEN
-        IF NEW.db_row_last_updated = OLD.db_row_last_updated THEN
-            NEW.db_row_last_updated = NOW();
-        END IF;
-    END IF;
-
-    RETURN NEW;
-
-END;
-
-$$ LANGUAGE 'plpgsql';
-
-
-CREATE OR REPLACE FUNCTION update_story_sentences_updated_time_trigger() RETURNS trigger AS $$
-
-BEGIN
-    UPDATE story_sentences
-    SET db_row_last_updated = NOW()
-    WHERE stories_id = NEW.stories_id
-      AND before_last_solr_import( db_row_last_updated );
-
-    RETURN NULL;
-END;
-
-$$ LANGUAGE 'plpgsql';
-
-
-CREATE OR REPLACE FUNCTION update_stories_updated_time_by_stories_id_trigger() RETURNS trigger AS $$
-
-DECLARE
-    reference_stories_id integer default null;
-
-BEGIN
-
-    IF TG_OP = 'INSERT' THEN
-        -- The "old" record doesn't exist
-        reference_stories_id = NEW.stories_id;
-    ELSIF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'DELETE') THEN
-        reference_stories_id = OLD.stories_id;
-    ELSE
-        RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
-    END IF;
-
-    UPDATE stories
-    SET db_row_last_updated = now()
-    WHERE stories_id = reference_stories_id
-      AND before_last_solr_import( db_row_last_updated );
-
-    RETURN NULL;
-
-END;
-
-$$ LANGUAGE 'plpgsql';
-
-
 create table media (
     media_id            serial          primary key,
     url                 varchar(1024)   not null,
+    normalized_url      varchar(1024)   null,
     name                varchar(128)    not null,
     full_text_rss       boolean         null,
 
@@ -235,44 +132,7 @@ create table media (
 
 create unique index media_name on media(name);
 create unique index media_url on media(url);
-create index media_db_row_last_updated on media( db_row_last_updated );
-
-
--- update media stats table for deleted story sentence
-CREATE FUNCTION update_media_db_row_last_updated() RETURNS trigger AS $$
-BEGIN
-    NEW.db_row_last_updated = now();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-create trigger update_media_db_row_last_updated before update or insert
-    on media for each row execute procedure update_media_db_row_last_updated();
-
---- allow lookup of media by mediawords.util.url.normalize_url_lossy.
--- the data in this table is accessed and kept up to date by mediawords.tm.media.lookup_medium_by_url
-create table media_normalized_urls (
-    media_normalized_urls_id        serial primary key,
-    media_id                        int not null references media,
-    normalized_url                  varchar(1024) not null,
-    db_row_last_updated             timestamp not null default now(),
-
-    -- assigned the value of mediawords.util.url.normalize_url_lossy_version()
-    normalize_url_lossy_version    int not null
-);
-
-create unique index media_normalized_urls_medium on media_normalized_urls(normalize_url_lossy_version, media_id);
-create index media_normalized_urls_url on media_normalized_urls(normalized_url);
-create index media_normalized_urls_db_row_last_updated on media_normalized_urls(db_row_last_updated);
-
-
--- list of media sources for which the stories should be updated to be at
--- at least db_row_last_updated
-create table media_update_time_queue (
-    media_id                    int         not null references media on delete cascade,
-    db_row_last_updated         timestamp with time zone not null
-);
-
+create index media_normalized_url on media(normalized_url);
 
 -- Media feed rescraping state
 CREATE TABLE media_rescraping (
@@ -303,8 +163,6 @@ CREATE TRIGGER media_rescraping_add_initial_state_trigger
     AFTER INSERT ON media
     FOR EACH ROW EXECUTE PROCEDURE media_rescraping_add_initial_state_trigger();
 
-
-create index media_update_time_queue_updated on media_update_time_queue ( db_row_last_updated );
 
 create table media_stats (
     media_stats_id              serial      primary key,
@@ -546,10 +404,6 @@ create table media_tags_map (
 create unique index media_tags_map_media on media_tags_map (media_id, tags_id);
 create index media_tags_map_tag on media_tags_map (tags_id);
 
-DROP TRIGGER IF EXISTS mtm_last_updated on media_tags_map CASCADE;
-CREATE TRIGGER mtm_last_updated BEFORE INSERT OR UPDATE OR DELETE
-    ON media_tags_map FOR EACH ROW EXECUTE PROCEDURE update_media_last_updated() ;
-
 create view media_with_media_types as
     select m.*, mtm.tags_id media_type_tags_id, t.label media_type
     from
@@ -585,7 +439,6 @@ create table stories (
     publish_date                timestamp       not null,
     collect_date                timestamp       not null default now(),
     full_text_rss               boolean         not null default 'f',
-    db_row_last_updated                timestamp with time zone,
     language                    varchar(3)      null   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
 );
 
@@ -599,15 +452,37 @@ create index stories_language on stories(language);
 create index stories_title_hash on stories( md5( title ) );
 create index stories_publish_day on stories( date_trunc( 'day', publish_date ) );
 
-DROP TRIGGER IF EXISTS stories_last_updated_trigger on stories CASCADE;
-CREATE TRIGGER stories_last_updated_trigger
-    BEFORE INSERT OR UPDATE ON stories
-    FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger();
+create function insert_solr_import_story() returns trigger as $insert_solr_import_story$
+DECLARE
 
-DROP TRIGGER IF EXISTS stories_update_story_sentences_last_updated_trigger on stories CASCADE;
-CREATE TRIGGER stories_update_story_sentences_last_updated_trigger
-    AFTER INSERT OR UPDATE ON stories
-    FOR EACH ROW EXECUTE PROCEDURE update_story_sentences_updated_time_trigger();
+    queue_stories_id INT;
+
+BEGIN
+
+    IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') THEN
+        select NEW.stories_id into queue_stories_id;
+    ELSE
+        select OLD.stories_id into queue_stories_id;
+	END IF;
+
+    insert into solr_import_stories ( stories_id )
+        select queue_stories_id
+            where exists (
+                select 1 from processed_stories where stories_id = queue_stories_id
+         );
+
+    IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') THEN
+		RETURN NEW;
+	ELSE
+		RETURN OLD;
+	END IF;
+
+END;
+
+$insert_solr_import_story$ LANGUAGE plpgsql;
+
+create trigger stories_insert_solr_import_story after insert or update or delete
+    on stories for each row execute procedure insert_solr_import_story();
 
 create table stories_ap_syndicated (
     stories_ap_syndicated_id    serial primary key,
@@ -885,17 +760,8 @@ CREATE TABLE stories_tags_map (
     stories_tags_map_id     BIGSERIAL   PRIMARY KEY NOT NULL,
 
     stories_id              INT         NOT NULL,
-    tags_id                 INT         NOT NULL,
-    db_row_last_updated     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    tags_id                 INT         NOT NULL
 );
-
-CREATE TRIGGER stories_tags_map_last_updated_trigger
-    BEFORE INSERT OR UPDATE ON stories_tags_map
-    FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger();
-
-CREATE TRIGGER stories_tags_map_update_stories_last_updated_trigger
-    AFTER INSERT OR UPDATE OR DELETE ON stories_tags_map
-    FOR EACH ROW EXECUTE PROCEDURE update_stories_updated_time_by_stories_id_trigger();
 
 
 -- Create missing "stories_tags_map" partitions
@@ -958,6 +824,9 @@ CREATE TRIGGER stories_tags_map_partition_upsert_trigger
     FOR EACH ROW EXECUTE PROCEDURE stories_tags_map_partition_upsert_trigger();
 
 
+create trigger stm_insert_solr_import_story before insert or update or delete
+    on stories_tags_map for each row execute procedure insert_solr_import_story();
+
 
 CREATE TABLE download_texts (
     download_texts_id integer NOT NULL,
@@ -998,7 +867,6 @@ create table story_sentences_nonpartitioned (
     sentence                            TEXT            NOT NULL,
     media_id                            INT             NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
     publish_date                        TIMESTAMP       NOT NULL,
-    db_row_last_updated                 TIMESTAMP WITH TIME ZONE,
     language                            VARCHAR(3)      NULL,
     is_dup                              BOOLEAN         NULL
 );
@@ -1006,16 +874,8 @@ create table story_sentences_nonpartitioned (
 CREATE INDEX story_sentences_nonpartitioned_story
     ON story_sentences_nonpartitioned (stories_id, sentence_number);
 
-CREATE INDEX story_sentences_nonpartitioned_db_row_last_updated
-    ON story_sentences_nonpartitioned (db_row_last_updated);
-
 CREATE INDEX story_sentences_nonpartitioned_sentence_half_md5
     ON story_sentences_nonpartitioned (half_md5(sentence));
-
-CREATE TRIGGER story_sentences_nonpartitioned_last_updated_trigger
-    BEFORE INSERT OR UPDATE ON story_sentences_nonpartitioned
-    FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger();
-
 
 -- "Master" table (no indexes, no foreign keys as they'll be ineffective)
 CREATE TABLE story_sentences_partitioned (
@@ -1025,9 +885,6 @@ CREATE TABLE story_sentences_partitioned (
     sentence                            TEXT            NOT NULL,
     media_id                            INT             NOT NULL,
     publish_date                        TIMESTAMP       NOT NULL,
-
-    -- Time this row was last updated
-    db_row_last_updated                 TIMESTAMP WITH TIME ZONE,
 
     -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
     language                            VARCHAR(3)      NULL,
@@ -1046,16 +903,6 @@ CREATE TABLE story_sentences_partitioned (
     -- the dup sentence, and things cleaned up."
     is_dup                              BOOLEAN         NULL
 );
-
-
--- Update db_row_last_updated first, before hitting the partitioned INSERT
--- trigger.
---
--- PostgreSQL runs triggers of the same event in alphabetical order, so this is
--- why this trigger has "00" prefix.
-CREATE TRIGGER story_sentences_partitioned_00_last_updated_trigger
-    BEFORE INSERT OR UPDATE ON story_sentences_partitioned
-    FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger();
 
 
 -- Note: "INSERT ... RETURNING *" doesn't work with the trigger, please use
@@ -1103,9 +950,6 @@ BEGIN
             CREATE UNIQUE INDEX ' || partition || '_stories_id_sentence_number
                 ON ' || partition || ' (stories_id, sentence_number);
 
-            CREATE INDEX ' || partition || '_db_row_last_updated
-                ON ' || partition || ' (db_row_last_updated);
-
             CREATE INDEX ' || partition || '_sentence_media_week
                 ON ' || partition || ' (half_md5(sentence), media_id, week_start_date(publish_date::date));
         ';
@@ -1133,7 +977,6 @@ CREATE OR REPLACE VIEW story_sentences AS
             sentence,
             media_id,
             publish_date,
-            db_row_last_updated,
             language,
             is_dup
         FROM story_sentences_partitioned
@@ -1147,7 +990,6 @@ CREATE OR REPLACE VIEW story_sentences AS
             sentence,
             media_id,
             publish_date,
-            db_row_last_updated,
             language,
             is_dup
         FROM story_sentences_nonpartitioned
@@ -1175,7 +1017,7 @@ BEGIN
         -- All new INSERTs go to partitioned table only.
         --
         -- By INSERTing into the master table, we're letting triggers choose
-        -- the correct partition and update db_row_last_updated.
+        -- the correct partition.
         INSERT INTO story_sentences_partitioned SELECT NEW.*;
 
         RETURN NEW;
@@ -1190,7 +1032,6 @@ BEGIN
                 sentence = NEW.sentence,
                 media_id = NEW.media_id,
                 publish_date = NEW.publish_date,
-                db_row_last_updated = NEW.db_row_last_updated,
                 language = NEW.language,
                 is_dup = NEW.is_dup
             WHERE stories_id = OLD.stories_id
@@ -1202,7 +1043,6 @@ BEGIN
                 sentence = NEW.sentence,
                 media_id = NEW.media_id,
                 publish_date = NEW.publish_date,
-                db_row_last_updated = NEW.db_row_last_updated,
                 language = NEW.language,
                 is_dup = NEW.is_dup
             WHERE stories_id = OLD.stories_id
@@ -1247,7 +1087,6 @@ CREATE TRIGGER story_sentences_view_insert_update_delete_trigger
 --   chunks
 -- * Copies directly to partitions to skip (slow) INSERT triggers on
 --   "story_sentences" view
--- * Disables all triggers while copying to skip updating db_row_last_updated
 --
 -- Returns number of rows that were copied.
 --
@@ -1330,7 +1169,6 @@ BEGIN
             sentence,
             media_id,
             publish_date,
-            db_row_last_updated,
             language,
             is_dup
         )
@@ -1341,7 +1179,6 @@ BEGIN
             sentence,
             media_id,
             publish_date,
-            db_row_last_updated,
             language,
             is_dup
         FROM deduplicated_rows;
@@ -1466,11 +1303,11 @@ create table solr_imports (
 
 create index solr_imports_date on solr_imports ( import_date );
 
--- Extra stories to import into Solr, e.g.: for media with updated media.m.db_row_last_updated
-create table solr_import_extra_stories (
+-- Extra stories to import into
+create table solr_import_stories (
     stories_id          int not null references stories on delete cascade
 );
-create index solr_import_extra_stories_story on solr_import_extra_stories ( stories_id );
+create index solr_import_stories_story on solr_import_stories ( stories_id );
 
 -- log of all stories import into solr, with the import date
 create table solr_imported_stories (
@@ -2004,8 +1841,7 @@ create table snap.live_stories (
     publish_date                timestamp       not null,
     collect_date                timestamp       not null,
     full_text_rss               boolean         not null default 'f',
-    language                    varchar(3)      null,   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
-    db_row_last_updated         timestamp with time zone null
+    language                    varchar(3)      null   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
 );
 
 create index live_story_topic on snap.live_stories ( topics_id );
@@ -2019,11 +1855,9 @@ create function insert_live_story() returns trigger as $insert_live_story$
 
         insert into snap.live_stories
             ( topics_id, topic_stories_id, stories_id, media_id, url, guid, title, description,
-                publish_date, collect_date, full_text_rss, language,
-                db_row_last_updated )
+                publish_date, collect_date, full_text_rss, language )
             select NEW.topics_id, NEW.topic_stories_id, NEW.stories_id, s.media_id, s.url, s.guid,
-                    s.title, s.description, s.publish_date, s.collect_date, s.full_text_rss, s.language,
-                    s.db_row_last_updated
+                    s.title, s.description, s.publish_date, s.collect_date, s.full_text_rss, s.language
                 from topic_stories cs
                     join stories s on ( cs.stories_id = s.stories_id )
                 where
@@ -2049,8 +1883,7 @@ create or replace function update_live_story() returns trigger as $update_live_s
                 publish_date = NEW.publish_date,
                 collect_date = NEW.collect_date,
                 full_text_rss = NEW.full_text_rss,
-                language = NEW.language,
-                db_row_last_updated = NEW.db_row_last_updated
+                language = NEW.language
             where
                 stories_id = NEW.stories_id;
 
@@ -2060,7 +1893,6 @@ $update_live_story$ LANGUAGE plpgsql;
 
 create trigger stories_update_live_story after update on stories
     for each row execute procedure update_live_story();
-
 
 --
 -- Snapshot word2vec models
@@ -2096,9 +1928,8 @@ create table processed_stories (
 
 create index processed_stories_story on processed_stories ( stories_id );
 
-CREATE TRIGGER processed_stories_update_stories_last_updated_trigger
-    AFTER INSERT OR UPDATE OR DELETE ON processed_stories
-    FOR EACH ROW EXECUTE PROCEDURE update_stories_updated_time_by_stories_id_trigger();
+create trigger ps_insert_solr_import_story after insert or update or delete
+    on processed_stories for each row execute procedure insert_solr_import_story();
 
 -- list of stories that have been scraped and the source
 create table scraped_stories (
