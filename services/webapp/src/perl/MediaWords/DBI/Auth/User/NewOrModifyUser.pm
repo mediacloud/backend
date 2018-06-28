@@ -1,42 +1,33 @@
 package MediaWords::DBI::Auth::User::NewOrModifyUser;
 
-#
-# New or existing user object
-#
-
 use strict;
 use warnings;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use Moose;
-extends 'MediaWords::DBI::Auth::User::AbstractUser';
+use MediaWords::DBI::Auth::User::AbstractUser;
+our @ISA = qw(MediaWords::DBI::Auth::User::AbstractUser);
 
-use MediaWords::DBI::Auth::Password;
-
-has 'role_ids'        => ( is => 'rw', isa => 'Maybe[ArrayRef[Int]]' );
-has 'password'        => ( is => 'rw', isa => 'Maybe[Str]' );
-has 'password_repeat' => ( is => 'rw', isa => 'Maybe[Str]' );
-
-sub BUILD
+sub role_ids($)
 {
-    my $self = shift;
+    my ( $self ) = @_;
 
-    if ( $self->password() and $self->password_repeat() )
-    {
-        my $password_validation_message = MediaWords::DBI::Auth::Password::validate_new_password(
-            $self->email(),             #
-            $self->password(),          #
-            $self->password_repeat()    #
-        );
-        if ( $password_validation_message )
-        {
-            LOGCONFESS "Password is invalid: $password_validation_message";
-        }
-    }
+    return $self->{ _python_object }->role_ids();
 }
 
-no Moose;                               # gets rid of scaffolding
+sub password($)
+{
+    my ( $self ) = @_;
+
+    return $self->{ _python_object }->password();
+}
+
+sub password_repeat($)
+{
+    my ( $self ) = @_;
+
+    return $self->{ _python_object }->password_repeat();
+}
 
 1;

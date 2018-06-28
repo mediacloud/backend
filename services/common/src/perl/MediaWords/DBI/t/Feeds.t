@@ -15,9 +15,8 @@ sub test_stories_checksum_matches_feed
     my $pid = $$;
 
     my $medium = {
-        name      => "test feed checksum $$",
-        url       => "url://test/feed/checksum/$$",
-        moderated => 't',
+        name => "test feed checksum $$",
+        url  => "url://test/feed/checksum/$$",
     };
     $medium = $db->create( 'media', $medium );
 

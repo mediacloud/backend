@@ -42,7 +42,7 @@ perl_dependencies:
     - "Catalyst::View::TT"
     - "CGI"
     - "CHI"
-    - "Crypt::SaltedHash"
+    - "Data::Dumper"
     - "Data::Serializer"
     - "Data::Sorting"
     - "Date::Calc"

@@ -27,7 +27,7 @@ Then run the following import data into Solr from PostgreSQL and verify existenc
 The process for running a topic in production is the same, but without the Solr import (the production Solr database will already have data).
 
     ./script/run_in_env.sh \
-        ./script/mediawords_import_solr_data.pl \
+        ./script/import_solr_data.pl \
         --delete_all
 
 1. Go to <http://localhost:3000/admin/tm>.
@@ -48,29 +48,23 @@ The process for running a topic in production is the same, but without the Solr 
 ID of the newly created topic (visible in the URL of the topic page after completion of step 7):
 
         ./script/run_in_env.sh \
-            ./script/mediawords_mine_topic.pl \
+            ./script/mine_topic.pl \
             --topic <topics_id> \
             --direct_job
 
 9. Wait for the topic spider to complete.  This can take anywhere from an hour or so to several days.  
 If you want it to complete faster, edit `mediawords->tm_spider_iterations` in `mediawords.yml` to some small number (1 or 2), which will make the spider only spider out that many levels from the seed set.
 
-10. Once the the mine has finished, run the following command and follow the instructions within the script
-to deduplicate the media discovered during the spidering process:
+10. After all media have been deduplicated, run the command in step 8 again to make the miner process the stories in the media now marked as duplicated.
+
+11. Run the following to create a snapshot for the topic:
 
         ./script/run_in_env.sh \
-            ./script/mediawords_dedup_topic_media.pl
-
-11. After all media have been deduplicated, run the command in step 8 again to make the miner process the stories in the media now marked as duplicated.
-
-12. Run the following to create a snapshot for the topic:
-
-        ./script/run_in_env.sh \
-            ./script/mediawords_snapshot_topic.pl \
+            ./script/snapshot_topic.pl \
             --topic <topics_id> \
             --direct_job
 
-13. That's it.  You should have a functioning topic. Go to the topic page in step 1 and click on the newly created topic.
+12. That's it.  You should have a functioning topic. Go to the topic page in step 1 and click on the newly created topic.
 
 
 ## Basic flow of topic mapper
@@ -116,10 +110,10 @@ to deduplicate the media discovered during the spidering process:
     * This basic topic metadata goes into the `topics` table.
 
 5. Add any additional seed set URLs from other sources (e.g. manual research by RAs, twitter links, Google search results).
-    * These seed set URLs are generated manually and imported from CSVs into `topic_seed_urls` using `mediawords_import_topic_seed_urls.pl`.
+    * These seed set URLs are generated manually and imported from CSVs into `topic_seed_urls`.
     * The `topic_seed_urls` table has an `assume_match` field that, if `true`, makes the spider add every URL from this regardless of whether it matches the topic pattern; otherwise only URLs that match the pattern are added to the topic.
 
-6. Run `mediawords_mine_topic.pl --topic <id>` to start the topic mining process. You can use the `--direct_job` option to run the mining code directly in process rather than sending a job off to the `TM/Minetopic` job.  The topic mining sets off the following process:
+6. Run `mine_topic.pl --topic <id>` to start the topic mining process. You can use the `--direct_job` option to run the mining code directly in process rather than sending a job off to the `TM/Minetopic` job.  The topic mining sets off the following process:
 
     1. If `topics.solr_seed_query_run` is `false`, the miner executes the `solr_seed_query` on Solr and adds all of the returned stories that also match the topic regex to the topic.
         * These stories go into `topic_stories`.
@@ -133,9 +127,8 @@ to deduplicate the media discovered during the spidering process:
         * Story title and URL deduplication is implemented in `MediaWords::DBI::Stories`, `get_medium_dup_stories_by_url` and `get_medium_dup_stories_by_title`.
 
 7. Manually deduplicate all media associated with a topic (as each new story is added, a media source has to found or created for it based on the URL host name, and often those media sources end up being duplicates, e.g. `articles.orlandosun.com` and `www.orlandosun.com`).  The below script remembers which media sources have already been reviewed for duplication at least once, so you will have review only media sources not previously reviewed.
-    * Media deduplication is implemented in `mediawords_dedup_topic_media.pl`
 
-8. Run `mediawords_mine_topic.pl` again if any media sources have been marked as duplicates in (7) to merge stories from duplicate media.
+8. Run `mine_topic.pl` again if any media sources have been marked as duplicates in (7) to merge stories from duplicate media.
 
 9. Run a snapshot of the topic to create a static snapshot of the data that can act as a stable data set for research, to generate the timespan network maps, and to generate reliability scores for the influential media list in each timespans.
     * Snapshotting is implemented by `MediaWords::TM::Snapshot::snapshot_topic`

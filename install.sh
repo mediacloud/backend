@@ -38,10 +38,10 @@ echo "Creating default PostgreSQL user and databases for Media Cloud..."
 sudo ./tools/db/create_default_db_user_and_databases.sh
 
 echo "Initializing PostgreSQL database with Media Cloud schema..."
-./script/run_in_env.sh ./script/mediawords_create_db.pl
+./script/run_in_env.sh ./script/create_db.pl
 
 echo "Creating new administrator user 'jdoe@mediacloud.org' with password 'mediacloud'"
-./script/run_in_env.sh ./script/mediawords_manage_users.pl \
+./script/run_in_env.sh ./script/manage_users.pl \
     --action=add \
     --email="jdoe@mediacloud.org" \
     --full_name="John Doe" \

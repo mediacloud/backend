@@ -30,7 +30,7 @@ Readonly my $JOB_STATE_FIELD_LIST => "job_states_id, ( args->>'media_id' )::int 
 sub default_output_fields
 {
     return [
-        qw ( name url media_id feeds_id feed_type feed_status last_new_story_time
+        qw ( name url media_id feeds_id type active last_new_story_time
           last_attempted_download_time last_successful_download_time )
     ];
 }
@@ -47,7 +47,7 @@ sub list_query_filter_field
 
 sub get_update_fields($)
 {
-    return [ qw/name url feed_type feed_status/ ];
+    return [ qw/name url type active/ ];
 }
 
 sub update : Local : ActionClass('MC_REST')

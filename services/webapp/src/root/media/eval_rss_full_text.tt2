@@ -38,9 +38,7 @@
     <tr><td>media_id             </td><td> [% medium.media_id              | html_strip %]</td></tr>
     <tr><td>url                  </td><td> [% medium.url                   | html_strip %]</td></tr>
     <tr><td>name                 </td><td> [% medium.name                  | html_strip %]</td></tr>
-    <tr><td>moderated            </td><td> [% medium.moderated             | html_strip %]</td></tr>
     <tr><td>media_has_active_syndicated_feeds      </td><td> [% medium.media_has_active_syndicated_feeds       | html_strip %]</td></tr>
-    <tr><td>moderation_notes     </td><td> [% medium.moderation_notes      | html_strip %]</td></tr>
     <tr><td>full_text_rss        </td><td> [% medium.full_text_rss         | html_strip %]</td></tr>
     <tr><td>max_similarity       </td><td> [% medium.max_similarity        | html_strip %]</td></tr>
     <tr><td>avg_similarity       </td><td> [% medium.avg_similarity        | html_strip %]</td></tr>

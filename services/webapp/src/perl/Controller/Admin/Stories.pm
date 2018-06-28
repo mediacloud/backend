@@ -258,6 +258,9 @@ sub cliff_json : Local
           $stories_id . ": $@\nHashref: " . Dumper( $cliff_annotation );
     }
 
+    # Catalyst expects bytes
+    $annotation_json = encode_utf8( $annotation_json );
+
     $c->response->content_type( 'application/json; charset=UTF-8' );
     return $c->res->body( $annotation_json );
 }
@@ -303,6 +306,9 @@ sub nytlabels_json : Local
         die "Unable to encode story and its sentences annotation to JSON for story " .
           $stories_id . ": $@\nHashref: " . Dumper( $nytlabels_annotation );
     }
+
+    # Catalyst expects bytes
+    $annotation_json = encode_utf8( $annotation_json );
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
     return $c->res->body( $annotation_json );

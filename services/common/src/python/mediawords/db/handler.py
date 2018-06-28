@@ -197,7 +197,7 @@ class DatabaseHandler(object):
 
                 Please run:
 
-                    ./script/run_in_env.sh ./script/mediawords_upgrade_db.pl --import
+                    ./script/run_in_env.sh ./script/upgrade_db.pl --import
 
                 to automatically upgrade the database schema to the latest version.
 
@@ -362,6 +362,12 @@ class DatabaseHandler(object):
             self.__primary_key_columns[schema] = {}
 
         if table not in self.__primary_key_columns[schema]:
+
+            if table.lower() == 'story_sentences':
+                # FIXME temporary exception for a intermediary "story_sentences" view while the actual underlying table
+                # is being partitioned
+                return 'story_sentences_id'
+
             # noinspection SqlResolve,SqlCheckUsingColumns
             primary_key_column = self.query("""
                 SELECT column_name

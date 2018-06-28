@@ -62,14 +62,24 @@ sub _get_extra_where_clause($$)
     {
         my $media_ids = ref( $media_id ) ? $media_id : [ $media_id ];
         my $media_ids_list = join( ',', map { $_ += 0 } @{ $media_ids } );
-        push( @{ $clauses }, "s.media_id in ( $media_ids_list )" );
+        push( @{ $clauses }, <<SQL );
+slc.stories_id in (
+    select s.stories_id
+        from snap.stories s
+            join timespans t using ( snapshots_id )
+        where
+            t.timespans_id = $timespans_id and
+            s.media_id in ( $media_ids_list ) and
+            s.stories_id = slc.stories_id
+)
+SQL
     }
 
     if ( my $stories_id = $c->req->params->{ stories_id } )
     {
         my $stories_ids = ref( $stories_id ) ? $stories_id : [ $stories_id ];
         my $stories_ids_list = join( ',', map { $_ += 0 } @{ $stories_ids } );
-        push( @{ $clauses }, "s.stories_id in ( $stories_ids_list )" );
+        push( @{ $clauses }, "slc.stories_id in ( $stories_ids_list )" );
     }
 
     if ( my $link_to_stories_id = $c->req->params->{ link_to_stories_id } )
@@ -77,7 +87,7 @@ sub _get_extra_where_clause($$)
         $link_to_stories_id += 0;
         $timespans_id       += 0;
         push( @{ $clauses }, <<SQL );
-s.stories_id in (
+slc.stories_id in (
     select
             sl.source_stories_id
         from snap.story_links sl
@@ -94,7 +104,7 @@ SQL
         $link_from_stories_id += 0;
         $timespans_id         += 0;
         push( @{ $clauses }, <<SQL );
-s.stories_id in (
+slc.stories_id in (
     select
             sl.ref_stories_id
         from snap.story_links sl
@@ -111,7 +121,7 @@ SQL
         $link_to_media_id += 0;
         $timespans_id     += 0;
         push( @{ $clauses }, <<SQL );
-s.stories_id in (
+slc.stories_id in (
     select
             sl.source_stories_id
         from snap.story_links sl
@@ -130,7 +140,7 @@ SQL
         $link_from_media_id += 0;
         $timespans_id       += 0;
         push( @{ $clauses }, <<SQL );
-s.stories_id in (
+slc.stories_id in (
     select
             sl.ref_stories_id
         from snap.story_links sl
@@ -153,7 +163,7 @@ SQL
         $solr_stories_id = [ map { int( $_ ) } @{ $solr_stories_id } ];
 
         my $ids_table = $c->dbis->get_temporary_ids_table( $solr_stories_id );
-        push( @{ $clauses }, "s.stories_id in ( select id from $ids_table )" );
+        push( @{ $clauses }, "slc.stories_id in ( select id from $ids_table )" );
     }
 
     return '' unless ( @{ $clauses } );
@@ -215,7 +225,7 @@ sub _get_sort_clause
       || die( "unknown sort value: '$sort_param'" );
 
     # md5 hashing is to make tie breaks random but consistent
-    return "$sort_field desc nulls last, md5( slc.stories_id::text )";
+    return "$sort_field desc nulls last";
 }
 
 sub list_GET
@@ -232,27 +242,39 @@ sub list_GET
     $c->req->params->{ limit } ||= 1000;
 
     my $sort_clause = _get_sort_clause( $c->req->params->{ sort } );
+    $sort_clause = "order by slc.timespans_id, $sort_clause, md5( slc.stories_id::text )";
 
     my $timespans_id = $timespan->{ timespans_id };
     my $snapshots_id = $timespan->{ snapshots_id };
 
     my $extra_clause = _get_extra_where_clause( $c, $timespans_id );
 
-    my $limit  = $c->req->params->{ limit };
-    my $offset = $c->req->params->{ offset };
+    my $limit = $c->req->params->{ limit };
+    my $offset = $c->req->params->{ offset } || 0;
 
-    my $stories = $db->query( <<SQL, $timespans_id, $snapshots_id, $limit, $offset )->hashes;
-select s.*, slc.*, m.name media_name
-    from snap.story_link_counts slc
-        join snap.stories s on slc.stories_id = s.stories_id
-        join snap.media m on s.media_id = m.media_id
-    where slc.timespans_id = \$1
-        and s.snapshots_id = \$2
-        and m.snapshots_id = \$2
-        $extra_clause
-    order by $sort_clause
-    limit \$3 offset \$4
+    my $pre_limit_order = $extra_clause ? '' : "$sort_clause limit $limit offset $offset";
+
+    $db->query( <<SQL, $timespans_id );
+create temporary table _topics_stories_slc as
+    select *
+        from snap.story_link_counts slc
+        where timespans_id = \$1 $extra_clause
+        $pre_limit_order
 SQL
+
+    my $stories = $db->query( <<SQL, $snapshots_id, $limit, $offset )->hashes;
+select s.*, slc.*, m.name media_name
+    from _topics_stories_slc slc
+        join snap.stories s on slc.stories_id = s.stories_id        
+        join snap.media m on s.media_id = m.media_id    
+    where 
+        s.snapshots_id = \$1      
+        and m.snapshots_id = \$1
+    $sort_clause
+    limit \$2 offset \$3
+SQL
+
+    $db->query( "drop table _topics_stories_slc" );
 
     _add_foci_to_stories( $db, $timespan, $stories );
 
@@ -321,24 +343,28 @@ sub count_GET
 {
     my ( $self, $c ) = @_;
 
-    my $timespan     = MediaWords::TM::set_timespans_id_param( $c );
-    my $timespans_id = $timespan->{ timespans_id };
-
     my $db = $c->dbis;
+
+    my $timespan = MediaWords::TM::require_timespan_for_topic(
+        $c->dbis,
+        $c->stash->{ topics_id },
+        $c->req->params->{ timespans_id },
+        $c->req->params->{ snapshots_id }
+    );
 
     my $q = $c->req->params->{ q };
 
-    if ( $q )
-    {
-        $c->req->params->{ q } = "timespans_id:$timespans_id and ( $q )";
-        return $c->controller( 'Api::V2::Stories_Public' )->count_GET( $c );
-    }
-    else
-    {
-        my ( $n ) =
-          $db->query( "select count(*) from snap.story_link_counts where timespans_id = \$1", $timespans_id )->flat;
-        $self->status_ok( $c, entity => { count => $n } );
-    }
+    my $timespan_clause = "timespans_id:$timespan->{ timespans_id }";
+
+    $q = $q ? "$timespan_clause and ( $q )" : $timespan_clause;
+
+    $c->req->params->{ q } = $q;
+
+    $c->req->params->{ split_start_date } ||= substr( $timespan->{ start_date }, 0, 12 );
+    $c->req->params->{ split_end_date }   ||= substr( $timespan->{ end_date },   0, 12 );
+
+    return $c->controller( 'Api::V2::Stories_Public' )->count_GET( $c );
+
 }
 
 1;

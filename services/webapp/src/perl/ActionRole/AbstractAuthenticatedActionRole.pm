@@ -116,7 +116,7 @@ sub _user_email_and_roles($$)
         {
             if ( $c->authenticate( { key => $c->request->param( $api_key_param ) }, $MediaWords::AUTH_REALM_API_KEY ) )
             {
-                $api_auth = MediaWords::DBI::Auth::Profile::user_info( $db, $c->user->username );
+                $api_auth = MediaWords::DBI::Auth::Info::user_info( $db, $c->user->username );
             }
         }
 

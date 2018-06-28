@@ -1,55 +1,49 @@
 package MediaWords::DBI::Auth::User::NewUser;
 
-#
-# User object for user to be created by add_user()
-#
-
 use strict;
 use warnings;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use Moose;
-extends 'MediaWords::DBI::Auth::User::NewOrModifyUser';
+use MediaWords::DBI::Auth::User::NewOrModifyUser;
+our @ISA = qw(MediaWords::DBI::Auth::User::NewOrModifyUser);
 
-has 'subscribe_to_newsletter' => ( is => 'rw', isa => 'Int' );
-has 'activation_url'          => ( is => 'rw', isa => 'Str' );
-
-sub BUILD
+sub new
 {
-    my $self = shift;
+    my ( $class, %args ) = @_;
 
-    unless ( $self->full_name() )
-    {
-        LOGCONFESS "User full name is unset.";
-    }
-    unless ( defined $self->notes() )
-    {
-        LOGCONFESS "User notes are undefined (should be at least an empty string).";
-    }
-    unless ( ref $self->role_ids() eq ref( [] ) )
-    {
-        LOGCONFESS "List of role IDs is not an array: " . Dumper( $self->role_ids() );
-    }
-    unless ( $self->password() )
-    {
-        LOGCONFESS "Password is unset.";
-    }
-    unless ( $self->password_repeat() )
-    {
-        LOGCONFESS "Password repeat is unset.";
-    }
+    my $python_object = MediaWords::DBI::Auth::User::AbstractUser::PythonProxy::NewUser->new(
+        $args{ email },
+        $args{ full_name },
+        $args{ notes },
+        $args{ active },
+        $args{ weekly_requests_limit },
+        $args{ weekly_requested_items_limit },
+        $args{ password },
+        $args{ password_repeat },
+        $args{ role_ids },
+        $args{ subscribe_to_newsletter },
+        $args{ activation_url },
+    );
 
-    # Password will be verified by ::NewOrModifyUser
+    my $self = $class->SUPER::new( python_object => $python_object );
 
-    # Either activate the user right away, or make it inactive and send out an email with activation link
-    if ( ( $self->active() and $self->activation_url() ) or ( ( !$self->active() ) and ( !$self->activation_url() ) ) )
-    {
-        LOGCONFESS "Either make the user active or set the activation URL.";
-    }
+    return $self;
 }
 
-no Moose;    # gets rid of scaffolding
+sub subscribe_to_newsletter($)
+{
+    my ( $self ) = @_;
+
+    return int( $self->{ _python_object }->subscribe_to_newsletter() );
+}
+
+sub activation_url($)
+{
+    my ( $self ) = @_;
+
+    return $self->{ _python_object }->activation_url();
+}
 
 1;

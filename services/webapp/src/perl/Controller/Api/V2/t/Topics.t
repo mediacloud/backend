@@ -86,7 +86,7 @@ SQL
     my $got = MediaWords::Controller::Api::V2::Topics::_is_mc_queue_user( $db, $auth_users_id );
     ok( !$got, "$label default user should be public" );
 
-    for my $role ( @{ $MediaWords::DBI::Auth::Roles::List::TOPIC_MC_QUEUE_ROLES } )
+    for my $role ( @{ MediaWords::DBI::Auth::Roles::List::topic_mc_queue_roles() } )
     {
         $db->query( "delete from auth_users_roles_map where auth_users_id = ?", $auth_users_id );
         $db->query( <<SQL, $auth_users_id, $MediaWords::DBI::Auth::Roles::List::ADMIN );

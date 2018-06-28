@@ -73,9 +73,8 @@ sub test_live_stories
     my ( $db ) = @_;
 
     my $medium = {
-        name      => "test live stories",
-        url       => "url://test/live/stories",
-        moderated => 't',
+        name => "test live stories",
+        url  => "url://test/live/stories",
     };
     $medium = $db->create( 'media', $medium );
 

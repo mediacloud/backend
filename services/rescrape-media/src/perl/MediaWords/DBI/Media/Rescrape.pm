@@ -52,26 +52,6 @@ END
     }
 }
 
-# (re-)add RescrapeMedia jobs for all unmoderated media
-# ("RescrapeMedia" job is "unique", so job broker will skip media
-# IDs that are already added)
-sub add_to_rescrape_media_queue_for_unmoderated_media($)
-{
-    my ( $db ) = @_;
-
-    my $media = $db->query(
-        <<EOF
-        SELECT *
-        FROM media
-        WHERE media_has_active_syndicated_feeds(media_id) = 'f'
-EOF
-    )->hashes;
-
-    map { add_to_rescrape_media_queue( $_ ) } @{ $media };
-
-    return 1;
-}
-
 # Move feed from "feeds_after_rescraping" to "feeds" table
 # Note: it doesn't create a transaction itself, so make sure to do that in a caller
 sub _move_rescraped_feed_to_feeds_table($$)
@@ -89,11 +69,11 @@ sub _move_rescraped_feed_to_feeds_table($$)
     }
 
     my $feed = {
-        media_id    => $feed_after_rescraping->{ media_id },
-        name        => $feed_after_rescraping->{ name },
-        url         => $feed_after_rescraping->{ url },
-        feed_type   => $feed_after_rescraping->{ feed_type },
-        feed_status => 'active',
+        media_id => $feed_after_rescraping->{ media_id },
+        name     => $feed_after_rescraping->{ name },
+        url      => $feed_after_rescraping->{ url },
+        type     => $feed_after_rescraping->{ type },
+        active   => 't',
     };
 
     my $existing_feed = $db->query(
@@ -118,7 +98,7 @@ EOF
         $db->create( 'feeds', $feed );
     }
 
-    if ( $feed->{ feed_type } eq 'syndicated' )
+    if ( $feed->{ type } eq 'syndicated' )
     {
         # If media is getting rescraped and syndicated feeds were just
         # found, disable the "web_page" feeds that we might have added
@@ -128,8 +108,8 @@ EOF
             SELECT *
             FROM feeds
             WHERE media_id = ?
-              AND feed_type = 'web_page'
-              AND feed_status = 'active'
+              AND type = 'web_page'
+              AND active = 't'
 EOF
             $feed->{ media_id }
         )->hashes;
@@ -150,13 +130,11 @@ EOF
     );
 }
 
-# Search and add new feeds for unmoderated media (media sources that have not
-# had default feeds added to them).
+# Search and add new feeds for media.
 #
 # Look for feeds that are most likely to be real feeds.  If we find more than
-# one but no more than $MAX_DEFAULT_FEEDS of those feeds, use the first such one
-# and do not moderate the source.  Else, do a more expansive search and mark
-# for moderation.
+# one but no more than $MAX_DEFAULT_FEEDS of those feeds, use the first such
+# one. Otherwise, do a more expansive search.
 sub rescrape_media($$)
 {
     my ( $db, $media_id ) = @_;
@@ -167,7 +145,7 @@ sub rescrape_media($$)
         die "Media ID $media_id does not exist.";
     }
 
-    my ( $feed_links, $need_to_moderate ) = MediaWords::Feed::Scrape::get_feed_links_and_need_to_moderate( $medium );
+    my $feed_links = MediaWords::Feed::Scrape::get_feed_links( $medium );
 
     $db->begin_work;
 
@@ -182,30 +160,28 @@ EOF
     for my $feed_link ( @{ $feed_links } )
     {
         my $feed = {
-            media_id  => $media_id,
-            name      => $feed_link->{ name },
-            url       => $feed_link->{ url },
-            feed_type => $feed_link->{ feed_type } || 'syndicated',
+            media_id => $media_id,
+            name     => $feed_link->{ name },
+            url      => $feed_link->{ url },
+            type     => $feed_link->{ type } || 'syndicated',
         };
 
         INFO "Creating rescraped feed " . dump_terse( $feed );
         $db->create( 'feeds_after_rescraping', $feed );
     }
 
-    # If we came up with the very same set of feeds after rescraping and the
-    # media would need moderation, but we have moderated the very same set of
-    # links before (i.e. made the decision about this particular set of feeds),
-    # just leave the current set of feeds intact
+    # If we came up with the very same set of feeds after rescraping, just
+    # leave the current set of feeds intact
     my $live_feeds = $db->query(
         <<EOF,
         SELECT media_id,
                name,
                url,
-               feed_type
+               type
         FROM feeds
         WHERE media_id = ?
-          AND feed_type = 'syndicated'
-        ORDER BY name, url, feed_type
+          AND type = 'syndicated'
+        ORDER BY name, url, type
 EOF
         $media_id
     )->hashes;
@@ -214,63 +190,32 @@ EOF
         SELECT media_id,
                name,
                url,
-               feed_type
+               type
         FROM feeds_after_rescraping
         WHERE media_id = ?
-          AND feed_type = 'syndicated'
-        ORDER BY name, url, feed_type
+          AND type = 'syndicated'
+        ORDER BY name, url, type
 EOF
         $media_id
     )->hashes;
 
-    INFO "Media ID: " .
-      $media_id . "; moderated: " . $medium->{ moderated } . "; need to moderate: " . $need_to_moderate .
+    INFO "Media ID: " . $media_id .
       "; rescraped_feeds feeds: " . dump_terse( $rescraped_feeds ) . "; live feeds: " . dump_terse( $live_feeds );
 
-    if ( $need_to_moderate )
-    {
-        if ( $medium->{ moderated } and dump_terse( $rescraped_feeds ) eq dump_terse( $live_feeds ) )
-        {
-            INFO "Media $media_id would need rescraping but we have " .
-              "moderated the very same feeds previously so disabling moderation";
-
-            $db->query(
-                <<EOF,
-                DELETE FROM feeds_after_rescraping
-                WHERE media_id = ?
+    # Move all newly scraped feeds to "feeds" table
+    my $feeds_after_rescraping = $db->query(
+        <<EOF,
+        SELECT *
+        FROM feeds_after_rescraping
+        WHERE media_id = ?
 EOF
-                $media_id
-            );
-        }
-        else
-        {
-            # (Re)set moderated = 'f' so that the media shows up in the moderation page
-            INFO "Unmoderating media ID $media_id because rescraped feeds require moderation";
-            make_media_unmoderated( $db, $media_id );
-        }
-    }
-    else
+        $media_id
+    )->hashes;
+    foreach my $rescraped_feed ( @{ $feeds_after_rescraping } )
     {
-        # Move all newly scraped feeds to "feeds" table
-        my $feeds_after_rescraping = $db->query(
-            <<EOF,
-            SELECT *
-            FROM feeds_after_rescraping
-            WHERE media_id = ?
-EOF
-            $media_id
-        )->hashes;
-        foreach my $rescraped_feed ( @{ $feeds_after_rescraping } )
-        {
-            INFO "Moving rescraped feed from media ID $media_id to 'feeds' table; rescraped feed: " .
-              dump_terse( $rescraped_feed );
-            _move_rescraped_feed_to_feeds_table( $db, $rescraped_feed );
-        }
-
-        # Set moderated = 't' because maybe this is a new media item that
-        # didn't have any feeds previously
-        INFO "Making media $media_id moderated after moving all rescraped feeds to 'feeds' table";
-        make_media_moderated( $db, $media_id );
+        INFO "Moving rescraped feed from media ID $media_id to 'feeds' table; rescraped feed: " .
+          dump_terse( $rescraped_feed );
+        _move_rescraped_feed_to_feeds_table( $db, $rescraped_feed );
     }
 
     update_last_rescraped_time( $db, $media_id );
@@ -287,34 +232,6 @@ sub update_last_rescraped_time($$)
         <<EOF,
             UPDATE media_rescraping
             SET last_rescrape_time = NOW()
-            WHERE media_id = ?
-EOF
-        $media_id
-    );
-}
-
-sub make_media_unmoderated($$)
-{
-    my ( $db, $media_id ) = @_;
-
-    $db->query(
-        <<EOF,
-            UPDATE media
-            SET moderated = 'f'
-            WHERE media_id = ?
-EOF
-        $media_id
-    );
-}
-
-sub make_media_moderated($$)
-{
-    my ( $db, $media_id ) = @_;
-
-    $db->query(
-        <<EOF,
-            UPDATE media
-            SET moderated = 't'
             WHERE media_id = ?
 EOF
         $media_id
@@ -359,22 +276,22 @@ sub add_feed_by_media_name_url_type($$)
 {
     my ( $db, $feed ) = @_;
 
-    unless ( $feed->{ media_id } and defined $feed->{ name } and $feed->{ url } and $feed->{ feed_type } )
+    unless ( $feed->{ media_id } and defined $feed->{ name } and $feed->{ url } and $feed->{ type } )
     {
         die "Feed hashref is not valid.";
     }
 
-    unless ( $feed->{ feed_status } )
+    unless ( defined $feed->{ active } )
     {
-        $feed->{ feed_status } = 'active';
+        $feed->{ active } = 't';
     }
 
     $db->query(
         <<EOF,
-        INSERT INTO feeds (media_id, name, url, feed_type, feed_status)
+        INSERT INTO feeds (media_id, name, url, type, active)
         VALUES (?, ?, ?, ?, ?)
 EOF
-        $feed->{ media_id }, $feed->{ name }, $feed->{ url }, $feed->{ feed_type }, $feed->{ feed_status }
+        $feed->{ media_id }, $feed->{ name }, $feed->{ url }, $feed->{ type }, $feed->{ active }
     );
 }
 
@@ -389,9 +306,9 @@ sub get_feed_by_media_name_url_type($$)
         WHERE media_id = ?
           AND name = ?
           AND url = ?
-          AND feed_type = ?
+          AND type = ?
 EOF
-        $feed->{ media_id }, $feed->{ name }, $feed->{ url }, $feed->{ feed_type }
+        $feed->{ media_id }, $feed->{ name }, $feed->{ url }, $feed->{ type }
     )->hashes;
     unless ( scalar( @{ $existing_feed } ) )
     {
@@ -417,20 +334,20 @@ sub delete_rescraped_feed_by_media_name_url_type($$)
         WHERE media_id = ?
           AND name = ?
           AND url = ?
-          AND feed_type = ?
+          AND type = ?
 EOF
-        $feed->{ media_id }, $feed->{ name }, $feed->{ url }, $feed->{ feed_type }
+        $feed->{ media_id }, $feed->{ name }, $feed->{ url }, $feed->{ type }
     );
 }
 
 # Returns an arrayref of hashrefs with unique feeds from both "feeds"
 # (existing feeds table) and "feeds_after_rescraping" (rescraped feeds table)
 #
-# Apart from the default "media_id", "name", "url" and "feed_type" keys, feed
+# Apart from the default "media_id", "name", "url" and "type" keys, feed
 # hashrefs carry the following extra keys:
 #
 # * "hash" -- SHA256 hash uniquely identifying the feed; based on its media_id,
-#   name, URL, and feed_type
+#   name, URL, and type
 # * "diff" -- state of the feed, one of the following values:
 #     * "unchanged" -- feed that hasn't changed after rescraping
 #     * "added" -- new feed found while rescraping
@@ -452,12 +369,12 @@ sub existing_and_rescraped_feeds($$)
         SELECT media_id,
                name,
                url,
-               feed_type,
+               type,
                last_new_story_time,
                feed_is_stale(feeds.feeds_id) AS is_stale
         FROM feeds
         WHERE media_id = ?
-        ORDER BY media_id, name, url, feed_type
+        ORDER BY media_id, name, url, type
 EOF
         $media_id
     )->hashes;
@@ -467,10 +384,10 @@ EOF
         SELECT media_id,
                name,
                url,
-               feed_type
+               type
         FROM feeds_after_rescraping
         WHERE media_id = ?
-        ORDER BY media_id, name, url, feed_type
+        ORDER BY media_id, name, url, type
 EOF
         $media_id
     )->hashes;
@@ -480,13 +397,13 @@ EOF
     {
         my $feed = shift;
 
-        unless ( $feed->{ media_id } and defined $feed->{ name } and $feed->{ url } and $feed->{ feed_type } )
+        unless ( $feed->{ media_id } and defined $feed->{ name } and $feed->{ url } and $feed->{ type } )
         {
             die "Feed hashref is not valid.";
         }
 
         my $feed_hash_data =
-          sprintf( "%s\n%s\n%s\n%s", $feed->{ media_id }, $feed->{ name }, $feed->{ url }, $feed->{ feed_type } );
+          sprintf( "%s\n%s\n%s\n%s", $feed->{ media_id }, $feed->{ name }, $feed->{ url }, $feed->{ type } );
         my $feed_sha256 = sha256_hex( $feed_hash_data );
 
         return $feed_sha256;

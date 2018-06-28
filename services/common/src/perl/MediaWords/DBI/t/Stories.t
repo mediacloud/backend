@@ -116,6 +116,8 @@ sub test_get_story_word_matrix
 {
     my ( $db ) = @_;
 
+    srand( 1 );
+
     my $data = { A => { B => [ ( 1 .. 10 ) ] }, };
 
     my $media = MediaWords::Test::DB::create_test_story_stack( $db, $data );

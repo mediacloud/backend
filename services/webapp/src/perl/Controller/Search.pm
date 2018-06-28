@@ -364,7 +364,7 @@ sub index : Path : Args(0)
     my $num_stories = @{ $stories };
     if ( @{ $stories } >= ( $NUM_SAMPLED_STORIES - 5 ) )
     {
-        $num_stories = int( MediaWords::Solr::get_last_num_found() / MediaWords::Solr::get_last_sentences_per_story() );
+        $num_stories = MediaWords::Solr::get_last_num_found();
     }
 
     my $tag_counts = $csv ? [] : _generate_story_tag_data( $db, $stories );

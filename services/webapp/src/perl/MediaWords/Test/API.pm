@@ -220,6 +220,14 @@ sub rows_match($$$$$)
                     ok( abs( $got - $expected ) < 0.00001, $label );
                 }
             }
+
+            # If expected looks like a database boolean, compare it as such
+            elsif ( $expected eq 'f' or $expected eq 't' or $got eq 'f' or $got eq 't' )
+            {
+                $expected = normalize_boolean_for_db( $expected );
+                $got      = normalize_boolean_for_db( $got );
+                is( $got, $expected, $label );
+            }
             else
             {
                 is( $got, $expected, "$label field $field ($id_field: $id)" );
@@ -240,7 +248,21 @@ sub validate_db_row($$$$$)
     ok( $response->{ $id_field } > 0, "$label $id_field returned" );
     my $db_row = $db->find_by_id( $table, $response->{ $id_field } );
     ok( $db_row, "$label row found in db" );
-    map { is( $db_row->{ $_ }, $input->{ $_ }, "$label field $_" ) } keys( %{ $input } );
+
+    for my $key ( keys( %{ $input } ) )
+    {
+        my $got      = $db_row->{ $key };
+        my $expected = $input->{ $key };
+
+        # If expected looks like a database boolean, compare it as such
+        if ( $expected eq 'f' or $expected eq 't' or $got eq 'f' or $got eq 't' )
+        {
+            $expected = normalize_boolean_for_db( $expected );
+            $got      = normalize_boolean_for_db( $got );
+        }
+
+        is( $got, $expected, "$label field $key" );
+    }
 }
 
 # query the catalyst context to get a list of urls of all api end points

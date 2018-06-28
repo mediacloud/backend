@@ -56,7 +56,6 @@ def create_test_medium(db: DatabaseHandler, label: str) -> dict:
         insert_hash={
             'name': label,
             'url': "http://media.test/%s" % (label,),
-            'moderated': True,
             'is_monitored': True,
             'public_notes': "%s public notes" % (label,),
             'editor_notes': "%s editor notes" % (label,),

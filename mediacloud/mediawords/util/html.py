@@ -13,7 +13,7 @@ from mediawords.util.url import is_http_url
 log = create_logger(__name__)
 
 
-def link_canonical_url_from_html(html: str, base_url: Optional[str]= None) -> Optional[str]:
+def link_canonical_url_from_html(html: str, base_url: Optional[str] = None) -> Optional[str]:
     """From the provided HTML, determine the <link rel="canonical" /> URL (if any)."""
     html = str(decode_object_from_bytes_if_needed(html))
 
@@ -40,43 +40,45 @@ def link_canonical_url_from_html(html: str, base_url: Optional[str]= None) -> Op
     return None
 
 
-def meta_refresh_url_from_html(html: str, base_url: Optional[str] = None) -> Optional[str]:
-    """From the provided HTML, determine the <meta http-equiv="refresh" /> URL (if any)."""
-    def __get_meta_refresh_url_from_tag(inner_tag: str, inner_base_url: Optional[str]=None) -> Optional[str]:
-        """Given a <meta ...> tag, return the url from the content="url=XXX" attribute.
+def __get_meta_refresh_url_from_tag(inner_tag: str, inner_base_url: Optional[str] = None) -> Optional[str]:
+    """Given a <meta ...> tag, return the url from the content="url=XXX" attribute.
 
-        Return None if no such url isfound.
-        """
-        if not re.search(r'http-equiv\s*?=\s*?["\']\s*?refresh\s*?["\']', inner_tag, re.I):
-            return None
+    Return None if no such url isfound.
+    """
+    if not re.search(r'http-equiv\s*?=\s*?["\']\s*?refresh\s*?["\']', inner_tag, re.I):
+        return None
 
+    # content="url='http://foo.bar'"
+    inner_url = None
+
+    match = re.search(r'content\s*?=\s*?"\d*?\s*?;?\s*?URL\s*?=\s*?\'(.+?)\'', inner_tag, re.I)
+    if match:
+        inner_url = match.group(1)
+    else:
         # content="url='http://foo.bar'"
-        inner_url = None
-
-        match = re.search(r'content\s*?=\s*?"\d*?\s*?;?\s*?URL\s*?=\s*?\'(.+?)\'', inner_tag, re.I)
+        match = re.search(r'content\s*?=\s*?\'\d*?\s*?;?\s*?URL\s*?=\s*?"(.+?)"', inner_tag, re.I)
         if match:
             inner_url = match.group(1)
         else:
-            # content="url='http://foo.bar'"
-            match = re.search(r'content\s*?=\s*?\'\d*?\s*?;?\s*?URL\s*?=\s*?"(.+?)"', inner_tag, re.I)
+            # Fallback
+            match = re.search(r'content\s*?=\s*?["\']\d*?\s*?;?\s*?URL\s*?=\s*?(.+?)["\']', inner_tag, re.I)
             if match:
                 inner_url = match.group(1)
-            else:
-                # Fallback
-                match = re.search(r'content\s*?=\s*?["\']\d*?\s*?;?\s*?URL\s*?=\s*?(.+?)["\']', inner_tag, re.I)
-                if match:
-                    inner_url = match.group(1)
 
-        if inner_url is None:
-            return None
-
-        if is_http_url(inner_url):
-            return inner_url
-
-        if inner_base_url is not None:
-            return urljoin(base=str(inner_base_url), url=inner_url)
-
+    if inner_url is None:
         return None
+
+    if is_http_url(inner_url):
+        return inner_url
+
+    if inner_base_url is not None:
+        return urljoin(base=str(inner_base_url), url=inner_url)
+
+    return None
+
+
+def meta_refresh_url_from_html(html: str, base_url: Optional[str] = None) -> Optional[str]:
+    """From the provided HTML, determine the <meta http-equiv="refresh" /> URL (if any)."""
 
     html = str(decode_object_from_bytes_if_needed(html))
     base_url_decode = decode_object_from_bytes_if_needed(base_url)
@@ -121,7 +123,7 @@ def _sententize_block_level_tags(s: str) -> str:
     return s
 
 
-def html_strip(s: str, include_title: bool=False) -> str:
+def html_strip(s: str, include_title: bool = False) -> str:
     """Strip the html tags, html comments, any any text within TITLE, SCRIPT, APPLET, OBJECT, and STYLE tags.
 
     Derived from code by powerman from: http://www.perlmonks.org/?node_id=161281.
@@ -153,7 +155,7 @@ def html_strip(s: str, include_title: bool=False) -> str:
     return text.strip()
 
 
-def html_title(html: str, fallback: str, trim_to_length: int=0) -> Optional[str]:
+def html_title(html: str, fallback: str, trim_to_length: int = 0) -> Optional[str]:
     """Parse the content for tags that might indicate the story's title.
 
     Arguments:

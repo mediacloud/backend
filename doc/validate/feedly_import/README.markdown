@@ -28,8 +28,7 @@ deduplication (recall) and how many of the feedly stories that are added are not
 Method
 ------
 
-We used [mediawords_generate_feedly_import_validation.pl](../../script/mediawords_generate_feedly_import_validation.pl)
-to generate feedly import results for a random sampling of feeds.  To generate this random sample, we imported feeds
+We used `generate_feedly_import_validation.pl` to generate feedly import results for a random sampling of feeds.  To generate this random sample, we imported feeds
 from a random set of 300 active feeds for which feedly returned stories.  For each imported feed, we ran the feedly
 import process implemented in [lib/MediaWords/ImportStories/Feedly.pm](../../lib/MediaWords/ImportStories/Feedly.pm) to
 mark which stories returned by feedly would be marked as duplicates of existing media cloud stories (and therefore

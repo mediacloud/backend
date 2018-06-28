@@ -96,7 +96,6 @@ class TestNYTLabelsAnnotator(TestDatabaseWithSchemaTestCase):
         media = self.db().create(table='media', insert_hash={
             'name': "test medium",
             'url': "url://test/medium",
-            'moderated': True,
         })
 
         story = self.db().create(table='stories', insert_hash={

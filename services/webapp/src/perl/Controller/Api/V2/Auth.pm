@@ -38,7 +38,7 @@ sub _user_profile_hash($$)
     my ( $db, $email ) = @_;
 
     my $user;
-    eval { $user = MediaWords::DBI::Auth::Profile::user_info( $db, $email ); };
+    eval { $user = MediaWords::DBI::Auth::Info::user_info( $db, $email ); };
     if ( $@ or ( !$user ) )
     {
         die "Unable to fetch user profile for user '$email'.";
@@ -121,13 +121,14 @@ sub register : Local
     }
 
     eval {
+        my $role_ids = MediaWords::DBI::Auth::Roles::default_role_ids( $db );
         my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
             email                   => $email,
             full_name               => $full_name,
             notes                   => $notes,
             password                => $password,
             password_repeat         => $password,
-            role_ids                => MediaWords::DBI::Auth::Roles::default_role_ids( $db ),
+            role_ids                => $role_ids,
             subscribe_to_newsletter => $subscribe_to_newsletter,
 
             # User has to activate own account via email

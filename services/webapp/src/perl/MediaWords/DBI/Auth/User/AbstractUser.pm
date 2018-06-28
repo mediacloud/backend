@@ -1,53 +1,83 @@
 package MediaWords::DBI::Auth::User::AbstractUser;
 
-#
-# Abstract user object
-#
-
 use strict;
 use warnings;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use Moose;
-
-has 'email'                        => ( is => 'rw', isa => 'Str' );
-has 'full_name'                    => ( is => 'rw', isa => 'Maybe[Str]' );
-has 'notes'                        => ( is => 'rw', isa => 'Maybe[Str]' );
-has 'active'                       => ( is => 'rw', isa => 'Maybe[Int]' );    # boolean
-has 'weekly_requests_limit'        => ( is => 'rw', isa => 'Maybe[Int]' );
-has 'weekly_requested_items_limit' => ( is => 'rw', isa => 'Maybe[Int]' );
-
-# Make email lowercase
-# (haven't found a better way to do Moose's setters)
-around 'email' => sub {
-    my $next = shift;
-    my $self = shift;
-
-    unless ( @_ )
-    {
-        my $email = $self->$next;
-        $email = lc( $email );
-        return $email;
-    }
-
-    my $email = shift;
-    $email = lc( $email );
-
-    return $self->$next( $email );
-};
-
-sub BUILD
 {
-    my $self = shift;
+    # Proxy to Python's implementation
+    package MediaWords::DBI::Auth::User::AbstractUser::PythonProxy;
 
-    unless ( $self->email() )
-    {
-        LOGCONFESS "User email is unset.";
-    }
+    use strict;
+    use warnings;
+
+    use Modern::Perl "2015";
+    use MediaWords::CommonLibs;
+
+    import_python_module( __PACKAGE__, 'mediawords.dbi.auth.user' );
+
+    1;
 }
 
-no Moose;    # gets rid of scaffolding
+sub new
+{
+    my ( $class, %args ) = @_;
+
+    my $self = {};
+    bless $self, $class;
+
+    unless ( $args{ python_object } )
+    {
+        LOGCONFESS "Python user object is not set.";
+    }
+
+    $self->{ _python_object } = $args{ python_object };
+
+    return $self;
+}
+
+sub email($)
+{
+    my ( $self ) = @_;
+
+    return $self->{ _python_object }->email();
+}
+
+sub full_name($)
+{
+    my ( $self ) = @_;
+
+    return $self->{ _python_object }->full_name();
+}
+
+sub notes($)
+{
+    my ( $self ) = @_;
+
+    return $self->{ _python_object }->notes();
+}
+
+sub active($)
+{
+    my ( $self ) = @_;
+
+    return int( $self->{ _python_object }->active() );
+}
+
+sub weekly_requests_limit($)
+{
+    my ( $self ) = @_;
+
+    return $self->{ _python_object }->weekly_requests_limit();
+}
+
+sub weekly_requested_items_limit($)
+{
+    my ( $self ) = @_;
+
+    return $self->{ _python_object }->weekly_requested_items_limit();
+}
 
 1;

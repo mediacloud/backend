@@ -11,6 +11,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DBI::Auth::ChangePassword;
+use MediaWords::DBI::Auth::Info;
 use MediaWords::DBI::Auth::Limits;
 use MediaWords::DBI::Auth::Login;
 use MediaWords::DBI::Auth::Password;

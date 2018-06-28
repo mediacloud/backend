@@ -2,10 +2,9 @@ import re
 
 import pytest
 
-from mediawords.solr.query import parse, McSolrQueryParseSyntaxException
+from mediawords.solr.query import parse, McSolrQueryParseSyntaxException, McSolrEmptyQueryException
 
 
-# noinspection SpellCheckingInspection
 def test_tsquery():
     def __normalize_tsquery(tsquery):
         """Normalize tsquery by lowercasing and normalizing spaces."""
@@ -28,11 +27,14 @@ def test_tsquery():
 
         assert __normalize_tsquery(got_tsquery) == __normalize_tsquery(expected_tsquery)
 
-    for query in ('and', '"foo bar"~3', '( foo bar )*', '*', '*foo'):
-        with pytest.raises(McSolrQueryParseSyntaxException):
-            parse(query)
+    # for query in ('and', '( foo bar )*', '*foo'):
+    with pytest.raises(McSolrQueryParseSyntaxException):
+        parse('and')
 
     with pytest.raises(McSolrQueryParseSyntaxException):
+        parse('*foo')
+
+    with pytest.raises(McSolrEmptyQueryException):
         parse(solr_query="media_id:1").tsquery()
 
     # single term
@@ -90,7 +92,7 @@ def test_tsquery():
     | rubio | ( jeb & bush ) | clinton | sanders ) ) """
     __validate_tsquery(candidate_query, candidate_tsquery)
 
-    tp_query = '''(      sentence:     (         "babies having babies" "kids having kids"         "children having
+    tp_query = '''(      text:     (         "babies having babies" "kids having kids"         "children having
     children"         "teen mother" "teen mothers"         "teen father" "teen fathers"         "teen parent" "teen
     parents"         "adolescent mother" "adolescent mothers"         "adolescent father" "adolescent fathers"
      "adolescent parent" "adolescent parents"         (              ( teenagers adolescent students "high school"
@@ -236,7 +238,6 @@ def test_tsquery():
     __validate_tsquery(gender_query, gender_tsquery)
 
 
-# noinspection SpellCheckingInspection
 def test_re():
     def __normalize_re(s):
         """Normalize tsquery by lowercasing and normalizing spaces."""
@@ -274,6 +275,16 @@ def test_re():
     __validate_re('foo bar', '(?: [[:<:]]foo | [[:<:]]bar )')
     __validate_re('( foo bar )', '(?: [[:<:]]foo | [[:<:]]bar )')
     __validate_re('( 1 or 2 or 3 or 4 )', '(?: [[:<:]]1 | [[:<:]]2 | [[:<:]]3 | [[:<:]]4 )')
+
+    # wildcard
+    __validate_re('foo*', '[[:<:]]foo')
+    __validate_re('*', '.*')
+    __validate_re(
+        '"foo bar*"~10',
+        '(?: (?: [[:<:]]foo .* [[:<:]]bar ) | (?: [[:<:]]bar .* [[:<:]]foo ) )')
+
+    # proximity query
+    __validate_re('"foo bar"~5', '(?: (?: [[:<:]]foo .* [[:<:]]bar ) | (?: [[:<:]]bar .* [[:<:]]foo ) )')
 
     # more complex boolean
     __validate_re(
@@ -315,7 +326,7 @@ def test_re():
 
     # not clauses should be filtered out
     # this should raise an error because filtering the not clause leaves an empty query
-    with pytest.raises(McSolrQueryParseSyntaxException):
+    with pytest.raises(McSolrEmptyQueryException):
         parse(solr_query='not ( foo bar )').re()
     __validate_re('foo and !bar', '[[:<:]]foo')
     __validate_re('foo -( bar and bar )', '[[:<:]]foo')
@@ -350,7 +361,7 @@ def test_re():
     )
 
     __validate_re(
-        '(      sentence:     (         "babies having babies" "kids having kids"         "children having '
+        '(      text:     (         "babies having babies" "kids having kids"         "children having '
         'children"         "teen mother" "teen mothers"         "teen father" "teen fathers"         "teen '
         'parent" "teen parents"         "adolescent mother" "adolescent mothers"         "adolescent '
         'father" "adolescent fathers"         "adolescent parent" "adolescent parents"         (            '
@@ -584,9 +595,177 @@ def test_re():
     )
 
     __validate_re(
+        '{!complexphrase foo=bar}"foo bar"~10',
+        '(?: (?: [[:<:]]foo .* [[:<:]]bar ) | (?: [[:<:]]bar .* [[:<:]]foo ) )'
+    )
+
+    __validate_re(
         'foo and ( bar baz )',
 
         '(?: (?: foo .* (?: bar | baz ) ) | (?: (?: bar | baz ) .* foo ) )',
 
         True
     )
+
+
+def test_inclusive_re():
+    def __normalize_re(s):
+        """Normalize tsquery by lowercasing and normalizing spaces."""
+
+        # make multiple spaces not significant
+        s = re.sub('\s+', ' ', s)
+
+        s = s.lower()
+
+        return s
+
+    def __validate_inclusive_re(solr_query, expected_re, is_logogram=False):
+        """Validate that the re generated from the given solr query matches the expected re."""
+
+        got_re = parse(solr_query=solr_query).inclusive_re(is_logogram)
+
+        assert __normalize_re(got_re) == __normalize_re(expected_re)
+
+    # single term
+    __validate_inclusive_re('foo', '[[:<:]]foo')
+    __validate_inclusive_re('( foo )', '[[:<:]]foo')
+
+    # simple boolean
+    __validate_inclusive_re('foo and bar', '(?: [[:<:]]foo | [[:<:]]bar )')
+    __validate_inclusive_re('( foo and bar )', '(?: [[:<:]]foo | [[:<:]]bar )')
+    __validate_inclusive_re('foo and bar and baz and bat', '(?: [[:<:]]foo | [[:<:]]bar | [[:<:]]baz | [[:<:]]bat )')
+
+    __validate_inclusive_re('foo bar', '(?: [[:<:]]foo | [[:<:]]bar )')
+    __validate_inclusive_re('( foo bar )', '(?: [[:<:]]foo | [[:<:]]bar )')
+    __validate_inclusive_re('( 1 or 2 or 3 or 4 )', '(?: [[:<:]]1 | [[:<:]]2 | [[:<:]]3 | [[:<:]]4 )')
+
+    # proximity as and query
+    __validate_inclusive_re('"foo bar"~5', '(?: [[:<:]]foo | [[:<:]]bar )')
+
+    # more complex boolean
+    __validate_inclusive_re('foo and ( bar baz )', '(?: [[:<:]]foo | (?: [[:<:]]bar | [[:<:]]baz ) )')
+
+    __validate_inclusive_re(
+        '( foo or bat ) and ( bar baz )',
+        '(?: (?: [[:<:]]foo | [[:<:]]bat ) | (?: [[:<:]]bar | [[:<:]]baz ) )'
+    )
+
+    __validate_inclusive_re(
+        'foo and bar and baz and bat and ( 1 2 3 )',
+        '(?: [[:<:]]foo | [[:<:]]bar | [[:<:]]baz | [[:<:]]bat | (?: [[:<:]]1 | [[:<:]]2 | [[:<:]]3 ) )'
+    )
+
+    __validate_inclusive_re(
+        '( ( ( a or b ) and c ) or ( d or ( f or ( g and h ) ) ) )',
+        '(?: (?: (?: [[:<:]]a | [[:<:]]b ) | [[:<:]]c ) | [[:<:]]d | [[:<:]]f | (?: [[:<:]]g | [[:<:]]h ) )'
+    )
+
+    # not clauses should be filtered out
+    # this should raise an error because filtering the not clause leaves an empty query
+    with pytest.raises(McSolrEmptyQueryException):
+        parse(solr_query='not ( foo bar )').re()
+    __validate_inclusive_re('foo and !bar', '(?: [[:<:]]foo )')
+    __validate_inclusive_re('foo -( bar and bar )', '(?: [[:<:]]foo )')
+
+    # phrase
+    __validate_inclusive_re('"foo bar-baz"', "(?: [[:<:]]foo | [[:<:]]bar\\\\\\-baz )")
+    __validate_inclusive_re(
+        '1 or 2 or "foo bar-baz"',
+        '(?: [[:<:]]1 | [[:<:]]2 | (?: [[:<:]]foo | [[:<:]]bar\\\\\\-baz ) )'
+    )
+
+    __validate_inclusive_re(
+        '( 1 or 2 or 3 ) and "foz fot"',
+        '(?: (?: [[:<:]]1 | [[:<:]]2 | [[:<:]]3 ) | (?: [[:<:]]foz | [[:<:]]fot ) )'
+    )
+
+    __validate_inclusive_re(
+        '( 1 or 2 or "foo bar-baz" ) and "foz fot"',
+        '(?: (?: [[:<:]]1 | [[:<:]]2 | (?: [[:<:]]foo | [[:<:]]bar\\\\\\-baz ) ) | (?: [[:<:]]foz | [[:<:]]fot ) )'
+    )
+
+    # queries from actual topics
+    __validate_inclusive_re(
+        "+( fiorina ( scott and walker ) ( ben and carson ) trump ( cruz and -victor ) kasich rubio (jeb "
+        "and bush) clinton sanders ) AND (+publish_date:[2016-09-30T00:00:00Z TO 2016-11-08T23:59:59Z]) AND "
+        "((tags_id_media:9139487 OR tags_id_media:9139458 OR tags_id_media:2453107 OR "
+        "tags_id_stories:9139487 OR tags_id_stories:9139458 OR tags_id_stories:2453107) ) ",
+
+        "(?: (?: [[:<:]]fiorina | (?: [[:<:]]scott | [[:<:]]walker ) | (?: [[:<:]]ben | [[:<:]]carson ) "
+        " | [[:<:]]trump | (?: [[:<:]]cruz ) | [[:<:]]kasich | [[:<:]]rubio | (?: [[:<:]]jeb | [[:<:]]bush ) "
+        "| [[:<:]]clinton | [[:<:]]sanders ) )"
+
+    )
+
+    __validate_inclusive_re(
+        '(      text:     (         "babies having babies" "kids having kids"         "children having '
+        'children"         "teen mother" "teen mothers"         "teen father" "teen fathers"         "teen '
+        'parent" "teen parents"         "adolescent mother" "adolescent mothers"         "adolescent '
+        'father" "adolescent fathers"         "adolescent parent" "adolescent parents"         (            '
+        '  ( teenagers adolescent students "high school" "junior school" "middle school" "jr school" )      '
+        '       and             -( grad and students )             and             ( pregnant pregnancy '
+        '"birth rate" births )         )     )          or           title:     (          "kids having '
+        'kids"         "children having children"         "teen mother" "teen mothers"         "teen '
+        'father" "teen fathers"         "teen parent" "teen parents"         "adolescent mother" '
+        '"adolescent mothers"         "adolescent father" "adolescent fathers"         "adolescent parent" '
+        '"adolescent parents"         (              (  adolescent students "high school" "junior school" '
+        '"middle school" "jr school" )             and             -( foo )           and             ( '
+        'pregnant pregnancy "birth rate" births )         )     ) )  and  (      tags_id_media:( 8878332 '
+        '8878294 8878293 8878292 8877928 129 2453107 8875027 8875028 8875108 )     media_id:( 73 72 38 36 '
+        '37 35 1 99 106 105 104 103 102 101 100 98 97 96 95 94 93 91 90 89 88                 87 86 85 84 '
+        '83 80 79 78 77 76 75 74 71 70 69 68 67 66 65 64 63 62 61 60 59 58 57                 56 55 54 53 '
+        '52 51 50 471694 42 41 40 39 34 33 32 31 30 24 23 22 21 20 18 13 12                  9 17 16 15 14 '
+        '11 10 2 8 7 1150 6 19 29 28 27 26 25 65 4 45 44 43 ) )  and  publish_date:[2013-09-01T00:00:00Z TO '
+        '2014-09-15T00:00:00Z]  and  -language:( da de es fr zh ja tl id ro fi hu hr he et id ms no pl sk '
+        'sl sw tl it lt nl no pt ro ru sv tr )',
+
+        "(?: (?: (?: (?: [[:<:]]babies | [[:<:]]having | [[:<:]]babies ) | (?: [[:<:]]kids | [[:<:]]having | "
+        "[[:<:]]kids ) | (?: [[:<:]]children | [[:<:]]having | [[:<:]]children ) | (?: [[:<:]]teen | [[:<:]]mother ) "
+        "| (?: [[:<:]]teen | [[:<:]]mothers ) | (?: [[:<:]]teen | [[:<:]]father ) | (?: [[:<:]]teen | [[:<:]]fathers ) "
+        "| (?: [[:<:]]teen | [[:<:]]parent ) | (?: [[:<:]]teen | [[:<:]]parents ) | (?: [[:<:]]adolescent | "
+        "[[:<:]]mother ) | (?: [[:<:]]adolescent | [[:<:]]mothers ) | (?: [[:<:]]adolescent | [[:<:]]father ) | "
+        "(?: [[:<:]]adolescent | [[:<:]]fathers ) | (?: [[:<:]]adolescent | [[:<:]]parent ) | (?: [[:<:]]adolescent "
+        "| [[:<:]]parents ) | (?: (?: [[:<:]]teenagers | [[:<:]]adolescent | [[:<:]]students | (?: [[:<:]]high | "
+        "[[:<:]]school ) | (?: [[:<:]]junior | [[:<:]]school ) | (?: [[:<:]]middle | [[:<:]]school ) | (?: [[:<:]]jr "
+        "| [[:<:]]school ) ) | (?: [[:<:]]pregnant | [[:<:]]pregnancy | (?: [[:<:]]birth | [[:<:]]rate ) | "
+        "[[:<:]]births ) ) ) ) )"
+    )
+
+    __validate_inclusive_re(
+        '(       gamergate* OR "gamer gate"      OR (          (                         ( (ethic* OR '
+        'corrupt*) AND journalis* AND game*)                        OR ("zoe quinn" OR quinnspiracy OR '
+        '"eron gjoni")                        OR (                            (misogyn* OR sexis* OR '
+        'feminis* OR SJW*)                                AND (gamer* OR gaming OR videogam* OR "video '
+        'games" OR "video game" OR "woman gamer" OR                                                 "women '
+        'gamers" OR "girl gamer" OR "girl gamers")                        )                      OR (       '
+        '                     (game* OR gaming)                               AND (woman OR women OR female '
+        'OR girl*)                                 AND (harass* OR "death threats" OR "rape threats")       '
+        '               )                 )             AND -(espn OR football* OR "world cup" OR '
+        '"beautiful game" OR "world cup" OR basketball OR "immortal game" OR                           '
+        '"imitation game" OR olympic OR "super bowl" OR superbowl OR nfl OR "commonwealth games" OR poker '
+        'OR sport* OR                           "panam games" OR "pan am games" OR "asian games" OR '
+        '"warrior games" OR "night games" OR "royal games" OR                                "abram games" '
+        'OR "killing the ball" OR cricket OR "game of thrones" OR "hunger games" OR "nomad games" OR '
+        '"zero-sum game" OR                            "national game" OR fifa* OR "fa" OR golf OR "little '
+        'league" OR soccer OR rugby OR lacrosse OR volleyball OR baseball OR                                '
+        ' chess OR championship* OR "hookup culture" OR "popular culture" OR "pop culture" OR "culture of '
+        'the game" OR                            "urban culture" OR (+minister AND +culture) OR stadium OR '
+        '"ray rice" OR janay OR doping OR suspension OR glasgow OR "prince harry" OR                        '
+        '   courtsiding) ) )  AND +tags_id_media:(8875456 8875460 8875107 8875110 8875109 8875111 8875108 '
+        '8875028 8875027 8875114 8875113 8875115 8875029 129 2453107 8875031 8875033 8875034 8875471 '
+        '8876474 8876987 8877928 8878292 8878293 8878294 8878332 9028276)  AND +publish_date:['
+        '2014-06-01T00:00:00Z TO 2015-04-01T00:00:00Z]',
+
+        "(?: (?: [[:<:]]gamergate | (?: [[:<:]]gamer | [[:<:]]gate ) | (?: (?: (?: (?: [[:<:]]ethic | [[:<:]]corrupt ) "
+        "| [[:<:]]journalis | [[:<:]]game ) | (?: [[:<:]]zoe | [[:<:]]quinn ) | [[:<:]]quinnspiracy | "
+        "(?: [[:<:]]eron | [[:<:]]gjoni ) | (?: (?: [[:<:]]misogyn | [[:<:]]sexis | [[:<:]]feminis | [[:<:]]sjw ) "
+        "| (?: [[:<:]]gamer | [[:<:]]gaming | [[:<:]]videogam | (?: [[:<:]]video | [[:<:]]games ) | "
+        "(?: [[:<:]]video | [[:<:]]game ) | (?: [[:<:]]woman | [[:<:]]gamer ) | (?: [[:<:]]women | [[:<:]]gamers ) "
+        "| (?: [[:<:]]girl | [[:<:]]gamer ) | (?: [[:<:]]girl | [[:<:]]gamers ) ) ) | (?: (?: [[:<:]]game | "
+        "[[:<:]]gaming ) | (?: [[:<:]]woman | [[:<:]]women | [[:<:]]female | [[:<:]]girl ) | (?: [[:<:]]harass "
+        "| (?: [[:<:]]death | [[:<:]]threats ) | (?: [[:<:]]rape | [[:<:]]threats ) ) ) ) ) ) )"
+    )
+
+    __validate_inclusive_re('{!complexphrase foo=bar}"foo bar"~10', '(?: [[:<:]]foo | [[:<:]]bar )')
+
+    __validate_inclusive_re('foo and ( bar baz )', '(?: foo | (?: bar | baz ) )', True)

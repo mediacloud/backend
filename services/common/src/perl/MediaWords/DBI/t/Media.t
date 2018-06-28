@@ -20,7 +20,7 @@ sub test_few_recent_stories($)
 
     my $medium = $test_stack->{ "$label medium" };
 
-    $db->query( "update feeds set feed_status = 'active' where media_id = \$1", $medium->{ media_id } );
+    $db->query( "update feeds set active = 't' where media_id = \$1", $medium->{ media_id } );
 
     $db->query( "update stories set collect_date = now() where media_id = \$1", $medium->{ media_id } );
 
@@ -38,7 +38,7 @@ sub test_few_old_stories($)
 
     my $medium = $test_stack->{ "$label medium" };
 
-    $db->query( "update feeds set feed_status = 'active' where media_id = \$1", $medium->{ media_id } );
+    $db->query( "update feeds set active = 't' where media_id = \$1", $medium->{ media_id } );
 
     $db->query( <<SQL, $medium->{ media_id } );
 update stories set publish_date = now() - '1 year'::interval  where media_id = \$1
@@ -58,7 +58,7 @@ sub test_no_stories($)
 
     my $medium = $test_stack->{ "$label medium" };
 
-    $db->query( "update feeds set feed_status = 'active' where media_id = \$1", $medium->{ media_id } );
+    $db->query( "update feeds set active = 't' where media_id = \$1", $medium->{ media_id } );
 
     ok( !MediaWords::DBI::Media::medium_is_ready_for_analysis( $db, $medium ), $label );
 }
@@ -75,7 +75,7 @@ sub test_no_active_feed($)
 
     my $medium = $test_stack->{ "$label medium" };
 
-    $db->query( "update feeds set feed_status = 'inactive' where media_id = \$1", $medium->{ media_id } );
+    $db->query( "update feeds set active = 'f' where media_id = \$1", $medium->{ media_id } );
 
     $db->query( <<SQL, $medium->{ media_id } );
 update stories set publish_date = now() - '1 year'::interval  where media_id = \$1

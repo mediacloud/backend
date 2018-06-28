@@ -88,7 +88,7 @@ END
     my $tags_id = _get_current_extractor_version_tags_id( $db );
 
     $db->query( <<END, $story->{ stories_id }, $tags_id );
-insert into stories_tags_map ( stories_id, tags_id, db_row_last_updated ) values ( ?, ?, now() )
+insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )
 END
 
 }

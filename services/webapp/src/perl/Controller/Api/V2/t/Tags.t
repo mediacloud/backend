@@ -323,7 +323,8 @@ sub test_tags($)
     test_post( '/api/v2/tags/create', { label => 'foo' }, 1 );    # should require tag
     test_put( '/api/v2/tags/update', { tag => 'foo' }, 1 );       # should require tags_id
 
-    my $tag_set = $db->create( 'tag_sets', { name => 'foo tag set' } );
+    my $tag_set   = $db->create( 'tag_sets', { name => 'foo tag set' } );
+    my $tag_set_b = $db->create( 'tag_sets', { name => 'bar tag set' } );
 
     # simple tag creation
     my $create_input = {
@@ -345,6 +346,7 @@ sub test_tags($)
     # simple update
     my $update_input = {
         tags_id         => $r->{ tag }->{ tags_id },
+        tag_sets_id     => $tag_set_b->{ tag_sets_id },
         tag             => 'bar tag',
         label           => 'bar label',
         description     => 'bar description',

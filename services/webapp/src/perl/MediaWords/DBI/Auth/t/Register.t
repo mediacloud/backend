@@ -199,7 +199,7 @@ sub test_activate_user_via_token($)
                     active          => 0,                  # not active, needs to be activated
                     password        => $password,
                     password_repeat => $password,
-                    activation_url  => $activation_url,    # user is active, no need for activation URL
+                    activation_url  => $activation_url,
                 )
             );
         };
@@ -268,7 +268,7 @@ SQL
         is( $user->full_name(), $full_name );
     }
 
-    # Make sure activation token is set
+    # Make sure activation token is not set anymore
     {
         my ( $activation_token_hash ) = $db->query(
             <<SQL,

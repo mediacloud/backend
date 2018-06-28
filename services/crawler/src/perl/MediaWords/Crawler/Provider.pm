@@ -181,7 +181,7 @@ SQL
         SELECT feeds_id,
                url
         FROM feeds
-        WHERE feed_status = 'active'
+        WHERE active = 't'
           AND url ~ 'https?://'
           AND (
             -- Never attempted
@@ -198,7 +198,7 @@ SQL
                 -- independently from when the last new story comes in from the
                 -- feed (because every "web_page" feed download provides a
                 -- single story)
-                AND feed_type != 'web_page'
+                AND type != 'web_page'
             )
           )
 SQL

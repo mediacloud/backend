@@ -11,7 +11,7 @@ cd "$MC_ROOT_DIR"
 # Include PostgreSQL path helpers
 source "$MC_ROOT_DIR/tools/db/postgresql_helpers.inc.sh"
 
-QUERY_CONFIG="$MC_ROOT_DIR/script/run_in_env.sh $MC_ROOT_DIR/script/mediawords_query_config.pl"
+QUERY_CONFIG="$MC_ROOT_DIR/script/run_in_env.sh $MC_ROOT_DIR/script/query_config.pl"
 
 for db_selector in "${DB_CREDENTIALS_SELECTORS[@]}"; do
 

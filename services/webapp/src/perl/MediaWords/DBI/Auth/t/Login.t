@@ -178,7 +178,7 @@ sub test_login_with_api_key($)
         };
         ok( !$@, "Unable to add user: $@" );
 
-        my $user = MediaWords::DBI::Auth::Profile::user_info( $db, $inactive_user_email );
+        my $user = MediaWords::DBI::Auth::Info::user_info( $db, $inactive_user_email );
         ok( $user );
         my $global_api_key = $user->global_api_key();
 

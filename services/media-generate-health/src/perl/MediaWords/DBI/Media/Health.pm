@@ -7,15 +7,6 @@ use MediaWords::CommonLibs;
 
 =head1 NAME MediaWords::DBI::Media::Health
 
-=head1 SYNOPSIS
-
-
-
-    my $results = MediaWords::Solr::query( $db, { q => 'obama' } );
-
-    my $sentences = $results->{ response }->{ docs };
-    map { say "found sentence id: $_->{ story_sentences_id }" } @{ $sentencs };
-
 =head1 DESCRIPTION
 
 generate media_health table, which contains denormalized results of analytical queries run on
@@ -383,8 +374,8 @@ update media_health mh set has_active_feed = 't'
                     from feeds f
                         join feeds_stories_map fsm on ( f.feeds_id = fsm.feeds_id )
                     where
-                        feed_status = 'active' and
-                        feed_type = 'syndicated' and
+                        active = 't' and
+                        type = 'syndicated' and
                         f.media_id = mh.media_id
             )
         )

@@ -92,12 +92,12 @@ sub list : Local
     # given media id.
     my $medium = $c->dbis->find_by_id( 'media', $media_id );
 
-    my $sql_feed_status = $c->request->param( 'all' ) ? '1=1' : "feed_status = 'active'";
+    my $sql_feed_active = $c->request->param( 'all' ) ? '1=1' : "active = 't'";
 
     # query the database for the list of feeds associated with the
     # given media id
     my $feeds = $c->dbis->query( <<END, $media_id )->hashes;
-select * from feeds where media_id = ? and $sql_feed_status order by name, url
+select * from feeds where media_id = ? and $sql_feed_active order by name, url
 END
 
     # for each feed, load any other data needed for the feed within the template
@@ -165,7 +165,7 @@ sub invalid_syndicated_feed
 {
     my ( $self, $c, $feed ) = @_;
 
-    return 0 unless ( $feed->{ feed_type } eq 'syndicated' );
+    return 0 unless ( $feed->{ type } eq 'syndicated' );
 
     my $ua       = MediaWords::Util::Web::UserAgent->new();
     my $response = $ua->get( $feed->{ url } );
@@ -219,24 +219,9 @@ END
 
     $feed = $c->dbis->create( 'feeds', $feed );
 
-    if ( !$medium->{ moderated } )
-    {
-        $c->response->redirect(
-            $c->uri_for(
-                '/admin/media/moderate/' . ( $medium->{ media_id } - 1 ),
-                { status_msg => 'Feed added.', media_tags_id => $media_tags_id }
-            )
-        );
-    }
-    else
-    {
-        $c->response->redirect(
-            $c->uri_for(
-                '/admin/feeds/edit_tags/' . $feed->{ feeds_id },
-                { status_msg => 'Feed added.  Choose tags below.' }
-            )
-        );
-    }
+    $c->response->redirect(
+        $c->uri_for( '/admin/feeds/edit_tags/' . $feed->{ feeds_id }, { status_msg => 'Feed added.  Choose tags below.' } )
+    );
 }
 
 sub make_scrape_form

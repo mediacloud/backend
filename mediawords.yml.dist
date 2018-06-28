@@ -345,7 +345,11 @@ supervisor:
             #numprocs: 1
             #autostart: true
             #autorestart: true
+
+        # other configurable supervisor programs
+        #import_solr_data
         #create_missing_partitions
+        #copy_nonpartitioned_sentences_to_partitions
         #purge_object_caches
         #facebook_fetch_story_stats
         #rabbitmq

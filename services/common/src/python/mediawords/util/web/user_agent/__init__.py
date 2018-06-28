@@ -256,136 +256,136 @@ class UserAgent(object):
 
         return self.request(request)
 
-    def get_follow_http_html_redirects(self, url: str) -> Response:
-        """GET an URL while resolving HTTP / HTML redirects."""
+    def __get_follow_http_html_redirects_follow_redirects(self,
+                                                          response_: Response,
+                                                          meta_redirects_left: int) -> Union[Response, None]:
 
-        def __inner_follow_redirects(response_: Response, meta_redirects_left: int) -> Union[Response, None]:
+        from mediawords.util.web.user_agent.html_redirects import (
+            target_request_from_meta_refresh_url,
+            target_request_from_archive_org_url,
+            target_request_from_archive_is_url,
+            target_request_from_linkis_com_url,
+            target_request_from_alarabiya_url,
+        )
 
-            from mediawords.util.web.user_agent.html_redirects import (
+        if response_ is None:
+            raise McGetFollowHTTPHTMLRedirectsException("Response is None.")
+
+        if response_.is_success():
+
+            base_url = get_base_url(response_.request().url())
+
+            html_redirect_functions = [
                 target_request_from_meta_refresh_url,
                 target_request_from_archive_org_url,
                 target_request_from_archive_is_url,
                 target_request_from_linkis_com_url,
                 target_request_from_alarabiya_url,
-            )
+            ]
+            for html_redirect_function in html_redirect_functions:
+                request_after_meta_redirect = html_redirect_function(
+                    content=response_.decoded_content(),
+                    archive_site_url=base_url,
+                )
+                if request_after_meta_redirect is not None:
+                    log.warning(
+                        "meta redirect from %s: %s" % (html_redirect_function, request_after_meta_redirect.url()))
+                    if not urls_are_equal(url1=response_.request().url(), url2=request_after_meta_redirect.url()):
 
-            if response_ is None:
-                raise McGetFollowHTTPHTMLRedirectsException("Response is None.")
+                        log.debug("URL after HTML redirects: %s" % request_after_meta_redirect.url())
 
-            if response_.is_success():
+                        orig_redirect_response = self.request(request=request_after_meta_redirect)
+                        redirect_response = orig_redirect_response
 
-                base_url = get_base_url(response_.request().url())
+                        # Response might have its previous() already set due to HTTP redirects,
+                        # so we have to find the initial response first
+                        previous = None
+                        for x in range(self.max_redirect() + 1):
+                            previous = redirect_response.previous()
+                            if previous is None:
+                                break
+                            redirect_response = previous
 
-                html_redirect_functions = [
-                    target_request_from_meta_refresh_url,
-                    target_request_from_archive_org_url,
-                    target_request_from_archive_is_url,
-                    target_request_from_linkis_com_url,
-                    target_request_from_alarabiya_url,
-                ]
-                for html_redirect_function in html_redirect_functions:
-                    request_after_meta_redirect = html_redirect_function(
-                        content=response_.decoded_content(),
-                        archive_site_url=base_url,
-                    )
-                    if request_after_meta_redirect is not None:
-                        log.warning(
-                            "meta redirect from %s: %s" % (html_redirect_function, request_after_meta_redirect.url()))
-                        if not urls_are_equal(url1=response_.request().url(), url2=request_after_meta_redirect.url()):
-
-                            log.debug("URL after HTML redirects: %s" % request_after_meta_redirect.url())
-
-                            orig_redirect_response = self.request(request=request_after_meta_redirect)
-                            redirect_response = orig_redirect_response
-
-                            # Response might have its previous() already set due to HTTP redirects,
-                            # so we have to find the initial response first
-                            previous = None
-                            for x in range(self.max_redirect() + 1):
-                                previous = redirect_response.previous()
-                                if previous is None:
-                                    break
-                                redirect_response = previous
-
-                            if previous is not None:
-                                raise McGetFollowHTTPHTMLRedirectsException(
-                                    "Can't find the initial redirected response; URL: %s" %
-                                    request_after_meta_redirect.url()
-                                )
-
-                            log.debug("Setting previous of URL %(url)s to %(previous_url)s" % {
-                                'url': redirect_response.request().url(),
-                                'previous_url': response_.request().url(),
-                            })
-                            redirect_response.set_previous(response_)
-
-                            meta_redirects_left = meta_redirects_left - 1
-
-                            return __inner(
-                                response_=orig_redirect_response,
-                                meta_redirects_left=meta_redirects_left,
+                        if previous is not None:
+                            raise McGetFollowHTTPHTMLRedirectsException(
+                                "Can't find the initial redirected response; URL: %s" %
+                                request_after_meta_redirect.url()
                             )
 
-                # No <meta /> refresh, the current URL is the final one
-                return response_
-
-            else:
-                log.debug("Request to %s was unsuccessful: %s" % (response_.request().url(), response_.status_line(),))
-
-                # Return the original URL and give up
-                return None
-
-        def __inner_redirects_exhausted(response_: Response) -> Union[Response, None]:
-
-            if response_ is None:
-                raise McGetFollowHTTPHTMLRedirectsException("Response is None.")
-
-            # If one of the URLs that we've been redirected to contains another encoded URL, assume
-            # that we're hitting a paywall and the URLencoded URL is the right one
-            urls_redirected_to = []
-
-            for x in range(self.max_redirect() + 1):
-                previous = response_.previous()
-                if previous is None:
-                    break
-
-                url_redirected_to = previous.request().url()
-                encoded_url_redirected_to = quote(url_redirected_to)
-
-                for redir_url in urls_redirected_to:
-                    if re.search(pattern=re.escape(encoded_url_redirected_to),
-                                 string=redir_url,
-                                 flags=re.IGNORECASE | re.UNICODE):
-                        log.debug("""
-                            Encoded URL %(encoded_url_redirected_to)s is a substring of another URL %(matched_url)s, so
-                            I'll assume that %(url_redirected_to)s is the correct one.
-                        """ % {
-                            'encoded_url_redirected_to': encoded_url_redirected_to,
-                            'matched_url': redir_url,
-                            'url_redirected_to': url_redirected_to,
+                        log.debug("Setting previous of URL %(url)s to %(previous_url)s" % {
+                            'url': redirect_response.request().url(),
+                            'previous_url': response_.request().url(),
                         })
-                        return previous
+                        redirect_response.set_previous(response_)
 
-                urls_redirected_to.append(url_redirected_to)
+                        meta_redirects_left = meta_redirects_left - 1
 
-            # Return the original URL (unless we find a URL being a substring of another URL, see below)
+                        return self.__get_follow_http_html_redirects(
+                            response_=orig_redirect_response,
+                            meta_redirects_left=meta_redirects_left,
+                        )
+
+            # No <meta /> refresh, the current URL is the final one
+            return response_
+
+        else:
+            log.debug("Request to %s was unsuccessful: %s" % (response_.request().url(), response_.status_line(),))
+
+            # Return the original URL and give up
             return None
 
-        def __inner(response_: Response, meta_redirects_left: int) -> Union[Response, None]:
+    def __get_follow_http_html_redirects_redirects_exhausted(self, response_: Response) -> Union[Response, None]:
 
-            if response_ is None:
-                raise McGetFollowHTTPHTMLRedirectsException("Response is None.")
+        if response_ is None:
+            raise McGetFollowHTTPHTMLRedirectsException("Response is None.")
 
-            if meta_redirects_left > 0:
-                return __inner_follow_redirects(
-                    response_=response_,
-                    meta_redirects_left=meta_redirects_left,
-                )
+        # If one of the URLs that we've been redirected to contains another encoded URL, assume
+        # that we're hitting a paywall and the URLencoded URL is the right one
+        urls_redirected_to = []
 
-            else:
-                return __inner_redirects_exhausted(response_=response_)
+        for x in range(self.max_redirect() + 1):
+            previous = response_.previous()
+            if previous is None:
+                break
 
-        # ---
+            url_redirected_to = previous.request().url()
+            encoded_url_redirected_to = quote(url_redirected_to)
+
+            for redir_url in urls_redirected_to:
+                if re.search(pattern=re.escape(encoded_url_redirected_to),
+                             string=redir_url,
+                             flags=re.IGNORECASE | re.UNICODE):
+                    log.debug("""
+                        Encoded URL %(encoded_url_redirected_to)s is a substring of another URL %(matched_url)s, so
+                        I'll assume that %(url_redirected_to)s is the correct one.
+                    """ % {
+                        'encoded_url_redirected_to': encoded_url_redirected_to,
+                        'matched_url': redir_url,
+                        'url_redirected_to': url_redirected_to,
+                    })
+                    return previous
+
+            urls_redirected_to.append(url_redirected_to)
+
+        # Return the original URL (unless we find a URL being a substring of another URL, see below)
+        return None
+
+    def __get_follow_http_html_redirects(self, response_: Response, meta_redirects_left: int) -> Union[Response, None]:
+
+        if response_ is None:
+            raise McGetFollowHTTPHTMLRedirectsException("Response is None.")
+
+        if meta_redirects_left > 0:
+            return self.__get_follow_http_html_redirects_follow_redirects(
+                response_=response_,
+                meta_redirects_left=meta_redirects_left,
+            )
+
+        else:
+            return self.__get_follow_http_html_redirects_redirects_exhausted(response_=response_)
+
+    def get_follow_http_html_redirects(self, url: str) -> Response:
+        """GET an URL while resolving HTTP / HTML redirects."""
 
         url = decode_object_from_bytes_if_needed(url)
 
@@ -404,7 +404,7 @@ class UserAgent(object):
 
         response = self.get(url)
 
-        response_after_redirects = __inner(
+        response_after_redirects = self.__get_follow_http_html_redirects(
             response_=response,
             meta_redirects_left=self.max_redirect()
         )
@@ -416,61 +416,61 @@ class UserAgent(object):
             return response_after_redirects
 
     @staticmethod
+    def __get_url_domain(url_: str) -> str:
+
+        if not is_http_url(url_):
+            return url_
+
+        host = get_url_host(url_)
+
+        name_parts = host.split('.')
+
+        n = len(name_parts) - 1
+
+        # for country domains, use last three parts of name
+        if re.search(pattern=r"\...$", string=host):
+            domain = '.'.join([name_parts[n - 2], name_parts[n - 1], name_parts[0]])
+
+        elif re.search(pattern=r"(localhost|blogspot\.com|wordpress\.com)", string=host):
+            domain = url_
+
+        else:
+            domain = '.'.join([name_parts[n - 1], name_parts[n]])
+
+        return domain.lower()
+
+    @staticmethod
+    def __get_scheduled_urls(urls_: List[str], per_domain_timeout_: int) -> List[_ParallelGetScheduledURL]:
+        """Schedule the URLs by adding a { time => $time } field to each URL to make sure we obey the
+        'per_domain_timeout'. Sort requests by ascending time."""
+        domain_urls = {}
+
+        for url_ in urls_:
+            domain = UserAgent.__get_url_domain(url_=url_)
+            if domain not in domain_urls:
+                domain_urls[domain] = []
+            domain_urls[domain].append(url_)
+
+        scheduled_urls = []
+
+        for domain, urls_in_domain in domain_urls.items():
+            time_ = 0
+            for domain_url in urls_in_domain:
+                domain_url = _ParallelGetScheduledURL(url=domain_url, time_=time_)
+                scheduled_urls.append(domain_url)
+
+                if time_ % 5 == 0:  # FIXME why 5?
+                    time_ = time_ + per_domain_timeout_
+
+        scheduled_urls = sorted(scheduled_urls, key=lambda x: x.time)
+
+        return scheduled_urls
+
+    @staticmethod
     def parallel_get(urls: List[str]) -> List[Response]:
         """GET multiple URLs in parallel."""
 
         # FIXME doesn't respect timing() and other object properties
-
-        def __get_url_domain(url_: str) -> str:
-
-            if not is_http_url(url_):
-                return url_
-
-            host = get_url_host(url_)
-
-            name_parts = host.split('.')
-
-            n = len(name_parts) - 1
-
-            # for country domains, use last three parts of name
-            if re.search(pattern=r"\...$", string=host):
-                domain = '.'.join([name_parts[n - 2], name_parts[n - 1], name_parts[0]])
-
-            elif re.search(pattern=r"(localhost|blogspot\.com|wordpress\.com)", string=host):
-                domain = url_
-
-            else:
-                domain = '.'.join([name_parts[n - 1], name_parts[n]])
-
-            return domain.lower()
-
-        def __get_scheduled_urls(urls_: List[str], per_domain_timeout_: int) -> List[_ParallelGetScheduledURL]:
-            """Schedule the URLs by adding a { time => $time } field to each URL to make sure we obey the
-            'per_domain_timeout'. Sort requests by ascending time."""
-            domain_urls = {}
-
-            for url_ in urls_:
-                domain = __get_url_domain(url_=url_)
-                if domain not in domain_urls:
-                    domain_urls[domain] = []
-                domain_urls[domain].append(url_)
-
-            scheduled_urls = []
-
-            for domain, urls_in_domain in domain_urls.items():
-                time_ = 0
-                for domain_url in urls_in_domain:
-                    domain_url = _ParallelGetScheduledURL(url=domain_url, time_=time_)
-                    scheduled_urls.append(domain_url)
-
-                    if time_ % 5 == 0:  # FIXME why 5?
-                        time_ = time_ + per_domain_timeout_
-
-            scheduled_urls = sorted(scheduled_urls, key=lambda x: x.time)
-
-            return scheduled_urls
-
-        # ---
 
         urls = decode_object_from_bytes_if_needed(urls)
 
@@ -508,7 +508,7 @@ class UserAgent(object):
             raise McParallelGetException('"web_store_per_domain_timeout" is not set.')
         per_domain_timeout = config['mediawords']['web_store_per_domain_timeout']
 
-        url_stack = __get_scheduled_urls(urls_=urls, per_domain_timeout_=per_domain_timeout)
+        url_stack = UserAgent.__get_scheduled_urls(urls_=urls, per_domain_timeout_=per_domain_timeout)
 
         start_time = time.time()
 

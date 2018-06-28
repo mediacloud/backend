@@ -12,7 +12,7 @@ cd "$MC_ROOT_DIR"
 source "$MC_ROOT_DIR/tools/db/postgresql_helpers.inc.sh"
 
 #
-QUERY_CONFIG="$MC_ROOT_DIR/script/run_in_env.sh $MC_ROOT_DIR/script/mediawords_query_config.pl"
+QUERY_CONFIG="$MC_ROOT_DIR/script/run_in_env.sh $MC_ROOT_DIR/script/query_config.pl"
 
 
 echo "WARNING: This script will delete the following Media Cloud databases and users:"

@@ -14,6 +14,7 @@ use List::Compare;
 
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
+use MediaWords::Solr::TagCounts;
 use MediaWords::Util::HTML;
 use MediaWords::Util::JSON;
 
@@ -38,6 +39,7 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 __PACKAGE__->config(
     action => {
         count       => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        tag_count   => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         word_matrix => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
     }
 );
@@ -66,15 +68,17 @@ sub _add_raw_1st_download
     $db->begin;
     my $ids_table = $db->get_temporary_ids_table( [ map { int( $_->{ stories_id } ) } @{ $stories } ] );
 
-    my $downloads = $db->query( <<END )->hashes;
-select d.*
-    from downloads d
-        join (
-            select min( s.downloads_id ) over ( partition by s.stories_id ) downloads_id
-                from downloads s
-                where s.stories_id in ( select id from $ids_table )
-        ) q on ( d.downloads_id = q.downloads_id )
-END
+    my $downloads = $db->query(
+        <<SQL
+        SELECT d.*
+        FROM downloads AS d
+        JOIN (
+            SELECT MIN(s.downloads_id) OVER (PARTITION BY s.stories_id ) AS downloads_id
+            FROM downloads AS s
+            WHERE s.stories_id IN (SELECT id FROM $ids_table)
+        ) AS q ON d.downloads_id = q.downloads_id
+SQL
+    )->hashes;
 
     my $story_lookup = {};
     map { $story_lookup->{ $_->{ stories_id } } = $_ } @{ $stories };
@@ -111,34 +115,46 @@ sub _get_ap_stories_ids
 {
     my ( $db, $ids_table ) = @_;
 
-    $db->query( "analyze $ids_table" );
+    $db->query( "ANALYZE $ids_table" );
 
-    my $ap_media_id = $db->query( "select media_id from media where name = 'Associated Press - Full Feed'" )->flat;
+    my $ap_media_id = $db->query( "SELECT media_id FROM media WHERE name = 'Associated Press - Full Feed'" )->flat;
     return [] if ( $ap_media_id );
 
-    my $ap_stories_ids = $db->query( <<SQL )->hashes;
-with ap_sentences as
-(
-    select
-            ss.stories_id stories_id,
-            ap.stories_id ap_stories_id
-        from story_sentences ss
-            join story_sentences ap on ( md5( ss.sentence ) = md5( ap.sentence ) and ap.media_id = $ap_media_id )
-        where
-            ss.media_id <> $ap_media_id and
-            ss.stories_id in ( select id from $ids_table ) and
-            length( ss.sentence ) > 32
-),
+    my $ap_stories_ids = $db->query(
+        <<SQL
 
-min_ap_sentences as
-(
-    select stories_id, ap_stories_id from ap_sentences group by stories_id, ap_stories_id having count(*) > 1
-)
+        WITH ap_sentences AS (
+            SELECT
+                ss.stories_id AS stories_id,
+                ap.stories_id AS ap_stories_id
+            FROM story_sentences AS ss
+                JOIN story_sentences AS ap
+                    ON md5(ss.sentence) = md5(ap.sentence)
+                   AND ap.media_id = $ap_media_id
+            WHERE ss.media_id != $ap_media_id
+              AND ss.stories_id IN (SELECT id FROM $ids_table)
+              AND length(ss.sentence) > 32
+        ),
 
-select ids.id stories_id, ap.ap_stories_id
-    from $ids_table ids
-        left join min_ap_sentences ap on ( ids.id = ap.stories_id )
+        min_ap_sentences AS (
+            SELECT
+                stories_id,
+                ap_stories_id
+            FROM ap_sentences
+            GROUP BY
+                stories_id,
+                ap_stories_id
+            HAVING COUNT(*) > 1
+        )
+
+        SELECT
+            ids.id AS stories_id,
+            ap.ap_stories_id
+        FROM $ids_table AS ids
+            LEFT JOIN min_ap_sentences AS ap
+                ON ids.id = ap.stories_id
 SQL
+    )->hashes;
 
     return $ap_stories_ids;
 }
@@ -183,17 +199,24 @@ sub _add_nested_data
     if ( $self->{ show_text } )
     {
 
-        my $story_text_data = $db->query( <<END )->hashes;
-    select s.stories_id, s.full_text_rss,
-            case when BOOL_AND( s.full_text_rss ) then s.title || E'.\n\n' || s.description
-                else string_agg( dt.download_text, E'.\n\n'::text )
-            end story_text
-        from stories s
-            join downloads d on ( s.stories_id = d.stories_id )
-            left join download_texts dt on ( d.downloads_id = dt.downloads_id )
-        where s.stories_id in ( select id from $ids_table )
-        group by s.stories_id
-END
+        my $story_text_data = $db->query(
+            <<SQL
+            SELECT
+                s.stories_id,
+                s.full_text_rss,
+                CASE
+                    WHEN BOOL_AND(s.full_text_rss) THEN s.title || E'.\n\n' || s.description
+                    ELSE string_agg(dt.download_text, E'.\n\n'::text)
+                END AS story_text
+            FROM stories AS s
+                JOIN downloads AS d
+                    ON s.stories_id = d.stories_id
+                LEFT JOIN download_texts AS dt
+                    ON d.downloads_id = dt.downloads_id
+            WHERE s.stories_id IN (SELECT id FROM $ids_table)
+            GROUP BY s.stories_id
+SQL
+        )->hashes;
 
         for my $story_text_data ( @$story_text_data )
         {
@@ -205,14 +228,19 @@ END
 
         MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $story_text_data );
 
-        my $extracted_data = $db->query( <<END )->hashes;
-    select s.stories_id,
-            BOOL_AND( extracted ) is_fully_extracted
-        from stories s
-            join downloads d on ( s.stories_id = d.stories_id )
-        where s.stories_id in ( select id from $ids_table )
-        group by s.stories_id
-END
+        my $extracted_data = $db->query(
+            <<SQL
+            SELECT
+                s.stories_id,
+                BOOL_AND(extracted) AS is_fully_extracted
+            FROM stories AS s
+                JOIN downloads AS d
+                    ON s.stories_id = d.stories_id
+            WHERE s.stories_id IN (SELECT id FROM $ids_table )
+            GROUP BY s.stories_id
+SQL
+        )->hashes;
+
         MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $extracted_data );
     }
 
@@ -223,10 +251,10 @@ END
             sub {
                 $sentences = $db->query(
                     <<SQL
-                        SELECT *
-                        FROM story_sentences
-                        WHERE stories_id IN ( SELECT id FROM $ids_table )
-                        ORDER BY sentence_number
+                    SELECT *
+                    FROM story_sentences
+                    WHERE stories_id IN ( SELECT id FROM $ids_table )
+                    ORDER BY sentence_number
 SQL
                 )->hashes;
             }
@@ -243,26 +271,45 @@ SQL
         MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $ap_stories_ids );
     }
 
-    my $tag_data = $db->query( <<END )->hashes;
-select s.stories_id::int, t.tags_id, t.tag, ts.tag_sets_id, ts.name as tag_set
-    from stories_tags_map s
-        join $ids_table i on ( s.stories_id = i.id )
-        join tags t on ( t.tags_id = s.tags_id )
-        join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id )
-    order by t.tags_id
-END
+    my $tag_data = $db->query(
+        <<SQL
+        SELECT
+            s.stories_id::int,
+            t.tags_id,
+            t.tag,
+            ts.tag_sets_id,
+            ts.name AS tag_set
+        FROM stories_tags_map AS s
+            JOIN $ids_table AS i
+                ON s.stories_id = i.id
+            JOIN tags AS t
+                ON t.tags_id = s.tags_id
+            JOIN tag_sets AS ts
+                ON ts.tag_sets_id = t.tag_sets_id
+        ORDER BY t.tags_id
+SQL
+    )->hashes;
+
     MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $tag_data, 'story_tags' );
 
     if ( $self->{ show_feeds } )
     {
-        my $feed_data = $db->query( <<END )->hashes;
-select f.name, f.url, f.media_id, f.feeds_id, f.feed_type, fsm.stories_id
-    from feeds f
-        join feeds_stories_map fsm using ( feeds_id )
-    where
-        fsm.stories_id in ( select id from $ids_table )
-    order by f.feeds_id
-END
+        my $feed_data = $db->query(
+            <<SQL
+            SELECT
+                f.name,
+                f.url,
+                f.media_id,
+                f.feeds_id,
+                f.type,
+                fsm.stories_id
+            FROM feeds AS f
+                JOIN feeds_stories_map AS fsm USING (feeds_id)
+            WHERE fsm.stories_id IN (SELECT id FROM $ids_table)
+            ORDER BY f.feeds_id
+SQL
+        )->hashes;
+
         MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $feed_data, 'feeds' );
     }
 
@@ -289,9 +336,15 @@ sub _get_object_ids
         die( "cannot specify both 'feeds_id' and either 'q' or 'fq'" )
           if ( $c->req->params->{ q } || $c->req->params->{ fq } );
 
-        my $stories_ids = $db->query( <<SQL, $feeds_id )->flat;
-select processed_stories_id from processed_stories join feeds_stories_map using ( stories_id ) where feeds_id = ?
+        my $stories_ids = $db->query(
+            <<SQL,
+            SELECT processed_stories_id
+            FROM processed_stories
+                JOIN feeds_stories_map USING (stories_id)
+            WHERE feeds_id = ?
 SQL
+            $feeds_id
+        )->flat;
 
         return $stories_ids;
     }
@@ -317,7 +370,7 @@ sub _fetch_list($$$$$$)
     $self->{ show_feeds }         = $c->req->params->{ show_feeds };
 
     $rows //= 20;
-    $rows = List::Util::min( $rows, 1_000 );
+    $rows = List::Util::min( $rows, 10_000 );
 
     my $ps_ids = $self->_get_object_ids( $c, $last_id, $rows );
 
@@ -337,19 +390,21 @@ sub _fetch_list($$$$$$)
         <<"SQL",
         WITH ps_ids AS (
 
-            SELECT ${ids_table}_pkey order_pkey,
-                   id AS processed_stories_id,
-                   processed_stories.stories_id
+            SELECT
+                ${ids_table}_pkey AS order_pkey,
+                id AS processed_stories_id,
+                processed_stories.stories_id
             FROM $ids_table
                 INNER JOIN processed_stories
                     ON $ids_table.id = processed_stories.processed_stories_id
         )
 
-        SELECT stories.*,
-               ps_ids.processed_stories_id,
-               media.name AS media_name,
-               media.url AS media_url,
-               coalesce( ap.ap_syndicated, false ) as ap_syndicated
+        SELECT
+            stories.*,
+            ps_ids.processed_stories_id,
+            media.name AS media_name,
+            media.url AS media_url,
+            COALESCE(ap.ap_syndicated, false) AS ap_syndicated
         FROM ps_ids
             JOIN stories
                 ON ps_ids.stories_id = stories.stories_id
@@ -369,6 +424,47 @@ SQL
     return $stories;
 }
 
+# execute a query on solr and return a list of dates with a count of stories for each date
+sub _get_date_counts
+{
+    my ( $self, $c ) = @_;
+
+    my $q            = $c->req->params->{ 'q' };
+    my $fq           = $c->req->params->{ 'fq' };
+    my $split_period = lc( $c->req->params->{ 'split_period' } || 'day' );
+
+    die( "Unknown split_period '$split_period'" ) unless ( grep { $_ eq $split_period } qw/day week month year/ );
+
+    my $facet_field = "publish_$split_period";
+
+    my $params;
+    $params->{ q }                = $q;
+    $params->{ fq }               = $fq;
+    $params->{ facet }            = 'true';
+    $params->{ 'facet.field' }    = $facet_field;
+    $params->{ 'facet.limit' }    = -1;
+    $params->{ 'facet.mincount' } = 1;
+    $params->{ rows }             = 0;
+
+    my $solr_response = MediaWords::Solr::query( $c->dbis, $params, $c );
+
+    my $facet_counts = $solr_response->{ facet_counts }->{ facet_fields }->{ $facet_field };
+
+    die "Number of elements in 'counts' is not even." unless ( scalar( @{ $facet_counts } ) % 2 == 0 );
+
+    my $date_counts       = [];
+    my %date_count_lookup = @{ $facet_counts };
+    while ( my ( $date, $count ) = each( %date_count_lookup ) )
+    {
+        $date =~ s/(.*)T(.*)Z$/$1 $2/;
+        push( @{ $date_counts }, { date => $date, count => $count } );
+    }
+
+    $date_counts = [ sort { $a->{ date } cmp $b->{ date } } @{ $date_counts } ];
+
+    return $date_counts;
+}
+
 sub count : Local : ActionClass('MC_REST')
 {
 
@@ -378,15 +474,36 @@ sub count_GET
 {
     my ( $self, $c ) = @_;
 
-    my $q  = $c->req->params->{ 'q' };
-    my $fq = $c->req->params->{ 'fq' };
+    my $q     = $c->req->params->{ 'q' };
+    my $fq    = $c->req->params->{ 'fq' };
+    my $split = $c->req->params->{ 'split' };
 
     my $response;
-    my $list = MediaWords::Solr::query( $c->dbis,
-        { q => $q, fq => $fq, group => "true", "group.field" => "stories_id", "group.ngroups" => "true" }, $c );
-    $response = { count => $list->{ grouped }->{ stories_id }->{ ngroups } };
+    if ( $split )
+    {
+        my $date_counts = $self->_get_date_counts( $c, $c->req->params );
+        $response = { counts => $date_counts };
+    }
+    else
+    {
+        my $num_found = MediaWords::Solr::get_num_found( $c->dbis, { q => $q, fq => $fq } );
+        $response = { count => $num_found };
+    }
 
     $self->status_ok( $c, entity => $response );
+}
+
+sub tag_count : Local : ActionClass('MC_REST')
+{
+}
+
+sub tag_count_GET
+{
+    my ( $self, $c ) = @_;
+
+    my $tag_counts = MediaWords::Solr::TagCounts::query_tag_counts( $c->dbis, $c->req->params );
+
+    $self->status_ok( $c, entity => $tag_counts );
 }
 
 sub word_matrix : Local : ActionClass('MC_REST')

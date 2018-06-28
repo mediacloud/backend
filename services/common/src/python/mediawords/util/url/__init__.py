@@ -37,7 +37,6 @@ __HOMEPAGE_URL_PATH_REGEXES = [
 ]
 
 
-# noinspection SpellCheckingInspection
 def fix_common_url_mistakes(url: str) -> Optional[str]:
     """Fixes common URL mistakes (mistypes, etc.)."""
     url = decode_object_from_bytes_if_needed(url)
@@ -315,15 +314,6 @@ def normalize_url(url: str) -> str:
     return url
 
 
-def normalize_url_lossy_version() -> int:
-    """Return an integer that increments each time the output of normalize_url_lossy is changed.
-
-    Calls to normalize_url_lossy are guaranteed to return the same output for a given input as long as this
-    version number remains the same.
-    """
-    return 1
-
-
 # noinspection SpellCheckingInspection
 def normalize_url_lossy(url: str) -> Optional[str]:
     """Do some simple transformations on a URL to make it match other equivalent URLs as well as possible.
@@ -331,19 +321,18 @@ def normalize_url_lossy(url: str) -> Optional[str]:
     Normalization is "lossy" (makes the whole URL lowercase, removes subdomain parts "m.", "data.", "news.", ...
     in some cases).
 
-    See also normalize_url_lossy_version() above.
+    WARNING: You MUST set media.normalized_url = null for all possibly impacted media if you edit this
+    function.  If in doubt, set normalized_url = null for all media.  See mediawords.tm.media.lookup_medium for
+    more details.
     """
     url = decode_object_from_bytes_if_needed(url)
+
     if url is None:
         return None
     if len(url) == 0:
         return None
 
     url = fix_common_url_mistakes(url)
-
-    if not is_http_url(url):
-        log.warning("URL is not HTTP(s): %s" % url)
-        return url
 
     url = url.lower()
 
@@ -373,7 +362,7 @@ def normalize_url_lossy(url: str) -> Optional[str]:
     # canonical_url might raise an encoding error if url is not invalid; just skip the canonical url step in the case
     # noinspection PyBroadException
     try:
-        url = canonical_url(url)
+        url = url_normalize.url_normalize(url)
     except Exception as ex:
         log.warning("Unable to get canonical URL for URL %s: %s" % (url, str(ex),))
 

@@ -65,7 +65,7 @@ SQL
     }
 
     $db->query( "update media_health set num_stories = 0, num_stories_y = 100, num_stories_90 = 100 where media_id = 1" );
-    $db->query( "update feeds set feed_status = 'inactive' where media_id = 2" );
+    $db->query( "update feeds set active = 'f' where media_id = 2" );
 
     MediaWords::DBI::Media::Health::update_media_health_status( $db );
 

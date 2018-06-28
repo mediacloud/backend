@@ -362,7 +362,7 @@ sub _get_user_tag_set_permissions
 
     my $permissions =
       $dbis->query( "SELECT * from  auth_users_tag_sets_permissions where auth_users_id = ? and tag_sets_id = ? ",
-        $api_auth->id(), $tag_set->{ tag_sets_id } )->hashes()->[ 0 ];
+        $api_auth->user_id(), $tag_set->{ tag_sets_id } )->hashes()->[ 0 ];
 
     return $permissions;
 }
