@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4683;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4686;
 BEGIN
 
     -- Update / set database schema version
@@ -115,8 +115,6 @@ create table media (
 
     -- Delay content downloads for this media source this many hours
     content_delay       int             null,
-
-    db_row_last_updated         timestamp with time zone,
 
     -- notes for internal media cloud consumption (eg. 'added this for yochai')
     editor_notes                text null,
@@ -224,10 +222,7 @@ create type feed_type AS ENUM (
     'web_page',
 
     -- Univision.com XML feed
-    'univision',
-
-    -- Superglue (TV) feed
-    'superglue'
+    'univision'
 
 );
 
@@ -491,19 +486,6 @@ create table stories_ap_syndicated (
 );
 
 create unique index stories_ap_syndicated_story on stories_ap_syndicated ( stories_id );
-
-
---- Superglue (TV) stories metadata -->
-CREATE TABLE stories_superglue_metadata (
-    stories_superglue_metadata_id   SERIAL    PRIMARY KEY,
-    stories_id                      INT       NOT NULL REFERENCES stories ON DELETE CASCADE,
-    video_url                       VARCHAR   NOT NULL,
-    thumbnail_url                   VARCHAR   NOT NULL,   -- might be an empty string but not NULL
-    segment_duration                NUMERIC   NOT NULL
-);
-
-CREATE UNIQUE INDEX stories_superglue_metadata_stories_id
-    ON stories_superglue_metadata (stories_id);
 
 
 CREATE TYPE download_state AS ENUM (
