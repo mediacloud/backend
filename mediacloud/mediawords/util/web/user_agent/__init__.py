@@ -132,7 +132,9 @@ def _parallel_get_web_store(
 class UserAgent(object):
     """Class for downloading stuff from the web."""
 
-    __DEFAULT_MAX_SIZE = 10 * 1024 * 1024  # Superglue (TV) feeds could grow big
+    # Some feeds (especially the ones with full text content) could grow big
+    __DEFAULT_MAX_SIZE = 10 * 1024 * 1024
+
     __DEFAULT_MAX_REDIRECT = 15
     __DEFAULT_TIMEOUT = 20
 
