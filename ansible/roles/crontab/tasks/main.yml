@@ -218,6 +218,7 @@
     job: >
       {{ mediacloud_root }}/script/run_in_env.sh
       {{ mediacloud_root }}/script/generate_daily_rss_dumps.pl
+      {{ crontab_rss_dump_path }}
   become: true
   become_user: "{{ mediacloud_user }}"
   when: "'core_services' in group_names"  # only for hosts in 'core_services' group
