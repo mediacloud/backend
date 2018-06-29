@@ -19,6 +19,7 @@ SET search_path = public, pg_catalog;
 
 
 ALTER TABLE media DROP COLUMN IF EXISTS db_row_last_updated;
+ALTER TABLE story_sentences_nonpartitioned DROP COLUMN IF EXISTS db_row_last_updated;
 
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
