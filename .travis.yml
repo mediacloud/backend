@@ -41,14 +41,6 @@ env:
         - secure: "U4UiJwK5fsezvZOGsgW0v6hPiqXGor0Er6DAtlb7AE/qBx5j4goHYi4SsjMGX21pzFxlo+MmT6oGFj1rDf4uoF6TXW5UZn2fLsCYXrHRaQ7hJXog+tSw7CpAoR6mlXfxti6I83ln53GIgqhpzoZXscdS21r0q/vv8aFRT7dD8Ec="
         - secure: "Fw42BMs0PDUn3ouHbeDwps28BolRQuLcHtvax25sbFd6novSIpns/01c31pZy8LkOYSb0fDqnrx3zTYh468CctJks4cDRPTn8xjPMGP5mnrOxdQbVHLFD5nqo/bpOzvdUmBWj8t7r96C8x6PNqxfsQqeinzHi1e2wMbDyxGdFHQ="
 
-        # Superglue test feed URL:
-        #
-        # * MC_SUPERGLUE_TEST_URL
-        #
-        # (Disabled because Superglue live feeds are currently down)
-        #
-        #- secure: "BzZcSjsuihkDowYPRz0F2HRiZ9LbEJkPXJpL8sRTBp1exbKAyfQ2+pXm3k2d34utp/gNiLlL+GFDmm7dr9wZ82DSqouBC8UJa3gaL/AeBrdXngaJbBeUqIWiDhsZFkf5F3V0J3r+7CxEAQVhU8hAPE7LB4VFjSYgXGZfoAMcdCw="
-
     matrix:
 
         # Single Travis instance is too slow to run all Perl tests, so
