@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4683;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4684;
 BEGIN
 
     -- Update / set database schema version
@@ -115,8 +115,6 @@ create table media (
 
     -- Delay content downloads for this media source this many hours
     content_delay       int             null,
-
-    db_row_last_updated         timestamp with time zone,
 
     -- notes for internal media cloud consumption (eg. 'added this for yochai')
     editor_notes                text null,
