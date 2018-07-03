@@ -305,7 +305,7 @@ def _set_cached_extractor_results(db, download, results) -> None:
     db.create('cached_extractor_results', cache)
 
 
-def extract(db: DatabaseHandler, download: dict, use_cache: bool=False) -> dict:
+def extract(db: DatabaseHandler, download: dict, use_cache: bool = False) -> dict:
     """Extract the content for the given download.
 
     Arguments:
