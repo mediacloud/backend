@@ -1,7 +1,6 @@
 """Various functions for extracting links from stories and for storing them in topics."""
 
 import re
-import traceback
 import typing
 
 from bs4 import BeautifulSoup
@@ -10,9 +9,9 @@ from mediawords.db import DatabaseHandler
 import mediawords.dbi.downloads
 import mediawords.key_value_store.amazon_s3
 from mediawords.util.log import create_logger
+from mediawords.util.url import is_http_url
 
 log = create_logger(__name__)
-
 
 # ignore any list that match the below patterns.  the sites below are most social sharing button links of
 # various kinds, along with some content spam sitesand a couple of sites that confuse the spider with too
@@ -52,7 +51,7 @@ def get_links_from_html(html: str) -> typing.List[str]:
         if re.search(IGNORE_LINK_PATTERN, url, flags=re.I) is not None:
             continue
 
-        if not mediawords.util.url.is_http_url(url):
+        if not is_http_url(url):
             continue
 
         url = re.sub(r'(https)?://www[a-z0-9]+.nytimes', r'\1://www.nytimes', url, flags=re.I)
@@ -170,7 +169,7 @@ def get_links_from_story(db: DatabaseHandler, story: dict) -> typing.List[str]:
         return links
     except mediawords.key_value_store.amazon_s3.McAmazonS3StoreException:
         # we expect the fetch_content() to fail occasionally
-        return ()
+        return []
 
 
 def extract_links_for_topic_story(db: DatabaseHandler, story: dict, topic: dict) -> None:
@@ -206,8 +205,8 @@ def extract_links_for_topic_story(db: DatabaseHandler, story: dict, topic: dict)
             db.create('topic_links', topic_link)
 
         link_mine_error = ''
-    except Exception:
-        link_mine_error = traceback.format_exc()
+    except Exception as ex:
+        link_mine_error = str(ex)
 
     db.query(
         """
