@@ -75,34 +75,4 @@ SQL
     }
 }
 
-# create a pending download for the story's url
-sub create_child_download_for_story
-{
-    my ( $db, $story, $parent_download ) = @_;
-
-    my $download = {
-        feeds_id   => $parent_download->{ feeds_id },
-        stories_id => $story->{ stories_id },
-        parent     => $parent_download->{ downloads_id },
-        url        => $story->{ url },
-        host       => MediaWords::Util::URL::get_url_host( $story->{ url } ),
-        type       => 'content',
-        sequence   => 1,
-        state      => 'pending',
-        priority   => $parent_download->{ priority },
-        extracted  => 'f'
-    };
-
-    my ( $content_delay ) = $db->query( "select content_delay from media where media_id = ?", $story->{ media_id } )->flat;
-    if ( $content_delay )
-    {
-        # delay download of content this many hours.  this is useful for sources that are likely to
-        # significantly change content in the hours after it is first published.
-        my $download_at_timestamp = time() + ( int( $content_delay ) * 60 * 60 );
-        $download->{ download_time } = MediaWords::Util::SQL::get_sql_date_from_epoch( $download_at_timestamp );
-    }
-
-    $db->create( 'downloads', $download );
-}
-
 1;

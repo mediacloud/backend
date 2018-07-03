@@ -4,7 +4,7 @@ import copy
 import unittest
 
 import mediawords.dbi.downloads
-from mediawords.test.db import create_download_for_feed, create_test_feed, create_test_medium
+from mediawords.test.db import create_download_for_feed, create_test_feed, create_test_medium, create_test_story
 from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
 from mediawords.key_value_store.amazon_s3 import AmazonS3Store
 from mediawords.key_value_store.cached_amazon_s3 import CachedAmazonS3Store
@@ -166,11 +166,13 @@ class TestDownloadsDB(TestDatabaseWithSchemaTestCase):
         self.config = mediawords.util.config.get_config()
 
         self.test_medium = create_test_medium(self.db(), 'downloads test')
-        self.test_feed = create_test_feed(self.db(), 'downlaods test', self.test_medium)
+        self.test_feed = create_test_feed(self.db(), 'downloads test', self.test_medium)
         self.test_download = create_download_for_feed(self.db(), self.test_feed)
+        self.test_story = create_test_story(self.db(), label='downloads est', feed=self.test_feed)
 
         self.test_download['path'] = 'postgresql:foo'
         self.test_download['state'] = 'success'
+        self.test_download['stories_id'] = self.test_story['stories_id']
         self.db().update_by_id('downloads', self.test_download['downloads_id'], self.test_download)
 
         self.save_config = copy.deepcopy(self.config)
@@ -272,3 +274,73 @@ class TestDownloadsDB(TestDatabaseWithSchemaTestCase):
     def test_get_medium(self):
         medium = mediawords.dbi.downloads.get_medium(db=self.db(), download=self.test_download)
         assert medium == self.test_medium
+
+    def test_create_child_download_for_story(self):
+        downloads = self.db().query('SELECT * FROM downloads').hashes()
+        assert len(downloads) == 1
+
+        mediawords.dbi.downloads.create_child_download_for_story(
+            db=self.db(),
+            story=self.test_story,
+            parent_download=self.test_download,
+        )
+
+        downloads = self.db().query('SELECT * FROM downloads').hashes()
+        assert len(downloads) == 2
+
+        child_download = self.db().query("""
+            SELECT *
+            FROM downloads
+            WHERE parent = %(parent_downloads_id)s
+          """, {'parent_downloads_id': self.test_download['downloads_id']}).hash()
+        assert child_download
+
+        assert child_download['feeds_id'] == self.test_feed['feeds_id']
+        assert child_download['stories_id'] == self.test_story['stories_id']
+
+    def test_create_child_download_for_story_content_delay(self):
+        """Test create_child_download_for_story() with media.content_delay set."""
+        downloads = self.db().query('SELECT * FROM downloads').hashes()
+        assert len(downloads) == 1
+
+        content_delay_hours = 3
+
+        self.db().query("""
+            UPDATE media
+            SET content_delay = %(content_delay)s -- Hours
+            WHERE media_id = %(media_id)s
+        """, {
+            'content_delay': content_delay_hours,
+            'media_id': self.test_medium['media_id'],
+        })
+
+        mediawords.dbi.downloads.create_child_download_for_story(
+            db=self.db(),
+            story=self.test_story,
+            parent_download=self.test_download,
+        )
+
+        parent_download = self.db().query("""
+            SELECT EXTRACT(EPOCH FROM download_time)::int AS download_timestamp
+            FROM downloads
+            WHERE downloads_id = %(downloads_id)s
+          """, {'downloads_id': self.test_download['downloads_id']}).hash()
+        assert parent_download
+
+        child_download = self.db().query("""
+            SELECT EXTRACT(EPOCH FROM download_time)::int AS download_timestamp
+            FROM downloads
+            WHERE parent = %(parent_downloads_id)s
+          """, {'parent_downloads_id': self.test_download['downloads_id']}).hash()
+        assert child_download
+
+        time_difference = abs(parent_download['download_timestamp'] - child_download['download_timestamp'])
+
+        # 1. I have no idea in which timezone are downloads being stored (it's definitely not UTC, maybe
+        #    America/New_York)
+        # 2. It appears that "downloads.download_time" has dual-use: "download not earlier than" for pending downloads,
+        #    and "downloaded at" for completed downloads, which makes things more confusing
+        #
+        # So, in a test, let's just be happy if the download times differ (which might not even be the case depending on
+        # server's / database's timezone).
+        assert time_difference > 10
