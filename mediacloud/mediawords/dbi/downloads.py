@@ -266,9 +266,11 @@ def _get_cached_extractor_results(db: DatabaseHandler, download: dict) -> typing
     Return:
     None if there is a miss or a dict in the form of extract_content() if there is a hit.
     """
-    r = db.query(
-        "select extracted_html, extracted_text from cached_extractor_results where downloads_id = %(a)s",
-        {'a': download['downloads_id']}).hash()
+    r = db.query("""
+        SELECT extracted_html, extracted_text
+        FROM cached_extractor_results
+        WHERE downloads_id = %(a)s
+    """, {'a': download['downloads_id']}).hash()
 
     log.debug("EXTRACTOR CACHE HIT" if r is not None else "EXTRACTOR CACHE MISS")
 
@@ -289,14 +291,15 @@ def _set_cached_extractor_results(db, download, results) -> None:
     # to have up to a million or so rows. So just randomly clear the cache every million requests or so and
     # avoid expensively keeping track of the size of the postgres table.
     if random.random() * (max_cache_entries / 10) < 1:
-        db.query(
-            """
-            delete from cached_extractor_results
-                where cached_extractor_results_id in (
-                    select cached_extractor_results_id from cached_extractor_results
-                        order by cached_extractor_results_id desc offset %(a)s )
-            """,
-            {'a': max_cache_entries})
+        db.query("""
+            DELETE FROM cached_extractor_results
+            WHERE cached_extractor_results_id IN (
+                SELECT cached_extractor_results_id
+                FROM cached_extractor_results
+                ORDER BY cached_extractor_results_id DESC
+                OFFSET %(a)s
+            )
+        """, {'a': max_cache_entries})
 
     cache = {
         'extracted_html': results['extracted_html'],
