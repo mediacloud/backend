@@ -80,6 +80,11 @@ sub medium_is_locked($$)
 {
     my ( $db, $media_id ) = @_;
 
+    if ( $db->in_transaction() )
+    {
+        LOGCONFESS "medium_is_locked() can't be run from within a transaction.";
+    }
+
     # begin and commit transaction to make sure we immediately release the lock if we get it.
     $db->begin;
 
@@ -209,7 +214,10 @@ EOF
 
     $db->query(
         "update media_stats set num_sentences = num_sentences + ? where media_id = ? and stat_date = ?::date",
-        scalar( @{ $inserted_sentences } ), $story->{ media_id }, $story->{ publish_date } );
+        scalar( @{ $inserted_sentences } ),
+        $story->{ media_id },
+        $story->{ publish_date }
+    );
 
     return $inserted_sentences;
 }
@@ -299,6 +307,9 @@ sub update_story_sentences_and_language($$;$)
 {
     my ( $db, $story, $extractor_args ) = @_;
 
+    my $use_transaction = !$db->in_transaction();
+    $db->begin if ( $use_transaction );
+
     $extractor_args //= MediaWords::DBI::Stories::ExtractorArguments->new();
 
     my $stories_id = $story->{ stories_id };
@@ -331,11 +342,7 @@ sub update_story_sentences_and_language($$;$)
 
     _update_ap_syndicated( $db, $story );
 
-    # FIXME remove commit here because transaction wasn't started in this subroutine
-    if ( $db->in_transaction() )
-    {
-        $db->commit();
-    }
+    $db->commit if ( $use_transaction );
 }
 
 1;

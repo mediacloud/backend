@@ -47,10 +47,11 @@ use MediaWords::Util::Web;
 use MediaWords::Util::Web::Cache;
 
 # common title prefixes that can be ignored for dup title matching
-Readonly my $DUP_TITLE_PREFIXES =>
-    [ qw/opinion analysis report perspective poll watch exclusive editorial reports breaking nyt/,
-      qw/subject source wapo sources video study photos cartoon cnn today wsj review timeline/,
-      qw/revealed gallup ap read experts op-ed commentary feature letters survey/ ];
+Readonly my $DUP_TITLE_PREFIXES => [
+    qw/opinion analysis report perspective poll watch exclusive editorial reports breaking nyt/,
+    qw/subject source wapo sources video study photos cartoon cnn today wsj review timeline/,
+    qw/revealed gallup ap read experts op-ed commentary feature letters survey/
+];
 
 =head1 FUNCTIONS
 
@@ -434,6 +435,9 @@ sub extract_and_process_story($$$)
 {
     my ( $db, $story, $extractor_args ) = @_;
 
+    my $use_transaction = !$db->in_transaction();
+    $db->begin if ( $use_transaction );
+
     my $downloads = $db->query( <<SQL, $story->{ stories_id } )->hashes;
 SELECT * FROM downloads WHERE stories_id = ? AND type = 'content' ORDER BY downloads_id ASC
 SQL
@@ -445,7 +449,7 @@ SQL
 
     process_extracted_story( $db, $story, $extractor_args );
 
-    $db->commit;
+    $db->commit if ( $use_transaction );
 }
 
 =head2 process_extracted_story( $db, $story, $extractor_args )
@@ -735,7 +739,8 @@ sub attach_story_meta_data_to_stories
 {
     my ( $db, $stories ) = @_;
 
-    $db->begin;
+    my $use_transaction = !$db->in_transaction();
+    $db->begin if ( $use_transaction );
 
     my $ids_table = $db->get_temporary_ids_table( [ map { int( $_->{ stories_id } ) } @{ $stories } ] );
 
@@ -747,7 +752,7 @@ END
 
     attach_story_data_to_stories( $stories, $story_data );
 
-    $db->commit;
+    $db->commit if ( $use_transaction );
 
     return $stories;
 }
@@ -787,7 +792,7 @@ sub _get_title_parts
         unshift( @{ $title_parts }, $title );
     }
 
-    map { s/[[:punct:]]//g; s/\s+/ /g; s/^\s+//; s/\s+$//;  } @{ $title_parts };
+    map { s/[[:punct:]]//g; s/\s+/ /g; s/^\s+//; s/\s+$//; } @{ $title_parts };
 
     return $title_parts;
 }
@@ -994,7 +999,9 @@ sub get_story_word_matrix($$;$)
     my $word_index_sequence = 0;
     my $word_term_counts    = {};
 
-    $db->begin;
+    my $use_transaction = !$db->in_transaction();
+    $db->begin if ( $use_transaction );
+
     my $sentence_separator = 'SPLITSPLIT';
     my $story_text_cursor = _get_story_word_matrix_cursor( $db, $stories_ids, $sentence_separator );
 
@@ -1052,7 +1059,7 @@ sub get_story_word_matrix($$;$)
         }
     }
 
-    $db->commit;
+    $db->commit if ( $use_transaction );
 
     my $word_list = [];
     for my $stem ( keys( %{ $word_index_lookup } ) )
@@ -1075,6 +1082,11 @@ sub get_story_word_matrix($$;$)
 sub add_story($$$;$)
 {
     my ( $db, $story, $feeds_id, $skip_checking_if_new ) = @_;
+
+    if ( $db->in_transaction() )
+    {
+        LOGCONFESS "add_story() can't be run from within transaction.";
+    }
 
     $db->begin;
     $db->query( "lock table stories in row exclusive mode" );
