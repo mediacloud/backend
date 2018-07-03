@@ -294,29 +294,6 @@ EOF
     return $tags;
 }
 
-=head2 fetch_content( $db, $story )
-
-Fetch the content of the first download of the story.
-
-=cut
-
-sub fetch_content($$)
-{
-    my ( $db, $story ) = @_;
-
-    my $download = $db->query(
-        <<"EOF",
-        SELECT *
-        FROM downloads
-        WHERE stories_id = ?
-        order by downloads_id
-EOF
-        $story->{ stories_id }
-    )->hash;
-
-    return $download ? MediaWords::DBI::Downloads::fetch_content( $db, $download ) : '';
-}
-
 =head2 get_extracted_text( $db, $story )
 
 Return the concatenated download_texts associated with the story.

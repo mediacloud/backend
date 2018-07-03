@@ -27,6 +27,7 @@ use MediaWords::CommonLibs;
 use Test::NoWarnings;
 
 use MediaWords::Crawler::Engine;
+use MediaWords::DBI::Downloads;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
 use MediaWords::StoryVectors;
@@ -121,6 +122,23 @@ EOF
     )->hashes;
 }
 
+sub _fetch_content($$)
+{
+    my ( $db, $story ) = @_;
+
+    my $download = $db->query(
+        <<"EOF",
+        SELECT *
+        FROM downloads
+        WHERE stories_id = ?
+        order by downloads_id
+EOF
+        $story->{ stories_id }
+    )->hash;
+
+    return $download ? MediaWords::DBI::Downloads::fetch_content( $db, $download ) : '';
+}
+
 # get stories from database, including content, text, tags, and sentences
 sub _get_expanded_stories($)
 {
@@ -140,7 +158,7 @@ EOF
 
     for my $story ( @{ $stories } )
     {
-        $story->{ content } = MediaWords::DBI::Stories::fetch_content( $db, $story );
+        $story->{ content } = _fetch_content( $db, $story );
         $story->{ extracted_text } = MediaWords::DBI::Stories::get_text( $db, $story );
         $story->{ tags } = _get_db_module_tags( $db, $story, 'NYTTopics' );
 
