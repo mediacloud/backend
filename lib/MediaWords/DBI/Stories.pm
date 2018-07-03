@@ -492,13 +492,13 @@ sub process_extracted_story($$$)
     }
 }
 
-=head2 restore_download_content( $db, $download, $story_content )
+=head2 _restore_download_content( $db, $download, $story_content )
 
 Replace the the download with the given content and reextract the download.
 
 =cut
 
-sub restore_download_content
+sub _restore_download_content
 {
     my ( $db, $download, $story_content ) = @_;
 
@@ -506,13 +506,13 @@ sub restore_download_content
     _reextract_download( $db, $download );
 }
 
-=head2 download_is_broken( $db, $download )
+=head2 _download_is_broken( $db, $download )
 
 Check to see whether the given download is broken
 
 =cut
 
-sub download_is_broken($$)
+sub _download_is_broken($$)
 {
     my ( $db, $download ) = @_;
 
@@ -527,13 +527,13 @@ sub download_is_broken($$)
     return 1;
 }
 
-=head2 get_broken_download_content
+=head2 _get_broken_download_content
 
 For each download, refetch the content and add a { content } field with the fetched content.
 
 =cut
 
-sub get_broken_download_content
+sub _get_broken_download_content
 {
     my ( $db, $downloads ) = @_;
 
@@ -579,7 +579,7 @@ END
 select * from downloads where stories_id = ? order by downloads_id
 END
 
-    my $broken_downloads = [ grep { download_is_broken( $db, $_ ) } @{ $downloads } ];
+    my $broken_downloads = [ grep { _download_is_broken( $db, $_ ) } @{ $downloads } ];
 
     my $fetch_downloads = [];
     for my $download ( @{ $broken_downloads } )
@@ -594,11 +594,11 @@ END
         }
     }
 
-    get_broken_download_content( $db, $fetch_downloads );
+    _get_broken_download_content( $db, $fetch_downloads );
 
     for my $download ( @{ $broken_downloads } )
     {
-        restore_download_content( $db, $download, $download->{ content } );
+        _restore_download_content( $db, $download, $download->{ content } );
     }
 }
 
