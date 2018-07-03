@@ -75,21 +75,6 @@ SQL
     }
 }
 
-=head2 get_medium( $db, $download )
-
-Convenience method to get the media source for the given download
-
-=cut
-
-sub get_medium($$)
-{
-    my ( $db, $download ) = @_;
-
-    return $db->query( <<SQL, $download->{ feeds_id } )->hash;
-select m.* from feeds f join media m on ( f.media_id = m.media_id ) where feeds_id = ?
-SQL
-}
-
 # create a pending download for the story's url
 sub create_child_download_for_story
 {

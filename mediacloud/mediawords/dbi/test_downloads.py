@@ -268,3 +268,7 @@ class TestDownloadsDB(TestDatabaseWithSchemaTestCase):
     def test_get_media_id(self):
         media_id = mediawords.dbi.downloads.get_media_id(db=self.db(), download=self.test_download)
         assert media_id == self.test_medium['media_id']
+
+    def test_get_medium(self):
+        medium = mediawords.dbi.downloads.get_medium(db=self.db(), download=self.test_download)
+        assert medium == self.test_medium

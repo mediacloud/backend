@@ -412,3 +412,16 @@ def get_media_id(db: DatabaseHandler, download: dict) -> int:
         FROM feeds
         WHERE feeds_id = %(feeds_id)s
     """, {'feeds_id': download['feeds_id']}).hash()['media_id']
+
+
+def get_medium(db: DatabaseHandler, download: dict) -> dict:
+    """Convenience method to get the media source for the given download."""
+    download = decode_object_from_bytes_if_needed(download)
+
+    return db.query("""
+        SELECT m.*
+        FROM feeds AS f
+            JOIN media AS m
+                ON f.media_id = m.media_id
+        WHERE feeds_id = %(feeds_id)s
+    """, {'feeds_id': download['feeds_id']}).hash()
