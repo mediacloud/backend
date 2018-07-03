@@ -264,3 +264,7 @@ class TestDownloadsDB(TestDatabaseWithSchemaTestCase):
         result = mediawords.dbi.downloads.extract(db, self.test_download, use_cache=True)
         assert result['extracted_html'].strip() == '<body id="readabilityBody"><p>foo</p></body>'
         assert result['extracted_text'].strip() == 'foo.'
+
+    def test_get_media_id(self):
+        media_id = mediawords.dbi.downloads.get_media_id(db=self.db(), download=self.test_download)
+        assert media_id == self.test_medium['media_id']

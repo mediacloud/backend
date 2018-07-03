@@ -75,19 +75,6 @@ SQL
     }
 }
 
-=head2 get_media_id( $db, $download )
-
-Convenience method to get the media_id for the download.
-
-=cut
-
-sub get_media_id($$)
-{
-    my ( $db, $download ) = @_;
-
-    return $db->query( "select media_id from feeds where feeds_id = ?", $download->{ feeds_id } )->hash->{ media_id };
-}
-
 =head2 get_medium( $db, $download )
 
 Convenience method to get the media source for the given download

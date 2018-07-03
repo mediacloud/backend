@@ -401,3 +401,14 @@ def download_successful(download: dict) -> bool:
     download = decode_object_from_bytes_if_needed(download)
 
     return download['state'] in ('success', 'feed_error', 'extractor_error')
+
+
+def get_media_id(db: DatabaseHandler, download: dict) -> int:
+    """Convenience method to get the media_id for the download."""
+    download = decode_object_from_bytes_if_needed(download)
+
+    return db.query("""
+        SELECT media_id
+        FROM feeds
+        WHERE feeds_id = %(feeds_id)s
+    """, {'feeds_id': download['feeds_id']}).hash()['media_id']
