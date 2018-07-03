@@ -97,6 +97,30 @@ sub _run_crawler()
     $crawler->crawl();
 }
 
+sub _get_db_module_tags($$$)
+{
+    my ( $db, $story, $module ) = @_;
+
+    my $tag_set = $db->find_or_create( 'tag_sets', { name => $module } );
+
+    return $db->query(
+        <<"EOF",
+        SELECT t.tags_id AS tags_id,
+               t.tag_sets_id AS tag_sets_id,
+               t.tag AS tag
+        FROM stories_tags_map AS stm,
+             tags AS t,
+             tag_sets AS ts
+        WHERE stm.stories_id = ?
+              AND stm.tags_id = t.tags_id
+              AND t.tag_sets_id = ts.tag_sets_id
+              AND ts.name = ?
+EOF
+        $story->{ stories_id },
+        $module
+    )->hashes;
+}
+
 # get stories from database, including content, text, tags, and sentences
 sub _get_expanded_stories($)
 {
@@ -118,7 +142,7 @@ EOF
     {
         $story->{ content } = ${ MediaWords::DBI::Stories::fetch_content( $db, $story ) };
         $story->{ extracted_text } = MediaWords::DBI::Stories::get_text( $db, $story );
-        $story->{ tags } = MediaWords::DBI::Stories::get_db_module_tags( $db, $story, 'NYTTopics' );
+        $story->{ tags } = _get_db_module_tags( $db, $story, 'NYTTopics' );
 
         $story->{ story_sentences } = $db->query(
             <<EOF,
