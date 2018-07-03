@@ -647,18 +647,15 @@ sub stories_query_json : Local
     {
         foreach my $story ( @{ $stories } )
         {
-            my $content_ref = MediaWords::DBI::Stories::get_content_for_first_download( $c->dbis, $story );
+            my $content = MediaWords::DBI::Stories::get_content_for_first_download( $c->dbis, $story );
 
-            if ( !defined( $content_ref ) )
+            if ( !defined( $content ) )
             {
                 $story->{ first_raw_download_file }->{ missing } = 'true';
             }
             else
             {
-
-                #TRACE "got content_ref $$content_ref";
-
-                $story->{ first_raw_download_file } = $$content_ref;
+                $story->{ first_raw_download_file } = $content;
             }
         }
     }

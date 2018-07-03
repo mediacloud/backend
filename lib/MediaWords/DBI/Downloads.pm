@@ -11,11 +11,11 @@ storing and fetching content
 
     my $download = $db->find_by_id( 'downloads', $downloads_id );
 
-    my $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download );
+    my $content = MediaWords::DBI::Downloads::fetch_content( $db, $download );
 
-    $$content_ref =~ s/foo/bar/g;
+    $content =~ s/foo/bar/g;
 
-    Mediawords::DBI::Downloads::story_content( $db, $download, $content_ref );
+    Mediawords::DBI::Downloads::story_content( $db, $download, $content );
 
 =head1 DESCRIPTION
 
@@ -206,7 +206,7 @@ my $_store_for_writing = lazy
 # Returns store for writing new downloads to
 sub _download_store_for_writing($)
 {
-    my $content_ref = shift;
+    my $content = shift;
 
     return force $_store_for_writing;
 }
@@ -286,7 +286,7 @@ sub _download_store_for_reading($)
 
 =head2 fetch_content( $db, $download )
 
-Fetch the content for the given download as a content_ref from the configured content store.
+Fetch the content for the given download from the configured content store.
 
 =cut
 
@@ -317,20 +317,18 @@ sub fetch_content($$)
         LOGCROAK "Unable to fetch content for download " . $download->{ downloads_id } . "; tried store: " . ref( $store );
     }
 
-    my $content_ref = \$content;
-
     # horrible hack to fix old content that is not stored in unicode
     my $config                  = MediaWords::Util::Config::get_config;
     my $ascii_hack_downloads_id = $config->{ mediawords }->{ ascii_hack_downloads_id };
     if ( $ascii_hack_downloads_id and ( $download->{ downloads_id } < $ascii_hack_downloads_id ) )
     {
-        $$content_ref =~ s/[^[:ascii:]]/ /g;
+        $content =~ s/[^[:ascii:]]/ /g;
     }
 
-    return $content_ref;
+    return $content;
 }
 
-=head2 store_content( $db, $download, $content_ref )
+=head2 store_content( $db, $download, $content )
 
 Store the download content in the configured content store.
 
@@ -338,7 +336,7 @@ Store the download content in the configured content store.
 
 sub store_content($$$)
 {
-    my ( $db, $download, $content_ref ) = @_;
+    my ( $db, $download, $content ) = @_;
 
     $download = python_deep_copy( $download );
 
@@ -351,13 +349,13 @@ sub store_content($$$)
     # Store content
     my $path = '';
     eval {
-        my $store = _download_store_for_writing( $content_ref );
+        my $store = _download_store_for_writing( $content );
         unless ( defined $store )
         {
             LOGCROAK "No download store to write to.";
         }
 
-        $path = $store->store_content( $db, $download->{ downloads_id }, $$content_ref );
+        $path = $store->store_content( $db, $download->{ downloads_id }, $content );
     };
     if ( $@ )
     {
@@ -459,9 +457,9 @@ sub extract($$;$)
         return $results;
     }
 
-    my $content_ref = fetch_content( $db, $download );
+    my $content = fetch_content( $db, $download );
 
-    $results = extract_content_ref( $content_ref );
+    $results = extract_content( $content );
 
     _set_cached_extractor_results( $db, $download, $results ) if ( $extractor_args->use_cache );
 
@@ -469,29 +467,30 @@ sub extract($$;$)
 }
 
 # forbes is putting all of its content into a javascript variable, causing our extractor to fall down.
-# this function replaces $$content_ref with the html assigned to the javascript variable.
-# return true iff the function is able to find and parse the javascript content
-sub _parse_out_javascript_content
+# this function returns the html assigned to the javascript variable.
+# return the parsed html content if the function is able to find and parse the javascript content,
+# undef otherwise.
+sub _parse_out_javascript_content($)
 {
-    my ( $content_ref ) = @_;
+    my $content = shift;
 
-    if ( $$content_ref =~ s/.*fbs_settings.content[^\}]*body\"\:\"([^"\\]*(\\.[^"\\]*)*)\".*/$1/ms )
+    if ( $content =~ s/.*fbs_settings.content[^\}]*body\"\:\"([^"\\]*(\\.[^"\\]*)*)\".*/$1/ms )
     {
-        $$content_ref =~ s/\\[rn]/ /g;
-        $$content_ref =~ s/\[\w+ [^\]]*\]//g;
+        $content =~ s/\\[rn]/ /g;
+        $content =~ s/\[\w+ [^\]]*\]//g;
 
-        return 1;
+        return $content;
     }
 
-    return 0;
+    return undef;
 }
 
-# call configured extractor on the content_ref
+# call configured extractor on the content
 sub _call_extractor_on_html($)
 {
-    my $content_ref = shift;
+    my $content = shift;
 
-    my $extracted_html = MediaWords::Util::ExtractText::extract_article_from_html( $$content_ref );
+    my $extracted_html = MediaWords::Util::ExtractText::extract_article_from_html( $content );
     my $extracted_text = MediaWords::Util::HTML::html_strip( $extracted_html );
 
     return {
@@ -500,40 +499,46 @@ sub _call_extractor_on_html($)
     };
 }
 
-=head2 extract_content_ref( $content_ref )
+=head2 extract_content( $content )
 
-Accept a content_ref pointing to an HTML string.  Run the extractor on the HTMl and return the extracted text.
+Accepts a HTML string.  Run the extractor on the HTMl and return the extracted text.
 
 =cut
 
-sub extract_content_ref($)
+sub extract_content($)
 {
-    my $content_ref = shift;
+    my $content = shift;
 
     my $extracted_html;
     my $ret = {};
 
     # Don't run through expensive extractor if the content is short and has no html
-    if ( ( length( $$content_ref ) < $MIN_CONTENT_LENGTH_TO_EXTRACT ) and ( $$content_ref !~ /\<.*\>/ ) )
+    if ( ( length( $content ) < $MIN_CONTENT_LENGTH_TO_EXTRACT ) and ( $content !~ /\<.*\>/ ) )
     {
         TRACE( "Content length is less than $MIN_CONTENT_LENGTH_TO_EXTRACT and has no HTML so skipping extraction" );
         $ret = {
-            extracted_html => $$content_ref,
-            extracted_text => $$content_ref,
+            extracted_html => $content,
+            extracted_text => $content,
         };
     }
     else
     {
-        $ret = _call_extractor_on_html( $content_ref );
+        $ret = _call_extractor_on_html( $content );
 
-        # if we didn't get much text, try looking for content stored in the javascript
-        if ( ( length( $ret->{ extracted_text } ) < 256 ) && _parse_out_javascript_content( $content_ref ) )
+        if ( length( $ret->{ extracted_text } ) < 256 )
         {
-            my $js_ret = _call_extractor_on_html( $content_ref );
+            # if we didn't get much text, try looking for content stored in the javascript
+            $content = _parse_out_javascript_content( $content );
+            if ( defined $content )
+            {
 
-            $ret = $js_ret if ( length( $js_ret->{ extracted_text } ) > length( $ret->{ extracted_text } ) );
+                my $js_ret = _call_extractor_on_html( $content );
+                if ( length( $js_ret->{ extracted_text } ) > length( $ret->{ extracted_text } ) )
+                {
+                    $ret = $js_ret;
+                }
+            }
         }
-
     }
 
     return $ret;

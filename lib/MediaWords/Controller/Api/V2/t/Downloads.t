@@ -42,7 +42,7 @@ sub test_downloads($)
         );
 
         my $content = "content $download->{ downloads_id }";
-        MediaWords::DBI::Downloads::store_content( $db, $download, \$content );
+        MediaWords::DBI::Downloads::store_content( $db, $download, $content );
     }
 
     my $expected_downloads = $db->query( "select * from downloads where feeds_id = ?", $feed->{ feeds_id } )->hashes;

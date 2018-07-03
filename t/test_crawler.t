@@ -140,7 +140,7 @@ EOF
 
     for my $story ( @{ $stories } )
     {
-        $story->{ content } = ${ MediaWords::DBI::Stories::fetch_content( $db, $story ) };
+        $story->{ content } = MediaWords::DBI::Stories::fetch_content( $db, $story );
         $story->{ extracted_text } = MediaWords::DBI::Stories::get_text( $db, $story );
         $story->{ tags } = _get_db_module_tags( $db, $story, 'NYTTopics' );
 

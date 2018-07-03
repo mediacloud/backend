@@ -74,16 +74,16 @@ SQL
 
     return '' unless ( $download->{ state } eq 'success' );
 
-    my $content_ref;
+    my $content;
 
-    eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download ) };
-    if ( $@ || !$content_ref )
+    eval { $content = MediaWords::DBI::Downloads::fetch_content( $db, $download ) };
+    if ( $@ or ( !defined $content ) )
     {
         WARN "error fetching content: $@";
         return 0;
     }
 
-    $story->{ content } = $$content_ref;
+    $story->{ content } = $content;
 
     return $story->{ content };
 }
@@ -135,7 +135,7 @@ sub _get_sentences_from_content($)
 
     my $content = $story->{ content };
 
-    my $text = MediaWords::DBI::Downloads::extract_content_ref( \$content )->{ extracted_text };
+    my $text = MediaWords::DBI::Downloads::extract_content( $content )->{ extracted_text };
 
     my $lang = MediaWords::Languages::Language::language_for_code( $story->{ language } )
       || MediaWords::Languages::Language::default_language();

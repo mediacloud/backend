@@ -31,7 +31,7 @@ sub add_download_to_story
 
     my $story_content = "$story->{ title }\n\n$story->{ description }";
 
-    $download = MediaWords::DBI::Downloads::store_content( $db, $download, \$story_content );
+    $download = MediaWords::DBI::Downloads::store_content( $db, $download, $story_content );
 
     $story->{ content }  = $story_content;
     $story->{ download } = $download;
@@ -80,7 +80,7 @@ sub test_extractor_cache
     is( $c->{ extracted_html }, $story_1->{ content }, "cached extract 1 - cache result" );
 
     my $new_story_1_content = 'foo bar';
-    $story_1->{ download } = MediaWords::DBI::Downloads::store_content( $db, $story_1->{ download }, \$new_story_1_content );
+    $story_1->{ download } = MediaWords::DBI::Downloads::store_content( $db, $story_1->{ download }, $new_story_1_content );
 
     $res = MediaWords::DBI::Downloads::extract( $db, $story_1->{ download }, $xargs_usecache );
     is( $res->{ extracted_html }, $story_1->{ content }, "cached extraction 2 - extractor result" );

@@ -220,9 +220,9 @@ sub get_content_for_first_download($$)
         return;
     }
 
-    my $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $first_download );
+    my $content = MediaWords::DBI::Downloads::fetch_content( $db, $first_download );
 
-    return $content_ref;
+    return $content;
 }
 
 =head2 get_existing_tags( $db, $story, $tag_set_name )
@@ -314,7 +314,7 @@ EOF
         $story->{ stories_id }
     )->hash;
 
-    return $download ? MediaWords::DBI::Downloads::fetch_content( $db, $download ) : \'';
+    return $download ? MediaWords::DBI::Downloads::fetch_content( $db, $download ) : '';
 }
 
 =head2 get_extracted_text( $db, $story )
@@ -525,7 +525,7 @@ sub restore_download_content
 {
     my ( $db, $download, $story_content ) = @_;
 
-    $download = MediaWords::DBI::Downloads::store_content( $db, $download, \$story_content );
+    $download = MediaWords::DBI::Downloads::store_content( $db, $download, $story_content );
     _reextract_download( $db, $download );
 }
 
@@ -542,10 +542,10 @@ sub download_is_broken($$)
     # don't try to fix error downloads
     return 0 unless ( $download->{ state } eq 'success' );
 
-    my $content_ref;
-    eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download ); };
+    my $content;
+    eval { $content = MediaWords::DBI::Downloads::fetch_content( $db, $download ); };
 
-    return 0 if ( $content_ref && ( length( $$content_ref ) > 32 ) );
+    return 0 if ( defined $content && ( length( $content ) > 32 ) );
 
     return 1;
 }

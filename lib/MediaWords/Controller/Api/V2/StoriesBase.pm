@@ -86,9 +86,9 @@ SQL
     for my $download ( @{ $downloads } )
     {
         my $story = $story_lookup->{ $download->{ stories_id } };
-        my $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download );
+        my $content = MediaWords::DBI::Downloads::fetch_content( $db, $download );
 
-        $story->{ raw_first_download_file } = defined( $content_ref ) ? $$content_ref : { missing => 'true' };
+        $story->{ raw_first_download_file } = defined( $content ) ? $content : { missing => 'true' };
     }
 
     $db->commit;
