@@ -4,14 +4,16 @@ import copy
 import unittest
 
 import mediawords.dbi.downloads
+from mediawords.test.db import create_download_for_feed, create_test_feed, create_test_medium
 from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
 from mediawords.key_value_store.amazon_s3 import AmazonS3Store
 from mediawords.key_value_store.cached_amazon_s3 import CachedAmazonS3Store
 from mediawords.key_value_store.database_inline import DatabaseInlineStore
 from mediawords.key_value_store.postgresql import PostgreSQLStore
 from mediawords.key_value_store.multiple_stores import MultipleStoresStore
-
+from mediawords.util.config import get_config
 from mediawords.util.log import create_logger
+
 log = create_logger(__name__)
 
 
@@ -20,7 +22,7 @@ class TestDownloads(unittest.TestCase):
 
     def setUp(self) -> None:
         """Set self.config and assign dummy values for amazon_s3."""
-        self.config = mediawords.util.config.get_config()
+        self.config = get_config()
         self.save_config = copy.deepcopy(self.config)
 
         self._setup_amazon_s3_config()
@@ -163,9 +165,9 @@ class TestDownloadsDB(TestDatabaseWithSchemaTestCase):
 
         self.config = mediawords.util.config.get_config()
 
-        self.test_medium = mediawords.test.db.create_test_medium(self.db(), 'downloads test')
-        self.test_feed = mediawords.test.db.create_test_feed(self.db(), 'downlaods test', self.test_medium)
-        self.test_download = mediawords.test.db.create_download_for_feed(self.db(), self.test_feed)
+        self.test_medium = create_test_medium(self.db(), 'downloads test')
+        self.test_feed = create_test_feed(self.db(), 'downlaods test', self.test_medium)
+        self.test_download = create_download_for_feed(self.db(), self.test_feed)
 
         self.test_download['path'] = 'postgresql:foo'
         self.test_download['state'] = 'success'

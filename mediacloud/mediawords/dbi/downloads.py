@@ -34,8 +34,9 @@ from mediawords.key_value_store.cached_amazon_s3 import CachedAmazonS3Store
 from mediawords.key_value_store.database_inline import DatabaseInlineStore
 from mediawords.key_value_store.multiple_stores import MultipleStoresStore
 from mediawords.key_value_store.postgresql import PostgreSQLStore
-import mediawords.util.extract_text
-import mediawords.util.html
+from mediawords.util.config import get_config
+from mediawords.util.extract_text import extract_article_from_html
+from mediawords.util.html import html_strip
 from mediawords.util.log import create_logger
 
 log = create_logger(__name__)
@@ -70,10 +71,15 @@ def reset_store_singletons() -> None:
 
     This is mostly useful for testing.
     """
-    mediawords.dbi.downloads._inline_store = None
-    mediawords.dbi.downloads._amazon_s3_store = None
-    mediawords.dbi.downloads._postgresql_store = None
-    mediawords.dbi.downloads._store_for_writing = None
+    global _inline_store
+    global _amazon_s3_store
+    global _postgresql_store
+    global _store_for_writing
+
+    _inline_store = None
+    _amazon_s3_store = None
+    _postgresql_store = None
+    _store_for_writing = None
 
 
 def _get_inline_store() -> KeyValueStore:
@@ -95,7 +101,7 @@ def _get_amazon_s3_store() -> KeyValueStore:
     if _amazon_s3_store:
         return _amazon_s3_store
 
-    config = mediawords.util.config.get_config()
+    config = get_config()
 
     if 'amazon_s3' not in config:
         raise McDBIDownloadsException("Amazon S3 download store is not configured.")
@@ -123,7 +129,7 @@ def _get_postgresql_store() -> KeyValueStore:
     if _postgresql_store is not None:
         return _postgresql_store
 
-    config = mediawords.util.config.get_config()
+    config = get_config()
 
     _postgresql_store = PostgreSQLStore(table=RAW_DOWNLOADS_POSTGRESQL_KVS_TABLE_NAME)
 
@@ -141,7 +147,7 @@ def _get_store_for_writing() -> KeyValueStore:
     if _store_for_writing is not None:
         return _store_for_writing
 
-    config = mediawords.util.config.get_config()
+    config = get_config()
 
     # Early sanity check on configuration
     download_storage_locations = config['mediawords'].get('download_storage_locations', [])
@@ -152,7 +158,6 @@ def _get_store_for_writing() -> KeyValueStore:
     stores = []
     for location in download_storage_locations:
         location = location.lower()
-        store = None
 
         if location == 'databaseinline':
             raise McDBIDownloadsException("databaseinline location is not valid for storage")
@@ -175,9 +180,7 @@ def _get_store_for_writing() -> KeyValueStore:
 
 def _get_store_for_reading(download: dict) -> KeyValueStore:
     """Return the store from which to read the content for the given download."""
-    download_store = None
-
-    config = mediawords.util.config.get_config()
+    config = get_config()
 
     if config['mediawords'].get('read_all_downloads_from_s3', False):
         return _get_amazon_s3_store()
@@ -198,8 +201,8 @@ def _get_store_for_reading(download: dict) -> KeyValueStore:
         # these are old storage formats that we moved to postgresql
         download_store = _get_postgresql_store()
     else:
-        id = download.get('downloads_id', '(no downloads_id')
-        raise McDBIDownloadsException("Location 'location' is unknown for download %d", [id])
+        downloads_id = download.get('downloads_id', '(no downloads_id')
+        raise McDBIDownloadsException("Location 'location' is unknown for download %d", [downloads_id])
 
     assert download_store is not None
 
@@ -222,7 +225,7 @@ def fetch_content(db: DatabaseHandler, download: dict) -> str:
     content = content_bytes.decode()
 
     # horrible hack to fix old content that is not stored in unicode
-    config = mediawords.util.config.get_config()
+    config = get_config()
     ascii_hack_downloads_id = config['mediawords'].get('ascii_hack_downloads_id', 0)
     if download['downloads_id'] < ascii_hack_downloads_id:
         # this matches all non-printable-ascii characters.  python re does not support POSIX character
@@ -234,7 +237,7 @@ def fetch_content(db: DatabaseHandler, download: dict) -> str:
 
 def store_content(db: DatabaseHandler, download: dict, content: str) -> dict:
     """Store the content for the download."""
-    # feed_error state indicates that the download was successfull but that there was a problem
+    # feed_error state indicates that the download was successful but that there was a problem
     # parsing the feed afterward.  so we want to keep the feed_error state even if we redownload
     # the content
     new_state = 'success' if download['state'] != 'feed_error' else 'feed_error'
@@ -242,10 +245,9 @@ def store_content(db: DatabaseHandler, download: dict, content: str) -> dict:
     try:
         path = _get_store_for_writing().store_content(db, download['downloads_id'], content)
         error = ''
-    except Exception as e:
-        raise McDBIDownloadsException("error while trying to store download %d: %s" % (download['downloads_id'], e))
+    except Exception as ex:
         new_state = 'error'
-        error = str(e)
+        error = "error while trying to store download %d: %s" % (download['downloads_id'], str(ex))
         path = ''
 
     if new_state == 'success':
@@ -334,8 +336,8 @@ def extract(db: DatabaseHandler, download: dict, use_cache: bool = False) -> dic
 
 def _call_extractor_on_html(content: str) -> dict:
     """Call extractor on the content."""
-    extracted_html = mediawords.util.extract_text.extract_article_from_html(content)
-    extracted_text = mediawords.util.html.html_strip(extracted_html)
+    extracted_html = extract_article_from_html(content)
+    extracted_text = html_strip(extracted_html)
 
     return {'extracted_html': extracted_html, 'extracted_text': extracted_text}
 
