@@ -25,7 +25,7 @@ extraction.
 
 import random
 import re
-import typing
+from typing import Optional
 
 from mediawords.db import DatabaseHandler
 from mediawords.key_value_store import KeyValueStore
@@ -38,6 +38,7 @@ from mediawords.util.config import get_config
 from mediawords.util.extract_text import extract_article_from_html
 from mediawords.util.html import html_strip
 from mediawords.util.log import create_logger
+from mediawords.util.perl import decode_object_from_bytes_if_needed
 
 log = create_logger(__name__)
 
@@ -180,6 +181,8 @@ def _get_store_for_writing() -> KeyValueStore:
 
 def _get_store_for_reading(download: dict) -> KeyValueStore:
     """Return the store from which to read the content for the given download."""
+    download = decode_object_from_bytes_if_needed(download)
+
     config = get_config()
 
     if config['mediawords'].get('read_all_downloads_from_s3', False):
@@ -211,6 +214,9 @@ def _get_store_for_reading(download: dict) -> KeyValueStore:
 
 def fetch_content(db: DatabaseHandler, download: dict) -> str:
     """Fetch the content for the given download from the configured content store."""
+
+    download = decode_object_from_bytes_if_needed(download)
+
     if 'downloads_id' not in download:
         raise McDBIDownloadsException("downloads_id not in download")
 
@@ -240,6 +246,10 @@ def store_content(db: DatabaseHandler, download: dict, content: str) -> dict:
     # feed_error state indicates that the download was successful but that there was a problem
     # parsing the feed afterward.  so we want to keep the feed_error state even if we redownload
     # the content
+
+    download = decode_object_from_bytes_if_needed(download)
+    content = decode_object_from_bytes_if_needed(content)
+
     new_state = 'success' if download['state'] != 'feed_error' else 'feed_error'
 
     try:
@@ -260,12 +270,14 @@ def store_content(db: DatabaseHandler, download: dict, content: str) -> dict:
     return download
 
 
-def _get_cached_extractor_results(db: DatabaseHandler, download: dict) -> typing.Optional[dict]:
+def _get_cached_extractor_results(db: DatabaseHandler, download: dict) -> Optional[dict]:
     """Get extractor results from cache.
 
     Return:
     None if there is a miss or a dict in the form of extract_content() if there is a hit.
     """
+    download = decode_object_from_bytes_if_needed(download)
+
     r = db.query("""
         SELECT extracted_html, extracted_text
         FROM cached_extractor_results
@@ -277,13 +289,16 @@ def _get_cached_extractor_results(db: DatabaseHandler, download: dict) -> typing
     return r
 
 
-def _set_cached_extractor_results(db, download, results) -> None:
+def _set_cached_extractor_results(db, download: dict, results: dict) -> None:
     """Store results in extractor cache and manage size of cache."""
 
     # This cache is used as a backhanded way of extracting stories asynchronously in the topic spider.  Intead of
     # submitting extractor jobs and then directly checking whether a given story has been extracted, we just
     # throw extraction jobs in chunks into the extractor job and cache the results.  Then if we re-extract
     # the same story shortly after, this cache will hit and the cost will be trivial.
+
+    download = decode_object_from_bytes_if_needed(download)
+    results = decode_object_from_bytes_if_needed(results)
 
     max_cache_entries = 1000 * 1000
 
@@ -322,6 +337,11 @@ def extract(db: DatabaseHandler, download: dict, use_cache: bool = False) -> dic
     see extract_content() below
 
     """
+    download = decode_object_from_bytes_if_needed(download)
+    if isinstance(use_cache, bytes):
+        use_cache = decode_object_from_bytes_if_needed(use_cache)
+    use_cache = bool(int(use_cache))
+
     if use_cache:
         results = _get_cached_extractor_results(db, download)
         if results is not None:
@@ -339,6 +359,8 @@ def extract(db: DatabaseHandler, download: dict, use_cache: bool = False) -> dic
 
 def _call_extractor_on_html(content: str) -> dict:
     """Call extractor on the content."""
+    content = decode_object_from_bytes_if_needed(content)
+
     extracted_html = extract_article_from_html(content)
     extracted_text = html_strip(extracted_html)
 
@@ -358,6 +380,8 @@ def extract_content(content: str) -> dict:
     a dict in the form {'extracted_html': html, 'extracted_text': text}
 
     """
+    content = decode_object_from_bytes_if_needed(content)
+
     # Don't run through expensive extractor if the content is short and has no html
     if len(content) < MIN_CONTENT_LENGTH_TO_EXTRACT and re.search(r'<.*>', content) is None:
         log.info("Content length is less than MIN_CONTENT_LENGTH_TO_EXTRACT and has no HTML so skipping extraction")
@@ -374,4 +398,6 @@ def download_successful(download: dict) -> bool:
     This method is needed because there are cases it which the download was sucessfully downloaded
     but had a subsequent processing error. e.g. 'extractor_error' and 'feed_error'
     """
+    download = decode_object_from_bytes_if_needed(download)
+
     return download['state'] in ('success', 'feed_error', 'extractor_error')
