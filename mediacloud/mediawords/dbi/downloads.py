@@ -28,6 +28,7 @@ import re
 from typing import Optional
 
 from mediawords.db import DatabaseHandler
+from mediawords.dbi.stories.extractor_arguments import ExtractorArguments
 from mediawords.key_value_store import KeyValueStore
 from mediawords.key_value_store.amazon_s3 import AmazonS3Store
 from mediawords.key_value_store.cached_amazon_s3 import CachedAmazonS3Store
@@ -327,7 +328,7 @@ def _set_cached_extractor_results(db, download: dict, results: dict) -> None:
     db.create('cached_extractor_results', cache)
 
 
-def extract(db: DatabaseHandler, download: dict, use_cache: bool = False) -> dict:
+def extract(db: DatabaseHandler, download: dict, extractor_args: ExtractorArguments = ExtractorArguments()) -> dict:
     """Extract the content for the given download.
 
     Arguments:
@@ -340,11 +341,8 @@ def extract(db: DatabaseHandler, download: dict, use_cache: bool = False) -> dic
 
     """
     download = decode_object_from_bytes_if_needed(download)
-    if isinstance(use_cache, bytes):
-        use_cache = decode_object_from_bytes_if_needed(use_cache)
-    use_cache = bool(int(use_cache))
 
-    if use_cache:
+    if extractor_args.use_cache():
         results = _get_cached_extractor_results(db, download)
         if results is not None:
             return results
@@ -353,7 +351,7 @@ def extract(db: DatabaseHandler, download: dict, use_cache: bool = False) -> dic
 
     results = extract_content(content)
 
-    if use_cache:
+    if extractor_args.use_cache():
         _set_cached_extractor_results(db, download, results)
 
     return results
