@@ -891,26 +891,6 @@ sub get_medium_dup_stories_by_url
     return [ grep { ( @{ $_ } > 1 ) && ( @{ $_ } < 6 ) } values( %{ $url_lookup } ) ];
 }
 
-=head2 get_medium_dup_stories_by_guid( $db, $stories )
-
-Get duplicate stories within the given set that have duplicate guids
-
-=cut
-
-sub get_medium_dup_stories_by_guid
-{
-    my ( $db, $stories ) = @_;
-
-    my $guid_lookup = {};
-    for my $story ( @{ $stories } )
-    {
-        die( "no guid in story: " . Dumper( $story ) ) unless ( $story->{ guid } );
-        push( @{ $guid_lookup->{ $story->{ guid } } }, $story );
-    }
-
-    return [ grep { @{ $_ } > 1 } values( %{ $guid_lookup } ) ];
-}
-
 # get a postgres cursor that will return the concatenated story_sentences for each of the given stories_ids.  use
 # $sentence_separator to join the sentences for each story.
 sub _get_story_word_matrix_cursor($$$)
